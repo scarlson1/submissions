@@ -3,6 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@emotion/react": "^11.10.5",
+    "@emotion/styled": "^11.10.5",
+    "@fontsource/public-sans": "^4.5.11",
+    "@fontsource/roboto": "^4.5.8",
+    "@mui/icons-material": "^5.11.0",
+    "@mui/lab": "^5.0.0-alpha.115",
+    "@mui/material": "^5.11.4",
+    "@mui/x-date-pickers": "^5.0.13",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
@@ -10,15 +18,28 @@
     "@types/node": "^16.18.11",
     "@types/react": "^18.0.26",
     "@types/react-dom": "^18.0.10",
+    "autosuggest-highlight": "^3.3.4",
+    "env-cmd": "^10.1.0",
+    "firebase": "^9.15.0",
+    "formik": "^2.2.9",
+    "lottie-react": "^2.3.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-router-dom": "^6.6.2",
     "react-scripts": "5.0.1",
     "typescript": "^4.9.4",
-    "web-vitals": "^2.1.4"
+    "web-vitals": "^2.1.4",
+    "yup": "^0.32.11"
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build",
+    "start:emulators": "env-cmd -e common,dev,emulators react-scripts start",
+    "build": "react-scripts --max_old_space_size=4096 build",
+    "build:dev:emulators": "env-cmd -e common,dev,emulators npm run build",
+    "build:prod:emulators": "env-cmd -e common,prod,emulators npm run build",
+    "build:dev": "env-cmd -e common,dev npm run build",
+    "build:prod": "env-cmd -e common,prod npm run build",
+    "deploy": "npm run build:prod && firebase deploy --only hosting",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
@@ -39,5 +60,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@types/autosuggest-highlight": "^3.2.0"
   }
 }

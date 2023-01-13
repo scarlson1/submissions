@@ -4,7 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "client:dev": "npm run start:emulators --prefix ./client",
+    "client:live": "npm run start --prefix ./client",
+    "functions:build": "npm run build:watch --prefix ./functions",
+    "emulators:dev": "firebase emulators:start --only functions,auth,firestore,storage,pubsub --import ./emulator-data",
+    "dev": "npm run setSAPath && concurrently \"npm run client:dev\" \"npm run functions:build\" \"npm run emulators:dev\"",
+    "setSAPath": "export GOOGLE_APPLICATION_CREDENTIALS=\"/Users/spencercarlson/code/idemand-submissions-firebase-admin.json\""
   },
   "repository": {
     "type": "git",
@@ -15,5 +20,8 @@
   "bugs": {
     "url": "https://github.com/scarlson1/submissions/issues"
   },
-  "homepage": "https://github.com/scarlson1/submissions#readme"
+  "homepage": "https://github.com/scarlson1/submissions#readme",
+  "dependencies": {
+    "concurrently": "^7.6.0"
+  }
 }

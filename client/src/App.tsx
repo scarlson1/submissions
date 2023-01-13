@@ -1,25 +1,19 @@
 import React from 'react';
-import logo from './logo.svg';
 import './App.css';
+import { Outlet } from 'react-router-dom';
+// import { ErrorBoundary } from 'react-error-boundary';
+
+import { ThemeProvider } from 'modules/components/ThemeContext';
+// import { AuthContextProvider } from 'modules/components/AuthContext';
+// import { ConfirmationProvider } from 'modules/components/ConfirmationService';
+// import ThemedToastContainer from 'modules/utils/ToastContainer';
+// import GenericErrorFallback from 'components/errorBoundaries/GenericErrorFallback';
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <ThemeProvider>
+      <Outlet />
+    </ThemeProvider>
   );
 }
 
