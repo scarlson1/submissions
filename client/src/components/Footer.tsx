@@ -22,8 +22,12 @@ export const Footer: React.FC = () => {
         py: 4,
         px: 2,
         mt: 'auto',
-        backgroundColor: (theme) =>
-          theme.palette.mode === 'light' ? theme.palette.grey[50] : 'background.paper',
+        backdropFilter: 'blur(20px)',
+        webkitBackdropFilter: 'blur(20px)',
+        borderTop: '1px solid',
+        borderColor: 'divider',
+        // backgroundColor: (theme) =>
+        //   theme.palette.mode === 'light' ? theme.palette.grey[50] : 'background.paper',
       }}
     >
       <Container maxWidth='lg'>

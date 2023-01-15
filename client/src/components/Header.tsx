@@ -179,17 +179,14 @@ export const Header: React.FC = () => {
           </Box>
 
           <Box sx={{ flexGrow: 0 }}>
-            <IconButton
-              sx={{ mx: { xs: 1, sm: 1.5, md: 2 } }}
-              onClick={changeTheme}
-              color='primary'
-            >
+            <IconButton sx={{ mx: { xs: 1, sm: 2, md: 3 } }} onClick={changeTheme} color='primary'>
               {theme.palette.mode === 'dark' ? (
                 <Brightness7 fontSize='small' />
               ) : (
                 <Brightness4 fontSize='small' />
               )}
             </IconButton>
+            {/* TODO: show login button if not authenticated */}
             <Tooltip title='Open settings'>
               <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
                 <Avatar alt='Remy Sharp' src='/static/images/avatar/2.jpg' />

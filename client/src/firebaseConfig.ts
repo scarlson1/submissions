@@ -12,20 +12,7 @@ const firebaseConfig = {
   storageBucket: process.env.REACT_APP_FB_STORAGE_BUCKET,
   messagingSenderId: process.env.REACT_APP_FB_MESSAGING_SENDER_ID,
   appId: process.env.REACT_APP_FB_APP_ID,
-  // measurementId: process.env.REACT_APP_FB_MESASUREMENT_ID,
 };
-
-// const firebaseConfig = {
-//   apiKey: 'AIzaSyCwcYgjEUbG-tAVAmrKbQMnBLCjUHStl1Q',
-//   authDomain: 'idemand-submissions.firebaseapp.com',
-//   projectId: 'idemand-submissions',
-//   storageBucket: 'idemand-submissions.appspot.com',
-//   messagingSenderId: '234623719115',
-//   appId: '1:234623719115:web:dc70d4aa423ca3c91f6d4e',
-//   measurementId: 'G-W6V0344BB2',
-// };
-
-// TODO: determine how to set firebase config
 
 export const app = initializeApp(firebaseConfig);
 

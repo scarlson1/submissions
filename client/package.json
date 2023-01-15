@@ -22,9 +22,16 @@
     "env-cmd": "^10.1.0",
     "firebase": "^9.15.0",
     "formik": "^2.2.9",
+    "lodash": "^4.17.21",
     "lottie-react": "^2.3.1",
+    "mapbox-gl": "^2.12.0",
+    "numeral": "^2.0.6",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-hot-toast": "^2.4.0",
+    "react-imask": "^6.4.3",
+    "react-map-gl": "^7.0.21",
+    "react-number-format": "^5.1.3",
     "react-router-dom": "^6.6.2",
     "react-scripts": "5.0.1",
     "typescript": "^4.9.4",
@@ -33,7 +40,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "start:emulators": "env-cmd -e common,dev,emulators react-scripts start",
+    "start:emulators": "env-cmd -f ./.env.local env-cmd -e common,dev,emulators --no-override react-scripts start",
     "build": "react-scripts --max_old_space_size=4096 build",
     "build:dev:emulators": "env-cmd -e common,dev,emulators npm run build",
     "build:prod:emulators": "env-cmd -e common,prod,emulators npm run build",
@@ -62,6 +69,7 @@
     ]
   },
   "devDependencies": {
-    "@types/autosuggest-highlight": "^3.2.0"
+    "@types/autosuggest-highlight": "^3.2.0",
+    "@types/numeral": "^2.0.2"
   }
 }

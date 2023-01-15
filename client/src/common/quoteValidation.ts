@@ -1,0 +1,136 @@
+import * as yup from 'yup';
+
+export const phoneRegEx = /^\+1[1-9]{1}[0-9]{9}$/;
+
+export const phoneVal = yup.string().matches(phoneRegEx, 'Phone number is not valid');
+
+export const isValidEmail = (str: string) => {
+  // eslint-disable-next-line
+  return /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(
+    str
+  );
+};
+
+export const emailVal = yup.string().test('valid-email', 'Invalid email', async (val, ctx) => {
+  let row = ctx.parent;
+  if (!row.name && !row.relation) {
+    return true;
+  }
+  if (!val || !isValidEmail(val)) return false;
+  return true;
+});
+
+export const addressValidation = yup.object().shape({
+  addressLine1: yup.string().required('Address is required'),
+  addressLine2: yup.string().notRequired(),
+  city: yup.string().required('City is required'),
+  state: yup.string().required('State is required'),
+  postal: yup.string().required('Postal code is required'),
+});
+
+const getNumValue = (val: any): number =>
+  typeof val === 'string' ? parseInt(val || '0') : typeof val === 'number' ? val : 0;
+
+const checkBCDSumValid = (
+  limit1: string | number,
+  limit2: string | number,
+  limit3: string | number
+) => {
+  limit1 = getNumValue(limit1);
+  limit2 = getNumValue(limit2);
+  limit3 = getNumValue(limit3);
+
+  return (
+    limit1 + limit2 + limit3 < parseInt(process.env.REACT_APP_FLOOD_MAX_LIMIT_B_C_D || '1000000')
+  );
+};
+
+export const limitsValidation = yup.object({
+  coverageActive: yup.object({
+    building: yup.bool(),
+    structures: yup.bool(),
+    contents: yup.bool(),
+    additional: yup.bool(),
+  }),
+  coverageActiveBuilding: yup.boolean(),
+  coverageActiveStructures: yup.boolean(),
+  coverageActiveContents: yup.boolean(),
+  coverageActiveAdditional: yup.boolean(),
+  limitA: yup.string().when('coverageActiveBuilding', {
+    is: true,
+    then: yup
+      .string()
+      .required()
+      .test('limitA', 'Building limit required. Please enter a number.', (value) => {
+        if (value === undefined) return false;
+        if (!isNaN(parseInt(value))) return true;
+        return false;
+      })
+      .test('limitA', 'Amount must be between 100k and 1M.', (value) => {
+        let num = parseInt(value || '0');
+        let min = parseInt(process.env.REACT_APP_FLOOD_MIN_LIMIT_A!) || 100000;
+        let max = parseInt(process.env.REACT_APP_FLOOD_MAX_LIMIT_A!) || 1000000;
+
+        return num >= min && num <= max;
+      }),
+  }),
+  limitB: yup.string().when('coverageActiveStructures', {
+    is: true,
+    then: yup
+      .string()
+      .required()
+      .test('limitB', 'Building limit required. Please enter a number.', (value) => {
+        if (value === undefined) return false;
+        if (!isNaN(parseInt(value))) return true;
+        return false;
+      })
+      .test('limitB', 'Amount must be between 0 and 1M.', (value, context) => {
+        return checkBCDSumValid(value || 0, context.parent.limitC, context.parent.limitD);
+        // let limitB = getNumValue(value)
+        // let limitC = getNumValue(context.parent.limitC)
+        // let limitD = getNumValue(context.parent.limitD)
+
+        // let sum = limitB + limitC + limitD;
+
+        // return sum >= 0 && sum <= 1000000;
+      }),
+  }),
+  limitC: yup.string().when('coverageActiveStructures', {
+    is: true,
+    then: yup
+      .string()
+      .test('limitC', 'Building limit required. Please enter a number.', (value) => {
+        if (value === undefined) return false;
+        if (!isNaN(parseInt(value))) return true;
+        return false;
+      })
+      .test('limitC', 'Amount must be between 0 and 1M.', (value, context) => {
+        return checkBCDSumValid(context.parent.limitB, value || 0, context.parent.limitD);
+      }),
+  }),
+  limitD: yup.string().when('coverageActiveStructures', {
+    is: true,
+    then: yup
+      .string()
+      .test('limitD', 'Please enter a number.', (value) => {
+        if (value === undefined) return false;
+        if (!isNaN(parseInt(value))) return true;
+        return false;
+      })
+      .test('limitD', 'Amount must be between 0 and 1M.', (value, context) => {
+        return checkBCDSumValid(context.parent.limitB, context.parent.limitC, value || 0);
+      }),
+  }),
+});
+
+// TODO: max validation
+export const deductibleValidation = yup.object().shape({
+  deductible: yup.number().min(1000).required(),
+});
+
+export const contactValidation = yup.object().shape({
+  firstName: yup.string().notRequired(),
+  lastName: yup.string().notRequired(),
+  email: emailVal, // .required('Email required'), // yup.string().email().required(),
+  phone: phoneVal.notRequired(),
+});
