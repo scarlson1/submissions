@@ -13,6 +13,7 @@ import {
   // Invite,
   // AgencyApplication,
   License,
+  Submission,
 } from 'common/types';
 import { db } from 'firebaseConfig';
 
@@ -20,6 +21,7 @@ export const createCollection = <T = DocumentData>(collectionName: string, ...re
   return collection(db, collectionName, ...rest) as CollectionReference<T>;
 };
 
+export const submissionsCollection = createCollection<Submission>(Collections.SUBMISSIONS);
 export const quotesCollection = createCollection<QuoteData>(Collections.QUOTES);
 export const ratingCollection = createCollection<RatingData>(Collections.RATING_DATA);
 export const spatialKeyCollection = createCollection<SpatialKeyResponse>(Collections.SK_RES);

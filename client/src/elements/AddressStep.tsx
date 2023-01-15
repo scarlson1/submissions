@@ -25,7 +25,7 @@ export interface AddressStepValues {
 export const AddressStep: React.FC = () => {
   const theme = useTheme();
   const { values, setFieldValue, validateForm } = useFormikContext<AddressStepValues>();
-  const [mapOpen, setMapOpen] = useState(false);
+  const [mapOpen, setMapOpen] = useState(Boolean(values.latitude && values.longitude));
 
   const addressChangeCb = async (values?: any) => {
     setMapOpen(true);

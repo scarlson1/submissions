@@ -23,7 +23,7 @@ export const DeductibleStep: React.FC<DeductibleStepProps> = ({ gridProps }) => 
       columnSpacing={{ xs: 6, sm: 9, md: 12 }}
       {...gridProps}
     >
-      <Grid xs={12}>
+      <Grid xs={12} sx={{ pt: 1 }}>
         <Typography variant='subtitle1' color='text.secondary'>
           The deductible is the amount subtracted from a claim payout. It's the portion of the claim
           covered by the policy holder.

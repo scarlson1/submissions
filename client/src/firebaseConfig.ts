@@ -26,5 +26,6 @@ if (process.env.REACT_APP_EMULATORS === 'true') {
   connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
   connectFirestoreEmulator(db, 'localhost', 8082);
   connectFunctionsEmulator(functions, 'localhost', 5001);
+  // connectFunctionsEmulator(functions, '127.0.0.1', 5001);
   connectStorageEmulator(storage, 'localhost', 9199);
 }

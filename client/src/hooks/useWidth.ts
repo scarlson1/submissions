@@ -19,7 +19,6 @@ export const useWidth = (mobileWidth?: number) => {
   }, []);
 
   useEffect(() => {
-    console.log('handleWindowSizeChange changed');
     window.addEventListener('resize', handleWindowSizeChange);
     return () => {
       window.removeEventListener('resize', handleWindowSizeChange);

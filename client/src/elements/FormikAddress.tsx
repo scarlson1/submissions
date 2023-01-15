@@ -30,15 +30,12 @@ export const FormikAddress: React.FC<FormikAddressProps> = ({
     const newState = findAddressValueByType(address_components, 'administrative_area_level_1');
     const newPostal = findAddressValueByType(address_components, 'postal_code');
 
-    let lat = geometry ? geometry.location.lat() : null;
-    let lng = geometry ? geometry.location.lng() : null;
-
     setFieldValue('addressLine1', `${newStreetNumber?.long_name} ${newStreetName?.long_name}`);
     setFieldValue('city', `${newCity?.long_name}`);
     setFieldValue('state', `${newState?.short_name}`);
     setFieldValue('postal', `${newPostal?.long_name}`);
-    setFieldValue('latitude', lat);
-    setFieldValue('longitude', lng);
+    setFieldValue('latitude', geometry?.location.lat() ?? null);
+    setFieldValue('longitude', geometry?.location.lng() ?? null);
 
     if (cb) {
       cb();

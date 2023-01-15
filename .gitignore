@@ -22,5 +22,17 @@ yarn-debug.log*
 yarn-error.log*
 firebase-debug.log*
 ui-debug.log*
+*debug.log*
+**/.firebase
+**/.firebaserc
+**/.runtimeconfig.json
+**/package-lock.json
+# keep the root package-lock so that tools are consistent
+!/package-lock.json
+**/ui-debug.log
+**/database-debug.log
+**/firebase-debug.log
+**/pubsub-debug.log
+**/tsconfig-compile.json
 
 .env*.local

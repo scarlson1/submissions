@@ -1,3 +1,3 @@
 import 'firebase-functions';
 
-export { test } from './Callables';
+export { getPropertyDetails } from './Callables';

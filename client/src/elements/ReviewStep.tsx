@@ -104,7 +104,9 @@ export const ReviewStep: React.FC = () => {
                   }}
                   key={item.valueKey}
                 >
-                  <Typography sx={{ color: 'text.secondary' }}>{item.title}</Typography>
+                  <Typography variant='body2' sx={{ color: 'text.secondary' }}>
+                    {item.title}
+                  </Typography>
                   <Typography variant='body1' sx={{ fontWeight: 500 }}>
                     {dollarFormat(values[item.valueKey])}
                   </Typography>
@@ -118,7 +120,8 @@ export const ReviewStep: React.FC = () => {
               What's Next?
             </Typography>
             <Typography variant='body2' sx={{ color: 'text.secondary' }} gutterBottom>
-              Keep an eye on your inbox! We'll deliver a quote to the provided email address.
+              {`Keep an eye on your inbox! We'll deliver a quote to the provided email address  (
+              ${values.email}).`}
             </Typography>
           </Grid>
         </Grid>

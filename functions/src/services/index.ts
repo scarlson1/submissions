@@ -1,0 +1,1 @@
+export { getSpatialKeyInstance } from './spatialKey';

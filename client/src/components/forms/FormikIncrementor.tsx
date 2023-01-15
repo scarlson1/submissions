@@ -16,10 +16,10 @@ export interface FormikIncrementorProps {
   incrementBy: number;
   min: number | null | undefined;
   max?: number;
-  label?: React.ReactNode;
+  // label?: React.ReactNode;
   stackProps?: Partial<StackProps>;
   typographyProps?: Partial<TypographyProps>;
-  labelTypographyProps?: Partial<TypographyProps>;
+  // labelTypographyProps?: Partial<TypographyProps>;
   errorTypographyProps?: Partial<TypographyProps>;
   iconButtonProps?: Partial<IconButtonProps>;
   disableDecrease?: any;
@@ -33,10 +33,10 @@ export const FormikIncrementor: React.FC<FormikIncrementorProps> = ({
   incrementBy,
   min = 0,
   max,
-  label,
+  // label,
   stackProps,
   typographyProps,
-  labelTypographyProps,
+  // labelTypographyProps,
   errorTypographyProps,
   iconButtonProps,
   disabled,
@@ -46,8 +46,6 @@ export const FormikIncrementor: React.FC<FormikIncrementorProps> = ({
 
   const handleIncrease = useCallback(() => {
     helpers.setTouched(true);
-    const valType = typeof field.value;
-    console.log('valType: ', valType);
     if (field.value && typeof field.value === 'number') {
       let newVal = field.value + incrementBy;
       if (!!max && newVal > max) return;
@@ -57,9 +55,7 @@ export const FormikIncrementor: React.FC<FormikIncrementorProps> = ({
   }, [incrementBy, max, field.value, helpers]);
 
   const handleDecrease = useCallback(() => {
-    console.log('value: ', field.value, typeof field.value);
     helpers.setTouched(true);
-
     if (field.value && typeof field.value === 'number') {
       let newVal = field.value - incrementBy;
       if (!!min && newVal < min) return;

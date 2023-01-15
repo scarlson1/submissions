@@ -10,15 +10,19 @@ import {
   Container,
 } from '@mui/material';
 import Lottie from 'lottie-react';
+import { useNavigate, useParams } from 'react-router-dom';
 
 import * as CheckmarkLottie from 'assets/checkmark.json';
-import { useNavigate } from 'react-router-dom';
+import { ROUTES, createPath } from 'router';
 
 // TODO: "Are you an agent? Get in touch..."
 // TODO: create account
 
 export const SuccessStep: React.FC = () => {
   const navigate = useNavigate();
+  const { submissionId } = useParams();
+
+  console.log('sub id: ', submissionId);
 
   return (
     <Container maxWidth='sm' sx={{ py: { xs: 3, sm: 4, md: 6, lg: 8 } }}>
@@ -68,10 +72,16 @@ export const SuccessStep: React.FC = () => {
         </CardContent>
         <CardActions sx={{ justifyContent: 'flex-end' }}>
           <Box>
-            <Button onClick={() => navigate('/contact', { replace: true })} sx={{ ml: 2 }}>
+            <Button
+              onClick={() => navigate(createPath({ path: ROUTES.CONTACT }), { replace: true })}
+              sx={{ ml: 2 }}
+            >
               Contact Us
             </Button>
-            <Button onClick={() => navigate('/quotes/new', { replace: true })} sx={{ ml: 2 }}>
+            <Button
+              onClick={() => navigate(createPath({ path: ROUTES.QUOTE_NEW }), { replace: true })}
+              sx={{ ml: 2 }}
+            >
               New Quote
             </Button>
           </Box>

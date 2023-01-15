@@ -1,6 +1,8 @@
 import React, { useCallback } from 'react';
 import { FormikHelpers } from 'formik';
-import { Box, Container } from '@mui/material';
+import { Box, Container, Tooltip, Typography } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
+import { addDoc, serverTimestamp } from 'firebase/firestore';
 
 import { FormikTextField, FormikWizard, Step } from 'components/forms';
 import { AddressStep, LimitsStep, DeductibleStep, ReviewStep } from 'elements';
@@ -10,7 +12,11 @@ import {
   deductibleValidation,
   contactValidation,
 } from 'common/quoteValidation';
-import { useNavigate } from 'react-router-dom';
+import { ROUTES, createPath } from 'router';
+import { submissionsCollection } from 'common/firestoreCollections';
+import { SubmissionStatus } from 'common/enums';
+import { usePropertyDetails } from 'hooks';
+import axios from 'axios';
 
 const gridProps = {
   rowSpacing: { xs: 4, sm: 6, md: 8 },
@@ -83,12 +89,52 @@ export const Quote: React.FC = () => {
   //   reset();
   //   navigate('/application/flood');
   // }, [reset, navigate]);
+  // const { } = useFetchProperty()
+
+  const { fetchPropertyData } = usePropertyDetails();
+  const handleFetchProperty = useCallback(
+    async (values: any, helpers: FormikHelpers<any>) => {
+      try {
+        // formik async dependent fields ref: https://formik.org/docs/examples/dependent-fields-async-api-request
+        // TODO: set response as initial limits and deductible
+
+        // const test = await axios.post('http://localhost:8080/new-quote/flood', {
+        //   address: {
+        //     addressLine1: values.addressLine1,
+        //     city: values.city,
+        //     state: values.state,
+        //     postal: values.postal,
+        //   },
+        // });
+        // console.log('test: ', test);
+
+        const res = await fetchPropertyData({ lat: values.latitude, lng: values.longitude });
+        console.log('result: ', res);
+      } catch (err) {
+        console.log('ERROR: ', err);
+        helpers.setSubmitting(false);
+      }
+    },
+    [fetchPropertyData]
+  );
 
   const handleSubmit = useCallback(
-    (values: FloodValues, { setSubmitting }: FormikHelpers<FloodValues>) => {
+    async (values: FloodValues, { setSubmitting }: FormikHelpers<FloodValues>) => {
       console.log(values);
+      try {
+        const docRef = await addDoc(submissionsCollection, {
+          ...values,
+          status: SubmissionStatus.Submitted,
+          metadata: {
+            created: serverTimestamp(),
+            updated: serverTimestamp(),
+          },
+        });
+
+        navigate(createPath({ path: ROUTES.QUOTE_SUBMITTED, params: { submissionId: docRef.id } }));
+      } catch (err) {}
+
       setSubmitting(false);
-      navigate('/quotes/submitted');
     },
     [navigate]
   );
@@ -100,6 +146,7 @@ export const Quote: React.FC = () => {
           <Step
             label={`What's the Address?`}
             validationSchema={addressValidation}
+            mutateOnSubmit={handleFetchProperty}
             stepperNavLabel='Address'
           >
             <AddressStep />
@@ -119,7 +166,17 @@ export const Quote: React.FC = () => {
             </Box>
           </Step>
           <Step
-            label='Where should we send the quote?'
+            // label='Where should we send the quote?'
+            label={
+              <Tooltip
+                title={`This can be any valid email to which you have access. It is only used to deliver the quote. It does not need to be the policy holder or agent.`}
+                placement='top-end'
+              >
+                <Typography variant='h6' gutterBottom align='center' sx={{ my: 3 }}>
+                  Where should we send the quote?
+                </Typography>
+              </Tooltip>
+            }
             validationSchema={contactValidation}
             stepperNavLabel='Contact'
           >

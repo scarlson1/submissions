@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   AppBar,
   Box,
@@ -17,18 +17,19 @@ import { useTheme } from '@mui/material/styles';
 
 import { useChangeTheme } from 'modules/components/ThemeContext';
 import { useNavigate } from 'react-router-dom';
+import { ROUTES, createPath } from 'router';
 // import { useAuth } from 'modules/components/AuthContext';
 
-const pages = [
-  {
-    title: 'Quote',
-    route: 'quote',
-  },
-  {
-    title: 'Contact Us',
-    route: 'contact',
-  },
-];
+// const pages = [
+//   {
+//     title: 'Quote',
+//     route: createPath({ path: ROUTES.QUOTE_NEW }), // 'quotes/new',
+//   },
+//   {
+//     title: 'Contact Us',
+//     route: createPath({ path: ROUTES.CONTACT }), // 'contact',
+//   },
+// ];
 const settings = ['Website', 'Logout']; // ['Profile', 'Account', 'Dashboard', 'Logout'];
 
 export const Header: React.FC = () => {
@@ -37,6 +38,20 @@ export const Header: React.FC = () => {
   const navigate = useNavigate();
   const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
   const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(null);
+
+  const pages = useMemo(
+    () => [
+      {
+        title: 'Quote',
+        route: createPath({ path: ROUTES.QUOTE_NEW }), // 'quotes/new',
+      },
+      {
+        title: 'Contact Us',
+        route: createPath({ path: ROUTES.CONTACT }), // 'contact',
+      },
+    ],
+    []
+  );
 
   const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorElNav(event.currentTarget);
@@ -145,8 +160,6 @@ export const Header: React.FC = () => {
             variant='h5'
             noWrap
             onClick={() => navigate('/')}
-            // component='a'
-            // href=''
             sx={{
               mr: 4,
               display: { xs: 'flex', md: 'none' },

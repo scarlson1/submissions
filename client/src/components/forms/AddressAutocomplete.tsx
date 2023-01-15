@@ -209,12 +209,14 @@ export const AddressAutocomplete: FunctionComponent<AddressAutocompleteProps> = 
             size='medium'
             autoComplete='off'
             fullWidth
-            InputProps={{ ...params.InputProps, autoComplete: 'new-password' }}
+            InputProps={{
+              ...params.InputProps,
+              autoComplete: 'new-password',
+            }}
             error={Boolean(meta) && meta.touched && Boolean(meta.error)}
             helperText={(meta && meta.touched && meta.error) ?? meta.error}
             onBlur={() => form.setFieldTouched('addressLine1')}
             {...textFieldProps}
-            // onBlur={() => helpers.setTouched}
           />
         )}
         getOptionLabel={(option) => option.structured_formatting.main_text}

@@ -10,6 +10,43 @@ import { SuccessStep } from 'elements';
 //    - submission
 //    - quote (submission is view with button to create quote)
 
+// TODO: routes enum
+// https://betterprogramming.pub/the-best-way-to-manage-routes-in-a-react-project-with-typescript-c4e8d4422d64
+// https://codesandbox.io/s/affectionate-mirzakhani-c7lvr?from-embed
+export enum ROUTES {
+  QUOTE_NEW = '/quotes/new',
+  QUOTE_VIEW = '/quotes/:quoteId',
+  QUOTE_SUBMITTED = '/quotes/submitted',
+  CHECKOUT = '/quotes/:quoteId/checkout',
+  CONTACT = '/contact',
+}
+
+type TArgs =
+  | { path: ROUTES.QUOTE_NEW }
+  | { path: ROUTES.QUOTE_VIEW; params: { quoteId: string } }
+  | { path: ROUTES.QUOTE_SUBMITTED; params: { submissionId: string } }
+  | { path: ROUTES.CHECKOUT; params: { quoteId: string } }
+  | { path: ROUTES.CONTACT };
+
+type TArgsWithParams = Extract<TArgs, { path: any; params: any }>;
+
+export function createPath(args: TArgs) {
+  if (args.hasOwnProperty('params') === false) return args.path;
+
+  // Create a path by replacing params in the route definition
+  return Object.entries((args as TArgsWithParams).params).reduce(
+    (previousValue: string, [param, value]) => previousValue.replace(`:${param}`, '' + value),
+    args.path
+  );
+}
+
+// example: <Link to={createPath({ path: ROUTES.QUOTE_NEW })} />
+
+// createPath({
+//   path: ROUTES.CHECKOUT,
+//   params: { quoteId: '123ID' },
+// });
+
 export const router = createBrowserRouter([
   {
     path: '/',
@@ -24,23 +61,23 @@ export const router = createBrowserRouter([
             element: <Quote />,
           },
           {
-            path: '/quotes/new',
+            path: ROUTES.QUOTE_NEW, // path: '/quotes/new',
             element: <Quote />,
           },
           {
-            path: '/quotes/:quoteId',
+            path: ROUTES.QUOTE_VIEW, //  '/quotes/:quoteId',
             element: <ViewQuote />,
           },
           {
-            path: '/quotes/:quoteId/checkout',
+            path: ROUTES.CHECKOUT, //  '/quotes/:quoteId/checkout',
             element: <Checkout />,
           },
           {
-            path: '/quotes/submitted',
+            path: ROUTES.QUOTE_SUBMITTED, // '/quotes/submitted',
             element: <SuccessStep />,
           },
           {
-            path: '/contact',
+            path: ROUTES.CONTACT, //  '/contact',
             element: <ContactUs />,
           },
         ],

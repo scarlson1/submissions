@@ -11,11 +11,7 @@ export const isValidEmail = (str: string) => {
   );
 };
 
-export const emailVal = yup.string().test('valid-email', 'Invalid email', async (val, ctx) => {
-  let row = ctx.parent;
-  if (!row.name && !row.relation) {
-    return true;
-  }
+export const emailVal = yup.string().test('valid-email', 'Invalid email', async (val) => {
   if (!val || !isValidEmail(val)) return false;
   return true;
 });
@@ -131,6 +127,6 @@ export const deductibleValidation = yup.object().shape({
 export const contactValidation = yup.object().shape({
   firstName: yup.string().notRequired(),
   lastName: yup.string().notRequired(),
-  email: emailVal, // .required('Email required'), // yup.string().email().required(),
+  email: emailVal, // .required('Email required'), // yup.string().email().required(), //
   phone: phoneVal.notRequired(),
 });

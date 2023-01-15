@@ -5,7 +5,7 @@ export { useFileUpload } from './useFileUpload';
 export { useOpenStorageFile } from './useOpenStorageFile';
 export { useKeyPress } from './useKeyPress';
 export { useDebounce } from './useDebounce';
-// export {} from './';
+export { usePropertyDetails } from './usePropertyDetails';
 // export {} from './';
 // export {} from './';
 // export {} from './';
