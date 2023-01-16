@@ -85,7 +85,7 @@ export const FormikAddress: React.FC<FormikAddressProps> = ({
             fullWidth
             id='addressLine2'
             name='addressLine2'
-            label='Address Line 2'
+            label='Unit/Suite'
             {...textFieldProps}
           />
         </Grid>

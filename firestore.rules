@@ -1,6 +1,32 @@
 rules_version = '2';
+
+// role & data based rules: https://firebase.google.com/docs/rules/basics#data-defined_attributes_and_roles
+
+// custom claims
+// For attribute-based access control, check for an admin claim
+// allow write: if request.auth.token.admin == true;
+// Alterntatively, for role-based access, assign specific roles to users
+// allow read: if request.auth.token.reader == "true";
+
+// For tenant-based access control, check for a tenantID
+// allow write: if request.auth.token.firebase.tenant == 'tenant2-m6tyz';
+
 service cloud.firestore {
   match /databases/{database}/documents {
+    match /submissions/{document} {
+      allow read: if true
+      allow create: if true
+      // allow create: if request.auth.uid == request.resource.data.author_uid;
+      
+      allow update, delete: if request.auth.uid == resource.data.userId;
+    }
+    match /spatialKey/{document} {
+      allow read: if true
+      allow create: if true
+      // allow create: if request.auth.uid == request.resource.data.author_uid;
+      
+      allow update, delete: if request.auth.uid == resource.data.userId;
+    }
     match /{document=**} {
       allow read, write: if
           request.time < timestamp.date(2023, 2, 12);

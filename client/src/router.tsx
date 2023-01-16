@@ -17,6 +17,7 @@ export enum ROUTES {
   QUOTE_NEW = '/quotes/new',
   QUOTE_VIEW = '/quotes/:quoteId',
   QUOTE_SUBMITTED = '/quotes/submitted',
+  SUBMISSION_VIEW = '/submissions/:submissionId',
   CHECKOUT = '/quotes/:quoteId/checkout',
   CONTACT = '/contact',
 }
@@ -25,6 +26,7 @@ type TArgs =
   | { path: ROUTES.QUOTE_NEW }
   | { path: ROUTES.QUOTE_VIEW; params: { quoteId: string } }
   | { path: ROUTES.QUOTE_SUBMITTED; params: { submissionId: string } }
+  | { path: ROUTES.SUBMISSION_VIEW; params: { submissionId: string } }
   | { path: ROUTES.CHECKOUT; params: { quoteId: string } }
   | { path: ROUTES.CONTACT };
 
@@ -75,6 +77,10 @@ export const router = createBrowserRouter([
           {
             path: ROUTES.QUOTE_SUBMITTED, // '/quotes/submitted',
             element: <SuccessStep />,
+          },
+          {
+            path: ROUTES.SUBMISSION_VIEW,
+            element: (() => <div>TODO: view submission</div>)(),
           },
           {
             path: ROUTES.CONTACT, //  '/contact',

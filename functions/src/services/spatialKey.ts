@@ -14,16 +14,16 @@ export const getSpatialKeyInstance = (args: GenerateTokenArgs) => {
 
   instance.interceptors.request.use(
     async (config: AxiosRequestConfig) => {
-      console.log('config.headers: ', config.headers);
-      if (!config.headers) config.headers = {}; // @ts-ignore
+      if (!config.headers) config.headers = {};
+      // @ts-ignore
       if (!config.headers.common || !config.headers.common['x-sktoken']) {
         console.log('GENERATING ACCESS TOKEN');
         try {
-          let access_token = await getAccessToken(args);
-
-          console.log('ACCESS TOKEN => ', access_token); // @ts-ignore
-          config.headers['x-sktoken'] = access_token;
-          instance.defaults.headers.common['x-sktoken'] = access_token;
+          const accessToken = await getAccessToken(args);
+          // eslint-disable-next-line
+          // @ts-ignore
+          config.headers['x-sktoken'] = accessToken;
+          instance.defaults.headers.common['x-sktoken'] = accessToken;
         } catch (err) {
           return Promise.reject(err);
         }
@@ -47,14 +47,14 @@ export const getSpatialKeyInstance = (args: GenerateTokenArgs) => {
       if (err.response) {
         if (err.response.status === 401 && !originalConfig._retry) {
           originalConfig._retry = true;
-          let config = err.config;
+          const config = err.config;
 
           try {
-            let access_token = await getAccessToken(args);
-            console.log('REFRESHED TOKEN => ', access_token);
+            const accessToken = await getAccessToken(args);
+            console.log('REFRESHED TOKEN => ', accessToken);
 
-            config.headers['x-sktoken'] = access_token;
-            instance.defaults.headers.common['x-sktoken'] = access_token;
+            config.headers['x-sktoken'] = accessToken;
+            instance.defaults.headers.common['x-sktoken'] = accessToken;
 
             return instance(config);
           } catch (err) {
@@ -63,14 +63,14 @@ export const getSpatialKeyInstance = (args: GenerateTokenArgs) => {
         }
         if (err.response.status === 403 && !originalConfig._retry) {
           originalConfig._retry = true;
-          let config = err.config;
+          const config = err.config;
 
           try {
-            let access_token = await getAccessToken(args);
-            console.log('REFRESHED TOKEN => ', access_token);
+            const accessToken = await getAccessToken(args);
+            console.log('REFRESHED TOKEN => ', accessToken);
 
-            config.headers['x-sktoken'] = access_token;
-            instance.defaults.headers.common['x-sktoken'] = access_token;
+            config.headers['x-sktoken'] = accessToken;
+            instance.defaults.headers.common['x-sktoken'] = accessToken;
 
             return instance(config);
           } catch (err) {

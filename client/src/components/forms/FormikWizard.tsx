@@ -98,7 +98,7 @@ export const FormikWizard: React.FC<FormikWizardProps> = ({
       return onSubmit(values, bag);
     } else {
       bag.setTouched({});
-      // console.log('next(values): ', values);
+
       next(values, bag);
     }
   };
@@ -126,6 +126,7 @@ export const FormikWizard: React.FC<FormikWizardProps> = ({
       validationSchema={currentStep.props.validationSchema}
       validateOnMount={true}
       onSubmit={handleSubmit}
+      enableReinitialize
       {...rest}
     >
       {({

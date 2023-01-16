@@ -7,6 +7,7 @@ import { dollarFormat } from 'modules/utils/helpers';
 
 export interface DeductibleStepProps {
   gridProps?: Grid2Props;
+  maxDeductible?: number;
 }
 
 // TODO: Tell me more accordion
@@ -14,7 +15,7 @@ export interface DeductibleStepProps {
 //    - deductible faq
 //    - link to "Deductibles explained" article once written
 
-export const DeductibleStep: React.FC<DeductibleStepProps> = ({ gridProps }) => {
+export const DeductibleStep: React.FC<DeductibleStepProps> = ({ gridProps, maxDeductible }) => {
   // TODO: calc max as 20% of limits
   return (
     <Grid
@@ -38,6 +39,7 @@ export const DeductibleStep: React.FC<DeductibleStepProps> = ({ gridProps }) => 
           name='deductible'
           incrementBy={1000}
           min={1000}
+          max={maxDeductible}
           valueFormatter={(val: number | undefined) => {
             if (!val) return;
             return dollarFormat(val);

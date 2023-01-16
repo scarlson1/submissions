@@ -1,9 +1,69 @@
+import { Request } from 'express';
+import { DecodedIdToken } from 'firebase-admin/auth';
+// import { Timestamp, WithFieldValue } from '@google-cloud/firestore';
+
+import { SubmissionStatus } from './enums';
+
+// TODO: fix typescript error app.use(thisMiddleware) is users.ts
+
+// TODO: FIX TIMESTAMP TYPINGS
+export interface BaseMetadata {
+  created: any; // WithFieldValue<Timestamp>;
+  updated: any; // WithFieldValue<Timestamp>;
+}
+export interface RequestUserAuth extends Request {
+  user?: DecodedIdToken;
+  tenantId?: string;
+}
+
+export interface User {
+  displayName?: string;
+  email?: string;
+  phone?: string;
+  photoURL?: string;
+  stripe_customer_id?: string;
+  tenantId?: string | null; // useOrgId ??
+  firstName?: string;
+  lastName?: string;
+  metadata: BaseMetadata;
+}
+
+export type LimitTypes = 'limitA' | 'limitB' | 'limitC' | 'limitD';
+export interface Limits {
+  limitA: number;
+  limitB: number;
+  limitC: number;
+  limitD: number;
+}
+
 export type UWNoteCode = 'requires-review' | 'not-ratable' | 'info' | 'unknown';
 
 export interface UWNote {
   code: UWNoteCode;
   message: string;
   property?: string;
+}
+
+export interface Submission {
+  addressLine1: string;
+  addressLine2?: string;
+  city: string;
+  state: string;
+  postal: string;
+  latitude: number | null;
+  longitude: number | null;
+  coverageActiveBuilding: boolean;
+  coverageActiveStructures: boolean;
+  coverageActiveContents: boolean;
+  coverageActiveAdditional: boolean;
+  limitA: string;
+  limitB: string;
+  limitC: string;
+  limitD: string;
+  deductible: number;
+  email: string;
+  status: SubmissionStatus;
+  metadata: BaseMetadata;
 }
 
 export interface SpatialKeyResponse {

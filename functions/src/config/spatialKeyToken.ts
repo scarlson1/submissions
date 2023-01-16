@@ -14,25 +14,25 @@ export const generateRequestToken = ({
 }: GenerateTokenArgs) => {
   return new Promise<string>(async (resolve, reject) => {
     if (!(userApiKey && orgApiKey && orgSecretKey)) {
-      reject('Missing api credentials in Google Secret Manager.');
+      reject(new Error('Missing api credentials in Google Secret Manager.'));
       return;
     }
 
-    let now = new Date();
-    let iat = Math.round(now.getTime() / 1000);
+    const now = new Date();
+    const iat = Math.round(now.getTime() / 1000);
 
-    let payload = {
+    const payload = {
       iss: orgApiKey,
       prn: userApiKey,
       aud: 'https://www.spatialkey.com',
       iat,
     };
 
-    const request_token = jwt.sign(payload, orgSecretKey, {
+    const requestToken = jwt.sign(payload, orgSecretKey, {
       algorithm: 'HS256',
       expiresIn: '1h',
     });
-    resolve(request_token);
+    resolve(requestToken);
   });
 };
 
@@ -41,7 +41,7 @@ export const exchangeToken = (requestToken: string) => {
     console.log('EXCHANGING TOKEN: ', requestToken);
     try {
       let { data } = await axios.post(
-        `https://idemand.spatialkey.com/SpatialKeyFramework/api/v2/oauth.json`,
+        'https://idemand.spatialkey.com/SpatialKeyFramework/api/v2/oauth.json',
         {},
         {
           params: {
@@ -61,10 +61,10 @@ export const exchangeToken = (requestToken: string) => {
 export const getAccessToken = (args: GenerateTokenArgs) => {
   return new Promise<string>(async (resolve, reject) => {
     try {
-      const request_token = await generateRequestToken(args);
-      const access_token = await exchangeToken(request_token);
+      const requestToken = await generateRequestToken(args);
+      const accessToken = await exchangeToken(requestToken);
 
-      resolve(access_token);
+      resolve(accessToken);
     } catch (err) {
       reject(err);
     }

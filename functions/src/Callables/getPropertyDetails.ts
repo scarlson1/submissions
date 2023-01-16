@@ -1,17 +1,19 @@
 import * as functions from 'firebase-functions';
-import 'firebase-functions';
+import { getFirestore } from 'firebase-admin/firestore'; // Timestamp, FieldValue
+// import 'firebase-functions';
 import { defineSecret } from 'firebase-functions/params';
-// import invariant from 'tiny-invariant';
+import invariant from 'tiny-invariant';
 
-import { SpatialKeyResponse, UWNote } from '../common/types';
+import { Limits, LimitTypes, SpatialKeyResponse } from '../common/types';
 import { getSpatialKeyInstance } from '../services';
 import { AxiosResponse } from 'axios';
+import { isLatLng, calcSum, roundDownToNearest, roundUpToNearest } from '../common/helpers';
 
-// The latitude must be a number between -90 and 90 and the longitude between -180 and 180.
-const isLongitude = (num: number) => isFinite(num) && Math.abs(num) <= 180;
-const isLatitude = (num: number) => isFinite(num) && Math.abs(num) <= 90;
-const isLatLng = (lat: number, lng: number) => {
-  return isLatitude(lat) && isLongitude(lng);
+let defaultLimitPercents: { [key in LimitTypes]: number } = {
+  limitA: 1,
+  limitB: 0.05,
+  limitC: 0.25,
+  limitD: 0.1,
 };
 
 const spatialKeyUserKey = defineSecret('SPATIALKEY_USER_API_KEY');
@@ -19,7 +21,11 @@ const spatialKeyOrgKey = defineSecret('SPATIALKEY_ORG_API_KEY');
 const spatialKeySecretKey = defineSecret('SPATIALKEY_ORG_SECRET_KEY');
 
 export const getPropertyDetails = functions
-  .runWith({ secrets: [spatialKeyUserKey, spatialKeyOrgKey, spatialKeySecretKey] })
+  .runWith({
+    secrets: [spatialKeyUserKey, spatialKeyOrgKey, spatialKeySecretKey],
+    minInstances: 1,
+    memory: '128MB',
+  })
   .https.onCall(async (data) => {
     console.log('data: ', data);
     const { lat, lng } = data;
@@ -46,18 +52,60 @@ export const getPropertyDetails = functions
     }
 
     if (spatialKeyData) {
-      let validatedRatingData = await validateSpatialKeyRes(spatialKeyData!);
-      // TODO: set
+      try {
+        const skDocRef = await getFirestore()
+          .collection('spatialKey')
+          .add({
+            ...spatialKeyData,
+          });
+        console.log(`SpatialKey data saved to doc: ${skDocRef.id}`);
+      } catch (err) {
+        console.log('Error saving SK data to Firestore', err);
+      }
 
-      return validatedRatingData;
+      let validatedRatingData = await validateSpatialKeyRes(spatialKeyData!);
+      let { replacementCost } = validatedRatingData;
+      console.log('validated data: ', validatedRatingData);
+      invariant(!isNaN(replacementCost), 'Unable to retrived data required for rating.');
+
+      let MAX_A = parseInt(process.env.FLOOD_MAX_LIMIT_A!) || 1000000;
+      let MAX_BCD = parseInt(process.env.FLOOD_MAX_LIMIT_B_C_D!) || 1000000;
+      let MIN_A = parseInt(process.env.FLOOD_MIN_LIMIT_A!) || 100000;
+
+      let defaults: Limits = {
+        limitA: roundUpToNearest(Math.min(Math.max(replacementCost, MIN_A), MAX_A), 3),
+        limitB: roundUpToNearest(replacementCost * defaultLimitPercents['limitB'], 3),
+        limitC: roundUpToNearest(replacementCost * defaultLimitPercents['limitC'], 3),
+        limitD: roundUpToNearest(replacementCost * defaultLimitPercents['limitD'], 3),
+      };
+
+      let totalBCDRequested = defaults.limitB + defaults.limitC + defaults.limitD;
+      if (totalBCDRequested > MAX_BCD) {
+        console.log('Recalculating limits. Total B, C, D: ', totalBCDRequested);
+        // Pro rated B, C, D coverages (rounded down to 100)
+        for (const [key, val] of Object.entries(defaults)) {
+          if (key !== 'limitA') {
+            defaults[key as keyof Limits] = roundDownToNearest((val / totalBCDRequested) * MAX_BCD);
+          }
+        }
+      }
+
+      let res: any = { ...defaults };
+      const sumCoverage = calcSum(Object.values(defaults));
+      res.deductible = roundUpToNearest(sumCoverage * 0.01, 3);
+      res.maxDeductible = roundUpToNearest(sumCoverage * 0.2, 3);
+
+      console.log('res: ', res);
+
+      return { ...validatedRatingData, ...res };
     } else {
       throw new functions.https.HttpsError('internal', `Error fetching property data`);
     }
   });
 
 async function validateSpatialKeyRes(spatialKeyData: SpatialKeyResponse) {
-  let requiresReview = false;
-  let propertyNotes: UWNote[] = [];
+  // let requiresReview = false;
+  // let propertyNotes: UWNote[] = [];
 
   let sqFootage = parseFloat(spatialKeyData.us_hh_square_footage);
   let numStories = parseInt(spatialKeyData.us_hh_assessment_num_stories.replace(/\D/g, '')) || 1;
@@ -85,7 +133,7 @@ async function validateSpatialKeyRes(spatialKeyData: SpatialKeyResponse) {
   //     property: 'distToCoastFeet',
   //   });
   // }
-  // invariant(isNaN(replacementCost), 'Unable to retrived data required for rating.');
+  // invariant(!isNaN(replacementCost), 'Unable to retrived data required for rating.');
   // invariant(
   //   replacementCost < parseInt(process.env.FLOOD_MIN_RCV!),
   //   `REPLACEMENT COST VALUE LESS THAN ${process.env.FLOOD_MIN_RCV}`
@@ -100,9 +148,9 @@ async function validateSpatialKeyRes(spatialKeyData: SpatialKeyResponse) {
   if (basement === '') basement = 'unknown';
   if (basement === 'B') basement = 'finished';
 
+  // requiresReview,
+  // propertyNotes,
   return {
-    requiresReview,
-    propertyNotes,
     sqFootage,
     numStories,
     distToCoastFeet,

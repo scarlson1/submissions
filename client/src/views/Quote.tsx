@@ -16,7 +16,6 @@ import { ROUTES, createPath } from 'router';
 import { submissionsCollection } from 'common/firestoreCollections';
 import { SubmissionStatus } from 'common/enums';
 import { usePropertyDetails } from 'hooks';
-import axios from 'axios';
 
 const gridProps = {
   rowSpacing: { xs: 4, sm: 6, md: 8 },
@@ -41,7 +40,6 @@ export interface FloodValues {
   limitD: string;
   deductible: number;
   email: string;
-  userAcceptance: boolean;
 }
 
 export const initialValues: FloodValues = {
@@ -62,7 +60,6 @@ export const initialValues: FloodValues = {
   limitD: '0',
   deductible: 1000,
   email: '',
-  userAcceptance: false,
 };
 
 export const Quote: React.FC = () => {
@@ -91,25 +88,23 @@ export const Quote: React.FC = () => {
   // }, [reset, navigate]);
   // const { } = useFetchProperty()
 
-  const { fetchPropertyData } = usePropertyDetails();
+  const { propertyDetails, fetchPropertyData } = usePropertyDetails();
   const handleFetchProperty = useCallback(
     async (values: any, helpers: FormikHelpers<any>) => {
       try {
         // formik async dependent fields ref: https://formik.org/docs/examples/dependent-fields-async-api-request
         // TODO: set response as initial limits and deductible
 
-        // const test = await axios.post('http://localhost:8080/new-quote/flood', {
-        //   address: {
-        //     addressLine1: values.addressLine1,
-        //     city: values.city,
-        //     state: values.state,
-        //     postal: values.postal,
-        //   },
-        // });
-        // console.log('test: ', test);
-
         const res = await fetchPropertyData({ lat: values.latitude, lng: values.longitude });
         console.log('result: ', res);
+        return {
+          ...values,
+          limitA: res.limitA,
+          limitB: res.limitB,
+          limitC: res.limitC,
+          limitD: res.limitD,
+          deductible: res.deductible,
+        };
       } catch (err) {
         console.log('ERROR: ', err);
         helpers.setSubmitting(false);
@@ -162,7 +157,10 @@ export const Quote: React.FC = () => {
             stepperNavLabel='Deductible'
           >
             <Box sx={{ pb: { xs: 4, sm: 6, md: 8 }, pt: { xs: 2, sm: 4 } }}>
-              <DeductibleStep gridProps={gridProps} />
+              <DeductibleStep
+                gridProps={gridProps}
+                maxDeductible={propertyDetails?.maxDeductible ?? undefined}
+              />
             </Box>
           </Step>
           <Step
