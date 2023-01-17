@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Box, Card, CardContent, Grid, Typography, Stack, Divider } from '@mui/material';
 import { useFormikContext } from 'formik';
 
 import { FloodValues } from 'views/Quote';
 import { LimitKeys } from 'common/types';
 import { dollarFormat } from 'modules/utils/helpers';
+import { FormikCheckbox } from 'components/forms';
+import { useConfirmation } from 'modules/components/ConfirmationService';
 
 // TODO: generalize component
 
@@ -43,7 +45,25 @@ export const policyDetails: Detail[] = [
 
 export const ReviewStep: React.FC = () => {
   const { values } = useFormikContext<FloodValues>();
+  const confirm = useConfirmation();
+
   // const locationData = useMemo(() => Object.values(quoteData.locations)[0], [quoteData.locations]);
+
+  const showDisclosure = useCallback(
+    async (e: React.MouseEvent<HTMLSpanElement, MouseEvent>) => {
+      e.stopPropagation();
+      e.preventDefault();
+
+      await confirm({
+        variant: 'info',
+        catchOnCancel: false,
+        title: 'Disclosure',
+        description: `A request for quote is subject to all state regulations, including, but not limited to, license and due diligence requirements regarding non-admitted insurance. This website is not intended for business in any state not licensed. Any initial premium indication is not a quote until full submission information has been provided and approved including all state disclosure, taxes, and fees.`,
+        dialogContentProps: { dividers: true },
+      });
+    },
+    [confirm]
+  );
 
   return (
     <Card>
@@ -123,6 +143,31 @@ export const ReviewStep: React.FC = () => {
               {`Keep an eye on your inbox! We'll deliver a quote to the provided email address  (
               ${values.email}).`}
             </Typography>
+
+            <Divider sx={{ my: 3 }} />
+            <FormikCheckbox
+              name='userAcceptance'
+              label={
+                <Typography variant='body2' color='text.secondary'>
+                  I agree to the{' '}
+                  <Typography
+                    component='span'
+                    variant='body2'
+                    sx={{
+                      fontWeight: 'fontWeightMedium',
+                      '&:hover': { textDecoration: 'underline' },
+                    }}
+                    onClick={showDisclosure}
+                  >
+                    terms and disclosures
+                  </Typography>
+                </Typography>
+              }
+              checkboxProps={{ size: 'small' }}
+              componentsProps={{
+                typography: { variant: 'body2' },
+              }}
+            />
           </Grid>
         </Grid>
       </CardContent>

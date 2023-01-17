@@ -5,16 +5,18 @@ import { Outlet } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 
 import { ThemeProvider } from 'modules/components/ThemeContext';
+import { ConfirmationProvider } from 'modules/components/ConfirmationService';
 // import { AuthContextProvider } from 'modules/components/AuthContext';
-// import { ConfirmationProvider } from 'modules/components/ConfirmationService';
 // import ThemedToastContainer from 'modules/utils/ToastContainer';
 // import GenericErrorFallback from 'components/errorBoundaries/GenericErrorFallback';
 
 function App() {
   return (
     <ThemeProvider>
-      <Outlet />
-      <Toaster />
+      <ConfirmationProvider>
+        <Outlet />
+        <Toaster />
+      </ConfirmationProvider>
     </ThemeProvider>
   );
 }

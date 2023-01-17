@@ -1,7 +1,7 @@
 /**
  * Sums an array of numbers
- * @param {string} arr - array of numbers to be added.
- * @return {string} total of all numbers in array
+ * @param {number[]} arr - array of numbers to be added.
+ * @return {number} total of all numbers in array
  */
 export const calcSum = (arr: number[]) => {
   return arr.reduce((total, current) => {
@@ -29,6 +29,17 @@ export const roundUpToNearest = (value: number, magnitude = 0) => {
 export const roundDownToNearest = (value: number, magnitude = 0) => {
   let factor = parseInt('1' + '0'.repeat(magnitude));
   return Math.floor(value / factor) * factor;
+};
+
+/**
+ * Round the the nearest x (10s, 100s, 1,000s, etc.)
+ * @param {number} value - array of numbers to be added.
+ * @param {number} magnitude - order of magnitude to round. Ex: 0 -> 1111, 1 -> 1110; 2 -> 1100, 3 -> 1000
+ * @return {number} total of all numbers in array
+ */
+export const roundToNearest = (value: number, magnitude = 0) => {
+  let factor = parseInt('1' + '0'.repeat(magnitude));
+  return Math.round(value / factor) * factor;
 };
 
 /**

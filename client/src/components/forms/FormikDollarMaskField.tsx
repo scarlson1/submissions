@@ -5,6 +5,7 @@ import { InputAttributes, NumericFormat } from 'react-number-format';
 
 export interface DollarMaskProps {
   onChange: (event: { target: { name: string; value: string } }) => void;
+  // onB
   name: string;
 }
 
@@ -30,6 +31,7 @@ export const DollarMask = React.forwardRef<typeof NumericFormat<InputAttributes>
         allowNegative={false}
         allowLeadingZeros={false}
         prefix='$'
+        decimalScale={0}
       />
     );
   }
@@ -37,15 +39,26 @@ export const DollarMask = React.forwardRef<typeof NumericFormat<InputAttributes>
 
 export type FormikDollarMaskFieldProps = TextFieldProps & { name: string };
 
-export const FormikDollarMaskField: React.FC<FormikDollarMaskFieldProps> = ({ name, ...rest }) => {
+export const FormikDollarMaskField: React.FC<FormikDollarMaskFieldProps> = ({
+  name,
+  helperText,
+  // onBlur,
+  ...rest
+}) => {
   const [field, meta] = useField(name);
+
+  if (!!meta.error) {
+    console.log('ERROR', meta.error);
+  }
+
+  console.log('touched: ', meta.touched);
 
   return (
     <TextField
       {...field}
       {...rest}
       error={meta.touched && Boolean(meta.error)}
-      helperText={meta.touched && meta.error ? meta.error : null}
+      helperText={meta.touched && !!meta.error ? meta.error : helperText}
       InputProps={{
         inputComponent: DollarMask as any,
       }}

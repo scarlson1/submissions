@@ -11,8 +11,9 @@ import {
   SubmissionStatus,
 } from './enums';
 import { FloodValues } from 'views/Quote';
+import { FetchPropertyDataResponse } from 'modules/api/index';
 
-export interface Submission extends FloodValues {
+export interface Submission extends FloodValues, FetchPropertyDataResponse {
   status: SubmissionStatus;
   metadata: BaseMetadata;
 }

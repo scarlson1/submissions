@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Box, Button, MobileStepper, Stack } from '@mui/material';
 import { KeyboardArrowRight, KeyboardArrowLeft, NavigateNextRounded } from '@mui/icons-material';
 import LoadingButton from '@mui/lab/LoadingButton';
-import { Formik, Form, FormikHelpers, FormikErrors } from 'formik';
+import { Formik, Form, FormikHelpers, FormikErrors, FormikProps, FormikValues } from 'formik';
 
 import { StepProps, StepperNav } from 'components/forms';
 import { useWidth, useScroll } from 'hooks';
@@ -12,8 +12,10 @@ import { useWidth, useScroll } from 'hooks';
 // TODO: use router instead of index state ??
 // https://blog.logrocket.com/building-multi-step-wizards-with-formik-and-react-query/
 
+// TODO: create generic type ?? https://stackoverflow.com/a/68757498/10887890
+// https://wanago.io/2020/03/09/functional-react-components-with-generic-props-in-typescript/
 export interface FormikWizardProps {
-  children: React.ReactElement<StepProps> | React.ReactElement<StepProps>[]; // JSX.Element | JSX.Element[]; // React.ReactNode;
+  children: React.ReactElement<StepProps> | React.ReactElement<StepProps>[]; // JSX.Element | JSX.Element[];
   initialValues: { [key: string]: any };
   onSubmit: (values: any, helpers: FormikHelpers<any>) => void;
   onCancel?: () => void;
@@ -25,6 +27,7 @@ export interface FormikWizardProps {
   disableNext?: boolean;
   initialIndex?: number;
   withStepper?: boolean;
+  formRef?: React.RefObject<FormikProps<FormikValues>>;
 }
 
 export const FormikWizard: React.FC<FormikWizardProps> = ({
@@ -39,6 +42,7 @@ export const FormikWizard: React.FC<FormikWizardProps> = ({
   disableNext = false,
   initialIndex = 0,
   withStepper = true,
+  formRef,
   ...rest
 }) => {
   const [stepIndex, setStepIndex] = useState<number>(initialIndex);
@@ -89,7 +93,7 @@ export const FormikWizard: React.FC<FormikWizardProps> = ({
     if (currentStep.props.mutateOnSubmit) {
       try {
         values = await currentStep.props.mutateOnSubmit(values, bag);
-        console.log('MUTATED VALUES: ', values);
+        // console.log('MUTATED VALUES: ', values);
       } catch (err) {
         console.log('MUTATE ON SUBMIT ERROR: ', err);
       }
@@ -127,6 +131,7 @@ export const FormikWizard: React.FC<FormikWizardProps> = ({
       validateOnMount={true}
       onSubmit={handleSubmit}
       enableReinitialize
+      innerRef={formRef}
       {...rest}
     >
       {({

@@ -35,5 +35,6 @@ ui-debug.log*
 **/pubsub-debug.log
 **/tsconfig-compile.json
 .firebase
+.firebase/*
 
 .env*.local

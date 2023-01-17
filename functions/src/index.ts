@@ -3,5 +3,5 @@ import { initializeApp } from 'firebase-admin/app';
 
 initializeApp();
 
-export { getPropertyDetails } from './Callables';
+export { getPropertyDetails } from './callables';
 export { newSubmissionNotifications } from './firestoreEvents';

@@ -4,7 +4,7 @@ import { getFirestore } from 'firebase-admin/firestore'; // Timestamp, FieldValu
 import { defineSecret } from 'firebase-functions/params';
 import invariant from 'tiny-invariant';
 
-import { Limits, LimitTypes, SpatialKeyResponse } from '../common/types';
+import { LimitTypes, SpatialKeyResponse } from '../common/types';
 import { getSpatialKeyInstance } from '../services';
 import { AxiosResponse } from 'axios';
 import { isLatLng, calcSum, roundDownToNearest, roundUpToNearest } from '../common/helpers';
@@ -15,6 +15,13 @@ let defaultLimitPercents: { [key in LimitTypes]: number } = {
   limitC: 0.25,
   limitD: 0.1,
 };
+
+interface InitLimits {
+  initLimitA: number;
+  initLimitB: number;
+  initLimitC: number;
+  initLimitD: number;
+}
 
 const spatialKeyUserKey = defineSecret('SPATIALKEY_USER_API_KEY');
 const spatialKeyOrgKey = defineSecret('SPATIALKEY_ORG_API_KEY');
@@ -72,27 +79,29 @@ export const getPropertyDetails = functions
       let MAX_BCD = parseInt(process.env.FLOOD_MAX_LIMIT_B_C_D!) || 1000000;
       let MIN_A = parseInt(process.env.FLOOD_MIN_LIMIT_A!) || 100000;
 
-      let defaults: Limits = {
-        limitA: roundUpToNearest(Math.min(Math.max(replacementCost, MIN_A), MAX_A), 3),
-        limitB: roundUpToNearest(replacementCost * defaultLimitPercents['limitB'], 3),
-        limitC: roundUpToNearest(replacementCost * defaultLimitPercents['limitC'], 3),
-        limitD: roundUpToNearest(replacementCost * defaultLimitPercents['limitD'], 3),
+      let defaults: InitLimits = {
+        initLimitA: roundUpToNearest(Math.min(Math.max(replacementCost, MIN_A), MAX_A), 3),
+        initLimitB: roundUpToNearest(replacementCost * defaultLimitPercents['limitB'], 3),
+        initLimitC: roundUpToNearest(replacementCost * defaultLimitPercents['limitC'], 3),
+        initLimitD: roundUpToNearest(replacementCost * defaultLimitPercents['limitD'], 3),
       };
 
-      let totalBCDRequested = defaults.limitB + defaults.limitC + defaults.limitD;
+      let totalBCDRequested = defaults.initLimitB + defaults.initLimitC + defaults.initLimitD;
       if (totalBCDRequested > MAX_BCD) {
         console.log('Recalculating limits. Total B, C, D: ', totalBCDRequested);
         // Pro rated B, C, D coverages (rounded down to 100)
         for (const [key, val] of Object.entries(defaults)) {
           if (key !== 'limitA') {
-            defaults[key as keyof Limits] = roundDownToNearest((val / totalBCDRequested) * MAX_BCD);
+            defaults[key as keyof InitLimits] = roundDownToNearest(
+              (val / totalBCDRequested) * MAX_BCD
+            );
           }
         }
       }
 
       let res: any = { ...defaults };
       const sumCoverage = calcSum(Object.values(defaults));
-      res.deductible = roundUpToNearest(sumCoverage * 0.01, 3);
+      res.initDeductible = roundUpToNearest(sumCoverage * 0.01, 3);
       res.maxDeductible = roundUpToNearest(sumCoverage * 0.2, 3);
 
       console.log('res: ', res);

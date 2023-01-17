@@ -10,19 +10,20 @@ import {
   Container,
 } from '@mui/material';
 import Lottie from 'lottie-react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLoaderData, useNavigate } from 'react-router-dom';
 
 import * as CheckmarkLottie from 'assets/checkmark.json';
 import { ROUTES, createPath } from 'router';
+import { Submission } from 'common/types';
 
 // TODO: "Are you an agent? Get in touch..."
 // TODO: create account
 
 export const SuccessStep: React.FC = () => {
   const navigate = useNavigate();
-  const { submissionId } = useParams();
-
-  console.log('sub id: ', submissionId);
+  const data = useLoaderData() as Submission;
+  // TODO: typing loader data
+  console.log('data: ', data);
 
   return (
     <Container maxWidth='sm' sx={{ py: { xs: 3, sm: 4, md: 6, lg: 8 } }}>
@@ -34,7 +35,7 @@ export const SuccessStep: React.FC = () => {
                 <Typography variant='overline' color='text.secondary' sx={{ lineHeight: 1.4 }}>
                   Status
                 </Typography>
-                <Typography variant='subtitle2'>Generating quote</Typography>
+                <Typography variant='subtitle2'>{data.status}</Typography>
               </Box>
               <Box sx={{ textAlign: 'right' }}>
                 <Typography
@@ -46,10 +47,10 @@ export const SuccessStep: React.FC = () => {
                   Address
                 </Typography>
                 <Typography variant='subtitle2' textAlign='right'>
-                  123 Main St.
+                  {`${data?.addressLine1}${data.addressLine2 ? ' ' + data.addressLine2 + ' ' : ''}`}
                 </Typography>
                 <Typography variant='subtitle2' textAlign='right'>
-                  Nash, TN 12345
+                  {`${data.city}, ${data.state} ${data.postal}`}
                 </Typography>
               </Box>
             </Box>

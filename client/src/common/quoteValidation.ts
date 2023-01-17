@@ -66,7 +66,7 @@ export const limitsValidation = yup.object({
         let num = parseInt(value || '0');
         let min = parseInt(process.env.REACT_APP_FLOOD_MIN_LIMIT_A!) || 100000;
         let max = parseInt(process.env.REACT_APP_FLOOD_MAX_LIMIT_A!) || 1000000;
-
+        console.log('is valid: ', num >= min && num <= max);
         return num >= min && num <= max;
       }),
   }),
@@ -129,4 +129,8 @@ export const contactValidation = yup.object().shape({
   lastName: yup.string().notRequired(),
   email: emailVal, // .required('Email required'), // yup.string().email().required(), //
   phone: phoneVal.notRequired(),
+});
+
+export const reviewValidation = yup.object({
+  userAcceptance: yup.boolean().oneOf([true], 'Must accept Terms'),
 });

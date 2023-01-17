@@ -23,8 +23,6 @@ service cloud.firestore {
     match /spatialKey/{document} {
       allow read: if true
       allow create: if true
-      // allow create: if request.auth.uid == request.resource.data.author_uid;
-      
       allow update, delete: if request.auth.uid == resource.data.userId;
     }
     match /{document=**} {

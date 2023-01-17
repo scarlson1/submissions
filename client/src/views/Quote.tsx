@@ -1,5 +1,5 @@
-import React, { useCallback } from 'react';
-import { FormikHelpers } from 'formik';
+import React, { useCallback, useRef } from 'react';
+import { FormikHelpers, FormikProps, FormikValues } from 'formik';
 import { Box, Container, Tooltip, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { addDoc, serverTimestamp } from 'firebase/firestore';
@@ -11,11 +11,15 @@ import {
   limitsValidation,
   deductibleValidation,
   contactValidation,
+  reviewValidation,
 } from 'common/quoteValidation';
 import { ROUTES, createPath } from 'router';
 import { submissionsCollection } from 'common/firestoreCollections';
 import { SubmissionStatus } from 'common/enums';
 import { usePropertyDetails } from 'hooks';
+import { roundUpToNearest, sumArr } from 'modules/utils/helpers';
+
+const DEFAULT_FLOOD_DEDUCTIBLE = '0.01';
 
 const gridProps = {
   rowSpacing: { xs: 4, sm: 6, md: 8 },
@@ -40,6 +44,7 @@ export interface FloodValues {
   limitD: string;
   deductible: number;
   email: string;
+  userAcceptance: boolean;
 }
 
 export const initialValues: FloodValues = {
@@ -60,10 +65,12 @@ export const initialValues: FloodValues = {
   limitD: '0',
   deductible: 1000,
   email: '',
+  userAcceptance: false,
 };
 
 export const Quote: React.FC = () => {
   const navigate = useNavigate();
+  const formikRef = useRef<FormikProps<FormikValues>>(null);
   // const { error: createError, isError, isLoading, mutateAsync, reset } = useCreateQuote();
 
   // const handleSubmit = useCallback(
@@ -99,11 +106,11 @@ export const Quote: React.FC = () => {
         console.log('result: ', res);
         return {
           ...values,
-          limitA: res.limitA,
-          limitB: res.limitB,
-          limitC: res.limitC,
-          limitD: res.limitD,
-          deductible: res.deductible,
+          limitA: res.initLimitA,
+          limitB: res.initLimitB,
+          limitC: res.initLimitC,
+          limitD: res.initLimitD,
+          deductible: res.initDeductible ?? 1000,
         };
       } catch (err) {
         console.log('ERROR: ', err);
@@ -113,11 +120,34 @@ export const Quote: React.FC = () => {
     [fetchPropertyData]
   );
 
+  const handleOnToDeductible = useCallback((values: any, helpers: FormikHelpers<any>) => {
+    const initValues = formikRef.current?.initialValues;
+    if (!initValues) return values;
+    const initSum = sumArr([
+      initValues.limitA,
+      initValues.limitB,
+      initValues.limitC,
+      initValues.limitD,
+    ]);
+
+    const defaultDeductible = roundUpToNearest(initSum * parseFloat(DEFAULT_FLOOD_DEDUCTIBLE), 3);
+
+    const userChangedDeductible = defaultDeductible !== values.deductible;
+    if (userChangedDeductible) return values;
+
+    const sumLimits = sumArr([values.limitA, values.limitB, values.limitC, values.limitD]);
+
+    const newDeductible = roundUpToNearest(sumLimits * parseFloat(DEFAULT_FLOOD_DEDUCTIBLE), 3);
+
+    return { ...values, deductible: newDeductible };
+  }, []);
+
   const handleSubmit = useCallback(
     async (values: FloodValues, { setSubmitting }: FormikHelpers<FloodValues>) => {
       console.log(values);
       try {
         const docRef = await addDoc(submissionsCollection, {
+          ...propertyDetails,
           ...values,
           status: SubmissionStatus.Submitted,
           metadata: {
@@ -131,13 +161,17 @@ export const Quote: React.FC = () => {
 
       setSubmitting(false);
     },
-    [navigate]
+    [navigate, propertyDetails]
   );
+
+  React.useEffect(() => {
+    console.log('errors: ', formikRef.current?.errors);
+  }, [formikRef.current?.errors]);
 
   return (
     <Container maxWidth='sm'>
       <Box>
-        <FormikWizard initialValues={initialValues} onSubmit={handleSubmit}>
+        <FormikWizard initialValues={initialValues} onSubmit={handleSubmit} formRef={formikRef}>
           <Step
             label={`What's the Address?`}
             validationSchema={addressValidation}
@@ -146,9 +180,18 @@ export const Quote: React.FC = () => {
           >
             <AddressStep />
           </Step>
-          <Step label='Limits' validationSchema={limitsValidation} stepperNavLabel='Limits'>
+          <Step
+            label='Limits'
+            validationSchema={limitsValidation}
+            mutateOnSubmit={handleOnToDeductible}
+            stepperNavLabel='Limits'
+          >
             <Box sx={{ pb: { xs: 4, sm: 6, md: 8 }, pt: { xs: 2, sm: 4 } }}>
-              <LimitsStep inputProps={{ variant: 'outlined' }} gridProps={gridProps} />
+              <LimitsStep
+                inputProps={{ variant: 'outlined' }}
+                gridProps={gridProps}
+                replacementCost={propertyDetails?.replacementCost}
+              />
             </Box>
           </Step>
           <Step
@@ -195,7 +238,7 @@ export const Quote: React.FC = () => {
               />
             </Box>
           </Step>
-          <Step label='Review' stepperNavLabel='Summary'>
+          <Step label='Review' validationSchema={reviewValidation} stepperNavLabel='Summary'>
             <ReviewStep />
           </Step>
         </FormikWizard>

@@ -1,52 +1,68 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import Grid, { Grid2Props } from '@mui/material/Unstable_Grid2';
-// import { useFormikContext } from 'formik';
+import { useFormikContext } from 'formik';
 
 import { FormikDollarMaskField, FormikDollarMaskFieldProps } from 'components/forms';
-// import { FloodValues } from 'views/Quote';
+import { FloodValues } from 'views/Quote';
+import { round, roundToNearest } from 'modules/utils/helpers';
+import { LimitKeys } from 'common/types';
 
 // TODO: use increment cards & text field or slider ??
 // TODO: round value to nearest 1,000
+
+enum FieldNames {
+  A = 'limitA',
+  B = 'limitB',
+  C = 'limitC',
+  D = 'limitD',
+}
 
 const limitFields = [
   {
     title: 'Building Coverage',
     // limitField: 'building',
-    name: 'limitA', // 'coverages.building',
+    name: FieldNames.A, // 'limitA', // 'coverages.building',
     inputLabel: 'Building Limit',
     description: 'TODO: add description here',
     coverageActiveField: 'coverageActiveBuilding',
   },
   {
     title: 'Additional Structures Coverage',
-    name: 'limitB',
+    name: FieldNames.B, // 'limitB',
     inputLabel: 'Additional Structures Limit',
     description: 'TODO: add description here',
     coverageActiveField: 'coverageActiveStructures',
   },
   {
     title: 'Contents Coverage',
-    name: 'limitC', // 'coverages.contents',
+    name: FieldNames.C, // 'limitC', // 'coverages.contents',
     inputLabel: 'Contents Limit',
     description: 'TODO: add description here',
     coverageActiveField: 'coverageActiveContents',
   },
   {
     title: 'Living Expenses Coverage',
-    name: 'limitD', // 'coverages.additional',
+    name: FieldNames.D, // 'limitD', // 'coverages.additional',
     inputLabel: 'Additional Expenses Limit',
     description: 'TODO: add description here',
     coverageActiveField: 'coverageActiveAdditional',
   },
 ];
 
+const getFormattedPct = (portion: number, total: number) => round((portion / total) * 100, 1);
+
 export interface LimitsStepProps {
   gridProps?: Grid2Props;
   inputProps?: Partial<FormikDollarMaskFieldProps>;
+  replacementCost: number | undefined;
 }
 
-export const LimitsStep: React.FC<LimitsStepProps> = ({ gridProps, inputProps }) => {
-  // const { values, setFieldValue, setFieldTouched, setStatus } = useFormikContext<FloodValues>();
+export const LimitsStep: React.FC<LimitsStepProps> = ({
+  gridProps,
+  inputProps,
+  replacementCost,
+}) => {
+  const { values, setFieldValue, setFieldTouched } = useFormikContext<FloodValues>(); // setFieldValue, setFieldTouched, setStatus
 
   // const handleCoverageActive = useCallback(
   //   async (
@@ -78,9 +94,27 @@ export const LimitsStep: React.FC<LimitsStepProps> = ({ gridProps, inputProps })
   //   [updateQuote, setFieldValue, values]
   // );
 
+  const helperText = useMemo(() => {
+    let result: { [key: string]: string | undefined } = {
+      limitA: undefined,
+      limitB: undefined,
+      limitC: undefined,
+      limitD: undefined,
+    };
+    if (!replacementCost) return result;
+
+    Object.keys(result).forEach((key) => {
+      const ht = getFormattedPct(parseInt(values[key as LimitKeys]), replacementCost);
+      if (!isNaN(ht)) {
+        result[key] = `${ht}% of building replacement cost`;
+      }
+    });
+
+    return result;
+  }, [values, replacementCost]);
+
   return (
     // TODO: move container to parent ??
-
     <Grid
       container
       rowSpacing={{ xs: 4, sm: 6, md: 8 }}
@@ -92,10 +126,19 @@ export const LimitsStep: React.FC<LimitsStepProps> = ({ gridProps, inputProps })
           <FormikDollarMaskField
             name={field.name}
             label={field.inputLabel}
+            helperText={helperText[field.name]}
             variant='standard'
             required
             disabled={false}
             fullWidth
+            onBlur={(e) => {
+              const digits = ('' + e.target.value).replace(/\D/g, '');
+              const newVal = roundToNearest(parseInt(digits), 3);
+              setFieldValue(field.name, newVal);
+              setTimeout(() => {
+                setFieldTouched(field.name, true);
+              }, 100);
+            }}
             {...inputProps}
           />
         </Grid>

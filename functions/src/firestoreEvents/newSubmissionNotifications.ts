@@ -2,12 +2,14 @@ import * as functions from 'firebase-functions';
 
 import { defineSecret } from 'firebase-functions/params';
 import { Collections } from '../common/enums';
+
 import {
   sendNewSubmissionAdminNotification,
   sendSubmissionRecievedConfirmation,
 } from '../services/sendgrid';
 
 const sendgridApiKey = defineSecret('SENDGRID_API_KEY');
+// .firestore.document('submissions/{submissionId}')
 
 export const newSubmissionNotifications = functions
   .runWith({ secrets: [sendgridApiKey] })
@@ -22,18 +24,26 @@ export const newSubmissionNotifications = functions
     const link = `${process.env.HOSTING_BASE_URL}/submissions/${submissionId}`;
     console.log(`submission link: ${link}`);
 
+    const adminRecipients = ['spencer.carlson@idemandinsurance.com'];
+    if (process.env.AUDIENCE !== 'LOCAL HUMANS') {
+      adminRecipients.push('ron.carlson@idemandinsurance.com');
+    }
+
+    console.log(`Sending submission received notification to ${submission.email}`);
     await sendSubmissionRecievedConfirmation(
       process.env.SENDGRID_API_KEY!,
       submission.email,
       null,
       submission.addressLine1
     );
+    console.log('sending admin notifications to: ', adminRecipients);
     await sendNewSubmissionAdminNotification(
       process.env.SENDGRID_API_KEY!,
       link,
       submission.addressLine1,
       submission.city,
       submission.state,
-      ['spencer.carlson@idemandinsurance.com', 'spencercarlson@me.com']
+      adminRecipients
     );
+    return;
   });

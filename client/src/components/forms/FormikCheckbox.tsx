@@ -13,7 +13,7 @@ import { useField } from 'formik';
 
 export interface FormikCheckboxProps {
   name: string;
-  label: string;
+  label: React.ReactNode;
   checkboxProps?: CheckboxProps;
   sx?: SxProps<Theme>;
   componentsProps?: {
@@ -32,6 +32,7 @@ export const FormikCheckbox: React.FC<FormikCheckboxProps> = ({
   ...props
 }) => {
   const [field, meta] = useField({ name, type: 'checkbox' });
+  console.log('field: ', field);
 
   return (
     <FormControl error={meta.touched && Boolean(meta.error)}>

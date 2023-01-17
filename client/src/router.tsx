@@ -2,7 +2,7 @@ import { createBrowserRouter } from 'react-router-dom';
 
 import App from './App';
 import { Layout } from 'components';
-import { Quote, ContactUs, ViewQuote, Checkout } from 'views';
+import { Quote, ContactUs, ViewQuote, Checkout, submissionLoader, SubmissionView } from 'views';
 import { SuccessStep } from 'elements';
 
 // TODO: add errorElement to routes
@@ -16,7 +16,7 @@ import { SuccessStep } from 'elements';
 export enum ROUTES {
   QUOTE_NEW = '/quotes/new',
   QUOTE_VIEW = '/quotes/:quoteId',
-  QUOTE_SUBMITTED = '/quotes/submitted',
+  QUOTE_SUBMITTED = '/quotes/:submissionId/submitted',
   SUBMISSION_VIEW = '/submissions/:submissionId',
   CHECKOUT = '/quotes/:quoteId/checkout',
   CONTACT = '/contact',
@@ -77,10 +77,12 @@ export const router = createBrowserRouter([
           {
             path: ROUTES.QUOTE_SUBMITTED, // '/quotes/submitted',
             element: <SuccessStep />,
+            loader: submissionLoader,
           },
           {
             path: ROUTES.SUBMISSION_VIEW,
-            element: (() => <div>TODO: view submission</div>)(),
+            element: <SubmissionView />, //  (() => <div>TODO: view submission</div>)(),
+            loader: submissionLoader,
           },
           {
             path: ROUTES.CONTACT, //  '/contact',

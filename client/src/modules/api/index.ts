@@ -1,4 +1,4 @@
 export {};
 export { fetchPropertyDetails } from './fetchPropertyDetails';
 
-export type { FetchPropertyDataRequest } from './fetchPropertyDetails';
+export type { FetchPropertyDataRequest, FetchPropertyDataResponse } from './fetchPropertyDetails';
