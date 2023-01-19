@@ -32,7 +32,6 @@ export const FormikCheckbox: React.FC<FormikCheckboxProps> = ({
   ...props
 }) => {
   const [field, meta] = useField({ name, type: 'checkbox' });
-  console.log('field: ', field);
 
   return (
     <FormControl error={meta.touched && Boolean(meta.error)}>

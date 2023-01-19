@@ -66,7 +66,7 @@ export const limitsValidation = yup.object({
         let num = parseInt(value || '0');
         let min = parseInt(process.env.REACT_APP_FLOOD_MIN_LIMIT_A!) || 100000;
         let max = parseInt(process.env.REACT_APP_FLOOD_MAX_LIMIT_A!) || 1000000;
-        console.log('is valid: ', num >= min && num <= max);
+
         return num >= min && num <= max;
       }),
   }),
@@ -124,13 +124,29 @@ export const deductibleValidation = yup.object().shape({
   deductible: yup.number().min(1000).required(),
 });
 
+export const exclusionsValidation = yup.object({
+  exclusionsExist: yup.boolean().oneOf([true, false], 'Please select an option').nullable(),
+  exclusions: yup.array().when(['exclusionsExist'], {
+    is: (existsVal: boolean | null) => !!existsVal,
+    then: yup.array().min(1, 'Please select at least one option from dropdown'),
+    otherwise: yup.array(),
+  }),
+});
+
+export const priorLossValidation = yup.object({
+  priorLossCount: yup
+    .string()
+    .oneOf(['0', '1', '2', '3'])
+    .required('Prior loss history is required'),
+});
+
 export const contactValidation = yup.object().shape({
-  firstName: yup.string().notRequired(),
-  lastName: yup.string().notRequired(),
+  firstName: yup.string().required('First name is required'),
+  lastName: yup.string().required('Last name is required'),
   email: emailVal, // .required('Email required'), // yup.string().email().required(), //
   phone: phoneVal.notRequired(),
 });
 
 export const reviewValidation = yup.object({
-  userAcceptance: yup.boolean().oneOf([true], 'Must accept Terms'),
-});
+  userAcceptance: yup.boolean().oneOf([true], 'Required'),
+}); // Must accept Terms

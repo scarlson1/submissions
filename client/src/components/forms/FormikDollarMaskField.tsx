@@ -47,12 +47,6 @@ export const FormikDollarMaskField: React.FC<FormikDollarMaskFieldProps> = ({
 }) => {
   const [field, meta] = useField(name);
 
-  if (!!meta.error) {
-    console.log('ERROR', meta.error);
-  }
-
-  console.log('touched: ', meta.touched);
-
   return (
     <TextField
       {...field}

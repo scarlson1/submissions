@@ -103,6 +103,14 @@ export const FormikIncrementor: React.FC<FormikIncrementorProps> = ({
           {meta.error}
         </Typography>
       )}
+      {!Boolean(meta.error) && min && min === field.value && (
+        <Typography
+          variant='body2'
+          color='text.secondary'
+          align='center'
+          sx={{ py: 1, fontSize: '0.8rem' }}
+        >{`${valueFormatter ? valueFormatter(min) : min} minimum`}</Typography>
+      )}
     </Box>
   );
 };

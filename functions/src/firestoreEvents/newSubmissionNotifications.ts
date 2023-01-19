@@ -21,7 +21,7 @@ export const newSubmissionNotifications = functions
 
     // TODO: validate email ??
     if (!process.env.HOSTING_BASE_URL) throw new Error('Missing HOSTING_BASE_URL env variable');
-    const link = `${process.env.HOSTING_BASE_URL}/submissions/${submissionId}`;
+    const link = `${process.env.HOSTING_BASE_URL}/admin/submissions/${submissionId}`;
     console.log(`submission link: ${link}`);
 
     const adminRecipients = ['spencer.carlson@idemandinsurance.com'];

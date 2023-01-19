@@ -12,7 +12,7 @@ export interface ConfirmationOptions {
   description?: React.ReactNode; // string
   confirmButtonText?: string;
   component?: React.ReactElement;
-  dialogProps?: DialogProps;
+  dialogProps?: Partial<DialogProps>;
   dialogContentProps?: Partial<DialogContentProps>;
 }
 

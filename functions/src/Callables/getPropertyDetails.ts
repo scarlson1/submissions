@@ -1,13 +1,12 @@
 import * as functions from 'firebase-functions';
 import { getFirestore } from 'firebase-admin/firestore'; // Timestamp, FieldValue
-// import 'firebase-functions';
 import { defineSecret } from 'firebase-functions/params';
-import invariant from 'tiny-invariant';
+// import invariant from 'tiny-invariant';
 
 import { LimitTypes, SpatialKeyResponse } from '../common/types';
 import { getSpatialKeyInstance } from '../services';
 import { AxiosResponse } from 'axios';
-import { isLatLng, calcSum, roundDownToNearest, roundUpToNearest } from '../common/helpers';
+import { isLatLng, calcSum, roundUpToNearest } from '../common/helpers';
 
 let defaultLimitPercents: { [key in LimitTypes]: number } = {
   limitA: 1,
@@ -59,54 +58,88 @@ export const getPropertyDetails = functions
     }
 
     if (spatialKeyData) {
+      const fallback: { [key: string]: number | string | null } = {
+        initLimitA: null,
+        initLimitB: null,
+        initLimitC: null,
+        initLimitD: null,
+        initDeductible: null,
+        maxDeductible: 200000,
+        spatialKeyDocId: null,
+      };
+      let skDocRef;
+
       try {
-        const skDocRef = await getFirestore()
+        skDocRef = await getFirestore()
           .collection('spatialKey')
           .add({
             ...spatialKeyData,
           });
         console.log(`SpatialKey data saved to doc: ${skDocRef.id}`);
+        fallback.spatialKeyDocId = skDocRef.id;
       } catch (err) {
         console.log('Error saving SK data to Firestore', err);
       }
 
-      let validatedRatingData = await validateSpatialKeyRes(spatialKeyData!);
-      let { replacementCost } = validatedRatingData;
-      console.log('validated data: ', validatedRatingData);
-      invariant(!isNaN(replacementCost), 'Unable to retrived data required for rating.');
+      try {
+        let validatedRatingData = await validateSpatialKeyRes(spatialKeyData!);
+        let { replacementCost } = validatedRatingData;
+        console.log('validated data: ', validatedRatingData);
 
-      let MAX_A = parseInt(process.env.FLOOD_MAX_LIMIT_A!) || 1000000;
-      let MAX_BCD = parseInt(process.env.FLOOD_MAX_LIMIT_B_C_D!) || 1000000;
-      let MIN_A = parseInt(process.env.FLOOD_MIN_LIMIT_A!) || 100000;
+        // invariant(!isNaN(replacementCost), 'Unable to determine data required for rating.');
+        if (!replacementCost) return { ...validatedRatingData, ...fallback };
 
-      let defaults: InitLimits = {
-        initLimitA: roundUpToNearest(Math.min(Math.max(replacementCost, MIN_A), MAX_A), 3),
-        initLimitB: roundUpToNearest(replacementCost * defaultLimitPercents['limitB'], 3),
-        initLimitC: roundUpToNearest(replacementCost * defaultLimitPercents['limitC'], 3),
-        initLimitD: roundUpToNearest(replacementCost * defaultLimitPercents['limitD'], 3),
-      };
+        let res: any;
 
-      let totalBCDRequested = defaults.initLimitB + defaults.initLimitC + defaults.initLimitD;
-      if (totalBCDRequested > MAX_BCD) {
-        console.log('Recalculating limits. Total B, C, D: ', totalBCDRequested);
-        // Pro rated B, C, D coverages (rounded down to 100)
-        for (const [key, val] of Object.entries(defaults)) {
-          if (key !== 'limitA') {
-            defaults[key as keyof InitLimits] = roundDownToNearest(
-              (val / totalBCDRequested) * MAX_BCD
-            );
-          }
+        try {
+          let MAX_A = parseInt(process.env.FLOOD_MAX_LIMIT_A!) || 1000000;
+          // let MAX_BCD = parseInt(process.env.FLOOD_MAX_LIMIT_B_C_D!) || 1000000;
+          let MIN_A = parseInt(process.env.FLOOD_MIN_LIMIT_A!) || 100000;
+
+          // let RCVRef = Math.min(replacementCost, MAX_A);
+          let limitARef = roundUpToNearest(Math.min(Math.max(replacementCost, MIN_A), MAX_A), 3);
+
+          let defaults: InitLimits = {
+            initLimitA: limitARef,
+            initLimitB: roundUpToNearest(limitARef * defaultLimitPercents['limitB'], 3),
+            initLimitC: roundUpToNearest(limitARef * defaultLimitPercents['limitC'], 3),
+            initLimitD: roundUpToNearest(limitARef * defaultLimitPercents['limitD'], 3),
+          };
+
+          // DONT NEED TO VALIDATE SUM B,C,D - CALC BASED ON MAX OF 1M
+          // let totalBCDRequested = defaults.initLimitB + defaults.initLimitC + defaults.initLimitD;
+          // if (totalBCDRequested > MAX_BCD) {
+          //   console.log('Recalculating limits. Total B, C, D: ', totalBCDRequested);
+          //   // Pro rated B, C, D coverages (rounded down to 100)
+          //   for (const [key, val] of Object.entries(defaults)) {
+          //     if (key !== 'limitA') {
+          //       defaults[key as keyof InitLimits] = roundDownToNearest(
+          //         (val / totalBCDRequested) * MAX_BCD
+          //       );
+          //     }
+          //   }
+          // }
+
+          res = { ...defaults, spatialKeyDocId: skDocRef?.id ?? null };
+          const sumCoverage = calcSum(Object.values(defaults));
+          res.initDeductible = roundUpToNearest(sumCoverage * 0.01, 3);
+          res.maxDeductible = roundUpToNearest(sumCoverage * 0.2, 3);
+
+          console.log('res: ', res);
+
+          return { ...validatedRatingData, ...res };
+        } catch (err) {
+          console.log('ERROR CALCULATING DEFAULT LIMITS/DEDUCTIBLE. USING FALLBACK NFIP: ', err);
+          return { ...validatedRatingData, ...fallback };
         }
+      } catch (err) {
+        console.log('ERROR VALIDATING SPATIAL KEY RESPONSE. USING FALLBACK NFIP: ', err);
+        return { ...fallback };
+        // throw new functions.https.HttpsError(
+        //   'internal',
+        //   `Unable to determine data required for quoting.`
+        // );
       }
-
-      let res: any = { ...defaults };
-      const sumCoverage = calcSum(Object.values(defaults));
-      res.initDeductible = roundUpToNearest(sumCoverage * 0.01, 3);
-      res.maxDeductible = roundUpToNearest(sumCoverage * 0.2, 3);
-
-      console.log('res: ', res);
-
-      return { ...validatedRatingData, ...res };
     } else {
       throw new functions.https.HttpsError('internal', `Error fetching property data`);
     }
@@ -116,15 +149,15 @@ async function validateSpatialKeyRes(spatialKeyData: SpatialKeyResponse) {
   // let requiresReview = false;
   // let propertyNotes: UWNote[] = [];
 
-  let sqFootage = parseFloat(spatialKeyData.us_hh_square_footage);
-  let numStories = parseInt(spatialKeyData.us_hh_assessment_num_stories.replace(/\D/g, '')) || 1;
-  const dtcArr = spatialKeyData.us_hh_dtc_beach_distance.split(' ');
-  let replacementCost = parseInt(spatialKeyData.us_hh_replacement_cost);
+  let sqFootage = parseFloat(spatialKeyData.us_hh_square_footage) || null;
+  let numStories = parseInt(spatialKeyData.us_hh_assessment_num_stories.replace(/\D/g, '')) || null; // || 1 (should default to 1 at later stage ??);
+  let replacementCost = parseInt(spatialKeyData.us_hh_replacement_cost) || null;
   let propertyCode = spatialKeyData.us_hh_property_use_code;
-  let yearBuilt = parseInt(spatialKeyData.us_hh_year_built);
+  let yearBuilt = parseInt(spatialKeyData.us_hh_year_built) || null;
   let floodZone = spatialKeyData.us_hh_fema_all_params_zone;
   let CBRSDesignation = spatialKeyData.us_hh_fema_cbrs_params_designation;
   let basement = spatialKeyData.us_hh_assessment_basement;
+  const dtcArr = spatialKeyData.us_hh_dtc_beach_distance.split(' ');
   let distToCoastUnit = dtcArr[dtcArr.length - 1];
   let distToCoastFeet = parseInt(spatialKeyData.us_hh_dtc_beach_distance.replace(/\D/g, ''));
 

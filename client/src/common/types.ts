@@ -14,6 +14,7 @@ import { FloodValues } from 'views/Quote';
 import { FetchPropertyDataResponse } from 'modules/api/index';
 
 export interface Submission extends FloodValues, FetchPropertyDataResponse {
+  userId?: string | null;
   status: SubmissionStatus;
   metadata: BaseMetadata;
 }

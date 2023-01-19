@@ -2,7 +2,6 @@ import React from 'react';
 import { Box, Container, SxProps } from '@mui/material';
 import { Outlet } from 'react-router-dom';
 
-// import { Footer, HeaderDrawer, DrawerHeader } from 'components';
 import { Header, Footer } from 'components';
 
 export interface LayoutProps {

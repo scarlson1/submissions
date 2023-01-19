@@ -141,7 +141,7 @@ export const ReviewStep: React.FC = () => {
             </Typography>
             <Typography variant='body2' sx={{ color: 'text.secondary' }} gutterBottom>
               {`Keep an eye on your inbox! We'll deliver a quote to the provided email address  (
-              ${values.email}).`}
+              ${values.email}). It will include a link to proceed toward binding a policy.`}
             </Typography>
 
             <Divider sx={{ my: 3 }} />

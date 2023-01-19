@@ -23,7 +23,6 @@ export const useKeyPress = (targetKey: string, onPress?: () => void): boolean =>
   );
 
   useEffect(() => {
-    console.log('setting key listeners');
     window.addEventListener('keydown', downHandler);
     window.addEventListener('keyup', upHandler);
 

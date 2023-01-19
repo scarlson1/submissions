@@ -93,7 +93,7 @@ export const FormikWizard: React.FC<FormikWizardProps> = ({
     if (currentStep.props.mutateOnSubmit) {
       try {
         values = await currentStep.props.mutateOnSubmit(values, bag);
-        // console.log('MUTATED VALUES: ', values);
+        console.log('MUTATED VALUES: ', values);
       } catch (err) {
         console.log('MUTATE ON SUBMIT ERROR: ', err);
       }
@@ -210,23 +210,6 @@ export const FormikWizard: React.FC<FormikWizardProps> = ({
                 position='bottom'
                 activeStep={stepIndex}
                 sx={{ maxWidth: 480, flexGrow: 1, mt: 4, mx: 'auto' }}
-                nextButton={
-                  <Button
-                    size='small'
-                    onClick={() => next(values)}
-                    disabled={
-                      isValidating ||
-                      isSubmitting ||
-                      !isValid ||
-                      status === 'loading' ||
-                      loading ||
-                      disableNext
-                    }
-                  >
-                    {stepIndex === steps.length - 1 ? submitButtonText : 'Next'}
-                    {<KeyboardArrowRight />}
-                  </Button>
-                }
                 backButton={
                   <Button
                     size='small'
@@ -236,6 +219,35 @@ export const FormikWizard: React.FC<FormikWizardProps> = ({
                     {<KeyboardArrowLeft />}
                     Back
                   </Button>
+                }
+                nextButton={
+                  <LoadingButton
+                    type='submit'
+                    size='small'
+                    loading={isSubmitting || isValidating || loading || status === 'loading'}
+                    disabled={!isValid || disableNext}
+                    loadingPosition='end'
+                    endIcon={<KeyboardArrowRight />}
+                    sx={{ ml: 'auto' }}
+                  >
+                    {stepIndex === steps.length - 1 ? submitButtonText : 'Next'}
+                  </LoadingButton>
+                  // <Button
+                  //   type='submit'
+                  //   size='small'
+                  //   // onClick={() => next(values)}
+                  //   disabled={
+                  //     isValidating ||
+                  //     isSubmitting ||
+                  //     !isValid ||
+                  //     status === 'loading' ||
+                  //     loading ||
+                  //     disableNext
+                  //   }
+                  // >
+                  //   {stepIndex === steps.length - 1 ? submitButtonText : 'Next'}
+                  //   {<KeyboardArrowRight />}
+                  // </Button>
                 }
               />
             </Box>

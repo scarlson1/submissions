@@ -2,6 +2,9 @@ import * as _ from 'lodash';
 import { formatDistance, format } from 'date-fns';
 import numeral from 'numeral';
 import { Location } from 'react-router-dom';
+import { GridValueFormatterParams } from '@mui/x-data-grid';
+import { Timestamp } from 'firebase/firestore';
+import { FirebaseError } from '@firebase/util';
 
 import { AddressComponent, AddressComponentType } from 'components/forms';
 import { FirestoreTimestamp } from 'common/types';
@@ -97,6 +100,18 @@ export const formatFirestoreTimestamp = (
     ? formatDistance(tsDate, new Date(), { addSuffix: true })
     : format(tsDate, 'MMM dd, yyyy');
 };
+
+export const formatGridFirestoreTimestamp = (params: GridValueFormatterParams<Timestamp>) =>
+  params.value == null || !params.value.seconds ? '' : formatFirestoreTimestamp(params.value);
+
+/**
+ *
+ * @param params - Grid value formatter params
+ * @returns {string} returns empty string if value is null, else passed to numeral
+ */
+export const formatGridCurrency = (params: GridValueFormatterParams<number>) =>
+  params.value == null ? '' : numeral(params.value).format('$0,0[.]00');
+// TODO: use regex to get rid of everything except digits and decimals ??
 
 /**
  * checks validity of routing number by summing 3, 7, 1 multiples checking whether the sumproduct is divisible by 10
@@ -208,4 +223,61 @@ export const isLatitude = (num: number) => isFinite(num) && Math.abs(num) <= 90;
  */
 export const isLatLng = (lat: number, lng: number) => {
   return isLatitude(lat) && isLongitude(lng);
+};
+
+type ErrorWithMessage = {
+  message: string;
+};
+
+type ErrorWithCode = {
+  code: string;
+};
+
+export const isErrorWithCode = (err: unknown): err is ErrorWithCode => {
+  return (
+    typeof err === 'object' &&
+    err !== null &&
+    'code' in err &&
+    typeof (err as Record<string, unknown>).code === 'string'
+  );
+};
+
+export const getErrorCode = (maybeError: unknown, defaultVal: string = 'unknown'): string => {
+  if (isErrorWithCode(maybeError)) return maybeError.code;
+
+  return defaultVal; // 'auth/auth-error-occured';
+};
+
+const isErrorWithMessage = (error: unknown): error is ErrorWithMessage => {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'message' in error &&
+    typeof (error as Record<string, unknown>).message === 'string'
+  );
+};
+
+const toErrorWithMessage = (maybeError: unknown): ErrorWithMessage => {
+  if (isErrorWithMessage(maybeError)) return maybeError;
+
+  return { message: 'An error occurred.' };
+
+  // try {
+  //   return new Error(JSON.stringify(maybeError));
+  // } catch {
+  //   // fallback in case there's an error stringifying the maybeError
+  //   // like with circular references for example.
+  //   return new Error(String(maybeError));
+  // }
+};
+
+export const getErrorMessage = (error: unknown) => {
+  return toErrorWithMessage(error).message;
+};
+
+export const getErrorDetails = (err: unknown) => {
+  const code = err instanceof FirebaseError ? err.code : getErrorCode(err);
+  const message = err instanceof FirebaseError ? err.message : getErrorMessage(err);
+
+  return { code, message };
 };

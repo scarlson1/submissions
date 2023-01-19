@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { Typography } from '@mui/material';
 import Grid, { Grid2Props } from '@mui/material/Unstable_Grid2';
 import { useFormikContext } from 'formik';
 
@@ -121,6 +122,12 @@ export const LimitsStep: React.FC<LimitsStepProps> = ({
       columnSpacing={{ xs: 6, sm: 9, md: 12 }}
       {...gridProps}
     >
+      <Grid xs={12}>
+        <Typography color='text.secondary' gutterBottom>
+          We've set some default coverage limits based on the estimated replacement cost of your
+          home and belongings. Feel free to adjust them to fit your needs.
+        </Typography>
+      </Grid>
       {limitFields.map((field) => (
         <Grid xs={12} sm={6} key={field.name}>
           <FormikDollarMaskField

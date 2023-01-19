@@ -19,6 +19,7 @@ export interface FetchPropertyDataResponse {
   replacementCost: number;
   sqFootage: number;
   yearBuilt: number;
+  spatialKeyDocId?: string | null;
 }
 
 const functions = getFunctions();

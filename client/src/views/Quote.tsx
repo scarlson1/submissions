@@ -4,20 +4,33 @@ import { Box, Container, Tooltip, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { addDoc, serverTimestamp } from 'firebase/firestore';
 
-import { FormikTextField, FormikWizard, Step } from 'components/forms';
-import { AddressStep, LimitsStep, DeductibleStep, ReviewStep } from 'elements';
+import { FormikWizard, Step } from 'components/forms';
+import {
+  AddressStep,
+  LimitsStep,
+  DeductibleStep,
+  ReviewStep,
+  ExclusionsStep,
+  ContactStep,
+  PriorFloodLossStep,
+} from 'elements';
 import {
   addressValidation,
   limitsValidation,
   deductibleValidation,
   contactValidation,
   reviewValidation,
+  exclusionsValidation,
+  priorLossValidation,
 } from 'common/quoteValidation';
 import { ROUTES, createPath } from 'router';
 import { submissionsCollection } from 'common/firestoreCollections';
 import { SubmissionStatus } from 'common/enums';
 import { usePropertyDetails } from 'hooks';
 import { roundUpToNearest, sumArr } from 'modules/utils/helpers';
+
+// TODO: fix bug - need to separate geocodeing from address
+// if address manually changed (not google autocomple), need to update lat lng
 
 const DEFAULT_FLOOD_DEDUCTIBLE = '0.01';
 
@@ -43,6 +56,11 @@ export interface FloodValues {
   limitC: string;
   limitD: string;
   deductible: number;
+  exclusionsExist: boolean | null;
+  exclusions: string[];
+  priorLossCount: number;
+  firstName: string;
+  lastName: string;
   email: string;
   userAcceptance: boolean;
 }
@@ -59,11 +77,16 @@ export const initialValues: FloodValues = {
   coverageActiveStructures: true,
   coverageActiveContents: true,
   coverageActiveAdditional: true,
-  limitA: '100000',
-  limitB: '0',
-  limitC: '0',
-  limitD: '0',
-  deductible: 1000,
+  limitA: '250000',
+  limitB: '25000',
+  limitC: '63000',
+  limitD: '38000',
+  deductible: 4000,
+  exclusionsExist: false,
+  exclusions: [],
+  priorLossCount: 0,
+  firstName: '',
+  lastName: '',
   email: '',
   userAcceptance: false,
 };
@@ -96,25 +119,28 @@ export const Quote: React.FC = () => {
   // const { } = useFetchProperty()
 
   const { propertyDetails, fetchPropertyData } = usePropertyDetails();
+
   const handleFetchProperty = useCallback(
     async (values: any, helpers: FormikHelpers<any>) => {
+      if (formikRef.current?.initialValues === values) {
+        return values;
+      }
       try {
         // formik async dependent fields ref: https://formik.org/docs/examples/dependent-fields-async-api-request
-        // TODO: set response as initial limits and deductible
 
         const res = await fetchPropertyData({ lat: values.latitude, lng: values.longitude });
         console.log('result: ', res);
         return {
           ...values,
-          limitA: res.initLimitA,
-          limitB: res.initLimitB,
-          limitC: res.initLimitC,
-          limitD: res.initLimitD,
-          deductible: res.initDeductible ?? 1000,
+          limitA: res.initLimitA ?? '250000',
+          limitB: res.initLimitB ?? '25000',
+          limitC: res.initLimitC ?? '63000',
+          limitD: res.initLimitD ?? '38000',
+          deductible: res.initDeductible ?? 4000,
         };
       } catch (err) {
         console.log('ERROR: ', err);
-        helpers.setSubmitting(false);
+        return values;
       }
     },
     [fetchPropertyData]
@@ -156,17 +182,15 @@ export const Quote: React.FC = () => {
           },
         });
 
-        navigate(createPath({ path: ROUTES.QUOTE_SUBMITTED, params: { submissionId: docRef.id } }));
+        navigate(
+          createPath({ path: ROUTES.SUBMISSION_SUBMITTED, params: { submissionId: docRef.id } })
+        );
       } catch (err) {}
 
       setSubmitting(false);
     },
     [navigate, propertyDetails]
   );
-
-  React.useEffect(() => {
-    console.log('errors: ', formikRef.current?.errors);
-  }, [formikRef.current?.errors]);
 
   return (
     <Container maxWidth='sm'>
@@ -186,11 +210,11 @@ export const Quote: React.FC = () => {
             mutateOnSubmit={handleOnToDeductible}
             stepperNavLabel='Limits'
           >
-            <Box sx={{ pb: { xs: 4, sm: 6, md: 8 }, pt: { xs: 2, sm: 4 } }}>
+            <Box sx={{ pb: { xs: 4, sm: 6, md: 8 }, pt: { sm: 2 } }}>
               <LimitsStep
                 inputProps={{ variant: 'outlined' }}
                 gridProps={gridProps}
-                replacementCost={propertyDetails?.replacementCost}
+                replacementCost={propertyDetails?.replacementCost || 250000}
               />
             </Box>
           </Step>
@@ -204,6 +228,31 @@ export const Quote: React.FC = () => {
                 gridProps={gridProps}
                 maxDeductible={propertyDetails?.maxDeductible ?? undefined}
               />
+            </Box>
+          </Step>
+          <Step
+            label='Checking the boxes...'
+            validationSchema={exclusionsValidation}
+            stepperNavLabel='Exclusions'
+          >
+            <Box sx={{ pb: { xs: 4, sm: 6, md: 8 }, pt: { xs: 2, sm: 4 } }}>
+              <ExclusionsStep />
+            </Box>
+          </Step>
+          <Step
+            label='How many losses has the property had in the past 10 years that were caused by flooding?'
+            validationSchema={priorLossValidation}
+            stepperNavLabel='History'
+          >
+            <Box
+              sx={{
+                pb: { xs: 4, sm: 6, md: 8 },
+                pt: { xs: 2, sm: 4 },
+                display: 'flex',
+                justifyContent: 'center',
+              }}
+            >
+              <PriorFloodLossStep />
             </Box>
           </Step>
           <Step
@@ -222,23 +271,12 @@ export const Quote: React.FC = () => {
             stepperNavLabel='Contact'
           >
             <Box
-              sx={{
-                pb: { xs: 4, sm: 6, md: 8 },
-                pt: { xs: 2, sm: 4 },
-                display: 'flex',
-                justifyContent: 'center',
-              }}
+              sx={{ pb: { xs: 4, sm: 6, md: 8 }, pt: { xs: 2, sm: 4 }, maxWidth: 480, mx: 'auto' }}
             >
-              <FormikTextField
-                name='email'
-                label='Email'
-                fullWidth
-                required
-                sx={{ maxWidth: 300 }}
-              />
+              <ContactStep />
             </Box>
           </Step>
-          <Step label='Review' validationSchema={reviewValidation} stepperNavLabel='Summary'>
+          <Step label='Done!' validationSchema={reviewValidation} stepperNavLabel='Review'>
             <ReviewStep />
           </Step>
         </FormikWizard>

@@ -1,6 +1,6 @@
 import sgMail from '@sendgrid/mail';
 
-import { submissionReceived, adminNewSubmission } from './templates';
+import { submissionReceived, adminNewSubmission, emailConfirmation } from './templates';
 // import { userInvite } from './emailTemplates/userInvite';
 // import { emailConfirmation } from './emailTemplates/emailConfirmation';
 // import { agencyAppReceived } from './emailTemplates/agencyAppReceived';
@@ -49,4 +49,16 @@ export const sendNewSubmissionAdminNotification = async (
   sgMail.setApiKey(key);
 
   await sgMail.send(createMsgContent({ html, subject: `New submission!`, to }));
+};
+
+export const sendEmailConfirmation = async (
+  key: string,
+  link: string,
+  to: string | string[],
+  toName?: string
+) => {
+  const html = emailConfirmation({ toName, link });
+  sgMail.setApiKey(key);
+
+  await sgMail.send(createMsgContent({ html, subject: 'Please confirm your email', to }));
 };

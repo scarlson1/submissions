@@ -5,3 +5,5 @@ initializeApp();
 
 export { getPropertyDetails } from './callables';
 export { newSubmissionNotifications } from './firestoreEvents';
+export { beforeSignIn, beforeCreate } from './authEvents';
+export { authRequests } from './routes';

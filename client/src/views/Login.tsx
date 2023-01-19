@@ -1,0 +1,229 @@
+import React, { useEffect, useRef, useCallback, useMemo } from 'react';
+import { Button, Typography, Container, Divider, Stack } from '@mui/material'; // Divider, Stack,
+import { LoadingButton } from '@mui/lab';
+import Grid from '@mui/material/Unstable_Grid2';
+import { FormikHelpers, Formik, FormikProps } from 'formik';
+import * as yup from 'yup';
+import { useNavigate, useLocation, useParams, useSearchParams } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
+import { FirebaseError } from '@firebase/util';
+import { AuthError, ProviderId } from 'firebase/auth'; // ProviderId
+
+import FormikTextField from 'components/forms/FormikTextField';
+import { auth } from 'firebaseConfig';
+import { GoogleAuth, MicrosoftAuth } from 'components';
+import { getRedirectPath } from 'modules/utils/helpers';
+import { useAuth } from 'modules/components/AuthContext';
+import { FormikPassword } from 'elements'; // ForgotPasswordDialog
+import { useHandleAuthError } from 'hooks/useHandleAuthError';
+import { useKeyPress, useSendPasswordReset } from 'hooks';
+
+const providersList = [
+  {
+    providerId: ProviderId.GOOGLE,
+    element: <GoogleAuth />,
+  },
+  {
+    providerId: 'microsoft.com',
+    element: <MicrosoftAuth />,
+  },
+];
+
+export const loginValidation = yup.object({
+  email: yup.string().email().required('Valid email is required'),
+  password: yup.string().required('Password required'),
+});
+
+export interface LoginValues {
+  email: string;
+  password: string;
+}
+
+export const Login: React.FC = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const params = useParams();
+  const [queryParams] = useSearchParams();
+  const { login } = useAuth();
+  const { handleError } = useHandleAuthError();
+  const { sendPasswordReset } = useSendPasswordReset({
+    onSuccess: (email?: string) => toast(`Password reset email sent to ${email}`),
+    onError: (err) => toast.error('Failed to send password reset email.'),
+  });
+  const formikRef = useRef<FormikProps<LoginValues>>(null);
+
+  useKeyPress('Enter', () => {
+    console.log('onPress called');
+    formikRef.current?.submitForm();
+  });
+
+  useEffect(() => {
+    if (params.tenantId) {
+      console.log(`setting auth.tenantId: ${params.tenantId}`);
+      auth.tenantId = params.tenantId;
+    } else {
+      auth.tenantId = null;
+    }
+  }, [params]);
+
+  const submitForm = useCallback(() => {
+    formikRef.current?.submitForm();
+  }, []);
+
+  const handleSubmit = async (values: LoginValues, actions: FormikHelpers<LoginValues>) => {
+    const { email, password } = values;
+
+    try {
+      await login(email.trim(), password.trim());
+
+      actions.setSubmitting(false);
+      navigate(getRedirectPath(location), { replace: true });
+    } catch (err) {
+      if (err instanceof FirebaseError) {
+        try {
+          await handleError(err as AuthError, values);
+          navigate(getRedirectPath(location), { replace: true });
+        } catch (error) {
+          console.log(error);
+        }
+      } else {
+        console.log(err);
+        toast.error('An error occured. See console for details.');
+      }
+      actions.setSubmitting(false);
+    }
+  };
+
+  const providers = useMemo(() => {
+    // TODO: move providers to separate component?
+    let providersArr = providersList;
+
+    if (params.tenantId) {
+      // IN SEPARATE LISTENER, FETCH ORG DOC
+      // UPDATE USE MEMO WHEN DOC CHANGES AND DOC.PROVIDERS IS AVAILABLE
+      // for security purposes, need to save provider info in separate doc from org
+      providersArr.filter((p) => ['google.com', 'microsoft.com'].includes(p.providerId));
+    }
+
+    return providersArr;
+  }, [params.tenantId]);
+
+  return (
+    <Container maxWidth='xs' sx={{ py: { sm: 6, md: 8 } }}>
+      {/* <Box sx={{ maxWidth: '400px' }}> */}
+      <Typography variant='h4'>Login</Typography>
+      <Typography variant='subtitle1' gutterBottom sx={{ py: 1, color: 'text.secondary' }}>
+        Hi, welcome back 👋
+      </Typography>
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        spacing={{ xs: 2, md: 3 }}
+        my={{ xs: 2, sm: 4, lg: 6 }}
+        sx={{
+          maxWidth: { xs: '240px' },
+          mx: 'auto',
+        }}
+      >
+        {providers.map((p) => (
+          <div key={p.providerId}>{p.element}</div>
+        ))}
+      </Stack>
+      <Formik
+        initialValues={{
+          email: queryParams.get('email') || '',
+          password: '',
+        }}
+        validationSchema={loginValidation}
+        onSubmit={handleSubmit}
+        innerRef={formikRef}
+      >
+        {({ isValid, isValidating, isSubmitting, dirty, values }: FormikProps<LoginValues>) => (
+          <Grid container rowSpacing={{ xs: 3, sm: 4 }} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
+            <Grid xs={12}>
+              <Divider variant='middle'>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    px: 3,
+                    color: (theme) => theme.palette.grey['600'],
+                  }}
+                >
+                  or login with email
+                </Typography>
+              </Divider>
+            </Grid>
+            <Grid xs={12}>
+              <FormikTextField name='email' label='Email' fullWidth />
+            </Grid>
+            <Grid xs={12}>
+              <FormikPassword />
+            </Grid>
+            <Grid
+              xs={12}
+              display='flex'
+              justifyContent='flex-end'
+              alignItems='center'
+              sx={{ py: 0 }}
+            >
+              {/* <ForgotPasswordDialog initialEmail={values.email} /> */}
+              <Button
+                variant='text'
+                size='small'
+                sx={{
+                  fontSize: 12,
+                  px: 3,
+                  textTransform: 'inherit',
+                  alignSelf: 'flex-start',
+                }}
+                onClick={() => sendPasswordReset(values.email)}
+              >
+                Forgot password
+              </Button>
+            </Grid>
+            <Grid
+              xs={12}
+              display='flex'
+              justifyContent='center'
+              alignItems='center'
+              sx={{ pt: { xs: 3, sm: 4, md: 5, lg: 6 } }}
+            >
+              <LoadingButton
+                variant='contained'
+                // type='submit'
+                onClick={submitForm}
+                id='recaptcha-button'
+                fullWidth
+                disabled={!isValid || !dirty || isValidating}
+                loading={isSubmitting}
+              >
+                Login
+              </LoadingButton>
+            </Grid>
+            <Grid xs={12} display='flex' justifyContent='center' alignItems='center' sx={{ py: 0 }}>
+              <Button
+                variant='text'
+                size='small'
+                onClick={() =>
+                  navigate(`/auth/create-account/${params.tenantId || ''}`, {
+                    state: { ...location.state },
+                  })
+                }
+                sx={{
+                  fontSize: 12,
+                  px: 3,
+                  textTransform: 'inherit',
+                  alignSelf: 'flex-start',
+                }}
+              >
+                Don't have an account? Create one
+              </Button>
+            </Grid>
+          </Grid>
+        )}
+      </Formik>
+      {/* </Box> */}
+    </Container>
+  );
+};
+
+export default Login;

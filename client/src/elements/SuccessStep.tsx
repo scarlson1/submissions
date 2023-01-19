@@ -19,6 +19,10 @@ import { Submission } from 'common/types';
 // TODO: "Are you an agent? Get in touch..."
 // TODO: create account
 
+const submissionFAQs = () => {
+  return <Box>TODO: FAQ accordion</Box>;
+};
+
 export const SuccessStep: React.FC = () => {
   const navigate = useNavigate();
   const data = useLoaderData() as Submission;
@@ -65,22 +69,25 @@ export const SuccessStep: React.FC = () => {
             </Typography>
 
             <Typography variant='body2' color='text.secondary' sx={{ p: 4 }} gutterBottom>
-              Thank you! We'll send the quote for your review shortly. If you have any question or
-              need to get in touch, please don't hesitate to reach out.
+              {data.firstName ? `Thanks, ${data.firstName}! ` : 'Thank you!'} We'll send the quote
+              for your review shortly. If you have any question or need to get in touch, please
+              don't hesitate to reach out.
             </Typography>
             <Divider flexItem sx={{ mt: 3, mb: -4 }} />
           </Box>
         </CardContent>
         <CardActions sx={{ justifyContent: 'flex-end' }}>
           <Box>
-            <Button
+            {/* <Button
               onClick={() => navigate(createPath({ path: ROUTES.CONTACT }), { replace: true })}
               sx={{ ml: 2 }}
             >
               Contact Us
-            </Button>
+            </Button> */}
             <Button
-              onClick={() => navigate(createPath({ path: ROUTES.QUOTE_NEW }), { replace: true })}
+              onClick={() =>
+                navigate(createPath({ path: ROUTES.SUBMISSION_NEW }), { replace: true })
+              }
               sx={{ ml: 2 }}
             >
               New Quote

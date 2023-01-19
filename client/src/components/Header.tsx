@@ -1,72 +1,148 @@
 import React, { useMemo } from 'react';
 import {
   AppBar,
+  Avatar,
   Box,
   Toolbar,
   IconButton,
   Typography,
   Menu,
   Container,
-  Avatar,
   Button,
-  Tooltip,
   MenuItem,
+  Tooltip,
 } from '@mui/material';
-import { Adb, MenuRounded, Brightness4, Brightness7 } from '@mui/icons-material';
+import { MenuRounded, Brightness4, Brightness7, WaterRounded } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
 
 import { useChangeTheme } from 'modules/components/ThemeContext';
 import { useNavigate } from 'react-router-dom';
-import { ROUTES, createPath } from 'router';
-// import { useAuth } from 'modules/components/AuthContext';
+import { useAuth } from 'modules/components/AuthContext';
+import { ROUTES, ADMIN_ROUTES, createPath } from 'router';
+import { User } from 'firebase/auth';
 
-// const pages = [
-//   {
-//     title: 'Quote',
-//     route: createPath({ path: ROUTES.QUOTE_NEW }), // 'quotes/new',
-//   },
-//   {
-//     title: 'Contact Us',
-//     route: createPath({ path: ROUTES.CONTACT }), // 'contact',
-//   },
-// ];
-const settings = ['Website', 'Logout']; // ['Profile', 'Account', 'Dashboard', 'Logout'];
+export interface NavItem {
+  title: string;
+  route: string;
+}
 
-export const Header: React.FC = () => {
+interface UserMenuProps {
+  user: User;
+  menuItems: { label: string; onClick: () => void }[];
+}
+
+const UserMenu: React.FC<UserMenuProps> = ({ user, menuItems }) => {
+  const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(null);
+
+  const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorElUser(event.currentTarget);
+  };
+  const handleCloseUserMenu = () => {
+    setAnchorElUser(null);
+  };
+
+  return (
+    <>
+      <Tooltip title='Open settings'>
+        <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
+          <Avatar alt={user.displayName || undefined} src={user.photoURL || ''} />
+        </IconButton>
+      </Tooltip>
+      <Menu
+        sx={{ mt: '45px' }}
+        id='menu-appbar'
+        anchorEl={anchorElUser}
+        anchorOrigin={{
+          vertical: 'top',
+          horizontal: 'right',
+        }}
+        keepMounted
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'right',
+        }}
+        open={Boolean(anchorElUser)}
+        onClose={handleCloseUserMenu}
+      >
+        {menuItems.map((item) => (
+          <MenuItem
+            key={item.label}
+            onClick={() => {
+              item.onClick();
+              handleCloseUserMenu();
+            }}
+          >
+            <Typography textAlign='center' color='text.primary'>
+              {item.label}
+            </Typography>
+          </MenuItem>
+        ))}
+      </Menu>
+    </>
+  );
+};
+
+export interface HeaderProps {
+  // navItems?: NavItem[];
+}
+
+export const Header: React.FC<HeaderProps> = () => {
   const theme = useTheme();
   const changeTheme = useChangeTheme();
   const navigate = useNavigate();
+  const { user, customClaims, logout } = useAuth();
   const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
-  const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(null);
 
-  const pages = useMemo(
+  const adminNavPages = useMemo(
     () => [
       {
         title: 'Quote',
-        route: createPath({ path: ROUTES.QUOTE_NEW }), // 'quotes/new',
+        route: createPath({ path: ROUTES.SUBMISSION_NEW }),
       },
       {
-        title: 'Contact Us',
-        route: createPath({ path: ROUTES.CONTACT }), // 'contact',
+        title: 'Submissions',
+        route: createPath({ path: ADMIN_ROUTES.SUBMISSIONS }),
       },
     ],
     []
   );
 
+  const userNavPages = useMemo(
+    () => [
+      {
+        title: 'Quote',
+        route: createPath({ path: ROUTES.SUBMISSION_NEW }),
+      },
+      // {
+      //   title: 'Contact Us',
+      //   route: createPath({ path: ROUTES.CONTACT }),
+      // },
+    ],
+    []
+  );
+
+  const navPages = useMemo(() => {
+    if (!!customClaims.iDemandAdmin) {
+      return adminNavPages;
+    }
+    return userNavPages;
+  }, [customClaims.iDemandAdmin, adminNavPages, userNavPages]);
+
   const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorElNav(event.currentTarget);
-  };
-  const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorElUser(event.currentTarget);
   };
 
   const handleCloseNavMenu = () => {
     setAnchorElNav(null);
   };
 
-  const handleCloseUserMenu = () => {
-    setAnchorElUser(null);
-  };
+  const settings = useMemo(
+    () => [
+      // { label: 'Website', onClick: () => {} },
+      { label: 'Logout', onClick: logout },
+    ],
+    [logout]
+  );
 
   return (
     <AppBar
@@ -81,20 +157,23 @@ export const Header: React.FC = () => {
     >
       <Container maxWidth='xl'>
         <Toolbar disableGutters>
-          <Adb
+          <WaterRounded
             sx={{
               display: { xs: 'none', md: 'flex' },
-              mr: 1,
+              mr: 2,
               color: (theme) =>
                 theme.palette.mode === 'dark' ? 'white' : theme.palette.text.primary,
+
+              '&:hover': {
+                cursor: 'pointer',
+              },
             }}
+            onClick={() => navigate('/')}
           />
           <Typography
             variant='h6'
             noWrap
             onClick={() => navigate('/')}
-            // component='a'
-            // href='/'
             sx={{
               mr: 4,
               display: { xs: 'none', md: 'flex' },
@@ -105,6 +184,9 @@ export const Header: React.FC = () => {
               color: 'text.primary',
               textDecoration: 'none',
               textTransform: 'uppercase',
+              '&:hover': {
+                cursor: 'pointer',
+              },
             }}
           >
             iDemand
@@ -139,7 +221,7 @@ export const Header: React.FC = () => {
                 display: { xs: 'block', md: 'none' },
               }}
             >
-              {pages.map((page) => (
+              {navPages?.map((page) => (
                 <MenuItem key={page.title} onClick={() => navigate(page.route)}>
                   <Typography textAlign='center' color='text.primary'>
                     {page.title}
@@ -148,13 +230,17 @@ export const Header: React.FC = () => {
               ))}
             </Menu>
           </Box>
-          <Adb
+          <WaterRounded
             sx={{
               display: { xs: 'flex', md: 'none' },
-              mr: 1,
+              mr: 2,
               color: (theme) =>
                 theme.palette.mode === 'dark' ? 'white' : theme.palette.text.primary,
+              '&:hover': {
+                cursor: 'pointer',
+              },
             }}
+            onClick={() => navigate('/')}
           />
           <Typography
             variant='h5'
@@ -170,12 +256,15 @@ export const Header: React.FC = () => {
               color: 'text.primary',
               textDecoration: 'none',
               textTransform: 'uppercase',
+              '&:hover': {
+                cursor: 'pointer',
+              },
             }}
           >
             iDemand
           </Typography>
           <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
-            {pages.map((page) => (
+            {navPages?.map((page) => (
               <Button
                 key={page.title}
                 onClick={() => navigate(page.route)}
@@ -199,36 +288,8 @@ export const Header: React.FC = () => {
                 <Brightness4 fontSize='small' />
               )}
             </IconButton>
-            {/* TODO: show login button if not authenticated */}
-            <Tooltip title='Open settings'>
-              <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                <Avatar alt='Remy Sharp' src='/static/images/avatar/2.jpg' />
-              </IconButton>
-            </Tooltip>
-            <Menu
-              sx={{ mt: '45px' }}
-              id='menu-appbar'
-              anchorEl={anchorElUser}
-              anchorOrigin={{
-                vertical: 'top',
-                horizontal: 'right',
-              }}
-              keepMounted
-              transformOrigin={{
-                vertical: 'top',
-                horizontal: 'right',
-              }}
-              open={Boolean(anchorElUser)}
-              onClose={handleCloseUserMenu}
-            >
-              {settings.map((setting) => (
-                <MenuItem key={setting} onClick={handleCloseUserMenu}>
-                  <Typography textAlign='center' color='text.primary'>
-                    {setting}
-                  </Typography>
-                </MenuItem>
-              ))}
-            </Menu>
+
+            {!!user && <UserMenu user={user} menuItems={settings} />}
           </Box>
         </Toolbar>
       </Container>

@@ -37,7 +37,7 @@ export const DeductibleStep: React.FC<DeductibleStepProps> = ({ gridProps, maxDe
       <Grid xs={12}>
         <FormikIncrementor
           name='deductible'
-          incrementBy={1000}
+          incrementBy={500}
           min={1000}
           max={maxDeductible}
           valueFormatter={(val: number | undefined) => {
