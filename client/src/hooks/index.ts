@@ -9,7 +9,7 @@ export { usePropertyDetails } from './usePropertyDetails';
 export { useSocialAuth } from './useSocialAuth';
 export { useSendPasswordReset } from './useSendPasswordReset';
 export { useHandleAuthError } from './useHandleAuthError';
-// export {} from './';
+export { useContactUs } from './useContactUs';
 // export {} from './';
 // export {} from './';
 // export {} from './';

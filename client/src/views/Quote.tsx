@@ -94,29 +94,6 @@ export const initialValues: FloodValues = {
 export const Quote: React.FC = () => {
   const navigate = useNavigate();
   const formikRef = useRef<FormikProps<FormikValues>>(null);
-  // const { error: createError, isError, isLoading, mutateAsync, reset } = useCreateQuote();
-
-  // const handleSubmit = useCallback(
-  //   async (values: FloodFormValues, helpers: FormikHelpers<FloodFormValues>) => {
-  //     console.log('HANDLE SUBMIT CALLED. VALUES: ', values);
-  //     if (!quote || quote.quoteId) return;
-
-  //     if (isAnonymous) {
-  //       return navigate('/auth/create-account', {
-  //         state: { redirectPath: `/application/bind/${quote.id}` },
-  //       });
-  //     }
-  //     helpers.setSubmitting(false);
-  //     navigate(`/application/bind/${quote.id}`);
-  //   },
-  //   [isAnonymous, quote, navigate]
-  // );
-
-  // const handleCancel = useCallback(() => {
-  //   reset();
-  //   navigate('/application/flood');
-  // }, [reset, navigate]);
-  // const { } = useFetchProperty()
 
   const { propertyDetails, fetchPropertyData } = usePropertyDetails();
 
@@ -150,10 +127,10 @@ export const Quote: React.FC = () => {
     const initValues = formikRef.current?.initialValues;
     if (!initValues) return values;
     const initSum = sumArr([
-      initValues.limitA,
-      initValues.limitB,
-      initValues.limitC,
-      initValues.limitD,
+      parseInt(initValues.limitA),
+      parseInt(initValues.limitB),
+      parseInt(initValues.limitC),
+      parseInt(initValues.limitD),
     ]);
 
     const defaultDeductible = roundUpToNearest(initSum * parseFloat(DEFAULT_FLOOD_DEDUCTIBLE), 3);

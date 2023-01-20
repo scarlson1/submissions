@@ -1,8 +1,9 @@
-node_modules
+node_modules/
 
-build
-dist
-lib
+build/
+dist/
+lib/
+functions/dist/
 
 # Compiled JavaScript files
 lib/**/*.js

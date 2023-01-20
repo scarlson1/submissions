@@ -15,9 +15,6 @@ import { FormikPassword } from 'elements';
 import { useCreateAccount } from 'hooks/useCreateAccount';
 import { useKeyPress } from 'hooks';
 
-// form el or button type=submit causing network timeout error ??
-// https://stackoverflow.com/questions/38860900/firebase-project-results-in-auth-network-request-failed-error-on-login
-
 export const passwordValidation = yup
   .string()
   .min(8, 'Password must be 8 characters long')
@@ -44,7 +41,6 @@ interface SignUpValues {
 // TODO: handle existing accounts
 // and linkinng anonymous accounts
 // https://firebase.google.com/docs/auth/web/anonymous-auth#email-password-sign-in
-// TODO: handle showing providers per tenant
 
 export const CreateAccount: React.FC = () => {
   const navigate = useNavigate();
@@ -80,9 +76,6 @@ export const CreateAccount: React.FC = () => {
       await createAccount(values);
 
       toast.success('Account created! 🎉 Welcome to iDemand!', { duration: 3000 });
-      // toast('You know the drill... please verify your email when you get a chance.', {
-      //   delay: 5000,
-      // });
 
       actions.setSubmitting(false);
       navigate(getRedirectPath(location), { replace: true });
@@ -93,7 +86,6 @@ export const CreateAccount: React.FC = () => {
   }
 
   return (
-    // <Box sx={{ maxWidth: '400px' }}>
     <Container maxWidth='xs' sx={{ py: { sm: 6, md: 8 } }}>
       <Typography variant='h4'>Create an account</Typography>
       <Typography variant='subtitle1' gutterBottom sx={{ py: 1, color: 'text.secondary' }}>
@@ -122,13 +114,7 @@ export const CreateAccount: React.FC = () => {
         onSubmit={handleSubmit}
         innerRef={formikRef}
       >
-        {({
-          isValid,
-          isValidating,
-          isSubmitting,
-          dirty,
-          handleSubmit,
-        }: FormikProps<SignUpValues>) => (
+        {({ isValid, isValidating, isSubmitting, dirty }: FormikProps<SignUpValues>) => (
           <Grid container rowSpacing={{ xs: 3, sm: 4 }} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
             <Grid xs={12}>
               <Divider variant='middle'>
@@ -164,8 +150,6 @@ export const CreateAccount: React.FC = () => {
             >
               <LoadingButton
                 variant='contained'
-                // type='submit'
-                // onClick={() => handleSubmit()}
                 onClick={submitForm}
                 fullWidth
                 disabled={!isValid || !dirty || isValidating}
@@ -198,7 +182,6 @@ export const CreateAccount: React.FC = () => {
         )}
       </Formik>
     </Container>
-    // {/* </Box> */}
   );
 };
 

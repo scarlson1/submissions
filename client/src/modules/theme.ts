@@ -952,6 +952,20 @@ export function getThemedComponents(theme: Theme): {
           },
         },
       },
+      MuiAccordionSummary: {
+        styleOverrides: {
+          root: {
+            padding: theme.spacing(0, 4),
+          },
+        },
+      },
+      MuiAccordionDetails: {
+        styleOverrides: {
+          root: {
+            padding: theme.spacing(3, 4),
+          },
+        },
+      },
       MuiCssBaseline: {
         defaultProps: {
           enableColorScheme: true,

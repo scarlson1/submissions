@@ -96,12 +96,16 @@ export const Header: React.FC<HeaderProps> = () => {
   const adminNavPages = useMemo(
     () => [
       {
-        title: 'Quote',
+        title: 'New Submission',
         route: createPath({ path: ROUTES.SUBMISSION_NEW }),
       },
       {
         title: 'Submissions',
         route: createPath({ path: ADMIN_ROUTES.SUBMISSIONS }),
+      },
+      {
+        title: 'New Quote',
+        route: createPath({ path: ADMIN_ROUTES.QUOTE_NEW }),
       },
     ],
     []

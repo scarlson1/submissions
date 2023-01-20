@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Button,
@@ -8,7 +8,11 @@ import {
   Typography,
   Divider,
   Container,
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
 } from '@mui/material';
+import { ExpandMore } from '@mui/icons-material';
 import Lottie from 'lottie-react';
 import { useLoaderData, useNavigate } from 'react-router-dom';
 
@@ -16,18 +20,106 @@ import * as CheckmarkLottie from 'assets/checkmark.json';
 import { ROUTES, createPath } from 'router';
 import { Submission } from 'common/types';
 
-// TODO: "Are you an agent? Get in touch..."
 // TODO: create account
 
-const submissionFAQs = () => {
-  return <Box>TODO: FAQ accordion</Box>;
+interface FAQ {
+  title: React.ReactNode;
+  secondary?: React.ReactNode;
+  description: React.ReactNode;
+  id: string;
+}
+
+const generalFaqs: FAQ[] = [
+  {
+    title: `When will I get my quote?`,
+    // secondary: 'Contact us to get set up in the system',
+    description:
+      'You should expect a reply within 24 hours. Most replies are generated within the hour during daytime hours.',
+    id: 'panel0',
+  },
+  {
+    title: `Can I improve my quote?`,
+    // secondary: 'Contact us to get set up in the system',
+    description:
+      'There are two ways to reduce your premium. You can review the data we found on your property, such as a finsihed vs unfinshed basement. If its incorrect, correcting the input can improve your quote. Another way to reduce your premium is by changing the dedutible. We default the deductible to about 1% of the total coverage. If you choose to increase the deductible, the premium will usually go down.',
+    id: 'panel1',
+  },
+  // {
+  //   title: `What if the Replacement Cost Value (RCV) is wrong?`,
+  //   // secondary: 'Contact us to get set up in the system',
+  //   description:
+  //     'Lorem ipsum dolor sit amet consectetur adipisicing elit. Architecto ipsa labore accusantium dolores ratione doloremque veniam delectus officia! Ea est nihil tenetur, quod laborum et recusandae commodi consectetur modi alias!',
+  //   id: 'panel2',
+  // },
+  // {
+  //   title: `Does the policy cover replacement costs if replacement costs more than my policy limit?`,
+  //   // secondary: 'Contact us to get set up in the system',
+  //   description:
+  //     'Lorem ipsum dolor sit amet consectetur adipisicing elit. Architecto ipsa labore accusantium dolores ratione doloremque veniam delectus officia! Ea est nihil tenetur, quod laborum et recusandae commodi consectetur modi alias!',
+  //   id: 'panel3',
+  // },
+];
+
+interface FaqAccordionProps {
+  q: FAQ;
+  expanded: string | boolean;
+  handleChange: (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => void;
+}
+
+const FaqAccordion: React.FC<FaqAccordionProps> = ({ q, expanded, handleChange }) => {
+  return (
+    <Accordion expanded={expanded === q.id} onChange={handleChange(q.id)} key={q.id}>
+      <AccordionSummary
+        expandIcon={<ExpandMore />}
+        aria-controls={`${q.id}-content`}
+        id={`${q.id}-header1`}
+      >
+        <Typography variant='subtitle2' sx={{ width: '90%', flexShrink: 0 }}>
+          {q.title}
+        </Typography>
+        {/* <Typography variant='subtitle2' color='text.secondary'>
+                {q.secondary}
+              </Typography> */}
+      </AccordionSummary>
+      <AccordionDetails>
+        <Typography variant='body2' color='text.secondary'>
+          {q.description}
+        </Typography>
+      </AccordionDetails>
+    </Accordion>
+  );
+};
+
+const SubmissionFAQs = () => {
+  const [expanded, setExpanded] = useState<string | false>(false);
+
+  const handleChange = (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
+    setExpanded(isExpanded ? panel : false);
+  };
+
+  return (
+    <Box>
+      <Divider sx={{ mt: 4, mb: 2 }}>
+        <Typography variant='h6' color='text.secondary' sx={{ px: 3 }}>
+          Questions on your mind?
+        </Typography>
+      </Divider>
+
+      <Box sx={{ py: 3 }}>
+        <Typography variant='overline' color='text.secondary' sx={{ pl: 4, mb: 3 }}>
+          General FAQs
+        </Typography>
+        {generalFaqs.map((q) => (
+          <FaqAccordion q={q} expanded={expanded} handleChange={handleChange} />
+        ))}
+      </Box>
+    </Box>
+  );
 };
 
 export const SuccessStep: React.FC = () => {
   const navigate = useNavigate();
   const data = useLoaderData() as Submission;
-  // TODO: typing loader data
-  console.log('data: ', data);
 
   return (
     <Container maxWidth='sm' sx={{ py: { xs: 3, sm: 4, md: 6, lg: 8 } }}>
@@ -95,6 +187,9 @@ export const SuccessStep: React.FC = () => {
           </Box>
         </CardActions>
       </Card>
+      <Box sx={{ py: 8 }}>
+        <SubmissionFAQs />
+      </Box>
     </Container>
   );
 };

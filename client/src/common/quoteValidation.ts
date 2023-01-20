@@ -27,7 +27,7 @@ export const addressValidation = yup.object().shape({
 const getNumValue = (val: any): number =>
   typeof val === 'string' ? parseInt(val || '0') : typeof val === 'number' ? val : 0;
 
-const checkBCDSumValid = (
+export const checkBCDSumValid = (
   limit1: string | number,
   limit2: string | number,
   limit3: string | number
@@ -40,6 +40,56 @@ const checkBCDSumValid = (
     limit1 + limit2 + limit3 < parseInt(process.env.REACT_APP_FLOOD_MAX_LIMIT_B_C_D || '1000000')
   );
 };
+
+export const limitAVal = yup
+  .string()
+  .required()
+  .test('limitA', 'Building limit required. Please enter a number.', (value) => {
+    if (value === undefined) return false;
+    if (!isNaN(parseInt(value))) return true;
+    return false;
+  })
+  .test('limitA', 'Amount must be between 100k and 1M.', (value) => {
+    let num = parseInt(value || '0');
+    let min = parseInt(process.env.REACT_APP_FLOOD_MIN_LIMIT_A!) || 100000;
+    let max = parseInt(process.env.REACT_APP_FLOOD_MAX_LIMIT_A!) || 1000000;
+
+    return num >= min && num <= max;
+  });
+
+export const limitBVal = yup
+  .string()
+  .required()
+  .test('limitB', 'Building limit required. Please enter a number.', (value) => {
+    if (value === undefined) return false;
+    if (!isNaN(parseInt(value))) return true;
+    return false;
+  })
+  .test('limitB', 'Sum B+C+D must be between 0 and 1M.', (value, context) => {
+    return checkBCDSumValid(value || 0, context.parent.limitC, context.parent.limitD);
+  });
+
+export const limitCVal = yup
+  .string()
+  .test('limitC', 'Building limit required. Please enter a number.', (value) => {
+    if (value === undefined) return false;
+    if (!isNaN(parseInt(value))) return true;
+    return false;
+  })
+  .test('limitC', 'Sum B+C+D must be between 0 and 1M.', (value, context) => {
+    return checkBCDSumValid(context.parent.limitB, value || 0, context.parent.limitD);
+  });
+
+export const limitDVal = yup
+  .string()
+  .test('limitD', 'Please enter a number.', (value) => {
+    if (value === undefined) return false;
+    if (!isNaN(parseInt(value))) return true;
+    return false;
+  })
+  .test('limitD', 'Sum B+C+D must be between 0 and 1M.', (value, context) => {
+    return checkBCDSumValid(context.parent.limitB, context.parent.limitC, value || 0);
+  });
 
 export const limitsValidation = yup.object({
   coverageActive: yup.object({
@@ -54,68 +104,19 @@ export const limitsValidation = yup.object({
   coverageActiveAdditional: yup.boolean(),
   limitA: yup.string().when('coverageActiveBuilding', {
     is: true,
-    then: yup
-      .string()
-      .required()
-      .test('limitA', 'Building limit required. Please enter a number.', (value) => {
-        if (value === undefined) return false;
-        if (!isNaN(parseInt(value))) return true;
-        return false;
-      })
-      .test('limitA', 'Amount must be between 100k and 1M.', (value) => {
-        let num = parseInt(value || '0');
-        let min = parseInt(process.env.REACT_APP_FLOOD_MIN_LIMIT_A!) || 100000;
-        let max = parseInt(process.env.REACT_APP_FLOOD_MAX_LIMIT_A!) || 1000000;
-
-        return num >= min && num <= max;
-      }),
+    then: limitAVal,
   }),
   limitB: yup.string().when('coverageActiveStructures', {
     is: true,
-    then: yup
-      .string()
-      .required()
-      .test('limitB', 'Building limit required. Please enter a number.', (value) => {
-        if (value === undefined) return false;
-        if (!isNaN(parseInt(value))) return true;
-        return false;
-      })
-      .test('limitB', 'Amount must be between 0 and 1M.', (value, context) => {
-        return checkBCDSumValid(value || 0, context.parent.limitC, context.parent.limitD);
-        // let limitB = getNumValue(value)
-        // let limitC = getNumValue(context.parent.limitC)
-        // let limitD = getNumValue(context.parent.limitD)
-
-        // let sum = limitB + limitC + limitD;
-
-        // return sum >= 0 && sum <= 1000000;
-      }),
+    then: limitBVal,
   }),
   limitC: yup.string().when('coverageActiveStructures', {
     is: true,
-    then: yup
-      .string()
-      .test('limitC', 'Building limit required. Please enter a number.', (value) => {
-        if (value === undefined) return false;
-        if (!isNaN(parseInt(value))) return true;
-        return false;
-      })
-      .test('limitC', 'Amount must be between 0 and 1M.', (value, context) => {
-        return checkBCDSumValid(context.parent.limitB, value || 0, context.parent.limitD);
-      }),
+    then: limitCVal,
   }),
   limitD: yup.string().when('coverageActiveStructures', {
     is: true,
-    then: yup
-      .string()
-      .test('limitD', 'Please enter a number.', (value) => {
-        if (value === undefined) return false;
-        if (!isNaN(parseInt(value))) return true;
-        return false;
-      })
-      .test('limitD', 'Amount must be between 0 and 1M.', (value, context) => {
-        return checkBCDSumValid(context.parent.limitB, context.parent.limitC, value || 0);
-      }),
+    then: limitDVal,
   }),
 });
 
