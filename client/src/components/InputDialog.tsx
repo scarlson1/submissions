@@ -22,6 +22,7 @@ export interface InputDialogOptions extends ConfirmationOptions {
   onSubmit?: (inputVal: string | boolean) => Promise<any>;
   onSubmitError?: (err: unknown) => Promise<void>;
   onCancel?: () => Promise<void>;
+  label?: string;
   confirmText?: string;
   inputType?: 'checkbox' | 'textField';
   inputProps?: TextFieldProps;
@@ -38,6 +39,7 @@ export const InputDialog: React.FC<InputDialogOptions> = ({
   onSubmit,
   onSubmitError,
   onCancel,
+  label = 'Email',
   confirmText,
   title = 'Alert',
   variant = 'danger',
@@ -109,7 +111,7 @@ export const InputDialog: React.FC<InputDialogOptions> = ({
             />
           ) : (
             <TextField
-              label='Email'
+              label={label}
               fullWidth
               variant='outlined'
               value={inputVal}

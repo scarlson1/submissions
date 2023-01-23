@@ -3,18 +3,25 @@ import { createBrowserRouter } from 'react-router-dom';
 import App from './App';
 import { Layout, RequireAuth, RouterErrorBoundary } from 'components';
 import {
-  Quote,
+  SubmissionNew,
   ContactUs,
   ViewQuote,
   Checkout,
+  Login,
+  CreateAccount,
+  Policy,
+  policyLoader,
+  Policies,
+  // policiesLoader,
+  Home,
+} from 'views';
+import {
   submissionLoader,
   SubmissionView,
   submissionsLoader,
   Submissions,
-  Login,
-  CreateAccount,
   QuoteNew,
-} from 'views';
+} from 'views/admin';
 import { SuccessStep } from 'elements';
 // import RouterErrorBoundary from 'components/errorBoundaries/RouterErrorBoundary';
 
@@ -27,7 +34,8 @@ import { SuccessStep } from 'elements';
 // https://betterprogramming.pub/the-best-way-to-manage-routes-in-a-react-project-with-typescript-c4e8d4422d64
 // https://codesandbox.io/s/affectionate-mirzakhani-c7lvr?from-embed
 
-// TODO: separate into admin routes
+// TODO: reuse loaders: https://reactrouter.com/en/main/hooks/use-route-loader-data
+// Available in custom hooks and any other nested component
 
 export enum ROUTES {
   SUBMISSION_NEW = '/new',
@@ -35,6 +43,9 @@ export enum ROUTES {
   QUOTE_VIEW = '/quotes/:quoteId',
   CHECKOUT = '/quotes/:quoteId/checkout',
   CONTACT = '/contact',
+  USER_QUOTES = '/quotes/list/:userId',
+  USER_POLICIES = '/policies',
+  USER_POLICY = '/policies/:policyId',
 }
 
 export enum ADMIN_ROUTES {
@@ -43,15 +54,24 @@ export enum ADMIN_ROUTES {
   QUOTE_NEW = '/admin/quote/new',
 }
 
+export enum AUTH_ROUTES {
+  LOGIN = '/auth/login',
+  CREATE_ACCOUNT = '/auth/create-account',
+}
+
 type TArgs =
   | { path: ROUTES.SUBMISSION_NEW }
   | { path: ROUTES.SUBMISSION_SUBMITTED; params: { submissionId: string } }
   | { path: ROUTES.QUOTE_VIEW; params: { quoteId: string } }
   | { path: ROUTES.CHECKOUT; params: { quoteId: string } }
+  | { path: ROUTES.USER_POLICIES }
+  | { path: ROUTES.USER_POLICY; params: { policyId: string } }
   | { path: ROUTES.CONTACT }
   | { path: ADMIN_ROUTES.SUBMISSIONS }
   | { path: ADMIN_ROUTES.SUBMISSION_VIEW; params: { submissionId: string } }
-  | { path: ADMIN_ROUTES.QUOTE_NEW };
+  | { path: ADMIN_ROUTES.QUOTE_NEW }
+  | { path: AUTH_ROUTES.CREATE_ACCOUNT }
+  | { path: AUTH_ROUTES.LOGIN };
 
 type TArgsWithParams = Extract<TArgs, { path: any; params: any }>;
 
@@ -80,16 +100,16 @@ export const router = createBrowserRouter([
     children: [
       {
         path: '/',
-        element: <Layout />,
+        element: <Layout containerProps={{ maxWidth: 'lg' }} />,
         errorElement: <RouterErrorBoundary />,
         children: [
           {
             index: true,
-            element: <Quote />,
+            element: <Home />,
           },
           {
             path: ROUTES.SUBMISSION_NEW,
-            element: <Quote />,
+            element: <SubmissionNew />,
             errorElement: (
               <RouterErrorBoundary
                 actionButtons={[{ path: ROUTES.SUBMISSION_NEW, label: 'Start new quote' }]}
@@ -116,12 +136,39 @@ export const router = createBrowserRouter([
             errorElement: <RouterErrorBoundary />,
           },
           {
-            path: '/auth/login',
+            path: AUTH_ROUTES.LOGIN,
             element: <Login />,
           },
           {
-            path: '/auth/create-account',
+            path: AUTH_ROUTES.CREATE_ACCOUNT,
             element: <CreateAccount />,
+          },
+        ],
+      },
+      {
+        path: '/policies',
+        element: (
+          <RequireAuth>
+            <Layout
+              noPadding={true}
+              bodyWrapperSX={{ px: 0 }}
+              containerProps={{ maxWidth: false, sx: { px: '0 !important' } }}
+            />
+          </RequireAuth>
+        ),
+        errorElement: <RouterErrorBoundary />,
+        children: [
+          {
+            index: true,
+            element: <Policies />,
+            // loader: policiesLoader(auth),
+            errorElement: <RouterErrorBoundary />,
+          },
+          {
+            path: ROUTES.USER_POLICY,
+            element: <Policy />,
+            loader: policyLoader,
+            errorElement: <RouterErrorBoundary />,
           },
         ],
       },

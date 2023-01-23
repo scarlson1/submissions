@@ -13,7 +13,7 @@ export { GoogleAuth } from './GoogleAuth';
 export { MicrosoftAuth } from './MicrosoftAuth';
 export { ReauthDialog } from './ReauthDialog';
 export { RequireAuth } from './RequireAuth';
-// export {  } from './'
+export { BasicDataGrid } from './BasicDataGrid';
 // export {  } from './'
 
 export type { ConfirmationDialogProps } from './ConfirmationDialog';

@@ -7,6 +7,7 @@ import { PolicyRounded } from '@mui/icons-material';
 import * as yup from 'yup';
 
 import { FormikFieldArray, FormikIncrementor, FormikTextField } from 'components/forms';
+import { AddressStep } from 'elements';
 import { limitAVal, limitBVal, limitCVal, limitDVal } from 'common/quoteValidation';
 import { dollarFormat } from 'modules/utils/helpers';
 
@@ -18,6 +19,13 @@ const quoteNewValidation = yup.object().shape({
 });
 
 export interface NewQuoteValues {
+  addressLine1: string;
+  addressLine2: string;
+  city: string;
+  state: string;
+  postal: string;
+  latitude: number | null;
+  longitude: number | null;
   limitA: string;
   limitB: string;
   limitC: string;
@@ -45,6 +53,13 @@ export interface NewQuoteValues {
 // TODO: copy submission data (SK data)
 
 const initialValues = {
+  addressLine1: '',
+  addressLine2: '',
+  city: '',
+  state: '',
+  postal: '',
+  latitude: null,
+  longitude: null,
   limitA: '',
   limitB: '',
   limitC: '',
@@ -77,6 +92,7 @@ export const QuoteNew: React.FC = () => {
   const handleSubmit = useCallback(
     (values: NewQuoteValues, { setSubmitting }: FormikHelpers<NewQuoteValues>) => {
       alert(JSON.stringify(values, null, 2));
+      // new GeoPoint(latitude: number, longitude: number),
       setSubmitting(false);
     },
     []
@@ -128,6 +144,18 @@ export const QuoteNew: React.FC = () => {
         >
           {({ dirty, values, errors, touched, setFieldValue, setFieldTouched, setFieldError }) => (
             <Grid container spacing={4}>
+              <Grid xs={12} sx={{ py: 1 }}>
+                <Typography
+                  variant='overline'
+                  color='text.secondary'
+                  sx={{ pl: 4, lineHeight: 1.4 }}
+                >
+                  Location
+                </Typography>
+              </Grid>
+              <Grid xs={12}>
+                <AddressStep />
+              </Grid>
               <Grid xs={12} sx={{ py: 1 }}>
                 <Typography
                   variant='overline'

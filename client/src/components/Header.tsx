@@ -251,7 +251,8 @@ export const Header: React.FC<HeaderProps> = () => {
             noWrap
             onClick={() => navigate('/')}
             sx={{
-              mr: 4,
+              // mr: 4,
+              mr: '-34px',
               display: { xs: 'flex', md: 'none' },
               flexGrow: 1,
               fontFamily: 'monospace',

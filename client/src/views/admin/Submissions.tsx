@@ -6,8 +6,7 @@ import { LoaderFunctionArgs, useLoaderData, useNavigate } from 'react-router-dom
 
 import { submissionsCollection } from 'common/firestoreCollections';
 import { Submission } from 'common/types';
-import BasicDataGrid from 'components/BasicDataGrid';
-import { renderGridEmail } from 'components';
+import { BasicDataGrid, renderGridEmail } from 'components';
 import { formatGridCurrency, formatGridFirestoreTimestamp } from 'modules/utils/helpers';
 import { ADMIN_ROUTES, createPath } from 'router';
 

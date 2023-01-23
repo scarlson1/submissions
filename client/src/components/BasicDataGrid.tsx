@@ -2,8 +2,6 @@ import React from 'react';
 import { Box, BoxProps } from '@mui/material';
 import { DataGrid, GridToolbar, DataGridProps } from '@mui/x-data-grid';
 
-// TODO: USE LOADER OR PASS AS PROPS ??
-
 export interface AdditionalNamedInsuredsProps extends DataGridProps {
   rows: any[];
   columns: any[];
@@ -11,7 +9,7 @@ export interface AdditionalNamedInsuredsProps extends DataGridProps {
   withToolbar?: boolean;
 }
 
-const BasicDataGrid: React.FC<AdditionalNamedInsuredsProps> = ({
+export const BasicDataGrid: React.FC<AdditionalNamedInsuredsProps> = ({
   rows,
   columns,
   containerProps,

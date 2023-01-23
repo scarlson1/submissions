@@ -22,7 +22,7 @@ import {
 import { DoNotDisturbAltRounded } from '@mui/icons-material';
 import { FormikToggleButtonGroup } from 'components/forms';
 import { useFormikContext } from 'formik';
-import { FloodValues } from 'views/Quote';
+import { FloodValues } from 'views/SubmissionNew';
 
 // export const exclusions = [
 //   { label: 'Open wall or roof', value: 'Open wall or roof' },

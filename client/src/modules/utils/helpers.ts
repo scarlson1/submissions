@@ -281,3 +281,7 @@ export const getErrorDetails = (err: unknown) => {
 
   return { code, message };
 };
+
+export function getRandomItem(items: any[]) {
+  return items[Math.floor(Math.random() * items.length)];
+}

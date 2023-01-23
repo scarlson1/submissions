@@ -10,10 +10,11 @@ export { useSocialAuth } from './useSocialAuth';
 export { useSendPasswordReset } from './useSendPasswordReset';
 export { useHandleAuthError } from './useHandleAuthError';
 export { useContactUs } from './useContactUs';
-// export {} from './';
+export { useUsersPolicies } from './useUsersPolicies';
 // export {} from './';
 // export {} from './';
 // export {} from './';
 
 export type { UseFileUploadProps } from './useFileUpload';
 export type { UseSendPasswordResetProps } from './useSendPasswordReset';
+export type { PolicyWithId } from './useUsersPolicies';

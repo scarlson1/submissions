@@ -91,7 +91,7 @@ export const initialValues: FloodValues = {
   userAcceptance: false,
 };
 
-export const Quote: React.FC = () => {
+export const SubmissionNew: React.FC = () => {
   const navigate = useNavigate();
   const formikRef = useRef<FormikProps<FormikValues>>(null);
 

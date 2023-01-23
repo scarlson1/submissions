@@ -2,7 +2,7 @@ import React, { useCallback } from 'react';
 import { ToggleButton } from '@mui/material';
 import { FormikToggleButtonGroup } from 'components/forms';
 import { useFormikContext } from 'formik';
-import { FloodValues } from 'views/Quote';
+import { FloodValues } from 'views/SubmissionNew';
 
 export interface PriorFloodLossStepProps {}
 

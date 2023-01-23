@@ -1,4 +1,4 @@
-import { WithFieldValue, FirestoreErrorCode } from 'firebase/firestore';
+import { WithFieldValue, GeoPoint } from 'firebase/firestore'; // FirestoreErrorCode
 
 import {
   // AgencySubmissionStatus,
@@ -10,9 +10,13 @@ import {
   DeductibleOptions,
   SubmissionStatus,
 } from './enums';
-import { FloodValues } from 'views/Quote';
+import { FloodValues } from 'views/SubmissionNew';
 import { FetchPropertyDataResponse } from 'modules/api/index';
 
+export interface BaseMetadata {
+  created: FirestoreTimestamp;
+  updated: FirestoreTimestamp;
+}
 export interface Submission extends FloodValues, FetchPropertyDataResponse {
   userId?: string | null;
   status: SubmissionStatus;
@@ -271,6 +275,35 @@ export interface UpdateQuoteRequestBody {
   removeMortgageeInterest?: Mortgagee[];
   setAdditionalInsureds?: AdditionalInsured[];
   setMortgageeInterest?: Mortgagee[];
+}
+
+export interface Policy {
+  limits: Limits;
+  deductible: number;
+  address: Address;
+  coords: Coordinates;
+  namedInsured: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+  };
+  additionalInsureds?: { firstName: string; lastName: string; email: string }[];
+  mortgageeInterest?: any;
+  userId: string;
+  agent: {
+    agentId: string;
+    name: string;
+  };
+  agency: {
+    orgId: string;
+    name: string;
+  };
+  darkMapImageURL?: string;
+  lightMapImageURL?: string;
+  darkMapImageFilePath?: string;
+  lightMapImageFilePath?: string;
+  metadata: BaseMetadata;
 }
 
 export interface User {

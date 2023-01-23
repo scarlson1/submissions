@@ -6,7 +6,7 @@ import {
   RatingData,
   SpatialKeyResponse,
   Organization,
-  // Policy,
+  Policy,
   // Notification,
   User,
   UserClaims,
@@ -26,7 +26,7 @@ export const quotesCollection = createCollection<QuoteData>(Collections.QUOTES);
 export const ratingCollection = createCollection<RatingData>(Collections.RATING_DATA);
 export const spatialKeyCollection = createCollection<SpatialKeyResponse>(Collections.SK_RES);
 export const orgsCollection = createCollection<Organization>(Collections.ORGANIZATIONS);
-// export const policiesCollection = createCollection<Policy>(Collections.POLICIES);
+export const policiesCollection = createCollection<Policy>(Collections.POLICIES);
 export const usersCollection = createCollection<User>(Collections.USERS);
 // export const agencyAppCollection = createCollection<AgencyApplication>(
 //   Collections.AGENCY_APPLICATIONS

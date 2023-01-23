@@ -4,7 +4,7 @@ import Grid, { Grid2Props } from '@mui/material/Unstable_Grid2';
 import { useFormikContext } from 'formik';
 
 import { FormikDollarMaskField, FormikDollarMaskFieldProps } from 'components/forms';
-import { FloodValues } from 'views/Quote';
+import { FloodValues } from 'views/SubmissionNew';
 import { round, roundToNearest } from 'modules/utils/helpers';
 import { LimitKeys } from 'common/types';
 

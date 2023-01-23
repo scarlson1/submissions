@@ -2,7 +2,7 @@ import React, { useCallback } from 'react';
 import { Box, Card, CardContent, Grid, Typography, Stack, Divider } from '@mui/material';
 import { useFormikContext } from 'formik';
 
-import { FloodValues } from 'views/Quote';
+import { FloodValues } from 'views/SubmissionNew';
 import { LimitKeys } from 'common/types';
 import { dollarFormat } from 'modules/utils/helpers';
 import { FormikCheckbox } from 'components/forms';

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Container, SxProps } from '@mui/material';
+import { Box, Container, ContainerProps, SxProps } from '@mui/material';
 import { Outlet } from 'react-router-dom';
 
 import { Header, Footer } from 'components';
@@ -7,10 +7,16 @@ import { Header, Footer } from 'components';
 export interface LayoutProps {
   noPadding?: boolean;
   mainSX?: SxProps;
-  containerSX?: SxProps;
+  bodyWrapperSX?: SxProps;
+  containerProps?: ContainerProps;
 }
 
-export const Layout: React.FC<LayoutProps> = ({ noPadding = false, mainSX, containerSX }) => {
+export const Layout: React.FC<LayoutProps> = ({
+  noPadding = false,
+  mainSX,
+  bodyWrapperSX,
+  containerProps,
+}) => {
   return (
     <Box
       sx={{
@@ -31,7 +37,7 @@ export const Layout: React.FC<LayoutProps> = ({ noPadding = false, mainSX, conta
         }}
       >
         <Header />
-        <Container maxWidth='lg'>
+        <Container {...containerProps}>
           <Box
             sx={{
               pt: noPadding ? 0 : 6,
@@ -40,7 +46,7 @@ export const Layout: React.FC<LayoutProps> = ({ noPadding = false, mainSX, conta
               flex: '1 0 auto',
               display: 'flex',
               flexDirection: 'column',
-              ...containerSX,
+              ...bodyWrapperSX,
             }}
           >
             <Outlet />

@@ -110,7 +110,7 @@ const SubmissionFAQs = () => {
           General FAQs
         </Typography>
         {generalFaqs.map((q) => (
-          <FaqAccordion q={q} expanded={expanded} handleChange={handleChange} />
+          <FaqAccordion q={q} expanded={expanded} handleChange={handleChange} key={q.id} />
         ))}
       </Box>
     </Box>
