@@ -2,7 +2,7 @@ import React, { useCallback, useRef } from 'react';
 import { FormikHelpers, FormikProps, FormikValues } from 'formik';
 import { Box, Container, Tooltip, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { addDoc, serverTimestamp } from 'firebase/firestore';
+import { addDoc, GeoPoint, serverTimestamp } from 'firebase/firestore';
 
 import { FormikWizard, Step } from 'components/forms';
 import {
@@ -28,6 +28,7 @@ import { submissionsCollection } from 'common/firestoreCollections';
 import { SubmissionStatus } from 'common/enums';
 import { usePropertyDetails } from 'hooks';
 import { roundUpToNearest, sumArr } from 'modules/utils/helpers';
+import { useAuth } from 'modules/components/AuthContext';
 
 // TODO: fix bug - need to separate geocodeing from address
 // if address manually changed (not google autocomple), need to update lat lng
@@ -93,8 +94,8 @@ export const initialValues: FloodValues = {
 
 export const SubmissionNew: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const formikRef = useRef<FormikProps<FormikValues>>(null);
-
   const { propertyDetails, fetchPropertyData } = usePropertyDetails();
 
   const handleFetchProperty = useCallback(
@@ -148,11 +149,18 @@ export const SubmissionNew: React.FC = () => {
   const handleSubmit = useCallback(
     async (values: FloodValues, { setSubmitting }: FormikHelpers<FloodValues>) => {
       console.log(values);
+      const coords =
+        values.latitude && values.longitude
+          ? new GeoPoint(values.latitude, values.longitude)
+          : null;
+
       try {
         const docRef = await addDoc(submissionsCollection, {
           ...propertyDetails,
           ...values,
+          coordinates: coords,
           status: SubmissionStatus.Submitted,
+          userId: user?.uid ?? null,
           metadata: {
             created: serverTimestamp(),
             updated: serverTimestamp(),
@@ -166,7 +174,7 @@ export const SubmissionNew: React.FC = () => {
 
       setSubmitting(false);
     },
-    [navigate, propertyDetails]
+    [navigate, propertyDetails, user]
   );
 
   return (

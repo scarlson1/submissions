@@ -10,7 +10,7 @@ import { BasicDataGrid, renderGridEmail } from 'components';
 import { formatGridCurrency, formatGridFirestoreTimestamp } from 'modules/utils/helpers';
 import { ADMIN_ROUTES, createPath } from 'router';
 
-export const submissionsLoader = async ({ params }: LoaderFunctionArgs) => {
+export const adminSubmissionsLoader = async ({ params }: LoaderFunctionArgs) => {
   try {
     // TODO: pass query params for order, limit, etc.
     return getDocs(

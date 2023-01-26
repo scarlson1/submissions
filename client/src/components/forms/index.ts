@@ -21,6 +21,7 @@ export type {
   AddressAutocompleteProps,
   AddressComponent,
   AddressComponentType,
+  NewAddress,
 } from './AddressAutocomplete';
 export type { FeinMaskProps } from './FeinMask';
 export type { FormikCheckboxProps } from './FormikCheckbox';

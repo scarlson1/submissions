@@ -18,6 +18,7 @@ export interface BaseMetadata {
   updated: FirestoreTimestamp;
 }
 export interface Submission extends FloodValues, FetchPropertyDataResponse {
+  coordinates: GeoPoint;
   userId?: string | null;
   status: SubmissionStatus;
   metadata: BaseMetadata;
@@ -50,7 +51,7 @@ export interface Coordinates {
 }
 
 export interface Location extends Address {
-  coordinates: Coordinates;
+  coordinates: GeoPoint; // Coordinates;
 }
 
 export interface QuoteLocation extends Location {
@@ -281,7 +282,7 @@ export interface Policy {
   limits: Limits;
   deductible: number;
   address: Address;
-  coords: Coordinates;
+  coordinates: GeoPoint; // Coordinates;
   namedInsured: {
     firstName: string;
     lastName: string;
@@ -290,6 +291,8 @@ export interface Policy {
   };
   additionalInsureds?: { firstName: string; lastName: string; email: string }[];
   mortgageeInterest?: any;
+  effectiveDate: FirestoreTimestamp;
+  expirationDate: FirestoreTimestamp;
   userId: string;
   agent: {
     agentId: string;
@@ -393,7 +396,7 @@ export interface Agency {
 
 export interface Organization {
   address: Address;
-  coordinates?: Coordinates;
+  coordinates?: GeoPoint; // Coordinates;
   orgName: string;
   tenantId: string;
   primaryContact: {
@@ -478,6 +481,12 @@ export interface Notification {
   title: string;
   description: string;
   metadata: BaseMetadata;
+}
+
+export interface NotifyRegistration {
+  email: string;
+  topic: string;
+  state?: string;
 }
 
 export interface SpatialKeyResponse {

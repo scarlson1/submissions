@@ -16,6 +16,7 @@ export enum Collections {
   AGENCY_APPLICATIONS = 'agencySubmissions',
   LICENSES = 'licenses',
   NOTIFICATIONS = 'notifications',
+  NOTIFY_REGISTRATION = 'notifyRegistration',
 }
 
 export enum SubmissionStatus {

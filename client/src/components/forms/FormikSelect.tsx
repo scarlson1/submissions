@@ -12,6 +12,7 @@ import { useField } from 'formik';
 export interface SelectOption {
   label: React.ReactNode;
   value: string | number;
+  disabled?: boolean;
 }
 export interface FormikSelectProps extends SelectProps {
   name: string;
@@ -54,8 +55,8 @@ export const FormikSelect: React.FC<FormikSelectProps> = ({
         {...props}
       >
         <MenuItem value=''>--</MenuItem>
-        {selectOptions.map(({ label, value }) => (
-          <MenuItem key={value} value={value}>
+        {selectOptions.map(({ label, value, disabled = false }) => (
+          <MenuItem key={value} value={value} disabled={disabled}>
             {label}
           </MenuItem>
         ))}

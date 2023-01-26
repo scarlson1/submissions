@@ -70,6 +70,8 @@ export const formatPhoneNumber = (str: string) => {
 
 export const dollarFormat = (val: string | number) => numeral(val).format('$0,0[.]00');
 
+export const numberFormat = (val: string | number) => numeral(val).format('0,0');
+
 /**
  * extracts redirect location from location.state.redirectPath or defaults to base url
  * @param {Location} location - react router Location object

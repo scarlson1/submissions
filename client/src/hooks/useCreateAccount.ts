@@ -125,9 +125,7 @@ export const useCreateAccount = () => {
       // } else {
       //   // registration succeeded
       // }
-      console.log(`test2: ${code === 'auth/internal-error'}`);
       if (code === 'auth/internal-error') {
-        console.log(`test: ${msg.indexOf('verify your email') !== -1}`);
         if (msg.indexOf('Cloud Function') !== -1 || msg.indexOf('verify your email') !== -1) {
           // registration succeeded
           console.log('registration succeeded. need to handle blocking function');

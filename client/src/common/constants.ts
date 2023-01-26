@@ -9,6 +9,42 @@ export const SUPPORTED_AUTH_PROVIDER_IDS = [
   ProviderId.PHONE,
 ];
 
+export const ACTIVE_STATES = [
+  'Arizona',
+  'Connecticut',
+  'Florida',
+  'Idaho',
+  'Louisiana',
+  'Maryland',
+  'Michigan',
+  'Minnesota',
+  'Montana',
+  'Oklahoma',
+  'Pennsylvania',
+  'Texas',
+  'Virginia',
+  'Wisconsin',
+  'West Virginia',
+];
+
+export const ACTIVE_STATES_ABRV = [
+  'AZ',
+  'CT',
+  'FL',
+  'ID',
+  'LA',
+  'MD',
+  'MI',
+  'MN',
+  'MT',
+  'OK',
+  'PA',
+  'TX',
+  'VA',
+  'WI',
+  'WV',
+];
+
 // export const additionInsuredColumns: GridColDef[] = [
 //   { field: 'id', headerName: 'ID', width: 120 },
 //   {

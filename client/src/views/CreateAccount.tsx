@@ -91,15 +91,7 @@ export const CreateAccount: React.FC = () => {
       <Typography variant='subtitle1' gutterBottom sx={{ py: 1, color: 'text.secondary' }}>
         Hi, welcome to iDemand 👋
       </Typography>
-      <Stack
-        direction={{ xs: 'column', sm: 'row' }}
-        spacing={{ xs: 2, md: 3 }}
-        my={{ xs: 2, sm: 4, lg: 6 }}
-        sx={{
-          maxWidth: { xs: '240px' },
-          mx: 'auto',
-        }}
-      >
+      <Stack direction='row' sx={{ flexWrap: 'wrap', gap: 2, my: { xs: 2, sm: 4, lg: 6 } }}>
         <GoogleAuth />
         <MicrosoftAuth />
       </Stack>

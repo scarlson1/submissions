@@ -40,8 +40,7 @@ const generalFaqs: FAQ[] = [
   {
     title: `Can I improve my quote?`,
     // secondary: 'Contact us to get set up in the system',
-    description:
-      'There are two ways to reduce your premium. You can review the data we found on your property, such as a finsihed vs unfinshed basement. If its incorrect, correcting the input can improve your quote. Another way to reduce your premium is by changing the dedutible. We default the deductible to about 1% of the total coverage. If you choose to increase the deductible, the premium will usually go down.',
+    description: `There are two ways to reduce your premium. You can review the data we found on your property, such as a finished vs unfinished basement. If it's incorrect, correcting the input can improve your quote. Another way to reduce your premium is by changing the deductible. The deductible is defaulted to about 1% of the total coverage. If you choose to increase the deductible, the premium will usually go down.`,
     id: 'panel1',
   },
   // {

@@ -32,8 +32,6 @@ export const policyLoader = async ({ params }: LoaderFunctionArgs) => {
   }
 };
 
-const addressLine1 = '806 Olympic St.';
-
 export const Policy: React.FC = () => {
   const data = useLoaderData() as PolicyWithId;
   const confirm = useConfirmation();
@@ -120,11 +118,12 @@ export const Policy: React.FC = () => {
     <Box>
       <Container maxWidth='xl'>
         <Typography
-          variant='h4'
+          variant='h3'
           gutterBottom
           align='center'
-          sx={{ pt: { sm: 6, md: 9, lg: 12 }, pb: { sm: 4, md: 6, lg: 8 } }}
-        >{`Your ${addressLine1} flood policy`}</Typography>
+          fontSize={{ xs: '1.6rem', sm: '2rem', md: '2.4rem' }}
+          sx={{ pt: { xs: 8, md: 9, lg: 12 }, pb: { sm: 6, md: 8 } }}
+        >{`Your ${data.address.addressLine1} Flood Policy`}</Typography>
         <Box sx={{ pt: 4, pb: { xs: 8, md: 10, lg: 16 }, px: { md: 3, lg: 4 } }}>
           <Grid container spacing={6}>
             {limits.map((limit) => (
@@ -187,7 +186,7 @@ export const Policy: React.FC = () => {
         }}
       >
         <Container maxWidth='sm'>
-          <Typography variant='h5' align='center' gutterBottom>
+          <Typography variant='h4' align='center' gutterBottom>
             Your Deductible
           </Typography>
           <Typography variant='subtitle1' color='text.secondary'>
@@ -211,6 +210,12 @@ export const Policy: React.FC = () => {
           </Box>
         </Container>
       </Box>
+      {/* <Container sx={{ py: { xs: 8, md: 10, lg: 16 } }}>
+        <Typography variant='h4' align='center' gutterBottom>
+          What's Covered?
+        </Typography>
+        <AirRounded />
+      </Container> */}
     </Box>
   );
 };

@@ -64,6 +64,8 @@ export const useSocialAuth = ({ onSuccess, onError, skipRedirect }: UseSocialAut
           console.log('handling error: auth/account-exists-with-different-credential');
           // @ts-ignore
           const { credential, email } = err;
+          console.log('email: ', email);
+          console.log('cred: ', credential);
 
           const methods = await fetchSignInMethodsForEmail(auth, email);
           console.log('methods: ', methods);
@@ -71,8 +73,8 @@ export const useSocialAuth = ({ onSuccess, onError, skipRedirect }: UseSocialAut
             let password = await confirm({
               catchOnCancel: false,
               variant: 'danger',
-              title: 'Please enter your email',
-              description: 'Your email is required to confirm your account',
+              title: 'Link Account',
+              description: 'Please enter your password to link a new authentication provider.',
               component: (
                 <InputDialog
                   onAccept={() => {}}

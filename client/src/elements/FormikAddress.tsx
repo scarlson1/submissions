@@ -2,14 +2,12 @@ import React from 'react';
 import { Box, Grid, SelectProps, TextFieldProps } from '@mui/material';
 import { Field, FieldProps } from 'formik';
 
-import AddressAutocomplete, { NewAddress } from 'components/forms/AddressAutocomplete';
-import FormikTextField from 'components/forms/FormikTextField';
-import FormikSelect from 'components/forms/FormikSelect';
+import { FormikTextField, FormikSelect, AddressAutocomplete, NewAddress } from 'components/forms';
 import { findAddressValueByType } from 'modules/utils/helpers';
 import { statesAbrevSelectOptions } from 'common/statesList';
 
 export interface FormikAddressProps {
-  cb?: () => void; // (values?: any) => Promise<any>;
+  cb?: (coords: { lat: number | null; lng: number | null }, state?: string) => void; // (values?: any) => Promise<any>;
   setFieldValue: (field: string, value: any, shouldValidate?: boolean) => void;
   textFieldProps?: TextFieldProps;
   selectFieldProps?: Omit<SelectProps, 'label'>;
@@ -38,7 +36,7 @@ export const FormikAddress: React.FC<FormikAddressProps> = ({
     setFieldValue('longitude', geometry?.location.lng() ?? null);
 
     if (cb) {
-      cb();
+      cb({ lat: geometry?.location.lat(), lng: geometry?.location.lng() }, newState?.short_name);
     }
 
     document.getElementById('addressLine2')?.focus();
@@ -89,7 +87,7 @@ export const FormikAddress: React.FC<FormikAddressProps> = ({
             {...textFieldProps}
           />
         </Grid>
-        <Grid item xs={12} sm={8} lg={4}>
+        <Grid item xs={12} sm={4} lg={4}>
           <FormikTextField
             fullWidth
             id='city'
@@ -99,16 +97,17 @@ export const FormikAddress: React.FC<FormikAddressProps> = ({
             {...textFieldProps}
           />
         </Grid>
-        <Grid item xs={12} sm={4} lg={4}>
+        <Grid item xs={6} sm={4} lg={4}>
           <FormikSelect
             name='state'
             label='State'
             selectOptions={statesAbrevSelectOptions}
             required
+            sx={{ minWidth: 80 }}
             {...selectFieldProps}
           />
         </Grid>
-        <Grid item xs={12} sm={4} lg={4}>
+        <Grid item xs={6} sm={4} lg={4}>
           <FormikTextField
             fullWidth
             id='postal'

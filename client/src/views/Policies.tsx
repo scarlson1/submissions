@@ -2,6 +2,8 @@ import React, { useCallback } from 'react';
 import {
   Avatar,
   AvatarGroup,
+  Box,
+  Button,
   CardActionArea,
   CardMedia,
   Container,
@@ -24,7 +26,7 @@ const additionalInsureds = [
   { img: 'http://i.pravatar.cc/300?img=4', name: 'Tim Jones', email: 'test3@user.com' },
 ];
 
-const fallbackImages = [
+export const fallbackImages = [
   'https://firebasestorage.googleapis.com/v0/b/idemand-submissions.appspot.com/o/common%2Fhome-interior-1.jpg?alt=media&token=2d23e76d-2ea4-403e-9f0e-93bbaacebf3e',
   'https://firebasestorage.googleapis.com/v0/b/idemand-submissions.appspot.com/o/common%2Fhome-interior-2.jpg?alt=media&token=720e4102-0c2e-48f9-8b36-c85b0daeaa33',
   'https://firebasestorage.googleapis.com/v0/b/idemand-submissions.appspot.com/o/common%2Fhome-kitchen-1.jpg?alt=media&token=45123914-5cf6-4e2f-976c-76d6009d6371',
@@ -97,6 +99,10 @@ export const Policies: React.FC = () => {
                   <Typography color='text.secondary' lineHeight={1.8} fontSize={13}>
                     {`Agency: ${p.agency.name ?? 'iDemand Insurance Agency, Inc.'}`}
                   </Typography>
+                  <Typography color='text.secondary' lineHeight={1.8} fontSize={13}>
+                    {`Effective: ${p.effectiveDate} - ${p.expirationDate}`}
+                  </Typography>
+
                   {/* <Typography variant='subtitle2' color='primary.main'>
                     {p.id}
                   </Typography>
@@ -117,6 +123,22 @@ export const Policies: React.FC = () => {
           </Grid>
         ))}
       </Grid>
+      {!policies ||
+        (policies.length < 1 && (
+          <Box>
+            <Typography variant='subtitle2' color='text.secondary' align='center' sx={{ py: 4 }}>
+              No policies found
+            </Typography>
+            <Box>
+              <Button
+                onClick={() => navigate(createPath({ path: ROUTES.SUBMISSION_NEW }))}
+                sx={{ mx: 'auto', display: 'block' }}
+              >
+                Get a quote
+              </Button>
+            </Box>
+          </Box>
+        ))}
     </Container>
   );
 };

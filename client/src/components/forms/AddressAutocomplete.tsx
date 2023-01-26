@@ -89,7 +89,6 @@ export const AddressAutocomplete: FunctionComponent<AddressAutocompleteProps> = 
   ...rest
 }) => {
   const [value, setValue] = useState<PlaceType | null>(null);
-  // const [testInputValue, setTestInputValue] = useState('');
   const [options, setOptions] = useState<readonly PlaceType[]>([]);
   const loaded = React.useRef(false);
 
@@ -183,7 +182,7 @@ export const AddressAutocomplete: FunctionComponent<AddressAutocompleteProps> = 
         includeInputInList
         filterSelectedOptions
         size='medium'
-        // blurOnSelect={true} // cause infinite loop
+        // blurOnSelect={true} // causes infinite loop
         value={value}
         onChange={(
           event: React.SyntheticEvent<Element, Event>,

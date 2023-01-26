@@ -14,6 +14,7 @@ import {
   // AgencyApplication,
   License,
   Submission,
+  NotifyRegistration,
 } from 'common/types';
 import { db } from 'firebaseConfig';
 
@@ -32,6 +33,9 @@ export const usersCollection = createCollection<User>(Collections.USERS);
 //   Collections.AGENCY_APPLICATIONS
 // );
 export const licensesCollection = createCollection<License>(Collections.LICENSES);
+export const notifyRegistration = createCollection<NotifyRegistration>(
+  Collections.NOTIFY_REGISTRATION
+);
 
 // Subcollections
 export const userClaimsCollection = (orgId: string) =>

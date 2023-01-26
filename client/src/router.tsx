@@ -12,14 +12,14 @@ import {
   Policy,
   policyLoader,
   Policies,
-  // policiesLoader,
+  UserSubmissions,
   Home,
 } from 'views';
 import {
   submissionLoader,
   SubmissionView,
-  submissionsLoader,
-  Submissions,
+  adminSubmissionsLoader,
+  Submissions as AdminSubmissions,
   QuoteNew,
 } from 'views/admin';
 import { SuccessStep } from 'elements';
@@ -40,6 +40,7 @@ import { SuccessStep } from 'elements';
 export enum ROUTES {
   SUBMISSION_NEW = '/new',
   SUBMISSION_SUBMITTED = '/quotes/:submissionId/submitted',
+  SUBMISSIONS = '/submissions',
   QUOTE_VIEW = '/quotes/:quoteId',
   CHECKOUT = '/quotes/:quoteId/checkout',
   CONTACT = '/contact',
@@ -62,6 +63,7 @@ export enum AUTH_ROUTES {
 type TArgs =
   | { path: ROUTES.SUBMISSION_NEW }
   | { path: ROUTES.SUBMISSION_SUBMITTED; params: { submissionId: string } }
+  | { path: ROUTES.SUBMISSIONS }
   | { path: ROUTES.QUOTE_VIEW; params: { quoteId: string } }
   | { path: ROUTES.CHECKOUT; params: { quoteId: string } }
   | { path: ROUTES.USER_POLICIES }
@@ -115,6 +117,11 @@ export const router = createBrowserRouter([
                 actionButtons={[{ path: ROUTES.SUBMISSION_NEW, label: 'Start new quote' }]}
               />
             ),
+          },
+          {
+            path: ROUTES.SUBMISSIONS,
+            element: <UserSubmissions />,
+            errorElement: <RouterErrorBoundary />,
           },
           {
             path: ROUTES.QUOTE_VIEW,
@@ -185,10 +192,10 @@ export const router = createBrowserRouter([
             path: ADMIN_ROUTES.SUBMISSIONS,
             element: (
               <RequireAuth requiredClaims={['iDemandAdmin']}>
-                <Submissions />
+                <AdminSubmissions />
               </RequireAuth>
             ),
-            loader: submissionsLoader,
+            loader: adminSubmissionsLoader,
             errorElement: <RouterErrorBoundary actionButtons={[{ path: '/', label: 'Home' }]} />,
           },
           {

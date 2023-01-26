@@ -7,14 +7,14 @@ import * as yup from 'yup';
 import { useNavigate, useLocation, useParams, useSearchParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { FirebaseError } from '@firebase/util';
-import { AuthError, ProviderId } from 'firebase/auth'; // ProviderId
+import { AuthError, ProviderId } from 'firebase/auth';
 
 import FormikTextField from 'components/forms/FormikTextField';
 import { auth } from 'firebaseConfig';
 import { GoogleAuth, MicrosoftAuth } from 'components';
 import { getRedirectPath } from 'modules/utils/helpers';
 import { useAuth } from 'modules/components/AuthContext';
-import { FormikPassword } from 'elements'; // ForgotPasswordDialog
+import { FormikPassword } from 'elements';
 import { useHandleAuthError } from 'hooks/useHandleAuthError';
 import { useKeyPress, useSendPasswordReset } from 'hooks';
 
@@ -110,20 +110,11 @@ export const Login: React.FC = () => {
 
   return (
     <Container maxWidth='xs' sx={{ py: { sm: 6, md: 8 } }}>
-      {/* <Box sx={{ maxWidth: '400px' }}> */}
       <Typography variant='h4'>Login</Typography>
       <Typography variant='subtitle1' gutterBottom sx={{ py: 1, color: 'text.secondary' }}>
         Hi, welcome back 👋
       </Typography>
-      <Stack
-        direction={{ xs: 'column', sm: 'row' }}
-        spacing={{ xs: 2, md: 3 }}
-        my={{ xs: 2, sm: 4, lg: 6 }}
-        sx={{
-          maxWidth: { xs: '240px' },
-          mx: 'auto',
-        }}
-      >
+      <Stack direction='row' sx={{ flexWrap: 'wrap', gap: 2, my: { xs: 4, md: 6 } }}>
         {providers.map((p) => (
           <div key={p.providerId}>{p.element}</div>
         ))}
@@ -221,7 +212,6 @@ export const Login: React.FC = () => {
           </Grid>
         )}
       </Formik>
-      {/* </Box> */}
     </Container>
   );
 };

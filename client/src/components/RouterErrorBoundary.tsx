@@ -156,7 +156,7 @@ export const RouterErrorBoundary: React.FC<RouterErrorBoundaryProps> = ({ action
             <NotFoundSVG style={{ width: 'inherit', height: 'inherit' }} />
           </Box>
           <Box>
-            <Typography variant='h5'>The requested resource could not be found.</Typography>
+            <Typography variant='h5'>The requested resource could not be accessed.</Typography>
             <Typography variant='body2' color='text.secondary' gutterBottom sx={{ py: 4 }}>
               {msg ? msg : 'Something went wrong. See console for details.'}
             </Typography>

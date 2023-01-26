@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
-import { Collapse, Card } from '@mui/material';
+import React, { useState, useCallback } from 'react';
+import { Card, Typography } from '@mui/material';
 import { useFormikContext } from 'formik';
-import Map, { Marker } from 'react-map-gl';
-import { useTheme } from '@mui/material/styles';
+import { FlyToInterpolator, MapViewState } from '@deck.gl/core/typed';
+import { toast } from 'react-hot-toast';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
-// import { FloodFormValues } from './Flood';
 import { FormikAddress } from 'elements';
+import { DeckGLMap } from 'components/DeckGLMap';
+import { ACTIVE_STATES_ABRV } from 'common/constants';
+import { useRegisterEmailNotification } from 'hooks';
 
 export interface AddressStepValues {
   addressLine1: string;
@@ -18,47 +20,126 @@ export interface AddressStepValues {
   longitude: number | null;
 }
 
-// TODO: create reusable deckGL map and simpler react-map
-// TODO: collapse map on select
 // TODO: state and postal validation
 
 export const AddressStep: React.FC = () => {
-  const theme = useTheme();
   const { values, setFieldValue, validateForm } = useFormikContext<AddressStepValues>();
-  const [mapOpen, setMapOpen] = useState(Boolean(values.latitude && values.longitude));
+  const [showMarker, setShowMarker] = useState(Boolean(values.latitude && values.longitude));
+  const [mapViewState, setMapViewState] = useState<MapViewState>({
+    latitude: values.latitude || 37.25,
+    longitude: values.longitude || -94.75,
+    zoom: values.latitude && values.longitude ? 15 : 2.5,
+    maxZoom: 16,
+    minZoom: 2,
+    bearing: 0,
+    pitch: 0,
+  });
+  const { registerEmailDialog, handleUnavailableState } = useRegisterEmailNotification({
+    onSuccess: () => toast.success(`Thanks! We'll be in touch`),
+    onError: console.log,
+  });
 
-  const addressChangeCb = async (values?: any) => {
-    setMapOpen(true);
+  const flyToCoords = useCallback(
+    ({ lat, lng }: { lat: number | null; lng: number | null }) => {
+      if (!lat || !lng) return;
+      setMapViewState({
+        ...mapViewState,
+        latitude: lat,
+        longitude: lng,
+        zoom: 15,
+        pitch: 0,
+        bearing: 0,
+        transitionDuration: 2000,
+        transitionInterpolator: new FlyToInterpolator(),
+      });
 
-    setTimeout(async () => {
-      await validateForm();
-    }, 100);
-  };
+      setTimeout(() => {
+        setShowMarker(true);
+      }, 2300);
+    },
+    [mapViewState]
+  );
+
+  const addressChangeCb = useCallback(
+    async (coords: { lat: number | null; lng: number | null }, state?: string) => {
+      flyToCoords(coords);
+
+      setTimeout(async () => {
+        await validateForm();
+      }, 100);
+
+      console.log('state: ', state);
+      if (state && !ACTIVE_STATES_ABRV.includes(state)) {
+        await handleUnavailableState(state);
+      }
+    },
+    [flyToCoords, validateForm, handleUnavailableState]
+  );
+
+  const handleNotificationRegistry = useCallback(async () => {
+    await registerEmailDialog();
+  }, [registerEmailDialog]);
 
   return (
     <FormikAddress setFieldValue={setFieldValue} cb={addressChangeCb}>
-      {values.latitude && values.longitude && (
-        <Collapse in={mapOpen} unmountOnExit>
-          <Card sx={{ height: 240, width: '100%', mt: 5 }}>
-            <Map
-              initialViewState={{
-                longitude: values.longitude,
-                latitude: values.latitude,
-                zoom: 13,
-              }}
-              mapStyle={
-                theme.palette.mode === 'light'
-                  ? 'mapbox://styles/mapbox/light-v8'
-                  : 'mapbox://styles/spencer-carlson/cl8dxgtum000w14qix5ft9gw5' // 'mapbox://styles/mapbox/dark-v10'
-              }
-            >
-              <Marker longitude={values.longitude} latitude={values.latitude} anchor='center' />
-            </Map>
-          </Card>
-        </Collapse>
-      )}
+      <Card sx={{ height: 280, width: '100%', mt: 5 }}>
+        <DeckGLMap
+          mapViewState={mapViewState}
+          markerCoords={
+            showMarker && values.latitude && values.longitude
+              ? { lat: values.latitude, lng: values.longitude }
+              : undefined
+          }
+        />
+      </Card>
+
+      <Typography
+        variant='caption'
+        color='text.secondary'
+        sx={{
+          pl: 4,
+          py: 1,
+          // visibility: values.latitude && values.longitude ? 'hidden' : 'visible',
+        }}
+      >
+        Currently available states.{' '}
+        <Typography
+          component='span'
+          variant='caption'
+          color='text.secondary'
+          fontWeight='fontWeightMedium'
+          sx={{ '&:hover': { textDecoration: 'underline', cursor: 'pointer' } }}
+          onClick={handleNotificationRegistry}
+        >
+          Leave your email
+        </Typography>{' '}
+        to be notified when your state joins the list.
+      </Typography>
     </FormikAddress>
   );
 };
 
 export default AddressStep;
+
+// {
+//   values.latitude && values.longitude && (
+//     <Collapse in={mapOpen} unmountOnExit>
+//       <Card sx={{ height: 240, width: '100%', mt: 5 }}>
+//         <Map
+//           initialViewState={{
+//             longitude: values.longitude,
+//             latitude: values.latitude,
+//             zoom: 13,
+//           }}
+//           mapStyle={
+//             theme.palette.mode === 'light'
+//               ? 'mapbox://styles/mapbox/light-v8'
+//               : 'mapbox://styles/spencer-carlson/cl8dxgtum000w14qix5ft9gw5'
+//           }
+//         >
+//           <Marker longitude={values.longitude} latitude={values.latitude} anchor='center' />
+//         </Map>
+//       </Card>
+//     </Collapse>
+//   );
+// }

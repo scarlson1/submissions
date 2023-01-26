@@ -12,12 +12,11 @@ import { Collections } from '../common/enums';
 const MAPBOX_PUBLIC_TOKEN =
   'pk.eyJ1Ijoic3BlbmNlci1jYXJsc29uIiwiYSI6ImNqeGtoeHhkNjF2eG4zeW1mYjExcWk1aWkifQ.ikWGkKvnTuopUgSgM8nWcg';
 
-//   // .runWith({ secrets: [sendgridApiKey] })
 export const getStaticPolicyImg = functions.firestore
   .document(`${Collections.POLICIES}/{policyId}`)
   .onCreate(async (snap) => {
     try {
-      const { coords, userId } = snap.data();
+      const { coordinates: coords, userId } = snap.data();
 
       if (!coords || !coords.latitude || !coords.longitude) {
         console.log('Policy missing coordinates. falling back on defaut static map images...');

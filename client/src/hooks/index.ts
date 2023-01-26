@@ -11,7 +11,7 @@ export { useSendPasswordReset } from './useSendPasswordReset';
 export { useHandleAuthError } from './useHandleAuthError';
 export { useContactUs } from './useContactUs';
 export { useUsersPolicies } from './useUsersPolicies';
-// export {} from './';
+export { useRegisterEmailNotification } from './useRegisterEmailNotification';
 // export {} from './';
 // export {} from './';
 
