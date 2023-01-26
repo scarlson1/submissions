@@ -18,7 +18,7 @@ import { useTheme } from '@mui/material/styles';
 import { useChangeTheme } from 'modules/components/ThemeContext';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from 'modules/components/AuthContext';
-import { ROUTES, ADMIN_ROUTES, createPath } from 'router';
+import { ROUTES, ADMIN_ROUTES, createPath, AUTH_ROUTES } from 'router';
 import { User } from 'firebase/auth';
 
 export interface NavItem {
@@ -140,13 +140,15 @@ export const Header: React.FC<HeaderProps> = () => {
     setAnchorElNav(null);
   };
 
-  const settings = useMemo(
-    () => [
-      // { label: 'Website', onClick: () => {} },
-      { label: 'Logout', onClick: logout },
-    ],
-    [logout]
-  );
+  const settings = useMemo(() => {
+    let sItems = [{ label: 'Logout', onClick: logout }];
+    if (user?.isAnonymous)
+      sItems.push({
+        label: 'Create Account',
+        onClick: () => navigate(createPath({ path: AUTH_ROUTES.CREATE_ACCOUNT })),
+      });
+    return sItems;
+  }, [logout, navigate, user]);
 
   return (
     <AppBar

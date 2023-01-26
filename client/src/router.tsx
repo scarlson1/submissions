@@ -111,7 +111,11 @@ export const router = createBrowserRouter([
           },
           {
             path: ROUTES.SUBMISSION_NEW,
-            element: <SubmissionNew />,
+            element: (
+              <RequireAuth shouldSignInAnonymously={true}>
+                <SubmissionNew />
+              </RequireAuth>
+            ),
             errorElement: (
               <RouterErrorBoundary
                 actionButtons={[{ path: ROUTES.SUBMISSION_NEW, label: 'Start new quote' }]}

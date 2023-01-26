@@ -186,10 +186,16 @@ export const UserSubmissions: React.FC = () => {
                     containerSx={{ pt: 2 }}
                   />
                   <Item label='# Stories' value={s.numStories?.toString() || '--'} />
-                  <Item label='Square Footage' value={numberFormat(s.sqFootage)} />
+                  <Item
+                    label='Square Footage'
+                    value={s.sqFootage ? numberFormat(s.sqFootage) : '--'}
+                  />
                   <Item label='Basement' value={s.basement} />
                   <Item label='Flood Zone' value={s.floodZone} />
-                  <Item label='Est. Replacement Cost' value={dollarFormat(s.replacementCost)} />
+                  <Item
+                    label='Est. Replacement Cost'
+                    value={s.replacementCost ? dollarFormat(s.replacementCost) : '--'}
+                  />
                   <Item label='Submission ID' value={s.id} containerSx={{ pt: 2 }} />
                 </CardContent>
               </Collapse>

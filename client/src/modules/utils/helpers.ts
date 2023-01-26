@@ -150,13 +150,23 @@ export const isValidEmail = (str: string) => {
   );
 };
 
+export const getNumbers = (str: string) => str.replace(/\D/g, '');
+
 /**
  * Sums an array of numbers
  * @param {number[]} arr - array of numbers to be added.
  * @return {number} total of all numbers in array
  */
-export const sumArr = (arr: number[]) => {
-  return arr.reduce((total, current) => {
+export const sumArr = (arr: (number | string)[]) => {
+  const numArr = arr
+    .filter((i) => typeof i === 'number' || typeof i === 'string')
+    .map((i) => {
+      if (typeof i === 'string') {
+        return parseFloat(getNumbers(i)) || 0;
+      }
+      return i;
+    });
+  return numArr.reduce((total, current) => {
     return total + current;
   }, 0);
 };

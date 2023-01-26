@@ -14,11 +14,12 @@ import {
 } from '@mui/material';
 import { ExpandMore } from '@mui/icons-material';
 import Lottie from 'lottie-react';
-import { useLoaderData, useNavigate } from 'react-router-dom';
+import { createSearchParams, useLoaderData, useNavigate } from 'react-router-dom';
 
 import * as CheckmarkLottie from 'assets/checkmark.json';
-import { ROUTES, createPath } from 'router';
+import { ROUTES, createPath, AUTH_ROUTES } from 'router';
 import { Submission } from 'common/types';
+import { useAuth } from 'modules/components/AuthContext';
 
 // TODO: create account
 
@@ -118,6 +119,7 @@ const SubmissionFAQs = () => {
 
 export const SuccessStep: React.FC = () => {
   const navigate = useNavigate();
+  const { user, isAnonymous } = useAuth();
   const data = useLoaderData() as Submission;
 
   return (
@@ -167,23 +169,49 @@ export const SuccessStep: React.FC = () => {
             <Divider flexItem sx={{ mt: 3, mb: -4 }} />
           </Box>
         </CardContent>
-        <CardActions sx={{ justifyContent: 'flex-end' }}>
-          <Box>
+        <CardActions sx={{ justifyContent: 'space-between' }}>
+          <>
+            {Boolean(isAnonymous || !user) && (
+              <Button
+                onClick={() =>
+                  navigate(
+                    {
+                      pathname: createPath({ path: AUTH_ROUTES.CREATE_ACCOUNT }),
+                      search: createSearchParams({
+                        email: data.email,
+                        firstName: data.firstName,
+                        lastName: data.lastName,
+                      }).toString(),
+                    }
+                    // { replace: true }
+                  )
+                }
+                sx={{ mr: 2 }}
+              >
+                Create An Account
+              </Button>
+            )}
             {/* <Button
-              onClick={() => navigate(createPath({ path: ROUTES.CONTACT }), { replace: true })}
-              sx={{ ml: 2 }}
-            >
-              Contact Us
-            </Button> */}
+            onClick={() =>
+              navigate(createPath({ path: AUTH_ROUTES.CREATE_ACCOUNT }), { replace: true })
+            }
+            sx={{ ml: 2 }}
+          >
+            Contact Us
+          </Button> */}
             <Button
               onClick={() =>
-                navigate(createPath({ path: ROUTES.SUBMISSION_NEW }), { replace: true })
+                navigate(
+                  createPath({ path: ROUTES.SUBMISSION_NEW }),
+
+                  { replace: true }
+                )
               }
               sx={{ ml: 2 }}
             >
               New Quote
             </Button>
-          </Box>
+          </>
         </CardActions>
       </Card>
       <Box sx={{ py: 8 }}>

@@ -98,6 +98,8 @@ export const SubmissionNew: React.FC = () => {
   const formikRef = useRef<FormikProps<FormikValues>>(null);
   const { propertyDetails, fetchPropertyData } = usePropertyDetails();
 
+  console.log('user:', user);
+
   const handleFetchProperty = useCallback(
     async (values: any, helpers: FormikHelpers<any>) => {
       if (formikRef.current?.initialValues === values) {

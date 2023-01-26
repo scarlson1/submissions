@@ -14,7 +14,7 @@ export const Home = () => {
     return <Navigate to={createPath({ path: ADMIN_ROUTES.SUBMISSIONS })} replace={true} />;
 
   if (isAuthenticated && !isAnonymous)
-    return <Navigate to={createPath({ path: ROUTES.USER_POLICIES })} replace={true} />;
+    return <Navigate to={createPath({ path: ROUTES.SUBMISSIONS })} replace={true} />;
 
   return <SubmissionNew />;
 };
