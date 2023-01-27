@@ -77,7 +77,7 @@ const ExpandMore = styled((props: ExpandMoreProps) => {
   }),
 }));
 
-const Item = ({
+export const Item = ({
   label,
   value,
   containerSx,
@@ -141,9 +141,10 @@ export const UserSubmissions: React.FC = () => {
             >
               <CardMedia
                 sx={{ height: 140 }}
-                image={fallbackImages[i] || fallbackImages[0]}
+                // image={fallbackImages[i] || fallbackImages[0]}
+                image={s.satelliteMapImageURL || fallbackImages[i] || fallbackImages[0]}
                 // image={
-                //   (theme.palette.mode === 'dark' ? p.darkMapImageURL : p.lightMapImageURL) ||
+                //   (theme.palette.mode === 'dark' ? s.darkMapImageURL : s.lightMapImageURL) ||
                 //   getRandomItem(fallbackImages)
                 // }
                 title={`${s.addressLine1} map`}

@@ -7,4 +7,4 @@ export { CreateAccount } from './CreateAccount';
 export { Policy, policyLoader } from './Policy';
 export { Policies } from './Policies';
 export { Home } from './Home';
-export { UserSubmissions } from './UserSubmissions';
+export { UserSubmissions, Item } from './UserSubmissions';

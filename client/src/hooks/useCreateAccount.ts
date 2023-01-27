@@ -67,6 +67,7 @@ export const useCreateAccount = () => {
 
       try {
         if (isAnonymous && isAuthenticated && user) {
+          console.log('linking anonymous user');
           const credential = EmailAuthProvider.credential(email.trim(), password.trim());
           const { user: userLinkRes } = await linkWithCredential(user, credential);
 
@@ -77,6 +78,7 @@ export const useCreateAccount = () => {
           setLoading(false);
           return userLinkRes;
         } else {
+          console.log('creating new user');
           const { user: userCreateRes } = await createUserWithEmailAndPassword(
             auth,
             email.trim(),

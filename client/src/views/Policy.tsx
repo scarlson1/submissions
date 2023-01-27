@@ -1,9 +1,9 @@
 import React, { useCallback, useMemo } from 'react';
-import { Box, Container, IconButton, Tooltip, Typography } from '@mui/material';
-import { EditRounded } from '@mui/icons-material';
+import { alpha, Box, Container, IconButton, Tooltip, Typography } from '@mui/material';
+import { ArrowBackIosNewRounded, EditRounded } from '@mui/icons-material';
 import Grid from '@mui/material/Unstable_Grid2';
 import { doc, getDoc } from 'firebase/firestore';
-import { LoaderFunctionArgs, useLoaderData } from 'react-router-dom';
+import { LoaderFunctionArgs, useLoaderData, useNavigate } from 'react-router-dom';
 
 import { policiesCollection } from 'common/firestoreCollections';
 import { ReactComponent as SweetHomeSVG } from 'assets/images/sweet_home.svg';
@@ -14,6 +14,7 @@ import { FlexCard, FlexCardContent, InputDialog } from 'components';
 import { dollarFormat } from 'modules/utils/helpers';
 import { useConfirmation } from 'modules/components/ConfirmationService';
 import { PolicyWithId } from 'hooks';
+import { createPath, ROUTES } from 'router';
 
 export const policyLoader = async ({ params }: LoaderFunctionArgs) => {
   try {
@@ -33,6 +34,7 @@ export const policyLoader = async ({ params }: LoaderFunctionArgs) => {
 };
 
 export const Policy: React.FC = () => {
+  const navigate = useNavigate();
   const data = useLoaderData() as PolicyWithId;
   const confirm = useConfirmation();
   console.log('data: ', data);
@@ -116,14 +118,44 @@ export const Policy: React.FC = () => {
 
   return (
     <Box>
-      <Container maxWidth='xl'>
-        <Typography
-          variant='h3'
-          gutterBottom
-          align='center'
-          fontSize={{ xs: '1.6rem', sm: '2rem', md: '2.4rem' }}
-          sx={{ pt: { xs: 8, md: 9, lg: 12 }, pb: { sm: 6, md: 8 } }}
-        >{`Your ${data.address.addressLine1} Flood Policy`}</Typography>
+      <Container
+        maxWidth='xl'
+        sx={{
+          backgroundColor: 'inherit',
+          backgroundImage: (theme) =>
+            `linear-gradient(${alpha(theme.palette.background.paper, 0.8)}, ${alpha(
+              theme.palette.background.paper,
+              0.55
+            )}), url(${
+              theme.palette.mode === 'dark' ? data.darkMapImageURL : data.lightMapImageURL
+            })`,
+          backgroundRepeat: 'no-repeat',
+          backgroundPosition: 'center',
+          backgroundSize: 'cover',
+        }}
+      >
+        <Box sx={{ position: 'relative' }}>
+          <IconButton
+            color='primary'
+            sx={{
+              position: { xs: 'relative', sm: 'absolute' },
+              top: { xs: 12, sm: 16, md: 20 },
+              left: { xs: 4, sm: 8, md: 16 },
+            }}
+            onClick={() => navigate(createPath({ path: ROUTES.USER_POLICIES }))}
+          >
+            <ArrowBackIosNewRounded />
+          </IconButton>
+          <Typography
+            variant='h3'
+            gutterBottom
+            align='center'
+            fontSize={{ xs: '1.6rem', sm: '2rem', md: '2.4rem' }}
+            fontWeight='fontWeightMedium'
+            sx={{ pt: { xs: 4, md: 8, lg: 12 }, pb: { sm: 6, md: 8 } }}
+          >{`Your ${data.address.addressLine1} Flood Policy`}</Typography>
+        </Box>
+
         <Box sx={{ pt: 4, pb: { xs: 8, md: 10, lg: 16 }, px: { md: 3, lg: 4 } }}>
           <Grid container spacing={6}>
             {limits.map((limit) => (

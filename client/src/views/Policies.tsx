@@ -15,10 +15,12 @@ import {
 import Grid from '@mui/material/Unstable_Grid2';
 
 import { useUsersPolicies } from 'hooks';
-import { FlexCard, FlexCardContent } from 'components';
+import { FlexCard, FlexCardContent, LoadingSpinner } from 'components';
 import { useNavigate } from 'react-router-dom';
 import { createPath, ROUTES } from 'router';
-import { getRandomItem } from 'modules/utils/helpers';
+import { Item } from './UserSubmissions';
+
+// TODO: use rxjs to get user profile for avatars
 
 const additionalInsureds = [
   { img: 'http://i.pravatar.cc/300?img=3', name: 'John Doe', email: 'test1@user.com' },
@@ -47,98 +49,94 @@ export const Policies: React.FC = () => {
     [navigate]
   );
 
-  if (!!initialLoading) return <div>loading...</div>;
-
   return (
     <Container maxWidth='xl' sx={{ py: { xs: 4, md: 6 } }}>
-      <Grid container spacing={5}>
-        <Grid xs={12} sm={6}>
-          <Typography variant='h5' gutterBottom>
+      <Grid container spacing={8}>
+        <Grid xs={12} sx={{ display: 'flex' }}>
+          <Typography variant='h4' gutterBottom>
             Policies
           </Typography>
+          <LoadingSpinner loading={initialLoading} spinnerSx={{ ml: 6, mt: 1.5 }} />
         </Grid>
-        <Grid xs={12} sm={6}>
-          {error && (
+
+        {error && (
+          <Grid xs={12} sm={6}>
             <Typography variant='subtitle2' color='error.main'>
               {error}
             </Typography>
-          )}
-        </Grid>
-        {policies?.map((p) => (
-          <Grid xs={12} sm={6} md={4} lg={3} key={p.id}>
-            <FlexCard
-              sx={{
-                maxWidth: 340,
-                boxShadow: '0 8px 40px -12px rgba(0,0,0,0.3)',
-                '&:hover': {
-                  boxShadow: '0 16px 70px -12.125px rgba(0,0,0,0.3)',
-                },
-              }}
-              variant='elevation'
-              raised
-            >
-              <CardActionArea onClick={() => handleClick(p.id)}>
-                <CardMedia
-                  sx={{ height: 140 }}
-                  image={
-                    (theme.palette.mode === 'dark' ? p.darkMapImageURL : p.lightMapImageURL) ||
-                    getRandomItem(fallbackImages)
-                  }
-                  title={`${p.address.addressLine1} map`}
-                />
-                <FlexCardContent sx={{ p: 5 }}>
-                  <Typography fontWeight={900} fontSize={24}>
-                    {p.address.addressLine1}
-                  </Typography>
-                  <Typography color='text.secondary' lineHeight={1.8} fontSize={13}>
-                    {`Named Insured: ${p.namedInsured ?? 'John Doe'}`}
-                  </Typography>
-                  <Typography color='text.secondary' lineHeight={1.8} fontSize={13}>
-                    {`Agent: ${p.agent.name ?? 'iDemand'}`}
-                  </Typography>
-                  <Typography color='text.secondary' lineHeight={1.8} fontSize={13}>
-                    {`Agency: ${p.agency.name ?? 'iDemand Insurance Agency, Inc.'}`}
-                  </Typography>
-                  <Typography color='text.secondary' lineHeight={1.8} fontSize={13}>
-                    {`Effective: ${p.effectiveDate} - ${p.expirationDate}`}
-                  </Typography>
-
-                  {/* <Typography variant='subtitle2' color='primary.main'>
-                    {p.id}
-                  </Typography>
-                  <Typography variant='body2' color='text.secondary' component='div'>
-                    <pre>{JSON.stringify(p, null, 2)}</pre>
-                  </Typography> */}
-                  <Divider light sx={{ my: { xs: 3, md: 4 } }} />
-                  <AvatarGroup max={4} sx={{ justifyContent: 'flex-end' }}>
-                    {additionalInsureds.map((f) => (
-                      <Tooltip title={f.name} key={f.img}>
-                        <Avatar src={f.img} alt={f.name} />
-                      </Tooltip>
-                    ))}
-                  </AvatarGroup>
-                </FlexCardContent>
-              </CardActionArea>
-            </FlexCard>
           </Grid>
-        ))}
-      </Grid>
-      {!policies ||
-        (policies.length < 1 && (
-          <Box>
-            <Typography variant='subtitle2' color='text.secondary' align='center' sx={{ py: 4 }}>
-              No policies found
-            </Typography>
-            <Box>
-              <Button
-                onClick={() => navigate(createPath({ path: ROUTES.SUBMISSION_NEW }))}
-                sx={{ mx: 'auto', display: 'block' }}
+        )}
+
+        {!initialLoading &&
+          policies?.map((p, i) => (
+            <Grid xs={12} sm={6} md={4} lg={3} key={p.id}>
+              <FlexCard
+                sx={{
+                  maxWidth: 340,
+                  boxShadow: '0 8px 40px -12px rgba(0,0,0,0.3)',
+                  '&:hover': {
+                    boxShadow: '0 16px 70px -12.125px rgba(0,0,0,0.3)',
+                  },
+                  mx: { xs: 'auto' },
+                }}
+                variant='elevation'
+                raised
               >
-                Get a quote
-              </Button>
-            </Box>
+                <CardActionArea onClick={() => handleClick(p.id)}>
+                  <CardMedia
+                    sx={{ height: 140 }}
+                    image={
+                      (theme.palette.mode === 'dark' ? p.darkMapImageURL : p.lightMapImageURL) ||
+                      fallbackImages[i] ||
+                      fallbackImages[0]
+                    }
+                    title={`${p.address.addressLine1} map`}
+                  />
+                  <FlexCardContent sx={{ p: 5 }}>
+                    <Typography fontWeight={900} fontSize={24}>
+                      {p.address.addressLine1}
+                    </Typography>
+                    <Item
+                      label='Named Insured'
+                      value={`${p.namedInsured?.firstName || 'John'} ${
+                        p.namedInsured?.lastName || 'Doe'
+                      }`}
+                    />
+                    <Item label='Agent' value={p.agent.name ?? 'iDemand'} />
+                    <Item
+                      label='Agency'
+                      value={p.agency.name ?? 'iDemand Insurance Agency, Inc.'}
+                    />
+                    <Item label='Effective' value={`${p.effectiveDate} - ${p.expirationDate}`} />
+                    <Divider light sx={{ my: { xs: 3, md: 4 } }} />
+                    <AvatarGroup max={4} sx={{ justifyContent: 'flex-end' }}>
+                      {additionalInsureds.map((f) => (
+                        <Tooltip title={f.name} key={f.img}>
+                          <Avatar src={f.img} alt={f.name} />
+                        </Tooltip>
+                      ))}
+                    </AvatarGroup>
+                  </FlexCardContent>
+                </CardActionArea>
+              </FlexCard>
+            </Grid>
+          ))}
+      </Grid>
+      {!initialLoading && (!policies || policies.length < 1) && (
+        <Box>
+          <Typography variant='subtitle2' color='text.secondary' align='center' sx={{ py: 4 }}>
+            No policies found
+          </Typography>
+          <Box>
+            <Button
+              onClick={() => navigate(createPath({ path: ROUTES.SUBMISSION_NEW }))}
+              sx={{ mx: 'auto', display: 'block' }}
+            >
+              Get a quote
+            </Button>
           </Box>
-        ))}
+        </Box>
+      )}
     </Container>
   );
 };

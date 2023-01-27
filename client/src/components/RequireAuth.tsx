@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { CircularProgress } from '@mui/material';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { getAuth, signInAnonymously, UserCredential } from 'firebase/auth';
@@ -26,14 +26,14 @@ export const RequireAuth: React.FC<RequireAuthProps> = ({
   redirectPath = '/auth/login',
   shouldSignInAnonymously = false,
 }) => {
-  let { error, loadingInitial, isAnonymous, customClaims } = useAuth();
+  let { error, loadingInitial, customClaims } = useAuth();
   let location = useLocation();
   const navigate = useNavigate();
 
   let user = getAuth().currentUser;
 
   // If requiredClaims included, check required claims
-  React.useEffect(() => {
+  useEffect(() => {
     if (requiredClaims && requiredClaims.length > 0 && !loadingInitial) {
       let notAuthorized = requiredClaims.every((key) => !customClaims[CustomClaims[key]]);
 
@@ -49,6 +49,19 @@ export const RequireAuth: React.FC<RequireAuthProps> = ({
     }
   }, [requiredClaims, customClaims, loadingInitial, user, navigate]);
 
+  // if not authenticated and prop shouldSignInAnonymously = true, sign in anonymously
+  useEffect(() => {
+    if (!loadingInitial && !(user && user.uid) && !!shouldSignInAnonymously) {
+      signInAnonymously(auth)
+        .then((userCred: UserCredential) => {
+          console.log('SIGNED IN ANONYMOUSLY: ', userCred);
+        })
+        .catch((err: unknown) => {
+          console.log('ERROR => ', err);
+        });
+    }
+  }, [user, shouldSignInAnonymously, loadingInitial]);
+
   if (loadingInitial) {
     return <CircularProgress />;
   }
@@ -59,22 +72,14 @@ export const RequireAuth: React.FC<RequireAuthProps> = ({
     return <Navigate to={'/'} state={{ from: location }} replace />;
   }
 
-  // if not authenticated and prop shouldSignInAnonymously = true, sign in anonymously
-  if (!(user && user.uid) && !!shouldSignInAnonymously) {
-    signInAnonymously(auth)
-      .then((userCred: UserCredential) => {
-        console.log('SIGNED IN ANONYMOUSLY: ', userCred);
-      })
-      .catch((err: unknown) => {
-        console.log('ERROR => ', err);
-      });
-  }
-
   // if not signed in, redirect to sign in page
-  if ((!(user && user.uid) || (!allowAnonymous && !!isAnonymous)) && !shouldSignInAnonymously) {
+  if (
+    (!(user && user.uid) || (!allowAnonymous && !!user.isAnonymous)) &&
+    !shouldSignInAnonymously
+  ) {
     console.log("not authenticated => routing to '/login'", user, loadingInitial);
-    toast('Authentication required to access route');
-    return <Navigate to={redirectPath} state={{ from: location }} replace />;
+    toast.error('Authentication required to access route');
+    return <Navigate to={redirectPath} state={{ from: location }} />;
   }
 
   return children;

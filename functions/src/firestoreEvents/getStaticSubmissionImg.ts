@@ -9,14 +9,16 @@ import { v4 as uuid } from 'uuid';
 
 import { Collections } from '../common/enums';
 
+// TODO: add marker overlay ?? https://docs.mapbox.com/api/maps/static-images/#example-request-retrieve-a-static-map-with-a-marker-overlay
+
 const MAPBOX_PUBLIC_TOKEN =
   'pk.eyJ1Ijoic3BlbmNlci1jYXJsc29uIiwiYSI6ImNqeGtoeHhkNjF2eG4zeW1mYjExcWk1aWkifQ.ikWGkKvnTuopUgSgM8nWcg';
 
-export const getStaticPolicyImg = functions.firestore
-  .document(`${Collections.POLICIES}/{policyId}`)
+export const getStaticSubmissionImg = functions.firestore
+  .document(`${Collections.SUBMISSIONS}/{submissionId}`)
   .onCreate(async (snap) => {
     try {
-      const { coordinates: coords, userId } = snap.data();
+      const { coordinates: coords } = snap.data(); // userId
 
       if (!coords || !coords.latitude || !coords.longitude) {
         console.log('Policy missing coordinates. falling back on defaut static map images...');
@@ -56,15 +58,21 @@ export const getStaticPolicyImg = functions.firestore
       };
 
       const mapboxStyles = [
-        { name: 'light', style: 'mapbox/light-v8' },
-        { name: 'dark', style: 'spencer-carlson/cl8dxgtum000w14qix5ft9gw5' },
+        { name: 'light', style: 'mapbox/light-v8', zoom: 13 },
+        { name: 'dark', style: 'spencer-carlson/cl8dxgtum000w14qix5ft9gw5', zoom: 13 },
+        { name: 'satellite', style: 'mapbox/satellite-v9', zoom: 17 },
+        {
+          name: 'satelliteStreets',
+          style: 'mapbox/satellite-streets-v12',
+          zoom: 16,
+        },
       ];
 
       const cleanUpTempPaths = []; // eslint-disable-next-line
       const policyDocUpdates: any = {};
 
       for (const styleType of mapboxStyles) {
-        const url = `https://api.mapbox.com/styles/v1/${styleType.style}/static/${longitude},${latitude},13,0,40/1200x720@2x?access_token=${MAPBOX_PUBLIC_TOKEN}&logo=false`;
+        const url = `https://api.mapbox.com/styles/v1/${styleType.style}/static/${longitude},${latitude},${styleType.zoom},0,40/1200x720@2x?access_token=${MAPBOX_PUBLIC_TOKEN}&logo=false`;
 
         const tempFilePath = path.join(os.tmpdir(), `temp_mapbox_${styleType.name}.jpeg`);
         cleanUpTempPaths.push(tempFilePath);
@@ -80,7 +88,8 @@ export const getStaticPolicyImg = functions.firestore
             },
           };
 
-          const destinationPath = `users/${userId ?? 'common'}/static_map_${styleType.name}.jpeg`;
+          // const destinationPath = `users/${userId ?? 'common'}/static_map_${styleType.name}.jpeg`;
+          const destinationPath = `submissions/${snap.id}/static_map_${styleType.name}.jpeg`;
           await bucket.upload(tempFilePath, {
             destination: destinationPath,
             metadata: initialMetadata,
@@ -109,7 +118,7 @@ export const getStaticPolicyImg = functions.firestore
         }
       }
 
-      console.log('Updating org doc: ', JSON.stringify(policyDocUpdates));
+      console.log('Updating policy doc: ', JSON.stringify(policyDocUpdates));
       await snap.ref.update({ ...policyDocUpdates });
 
       if (cleanUpTempPaths.length > 0) {

@@ -49,16 +49,10 @@ export const CreateAccount: React.FC = () => {
   const [queryParams] = useSearchParams();
   const { createAccount, handleEmailAuthError, loading } = useCreateAccount();
   const formikRef = useRef<FormikProps<SignUpValues>>(null);
-  console.log('queryParams ', queryParams.get('email'));
 
   useKeyPress('Enter', () => {
-    console.log('onPress called');
     formikRef.current?.submitForm();
   });
-
-  useEffect(() => {
-    console.log('loading: ', loading);
-  }, [loading]);
 
   useEffect(() => {
     if (params.tenantId) {

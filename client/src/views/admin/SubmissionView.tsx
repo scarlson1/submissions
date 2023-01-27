@@ -8,7 +8,7 @@ import { toast } from 'react-hot-toast';
 
 import { spatialKeyCollection, submissionsCollection } from 'common/firestoreCollections';
 import { Submission } from 'common/types';
-import { formatFirestoreTimestamp } from 'modules/utils/helpers';
+import { dollarFormat, formatFirestoreTimestamp, numberFormat } from 'modules/utils/helpers';
 import { ADMIN_ROUTES, createPath } from 'router';
 import { useConfirmation } from 'modules/components/ConfirmationService';
 import { ConfirmationDialog } from 'components';
@@ -145,11 +145,11 @@ export const SubmissionView: React.FC = () => {
           <Typography variant='overline' color='text.secondary'>
             Limits & Deductible
           </Typography>
-          <RowItem title='A: Building Limit' value={data.limitA} />
-          <RowItem title={`B: Add'l Structures Limit`} value={data.limitB} />
-          <RowItem title='C: Contents Limit' value={data.limitC} />
-          <RowItem title='D: Additional Expenses Limit' value={data.limitD} />
-          <RowItem title='Deductible' value={data.deductible} />
+          <RowItem title='A: Building Limit' value={dollarFormat(data.limitA)} />
+          <RowItem title={`B: Add'l Structures Limit`} value={dollarFormat(data.limitB)} />
+          <RowItem title='C: Contents Limit' value={dollarFormat(data.limitC)} />
+          <RowItem title='D: Additional Expenses Limit' value={dollarFormat(data.limitD)} />
+          <RowItem title='Deductible' value={dollarFormat(data.deductible)} />
         </Box>
         <Box>
           <Typography variant='overline' color='text.secondary'>
@@ -167,10 +167,10 @@ export const SubmissionView: React.FC = () => {
           <Typography variant='overline' color='text.secondary'>
             Spatial Key Data
           </Typography>
-          <RowItem title='Replacement Cost' value={data.replacementCost} />
-          <RowItem title='Square Footage' value={data.sqFootage} />
+          <RowItem title='Replacement Cost' value={dollarFormat(data.replacementCost)} />
+          <RowItem title='Square Footage' value={numberFormat(data.sqFootage)} />
           <RowItem title='Year Built' value={data.yearBuilt} />
-          <RowItem title='Distance To Coast' value={data.distToCoastFeet} />
+          <RowItem title='Distance To Coast' value={numberFormat(data.distToCoastFeet)} />
           <RowItem title='Property Code' value={data.propertyCode} />
           <RowItem title='CBRS Designation' value={data.CBRSDesignation} />
           <RowItem title='Basement' value={data.basement} />

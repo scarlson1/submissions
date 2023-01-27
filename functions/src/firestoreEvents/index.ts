@@ -1,2 +1,2 @@
 export { newSubmissionNotifications } from './newSubmissionNotifications';
-export { getStaticPolicyImg } from './getStaticPolicyImg';
+export { getStaticSubmissionImg } from './getStaticSubmissionImg';

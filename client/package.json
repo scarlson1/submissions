@@ -52,8 +52,10 @@
     "build:dev:emulators": "env-cmd -e common,dev,emulators npm run build",
     "build:prod:emulators": "env-cmd -e common,prod,emulators npm run build",
     "build:dev": "env-cmd -e common,dev npm run build",
+    "build:channel": "env-cmd -e common,dev,staging npm run build",
     "build:prod": "env-cmd -e common,prod npm run build",
     "deploy": "npm run build:prod && firebase deploy --only hosting",
+    "deploy:channel": "firebase hosting:channel:deploy staging --expires 3d",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },

@@ -111,19 +111,20 @@ export const Header: React.FC<HeaderProps> = () => {
     []
   );
 
-  const userNavPages = useMemo(
-    () => [
+  const userNavPages = useMemo(() => {
+    const userPages = [
       {
         title: 'Quote',
         route: createPath({ path: ROUTES.SUBMISSION_NEW }),
       },
-      // {
-      //   title: 'Contact Us',
-      //   route: createPath({ path: ROUTES.CONTACT }),
-      // },
-    ],
-    []
-  );
+    ];
+    if (user)
+      userPages.push({
+        title: 'Submissions',
+        route: createPath({ path: ROUTES.SUBMISSIONS }),
+      });
+    return userPages;
+  }, [user]);
 
   const navPages = useMemo(() => {
     if (!!customClaims.iDemandAdmin) {

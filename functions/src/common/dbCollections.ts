@@ -8,9 +8,15 @@ export const createCollection = <T = DocumentData>(db: Firestore, collectionName
   return db.collection(collectionName) as CollectionReference<T>;
 };
 
+interface Policy {
+  todo: true;
+}
+
 export const usersCollection = (db: Firestore) => createCollection<User>(db, Collections.USERS);
 export const submissionsCollection = (db: Firestore) =>
   createCollection<Submission>(db, Collections.SUBMISSIONS);
+export const policiesCollection = (db: Firestore) =>
+  createCollection<Policy>(db, Collections.POLICIES);
 
 // export const orgsCollection = (db: Firestore) =>
 //   createCollection<Organization>(db, Collections.ORGANIZATIONS);

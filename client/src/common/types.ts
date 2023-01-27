@@ -21,6 +21,14 @@ export interface Submission extends FloodValues, FetchPropertyDataResponse {
   coordinates: GeoPoint;
   userId?: string | null;
   status: SubmissionStatus;
+  darkMapImageURL?: string;
+  lightMapImageURL?: string;
+  darkMapImageFilePath?: string;
+  lightMapImageFilePath?: string;
+  satelliteMapImageURL?: string;
+  satelliteStreetsMapImageURL?: string;
+  satelliteMapImageFilePath?: string;
+  satelliteStreetsMapImageFilePath?: string;
   metadata: BaseMetadata;
 }
 

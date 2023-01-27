@@ -15,7 +15,7 @@ export { ReauthDialog } from './ReauthDialog';
 export { RequireAuth } from './RequireAuth';
 export { BasicDataGrid } from './BasicDataGrid';
 // export { DeckGLMap } from './DeckGLMap'
-// export {  } from './'
+export { LoadingSpinner } from './LoadingSpinner';
 // export {  } from './'
 // export {  } from './'
 // export {  } from './'
@@ -29,3 +29,4 @@ export type { MicrosoftAuthProps } from './MicrosoftAuth';
 export type { ReauthDialogProps } from './ReauthDialog';
 export type { RequireAuthProps } from './RequireAuth';
 export type { DeckGLMapProps } from './DeckGLMap';
+export type { LoadingSpinnerProps } from './LoadingSpinner';

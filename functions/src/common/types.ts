@@ -25,6 +25,7 @@ export interface User {
   tenantId?: string | null; // useOrgId ??
   firstName?: string;
   lastName?: string;
+  initialAnonymous?: boolean;
   metadata: BaseMetadata;
 }
 
