@@ -10,7 +10,7 @@ import { ConfirmationDialog } from 'components';
 import { FormikSelect, FormikTextField } from 'components/forms';
 import { emailVal } from 'common/quoteValidation';
 import { notifyRegistration } from 'common/firestoreCollections';
-import { statesAbrevSelectOptions } from 'common/statesList';
+import { statesAbrvSelectOptions } from 'common/statesList';
 import { ACTIVE_STATES_ABRV } from 'common/constants';
 
 export interface RegisterValues {
@@ -121,7 +121,7 @@ export const useRegisterEmailNotification = ({
                           <FormikSelect
                             name='state'
                             label='State'
-                            selectOptions={statesAbrevSelectOptions.map((s) => ({
+                            selectOptions={statesAbrvSelectOptions.map((s) => ({
                               ...s,
                               disabled: ACTIVE_STATES_ABRV.includes(s.value),
                             }))}

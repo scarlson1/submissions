@@ -21,7 +21,7 @@ export const emailConfirmation = ({ toName, link }: EmailConfirmationProps) => {
             </div>
             <div style="padding-top: 8px">
               <p>
-                Cheers,<br />
+                Cheers,<br>
                 The iDemand team
               </p>
             </div>

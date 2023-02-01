@@ -7,6 +7,7 @@
         "GEO_ID": "0400000US04",
         "STATE": "04",
         "NAME": "Arizona",
+        "SHORT_NAME": "AZ",
         "LSAD": "",
         "CENSUSAREA": 113594.084
       },
@@ -269,6 +270,7 @@
         "GEO_ID": "0400000US05",
         "STATE": "05",
         "NAME": "Arkansas",
+        "SHORT_NAME": "AR",
         "LSAD": "",
         "CENSUSAREA": 52035.477
       },
@@ -859,6 +861,7 @@
         "GEO_ID": "0400000US06",
         "STATE": "06",
         "NAME": "California",
+        "SHORT_NAME": "CA",
         "LSAD": "",
         "CENSUSAREA": 155779.22
       },
@@ -2389,6 +2392,7 @@
         "GEO_ID": "0400000US08",
         "STATE": "08",
         "NAME": "Colorado",
+        "SHORT_NAME": "CO",
         "LSAD": "",
         "CENSUSAREA": 103641.888
       },
@@ -2717,6 +2721,7 @@
         "GEO_ID": "0400000US09",
         "STATE": "09",
         "NAME": "Connecticut",
+        "SHORT_NAME": "CT",
         "LSAD": "",
         "CENSUSAREA": 4842.355
       },
@@ -3045,6 +3050,7 @@
         "GEO_ID": "0400000US11",
         "STATE": "11",
         "NAME": "District of Columbia",
+        "SHORT_NAME": "DC",
         "LSAD": "",
         "CENSUSAREA": 61.048
       },
@@ -3090,6 +3096,7 @@
         "GEO_ID": "0400000US13",
         "STATE": "13",
         "NAME": "Georgia",
+        "SHORT_NAME": "GA",
         "LSAD": "",
         "CENSUSAREA": 57513.485
       },
@@ -3647,6 +3654,7 @@
         "GEO_ID": "0400000US15",
         "STATE": "15",
         "NAME": "Hawaii",
+        "SHORT_NAME": "HI",
         "LSAD": "",
         "CENSUSAREA": 6422.628
       },
@@ -4471,6 +4479,7 @@
         "GEO_ID": "0400000US17",
         "STATE": "17",
         "NAME": "Illinois",
+        "SHORT_NAME": "IL",
         "LSAD": "",
         "CENSUSAREA": 55518.93
       },
@@ -5221,6 +5230,7 @@
         "GEO_ID": "0400000US18",
         "STATE": "18",
         "NAME": "Indiana",
+        "SHORT_NAME": "IN",
         "LSAD": "",
         "CENSUSAREA": 35826.109
       },
@@ -5830,6 +5840,7 @@
         "GEO_ID": "0400000US22",
         "STATE": "22",
         "NAME": "Louisiana",
+        "SHORT_NAME": "LA",
         "LSAD": "",
         "CENSUSAREA": 43203.905
       },
@@ -7244,6 +7255,7 @@
         "GEO_ID": "0400000US27",
         "STATE": "27",
         "NAME": "Minnesota",
+        "SHORT_NAME": "MN",
         "LSAD": "",
         "CENSUSAREA": 79626.743
       },
@@ -8128,6 +8140,7 @@
         "GEO_ID": "0400000US28",
         "STATE": "28",
         "NAME": "Mississippi",
+        "SHORT_NAME": "MS",
         "LSAD": "",
         "CENSUSAREA": 46923.274
       },
@@ -8763,6 +8776,7 @@
         "GEO_ID": "0400000US30",
         "STATE": "30",
         "NAME": "Montana",
+        "SHORT_NAME": "MT",
         "LSAD": "",
         "CENSUSAREA": 145545.801
       },
@@ -9268,6 +9282,7 @@
         "GEO_ID": "0400000US35",
         "STATE": "35",
         "NAME": "New Mexico",
+        "SHORT_NAME": "NM",
         "LSAD": "",
         "CENSUSAREA": 121298.148
       },
@@ -9585,6 +9600,7 @@
         "GEO_ID": "0400000US38",
         "STATE": "38",
         "NAME": "North Dakota",
+        "SHORT_NAME": "ND",
         "LSAD": "",
         "CENSUSAREA": 69000.798
       },
@@ -10051,6 +10067,7 @@
         "GEO_ID": "0400000US40",
         "STATE": "40",
         "NAME": "Oklahoma",
+        "SHORT_NAME": "OK",
         "LSAD": "",
         "CENSUSAREA": 68594.921
       },
@@ -10755,6 +10772,7 @@
         "GEO_ID": "0400000US42",
         "STATE": "42",
         "NAME": "Pennsylvania",
+        "SHORT_NAME": "PA",
         "LSAD": "",
         "CENSUSAREA": 44742.703
       },
@@ -11160,6 +11178,7 @@
         "GEO_ID": "0400000US47",
         "STATE": "47",
         "NAME": "Tennessee",
+        "SHORT_NAME": "TN",
         "LSAD": "",
         "CENSUSAREA": 41234.896
       },
@@ -11759,6 +11778,7 @@
         "GEO_ID": "0400000US51",
         "STATE": "51",
         "NAME": "Virginia",
+        "SHORT_NAME": "VA",
         "LSAD": "",
         "CENSUSAREA": 39490.086
       },
@@ -13058,6 +13078,7 @@
         "GEO_ID": "0400000US72",
         "STATE": "72",
         "NAME": "Puerto Rico",
+        "SHORT_NAME": "PR",
         "LSAD": "",
         "CENSUSAREA": 3423.775
       },
@@ -13695,6 +13716,7 @@
         "GEO_ID": "0400000US10",
         "STATE": "10",
         "NAME": "Delaware",
+        "SHORT_NAME": "DE",
         "LSAD": "",
         "CENSUSAREA": 1948.543
       },
@@ -13970,6 +13992,7 @@
         "GEO_ID": "0400000US54",
         "STATE": "54",
         "NAME": "West Virginia",
+        "SHORT_NAME": "WV",
         "LSAD": "",
         "CENSUSAREA": 24038.21
       },
@@ -14571,6 +14594,7 @@
         "GEO_ID": "0400000US55",
         "STATE": "55",
         "NAME": "Wisconsin",
+        "SHORT_NAME": "WI",
         "LSAD": "",
         "CENSUSAREA": 54157.805
       },
@@ -17217,6 +17241,7 @@
         "GEO_ID": "0400000US56",
         "STATE": "56",
         "NAME": "Wyoming",
+        "SHORT_NAME": "WY",
         "LSAD": "",
         "CENSUSAREA": 97093.141
       },
@@ -17471,6 +17496,7 @@
         "GEO_ID": "0400000US01",
         "STATE": "01",
         "NAME": "Alabama",
+        "SHORT_NAME": "AL",
         "LSAD": "",
         "CENSUSAREA": 50645.326
       },
@@ -17992,6 +18018,7 @@
         "GEO_ID": "0400000US02",
         "STATE": "02",
         "NAME": "Alaska",
+        "SHORT_NAME": "AK",
         "LSAD": "",
         "CENSUSAREA": 570640.95
       },
@@ -28697,6 +28724,7 @@
         "GEO_ID": "0400000US12",
         "STATE": "12",
         "NAME": "Florida",
+        "SHORT_NAME": "FL",
         "LSAD": "",
         "CENSUSAREA": 53624.759
       },
@@ -30525,6 +30553,7 @@
         "GEO_ID": "0400000US16",
         "STATE": "16",
         "NAME": "Idaho",
+        "SHORT_NAME": "ID",
         "LSAD": "",
         "CENSUSAREA": 82643.117
       },
@@ -31054,6 +31083,7 @@
         "GEO_ID": "0400000US20",
         "STATE": "20",
         "NAME": "Kansas",
+        "SHORT_NAME": "KS",
         "LSAD": "",
         "CENSUSAREA": 81758.717
       },
@@ -31784,6 +31814,7 @@
         "GEO_ID": "0400000US24",
         "STATE": "24",
         "NAME": "Maryland",
+        "SHORT_NAME": "MD",
         "LSAD": "",
         "CENSUSAREA": 9707.241
       },
@@ -34659,6 +34690,7 @@
         "GEO_ID": "0400000US34",
         "STATE": "34",
         "NAME": "New Jersey",
+        "SHORT_NAME": "NJ",
         "LSAD": "",
         "CENSUSAREA": 7354.22
       },
@@ -35042,6 +35074,7 @@
         "GEO_ID": "0400000US37",
         "STATE": "37",
         "NAME": "North Carolina",
+        "SHORT_NAME": "NC",
         "LSAD": "",
         "CENSUSAREA": 48617.905
       },
@@ -36117,6 +36150,7 @@
         "GEO_ID": "0400000US45",
         "STATE": "45",
         "NAME": "South Carolina",
+        "SHORT_NAME": "SC",
         "LSAD": "",
         "CENSUSAREA": 30060.696
       },
@@ -36530,6 +36564,7 @@
         "GEO_ID": "0400000US53",
         "STATE": "53",
         "NAME": "Washington",
+        "SHORT_NAME": "WA",
         "LSAD": "",
         "CENSUSAREA": 66455.521
       },
@@ -38043,6 +38078,7 @@
         "GEO_ID": "0400000US50",
         "STATE": "50",
         "NAME": "Vermont",
+        "SHORT_NAME": "VT",
         "LSAD": "",
         "CENSUSAREA": 9216.657
       },
@@ -38231,6 +38267,7 @@
         "GEO_ID": "0400000US49",
         "STATE": "49",
         "NAME": "Utah",
+        "SHORT_NAME": "UT",
         "LSAD": "",
         "CENSUSAREA": 82169.62
       },
@@ -38411,6 +38448,7 @@
         "GEO_ID": "0400000US19",
         "STATE": "19",
         "NAME": "Iowa",
+        "SHORT_NAME": "IA",
         "LSAD": "",
         "CENSUSAREA": 55857.13
       },
@@ -39078,6 +39116,7 @@
         "GEO_ID": "0400000US21",
         "STATE": "21",
         "NAME": "Kentucky",
+        "SHORT_NAME": "KY",
         "LSAD": "",
         "CENSUSAREA": 39486.338
       },
@@ -39815,6 +39854,7 @@
         "GEO_ID": "0400000US23",
         "STATE": "23",
         "NAME": "Maine",
+        "SHORT_NAME": "ME",
         "LSAD": "",
         "CENSUSAREA": 30842.923
       },
@@ -41209,6 +41249,7 @@
         "GEO_ID": "0400000US25",
         "STATE": "25",
         "NAME": "Massachusetts",
+        "SHORT_NAME": "MA",
         "LSAD": "",
         "CENSUSAREA": 7800.058
       },
@@ -42191,6 +42232,7 @@
         "GEO_ID": "0400000US26",
         "STATE": "26",
         "NAME": "Michigan",
+        "SHORT_NAME": "MI",
         "LSAD": "",
         "CENSUSAREA": 56538.901
       },
@@ -46203,6 +46245,7 @@
         "GEO_ID": "0400000US29",
         "STATE": "29",
         "NAME": "Missouri",
+        "SHORT_NAME": "MO",
         "LSAD": "",
         "CENSUSAREA": 68741.522
       },
@@ -47068,6 +47111,7 @@
         "GEO_ID": "0400000US31",
         "STATE": "31",
         "NAME": "Nebraska",
+        "SHORT_NAME": "NE",
         "LSAD": "",
         "CENSUSAREA": 76824.171
       },
@@ -47744,6 +47788,7 @@
         "GEO_ID": "0400000US32",
         "STATE": "32",
         "NAME": "Nevada",
+        "SHORT_NAME": "NV",
         "LSAD": "",
         "CENSUSAREA": 109781.18
       },
@@ -47982,6 +48027,7 @@
         "GEO_ID": "0400000US33",
         "STATE": "33",
         "NAME": "New Hampshire",
+        "SHORT_NAME": "NH",
         "LSAD": "",
         "CENSUSAREA": 8952.651
       },
@@ -48214,6 +48260,7 @@
         "GEO_ID": "0400000US36",
         "STATE": "36",
         "NAME": "New York",
+        "SHORT_NAME": "NY",
         "LSAD": "",
         "CENSUSAREA": 47126.399
       },
@@ -49151,6 +49198,7 @@
         "GEO_ID": "0400000US39",
         "STATE": "39",
         "NAME": "Ohio",
+        "SHORT_NAME": "OH",
         "LSAD": "",
         "CENSUSAREA": 40860.694
       },
@@ -50008,6 +50056,7 @@
         "GEO_ID": "0400000US41",
         "STATE": "41",
         "NAME": "Oregon",
+        "SHORT_NAME": "OR",
         "LSAD": "",
         "CENSUSAREA": 95988.013
       },
@@ -50571,6 +50620,7 @@
         "GEO_ID": "0400000US44",
         "STATE": "44",
         "NAME": "Rhode Island",
+        "SHORT_NAME": "RI",
         "LSAD": "",
         "CENSUSAREA": 1033.814
       },
@@ -50968,6 +51018,7 @@
         "GEO_ID": "0400000US46",
         "STATE": "46",
         "NAME": "South Dakota",
+        "SHORT_NAME": "SD",
         "LSAD": "",
         "CENSUSAREA": 75811.0
       },
@@ -51595,6 +51646,7 @@
         "GEO_ID": "0400000US48",
         "STATE": "48",
         "NAME": "Texas",
+        "SHORT_NAME": "TX",
         "LSAD": "",
         "CENSUSAREA": 261231.711
       },

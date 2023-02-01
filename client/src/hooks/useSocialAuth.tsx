@@ -12,8 +12,8 @@ import {
   reauthenticateWithPopup,
   AuthProvider,
   PopupRedirectResolver,
-  getAdditionalUserInfo,
-  AdditionalUserInfo,
+  // getAdditionalUserInfo,
+  // AdditionalUserInfo,
 } from 'firebase/auth';
 import { FirebaseError } from 'firebase/app';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -28,6 +28,8 @@ import { getRedirectPath } from 'modules/utils/helpers';
 import InputDialog from 'components/InputDialog';
 import { AuthProviders } from 'common/types';
 // import { useMultiFactorAuth } from './useMultiFactorAuth';
+
+// TODO: create useLinkAccount hook
 
 const googleProvider = new GoogleAuthProvider();
 const microsoftProvider = new OAuthProvider('microsoft.com');
@@ -61,7 +63,6 @@ export const useSocialAuth = ({ onSuccess, onError, skipRedirect }: UseSocialAut
 
       try {
         if (code === 'auth/account-exists-with-different-credential') {
-          console.log('handling error: auth/account-exists-with-different-credential');
           // @ts-ignore
           const { credential, email } = err;
           console.log('email: ', email);
@@ -137,6 +138,10 @@ export const useSocialAuth = ({ onSuccess, onError, skipRedirect }: UseSocialAut
         //     toast.error('Multi-factor auth unsuccessful.');
         //   }
         // }
+        if (code === 'auth/email-already-in-use') {
+          toast.error('Email already in use. Please login.');
+          return;
+        }
         if (code === 'auth/internal-error') {
           let alreadyExists = message.includes('ALREADY_EXISTS');
           let toastMsg = alreadyExists ? 'account already exists' : 'An error occurred';
@@ -187,10 +192,15 @@ export const useSocialAuth = ({ onSuccess, onError, skipRedirect }: UseSocialAut
         return result;
       } catch (err) {
         console.log('error: ', err);
+
+        if (err instanceof FirebaseError)
+          return handleError(err, provider.providerId as AuthProviders);
+        if (onError) onError(err, 'Microsoft');
+
         return;
       }
     },
-    [handleReturnUserOrRedirect, onSuccess, user]
+    [handleReturnUserOrRedirect, onSuccess, onError, handleError, user]
   );
 
   // can add scopes (ex: https://www.googleapis.com/auth/user.birthday.read)
@@ -200,7 +210,12 @@ export const useSocialAuth = ({ onSuccess, onError, skipRedirect }: UseSocialAut
   const loginWithGoogle = useCallback(async () => {
     if (isAnonymous && user) {
       // TODO: prompt for confirmation ??
+      // try {
       return linkAnonymous(googleProvider);
+      // } catch (err) {
+      //   if (err instanceof FirebaseError) return handleError(err, 'microsoft.com');
+      //   if (onError) onError(err, 'Microsoft');
+      // }
     }
 
     try {
@@ -230,7 +245,12 @@ export const useSocialAuth = ({ onSuccess, onError, skipRedirect }: UseSocialAut
   const loginWithMicrosoft = useCallback(async () => {
     if (isAnonymous && user) {
       // TODO: prompt for confirmation ??
+      // try {
       return linkAnonymous(microsoftProvider);
+      // } catch (err) {
+      //   if (err instanceof FirebaseError) return handleError(err, 'microsoft.com');
+      //   if (onError) onError(err, 'Microsoft');
+      // }
     }
 
     try {
@@ -239,12 +259,13 @@ export const useSocialAuth = ({ onSuccess, onError, skipRedirect }: UseSocialAut
 
       // Check if new user (not currently doing anything with response)
       // can use for welcome notification / UI etc.
-      const additionalInfo: AdditionalUserInfo | null = getAdditionalUserInfo(authResult);
-      console.log('additionalInfo: ', additionalInfo);
+      // const additionalInfo: AdditionalUserInfo | null = getAdditionalUserInfo(authResult);
+      // console.log('additionalInfo: ', additionalInfo);
 
       if (onSuccess) onSuccess(authResult);
       return handleReturnUserOrRedirect(authResult);
     } catch (err) {
+      console.log('error: ', err);
       if (err instanceof FirebaseError) return handleError(err, 'microsoft.com'); // 'Microsoft');
 
       if (onError) onError(err, 'Microsoft');

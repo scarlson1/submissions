@@ -2,26 +2,23 @@ import React from 'react';
 import {
   FormControl,
   InputLabel,
-  Select,
-  MenuItem,
   FormHelperText,
-  SelectProps,
+  NativeSelect,
+  NativeSelectProps,
+  OutlinedInput,
+  Input,
 } from '@mui/material';
 import { useField } from 'formik';
 
-export interface SelectOption {
-  label: React.ReactNode;
-  value: string | number;
-  disabled?: boolean;
-  [key: string]: any;
-}
-export interface FormikSelectProps extends SelectProps {
+import { SelectOption } from './FormikSelect';
+
+export interface FormikNativeSelectProps extends NativeSelectProps {
   name: string;
   label: string;
   selectOptions: SelectOption[] | string[];
 }
 
-export const FormikSelect: React.FC<FormikSelectProps> = ({
+export const FormikNativeSelect: React.FC<FormikNativeSelectProps> = ({
   name,
   label,
   selectOptions,
@@ -46,21 +43,20 @@ export const FormikSelect: React.FC<FormikSelectProps> = ({
       <InputLabel id={`${name}-label`} htmlFor={name}>
         {label}
       </InputLabel>
-      <Select
-        labelId={`${name}-label`}
-        id={name}
+      <NativeSelect
         variant={variant}
-        label={label}
+        input={
+          variant === 'outlined' ? <OutlinedInput label={label} fullWidth={fullWidth} /> : <Input />
+        }
+        inputProps={{
+          id: name,
+          name,
+        }}
         fullWidth={fullWidth}
         {...field}
         {...props}
-        // onChange={(e) => {
-        //   console.log('e: ', e.target.value);
-        //   helpers.setValue(e.target.value);
-        //   e.stopPropagation();
-        // }}
       >
-        <MenuItem value=''>--</MenuItem>
+        <option value=''></option>
         {selectOptions.map((option) => {
           const {
             label,
@@ -70,17 +66,12 @@ export const FormikSelect: React.FC<FormikSelectProps> = ({
             ? { label: option, value: option, disabled: false }
             : option;
           return (
-            <MenuItem
-              key={value}
-              value={value}
-              disabled={disabled}
-              selected={field.value.indexOf(value) !== -1}
-            >
+            <option key={value} value={value} disabled={disabled}>
               {label}
-            </MenuItem>
+            </option>
           );
         })}
-      </Select>
+      </NativeSelect>
       {meta.touched && Boolean(meta.error) && (
         <FormHelperText variant={variant} error={meta.touched && Boolean(meta.error)}>
           {meta.error}
@@ -89,5 +80,3 @@ export const FormikSelect: React.FC<FormikSelectProps> = ({
     </FormControl>
   );
 };
-
-export default FormikSelect;

@@ -66,16 +66,19 @@ export const CreateAccount: React.FC = () => {
     formikRef.current?.submitForm();
   }, []);
 
-  async function handleSubmit(values: SignUpValues, actions: FormikHelpers<SignUpValues>) {
+  async function handleSubmit(
+    values: SignUpValues,
+    { setSubmitting }: FormikHelpers<SignUpValues>
+  ) {
     try {
       await createAccount(values);
 
       toast.success('Account created! 🎉 Welcome to iDemand!', { duration: 3000 });
 
-      actions.setSubmitting(false);
+      setSubmitting(false);
       navigate(getRedirectPath(location), { replace: true });
     } catch (err) {
-      actions.setSubmitting(false);
+      setSubmitting(false);
       await handleEmailAuthError(err, values.email, values.password, getRedirectPath(location));
     }
   }
@@ -126,7 +129,7 @@ export const CreateAccount: React.FC = () => {
               <FormikTextField name='email' label='Email' fullWidth />
             </Grid>
             <Grid xs={12}>
-              <FormikPassword />
+              <FormikPassword helperText='Upper & lower letters, symbol, number, and min. 8 characters' />
             </Grid>
             <Grid
               xs={12}

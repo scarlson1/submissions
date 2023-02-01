@@ -13,6 +13,13 @@
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
     "rewrites": [
       {
+        "source": "/idemand-submissions-api/*",
+        "run": {
+          "serviceId": "idemand-submissions-api",
+          "region": "us-central1"
+        }
+      },
+      {
         "source": "**",
         "destination": "/index.html"
       }

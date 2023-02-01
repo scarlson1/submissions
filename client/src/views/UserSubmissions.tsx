@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   Box,
+  Button,
   Card,
   CardActions,
   CardContent,
@@ -15,12 +16,14 @@ import Grid from '@mui/material/Unstable_Grid2';
 import { styled, SxProps } from '@mui/system';
 import { ExpandMoreRounded } from '@mui/icons-material';
 import { onSnapshot, query, orderBy, where, limit } from 'firebase/firestore';
+import { useNavigate } from 'react-router-dom';
 
 import { submissionsCollection } from 'common/firestoreCollections';
 import { SubmissionWithId } from './admin/Submissions';
 import { useAuth } from 'modules/components/AuthContext';
 import { fallbackImages } from './Policies';
 import { dollarFormat, formatFirestoreTimestamp, numberFormat } from 'modules/utils/helpers';
+import { createPath, ROUTES } from 'router';
 
 export const useUserSubmissions = () => {
   const { user } = useAuth();
@@ -107,6 +110,7 @@ export const Item = ({
 };
 
 export const UserSubmissions: React.FC = () => {
+  const navigate = useNavigate();
   const [expanded, setExpanded] = useState<{ [key: string]: boolean } | null>(null);
   const { submissions, error } = useUserSubmissions();
 
@@ -116,13 +120,25 @@ export const UserSubmissions: React.FC = () => {
 
   return (
     <Box>
-      <Typography variant='h5' gutterBottom>
-        Submissions
+      <Typography variant='h5' gutterBottom sx={{ pl: 3 }}>
+        Your Submissions
       </Typography>
       {error && (
         <Typography variant='subtitle2' color='error.main'>
           {error}
         </Typography>
+      )}
+      {submissions && submissions.length === 0 && (
+        <Box>
+          <Typography variant='subtitle2' color='text.secondary' align='center'>
+            No Submissions
+          </Typography>
+          <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+            <Button onClick={() => navigate(createPath({ path: ROUTES.SUBMISSION_NEW }))}>
+              Start a quote
+            </Button>
+          </Box>
+        </Box>
       )}
       <Grid container spacing={8} sx={{ my: 4 }}>
         {submissions.map((s, i) => (

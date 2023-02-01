@@ -1,6 +1,6 @@
 import { collection, CollectionReference, DocumentData } from 'firebase/firestore';
 
-import { Collections } from 'common/enums';
+import { COLLECTIONS, STATE_ABBREVIATION } from 'common/enums';
 import {
   QuoteData,
   RatingData,
@@ -15,6 +15,7 @@ import {
   License,
   Submission,
   NotifyRegistration,
+  Tax,
 } from 'common/types';
 import { db } from 'firebaseConfig';
 
@@ -22,30 +23,34 @@ export const createCollection = <T = DocumentData>(collectionName: string, ...re
   return collection(db, collectionName, ...rest) as CollectionReference<T>;
 };
 
-export const submissionsCollection = createCollection<Submission>(Collections.SUBMISSIONS);
-export const quotesCollection = createCollection<QuoteData>(Collections.QUOTES);
-export const ratingCollection = createCollection<RatingData>(Collections.RATING_DATA);
-export const spatialKeyCollection = createCollection<SpatialKeyResponse>(Collections.SK_RES);
-export const orgsCollection = createCollection<Organization>(Collections.ORGANIZATIONS);
-export const policiesCollection = createCollection<Policy>(Collections.POLICIES);
-export const usersCollection = createCollection<User>(Collections.USERS);
+export const submissionsCollection = createCollection<Submission>(COLLECTIONS.SUBMISSIONS);
+export const quotesCollection = createCollection<QuoteData>(COLLECTIONS.QUOTES);
+export const ratingCollection = createCollection<RatingData>(COLLECTIONS.RATING_DATA);
+export const spatialKeyCollection = createCollection<SpatialKeyResponse>(COLLECTIONS.SK_RES);
+export const orgsCollection = createCollection<Organization>(COLLECTIONS.ORGANIZATIONS);
+export const policiesCollection = createCollection<Policy>(COLLECTIONS.POLICIES);
+export const usersCollection = createCollection<User>(COLLECTIONS.USERS);
 // export const agencyAppCollection = createCollection<AgencyApplication>(
-//   Collections.AGENCY_APPLICATIONS
+//   COLLECTIONS.AGENCY_APPLICATIONS
 // );
-export const licensesCollection = createCollection<License>(Collections.LICENSES);
+export const licensesCollection = createCollection<License>(COLLECTIONS.LICENSES);
 export const notifyRegistration = createCollection<NotifyRegistration>(
-  Collections.NOTIFY_REGISTRATION
+  COLLECTIONS.NOTIFY_REGISTRATION
+);
+export const taxesCollection = createCollection<Tax>(COLLECTIONS.TAXES);
+export const statesCollection = createCollection<{ [key in STATE_ABBREVIATION]: boolean }>(
+  COLLECTIONS.ACTIVE_STATES
 );
 
-// Subcollections
+// SubCOLLECTIONS
 export const userClaimsCollection = (orgId: string) =>
-  createCollection<UserClaims>(Collections.ORGANIZATIONS, orgId, Collections.USER_CLAIMS);
+  createCollection<UserClaims>(COLLECTIONS.ORGANIZATIONS, orgId, COLLECTIONS.USER_CLAIMS);
 // export const invitesCollection = (orgId: string, ...rest: any) =>
-//   createCollection<Invite>(Collections.ORGANIZATIONS, orgId, Collections.INVITES, ...rest);
+//   createCollection<Invite>(COLLECTIONS.ORGANIZATIONS, orgId, COLLECTIONS.INVITES, ...rest);
 // export const notificationsCollection = (userId: string) =>
-//   createCollection<Notification>(Collections.USERS, userId, Collections.NOTIFICATIONS);
+//   createCollection<Notification>(COLLECTIONS.USERS, userId, COLLECTIONS.NOTIFICATIONS);
 // export const licensesCollection = (orgId: string) =>
-// createCollection<License>(Collections.ORGANIZATIONS, orgId, Collections.LICENSES);
+// createCollection<License>(COLLECTIONS.ORGANIZATIONS, orgId, COLLECTIONS.LICENSES);
 
 // EXAMPLE
 

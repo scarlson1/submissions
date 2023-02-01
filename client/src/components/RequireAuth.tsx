@@ -6,6 +6,7 @@ import { getAuth, signInAnonymously, UserCredential } from 'firebase/auth';
 import { auth } from 'firebaseConfig';
 import { useAuth, CustomClaims } from 'modules/components/AuthContext';
 import { toast } from 'react-hot-toast';
+import { AUTH_ROUTES, createPath } from 'router';
 
 // TODO: read for reference: https://adarshaacharya.com.np/blog/role-based-auth-with-react-router-v6
 
@@ -39,15 +40,22 @@ export const RequireAuth: React.FC<RequireAuthProps> = ({
 
       if (!!notAuthorized) {
         if (user && user.uid) {
-          toast(`You're account does not have the required permissions to access this route.`, {
-            duration: 8000,
-          });
+          toast.error(
+            `You're account does not have the required permissions to access this route.`,
+            {
+              duration: 8000,
+            }
+          );
         }
 
-        navigate(-1);
+        if (location.key !== 'default') return navigate(-1);
+        return navigate(createPath({ path: AUTH_ROUTES.LOGIN }), {
+          replace: true,
+          state: { from: location },
+        });
       }
     }
-  }, [requiredClaims, customClaims, loadingInitial, user, navigate]);
+  }, [requiredClaims, customClaims, loadingInitial, user, location, navigate]);
 
   // if not authenticated and prop shouldSignInAnonymously = true, sign in anonymously
   useEffect(() => {

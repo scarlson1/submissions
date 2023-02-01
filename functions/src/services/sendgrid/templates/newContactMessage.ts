@@ -20,7 +20,7 @@ export const newContactMessage = ({ toName, fromEmail, body }: NewContactMessage
             </div>
             <div style="padding-top: 8px">
               <p>
-                Cheers,<br />
+                Cheers,<br>
                 The iDemand team
               </p>
             </div>

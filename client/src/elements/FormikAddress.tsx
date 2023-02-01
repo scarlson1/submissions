@@ -2,9 +2,15 @@ import React from 'react';
 import { Box, Grid, SelectProps, TextFieldProps } from '@mui/material';
 import { Field, FieldProps } from 'formik';
 
-import { FormikTextField, FormikSelect, AddressAutocomplete, NewAddress } from 'components/forms';
+import {
+  FormikTextField,
+  // FormikSelect,
+  AddressAutocomplete,
+  NewAddress,
+  FormikNativeSelect,
+} from 'components/forms';
 import { findAddressValueByType } from 'modules/utils/helpers';
-import { statesAbrevSelectOptions } from 'common/statesList';
+import { statesAbrvSelectOptions } from 'common/statesList';
 
 export interface FormikAddressProps {
   cb?: (coords: { lat: number | null; lng: number | null }, state?: string) => void; // (values?: any) => Promise<any>;
@@ -18,7 +24,7 @@ export const FormikAddress: React.FC<FormikAddressProps> = ({
   setFieldValue,
   cb,
   textFieldProps,
-  selectFieldProps,
+  // selectFieldProps,
   children,
 }) => {
   const handleAddressSelection = ({ address_components, geometry }: NewAddress) => {
@@ -28,10 +34,13 @@ export const FormikAddress: React.FC<FormikAddressProps> = ({
     const newState = findAddressValueByType(address_components, 'administrative_area_level_1');
     const newPostal = findAddressValueByType(address_components, 'postal_code');
 
-    setFieldValue('addressLine1', `${newStreetNumber?.long_name} ${newStreetName?.long_name}`);
-    setFieldValue('city', `${newCity?.long_name}`);
-    setFieldValue('state', `${newState?.short_name}`);
-    setFieldValue('postal', `${newPostal?.long_name}`);
+    setFieldValue(
+      'addressLine1',
+      `${newStreetNumber?.long_name || ''} ${newStreetName?.long_name || ''}`
+    );
+    setFieldValue('city', `${newCity?.long_name || ''}`);
+    setFieldValue('state', `${newState?.short_name || ''}`);
+    setFieldValue('postal', `${newPostal?.long_name || ''}`);
     setFieldValue('latitude', geometry?.location.lat() ?? null);
     setFieldValue('longitude', geometry?.location.lng() ?? null);
 
@@ -98,13 +107,21 @@ export const FormikAddress: React.FC<FormikAddressProps> = ({
           />
         </Grid>
         <Grid item xs={6} sm={4} lg={4}>
-          <FormikSelect
+          {/* <FormikSelect
             name='state'
             label='State'
-            selectOptions={statesAbrevSelectOptions}
+            selectOptions={statesAbrvSelectOptions}
             required
             sx={{ minWidth: 80 }}
             {...selectFieldProps}
+          /> */}
+          <FormikNativeSelect
+            name='state'
+            label='State'
+            selectOptions={statesAbrvSelectOptions}
+            required
+            sx={{ minWidth: 80 }}
+            // {...selectFieldProps}
           />
         </Grid>
         <Grid item xs={6} sm={4} lg={4}>

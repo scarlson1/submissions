@@ -27,11 +27,12 @@ const createMsgContent = ({ to, subject, html }: CreateMsgContentProps) => {
 
 export const sendSubmissionRecievedConfirmation = async (
   key: string,
+  createAccountLink: string,
   to: string | string[],
   toName: string | undefined | null,
   addressLine1: string
 ) => {
-  const html = submissionReceived({ toName: toName, addressLine1 });
+  const html = submissionReceived({ toName: toName, addressLine1, createAccountLink });
   sgMail.setApiKey(key);
 
   await sgMail.send(createMsgContent({ html, subject: `We've received your submission!`, to }));

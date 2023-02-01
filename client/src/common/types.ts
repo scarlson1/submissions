@@ -1,15 +1,6 @@
-import { WithFieldValue, GeoPoint } from 'firebase/firestore'; // FirestoreErrorCode
+import { WithFieldValue, GeoPoint, Timestamp } from 'firebase/firestore';
 
-import {
-  // AgencySubmissionStatus,
-  // QuoteStatus,
-  // AgencyStatus,
-  // TransactionStatus,
-  Product as ProductEnum,
-  UWNoteCode,
-  DeductibleOptions,
-  SubmissionStatus,
-} from './enums';
+import { PRODUCT, UWNoteCode, DEDUCTIBLE_OPTIONS, SubmissionStatus } from './enums';
 import { FloodValues } from 'views/SubmissionNew';
 import { FetchPropertyDataResponse } from 'modules/api/index';
 
@@ -21,6 +12,7 @@ export interface Submission extends FloodValues, FetchPropertyDataResponse {
   coordinates: GeoPoint;
   userId?: string | null;
   status: SubmissionStatus;
+  submittedById?: string | null;
   darkMapImageURL?: string;
   lightMapImageURL?: string;
   darkMapImageFilePath?: string;
@@ -99,7 +91,7 @@ export interface Mortgagee {
 }
 
 export interface Deductible {
-  type: DeductibleOptions;
+  type: DEDUCTIBLE_OPTIONS;
   value: number;
 }
 
@@ -431,7 +423,7 @@ export interface Organization {
   accountNumber?: string;
   routingNumber?: string;
   status: 'TODO' | 'COPY' | 'FROM' | 'OTHER' | 'APP'; // AgencyStatus;
-  defaultCommission: { [key in ProductEnum]: number };
+  defaultCommission: { [key in PRODUCT]: number };
   metadata: BaseMetadata;
 }
 
@@ -495,6 +487,37 @@ export interface NotifyRegistration {
   email: string;
   topic: string;
   state?: string;
+}
+
+export type SubjectBaseItems =
+  | 'premium'
+  | 'inspectionFees'
+  | 'mgaFees'
+  | 'outStatePremium'
+  | 'homeStatePremium'
+  | 'fixedFee'
+  | 'noFee';
+
+export type RoundingType = 'nearest' | 'up' | 'down';
+
+export type TransactionType = 'new' | 'renewal' | 'endorsement' | 'cancellation';
+
+export interface Tax {
+  state: string;
+  displayName: string;
+  effectiveDate: Timestamp;
+  expirationDate?: Timestamp | null;
+  LOB: string[];
+  transactionTypes: TransactionType[];
+  subjectBase: SubjectBaseItems[];
+  baseRoundType?: RoundingType;
+  baseDigits?: number;
+  resultRoundType: RoundingType;
+  resultDigits?: number;
+  rate: number;
+  resultRounding?: RoundingType;
+  refundable?: boolean;
+  metadata: BaseMetadata;
 }
 
 export interface SpatialKeyResponse {

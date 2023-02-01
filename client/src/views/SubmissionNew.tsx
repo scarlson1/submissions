@@ -161,6 +161,7 @@ export const SubmissionNew: React.FC = () => {
           coordinates: coords,
           status: SubmissionStatus.Submitted,
           userId: user?.uid ?? null,
+          submittedById: user?.uid ?? null,
           metadata: {
             created: serverTimestamp(),
             updated: serverTimestamp(),

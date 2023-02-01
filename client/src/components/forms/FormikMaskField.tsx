@@ -15,6 +15,7 @@ export interface FormikMaskFieldProps extends InputProps {
   id: string;
   variant?: 'outlined' | 'standard';
   maskComponent: React.ForwardRefExoticComponent<any & React.RefAttributes<HTMLElement>>;
+  helperText?: string;
 }
 
 export const FormikMaskField: React.FC<FormikMaskFieldProps> = ({
@@ -26,6 +27,7 @@ export const FormikMaskField: React.FC<FormikMaskFieldProps> = ({
   size = 'medium',
   variant = 'outlined',
   maskComponent,
+  helperText,
   sx,
   ...props
 }) => {
@@ -45,7 +47,6 @@ export const FormikMaskField: React.FC<FormikMaskFieldProps> = ({
           required={required}
           size={size}
           error={meta.touched && Boolean(meta.error)}
-          // inputComponent={PhoneMask as any}
           inputComponent={maskComponent as any}
         />
       ) : (
@@ -58,18 +59,18 @@ export const FormikMaskField: React.FC<FormikMaskFieldProps> = ({
           required={required}
           size={size}
           error={meta.touched && Boolean(meta.error)}
-          // inputComponent={PhoneMask as any}
           inputComponent={maskComponent as any}
         />
       )}
 
-      {meta.touched && Boolean(meta.error) && (
+      {((meta.touched && Boolean(meta.error)) || helperText) && (
         <FormHelperText
           variant={variant}
           error={meta.touched && Boolean(meta.error)}
           required={required}
+          // sx={{ color: 'text.secondary', size: '12px' }}
         >
-          {meta.error}
+          {meta.error || helperText}
         </FormHelperText>
       )}
     </FormControl>

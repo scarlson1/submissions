@@ -21,8 +21,14 @@ import {
   adminSubmissionsLoader,
   Submissions as AdminSubmissions,
   QuoteNew,
+  SLTaxes,
+  SLTaxNew,
+  adminTaxLoader,
+  EditActiveStates,
+  activeStatesLoader,
 } from 'views/admin';
 import { SuccessStep } from 'elements';
+import { Product } from 'common';
 // import RouterErrorBoundary from 'components/errorBoundaries/RouterErrorBoundary';
 
 // TODO: add errorElement to routes
@@ -53,6 +59,9 @@ export enum ADMIN_ROUTES {
   SUBMISSIONS = '/admin/submissions',
   SUBMISSION_VIEW = '/admin/submissions/:submissionId',
   QUOTE_NEW = '/admin/quote/new',
+  SL_TAXES = '/admin/sl-tax',
+  SL_TAXES_NEW = '/admin/sl-tax/new',
+  EDIT_ACTIVE_STATES = '/admin/active-states/:productId/edit',
 }
 
 export enum AUTH_ROUTES {
@@ -72,6 +81,9 @@ type TArgs =
   | { path: ADMIN_ROUTES.SUBMISSIONS }
   | { path: ADMIN_ROUTES.SUBMISSION_VIEW; params: { submissionId: string } }
   | { path: ADMIN_ROUTES.QUOTE_NEW }
+  | { path: ADMIN_ROUTES.SL_TAXES }
+  | { path: ADMIN_ROUTES.SL_TAXES_NEW }
+  | { path: ADMIN_ROUTES.EDIT_ACTIVE_STATES; params: { productId: Product } }
   | { path: AUTH_ROUTES.CREATE_ACCOUNT }
   | { path: AUTH_ROUTES.LOGIN };
 
@@ -200,7 +212,7 @@ export const router = createBrowserRouter([
               </RequireAuth>
             ),
             loader: adminSubmissionsLoader,
-            errorElement: <RouterErrorBoundary actionButtons={[{ path: '/', label: 'Home' }]} />,
+            errorElement: <RouterErrorBoundary />,
           },
           {
             path: ADMIN_ROUTES.SUBMISSION_VIEW,
@@ -210,13 +222,40 @@ export const router = createBrowserRouter([
               </RequireAuth>
             ),
             loader: submissionLoader,
-            errorElement: <RouterErrorBoundary actionButtons={[{ path: '/', label: 'Home' }]} />,
+            errorElement: <RouterErrorBoundary />,
           },
           {
             path: ADMIN_ROUTES.QUOTE_NEW,
             element: (
               <RequireAuth requiredClaims={['iDemandAdmin']}>
                 <QuoteNew />
+              </RequireAuth>
+            ),
+          },
+          {
+            path: ADMIN_ROUTES.SL_TAXES,
+            loader: adminTaxLoader,
+            element: (
+              <RequireAuth requiredClaims={['iDemandAdmin']}>
+                <SLTaxes />
+              </RequireAuth>
+            ),
+            errorElement: <RouterErrorBoundary />,
+          },
+          {
+            path: ADMIN_ROUTES.SL_TAXES_NEW,
+            element: (
+              <RequireAuth requiredClaims={['iDemandAdmin']}>
+                <SLTaxNew />
+              </RequireAuth>
+            ),
+          },
+          {
+            path: ADMIN_ROUTES.EDIT_ACTIVE_STATES,
+            loader: activeStatesLoader,
+            element: (
+              <RequireAuth requiredClaims={['iDemandAdmin']}>
+                <EditActiveStates />
               </RequireAuth>
             ),
           },

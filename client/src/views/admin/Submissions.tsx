@@ -254,7 +254,7 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
   return (
     <Box>
       <Typography variant='h5' gutterBottom sx={{ pl: 3 }}>
-        Submissions
+        All Submissions
       </Typography>
       <BasicDataGrid
         rows={data || []}

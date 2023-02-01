@@ -106,6 +106,11 @@ export const formatFirestoreTimestamp = (
 export const formatGridFirestoreTimestamp = (params: GridValueFormatterParams<Timestamp>) =>
   params.value == null || !params.value.seconds ? '' : formatFirestoreTimestamp(params.value);
 
+export const formatGridFirestoreTimestampAsDate = (params: GridValueFormatterParams<Timestamp>) =>
+  params.value == null || !params.value.seconds
+    ? ''
+    : formatFirestoreTimestamp(params.value, 'date');
+
 /**
  *
  * @param params - Grid value formatter params
@@ -114,6 +119,9 @@ export const formatGridFirestoreTimestamp = (params: GridValueFormatterParams<Ti
 export const formatGridCurrency = (params: GridValueFormatterParams<number>) =>
   params.value == null ? '' : numeral(params.value).format('$0,0[.]00');
 // TODO: use regex to get rid of everything except digits and decimals ??
+
+export const formatGridPercent = (params: GridValueFormatterParams<number>) =>
+  params.value == null ? '' : numeral(params.value).format('0.0%');
 
 /**
  * checks validity of routing number by summing 3, 7, 1 multiples checking whether the sumproduct is divisible by 10
@@ -150,7 +158,8 @@ export const isValidEmail = (str: string) => {
   );
 };
 
-export const getNumbers = (str: string) => str.replace(/\D/g, '');
+// export const getNumber = (str: string) => str.replace(/\D/g, '');
+export const getNumber = (str: string) => str.replace(/[^0-9\.]+/g, ''); // eslint-disable-line
 
 /**
  * Sums an array of numbers
@@ -162,7 +171,7 @@ export const sumArr = (arr: (number | string)[]) => {
     .filter((i) => typeof i === 'number' || typeof i === 'string')
     .map((i) => {
       if (typeof i === 'string') {
-        return parseFloat(getNumbers(i)) || 0;
+        return parseFloat(getNumber(i)) || 0;
       }
       return i;
     });

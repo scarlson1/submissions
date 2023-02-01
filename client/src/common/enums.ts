@@ -1,4 +1,4 @@
-export enum Collections {
+export enum COLLECTIONS {
   SUBMISSIONS = 'submissions',
   QUOTES = 'quotes',
   RATING_DATA = 'ratingData',
@@ -17,6 +17,8 @@ export enum Collections {
   LICENSES = 'licenses',
   NOTIFICATIONS = 'notifications',
   NOTIFY_REGISTRATION = 'notifyRegistration',
+  TAXES = 'surplusLinesTaxes',
+  ACTIVE_STATES = 'states',
 }
 
 export enum SubmissionStatus {
@@ -31,7 +33,7 @@ export enum SubmissionStatus {
   AwaitingPayment = 'awaiting:payment',
 }
 
-export enum Product {
+export enum PRODUCT {
   Flood = 'flood',
   Wind = 'wind',
 }
@@ -42,7 +44,61 @@ export enum UWNoteCode {
   UNKNOWN = 'unknown',
 }
 
-export enum DeductibleOptions {
+export enum DEDUCTIBLE_OPTIONS {
   pct = 'percent',
   abs = 'absolute',
+}
+
+export enum STATE_ABBREVIATION {
+  AL = 'AL',
+  AK = 'AK',
+  AZ = 'AZ',
+  AR = 'AR',
+  CA = 'CA',
+  CO = 'CO',
+  CT = 'CT',
+  DE = 'DE',
+  DC = 'DC',
+  FL = 'FL',
+  GA = 'GA',
+  HI = 'HI',
+  ID = 'ID',
+  IL = 'IL',
+  IN = 'IN',
+  IA = 'IA',
+  KS = 'KS',
+  KY = 'KY',
+  LA = 'LA',
+  ME = 'ME',
+  MD = 'MD',
+  MA = 'MA',
+  MI = 'MI',
+  MN = 'MN',
+  MS = 'MS',
+  MO = 'MO',
+  MT = 'MT',
+  NE = 'NE',
+  NV = 'NV',
+  NH = 'NH',
+  NJ = 'NJ',
+  NM = 'NM',
+  NY = 'NY',
+  NC = 'NC',
+  ND = 'ND',
+  OH = 'OH',
+  OK = 'OK',
+  OR = 'OR',
+  PA = 'PA',
+  RI = 'RI',
+  SC = 'SC',
+  SD = 'SD',
+  TN = 'TN',
+  TX = 'TX',
+  UT = 'UT',
+  VT = 'VT',
+  VA = 'VA',
+  WA = 'WA',
+  WV = 'WV',
+  WI = 'WI',
+  WY = 'WY',
 }
