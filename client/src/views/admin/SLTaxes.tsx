@@ -1,6 +1,6 @@
 import React from 'react';
-import { Box, Button, Typography } from '@mui/material';
-import { GridColDef, GridValueFormatterParams } from '@mui/x-data-grid';
+import { Box, Button, Tooltip, Typography } from '@mui/material';
+import { GridColDef, GridRenderCellParams, GridValueFormatterParams } from '@mui/x-data-grid';
 import { LoaderFunctionArgs, useLoaderData, useNavigate } from 'react-router-dom';
 
 import { BasicDataGrid } from 'components';
@@ -23,7 +23,7 @@ export const adminTaxLoader = async ({ params }: LoaderFunctionArgs) => {
       (querySnap) => querySnap.docs.map((snap) => ({ ...snap.data(), id: snap.id }))
     );
   } catch (err) {
-    throw new Response(`Error fetching submissions`); // , {status: }
+    throw new Response(`Error fetching submissions`);
   }
 };
 
@@ -79,8 +79,17 @@ const taxColumns: GridColDef[] = [
     editable: false,
     valueGetter: (params) => params.row.rate || null,
     valueFormatter: (params: GridValueFormatterParams<number>) => {
-      if (params.value > 0.5) return formatGridCurrency(params);
-      return formatGridPercent(params);
+      if (params.value > 0.15) return formatGridCurrency(params);
+      return formatGridPercent(params, 2);
+    },
+    renderCell: (params: GridRenderCellParams<any, any, any>) => {
+      // const rateType = params.row.rateType || (params.value > 0.15 ? 'fixed' : 'percent');
+      // console.log('renderCall params: ', params);
+      return (
+        <Tooltip title={`${params.value}`} placement='left'>
+          <Typography variant='body2'>{params.formattedValue}</Typography>
+        </Tooltip>
+      );
     },
   },
   {

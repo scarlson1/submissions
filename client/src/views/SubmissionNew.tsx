@@ -1,8 +1,8 @@
 import React, { useCallback, useRef } from 'react';
 import { FormikHelpers, FormikProps, FormikValues } from 'formik';
 import { Box, Container, Tooltip, Typography } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
-import { addDoc, GeoPoint, serverTimestamp } from 'firebase/firestore';
+import { LoaderFunctionArgs, useLoaderData, useNavigate } from 'react-router-dom';
+import { addDoc, doc, GeoPoint, getDoc, serverTimestamp } from 'firebase/firestore';
 
 import { FormikWizard, Step } from 'components/forms';
 import {
@@ -24,14 +24,33 @@ import {
   priorLossValidation,
 } from 'common/quoteValidation';
 import { ROUTES, createPath } from 'router';
-import { submissionsCollection } from 'common/firestoreCollections';
+import { statesCollection, submissionsCollection } from 'common/firestoreCollections';
 import { SubmissionStatus } from 'common/enums';
 import { usePropertyDetails } from 'hooks';
 import { roundUpToNearest, sumArr } from 'modules/utils/helpers';
 import { useAuth } from 'modules/components/AuthContext';
+import { FirebaseError } from 'firebase/app';
 
 // TODO: fix bug - need to separate geocodeing from address
 // if address manually changed (not google autocomple), need to update lat lng
+// TODO: add productId to url and reuse activeStatesLoader from EditActiveStates
+
+export const newSubmissionLoader = async ({ params }: LoaderFunctionArgs) => {
+  try {
+    const snap = await getDoc(doc(statesCollection, params.productId));
+
+    const data = snap.data();
+    if (!snap.exists() || !data) return {};
+
+    return data;
+  } catch (err) {
+    let msg = `Error fetching active states document`;
+    if (err instanceof FirebaseError) {
+      msg = err.message;
+    }
+    throw new Response(msg);
+  }
+};
 
 const DEFAULT_FLOOD_DEDUCTIBLE = '0.01';
 
@@ -96,6 +115,7 @@ export const SubmissionNew: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const formikRef = useRef<FormikProps<FormikValues>>(null);
+  const activeStates = useLoaderData() as { [key: string]: boolean };
   const { propertyDetails, fetchPropertyData } = usePropertyDetails();
 
   const handleFetchProperty = useCallback(
@@ -188,7 +208,7 @@ export const SubmissionNew: React.FC = () => {
             mutateOnSubmit={handleFetchProperty}
             stepperNavLabel='Address'
           >
-            <AddressStep />
+            <AddressStep activeStates={activeStates} />
           </Step>
           <Step
             label='Limits'

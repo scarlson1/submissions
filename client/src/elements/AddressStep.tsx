@@ -2,13 +2,15 @@ import React, { useState, useCallback } from 'react';
 import { Card, Typography } from '@mui/material';
 import { useFormikContext } from 'formik';
 import { FlyToInterpolator, MapViewState } from '@deck.gl/core/typed';
+import { Marker } from 'react-map-gl';
 import { toast } from 'react-hot-toast';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 import { FormikAddress } from 'elements';
-import { DeckGLMap } from 'components/DeckGLMap';
+// import { DeckGLMap } from 'components/DeckGLMap';
 import { ACTIVE_STATES_ABRV } from 'common/constants';
 import { useRegisterEmailNotification } from 'hooks';
+import { ActiveStateMap } from './ActiveStateMap';
 
 export interface AddressStepValues {
   addressLine1: string;
@@ -20,9 +22,14 @@ export interface AddressStepValues {
   longitude: number | null;
 }
 
-// TODO: state and postal validation
+export interface AddressStepProps {
+  activeStates?: { [key: string]: boolean };
+}
 
-export const AddressStep: React.FC = () => {
+// TODO: state and postal validation
+// TODO: load by product /flood/new - get active states from /state/:productId in db
+
+export const AddressStep: React.FC<AddressStepProps> = ({ activeStates = {} }) => {
   const { values, setFieldValue, validateForm } = useFormikContext<AddressStepValues>();
   const [showMarker, setShowMarker] = useState(Boolean(values.latitude && values.longitude));
   const [mapViewState, setMapViewState] = useState<MapViewState>({
@@ -83,14 +90,27 @@ export const AddressStep: React.FC = () => {
   return (
     <FormikAddress setFieldValue={setFieldValue} cb={addressChangeCb}>
       <Card sx={{ height: 280, width: '100%', mt: 5 }}>
-        <DeckGLMap
+        {/* <DeckGLMap
           mapViewState={mapViewState}
           markerCoords={
             showMarker && values.latitude && values.longitude
               ? { lat: values.latitude, lng: values.longitude }
               : undefined
           }
-        />
+        /> */}
+        <ActiveStateMap
+          handleClick={(i, e) => {}}
+          statesValues={activeStates}
+          mapViewState={mapViewState}
+        >
+          {showMarker && values.latitude && values.longitude && (
+            <Marker
+              longitude={values.longitude}
+              latitude={values.latitude}
+              anchor='bottom'
+            ></Marker>
+          )}
+        </ActiveStateMap>
       </Card>
 
       <Typography

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useCallback } from 'react'; // useMemo
-import { Button, Typography, Container, Divider } from '@mui/material'; // Divider, Stack,
+import { Button, Typography, Container } from '@mui/material'; // Divider, Stack,
 import { LoadingButton } from '@mui/lab';
 import Grid from '@mui/material/Unstable_Grid2';
 import { FormikHelpers, Formik, FormikProps } from 'formik';
@@ -111,7 +111,7 @@ export const Login: React.FC = () => {
   return (
     <Container maxWidth='xs' sx={{ py: { sm: 6, md: 8 } }}>
       <Typography variant='h4'>Login</Typography>
-      <Typography variant='subtitle1' gutterBottom sx={{ py: 1, color: 'text.secondary' }}>
+      <Typography variant='subtitle1' gutterBottom sx={{ pt: 1, pb: 3, color: 'text.secondary' }}>
         Hi, welcome back 👋
       </Typography>
       {/* <Stack direction='row' sx={{ flexWrap: 'wrap', gap: 2, my: { xs: 4, md: 6 } }}>
@@ -130,7 +130,7 @@ export const Login: React.FC = () => {
       >
         {({ isValid, isValidating, isSubmitting, dirty, values }: FormikProps<LoginValues>) => (
           <Grid container rowSpacing={{ xs: 3, sm: 4 }} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
-            <Grid xs={12}>
+            {/* <Grid xs={12}>
               <Divider variant='middle'>
                 <Typography
                   variant='body2'
@@ -142,7 +142,7 @@ export const Login: React.FC = () => {
                   or login with email
                 </Typography>
               </Divider>
-            </Grid>
+            </Grid> */}
             <Grid xs={12}>
               <FormikTextField name='email' label='Email' fullWidth />
             </Grid>

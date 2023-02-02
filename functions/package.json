@@ -7,7 +7,10 @@
     "serve": "npm run build && firebase emulators:start --only functions",
     "shell": "npm run build && firebase functions:shell",
     "start": "npm run shell",
-    "deploy": "firebase deploy --only functions",
+    "deploy:dev": "npm run use:dev && firebase deploy --only functions",
+    "deploy:prod": "npm run use:prod && firebase deploy --only functions",
+    "use:dev": "firebase use dev",
+    "use:prod": "firebase use prod",
     "logs": "firebase functions:log"
   },
   "engines": {

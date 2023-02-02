@@ -14,6 +14,7 @@ import {
   Policies,
   UserSubmissions,
   Home,
+  newSubmissionLoader,
 } from 'views';
 import {
   submissionLoader,
@@ -44,7 +45,7 @@ import { Product } from 'common';
 // Available in custom hooks and any other nested component
 
 export enum ROUTES {
-  SUBMISSION_NEW = '/new',
+  SUBMISSION_NEW = '/new/:productId',
   SUBMISSION_SUBMITTED = '/quotes/:submissionId/submitted',
   SUBMISSIONS = '/submissions',
   QUOTE_VIEW = '/quotes/:quoteId',
@@ -70,7 +71,7 @@ export enum AUTH_ROUTES {
 }
 
 type TArgs =
-  | { path: ROUTES.SUBMISSION_NEW }
+  | { path: ROUTES.SUBMISSION_NEW; params: { productId: Product } }
   | { path: ROUTES.SUBMISSION_SUBMITTED; params: { submissionId: string } }
   | { path: ROUTES.SUBMISSIONS }
   | { path: ROUTES.QUOTE_VIEW; params: { quoteId: string } }
@@ -123,6 +124,7 @@ export const router = createBrowserRouter([
           },
           {
             path: ROUTES.SUBMISSION_NEW,
+            loader: newSubmissionLoader,
             element: (
               <RequireAuth shouldSignInAnonymously={true}>
                 <SubmissionNew />

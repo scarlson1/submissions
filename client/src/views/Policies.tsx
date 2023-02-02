@@ -129,7 +129,11 @@ export const Policies: React.FC = () => {
           </Typography>
           <Box>
             <Button
-              onClick={() => navigate(createPath({ path: ROUTES.SUBMISSION_NEW }))}
+              onClick={() =>
+                navigate(
+                  createPath({ path: ROUTES.SUBMISSION_NEW, params: { productId: 'flood' } })
+                )
+              }
               sx={{ mx: 'auto', display: 'block' }}
             >
               Get a quote

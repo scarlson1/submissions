@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { Container, Button, Typography, Divider, Stack } from '@mui/material'; // Divider,  Stack
+import { Container, Button, Typography } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 import Grid from '@mui/material/Unstable_Grid2';
 import { FormikHelpers, Formik, FormikProps } from 'formik';
@@ -9,7 +9,7 @@ import { toast } from 'react-hot-toast';
 
 import FormikTextField from 'components/forms/FormikTextField';
 import { auth } from 'firebaseConfig';
-import { GoogleAuth, MicrosoftAuth } from 'components';
+// import { GoogleAuth, MicrosoftAuth } from 'components';
 import { getRedirectPath } from 'modules/utils/helpers';
 import { FormikPassword } from 'elements';
 import { useCreateAccount } from 'hooks/useCreateAccount';
@@ -86,13 +86,13 @@ export const CreateAccount: React.FC = () => {
   return (
     <Container maxWidth='xs' sx={{ py: { sm: 6, md: 8 } }}>
       <Typography variant='h4'>Create an account</Typography>
-      <Typography variant='subtitle1' gutterBottom sx={{ py: 1, color: 'text.secondary' }}>
+      <Typography variant='subtitle1' gutterBottom sx={{ pt: 1, pb: 3, color: 'text.secondary' }}>
         Hi, welcome to iDemand 👋
       </Typography>
-      <Stack direction='row' sx={{ flexWrap: 'wrap', gap: 2, my: { xs: 2, sm: 4, lg: 6 } }}>
+      {/* <Stack direction='row' sx={{ flexWrap: 'wrap', gap: 2, my: { xs: 2, sm: 4, lg: 6 } }}>
         <GoogleAuth />
         <MicrosoftAuth />
-      </Stack>
+      </Stack> */}
       <Formik
         initialValues={{
           firstName: queryParams.get('firstName') || '',
@@ -106,7 +106,7 @@ export const CreateAccount: React.FC = () => {
       >
         {({ isValid, isValidating, isSubmitting, dirty }: FormikProps<SignUpValues>) => (
           <Grid container rowSpacing={{ xs: 3, sm: 4 }} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
-            <Grid xs={12}>
+            {/* <Grid xs={12}>
               <Divider variant='middle'>
                 <Typography
                   variant='body2'
@@ -118,7 +118,7 @@ export const CreateAccount: React.FC = () => {
                   or with email
                 </Typography>
               </Divider>
-            </Grid>
+            </Grid> */}
             <Grid xs={6}>
               <FormikTextField name='firstName' label='First name' fullWidth />
             </Grid>

@@ -202,7 +202,7 @@ export const SuccessStep: React.FC = () => {
             <Button
               onClick={() =>
                 navigate(
-                  createPath({ path: ROUTES.SUBMISSION_NEW }),
+                  createPath({ path: ROUTES.SUBMISSION_NEW, params: { productId: 'flood' } }),
 
                   { replace: true }
                 )

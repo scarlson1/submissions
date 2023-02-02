@@ -8,8 +8,13 @@
     "client:live": "npm run start --prefix ./client",
     "functions:build": "npm run build:watch --prefix ./functions",
     "emulators:dev": "firebase emulators:start --only functions,auth,firestore,storage,pubsub --import ./emulator-data",
-    "dev": "npm run setSAPath && concurrently \"npm run client:dev\" \"npm run functions:build\" \"npm run emulators:dev\"",
-    "setSAPath": "export GOOGLE_APPLICATION_CREDENTIALS=\"/Users/spencercarlson/code/idemand-submissions-firebase-admin.json\""
+    "use:dev": "firebase use dev",
+    "use:prod": "firebase use prod",
+    "dev": "npm run use:dev && npm run setSAPath:dev && concurrently \"npm run client:dev\" \"npm run functions:build\" \"npm run emulators:dev\"",
+    "setSAPath:dev": "export GOOGLE_APPLICATION_CREDENTIALS=\"/Users/spencercarlson/code/idemand-submissions-dev-firebase-admin.json\"",
+    "setSAPath:prod": "export GOOGLE_APPLICATION_CREDENTIALS=\"/Users/spencercarlson/code/idemand-submissions-firebase-admin.json\"",
+    "deploy:rules:firestore": "firebase deploy --only firestore:rules",
+    "deploy:rules:storage": "firebase deploy --only storage"
   },
   "repository": {
     "type": "git",

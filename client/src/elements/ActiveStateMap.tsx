@@ -4,13 +4,14 @@ import { CancelRounded, CheckCircleRounded } from '@mui/icons-material';
 import Map from 'react-map-gl';
 import DeckGL from '@deck.gl/react/typed';
 import { GeoJsonLayer } from '@deck.gl/layers/typed';
-import { PickingInfo } from 'deck.gl/typed';
+import { MapViewState, PickingInfo } from 'deck.gl/typed';
 
 import { useTheme } from '@mui/material/styles';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 import statesData from 'assets/states_20m.json';
-// import { STATE_ABBREVIATION } from 'common';
+
+// TODO: generalize component (dup. of DeckGLMap)
 
 const INITIAL_VIEW_STATE = {
   longitude: -94.25,
@@ -22,14 +23,18 @@ const INITIAL_VIEW_STATE = {
   bearing: 0,
 };
 
-export interface TestEditActiveStateMapProps {
+export interface ActiveStateMapProps {
   handleClick: (pickingInfo: PickingInfo, event: any) => void;
-  statesValues: { [key: string]: boolean } | undefined; // key in STATE_ABBREVIATION
+  statesValues: { [key: string]: boolean } | undefined;
+  mapViewState?: MapViewState;
+  children?: React.ReactNode;
 }
 
-export const TestEditActiveStateMap: React.FC<TestEditActiveStateMapProps> = ({
+export const ActiveStateMap: React.FC<ActiveStateMapProps> = ({
   handleClick,
   statesValues,
+  mapViewState = INITIAL_VIEW_STATE,
+  children,
 }) => {
   const theme = useTheme();
   const [hoverInfo, setHoverInfo] = useState<PickingInfo>();
@@ -55,9 +60,6 @@ export const TestEditActiveStateMap: React.FC<TestEditActiveStateMapProps> = ({
     getLineWidth: 10,
     onHover: (info) => setHoverInfo(info),
     onClick: handleClick,
-    // https://deck.gl/docs/api-reference/core/layer#updatetriggers
-    // example:
-    // getFillColor: (d) => (d.male ? maleColor : femaleColor),
     updateTriggers: {
       getFillColor: [statesValues],
     },
@@ -66,9 +68,9 @@ export const TestEditActiveStateMap: React.FC<TestEditActiveStateMapProps> = ({
   return (
     <Box sx={{ height: '100%', width: '100%' }}>
       <DeckGL
-        initialViewState={INITIAL_VIEW_STATE}
+        // initialViewState={INITIAL_VIEW_STATE}
+        initialViewState={mapViewState}
         controller={true}
-        // layers={layers}
         layers={[currentStateLayer]}
         width='100%'
         height='100%'
@@ -83,7 +85,9 @@ export const TestEditActiveStateMap: React.FC<TestEditActiveStateMapProps> = ({
           styleDiffing
           minZoom={2}
           maxZoom={20}
-        />
+        >
+          {children}
+        </Map>
         {hoverInfo && hoverInfo.object && (
           <Box
             sx={{

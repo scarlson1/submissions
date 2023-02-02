@@ -1,4 +1,4 @@
-export { SubmissionNew } from './SubmissionNew';
+export { SubmissionNew, newSubmissionLoader } from './SubmissionNew';
 export { ContactUs } from './ContactUs';
 export { ViewQuote } from './ViewQuote';
 export { Checkout } from './Checkout';

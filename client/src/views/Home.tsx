@@ -15,5 +15,10 @@ export const Home: React.FC = () => {
   if (isAuthenticated && !isAnonymous)
     return <Navigate to={createPath({ path: ROUTES.SUBMISSIONS })} replace={true} />;
 
-  return <Navigate to={createPath({ path: ROUTES.SUBMISSION_NEW })} replace={true} />;
+  return (
+    <Navigate
+      to={createPath({ path: ROUTES.SUBMISSION_NEW, params: { productId: 'flood' } })}
+      replace={true}
+    />
+  );
 };

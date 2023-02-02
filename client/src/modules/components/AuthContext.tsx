@@ -151,7 +151,7 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
       auth,
       async (newUser: User | null) => {
         setLoading(true);
-        console.log('auth state change => ', newUser);
+        // console.log('auth state change => ', newUser);
 
         setUser(newUser);
         await updateClaims();

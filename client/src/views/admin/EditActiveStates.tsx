@@ -11,7 +11,7 @@ import { statesDetailsArr } from 'common/statesList';
 import { FormikSwitch } from 'components/forms';
 import { toast } from 'react-hot-toast';
 import { statesCollection } from 'common';
-import { TestEditActiveStateMap } from 'elements/TestEditActiveStateMap';
+import { ActiveStateMap } from 'elements/ActiveStateMap';
 import { SaveRounded } from '@mui/icons-material';
 import { FirebaseError } from 'firebase/app';
 
@@ -82,7 +82,7 @@ export const EditActiveStates: React.FC = () => {
           position: 'sticky',
           top: 0,
           zIndex: 1000,
-          backgroundColor: (theme) => theme.palette.background.paper,
+          backgroundColor: (theme) => theme.palette.background.default,
           // backdropFilter: 'blur(20px)',
           // webkitBackdropFilter: 'blur(20px)',
         }}
@@ -186,10 +186,7 @@ export const EditActiveStates: React.FC = () => {
               <Grid xs={12}>
                 <Box sx={{ py: 10, height: 500, width: '100%', mb: 20 }}>
                   <Card sx={{ height: 'inherit', width: 'inherit' }}>
-                    <TestEditActiveStateMap
-                      handleClick={handleStateClicked}
-                      statesValues={values}
-                    />
+                    <ActiveStateMap handleClick={handleStateClicked} statesValues={values} />
                   </Card>
                 </Box>
               </Grid>

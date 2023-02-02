@@ -1,5 +1,9 @@
 {
   "projects": {
-    "default": "idemand-submissions"
-  }
+    "default": "idemand-submissions-dev",
+    "prod": "idemand-submissions",
+    "dev": "idemand-submissions-dev"
+  },
+  "targets": {},
+  "etags": {}
 }

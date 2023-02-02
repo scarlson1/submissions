@@ -69,7 +69,7 @@ service cloud.firestore {
       allow delete: if false
     }
     match /states/{productId} {
-      allow read: if true // isIDemandAdmin()
+      allow read: if true
       allow create: if isIDemandAdmin() && emailVerified()
       allow update: if isIDemandAdmin() && emailVerified()
       allow delete: if false

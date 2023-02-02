@@ -515,6 +515,7 @@ export interface Tax {
   resultRoundType: RoundingType;
   resultDigits?: number;
   rate: number;
+  rateType: 'fixed' | 'percent';
   resultRounding?: RoundingType;
   refundable?: boolean;
   metadata: BaseMetadata;

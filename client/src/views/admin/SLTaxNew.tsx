@@ -43,7 +43,7 @@ export const newTaxValidation = yup.object().shape({
     ),
   rate: yup.number().when(['subjectBase'], {
     is: (subjectBase: string) => subjectBase && subjectBase[0] === 'fixedFee',
-    then: yup.number().notRequired(),
+    then: yup.number().notRequired().nullable(),
     otherwise: yup
       .number()
       .positive()
@@ -53,7 +53,7 @@ export const newTaxValidation = yup.object().shape({
   fixedRate: yup.number().when(['subjectBase'], {
     is: (subjectBase: string) => subjectBase && subjectBase[0] === 'fixedFee',
     then: yup.number().min(0).max(100).required(),
-    otherwise: yup.number().notRequired(),
+    otherwise: yup.number().notRequired().nullable(),
   }),
   baseRoundType: yup.string().required(),
   baseDigits: yup.number().min(0, 'Must be 0 or greater').integer('Must be an integer'),
@@ -114,17 +114,15 @@ export const SLTaxNew: React.FC<SLTaxNewProps> = () => {
   const navigate = useNavigate();
   const formikRef = useRef<FormikProps<NewTaxValues>>(null);
 
-  const submitForm = () => formikRef.current?.submitForm();
+  const submitForm = useCallback(() => formikRef.current?.submitForm(), []);
 
   const handleSubmit = useCallback(
     async (values: NewTaxValues, { setSubmitting, setFieldError }: FormikHelpers<NewTaxValues>) => {
       console.log('VALUES: ', values);
       try {
-        const rate =
-          values.subjectBase[0] === 'fixedFee'
-            ? values.fixedRate
-            : parseFloat(getNumber(values.rate));
-        if (!rate) {
+        const isFixedRate = values.subjectBase[0] === 'fixedFee';
+        const rate = isFixedRate ? values.fixedRate : parseFloat(getNumber(values.rate)) / 100;
+        if (!rate || isNaN(rate)) {
           setFieldError('fixedRate', 'Missing rate');
           return setSubmitting(false);
         }
@@ -133,10 +131,12 @@ export const SLTaxNew: React.FC<SLTaxNewProps> = () => {
         const expTimestamp = values.expirationDate
           ? Timestamp.fromDate(values.expirationDate)
           : null;
+        const { fixedRate: _, ...rest } = values;
 
         const docRef = await addDoc(taxesCollection, {
-          ...values,
+          ...rest,
           rate,
+          rateType: isFixedRate ? 'fixed' : 'percent',
           effectiveDate: effTimestamp,
           expirationDate: expTimestamp,
           metadata: {
@@ -377,7 +377,7 @@ export const SLTaxNew: React.FC<SLTaxNewProps> = () => {
             <Grid xs={12}>
               <Button
                 variant='contained'
-                onClick={() => submitForm()}
+                onClick={submitForm}
                 disabled={!dirty || !isValid || isValidating || isSubmitting}
                 sx={{ my: 2 }}
               >

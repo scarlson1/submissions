@@ -97,7 +97,7 @@ export const Header: React.FC<HeaderProps> = () => {
     () => [
       {
         title: 'New Submission',
-        route: createPath({ path: ROUTES.SUBMISSION_NEW }),
+        route: createPath({ path: ROUTES.SUBMISSION_NEW, params: { productId: 'flood' } }),
       },
       {
         title: 'Submissions',
@@ -126,7 +126,7 @@ export const Header: React.FC<HeaderProps> = () => {
     const userPages = [
       {
         title: 'Quote',
-        route: createPath({ path: ROUTES.SUBMISSION_NEW }),
+        route: createPath({ path: ROUTES.SUBMISSION_NEW, params: { productId: 'flood' } }),
       },
     ];
     if (user)

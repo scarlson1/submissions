@@ -134,7 +134,13 @@ export const UserSubmissions: React.FC = () => {
             No Submissions
           </Typography>
           <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-            <Button onClick={() => navigate(createPath({ path: ROUTES.SUBMISSION_NEW }))}>
+            <Button
+              onClick={() =>
+                navigate(
+                  createPath({ path: ROUTES.SUBMISSION_NEW, params: { productId: 'flood' } })
+                )
+              }
+            >
               Start a quote
             </Button>
           </Box>
