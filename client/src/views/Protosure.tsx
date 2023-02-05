@@ -30,21 +30,35 @@ import { usePropertyDetails } from 'hooks';
 import { roundUpToNearest, sumArr } from 'modules/utils/helpers';
 import { useAuth } from 'modules/components/AuthContext';
 import { FirebaseError } from 'firebase/app';
+import { initializeQuote } from 'modules/api/initializeQuote';
+import { updateAndRateQuote } from 'modules/api';
 
-// TODO: fix bug - need to separate geocodeing from address
-// if address manually changed (not google autocomple), need to update lat lng
-// TODO: add productId to url and reuse activeStatesLoader from EditActiveStates
+// const testQuoteId = '8f8bcae5-32ab-4ca5-be74-53f7c924f746';
 
-// TODO: pass active states to validation
+// TODO: move active states loader to higher up component loader
 
-export const newSubmissionLoader = async ({ params }: LoaderFunctionArgs) => {
+export interface ProtosureLoaderResult {
+  activeStates: { [key: string]: boolean };
+  protosureData: any;
+  initialFormData: Partial<FloodValues>;
+  quoteId: string;
+}
+export const protosureLoader = async ({ params, request, context }: LoaderFunctionArgs) => {
+  let res: ProtosureLoaderResult = {
+    activeStates: {},
+    protosureData: {},
+    initialFormData: {},
+    quoteId: '',
+  };
+  const { productId, quoteId } = params;
+
   try {
-    const snap = await getDoc(doc(statesCollection, params.productId));
+    const snap = await getDoc(doc(statesCollection, productId));
 
     const data = snap.data();
-    if (!snap.exists() || !data) return {};
-
-    return data;
+    if (snap.exists() && data) {
+      res.activeStates = { ...data };
+    }
   } catch (err) {
     let msg = `Error fetching active states document`;
     if (err instanceof FirebaseError) {
@@ -52,6 +66,25 @@ export const newSubmissionLoader = async ({ params }: LoaderFunctionArgs) => {
     }
     throw new Response(msg);
   }
+
+  try {
+    const { data } = await initializeQuote({ quoteId });
+
+    const url = new URL(request.url);
+    const pathArr = url.pathname.split('/').filter((p) => p);
+    if (!quoteId)
+      window.history.replaceState(null, '', `/${pathArr.join('/')}/${data.protosureData.id || ''}`);
+
+    res.protosureData = data.protosureData;
+    res.initialFormData = data.initialFormData;
+    res.quoteId = data.protosureData.id;
+  } catch (err) {
+    console.log('ERROR: ', err);
+    throw new Response(`Error retrieving or initializing quote`);
+  }
+
+  console.log('init quote res: ', res);
+  return res;
 };
 
 const DEFAULT_FLOOD_DEDUCTIBLE = '0.01';
@@ -113,37 +146,34 @@ export const initialValues: FloodValues = {
   userAcceptance: false,
 };
 
-export const SubmissionNew: React.FC = () => {
+export const Protosure: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const formikRef = useRef<FormikProps<FormikValues>>(null);
-  const activeStates = useLoaderData() as { [key: string]: boolean };
-  const { propertyDetails, fetchPropertyData } = usePropertyDetails();
 
-  const handleFetchProperty = useCallback(
+  // TODO: need protosure data in useState so it can be updated when updateQuote is called
+  const { quoteId, activeStates, initialFormData, protosureData } =
+    useLoaderData() as ProtosureLoaderResult;
+  const { propertyDetails } = usePropertyDetails();
+  // const { updateQuoteP } = useUpdateQuote()
+
+  // TODO: need to store and update protosure data
+  // needs to be sent with update request to merge nested objects
+
+  const updateQuote = useCallback(
     async (values: any, helpers: FormikHelpers<any>) => {
-      if (formikRef.current?.initialValues === values) {
-        return values;
-      }
       try {
-        // formik async dependent fields ref: https://formik.org/docs/examples/dependent-fields-async-api-request
-
-        const res = await fetchPropertyData({ lat: values.latitude, lng: values.longitude });
-        console.log('result: ', res);
-        return {
-          ...values,
-          limitA: res.initLimitA ?? '250000',
-          limitB: res.initLimitB ?? '25000',
-          limitC: res.initLimitC ?? '63000',
-          limitD: res.initLimitD ?? '38000',
-          deductible: res.initDeductible ?? 4000,
-        };
+        if (!quoteId) throw new Error('missing quoteId in url');
+        // update quote (new values)
+        const { data } = await updateAndRateQuote({ quoteId, values, protosureData });
+        console.log('RES: ', data);
+        // run rater
       } catch (err) {
-        console.log('ERROR: ', err);
+        console.log('ERROR', err);
         return values;
       }
     },
-    [fetchPropertyData]
+    [quoteId, protosureData]
   );
 
   const handleOnToDeductible = useCallback((values: any, helpers: FormikHelpers<any>) => {
@@ -203,11 +233,17 @@ export const SubmissionNew: React.FC = () => {
   return (
     <Container maxWidth='sm'>
       <Box>
-        <FormikWizard initialValues={initialValues} onSubmit={handleSubmit} formRef={formikRef}>
+        <FormikWizard
+          initialValues={{ ...initialValues, ...initialFormData }}
+          onSubmit={handleSubmit}
+          formRef={formikRef}
+          enableReinitialize
+        >
           <Step
             label={`What's the Address?`}
             validationSchema={addressValidationActiveStates}
-            mutateOnSubmit={handleFetchProperty}
+            mutateOnSubmit={updateQuote}
+            // mutateOnSubmit={handleFetchProperty}
             stepperNavLabel='Address'
           >
             <AddressStep activeStates={activeStates} shouldValidateStates={true} />

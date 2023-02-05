@@ -47,8 +47,8 @@ export const Login: React.FC = () => {
   const { login } = useAuth();
   const { handleError } = useHandleAuthError();
   const { sendPasswordReset } = useSendPasswordReset({
-    onSuccess: (email?: string) => toast(`Password reset email sent to ${email}`),
-    onError: (err) => toast.error('Failed to send password reset email.'),
+    onSuccess: (email?: string) => toast.success(`Password reset email sent to ${email}`),
+    onError: (err: unknown, msg: string) => toast.error(msg),
   });
   const formikRef = useRef<FormikProps<LoginValues>>(null);
 

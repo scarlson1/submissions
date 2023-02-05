@@ -6,6 +6,8 @@ import { FieldArray } from 'formik'; // getIn
 
 import FormikTextField from 'components/forms/FormikTextField';
 import FormikSelect from 'components/forms/FormikSelect';
+import FormikMaskField from './FormikMaskField';
+import PhoneMask from './PhoneMask';
 
 // https://stackoverflow.com/questions/53958028/how-to-use-generics-in-props-in-react-in-a-functional-component
 
@@ -17,7 +19,7 @@ export interface InputSchema {
   name: string;
   label: string;
   required: boolean;
-  inputType: 'text' | 'select';
+  inputType: 'text' | 'select' | 'phone';
   selectOptions?: SelectOption[];
   variant?: 'standard' | 'outlined' | 'filled';
   size?: 'small' | 'medium';
@@ -38,6 +40,7 @@ export interface FormikFieldArrayProps {
   setFieldTouched: (field: string, isTouched?: boolean, shouldValidate?: boolean) => void;
   validate?: (values: any) => void;
   children?: React.ReactNode;
+  // customFields?: React.ReactNode[];
 }
 
 export const FormikFieldArray: React.FC<FormikFieldArrayProps> = ({
@@ -48,6 +51,7 @@ export const FormikFieldArray: React.FC<FormikFieldArrayProps> = ({
   isSubmitting = false,
   dirty,
   children,
+  // customFields,
   errors,
 }) => {
   const getNewRow = () => {
@@ -112,6 +116,21 @@ export const FormikFieldArray: React.FC<FormikFieldArrayProps> = ({
                                   variant={variant}
                                   name={`${parentField}[${index}][${name}]`}
                                   selectOptions={selectOptions}
+                                />
+                              </Grid>
+                            );
+                          }
+                          if (inputType === 'phone') {
+                            return (
+                              <Grid key={name} xs={12} sm={6} md={4}>
+                                <FormikMaskField
+                                  fullWidth
+                                  id={name}
+                                  label={label}
+                                  required={required}
+                                  // variant={variant}
+                                  name={`${parentField}[${index}][${name}]`}
+                                  maskComponent={PhoneMask}
                                 />
                               </Grid>
                             );

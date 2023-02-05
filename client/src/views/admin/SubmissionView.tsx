@@ -1,10 +1,11 @@
 import React, { useCallback } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
-import { Box, Button, IconButton, Stack, Typography } from '@mui/material';
+import { Box, Button, IconButton, Stack, Typography, useTheme } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
 import { ArrowBackIosRounded } from '@mui/icons-material';
 import { LoaderFunctionArgs, useLoaderData, useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
+import ReactJson from '@microlink/react-json-view';
 
 import { spatialKeyCollection, submissionsCollection } from 'common/firestoreCollections';
 import { Submission } from 'common/types';
@@ -70,6 +71,7 @@ export const SubmissionView: React.FC = () => {
   const data = useLoaderData() as Submission;
   const navigate = useNavigate();
   const confirm = useConfirmation();
+  const theme = useTheme();
 
   const handleShowSKDialog = useCallback(
     async (docId: string) => {
@@ -79,7 +81,10 @@ export const SubmissionView: React.FC = () => {
       if (!skSnap.exists() || !skData) {
         return toast.error(`Failed to fetch SK data for ID ${docId}`);
       }
-
+      // dark themes: tomorrow, chalk, ocean
+      // custom theme:
+      //    - https://github.com/chriskempson/base16/blob/main/styling.md
+      //    - https://github.com/mac-s-g/react-json-view/blob/7c154b9a7d83ea89dce2c171ebdf4d163ff49233/dev-server/src/index.js#L135
       confirm({
         variant: 'info',
         title: 'SpatialKey Data',
@@ -89,17 +94,26 @@ export const SubmissionView: React.FC = () => {
             onAccept={() => {}}
             onClose={() => {}}
             open={false}
-            dialogProps={{ maxWidth: 'sm' }}
-            // requiredClaims={['iDemandAdmin']}
+            dialogProps={{ maxWidth: 'md' }}
+            dialogContentProps={{ dividers: true }}
           >
-            <Typography variant='body2' color='text.secondary' component='div'>
+            <ReactJson
+              src={skData}
+              theme={theme.palette.mode === 'dark' ? 'tomorrow' : 'rjv-default'}
+              style={{ background: 'transparent' }}
+              iconStyle='circle'
+              enableClipboard
+              collapseStringsAfterLength={30}
+            />
+            ;
+            {/* <Typography variant='body2' color='text.secondary' component='div'>
               <pre>{JSON.stringify(skData, undefined, 2)}</pre>
-            </Typography>
+            </Typography> */}
           </ConfirmationDialog>
         ),
       });
     },
-    [confirm]
+    [confirm, theme.palette.mode]
   );
 
   return (

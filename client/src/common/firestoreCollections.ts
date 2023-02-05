@@ -16,6 +16,8 @@ import {
   Submission,
   NotifyRegistration,
   Tax,
+  Moratorium,
+  AgencyApplication,
 } from 'common/types';
 import { db } from 'firebaseConfig';
 
@@ -30,9 +32,9 @@ export const spatialKeyCollection = createCollection<SpatialKeyResponse>(COLLECT
 export const orgsCollection = createCollection<Organization>(COLLECTIONS.ORGANIZATIONS);
 export const policiesCollection = createCollection<Policy>(COLLECTIONS.POLICIES);
 export const usersCollection = createCollection<User>(COLLECTIONS.USERS);
-// export const agencyAppCollection = createCollection<AgencyApplication>(
-//   COLLECTIONS.AGENCY_APPLICATIONS
-// );
+export const agencyAppCollection = createCollection<AgencyApplication>(
+  COLLECTIONS.AGENCY_APPLICATIONS
+);
 export const licensesCollection = createCollection<License>(COLLECTIONS.LICENSES);
 export const notifyRegistration = createCollection<NotifyRegistration>(
   COLLECTIONS.NOTIFY_REGISTRATION
@@ -41,6 +43,7 @@ export const taxesCollection = createCollection<Tax>(COLLECTIONS.TAXES);
 export const statesCollection = createCollection<{ [key in STATE_ABBREVIATION]: boolean }>(
   COLLECTIONS.ACTIVE_STATES
 );
+export const moratoriumsCollection = createCollection<Moratorium>(COLLECTIONS.MORATORIUMS);
 
 // SubCOLLECTIONS
 export const userClaimsCollection = (orgId: string) =>

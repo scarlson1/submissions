@@ -119,6 +119,7 @@ export const InputDialog: React.FC<InputDialogOptions> = ({
               {...inputProps}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !isError) {
+                  e.stopPropagation();
                   handleSubmit();
                 }
               }}

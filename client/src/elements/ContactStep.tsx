@@ -6,9 +6,10 @@ import { FormikTextField, FormikTextFieldProps } from 'components/forms';
 export interface ContactStepProps {
   gridProps?: Grid2Props;
   inputProps?: FormikTextFieldProps;
+  children?: React.ReactNode;
 }
 
-export const ContactStep: React.FC<ContactStepProps> = ({ gridProps, inputProps }) => {
+export const ContactStep: React.FC<ContactStepProps> = ({ gridProps, inputProps, children }) => {
   return (
     <Grid
       container
@@ -25,6 +26,7 @@ export const ContactStep: React.FC<ContactStepProps> = ({ gridProps, inputProps 
       <Grid xs={12}>
         <FormikTextField name='email' label='Email' fullWidth required {...inputProps} />
       </Grid>
+      {children}
     </Grid>
   );
 };

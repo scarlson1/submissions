@@ -5,6 +5,7 @@ import { useRouteError, isRouteErrorResponse, useNavigate } from 'react-router-d
 import { ReactComponent as ServerDownSVG } from 'assets/images/server_down.svg';
 import { ReactComponent as NotFoundSVG } from 'assets/images/page_not_found.svg';
 import { ReactComponent as SecureLoginSVG } from 'assets/images/secure_login.svg';
+import { ReactComponent as SearchingSVG } from 'assets/images/searching.svg';
 
 // TODO: tailor error responses using isRouteErrorResponse
 // https://reactrouter.com/en/main/route/error-element
@@ -153,7 +154,7 @@ export const RouterErrorBoundary: React.FC<RouterErrorBoundaryProps> = ({ action
           <Box
             sx={{ textAlign: 'center', height: { xs: '100px', sm: '140px', md: '160px' }, m: 8 }}
           >
-            <NotFoundSVG style={{ width: 'inherit', height: 'inherit' }} />
+            <SearchingSVG style={{ width: 'inherit', height: 'inherit' }} />
           </Box>
           <Box>
             <Typography variant='h5'>The requested resource could not be accessed.</Typography>

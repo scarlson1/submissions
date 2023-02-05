@@ -1,0 +1,77 @@
+import { useCallback, useState } from 'react';
+import { addDoc, GeoPoint, Timestamp } from 'firebase/firestore';
+
+import { AgencyAppValues } from 'views/AgencyNew';
+import { useUploadStorageFiles } from 'hooks';
+import { agencyAppCollection } from 'common';
+import { FirebaseError } from 'firebase/app';
+
+export interface UseCreateAgencyProps {
+  onSuccess?: (subId: string) => void;
+  onError?: (err: unknown, msg: string) => void;
+}
+
+export const useCreateAgency = ({ onSuccess, onError }: UseCreateAgencyProps) => {
+  const [error, setError] = useState<string | null>(null);
+  const { uploadFiles } = useUploadStorageFiles('newAgencySubmissions');
+
+  const handleSubmission = useCallback(
+    async (values: AgencyAppValues) => {
+      setError(null);
+      try {
+        if (!values.EandO || typeof values.EandO === 'string')
+          throw new Error('Error uploading E&O');
+        const uploadResult = await uploadFiles(values.EandO, {}, `EandO_${values.orgName}_`);
+        console.log('uploadResult: ', uploadResult);
+
+        const docRef = await addDoc(agencyAppCollection, {
+          orgName: values.orgName,
+          address: {
+            addressLine1: values.addressLine1,
+            addressLine2: values.addressLine2,
+            city: values.city,
+            state: values.state,
+            postal: values.postal,
+          },
+          contact: {
+            firstName: values.firstName,
+            lastName: values.lastName,
+            email: values.email,
+            phone: values.phone,
+          },
+          agents: values.agents,
+          bankDetails: {
+            accountNumber: values.accountNumber,
+            routingNumber: values.routingNumber,
+          },
+          FEIN: values.FEIN,
+          EandO: uploadResult[0].metadata.fullPath,
+          status: 'TODO', // AgencySubmissionStatus.Submitted,
+          coordinates:
+            values.latitude && values.longitude
+              ? new GeoPoint(values.latitude, values.longitude)
+              : null,
+          metadata: {
+            created: Timestamp.now(),
+            updated: Timestamp.now(),
+          },
+        });
+
+        if (onSuccess) onSuccess(docRef.id);
+
+        return docRef.id;
+      } catch (err) {
+        console.log('ERROR: ', err);
+        let msg = 'Error submitting agency information.';
+        if (err instanceof FirebaseError) {
+          msg = err.message;
+        }
+        setError(msg);
+        if (onError) onError(err, msg);
+      }
+    },
+    [uploadFiles, onSuccess, onError]
+  );
+
+  return { handleSubmission, error };
+};

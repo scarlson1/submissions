@@ -339,33 +339,34 @@ export type AuthProviders =
 
 export interface AgencyApplication {
   orgName: string;
-  addressLine1: string;
-  addressLine2: string;
-  city: string;
-  state: string;
-  postal: string;
-  contactFirstName: string;
-  contactLastName: string;
-  contactEmail: string;
-  contactPhone: string;
-  contactProducerSame: boolean | null;
-  producerFirstName: string;
-  producerLastName: string;
-  producerEmail: string;
-  producerPhone: string;
-  producerNPN: string;
-  accountNumber: string;
-  routingNumber: string;
+  address: Address;
+  contact: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+  };
+  agents: { firstName: string; lastName: string; email: string; phone: string }[];
+  // contactProducerSame: boolean | null;
+  // producerFirstName: string;
+  // producerLastName: string;
+  // producerEmail: string;
+  // producerPhone: string;
+  // producerNPN: string;
+  bankDetails: {
+    accountNumber: string;
+    routingNumber: string;
+  };
   FEIN: string;
   EandO: string;
   metadata: BaseMetadata;
-  createdByUid: string | null;
-  createdByName: string | null;
+  // createdByUid: string | null;
+  // createdByName: string | null;
   status: 'TODO' | 'COPY' | 'FROM' | 'OTHER' | 'APP'; // AgencySubmissionStatus;
   sendAppReceivedNotification?: boolean;
-  address: Address;
-  latitude?: number | null;
-  longitude?: number | null;
+  coordinates?: GeoPoint | null;
+  // latitude?: number | null;
+  // longitude?: number | null;
 }
 
 export interface Agency {
@@ -519,6 +520,35 @@ export interface Tax {
   resultRounding?: RoundingType;
   refundable?: boolean;
   metadata: BaseMetadata;
+}
+
+// moratorium questions:
+//    - will all locations under moratorium from an event have the same effective & expiration date?
+//    -
+export interface Moratorium {
+  state: string;
+  stateFP: string;
+  countyName?: string;
+  countyFP?: string;
+  product: Product;
+  effectiveDate: string;
+  expirationDate: string;
+  reason?: string; // TODO: type reason 'event' | 'etc.'
+}
+
+// OR
+export interface Moratorium2 {
+  // what about entire state ?? need another field?
+  // or add fips: 01 for state, 01001 for county ??
+  locations: { state: string; stateFP: string; countyName: string; countyFP: string }[];
+  product: Product;
+  // OR (need to use where-in query for locations)
+  // product: Product[] ->  ['flood', 'wind']
+  // OR -- likely best option
+  // product: { [key: product]: boolean } -> { flood: true, wind: false, etc. }
+  effectiveDate: string;
+  expirationDate: string;
+  reason?: string;
 }
 
 export interface SpatialKeyResponse {

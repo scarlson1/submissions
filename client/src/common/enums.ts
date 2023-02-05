@@ -19,6 +19,7 @@ export enum COLLECTIONS {
   NOTIFY_REGISTRATION = 'notifyRegistration',
   TAXES = 'surplusLinesTaxes',
   ACTIVE_STATES = 'states',
+  MORATORIUMS = 'moratoriums',
 }
 
 export enum SubmissionStatus {

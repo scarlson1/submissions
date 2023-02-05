@@ -306,3 +306,7 @@ export const getErrorDetails = (err: unknown) => {
 export function getRandomItem(items: any[]) {
   return items[Math.floor(Math.random() * items.length)];
 }
+
+export const maskStringShowLast = (str: string, showLast: number = 4, mask: string = '*') => {
+  return ('' + str).slice(0, -showLast).replace(/./g, mask) + ('' + str).slice(-showLast);
+};

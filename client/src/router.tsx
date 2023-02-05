@@ -15,6 +15,9 @@ import {
   UserSubmissions,
   Home,
   newSubmissionLoader,
+  AgencyNew,
+  Protosure,
+  protosureLoader,
 } from 'views';
 import {
   submissionLoader,
@@ -54,6 +57,8 @@ export enum ROUTES {
   USER_QUOTES = '/quotes/list/:userId',
   USER_POLICIES = '/policies',
   USER_POLICY = '/policies/:policyId',
+  AGENCY_NEW = '/agency/new',
+  PROTOSURE = '/protosure/new/:productId/:quoteId?',
 }
 
 export enum ADMIN_ROUTES {
@@ -78,7 +83,9 @@ type TArgs =
   | { path: ROUTES.CHECKOUT; params: { quoteId: string } }
   | { path: ROUTES.USER_POLICIES }
   | { path: ROUTES.USER_POLICY; params: { policyId: string } }
+  | { path: ROUTES.AGENCY_NEW }
   | { path: ROUTES.CONTACT }
+  | { path: ROUTES.PROTOSURE; params: { productId: Product; quoteId?: string } }
   | { path: ADMIN_ROUTES.SUBMISSIONS }
   | { path: ADMIN_ROUTES.SUBMISSION_VIEW; params: { submissionId: string } }
   | { path: ADMIN_ROUTES.QUOTE_NEW }
@@ -99,13 +106,6 @@ export function createPath(args: TArgs) {
     args.path
   );
 }
-
-// example: <Link to={createPath({ path: ROUTES.QUOTE_NEW })} />
-
-// createPath({
-//   path: ROUTES.CHECKOUT,
-//   params: { quoteId: '123ID' },
-// });
 
 export const router = createBrowserRouter([
   {
@@ -137,6 +137,20 @@ export const router = createBrowserRouter([
             ),
           },
           {
+            path: ROUTES.PROTOSURE,
+            loader: protosureLoader,
+            element: (
+              <RequireAuth shouldSignInAnonymously={true}>
+                <Protosure />
+              </RequireAuth>
+            ),
+            errorElement: (
+              <RouterErrorBoundary
+                actionButtons={[{ path: ROUTES.SUBMISSION_NEW, label: 'Start new quote' }]}
+              />
+            ),
+          },
+          {
             path: ROUTES.SUBMISSIONS,
             element: <UserSubmissions />,
             errorElement: <RouterErrorBoundary />,
@@ -153,6 +167,11 @@ export const router = createBrowserRouter([
             path: ROUTES.SUBMISSION_SUBMITTED,
             element: <SuccessStep />,
             loader: submissionLoader,
+            errorElement: <RouterErrorBoundary />,
+          },
+          {
+            path: ROUTES.AGENCY_NEW,
+            element: <AgencyNew />,
             errorElement: <RouterErrorBoundary />,
           },
           {

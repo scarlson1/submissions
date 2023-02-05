@@ -8,3 +8,5 @@ export { Policy, policyLoader } from './Policy';
 export { Policies } from './Policies';
 export { Home } from './Home';
 export { UserSubmissions, Item } from './UserSubmissions';
+export { AgencyNew } from './AgencyNew';
+export { Protosure, protosureLoader } from './Protosure';

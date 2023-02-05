@@ -24,12 +24,18 @@ export interface AddressStepValues {
 
 export interface AddressStepProps {
   activeStates?: { [key: string]: boolean };
+  shouldValidateStates?: boolean;
+  withMap?: boolean;
 }
 
 // TODO: state and postal validation
 // TODO: load by product /flood/new - get active states from /state/:productId in db
 
-export const AddressStep: React.FC<AddressStepProps> = ({ activeStates = {} }) => {
+export const AddressStep: React.FC<AddressStepProps> = ({
+  activeStates = {},
+  shouldValidateStates = false,
+  withMap = true,
+}) => {
   const { values, setFieldValue, validateForm } = useFormikContext<AddressStepValues>();
   const [showMarker, setShowMarker] = useState(Boolean(values.latitude && values.longitude));
   const [mapViewState, setMapViewState] = useState<MapViewState>({
@@ -69,18 +75,17 @@ export const AddressStep: React.FC<AddressStepProps> = ({ activeStates = {} }) =
 
   const addressChangeCb = useCallback(
     async (coords: { lat: number | null; lng: number | null }, state?: string) => {
-      flyToCoords(coords);
+      if (withMap) flyToCoords(coords);
 
       setTimeout(async () => {
         await validateForm();
       }, 100);
 
-      console.log('state: ', state);
-      if (state && !ACTIVE_STATES_ABRV.includes(state)) {
+      if (!!shouldValidateStates && state && !ACTIVE_STATES_ABRV.includes(state)) {
         await handleUnavailableState(state);
       }
     },
-    [flyToCoords, validateForm, handleUnavailableState]
+    [flyToCoords, validateForm, handleUnavailableState, withMap, shouldValidateStates]
   );
 
   const handleNotificationRegistry = useCallback(async () => {
@@ -89,8 +94,10 @@ export const AddressStep: React.FC<AddressStepProps> = ({ activeStates = {} }) =
 
   return (
     <FormikAddress setFieldValue={setFieldValue} cb={addressChangeCb}>
-      <Card sx={{ height: 280, width: '100%', mt: 5 }}>
-        {/* <DeckGLMap
+      {!!withMap && (
+        <>
+          <Card sx={{ height: 280, width: '100%', mt: 5 }}>
+            {/* <DeckGLMap
           mapViewState={mapViewState}
           markerCoords={
             showMarker && values.latitude && values.longitude
@@ -98,43 +105,45 @@ export const AddressStep: React.FC<AddressStepProps> = ({ activeStates = {} }) =
               : undefined
           }
         /> */}
-        <ActiveStateMap
-          handleClick={(i, e) => {}}
-          statesValues={activeStates}
-          mapViewState={mapViewState}
-        >
-          {showMarker && values.latitude && values.longitude && (
-            <Marker
-              longitude={values.longitude}
-              latitude={values.latitude}
-              anchor='bottom'
-            ></Marker>
-          )}
-        </ActiveStateMap>
-      </Card>
+            <ActiveStateMap
+              handleClick={(i, e) => {}}
+              statesValues={activeStates}
+              mapViewState={mapViewState}
+            >
+              {showMarker && values.latitude && values.longitude && (
+                <Marker
+                  longitude={values.longitude}
+                  latitude={values.latitude}
+                  anchor='bottom'
+                ></Marker>
+              )}
+            </ActiveStateMap>
+          </Card>
 
-      <Typography
-        variant='caption'
-        color='text.secondary'
-        sx={{
-          pl: 4,
-          py: 1,
-          // visibility: values.latitude && values.longitude ? 'hidden' : 'visible',
-        }}
-      >
-        Currently available states.{' '}
-        <Typography
-          component='span'
-          variant='caption'
-          color='text.secondary'
-          fontWeight='fontWeightMedium'
-          sx={{ '&:hover': { textDecoration: 'underline', cursor: 'pointer' } }}
-          onClick={handleNotificationRegistry}
-        >
-          Leave your email
-        </Typography>{' '}
-        to be notified when your state joins the list.
-      </Typography>
+          <Typography
+            variant='caption'
+            color='text.secondary'
+            sx={{
+              pl: 4,
+              py: 1,
+              // visibility: values.latitude && values.longitude ? 'hidden' : 'visible',
+            }}
+          >
+            Currently available states.{' '}
+            <Typography
+              component='span'
+              variant='caption'
+              color='text.secondary'
+              fontWeight='fontWeightMedium'
+              sx={{ '&:hover': { textDecoration: 'underline', cursor: 'pointer' } }}
+              onClick={handleNotificationRegistry}
+            >
+              Leave your email
+            </Typography>{' '}
+            to be notified when your state joins the list.
+          </Typography>
+        </>
+      )}
     </FormikAddress>
   );
 };
