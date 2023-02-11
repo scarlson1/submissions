@@ -31,6 +31,7 @@ export const FormikAddress: React.FC<FormikAddressProps> = ({
     const newStreetNumber = findAddressValueByType(address_components, 'street_number');
     const newStreetName = findAddressValueByType(address_components, 'route');
     const newCity = findAddressValueByType(address_components, 'locality');
+    const newCounty = findAddressValueByType(address_components, 'administrative_area_level_2');
     const newState = findAddressValueByType(address_components, 'administrative_area_level_1');
     const newPostal = findAddressValueByType(address_components, 'postal_code');
 
@@ -39,6 +40,7 @@ export const FormikAddress: React.FC<FormikAddressProps> = ({
       `${newStreetNumber?.long_name || ''} ${newStreetName?.long_name || ''}`
     );
     setFieldValue('city', `${newCity?.long_name || ''}`);
+    setFieldValue('countyName', `${newCounty?.long_name || ''}`);
     setFieldValue('state', `${newState?.short_name || ''}`);
     setFieldValue('postal', `${newPostal?.long_name || ''}`);
     setFieldValue('latitude', geometry?.location.lat() ?? null);
@@ -56,6 +58,7 @@ export const FormikAddress: React.FC<FormikAddressProps> = ({
     setFieldValue('city', '');
     setFieldValue('state', '');
     setFieldValue('postal', '');
+    setFieldValue('countyName', '');
     setFieldValue('latitude', '');
     setFieldValue('longitude', '');
   };

@@ -16,35 +16,39 @@ export const BasicDataGrid: React.FC<AdditionalNamedInsuredsProps> = ({
   withToolbar = false,
   ...props
 }) => {
+  // <Box
+  //   sx={{ height: 500, width: '100%', backgroundColor: 'background.paper' }}
+  //   {...containerProps}
+  // >
   return (
-    <Box
-      sx={{ height: 500, width: '100%', backgroundColor: 'background.paper' }}
-      {...containerProps}
-    >
-      <DataGrid
-        rows={rows}
-        columns={columns}
-        components={{ Toolbar: withToolbar ? GridToolbar : undefined }}
-        rowsPerPageOptions={[5, 10, 20]}
-        initialState={{
-          columns: {
-            columnVisibilityModel: {
-              id: false,
+    <Box sx={{ display: 'flex', height: '100%' }}>
+      <div style={{ flexGrow: 1 }}>
+        <DataGrid
+          rows={rows}
+          columns={columns}
+          components={{ Toolbar: withToolbar ? GridToolbar : undefined }}
+          rowsPerPageOptions={[5, 10, 20]}
+          initialState={{
+            columns: {
+              columnVisibilityModel: {
+                id: false,
+              },
             },
-          },
-          sorting: {
-            sortModel: [{ field: 'updated', sort: 'desc' }],
-          },
-          pagination: {
-            pageSize: 10,
-          },
-        }}
-        sx={{
-          px: 3,
-          pt: 2,
-        }}
-        {...props}
-      />
+            sorting: {
+              sortModel: [{ field: 'updated', sort: 'desc' }],
+            },
+            pagination: {
+              pageSize: 10,
+            },
+          }}
+          sx={{
+            px: 3,
+            pt: 2,
+            minHeight: 200,
+          }}
+          {...props}
+        />
+      </div>
     </Box>
   );
 };

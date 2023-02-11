@@ -187,32 +187,34 @@ export const SLTaxes: React.FC<SLTaxesProps> = () => {
           New
         </Button>
       </Box>
-
-      <BasicDataGrid
-        rows={data || []}
-        columns={taxColumns}
-        density='compact'
-        initialState={{
-          columns: {
-            columnVisibilityModel: {
-              // baseDigits: false,
-              // resultDigits: false,
-              id: false,
+      <Box sx={{ height: 500, width: '100%', backgroundColor: 'background.paper' }}>
+        <BasicDataGrid
+          rows={data || []}
+          columns={taxColumns}
+          density='compact'
+          autoHeight
+          initialState={{
+            columns: {
+              columnVisibilityModel: {
+                // baseDigits: false,
+                // resultDigits: false,
+                id: false,
+              },
             },
-          },
-          sorting: {
-            sortModel: [{ field: 'created', sort: 'desc' }],
-          },
-          pagination: {
-            pageSize: 10,
-          },
-          // filter: {
-          //   filterModel: {
-          //     items: [{ columnField: 'status', operatorValue: 'equals', value: 'pending' }],
-          //   },
-          // },
-        }}
-      />
+            sorting: {
+              sortModel: [{ field: 'created', sort: 'desc' }],
+            },
+            pagination: {
+              pageSize: 10,
+            },
+            // filter: {
+            //   filterModel: {
+            //     items: [{ columnField: 'status', operatorValue: 'equals', value: 'pending' }],
+            //   },
+            // },
+          }}
+        />
+      </Box>
     </Box>
   );
 };

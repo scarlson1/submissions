@@ -9,7 +9,11 @@ export {
   initializeQuote,
   updateAndRateQuote,
 } from './callables';
-export { newSubmissionNotifications, getStaticSubmissionImg } from './firestoreEvents';
+export {
+  newSubmissionNotifications,
+  getStaticSubmissionImg,
+  getSubmissionAAL,
+} from './firestoreEvents';
 export {
   beforeSignIn,
   beforeCreate,

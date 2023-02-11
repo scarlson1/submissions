@@ -7,7 +7,6 @@ import { toast } from 'react-hot-toast';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 import { FormikAddress } from 'elements';
-// import { DeckGLMap } from 'components/DeckGLMap';
 import { ACTIVE_STATES_ABRV } from 'common/constants';
 import { useRegisterEmailNotification } from 'hooks';
 import { ActiveStateMap } from './ActiveStateMap';
@@ -97,14 +96,6 @@ export const AddressStep: React.FC<AddressStepProps> = ({
       {!!withMap && (
         <>
           <Card sx={{ height: 280, width: '100%', mt: 5 }}>
-            {/* <DeckGLMap
-          mapViewState={mapViewState}
-          markerCoords={
-            showMarker && values.latitude && values.longitude
-              ? { lat: values.latitude, lng: values.longitude }
-              : undefined
-          }
-        /> */}
             <ActiveStateMap
               handleClick={(i, e) => {}}
               statesValues={activeStates}

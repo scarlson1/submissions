@@ -14,9 +14,9 @@ export { useUsersPolicies } from './useUsersPolicies';
 export { useRegisterEmailNotification } from './useRegisterEmailNotification';
 export { useUploadStorageFiles } from './useUploadStorageFiles';
 export { useCreateAgency } from './useCreateAgency';
-// export {} from './';
-// export {} from './';
-// export {} from './';
+export { useCreateMoratorium } from './useCreateMoratorium';
+export { useCreateSLLicense } from './useCreateSLLicense';
+export { useDocCount, mapWhereConstraints } from './useDocCount';
 // export {} from './';
 
 export type { UseFileUploadProps } from './useFileUpload';

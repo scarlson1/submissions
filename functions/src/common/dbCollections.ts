@@ -1,7 +1,7 @@
 import { DocumentData, CollectionReference, Firestore } from 'firebase-admin/firestore';
 
 import { Collections } from '../common/enums';
-import { Submission, User } from '../common/types'; // AgencyApplication, Invite, Notification, Organization,
+import { Submission, User, SRRes, SRResWithAAL } from '../common/types'; // AgencyApplication, Invite, Notification, Organization,
 // import { ClaimsDocData } from '../firestoreEvents/mirrorCustomClaims';
 
 export const createCollection = <T = DocumentData>(db: Firestore, collectionName: string) => {
@@ -17,15 +17,8 @@ export const submissionsCollection = (db: Firestore) =>
   createCollection<Submission>(db, Collections.SUBMISSIONS);
 export const policiesCollection = (db: Firestore) =>
   createCollection<Policy>(db, Collections.POLICIES);
-
-// export const orgsCollection = (db: Firestore) =>
-//   createCollection<Organization>(db, Collections.ORGANIZATIONS);
-// export const agencyApplicationCollection = (db: Firestore) =>
-//   createCollection<AgencyApplication>(db, Collections.AGENCY_APPLICATIONS);
-// // export const quotesCollection = createCollection<QuoteData>(Collections.QUOTES);
-// // export const ratingCollection = createCollection<RatingData>(Collections.RATING_DATA);
-// // export const spatialKeyCollection = createCollection<SpatialKeyResponse>(Collections.SK_RES);
-// // export const policiesCollection = createCollection<Policy>(Collections.POLICIES);
+export const swissReResCollection = (db: Firestore) =>
+  createCollection<SRResWithAAL | SRRes>(db, Collections.SR_RES);
 
 // // SUBCOLLECTIONS
 // export const notificationsCollection = (db: Firestore, userId: string) =>

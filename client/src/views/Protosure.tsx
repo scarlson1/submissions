@@ -31,9 +31,7 @@ import { roundUpToNearest, sumArr } from 'modules/utils/helpers';
 import { useAuth } from 'modules/components/AuthContext';
 import { FirebaseError } from 'firebase/app';
 import { initializeQuote } from 'modules/api/initializeQuote';
-import { updateAndRateQuote } from 'modules/api';
-
-// const testQuoteId = '8f8bcae5-32ab-4ca5-be74-53f7c924f746';
+import axios from 'axios';
 
 // TODO: move active states loader to higher up component loader
 
@@ -100,12 +98,13 @@ export interface FloodValues {
   city: string;
   state: string;
   postal: string;
+  countyName?: string;
   latitude: number | null;
   longitude: number | null;
-  coverageActiveBuilding: boolean;
-  coverageActiveStructures: boolean;
-  coverageActiveContents: boolean;
-  coverageActiveAdditional: boolean;
+  // coverageActiveBuilding: boolean;
+  // coverageActiveStructures: boolean;
+  // coverageActiveContents: boolean;
+  // coverageActiveAdditional: boolean;
   limitA: string;
   limitB: string;
   limitC: string;
@@ -126,12 +125,13 @@ export const initialValues: FloodValues = {
   city: '',
   state: '',
   postal: '',
+  countyName: '',
   latitude: null,
   longitude: null,
-  coverageActiveBuilding: true,
-  coverageActiveStructures: true,
-  coverageActiveContents: true,
-  coverageActiveAdditional: true,
+  // coverageActiveBuilding: true,
+  // coverageActiveStructures: true,
+  // coverageActiveContents: true,
+  // coverageActiveAdditional: true,
   limitA: '250000',
   limitB: '25000',
   limitC: '63000',
@@ -152,8 +152,7 @@ export const Protosure: React.FC = () => {
   const formikRef = useRef<FormikProps<FormikValues>>(null);
 
   // TODO: need protosure data in useState so it can be updated when updateQuote is called
-  const { quoteId, activeStates, initialFormData, protosureData } =
-    useLoaderData() as ProtosureLoaderResult;
+  const { quoteId, activeStates, initialFormData } = useLoaderData() as ProtosureLoaderResult; // protosureData
   const { propertyDetails } = usePropertyDetails();
   // const { updateQuoteP } = useUpdateQuote()
 
@@ -164,16 +163,17 @@ export const Protosure: React.FC = () => {
     async (values: any, helpers: FormikHelpers<any>) => {
       try {
         if (!quoteId) throw new Error('missing quoteId in url');
-        // update quote (new values)
-        const { data } = await updateAndRateQuote({ quoteId, values, protosureData });
+        // const { data } = await updateAndRateQuote({ quoteId, values, protosureData });
+        const { data } = await axios.post(`http://localhost:8080/update-quote/${quoteId}`, values);
         console.log('RES: ', data);
+        return values;
         // run rater
       } catch (err) {
         console.log('ERROR', err);
         return values;
       }
     },
-    [quoteId, protosureData]
+    [quoteId]
   );
 
   const handleOnToDeductible = useCallback((values: any, helpers: FormikHelpers<any>) => {

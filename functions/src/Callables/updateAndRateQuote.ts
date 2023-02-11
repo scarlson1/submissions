@@ -5,6 +5,16 @@ import merge from 'deepmerge';
 
 const TENANT_ID = '516ffcbc-6e4e-4dad-98ee-ac5f615fbab6';
 
+// TODO: might have to convert to onRequest cloud function
+// app.use(cookieParser())
+// https://stackoverflow.com/questions/43002444/make-axios-send-cookies-in-its-requests-automatically
+// axios.get(BASE_URL + '/todos', { withCredentials: true });
+// OR axios.defaults.withCredentials = true
+// OR const instance = axios.create({
+//    withCredentials: true,
+//    baseURL: BASE_URL
+// })
+
 export const updateAndRateQuote = functions
   .runWith({
     minInstances: 1,
@@ -13,6 +23,8 @@ export const updateAndRateQuote = functions
   .https.onCall(async (data) => {
     console.log('REQUEST DATA: ', data);
     const { quoteId, values, protosureData } = data;
+    // TODO: get protosure data from protosure, not from client
+
     // DOES ADDRESS CHANGE RETRIGGER HAZARDHUB CALL ?? OR SHOULD IT RESET QUOTE FORM ??
 
     console.log('PROTOSURE INPUT DATA: ', protosureData.inputData);

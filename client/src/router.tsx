@@ -30,9 +30,17 @@ import {
   adminTaxLoader,
   EditActiveStates,
   activeStatesLoader,
+  moratoriumsLoader,
+  Moratoriums,
+  MoratoriumNew,
+  SLLicenseNew,
+  licensesLoader,
+  Licenses,
 } from 'views/admin';
 import { SuccessStep } from 'elements';
 import { Product } from 'common';
+import { TestPagination } from 'views/admin/TestPagination';
+import { TestDataGridPagination } from 'views/admin/TestDataGridPagination';
 // import RouterErrorBoundary from 'components/errorBoundaries/RouterErrorBoundary';
 
 // TODO: add errorElement to routes
@@ -68,6 +76,10 @@ export enum ADMIN_ROUTES {
   SL_TAXES = '/admin/sl-tax',
   SL_TAXES_NEW = '/admin/sl-tax/new',
   EDIT_ACTIVE_STATES = '/admin/active-states/:productId/edit',
+  MORATORIUMS = '/admin/moratoriums',
+  MORATORIUM_NEW = '/admin/moratoriums/new',
+  SL_LICENSES = '/admin/licenses',
+  SL_LICENSE_NEW = '/admin/licenses/new',
 }
 
 export enum AUTH_ROUTES {
@@ -92,6 +104,10 @@ type TArgs =
   | { path: ADMIN_ROUTES.SL_TAXES }
   | { path: ADMIN_ROUTES.SL_TAXES_NEW }
   | { path: ADMIN_ROUTES.EDIT_ACTIVE_STATES; params: { productId: Product } }
+  | { path: ADMIN_ROUTES.MORATORIUMS }
+  | { path: ADMIN_ROUTES.MORATORIUM_NEW }
+  | { path: ADMIN_ROUTES.SL_LICENSES }
+  | { path: ADMIN_ROUTES.SL_LICENSE_NEW }
   | { path: AUTH_ROUTES.CREATE_ACCOUNT }
   | { path: AUTH_ROUTES.LOGIN };
 
@@ -132,7 +148,15 @@ export const router = createBrowserRouter([
             ),
             errorElement: (
               <RouterErrorBoundary
-                actionButtons={[{ path: ROUTES.SUBMISSION_NEW, label: 'Start new quote' }]}
+                actionButtons={[
+                  {
+                    path: createPath({
+                      path: ROUTES.SUBMISSION_NEW,
+                      params: { productId: 'flood' },
+                    }),
+                    label: 'Start new quote',
+                  },
+                ]}
               />
             ),
           },
@@ -146,7 +170,15 @@ export const router = createBrowserRouter([
             ),
             errorElement: (
               <RouterErrorBoundary
-                actionButtons={[{ path: ROUTES.SUBMISSION_NEW, label: 'Start new quote' }]}
+                actionButtons={[
+                  {
+                    path: createPath({
+                      path: ROUTES.PROTOSURE,
+                      params: { productId: 'flood', quoteId: '' },
+                    }),
+                    label: 'Start new quote',
+                  },
+                ]}
               />
             ),
           },
@@ -279,6 +311,48 @@ export const router = createBrowserRouter([
                 <EditActiveStates />
               </RequireAuth>
             ),
+          },
+          {
+            path: ADMIN_ROUTES.MORATORIUMS,
+            loader: moratoriumsLoader,
+            element: (
+              <RequireAuth requiredClaims={['iDemandAdmin']}>
+                <Moratoriums />
+              </RequireAuth>
+            ),
+          },
+          {
+            path: ADMIN_ROUTES.MORATORIUM_NEW,
+            element: (
+              <RequireAuth requiredClaims={['iDemandAdmin']}>
+                <MoratoriumNew />
+              </RequireAuth>
+            ),
+          },
+          {
+            path: ADMIN_ROUTES.SL_LICENSES,
+            loader: licensesLoader,
+            element: (
+              <RequireAuth requiredClaims={['iDemandAdmin']}>
+                <Licenses />
+              </RequireAuth>
+            ),
+          },
+          {
+            path: ADMIN_ROUTES.SL_LICENSE_NEW,
+            element: (
+              <RequireAuth requiredClaims={['iDemandAdmin']}>
+                <SLLicenseNew />
+              </RequireAuth>
+            ),
+          },
+          {
+            path: 'pagination/tasks',
+            element: <TestPagination />,
+          },
+          {
+            path: 'pagination/data-grid',
+            element: <TestDataGridPagination />,
           },
         ],
       },

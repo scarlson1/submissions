@@ -3,8 +3,6 @@ import axios from 'axios';
 
 // TODO: check metadata.status !== 'BOUND'
 
-const TENANT_ID = '516ffcbc-6e4e-4dad-98ee-ac5f615fbab6';
-
 export const initializeQuote = functions
   .runWith({
     minInstances: 1,
@@ -17,7 +15,7 @@ export const initializeQuote = functions
     if (!quoteId) {
       try {
         const { data } = await axios.post(
-          `https://api-demo.protosure.io/public-api/${TENANT_ID}/quotes/get_or_create/`,
+          `${process.env.PROTOSURE_API_URL_DEV}/public-api/${process.env.PROTOSURE_TENANT_ID_V2}/quotes/get_or_create/`,
           {},
           {
             headers: {
@@ -40,9 +38,8 @@ export const initializeQuote = functions
       }
     } else {
       try {
-        // GET https://api-demo.protosure.io/public-api/{tenant_id}/quotes/{id}/
         const { data } = await axios.get(
-          `https://api-demo.protosure.io/public-api/${TENANT_ID}/quotes/${quoteId}/`,
+          `${process.env.PROTOSURE_API_URL_DEV}/public-api/${process.env.PROTOSURE_TENANT_ID_V2}/quotes/${quoteId}/`,
           {
             headers: {
               'Access-Control-Allow-Origin': '*',
@@ -50,7 +47,7 @@ export const initializeQuote = functions
             },
           }
         );
-        console.log('get quote response', data);
+        console.log('GET QUOTE RES: ', data);
         delete data.raterData;
         let res = {
           protosureData: data,
@@ -68,23 +65,23 @@ export const initializeQuote = functions
 
 function getInitialFormData(p: any) {
   const { formData } = p;
-  const { Risk_Location_Address } = formData;
+  const { risk_location_address } = formData;
   return {
-    addressLine1: Risk_Location_Address.street1 ?? '',
-    addressLine2: Risk_Location_Address.street2 ?? '',
-    city: Risk_Location_Address.city ?? '',
-    state: Risk_Location_Address.state ?? '',
-    postal: Risk_Location_Address.zip ?? '',
-    latitude: Risk_Location_Address.latitude ?? null,
-    longitude: Risk_Location_Address.longitude ?? null,
-    coverageActiveBuilding: true,
-    coverageActiveStructures: true,
-    coverageActiveContents: true,
-    coverageActiveAdditional: true,
-    limitA: formData.Building_Coverage_Limit ?? '',
-    limitB: formData.Unattached_Dwellings_Limit ?? '',
-    limitC: formData.Content_Limit ?? '',
-    limitD: formData.Living_Expenses_Limit ?? '',
+    addressLine1: risk_location_address.street1 ?? '',
+    addressLine2: risk_location_address.street2 ?? '',
+    city: risk_location_address.city ?? '',
+    state: risk_location_address.state ?? '',
+    postal: risk_location_address.zip ?? '',
+    latitude: risk_location_address.latitude ?? null,
+    longitude: risk_location_address.longitude ?? null,
+    // coverageActiveBuilding: true,
+    // coverageActiveStructures: true,
+    // coverageActiveContents: true,
+    // coverageActiveAdditional: true,
+    limitA: formData.building_coverage_limit ?? '',
+    limitB: formData.cov_b_limit ?? '',
+    limitC: formData.cov_c_limit ?? '',
+    limitD: formData.cov_d_limit ?? '',
     deductible: 2000,
     priorLossCount:
       typeof formData.Historical_losses === 'string' ? 0 : formData.Historical_losses ?? 0,
@@ -118,7 +115,7 @@ const sampleRes = {
     First_Named_Insured: 'John',
     Living_Expenses_Limit: 50000,
     Policy_Effective_Date: '02/16/2023',
-    Risk_Location_Address: {
+    risk_location_address: {
       zip: '37221-4442',
       city: 'Nashville',
       state: 'TN',
@@ -187,7 +184,7 @@ const sampleRes = {
     First_Named_Insured: 'John',
     Living_Expenses_Limit: 50000,
     Policy_Effective_Date: '02/16/2023',
-    Risk_Location_Address: {
+    risk_location_address: {
       zip: '37221-4442',
       city: 'Nashville',
       state: 'TN',

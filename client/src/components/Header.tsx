@@ -103,10 +103,10 @@ export const Header: React.FC<HeaderProps> = () => {
         title: 'Submissions',
         route: createPath({ path: ADMIN_ROUTES.SUBMISSIONS }),
       },
-      {
-        title: 'New Quote',
-        route: createPath({ path: ADMIN_ROUTES.QUOTE_NEW }),
-      },
+      // {
+      //   title: 'New Quote',
+      //   route: createPath({ path: ADMIN_ROUTES.QUOTE_NEW }),
+      // },
       {
         title: 'Taxes',
         route: createPath({ path: ADMIN_ROUTES.SL_TAXES }),
@@ -116,6 +116,18 @@ export const Header: React.FC<HeaderProps> = () => {
         route: createPath({
           path: ADMIN_ROUTES.EDIT_ACTIVE_STATES,
           params: { productId: 'flood' },
+        }),
+      },
+      {
+        title: 'Moratoriums',
+        route: createPath({
+          path: ADMIN_ROUTES.MORATORIUMS,
+        }),
+      },
+      {
+        title: 'Licenses',
+        route: createPath({
+          path: ADMIN_ROUTES.SL_LICENSES,
         }),
       },
     ],

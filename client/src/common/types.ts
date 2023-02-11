@@ -21,6 +21,8 @@ export interface Submission extends FloodValues, FetchPropertyDataResponse {
   satelliteStreetsMapImageURL?: string;
   satelliteMapImageFilePath?: string;
   satelliteStreetsMapImageFilePath?: string;
+  inlandAAL?: number;
+  surgeAAL?: number;
   metadata: BaseMetadata;
 }
 
@@ -429,25 +431,6 @@ export interface Organization {
 }
 
 // TODO: convert dates to Firestore timestamps so that they're queryable
-export interface LicenseLOA {
-  LOAName: string;
-  active: boolean;
-  effectiveDate: string;
-  expirationDate: string;
-}
-
-export interface License {
-  orgId: string;
-  niprId: string;
-  entityName: string;
-  licenseNumber: string;
-  active: boolean;
-  state: string;
-  expirationDate: string;
-  effectiveDate: string;
-  LOA: LicenseLOA[];
-  metadata: BaseMetadata;
-}
 
 export type InviteStatus = 'pending' | 'accepted' | 'revoked' | 'replaced' | 'rejected' | 'error';
 
@@ -525,30 +508,84 @@ export interface Tax {
 // moratorium questions:
 //    - will all locations under moratorium from an event have the same effective & expiration date?
 //    -
-export interface Moratorium {
-  state: string;
-  stateFP: string;
-  countyName?: string;
-  countyFP?: string;
-  product: Product;
-  effectiveDate: string;
-  expirationDate: string;
-  reason?: string; // TODO: type reason 'event' | 'etc.'
-}
+// export interface MoratoriumOld {
+//   state: string;
+//   stateFP: string;
+//   countyName?: string;
+//   countyFP?: string;
+//   product: Product;
+//   effectiveDate: string;
+//   expirationDate: string;
+//   reason?: string; // TODO: type reason 'event' | 'etc.'
+// }
 
 // OR
-export interface Moratorium2 {
+
+export interface FIPSDetails {
+  state: string;
+  stateFP: string;
+  countyName: string;
+  countyFP: string;
+  classFP?: string;
+}
+export interface Moratorium {
   // what about entire state ?? need another field?
   // or add fips: 01 for state, 01001 for county ??
-  locations: { state: string; stateFP: string; countyName: string; countyFP: string }[];
-  product: Product;
+  locationDetails: FIPSDetails[];
+  locations: string[];
+  product: { [key: string]: boolean };
+  // product: Product[];
   // OR (need to use where-in query for locations)
   // product: Product[] ->  ['flood', 'wind']
   // OR -- likely best option
   // product: { [key: product]: boolean } -> { flood: true, wind: false, etc. }
-  effectiveDate: string;
-  expirationDate: string;
+  effectiveDate: Timestamp;
+  expirationDate?: Timestamp | null;
   reason?: string;
+  metadata: BaseMetadata;
+}
+export interface MoratoriumWithId extends Moratorium {
+  id: string;
+}
+
+// export interface LicenseLOA {
+//   LOAName: string;
+//   active: boolean;
+//   effectiveDate: string;
+//   expirationDate: string;
+// }
+
+// export interface License {
+//   orgId: string;
+//   niprId: string;
+//   entityName: string;
+//   licenseNumber: string;
+//   active: boolean;
+//   state: string;
+//   expirationDate: string;
+//   effectiveDate: string;
+//   LOA: LicenseLOA[];
+//   metadata: BaseMetadata;
+// }
+
+export type LicenseOwner = 'individual' | 'organization';
+export type LicenseType = 'producer' | 'surplus lines' | 'MGA' | 'Tax ID';
+
+export interface License {
+  state: string;
+  ownerType: LicenseOwner;
+  licensee: string;
+  licenseType: LicenseType;
+  surplusLinesProducerOfRecord: boolean;
+  licenseNumber: string;
+  effectiveDate: FirestoreTimestamp;
+  expirationDate?: FirestoreTimestamp | null;
+  SLAssociationMembershipRequired?: boolean;
+  metadata: BaseMetadata;
+}
+
+export interface LicenseWithId extends License {
+  id: string;
 }
 
 export interface SpatialKeyResponse {

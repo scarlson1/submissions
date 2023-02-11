@@ -3,11 +3,12 @@ import { formatDistance, format } from 'date-fns';
 import numeral from 'numeral';
 import { Location } from 'react-router-dom';
 import { GridValueFormatterParams } from '@mui/x-data-grid';
-import { Timestamp } from 'firebase/firestore';
+import { FirestoreError, Timestamp } from 'firebase/firestore';
 import { FirebaseError } from '@firebase/util';
 
 import { AddressComponent, AddressComponentType } from 'components/forms';
 import { FirestoreTimestamp } from 'common/types';
+import { AuthError } from 'firebase/auth';
 
 /**
  * extracts address string from Google address_components object.
@@ -309,4 +310,8 @@ export function getRandomItem(items: any[]) {
 
 export const maskStringShowLast = (str: string, showLast: number = 4, mask: string = '*') => {
   return ('' + str).slice(0, -showLast).replace(/./g, mask) + ('' + str).slice(-showLast);
+};
+
+export const readableFirebaseCode = (err: AuthError | FirestoreError) => {
+  return err.code.split('/')[1].split('-').join(' ');
 };

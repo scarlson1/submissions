@@ -1,5 +1,6 @@
 import { Request } from 'express';
 import { DecodedIdToken } from 'firebase-admin/auth';
+import { GeoPoint } from 'firebase-admin/firestore';
 // import { Timestamp, WithFieldValue } from '@google-cloud/firestore';
 
 import { SubmissionStatus } from './enums';
@@ -45,26 +46,122 @@ export interface UWNote {
   property?: string;
 }
 
-export interface Submission {
+// export interface Submission {
+//   addressLine1: string;
+//   addressLine2?: string;
+//   city: string;
+//   state: string;
+//   postal: string;
+//   latitude: number | null;
+//   longitude: number | null;
+//   coverageActiveBuilding: boolean;
+//   coverageActiveStructures: boolean;
+//   coverageActiveContents: boolean;
+//   coverageActiveAdditional: boolean;
+//   limitA: string;
+//   limitB: string;
+//   limitC: string;
+//   limitD: string;
+//   deductible: number;
+//   email: string;
+//   status: SubmissionStatus;
+//   metadata: BaseMetadata;
+// }
+
+export interface FloodFormValues {
   addressLine1: string;
   addressLine2?: string;
   city: string;
   state: string;
   postal: string;
+  countyName?: string;
   latitude: number | null;
   longitude: number | null;
   coverageActiveBuilding: boolean;
   coverageActiveStructures: boolean;
   coverageActiveContents: boolean;
   coverageActiveAdditional: boolean;
-  limitA: string;
-  limitB: string;
-  limitC: string;
-  limitD: string;
+  limitA: number; // string;
+  limitB: number; // string;
+  limitC: number; // string;
+  limitD: number; // string;
   deductible: number;
+  exclusionsExist: boolean | null;
+  exclusions: string[];
+  priorLossCount: number;
+  firstName: string;
+  lastName: string;
   email: string;
+  userAcceptance: boolean;
+}
+
+export interface FetchPropertyDataResponse {
+  CBRSDesignation: string;
+  basement: string;
+  initDeductible: number;
+  distToCoastFeet: number;
+  floodZone: string;
+  initLimitA: number;
+  initLimitB: number;
+  initLimitC: number;
+  initLimitD: number;
+  maxDeductible: number;
+  numStories: number;
+  propertyCode: string;
+  replacementCost: number;
+  sqFootage: number;
+  yearBuilt: number;
+  spatialKeyDocId?: string | null;
+}
+
+export interface Submission extends FloodFormValues, FetchPropertyDataResponse {
+  coordinates: GeoPoint;
+  userId?: string | null;
   status: SubmissionStatus;
+  submittedById?: string | null;
+  darkMapImageURL?: string;
+  lightMapImageURL?: string;
+  darkMapImageFilePath?: string;
+  lightMapImageFilePath?: string;
+  satelliteMapImageURL?: string;
+  satelliteStreetsMapImageURL?: string;
+  satelliteMapImageFilePath?: string;
+  satelliteStreetsMapImageFilePath?: string;
+  inlandAAL?: number;
+  surgeAAL?: number;
   metadata: BaseMetadata;
+}
+
+export interface SRPerilAAL {
+  tiv: number;
+  fguLoss: number;
+  preCatLoss: number;
+  perilCode: string;
+}
+
+export interface SRRes {
+  correlationId: string;
+  bound: boolean;
+  messages?: {
+    text: string;
+    type: string;
+    severity: string;
+  }[];
+  expectedLosses: SRPerilAAL[];
+}
+
+export interface SRResWithAAL extends SRRes {
+  inlandAAL?: number | null;
+  surgeAAL?: number | null;
+  submissionId: string;
+  address?: {
+    addressLine1: string;
+    addressLine2?: string;
+    city: string;
+    state: string;
+    postal: string;
+  };
+  coordinates?: GeoPoint;
 }
 
 export interface SpatialKeyResponse {

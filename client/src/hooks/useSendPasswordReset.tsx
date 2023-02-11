@@ -4,14 +4,10 @@ import { sendPasswordResetEmail, getAuth, AuthError } from 'firebase/auth';
 import { useConfirmation } from 'modules/components/ConfirmationService';
 import InputDialog from 'components/InputDialog';
 // import { auth } from 'firebaseConfig';
-import { isValidEmail } from 'modules/utils/helpers';
+import { isValidEmail, readableFirebaseCode } from 'modules/utils/helpers';
 import { FirebaseError } from 'firebase/app';
 
 // TODO: requires reauth before sending ?? catch in error ??
-
-export const readableFirebaseCode = (err: AuthError) => {
-  return err.code.split('/')[1].split('-').join(' ');
-};
 
 export interface UseSendPasswordResetProps {
   onSuccess?: (email?: string) => void;

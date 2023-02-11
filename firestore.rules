@@ -80,7 +80,26 @@ service cloud.firestore {
       allow update: if isIDemandAdmin() && emailVerified()
       allow delete: if false
     }
-    
+    match /moratoriums/{moratoriumId} {
+      allow read: if true
+      allow create: if isIDemandAdmin() && emailVerified()
+      allow update: if isIDemandAdmin() && emailVerified()
+      allow delete: if isIDemandAdmin() && emailVerified()
+    }
+    // TODO: if agent / agency etc.
+    match /licenses/{licenseId} {
+      allow read: if isIDemandAdmin()
+      allow create: if isIDemandAdmin() && emailVerified()
+      allow update: if isIDemandAdmin() && emailVerified()
+      allow delete: if isIDemandAdmin() && emailVerified()
+    }
+    match /tasks/{taskId} {
+      allow read: if true
+      allow create: if isIDemandAdmin() && emailVerified()
+      allow update: if isIDemandAdmin() && emailVerified()
+      allow delete: if isIDemandAdmin() && emailVerified()
+    }
+
     function isIDemandAdmin() {
       return request.auth.token.iDemandAdmin == true
     }

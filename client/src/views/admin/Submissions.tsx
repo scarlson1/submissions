@@ -256,59 +256,45 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
       <Typography variant='h5' gutterBottom sx={{ pl: 3 }}>
         All Submissions
       </Typography>
-      <BasicDataGrid
-        rows={data || []}
-        columns={submissionColumns}
-        density='compact'
-        onRowClick={(params) => {
-          navigate(
-            createPath({
-              path: ADMIN_ROUTES.SUBMISSION_VIEW,
-              params: { submissionId: params.id.toString() },
-            })
-          );
-          // navigate(`/submissions/${params.id}`);
-        }}
-        initialState={{
-          columns: {
-            columnVisibilityModel: {
-              firstName: false,
-              lastName: false,
-              // id: false,
-              updated: false,
-              spatialKeyDocId: false,
+      <Box sx={{ height: 500, width: '100%', backgroundColor: 'background.paper' }}>
+        <BasicDataGrid
+          rows={data || []}
+          columns={submissionColumns}
+          density='compact'
+          autoHeight
+          onRowClick={(params) => {
+            navigate(
+              createPath({
+                path: ADMIN_ROUTES.SUBMISSION_VIEW,
+                params: { submissionId: params.id.toString() },
+              })
+            );
+            // navigate(`/submissions/${params.id}`);
+          }}
+          initialState={{
+            columns: {
+              columnVisibilityModel: {
+                firstName: false,
+                lastName: false,
+                // id: false,
+                updated: false,
+                spatialKeyDocId: false,
+              },
             },
-          },
-          sorting: {
-            sortModel: [{ field: 'created', sort: 'desc' }],
-          },
-          pagination: {
-            pageSize: 10,
-          },
-          // filter: {
-          //   filterModel: {
-          //     items: [{ columnField: 'status', operatorValue: 'equals', value: 'pending' }],
-          //   },
-          // },
-        }}
-      />
-      {/* {data && data.length > 0 ? (
-        <Box sx={{ py: 8 }}>
-          {data.map((sub) => (
-            <div key={sub.id}>
-              <Typography
-                variant='subtitle2'
-                color='primary.700'
-              >{`Submission: ${sub.id}`}</Typography>
-              <Typography variant='body2' color='text.secondary' component='div'>
-                <pre>{JSON.stringify(sub, null, 2)}</pre>
-              </Typography>
-            </div>
-          ))}
-        </Box>
-      ) : (
-        <Typography>No Submissions</Typography>
-      )} */}
+            sorting: {
+              sortModel: [{ field: 'created', sort: 'desc' }],
+            },
+            pagination: {
+              pageSize: 10,
+            },
+            // filter: {
+            //   filterModel: {
+            //     items: [{ columnField: 'status', operatorValue: 'equals', value: 'pending' }],
+            //   },
+            // },
+          }}
+        />
+      </Box>
     </Box>
   );
 };

@@ -191,6 +191,13 @@ export const SubmissionView: React.FC = () => {
           <RowItem title='Flood Zone' value={data.floodZone} />
           <RowItem title='Number of Stories' value={data.numStories} />
         </Box>
+        <Box sx={{ pb: 3 }}>
+          <Typography variant='overline' color='text.secondary'>
+            Swiss Re Data
+          </Typography>
+          <RowItem title='Inland AAL' value={data.inlandAAL} />
+          <RowItem title='Surge AAL' value={data.surgeAAL} />
+        </Box>
       </Grid>
       {data.spatialKeyDocId && (
         <Grid xs>

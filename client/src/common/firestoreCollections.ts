@@ -44,6 +44,7 @@ export const statesCollection = createCollection<{ [key in STATE_ABBREVIATION]: 
   COLLECTIONS.ACTIVE_STATES
 );
 export const moratoriumsCollection = createCollection<Moratorium>(COLLECTIONS.MORATORIUMS);
+// export const surplusLinesLicensesCollection = createCollection<Moratorium>(COLLECTIONS.MORATORIUMS);
 
 // SubCOLLECTIONS
 export const userClaimsCollection = (orgId: string) =>

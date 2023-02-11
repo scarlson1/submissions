@@ -67,6 +67,7 @@ export interface FloodValues {
   city: string;
   state: string;
   postal: string;
+  countyName?: string;
   latitude: number | null;
   longitude: number | null;
   coverageActiveBuilding: boolean;
@@ -93,6 +94,7 @@ export const initialValues: FloodValues = {
   city: '',
   state: '',
   postal: '',
+  countyName: '',
   latitude: null,
   longitude: null,
   coverageActiveBuilding: true,

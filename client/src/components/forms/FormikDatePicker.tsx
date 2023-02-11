@@ -82,6 +82,7 @@ export const FormikDatePicker: React.FC<FormikDatePickerProps> = ({
               error={meta.touched && Boolean(meta.error)}
               helperText={getHelperText}
               onBlur={() => helpers.setTouched(true, false)}
+              fullWidth
               {...textFieldProps}
             />
           )}
@@ -135,6 +136,7 @@ export const FormikDatePicker: React.FC<FormikDatePickerProps> = ({
               error={meta.touched && Boolean(meta.error)}
               helperText={getHelperText}
               onBlur={() => helpers.setTouched(true, false)}
+              fullWidth
               {...textFieldProps}
             />
           )}

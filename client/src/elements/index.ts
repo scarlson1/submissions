@@ -12,7 +12,7 @@ export { ContactForm } from './ContactForm';
 export { AddAgents, agentsValidation } from './AddAgents';
 export { AgencyBankingStep, bankingValidation, TooltipContent } from './AgencyBankingStep';
 export { AgencyReviewStep, DisplayFilename, ContactList } from './AgencyReviewStep';
-// export {  } from './';
+export { DeckMap, defaultGeoJsonLayerProps } from './DeckMap';
 
 export type { FormikAddressProps } from './FormikAddress';
 export type { DeductibleStepProps } from './DeductibleStep';
@@ -22,5 +22,5 @@ export type { ContactFormProps } from './ContactForm';
 export type { AddAgentsProps } from './AddAgents';
 export type { AgencyBankingStepProps } from './AgencyBankingStep';
 export type { AgencyReviewStepProps, ContactCardProps, ContactItem } from './AgencyReviewStep';
-// export type {  } from './';
+export type { DeckMapProps } from './DeckMap';
 // export type {  } from './';
