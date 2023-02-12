@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo } from 'react';
-import { ref, uploadBytes, UploadResult } from 'firebase/storage';
+import { getStorage, ref, uploadBytes, UploadResult } from 'firebase/storage';
 
-import { storage } from 'firebaseConfig';
+// import { storage } from 'firebaseConfig';
 
 export interface UseFileUploadProps {
   destinationFolder: string;
@@ -19,6 +19,7 @@ export const useFileUpload = ({
   onSuccess,
   onError,
 }: UseFileUploadProps) => {
+  const storage = getStorage();
   const [filename, setFilename] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
@@ -56,7 +57,7 @@ export const useFileUpload = ({
       if (onError) onError(err);
       setLoading(false);
     }
-  }, [selectedFile, destinationFolder, filename, overrideFilename, onSuccess, onError]);
+  }, [storage, selectedFile, destinationFolder, filename, overrideFilename, onSuccess, onError]);
 
   const unselectFile = useCallback(async () => {
     setFilename('');

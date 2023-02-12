@@ -12,14 +12,15 @@ import {
   reauthenticateWithPopup,
   AuthProvider,
   PopupRedirectResolver,
+  getAuth,
   // getAdditionalUserInfo,
   // AdditionalUserInfo,
 } from 'firebase/auth';
 import { FirebaseError } from 'firebase/app';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { setDoc, doc } from 'firebase/firestore';
+import { setDoc, doc, getFirestore } from 'firebase/firestore';
 
-import { auth, db } from 'firebaseConfig';
+// import { auth, db } from 'firebaseConfig';
 import { useAuth } from 'modules/components/AuthContext';
 import { useConfirmation } from 'modules/components/ConfirmationService';
 import { getProviderForProviderId } from 'modules/utils/getProviderById';
@@ -41,6 +42,8 @@ interface UseSocialAuthProps {
 }
 
 export const useSocialAuth = ({ onSuccess, onError, skipRedirect }: UseSocialAuthProps) => {
+  const auth = getAuth();
+  const db = getFirestore();
   const navigate = useNavigate();
   const location = useLocation();
   const { user, isAnonymous } = useAuth();
@@ -167,7 +170,7 @@ export const useSocialAuth = ({ onSuccess, onError, skipRedirect }: UseSocialAut
         }
       }
     },
-    [handleReturnUserOrRedirect, onSuccess, onError, confirm]
+    [auth, handleReturnUserOrRedirect, onSuccess, onError, confirm]
   );
 
   // TODO: use shared logic with linking any new provider
@@ -200,7 +203,7 @@ export const useSocialAuth = ({ onSuccess, onError, skipRedirect }: UseSocialAut
         return;
       }
     },
-    [handleReturnUserOrRedirect, onSuccess, onError, handleError, user]
+    [db, handleReturnUserOrRedirect, onSuccess, onError, handleError, user]
   );
 
   // can add scopes (ex: https://www.googleapis.com/auth/user.birthday.read)
@@ -233,6 +236,7 @@ export const useSocialAuth = ({ onSuccess, onError, skipRedirect }: UseSocialAut
       if (onError) onError(err, 'Google');
     }
   }, [
+    auth,
     handleError,
     handleReturnUserOrRedirect,
     linkAnonymous,
@@ -271,6 +275,7 @@ export const useSocialAuth = ({ onSuccess, onError, skipRedirect }: UseSocialAut
       if (onError) onError(err, 'Microsoft');
     }
   }, [
+    auth,
     handleReturnUserOrRedirect,
     handleError,
     linkAnonymous,

@@ -12,8 +12,8 @@
     "@mui/icons-material": "^5.11.0",
     "@mui/lab": "^5.0.0-alpha.115",
     "@mui/material": "^5.11.4",
-    "@mui/x-data-grid": "^5.17.19",
-    "@mui/x-date-pickers": "^5.0.13",
+    "@mui/x-data-grid": "^5.17.23",
+    "@mui/x-date-pickers": "^6.0.0-beta.3",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
@@ -89,6 +89,7 @@
     ]
   },
   "devDependencies": {
+    "@faker-js/faker": "^7.6.0",
     "@types/autosuggest-highlight": "^3.2.0",
     "@types/numeral": "^2.0.2"
   }

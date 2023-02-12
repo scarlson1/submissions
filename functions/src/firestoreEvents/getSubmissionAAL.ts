@@ -9,24 +9,24 @@ import { getSwissReInstance } from '../services/swissRe';
 
 const swissReClientId = defineSecret('SWISS_RE_CLIENT_ID');
 const swissReClientSecret = defineSecret('SWISS_RE_CLIENT_SECRET');
-
+const swissReSubscriptionKey = defineSecret('SWISS_RE_SUBSCRIPTION_KEY');
 // TODO: firestore rules to not allow users to change AAL fields
 
 export const getSubmissionAAL = functions
-  .runWith({ secrets: [swissReClientId, swissReClientSecret] })
+  .runWith({ secrets: [swissReClientId, swissReClientSecret, swissReSubscriptionKey] })
   .firestore.document(`${Collections.SUBMISSIONS}/{submissionId}`)
   .onCreate(async (snap) => {
     const sub = snap.data() as Submission;
     const db = getFirestore();
+    const clientId = process.env.SWISS_RE_CLIENT_ID;
+    const clientSecret = process.env.SWISS_RE_CLIENT_SECRET;
+    const subKey = process.env.SWISS_RE_SUBSCRIPTION_KEY;
 
-    if (!(process.env.SWISS_RE_CLIENT_ID && process.env.SWISS_RE_CLIENT_SECRET)) {
+    if (!(clientId && clientSecret && subKey)) {
       console.log('MISSING SR CREDENTIALS. RETURNING EARLY');
       return;
     }
-    const swissReInstance = getSwissReInstance(
-      process.env.SWISS_RE_CLIENT_ID,
-      process.env.SWISS_RE_CLIENT_SECRET
-    );
+    const swissReInstance = getSwissReInstance(clientId, clientSecret, subKey);
 
     try {
       // fetch SR data

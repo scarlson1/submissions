@@ -48,10 +48,11 @@ export const getSpatialKeyInstance = (args: GenerateTokenArgs) => {
         if (err.response.status === 401 && !originalConfig._retry) {
           originalConfig._retry = true;
           const config = err.config;
+          console.log('401 ERROR... GENERATING NEW ACCESS TOKEN');
 
           try {
             const accessToken = await getAccessToken(args);
-            console.log('REFRESHED TOKEN => ', accessToken);
+            // console.log('REFRESHED TOKEN => ', accessToken);
 
             config.headers['x-sktoken'] = accessToken;
             instance.defaults.headers.common['x-sktoken'] = accessToken;
@@ -64,10 +65,11 @@ export const getSpatialKeyInstance = (args: GenerateTokenArgs) => {
         if (err.response.status === 403 && !originalConfig._retry) {
           originalConfig._retry = true;
           const config = err.config;
+          console.log('403 ERROR... GENERATING NEW ACCESS TOKEN');
 
           try {
             const accessToken = await getAccessToken(args);
-            console.log('REFRESHED TOKEN => ', accessToken);
+            // console.log('REFRESHED TOKEN => ', accessToken);
 
             config.headers['x-sktoken'] = accessToken;
             instance.defaults.headers.common['x-sktoken'] = accessToken;

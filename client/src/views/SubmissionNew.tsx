@@ -81,7 +81,7 @@ export interface FloodValues {
   deductible: number;
   exclusionsExist: boolean | null;
   exclusions: string[];
-  priorLossCount: number;
+  priorLossCount: string; // number;
   firstName: string;
   lastName: string;
   email: string;
@@ -108,7 +108,7 @@ export const initialValues: FloodValues = {
   deductible: 4000,
   exclusionsExist: false,
   exclusions: [],
-  priorLossCount: 0,
+  priorLossCount: '0', // 0,
   firstName: '',
   lastName: '',
   email: '',

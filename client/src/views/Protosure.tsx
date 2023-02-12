@@ -3,6 +3,7 @@ import { FormikHelpers, FormikProps, FormikValues } from 'formik';
 import { Box, Container, Tooltip, Typography } from '@mui/material';
 import { LoaderFunctionArgs, useLoaderData, useNavigate } from 'react-router-dom';
 import { addDoc, doc, GeoPoint, getDoc, serverTimestamp } from 'firebase/firestore';
+import axios from 'axios';
 
 import { FormikWizard, Step } from 'components/forms';
 import {
@@ -31,7 +32,6 @@ import { roundUpToNearest, sumArr } from 'modules/utils/helpers';
 import { useAuth } from 'modules/components/AuthContext';
 import { FirebaseError } from 'firebase/app';
 import { initializeQuote } from 'modules/api/initializeQuote';
-import axios from 'axios';
 
 // TODO: move active states loader to higher up component loader
 
@@ -49,6 +49,7 @@ export const protosureLoader = async ({ params, request, context }: LoaderFuncti
     quoteId: '',
   };
   const { productId, quoteId } = params;
+  console.log('context: ', context);
 
   try {
     const snap = await getDoc(doc(statesCollection, productId));
@@ -112,7 +113,7 @@ export interface FloodValues {
   deductible: number;
   exclusionsExist: boolean | null;
   exclusions: string[];
-  priorLossCount: number;
+  priorLossCount: string; // number;
   firstName: string;
   lastName: string;
   email: string;
@@ -139,7 +140,7 @@ export const initialValues: FloodValues = {
   deductible: 4000,
   exclusionsExist: false,
   exclusions: [],
-  priorLossCount: 0,
+  priorLossCount: '0', // 0,
   firstName: '',
   lastName: '',
   email: '',

@@ -1,7 +1,7 @@
 import { useCallback, useState, useMemo } from 'react';
-import { ref, getDownloadURL } from 'firebase/storage';
+import { ref, getDownloadURL, getStorage } from 'firebase/storage';
 
-import { storage } from 'firebaseConfig';
+// import { storage } from 'firebaseConfig';
 import { FirebaseError } from 'firebase/app';
 
 export const useOpenStorageFile = () => {
@@ -10,7 +10,7 @@ export const useOpenStorageFile = () => {
   const openFileInNewTab = useCallback(async (fileLocation: string) => {
     setError(undefined);
     try {
-      const fileRef = ref(storage, fileLocation);
+      const fileRef = ref(getStorage(), fileLocation);
       let url = await getDownloadURL(fileRef);
 
       console.log('download url: ', url);

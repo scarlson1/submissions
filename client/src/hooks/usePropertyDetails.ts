@@ -17,3 +17,18 @@ export const usePropertyDetails = () => {
 
   return { fetchPropertyData, propertyDetails };
 };
+
+// export const usePropertyDetails = () => {
+//   const [propertyDetails, setPropertyDetails] = useState<any>();
+
+//   const fetchPropertyData = useCallback(async (args: Coordinates) => {
+//     const { data } = await fetchPropertyDetails(args);
+//     setPropertyDetails({ ...data });
+
+//     // TODO: validate / format data ? handled server side ??
+
+//     return data;
+//   }, []);
+
+//   return { fetchPropertyData, propertyDetails };
+// };

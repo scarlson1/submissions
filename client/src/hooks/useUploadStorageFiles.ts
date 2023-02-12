@@ -1,7 +1,14 @@
 import { useState, useCallback, useMemo } from 'react';
-import { ref, StorageError, uploadBytes, UploadMetadata, UploadResult } from 'firebase/storage';
+import {
+  getStorage,
+  ref,
+  StorageError,
+  uploadBytes,
+  UploadMetadata,
+  UploadResult,
+} from 'firebase/storage';
 
-import { storage } from 'firebaseConfig';
+// import { storage } from 'firebaseConfig';
 import { useAuth } from 'modules/components/AuthContext';
 import { FirebaseError } from 'firebase/app';
 
@@ -10,6 +17,7 @@ export const useUploadStorageFiles = (
   onSuccess?: (uploadResults: UploadResult[]) => void,
   onError?: (err: unknown) => void
 ) => {
+  const storage = getStorage();
   const [error, setError] = useState<StorageError | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -36,7 +44,7 @@ export const useUploadStorageFiles = (
 
       return await uploadBytes(newFileRef, file, metadata);
     },
-    [destinationFolder, user?.uid, user?.tenantId]
+    [storage, destinationFolder, user?.uid, user?.tenantId]
   );
 
   const uploadFiles = useCallback(

@@ -25,7 +25,19 @@ export const PriorFloodLossStep: React.FC<PriorFloodLossStepProps> = () => {
       onChange={handleLossCountChange}
       exclusive
     >
-      <ToggleButton name='priorLossCount' value={0} aria-label='0' sx={{ py: 2, px: 4 }}>
+      <ToggleButton name='priorLossCount' value='0' aria-label='0' sx={{ py: 2, px: 4 }}>
+        0
+      </ToggleButton>
+      <ToggleButton name='priorLossCount' value='1' aria-label='1' sx={{ py: 2, px: 4 }}>
+        1
+      </ToggleButton>
+      <ToggleButton name='priorLossCount' value='2' aria-label='2' sx={{ py: 2, px: 4 }}>
+        2
+      </ToggleButton>
+      <ToggleButton name='priorLossCount' value='3+' aria-label='3+' sx={{ py: 2, px: 4 }}>
+        3+
+      </ToggleButton>
+      {/* <ToggleButton name='priorLossCount' value={0} aria-label='0' sx={{ py: 2, px: 4 }}>
         0
       </ToggleButton>
       <ToggleButton name='priorLossCount' value={1} aria-label='1' sx={{ py: 2, px: 4 }}>
@@ -36,7 +48,7 @@ export const PriorFloodLossStep: React.FC<PriorFloodLossStepProps> = () => {
       </ToggleButton>
       <ToggleButton name='priorLossCount' value={3} aria-label='3+' sx={{ py: 2, px: 4 }}>
         3+
-      </ToggleButton>
+      </ToggleButton> */}
     </FormikToggleButtonGroup>
   );
 };

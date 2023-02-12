@@ -11,11 +11,17 @@ import './index.css';
 import { RouterProvider } from 'react-router-dom';
 
 import { router } from './router';
+// import { ReactFireAppContext, ReactFireServicesContext } from 'modules/components/ReactFireContext';
 
 const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
 root.render(
   // <React.StrictMode>
+  // <ReactFireAppContext>
+  //   <ReactFireServicesContext>
   <RouterProvider router={router} />
+  //   </ReactFireServicesContext>
+  // </ReactFireAppContext>
+
   // <App  />
   // {/* </React.StrictMode> */}
 );

@@ -3,7 +3,7 @@ import { CircularProgress } from '@mui/material';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { getAuth, signInAnonymously, UserCredential } from 'firebase/auth';
 
-import { auth } from 'firebaseConfig';
+// import { auth } from 'firebaseConfig';
 import { useAuth, CustomClaims } from 'modules/components/AuthContext';
 import { toast } from 'react-hot-toast';
 import { AUTH_ROUTES, createPath } from 'router';
@@ -27,6 +27,7 @@ export const RequireAuth: React.FC<RequireAuthProps> = ({
   redirectPath = '/auth/login',
   shouldSignInAnonymously = false,
 }) => {
+  const auth = getAuth();
   let { error, loadingInitial, customClaims } = useAuth();
   let location = useLocation();
   const navigate = useNavigate();
@@ -68,7 +69,7 @@ export const RequireAuth: React.FC<RequireAuthProps> = ({
           console.log('ERROR => ', err);
         });
     }
-  }, [user, shouldSignInAnonymously, loadingInitial]);
+  }, [auth, user, shouldSignInAnonymously, loadingInitial]);
 
   if (loadingInitial) {
     return <CircularProgress />;

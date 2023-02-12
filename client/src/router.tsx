@@ -39,7 +39,6 @@ import {
 } from 'views/admin';
 import { SuccessStep } from 'elements';
 import { Product } from 'common';
-import { TestPagination } from 'views/admin/TestPagination';
 import { TestDataGridPagination } from 'views/admin/TestDataGridPagination';
 // import RouterErrorBoundary from 'components/errorBoundaries/RouterErrorBoundary';
 
@@ -346,10 +345,10 @@ export const router = createBrowserRouter([
               </RequireAuth>
             ),
           },
-          {
-            path: 'pagination/tasks',
-            element: <TestPagination />,
-          },
+          // {
+          //   path: 'pagination/tasks',
+          //   element: <TestPagination />,
+          // },
           {
             path: 'pagination/data-grid',
             element: <TestDataGridPagination />,

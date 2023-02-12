@@ -20,6 +20,7 @@ export enum COLLECTIONS {
   TAXES = 'surplusLinesTaxes',
   ACTIVE_STATES = 'states',
   MORATORIUMS = 'moratoriums',
+  TASKS = 'tasks', // TODO: DELETE
 }
 
 export enum SubmissionStatus {

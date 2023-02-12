@@ -7,10 +7,10 @@ import * as yup from 'yup';
 import { useNavigate, useLocation, useParams, useSearchParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { FirebaseError } from '@firebase/util';
-import { AuthError } from 'firebase/auth'; // , ProviderId
+import { AuthError, getAuth } from 'firebase/auth'; // , ProviderId
 
 import FormikTextField from 'components/forms/FormikTextField';
-import { auth } from 'firebaseConfig';
+// import { auth } from 'firebaseConfig';
 // import { GoogleAuth, MicrosoftAuth } from 'components';
 import { getRedirectPath } from 'modules/utils/helpers';
 import { useAuth } from 'modules/components/AuthContext';
@@ -40,6 +40,7 @@ export interface LoginValues {
 }
 
 export const Login: React.FC = () => {
+  const auth = getAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const params = useParams();
@@ -64,7 +65,7 @@ export const Login: React.FC = () => {
     } else {
       auth.tenantId = null;
     }
-  }, [params]);
+  }, [auth, params]);
 
   const submitForm = useCallback(() => {
     formikRef.current?.submitForm();

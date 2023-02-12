@@ -4,7 +4,11 @@ import querystring from 'querystring';
 
 // const spatialKeyTokenURL = `https://idemand.spatialkey.com/SpatialKeyFramework/api/v2/oauth.json?grant_type=${param1}&assertion=${param2}`
 
-export const getSwissReInstance = (clientId: string, clientSecret: string) => {
+export const getSwissReInstance = (
+  clientId: string,
+  clientSecret: string,
+  subscriptionKey: string
+) => {
   const swissReInstance = axios.create({
     baseURL: process.env.SWISS_RE_BASE_URL,
     headers: {
@@ -12,7 +16,7 @@ export const getSwissReInstance = (clientId: string, clientSecret: string) => {
       Accept: 'application/json',
       'SR-RNG-ProductCode': process.env.SWISS_RE_PRODUCT_CODE,
       'SR-RNG-LossModelToolCode': process.env.SWISS_RE_TOOL_CODE,
-      'Ocp-Apim-Subscription-Key': process.env.SWISS_RE_SUBSCRIPTION_KEY,
+      'Ocp-Apim-Subscription-Key': subscriptionKey,
     },
   });
 
@@ -25,7 +29,7 @@ export const getSwissReInstance = (clientId: string, clientSecret: string) => {
         try {
           const accessToken = await generateSRAccessToken(clientId, clientSecret);
 
-          console.log('ACCESS TOKEN => ', accessToken);
+          // console.log('ACCESS TOKEN => ', accessToken);
           config.headers['Authorization'] = `Bearer ${accessToken}`;
           swissReInstance.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
         } catch (err) {
@@ -50,12 +54,13 @@ export const getSwissReInstance = (clientId: string, clientSecret: string) => {
       const originalConfig = err.config;
       if (err.response) {
         if (err.response.status === 401 && !originalConfig._retry) {
+          console.log('401 ERROR... GENERATING NEW ACCESS TOKEN');
           originalConfig._retry = true;
           let config = err.config;
 
           try {
             let accessToken = await generateSRAccessToken(clientId, clientSecret);
-            console.log('REFRESHED TOKEN => ', accessToken);
+            // console.log('REFRESHED TOKEN => ', accessToken);
 
             if (accessToken)
               swissReInstance.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
@@ -66,12 +71,13 @@ export const getSwissReInstance = (clientId: string, clientSecret: string) => {
           }
         }
         if (err.response.status === 403 && !originalConfig._retry) {
+          console.log('403 ERROR... GENERATING NEW ACCESS TOKEN');
           originalConfig._retry = true;
           let config = err.config;
 
           try {
             let accessToken = await generateSRAccessToken(clientId, clientSecret);
-            console.log('REFRESHED TOKEN => ', accessToken);
+            // console.log('REFRESHED TOKEN => ', accessToken);
 
             if (accessToken)
               swissReInstance.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
@@ -96,8 +102,10 @@ function generateSRAccessToken(clientId: string, clientSecret: string) {
     // const clientSecret: string | undefined = await getSecret('SWISS_RE_CLIENT_SECRET');
     // const authScope: string | undefined = process.env.SWISS_RE_AUTH_SCOPE;
     // const srAuthURL: string | undefined = process.env.SWISS_RE_ACCESS_TOKEN_URL;
-    const authScope = 'https://AZ0-RNG-NONPROD-SyncRateServer.swissre.com/.default';
-    const srAuthURL = 'https://login.microsoftonline.com/swissre.onmicrosoft.com/oauth2/v2.0/token';
+    // const authScope = 'https://AZ0-RNG-NONPROD-SyncRateServer.swissre.com/.default';
+    // const srAuthURL = 'https://login.microsoftonline.com/swissre.onmicrosoft.com/oauth2/v2.0/token';
+    const authScope = process.env.SWISS_RE_AUTH_SCOPE;
+    const srAuthURL = process.env.SWISS_RE_ACCESS_TOKEN_URL;
 
     if (!(clientId && clientSecret && authScope && srAuthURL)) {
       reject(new Error('Missing api credentials in Google Secret Manager or env vars.'));

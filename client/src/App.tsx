@@ -2,6 +2,8 @@ import React from 'react';
 import './App.css';
 import { Outlet } from 'react-router-dom';
 import { ErrorBoundary } from 'react-error-boundary';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 // import { Toaster } from 'react-hot-toast';
 
 import { ThemeProvider } from 'modules/components/ThemeContext';
@@ -22,12 +24,14 @@ function App() {
         //   logToErrorLoggingService(error, info);
         // }}
       >
-        <ConfirmationProvider>
-          <AuthContextProvider>
-            <Outlet />
-            <Toaster />
-          </AuthContextProvider>
-        </ConfirmationProvider>
+        <LocalizationProvider dateAdapter={AdapterDateFns}>
+          <ConfirmationProvider>
+            <AuthContextProvider>
+              <Outlet />
+              <Toaster />
+            </AuthContextProvider>
+          </ConfirmationProvider>
+        </LocalizationProvider>
       </ErrorBoundary>
     </ThemeProvider>
   );

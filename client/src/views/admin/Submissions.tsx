@@ -59,7 +59,7 @@ export const submissionColumns: GridColDef[] = [
   {
     field: 'email',
     headerName: 'Email',
-    minWidth: 160,
+    minWidth: 200,
     flex: 1,
     editable: false,
     // valueGetter: (params) => `${params.row.email}`,
@@ -75,7 +75,7 @@ export const submissionColumns: GridColDef[] = [
   {
     field: 'addressLine2',
     headerName: 'Unit/Suite',
-    minWidth: 100,
+    minWidth: 80,
     flex: 0.4,
     editable: false,
   },
@@ -284,9 +284,8 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
             sorting: {
               sortModel: [{ field: 'created', sort: 'desc' }],
             },
-            pagination: {
-              pageSize: 10,
-            },
+            // pagination: { paginationModel: { pageSize: 5 } },
+            pagination: { pageSize: 10 },
             // filter: {
             //   filterModel: {
             //     items: [{ columnField: 'status', operatorValue: 'equals', value: 'pending' }],

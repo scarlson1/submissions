@@ -8,12 +8,13 @@ import { useNavigate, useLocation, useParams, useSearchParams } from 'react-rout
 import { toast } from 'react-hot-toast';
 
 import FormikTextField from 'components/forms/FormikTextField';
-import { auth } from 'firebaseConfig';
+// import { auth } from 'firebaseConfig';
 // import { GoogleAuth, MicrosoftAuth } from 'components';
 import { getRedirectPath } from 'modules/utils/helpers';
 import { FormikPassword } from 'elements';
 import { useCreateAccount } from 'hooks/useCreateAccount';
 import { useKeyPress } from 'hooks';
+import { getAuth } from 'firebase/auth';
 
 export const passwordValidation = yup
   .string()
@@ -43,6 +44,7 @@ interface SignUpValues {
 // https://firebase.google.com/docs/auth/web/anonymous-auth#email-password-sign-in
 
 export const CreateAccount: React.FC = () => {
+  const auth = getAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const params = useParams();
@@ -60,7 +62,7 @@ export const CreateAccount: React.FC = () => {
     } else {
       auth.tenantId = null;
     }
-  }, [params]);
+  }, [auth, params]);
 
   const submitForm = useCallback(() => {
     formikRef.current?.submitForm();

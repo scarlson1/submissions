@@ -8,10 +8,11 @@ import {
   // signInWithPopup,
   linkWithCredential,
   User,
+  getAuth,
 } from 'firebase/auth';
 import { setDoc, doc } from 'firebase/firestore';
 import { useAuth } from 'modules/components/AuthContext';
-import { auth } from 'firebaseConfig';
+// import { auth } from 'firebaseConfig';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 
@@ -35,6 +36,7 @@ interface CreatePasswordProps {
 }
 
 export const useCreateAccount = () => {
+  const auth = getAuth();
   const { user, isAuthenticated, isAnonymous, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -109,7 +111,7 @@ export const useCreateAccount = () => {
         return Promise.reject(err);
       }
     },
-    [isAnonymous, isAuthenticated, updateUserDocOnCreate, user]
+    [auth, isAnonymous, isAuthenticated, updateUserDocOnCreate, user]
   );
 
   const handleEmailAuthError = useCallback(

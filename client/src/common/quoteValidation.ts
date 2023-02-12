@@ -150,8 +150,9 @@ export const exclusionsValidation = yup.object({
 export const priorLossValidation = yup.object({
   priorLossCount: yup
     .string()
-    .oneOf(['0', '1', '2', '3'])
+    .oneOf(['0', '1', '2', '3+'])
     .required('Prior loss history is required'),
+  // priorLossCount: yup.number().oneOf([0, 1, 2, 3]).required('Prior loss history is required'),
 });
 
 export const contactValidation = yup.object().shape({

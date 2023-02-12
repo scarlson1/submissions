@@ -6,7 +6,7 @@ import { LoaderFunctionArgs, useLoaderData, useNavigate } from 'react-router-dom
 import {
   GridActionsCellItem,
   GridColDef,
-  GridColumns,
+  // GridColumns,
   GridRowId,
   GridRowParams,
 } from '@mui/x-data-grid';
@@ -15,6 +15,7 @@ import ReactJson from '@microlink/react-json-view';
 import { ADMIN_ROUTES, createPath } from 'router';
 import { BasicDataGrid, ConfirmationDialog } from 'components';
 import {
+  formatFirestoreTimestamp,
   formatGridFirestoreTimestamp,
   formatGridFirestoreTimestampAsDate,
 } from 'modules/utils/helpers';
@@ -166,7 +167,17 @@ export const Moratoriums: React.FC = () => {
 
       modal({
         variant: 'info',
-        title: 'SpatialKey Data',
+        title: (
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant='h6'>Moratorium</Typography>
+            <Typography variant='subtitle2' color='text.secondary'>{`${formatFirestoreTimestamp(
+              d.effectiveDate,
+              'date'
+            )} - ${
+              d.expirationDate ? formatFirestoreTimestamp(d.expirationDate) : 'Indefinite'
+            }`}</Typography>
+          </Box>
+        ),
         catchOnCancel: false,
         component: (
           <ConfirmationDialog
@@ -216,7 +227,8 @@ export const Moratoriums: React.FC = () => {
     []
   );
 
-  const moratoriumColumns: GridColDef[] = useMemo<GridColumns<any>>(
+  // const moratoriumColumns: GridColDef[] = useMemo<GridColumns<any>>(
+  const moratoriumColumns: GridColDef[] = useMemo(
     () => [
       {
         field: 'actions',
@@ -342,9 +354,8 @@ export const Moratoriums: React.FC = () => {
             sorting: {
               sortModel: [{ field: 'created', sort: 'desc' }],
             },
-            pagination: {
-              pageSize: 10,
-            },
+            // pagination: { paginationModel: { pageSize: 5 } },
+            pagination: { pageSize: 10 },
           }}
         />
       </Box>

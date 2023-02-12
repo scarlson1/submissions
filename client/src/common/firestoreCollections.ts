@@ -1,4 +1,4 @@
-import { collection, CollectionReference, DocumentData } from 'firebase/firestore';
+import { collection, CollectionReference, DocumentData, getFirestore } from 'firebase/firestore';
 
 import { COLLECTIONS, STATE_ABBREVIATION } from 'common/enums';
 import {
@@ -19,7 +19,8 @@ import {
   Moratorium,
   AgencyApplication,
 } from 'common/types';
-import { db } from 'firebaseConfig';
+// import { db } from 'firebaseConfig';
+const db = getFirestore();
 
 export const createCollection = <T = DocumentData>(collectionName: string, ...rest: string[]) => {
   return collection(db, collectionName, ...rest) as CollectionReference<T>;

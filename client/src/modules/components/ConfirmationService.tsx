@@ -8,7 +8,7 @@ import { DialogContentProps, DialogProps } from '@mui/material';
 export interface ConfirmationOptions {
   catchOnCancel?: boolean;
   variant?: 'danger' | 'info';
-  title?: string;
+  title?: React.ReactNode; // string;
   description?: React.ReactNode; // string
   confirmButtonText?: string;
   component?: React.ReactElement;

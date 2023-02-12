@@ -1,11 +1,13 @@
 import React, { useCallback, useRef } from 'react';
 import { Box, Stack, Typography } from '@mui/material';
+import { SaveRounded } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
 import Grid from '@mui/material/Unstable_Grid2';
 import { Formik, FormikHelpers, FormikProps } from 'formik';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import * as yup from 'yup';
+import { startOfYear, lastDayOfYear } from 'date-fns';
 
 import { License } from 'common';
 import {
@@ -17,7 +19,6 @@ import {
 import { statesAbrvSelectOptions } from 'common/statesList';
 import { useCreateSLLicense } from 'hooks';
 import { ADMIN_ROUTES, createPath } from 'router';
-import { SaveRounded } from '@mui/icons-material';
 
 const licenseValidation = yup.object().shape({
   state: yup.string().required('state is required'),
@@ -164,7 +165,24 @@ export const SLLicenseNew: React.FC = () => {
                     maxDate={undefined}
                     disablePast={false}
                     textFieldProps={{ fullWidth: true, required: true }}
-                    // required={true}
+                    slotProps={{
+                      shortcuts: {
+                        items: [
+                          {
+                            label: 'Start of year',
+                            getValue: () => {
+                              return startOfYear(new Date());
+                            },
+                          },
+                          {
+                            label: 'End of year',
+                            getValue: () => {
+                              return lastDayOfYear(new Date());
+                            },
+                          },
+                        ],
+                      },
+                    }}
                   />
                   <FormikDatePicker
                     name='expirationDate'
@@ -173,6 +191,24 @@ export const SLLicenseNew: React.FC = () => {
                     maxDate={undefined}
                     disablePast={false}
                     textFieldProps={{ fullWidth: true }}
+                    slotProps={{
+                      shortcuts: {
+                        items: [
+                          {
+                            label: 'Start of year',
+                            getValue: () => {
+                              return startOfYear(new Date());
+                            },
+                          },
+                          {
+                            label: 'End of year',
+                            getValue: () => {
+                              return lastDayOfYear(new Date());
+                            },
+                          },
+                        ],
+                      },
+                    }}
                   />
                 </Stack>
               </Grid>

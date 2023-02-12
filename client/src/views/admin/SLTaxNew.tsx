@@ -3,6 +3,7 @@ import { Box, Button, Chip, Divider, InputAdornment, Typography } from '@mui/mat
 import Grid from '@mui/material/Unstable_Grid2';
 import { Formik, FormikHelpers, FormikProps } from 'formik';
 import { addDoc, Timestamp } from 'firebase/firestore';
+import { startOfYear, lastDayOfYear } from 'date-fns';
 import * as yup from 'yup';
 
 import {
@@ -241,6 +242,24 @@ export const SLTaxNew: React.FC<SLTaxNewProps> = () => {
                 maxDate={undefined}
                 disablePast={false}
                 textFieldProps={{ fullWidth: true }}
+                slotProps={{
+                  shortcuts: {
+                    items: [
+                      {
+                        label: 'Start of year',
+                        getValue: () => {
+                          return startOfYear(new Date());
+                        },
+                      },
+                      {
+                        label: 'End of year',
+                        getValue: () => {
+                          return lastDayOfYear(new Date());
+                        },
+                      },
+                    ],
+                  },
+                }}
               />
             </Grid>
             <Grid xs={12} sm={6} md={3}>
@@ -251,6 +270,18 @@ export const SLTaxNew: React.FC<SLTaxNewProps> = () => {
                 maxDate={undefined}
                 disablePast={false}
                 textFieldProps={{ fullWidth: true }}
+                slotProps={{
+                  shortcuts: {
+                    items: [
+                      {
+                        label: 'End of year',
+                        getValue: () => {
+                          return lastDayOfYear(new Date());
+                        },
+                      },
+                    ],
+                  },
+                }}
               />
             </Grid>
             <Grid xs={6} sm={9} md>

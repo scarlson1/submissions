@@ -1,5 +1,3 @@
-// export {};
-
 import {
   useState,
   useEffect,
@@ -21,6 +19,7 @@ import {
   verifyBeforeUpdateEmail,
   multiFactor,
   updatePassword,
+  getAuth,
 } from '@firebase/auth';
 import { doc, onSnapshot, DocumentSnapshot } from '@firebase/firestore';
 import { useNavigate } from 'react-router-dom';
@@ -28,12 +27,14 @@ import { differenceInSeconds } from 'date-fns';
 // import { authState } from 'rxfire/auth';
 // import { filter } from 'rxjs/operators';
 
-import { auth } from 'firebaseConfig';
 import { userClaimsCollection } from 'common/firestoreCollections';
 import { UserClaims } from 'common/types';
 // import { queryClient } from 'modules/queryClient';
 import { ReauthDialog } from 'components';
 import { toast } from 'react-hot-toast';
+
+// TODO: set up reducer & actions
+// https://www.youtube.com/watch?v=YmHEzjglRMk
 
 export enum CustomClaims {
   Admin = 'admin',
@@ -83,6 +84,7 @@ export const AuthContext = createContext<AuthContextValue>({
 // export const AuthContext = createContext({})
 
 export const AuthContextProvider = ({ children }: { children: React.ReactNode }) => {
+  const auth = getAuth();
   const [user, setUser] = useState<User | null>(null);
   const [error, setError] = useState<Error | null | unknown>(null);
   const [loading, setLoading] = useState(false);
@@ -122,7 +124,7 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
       iDemandAdmin: !!idTokenResult.claims.iDemandAdmin,
     });
     setLoading(false);
-  }, []);
+  }, [auth]);
 
   const onNewClaims = useCallback(
     async (snap: DocumentSnapshot<UserClaims>) => {
@@ -164,7 +166,7 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
     );
 
     return () => unsubscribe();
-  }, [updateClaims]);
+  }, [auth, updateClaims]);
 
   /**
    * Login user using email/password auth
@@ -187,7 +189,7 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
         return Promise.reject(err);
       }
     },
-    [updateClaims]
+    [auth, updateClaims]
   );
 
   /**
@@ -204,7 +206,7 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
       cb !== undefined ? cb() : navigate(`/auth/login`, { replace: true });
       setLoading(false);
     },
-    [navigate]
+    [auth, navigate]
   );
 
   /**
@@ -214,7 +216,7 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
   const sendVerification = useCallback(async () => {
     if (!auth.currentUser) throw new Error('Must be signed in');
     await sendEmailVerification(auth.currentUser);
-  }, []);
+  }, [auth]);
 
   /**
    * Sends password reset to the provided email. Used for "forgot password" situations.
@@ -222,22 +224,25 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
    * @param {string} continueUrl - url the link redirects to.
    * @returns {string} informational success message which can be display to user
    */
-  const sendPasswordReset = useCallback(async (email: string, continueUrl?: string) => {
-    var actionCodeSettings = {
-      url:
-        continueUrl ||
-        `${process.env.REACT_APP_HOSTING_URL}/auth/login/${
-          auth.currentUser && auth.currentUser.tenantId ? auth.currentUser.tenantId : ''
-        }`,
-      handleCodeInApp: false,
-    };
-    try {
-      await sendPasswordResetEmail(auth, email, actionCodeSettings);
-      return `Password reset email sent to ${email}`;
-    } catch (err) {
-      return Promise.reject(err);
-    }
-  }, []);
+  const sendPasswordReset = useCallback(
+    async (email: string, continueUrl?: string) => {
+      var actionCodeSettings = {
+        url:
+          continueUrl ||
+          `${process.env.REACT_APP_HOSTING_URL}/auth/login/${
+            auth.currentUser && auth.currentUser.tenantId ? auth.currentUser.tenantId : ''
+          }`,
+        handleCodeInApp: false,
+      };
+      try {
+        await sendPasswordResetEmail(auth, email, actionCodeSettings);
+        return `Password reset email sent to ${email}`;
+      } catch (err) {
+        return Promise.reject(err);
+      }
+    },
+    [auth]
+  );
 
   /**
    * Calculates seconds from last authentication of currentUser or returns null

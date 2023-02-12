@@ -21,34 +21,36 @@ export const BasicDataGrid: React.FC<AdditionalNamedInsuredsProps> = ({
   //   {...containerProps}
   // >
   return (
-    <Box sx={{ display: 'flex', height: '100%' }}>
-      <div style={{ flexGrow: 1 }}>
-        <DataGrid
-          rows={rows}
-          columns={columns}
-          components={{ Toolbar: withToolbar ? GridToolbar : undefined }}
-          rowsPerPageOptions={[5, 10, 20]}
-          initialState={{
-            columns: {
-              columnVisibilityModel: {
-                id: false,
-              },
+    // <Box sx={{ display: 'flex', height: '100%' }}>
+    //   <div style={{ flexGrow: 1, maxWidth: '100%' }}>
+    <Box sx={{ width: '100%', height: '100%' }}>
+      <DataGrid
+        rows={rows}
+        columns={columns}
+        components={{ Toolbar: withToolbar ? GridToolbar : undefined }}
+        rowsPerPageOptions={[5, 10, 20]}
+        // pageSizeOptions={[5, 10, 20]}
+        initialState={{
+          columns: {
+            columnVisibilityModel: {
+              id: false,
             },
-            sorting: {
-              sortModel: [{ field: 'updated', sort: 'desc' }],
-            },
-            pagination: {
-              pageSize: 10,
-            },
-          }}
-          sx={{
-            px: 3,
-            pt: 2,
-            minHeight: 200,
-          }}
-          {...props}
-        />
-      </div>
+          },
+          sorting: {
+            sortModel: [{ field: 'updated', sort: 'desc' }],
+          },
+          pagination: {
+            pageSize: 10,
+          },
+          // pagination: { paginationModel: { pageSize: 5 } },
+        }}
+        sx={{
+          px: 3,
+          pt: 2,
+          minHeight: 200,
+        }}
+        {...props}
+      />
     </Box>
   );
 };

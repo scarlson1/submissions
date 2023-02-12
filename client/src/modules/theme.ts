@@ -1,6 +1,7 @@
 import { createTheme, ThemeOptions, Theme, alpha } from '@mui/material/styles';
 import { deepmerge } from '@mui/utils';
 import { ArrowDropDownRounded } from '@mui/icons-material';
+import type {} from '@mui/x-date-pickers/themeAugmentation';
 
 // https://github.com/mui/material-ui/blob/master/docs/src/modules/brandingTheme.ts
 // Fonts to consider:

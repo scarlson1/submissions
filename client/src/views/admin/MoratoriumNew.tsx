@@ -6,6 +6,7 @@ import { GeoJsonLayer, PickingInfo } from 'deck.gl/typed';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import * as yup from 'yup';
+import { addWeeks } from 'date-fns';
 
 import { FormikDatePicker, FormikSelect } from 'components/forms';
 import { useCreateMoratorium } from 'hooks';
@@ -176,6 +177,36 @@ export const MoratoriumNew: React.FC = () => {
                   label='Expiration Date'
                   minDate={undefined}
                   maxDate={null}
+                  slotProps={{
+                    shortcuts: {
+                      items: [
+                        {
+                          label: '1 week',
+                          getValue: () => {
+                            return addWeeks(new Date(), 1);
+                          },
+                        },
+                        {
+                          label: '2 weeks',
+                          getValue: () => {
+                            return addWeeks(new Date(), 2);
+                          },
+                        },
+                        {
+                          label: '4 weeks',
+                          getValue: () => {
+                            return addWeeks(new Date(), 4);
+                          },
+                        },
+                        {
+                          label: '8 weeks',
+                          getValue: () => {
+                            return addWeeks(new Date(), 8);
+                          },
+                        },
+                      ],
+                    },
+                  }}
                 />
               </Grid>
               <Grid xs={12}>
