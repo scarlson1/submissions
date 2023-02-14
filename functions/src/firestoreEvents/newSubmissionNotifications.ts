@@ -2,7 +2,7 @@ import * as functions from 'firebase-functions';
 import querystring from 'querystring';
 
 import { defineSecret } from 'firebase-functions/params';
-import { Collections } from '../common/enums';
+import { COLLECTIONS } from '../common/enums';
 
 import {
   sendNewSubmissionAdminNotification,
@@ -14,7 +14,7 @@ const sendgridApiKey = defineSecret('SENDGRID_API_KEY');
 
 export const newSubmissionNotifications = functions
   .runWith({ secrets: [sendgridApiKey] })
-  .firestore.document(`${Collections.SUBMISSIONS}/{submissionId}`)
+  .firestore.document(`${COLLECTIONS.SUBMISSIONS}/{submissionId}`)
   .onCreate(async (snap, context) => {
     const submissionId = context.params.submissionId;
     const submission = snap.data();

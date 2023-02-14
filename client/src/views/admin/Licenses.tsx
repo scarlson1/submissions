@@ -126,14 +126,14 @@ export const Licenses: React.FC = () => {
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 2 }}>
-        <Typography variant='h5' sx={{ ml: 4 }}>
+        <Typography variant='h5' sx={{ ml: { xs: 0, sm: 3, md: 4 } }}>
           Surplus Lines License
         </Typography>
         <Button onClick={() => navigate(createPath({ path: ADMIN_ROUTES.SL_LICENSE_NEW }))}>
           New
         </Button>
       </Box>
-      <Box sx={{ height: 500, width: '100%', backgroundColor: 'background.paper' }}>
+      <Box sx={{ height: 500, width: '100%' }}>
         <BasicDataGrid
           rows={data || []}
           columns={licensesColumns}

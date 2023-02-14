@@ -70,10 +70,10 @@ export interface FloodValues {
   countyName?: string;
   latitude: number | null;
   longitude: number | null;
-  coverageActiveBuilding: boolean;
-  coverageActiveStructures: boolean;
-  coverageActiveContents: boolean;
-  coverageActiveAdditional: boolean;
+  // coverageActiveBuilding: boolean;
+  // coverageActiveStructures: boolean;
+  // coverageActiveContents: boolean;
+  // coverageActiveAdditional: boolean;
   limitA: string;
   limitB: string;
   limitC: string;
@@ -97,10 +97,10 @@ export const initialValues: FloodValues = {
   countyName: '',
   latitude: null,
   longitude: null,
-  coverageActiveBuilding: true,
-  coverageActiveStructures: true,
-  coverageActiveContents: true,
-  coverageActiveAdditional: true,
+  // coverageActiveBuilding: true,
+  // coverageActiveStructures: true,
+  // coverageActiveContents: true,
+  // coverageActiveAdditional: true,
   limitA: '250000',
   limitB: '25000',
   limitC: '63000',
@@ -202,13 +202,15 @@ export const SubmissionNew: React.FC = () => {
     [navigate, propertyDetails, user]
   );
 
+  console.log('activeStates: ', activeStates);
+
   return (
     <Container maxWidth='sm'>
       <Box>
         <FormikWizard initialValues={initialValues} onSubmit={handleSubmit} formRef={formikRef}>
           <Step
             label={`What's the Address?`}
-            validationSchema={addressValidationActiveStates}
+            validationSchema={addressValidationActiveStates(activeStates)}
             mutateOnSubmit={handleFetchProperty}
             stepperNavLabel='Address'
           >

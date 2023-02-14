@@ -7,7 +7,7 @@ import os from 'os';
 import fs from 'fs';
 import { v4 as uuid } from 'uuid';
 
-import { Collections } from '../common/enums';
+import { COLLECTIONS } from '../common/enums';
 
 // TODO: add marker overlay ?? https://docs.mapbox.com/api/maps/static-images/#example-request-retrieve-a-static-map-with-a-marker-overlay
 
@@ -15,7 +15,7 @@ const MAPBOX_PUBLIC_TOKEN =
   'pk.eyJ1Ijoic3BlbmNlci1jYXJsc29uIiwiYSI6ImNqeGtoeHhkNjF2eG4zeW1mYjExcWk1aWkifQ.ikWGkKvnTuopUgSgM8nWcg';
 
 export const getStaticSubmissionImg = functions.firestore
-  .document(`${Collections.SUBMISSIONS}/{submissionId}`)
+  .document(`${COLLECTIONS.SUBMISSIONS}/{submissionId}`)
   .onCreate(async (snap) => {
     try {
       const { coordinates: coords } = snap.data(); // userId

@@ -29,13 +29,26 @@ export const addressValidation = yup.object().shape({
   postal: yup.string().required('Postal code is required'),
 });
 
-export const addressValidationActiveStates = yup.object().shape({
-  addressLine1: yup.string().required('Address is required'),
-  addressLine2: yup.string().notRequired(),
-  city: yup.string().required('City is required'),
-  state: yup.string().required('State is required').oneOf(ACTIVE_STATES_ABRV, 'Ineligible state'),
-  postal: yup.string().required('Postal code is required'),
-});
+export const addressValidationActiveStates = (activeStates: { [key: string]: boolean }) =>
+  yup.object().shape({
+    addressLine1: yup.string().required('Address is required'),
+    addressLine2: yup.string().notRequired(),
+    city: yup.string().required('City is required'),
+    state: yup
+      .string()
+      .required('State is required')
+      .test('activeState', 'Ineligible state', (val) => Boolean(val) && activeStates[`${val}`]),
+    // state: yup.string().required('State is required').oneOf(ACTIVE_STATES_ABRV, 'Ineligible state'),
+    postal: yup.string().required('Postal code is required'),
+  });
+
+// export const addressValidationActiveStates = yup.object().shape({
+//   addressLine1: yup.string().required('Address is required'),
+//   addressLine2: yup.string().notRequired(),
+//   city: yup.string().required('City is required'),
+//   state: yup.string().required('State is required').oneOf(ACTIVE_STATES_ABRV, 'Ineligible state'),
+//   postal: yup.string().required('Postal code is required'),
+// });
 
 const getNumValue = (val: any): number =>
   typeof val === 'string' ? parseInt(val || '0') : typeof val === 'number' ? val : 0;

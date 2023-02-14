@@ -22,7 +22,7 @@ export const BasicDataGrid: React.FC<AdditionalNamedInsuredsProps> = ({
   // >
   return (
     // <Box sx={{ display: 'flex', height: '100%' }}>
-    //   <div style={{ flexGrow: 1, maxWidth: '100%' }}>
+    // {/* <div style={{ flexGrow: 1, maxWidth: '100%' }}> */}
     <Box sx={{ width: '100%', height: '100%' }}>
       <DataGrid
         rows={rows}

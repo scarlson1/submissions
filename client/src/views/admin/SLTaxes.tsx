@@ -187,7 +187,7 @@ export const SLTaxes: React.FC<SLTaxesProps> = () => {
           New
         </Button>
       </Box>
-      <Box sx={{ height: 500, width: '100%', backgroundColor: 'background.paper' }}>
+      <Box sx={{ height: 500, width: '100%' }}>
         <BasicDataGrid
           rows={data || []}
           columns={taxColumns}

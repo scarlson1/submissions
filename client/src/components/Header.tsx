@@ -103,10 +103,16 @@ export const Header: React.FC<HeaderProps> = () => {
         title: 'Submissions',
         route: createPath({ path: ADMIN_ROUTES.SUBMISSIONS }),
       },
-      // {
-      //   title: 'New Quote',
-      //   route: createPath({ path: ADMIN_ROUTES.QUOTE_NEW }),
-      // },
+      {
+        title: 'Agency Apps',
+        route: createPath({
+          path: ADMIN_ROUTES.AGENCY_APPS,
+        }),
+      },
+      {
+        title: 'New Quote',
+        route: createPath({ path: ADMIN_ROUTES.QUOTE_NEW, params: { productId: 'flood' } }),
+      },
       {
         title: 'Taxes',
         route: createPath({ path: ADMIN_ROUTES.SL_TAXES }),
@@ -294,7 +300,13 @@ export const Header: React.FC<HeaderProps> = () => {
           >
             iDemand
           </Typography>
-          <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
+          <Box
+            sx={{
+              flexGrow: 1,
+              flexShrink: 1,
+              display: { xs: 'none', md: 'flex' },
+            }}
+          >
             {navPages?.map((page) => (
               <Button
                 key={page.title}
@@ -304,6 +316,7 @@ export const Header: React.FC<HeaderProps> = () => {
                   display: 'block',
                   color: (theme) =>
                     theme.palette.mode === 'dark' ? 'white' : theme.palette.text.primary,
+                  whiteSpace: 'nowrap',
                 }}
               >
                 {page.title}
@@ -311,7 +324,7 @@ export const Header: React.FC<HeaderProps> = () => {
             ))}
           </Box>
 
-          <Box sx={{ flexGrow: 0 }}>
+          <Box sx={{ flexGrow: 0, flexShrink: 0 }}>
             <IconButton sx={{ mx: { xs: 1, sm: 2, md: 3 } }} onClick={changeTheme} color='primary'>
               {theme.palette.mode === 'dark' ? (
                 <Brightness7 fontSize='small' />

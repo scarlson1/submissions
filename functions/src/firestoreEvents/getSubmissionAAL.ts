@@ -2,8 +2,8 @@ import { getFirestore } from 'firebase-admin/firestore';
 import * as functions from 'firebase-functions';
 import { defineSecret } from 'firebase-functions/params';
 
-import { swissReResCollection } from '../common/dbCollections';
-import { Collections } from '../common/enums';
+import { swissReResCollection } from '../common/dbCOLLECTIONS';
+import { COLLECTIONS } from '../common/enums';
 import { Submission } from '../common/types';
 import { getSwissReInstance } from '../services/swissRe';
 
@@ -14,7 +14,7 @@ const swissReSubscriptionKey = defineSecret('SWISS_RE_SUBSCRIPTION_KEY');
 
 export const getSubmissionAAL = functions
   .runWith({ secrets: [swissReClientId, swissReClientSecret, swissReSubscriptionKey] })
-  .firestore.document(`${Collections.SUBMISSIONS}/{submissionId}`)
+  .firestore.document(`${COLLECTIONS.SUBMISSIONS}/{submissionId}`)
   .onCreate(async (snap) => {
     const sub = snap.data() as Submission;
     const db = getFirestore();

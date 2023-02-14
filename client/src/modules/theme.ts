@@ -923,6 +923,7 @@ export function getThemedComponents(theme: Theme): {
             '.MuiDataGrid-cell:hover, .MuiDataGrid-cellContent:hover': {
               cursor: 'pointer',
             },
+            backgroundColor: theme.palette.background.paper,
             borderColor:
               theme.palette.mode === 'dark'
                 ? theme.palette.primaryDark[500]

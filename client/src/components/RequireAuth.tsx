@@ -4,13 +4,13 @@ import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { getAuth, signInAnonymously, UserCredential } from 'firebase/auth';
 
 // import { auth } from 'firebaseConfig';
-import { useAuth, CustomClaims } from 'modules/components/AuthContext';
+import { useAuth, CUSTOM_CLAIMS } from 'modules/components/AuthContext';
 import { toast } from 'react-hot-toast';
 import { AUTH_ROUTES, createPath } from 'router';
 
 // TODO: read for reference: https://adarshaacharya.com.np/blog/role-based-auth-with-react-router-v6
 
-type CustomClaimKeys = keyof typeof CustomClaims;
+type CustomClaimKeys = keyof typeof CUSTOM_CLAIMS;
 
 export interface RequireAuthProps {
   children: JSX.Element;
@@ -24,7 +24,7 @@ export const RequireAuth: React.FC<RequireAuthProps> = ({
   children,
   allowAnonymous = false,
   requiredClaims = null,
-  redirectPath = '/auth/login',
+  redirectPath = createPath({ path: AUTH_ROUTES.LOGIN }),
   shouldSignInAnonymously = false,
 }) => {
   const auth = getAuth();
@@ -37,7 +37,7 @@ export const RequireAuth: React.FC<RequireAuthProps> = ({
   // If requiredClaims included, check required claims
   useEffect(() => {
     if (requiredClaims && requiredClaims.length > 0 && !loadingInitial) {
-      let notAuthorized = requiredClaims.every((key) => !customClaims[CustomClaims[key]]);
+      let notAuthorized = requiredClaims.every((key) => !customClaims[CUSTOM_CLAIMS[key]]);
 
       if (!!notAuthorized) {
         if (user && user.uid) {
@@ -88,7 +88,7 @@ export const RequireAuth: React.FC<RequireAuthProps> = ({
   ) {
     console.log("not authenticated => routing to '/login'", user, loadingInitial);
     toast.error('Authentication required to access route');
-    return <Navigate to={redirectPath} state={{ from: location }} />;
+    return <Navigate to={redirectPath} state={{ from: location }} replace={true} />;
   }
 
   return children;

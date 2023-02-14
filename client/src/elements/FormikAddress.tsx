@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Grid, SelectProps, TextFieldProps } from '@mui/material';
+import { Box, Grid, Grid2Props, SelectProps, TextFieldProps } from '@mui/material';
 import { Field, FieldProps } from 'formik';
 
 import {
@@ -16,7 +16,9 @@ export interface FormikAddressProps {
   cb?: (coords: { lat: number | null; lng: number | null }, state?: string) => void; // (values?: any) => Promise<any>;
   setFieldValue: (field: string, value: any, shouldValidate?: boolean) => void;
   textFieldProps?: TextFieldProps;
+  autocompleteTextFieldProps?: TextFieldProps;
   selectFieldProps?: Omit<SelectProps, 'label'>;
+  gridProps?: Grid2Props;
   children?: React.ReactNode;
 }
 
@@ -24,6 +26,8 @@ export const FormikAddress: React.FC<FormikAddressProps> = ({
   setFieldValue,
   cb,
   textFieldProps,
+  autocompleteTextFieldProps,
+  gridProps,
   // selectFieldProps,
   children,
 }) => {
@@ -37,7 +41,7 @@ export const FormikAddress: React.FC<FormikAddressProps> = ({
 
     setFieldValue(
       'addressLine1',
-      `${newStreetNumber?.long_name || ''} ${newStreetName?.long_name || ''}`
+      `${newStreetNumber?.long_name || ''} ${newStreetName?.long_name || ''}`.trim()
     );
     setFieldValue('city', `${newCity?.long_name || ''}`);
     setFieldValue('countyName', `${newCounty?.long_name || ''}`);
@@ -71,7 +75,7 @@ export const FormikAddress: React.FC<FormikAddressProps> = ({
         py: 2,
       }}
     >
-      <Grid container spacing={5} columnSpacing={3}>
+      <Grid container spacing={5} columnSpacing={3} {...gridProps}>
         <Grid item xs={12} sm={8}>
           <Field name='addressLine1'>
             {({ field, form, meta }: FieldProps) => {
@@ -84,7 +88,7 @@ export const FormikAddress: React.FC<FormikAddressProps> = ({
                   field={field}
                   form={form}
                   meta={meta}
-                  textFieldProps={textFieldProps}
+                  textFieldProps={{ ...textFieldProps, ...autocompleteTextFieldProps }}
                 />
               );
             }}

@@ -1,26 +1,24 @@
-import { collection, CollectionReference, DocumentData, getFirestore } from 'firebase/firestore';
+import { collection, CollectionReference, DocumentData } from 'firebase/firestore';
 
-import { COLLECTIONS, STATE_ABBREVIATION } from 'common/enums';
+import { COLLECTIONS } from './enums';
 import {
   QuoteData,
   RatingData,
   SpatialKeyResponse,
   Organization,
   Policy,
-  // Notification,
   User,
   UserClaims,
-  // Invite,
-  // AgencyApplication,
+  Invite,
   License,
   Submission,
   NotifyRegistration,
   Tax,
   Moratorium,
   AgencyApplication,
-} from 'common/types';
-// import { db } from 'firebaseConfig';
-const db = getFirestore();
+  ActiveStates,
+} from './types';
+import { db } from 'firebaseConfig';
 
 export const createCollection = <T = DocumentData>(collectionName: string, ...rest: string[]) => {
   return collection(db, collectionName, ...rest) as CollectionReference<T>;
@@ -33,37 +31,23 @@ export const spatialKeyCollection = createCollection<SpatialKeyResponse>(COLLECT
 export const orgsCollection = createCollection<Organization>(COLLECTIONS.ORGANIZATIONS);
 export const policiesCollection = createCollection<Policy>(COLLECTIONS.POLICIES);
 export const usersCollection = createCollection<User>(COLLECTIONS.USERS);
-export const agencyAppCollection = createCollection<AgencyApplication>(
-  COLLECTIONS.AGENCY_APPLICATIONS
-);
 export const licensesCollection = createCollection<License>(COLLECTIONS.LICENSES);
 export const notifyRegistration = createCollection<NotifyRegistration>(
   COLLECTIONS.NOTIFY_REGISTRATION
 );
 export const taxesCollection = createCollection<Tax>(COLLECTIONS.TAXES);
-export const statesCollection = createCollection<{ [key in STATE_ABBREVIATION]: boolean }>(
-  COLLECTIONS.ACTIVE_STATES
-);
+export const statesCollection = createCollection<ActiveStates>(COLLECTIONS.ACTIVE_STATES);
 export const moratoriumsCollection = createCollection<Moratorium>(COLLECTIONS.MORATORIUMS);
-// export const surplusLinesLicensesCollection = createCollection<Moratorium>(COLLECTIONS.MORATORIUMS);
+export const agencyAppCollection = createCollection<AgencyApplication>(
+  COLLECTIONS.AGENCY_APPLICATIONS
+);
 
-// SubCOLLECTIONS
+// SUB COLLECTIONS
 export const userClaimsCollection = (orgId: string) =>
   createCollection<UserClaims>(COLLECTIONS.ORGANIZATIONS, orgId, COLLECTIONS.USER_CLAIMS);
-// export const invitesCollection = (orgId: string, ...rest: any) =>
-//   createCollection<Invite>(COLLECTIONS.ORGANIZATIONS, orgId, COLLECTIONS.INVITES, ...rest);
+export const invitesCollection = (orgId: string, ...rest: any) =>
+  createCollection<Invite>(COLLECTIONS.ORGANIZATIONS, orgId, COLLECTIONS.INVITES, ...rest);
 // export const notificationsCollection = (userId: string) =>
 //   createCollection<Notification>(COLLECTIONS.USERS, userId, COLLECTIONS.NOTIFICATIONS);
 // export const licensesCollection = (orgId: string) =>
 // createCollection<License>(COLLECTIONS.ORGANIZATIONS, orgId, COLLECTIONS.LICENSES);
-
-// EXAMPLE
-
-// export const setJamiesUser = async () => {
-//   const userRef = doc(usersCol, 'user_12345')
-//   await setDoc(userRef, {
-//     age: 30,
-//     firstName: 'Jamie',
-//     lastName: 'Curnow'
-//   })
-// }

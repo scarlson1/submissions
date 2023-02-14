@@ -29,63 +29,79 @@ service cloud.firestore {
       allow update: if isUser(existingData().userId) || isIDemandAdmin()
       allow delete: if isIDemandAdmin()
     }
-     match /quotes/{quoteId} {
+
+    match /quotes/{quoteId} {
       allow read: if true
       allow create: if isIDemandAdmin()
       allow update: if isUser(existingData().userId) || (isIDemandAdmin() && emailVerified())
       allow delete: if false
     }
+
     match /policies/{policyId} {
       allow read: if isUser(existingData().userId) || isIDemandAdmin()
       allow create: if isIDemandAdmin() && emailVerified()
       allow update: if isIDemandAdmin() && emailVerified()
       allow delete: if false
     }
+
     match /users/{userId} {
       allow create, update, read: if isUser(userId) || (isIDemandAdmin() && emailVerified())
       allow delete: if isIDemandAdmin() && emailVerified()
     }
+
     match /organizations/{orgId} {
       allow read: if isUser(existingData().userId)
       allow create: if isSignedIn() && emailVerified() && isIDemandAdmin()
       allow update: if isSignedIn() && emailVerified() && (isIDemandAdmin() || (isOrgAdmin() && isTenantUser(orgId)))
       allow delete: if isSignedIn() && emailVerified() && isIDemandAdmin()
     }
+
+    match /organizations/{orgId}/invitations/{inviteId} {
+      allow read: if isSignedIn() && isTenantUser(orgId)
+      allow create, update, delete: if isSignedIn() && emailVerified() && (isIDemandAdmin() || (isOrgAdmin() && isTenantUser(orgId)))
+    }
+
     match /spatialKey/{skDocId} {
       allow read: if isIDemandAdmin() && emailVerified()
       allow create: if false
       allow update, delete: if false
     }
+
      match /notifyRegistration/{notifyId} {
       allow read: if isIDemandAdmin() || isUser(existingData().userId)
       allow create: if true
       allow update: if isSignedIn() && (isUser(existingData().userId) || isIDemandAdmin())
       allow delete: if isIDemandAdmin() && emailVerified()
     }
+
     match /surplusLinesTaxes/{taxId} {
       allow read: if isIDemandAdmin()
       allow create: if isIDemandAdmin() && emailVerified()
       allow update: if isIDemandAdmin() && emailVerified()
       allow delete: if false
     }
+
     match /states/{productId} {
       allow read: if true
       allow create: if isIDemandAdmin() && emailVerified()
       allow update: if isIDemandAdmin() && emailVerified()
       allow delete: if false
     }
+
     match /agencySubmissions/{subId} {
-      allow read: if true
-      allow create: if true
-      allow update: if isIDemandAdmin() && emailVerified()
-      allow delete: if false
+      allow read, write: if true
+      // allow create: if true
+      // allow update: if isIDemandAdmin() && emailVerified()
+      // allow delete: if false
     }
+
     match /moratoriums/{moratoriumId} {
       allow read: if true
       allow create: if isIDemandAdmin() && emailVerified()
       allow update: if isIDemandAdmin() && emailVerified()
       allow delete: if isIDemandAdmin() && emailVerified()
     }
+
     // TODO: if agent / agency etc.
     match /licenses/{licenseId} {
       allow read: if isIDemandAdmin()
@@ -93,6 +109,7 @@ service cloud.firestore {
       allow update: if isIDemandAdmin() && emailVerified()
       allow delete: if isIDemandAdmin() && emailVerified()
     }
+
     match /tasks/{taskId} {
       allow read: if true
       allow create: if isIDemandAdmin() && emailVerified()
@@ -114,7 +131,7 @@ service cloud.firestore {
     }
 
     function isOrgAdmin() {
-      return request.auth.token.admin == true
+      return request.auth.token.orgAdmin == true
     }
 
     // // Fetch a user from Firestore

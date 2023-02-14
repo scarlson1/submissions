@@ -1,7 +1,6 @@
 import * as functions from 'firebase-functions';
-import { getFirestore } from 'firebase-admin/firestore'; // Timestamp, FieldValue
+import { getFirestore } from 'firebase-admin/firestore';
 import { defineSecret } from 'firebase-functions/params';
-// import invariant from 'tiny-invariant';
 
 import { LimitTypes, SpatialKeyResponse } from '../common/types';
 import { getSpatialKeyInstance } from '../services';
@@ -25,6 +24,13 @@ interface InitLimits {
 const spatialKeyUserKey = defineSecret('SPATIALKEY_USER_API_KEY');
 const spatialKeyOrgKey = defineSecret('SPATIALKEY_ORG_API_KEY');
 const spatialKeySecretKey = defineSecret('SPATIALKEY_ORG_SECRET_KEY');
+
+// const maxLimitA = defineInt('FLOOD_MAX_LIMIT_A', {
+//   default: 1000000,
+// });
+// const minLimitA = defineInt('FLOOD_MIN_LIMIT_A', {
+//   default: 100000,
+// });
 
 export const getPropertyDetails = functions
   .runWith({
@@ -95,6 +101,8 @@ export const getPropertyDetails = functions
           let MAX_A = parseInt(process.env.FLOOD_MAX_LIMIT_A!) || 1000000;
           // let MAX_BCD = parseInt(process.env.FLOOD_MAX_LIMIT_B_C_D!) || 1000000;
           let MIN_A = parseInt(process.env.FLOOD_MIN_LIMIT_A!) || 100000;
+          // let MAX_A = maxLimitA.value() || 1000000;
+          // let MIN_A = minLimitA.value() || 100000;
 
           // let RCVRef = Math.min(replacementCost, MAX_A);
           let limitARef = roundUpToNearest(Math.min(Math.max(replacementCost, MIN_A), MAX_A), 3);

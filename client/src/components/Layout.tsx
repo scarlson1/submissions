@@ -40,9 +40,9 @@ export const Layout: React.FC<LayoutProps> = ({
         <Container {...containerProps}>
           <Box
             sx={{
-              pt: noPadding ? 0 : 6,
-              px: noPadding ? 0 : 6,
-              pb: noPadding ? 0 : 10,
+              pt: noPadding ? 0 : { xs: 2, sm: 3, md: 4, lg: 6 },
+              px: noPadding ? 0 : { xs: 2, sm: 3, md: 4, lg: 6 },
+              pb: noPadding ? 0 : { xs: 5, sm: 6, md: 8, lg: 10 },
               flex: '1 0 auto',
               display: 'flex',
               flexDirection: 'column',

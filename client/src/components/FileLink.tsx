@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Link, Typography } from '@mui/material';
+import { Box, Link, LinkProps, Typography, TypographyProps } from '@mui/material';
 
 import { useOpenStorageFile } from 'hooks';
 
@@ -7,9 +7,17 @@ export interface FileLinkProps {
   filepath: string;
   url: string;
   fileType?: string;
+  typographyProps?: TypographyProps;
+  linkProps?: LinkProps;
 }
 
-export const FileLink: React.FC<FileLinkProps> = ({ filepath, url, fileType }) => {
+export const FileLink: React.FC<FileLinkProps> = ({
+  filepath,
+  url,
+  fileType,
+  typographyProps,
+  linkProps,
+}) => {
   let { openFileInNewTab, error } = useOpenStorageFile();
   const [fileExt, setFileExt] = useState('');
 
@@ -32,9 +40,11 @@ export const FileLink: React.FC<FileLinkProps> = ({ filepath, url, fileType }) =
         underline='none'
         onClick={() => handleOpenFile(url)}
         sx={{ maxWidth: '100%', '&:hover': { cursor: 'pointer' } }}
+        {...linkProps}
       >
         <Box sx={{ display: 'flex', minWidth: 0, maxWidth: { xs: 260, sm: 600 } }}>
           <Typography
+            {...typographyProps}
             sx={{
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
@@ -44,7 +54,7 @@ export const FileLink: React.FC<FileLinkProps> = ({ filepath, url, fileType }) =
             {/* eslint-disable-next-line */}
             {filepath.replace(/^.*[\\\/]/, '').split('.')[0]}
           </Typography>
-          <Typography component='span' sx={{ flexShrink: 0 }}>
+          <Typography component='span' {...typographyProps} sx={{ flexShrink: 0 }}>
             {fileType ?? fileExt}
           </Typography>
         </Box>

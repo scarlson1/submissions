@@ -2,7 +2,7 @@ import * as functions from 'firebase-functions';
 import 'firebase-functions';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 
-import { usersCollection } from '../common/dbCollections';
+import { usersCollection } from '../common';
 
 // TODO: change to onWrite (will pass change when oncreate or onupdate trigger)
 

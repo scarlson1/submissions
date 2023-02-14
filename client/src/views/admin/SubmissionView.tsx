@@ -184,7 +184,7 @@ export const SubmissionView: React.FC = () => {
           <RowItem title='Replacement Cost' value={dollarFormat(data.replacementCost)} />
           <RowItem title='Square Footage' value={numberFormat(data.sqFootage)} />
           <RowItem title='Year Built' value={data.yearBuilt} />
-          <RowItem title='Distance To Coast' value={numberFormat(data.distToCoastFeet)} />
+          <RowItem title='Distance To Coast (ft)' value={numberFormat(data.distToCoastFeet)} />
           <RowItem title='Property Code' value={data.propertyCode} />
           <RowItem title='CBRS Designation' value={data.CBRSDesignation} />
           <RowItem title='Basement' value={data.basement} />

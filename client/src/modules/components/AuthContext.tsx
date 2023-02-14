@@ -36,12 +36,12 @@ import { toast } from 'react-hot-toast';
 // TODO: set up reducer & actions
 // https://www.youtube.com/watch?v=YmHEzjglRMk
 
-export enum CustomClaims {
-  Admin = 'admin',
-  iDemandAdmin = 'iDemandAdmin',
-  Agent = 'agent',
+export enum CUSTOM_CLAIMS {
+  ORG_ADMIN = 'orgAdmin',
+  IDEMAND_ADMIN = 'iDemandAdmin',
+  AGENT = 'agent',
 }
-export type CustomClaimsInterface = Record<CustomClaims, boolean>;
+export type CustomClaimsInterface = Record<CUSTOM_CLAIMS, boolean>;
 
 interface AuthContextValue {
   user: User | null;
@@ -79,7 +79,7 @@ export const AuthContext = createContext<AuthContextValue>({
   reauthenticateUser: () => Promise.reject('initialized func'),
   reauthIfRequired: () => Promise.reject(),
   updateUserEmail: () => Promise.reject(),
-  customClaims: { admin: false, agent: false, iDemandAdmin: false },
+  customClaims: { orgAdmin: false, agent: false, iDemandAdmin: false },
 });
 // export const AuthContext = createContext({})
 
@@ -90,7 +90,7 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
   const [loading, setLoading] = useState(false);
   const [loadingInitial, setLoadingInitial] = useState(true);
   const [customClaims, setCustomClaims] = useState<CustomClaimsInterface>({
-    admin: false,
+    orgAdmin: false,
     agent: false,
     iDemandAdmin: false,
   });
@@ -107,7 +107,7 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
     setLoading(true);
     if (!auth.currentUser) {
       setCustomClaims({
-        admin: false,
+        orgAdmin: false,
         agent: false,
         iDemandAdmin: false,
       });
@@ -119,7 +119,7 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
 
     setCustomClaims({
       ...idTokenResult.claims,
-      admin: !!idTokenResult.claims.admin,
+      orgAdmin: !!idTokenResult.claims.orgAdmin,
       agent: !!idTokenResult.claims.agent,
       iDemandAdmin: !!idTokenResult.claims.iDemandAdmin,
     });
@@ -211,11 +211,12 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
 
   /**
    * Sends email verification to currentUser
-   * @returns {Promise} returns sendEmailVerification which resolves to void
+   * @returns {Promise} returns sendEmailVerification which resolves current users email
    */
   const sendVerification = useCallback(async () => {
     if (!auth.currentUser) throw new Error('Must be signed in');
     await sendEmailVerification(auth.currentUser);
+    return auth.currentUser.email;
   }, [auth]);
 
   /**

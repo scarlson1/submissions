@@ -3,7 +3,7 @@ import { DecodedIdToken } from 'firebase-admin/auth';
 import { GeoPoint } from 'firebase-admin/firestore';
 // import { Timestamp, WithFieldValue } from '@google-cloud/firestore';
 
-import { SubmissionStatus } from './enums';
+import { SUBMISSION_STATUS, PRODUCT, AGENCY_STATUS } from './enums';
 
 // TODO: fix typescript error app.use(thisMiddleware) is users.ts
 
@@ -28,6 +28,59 @@ export interface User {
   lastName?: string;
   initialAnonymous?: boolean;
   metadata: BaseMetadata;
+}
+
+export interface Address {
+  addressLine1: string;
+  addressLine2: string;
+  city: string;
+  state: string;
+  postal: string;
+}
+
+export type AuthProviders =
+  | 'password'
+  | 'phone'
+  | 'google.com'
+  | 'microsoft.com'
+  | 'apple.com'
+  | 'twitter.com'
+  | 'github.com'
+  | 'yahoo.com'
+  | 'hotmail.com';
+
+export interface Organization {
+  address?: Address;
+  coordinates?: GeoPoint;
+  orgName: string;
+  tenantId: string | null;
+  primaryContact?: {
+    displayName: string;
+    firstName?: string;
+    lastName?: string;
+    email: string;
+    phone: string;
+    userId?: string;
+  };
+  principalProducer?: {
+    displayName: string;
+    firstName?: string;
+    lastName?: string;
+    email: string;
+    phone?: string;
+    NPN: string;
+    userId?: string;
+  };
+  FEIN?: string;
+  EandOURL?: string;
+  accountNumber?: string;
+  routingNumber?: string;
+  emailDomain?: string;
+  enforceDomainRestriction?: boolean;
+  status: AGENCY_STATUS;
+  metadata: BaseMetadata;
+  defaultCommission: { [key in PRODUCT]?: number };
+  authProviders: AuthProviders[];
 }
 
 export type LimitTypes = 'limitA' | 'limitB' | 'limitC' | 'limitD';
@@ -117,7 +170,7 @@ export interface FetchPropertyDataResponse {
 export interface Submission extends FloodFormValues, FetchPropertyDataResponse {
   coordinates: GeoPoint;
   userId?: string | null;
-  status: SubmissionStatus;
+  status: SUBMISSION_STATUS;
   submittedById?: string | null;
   darkMapImageURL?: string;
   lightMapImageURL?: string;
@@ -129,6 +182,28 @@ export interface Submission extends FloodFormValues, FetchPropertyDataResponse {
   satelliteStreetsMapImageFilePath?: string;
   inlandAAL?: number;
   surgeAAL?: number;
+  metadata: BaseMetadata;
+}
+
+export type InviteStatus = 'pending' | 'accepted' | 'revoked' | 'replaced' | 'rejected' | 'error';
+
+export interface Invite {
+  email: string;
+  displayName?: string;
+  firstName?: string;
+  lastName?: string;
+  link?: string; // eslint-disable-next-line
+  customClaims?: { [key: string]: any };
+  orgId: string | null;
+  orgName?: string;
+  status: InviteStatus;
+  isCreateOrgInvite?: boolean;
+  id: string;
+  invitedBy?: {
+    userId?: string;
+    name?: string;
+    email: string;
+  } | null;
   metadata: BaseMetadata;
 }
 

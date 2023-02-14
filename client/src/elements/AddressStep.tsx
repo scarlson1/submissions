@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { Card, Typography } from '@mui/material';
+import { Card, Grid2Props, Typography } from '@mui/material';
 import { useFormikContext } from 'formik';
 import { FlyToInterpolator, MapViewState } from '@deck.gl/core/typed';
 import { Marker } from 'react-map-gl';
@@ -25,6 +25,7 @@ export interface AddressStepProps {
   activeStates?: { [key: string]: boolean };
   shouldValidateStates?: boolean;
   withMap?: boolean;
+  gridProps?: Grid2Props;
 }
 
 // TODO: state and postal validation
@@ -34,6 +35,7 @@ export const AddressStep: React.FC<AddressStepProps> = ({
   activeStates = {},
   shouldValidateStates = false,
   withMap = true,
+  gridProps,
 }) => {
   const { values, setFieldValue, validateForm } = useFormikContext<AddressStepValues>();
   const [showMarker, setShowMarker] = useState(Boolean(values.latitude && values.longitude));
@@ -92,7 +94,14 @@ export const AddressStep: React.FC<AddressStepProps> = ({
   }, [registerEmailDialog]);
 
   return (
-    <FormikAddress setFieldValue={setFieldValue} cb={addressChangeCb}>
+    <FormikAddress
+      setFieldValue={setFieldValue}
+      cb={addressChangeCb}
+      autocompleteTextFieldProps={{
+        helperText: values.addressLine1 ? `Current value: ${values.addressLine1}` : undefined,
+      }}
+      gridProps={gridProps}
+    >
       {!!withMap && (
         <>
           <Card sx={{ height: 280, width: '100%', mt: 5 }}>

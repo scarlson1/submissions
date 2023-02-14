@@ -55,6 +55,7 @@ export const protosureLoader = async ({ params, request, context }: LoaderFuncti
     const snap = await getDoc(doc(statesCollection, productId));
 
     const data = snap.data();
+    console.log('active states: ', data);
     if (snap.exists() && data) {
       res.activeStates = { ...data };
     }
@@ -73,6 +74,7 @@ export const protosureLoader = async ({ params, request, context }: LoaderFuncti
     const pathArr = url.pathname.split('/').filter((p) => p);
     if (!quoteId)
       window.history.replaceState(null, '', `/${pathArr.join('/')}/${data.protosureData.id || ''}`);
+    localStorage.setItem('quoteId', data.protosureData.id);
 
     res.protosureData = data.protosureData;
     res.initialFormData = data.initialFormData;
@@ -165,6 +167,7 @@ export const Protosure: React.FC = () => {
       try {
         if (!quoteId) throw new Error('missing quoteId in url');
         // const { data } = await updateAndRateQuote({ quoteId, values, protosureData });
+        // TODO: use firebase hosting redirect
         const { data } = await axios.post(`http://localhost:8080/update-quote/${quoteId}`, values);
         console.log('RES: ', data);
         return values;
@@ -230,6 +233,10 @@ export const Protosure: React.FC = () => {
     },
     [navigate, propertyDetails, user]
   );
+  const handleCancel = useCallback(() => {
+    localStorage.removeItem('quoteId');
+    navigate('/');
+  }, []);
 
   return (
     <Container maxWidth='sm'>
@@ -237,12 +244,13 @@ export const Protosure: React.FC = () => {
         <FormikWizard
           initialValues={{ ...initialValues, ...initialFormData }}
           onSubmit={handleSubmit}
+          onCancel={handleCancel}
           formRef={formikRef}
           enableReinitialize
         >
           <Step
             label={`What's the Address?`}
-            validationSchema={addressValidationActiveStates}
+            validationSchema={addressValidationActiveStates(activeStates)}
             mutateOnSubmit={updateQuote}
             // mutateOnSubmit={handleFetchProperty}
             stepperNavLabel='Address'

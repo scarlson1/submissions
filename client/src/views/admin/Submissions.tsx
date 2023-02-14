@@ -253,10 +253,10 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
 
   return (
     <Box>
-      <Typography variant='h5' gutterBottom sx={{ pl: 3 }}>
+      <Typography variant='h5' gutterBottom sx={{ ml: { xs: 0, sm: 3, md: 4 } }}>
         All Submissions
       </Typography>
-      <Box sx={{ height: 500, width: '100%', backgroundColor: 'background.paper' }}>
+      <Box sx={{ height: 500, width: '100%' }}>
         <BasicDataGrid
           rows={data || []}
           columns={submissionColumns}
@@ -284,13 +284,7 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
             sorting: {
               sortModel: [{ field: 'created', sort: 'desc' }],
             },
-            // pagination: { paginationModel: { pageSize: 5 } },
             pagination: { pageSize: 10 },
-            // filter: {
-            //   filterModel: {
-            //     items: [{ columnField: 'status', operatorValue: 'equals', value: 'pending' }],
-            //   },
-            // },
           }}
         />
       </Box>

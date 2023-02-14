@@ -1,6 +1,12 @@
 import { WithFieldValue, GeoPoint, Timestamp } from 'firebase/firestore';
 
-import { PRODUCT, UWNoteCode, DEDUCTIBLE_OPTIONS, SubmissionStatus } from './enums';
+import {
+  PRODUCT,
+  UWNoteCode,
+  DEDUCTIBLE_OPTIONS,
+  SubmissionStatus,
+  STATE_ABBREVIATION,
+} from './enums';
 import { FloodValues } from 'views/SubmissionNew';
 import { FetchPropertyDataResponse } from 'modules/api/index';
 
@@ -144,13 +150,14 @@ export interface QuoteData {
     version: WithFieldValue<number>;
   };
   insuredName?: string;
-  insuredEmail?: string;
-  insuredPhone?: string;
-  insuredUserId?: string;
-  agencyId: string;
-  agencyName: string;
-  agentId: string;
-  agentName: string;
+  insuredEmail?: string | null;
+  insuredPhone?: string | null;
+  insuredUserId?: string | null;
+  agencyId: string | null;
+  agencyName: string | null;
+  agentId: string | null;
+  agentName: string | null;
+  agentEmail: string | null;
   userId: string | null;
   status: SubmissionStatus; // QuoteStatus;
   statusTransitions: {
@@ -370,6 +377,9 @@ export interface AgencyApplication {
   // latitude?: number | null;
   // longitude?: number | null;
 }
+export interface AgencyApplicationWithId extends AgencyApplication {
+  id: string;
+}
 
 export interface Agency {
   address: Address;
@@ -452,6 +462,12 @@ export interface Invite {
   } | null;
   metadata: BaseMetadata;
 }
+
+export type ActiveStates = {
+  [key in STATE_ABBREVIATION]: boolean;
+};
+
+export type ActiveStatesWithId = ActiveStates & { id: string };
 
 export type NotificationType = 'admin_message' | 'user_event' | 'policy_event';
 

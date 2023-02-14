@@ -8,6 +8,8 @@ export { Moratoriums, moratoriumsLoader } from './Moratoriums';
 export { MoratoriumNew } from './MoratoriumNew';
 export { SLLicenseNew } from './SLLicenseNew';
 export { Licenses, licensesLoader } from './Licenses';
+export { AgencyApp, agencyAppLoader } from './AgencyApp';
+export { AgencyApps, agencyAppsLoader } from './AgencyApps';
 
 export type { SubmissionsProps } from './Submissions';
 export type { SLTaxesProps } from './SLTaxes';

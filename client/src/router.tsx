@@ -18,6 +18,7 @@ import {
   AgencyNew,
   Protosure,
   protosureLoader,
+  Account,
 } from 'views';
 import {
   submissionLoader,
@@ -36,6 +37,10 @@ import {
   SLLicenseNew,
   licensesLoader,
   Licenses,
+  AgencyApp,
+  agencyAppLoader,
+  AgencyApps,
+  agencyAppsLoader,
 } from 'views/admin';
 import { SuccessStep } from 'elements';
 import { Product } from 'common';
@@ -66,12 +71,13 @@ export enum ROUTES {
   USER_POLICY = '/policies/:policyId',
   AGENCY_NEW = '/agency/new',
   PROTOSURE = '/protosure/new/:productId/:quoteId?',
+  ACCOUNT = '/account',
 }
 
 export enum ADMIN_ROUTES {
   SUBMISSIONS = '/admin/submissions',
   SUBMISSION_VIEW = '/admin/submissions/:submissionId',
-  QUOTE_NEW = '/admin/quote/new',
+  QUOTE_NEW = '/admin/quote/:productId/new',
   SL_TAXES = '/admin/sl-tax',
   SL_TAXES_NEW = '/admin/sl-tax/new',
   EDIT_ACTIVE_STATES = '/admin/active-states/:productId/edit',
@@ -79,6 +85,8 @@ export enum ADMIN_ROUTES {
   MORATORIUM_NEW = '/admin/moratoriums/new',
   SL_LICENSES = '/admin/licenses',
   SL_LICENSE_NEW = '/admin/licenses/new',
+  AGENCY_APPS = '/admin/agencies/submissions',
+  AGENCY_APP = '/admin/agencies/submissions/:submissionId',
 }
 
 export enum AUTH_ROUTES {
@@ -97,9 +105,10 @@ type TArgs =
   | { path: ROUTES.AGENCY_NEW }
   | { path: ROUTES.CONTACT }
   | { path: ROUTES.PROTOSURE; params: { productId: Product; quoteId?: string } }
+  | { path: ROUTES.ACCOUNT }
   | { path: ADMIN_ROUTES.SUBMISSIONS }
   | { path: ADMIN_ROUTES.SUBMISSION_VIEW; params: { submissionId: string } }
-  | { path: ADMIN_ROUTES.QUOTE_NEW }
+  | { path: ADMIN_ROUTES.QUOTE_NEW; params: { productId: Product } }
   | { path: ADMIN_ROUTES.SL_TAXES }
   | { path: ADMIN_ROUTES.SL_TAXES_NEW }
   | { path: ADMIN_ROUTES.EDIT_ACTIVE_STATES; params: { productId: Product } }
@@ -107,6 +116,8 @@ type TArgs =
   | { path: ADMIN_ROUTES.MORATORIUM_NEW }
   | { path: ADMIN_ROUTES.SL_LICENSES }
   | { path: ADMIN_ROUTES.SL_LICENSE_NEW }
+  | { path: ADMIN_ROUTES.AGENCY_APPS }
+  | { path: ADMIN_ROUTES.AGENCY_APP; params: { submissionId: string } }
   | { path: AUTH_ROUTES.CREATE_ACCOUNT }
   | { path: AUTH_ROUTES.LOGIN };
 
@@ -218,6 +229,10 @@ export const router = createBrowserRouter([
             path: AUTH_ROUTES.CREATE_ACCOUNT,
             element: <CreateAccount />,
           },
+          {
+            path: ROUTES.ACCOUNT,
+            element: <Account />,
+          },
         ],
       },
       {
@@ -259,7 +274,7 @@ export const router = createBrowserRouter([
           {
             path: ADMIN_ROUTES.SUBMISSIONS,
             element: (
-              <RequireAuth requiredClaims={['iDemandAdmin']}>
+              <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
                 <AdminSubmissions />
               </RequireAuth>
             ),
@@ -269,7 +284,7 @@ export const router = createBrowserRouter([
           {
             path: ADMIN_ROUTES.SUBMISSION_VIEW,
             element: (
-              <RequireAuth requiredClaims={['iDemandAdmin']}>
+              <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
                 <SubmissionView />
               </RequireAuth>
             ),
@@ -279,7 +294,7 @@ export const router = createBrowserRouter([
           {
             path: ADMIN_ROUTES.QUOTE_NEW,
             element: (
-              <RequireAuth requiredClaims={['iDemandAdmin']}>
+              <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
                 <QuoteNew />
               </RequireAuth>
             ),
@@ -288,7 +303,7 @@ export const router = createBrowserRouter([
             path: ADMIN_ROUTES.SL_TAXES,
             loader: adminTaxLoader,
             element: (
-              <RequireAuth requiredClaims={['iDemandAdmin']}>
+              <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
                 <SLTaxes />
               </RequireAuth>
             ),
@@ -297,7 +312,7 @@ export const router = createBrowserRouter([
           {
             path: ADMIN_ROUTES.SL_TAXES_NEW,
             element: (
-              <RequireAuth requiredClaims={['iDemandAdmin']}>
+              <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
                 <SLTaxNew />
               </RequireAuth>
             ),
@@ -306,7 +321,7 @@ export const router = createBrowserRouter([
             path: ADMIN_ROUTES.EDIT_ACTIVE_STATES,
             loader: activeStatesLoader,
             element: (
-              <RequireAuth requiredClaims={['iDemandAdmin']}>
+              <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
                 <EditActiveStates />
               </RequireAuth>
             ),
@@ -315,7 +330,7 @@ export const router = createBrowserRouter([
             path: ADMIN_ROUTES.MORATORIUMS,
             loader: moratoriumsLoader,
             element: (
-              <RequireAuth requiredClaims={['iDemandAdmin']}>
+              <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
                 <Moratoriums />
               </RequireAuth>
             ),
@@ -323,7 +338,7 @@ export const router = createBrowserRouter([
           {
             path: ADMIN_ROUTES.MORATORIUM_NEW,
             element: (
-              <RequireAuth requiredClaims={['iDemandAdmin']}>
+              <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
                 <MoratoriumNew />
               </RequireAuth>
             ),
@@ -332,7 +347,7 @@ export const router = createBrowserRouter([
             path: ADMIN_ROUTES.SL_LICENSES,
             loader: licensesLoader,
             element: (
-              <RequireAuth requiredClaims={['iDemandAdmin']}>
+              <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
                 <Licenses />
               </RequireAuth>
             ),
@@ -340,8 +355,26 @@ export const router = createBrowserRouter([
           {
             path: ADMIN_ROUTES.SL_LICENSE_NEW,
             element: (
-              <RequireAuth requiredClaims={['iDemandAdmin']}>
+              <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
                 <SLLicenseNew />
+              </RequireAuth>
+            ),
+          },
+          {
+            path: ADMIN_ROUTES.AGENCY_APPS,
+            loader: agencyAppsLoader,
+            element: (
+              <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
+                <AgencyApps />
+              </RequireAuth>
+            ),
+          },
+          {
+            path: ADMIN_ROUTES.AGENCY_APP,
+            loader: agencyAppLoader,
+            element: (
+              <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
+                <AgencyApp />
               </RequireAuth>
             ),
           },

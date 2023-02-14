@@ -2,12 +2,12 @@ import * as _ from 'lodash';
 import { formatDistance, format } from 'date-fns';
 import numeral from 'numeral';
 import { Location } from 'react-router-dom';
-import { GridValueFormatterParams } from '@mui/x-data-grid';
+import { GridValueFormatterParams, GridValueGetterParams } from '@mui/x-data-grid';
 import { FirestoreError, Timestamp } from 'firebase/firestore';
 import { FirebaseError } from '@firebase/util';
 
 import { AddressComponent, AddressComponentType } from 'components/forms';
-import { FirestoreTimestamp } from 'common/types';
+import { Address, FirestoreTimestamp } from 'common/types';
 import { AuthError } from 'firebase/auth';
 
 /**
@@ -315,3 +315,16 @@ export const maskStringShowLast = (str: string, showLast: number = 4, mask: stri
 export const readableFirebaseCode = (err: AuthError | FirestoreError) => {
   return err.code.split('/')[1].split('-').join(' ');
 };
+
+export function getAddressComponent(address: Address, addressComponent: keyof Address) {
+  if (!address || !address[addressComponent]) return '';
+  return address[addressComponent];
+}
+
+export function getGridAddressComponent(
+  params: GridValueGetterParams<any, any>,
+  addressComponent: keyof Address
+) {
+  if (!params.row || !params.row.address) return '';
+  return getAddressComponent(params.row.address, addressComponent);
+}
