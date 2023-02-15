@@ -14,6 +14,7 @@ export const getSpatialKeyInstance = (args: GenerateTokenArgs) => {
 
   instance.interceptors.request.use(
     async (config: AxiosRequestConfig) => {
+      // @ts-ignore
       if (!config.headers) config.headers = {};
       // @ts-ignore
       if (!config.headers.common || !config.headers.common['x-sktoken']) {
