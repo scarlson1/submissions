@@ -1,55 +1,57 @@
 import { collection, CollectionReference, DocumentData } from 'firebase/firestore';
 
-import { Collections } from 'common/enums';
+import { COLLECTIONS } from './enums';
 import {
   QuoteData,
   RatingData,
   SpatialKeyResponse,
   Organization,
-  // Policy,
-  // Notification,
+  Policy,
   User,
   UserClaims,
-  // Invite,
-  // AgencyApplication,
+  Invite,
   License,
   Submission,
-} from 'common/types';
+  NotifyRegistration,
+  Tax,
+  Moratorium,
+  AgencyApplication,
+  ActiveStates,
+  SubmissionQuoteData,
+} from './types';
 import { db } from 'firebaseConfig';
 
 export const createCollection = <T = DocumentData>(collectionName: string, ...rest: string[]) => {
   return collection(db, collectionName, ...rest) as CollectionReference<T>;
 };
 
-export const submissionsCollection = createCollection<Submission>(Collections.SUBMISSIONS);
-export const quotesCollection = createCollection<QuoteData>(Collections.QUOTES);
-export const ratingCollection = createCollection<RatingData>(Collections.RATING_DATA);
-export const spatialKeyCollection = createCollection<SpatialKeyResponse>(Collections.SK_RES);
-export const orgsCollection = createCollection<Organization>(Collections.ORGANIZATIONS);
-// export const policiesCollection = createCollection<Policy>(Collections.POLICIES);
-export const usersCollection = createCollection<User>(Collections.USERS);
-// export const agencyAppCollection = createCollection<AgencyApplication>(
-//   Collections.AGENCY_APPLICATIONS
-// );
-export const licensesCollection = createCollection<License>(Collections.LICENSES);
+export const submissionsCollection = createCollection<Submission>(COLLECTIONS.SUBMISSIONS);
+export const quotesCollection = createCollection<QuoteData>(COLLECTIONS.QUOTES);
+export const submissionsQuotesCollection = createCollection<SubmissionQuoteData>(
+  COLLECTIONS.SUBMISSIONS_QUOTES
+);
+export const ratingCollection = createCollection<RatingData>(COLLECTIONS.RATING_DATA);
+export const spatialKeyCollection = createCollection<SpatialKeyResponse>(COLLECTIONS.SK_RES);
+export const orgsCollection = createCollection<Organization>(COLLECTIONS.ORGANIZATIONS);
+export const policiesCollection = createCollection<Policy>(COLLECTIONS.POLICIES);
+export const usersCollection = createCollection<User>(COLLECTIONS.USERS);
+export const licensesCollection = createCollection<License>(COLLECTIONS.LICENSES);
+export const notifyRegistration = createCollection<NotifyRegistration>(
+  COLLECTIONS.NOTIFY_REGISTRATION
+);
+export const taxesCollection = createCollection<Tax>(COLLECTIONS.TAXES);
+export const statesCollection = createCollection<ActiveStates>(COLLECTIONS.ACTIVE_STATES);
+export const moratoriumsCollection = createCollection<Moratorium>(COLLECTIONS.MORATORIUMS);
+export const agencyAppCollection = createCollection<AgencyApplication>(
+  COLLECTIONS.AGENCY_APPLICATIONS
+);
 
-// Subcollections
+// SUB COLLECTIONS
 export const userClaimsCollection = (orgId: string) =>
-  createCollection<UserClaims>(Collections.ORGANIZATIONS, orgId, Collections.USER_CLAIMS);
-// export const invitesCollection = (orgId: string, ...rest: any) =>
-//   createCollection<Invite>(Collections.ORGANIZATIONS, orgId, Collections.INVITES, ...rest);
+  createCollection<UserClaims>(COLLECTIONS.ORGANIZATIONS, orgId, COLLECTIONS.USER_CLAIMS);
+export const invitesCollection = (orgId: string, ...rest: any) =>
+  createCollection<Invite>(COLLECTIONS.ORGANIZATIONS, orgId, COLLECTIONS.INVITES, ...rest);
 // export const notificationsCollection = (userId: string) =>
-//   createCollection<Notification>(Collections.USERS, userId, Collections.NOTIFICATIONS);
+//   createCollection<Notification>(COLLECTIONS.USERS, userId, COLLECTIONS.NOTIFICATIONS);
 // export const licensesCollection = (orgId: string) =>
-// createCollection<License>(Collections.ORGANIZATIONS, orgId, Collections.LICENSES);
-
-// EXAMPLE
-
-// export const setJamiesUser = async () => {
-//   const userRef = doc(usersCol, 'user_12345')
-//   await setDoc(userRef, {
-//     age: 30,
-//     firstName: 'Jamie',
-//     lastName: 'Curnow'
-//   })
-// }
+// createCollection<License>(COLLECTIONS.ORGANIZATIONS, orgId, COLLECTIONS.LICENSES);

@@ -12,8 +12,6 @@ import { useWidth, useScroll } from 'hooks';
 // TODO: use router instead of index state ??
 // https://blog.logrocket.com/building-multi-step-wizards-with-formik-and-react-query/
 
-// TODO: create generic type ?? https://stackoverflow.com/a/68757498/10887890
-// https://wanago.io/2020/03/09/functional-react-components-with-generic-props-in-typescript/
 export interface FormikWizardProps {
   children: React.ReactElement<StepProps> | React.ReactElement<StepProps>[]; // JSX.Element | JSX.Element[];
   initialValues: { [key: string]: any };
@@ -194,8 +192,6 @@ export const FormikWizard: React.FC<FormikWizardProps> = ({
                   loadingPosition='end'
                   endIcon={<NavigateNextRounded />}
                   sx={{ ml: 'auto' }}
-                  // startIcon={<PasswordRounded />}
-                  // currentStep.props?.loadingButtonText || ''
                 >
                   {stepIndex === steps.length - 1 ? submitButtonText : 'Next'}
                 </LoadingButton>
@@ -232,22 +228,6 @@ export const FormikWizard: React.FC<FormikWizardProps> = ({
                   >
                     {stepIndex === steps.length - 1 ? submitButtonText : 'Next'}
                   </LoadingButton>
-                  // <Button
-                  //   type='submit'
-                  //   size='small'
-                  //   // onClick={() => next(values)}
-                  //   disabled={
-                  //     isValidating ||
-                  //     isSubmitting ||
-                  //     !isValid ||
-                  //     status === 'loading' ||
-                  //     loading ||
-                  //     disableNext
-                  //   }
-                  // >
-                  //   {stepIndex === steps.length - 1 ? submitButtonText : 'Next'}
-                  //   {<KeyboardArrowRight />}
-                  // </Button>
                 }
               />
             </Box>

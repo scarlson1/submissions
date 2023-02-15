@@ -1,21 +1,23 @@
 import { useCallback, useState } from 'react';
-import { sendPasswordResetEmail } from 'firebase/auth';
+import { sendPasswordResetEmail, getAuth, AuthError } from 'firebase/auth';
 
 import { useConfirmation } from 'modules/components/ConfirmationService';
 import InputDialog from 'components/InputDialog';
-import { auth } from 'firebaseConfig';
-import { isValidEmail } from 'modules/utils/helpers';
+// import { auth } from 'firebaseConfig';
+import { isValidEmail, readableFirebaseCode } from 'modules/utils/helpers';
+import { FirebaseError } from 'firebase/app';
 
 // TODO: requires reauth before sending ?? catch in error ??
 
 export interface UseSendPasswordResetProps {
   onSuccess?: (email?: string) => void;
-  onError?: (err: unknown) => void;
+  onError?: (err: unknown, msg: string) => void;
 }
 
 export const useSendPasswordReset = ({ onSuccess, onError }: UseSendPasswordResetProps = {}) => {
   const [error, setError] = useState<any>();
   const confirm = useConfirmation();
+  const auth = getAuth();
 
   const sendPasswordReset = useCallback(
     async (email: string, continueUrl?: string) => {
@@ -24,7 +26,8 @@ export const useSendPasswordReset = ({ onSuccess, onError }: UseSendPasswordRese
           catchOnCancel: false,
           variant: 'danger',
           title: 'Please enter your email',
-          description: 'You will receive a email with a link to reset your password.',
+          description: `We'll email you a link to reset your password.`,
+          dialogContentProps: { dividers: true },
           component: (
             <InputDialog
               onAccept={() => {}}
@@ -39,23 +42,28 @@ export const useSendPasswordReset = ({ onSuccess, onError }: UseSendPasswordRese
       }
 
       try {
-        var actionCodeSettings = {
-          url:
-            continueUrl ||
-            `${process.env.REACT_APP_HOSTING_URL}/auth/login/${
-              auth.currentUser && auth.currentUser.tenantId ? auth.currentUser.tenantId : ''
-            }`,
-          handleCodeInApp: false,
-        };
+        // var actionCodeSettings = {
+        //   url:
+        //     continueUrl ||
+        //     `${process.env.REACT_APP_HOSTING_URL}/auth/login/${
+        //       auth.currentUser && auth.currentUser.tenantId ? auth.currentUser.tenantId : ''
+        //     }`,
+        //   handleCodeInApp: false,
+        // };
 
-        await sendPasswordResetEmail(auth, email, actionCodeSettings);
+        await sendPasswordResetEmail(auth, email); // , actionCodeSettings);
         if (onSuccess) onSuccess(email);
       } catch (err) {
+        console.log('ERROR: ', err);
+        let msg = 'Error sending password reset email';
+        if (err instanceof FirebaseError) {
+          msg += ` (${readableFirebaseCode(err as AuthError)})`;
+        }
         setError(err);
-        if (onError) onError(err);
+        if (onError) onError(err, msg);
       }
     },
-    [confirm, onSuccess, onError]
+    [confirm, onSuccess, onError, auth]
   );
 
   return { sendPasswordReset, error };

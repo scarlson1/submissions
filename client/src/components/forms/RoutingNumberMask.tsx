@@ -1,0 +1,27 @@
+import React from 'react';
+import { IMaskInput } from 'react-imask';
+
+export interface RoutingNumberMaskProps {
+  onChange: (event: { target: { name: string; value: string } }) => void;
+  name: string;
+}
+
+export const RoutingNumberMask = React.forwardRef<HTMLElement, RoutingNumberMaskProps>(
+  function TextMaskCustom(props, ref) {
+    const { onChange, ...other } = props;
+    return (
+      <IMaskInput
+        {...other}
+        mask='000000000' // '{+1} (#00) 000-0000'
+        unmask={true}
+        // definitions={{
+        //   '#': /[1-9]/,
+        // }}
+        // @ts-ignore
+        inputRef={ref}
+        onAccept={(value: any) => onChange({ target: { name: props.name, value } })}
+        overwrite
+      />
+    );
+  }
+);

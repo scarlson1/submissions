@@ -12,11 +12,13 @@ import { useField } from 'formik';
 export interface SelectOption {
   label: React.ReactNode;
   value: string | number;
+  disabled?: boolean;
+  [key: string]: any;
 }
 export interface FormikSelectProps extends SelectProps {
   name: string;
   label: string;
-  selectOptions: SelectOption[];
+  selectOptions: SelectOption[] | string[];
 }
 
 export const FormikSelect: React.FC<FormikSelectProps> = ({
@@ -52,13 +54,32 @@ export const FormikSelect: React.FC<FormikSelectProps> = ({
         fullWidth={fullWidth}
         {...field}
         {...props}
+        // onChange={(e) => {
+        //   console.log('e: ', e.target.value);
+        //   helpers.setValue(e.target.value);
+        //   e.stopPropagation();
+        // }}
       >
         <MenuItem value=''>--</MenuItem>
-        {selectOptions.map(({ label, value }) => (
-          <MenuItem key={value} value={value}>
-            {label}
-          </MenuItem>
-        ))}
+        {selectOptions.map((option) => {
+          const {
+            label,
+            value,
+            disabled = false,
+          } = typeof option === 'string'
+            ? { label: option, value: option, disabled: false }
+            : option;
+          return (
+            <MenuItem
+              key={value}
+              value={value}
+              disabled={disabled}
+              selected={field.value.indexOf(value) !== -1}
+            >
+              {label}
+            </MenuItem>
+          );
+        })}
       </Select>
       {meta.touched && Boolean(meta.error) && (
         <FormHelperText variant={variant} error={meta.touched && Boolean(meta.error)}>

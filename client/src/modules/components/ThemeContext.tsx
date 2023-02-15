@@ -42,7 +42,6 @@ export function ThemeProvider(props: any) {
       toggleColorMode: () => {
         setStorageMode((prevMode) => (prevMode === 'light' ? 'dark' : 'light'));
         setMode((prevMode: PaletteModeType) => (prevMode === 'light' ? 'dark' : 'light'));
-        // setStorageMode((prevMode) => (prevMode === 'light' ? 'dark' : 'light'));
       },
     }),
     [setStorageMode]

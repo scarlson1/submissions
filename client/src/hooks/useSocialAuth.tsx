@@ -12,14 +12,15 @@ import {
   reauthenticateWithPopup,
   AuthProvider,
   PopupRedirectResolver,
-  getAdditionalUserInfo,
-  AdditionalUserInfo,
+  getAuth,
+  // getAdditionalUserInfo,
+  // AdditionalUserInfo,
 } from 'firebase/auth';
 import { FirebaseError } from 'firebase/app';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { setDoc, doc } from 'firebase/firestore';
+import { setDoc, doc, getFirestore } from 'firebase/firestore';
 
-import { auth, db } from 'firebaseConfig';
+// import { auth, db } from 'firebaseConfig';
 import { useAuth } from 'modules/components/AuthContext';
 import { useConfirmation } from 'modules/components/ConfirmationService';
 import { getProviderForProviderId } from 'modules/utils/getProviderById';
@@ -28,6 +29,8 @@ import { getRedirectPath } from 'modules/utils/helpers';
 import InputDialog from 'components/InputDialog';
 import { AuthProviders } from 'common/types';
 // import { useMultiFactorAuth } from './useMultiFactorAuth';
+
+// TODO: create useLinkAccount hook
 
 const googleProvider = new GoogleAuthProvider();
 const microsoftProvider = new OAuthProvider('microsoft.com');
@@ -39,6 +42,8 @@ interface UseSocialAuthProps {
 }
 
 export const useSocialAuth = ({ onSuccess, onError, skipRedirect }: UseSocialAuthProps) => {
+  const auth = getAuth();
+  const db = getFirestore();
   const navigate = useNavigate();
   const location = useLocation();
   const { user, isAnonymous } = useAuth();
@@ -61,9 +66,10 @@ export const useSocialAuth = ({ onSuccess, onError, skipRedirect }: UseSocialAut
 
       try {
         if (code === 'auth/account-exists-with-different-credential') {
-          console.log('handling error: auth/account-exists-with-different-credential');
           // @ts-ignore
           const { credential, email } = err;
+          console.log('email: ', email);
+          console.log('cred: ', credential);
 
           const methods = await fetchSignInMethodsForEmail(auth, email);
           console.log('methods: ', methods);
@@ -71,8 +77,8 @@ export const useSocialAuth = ({ onSuccess, onError, skipRedirect }: UseSocialAut
             let password = await confirm({
               catchOnCancel: false,
               variant: 'danger',
-              title: 'Please enter your email',
-              description: 'Your email is required to confirm your account',
+              title: 'Link Account',
+              description: 'Please enter your password to link a new authentication provider.',
               component: (
                 <InputDialog
                   onAccept={() => {}}
@@ -135,6 +141,10 @@ export const useSocialAuth = ({ onSuccess, onError, skipRedirect }: UseSocialAut
         //     toast.error('Multi-factor auth unsuccessful.');
         //   }
         // }
+        if (code === 'auth/email-already-in-use') {
+          toast.error('Email already in use. Please login.');
+          return;
+        }
         if (code === 'auth/internal-error') {
           let alreadyExists = message.includes('ALREADY_EXISTS');
           let toastMsg = alreadyExists ? 'account already exists' : 'An error occurred';
@@ -160,7 +170,7 @@ export const useSocialAuth = ({ onSuccess, onError, skipRedirect }: UseSocialAut
         }
       }
     },
-    [handleReturnUserOrRedirect, onSuccess, onError, confirm]
+    [auth, handleReturnUserOrRedirect, onSuccess, onError, confirm]
   );
 
   // TODO: use shared logic with linking any new provider
@@ -185,10 +195,15 @@ export const useSocialAuth = ({ onSuccess, onError, skipRedirect }: UseSocialAut
         return result;
       } catch (err) {
         console.log('error: ', err);
+
+        if (err instanceof FirebaseError)
+          return handleError(err, provider.providerId as AuthProviders);
+        if (onError) onError(err, 'Microsoft');
+
         return;
       }
     },
-    [handleReturnUserOrRedirect, onSuccess, user]
+    [db, handleReturnUserOrRedirect, onSuccess, onError, handleError, user]
   );
 
   // can add scopes (ex: https://www.googleapis.com/auth/user.birthday.read)
@@ -198,7 +213,12 @@ export const useSocialAuth = ({ onSuccess, onError, skipRedirect }: UseSocialAut
   const loginWithGoogle = useCallback(async () => {
     if (isAnonymous && user) {
       // TODO: prompt for confirmation ??
+      // try {
       return linkAnonymous(googleProvider);
+      // } catch (err) {
+      //   if (err instanceof FirebaseError) return handleError(err, 'microsoft.com');
+      //   if (onError) onError(err, 'Microsoft');
+      // }
     }
 
     try {
@@ -216,6 +236,7 @@ export const useSocialAuth = ({ onSuccess, onError, skipRedirect }: UseSocialAut
       if (onError) onError(err, 'Google');
     }
   }, [
+    auth,
     handleError,
     handleReturnUserOrRedirect,
     linkAnonymous,
@@ -228,7 +249,12 @@ export const useSocialAuth = ({ onSuccess, onError, skipRedirect }: UseSocialAut
   const loginWithMicrosoft = useCallback(async () => {
     if (isAnonymous && user) {
       // TODO: prompt for confirmation ??
+      // try {
       return linkAnonymous(microsoftProvider);
+      // } catch (err) {
+      //   if (err instanceof FirebaseError) return handleError(err, 'microsoft.com');
+      //   if (onError) onError(err, 'Microsoft');
+      // }
     }
 
     try {
@@ -237,17 +263,19 @@ export const useSocialAuth = ({ onSuccess, onError, skipRedirect }: UseSocialAut
 
       // Check if new user (not currently doing anything with response)
       // can use for welcome notification / UI etc.
-      const additionalInfo: AdditionalUserInfo | null = getAdditionalUserInfo(authResult);
-      console.log('additionalInfo: ', additionalInfo);
+      // const additionalInfo: AdditionalUserInfo | null = getAdditionalUserInfo(authResult);
+      // console.log('additionalInfo: ', additionalInfo);
 
       if (onSuccess) onSuccess(authResult);
       return handleReturnUserOrRedirect(authResult);
     } catch (err) {
+      console.log('error: ', err);
       if (err instanceof FirebaseError) return handleError(err, 'microsoft.com'); // 'Microsoft');
 
       if (onError) onError(err, 'Microsoft');
     }
   }, [
+    auth,
     handleReturnUserOrRedirect,
     handleError,
     linkAnonymous,

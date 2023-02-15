@@ -1,15 +1,16 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { CircularProgress } from '@mui/material';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { getAuth, signInAnonymously, UserCredential } from 'firebase/auth';
 
-import { auth } from 'firebaseConfig';
-import { useAuth, CustomClaims } from 'modules/components/AuthContext';
+// import { auth } from 'firebaseConfig';
+import { useAuth, CUSTOM_CLAIMS } from 'modules/components/AuthContext';
 import { toast } from 'react-hot-toast';
+import { AUTH_ROUTES, createPath } from 'router';
 
 // TODO: read for reference: https://adarshaacharya.com.np/blog/role-based-auth-with-react-router-v6
 
-type CustomClaimKeys = keyof typeof CustomClaims;
+type CustomClaimKeys = keyof typeof CUSTOM_CLAIMS;
 
 export interface RequireAuthProps {
   children: JSX.Element;
@@ -23,31 +24,52 @@ export const RequireAuth: React.FC<RequireAuthProps> = ({
   children,
   allowAnonymous = false,
   requiredClaims = null,
-  redirectPath = '/auth/login',
+  redirectPath = createPath({ path: AUTH_ROUTES.LOGIN }),
   shouldSignInAnonymously = false,
 }) => {
-  let { error, loadingInitial, isAnonymous, customClaims } = useAuth();
+  const auth = getAuth();
+  let { error, loadingInitial, customClaims } = useAuth();
   let location = useLocation();
   const navigate = useNavigate();
 
   let user = getAuth().currentUser;
 
   // If requiredClaims included, check required claims
-  React.useEffect(() => {
+  useEffect(() => {
     if (requiredClaims && requiredClaims.length > 0 && !loadingInitial) {
-      let notAuthorized = requiredClaims.every((key) => !customClaims[CustomClaims[key]]);
+      let notAuthorized = requiredClaims.every((key) => !customClaims[CUSTOM_CLAIMS[key]]);
 
       if (!!notAuthorized) {
         if (user && user.uid) {
-          toast(`You're account does not have the required permissions to access this route.`, {
-            duration: 8000,
-          });
+          toast.error(
+            `You're account does not have the required permissions to access this route.`,
+            {
+              duration: 8000,
+            }
+          );
         }
 
-        navigate(-1);
+        if (location.key !== 'default') return navigate(-1);
+        return navigate(createPath({ path: AUTH_ROUTES.LOGIN }), {
+          replace: true,
+          state: { from: location },
+        });
       }
     }
-  }, [requiredClaims, customClaims, loadingInitial, user, navigate]);
+  }, [requiredClaims, customClaims, loadingInitial, user, location, navigate]);
+
+  // if not authenticated and prop shouldSignInAnonymously = true, sign in anonymously
+  useEffect(() => {
+    if (!loadingInitial && !(user && user.uid) && !!shouldSignInAnonymously) {
+      signInAnonymously(auth)
+        .then((userCred: UserCredential) => {
+          console.log('SIGNED IN ANONYMOUSLY: ', userCred);
+        })
+        .catch((err: unknown) => {
+          console.log('ERROR => ', err);
+        });
+    }
+  }, [auth, user, shouldSignInAnonymously, loadingInitial]);
 
   if (loadingInitial) {
     return <CircularProgress />;
@@ -59,22 +81,14 @@ export const RequireAuth: React.FC<RequireAuthProps> = ({
     return <Navigate to={'/'} state={{ from: location }} replace />;
   }
 
-  // if not authenticated and prop shouldSignInAnonymously = true, sign in anonymously
-  if (!(user && user.uid) && !!shouldSignInAnonymously) {
-    signInAnonymously(auth)
-      .then((userCred: UserCredential) => {
-        console.log('SIGNED IN ANONYMOUSLY: ', userCred);
-      })
-      .catch((err: unknown) => {
-        console.log('ERROR => ', err);
-      });
-  }
-
   // if not signed in, redirect to sign in page
-  if ((!(user && user.uid) || (!allowAnonymous && !!isAnonymous)) && !shouldSignInAnonymously) {
+  if (
+    (!(user && user.uid) || (!allowAnonymous && !!user.isAnonymous)) &&
+    !shouldSignInAnonymously
+  ) {
     console.log("not authenticated => routing to '/login'", user, loadingInitial);
-    toast('Authentication required to access route');
-    return <Navigate to={redirectPath} state={{ from: location }} replace />;
+    toast.error('Authentication required to access route');
+    return <Navigate to={redirectPath} state={{ from: location }} replace={true} />;
   }
 
   return children;

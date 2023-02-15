@@ -2,19 +2,22 @@ import React from 'react';
 import { TextField, TextFieldProps } from '@mui/material';
 import { useField } from 'formik';
 import { InputAttributes, NumericFormat } from 'react-number-format';
+// import { round } from 'lodash';
 
 export interface DollarMaskProps {
   onChange: (event: { target: { name: string; value: string } }) => void;
   // onB
   name: string;
+  decimalScale?: number;
 }
 
 export const DollarMask = React.forwardRef<typeof NumericFormat<InputAttributes>, DollarMaskProps>(
   function DollarMask(props, ref) {
-    const { onChange, ...other } = props;
+    const { onChange, decimalScale = 0, ...other } = props;
 
     return (
       <NumericFormat
+        decimalScale={decimalScale}
         {...other}
         getInputRef={ref}
         onValueChange={(values: any) => {
@@ -22,7 +25,7 @@ export const DollarMask = React.forwardRef<typeof NumericFormat<InputAttributes>
           onChange({
             target: {
               name: props.name,
-              value: values.floatValue, // values.value,
+              value: values.floatValue, // round(values.floatValue, decimalScale),
             },
           });
         }}
@@ -31,18 +34,19 @@ export const DollarMask = React.forwardRef<typeof NumericFormat<InputAttributes>
         allowNegative={false}
         allowLeadingZeros={false}
         prefix='$'
-        decimalScale={0}
       />
     );
   }
 );
 
-export type FormikDollarMaskFieldProps = TextFieldProps & { name: string };
+export type FormikDollarMaskFieldProps = TextFieldProps & { name: string; decimalScale?: number };
 
 export const FormikDollarMaskField: React.FC<FormikDollarMaskFieldProps> = ({
   name,
   helperText,
+  inputProps,
   // onBlur,
+  decimalScale = 0,
   ...rest
 }) => {
   const [field, meta] = useField(name);
@@ -55,6 +59,10 @@ export const FormikDollarMaskField: React.FC<FormikDollarMaskFieldProps> = ({
       helperText={meta.touched && !!meta.error ? meta.error : helperText}
       InputProps={{
         inputComponent: DollarMask as any,
+        inputProps: {
+          ...inputProps,
+          decimalScale,
+        },
       }}
     />
   );

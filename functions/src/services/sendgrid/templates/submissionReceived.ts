@@ -1,9 +1,14 @@
 interface SubmissionReceivedProps {
   toName?: string | null;
   addressLine1?: string;
+  createAccountLink?: string;
 }
 
-export const submissionReceived = ({ toName, addressLine1 }: SubmissionReceivedProps) => {
+export const submissionReceived = ({
+  toName,
+  addressLine1,
+  createAccountLink,
+}: SubmissionReceivedProps) => {
   return `<!doctype html>
       <html>
         <head>
@@ -16,6 +21,8 @@ export const submissionReceived = ({ toName, addressLine1 }: SubmissionReceivedP
             <p>We've received your submission${
               addressLine1 ? ' for ' + addressLine1 : ''
             }. Please keep an eye out for a follow up email coming your way.</p>
+            <br>
+            <p>If you don't already have one, please <a  class=”link” href="${createAccountLink}">create an account</a>.</p>
             
             <div style="padding-top: 8px">
               <p>

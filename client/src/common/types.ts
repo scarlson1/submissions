@@ -1,21 +1,34 @@
-import { WithFieldValue, FirestoreErrorCode } from 'firebase/firestore';
+import { WithFieldValue, GeoPoint, Timestamp } from 'firebase/firestore';
 
 import {
-  // AgencySubmissionStatus,
-  // QuoteStatus,
-  // AgencyStatus,
-  // TransactionStatus,
-  Product as ProductEnum,
-  UWNoteCode,
-  DeductibleOptions,
-  SubmissionStatus,
+  PRODUCT,
+  UW_NOTE_CODE,
+  DEDUCTIBLE_OPTIONS,
+  SUBMISSION_STATUS,
+  STATE_ABBREVIATION,
 } from './enums';
-import { FloodValues } from 'views/Quote';
+import { FloodValues } from 'views/SubmissionNew';
 import { FetchPropertyDataResponse } from 'modules/api/index';
 
+export interface BaseMetadata {
+  created: FirestoreTimestamp;
+  updated: FirestoreTimestamp;
+}
 export interface Submission extends FloodValues, FetchPropertyDataResponse {
+  coordinates: GeoPoint;
   userId?: string | null;
-  status: SubmissionStatus;
+  status: SUBMISSION_STATUS;
+  submittedById?: string | null;
+  darkMapImageURL?: string;
+  lightMapImageURL?: string;
+  darkMapImageFilePath?: string;
+  lightMapImageFilePath?: string;
+  satelliteMapImageURL?: string;
+  satelliteStreetsMapImageURL?: string;
+  satelliteMapImageFilePath?: string;
+  satelliteStreetsMapImageFilePath?: string;
+  inlandAAL?: number;
+  surgeAAL?: number;
   metadata: BaseMetadata;
 }
 
@@ -46,7 +59,7 @@ export interface Coordinates {
 }
 
 export interface Location extends Address {
-  coordinates: Coordinates;
+  coordinates: GeoPoint; // Coordinates;
 }
 
 export interface QuoteLocation extends Location {
@@ -67,7 +80,7 @@ export interface Limits {
 }
 
 export interface UWNote {
-  code: keyof typeof UWNoteCode;
+  code: keyof typeof UW_NOTE_CODE;
   message: string;
   property?: string;
 }
@@ -86,8 +99,70 @@ export interface Mortgagee {
 }
 
 export interface Deductible {
-  type: DeductibleOptions;
+  type: DEDUCTIBLE_OPTIONS;
   value: number;
+}
+
+// TODO: temparary (quote data interface for interim submissions period) REPLACE
+
+export interface SubmissionQuoteData {
+  product: Product; // keyof typeof Product;
+  deductible: number;
+  limits: Limits;
+  // tiv: number;
+  replacementCost: number;
+  insuredAddress: Address;
+  insuredCoordinates: GeoPoint | null;
+  fees: { feeName: string; feeValue: string }[];
+  termPremium: number;
+  subproducerCommission: number;
+  quoteTotal?: number;
+  // reviewRequired: boolean;
+  // underwritingNotes?: {
+  //   propertyNotes: UWNote[];
+  //   ratingNotes: UWNote[];
+  // };
+  // ratable: boolean;
+  // underwriterApproved: boolean;
+  quoteExpiration: {
+    seconds: number;
+    nanoseconds: number;
+  };
+  policyEffectiveDate?: FirestoreTimestamp;
+  effectiveExceptionRequested?: boolean;
+  effectiveExceptionReason?: string;
+  policyExpirationDate?: FirestoreTimestamp;
+  exclusions?: string[];
+  // ePayFees?: {
+  //   achPayerFee: number;
+  //   creditCardPayerFee: number;
+  // };
+  additionalInsureds?: AdditionalInsured[];
+  mortgageeInterest?: Mortgagee[];
+  metadata: {
+    created: FirestoreTimestamp;
+    updated: FirestoreTimestamp;
+    version: WithFieldValue<number>;
+  };
+  userId: string | null;
+  insuredFirstName?: string | null;
+  insuredLastName?: string | null;
+  insuredEmail?: string | null;
+  insuredPhone?: string | null;
+  insuredUserId?: string | null;
+  agencyId: string | null;
+  agencyName: string | null;
+  agentId: string | null;
+  agentName: string | null;
+  agentEmail: string | null;
+  agentPhone?: string | null;
+  status: SUBMISSION_STATUS; // QuoteStatus;
+  statusTransitions: {
+    published: FirestoreTimestamp;
+    accepted: FirestoreTimestamp | null;
+    cancelled: FirestoreTimestamp | null;
+    finalized: FirestoreTimestamp | null;
+  };
 }
 
 export interface QuoteData {
@@ -137,15 +212,16 @@ export interface QuoteData {
     version: WithFieldValue<number>;
   };
   insuredName?: string;
-  insuredEmail?: string;
-  insuredPhone?: string;
-  insuredUserId?: string;
-  agencyId: string;
-  agencyName: string;
-  agentId: string;
-  agentName: string;
+  insuredEmail?: string | null;
+  insuredPhone?: string | null;
+  insuredUserId?: string | null;
+  agencyId: string | null;
+  agencyName: string | null;
+  agentId: string | null;
+  agentName: string | null;
+  agentEmail: string | null;
   userId: string | null;
-  status: SubmissionStatus; // QuoteStatus;
+  status: SUBMISSION_STATUS; // QuoteStatus;
   statusTransitions: {
     accepted: FirestoreTimestamp | null;
     canceled: FirestoreTimestamp | null;
@@ -273,6 +349,37 @@ export interface UpdateQuoteRequestBody {
   setMortgageeInterest?: Mortgagee[];
 }
 
+export interface Policy {
+  limits: Limits;
+  deductible: number;
+  address: Address;
+  coordinates: GeoPoint; // Coordinates;
+  namedInsured: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+  };
+  additionalInsureds?: { firstName: string; lastName: string; email: string }[];
+  mortgageeInterest?: any;
+  effectiveDate: FirestoreTimestamp;
+  expirationDate: FirestoreTimestamp;
+  userId: string;
+  agent: {
+    agentId: string;
+    name: string;
+  };
+  agency: {
+    orgId: string;
+    name: string;
+  };
+  darkMapImageURL?: string;
+  lightMapImageURL?: string;
+  darkMapImageFilePath?: string;
+  lightMapImageFilePath?: string;
+  metadata: BaseMetadata;
+}
+
 export interface User {
   displayName?: string;
   firstName?: string;
@@ -303,33 +410,37 @@ export type AuthProviders =
 
 export interface AgencyApplication {
   orgName: string;
-  addressLine1: string;
-  addressLine2: string;
-  city: string;
-  state: string;
-  postal: string;
-  contactFirstName: string;
-  contactLastName: string;
-  contactEmail: string;
-  contactPhone: string;
-  contactProducerSame: boolean | null;
-  producerFirstName: string;
-  producerLastName: string;
-  producerEmail: string;
-  producerPhone: string;
-  producerNPN: string;
-  accountNumber: string;
-  routingNumber: string;
+  address: Address;
+  contact: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+  };
+  agents: { firstName: string; lastName: string; email: string; phone: string }[];
+  // contactProducerSame: boolean | null;
+  // producerFirstName: string;
+  // producerLastName: string;
+  // producerEmail: string;
+  // producerPhone: string;
+  // producerNPN: string;
+  bankDetails: {
+    accountNumber: string;
+    routingNumber: string;
+  };
   FEIN: string;
   EandO: string;
   metadata: BaseMetadata;
-  createdByUid: string | null;
-  createdByName: string | null;
+  // createdByUid: string | null;
+  // createdByName: string | null;
   status: 'TODO' | 'COPY' | 'FROM' | 'OTHER' | 'APP'; // AgencySubmissionStatus;
   sendAppReceivedNotification?: boolean;
-  address: Address;
-  latitude?: number | null;
-  longitude?: number | null;
+  coordinates?: GeoPoint | null;
+  // latitude?: number | null;
+  // longitude?: number | null;
+}
+export interface AgencyApplicationWithId extends AgencyApplication {
+  id: string;
 }
 
 export interface Agency {
@@ -360,7 +471,7 @@ export interface Agency {
 
 export interface Organization {
   address: Address;
-  coordinates?: Coordinates;
+  coordinates?: GeoPoint; // Coordinates;
   orgName: string;
   tenantId: string;
   primaryContact: {
@@ -387,30 +498,11 @@ export interface Organization {
   accountNumber?: string;
   routingNumber?: string;
   status: 'TODO' | 'COPY' | 'FROM' | 'OTHER' | 'APP'; // AgencyStatus;
-  defaultCommission: { [key in ProductEnum]: number };
+  defaultCommission: { [key in PRODUCT]: number };
   metadata: BaseMetadata;
 }
 
 // TODO: convert dates to Firestore timestamps so that they're queryable
-export interface LicenseLOA {
-  LOAName: string;
-  active: boolean;
-  effectiveDate: string;
-  expirationDate: string;
-}
-
-export interface License {
-  orgId: string;
-  niprId: string;
-  entityName: string;
-  licenseNumber: string;
-  active: boolean;
-  state: string;
-  expirationDate: string;
-  effectiveDate: string;
-  LOA: LicenseLOA[];
-  metadata: BaseMetadata;
-}
 
 export type InviteStatus = 'pending' | 'accepted' | 'revoked' | 'replaced' | 'rejected' | 'error';
 
@@ -433,6 +525,12 @@ export interface Invite {
   metadata: BaseMetadata;
 }
 
+export type ActiveStates = {
+  [key in STATE_ABBREVIATION]: boolean;
+};
+
+export type ActiveStatesWithId = ActiveStates & { id: string };
+
 export type NotificationType = 'admin_message' | 'user_event' | 'policy_event';
 
 export interface Notification {
@@ -445,6 +543,127 @@ export interface Notification {
   title: string;
   description: string;
   metadata: BaseMetadata;
+}
+
+export interface NotifyRegistration {
+  email: string;
+  topic: string;
+  state?: string;
+}
+
+export type SubjectBaseItems =
+  | 'premium'
+  | 'inspectionFees'
+  | 'mgaFees'
+  | 'outStatePremium'
+  | 'homeStatePremium'
+  | 'fixedFee'
+  | 'noFee';
+
+export type RoundingType = 'nearest' | 'up' | 'down';
+
+export type TransactionType = 'new' | 'renewal' | 'endorsement' | 'cancellation';
+
+export interface Tax {
+  state: string;
+  displayName: string;
+  effectiveDate: Timestamp;
+  expirationDate?: Timestamp | null;
+  LOB: string[];
+  transactionTypes: TransactionType[];
+  subjectBase: SubjectBaseItems[];
+  baseRoundType?: RoundingType;
+  baseDigits?: number;
+  resultRoundType: RoundingType;
+  resultDigits?: number;
+  rate: number;
+  rateType: 'fixed' | 'percent';
+  resultRounding?: RoundingType;
+  refundable?: boolean;
+  metadata: BaseMetadata;
+}
+
+// moratorium questions:
+//    - will all locations under moratorium from an event have the same effective & expiration date?
+//    -
+// export interface MoratoriumOld {
+//   state: string;
+//   stateFP: string;
+//   countyName?: string;
+//   countyFP?: string;
+//   product: Product;
+//   effectiveDate: string;
+//   expirationDate: string;
+//   reason?: string; // TODO: type reason 'event' | 'etc.'
+// }
+
+// OR
+
+export interface FIPSDetails {
+  state: string;
+  stateFP: string;
+  countyName: string;
+  countyFP: string;
+  classFP?: string;
+}
+export interface Moratorium {
+  // what about entire state ?? need another field?
+  // or add fips: 01 for state, 01001 for county ??
+  locationDetails: FIPSDetails[];
+  locations: string[];
+  product: { [key: string]: boolean };
+  // product: Product[];
+  // OR (need to use where-in query for locations)
+  // product: Product[] ->  ['flood', 'wind']
+  // OR -- likely best option
+  // product: { [key: product]: boolean } -> { flood: true, wind: false, etc. }
+  effectiveDate: Timestamp;
+  expirationDate?: Timestamp | null;
+  reason?: string;
+  metadata: BaseMetadata;
+}
+export interface MoratoriumWithId extends Moratorium {
+  id: string;
+}
+
+// export interface LicenseLOA {
+//   LOAName: string;
+//   active: boolean;
+//   effectiveDate: string;
+//   expirationDate: string;
+// }
+
+// export interface License {
+//   orgId: string;
+//   niprId: string;
+//   entityName: string;
+//   licenseNumber: string;
+//   active: boolean;
+//   state: string;
+//   expirationDate: string;
+//   effectiveDate: string;
+//   LOA: LicenseLOA[];
+//   metadata: BaseMetadata;
+// }
+
+export type LicenseOwner = 'individual' | 'organization';
+export type LicenseType = 'producer' | 'surplus lines' | 'MGA' | 'Tax ID';
+
+export interface License {
+  state: string;
+  ownerType: LicenseOwner;
+  licensee: string;
+  licenseType: LicenseType;
+  surplusLinesProducerOfRecord: boolean;
+  licenseNumber: string;
+  effectiveDate: FirestoreTimestamp;
+  expirationDate?: FirestoreTimestamp | null;
+  SLAssociationMembershipRequired?: boolean;
+  metadata: BaseMetadata;
+}
+
+export interface LicenseWithId extends License {
+  id: string;
 }
 
 export interface SpatialKeyResponse {

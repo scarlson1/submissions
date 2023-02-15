@@ -12,8 +12,13 @@ export { FilesDragDrop } from './FilesDragDrop';
 export { FormikDollarMaskField } from './FormikDollarMaskField';
 export { FormikIncrementor } from './FormikIncrementor';
 export { FormikToggleButtonGroup } from './FormikToggleButtonGroup';
-// export {  } from './';
-// export {  } from './';
+export { FormikFieldArray } from './FormikFieldArray';
+export { FormikDatePicker } from './FormikDatePicker';
+export { PercentMask } from './PercentMask';
+export { FormikNativeSelect } from './FormikNativeSelect';
+export { FormikSwitch } from './FormikSwitch';
+export { FormikDragDrop } from './FormikDragDrop';
+export { RoutingNumberMask } from './RoutingNumberMask';
 // export {  } from './';
 // export {  } from './';
 
@@ -21,6 +26,7 @@ export type {
   AddressAutocompleteProps,
   AddressComponent,
   AddressComponentType,
+  NewAddress,
 } from './AddressAutocomplete';
 export type { FeinMaskProps } from './FeinMask';
 export type { FormikCheckboxProps } from './FormikCheckbox';
@@ -35,7 +41,11 @@ export type { FilesDragDropProps } from './FilesDragDrop';
 export type { FormikDollarMaskFieldProps } from './FormikDollarMaskField';
 export type { FormikIncrementorProps } from './FormikIncrementor';
 export type { FormikToggleButtonGroupProps } from './FormikToggleButtonGroup';
-// export type {  } from './';
-// export type {  } from './';
+export type { FormikFieldArrayProps } from './FormikFieldArray';
+export type { FormikDatePickerProps } from './FormikDatePicker';
+export type { FormikNativeSelectProps } from './FormikNativeSelect';
+export type { FormikSwitchProps } from './FormikSwitch';
+export type { FormikDragDropProps } from './FormikDragDrop';
+export type { RoutingNumberMaskProps } from './RoutingNumberMask';
 // export type {  } from './';
 // export type {  } from './';

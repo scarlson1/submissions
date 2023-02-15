@@ -11,28 +11,249 @@ rules_version = '2';
 // For tenant-based access control, check for a tenantID
 // allow write: if request.auth.token.firebase.tenant == 'tenant2-m6tyz';
 
+// Only allow specific fields to be changed
+// https://firebase.google.com/docs/firestore/security/rules-fields#allowing_only_certain_fields_to_be_changed
+
+// get(/databases/$(database)/documents/$(request.resource.data['owner'].path)).id == request.auth.uid
+
+// https://medium.com/firebase-developers/a-list-of-firebase-firestore-security-rules-for-your-project-fe46cfaf8b2a
+// https://fireship.io/snippets/firestore-rules-recipes/
+
+// Enforcing field types: https://firebase.google.com/docs/firestore/security/rules-fields#enforcing_field_types
+
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /submissions/{document} {
-      allow read: if true
+    match /submissions/{submissionId} {
+      allow read: if true // isUser(existingData().userId) || isIDemandAdmin()
       allow create: if true
-      // allow create: if request.auth.uid == request.resource.data.author_uid;
-      allow update, delete: if request.auth.uid == resource.data.userId;
+      allow update: if isUser(existingData().userId) || isIDemandAdmin()
+      allow delete: if isIDemandAdmin()
     }
-     match /quotes/{document} {
+
+    match /quotes/{quoteId} {
       allow read: if true
-      allow create: if request.auth.token.iDemandAdmin == true
-      // allow create: if request.auth.uid == request.resource.data.author_uid;
-      allow update, delete: if request.auth.uid == resource.data.userId;
+      allow create: if emailVerified() && isIDemandAdmin()
+      allow update: if isUser(existingData().userId) || (isIDemandAdmin() && emailVerified())
+      allow delete: if false
     }
-    match /spatialKey/{document} {
+    
+     match /submissionsQuotes/{quoteId} {
       allow read: if true
+      allow create: if isIDemandAdmin()
+      allow update: if isUser(existingData().userId) || (isIDemandAdmin() && emailVerified())
+      allow delete: if false
+    }
+
+    match /policies/{policyId} {
+      allow read: if isUser(existingData().userId) || isIDemandAdmin()
+      allow create: if isIDemandAdmin() && emailVerified()
+      allow update: if isIDemandAdmin() && emailVerified()
+      allow delete: if false
+    }
+
+    match /users/{userId} {
+      allow create, update, read: if isUser(userId) || (isIDemandAdmin() && emailVerified())
+      allow delete: if isIDemandAdmin() && emailVerified()
+    }
+
+    match /organizations/{orgId} {
+      allow read: if isUser(existingData().userId)
+      allow create: if isSignedIn() && emailVerified() && isIDemandAdmin()
+      allow update: if isSignedIn() && emailVerified() && (isIDemandAdmin() || (isOrgAdmin() && isTenantUser(orgId)))
+      allow delete: if isSignedIn() && emailVerified() && isIDemandAdmin()
+    }
+
+    match /organizations/{orgId}/invitations/{inviteId} {
+      allow read: if isSignedIn() && isTenantUser(orgId)
+      allow create, update, delete: if isSignedIn() && emailVerified() && (isIDemandAdmin() || (isOrgAdmin() && isTenantUser(orgId)))
+    }
+
+    match /spatialKey/{skDocId} {
+      allow read: if isIDemandAdmin() && emailVerified()
+      allow create: if false
+      allow update, delete: if false
+    }
+
+     match /notifyRegistration/{notifyId} {
+      allow read: if isIDemandAdmin() || isUser(existingData().userId)
       allow create: if true
-      allow update, delete: if request.auth.uid == resource.data.userId;
+      allow update: if isSignedIn() && (isUser(existingData().userId) || isIDemandAdmin())
+      allow delete: if isIDemandAdmin() && emailVerified()
     }
-    match /{document=**} {
-      allow read, write: if
-          request.time < timestamp.date(2023, 2, 12);
+
+    match /surplusLinesTaxes/{taxId} {
+      allow read: if isIDemandAdmin()
+      allow create: if isIDemandAdmin() && emailVerified()
+      allow update: if isIDemandAdmin() && emailVerified()
+      allow delete: if false
     }
+
+    match /states/{productId} {
+      allow read: if true
+      allow create: if isIDemandAdmin() && emailVerified()
+      allow update: if isIDemandAdmin() && emailVerified()
+      allow delete: if false
+    }
+
+    match /agencySubmissions/{subId} {
+      allow read, write: if true
+      // allow create: if true
+      // allow update: if isIDemandAdmin() && emailVerified()
+      // allow delete: if false
+    }
+
+    match /moratoriums/{moratoriumId} {
+      allow read: if true
+      allow create: if isIDemandAdmin() && emailVerified()
+      allow update: if isIDemandAdmin() && emailVerified()
+      allow delete: if isIDemandAdmin() && emailVerified()
+    }
+
+    // TODO: if agent / agency etc.
+    match /licenses/{licenseId} {
+      allow read: if isIDemandAdmin()
+      allow create: if isIDemandAdmin() && emailVerified()
+      allow update: if isIDemandAdmin() && emailVerified()
+      allow delete: if isIDemandAdmin() && emailVerified()
+    }
+
+    match /tasks/{taskId} {
+      allow read: if true
+      allow create: if isIDemandAdmin() && emailVerified()
+      allow update: if isIDemandAdmin() && emailVerified()
+      allow delete: if isIDemandAdmin() && emailVerified()
+    }
+
+    function isIDemandAdmin() {
+      return request.auth.token.iDemandAdmin == true
+    }
+
+    // Does the logged-in user match the requested userId?
+    function isUser(userId) {
+      return request.auth.uid == userId;
+    }
+
+    function isTenantUser(tenantId) {
+      return request.auth.token.firebase.tenant == tenantId
+    }
+
+    function isOrgAdmin() {
+      return request.auth.token.orgAdmin == true
+    }
+
+    // // Fetch a user from Firestore
+    // function getUserData() {
+    //   return get(/databases/$(database)/documents/accounts/$(request.auth.uid)).data
+    // }
+
+    // // Fetch a user-specific field from Firestore
+    // function userEmail(userId) {
+    //   return get(/databases/$(database)/documents/users/$(userId)).data.email;
+    // }
+
+    // // Secure by Owner, Has-Many Relationship
+    // function requestMatchesUID() {
+    //     return request.auth.uid == request.resource.data.uid;
+    // }
+
+    // function resourceMatchesUID() {
+    //     return request.auth.uid == resource.data.uid;
+    // }
+    // // Usage: 
+    // // allow write: if requestMatchesUID();
+    // // allow update: if requestMatchesUID() && resourceMatchesUID();
+    // // allow delete: if resourceMatchesUID();
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    function emailVerified() {
+      return request.auth.token.email_verified;
+    }
+    // function userExists() {
+    //   return exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    // }
+    // [READ] Data that exists on the Firestore document
+    function existingData() {
+      return resource.data;
+    }
+    // [WRITE] Data that is sent to a Firestore document
+    function incomingData() {
+      return request.resource.data;
+    }
+
+    function isAnonymous() {
+      return request.auth.token.firebase.sign_in_provider == 'anonymous'
+    }
+
+    // DATA VALIDATION RULES
+
+    function isValidSubmission() {
+      return incomingData().limits.limitA < 1000000 &&
+            incomingData().limits.limitB + incomingData().limits.limitC + incomingData().limits.limitD < 1000000 &&
+            // incomingData().product in ['flood', 'wind'] &&
+            incomingData().deductible > 1000 &&
+            incomingData().basement in ['no', 'finished', 'unfinished', 'unknown']
+            // existingData().locked == false 
+    }
+
+    function hasRequiredSubmissionFields() {
+      return incomingData().keys().hasAll(['address', 'coordinates', 'limits']);
+    }
+
+    function isValidAddress() {
+      return 
+        incomingData().address is map &&
+        incomingData().address.addressLine1 is string &&
+        incomingData().get('address.addressLine2', '') is string &&
+        incomingData().address.city is string &&
+        incomingData().address.state is string &&
+        incomingData().address.postal is string
+    }
+
+    function hasLimitKeys() {
+      return incomingData().limits.keys().hasAll(['limitA', 'limitB', 'limitC', 'limitD']);
+    }
+
+    // // Allow the client to update a document only if that document doesn't
+    // change the average_score or rating_count fields
+    // allow update: if (!request.resource.data.diff(resource.data).affectedKeys()
+    //   .hasAny(['average_score', 'rating_count']));
+
+    function onlyAllowedFields(required, optional) {
+      let allAllowedFields = required.concat(optional);
+      return request.resource.data.keys().hasAll(required) &&
+        request.resource.data.keys().hasOnly(allAllowedFields);
+    }
+
+    // returns true if any restricted fields would be changed in an update
+    function containsRestrictedFields(restrictedFields) {
+      return request.resource.data.diff(resource.data).affectedKeys()
+        .hasAny(restrictedFields)
+    }
+
+    // returns true if only 'permittedFields' are changed by requested update
+    function onlyPermittedFieldsUpdated(permittedFields) {
+      return request.resource.data.diff(resource.data).affectedKeys()
+        .hasOnly(permittedFields)
+    }
+
+
+
+    // enforcing types for optional fields: https://firebase.google.com/docs/firestore/security/rules-fields#enforcing_types_for_optional_fields
+
+    // // allow update: if isValidProduct();
+
+    // function isValidProduct() {
+    //   return incomingData().price > 10 && 
+    //         incomingData().name.size() < 50 &&
+    //         incomingData().category in ['widgets', 'things'] &&
+    //         existingData().locked == false && 
+    //         getUserData().admin == true
+    // }
+
+    // match /{document=**} {
+    //   allow read, write: if
+    //       request.time < timestamp.date(2023, 2, 12);
+    // }
   }
 }

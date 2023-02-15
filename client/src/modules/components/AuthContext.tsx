@@ -1,5 +1,3 @@
-// export {};
-
 import {
   useState,
   useEffect,
@@ -21,6 +19,7 @@ import {
   verifyBeforeUpdateEmail,
   multiFactor,
   updatePassword,
+  getAuth,
 } from '@firebase/auth';
 import { doc, onSnapshot, DocumentSnapshot } from '@firebase/firestore';
 import { useNavigate } from 'react-router-dom';
@@ -28,19 +27,21 @@ import { differenceInSeconds } from 'date-fns';
 // import { authState } from 'rxfire/auth';
 // import { filter } from 'rxjs/operators';
 
-import { auth } from 'firebaseConfig';
 import { userClaimsCollection } from 'common/firestoreCollections';
 import { UserClaims } from 'common/types';
 // import { queryClient } from 'modules/queryClient';
 import { ReauthDialog } from 'components';
 import { toast } from 'react-hot-toast';
 
-export enum CustomClaims {
-  Admin = 'admin',
-  iDemandAdmin = 'iDemandAdmin',
-  Agent = 'agent',
+// TODO: set up reducer & actions
+// https://www.youtube.com/watch?v=YmHEzjglRMk
+
+export enum CUSTOM_CLAIMS {
+  ORG_ADMIN = 'orgAdmin',
+  IDEMAND_ADMIN = 'iDemandAdmin',
+  AGENT = 'agent',
 }
-export type CustomClaimsInterface = Record<CustomClaims, boolean>;
+export type CustomClaimsInterface = Record<CUSTOM_CLAIMS, boolean>;
 
 interface AuthContextValue {
   user: User | null;
@@ -78,17 +79,18 @@ export const AuthContext = createContext<AuthContextValue>({
   reauthenticateUser: () => Promise.reject('initialized func'),
   reauthIfRequired: () => Promise.reject(),
   updateUserEmail: () => Promise.reject(),
-  customClaims: { admin: false, agent: false, iDemandAdmin: false },
+  customClaims: { orgAdmin: false, agent: false, iDemandAdmin: false },
 });
 // export const AuthContext = createContext({})
 
 export const AuthContextProvider = ({ children }: { children: React.ReactNode }) => {
+  const auth = getAuth();
   const [user, setUser] = useState<User | null>(null);
   const [error, setError] = useState<Error | null | unknown>(null);
   const [loading, setLoading] = useState(false);
   const [loadingInitial, setLoadingInitial] = useState(true);
   const [customClaims, setCustomClaims] = useState<CustomClaimsInterface>({
-    admin: false,
+    orgAdmin: false,
     agent: false,
     iDemandAdmin: false,
   });
@@ -105,7 +107,7 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
     setLoading(true);
     if (!auth.currentUser) {
       setCustomClaims({
-        admin: false,
+        orgAdmin: false,
         agent: false,
         iDemandAdmin: false,
       });
@@ -117,12 +119,12 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
 
     setCustomClaims({
       ...idTokenResult.claims,
-      admin: !!idTokenResult.claims.admin,
+      orgAdmin: !!idTokenResult.claims.orgAdmin,
       agent: !!idTokenResult.claims.agent,
       iDemandAdmin: !!idTokenResult.claims.iDemandAdmin,
     });
     setLoading(false);
-  }, []);
+  }, [auth]);
 
   const onNewClaims = useCallback(
     async (snap: DocumentSnapshot<UserClaims>) => {
@@ -151,7 +153,7 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
       auth,
       async (newUser: User | null) => {
         setLoading(true);
-        console.log('auth state change => ', newUser);
+        // console.log('auth state change => ', newUser);
 
         setUser(newUser);
         await updateClaims();
@@ -164,7 +166,7 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
     );
 
     return () => unsubscribe();
-  }, [updateClaims]);
+  }, [auth, updateClaims]);
 
   /**
    * Login user using email/password auth
@@ -187,7 +189,7 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
         return Promise.reject(err);
       }
     },
-    [updateClaims]
+    [auth, updateClaims]
   );
 
   /**
@@ -204,17 +206,18 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
       cb !== undefined ? cb() : navigate(`/auth/login`, { replace: true });
       setLoading(false);
     },
-    [navigate]
+    [auth, navigate]
   );
 
   /**
    * Sends email verification to currentUser
-   * @returns {Promise} returns sendEmailVerification which resolves to void
+   * @returns {Promise} returns sendEmailVerification which resolves current users email
    */
   const sendVerification = useCallback(async () => {
     if (!auth.currentUser) throw new Error('Must be signed in');
     await sendEmailVerification(auth.currentUser);
-  }, []);
+    return auth.currentUser.email;
+  }, [auth]);
 
   /**
    * Sends password reset to the provided email. Used for "forgot password" situations.
@@ -222,22 +225,25 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
    * @param {string} continueUrl - url the link redirects to.
    * @returns {string} informational success message which can be display to user
    */
-  const sendPasswordReset = useCallback(async (email: string, continueUrl?: string) => {
-    var actionCodeSettings = {
-      url:
-        continueUrl ||
-        `${process.env.REACT_APP_HOSTING_URL}/auth/login/${
-          auth.currentUser && auth.currentUser.tenantId ? auth.currentUser.tenantId : ''
-        }`,
-      handleCodeInApp: false,
-    };
-    try {
-      await sendPasswordResetEmail(auth, email, actionCodeSettings);
-      return `Password reset email sent to ${email}`;
-    } catch (err) {
-      return Promise.reject(err);
-    }
-  }, []);
+  const sendPasswordReset = useCallback(
+    async (email: string, continueUrl?: string) => {
+      var actionCodeSettings = {
+        url:
+          continueUrl ||
+          `${process.env.REACT_APP_HOSTING_URL}/auth/login/${
+            auth.currentUser && auth.currentUser.tenantId ? auth.currentUser.tenantId : ''
+          }`,
+        handleCodeInApp: false,
+      };
+      try {
+        await sendPasswordResetEmail(auth, email, actionCodeSettings);
+        return `Password reset email sent to ${email}`;
+      } catch (err) {
+        return Promise.reject(err);
+      }
+    },
+    [auth]
+  );
 
   /**
    * Calculates seconds from last authentication of currentUser or returns null

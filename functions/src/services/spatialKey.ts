@@ -49,10 +49,11 @@ export const getSpatialKeyInstance = (args: GenerateTokenArgs) => {
         if (err.response.status === 401 && !originalConfig._retry) {
           originalConfig._retry = true;
           const config = err.config;
+          console.log('401 ERROR... GENERATING NEW ACCESS TOKEN');
 
           try {
             const accessToken = await getAccessToken(args);
-            console.log('REFRESHED TOKEN => ', accessToken);
+            // console.log('REFRESHED TOKEN => ', accessToken);
 
             config.headers['x-sktoken'] = accessToken;
             instance.defaults.headers.common['x-sktoken'] = accessToken;
@@ -65,10 +66,11 @@ export const getSpatialKeyInstance = (args: GenerateTokenArgs) => {
         if (err.response.status === 403 && !originalConfig._retry) {
           originalConfig._retry = true;
           const config = err.config;
+          console.log('403 ERROR... GENERATING NEW ACCESS TOKEN');
 
           try {
             const accessToken = await getAccessToken(args);
-            console.log('REFRESHED TOKEN => ', accessToken);
+            // console.log('REFRESHED TOKEN => ', accessToken);
 
             config.headers['x-sktoken'] = accessToken;
             instance.defaults.headers.common['x-sktoken'] = accessToken;
@@ -86,88 +88,3 @@ export const getSpatialKeyInstance = (args: GenerateTokenArgs) => {
 
   return instance;
 };
-
-// import axios, { AxiosRequestConfig } from 'axios';
-
-// import { getAccessToken } from '../config/spatialKeyToken';
-
-// // const spatialKeyTokenURL = `https://idemand.spatialkey.com/SpatialKeyFramework/api/v2/oauth.json?grant_type=${param1}&assertion=${param2}`
-
-// const instance = axios.create({
-//   baseURL: 'https://idemand.spatialkey.com',
-//   headers: {
-//     'Content-Type': 'application/json',
-//   },
-// });
-
-// instance.interceptors.request.use(
-//   async (config: AxiosRequestConfig) => {
-//     if (!config.headers) config.headers = {}; // @ts-ignore
-//     if (!config.headers.common['x-sktoken']) {
-//       console.log('GENERATING ACCESS TOKEN');
-//       try {
-//         let access_token = await getAccessToken();
-
-//         console.log('ACCESS TOKEN => ', access_token);
-//         config.headers['x-sktoken'] = access_token;
-//         instance.defaults.headers.common['x-sktoken'] = access_token;
-//       } catch (err) {
-//         return Promise.reject(err);
-//       }
-//     }
-
-//     return config;
-//   },
-//   (err) => {
-//     console.log('Axios request interceptor error => ', err);
-//     return Promise.reject(err);
-//   }
-// );
-
-// instance.interceptors.response.use(
-//   (res) => {
-//     return res;
-//   },
-//   async (err) => {
-//     console.log('ERROR => ', err);
-//     const originalConfig = err.config;
-//     if (err.response) {
-//       if (err.response.status === 401 && !originalConfig._retry) {
-//         originalConfig._retry = true;
-//         let config = err.config;
-
-//         try {
-//           let access_token = await getAccessToken();
-//           console.log('REFRESHED TOKEN => ', access_token);
-
-//           config.headers['x-sktoken'] = access_token;
-//           instance.defaults.headers.common['x-sktoken'] = access_token;
-
-//           return instance(config);
-//         } catch (err) {
-//           return Promise.reject(err);
-//         }
-//       }
-//       if (err.response.status === 403 && !originalConfig._retry) {
-//         originalConfig._retry = true;
-//         let config = err.config;
-
-//         try {
-//           let access_token = await getAccessToken();
-//           console.log('REFRESHED TOKEN => ', access_token);
-
-//           config.headers['x-sktoken'] = access_token;
-//           instance.defaults.headers.common['x-sktoken'] = access_token;
-
-//           return instance(config);
-//         } catch (err) {
-//           return Promise.reject(err);
-//         }
-//       }
-//     }
-
-//     return Promise.reject(err);
-//   }
-// );
-
-// export default instance;

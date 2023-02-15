@@ -1,4 +1,4 @@
-export enum Collections {
+export enum COLLECTIONS {
   SUBMISSIONS = 'submissions',
   QUOTES = 'quotes',
   RATING_DATA = 'ratingData',
@@ -18,7 +18,7 @@ export enum Collections {
   NOTIFICATIONS = 'notifications',
 }
 
-export enum SubmissionStatus {
+export enum SUBMISSION_STATUS {
   Draft = 'draft',
   Submitted = 'submitted',
   Approved = 'approved',
@@ -30,13 +30,26 @@ export enum SubmissionStatus {
   AwaitingPayment = 'awaiting:payment',
 }
 
-export enum Product {
+export enum PRODUCT {
   Flood = 'flood',
   Wind = 'wind',
 }
 
-export enum UWNoteCode {
+export enum AGENCY_STATUS {
+  Active = 'active',
+  Inactive = 'inactive',
+  PendingInfo = 'pending_info',
+}
+
+export enum UW_NOTE_CODE {
   REQUIRES_REVIEW = 'requires-review',
   NOT_RATABLE = 'not-ratable',
   UNKNOWN = 'unknown',
+}
+
+export enum CLAIMS {
+  IDEMAND_ADMIN = 'iDemandAdmin',
+  IDEMAND_USER = 'iDemandUser',
+  ORG_ADMIN = 'orgAdmin',
+  AGENT = 'agent',
 }

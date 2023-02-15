@@ -4,7 +4,7 @@ import Grid, { Grid2Props } from '@mui/material/Unstable_Grid2';
 import { useFormikContext } from 'formik';
 
 import { FormikDollarMaskField, FormikDollarMaskFieldProps } from 'components/forms';
-import { FloodValues } from 'views/Quote';
+import { FloodValues } from 'views/SubmissionNew';
 import { round, roundToNearest } from 'modules/utils/helpers';
 import { LimitKeys } from 'common/types';
 
@@ -54,14 +54,18 @@ const getFormattedPct = (portion: number, total: number) => round((portion / tot
 
 export interface LimitsStepProps {
   gridProps?: Grid2Props;
+  gridItemProps?: Grid2Props;
   inputProps?: Partial<FormikDollarMaskFieldProps>;
   replacementCost: number | undefined;
+  description?: string;
 }
 
 export const LimitsStep: React.FC<LimitsStepProps> = ({
   gridProps,
+  gridItemProps,
   inputProps,
   replacementCost,
+  description,
 }) => {
   const { values, setFieldValue, setFieldTouched } = useFormikContext<FloodValues>(); // setFieldValue, setFieldTouched, setStatus
 
@@ -122,14 +126,16 @@ export const LimitsStep: React.FC<LimitsStepProps> = ({
       columnSpacing={{ xs: 6, sm: 9, md: 12 }}
       {...gridProps}
     >
-      <Grid xs={12}>
-        <Typography color='text.secondary' gutterBottom>
-          We've set some default coverage limits based on the estimated replacement cost of your
-          home and belongings. Feel free to adjust them to fit your needs.
-        </Typography>
-      </Grid>
+      {description && (
+        <Grid xs={12}>
+          <Typography color='text.secondary' gutterBottom>
+            {description}
+          </Typography>
+        </Grid>
+      )}
+
       {limitFields.map((field) => (
-        <Grid xs={12} sm={6} key={field.name}>
+        <Grid xs={12} sm={6} key={field.name} {...gridItemProps}>
           <FormikDollarMaskField
             name={field.name}
             label={field.inputLabel}

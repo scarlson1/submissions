@@ -1,6 +1,7 @@
-export enum Collections {
+export enum COLLECTIONS {
   SUBMISSIONS = 'submissions',
   QUOTES = 'quotes',
+  SUBMISSIONS_QUOTES = 'submissionsQuotes',
   RATING_DATA = 'ratingData',
   USERS = 'users',
   POLICIES = 'policies',
@@ -16,32 +17,92 @@ export enum Collections {
   AGENCY_APPLICATIONS = 'agencySubmissions',
   LICENSES = 'licenses',
   NOTIFICATIONS = 'notifications',
+  NOTIFY_REGISTRATION = 'notifyRegistration',
+  TAXES = 'surplusLinesTaxes',
+  ACTIVE_STATES = 'states',
+  MORATORIUMS = 'moratoriums',
+  TASKS = 'tasks', // TODO: DELETE
 }
 
-export enum SubmissionStatus {
-  Draft = 'draft',
-  Submitted = 'submitted',
-  Approved = 'approved',
-  Rejected = 'rejected',
-  UnderReview = 'under_review',
-  PendingInfo = 'pending_info',
-  Expired = 'expired',
-  Cancelled = 'cancelled',
-  AwaitingPayment = 'awaiting:payment',
+export enum SUBMISSION_STATUS {
+  DRAFT = 'draft',
+  SUBMITTED = 'submitted',
+  APPROVED = 'approved',
+  REJECTED = 'rejected',
+  UNDER_REVIEW = 'under_review',
+  PENDING_INFO = 'pending_info',
+  EXPIRED = 'expired',
+  CANCELLED = 'cancelled',
+  AWAITING_USER = 'awaiting:user',
+  AWAITING_PAYMENT = 'awaiting:payment',
 }
 
-export enum Product {
-  Flood = 'flood',
-  Wind = 'wind',
+export enum PRODUCT {
+  FLOOD = 'flood',
+  WIND = 'wind',
 }
 
-export enum UWNoteCode {
+export enum UW_NOTE_CODE {
   REQUIRES_REVIEW = 'requires-review',
   NOT_RATABLE = 'not-ratable',
   UNKNOWN = 'unknown',
 }
 
-export enum DeductibleOptions {
+export enum DEDUCTIBLE_OPTIONS {
   pct = 'percent',
   abs = 'absolute',
+}
+
+export enum STATE_ABBREVIATION {
+  AL = 'AL',
+  AK = 'AK',
+  AZ = 'AZ',
+  AR = 'AR',
+  CA = 'CA',
+  CO = 'CO',
+  CT = 'CT',
+  DE = 'DE',
+  DC = 'DC',
+  FL = 'FL',
+  GA = 'GA',
+  HI = 'HI',
+  ID = 'ID',
+  IL = 'IL',
+  IN = 'IN',
+  IA = 'IA',
+  KS = 'KS',
+  KY = 'KY',
+  LA = 'LA',
+  ME = 'ME',
+  MD = 'MD',
+  MA = 'MA',
+  MI = 'MI',
+  MN = 'MN',
+  MS = 'MS',
+  MO = 'MO',
+  MT = 'MT',
+  NE = 'NE',
+  NV = 'NV',
+  NH = 'NH',
+  NJ = 'NJ',
+  NM = 'NM',
+  NY = 'NY',
+  NC = 'NC',
+  ND = 'ND',
+  OH = 'OH',
+  OK = 'OK',
+  OR = 'OR',
+  PA = 'PA',
+  RI = 'RI',
+  SC = 'SC',
+  SD = 'SD',
+  TN = 'TN',
+  TX = 'TX',
+  UT = 'UT',
+  VT = 'VT',
+  VA = 'VA',
+  WA = 'WA',
+  WV = 'WV',
+  WI = 'WI',
+  WY = 'WY',
 }

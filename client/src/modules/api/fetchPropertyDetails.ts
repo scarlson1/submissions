@@ -1,6 +1,7 @@
-import { getFunctions, httpsCallable } from 'firebase/functions';
+import { httpsCallable } from 'firebase/functions';
 
 import { Address, Coordinates, Location } from 'common/types';
+import { functions } from 'firebaseConfig';
 
 export type FetchPropertyDataRequest = Address | Coordinates | Location;
 export interface FetchPropertyDataResponse {
@@ -22,7 +23,11 @@ export interface FetchPropertyDataResponse {
   spatialKeyDocId?: string | null;
 }
 
-const functions = getFunctions();
+// export const fetchPropertyDetails = (functions: Functions) =>
+//   httpsCallable<FetchPropertyDataRequest, FetchPropertyDataResponse>(
+//     functions,
+//     'getPropertyDetails'
+//   );
 
 export const fetchPropertyDetails = httpsCallable<
   FetchPropertyDataRequest,

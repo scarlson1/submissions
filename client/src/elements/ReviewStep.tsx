@@ -2,7 +2,7 @@ import React, { useCallback } from 'react';
 import { Box, Card, CardContent, Grid, Typography, Stack, Divider } from '@mui/material';
 import { useFormikContext } from 'formik';
 
-import { FloodValues } from 'views/Quote';
+import { FloodValues } from 'views/SubmissionNew';
 import { LimitKeys } from 'common/types';
 import { dollarFormat } from 'modules/utils/helpers';
 import { FormikCheckbox } from 'components/forms';
@@ -141,7 +141,7 @@ export const ReviewStep: React.FC = () => {
             </Typography>
             <Typography variant='body2' sx={{ color: 'text.secondary' }} gutterBottom>
               {`Keep an eye on your inbox! We'll deliver a quote to the provided email address  (
-              ${values.email}). It will include a link to proceed toward binding a policy.`}
+              ${values.email}). It will include a link to proceed with binding a policy.`}
             </Typography>
 
             <Divider sx={{ my: 3 }} />

@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useCallback, useMemo } from 'react';
-import { Button, Typography, Container, Divider, Stack } from '@mui/material'; // Divider, Stack,
+import React, { useEffect, useRef, useCallback } from 'react'; // useMemo
+import { Button, Typography, Container } from '@mui/material'; // Divider, Stack,
 import { LoadingButton } from '@mui/lab';
 import Grid from '@mui/material/Unstable_Grid2';
 import { FormikHelpers, Formik, FormikProps } from 'formik';
@@ -7,27 +7,27 @@ import * as yup from 'yup';
 import { useNavigate, useLocation, useParams, useSearchParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { FirebaseError } from '@firebase/util';
-import { AuthError, ProviderId } from 'firebase/auth'; // ProviderId
+import { AuthError, getAuth } from 'firebase/auth'; // , ProviderId
 
 import FormikTextField from 'components/forms/FormikTextField';
-import { auth } from 'firebaseConfig';
-import { GoogleAuth, MicrosoftAuth } from 'components';
+// import { auth } from 'firebaseConfig';
+// import { GoogleAuth, MicrosoftAuth } from 'components';
 import { getRedirectPath } from 'modules/utils/helpers';
 import { useAuth } from 'modules/components/AuthContext';
-import { FormikPassword } from 'elements'; // ForgotPasswordDialog
+import { FormikPassword } from 'elements';
 import { useHandleAuthError } from 'hooks/useHandleAuthError';
 import { useKeyPress, useSendPasswordReset } from 'hooks';
 
-const providersList = [
-  {
-    providerId: ProviderId.GOOGLE,
-    element: <GoogleAuth />,
-  },
-  {
-    providerId: 'microsoft.com',
-    element: <MicrosoftAuth />,
-  },
-];
+// const providersList = [
+//   {
+//     providerId: ProviderId.GOOGLE,
+//     element: <GoogleAuth />,
+//   },
+//   {
+//     providerId: 'microsoft.com',
+//     element: <MicrosoftAuth />,
+//   },
+// ];
 
 export const loginValidation = yup.object({
   email: yup.string().email().required('Valid email is required'),
@@ -40,6 +40,7 @@ export interface LoginValues {
 }
 
 export const Login: React.FC = () => {
+  const auth = getAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const params = useParams();
@@ -47,8 +48,8 @@ export const Login: React.FC = () => {
   const { login } = useAuth();
   const { handleError } = useHandleAuthError();
   const { sendPasswordReset } = useSendPasswordReset({
-    onSuccess: (email?: string) => toast(`Password reset email sent to ${email}`),
-    onError: (err) => toast.error('Failed to send password reset email.'),
+    onSuccess: (email?: string) => toast.success(`Password reset email sent to ${email}`),
+    onError: (err: unknown, msg: string) => toast.error(msg),
   });
   const formikRef = useRef<FormikProps<LoginValues>>(null);
 
@@ -64,7 +65,7 @@ export const Login: React.FC = () => {
     } else {
       auth.tenantId = null;
     }
-  }, [params]);
+  }, [auth, params]);
 
   const submitForm = useCallback(() => {
     formikRef.current?.submitForm();
@@ -74,7 +75,7 @@ export const Login: React.FC = () => {
     const { email, password } = values;
 
     try {
-      await login(email.trim(), password.trim());
+      await login(email.trim().toLowerCase(), password.trim());
 
       actions.setSubmitting(false);
       navigate(getRedirectPath(location), { replace: true });
@@ -94,40 +95,31 @@ export const Login: React.FC = () => {
     }
   };
 
-  const providers = useMemo(() => {
-    // TODO: move providers to separate component?
-    let providersArr = providersList;
+  // const providers = useMemo(() => {
+  //   // TODO: move providers to separate component?
+  //   let providersArr = providersList;
 
-    if (params.tenantId) {
-      // IN SEPARATE LISTENER, FETCH ORG DOC
-      // UPDATE USE MEMO WHEN DOC CHANGES AND DOC.PROVIDERS IS AVAILABLE
-      // for security purposes, need to save provider info in separate doc from org
-      providersArr.filter((p) => ['google.com', 'microsoft.com'].includes(p.providerId));
-    }
+  //   if (params.tenantId) {
+  //     // IN SEPARATE LISTENER, FETCH ORG DOC
+  //     // UPDATE USE MEMO WHEN DOC CHANGES AND DOC.PROVIDERS IS AVAILABLE
+  //     // for security purposes, need to save provider info in separate doc from org
+  //     providersArr.filter((p) => ['google.com', 'microsoft.com'].includes(p.providerId));
+  //   }
 
-    return providersArr;
-  }, [params.tenantId]);
+  //   return providersArr;
+  // }, [params.tenantId]);
 
   return (
     <Container maxWidth='xs' sx={{ py: { sm: 6, md: 8 } }}>
-      {/* <Box sx={{ maxWidth: '400px' }}> */}
       <Typography variant='h4'>Login</Typography>
-      <Typography variant='subtitle1' gutterBottom sx={{ py: 1, color: 'text.secondary' }}>
+      <Typography variant='subtitle1' gutterBottom sx={{ pt: 1, pb: 3, color: 'text.secondary' }}>
         Hi, welcome back 👋
       </Typography>
-      <Stack
-        direction={{ xs: 'column', sm: 'row' }}
-        spacing={{ xs: 2, md: 3 }}
-        my={{ xs: 2, sm: 4, lg: 6 }}
-        sx={{
-          maxWidth: { xs: '240px' },
-          mx: 'auto',
-        }}
-      >
+      {/* <Stack direction='row' sx={{ flexWrap: 'wrap', gap: 2, my: { xs: 4, md: 6 } }}>
         {providers.map((p) => (
           <div key={p.providerId}>{p.element}</div>
         ))}
-      </Stack>
+      </Stack> */}
       <Formik
         initialValues={{
           email: queryParams.get('email') || '',
@@ -139,7 +131,7 @@ export const Login: React.FC = () => {
       >
         {({ isValid, isValidating, isSubmitting, dirty, values }: FormikProps<LoginValues>) => (
           <Grid container rowSpacing={{ xs: 3, sm: 4 }} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
-            <Grid xs={12}>
+            {/* <Grid xs={12}>
               <Divider variant='middle'>
                 <Typography
                   variant='body2'
@@ -151,7 +143,7 @@ export const Login: React.FC = () => {
                   or login with email
                 </Typography>
               </Divider>
-            </Grid>
+            </Grid> */}
             <Grid xs={12}>
               <FormikTextField name='email' label='Email' fullWidth />
             </Grid>
@@ -221,7 +213,6 @@ export const Login: React.FC = () => {
           </Grid>
         )}
       </Formik>
-      {/* </Box> */}
     </Container>
   );
 };

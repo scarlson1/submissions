@@ -2,12 +2,13 @@ import * as _ from 'lodash';
 import { formatDistance, format } from 'date-fns';
 import numeral from 'numeral';
 import { Location } from 'react-router-dom';
-import { GridValueFormatterParams } from '@mui/x-data-grid';
-import { Timestamp } from 'firebase/firestore';
+import { GridValueFormatterParams, GridValueGetterParams } from '@mui/x-data-grid';
+import { FirestoreError, Timestamp } from 'firebase/firestore';
 import { FirebaseError } from '@firebase/util';
 
 import { AddressComponent, AddressComponentType } from 'components/forms';
-import { FirestoreTimestamp } from 'common/types';
+import { Address, FirestoreTimestamp } from 'common/types';
+import { AuthError } from 'firebase/auth';
 
 /**
  * extracts address string from Google address_components object.
@@ -70,6 +71,8 @@ export const formatPhoneNumber = (str: string) => {
 
 export const dollarFormat = (val: string | number) => numeral(val).format('$0,0[.]00');
 
+export const numberFormat = (val: string | number) => numeral(val).format('0,0');
+
 /**
  * extracts redirect location from location.state.redirectPath or defaults to base url
  * @param {Location} location - react router Location object
@@ -104,6 +107,11 @@ export const formatFirestoreTimestamp = (
 export const formatGridFirestoreTimestamp = (params: GridValueFormatterParams<Timestamp>) =>
   params.value == null || !params.value.seconds ? '' : formatFirestoreTimestamp(params.value);
 
+export const formatGridFirestoreTimestampAsDate = (params: GridValueFormatterParams<Timestamp>) =>
+  params.value == null || !params.value.seconds
+    ? ''
+    : formatFirestoreTimestamp(params.value, 'date');
+
 /**
  *
  * @param params - Grid value formatter params
@@ -112,6 +120,9 @@ export const formatGridFirestoreTimestamp = (params: GridValueFormatterParams<Ti
 export const formatGridCurrency = (params: GridValueFormatterParams<number>) =>
   params.value == null ? '' : numeral(params.value).format('$0,0[.]00');
 // TODO: use regex to get rid of everything except digits and decimals ??
+
+export const formatGridPercent = (params: GridValueFormatterParams<number>, round: number = 1) =>
+  params.value == null ? '' : numeral(params.value).format(`0.${'0'.repeat(round)}%`); // '0'.repeat(magnitude)
 
 /**
  * checks validity of routing number by summing 3, 7, 1 multiples checking whether the sumproduct is divisible by 10
@@ -148,13 +159,24 @@ export const isValidEmail = (str: string) => {
   );
 };
 
+// export const getNumber = (str: string) => str.replace(/\D/g, '');
+export const getNumber = (str: string) => str.replace(/[^0-9\.]+/g, ''); // eslint-disable-line
+
 /**
  * Sums an array of numbers
  * @param {number[]} arr - array of numbers to be added.
  * @return {number} total of all numbers in array
  */
-export const sumArr = (arr: number[]) => {
-  return arr.reduce((total, current) => {
+export const sumArr = (arr: (number | string)[]) => {
+  const numArr = arr
+    .filter((i) => typeof i === 'number' || typeof i === 'string')
+    .map((i) => {
+      if (typeof i === 'string') {
+        return parseFloat(getNumber(i)) || 0;
+      }
+      return i;
+    });
+  return numArr.reduce((total, current) => {
     return total + current;
   }, 0);
 };
@@ -281,3 +303,32 @@ export const getErrorDetails = (err: unknown) => {
 
   return { code, message };
 };
+
+export function getRandomItem(items: any[]) {
+  return items[Math.floor(Math.random() * items.length)];
+}
+
+export const maskStringShowLast = (str: string, showLast: number = 4, mask: string = '*') => {
+  return ('' + str).slice(0, -showLast).replace(/./g, mask) + ('' + str).slice(-showLast);
+};
+
+export const readableFirebaseCode = (err: AuthError | FirestoreError) => {
+  return err.code.split('/')[1].split('-').join(' ');
+};
+
+export function getAddressComponent(address: Address, addressComponent: keyof Address) {
+  if (!address || !address[addressComponent]) return '';
+  return address[addressComponent];
+}
+
+export function getGridAddressComponent(
+  params: GridValueGetterParams<any, any>,
+  addressComponent: keyof Address
+) {
+  if (!params.row || !params.row.address) return '';
+  return getAddressComponent(params.row.address, addressComponent);
+}
+
+export function extractNumber(str: string) {
+  return parseFloat(`${str}`.replace(/[^0-9.]/g, ''));
+}

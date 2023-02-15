@@ -1,6 +1,12 @@
 import sgMail from '@sendgrid/mail';
 
-import { submissionReceived, adminNewSubmission, emailConfirmation } from './templates';
+import {
+  submissionReceived,
+  adminNewSubmission,
+  emailConfirmation,
+  userInvite,
+  adminNewAgencySubmission,
+} from './templates';
 // import { userInvite } from './emailTemplates/userInvite';
 // import { emailConfirmation } from './emailTemplates/emailConfirmation';
 // import { agencyAppReceived } from './emailTemplates/agencyAppReceived';
@@ -27,11 +33,12 @@ const createMsgContent = ({ to, subject, html }: CreateMsgContentProps) => {
 
 export const sendSubmissionRecievedConfirmation = async (
   key: string,
+  createAccountLink: string,
   to: string | string[],
   toName: string | undefined | null,
   addressLine1: string
 ) => {
-  const html = submissionReceived({ toName: toName, addressLine1 });
+  const html = submissionReceived({ toName: toName, addressLine1, createAccountLink });
   sgMail.setApiKey(key);
 
   await sgMail.send(createMsgContent({ html, subject: `We've received your submission!`, to }));
@@ -61,4 +68,31 @@ export const sendEmailConfirmation = async (
   sgMail.setApiKey(key);
 
   await sgMail.send(createMsgContent({ html, subject: 'Please confirm your email', to }));
+};
+
+export const sendUserInvite = async (
+  key: string,
+  link: string,
+  email: string,
+  toName: string | null | undefined = undefined,
+  fromName: string | null | undefined = undefined
+) => {
+  const html = userInvite({ toName, fromName, link });
+  sgMail.setApiKey(key);
+
+  await sgMail
+    // .sendMultiple(msg)
+    .send(createMsgContent({ html, subject: 'Create an account', to: email }));
+};
+
+export const sendNewAgencySubmissionAdminNotification = async (
+  key: string,
+  link: string,
+  orgName: string,
+  to: string | string[]
+) => {
+  const html = adminNewAgencySubmission({ link, orgName });
+  sgMail.setApiKey(key);
+
+  await sgMail.send(createMsgContent({ html, subject: `New submission!`, to }));
 };

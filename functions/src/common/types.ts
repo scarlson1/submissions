@@ -1,8 +1,9 @@
 import { Request } from 'express';
 import { DecodedIdToken } from 'firebase-admin/auth';
+import { GeoPoint } from 'firebase-admin/firestore';
 // import { Timestamp, WithFieldValue } from '@google-cloud/firestore';
 
-import { SubmissionStatus } from './enums';
+import { SUBMISSION_STATUS, PRODUCT, AGENCY_STATUS } from './enums';
 
 // TODO: fix typescript error app.use(thisMiddleware) is users.ts
 
@@ -25,7 +26,61 @@ export interface User {
   tenantId?: string | null; // useOrgId ??
   firstName?: string;
   lastName?: string;
+  initialAnonymous?: boolean;
   metadata: BaseMetadata;
+}
+
+export interface Address {
+  addressLine1: string;
+  addressLine2: string;
+  city: string;
+  state: string;
+  postal: string;
+}
+
+export type AuthProviders =
+  | 'password'
+  | 'phone'
+  | 'google.com'
+  | 'microsoft.com'
+  | 'apple.com'
+  | 'twitter.com'
+  | 'github.com'
+  | 'yahoo.com'
+  | 'hotmail.com';
+
+export interface Organization {
+  address?: Address;
+  coordinates?: GeoPoint;
+  orgName: string;
+  tenantId: string | null;
+  primaryContact?: {
+    displayName: string;
+    firstName?: string;
+    lastName?: string;
+    email: string;
+    phone: string;
+    userId?: string;
+  };
+  principalProducer?: {
+    displayName: string;
+    firstName?: string;
+    lastName?: string;
+    email: string;
+    phone?: string;
+    NPN: string;
+    userId?: string;
+  };
+  FEIN?: string;
+  EandOURL?: string;
+  accountNumber?: string;
+  routingNumber?: string;
+  emailDomain?: string;
+  enforceDomainRestriction?: boolean;
+  status: AGENCY_STATUS;
+  metadata: BaseMetadata;
+  defaultCommission: { [key in PRODUCT]?: number };
+  authProviders: AuthProviders[];
 }
 
 export type LimitTypes = 'limitA' | 'limitB' | 'limitC' | 'limitD';
@@ -36,34 +91,152 @@ export interface Limits {
   limitD: number;
 }
 
-export type UWNoteCode = 'requires-review' | 'not-ratable' | 'info' | 'unknown';
+export type UW_NOTE_CODE = 'requires-review' | 'not-ratable' | 'info' | 'unknown';
 
 export interface UWNote {
-  code: UWNoteCode;
+  code: UW_NOTE_CODE;
   message: string;
   property?: string;
 }
 
-export interface Submission {
+// export interface Submission {
+//   addressLine1: string;
+//   addressLine2?: string;
+//   city: string;
+//   state: string;
+//   postal: string;
+//   latitude: number | null;
+//   longitude: number | null;
+//   coverageActiveBuilding: boolean;
+//   coverageActiveStructures: boolean;
+//   coverageActiveContents: boolean;
+//   coverageActiveAdditional: boolean;
+//   limitA: string;
+//   limitB: string;
+//   limitC: string;
+//   limitD: string;
+//   deductible: number;
+//   email: string;
+//   status: SUBMISSION_STATUS;
+//   metadata: BaseMetadata;
+// }
+
+export interface FloodFormValues {
   addressLine1: string;
   addressLine2?: string;
   city: string;
   state: string;
   postal: string;
+  countyName?: string;
   latitude: number | null;
   longitude: number | null;
   coverageActiveBuilding: boolean;
   coverageActiveStructures: boolean;
   coverageActiveContents: boolean;
   coverageActiveAdditional: boolean;
-  limitA: string;
-  limitB: string;
-  limitC: string;
-  limitD: string;
+  limitA: number; // string;
+  limitB: number; // string;
+  limitC: number; // string;
+  limitD: number; // string;
   deductible: number;
+  exclusionsExist: boolean | null;
+  exclusions: string[];
+  priorLossCount: number;
+  firstName: string;
+  lastName: string;
   email: string;
-  status: SubmissionStatus;
+  userAcceptance: boolean;
+}
+
+export interface FetchPropertyDataResponse {
+  CBRSDesignation: string;
+  basement: string;
+  initDeductible: number;
+  distToCoastFeet: number;
+  floodZone: string;
+  initLimitA: number;
+  initLimitB: number;
+  initLimitC: number;
+  initLimitD: number;
+  maxDeductible: number;
+  numStories: number;
+  propertyCode: string;
+  replacementCost: number;
+  sqFootage: number;
+  yearBuilt: number;
+  spatialKeyDocId?: string | null;
+}
+
+export interface Submission extends FloodFormValues, FetchPropertyDataResponse {
+  coordinates: GeoPoint;
+  userId?: string | null;
+  status: SUBMISSION_STATUS;
+  submittedById?: string | null;
+  darkMapImageURL?: string;
+  lightMapImageURL?: string;
+  darkMapImageFilePath?: string;
+  lightMapImageFilePath?: string;
+  satelliteMapImageURL?: string;
+  satelliteStreetsMapImageURL?: string;
+  satelliteMapImageFilePath?: string;
+  satelliteStreetsMapImageFilePath?: string;
+  inlandAAL?: number;
+  surgeAAL?: number;
   metadata: BaseMetadata;
+}
+
+export type InviteStatus = 'pending' | 'accepted' | 'revoked' | 'replaced' | 'rejected' | 'error';
+
+export interface Invite {
+  email: string;
+  displayName?: string;
+  firstName?: string;
+  lastName?: string;
+  link?: string; // eslint-disable-next-line
+  customClaims?: { [key: string]: any };
+  orgId: string | null;
+  orgName?: string;
+  status: InviteStatus;
+  isCreateOrgInvite?: boolean;
+  id: string;
+  invitedBy?: {
+    userId?: string;
+    name?: string;
+    email: string;
+  } | null;
+  metadata: BaseMetadata;
+}
+
+export interface SRPerilAAL {
+  tiv: number;
+  fguLoss: number;
+  preCatLoss: number;
+  perilCode: string;
+}
+
+export interface SRRes {
+  correlationId: string;
+  bound: boolean;
+  messages?: {
+    text: string;
+    type: string;
+    severity: string;
+  }[];
+  expectedLosses: SRPerilAAL[];
+}
+
+export interface SRResWithAAL extends SRRes {
+  inlandAAL?: number | null;
+  surgeAAL?: number | null;
+  submissionId: string;
+  address?: {
+    addressLine1: string;
+    addressLine2?: string;
+    city: string;
+    state: string;
+    postal: string;
+  };
+  coordinates?: GeoPoint;
 }
 
 export interface SpatialKeyResponse {

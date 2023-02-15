@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { Container, Button, Typography, Divider, Stack } from '@mui/material'; // Divider,  Stack
+import { Container, Button, Typography } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 import Grid from '@mui/material/Unstable_Grid2';
 import { FormikHelpers, Formik, FormikProps } from 'formik';
@@ -8,15 +8,13 @@ import { useNavigate, useLocation, useParams, useSearchParams } from 'react-rout
 import { toast } from 'react-hot-toast';
 
 import FormikTextField from 'components/forms/FormikTextField';
-import { auth } from 'firebaseConfig';
-import { GoogleAuth, MicrosoftAuth } from 'components';
+// import { auth } from 'firebaseConfig';
+// import { GoogleAuth, MicrosoftAuth } from 'components';
 import { getRedirectPath } from 'modules/utils/helpers';
 import { FormikPassword } from 'elements';
 import { useCreateAccount } from 'hooks/useCreateAccount';
 import { useKeyPress } from 'hooks';
-
-// form el or button type=submit causing network timeout error ??
-// https://stackoverflow.com/questions/38860900/firebase-project-results-in-auth-network-request-failed-error-on-login
+import { getAuth } from 'firebase/auth';
 
 export const passwordValidation = yup
   .string()
@@ -44,9 +42,9 @@ interface SignUpValues {
 // TODO: handle existing accounts
 // and linkinng anonymous accounts
 // https://firebase.google.com/docs/auth/web/anonymous-auth#email-password-sign-in
-// TODO: handle showing providers per tenant
 
 export const CreateAccount: React.FC = () => {
+  const auth = getAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const params = useParams();
@@ -55,13 +53,8 @@ export const CreateAccount: React.FC = () => {
   const formikRef = useRef<FormikProps<SignUpValues>>(null);
 
   useKeyPress('Enter', () => {
-    console.log('onPress called');
     formikRef.current?.submitForm();
   });
-
-  useEffect(() => {
-    console.log('loading: ', loading);
-  }, [loading]);
 
   useEffect(() => {
     if (params.tenantId) {
@@ -69,48 +62,39 @@ export const CreateAccount: React.FC = () => {
     } else {
       auth.tenantId = null;
     }
-  }, [params]);
+  }, [auth, params]);
 
   const submitForm = useCallback(() => {
     formikRef.current?.submitForm();
   }, []);
 
-  async function handleSubmit(values: SignUpValues, actions: FormikHelpers<SignUpValues>) {
+  async function handleSubmit(
+    values: SignUpValues,
+    { setSubmitting }: FormikHelpers<SignUpValues>
+  ) {
     try {
       await createAccount(values);
 
       toast.success('Account created! 🎉 Welcome to iDemand!', { duration: 3000 });
-      // toast('You know the drill... please verify your email when you get a chance.', {
-      //   delay: 5000,
-      // });
 
-      actions.setSubmitting(false);
+      setSubmitting(false);
       navigate(getRedirectPath(location), { replace: true });
     } catch (err) {
-      actions.setSubmitting(false);
+      setSubmitting(false);
       await handleEmailAuthError(err, values.email, values.password, getRedirectPath(location));
     }
   }
 
   return (
-    // <Box sx={{ maxWidth: '400px' }}>
     <Container maxWidth='xs' sx={{ py: { sm: 6, md: 8 } }}>
       <Typography variant='h4'>Create an account</Typography>
-      <Typography variant='subtitle1' gutterBottom sx={{ py: 1, color: 'text.secondary' }}>
+      <Typography variant='subtitle1' gutterBottom sx={{ pt: 1, pb: 3, color: 'text.secondary' }}>
         Hi, welcome to iDemand 👋
       </Typography>
-      <Stack
-        direction={{ xs: 'column', sm: 'row' }}
-        spacing={{ xs: 2, md: 3 }}
-        my={{ xs: 2, sm: 4, lg: 6 }}
-        sx={{
-          maxWidth: { xs: '240px' },
-          mx: 'auto',
-        }}
-      >
+      {/* <Stack direction='row' sx={{ flexWrap: 'wrap', gap: 2, my: { xs: 2, sm: 4, lg: 6 } }}>
         <GoogleAuth />
         <MicrosoftAuth />
-      </Stack>
+      </Stack> */}
       <Formik
         initialValues={{
           firstName: queryParams.get('firstName') || '',
@@ -122,15 +106,9 @@ export const CreateAccount: React.FC = () => {
         onSubmit={handleSubmit}
         innerRef={formikRef}
       >
-        {({
-          isValid,
-          isValidating,
-          isSubmitting,
-          dirty,
-          handleSubmit,
-        }: FormikProps<SignUpValues>) => (
+        {({ isValid, isValidating, isSubmitting, dirty }: FormikProps<SignUpValues>) => (
           <Grid container rowSpacing={{ xs: 3, sm: 4 }} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
-            <Grid xs={12}>
+            {/* <Grid xs={12}>
               <Divider variant='middle'>
                 <Typography
                   variant='body2'
@@ -142,7 +120,7 @@ export const CreateAccount: React.FC = () => {
                   or with email
                 </Typography>
               </Divider>
-            </Grid>
+            </Grid> */}
             <Grid xs={6}>
               <FormikTextField name='firstName' label='First name' fullWidth />
             </Grid>
@@ -153,7 +131,7 @@ export const CreateAccount: React.FC = () => {
               <FormikTextField name='email' label='Email' fullWidth />
             </Grid>
             <Grid xs={12}>
-              <FormikPassword />
+              <FormikPassword helperText='Upper & lower letters, symbol, number, and min. 8 characters' />
             </Grid>
             <Grid
               xs={12}
@@ -164,8 +142,6 @@ export const CreateAccount: React.FC = () => {
             >
               <LoadingButton
                 variant='contained'
-                // type='submit'
-                // onClick={() => handleSubmit()}
                 onClick={submitForm}
                 fullWidth
                 disabled={!isValid || !dirty || isValidating}
@@ -198,7 +174,6 @@ export const CreateAccount: React.FC = () => {
         )}
       </Formik>
     </Container>
-    // {/* </Box> */}
   );
 };
 

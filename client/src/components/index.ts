@@ -7,12 +7,16 @@ export { ConfirmationDialog } from './ConfirmationDialog';
 export { FileLink } from './FileLink';
 export { GenericErrorFallback } from './GenericErrorFallback';
 export { RouterErrorBoundary } from './RouterErrorBoundary';
-export { renderGridEmail, renderGridPhone } from './RenderGridCellHelpers';
+export { renderGridEmail, renderGridPhone, renderCellExpand } from './RenderGridCellHelpers';
 export { InputDialog } from './InputDialog';
 export { GoogleAuth } from './GoogleAuth';
 export { MicrosoftAuth } from './MicrosoftAuth';
 export { ReauthDialog } from './ReauthDialog';
 export { RequireAuth } from './RequireAuth';
+export { BasicDataGrid } from './BasicDataGrid';
+export { LoadingSpinner } from './LoadingSpinner';
+export { IconButtonMenu } from './IconButtonMenu';
+// export {  } from './'
 // export {  } from './'
 // export {  } from './'
 
@@ -23,3 +27,5 @@ export type { GoogleAuthProps } from './GoogleAuth';
 export type { MicrosoftAuthProps } from './MicrosoftAuth';
 export type { ReauthDialogProps } from './ReauthDialog';
 export type { RequireAuthProps } from './RequireAuth';
+export type { LoadingSpinnerProps } from './LoadingSpinner';
+export type { IconButtonMenuProps } from './IconButtonMenu';

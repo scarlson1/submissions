@@ -3,7 +3,24 @@ import { initializeApp } from 'firebase-admin/app';
 
 initializeApp();
 
-export { getPropertyDetails } from './callables';
-export { newSubmissionNotifications } from './firestoreEvents';
-export { beforeSignIn, beforeCreate } from './authEvents';
+export {
+  getPropertyDetails,
+  sendContactEmail,
+  initializeQuote,
+  updateAndRateQuote,
+} from './callables';
+export {
+  newSubmissionNotifications,
+  getStaticSubmissionImg,
+  getSubmissionAAL,
+  mirrorCustomClaims,
+  newAgencyAppNotification,
+} from './firestoreEvents';
+export {
+  beforeSignIn,
+  beforeCreate,
+  setUidByEmailOnCreate,
+  createFirestoreUser,
+  setClaimsFromInvite,
+} from './authEvents';
 export { authRequests } from './routes';

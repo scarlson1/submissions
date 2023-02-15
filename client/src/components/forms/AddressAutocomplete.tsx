@@ -59,6 +59,7 @@ export type AddressComponentType =
   | 'route'
   | 'locality'
   | 'administrative_area_level_1'
+  | 'administrative_area_level_2'
   | 'postal_code'
   | 'country';
 
@@ -89,7 +90,7 @@ export const AddressAutocomplete: FunctionComponent<AddressAutocompleteProps> = 
   ...rest
 }) => {
   const [value, setValue] = useState<PlaceType | null>(null);
-  // const [testInputValue, setTestInputValue] = useState('');
+  // const [inputValue, setInputValue] = React.useState('');
   const [options, setOptions] = useState<readonly PlaceType[]>([]);
   const loaded = React.useRef(false);
 
@@ -183,8 +184,9 @@ export const AddressAutocomplete: FunctionComponent<AddressAutocompleteProps> = 
         includeInputInList
         filterSelectedOptions
         size='medium'
-        // blurOnSelect={true} // cause infinite loop
+        // blurOnSelect={true} // causes infinite loop
         value={value}
+        // when user selects option
         onChange={(
           event: React.SyntheticEvent<Element, Event>,
           newValue: PlaceType | null,
@@ -193,11 +195,7 @@ export const AddressAutocomplete: FunctionComponent<AddressAutocompleteProps> = 
           if (reason === 'clear' && resetFields) resetFields();
           if (reason === 'clear' || reason === 'selectOption') handleChange(newValue);
         }}
-        // onChange from docs:
-        // onChange={(event: any, newValue: PlaceType | null) => {
-        //   setOptions(newValue ? [newValue, ...options] : options);
-        //   setValue(newValue);
-        // }}
+        // inputValue={inputValue} // causes infinite loop when clicking "back"
         onInputChange={(event, newInputValue) => {
           setInputValue(newInputValue);
         }}

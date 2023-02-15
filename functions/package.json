@@ -7,7 +7,10 @@
     "serve": "npm run build && firebase emulators:start --only functions",
     "shell": "npm run build && firebase functions:shell",
     "start": "npm run shell",
-    "deploy": "firebase deploy --only functions",
+    "deploy:dev": "npm run use:dev && firebase deploy --only functions",
+    "deploy:prod": "npm run use:prod && firebase deploy --only functions",
+    "use:dev": "firebase use dev",
+    "use:prod": "firebase use prod",
     "logs": "firebase functions:log"
   },
   "engines": {
@@ -16,12 +19,14 @@
   "main": "dist/index.js",
   "dependencies": {
     "@sendgrid/mail": "^7.7.0",
-    "axios": "^1.2.3",
+    "axios": "^1.2.2",
     "firebase-admin": "^10.0.2",
     "firebase-functions": "^4.1.1",
     "tiny-invariant": "^1.3.1"
   },
   "devDependencies": {
+    "@types/lodash-es": "^4.17.6",
+    "@types/uuid": "^9.0.0",
     "@typescript-eslint/eslint-plugin": "^5.12.0",
     "@typescript-eslint/parser": "^5.12.0",
     "eslint": "^8.9.0",

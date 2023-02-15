@@ -4,13 +4,15 @@ import {
   ProviderId,
   EmailAuthProvider,
   PhoneAuthProvider,
+  getAuth,
 } from 'firebase/auth';
-import { auth } from 'firebaseConfig';
+// import { auth } from 'firebaseConfig';
 
 // example: https://stackoverflow.com/a/55581920
 
 export const getProviderForProviderId = (providerId: any) => {
   console.log(`Getting provider for providerId: ${providerId}`);
+  const auth = getAuth();
 
   switch (providerId) {
     case 'microsoft':

@@ -8,10 +8,11 @@ import {
   // signInWithPopup,
   linkWithCredential,
   User,
+  getAuth,
 } from 'firebase/auth';
 import { setDoc, doc } from 'firebase/firestore';
 import { useAuth } from 'modules/components/AuthContext';
-import { auth } from 'firebaseConfig';
+// import { auth } from 'firebaseConfig';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 
@@ -35,6 +36,7 @@ interface CreatePasswordProps {
 }
 
 export const useCreateAccount = () => {
+  const auth = getAuth();
   const { user, isAuthenticated, isAnonymous, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -67,7 +69,11 @@ export const useCreateAccount = () => {
 
       try {
         if (isAnonymous && isAuthenticated && user) {
-          const credential = EmailAuthProvider.credential(email.trim(), password.trim());
+          console.log('linking anonymous user');
+          const credential = EmailAuthProvider.credential(
+            email.trim().toLowerCase(),
+            password.trim()
+          );
           const { user: userLinkRes } = await linkWithCredential(user, credential);
 
           await userLinkRes.getIdToken(true);
@@ -77,6 +83,7 @@ export const useCreateAccount = () => {
           setLoading(false);
           return userLinkRes;
         } else {
+          console.log('creating new user');
           const { user: userCreateRes } = await createUserWithEmailAndPassword(
             auth,
             email.trim(),
@@ -104,7 +111,7 @@ export const useCreateAccount = () => {
         return Promise.reject(err);
       }
     },
-    [isAnonymous, isAuthenticated, updateUserDocOnCreate, user]
+    [auth, isAnonymous, isAuthenticated, updateUserDocOnCreate, user]
   );
 
   const handleEmailAuthError = useCallback(
@@ -125,9 +132,7 @@ export const useCreateAccount = () => {
       // } else {
       //   // registration succeeded
       // }
-      console.log(`test2: ${code === 'auth/internal-error'}`);
       if (code === 'auth/internal-error') {
-        console.log(`test: ${msg.indexOf('verify your email') !== -1}`);
         if (msg.indexOf('Cloud Function') !== -1 || msg.indexOf('verify your email') !== -1) {
           // registration succeeded
           console.log('registration succeeded. need to handle blocking function');

@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import {
   AuthError,
+  getAuth,
   MultiFactorError,
   OperationType,
   sendEmailVerification,
@@ -10,7 +11,7 @@ import {
 // import { FirebaseError } from 'firebase/app';
 import { toast } from 'react-hot-toast';
 
-import { auth } from 'firebaseConfig';
+// import { auth } from 'firebaseConfig';
 import { LoginValues } from 'views/Login';
 // import { useMultiFactorAuth } from 'hooks/auth';
 
@@ -26,6 +27,7 @@ import { LoginValues } from 'views/Login';
 // TODO: handle each error code. If resolves error, do not return err / promise.reject
 
 export const useHandleAuthError = () => {
+  const auth = getAuth();
   // const { handleMFA } = useMultiFactorAuth({});
 
   const toastGenericError = useCallback(() => {
@@ -100,15 +102,18 @@ export const useHandleAuthError = () => {
     return Promise.reject({ ...err });
   }, []);
 
-  const handleUnverifiedEmail = useCallback(async (err: AuthError) => {
-    if (auth.currentUser) {
-      await sendEmailVerification(auth.currentUser);
-      // Need to verify email first before enrolling second factors.
-      toast(`Email verification required. Please check your inbox.`);
-    }
+  const handleUnverifiedEmail = useCallback(
+    async (err: AuthError) => {
+      if (auth.currentUser) {
+        await sendEmailVerification(auth.currentUser);
+        // Need to verify email first before enrolling second factors.
+        toast(`Email verification required. Please check your inbox.`);
+      }
 
-    return Promise.reject({ ...err });
-  }, []);
+      return Promise.reject({ ...err });
+    },
+    [auth]
+  );
 
   const handleWrongPassword = useCallback((err: AuthError) => {
     toast('Provided credential does not match our records. Please check email/password.');

@@ -18,7 +18,7 @@ import { useTheme } from '@mui/material/styles';
 import { useChangeTheme } from 'modules/components/ThemeContext';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from 'modules/components/AuthContext';
-import { ROUTES, ADMIN_ROUTES, createPath } from 'router';
+import { ROUTES, ADMIN_ROUTES, createPath, AUTH_ROUTES } from 'router';
 import { User } from 'firebase/auth';
 
 export interface NavItem {
@@ -96,30 +96,64 @@ export const Header: React.FC<HeaderProps> = () => {
   const adminNavPages = useMemo(
     () => [
       {
-        title: 'Quote',
-        route: createPath({ path: ROUTES.SUBMISSION_NEW }),
+        title: 'New Submission',
+        route: createPath({ path: ROUTES.SUBMISSION_NEW, params: { productId: 'flood' } }),
       },
       {
         title: 'Submissions',
         route: createPath({ path: ADMIN_ROUTES.SUBMISSIONS }),
       },
+      {
+        title: 'Agency Apps',
+        route: createPath({
+          path: ADMIN_ROUTES.AGENCY_APPS,
+        }),
+      },
+      {
+        title: 'Quotes',
+        route: createPath({ path: ADMIN_ROUTES.QUOTES, params: { productId: 'flood' } }),
+      },
+      {
+        title: 'Taxes',
+        route: createPath({ path: ADMIN_ROUTES.SL_TAXES }),
+      },
+      {
+        title: 'States',
+        route: createPath({
+          path: ADMIN_ROUTES.EDIT_ACTIVE_STATES,
+          params: { productId: 'flood' },
+        }),
+      },
+      {
+        title: 'Moratoriums',
+        route: createPath({
+          path: ADMIN_ROUTES.MORATORIUMS,
+        }),
+      },
+      {
+        title: 'Licenses',
+        route: createPath({
+          path: ADMIN_ROUTES.SL_LICENSES,
+        }),
+      },
     ],
     []
   );
 
-  const userNavPages = useMemo(
-    () => [
+  const userNavPages = useMemo(() => {
+    const userPages = [
       {
         title: 'Quote',
-        route: createPath({ path: ROUTES.SUBMISSION_NEW }),
+        route: createPath({ path: ROUTES.SUBMISSION_NEW, params: { productId: 'flood' } }),
       },
-      // {
-      //   title: 'Contact Us',
-      //   route: createPath({ path: ROUTES.CONTACT }),
-      // },
-    ],
-    []
-  );
+    ];
+    if (user)
+      userPages.push({
+        title: 'Submissions',
+        route: createPath({ path: ROUTES.SUBMISSIONS }),
+      });
+    return userPages;
+  }, [user]);
 
   const navPages = useMemo(() => {
     if (!!customClaims.iDemandAdmin) {
@@ -136,13 +170,15 @@ export const Header: React.FC<HeaderProps> = () => {
     setAnchorElNav(null);
   };
 
-  const settings = useMemo(
-    () => [
-      // { label: 'Website', onClick: () => {} },
-      { label: 'Logout', onClick: logout },
-    ],
-    [logout]
-  );
+  const settings = useMemo(() => {
+    let sItems = [{ label: 'Logout', onClick: logout }];
+    if (user?.isAnonymous)
+      sItems.push({
+        label: 'Create Account',
+        onClick: () => navigate(createPath({ path: AUTH_ROUTES.CREATE_ACCOUNT })),
+      });
+    return sItems;
+  }, [logout, navigate, user]);
 
   return (
     <AppBar
@@ -247,7 +283,8 @@ export const Header: React.FC<HeaderProps> = () => {
             noWrap
             onClick={() => navigate('/')}
             sx={{
-              mr: 4,
+              // mr: 4,
+              mr: '-34px',
               display: { xs: 'flex', md: 'none' },
               flexGrow: 1,
               fontFamily: 'monospace',
@@ -263,7 +300,13 @@ export const Header: React.FC<HeaderProps> = () => {
           >
             iDemand
           </Typography>
-          <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
+          <Box
+            sx={{
+              flexGrow: 1,
+              flexShrink: 1,
+              display: { xs: 'none', md: 'flex' },
+            }}
+          >
             {navPages?.map((page) => (
               <Button
                 key={page.title}
@@ -273,6 +316,7 @@ export const Header: React.FC<HeaderProps> = () => {
                   display: 'block',
                   color: (theme) =>
                     theme.palette.mode === 'dark' ? 'white' : theme.palette.text.primary,
+                  whiteSpace: 'nowrap',
                 }}
               >
                 {page.title}
@@ -280,7 +324,7 @@ export const Header: React.FC<HeaderProps> = () => {
             ))}
           </Box>
 
-          <Box sx={{ flexGrow: 0 }}>
+          <Box sx={{ flexGrow: 0, flexShrink: 0 }}>
             <IconButton sx={{ mx: { xs: 1, sm: 2, md: 3 } }} onClick={changeTheme} color='primary'>
               {theme.palette.mode === 'dark' ? (
                 <Brightness7 fontSize='small' />

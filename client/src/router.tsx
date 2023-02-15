@@ -3,19 +3,54 @@ import { createBrowserRouter } from 'react-router-dom';
 import App from './App';
 import { Layout, RequireAuth, RouterErrorBoundary } from 'components';
 import {
-  Quote,
+  SubmissionNew,
   ContactUs,
   ViewQuote,
   Checkout,
-  submissionLoader,
-  SubmissionView,
-  submissionsLoader,
-  Submissions,
   Login,
   CreateAccount,
+  Policy,
+  policyLoader,
+  Policies,
+  UserSubmissions,
+  Home,
+  newSubmissionLoader,
+  AgencyNew,
+  Protosure,
+  protosureLoader,
+  Account,
 } from 'views';
+import {
+  submissionLoader,
+  SubmissionView,
+  adminSubmissionsLoader,
+  Submissions as AdminSubmissions,
+  QuoteNew,
+  SLTaxes,
+  SLTaxNew,
+  adminTaxLoader,
+  EditActiveStates,
+  activeStatesLoader,
+  moratoriumsLoader,
+  Moratoriums,
+  MoratoriumNew,
+  SLLicenseNew,
+  licensesLoader,
+  Licenses,
+  AgencyApp,
+  agencyAppLoader,
+  AgencyApps,
+  agencyAppsLoader,
+  Quotes,
+  newQuoteSubmissionLoader,
+  quotesLoader,
+} from 'views/admin';
 import { SuccessStep } from 'elements';
+import { Product } from 'common';
+import { TestDataGridPagination } from 'views/admin/TestDataGridPagination';
 // import RouterErrorBoundary from 'components/errorBoundaries/RouterErrorBoundary';
+
+// provider for react-router (pass user etc.): https://stackoverflow.com/a/74929447/10887890
 
 // TODO: add errorElement to routes
 // TODO: admin views
@@ -26,29 +61,72 @@ import { SuccessStep } from 'elements';
 // https://betterprogramming.pub/the-best-way-to-manage-routes-in-a-react-project-with-typescript-c4e8d4422d64
 // https://codesandbox.io/s/affectionate-mirzakhani-c7lvr?from-embed
 
-// TODO: separate into admin routes
+// TODO: reuse loaders: https://reactrouter.com/en/main/hooks/use-route-loader-data
+// Available in custom hooks and any other nested component
 
 export enum ROUTES {
-  SUBMISSION_NEW = '/new',
+  SUBMISSION_NEW = '/new/:productId',
   SUBMISSION_SUBMITTED = '/quotes/:submissionId/submitted',
+  SUBMISSIONS = '/submissions',
   QUOTE_VIEW = '/quotes/:quoteId',
   CHECKOUT = '/quotes/:quoteId/checkout',
   CONTACT = '/contact',
+  USER_QUOTES = '/quotes/list/:userId',
+  USER_POLICIES = '/policies',
+  USER_POLICY = '/policies/:policyId',
+  AGENCY_NEW = '/agency/new',
+  PROTOSURE = '/protosure/new/:productId/:quoteId?',
+  ACCOUNT = '/account',
 }
 
 export enum ADMIN_ROUTES {
   SUBMISSIONS = '/admin/submissions',
   SUBMISSION_VIEW = '/admin/submissions/:submissionId',
+  QUOTES = '/admin/quotes/:productId',
+  QUOTE_NEW = '/admin/quotes/:productId/new',
+  SL_TAXES = '/admin/sl-tax',
+  SL_TAXES_NEW = '/admin/sl-tax/new',
+  EDIT_ACTIVE_STATES = '/admin/active-states/:productId/edit',
+  MORATORIUMS = '/admin/moratoriums',
+  MORATORIUM_NEW = '/admin/moratoriums/new',
+  SL_LICENSES = '/admin/licenses',
+  SL_LICENSE_NEW = '/admin/licenses/new',
+  AGENCY_APPS = '/admin/agencies/submissions',
+  AGENCY_APP = '/admin/agencies/submissions/:submissionId',
+}
+
+export enum AUTH_ROUTES {
+  LOGIN = '/auth/login',
+  CREATE_ACCOUNT = '/auth/create-account',
 }
 
 type TArgs =
-  | { path: ROUTES.SUBMISSION_NEW }
+  | { path: ROUTES.SUBMISSION_NEW; params: { productId: Product } }
   | { path: ROUTES.SUBMISSION_SUBMITTED; params: { submissionId: string } }
+  | { path: ROUTES.SUBMISSIONS }
   | { path: ROUTES.QUOTE_VIEW; params: { quoteId: string } }
   | { path: ROUTES.CHECKOUT; params: { quoteId: string } }
+  | { path: ROUTES.USER_POLICIES }
+  | { path: ROUTES.USER_POLICY; params: { policyId: string } }
+  | { path: ROUTES.AGENCY_NEW }
   | { path: ROUTES.CONTACT }
+  | { path: ROUTES.PROTOSURE; params: { productId: Product; quoteId?: string } }
+  | { path: ROUTES.ACCOUNT }
   | { path: ADMIN_ROUTES.SUBMISSIONS }
-  | { path: ADMIN_ROUTES.SUBMISSION_VIEW; params: { submissionId: string } };
+  | { path: ADMIN_ROUTES.SUBMISSION_VIEW; params: { submissionId: string } }
+  | { path: ADMIN_ROUTES.QUOTES; params: { productId: Product } }
+  | { path: ADMIN_ROUTES.QUOTE_NEW; params: { productId: Product } }
+  | { path: ADMIN_ROUTES.SL_TAXES }
+  | { path: ADMIN_ROUTES.SL_TAXES_NEW }
+  | { path: ADMIN_ROUTES.EDIT_ACTIVE_STATES; params: { productId: Product } }
+  | { path: ADMIN_ROUTES.MORATORIUMS }
+  | { path: ADMIN_ROUTES.MORATORIUM_NEW }
+  | { path: ADMIN_ROUTES.SL_LICENSES }
+  | { path: ADMIN_ROUTES.SL_LICENSE_NEW }
+  | { path: ADMIN_ROUTES.AGENCY_APPS }
+  | { path: ADMIN_ROUTES.AGENCY_APP; params: { submissionId: string } }
+  | { path: AUTH_ROUTES.CREATE_ACCOUNT }
+  | { path: AUTH_ROUTES.LOGIN };
 
 type TArgsWithParams = Extract<TArgs, { path: any; params: any }>;
 
@@ -62,13 +140,6 @@ export function createPath(args: TArgs) {
   );
 }
 
-// example: <Link to={createPath({ path: ROUTES.QUOTE_NEW })} />
-
-// createPath({
-//   path: ROUTES.CHECKOUT,
-//   params: { quoteId: '123ID' },
-// });
-
 export const router = createBrowserRouter([
   {
     path: '/',
@@ -77,28 +148,61 @@ export const router = createBrowserRouter([
     children: [
       {
         path: '/',
-        element: <Layout />,
+        element: <Layout containerProps={{ maxWidth: 'lg' }} />,
         errorElement: <RouterErrorBoundary />,
         children: [
           {
             index: true,
-            element: <Quote />,
+            element: <Home />,
           },
           {
             path: ROUTES.SUBMISSION_NEW,
-            element: <Quote />,
+            loader: newSubmissionLoader,
+            element: (
+              <RequireAuth shouldSignInAnonymously={true}>
+                <SubmissionNew />
+              </RequireAuth>
+            ),
             errorElement: (
               <RouterErrorBoundary
-                actionButtons={[{ path: ROUTES.SUBMISSION_NEW, label: 'Start new quote' }]}
+                actionButtons={[
+                  {
+                    path: createPath({
+                      path: ROUTES.SUBMISSION_NEW,
+                      params: { productId: 'flood' },
+                    }),
+                    label: 'Start new quote',
+                  },
+                ]}
               />
             ),
-            // errorElement: (
-            //   <FormError
-            //     title='Error fetching quote'
-            //     subTitle='Please try creating another quote'
-            //     buttons={[{ label: 'Create a Quote', route: '/application/flood' }]}
-            //   />
-            // ),
+          },
+          {
+            path: ROUTES.PROTOSURE,
+            loader: protosureLoader,
+            element: (
+              <RequireAuth shouldSignInAnonymously={true}>
+                <Protosure />
+              </RequireAuth>
+            ),
+            errorElement: (
+              <RouterErrorBoundary
+                actionButtons={[
+                  {
+                    path: createPath({
+                      path: ROUTES.PROTOSURE,
+                      params: { productId: 'flood', quoteId: '' },
+                    }),
+                    label: 'Start new quote',
+                  },
+                ]}
+              />
+            ),
+          },
+          {
+            path: ROUTES.SUBMISSIONS,
+            element: <UserSubmissions />,
+            errorElement: <RouterErrorBoundary />,
           },
           {
             path: ROUTES.QUOTE_VIEW,
@@ -112,20 +216,56 @@ export const router = createBrowserRouter([
             path: ROUTES.SUBMISSION_SUBMITTED,
             element: <SuccessStep />,
             loader: submissionLoader,
-            errorElement: <RouterErrorBoundary actionButtons={[{ path: '/', label: 'Home' }]} />,
+            errorElement: <RouterErrorBoundary />,
+          },
+          {
+            path: ROUTES.AGENCY_NEW,
+            element: <AgencyNew />,
+            errorElement: <RouterErrorBoundary />,
           },
           {
             path: ROUTES.CONTACT,
             element: <ContactUs />,
-            errorElement: <RouterErrorBoundary actionButtons={[{ path: '/', label: 'Home' }]} />,
+            errorElement: <RouterErrorBoundary />,
           },
           {
-            path: '/auth/login',
+            path: AUTH_ROUTES.LOGIN,
             element: <Login />,
           },
           {
-            path: '/auth/create-account',
+            path: AUTH_ROUTES.CREATE_ACCOUNT,
             element: <CreateAccount />,
+          },
+          {
+            path: ROUTES.ACCOUNT,
+            element: <Account />,
+          },
+        ],
+      },
+      {
+        path: '/policies',
+        element: (
+          <RequireAuth>
+            <Layout
+              noPadding={true}
+              bodyWrapperSX={{ px: 0 }}
+              containerProps={{ maxWidth: false, sx: { px: '0 !important' } }}
+            />
+          </RequireAuth>
+        ),
+        errorElement: <RouterErrorBoundary />,
+        children: [
+          {
+            index: true,
+            element: <Policies />,
+            // loader: policiesLoader(auth),
+            errorElement: <RouterErrorBoundary />,
+          },
+          {
+            path: ROUTES.USER_POLICY,
+            element: <Policy />,
+            loader: policyLoader,
+            errorElement: <RouterErrorBoundary />,
           },
         ],
       },
@@ -136,27 +276,132 @@ export const router = createBrowserRouter([
         children: [
           {
             index: true,
-            element: (() => <div>Admin Index Page</div>)(),
+            element: (() => <div>TODO: Admin Index Page</div>)(),
           },
           {
             path: ADMIN_ROUTES.SUBMISSIONS,
             element: (
-              <RequireAuth requiredClaims={['iDemandAdmin']}>
-                <Submissions />
+              <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
+                <AdminSubmissions />
               </RequireAuth>
             ),
-            loader: submissionsLoader,
-            errorElement: <RouterErrorBoundary actionButtons={[{ path: '/', label: 'Home' }]} />,
+            loader: adminSubmissionsLoader,
+            errorElement: <RouterErrorBoundary />,
           },
           {
             path: ADMIN_ROUTES.SUBMISSION_VIEW,
             element: (
-              <RequireAuth requiredClaims={['iDemandAdmin']}>
+              <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
                 <SubmissionView />
               </RequireAuth>
             ),
             loader: submissionLoader,
-            errorElement: <RouterErrorBoundary actionButtons={[{ path: '/', label: 'Home' }]} />,
+            errorElement: <RouterErrorBoundary />,
+          },
+          {
+            path: ADMIN_ROUTES.QUOTE_NEW,
+            loader: newQuoteSubmissionLoader,
+            element: (
+              <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
+                <QuoteNew />
+              </RequireAuth>
+            ),
+          },
+          {
+            path: ADMIN_ROUTES.QUOTES,
+            loader: quotesLoader,
+            element: (
+              <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
+                <Quotes />
+              </RequireAuth>
+            ),
+          },
+          {
+            path: ADMIN_ROUTES.SL_TAXES,
+            loader: adminTaxLoader,
+            element: (
+              <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
+                <SLTaxes />
+              </RequireAuth>
+            ),
+            errorElement: <RouterErrorBoundary />,
+          },
+          {
+            path: ADMIN_ROUTES.SL_TAXES_NEW,
+            element: (
+              <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
+                <SLTaxNew />
+              </RequireAuth>
+            ),
+          },
+          {
+            path: ADMIN_ROUTES.EDIT_ACTIVE_STATES,
+            loader: activeStatesLoader,
+            element: (
+              <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
+                <EditActiveStates />
+              </RequireAuth>
+            ),
+          },
+          {
+            path: ADMIN_ROUTES.MORATORIUMS,
+            loader: moratoriumsLoader,
+            element: (
+              <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
+                <Moratoriums />
+              </RequireAuth>
+            ),
+          },
+          {
+            path: ADMIN_ROUTES.MORATORIUM_NEW,
+            element: (
+              <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
+                <MoratoriumNew />
+              </RequireAuth>
+            ),
+          },
+          {
+            path: ADMIN_ROUTES.SL_LICENSES,
+            loader: licensesLoader,
+            element: (
+              <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
+                <Licenses />
+              </RequireAuth>
+            ),
+          },
+          {
+            path: ADMIN_ROUTES.SL_LICENSE_NEW,
+            element: (
+              <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
+                <SLLicenseNew />
+              </RequireAuth>
+            ),
+          },
+          {
+            path: ADMIN_ROUTES.AGENCY_APPS,
+            loader: agencyAppsLoader,
+            element: (
+              <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
+                <AgencyApps />
+              </RequireAuth>
+            ),
+          },
+          {
+            path: ADMIN_ROUTES.AGENCY_APP,
+            loader: agencyAppLoader,
+            element: (
+              <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
+                <AgencyApp />
+              </RequireAuth>
+            ),
+          },
+          // {
+          //   path: 'pagination/tasks',
+          //   element: <TestPagination />,
+          // },
+          {
+            path: 'pagination/data-grid',
+            element: <TestDataGridPagination />,
           },
         ],
       },

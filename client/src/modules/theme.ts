@@ -1,6 +1,7 @@
 import { createTheme, ThemeOptions, Theme, alpha } from '@mui/material/styles';
 import { deepmerge } from '@mui/utils';
 import { ArrowDropDownRounded } from '@mui/icons-material';
+import type {} from '@mui/x-date-pickers/themeAugmentation';
 
 // https://github.com/mui/material-ui/blob/master/docs/src/modules/brandingTheme.ts
 // Fonts to consider:
@@ -132,8 +133,14 @@ export const getDesignTokens = (mode: 'light' | 'dark') =>
       mode,
       ...(mode === 'dark' && {
         background: {
-          default: blueDark[800],
+          default: blueDark[900],
           paper: blueDark[900],
+        },
+      }),
+      ...(mode === 'light' && {
+        background: {
+          default: '#FAFAFB',
+          paper: '#FFF',
         },
       }),
       common: {
@@ -916,6 +923,7 @@ export function getThemedComponents(theme: Theme): {
             '.MuiDataGrid-cell:hover, .MuiDataGrid-cellContent:hover': {
               cursor: 'pointer',
             },
+            backgroundColor: theme.palette.background.paper,
             borderColor:
               theme.palette.mode === 'dark'
                 ? theme.palette.primaryDark[500]
@@ -949,6 +957,20 @@ export function getThemedComponents(theme: Theme): {
                 }`,
               },
             },
+          },
+        },
+      },
+      MuiAccordionSummary: {
+        styleOverrides: {
+          root: {
+            padding: theme.spacing(0, 4),
+          },
+        },
+      },
+      MuiAccordionDetails: {
+        styleOverrides: {
+          root: {
+            padding: theme.spacing(3, 4),
           },
         },
       },
