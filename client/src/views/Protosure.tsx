@@ -26,7 +26,7 @@ import {
 } from 'common/quoteValidation';
 import { ROUTES, createPath } from 'router';
 import { statesCollection, submissionsCollection } from 'common/firestoreCollections';
-import { SubmissionStatus } from 'common/enums';
+import { SUBMISSION_STATUS } from 'common/enums';
 import { usePropertyDetails } from 'hooks';
 import { roundUpToNearest, sumArr } from 'modules/utils/helpers';
 import { useAuth } from 'modules/components/AuthContext';
@@ -215,7 +215,7 @@ export const Protosure: React.FC = () => {
           ...propertyDetails,
           ...values,
           coordinates: coords,
-          status: SubmissionStatus.Submitted,
+          status: SUBMISSION_STATUS.SUBMITTED,
           userId: user?.uid ?? null,
           submittedById: user?.uid ?? null,
           metadata: {
@@ -236,7 +236,7 @@ export const Protosure: React.FC = () => {
   const handleCancel = useCallback(() => {
     localStorage.removeItem('quoteId');
     navigate('/');
-  }, []);
+  }, [navigate]);
 
   return (
     <Container maxWidth='sm'>
@@ -268,6 +268,8 @@ export const Protosure: React.FC = () => {
                 inputProps={{ variant: 'outlined' }}
                 gridProps={gridProps}
                 replacementCost={propertyDetails?.replacementCost || 250000}
+                description="We've set some default coverage limits based on the estimated replacement cost of your
+            home and belongings. Feel free to adjust them to fit your needs."
               />
             </Box>
           </Step>

@@ -50,7 +50,7 @@ interface UseUpdateAccountProps {
 }
 
 const useUpdateAccount = ({ onSuccess, onError }: UseUpdateAccountProps) => {
-  const { user, updateUserEmail } = useAuth();
+  // const { user, updateUserEmail } = useAuth();
 
   const updateAccount = useCallback(
     async (newValues: UserAccountValues) => {

@@ -110,8 +110,8 @@ export const Header: React.FC<HeaderProps> = () => {
         }),
       },
       {
-        title: 'New Quote',
-        route: createPath({ path: ADMIN_ROUTES.QUOTE_NEW, params: { productId: 'flood' } }),
+        title: 'Quotes',
+        route: createPath({ path: ADMIN_ROUTES.QUOTES, params: { productId: 'flood' } }),
       },
       {
         title: 'Taxes',

@@ -2,9 +2,9 @@ import { WithFieldValue, GeoPoint, Timestamp } from 'firebase/firestore';
 
 import {
   PRODUCT,
-  UWNoteCode,
+  UW_NOTE_CODE,
   DEDUCTIBLE_OPTIONS,
-  SubmissionStatus,
+  SUBMISSION_STATUS,
   STATE_ABBREVIATION,
 } from './enums';
 import { FloodValues } from 'views/SubmissionNew';
@@ -17,7 +17,7 @@ export interface BaseMetadata {
 export interface Submission extends FloodValues, FetchPropertyDataResponse {
   coordinates: GeoPoint;
   userId?: string | null;
-  status: SubmissionStatus;
+  status: SUBMISSION_STATUS;
   submittedById?: string | null;
   darkMapImageURL?: string;
   lightMapImageURL?: string;
@@ -80,7 +80,7 @@ export interface Limits {
 }
 
 export interface UWNote {
-  code: keyof typeof UWNoteCode;
+  code: keyof typeof UW_NOTE_CODE;
   message: string;
   property?: string;
 }
@@ -101,6 +101,68 @@ export interface Mortgagee {
 export interface Deductible {
   type: DEDUCTIBLE_OPTIONS;
   value: number;
+}
+
+// TODO: temparary (quote data interface for interim submissions period) REPLACE
+
+export interface SubmissionQuoteData {
+  product: Product; // keyof typeof Product;
+  deductible: number;
+  limits: Limits;
+  // tiv: number;
+  replacementCost: number;
+  insuredAddress: Address;
+  insuredCoordinates: GeoPoint | null;
+  fees: { feeName: string; feeValue: string }[];
+  termPremium: number;
+  subproducerCommission: number;
+  quoteTotal?: number;
+  // reviewRequired: boolean;
+  // underwritingNotes?: {
+  //   propertyNotes: UWNote[];
+  //   ratingNotes: UWNote[];
+  // };
+  // ratable: boolean;
+  // underwriterApproved: boolean;
+  quoteExpiration: {
+    seconds: number;
+    nanoseconds: number;
+  };
+  policyEffectiveDate?: FirestoreTimestamp;
+  effectiveExceptionRequested?: boolean;
+  effectiveExceptionReason?: string;
+  policyExpirationDate?: FirestoreTimestamp;
+  exclusions?: string[];
+  // ePayFees?: {
+  //   achPayerFee: number;
+  //   creditCardPayerFee: number;
+  // };
+  additionalInsureds?: AdditionalInsured[];
+  mortgageeInterest?: Mortgagee[];
+  metadata: {
+    created: FirestoreTimestamp;
+    updated: FirestoreTimestamp;
+    version: WithFieldValue<number>;
+  };
+  userId: string | null;
+  insuredFirstName?: string | null;
+  insuredLastName?: string | null;
+  insuredEmail?: string | null;
+  insuredPhone?: string | null;
+  insuredUserId?: string | null;
+  agencyId: string | null;
+  agencyName: string | null;
+  agentId: string | null;
+  agentName: string | null;
+  agentEmail: string | null;
+  agentPhone?: string | null;
+  status: SUBMISSION_STATUS; // QuoteStatus;
+  statusTransitions: {
+    published: FirestoreTimestamp;
+    accepted: FirestoreTimestamp | null;
+    cancelled: FirestoreTimestamp | null;
+    finalized: FirestoreTimestamp | null;
+  };
 }
 
 export interface QuoteData {
@@ -159,7 +221,7 @@ export interface QuoteData {
   agentName: string | null;
   agentEmail: string | null;
   userId: string | null;
-  status: SubmissionStatus; // QuoteStatus;
+  status: SUBMISSION_STATUS; // QuoteStatus;
   statusTransitions: {
     accepted: FirestoreTimestamp | null;
     canceled: FirestoreTimestamp | null;

@@ -17,6 +17,7 @@ import {
   Moratorium,
   AgencyApplication,
   ActiveStates,
+  SubmissionQuoteData,
 } from './types';
 import { db } from 'firebaseConfig';
 
@@ -26,6 +27,9 @@ export const createCollection = <T = DocumentData>(collectionName: string, ...re
 
 export const submissionsCollection = createCollection<Submission>(COLLECTIONS.SUBMISSIONS);
 export const quotesCollection = createCollection<QuoteData>(COLLECTIONS.QUOTES);
+export const submissionsQuotesCollection = createCollection<SubmissionQuoteData>(
+  COLLECTIONS.SUBMISSIONS_QUOTES
+);
 export const ratingCollection = createCollection<RatingData>(COLLECTIONS.RATING_DATA);
 export const spatialKeyCollection = createCollection<SpatialKeyResponse>(COLLECTIONS.SK_RES);
 export const orgsCollection = createCollection<Organization>(COLLECTIONS.ORGANIZATIONS);

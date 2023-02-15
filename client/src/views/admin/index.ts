@@ -1,6 +1,7 @@
 export { SubmissionView, submissionLoader } from './SubmissionView';
 export { Submissions, adminSubmissionsLoader } from './Submissions';
-export { QuoteNew } from './QuoteNew';
+export { QuoteNew, newQuoteSubmissionLoader } from './QuoteNew';
+export { Quotes, quotesLoader } from './Quotes';
 export { SLTaxes, adminTaxLoader } from './SLTaxes';
 export { SLTaxNew } from './SLTaxNew';
 export { EditActiveStates, activeStatesLoader } from './EditActiveStates';

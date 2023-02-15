@@ -1,6 +1,6 @@
 import * as yup from 'yup';
 
-import { ACTIVE_STATES_ABRV } from 'common/constants';
+// import { ACTIVE_STATES_ABRV } from 'common/constants';
 import { statesArr } from './statesList';
 
 export const phoneRegEx = /^\+1[1-9]{1}[0-9]{9}$/;
@@ -19,7 +19,7 @@ export const emailVal = yup.string().test('valid-email', 'Invalid email', async 
   return true;
 });
 
-export const isAvailableState = yup.string().oneOf(ACTIVE_STATES_ABRV);
+// export const isAvailableState = yup.string().oneOf(ACTIVE_STATES_ABRV);
 
 export const addressValidation = yup.object().shape({
   addressLine1: yup.string().required('Address is required'),

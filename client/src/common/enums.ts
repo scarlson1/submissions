@@ -1,6 +1,7 @@
 export enum COLLECTIONS {
   SUBMISSIONS = 'submissions',
   QUOTES = 'quotes',
+  SUBMISSIONS_QUOTES = 'submissionsQuotes',
   RATING_DATA = 'ratingData',
   USERS = 'users',
   POLICIES = 'policies',
@@ -23,24 +24,25 @@ export enum COLLECTIONS {
   TASKS = 'tasks', // TODO: DELETE
 }
 
-export enum SubmissionStatus {
-  Draft = 'draft',
-  Submitted = 'submitted',
-  Approved = 'approved',
-  Rejected = 'rejected',
-  UnderReview = 'under_review',
-  PendingInfo = 'pending_info',
-  Expired = 'expired',
-  Cancelled = 'cancelled',
-  AwaitingPayment = 'awaiting:payment',
+export enum SUBMISSION_STATUS {
+  DRAFT = 'draft',
+  SUBMITTED = 'submitted',
+  APPROVED = 'approved',
+  REJECTED = 'rejected',
+  UNDER_REVIEW = 'under_review',
+  PENDING_INFO = 'pending_info',
+  EXPIRED = 'expired',
+  CANCELLED = 'cancelled',
+  AWAITING_USER = 'awaiting:user',
+  AWAITING_PAYMENT = 'awaiting:payment',
 }
 
 export enum PRODUCT {
-  Flood = 'flood',
-  Wind = 'wind',
+  FLOOD = 'flood',
+  WIND = 'wind',
 }
 
-export enum UWNoteCode {
+export enum UW_NOTE_CODE {
   REQUIRES_REVIEW = 'requires-review',
   NOT_RATABLE = 'not-ratable',
   UNKNOWN = 'unknown',

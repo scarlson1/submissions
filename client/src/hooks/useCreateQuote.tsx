@@ -1,16 +1,22 @@
 import { useCallback } from 'react';
 import { FirebaseError } from 'firebase/app';
-import { addDoc, doc, FirestoreError, getDoc } from 'firebase/firestore';
+import { addDoc, doc, FirestoreError, GeoPoint, getDoc, Timestamp } from 'firebase/firestore';
 import { Box, Stack } from '@mui/material';
 import { Form, Formik, FormikProps } from 'formik';
 import * as yup from 'yup';
 
 import { NewQuoteValues } from 'views/admin/QuoteNew';
-import { readableFirebaseCode } from 'modules/utils/helpers';
-import { quotesCollection } from 'common';
+import { extractNumber, readableFirebaseCode } from 'modules/utils/helpers';
+import {
+  quotesCollection,
+  SubmissionQuoteData,
+  submissionsQuotesCollection,
+  SUBMISSION_STATUS,
+} from 'common';
 import { useConfirmation } from 'modules/components/ConfirmationService';
 import { ConfirmationDialog } from 'components';
 import { FormikSwitch } from 'components/forms';
+import invariant from 'tiny-invariant';
 
 const notifyValidation = yup.object().shape({
   notifyInsured: yup
@@ -44,7 +50,8 @@ export const useCreateQuote = (
   const confirm = useConfirmation();
 
   const handleDialogSubmit = useCallback(async () => {
-    alert('TODO: handle sumbit');
+    // THIS ONE GETS CALLED
+    alert('TODO: handle submit');
   }, []);
   const formSub = useCallback(async () => {
     alert('TODO: handle Form Submit');
@@ -56,7 +63,7 @@ export const useCreateQuote = (
 
   const promptNotification = useCallback(
     async (docId: string) => {
-      const snap = await getDoc(doc(quotesCollection, docId));
+      const snap = await getDoc(doc(submissionsQuotesCollection, docId));
       if (!snap.exists() || !snap.data()) throw new Error(`Cannot find doc with ID ${docId}`);
       const data = snap.data();
 
@@ -113,6 +120,7 @@ export const useCreateQuote = (
         });
 
         console.log('notification email result: ', notificationEmails);
+        // TODO: redirect to new Quotes page
       } catch (err) {}
     },
     [confirm, formSub, handleDialogSubmit, handleDialogError]
@@ -121,10 +129,10 @@ export const useCreateQuote = (
   const createQuote = useCallback(
     async (values: NewQuoteValues) => {
       try {
-        // TODO: valiation and format data
+        const quoteData = getFormattedQuote(values);
         // @ts-ignore
-        const quoteRef = await addDoc(quotesCollection, {
-          ...values,
+        const quoteRef = await addDoc(submissionsQuotesCollection, {
+          ...quoteData,
         });
 
         if (onStepSuccess) onStepSuccess(`Quote created ${quoteRef.id}`);
@@ -142,3 +150,91 @@ export const useCreateQuote = (
 
   return createQuote;
 };
+
+function getFormattedQuote(values: NewQuoteValues): SubmissionQuoteData {
+  const {
+    limitA,
+    limitB,
+    limitC,
+    limitD,
+    replacementCost,
+    latitude,
+    longitude,
+    quoteExpiration,
+    policyEffectiveDate,
+    policyExpirationDate,
+    insuredFirstName,
+    insuredLastName,
+    insuredEmail,
+    insuredPhone,
+    agentId,
+    agentName,
+    agentEmail,
+    agentPhone,
+    agencyName,
+    agencyId,
+    quoteTotal,
+    termPremium,
+    fees,
+    subproducerCommission,
+  } = values;
+
+  // TODO: validation
+  if (!quoteTotal) throw new Error('Missing quote total');
+  invariant(termPremium, 'missing termPremium');
+  invariant(insuredEmail || agentEmail, 'Must have atleast one email (insured or agent)');
+
+  return {
+    product: 'flood',
+    deductible: values.deductible,
+    limits: {
+      limitA, // extractNumber(values.limitA),
+      limitB, // extractNumber(values.limitB) || 0,
+      limitC, // extractNumber(values.limitC) || 0,
+      limitD, // extractNumber(values.limitD) || 0,
+    },
+    replacementCost:
+      typeof replacementCost === 'string' ? extractNumber(replacementCost) : replacementCost,
+    insuredAddress: {
+      addressLine1: values.addressLine1,
+      addressLine2: values.addressLine2,
+      city: values.city,
+      state: values.state,
+      postal: values.postal,
+    },
+    insuredCoordinates: longitude && latitude ? new GeoPoint(latitude, longitude) : null,
+    quoteExpiration: Timestamp.fromDate(quoteExpiration),
+    policyEffectiveDate: Timestamp.fromDate(policyEffectiveDate),
+    policyExpirationDate: Timestamp.fromDate(policyExpirationDate),
+    exclusions: [],
+    additionalInsureds: [],
+    mortgageeInterest: [],
+    termPremium,
+    fees,
+    subproducerCommission,
+    quoteTotal, // calculate on server ??
+    userId: null,
+    insuredFirstName: insuredFirstName ?? null,
+    insuredLastName: insuredLastName ?? null,
+    insuredEmail: insuredEmail ?? null,
+    insuredPhone: insuredPhone ?? null,
+    agentId: agentId ?? null,
+    agentName: agentName ?? null,
+    agentEmail: agentEmail ?? null,
+    agentPhone: agentPhone ?? null,
+    agencyId: agencyId ?? null,
+    agencyName: agencyName ?? null,
+    status: SUBMISSION_STATUS.AWAITING_USER,
+    statusTransitions: {
+      published: Timestamp.now(),
+      accepted: null,
+      cancelled: null,
+      finalized: null,
+    },
+    metadata: {
+      created: Timestamp.now(),
+      updated: Timestamp.now(),
+      version: 1,
+    },
+  };
+}

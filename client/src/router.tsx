@@ -41,11 +41,16 @@ import {
   agencyAppLoader,
   AgencyApps,
   agencyAppsLoader,
+  Quotes,
+  newQuoteSubmissionLoader,
+  quotesLoader,
 } from 'views/admin';
 import { SuccessStep } from 'elements';
 import { Product } from 'common';
 import { TestDataGridPagination } from 'views/admin/TestDataGridPagination';
 // import RouterErrorBoundary from 'components/errorBoundaries/RouterErrorBoundary';
+
+// provider for react-router (pass user etc.): https://stackoverflow.com/a/74929447/10887890
 
 // TODO: add errorElement to routes
 // TODO: admin views
@@ -77,7 +82,8 @@ export enum ROUTES {
 export enum ADMIN_ROUTES {
   SUBMISSIONS = '/admin/submissions',
   SUBMISSION_VIEW = '/admin/submissions/:submissionId',
-  QUOTE_NEW = '/admin/quote/:productId/new',
+  QUOTES = '/admin/quotes/:productId',
+  QUOTE_NEW = '/admin/quotes/:productId/new',
   SL_TAXES = '/admin/sl-tax',
   SL_TAXES_NEW = '/admin/sl-tax/new',
   EDIT_ACTIVE_STATES = '/admin/active-states/:productId/edit',
@@ -108,6 +114,7 @@ type TArgs =
   | { path: ROUTES.ACCOUNT }
   | { path: ADMIN_ROUTES.SUBMISSIONS }
   | { path: ADMIN_ROUTES.SUBMISSION_VIEW; params: { submissionId: string } }
+  | { path: ADMIN_ROUTES.QUOTES; params: { productId: Product } }
   | { path: ADMIN_ROUTES.QUOTE_NEW; params: { productId: Product } }
   | { path: ADMIN_ROUTES.SL_TAXES }
   | { path: ADMIN_ROUTES.SL_TAXES_NEW }
@@ -269,7 +276,7 @@ export const router = createBrowserRouter([
         children: [
           {
             index: true,
-            element: (() => <div>Admin Index Page</div>)(),
+            element: (() => <div>TODO: Admin Index Page</div>)(),
           },
           {
             path: ADMIN_ROUTES.SUBMISSIONS,
@@ -293,9 +300,19 @@ export const router = createBrowserRouter([
           },
           {
             path: ADMIN_ROUTES.QUOTE_NEW,
+            loader: newQuoteSubmissionLoader,
             element: (
               <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
                 <QuoteNew />
+              </RequireAuth>
+            ),
+          },
+          {
+            path: ADMIN_ROUTES.QUOTES,
+            loader: quotesLoader,
+            element: (
+              <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
+                <Quotes />
               </RequireAuth>
             ),
           },

@@ -328,3 +328,7 @@ export function getGridAddressComponent(
   if (!params.row || !params.row.address) return '';
   return getAddressComponent(params.row.address, addressComponent);
 }
+
+export function extractNumber(str: string) {
+  return parseFloat(`${str}`.replace(/[^0-9.]/g, ''));
+}

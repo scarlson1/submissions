@@ -91,10 +91,10 @@ export interface Limits {
   limitD: number;
 }
 
-export type UWNoteCode = 'requires-review' | 'not-ratable' | 'info' | 'unknown';
+export type UW_NOTE_CODE = 'requires-review' | 'not-ratable' | 'info' | 'unknown';
 
 export interface UWNote {
-  code: UWNoteCode;
+  code: UW_NOTE_CODE;
   message: string;
   property?: string;
 }
@@ -117,7 +117,7 @@ export interface UWNote {
 //   limitD: string;
 //   deductible: number;
 //   email: string;
-//   status: SubmissionStatus;
+//   status: SUBMISSION_STATUS;
 //   metadata: BaseMetadata;
 // }
 

@@ -8,6 +8,7 @@ import FormikTextField from 'components/forms/FormikTextField';
 import FormikSelect from 'components/forms/FormikSelect';
 import FormikMaskField from './FormikMaskField';
 import PhoneMask from './PhoneMask';
+import FormikDollarMaskField from './FormikDollarMaskField';
 
 // https://stackoverflow.com/questions/53958028/how-to-use-generics-in-props-in-react-in-a-functional-component
 
@@ -19,7 +20,7 @@ export interface InputSchema {
   name: string;
   label: string;
   required: boolean;
-  inputType: 'text' | 'select' | 'phone';
+  inputType: 'text' | 'select' | 'phone' | 'dollar';
   selectOptions?: SelectOption[];
   variant?: 'standard' | 'outlined' | 'filled';
   size?: 'small' | 'medium';
@@ -131,6 +132,20 @@ export const FormikFieldArray: React.FC<FormikFieldArrayProps> = ({
                                   // variant={variant}
                                   name={`${parentField}[${index}][${name}]`}
                                   maskComponent={PhoneMask}
+                                />
+                              </Grid>
+                            );
+                          }
+                          if (inputType === 'dollar') {
+                            return (
+                              <Grid key={name} xs={12} sm={6} md={4}>
+                                <FormikDollarMaskField
+                                  fullWidth
+                                  id={name}
+                                  label={label}
+                                  required={required}
+                                  name={`${parentField}[${index}][${name}]`}
+                                  decimalScale={2}
                                 />
                               </Grid>
                             );

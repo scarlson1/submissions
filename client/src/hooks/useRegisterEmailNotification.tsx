@@ -11,7 +11,9 @@ import { FormikSelect, FormikTextField } from 'components/forms';
 import { emailVal } from 'common/quoteValidation';
 import { notifyRegistration } from 'common/firestoreCollections';
 import { statesAbrvSelectOptions } from 'common/statesList';
-import { ACTIVE_STATES_ABRV } from 'common/constants';
+import { useActiveStates } from './useActiveStates';
+import { ActiveStates } from 'common';
+// import { ACTIVE_STATES_ABRV } from 'common/constants';
 
 export interface RegisterValues {
   email: string;
@@ -34,6 +36,7 @@ export const useRegisterEmailNotification = ({
 }: UseRegisterEmailNotificationProps) => {
   const confirm = useConfirmation();
   const formRef = useRef<FormikProps<RegisterValues>>(null);
+  const activeStates = useActiveStates('flood');
 
   const formSub = useCallback(
     (values: RegisterValues, { setSubmitting }: FormikHelpers<RegisterValues>) => {
@@ -123,7 +126,8 @@ export const useRegisterEmailNotification = ({
                             label='State'
                             selectOptions={statesAbrvSelectOptions.map((s) => ({
                               ...s,
-                              disabled: ACTIVE_STATES_ABRV.includes(s.value),
+                              disabled:
+                                activeStates && !activeStates[s.value as keyof ActiveStates],
                             }))}
                             required
                           />
@@ -141,7 +145,7 @@ export const useRegisterEmailNotification = ({
         return;
       }
     },
-    [confirm, handleError, handleSubmit, formSub, onSuccess]
+    [confirm, handleError, handleSubmit, formSub, onSuccess, activeStates]
   );
 
   const registerEmailDialog = useCallback(async () => {

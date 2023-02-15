@@ -7,7 +7,6 @@ import { toast } from 'react-hot-toast';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 import { FormikAddress } from 'elements';
-import { ACTIVE_STATES_ABRV } from 'common/constants';
 import { useRegisterEmailNotification } from 'hooks';
 import { ActiveStateMap } from './ActiveStateMap';
 
@@ -82,11 +81,11 @@ export const AddressStep: React.FC<AddressStepProps> = ({
         await validateForm();
       }, 100);
 
-      if (!!shouldValidateStates && state && !ACTIVE_STATES_ABRV.includes(state)) {
+      if (!!shouldValidateStates && state && activeStates && !activeStates[state]) {
         await handleUnavailableState(state);
       }
     },
-    [flyToCoords, validateForm, handleUnavailableState, withMap, shouldValidateStates]
+    [flyToCoords, validateForm, handleUnavailableState, withMap, shouldValidateStates, activeStates]
   );
 
   const handleNotificationRegistry = useCallback(async () => {
@@ -98,7 +97,13 @@ export const AddressStep: React.FC<AddressStepProps> = ({
       setFieldValue={setFieldValue}
       cb={addressChangeCb}
       autocompleteTextFieldProps={{
-        helperText: values.addressLine1 ? `Current value: ${values.addressLine1}` : undefined,
+        helperText: values.addressLine1 ? (
+          <Typography
+            variant='subtitle2'
+            color='text.primary'
+            component='span'
+          >{`Current value: ${values.addressLine1}`}</Typography>
+        ) : undefined,
       }}
       gridProps={gridProps}
     >
