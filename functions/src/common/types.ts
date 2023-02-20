@@ -91,10 +91,10 @@ export interface Limits {
   limitD: number;
 }
 
-export type UW_NOTE_CODE = 'requires-review' | 'not-ratable' | 'info' | 'unknown';
+export type UWNoteCode = 'requires-review' | 'not-ratable' | 'info' | 'unknown';
 
 export interface UWNote {
-  code: UW_NOTE_CODE;
+  code: UWNoteCode;
   message: string;
   property?: string;
 }

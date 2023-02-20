@@ -263,6 +263,20 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
         flex: 0.5,
       },
       {
+        field: 'inlandAAL',
+        headerName: 'inlandAAL',
+        minWidth: 100,
+        flex: 0.8,
+        valueGetter: (params) => params.value || null,
+      },
+      {
+        field: 'surgeAAL',
+        headerName: 'inlandAAL',
+        minWidth: 100,
+        flex: 0.8,
+        valueGetter: (params) => params.value || null,
+      },
+      {
         field: 'created',
         headerName: 'Created',
         minWidth: 180,
@@ -283,7 +297,7 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
       {
         field: 'userId',
         headerName: 'User ID',
-        minWidth: 220,
+        minWidth: 240,
         flex: 1,
         editable: false,
       },

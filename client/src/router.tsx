@@ -6,7 +6,7 @@ import {
   SubmissionNew,
   ContactUs,
   ViewQuote,
-  Checkout,
+  // Checkout,
   Login,
   CreateAccount,
   Policy,
@@ -69,7 +69,8 @@ export enum ROUTES {
   SUBMISSION_SUBMITTED = '/quotes/:submissionId/submitted',
   SUBMISSIONS = '/submissions',
   QUOTE_VIEW = '/quotes/:quoteId',
-  CHECKOUT = '/quotes/:quoteId/checkout',
+  QUOTE_BIND = '/quotes/:quoteId/bind',
+  // CHECKOUT = '/quotes/:quoteId/checkout',
   CONTACT = '/contact',
   USER_QUOTES = '/quotes/list/:userId',
   USER_POLICIES = '/policies',
@@ -105,7 +106,8 @@ type TArgs =
   | { path: ROUTES.SUBMISSION_SUBMITTED; params: { submissionId: string } }
   | { path: ROUTES.SUBMISSIONS }
   | { path: ROUTES.QUOTE_VIEW; params: { quoteId: string } }
-  | { path: ROUTES.CHECKOUT; params: { quoteId: string } }
+  | { path: ROUTES.QUOTE_BIND; params: { quoteId: string } }
+  // | { path: ROUTES.CHECKOUT; params: { quoteId: string } }
   | { path: ROUTES.USER_POLICIES }
   | { path: ROUTES.USER_POLICY; params: { policyId: string } }
   | { path: ROUTES.AGENCY_NEW }
@@ -208,10 +210,10 @@ export const router = createBrowserRouter([
             path: ROUTES.QUOTE_VIEW,
             element: <ViewQuote />,
           },
-          {
-            path: ROUTES.CHECKOUT, //  '/quotes/:quoteId/checkout',
-            element: <Checkout />,
-          },
+          // {
+          //   path: ROUTES.CHECKOUT, //  '/quotes/:quoteId/checkout',
+          //   element: <Checkout />,
+          // },
           {
             path: ROUTES.SUBMISSION_SUBMITTED,
             element: <SuccessStep />,

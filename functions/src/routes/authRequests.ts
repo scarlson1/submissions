@@ -30,7 +30,6 @@ app.get('/verify-email/:token', async (req: Request, res: Response) => {
     const { data } = jwt.verify(token, process.env.EMAIL_VERIFICATION_KEY) as { data: JwtPayload };
     console.log('decoded: ', data);
     const { uid, email } = data;
-    console.log('decoded: ', uid, email);
 
     if (!uid) throw new Error('Invalid verification token.');
 

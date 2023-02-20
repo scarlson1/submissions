@@ -2,10 +2,11 @@ import React, { useState, useMemo } from 'react';
 import { Box, Button, MobileStepper, Stack } from '@mui/material';
 import { KeyboardArrowRight, KeyboardArrowLeft, NavigateNextRounded } from '@mui/icons-material';
 import LoadingButton from '@mui/lab/LoadingButton';
-import { Formik, Form, FormikHelpers, FormikErrors, FormikProps, FormikValues } from 'formik';
+import { Formik, Form, FormikHelpers, FormikErrors, FormikProps } from 'formik';
 
 import { StepProps, StepperNav } from 'components/forms';
 import { useWidth, useScroll } from 'hooks';
+import toast from 'react-hot-toast';
 
 // TODO: create application layout - hide footer on mobile (sits under stepper)
 
@@ -18,6 +19,7 @@ export interface FormikWizardProps {
   onSubmit: (values: any, helpers: FormikHelpers<any>) => void;
   onCancel?: () => void;
   mutateOnSubmit?: (values: any, helpers: FormikHelpers<any>) => any;
+  onMutateError?: (err: unknown) => void;
   enableReinitialize?: boolean;
   initialErrors?: { [key: string]: any };
   loading?: boolean;
@@ -25,7 +27,7 @@ export interface FormikWizardProps {
   disableNext?: boolean;
   initialIndex?: number;
   withStepper?: boolean;
-  formRef?: React.RefObject<FormikProps<FormikValues>>;
+  formRef?: React.RefObject<FormikProps<any>>;
 }
 
 export const FormikWizard: React.FC<FormikWizardProps> = ({
@@ -35,6 +37,7 @@ export const FormikWizard: React.FC<FormikWizardProps> = ({
   onSubmit,
   onCancel,
   mutateOnSubmit,
+  onMutateError = (err) => toast.error('An error occurred'),
   loading = false,
   submitButtonText = 'Submit',
   disableNext = false,
@@ -94,6 +97,7 @@ export const FormikWizard: React.FC<FormikWizardProps> = ({
         console.log('MUTATED VALUES: ', values);
       } catch (err) {
         console.log('MUTATE ON SUBMIT ERROR: ', err);
+        if (onMutateError) return onMutateError(err);
       }
     }
     if (isLastStep()) {

@@ -1,5 +1,5 @@
 import React from 'react';
 
-export const ViewQuote = () => {
+export const ViewQuote: React.FC = () => {
   return <div>ViewQuote</div>;
 };

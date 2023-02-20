@@ -37,90 +37,6 @@ export const moratoriumsLoader = async ({ params }: LoaderFunctionArgs) => {
   }
 };
 
-// const moratoriumColumns: GridColDef[] = [
-//   {
-//     field: 'actions',
-//     type: 'actions',
-//     getActions: (params: GridRowParams) => [
-//       <GridActionsCellItem icon={...} onClick={...} label="Delete" />,
-//       <GridActionsCellItem icon={...} onClick={...} label="Print" showInMenu />,
-//     ]
-//   },
-//   {
-//     field: 'id',
-//     headerName: 'Doc ID',
-//     minWidth: 160,
-//     flex: 0.6,
-//     editable: false,
-//   },
-//   {
-//     field: 'locations',
-//     headerName: 'FIPS',
-//     minWidth: 200,
-//     flex: 1,
-//     editable: false,
-//   },
-//   {
-//     field: 'locationDetails',
-//     headerName: 'Counties',
-//     minWidth: 200,
-//     flex: 1,
-//     editable: false,
-//     valueGetter: (params) => {
-//       const ld = params.row.locationDetails;
-//       if (ld) return ld.map((l: any) => l.countyName);
-//       return [];
-//     },
-//     renderCell: renderChips,
-//     // TODO: show all button that opens modal
-//   },
-//   {
-//     field: 'count',
-//     headerName: 'Count',
-//     minWidth: 100,
-//     flex: 1,
-//     editable: false,
-//     valueGetter: (params) => params.row.locations.length || null,
-//   },
-//   {
-//     field: 'effectiveDate',
-//     headerName: 'Effective Date',
-//     minWidth: 160,
-//     flex: 0.6,
-//     editable: false,
-//     valueGetter: (params) => params.row.effectiveDate || null,
-//     valueFormatter: formatGridFirestoreTimestampAsDate,
-//   },
-//   {
-//     field: 'expirationDate',
-//     headerName: 'Expiration Date',
-//     minWidth: 160,
-//     flex: 0.6,
-//     editable: false,
-//     valueGetter: (params) => params.row.expirationDate || null,
-//     valueFormatter: formatGridFirestoreTimestampAsDate,
-//   },
-
-//   {
-//     field: 'metadata.created',
-//     headerName: 'Created',
-//     minWidth: 160,
-//     flex: 0.6,
-//     editable: false,
-//     valueGetter: (params) => params.row.metadata.created || null,
-//     valueFormatter: formatGridFirestoreTimestamp,
-//   },
-//   {
-//     field: 'metadata.updated',
-//     headerName: 'Updated',
-//     minWidth: 160,
-//     flex: 0.6,
-//     editable: false,
-//     valueGetter: (params) => params.row.metadata.updated || null,
-//     valueFormatter: formatGridFirestoreTimestamp,
-//   },
-// ];
-
 export const Moratoriums: React.FC = () => {
   const navigate = useNavigate();
   const modal = useConfirmation();
@@ -174,7 +90,7 @@ export const Moratoriums: React.FC = () => {
               d.effectiveDate,
               'date'
             )} - ${
-              d.expirationDate ? formatFirestoreTimestamp(d.expirationDate) : 'Indefinite'
+              d.expirationDate ? formatFirestoreTimestamp(d.expirationDate, 'date') : 'Indefinite'
             }`}</Typography>
           </Box>
         ),

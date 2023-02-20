@@ -7,12 +7,7 @@ import * as yup from 'yup';
 
 import { NewQuoteValues } from 'views/admin/QuoteNew';
 import { extractNumber, readableFirebaseCode } from 'modules/utils/helpers';
-import {
-  quotesCollection,
-  SubmissionQuoteData,
-  submissionsQuotesCollection,
-  SUBMISSION_STATUS,
-} from 'common';
+import { SubmissionQuoteData, submissionsQuotesCollection, SUBMISSION_STATUS } from 'common';
 import { useConfirmation } from 'modules/components/ConfirmationService';
 import { ConfirmationDialog } from 'components';
 import { FormikSwitch } from 'components/forms';

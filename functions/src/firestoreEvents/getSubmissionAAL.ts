@@ -81,7 +81,7 @@ export const getSubmissionAAL = functions
 
       return;
     } catch (err) {
-      console.log('ERROR FETCHING SR AAL DATA', err);
+      // console.log('ERROR FETCHING SR AAL DATA', err);
       return;
     }
   });

@@ -128,10 +128,10 @@ export interface SubmissionQuoteData {
     seconds: number;
     nanoseconds: number;
   };
-  policyEffectiveDate?: FirestoreTimestamp;
+  policyEffectiveDate?: Timestamp; // FirestoreTimestamp;
   effectiveExceptionRequested?: boolean;
   effectiveExceptionReason?: string;
-  policyExpirationDate?: FirestoreTimestamp;
+  policyExpirationDate?: Timestamp; // FirestoreTimestamp;
   exclusions?: string[];
   // ePayFees?: {
   //   achPayerFee: number;
@@ -347,6 +347,33 @@ export interface UpdateQuoteRequestBody {
   removeMortgageeInterest?: Mortgagee[];
   setAdditionalInsureds?: AdditionalInsured[];
   setMortgageeInterest?: Mortgagee[];
+}
+
+export interface EPayPaymentMethodDetails {
+  attributeValues: any[];
+  country: string;
+  emailAddress: string;
+  id: string;
+  maskedAccountNumber: string;
+  payer: string;
+  transactionType: string;
+  type?: string;
+  accountHolder?: string;
+}
+
+export interface PaymentMethod {
+  id: string;
+  accountHolder: string;
+  country?: string;
+  created?: FirestoreTimestamp;
+  emailAddress?: string;
+  last4?: string;
+  maskedAccountNumber?: string;
+  payer?: string;
+  transactionType: string;
+  type?: string;
+  attributeValues?: any[];
+  metadata?: any;
 }
 
 export interface Policy {

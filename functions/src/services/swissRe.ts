@@ -2,8 +2,6 @@
 import axios from 'axios';
 import querystring from 'querystring';
 
-// const spatialKeyTokenURL = `https://idemand.spatialkey.com/SpatialKeyFramework/api/v2/oauth.json?grant_type=${param1}&assertion=${param2}`
-
 export const getSwissReInstance = (
   clientId: string,
   clientSecret: string,
@@ -40,7 +38,7 @@ export const getSwissReInstance = (
       return config;
     },
     (err) => {
-      console.log('Axios request interceptor error => ', err);
+      console.log('Axios request interceptor error => ', err.response);
       return Promise.reject(err);
     }
   );
@@ -98,12 +96,6 @@ export const getSwissReInstance = (
 
 function generateSRAccessToken(clientId: string, clientSecret: string) {
   return new Promise<string>(async (resolve, reject) => {
-    // const clientId: string | undefined = await getSecret('SWISS_RE_CLIENT_ID');
-    // const clientSecret: string | undefined = await getSecret('SWISS_RE_CLIENT_SECRET');
-    // const authScope: string | undefined = process.env.SWISS_RE_AUTH_SCOPE;
-    // const srAuthURL: string | undefined = process.env.SWISS_RE_ACCESS_TOKEN_URL;
-    // const authScope = 'https://AZ0-RNG-NONPROD-SyncRateServer.swissre.com/.default';
-    // const srAuthURL = 'https://login.microsoftonline.com/swissre.onmicrosoft.com/oauth2/v2.0/token';
     const authScope = process.env.SWISS_RE_AUTH_SCOPE;
     const srAuthURL = process.env.SWISS_RE_ACCESS_TOKEN_URL;
 

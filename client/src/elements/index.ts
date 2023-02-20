@@ -13,6 +13,9 @@ export { AddAgents, agentsValidation } from './AddAgents';
 export { AgencyBankingStep, bankingValidation, TooltipContent } from './AgencyBankingStep';
 export { AgencyReviewStep, DisplayFilename, ContactList } from './AgencyReviewStep';
 export { DeckMap, defaultGeoJsonLayerProps } from './DeckMap';
+export { FormikCardDetails } from './FormikCardDetails';
+export { FormikBankFields } from './FormikBankFields';
+export { AddPaymentDialog } from './AddPaymentDialog';
 
 export type { FormikAddressProps } from './FormikAddress';
 export type { DeductibleStepProps } from './DeductibleStep';

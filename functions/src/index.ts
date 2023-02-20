@@ -8,6 +8,7 @@ export {
   sendContactEmail,
   initializeQuote,
   updateAndRateQuote,
+  verifyEPayToken,
 } from './callables';
 export {
   newSubmissionNotifications,

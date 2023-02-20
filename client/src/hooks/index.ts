@@ -19,8 +19,8 @@ export { useCreateSLLicense } from './useCreateSLLicense';
 export { useDocCount, mapWhereConstraints } from './useDocCount';
 export { useActiveStates } from './useActiveStates';
 export { useCreateQuote } from './useCreateQuote';
-// export {} from './';
-// export {} from './';
+export { useBindQuote } from './useBindQuote';
+export { useVerifyPaymentMethod } from './useVerifyPaymentMethod';
 // export {} from './';
 
 export type { UseFileUploadProps } from './useFileUpload';
