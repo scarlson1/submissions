@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import { formatDistance, format } from 'date-fns';
+import { formatDistance, format, add, Duration } from 'date-fns';
 import numeral from 'numeral';
 import { Location } from 'react-router-dom';
 import { GridValueFormatterParams, GridValueGetterParams } from '@mui/x-data-grid';
@@ -114,7 +114,18 @@ export const formatGridFirestoreTimestampAsDate = (params: GridValueFormatterPar
 
 /**
  *
- * @param params - Grid value formatter params
+ * @param {Duration} duration -  object specifying time to add (seconds, days, weeks, months, years, etc.)
+ * @returns {Date} current datetime plus the duration
+ */
+export const addToDate = (duration: Duration) => {
+  return add(new Date(), {
+    ...duration,
+  });
+};
+
+/**
+ *
+ * @param {GridValueFormatterParams<number>} params - Grid value formatter params
  * @returns {string} returns empty string if value is null, else passed to numeral
  */
 export const formatGridCurrency = (params: GridValueFormatterParams<number>) =>
@@ -140,7 +151,6 @@ export const validateRoutingNumber = (val?: string) => {
     total += parseInt(digits[i + 1]) * 7;
     total += parseInt(digits[i + 2]);
   }
-  console.log('routing number total: ', total);
 
   const isValid = total !== 0 && total % 10 === 0;
 

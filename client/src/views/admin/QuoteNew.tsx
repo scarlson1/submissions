@@ -98,7 +98,7 @@ export interface NewQuoteValues {
   agentPhone: string | null;
   agencyName: string | null;
   agencyId: string | null;
-  submissionId: string | null;
+  // submissionId: string | null;
 }
 
 // TODO: decide set up Tax/Fee as FormikArray (name, rate, value) or explicit fields ??
@@ -227,7 +227,7 @@ export const QuoteNew: React.FC = () => {
           agentPhone: '',
           agencyName: '',
           agencyId: '',
-          submissionId: submissionData.id ?? null,
+          // submissionId: submissionData.id ?? null,
         }}
         validationSchema={quoteNewValidation}
         onSubmit={handleSubmit}
@@ -298,7 +298,10 @@ export const QuoteNew: React.FC = () => {
                 >
                   Submit
                 </LoadingButton>
-                <IconButtonMenu menuItems={menuItems} />
+                <IconButtonMenu
+                  menuItems={menuItems}
+                  iconButtonProps={{ sx: { ml: 2, borderRadius: 1 } }}
+                />
               </Stack>
             </Box>
             <Grid container rowSpacing={4} columnSpacing={6} sx={{ my: 4 }}>

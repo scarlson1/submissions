@@ -1,32 +1,40 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Box,
   Button,
-  Tabs,
   Tab,
   Typography,
   Dialog,
   DialogContent,
   DialogTitle,
   DialogActions,
+  useTheme,
+  useMediaQuery,
+  IconButton,
+  Slide,
+  ButtonProps,
+  BoxProps,
 } from '@mui/material';
-import Grid2 from '@mui/material/Unstable_Grid2';
-import LoadingButton from '@mui/lab/LoadingButton';
-import { AccountBalanceRounded, CreditCardRounded } from '@mui/icons-material';
-import { Formik, Form, FormikProps } from 'formik';
+import { TransitionProps } from '@mui/material/transitions';
+import Grid from '@mui/material/Unstable_Grid2';
+import { LoadingButton, TabList, TabPanel, TabContext } from '@mui/lab';
+import { AccountBalanceRounded, CloseRounded, CreditCardRounded } from '@mui/icons-material';
+import { Formik, Form, FormikProps, FormikHelpers } from 'formik';
 import * as yup from 'yup';
 import { useNavigate } from 'react-router-dom';
+// import { toast } from 'react-hot-toast';
 
 import { useAuth } from 'modules/components/AuthContext';
-import { toast } from 'react-hot-toast';
 import { FormikCardDetails, FormikBankFields } from 'elements';
-import { TabPanel } from 'components';
 import { VerifyEPayTokenResponse } from 'modules/api';
 import { validateRoutingNumber } from 'modules/utils/helpers';
 import { FormikTextField } from 'components/forms';
 import { useVerifyPaymentMethod } from 'hooks';
 
-// TODO: move add pmt / verify logic to hook
+const GRID_PROPS = {
+  rowSpacing: { xs: 3, md: 4 },
+  columnSpacing: { xs: 3, md: 4, lg: 5 },
+};
 
 const addPaymentMethodValidation = yup.object().shape({
   payerName: yup.string().required('Name is required'),
@@ -92,6 +100,15 @@ const addPaymentMethodValidation = yup.object().shape({
   }),
 });
 
+const Transition = React.forwardRef(function Transition(
+  props: TransitionProps & {
+    children: React.ReactElement;
+  },
+  ref: React.Ref<unknown>
+) {
+  return <Slide direction='up' ref={ref} {...props} />;
+});
+
 export interface AddPaymentMethodValues {
   payerName: string;
   payerEmail: string;
@@ -110,6 +127,8 @@ export interface AddPaymentDialogProps {
   cb?: (data: VerifyEPayTokenResponse) => void;
   openButtonText?: string;
   initialValues?: AddPaymentMethodValues;
+  buttonProps?: ButtonProps;
+  containerProps?: BoxProps;
 }
 
 const DEFAULT_INITIAL_VALUES: AddPaymentMethodValues = {
@@ -130,26 +149,35 @@ export const AddPaymentDialog: React.FC<AddPaymentDialogProps> = ({
   cb,
   openButtonText,
   initialValues,
+  buttonProps,
+  containerProps,
 }) => {
   const navigate = useNavigate();
   const { user, loading, loadingInitial, isAuthenticated, isAnonymous } = useAuth();
   const [open, setOpen] = useState(false);
-  const handleOpen = () => {
+  const formikRef = useRef<FormikProps<AddPaymentMethodValues>>(null);
+  const theme = useTheme();
+  let fullScreen = useMediaQuery(theme.breakpoints.down('xs'));
+
+  const handleOpen = useCallback(() => {
     setOpen(true);
-  };
-  const handleClose = () => {
+  }, []);
+  const handleClose = useCallback(() => {
+    formikRef.current?.resetForm();
     setOpen(false);
-  };
+  }, []);
 
   const verifyPaymentMethod = useVerifyPaymentMethod(
     (data: VerifyEPayTokenResponse) => {
-      toast.success(`Payment method added! (${data.maskedAccountNumber})`);
+      // toast.success(`Payment method added! (${data.maskedAccountNumber})`);
+      if (cb) cb(data);
       handleClose();
-    },
-    (msg, err) => toast.error(msg)
+    }
+    // (msg, err) => toast.error(msg)
   );
 
   // TODO: If auth loaded && !user, redirect to sign in
+  // TODO: useRequireAuth hook ??
   useEffect(() => {
     if (loading || loadingInitial) return;
     if (isAnonymous || !isAuthenticated) {
@@ -160,93 +188,35 @@ export const AddPaymentDialog: React.FC<AddPaymentDialogProps> = ({
     }
   }, [user, loading, loadingInitial, isAuthenticated, isAnonymous, navigate]);
 
+  const handleSubmit = useCallback(
+    async (
+      values: AddPaymentMethodValues,
+      { setSubmitting }: FormikHelpers<AddPaymentMethodValues>
+    ) => {
+      await verifyPaymentMethod(values);
+      setSubmitting(false);
+    },
+    [verifyPaymentMethod]
+  );
+
   return (
-    <div>
-      <Button variant='outlined' onClick={handleOpen}>
+    <Box {...containerProps}>
+      <Button variant='outlined' {...buttonProps} onClick={handleOpen}>
         {openButtonText ? openButtonText : 'Add a new payment method'}
       </Button>
-      <Dialog open={open} onClose={handleClose}>
+      <Dialog
+        open={open}
+        onClose={handleClose}
+        fullScreen={fullScreen}
+        maxWidth='sm'
+        fullWidth
+        TransitionComponent={Transition}
+      >
         <Formik
           initialValues={initialValues ? initialValues : DEFAULT_INITIAL_VALUES}
           validationSchema={addPaymentMethodValidation}
-          onSubmit={async (values, actions) => {
-            await verifyPaymentMethod(values);
-            actions.setSubmitting(false);
-
-            // try {
-            // let tokenReqModel = null;
-            // let cardExpArray = values.cardExpDate.split('/');
-            // let expMonth = cardExpArray[0].length === 1 ? `0${cardExpArray[0]}` : cardExpArray[0];
-            // if (values.cardPaymentMethod) {
-            //   tokenReqModel = {
-            //     payer: values.payerName,
-            //     emailAddress: values.payerEmail,
-            //     creditCardInformation: {
-            //       accountHolder: values.accountHolder,
-            //       cardNumber: values.cardNumber,
-            //       cvc: values.cvc,
-            //       month: expMonth,
-            //       year: parseInt(`20${values.cardExpDate.slice(-2)}`),
-            //       postalCode: values.postalCode,
-            //     },
-            //   };
-            // } else {
-            //   tokenReqModel = {
-            //     payer: values.payerName,
-            //     emailAddress: values.payerEmail,
-            //     bankAccountInformation: {
-            //       accountHolder: values.accountHolder,
-            //       accountType: values.accountType,
-            //       routingNumber: values.routingNumber,
-            //       accountNumber: values.accountNumber,
-            //     },
-            //   };
-            // }
-
-            // let {
-            //   headers: { location },
-            // } = await ePayInstance.post('/api/v1/tokens', {
-            //   ...tokenReqModel,
-            // });
-            // console.log('TOKEN EPAY RES => ', location);
-            // let tokenId = location?.split('/')[2];
-
-            // if (!tokenId) {
-            //   console.log('missing tokenId from epay');
-            //   toast.error(
-            //     'Failed to generate payment token. Please check payment method details.'
-            //   );
-            //   actions.setSubmitting(false);
-            //   return;
-            // }
-
-            // const { data } = await verifyEPayToken({
-            //   tokenId,
-            //   accountHolder: values.accountHolder,
-            // });
-            // console.log('TOKEN DATA => ', data);
-
-            // if (!data.id) {
-            //   console.log('TOKEN VERIFICATION FAILED');
-            //   toast.error("Something went wrong. We're unable to verify the payment method.");
-            // } else {
-            //   toast.success(`Payment method added! (${data.maskedAccountNumber})`);
-            //   if (cb) cb(data);
-            //   handleClose();
-            // }
-
-            // actions.setSubmitting(false);
-            // } catch (err) {
-            //   console.log('ERROR => ', err);
-            //   actions.setSubmitting(false); // @ts-ignore
-            //   let { errors } = err.response.data;
-            //   let msg = errors.length
-            //     ? errors[0].message
-            //     : "Something went wrong. We're unable to verify the payment method.";
-            //   // TODO: handle error
-            //   toast.error(msg);
-            // }
-          }}
+          onSubmit={handleSubmit}
+          innerRef={formikRef}
         >
           {({
             values,
@@ -255,72 +225,91 @@ export const AddPaymentDialog: React.FC<AddPaymentDialogProps> = ({
             isSubmitting,
             isValidating,
             dirty,
-            resetForm,
           }: FormikProps<AddPaymentMethodValues>) => (
             <Form>
-              <DialogTitle>Add Payment Method</DialogTitle>
-              <DialogContent>
+              <DialogTitle>
+                Add Payment Method
+                <IconButton
+                  aria-label='close'
+                  onClick={handleClose}
+                  sx={{
+                    position: 'absolute',
+                    right: 8,
+                    top: 8,
+                    color: (theme) => theme.palette.grey[500],
+                  }}
+                >
+                  <CloseRounded />
+                </IconButton>
+              </DialogTitle>
+              <DialogContent dividers>
                 <Typography variant='overline' gutterBottom sx={{ px: 3 }}>
                   Billed To Information
                 </Typography>
-                <Grid2 container spacing={2} xs={12} sx={{ mt: 2, mb: 4 }}>
-                  <Grid2 xs={12} sm={6}>
+                <Grid container {...GRID_PROPS} sx={{ mt: 2, mb: 4 }}>
+                  <Grid xs={12} sm={6}>
                     <FormikTextField name='payerName' label='Payer Name' required fullWidth />
-                  </Grid2>
-                  <Grid2 xs={12} sm={6}>
+                  </Grid>
+                  <Grid xs={12} sm={6}>
                     <FormikTextField name='payerEmail' label='Payer Email' required fullWidth />
-                  </Grid2>
-                </Grid2>
-                <Tabs
-                  value={values.cardPaymentMethod ? 0 : 1}
-                  onChange={(event: React.SyntheticEvent, newValue: number) => {
-                    setFieldValue('cardPaymentMethod', newValue === 0);
-                  }}
-                  aria-label='basic tabs example'
-                  centered
-                >
-                  <Tab
-                    icon={<CreditCardRounded />}
-                    iconPosition='start'
-                    label='Card'
-                    sx={{ minHeight: '50px' }}
-                  />
-                  <Tab
-                    icon={<AccountBalanceRounded />}
-                    iconPosition='start'
-                    label='ACH'
-                    sx={{ minHeight: '50px' }}
-                  />
-                </Tabs>
-                <TabPanel value={values.cardPaymentMethod ? 0 : 1} index={0}>
-                  <Box sx={{ py: 3 }}>
-                    <Typography variant='overline' gutterBottom sx={{ px: 3 }}>
-                      Payment Method Details
-                    </Typography>
-                    <FormikCardDetails />
+                  </Grid>
+                </Grid>
+                <TabContext value={values.cardPaymentMethod ? '0' : '1'}>
+                  <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                    <TabList
+                      onChange={(event: React.SyntheticEvent, newValue: string) => {
+                        setFieldValue('cardPaymentMethod', newValue === '0');
+                      }}
+                      aria-label='payment method type'
+                      centered
+                    >
+                      <Tab
+                        icon={<CreditCardRounded />}
+                        iconPosition='start'
+                        label='Card'
+                        sx={{ minHeight: '50px' }}
+                        value='0'
+                      />
+                      <Tab
+                        icon={<AccountBalanceRounded />}
+                        iconPosition='start'
+                        label='ACH'
+                        sx={{ minHeight: '50px' }}
+                        value='1'
+                      />
+                    </TabList>
                   </Box>
-                </TabPanel>
-                <TabPanel value={values.cardPaymentMethod ? 0 : 1} index={1}>
-                  <Box sx={{ py: 3 }}>
-                    <Typography variant='overline' gutterBottom sx={{ px: 3 }}>
-                      Payment Method Details
-                    </Typography>
-                    <FormikBankFields />
-                  </Box>
-                </TabPanel>
+                  <TabPanel value='0' sx={{ px: 0, mx: 0 }}>
+                    <Box>
+                      <Typography variant='overline' gutterBottom sx={{ px: 3 }}>
+                        Payment Method Details
+                      </Typography>
+                      <FormikCardDetails gridProps={GRID_PROPS} />
+                    </Box>
+                  </TabPanel>
+                  <TabPanel value='1' sx={{ px: 0, mx: 0 }}>
+                    <Box>
+                      <Typography variant='overline' gutterBottom sx={{ px: 3 }}>
+                        Payment Method Details
+                      </Typography>
+                      <FormikBankFields gridProps={GRID_PROPS} />
+                    </Box>
+                  </TabPanel>
+                </TabContext>
               </DialogContent>
               <DialogActions>
                 <Button
-                  onClick={() => {
-                    resetForm();
-                    handleClose();
-                  }}
+                  onClick={handleClose}
+                  // onClick={() => {
+                  //   resetForm();
+                  //   handleClose();
+                  // }}
                 >
                   Cancel
                 </Button>
                 <LoadingButton
-                  disabled={!dirty || !isValid || isSubmitting || isValidating}
-                  loading={isSubmitting}
+                  disabled={!dirty || !isValid}
+                  loading={isSubmitting || isValidating}
                   // loadingPosition='start'
                   // startIcon={<SaveIcon />}
                   variant='contained'
@@ -333,7 +322,7 @@ export const AddPaymentDialog: React.FC<AddPaymentDialogProps> = ({
           )}
         </Formik>
       </Dialog>
-    </div>
+    </Box>
   );
 };
 

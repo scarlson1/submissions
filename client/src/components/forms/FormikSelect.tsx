@@ -7,7 +7,7 @@ import {
   FormHelperText,
   SelectProps,
 } from '@mui/material';
-import { useField } from 'formik';
+import { FieldHookConfig, useField } from 'formik';
 
 export interface SelectOption {
   label: React.ReactNode;
@@ -19,6 +19,7 @@ export interface FormikSelectProps extends SelectProps {
   name: string;
   label: string;
   selectOptions: SelectOption[] | string[];
+  formikConfig?: Partial<FieldHookConfig<any>>;
 }
 
 export const FormikSelect: React.FC<FormikSelectProps> = ({
@@ -30,9 +31,10 @@ export const FormikSelect: React.FC<FormikSelectProps> = ({
   size = 'medium',
   fullWidth = true,
   sx = { minWidth: 160 },
+  formikConfig,
   ...props
 }) => {
-  const [field, meta] = useField(name);
+  const [field, meta] = useField({ name, ...formikConfig });
 
   return (
     <FormControl

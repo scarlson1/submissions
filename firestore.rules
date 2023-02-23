@@ -40,7 +40,7 @@ service cloud.firestore {
      match /submissionsQuotes/{quoteId} {
       allow read: if true
       allow create: if isIDemandAdmin()
-      allow update: if isUser(existingData().userId) || (isIDemandAdmin() && emailVerified())
+      allow update: if (isUser(existingData().userId) && !(containsRestrictedFields(['quoteExpiration', 'subproducerCommission', 'quoteTotal', 'termPremium', 'taxes', 'fees', 'replacementCost', 'product', 'status', 'statusTransitions']))) || (isIDemandAdmin() && emailVerified())
       allow delete: if false
     }
 
@@ -54,6 +54,10 @@ service cloud.firestore {
     match /users/{userId} {
       allow create, update, read: if isUser(userId) || (isIDemandAdmin() && emailVerified())
       allow delete: if isIDemandAdmin() && emailVerified()
+    }
+
+    match /users/{userId}/paymentMethods/{pmtMethodId} {
+      allow create, update, read, delete: if isUser(userId) || (isIDemandAdmin() && emailVerified())
     }
 
     match /organizations/{orgId} {

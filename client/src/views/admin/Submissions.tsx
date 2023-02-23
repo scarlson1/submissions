@@ -16,7 +16,7 @@ import {
   useNavigate,
 } from 'react-router-dom';
 
-import { submissionsCollection } from 'common/firestoreCollections';
+import { submissionsCollection } from 'common';
 import { Submission } from 'common/types';
 import { BasicDataGrid, renderGridEmail } from 'components';
 import { formatGridCurrency, formatGridFirestoreTimestamp } from 'modules/utils/helpers';

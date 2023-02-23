@@ -2,18 +2,20 @@ import { useCallback } from 'react';
 
 import { AddPaymentMethodValues } from 'elements/AddPaymentDialog';
 import { ePayInstance, verifyEPayToken, VerifyEPayTokenResponse } from 'modules/api';
+import { useAsyncToast } from './useAsyncToast';
 
 export const useVerifyPaymentMethod = (
   onSuccess?: (data: VerifyEPayTokenResponse) => void,
   onError?: (msg: string, err?: unknown) => void
 ) => {
+  const toast = useAsyncToast();
+
   const exchangeForToken = useCallback(async (tokenReqModel: any) => {
     let {
       headers: { location },
     } = await ePayInstance.post('/api/v1/tokens', {
       ...tokenReqModel,
     });
-    console.log('TOKEN EPAY RES => ', location);
     let tokenId = location?.split('/')[2];
 
     if (!tokenId) {
@@ -27,7 +29,7 @@ export const useVerifyPaymentMethod = (
       tokenId,
       accountHolder,
     });
-    console.log('TOKEN DATA => ', data);
+    // console.log('TOKEN DATA => ', data);
 
     if (!data.id) {
       console.log('TOKEN VERIFICATION FAILED');
@@ -69,10 +71,13 @@ export const useVerifyPaymentMethod = (
           };
         }
 
+        toast.loading('Securing payment method...');
         const tokenId = await exchangeForToken(tokenReqModel);
 
+        toast.updateLoadingMsg('Verifying payment method...');
         const res = await verifyToken(tokenId, values.accountHolder);
 
+        toast.success(`Payment method added! (${res.maskedAccountNumber.replaceAll('X', '*')})`);
         if (onSuccess) onSuccess(res);
 
         return res;
@@ -82,10 +87,12 @@ export const useVerifyPaymentMethod = (
           err && err.message
             ? err.message
             : 'Unable to add payment method. See console for details.';
+
+        toast.error(msg);
         if (onError) onError(msg);
       }
     },
-    [onSuccess, onError, exchangeForToken, verifyToken]
+    [onSuccess, onError, exchangeForToken, verifyToken, toast]
   );
 
   return verifyPmtMethod;

@@ -18,6 +18,7 @@ import {
   AgencyApplication,
   ActiveStates,
   SubmissionQuoteData,
+  PaymentMethod,
 } from './types';
 import { db } from 'firebaseConfig';
 
@@ -51,6 +52,8 @@ export const userClaimsCollection = (orgId: string) =>
   createCollection<UserClaims>(COLLECTIONS.ORGANIZATIONS, orgId, COLLECTIONS.USER_CLAIMS);
 export const invitesCollection = (orgId: string, ...rest: any) =>
   createCollection<Invite>(COLLECTIONS.ORGANIZATIONS, orgId, COLLECTIONS.INVITES, ...rest);
+export const paymentMethodsCollection = (userId: string, ...rest: any) =>
+  createCollection<PaymentMethod>(COLLECTIONS.USERS, userId, COLLECTIONS.PAYMENT_METHODS, ...rest);
 // export const notificationsCollection = (userId: string) =>
 //   createCollection<Notification>(COLLECTIONS.USERS, userId, COLLECTIONS.NOTIFICATIONS);
 // export const licensesCollection = (orgId: string) =>

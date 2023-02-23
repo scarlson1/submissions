@@ -16,7 +16,7 @@ export { RequireAuth } from './RequireAuth';
 export { BasicDataGrid } from './BasicDataGrid';
 export { LoadingSpinner } from './LoadingSpinner';
 export { IconButtonMenu } from './IconButtonMenu';
-export { TabPanel } from './TabPanel';
+// export { TabPanel } from './TabPanel';
 // export {  } from './'
 // export {  } from './'
 
@@ -29,4 +29,4 @@ export type { ReauthDialogProps } from './ReauthDialog';
 export type { RequireAuthProps } from './RequireAuth';
 export type { LoadingSpinnerProps } from './LoadingSpinner';
 export type { IconButtonMenuProps } from './IconButtonMenu';
-export type { TabPanelProps } from './TabPanel';
+// export type { TabPanelProps } from './TabPanel';

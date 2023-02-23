@@ -1,16 +1,20 @@
 import React from 'react';
-import { useField } from 'formik';
+import { FieldHookConfig, useField } from 'formik';
 import { TextField, TextFieldProps } from '@mui/material';
 
-export type FormikTextFieldProps = TextFieldProps & { name: string };
+export type FormikTextFieldProps = TextFieldProps & {
+  name: string;
+  formikConfig?: Partial<FieldHookConfig<any>>;
+};
 
 export const FormikTextField = ({
   name,
   variant = 'outlined',
   helperText,
+  formikConfig,
   ...props
 }: FormikTextFieldProps) => {
-  const [field, meta] = useField(name); // , helpers
+  const [field, meta] = useField({ name, ...formikConfig }); // , helpers
 
   return (
     <TextField

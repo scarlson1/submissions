@@ -7,21 +7,23 @@ import {
   Switch,
   SwitchProps,
 } from '@mui/material';
-import { useField } from 'formik';
+import { FieldHookConfig, useField } from 'formik';
 
 export interface FormikSwitchProps extends SwitchProps {
   name: string;
   label: string;
   formControlLabelProps?: Partial<FormControlLabelProps>;
+  formikConfig?: Partial<FieldHookConfig<any>>;
 }
 
 export const FormikSwitch: React.FC<FormikSwitchProps> = ({
   name,
   label,
   formControlLabelProps,
+  formikConfig,
   ...rest
 }) => {
-  const [field, meta, { setValue }] = useField({ name, type: 'checkbox' });
+  const [field, meta, { setValue }] = useField({ name, ...formikConfig, type: 'checkbox' });
 
   const handleChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>, checked: boolean) => {

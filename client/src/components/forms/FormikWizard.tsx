@@ -3,25 +3,25 @@ import { Box, Button, MobileStepper, Stack } from '@mui/material';
 import { KeyboardArrowRight, KeyboardArrowLeft, NavigateNextRounded } from '@mui/icons-material';
 import LoadingButton from '@mui/lab/LoadingButton';
 import { Formik, Form, FormikHelpers, FormikErrors, FormikProps } from 'formik';
+import toast from 'react-hot-toast';
 
 import { StepProps, StepperNav } from 'components/forms';
 import { useWidth, useScroll } from 'hooks';
-import toast from 'react-hot-toast';
 
 // TODO: create application layout - hide footer on mobile (sits under stepper)
 
 // TODO: use router instead of index state ??
 // https://blog.logrocket.com/building-multi-step-wizards-with-formik-and-react-query/
 
-export interface FormikWizardProps {
+export interface FormikWizardProps extends Partial<FormikProps<any>> {
   children: React.ReactElement<StepProps> | React.ReactElement<StepProps>[]; // JSX.Element | JSX.Element[];
   initialValues: { [key: string]: any };
   onSubmit: (values: any, helpers: FormikHelpers<any>) => void;
   onCancel?: () => void;
-  mutateOnSubmit?: (values: any, helpers: FormikHelpers<any>) => any;
+  mutateOnSubmit?: (values: any, helpers: FormikHelpers<any>, initVals: any) => any;
   onMutateError?: (err: unknown) => void;
   enableReinitialize?: boolean;
-  initialErrors?: { [key: string]: any };
+  initialErrors?: FormikErrors<any>;
   loading?: boolean;
   submitButtonText?: string;
   disableNext?: boolean;
@@ -50,6 +50,10 @@ export const FormikWizard: React.FC<FormikWizardProps> = ({
   const [snapshot, setSnapshot] = useState(initialValues);
   const { isMobile } = useWidth();
   const { scrollToTop } = useScroll();
+
+  // useEffect(() => {
+  //   formRef?.current?.validateForm().then(console.log);
+  // }, [formRef, stepIndex]);
 
   const steps = useMemo(() => React.Children.toArray(children), [children]);
 
@@ -93,7 +97,7 @@ export const FormikWizard: React.FC<FormikWizardProps> = ({
     }
     if (currentStep.props.mutateOnSubmit) {
       try {
-        values = await currentStep.props.mutateOnSubmit(values, bag);
+        values = await currentStep.props.mutateOnSubmit(values, bag, snapshot);
         console.log('MUTATED VALUES: ', values);
       } catch (err) {
         console.log('MUTATE ON SUBMIT ERROR: ', err);
@@ -128,7 +132,7 @@ export const FormikWizard: React.FC<FormikWizardProps> = ({
   return (
     <Formik
       initialValues={snapshot}
-      initialErrors={initialErrors}
+      initialErrors={currentStep?.props?.initialErrors || {}}
       validationSchema={currentStep.props.validationSchema}
       validateOnMount={true}
       onSubmit={handleSubmit}

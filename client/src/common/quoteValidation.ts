@@ -7,6 +7,16 @@ export const phoneRegEx = /^\+1[1-9]{1}[0-9]{9}$/;
 
 export const phoneVal = yup.string().matches(phoneRegEx, 'Phone number is not valid');
 
+export function phoneRequiredVal(val: any) {
+  let error;
+  if (!val) {
+    error = 'Required';
+  } else if (!phoneRegEx.test(val)) {
+    error = 'Invalid phone number';
+  }
+  return error;
+}
+
 export const isValidEmail = (str: string) => {
   // eslint-disable-next-line
   return /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(
@@ -171,7 +181,7 @@ export const priorLossValidation = yup.object({
 export const contactValidation = yup.object().shape({
   firstName: yup.string().required('First name is required'),
   lastName: yup.string().required('Last name is required'),
-  email: emailVal, // .required('Email required'), // yup.string().email().required(), //
+  email: emailVal, // .required('Email required'), // yup.string().email().required(),
   phone: phoneVal.notRequired(),
 });
 

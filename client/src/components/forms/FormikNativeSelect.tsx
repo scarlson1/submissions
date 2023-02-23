@@ -8,7 +8,7 @@ import {
   OutlinedInput,
   Input,
 } from '@mui/material';
-import { useField } from 'formik';
+import { FieldHookConfig, useField } from 'formik';
 
 import { SelectOption } from './FormikSelect';
 
@@ -16,6 +16,7 @@ export interface FormikNativeSelectProps extends NativeSelectProps {
   name: string;
   label: string;
   selectOptions: SelectOption[] | string[];
+  formikConfig?: Partial<FieldHookConfig<any>>;
 }
 
 export const FormikNativeSelect: React.FC<FormikNativeSelectProps> = ({
@@ -27,9 +28,10 @@ export const FormikNativeSelect: React.FC<FormikNativeSelectProps> = ({
   size = 'medium',
   fullWidth = true,
   sx = { minWidth: 160 },
+  formikConfig,
   ...props
 }) => {
-  const [field, meta] = useField(name);
+  const [field, meta] = useField({ name, ...formikConfig });
 
   return (
     <FormControl

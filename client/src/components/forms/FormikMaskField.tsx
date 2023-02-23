@@ -7,7 +7,7 @@ import {
   Input,
   InputProps,
 } from '@mui/material';
-import { useField } from 'formik';
+import { FieldHookConfig, useField } from 'formik';
 
 export interface FormikMaskFieldProps extends InputProps {
   name: string;
@@ -16,6 +16,7 @@ export interface FormikMaskFieldProps extends InputProps {
   variant?: 'outlined' | 'standard';
   maskComponent: React.ForwardRefExoticComponent<any & React.RefAttributes<HTMLElement>>;
   helperText?: string;
+  formikConfig?: Partial<FieldHookConfig<any>>;
 }
 
 export const FormikMaskField: React.FC<FormikMaskFieldProps> = ({
@@ -29,9 +30,10 @@ export const FormikMaskField: React.FC<FormikMaskFieldProps> = ({
   maskComponent,
   helperText,
   sx,
+  formikConfig,
   ...props
 }) => {
-  const [field, meta] = useField(name);
+  const [field, meta] = useField({ name, ...formikConfig });
 
   return (
     <FormControl variant={variant} fullWidth={fullWidth} required={required} size={size} sx={sx}>

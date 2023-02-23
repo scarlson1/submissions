@@ -17,9 +17,9 @@ interface Option {
 
 export interface IconButtonMenuProps {
   menuItems: Option[];
-  menuProps?: MenuProps;
-  menuItemProps?: MenuItemProps;
-  iconButtonProps?: IconButtonProps;
+  menuProps?: Partial<MenuProps>;
+  menuItemProps?: Partial<MenuItemProps>;
+  iconButtonProps?: Partial<IconButtonProps>;
   buttonIcon?: React.ReactNode;
 }
 
@@ -48,7 +48,7 @@ export const IconButtonMenu: React.FC<IconButtonMenuProps> = ({
         color='primary'
         aria-label='more'
         onClick={handleActionsOpen}
-        sx={{ ml: 2, borderRadius: 1 }}
+        // sx={{ ml: 2, borderRadius: 1 }}
         {...iconButtonProps}
       >
         {buttonIcon ? buttonIcon : <MoreVertRounded />}

@@ -9,7 +9,7 @@ import {
   TypographyProps,
 } from '@mui/material';
 import { SxProps } from '@mui/system';
-import { useField } from 'formik';
+import { FieldHookConfig, useField } from 'formik';
 
 export interface FormikCheckboxProps {
   name: string;
@@ -24,14 +24,16 @@ export interface FormikCheckboxProps {
   onChange?: (event: React.SyntheticEvent, checked: boolean) => void;
   value?: unknown;
   checked?: boolean;
+  formikConfig?: Partial<FieldHookConfig<boolean>>;
 }
 
 export const FormikCheckbox: React.FC<FormikCheckboxProps> = ({
   name,
   checkboxProps,
+  formikConfig,
   ...props
 }) => {
-  const [field, meta] = useField({ name, type: 'checkbox' });
+  const [field, meta] = useField({ name, ...formikConfig, type: 'checkbox' });
 
   return (
     <FormControl error={meta.touched && Boolean(meta.error)}>

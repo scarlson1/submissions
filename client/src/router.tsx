@@ -19,6 +19,8 @@ import {
   Protosure,
   protosureLoader,
   Account,
+  QuoteBind,
+  quoteLoader,
 } from 'views';
 import {
   submissionLoader,
@@ -209,6 +211,11 @@ export const router = createBrowserRouter([
           {
             path: ROUTES.QUOTE_VIEW,
             element: <ViewQuote />,
+          },
+          {
+            path: ROUTES.QUOTE_BIND,
+            loader: quoteLoader,
+            element: <QuoteBind />,
           },
           // {
           //   path: ROUTES.CHECKOUT, //  '/quotes/:quoteId/checkout',

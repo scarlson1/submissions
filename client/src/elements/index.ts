@@ -16,6 +16,7 @@ export { DeckMap, defaultGeoJsonLayerProps } from './DeckMap';
 export { FormikCardDetails } from './FormikCardDetails';
 export { FormikBankFields } from './FormikBankFields';
 export { AddPaymentDialog } from './AddPaymentDialog';
+export { PaymentStep, billingValidation } from './PaymentStep';
 
 export type { FormikAddressProps } from './FormikAddress';
 export type { DeductibleStepProps } from './DeductibleStep';

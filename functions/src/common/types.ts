@@ -1,6 +1,6 @@
 import { Request } from 'express';
 import { DecodedIdToken } from 'firebase-admin/auth';
-import { GeoPoint } from 'firebase-admin/firestore';
+import { GeoPoint, Timestamp, WithFieldValue } from 'firebase-admin/firestore';
 // import { Timestamp, WithFieldValue } from '@google-cloud/firestore';
 
 import { SUBMISSION_STATUS, PRODUCT, AGENCY_STATUS } from './enums';
@@ -36,6 +36,7 @@ export interface Address {
   city: string;
   state: string;
   postal: string;
+  countyName?: string;
 }
 
 export type AuthProviders =
@@ -98,6 +99,8 @@ export interface UWNote {
   message: string;
   property?: string;
 }
+
+export type Product = 'flood' | 'wind';
 
 // export interface Submission {
 //   addressLine1: string;
@@ -185,6 +188,87 @@ export interface Submission extends FloodFormValues, FetchPropertyDataResponse {
   metadata: BaseMetadata;
 }
 
+export interface AddressWithCoords extends Address {
+  latitude: number;
+  longitude: number;
+}
+
+export interface AdditionalInsured {
+  name: string;
+  email: string;
+  relation: string | number;
+  address?: AddressWithCoords; // Address;
+}
+export interface Mortgagee {
+  company: string;
+  contactName: string;
+  contactEmail: string;
+  loanNumber: string;
+  priority: string | number;
+  address?: AddressWithCoords;
+}
+
+export interface SubmissionQuoteData {
+  product: Product; // keyof typeof Product;
+  deductible: number;
+  limits: Limits;
+  // tiv: number;
+  replacementCost: number;
+  insuredAddress: Address;
+  insuredCoordinates: GeoPoint | null;
+  fees: { feeName: string; feeValue: string }[];
+  taxes: { taxName: string; taxValue: string }[];
+  termPremium: number;
+  subproducerCommission: number;
+  quoteTotal?: number;
+  // reviewRequired: boolean;
+  // underwritingNotes?: {
+  //   propertyNotes: UWNote[];
+  //   ratingNotes: UWNote[];
+  // };
+  // ratable: boolean;
+  // underwriterApproved: boolean;
+  quoteExpiration: {
+    seconds: number;
+    nanoseconds: number;
+  };
+  policyEffectiveDate?: Timestamp; // FirestoreTimestamp;
+  effectiveExceptionRequested?: boolean;
+  effectiveExceptionReason?: string | null;
+  policyExpirationDate?: Timestamp; // FirestoreTimestamp;
+  exclusions?: string[];
+  // ePayFees?: {
+  //   achPayerFee: number;
+  //   creditCardPayerFee: number;
+  // };
+  additionalInsureds?: AdditionalInsured[];
+  mortgageeInterest?: Mortgagee[];
+  metadata: {
+    created: Timestamp;
+    updated: Timestamp;
+    version: WithFieldValue<number>;
+  };
+  userId: string | null;
+  insuredFirstName?: string | null;
+  insuredLastName?: string | null;
+  insuredEmail?: string | null;
+  insuredPhone?: string | null;
+  insuredUserId?: string | null;
+  agencyId: string | null;
+  agencyName: string | null;
+  agentId: string | null;
+  agentName: string | null;
+  agentEmail: string | null;
+  agentPhone?: string | null;
+  status: SUBMISSION_STATUS;
+  statusTransitions: {
+    published: Timestamp;
+    accepted: Timestamp | null;
+    cancelled: Timestamp | null;
+    finalized: Timestamp | null;
+  };
+}
+
 export type InviteStatus = 'pending' | 'accepted' | 'revoked' | 'replaced' | 'rejected' | 'error';
 
 export interface Invite {
@@ -205,6 +289,26 @@ export interface Invite {
     email: string;
   } | null;
   metadata: BaseMetadata;
+}
+
+export interface EPayPaymentMethodDetails {
+  attributeValues: any[];
+  country: string;
+  emailAddress: string;
+  id: string;
+  maskedAccountNumber: string;
+  payer: string;
+  transactionType: string;
+  type?: string;
+  accountHolder?: string;
+}
+
+export interface VerifyEPayTokenResponse extends EPayPaymentMethodDetails {
+  last4: string;
+  userId: string | null;
+  metadata: {
+    created: Timestamp;
+  };
 }
 
 export interface SRPerilAAL {
@@ -237,6 +341,11 @@ export interface SRResWithAAL extends SRRes {
     postal: string;
   };
   coordinates?: GeoPoint;
+}
+
+export interface RequestUserAuth extends Request {
+  user?: DecodedIdToken;
+  tenantId?: string;
 }
 
 export interface SpatialKeyResponse {

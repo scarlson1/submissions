@@ -8,11 +8,12 @@ import {
   Typography,
   TypographyProps,
 } from '@mui/material';
-import { useField } from 'formik';
+import { FieldHookConfig, useField } from 'formik';
 import { AddRounded, RemoveRounded } from '@mui/icons-material';
 
 export interface FormikIncrementorProps {
   name: string;
+  formikConfig?: Partial<FieldHookConfig<any>>;
   incrementBy: number;
   min: number | null | undefined;
   max?: number;
@@ -30,6 +31,7 @@ export interface FormikIncrementorProps {
 
 export const FormikIncrementor: React.FC<FormikIncrementorProps> = ({
   name,
+  formikConfig,
   incrementBy,
   min = 0,
   max,
@@ -42,7 +44,7 @@ export const FormikIncrementor: React.FC<FormikIncrementorProps> = ({
   disabled,
   valueFormatter,
 }) => {
-  const [field, meta, helpers] = useField<number>(name);
+  const [field, meta, helpers] = useField<number>({ name, ...formikConfig });
 
   const handleIncrease = useCallback(() => {
     helpers.setTouched(true);

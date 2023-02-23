@@ -51,6 +51,12 @@ export interface Address {
   city: string;
   state: string;
   postal: string;
+  countyName?: string;
+}
+
+export interface AddressWithCoords extends Address {
+  latitude: number;
+  longitude: number;
 }
 
 export interface Coordinates {
@@ -89,6 +95,7 @@ export interface AdditionalInsured {
   name: string;
   email: string;
   relation: string | number;
+  address?: AddressWithCoords; // Address;
 }
 export interface Mortgagee {
   company: string;
@@ -96,6 +103,7 @@ export interface Mortgagee {
   contactEmail: string;
   loanNumber: string;
   priority: string | number;
+  address?: AddressWithCoords;
 }
 
 export interface Deductible {
@@ -114,6 +122,7 @@ export interface SubmissionQuoteData {
   insuredAddress: Address;
   insuredCoordinates: GeoPoint | null;
   fees: { feeName: string; feeValue: string }[];
+  taxes: { taxName: string; taxValue: string }[];
   termPremium: number;
   subproducerCommission: number;
   quoteTotal?: number;
@@ -130,7 +139,7 @@ export interface SubmissionQuoteData {
   };
   policyEffectiveDate?: Timestamp; // FirestoreTimestamp;
   effectiveExceptionRequested?: boolean;
-  effectiveExceptionReason?: string;
+  effectiveExceptionReason?: string | null;
   policyExpirationDate?: Timestamp; // FirestoreTimestamp;
   exclusions?: string[];
   // ePayFees?: {
@@ -156,7 +165,7 @@ export interface SubmissionQuoteData {
   agentName: string | null;
   agentEmail: string | null;
   agentPhone?: string | null;
-  status: SUBMISSION_STATUS; // QuoteStatus;
+  status: SUBMISSION_STATUS;
   statusTransitions: {
     published: FirestoreTimestamp;
     accepted: FirestoreTimestamp | null;
@@ -361,19 +370,22 @@ export interface EPayPaymentMethodDetails {
   accountHolder?: string;
 }
 
-export interface PaymentMethod {
-  id: string;
-  accountHolder: string;
-  country?: string;
-  created?: FirestoreTimestamp;
-  emailAddress?: string;
+export interface PaymentMethod extends EPayPaymentMethodDetails {
+  // id: string;
+  // accountHolder: string;
+  // country?: string;
+  // created?: FirestoreTimestamp;
+  // emailAddress?: string;
   last4?: string;
-  maskedAccountNumber?: string;
-  payer?: string;
-  transactionType: string;
-  type?: string;
-  attributeValues?: any[];
-  metadata?: any;
+  // maskedAccountNumber?: string;
+  // payer?: string;
+  // transactionType: string;
+  // type?: string;
+  // attributeValues?: any[];
+  userId?: string | null;
+  metadata?: {
+    created: FirestoreTimestamp;
+  };
 }
 
 export interface Policy {
@@ -609,22 +621,6 @@ export interface Tax {
   refundable?: boolean;
   metadata: BaseMetadata;
 }
-
-// moratorium questions:
-//    - will all locations under moratorium from an event have the same effective & expiration date?
-//    -
-// export interface MoratoriumOld {
-//   state: string;
-//   stateFP: string;
-//   countyName?: string;
-//   countyFP?: string;
-//   product: Product;
-//   effectiveDate: string;
-//   expirationDate: string;
-//   reason?: string; // TODO: type reason 'event' | 'etc.'
-// }
-
-// OR
 
 export interface FIPSDetails {
   state: string;

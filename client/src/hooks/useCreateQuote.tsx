@@ -206,6 +206,7 @@ function getFormattedQuote(values: NewQuoteValues): SubmissionQuoteData {
     mortgageeInterest: [],
     termPremium,
     fees,
+    taxes: [], // TODO: taxes
     subproducerCommission,
     quoteTotal, // calculate on server ??
     userId: null,
