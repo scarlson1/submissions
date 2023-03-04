@@ -6,6 +6,7 @@ import {
   DEDUCTIBLE_OPTIONS,
   SUBMISSION_STATUS,
   STATE_ABBREVIATION,
+  QUOTE_STATUS,
 } from './enums';
 import { FloodValues } from 'views/SubmissionNew';
 import { FetchPropertyDataResponse } from 'modules/api/index';
@@ -14,6 +15,9 @@ export interface BaseMetadata {
   created: FirestoreTimestamp;
   updated: FirestoreTimestamp;
 }
+
+export type WithId<T> = T & { id: string };
+
 export interface Submission extends FloodValues, FetchPropertyDataResponse {
   coordinates: GeoPoint;
   userId?: string | null;
@@ -102,7 +106,7 @@ export interface Mortgagee {
   contactName: string;
   contactEmail: string;
   loanNumber: string;
-  priority: string | number;
+  // priority: string | number;
   address?: AddressWithCoords;
 }
 
@@ -111,21 +115,27 @@ export interface Deductible {
   value: number;
 }
 
+export interface TaxItem {
+  displayName: string;
+  rate: number; //| string;
+  value: number; //| string;
+}
+
 // TODO: temparary (quote data interface for interim submissions period) REPLACE
 
 export interface SubmissionQuoteData {
   product: Product; // keyof typeof Product;
   deductible: number;
   limits: Limits;
-  // tiv: number;
   replacementCost: number;
   insuredAddress: Address;
   insuredCoordinates: GeoPoint | null;
-  fees: { feeName: string; feeValue: string }[];
-  taxes: { taxName: string; taxValue: string }[];
+  fees: { feeName: string; feeValue: number }[];
+  taxes: TaxItem[]; // { taxName: string; taxValue: number; taxRate?: number }[];
   termPremium: number;
   subproducerCommission: number;
   quoteTotal?: number;
+  ePayCardFee: number;
   // reviewRequired: boolean;
   // underwritingNotes?: {
   //   propertyNotes: UWNote[];
@@ -142,10 +152,6 @@ export interface SubmissionQuoteData {
   effectiveExceptionReason?: string | null;
   policyExpirationDate?: Timestamp; // FirestoreTimestamp;
   exclusions?: string[];
-  // ePayFees?: {
-  //   achPayerFee: number;
-  //   creditCardPayerFee: number;
-  // };
   additionalInsureds?: AdditionalInsured[];
   mortgageeInterest?: Mortgagee[];
   metadata: {
@@ -165,7 +171,11 @@ export interface SubmissionQuoteData {
   agentName: string | null;
   agentEmail: string | null;
   agentPhone?: string | null;
-  status: SUBMISSION_STATUS;
+  status: QUOTE_STATUS; // SUBMISSION_STATUS;
+  submissionId?: string | null;
+  imageUrls?: { [key: string]: string | null };
+  imagePaths?: { [key: string]: string | null };
+  // quoteIds?: WithFieldValue<string[]>;
   statusTransitions: {
     published: FirestoreTimestamp;
     accepted: FirestoreTimestamp | null;
@@ -371,21 +381,13 @@ export interface EPayPaymentMethodDetails {
 }
 
 export interface PaymentMethod extends EPayPaymentMethodDetails {
-  // id: string;
-  // accountHolder: string;
-  // country?: string;
-  // created?: FirestoreTimestamp;
-  // emailAddress?: string;
   last4?: string;
-  // maskedAccountNumber?: string;
-  // payer?: string;
-  // transactionType: string;
-  // type?: string;
-  // attributeValues?: any[];
+  expiration?: string;
+  // TODO: separate into expMonth and expYear
+  brand?: string;
+  network?: string;
   userId?: string | null;
-  metadata?: {
-    created: FirestoreTimestamp;
-  };
+  metadata?: BaseMetadata;
 }
 
 export interface Policy {
@@ -561,6 +563,38 @@ export interface Invite {
     name?: string;
     email: string;
   } | null;
+  metadata: BaseMetadata;
+}
+
+export type TransactionStatus = 'processing' | 'succeeded' | 'payment_failed';
+
+// https://stripe.com/docs/api/charges/object
+export interface Charge {
+  transactionId: string;
+  amount: number;
+  amountCaptured: number;
+  amountRefunded: number;
+  processingFees: number | null;
+  billingDetails: {
+    address: Address | null;
+    email: string | null;
+    name: string | null;
+    phone?: string | null;
+  };
+  invoiceId?: string | null;
+  userId?: string | null;
+  onBehalfOf?: string;
+  paid?: boolean;
+  paymentIntent?: string | null; // not used
+  paymentMethodId: string;
+  paymentMethodDetails: PaymentMethod;
+  receiptEmail: string | null;
+  receiptNumber?: string | null;
+  receiptUrl?: string | null;
+  refunded?: boolean;
+  publicDescriptor: string | null;
+  publicDescriptorTitle: string | null;
+  status: TransactionStatus;
   metadata: BaseMetadata;
 }
 

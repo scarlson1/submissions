@@ -20,7 +20,7 @@
         }
       },
       {
-        "source": "/auth-api",
+        "source": "/auth-api/*",
         "function": "authRequests"
       },
       {

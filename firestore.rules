@@ -60,6 +60,11 @@ service cloud.firestore {
       allow create, update, read, delete: if isUser(userId) || (isIDemandAdmin() && emailVerified())
     }
 
+    match /transactions/{transactionId} {
+      allow read: if isUser(existingData().userId) || isIDemandAdmin()
+      allow create, update, delete: if isIDemandAdmin() && emailVerified()
+    }
+
     match /organizations/{orgId} {
       allow read: if isUser(existingData().userId)
       allow create: if isSignedIn() && emailVerified() && isIDemandAdmin()
@@ -116,6 +121,7 @@ service cloud.firestore {
     // TODO: if agent / agency etc.
     match /licenses/{licenseId} {
       allow read: if isIDemandAdmin()
+      allow list: if isIDemandAdmin()
       allow create: if isIDemandAdmin() && emailVerified()
       allow update: if isIDemandAdmin() && emailVerified()
       allow delete: if isIDemandAdmin() && emailVerified()

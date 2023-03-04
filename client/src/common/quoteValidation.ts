@@ -1,3 +1,4 @@
+import { isValidEmail } from 'modules/utils/helpers';
 import * as yup from 'yup';
 
 // import { ACTIVE_STATES_ABRV } from 'common/constants';
@@ -17,15 +18,15 @@ export function phoneRequiredVal(val: any) {
   return error;
 }
 
-export const isValidEmail = (str: string) => {
-  // eslint-disable-next-line
-  return /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(
-    str
-  );
-};
+// export const isValidEmail = (str: string) => {
+//   // eslint-disable-next-line
+//   return /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(
+//     str
+//   );
+// };
 
 export const emailVal = yup.string().test('valid-email', 'Invalid email', async (val) => {
-  if (!val || !isValidEmail(val)) return false;
+  if (val && !isValidEmail(val)) return false;
   return true;
 });
 

@@ -63,6 +63,7 @@ export const FormikDollarMaskField: React.FC<FormikDollarMaskFieldProps> = ({
           ...inputProps,
           decimalScale,
         },
+        ...rest?.InputProps,
       }}
     />
   );

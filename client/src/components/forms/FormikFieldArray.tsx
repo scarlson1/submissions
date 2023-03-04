@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { ForwardRefExoticComponent, useMemo } from 'react';
 import {
   Box,
   BoxProps,
@@ -7,6 +7,7 @@ import {
   Divider,
   DividerProps,
   IconButton,
+  InputBaseComponentProps,
 } from '@mui/material';
 import Grid, { Grid2Props } from '@mui/material/Unstable_Grid2';
 import { RemoveCircleOutlineRounded } from '@mui/icons-material';
@@ -21,6 +22,8 @@ import FormikAddressLite from 'elements/FormikAddressLite';
 
 // https://stackoverflow.com/questions/53958028/how-to-use-generics-in-props-in-react-in-a-functional-component
 
+// TODO: refactor - consolidate all mask fields to use type = 'mask' and pass the mask as a prop
+
 export interface SelectOption {
   label: string;
   value: string | number;
@@ -29,12 +32,14 @@ export interface InputSchema {
   name: string;
   label: string;
   required: boolean;
-  inputType: 'text' | 'select' | 'phone' | 'dollar' | 'address';
+  inputType: 'text' | 'select' | 'phone' | 'dollar' | 'address' | 'mask';
   selectOptions?: SelectOption[];
   variant?: 'standard' | 'outlined' | 'filled';
   size?: 'small' | 'medium';
   gridProps?: Grid2Props;
   propsGetterFunc?: (index: number, parentField: string, name: string) => any;
+  maskComponent?: ForwardRefExoticComponent<any>;
+  inputProps?: InputBaseComponentProps;
 }
 
 export interface FormikFieldArrayProps {
@@ -43,7 +48,6 @@ export interface FormikFieldArrayProps {
   values: { [key: string]: any };
   errors: { [key: string]: any };
   touched: { [key: string]: any };
-  // isValid: boolean;
   dirty: boolean;
   isSubmitting?: boolean;
   isValidating?: boolean;
@@ -55,6 +59,7 @@ export interface FormikFieldArrayProps {
   addButtonProps?: ButtonProps;
   dividers?: boolean;
   dividerProps?: DividerProps;
+  gridProps?: Grid2Props;
   listContainerProps?: BoxProps;
   children?: React.ReactNode;
   // customFields?: React.ReactNode[];
@@ -71,11 +76,11 @@ export const FormikFieldArray: React.FC<FormikFieldArrayProps> = ({
   values,
   isValidating = false,
   isSubmitting = false,
-  dirty,
   addButtonText = 'Add',
   addButtonProps,
   dividers = false,
   dividerProps,
+  gridProps,
   listContainerProps,
   children,
   errors,
@@ -89,7 +94,7 @@ export const FormikFieldArray: React.FC<FormikFieldArrayProps> = ({
         const split = field.name.split('.');
         const nestedVal: any = {};
         nestedVal[split[1]] = '';
-        row[split[0]] = nestedVal; // { `${field.name.split('.')[1]}`: ''}
+        row[split[0]] = nestedVal;
       } else {
         row[field.name] = '';
       }
@@ -113,8 +118,15 @@ export const FormikFieldArray: React.FC<FormikFieldArrayProps> = ({
             {values[parentField].length > 0 ? (
               values[parentField].map((item: any, index: number) => (
                 <Box key={index}>
-                  <Grid container spacing={2} sx={{ py: 2 }}>
-                    <Grid container spacing={3} xs={10} sm={11}>
+                  {/* <Grid container spacing={2} sx={{ py: 2 }} {...gridProps}> */}
+                  {/* <Grid container spacing={3} xs={10} sm={11}> */}
+                  <Box sx={{ display: 'flex' }}>
+                    <Grid
+                      container
+                      spacing={3}
+                      {...gridProps}
+                      sx={{ py: 2, width: '100%', flex: '1 1 auto', ...gridProps?.sx }}
+                    >
                       {inputFields.map(
                         ({
                           name,
@@ -126,6 +138,8 @@ export const FormikFieldArray: React.FC<FormikFieldArrayProps> = ({
                           size = 'medium',
                           gridProps,
                           propsGetterFunc = () => {},
+                          maskComponent,
+                          inputProps,
                           ...rest
                         }) => {
                           if (inputType === 'text') {
@@ -139,6 +153,7 @@ export const FormikFieldArray: React.FC<FormikFieldArrayProps> = ({
                                   variant={variant}
                                   size={size}
                                   name={`${parentField}[${index}][${name}]`}
+                                  inputProps={inputProps}
                                   {...rest}
                                 />
                               </Grid>
@@ -168,9 +183,25 @@ export const FormikFieldArray: React.FC<FormikFieldArrayProps> = ({
                                   id={name}
                                   label={label}
                                   required={required}
-                                  // variant={variant}
                                   name={`${parentField}[${index}][${name}]`}
                                   maskComponent={PhoneMask}
+                                  inputProps={inputProps}
+                                  {...rest}
+                                />
+                              </Grid>
+                            );
+                          }
+                          if (inputType === 'mask') {
+                            return (
+                              <Grid key={name} xs={12} sm={6} md={4} {...gridProps}>
+                                <FormikMaskField
+                                  fullWidth
+                                  id={name}
+                                  label={label}
+                                  required={required}
+                                  name={`${parentField}[${index}][${name}]`}
+                                  maskComponent={maskComponent || PhoneMask}
+                                  inputProps={inputProps}
                                   {...rest}
                                 />
                               </Grid>
@@ -186,6 +217,7 @@ export const FormikFieldArray: React.FC<FormikFieldArrayProps> = ({
                                   required={required}
                                   name={`${parentField}[${index}][${name}]`}
                                   decimalScale={2}
+                                  inputProps={inputProps}
                                   {...rest}
                                 />
                               </Grid>
@@ -215,8 +247,8 @@ export const FormikFieldArray: React.FC<FormikFieldArrayProps> = ({
                         }
                       )}
                     </Grid>
-                    <Grid
-                      xs
+                    <Box
+                      sx={{ flex: '0 0 auto' }}
                       display='flex'
                       alignContent='center'
                       justifyContent='center'
@@ -232,8 +264,27 @@ export const FormikFieldArray: React.FC<FormikFieldArrayProps> = ({
                       >
                         <RemoveCircleOutlineRounded fontSize='inherit' />
                       </IconButton>
-                    </Grid>
-                  </Grid>
+                    </Box>
+                  </Box>
+                  {/* <Grid
+                    xs
+                    display='flex'
+                    alignContent='center'
+                    justifyContent='center'
+                    alignItems='center'
+                  >
+                    <IconButton
+                      aria-label='remove'
+                      color='secondary'
+                      onClick={() => remove(index)}
+                      // disabled={values[parentField].length === 1 || isValidating || isSubmitting}
+                      disabled={isValidating || isSubmitting}
+                      sx={{ maxHeight: 40 }}
+                    >
+                      <RemoveCircleOutlineRounded fontSize='inherit' />
+                    </IconButton>
+                  </Grid> */}
+                  {/* </Grid> */}
                   {dividers && <Divider {...dividerProps} />}
                   {index + 1 === values[parentField].length && (
                     <Button

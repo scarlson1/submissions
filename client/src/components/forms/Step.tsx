@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Typography } from '@mui/material';
+import { Breakpoint, Container, ContainerProps, Typography } from '@mui/material';
 import { FormikErrors, FormikHelpers } from 'formik';
 
 export interface StepProps {
@@ -10,13 +10,20 @@ export interface StepProps {
   onSubmit?: (values: any, helpers: FormikHelpers<any>) => void;
   mutateOnSubmit?: (values: any, helpers: FormikHelpers<any>, initVals: any) => any;
   initialErrors?: FormikErrors<any>;
+  maxWidth?: Breakpoint | false;
+  containerProps?: ContainerProps;
   // setLoading: (value: boolean) => void;
 }
 // other props to consider: withIcons, withNumbers, iconColor, etc.
 
-export const Step: React.FC<StepProps> = ({ children, label }) => {
+export const Step: React.FC<StepProps> = ({ children, label, maxWidth = 'sm', containerProps }) => {
   return (
-    <Box>
+    <Container
+      maxWidth={maxWidth}
+      disableGutters={true}
+      sx={{ px: '0 !important' }}
+      {...containerProps}
+    >
       {label && typeof label === 'string' && (
         <Typography variant='h6' gutterBottom align='center' sx={{ py: 3 }}>
           {label}
@@ -24,7 +31,7 @@ export const Step: React.FC<StepProps> = ({ children, label }) => {
       )}
       {label && typeof label !== 'string' && <>{label}</>}
       {children}
-    </Box>
+    </Container>
   );
 };
 

@@ -16,7 +16,7 @@ export interface ContactUsValues {
 }
 
 export const contactUsValidation = yup.object().shape({
-  email: emailVal,
+  email: emailVal.required(),
   subject: yup.string().required(),
   body: yup.string().min(20, 'Please provide more details').required('Required'),
 });

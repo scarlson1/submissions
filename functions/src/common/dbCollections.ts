@@ -1,7 +1,15 @@
 import { DocumentData, CollectionReference, Firestore } from 'firebase-admin/firestore';
 
-import { COLLECTIONS, SubmissionQuoteData } from '../common';
-import { Submission, User, SRRes, SRResWithAAL, Organization, Invite } from '../common'; // AgencyApplication, Invite, Notification, Organization,
+import { Charge, COLLECTIONS, SubmissionQuoteData } from '../common';
+import {
+  Submission,
+  User,
+  SRRes,
+  SRResWithAAL,
+  Organization,
+  Invite,
+  PaymentMethod,
+} from '../common'; // AgencyApplication, Invite, Notification, Organization,
 import { ClaimsDocData } from '../firestoreEvents/index.js';
 
 export const createCollection = <T = DocumentData>(db: Firestore, collectionName: string) => {
@@ -22,6 +30,8 @@ export const submissionsQuotesCollection = (db: Firestore) =>
 // export const submissionsQuotesCollection = createCollection<SubmissionQuoteData>(
 //   COLLECTIONS.SUBMISSIONS_QUOTES
 // );
+export const transactionsCollection = (db: Firestore) =>
+  createCollection<Charge>(db, COLLECTIONS.TRANSACTIONS);
 export const policiesCollection = (db: Firestore) =>
   createCollection<Policy>(db, COLLECTIONS.POLICIES);
 export const swissReResCollection = (db: Firestore) =>
@@ -38,7 +48,7 @@ export const userClaimsCollection = (db: Firestore, orgId: string) =>
     `${COLLECTIONS.ORGANIZATIONS}/${orgId}/${COLLECTIONS.USER_CLAIMS}`
   );
 export const paymentMethodsCollection = (db: Firestore, userId: string) =>
-  createCollection<ClaimsDocData>(
+  createCollection<PaymentMethod>(
     db,
     `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.PAYMENT_METHODS}`
   );

@@ -1,8 +1,21 @@
-import React from 'react';
-import { Box, Chip, ChipProps, Link, Stack, Typography, Paper, Popper } from '@mui/material';
+import React, { MouseEvent, useCallback } from 'react';
+import {
+  Box,
+  Chip,
+  ChipProps,
+  Link,
+  Stack,
+  Typography,
+  Paper,
+  Popper,
+  IconButton,
+} from '@mui/material';
 import { GridRenderCellParams } from '@mui/x-data-grid';
 
 import { formatPhoneNumber } from 'modules/utils/helpers';
+import { useCopyToClipboard } from 'hooks/useCopyToClipboard';
+import { CopyAllRounded } from '@mui/icons-material';
+import { toast } from 'react-hot-toast';
 
 export const renderGridPhone = (params: GridRenderCellParams<any, any, any>) => {
   if (params.value == null) return '';
@@ -17,9 +30,13 @@ export const renderGridEmail = (params: GridRenderCellParams<any, any, any>) => 
   if (params.value == null) return '';
 
   return (
-    <Link href={`mailto:${params.value}`} underline='hover' onClick={(e) => e.stopPropagation()}>
-      {params.value}
-    </Link>
+    <Box
+      sx={{ overflow: 'auto', whiteSpace: 'nowrap', '&::-webkit-scrollbar': { display: 'none' } }}
+    >
+      <Link href={`mailto:${params.value}`} underline='hover' onClick={(e) => e.stopPropagation()}>
+        {params.value}
+      </Link>
+    </Box>
   );
 };
 
@@ -34,6 +51,42 @@ export const renderChips = (params: GridRenderCellParams<any, any, any>, chipPro
         <Chip key={i} label={i} size='small' {...chipProps} />
       ))}
     </Stack>
+  );
+};
+
+export const GridCellCopy = ({ value }: { value?: string | number | null }) => {
+  const [, copy] = useCopyToClipboard();
+
+  const handleCopy = useCallback(
+    (e: MouseEvent<HTMLButtonElement>) => {
+      e.stopPropagation();
+      copy(value);
+      toast.success('Copied!');
+    },
+    [copy, value]
+  );
+
+  if (!value) return null;
+
+  return (
+    <Box sx={{ display: 'flex', alignItems: 'center', maxWidth: '100%' }}>
+      <Typography
+        variant='body2'
+        sx={{
+          mr: 1,
+          flex: '0 1 auto',
+          whiteSpace: 'nowrap',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          minWidth: 0,
+        }}
+      >
+        {value}
+      </Typography>
+      <IconButton size='small' onClick={(e) => handleCopy(e)} sx={{ flex: '0 0 auto' }}>
+        <CopyAllRounded fontSize='inherit' />
+      </IconButton>
+    </Box>
   );
 };
 

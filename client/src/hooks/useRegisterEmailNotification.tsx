@@ -21,7 +21,7 @@ export interface RegisterValues {
 }
 
 export const validation = yup.object().shape({
-  email: emailVal,
+  email: emailVal.required(),
   state: yup.string().required(),
 });
 

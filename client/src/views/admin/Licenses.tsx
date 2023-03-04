@@ -2,14 +2,16 @@ import React from 'react';
 import { LoaderFunctionArgs, useLoaderData, useNavigate } from 'react-router-dom';
 import { getDocs, limit, orderBy, query } from 'firebase/firestore';
 import { licensesCollection, LicenseWithId } from 'common';
-import { Box, Button, Typography } from '@mui/material';
+import { Box, Button, Chip, Typography } from '@mui/material';
 import { ADMIN_ROUTES, createPath } from 'router';
 import { BasicDataGrid } from 'components';
 import { GridColDef } from '@mui/x-data-grid';
 import {
   formatGridFirestoreTimestamp,
   formatGridFirestoreTimestampAsDate,
+  isCurrentDateBetween,
 } from 'modules/utils/helpers';
+import { BusinessRounded, CheckRounded, CloseRounded, PersonRounded } from '@mui/icons-material';
 
 export const licensesLoader = async ({ params }: LoaderFunctionArgs) => {
   try {
@@ -40,9 +42,21 @@ const licensesColumns: GridColDef[] = [
   {
     field: 'ownerType',
     headerName: 'Owner Type',
-    minWidth: 100,
+    minWidth: 160,
     flex: 0.6,
     editable: false,
+    renderCell: (params) => {
+      const isIndividual = params.value === 'individual';
+
+      return (
+        <Chip
+          color={isIndividual ? 'primary' : 'success'}
+          size='small'
+          label={params.value}
+          icon={isIndividual ? <PersonRounded /> : <BusinessRounded />}
+        />
+      );
+    },
   },
   {
     field: 'licensee',
@@ -50,6 +64,11 @@ const licensesColumns: GridColDef[] = [
     minWidth: 160,
     flex: 1,
     editable: false,
+    renderCell: (params) => (
+      <Typography variant='body2' fontWeight='medium'>
+        {params.value}
+      </Typography>
+    ),
   },
   {
     field: 'licenseType',
@@ -66,8 +85,29 @@ const licensesColumns: GridColDef[] = [
     editable: false,
   },
   {
+    field: 'active',
+    headerName: 'Active',
+    type: 'boolean',
+    description:
+      'Current date is after effective date (if exists) and before expiration (if exists)',
+    minWidth: 80,
+    flex: 0.5,
+    headerAlign: 'center',
+    align: 'center',
+    editable: false,
+    valueGetter: (params) =>
+      isCurrentDateBetween(params.row.effectiveDate?.toDate(), params.row.expirationDate?.toDate()),
+    renderCell: (params) => {
+      const isActive = !!params.value;
+
+      if (isActive) return <CheckRounded color='success' fontSize='small' />;
+      return <CloseRounded color='disabled' fontSize='small' />;
+    },
+  },
+  {
     field: 'effectiveDate',
     headerName: 'Effective Date',
+    type: 'date',
     minWidth: 160,
     flex: 1,
     editable: false,
@@ -77,6 +117,7 @@ const licensesColumns: GridColDef[] = [
   {
     field: 'expirationDate',
     headerName: 'Expiration Date',
+    type: 'date',
     minWidth: 160,
     flex: 1,
     editable: false,
@@ -86,6 +127,7 @@ const licensesColumns: GridColDef[] = [
   {
     field: 'surplusLinesProducerOfRecord',
     headerName: 'SL Producer of Record',
+    description: 'TODO: tooltip description',
     minWidth: 180,
     flex: 1,
     editable: false,
@@ -94,6 +136,7 @@ const licensesColumns: GridColDef[] = [
   {
     field: 'SLAssociationMembershipRequired',
     headerName: 'Asc. Mem. Required',
+    description: 'TODO: tooltip description',
     minWidth: 160,
     flex: 0.8,
     editable: false,
@@ -102,6 +145,7 @@ const licensesColumns: GridColDef[] = [
   {
     field: 'metadata.created',
     headerName: 'Created',
+    type: 'dateTime',
     minWidth: 160,
     flex: 0.6,
     editable: false,
@@ -111,6 +155,7 @@ const licensesColumns: GridColDef[] = [
   {
     field: 'metadata.updated',
     headerName: 'Updated',
+    type: 'dateTime',
     minWidth: 160,
     flex: 0.6,
     editable: false,

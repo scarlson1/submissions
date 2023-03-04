@@ -51,6 +51,28 @@ export const roundDollar = (value: number) => {
   return Math.round(value * 100) / 100;
 };
 
+// https://github.com/lodash/lodash/blob/master/round.js
+// https://github.com/lodash/lodash/blob/master/.internal/createRound.js
+function createRound(methodName: 'round') {
+  const func = Math[methodName];
+  return (number: number, precision: number = 0) => {
+    precision =
+      precision == null ? 0 : precision >= 0 ? Math.min(precision, 292) : Math.max(precision, -292);
+    if (precision) {
+      // Shift with exponential notation to avoid floating-point issues.
+      // See [MDN](https://mdn.io/round#Examples) for more details.
+      let pair = `${number}e`.split('e'); // @ts-ignore
+      const value = func(`${pair[0]}e${+pair[1] + precision}`);
+
+      pair = `${value}e`.split('e');
+      return +`${pair[0]}e${+pair[1] - precision}`;
+    }
+    return func(number);
+  };
+}
+
+export const round = createRound('round');
+
 export const isLongitude = (num: number) => isFinite(num) && Math.abs(num) <= 180;
 export const isLatitude = (num: number) => isFinite(num) && Math.abs(num) <= 90;
 
@@ -63,3 +85,12 @@ export const isLatitude = (num: number) => isFinite(num) && Math.abs(num) <= 90;
 export const isLatLng = (lat: number, lng: number) => {
   return isLatitude(lat) && isLongitude(lng);
 };
+
+export const isValidEmail = (str: string) => {
+  // eslint-disable-next-line
+  return /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(
+    str
+  );
+};
+
+export const getNumber = (str: string) => str.replace(/[^0-9\.]+/g, ''); // eslint-disable-line

@@ -1,0 +1,1 @@
+export { getAALPortfolio } from './getAALPortfolio';

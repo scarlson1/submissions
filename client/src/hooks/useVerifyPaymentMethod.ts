@@ -73,6 +73,7 @@ export const useVerifyPaymentMethod = (
 
         toast.loading('Securing payment method...');
         const tokenId = await exchangeForToken(tokenReqModel);
+        console.log('tokenId: ', tokenId);
 
         toast.updateLoadingMsg('Verifying payment method...');
         const res = await verifyToken(tokenId, values.accountHolder);

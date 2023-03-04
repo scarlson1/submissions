@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, createSearchParams, URLSearchParamsInit } from 'react-router-dom';
 
 import App from './App';
 import { Layout, RequireAuth, RouterErrorBoundary } from 'components';
@@ -47,9 +47,11 @@ import {
   newQuoteSubmissionLoader,
   quotesLoader,
 } from 'views/admin';
-import { SuccessStep } from 'elements';
+import { SuccessStep, ActionHandler } from 'elements';
 import { Product } from 'common';
 import { TestDataGridPagination } from 'views/admin/TestDataGridPagination';
+import { auth } from 'firebaseConfig';
+import { BindSuccess } from 'elements/SuccessStep';
 // import RouterErrorBoundary from 'components/errorBoundaries/RouterErrorBoundary';
 
 // provider for react-router (pass user etc.): https://stackoverflow.com/a/74929447/10887890
@@ -72,7 +74,7 @@ export enum ROUTES {
   SUBMISSIONS = '/submissions',
   QUOTE_VIEW = '/quotes/:quoteId',
   QUOTE_BIND = '/quotes/:quoteId/bind',
-  // CHECKOUT = '/quotes/:quoteId/checkout',
+  QUOTE_BIND_SUCCESS = '/quotes/:quoteId/bind/success/:transactionId?',
   CONTACT = '/contact',
   USER_QUOTES = '/quotes/list/:userId',
   USER_POLICIES = '/policies',
@@ -85,7 +87,7 @@ export enum ROUTES {
 export enum ADMIN_ROUTES {
   SUBMISSIONS = '/admin/submissions',
   SUBMISSION_VIEW = '/admin/submissions/:submissionId',
-  QUOTES = '/admin/quotes/:productId',
+  QUOTES = '/admin/quotes',
   QUOTE_NEW = '/admin/quotes/:productId/new',
   SL_TAXES = '/admin/sl-tax',
   SL_TAXES_NEW = '/admin/sl-tax/new',
@@ -101,6 +103,7 @@ export enum ADMIN_ROUTES {
 export enum AUTH_ROUTES {
   LOGIN = '/auth/login',
   CREATE_ACCOUNT = '/auth/create-account',
+  ACTIONS_HANDLER = '/auth/actions-handler',
 }
 
 type TArgs =
@@ -108,8 +111,8 @@ type TArgs =
   | { path: ROUTES.SUBMISSION_SUBMITTED; params: { submissionId: string } }
   | { path: ROUTES.SUBMISSIONS }
   | { path: ROUTES.QUOTE_VIEW; params: { quoteId: string } }
-  | { path: ROUTES.QUOTE_BIND; params: { quoteId: string } }
-  // | { path: ROUTES.CHECKOUT; params: { quoteId: string } }
+  | { path: ROUTES.QUOTE_BIND; params: { quoteId: string } } // INCLUDE PRODUCT ID ??
+  | { path: ROUTES.QUOTE_BIND_SUCCESS; params: { quoteId: string; transactionId?: string } }
   | { path: ROUTES.USER_POLICIES }
   | { path: ROUTES.USER_POLICY; params: { policyId: string } }
   | { path: ROUTES.AGENCY_NEW }
@@ -118,7 +121,7 @@ type TArgs =
   | { path: ROUTES.ACCOUNT }
   | { path: ADMIN_ROUTES.SUBMISSIONS }
   | { path: ADMIN_ROUTES.SUBMISSION_VIEW; params: { submissionId: string } }
-  | { path: ADMIN_ROUTES.QUOTES; params: { productId: Product } }
+  | { path: ADMIN_ROUTES.QUOTES }
   | { path: ADMIN_ROUTES.QUOTE_NEW; params: { productId: Product } }
   | { path: ADMIN_ROUTES.SL_TAXES }
   | { path: ADMIN_ROUTES.SL_TAXES_NEW }
@@ -130,18 +133,35 @@ type TArgs =
   | { path: ADMIN_ROUTES.AGENCY_APPS }
   | { path: ADMIN_ROUTES.AGENCY_APP; params: { submissionId: string } }
   | { path: AUTH_ROUTES.CREATE_ACCOUNT }
-  | { path: AUTH_ROUTES.LOGIN };
+  | { path: AUTH_ROUTES.LOGIN }
+  | {
+      path: AUTH_ROUTES.ACTIONS_HANDLER;
+      search: { mode: string; oobCode: string; continueUrl?: string | null };
+    };
 
 type TArgsWithParams = Extract<TArgs, { path: any; params: any }>;
 
+type TArgsWithSearch = Extract<TArgs, { path: any; search: URLSearchParamsInit }>;
+
 export function createPath(args: TArgs) {
-  if (args.hasOwnProperty('params') === false) return args.path;
+  if (args.hasOwnProperty('params') === false && args.hasOwnProperty('search') === false)
+    return args.path;
+
+  let resolvedPath: string = args.path;
 
   // Create a path by replacing params in the route definition
-  return Object.entries((args as TArgsWithParams).params).reduce(
-    (previousValue: string, [param, value]) => previousValue.replace(`:${param}`, '' + value),
-    args.path
-  );
+  if (args.hasOwnProperty('params') !== false) {
+    resolvedPath = Object.entries((args as TArgsWithParams).params).reduce(
+      (previousValue: string, [param, value]) => previousValue.replace(`:${param}`, '' + value),
+      args.path
+    );
+  }
+  if (args.hasOwnProperty('search') !== false) {
+    const { search } = args as TArgsWithSearch;
+    resolvedPath += `?${createSearchParams(search)}`;
+  }
+
+  return resolvedPath;
 }
 
 export const router = createBrowserRouter([
@@ -210,17 +230,19 @@ export const router = createBrowserRouter([
           },
           {
             path: ROUTES.QUOTE_VIEW,
+            loader: quoteLoader(auth),
             element: <ViewQuote />,
           },
           {
             path: ROUTES.QUOTE_BIND,
-            loader: quoteLoader,
+            loader: quoteLoader(auth),
             element: <QuoteBind />,
           },
-          // {
-          //   path: ROUTES.CHECKOUT, //  '/quotes/:quoteId/checkout',
-          //   element: <Checkout />,
-          // },
+          {
+            path: ROUTES.QUOTE_BIND_SUCCESS,
+            loader: quoteLoader(auth),
+            element: <BindSuccess />,
+          },
           {
             path: ROUTES.SUBMISSION_SUBMITTED,
             element: <SuccessStep />,
@@ -244,6 +266,10 @@ export const router = createBrowserRouter([
           {
             path: AUTH_ROUTES.CREATE_ACCOUNT,
             element: <CreateAccount />,
+          },
+          {
+            path: AUTH_ROUTES.ACTIONS_HANDLER,
+            element: <ActionHandler />,
           },
           {
             path: ROUTES.ACCOUNT,

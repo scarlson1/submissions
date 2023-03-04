@@ -9,6 +9,9 @@ export {
   initializeQuote,
   updateAndRateQuote,
   verifyEPayToken,
+  assignQuote,
+  sendNewQuoteNotifications,
+  executePayment,
 } from './callables';
 export {
   newSubmissionNotifications,
@@ -25,3 +28,5 @@ export {
   setClaimsFromInvite,
 } from './authEvents';
 export { authRequests } from './routes';
+export { getAALPortfolio } from './storageEvents';
+export { tempGetFIPS } from './storageEvents/tempGetFIPS';

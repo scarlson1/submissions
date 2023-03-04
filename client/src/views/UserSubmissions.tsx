@@ -19,15 +19,15 @@ import { onSnapshot, query, orderBy, where, limit } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 
 import { submissionsCollection } from 'common/firestoreCollections';
-import { SubmissionWithId } from './admin/Submissions';
 import { useAuth } from 'modules/components/AuthContext';
 import { fallbackImages } from './Policies';
 import { dollarFormat, formatFirestoreTimestamp, numberFormat } from 'modules/utils/helpers';
 import { createPath, ROUTES } from 'router';
+import { Submission, WithId } from 'common';
 
 export const useUserSubmissions = () => {
   const { user } = useAuth();
-  const [submissions, setSubmissions] = useState<SubmissionWithId[]>([]);
+  const [submissions, setSubmissions] = useState<WithId<Submission>[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -46,7 +46,7 @@ export const useUserSubmissions = () => {
     const unsubscribe = onSnapshot(
       q,
       (querySnap) => {
-        const s: SubmissionWithId[] = [];
+        const s: WithId<Submission>[] = [];
         querySnap.forEach((snap) => {
           s.push({ ...snap.data(), id: snap.id });
         });
@@ -195,8 +195,9 @@ export const UserSubmissions: React.FC = () => {
                   onClick={() => handleExpandClick(s.id)}
                   aria-expanded={Boolean(expanded && !!expanded[s.id])}
                   aria-label='show more'
+                  size='small'
                 >
-                  <ExpandMoreRounded />
+                  <ExpandMoreRounded fontSize='inherit' />
                 </ExpandMore>
               </CardActions>
               <Collapse in={Boolean(expanded && !!expanded[s.id])} timeout='auto' unmountOnExit>

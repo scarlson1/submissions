@@ -25,8 +25,6 @@ import { Button } from '@mui/material';
 
 import { useDocCount } from 'hooks';
 import { firebaseConfig } from 'firebaseConfig';
-
-// import { SubmissionWithId } from './Submissions';
 // import { submissionsCollection } from 'common';
 
 // TODO: read types: https://www.digitalocean.com/community/tutorials/how-to-use-generics-in-typescript
@@ -222,9 +220,9 @@ export function Pagination(
 }
 
 // export const TestPagination: React.FC = () => {
-//   // const data = useLoaderData() as SubmissionWithId[];
+//   // const data = useLoaderData() as WithId<Submission>[];
 //   const db = getFirestore();
-//   const [data, setData] = useState<SubmissionWithId[]>([]);
+//   const [data, setData] = useState<WithId<Submission>[]>([]);
 //   const nextQuery = React.useRef<Query<DocumentData>>(null);
 
 //   const getNext = useCallback(() => {}, []);

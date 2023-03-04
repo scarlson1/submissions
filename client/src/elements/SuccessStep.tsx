@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Box,
   Button,
@@ -11,17 +11,20 @@ import {
   Accordion,
   AccordionDetails,
   AccordionSummary,
+  CardMedia,
 } from '@mui/material';
 import { ExpandMore } from '@mui/icons-material';
 import Lottie from 'lottie-react';
-import { createSearchParams, useLoaderData, useNavigate } from 'react-router-dom';
+import { createSearchParams, useLoaderData, useNavigate, useParams } from 'react-router-dom';
 
 import * as CheckmarkLottie from 'assets/checkmark.json';
 import { ROUTES, createPath, AUTH_ROUTES } from 'router';
 import { Submission } from 'common/types';
 import { useAuth } from 'modules/components/AuthContext';
-
-// TODO: create account
+import { fallbackImages } from 'views/Policies';
+import { Charge, SubmissionQuoteData, transactionsCollection, WithId } from 'common';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { dollarFormat2 } from 'modules/utils/helpers';
 
 interface FAQ {
   title: React.ReactNode;
@@ -216,6 +219,126 @@ export const SuccessStep: React.FC = () => {
       </Card>
       <Box sx={{ py: 8 }}>
         <SubmissionFAQs />
+      </Box>
+    </Container>
+  );
+};
+
+export const useFetchTransaction = (id: string) => {
+  const [transaction, setTransaction] = useState<Charge | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!id) return setLoading(false);
+
+    let ref = doc(transactionsCollection, id);
+
+    onSnapshot(
+      ref,
+      (snap) => {
+        if (snap.exists()) {
+          setError(null);
+          setTransaction({ ...snap.data() });
+        } else {
+          setTransaction(null);
+        }
+        setLoading(false);
+      },
+      (err) => {
+        setError(err.message);
+      }
+    );
+  }, [id]);
+
+  return useMemo(() => ({ transaction, loading, error }), [transaction, loading, error]);
+};
+
+// TODO: redo component (not using card)
+
+export const BindSuccess: React.FC = () => {
+  const navigate = useNavigate();
+  const { transactionId } = useParams();
+  const data = useLoaderData() as WithId<SubmissionQuoteData>;
+  const { transaction } = useFetchTransaction(transactionId || '');
+
+  console.log('transaction: ', transaction);
+  console.log('submission data: ', data);
+
+  return (
+    <Container maxWidth='xs'>
+      <Card sx={{ mt: { xs: 4, sm: 6, md: 8 } }}>
+        <CardMedia
+          sx={{ height: { xs: 140, sm: 160, md: 180 } }}
+          image={
+            data?.imageUrls?.satelliteMapImageUrl
+              ? data.imageUrls?.satelliteMapImageUrl
+              : fallbackImages[0]
+          }
+          title={`map`}
+        />
+        <CardContent>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+            <Box>
+              <Typography variant='overline' color='text.secondary' lineHeight={2}>
+                Quote&nbsp;ID
+              </Typography>
+              <Typography variant='body2' fontSize='0.775rem'>
+                {data?.id || '--'}
+              </Typography>
+            </Box>
+            <Box>
+              <Typography variant='overline' color='text.secondary' align='right' lineHeight={2}>
+                TRX.&nbsp;ID
+              </Typography>
+              <Typography variant='body2' align='right' fontSize='0.775rem'>
+                {transactionId || '--'}
+              </Typography>
+            </Box>
+          </Box>
+          <Typography variant='h5' align='center' sx={{ my: { xs: 3, md: 4, lg: 5 } }}>
+            Thank you!
+          </Typography>
+          {/* <Typography>
+            TODO: transaction amount, status, receipt email, payer, etc. (and insured address, name,
+            etc.)
+          </Typography> */}
+          {transaction && (
+            <Box>
+              <Typography variant='body2' color='text.secondary'>{`Amount: ${dollarFormat2(
+                transaction.amount
+              )}`}</Typography>
+              <Typography
+                variant='body2'
+                color='text.secondary'
+              >{`Status: ${transaction.status}`}</Typography>
+              <Typography
+                variant='body2'
+                color='text.secondary'
+              >{`Receipt email: ${transaction.receiptEmail}`}</Typography>
+            </Box>
+          )}
+        </CardContent>
+        <CardActions sx={{ borderTop: (theme) => `1px solid ${theme.palette.divider}` }}>
+          <Button onClick={() => navigate('/')}>Home</Button>
+        </CardActions>
+      </Card>
+      <Box sx={{ px: 4, mt: 2, mb: 5 }}>
+        <Typography component='div' variant='body2' color='text.secondary'>
+          Questions?{' '}
+          <Box
+            sx={{
+              typography: 'body2',
+              color: 'text.secondary',
+              display: 'inline-block',
+              '&:hover': { textDecoration: 'underline', cursor: 'pointer', fontWeight: 500 },
+              transition: 'fontWeight 200ms',
+            }}
+            onClick={() => navigate(createPath({ path: ROUTES.CONTACT }))}
+          >
+            Contact us
+          </Box>
+        </Typography>
       </Box>
     </Container>
   );

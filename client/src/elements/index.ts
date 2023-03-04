@@ -15,8 +15,9 @@ export { AgencyReviewStep, DisplayFilename, ContactList } from './AgencyReviewSt
 export { DeckMap, defaultGeoJsonLayerProps } from './DeckMap';
 export { FormikCardDetails } from './FormikCardDetails';
 export { FormikBankFields } from './FormikBankFields';
-export { AddPaymentDialog } from './AddPaymentDialog';
+export { AddPaymentDialog, Transition } from './AddPaymentDialog';
 export { PaymentStep, billingValidation } from './PaymentStep';
+export { ActionHandler } from './ActionHandler';
 
 export type { FormikAddressProps } from './FormikAddress';
 export type { DeductibleStepProps } from './DeductibleStep';

@@ -33,7 +33,7 @@ export const orgNameValidation = yup.object().shape({
 export const contactValidation = yup.object().shape({
   firstName: yup.string().required('First name is required'),
   lastName: yup.string().required('Last name is required'),
-  email: emailVal, // .required('Email required'), // yup.string().email().required(), //
+  email: emailVal.required(), // .required('Email required'), // yup.string().email().required(), //
   phone: phoneVal.required('Phone is required'),
 });
 export const feinValidation = yup.object().shape({

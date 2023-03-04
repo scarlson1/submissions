@@ -9,6 +9,9 @@ import {
   InputAdornment,
   TextFieldProps,
   Tooltip,
+  Typography,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2/Grid2';
 import { useFormikContext } from 'formik';
@@ -23,6 +26,7 @@ import { findAddressValueByType } from 'modules/utils/helpers';
 import { AddressFieldNames } from './FormikAddress';
 import { EditRounded } from '@mui/icons-material';
 import { statesAbrvSelectOptions } from 'common/statesList';
+import { Transition } from './AddPaymentDialog';
 
 const DEFAULT_FIELD_NAMES = {
   addressLine1: 'addressLine1',
@@ -54,6 +58,8 @@ export const FormikAddressLite: React.FC<FormikAddressLiteProps> = ({
 }) => {
   const { setFieldValue } = useFormikContext<any>();
   const [open, setOpen] = useState(false);
+  const theme = useTheme();
+  const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
   const handleAddressSelection = ({ address_components, geometry }: NewAddress) => {
     const newStreetNumber = findAddressValueByType(address_components, 'street_number');
@@ -120,15 +126,39 @@ export const FormikAddressLite: React.FC<FormikAddressLiteProps> = ({
           },
         }}
       />
-      <Dialog open={open} onClose={handleClose} fullWidth maxWidth='sm'>
-        <DialogTitle>{title}</DialogTitle>
-        <DialogContent dividers sx={{ pt: 3 }}>
+      <Dialog
+        open={open}
+        onClose={handleClose}
+        fullWidth
+        maxWidth='sm'
+        fullScreen={fullScreen}
+        TransitionComponent={Transition}
+      >
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center' }} component='div'>
+          <Typography sx={{ ml: 2, flex: 1 }} variant='h6' component='div'>
+            {title}
+          </Typography>
+          <Button
+            aria-label='close'
+            onClick={handleClose}
+            sx={{
+              // position: 'absolute',
+              // right: 8,
+              // top: 8,
+              // color: (theme) => theme.palette.grey[500],
+              display: { xs: 'block', sm: 'none' },
+            }}
+          >
+            Done
+          </Button>
+        </DialogTitle>
+        <DialogContent dividers sx={{ py: 5 }}>
           <Grid container rowSpacing={3} columnSpacing={4}>
             <Grid xs={9}>
               <FormikTextField name={names.addressLine1} label='Address Line 1' fullWidth />
             </Grid>
             <Grid xs={3}>
-              <FormikTextField name={names.addressLine2} label='Suite/Unit' fullWidth />
+              <FormikTextField name={names.addressLine2} label='Suite' fullWidth />
             </Grid>
             <Grid xs={6}>
               <FormikTextField name={names.city} label='City' fullWidth />
@@ -153,8 +183,10 @@ export const FormikAddressLite: React.FC<FormikAddressLiteProps> = ({
             </Grid>
           </Grid>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose}>Done</Button>
+        <DialogActions sx={{ display: { xs: 'none', sm: 'flex' } }}>
+          <Button onClick={handleClose} sx={{ ml: 'auto' }}>
+            Done
+          </Button>
         </DialogActions>
       </Dialog>
     </>

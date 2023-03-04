@@ -1,138 +1,68 @@
 import { useCallback } from 'react';
 import { FirebaseError } from 'firebase/app';
-import { addDoc, doc, FirestoreError, GeoPoint, getDoc, Timestamp } from 'firebase/firestore';
-import { Box, Stack } from '@mui/material';
-import { Form, Formik, FormikProps } from 'formik';
-import * as yup from 'yup';
+import { addDoc, FirestoreError, GeoPoint, Timestamp } from 'firebase/firestore';
+import invariant from 'tiny-invariant';
+import { toast } from 'react-hot-toast';
+import { round } from 'lodash';
 
 import { NewQuoteValues } from 'views/admin/QuoteNew';
 import { extractNumber, readableFirebaseCode } from 'modules/utils/helpers';
-import { SubmissionQuoteData, submissionsQuotesCollection, SUBMISSION_STATUS } from 'common';
-import { useConfirmation } from 'modules/components/ConfirmationService';
-import { ConfirmationDialog } from 'components';
-import { FormikSwitch } from 'components/forms';
-import invariant from 'tiny-invariant';
+import {
+  QUOTE_STATUS,
+  Submission,
+  SubmissionQuoteData,
+  submissionsQuotesCollection,
+  WithId,
+} from 'common';
+import { useSendQuoteNotification } from './useSendQuoteNotification';
 
-const notifyValidation = yup.object().shape({
-  notifyInsured: yup
-    .boolean()
-    .test(
-      'at least one',
-      'At least one must be selected to send notification',
-      (value, ctx) => !!value || !!ctx.parent.notifyAgent
-    ),
-  notifyAgent: yup
-    .boolean()
-    .test('at least one', 'At least one must be selected to send notification', (value, ctx) => {
-      let insuredVal = ctx.parent.notifyInsured;
-      console.log('insured val: ', insuredVal);
-
-      return !!value || !!insuredVal;
-    }),
-});
-
-export interface NotificationEmailValues {
-  notifyInsured: boolean;
-  notifyAgent: boolean;
-  // emails: string[]
-  // notifications: { email: string, shouldSend: boolean }[]
-}
+const CARD_FEE_RATE = 0.035;
 
 export const useCreateQuote = (
+  onComplete?: () => void | Promise<void>,
   onStepSuccess?: (msg: string) => void,
   onError?: (err: unknown, msg: string) => void
 ) => {
-  const confirm = useConfirmation();
-
-  const handleDialogSubmit = useCallback(async () => {
-    // THIS ONE GETS CALLED
-    alert('TODO: handle submit');
-  }, []);
-  const formSub = useCallback(async () => {
-    alert('TODO: handle Form Submit');
-  }, []);
-
-  const handleDialogError = useCallback(async (err: unknown) => {
-    alert('handle notification dialog error');
-  }, []);
-
-  const promptNotification = useCallback(
-    async (docId: string) => {
-      const snap = await getDoc(doc(submissionsQuotesCollection, docId));
-      if (!snap.exists() || !snap.data()) throw new Error(`Cannot find doc with ID ${docId}`);
-      const data = snap.data();
-
-      try {
-        // TODO: select user type next to the email
-        const notificationEmails = await confirm({
-          catchOnCancel: true,
-          variant: 'danger',
-          title: 'Email delivery/notification',
-          confirmButtonText: 'Submit',
-          description:
-            'Please select the emails to which you would like to deliver the quote, if any',
-          dialogContentProps: { dividers: true },
-          component: (
-            <ConfirmationDialog
-              open={true}
-              onAccept={() => {}}
-              onClose={() => {}}
-              onSubmit={handleDialogSubmit}
-              onSubmitError={handleDialogError}
-              dialogProps={{ maxWidth: 'sm' }}
-            >
-              <Box sx={{ py: { xs: 3, sm: 4, md: 5 } }}>
-                <Formik
-                  initialValues={{
-                    notifyInsured: Boolean(data.insuredEmail) || false,
-                    notifyAgent: Boolean(data.agentEmail) || false,
-                  }}
-                  validationSchema={notifyValidation}
-                  onSubmit={formSub}
-                  enableReinitialize
-                  // innerRef={formRef}
-                >
-                  {({ handleSubmit }: FormikProps<NotificationEmailValues>) => (
-                    <Form onSubmit={handleSubmit}>
-                      <Stack direction='column' spacing={3}>
-                        <FormikSwitch
-                          name='notifyInsured'
-                          label={`${data.insuredEmail} (insured)`}
-                          disabled={!data.insuredEmail}
-                        />
-                        <FormikSwitch
-                          name='notifyInsured'
-                          label={`${data.agentEmail} (agent)`}
-                          disabled={!data.agentEmail}
-                        />
-                      </Stack>
-                    </Form>
-                  )}
-                </Formik>
-              </Box>
-            </ConfirmationDialog>
-          ),
-        });
-
-        console.log('notification email result: ', notificationEmails);
-        // TODO: redirect to new Quotes page
-      } catch (err) {}
+  const sendEmailNotifications = useSendQuoteNotification(
+    (msg) => {
+      if (onStepSuccess) onStepSuccess(msg);
     },
-    [confirm, formSub, handleDialogSubmit, handleDialogError]
+    (err, msg) => toast.error(msg)
   );
 
   const createQuote = useCallback(
-    async (values: NewQuoteValues) => {
+    async (
+      values: NewQuoteValues,
+      submissionId: string | null = null,
+      submissionData: WithId<Submission>
+    ) => {
       try {
         const quoteData = getFormattedQuote(values);
-        // @ts-ignore
+
         const quoteRef = await addDoc(submissionsQuotesCollection, {
           ...quoteData,
+          submissionId,
+          imageUrls: {
+            darkMapImageUrl: submissionData?.darkMapImageURL || null,
+            lightMapImageUrl: submissionData?.lightMapImageURL || null,
+            satelliteMapImageUrl: submissionData?.satelliteMapImageURL || null,
+            satelliteStreetsMapImageUrl: submissionData?.satelliteStreetsMapImageURL || null,
+          },
+          imagePaths: {
+            darkMapImageFilePath: submissionData?.darkMapImageFilePath || null,
+            lightMapImageFilePath: submissionData?.lightMapImageFilePath || null,
+            satelliteMapImageFilePath: submissionData?.satelliteMapImageFilePath || null,
+            satelliteStreetsMapImageFilePath:
+              submissionData?.satelliteStreetsMapImageFilePath || null,
+          },
         });
 
         if (onStepSuccess) onStepSuccess(`Quote created ${quoteRef.id}`);
-        // TODO: get doc and display in popover
-        return promptNotification(quoteRef.id);
+
+        await sendEmailNotifications(quoteRef.id);
+
+        if (onComplete) onComplete();
+        return;
       } catch (err) {
         console.log('ERROR CREATING QUOTE', err);
         let msg = 'Error creating quote';
@@ -140,7 +70,7 @@ export const useCreateQuote = (
         if (onError) onError(err, msg);
       }
     },
-    [onStepSuccess, onError, promptNotification]
+    [onStepSuccess, onComplete, onError, sendEmailNotifications]
   );
 
   return createQuote;
@@ -170,6 +100,7 @@ function getFormattedQuote(values: NewQuoteValues): SubmissionQuoteData {
     agencyId,
     quoteTotal,
     termPremium,
+    taxes,
     fees,
     subproducerCommission,
   } = values;
@@ -206,8 +137,9 @@ function getFormattedQuote(values: NewQuoteValues): SubmissionQuoteData {
     mortgageeInterest: [],
     termPremium,
     fees,
-    taxes: [], // TODO: taxes
+    taxes,
     subproducerCommission,
+    ePayCardFee: round(quoteTotal * CARD_FEE_RATE, 2),
     quoteTotal, // calculate on server ??
     userId: null,
     insuredFirstName: insuredFirstName ?? null,
@@ -220,7 +152,7 @@ function getFormattedQuote(values: NewQuoteValues): SubmissionQuoteData {
     agentPhone: agentPhone ?? null,
     agencyId: agencyId ?? null,
     agencyName: agencyName ?? null,
-    status: SUBMISSION_STATUS.AWAITING_USER,
+    status: QUOTE_STATUS.AWAITING_USER,
     statusTransitions: {
       published: Timestamp.now(),
       accepted: null,

@@ -6,14 +6,14 @@ import { LoaderFunctionArgs, useLoaderData, useParams } from 'react-router-dom';
 import { getDoc, doc, setDoc } from 'firebase/firestore';
 import { PickingInfo } from 'deck.gl/typed';
 import { capitalize } from 'lodash';
+import { SaveRounded } from '@mui/icons-material';
+import { FirebaseError } from 'firebase/app';
+import { toast } from 'react-hot-toast';
 
 import { statesDetailsArr } from 'common/statesList';
 import { FormikSwitch } from 'components/forms';
-import { toast } from 'react-hot-toast';
 import { statesCollection } from 'common';
 import { ActiveStateMap } from 'elements/ActiveStateMap';
-import { SaveRounded } from '@mui/icons-material';
-import { FirebaseError } from 'firebase/app';
 
 export const activeStatesLoader = async ({ params }: LoaderFunctionArgs) => {
   try {

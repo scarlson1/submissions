@@ -109,10 +109,10 @@ export const Header: React.FC<HeaderProps> = () => {
       //     path: ADMIN_ROUTES.AGENCY_APPS,
       //   }),
       // },
-      // {
-      //   title: 'Quotes',
-      //   route: createPath({ path: ADMIN_ROUTES.QUOTES, params: { productId: 'flood' } }),
-      // },
+      {
+        title: 'Quotes',
+        route: createPath({ path: ADMIN_ROUTES.QUOTES }),
+      },
       {
         title: 'Taxes',
         route: createPath({ path: ADMIN_ROUTES.SL_TAXES }),

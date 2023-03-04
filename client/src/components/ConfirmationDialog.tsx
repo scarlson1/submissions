@@ -6,8 +6,12 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
+  Typography,
+  IconButton,
+  Stack,
 } from '@mui/material';
 import { ConfirmationOptions } from 'modules/components/ConfirmationService';
+import { CloseRounded } from '@mui/icons-material';
 // import { useRequireAuth, CustomClaimKeys } from 'hooks/auth/useRequireAuth';
 
 export interface ConfirmationDialogProps extends ConfirmationOptions {
@@ -35,17 +39,10 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
   description,
   children,
   confirmButtonText = 'Yes, I agree',
-  // requiredClaims,
   submitDisabled = false,
   dialogProps,
   dialogContentProps,
 }) => {
-  // useRequireAuth({
-  //   requiredClaims,
-  //   unauthorizedCallback: onClose,
-  //   redirectPath: '',
-  // });
-
   const handleSubmit = useCallback(async () => {
     if (onSubmit) {
       try {
@@ -70,9 +67,35 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
 
   return (
     <Dialog open={open} onClose={handleCancel} maxWidth='xs' fullWidth {...dialogProps}>
-      <DialogTitle id='dialog-title'>{title}</DialogTitle>
+      <DialogTitle
+        id='dialog-title'
+        component='div'
+        sx={{ display: 'flex', justifyContent: 'space-between' }}
+      >
+        <Typography variant='h6'>{title}</Typography>
+        {dialogProps?.fullScreen && (
+          <Stack spacing={2} direction='row'>
+            <Button
+              size='small'
+              variant='contained'
+              onClick={handleSubmit}
+              disabled={submitDisabled}
+              sx={{ mx: 1, maxHeight: 28 }}
+            >
+              {confirmButtonText}
+            </Button>
+            <IconButton
+              size='small'
+              onClick={handleCancel}
+              sx={{ display: variant === 'danger' ? 'inline-flex' : 'none', maxHeight: 28 }}
+            >
+              <CloseRounded fontSize='inherit' />
+            </IconButton>
+          </Stack>
+        )}
+      </DialogTitle>
       <DialogContent {...dialogContentProps}>
-        {description && <DialogContentText>{description}</DialogContentText>}
+        {description && <DialogContentText component='div'>{description}</DialogContentText>}
         {children}
       </DialogContent>
       <DialogActions>

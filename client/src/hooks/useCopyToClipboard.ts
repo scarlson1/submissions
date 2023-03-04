@@ -2,7 +2,11 @@ import { useState } from 'react';
 import { toast, ToastOptions } from 'react-hot-toast';
 
 type CopiedValue = string | null;
-type CopyFn = (text: string, withToast?: boolean, toastOptions?: ToastOptions) => Promise<boolean>; // Return success
+type CopyFn = (
+  text: string | any,
+  withToast?: boolean,
+  toastOptions?: ToastOptions
+) => Promise<boolean>; // Return success
 
 export const useCopyToClipboard = (): [CopiedValue, CopyFn] => {
   const [copiedText, setCopiedText] = useState<CopiedValue>(null);

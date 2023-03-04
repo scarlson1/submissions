@@ -8,7 +8,7 @@ import { emailVal, phoneVal } from 'common';
 export const agentsValidation = yup.object().shape({
   agents: yup.array().of(
     yup.object().shape({
-      email: emailVal,
+      email: emailVal.required(),
       firstName: yup
         .string()
         .min(2, 'Please enter first name. Min 2 letters.')

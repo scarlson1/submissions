@@ -24,6 +24,7 @@ export enum COLLECTIONS {
   TASKS = 'tasks', // TODO: DELETE
 }
 
+// TODO: separate out submission status and quote status
 export enum SUBMISSION_STATUS {
   DRAFT = 'draft',
   SUBMITTED = 'submitted',
@@ -35,6 +36,23 @@ export enum SUBMISSION_STATUS {
   CANCELLED = 'cancelled',
   AWAITING_USER = 'awaiting:user',
   AWAITING_PAYMENT = 'awaiting:payment',
+  QUOTED = 'quoted',
+  NOT_ELIGIBLE = 'ineligible',
+}
+
+export enum QUOTE_STATUS {
+  COMPLETE = 'bound',
+  PAID = 'paid',
+  AWAITING_USER = 'awaiting:user',
+  AWAITING_PAYMENT = 'awaiting:payment',
+  PROCESSING_PAYMENT = 'processing:payment',
+  CANCELLED = 'cancelled',
+  EXPIRED = 'expired',
+}
+
+export enum TRANSACTION_TYPE {
+  CHARGE = 'charge',
+  REFUND = 'refund',
 }
 
 export enum PRODUCT {

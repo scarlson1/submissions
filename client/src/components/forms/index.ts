@@ -19,7 +19,7 @@ export { FormikNativeSelect } from './FormikNativeSelect';
 export { FormikSwitch } from './FormikSwitch';
 export { FormikDragDrop } from './FormikDragDrop';
 export { RoutingNumberMask } from './RoutingNumberMask';
-// export {  } from './';
+export { FormikMultiTextInput } from './FormikMultiTextInput';
 // export {  } from './';
 
 export type {
@@ -47,5 +47,5 @@ export type { FormikNativeSelectProps } from './FormikNativeSelect';
 export type { FormikSwitchProps } from './FormikSwitch';
 export type { FormikDragDropProps } from './FormikDragDrop';
 export type { RoutingNumberMaskProps } from './RoutingNumberMask';
-// export type {  } from './';
+export type { FormikMultiTextInputProps } from './FormikMultiTextInput';
 // export type {  } from './';

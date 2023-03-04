@@ -1,9 +1,9 @@
 import { Request } from 'express';
 import { DecodedIdToken } from 'firebase-admin/auth';
-import { GeoPoint, Timestamp, WithFieldValue } from 'firebase-admin/firestore';
+import { GeoPoint, Timestamp } from 'firebase-admin/firestore';
 // import { Timestamp, WithFieldValue } from '@google-cloud/firestore';
 
-import { SUBMISSION_STATUS, PRODUCT, AGENCY_STATUS } from './enums';
+import { SUBMISSION_STATUS, PRODUCT, AGENCY_STATUS, QUOTE_STATUS } from './enums';
 
 // TODO: fix typescript error app.use(thisMiddleware) is users.ts
 
@@ -27,6 +27,57 @@ export interface User {
   firstName?: string;
   lastName?: string;
   initialAnonymous?: boolean;
+  metadata: BaseMetadata;
+}
+
+export interface EPayVerifiedResponse {
+  id: string;
+  attributeValues: any[];
+  emailAddress: string;
+  country: string;
+  maskedAccountNumber: string;
+  payer: string;
+  transactionType: string;
+}
+
+export interface PaymentMethod extends EPayVerifiedResponse {
+  expiration?: Timestamp;
+  type: string;
+  userId?: string | null;
+  last4: string;
+  accountHolder: string;
+  metadata: BaseMetadata;
+}
+
+export type TransactionStatus = 'processing' | 'succeeded' | 'payment_failed';
+
+// https://stripe.com/docs/api/charges/object
+export interface Charge {
+  transactionId: string;
+  amount: number;
+  amountCaptured: number;
+  amountRefunded: number;
+  processingFees: number | null;
+  billingDetails: {
+    address: Address | null;
+    email: string | null;
+    name: string | null;
+    phone?: string | null;
+  };
+  invoiceId?: string | null;
+  userId?: string | null;
+  onBehalfOf?: string;
+  paid?: boolean;
+  paymentIntent?: string | null; // not used
+  paymentMethodId: string;
+  paymentMethodDetails: PaymentMethod;
+  receiptEmail: string | null;
+  receiptNumber?: string | null;
+  receiptUrl?: string | null;
+  refunded?: boolean;
+  publicDescriptor: string | null;
+  publicDescriptorTitle: string | null;
+  status: TransactionStatus;
   metadata: BaseMetadata;
 }
 
@@ -220,6 +271,7 @@ export interface SubmissionQuoteData {
   taxes: { taxName: string; taxValue: string }[];
   termPremium: number;
   subproducerCommission: number;
+  ePayCardFee: number;
   quoteTotal?: number;
   // reviewRequired: boolean;
   // underwritingNotes?: {
@@ -246,7 +298,7 @@ export interface SubmissionQuoteData {
   metadata: {
     created: Timestamp;
     updated: Timestamp;
-    version: WithFieldValue<number>;
+    version: number; // WithFieldValue<number>;
   };
   userId: string | null;
   insuredFirstName?: string | null;
@@ -260,7 +312,7 @@ export interface SubmissionQuoteData {
   agentName: string | null;
   agentEmail: string | null;
   agentPhone?: string | null;
-  status: SUBMISSION_STATUS;
+  status: QUOTE_STATUS;
   statusTransitions: {
     published: Timestamp;
     accepted: Timestamp | null;
@@ -346,6 +398,14 @@ export interface SRResWithAAL extends SRRes {
 export interface RequestUserAuth extends Request {
   user?: DecodedIdToken;
   tenantId?: string;
+}
+
+export interface FIPSDetails {
+  state: string;
+  stateFP: string;
+  countyName: string;
+  countyFP: string;
+  classFP?: string;
 }
 
 export interface SpatialKeyResponse {

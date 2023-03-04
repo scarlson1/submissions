@@ -7,7 +7,12 @@ export { ConfirmationDialog } from './ConfirmationDialog';
 export { FileLink } from './FileLink';
 export { GenericErrorFallback } from './GenericErrorFallback';
 export { RouterErrorBoundary } from './RouterErrorBoundary';
-export { renderGridEmail, renderGridPhone, renderCellExpand } from './RenderGridCellHelpers';
+export {
+  renderGridEmail,
+  renderGridPhone,
+  renderCellExpand,
+  GridCellCopy,
+} from './RenderGridCellHelpers';
 export { InputDialog } from './InputDialog';
 export { GoogleAuth } from './GoogleAuth';
 export { MicrosoftAuth } from './MicrosoftAuth';

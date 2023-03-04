@@ -25,10 +25,20 @@ export enum SUBMISSION_STATUS {
   Approved = 'approved',
   Rejected = 'rejected',
   UnderReview = 'under_review',
-  PendingInfo = 'pending_info',
+  AwaitingInfo = 'awaiting:info',
   Expired = 'expired',
   Cancelled = 'cancelled',
   AwaitingPayment = 'awaiting:payment',
+}
+
+export enum QUOTE_STATUS {
+  AWAITING_USER = 'awaiting:user',
+  COMPLETE = 'bound',
+  PAID = 'paid',
+  PAYMENT_PROCESSING = 'processing:payment',
+  AWAITING_PAYMENT = 'awaiting:payment',
+  CANCELLED = 'cancelled',
+  EXPIRED = 'expired',
 }
 
 export enum PRODUCT {

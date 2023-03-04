@@ -46,19 +46,25 @@ export const getSubmissionAAL = functions
         (floodObj: any) => floodObj.perilCode === '300'
       );
 
-      let ratingUpdates: { [key: string]: null | number } = { inlandAAL: null, surgeAAL: null };
+      let ratingUpdates: { [key: string]: number } = { inlandAAL: 0, surgeAAL: 0 };
       if (code200Index !== -1) {
-        let { preCatLoss: surgeAAL } = data.expectedLosses[code200Index];
-        ratingUpdates.surgeAAL = surgeAAL ?? 0;
-      } else {
-        ratingUpdates.surgeAAL = 0;
+        ratingUpdates.surgeAAL = data.expectedLosses[code200Index]?.preCatLoss ?? 0;
       }
       if (code300Index !== -1) {
-        let { preCatLoss: inlandAAL } = data.expectedLosses[code300Index];
-        ratingUpdates.inlandAAL = inlandAAL ?? 0;
-      } else {
-        ratingUpdates.inlandAAL = 0;
+        ratingUpdates.inlandAAL = data.expectedLosses[code300Index]?.preCatLoss ?? 0;
       }
+      // if (code200Index !== -1) {
+      //   let { preCatLoss: surgeAAL } = data.expectedLosses[code200Index];
+      //   ratingUpdates.surgeAAL = surgeAAL ?? 0;
+      // } else {
+      //   ratingUpdates.surgeAAL = 0;
+      // }
+      // if (code300Index !== -1) {
+      //   let { preCatLoss: inlandAAL } = data.expectedLosses[code300Index];
+      //   ratingUpdates.inlandAAL = inlandAAL ?? 0;
+      // } else {
+      //   ratingUpdates.inlandAAL = 0;
+      // }
       console.log(`AAL: ${JSON.stringify(ratingUpdates)}`);
 
       const swissReRef = await swissReResCollection(db).add({
@@ -125,7 +131,7 @@ export interface SwissReBodyParams {
 }
 
 // export const swissReBody = ({
-function swissReBody({
+export function swissReBody({
   lat,
   lng,
   rcvTotal,

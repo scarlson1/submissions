@@ -1,12 +1,31 @@
-import React, { useCallback, useMemo, useRef } from 'react';
-import { Box, Button, Chip, Divider, Stack, Typography } from '@mui/material';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
+import {
+  Box,
+  Button,
+  Chip,
+  Divider,
+  IconButton,
+  InputAdornment,
+  Stack,
+  Tooltip,
+  Typography,
+} from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
 import { Formik, FormikHelpers, FormikProps } from 'formik';
 import { LoadingButton } from '@mui/lab';
-import { Done, PolicyRounded } from '@mui/icons-material';
+import {
+  CalculateRounded,
+  Done,
+  DownloadRounded,
+  PolicyRounded,
+  WarningAmberRounded,
+} from '@mui/icons-material';
 import * as yup from 'yup';
 import { add } from 'date-fns';
 import { toast } from 'react-hot-toast';
+import axios from 'axios';
+import invariant from 'tiny-invariant';
+import { round } from 'lodash';
 
 import {
   FormikDatePicker,
@@ -14,22 +33,32 @@ import {
   FormikFieldArray,
   FormikIncrementor,
   FormikMaskField,
+  FormikNativeSelect,
   FormikTextField,
+  PercentMask,
   PhoneMask,
 } from 'components/forms';
 import { AddressStep, LimitsStep } from 'elements';
-import { limitAVal, limitBVal, limitCVal, limitDVal } from 'common/quoteValidation';
-import { dollarFormat } from 'modules/utils/helpers';
-import { useActiveStates, useCreateQuote } from 'hooks';
+import { emailVal, limitAVal, limitBVal, limitCVal, limitDVal } from 'common/quoteValidation';
+import { dollarFormat, sumArr } from 'modules/utils/helpers';
+import { useActiveStates, useCreateQuote, useJsonDialog } from 'hooks';
 import { IconButtonMenu } from 'components';
 import { ADMIN_ROUTES, createPath } from 'router';
-import { LoaderFunctionArgs, useLoaderData } from 'react-router-dom';
-import { submissionsCollection } from 'common';
-import { doc, getDoc } from 'firebase/firestore';
-import { SubmissionWithId } from './Submissions';
+import { LoaderFunctionArgs, useLoaderData, useNavigate } from 'react-router-dom';
+import {
+  commissionOptions,
+  Submission,
+  submissionsCollection,
+  SUBMISSION_STATUS,
+  WithId,
+} from 'common';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 
-// TODO: add "Quote: {amt}" in header with status chip next to it (valid)
-// hover chip to show errors
+// TODO: hover chip to show errors
+
+// TODO: standardize fee type names in enum
+// TODO: min premium
+const MIN_PREMIUM = 100;
 
 export const newQuoteSubmissionLoader = async ({ request }: LoaderFunctionArgs) => {
   try {
@@ -51,18 +80,67 @@ export const newQuoteSubmissionLoader = async ({ request }: LoaderFunctionArgs) 
   }
 };
 
+export const getSubproducerAdj = (premium: number, defaultCom: number, newCom: number) => {
+  let comDiff = newCom - defaultCom;
+
+  let adj = premium / (1 - comDiff / (1 - defaultCom)) - premium;
+  return round(adj, 2);
+};
+
 const gridProps = {
   columnSpacing: { xs: 3, sm: 4, md: 6 },
   rowSpacing: 6,
 };
 
 const quoteNewValidation = yup.object().shape({
+  addressLine1: yup.string(),
+  addressLine2: yup.string(),
+  city: yup.string(),
+  state: yup.string(),
+  postal: yup.string(),
   limitA: limitAVal,
   limitB: limitBVal,
   limitC: limitCVal,
   limitD: limitDVal,
+  replacementCost: yup.number().min(100000).required(),
+  deductible: yup.number().min(1000).required(),
+  fees: yup.array().of(
+    yup.object().shape({
+      feeName: yup.string(),
+      feeValue: yup.string(),
+    })
+  ),
+  taxes: yup.array().of(
+    yup.object().shape({
+      displayName: yup.string(),
+      rate: yup.number(),
+      value: yup.number(),
+    })
+  ),
+  termPremium: yup.number().min(100).required('Term premium is required'),
+  subproducerCommission: yup.number().required('Commission is required'),
+  quoteTotal: yup.number().min(100).required('Quote total is required'),
+  insuredFirstName: yup.string(),
+  insuredLastName: yup.string(),
+  insuredEmail: emailVal.notRequired(),
+  insuredPhone: yup.string(),
+  agentId: yup.string().nullable(),
+  agentEmail: emailVal.notRequired(),
+  agentName: yup.string(),
+  agentPhone: yup.string(),
+  agencyName: yup.string(),
+  agencyId: yup.string().nullable(),
 });
 
+export interface TaxItem {
+  displayName: string;
+  rate: number; // | string;
+  value: number; // | string;
+}
+export interface FeeItem {
+  feeName: string;
+  feeValue: number;
+}
 export interface NewQuoteValues {
   addressLine1: string;
   addressLine2: string;
@@ -71,10 +149,10 @@ export interface NewQuoteValues {
   postal: string;
   latitude: number | null;
   longitude: number | null;
-  limitA: number; // string;
-  limitB: number; // string;
-  limitC: number; // string;
-  limitD: number; // string;
+  limitA: number;
+  limitB: number;
+  limitC: number;
+  limitD: number;
   replacementCost: string | number;
   deductible: number;
   numStories: number | null;
@@ -84,7 +162,8 @@ export interface NewQuoteValues {
   policyEffectiveDate: Date;
   policyExpirationDate: Date;
   quoteExpiration: Date;
-  fees: { feeName: string; feeValue: string }[];
+  fees: FeeItem[];
+  taxes: TaxItem[];
   termPremium: number | null;
   subproducerCommission: number;
   quoteTotal: number | null;
@@ -101,54 +180,22 @@ export interface NewQuoteValues {
   // submissionId: string | null;
 }
 
-// TODO: decide set up Tax/Fee as FormikArray (name, rate, value) or explicit fields ??
-// Or only set up other fees as catch all and the rest as explicit ??
-
-// TODO: copy submission data
-
-// const initialValues: NewQuoteValues = {
-//   addressLine1: '',
-//   addressLine2: '',
-//   city: '',
-//   state: '',
-//   postal: '',
-//   latitude: null,
-//   longitude: null,
-//   limitA: 250000, // '',
-//   limitB: 12500, // '',
-//   limitC: 68000, // '',
-//   limitD: 25000, // '',
-//   replacementCost: 250000,
-//   deductible: 1000,
-//   numStories: 1,
-//   numUnits: 1,
-//   yearBuilt: '',
-//   squareFootage: '',
-//   quoteExpiration: add(new Date(), { days: 60 }),
-//   policyEffectiveDate: add(new Date(), { days: 15 }),
-//   policyExpirationDate: add(new Date(), { days: 380 }),
-//   fees: [{ feeName: '', feeValue: '' }],
-//   termPremium: 500,
-//   subproducerCommission: 0.2,
-//   quoteTotal: 500, // null, // calculated
-//   insuredName: '',
-//   insuredEmail: '',
-//   insuredPhone: '',
-//   agentId: null,
-//   agentEmail: '',
-//   agentName: '',
-//   agentPhone: '',
-//   agencyName: '',
-//   agencyId: '',
-//   // surplus lines
-// };
-
 export const QuoteNew: React.FC = () => {
-  const submissionData = useLoaderData() as SubmissionWithId;
+  const navigate = useNavigate();
+  const submissionData = useLoaderData() as WithId<Submission>;
   const formikRef = useRef<FormikProps<NewQuoteValues>>(null);
+  const showDialog = useJsonDialog();
   const activeStates = useActiveStates('flood');
+  const [taxesLoading, setTaxesLoading] = useState(false);
+
   const createQuote = useCreateQuote(
-    (msg: string) => toast.success(msg),
+    async () => {
+      await updateDoc(doc(submissionsCollection, submissionData.id), {
+        status: SUBMISSION_STATUS.QUOTED,
+      });
+      navigate(createPath({ path: ADMIN_ROUTES.QUOTES }));
+    },
+    (msg: string) => toast.success(msg, { duration: 3000 }),
     (err, msg) => toast.error(msg)
   );
 
@@ -158,15 +205,102 @@ export const QuoteNew: React.FC = () => {
 
   const handleSubmit = useCallback(
     async (values: NewQuoteValues, { setSubmitting }: FormikHelpers<NewQuoteValues>) => {
-      await createQuote(values);
+      await createQuote(values, submissionData.id, submissionData);
 
       setSubmitting(false);
     },
-    [createQuote]
+    [createQuote, submissionData]
   );
 
-  const handleCopyLimits = useCallback(() => {
-    alert('TODO: handle copy limits');
+  const showSubmissionDialog = useCallback(() => {
+    if (!submissionData) return toast.error('Quote not initiated from a submission');
+
+    showDialog(submissionData, 'Submission Data');
+  }, [showDialog, submissionData]);
+
+  const fetchTaxes = useCallback(async () => {
+    const values = formikRef.current?.values;
+    if (!values) return;
+    const { termPremium, state, fees } = values;
+
+    // TODO: validate all required fields are present
+    if (!termPremium) return toast.error('Term premium required');
+    if (!state) return toast.error('State required');
+
+    const mgaObj = fees.find((f) => f.feeName === 'MGA Fee');
+    const inspectionObj = fees.find((f) => f.feeName === 'Inspection Fee');
+    let mgaFees = mgaObj ? mgaObj.feeValue : 0;
+    let inspectionFees = inspectionObj ? inspectionObj.feeValue : 0;
+
+    const body = {
+      state,
+      homeStatePremium: termPremium,
+      outStatePremium: 0,
+      premium: termPremium,
+      mgaFees,
+      inspectionFees,
+      transactionType: 'new',
+    };
+    console.log('body: ', body);
+
+    try {
+      setTaxesLoading(true);
+      const { data } = await axios.post(`${process.env.REACT_APP_SUBMISSIONS_API}/state-tax`, body);
+      console.log('DATA: ', data);
+
+      let newTaxes: TaxItem[] = [];
+      if (data && data.lineItems?.length > 0) {
+        newTaxes = data.lineItems.map((t: any) => ({
+          displayName: t.displayName || '',
+          rate: `${t.rate || ''}`,
+          value: t.value || '',
+        }));
+      }
+      if (data && data.lineItems?.length === 0) {
+        setTaxesLoading(false);
+        return toast.success(`No applicable taxes for ${state}`, { duration: 5000 });
+      }
+
+      formikRef.current?.setFieldValue('taxes', newTaxes);
+      setTaxesLoading(false);
+    } catch (err) {
+      console.log('ERROR FETCHING TAXES: ', err);
+      toast.error('An error occurred while fetching taxes');
+      setTaxesLoading(false);
+    }
+  }, []);
+
+  const calcTotal = useCallback(async () => {
+    try {
+      const values = formikRef.current?.values;
+      if (!values) return toast.error('missing values');
+      const { fees, taxes, termPremium, subproducerCommission } = values;
+      if (!termPremium || typeof termPremium !== 'number')
+        return toast.error('Term premium required');
+
+      const feeTotal = sumArr(fees.map((f) => f.feeValue));
+      const taxTotal = sumArr(taxes.map((t) => t.value));
+
+      let minPremiumAdj = Math.max(MIN_PREMIUM - termPremium, 0);
+      let provisionalPremium = termPremium + minPremiumAdj;
+      // const comm = termPremium * subproducerCommission;
+      const subproducerAdj = getSubproducerAdj(termPremium, 0.2, subproducerCommission);
+      console.log('sub producer adj: ', subproducerAdj);
+      const directWrittenPremium = Math.ceil(provisionalPremium + subproducerAdj);
+
+      invariant(typeof feeTotal === 'number');
+      invariant(typeof taxTotal === 'number');
+      invariant(typeof subproducerAdj === 'number');
+      console.log('TOTAL CALC: ', directWrittenPremium, feeTotal, taxTotal);
+
+      const total = round(directWrittenPremium + feeTotal + taxTotal, 2);
+
+      formikRef.current?.setFieldValue('quoteTotal', total);
+      formikRef.current?.setFieldTouched('quoteTotal');
+    } catch (err) {
+      console.log(err);
+      toast.error('Error calculating total. See console for details');
+    }
   }, []);
 
   // TODO: paginated or searchable model
@@ -184,7 +318,13 @@ export const QuoteNew: React.FC = () => {
   const menuItems = useMemo(
     () => [
       { label: 'Start from submission', action: createPath({ path: ADMIN_ROUTES.SUBMISSIONS }) },
+      { label: 'View submission data', action: showSubmissionDialog },
     ],
+    [showSubmissionDialog]
+  );
+
+  const commOptions = useMemo(
+    () => commissionOptions.map((o: number) => ({ label: `${(o * 100).toFixed(0)}%`, value: o })),
     []
   );
 
@@ -212,11 +352,12 @@ export const QuoteNew: React.FC = () => {
           squareFootage: submissionData?.sqFootage ?? '',
           quoteExpiration: add(new Date(), { days: 60 }),
           policyEffectiveDate: add(new Date(), { days: 15 }),
-          policyExpirationDate: add(new Date(), { days: 380 }),
-          fees: [{ feeName: '', feeValue: '' }],
-          termPremium: 500,
+          policyExpirationDate: add(new Date(), { days: 15, years: 1 }),
+          fees: [], // [{ feeName: '', feeValue: '' }],
+          taxes: [], // [{ displayName: '', rate: '', value: '' }],
+          termPremium: null,
           subproducerCommission: 0.2,
-          quoteTotal: 500, // calculated
+          quoteTotal: null, // calculated
           insuredFirstName: submissionData?.firstName ?? '',
           insuredLastName: submissionData?.lastName ?? '',
           insuredEmail: submissionData?.email ?? '',
@@ -263,7 +404,9 @@ export const QuoteNew: React.FC = () => {
                 py: 2,
               }}
             >
-              <Typography variant='h5'>New Quote</Typography>
+              <Typography variant='h5' sx={{ display: { xs: 'none', sm: 'block' } }}>
+                New Quote
+              </Typography>
               <Stack direction='row' spacing={2}>
                 <Typography
                   variant='subtitle2'
@@ -272,24 +415,28 @@ export const QuoteNew: React.FC = () => {
                 >
                   Quote:{' '}
                 </Typography>
-                <Typography
-                  variant='subtitle2'
-                  // fontWeight='fontWeightMedium'
-                  // sx={{ display: 'inline-block' }}
-                >{`${values.quoteTotal ? dollarFormat(values.quoteTotal) : '--'}`}</Typography>
+                <Typography variant='subtitle2'>{`${
+                  values.quoteTotal ? dollarFormat(values.quoteTotal) : '--'
+                }`}</Typography>
                 <Chip
-                  label='valid'
-                  color='primary'
+                  label={values.quoteTotal && values.quoteTotal > 100 ? 'valid' : 'invalid'}
+                  color={values.quoteTotal && values.quoteTotal > 100 ? 'success' : 'warning'}
                   size='small'
                   variant='outlined'
-                  icon={<Done />}
+                  icon={
+                    values.quoteTotal && values.quoteTotal > 100 ? (
+                      <Done />
+                    ) : (
+                      <WarningAmberRounded />
+                    )
+                  }
                   sx={{ mx: 2 }}
                 />
               </Stack>
               <Stack direction='row' spacing={2}>
                 <LoadingButton
                   onClick={submitForm}
-                  disabled={!isValid}
+                  disabled={!isValid || !dirty}
                   loading={isValidating || isSubmitting}
                   loadingPosition='start'
                   startIcon={<PolicyRounded />}
@@ -330,11 +477,14 @@ export const QuoteNew: React.FC = () => {
                   Limits
                 </Typography>
               </Grid>
-              <Grid>
+              <Grid xs={12} sm={12} md={8} lg={10}>
                 <LimitsStep
                   inputProps={{ variant: 'outlined' }}
-                  gridProps={gridProps}
-                  gridItemProps={{ xs: 12, sm: 6, lg: 3 }}
+                  gridProps={{
+                    ...gridProps,
+                    sx: { px: 0 },
+                  }}
+                  gridItemProps={{ xs: 6, sm: 6, lg: 3 }}
                   replacementCost={
                     typeof values.replacementCost === 'string'
                       ? parseInt(values.replacementCost) || 250000
@@ -342,26 +492,25 @@ export const QuoteNew: React.FC = () => {
                   }
                 />
               </Grid>
-              <Grid xs={12} sx={{ my: 6 }}>
-                <Divider sx={{ my: 3 }} />
-                <Box>
-                  <Typography
-                    variant='overline'
-                    color='text.secondary'
-                    sx={{ pl: 4, lineHeight: 1.4 }}
-                  >
-                    Replacement Costs
-                  </Typography>
-                  <Button size='small' variant='outlined' onClick={handleCopyLimits} sx={{ ml: 4 }}>
-                    Copy Limits
-                  </Button>
-                </Box>
+              {/* <Grid>
+                <Divider orientation='vertical' />
+              </Grid> */}
+              <Grid xs={12} sm={6} md={4} lg={2} sx={{ display: 'flex', ml: { xs: 0, md: -3 } }}>
+                <Divider
+                  orientation='vertical'
+                  sx={{ mr: 3, display: { xs: 'none', md: 'block' } }}
+                />
+                <FormikDollarMaskField
+                  name='replacementCost'
+                  label='Building RCV'
+                  fullWidth
+                  sx={{ mt: 2 }}
+                />
               </Grid>
-              <Grid xs={6} sm={3}>
-                <FormikDollarMaskField name='replacementCost' label='Building RCV' fullWidth />
+              <Grid xs={12} sx={{ mt: 6 }}>
+                <Divider />
               </Grid>
-              <Grid xs={12} sx={{ my: 6 }}>
-                <Divider sx={{ my: 3 }} />
+              <Grid xs={12} md={4} lg={3}>
                 <Typography
                   variant='overline'
                   color='text.secondary'
@@ -382,6 +531,43 @@ export const QuoteNew: React.FC = () => {
                   />
                 </Box>
               </Grid>
+              <Grid xs={12} md={8} lg={9} sx={{ display: 'flex' }}>
+                <Divider
+                  orientation='vertical'
+                  sx={{ display: { xs: 'none', md: 'block' }, ml: -3 }}
+                />
+                <Box
+                  sx={{ display: 'flex', flexDirection: 'column', width: '100%', pl: { md: 3 } }}
+                >
+                  <Typography
+                    variant='overline'
+                    color='text.secondary'
+                    sx={{ pl: 4, lineHeight: 1.4 }}
+                  >
+                    Dates
+                  </Typography>
+                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={6} sx={{ my: 3 }}>
+                    <FormikDatePicker
+                      name='quoteExpiration'
+                      label='Quote Expiration'
+                      minDate={undefined}
+                      maxDate={null}
+                    />
+                    <FormikDatePicker
+                      name='policyEffectiveDate'
+                      label='Policy Effective Date'
+                      minDate={undefined}
+                      maxDate={null}
+                    />
+                    <FormikDatePicker
+                      name='policyExpirationDate'
+                      label='Policy Expiration Date'
+                      minDate={new Date()}
+                      maxDate={null}
+                    />
+                  </Stack>
+                </Box>
+              </Grid>
               <Grid xs={12}>
                 <Divider sx={{ my: 3 }} />
                 <Typography
@@ -389,51 +575,22 @@ export const QuoteNew: React.FC = () => {
                   color='text.secondary'
                   sx={{ pl: 4, lineHeight: 1.4 }}
                 >
-                  Dates
+                  Taxes & Fees & Premium
                 </Typography>
-              </Grid>
-              <Grid xs={12} md={6}>
-                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={6}>
-                  <FormikDatePicker
-                    name='quoteExpiration'
-                    label='Quote Expiration'
-                    minDate={undefined}
-                    maxDate={null}
-                  />
-                  <FormikDatePicker
-                    name='policyEffectiveDate'
-                    label='Policy Effective Date'
-                    minDate={undefined}
-                    maxDate={null}
-                  />
-                  <FormikDatePicker
-                    name='policyExpirationDate'
-                    label='Policy Expiration Date'
-                    minDate={new Date()}
-                    maxDate={null}
-                  />
-                </Stack>
-              </Grid>
-              <Grid xs={12}>
-                <Divider sx={{ my: 3 }} />
-                <Typography
-                  variant='overline'
-                  color='text.secondary'
-                  sx={{ pl: 4, lineHeight: 1.4 }}
-                >
-                  Taxes & Fees
-                </Typography>
-                <Button
-                  variant='outlined'
+                <LoadingButton
                   size='small'
-                  onClick={() => alert('TODO: implement fetch tax data')}
+                  variant='outlined'
+                  onClick={fetchTaxes}
                   sx={{ ml: 4 }}
+                  loading={taxesLoading}
+                  disabled={!(values.state && values.termPremium)}
+                  startIcon={<DownloadRounded />}
                 >
-                  Get tax data
-                </Button>
+                  Get Tax data
+                </LoadingButton>
               </Grid>
-              <Grid xs={12}>
-                <Box sx={{ maxWidth: 800 }}>
+              <Grid xs={12} sm={8} md={6}>
+                <Box sx={{ maxWidth: 600 }}>
                   <FormikFieldArray
                     parentField='fees'
                     inputFields={[
@@ -451,10 +608,50 @@ export const QuoteNew: React.FC = () => {
                           { label: 'Stamping Fee', value: 'Stamping Fee' },
                           { label: 'Surplus Lines Fee', value: 'Surplus Lines Fee' },
                         ],
+                        gridProps: { xs: 6 },
                       },
                       {
                         name: 'feeValue',
                         label: 'Fee Value',
+                        required: false,
+                        inputType: 'dollar',
+                        gridProps: { xs: 6 },
+                      },
+                    ]}
+                    values={values}
+                    errors={errors}
+                    touched={touched}
+                    dirty={dirty}
+                    setFieldValue={setFieldValue}
+                    setFieldError={setFieldError}
+                    setFieldTouched={setFieldTouched}
+                    gridProps={{ sx: { px: 0 } }}
+                    addButtonText='Add Fee'
+                  />
+                </Box>
+              </Grid>
+              <Grid xs={12} sm={8} md={6}>
+                <Box sx={{ maxWidth: 600 }}>
+                  <FormikFieldArray
+                    parentField='taxes'
+                    inputFields={[
+                      {
+                        name: 'displayName',
+                        label: 'Tax Display Name',
+                        required: false,
+                        inputType: 'text',
+                      },
+                      {
+                        name: 'rate',
+                        label: 'Tax Rate',
+                        required: false,
+                        inputType: 'mask',
+                        maskComponent: PercentMask,
+                        inputProps: { maskProps: { scale: 5 } },
+                      },
+                      {
+                        name: 'value',
+                        label: 'Tax Amount',
                         required: false,
                         inputType: 'dollar',
                       },
@@ -466,8 +663,51 @@ export const QuoteNew: React.FC = () => {
                     setFieldValue={setFieldValue}
                     setFieldError={setFieldError}
                     setFieldTouched={setFieldTouched}
+                    gridProps={{ sx: { px: 0 } }}
+                    addButtonText='Add Tax'
                   />
                 </Box>
+              </Grid>
+              <Grid xs={12} sm={4} md={3}>
+                <FormikNativeSelect
+                  name='subproducerCommission'
+                  label='Subproducer Commission'
+                  selectOptions={commOptions}
+                  sx={{ mt: 3 }}
+                />
+              </Grid>
+              <Grid xs={12} md={3}>
+                <FormikDollarMaskField
+                  name='termPremium'
+                  label='Term Premium'
+                  decimalScale={2}
+                  sx={{ mt: 3 }}
+                  fullWidth
+                />
+              </Grid>
+              <Grid xs={12} md={3}>
+                <FormikDollarMaskField
+                  name='quoteTotal'
+                  label='Quote Total'
+                  decimalScale={2}
+                  sx={{ mt: 3 }}
+                  fullWidth
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position='end'>
+                        <Tooltip title='calc quote' placement='top'>
+                          <IconButton
+                            color='primary'
+                            aria-label='Calculate Total'
+                            onClick={calcTotal}
+                          >
+                            <CalculateRounded />
+                          </IconButton>
+                        </Tooltip>
+                      </InputAdornment>
+                    ),
+                  }}
+                />
               </Grid>
               <Grid xs={12}>
                 <Divider sx={{ my: 3 }} />
@@ -544,7 +784,7 @@ export const QuoteNew: React.FC = () => {
               </Grid>
               <Grid xs={12}></Grid>
               <Grid xs={6} sm={4}>
-                <FormikTextField name='agenyName' label='Agency Name' fullWidth />
+                <FormikTextField name='agencyName' label='Agency Name' fullWidth />
               </Grid>
               <Grid xs={6} sm={4}>
                 <FormikTextField name='agencyId' label='Agency ID' fullWidth />

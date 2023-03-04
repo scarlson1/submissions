@@ -6,12 +6,8 @@ import {
   emailConfirmation,
   userInvite,
   adminNewAgencySubmission,
+  newQuote,
 } from './templates';
-// import { userInvite } from './emailTemplates/userInvite';
-// import { emailConfirmation } from './emailTemplates/emailConfirmation';
-// import { agencyAppReceived } from './emailTemplates/agencyAppReceived';
-// import { agencyAppAdminNotification } from './emailTemplates/agencyAppAdminNotification';
-// import { agencyAppApproved } from './emailTemplates/agencyAppApproved';
 
 export interface CreateMsgContentProps {
   to: string | string[];
@@ -20,9 +16,9 @@ export interface CreateMsgContentProps {
 }
 
 const createMsgContent = ({ to, subject, html }: CreateMsgContentProps) => {
-  if (process.env.AUDIENCE === 'LOCAL HUMANS') {
-    to = 'spencercarlson@mac.com';
-  }
+  // if (process.env.AUDIENCE === 'LOCAL HUMANS') {
+  //   to = 'spencercarlson@mac.com';
+  // }
   return {
     to,
     from: 'Hello@idemandinsurance.com',
@@ -95,4 +91,17 @@ export const sendNewAgencySubmissionAdminNotification = async (
   sgMail.setApiKey(key);
 
   await sgMail.send(createMsgContent({ html, subject: `New submission!`, to }));
+};
+
+export const sendNewQuoteEmail = async (
+  key: string,
+  link: string,
+  to: string | string[],
+  addressLine1?: string,
+  toName?: string
+) => {
+  const html = newQuote({ link, toName, addressLine1 });
+  sgMail.setApiKey(key);
+
+  await sgMail.send(createMsgContent({ html, subject: `Here's your quote!`, to }));
 };

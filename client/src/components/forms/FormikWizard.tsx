@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Box, Button, MobileStepper, Stack } from '@mui/material';
+import { Box, Breakpoint, Button, Container, MobileStepper, Stack } from '@mui/material';
 import { KeyboardArrowRight, KeyboardArrowLeft, NavigateNextRounded } from '@mui/icons-material';
 import LoadingButton from '@mui/lab/LoadingButton';
 import { Formik, Form, FormikHelpers, FormikErrors, FormikProps } from 'formik';
@@ -27,6 +27,7 @@ export interface FormikWizardProps extends Partial<FormikProps<any>> {
   disableNext?: boolean;
   initialIndex?: number;
   withStepper?: boolean;
+  maxWidth?: Breakpoint | false; // 'xs' | 'sm' | 'md' | 'lg' | 'xl' | false | string;
   formRef?: React.RefObject<FormikProps<any>>;
 }
 
@@ -43,6 +44,7 @@ export const FormikWizard: React.FC<FormikWizardProps> = ({
   disableNext = false,
   initialIndex = 0,
   withStepper = true,
+  maxWidth = 'sm',
   formRef,
   ...rest
 }) => {
@@ -98,7 +100,7 @@ export const FormikWizard: React.FC<FormikWizardProps> = ({
     if (currentStep.props.mutateOnSubmit) {
       try {
         values = await currentStep.props.mutateOnSubmit(values, bag, snapshot);
-        console.log('MUTATED VALUES: ', values);
+        // console.log('MUTATED VALUES: ', values);
       } catch (err) {
         console.log('MUTATE ON SUBMIT ERROR: ', err);
         if (onMutateError) return onMutateError(err);
@@ -167,43 +169,54 @@ export const FormikWizard: React.FC<FormikWizardProps> = ({
           {!isMobile ? (
             <>
               {withStepper && (
-                <Box sx={{ width: '100%', py: 5 }}>
+                // <Box sx={{ width: '100%', py: 5 }}>
+                <Container
+                  maxWidth={maxWidth}
+                  disableGutters={true}
+                  sx={{ py: 4, px: '0 !important' }}
+                >
                   <StepperNav
                     activeStep={stepIndex}
                     labels={stepperNavProps}
                     setStep={(index) => setStepIndex(index)}
                   />
-                </Box>
+                </Container>
+                // </Box>
               )}
 
-              <Box>{currentStep}</Box>
+              {currentStep}
 
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 4 }}>
-                {stepIndex > 0 && (
-                  <Stack direction='row' spacing={2}>
-                    <Button onClick={() => previous(values, validateForm)} disabled={isSubmitting}>
-                      Back
-                    </Button>
-                    <Button
-                      variant='greyText'
-                      onClick={() => handleCancel(handleReset, setValues)}
-                      disabled={isSubmitting}
-                    >
-                      Cancel
-                    </Button>
-                  </Stack>
-                )}
-                <LoadingButton
-                  type='submit'
-                  loading={isSubmitting || isValidating || loading || status === 'loading'}
-                  disabled={!isValid || disableNext}
-                  loadingPosition='end'
-                  endIcon={<NavigateNextRounded />}
-                  sx={{ ml: 'auto' }}
-                >
-                  {stepIndex === steps.length - 1 ? submitButtonText : 'Next'}
-                </LoadingButton>
-              </Box>
+              <Container maxWidth={maxWidth} disableGutters sx={{ px: '0 !important' }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 4 }}>
+                  {stepIndex > 0 && (
+                    <Stack direction='row' spacing={2}>
+                      <Button
+                        onClick={() => previous(values, validateForm)}
+                        disabled={isSubmitting}
+                      >
+                        Back
+                      </Button>
+                      <Button
+                        variant='greyText'
+                        onClick={() => handleCancel(handleReset, setValues)}
+                        disabled={isSubmitting}
+                      >
+                        Cancel
+                      </Button>
+                    </Stack>
+                  )}
+                  <LoadingButton
+                    type='submit'
+                    loading={isSubmitting || isValidating || loading || status === 'loading'}
+                    disabled={!isValid || disableNext}
+                    loadingPosition='end'
+                    endIcon={<NavigateNextRounded />}
+                    sx={{ ml: 'auto' }}
+                  >
+                    {stepIndex === steps.length - 1 ? submitButtonText : 'Next'}
+                  </LoadingButton>
+                </Box>
+              </Container>
             </>
           ) : (
             <Box>

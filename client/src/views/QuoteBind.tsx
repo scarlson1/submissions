@@ -1,5 +1,6 @@
-import React, { useRef, useCallback } from 'react';
+import React, { useRef, useCallback, useState, useEffect, useMemo } from 'react';
 import {
+  Avatar,
   Box,
   Button,
   Card,
@@ -7,10 +8,12 @@ import {
   CardMedia,
   Chip,
   Collapse,
-  Container,
   Divider,
+  Skeleton,
+  Stack,
   Tooltip,
   Typography,
+  TypographyProps,
   useTheme,
 } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2/Grid2';
@@ -20,6 +23,7 @@ import {
   FenceRounded,
   HouseRounded,
   MoreVertRounded,
+  PasswordRounded,
   PersonAddAltRounded,
   WeekendRounded,
 } from '@mui/icons-material';
@@ -47,38 +51,55 @@ import {
   phoneRequiredVal,
   AdditionalInsured,
   Mortgagee,
+  PaymentMethod,
+  paymentMethodsCollection,
+  SubmissionQuoteData,
+  WithId,
 } from 'common';
-import { SubmissionQuoteDataWithId } from './admin/Quotes';
 import { useBindQuote, useUserPaymentMethods } from 'hooks';
 import { billingValidation, PaymentStep, ContactStep } from 'elements';
-import testImg from 'assets/images/live-from-space.jpg';
-import { addToDate } from 'modules/utils/helpers';
+import { addToDate, dollarFormat, dollarFormat2, formatDate } from 'modules/utils/helpers';
+import { AUTH_ROUTES, ROUTES, createPath } from 'router';
+import { useAuth } from 'modules/components/AuthContext';
+import { Auth } from 'firebase/auth';
+import { fallbackImages } from './Policies';
+import { toast } from 'react-hot-toast';
 
-// TODO: create account / sign in
-//    - wrap component in require auth. redirect to bind quote after sign in or create account
-//    - OR contitional create account step ??
 // TODO: check quote expiration date (30 days for quote creation) -- use cloud function ??
 // firestore rules - only allow iDemand admin to override
 
 // TODO: use transform to remove empty additional insured & mortagee rows ??
 // 'Password': yup.string().notRequired().min(8).nullable().transform((value) => !!value ? value : null)
 
-// TODO: AFTER CREATE ACCOUNT
-// redirect to authRequests/assign-quote/:quoteId cloud function
+// export const quoteLoader = async ({ params }: LoaderFunctionArgs) => {
+//   const quoteRef = doc(submissionsQuotesCollection, params.quoteId);
 
-export const quoteLoader = async ({ params }: LoaderFunctionArgs) => {
-  const quoteRef = doc(submissionsQuotesCollection, params.quoteId);
+//   const snap = await getDoc(quoteRef);
+//   let data = snap.data();
+//   console.log('QUOTE DATA: ', data);
 
-  const snap = await getDoc(quoteRef);
-  let data = snap.data();
-  console.log('QUOTE DATA: ', data);
+//   if (!snap.exists() || !data) {
+//     throw new Response('Quote not found', { status: 404 });
+//   }
 
-  if (!snap.exists() || !data) {
-    throw new Response('Quote not found', { status: 404 });
-  }
+//   return { ...data, id: snap.id };
+// };
+export const quoteLoader =
+  (auth: Auth) =>
+  async ({ params }: LoaderFunctionArgs) => {
+    const quoteRef = doc(submissionsQuotesCollection, params.quoteId);
+    console.log('auth', auth);
+    console.log('current user ', auth.currentUser?.uid);
+    const snap = await getDoc(quoteRef);
+    let data = snap.data();
+    console.log('QUOTE DATA: ', data);
 
-  return { ...data, id: snap.id };
-};
+    if (!snap.exists() || !data) {
+      throw new Response('Quote not found', { status: 404 });
+    }
+
+    return { ...data, id: snap.id };
+  };
 
 export interface QuoteValues {
   firstName: string;
@@ -103,18 +124,33 @@ export interface QuoteValues {
 
 export const QuoteBind: React.FC = () => {
   const navigate = useNavigate();
-  const data = useLoaderData() as SubmissionQuoteDataWithId;
+  const { isAuthenticated, isAnonymous } = useAuth();
+  const data = useLoaderData() as WithId<SubmissionQuoteData>;
   const formikRef = useRef<FormikProps<QuoteValues>>(null);
   // TODO: FINISH BIND QUOTE HOOK
-  const bindQuote = useBindQuote();
+  const bindQuote = useBindQuote(
+    (msg: string) => toast.success(msg),
+    (err, msg) => toast.error(msg)
+  );
   const paymentMethods = useUserPaymentMethods();
 
   const handleSubmit = useCallback(
     async (values: QuoteValues, { setSubmitting }: FormikHelpers<QuoteValues>) => {
-      await bindQuote(data.id);
+      if (!values.paymentMethodId) return toast.error('Missing payment method');
+
+      const res = await bindQuote(data.id, values.paymentMethodId);
       setSubmitting(false);
+
+      if (res?.transactionId && (res?.status === 'succeeded' || res?.status === 'processing')) {
+        navigate(
+          createPath({
+            path: ROUTES.QUOTE_BIND_SUCCESS,
+            params: { quoteId: data.id, transactionId: res?.transactionId || '' },
+          })
+        );
+      }
     },
-    [bindQuote, data]
+    [bindQuote, data, navigate]
   );
 
   const handleCancel = useCallback(() => {
@@ -143,17 +179,17 @@ export const QuoteBind: React.FC = () => {
     },
     [data]
   );
-  const test = useCallback(async () => {
-    try {
-      navigate(`/auth-api/assign-quote/${data.id}`);
-    } catch (err) {
-      console.log(err);
-    }
-  }, [navigate, data]);
+
+  // TODO: handle quote expiration (quoteExpiration)
+
+  // TODO: handle setting userId when user is authenticated
+  // TODO: submission needs isAnonymous flag so userId can/should be overwritten ??
+  if (!isAuthenticated || isAnonymous || !data.userId) {
+    return <AuthStep quoteId={data.id} />;
+  }
 
   return (
-    <Container maxWidth='sm'>
-      <Button onClick={test}>Test</Button>
+    <Box>
       <Typography variant='h5' sx={{ pl: 4 }} align='center'>
         Bind Quote
       </Typography>
@@ -167,7 +203,7 @@ export const QuoteBind: React.FC = () => {
           mortgageeInterest: data?.mortgageeInterest ? [...data?.mortgageeInterest] : [],
           policyEffectiveDate: data?.policyEffectiveDate?.toDate() ?? new Date(),
           effectiveExceptionRequested: data?.effectiveExceptionRequested ?? false,
-          effectiveExceptionReason: data?.effectiveExceptionReason ?? null,
+          effectiveExceptionReason: data?.effectiveExceptionReason ?? '',
           paymentMethodId: '',
         }}
         onSubmit={handleSubmit}
@@ -175,7 +211,7 @@ export const QuoteBind: React.FC = () => {
         formRef={formikRef}
         enableReinitialize
         initialErrors={{}}
-        submitButtonText='Complete payment'
+        submitButtonText='Pay and Bind'
       >
         <Step
           label='Primary Named Insured'
@@ -194,18 +230,126 @@ export const QuoteBind: React.FC = () => {
           // validationSchema={contactValidation}
           mutateOnSubmit={saveValues}
         >
-          <EffectiveDateStep expiration={addToDate({ days: 90 })} />
+          <EffectiveDateStep expiration={addToDate({ days: 60 })} />
         </Step>
         <Step label='Billing' stepperNavLabel='Billing' validationSchema={billingValidation}>
           <PaymentStep pmtOptions={[...paymentMethods]} />
         </Step>
         <Step label='Review' stepperNavLabel='Review'>
-          <BindReviewStep />
+          <BindReviewStep data={data} />
         </Step>
       </FormikWizard>
-    </Container>
+    </Box>
   );
 };
+
+// TODO: hanlde anonymous
+export function AuthStep({ quoteId }: { quoteId: string }) {
+  const navigate = useNavigate();
+  const { user, isAuthenticated, isAnonymous } = useAuth();
+
+  const redirectToSignIn = useCallback(() => {
+    navigate(
+      {
+        pathname: createPath({ path: AUTH_ROUTES.LOGIN }),
+      },
+      {
+        state: {
+          redirectPath: createPath({
+            path: AUTH_ROUTES.ACTIONS_HANDLER,
+            search: {
+              mode: 'assignQuote',
+              continueUrl: createPath({ path: ROUTES.QUOTE_BIND, params: { quoteId } }),
+              oobCode: quoteId,
+            },
+          }),
+        },
+        replace: true,
+      }
+    );
+  }, [navigate, quoteId]);
+
+  const redirectToCreate = useCallback(() => {
+    navigate(
+      {
+        pathname: createPath({ path: AUTH_ROUTES.CREATE_ACCOUNT }),
+      },
+      {
+        state: {
+          redirectPath: createPath({
+            path: AUTH_ROUTES.ACTIONS_HANDLER,
+            search: {
+              mode: 'assignQuote',
+              continueUrl: createPath({ path: ROUTES.QUOTE_BIND, params: { quoteId } }),
+              oobCode: quoteId,
+            },
+          }),
+        },
+        replace: true,
+      }
+    );
+  }, [navigate, quoteId]);
+
+  const redirectToAssignAction = useCallback(() => {
+    navigate(
+      createPath({
+        path: AUTH_ROUTES.ACTIONS_HANDLER,
+        search: {
+          mode: 'assignQuote',
+          continueUrl: createPath({ path: ROUTES.QUOTE_BIND, params: { quoteId } }),
+          oobCode: quoteId,
+        },
+      }),
+      {}
+    );
+  }, [navigate, quoteId]);
+
+  return (
+    <Stack direction='column' spacing={3} sx={{ maxWidth: 360, mx: 'auto', my: 4 }}>
+      {isAuthenticated && !isAnonymous && (
+        <Button
+          variant='outlined'
+          size='large'
+          onClick={redirectToAssignAction}
+          startIcon={<Avatar></Avatar>}
+          sx={{
+            justifyContent: 'flex-start',
+            '& .MuiButton-startIcon': { minWidth: 40 },
+            '& .MuiSvgIcon-root': { mx: 'auto' },
+          }}
+        >{`Continue as ${user?.displayName ?? 'current user'}`}</Button>
+      )}
+      <Typography>Please sign in or create a new account.</Typography>
+
+      <Button
+        variant='outlined'
+        size='large'
+        onClick={redirectToSignIn}
+        startIcon={<PasswordRounded />}
+        sx={{
+          justifyContent: 'flex-start',
+          '& .MuiButton-startIcon': { minWidth: 40 },
+          '& .MuiSvgIcon-root': { mx: 'auto' },
+        }}
+      >
+        Sign In
+      </Button>
+      <Button
+        variant='outlined'
+        size='large'
+        onClick={redirectToCreate}
+        startIcon={<PersonAddAltRounded />}
+        sx={{
+          justifyContent: 'flex-start',
+          '& .MuiButton-startIcon': { minWidth: 40 },
+          '& .MuiSvgIcon-root': { mx: 'auto' },
+        }}
+      >
+        New User
+      </Button>
+    </Stack>
+  );
+}
 
 // https://mui.com/material-ui/react-list/#checkbox
 // https://flowbite.com/docs/forms/radio/#radio-in-dropdown
@@ -391,29 +535,14 @@ export function AdditionalInsuredsStep() {
               },
             },
             {
-              name: 'priority',
-              label: 'Priority Position (lean)',
-              required: false,
-              inputType: 'select',
-              selectOptions: [
-                {
-                  label: '1st',
-                  value: '1',
-                },
-                { label: '2nd', value: '2' },
-                { label: '3rd', value: '3' },
-                { label: 'Other', value: '-1' },
-              ],
-              gridProps: { xs: 6, sm: 4 },
-            },
-            {
               name: 'loanNumber',
               label: 'Loan Number',
               required: false,
               inputType: 'text',
+              gridProps: { xs: 6, sm: 4 },
             },
           ]}
-          addButtonText='Add Morgagee'
+          addButtonText='Add Mortgagee'
           addButtonProps={{ startIcon: <AccountBalanceRounded /> }}
           values={values}
           errors={errors}
@@ -462,7 +591,8 @@ export const EffectiveDateStep: React.FC<EffectiveDateStepProp> = ({ expiration 
           name='policyEffectiveDate'
           label='Effective Date'
           minDate={values.effectiveExceptionRequested ? undefined : addToDate({ days: 15 })}
-          maxDate={values.effectiveExceptionRequested ? undefined : expiration}
+          // maxDate={values.effectiveExceptionRequested ? undefined : expiration}
+          maxDate={expiration}
           disablePast={true}
           slotProps={{
             shortcuts: {
@@ -544,8 +674,170 @@ const getPaymentIcon = (pmtType: any, color: any) => {
   }
 };
 
-export function BindReviewStep() {
+export interface LineItemProps {
+  label: string;
+  value: number;
+  labelTypographyProps?: TypographyProps;
+  valueTypographyProps?: TypographyProps;
+  withDivider?: boolean;
+}
+
+export const LineItem = ({
+  label,
+  value,
+  labelTypographyProps,
+  valueTypographyProps,
+  withDivider = true,
+}: LineItemProps) => {
+  return (
+    <>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'flex-start',
+          alignItems: 'flex-start',
+          py: 1,
+          px: 3,
+        }}
+      >
+        <Typography
+          variant='body2'
+          color='text.secondary'
+          {...labelTypographyProps}
+          sx={{ flex: '1 0 auto', lineHeight: 1.6, ...labelTypographyProps?.sx }}
+        >
+          {label}
+        </Typography>
+        <Typography
+          variant='subtitle2'
+          {...valueTypographyProps}
+          sx={{ flex: '0 0 auto', lineHeight: 1.6, ...valueTypographyProps?.sx }}
+        >
+          {dollarFormat2(value)}
+        </Typography>
+      </Box>
+      {withDivider && <Divider />}
+    </>
+  );
+};
+
+export const useCardDetails = (id: string) => {
+  const { user } = useAuth();
+  const [cardDetails, setCardDetails] = useState<PaymentMethod | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!id || !user || !user.uid) return;
+    setError(null);
+    setLoading(true);
+    const docRef = doc(paymentMethodsCollection(user.uid), id);
+    getDoc(docRef).then((snap) => {
+      if (!snap.exists()) {
+        setLoading(false);
+        setCardDetails(null);
+        setError(`Payment method not found`);
+      } else {
+        setCardDetails(snap.data());
+        setLoading(false);
+      }
+    });
+  }, [user, id]);
+
+  return useMemo(() => ({ cardDetails, loading, error }), [cardDetails, loading, error]);
+};
+
+export interface PaymentCardProps {
+  // id: string;
+  cardDetails: PaymentMethod | null;
+  loading: boolean;
+  error: string | null;
+}
+
+export const PaymentCard: React.FC<PaymentCardProps> = ({ cardDetails, loading, error }) => {
   const theme = useTheme();
+  // const { cardDetails, loading, error } = useCardDetails(id);
+
+  if (loading)
+    return (
+      <Box sx={{ display: 'flex', maxWidth: 400, p: 2, width: '100%' }}>
+        <Skeleton variant='circular' height={50} width={50} />
+        <Box sx={{ pl: 2, flex: '1 1 auto' }}>
+          <Skeleton variant='rounded' width='100%' height={20} />
+          <Skeleton variant='text' width={100} sx={{ fontSize: '1rem' }} />
+        </Box>
+      </Box>
+    );
+
+  return (
+    <Card sx={{ display: 'flex', maxWidth: 400 }}>
+      <Box
+        sx={{
+          m: 2,
+          p: 2,
+          background: (theme) =>
+            theme.palette.mode === 'dark'
+              ? theme.palette.primaryDark[800]
+              : theme.palette.grey[100],
+          minHeight: 50,
+          minWidth: 50,
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          borderRadius: 1,
+        }}
+      >
+        {getPaymentIcon(cardDetails?.transactionType, theme.palette.grey[500])}
+      </Box>
+      <CardContent sx={{ flex: '1 0 auto', p: 3 }}>
+        <Typography variant='subtitle2'>
+          {error
+            ? 'Error loading payment method details'
+            : `${cardDetails?.transactionType}  ${cardDetails?.maskedAccountNumber}`}
+        </Typography>
+
+        <Typography variant='body2' color='text.secondary' fontSize='0.775rem'>
+          {cardDetails?.expiration ?? cardDetails?.accountHolder}
+        </Typography>
+      </CardContent>
+      <Box sx={{ p: 2, pl: 1 }}>
+        <IconButtonMenu
+          menuItems={[{ label: 'Details', action: () => console.log('button clicked') }]}
+          menuProps={{
+            id: 'payment-menu',
+            anchorOrigin: { horizontal: 'right', vertical: 'center' },
+          }}
+          iconButtonProps={{
+            color: 'default',
+            'aria-label': 'payment method menu',
+            size: 'small',
+          }}
+          buttonIcon={<MoreVertRounded fontSize='inherit' />}
+        />
+      </Box>
+    </Card>
+  );
+};
+
+// TODO: epay fees
+
+export function BindReviewStep({ data }: { data: WithId<SubmissionQuoteData> }) {
+  const { values } = useFormikContext<QuoteValues>();
+  const { cardDetails, loading, error } = useCardDetails(values.paymentMethodId);
+
+  const total = useMemo(() => {
+    const { quoteTotal, ePayCardFee } = data;
+    if (!cardDetails || !quoteTotal) return null;
+    let t: number = quoteTotal;
+    if (ePayCardFee && typeof ePayCardFee === 'number' && cardDetails.type === 'card') {
+      t += ePayCardFee;
+    }
+    return t;
+  }, [cardDetails, data]);
+  // TODO: handle quoteTotal undefined
+
+  // TODO: ePay fees. Fetch payment method details in this component & pass to card component (need "type" to show epay fees)
+  if (!total) return <div>Loading...</div>;
 
   return (
     <Box>
@@ -574,18 +866,25 @@ export function BindReviewStep() {
         <CardMedia
           component='img'
           sx={{
-            width: 140,
-            // borderBottomRightRadius: (theme) => theme.shape.borderRadius,
-            // borderTopRightRadius: (theme) => theme.shape.borderRadius,
+            width: { xs: 120, sm: 130, md: 140 }, // 140,
+            minHeight: { xs: 100, sm: 120, md: 140 },
           }}
-          src={testImg}
-          alt='Live from space album cover'
+          alt={`${data?.insuredAddress?.addressLine1} map`}
+          image={
+            data?.imageUrls?.satelliteMapImageUrl
+              ? data.imageUrls?.satelliteMapImageUrl
+              : fallbackImages[0]
+          }
+          title={`${data?.insuredAddress?.addressLine1} map`}
         />
         <Box sx={{ display: 'flex', flexDirection: 'column', flex: '1 1 auto' }}>
           <CardContent sx={{ flex: '1 0 auto' }}>
-            <Typography variant='h6'>1382 Hunter Drive</Typography>
+            <Typography variant='h6'>{data.insuredAddress.addressLine1}</Typography>
             <Typography variant='body2' color='text.secondary' fontSize='0.775rem'>
-              Effective 2/23 - 2/24
+              {`Effective: ${formatDate(values.policyEffectiveDate, `MMM dd, yy`) || '--'} - ${
+                formatDate(addToDate({ years: 1 }, values.policyEffectiveDate), `MMM dd, yy`) ||
+                '--'
+              }`}
             </Typography>
           </CardContent>
           <Grid
@@ -597,22 +896,37 @@ export function BindReviewStep() {
           >
             <Grid xs='auto'>
               <Tooltip title='Building Coverage Limit' placement='top'>
-                <Chip icon={<HouseRounded />} label='$150,000' size='small' />
+                <Chip
+                  icon={<HouseRounded />}
+                  label={dollarFormat(data.limits.limitA)}
+                  size='small'
+                />
               </Tooltip>
             </Grid>
+
             <Grid xs='auto'>
               <Tooltip title='Additional Structures Coverage Limit' placement='top'>
-                <Chip icon={<FenceRounded />} label='$25,000' size='small' />
+                <Chip
+                  icon={<FenceRounded />}
+                  label={dollarFormat(data.limits.limitB)}
+                  size='small'
+                />
               </Tooltip>
             </Grid>
+
             <Grid xs='auto'>
               <Tooltip title='Contents Coverage Limit' placement='top'>
-                <Chip icon={<WeekendRounded />} label='$50,000' size='small' />
+                <Chip
+                  icon={<WeekendRounded />}
+                  label={dollarFormat(data.limits.limitC)}
+                  size='small'
+                />
               </Tooltip>
             </Grid>
+
             <Grid xs='auto'>
               <Tooltip title='Living Expenses Coverage Limit' placement='top'>
-                <Chip icon={<BedRounded />} label='$15,000' size='small' />
+                <Chip icon={<BedRounded />} label={dollarFormat(data.limits.limitD)} size='small' />
               </Tooltip>
             </Grid>
           </Grid>
@@ -622,221 +936,37 @@ export function BindReviewStep() {
       <Typography variant='overline' color='text.secondary' sx={{ ml: 4 }}>
         Billing
       </Typography>
-      <Card sx={{ display: 'flex', maxWidth: 400 }}>
-        <Box
-          sx={{
-            m: 2,
-            p: 2,
-            background: (theme) =>
-              theme.palette.mode === 'dark'
-                ? theme.palette.primaryDark[800]
-                : theme.palette.grey[100],
-            minHeight: 50,
-            minWidth: 50,
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            borderRadius: 1,
-          }}
-        >
-          {/* <AccountBalanceRounded /> */}
-          {/* <RiMastercardFill size={28} style={{ fill: theme.palette.grey[500] }} /> */}
-          {getPaymentIcon('MasterCard', theme.palette.grey[500])}
-        </Box>
-        <CardContent sx={{ flex: '1 0 auto', p: 3 }}>
-          <Typography variant='subtitle2'>{`${'MasterCard'} **** **** **** 9827`}</Typography>
-          <Typography variant='body2' color='text.secondary' fontSize='0.775rem'>
-            Expires 12/24
-          </Typography>
-        </CardContent>
-        <Box sx={{ p: 2, pl: 1 }}>
-          {/* <IconButton onClick={openPaymentDialog}>
-            <MoreVertRounded fontSize='small' />
-          </IconButton> */}
-          <IconButtonMenu
-            menuItems={[{ label: 'Test', action: () => console.log('button clicked') }]}
-            menuProps={{
-              id: 'payment-menu',
-              anchorOrigin: { horizontal: 'right', vertical: 'center' },
-            }}
-            iconButtonProps={{
-              color: 'default',
-              'aria-label': 'payment method menu',
-              size: 'small',
-            }}
-            buttonIcon={<MoreVertRounded fontSize='inherit' />}
-          />
-        </Box>
-      </Card>
-      <Card sx={{ display: 'flex', maxWidth: 400 }}>
-        <Box
-          sx={{
-            m: 2,
-            p: 2,
-            background: (theme) =>
-              theme.palette.mode === 'dark'
-                ? theme.palette.primaryDark[800]
-                : theme.palette.grey[100],
-            minHeight: 50,
-            minWidth: 50,
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            borderRadius: 1,
-          }}
-        >
-          {getPaymentIcon('Visa', theme.palette.grey[500])}
-        </Box>
-        <CardContent sx={{ flex: '1 0 auto', p: 3 }}>
-          <Typography variant='subtitle2'>Visa **** **** **** 9827</Typography>
-          <Typography variant='body2' color='text.secondary' fontSize='0.775rem'>
-            Expires 12/24
-          </Typography>
-        </CardContent>
-        <Box sx={{ p: 2, pl: 1 }}>
-          <IconButtonMenu
-            menuItems={[{ label: 'Test', action: () => console.log('button clicked') }]}
-            menuProps={{
-              id: 'payment-menu',
-              anchorOrigin: { horizontal: 'right', vertical: 'center' },
-            }}
-            iconButtonProps={{ color: 'default', 'aria-label': 'payment method menu' }}
-            buttonIcon={<MoreVertRounded fontSize='small' />}
-          />
-        </Box>
-      </Card>
-      <Card sx={{ display: 'flex', maxWidth: 400 }}>
-        <Box
-          sx={{
-            m: 2,
-            p: 2,
-            background: (theme) =>
-              theme.palette.mode === 'dark'
-                ? theme.palette.primaryDark[800]
-                : theme.palette.grey[100],
-            minHeight: 50,
-            minWidth: 50,
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            borderRadius: 1,
-          }}
-        >
-          {getPaymentIcon('Ach', theme.palette.grey[500])}
-        </Box>
-        <CardContent sx={{ flex: '1 0 auto', p: 3 }}>
-          <Typography variant='subtitle2'>Visa **** **** **** 9827</Typography>
-          <Typography variant='body2' color='text.secondary' fontSize='0.775rem'>
-            Expires 12/24
-          </Typography>
-        </CardContent>
-        <Box sx={{ p: 2, pl: 1 }}>
-          <IconButtonMenu
-            menuItems={[{ label: 'Test', action: () => console.log('button clicked') }]}
-            menuProps={{
-              id: 'payment-menu',
-              anchorOrigin: { horizontal: 'right', vertical: 'center' },
-            }}
-            iconButtonProps={{ color: 'default', 'aria-label': 'payment method menu' }}
-            buttonIcon={<MoreVertRounded fontSize='small' />}
-          />
-        </Box>
-      </Card>
+      {/* <PaymentCard id={values.paymentMethodId} /> */}
+      <PaymentCard cardDetails={cardDetails} loading={loading} error={error} />
       <Box sx={{ py: 5 }}>
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'flex-start',
-            alignItems: 'flex-start',
-            py: 1,
-            px: 3,
-          }}
-        >
-          <Typography
-            variant='body2'
-            color='text.secondary'
-            sx={{ flex: '1 0 auto', lineHeight: 1.6 }}
-          >
-            Premium
-          </Typography>
-          <Typography variant='subtitle2' sx={{ flex: '0 0 auto', lineHeight: 1.6 }}>
-            $239.00
-          </Typography>
-        </Box>
-        <Divider />
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'flex-start',
-            alignItems: 'flex-start',
-            py: 1,
-            px: 3,
-          }}
-        >
-          <Typography
-            variant='body2'
-            color='text.secondary'
-            sx={{ flex: '1 0 auto', lineHeight: 1.6, ml: 4 }}
-          >
-            Inspection Fee
-          </Typography>
-          <Typography
-            variant='subtitle2'
-            fontWeight='regular'
-            color='text.secondary'
-            sx={{ flex: '0 0 auto', lineHeight: 1.6 }}
-          >
-            $50.00
-          </Typography>
-        </Box>
-        <Divider />
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'flex-start',
-            alignItems: 'flex-start',
-            py: 1,
-            px: 3,
-          }}
-        >
-          <Typography
-            variant='body2'
-            color='text.secondary'
-            sx={{ flex: '1 0 auto', lineHeight: 1.6, ml: 4 }}
-          >
-            Surplus Lines Tax
-          </Typography>
-          <Typography
-            variant='subtitle2'
-            fontWeight='regular'
-            color='text.secondary'
-            sx={{ flex: '0 0 auto', lineHeight: 1.6 }}
-          >
-            $24.00
-          </Typography>
-        </Box>
-        <Divider />
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'flex-start',
-            alignItems: 'flex-start',
-            py: 1,
-            px: 3,
-          }}
-        >
-          <Typography
-            variant='body2'
-            color='text.secondary'
-            sx={{ flex: '1 0 auto', lineHeight: 1.6 }}
-          >
-            Total
-          </Typography>
-          <Typography variant='subtitle2' sx={{ flex: '0 0 auto', lineHeight: 1.6 }}>
-            $313.00
-          </Typography>
-        </Box>
-        <Divider />
+        <LineItem label='Premium' value={data.termPremium} />
+        {data.fees.map((fee) => (
+          <LineItem
+            key={`${fee.feeName}-${fee.feeValue}`}
+            label={fee.feeName}
+            value={fee.feeValue}
+            labelTypographyProps={{ sx: { ml: 4 }, fontSize: '0.8rem' }}
+            valueTypographyProps={{ fontWeight: 'regular', fontSize: '0.8rem' }}
+          />
+        ))}
+        {data.taxes.map((tax) => (
+          <LineItem
+            key={`${tax.displayName}-${tax.value}`}
+            label={tax.displayName}
+            value={tax.value}
+            labelTypographyProps={{ sx: { ml: 4 }, fontSize: '0.8rem' }}
+            valueTypographyProps={{ fontWeight: 'regular', fontSize: '0.8rem' }}
+          />
+        ))}
+        {cardDetails && cardDetails.type === 'card' && (
+          <LineItem
+            label='Card processing fees (3.5%)'
+            value={data.ePayCardFee}
+            labelTypographyProps={{ sx: { ml: 4 }, fontSize: '0.8rem' }}
+            valueTypographyProps={{ fontWeight: 'regular', fontSize: '0.8rem' }}
+          />
+        )}
+        <LineItem label='Total' value={total} withDivider={false} />
       </Box>
     </Box>
   );

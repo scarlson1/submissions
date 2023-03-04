@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import { formatDistance, format, add, Duration } from 'date-fns';
+import { formatDistance, format, add, Duration, isPast, isFuture } from 'date-fns';
 import numeral from 'numeral';
 import { Location } from 'react-router-dom';
 import { GridValueFormatterParams, GridValueGetterParams } from '@mui/x-data-grid';
@@ -71,6 +71,8 @@ export const formatPhoneNumber = (str: string) => {
 
 export const dollarFormat = (val: string | number) => numeral(val).format('$0,0[.]00');
 
+export const dollarFormat2 = (val: string | number) => numeral(val).format('$0,0.00');
+
 export const numberFormat = (val: string | number) => numeral(val).format('0,0');
 
 /**
@@ -90,6 +92,31 @@ export const getRedirectPath = (location: Location) => {
 };
 
 /**
+ * extracts query param from url
+ * @param {string} urlQuery - Location object's URL's query from which to extract the info
+ * @param {string} param - param key to get the value from query params
+ * @return {string | null} query param value, otherwise null
+ */
+export const getParamByName = (urlQuery: string, param: string) => {
+  const urlParams = new URLSearchParams(urlQuery);
+  for (const [key, value] of urlParams.entries()) {
+    console.log(key, value);
+    if (key === param) return value;
+  }
+  return null;
+};
+
+/**
+ * converts date to formatted string
+ * @param {Date} date - date to be converted
+ * @param {string} options - date format to return
+ * @return {string} date string
+ */
+export const formatDate = (date: Date, options: string = 'MMM dd, yyyy') => {
+  return format(date, options);
+};
+
+/**
  * converts firestore timestamp to formatted date (MMM dd, yyyy) or relative distance formatted date (3 days ago)
  * @param {FirestoreTimestamp} ts - firestore timestamp to be converted
  * @return {string} date string (5 hours ago or Oct. 6, 1995)
@@ -101,7 +128,7 @@ export const formatFirestoreTimestamp = (
   let tsDate = new Date(ts.seconds * 1000);
   return formatType === 'relative'
     ? formatDistance(tsDate, new Date(), { addSuffix: true })
-    : format(tsDate, 'MMM dd, yyyy');
+    : formatDate(tsDate);
 };
 
 export const formatGridFirestoreTimestamp = (params: GridValueFormatterParams<Timestamp>) =>
@@ -115,12 +142,29 @@ export const formatGridFirestoreTimestampAsDate = (params: GridValueFormatterPar
 /**
  *
  * @param {Duration} duration -  object specifying time to add (seconds, days, weeks, months, years, etc.)
+ * @param {Date} date - optional date, defaults to current date
  * @returns {Date} current datetime plus the duration
  */
-export const addToDate = (duration: Duration) => {
-  return add(new Date(), {
+export const addToDate = (duration: Duration, date: Date = new Date()) => {
+  return add(date, {
     ...duration,
   });
+};
+
+/**
+ *
+ * @param {Date | number | null} pastDate - check if today is after pastDate
+ * @param {Date | number | null} futureDate - check if today is before futureDate
+ * @returns {boolean} boolean indicating is current date is between pastDate and futureDate. if either dates is omitted or null, returns true for that respective boundary.
+ */
+export const isCurrentDateBetween = (
+  pastDate?: Date | number | null,
+  futureDate?: Date | number | null
+) => {
+  const p = pastDate ? isPast(pastDate) : true;
+  const f = futureDate ? isFuture(futureDate) : true;
+
+  return p && f;
 };
 
 /**
@@ -128,8 +172,10 @@ export const addToDate = (duration: Duration) => {
  * @param {GridValueFormatterParams<number>} params - Grid value formatter params
  * @returns {string} returns empty string if value is null, else passed to numeral
  */
-export const formatGridCurrency = (params: GridValueFormatterParams<number>) =>
-  params.value == null ? '' : numeral(params.value).format('$0,0[.]00');
+export const formatGridCurrency = (
+  params: GridValueFormatterParams<number>,
+  mask: string = '$0,0[.]00'
+) => (params.value == null ? '' : numeral(params.value).format(mask));
 // TODO: use regex to get rid of everything except digits and decimals ??
 
 export const formatGridPercent = (params: GridValueFormatterParams<number>, round: number = 1) =>
@@ -342,3 +388,12 @@ export function getGridAddressComponent(
 export function extractNumber(str: string) {
   return parseFloat(`${str}`.replace(/[^0-9.]/g, ''));
 }
+
+export const isJSON = (obj: any) => {
+  try {
+    JSON.parse(obj);
+    return true;
+  } catch (e) {
+    return false;
+  }
+};

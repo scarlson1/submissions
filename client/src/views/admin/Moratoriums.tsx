@@ -1,16 +1,30 @@
 import React, { useCallback, useMemo } from 'react';
-import { Box, Button, Card, Typography, useTheme } from '@mui/material';
-import { BlockRounded, MapRounded, VisibilityRounded } from '@mui/icons-material';
-import { getDocs, limit, orderBy, query } from 'firebase/firestore';
+import { Box, Button, Card, Tooltip, Typography, useMediaQuery, useTheme } from '@mui/material';
+import {
+  BlockRounded,
+  CheckRounded,
+  CloseRounded,
+  MapRounded,
+  VisibilityRounded,
+} from '@mui/icons-material';
+import {
+  doc,
+  getDoc,
+  getDocs,
+  limit,
+  orderBy,
+  query,
+  Timestamp,
+  updateDoc,
+} from 'firebase/firestore';
 import { LoaderFunctionArgs, useLoaderData, useNavigate } from 'react-router-dom';
 import {
   GridActionsCellItem,
   GridColDef,
-  // GridColumns,
   GridRowId,
+  GridRowModel,
   GridRowParams,
 } from '@mui/x-data-grid';
-import ReactJson from '@microlink/react-json-view';
 
 import { ADMIN_ROUTES, createPath } from 'router';
 import { BasicDataGrid, ConfirmationDialog } from 'components';
@@ -18,13 +32,53 @@ import {
   formatFirestoreTimestamp,
   formatGridFirestoreTimestamp,
   formatGridFirestoreTimestampAsDate,
+  isCurrentDateBetween,
 } from 'modules/utils/helpers';
-import { renderChips } from 'components/RenderGridCellHelpers';
-import { FIPSDetails, moratoriumsCollection, MoratoriumWithId } from 'common';
+import { GridCellCopy, renderChips } from 'components/RenderGridCellHelpers';
+import { FIPSDetails, Moratorium, moratoriumsCollection, MoratoriumWithId } from 'common';
 import { useConfirmation } from 'modules/components/ConfirmationService';
 import { DeckMap, defaultGeoJsonLayerProps } from 'elements';
 import countiesData from 'assets/counties_20m.json';
 import { GeoJsonLayer } from 'deck.gl/typed';
+import { useAsyncToast, useJsonDialog } from 'hooks';
+
+const useUpdateMoratorium = () => {
+  const update = useCallback(async (id: string, updateValues: Partial<Moratorium>) => {
+    const ref = doc(moratoriumsCollection, id); // @ts-ignore
+    await updateDoc(ref, { ...updateValues, 'metadata.updated': Timestamp.now() });
+
+    const snap = await getDoc(ref);
+
+    return { ...snap.data(), id: snap.id };
+  }, []);
+
+  return update;
+};
+
+const getMutationMsg = (
+  newVals: GridRowModel<MoratoriumWithId>,
+  old: GridRowModel<MoratoriumWithId>
+) => {
+  let changeItems = [];
+  if (newVals.effectiveDate !== old.effectiveDate) {
+    changeItems.push(
+      `"effectiveDate" from ${formatFirestoreTimestamp(
+        old.effectiveDate,
+        'date'
+      )} to ${formatFirestoreTimestamp(newVals.effectiveDate, 'date')}`
+    );
+  }
+  if (newVals.expirationDate !== old.expirationDate) {
+    const oldDisplay = old.expirationDate
+      ? formatFirestoreTimestamp(old.expirationDate, 'date')
+      : 'null';
+    const newDisplay = newVals.expirationDate
+      ? formatFirestoreTimestamp(newVals.expirationDate, 'date')
+      : 'null';
+    changeItems.push(`"expirationDate" from ${oldDisplay} to ${newDisplay}`);
+  }
+  return changeItems;
+};
 
 export const moratoriumsLoader = async ({ params }: LoaderFunctionArgs) => {
   try {
@@ -41,7 +95,11 @@ export const Moratoriums: React.FC = () => {
   const navigate = useNavigate();
   const modal = useConfirmation();
   const theme = useTheme();
+  const dialog = useJsonDialog();
   const data = useLoaderData() as MoratoriumWithId[];
+  const updateMoratorium = useUpdateMoratorium();
+  const toast = useAsyncToast();
+  let fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
   // TODO: create ActiveCountiesMap ??
 
   const showDetails = useCallback(
@@ -49,31 +107,9 @@ export const Moratoriums: React.FC = () => {
       const d = data.find((m) => m.id === id);
       if (!d) return;
 
-      modal({
-        variant: 'info',
-        title: 'SpatialKey Data',
-        catchOnCancel: false,
-        component: (
-          <ConfirmationDialog
-            onAccept={() => {}}
-            onClose={() => {}}
-            open={false}
-            dialogProps={{ maxWidth: 'md' }}
-            dialogContentProps={{ dividers: true }}
-          >
-            <ReactJson
-              src={d}
-              theme={theme.palette.mode === 'dark' ? 'tomorrow' : 'rjv-default'}
-              style={{ background: 'transparent' }}
-              iconStyle='circle'
-              enableClipboard
-              collapseStringsAfterLength={30}
-            />
-          </ConfirmationDialog>
-        ),
-      });
+      await dialog(d, `Moratorium ${id}`);
     },
-    [modal, theme, data]
+    [dialog, data]
   );
 
   const showMap = useCallback(
@@ -153,28 +189,56 @@ export const Moratoriums: React.FC = () => {
         width: 100,
         getActions: (params: GridRowParams) => [
           <GridActionsCellItem
-            icon={<VisibilityRounded />}
+            icon={
+              <Tooltip title='view all data' placement='top'>
+                <VisibilityRounded />
+              </Tooltip>
+            }
             onClick={showDetails(params.id)}
             label='View Counties'
           />,
           <GridActionsCellItem
-            icon={<MapRounded />}
+            icon={
+              <Tooltip title='show map' placement='top'>
+                <MapRounded />
+              </Tooltip>
+            }
             onClick={showMap(params.id)}
             label='Show Map'
           />,
           <GridActionsCellItem
-            icon={<BlockRounded />}
+            icon={
+              <Tooltip title='deactivate' placement='top'>
+                <BlockRounded />
+              </Tooltip>
+            }
             onClick={deactivate(params.id)}
             label='Deactivate'
           />,
         ],
       },
       {
-        field: 'id',
-        headerName: 'Doc ID',
-        minWidth: 160,
-        flex: 0.6,
+        field: 'active',
+        headerName: 'Active',
+        type: 'boolean',
+        description:
+          'Current date is after effective date (if exists) and before expiration (if exists)',
+        minWidth: 80,
+        flex: 0.5,
+        headerAlign: 'center',
+        align: 'center',
         editable: false,
+        valueGetter: (params) =>
+          isCurrentDateBetween(
+            params.row.effectiveDate?.toDate(),
+            params.row.expirationDate?.toDate()
+          ),
+        renderCell: (params) => {
+          const isActive = !!params.value;
+
+          if (isActive) return <CheckRounded color='success' fontSize='small' />;
+          return <CloseRounded color='disabled' fontSize='small' />;
+        },
       },
       {
         field: 'locations',
@@ -199,9 +263,12 @@ export const Moratoriums: React.FC = () => {
       {
         field: 'count',
         headerName: 'Count',
+        description: 'Total count of counties included in moratorium',
         minWidth: 100,
         flex: 1,
         editable: false,
+        headerAlign: 'center',
+        align: 'right',
         valueGetter: (params) => params.row.locations.length || null,
       },
       {
@@ -209,8 +276,14 @@ export const Moratoriums: React.FC = () => {
         headerName: 'Effective Date',
         minWidth: 160,
         flex: 0.6,
-        editable: false,
+        type: 'date',
+        editable: true,
         valueGetter: (params) => params.row.effectiveDate || null,
+        valueSetter: (params) => {
+          let newVal =
+            params.value instanceof Date ? Timestamp.fromDate(params.value) : params.value;
+          return { ...params.row, effectiveDate: newVal };
+        },
         valueFormatter: formatGridFirestoreTimestampAsDate,
       },
       {
@@ -218,31 +291,104 @@ export const Moratoriums: React.FC = () => {
         headerName: 'Expiration Date',
         minWidth: 160,
         flex: 0.6,
-        editable: false,
+        type: 'date',
+        editable: true,
+        // preProcessEditCellProps: (params: GridPreProcessEditCellProps) => {
+        //   // const hasError = params.props.value.length < 3;
+        //   return { ...params.props, error: false }; // hasError };
+        // },
         valueGetter: (params) => params.row.expirationDate || null,
+        valueSetter: (params) => {
+          let newVal =
+            params.value instanceof Date ? Timestamp.fromDate(params.value) : params.value;
+          return { ...params.row, expirationDate: newVal };
+        },
         valueFormatter: formatGridFirestoreTimestampAsDate,
       },
-
       {
-        field: 'metadata.created',
+        field: 'created',
         headerName: 'Created',
-        minWidth: 160,
+        minWidth: 180,
         flex: 0.6,
         editable: false,
         valueGetter: (params) => params.row.metadata.created || null,
         valueFormatter: formatGridFirestoreTimestamp,
       },
       {
-        field: 'metadata.updated',
+        field: 'updated',
         headerName: 'Updated',
-        minWidth: 160,
+        minWidth: 180,
         flex: 0.6,
         editable: false,
         valueGetter: (params) => params.row.metadata.updated || null,
         valueFormatter: formatGridFirestoreTimestamp,
       },
+      {
+        field: 'id',
+        headerName: 'Doc ID',
+        minWidth: 180,
+        flex: 0.6,
+        editable: false,
+        renderCell: (params) => {
+          return <GridCellCopy value={params.value} />;
+        },
+      },
     ],
     [showDetails, showMap, deactivate]
+  );
+
+  const processRowUpdate = useCallback(
+    async (newRow: GridRowModel<MoratoriumWithId>, oldRow: GridRowModel<MoratoriumWithId>) => {
+      // TODO: get diff fields / values and show in confirmation
+      // https://mui.com/x/react-data-grid/editing/#ask-for-confirmation-before-saving
+      const mutationItems = getMutationMsg(newRow, oldRow);
+
+      try {
+        await modal({
+          variant: 'danger',
+          catchOnCancel: true,
+          title: 'Are you sure?',
+          description: (
+            <>
+              <Typography variant='body2' color='text.secondary'>
+                You are about to make the following changes:
+              </Typography>
+              <ul>
+                {mutationItems.map((i) => (
+                  <li key={i}>
+                    <Typography variant='body2' color='text.secondary'>
+                      {i}
+                    </Typography>
+                  </li>
+                ))}
+              </ul>
+            </>
+          ),
+          confirmButtonText: 'Confirm',
+          dialogContentProps: { dividers: true },
+          dialogProps: { fullScreen },
+        });
+        toast.loading('saving...');
+        const res = await updateMoratorium(newRow.id, {
+          effectiveDate: newRow.effectiveDate,
+          expirationDate: newRow.expirationDate,
+        });
+
+        toast.success(`Saved!`);
+        return res;
+      } catch (err) {
+        return oldRow;
+      }
+    },
+    [updateMoratorium, toast, modal, fullScreen]
+  );
+
+  const handleProcessRowUpdateError = useCallback(
+    (err: Error) => {
+      toast.error('update failed');
+      console.log('ERROR: ', err);
+    },
+    [toast]
   );
 
   return (
@@ -273,6 +419,9 @@ export const Moratoriums: React.FC = () => {
             // pagination: { paginationModel: { pageSize: 5 } },
             pagination: { pageSize: 10 },
           }}
+          processRowUpdate={processRowUpdate}
+          onProcessRowUpdateError={handleProcessRowUpdateError}
+          experimentalFeatures={{ newEditingApi: true }}
         />
       </Box>
     </Box>

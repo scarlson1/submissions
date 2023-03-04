@@ -100,7 +100,7 @@ const addPaymentMethodValidation = yup.object().shape({
   }),
 });
 
-const Transition = React.forwardRef(function Transition(
+export const Transition = React.forwardRef(function Transition(
   props: TransitionProps & {
     children: React.ReactElement;
   },
@@ -131,7 +131,21 @@ export interface AddPaymentDialogProps {
   containerProps?: BoxProps;
 }
 
-const DEFAULT_INITIAL_VALUES: AddPaymentMethodValues = {
+const PROD_INITIAL_VALUES: AddPaymentMethodValues = {
+  payerName: '',
+  payerEmail: '',
+  accountHolder: '',
+  cardNumber: '',
+  cardExpDate: '',
+  cvc: '',
+  postalCode: '',
+  accountType: 'PersonalChecking',
+  routingNumber: '',
+  accountNumber: '',
+  cardPaymentMethod: true,
+};
+
+const DEV_INITIAL_VALUES: AddPaymentMethodValues = {
   payerName: 'Foo Bar',
   payerEmail: 'foobar@example.com',
   accountHolder: '',
@@ -144,6 +158,8 @@ const DEFAULT_INITIAL_VALUES: AddPaymentMethodValues = {
   accountNumber: '12345678',
   cardPaymentMethod: true,
 };
+const DEFAULT_INITIAL_VALUES =
+  process.env.REACT_APP_DEV === 'true' ? DEV_INITIAL_VALUES : PROD_INITIAL_VALUES;
 
 export const AddPaymentDialog: React.FC<AddPaymentDialogProps> = ({
   cb,
@@ -157,7 +173,7 @@ export const AddPaymentDialog: React.FC<AddPaymentDialogProps> = ({
   const [open, setOpen] = useState(false);
   const formikRef = useRef<FormikProps<AddPaymentMethodValues>>(null);
   const theme = useTheme();
-  let fullScreen = useMediaQuery(theme.breakpoints.down('xs'));
+  let fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
   const handleOpen = useCallback(() => {
     setOpen(true);
@@ -227,19 +243,32 @@ export const AddPaymentDialog: React.FC<AddPaymentDialogProps> = ({
             dirty,
           }: FormikProps<AddPaymentMethodValues>) => (
             <Form>
-              <DialogTitle>
-                Add Payment Method
+              <DialogTitle sx={{ display: 'flex', alignItems: 'center' }} component='div'>
+                <Typography sx={{ ml: 2, flex: 1 }} variant='h6' component='div'>
+                  Add Payment Method
+                </Typography>
+                <LoadingButton
+                  disabled={!dirty || !isValid}
+                  loading={isSubmitting || isValidating}
+                  variant='contained'
+                  type='submit'
+                  sx={{ display: { xs: 'inline-flex', sm: 'none' } }}
+                >
+                  save
+                </LoadingButton>
                 <IconButton
                   aria-label='close'
                   onClick={handleClose}
+                  size='small'
                   sx={{
-                    position: 'absolute',
-                    right: 8,
-                    top: 8,
+                    // position: 'absolute',
+                    // right: 8,
+                    // top: 8,
+                    ml: 3,
                     color: (theme) => theme.palette.grey[500],
                   }}
                 >
-                  <CloseRounded />
+                  <CloseRounded fontSize='inherit' />
                 </IconButton>
               </DialogTitle>
               <DialogContent dividers>
@@ -297,7 +326,7 @@ export const AddPaymentDialog: React.FC<AddPaymentDialogProps> = ({
                   </TabPanel>
                 </TabContext>
               </DialogContent>
-              <DialogActions>
+              <DialogActions sx={{ display: { xs: 'none', sm: 'flex' } }}>
                 <Button
                   onClick={handleClose}
                   // onClick={() => {

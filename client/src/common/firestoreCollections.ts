@@ -19,6 +19,7 @@ import {
   ActiveStates,
   SubmissionQuoteData,
   PaymentMethod,
+  Charge,
 } from './types';
 import { db } from 'firebaseConfig';
 
@@ -46,6 +47,7 @@ export const moratoriumsCollection = createCollection<Moratorium>(COLLECTIONS.MO
 export const agencyAppCollection = createCollection<AgencyApplication>(
   COLLECTIONS.AGENCY_APPLICATIONS
 );
+export const transactionsCollection = createCollection<Charge>(COLLECTIONS.TRANSACTIONS);
 
 // SUB COLLECTIONS
 export const userClaimsCollection = (orgId: string) =>

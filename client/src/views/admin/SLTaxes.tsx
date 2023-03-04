@@ -12,9 +12,11 @@ import {
   formatGridFirestoreTimestamp,
   formatGridFirestoreTimestampAsDate,
   formatGridPercent,
+  isCurrentDateBetween,
 } from 'modules/utils/helpers';
 import { createPath, ADMIN_ROUTES } from 'router';
 import { renderChips } from 'components/RenderGridCellHelpers';
+import { CheckRounded, CloseRounded } from '@mui/icons-material';
 
 export const adminTaxLoader = async ({ params }: LoaderFunctionArgs) => {
   try {
@@ -54,6 +56,24 @@ const taxColumns: GridColDef[] = [
     editable: false,
   },
   {
+    field: 'active',
+    headerName: 'Active',
+    description: 'Current date is after effective date and before expiration (if exists)',
+    minWidth: 80,
+    flex: 0.5,
+    headerAlign: 'center',
+    align: 'center',
+    editable: false,
+    valueGetter: (params) =>
+      isCurrentDateBetween(params.row.effectiveDate?.toDate(), params.row.expirationDate?.toDate()),
+    renderCell: (params) => {
+      const isActive = !!params.value;
+
+      if (isActive) return <CheckRounded color='success' fontSize='small' />;
+      return <CloseRounded color='disabled' fontSize='small' />;
+    },
+  },
+  {
     field: 'effectiveDate',
     headerName: 'Effective Date',
     minWidth: 160,
@@ -74,8 +94,12 @@ const taxColumns: GridColDef[] = [
   {
     field: 'rate',
     headerName: 'Rate',
+    description:
+      'Percentage rate (0.01 = 1%) applied to the sum of the fields in subject base, or a fixed rate for fixed dollar taxes',
     minWidth: 80,
     flex: 0.6,
+    headerAlign: 'center',
+    align: 'right',
     editable: false,
     valueGetter: (params) => params.row.rate || null,
     valueFormatter: (params: GridValueFormatterParams<number>) => {
@@ -128,6 +152,8 @@ const taxColumns: GridColDef[] = [
     headerName: 'Base Digits',
     minWidth: 100,
     flex: 0.6,
+    headerAlign: 'center',
+    align: 'right',
     editable: false,
   },
   {
@@ -142,6 +168,8 @@ const taxColumns: GridColDef[] = [
     headerName: 'Result Round',
     minWidth: 100,
     flex: 0.6,
+    headerAlign: 'center',
+    align: 'right',
     editable: false,
   },
   {

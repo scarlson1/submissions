@@ -3,7 +3,7 @@ import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { defineSecret } from 'firebase-functions/params';
 
 import { getEPayInstance } from '../services';
-import { paymentMethodsCollection } from '../common';
+import { EPayVerifiedResponse, PaymentMethod, paymentMethodsCollection } from '../common';
 
 const ePayCreds = defineSecret('ENCODED_EPAY_AUTH');
 
@@ -16,7 +16,7 @@ export const verifyEPayToken = functions
   .https.onCall(async (data, context) => {
     console.log('data: ', data);
     const db = getFirestore();
-    const { tokenId, accountHolder } = data;
+    const { tokenId, accountHolder, expiration } = data;
     const userId = context.auth?.uid;
 
     if (!tokenId || typeof tokenId !== 'string' || tokenId.length === 0) {
@@ -35,32 +35,47 @@ export const verifyEPayToken = functions
     const ePayInstance = await getEPayInstance(ePayCreds);
 
     try {
-      let { data: methodDetails } = await ePayInstance.get(`/api/v1/tokens/${tokenId}`);
+      let { data: methodDetails } = await ePayInstance.get<EPayVerifiedResponse>(
+        `/api/v1/tokens/${tokenId}`
+      );
       console.log('METHOD DETAILS: ', methodDetails);
-
-      methodDetails.type = methodDetails.transactionType === 'Ach' ? 'bank_account' : 'card';
-      methodDetails.last4 = methodDetails.maskedAccountNumber.substr(-4, 4);
-
-      let res = {
+      const paymentMethodDetails: PaymentMethod = {
         ...methodDetails,
+        type: methodDetails.transactionType === 'Ach' ? 'bank_account' : 'card',
+        last4: methodDetails.maskedAccountNumber.substr(-4, 4),
+        maskedAccountNumber: methodDetails.maskedAccountNumber.replaceAll('X', '*'),
         accountHolder,
         userId: userId || null,
+        expiration: expiration ?? null,
+        metadata: {
+          created: Timestamp.now(),
+          updated: Timestamp.now(),
+        },
       };
+
+      // paymentDetails.type = methodDetails.transactionType === 'Ach' ? 'bank_account' : 'card';
+      // paymentDetails.last4 = methodDetails.maskedAccountNumber.substr(-4, 4);
+      // paymentDetails.maskedAccountNumber = methodDetails.maskedAccountNumber.replaceAll('X', '*');
+
+      // let res: PaymentMethod = {
+      //   ...paymentDetails,
+      //   accountHolder,
+      //   userId: userId || null,
+      // };
+
+      let paymentMethodDocId = null;
 
       if (userId) {
         const pmtRef = paymentMethodsCollection(db, userId).doc(tokenId);
 
         await pmtRef.set({
-          ...res,
-          metadata: {
-            created: Timestamp.now(),
-          },
+          ...paymentMethodDetails,
         });
 
-        res.paymentMethodDocId = pmtRef.id;
+        paymentMethodDocId = pmtRef.id;
       }
 
-      return res;
+      return { ...paymentMethodDetails, paymentMethodDocId };
     } catch (err) {
       console.log('ERROR: ', err);
       return err;
