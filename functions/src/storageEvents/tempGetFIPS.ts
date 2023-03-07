@@ -6,14 +6,11 @@ import os from 'os';
 import fs from 'fs';
 import { format, parse } from 'fast-csv';
 import { snakeCase, find } from 'lodash';
-import axios from 'axios';
+// import axios from 'axios';
 import { featureEach } from '@turf/meta';
 import { FeatureCollection, point, booleanPointInPolygon, polygon, Position } from '@turf/turf';
 
-//  addressObj: AddressComponent[],
-// addressType: AddressComponentType
-
-import { FIPS } from '../common/fips';
+// import { FIPS } from '../common/fips';
 import countiesJson from '../assets/counties_20m.json';
 
 const googleGeoKey = defineSecret('GOOGLE_BACKEND_GEO_KEY');
@@ -24,7 +21,7 @@ export const findAddressValueByType = (addressObj: any[], addressType: any) => {
   });
 };
 
-const PORTFOLIO_UPLOAD_FOLDER = 'temp';
+const PORTFOLIO_UPLOAD_FOLDER = 'portfolio-fips';
 
 export const tempGetFIPS = functions
   .runWith({ secrets: [googleGeoKey] })
@@ -37,11 +34,14 @@ export const tempGetFIPS = functions
     const metageneration = object.metageneration;
     console.log('FILE UPLOAD DETECTED: ', fileName);
 
-    if (
-      !object.name?.startsWith(`${PORTFOLIO_UPLOAD_FOLDER}/`) ||
-      fileName.startsWith('processed') ||
-      fileName.startsWith('sr')
-    ) {
+    if (!object.name?.startsWith(`${PORTFOLIO_UPLOAD_FOLDER}/`)) {
+      functions.logger.log(
+        `Ignoring upload "${object.name}" because is not in the "/${PORTFOLIO_UPLOAD_FOLDER}/*" folder.`
+      );
+      return null;
+    }
+
+    if (fileName.startsWith('processed') || fileName.startsWith('sr')) {
       functions.logger.log(`Ignoring upload "${object.name}" because it was already processed.`);
       return null;
     }
@@ -85,8 +85,11 @@ export const tempGetFIPS = functions
         fs.unlinkSync(tempFilePath);
 
         try {
-          await handleParsed(dataArray);
-          await handleParsed2(dataArray);
+          // get county & fips using reverse geocode
+          // await handleParsedGeocode(dataArray);
+
+          // get county & fips using counties GeoJson
+          await handleParsedGeoJson(dataArray);
         } catch (err) {
           console.log('ERROR: ', err);
         }
@@ -94,122 +97,22 @@ export const tempGetFIPS = functions
         return;
       });
 
-    // async function reverseGeocodeForCounty(latitude: string | number, longitude: string | number) {
-    //   try {
-    //     const googleGeoKey = process.env.GOOGLE_BACKEND_GEO_KEY;
-    //     if (!googleGeoKey) throw new Error('missing google api key')
-
-    //     const { data } = await axios.get(
-    //       `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&result_type=street_address&key=${googleGeoKey}`
-    //     );
-    //     console.log('GEOCODE RES: ', data);
-    //     const { address_components } = data.results[0];
-
-    //     const newCounty = findAddressValueByType(address_components, 'administrative_area_level_2');
-
-    //     return `${newCounty?.long_name || ''}`;
-    //   } catch (err) {
-    //     return ''
-    //   }
-    // }
-
-    async function handleParsed(data: any[]) {
-      try {
-        let counties = await getCountyNames(data);
-
-        if (data.length !== counties.length) {
-          console.log('COUNTY COUNT NOT THE SAME AS ROW COUNT - RETURNING EARLY');
-          throw new Error(
-            'County count not same as row count. Cannot merge without risk if data mismatch'
-          );
-        }
-
-        let merged = data.map((r, i) => {
-          const countyName = counties[i];
-
-          const fips = getFIPS(countyName, r.state);
-          console.log('FIPS: ', fips);
-
-          return { ...r, countyName, fips };
-        });
-
-        return writeToStorage(merged, fileName);
-      } catch (err) {
-        throw err;
-      }
-    }
-
-    function handleParsed2(data: any[]) {
+    function handleParsedGeoJson(data: any[]) {
       let dataWithCounties = data.map((r) => {
-        let countyName = '';
+        let county_name = '';
         let fips = '';
         let matchProperties = getCountyFromGeoJson(parseFloat(r.latitude), parseFloat(r.longitude));
-        console.log('RETURNED MATCH PROPERTIES: ', matchProperties);
+        // console.log('RETURNED MATCH PROPERTIES: ', matchProperties);
 
         if (matchProperties) {
           // @ts-ignore
-          countyName = matchProperties.NAME; // @ts-ignore
+          county_name = matchProperties.NAME; // @ts-ignore
           fips = matchProperties.GEOID;
         }
-        console.log('COUNTY NAME: ', countyName);
-        console.log('FIPS 2: ', fips);
-        return { ...r, countyName, fips };
+        return { ...r, county_name, fips };
       });
 
       return writeToStorage(dataWithCounties, `GEOJSON_${fileName}`);
-    }
-
-    async function getCountyNames(data: any[]) {
-      let promises: any[] = [];
-      // data.forEach((r) => promises.push(getReverseGeocodePromise(r.latitude, r.longitude)));
-      data.forEach((r) => promises.push(getReverseGeocodePromise2(r.zip)));
-
-      let results = await Promise.all(promises);
-      results.forEach((result) => console.log('DATA: ', result.data));
-
-      let counties = results.map((r) => {
-        // TODO: fall back to geojson if not found ??
-        if (!r.data?.results[0]) return '';
-        // const { components } = r.data?.results[0];
-
-        // console.log('COMPONENTS: ', components);
-        // return components?.county || '';
-        const { address_components } = r.data?.results[0];
-
-        const newCounty = findAddressValueByType(address_components, 'administrative_area_level_2');
-
-        console.log('ADDRESS COMPONENTS: ', JSON.stringify(address_components));
-        console.log('COUNTY COMPONENT: ', newCounty);
-
-        return `${newCounty?.long_name || ''}`;
-      });
-
-      return counties;
-    }
-
-    // function getReverseGeocodePromise(latitude: string | number, longitude: string | number) {
-    //   // return axios.get(
-    //   //   `https://api.opencagedata.com/geocode/v1/json?q=${latitude}+${longitude}&key=6409eb7a23824de682e6244cbe0d042b`
-    //   // );
-    //   return axios.get(
-    //     `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&result_type=administrative_area_level_2&key=${googleGeoKey}`
-    //   );
-    //   // &result_type=street_address
-    // }
-    function getReverseGeocodePromise2(postal: string) {
-      return axios.get(
-        `https://maps.googleapis.com/maps/api/geocode/json?address=${postal}&result_type=administrative_area_level_2&key=${googleGeoKey}`
-      );
-    }
-
-    function getFIPS(countyName: string, state: string) {
-      if (!countyName || !state) return '';
-      // const details = FIPS.find((e) => `${e.stateFP}${e.countyFP}` === fips);
-      const details = FIPS.find((e) => e.state === state && e.countyName.includes(countyName));
-      if (!details) return '';
-      console.log('SEARCH TERMS: ', countyName, state);
-      console.log('COUNTY DETAILS: ', details);
-      return `${details.stateFP}${details.countyFP}`;
     }
 
     function getCountyFromGeoJson(latitude: number, longitude: number) {
@@ -242,6 +145,75 @@ export const tempGetFIPS = functions
         .pipe(storageFile.createWriteStream())
         .on('finish', () => console.log(`FINISHED WRITING TO ${storageFile.name}`));
     }
+
+    // async function handleParsedGeocode(data: any[]) {
+    //   try {
+    //     let counties = await getCountyNames(data);
+
+    //     if (data.length !== counties.length) {
+    //       console.log('COUNTY COUNT NOT THE SAME AS ROW COUNT - RETURNING EARLY');
+    //       throw new Error(
+    //         'County count not same as row count. Cannot merge without risk if data mismatch'
+    //       );
+    //     }
+
+    //     let merged = data.map((r, i) => {
+    //       const county_name = counties[i];
+
+    //       const fips = getFIPS(county_name, r.state);
+    //       console.log('FIPS: ', fips);
+
+    //       return { ...r, county_name, fips };
+    //     });
+
+    //     return writeToStorage(merged, fileName);
+    //   } catch (err) {
+    //     throw err;
+    //   }
+    // }
+
+    // async function getCountyNames(data: any[]) {
+    //   let promises: any[] = [];
+    //   data.forEach((r) => promises.push(getReverseGeocodePromise(r.latitude, r.longitude)));
+
+    //   let results = await Promise.all(promises);
+    //   results.forEach((result) => console.log('DATA: ', result.data));
+
+    //   let counties = results.map((r) => {
+    //     // TODO: fall back to geojson if not found ??
+    //     if (!r.data?.results[0]) return '';
+    //     // const { components } = r.data?.results[0];
+
+    //     // console.log('COMPONENTS: ', components);
+    //     // return components?.county || '';
+    //     const { address_components } = r.data?.results[0];
+
+    //     const newCounty = findAddressValueByType(address_components, 'administrative_area_level_2');
+
+    //     console.log('ADDRESS COMPONENTS: ', JSON.stringify(address_components));
+    //     console.log('COUNTY COMPONENT: ', newCounty);
+
+    //     return `${newCounty?.long_name || ''}`;
+    //   });
+
+    //   return counties;
+    // }
+
+    // function getReverseGeocodePromise(latitude: string | number, longitude: string | number) {
+    //   return axios.get(
+    //     `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&result_type=administrative_area_level_2&key=${googleGeoKey}`
+    //   );
+    // }
+    // // `https://api.opencagedata.com/geocode/v1/json?q=${latitude}+${longitude}&key=6409eb7a23824de682e6244cbe0d042b`
+
+    // function getFIPS(countyName: string, state: string) {
+    //   if (!countyName || !state) return '';
+    //   const details = FIPS.find((e) => e.state === state && e.countyName.includes(countyName));
+    //   if (!details) return '';
+    //   console.log('SEARCH TERMS: ', countyName, state);
+    //   console.log('COUNTY DETAILS: ', details);
+    //   return `${details.stateFP}${details.countyFP}`;
+    // }
 
     return;
   });

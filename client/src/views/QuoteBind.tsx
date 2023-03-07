@@ -13,7 +13,6 @@ import {
   Stack,
   Tooltip,
   Typography,
-  TypographyProps,
   useTheme,
 } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2/Grid2';
@@ -44,7 +43,7 @@ import {
   PhoneMask,
   Step,
 } from 'components/forms';
-import { IconButtonMenu } from 'components';
+import { IconButtonMenu, LineItem } from 'components';
 import {
   submissionsQuotesCollection,
   contactValidation,
@@ -58,7 +57,7 @@ import {
 } from 'common';
 import { useBindQuote, useUserPaymentMethods } from 'hooks';
 import { billingValidation, PaymentStep, ContactStep } from 'elements';
-import { addToDate, dollarFormat, dollarFormat2, formatDate } from 'modules/utils/helpers';
+import { addToDate, dollarFormat, formatDate } from 'modules/utils/helpers';
 import { AUTH_ROUTES, ROUTES, createPath } from 'router';
 import { useAuth } from 'modules/components/AuthContext';
 import { Auth } from 'firebase/auth';
@@ -672,53 +671,6 @@ const getPaymentIcon = (pmtType: any, color: any) => {
     default:
       return <MdPayments {...sizeProps} />;
   }
-};
-
-export interface LineItemProps {
-  label: string;
-  value: number;
-  labelTypographyProps?: TypographyProps;
-  valueTypographyProps?: TypographyProps;
-  withDivider?: boolean;
-}
-
-export const LineItem = ({
-  label,
-  value,
-  labelTypographyProps,
-  valueTypographyProps,
-  withDivider = true,
-}: LineItemProps) => {
-  return (
-    <>
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'flex-start',
-          alignItems: 'flex-start',
-          py: 1,
-          px: 3,
-        }}
-      >
-        <Typography
-          variant='body2'
-          color='text.secondary'
-          {...labelTypographyProps}
-          sx={{ flex: '1 0 auto', lineHeight: 1.6, ...labelTypographyProps?.sx }}
-        >
-          {label}
-        </Typography>
-        <Typography
-          variant='subtitle2'
-          {...valueTypographyProps}
-          sx={{ flex: '0 0 auto', lineHeight: 1.6, ...valueTypographyProps?.sx }}
-        >
-          {dollarFormat2(value)}
-        </Typography>
-      </Box>
-      {withDivider && <Divider />}
-    </>
-  );
 };
 
 export const useCardDetails = (id: string) => {

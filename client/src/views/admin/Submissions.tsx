@@ -9,7 +9,7 @@ import {
   GridValueFormatterParams,
   GridValueGetterParams,
 } from '@mui/x-data-grid';
-import { getDocs, query, orderBy, limit } from 'firebase/firestore';
+import { getDocs, query, orderBy, limit, doc, updateDoc, getDoc } from 'firebase/firestore';
 import {
   createSearchParams,
   LoaderFunctionArgs,
@@ -17,6 +17,7 @@ import {
   useNavigate,
 } from 'react-router-dom';
 import {
+  CloseRounded,
   FiberNewRounded,
   FindInPageRounded,
   HourglassBottomRounded,
@@ -35,6 +36,8 @@ import {
   numberFormat,
 } from 'modules/utils/helpers';
 import { ADMIN_ROUTES, createPath } from 'router';
+import { withIdConverter } from 'common/firestoreConverters';
+import { useConfirmAndUpdate } from './Quotes';
 
 export const adminSubmissionsLoader = async ({ params }: LoaderFunctionArgs) => {
   try {
@@ -47,11 +50,34 @@ export const adminSubmissionsLoader = async ({ params }: LoaderFunctionArgs) => 
   }
 };
 
+const useUpdateSubmission = () => {
+  const update = useCallback(async (id: string, updateValues: Partial<Submission>) => {
+    const ref = doc(submissionsCollection, id).withConverter(withIdConverter<Submission>());
+    // TODO: fix nested dot notation typescript complaint https://stackoverflow.com/a/47058976/10887890
+    // https://github.com/googleapis/nodejs-firestore/issues/1448
+    await updateDoc(ref, { status: updateValues.status });
+
+    const snap = await getDoc(ref);
+    const updatedData = snap.data();
+    if (!updatedData) throw new Error('Error updating data');
+
+    return { ...updatedData };
+  }, []);
+
+  return update;
+};
+
 export interface SubmissionsProps {}
 
 export const Submissions: React.FC<SubmissionsProps> = () => {
   const navigate = useNavigate();
   const data = useLoaderData() as WithId<Submission>[];
+  const updateSubmission = useUpdateSubmission();
+  const confirmAndUpdate = useConfirmAndUpdate(updateSubmission);
+  // const modal = useConfirmation();
+  // const theme = useTheme();
+  // let fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
+  // const asyncToast = useAsyncToast();
 
   const handleCreateQuote = useCallback(
     (subId: GridRowId) => () => {
@@ -105,9 +131,19 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
       {
         field: 'status',
         headerName: 'Status',
+        type: 'singleSelect',
+        valueOptions: [
+          SUBMISSION_STATUS.QUOTED,
+          SUBMISSION_STATUS.SUBMITTED,
+          SUBMISSION_STATUS.NOT_ELIGIBLE,
+          SUBMISSION_STATUS.PENDING_INFO,
+          SUBMISSION_STATUS.CANCELLED,
+          SUBMISSION_STATUS.DRAFT,
+        ],
+        editable: true,
         minWidth: 160,
         flex: 0.6,
-        editable: false,
+        disableClickEventBubbling: true,
         renderCell: (params) => (
           <Chip
             label={params.value}
@@ -445,6 +481,50 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
     [handleCreateQuote, openGoogleMaps]
   );
 
+  // const processRowUpdate = useCallback(
+  //   async (newRow: GridRowModel<WithId<Submission>>, oldRow: GridRowModel<WithId<Submission>>) => {
+  //     let changeMsg =
+  //       newRow.status !== oldRow.status
+  //         ? `"status" from ${oldRow.status} to ${newRow.status}`
+  //         : null;
+
+  //     try {
+  //       await modal({
+  //         variant: 'danger',
+  //         catchOnCancel: true,
+  //         title: 'Are you sure?',
+  //         description: (
+  //           <>
+  //             <Typography variant='body2' color='text.secondary' sx={{ pb: 1 }}>
+  //               You are about to make the following changes:
+  //             </Typography>
+  //             <Typography variant='body2'>{changeMsg}</Typography>
+  //           </>
+  //         ),
+  //         confirmButtonText: 'Confirm',
+  //         dialogContentProps: { dividers: true },
+  //         dialogProps: { fullScreen },
+  //       });
+
+  //       asyncToast.loading('saving...');
+  //       const res = await updateSubmission(newRow.id, {
+  //         status: newRow.status,
+  //       });
+
+  //       asyncToast.success(`Saved!`);
+  //       return res;
+  //     } catch (err) {
+  //       return oldRow;
+  //     }
+  //   },
+  //   [updateSubmission, modal, fullScreen, asyncToast]
+  // );
+
+  const handleProcessRowUpdateError = useCallback((err: Error) => {
+    // asyncToast.error('update failed');
+    console.log('ERROR: ', err);
+  }, []);
+
   return (
     <Box>
       <Typography variant='h5' gutterBottom sx={{ ml: { xs: 0, sm: 3, md: 4 } }}>
@@ -456,15 +536,19 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
           columns={submissionColumns}
           density='compact'
           autoHeight
-          onRowClick={(params) => {
-            navigate(
-              createPath({
-                path: ADMIN_ROUTES.SUBMISSION_VIEW,
-                params: { submissionId: params.id.toString() },
-              })
-            );
-            // navigate(`/submissions/${params.id}`);
+          onCellDoubleClick={(params, event) => {
+            if (!params.isEditable) {
+              navigate(
+                createPath({
+                  path: ADMIN_ROUTES.SUBMISSION_VIEW,
+                  params: { submissionId: params.id.toString() },
+                })
+              );
+            }
           }}
+          processRowUpdate={confirmAndUpdate}
+          onProcessRowUpdateError={handleProcessRowUpdateError}
+          experimentalFeatures={{ newEditingApi: true }}
           initialState={{
             columns: {
               columnVisibilityModel: {
@@ -504,9 +588,8 @@ function getChipProps(status: SUBMISSION_STATUS): Partial<ChipProps> {
       return { icon: <HourglassBottomRounded />, color: 'warning' };
     case SUBMISSION_STATUS.QUOTED:
       return { icon: <RequestQuoteRounded />, color: 'success' };
-    case SUBMISSION_STATUS.AWAITING_USER:
-      return { icon: <HourglassBottomRounded />, color: 'default' };
-
+    case SUBMISSION_STATUS.CANCELLED:
+      return { icon: <CloseRounded />, color: 'default' };
     default:
       return { color: 'default' };
   }

@@ -299,6 +299,10 @@ export const BindSuccess: React.FC = () => {
           <Typography variant='h5' align='center' sx={{ my: { xs: 3, md: 4, lg: 5 } }}>
             Thank you!
           </Typography>
+          <Typography variant='body2' color='text.secondary' sx={{ pb: 5 }}>
+            We're excited to have your with us! You will receive email with your policy attached. If
+            you have any questions, please don't hesitate to reach out.
+          </Typography>
           {/* <Typography>
             TODO: transaction amount, status, receipt email, payer, etc. (and insured address, name,
             etc.)

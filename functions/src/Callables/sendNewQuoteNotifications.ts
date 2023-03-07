@@ -35,7 +35,7 @@ export const sendNewQuoteNotifications = functions
       throw new functions.https.HttpsError('failed-precondition', 'Missing Sendgrid api key');
 
     try {
-      const link = `${process.env.HOSTING_BASE_URL}/quotes/${quoteId}/bind`;
+      const link = `${process.env.HOSTING_BASE_URL}/quotes/${quoteId}`;
       await sendNewQuoteEmail(sgKey, link, emails);
 
       return {

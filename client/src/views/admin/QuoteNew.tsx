@@ -205,7 +205,7 @@ export const QuoteNew: React.FC = () => {
 
   const handleSubmit = useCallback(
     async (values: NewQuoteValues, { setSubmitting }: FormikHelpers<NewQuoteValues>) => {
-      await createQuote(values, submissionData.id, submissionData);
+      await createQuote(values, submissionData?.id || null, submissionData);
 
       setSubmitting(false);
     },

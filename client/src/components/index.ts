@@ -22,7 +22,7 @@ export { BasicDataGrid } from './BasicDataGrid';
 export { LoadingSpinner } from './LoadingSpinner';
 export { IconButtonMenu } from './IconButtonMenu';
 // export { TabPanel } from './TabPanel';
-// export {  } from './'
+export { LineItem } from './LineItem';
 // export {  } from './'
 
 export type { ConfirmationDialogProps } from './ConfirmationDialog';
@@ -35,3 +35,4 @@ export type { RequireAuthProps } from './RequireAuth';
 export type { LoadingSpinnerProps } from './LoadingSpinner';
 export type { IconButtonMenuProps } from './IconButtonMenu';
 // export type { TabPanelProps } from './TabPanel';
+export type { LineItemProps } from './LineItem';

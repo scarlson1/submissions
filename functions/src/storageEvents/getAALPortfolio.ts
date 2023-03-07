@@ -30,11 +30,15 @@ export const getAALPortfolio = functions
     const metageneration = object.metageneration;
     console.log('FILE UPLOAD DETECTED: ', fileName);
     // TODO: better filtering to only run on wanted uploads
-    if (
-      !object.name?.startsWith(`${PORTFOLIO_UPLOAD_FOLDER}/`) ||
-      fileName.startsWith('processed') ||
-      fileName.startsWith('sr')
-    ) {
+
+    if (!object.name?.startsWith(`${PORTFOLIO_UPLOAD_FOLDER}/`)) {
+      functions.logger.log(
+        `Ignoring upload "${object.name}" because is not in the "/${PORTFOLIO_UPLOAD_FOLDER}/*" folder.`
+      );
+      return null;
+    }
+
+    if (fileName.startsWith('processed') || fileName.startsWith('sr')) {
       functions.logger.log(`Ignoring upload "${object.name}" because it was already processed.`);
       return null;
     }
@@ -70,16 +74,14 @@ export const getAALPortfolio = functions
         ...data,
         // latitude: parseFloat(data.latitude),
         // longitude: parseFloat(data.longitude),
-        cov_a_rcv: data.cov_a_rcv ? parseInt(getNumber(data.cov_a_rcv)) : '',
+        building_rcv: data.building_rcv ? parseInt(getNumber(data.building_rcv)) : '',
         cov_c_rcv: data.cov_c_rcv ? parseInt(getNumber(data.cov_c_rcv)) : '',
         cov_d_rcv: data.cov_d_rcv ? parseInt(getNumber(data.cov_d_rcv)) : '',
-        rcv_total: data.rcv_total ? parseInt(getNumber(data.rcv_total)) : '',
-        cov_a_limit: data.cov_a_limit ? parseInt(getNumber(data.cov_a_limit)) : '',
+        total_rcv: data.total_rcv ? parseInt(getNumber(data.total_rcv)) : '',
+        building_limit: data.building_limit ? parseInt(getNumber(data.building_limit)) : '',
         cov_c_limit: data.cov_c_limit ? parseInt(getNumber(data.cov_c_limit)) : '',
         cov_d_limit: data.cov_d_limit ? parseInt(getNumber(data.cov_d_limit)) : '',
-        total_coverage_limit: data.total_coverage_limit
-          ? parseInt(getNumber(data.total_coverage_limit))
-          : '',
+        total_limits: data.total_limits ? parseInt(getNumber(data.total_limits)) : '',
         deductible: parseInt(getNumber(data.deductible)) || 3000,
       }))
       .on('error', (err) => {
@@ -162,8 +164,8 @@ export const getAALPortfolio = functions
 
         console.log('MERGED: ', merged);
         return writeToStorage(merged);
-      } catch (err) {
-        console.log('ERROR: ', err);
+      } catch (err: any) {
+        console.log('ERROR: ', err?.response?.data);
         throw err;
       }
     }
@@ -189,11 +191,11 @@ function getSRVars(row: any) {
   return {
     lat: row.latitude,
     lng: row.longitude,
-    rcvTotal: row.rcv_total,
-    rcvAB: row.cov_a_rcv,
+    rcvTotal: row.total_rcv,
+    rcvAB: row.building_rcv, // row.cov_a_rcv,
     rcvC: row.cov_c_rcv,
     rcvD: row.cov_d_rcv,
-    limitAB: row.cov_a_limit,
+    limitAB: row.building_limit, // row.cov_a_limit,
     limitC: row.cov_c_limit,
     limitD: row.cov_d_limit,
     deductible: row.deductible,

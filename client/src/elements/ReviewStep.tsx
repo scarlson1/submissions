@@ -7,6 +7,7 @@ import { LimitKeys } from 'common/types';
 import { dollarFormat } from 'modules/utils/helpers';
 import { FormikCheckbox } from 'components/forms';
 import { useConfirmation } from 'modules/components/ConfirmationService';
+import { FloodStateDisclosure } from './FloodStateDisclosure';
 
 // TODO: generalize component
 
@@ -160,7 +161,19 @@ export const ReviewStep: React.FC = () => {
                     onClick={showDisclosure}
                   >
                     terms and disclosures
-                  </Typography>
+                  </Typography>{' '}
+                  and{' '}
+                  <FloodStateDisclosure
+                    state={values.state}
+                    textProps={{
+                      variant: 'body2',
+                      sx: {
+                        display: 'inline-flex',
+                        fontWeight: 'fontWeightMedium',
+                        '&:hover': { textDecoration: 'underline' },
+                      },
+                    }}
+                  />
                 </Typography>
               }
               checkboxProps={{ size: 'small' }}

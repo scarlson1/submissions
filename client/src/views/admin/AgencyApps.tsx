@@ -223,8 +223,8 @@ export const AgencyApps: React.FC = () => {
           columns={agencyAppColumns}
           density='compact'
           autoHeight
-          onCellClick={handleCellClick}
-          // onRowClick={(params, e, details) => {
+          onCellDoubleClick={handleCellClick}
+          // onRowDoubleClick={(params, e, details) => {
           //   if (e.)
           // navigate(
           //   createPath({

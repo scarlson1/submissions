@@ -16,16 +16,7 @@ import {
   useNavigate,
   Link as RouterLink,
 } from 'react-router-dom';
-import {
-  doc,
-  getDoc,
-  getDocs,
-  limit,
-  orderBy,
-  query,
-  Timestamp,
-  updateDoc,
-} from 'firebase/firestore';
+import { doc, getDoc, getDocs, limit, orderBy, query, updateDoc } from 'firebase/firestore';
 import {
   GridActionsCellItem,
   GridColDef,
@@ -58,6 +49,8 @@ import {
 } from 'modules/utils/helpers';
 import { useAsyncToast, useJsonDialog, useSendQuoteNotification } from 'hooks';
 import { useConfirmation } from 'modules/components/ConfirmationService';
+import { toast } from 'react-hot-toast';
+import { submissionQuoteConverter } from 'common/firestoreConverters';
 
 const getChipProps = (status: QUOTE_STATUS): Partial<ChipProps> => {
   switch (status) {
@@ -93,16 +86,70 @@ export const quotesLoader = async ({ params }: LoaderFunctionArgs) => {
 
 const useUpdateQuote = () => {
   const update = useCallback(async (id: string, updateValues: Partial<SubmissionQuoteData>) => {
-    const ref = doc(submissionsQuotesCollection, id);
-    await updateDoc(ref, { status: updateValues.status, 'metadata.updated': Timestamp.now() });
+    const ref = doc(submissionsQuotesCollection, id).withConverter(submissionQuoteConverter);
+    await updateDoc(ref, { status: updateValues.status }); // , 'metadata.updated': Timestamp.now()
     // await updateDoc(ref, { ...updateValues, 'metadata.updated': Timestamp.now() });
 
     const snap = await getDoc(ref);
+    console.log('updated data: ', snap.data());
 
     return { ...snap.data(), id: snap.id };
   }, []);
 
   return update;
+};
+
+// const useConfirmAndUpdate = (updateFn: <T = any>(id: string, vals: Partial<T>) => Promise<T>) => {
+export const useConfirmAndUpdate = (updateFn: (id: string, vals: Partial<any>) => Promise<any>) => {
+  const modal = useConfirmation();
+  const toast = useAsyncToast();
+  const theme = useTheme();
+  let fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
+
+  const confirm = useCallback(
+    async (
+      newRow: GridRowModel<WithId<SubmissionQuoteData>>,
+      oldRow: GridRowModel<WithId<SubmissionQuoteData>>
+    ) => {
+      let changeMsg =
+        newRow.status !== oldRow.status
+          ? `"status" from ${oldRow.status} to ${newRow.status}`
+          : null;
+
+      try {
+        await modal({
+          variant: 'danger',
+          catchOnCancel: true,
+          title: 'Are you sure?',
+          description: (
+            <>
+              <Typography variant='body2' color='text.secondary'>
+                You are about to make the following changes:
+              </Typography>
+              <Typography>{changeMsg}</Typography>
+            </>
+          ),
+          confirmButtonText: 'Confirm',
+          dialogContentProps: { dividers: true },
+          dialogProps: { fullScreen },
+        });
+
+        toast.loading('saving...');
+        const res = await updateFn(newRow.id, {
+          status: newRow.status,
+        });
+
+        toast.success(`Saved!`);
+        return res;
+      } catch (err) {
+        toast.error('update failed');
+        return oldRow;
+      }
+    },
+    [modal, toast, updateFn, fullScreen]
+  );
+
+  return confirm;
 };
 
 export const Quotes: React.FC = () => {
@@ -111,10 +158,7 @@ export const Quotes: React.FC = () => {
   const dialog = useJsonDialog();
   const sendNotifications = useSendQuoteNotification();
   const updateQuote = useUpdateQuote();
-  const modal = useConfirmation();
-  const toast = useAsyncToast();
-  const theme = useTheme();
-  let fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
+  const confirmAndUpdate = useConfirmAndUpdate(updateQuote);
 
   const showJson = useCallback(
     (params: GridRowParams) => () => {
@@ -150,7 +194,7 @@ export const Quotes: React.FC = () => {
         getActions: (params: GridRowParams) => [
           <GridActionsCellItem
             icon={
-              <Tooltip placement='top' title='Details'>
+              <Tooltip placement='top' title='View Raw JSON'>
                 <VisibilityRounded />
               </Tooltip>
             }
@@ -484,55 +528,10 @@ export const Quotes: React.FC = () => {
     [showJson, editQuote, handleSendNotifications]
   );
 
-  const processRowUpdate = useCallback(
-    async (
-      newRow: GridRowModel<WithId<SubmissionQuoteData>>,
-      oldRow: GridRowModel<WithId<SubmissionQuoteData>>
-    ) => {
-      let changeMsg =
-        newRow.status !== oldRow.status
-          ? `"status" from ${oldRow.status} to ${newRow.status}`
-          : null;
-
-      try {
-        await modal({
-          variant: 'danger',
-          catchOnCancel: true,
-          title: 'Are you sure?',
-          description: (
-            <>
-              <Typography variant='body2' color='text.secondary'>
-                You are about to make the following changes:
-              </Typography>
-              <Typography>{changeMsg}</Typography>
-            </>
-          ),
-          confirmButtonText: 'Confirm',
-          dialogContentProps: { dividers: true },
-          dialogProps: { fullScreen },
-        });
-
-        toast.loading('saving...');
-        const res = await updateQuote(newRow.id, {
-          status: newRow.status,
-        });
-
-        toast.success(`Saved!`);
-        return res;
-      } catch (err) {
-        return oldRow;
-      }
-    },
-    [updateQuote, toast, modal, fullScreen]
-  );
-
-  const handleProcessRowUpdateError = useCallback(
-    (err: Error) => {
-      toast.error('update failed');
-      console.log('ERROR: ', err);
-    },
-    [toast]
-  );
+  const handleProcessRowUpdateError = useCallback((err: Error) => {
+    toast.error('update failed');
+    console.log('ERROR: ', err);
+  }, []);
 
   return (
     <Box>
@@ -555,10 +554,10 @@ export const Quotes: React.FC = () => {
           columns={quoteColumns}
           density='compact'
           autoHeight
-          processRowUpdate={processRowUpdate}
+          processRowUpdate={confirmAndUpdate}
           onProcessRowUpdateError={handleProcessRowUpdateError}
           experimentalFeatures={{ newEditingApi: true }}
-          // onRowClick={(params) => {
+          // onRowDoubleClick={(params) => {
           //   navigate(
           //     createPath({
           //       path: ADMIN_ROUTES.SUBMISSION_VIEW,

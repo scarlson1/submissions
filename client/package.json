@@ -3,6 +3,23 @@
   "version": "0.1.0",
   "private": true,
   "proxy": "http://127.0.0.1:5001",
+  "scripts": {
+    "start": "react-scripts start",
+    "start:emulators": "env-cmd -f ./.env.local env-cmd -e common,dev,emulators --no-override react-scripts start",
+    "build": "react-scripts --max_old_space_size=4096 build",
+    "build:dev:emulators": "env-cmd -e common,dev,emulators npm run build",
+    "build:prod:emulators": "env-cmd -e common,prod,emulators npm run build",
+    "build:dev": "env-cmd -e common,dev npm run build",
+    "build:channel": "env-cmd -e common,dev,staging npm run build",
+    "build:prod": "env-cmd -e common,prod npm run build",
+    "deploy:dev": "npm run use:dev && npm run build:dev && firebase deploy --only hosting",
+    "deploy:prod": "npm run use:prod && npm run build:prod && firebase deploy --only hosting",
+    "deploy:channel:dev": "npm run use:dev && firebase hosting:channel:deploy staging --expires 7d",
+    "use:dev": "firebase use dev",
+    "use:prod": "firebase use prod",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
   "dependencies": {
     "@emotion/react": "^11.10.5",
     "@emotion/styled": "^11.10.5",
@@ -50,22 +67,10 @@
     "web-vitals": "^2.1.4",
     "yup": "^0.32.11"
   },
-  "scripts": {
-    "start": "react-scripts start",
-    "start:emulators": "env-cmd -f ./.env.local env-cmd -e common,dev,emulators --no-override react-scripts start",
-    "build": "react-scripts --max_old_space_size=4096 build",
-    "build:dev:emulators": "env-cmd -e common,dev,emulators npm run build",
-    "build:prod:emulators": "env-cmd -e common,prod,emulators npm run build",
-    "build:dev": "env-cmd -e common,dev npm run build",
-    "build:channel": "env-cmd -e common,dev,staging npm run build",
-    "build:prod": "env-cmd -e common,prod npm run build",
-    "deploy:dev": "npm run use:dev && npm run build:dev && firebase deploy --only hosting",
-    "deploy:prod": "npm run use:prod && npm run build:prod && firebase deploy --only hosting",
-    "deploy:channel:dev": "npm run use:dev && firebase hosting:channel:deploy staging --expires 7d",
-    "use:dev": "firebase use dev",
-    "use:prod": "firebase use prod",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+  "devDependencies": {
+    "@faker-js/faker": "^7.6.0",
+    "@types/autosuggest-highlight": "^3.2.0",
+    "@types/numeral": "^2.0.2"
   },
   "eslintConfig": {
     "extends": [
@@ -87,10 +92,5 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "devDependencies": {
-    "@faker-js/faker": "^7.6.0",
-    "@types/autosuggest-highlight": "^3.2.0",
-    "@types/numeral": "^2.0.2"
   }
 }
