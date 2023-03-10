@@ -5,22 +5,23 @@ import Grid from '@mui/material/Unstable_Grid2';
 import { doc, getDoc } from 'firebase/firestore';
 import { LoaderFunctionArgs, useLoaderData, useNavigate } from 'react-router-dom';
 
-import { policiesCollection } from 'common/firestoreCollections';
-import { ReactComponent as SweetHomeSVG } from 'assets/images/sweet_home.svg';
-import { ReactComponent as BreakingBarriersSVG } from 'assets/images/breaking_barriers.svg';
-import { ReactComponent as RelaxingAtHomeSVG } from 'assets/images/relaxing_at_home.svg';
-import { ReactComponent as ApartmentRentSVG } from 'assets/images/apartment_rent.svg';
+import { policiesCollection, Policy as IPolicy, WithId } from 'common';
 import { FlexCard, FlexCardContent, InputDialog } from 'components';
 import { dollarFormat } from 'modules/utils/helpers';
 import { useConfirmation } from 'modules/components/ConfirmationService';
-import { PolicyWithId } from 'hooks';
 import { createPath, ROUTES } from 'router';
+import {
+  SweetHomeSVG,
+  BreakingBarriersSVG,
+  RelaxingAtHomeSVG,
+  ApartmentRentSVG,
+} from 'assets/images';
 
 export const policyLoader = async ({ params }: LoaderFunctionArgs) => {
   try {
-    const submissionRef = doc(policiesCollection, params.policyId);
+    const policyRef = doc(policiesCollection, params.policyId);
     console.log(`fetching policy: ${params.policyId}`);
-    const snap = await getDoc(submissionRef);
+    const snap = await getDoc(policyRef);
     let data = snap.data();
 
     if (!snap.exists() || !data) {
@@ -35,7 +36,7 @@ export const policyLoader = async ({ params }: LoaderFunctionArgs) => {
 
 export const Policy: React.FC = () => {
   const navigate = useNavigate();
-  const data = useLoaderData() as PolicyWithId;
+  const data = useLoaderData() as WithId<IPolicy>;
   const confirm = useConfirmation();
   console.log('data: ', data);
 
@@ -127,7 +128,10 @@ export const Policy: React.FC = () => {
               theme.palette.background.paper,
               0.55
             )}), url(${
-              theme.palette.mode === 'dark' ? data.darkMapImageURL : data.lightMapImageURL
+              theme.palette.mode === 'dark'
+                ? data.imageUrls?.darkMapImageURL
+                : data.imageUrls?.lightMapImageURL
+              // theme.palette.mode === 'dark' ? data.darkMapImageURL : data.lightMapImageURL
             })`,
           backgroundRepeat: 'no-repeat',
           backgroundPosition: 'center',

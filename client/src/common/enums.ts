@@ -5,6 +5,7 @@ export enum COLLECTIONS {
   RATING_DATA = 'ratingData',
   USERS = 'users',
   POLICIES = 'policies',
+  // POLICIES_TEMP = 'policiesTemp',
   ORGANIZATIONS = 'organizations',
   USER_CLAIMS = 'userClaims',
   INVITES = 'invitations',
@@ -40,12 +41,19 @@ export enum SUBMISSION_STATUS {
   NOT_ELIGIBLE = 'ineligible',
 }
 
+// export enum QUOTE_STATUS {
+//   COMPLETE = 'bound',
+//   PAID = 'paid',
+//   AWAITING_USER = 'awaiting:user',
+//   AWAITING_PAYMENT = 'awaiting:payment',
+//   PROCESSING_PAYMENT = 'processing:payment',
+//   CANCELLED = 'cancelled',
+//   EXPIRED = 'expired',
+// }
 export enum QUOTE_STATUS {
-  COMPLETE = 'bound',
-  PAID = 'paid',
+  DRAFT = 'draft',
   AWAITING_USER = 'awaiting:user',
-  AWAITING_PAYMENT = 'awaiting:payment',
-  PROCESSING_PAYMENT = 'processing:payment',
+  BOUND = 'bound',
   CANCELLED = 'cancelled',
   EXPIRED = 'expired',
 }

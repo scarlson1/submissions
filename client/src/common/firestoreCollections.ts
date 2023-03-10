@@ -36,6 +36,7 @@ export const ratingCollection = createCollection<RatingData>(COLLECTIONS.RATING_
 export const spatialKeyCollection = createCollection<SpatialKeyResponse>(COLLECTIONS.SK_RES);
 export const orgsCollection = createCollection<Organization>(COLLECTIONS.ORGANIZATIONS);
 export const policiesCollection = createCollection<Policy>(COLLECTIONS.POLICIES);
+// export const policiesTempCollection = createCollection<Policy>(COLLECTIONS.POLICIES_TEMP);
 export const usersCollection = createCollection<User>(COLLECTIONS.USERS);
 export const licensesCollection = createCollection<License>(COLLECTIONS.LICENSES);
 export const notifyRegistration = createCollection<NotifyRegistration>(

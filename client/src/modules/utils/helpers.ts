@@ -85,8 +85,8 @@ export const getRedirectPath = (location: Location) => {
     location.state && location.state.redirectPath ? location.state.redirectPath : null;
   let from = location.state?.from?.pathname || '/';
   let redirectPath = redirectProvided || from;
-  console.log('location: ', location);
-  console.log('redirectPath: ', redirectPath);
+  // console.log('location: ', location);
+  // console.log('redirectPath: ', redirectPath);
 
   return redirectPath;
 };

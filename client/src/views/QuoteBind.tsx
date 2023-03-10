@@ -83,12 +83,14 @@ import { toast } from 'react-hot-toast';
 
 //   return { ...data, id: snap.id };
 // };
+
+// CAUSES BUG - CALLING GETAUTH BEFORE INITIALIZING FIREBASE ??
 export const quoteLoader =
   (auth: Auth) =>
   async ({ params }: LoaderFunctionArgs) => {
     const quoteRef = doc(submissionsQuotesCollection, params.quoteId);
-    console.log('auth', auth);
-    console.log('current user ', auth.currentUser?.uid);
+    // console.log('auth', auth);
+    // console.log('current user ', auth.currentUser?.uid);
     const snap = await getDoc(quoteRef);
     let data = snap.data();
     console.log('QUOTE DATA: ', data);
@@ -778,11 +780,11 @@ export function BindReviewStep({ data }: { data: WithId<SubmissionQuoteData> }) 
   const { cardDetails, loading, error } = useCardDetails(values.paymentMethodId);
 
   const total = useMemo(() => {
-    const { quoteTotal, ePayCardFee } = data;
+    const { quoteTotal, cardFee } = data;
     if (!cardDetails || !quoteTotal) return null;
     let t: number = quoteTotal;
-    if (ePayCardFee && typeof ePayCardFee === 'number' && cardDetails.type === 'card') {
-      t += ePayCardFee;
+    if (cardFee && typeof cardFee === 'number' && cardDetails.type === 'card') {
+      t += cardFee;
     }
     return t;
   }, [cardDetails, data]);
@@ -913,7 +915,7 @@ export function BindReviewStep({ data }: { data: WithId<SubmissionQuoteData> }) 
         {cardDetails && cardDetails.type === 'card' && (
           <LineItem
             label='Card processing fees (3.5%)'
-            value={data.ePayCardFee}
+            value={data.cardFee}
             labelTypographyProps={{ sx: { ml: 4 }, fontSize: '0.8rem' }}
             valueTypographyProps={{ fontWeight: 'regular', fontSize: '0.8rem' }}
           />

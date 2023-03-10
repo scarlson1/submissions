@@ -139,7 +139,7 @@ function getFormattedQuote(values: NewQuoteValues): SubmissionQuoteData {
     fees,
     taxes,
     subproducerCommission,
-    ePayCardFee: round(quoteTotal * CARD_FEE_RATE, 2),
+    cardFee: round(quoteTotal * CARD_FEE_RATE, 2),
     quoteTotal, // calculate on server ??
     userId: null,
     insuredFirstName: insuredFirstName ?? null,

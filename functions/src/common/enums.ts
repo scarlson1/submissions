@@ -32,13 +32,18 @@ export enum SUBMISSION_STATUS {
 }
 
 export enum QUOTE_STATUS {
+  DRAFT = 'draft',
   AWAITING_USER = 'awaiting:user',
-  COMPLETE = 'bound',
+  BOUND = 'bound',
+  CANCELLED = 'cancelled',
+  EXPIRED = 'expired',
+}
+
+export enum POLICY_STATUS {
   PAID = 'paid',
   PAYMENT_PROCESSING = 'processing:payment',
   AWAITING_PAYMENT = 'awaiting:payment',
   CANCELLED = 'cancelled',
-  EXPIRED = 'expired',
 }
 
 export enum PRODUCT {
@@ -63,4 +68,13 @@ export enum CLAIMS {
   IDEMAND_USER = 'iDemandUser',
   ORG_ADMIN = 'orgAdmin',
   AGENT = 'agent',
+}
+
+// export enum TRANSACTION_STATUS {
+
+// }
+
+export enum TRANSACTION_TYPE {
+  CHARGE = 'charge',
+  REFUND = 'refund',
 }

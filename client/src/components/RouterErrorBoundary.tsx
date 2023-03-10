@@ -2,10 +2,7 @@ import React from 'react';
 import { Box, Alert, AlertTitle, Container, Typography, Button, Stack } from '@mui/material';
 import { useRouteError, isRouteErrorResponse, useNavigate } from 'react-router-dom';
 
-import { ReactComponent as ServerDownSVG } from 'assets/images/server_down.svg';
-import { ReactComponent as NotFoundSVG } from 'assets/images/page_not_found.svg';
-import { ReactComponent as SecureLoginSVG } from 'assets/images/secure_login.svg';
-import { ReactComponent as SearchingSVG } from 'assets/images/searching.svg';
+import { ServerDownSVG, PageNotFoundSVG, SecureLoginSVG, SearchingSVG } from 'assets/images';
 
 // TODO: tailor error responses using isRouteErrorResponse
 // https://reactrouter.com/en/main/route/error-element
@@ -33,7 +30,7 @@ export const RouterErrorBoundary: React.FC<RouterErrorBoundaryProps> = ({ action
               m: 8,
             }}
           >
-            <NotFoundSVG style={{ width: 'inherit', height: 'inherit', margin: 'auto' }} />
+            <PageNotFoundSVG style={{ width: 'inherit', height: 'inherit', margin: 'auto' }} />
           </Box>
           <Box>
             <Typography variant='h5' gutterBottom sx={{ py: 2 }}>

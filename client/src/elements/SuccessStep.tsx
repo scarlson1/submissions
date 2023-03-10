@@ -262,8 +262,8 @@ export const BindSuccess: React.FC = () => {
   const data = useLoaderData() as WithId<SubmissionQuoteData>;
   const { transaction } = useFetchTransaction(transactionId || '');
 
-  console.log('transaction: ', transaction);
-  console.log('submission data: ', data);
+  // console.log('transaction: ', transaction);
+  // console.log('submission data: ', data);
 
   return (
     <Container maxWidth='xs'>

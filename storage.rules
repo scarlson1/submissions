@@ -1,8 +1,128 @@
 rules_version = '2';
+
+// Request & Resource Evaluation: https://firebase.google.com/docs/storage/security/rules-conditions#request_evaluation
+
+// A read rule can be divided into read and list rules
+// A write rule can be divided into create, update, and delete rules
+
 service firebase.storage {
   match /b/{bucket}/o {
-    match /{allPaths=**} {
-      allow read, write: if true;
+    // match /{allPaths=**} {
+    //   allow read, write: if true;
+    // }
+
+    match /newAgencySubmissions/{filePath=**} {
+      allow get: if isAuthenticated()
+      allow create: if true;
+      allow delete: if isIDemandAdmin()
     }
+
+    match /portfolio-aal/{fileId} {
+      allow read: if isIDemandAdmin();
+      allow write: if isIDemandAdmin() && request.resource.contentType.matches('text/csv')
+    }
+
+    match /portfolio-aal-processed/{fileId} {
+      allow read: if isIDemandAdmin();
+      allow write: if isIDemandAdmin() && request.resource.contentType.matches('text/csv')
+    }
+
+    match /submissions/{submissionId}/{fileName} {
+      allow read: if true;
+      allow write: if isIDemandAdmin() && request.resource.contentType.matches('image/.*')
+    }
+
+    match /policies/{policyId}/{fileName} {
+      // allow read: if request.auth.uid == resource.metadata.userId
+      allow read: if
+        isUserOrAgent(firestore.get(/databases/(default)/documents/policies/$(policyId)))
+        // isUserOrAgent(getDoc(policies/$(policyId)))
+        
+      // TODO: query database to get policy details use userId, agentId instead of metadata
+      allow write: if isIDemandAdmin()
+    }
+
+    match /common/{file=**} {
+      allow read;
+      allow write: if isIDemandAdmin()
+    }
+    match /public/{file=**} {
+      allow read;
+      allow write: if isIDemandAdmin()
+    }
+    match /assets/{file=**} {
+      allow read;
+      allow write: if isIDemandAdmin()
+    }
+
+    match /org/{orgId}/{file=**} {
+      allow read: if isTenantUser(orgId) || isIDemandAdmin()
+      allow create, update: if isTenantUser(orgId) || isIDemandAdmin()
+      allow delete: if isIDemandAdmin()
+    }
+
+    // Only a user can upload their profile picture, but anyone can view it
+    match /users/{userId}/profilePicture.png {
+      allow read
+      allow write: if request.auth.uid == userId;
+    }
+
+    // Allow reads if the group ID in your token matches the file metadata's `owner` property
+    // Allow writes if the group ID is in the user's custom token
+    match /files/{groupId}/{fileName} {
+      allow read: if resource.metadata.owner == request.auth.token.groupId;
+      allow write: if request.auth.token.groupId == groupId;
+    }
+
+    match /users/{club}/files/{fileId} {
+      allow read: if club in
+        firestore.get(/databases/(default)/documents/users/$(request.auth.id)).memberships
+    }
+
+    // only users friends can view
+    match /users/{userId}/photos/{fileId} {
+      allow read: if
+        firestore.exists(/databases/(default)/documents/users/$(userId)/friends/$(request.auth.id))
+    }
+
+    // Validation
+    match /images/{imageId} {
+      // Only allow uploads of any image file that's less than 5MB
+      allow write: if request.resource.size < 5 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*');
+    }
+    
+  }
+
+  function isIDemandAdmin() {
+    return request.auth.token.iDemandAdmin == true
+  }
+
+  function isAuthenticated() {
+    return request.auth != null
+  }
+
+  function isAnonymous() {
+    return request.auth.token.firebase.sign_in_provider == 'anonymous'
+  }
+
+  function isTenantUser(tenantId) {
+    return request.auth.token.firebase.tenant == tenantId
+  }
+
+  function matchesMetadataTenantId() {
+    return request.auth.token.firebase.tenant == resource.metadata.tenantId
+  }
+
+  function signedInOrPublic() {
+      return request.auth.uid != null || resource.data.visibility == 'public';
+    }
+
+  function isUserOrAgent(doc) {
+    return doc.userId == request.auth.uid || doc.agentId == request.auth.uid || (doc.agent && doc.agent.id == request.auth.uid);
+  }
+
+  function getDoc(path) {
+    return firestore.get(/databases/(default)/documents/path)
   }
 }

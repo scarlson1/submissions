@@ -25,7 +25,7 @@ export { useUserPaymentMethods } from './useUserPaymentMethods';
 export { useAsyncToast } from './useAsyncToast';
 export { useJsonDialog, useJsonTheme } from './useJsonDialog';
 export { useSendQuoteNotification } from './useSendQuoteNotification';
-// export {  } from './'
+export { useCreateStorageFiles } from './useCreateStorageFiles';
 // export {  } from './'
 // export {  } from './'
 

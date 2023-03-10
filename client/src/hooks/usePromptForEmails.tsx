@@ -1,30 +1,28 @@
 import { useCallback, useRef } from 'react';
-import { doc, getDoc } from 'firebase/firestore';
 import { Box, Stack } from '@mui/material';
 import { Form, Formik, FormikProps } from 'formik';
 import * as yup from 'yup';
 
-import { emailVal, submissionsQuotesCollection } from 'common';
-import { useConfirmation } from 'modules/components/ConfirmationService';
+import { emailVal } from 'common';
+import { ConfirmationOptions, useConfirmation } from 'modules/components/ConfirmationService';
 import { ConfirmationDialog } from 'components';
 import { FormikSwitch, FormikMultiTextInput } from 'components/forms';
-import { sendNewQuoteNotifications } from 'modules/api/sendNewQuoteNotifications';
 
 const notifyValidation = yup.object().shape({
   notifyInsured: yup
     .boolean()
     .test(
       'at least one',
-      'At least one must be selected to send notification',
-      (value, ctx) => !!value || !!ctx.parent.notifyAgent
+      'At least one must be selected to send notification. Click cancel to exit without sending.',
+      (value, ctx) => !!value || !!ctx.parent.notifyAgent || ctx.parent.alternative.length > 0
     ),
   notifyAgent: yup
     .boolean()
-    .test('at least one', 'At least one must be selected to send notification', (value, ctx) => {
-      let insuredVal = ctx.parent.notifyInsured;
-
-      return !!value || !!insuredVal;
-    }),
+    .test(
+      'at least one',
+      'At least one must be selected to send notification. Click cancel to exit without sending.',
+      (value, ctx) => !!value || !!ctx.parent.notifyInsured || ctx.parent.alternative.length > 0
+    ),
   alternative: yup.array().of(emailVal.notRequired()), //  emailVal.notRequired(),
 });
 
@@ -34,10 +32,7 @@ export interface NotificationEmailValues {
   alternative: string[];
 }
 
-export const useSendQuoteNotification = (
-  onSuccess?: (msg: string) => void,
-  onError?: (err: any, msg: string) => void
-) => {
+export const usePromptForEmails = () => {
   const confirm = useConfirmation();
   const formRef = useRef<FormikProps<NotificationEmailValues>>(null);
 
@@ -62,19 +57,16 @@ export const useSendQuoteNotification = (
     console.log('formSub');
   }, []);
 
-  const handleDialogError = useCallback(
-    async (err: unknown) => {
-      if (onError) onError(err, 'Error submitting form');
-    },
-    [onError]
-  );
+  const handleDialogError = useCallback(async (err: unknown) => {
+    console.log('ERR: ', err);
+  }, []);
 
   const promptForEmails = useCallback(
-    async (docId: string) => {
-      const snap = await getDoc(doc(submissionsQuotesCollection, docId));
-      if (!snap.exists() || !snap.data()) throw new Error(`Cannot find doc with ID ${docId}`);
-      const data = snap.data();
-
+    async (
+      { insuredEmail, agentEmail }: { insuredEmail?: string | null; agentEmail?: string | null },
+      options?: Omit<ConfirmationOptions, 'component' | 'catchOnCancel'>
+    ) => {
+      console.log('PROMPT EMAILS: ', insuredEmail, agentEmail);
       try {
         // TODO: select user type next to the email
         const notificationEmails: NotificationEmailValues | undefined = await confirm({
@@ -85,6 +77,7 @@ export const useSendQuoteNotification = (
           description:
             'Please select the emails to which you would like to deliver the quote, if any.',
           dialogContentProps: { dividers: true },
+          ...options,
           component: (
             <ConfirmationDialog
               open={true}
@@ -97,8 +90,8 @@ export const useSendQuoteNotification = (
               <Box sx={{ py: { xs: 3, sm: 4, md: 5 } }}>
                 <Formik
                   initialValues={{
-                    notifyInsured: Boolean(data.insuredEmail) || false,
-                    notifyAgent: Boolean(data.agentEmail) || false,
+                    notifyInsured: Boolean(insuredEmail) || false,
+                    notifyAgent: Boolean(agentEmail) || false,
                     alternative: [],
                   }}
                   validationSchema={notifyValidation}
@@ -111,14 +104,14 @@ export const useSendQuoteNotification = (
                       <Stack direction='column' spacing={3}>
                         <FormikSwitch
                           name='notifyInsured'
-                          label={`${data.insuredEmail} (insured)`}
-                          disabled={!data.insuredEmail}
+                          label={`${insuredEmail} (insured)`}
+                          disabled={!insuredEmail}
                           formControlLabelProps={{ sx: { ml: 0 } }}
                         />
                         <FormikSwitch
                           name='notifyAgent'
-                          label={`${data.agentEmail} (agent)`}
-                          disabled={!data.agentEmail}
+                          label={`${agentEmail} (agent)`}
+                          disabled={!agentEmail}
                           formControlLabelProps={{ sx: { ml: 0 } }}
                         />
                         <FormikMultiTextInput
@@ -141,48 +134,20 @@ export const useSendQuoteNotification = (
 
         let emails: string[] = [];
         console.log('notification email result: ', notificationEmails);
-        if (!!notificationEmails?.notifyInsured) emails.push(data.insuredEmail || '');
-        if (!!notificationEmails?.notifyAgent) emails.push(data.agentEmail || '');
+        if (!!notificationEmails?.notifyInsured) emails.push(insuredEmail || '');
+        if (!!notificationEmails?.notifyAgent) emails.push(agentEmail || '');
         if (notificationEmails?.alternative && notificationEmails.alternative.length > 0)
           notificationEmails.alternative.forEach((e) => emails.push(e));
 
         console.log('EMAILS: ', emails);
         return emails.filter((i) => i);
       } catch (err) {
-        if (onError) onError({}, 'Email notifications not delivered');
+        console.log('ERR: ', err);
+        return Promise.reject(err);
       }
     },
-    [onError, confirm, formSub, handleDialogSubmit, handleDialogError]
+    [confirm, formSub, handleDialogSubmit, handleDialogError]
   );
 
-  const handleSendNotifications = useCallback(
-    async (docId?: string | null) => {
-      if (!docId) return;
-      try {
-        const emails = await promptForEmails(docId);
-
-        if (emails && emails.length > 0 && Array.isArray(emails)) {
-          try {
-            const { data } = await sendNewQuoteNotifications({ emails, quoteId: docId });
-            console.log('RES: ', data);
-
-            if (onSuccess && data?.emails && data.emails.length > 0) {
-              // data.emails.forEach((e) => onStepSuccess(`Notification sent to ${e}`));
-              if (onSuccess) onSuccess('Email notifications sent!');
-            }
-            return data.emails || [];
-          } catch (err) {
-            throw err;
-          }
-        }
-      } catch (err) {
-        console.log('ERROR: ', err);
-        let msg = 'Notifications not delivered';
-        if (onError) onError(err, msg);
-      }
-    },
-    [onSuccess, onError, promptForEmails]
-  );
-
-  return handleSendNotifications;
+  return promptForEmails;
 };

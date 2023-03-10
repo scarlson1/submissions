@@ -4,8 +4,8 @@ import {
   BlockRounded,
   CheckRounded,
   CloseRounded,
+  DataObjectRounded,
   MapRounded,
-  VisibilityRounded,
 } from '@mui/icons-material';
 import {
   doc,
@@ -25,6 +25,7 @@ import {
   GridRowModel,
   GridRowParams,
 } from '@mui/x-data-grid';
+import { GeoJsonLayer } from 'deck.gl/typed';
 
 import { ADMIN_ROUTES, createPath } from 'router';
 import { BasicDataGrid, ConfirmationDialog } from 'components';
@@ -33,13 +34,12 @@ import {
   formatGridFirestoreTimestamp,
   formatGridFirestoreTimestampAsDate,
   isCurrentDateBetween,
-} from 'modules/utils/helpers';
+} from 'modules/utils';
 import { GridCellCopy, renderChips } from 'components/RenderGridCellHelpers';
 import { FIPSDetails, Moratorium, moratoriumsCollection, MoratoriumWithId } from 'common';
 import { useConfirmation } from 'modules/components/ConfirmationService';
 import { DeckMap, defaultGeoJsonLayerProps } from 'elements';
 import countiesData from 'assets/counties_20m.json';
-import { GeoJsonLayer } from 'deck.gl/typed';
 import { useAsyncToast, useJsonDialog } from 'hooks';
 
 const useUpdateMoratorium = () => {
@@ -191,7 +191,7 @@ export const Moratoriums: React.FC = () => {
           <GridActionsCellItem
             icon={
               <Tooltip title='view all data' placement='top'>
-                <VisibilityRounded />
+                <DataObjectRounded />
               </Tooltip>
             }
             onClick={showDetails(params.id)}

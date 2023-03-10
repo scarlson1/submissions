@@ -114,6 +114,10 @@ export const Header: React.FC<HeaderProps> = () => {
         route: createPath({ path: ADMIN_ROUTES.QUOTES }),
       },
       {
+        title: 'Policies',
+        route: createPath({ path: ADMIN_ROUTES.POLICIES }),
+      },
+      {
         title: 'Taxes',
         route: createPath({ path: ADMIN_ROUTES.SL_TAXES }),
       },

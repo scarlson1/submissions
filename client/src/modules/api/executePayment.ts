@@ -3,7 +3,7 @@ import { httpsCallable } from 'firebase/functions';
 import { functions } from 'firebaseConfig';
 
 export interface ExecutePmtRequest {
-  quoteId: string;
+  policyId: string;
   paymentMethodId: string;
 }
 

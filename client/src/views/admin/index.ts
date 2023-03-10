@@ -11,6 +11,8 @@ export { SLLicenseNew } from './SLLicenseNew';
 export { Licenses, licensesLoader } from './Licenses';
 export { AgencyApp, agencyAppLoader } from './AgencyApp';
 export { AgencyApps, agencyAppsLoader } from './AgencyApps';
+export { PolicyDelivery } from './PolicyDelivery';
+export { Policies } from './Policies';
 
 export type { SubmissionsProps } from './Submissions';
 export type { SLTaxesProps } from './SLTaxes';

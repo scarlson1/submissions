@@ -6,3 +6,5 @@ export { verifyEPayToken } from './verifyEPayToken';
 export { assignQuote } from './assignQuote';
 export { sendNewQuoteNotifications } from './sendNewQuoteNotifications';
 export { executePayment } from './executePayment';
+export { sendPolicyDoc } from './sendPolicyDoc';
+export { createPolicy } from './createPolicy';

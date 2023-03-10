@@ -119,7 +119,6 @@ export const SLTaxNew: React.FC<SLTaxNewProps> = () => {
 
   const handleSubmit = useCallback(
     async (values: NewTaxValues, { setSubmitting, setFieldError }: FormikHelpers<NewTaxValues>) => {
-      console.log('VALUES: ', values);
       try {
         const isFixedRate = values.subjectBase[0] === 'fixedFee';
         const rate = isFixedRate ? values.fixedRate : parseFloat(getNumber(values.rate)) / 100;
@@ -127,7 +126,6 @@ export const SLTaxNew: React.FC<SLTaxNewProps> = () => {
           setFieldError('fixedRate', 'Missing rate');
           return setSubmitting(false);
         }
-        console.log('rate: ', rate);
         const effTimestamp = Timestamp.fromDate(values.effectiveDate);
         const expTimestamp = values.expirationDate
           ? Timestamp.fromDate(values.expirationDate)

@@ -1,4 +1,4 @@
-import sgMail from '@sendgrid/mail';
+import sgMail, { MailDataRequired } from '@sendgrid/mail';
 
 import {
   submissionReceived,
@@ -9,13 +9,39 @@ import {
   newQuote,
 } from './templates';
 
+export interface AttachmentJSON {
+  content: string;
+  filename: string;
+  type?: string;
+  disposition?: string;
+  content_id?: string;
+}
+
 export interface CreateMsgContentProps {
   to: string | string[];
   subject: string;
   html: string;
+  attachments?: AttachmentJSON[];
 }
 
-const createMsgContent = ({ to, subject, html }: CreateMsgContentProps) => {
+// pathToAttachment = `${__dirname}/attachment.pdf`;
+// attachment = fs.readFileSync(pathToAttachment).toString('base64');
+
+// attachments: [
+//   {
+//     content: attachment,
+//     filename: 'attachment.pdf',
+//     type: 'application/pdf',
+//     disposition: 'attachment',
+//   },
+// ];
+
+const createMsgContent = ({
+  to,
+  subject,
+  html,
+  attachments,
+}: CreateMsgContentProps): MailDataRequired => {
   // if (process.env.AUDIENCE === 'LOCAL HUMANS') {
   //   to = 'spencercarlson@mac.com';
   // }
@@ -24,6 +50,7 @@ const createMsgContent = ({ to, subject, html }: CreateMsgContentProps) => {
     from: 'Hello@idemandinsurance.com',
     subject,
     html,
+    attachments,
   };
 };
 
@@ -104,4 +131,19 @@ export const sendNewQuoteEmail = async (
   sgMail.setApiKey(key);
 
   await sgMail.send(createMsgContent({ html, subject: `Here's your quote!`, to }));
+};
+
+export const sendPolicyDocDelivery = async (
+  sgKey: string,
+  to: string | string[],
+  attachments: AttachmentJSON[],
+  link: string
+) => {
+  // const html = newQuote({ link, toName, addressLine1 }); TODO: policy doc delivery template
+  const html = 'TODO: policy doc delivery template';
+  sgMail.setApiKey(sgKey);
+
+  await sgMail.send(
+    createMsgContent({ html, subject: `Congrats! Here's your new policy`, to, attachments })
+  );
 };

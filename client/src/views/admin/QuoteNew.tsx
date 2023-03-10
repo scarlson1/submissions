@@ -274,6 +274,7 @@ export const QuoteNew: React.FC = () => {
     try {
       const values = formikRef.current?.values;
       if (!values) return toast.error('missing values');
+
       const { fees, taxes, termPremium, subproducerCommission } = values;
       if (!termPremium || typeof termPremium !== 'number')
         return toast.error('Term premium required');

@@ -12,6 +12,9 @@ import {
 import { useAuth } from 'modules/components/AuthContext';
 import { FirebaseError } from 'firebase/app';
 
+// used to upload files to storage
+// state ignostic (can use useCreateStorageFiles or formik for state)
+
 export const useUploadStorageFiles = (
   destinationFolder: string,
   onSuccess?: (uploadResults: UploadResult[]) => void,
@@ -64,6 +67,7 @@ export const useUploadStorageFiles = (
         return uploadResults;
       } catch (err) {
         console.log('ERROR => ', err);
+        setLoading(false);
 
         if (err instanceof FirebaseError) {
           setError(err as StorageError);

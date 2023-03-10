@@ -162,9 +162,9 @@ export const ReviewStep: React.FC = () => {
                   >
                     terms and disclosures
                   </Typography>{' '}
-                  and{' '}
                   <FloodStateDisclosure
                     state={values.state}
+                    buttonText={'and state disclosure'}
                     textProps={{
                       variant: 'body2',
                       sx: {

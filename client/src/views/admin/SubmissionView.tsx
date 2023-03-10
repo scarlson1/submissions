@@ -3,17 +3,23 @@ import { doc, getDoc } from 'firebase/firestore';
 import { Box, Button, IconButton, Stack, Typography } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
 import { ArrowBackIosRounded } from '@mui/icons-material';
-import { LoaderFunctionArgs, useLoaderData, useNavigate } from 'react-router-dom';
+import {
+  createSearchParams,
+  LoaderFunctionArgs,
+  useLoaderData,
+  useNavigate,
+} from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 // import ReactJson from '@microlink/react-json-view';
 
 import { spatialKeyCollection, submissionsCollection } from 'common/firestoreCollections';
-import { Submission } from 'common/types';
+import { Submission, WithId } from 'common/types';
 import { dollarFormat, formatFirestoreTimestamp, numberFormat } from 'modules/utils/helpers';
 import { ADMIN_ROUTES, createPath } from 'router';
 // import { useConfirmation } from 'modules/components/ConfirmationService';
 // import { ConfirmationDialog } from 'components';
 import { useJsonDialog } from 'hooks';
+import { withIdConverter } from 'common';
 
 export const RowItem: React.FC<{ title: string; value: React.ReactNode }> = ({ title, value }) => (
   <Stack direction='row' spacing={1} display='flex' alignItems='flex-start'>
@@ -53,7 +59,9 @@ export const RowItem: React.FC<{ title: string; value: React.ReactNode }> = ({ t
 
 export const submissionLoader = async ({ params }: LoaderFunctionArgs) => {
   try {
-    const submissionRef = doc(submissionsCollection, params.submissionId);
+    const submissionRef = doc(submissionsCollection, params.submissionId).withConverter(
+      withIdConverter<Submission>()
+    );
 
     const snap = await getDoc(submissionRef);
     let data = snap.data();
@@ -69,7 +77,7 @@ export const submissionLoader = async ({ params }: LoaderFunctionArgs) => {
 };
 
 export const SubmissionView: React.FC = () => {
-  const data = useLoaderData() as Submission;
+  const data = useLoaderData() as WithId<Submission>;
   const navigate = useNavigate();
   const dialog = useJsonDialog();
 
@@ -86,21 +94,35 @@ export const SubmissionView: React.FC = () => {
     [dialog]
   );
 
+  const handleCreateQuote = useCallback(() => {
+    navigate({
+      pathname: createPath({ path: ADMIN_ROUTES.QUOTE_NEW, params: { productId: 'flood' } }),
+      search: createSearchParams({
+        submissionId: `${data.id}`,
+      }).toString(),
+    });
+  }, [navigate, data]);
+
   return (
     <Grid container spacing={8}>
       <Grid xs={12}>
-        <Box sx={{ display: 'flex' }}>
-          <IconButton
-            size='small'
-            onClick={() => navigate(createPath({ path: ADMIN_ROUTES.SUBMISSIONS }))}
-            sx={{ mr: 3 }}
-            color='primary'
-          >
-            <ArrowBackIosRounded fontSize='inherit' />
-          </IconButton>
-          <Typography color='warning.main' variant='h5' gutterBottom>
-            TODO: SubmissionView
-          </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'flex-start' }}>
+          <Box sx={{ flex: '1 1 auto', display: 'flex', alignItems: 'center' }}>
+            <IconButton
+              size='small'
+              onClick={() => navigate(createPath({ path: ADMIN_ROUTES.SUBMISSIONS }))}
+              sx={{ mr: 3 }}
+              color='primary'
+            >
+              <ArrowBackIosRounded fontSize='inherit' />
+            </IconButton>
+            <Typography color='warning.main' variant='h5'>
+              TODO: SubmissionView
+            </Typography>
+          </Box>
+          <Button variant='contained' onClick={handleCreateQuote} sx={{ maxHeight: 34 }}>
+            Create Quote
+          </Button>
         </Box>
 
         <Typography variant='body2' sx={{ pt: 3 }}>{`Submitted: ${formatFirestoreTimestamp(

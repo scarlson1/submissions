@@ -4,15 +4,14 @@ import { Outlet } from 'react-router-dom';
 import { ErrorBoundary } from 'react-error-boundary';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-// import { Toaster } from 'react-hot-toast';
 
-import { ThemeProvider } from 'modules/components/ThemeContext';
-import { ConfirmationProvider } from 'modules/components/ConfirmationService';
+import {
+  ThemeProvider,
+  ConfirmationProvider,
+  AuthContextProvider,
+  Toaster,
+} from 'modules/components';
 import { GenericErrorFallback } from 'components';
-import { AuthContextProvider } from 'modules/components/AuthContext';
-import { Toaster } from 'modules/components/Toaster';
-// import ThemedToastContainer from 'modules/utils/ToastContainer';
-// import GenericErrorFallback from 'components/errorBoundaries/GenericErrorFallback';
 
 function App() {
   return (

@@ -1,3 +1,5 @@
+import { add, Duration } from 'date-fns';
+
 /**
  * Sums an array of numbers
  * @param {number[]} arr - array of numbers to be added.
@@ -94,3 +96,15 @@ export const isValidEmail = (str: string) => {
 };
 
 export const getNumber = (str: string) => str.replace(/[^0-9\.]+/g, ''); // eslint-disable-line
+
+/**
+ *
+ * @param {Duration} duration -  object specifying time to add (seconds, days, weeks, months, years, etc.)
+ * @param {Date} date - optional date, defaults to current date
+ * @returns {Date} current datetime plus the duration
+ */
+export const addToDate = (duration: Duration, date: Date = new Date()) => {
+  return add(date, {
+    ...duration,
+  });
+};

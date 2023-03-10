@@ -1,7 +1,8 @@
 import React from 'react';
 import { Box, Button, Typography, Stack } from '@mui/material';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
-import { ReactComponent as ServerDownSVG } from 'assets/images/server_down.svg';
+
+import { ServerDownSVG } from 'assets/images';
 
 interface ErrorButtons {
   label: string;

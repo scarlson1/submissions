@@ -87,7 +87,8 @@ export const RequireAuth: React.FC<RequireAuthProps> = ({
     !shouldSignInAnonymously
   ) {
     console.log("not authenticated => routing to '/login'", user, loadingInitial);
-    toast.error('Authentication required to access route');
+    // TODO: toast causes bug on start up
+    // toast.error('Authentication required to access route');
     return <Navigate to={redirectPath} state={{ from: location }} replace={true} />;
   }
 

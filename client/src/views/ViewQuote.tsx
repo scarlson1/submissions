@@ -21,12 +21,14 @@ import ReactJson from '@microlink/react-json-view';
 import { SubmissionQuoteData, WithId } from 'common';
 import { dollarFormat } from 'modules/utils/helpers';
 import { FlexCard, FlexCardContent, IconButtonMenu, LineItem } from 'components';
-import { ReactComponent as ApartmentRentSVG } from 'assets/images/apartment_rent.svg';
-import { ReactComponent as UnderConstructionSVG } from 'assets/images/under_construction.svg';
-import { ReactComponent as SecureLoginSVG } from 'assets/images/secure_login.svg';
-import { ReactComponent as ChillingSVG } from 'assets/images/chilling.svg';
-import { ReactComponent as CoffeeSVG } from 'assets/images/coffee.svg';
-import { ReactComponent as AtHomeSVG } from 'assets/images/at_home.svg';
+import {
+  ApartmentRentSVG,
+  UnderConstructionSVG,
+  SecureLoginSVG,
+  ChillingSVG,
+  CoffeeSVG,
+  AtHomeSVG,
+} from 'assets/images';
 import { createPath, ROUTES } from 'router';
 
 export const ViewQuote: React.FC = () => {

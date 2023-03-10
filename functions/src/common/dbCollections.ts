@@ -1,6 +1,6 @@
 import { DocumentData, CollectionReference, Firestore } from 'firebase-admin/firestore';
 
-import { Charge, COLLECTIONS, SubmissionQuoteData } from '../common';
+import { Charge, COLLECTIONS, Policy, SubmissionQuoteData } from '../common';
 import {
   Submission,
   User,
@@ -15,10 +15,6 @@ import { ClaimsDocData } from '../firestoreEvents/index.js';
 export const createCollection = <T = DocumentData>(db: Firestore, collectionName: string) => {
   return db.collection(collectionName) as CollectionReference<T>;
 };
-
-interface Policy {
-  todo: true;
-}
 
 export const usersCollection = (db: Firestore) => createCollection<User>(db, COLLECTIONS.USERS);
 export const orgsCollection = (db: Firestore) =>

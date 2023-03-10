@@ -135,7 +135,7 @@ export interface SubmissionQuoteData {
   termPremium: number;
   subproducerCommission: number;
   quoteTotal?: number;
-  ePayCardFee: number;
+  cardFee: number;
   // reviewRequired: boolean;
   // underwritingNotes?: {
   //   propertyNotes: UWNote[];
@@ -409,15 +409,20 @@ export interface Policy {
   agent: {
     agentId: string;
     name: string;
+    email: string;
   };
   agency: {
     orgId: string;
     name: string;
   };
-  darkMapImageURL?: string;
-  lightMapImageURL?: string;
-  darkMapImageFilePath?: string;
-  lightMapImageFilePath?: string;
+  documents: [{ displayName: string; downloadUrl: string; storagePath: string }];
+  // TODO: fixed files? use array of files ?? or policyDocument: { path: '123/doc', downloadUrl: '123download', etc.}
+  imageUrls?: { [key: string]: string | null };
+  imagePaths?: { [key: string]: string | null };
+  // darkMapImageURL?: string;
+  // lightMapImageURL?: string;
+  // darkMapImageFilePath?: string;
+  // lightMapImageFilePath?: string;
   metadata: BaseMetadata;
 }
 
@@ -566,6 +571,8 @@ export interface Invite {
   metadata: BaseMetadata;
 }
 
+// TODO: create Transaction type to used like: Transaction['charge'] and Transaction['refund']
+
 export type TransactionStatus = 'processing' | 'succeeded' | 'payment_failed';
 
 // https://stripe.com/docs/api/charges/object
@@ -582,6 +589,7 @@ export interface Charge {
     phone?: string | null;
   };
   invoiceId?: string | null;
+  quoteId: string | null;
   userId?: string | null;
   onBehalfOf?: string;
   paid?: boolean;

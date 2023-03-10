@@ -21,6 +21,9 @@ rules_version = '2';
 
 // Enforcing field types: https://firebase.google.com/docs/firestore/security/rules-fields#enforcing_field_types
 
+// TODO: quote field rules (don't allow changing quote amt)
+// TODO: status rules (don't allow changing of quote is status = bound, etc.)
+
 service cloud.firestore {
   match /databases/{database}/documents {
     match /submissions/{submissionId} {

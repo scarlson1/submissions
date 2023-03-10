@@ -131,7 +131,7 @@ export const SubmissionNew: React.FC = () => {
         // formik async dependent fields ref: https://formik.org/docs/examples/dependent-fields-async-api-request
 
         const res = await fetchPropertyData({ lat: values.latitude, lng: values.longitude });
-        console.log('result: ', res);
+        // console.log('result: ', res);
         return {
           ...values,
           limitA: res.initLimitA ?? '250000',

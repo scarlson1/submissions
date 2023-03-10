@@ -74,10 +74,6 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
   const data = useLoaderData() as WithId<Submission>[];
   const updateSubmission = useUpdateSubmission();
   const confirmAndUpdate = useConfirmAndUpdate(updateSubmission);
-  // const modal = useConfirmation();
-  // const theme = useTheme();
-  // let fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
-  // const asyncToast = useAsyncToast();
 
   const handleCreateQuote = useCallback(
     (subId: GridRowId) => () => {
@@ -481,47 +477,7 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
     [handleCreateQuote, openGoogleMaps]
   );
 
-  // const processRowUpdate = useCallback(
-  //   async (newRow: GridRowModel<WithId<Submission>>, oldRow: GridRowModel<WithId<Submission>>) => {
-  //     let changeMsg =
-  //       newRow.status !== oldRow.status
-  //         ? `"status" from ${oldRow.status} to ${newRow.status}`
-  //         : null;
-
-  //     try {
-  //       await modal({
-  //         variant: 'danger',
-  //         catchOnCancel: true,
-  //         title: 'Are you sure?',
-  //         description: (
-  //           <>
-  //             <Typography variant='body2' color='text.secondary' sx={{ pb: 1 }}>
-  //               You are about to make the following changes:
-  //             </Typography>
-  //             <Typography variant='body2'>{changeMsg}</Typography>
-  //           </>
-  //         ),
-  //         confirmButtonText: 'Confirm',
-  //         dialogContentProps: { dividers: true },
-  //         dialogProps: { fullScreen },
-  //       });
-
-  //       asyncToast.loading('saving...');
-  //       const res = await updateSubmission(newRow.id, {
-  //         status: newRow.status,
-  //       });
-
-  //       asyncToast.success(`Saved!`);
-  //       return res;
-  //     } catch (err) {
-  //       return oldRow;
-  //     }
-  //   },
-  //   [updateSubmission, modal, fullScreen, asyncToast]
-  // );
-
   const handleProcessRowUpdateError = useCallback((err: Error) => {
-    // asyncToast.error('update failed');
     console.log('ERROR: ', err);
   }, []);
 

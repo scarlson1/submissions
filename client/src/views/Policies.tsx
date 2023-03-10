@@ -86,7 +86,9 @@ export const Policies: React.FC = () => {
                   <CardMedia
                     sx={{ height: 140 }}
                     image={
-                      (theme.palette.mode === 'dark' ? p.darkMapImageURL : p.lightMapImageURL) ||
+                      (theme.palette.mode === 'dark'
+                        ? p.imageUrls?.darkMapImageURL
+                        : p.imageUrls?.lightMapImageURL) ||
                       fallbackImages[i] ||
                       fallbackImages[0]
                     }

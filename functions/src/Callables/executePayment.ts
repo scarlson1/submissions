@@ -1,14 +1,16 @@
 import * as functions from 'firebase-functions';
-import { getFirestore, DocumentSnapshot, Timestamp } from 'firebase-admin/firestore';
+import { getFirestore, Timestamp, DocumentSnapshot } from 'firebase-admin/firestore';
 import { defineSecret } from 'firebase-functions/params';
 
 import {
   PaymentMethod,
   paymentMethodsCollection,
-  QUOTE_STATUS,
+  policiesCollection,
+  Policy,
+  POLICY_STATUS,
   round,
-  submissionsQuotesCollection,
   transactionsCollection,
+  TRANSACTION_STATUS,
 } from '../common';
 import { getEPayInstance } from '../services';
 
@@ -20,37 +22,40 @@ export const executePayment = functions
     secrets: [ePayCreds],
   })
   .https.onCall(async (data, ctx) => {
-    const { quoteId, paymentMethodId } = data;
+    const { policyId, paymentMethodId } = data;
     const uid: string | undefined = ctx.auth?.uid;
 
     if (!uid) throw new functions.https.HttpsError('unauthenticated', 'Must be signed in');
 
-    if (!quoteId) throw new functions.https.HttpsError('failed-precondition', 'Missing quote ID');
+    if (!policyId) throw new functions.https.HttpsError('failed-precondition', 'Missing policy ID');
     if (!paymentMethodId)
       throw new functions.https.HttpsError('failed-precondition', 'Missing paymentMethodId');
 
     try {
       const db = getFirestore();
-      const quotesCollection = submissionsQuotesCollection(db);
+      const policiesCol = policiesCollection(db);
 
-      const quoteSnap = await quotesCollection.doc(quoteId).get();
-      const quote = quoteSnap.data();
-      console.log('QUOTE: ', quote);
-      if (!quoteSnap.exists || !quote)
+      const policySnap: DocumentSnapshot<Policy> = await policiesCol.doc(policyId).get();
+      const policy = policySnap.data();
+      console.log('POLICY: ', policy);
+      if (!policySnap.exists || !policy)
         throw new functions.https.HttpsError(
           'not-found',
-          `Could not find quote with ID: ${quoteId}`
+          `Could not find policy with ID: ${policyId}`
         );
 
-      let { quoteTotal, quoteExpiration, status } = quote;
-      if (!quoteTotal || !quoteExpiration)
+      let { price, effectiveDate, status } = policy;
+      if (!price || !effectiveDate)
         throw new functions.https.HttpsError(
           'failed-precondition',
           'Quote is missing required fields'
         );
 
-      if (status !== QUOTE_STATUS.AWAITING_USER)
-        throw new functions.https.HttpsError('failed-precondition', 'Blocked by quote status');
+      if (status !== POLICY_STATUS.AWAITING_PAYMENT)
+        throw new functions.https.HttpsError(
+          'failed-precondition',
+          'Policy status must be "awaiting payment"'
+        );
 
       const paymentMethodSnap: DocumentSnapshot<PaymentMethod> = await paymentMethodsCollection(
         db,
@@ -58,6 +63,7 @@ export const executePayment = functions
       )
         .doc(paymentMethodId)
         .get();
+
       let paymentMethodDetails = paymentMethodSnap.data();
       if (!paymentMethodSnap.exists || !paymentMethodDetails)
         throw new functions.https.HttpsError('not-found', 'Payment method not found');
@@ -66,15 +72,14 @@ export const executePayment = functions
       if (!ePayCreds) throw new Error('Missing required env vars');
 
       const ePayInstance = getEPayInstance(ePayCreds);
-      // TODO: use ePay fees calculated when quote was created ??
+
       let ePayFees =
         paymentMethodDetails.transactionType === 'Ach'
           ? 0
-          : quote.ePayCardFee || round(quoteTotal * CARD_FEE, 2);
+          : policy.cardFee || round(price * CARD_FEE, 2);
 
-      const total = quoteTotal + ePayFees;
-      console.log('EPAY FEES: ', ePayFees);
-      console.log('TOTAL: ', total);
+      const total = price + ePayFees;
+      console.log(`PRICE (${price}) + EPAY_FEES (${ePayFees}) = TOTAL (${total})`);
 
       if (total < 100) throw new Error('Total less than minimum premium');
 
@@ -85,30 +90,26 @@ export const executePayment = functions
         amount: total,
         payerFee: ePayFees,
         attributeValues: {
-          quoteId,
+          policyId,
           userId: uid,
+          agentId: policy.agent.agentId || null,
+          agencyId: policy.agency.orgId || null,
         },
-        comments: `Quote ID: ${quoteId}`,
         emailAddress: paymentMethodDetails.emailAddress,
         tokenId: paymentMethodId,
         sendReceipt: true,
         ipAddress: ctx.rawRequest.ip,
-      });
+      }); // comments: `Quote ID: ${quoteId}`,
 
       let transactionId = location?.split('/')[2];
       console.log('transactionId: ', transactionId);
 
       if (!transactionId) throw new Error('Missing transactionId');
 
-      const newStatus =
-        paymentMethodDetails.transactionType === 'Ach'
-          ? QUOTE_STATUS.PAYMENT_PROCESSING
-          : QUOTE_STATUS.PAID;
-
-      // TODO: emit event "payment:complete" data: { quoteId, transactionId }
+      // TODO: move handling status to payment:complete event listener
+      // TODO: emit event "payment:complete" data: { policyId, transactionId }
       // trigger same event when ach payment is complete
-      // handle quote status updates there and update transaction document (ach change to paid)
-      await quoteSnap.ref.update({ status: newStatus });
+      // handle policy status and transaction status updates
 
       await transactionsCollection(db)
         .doc(transactionId)
@@ -125,6 +126,7 @@ export const executePayment = functions
             phone: null,
           },
           invoiceId: null,
+          policyId,
           userId: uid,
           paymentMethodId,
           paymentMethodDetails,
@@ -132,9 +134,13 @@ export const executePayment = functions
           receiptNumber: null,
           receiptUrl: null,
           refunded: false,
-          publicDescriptor: `Flood insurance for ${quote?.insuredAddress?.addressLine1}`,
+          publicDescriptor: `Flood insurance for ${policy.address.addressLine1}`,
           publicDescriptorTitle: 'Flood insurance',
-          status: newStatus === QUOTE_STATUS.PAID ? 'succeeded' : 'processing',
+          // status: newStatus === QUOTE_STATUS.PAID ? 'succeeded' : 'processing',
+          status:
+            paymentMethodDetails.transactionType === 'Ach'
+              ? TRANSACTION_STATUS.PROCESSING
+              : TRANSACTION_STATUS.SUCCEEDED,
           metadata: {
             created: Timestamp.now(),
             updated: Timestamp.now(),
@@ -143,10 +149,12 @@ export const executePayment = functions
 
       return {
         transactionId,
-        status: newStatus === QUOTE_STATUS.PAID ? 'succeeded' : 'processing',
+        status: paymentMethodDetails.transactionType === 'Ach' ? 'processing' : 'succeeded',
       };
     } catch (err: any) {
+      // TODO: save failed transaction in db so it matches ePay ??
       console.log('ERROR: ', err);
+      // TODO: extract error message from ePay error if code is 400: https://docs.epaypolicy.com/knowledgebase/faqs/
       let msg = err?.response?.data?.message || 'Payment could not be processed.';
 
       throw new functions.https.HttpsError('internal', msg);
@@ -164,3 +172,180 @@ export const executePayment = functions
 // split into multiple processes
 //  - payment: explicitly called at checkout
 //  - then emit event to do everything else
+
+// import * as functions from 'firebase-functions';
+// import { getFirestore, DocumentSnapshot, Timestamp } from 'firebase-admin/firestore';
+// import { defineSecret } from 'firebase-functions/params';
+
+// import {
+//   PaymentMethod,
+//   paymentMethodsCollection,
+//   QUOTE_STATUS,
+//   round,
+//   submissionsQuotesCollection,
+//   transactionsCollection,
+//   TRANSACTION_STATUS,
+// } from '../common';
+// import { getEPayInstance } from '../services';
+
+// const ePayCreds = defineSecret('ENCODED_EPAY_AUTH');
+// const CARD_FEE = 0.035;
+
+// export const executePayment = functions
+//   .runWith({
+//     secrets: [ePayCreds],
+//   })
+//   .https.onCall(async (data, ctx) => {
+//     const { quoteId, paymentMethodId } = data;
+//     const uid: string | undefined = ctx.auth?.uid;
+
+//     if (!uid) throw new functions.https.HttpsError('unauthenticated', 'Must be signed in');
+
+//     if (!quoteId) throw new functions.https.HttpsError('failed-precondition', 'Missing quote ID');
+//     if (!paymentMethodId)
+//       throw new functions.https.HttpsError('failed-precondition', 'Missing paymentMethodId');
+
+//     try {
+//       const db = getFirestore();
+//       const quotesCollection = submissionsQuotesCollection(db);
+
+//       const quoteSnap = await quotesCollection.doc(quoteId).get();
+//       const quote = quoteSnap.data();
+//       console.log('QUOTE: ', quote);
+//       if (!quoteSnap.exists || !quote)
+//         throw new functions.https.HttpsError(
+//           'not-found',
+//           `Could not find quote with ID: ${quoteId}`
+//         );
+
+//       let { quoteTotal, quoteExpiration, status } = quote;
+//       if (!quoteTotal || !quoteExpiration)
+//         throw new functions.https.HttpsError(
+//           'failed-precondition',
+//           'Quote is missing required fields'
+//         );
+
+//       if (status !== QUOTE_STATUS.AWAITING_USER)
+//         throw new functions.https.HttpsError('failed-precondition', 'Blocked by quote status');
+
+//       const paymentMethodSnap: DocumentSnapshot<PaymentMethod> = await paymentMethodsCollection(
+//         db,
+//         uid
+//       )
+//         .doc(paymentMethodId)
+//         .get();
+
+//       let paymentMethodDetails = paymentMethodSnap.data();
+//       if (!paymentMethodSnap.exists || !paymentMethodDetails)
+//         throw new functions.https.HttpsError('not-found', 'Payment method not found');
+
+//       const ePayCreds = process.env.ENCODED_EPAY_AUTH;
+//       if (!ePayCreds) throw new Error('Missing required env vars');
+
+//       const ePayInstance = getEPayInstance(ePayCreds);
+//       // TODO: use ePay fees calculated when quote was created ??
+//       let ePayFees =
+//         paymentMethodDetails.transactionType === 'Ach'
+//           ? 0
+//           : quote.cardFee || round(quoteTotal * CARD_FEE, 2);
+
+//       const total = quoteTotal + ePayFees;
+//       console.log('EPAY FEES: ', ePayFees);
+//       console.log('TOTAL: ', total);
+
+//       if (total < 100) throw new Error('Total less than minimum premium');
+
+//       let {
+//         headers: { location },
+//       } = await ePayInstance.post('/api/v1/transactions', {
+//         payer: paymentMethodDetails.payer,
+//         amount: total,
+//         payerFee: ePayFees,
+//         attributeValues: {
+//           quoteId,
+//           userId: uid,
+//         },
+//         comments: `Quote ID: ${quoteId}`,
+//         emailAddress: paymentMethodDetails.emailAddress,
+//         tokenId: paymentMethodId,
+//         sendReceipt: true,
+//         ipAddress: ctx.rawRequest.ip,
+//       });
+
+//       let transactionId = location?.split('/')[2];
+//       console.log('transactionId: ', transactionId);
+
+//       if (!transactionId) throw new Error('Missing transactionId');
+
+//       // const newStatus =
+//       //   paymentMethodDetails.transactionType === 'Ach'
+//       //     ? QUOTE_STATUS.PAYMENT_PROCESSING
+//       //     : QUOTE_STATUS.PAID;
+//       const newStatus = 'TODO';
+
+//       // TODO: emit event "payment:complete" data: { quoteId, transactionId }
+//       // trigger same event when ach payment is complete
+//       // handle quote status updates there and update transaction document (ach change to paid)
+//       await quoteSnap.ref.update({ status: newStatus });
+
+//       await transactionsCollection(db)
+//         .doc(transactionId)
+//         .set({
+//           transactionId,
+//           amount: total,
+//           amountCaptured: 0,
+//           amountRefunded: 0,
+//           processingFees: ePayFees,
+//           billingDetails: {
+//             address: null,
+//             email: paymentMethodDetails.emailAddress,
+//             name: paymentMethodDetails.payer,
+//             phone: null,
+//           },
+//           invoiceId: null,
+//           quoteId,
+//           userId: uid,
+//           paymentMethodId,
+//           paymentMethodDetails,
+//           receiptEmail: paymentMethodDetails.emailAddress,
+//           receiptNumber: null,
+//           receiptUrl: null,
+//           refunded: false,
+//           publicDescriptor: `Flood insurance for ${quote?.insuredAddress?.addressLine1}`,
+//           publicDescriptorTitle: 'Flood insurance',
+//           // status: newStatus === QUOTE_STATUS.PAID ? 'succeeded' : 'processing',
+//           status:
+//             paymentMethodDetails.transactionType === 'Ach'
+//               ? TRANSACTION_STATUS.PROCESSING
+//               : TRANSACTION_STATUS.SUCCEEDED,
+//           metadata: {
+//             created: Timestamp.now(),
+//             updated: Timestamp.now(),
+//           },
+//         });
+
+//       return {
+//         transactionId,
+//         status: paymentMethodDetails.transactionType === 'Ach' ? 'processing' : 'succeeded',
+//       };
+//     } catch (err: any) {
+//       // TODO: save failed transaction in db so it matches ePay ??
+//       console.log('ERROR: ', err);
+//       // TODO: extract error message from ePay error if code is 400: https://docs.epaypolicy.com/knowledgebase/faqs/
+//       let msg = err?.response?.data?.message || 'Payment could not be processed.';
+
+//       throw new functions.https.HttpsError('internal', msg);
+//     }
+//   });
+
+// // validate
+// // calc expiration date
+
+// // execute payment ?? or emit event ?? events:
+// //  - notify idemand admins
+// //  - send charge payment method
+// //  downside:
+// //  - cannot show user payment errors at checkout
+// // split into multiple processes
+// //  - payment: explicitly called at checkout
+// //  - then emit event to do everything else

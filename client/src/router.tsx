@@ -6,7 +6,6 @@ import {
   SubmissionNew,
   ContactUs,
   ViewQuote,
-  // Checkout,
   Login,
   CreateAccount,
   Policy,
@@ -46,6 +45,8 @@ import {
   Quotes,
   newQuoteSubmissionLoader,
   quotesLoader,
+  PolicyDelivery,
+  Policies as PoliciesAdmin,
 } from 'views/admin';
 import { SuccessStep, ActionHandler } from 'elements';
 import { Product } from 'common';
@@ -89,6 +90,8 @@ export enum ADMIN_ROUTES {
   SUBMISSION_VIEW = '/admin/submissions/:submissionId',
   QUOTES = '/admin/quotes',
   QUOTE_NEW = '/admin/quotes/:productId/new',
+  POLICY_DELIVERY = '/admin/policies/:policyId/delivery',
+  POLICIES = '/admin/policies',
   SL_TAXES = '/admin/sl-tax',
   SL_TAXES_NEW = '/admin/sl-tax/new',
   EDIT_ACTIVE_STATES = '/admin/active-states/:productId/edit',
@@ -123,6 +126,8 @@ type TArgs =
   | { path: ADMIN_ROUTES.SUBMISSION_VIEW; params: { submissionId: string } }
   | { path: ADMIN_ROUTES.QUOTES }
   | { path: ADMIN_ROUTES.QUOTE_NEW; params: { productId: Product } }
+  | { path: ADMIN_ROUTES.POLICY_DELIVERY; params: { policyId: string } }
+  | { path: ADMIN_ROUTES.POLICIES; search?: { productId?: Product } }
   | { path: ADMIN_ROUTES.SL_TAXES }
   | { path: ADMIN_ROUTES.SL_TAXES_NEW }
   | { path: ADMIN_ROUTES.EDIT_ACTIVE_STATES; params: { productId: Product } }
@@ -348,6 +353,23 @@ export const router = createBrowserRouter([
             element: (
               <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
                 <Quotes />
+              </RequireAuth>
+            ),
+          },
+          {
+            path: ADMIN_ROUTES.POLICY_DELIVERY,
+            loader: policyLoader,
+            element: (
+              <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
+                <PolicyDelivery />
+              </RequireAuth>
+            ),
+          },
+          {
+            path: ADMIN_ROUTES.POLICIES,
+            element: (
+              <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
+                <PoliciesAdmin />
               </RequireAuth>
             ),
           },

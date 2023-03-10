@@ -3,7 +3,7 @@ import { DecodedIdToken } from 'firebase-admin/auth';
 import { GeoPoint, Timestamp } from 'firebase-admin/firestore';
 // import { Timestamp, WithFieldValue } from '@google-cloud/firestore';
 
-import { SUBMISSION_STATUS, PRODUCT, AGENCY_STATUS, QUOTE_STATUS } from './enums';
+import { SUBMISSION_STATUS, PRODUCT, AGENCY_STATUS, QUOTE_STATUS, POLICY_STATUS } from './enums';
 
 // TODO: fix typescript error app.use(thisMiddleware) is users.ts
 
@@ -50,6 +50,13 @@ export interface PaymentMethod extends EPayVerifiedResponse {
 }
 
 export type TransactionStatus = 'processing' | 'succeeded' | 'payment_failed';
+export enum TRANSACTION_STATUS {
+  PROCESSING = 'processing',
+  SUCCEEDED = 'succeeded',
+  PAYMENT_FAILED = 'payment_failed',
+}
+
+// EPAY STATUSES: Processed | Declined | Chargebacks | Pending Approval | Pending My Approval
 
 // https://stripe.com/docs/api/charges/object
 export interface Charge {
@@ -66,6 +73,8 @@ export interface Charge {
   };
   invoiceId?: string | null;
   userId?: string | null;
+  policyId: string | null; // TODO: will we have policy Id at time of transaction ??
+  // quoteId?: string | null;
   onBehalfOf?: string;
   paid?: boolean;
   paymentIntent?: string | null; // not used
@@ -77,8 +86,40 @@ export interface Charge {
   refunded?: boolean;
   publicDescriptor: string | null;
   publicDescriptorTitle: string | null;
-  status: TransactionStatus;
+  status: TRANSACTION_STATUS; // TransactionStatus;
   metadata: BaseMetadata;
+}
+
+export interface EPayEvent {
+  eventDate: string | null;
+  eventType: string | null;
+  comments: string | null;
+}
+
+export interface EPayGetTransactionRes {
+  id: string;
+  publicId: string;
+  payer: string;
+  emailAddress: string;
+  transactionType: string;
+  amount: number;
+  fee: number;
+  payerFee: number;
+  maskedAccountNumber: string;
+  comments: string | null;
+  originalTransactionId: string | null;
+  events: EPayEvent[];
+  attributeValues: { name: string | null; parameterName: string | null; value: string | null }[];
+  attachements: { name: string | null; downloadUri: string | null }[];
+  paidInvoices: {
+    id: string;
+    paidAmount: number;
+    comment: 'string';
+    division: 'string';
+    dueDate: '2023-03-03T20:46:22.096Z';
+    attributeValues: { [key: string]: any };
+    searchAttributeValues: { [key: string]: any };
+  }[];
 }
 
 export interface Address {
@@ -271,7 +312,7 @@ export interface SubmissionQuoteData {
   taxes: { taxName: string; taxValue: string }[];
   termPremium: number;
   subproducerCommission: number;
-  ePayCardFee: number;
+  cardFee: number;
   quoteTotal?: number;
   // reviewRequired: boolean;
   // underwritingNotes?: {
@@ -313,12 +354,51 @@ export interface SubmissionQuoteData {
   agentEmail: string | null;
   agentPhone?: string | null;
   status: QUOTE_STATUS;
+  submissionId?: string | null;
+  imageUrls?: { [key: string]: string | null };
+  imagePaths?: { [key: string]: string | null };
   statusTransitions: {
     published: Timestamp;
     accepted: Timestamp | null;
     cancelled: Timestamp | null;
     finalized: Timestamp | null;
   };
+}
+
+export interface Policy {
+  status: POLICY_STATUS;
+  limits: Limits;
+  deductible: number;
+  address: Address;
+  coordinates: GeoPoint | null; // TODO: get rid of null in SubmissionQuoteData
+  namedInsured: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+    userId?: string | null;
+  };
+  additionalInsureds?: AdditionalInsured[];
+  mortgageeInterest?: Mortgagee[];
+  effectiveDate: Timestamp;
+  expirationDate: Timestamp;
+  userId: string | null;
+  agent: {
+    agentId: string | null;
+    name: string | null;
+    email: string | null;
+  };
+  agency: {
+    orgId: string | null; // TODO: remove null ??
+    name: string | null;
+  };
+  documents: { displayName: string; downloadUrl: string; storagePath: string }[];
+  imageUrls?: { [key: string]: string | null };
+  imagePaths?: { [key: string]: string | null };
+  transactions: string[]; // TODO: figure out how to associate policies and transactions
+  price: number;
+  cardFee: number;
+  metadata: BaseMetadata;
 }
 
 export type InviteStatus = 'pending' | 'accepted' | 'revoked' | 'replaced' | 'rejected' | 'error';

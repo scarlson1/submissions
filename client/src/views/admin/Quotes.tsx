@@ -27,20 +27,17 @@ import {
 } from '@mui/x-data-grid';
 import {
   CloseRounded,
-  CreditCardOffRounded,
-  CreditScoreRounded,
+  DataObjectRounded,
   DoneRounded,
   EditRounded,
   HourglassBottomRounded,
   HourglassEmptyRounded,
-  PaymentsRounded,
   SendRounded,
-  VisibilityRounded,
 } from '@mui/icons-material';
+import { toast } from 'react-hot-toast';
 
 import { ADMIN_ROUTES, createPath } from 'router';
 import { SubmissionQuoteData, submissionsQuotesCollection, QUOTE_STATUS, WithId } from 'common';
-
 import { BasicDataGrid, renderGridEmail, renderGridPhone, GridCellCopy } from 'components';
 import {
   formatGridCurrency,
@@ -48,22 +45,15 @@ import {
   formatGridPercent,
 } from 'modules/utils/helpers';
 import { useAsyncToast, useJsonDialog, useSendQuoteNotification } from 'hooks';
-import { useConfirmation } from 'modules/components/ConfirmationService';
-import { toast } from 'react-hot-toast';
+import { useConfirmation } from 'modules/components';
 import { submissionQuoteConverter } from 'common/firestoreConverters';
 
 const getChipProps = (status: QUOTE_STATUS): Partial<ChipProps> => {
   switch (status) {
     case QUOTE_STATUS.AWAITING_USER:
       return { icon: <HourglassEmptyRounded />, color: 'primary' };
-    case QUOTE_STATUS.PROCESSING_PAYMENT:
-      return { icon: <PaymentsRounded />, color: 'info' };
-    case QUOTE_STATUS.AWAITING_PAYMENT:
-      return { icon: <CreditCardOffRounded />, color: 'info' };
-    case QUOTE_STATUS.COMPLETE:
+    case QUOTE_STATUS.BOUND:
       return { icon: <DoneRounded />, color: 'success' };
-    case QUOTE_STATUS.PAID:
-      return { icon: <CreditScoreRounded />, color: 'success' };
     case QUOTE_STATUS.EXPIRED:
       return { icon: <HourglassBottomRounded />, color: 'warning' };
     case QUOTE_STATUS.CANCELLED:
@@ -87,8 +77,7 @@ export const quotesLoader = async ({ params }: LoaderFunctionArgs) => {
 const useUpdateQuote = () => {
   const update = useCallback(async (id: string, updateValues: Partial<SubmissionQuoteData>) => {
     const ref = doc(submissionsQuotesCollection, id).withConverter(submissionQuoteConverter);
-    await updateDoc(ref, { status: updateValues.status }); // , 'metadata.updated': Timestamp.now()
-    // await updateDoc(ref, { ...updateValues, 'metadata.updated': Timestamp.now() });
+    await updateDoc(ref, { status: updateValues.status });
 
     const snap = await getDoc(ref);
     console.log('updated data: ', snap.data());
@@ -195,7 +184,7 @@ export const Quotes: React.FC = () => {
           <GridActionsCellItem
             icon={
               <Tooltip placement='top' title='View Raw JSON'>
-                <VisibilityRounded />
+                <DataObjectRounded />
               </Tooltip>
             }
             onClick={showJson(params)}
@@ -281,13 +270,11 @@ export const Quotes: React.FC = () => {
         headerName: 'Status',
         type: 'singleSelect',
         valueOptions: [
-          QUOTE_STATUS.COMPLETE,
-          QUOTE_STATUS.PAID,
-          QUOTE_STATUS.AWAITING_PAYMENT,
-          QUOTE_STATUS.PROCESSING_PAYMENT,
+          QUOTE_STATUS.BOUND,
           QUOTE_STATUS.CANCELLED,
           QUOTE_STATUS.EXPIRED,
           QUOTE_STATUS.AWAITING_USER,
+          QUOTE_STATUS.BOUND,
         ],
         minWidth: 180,
         flex: 0.8,
@@ -584,16 +571,6 @@ export const Quotes: React.FC = () => {
           }}
         />
       </Box>
-      {/* <Box sx={{ typography: 'body2' }}>
-        <ReactJson
-          src={data}
-          theme={theme.palette.mode === 'dark' ? 'tomorrow' : 'rjv-default'}
-          style={{ background: 'transparent' }}
-          iconStyle='circle'
-          enableClipboard
-          collapseStringsAfterLength={100}
-        />
-      </Box> */}
     </Box>
   );
 };

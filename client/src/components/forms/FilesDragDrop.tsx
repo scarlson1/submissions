@@ -14,28 +14,27 @@ import { formatBytes } from 'modules/utils/helpers';
 const DEFAULT_MAX_FILE_SIZE_IN_BYTES = 1048576;
 
 export interface FilesDragDropProps {
-  acceptedTypes: string;
-  disabled?: boolean;
-  multiple?: boolean;
-  withChip?: boolean;
-  maxFileSizeInBytes?: number;
-  maxFileCount?: number;
-  loading?: boolean;
   files: File[];
   onNewFiles: (filesArr: File[]) => void;
   onRemove: (removeFile: File) => void;
+  acceptedTypes: string;
+  disabled?: boolean;
+  multiple?: boolean;
+  maxFileSizeInBytes?: number;
+  maxFileCount?: number;
+  loading?: boolean;
 }
 
 export const FilesDragDrop: React.FC<FilesDragDropProps> = ({
+  files,
+  onNewFiles,
+  onRemove,
   acceptedTypes,
   disabled = false,
   multiple = false,
   maxFileSizeInBytes = DEFAULT_MAX_FILE_SIZE_IN_BYTES,
   maxFileCount = 10,
   loading = false,
-  files,
-  onNewFiles,
-  onRemove,
 }) => {
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [dragActive, setDragActive] = useState(false);
@@ -189,7 +188,7 @@ export const FilesDragDrop: React.FC<FilesDragDropProps> = ({
           onChange={handleChange}
           multiple={multiple}
           ref={inputRef}
-          disabled={loading}
+          disabled={loading || disabled}
           sx={{
             display: 'block',
             width: '100%',
