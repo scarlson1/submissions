@@ -27,6 +27,7 @@ export const sendPolicyDoc = functions
         'invalid-argument',
         `policyId or emails (recipients) required`
       );
+    // TODO: email validation (array.length > 0, valid emails, etc.)
 
     // if (emails.every(isValidEmail))
     //   throw new functions.https.HttpsError(
@@ -74,8 +75,14 @@ export const sendPolicyDoc = functions
         },
       ];
 
-      const link = `${process.env.HOSTING_BASE_URL}/policies/${policyId}`;
-      await sendPolicyDocDelivery(sgKey, emails, attachmentObj, link);
+      // const link = `${process.env.HOSTING_BASE_URL}/policies/${policyId}`;
+      await sendPolicyDocDelivery(
+        sgKey,
+        emails,
+        attachmentObj,
+        data.namedInsured.firstName,
+        data.address.addressLine1
+      );
 
       return {
         status: 'success',

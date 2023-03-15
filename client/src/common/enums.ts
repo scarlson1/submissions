@@ -58,6 +58,13 @@ export enum QUOTE_STATUS {
   EXPIRED = 'expired',
 }
 
+export enum POLICY_STATUS {
+  PAID = 'paid',
+  PAYMENT_PROCESSING = 'processing:payment',
+  AWAITING_PAYMENT = 'awaiting:payment',
+  CANCELLED = 'cancelled',
+}
+
 export enum TRANSACTION_TYPE {
   CHARGE = 'charge',
   REFUND = 'refund',

@@ -54,6 +54,7 @@ export const FormikDollarMaskField: React.FC<FormikDollarMaskFieldProps> = ({
   return (
     <TextField
       {...field}
+      value={field.value ? field.value : ''}
       {...rest}
       error={meta.touched && Boolean(meta.error)}
       helperText={meta.touched && !!meta.error ? meta.error : helperText}

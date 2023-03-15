@@ -18,7 +18,7 @@ import { FirebaseError } from 'firebase/app';
 export const useUploadStorageFiles = (
   destinationFolder: string,
   onSuccess?: (uploadResults: UploadResult[]) => void,
-  onError?: (err: unknown) => void
+  onError?: (err: unknown, msg?: string) => void
 ) => {
   const storage = getStorage();
   const [error, setError] = useState<StorageError | null>(null);
@@ -68,17 +68,19 @@ export const useUploadStorageFiles = (
       } catch (err) {
         console.log('ERROR => ', err);
         setLoading(false);
+        let msg = 'file upload failed. See console for details.';
 
         if (err instanceof FirebaseError) {
           setError(err as StorageError);
+          msg = err.message;
         } else {
           setError({
             code: 'unknown',
-            message: 'file upload failed. See console for details.',
+            message: msg,
           } as StorageError);
         }
 
-        if (onError) onError(err);
+        if (onError) onError(err, msg);
         return Promise.reject(err);
       }
     },

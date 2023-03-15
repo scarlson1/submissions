@@ -274,7 +274,6 @@ export const Quotes: React.FC = () => {
           QUOTE_STATUS.CANCELLED,
           QUOTE_STATUS.EXPIRED,
           QUOTE_STATUS.AWAITING_USER,
-          QUOTE_STATUS.BOUND,
         ],
         minWidth: 180,
         flex: 0.8,
@@ -293,7 +292,7 @@ export const Quotes: React.FC = () => {
         // },
       },
       {
-        field: 'InsuredName',
+        field: 'insuredName',
         headerName: 'Insured Name',
         minWidth: 160,
         flex: 0.8,

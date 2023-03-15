@@ -5,3 +5,5 @@ export { newContactMessage } from './newContactMessage';
 export { userInvite } from './userInvite';
 export { adminNewAgencySubmission } from './adminNewAgencySubmission';
 export { newQuote } from './newQuote';
+export { adminPaymentReceived } from './adminPaymentReceived';
+export { policyDelivery } from './policyDelivery';

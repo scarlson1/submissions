@@ -497,14 +497,14 @@ export function getThemedComponents(theme: Theme): {
               '&:hover': {
                 backgroundColor:
                   theme.palette.mode === 'dark'
-                    ? alpha(theme.palette.primaryDark[700], 0.4)
+                    ? alpha(theme.palette.primaryDark[600], 0.75)
                     : theme.palette.grey[50],
               },
               '&:focus': {
                 backgroundColor:
                   theme.palette.mode === 'dark'
-                    ? alpha(theme.palette.primaryDark[700], 0.4)
-                    : theme.palette.grey[50],
+                    ? alpha(theme.palette.primaryDark[600], 0.5)
+                    : alpha(theme.palette.grey[50], 0.6),
               },
               '&.Mui-selected': {
                 fontWeight: 500,

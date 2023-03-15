@@ -5,6 +5,8 @@ rules_version = '2';
 // A read rule can be divided into read and list rules
 // A write rule can be divided into create, update, and delete rules
 
+// PREVENT FILES FROM BEING OVERWRITTEN: https://github.com/firebase/firebase-tools/issues/4329#issuecomment-1076623082
+
 service firebase.storage {
   match /b/{bucket}/o {
     // match /{allPaths=**} {
@@ -27,6 +29,7 @@ service firebase.storage {
       allow write: if isIDemandAdmin() && request.resource.contentType.matches('text/csv')
     }
 
+    // TODO: change to allow other file types  - or make images subdirectory?
     match /submissions/{submissionId}/{fileName} {
       allow read: if true;
       allow write: if isIDemandAdmin() && request.resource.contentType.matches('image/.*')
@@ -34,8 +37,8 @@ service firebase.storage {
 
     match /policies/{policyId}/{fileName} {
       // allow read: if request.auth.uid == resource.metadata.userId
-      allow read: if
-        isUserOrAgent(firestore.get(/databases/(default)/documents/policies/$(policyId)))
+      allow read: if (isAuthenticated() &&
+        isUserOrAgent(firestore.get(/databases/(default)/documents/policies/$(policyId)))) || isIDemandAdmin()
         // isUserOrAgent(getDoc(policies/$(policyId)))
         
       // TODO: query database to get policy details use userId, agentId instead of metadata
@@ -63,7 +66,28 @@ service firebase.storage {
 
     // Only a user can upload their profile picture, but anyone can view it
     match /users/{userId}/profilePicture.png {
-      allow read
+      allow read: if true;
+      allow write: if request.auth.uid == userId;
+    }
+    // Only a user can upload their profile picture, but anyone can view it
+    match /users/{userId}/profilePicture.jpg {
+      allow read: if true;
+      allow write: if request.auth.uid == userId;
+    }
+    // Only a user can upload their profile picture, but anyone can view it
+    match /users/{userId}/profilePicture.jpeg {
+      allow read: if true;
+      allow write: if request.auth.uid == userId;
+    }
+    // Only a user can upload their profile picture, but anyone can view it
+    match /users/{userId}/profileImages/{imgId} {
+      allow read: if true;
+      allow write: if request.auth.uid == userId;
+    }
+
+    
+    match /users/{userId}/{userFiles} {
+      allow read: if request.auth.uid == userId || isIDemandAdmin();
       allow write: if request.auth.uid == userId;
     }
 
@@ -74,10 +98,10 @@ service firebase.storage {
       allow write: if request.auth.token.groupId == groupId;
     }
 
-    match /users/{club}/files/{fileId} {
-      allow read: if club in
-        firestore.get(/databases/(default)/documents/users/$(request.auth.id)).memberships
-    }
+    // match /users/{club}/files/{fileId} {
+    //   allow read: if club in
+    //     firestore.get(/databases/(default)/documents/users/$(request.auth.id)).memberships
+    // }
 
     // only users friends can view
     match /users/{userId}/photos/{fileId} {
@@ -95,7 +119,7 @@ service firebase.storage {
   }
 
   function isIDemandAdmin() {
-    return request.auth.token.iDemandAdmin == true
+    return isAuthenticated() && request.auth.token.iDemandAdmin == true
   }
 
   function isAuthenticated() {
@@ -119,7 +143,7 @@ service firebase.storage {
     }
 
   function isUserOrAgent(doc) {
-    return doc.userId == request.auth.uid || doc.agentId == request.auth.uid || (doc.agent && doc.agent.id == request.auth.uid);
+    return doc.userId == request.auth.uid || doc.agentId == request.auth.uid || (doc.agent && (doc.agent.userId == request.auth.uid || doc.agent.agentId == request.auth.uid));
   }
 
   function getDoc(path) {

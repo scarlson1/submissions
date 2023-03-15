@@ -48,7 +48,7 @@ export const RequireAuth: React.FC<RequireAuthProps> = ({
             }
           );
         }
-
+        console.log('REDIRECTING - MISSING REQUIRED CLAIMS');
         if (location.key !== 'default') return navigate(-1);
         return navigate(createPath({ path: AUTH_ROUTES.LOGIN }), {
           replace: true,

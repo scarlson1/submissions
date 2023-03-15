@@ -33,3 +33,6 @@ export { authRequests } from './routes';
 export { getAALPortfolio } from './storageEvents';
 export { tempGetFIPS } from './storageEvents/tempGetFIPS';
 export { checkAchStatus } from './pubsub';
+export { markpaidonpaymentcomplete } from './pubsub/markPaidOnPaymentComplete';
+export { pubsubHelper } from './routes/pubSubHelper';
+// export { testEmulatorsCheckAchStatus } from './pubsub/checkAchStatus';

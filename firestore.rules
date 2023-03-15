@@ -48,14 +48,17 @@ service cloud.firestore {
     }
 
     match /policies/{policyId} {
-      allow read: if isUser(existingData().userId) || isIDemandAdmin()
+      allow read: if isSignedIn() && (isUser(existingData().userId) || isIDemandAdmin())
       allow create: if isIDemandAdmin() && emailVerified()
       allow update: if isIDemandAdmin() && emailVerified()
       allow delete: if false
     }
 
+    // TODO: update allow read of user profile (tenant/agent/insured etc.)
     match /users/{userId} {
-      allow create, update, read: if isUser(userId) || (isIDemandAdmin() && emailVerified())
+      allow read: if isUser(userId) || (isIDemandAdmin() && emailVerified())
+      allow create: if isUser(userId) || (isIDemandAdmin() && emailVerified())
+      allow update: if isUser(userId) || (isIDemandAdmin() && emailVerified())
       allow delete: if isIDemandAdmin() && emailVerified()
     }
 
@@ -138,12 +141,12 @@ service cloud.firestore {
     }
 
     function isIDemandAdmin() {
-      return request.auth.token.iDemandAdmin == true
+      return isSignedIn() && request.auth.token.iDemandAdmin == true
     }
 
     // Does the logged-in user match the requested userId?
     function isUser(userId) {
-      return request.auth.uid == userId;
+      return isSignedIn() && request.auth.uid == userId;
     }
 
     function isTenantUser(tenantId) {

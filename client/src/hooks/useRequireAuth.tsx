@@ -1,126 +1,123 @@
-export {};
+// BUG:  DO NOT USE - CAUSES INFINITE LOOP
 
-// import { useEffect, useRef } from 'react';
-// import { useAuth, CustomClaims } from 'modules/components/AuthContext';
-// import { useLocation, useNavigate } from 'react-router-dom';
-// import { toast } from 'react-hot-toast';
-// import { signInAnonymously, UserCredential, getAuth } from 'firebase/auth';
+import { useEffect } from 'react';
+import { useAuth, CUSTOM_CLAIMS } from 'modules/components/AuthContext';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { signInAnonymously, UserCredential, getAuth } from 'firebase/auth';
 
-// import { auth } from 'firebaseConfig';
+import { auth } from 'firebaseConfig';
+import { useAsyncToast } from './useAsyncToast';
+import { AUTH_ROUTES, createPath } from 'router';
 
-// export type CustomClaimKeys = keyof typeof CustomClaims;
+// TODO: adapt return values to match reactfire
+// { signedIn: true, hasRequiredClaims: true, errors: {}, user: user }
 
-// export interface UseRequireAuthProps {
-//   redirectPath?: string;
-//   returnToPath?: string;
-//   requiredClaims?: null | CustomClaimKeys[];
-//   allowAnonymous?: boolean;
-//   shouldSignInAnonymously?: boolean;
-//   unauthorizedCallback?: () => void;
-// }
+export type CustomClaimKeys = keyof typeof CUSTOM_CLAIMS;
 
-// export const useRequireAuth = ({
-//   redirectPath = '/auth/login',
-//   returnToPath,
-//   requiredClaims,
-//   allowAnonymous = false,
-//   shouldSignInAnonymously = false,
-//   unauthorizedCallback,
-// }: UseRequireAuthProps) => {
-//   const { error, loading, isAuthenticated, loadingInitial, isAnonymous, customClaims } = useAuth();
-//   let toastId = useRef<any>(null);
-//   let location = useLocation();
-//   const navigate = useNavigate();
+export interface UseRequireAuthProps {
+  redirectPath?: string;
+  returnToPath?: string;
+  requiredClaims?: null | CustomClaimKeys[];
+  allowAnonymous?: boolean;
+  shouldSignInAnonymously?: boolean;
+  unauthorizedCallback?: () => void;
+}
 
-//   let user = getAuth().currentUser;
+export const useRequireAuth = ({
+  redirectPath,
+  returnToPath,
+  requiredClaims,
+  allowAnonymous = false,
+  shouldSignInAnonymously = false,
+  unauthorizedCallback,
+}: UseRequireAuthProps) => {
+  const { error, loading, isAuthenticated, loadingInitial, isAnonymous, customClaims } = useAuth();
+  const toast = useAsyncToast();
+  let location = useLocation();
+  const navigate = useNavigate();
 
-//   const notify = (msg: string, options?: any) => (toastId.current = toast(msg, { ...options }));
+  let user = getAuth().currentUser;
 
-//   const closeToast = () => toast.dismiss(toastId.current);
+  useEffect(() => {
+    if (loadingInitial || loading) {
+      return;
+    }
 
-//   useEffect(() => {
-//     if (loadingInitial || loading) {
-//       return;
-//     }
+    // if (!isAuthenticated && !!shouldSignInAnonymously) {
+    if (!(user && user.uid) && !!shouldSignInAnonymously) {
+      signInAnonymously(auth)
+        .then((userCred: UserCredential) => {
+          console.log('SIGNED IN ANONYMOUSLY: ', userCred);
+        })
+        .catch((err: unknown) => {
+          console.log('ERROR => ', err);
+        });
+    }
 
-//     // if (!isAuthenticated && !!shouldSignInAnonymously) {
-//     if (!(user && user.uid) && !!shouldSignInAnonymously) {
-//       signInAnonymously(auth)
-//         .then((userCred: UserCredential) => {
-//           console.log('SIGNED IN ANONYMOUSLY: ', userCred);
-//         })
-//         .catch((err: unknown) => {
-//           console.log('ERROR => ', err);
-//         });
-//     }
+    // if (!isAuthenticated && !shouldSignInAnonymously) {
+    if (!(user && user.uid) && !shouldSignInAnonymously) {
+      toast.error('Protected route. Please sign in or create an account');
 
-//     // if (!isAuthenticated && !shouldSignInAnonymously) {
-//     if (!(user && user.uid) && !shouldSignInAnonymously) {
-//       notify('Protected route. Please sign in or create an account', { type: toast.TYPE.INFO });
+      if (unauthorizedCallback) unauthorizedCallback();
 
-//       if (unauthorizedCallback) unauthorizedCallback();
+      navigate(redirectPath || createPath({ path: AUTH_ROUTES.CREATE_ACCOUNT }), {
+        replace: true,
+        state: { from: location, redirectPath: returnToPath },
+      });
+      return;
+    }
 
-//       navigate(redirectPath, {
-//         replace: true,
-//         state: { from: location, redirectPath: returnToPath },
-//       });
-//       return;
-//     }
+    if (!allowAnonymous && isAnonymous && !shouldSignInAnonymously) {
+      toast.info('You need an login or create an account to access that route.');
 
-//     if (!allowAnonymous && isAnonymous && !shouldSignInAnonymously) {
-//       notify('You need an login or create an account to access that route.', {
-//         type: toast.TYPE.INFO,
-//       });
+      if (unauthorizedCallback) unauthorizedCallback();
 
-//       if (unauthorizedCallback) unauthorizedCallback();
+      navigate(redirectPath || createPath({ path: AUTH_ROUTES.CREATE_ACCOUNT }), {
+        replace: true,
+        state: { from: location, redirectPath: returnToPath },
+      });
+      return;
+    }
 
-//       navigate('/auth/create-account', {
-//         replace: true,
-//         state: { from: location, redirectPath: returnToPath },
-//       });
-//       return;
-//     }
+    if (requiredClaims && requiredClaims.length > 0) {
+      // checks if all claims are falsy (user does not have any of the roles in required)
+      let notAuthorized = requiredClaims.every((key) => !customClaims[CUSTOM_CLAIMS[key]]);
 
-//     if (requiredClaims && requiredClaims.length > 0) {
-//       // checks if all claims are falsy (user does not have any of the roles in required)
-//       let notAuthorized = requiredClaims.every((key) => !customClaims[CustomClaims[key]]);
+      if (!!notAuthorized) {
+        if (unauthorizedCallback) unauthorizedCallback();
 
-//       if (!!notAuthorized) {
-//         if (unauthorizedCallback) unauthorizedCallback();
+        toast.error(`Missing required permissions to access this route`, { duration: 8000 });
 
-//         notify(`Missing required permissions to access this route`, {
-//           type: toast.TYPE.WARNING,
-//           autoClose: 8000,
-//         });
+        navigate(-1);
+        return;
+      }
+    }
 
-//         navigate(-1);
-//         return;
-//       }
-//     }
-//     closeToast();
-//   }, [
-//     user,
-//     loading,
-//     isAuthenticated,
-//     loadingInitial,
-//     isAnonymous,
-//     customClaims,
-//     requiredClaims,
-//     allowAnonymous,
-//     redirectPath,
-//     returnToPath,
-//     location,
-//     shouldSignInAnonymously,
-//     unauthorizedCallback,
-//     navigate,
-//   ]);
+    toast.dismiss();
+  }, [
+    user,
+    loading,
+    isAuthenticated,
+    loadingInitial,
+    isAnonymous,
+    customClaims,
+    requiredClaims,
+    allowAnonymous,
+    redirectPath,
+    returnToPath,
+    location,
+    shouldSignInAnonymously,
+    toast,
+    unauthorizedCallback,
+    navigate,
+  ]);
 
-//   return {
-//     user,
-//     loading: Boolean(loadingInitial || loading),
-//     error,
-//     isAuthenticated,
-//     isAnonymous,
-//     customClaims,
-//   };
-// };
+  return {
+    user,
+    loading: Boolean(loadingInitial || loading),
+    error,
+    isAuthenticated,
+    isAnonymous,
+    customClaims,
+  };
+};

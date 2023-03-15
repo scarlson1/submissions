@@ -19,6 +19,8 @@ export { AddPaymentDialog, Transition } from './AddPaymentDialog';
 export { PaymentStep, billingValidation } from './PaymentStep';
 export { ActionHandler } from './ActionHandler';
 export { FloodStateDisclosure } from './FloodStateDisclosure';
+export { UpdateProfileImg } from './UpdateProfileImg';
+export { FormikAddressLite } from './FormikAddressLite';
 
 export type { FormikAddressProps } from './FormikAddress';
 export type { DeductibleStepProps } from './DeductibleStep';
@@ -30,4 +32,6 @@ export type { AgencyBankingStepProps } from './AgencyBankingStep';
 export type { AgencyReviewStepProps, ContactCardProps, ContactItem } from './AgencyReviewStep';
 export type { DeckMapProps } from './DeckMap';
 export type { FloodStateDisclosureProps } from './FloodStateDisclosure';
+export type { UpdateProfileImgProps } from './UpdateProfileImg';
+export type { FormikAddressLiteProps } from './FormikAddressLite';
 // export type {  } from './';

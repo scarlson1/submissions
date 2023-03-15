@@ -7,6 +7,7 @@ import {
   SUBMISSION_STATUS,
   STATE_ABBREVIATION,
   QUOTE_STATUS,
+  POLICY_STATUS,
 } from './enums';
 import { FloodValues } from 'views/SubmissionNew';
 import { FetchPropertyDataResponse } from 'modules/api/index';
@@ -391,6 +392,7 @@ export interface PaymentMethod extends EPayPaymentMethodDetails {
 }
 
 export interface Policy {
+  status: POLICY_STATUS;
   limits: Limits;
   deductible: number;
   address: Address;
@@ -407,7 +409,7 @@ export interface Policy {
   expirationDate: FirestoreTimestamp;
   userId: string;
   agent: {
-    agentId: string;
+    userId: string;
     name: string;
     email: string;
   };
@@ -417,8 +419,8 @@ export interface Policy {
   };
   documents: [{ displayName: string; downloadUrl: string; storagePath: string }];
   // TODO: fixed files? use array of files ?? or policyDocument: { path: '123/doc', downloadUrl: '123download', etc.}
-  imageUrls?: { [key: string]: string | null };
-  imagePaths?: { [key: string]: string | null };
+  imageUrls?: { [key: string]: string | null } | null;
+  imagePaths?: { [key: string]: string | null } | null;
   // darkMapImageURL?: string;
   // lightMapImageURL?: string;
   // darkMapImageFilePath?: string;

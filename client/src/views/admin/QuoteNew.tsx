@@ -193,7 +193,7 @@ export const QuoteNew: React.FC = () => {
       await updateDoc(doc(submissionsCollection, submissionData.id), {
         status: SUBMISSION_STATUS.QUOTED,
       });
-      navigate(createPath({ path: ADMIN_ROUTES.QUOTES }));
+      navigate(createPath({ path: ADMIN_ROUTES.QUOTES }), { replace: true });
     },
     (msg: string) => toast.success(msg, { duration: 3000 }),
     (err, msg) => toast.error(msg)
@@ -284,7 +284,6 @@ export const QuoteNew: React.FC = () => {
 
       let minPremiumAdj = Math.max(MIN_PREMIUM - termPremium, 0);
       let provisionalPremium = termPremium + minPremiumAdj;
-      // const comm = termPremium * subproducerCommission;
       const subproducerAdj = getSubproducerAdj(termPremium, 0.2, subproducerCommission);
       console.log('sub producer adj: ', subproducerAdj);
       const directWrittenPremium = Math.ceil(provisionalPremium + subproducerAdj);
@@ -298,6 +297,7 @@ export const QuoteNew: React.FC = () => {
 
       formikRef.current?.setFieldValue('quoteTotal', total);
       formikRef.current?.setFieldTouched('quoteTotal');
+      setTimeout(() => formikRef.current?.validateField('quoteTotal'), 100);
     } catch (err) {
       console.log(err);
       toast.error('Error calculating total. See console for details');
@@ -328,6 +328,8 @@ export const QuoteNew: React.FC = () => {
     () => commissionOptions.map((o: number) => ({ label: `${(o * 100).toFixed(0)}%`, value: o })),
     []
   );
+
+  //TODO: CHANGE SUBMISSION LIMITS TO BE TYPE NUMBER
 
   return (
     <Box>
@@ -369,7 +371,6 @@ export const QuoteNew: React.FC = () => {
           agentPhone: '',
           agencyName: '',
           agencyId: '',
-          // submissionId: submissionData.id ?? null,
         }}
         validationSchema={quoteNewValidation}
         onSubmit={handleSubmit}
@@ -589,6 +590,27 @@ export const QuoteNew: React.FC = () => {
                 >
                   Get Tax data
                 </LoadingButton>
+              </Grid>
+              <Grid xs={12}>
+                <Typography variant='body2' color='text.secondary'>
+                  Order:{' '}
+                </Typography>
+                <Typography variant='body2' color='text.secondary'>
+                  1) Term premium
+                </Typography>
+                <Typography variant='body2' color='text.secondary'>
+                  2) Fees & commission
+                </Typography>
+                <Typography variant='body2' color='text.secondary'>
+                  3) Fetch taxes
+                </Typography>
+                <Typography variant='body2' color='text.secondary'>
+                  4) Calculate quote
+                </Typography>
+                <Typography variant='body2' color='text.secondary'>
+                  Taxes and calc total are dependent on premium, fees and commission. Must repeat 3
+                  & 4, if changed.
+                </Typography>
               </Grid>
               <Grid xs={12} sm={8} md={6}>
                 <Box sx={{ maxWidth: 600 }}>

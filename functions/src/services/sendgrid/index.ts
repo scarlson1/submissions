@@ -7,6 +7,8 @@ import {
   userInvite,
   adminNewAgencySubmission,
   newQuote,
+  adminPaymentReceived,
+  policyDelivery,
 } from './templates';
 
 export interface AttachmentJSON {
@@ -137,13 +139,27 @@ export const sendPolicyDocDelivery = async (
   sgKey: string,
   to: string | string[],
   attachments: AttachmentJSON[],
-  link: string
+  toName?: string,
+  addressName?: string
 ) => {
-  // const html = newQuote({ link, toName, addressLine1 }); TODO: policy doc delivery template
-  const html = 'TODO: policy doc delivery template';
+  const html = policyDelivery({ toName, addressName });
   sgMail.setApiKey(sgKey);
 
   await sgMail.send(
     createMsgContent({ html, subject: `Congrats! Here's your new policy`, to, attachments })
   );
+};
+
+export const sendAdminPaidNotification = async (
+  sgKey: string,
+  to: string | string[],
+  policyLink: string,
+  policyId: string,
+  transactionLink: string,
+  transactionId: string
+) => {
+  const html = adminPaymentReceived({ policyLink, policyId, transactionLink, transactionId });
+  sgMail.setApiKey(sgKey);
+
+  await sgMail.send(createMsgContent({ html, subject: `Payment received (${transactionId})`, to }));
 };

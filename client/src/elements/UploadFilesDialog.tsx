@@ -37,7 +37,6 @@ interface UploadFilesDialogProps {
   onSubmit: (filesArr: File[]) => Promise<UploadResult[]>;
   onRemove: (removeFile: File) => void;
   onCancel: (event: object, reason: string) => void;
-  // buttonElement?: React.ReactElement;
   renderButton?: (props: RenderButtonProps) => JSX.Element | React.ReactElement;
 }
 
@@ -58,7 +57,6 @@ const UploadFilesDialog: React.FC<UploadFilesDialogProps> = ({
   onSubmit,
   onRemove,
   onCancel,
-  // buttonElement,
   renderButton,
 }) => {
   const [open, setOpen] = useState(false);
@@ -92,13 +90,12 @@ const UploadFilesDialog: React.FC<UploadFilesDialogProps> = ({
           {openButtonText}
         </Button>
       )}
-      {/* {buttonEl} */}
       <Dialog open={open} onClose={handleClose} fullWidth={true} maxWidth='sm'>
         <DialogTitle>
           {title ||
             `Upload ${filesDragDropProps && !!filesDragDropProps.multiple ? 'files' : 'file'}`}
         </DialogTitle>
-        <DialogContent>
+        <DialogContent dividers>
           {bodyText && <DialogContentText>{bodyText}</DialogContentText>}
           <FilesDragDrop
             files={files}
@@ -130,17 +127,3 @@ const UploadFilesDialog: React.FC<UploadFilesDialogProps> = ({
 };
 
 export default UploadFilesDialog;
-
-// let buttonEl = React.useMemo(() => {
-//   if (buttonElement) {
-//     return React.cloneElement(buttonElement as React.ReactElement, {
-//       onClick: handleClickOpen,
-//       ...openButtonProps,
-//     });
-//   }
-//   return (
-//     <Button onClick={handleClickOpen} variant='outlined' {...openButtonProps}>
-//       {openButtonText}
-//     </Button>
-//   );
-// }, [buttonElement, openButtonProps, openButtonText]);

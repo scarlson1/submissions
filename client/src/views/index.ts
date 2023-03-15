@@ -12,5 +12,6 @@ export { AgencyNew } from './AgencyNew';
 export { Protosure, protosureLoader } from './Protosure';
 export { Account } from './Account';
 export { QuoteBind, quoteLoader } from './QuoteBind';
+export { AccountDetails } from './AccountDetails';
 
 export type { QuoteValues } from './QuoteBind';

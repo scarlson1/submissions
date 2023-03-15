@@ -1,5 +1,6 @@
 import * as functions from 'firebase-functions';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
+import { round } from 'lodash';
 
 import {
   QUOTE_STATUS,
@@ -48,9 +49,13 @@ export const createPolicy = functions.https.onCall(async (data, ctx) => {
 
     // 5) return policyId
     return { policyId: policyRef.id };
-  } catch (err) {
+  } catch (err: any) {
     console.log('ERROR => ', err);
-    throw new functions.https.HttpsError('internal', 'Error creating policy');
+    if (err instanceof functions.https.HttpsError) {
+      throw new functions.https.HttpsError(err.code, err.message, err.details);
+    } else {
+      throw new functions.https.HttpsError('unknown', 'Error creating policy');
+    }
   }
 });
 
@@ -58,7 +63,7 @@ function convertQuoteToPolicy(data: SubmissionQuoteData): Policy {
   return {
     status: POLICY_STATUS.AWAITING_PAYMENT,
     price: data.quoteTotal || 100000, // TODO: fix quote total validation
-    cardFee: data.cardFee,
+    cardFee: data.cardFee || round(data.quoteTotal ? data.quoteTotal * 0.035 : 0, 2),
     limits: data.limits,
     deductible: data.deductible,
     address: data.insuredAddress,
@@ -86,8 +91,8 @@ function convertQuoteToPolicy(data: SubmissionQuoteData): Policy {
       name: data.agencyName,
     },
     documents: [],
-    imageUrls: data.imageUrls,
-    imagePaths: data.imagePaths,
+    imageUrls: data.imageUrls || null,
+    imagePaths: data.imagePaths || null,
     transactions: [],
     metadata: {
       created: Timestamp.now(),

@@ -393,8 +393,8 @@ export interface Policy {
     name: string | null;
   };
   documents: { displayName: string; downloadUrl: string; storagePath: string }[];
-  imageUrls?: { [key: string]: string | null };
-  imagePaths?: { [key: string]: string | null };
+  imageUrls?: { [key: string]: string | null } | null;
+  imagePaths?: { [key: string]: string | null } | null;
   transactions: string[]; // TODO: figure out how to associate policies and transactions
   price: number;
   cardFee: number;

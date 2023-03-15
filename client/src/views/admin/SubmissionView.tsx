@@ -116,9 +116,7 @@ export const SubmissionView: React.FC = () => {
             >
               <ArrowBackIosRounded fontSize='inherit' />
             </IconButton>
-            <Typography color='warning.main' variant='h5'>
-              TODO: SubmissionView
-            </Typography>
+            <Typography variant='h5'>Submission</Typography>
           </Box>
           <Button variant='contained' onClick={handleCreateQuote} sx={{ maxHeight: 34 }}>
             Create Quote
@@ -129,6 +127,7 @@ export const SubmissionView: React.FC = () => {
           data.metadata.created,
           'date'
         )}`}</Typography>
+        <Typography variant='body2'>{`ID: ${data.id}`}</Typography>
       </Grid>
       <Grid xs={12} sm={6} md={4} lg={3}>
         <Box sx={{ pb: 3 }}>

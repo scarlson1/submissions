@@ -31,6 +31,16 @@ export const useAsyncToast = () => {
     });
   }, []);
 
+  // TODO: info = useCallback(()) // custom styling and icon
+  const info = useCallback((msg: string, options?: ToastOptions) => {
+    toast(msg, {
+      id: toastRef.current,
+      ...options,
+    });
+  }, []);
+
+  // TODO: warn = ...
+
   const dismiss = useCallback(() => {
     toast.dismiss(toastRef.current || undefined);
   }, []);
@@ -40,10 +50,11 @@ export const useAsyncToast = () => {
       loading,
       updateLoadingMsg,
       success,
+      info,
       error,
       dismiss,
     }),
-    [loading, updateLoadingMsg, success, error, dismiss]
+    [loading, updateLoadingMsg, success, info, error, dismiss]
   );
 
   return memoed;

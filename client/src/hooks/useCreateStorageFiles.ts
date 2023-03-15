@@ -11,7 +11,7 @@ export const useCreateStorageFiles = (
   destinationFolder: string,
   uploadMetadata?: { [key: string]: any },
   onSuccess?: (uploadResults: UploadResult[]) => void,
-  onError?: (err: unknown) => void
+  onError?: (err: unknown, msg?: string) => void
 ) => {
   const toast = useAsyncToast();
   const [files, setFiles] = useState<File[]>([]);

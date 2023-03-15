@@ -11,12 +11,10 @@ import {
   Stack,
   Tooltip,
   Typography,
-  useTheme,
 } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2/Grid2';
 import { CancelRounded, CheckCircleRounded } from '@mui/icons-material';
 import { useLoaderData, useNavigate } from 'react-router-dom';
-import ReactJson from '@microlink/react-json-view';
 
 import { SubmissionQuoteData, WithId } from 'common';
 import { dollarFormat } from 'modules/utils/helpers';
@@ -33,7 +31,6 @@ import { createPath, ROUTES } from 'router';
 
 export const ViewQuote: React.FC = () => {
   const navigate = useNavigate();
-  const theme = useTheme();
   const data = useLoaderData() as WithId<SubmissionQuoteData>;
 
   return (
@@ -175,7 +172,7 @@ export const ViewQuote: React.FC = () => {
       >
         Coverage Highlights
       </Typography>
-      <Grid container spacing={6}>
+      <Grid container spacing={6} sx={{ mb: { xs: 4, md: 8, lg: 10 } }}>
         <Grid xs={12} sm={6} md={4}>
           <HighlightCard
             title='Primary building structure'
@@ -236,7 +233,7 @@ export const ViewQuote: React.FC = () => {
         </Grid>
       </Grid>
 
-      <Box sx={{ py: 15 }}>
+      {/* <Box sx={{ py: 15 }}>
         <ReactJson
           src={data}
           theme={theme.palette.mode === 'dark' ? 'tomorrow' : 'rjv-default'}
@@ -245,7 +242,7 @@ export const ViewQuote: React.FC = () => {
           enableClipboard
           collapseStringsAfterLength={30}
         />
-      </Box>
+      </Box> */}
     </Box>
   );
 };

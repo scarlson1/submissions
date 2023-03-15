@@ -13,6 +13,7 @@ import {
   TRANSACTION_STATUS,
 } from '../common';
 import { getEPayInstance } from '../services';
+import { publishMessage } from '../services/pubsub/publishMessage';
 
 const ePayCreds = defineSecret('ENCODED_EPAY_AUTH');
 const CARD_FEE = 0.035;
@@ -90,6 +91,8 @@ export const executePayment = functions
         amount: total,
         payerFee: ePayFees,
         attributeValues: {
+          policyNumber: policyId,
+          namedInsured: `${policy.namedInsured.firstName} ${policy.namedInsured.lastName}`,
           policyId,
           userId: uid,
           agentId: policy.agent.agentId || null,
@@ -98,8 +101,8 @@ export const executePayment = functions
         emailAddress: paymentMethodDetails.emailAddress,
         tokenId: paymentMethodId,
         sendReceipt: true,
-        ipAddress: ctx.rawRequest.ip,
-      }); // comments: `Quote ID: ${quoteId}`,
+        ipAddress: ctx.auth?.token.signInIpAddress, // ctx.rawRequest.ip,
+      });
 
       let transactionId = location?.split('/')[2];
       console.log('transactionId: ', transactionId);
@@ -110,6 +113,11 @@ export const executePayment = functions
       // TODO: emit event "payment:complete" data: { policyId, transactionId }
       // trigger same event when ach payment is complete
       // handle policy status and transaction status updates
+
+      await publishMessage('payment.complete', {
+        policyId,
+        transactionId,
+      });
 
       await transactionsCollection(db)
         .doc(transactionId)
@@ -146,6 +154,18 @@ export const executePayment = functions
             updated: Timestamp.now(),
           },
         });
+
+      // await publishMessage('sk-upload', {
+      //   uploadId,
+      //   uploadFileName,
+      //   iDemandProcessId,
+      //   iDemandFileId: fileId,
+      //   iDemandBatchIds: fileIds,
+      //   filesInBatchCount: batch,
+      //   originalHeaders: headers,
+      //   originalFilePath: filePath,
+      //   totalRowCount: dataArray.length,
+      // });
 
       return {
         transactionId,

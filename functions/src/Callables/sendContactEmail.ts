@@ -30,7 +30,7 @@ export const sendContactEmail = functions
         subject: `New contact us submission: ${subject}`,
         to: 'spencercarlson@mac.com',
         from: 'hello@idemandinsurance.com', // email,
-      }); // 'hello@idemandinsurance.com'
+      });
 
       return {
         emails: [email],

@@ -1,0 +1,47 @@
+import * as functions from 'firebase-functions';
+import { PubSub } from '@google-cloud/pubsub';
+
+export const pubsubHelper = functions.https.onRequest(async (request, response) => {
+  // 1. make sure the function can't be used in production
+  if (!process.env.PUBSUB_EMULATOR_HOST) {
+    functions.logger.error('This function should only run locally in an emulator.');
+    response.status(400).end();
+  }
+
+  const payload = request.body.payload;
+  const t = request.body.topic;
+  if (!payload || !t) response.status(400).send({ message: 'Missing payload or topic' });
+
+  const pubsub = new PubSub();
+
+  // 2. make sure the test topic exists and
+  // if it doesn't then create it.
+  const [topics] = await pubsub.getTopics();
+
+  // topic.name is of format 'projects/PROJECT_ID/topics/test-topic',
+  const matchedTopic = topics.filter((topic) => topic.name.includes(t))?.[0];
+  console.log('TEST TOPIC:', matchedTopic);
+  if (!matchedTopic) await pubsub.createTopic(t);
+
+  // 3. publish to test topic and get message ID
+  const messageId = await pubsub.topic(t).publishMessage({
+    json: { ...payload },
+  });
+
+  response
+    .status(201)
+    .send({ success: `Published to pubsub ${t} -- message ID: ${messageId}`, messageId });
+
+  // const dataBuffer = Buffer.from(JSON.stringify({ ...payload }));
+  // try {
+  //   const messageId = await pubsub.topic(t).publishMessage({ data: dataBuffer });
+
+  //   // 4. send back a helpful message
+  //   response
+  //     .status(201)
+  //     .send({ success: `Published to pubsub ${t} -- message ID: ${messageId}`, messageId });
+  // } catch (err) {
+  //   console.log('ERROR PUBLIHING MESSAGE: ', err);
+  //   response.status(200).send({});
+  // }
+});

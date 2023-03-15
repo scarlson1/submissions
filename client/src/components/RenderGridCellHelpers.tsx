@@ -40,7 +40,12 @@ export const renderGridEmail = (params: GridRenderCellParams<any, any, any>) => 
   );
 };
 
-export const renderChips = (params: GridRenderCellParams<any, any, any>, chipProps?: ChipProps) => {
+export const renderChips = (
+  params: GridRenderCellParams<any, any, any>,
+  chipProps: ChipProps = {},
+  propsGetterFunc: (props: any) => Partial<ChipProps> | void = () => {}
+) => {
+  if (!params.value || params.value.length < 1) return null;
   return (
     <Stack
       spacing={1}
@@ -48,7 +53,7 @@ export const renderChips = (params: GridRenderCellParams<any, any, any>, chipPro
       sx={{ overflow: 'auto', whiteSpace: 'nowrap', '&::-webkit-scrollbar': { display: 'none' } }}
     >
       {params.value.map((i: string) => (
-        <Chip key={i} label={i} size='small' {...chipProps} />
+        <Chip key={i} label={i} size='small' {...chipProps} {...propsGetterFunc(i)} />
       ))}
     </Stack>
   );

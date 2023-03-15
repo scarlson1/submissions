@@ -18,7 +18,7 @@ import FormikMaskField from './FormikMaskField';
 import PhoneMask from './PhoneMask';
 import FormikDollarMaskField from './FormikDollarMaskField';
 import { FormikNativeSelect } from './FormikNativeSelect';
-import FormikAddressLite from 'elements/FormikAddressLite';
+import { FormikAddressLite } from 'elements';
 
 // https://stackoverflow.com/questions/53958028/how-to-use-generics-in-props-in-react-in-a-functional-component
 
@@ -90,7 +90,6 @@ export const FormikFieldArray: React.FC<FormikFieldArrayProps> = ({
 
     for (let field of inputFields) {
       if (field.name.includes('.')) {
-        console.log('field includes . ', field.name);
         const split = field.name.split('.');
         const nestedVal: any = {};
         nestedVal[split[1]] = '';

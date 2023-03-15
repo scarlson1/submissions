@@ -16,9 +16,9 @@ import { MenuRounded, Brightness4, Brightness7, WaterRounded } from '@mui/icons-
 import { useTheme } from '@mui/material/styles';
 
 import { useChangeTheme } from 'modules/components/ThemeContext';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from 'modules/components/AuthContext';
-import { ROUTES, ADMIN_ROUTES, createPath, AUTH_ROUTES } from 'router';
+import { ROUTES, ADMIN_ROUTES, createPath, AUTH_ROUTES, ACCOUNT_ROUTES } from 'router';
 import { User } from 'firebase/auth';
 
 export interface NavItem {
@@ -90,6 +90,7 @@ export const Header: React.FC<HeaderProps> = () => {
   const theme = useTheme();
   const changeTheme = useChangeTheme();
   const navigate = useNavigate();
+  let location = useLocation();
   const { user, customClaims, logout } = useAuth();
   const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
 
@@ -175,14 +176,34 @@ export const Header: React.FC<HeaderProps> = () => {
   };
 
   const settings = useMemo(() => {
-    let sItems = [{ label: 'Logout', onClick: logout }];
-    if (user?.isAnonymous)
+    let sItems = [
+      {
+        label: 'Contact Us',
+        onClick: () => navigate(createPath({ path: ROUTES.CONTACT })),
+      },
+    ];
+
+    if (user && !user.isAnonymous)
+      sItems.unshift({
+        label: 'Account Settings',
+        onClick: () => navigate(createPath({ path: ACCOUNT_ROUTES.ACCOUNT })),
+      });
+
+    if (user?.isAnonymous) {
       sItems.push({
         label: 'Create Account',
         onClick: () => navigate(createPath({ path: AUTH_ROUTES.CREATE_ACCOUNT })),
       });
+      sItems.push({
+        label: 'Login',
+        onClick: () =>
+          navigate(createPath({ path: AUTH_ROUTES.LOGIN }), { state: { from: location } }),
+      });
+    }
+    sItems.push({ label: 'Logout', onClick: logout });
+
     return sItems;
-  }, [logout, navigate, user]);
+  }, [logout, navigate, location, user]);
 
   return (
     <AppBar
@@ -337,7 +358,18 @@ export const Header: React.FC<HeaderProps> = () => {
               )}
             </IconButton>
 
-            {!!user && <UserMenu user={user} menuItems={settings} />}
+            {!!user ? (
+              <UserMenu user={user} menuItems={settings} />
+            ) : (
+              <Button
+                onClick={() =>
+                  navigate(createPath({ path: AUTH_ROUTES.LOGIN }), { state: { from: location } })
+                }
+                sx={{ maxHeight: 34 }}
+              >
+                Login
+              </Button>
+            )}
           </Box>
         </Toolbar>
       </Container>

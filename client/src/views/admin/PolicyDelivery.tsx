@@ -128,7 +128,7 @@ export const PolicyDelivery: React.FC = () => {
       userId: data.userId || null,
       insuredEmail: data.namedInsured?.email || null,
       insuredName: `${data.namedInsured?.firstName} $${data.namedInsured?.lastName}`.trim() || null,
-      agentId: data.agent.agentId || null,
+      agentId: data.agent.userId || null,
       agentname: data.agent.name || null,
       agencyId: data.agency.orgId || null,
       agencyName: data.agency.name || null,
@@ -173,7 +173,7 @@ export const PolicyDelivery: React.FC = () => {
         {
           title: 'Select emails for policy delivery',
           description:
-            'Please select the emails to which you would like to deliver the policy, if any. If using alternative email, enter the email then  press tab, space, or enter.',
+            'Please select the emails to which you would like to deliver the policy, if any. If using alternative email, enter the email then press tab, space, or enter.',
           confirmButtonText: 'Send',
         }
       );
@@ -222,10 +222,28 @@ export const PolicyDelivery: React.FC = () => {
         <Button onClick={showPolicyDoc} endIcon={<OpenInNewRounded />}>
           Show current policy doc
         </Button>
-        <Button onClick={handleDeliverDocs} variant='contained' sx={{ ml: 2 }}>
+        <Button
+          onClick={handleDeliverDocs}
+          variant='contained'
+          sx={{ ml: 2 }}
+          disabled={data.documents.length < 1}
+        >
           Deliver Docs
         </Button>
       </Box>
+      <Typography color='text.secondary' sx={{ pt: 5, pb: 2 }}>
+        What to do:
+      </Typography>
+      <Typography variant='body2' color='text.secondary'>
+        - maunally generate the policy document(s)
+      </Typography>
+      <Typography variant='body2' color='text.secondary'>
+        - select them above, then click 'upload' in the top right corner to add them to cloud
+        storage
+      </Typography>
+      <Typography variant='body2' color='text.secondary'>
+        - click deliver documents to email the policy docs to agent/insured
+      </Typography>
 
       <Typography color='text.secondary' sx={{ pt: 5, pb: 2 }}>
         TODO:

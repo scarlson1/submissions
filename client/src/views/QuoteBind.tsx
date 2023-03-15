@@ -93,7 +93,7 @@ export const quoteLoader =
     // console.log('current user ', auth.currentUser?.uid);
     const snap = await getDoc(quoteRef);
     let data = snap.data();
-    console.log('QUOTE DATA: ', data);
+    // console.log('QUOTE DATA: ', data);
 
     if (!snap.exists() || !data) {
       throw new Response('Quote not found', { status: 404 });

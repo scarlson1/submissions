@@ -15,12 +15,12 @@ export const useBindQuote = (
     async (quoteId: string, paymentMethodId: string) => {
       try {
         const { data: policyData } = await createPolicy({ quoteId });
+        console.log('CREATE POLICY RES: ', policyData);
 
         const { data: pmtData } = await executePayment({
           policyId: policyData.policyId,
           paymentMethodId,
         });
-        console.log('CREATE POLICY RES: ', policyData);
         console.log('PMT RES: ', pmtData);
 
         if (!pmtData.transactionId) throw new Error('transaction failed');
@@ -30,6 +30,7 @@ export const useBindQuote = (
       } catch (err) {
         console.log('ERROR BINDING QUOTE: ', err);
         let msg = 'Error binding quote';
+        // if (err )
 
         // TODO: get error message
         if (onError) onError(err, msg);

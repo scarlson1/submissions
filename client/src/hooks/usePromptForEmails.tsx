@@ -3,27 +3,40 @@ import { Box, Stack } from '@mui/material';
 import { Form, Formik, FormikProps } from 'formik';
 import * as yup from 'yup';
 
-import { emailVal } from 'common';
 import { ConfirmationOptions, useConfirmation } from 'modules/components/ConfirmationService';
 import { ConfirmationDialog } from 'components';
 import { FormikSwitch, FormikMultiTextInput } from 'components/forms';
+import { isValidEmail } from 'modules/utils';
 
 const notifyValidation = yup.object().shape({
-  notifyInsured: yup
-    .boolean()
-    .test(
-      'at least one',
-      'At least one must be selected to send notification. Click cancel to exit without sending.',
-      (value, ctx) => !!value || !!ctx.parent.notifyAgent || ctx.parent.alternative.length > 0
-    ),
+  notifyInsured: yup.boolean().when(['notifyAgent', 'alternative'], {
+    is: (notifyAgent: boolean, alternative: string[]) => !notifyAgent && alternative.length < 1,
+    then: yup.boolean().oneOf([true], 'Must provide or select at least one email'),
+    otherwise: yup.boolean(),
+  }),
   notifyAgent: yup
     .boolean()
     .test(
       'at least one',
       'At least one must be selected to send notification. Click cancel to exit without sending.',
-      (value, ctx) => !!value || !!ctx.parent.notifyInsured || ctx.parent.alternative.length > 0
+      (value, ctx) => !!value || !!ctx.parent.notifyInsured || ctx.parent.alternative?.length > 0
     ),
-  alternative: yup.array().of(emailVal.notRequired()), //  emailVal.notRequired(),
+  alternative: yup
+    .array()
+    .test(
+      'alt required when insured and agent are false',
+      'At lease one email required. Press tab, enter or space to included alternative email.',
+      (value, ctx) => {
+        if (!!ctx.parent.notifyInsured || !!ctx.parent.notifyInsured) return true;
+        if (!Boolean(value && value.length > 0)) return false;
+
+        for (let email of value!) {
+          if (email && !isValidEmail(email)) return false;
+        }
+
+        return true;
+      }
+    ),
 });
 
 export interface NotificationEmailValues {
@@ -99,7 +112,7 @@ export const usePromptForEmails = () => {
                   enableReinitialize
                   innerRef={formRef}
                 >
-                  {({ handleSubmit }: FormikProps<NotificationEmailValues>) => (
+                  {({ handleSubmit, values }: FormikProps<NotificationEmailValues>) => (
                     <Form onSubmit={handleSubmit}>
                       <Stack direction='column' spacing={3}>
                         <FormikSwitch

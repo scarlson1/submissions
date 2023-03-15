@@ -2,7 +2,6 @@ import { useCallback } from 'react';
 import { FirebaseError } from 'firebase/app';
 import { addDoc, FirestoreError, GeoPoint, Timestamp } from 'firebase/firestore';
 import invariant from 'tiny-invariant';
-import { toast } from 'react-hot-toast';
 import { round } from 'lodash';
 
 import { NewQuoteValues } from 'views/admin/QuoteNew';
@@ -23,12 +22,7 @@ export const useCreateQuote = (
   onStepSuccess?: (msg: string) => void,
   onError?: (err: unknown, msg: string) => void
 ) => {
-  const sendEmailNotifications = useSendQuoteNotification(
-    (msg) => {
-      if (onStepSuccess) onStepSuccess(msg);
-    },
-    (err, msg) => toast.error(msg)
-  );
+  const sendEmailNotifications = useSendQuoteNotification();
 
   const createQuote = useCallback(
     async (

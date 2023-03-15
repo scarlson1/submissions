@@ -23,7 +23,11 @@ export const FormikMultiTextInput: React.FC<FormikMultiTextInputProps> = ({
   ...props
 }) => {
   const [inputVal, setInputVal] = useState('');
-  const [field, meta, { setValue }] = useField<string[]>({ name, multiple: true, ...formikConfig });
+  const [field, meta, { setValue, setTouched }] = useField<string[]>({
+    name,
+    multiple: true,
+    ...formikConfig,
+  });
 
   const handleAddEmail = useCallback(
     (e: KeyboardEvent) => {
@@ -56,8 +60,10 @@ export const FormikMultiTextInput: React.FC<FormikMultiTextInputProps> = ({
       <TextField
         value={inputVal}
         onChange={(e) => setInputVal(e.target.value)}
-        onBlur={field.onBlur}
+        onBlur={() => setTouched(true)}
+        // onBlur={field.onBlur}
         variant={variant}
+        error={meta.touched && Boolean(meta.error)}
         helperText={meta.touched && meta.error ? meta.error : helperText || null}
         {...props}
       />

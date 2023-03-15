@@ -1,4 +1,10 @@
-import { createBrowserRouter, createSearchParams, URLSearchParamsInit } from 'react-router-dom';
+import {
+  createBrowserRouter,
+  createSearchParams,
+  // redirect,
+  URLSearchParamsInit,
+} from 'react-router-dom';
+import { getAuth } from 'firebase/auth';
 
 import App from './App';
 import { Layout, RequireAuth, RouterErrorBoundary } from 'components';
@@ -20,6 +26,7 @@ import {
   Account,
   QuoteBind,
   quoteLoader,
+  AccountDetails,
 } from 'views';
 import {
   submissionLoader,
@@ -47,12 +54,14 @@ import {
   quotesLoader,
   PolicyDelivery,
   Policies as PoliciesAdmin,
+  policiesLoader as adminPoliciesLoader,
 } from 'views/admin';
 import { SuccessStep, ActionHandler } from 'elements';
 import { Product } from 'common';
 import { TestDataGridPagination } from 'views/admin/TestDataGridPagination';
 import { auth } from 'firebaseConfig';
 import { BindSuccess } from 'elements/SuccessStep';
+
 // import RouterErrorBoundary from 'components/errorBoundaries/RouterErrorBoundary';
 
 // provider for react-router (pass user etc.): https://stackoverflow.com/a/74929447/10887890
@@ -109,6 +118,10 @@ export enum AUTH_ROUTES {
   ACTIONS_HANDLER = '/auth/actions-handler',
 }
 
+export enum ACCOUNT_ROUTES {
+  ACCOUNT = '/account',
+}
+
 type TArgs =
   | { path: ROUTES.SUBMISSION_NEW; params: { productId: Product } }
   | { path: ROUTES.SUBMISSION_SUBMITTED; params: { submissionId: string } }
@@ -142,7 +155,8 @@ type TArgs =
   | {
       path: AUTH_ROUTES.ACTIONS_HANDLER;
       search: { mode: string; oobCode: string; continueUrl?: string | null };
-    };
+    }
+  | { path: ACCOUNT_ROUTES.ACCOUNT };
 
 type TArgsWithParams = Extract<TArgs, { path: any; params: any }>;
 
@@ -168,6 +182,29 @@ export function createPath(args: TArgs) {
 
   return resolvedPath;
 }
+
+// function ensureUserSession() {
+//   let user = getAuth().currentUser;
+//   if (!user || !user.uid) throw redirect('/auth/login');
+//   return true;
+// }
+
+// const user = getAuth().currentUser;
+
+// BUG: doesn't detect authed user on first load
+const testPoliciesLoader = (getUser?: any) => async (args: any) => {
+  const user = getUser().currentUser;
+  console.log('USER: ', user);
+  return adminPoliciesLoader(args);
+};
+
+// const testPolicyLoader = (auth: any) => async (args: any) => {
+//   // const user = getUser().currentUser;
+//   const user = auth.currentUser;
+//   console.log('USER: ', user);
+//   if (!user || !user.uid) throw redirect('/auth/login');
+//   return adminPoliciesLoader(args);
+// };
 
 export const router = createBrowserRouter([
   {
@@ -340,30 +377,30 @@ export const router = createBrowserRouter([
           },
           {
             path: ADMIN_ROUTES.QUOTE_NEW,
-            loader: newQuoteSubmissionLoader,
             element: (
               <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
                 <QuoteNew />
               </RequireAuth>
             ),
+            loader: newQuoteSubmissionLoader,
           },
           {
             path: ADMIN_ROUTES.QUOTES,
-            loader: quotesLoader,
             element: (
               <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
                 <Quotes />
               </RequireAuth>
             ),
+            loader: quotesLoader,
           },
           {
             path: ADMIN_ROUTES.POLICY_DELIVERY,
-            loader: policyLoader,
             element: (
               <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
                 <PolicyDelivery />
               </RequireAuth>
             ),
+            loader: policyLoader, // testPolicyLoader(auth)
           },
           {
             path: ADMIN_ROUTES.POLICIES,
@@ -372,15 +409,25 @@ export const router = createBrowserRouter([
                 <PoliciesAdmin />
               </RequireAuth>
             ),
+            loader: testPoliciesLoader(getAuth),
+            // loader: (params) => async () => {
+            //   const user = getAuth().currentUser;
+            //   console.log('USER: ', user);
+            //   return adminPoliciesLoader(params);
+            // },
+            // loader: async (params) => {
+            //   await ensureUserSession();
+            //   return adminPoliciesLoader(params);
+            // },
           },
           {
             path: ADMIN_ROUTES.SL_TAXES,
-            loader: adminTaxLoader,
             element: (
               <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
                 <SLTaxes />
               </RequireAuth>
             ),
+            loader: adminTaxLoader,
             errorElement: <RouterErrorBoundary />,
           },
           {
@@ -393,21 +440,22 @@ export const router = createBrowserRouter([
           },
           {
             path: ADMIN_ROUTES.EDIT_ACTIVE_STATES,
-            loader: activeStatesLoader,
             element: (
               <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
                 <EditActiveStates />
               </RequireAuth>
             ),
+            loader: activeStatesLoader,
           },
           {
             path: ADMIN_ROUTES.MORATORIUMS,
-            loader: moratoriumsLoader,
+
             element: (
               <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
                 <Moratoriums />
               </RequireAuth>
             ),
+            loader: moratoriumsLoader,
           },
           {
             path: ADMIN_ROUTES.MORATORIUM_NEW,
@@ -459,6 +507,17 @@ export const router = createBrowserRouter([
           {
             path: 'pagination/data-grid',
             element: <TestDataGridPagination />,
+          },
+        ],
+      },
+      {
+        path: 'account',
+        element: <Layout />,
+        errorElement: <RouterErrorBoundary />,
+        children: [
+          {
+            index: true,
+            element: <AccountDetails />,
           },
         ],
       },
