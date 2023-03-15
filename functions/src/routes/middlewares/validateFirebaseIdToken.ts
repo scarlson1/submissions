@@ -3,7 +3,7 @@ import 'firebase-functions';
 import { Response, NextFunction } from 'express';
 import { getAuth } from 'firebase-admin/auth';
 
-import { RequestUserAuth } from '../../common/types';
+import { RequestUserAuth } from '../../common';
 
 // https://github.com/firebase/functions-samples/blob/main/authorized-https-endpoint/functions/index.js
 

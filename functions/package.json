@@ -23,6 +23,7 @@
     "@turf/meta": "^6.5.0",
     "@turf/turf": "^6.5.0",
     "axios": "^1.2.2",
+    "date-fns": "^2.29.3",
     "fast-csv": "^4.3.6",
     "firebase-admin": "^10.0.2",
     "firebase-functions": "^4.2.1",

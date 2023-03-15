@@ -1,6 +1,6 @@
 import axios, { AxiosRequestConfig } from 'axios';
 
-import { GenerateTokenArgs, getAccessToken } from '../config/spatialKeyToken';
+import { GenerateTokenArgs, getAccessToken } from '../config/spatialKeyToken.js';
 
 // const spatialKeyTokenURL = `https://idemand.spatialkey.com/SpatialKeyFramework/api/v2/oauth.json?grant_type=${param1}&assertion=${param2}`
 

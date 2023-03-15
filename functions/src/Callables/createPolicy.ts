@@ -36,6 +36,8 @@ export const createPolicy = functions.https.onCall(async (data, ctx) => {
     // 2) TODO: validate quote (expired, amount, all values exist, etc.) invariant
 
     // 3) create policy doc
+    // TODO: use set ?? or get policy to see if it exists. If it does, need to check status
+    // error if already paid. could be scenario where policy was created but payment failed
     const policyData = convertQuoteToPolicy(quoteData);
     const policyRef = await policiesCol.add({
       ...policyData,

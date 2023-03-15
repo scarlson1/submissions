@@ -21,8 +21,8 @@ import {
   Home,
   newSubmissionLoader,
   AgencyNew,
-  Protosure,
-  protosureLoader,
+  // Protosure,
+  // protosureLoader,
   Account,
   QuoteBind,
   quoteLoader,
@@ -243,28 +243,29 @@ export const router = createBrowserRouter([
               />
             ),
           },
-          {
-            path: ROUTES.PROTOSURE,
-            loader: protosureLoader,
-            element: (
-              <RequireAuth shouldSignInAnonymously={true}>
-                <Protosure />
-              </RequireAuth>
-            ),
-            errorElement: (
-              <RouterErrorBoundary
-                actionButtons={[
-                  {
-                    path: createPath({
-                      path: ROUTES.PROTOSURE,
-                      params: { productId: 'flood', quoteId: '' },
-                    }),
-                    label: 'Start new quote',
-                  },
-                ]}
-              />
-            ),
-          },
+          // TODO: uncomment after deploy 3/14
+          // {
+          //   path: ROUTES.PROTOSURE,
+          //   loader: protosureLoader,
+          //   element: (
+          //     <RequireAuth shouldSignInAnonymously={true}>
+          //       <Protosure />
+          //     </RequireAuth>
+          //   ),
+          //   errorElement: (
+          //     <RouterErrorBoundary
+          //       actionButtons={[
+          //         {
+          //           path: createPath({
+          //             path: ROUTES.PROTOSURE,
+          //             params: { productId: 'flood', quoteId: '' },
+          //           }),
+          //           label: 'Start new quote',
+          //         },
+          //       ]}
+          //     />
+          //   ),
+          // },
           {
             path: ROUTES.SUBMISSIONS,
             element: <UserSubmissions />,

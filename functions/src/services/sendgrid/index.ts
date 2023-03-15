@@ -98,7 +98,7 @@ export const sendEmailConfirmation = async (
 export const sendUserInvite = async (
   key: string,
   link: string,
-  email: string,
+  to: string | string[],
   toName: string | null | undefined = undefined,
   fromName: string | null | undefined = undefined
 ) => {
@@ -107,7 +107,7 @@ export const sendUserInvite = async (
 
   await sgMail
     // .sendMultiple(msg)
-    .send(createMsgContent({ html, subject: 'Create an account', to: email }));
+    .send(createMsgContent({ html, subject: 'Create an account', to }));
 };
 
 export const sendNewAgencySubmissionAdminNotification = async (

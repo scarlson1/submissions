@@ -1,9 +1,8 @@
 import * as functions from 'firebase-functions';
 import querystring from 'querystring';
-
 import { defineSecret } from 'firebase-functions/params';
-import { COLLECTIONS } from '../common/enums';
 
+import { COLLECTIONS } from '../common';
 import {
   sendNewSubmissionAdminNotification,
   sendSubmissionRecievedConfirmation,

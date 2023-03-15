@@ -3,7 +3,7 @@ import { DecodedIdToken } from 'firebase-admin/auth';
 import { GeoPoint, Timestamp } from 'firebase-admin/firestore';
 // import { Timestamp, WithFieldValue } from '@google-cloud/firestore';
 
-import { SUBMISSION_STATUS, PRODUCT, AGENCY_STATUS, QUOTE_STATUS, POLICY_STATUS } from './enums';
+import { SUBMISSION_STATUS, PRODUCT, AGENCY_STATUS, QUOTE_STATUS, POLICY_STATUS } from './enums.js';
 
 // TODO: fix typescript error app.use(thisMiddleware) is users.ts
 
@@ -473,11 +473,6 @@ export interface SRResWithAAL extends SRRes {
     postal: string;
   };
   coordinates?: GeoPoint;
-}
-
-export interface RequestUserAuth extends Request {
-  user?: DecodedIdToken;
-  tenantId?: string;
 }
 
 export interface FIPSDetails {

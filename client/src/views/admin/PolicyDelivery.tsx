@@ -3,11 +3,11 @@ import { Box, Button, Stack, Typography, useTheme } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 import { OpenInNewRounded, SaveRounded } from '@mui/icons-material';
 import { getDownloadURL } from 'firebase/storage';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, onSnapshot, updateDoc } from 'firebase/firestore';
 import { useLoaderData } from 'react-router-dom';
 
 import { FilesDragDrop } from 'components/forms';
-import { useCreateStorageFiles } from 'hooks';
+import { useAsyncToast, useCreateStorageFiles } from 'hooks';
 import { policiesCollection, Policy, WithId, withIdConverter } from 'common';
 import ReactJson from '@microlink/react-json-view';
 import { toast } from 'react-hot-toast';
@@ -48,24 +48,29 @@ export const useUpdatePolicy = (
 };
 
 export const useDeliverPolicyDoc = (
-  onSuccess?: (msg: string) => void,
+  onSuccess?: (emails: string[], msg: string) => void,
   onError?: (err: any) => void
 ) => {
+  const toast = useAsyncToast();
+
   const deliverPolicyDoc = useCallback(
     async (policyId: string, emails: string[] = []) => {
       // TODO: prompt for emails (select user/agent or add alternative)
       try {
+        toast.loading('sending documents...');
         const { data } = await sendPolicyDoc({
           policyId,
           emails,
         });
-        if (onSuccess) onSuccess('Policy documents sent');
+        if (onSuccess) onSuccess(data.emails, 'Policy documents sent');
+        toast.success('documents delivered!');
         return data;
       } catch (err) {
+        toast.error('failed to deliver documents');
         if (onError) onError(err);
       }
     },
-    [onSuccess, onError]
+    [onSuccess, onError, toast]
   );
 
   return deliverPolicyDoc;
@@ -103,14 +108,40 @@ export const useEPayTransaction = (id: string | null | undefined) => {
   return useMemo(() => ({ transaction, loading, error }), [transaction, loading, error]);
 };
 
+export const usePolicy = (id: string, initialData?: WithId<Policy>) => {
+  const [policy, setPolicy] = useState<WithId<Policy> | null>(initialData || null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const policyRef = doc(policiesCollection, id).withConverter(withIdConverter<Policy>());
+    const unsubscribe = onSnapshot(
+      policyRef,
+      (snap) => {
+        if (snap.exists()) setPolicy({ ...snap.data() });
+        setLoading(false);
+      },
+      (err) => {
+        setError(err.message);
+        setLoading(false);
+      }
+    );
+
+    return () => unsubscribe();
+  }, [id]);
+
+  return useMemo(
+    () => ({ policy, loading, error, isError: Boolean(error) }),
+    [policy, loading, error]
+  );
+};
+
 export const PolicyDelivery: React.FC = () => {
   const data = useLoaderData() as WithId<Policy>;
+  const { policy } = usePolicy(data.id, data);
   const theme = useTheme();
   const promptForEmails = usePromptForEmails();
-  const deliverDocs = useDeliverPolicyDoc(
-    (msg) => toast.success(msg),
-    (err) => toast.error('An error occurred. Documents not delivered.')
-  );
+  const deliverDocs = useDeliverPolicyDoc();
 
   const { updatePolicy } = useUpdatePolicy(console.log, console.error);
 
@@ -136,8 +167,6 @@ export const PolicyDelivery: React.FC = () => {
     async (uploadResult) => {
       console.log('upload successful', uploadResult);
 
-      // TODO: update policy with new file url
-
       if (uploadResult.length > 0) {
         let downloadUrl = await getDownloadURL(uploadResult[0].ref);
         console.log('downloadUrl: ', downloadUrl);
@@ -157,18 +186,19 @@ export const PolicyDelivery: React.FC = () => {
   );
 
   const showPolicyDoc = useCallback(() => {
-    let url = data.documents.length > 0 ? data.documents[0].downloadUrl : null;
+    if (!policy) return;
+    let url = policy.documents.length > 0 ? policy.documents[0].downloadUrl : null;
     if (!url) return toast.error('no policy doc assigned to policy yet.');
 
     window.open(url, '_blank');
-  }, [data]);
+  }, [policy]);
 
   const handleDeliverDocs = useCallback(async () => {
     try {
       const emails = await promptForEmails(
         {
-          insuredEmail: data.namedInsured?.email || null,
-          agentEmail: data.agent?.email || null,
+          insuredEmail: policy?.namedInsured?.email || null,
+          agentEmail: policy?.agent?.email || null,
         },
         {
           title: 'Select emails for policy delivery',
@@ -185,7 +215,7 @@ export const PolicyDelivery: React.FC = () => {
       console.log('ERR: ', err);
       toast.error('documents not delivered');
     }
-  }, [promptForEmails, deliverDocs, data]);
+  }, [promptForEmails, deliverDocs, data, policy]);
 
   return (
     <Box>
@@ -226,7 +256,7 @@ export const PolicyDelivery: React.FC = () => {
           onClick={handleDeliverDocs}
           variant='contained'
           sx={{ ml: 2 }}
-          disabled={data.documents.length < 1}
+          disabled={!policy || policy.documents.length < 1}
         >
           Deliver Docs
         </Button>
@@ -275,14 +305,16 @@ export const PolicyDelivery: React.FC = () => {
         <Typography color='text.secondary' sx={{ pb: 2 }}>
           Policy Data
         </Typography>
-        <ReactJson
-          src={data}
-          theme={theme.palette.mode === 'dark' ? 'tomorrow' : 'rjv-default'}
-          style={{ backgroundColor: 'transparent', fontSize: '0.8rem' }}
-          iconStyle='circle'
-          enableClipboard
-          collapseStringsAfterLength={30}
-        />
+        {policy && (
+          <ReactJson
+            src={policy}
+            theme={theme.palette.mode === 'dark' ? 'tomorrow' : 'rjv-default'}
+            style={{ backgroundColor: 'transparent', fontSize: '0.8rem' }}
+            iconStyle='circle'
+            enableClipboard
+            collapseStringsAfterLength={30}
+          />
+        )}
       </Box>
     </Box>
   );

@@ -1,1 +1,1 @@
-export { authRequests } from './authRequests';
+export { authRequests } from './authRequests.js';

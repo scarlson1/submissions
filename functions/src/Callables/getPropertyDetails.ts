@@ -1,11 +1,10 @@
 import * as functions from 'firebase-functions';
 import { getFirestore } from 'firebase-admin/firestore';
 import { defineSecret } from 'firebase-functions/params';
-
-import { LimitTypes, SpatialKeyResponse } from '../common/types';
-import { getSpatialKeyInstance } from '../services';
 import { AxiosResponse } from 'axios';
-import { isLatLng, calcSum, roundUpToNearest } from '../common/helpers';
+
+import { LimitTypes, SpatialKeyResponse, isLatLng, calcSum, roundUpToNearest } from '../common';
+import { getSpatialKeyInstance } from '../services';
 
 let defaultLimitPercents: { [key in LimitTypes]: number } = {
   limitA: 1,

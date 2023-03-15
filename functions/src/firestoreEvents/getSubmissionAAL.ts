@@ -2,10 +2,8 @@ import { getFirestore } from 'firebase-admin/firestore';
 import * as functions from 'firebase-functions';
 import { defineSecret } from 'firebase-functions/params';
 
-import { swissReResCollection } from '../common/dbCOLLECTIONS';
-import { COLLECTIONS } from '../common/enums';
-import { Submission } from '../common/types';
-import { getSwissReInstance } from '../services/swissRe';
+import { swissReResCollection, COLLECTIONS, Submission } from '../common';
+import { getSwissReInstance } from '../services';
 
 const swissReClientId = defineSecret('SWISS_RE_CLIENT_ID');
 const swissReClientSecret = defineSecret('SWISS_RE_CLIENT_SECRET');

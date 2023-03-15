@@ -1,8 +1,7 @@
 import * as functions from 'firebase-functions';
-
 import { defineSecret } from 'firebase-functions/params';
-import { COLLECTIONS } from '../common/enums';
 
+import { COLLECTIONS } from '../common';
 import { sendNewAgencySubmissionAdminNotification } from '../services/sendgrid';
 
 const sendgridApiKey = defineSecret('SENDGRID_API_KEY');

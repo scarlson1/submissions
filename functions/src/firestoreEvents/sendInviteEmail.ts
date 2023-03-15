@@ -1,8 +1,9 @@
 import * as functions from 'firebase-functions';
 import 'firebase-functions';
-import { sendUserInvite } from '../services/sendgrid';
 import { defineSecret } from 'firebase-functions/params';
-import { Invite } from '../common/types';
+
+import { sendUserInvite } from '../services/sendgrid';
+import { Invite } from '../common';
 
 const sendgridApiKey = defineSecret('SENDGRID_API_KEY');
 
@@ -26,7 +27,10 @@ export const sendInviteEmail = functions
     if (data.isCreateOrgInvite) {
       return { status: 'Create Org Invite. Email not sent' };
     }
-    const to = (process.env.AUDIENCE = 'DEV HUMANS' ? 'spencercarlson@mac.com' : data.email);
+
+    let to = [data.email];
+    if (process.env.AUDIENCE === 'DEV HUMANS') to.push('spencercarlson@mac.com');
+
     sendUserInvite(
       process.env.SENDGRID_API_KEY || '',
       link,

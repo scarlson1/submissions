@@ -57,7 +57,7 @@ export const roundDollar = (value: number) => {
 // https://github.com/lodash/lodash/blob/master/.internal/createRound.js
 function createRound(methodName: 'round') {
   const func = Math[methodName];
-  return (number: number, precision: number = 0) => {
+  return (number: number, precision = 0) => {
     precision =
       precision == null ? 0 : precision >= 0 ? Math.min(precision, 292) : Math.max(precision, -292);
     if (precision) {
@@ -101,7 +101,7 @@ export const getNumber = (str: string) => str.replace(/[^0-9\.]+/g, ''); // esli
  *
  * @param {Duration} duration -  object specifying time to add (seconds, days, weeks, months, years, etc.)
  * @param {Date} date - optional date, defaults to current date
- * @returns {Date} current datetime plus the duration
+ * @return {Date} current datetime plus the duration
  */
 export const addToDate = (duration: Duration, date: Date = new Date()) => {
   return add(date, {

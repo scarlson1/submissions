@@ -1,1 +1,1 @@
-export { validateFirebaseIdToken } from './validateFirebaseIdToken';
+export { validateFirebaseIdToken } from './validateFirebaseIdToken.js';

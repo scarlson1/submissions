@@ -1,1 +1,1 @@
-export { getAALPortfolio } from './getAALPortfolio';
+export { getAALPortfolio } from './getAALPortfolio.js';

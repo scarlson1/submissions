@@ -1,2 +1,3 @@
-export { getSpatialKeyInstance } from './spatialKey';
-export { getEPayInstance } from './ePay';
+export { getSpatialKeyInstance } from './spatialKey.js';
+export { getEPayInstance } from './ePay.js';
+export { getSwissReInstance } from './swissRe.js';

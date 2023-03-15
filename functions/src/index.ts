@@ -31,8 +31,8 @@ export {
 } from './authEvents';
 export { authRequests } from './routes';
 export { getAALPortfolio } from './storageEvents';
-export { tempGetFIPS } from './storageEvents/tempGetFIPS';
+export { tempGetFIPS } from './storageEvents/tempGetFIPS.js';
 export { checkAchStatus } from './pubsub';
-export { markpaidonpaymentcomplete } from './pubsub/markPaidOnPaymentComplete';
-export { pubsubHelper } from './routes/pubSubHelper';
+export { markpaidonpaymentcomplete } from './pubsub/markPaidOnPaymentComplete.js';
+// export { pubsubHelper } from './routes/pubSubHelper.js';
 // export { testEmulatorsCheckAchStatus } from './pubsub/checkAchStatus';

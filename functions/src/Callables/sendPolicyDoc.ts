@@ -6,6 +6,9 @@ import { defineSecret } from 'firebase-functions/params';
 import { sendPolicyDocDelivery } from '../services/sendgrid';
 import { policiesCollection } from '../common';
 
+// TODO: add policy docs as param
+// on front end: allow user to select which documents to deliver
+
 const sendgridApiKey = defineSecret('SENDGRID_API_KEY');
 
 export const sendPolicyDoc = functions

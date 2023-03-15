@@ -3,7 +3,7 @@ import 'firebase-functions';
 import { DocumentData, Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { getAuth, TenantAwareAuth, Auth } from 'firebase-admin/auth';
 
-import { CLAIMS, COLLECTIONS, orgsCollection } from '../common/index.js';
+import { CLAIMS, COLLECTIONS, orgsCollection } from '../common';
 
 // TODO: cloud functions for updating user claims docs
 

@@ -1,7 +1,6 @@
 import * as functions from 'firebase-functions';
 import { defineSecret } from 'firebase-functions/params';
 import { getStorage } from 'firebase-admin/storage';
-// import { Storage } from '@google-cloud/storage';
 import path from 'path';
 import os from 'os';
 import fs from 'fs';
@@ -9,14 +8,14 @@ import { format, parse } from 'fast-csv';
 import { snakeCase } from 'lodash';
 
 import { getNumber } from '../common';
-import { getSwissReInstance } from '../services/swissRe';
-import { swissReBody } from '../firestoreEvents/getSubmissionAAL';
+import { getSwissReInstance } from '../services';
+import { swissReBody } from '../firestoreEvents/getSubmissionAAL.js';
 
 const swissReClientId = defineSecret('SWISS_RE_CLIENT_ID');
 const swissReClientSecret = defineSecret('SWISS_RE_CLIENT_SECRET');
 const swissReSubscriptionKey = defineSecret('SWISS_RE_SUBSCRIPTION_KEY');
 
-// const HEADERS = ['address_1', 'address_2', 'city', 'state', 'zip', 'latitude', 'longitude',]
+// const HEADERS = ['address_1', 'address_2', 'city', 'state', 'zip', 'latitude', 'longitude']
 const PORTFOLIO_UPLOAD_FOLDER = 'portfolio-aal';
 
 export const getAALPortfolio = functions
@@ -127,8 +126,8 @@ export const getAALPortfolio = functions
       let code200Index = expectedLosses.findIndex((o: any) => o.perilCode === '200');
       let code300Index = expectedLosses.findIndex((o: any) => o.perilCode === '300');
 
-      let inlandAAL,
-        surgeAAL = 0;
+      let inlandAAL = 0;
+      let surgeAAL = 0;
       if (code200Index !== -1) {
         surgeAAL = expectedLosses[code200Index]?.preCatLoss ?? 0;
       }

@@ -3,7 +3,7 @@ import { defineSecret } from 'firebase-functions/params';
 import { HttpsError } from 'firebase-functions/v1/auth';
 import jwt from 'jsonwebtoken';
 
-import { sendEmailConfirmation } from '../services/sendgrid/index';
+import { sendEmailConfirmation } from '../services/sendgrid/index.js';
 
 const sendgridApiKey = defineSecret('SENDGRID_API_KEY');
 const emailVerificationKey = defineSecret('EMAIL_VERIFICATION_KEY');

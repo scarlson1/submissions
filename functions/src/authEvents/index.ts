@@ -1,5 +1,5 @@
-export { beforeCreate } from './beforeCreate';
-export { beforeSignIn } from './beforeSignIn';
-export { setUidByEmailOnCreate } from './setUidByEmailOnCreate';
-export { createFirestoreUser } from './createFirestoreUser';
-export { setClaimsFromInvite } from './setClaimsFromInvite';
+export { beforeCreate } from './beforeCreate.js';
+export { beforeSignIn } from './beforeSignIn.js';
+export { setUidByEmailOnCreate } from './setUidByEmailOnCreate.js';
+export { createFirestoreUser } from './createFirestoreUser.js';
+export { setClaimsFromInvite } from './setClaimsFromInvite.js';

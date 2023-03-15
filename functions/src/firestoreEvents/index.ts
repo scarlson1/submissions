@@ -1,7 +1,7 @@
-export { newSubmissionNotifications } from './newSubmissionNotifications';
-export { getStaticSubmissionImg } from './getStaticSubmissionImg';
-export { getSubmissionAAL } from './getSubmissionAAL';
-export { mirrorCustomClaims } from './mirrorCustomClaims';
-export { newAgencyAppNotification } from './newAgencyAppNotification';
+export { newSubmissionNotifications } from './newSubmissionNotifications.js';
+export { getStaticSubmissionImg } from './getStaticSubmissionImg.js';
+export { getSubmissionAAL } from './getSubmissionAAL.js';
+export { mirrorCustomClaims } from './mirrorCustomClaims.js';
+export { newAgencyAppNotification } from './newAgencyAppNotification.js';
 
-export type { ClaimsDocData } from './mirrorCustomClaims';
+export type { ClaimsDocData } from './mirrorCustomClaims.js';

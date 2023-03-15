@@ -7,7 +7,7 @@ import os from 'os';
 import fs from 'fs';
 import { v4 as uuid } from 'uuid';
 
-import { COLLECTIONS } from '../common/enums';
+import { COLLECTIONS } from '../common';
 
 // TODO: add marker overlay ?? https://docs.mapbox.com/api/maps/static-images/#example-request-retrieve-a-static-map-with-a-marker-overlay
 

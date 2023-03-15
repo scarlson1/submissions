@@ -46,7 +46,7 @@ export const useCreateStorageFiles = (
       setFiles([]);
       return uploadResult;
     } catch (err) {
-      toast.error();
+      toast.error('File upload failed');
       return Promise.reject(err);
     }
   }, [files, uploadFiles, toast, uploadMetadata]);

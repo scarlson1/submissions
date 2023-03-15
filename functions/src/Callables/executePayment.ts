@@ -13,7 +13,7 @@ import {
   TRANSACTION_STATUS,
 } from '../common';
 import { getEPayInstance } from '../services';
-import { publishMessage } from '../services/pubsub/publishMessage';
+import { publishMessage } from '../services/pubsub/publishMessage.js';
 
 const ePayCreds = defineSecret('ENCODED_EPAY_AUTH');
 const CARD_FEE = 0.035;

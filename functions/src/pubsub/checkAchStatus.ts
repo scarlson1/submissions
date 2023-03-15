@@ -4,7 +4,7 @@ import { defineSecret } from 'firebase-functions/params';
 
 import { getEPayInstance } from '../services';
 import { EPayGetTransactionRes, transactionsCollection, TRANSACTION_STATUS } from '../common';
-import { publishMessage } from '../services/pubsub/publishMessage';
+import { publishMessage } from '../services/pubsub/publishMessage.js';
 
 const ePayCreds = defineSecret('ENCODED_EPAY_AUTH');
 
