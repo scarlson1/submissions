@@ -48,12 +48,11 @@ import {
   submissionsQuotesCollection,
   contactValidation,
   phoneRequiredVal,
-  AdditionalInsured,
-  Mortgagee,
   PaymentMethod,
   paymentMethodsCollection,
   SubmissionQuoteData,
   WithId,
+  AdditionalInterest,
 } from 'common';
 import { useBindQuote, useUserPaymentMethods } from 'hooks';
 import { billingValidation, PaymentStep, ContactStep } from 'elements';
@@ -119,8 +118,9 @@ export interface QuoteValues {
   // insuredLastName: string;
   // insuredEmail: string;
   // insuredPhone: string;
-  additionalInsureds: AdditionalInsured[];
-  mortgageeInterest: Mortgagee[];
+  // additionalInsureds: AdditionalInsured[];
+  // mortgageeInterest: Mortgagee[];
+  additionalInterests: AdditionalInterest[];
 }
 
 export const QuoteBind: React.FC = () => {
@@ -170,8 +170,9 @@ export const QuoteBind: React.FC = () => {
         insuredLastName: values.lastName,
         insuredEmail: values.email,
         insuredPhone: values.phone,
-        additionalInsureds: values.additionalInsureds || [],
-        mortgageeInterest: values.mortgageeInterest || [],
+        // additionalInsureds: values.additionalInsureds || [],
+        // mortgageeInterest: values.mortgageeInterest || [],
+        additionalInterests: values.additionalInterests || [],
         policyEffectiveDate: Timestamp.fromDate(values.policyEffectiveDate),
         effectiveExceptionRequested: values.effectiveExceptionRequested,
         effectiveExceptionReason: values.effectiveExceptionReason || null,
@@ -200,8 +201,9 @@ export const QuoteBind: React.FC = () => {
           lastName: data?.insuredLastName ?? '',
           email: data?.insuredEmail ?? '',
           phone: data?.insuredPhone ?? '',
-          additionalInsureds: data?.additionalInsureds ? [...data?.additionalInsureds] : [],
-          mortgageeInterest: data?.mortgageeInterest ? [...data?.mortgageeInterest] : [],
+          // additionalInsureds: data?.additionalInsureds ? [...data?.additionalInsureds] : [],
+          // mortgageeInterest: data?.mortgageeInterest ? [...data?.mortgageeInterest] : [],
+          additionalInterests: data?.additionalInterests ? [...data?.additionalInterests] : [],
           policyEffectiveDate: data?.policyEffectiveDate?.toDate() ?? new Date(),
           effectiveExceptionRequested: data?.effectiveExceptionRequested ?? false,
           effectiveExceptionReason: data?.effectiveExceptionReason ?? '',
@@ -222,8 +224,8 @@ export const QuoteBind: React.FC = () => {
         >
           <NamedInsuredStep />
         </Step>
-        <Step label='Additional Insured' stepperNavLabel='Additional' mutateOnSubmit={saveValues}>
-          <AdditionalInsuredsStep />
+        <Step label='Additional Interests' stepperNavLabel='+1s' mutateOnSubmit={saveValues}>
+          <AdditionalInterestsStep />
         </Step>
         <Step
           label='Effective Date'
@@ -382,7 +384,11 @@ export function NamedInsuredStep() {
 // TODO: update formikFieldArray to accept props getter function to get names prop
 // parent.index.field => parent.index.address.field
 
-export function AdditionalInsuredsStep() {
+// Additional Named Insured. (help line: Additional owners of property)
+// Mortgagee (recorded priority lien rights)Additional
+// Insured (non-owner with insurance interest in property)
+
+export function AdditionalInterestsStep() {
   const { values, errors, touched, dirty, setFieldValue, setFieldTouched, setFieldError } =
     useFormikContext<QuoteValues>();
 
@@ -394,49 +400,52 @@ export function AdditionalInsuredsStep() {
       <Typography variant='body2' sx={{ pb: { xs: 3, md: 4 } }}>
         Please add any additional named insureds, such as a relative.
       </Typography>
+      <Typography variant='body2' sx={{ pb: { xs: 3, md: 4 } }}>
+        If there is a mortgage on the home, your lender may require that you add them as a named
+        insured on the policy.
+      </Typography>
       <Box
         sx={{
-          maxHeight: 340,
+          maxHeight: 400,
           overflowY: 'auto',
           my: 4,
           p: 2,
           border: (theme) =>
             `1px solid ${
-              values.additionalInsureds.length > 0 ? theme.palette.divider : 'transparent'
+              values.additionalInterests.length > 0 ? theme.palette.divider : 'transparent'
             }`,
           borderRadius: 1,
         }}
       >
         <FormikFieldArray
-          parentField='additionalInsureds'
+          parentField='additionalInterests'
           inputFields={[
             {
-              name: 'name',
-              label: 'Name',
-              // required: true,
-              required: false,
-              inputType: 'text',
-            },
-            {
-              name: 'email',
-              label: 'Email',
-              // required: true,
-              required: false,
-              inputType: 'text',
-            },
-            {
-              name: 'relation',
-              label: 'Relation',
-              // required: true,
+              name: 'type',
+              label: 'Interest Type',
               required: false,
               inputType: 'select',
               selectOptions: [
                 {
-                  label: 'Additional Insured',
-                  value: 'additional insured',
+                  label: 'Additional Named Insured',
+                  value: 'additional_named_insured',
                 },
-                { label: 'Other', value: 'other' },
+                { label: 'Mortgagee', value: 'mortgagee' },
+                { label: 'Additional Insured', value: 'additional_insured' },
               ],
+            },
+            {
+              name: 'name',
+              label: 'Name',
+              required: false,
+              inputType: 'text',
+            },
+            {
+              name: 'accountNumber',
+              label: 'Account Number',
+              required: false,
+              inputType: 'text',
+              helperText: 'loan number (optional)',
             },
             {
               name: 'address.addressLine1',
@@ -459,7 +468,55 @@ export function AdditionalInsuredsStep() {
               },
             },
           ]}
-          addButtonText='Add additional insured'
+          // inputFields={[
+          //   {
+          //     name: 'name',
+          //     label: 'Name',
+          //     required: false,
+          //     inputType: 'text',
+          //   },
+          //   {
+          //     name: 'email',
+          //     label: 'Email',
+          //     required: false,
+          //     inputType: 'text',
+          //   },
+          //   {
+          //     name: 'relation',
+          //     label: 'Relation',
+          //     required: false,
+          //     inputType: 'select',
+          //     selectOptions: [
+          //       {
+          //         label: 'Additional Named Insured',
+          //         value: 'additional_named_insured',
+          //       },
+          //       { label: 'Mortgagee', value: 'mortgagee' },
+          //       { label: 'Additional Insured', value: 'additional_insured' },
+          //     ],
+          //   },
+          //   {
+          //     name: 'address.addressLine1',
+          //     label: 'Mailing Address',
+          //     required: false,
+          //     inputType: 'address',
+          //     propsGetterFunc: (index, parentField) => {
+          //       return {
+          //         names: {
+          //           addressLine1: `${parentField}[${index}].address.addressLine1`,
+          //           addressLine2: `${parentField}[${index}].address.addressLine2`,
+          //           city: `${parentField}[${index}].address.city`,
+          //           state: `${parentField}[${index}].address.state`,
+          //           postal: `${parentField}[${index}].address.postal`,
+          //           county: `${parentField}[${index}].address.countyName`,
+          //           latitude: `${parentField}[${index}].address.latitude`,
+          //           longitude: `${parentField}[${index}].address.longitude`,
+          //         },
+          //       };
+          //     },
+          //   },
+          // ]}
+          addButtonText='Add additional interest'
           addButtonProps={{ startIcon: <PersonAddAltRounded /> }}
           values={values}
           errors={errors}
@@ -472,7 +529,7 @@ export function AdditionalInsuredsStep() {
           setFieldTouched={setFieldTouched}
         />
       </Box>
-      <Divider sx={{ my: 3 }} />
+      {/* <Divider sx={{ my: 3 }} />
       <Typography variant='overline' color='text.secondary'>
         Morgagee Interest
       </Typography>
@@ -555,7 +612,7 @@ export function AdditionalInsuredsStep() {
           setFieldError={setFieldError}
           setFieldTouched={setFieldTouched}
         />
-      </Box>
+      </Box> */}
     </Box>
   );
 }
@@ -893,7 +950,7 @@ export function BindReviewStep({ data }: { data: WithId<SubmissionQuoteData> }) 
       {/* <PaymentCard id={values.paymentMethodId} /> */}
       <PaymentCard cardDetails={cardDetails} loading={loading} error={error} />
       <Box sx={{ py: 5 }}>
-        <LineItem label='Premium' value={data.termPremium} />
+        <LineItem label='Premium' value={data.annualPremium} />
         {data.fees.map((fee) => (
           <LineItem
             key={`${fee.feeName}-${fee.feeValue}`}

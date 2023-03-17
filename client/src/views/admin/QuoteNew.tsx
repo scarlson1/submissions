@@ -24,7 +24,6 @@ import * as yup from 'yup';
 import { add } from 'date-fns';
 import { toast } from 'react-hot-toast';
 import axios from 'axios';
-import invariant from 'tiny-invariant';
 import { round } from 'lodash';
 
 import {
@@ -37,6 +36,7 @@ import {
   FormikTextField,
   PercentMask,
   PhoneMask,
+  IMask,
 } from 'components/forms';
 import { AddressStep, LimitsStep } from 'elements';
 import { emailVal, limitAVal, limitBVal, limitCVal, limitDVal } from 'common/quoteValidation';
@@ -47,18 +47,19 @@ import { ADMIN_ROUTES, createPath } from 'router';
 import { LoaderFunctionArgs, useLoaderData, useNavigate } from 'react-router-dom';
 import {
   commissionOptions,
+  RatingPropertyData,
   Submission,
   submissionsCollection,
   SUBMISSION_STATUS,
   WithId,
 } from 'common';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { calcQuote } from 'modules/api';
+import { ShowRatingDialog } from './SubmissionView';
 
 // TODO: hover chip to show errors
 
 // TODO: standardize fee type names in enum
-// TODO: min premium
-const MIN_PREMIUM = 100;
 
 export const newQuoteSubmissionLoader = async ({ request }: LoaderFunctionArgs) => {
   try {
@@ -102,7 +103,7 @@ const quoteNewValidation = yup.object().shape({
   limitB: limitBVal,
   limitC: limitCVal,
   limitD: limitDVal,
-  replacementCost: yup.number().min(100000).required(),
+  // replacementCost: yup.number().min(100000).required(),
   deductible: yup.number().min(1000).required(),
   fees: yup.array().of(
     yup.object().shape({
@@ -117,7 +118,7 @@ const quoteNewValidation = yup.object().shape({
       value: yup.number(),
     })
   ),
-  termPremium: yup.number().min(100).required('Term premium is required'),
+  annualPremium: yup.number().min(100).required('Term premium is required'),
   subproducerCommission: yup.number().required('Commission is required'),
   quoteTotal: yup.number().min(100).required('Quote total is required'),
   insuredFirstName: yup.string(),
@@ -130,6 +131,17 @@ const quoteNewValidation = yup.object().shape({
   agentPhone: yup.string(),
   agencyName: yup.string(),
   agencyId: yup.string().nullable(),
+  ratingPropertyData: yup.object().shape({
+    CBRSDesignation: yup.string().required(),
+    basement: yup.string().required(),
+    distToCoastFeet: yup.number().required(),
+    floodZone: yup.string().required(),
+    numStories: yup.number().required(),
+    propertyCode: yup.string().required(),
+    replacementCost: yup.number().required(),
+    sqFootage: yup.number().required(),
+    yearBuilt: yup.number().required(),
+  }),
 });
 
 export interface TaxItem {
@@ -153,7 +165,7 @@ export interface NewQuoteValues {
   limitB: number;
   limitC: number;
   limitD: number;
-  replacementCost: string | number;
+  // replacementCost: string | number;
   deductible: number;
   numStories: number | null;
   numUnits: number | null;
@@ -164,7 +176,7 @@ export interface NewQuoteValues {
   quoteExpiration: Date;
   fees: FeeItem[];
   taxes: TaxItem[];
-  termPremium: number | null;
+  annualPremium: number | null;
   subproducerCommission: number;
   quoteTotal: number | null;
   insuredFirstName: string;
@@ -177,6 +189,7 @@ export interface NewQuoteValues {
   agentPhone: string | null;
   agencyName: string | null;
   agencyId: string | null;
+  ratingPropertyData: RatingPropertyData;
   // submissionId: string | null;
 }
 
@@ -187,6 +200,7 @@ export const QuoteNew: React.FC = () => {
   const showDialog = useJsonDialog();
   const activeStates = useActiveStates('flood');
   const [taxesLoading, setTaxesLoading] = useState(false);
+  const [calcQuoteLoading, setCalcQuoteLoading] = useState(false);
 
   const createQuote = useCreateQuote(
     async () => {
@@ -221,10 +235,10 @@ export const QuoteNew: React.FC = () => {
   const fetchTaxes = useCallback(async () => {
     const values = formikRef.current?.values;
     if (!values) return;
-    const { termPremium, state, fees } = values;
+    const { annualPremium, state, fees } = values;
 
     // TODO: validate all required fields are present
-    if (!termPremium) return toast.error('Term premium required');
+    if (!annualPremium) return toast.error('Term premium required');
     if (!state) return toast.error('State required');
 
     const mgaObj = fees.find((f) => f.feeName === 'MGA Fee');
@@ -234,9 +248,9 @@ export const QuoteNew: React.FC = () => {
 
     const body = {
       state,
-      homeStatePremium: termPremium,
+      homeStatePremium: annualPremium,
       outStatePremium: 0,
-      premium: termPremium,
+      premium: annualPremium,
       mgaFees,
       inspectionFees,
       transactionType: 'new',
@@ -275,25 +289,14 @@ export const QuoteNew: React.FC = () => {
       const values = formikRef.current?.values;
       if (!values) return toast.error('missing values');
 
-      const { fees, taxes, termPremium, subproducerCommission } = values;
-      if (!termPremium || typeof termPremium !== 'number')
+      const { fees, taxes, annualPremium } = values;
+      if (!annualPremium || typeof annualPremium !== 'number')
         return toast.error('Term premium required');
 
       const feeTotal = sumArr(fees.map((f) => f.feeValue));
       const taxTotal = sumArr(taxes.map((t) => t.value));
 
-      let minPremiumAdj = Math.max(MIN_PREMIUM - termPremium, 0);
-      let provisionalPremium = termPremium + minPremiumAdj;
-      const subproducerAdj = getSubproducerAdj(termPremium, 0.2, subproducerCommission);
-      console.log('sub producer adj: ', subproducerAdj);
-      const directWrittenPremium = Math.ceil(provisionalPremium + subproducerAdj);
-
-      invariant(typeof feeTotal === 'number');
-      invariant(typeof taxTotal === 'number');
-      invariant(typeof subproducerAdj === 'number');
-      console.log('TOTAL CALC: ', directWrittenPremium, feeTotal, taxTotal);
-
-      const total = round(directWrittenPremium + feeTotal + taxTotal, 2);
+      const total = round(annualPremium + feeTotal + taxTotal, 2);
 
       formikRef.current?.setFieldValue('quoteTotal', total);
       formikRef.current?.setFieldTouched('quoteTotal');
@@ -303,6 +306,52 @@ export const QuoteNew: React.FC = () => {
       toast.error('Error calculating total. See console for details');
     }
   }, []);
+
+  const calcPremium = useCallback(async () => {
+    try {
+      const values = formikRef.current?.values;
+      setCalcQuoteLoading(true);
+      if (!(values && submissionData)) throw new Error('missing values');
+      const {
+        ratingPropertyData: { replacementCost },
+      } = values;
+      const { inlandAAL, surgeAAL } = submissionData;
+      if (!(replacementCost && (inlandAAL || inlandAAL === 0) && (surgeAAL || surgeAAL === 0)))
+        throw new Error('Missing replacement cost or aal');
+
+      let reqBody = {
+        limitA: values.limitA,
+        limitB: values.limitB,
+        limitC: values.limitC,
+        limitD: values.limitD,
+        inlandAAL,
+        surgeAAL,
+        replacementCost,
+        deductible: values.deductible,
+        state: values.state,
+        floodZone: values.ratingPropertyData.floodZone ?? 'D',
+        submissionId: submissionData?.id,
+        basement: values.ratingPropertyData.basement ?? undefined,
+        commissionPct: values?.subproducerCommission,
+      };
+      console.log('REQUEST BODY: ', reqBody);
+
+      const { data } = await calcQuote(reqBody);
+
+      console.log('RES: ', data);
+      if (!data.annualPremium) throw new Error('Missing premium in response');
+
+      formikRef.current?.setFieldValue('taxes', []);
+      formikRef.current?.setFieldValue('quoteTotal', '');
+
+      formikRef.current?.setFieldValue('annualPremium', data.annualPremium);
+      formikRef.current?.setFieldTouched('annualPremium');
+      setTimeout(() => formikRef.current?.validateField('annualPremium'), 100);
+    } catch (err) {
+      console.log('ERROR: ', err);
+    }
+    setCalcQuoteLoading(false);
+  }, [submissionData]);
 
   // TODO: paginated or searchable model
   // const promptForSubmission = useCallback(async () => {
@@ -346,7 +395,7 @@ export const QuoteNew: React.FC = () => {
           limitB: submissionData?.limitB ?? 12500, // @ts-ignore
           limitC: submissionData?.limitC ?? 68000, // @ts-ignore
           limitD: submissionData?.limitD ?? 25000,
-          replacementCost: submissionData?.replacementCost ?? 250000,
+          // replacementCost: submissionData?.replacementCost ?? 250000,
           deductible: submissionData?.deductible ?? 1000,
           basement: submissionData?.basement ?? 'unknown',
           numStories: submissionData?.numStories ?? 1,
@@ -358,8 +407,8 @@ export const QuoteNew: React.FC = () => {
           policyExpirationDate: add(new Date(), { days: 15, years: 1 }),
           fees: [], // [{ feeName: '', feeValue: '' }],
           taxes: [], // [{ displayName: '', rate: '', value: '' }],
-          termPremium: null,
-          subproducerCommission: 0.2,
+          annualPremium: submissionData.annualPremium ?? null,
+          subproducerCommission: submissionData.subproducerCommission ?? 0.15,
           quoteTotal: null, // calculated
           insuredFirstName: submissionData?.firstName ?? '',
           insuredLastName: submissionData?.lastName ?? '',
@@ -371,6 +420,17 @@ export const QuoteNew: React.FC = () => {
           agentPhone: '',
           agencyName: '',
           agencyId: '',
+          ratingPropertyData: {
+            CBRSDesignation: submissionData?.CBRSDesignation ?? '',
+            basement: `${submissionData?.basement ?? ''}`.toLowerCase(), // @ts-ignore
+            distToCoastFeet: `${submissionData?.distToCoastFeet ?? ''}`,
+            floodZone: submissionData?.floodZone ?? '',
+            numStories: submissionData?.numStories ?? null,
+            propertyCode: `${submissionData?.propertyCode ?? ''}`,
+            replacementCost: submissionData?.replacementCost ?? null, // @ts-ignore
+            sqFootage: `${submissionData?.sqFootage ?? ''}`, // @ts-ignore
+            yearBuilt: `${submissionData?.yearBuilt ?? ''}`,
+          },
         }}
         validationSchema={quoteNewValidation}
         onSubmit={handleSubmit}
@@ -488,25 +548,10 @@ export const QuoteNew: React.FC = () => {
                   }}
                   gridItemProps={{ xs: 6, sm: 6, lg: 3 }}
                   replacementCost={
-                    typeof values.replacementCost === 'string'
-                      ? parseInt(values.replacementCost) || 250000
-                      : values.replacementCost || 250000
+                    typeof values.ratingPropertyData.replacementCost === 'string'
+                      ? parseInt(values.ratingPropertyData.replacementCost) || 250000
+                      : values.ratingPropertyData.replacementCost || 250000
                   }
-                />
-              </Grid>
-              {/* <Grid>
-                <Divider orientation='vertical' />
-              </Grid> */}
-              <Grid xs={12} sm={6} md={4} lg={2} sx={{ display: 'flex', ml: { xs: 0, md: -3 } }}>
-                <Divider
-                  orientation='vertical'
-                  sx={{ mr: 3, display: { xs: 'none', md: 'block' } }}
-                />
-                <FormikDollarMaskField
-                  name='replacementCost'
-                  label='Building RCV'
-                  fullWidth
-                  sx={{ mt: 2 }}
                 />
               </Grid>
               <Grid xs={12} sx={{ mt: 6 }}>
@@ -572,46 +617,98 @@ export const QuoteNew: React.FC = () => {
               </Grid>
               <Grid xs={12}>
                 <Divider sx={{ my: 3 }} />
-                <Typography
-                  variant='overline'
-                  color='text.secondary'
-                  sx={{ pl: 4, lineHeight: 1.4 }}
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    flexWrap: 'wrap',
+                  }}
                 >
-                  Taxes & Fees & Premium
-                </Typography>
-                <LoadingButton
-                  size='small'
-                  variant='outlined'
-                  onClick={fetchTaxes}
-                  sx={{ ml: 4 }}
-                  loading={taxesLoading}
-                  disabled={!(values.state && values.termPremium)}
-                  startIcon={<DownloadRounded />}
-                >
-                  Get Tax data
-                </LoadingButton>
+                  <Typography
+                    variant='overline'
+                    color='text.secondary'
+                    sx={{ pl: 4, lineHeight: 1.4 }}
+                  >
+                    Taxes & Fees & Premium
+                  </Typography>
+                  <Stack
+                    direction={{ xs: 'column', sm: 'row' }}
+                    spacing={2}
+                    sx={{ mt: { xs: 3, sm: 0 } }}
+                  >
+                    <LoadingButton
+                      size='small'
+                      variant='outlined'
+                      onClick={calcPremium}
+                      loading={calcQuoteLoading}
+                      disabled={
+                        !(
+                          values.state &&
+                          values.limitA &&
+                          values.ratingPropertyData.replacementCost
+                        )
+                      }
+                      startIcon={<CalculateRounded />}
+                    >
+                      Calc Annual Premium
+                    </LoadingButton>
+                    <LoadingButton
+                      size='small'
+                      variant='outlined'
+                      onClick={fetchTaxes}
+                      loading={taxesLoading}
+                      disabled={!(values.state && values.annualPremium)}
+                      startIcon={<DownloadRounded />}
+                    >
+                      Fetch taxes
+                    </LoadingButton>
+                    <ShowRatingDialog
+                      id={submissionData.id}
+                      btnProps={{ size: 'small', variant: 'outlined' }}
+                    />
+                  </Stack>
+                </Box>
               </Grid>
               <Grid xs={12}>
                 <Typography variant='body2' color='text.secondary'>
                   Order:{' '}
                 </Typography>
                 <Typography variant='body2' color='text.secondary'>
-                  1) Term premium
+                  1) Annual premium (can use "calc annual premium" button)
                 </Typography>
                 <Typography variant='body2' color='text.secondary'>
-                  2) Fees & commission
+                  2) Fees & commission (add manually)
                 </Typography>
                 <Typography variant='body2' color='text.secondary'>
-                  3) Fetch taxes
+                  3) Fetch taxes (can use "fetch taxes" button)
                 </Typography>
                 <Typography variant='body2' color='text.secondary'>
-                  4) Calculate quote
+                  4) Calculate quote (click calculator button)
                 </Typography>
                 <Typography variant='body2' color='text.secondary'>
                   Taxes and calc total are dependent on premium, fees and commission. Must repeat 3
-                  & 4, if changed.
+                  & 4, if changed. Must repeat all steps if changing commission.
                 </Typography>
               </Grid>
+              <Grid xs={12} sm={4} md={3}>
+                <FormikNativeSelect
+                  name='subproducerCommission'
+                  label='Subproducer Commission'
+                  selectOptions={commOptions}
+                  sx={{ mt: 3 }}
+                />
+              </Grid>
+              <Grid xs={12} md={3}>
+                <FormikDollarMaskField
+                  name='annualPremium'
+                  label='Annual Premium'
+                  decimalScale={2}
+                  sx={{ mt: 3 }}
+                  fullWidth
+                  helperText='before taxes & fees'
+                />
+              </Grid>
+              <Grid xs></Grid>
               <Grid xs={12} sm={8} md={6}>
                 <Box sx={{ maxWidth: 600 }}>
                   <FormikFieldArray
@@ -690,23 +787,6 @@ export const QuoteNew: React.FC = () => {
                     addButtonText='Add Tax'
                   />
                 </Box>
-              </Grid>
-              <Grid xs={12} sm={4} md={3}>
-                <FormikNativeSelect
-                  name='subproducerCommission'
-                  label='Subproducer Commission'
-                  selectOptions={commOptions}
-                  sx={{ mt: 3 }}
-                />
-              </Grid>
-              <Grid xs={12} md={3}>
-                <FormikDollarMaskField
-                  name='termPremium'
-                  label='Term Premium'
-                  decimalScale={2}
-                  sx={{ mt: 3 }}
-                  fullWidth
-                />
               </Grid>
               <Grid xs={12} md={3}>
                 <FormikDollarMaskField
@@ -811,6 +891,134 @@ export const QuoteNew: React.FC = () => {
               </Grid>
               <Grid xs={6} sm={4}>
                 <FormikTextField name='agencyId' label='Agency ID' fullWidth />
+              </Grid>
+
+              <Grid xs={12}>
+                <Divider sx={{ my: 3 }} />
+                <Typography
+                  variant='overline'
+                  color='text.secondary'
+                  sx={{ pl: 4, lineHeight: 1.4 }}
+                >
+                  Property Data
+                </Typography>
+              </Grid>
+              <Grid xs={6} sm={4} md={3} lg={2}>
+                <FormikNativeSelect
+                  fullWidth
+                  id='ratingPropertyData.CBRSDesignation'
+                  label='CBRS Designation'
+                  name='ratingPropertyData.CBRSDesignation'
+                  selectOptions={[
+                    { label: 'Unknown', value: '' },
+                    { label: 'Out', value: 'OUT' },
+                    { label: 'In', value: 'IN' },
+                  ]}
+                />
+              </Grid>
+              <Grid xs={6} sm={4} md={3} lg={2}>
+                <FormikNativeSelect
+                  fullWidth
+                  id='ratingPropertyData.basement'
+                  label='Basement'
+                  name='ratingPropertyData.basement'
+                  selectOptions={[
+                    { label: '', value: '' },
+                    { label: 'Unknown', value: 'unknown' },
+                    { label: 'Finished', value: 'finished' },
+                    { label: 'Unfinished Basement', value: 'unfinished basement' },
+                  ]}
+                />
+              </Grid>
+
+              <Grid xs={6} sm={4} md={3} lg={2}>
+                <FormikNativeSelect
+                  fullWidth
+                  id='ratingPropertyData.floodZone'
+                  label='Flood Zone'
+                  name='ratingPropertyData.floodZone'
+                  selectOptions={['', 'A', 'B', 'C', 'D', 'V', 'X', 'AE', 'AO', 'AH', 'AR', 'VE']}
+                />
+              </Grid>
+              <Grid xs={6} sm={4} md={3} lg={2}>
+                <FormikNativeSelect
+                  fullWidth
+                  id='ratingPropertyData.numStories'
+                  label='# Stories'
+                  name='ratingPropertyData.numStories'
+                  selectOptions={[
+                    { label: '--', value: '' },
+                    { label: '0', value: 0 },
+                    { label: '1', value: 1 },
+                    { label: '2', value: 2 },
+                    { label: '3', value: 3 },
+                    { label: '4', value: 4 },
+                    { label: '5', value: 5 },
+                  ]}
+                />
+              </Grid>
+              <Grid xs={6} sm={4} md={3} lg={2}>
+                <FormikNativeSelect
+                  fullWidth
+                  id='ratingPropertyData.propertyCode'
+                  label='Property Code'
+                  name='ratingPropertyData.propertyCode'
+                  selectOptions={[
+                    { label: '', value: '' },
+                    { label: 'Unknown', value: 'unknown' },
+                    { label: 'Single Family Residence', value: 'Single Family Residence' },
+                    { label: 'Condominium', value: 'Condominium' },
+                    { label: 'Other', value: 'other' },
+                  ]}
+                />
+              </Grid>
+              <Grid xs={6} sm={4} md={3} lg={2}>
+                <FormikMaskField
+                  fullWidth
+                  id='ratingPropertyData.distToCoastFeet'
+                  label='Dist. to Coast (ft.)'
+                  name='ratingPropertyData.distToCoastFeet'
+                  maskComponent={IMask}
+                  inputProps={{
+                    maskProps: { mask: Number, thousandsSeparator: ',' },
+                  }}
+                />
+              </Grid>
+              <Grid xs={6} sm={4} md={3} lg={2}>
+                <FormikDollarMaskField
+                  fullWidth
+                  id='ratingPropertyData.replacementCost'
+                  label='Replacement Cost'
+                  name='ratingPropertyData.replacementCost'
+                />
+              </Grid>
+              <Grid xs={6} sm={4} md={3} lg={2}>
+                <FormikMaskField
+                  fullWidth
+                  id='ratingPropertyData.sqFootage'
+                  label='Square Footage'
+                  name='ratingPropertyData.sqFootage'
+                  maskComponent={IMask}
+                  inputProps={{
+                    maskProps: { mask: Number, max: 9999, thousandsSeparator: ',', unmask: true },
+                  }}
+                />
+              </Grid>
+              <Grid xs={6} sm={4} md={3} lg={2}>
+                <FormikMaskField
+                  fullWidth
+                  id='ratingPropertyData.yearBuilt'
+                  label='Year Built'
+                  name='ratingPropertyData.yearBuilt'
+                  maskComponent={IMask}
+                  inputProps={{
+                    maskProps: {
+                      mask: '#!00',
+                      definitions: { '#': /[1-2]/, '!': /[0,9]/ },
+                      unmask: true,
+                    },
+                  }}
+                />
               </Grid>
             </Grid>
           </>

@@ -8,6 +8,7 @@ export { assignQuote } from './assignQuote';
 export { executePayment } from './executePayment';
 export { sendPolicyDoc } from './sendPolicyDoc';
 export { createPolicy } from './createPolicy';
+export { calcQuote } from './calcQuote';
 
 export type { FetchPropertyDataRequest, FetchPropertyDataResponse } from './fetchPropertyDetails';
 export type { SendContactEmailRequest, SendContactEmailResponse } from './sendContactEmail';
@@ -17,3 +18,4 @@ export type { AssignQuoteRequest, AssignQuoteResponse } from './assignQuote';
 export type { ExecutePmtRequest, ExecutePmtResponse } from './executePayment';
 export type { SendPolicyDocRequest, SendPolicyDocResponse } from './sendPolicyDoc';
 export type { CreatePolicyRequest, CreatePolicyResponse } from './createPolicy';
+export type { CalcQuoteRequest, CalcQuoteResponse } from './calcQuote';

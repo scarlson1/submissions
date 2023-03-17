@@ -17,6 +17,10 @@ export interface RequestUserAuth extends Request {
   tenantId?: string;
 }
 
+export type DefaultCommission = {
+  [key in PRODUCT]?: number;
+};
+
 export interface User {
   displayName?: string;
   email?: string;
@@ -27,7 +31,12 @@ export interface User {
   firstName?: string;
   lastName?: string;
   initialAnonymous?: boolean;
+  defaultCommission?: DefaultCommission; // TODO: extends user to create Agent type ??
   metadata: BaseMetadata;
+}
+
+export interface Agent extends User {
+  defaultCommission?: DefaultCommission;
 }
 
 export interface EPayVerifiedResponse {
@@ -172,7 +181,7 @@ export interface Organization {
   enforceDomainRestriction?: boolean;
   status: AGENCY_STATUS;
   metadata: BaseMetadata;
-  defaultCommission: { [key in PRODUCT]?: number };
+  defaultCommission: DefaultCommission;
   authProviders: AuthProviders[];
 }
 
@@ -183,6 +192,8 @@ export interface Limits {
   limitC: number;
   limitD: number;
 }
+
+export type FloodZones = 'A' | 'B' | 'C' | 'D' | 'V' | 'X' | 'AE' | 'AO' | 'AH' | 'AR' | 'VE';
 
 export type UWNoteCode = 'requires-review' | 'not-ratable' | 'info' | 'unknown';
 
@@ -243,27 +254,31 @@ export interface FloodFormValues {
   userAcceptance: boolean;
 }
 
-export interface FetchPropertyDataResponse {
+export interface RatingPropertyData {
   CBRSDesignation: string;
   basement: string;
-  initDeductible: number;
   distToCoastFeet: number;
   floodZone: string;
-  initLimitA: number;
-  initLimitB: number;
-  initLimitC: number;
-  initLimitD: number;
-  maxDeductible: number;
   numStories: number;
   propertyCode: string;
   replacementCost: number;
   sqFootage: number;
   yearBuilt: number;
+}
+
+export interface FetchPropertyDataResponse extends Partial<RatingPropertyData> {
+  initDeductible: number;
+  initLimitA: number;
+  initLimitB: number;
+  initLimitC: number;
+  initLimitD: number;
+  maxDeductible: number;
   spatialKeyDocId?: string | null;
 }
 
 export interface Submission extends FloodFormValues, FetchPropertyDataResponse {
   coordinates: GeoPoint;
+  countyFIPS?: string | null;
   userId?: string | null;
   status: SUBMISSION_STATUS;
   submittedById?: string | null;
@@ -277,6 +292,8 @@ export interface Submission extends FloodFormValues, FetchPropertyDataResponse {
   satelliteStreetsMapImageFilePath?: string;
   inlandAAL?: number;
   surgeAAL?: number;
+  annualPremium?: number;
+  subproducerCommission?: number;
   metadata: BaseMetadata;
 }
 
@@ -289,7 +306,7 @@ export interface AdditionalInsured {
   name: string;
   email: string;
   relation: string | number;
-  address?: AddressWithCoords; // Address;
+  address?: AddressWithCoords;
 }
 export interface Mortgagee {
   company: string;
@@ -300,12 +317,19 @@ export interface Mortgagee {
   address?: AddressWithCoords;
 }
 
+export interface AdditionalInterest {
+  type: string;
+  name: string;
+  accountNumber: string;
+  address: AddressWithCoords;
+}
+
 export interface SubmissionQuoteData {
-  product: Product; // keyof typeof Product;
+  product: Product;
   deductible: number;
   limits: Limits;
   // tiv: number;
-  replacementCost: number;
+  // replacementCost: number;
   insuredAddress: Address;
   insuredCoordinates: GeoPoint | null;
   fees: { feeName: string; feeValue: string }[];
@@ -314,28 +338,16 @@ export interface SubmissionQuoteData {
   subproducerCommission: number;
   cardFee: number;
   quoteTotal?: number;
-  // reviewRequired: boolean;
-  // underwritingNotes?: {
-  //   propertyNotes: UWNote[];
-  //   ratingNotes: UWNote[];
-  // };
-  // ratable: boolean;
-  // underwriterApproved: boolean;
   quoteExpiration: {
     seconds: number;
     nanoseconds: number;
   };
-  policyEffectiveDate?: Timestamp; // FirestoreTimestamp;
+  policyEffectiveDate?: Timestamp;
   effectiveExceptionRequested?: boolean;
   effectiveExceptionReason?: string | null;
-  policyExpirationDate?: Timestamp; // FirestoreTimestamp;
+  policyExpirationDate?: Timestamp;
   exclusions?: string[];
-  // ePayFees?: {
-  //   achPayerFee: number;
-  //   creditCardPayerFee: number;
-  // };
-  additionalInsureds?: AdditionalInsured[];
-  mortgageeInterest?: Mortgagee[];
+  additionalInterests?: AdditionalInterest[];
   metadata: {
     created: Timestamp;
     updated: Timestamp;
@@ -357,6 +369,7 @@ export interface SubmissionQuoteData {
   submissionId?: string | null;
   imageUrls?: { [key: string]: string | null };
   imagePaths?: { [key: string]: string | null };
+  ratingPropertyData: RatingPropertyData;
   statusTransitions: {
     published: Timestamp;
     accepted: Timestamp | null;

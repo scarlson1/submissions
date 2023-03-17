@@ -1,14 +1,28 @@
-import { getFirestore } from 'firebase-admin/firestore';
+import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import * as functions from 'firebase-functions';
 import { defineSecret } from 'firebase-functions/params';
+import invariant from 'tiny-invariant';
 
-import { swissReResCollection, COLLECTIONS, Submission } from '../common';
+import { swissReResCollection, COLLECTIONS, Submission, calcSum, usersCollection } from '../common';
 import { getSwissReInstance } from '../services';
+import {
+  getInlandRiskScore,
+  getMinPremium,
+  getPM,
+  getPremiumData,
+  getSecondaryFactorMults,
+  getSurgeRiskScore,
+  multipliersByState,
+} from '../utils/rating';
 
 const swissReClientId = defineSecret('SWISS_RE_CLIENT_ID');
 const swissReClientSecret = defineSecret('SWISS_RE_CLIENT_SECRET');
 const swissReSubscriptionKey = defineSecret('SWISS_RE_SUBSCRIPTION_KEY');
-// TODO: firestore rules to not allow users to change AAL fields
+
+// TODO: get commission if submitted by agent
+// TODO: HOW IS COMM HANDLED BETWEEN SUB AND QUOTE ?? how does quote form know what to pre-fill with if agent's commission is different than 15% ?? include commission in subission doc ??
+
+const DEFAULT_COMMISSION = 0.15;
 
 export const getSubmissionAAL = functions
   .runWith({ secrets: [swissReClientId, swissReClientSecret, swissReSubscriptionKey] })
@@ -16,6 +30,15 @@ export const getSubmissionAAL = functions
   .onCreate(async (snap) => {
     const sub = snap.data() as Submission;
     const db = getFirestore();
+    let commissionPct = DEFAULT_COMMISSION;
+
+    if (sub.submittedById) {
+      let userSnap = await usersCollection(db).doc(sub.submittedById).get();
+      const data = userSnap.data();
+      if (data?.defaultCommission)
+        commissionPct = data.defaultCommission?.flood ?? DEFAULT_COMMISSION;
+    }
+
     const clientId = process.env.SWISS_RE_CLIENT_ID;
     const clientSecret = process.env.SWISS_RE_CLIENT_SECRET;
     const subKey = process.env.SWISS_RE_SUBSCRIPTION_KEY;
@@ -25,6 +48,8 @@ export const getSubmissionAAL = functions
       return;
     }
     const swissReInstance = getSwissReInstance(clientId, clientSecret, subKey);
+
+    let ratingUpdates: { [key: string]: number } = { inlandAAL: 0, surgeAAL: 0 };
 
     try {
       // fetch SR data
@@ -44,25 +69,13 @@ export const getSubmissionAAL = functions
         (floodObj: any) => floodObj.perilCode === '300'
       );
 
-      let ratingUpdates: { [key: string]: number } = { inlandAAL: 0, surgeAAL: 0 };
       if (code200Index !== -1) {
         ratingUpdates.surgeAAL = data.expectedLosses[code200Index]?.preCatLoss ?? 0;
       }
       if (code300Index !== -1) {
         ratingUpdates.inlandAAL = data.expectedLosses[code300Index]?.preCatLoss ?? 0;
       }
-      // if (code200Index !== -1) {
-      //   let { preCatLoss: surgeAAL } = data.expectedLosses[code200Index];
-      //   ratingUpdates.surgeAAL = surgeAAL ?? 0;
-      // } else {
-      //   ratingUpdates.surgeAAL = 0;
-      // }
-      // if (code300Index !== -1) {
-      //   let { preCatLoss: inlandAAL } = data.expectedLosses[code300Index];
-      //   ratingUpdates.inlandAAL = inlandAAL ?? 0;
-      // } else {
-      //   ratingUpdates.inlandAAL = 0;
-      // }
+
       console.log(`AAL: ${JSON.stringify(ratingUpdates)}`);
 
       const swissReRef = await swissReResCollection(db).add({
@@ -82,20 +95,139 @@ export const getSubmissionAAL = functions
 
       // update submission doc
       await snap.ref.update({ ...ratingUpdates });
-
-      return;
     } catch (err) {
-      // console.log('ERROR FETCHING SR AAL DATA', err);
+      console.log('ERROR FETCHING SR AAL DATA', err);
       return;
     }
+
+    // CALCULATE ANNUAL PREMIUM
+    try {
+      const { inlandAAL, surgeAAL } = ratingUpdates;
+
+      invariant(sub.limitA, 'limitA required');
+      invariant(sub.limitB, 'limitB required');
+      invariant(sub.limitC, 'limitC required');
+      invariant(sub.limitD, 'limitD required');
+      invariant(sub.limitA > 100000, 'limitA must be > 100k');
+      invariant(typeof inlandAAL === 'number', 'inland AAL required');
+      invariant(typeof surgeAAL === 'number', 'surge AAL required');
+      invariant(sub.replacementCost, 'replacementCost required');
+      invariant(sub.deductible, 'deductible required');
+      invariant(sub.state, 'state required');
+      invariant(sub.basement, 'state required');
+
+      const tiv = calcSum([sub.limitA, sub.limitB, sub.limitC, sub.limitD]);
+
+      const minPremium = getMinPremium(sub.floodZone || 'D', tiv);
+
+      const pm = {
+        inland: getPM(inlandAAL, tiv),
+        surge: getPM(surgeAAL, tiv),
+      };
+      const riskScore = {
+        inland: getInlandRiskScore(pm.inland),
+        surge: getSurgeRiskScore(pm.surge),
+      };
+      // Flood type multipliers by state
+      const { inlandStateMult = 1.5, surgeStateMult = 3 } = multipliersByState[sub.state];
+
+      let secondaryFactorMults = getSecondaryFactorMults({
+        ffe: 0,
+        basement: sub.basement,
+        inlandRiskScore: riskScore.inland,
+        surgeRiskScore: riskScore.surge,
+      });
+
+      let premiumData = getPremiumData({
+        AAL: {
+          inland: inlandAAL,
+          surge: surgeAAL,
+        },
+        secondaryFactorMults,
+        stateMultipliers: {
+          inland: inlandStateMult,
+          surge: surgeStateMult,
+        },
+        minPremium,
+        subproducerComPct: commissionPct,
+      });
+
+      console.log('PREMIUM DATA: ', premiumData);
+      if (!premiumData.directWrittenPremium) throw new Error('Missing DWP');
+
+      await db.collection(COLLECTIONS.RATING_DATA).add({
+        submissionId: snap.id,
+        deductible: sub.deductible,
+        limits: {
+          limitA: sub.limitA,
+          limitB: sub.limitB,
+          limitC: sub.limitC,
+          limitD: sub.limitD,
+        },
+        tiv,
+        replacementCost: sub.replacementCost,
+        aal: {
+          inland: inlandAAL,
+          surge: surgeAAL,
+        },
+        pm,
+        riskScore,
+        stateMultipliers: {
+          inland: inlandStateMult,
+          surge: surgeStateMult,
+        },
+        secondaryFactorMults,
+        floodZone: sub.floodZone,
+        basement: sub.basement,
+        ffe: 0,
+        numStories: sub.numStories,
+        sqFootage: sub.sqFootage,
+        distToCoast: sub.distToCoastFeet,
+        propertyCode: sub.propertyCode,
+        yearBuilt: sub.yearBuilt,
+        CBRSDesignation: sub.CBRSDesignation,
+        premiumData: {
+          minPremium,
+          ...premiumData,
+        },
+        address: {
+          addressLine1: sub.addressLine1,
+          addressLine2: sub.addressLine2 || null,
+          city: sub.city,
+          state: sub.state,
+          postal: sub.postal,
+        },
+        coordinates: sub.coordinates,
+        metadata: {
+          created: Timestamp.now(),
+          updated: Timestamp.now(),
+        },
+      });
+
+      await snap.ref.update({
+        annualPremium: premiumData.directWrittenPremium,
+        subproducerCommission: commissionPct,
+      });
+
+      console.log(`UPDATED SUBMISSION ${snap.id} - PREMIUM: ${premiumData.directWrittenPremium}`);
+    } catch (err) {
+      console.log('ERROR CALCULATING QUOTE: ', err);
+      return;
+    }
+
+    // TODO: FETCH TAXES ??
   });
 
 function getSRVars(sub: Submission) {
   const { replacementCost, limitA, limitB, limitC, limitD, deductible, numStories } = sub;
+
+  invariant(replacementCost, 'replacementCost required');
+  invariant(numStories, 'numStories required');
+
   const rcvA = replacementCost;
-  const rcvB = limitB > 0 ? sub.replacementCost * 0.05 : 0;
-  const rcvC = limitC > 0 ? sub.replacementCost * 0.25 : 0;
-  const rcvD = limitD > 0 ? sub.replacementCost * 0.1 : 0;
+  const rcvB = limitB > 0 ? replacementCost * 0.05 : 0;
+  const rcvC = limitC > 0 ? replacementCost * 0.25 : 0;
+  const rcvD = limitD > 0 ? replacementCost * 0.1 : 0;
   const rcvTotal = rcvA + rcvB + rcvC + rcvD;
 
   return {

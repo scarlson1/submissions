@@ -6,6 +6,7 @@ import {
   GridRenderCellParams,
   GridRowId,
   GridRowParams,
+  GridToolbar,
   GridValueFormatterParams,
   GridValueGetterParams,
 } from '@mui/x-data-grid';
@@ -228,6 +229,13 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
         // valueGetter: (params) => params.row.countyName || null
       },
       {
+        field: 'countyFIPS',
+        headerName: 'FIPS',
+        minWidth: 120,
+        flex: 0.6,
+        editable: false,
+      },
+      {
         field: 'latitude',
         headerName: 'Latitude',
         minWidth: 100,
@@ -248,6 +256,17 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
           const { coordinates } = params.row;
           return coordinates ? coordinates?.longitude || null : null;
         },
+      },
+      {
+        field: 'annualPremium',
+        headerName: 'Annual Premium',
+        description: 'Annual premium before taxes and fees',
+        minWidth: 140,
+        flex: 0.8,
+        editable: false,
+        headerAlign: 'center',
+        align: 'right',
+        valueFormatter: formatGridCurrency,
       },
       {
         field: 'limitA',
@@ -505,6 +524,8 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
           processRowUpdate={confirmAndUpdate}
           onProcessRowUpdateError={handleProcessRowUpdateError}
           experimentalFeatures={{ newEditingApi: true }}
+          components={{ Toolbar: GridToolbar }}
+          componentsProps={{ toolbar: { csvOptions: { allColumns: true } } }}
           initialState={{
             columns: {
               columnVisibilityModel: {
@@ -513,6 +534,7 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
                 addressLine2: false,
                 postal: false,
                 countyName: false,
+                countyFIPS: false,
                 latitude: false,
                 longitude: false,
                 updated: false,

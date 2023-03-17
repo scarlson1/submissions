@@ -1,6 +1,5 @@
 import React, { useCallback, useState, useRef, useMemo, useEffect } from 'react';
 // import { Box, Button, Typography } from '@mui/material';
-// import { useLoaderData } from 'react-router-dom';
 import {
   collection,
   query,
@@ -25,6 +24,7 @@ import { Button } from '@mui/material';
 
 import { useDocCount } from 'hooks';
 import { firebaseConfig } from 'firebaseConfig';
+import { WithId } from 'common';
 // import { submissionsCollection } from 'common';
 
 // TODO: read types: https://www.digitalocean.com/community/tutorials/how-to-use-generics-in-typescript
@@ -37,13 +37,6 @@ interface Task {
   userId: string;
   dueDate: Timestamp;
 }
-
-// interface WithId<T> {
-//   id: string;
-// }
-type WithId<T> = {
-  [K in keyof T]: T[K];
-} & { id: string };
 
 export function useFetchTasks(
   userId: string,

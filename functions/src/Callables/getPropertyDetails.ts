@@ -3,7 +3,15 @@ import { getFirestore } from 'firebase-admin/firestore';
 import { defineSecret } from 'firebase-functions/params';
 import { AxiosResponse } from 'axios';
 
-import { LimitTypes, SpatialKeyResponse, isLatLng, calcSum, roundUpToNearest } from '../common';
+import {
+  LimitTypes,
+  SpatialKeyResponse,
+  isLatLng,
+  calcSum,
+  roundUpToNearest,
+  getNumber,
+  COLLECTIONS,
+} from '../common';
 import { getSpatialKeyInstance } from '../services';
 
 let defaultLimitPercents: { [key in LimitTypes]: number } = {
@@ -76,7 +84,7 @@ export const getPropertyDetails = functions
 
       try {
         skDocRef = await getFirestore()
-          .collection('spatialKey')
+          .collection(COLLECTIONS.SK_RES)
           .add({
             ...spatialKeyData,
           });
@@ -166,7 +174,8 @@ async function validateSpatialKeyRes(spatialKeyData: SpatialKeyResponse) {
   let basement = spatialKeyData.us_hh_assessment_basement;
   const dtcArr = spatialKeyData.us_hh_dtc_beach_distance.split(' ');
   let distToCoastUnit = dtcArr[dtcArr.length - 1];
-  let distToCoastFeet = parseInt(spatialKeyData.us_hh_dtc_beach_distance.replace(/\D/g, ''));
+  let distToCoastFeet = parseFloat(getNumber(spatialKeyData.us_hh_dtc_beach_distance));
+  // let distToCoastFeet = parseInt(spatialKeyData.us_hh_dtc_beach_distance.replace(/\D/g, ''));
 
   if (distToCoastUnit.toLowerCase() === 'mile' || distToCoastUnit.toLowerCase() === 'miles') {
     distToCoastFeet = Math.round(5280 * distToCoastFeet);

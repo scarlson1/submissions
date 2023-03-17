@@ -175,17 +175,17 @@ export const PaginationGrid: React.FC<{
   // collect all the tasks JSON data
   const rowData = useMemo(() => {
     return data?.docs?.map((doc) => ({ ...doc.data(), id: doc.id })) ?? [];
-    // return (data?.docs?.map((doc) => doc.data()) ?? []);
+    // return (data?.docs?.map((doc) => doc.data()) ?? []); // REACT FIRE ID NOT WORKING
   }, [data]);
 
   // callback called when changing page
   const onPageChanged = useCallback(
     (nextPage: number) => {
       setPage((page) => {
-        // first, we save the last document as page's cursor
+        // first, save the last document as page's cursor
         cursors.current.set(page + 1, data.docs[data.docs.length - 1]);
 
-        // then we update the state with the next page's number
+        // update state to the next page's number
         return nextPage;
       });
     },
@@ -195,7 +195,7 @@ export const PaginationGrid: React.FC<{
   return (
     <div>
       <GenerateTasksButton />
-      <div style={{ height: 400, width: '100%' }}>
+      <div style={{ height: 600, width: '100%' }}>
         <DataGrid
           rows={rowData}
           columns={columns}

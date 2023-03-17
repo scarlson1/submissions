@@ -28,8 +28,8 @@ service cloud.firestore {
   match /databases/{database}/documents {
     match /submissions/{submissionId} {
       allow read: if true // isUser(existingData().userId) || isIDemandAdmin()
-      allow create: if true
-      allow update: if isUser(existingData().userId) || isIDemandAdmin()
+      allow create: if !requestHasAny(['annualPremium'])
+      allow update: if isIDemandAdmin() // isUser(existingData().userId) || 
       allow delete: if isIDemandAdmin()
     }
 
@@ -89,6 +89,10 @@ service cloud.firestore {
       allow update, delete: if false
     }
 
+    match /ratingData/{docId} {
+      allow read, write: if isIDemandAdmin()
+    }
+
      match /notifyRegistration/{notifyId} {
       allow read: if isIDemandAdmin() || isUser(existingData().userId)
       allow create: if true
@@ -146,7 +150,7 @@ service cloud.firestore {
 
     // Does the logged-in user match the requested userId?
     function isUser(userId) {
-      return isSignedIn() && request.auth.uid == userId;
+      return isSignedIn()  && request.auth.uid == userId;
     }
 
     function isTenantUser(tenantId) {
@@ -252,6 +256,18 @@ service cloud.firestore {
       return request.resource.data.diff(resource.data).affectedKeys()
         .hasOnly(permittedFields)
     }
+
+    // returns true if request has any of provided restricted keys
+    function requestHasAny(restrictedKeys) {
+      return request.resource.data.keys().hasAny(restrictedKeys)
+    }
+
+    // // Allow the user to create a document only if that document does *not*
+    // // contain an average_score or rating_count field.
+    // match /restaurant/{restId} {
+    //   allow create: if (!request.resource.data.keys().hasAny(
+    //     ['average_score', 'rating_count']));
+    // }
 
 
 

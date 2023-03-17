@@ -38,6 +38,7 @@ export const createPolicy = functions.https.onCall(async (data, ctx) => {
     // 3) create policy doc
     // TODO: use set ?? or get policy to see if it exists. If it does, need to check status
     // error if already paid. could be scenario where policy was created but payment failed
+    // TODO: validate data? quote total?
     const policyData = convertQuoteToPolicy(quoteData);
     const policyRef = await policiesCol.add({
       ...policyData,
@@ -77,8 +78,9 @@ function convertQuoteToPolicy(data: SubmissionQuoteData): Policy {
       phone: data.insuredPhone || '',
       userId: data.userId || null,
     },
-    additionalInsureds: data.additionalInsureds,
-    mortgageeInterest: data.mortgageeInterest,
+    // additionalInsureds: data.additionalInsureds,
+    // mortgageeInterest: data.mortgageeInterest,
+    // additionalInterests: data.additionalInterests, TODO: update Policy interface
     effectiveDate: data.policyEffectiveDate ?? Timestamp.fromDate(addToDate({ days: 15 })),
     expirationDate:
       data.policyExpirationDate ?? Timestamp.fromDate(addToDate({ days: 15, years: 1 })),

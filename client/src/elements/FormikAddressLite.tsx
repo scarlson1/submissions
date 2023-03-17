@@ -73,6 +73,7 @@ export const FormikAddressLite: React.FC<FormikAddressLiteProps> = ({
       names.addressLine1,
       `${newStreetNumber?.long_name || ''} ${newStreetName?.long_name || ''}`.trim()
     );
+    setFieldValue(names.addressLine2, '');
     setFieldValue(names.city, `${newCity?.long_name || ''}`);
     setFieldValue(names.county, `${newCounty?.long_name || ''}`);
     setFieldValue(names.state, `${newState?.short_name || ''}`);

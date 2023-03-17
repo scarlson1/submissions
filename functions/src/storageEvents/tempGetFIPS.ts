@@ -8,7 +8,14 @@ import { format, parse } from 'fast-csv';
 import { snakeCase, find } from 'lodash';
 // import axios from 'axios';
 import { featureEach } from '@turf/meta';
-import { FeatureCollection, point, booleanPointInPolygon, polygon, Position } from '@turf/turf';
+import {
+  FeatureCollection,
+  point,
+  booleanPointInPolygon,
+  polygon,
+  Position,
+  Properties,
+} from '@turf/turf';
 
 // import { FIPS } from '../common/fips';
 import countiesJson from '../assets/counties_20m.json';
@@ -102,11 +109,9 @@ export const tempGetFIPS = functions
         let county_name = '';
         let fips = '';
         let matchProperties = getCountyFromGeoJson(parseFloat(r.latitude), parseFloat(r.longitude));
-        // console.log('RETURNED MATCH PROPERTIES: ', matchProperties);
 
         if (matchProperties) {
-          // @ts-ignore
-          county_name = matchProperties.NAME; // @ts-ignore
+          county_name = matchProperties.NAME;
           fips = matchProperties.GEOID;
         }
         return { ...r, county_name, fips };
@@ -115,8 +120,9 @@ export const tempGetFIPS = functions
       return writeToStorage(dataWithCounties, `GEOJSON_${fileName}`);
     }
 
+    // TODO: import from getSubmissionFIPS
     function getCountyFromGeoJson(latitude: number, longitude: number) {
-      let matchProperties;
+      let matchProperties: Properties | undefined;
       const p = point([longitude, latitude]);
 
       featureEach(countiesJson as FeatureCollection, function (currentFeature, featureIndex) {

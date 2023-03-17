@@ -8,3 +8,4 @@ export { sendNewQuoteNotifications } from './sendNewQuoteNotifications.js';
 export { executePayment } from './executePayment.js';
 export { sendPolicyDoc } from './sendPolicyDoc.js';
 export { createPolicy } from './createPolicy.js';
+export { calcQuote } from './calcQuote';

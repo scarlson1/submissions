@@ -215,9 +215,6 @@ export const isValidEmail = (str: string) => {
   );
 };
 
-// export const getNumber = (str: string) => str.replace(/\D/g, '');
-export const getNumber = (str: string) => str.replace(/[^0-9\.]+/g, ''); // eslint-disable-line
-
 /**
  * Sums an array of numbers
  * @param {number[]} arr - array of numbers to be added.
@@ -384,6 +381,8 @@ export function getGridAddressComponent(
   if (!params.row || !params.row.address) return '';
   return getAddressComponent(params.row.address, addressComponent);
 }
+
+export const getNumber = (str: string) => str.replace(/[^0-9\.]+/g, ''); // eslint-disable-line
 
 export function extractNumber(str: string) {
   return parseFloat(`${str}`.replace(/[^0-9.]/g, ''));

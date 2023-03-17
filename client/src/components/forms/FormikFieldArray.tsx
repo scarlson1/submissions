@@ -40,6 +40,7 @@ export interface InputSchema {
   propsGetterFunc?: (index: number, parentField: string, name: string) => any;
   maskComponent?: ForwardRefExoticComponent<any>;
   inputProps?: InputBaseComponentProps;
+  helperText?: string;
 }
 
 export interface FormikFieldArrayProps {

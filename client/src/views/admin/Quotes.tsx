@@ -23,6 +23,7 @@ import {
   GridRenderCellParams,
   GridRowModel,
   GridRowParams,
+  GridToolbar,
   GridValueGetterParams,
 } from '@mui/x-data-grid';
 import {
@@ -401,7 +402,80 @@ export const Quotes: React.FC = () => {
         flex: 0.8,
         headerAlign: 'center',
         align: 'right',
+        valueGetter: (params) => params.row.ratingPropertyData?.replacementCost ?? null,
         valueFormatter: formatGridCurrency,
+      },
+      {
+        field: 'propertyCode',
+        headerName: 'Property Code',
+        minWidth: 140,
+        flex: 0.8,
+        headerAlign: 'center',
+        align: 'right',
+        valueGetter: (params) => params.row.ratingPropertyData?.propertyCode ?? null,
+      },
+      {
+        field: 'yearBuilt',
+        headerName: 'Year Built',
+        minWidth: 140,
+        flex: 0.8,
+        headerAlign: 'center',
+        align: 'right',
+        valueGetter: (params) => params.row.ratingPropertyData?.yearBuilt ?? null,
+      },
+      {
+        field: 'sqFootage',
+        headerName: 'Sq. Footage',
+        minWidth: 140,
+        flex: 0.8,
+        headerAlign: 'center',
+        align: 'right',
+        valueGetter: (params) => params.row.ratingPropertyData?.sqFootage ?? null,
+      },
+      {
+        field: 'numStories',
+        headerName: 'Num. Stories',
+        minWidth: 140,
+        flex: 0.8,
+        headerAlign: 'center',
+        align: 'right',
+        valueGetter: (params) => params.row.ratingPropertyData?.numStories ?? null,
+      },
+      {
+        field: 'basement',
+        headerName: 'Basement',
+        minWidth: 140,
+        flex: 0.8,
+        headerAlign: 'center',
+        align: 'right',
+        valueGetter: (params) => params.row.ratingPropertyData?.basement ?? null,
+      },
+      {
+        field: 'distToCoastFeet',
+        headerName: 'Dist. to Coast (ft.)',
+        minWidth: 160,
+        flex: 0.8,
+        headerAlign: 'center',
+        align: 'right',
+        valueGetter: (params) => params.row.ratingPropertyData?.distToCoastFeet ?? null,
+      },
+      {
+        field: 'CBRSDesignation',
+        headerName: 'CBRS Des.',
+        minWidth: 140,
+        flex: 0.8,
+        headerAlign: 'center',
+        align: 'right',
+        valueGetter: (params) => params.row.ratingPropertyData?.CBRSDesignation ?? null,
+      },
+      {
+        field: 'floodZone',
+        headerName: 'Flood Zone',
+        minWidth: 140,
+        flex: 0.8,
+        headerAlign: 'center',
+        align: 'right',
+        valueGetter: (params) => params.row.ratingPropertyData?.floodZone ?? null,
       },
       {
         field: 'subproducerCommission',
@@ -551,6 +625,8 @@ export const Quotes: React.FC = () => {
           //     })
           //   );
           // }}
+          components={{ Toolbar: GridToolbar }}
+          componentsProps={{ toolbar: { csvOptions: { allColumns: true } } }}
           initialState={{
             columns: {
               columnVisibilityModel: {
@@ -561,6 +637,14 @@ export const Quotes: React.FC = () => {
                 termPremium: false,
                 updated: false,
                 agentId: false,
+                CBRSDesignation: false,
+                basement: false,
+                distToCoastFeet: false,
+                floodZone: false,
+                numStories: false,
+                propertyCode: false,
+                sqFootage: false,
+                yearBuilt: false,
               },
             },
             sorting: {

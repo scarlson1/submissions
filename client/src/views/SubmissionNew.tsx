@@ -195,7 +195,9 @@ export const SubmissionNew: React.FC = () => {
         navigate(
           createPath({ path: ROUTES.SUBMISSION_SUBMITTED, params: { submissionId: docRef.id } })
         );
-      } catch (err) {}
+      } catch (err) {
+        console.log('ERROR: ', err);
+      }
 
       setSubmitting(false);
     },

@@ -76,7 +76,7 @@ function getFormattedQuote(values: NewQuoteValues): SubmissionQuoteData {
     limitB,
     limitC,
     limitD,
-    replacementCost,
+    // replacementCost,
     latitude,
     longitude,
     quoteExpiration,
@@ -93,15 +93,16 @@ function getFormattedQuote(values: NewQuoteValues): SubmissionQuoteData {
     agencyName,
     agencyId,
     quoteTotal,
-    termPremium,
+    annualPremium,
     taxes,
     fees,
     subproducerCommission,
+    ratingPropertyData,
   } = values;
 
   // TODO: validation
   if (!quoteTotal) throw new Error('Missing quote total');
-  invariant(termPremium, 'missing termPremium');
+  invariant(annualPremium, 'missing annualPremium');
   invariant(insuredEmail || agentEmail, 'Must have atleast one email (insured or agent)');
 
   return {
@@ -113,8 +114,8 @@ function getFormattedQuote(values: NewQuoteValues): SubmissionQuoteData {
       limitC, // extractNumber(values.limitC) || 0,
       limitD, // extractNumber(values.limitD) || 0,
     },
-    replacementCost:
-      typeof replacementCost === 'string' ? extractNumber(replacementCost) : replacementCost,
+    // replacementCost:
+    //   typeof replacementCost === 'string' ? extractNumber(replacementCost) : replacementCost,
     insuredAddress: {
       addressLine1: values.addressLine1,
       addressLine2: values.addressLine2,
@@ -127,9 +128,10 @@ function getFormattedQuote(values: NewQuoteValues): SubmissionQuoteData {
     policyEffectiveDate: Timestamp.fromDate(policyEffectiveDate),
     policyExpirationDate: Timestamp.fromDate(policyExpirationDate),
     exclusions: [],
-    additionalInsureds: [],
-    mortgageeInterest: [],
-    termPremium,
+    // additionalInsureds: [],
+    // mortgageeInterest: [],
+    additionalInterests: [],
+    annualPremium,
     fees,
     taxes,
     subproducerCommission,
@@ -147,6 +149,17 @@ function getFormattedQuote(values: NewQuoteValues): SubmissionQuoteData {
     agencyId: agencyId ?? null,
     agencyName: agencyName ?? null,
     status: QUOTE_STATUS.AWAITING_USER,
+    ratingPropertyData: {
+      CBRSDesignation: ratingPropertyData.CBRSDesignation,
+      basement: ratingPropertyData.basement,
+      distToCoastFeet: extractNumber(`${ratingPropertyData.distToCoastFeet}`),
+      floodZone: ratingPropertyData.floodZone,
+      numStories: ratingPropertyData.numStories,
+      propertyCode: ratingPropertyData.propertyCode,
+      replacementCost: ratingPropertyData.replacementCost,
+      sqFootage: extractNumber(`${ratingPropertyData.sqFootage}`),
+      yearBuilt: extractNumber(`${ratingPropertyData.yearBuilt}`),
+    },
     statusTransitions: {
       published: Timestamp.now(),
       accepted: null,

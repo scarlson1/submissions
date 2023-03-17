@@ -14,6 +14,7 @@ export {
   sendPolicyDoc,
   executePayment,
   createPolicy,
+  calcQuote,
 } from './callables';
 export {
   newSubmissionNotifications,
@@ -21,6 +22,7 @@ export {
   getSubmissionAAL,
   mirrorCustomClaims,
   newAgencyAppNotification,
+  getSubmissionFIPS,
 } from './firestoreEvents';
 export {
   beforeSignIn,

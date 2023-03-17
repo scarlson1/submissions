@@ -1,0 +1,322 @@
+interface MultipliersByState {
+  [key: string]: {
+    fullname?: string;
+    inlandStateMult: number;
+    surgeStateMult: number;
+    tsunamiStateMult: number;
+  };
+}
+
+export const multipliersByState: MultipliersByState = {
+  AL: {
+    fullname: 'Alabama',
+    inlandStateMult: 1.5,
+    surgeStateMult: 2.5,
+    tsunamiStateMult: 1,
+  },
+  AK: {
+    fullname: 'Alaska',
+    inlandStateMult: 1.5,
+    surgeStateMult: 2.5,
+    tsunamiStateMult: 1,
+  },
+  AZ: {
+    fullname: 'Arizona',
+    inlandStateMult: 1.5,
+    surgeStateMult: 2.5,
+    tsunamiStateMult: 1,
+  },
+  AR: {
+    fullname: 'Arkansas',
+    inlandStateMult: 1.5,
+    surgeStateMult: 2.5,
+    tsunamiStateMult: 1,
+  },
+  CA: {
+    fullname: 'CalinlandStateMultornia',
+    inlandStateMult: 1.5,
+    surgeStateMult: 2.5,
+    tsunamiStateMult: 2.5,
+  },
+  CO: {
+    fullname: 'Colorado',
+    inlandStateMult: 1.5,
+    surgeStateMult: 2.5,
+    tsunamiStateMult: 1,
+  },
+  CT: {
+    fullname: 'Connecticut',
+    inlandStateMult: 1.5,
+    surgeStateMult: 2.5,
+    tsunamiStateMult: 1,
+  },
+  DC: {
+    fullname: 'Washington DC',
+    inlandStateMult: 1.5,
+    surgeStateMult: 3,
+    tsunamiStateMult: 1,
+  },
+  DE: {
+    fullname: 'Delaware',
+    inlandStateMult: 1.5,
+    surgeStateMult: 2.5,
+    tsunamiStateMult: 1,
+  },
+  FL: {
+    fullname: 'Florida',
+    inlandStateMult: 1.5,
+    surgeStateMult: 2.5,
+    tsunamiStateMult: 1,
+  },
+  GA: {
+    fullname: 'Georgia',
+    inlandStateMult: 1.5,
+    surgeStateMult: 2.5,
+    tsunamiStateMult: 1,
+  },
+  HI: {
+    fullname: 'Hawaii',
+    inlandStateMult: 1.5,
+    surgeStateMult: 2.5,
+    tsunamiStateMult: 2.5,
+  },
+  ID: {
+    fullname: 'Idaho',
+    inlandStateMult: 1.5,
+    surgeStateMult: 2.5,
+    tsunamiStateMult: 1,
+  },
+  IL: {
+    fullname: 'Illinois',
+    inlandStateMult: 1.5,
+    surgeStateMult: 2.5,
+    tsunamiStateMult: 1,
+  },
+  IN: {
+    fullname: 'Indiana',
+    inlandStateMult: 1.5,
+    surgeStateMult: 2.5,
+    tsunamiStateMult: 1,
+  },
+  IA: {
+    fullname: 'Iowa',
+    inlandStateMult: 1.5,
+    surgeStateMult: 2.5,
+    tsunamiStateMult: 1,
+  },
+  KS: {
+    fullname: 'Kansas',
+    inlandStateMult: 1.5,
+    surgeStateMult: 2.5,
+    tsunamiStateMult: 1,
+  },
+  KY: {
+    fullname: 'Kentucky',
+    inlandStateMult: 1.5,
+    surgeStateMult: 2.5,
+    tsunamiStateMult: 1,
+  },
+  LA: {
+    fullname: 'Louisiana',
+    inlandStateMult: 1.5,
+    surgeStateMult: 2.5,
+    tsunamiStateMult: 1,
+  },
+  ME: {
+    fullname: 'Maine',
+    inlandStateMult: 1.5,
+    surgeStateMult: 3,
+    tsunamiStateMult: 1,
+  },
+  MD: {
+    fullname: 'Maryland',
+    inlandStateMult: 1.5,
+    surgeStateMult: 3,
+    tsunamiStateMult: 1,
+  },
+  MA: {
+    fullname: 'MasurgeStateMultachusetts',
+    inlandStateMult: 1.5,
+    surgeStateMult: 3,
+    tsunamiStateMult: 1,
+  },
+  MI: {
+    fullname: 'Michigan',
+    inlandStateMult: 1.5,
+    surgeStateMult: 2.5,
+    tsunamiStateMult: 1,
+  },
+  MN: {
+    fullname: 'Minnesota',
+    inlandStateMult: 1.5,
+    surgeStateMult: 2.5,
+    tsunamiStateMult: 1,
+  },
+  MS: {
+    fullname: 'MisurgeStateMultisurgeStateMultippi',
+    inlandStateMult: 1.5,
+    surgeStateMult: 2.5,
+    tsunamiStateMult: 1,
+  },
+  MO: {
+    fullname: 'MisurgeStateMultouri',
+    inlandStateMult: 1.5,
+    surgeStateMult: 2.5,
+    tsunamiStateMult: 1,
+  },
+  MT: {
+    fullname: 'Montana',
+    inlandStateMult: 1.5,
+    surgeStateMult: 2.5,
+    tsunamiStateMult: 1,
+  },
+  NE: {
+    fullname: 'Nebraska',
+    inlandStateMult: 1.5,
+    surgeStateMult: 2.5,
+    tsunamiStateMult: 1,
+  },
+  NV: {
+    fullname: 'Nevada',
+    inlandStateMult: 1.5,
+    surgeStateMult: 2.5,
+    tsunamiStateMult: 1,
+  },
+  NH: {
+    fullname: 'New Hampshire',
+    inlandStateMult: 1.5,
+    surgeStateMult: 3,
+    tsunamiStateMult: 1,
+  },
+  NJ: {
+    fullname: 'New Jersey',
+    inlandStateMult: 1.5,
+    surgeStateMult: 3,
+    tsunamiStateMult: 1,
+  },
+  NM: {
+    fullname: 'New Mexico',
+    inlandStateMult: 1.5,
+    surgeStateMult: 2.5,
+    tsunamiStateMult: 1,
+  },
+  NY: {
+    fullname: 'New York',
+    inlandStateMult: 1.5,
+    surgeStateMult: 3,
+    tsunamiStateMult: 1,
+  },
+  NC: {
+    fullname: 'North Carolina',
+    inlandStateMult: 1.5,
+    surgeStateMult: 2.5,
+    tsunamiStateMult: 1,
+  },
+  ND: {
+    fullname: 'North Dakota',
+    inlandStateMult: 1.5,
+    surgeStateMult: 2.5,
+    tsunamiStateMult: 1,
+  },
+  OH: {
+    fullname: 'Ohio',
+    inlandStateMult: 1.5,
+    surgeStateMult: 2.5,
+    tsunamiStateMult: 1,
+  },
+  OK: {
+    fullname: 'Oklahoma',
+    inlandStateMult: 1.5,
+    surgeStateMult: 2.5,
+    tsunamiStateMult: 1,
+  },
+  OR: {
+    fullname: 'Oregon',
+    inlandStateMult: 1.5,
+    surgeStateMult: 2.5,
+    tsunamiStateMult: 2.5,
+  },
+  PA: {
+    fullname: 'Pennsylvania',
+    inlandStateMult: 1.5,
+    surgeStateMult: 3,
+    tsunamiStateMult: 1,
+  },
+  RI: {
+    fullname: 'Rhode Island',
+    inlandStateMult: 1.5,
+    surgeStateMult: 3,
+    tsunamiStateMult: 1,
+  },
+  SC: {
+    fullname: 'South Carolina',
+    inlandStateMult: 1.5,
+    surgeStateMult: 2.5,
+    tsunamiStateMult: 1,
+  },
+  SD: {
+    fullname: 'South Dakota',
+    inlandStateMult: 1.5,
+    surgeStateMult: 2.5,
+    tsunamiStateMult: 1,
+  },
+  TN: {
+    fullname: 'TennesurgeStateMultee',
+    inlandStateMult: 1.5,
+    surgeStateMult: 2.5,
+    tsunamiStateMult: 1,
+  },
+  TX: {
+    fullname: 'Texas',
+    inlandStateMult: 1.5,
+    surgeStateMult: 2.5,
+    tsunamiStateMult: 1,
+  },
+  UT: {
+    fullname: 'Utah',
+    inlandStateMult: 1.5,
+    surgeStateMult: 2.5,
+    tsunamiStateMult: 1,
+  },
+  VT: {
+    fullname: 'Vermont',
+    inlandStateMult: 1.5,
+    surgeStateMult: 3,
+    tsunamiStateMult: 1,
+  },
+  VA: {
+    fullname: 'Virginia',
+    inlandStateMult: 1.5,
+    surgeStateMult: 3,
+    tsunamiStateMult: 1,
+  },
+  WA: {
+    fullname: 'Washington',
+    inlandStateMult: 1.5,
+    surgeStateMult: 2.5,
+    tsunamiStateMult: 2.5,
+  },
+  WV: {
+    fullname: 'West Virginia',
+    inlandStateMult: 1.5,
+    surgeStateMult: 2.5,
+    tsunamiStateMult: 1,
+  },
+  WI: {
+    fullname: 'Wisconsin',
+    inlandStateMult: 1.5,
+    surgeStateMult: 2.5,
+    tsunamiStateMult: 1,
+  },
+  WY: {
+    fullname: 'Wyoming',
+    inlandStateMult: 1.5,
+    surgeStateMult: 2.5,
+    tsunamiStateMult: 1,
+  },
+  Unknown: {
+    inlandStateMult: 1.5,
+    surgeStateMult: 3,
+    tsunamiStateMult: 1,
+  },
+};

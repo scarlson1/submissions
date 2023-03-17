@@ -21,6 +21,7 @@ export type WithId<T> = T & { id: string };
 
 export interface Submission extends FloodValues, FetchPropertyDataResponse {
   coordinates: GeoPoint;
+  countyFIPS?: string | null;
   userId?: string | null;
   status: SUBMISSION_STATUS;
   submittedById?: string | null;
@@ -34,6 +35,8 @@ export interface Submission extends FloodValues, FetchPropertyDataResponse {
   satelliteStreetsMapImageFilePath?: string;
   inlandAAL?: number;
   surgeAAL?: number;
+  annualPremium?: number;
+  subproducerCommission?: number;
   metadata: BaseMetadata;
 }
 
@@ -111,6 +114,13 @@ export interface Mortgagee {
   address?: AddressWithCoords;
 }
 
+export interface AdditionalInterest {
+  type: string;
+  name: string;
+  accountNumber: string;
+  address: AddressWithCoords;
+}
+
 export interface Deductible {
   type: DEDUCTIBLE_OPTIONS;
   value: number;
@@ -124,37 +134,43 @@ export interface TaxItem {
 
 // TODO: temparary (quote data interface for interim submissions period) REPLACE
 
+export interface RatingPropertyData {
+  CBRSDesignation: string | null;
+  basement: string | null;
+  distToCoastFeet: number | null;
+  floodZone: string | null;
+  numStories: number | null;
+  propertyCode: string | null;
+  replacementCost: number | null;
+  sqFootage: number | null;
+  yearBuilt: number | null;
+}
+
 export interface SubmissionQuoteData {
   product: Product; // keyof typeof Product;
   deductible: number;
   limits: Limits;
-  replacementCost: number;
+  // replacementCost: number;
   insuredAddress: Address;
   insuredCoordinates: GeoPoint | null;
   fees: { feeName: string; feeValue: number }[];
   taxes: TaxItem[]; // { taxName: string; taxValue: number; taxRate?: number }[];
-  termPremium: number;
+  annualPremium: number;
   subproducerCommission: number;
   quoteTotal?: number;
   cardFee: number;
-  // reviewRequired: boolean;
-  // underwritingNotes?: {
-  //   propertyNotes: UWNote[];
-  //   ratingNotes: UWNote[];
-  // };
-  // ratable: boolean;
-  // underwriterApproved: boolean;
   quoteExpiration: {
     seconds: number;
     nanoseconds: number;
   };
-  policyEffectiveDate?: Timestamp; // FirestoreTimestamp;
+  policyEffectiveDate?: Timestamp;
   effectiveExceptionRequested?: boolean;
   effectiveExceptionReason?: string | null;
-  policyExpirationDate?: Timestamp; // FirestoreTimestamp;
+  policyExpirationDate?: Timestamp;
   exclusions?: string[];
-  additionalInsureds?: AdditionalInsured[];
-  mortgageeInterest?: Mortgagee[];
+  // additionalInsureds?: AdditionalInsured[];
+  // mortgageeInterest?: Mortgagee[];
+  additionalInterests?: AdditionalInterest[];
   metadata: {
     created: FirestoreTimestamp;
     updated: FirestoreTimestamp;
@@ -176,6 +192,7 @@ export interface SubmissionQuoteData {
   submissionId?: string | null;
   imageUrls?: { [key: string]: string | null };
   imagePaths?: { [key: string]: string | null };
+  ratingPropertyData: RatingPropertyData;
   // quoteIds?: WithFieldValue<string[]>;
   statusTransitions: {
     published: FirestoreTimestamp;

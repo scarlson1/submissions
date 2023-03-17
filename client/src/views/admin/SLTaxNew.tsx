@@ -352,6 +352,7 @@ export const SLTaxNew: React.FC<SLTaxNewProps> = () => {
                   name='fixedRate'
                   label='Fixed Rate'
                   fullWidth
+                  decimalScale={2}
                   inputProps={{
                     decimalScale: 2,
                   }}

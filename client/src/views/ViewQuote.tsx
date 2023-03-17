@@ -216,7 +216,7 @@ export const ViewQuote: React.FC = () => {
         <Grid xs={12} sm={6} md={4}>
           <HighlightCard
             title='Secondary structures'
-            content='Fence, shed, swimming pool, detached garage, carport'
+            content='Fence, shed, detached garage, carport'
             renderSvgImg={(props: any) => <UnderConstructionSVG {...props} />}
             tooltipText='Additional Structures Coverage (limit B)'
             active={data.limits.limitB > 0}

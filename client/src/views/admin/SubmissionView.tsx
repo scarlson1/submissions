@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
-import { doc, getDoc } from 'firebase/firestore';
-import { Box, Button, IconButton, Stack, Typography } from '@mui/material';
+import { doc, getDoc, getDocs, query, where } from 'firebase/firestore';
+import { Box, Button, ButtonProps, IconButton, Stack, Typography } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
 import { ArrowBackIosRounded } from '@mui/icons-material';
 import {
@@ -10,16 +10,38 @@ import {
   useNavigate,
 } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-// import ReactJson from '@microlink/react-json-view';
 
-import { spatialKeyCollection, submissionsCollection } from 'common/firestoreCollections';
+import {
+  ratingCollection,
+  spatialKeyCollection,
+  submissionsCollection,
+} from 'common/firestoreCollections';
 import { Submission, WithId } from 'common/types';
 import { dollarFormat, formatFirestoreTimestamp, numberFormat } from 'modules/utils/helpers';
 import { ADMIN_ROUTES, createPath } from 'router';
-// import { useConfirmation } from 'modules/components/ConfirmationService';
-// import { ConfirmationDialog } from 'components';
 import { useJsonDialog } from 'hooks';
 import { withIdConverter } from 'common';
+
+export const ShowRatingDialog = ({ id, btnProps }: { id?: string; btnProps?: ButtonProps }) => {
+  const dialog = useJsonDialog();
+
+  const handleShowRatingDialog = useCallback(async () => {
+    const ratingQuery = query(ratingCollection, where('submissionId', '==', id));
+    const ratingSnap = await getDocs(ratingQuery);
+    if (ratingSnap.empty) return toast(`No rating documents found`);
+
+    const ratingData = ratingSnap.docs.map((s) => ({ ...s.data(), id: s.id }));
+    dialog(ratingData, 'Rating Data');
+  }, [dialog, id]);
+
+  if (!id) return null;
+
+  return (
+    <Button {...btnProps} onClick={() => handleShowRatingDialog()}>
+      Show Rating Data
+    </Button>
+  );
+};
 
 export const RowItem: React.FC<{ title: string; value: React.ReactNode }> = ({ title, value }) => (
   <Stack direction='row' spacing={1} display='flex' alignItems='flex-start'>
@@ -162,6 +184,8 @@ export const SubmissionView: React.FC = () => {
           </Typography>
           <RowItem title='Prior Loss Count' value={data.priorLossCount} />
           <RowItem title='Exclusions' value={data.exclusions} />
+          <RowItem title='FIPS' value={data.countyFIPS || null} />
+          <RowItem title='County' value={data.countyName || null} />
           {/* <Typography>{`Prior Loss Count: ${data.priorLossCount}`}</Typography>
           <Typography>{`exclusions: ${data.exclusions}`}</Typography> */}
         </Box>
@@ -172,10 +196,13 @@ export const SubmissionView: React.FC = () => {
           <Typography variant='overline' color='text.secondary'>
             Spatial Key Data
           </Typography>
-          <RowItem title='Replacement Cost' value={dollarFormat(data.replacementCost)} />
-          <RowItem title='Square Footage' value={numberFormat(data.sqFootage)} />
+          <RowItem title='Replacement Cost' value={dollarFormat(data.replacementCost ?? '')} />
+          <RowItem title='Square Footage' value={numberFormat(data.sqFootage ?? '')} />
           <RowItem title='Year Built' value={data.yearBuilt} />
-          <RowItem title='Distance To Coast (ft)' value={numberFormat(data.distToCoastFeet)} />
+          <RowItem
+            title='Distance To Coast (ft)'
+            value={numberFormat(data.distToCoastFeet ?? '')}
+          />
           <RowItem title='Property Code' value={data.propertyCode} />
           <RowItem title='CBRS Designation' value={data.CBRSDesignation} />
           <RowItem title='Basement' value={data.basement} />
@@ -184,17 +211,26 @@ export const SubmissionView: React.FC = () => {
         </Box>
         <Box sx={{ pb: 3 }}>
           <Typography variant='overline' color='text.secondary'>
-            Swiss Re Data
+            AAL & Premium
           </Typography>
           <RowItem title='Inland AAL' value={data.inlandAAL} />
           <RowItem title='Surge AAL' value={data.surgeAAL} />
+          <RowItem
+            title='Annual Premium'
+            value={data.annualPremium ? dollarFormat(data.annualPremium) : null}
+          />
         </Box>
       </Grid>
       {data.spatialKeyDocId && (
         <Grid xs>
-          <Button onClick={() => handleShowSKDialog(data.spatialKeyDocId!)}>
+          <Button
+            size='small'
+            sx={{ m: 1 }}
+            onClick={() => handleShowSKDialog(data.spatialKeyDocId!)}
+          >
             Show Spatial Key Data
           </Button>
+          <ShowRatingDialog id={data.id} btnProps={{ size: 'small', sx: { m: 1 } }} />
         </Grid>
       )}
 

@@ -283,7 +283,13 @@ export const Header: React.FC<HeaderProps> = () => {
               }}
             >
               {navPages?.map((page) => (
-                <MenuItem key={page.title} onClick={() => navigate(page.route)}>
+                <MenuItem
+                  key={page.title}
+                  onClick={() => {
+                    navigate(page.route);
+                    handleCloseNavMenu();
+                  }}
+                >
                   <Typography textAlign='center' color='text.primary'>
                     {page.title}
                   </Typography>
