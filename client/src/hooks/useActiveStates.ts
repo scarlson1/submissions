@@ -1,13 +1,13 @@
 import { useState, useEffect, useMemo } from 'react';
 
 import { ActiveStates, Product, statesCollection } from 'common';
-import { doc, onSnapshot } from 'firebase/firestore';
+import { doc, getFirestore, onSnapshot } from 'firebase/firestore';
 
 export const useActiveStates = (product: Product) => {
   const [activeStates, setActiveStates] = useState<ActiveStates>();
 
   useEffect(() => {
-    const ref = doc(statesCollection, product);
+    const ref = doc(statesCollection(getFirestore()), product);
 
     const unsubscribe = onSnapshot(
       ref,

@@ -1,6 +1,6 @@
-import { httpsCallable } from 'firebase/functions';
+import { Functions, httpsCallable } from 'firebase/functions';
 
-import { functions } from 'firebaseConfig';
+// import { functions } from 'firebaseConfig';
 
 export type UpdateAndReateRequest = { quoteId: string; values: any; protosureData: any };
 export interface UpdateAndReateResponse {
@@ -11,10 +11,13 @@ export interface UpdateAndReateResponse {
   };
 }
 
-// export const updateAndRateQuote = (functions: Functions) =>
-//   httpsCallable<UpdateAndReateRequest, UpdateAndReateResponse>(functions, 'updateAndRateQuote');
+export const updateAndRateQuote = (functions: Functions, args: UpdateAndReateRequest) =>
+  httpsCallable<UpdateAndReateRequest, UpdateAndReateResponse>(
+    functions,
+    'updateAndRateQuote'
+  )(args);
 
-export const updateAndRateQuote = httpsCallable<UpdateAndReateRequest, UpdateAndReateResponse>(
-  functions,
-  'updateAndRateQuote'
-);
+// export const updateAndRateQuote = httpsCallable<UpdateAndReateRequest, UpdateAndReateResponse>(
+//   getFunctions(), // functions,
+//   'updateAndRateQuote'
+// );

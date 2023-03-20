@@ -1,5 +1,7 @@
 import axios from 'axios';
-import { auth } from 'firebaseConfig';
+import { getAuth } from 'firebase/auth';
+
+// import { auth } from 'firebaseConfig';
 
 export const functionsInstance = axios.create({
   baseURL: process.env.REACT_APP_FUNCTIONS_BASE_URL,
@@ -8,6 +10,7 @@ functionsInstance.defaults.baseURL = process.env.REACT_APP_FUNCTIONS_BASE_URL;
 
 functionsInstance.interceptors.request.use(
   async (config: any) => {
+    const auth = getAuth();
     const token = await auth.currentUser?.getIdToken(true);
     console.log('REFRESHED ID TOKEN: ', token);
     if (!config.headers) config.headers = {};

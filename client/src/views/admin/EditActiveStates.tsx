@@ -2,46 +2,47 @@ import React, { useCallback, useRef } from 'react';
 import { Box, Button, Card, Typography } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
 import { Formik, FormikHelpers, FormikProps } from 'formik';
-import { LoaderFunctionArgs, useLoaderData, useParams } from 'react-router-dom';
-import { getDoc, doc, setDoc } from 'firebase/firestore';
+import { useParams } from 'react-router-dom';
+import { doc, setDoc, getFirestore } from 'firebase/firestore';
 import { PickingInfo } from 'deck.gl/typed';
 import { capitalize } from 'lodash';
 import { SaveRounded } from '@mui/icons-material';
-import { FirebaseError } from 'firebase/app';
 import { toast } from 'react-hot-toast';
 
 import { statesDetailsArr } from 'common/statesList';
 import { FormikSwitch } from 'components/forms';
 import { statesCollection } from 'common';
 import { ActiveStateMap } from 'elements/ActiveStateMap';
+import { useDocData } from 'hooks';
 
-export const activeStatesLoader = async ({ params }: LoaderFunctionArgs) => {
-  try {
-    const snap = await getDoc(doc(statesCollection, params.productId));
+// export const activeStatesLoader = async ({ params }: LoaderFunctionArgs) => {
+//   try {
+//     const snap = await getDoc(doc(statesCollection(getFirestore()), params.productId));
 
-    const data = snap.data();
-    if (!snap.exists() || !data) return {};
-    // throw new Response(`Error fetching active states docuement with ID: ${params.productId}`, {
-    //   status: 404,
-    // });
+//     const data = snap.data();
+//     if (!snap.exists() || !data) return {};
+//     // throw new Response(`Error fetching active states docuement with ID: ${params.productId}`, {
+//     //   status: 404,
+//     // });
 
-    return data;
-  } catch (err) {
-    let msg = `Error fetching active states document`;
-    if (err instanceof FirebaseError) {
-      msg = err.message;
-    }
-    throw new Response(msg);
-  }
-};
+//     return data;
+//   } catch (err) {
+//     let msg = `Error fetching active states document`;
+//     if (err instanceof FirebaseError) {
+//       msg = err.message;
+//     }
+//     throw new Response(msg);
+//   }
+// };
 
 export interface EditActiveStatesValues {
   [key: string]: boolean;
 }
 
 export const EditActiveStates: React.FC = () => {
-  const data = useLoaderData() as { [key: string]: boolean };
+  // const data = useLoaderData() as { [key: string]: boolean };
   const { productId } = useParams();
+  const { data, status } = useDocData<{ [key: string]: boolean }>('ACTIVE_STATES', productId || '');
   const formikRef = useRef<FormikProps<EditActiveStatesValues>>(null);
 
   const handleSave = useCallback(() => {
@@ -54,7 +55,7 @@ export const EditActiveStates: React.FC = () => {
       try {
         if (!productId) throw new Error('Missing doc Id');
 
-        const docRef = doc(statesCollection, productId);
+        const docRef = doc(statesCollection(getFirestore()), productId);
         await setDoc(docRef, { ...values }, { merge: true });
 
         toast.success('Saved!');
@@ -74,6 +75,8 @@ export const EditActiveStates: React.FC = () => {
     const currVal = formikRef.current?.values[key];
     formikRef.current?.setFieldValue(key, !currVal);
   }, []);
+
+  if (status === 'loading') return <div>Loading...</div>;
 
   return (
     <Box>

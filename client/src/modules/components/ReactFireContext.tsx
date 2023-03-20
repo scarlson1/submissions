@@ -1,4 +1,9 @@
 import React from 'react';
+// import { initializeApp } from 'firebase/app';
+import { connectAuthEmulator, getAuth } from 'firebase/auth';
+import { connectFirestoreEmulator, Firestore, getFirestore } from 'firebase/firestore';
+import { connectFunctionsEmulator, getFunctions } from 'firebase/functions';
+import { connectStorageEmulator, getStorage } from 'firebase/storage';
 import {
   AuthProvider,
   FirebaseAppProvider,
@@ -9,19 +14,17 @@ import {
 } from 'reactfire';
 
 import { firebaseConfig } from 'firebaseConfig';
-import { connectAuthEmulator, getAuth } from 'firebase/auth';
-import { connectFirestoreEmulator, getFirestore } from 'firebase/firestore';
-import { connectFunctionsEmulator, getFunctions } from 'firebase/functions';
-import { connectStorageEmulator, getStorage } from 'firebase/storage';
-import { initializeApp } from 'firebase/app';
 
-initializeApp(firebaseConfig);
+// initializeApp(firebaseConfig);
+
+export let db: Firestore;
 
 export function ReactFireServicesContext({ children }: { children: React.ReactNode }) {
   const app = useFirebaseApp();
 
   const auth = getAuth(app);
   const firestore = getFirestore(app);
+  db = firestore;
   const functions = getFunctions(app);
   const storage = getStorage(app);
 
@@ -49,3 +52,10 @@ export function ReactFireServicesContext({ children }: { children: React.ReactNo
 export function ReactFireAppContext({ children }: { children: React.ReactNode }) {
   return <FirebaseAppProvider firebaseConfig={firebaseConfig}>{children}</FirebaseAppProvider>;
 }
+
+// https://github.com/FirebaseExtended/reactfire/blob/main/example/withSuspense/Firestore.tsx
+// const { data: firestoreInstance } = useInitFirestore(async (firebaseApp) => {
+//   const db = initializeFirestore(firebaseApp, {});
+//   await enableIndexedDbPersistence(db);
+//   return db;
+// });

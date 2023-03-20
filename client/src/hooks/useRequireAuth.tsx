@@ -5,7 +5,7 @@ import { useAuth, CUSTOM_CLAIMS } from 'modules/components/AuthContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { signInAnonymously, UserCredential, getAuth } from 'firebase/auth';
 
-import { auth } from 'firebaseConfig';
+// import { auth } from 'firebaseConfig';
 import { useAsyncToast } from './useAsyncToast';
 import { AUTH_ROUTES, createPath } from 'router';
 
@@ -36,7 +36,8 @@ export const useRequireAuth = ({
   let location = useLocation();
   const navigate = useNavigate();
 
-  let user = getAuth().currentUser;
+  const auth = getAuth();
+  let user = auth.currentUser;
 
   useEffect(() => {
     if (loadingInitial || loading) {
@@ -110,6 +111,7 @@ export const useRequireAuth = ({
     toast,
     unauthorizedCallback,
     navigate,
+    auth,
   ]);
 
   return {

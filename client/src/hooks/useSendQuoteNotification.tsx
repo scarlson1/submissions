@@ -1,10 +1,11 @@
 import { useCallback } from 'react';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, getFirestore } from 'firebase/firestore';
 
 import { submissionsQuotesCollection } from 'common';
 import { sendNewQuoteNotifications } from 'modules/api/sendNewQuoteNotifications';
 import { usePromptForEmails } from './usePromptForEmails';
 import { useAsyncToast } from './useAsyncToast';
+import { getFunctions } from 'firebase/functions';
 
 export interface NotificationEmailValues {
   notifyInsured: boolean;
@@ -23,7 +24,7 @@ export const useSendQuoteNotification = (
     async (docId?: string | null) => {
       if (!docId) return;
       try {
-        const snap = await getDoc(doc(submissionsQuotesCollection, docId));
+        const snap = await getDoc(doc(submissionsQuotesCollection(getFirestore()), docId));
         if (!snap.exists() || !snap.data()) throw new Error(`Cannot find doc with ID ${docId}`);
         const data = snap.data();
         // const emails = await promptForEmails(docId);
@@ -44,7 +45,10 @@ export const useSendQuoteNotification = (
         if (emails && emails.length > 0 && Array.isArray(emails)) {
           try {
             toast.loading('sending emails...');
-            const { data } = await sendNewQuoteNotifications({ emails, quoteId: docId });
+            const { data } = await sendNewQuoteNotifications(getFunctions(), {
+              emails,
+              quoteId: docId,
+            });
             console.log('RES: ', data);
 
             if (data?.emails && data.emails.length > 0) {

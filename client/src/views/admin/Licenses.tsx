@@ -1,28 +1,29 @@
 import React from 'react';
-import { LoaderFunctionArgs, useLoaderData, useNavigate } from 'react-router-dom';
-import { getDocs, limit, orderBy, query } from 'firebase/firestore';
-import { licensesCollection, LicenseWithId } from 'common';
+import { useNavigate } from 'react-router-dom';
+import { limit, orderBy } from 'firebase/firestore';
 import { Box, Button, Chip, Typography } from '@mui/material';
+import { BusinessRounded, CheckRounded, CloseRounded, PersonRounded } from '@mui/icons-material';
+import { GridColDef } from '@mui/x-data-grid';
+
 import { ADMIN_ROUTES, createPath } from 'router';
 import { BasicDataGrid } from 'components';
-import { GridColDef } from '@mui/x-data-grid';
 import {
   formatGridFirestoreTimestamp,
   formatGridFirestoreTimestampAsDate,
   isCurrentDateBetween,
 } from 'modules/utils/helpers';
-import { BusinessRounded, CheckRounded, CloseRounded, PersonRounded } from '@mui/icons-material';
+import { useCollectionData } from 'hooks';
 
-export const licensesLoader = async ({ params }: LoaderFunctionArgs) => {
-  try {
-    // TODO: pass query params for order, limit, etc. ??
-    return getDocs(query(licensesCollection, orderBy('metadata.created', 'desc'), limit(100))).then(
-      (querySnap) => querySnap.docs.map((snap) => ({ ...snap.data(), id: snap.id }))
-    );
-  } catch (err) {
-    throw new Response(`Error fetching licenses`);
-  }
-};
+// export const licensesLoader = async ({ params }: LoaderFunctionArgs) => {
+//   try {
+//     // TODO: pass query params for order, limit, etc. ??
+//     return getDocs(
+//       query(licensesCollection(getFirestore()), orderBy('metadata.created', 'desc'), limit(100))
+//     ).then((querySnap) => querySnap.docs.map((snap) => ({ ...snap.data(), id: snap.id })));
+//   } catch (err) {
+//     throw new Response(`Error fetching licenses`);
+//   }
+// };
 
 const licensesColumns: GridColDef[] = [
   {
@@ -166,7 +167,11 @@ const licensesColumns: GridColDef[] = [
 
 export const Licenses: React.FC = () => {
   const navigate = useNavigate();
-  const data = useLoaderData() as LicenseWithId[];
+  // const data = useLoaderData() as LicenseWithId[];
+  const { data, status } = useCollectionData('LICENSES', [
+    orderBy('metadata.created', 'desc'),
+    limit(100),
+  ]);
 
   return (
     <Box>
@@ -182,6 +187,7 @@ export const Licenses: React.FC = () => {
         <BasicDataGrid
           rows={data || []}
           columns={licensesColumns}
+          loading={status === 'loading'}
           density='compact'
           autoHeight
           initialState={{

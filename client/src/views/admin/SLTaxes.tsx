@@ -1,12 +1,10 @@
 import React from 'react';
 import { Box, Button, Tooltip, Typography } from '@mui/material';
 import { GridColDef, GridRenderCellParams, GridValueFormatterParams } from '@mui/x-data-grid';
-import { LoaderFunctionArgs, useLoaderData, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import { BasicDataGrid } from 'components';
-import { Tax } from 'common/types';
-import { getDocs, limit, orderBy, query } from 'firebase/firestore';
-import { taxesCollection } from 'common/firestoreCollections';
+import { limit, orderBy } from 'firebase/firestore';
 import {
   formatGridCurrency,
   formatGridFirestoreTimestamp,
@@ -17,21 +15,18 @@ import {
 import { createPath, ADMIN_ROUTES } from 'router';
 import { renderChips } from 'components/RenderGridCellHelpers';
 import { CheckRounded, CloseRounded } from '@mui/icons-material';
+import { useCollectionData } from 'hooks';
 
-export const adminTaxLoader = async ({ params }: LoaderFunctionArgs) => {
-  try {
-    // TODO: pass query params for order, limit, etc.
-    return getDocs(query(taxesCollection, orderBy('metadata.created', 'desc'), limit(100))).then(
-      (querySnap) => querySnap.docs.map((snap) => ({ ...snap.data(), id: snap.id }))
-    );
-  } catch (err) {
-    throw new Response(`Error fetching submissions`);
-  }
-};
-
-export interface TaxWithId extends Tax {
-  id: string;
-}
+// export const adminTaxLoader = async ({ params }: LoaderFunctionArgs) => {
+//   try {
+//     // TODO: pass query params for order, limit, etc.
+//     return getDocs(
+//       query(taxesCollection(getFirestore()), orderBy('metadata.created', 'desc'), limit(100))
+//     ).then((querySnap) => querySnap.docs.map((snap) => ({ ...snap.data(), id: snap.id })));
+//   } catch (err) {
+//     throw new Response(`Error fetching submissions`);
+//   }
+// };
 
 const taxColumns: GridColDef[] = [
   {
@@ -203,7 +198,11 @@ export interface SLTaxesProps {}
 
 export const SLTaxes: React.FC<SLTaxesProps> = () => {
   const navigate = useNavigate();
-  const data = useLoaderData() as TaxWithId[];
+  // const data = useLoaderData() as TaxWithId[];
+  const { data, status } = useCollectionData('TAXES', [
+    orderBy('metadata.created', 'desc'),
+    limit(100),
+  ]);
 
   return (
     <Box>
@@ -219,6 +218,7 @@ export const SLTaxes: React.FC<SLTaxesProps> = () => {
         <BasicDataGrid
           rows={data || []}
           columns={taxColumns}
+          loading={status === 'loading'}
           density='compact'
           autoHeight
           initialState={{

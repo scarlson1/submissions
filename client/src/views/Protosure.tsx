@@ -2,7 +2,7 @@ import React, { useCallback, useRef } from 'react';
 import { FormikHelpers, FormikProps, FormikValues } from 'formik';
 import { Box, Container, Tooltip, Typography } from '@mui/material';
 import { LoaderFunctionArgs, useLoaderData, useNavigate } from 'react-router-dom';
-import { addDoc, doc, GeoPoint, getDoc, serverTimestamp } from 'firebase/firestore';
+import { addDoc, GeoPoint, getFirestore, serverTimestamp } from 'firebase/firestore';
 import axios from 'axios';
 
 import { FormikWizard, Step } from 'components/forms';
@@ -25,50 +25,32 @@ import {
   addressValidationActiveStates,
 } from 'common/quoteValidation';
 import { ROUTES, createPath } from 'router';
-import { statesCollection, submissionsCollection } from 'common/firestoreCollections';
 import { SUBMISSION_STATUS } from 'common/enums';
-import { usePropertyDetails } from 'hooks';
+import { useActiveStates, usePropertyDetails } from 'hooks';
 import { roundUpToNearest, sumArr } from 'modules/utils/helpers';
 import { useAuth } from 'modules/components/AuthContext';
-import { FirebaseError } from 'firebase/app';
 import { initializeQuote } from 'modules/api/initializeQuote';
+import { submissionsCollection } from 'common';
+import { getFunctions } from 'firebase/functions';
 
 // TODO: move active states loader to higher up component loader
 
 export interface ProtosureLoaderResult {
-  activeStates: { [key: string]: boolean };
   protosureData: any;
   initialFormData: Partial<FloodValues>;
   quoteId: string;
 }
 export const protosureLoader = async ({ params, request, context }: LoaderFunctionArgs) => {
   let res: ProtosureLoaderResult = {
-    activeStates: {},
     protosureData: {},
     initialFormData: {},
     quoteId: '',
   };
-  const { productId, quoteId } = params;
+  const { quoteId } = params;
   console.log('context: ', context);
 
   try {
-    const snap = await getDoc(doc(statesCollection, productId));
-
-    const data = snap.data();
-    console.log('active states: ', data);
-    if (snap.exists() && data) {
-      res.activeStates = { ...data };
-    }
-  } catch (err) {
-    let msg = `Error fetching active states document`;
-    if (err instanceof FirebaseError) {
-      msg = err.message;
-    }
-    throw new Response(msg);
-  }
-
-  try {
-    const { data } = await initializeQuote({ quoteId });
+    const { data } = await initializeQuote(getFunctions(), { quoteId });
 
     const url = new URL(request.url);
     const pathArr = url.pathname.split('/').filter((p) => p);
@@ -152,10 +134,11 @@ export const initialValues: FloodValues = {
 export const Protosure: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const activeStates = useActiveStates('flood');
   const formikRef = useRef<FormikProps<FormikValues>>(null);
 
   // TODO: need protosure data in useState so it can be updated when updateQuote is called
-  const { quoteId, activeStates, initialFormData } = useLoaderData() as ProtosureLoaderResult; // protosureData
+  const { quoteId, initialFormData } = useLoaderData() as ProtosureLoaderResult; // protosureData
   const { propertyDetails } = usePropertyDetails();
   // const { updateQuoteP } = useUpdateQuote()
 
@@ -211,7 +194,12 @@ export const Protosure: React.FC = () => {
           : null;
 
       try {
-        const docRef = await addDoc(submissionsCollection, {
+        // const submissionsCollection = collection(
+        //   getFirestore(),
+        //   COLLECTIONS.SUBMISSIONS
+        // ) as CollectionReference<Submission>;
+
+        const docRef = await addDoc(submissionsCollection(getFirestore()), {
           ...propertyDetails,
           ...values,
           coordinates: coords,
@@ -250,7 +238,7 @@ export const Protosure: React.FC = () => {
         >
           <Step
             label={`What's the Address?`}
-            validationSchema={addressValidationActiveStates(activeStates)}
+            validationSchema={addressValidationActiveStates(activeStates || {})}
             mutateOnSubmit={updateQuote}
             // mutateOnSubmit={handleFetchProperty}
             stepperNavLabel='Address'

@@ -1,32 +1,35 @@
 import React, { useMemo } from 'react';
-import { collection, getDocs, limit, orderBy, query } from 'firebase/firestore';
-import { useLoaderData, useNavigate } from 'react-router-dom';
-
-import { AgencyApplicationWithId, COLLECTIONS } from 'common';
+import { limit, orderBy } from 'firebase/firestore';
+import { useNavigate } from 'react-router-dom';
 import { Box, Typography } from '@mui/material';
-import { BasicDataGrid, renderGridEmail, renderGridPhone, FileLink } from 'components';
 import { GridCellParams, GridColDef } from '@mui/x-data-grid';
+
+import { BasicDataGrid, renderGridEmail, renderGridPhone, FileLink } from 'components';
 import { formatGridFirestoreTimestamp, getGridAddressComponent } from 'modules/utils/helpers';
 import { ADMIN_ROUTES, createPath } from 'router';
-import { db } from 'firebaseConfig';
+import { useCollectionData } from 'hooks';
 
-export const agencyAppsLoader = async () => {
-  try {
-    const ref = collection(db, COLLECTIONS.AGENCY_APPLICATIONS);
-    return getDocs(query(ref, orderBy('metadata.created', 'desc'), limit(100))).then((querySnap) =>
-      querySnap.docs.map((snap) => ({ ...snap.data(), id: snap.id }))
-    );
-    // return getDocs(
-    //   query(agencyAppCollection, orderBy('metadata.created', 'desc'), limit(100))
-    // ).then((querySnap) => querySnap.docs.map((snap) => ({ ...snap.data(), id: snap.id })));
-  } catch (err) {
-    throw new Response(`Error fetching submissions`);
-  }
-};
+// export const agencyAppsLoader = async () => {
+//   try {
+//     const ref = collection(getFirestore(), COLLECTIONS.AGENCY_APPLICATIONS);
+//     return getDocs(query(ref, orderBy('metadata.created', 'desc'), limit(100))).then((querySnap) =>
+//       querySnap.docs.map((snap) => ({ ...snap.data(), id: snap.id }))
+//     );
+//     // return getDocs(
+//     //   query(agencyAppCollection, orderBy('metadata.created', 'desc'), limit(100))
+//     // ).then((querySnap) => querySnap.docs.map((snap) => ({ ...snap.data(), id: snap.id })));
+//   } catch (err) {
+//     throw new Response(`Error fetching submissions`);
+//   }
+// };
 
 export const AgencyApps: React.FC = () => {
   const navigate = useNavigate();
-  const data = useLoaderData() as AgencyApplicationWithId[];
+  // const data = useLoaderData() as AgencyApplicationWithId[];
+  const { data, status } = useCollectionData('AGENCY_APPLICATIONS', [
+    orderBy('metadata.created', 'desc'),
+    limit(100),
+  ]);
 
   const handleCellClick = (params: GridCellParams<any>) => {
     const ignoreFieldsContaining = ['email', 'phone', 'EandO'];
@@ -221,6 +224,7 @@ export const AgencyApps: React.FC = () => {
         <BasicDataGrid
           rows={data || []}
           columns={agencyAppColumns}
+          loading={status === 'loading'}
           density='compact'
           autoHeight
           onCellDoubleClick={handleCellClick}

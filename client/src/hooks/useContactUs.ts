@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 
 import { ContactUsValues } from 'elements/ContactForm';
 import { sendContactEmail } from 'modules/api';
+import { getFunctions } from 'firebase/functions';
 
 export interface ContactUsProps {
   onSuccess?: () => void;
@@ -16,7 +17,7 @@ export const useContactUs = ({ onSuccess, onError }: ContactUsProps) => {
     async ({ email, subject, body }: ContactUsValues) => {
       try {
         setLoading(true);
-        const { data } = await sendContactEmail({ email, subject, body });
+        const { data } = await sendContactEmail(getFunctions(), { email, subject, body });
         console.log('res: ', data);
         if (onSuccess) onSuccess();
         setLoading(false);

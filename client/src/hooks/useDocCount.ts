@@ -1,15 +1,16 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback } from 'react';
 import {
   collection,
   query,
-  getFirestore,
   where,
   getCountFromServer,
-  QueryFieldFilterConstraint,
+  // QueryFieldFilterConstraint,
   WhereFilterOp,
+  QueryConstraint,
 } from 'firebase/firestore';
+import { useFirestore } from 'reactfire';
 
-import { useAuth } from 'modules/components/AuthContext';
+import { COLLECTIONS } from 'common';
 
 export function mapWhereConstraints(constraints: QueryArgs[]) {
   return constraints.map((c) => where(c[0], c[1], c[2]));
@@ -17,21 +18,35 @@ export function mapWhereConstraints(constraints: QueryArgs[]) {
 
 type QueryArgs = [string, WhereFilterOp, any];
 
-export function useDocCount(collectionName: string, constraints?: QueryArgs[]) {
-  const db = getFirestore();
-  const { user } = useAuth();
-  const qConstraints = useMemo<QueryFieldFilterConstraint[]>(
-    () => (constraints ? mapWhereConstraints(constraints) : [where('userId', '==', user?.uid)]),
-    [constraints, user]
-  );
+export function useDocCount(
+  collName: keyof typeof COLLECTIONS,
+  constraints: QueryConstraint[] = []
+) {
+  const db = useFirestore();
 
   return useCallback(() => {
-    // const qConstraints: QueryFieldFilterConstraint[] = constraints
-    //   ? getWhereConstraints(constraints)
-    //   : [where('userId', '==', user?.uid)];
+    const collectionRef = collection(db, COLLECTIONS[collName]);
 
-    const collectionRef = collection(db, collectionName);
-
-    return getCountFromServer(query(collectionRef, ...qConstraints));
-  }, [db, qConstraints, collectionName]);
+    return getCountFromServer(query(collectionRef, ...constraints));
+  }, [db, constraints, collName]);
 }
+
+// export function mapWhereConstraints(constraints: QueryArgs[]) {
+//   return constraints.map((c) => where(c[0], c[1], c[2]));
+// }
+
+// type QueryArgs = [string, WhereFilterOp, any];
+
+// export function useDocCount(collName: keyof typeof COLLECTIONS, constraints?: QueryArgs[]) {
+//   const db = useFirestore();
+//   const qConstraints = useMemo<QueryFieldFilterConstraint[]>(
+//     () => (constraints ? mapWhereConstraints(constraints) : []), // where('userId', '==', user?.uid)
+//     [constraints]
+//   );
+
+//   return useCallback(() => {
+//     const collectionRef = collection(db, COLLECTIONS[collName]);
+
+//     return getCountFromServer(query(collectionRef, ...qConstraints));
+//   }, [db, qConstraints, collName]);
+// }

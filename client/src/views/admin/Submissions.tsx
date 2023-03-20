@@ -10,13 +10,8 @@ import {
   GridValueFormatterParams,
   GridValueGetterParams,
 } from '@mui/x-data-grid';
-import { getDocs, query, orderBy, limit, doc, updateDoc, getDoc } from 'firebase/firestore';
-import {
-  createSearchParams,
-  LoaderFunctionArgs,
-  useLoaderData,
-  useNavigate,
-} from 'react-router-dom';
+import { orderBy, limit, doc, updateDoc, getDoc, getFirestore } from 'firebase/firestore';
+import { createSearchParams, useNavigate } from 'react-router-dom';
 import {
   CloseRounded,
   FiberNewRounded,
@@ -29,7 +24,7 @@ import {
 } from '@mui/icons-material';
 import { toast } from 'react-hot-toast';
 
-import { submissionsCollection, SUBMISSION_STATUS, Submission, WithId } from 'common';
+import { submissionsCollection, SUBMISSION_STATUS, Submission } from 'common';
 import { BasicDataGrid, GridCellCopy, renderGridEmail } from 'components';
 import {
   formatGridCurrency,
@@ -39,21 +34,24 @@ import {
 import { ADMIN_ROUTES, createPath } from 'router';
 import { withIdConverter } from 'common/firestoreConverters';
 import { useConfirmAndUpdate } from './Quotes';
+import { useCollectionData } from 'hooks';
 
-export const adminSubmissionsLoader = async ({ params }: LoaderFunctionArgs) => {
-  try {
-    // TODO: pass query params for order, limit, etc.
-    return getDocs(
-      query(submissionsCollection, orderBy('metadata.created', 'desc'), limit(100))
-    ).then((querySnap) => querySnap.docs.map((snap) => ({ ...snap.data(), id: snap.id })));
-  } catch (err) {
-    throw new Response(`Error fetching submissions`);
-  }
-};
+// export const adminSubmissionsLoader = async ({ params }: LoaderFunctionArgs) => {
+//   try {
+//     // TODO: pass query params for order, limit, etc.
+//     return getDocs(
+//       query(submissionsCollection(getFirestore()), orderBy('metadata.created', 'desc'), limit(100))
+//     ).then((querySnap) => querySnap.docs.map((snap) => ({ ...snap.data(), id: snap.id })));
+//   } catch (err) {
+//     throw new Response(`Error fetching submissions`);
+//   }
+// };
 
 const useUpdateSubmission = () => {
   const update = useCallback(async (id: string, updateValues: Partial<Submission>) => {
-    const ref = doc(submissionsCollection, id).withConverter(withIdConverter<Submission>());
+    const ref = doc(submissionsCollection(getFirestore()), id).withConverter(
+      withIdConverter<Submission>()
+    );
     // TODO: fix nested dot notation typescript complaint https://stackoverflow.com/a/47058976/10887890
     // https://github.com/googleapis/nodejs-firestore/issues/1448
     await updateDoc(ref, { status: updateValues.status });
@@ -72,7 +70,11 @@ export interface SubmissionsProps {}
 
 export const Submissions: React.FC<SubmissionsProps> = () => {
   const navigate = useNavigate();
-  const data = useLoaderData() as WithId<Submission>[];
+  // const data = useLoaderData() as WithId<Submission>[];
+  const { data, status } = useCollectionData('SUBMISSIONS', [
+    orderBy('metadata.created', 'desc'),
+    limit(100),
+  ]);
   const updateSubmission = useUpdateSubmission();
   const confirmAndUpdate = useConfirmAndUpdate(updateSubmission);
 
@@ -509,6 +511,7 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
         <BasicDataGrid
           rows={data || []}
           columns={submissionColumns}
+          loading={status === 'loading'}
           density='compact'
           autoHeight
           onCellDoubleClick={(params, event) => {

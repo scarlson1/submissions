@@ -3,14 +3,15 @@ import { Box, Button, Stack, Typography, useTheme } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 import { OpenInNewRounded, SaveRounded } from '@mui/icons-material';
 import { getDownloadURL } from 'firebase/storage';
-import { doc, onSnapshot, updateDoc } from 'firebase/firestore';
-import { useLoaderData } from 'react-router-dom';
-
-import { FilesDragDrop } from 'components/forms';
-import { useAsyncToast, useCreateStorageFiles } from 'hooks';
-import { policiesCollection, Policy, WithId, withIdConverter } from 'common';
+import { doc, getFirestore, updateDoc } from 'firebase/firestore';
+import { useParams } from 'react-router-dom';
+import { getFunctions } from 'firebase/functions';
 import ReactJson from '@microlink/react-json-view';
 import { toast } from 'react-hot-toast';
+
+import { FilesDragDrop } from 'components/forms';
+import { useAsyncToast, useCreateStorageFiles, useDocData } from 'hooks';
+import { policiesCollection, Policy, withIdConverter } from 'common';
 import { ePayInstance, sendPolicyDoc } from 'modules/api';
 import { usePromptForEmails } from 'hooks/usePromptForEmails';
 
@@ -30,7 +31,9 @@ export const useUpdatePolicy = (
     async (policyId: string, values: Partial<Policy>) => {
       try {
         setLoading(true);
-        const ref = doc(policiesCollection, policyId).withConverter(withIdConverter<Policy>());
+        const ref = doc(policiesCollection(getFirestore()), policyId).withConverter(
+          withIdConverter<Policy>()
+        );
 
         await updateDoc(ref, { ...values });
         setLoading(false);
@@ -58,7 +61,7 @@ export const useDeliverPolicyDoc = (
       // TODO: prompt for emails (select user/agent or add alternative)
       try {
         toast.loading('sending documents...');
-        const { data } = await sendPolicyDoc({
+        const { data } = await sendPolicyDoc(getFunctions(), {
           policyId,
           emails,
         });
@@ -108,40 +111,14 @@ export const useEPayTransaction = (id: string | null | undefined) => {
   return useMemo(() => ({ transaction, loading, error }), [transaction, loading, error]);
 };
 
-export const usePolicy = (id: string, initialData?: WithId<Policy>) => {
-  const [policy, setPolicy] = useState<WithId<Policy> | null>(initialData || null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const policyRef = doc(policiesCollection, id).withConverter(withIdConverter<Policy>());
-    const unsubscribe = onSnapshot(
-      policyRef,
-      (snap) => {
-        if (snap.exists()) setPolicy({ ...snap.data() });
-        setLoading(false);
-      },
-      (err) => {
-        setError(err.message);
-        setLoading(false);
-      }
-    );
-
-    return () => unsubscribe();
-  }, [id]);
-
-  return useMemo(
-    () => ({ policy, loading, error, isError: Boolean(error) }),
-    [policy, loading, error]
-  );
-};
-
 export const PolicyDelivery: React.FC = () => {
-  const data = useLoaderData() as WithId<Policy>;
-  const { policy } = usePolicy(data.id, data);
+  // const data = useLoaderData() as WithId<Policy>;
+  // const { policy } = usePolicy(data.id, data);
   const theme = useTheme();
   const promptForEmails = usePromptForEmails();
   const deliverDocs = useDeliverPolicyDoc();
+  const { policyId } = useParams();
+  const { data, status } = useDocData('POLICIES', policyId || '');
 
   const { updatePolicy } = useUpdatePolicy(console.log, console.error);
 
@@ -186,19 +163,19 @@ export const PolicyDelivery: React.FC = () => {
   );
 
   const showPolicyDoc = useCallback(() => {
-    if (!policy) return;
-    let url = policy.documents.length > 0 ? policy.documents[0].downloadUrl : null;
+    if (!data) return;
+    let url = data.documents.length > 0 ? data.documents[0].downloadUrl : null;
     if (!url) return toast.error('no policy doc assigned to policy yet.');
 
     window.open(url, '_blank');
-  }, [policy]);
+  }, [data]);
 
   const handleDeliverDocs = useCallback(async () => {
     try {
       const emails = await promptForEmails(
         {
-          insuredEmail: policy?.namedInsured?.email || null,
-          agentEmail: policy?.agent?.email || null,
+          insuredEmail: data?.namedInsured?.email || null,
+          agentEmail: data?.agent?.email || null,
         },
         {
           title: 'Select emails for policy delivery',
@@ -215,7 +192,11 @@ export const PolicyDelivery: React.FC = () => {
       console.log('ERR: ', err);
       toast.error('documents not delivered');
     }
-  }, [promptForEmails, deliverDocs, data, policy]);
+  }, [promptForEmails, deliverDocs, data]);
+
+  if (status === 'loading') {
+    return <span>loading...</span>;
+  }
 
   return (
     <Box>
@@ -256,7 +237,7 @@ export const PolicyDelivery: React.FC = () => {
           onClick={handleDeliverDocs}
           variant='contained'
           sx={{ ml: 2 }}
-          disabled={!policy || policy.documents.length < 1}
+          disabled={!data || data.documents.length < 1}
         >
           Deliver Docs
         </Button>
@@ -305,9 +286,9 @@ export const PolicyDelivery: React.FC = () => {
         <Typography color='text.secondary' sx={{ pb: 2 }}>
           Policy Data
         </Typography>
-        {policy && (
+        {data && (
           <ReactJson
-            src={policy}
+            src={data}
             theme={theme.palette.mode === 'dark' ? 'tomorrow' : 'rjv-default'}
             style={{ backgroundColor: 'transparent', fontSize: '0.8rem' }}
             iconStyle='circle'

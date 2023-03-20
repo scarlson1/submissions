@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { onSnapshot, orderBy, query } from 'firebase/firestore';
+import { getFirestore, onSnapshot, orderBy, query } from 'firebase/firestore';
+import { FirebaseError } from 'firebase/app';
 
 import { PaymentMethod, paymentMethodsCollection } from 'common';
 import { useAuth } from 'modules/components/AuthContext';
-import { FirebaseError } from 'firebase/app';
 
 export const useUserPaymentMethods = (onError?: (err: any, msg: string) => void) => {
   const { user } = useAuth();
@@ -12,7 +12,10 @@ export const useUserPaymentMethods = (onError?: (err: any, msg: string) => void)
   useEffect(() => {
     if (!(user && user.uid)) return setMethods([]);
 
-    const q = query(paymentMethodsCollection(user.uid), orderBy('metadata.created', 'desc'));
+    const q = query(
+      paymentMethodsCollection(getFirestore(), user.uid),
+      orderBy('metadata.created', 'desc')
+    );
 
     const unsubscribe = onSnapshot(
       q,

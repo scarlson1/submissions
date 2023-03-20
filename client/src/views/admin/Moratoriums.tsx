@@ -10,14 +10,13 @@ import {
 import {
   doc,
   getDoc,
-  getDocs,
+  getFirestore,
   limit,
   orderBy,
-  query,
   Timestamp,
   updateDoc,
 } from 'firebase/firestore';
-import { LoaderFunctionArgs, useLoaderData, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import {
   GridActionsCellItem,
   GridColDef,
@@ -40,11 +39,11 @@ import { FIPSDetails, Moratorium, moratoriumsCollection, MoratoriumWithId } from
 import { useConfirmation } from 'modules/components/ConfirmationService';
 import { DeckMap, defaultGeoJsonLayerProps } from 'elements';
 import countiesData from 'assets/counties_20m.json';
-import { useAsyncToast, useJsonDialog } from 'hooks';
+import { useAsyncToast, useCollectionData, useJsonDialog } from 'hooks';
 
 const useUpdateMoratorium = () => {
   const update = useCallback(async (id: string, updateValues: Partial<Moratorium>) => {
-    const ref = doc(moratoriumsCollection, id); // @ts-ignore
+    const ref = doc(moratoriumsCollection(getFirestore()), id); // @ts-ignore
     await updateDoc(ref, { ...updateValues, 'metadata.updated': Timestamp.now() });
 
     const snap = await getDoc(ref);
@@ -80,23 +79,27 @@ const getMutationMsg = (
   return changeItems;
 };
 
-export const moratoriumsLoader = async ({ params }: LoaderFunctionArgs) => {
-  try {
-    // TODO: pass query params for order, limit, etc. ??
-    return getDocs(
-      query(moratoriumsCollection, orderBy('metadata.created', 'desc'), limit(100))
-    ).then((querySnap) => querySnap.docs.map((snap) => ({ ...snap.data(), id: snap.id })));
-  } catch (err) {
-    throw new Response(`Error fetching submissions`);
-  }
-};
+// export const moratoriumsLoader = async ({ params }: LoaderFunctionArgs) => {
+//   try {
+//     // TODO: pass query params for order, limit, etc. ??
+//     return getDocs(
+//       query(moratoriumsCollection(getFirestore()), orderBy('metadata.created', 'desc'), limit(100))
+//     ).then((querySnap) => querySnap.docs.map((snap) => ({ ...snap.data(), id: snap.id })));
+//   } catch (err) {
+//     throw new Response(`Error fetching submissions`);
+//   }
+// };
 
 export const Moratoriums: React.FC = () => {
   const navigate = useNavigate();
   const modal = useConfirmation();
   const theme = useTheme();
   const dialog = useJsonDialog();
-  const data = useLoaderData() as MoratoriumWithId[];
+  // const data = useLoaderData() as MoratoriumWithId[];
+  const { data, status } = useCollectionData<Moratorium>('MORATORIUMS', [
+    orderBy('metadata.created', 'desc'),
+    limit(100),
+  ]);
   const updateMoratorium = useUpdateMoratorium();
   const toast = useAsyncToast();
   let fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
@@ -104,6 +107,7 @@ export const Moratoriums: React.FC = () => {
 
   const showDetails = useCallback(
     (id: GridRowId) => async () => {
+      // @ts-ignore
       const d = data.find((m) => m.id === id);
       if (!d) return;
 
@@ -114,6 +118,7 @@ export const Moratoriums: React.FC = () => {
 
   const showMap = useCallback(
     (id: GridRowId) => async () => {
+      // @ts-ignore
       const d = data.find((m) => m.id === id);
       if (!d) return;
 
@@ -405,6 +410,7 @@ export const Moratoriums: React.FC = () => {
         <BasicDataGrid
           rows={data || []}
           columns={moratoriumColumns}
+          loading={status === 'loading'}
           density='compact'
           autoHeight
           initialState={{

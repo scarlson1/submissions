@@ -28,11 +28,10 @@ export { useSendQuoteNotification } from './useSendQuoteNotification';
 export { useCreateStorageFiles } from './useCreateStorageFiles';
 export { useUpdateProfile } from './useUpdateProfile';
 export { useRequireAuth } from './useRequireAuth';
-// export {  } from './'
-// export {  } from './'
-// export {  } from './'
-// export {  } from './'
-// export {  } from './'
+export { useCollectionData } from './useCollectionData';
+export { useDocData } from './useDocData';
+export { useDocDataOnce } from './useDocDataOnce';
+export { useFetchDocsWithCursor } from './useFetchDocsWithCursor';
 // export {  } from './'
 // export {  } from './'
 

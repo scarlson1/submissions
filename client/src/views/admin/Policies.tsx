@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
-import { getDocs, limit, orderBy, query } from 'firebase/firestore';
+import { limit, orderBy } from 'firebase/firestore';
 import { Box, Chip, ChipProps, Tooltip, Typography } from '@mui/material';
 import {
   GridActionsCellItem,
@@ -15,17 +15,16 @@ import {
   DataObjectRounded,
   HourglassTopRounded,
 } from '@mui/icons-material';
-import { LoaderFunctionArgs, useLoaderData } from 'react-router-dom';
 
 import { BasicDataGrid, GridCellCopy, renderGridEmail, renderGridPhone } from 'components';
 import { renderChips } from 'components/RenderGridCellHelpers';
-import { WithId, Policy, policiesCollection, withIdConverter, POLICY_STATUS } from 'common';
+import { POLICY_STATUS } from 'common';
 import {
   formatGridCurrency,
   formatGridFirestoreTimestamp,
   formatGridFirestoreTimestampAsDate,
 } from 'modules/utils';
-import { useJsonDialog } from 'hooks';
+import { useCollectionData, useJsonDialog } from 'hooks';
 
 // loader - use search or params to optionally prefilter by product ?
 // TODO: can use useEffect + subscription to automatically update query when filter changes (like react query)
@@ -45,24 +44,29 @@ const getChipProps = (status: POLICY_STATUS): Partial<ChipProps> => {
   }
 };
 
-export const policiesLoader = async ({ params }: LoaderFunctionArgs) => {
-  try {
-    // TODO: pass query params for order, limit, etc.
-    console.log('FETCHING POLICIES');
-    return getDocs(
-      query(policiesCollection, orderBy('metadata.created', 'desc'), limit(100)).withConverter(
-        withIdConverter<Policy>()
-      )
-    ).then((querySnap) => querySnap.docs.map((snap) => ({ ...snap.data() })));
-  } catch (err) {
-    console.log('ERROR: ', err);
-    throw new Response(`Error fetching policies. See console for details`);
-  }
-};
+// export const policiesLoader = async ({ params }: LoaderFunctionArgs) => {
+//   try {
+//     // TODO: pass query params for order, limit, etc.
+//     console.log('FETCHING POLICIES');
+//     return getDocs(
+//       query(
+//         policiesCollection(getFirestore()),
+//         orderBy('metadata.created', 'desc'),
+//         limit(100)
+//       ).withConverter(withIdConverter<Policy>())
+//     ).then((querySnap) => querySnap.docs.map((snap) => ({ ...snap.data() })));
+//   } catch (err) {
+//     console.log('ERROR: ', err);
+//     throw new Response(`Error fetching policies. See console for details`);
+//   }
+// };
 
 export const Policies: React.FC = () => {
-  const data = useLoaderData() as WithId<Policy>[];
-  console.log('POLICIES: ', data);
+  // const data = useLoaderData() as WithId<Policy>[];
+  const { data, status } = useCollectionData('POLICIES', [
+    orderBy('metadata.created', 'desc'),
+    limit(100),
+  ]);
   const dialog = useJsonDialog();
 
   const showJson = useCallback(
@@ -508,6 +512,7 @@ export const Policies: React.FC = () => {
         <BasicDataGrid
           rows={data || []}
           columns={policyColumns}
+          loading={status === 'loading'}
           density='compact'
           autoHeight
           // onRowDoubleClick={(params) => {

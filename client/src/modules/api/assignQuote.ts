@@ -1,6 +1,6 @@
-import { httpsCallable } from 'firebase/functions';
+import { Functions, httpsCallable } from 'firebase/functions';
 
-import { functions } from 'firebaseConfig';
+// import { functions } from 'firebaseConfig';
 
 export interface AssignQuoteRequest {
   quoteId: string;
@@ -10,7 +10,10 @@ export interface AssignQuoteResponse {
   message: string;
 }
 
-export const assignQuote = httpsCallable<AssignQuoteRequest, AssignQuoteResponse>(
-  functions,
-  'assignQuote'
-);
+export const assignQuote = (functions: Functions, args: AssignQuoteRequest) =>
+  httpsCallable<AssignQuoteRequest, AssignQuoteResponse>(functions, 'assignQuote')(args);
+
+// export const assignQuote = httpsCallable<AssignQuoteRequest, AssignQuoteResponse>(
+//   getFunctions(), // functions,
+//   'assignQuote'
+// );

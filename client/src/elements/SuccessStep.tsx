@@ -15,16 +15,23 @@ import {
 } from '@mui/material';
 import { ExpandMore } from '@mui/icons-material';
 import Lottie from 'lottie-react';
-import { createSearchParams, useLoaderData, useNavigate, useParams } from 'react-router-dom';
+import { createSearchParams, useNavigate, useParams } from 'react-router-dom';
 
 import * as CheckmarkLottie from 'assets/checkmark.json';
 import { ROUTES, createPath, AUTH_ROUTES } from 'router';
 import { Submission } from 'common/types';
 import { useAuth } from 'modules/components/AuthContext';
 import { fallbackImages } from 'views/Policies';
-import { Charge, SubmissionQuoteData, transactionsCollection, WithId } from 'common';
-import { doc, onSnapshot } from 'firebase/firestore';
+import {
+  Charge,
+  submissionsCollection,
+  submissionsQuotesCollection,
+  transactionsCollection,
+  withIdConverter,
+} from 'common';
+import { doc, getFirestore, onSnapshot } from 'firebase/firestore';
 import { dollarFormat2 } from 'modules/utils/helpers';
+import { useFirestore, useFirestoreDocData } from 'reactfire';
 
 interface FAQ {
   title: React.ReactNode;
@@ -123,7 +130,18 @@ const SubmissionFAQs = () => {
 export const SuccessStep: React.FC = () => {
   const navigate = useNavigate();
   const { user, isAnonymous } = useAuth();
-  const data = useLoaderData() as Submission;
+  const { submissionId } = useParams();
+  if (!submissionId) throw new Error('missing submissionId');
+
+  const firestore = useFirestore();
+  const submissionRef = doc(submissionsCollection(firestore), submissionId).withConverter(
+    withIdConverter<Submission>()
+  );
+  const { status, data } = useFirestoreDocData(submissionRef);
+
+  if (status === 'loading') {
+    return <span>loading...</span>;
+  }
 
   return (
     <Container maxWidth='sm' sx={{ py: { xs: 3, sm: 4, md: 6, lg: 8 } }}>
@@ -232,7 +250,7 @@ export const useFetchTransaction = (id: string) => {
   useEffect(() => {
     if (!id) return setLoading(false);
 
-    let ref = doc(transactionsCollection, id);
+    let ref = doc(transactionsCollection(getFirestore()), id);
 
     onSnapshot(
       ref,
@@ -256,14 +274,23 @@ export const useFetchTransaction = (id: string) => {
 
 // TODO: redo component (not using card)
 
+// TODO: use rxjs to fetch transaction from quote response
+
 export const BindSuccess: React.FC = () => {
   const navigate = useNavigate();
   const { transactionId } = useParams();
-  const data = useLoaderData() as WithId<SubmissionQuoteData>;
+  const { quoteId } = useParams();
+  if (!quoteId) throw new Error('missing quoteId');
+
+  const firestore = useFirestore();
+  const quoteRef = doc(submissionsQuotesCollection(firestore), quoteId);
+  const { status, data } = useFirestoreDocData(quoteRef);
+
   const { transaction } = useFetchTransaction(transactionId || '');
 
-  // console.log('transaction: ', transaction);
-  // console.log('submission data: ', data);
+  if (status === 'loading') {
+    return <span>loading...</span>;
+  }
 
   return (
     <Container maxWidth='xs'>
@@ -284,7 +311,7 @@ export const BindSuccess: React.FC = () => {
                 Quote&nbsp;ID
               </Typography>
               <Typography variant='body2' fontSize='0.775rem'>
-                {data?.id || '--'}
+                {quoteId}
               </Typography>
             </Box>
             <Box>
