@@ -2,10 +2,8 @@ import React, { useCallback, useMemo } from 'react';
 import { alpha, Box, Container, IconButton, Tooltip, Typography } from '@mui/material';
 import { ArrowBackIosNewRounded, EditRounded } from '@mui/icons-material';
 import Grid from '@mui/material/Unstable_Grid2';
-import { doc, getDoc } from 'firebase/firestore';
-import { LoaderFunctionArgs, useLoaderData, useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
-import { policiesCollection, Policy as IPolicy, WithId } from 'common';
 import { FlexCard, FlexCardContent, InputDialog } from 'components';
 import { dollarFormat } from 'modules/utils/helpers';
 import { useConfirmation } from 'modules/components/ConfirmationService';
@@ -16,29 +14,30 @@ import {
   RelaxingAtHomeSVG,
   ApartmentRentSVG,
 } from 'assets/images';
+import { useDocData } from 'hooks';
 
-export const policyLoader = async ({ params }: LoaderFunctionArgs) => {
-  try {
-    const policyRef = doc(policiesCollection, params.policyId);
-    console.log(`fetching policy: ${params.policyId}`);
-    const snap = await getDoc(policyRef);
-    let data = snap.data();
+// export const policyLoader = async ({ params }: LoaderFunctionArgs) => {
+//   try {
+//     const policyRef = doc(policiesCollection(getFirestore()), params.policyId);
+//     console.log(`fetching policy: ${params.policyId}`);
+//     const snap = await getDoc(policyRef);
+//     let data = snap.data();
 
-    if (!snap.exists() || !data) {
-      throw new Response('Not Found', { status: 404 });
-    }
+//     if (!snap.exists() || !data) {
+//       throw new Response('Not Found', { status: 404 });
+//     }
 
-    return { ...data, id: snap.id };
-  } catch (err) {
-    throw new Response(`Error fetching submission (ID: ${params.submissionId})`);
-  }
-};
+//     return { ...data, id: snap.id };
+//   } catch (err) {
+//     throw new Response(`Error fetching submission (ID: ${params.submissionId})`);
+//   }
+// };
 
 export const Policy: React.FC = () => {
   const navigate = useNavigate();
-  const data = useLoaderData() as WithId<IPolicy>;
   const confirm = useConfirmation();
-  console.log('data: ', data);
+  const { policyId } = useParams();
+  const { data, status } = useDocData('POLICIES', policyId || '');
 
   const limits = useMemo(
     () => [
@@ -116,6 +115,10 @@ export const Policy: React.FC = () => {
     },
     [confirm]
   );
+
+  if (status === 'loading') {
+    return <span>loading...</span>;
+  }
 
   return (
     <Box>

@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { addDoc, FirestoreError, Timestamp } from 'firebase/firestore';
+import { addDoc, FirestoreError, getFirestore, Timestamp } from 'firebase/firestore';
 import { FirebaseError } from 'firebase/app';
 
 import { LicenseOwner, licensesCollection, LicenseType } from 'common';
@@ -15,7 +15,7 @@ export const useCreateSLLicense = ({ onSuccess, onError }: UseCreateLicenseProps
   const createLicense = useCallback(
     async (values: NewSLValues) => {
       try {
-        const docRef = await addDoc(licensesCollection, {
+        const docRef = await addDoc(licensesCollection(getFirestore()), {
           ...values,
           ownerType: values.ownerType as LicenseOwner,
           licenseType: values.licenseType as LicenseType,

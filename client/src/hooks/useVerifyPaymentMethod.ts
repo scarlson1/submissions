@@ -3,6 +3,7 @@ import { useCallback } from 'react';
 import { AddPaymentMethodValues } from 'elements/AddPaymentDialog';
 import { ePayInstance, verifyEPayToken, VerifyEPayTokenResponse } from 'modules/api';
 import { useAsyncToast } from './useAsyncToast';
+import { getFunctions } from 'firebase/functions';
 
 export const useVerifyPaymentMethod = (
   onSuccess?: (data: VerifyEPayTokenResponse) => void,
@@ -25,7 +26,7 @@ export const useVerifyPaymentMethod = (
   }, []);
 
   const verifyToken = useCallback(async (tokenId: string, accountHolder: string) => {
-    const { data } = await verifyEPayToken({
+    const { data } = await verifyEPayToken(getFunctions(), {
       tokenId,
       accountHolder,
     });

@@ -1,7 +1,7 @@
-import { httpsCallable } from 'firebase/functions';
+import { Functions, httpsCallable } from 'firebase/functions';
 
 import { Address, Coordinates, Location, RatingPropertyData } from 'common/types';
-import { functions } from 'firebaseConfig';
+// import { functions } from 'firebaseConfig';
 
 export type FetchPropertyDataRequest = Address | Coordinates | Location;
 export interface FetchPropertyDataResponse extends RatingPropertyData {
@@ -14,7 +14,13 @@ export interface FetchPropertyDataResponse extends RatingPropertyData {
   spatialKeyDocId?: string | null;
 }
 
-export const fetchPropertyDetails = httpsCallable<
-  FetchPropertyDataRequest,
-  FetchPropertyDataResponse
->(functions, 'getPropertyDetails');
+export const fetchPropertyDetails = (functions: Functions) =>
+  httpsCallable<FetchPropertyDataRequest, FetchPropertyDataResponse>(
+    functions,
+    'getPropertyDetails'
+  );
+
+// export const fetchPropertyDetails = httpsCallable<FetchPropertyDataRequest, FetchPropertyDataResponse>(
+//     getFunctions(),
+//     'getPropertyDetails'
+//   );

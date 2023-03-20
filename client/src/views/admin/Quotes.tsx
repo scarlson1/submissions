@@ -10,13 +10,8 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material';
-import {
-  LoaderFunctionArgs,
-  useLoaderData,
-  useNavigate,
-  Link as RouterLink,
-} from 'react-router-dom';
-import { doc, getDoc, getDocs, limit, orderBy, query, updateDoc } from 'firebase/firestore';
+import { useNavigate, Link as RouterLink } from 'react-router-dom';
+import { doc, getDoc, getFirestore, limit, orderBy, updateDoc } from 'firebase/firestore';
 import {
   GridActionsCellItem,
   GridColDef,
@@ -45,7 +40,7 @@ import {
   formatGridFirestoreTimestamp,
   formatGridPercent,
 } from 'modules/utils/helpers';
-import { useAsyncToast, useJsonDialog, useSendQuoteNotification } from 'hooks';
+import { useAsyncToast, useCollectionData, useJsonDialog, useSendQuoteNotification } from 'hooks';
 import { useConfirmation } from 'modules/components';
 import { submissionQuoteConverter } from 'common/firestoreConverters';
 
@@ -64,20 +59,26 @@ const getChipProps = (status: QUOTE_STATUS): Partial<ChipProps> => {
   }
 };
 
-export const quotesLoader = async ({ params }: LoaderFunctionArgs) => {
-  try {
-    // TODO: pass query params for order, limit, etc.
-    return getDocs(
-      query(submissionsQuotesCollection, orderBy('metadata.created', 'desc'), limit(100))
-    ).then((querySnap) => querySnap.docs.map((snap) => ({ ...snap.data(), id: snap.id })));
-  } catch (err) {
-    throw new Response(`Error fetching submissions`);
-  }
-};
+// export const quotesLoader = async ({ params }: LoaderFunctionArgs) => {
+//   try {
+//     // TODO: pass query params for order, limit, etc.
+//     return getDocs(
+//       query(
+//         submissionsQuotesCollection(getFirestore()),
+//         orderBy('metadata.created', 'desc'),
+//         limit(100)
+//       )
+//     ).then((querySnap) => querySnap.docs.map((snap) => ({ ...snap.data(), id: snap.id })));
+//   } catch (err) {
+//     throw new Response(`Error fetching submissions`);
+//   }
+// };
 
 const useUpdateQuote = () => {
   const update = useCallback(async (id: string, updateValues: Partial<SubmissionQuoteData>) => {
-    const ref = doc(submissionsQuotesCollection, id).withConverter(submissionQuoteConverter);
+    const ref = doc(submissionsQuotesCollection(getFirestore()), id).withConverter(
+      submissionQuoteConverter
+    );
     await updateDoc(ref, { status: updateValues.status });
 
     const snap = await getDoc(ref);
@@ -144,7 +145,11 @@ export const useConfirmAndUpdate = (updateFn: (id: string, vals: Partial<any>) =
 
 export const Quotes: React.FC = () => {
   const navigate = useNavigate();
-  const data = useLoaderData() as WithId<SubmissionQuoteData>[];
+  // const data = useLoaderData() as WithId<SubmissionQuoteData>[];
+  const { data, status } = useCollectionData('SUBMISSIONS_QUOTES', [
+    orderBy('metadata.created', 'desc'),
+    limit(100),
+  ]); // TODO: add constraints for filtering / sorting
   const dialog = useJsonDialog();
   const sendNotifications = useSendQuoteNotification();
   const updateQuote = useUpdateQuote();
@@ -612,6 +617,7 @@ export const Quotes: React.FC = () => {
         <BasicDataGrid
           rows={data || []}
           columns={quoteColumns}
+          loading={status === 'loading'}
           density='compact'
           autoHeight
           processRowUpdate={confirmAndUpdate}

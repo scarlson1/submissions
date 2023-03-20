@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { addDoc, FirestoreError, Timestamp } from 'firebase/firestore';
+import { addDoc, FirestoreError, getFirestore, Timestamp } from 'firebase/firestore';
 import { FirebaseError } from 'firebase/app';
 
 import { moratoriumsCollection } from 'common';
@@ -22,7 +22,7 @@ export const useCreateMoratorium = ({ onSuccess, onError }: UseCreateMoratoriumP
       });
 
       try {
-        const docRef = await addDoc(moratoriumsCollection, {
+        const docRef = await addDoc(moratoriumsCollection(getFirestore()), {
           locations,
           locationDetails: values.locationDetails,
           effectiveDate: Timestamp.fromDate(values.effectiveDate),

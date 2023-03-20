@@ -3,7 +3,7 @@ import { formatDistance, format, add, Duration, isPast, isFuture } from 'date-fn
 import numeral from 'numeral';
 import { Location } from 'react-router-dom';
 import { GridValueFormatterParams, GridValueGetterParams } from '@mui/x-data-grid';
-import { FirestoreError, Timestamp } from 'firebase/firestore';
+import { FirestoreError, Timestamp, WhereFilterOp } from 'firebase/firestore';
 import { FirebaseError } from '@firebase/util';
 
 import { AddressComponent, AddressComponentType } from 'components/forms';
@@ -394,5 +394,72 @@ export const isJSON = (obj: any) => {
     return true;
   } catch (e) {
     return false;
+  }
+};
+
+export function isWhereFilterOp(value: string): value is WhereFilterOp {
+  return [
+    '<',
+    '<=',
+    '==',
+    '!=',
+    '>=',
+    '>',
+    'array-contains',
+    'in',
+    'array-contains-any',
+    'not-in',
+  ].includes(value as WhereFilterOp);
+}
+
+export const isRangeComparison = (op: string) => {
+  return ['<', '<=', '>', '>='].includes(op);
+};
+
+export const muiOperatorToFirestoreOperator = (op: string): WhereFilterOp | null => {
+  switch (op) {
+    // TYPE = NUMBER
+    case '=':
+      return '==';
+    case '!=':
+      return '!=';
+    case '>':
+      return '>';
+    case '<':
+      return '<';
+    case '>=':
+      return '>=';
+    case '<=':
+      return '<=';
+    // case 'isEmpty':
+    //   return ''; // TODO does this work? where('field', '==', null) ??
+    // case 'isNotEmpty':
+    //   return '!='; // TODO: where("capital", "!=", false)
+    case 'isAnyOf':
+      return 'in';
+    // TYPE = DATE
+    case 'is':
+      return '==';
+    case 'isNot':
+      return '!=';
+    case 'onOrAfter':
+      return '>=';
+    case 'onOrBefore':
+      return '<=';
+    case 'after':
+      return '>';
+    case 'before':
+      return '<';
+    // TYPE = STRING (default)
+    // case 'contains':
+    //   return ''; // no equivalent in Firestore
+    case 'equals':
+      return '==';
+    // case '':
+    //   return '';
+    // case '':
+    //   return '';
+    default:
+      return null;
   }
 };

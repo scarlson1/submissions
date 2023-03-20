@@ -10,7 +10,7 @@ import {
   User,
   getAuth,
 } from 'firebase/auth';
-import { setDoc, doc } from 'firebase/firestore';
+import { setDoc, doc, getFirestore } from 'firebase/firestore';
 import { useAuth } from 'modules/components/AuthContext';
 // import { auth } from 'firebaseConfig';
 import { toast } from 'react-hot-toast';
@@ -49,7 +49,7 @@ export const useCreateAccount = () => {
       let displayName = `${firstName.trim()} ${lastName.trim()}`;
       await updateProfile(user, { displayName });
 
-      let userRef = doc(usersCollection, user.uid);
+      let userRef = doc(usersCollection(getFirestore()), user.uid);
       await setDoc(
         userRef,
         { displayName, firstName: firstName.trim(), lastName: lastName.trim() },

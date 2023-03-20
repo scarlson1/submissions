@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { addDoc, GeoPoint, Timestamp } from 'firebase/firestore';
+import { addDoc, GeoPoint, getFirestore, Timestamp } from 'firebase/firestore';
 
 import { AgencyAppValues } from 'views/AgencyNew';
 import { useUploadStorageFiles } from 'hooks';
@@ -24,7 +24,7 @@ export const useCreateAgency = ({ onSuccess, onError }: UseCreateAgencyProps) =>
         const uploadResult = await uploadFiles(values.EandO, {}, `EandO_${values.orgName}_`);
         console.log('uploadResult: ', uploadResult);
 
-        const docRef = await addDoc(agencyAppCollection, {
+        const docRef = await addDoc(agencyAppCollection(getFirestore()), {
           orgName: values.orgName,
           address: {
             addressLine1: values.addressLine1,

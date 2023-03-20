@@ -25,6 +25,9 @@ import { add } from 'date-fns';
 import { toast } from 'react-hot-toast';
 import axios from 'axios';
 import { round } from 'lodash';
+import { getFunctions } from 'firebase/functions';
+import { doc, getFirestore, updateDoc } from 'firebase/firestore';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import {
   FormikDatePicker,
@@ -41,19 +44,16 @@ import {
 import { AddressStep, LimitsStep } from 'elements';
 import { emailVal, limitAVal, limitBVal, limitCVal, limitDVal } from 'common/quoteValidation';
 import { dollarFormat, sumArr } from 'modules/utils/helpers';
-import { useActiveStates, useCreateQuote, useJsonDialog } from 'hooks';
+import { useActiveStates, useCreateQuote, useDocDataOnce, useJsonDialog } from 'hooks';
 import { IconButtonMenu } from 'components';
 import { ADMIN_ROUTES, createPath } from 'router';
-import { LoaderFunctionArgs, useLoaderData, useNavigate } from 'react-router-dom';
 import {
   commissionOptions,
   RatingPropertyData,
   Submission,
   submissionsCollection,
   SUBMISSION_STATUS,
-  WithId,
 } from 'common';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { calcQuote } from 'modules/api';
 import { ShowRatingDialog } from './SubmissionView';
 
@@ -61,25 +61,25 @@ import { ShowRatingDialog } from './SubmissionView';
 
 // TODO: standardize fee type names in enum
 
-export const newQuoteSubmissionLoader = async ({ request }: LoaderFunctionArgs) => {
-  try {
-    const url = new URL(request.url);
-    const subId = url.searchParams.get('submissionId');
-    if (!subId) return null;
-    const submissionRef = doc(submissionsCollection, subId);
+// export const newQuoteSubmissionLoader = async ({ request }: LoaderFunctionArgs) => {
+//   try {
+//     const url = new URL(request.url);
+//     const subId = url.searchParams.get('submissionId');
+//     if (!subId) return null;
+//     const submissionRef = doc(submissionsCollection(getFirestore()), subId);
 
-    const snap = await getDoc(submissionRef);
-    let data = snap.data();
+//     const snap = await getDoc(submissionRef);
+//     let data = snap.data();
 
-    if (!snap.exists() || !data) {
-      throw new Response('Not Found', { status: 404 });
-    }
+//     if (!snap.exists() || !data) {
+//       throw new Response('Not Found', { status: 404 });
+//     }
 
-    return { ...data, id: snap.id };
-  } catch (err) {
-    throw new Response(`Error fetching submission`);
-  }
-};
+//     return { ...data, id: snap.id };
+//   } catch (err) {
+//     throw new Response(`Error fetching submission`);
+//   }
+// };
 
 export const getSubproducerAdj = (premium: number, defaultCom: number, newCom: number) => {
   let comDiff = newCom - defaultCom;
@@ -195,7 +195,10 @@ export interface NewQuoteValues {
 
 export const QuoteNew: React.FC = () => {
   const navigate = useNavigate();
-  const submissionData = useLoaderData() as WithId<Submission>;
+  const [searchParams] = useSearchParams();
+  const submissionId = searchParams.get('submissionId');
+  // const submissionData = useLoaderData() as WithId<Submission>;
+  const { data: submissionData } = useDocDataOnce<Submission>('SUBMISSIONS', submissionId || '');
   const formikRef = useRef<FormikProps<NewQuoteValues>>(null);
   const showDialog = useJsonDialog();
   const activeStates = useActiveStates('flood');
@@ -204,9 +207,11 @@ export const QuoteNew: React.FC = () => {
 
   const createQuote = useCreateQuote(
     async () => {
-      await updateDoc(doc(submissionsCollection, submissionData.id), {
-        status: SUBMISSION_STATUS.QUOTED,
-      });
+      if (submissionId) {
+        await updateDoc(doc(submissionsCollection(getFirestore()), submissionId), {
+          status: SUBMISSION_STATUS.QUOTED,
+        });
+      }
       navigate(createPath({ path: ADMIN_ROUTES.QUOTES }), { replace: true });
     },
     (msg: string) => toast.success(msg, { duration: 3000 }),
@@ -219,11 +224,11 @@ export const QuoteNew: React.FC = () => {
 
   const handleSubmit = useCallback(
     async (values: NewQuoteValues, { setSubmitting }: FormikHelpers<NewQuoteValues>) => {
-      await createQuote(values, submissionData?.id || null, submissionData);
+      await createQuote(values, submissionId, submissionData);
 
       setSubmitting(false);
     },
-    [createQuote, submissionData]
+    [createQuote, submissionId, submissionData]
   );
 
   const showSubmissionDialog = useCallback(() => {
@@ -330,13 +335,13 @@ export const QuoteNew: React.FC = () => {
         deductible: values.deductible,
         state: values.state,
         floodZone: values.ratingPropertyData.floodZone ?? 'D',
-        submissionId: submissionData?.id,
+        submissionId,
         basement: values.ratingPropertyData.basement ?? undefined,
         commissionPct: values?.subproducerCommission,
       };
       console.log('REQUEST BODY: ', reqBody);
 
-      const { data } = await calcQuote(reqBody);
+      const { data } = await calcQuote(getFunctions(), reqBody);
 
       console.log('RES: ', data);
       if (!data.annualPremium) throw new Error('Missing premium in response');
@@ -351,7 +356,7 @@ export const QuoteNew: React.FC = () => {
       console.log('ERROR: ', err);
     }
     setCalcQuoteLoading(false);
-  }, [submissionData]);
+  }, [submissionId, submissionData]);
 
   // TODO: paginated or searchable model
   // const promptForSubmission = useCallback(async () => {
@@ -380,6 +385,9 @@ export const QuoteNew: React.FC = () => {
 
   //TODO: CHANGE SUBMISSION LIMITS TO BE TYPE NUMBER
 
+  console.log('SUBMISSION DATA: ', submissionData);
+  if (submissionId && !submissionData) return <div>Loading...</div>;
+
   return (
     <Box>
       <Formik
@@ -407,8 +415,8 @@ export const QuoteNew: React.FC = () => {
           policyExpirationDate: add(new Date(), { days: 15, years: 1 }),
           fees: [], // [{ feeName: '', feeValue: '' }],
           taxes: [], // [{ displayName: '', rate: '', value: '' }],
-          annualPremium: submissionData.annualPremium ?? null,
-          subproducerCommission: submissionData.subproducerCommission ?? 0.15,
+          annualPremium: submissionData?.annualPremium ?? null,
+          subproducerCommission: submissionData?.subproducerCommission ?? 0.15,
           quoteTotal: null, // calculated
           insuredFirstName: submissionData?.firstName ?? '',
           insuredLastName: submissionData?.lastName ?? '',
@@ -435,6 +443,7 @@ export const QuoteNew: React.FC = () => {
         validationSchema={quoteNewValidation}
         onSubmit={handleSubmit}
         innerRef={formikRef}
+        enableReinitialize
       >
         {({
           dirty,
@@ -662,10 +671,12 @@ export const QuoteNew: React.FC = () => {
                     >
                       Fetch taxes
                     </LoadingButton>
-                    <ShowRatingDialog
-                      id={submissionData.id}
-                      btnProps={{ size: 'small', variant: 'outlined' }}
-                    />
+                    {submissionId && (
+                      <ShowRatingDialog
+                        id={submissionId}
+                        btnProps={{ size: 'small', variant: 'outlined' }}
+                      />
+                    )}
                   </Stack>
                 </Box>
               </Grid>

@@ -2,7 +2,7 @@ import React, { useCallback, useRef } from 'react';
 import { Box, Button, Chip, Divider, InputAdornment, Typography } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
 import { Formik, FormikHelpers, FormikProps } from 'formik';
-import { addDoc, Timestamp } from 'firebase/firestore';
+import { addDoc, getFirestore, Timestamp } from 'firebase/firestore';
 import { startOfYear, lastDayOfYear } from 'date-fns';
 import * as yup from 'yup';
 
@@ -132,7 +132,7 @@ export const SLTaxNew: React.FC<SLTaxNewProps> = () => {
           : null;
         const { fixedRate: _, ...rest } = values;
 
-        const docRef = await addDoc(taxesCollection, {
+        const docRef = await addDoc(taxesCollection(getFirestore()), {
           ...rest,
           rate,
           rateType: isFixedRate ? 'fixed' : 'percent',

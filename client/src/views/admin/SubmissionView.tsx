@@ -1,32 +1,22 @@
 import React, { useCallback } from 'react';
-import { doc, getDoc, getDocs, query, where } from 'firebase/firestore';
+import { doc, getDoc, getDocs, getFirestore, query, where } from 'firebase/firestore';
 import { Box, Button, ButtonProps, IconButton, Stack, Typography } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
 import { ArrowBackIosRounded } from '@mui/icons-material';
-import {
-  createSearchParams,
-  LoaderFunctionArgs,
-  useLoaderData,
-  useNavigate,
-} from 'react-router-dom';
+import { createSearchParams, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 
-import {
-  ratingCollection,
-  spatialKeyCollection,
-  submissionsCollection,
-} from 'common/firestoreCollections';
-import { Submission, WithId } from 'common/types';
+import { ratingCollection, spatialKeyCollection } from 'common/firestoreCollections';
+import { Submission } from 'common/types';
 import { dollarFormat, formatFirestoreTimestamp, numberFormat } from 'modules/utils/helpers';
 import { ADMIN_ROUTES, createPath } from 'router';
-import { useJsonDialog } from 'hooks';
-import { withIdConverter } from 'common';
+import { useDocData, useJsonDialog } from 'hooks';
 
 export const ShowRatingDialog = ({ id, btnProps }: { id?: string; btnProps?: ButtonProps }) => {
   const dialog = useJsonDialog();
 
   const handleShowRatingDialog = useCallback(async () => {
-    const ratingQuery = query(ratingCollection, where('submissionId', '==', id));
+    const ratingQuery = query(ratingCollection(getFirestore()), where('submissionId', '==', id));
     const ratingSnap = await getDocs(ratingQuery);
     if (ratingSnap.empty) return toast(`No rating documents found`);
 
@@ -79,34 +69,37 @@ export const RowItem: React.FC<{ title: string; value: React.ReactNode }> = ({ t
   </Stack>
 );
 
-export const submissionLoader = async ({ params }: LoaderFunctionArgs) => {
-  try {
-    const submissionRef = doc(submissionsCollection, params.submissionId).withConverter(
-      withIdConverter<Submission>()
-    );
+// export const submissionLoader = async ({ params }: LoaderFunctionArgs) => {
+//   try {
+//     const submissionRef = doc(
+//       submissionsCollection(getFirestore()),
+//       params.submissionId
+//     ).withConverter(withIdConverter<Submission>());
 
-    const snap = await getDoc(submissionRef);
-    let data = snap.data();
+//     const snap = await getDoc(submissionRef);
+//     let data = snap.data();
 
-    if (!snap.exists() || !data) {
-      throw new Response('Not Found', { status: 404 });
-    }
+//     if (!snap.exists() || !data) {
+//       throw new Response('Not Found', { status: 404 });
+//     }
 
-    return data;
-  } catch (err) {
-    throw new Response(`Error fetching submission (ID: ${params.submissionId})`);
-  }
-};
+//     return data;
+//   } catch (err) {
+//     throw new Response(`Error fetching submission (ID: ${params.submissionId})`);
+//   }
+// };
 
 export const SubmissionView: React.FC = () => {
-  const data = useLoaderData() as WithId<Submission>;
+  // const data = useLoaderData() as WithId<Submission>;
+  const { submissionId } = useParams();
+  const { data, status } = useDocData<Submission>('SUBMISSIONS', submissionId!);
   const navigate = useNavigate();
   const dialog = useJsonDialog();
 
   const handleShowSKDialog = useCallback(
     async (docId: string) => {
       console.log('fetching dk data for: ', docId);
-      const skSnap = await getDoc(doc(spatialKeyCollection, docId));
+      const skSnap = await getDoc(doc(spatialKeyCollection(getFirestore()), docId));
       const skData = skSnap.data();
       if (!skSnap.exists() || !skData) {
         return toast.error(`Failed to fetch SK data for ID ${docId}`);
@@ -120,10 +113,14 @@ export const SubmissionView: React.FC = () => {
     navigate({
       pathname: createPath({ path: ADMIN_ROUTES.QUOTE_NEW, params: { productId: 'flood' } }),
       search: createSearchParams({
-        submissionId: `${data.id}`,
+        submissionId: `${submissionId}`,
       }).toString(),
     });
-  }, [navigate, data]);
+  }, [navigate, submissionId]);
+
+  if (status === 'loading') {
+    return <div>Loading...</div>;
+  }
 
   return (
     <Grid container spacing={8}>
@@ -149,7 +146,7 @@ export const SubmissionView: React.FC = () => {
           data.metadata.created,
           'date'
         )}`}</Typography>
-        <Typography variant='body2'>{`ID: ${data.id}`}</Typography>
+        <Typography variant='body2'>{`ID: ${submissionId}`}</Typography>
       </Grid>
       <Grid xs={12} sm={6} md={4} lg={3}>
         <Box sx={{ pb: 3 }}>
@@ -230,7 +227,7 @@ export const SubmissionView: React.FC = () => {
           >
             Show Spatial Key Data
           </Button>
-          <ShowRatingDialog id={data.id} btnProps={{ size: 'small', sx: { m: 1 } }} />
+          <ShowRatingDialog id={submissionId} btnProps={{ size: 'small', sx: { m: 1 } }} />
         </Grid>
       )}
 

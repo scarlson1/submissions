@@ -4,6 +4,7 @@ import { Navigate } from 'react-router-dom';
 
 import { getParamByName } from 'modules/utils/helpers';
 import { assignQuote } from 'modules/api';
+import { getFunctions } from 'firebase/functions';
 
 export const ActionHandler: React.FC = () => {
   const mode = useMemo(() => getParamByName(window.location.search, 'mode'), []);
@@ -39,7 +40,7 @@ export function AssignQuoteHandler({
 
   const setUserId = useCallback(async () => {
     try {
-      await assignQuote({ quoteId });
+      await assignQuote(getFunctions(), { quoteId });
 
       setLoading(false);
       setAssignSuccessful(true);

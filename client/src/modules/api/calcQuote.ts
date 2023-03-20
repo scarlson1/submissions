@@ -1,6 +1,6 @@
-import { httpsCallable } from 'firebase/functions';
+import { Functions, httpsCallable } from 'firebase/functions';
 
-import { functions } from 'firebaseConfig';
+// import { functions } from 'firebaseConfig';
 
 export interface CalcQuoteRequest {
   limitA: number;
@@ -13,7 +13,7 @@ export interface CalcQuoteRequest {
   deductible: number;
   state: string;
   floodZone: string;
-  submissionId: string;
+  submissionId?: string | null;
   basement?: string;
   commissionPct?: number;
 }
@@ -22,4 +22,10 @@ export interface CalcQuoteResponse {
   annualPremium: number;
 }
 
-export const calcQuote = httpsCallable<CalcQuoteRequest, CalcQuoteResponse>(functions, 'calcQuote');
+export const calcQuote = (functions: Functions, args: CalcQuoteRequest) =>
+  httpsCallable<CalcQuoteRequest, CalcQuoteResponse>(functions, 'calcQuote')(args);
+
+// export const calcQuote = httpsCallable<CalcQuoteRequest, CalcQuoteResponse>(
+//   getFunctions(),
+//   'calcQuote'
+// );

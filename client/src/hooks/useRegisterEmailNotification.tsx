@@ -3,7 +3,7 @@ import { Form, Formik, FormikHelpers, FormikProps } from 'formik';
 import { Box } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
 import * as yup from 'yup';
-import { addDoc } from 'firebase/firestore';
+import { addDoc, getFirestore } from 'firebase/firestore';
 
 import { useConfirmation } from 'modules/components/ConfirmationService';
 import { ConfirmationDialog } from 'components';
@@ -55,7 +55,7 @@ export const useRegisterEmailNotification = ({
         if (Object.keys(valErrors).length === 0 && valErrors.constructor === Object) {
           setSubmitting(true);
 
-          const docRef = await addDoc(notifyRegistration, {
+          const docRef = await addDoc(notifyRegistration(getFirestore()), {
             email: values.email.trim(),
             state: values.state,
             topic: 'flood:available',

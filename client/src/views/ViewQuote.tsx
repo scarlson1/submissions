@@ -14,9 +14,11 @@ import {
 } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2/Grid2';
 import { CancelRounded, CheckCircleRounded } from '@mui/icons-material';
-import { useLoaderData, useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useFirestore, useFirestoreDocData } from 'reactfire';
+import { doc } from 'firebase/firestore';
 
-import { SubmissionQuoteData, WithId } from 'common';
+import { submissionsQuotesCollection } from 'common';
 import { dollarFormat } from 'modules/utils/helpers';
 import { FlexCard, FlexCardContent, IconButtonMenu, LineItem } from 'components';
 import {
@@ -31,7 +33,16 @@ import { createPath, ROUTES } from 'router';
 
 export const ViewQuote: React.FC = () => {
   const navigate = useNavigate();
-  const data = useLoaderData() as WithId<SubmissionQuoteData>;
+  const { quoteId } = useParams();
+  if (!quoteId) throw new Error('missing quoteId');
+
+  const firestore = useFirestore();
+  const quoteRef = doc(submissionsQuotesCollection(firestore), quoteId); // .withConverter(withIdConverter())
+  const { status, data } = useFirestoreDocData(quoteRef);
+
+  if (status === 'loading') {
+    return <span>loading...</span>;
+  }
 
   return (
     <Box>
@@ -44,7 +55,7 @@ export const ViewQuote: React.FC = () => {
             variant='body2'
             color='text.secondary'
             sx={{ fontSize: '0.8rem', textTransform: 'uppercase', pb: 4 }}
-          >{`Quote ID: ${data.id}`}</Typography>
+          >{`Quote ID: ${quoteId}`}</Typography>
         </Box>
         <Stack direction='row' spacing={1}>
           <Button variant='contained' sx={{ maxHeight: 34 }} onClick={() => navigate('bind')}>

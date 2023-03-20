@@ -1,18 +1,12 @@
 import { useCallback } from 'react';
 import { FirebaseError } from 'firebase/app';
-import { addDoc, FirestoreError, GeoPoint, Timestamp } from 'firebase/firestore';
+import { addDoc, FirestoreError, GeoPoint, getFirestore, Timestamp } from 'firebase/firestore';
 import invariant from 'tiny-invariant';
 import { round } from 'lodash';
 
 import { NewQuoteValues } from 'views/admin/QuoteNew';
 import { extractNumber, readableFirebaseCode } from 'modules/utils/helpers';
-import {
-  QUOTE_STATUS,
-  Submission,
-  SubmissionQuoteData,
-  submissionsQuotesCollection,
-  WithId,
-} from 'common';
+import { QUOTE_STATUS, Submission, SubmissionQuoteData, submissionsQuotesCollection } from 'common';
 import { useSendQuoteNotification } from './useSendQuoteNotification';
 
 const CARD_FEE_RATE = 0.035;
@@ -28,12 +22,12 @@ export const useCreateQuote = (
     async (
       values: NewQuoteValues,
       submissionId: string | null = null,
-      submissionData: WithId<Submission>
+      submissionData: Submission | null = null
     ) => {
       try {
         const quoteData = getFormattedQuote(values);
 
-        const quoteRef = await addDoc(submissionsQuotesCollection, {
+        const quoteRef = await addDoc(submissionsQuotesCollection(getFirestore()), {
           ...quoteData,
           submissionId,
           imageUrls: {

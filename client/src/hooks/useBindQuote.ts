@@ -1,3 +1,4 @@
+import { getFunctions } from 'firebase/functions';
 import { createPolicy, executePayment } from 'modules/api';
 import { useCallback } from 'react';
 
@@ -14,10 +15,10 @@ export const useBindQuote = (
   const bindQuote = useCallback(
     async (quoteId: string, paymentMethodId: string) => {
       try {
-        const { data: policyData } = await createPolicy({ quoteId });
+        const { data: policyData } = await createPolicy(getFunctions(), { quoteId });
         console.log('CREATE POLICY RES: ', policyData);
 
-        const { data: pmtData } = await executePayment({
+        const { data: pmtData } = await executePayment(getFunctions(), {
           policyId: policyData.policyId,
           paymentMethodId,
         });

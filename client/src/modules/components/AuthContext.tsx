@@ -19,17 +19,17 @@ import {
   verifyBeforeUpdateEmail,
   multiFactor,
   updatePassword,
-  getAuth,
+  // getAuth,
 } from '@firebase/auth';
-import { doc, onSnapshot, DocumentSnapshot } from '@firebase/firestore';
+import { doc, onSnapshot, DocumentSnapshot, getFirestore } from '@firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import { differenceInSeconds } from 'date-fns';
+import { useAuth as useFireAuth } from 'reactfire';
 // import { authState } from 'rxfire/auth';
 // import { filter } from 'rxjs/operators';
 
 import { userClaimsCollection } from 'common/firestoreCollections';
 import { UserClaims } from 'common/types';
-// import { queryClient } from 'modules/queryClient';
 import { ReauthDialog } from 'components';
 import { toast } from 'react-hot-toast';
 
@@ -41,7 +41,7 @@ export enum CUSTOM_CLAIMS {
   IDEMAND_ADMIN = 'iDemandAdmin',
   AGENT = 'agent',
 }
-export type CustomClaimsInterface = Record<CUSTOM_CLAIMS, boolean>;
+export type CustomClaimsInterface = Record<CUSTOM_CLAIMS, boolean> & IdTokenResult['claims'];
 
 interface AuthContextValue {
   user: User | null;
@@ -81,10 +81,10 @@ export const AuthContext = createContext<AuthContextValue>({
   updateUserEmail: () => Promise.reject(),
   customClaims: { orgAdmin: false, agent: false, iDemandAdmin: false },
 });
-// export const AuthContext = createContext({})
 
 export const AuthContextProvider = ({ children }: { children: React.ReactNode }) => {
-  const auth = getAuth();
+  // const auth = getAuth();
+  const auth = useFireAuth();
   const [user, setUser] = useState<User | null>(null);
   const [error, setError] = useState<Error | null | unknown>(null);
   const [loading, setLoading] = useState(false);
@@ -96,7 +96,7 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
   });
   const lastCommittedRef = useRef(null);
 
-  // TODO: refactor to use rxFire observables ??
+  // TODO: refactor to use rxFire observables ?? https://firebase.blog/posts/2018/09/introducing-rxfire-easy-async-firebase
   // authState(auth)
   //   .pipe(filter((u) => u !== null))
   //   .subscribe((u) => console.log('rxFire authState user: ', u));
@@ -143,7 +143,10 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
   // listen to changes in userClaims firestore doc
   useEffect(() => {
     if (!user || !user.tenantId) return;
-    const unsubscribe = onSnapshot(doc(userClaimsCollection(user.tenantId), user.uid), onNewClaims);
+    const unsubscribe = onSnapshot(
+      doc(userClaimsCollection(getFirestore(), user.tenantId), user.uid),
+      onNewClaims
+    );
 
     return () => unsubscribe();
   }, [onNewClaims, user]);

@@ -15,15 +15,14 @@ import {
 import Grid from '@mui/material/Unstable_Grid2';
 import { styled, SxProps } from '@mui/system';
 import { ExpandMoreRounded } from '@mui/icons-material';
-import { onSnapshot, query, orderBy, where, limit } from 'firebase/firestore';
+import { onSnapshot, query, orderBy, where, limit, getFirestore } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 
-import { submissionsCollection } from 'common/firestoreCollections';
 import { useAuth } from 'modules/components/AuthContext';
 import { fallbackImages } from './Policies';
 import { dollarFormat, formatFirestoreTimestamp, numberFormat } from 'modules/utils/helpers';
 import { createPath, ROUTES } from 'router';
-import { Submission, WithId } from 'common';
+import { Submission, submissionsCollection, WithId } from 'common';
 
 export const useUserSubmissions = () => {
   const { user } = useAuth();
@@ -36,8 +35,12 @@ export const useUserSubmissions = () => {
       return;
     }
 
+    // const submissionsCollection = collection(
+    //   getFirestore(),
+    //   COLLECTIONS.SUBMISSIONS
+    // ) as CollectionReference<Submission>;
     const q = query(
-      submissionsCollection,
+      submissionsCollection(getFirestore()),
       where('userId', '==', user.uid),
       orderBy('metadata.created', 'desc'),
       limit(20)

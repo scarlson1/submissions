@@ -5,7 +5,7 @@ import { LoadingButton } from '@mui/lab';
 import { SaveRounded } from '@mui/icons-material';
 import { toast } from 'react-hot-toast';
 import { Formik, FormikHelpers } from 'formik';
-import { doc, FirestoreError, onSnapshot } from 'firebase/firestore';
+import { doc, FirestoreError, getFirestore, onSnapshot } from 'firebase/firestore';
 import { FirebaseError } from 'firebase/app';
 
 import { FormikTextField } from 'components/forms';
@@ -24,7 +24,7 @@ const useUserAccount = (onError?: (err: unknown, msg: string) => void) => {
   useEffect(() => {
     if (!user || !user.uid) return;
     const unsubscribe = onSnapshot(
-      doc(usersCollection, user?.uid),
+      doc(usersCollection(getFirestore()), user?.uid),
       (snap) => {
         setAccount({ ...snap.data(), id: snap.id });
       },

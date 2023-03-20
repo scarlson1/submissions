@@ -27,8 +27,8 @@ import {
   WeekendRounded,
 } from '@mui/icons-material';
 import { FormikHelpers, FormikProps, useFormikContext } from 'formik';
-import { LoaderFunctionArgs, useLoaderData, useNavigate } from 'react-router-dom';
-import { doc, getDoc, Timestamp, updateDoc } from 'firebase/firestore';
+import { useNavigate, useParams } from 'react-router-dom';
+import { doc, getDoc, getFirestore, Timestamp, updateDoc } from 'firebase/firestore';
 import { RiMastercardFill, RiVisaLine } from 'react-icons/ri';
 import { MdPayments } from 'react-icons/md';
 import { isEqual } from 'lodash';
@@ -45,23 +45,23 @@ import {
 } from 'components/forms';
 import { IconButtonMenu, LineItem } from 'components';
 import {
-  submissionsQuotesCollection,
   contactValidation,
   phoneRequiredVal,
   PaymentMethod,
-  paymentMethodsCollection,
   SubmissionQuoteData,
   WithId,
   AdditionalInterest,
+  submissionsQuotesCollection,
+  paymentMethodsCollection,
 } from 'common';
 import { useBindQuote, useUserPaymentMethods } from 'hooks';
 import { billingValidation, PaymentStep, ContactStep } from 'elements';
 import { addToDate, dollarFormat, formatDate } from 'modules/utils/helpers';
 import { AUTH_ROUTES, ROUTES, createPath } from 'router';
 import { useAuth } from 'modules/components/AuthContext';
-import { Auth } from 'firebase/auth';
 import { fallbackImages } from './Policies';
 import { toast } from 'react-hot-toast';
+import { useFirestore, useFirestoreDocData } from 'reactfire';
 
 // TODO: check quote expiration date (30 days for quote creation) -- use cloud function ??
 // firestore rules - only allow iDemand admin to override
@@ -70,7 +70,7 @@ import { toast } from 'react-hot-toast';
 // 'Password': yup.string().notRequired().min(8).nullable().transform((value) => !!value ? value : null)
 
 // export const quoteLoader = async ({ params }: LoaderFunctionArgs) => {
-//   const quoteRef = doc(submissionsQuotesCollection, params.quoteId);
+//   const quoteRef = doc(submissionsQuotesCollection(getFirestore()), params.quoteId);
 
 //   const snap = await getDoc(quoteRef);
 //   let data = snap.data();
@@ -83,23 +83,44 @@ import { toast } from 'react-hot-toast';
 //   return { ...data, id: snap.id };
 // };
 
-// CAUSES BUG - CALLING GETAUTH BEFORE INITIALIZING FIREBASE ??
-export const quoteLoader =
-  (auth: Auth) =>
-  async ({ params }: LoaderFunctionArgs) => {
-    const quoteRef = doc(submissionsQuotesCollection, params.quoteId);
-    // console.log('auth', auth);
-    // console.log('current user ', auth.currentUser?.uid);
-    const snap = await getDoc(quoteRef);
-    let data = snap.data();
-    // console.log('QUOTE DATA: ', data);
+// export const quoteLoader =
+//   (db: Firestore) =>
+//   async ({ params }: LoaderFunctionArgs) => {
+//     console.log('db: ', db);
+//     const quoteRef = doc(submissionsQuotesCollection(db), params.quoteId);
 
-    if (!snap.exists() || !data) {
-      throw new Response('Quote not found', { status: 404 });
-    }
+//     const snap = await getDoc(quoteRef);
+//     let data = snap.data();
+//     console.log('QUOTE DATA: ', data);
 
-    return { ...data, id: snap.id };
-  };
+//     if (!snap.exists() || !data) {
+//       throw new Response('Quote not found', { status: 404 });
+//     }
+
+//     return { ...data, id: snap.id };
+//   };
+
+// CAUSES BUG - CALLING GETAUTH BEFORE INITIALIZING FIREBASE ?? only works when not full page refresh
+// export const quoteLoader =
+//   (auth: Auth) =>
+//   async ({ params }: LoaderFunctionArgs) => {
+//     // const submissionsQuotesCollection = collection(
+//     //   getFirestore(),
+//     //   COLLECTIONS.SUBMISSIONS_QUOTES
+//     // ) as CollectionReference<SubmissionQuoteData>;
+//     const quoteRef = doc(submissionsQuotesCollection(getFirestore()), params.quoteId);
+//     // console.log('auth', auth);
+//     // console.log('current user ', auth.currentUser?.uid);
+//     const snap = await getDoc(quoteRef);
+//     let data = snap.data();
+//     // console.log('QUOTE DATA: ', data);
+
+//     if (!snap.exists() || !data) {
+//       throw new Response('Quote not found', { status: 404 });
+//     }
+
+//     return { ...data, id: snap.id };
+//   };
 
 export interface QuoteValues {
   firstName: string;
@@ -114,20 +135,21 @@ export interface QuoteValues {
   policyEffectiveDate: Date;
   effectiveExceptionRequested: boolean;
   effectiveExceptionReason: string | null;
-  // insuredFirstName: string;
-  // insuredLastName: string;
-  // insuredEmail: string;
-  // insuredPhone: string;
-  // additionalInsureds: AdditionalInsured[];
-  // mortgageeInterest: Mortgagee[];
   additionalInterests: AdditionalInterest[];
 }
 
 export const QuoteBind: React.FC = () => {
   const navigate = useNavigate();
   const { isAuthenticated, isAnonymous } = useAuth();
-  const data = useLoaderData() as WithId<SubmissionQuoteData>;
+  const { quoteId } = useParams();
+  if (!quoteId) throw new Error('missing quoteId');
+
+  const firestore = useFirestore();
+  const quoteRef = doc(submissionsQuotesCollection(firestore), quoteId);
+  const { status, data } = useFirestoreDocData(quoteRef);
+
   const formikRef = useRef<FormikProps<QuoteValues>>(null);
+
   // TODO: FINISH BIND QUOTE HOOK
   const bindQuote = useBindQuote(
     (msg: string) => toast.success(msg),
@@ -139,19 +161,19 @@ export const QuoteBind: React.FC = () => {
     async (values: QuoteValues, { setSubmitting }: FormikHelpers<QuoteValues>) => {
       if (!values.paymentMethodId) return toast.error('Missing payment method');
 
-      const res = await bindQuote(data.id, values.paymentMethodId);
+      const res = await bindQuote(quoteId, values.paymentMethodId);
       setSubmitting(false);
 
       if (res?.transactionId && (res?.status === 'succeeded' || res?.status === 'processing')) {
         navigate(
           createPath({
             path: ROUTES.QUOTE_BIND_SUCCESS,
-            params: { quoteId: data.id, transactionId: res?.transactionId || '' },
+            params: { quoteId, transactionId: res?.transactionId || '' },
           })
         );
       }
     },
-    [bindQuote, data, navigate]
+    [quoteId, bindQuote, navigate]
   );
 
   const handleCancel = useCallback(() => {
@@ -163,9 +185,13 @@ export const QuoteBind: React.FC = () => {
       // alternative pkg: https://github.com/mattphillips/deep-object-diff
       if (isEqual(values, initialValues)) return values;
 
-      const ref = doc(submissionsQuotesCollection, data.id);
+      // const submissionsQuotesCollection = collection(
+      //   getFirestore(),
+      //   COLLECTIONS.SUBMISSIONS_QUOTES
+      // ) as CollectionReference<SubmissionQuoteData>;
+      // const ref = doc(submissionsQuotesCollection(getFirestore()), quoteId);
 
-      await updateDoc(ref, {
+      await updateDoc(quoteRef, {
         insuredFirstName: values.firstName,
         insuredLastName: values.lastName,
         insuredEmail: values.email,
@@ -179,7 +205,7 @@ export const QuoteBind: React.FC = () => {
       });
       return values;
     },
-    [data]
+    [quoteRef]
   );
 
   // TODO: handle quote expiration (quoteExpiration)
@@ -187,7 +213,11 @@ export const QuoteBind: React.FC = () => {
   // TODO: handle setting userId when user is authenticated
   // TODO: submission needs isAnonymous flag so userId can/should be overwritten ??
   if (!isAuthenticated || isAnonymous || !data.userId) {
-    return <AuthStep quoteId={data.id} />;
+    return <AuthStep quoteId={quoteId!} />;
+  }
+
+  if (status === 'loading') {
+    return <span>loading...</span>;
   }
 
   return (
@@ -239,7 +269,7 @@ export const QuoteBind: React.FC = () => {
           <PaymentStep pmtOptions={[...paymentMethods]} />
         </Step>
         <Step label='Review' stepperNavLabel='Review'>
-          <BindReviewStep data={data} />
+          <BindReviewStep data={{ ...data, id: quoteId! }} />
         </Step>
       </FormikWizard>
     </Box>
@@ -742,7 +772,14 @@ export const useCardDetails = (id: string) => {
     if (!id || !user || !user.uid) return;
     setError(null);
     setLoading(true);
-    const docRef = doc(paymentMethodsCollection(user.uid), id);
+    // const paymentMethodsCollection = (userId: string) =>
+    //   collection(
+    //     getFirestore(),
+    //     COLLECTIONS.SUBMISSIONS_QUOTES,
+    //     userId,
+    //     COLLECTIONS.PAYMENT_METHODS
+    //   ) as CollectionReference<PaymentMethod>;
+    const docRef = doc(paymentMethodsCollection(getFirestore(), user.uid), id);
     getDoc(docRef).then((snap) => {
       if (!snap.exists()) {
         setLoading(false);

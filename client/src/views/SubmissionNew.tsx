@@ -1,8 +1,8 @@
 import React, { useCallback, useRef } from 'react';
 import { FormikHelpers, FormikProps, FormikValues } from 'formik';
 import { Box, Container, Tooltip, Typography } from '@mui/material';
-import { LoaderFunctionArgs, useLoaderData, useNavigate } from 'react-router-dom';
-import { addDoc, doc, GeoPoint, getDoc, serverTimestamp } from 'firebase/firestore';
+import { useNavigate } from 'react-router-dom';
+import { addDoc, GeoPoint, getFirestore, serverTimestamp } from 'firebase/firestore';
 
 import { FormikWizard, Step } from 'components/forms';
 import {
@@ -24,35 +24,33 @@ import {
   addressValidationActiveStates,
 } from 'common/quoteValidation';
 import { ROUTES, createPath } from 'router';
-import { statesCollection, submissionsCollection } from 'common/firestoreCollections';
+// import { statesCollection, submissionsCollection } from 'common/firestoreCollections';
 import { SUBMISSION_STATUS } from 'common/enums';
-import { usePropertyDetails } from 'hooks';
+import { useActiveStates, usePropertyDetails } from 'hooks';
 import { roundUpToNearest, sumArr } from 'modules/utils/helpers';
 import { useAuth } from 'modules/components/AuthContext';
-import { FirebaseError } from 'firebase/app';
+import { submissionsCollection } from 'common';
 
 // TODO: fix bug - need to separate geocodeing from address
 // if address manually changed (not google autocomple), need to update lat lng
-// TODO: add productId to url and reuse activeStatesLoader from EditActiveStates
 
-// TODO: pass active states to validation
+// export const newSubmissionLoader = async ({ params }: LoaderFunctionArgs) => {
+//   try {
+//     const statesCollection = collection(getFirestore(), COLLECTIONS.ACTIVE_STATES);
+//     const snap = await getDoc(doc(statesCollection, params.productId));
 
-export const newSubmissionLoader = async ({ params }: LoaderFunctionArgs) => {
-  try {
-    const snap = await getDoc(doc(statesCollection, params.productId));
+//     const data = snap.data();
+//     if (!snap.exists() || !data) return {};
 
-    const data = snap.data();
-    if (!snap.exists() || !data) return {};
-
-    return data;
-  } catch (err) {
-    let msg = `Error fetching active states document`;
-    if (err instanceof FirebaseError) {
-      msg = err.message;
-    }
-    throw new Response(msg);
-  }
-};
+//     return data;
+//   } catch (err) {
+//     let msg = `Error fetching active states document`;
+//     if (err instanceof FirebaseError) {
+//       msg = err.message;
+//     }
+//     throw new Response(msg);
+//   }
+// };
 
 const DEFAULT_FLOOD_DEDUCTIBLE = '0.01';
 
@@ -119,7 +117,8 @@ export const SubmissionNew: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const formikRef = useRef<FormikProps<FormikValues>>(null);
-  const activeStates = useLoaderData() as { [key: string]: boolean };
+  // const activeStates = useLoaderData() as { [key: string]: boolean };
+  const activeStates = useActiveStates('flood');
   const { propertyDetails, fetchPropertyData } = usePropertyDetails();
 
   const handleFetchProperty = useCallback(
@@ -179,7 +178,8 @@ export const SubmissionNew: React.FC = () => {
           : null;
 
       try {
-        const docRef = await addDoc(submissionsCollection, {
+        // const submissionsCollection = collection(getFirestore(), COLLECTIONS.SUBMISSIONS);
+        const docRef = await addDoc(submissionsCollection(getFirestore()), {
           ...propertyDetails,
           ...values,
           coordinates: coords,
@@ -210,7 +210,7 @@ export const SubmissionNew: React.FC = () => {
         <FormikWizard initialValues={initialValues} onSubmit={handleSubmit} formRef={formikRef}>
           <Step
             label={`What's the Address?`}
-            validationSchema={addressValidationActiveStates(activeStates)}
+            validationSchema={addressValidationActiveStates(activeStates || {})}
             mutateOnSubmit={handleFetchProperty}
             stepperNavLabel='Address'
           >

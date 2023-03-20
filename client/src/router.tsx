@@ -1,10 +1,4 @@
-import {
-  createBrowserRouter,
-  createSearchParams,
-  // redirect,
-  URLSearchParamsInit,
-} from 'react-router-dom';
-import { getAuth } from 'firebase/auth';
+import { createBrowserRouter, createSearchParams, URLSearchParamsInit } from 'react-router-dom';
 
 import App from './App';
 import { Layout, RequireAuth, RouterErrorBoundary } from 'components';
@@ -15,68 +9,58 @@ import {
   Login,
   CreateAccount,
   Policy,
-  policyLoader,
+  // policyLoader,
   Policies,
   UserSubmissions,
   Home,
-  newSubmissionLoader,
+  // newSubmissionLoader,
   AgencyNew,
-  // Protosure,
+  // Protosure, // TODO: move protosureLoader to useEffect
   // protosureLoader,
   Account,
   QuoteBind,
-  quoteLoader,
+  // quoteLoader,
   AccountDetails,
 } from 'views';
 import {
-  submissionLoader,
+  // submissionLoader,
   SubmissionView,
-  adminSubmissionsLoader,
+  // adminSubmissionsLoader,
   Submissions as AdminSubmissions,
   QuoteNew,
   SLTaxes,
   SLTaxNew,
-  adminTaxLoader,
+  // adminTaxLoader,
   EditActiveStates,
-  activeStatesLoader,
-  moratoriumsLoader,
+  // activeStatesLoader,
+  // moratoriumsLoader,
   Moratoriums,
   MoratoriumNew,
   SLLicenseNew,
-  licensesLoader,
+  // licensesLoader,
   Licenses,
   AgencyApp,
-  agencyAppLoader,
+  // agencyAppLoader,
   AgencyApps,
-  agencyAppsLoader,
+  // agencyAppsLoader,
   Quotes,
-  newQuoteSubmissionLoader,
-  quotesLoader,
+  // newQuoteSubmissionLoader,
+  // quotesLoader,
   PolicyDelivery,
   Policies as PoliciesAdmin,
-  policiesLoader as adminPoliciesLoader,
+  // policiesLoader as adminPoliciesLoader,
 } from 'views/admin';
 import { SuccessStep, ActionHandler } from 'elements';
 import { Product } from 'common';
-import { TestDataGridPagination } from 'views/admin/TestDataGridPagination';
-import { auth } from 'firebaseConfig';
 import { BindSuccess } from 'elements/SuccessStep';
+import { TasksPagination } from 'views/admin/TasksPagination';
+import { RequireAuthReactFire, getRequiredClaimValidator } from 'components/RequireAuthReactFire';
 
 // import RouterErrorBoundary from 'components/errorBoundaries/RouterErrorBoundary';
 
 // provider for react-router (pass user etc.): https://stackoverflow.com/a/74929447/10887890
 
 // TODO: add errorElement to routes
-// TODO: admin views
-//    - submission
-//    - quote (submission is view with button to create quote)
-
-// TODO: routes enum
-// https://betterprogramming.pub/the-best-way-to-manage-routes-in-a-react-project-with-typescript-c4e8d4422d64
-// https://codesandbox.io/s/affectionate-mirzakhani-c7lvr?from-embed
-
-// TODO: reuse loaders: https://reactrouter.com/en/main/hooks/use-route-loader-data
-// Available in custom hooks and any other nested component
 
 export enum ROUTES {
   SUBMISSION_NEW = '/new/:productId',
@@ -192,17 +176,9 @@ export function createPath(args: TArgs) {
 // const user = getAuth().currentUser;
 
 // BUG: doesn't detect authed user on first load
-const testPoliciesLoader = (getUser?: any) => async (args: any) => {
-  const user = getUser().currentUser;
-  console.log('USER: ', user);
-  return adminPoliciesLoader(args);
-};
-
-// const testPolicyLoader = (auth: any) => async (args: any) => {
-//   // const user = getUser().currentUser;
-//   const user = auth.currentUser;
+// const testPoliciesLoader = (getUser?: any) => async (args: any) => {
+//   const user = getUser().currentUser;
 //   console.log('USER: ', user);
-//   if (!user || !user.uid) throw redirect('/auth/login');
 //   return adminPoliciesLoader(args);
 // };
 
@@ -223,7 +199,7 @@ export const router = createBrowserRouter([
           },
           {
             path: ROUTES.SUBMISSION_NEW,
-            loader: newSubmissionLoader,
+            // loader: newSubmissionLoader,
             element: (
               <RequireAuth shouldSignInAnonymously={true}>
                 <SubmissionNew />
@@ -243,7 +219,6 @@ export const router = createBrowserRouter([
               />
             ),
           },
-          // TODO: uncomment after deploy 3/14
           // {
           //   path: ROUTES.PROTOSURE,
           //   loader: protosureLoader,
@@ -273,23 +248,33 @@ export const router = createBrowserRouter([
           },
           {
             path: ROUTES.QUOTE_VIEW,
-            loader: quoteLoader(auth),
+            // loader: quoteLoader(getAuth()),
+            // loader: quoteLoader(db),
+            // loader: (args: LoaderFunctionArgs) => {
+            //   const db = getFirestore();
+            //   console.log('DB: ', db.app.name);
+            //   return quoteLoader(db);
+            // },
             element: <ViewQuote />,
           },
           {
             path: ROUTES.QUOTE_BIND,
-            loader: quoteLoader(auth),
+            // loader: quoteLoader(db),
+            // loader: quoteLoader(getAuth()),
+            // loader: quoteLoader(auth),
             element: <QuoteBind />,
           },
           {
             path: ROUTES.QUOTE_BIND_SUCCESS,
-            loader: quoteLoader(auth),
+            // loader: quoteLoader(db),
+            // loader: quoteLoader(getAuth()),
+            // loader: quoteLoader(auth),
             element: <BindSuccess />,
           },
           {
             path: ROUTES.SUBMISSION_SUBMITTED,
             element: <SuccessStep />,
-            loader: submissionLoader,
+            // loader: submissionLoader,
             errorElement: <RouterErrorBoundary />,
           },
           {
@@ -342,14 +327,18 @@ export const router = createBrowserRouter([
           {
             path: ROUTES.USER_POLICY,
             element: <Policy />,
-            loader: policyLoader,
+            // loader: policyLoader,
             errorElement: <RouterErrorBoundary />,
           },
         ],
       },
       {
         path: 'admin',
-        element: <Layout />,
+        element: (
+          // <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
+          <Layout />
+          // </RequireAuthReactFire>
+        ),
         errorElement: <RouterErrorBoundary />,
         children: [
           {
@@ -359,58 +348,72 @@ export const router = createBrowserRouter([
           {
             path: ADMIN_ROUTES.SUBMISSIONS,
             element: (
-              <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
+              <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
                 <AdminSubmissions />
-              </RequireAuth>
+              </RequireAuthReactFire>
             ),
-            loader: adminSubmissionsLoader,
+            // loader: adminSubmissionsLoader,
             errorElement: <RouterErrorBoundary />,
           },
           {
             path: ADMIN_ROUTES.SUBMISSION_VIEW,
             element: (
-              <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
+              // <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
+              <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
                 <SubmissionView />
-              </RequireAuth>
+              </RequireAuthReactFire>
+              // </RequireAuth>
             ),
-            loader: submissionLoader,
+            // loader: submissionLoader,
             errorElement: <RouterErrorBoundary />,
           },
           {
             path: ADMIN_ROUTES.QUOTE_NEW,
             element: (
-              <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
+              // <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
+              <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
                 <QuoteNew />
-              </RequireAuth>
+              </RequireAuthReactFire>
+
+              // </RequireAuth>
             ),
-            loader: newQuoteSubmissionLoader,
+            // loader: newQuoteSubmissionLoader,
           },
           {
             path: ADMIN_ROUTES.QUOTES,
             element: (
-              <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
+              // <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
+              <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
                 <Quotes />
-              </RequireAuth>
+              </RequireAuthReactFire>
+
+              // </RequireAuth>
             ),
-            loader: quotesLoader,
+            // loader: quotesLoader,
           },
           {
             path: ADMIN_ROUTES.POLICY_DELIVERY,
             element: (
-              <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
+              // <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
+              <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
                 <PolicyDelivery />
-              </RequireAuth>
+              </RequireAuthReactFire>
+
+              // </RequireAuth>
             ),
-            loader: policyLoader, // testPolicyLoader(auth)
+            // loader: policyLoader,
           },
           {
             path: ADMIN_ROUTES.POLICIES,
             element: (
-              <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
+              // <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
+              <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
                 <PoliciesAdmin />
-              </RequireAuth>
+              </RequireAuthReactFire>
+
+              // </RequireAuth>
             ),
-            loader: testPoliciesLoader(getAuth),
+            // loader: testPoliciesLoader(getAuth),
             // loader: (params) => async () => {
             //   const user = getAuth().currentUser;
             //   console.log('USER: ', user);
@@ -424,90 +427,114 @@ export const router = createBrowserRouter([
           {
             path: ADMIN_ROUTES.SL_TAXES,
             element: (
-              <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
+              // <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
+              <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
                 <SLTaxes />
-              </RequireAuth>
+              </RequireAuthReactFire>
+
+              // </RequireAuth>
             ),
-            loader: adminTaxLoader,
+            // loader: adminTaxLoader,
             errorElement: <RouterErrorBoundary />,
           },
           {
             path: ADMIN_ROUTES.SL_TAXES_NEW,
             element: (
-              <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
+              // <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
+              <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
                 <SLTaxNew />
-              </RequireAuth>
+              </RequireAuthReactFire>
+
+              // </RequireAuth>
             ),
           },
           {
             path: ADMIN_ROUTES.EDIT_ACTIVE_STATES,
             element: (
-              <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
+              // <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
+              <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
                 <EditActiveStates />
-              </RequireAuth>
+              </RequireAuthReactFire>
+
+              // </RequireAuth>
             ),
-            loader: activeStatesLoader,
+            // loader: activeStatesLoader,
           },
           {
             path: ADMIN_ROUTES.MORATORIUMS,
-
             element: (
-              <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
+              // <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
+              <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
                 <Moratoriums />
-              </RequireAuth>
+              </RequireAuthReactFire>
+
+              // </RequireAuth>
             ),
-            loader: moratoriumsLoader,
+            // loader: moratoriumsLoader,
           },
           {
             path: ADMIN_ROUTES.MORATORIUM_NEW,
             element: (
-              <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
+              // <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
+              <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
                 <MoratoriumNew />
-              </RequireAuth>
+              </RequireAuthReactFire>
+
+              // </RequireAuth>
             ),
           },
           {
             path: ADMIN_ROUTES.SL_LICENSES,
-            loader: licensesLoader,
+            // loader: licensesLoader,
             element: (
-              <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
+              <RequireAuthReactFire
+                signInCheckProps={{
+                  validateCustomClaims: getRequiredClaimValidator(['IDEMAND_ADMIN']),
+                }}
+              >
                 <Licenses />
-              </RequireAuth>
+              </RequireAuthReactFire>
             ),
           },
           {
             path: ADMIN_ROUTES.SL_LICENSE_NEW,
             element: (
-              <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
+              // <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
+              <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
                 <SLLicenseNew />
-              </RequireAuth>
+              </RequireAuthReactFire>
+
+              // </RequireAuth>
             ),
           },
           {
             path: ADMIN_ROUTES.AGENCY_APPS,
-            loader: agencyAppsLoader,
+            // loader: agencyAppsLoader,
             element: (
-              <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
+              // <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
+              <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
                 <AgencyApps />
-              </RequireAuth>
+              </RequireAuthReactFire>
+
+              // </RequireAuth>
             ),
           },
           {
             path: ADMIN_ROUTES.AGENCY_APP,
-            loader: agencyAppLoader,
+            // loader: agencyAppLoader,
             element: (
-              <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
+              // <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
+              <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
                 <AgencyApp />
-              </RequireAuth>
+              </RequireAuthReactFire>
+
+              // </RequireAuth>
             ),
           },
-          // {
-          //   path: 'pagination/tasks',
-          //   element: <TestPagination />,
-          // },
           {
             path: 'pagination/data-grid',
-            element: <TestDataGridPagination />,
+            element: <TasksPagination />,
+            // element: <TestDataGridPagination />,
           },
         ],
       },

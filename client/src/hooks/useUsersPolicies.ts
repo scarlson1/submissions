@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { limit, onSnapshot, orderBy, query, where } from 'firebase/firestore';
+import { getFirestore, limit, onSnapshot, orderBy, query, where } from 'firebase/firestore';
 
 import { policiesCollection } from 'common/firestoreCollections';
 import { Policy } from 'common/types';
@@ -22,7 +22,7 @@ export const useUsersPolicies = () => {
     }
 
     const q = query(
-      policiesCollection,
+      policiesCollection(getFirestore()),
       orderBy('metadata.created', 'desc'),
       where('userId', '==', user?.uid),
       limit(20)

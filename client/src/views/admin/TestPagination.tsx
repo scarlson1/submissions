@@ -174,7 +174,7 @@ export function Pagination(
   }>
 ) {
   // const fetchTaskCount = useFetchTasksCount();
-  const fetchTaskCount = useDocCount('tasks', [['userId', '==', props.userId]]);
+  const fetchTaskCount = useDocCount('TASKS', [where('userId', '==', props.userId)]);
   const [tasksCount, setTasksCount] = useState<number>();
 
   useEffect(() => {
