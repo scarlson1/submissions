@@ -32,6 +32,8 @@ import {
   formatGridFirestoreTimestampAsDate,
 } from 'modules/utils/helpers';
 
+// OR QUERIES: https://stackoverflow.com/questions/53329908/how-can-i-join-two-firestore-queries-using-rxfire-and-rxjs-or-query/53497072#53497072
+
 const useGenerateTasks = () => {
   const generateTasks = useCallback(async (num: number) => {
     for (let i = 0; i < num; i++) {
@@ -58,16 +60,6 @@ const GenerateTasksButton = () => {
 
   return <Button onClick={() => generateTasks(10)}>Generate Tasks</Button>;
 };
-
-// interface Task {
-//   title: string;
-//   description: string;
-//   userId: string;
-//   dueDate: Timestamp;
-// }
-// type WithId<T> = {
-//   [K in keyof T]: T[K];
-// } & { id: string };
 
 export function useFetchDocsWithCursor(
   collName: keyof typeof COLLECTIONS,

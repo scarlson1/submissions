@@ -4,6 +4,9 @@ import { useField } from 'formik';
 import { format, add } from 'date-fns';
 import { TextFieldProps } from '@mui/material';
 
+// TODO: read - https://reacthustle.com/blog/mui-react-datepicker-with-formik-typescript
+// https://next.material-ui-pickers.dev/guides/typescript
+
 export interface FormikDatePickerProps extends DatePickerProps<any> {
   name: string;
   label?: string;
