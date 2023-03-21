@@ -1,8 +1,8 @@
-import React, { useCallback, useRef, useState } from 'react';
-import { Box, Button, Card, Chip, Divider, Typography, useTheme } from '@mui/material';
+import React, { useCallback, useRef } from 'react';
+import { Box, Button, Card, Chip, Divider, Typography } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
 import { Formik, FormikHelpers, FormikProps } from 'formik';
-import { GeoJsonLayer, PickingInfo } from 'deck.gl/typed';
+import { PickingInfo } from 'deck.gl/typed';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import * as yup from 'yup';
@@ -13,9 +13,8 @@ import { useCreateMoratorium } from 'hooks';
 import { ADMIN_ROUTES, createPath } from 'router';
 import { FIPSAutocomplete } from 'components/forms/FIPSAutocomplete';
 import { FIPSDetails } from 'common';
-import { DeckMap, defaultGeoJsonLayerProps } from 'elements';
 import { FIPS } from 'common/fips';
-import countiesData from 'assets/counties_20m.json';
+import { CountiesMap } from './Moratoriums';
 
 const validation = yup.object().shape({
   locationDetails: yup
@@ -46,9 +45,7 @@ export interface MoratoriumValues {
 
 export const MoratoriumNew: React.FC = () => {
   const navigate = useNavigate();
-  const theme = useTheme();
   const formikRef = useRef<FormikProps<MoratoriumValues>>(null);
-  const [hoverInfo, setHoverInfo] = useState<PickingInfo>();
   const createMoratorium = useCreateMoratorium({
     onSuccess: (id: string) => {
       toast.success(`Moratorium created (ID: ${id})`);
@@ -212,39 +209,20 @@ export const MoratoriumNew: React.FC = () => {
               <Grid xs={12}>
                 <Box sx={{ py: 10, height: 500, width: '100%', mb: 20 }}>
                   <Card sx={{ height: 'inherit', width: 'inherit' }}>
-                    <DeckMap
-                      hoverInfo={hoverInfo}
-                      renderTooltipContent={(info: PickingInfo) =>
-                        `${info.object.properties?.NAME} (${info.object.properties?.GEOID})`
+                    <React.Suspense
+                      fallback={
+                        <Typography align='center' sx={{ py: 5 }}>
+                          Loading counties...
+                        </Typography>
                       }
-                      layers={[
-                        new GeoJsonLayer({
-                          ...defaultGeoJsonLayerProps,
-                          id: `geojson-layer-counties`, // @ts-ignore
-                          data: countiesData,
-                          highlightColor:
-                            theme.palette.mode === 'dark'
-                              ? [255, 255, 255, 25]
-                              : [80, 144, 211, 20],
-                          getLineColor:
-                            theme.palette.mode === 'dark'
-                              ? [255, 255, 255, 200]
-                              : [178, 186, 194, 200],
-                          getFillColor: (f) =>
-                            !!values.locationDetails.some(
-                              (c: FIPSDetails) =>
-                                `${c.stateFP}${c.countyFP}` === f.properties?.GEOID
-                            )
-                              ? [0, 125, 255, 50]
-                              : [255, 255, 255, 20],
-                          updateTriggers: {
-                            getFillColor: [values.locationDetails],
-                          },
-                          onHover: (info: PickingInfo) => setHoverInfo(info),
+                    >
+                      <CountiesMap
+                        selectedCounties={values.locationDetails}
+                        layerProps={{
                           onClick: handleCountyClicked,
-                        }),
-                      ]}
-                    />
+                        }}
+                      />
+                    </React.Suspense>
                   </Card>
                 </Box>
               </Grid>

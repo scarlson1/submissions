@@ -2,9 +2,11 @@ import React from 'react';
 import { Autocomplete, Checkbox, TextField } from '@mui/material';
 import { CheckBox, CheckBoxOutlineBlank } from '@mui/icons-material';
 
-import { FIPS } from 'common/fips';
 import { FIPSDetails } from 'common';
 import { useField } from 'formik';
+import { FIPS } from 'common/fips';
+
+// const FIPS = React.lazy('../../common/fips');
 
 const icon = <CheckBoxOutlineBlank fontSize='small' />;
 const checkedIcon = <CheckBox fontSize='small' />;

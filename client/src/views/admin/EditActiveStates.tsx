@@ -1,5 +1,5 @@
-import React, { useCallback, useRef } from 'react';
-import { Box, Button, Card, Typography } from '@mui/material';
+import React, { Suspense, useCallback, useRef } from 'react';
+import { Box, Button, Card, CircularProgress, Typography } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
 import { Formik, FormikHelpers, FormikProps } from 'formik';
 import { useParams } from 'react-router-dom';
@@ -8,12 +8,14 @@ import { PickingInfo } from 'deck.gl/typed';
 import { capitalize } from 'lodash';
 import { SaveRounded } from '@mui/icons-material';
 import { toast } from 'react-hot-toast';
+import { ErrorBoundary } from 'react-error-boundary';
 
 import { statesDetailsArr } from 'common/statesList';
 import { FormikSwitch } from 'components/forms';
 import { statesCollection } from 'common';
 import { ActiveStateMap } from 'elements/ActiveStateMap';
 import { useDocData } from 'hooks';
+import { ErrorFallback } from 'components';
 
 // export const activeStatesLoader = async ({ params }: LoaderFunctionArgs) => {
 //   try {
@@ -41,7 +43,7 @@ export interface EditActiveStatesValues {
 
 export const EditActiveStates: React.FC = () => {
   // const data = useLoaderData() as { [key: string]: boolean };
-  const { productId } = useParams();
+  let { productId } = useParams();
   const { data, status } = useDocData<{ [key: string]: boolean }>('ACTIVE_STATES', productId || '');
   const formikRef = useRef<FormikProps<EditActiveStatesValues>>(null);
 
@@ -188,9 +190,17 @@ export const EditActiveStates: React.FC = () => {
               ))}
               <Grid xs={12}>
                 <Box sx={{ py: 10, height: 500, width: '100%', mb: 20 }}>
-                  <Card sx={{ height: 'inherit', width: 'inherit' }}>
-                    <ActiveStateMap handleClick={handleStateClicked} statesValues={values} />
-                  </Card>
+                  <ErrorBoundary
+                    FallbackComponent={ErrorFallback}
+                    onReset={() => (productId = 'flood')}
+                    resetKeys={[productId]}
+                  >
+                    <Suspense fallback={<CircularProgress color='secondary' />}>
+                      <Card sx={{ height: 'inherit', width: 'inherit' }}>
+                        <ActiveStateMap handleClick={handleStateClicked} statesValues={values} />
+                      </Card>
+                    </Suspense>
+                  </ErrorBoundary>
                 </Box>
               </Grid>
             </Grid>

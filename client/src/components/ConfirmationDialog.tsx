@@ -72,9 +72,11 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
         component='div'
         sx={{ display: 'flex', justifyContent: 'space-between' }}
       >
-        <Typography variant='h6'>{title}</Typography>
+        <Typography variant='h6' component='div' sx={{ flex: '1 0 auto' }}>
+          {title}
+        </Typography>
         {dialogProps?.fullScreen && (
-          <Stack spacing={2} direction='row'>
+          <Stack spacing={2} direction='row' sx={{ flex: '0 0 auto' }}>
             <Button
               size='small'
               variant='contained'

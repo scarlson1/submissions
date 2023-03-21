@@ -5,7 +5,6 @@ export { FlexCard, FlexCardContent } from './FlexCard';
 export { ImgPreview } from './ImgPreview';
 export { ConfirmationDialog } from './ConfirmationDialog';
 export { FileLink } from './FileLink';
-export { GenericErrorFallback } from './GenericErrorFallback';
 export { RouterErrorBoundary } from './RouterErrorBoundary';
 export {
   renderGridEmail,
@@ -23,8 +22,8 @@ export { LoadingSpinner } from './LoadingSpinner';
 export { IconButtonMenu } from './IconButtonMenu';
 // export { TabPanel } from './TabPanel';
 export { LineItem } from './LineItem';
-export { ServerDataGrid } from './ServerDataGrid';
-// export {  } from './'
+export { ServerDataGrid, numericOperators, dateOperators, stringOperators } from './ServerDataGrid';
+export { ErrorFallback } from './ErrorFallback';
 // export {  } from './'
 // export {  } from './'
 // export {  } from './'

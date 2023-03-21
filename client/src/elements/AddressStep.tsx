@@ -1,5 +1,5 @@
-import React, { useState, useCallback } from 'react';
-import { Card, Grid2Props, Typography } from '@mui/material';
+import React, { useState, useCallback, Suspense } from 'react';
+import { Card, CircularProgress, Grid2Props, Typography } from '@mui/material';
 import { useFormikContext } from 'formik';
 import { FlyToInterpolator, MapViewState } from '@deck.gl/core/typed';
 import { Marker } from 'react-map-gl';
@@ -9,6 +9,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { FormikAddress } from 'elements';
 import { useRegisterEmailNotification } from 'hooks';
 import { ActiveStateMap } from './ActiveStateMap';
+import { ErrorBoundary } from 'react-error-boundary';
 
 export interface AddressStepValues {
   addressLine1: string;
@@ -110,19 +111,25 @@ export const AddressStep: React.FC<AddressStepProps> = ({
       {!!withMap && (
         <>
           <Card sx={{ height: 280, width: '100%', mt: 5 }}>
-            <ActiveStateMap
-              handleClick={(i, e) => {}}
-              statesValues={activeStates}
-              mapViewState={mapViewState}
+            <ErrorBoundary
+              FallbackComponent={() => <Typography>Error loading active states</Typography>}
             >
-              {showMarker && values.latitude && values.longitude && (
-                <Marker
-                  longitude={values.longitude}
-                  latitude={values.latitude}
-                  anchor='bottom'
-                ></Marker>
-              )}
-            </ActiveStateMap>
+              <Suspense fallback={<CircularProgress />}>
+                <ActiveStateMap
+                  handleClick={(i, e) => {}}
+                  statesValues={activeStates}
+                  mapViewState={mapViewState}
+                >
+                  {showMarker && values.latitude && values.longitude && (
+                    <Marker
+                      longitude={values.longitude}
+                      latitude={values.latitude}
+                      anchor='bottom'
+                    ></Marker>
+                  )}
+                </ActiveStateMap>
+              </Suspense>
+            </ErrorBoundary>
           </Card>
 
           <Typography

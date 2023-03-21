@@ -14045,3 +14045,5 @@ export const FIPS: FIPSDetails[] = [
     classFP: 'H4',
   },
 ];
+
+export default FIPS;

@@ -147,6 +147,13 @@ service cloud.firestore {
       allow delete: if isIDemandAdmin() && emailVerified()
     }
 
+    match /public/{docId} {
+      allow read: if true
+      allow create: if isIDemandAdmin() && emailVerified()
+      allow update: if isIDemandAdmin() && emailVerified()
+      allow delete: if isIDemandAdmin() && emailVerified()
+    }
+
     function isIDemandAdmin() {
       return isSignedIn() && request.auth.token.iDemandAdmin == true
     }

@@ -32,7 +32,7 @@ export { useCollectionData } from './useCollectionData';
 export { useDocData } from './useDocData';
 export { useDocDataOnce } from './useDocDataOnce';
 export { useFetchDocsWithCursor } from './useFetchDocsWithCursor';
-// export {  } from './'
+export { useImgOnLoad } from './useImgOnLoad';
 // export {  } from './'
 
 export type { UseFileUploadProps } from './useFileUpload';

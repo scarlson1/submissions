@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
-import { Box } from '@mui/material';
+import { Box, CircularProgress } from '@mui/material';
 import { CancelRounded, CheckCircleRounded } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
+import { useStorage, useStorageDownloadURL } from 'reactfire';
+import { ref } from 'firebase/storage';
 import { GeoJsonLayer } from '@deck.gl/layers/typed';
 import { MapViewState, PickingInfo } from 'deck.gl/typed';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 import { DeckMap, defaultGeoJsonLayerProps } from 'elements';
-import statesData from 'assets/states_20m.json';
+
+// TODO: create generalized component (use with counties)
 
 const INITIAL_VIEW_STATE = {
   longitude: -94.25,
@@ -26,6 +29,8 @@ export interface ActiveStateMapProps {
   children?: React.ReactNode;
 }
 
+const STATES_JSON_STORAGE_PATH = `public/geo-spatial/states_20m.json`;
+
 export const ActiveStateMap: React.FC<ActiveStateMapProps> = ({
   handleClick,
   statesValues,
@@ -34,6 +39,13 @@ export const ActiveStateMap: React.FC<ActiveStateMapProps> = ({
 }) => {
   const theme = useTheme();
   const [hoverInfo, setHoverInfo] = useState<PickingInfo>();
+  const storage = useStorage();
+
+  const { status, data: statesURL } = useStorageDownloadURL(ref(storage, STATES_JSON_STORAGE_PATH));
+
+  if (status === 'loading') {
+    return <CircularProgress />;
+  }
 
   // const currentStateLayer = new GeoJsonLayer({
   //   id: `geojson-layer`, // @ts-ignore
@@ -78,8 +90,9 @@ export const ActiveStateMap: React.FC<ActiveStateMapProps> = ({
       layers={[
         new GeoJsonLayer({
           ...defaultGeoJsonLayerProps,
-          id: `geojson-layer-states`, // @ts-ignore
-          data: statesData,
+          id: `geojson-layer-states`,
+          // data: statesData,
+          data: statesURL,
           highlightColor: theme.palette.mode === 'dark' ? [255, 255, 255, 25] : [80, 144, 211, 20],
           getLineColor: theme.palette.mode === 'dark' ? [255, 255, 255, 200] : [178, 186, 194, 200],
           getFillColor: (f) =>

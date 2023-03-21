@@ -4,7 +4,6 @@ import {
   query,
   where,
   getCountFromServer,
-  // QueryFieldFilterConstraint,
   WhereFilterOp,
   QueryConstraint,
 } from 'firebase/firestore';

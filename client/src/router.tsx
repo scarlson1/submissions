@@ -60,6 +60,10 @@ import { RequireAuthReactFire, getRequiredClaimValidator } from 'components/Requ
 
 // provider for react-router (pass user etc.): https://stackoverflow.com/a/74929447/10887890
 
+// TODO: route-based code splitting - https://legacy.reactjs.org/docs/code-splitting.html#route-based-code-splitting
+//    - split routes by nesting or type (/admin) or (/quotes) ??
+//    - currently only supports default exports (can reexport as default in module if needed)
+// TODO: refactor create path to deal with relative routes ??
 // TODO: add errorElement to routes
 
 export enum ROUTES {

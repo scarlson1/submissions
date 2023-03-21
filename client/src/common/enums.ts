@@ -22,6 +22,7 @@ export enum COLLECTIONS {
   TAXES = 'surplusLinesTaxes',
   ACTIVE_STATES = 'states',
   MORATORIUMS = 'moratoriums',
+  PUBLIC = 'public',
   TASKS = 'tasks', // TODO: DELETE
 }
 

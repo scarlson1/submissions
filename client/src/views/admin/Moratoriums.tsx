@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { Box, Button, Card, Tooltip, Typography, useMediaQuery, useTheme } from '@mui/material';
 import {
   BlockRounded,
@@ -24,7 +24,9 @@ import {
   GridRowModel,
   GridRowParams,
 } from '@mui/x-data-grid';
-import { GeoJsonLayer } from 'deck.gl/typed';
+import { GeoJsonLayer, PickingInfo } from 'deck.gl/typed';
+import { ref } from 'firebase/storage';
+import { useStorage, useStorageDownloadURL } from 'reactfire';
 
 import { ADMIN_ROUTES, createPath } from 'router';
 import { BasicDataGrid, ConfirmationDialog } from 'components';
@@ -38,8 +40,9 @@ import { GridCellCopy, renderChips } from 'components/RenderGridCellHelpers';
 import { FIPSDetails, Moratorium, moratoriumsCollection, MoratoriumWithId } from 'common';
 import { useConfirmation } from 'modules/components/ConfirmationService';
 import { DeckMap, defaultGeoJsonLayerProps } from 'elements';
-import countiesData from 'assets/counties_20m.json';
 import { useAsyncToast, useCollectionData, useJsonDialog } from 'hooks';
+
+// TODO: lazy load map component in modal
 
 const useUpdateMoratorium = () => {
   const update = useCallback(async (id: string, updateValues: Partial<Moratorium>) => {
@@ -103,6 +106,15 @@ export const Moratoriums: React.FC = () => {
   const updateMoratorium = useUpdateMoratorium();
   const toast = useAsyncToast();
   let fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
+  // const storage = useStorage();
+
+  // const { status: countiesStatus, data: countiesURL } = useStorageDownloadURL(
+  //   ref(storage, COUNTIES_JSON_STORAGE_PATH)
+  // );
+  // console.log('STATUS / URL: ', countiesStatus, countiesURL);
+  // if (countiesStatus === 'loading') {
+  //   return <CircularProgress color='secondary' />;
+  // }
   // TODO: create ActiveCountiesMap ??
 
   const showDetails = useCallback(
@@ -145,36 +157,21 @@ export const Moratoriums: React.FC = () => {
             dialogContentProps={{ dividers: true }}
           >
             <Card sx={{ height: 500, width: '100%' }}>
-              <DeckMap
-                // hoverInfo={hoverInfo}
-                // renderTooltipContent={(info: PickingInfo) =>
-                //   `${info.object.properties?.NAME} (${info.object.properties?.GEOID})`
-                // }
-                layers={[
-                  new GeoJsonLayer({
-                    ...defaultGeoJsonLayerProps,
-                    id: `geojson-layer-counties`, // @ts-ignore
-                    data: countiesData,
-                    highlightColor:
-                      theme.palette.mode === 'dark' ? [255, 255, 255, 25] : [80, 144, 211, 20],
-                    getLineColor:
-                      theme.palette.mode === 'dark' ? [255, 255, 255, 200] : [178, 186, 194, 200],
-                    getFillColor: (f) =>
-                      !!d.locationDetails.some(
-                        (c: FIPSDetails) => `${c.stateFP}${c.countyFP}` === f.properties?.GEOID
-                      )
-                        ? [0, 125, 255, 50]
-                        : [255, 255, 255, 20],
-                    // onHover: (info: PickingInfo) => setHoverInfo(info),
-                  }),
-                ]}
-              />
+              <React.Suspense
+                fallback={
+                  <Typography align='center' sx={{ py: 5 }}>
+                    Loading counties...
+                  </Typography>
+                }
+              >
+                <CountiesMap selectedCounties={d.locationDetails} />
+              </React.Suspense>
             </Card>
           </ConfirmationDialog>
         ),
       });
     },
-    [data, modal, theme]
+    [data, modal]
   );
 
   const deactivate = useCallback(
@@ -433,3 +430,49 @@ export const Moratoriums: React.FC = () => {
     </Box>
   );
 };
+
+const COUNTIES_JSON_STORAGE_PATH = `public/geo-spatial/counties_20m.json`;
+
+export function CountiesMap({
+  selectedCounties,
+  layerProps,
+}: {
+  selectedCounties?: FIPSDetails[];
+  layerProps?: any;
+}) {
+  const theme = useTheme();
+  const storage = useStorage();
+  const [hoverInfo, setHoverInfo] = useState<PickingInfo>();
+
+  const { data: countiesURL } = useStorageDownloadURL(ref(storage, COUNTIES_JSON_STORAGE_PATH));
+
+  return (
+    <DeckMap
+      hoverInfo={hoverInfo}
+      renderTooltipContent={(info: PickingInfo) =>
+        `${info.object.properties?.NAME} (${info.object.properties?.GEOID})`
+      }
+      layers={[
+        new GeoJsonLayer({
+          ...defaultGeoJsonLayerProps,
+          id: `geojson-layer-counties`, // @ts-ignore
+          // data: countiesData,
+          data: countiesURL,
+          highlightColor: theme.palette.mode === 'dark' ? [255, 255, 255, 25] : [80, 144, 211, 20],
+          getLineColor: theme.palette.mode === 'dark' ? [255, 255, 255, 200] : [178, 186, 194, 200],
+          getFillColor: (f) =>
+            !!selectedCounties?.some(
+              (c: FIPSDetails) => `${c.stateFP}${c.countyFP}` === f.properties?.GEOID
+            )
+              ? [0, 125, 255, 50]
+              : [255, 255, 255, 20],
+          updateTriggers: {
+            getFillColor: [selectedCounties],
+          },
+          onHover: (info: PickingInfo) => setHoverInfo(info),
+          ...layerProps,
+        }),
+      ]}
+    />
+  );
+}

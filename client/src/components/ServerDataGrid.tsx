@@ -53,7 +53,6 @@ export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
 
   useEffect(() => {
     fetchCount().then((result) => {
-      console.log('ROW COUNT: ', result.data().count);
       setRowCount(result.data().count);
     });
   }, [fetchCount, queryOptions]); // need to include contraints in dependencies ??

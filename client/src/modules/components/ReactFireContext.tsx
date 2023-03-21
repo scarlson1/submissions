@@ -34,7 +34,6 @@ export function ReactFireServicesContext({ children }: { children: React.ReactNo
     connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
     connectFirestoreEmulator(firestore, 'localhost', 8082);
     connectFunctionsEmulator(functions, 'localhost', 5001);
-    // connectFunctionsEmulator(functions, '127.0.0.1', 5001);
     connectStorageEmulator(storage, 'localhost', 9199);
   }
 
@@ -50,7 +49,11 @@ export function ReactFireServicesContext({ children }: { children: React.ReactNo
 }
 
 export function ReactFireAppContext({ children }: { children: React.ReactNode }) {
-  return <FirebaseAppProvider firebaseConfig={firebaseConfig}>{children}</FirebaseAppProvider>;
+  return (
+    <FirebaseAppProvider firebaseConfig={firebaseConfig} suspense={true}>
+      {children}
+    </FirebaseAppProvider>
+  );
 }
 
 // https://github.com/FirebaseExtended/reactfire/blob/main/example/withSuspense/Firestore.tsx

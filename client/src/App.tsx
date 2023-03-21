@@ -11,13 +11,13 @@ import {
   AuthContextProvider,
   Toaster,
 } from 'modules/components';
-import { GenericErrorFallback } from 'components';
+import { ErrorFallback } from 'components';
 
 function App() {
   return (
     <ThemeProvider>
       <ErrorBoundary
-        FallbackComponent={GenericErrorFallback}
+        FallbackComponent={ErrorFallback}
         // TODO: log errors (Google)
         // onError={(error: Error, info: {componentStack: string}) => {
         //   logToErrorLoggingService(error, info);

@@ -4,6 +4,8 @@ import { useRouteError, isRouteErrorResponse, useNavigate } from 'react-router-d
 
 import { ServerDownSVG, PageNotFoundSVG, SecureLoginSVG, SearchingSVG } from 'assets/images';
 
+// FOR HANDLING ERRORS THROWN IN REACT ROUTER LOADERS
+
 // TODO: tailor error responses using isRouteErrorResponse
 // https://reactrouter.com/en/main/route/error-element
 
