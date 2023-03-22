@@ -21,6 +21,8 @@ export { FormikDragDrop } from './FormikDragDrop';
 export { RoutingNumberMask } from './RoutingNumberMask';
 export { FormikMultiTextInput } from './FormikMultiTextInput';
 export { IMask } from './IMask';
+export { VirtualizedAutocomplete } from './VirtualizedAutocomplete';
+
 // export {  } from './';
 // export {  } from './';
 // export {  } from './';
@@ -53,6 +55,7 @@ export type { FormikDragDropProps } from './FormikDragDrop';
 export type { RoutingNumberMaskProps } from './RoutingNumberMask';
 export type { FormikMultiTextInputProps } from './FormikMultiTextInput';
 export type { IMaskProps } from './IMask';
+export type { VirtualizedAutocompleteProps } from './VirtualizedAutocomplete';
 // export type {  } from './';
 // export type {  } from './';
 // export type {  } from './';

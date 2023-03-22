@@ -21,6 +21,7 @@ export { ActionHandler } from './ActionHandler';
 export { FloodStateDisclosure } from './FloodStateDisclosure';
 export { UpdateProfileImg } from './UpdateProfileImg';
 export { FormikAddressLite } from './FormikAddressLite';
+export { CountiesMap } from './CountiesMap';
 
 export type { FormikAddressProps } from './FormikAddress';
 export type { DeductibleStepProps } from './DeductibleStep';
@@ -34,4 +35,7 @@ export type { DeckMapProps } from './DeckMap';
 export type { FloodStateDisclosureProps } from './FloodStateDisclosure';
 export type { UpdateProfileImgProps } from './UpdateProfileImg';
 export type { FormikAddressLiteProps } from './FormikAddressLite';
+export type { CountiesMapProps } from './CountiesMap';
+// export type {  } from './';
+// export type {  } from './';
 // export type {  } from './';

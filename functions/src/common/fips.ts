@@ -4,10 +4,6 @@ import { FIPSDetails } from './types.js';
 
 // class codes: https://www.census.gov/library/reference/code-lists/class-codes.html
 
-// if using autocomplete: virtualize list with react-window
-// https://web.dev/virtualize-long-lists-react-window/
-// https://blog.logrocket.com/how-to-virtualize-large-lists-using-react-window/
-
 export const FIPS: FIPSDetails[] = [
   {
     state: 'AL',

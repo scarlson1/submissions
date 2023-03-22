@@ -42,7 +42,6 @@ export const ActiveStateMap: React.FC<ActiveStateMapProps> = ({
   const storage = useStorage();
 
   const { status, data: statesURL } = useStorageDownloadURL(ref(storage, STATES_JSON_STORAGE_PATH));
-
   if (status === 'loading') {
     return <CircularProgress />;
   }

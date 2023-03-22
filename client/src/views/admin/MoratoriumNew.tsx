@@ -8,13 +8,16 @@ import { useNavigate } from 'react-router-dom';
 import * as yup from 'yup';
 import { addWeeks } from 'date-fns';
 
-import { FormikDatePicker, FormikSelect } from 'components/forms';
+import { FormikDatePicker, FormikSelect, VirtualizedAutocomplete } from 'components/forms';
 import { useCreateMoratorium } from 'hooks';
 import { ADMIN_ROUTES, createPath } from 'router';
-import { FIPSAutocomplete } from 'components/forms/FIPSAutocomplete';
-import { FIPSDetails } from 'common';
-import { FIPS } from 'common/fips';
-import { CountiesMap } from './Moratoriums';
+import { COLLECTIONS, FIPSDetails } from 'common';
+import { FIPS } from 'common/fips'; // TODO: call api instead of loading into memory (refactor autocomplete & call api to get location details)
+import { CountiesMap } from 'elements';
+import { useFirestore, useFirestoreDocDataOnce } from 'reactfire';
+import { doc, DocumentReference } from 'firebase/firestore';
+
+// TODO: suspense and error boundary around virtual autocomplete
 
 const validation = yup.object().shape({
   locationDetails: yup
@@ -220,6 +223,13 @@ export const MoratoriumNew: React.FC = () => {
                         selectedCounties={values.locationDetails}
                         layerProps={{
                           onClick: handleCountyClicked,
+                          getFillColor: (f: any) =>
+                            !!values.locationDetails?.some(
+                              (c: FIPSDetails) =>
+                                `${c.stateFP}${c.countyFP}` === f.properties?.GEOID
+                            )
+                              ? [0, 125, 255, 50]
+                              : [255, 255, 255, 20],
                         }}
                       />
                     </React.Suspense>
@@ -233,3 +243,23 @@ export const MoratoriumNew: React.FC = () => {
     </Box>
   );
 };
+
+function FIPSAutocomplete({ name = 'locationDetails' }: { name?: string }) {
+  const firestore = useFirestore();
+  const countiesDocRef = doc(firestore, COLLECTIONS.PUBLIC, 'fips') as DocumentReference<{
+    counties: FIPSDetails[];
+  }>;
+  const {
+    data: { counties },
+  } = useFirestoreDocDataOnce(countiesDocRef);
+
+  return (
+    <VirtualizedAutocomplete
+      options={counties}
+      name={name}
+      getOptionLabel={(option) => `${option.stateFP}${option.countyFP} - ${option.countyName}`}
+      autocompleteProps={{ groupBy: (option) => option.state }}
+      textFieldProps={{ label: 'Counties', placeholder: 'search: fips, state, county name' }}
+    />
+  );
+}
