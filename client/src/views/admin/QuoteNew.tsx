@@ -351,6 +351,7 @@ export const QuoteNew: React.FC = () => {
 
       formikRef.current?.setFieldValue('annualPremium', data.annualPremium);
       formikRef.current?.setFieldTouched('annualPremium');
+      // setTimeout(() => formikRef.current?.setFieldTouched('annualPremium'), 100);
       setTimeout(() => formikRef.current?.validateField('annualPremium'), 100);
     } catch (err) {
       console.log('ERROR: ', err);
@@ -366,10 +367,6 @@ export const QuoteNew: React.FC = () => {
   //   })
   // }, [])
 
-  // const menuItems = useMemo(
-  //   () => [{ label: 'Start from submission', action: promptForSubmission }],
-  //   []
-  // );
   const menuItems = useMemo(
     () => [
       { label: 'Start from submission', action: createPath({ path: ADMIN_ROUTES.SUBMISSIONS }) },
@@ -384,8 +381,6 @@ export const QuoteNew: React.FC = () => {
   );
 
   //TODO: CHANGE SUBMISSION LIMITS TO BE TYPE NUMBER
-
-  console.log('SUBMISSION DATA: ', submissionData);
   if (submissionId && !submissionData) return <div>Loading...</div>;
 
   return (

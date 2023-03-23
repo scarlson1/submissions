@@ -16,8 +16,6 @@ import {
   Position,
   Properties,
 } from '@turf/turf';
-
-// import { FIPS } from '../common/fips';
 import countiesJson from '../assets/counties_20m.json';
 
 const googleGeoKey = defineSecret('GOOGLE_BACKEND_GEO_KEY');

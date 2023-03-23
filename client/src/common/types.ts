@@ -11,10 +11,15 @@ import {
 } from './enums';
 import { FloodValues } from 'views/SubmissionNew';
 import { FetchPropertyDataResponse } from 'modules/api/index';
+import { JSONContent } from '@tiptap/react';
 
 export interface BaseMetadata {
   created: FirestoreTimestamp;
   updated: FirestoreTimestamp;
+}
+
+export interface BaseDoc {
+  metadata: BaseMetadata;
 }
 
 export type WithId<T> = T & { id: string };
@@ -398,17 +403,17 @@ export interface EPayPaymentMethodDetails {
   accountHolder?: string;
 }
 
-export interface PaymentMethod extends EPayPaymentMethodDetails {
+export interface PaymentMethod extends EPayPaymentMethodDetails, Partial<BaseDoc> {
   last4?: string;
   expiration?: string;
   // TODO: separate into expMonth and expYear
   brand?: string;
   network?: string;
   userId?: string | null;
-  metadata?: BaseMetadata;
+  // metadata?: BaseMetadata;
 }
 
-export interface Policy {
+export interface Policy extends BaseDoc {
   status: POLICY_STATUS;
   limits: Limits;
   deductible: number;
@@ -442,10 +447,10 @@ export interface Policy {
   // lightMapImageURL?: string;
   // darkMapImageFilePath?: string;
   // lightMapImageFilePath?: string;
-  metadata: BaseMetadata;
+  // metadata: BaseMetadata;
 }
 
-export interface User {
+export interface User extends BaseDoc {
   displayName?: string;
   firstName?: string;
   lastName?: string;
@@ -473,7 +478,7 @@ export type AuthProviders =
   | 'yahoo.com'
   | 'hotmail.com';
 
-export interface AgencyApplication {
+export interface AgencyApplication extends BaseDoc {
   orgName: string;
   address: Address;
   contact: {
@@ -495,7 +500,7 @@ export interface AgencyApplication {
   };
   FEIN: string;
   EandO: string;
-  metadata: BaseMetadata;
+  // metadata: BaseMetadata;
   // createdByUid: string | null;
   // createdByName: string | null;
   status: 'TODO' | 'COPY' | 'FROM' | 'OTHER' | 'APP'; // AgencySubmissionStatus;
@@ -504,9 +509,9 @@ export interface AgencyApplication {
   // latitude?: number | null;
   // longitude?: number | null;
 }
-export interface AgencyApplicationWithId extends AgencyApplication {
-  id: string;
-}
+// export interface AgencyApplicationWithId extends AgencyApplication {
+//   id: string;
+// }
 
 export interface Agency {
   address: Address;
@@ -534,7 +539,7 @@ export interface Agency {
   // };
 }
 
-export interface Organization {
+export interface Organization extends BaseDoc {
   address: Address;
   coordinates?: GeoPoint; // Coordinates;
   orgName: string;
@@ -564,14 +569,14 @@ export interface Organization {
   routingNumber?: string;
   status: 'TODO' | 'COPY' | 'FROM' | 'OTHER' | 'APP'; // AgencyStatus;
   defaultCommission: { [key in PRODUCT]: number };
-  metadata: BaseMetadata;
+  // metadata: BaseMetadata;
 }
 
 // TODO: convert dates to Firestore timestamps so that they're queryable
 
 export type InviteStatus = 'pending' | 'accepted' | 'revoked' | 'replaced' | 'rejected' | 'error';
 
-export interface Invite {
+export interface Invite extends BaseDoc {
   email: string;
   displayName?: string;
   firstName?: string;
@@ -587,7 +592,7 @@ export interface Invite {
     name?: string;
     email: string;
   } | null;
-  metadata: BaseMetadata;
+  // metadata: BaseMetadata;
 }
 
 // TODO: create Transaction type to used like: Transaction['charge'] and Transaction['refund']
@@ -595,7 +600,7 @@ export interface Invite {
 export type TransactionStatus = 'processing' | 'succeeded' | 'payment_failed';
 
 // https://stripe.com/docs/api/charges/object
-export interface Charge {
+export interface Charge extends BaseDoc {
   transactionId: string;
   amount: number;
   amountCaptured: number;
@@ -622,7 +627,7 @@ export interface Charge {
   publicDescriptor: string | null;
   publicDescriptorTitle: string | null;
   status: TransactionStatus;
-  metadata: BaseMetadata;
+  // metadata: BaseMetadata;
 }
 
 export type ActiveStates = {
@@ -633,7 +638,7 @@ export type ActiveStatesWithId = ActiveStates & { id: string };
 
 export type NotificationType = 'admin_message' | 'user_event' | 'policy_event';
 
-export interface Notification {
+export interface Notification extends BaseDoc {
   activityType: NotificationType;
   isUnread: boolean;
   // objectType: string; // TODO: notification structure ??
@@ -642,7 +647,6 @@ export interface Notification {
   senderId?: string | null;
   title: string;
   description: string;
-  metadata: BaseMetadata;
 }
 
 export interface NotifyRegistration {
@@ -664,7 +668,7 @@ export type RoundingType = 'nearest' | 'up' | 'down';
 
 export type TransactionType = 'new' | 'renewal' | 'endorsement' | 'cancellation';
 
-export interface Tax {
+export interface Tax extends BaseDoc {
   state: string;
   displayName: string;
   effectiveDate: Timestamp;
@@ -680,7 +684,6 @@ export interface Tax {
   rateType: 'fixed' | 'percent';
   resultRounding?: RoundingType;
   refundable?: boolean;
-  metadata: BaseMetadata;
 }
 
 export interface FIPSDetails {
@@ -690,7 +693,7 @@ export interface FIPSDetails {
   countyFP: string;
   classFP?: string;
 }
-export interface Moratorium {
+export interface Moratorium extends BaseDoc {
   // what about entire state ?? need another field?
   // or add fips: 01 for state, 01001 for county ??
   locationDetails: FIPSDetails[];
@@ -704,11 +707,10 @@ export interface Moratorium {
   effectiveDate: Timestamp;
   expirationDate?: Timestamp | null;
   reason?: string;
-  metadata: BaseMetadata;
 }
-export interface MoratoriumWithId extends Moratorium {
-  id: string;
-}
+// export interface MoratoriumWithId extends Moratorium {
+//   id: string;
+// }
 
 // export interface LicenseLOA {
 //   LOAName: string;
@@ -733,7 +735,7 @@ export interface MoratoriumWithId extends Moratorium {
 export type LicenseOwner = 'individual' | 'organization';
 export type LicenseType = 'producer' | 'surplus lines' | 'MGA' | 'Tax ID';
 
-export interface License {
+export interface License extends BaseDoc {
   state: string;
   ownerType: LicenseOwner;
   licensee: string;
@@ -743,11 +745,15 @@ export interface License {
   effectiveDate: FirestoreTimestamp;
   expirationDate?: FirestoreTimestamp | null;
   SLAssociationMembershipRequired?: boolean;
-  metadata: BaseMetadata;
+  // metadata: BaseMetadata;
 }
 
-export interface LicenseWithId extends License {
-  id: string;
+export interface Disclosure extends BaseDoc {
+  products: Product[];
+  state: string | null;
+  type?: string | null; // TODO: types
+  title?: string | null;
+  content: JSONContent;
 }
 
 export interface SpatialKeyResponse {

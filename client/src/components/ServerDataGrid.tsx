@@ -55,7 +55,7 @@ export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
     fetchCount().then((result) => {
       setRowCount(result.data().count);
     });
-  }, [fetchCount, queryOptions]); // need to include contraints in dependencies ??
+  }, [fetchCount, queryOptions]);
 
   // keep cursors in memory
   const cursors = useRef<Map<number, DocumentSnapshot>>(new Map());

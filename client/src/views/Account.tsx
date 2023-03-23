@@ -5,28 +5,32 @@ import { LoadingButton } from '@mui/lab';
 import { SaveRounded } from '@mui/icons-material';
 import { toast } from 'react-hot-toast';
 import { Formik, FormikHelpers } from 'formik';
-import { doc, FirestoreError, getFirestore, onSnapshot } from 'firebase/firestore';
+import {
+  doc,
+  DocumentSnapshot,
+  FirestoreError,
+  getFirestore,
+  onSnapshot,
+} from 'firebase/firestore';
 import { FirebaseError } from 'firebase/app';
 
 import { FormikTextField } from 'components/forms';
 import { readableFirebaseCode } from 'modules/utils/helpers';
 import { useAuth } from 'modules/components/AuthContext';
-import { User, usersCollection } from 'common';
-
-interface UserWithId extends User {
-  id: string;
-}
+import { User, usersCollection, WithId } from 'common';
 
 const useUserAccount = (onError?: (err: unknown, msg: string) => void) => {
   const { user } = useAuth();
-  const [account, setAccount] = useState<UserWithId>();
+  const [account, setAccount] = useState<WithId<User>>();
 
   useEffect(() => {
     if (!user || !user.uid) return;
     const unsubscribe = onSnapshot(
       doc(usersCollection(getFirestore()), user?.uid),
-      (snap) => {
-        setAccount({ ...snap.data(), id: snap.id });
+      (snap: DocumentSnapshot<User>) => {
+        const u = snap.data();
+        if (!u) return setAccount(undefined);
+        setAccount({ ...u, id: snap.id });
       },
       (err) => {
         console.log('ERROR: ', err);

@@ -29,7 +29,7 @@ import { useAuth as useFireAuth } from 'reactfire';
 // import { filter } from 'rxjs/operators';
 
 import { userClaimsCollection } from 'common/firestoreCollections';
-import { UserClaims } from 'common/types';
+import { UserClaims } from 'common';
 import { ReauthDialog } from 'components';
 import { toast } from 'react-hot-toast';
 

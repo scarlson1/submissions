@@ -144,7 +144,6 @@ const ListboxComponent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<H
           >
             {rowVirtualizer.getVirtualItems().map((virtualRow) => {
               const row = itemData[virtualRow.index];
-              // console.log('ROW DATA: ', row);
 
               if (row.hasOwnProperty('group')) {
                 return (
@@ -180,7 +179,6 @@ const ListboxComponent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<H
                     checked={optionState?.selected}
                   />
                   {itemProps.key}
-                  {/* {`${option.countyFP} - ${option.countyName}`} */}
                 </Typography>
               );
             })}

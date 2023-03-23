@@ -1,15 +1,15 @@
 import React, { useCallback } from 'react';
 import { Box, Button, Typography } from '@mui/material';
-import { addDoc, collection, doc, DocumentReference, Timestamp, where } from 'firebase/firestore';
-import { useFirestore, useFirestoreDocDataOnce, useUser } from 'reactfire';
+import { addDoc, collection, CollectionReference, Timestamp, where } from 'firebase/firestore';
+import { useFirestore, useUser } from 'reactfire';
 import { getGridDateOperators } from '@mui/x-data-grid';
 import { faker } from '@faker-js/faker';
 
-import { ServerDataGrid, numericOperators } from 'components';
+import { ServerDataGrid, numericOperators, TextEditor } from 'components';
 import { formatGridFirestoreTimestamp, formatGridFirestoreTimestampAsDate } from 'modules/utils';
-import { COLLECTIONS, FIPSDetails } from 'common';
-import { VirtualizedAutocomplete } from 'components/forms/VirtualizedAutocomplete';
-import { Formik } from 'formik';
+import { JSONContent } from '@tiptap/react';
+import { COLLECTIONS, Disclosure } from 'common';
+import { toast } from 'react-hot-toast';
 
 export const columns = [
   {
@@ -91,6 +91,32 @@ export const columns = [
 export const TasksPagination: React.FC = () => {
   const { status, data: user } = useUser();
 
+  const db = useFirestore();
+  const onSave = useCallback(
+    async (content: JSONContent) => {
+      try {
+        const disclosuresColl = collection(
+          db,
+          COLLECTIONS.DISCLOSURES
+        ) as CollectionReference<Disclosure>;
+        const docRef = await addDoc(disclosuresColl, {
+          products: ['flood', 'wind'],
+          state: 'MN',
+          content,
+          metadata: {
+            created: Timestamp.now(),
+            updated: Timestamp.now(),
+          },
+        });
+        toast.success(`Save doc (${docRef.id})`);
+      } catch (err: any) {
+        console.log('ERROR: ', err);
+        toast.error(`Error saving doc (${err.code || 'unknown'})`);
+      }
+    },
+    [db]
+  );
+
   if (status === 'loading') return <div>Loading...</div>;
   if (!user?.uid) return <div>missing user id</div>;
 
@@ -107,8 +133,9 @@ export const TasksPagination: React.FC = () => {
         columns={columns}
         constraints={[where('userId', '==', user?.uid)]}
       />
-
-      <VirtualTest />
+      <Box sx={{ py: 8 }}>
+        <TextEditor onSave={onSave} />
+      </Box>
     </Box>
   );
 };
@@ -153,89 +180,4 @@ function GenerateTasksButton() {
       Generate Tasks
     </Button>
   );
-}
-
-function VirtualTest() {
-  // const parentRef = React.useRef<any>(); // HTMLDivElement
-  const firestore = useFirestore();
-  const countiesDocRef = doc(firestore, COLLECTIONS.PUBLIC, 'fips') as DocumentReference<{
-    counties: FIPSDetails[];
-  }>;
-  const {
-    data: { counties },
-  } = useFirestoreDocDataOnce(countiesDocRef);
-
-  return (
-    <Box sx={{ py: 8, maxWidth: 400 }}>
-      <Formik initialValues={{ test: [] }} onSubmit={(values) => console.log(values)}>
-        {(props) => (
-          <>
-            <VirtualizedAutocomplete
-              options={counties}
-              name='test'
-              getOptionLabel={(option) =>
-                `${option.stateFP}${option.countyFP} - ${option.countyName}`
-              }
-              autocompleteProps={{ groupBy: (option) => option.state }}
-              textFieldProps={{
-                label: 'Counties',
-                placeholder: 'search: fips, state, county name',
-              }}
-            />
-            <div onClick={props.submitForm}>submit</div>
-          </>
-        )}
-      </Formik>
-    </Box>
-  );
-
-  // const rowVirtualizer = useVirtualizer({
-  //   count: counties.length, // options.length,
-  //   getScrollElement: () => parentRef.current,
-  //   estimateSize: () => 35,
-  //   overscan: 5,
-  // });
-
-  // return (
-  //   <Box sx={{ p: 5, my: 5, border: '1px solid lightgrey', borderRadius: 1, maxWidth: 440 }}>
-  // <div
-  //   ref={parentRef}
-  //   className='List'
-  //   style={{
-  //     height: `200px`,
-  //     width: `400px`,
-  //     overflow: 'auto',
-  //   }}
-  // >
-  //   <div
-  //     style={{
-  //       height: `${rowVirtualizer.getTotalSize()}px`,
-  //       width: '100%',
-  //       position: 'relative',
-  //     }}
-  //   >
-  //     {rowVirtualizer.getVirtualItems().map((virtualRow) => {
-  //       const countyDetails = counties[virtualRow.index];
-  //       return (
-  //         <div
-  //           key={virtualRow.index}
-  //           className={virtualRow.index % 2 ? 'ListItemOdd' : 'ListItemEven'}
-  //           style={{
-  //             position: 'absolute',
-  //             top: 0,
-  //             left: 0,
-  //             width: '100%',
-  //             height: `${virtualRow.size}px`,
-  //             transform: `translateY(${virtualRow.start}px)`,
-  //           }}
-  //         >
-  //           {`${countyDetails.countyFP} - ${countyDetails.countyName}`}
-  //           {/* Row {virtualRow.index} */}
-  //         </div>
-  //       );
-  //     })}
-  //   </div>
-  // </div>
-  //   </Box>
-  // );
 }

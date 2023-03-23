@@ -117,6 +117,7 @@ service cloud.firestore {
       allow delete: if false
     }
 
+    // TODO: fix rules
     match /agencySubmissions/{subId} {
       allow read, write: if true
       // allow create: if true
@@ -140,7 +141,7 @@ service cloud.firestore {
       allow delete: if isIDemandAdmin() && emailVerified()
     }
 
-    match /tasks/{taskId} {
+    match /disclosures/{docId} {
       allow read: if true
       allow create: if isIDemandAdmin() && emailVerified()
       allow update: if isIDemandAdmin() && emailVerified()
@@ -148,6 +149,13 @@ service cloud.firestore {
     }
 
     match /public/{docId} {
+      allow read: if true
+      allow create: if isIDemandAdmin() && emailVerified()
+      allow update: if isIDemandAdmin() && emailVerified()
+      allow delete: if isIDemandAdmin() && emailVerified()
+    }
+
+    match /tasks/{taskId} {
       allow read: if true
       allow create: if isIDemandAdmin() && emailVerified()
       allow update: if isIDemandAdmin() && emailVerified()

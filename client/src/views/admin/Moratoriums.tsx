@@ -35,7 +35,7 @@ import {
   isCurrentDateBetween,
 } from 'modules/utils';
 import { GridCellCopy, renderChips } from 'components/RenderGridCellHelpers';
-import { FIPSDetails, Moratorium, moratoriumsCollection, MoratoriumWithId } from 'common';
+import { FIPSDetails, Moratorium, moratoriumsCollection, WithId } from 'common';
 import { useConfirmation } from 'modules/components/ConfirmationService';
 import { CountiesMap } from 'elements';
 import { useAsyncToast, useCollectionData, useJsonDialog } from 'hooks';
@@ -56,8 +56,8 @@ const useUpdateMoratorium = () => {
 };
 
 const getMutationMsg = (
-  newVals: GridRowModel<MoratoriumWithId>,
-  old: GridRowModel<MoratoriumWithId>
+  newVals: GridRowModel<WithId<Moratorium>>,
+  old: GridRowModel<WithId<Moratorium>>
 ) => {
   let changeItems = [];
   if (newVals.effectiveDate !== old.effectiveDate) {
@@ -340,7 +340,7 @@ export const Moratoriums: React.FC = () => {
   );
 
   const processRowUpdate = useCallback(
-    async (newRow: GridRowModel<MoratoriumWithId>, oldRow: GridRowModel<MoratoriumWithId>) => {
+    async (newRow: GridRowModel<WithId<Moratorium>>, oldRow: GridRowModel<WithId<Moratorium>>) => {
       // TODO: get diff fields / values and show in confirmation
       // https://mui.com/x/react-data-grid/editing/#ask-for-confirmation-before-saving
       const mutationItems = getMutationMsg(newRow, oldRow);

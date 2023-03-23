@@ -12,7 +12,6 @@ import { FormikDatePicker, FormikSelect, VirtualizedAutocomplete } from 'compone
 import { useCreateMoratorium } from 'hooks';
 import { ADMIN_ROUTES, createPath } from 'router';
 import { COLLECTIONS, FIPSDetails } from 'common';
-import { FIPS } from 'common/fips'; // TODO: call api instead of loading into memory (refactor autocomplete & call api to get location details)
 import { CountiesMap } from 'elements';
 import { useFirestore, useFirestoreDocDataOnce } from 'reactfire';
 import { doc, DocumentReference } from 'firebase/firestore';
@@ -49,6 +48,15 @@ export interface MoratoriumValues {
 export const MoratoriumNew: React.FC = () => {
   const navigate = useNavigate();
   const formikRef = useRef<FormikProps<MoratoriumValues>>(null);
+  const firestore = useFirestore();
+  const fipsDocRef = doc(firestore, COLLECTIONS.PUBLIC, 'fips') as DocumentReference<{
+    counties: FIPSDetails[];
+  }>;
+  const {
+    data: { counties },
+  } = useFirestoreDocDataOnce(fipsDocRef);
+  // TODO: handle doc doesnt exist ? does suspense catch does not exist ?
+
   const createMoratorium = useCreateMoratorium({
     onSuccess: (id: string) => {
       toast.success(`Moratorium created (ID: ${id})`);
@@ -77,28 +85,32 @@ export const MoratoriumNew: React.FC = () => {
     );
   };
 
-  const handleCountyClicked = useCallback((info: PickingInfo, e: any) => {
-    const fips = info.object.properties.GEOID;
-    if (!fips) return;
+  const handleCountyClicked = useCallback(
+    (info: PickingInfo, e: any) => {
+      const fips = info.object.properties.GEOID;
+      if (!fips) return;
 
-    if (
-      formikRef.current?.values.locationDetails.some((c) => `${c.stateFP}${c.countyFP}` === fips)
-    ) {
-      const newArr = formikRef.current?.values.locationDetails.filter(
-        (c) => `${c.stateFP}${c.countyFP}` !== fips
-      );
-      formikRef.current?.setFieldValue('locationDetails', newArr);
-    } else {
-      // TODO: get county details by fips (pass fips data to autocomplete component so not importing two places ??)
-      const details = FIPS.find((e) => `${e.stateFP}${e.countyFP}` === fips);
-      if (!details) return;
+      if (
+        // Already in array, remove from list
+        formikRef.current?.values.locationDetails.some((c) => `${c.stateFP}${c.countyFP}` === fips)
+      ) {
+        const newArr = formikRef.current?.values.locationDetails.filter(
+          (c) => `${c.stateFP}${c.countyFP}` !== fips
+        );
+        formikRef.current?.setFieldValue('locationDetails', newArr);
+      } else {
+        // TODO: get county details with api ??
+        const details = counties.find((e) => `${e.stateFP}${e.countyFP}` === fips);
+        if (!details) return toast.error(`Unable to match county details for ${fips}`);
 
-      formikRef.current?.setFieldValue('locationDetails', [
-        ...formikRef.current?.values.locationDetails,
-        details,
-      ]);
-    }
-  }, []);
+        formikRef.current?.setFieldValue('locationDetails', [
+          ...formikRef.current?.values.locationDetails,
+          details,
+        ]);
+      }
+    },
+    [counties]
+  );
 
   return (
     <Box>
@@ -131,7 +143,19 @@ export const MoratoriumNew: React.FC = () => {
 
             <Grid container spacing={8} sx={{ my: 4 }}>
               <Grid xs={12} md={6}>
-                <FIPSAutocomplete name='locationDetails' />
+                <VirtualizedAutocomplete
+                  options={counties}
+                  name='locationDetails'
+                  getOptionLabel={(option) =>
+                    `${option.stateFP}${option.countyFP} - ${option.countyName}`
+                  }
+                  autocompleteProps={{ groupBy: (option) => option.state }}
+                  textFieldProps={{
+                    label: 'Counties',
+                    placeholder: 'search: fips, state, county name',
+                  }}
+                />
+                {/* <FIPSAutocomplete name='locationDetails' /> */}
               </Grid>
               <Grid xs={12} sm={6} md={3}>
                 <FormikSelect
@@ -244,22 +268,22 @@ export const MoratoriumNew: React.FC = () => {
   );
 };
 
-function FIPSAutocomplete({ name = 'locationDetails' }: { name?: string }) {
-  const firestore = useFirestore();
-  const countiesDocRef = doc(firestore, COLLECTIONS.PUBLIC, 'fips') as DocumentReference<{
-    counties: FIPSDetails[];
-  }>;
-  const {
-    data: { counties },
-  } = useFirestoreDocDataOnce(countiesDocRef);
+// export function FIPSAutocomplete({ name = 'locationDetails' }: { name?: string }) {
+//   const firestore = useFirestore();
+//   const countiesDocRef = doc(firestore, COLLECTIONS.PUBLIC, 'fips') as DocumentReference<{
+//     counties: FIPSDetails[];
+//   }>;
+//   const {
+//     data: { counties },
+//   } = useFirestoreDocDataOnce(countiesDocRef);
 
-  return (
-    <VirtualizedAutocomplete
-      options={counties}
-      name={name}
-      getOptionLabel={(option) => `${option.stateFP}${option.countyFP} - ${option.countyName}`}
-      autocompleteProps={{ groupBy: (option) => option.state }}
-      textFieldProps={{ label: 'Counties', placeholder: 'search: fips, state, county name' }}
-    />
-  );
-}
+//   return (
+//     <VirtualizedAutocomplete
+//       options={counties}
+//       name={name}
+//       getOptionLabel={(option) => `${option.stateFP}${option.countyFP} - ${option.countyName}`}
+//       autocompleteProps={{ groupBy: (option) => option.state }}
+//       textFieldProps={{ label: 'Counties', placeholder: 'search: fips, state, county name' }}
+//     />
+//   );
+// }

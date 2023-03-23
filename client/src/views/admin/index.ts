@@ -13,6 +13,8 @@ export { AgencyApp } from './AgencyApp';
 export { AgencyApps } from './AgencyApps';
 export { PolicyDelivery } from './PolicyDelivery';
 export { Policies } from './Policies';
+export { Disclosures } from './Disclosures';
+export { DisclosureNew } from './DisclosureNew';
 
 export type { SubmissionsProps } from './Submissions';
 export type { SLTaxesProps } from './SLTaxes';

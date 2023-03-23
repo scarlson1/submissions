@@ -23,6 +23,7 @@ export enum COLLECTIONS {
   ACTIVE_STATES = 'states',
   MORATORIUMS = 'moratoriums',
   PUBLIC = 'public',
+  DISCLOSURES = 'disclosures',
   TASKS = 'tasks', // TODO: DELETE
 }
 

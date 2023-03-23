@@ -24,7 +24,7 @@ export { IconButtonMenu } from './IconButtonMenu';
 export { LineItem } from './LineItem';
 export { ServerDataGrid, numericOperators, dateOperators, stringOperators } from './ServerDataGrid';
 export { ErrorFallback } from './ErrorFallback';
-// export {  } from './'
+export { TextEditor } from './TextEditor';
 // export {  } from './'
 
 export type { ConfirmationDialogProps } from './ConfirmationDialog';

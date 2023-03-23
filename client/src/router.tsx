@@ -48,6 +48,7 @@ import {
   // quotesLoader,
   PolicyDelivery,
   Policies as PoliciesAdmin,
+  DisclosureNew,
   // policiesLoader as adminPoliciesLoader,
 } from 'views/admin';
 import { SuccessStep, ActionHandler } from 'elements';
@@ -55,6 +56,7 @@ import { Product } from 'common';
 import { BindSuccess } from 'elements/SuccessStep';
 import { TasksPagination } from 'views/admin/TasksPagination';
 import { RequireAuthReactFire, getRequiredClaimValidator } from 'components/RequireAuthReactFire';
+import { Disclosures } from 'views/admin/Disclosures';
 
 // import RouterErrorBoundary from 'components/errorBoundaries/RouterErrorBoundary';
 
@@ -98,6 +100,8 @@ export enum ADMIN_ROUTES {
   SL_LICENSE_NEW = '/admin/licenses/new',
   AGENCY_APPS = '/admin/agencies/submissions',
   AGENCY_APP = '/admin/agencies/submissions/:submissionId',
+  DISCLOSURES = '/admin/disclosures',
+  DISCLOSURE_NEW = '/admin/disclosures/new',
 }
 
 export enum AUTH_ROUTES {
@@ -138,6 +142,8 @@ type TArgs =
   | { path: ADMIN_ROUTES.SL_LICENSE_NEW }
   | { path: ADMIN_ROUTES.AGENCY_APPS }
   | { path: ADMIN_ROUTES.AGENCY_APP; params: { submissionId: string } }
+  | { path: ADMIN_ROUTES.DISCLOSURES }
+  | { path: ADMIN_ROUTES.DISCLOSURE_NEW }
   | { path: AUTH_ROUTES.CREATE_ACCOUNT }
   | { path: AUTH_ROUTES.LOGIN }
   | {
@@ -533,6 +539,22 @@ export const router = createBrowserRouter([
               </RequireAuthReactFire>
 
               // </RequireAuth>
+            ),
+          },
+          {
+            path: ADMIN_ROUTES.DISCLOSURES,
+            element: (
+              <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
+                <Disclosures />
+              </RequireAuthReactFire>
+            ),
+          },
+          {
+            path: ADMIN_ROUTES.DISCLOSURE_NEW,
+            element: (
+              <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
+                <DisclosureNew />
+              </RequireAuthReactFire>
             ),
           },
           {
