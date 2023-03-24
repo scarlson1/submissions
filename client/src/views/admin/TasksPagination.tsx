@@ -4,12 +4,13 @@ import { addDoc, collection, CollectionReference, Timestamp, where } from 'fireb
 import { useFirestore, useUser } from 'reactfire';
 import { getGridDateOperators } from '@mui/x-data-grid';
 import { faker } from '@faker-js/faker';
+import { toast } from 'react-hot-toast';
 
-import { ServerDataGrid, numericOperators, TextEditor } from 'components';
+import { ServerDataGrid, numericOperators } from 'components';
+import { TextEditor } from 'components/textEditor/TextEditor';
 import { formatGridFirestoreTimestamp, formatGridFirestoreTimestampAsDate } from 'modules/utils';
 import { JSONContent } from '@tiptap/react';
 import { COLLECTIONS, Disclosure } from 'common';
-import { toast } from 'react-hot-toast';
 
 export const columns = [
   {

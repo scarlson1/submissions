@@ -68,7 +68,7 @@ export const Disclosures: React.FC = () => {
         field: 'actions',
         headerName: 'Actions',
         type: 'actions',
-        width: 120,
+        width: 80,
         getActions: (params: GridRowParams) => [
           <GridActionsCellItem
             icon={
@@ -85,29 +85,36 @@ export const Disclosures: React.FC = () => {
         field: 'state',
         headerName: 'State',
         type: '',
-        minWidth: 120,
+        minWidth: 80,
         flex: 0.2,
         editable: false,
       },
       {
         field: 'products',
         headerName: 'Products',
-        minWidth: 200,
+        minWidth: 160,
         flex: 0.4,
         editable: false,
         renderCell: (params) => renderChips(params, { variant: 'outlined' }),
       },
       {
+        field: 'displayName',
+        headerName: 'Name',
+        minWidth: 140,
+        flex: 0.2,
+        editable: false,
+      },
+      {
         field: 'type',
         headerName: 'Type',
-        minWidth: 160,
+        minWidth: 140,
         flex: 0.2,
         editable: false,
       },
       {
         field: 'content',
         headerName: 'Content',
-        minWidth: 300,
+        minWidth: 360,
         flex: 1,
         editable: false,
         renderCell: (params) => {
@@ -146,7 +153,7 @@ export const Disclosures: React.FC = () => {
       {
         field: 'id',
         headerName: 'Doc ID',
-        minWidth: 200,
+        minWidth: 240,
         flex: 0.8,
         editable: false,
         renderCell: (params) => {

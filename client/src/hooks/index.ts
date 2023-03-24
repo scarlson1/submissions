@@ -33,6 +33,9 @@ export { useDocData } from './useDocData';
 export { useDocDataOnce } from './useDocDataOnce';
 export { useFetchDocsWithCursor } from './useFetchDocsWithCursor';
 export { useImgOnLoad } from './useImgOnLoad';
+export { useTextEditor } from './useTextEditor';
+// export {  } from './'
+// export {  } from './'
 // export {  } from './'
 
 export type { UseFileUploadProps } from './useFileUpload';

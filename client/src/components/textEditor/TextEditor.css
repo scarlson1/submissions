@@ -1,4 +1,8 @@
 /* Basic editor styles */
+
+.ProseMirror {
+  min-height: 200px;
+}
 .ProseMirror > * + * {
   margin-top: 0.75em;
 }

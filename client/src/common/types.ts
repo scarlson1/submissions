@@ -752,7 +752,7 @@ export interface Disclosure extends BaseDoc {
   products: Product[];
   state: string | null;
   type?: string | null; // TODO: types
-  title?: string | null;
+  displayName?: string | null;
   content: JSONContent;
 }
 
