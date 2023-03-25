@@ -56,6 +56,13 @@ export const FormikSelect: React.FC<FormikSelectProps> = ({
         fullWidth={fullWidth}
         {...field}
         {...props}
+        MenuProps={{
+          PaperProps: {
+            style: {
+              maxHeight: 300,
+            },
+          },
+        }}
         // onChange={(e) => {
         //   console.log('e: ', e.target.value);
         //   helpers.setValue(e.target.value);

@@ -8,24 +8,9 @@ import { SectionFormatToolbar } from './SectionFormatToolbar';
 import { SectionBreaksToolbar } from './SectionBreaksToolbar';
 import { TypographyToolbar } from './TypographyToolbar';
 import { FontFamilyToolbar } from './FontFamilyToolbar';
+import { FontSizeToolbar } from './FontSizeToolbar';
 import { TextAlignToolbar } from './TextAlignToolbar';
-
-export const toggleButtonGroupStyle = {
-  maxHeight: 34,
-  '& .MuiToggleButtonGroup-grouped': {
-    margin: 0.5,
-    border: 0,
-    '&.Mui-disabled': {
-      border: 0,
-    },
-    '&:not(:first-of-type)': {
-      borderRadius: 0.5,
-    },
-    '&:first-of-type': {
-      borderRadius: 0.5,
-    },
-  },
-};
+import { TextColorToolbar } from './TextColorToolbar';
 
 export interface EditorToolbarProps {
   editor?: Editor | null;
@@ -46,15 +31,20 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({ editor }) => {
       </ToolbarPaper>
       <TypographyToolbar editor={editor} />
       <FontFamilyToolbar editor={editor} />
+      <FontSizeToolbar editor={editor} />
+      <ToolbarPaper>
+        <TextColorToolbar editor={editor} />
+      </ToolbarPaper>
+
       {/* <Button size='small' onClick={() => editor.chain().focus().unsetColor().run()}>
         unset color
       </Button> */}
-      <input
+      {/* <input
         type='color'
         onInput={(event: any) => editor.chain().focus().setColor(event.target.value).run()}
         value={editor.getAttributes('textStyle').color}
         style={{ marginLeft: '4px', marginRight: '4px' }}
-      />
+      /> */}
       <ToolbarPaper>
         <TextAlignToolbar editor={editor} />
       </ToolbarPaper>

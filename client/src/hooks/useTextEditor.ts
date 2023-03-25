@@ -1,4 +1,4 @@
-import { useEditor } from '@tiptap/react';
+import { JSONContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { Color } from '@tiptap/extension-color';
 import ListItem from '@tiptap/extension-list-item';
@@ -8,10 +8,22 @@ import FontFamily from '@tiptap/extension-font-family';
 import Placeholder from '@tiptap/extension-placeholder';
 import TextAlign from '@tiptap/extension-text-align';
 
-// TODO: props - view-only, initialContent, placeholder, etc.
+import FontSize from 'modules/utils/FontSize';
 
-export const useTextEditor = () => {
+export interface UseTextEditorProps {
+  initContent?: string | JSONContent;
+  placeholder?: string;
+  viewOnly?: boolean;
+}
+
+export const useTextEditor = ({
+  initContent = '',
+  placeholder = 'Write something …',
+  viewOnly = false,
+}) => {
   const editor = useEditor({
+    content: initContent,
+    editable: !viewOnly,
     extensions: [
       Color.configure({ types: [TextStyle.name, ListItem.name] }), // @ts-ignore
       TextStyle.configure({ types: [ListItem.name] }),
@@ -31,13 +43,13 @@ export const useTextEditor = () => {
       }),
       FontFamily,
       Placeholder.configure({
-        placeholder: 'Write something …',
+        placeholder,
       }),
       TextAlign.configure({
         types: ['heading', 'paragraph'],
       }),
+      FontSize,
     ],
-    content: ``,
   });
 
   return editor;

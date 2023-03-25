@@ -100,7 +100,7 @@ export const Disclosures: React.FC = () => {
       {
         field: 'displayName',
         headerName: 'Name',
-        minWidth: 140,
+        minWidth: 180,
         flex: 0.2,
         editable: false,
       },

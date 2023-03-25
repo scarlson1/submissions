@@ -2,7 +2,13 @@
 
 .ProseMirror {
   min-height: 200px;
+  max-height: 800px;
+  overflow-y: auto;
 }
+.ProseMirror:focus {
+  outline: none;
+}
+
 .ProseMirror > * + * {
   margin-top: 0.75em;
 }

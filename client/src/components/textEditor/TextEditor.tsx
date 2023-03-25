@@ -18,7 +18,7 @@ export interface TextEditorProps {
 }
 
 export const TextEditor: React.FC<TextEditorProps> = ({ onSave }) => {
-  const editor = useTextEditor();
+  const editor = useTextEditor({});
   // const editor = useEditor({
   //   extensions: [
   //     Color.configure({ types: [TextStyle.name, ListItem.name] }), // @ts-ignore

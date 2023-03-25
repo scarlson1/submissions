@@ -26,7 +26,7 @@ export const DisclosureNew: React.FC = () => {
   const navigate = useNavigate();
   const firestore = useFirestore();
   const toast = useAsyncToast();
-  const editor = useTextEditor();
+  const editor = useTextEditor({});
   const formikRef = useRef<FormikProps<DisclosureValues>>(null);
 
   const handleSubmit = useCallback(
@@ -97,7 +97,7 @@ export const DisclosureNew: React.FC = () => {
               </LoadingButton>
             </Box>
             <Divider sx={{ my: { xs: 1, sm: 2, md: 3 } }} />
-            <Grid container columnSpacing={6} rowSpacing={4}>
+            <Grid container columnSpacing={6} rowSpacing={4} sx={{ my: 3 }}>
               <Grid xs={6} sm={4} md={3}>
                 <FormikSelect
                   name='products'
@@ -133,21 +133,19 @@ export const DisclosureNew: React.FC = () => {
               </Grid>
             </Grid>
             <Divider sx={{ my: { xs: 1, sm: 2, md: 3 } }} />
-            <Box>
-              <Box sx={{ py: 2, display: 'flex' }}>
+            <>
+              <Box sx={{ py: 2 }}>
+                <EditorToolbar editor={editor} />
+              </Box>
+              {/* <Box sx={{ py: 2, display: 'flex' }}>
                 <Box sx={{ flex: '1 1 auto' }}>
                   <EditorToolbar editor={editor} />
                 </Box>
-                {/* <Box sx={{ flex: '0 0 auto', pl: 3 }}>
-                  <Button variant='contained' size='small' onClick={handleSave}>
-                    Save
-                  </Button>
-                </Box> */}
-              </Box>
-              <Paper sx={{ p: { xs: 3, sm: 3, md: 5 } }}>
+              </Box> */}
+              <Paper sx={{ px: { xs: 3, sm: 3, md: 5 }, py: { xs: 2, md: 3 } }}>
                 <EditorContent editor={editor} />
               </Paper>
-            </Box>
+            </>
           </>
         )}
       </Formik>
