@@ -1,9 +1,10 @@
 import React, { useCallback } from 'react';
 import { Editor } from '@tiptap/react';
-import { ToggleButton, ToggleButtonGroup } from '@mui/material';
+import { ToggleButtonGroup } from '@mui/material';
 import { RedoRounded, UndoRounded } from '@mui/icons-material';
 
 import { toggleButtonGroupStyle } from './common';
+import { TooltipToggleButton } from 'components/forms';
 
 export interface HistoryToolbarProps {
   editor?: Editor;
@@ -26,7 +27,7 @@ export const HistoryToolbar: React.FC<HistoryToolbarProps> = ({ editor }) => {
       aria-label='text formatting'
       sx={toggleButtonGroupStyle}
     >
-      <ToggleButton
+      <TooltipToggleButton
         size='small'
         value='undo'
         color='primary'
@@ -36,10 +37,11 @@ export const HistoryToolbar: React.FC<HistoryToolbarProps> = ({ editor }) => {
         }}
         onClick={handleUndo}
         disabled={!editor.can().chain().focus().undo().run()}
+        TooltipProps={{ title: 'undo' }}
       >
         <UndoRounded fontSize='small' />
-      </ToggleButton>
-      <ToggleButton
+      </TooltipToggleButton>
+      <TooltipToggleButton
         size='small'
         value='redo'
         color='primary'
@@ -49,9 +51,10 @@ export const HistoryToolbar: React.FC<HistoryToolbarProps> = ({ editor }) => {
         }}
         onClick={handleRedo}
         disabled={!editor.can().chain().focus().redo().run()}
+        TooltipProps={{ title: 'redo' }}
       >
         <RedoRounded fontSize='small' />
-      </ToggleButton>
+      </TooltipToggleButton>
     </ToggleButtonGroup>
   );
 };

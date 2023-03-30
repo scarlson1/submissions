@@ -2,13 +2,14 @@ import React from 'react';
 import { Box, Container, ContainerProps, SxProps } from '@mui/material';
 import { Outlet } from 'react-router-dom';
 
-import { Header, Footer } from 'components';
+import { Header, Footer, Breadcrumbs } from 'components';
 
 export interface LayoutProps {
   noPadding?: boolean;
   mainSX?: SxProps;
   bodyWrapperSX?: SxProps;
   containerProps?: ContainerProps;
+  withBreadcrumbs?: boolean;
 }
 
 export const Layout: React.FC<LayoutProps> = ({
@@ -16,6 +17,7 @@ export const Layout: React.FC<LayoutProps> = ({
   mainSX,
   bodyWrapperSX,
   containerProps,
+  withBreadcrumbs = false,
 }) => {
   return (
     <Box
@@ -49,6 +51,7 @@ export const Layout: React.FC<LayoutProps> = ({
               ...bodyWrapperSX,
             }}
           >
+            {!!withBreadcrumbs && <Breadcrumbs sx={{ pb: 1 }} />}
             <Outlet />
           </Box>
         </Container>

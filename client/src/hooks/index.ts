@@ -5,7 +5,7 @@ export { useFileUpload } from './useFileUpload';
 export { useOpenStorageFile } from './useOpenStorageFile';
 export { useKeyPress } from './useKeyPress';
 export { useDebounce } from './useDebounce';
-export { usePropertyDetails } from './usePropertyDetails';
+export { usePropertyDetails, usePropertyDetailsAttom } from './usePropertyDetails';
 export { useSocialAuth } from './useSocialAuth';
 export { useSendPasswordReset } from './useSendPasswordReset';
 export { useHandleAuthError } from './useHandleAuthError';
@@ -33,8 +33,8 @@ export { useDocData } from './useDocData';
 export { useDocDataOnce } from './useDocDataOnce';
 export { useFetchDocsWithCursor } from './useFetchDocsWithCursor';
 export { useImgOnLoad } from './useImgOnLoad';
-export { useTextEditor } from './useTextEditor';
-// export {  } from './'
+export { useTextEditor, EDITOR_EXTENSION_DEFAULTS } from './useTextEditor';
+export { useFetchFirestore } from './useFetchFirestore';
 // export {  } from './'
 // export {  } from './'
 

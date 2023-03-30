@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { Editor } from '@tiptap/react';
-import { MenuItem, Select, SelectChangeEvent, Typography } from '@mui/material';
+import { alpha, MenuItem, Select, SelectChangeEvent, Typography } from '@mui/material';
 
 export interface TypographyToolbarProps {
   editor?: Editor;
@@ -53,6 +53,13 @@ export const TypographyToolbar: React.FC<TypographyToolbarProps> = ({ editor }) 
         m: 1,
         '& .MuiOutlinedInput-notchedOutline': {
           border: (theme) => `1px solid ${theme.palette.divider}`,
+        },
+        '& .MuiInputBase-input': {
+          borderRadius: 0.5,
+        },
+        '&:hover .MuiOutlinedInput-notchedOutline': {
+          borderColor: (theme) => theme.palette.divider,
+          bgcolor: (theme) => alpha(theme.palette.grey[900], 0.04),
         },
       }}
     >

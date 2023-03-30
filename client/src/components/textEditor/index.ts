@@ -8,6 +8,7 @@ export { FontFamilyToolbar } from './FontFamilyToolbar';
 export { TextAlignToolbar } from './TextAlignToolbar';
 export { FontSizeToolbar } from './FontSizeToolbar';
 export { TextColorToolbar } from './TextColorToolbar';
+export { FloatingMenuToolbar } from './FloatingMenuToolbar';
 
 export type { TextFormatToolbarProps } from './TextFormatToolbar';
 export type { HistoryToolbarProps } from './HistoryToolbar';
@@ -19,3 +20,5 @@ export type { TextAlignToolbarProps } from './TextAlignToolbar';
 export type { EditorToolbarProps } from './EditorToolbar';
 export type { FontSizeToolbarProps } from './FontSizeToolbar';
 export type { TextColorToolbarProps } from './TextColorToolbar';
+export type { FloatingMenuToolbarProps } from './FloatingMenuToolbar';
+export type { HighlightToolbarProps } from './HighlightToolbar';

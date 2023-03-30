@@ -1,4 +1,5 @@
 export { fetchPropertyDetails } from './fetchPropertyDetails';
+export { getPropertyDetailsAttom } from './getPropertyDetailsAttom';
 export { sendContactEmail } from './sendContactEmail';
 export { updateAndRateQuote } from './updateAndRateQuote';
 export { ePayInstance } from './ePayInstance';
@@ -19,3 +20,7 @@ export type { ExecutePmtRequest, ExecutePmtResponse } from './executePayment';
 export type { SendPolicyDocRequest, SendPolicyDocResponse } from './sendPolicyDoc';
 export type { CreatePolicyRequest, CreatePolicyResponse } from './createPolicy';
 export type { CalcQuoteRequest, CalcQuoteResponse } from './calcQuote';
+export type {
+  GetPropertyDetailsAttomRequest,
+  GetPropertyDetailsAttomResponse,
+} from './getPropertyDetailsAttom';

@@ -1,9 +1,10 @@
 import React, { useCallback } from 'react';
 import { Editor } from '@tiptap/react';
-import { ToggleButton, ToggleButtonGroup } from '@mui/material';
+import { ToggleButtonGroup } from '@mui/material';
 import { HorizontalRuleRounded, InsertPageBreakRounded } from '@mui/icons-material';
 
 import { toggleButtonGroupStyle } from './common';
+import { TooltipToggleButton } from 'components/forms';
 
 export interface SectionBreaksToolbarProps {
   editor?: Editor;
@@ -26,7 +27,7 @@ export const SectionBreaksToolbar: React.FC<SectionBreaksToolbarProps> = ({ edit
       aria-label='text formatting'
       sx={toggleButtonGroupStyle}
     >
-      <ToggleButton
+      <TooltipToggleButton
         size='small'
         value='divider'
         color='primary'
@@ -35,10 +36,12 @@ export const SectionBreaksToolbar: React.FC<SectionBreaksToolbarProps> = ({ edit
           border: 'none !important',
         }}
         onClick={handleDivider}
+        TooltipProps={{ title: 'divider' }}
       >
         <HorizontalRuleRounded fontSize='small' />
-      </ToggleButton>
-      <ToggleButton
+      </TooltipToggleButton>
+
+      <TooltipToggleButton
         size='small'
         value='hardBreak'
         color='primary'
@@ -47,9 +50,10 @@ export const SectionBreaksToolbar: React.FC<SectionBreaksToolbarProps> = ({ edit
           border: 'none !important',
         }}
         onClick={handleBreak}
+        TooltipProps={{ title: 'page break' }}
       >
         <InsertPageBreakRounded fontSize='small' />
-      </ToggleButton>
+      </TooltipToggleButton>
     </ToggleButtonGroup>
   );
 };

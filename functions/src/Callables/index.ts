@@ -1,4 +1,5 @@
 export { getPropertyDetails } from './getPropertyDetails';
+export { getPropertyDetailsAttom } from './getPropertyDetailsAttom';
 export { sendContactEmail } from './sendContactEmail.js';
 export { initializeQuote } from './initializeQuote.js';
 export { updateAndRateQuote } from './updateAndRateQuote.js';

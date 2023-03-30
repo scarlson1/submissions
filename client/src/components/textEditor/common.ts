@@ -1,6 +1,7 @@
 export const toggleButtonGroupStyle = {
   maxHeight: 34,
-  '& .MuiToggleButtonGroup-grouped': {
+  borderRadius: 0.5,
+  '& .MuiToggleButtonGroup-grouped, span .MuiToggleButtonGroup-grouped': {
     margin: 0.5,
     border: 0,
     '&.Mui-disabled': {

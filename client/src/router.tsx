@@ -9,47 +9,33 @@ import {
   Login,
   CreateAccount,
   Policy,
-  // policyLoader,
   Policies,
   UserSubmissions,
   Home,
-  // newSubmissionLoader,
   AgencyNew,
   // Protosure, // TODO: move protosureLoader to useEffect
-  // protosureLoader,
   Account,
   QuoteBind,
-  // quoteLoader,
   AccountDetails,
 } from 'views';
 import {
-  // submissionLoader,
   SubmissionView,
-  // adminSubmissionsLoader,
   Submissions as AdminSubmissions,
   QuoteNew,
   SLTaxes,
   SLTaxNew,
-  // adminTaxLoader,
   EditActiveStates,
-  // activeStatesLoader,
-  // moratoriumsLoader,
   Moratoriums,
   MoratoriumNew,
   SLLicenseNew,
-  // licensesLoader,
   Licenses,
   AgencyApp,
-  // agencyAppLoader,
   AgencyApps,
-  // agencyAppsLoader,
   Quotes,
-  // newQuoteSubmissionLoader,
-  // quotesLoader,
   PolicyDelivery,
   Policies as PoliciesAdmin,
   DisclosureNew,
-  // policiesLoader as adminPoliciesLoader,
+  DisclosureEdit,
 } from 'views/admin';
 import { SuccessStep, ActionHandler } from 'elements';
 import { Product } from 'common';
@@ -69,6 +55,7 @@ import { Disclosures } from 'views/admin/Disclosures';
 // TODO: add errorElement to routes
 
 export enum ROUTES {
+  HOME = '/',
   SUBMISSION_NEW = '/new/:productId',
   SUBMISSION_SUBMITTED = '/quotes/:submissionId/submitted',
   SUBMISSIONS = '/submissions',
@@ -102,6 +89,7 @@ export enum ADMIN_ROUTES {
   AGENCY_APP = '/admin/agencies/submissions/:submissionId',
   DISCLOSURES = '/admin/disclosures',
   DISCLOSURE_NEW = '/admin/disclosures/new',
+  DISCLOSURE_EDIT = '/admin/disclosures/:disclosureId/edit',
 }
 
 export enum AUTH_ROUTES {
@@ -115,6 +103,7 @@ export enum ACCOUNT_ROUTES {
 }
 
 type TArgs =
+  | { path: ROUTES.HOME }
   | { path: ROUTES.SUBMISSION_NEW; params: { productId: Product } }
   | { path: ROUTES.SUBMISSION_SUBMITTED; params: { submissionId: string } }
   | { path: ROUTES.SUBMISSIONS }
@@ -126,7 +115,7 @@ type TArgs =
   | { path: ROUTES.AGENCY_NEW }
   | { path: ROUTES.CONTACT }
   | { path: ROUTES.PROTOSURE; params: { productId: Product; quoteId?: string } }
-  | { path: ROUTES.ACCOUNT }
+  // | { path: ROUTES.ACCOUNT }
   | { path: ADMIN_ROUTES.SUBMISSIONS }
   | { path: ADMIN_ROUTES.SUBMISSION_VIEW; params: { submissionId: string } }
   | { path: ADMIN_ROUTES.QUOTES }
@@ -144,6 +133,7 @@ type TArgs =
   | { path: ADMIN_ROUTES.AGENCY_APP; params: { submissionId: string } }
   | { path: ADMIN_ROUTES.DISCLOSURES }
   | { path: ADMIN_ROUTES.DISCLOSURE_NEW }
+  | { path: ADMIN_ROUTES.DISCLOSURE_EDIT; params: { disclosureId: string } }
   | { path: AUTH_ROUTES.CREATE_ACCOUNT }
   | { path: AUTH_ROUTES.LOGIN }
   | {
@@ -346,7 +336,7 @@ export const router = createBrowserRouter([
         path: 'admin',
         element: (
           // <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
-          <Layout />
+          <Layout withBreadcrumbs={true} />
           // </RequireAuthReactFire>
         ),
         errorElement: <RouterErrorBoundary />,
@@ -554,6 +544,14 @@ export const router = createBrowserRouter([
             element: (
               <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
                 <DisclosureNew />
+              </RequireAuthReactFire>
+            ),
+          },
+          {
+            path: ADMIN_ROUTES.DISCLOSURE_EDIT,
+            element: (
+              <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
+                <DisclosureEdit />
               </RequireAuthReactFire>
             ),
           },

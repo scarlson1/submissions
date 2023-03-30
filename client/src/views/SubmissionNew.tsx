@@ -26,7 +26,7 @@ import {
 import { ROUTES, createPath } from 'router';
 // import { statesCollection, submissionsCollection } from 'common/firestoreCollections';
 import { SUBMISSION_STATUS } from 'common/enums';
-import { useActiveStates, usePropertyDetails } from 'hooks';
+import { useActiveStates, usePropertyDetailsAttom } from 'hooks';
 import { roundUpToNearest, sumArr } from 'modules/utils/helpers';
 import { useAuth } from 'modules/components/AuthContext';
 import { submissionsCollection } from 'common';
@@ -68,10 +68,6 @@ export interface FloodValues {
   countyName?: string;
   latitude: number | null;
   longitude: number | null;
-  // coverageActiveBuilding: boolean;
-  // coverageActiveStructures: boolean;
-  // coverageActiveContents: boolean;
-  // coverageActiveAdditional: boolean;
   limitA: string;
   limitB: string;
   limitC: string;
@@ -95,10 +91,6 @@ export const initialValues: FloodValues = {
   countyName: '',
   latitude: null,
   longitude: null,
-  // coverageActiveBuilding: true,
-  // coverageActiveStructures: true,
-  // coverageActiveContents: true,
-  // coverageActiveAdditional: true,
   limitA: '250000',
   limitB: '25000',
   limitC: '63000',
@@ -117,20 +109,26 @@ export const SubmissionNew: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const formikRef = useRef<FormikProps<FormikValues>>(null);
-  // const activeStates = useLoaderData() as { [key: string]: boolean };
   const activeStates = useActiveStates('flood');
-  const { propertyDetails, fetchPropertyData } = usePropertyDetails();
+  // const { propertyDetails, fetchPropertyData } = usePropertyDetails();
+  const { propertyDetails, fetchPropertyData } = usePropertyDetailsAttom();
 
   const handleFetchProperty = useCallback(
-    async (values: any, helpers: FormikHelpers<any>) => {
+    async (values: FloodValues, helpers: FormikHelpers<FloodValues>) => {
       if (formikRef.current?.initialValues === values) {
         return values;
       }
       try {
         // formik async dependent fields ref: https://formik.org/docs/examples/dependent-fields-async-api-request
 
-        const res = await fetchPropertyData({ lat: values.latitude, lng: values.longitude });
-        // console.log('result: ', res);
+        // const res = await fetchPropertyData({ lat: values.latitude, lng: values.longitude });
+        const res = await fetchPropertyData({
+          addressLine1: values.addressLine1,
+          city: values.city,
+          state: values.state,
+          postal: values.postal,
+        });
+        console.log('PROPERTY DATA RES: ', res);
         return {
           ...values,
           limitA: res.initLimitA ?? '250000',

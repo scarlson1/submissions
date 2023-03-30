@@ -1,9 +1,9 @@
 import React, { useCallback } from 'react';
 import { Box, Typography } from '@mui/material';
-import { addDoc, collection, CollectionReference, Timestamp } from 'firebase/firestore';
-import { useFirestore } from 'reactfire';
+import { setDoc, doc, DocumentReference, Timestamp } from 'firebase/firestore';
+import { useFirestore, useFirestoreDocDataOnce } from 'reactfire';
 import { FormikHelpers } from 'formik';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 import { COLLECTIONS, Disclosure, Product } from 'common';
 import { useAsyncToast } from 'hooks';
@@ -11,11 +11,18 @@ import { ADMIN_ROUTES, createPath } from 'router';
 import 'components/textEditor/TextEditor.css';
 import { DisclosureForm, DisclosureValues } from 'elements';
 
-export const DisclosureNew: React.FC = () => {
+export const DisclosureEdit: React.FC = () => {
+  const { disclosureId } = useParams();
   const navigate = useNavigate();
   const firestore = useFirestore();
   const toast = useAsyncToast();
-  // const formikRef = useRef<FormikProps<DisclosureValues>>(null);
+
+  const docRef = doc(
+    firestore,
+    COLLECTIONS.DISCLOSURES,
+    `${disclosureId}`
+  ) as DocumentReference<Disclosure>;
+  const { data } = useFirestoreDocDataOnce(docRef);
 
   const handleSubmit = useCallback(
     async (
@@ -25,23 +32,23 @@ export const DisclosureNew: React.FC = () => {
       try {
         if (!content) throw new Error('failed to get content');
 
-        const disclosuresColl = collection(
-          firestore,
-          COLLECTIONS.DISCLOSURES
-        ) as CollectionReference<Disclosure>;
         toast.loading('Saving...');
 
-        const docRef = await addDoc(disclosuresColl, {
-          products: [...(products as Product[])],
-          state: state || null,
-          displayName: displayName || null,
-          content,
-          metadata: {
-            created: Timestamp.now(),
-            updated: Timestamp.now(),
+        await setDoc(
+          docRef,
+          {
+            products: [...(products as Product[])],
+            state: state || null,
+            displayName: displayName || null,
+            content,
+            metadata: {
+              ...data.metadata,
+              updated: Timestamp.now(),
+            },
           },
-        });
-        toast.success(`Saved! (ID: ${docRef.id})`);
+          { merge: true }
+        );
+        toast.success(`Saved!`);
 
         setSubmitting(false);
         navigate(createPath({ path: ADMIN_ROUTES.DISCLOSURES }));
@@ -51,15 +58,23 @@ export const DisclosureNew: React.FC = () => {
         setSubmitting(false);
       }
     },
-    [firestore, toast, navigate]
+    [toast, data, docRef, navigate]
   );
 
   return (
     <Box>
       <DisclosureForm
+        initialValues={{
+          products: data.products,
+          state: data.state || '',
+          displayName: data.displayName || '',
+          type: data.type || null,
+          content: data.content,
+        }}
         onSubmit={handleSubmit}
-        // formikRef={formikRef}
+        editorContent={data.content || ''}
         title={<Typography variant='h5'>New Disclosure</Typography>}
+        enableReinitialize
       />
     </Box>
   );

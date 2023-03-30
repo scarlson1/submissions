@@ -1,6 +1,10 @@
 import { useState, useCallback } from 'react';
 
-import { fetchPropertyDetails } from 'modules/api';
+import {
+  fetchPropertyDetails,
+  getPropertyDetailsAttom,
+  GetPropertyDetailsAttomRequest,
+} from 'modules/api';
 import { Coordinates } from 'common/types';
 import { getFunctions } from 'firebase/functions';
 
@@ -12,9 +16,8 @@ export const usePropertyDetails = () => {
     const fetchDetails = fetchPropertyDetails(getFunctions());
     const { data } = await fetchDetails(args);
     // const { data } = await fetchPropertyDetails(args);
-    setPropertyDetails({ ...data });
 
-    // TODO: validate / format data ? handled server side ??
+    setPropertyDetails({ ...data });
 
     return data;
   }, []);
@@ -22,17 +25,17 @@ export const usePropertyDetails = () => {
   return { fetchPropertyData, propertyDetails };
 };
 
-// export const usePropertyDetails = () => {
-//   const [propertyDetails, setPropertyDetails] = useState<any>();
+export const usePropertyDetailsAttom = () => {
+  const [propertyDetails, setPropertyDetails] = useState<any>();
 
-//   const fetchPropertyData = useCallback(async (args: Coordinates) => {
-//     const { data } = await fetchPropertyDetails(args);
-//     setPropertyDetails({ ...data });
+  const fetchPropertyData = useCallback(async (args: GetPropertyDetailsAttomRequest) => {
+    const fetchDetails = getPropertyDetailsAttom(getFunctions());
+    const { data } = await fetchDetails(args);
 
-//     // TODO: validate / format data ? handled server side ??
+    setPropertyDetails({ ...data });
 
-//     return data;
-//   }, []);
+    return data;
+  }, []);
 
-//   return { fetchPropertyData, propertyDetails };
-// };
+  return { fetchPropertyData, propertyDetails };
+};

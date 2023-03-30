@@ -36,17 +36,6 @@ import { withIdConverter } from 'common/firestoreConverters';
 import { useConfirmAndUpdate } from './Quotes';
 import { useCollectionData } from 'hooks';
 
-// export const adminSubmissionsLoader = async ({ params }: LoaderFunctionArgs) => {
-//   try {
-//     // TODO: pass query params for order, limit, etc.
-//     return getDocs(
-//       query(submissionsCollection(getFirestore()), orderBy('metadata.created', 'desc'), limit(100))
-//     ).then((querySnap) => querySnap.docs.map((snap) => ({ ...snap.data(), id: snap.id })));
-//   } catch (err) {
-//     throw new Response(`Error fetching submissions`);
-//   }
-// };
-
 const useUpdateSubmission = () => {
   const update = useCallback(async (id: string, updateValues: Partial<Submission>) => {
     const ref = doc(submissionsCollection(getFirestore()), id).withConverter(
@@ -70,7 +59,6 @@ export interface SubmissionsProps {}
 
 export const Submissions: React.FC<SubmissionsProps> = () => {
   const navigate = useNavigate();
-  // const data = useLoaderData() as WithId<Submission>[];
   const { data, status } = useCollectionData('SUBMISSIONS', [
     orderBy('metadata.created', 'desc'),
     limit(100),

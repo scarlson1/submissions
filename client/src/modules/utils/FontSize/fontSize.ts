@@ -4,6 +4,30 @@ import { Extension } from '@tiptap/core';
 
 export const DEFAULT_FONT_SIZE = '16px';
 
+export const FONT_SIZES = [
+  '8px',
+  '9px',
+  '10px',
+  '11px',
+  '12px',
+  '13px',
+  '14px',
+  '16px',
+  '18px',
+  '20px',
+  '22px',
+  '24px',
+  '26px',
+  '28px',
+  '30px',
+  '36px',
+  '40px',
+  '48px',
+  '60px',
+  '74px',
+  '96px',
+];
+
 export type FontSizeOptions = {
   types: string[];
 };
@@ -29,6 +53,8 @@ export const FontSize = Extension.create<FontSizeOptions>({
   addOptions() {
     return {
       types: ['textStyle'],
+      sizes: [...FONT_SIZES],
+      defaultAlignment: DEFAULT_FONT_SIZE,
     };
   },
 

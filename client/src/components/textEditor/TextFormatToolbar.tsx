@@ -7,6 +7,7 @@ import {
   FormatItalicRounded,
   LinkOffRounded,
   LinkRounded,
+  FormatUnderlinedRounded,
   StrikethroughSRounded,
 } from '@mui/icons-material';
 
@@ -34,6 +35,7 @@ export const TextFormatToolbar: React.FC<TextFormatToolbarProps> = ({ editor }) 
 
   const boldActive = editor?.isActive('bold');
   const italicActive = editor?.isActive('italic');
+  const underlineActive = editor?.isActive('underline');
   const strikeActive = editor?.isActive('strike');
   const codeActive = editor?.isActive('code');
   const linkActive = editor?.isActive('link');
@@ -47,6 +49,9 @@ export const TextFormatToolbar: React.FC<TextFormatToolbarProps> = ({ editor }) 
       if (newFormats.includes('italic') !== italicActive) {
         editor.chain().focus().toggleItalic().run();
       }
+      if (newFormats.includes('underline') !== underlineActive) {
+        editor.chain().focus().toggleUnderline().run();
+      }
       if (newFormats.includes('strike') !== strikeActive) {
         editor.chain().focus().toggleStrike().run();
       }
@@ -58,19 +63,29 @@ export const TextFormatToolbar: React.FC<TextFormatToolbarProps> = ({ editor }) 
         setLink();
       }
     },
-    [editor, boldActive, italicActive, strikeActive, codeActive, linkActive, setLink]
+    [
+      editor,
+      boldActive,
+      italicActive,
+      underlineActive,
+      strikeActive,
+      codeActive,
+      linkActive,
+      setLink,
+    ]
   );
 
   const formats = useMemo(() => {
     let activeFormats = [];
     if (boldActive) activeFormats.push('bold');
     if (italicActive) activeFormats.push('italic');
+    if (underlineActive) activeFormats.push('underline');
     if (strikeActive) activeFormats.push('strike');
     if (codeActive) activeFormats.push('code');
     if (linkActive) activeFormats.push('link');
 
     return activeFormats;
-  }, [boldActive, italicActive, strikeActive, codeActive, linkActive]);
+  }, [boldActive, italicActive, underlineActive, strikeActive, codeActive, linkActive]);
 
   if (!editor) {
     return null;
@@ -108,6 +123,18 @@ export const TextFormatToolbar: React.FC<TextFormatToolbarProps> = ({ editor }) 
         }}
       >
         <FormatItalicRounded fontSize='small' />
+      </ToggleButton>
+      <ToggleButton
+        size='small'
+        value='underline'
+        color='primary'
+        disabled={!editor.can().chain().focus().toggleUnderline().run()}
+        aria-label='underline'
+        sx={{
+          border: 'none !important',
+        }}
+      >
+        <FormatUnderlinedRounded fontSize='small' />
       </ToggleButton>
       <ToggleButton
         size='small'

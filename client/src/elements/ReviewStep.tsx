@@ -7,7 +7,7 @@ import { LimitKeys } from 'common/types';
 import { dollarFormat } from 'modules/utils/helpers';
 import { FormikCheckbox } from 'components/forms';
 import { useConfirmation } from 'modules/components/ConfirmationService';
-import { FloodStateDisclosure } from './FloodStateDisclosure';
+import { StateDisclosure } from './StateDisclosure';
 
 // TODO: generalize component
 
@@ -160,9 +160,9 @@ export const ReviewStep: React.FC = () => {
                     }}
                     onClick={showDisclosure}
                   >
-                    terms and disclosures
+                    terms and conditions
                   </Typography>{' '}
-                  <FloodStateDisclosure
+                  <StateDisclosure
                     state={values.state}
                     buttonText={'and state disclosure'}
                     textProps={{

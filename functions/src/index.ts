@@ -5,6 +5,7 @@ initializeApp();
 
 export {
   getPropertyDetails,
+  getPropertyDetailsAttom,
   sendContactEmail,
   initializeQuote,
   updateAndRateQuote,

@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { Editor } from '@tiptap/react';
-import { ToggleButton, ToggleButtonGroup } from '@mui/material';
+import { ToggleButton, ToggleButtonGroup, Tooltip } from '@mui/material';
 import {
   FormatAlignCenterRounded,
   FormatAlignJustifyRounded,
@@ -9,6 +9,30 @@ import {
 } from '@mui/icons-material';
 
 import { toggleButtonGroupStyle } from './common';
+
+interface Alignment {
+  value: string;
+  icon: React.ReactNode;
+}
+
+const ALIGNMENTS: Alignment[] = [
+  {
+    value: 'left',
+    icon: <FormatAlignLeftRounded fontSize='small' />,
+  },
+  {
+    value: 'center',
+    icon: <FormatAlignCenterRounded fontSize='small' />,
+  },
+  {
+    value: 'right',
+    icon: <FormatAlignRightRounded fontSize='small' />,
+  },
+  {
+    value: 'justify',
+    icon: <FormatAlignJustifyRounded fontSize='small' />,
+  },
+];
 
 export interface TextAlignToolbarProps {
   editor?: Editor;
@@ -20,14 +44,6 @@ export const TextAlignToolbar: React.FC<TextAlignToolbarProps> = ({ editor }) =>
   const isCenterAlign = editor?.isActive({ textAlign: 'center' });
   const isJustifyAlign = editor?.isActive({ textAlign: 'justify' });
 
-  const handleSectionFormat = useCallback(
-    (event: React.MouseEvent<HTMLElement>, newAlignment: string) => {
-      console.log('NEW ALIGNMENT: ', newAlignment);
-      editor?.chain().focus().setTextAlign(newAlignment).run();
-    },
-    [editor]
-  );
-
   const sectionFormats = useMemo(() => {
     if (isLeftAlign) return 'left';
     if (isRightAlign) return 'right';
@@ -35,6 +51,14 @@ export const TextAlignToolbar: React.FC<TextAlignToolbarProps> = ({ editor }) =>
     if (isJustifyAlign) return 'justify';
     return 'left';
   }, [isLeftAlign, isRightAlign, isCenterAlign, isJustifyAlign]);
+
+  const handleSectionFormat = useCallback(
+    (event: React.MouseEvent<HTMLElement>, newAlignment: string) => {
+      console.log('NEW ALIGNMENT: ', newAlignment);
+      editor?.chain().focus().setTextAlign(newAlignment).run();
+    },
+    [editor]
+  );
 
   if (!editor) return null;
 
@@ -48,50 +72,68 @@ export const TextAlignToolbar: React.FC<TextAlignToolbarProps> = ({ editor }) =>
       aria-label='text formatting'
       sx={toggleButtonGroupStyle}
     >
-      <ToggleButton
-        size='small'
-        value='left'
-        color='primary'
-        aria-label='align left'
-        sx={{
-          border: 'none !important',
-        }}
-      >
-        <FormatAlignLeftRounded fontSize='small' />
-      </ToggleButton>
-      <ToggleButton
-        size='small'
-        value='center'
-        color='primary'
-        aria-label='align center'
-        sx={{
-          border: 'none !important',
-        }}
-      >
-        <FormatAlignCenterRounded fontSize='small' />
-      </ToggleButton>
-      <ToggleButton
-        size='small'
-        value='right'
-        color='primary'
-        aria-label='align right'
-        sx={{
-          border: 'none !important',
-        }}
-      >
-        <FormatAlignRightRounded fontSize='small' />
-      </ToggleButton>
-      <ToggleButton
-        size='small'
-        value='justify'
-        color='primary'
-        aria-label='align justify'
-        sx={{
-          border: 'none !important',
-        }}
-      >
-        <FormatAlignJustifyRounded fontSize='small' />
-      </ToggleButton>
+      {ALIGNMENTS.map(({ value, icon }) => (
+        <Tooltip title={`align ${value}`} key={value} placement='top'>
+          <ToggleButton
+            size='small'
+            value={value}
+            color='primary'
+            aria-label={`align ${value}`}
+            sx={{
+              border: 'none !important',
+            }}
+          >
+            {icon}
+          </ToggleButton>
+        </Tooltip>
+      ))}
     </ToggleButtonGroup>
   );
 };
+
+// <Tooltip title='align left'>
+//   <ToggleButton
+//     size='small'
+//     value='left'
+//     color='primary'
+//     aria-label='align left'
+//     sx={{
+//       border: 'none !important',
+//     }}
+//   >
+//     <FormatAlignLeftRounded fontSize='small' />
+//   </ToggleButton>
+// </Tooltip>
+// <ToggleButton
+//   size='small'
+//   value='center'
+//   color='primary'
+//   aria-label='align center'
+//   sx={{
+//     border: 'none !important',
+//   }}
+// >
+//   <FormatAlignCenterRounded fontSize='small' />
+// </ToggleButton>
+// <ToggleButton
+//   size='small'
+//   value='right'
+//   color='primary'
+//   aria-label='align right'
+//   sx={{
+//     border: 'none !important',
+//   }}
+// >
+//   <FormatAlignRightRounded fontSize='small' />
+// </ToggleButton>
+// <ToggleButton
+//   size='small'
+//   value='justify'
+//   color='primary'
+//   aria-label='align justify'
+//   sx={{
+//     border: 'none !important',
+//   }}
+// >
+//   <FormatAlignJustifyRounded fontSize='small' />
+// </ToggleButton>

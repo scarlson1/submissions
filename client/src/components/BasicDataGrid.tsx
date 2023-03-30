@@ -48,6 +48,7 @@ export const BasicDataGrid: React.FC<AdditionalNamedInsuredsProps> = ({
           px: 3,
           pt: 2,
           minHeight: 200,
+          maxHeight: '100%',
         }}
         {...props}
       />

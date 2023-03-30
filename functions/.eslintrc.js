@@ -63,5 +63,9 @@ module.exports = {
     // 'operator-linebreak': ['warn', 'before'],
     'no-extra-boolean-cast': 'off',
     curly: 'off',
+    '@typescript-eslint/no-inferrable-types': [
+      'warn',
+      { ignoreParameters: true, ignoreProperties: true },
+    ],
   },
 };

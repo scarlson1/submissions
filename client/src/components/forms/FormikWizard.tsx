@@ -8,6 +8,10 @@ import toast from 'react-hot-toast';
 import { StepProps, StepperNav } from 'components/forms';
 import { useWidth, useScroll } from 'hooks';
 
+// TODO: animate page transitions using react spring - https://codesandbox.io/s/cisbc
+// https://www.youtube.com/watch?v=AR5Zbw2u_Ug
+// docs: https://www.react-spring.dev/docs
+
 // TODO: create application layout - hide footer on mobile (sits under stepper)
 
 // TODO: use router instead of index state ??

@@ -11,6 +11,8 @@ import { FontFamilyToolbar } from './FontFamilyToolbar';
 import { FontSizeToolbar } from './FontSizeToolbar';
 import { TextAlignToolbar } from './TextAlignToolbar';
 import { TextColorToolbar } from './TextColorToolbar';
+import { FloatingMenuToolbar } from './FloatingMenuToolbar';
+import { HighlightToolbar } from './HighlightToolbar';
 
 export interface EditorToolbarProps {
   editor?: Editor | null;
@@ -35,16 +37,12 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({ editor }) => {
       <ToolbarPaper>
         <TextColorToolbar editor={editor} />
       </ToolbarPaper>
-
+      <ToolbarPaper>
+        <HighlightToolbar editor={editor} />
+      </ToolbarPaper>
       {/* <Button size='small' onClick={() => editor.chain().focus().unsetColor().run()}>
         unset color
       </Button> */}
-      {/* <input
-        type='color'
-        onInput={(event: any) => editor.chain().focus().setColor(event.target.value).run()}
-        value={editor.getAttributes('textStyle').color}
-        style={{ marginLeft: '4px', marginRight: '4px' }}
-      /> */}
       <ToolbarPaper>
         <TextAlignToolbar editor={editor} />
       </ToolbarPaper>
@@ -53,18 +51,12 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({ editor }) => {
         <Divider flexItem orientation='vertical' sx={{ mx: 0.5, my: 1 }} />
         <SectionBreaksToolbar editor={editor} />
       </ToolbarPaper>
+      <FloatingMenuToolbar editor={editor} />
       {/* <Button size='small' onClick={() => editor.chain().focus().unsetAllMarks().run()}>
         clear marks
       </Button>
       <Button size='small' onClick={() => editor.chain().focus().clearNodes().run()}>
         clear nodes
-      </Button> */}
-      {/* <Button
-        size='small'
-        onClick={() => editor.chain().focus().setFontSize('20')}
-        // className={editor.isActive('paragraph') ? 'is-active' : ''}
-      >
-        Size 20
       </Button> */}
     </Box>
   );
@@ -83,6 +75,7 @@ export function ToolbarPaper({ children }: { children: React.ReactNode }) {
         borderRadius: 0.5,
         mx: { xs: 0.5, sm: 0.75, md: 1 },
         my: { xs: 0.25, md: 0.5 },
+        bgcolor: 'background.paper',
       }}
     >
       {children}

@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { Editor } from '@tiptap/react';
-import { ToggleButton, ToggleButtonGroup } from '@mui/material';
+import { ToggleButtonGroup } from '@mui/material';
 import {
   CodeRounded,
   FormatListBulletedRounded,
@@ -9,6 +9,7 @@ import {
 } from '@mui/icons-material';
 
 import { toggleButtonGroupStyle } from './common';
+import { TooltipToggleButton } from 'components/forms';
 
 export interface SectionFormatToolbarProps {
   editor?: Editor;
@@ -58,7 +59,8 @@ export const SectionFormatToolbar: React.FC<SectionFormatToolbarProps> = ({ edit
       aria-label='text formatting'
       sx={toggleButtonGroupStyle}
     >
-      <ToggleButton
+      <TooltipToggleButton
+        TooltipProps={{ title: 'bullet list' }}
         size='small'
         value='bulletList'
         color='primary'
@@ -69,8 +71,8 @@ export const SectionFormatToolbar: React.FC<SectionFormatToolbarProps> = ({ edit
         }}
       >
         <FormatListBulletedRounded fontSize='small' />
-      </ToggleButton>
-      <ToggleButton
+      </TooltipToggleButton>
+      <TooltipToggleButton
         size='small'
         value='orderedList'
         color='primary'
@@ -79,11 +81,11 @@ export const SectionFormatToolbar: React.FC<SectionFormatToolbarProps> = ({ edit
         sx={{
           border: 'none !important',
         }}
+        TooltipProps={{ title: 'ordered list' }}
       >
         <FormatListNumberedRounded fontSize='small' />
-      </ToggleButton>
-      {/* <Divider flexItem orientation='vertical' sx={{ mx: 0.5, my: 1 }} /> */}
-      <ToggleButton
+      </TooltipToggleButton>
+      <TooltipToggleButton
         size='small'
         value='codeBlock'
         color='primary'
@@ -92,10 +94,11 @@ export const SectionFormatToolbar: React.FC<SectionFormatToolbarProps> = ({ edit
         sx={{
           border: 'none !important',
         }}
+        TooltipProps={{ title: 'code block' }}
       >
         <CodeRounded fontSize='small' />
-      </ToggleButton>
-      <ToggleButton
+      </TooltipToggleButton>
+      <TooltipToggleButton
         size='small'
         value='blockquote'
         color='primary'
@@ -104,9 +107,10 @@ export const SectionFormatToolbar: React.FC<SectionFormatToolbarProps> = ({ edit
         sx={{
           border: 'none !important',
         }}
+        TooltipProps={{ title: 'block quote' }}
       >
         <FormatQuoteRounded fontSize='small' />
-      </ToggleButton>
+      </TooltipToggleButton>
     </ToggleButtonGroup>
   );
 };

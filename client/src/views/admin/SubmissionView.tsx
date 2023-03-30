@@ -1,35 +1,54 @@
 import React, { useCallback } from 'react';
-import { doc, getDoc, getDocs, getFirestore, query, where } from 'firebase/firestore';
-import { Box, Button, ButtonProps, IconButton, Stack, Typography } from '@mui/material';
+import { doc, getDoc, getFirestore, where } from 'firebase/firestore';
+import {
+  Box,
+  Button,
+  ButtonProps,
+  CircularProgress,
+  IconButton,
+  Stack,
+  Typography,
+} from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
-import { ArrowBackIosRounded } from '@mui/icons-material';
+import { ArrowBackIosRounded, OpenInNewRounded } from '@mui/icons-material';
 import { createSearchParams, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 
-import { ratingCollection, spatialKeyCollection } from 'common/firestoreCollections';
 import { Submission } from 'common/types';
 import { dollarFormat, formatFirestoreTimestamp, numberFormat } from 'modules/utils/helpers';
 import { ADMIN_ROUTES, createPath } from 'router';
-import { useDocData, useJsonDialog } from 'hooks';
+import { useDocData, useFetchFirestore, useJsonDialog } from 'hooks';
+import { COLLECTIONS, RatingData } from 'common';
 
-export const ShowRatingDialog = ({ id, btnProps }: { id?: string; btnProps?: ButtonProps }) => {
+export const ShowRatingDialog = ({ id, btnProps }: { id: string; btnProps?: ButtonProps }) => {
   const dialog = useJsonDialog();
+  const {
+    fetchData,
+    loading,
+    data: ratingData,
+  } = useFetchFirestore<RatingData>(COLLECTIONS.RATING_DATA, [where('submissionId', '==', id)]);
 
   const handleShowRatingDialog = useCallback(async () => {
-    const ratingQuery = query(ratingCollection(getFirestore()), where('submissionId', '==', id));
-    const ratingSnap = await getDocs(ratingQuery);
-    if (ratingSnap.empty) return toast(`No rating documents found`);
+    const data = ratingData ?? (await fetchData());
 
-    const ratingData = ratingSnap.docs.map((s) => ({ ...s.data(), id: s.id }));
-    dialog(ratingData, 'Rating Data');
-  }, [dialog, id]);
+    if (!data) return toast(`No rating documents found`);
 
-  if (!id) return null;
+    dialog(data, 'Rating Data');
+  }, [dialog, fetchData, ratingData]);
 
   return (
-    <Button {...btnProps} onClick={() => handleShowRatingDialog()}>
-      Show Rating Data
-    </Button>
+    <>
+      <Button {...btnProps} onClick={() => handleShowRatingDialog()}>
+        Show Rating Data
+      </Button>
+      {loading && (
+        <Box
+          sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}
+        >
+          <CircularProgress size={28} />
+        </Box>
+      )}
+    </>
   );
 };
 
@@ -69,42 +88,22 @@ export const RowItem: React.FC<{ title: string; value: React.ReactNode }> = ({ t
   </Stack>
 );
 
-// export const submissionLoader = async ({ params }: LoaderFunctionArgs) => {
-//   try {
-//     const submissionRef = doc(
-//       submissionsCollection(getFirestore()),
-//       params.submissionId
-//     ).withConverter(withIdConverter<Submission>());
-
-//     const snap = await getDoc(submissionRef);
-//     let data = snap.data();
-
-//     if (!snap.exists() || !data) {
-//       throw new Response('Not Found', { status: 404 });
-//     }
-
-//     return data;
-//   } catch (err) {
-//     throw new Response(`Error fetching submission (ID: ${params.submissionId})`);
-//   }
-// };
-
 export const SubmissionView: React.FC = () => {
-  // const data = useLoaderData() as WithId<Submission>;
   const { submissionId } = useParams();
   const { data, status } = useDocData<Submission>('SUBMISSIONS', submissionId!);
   const navigate = useNavigate();
   const dialog = useJsonDialog();
 
-  const handleShowSKDialog = useCallback(
-    async (docId: string) => {
-      console.log('fetching dk data for: ', docId);
-      const skSnap = await getDoc(doc(spatialKeyCollection(getFirestore()), docId));
-      const skData = skSnap.data();
-      if (!skSnap.exists() || !skData) {
-        return toast.error(`Failed to fetch SK data for ID ${docId}`);
+  const showDialog = useCallback(
+    async (collection: string, docId: string, title: string) => {
+      const snap = await getDoc(doc(getFirestore(), collection, docId));
+
+      const d = snap.data();
+      if (!snap.exists() || !d) {
+        return toast.error(`Failed to fetch data for doc ID ${docId}`);
       }
-      dialog(skData, 'Spatial Key Data');
+
+      dialog(d, title);
     },
     [dialog]
   );
@@ -118,9 +117,16 @@ export const SubmissionView: React.FC = () => {
     });
   }, [navigate, submissionId]);
 
+  const openGoogleMaps = useCallback(() => {
+    let { latitude, longitude } = data;
+    if (!(latitude && longitude)) return toast.error('Missing coordinates');
+    window.open(`https://www.google.com/maps/search/?api=1&query=${latitude}%2C${longitude}`);
+  }, [data]);
+
   if (status === 'loading') {
     return <div>Loading...</div>;
   }
+  if (!submissionId) throw new Error('Missing submission ID');
 
   return (
     <Grid container spacing={8}>
@@ -183,8 +189,6 @@ export const SubmissionView: React.FC = () => {
           <RowItem title='Exclusions' value={data.exclusions} />
           <RowItem title='FIPS' value={data.countyFIPS || null} />
           <RowItem title='County' value={data.countyName || null} />
-          {/* <Typography>{`Prior Loss Count: ${data.priorLossCount}`}</Typography>
-          <Typography>{`exclusions: ${data.exclusions}`}</Typography> */}
         </Box>
       </Grid>
 
@@ -218,24 +222,41 @@ export const SubmissionView: React.FC = () => {
           />
         </Box>
       </Grid>
-      {data.spatialKeyDocId && (
-        <Grid xs>
+
+      <Grid xs>
+        <Typography variant='overline' color='text.secondary'>
+          Additional Details
+        </Typography>
+        {data.spatialKeyDocId && (
           <Button
             size='small'
-            sx={{ m: 1 }}
-            onClick={() => handleShowSKDialog(data.spatialKeyDocId!)}
+            sx={{ m: 1, ml: 0 }}
+            onClick={() =>
+              showDialog(COLLECTIONS.SK_RES, data.spatialKeyDocId!, 'Spatial Key Property Data')
+            }
           >
             Show Spatial Key Data
           </Button>
-          <ShowRatingDialog id={submissionId} btnProps={{ size: 'small', sx: { m: 1 } }} />
-        </Grid>
-      )}
-
-      {/* <Grid xs={12}>
-        <Typography component='div' variant='body2' color='text.secondary'>
-          <pre>{JSON.stringify(data, null, 2)}</pre>
-        </Typography>
-      </Grid> */}
+        )}
+        {data.attomDocId && (
+          <Button
+            size='small'
+            sx={{ m: 1, ml: 0 }}
+            onClick={() => showDialog('attom', data.attomDocId!, 'Attom Property Data')}
+          >
+            Show Attom Data
+          </Button>
+        )}
+        <ShowRatingDialog id={submissionId} btnProps={{ size: 'small', sx: { m: 1, ml: 0 } }} />
+        <Button
+          onClick={openGoogleMaps}
+          size='small'
+          sx={{ m: 1, ml: 0 }}
+          endIcon={<OpenInNewRounded />}
+        >
+          Google Maps
+        </Button>
+      </Grid>
     </Grid>
   );
 };

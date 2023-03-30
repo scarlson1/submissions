@@ -1,51 +1,14 @@
 import React, { useCallback } from 'react';
 import { Editor } from '@tiptap/react';
-import { MenuItem, Select, SelectChangeEvent, Typography } from '@mui/material';
-// import { DEFAULT_FONT_SIZE } from 'modules/utils/FontSize';
+import { alpha, MenuItem, Select, SelectChangeEvent, Typography } from '@mui/material';
 
-const FONT_SIZES = [
-  '8px',
-  '9px',
-  '10px',
-  '11px',
-  '12px',
-  '13px',
-  '14px',
-  '16px',
-  '18px',
-  '20px',
-  '22px',
-  '24px',
-  '26px',
-  '28px',
-  '30px',
-  '36px',
-  '40px',
-  '48px',
-  '60px',
-  '74px',
-  '96px',
-];
+import { FONT_SIZES } from 'modules/utils/FontSize';
 
 export interface FontSizeToolbarProps {
   editor?: Editor;
 }
 
 export const FontSizeToolbar: React.FC<FontSizeToolbarProps> = ({ editor }) => {
-  // const isActive: { [key: string]: boolean } = {};
-  // FONT_SIZES.forEach(
-  //   (size) => (isActive[size] = editor?.isActive('textStyle', { fontSize: size }) || false)
-  // );
-
-  // const getValue = useCallback((activeObj: { [key: string]: boolean }) => {
-  //   let size = DEFAULT_FONT_SIZE || '16px';
-  //   Object.keys(activeObj).forEach((f) => {
-  //     if (!!activeObj[f]) size = f;
-  //   });
-
-  //   return size;
-  // }, []);
-
   const handleChange = useCallback(
     (event: SelectChangeEvent<unknown>, child: React.ReactNode) => {
       let newVal = event.target.value as string;
@@ -62,7 +25,6 @@ export const FontSizeToolbar: React.FC<FontSizeToolbarProps> = ({ editor }) => {
   return (
     <Select
       id='font-size-select'
-      // value={getValue(isActive) || ''}
       value={fontSize || ''}
       onChange={handleChange}
       size='small'
@@ -81,6 +43,10 @@ export const FontSizeToolbar: React.FC<FontSizeToolbarProps> = ({ editor }) => {
         '& .MuiOutlinedInput-notchedOutline': {
           border: (theme) => `1px solid ${theme.palette.divider}`,
         },
+        '&:hover .MuiOutlinedInput-notchedOutline': {
+          borderColor: (theme) => theme.palette.divider,
+          bgcolor: (theme) => alpha(theme.palette.grey[900], 0.04),
+        },
         '& .MuiInputBase-input': {
           borderRadius: 0.5,
         },
@@ -95,12 +61,7 @@ export const FontSizeToolbar: React.FC<FontSizeToolbarProps> = ({ editor }) => {
     >
       <MenuItem value={''}>Default</MenuItem>
       {FONT_SIZES.map((size) => (
-        <MenuItem
-          value={size}
-          selected={fontSize === size}
-          // selected={isActive[size] || false}
-          key={size}
-        >
+        <MenuItem value={size} selected={fontSize === size} key={size}>
           {`${size}`}
         </MenuItem>
       ))}

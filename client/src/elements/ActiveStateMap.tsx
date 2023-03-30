@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Box, CircularProgress } from '@mui/material';
+import { Box } from '@mui/material';
 import { CancelRounded, CheckCircleRounded } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
-import { useStorage, useStorageDownloadURL } from 'reactfire';
-import { ref } from 'firebase/storage';
+// import { useStorage, useStorageDownloadURL } from 'reactfire';
+// import { ref } from 'firebase/storage';
 import { GeoJsonLayer } from '@deck.gl/layers/typed';
 import { MapViewState, PickingInfo } from 'deck.gl/typed';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -29,7 +29,8 @@ export interface ActiveStateMapProps {
   children?: React.ReactNode;
 }
 
-const STATES_JSON_STORAGE_PATH = `public/geo-spatial/states_20m.json`;
+// const STATES_JSON_STORAGE_PATH = `public/geo-spatial/states_20m.json`;
+const STATES_URL = 'https://scarlson1.github.io/data/states_20m.json';
 
 export const ActiveStateMap: React.FC<ActiveStateMapProps> = ({
   handleClick,
@@ -39,38 +40,10 @@ export const ActiveStateMap: React.FC<ActiveStateMapProps> = ({
 }) => {
   const theme = useTheme();
   const [hoverInfo, setHoverInfo] = useState<PickingInfo>();
-  const storage = useStorage();
+  // const storage = useStorage();
 
-  const { status, data: statesURL } = useStorageDownloadURL(ref(storage, STATES_JSON_STORAGE_PATH));
-  if (status === 'loading') {
-    return <CircularProgress />;
-  }
-
-  // const currentStateLayer = new GeoJsonLayer({
-  //   id: `geojson-layer`, // @ts-ignore
-  //   data: statesData,
-  //   pickable: true,
-  //   stroked: true,
-  //   filled: true,
-  //   extruded: true,
-  //   lineWidthScale: 20,
-  //   lineWidthMinPixels: 2,
-  //   autoHighlight: true,
-  //   wireframe: true,
-  //   highlightColor: [255, 255, 255, 25],
-  //   getLineColor: [255, 255, 255, 200],
-  //   getFillColor: (f) =>
-  //     statesValues && !!statesValues[f.properties?.SHORT_NAME]
-  //       ? [0, 125, 255, 50]
-  //       : [255, 255, 255, 20],
-  //   getPointRadius: 100,
-  //   getLineWidth: 10,
-  //   onHover: (info) => setHoverInfo(info),
-  //   onClick: handleClick,
-  //   updateTriggers: {
-  //     getFillColor: [statesValues],
-  //   },
-  // });
+  // const { status, data: statesURL } = useStorageDownloadURL(ref(storage, STATES_JSON_STORAGE_PATH));
+  // if (status === 'loading') return <CircularProgress />;
 
   return (
     <DeckMap
@@ -90,8 +63,7 @@ export const ActiveStateMap: React.FC<ActiveStateMapProps> = ({
         new GeoJsonLayer({
           ...defaultGeoJsonLayerProps,
           id: `geojson-layer-states`,
-          // data: statesData,
-          data: statesURL,
+          data: STATES_URL, // statesURL,
           highlightColor: theme.palette.mode === 'dark' ? [255, 255, 255, 25] : [80, 144, 211, 20],
           getLineColor: theme.palette.mode === 'dark' ? [255, 255, 255, 200] : [178, 186, 194, 200],
           getFillColor: (f) =>

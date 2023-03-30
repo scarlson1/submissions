@@ -12,6 +12,7 @@ export interface FetchPropertyDataResponse extends RatingPropertyData {
   initLimitD: number;
   maxDeductible: number;
   spatialKeyDocId?: string | null;
+  attomDocId?: string | null;
 }
 
 export const fetchPropertyDetails = (functions: Functions) =>

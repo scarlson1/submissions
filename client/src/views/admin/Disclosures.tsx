@@ -1,30 +1,25 @@
 import React, { useCallback, useMemo } from 'react';
 import { Box, Button, Tooltip, Typography } from '@mui/material';
-import { ArticleRounded } from '@mui/icons-material';
+import { ArticleRounded, EditRounded, DeleteRounded } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { GridActionsCellItem, GridColDef, GridRowParams } from '@mui/x-data-grid';
+import { useFirestore } from 'reactfire';
 import { JSONContent } from '@tiptap/react';
 import { generateHTML } from '@tiptap/html';
-import StarterKit from '@tiptap/starter-kit';
-import { Color } from '@tiptap/extension-color';
-import ListItem from '@tiptap/extension-list-item';
-import TextStyle from '@tiptap/extension-text-style'; // { TextStyleOptions }
-import Link from '@tiptap/extension-link';
+import { toast } from 'react-hot-toast';
 
 import { ServerDataGrid } from 'components';
 import { ADMIN_ROUTES, createPath } from 'router';
 import { formatGridFirestoreTimestamp } from 'modules/utils';
 import { GridCellCopy, renderChips } from 'components/RenderGridCellHelpers';
 import { useConfirmation } from 'modules/components';
+import { deleteDoc, doc } from 'firebase/firestore';
+import { COLLECTIONS } from 'common';
+import { EDITOR_EXTENSION_DEFAULTS } from 'hooks';
 
 const ContentSnippet = ({ json }: { json: JSONContent }) => {
   const content = useMemo(() => {
-    return generateHTML(json, [
-      Color.configure({ types: [TextStyle.name, ListItem.name] }), // @ts-ignore
-      TextStyle.configure({ types: [ListItem.name] }),
-      Link,
-      StarterKit,
-    ]);
+    return generateHTML(json, EDITOR_EXTENSION_DEFAULTS);
   }, [json]);
 
   return (
@@ -36,6 +31,7 @@ const ContentSnippet = ({ json }: { json: JSONContent }) => {
 
 export const Disclosures: React.FC = () => {
   const navigate = useNavigate();
+  const firestore = useFirestore();
   const dialog = useConfirmation();
 
   const showContent = useCallback(
@@ -43,23 +39,48 @@ export const Disclosures: React.FC = () => {
       const content = params.row.content;
       if (!content) return;
 
-      const html = generateHTML(content, [
-        Color.configure({ types: [TextStyle.name, ListItem.name] }), // @ts-ignore
-        TextStyle.configure({ types: [ListItem.name] }),
-        Link,
-        StarterKit,
-      ]);
+      const html = generateHTML(content, EDITOR_EXTENSION_DEFAULTS);
 
       await dialog({
         variant: 'info',
         catchOnCancel: false,
         title: 'Disclosure Preview',
-        description: (() => <div dangerouslySetInnerHTML={{ __html: html }} />)(), // html,
+        description: (() => <div dangerouslySetInnerHTML={{ __html: html }} />)(),
         dialogContentProps: { dividers: true },
         dialogProps: { maxWidth: 'sm' },
       });
     },
     [dialog]
+  );
+
+  const editDisclosure = useCallback(
+    ({ id }: GridRowParams) =>
+      async () => {
+        navigate(
+          createPath({ path: ADMIN_ROUTES.DISCLOSURE_EDIT, params: { disclosureId: id as string } })
+        );
+      },
+    [navigate]
+  );
+
+  const deleteDisclosure = useCallback(
+    ({ id }: GridRowParams) =>
+      async () => {
+        try {
+          await dialog({
+            variant: 'danger',
+            catchOnCancel: false,
+            title: 'Are you sure?',
+            description: `Would you like to delete disclosure ${id}? This action cannot be undone.`,
+            confirmButtonText: 'delete',
+            dialogContentProps: { dividers: true },
+            dialogProps: { maxWidth: 'xs' },
+          });
+          await deleteDoc(doc(firestore, COLLECTIONS.DISCLOSURES, `${id}`));
+          toast.success('Document deleted');
+        } catch (err) {}
+      },
+    [dialog, firestore]
   );
 
   const columns: GridColDef[] = useMemo(
@@ -68,7 +89,7 @@ export const Disclosures: React.FC = () => {
         field: 'actions',
         headerName: 'Actions',
         type: 'actions',
-        width: 80,
+        width: 120,
         getActions: (params: GridRowParams) => [
           <GridActionsCellItem
             icon={
@@ -79,13 +100,31 @@ export const Disclosures: React.FC = () => {
             onClick={showContent(params)}
             label='Details'
           />,
+          <GridActionsCellItem
+            icon={
+              <Tooltip placement='top' title='Edit'>
+                <EditRounded />
+              </Tooltip>
+            }
+            onClick={editDisclosure(params)}
+            label='Edit'
+          />,
+          <GridActionsCellItem
+            icon={
+              <Tooltip placement='top' title='Delete'>
+                <DeleteRounded />
+              </Tooltip>
+            }
+            onClick={deleteDisclosure(params)}
+            label='Delete'
+          />,
         ],
       },
       {
         field: 'state',
         headerName: 'State',
         type: '',
-        minWidth: 80,
+        minWidth: 60,
         flex: 0.2,
         editable: false,
       },
@@ -161,7 +200,7 @@ export const Disclosures: React.FC = () => {
         },
       },
     ],
-    [showContent]
+    [showContent, editDisclosure, deleteDisclosure]
   );
 
   return (

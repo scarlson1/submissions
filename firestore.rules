@@ -91,6 +91,12 @@ service cloud.firestore {
       allow create: if false
       allow update, delete: if false
     }
+    
+    match /attom/{docId} {
+      allow read: if isIDemandAdmin() && emailVerified()
+      allow create: if false
+      allow update, delete: if false
+    }
 
     match /ratingData/{docId} {
       allow read, write: if isIDemandAdmin()

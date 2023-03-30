@@ -17,32 +17,11 @@ import { ActiveStateMap } from 'elements/ActiveStateMap';
 import { useDocData } from 'hooks';
 import { ErrorFallback } from 'components';
 
-// export const activeStatesLoader = async ({ params }: LoaderFunctionArgs) => {
-//   try {
-//     const snap = await getDoc(doc(statesCollection(getFirestore()), params.productId));
-
-//     const data = snap.data();
-//     if (!snap.exists() || !data) return {};
-//     // throw new Response(`Error fetching active states docuement with ID: ${params.productId}`, {
-//     //   status: 404,
-//     // });
-
-//     return data;
-//   } catch (err) {
-//     let msg = `Error fetching active states document`;
-//     if (err instanceof FirebaseError) {
-//       msg = err.message;
-//     }
-//     throw new Response(msg);
-//   }
-// };
-
 export interface EditActiveStatesValues {
   [key: string]: boolean;
 }
 
 export const EditActiveStates: React.FC = () => {
-  // const data = useLoaderData() as { [key: string]: boolean };
   let { productId } = useParams();
   const { data, status } = useDocData<{ [key: string]: boolean }>('ACTIVE_STATES', productId || '');
   const formikRef = useRef<FormikProps<EditActiveStatesValues>>(null);
@@ -86,7 +65,7 @@ export const EditActiveStates: React.FC = () => {
         sx={{
           position: 'sticky',
           top: 0,
-          zIndex: 1000,
+          zIndex: 100,
           backgroundColor: (theme) => theme.palette.background.default,
           // backdropFilter: 'blur(20px)',
           // webkitBackdropFilter: 'blur(20px)',
