@@ -1,5 +1,14 @@
 import React, { useCallback } from 'react';
-import { Box, Card, CardContent, Grid, Typography, Stack, Divider } from '@mui/material';
+import {
+  Box,
+  Card,
+  CardContent,
+  Grid,
+  Typography,
+  Stack,
+  Divider,
+  CircularProgress,
+} from '@mui/material';
 import { useFormikContext } from 'formik';
 
 import { FloodValues } from 'views/SubmissionNew';
@@ -7,7 +16,7 @@ import { LimitKeys } from 'common/types';
 import { dollarFormat } from 'modules/utils/helpers';
 import { FormikCheckbox } from 'components/forms';
 import { useConfirmation } from 'modules/components/ConfirmationService';
-import { StateDisclosure } from './StateDisclosure';
+import { useDisclosure } from 'hooks';
 
 // TODO: generalize component
 
@@ -39,16 +48,10 @@ export const policyDetails: Detail[] = [
   },
 ];
 
-// // TODO: SET QUOTE DATA TYPING ONCE TYPED
-// interface ReviewStepProps {
-//   quoteData: { [key: string]: any };
-// }
-
 export const ReviewStep: React.FC = () => {
   const { values } = useFormikContext<FloodValues>();
   const confirm = useConfirmation();
-
-  // const locationData = useMemo(() => Object.values(quoteData.locations)[0], [quoteData.locations]);
+  const { disclosureHTML, status } = useDisclosure(values.state);
 
   const showDisclosure = useCallback(
     async (e: React.MouseEvent<HTMLSpanElement, MouseEvent>) => {
@@ -149,7 +152,7 @@ export const ReviewStep: React.FC = () => {
             <FormikCheckbox
               name='userAcceptance'
               label={
-                <Typography variant='body2' color='text.secondary'>
+                <Typography variant='body2' color='text.secondary' component='div'>
                   I agree to the{' '}
                   <Typography
                     component='span'
@@ -162,18 +165,11 @@ export const ReviewStep: React.FC = () => {
                   >
                     terms and conditions
                   </Typography>{' '}
-                  <StateDisclosure
-                    state={values.state}
-                    buttonText={'and state disclosure'}
-                    textProps={{
-                      variant: 'body2',
-                      sx: {
-                        display: 'inline-flex',
-                        fontWeight: 'fontWeightMedium',
-                        '&:hover': { textDecoration: 'underline' },
-                      },
-                    }}
-                  />
+                  {disclosureHTML && (
+                    <Typography component='span' variant='body2'>
+                      and state disclosure below
+                    </Typography>
+                  )}
                 </Typography>
               }
               checkboxProps={{ size: 'small' }}
@@ -181,6 +177,25 @@ export const ReviewStep: React.FC = () => {
                 typography: { variant: 'body2' },
               }}
             />
+            {status === 'loading' && (
+              <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+                <CircularProgress size={28} />
+              </Box>
+            )}
+            {disclosureHTML && (
+              <Box
+                sx={{
+                  mt: 3,
+                  ml: 4,
+                  pl: 3,
+                  borderLeft: (theme) => `1px solid ${theme.palette.divider}`,
+                  maxHeight: 120,
+                  overflowY: 'auto',
+                }}
+              >
+                <div dangerouslySetInnerHTML={{ __html: disclosureHTML }} />
+              </Box>
+            )}
           </Grid>
         </Grid>
       </CardContent>

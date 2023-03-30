@@ -272,7 +272,7 @@ export const QuoteNew: React.FC = () => {
         newTaxes = data.lineItems.map((t: any) => ({
           displayName: t.displayName || '',
           rate: `${t.rate || ''}`,
-          value: t.value || '',
+          value: `${t.value || ''}`,
         }));
       }
       if (data && data.lineItems?.length === 0) {
@@ -280,7 +280,7 @@ export const QuoteNew: React.FC = () => {
         return toast.success(`No applicable taxes for ${state}`, { duration: 5000 });
       }
 
-      formikRef.current?.setFieldValue('taxes', newTaxes);
+      setTimeout(() => formikRef.current?.setFieldValue('taxes', [...newTaxes]), 50);
       setTaxesLoading(false);
     } catch (err) {
       console.log('ERROR FETCHING TAXES: ', err);

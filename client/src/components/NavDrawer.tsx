@@ -1,9 +1,9 @@
 import React, { useState, useCallback } from 'react';
-import { Box, Drawer, IconButton } from '@mui/material';
+import { Drawer, IconButton } from '@mui/material';
 import { MenuRounded } from '@mui/icons-material';
 
 export interface NavDrawerProps {
-  children?: React.ReactNode;
+  children?: ({ toggleDrawer }: { toggleDrawer: () => void }) => React.ReactNode;
 }
 
 export const NavDrawer: React.FC<NavDrawerProps> = ({ children }) => {
@@ -19,7 +19,7 @@ export const NavDrawer: React.FC<NavDrawerProps> = ({ children }) => {
         <MenuRounded />
       </IconButton>
       <Drawer anchor='left' open={open} onClose={toggleDrawer}>
-        <Box>{children}</Box>
+        {children && children({ toggleDrawer })}
       </Drawer>
     </>
   );

@@ -55,7 +55,7 @@ export const Footer: React.FC = () => {
         <Box>
           <Typography
             sx={{
-              fontFamily: 'monospace',
+              fontFamily: 'monospace, Courier-Bold, -apple-system, system-ui',
               fontWeight: 700,
               letterSpacing: '.24rem',
               color: 'text.primary',

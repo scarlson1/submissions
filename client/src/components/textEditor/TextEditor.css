@@ -24,6 +24,13 @@
 .ProseMirror h6 {
   line-height: 1.1;
 }
+
+.ProseMirror h1:first-of-type,
+.ProseMirror h2:first-of-type,
+.ProseMirror h3:first-of-type {
+  margin-block-start: 0.2em;
+}
+
 .ProseMirror code {
   background-color: rgba(97, 97, 97, 0.1);
   color: #616161;

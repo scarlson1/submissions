@@ -30,6 +30,8 @@ import {
   BlockRounded,
   PlagiarismRounded,
   SourceRounded,
+  HomeRounded,
+  CloseRounded,
 } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
 import { matchPath, useLocation, useNavigate } from 'react-router-dom';
@@ -239,26 +241,60 @@ export const Header: React.FC<HeaderProps> = () => {
 
           <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
             <NavDrawer>
-              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                <Box sx={{ flex: '1 1 auto' }}>
-                  <List sx={{ minWidth: 260, maxWidth: 280, p: 3 }}>
-                    {navPages?.map((item, i) => (
-                      <NavListItem
-                        title={item.title}
-                        route={item.route}
-                        items={item.items}
-                        icon={item.icon}
-                        key={`${item.title}-${i}`}
-                        selected={
-                          (item.route && !!matchPath({ path: item.route }, location.pathname)) ||
-                          false
-                        }
-                      />
-                    ))}
-                  </List>
+              {({ toggleDrawer }) => (
+                <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                  <Box
+                    sx={{
+                      py: 3,
+                      px: 3,
+                      borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
+                      width: '100%',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                    }}
+                  >
+                    <IconButton color='primary' size='small' onClick={() => navigate('/')}>
+                      <HomeRounded />
+                    </IconButton>
+                    <IconButton size='small' onClick={toggleDrawer}>
+                      <CloseRounded />
+                    </IconButton>
+                  </Box>
+                  <Box sx={{ flex: '1 1 auto', overflow: 'auto' }}>
+                    <List sx={{ minWidth: 260, maxWidth: 280, p: 3 }}>
+                      {navPages?.map((item, i) => (
+                        <NavListItem
+                          title={item.title}
+                          route={item.route}
+                          items={item.items}
+                          icon={item.icon}
+                          key={`${item.title}-${i}`}
+                          selected={
+                            (item.route && !!matchPath({ path: item.route }, location.pathname)) ||
+                            false
+                          }
+                        />
+                      ))}
+                    </List>
+                  </Box>
+                  <Box
+                    sx={{
+                      py: 4,
+                      px: 5,
+                      borderTop: (theme) => `1px solid ${theme.palette.divider}`,
+                    }}
+                  >
+                    <Typography
+                      variant='subtitle2'
+                      color='text.secondary'
+                      onClick={() => navigate(createPath({ path: ROUTES.CONTACT }))}
+                      sx={{ '&:hover': { textDecoration: 'underline', cursor: 'pointer' } }}
+                    >
+                      Contact us
+                    </Typography>
+                  </Box>
                 </Box>
-                <Typography>Contact us</Typography>
-              </Box>
+              )}
             </NavDrawer>
           </Box>
           <WaterRounded

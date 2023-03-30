@@ -35,7 +35,7 @@ export { useFetchDocsWithCursor } from './useFetchDocsWithCursor';
 export { useImgOnLoad } from './useImgOnLoad';
 export { useTextEditor, EDITOR_EXTENSION_DEFAULTS } from './useTextEditor';
 export { useFetchFirestore } from './useFetchFirestore';
-// export {  } from './'
+export { useDisclosure } from './useDisclosure';
 // export {  } from './'
 
 export type { UseFileUploadProps } from './useFileUpload';

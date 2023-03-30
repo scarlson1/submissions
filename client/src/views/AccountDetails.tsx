@@ -85,14 +85,17 @@ export const AccountDetails: React.FC = () => {
               </Grid>
               <Grid xs>
                 <Typography variant='h5'>{user?.displayName}</Typography>
-                <Typography variant='subtitle2' color='text.secondary'>
+                {/* <Typography variant='subtitle2' color='text.secondary'>
                   TODO: get org name or user's position/role
-                </Typography>
+                </Typography> */}
               </Grid>
             </Grid>
             <Grid>
-              <Typography variant='h6' color='warning.main'>
+              {/* <Typography variant='h6' color='warning.main'>
                 TODO: user profile & settings
+              </Typography> */}
+              <Typography variant='h6' color='warning.main'>
+                [Profile page under construction]
               </Typography>
             </Grid>
           </Grid>
