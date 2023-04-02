@@ -94,16 +94,16 @@ const getMutationMsg = (
 export const Moratoriums: React.FC = () => {
   const navigate = useNavigate();
   const modal = useConfirmation();
-  const theme = useTheme();
   const dialog = useJsonDialog();
-  // const data = useLoaderData() as MoratoriumWithId[];
+  const theme = useTheme();
+  const toast = useAsyncToast();
+  let fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
+
   const { data, status } = useCollectionData<Moratorium>('MORATORIUMS', [
     orderBy('metadata.created', 'desc'),
     limit(100),
   ]);
   const updateMoratorium = useUpdateMoratorium();
-  const toast = useAsyncToast();
-  let fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
   const showDetails = useCallback(
     (id: GridRowId) => async () => {

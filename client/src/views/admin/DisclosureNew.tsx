@@ -19,7 +19,7 @@ export const DisclosureNew: React.FC = () => {
 
   const handleSubmit = useCallback(
     async (
-      { products, state, displayName, content }: DisclosureValues,
+      { products, state, displayName, type, content }: DisclosureValues,
       { setSubmitting }: FormikHelpers<DisclosureValues>
     ) => {
       try {
@@ -35,6 +35,7 @@ export const DisclosureNew: React.FC = () => {
           products: [...(products as Product[])],
           state: state || null,
           displayName: displayName || null,
+          type: type || null,
           content,
           metadata: {
             created: Timestamp.now(),

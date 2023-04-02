@@ -16,6 +16,7 @@ export { Policies } from './Policies';
 export { Disclosures } from './Disclosures';
 export { DisclosureNew } from './DisclosureNew';
 export { DisclosureEdit } from './DisclosureEdit';
+export { Home } from './Home';
 
 export type { SubmissionsProps } from './Submissions';
 export type { SLTaxesProps } from './SLTaxes';

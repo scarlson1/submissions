@@ -1,10 +1,9 @@
 import React, { useCallback } from 'react';
 import { Editor } from '@tiptap/react';
-import { ToggleButtonGroup } from '@mui/material';
+import { ToggleButton, ToggleButtonGroup, Tooltip } from '@mui/material';
 import { HorizontalRuleRounded, InsertPageBreakRounded } from '@mui/icons-material';
 
 import { toggleButtonGroupStyle } from './common';
-import { TooltipToggleButton } from 'components/forms';
 
 export interface SectionBreaksToolbarProps {
   editor?: Editor;
@@ -27,7 +26,7 @@ export const SectionBreaksToolbar: React.FC<SectionBreaksToolbarProps> = ({ edit
       aria-label='text formatting'
       sx={toggleButtonGroupStyle}
     >
-      <TooltipToggleButton
+      <ToggleButton
         size='small'
         value='divider'
         color='primary'
@@ -36,12 +35,14 @@ export const SectionBreaksToolbar: React.FC<SectionBreaksToolbarProps> = ({ edit
           border: 'none !important',
         }}
         onClick={handleDivider}
-        TooltipProps={{ title: 'divider' }}
+        // TooltipProps={{ title: 'divider' }}
       >
-        <HorizontalRuleRounded fontSize='small' />
-      </TooltipToggleButton>
+        <Tooltip title='divider' placement='top'>
+          <HorizontalRuleRounded fontSize='small' />
+        </Tooltip>
+      </ToggleButton>
 
-      <TooltipToggleButton
+      <ToggleButton
         size='small'
         value='hardBreak'
         color='primary'
@@ -50,10 +51,40 @@ export const SectionBreaksToolbar: React.FC<SectionBreaksToolbarProps> = ({ edit
           border: 'none !important',
         }}
         onClick={handleBreak}
-        TooltipProps={{ title: 'page break' }}
+        // TooltipProps={{ title: 'page break' }}
       >
-        <InsertPageBreakRounded fontSize='small' />
-      </TooltipToggleButton>
+        <Tooltip title='page break' placement='top'>
+          <InsertPageBreakRounded fontSize='small' />
+        </Tooltip>
+      </ToggleButton>
     </ToggleButtonGroup>
   );
 };
+
+/* <TooltipToggleButton
+  size='small'
+  value='divider'
+  color='primary'
+  aria-label='divider'
+  sx={{
+    border: 'none !important',
+  }}
+  onClick={handleDivider}
+  TooltipProps={{ title: 'divider' }}
+>
+  <HorizontalRuleRounded fontSize='small' />
+</TooltipToggleButton>
+
+<TooltipToggleButton
+  size='small'
+  value='hardBreak'
+  color='primary'
+  aria-label='hardBreak'
+  sx={{
+    border: 'none !important',
+  }}
+  onClick={handleBreak}
+  TooltipProps={{ title: 'page break' }}
+>
+  <InsertPageBreakRounded fontSize='small' />
+</TooltipToggleButton> */

@@ -9,14 +9,18 @@ import * as yup from 'yup';
 import { statesArr } from 'common/statesList';
 import { useTextEditor } from 'hooks';
 import { EditorToolbar } from 'components/textEditor/EditorToolbar';
-import { FormikSelect, FormikTextField } from 'components/forms';
+import { FormikNativeSelect, FormikSelect, FormikTextField } from 'components/forms';
 import 'components/textEditor/TextEditor.css';
 
 const disclosureValidation = yup.object().shape({
   products: yup.array().of(yup.string()).min(1),
-  state: yup.string().required(),
+  state: yup.string().when('type', {
+    is: (type: string | null) => type !== 'general disclosure',
+    then: (schema) => schema.required(),
+    otherwise: (schema) => schema.notRequired().nullable(),
+  }),
   displayName: yup.string().notRequired(),
-  type: yup.string().nullable(),
+  type: yup.string().required(),
 });
 
 export interface DisclosureValues {
@@ -36,7 +40,7 @@ export interface DisclosureFormProps extends Partial<FormikConfig<DisclosureValu
 export const DisclosureForm: React.FC<DisclosureFormProps> = ({
   onSubmit,
   editorContent = '',
-  initialValues = { products: ['flood', 'wind'], state: '', displayName: '' },
+  initialValues = { products: ['flood', 'wind'], state: '', displayName: '', type: '' },
   title,
   ...rest
 }) => {
@@ -104,6 +108,13 @@ export const DisclosureForm: React.FC<DisclosureFormProps> = ({
                     ))}
                   </Box>
                 )}
+              />
+            </Grid>
+            <Grid xs={6} sm={4} md={3}>
+              <FormikNativeSelect
+                name='type'
+                label='Type'
+                selectOptions={['state disclosure', 'general disclosure', 'terms & conditions']}
               />
             </Grid>
             <Grid xs={6} sm={4} md={3}>

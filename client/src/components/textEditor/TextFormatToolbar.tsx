@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { Editor } from '@tiptap/react';
-import { ToggleButton, ToggleButtonGroup } from '@mui/material';
+import { ToggleButton, ToggleButtonGroup, Tooltip } from '@mui/material';
 import {
   DataArrayRounded,
   FormatBoldRounded,
@@ -110,7 +110,9 @@ export const TextFormatToolbar: React.FC<TextFormatToolbarProps> = ({ editor }) 
           border: 'none !important',
         }}
       >
-        <FormatBoldRounded fontSize='small' />
+        <Tooltip title='bold' placement='top'>
+          <FormatBoldRounded fontSize='small' />
+        </Tooltip>
       </ToggleButton>
       <ToggleButton
         size='small'
@@ -122,7 +124,9 @@ export const TextFormatToolbar: React.FC<TextFormatToolbarProps> = ({ editor }) 
           border: 'none !important',
         }}
       >
-        <FormatItalicRounded fontSize='small' />
+        <Tooltip title='italic' placement='top'>
+          <FormatItalicRounded fontSize='small' />
+        </Tooltip>
       </ToggleButton>
       <ToggleButton
         size='small'
@@ -134,7 +138,9 @@ export const TextFormatToolbar: React.FC<TextFormatToolbarProps> = ({ editor }) 
           border: 'none !important',
         }}
       >
-        <FormatUnderlinedRounded fontSize='small' />
+        <Tooltip title='underline' placement='top'>
+          <FormatUnderlinedRounded fontSize='small' />
+        </Tooltip>
       </ToggleButton>
       <ToggleButton
         size='small'
@@ -146,7 +152,9 @@ export const TextFormatToolbar: React.FC<TextFormatToolbarProps> = ({ editor }) 
           border: 'none !important',
         }}
       >
-        <StrikethroughSRounded fontSize='small' />
+        <Tooltip title='strike through' placement='top'>
+          <StrikethroughSRounded fontSize='small' />
+        </Tooltip>
       </ToggleButton>
       <ToggleButton
         size='small'
@@ -158,7 +166,9 @@ export const TextFormatToolbar: React.FC<TextFormatToolbarProps> = ({ editor }) 
           border: 'none !important',
         }}
       >
-        <DataArrayRounded fontSize='small' />
+        <Tooltip title='code' placement='top'>
+          <DataArrayRounded fontSize='small' />
+        </Tooltip>
       </ToggleButton>
       <ToggleButton
         size='small'
@@ -169,7 +179,9 @@ export const TextFormatToolbar: React.FC<TextFormatToolbarProps> = ({ editor }) 
           border: 'none !important',
         }}
       >
-        {!linkActive ? <LinkRounded fontSize='small' /> : <LinkOffRounded fontSize='small' />}
+        <Tooltip title={!linkActive ? 'Link' : 'Unlink'} placement='top'>
+          {!linkActive ? <LinkRounded fontSize='small' /> : <LinkOffRounded fontSize='small' />}
+        </Tooltip>
       </ToggleButton>
     </ToggleButtonGroup>
   );

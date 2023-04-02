@@ -290,6 +290,11 @@ export const getDesignTokens = (mode: 'light' | 'dark') =>
         letterSpacing: 0,
         fontWeight: 700,
       },
+      overline: {
+        fontSize: defaultTheme.typography.pxToRem(12),
+        lineHeight: 24 / 12,
+        color: mode === 'dark' ? grey[400] : grey[700],
+      },
     },
   } as ThemeOptions);
 
@@ -364,7 +369,8 @@ export function getThemedComponents(theme: Theme): {
                 },
               },
               '& .MuiButton-startIcon': {
-                color: theme.palette.grey[400],
+                color:
+                  theme.palette.mode === 'dark' ? theme.palette.grey[400] : theme.palette.grey[700], // theme.palette.grey[400],
               },
               '& .MuiButton-endIcon': {
                 display: 'inline-block',

@@ -36,6 +36,7 @@ import {
   Policies as PoliciesAdmin,
   DisclosureNew,
   DisclosureEdit,
+  Home as AdminHome,
 } from 'views/admin';
 import { SuccessStep, ActionHandler } from 'elements';
 import { Product } from 'common';
@@ -343,7 +344,12 @@ export const router = createBrowserRouter([
         children: [
           {
             index: true,
-            element: (() => <div>TODO: Admin Index Page</div>)(),
+            element: (
+              <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
+                <AdminHome />
+              </RequireAuthReactFire>
+            ),
+            // element: (() => <div>TODO: Admin Index Page</div>)(),
           },
           {
             path: ADMIN_ROUTES.SUBMISSIONS,

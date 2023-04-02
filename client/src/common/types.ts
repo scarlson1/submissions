@@ -751,8 +751,8 @@ export interface License extends BaseDoc {
 export interface Disclosure extends BaseDoc {
   products: Product[];
   state: string | null;
-  type?: string | null; // TODO: types
   displayName?: string | null;
+  type?: string | null;
   content: JSONContent;
 }
 

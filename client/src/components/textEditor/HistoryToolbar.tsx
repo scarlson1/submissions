@@ -1,10 +1,9 @@
 import React, { useCallback } from 'react';
 import { Editor } from '@tiptap/react';
-import { ToggleButtonGroup } from '@mui/material';
+import { ToggleButton, ToggleButtonGroup, Tooltip } from '@mui/material';
 import { RedoRounded, UndoRounded } from '@mui/icons-material';
 
 import { toggleButtonGroupStyle } from './common';
-import { TooltipToggleButton } from 'components/forms';
 
 export interface HistoryToolbarProps {
   editor?: Editor;
@@ -27,7 +26,7 @@ export const HistoryToolbar: React.FC<HistoryToolbarProps> = ({ editor }) => {
       aria-label='text formatting'
       sx={toggleButtonGroupStyle}
     >
-      <TooltipToggleButton
+      <ToggleButton
         size='small'
         value='undo'
         color='primary'
@@ -37,11 +36,13 @@ export const HistoryToolbar: React.FC<HistoryToolbarProps> = ({ editor }) => {
         }}
         onClick={handleUndo}
         disabled={!editor.can().chain().focus().undo().run()}
-        TooltipProps={{ title: 'undo' }}
+        // TooltipProps={{ title: 'undo' }}
       >
-        <UndoRounded fontSize='small' />
-      </TooltipToggleButton>
-      <TooltipToggleButton
+        <Tooltip title='undo' placement='top'>
+          <UndoRounded fontSize='small' />
+        </Tooltip>
+      </ToggleButton>
+      <ToggleButton
         size='small'
         value='redo'
         color='primary'
@@ -51,10 +52,41 @@ export const HistoryToolbar: React.FC<HistoryToolbarProps> = ({ editor }) => {
         }}
         onClick={handleRedo}
         disabled={!editor.can().chain().focus().redo().run()}
-        TooltipProps={{ title: 'redo' }}
+        // TooltipProps={{ title: 'redo' }}
       >
-        <RedoRounded fontSize='small' />
-      </TooltipToggleButton>
+        <Tooltip title='redo' placement='top'>
+          <RedoRounded fontSize='small' />
+        </Tooltip>
+      </ToggleButton>
     </ToggleButtonGroup>
   );
 };
+
+// <TooltipToggleButton
+//         size='small'
+//         value='undo'
+//         color='primary'
+//         aria-label='undo'
+//         sx={{
+//           border: 'none !important',
+//         }}
+//         onClick={handleUndo}
+//         disabled={!editor.can().chain().focus().undo().run()}
+//         TooltipProps={{ title: 'undo' }}
+//       >
+//         <UndoRounded fontSize='small' />
+//       </TooltipToggleButton>
+//       <TooltipToggleButton
+//         size='small'
+//         value='redo'
+//         color='primary'
+//         aria-label='redo'
+//         sx={{
+//           border: 'none !important',
+//         }}
+//         onClick={handleRedo}
+//         disabled={!editor.can().chain().focus().redo().run()}
+//         TooltipProps={{ title: 'redo' }}
+//       >
+//         <RedoRounded fontSize='small' />
+//       </TooltipToggleButton>

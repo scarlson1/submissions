@@ -1,6 +1,11 @@
 import React, { useCallback } from 'react';
 import { Container, Box, Typography, Link } from '@mui/material';
+import { generateHTML } from '@tiptap/react';
+
 import { useConfirmation } from 'modules/components/ConfirmationService';
+import { EDITOR_EXTENSION_DEFAULTS, useCollectionData } from 'hooks';
+import { Disclosure } from 'common';
+import { where } from 'firebase/firestore';
 
 const Copyright: React.FC = () => {
   return (
@@ -16,17 +21,32 @@ const Copyright: React.FC = () => {
 };
 
 export const Footer: React.FC = () => {
+  const { data } = useCollectionData<Disclosure>('DISCLOSURES', [
+    where('type', '==', 'general disclosure'),
+  ]);
   const confirm = useConfirmation();
 
   const showDisclosure = useCallback(async () => {
+    if (!data || data.length < 1) return;
+    const content: string[] = [];
+
+    data.forEach((d) => content.push(generateHTML(d.content, EDITOR_EXTENSION_DEFAULTS)));
+
     await confirm({
       variant: 'info',
       catchOnCancel: false,
       title: 'Disclosure',
-      description: `A request for quote is subject to all state regulations, including, but not limited to, license and due diligence requirements regarding non-admitted insurance. This website is not intended for business in any state not licensed. Any initial premium indication is not a quote until full submission information has been provided and approved including all state disclosure, taxes, and fees.`,
+      description: (
+        <div>
+          {content.map((c, i) => (
+            <div dangerouslySetInnerHTML={{ __html: c }} key={`disclosure-content-${i}`} />
+          ))}
+        </div>
+      ),
+      // description: `A request for quote is subject to all state regulations, including, but not limited to, license and due diligence requirements regarding non-admitted insurance. This website is not intended for business in any state not licensed. Any initial premium indication is not a quote until full submission information has been provided and approved including all state disclosure, taxes, and fees.`,
       dialogContentProps: { dividers: true },
     });
-  }, [confirm]);
+  }, [confirm, data]);
 
   return (
     <Box
@@ -39,8 +59,6 @@ export const Footer: React.FC = () => {
         webkitBackdropFilter: 'blur(20px)',
         borderTop: '1px solid',
         borderColor: 'divider',
-        // backgroundColor: (theme) =>
-        //   theme.palette.mode === 'light' ? theme.palette.grey[50] : 'background.paper',
       }}
     >
       <Container
@@ -67,14 +85,16 @@ export const Footer: React.FC = () => {
           </Typography>
           <Copyright />
         </Box>
-        <Typography
-          variant='body2'
-          color='text.secondary'
-          sx={{ '&:hover': { textDecoration: 'underline', cursor: 'pointer' } }}
-          onClick={showDisclosure}
-        >
-          Disclosure
-        </Typography>
+        {data && data.length > 0 ? (
+          <Typography
+            variant='body2'
+            color='text.secondary'
+            sx={{ '&:hover': { textDecoration: 'underline', cursor: 'pointer' } }}
+            onClick={showDisclosure}
+          >
+            Disclosure
+          </Typography>
+        ) : null}
       </Container>
     </Box>
   );

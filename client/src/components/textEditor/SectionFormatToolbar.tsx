@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { Editor } from '@tiptap/react';
-import { ToggleButtonGroup } from '@mui/material';
+import { ToggleButton, ToggleButtonGroup, Tooltip } from '@mui/material';
 import {
   CodeRounded,
   FormatListBulletedRounded,
@@ -9,7 +9,6 @@ import {
 } from '@mui/icons-material';
 
 import { toggleButtonGroupStyle } from './common';
-import { TooltipToggleButton } from 'components/forms';
 
 export interface SectionFormatToolbarProps {
   editor?: Editor;
@@ -59,8 +58,8 @@ export const SectionFormatToolbar: React.FC<SectionFormatToolbarProps> = ({ edit
       aria-label='text formatting'
       sx={toggleButtonGroupStyle}
     >
-      <TooltipToggleButton
-        TooltipProps={{ title: 'bullet list' }}
+      <ToggleButton
+        // TooltipProps={{ title: 'bullet list' }}
         size='small'
         value='bulletList'
         color='primary'
@@ -70,9 +69,11 @@ export const SectionFormatToolbar: React.FC<SectionFormatToolbarProps> = ({ edit
           border: 'none !important',
         }}
       >
-        <FormatListBulletedRounded fontSize='small' />
-      </TooltipToggleButton>
-      <TooltipToggleButton
+        <Tooltip title='bullet list' placement='top'>
+          <FormatListBulletedRounded fontSize='small' />
+        </Tooltip>
+      </ToggleButton>
+      <ToggleButton
         size='small'
         value='orderedList'
         color='primary'
@@ -81,11 +82,13 @@ export const SectionFormatToolbar: React.FC<SectionFormatToolbarProps> = ({ edit
         sx={{
           border: 'none !important',
         }}
-        TooltipProps={{ title: 'ordered list' }}
+        // TooltipProps={{ title: 'ordered list' }}
       >
-        <FormatListNumberedRounded fontSize='small' />
-      </TooltipToggleButton>
-      <TooltipToggleButton
+        <Tooltip title='ordered list' placement='top'>
+          <FormatListNumberedRounded fontSize='small' />
+        </Tooltip>
+      </ToggleButton>
+      <ToggleButton
         size='small'
         value='codeBlock'
         color='primary'
@@ -94,11 +97,13 @@ export const SectionFormatToolbar: React.FC<SectionFormatToolbarProps> = ({ edit
         sx={{
           border: 'none !important',
         }}
-        TooltipProps={{ title: 'code block' }}
+        // TooltipProps={{ title: 'code block' }}
       >
-        <CodeRounded fontSize='small' />
-      </TooltipToggleButton>
-      <TooltipToggleButton
+        <Tooltip title='code block' placement='top'>
+          <CodeRounded fontSize='small' />
+        </Tooltip>
+      </ToggleButton>
+      <ToggleButton
         size='small'
         value='blockquote'
         color='primary'
@@ -107,10 +112,65 @@ export const SectionFormatToolbar: React.FC<SectionFormatToolbarProps> = ({ edit
         sx={{
           border: 'none !important',
         }}
-        TooltipProps={{ title: 'block quote' }}
+        // TooltipProps={{ title: 'block quote' }}
       >
-        <FormatQuoteRounded fontSize='small' />
-      </TooltipToggleButton>
+        <Tooltip title='block quote' placement='top'>
+          <FormatQuoteRounded fontSize='small' />
+        </Tooltip>
+      </ToggleButton>
     </ToggleButtonGroup>
   );
 };
+
+// <TooltipToggleButton
+//   TooltipProps={{ title: 'bullet list' }}
+//   size='small'
+//   value='bulletList'
+//   color='primary'
+//   disabled={!editor.can().chain().focus().toggleBulletList().run()}
+//   aria-label='bulleted list'
+//   sx={{
+//     border: 'none !important',
+//   }}
+// >
+//   <FormatListBulletedRounded fontSize='small' />
+// </TooltipToggleButton>
+// <TooltipToggleButton
+//   size='small'
+//   value='orderedList'
+//   color='primary'
+//   disabled={!editor.can().chain().focus().toggleOrderedList().run()}
+//   aria-label='ordered list'
+//   sx={{
+//     border: 'none !important',
+//   }}
+//   TooltipProps={{ title: 'ordered list' }}
+// >
+//   <FormatListNumberedRounded fontSize='small' />
+// </TooltipToggleButton>
+// <TooltipToggleButton
+//   size='small'
+//   value='codeBlock'
+//   color='primary'
+//   disabled={!editor.can().chain().focus().toggleCodeBlock().run()}
+//   aria-label='code block'
+//   sx={{
+//     border: 'none !important',
+//   }}
+//   TooltipProps={{ title: 'code block' }}
+// >
+//   <CodeRounded fontSize='small' />
+// </TooltipToggleButton>
+// <TooltipToggleButton
+//   size='small'
+//   value='blockquote'
+//   color='primary'
+//   disabled={!editor.can().chain().focus().toggleBlockquote().run()}
+//   aria-label='block quote'
+//   sx={{
+//     border: 'none !important',
+//   }}
+//   TooltipProps={{ title: 'block quote' }}
+// >
+//   <FormatQuoteRounded fontSize='small' />
+// </TooltipToggleButton>

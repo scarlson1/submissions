@@ -14,6 +14,7 @@ export const flexCardStyle = {
 
 export const flexCardContentStyle = {
   flex: '1 0 auto',
+  height: '100%',
 } as const;
 
 export const FlexCard: React.FC<CardProps> = (props) => {
