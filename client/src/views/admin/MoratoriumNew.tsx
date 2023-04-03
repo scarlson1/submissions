@@ -14,7 +14,8 @@ import { ADMIN_ROUTES, createPath } from 'router';
 import { COLLECTIONS, FIPSDetails } from 'common';
 import { CountiesMap } from 'elements';
 import { useFirestore, useFirestoreDocDataOnce } from 'reactfire';
-import { doc, DocumentReference } from 'firebase/firestore';
+import { doc, DocumentReference, setDoc } from 'firebase/firestore';
+import FIPS from 'assets/fips.json';
 
 // TODO: suspense and error boundary around virtual autocomplete
 
@@ -54,8 +55,9 @@ export const MoratoriumNew: React.FC = () => {
   }>;
   const {
     data: { counties },
-  } = useFirestoreDocDataOnce(fipsDocRef);
+  } = useFirestoreDocDataOnce(fipsDocRef, { initialData: { counties: [] } });
   // TODO: handle doc doesnt exist ? does suspense catch does not exist ?
+  console.log('COUNTIES: ', counties);
 
   const createMoratorium = useCreateMoratorium({
     onSuccess: (id: string) => {
@@ -264,9 +266,22 @@ export const MoratoriumNew: React.FC = () => {
           </>
         )}
       </Formik>
+      <InitializeFIPS />
     </Box>
   );
 };
+
+function InitializeFIPS() {
+  const firebase = useFirestore();
+
+  const initFIPS = useCallback(async () => {
+    const fipsRef = doc(firebase, COLLECTIONS.PUBLIC, 'fips');
+    await setDoc(fipsRef, { counties: FIPS });
+    toast.success('FIPS uploaded');
+  }, [firebase]);
+
+  return <Button onClick={initFIPS}>Init FIPS</Button>;
+}
 
 // export function FIPSAutocomplete({ name = 'locationDetails' }: { name?: string }) {
 //   const firestore = useFirestore();

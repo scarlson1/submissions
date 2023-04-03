@@ -42,7 +42,7 @@ export const ClaimsGuard: React.FC<ClaimsGuardProps> = ({
       return { validateCustomClaims: validator, ...signInCheckProps };
     }
     return {};
-  }, [requiredClaims, signInCheckProps]);
+  }, [requiredClaims, signInCheckProps, requireAll]);
 
   console.log('CHECK PROPS: ', checkProps);
   const { status, data } = useSigninCheck({ ...checkProps });
