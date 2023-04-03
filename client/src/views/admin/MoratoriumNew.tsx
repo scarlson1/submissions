@@ -54,7 +54,7 @@ export const MoratoriumNew: React.FC = () => {
   }>;
   const {
     data: { counties },
-  } = useFirestoreDocDataOnce(fipsDocRef);
+  } = useFirestoreDocDataOnce(fipsDocRef, { initialData: { counties: [] } });
   // TODO: handle doc doesnt exist ? does suspense catch does not exist ?
 
   const createMoratorium = useCreateMoratorium({
