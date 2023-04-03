@@ -13,7 +13,7 @@ import { KeyboardArrowRightRounded } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from 'reactfire';
 
-import { FlexCard, FlexCardContent, IconButtonMenu } from 'components';
+import { ClaimsGuard, FlexCard, FlexCardContent, IconButtonMenu } from 'components';
 import { ADMIN_ROUTES, createPath, ROUTES } from 'router';
 import { useDocCount } from 'hooks';
 import {
@@ -82,6 +82,9 @@ export const Home: React.FC = () => {
           />
         </Grid>
       </Grid>
+      <ClaimsGuard requiredClaims={['AGENT', 'IDEMAND_ADMIN']}>
+        <div>test</div>
+      </ClaimsGuard>
     </Box>
   );
 };

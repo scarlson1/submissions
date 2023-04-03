@@ -15,7 +15,7 @@ import { CUSTOM_CLAIMS } from 'modules/components';
 import { AUTH_ROUTES } from 'router';
 import { toast } from 'react-hot-toast';
 
-type CustomClaimKeys = keyof typeof CUSTOM_CLAIMS;
+export type CustomClaimKeys = keyof typeof CUSTOM_CLAIMS;
 
 export interface RequireAuthReactFireProps {
   children: JSX.Element;
