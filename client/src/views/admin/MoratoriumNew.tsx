@@ -1,6 +1,13 @@
 import React, { useCallback, useRef } from 'react';
-import { Box, Button, Card, Chip, Divider, Typography } from '@mui/material';
-import Grid from '@mui/material/Unstable_Grid2';
+import {
+  Box,
+  Button,
+  Card,
+  Chip,
+  Divider,
+  Typography,
+  Unstable_Grid2 as Grid,
+} from '@mui/material';
 import { Formik, FormikHelpers, FormikProps } from 'formik';
 import { PickingInfo } from 'deck.gl/typed';
 import { toast } from 'react-hot-toast';
@@ -14,8 +21,7 @@ import { ADMIN_ROUTES, createPath } from 'router';
 import { COLLECTIONS, FIPSDetails } from 'common';
 import { CountiesMap } from 'elements';
 import { useFirestore, useFirestoreDocDataOnce } from 'reactfire';
-import { doc, DocumentReference, setDoc } from 'firebase/firestore';
-import FIPS from 'assets/fips.json';
+import { doc, DocumentReference } from 'firebase/firestore';
 
 // TODO: suspense and error boundary around virtual autocomplete
 
@@ -266,39 +272,6 @@ export const MoratoriumNew: React.FC = () => {
           </>
         )}
       </Formik>
-      <InitializeFIPS />
     </Box>
   );
 };
-
-function InitializeFIPS() {
-  const firebase = useFirestore();
-
-  const initFIPS = useCallback(async () => {
-    const fipsRef = doc(firebase, COLLECTIONS.PUBLIC, 'fips');
-    await setDoc(fipsRef, { counties: FIPS });
-    toast.success('FIPS uploaded');
-  }, [firebase]);
-
-  return <Button onClick={initFIPS}>Init FIPS</Button>;
-}
-
-// export function FIPSAutocomplete({ name = 'locationDetails' }: { name?: string }) {
-//   const firestore = useFirestore();
-//   const countiesDocRef = doc(firestore, COLLECTIONS.PUBLIC, 'fips') as DocumentReference<{
-//     counties: FIPSDetails[];
-//   }>;
-//   const {
-//     data: { counties },
-//   } = useFirestoreDocDataOnce(countiesDocRef);
-
-//   return (
-//     <VirtualizedAutocomplete
-//       options={counties}
-//       name={name}
-//       getOptionLabel={(option) => `${option.stateFP}${option.countyFP} - ${option.countyName}`}
-//       autocompleteProps={{ groupBy: (option) => option.state }}
-//       textFieldProps={{ label: 'Counties', placeholder: 'search: fips, state, county name' }}
-//     />
-//   );
-// }

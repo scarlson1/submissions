@@ -32,6 +32,7 @@ const breadcrumbNameMap: { [key: string]: string } = {
   '/admin/licenses': 'Licenses',
   '/admin/agencies': 'Agencies',
   '/admin/agencies/submissions': 'Applications',
+  '/admin/orgs': 'Orgs',
   '/admin/disclosures': 'Disclosures',
 };
 

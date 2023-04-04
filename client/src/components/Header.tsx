@@ -32,6 +32,7 @@ import {
   SourceRounded,
   HomeRounded,
   CloseRounded,
+  CorporateFareRounded,
 } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
 import { matchPath, useLocation, useNavigate } from 'react-router-dom';
@@ -98,6 +99,13 @@ export const Header: React.FC<HeaderProps> = () => {
               path: ADMIN_ROUTES.AGENCY_APPS,
             }),
             icon: <InboxRounded color='primary' fontSize='small' />,
+          },
+          {
+            title: 'Organizations',
+            route: createPath({
+              path: ADMIN_ROUTES.ORGANIZATIONS,
+            }),
+            icon: <CorporateFareRounded color='primary' fontSize='small' />,
           },
           {
             title: 'Taxes',

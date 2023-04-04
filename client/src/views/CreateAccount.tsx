@@ -58,6 +58,7 @@ export const CreateAccount: React.FC = () => {
 
   useEffect(() => {
     if (params.tenantId) {
+      console.log('TENANT ID: ', params.tenantId);
       auth.tenantId = params.tenantId;
     } else {
       auth.tenantId = null;

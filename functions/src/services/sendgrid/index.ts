@@ -9,6 +9,7 @@ import {
   newQuote,
   adminPaymentReceived,
   policyDelivery,
+  agencyAppApproved,
 } from './templates';
 
 export interface AttachmentJSON {
@@ -162,4 +163,39 @@ export const sendAdminPaidNotification = async (
   sgMail.setApiKey(sgKey);
 
   await sgMail.send(createMsgContent({ html, subject: `Payment received (${transactionId})`, to }));
+};
+
+export const sendAgencyAppApprovedNotification = async (
+  key: string,
+  tenantId: string,
+  orgName: string,
+  email: string,
+  to: string | string[],
+  firstName?: string,
+  lastName?: string
+) => {
+  const link = `${process.env.HOSTING_BASE_URL}/auth/create-account/${encodeURIComponent(
+    tenantId
+  )}?email=${encodeURIComponent(email)}&firstName=${encodeURIComponent(
+    firstName || ''
+  )}&lastName=${encodeURIComponent(lastName || '')}`;
+
+  const html = agencyAppApproved({ firstName, orgName, link });
+
+  sgMail.setApiKey(key);
+
+  // const to = [email];
+  // if (process.env.AUDIENCE === 'Local Humans') {
+  //   to.push('spencer.carlson@idemandinsurance.com');
+  // }
+
+  await sgMail.send(
+    createMsgContent({
+      to,
+      html,
+      subject: 'Finish setting up your account',
+    })
+  );
+
+  return { link };
 };

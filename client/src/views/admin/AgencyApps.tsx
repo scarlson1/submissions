@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { limit, orderBy } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
-import { Box, Typography } from '@mui/material';
+import { Box, Button, Typography } from '@mui/material';
 import { GridCellParams, GridColDef } from '@mui/x-data-grid';
 
 import { BasicDataGrid, renderGridEmail, renderGridPhone, FileLink } from 'components';
@@ -217,9 +217,19 @@ export const AgencyApps: React.FC = () => {
 
   return (
     <Box>
-      <Typography variant='h5' sx={{ ml: { xs: 0, sm: 3, md: 4 } }} gutterBottom>
-        Agency Submissions
-      </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', pb: 2 }}>
+        <Typography variant='h5' sx={{ ml: { xs: 0, sm: 3, md: 4 } }}>
+          Agency Submissions
+        </Typography>
+        <Button
+          onClick={() => navigate(createPath({ path: ADMIN_ROUTES.CREATE_TENANT }))}
+          variant='contained'
+          sx={{ maxHeight: 34 }}
+        >
+          New Agency
+        </Button>
+      </Box>
+
       <Box sx={{ height: 500, width: '100%' }}>
         <BasicDataGrid
           rows={data || []}

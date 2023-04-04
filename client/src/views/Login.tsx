@@ -60,7 +60,7 @@ export const Login: React.FC = () => {
 
   useEffect(() => {
     if (params.tenantId) {
-      console.log(`setting auth.tenantId: ${params.tenantId}`);
+      console.log(`TENANT ID: ${params.tenantId}`);
       auth.tenantId = params.tenantId;
     } else {
       auth.tenantId = null;

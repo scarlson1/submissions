@@ -1,10 +1,11 @@
 import { useCallback, useState } from 'react';
-import { addDoc, GeoPoint, getFirestore, Timestamp } from 'firebase/firestore';
+import { addDoc, GeoPoint, Timestamp } from 'firebase/firestore';
 
 import { AgencyAppValues } from 'views/AgencyNew';
 import { useUploadStorageFiles } from 'hooks';
 import { agencyAppCollection } from 'common';
 import { FirebaseError } from 'firebase/app';
+import { useFirestore } from 'reactfire';
 
 export interface UseCreateAgencyProps {
   onSuccess?: (subId: string) => void;
@@ -12,11 +13,12 @@ export interface UseCreateAgencyProps {
 }
 
 export const useCreateAgency = ({ onSuccess, onError }: UseCreateAgencyProps) => {
+  const firestore = useFirestore();
   const [error, setError] = useState<string | null>(null);
   const { uploadFiles } = useUploadStorageFiles('newAgencySubmissions');
 
   const handleSubmission = useCallback(
-    async (values: AgencyAppValues) => {
+    async (values: AgencyAppValues, sendNotifications: boolean = true) => {
       setError(null);
       try {
         if (!values.EandO || typeof values.EandO === 'string')
@@ -24,7 +26,7 @@ export const useCreateAgency = ({ onSuccess, onError }: UseCreateAgencyProps) =>
         const uploadResult = await uploadFiles(values.EandO, {}, `EandO_${values.orgName}_`);
         console.log('uploadResult: ', uploadResult);
 
-        const docRef = await addDoc(agencyAppCollection(getFirestore()), {
+        const docRef = await addDoc(agencyAppCollection(firestore), {
           orgName: values.orgName,
           address: {
             addressLine1: values.addressLine1,
@@ -51,6 +53,7 @@ export const useCreateAgency = ({ onSuccess, onError }: UseCreateAgencyProps) =>
             values.latitude && values.longitude
               ? new GeoPoint(values.latitude, values.longitude)
               : null,
+          sendAppReceivedNotification: sendNotifications,
           metadata: {
             created: Timestamp.now(),
             updated: Timestamp.now(),
@@ -70,7 +73,7 @@ export const useCreateAgency = ({ onSuccess, onError }: UseCreateAgencyProps) =>
         if (onError) onError(err, msg);
       }
     },
-    [uploadFiles, onSuccess, onError]
+    [uploadFiles, onSuccess, onError, firestore]
   );
 
   return { handleSubmission, error };

@@ -1,5 +1,5 @@
-export { getPropertyDetails } from './getPropertyDetails';
-export { getPropertyDetailsAttom } from './getPropertyDetailsAttom';
+export { getPropertyDetails } from './getPropertyDetails.js';
+export { getPropertyDetailsAttom } from './getPropertyDetailsAttom.js';
 export { sendContactEmail } from './sendContactEmail.js';
 export { initializeQuote } from './initializeQuote.js';
 export { updateAndRateQuote } from './updateAndRateQuote.js';
@@ -9,4 +9,9 @@ export { sendNewQuoteNotifications } from './sendNewQuoteNotifications.js';
 export { executePayment } from './executePayment.js';
 export { sendPolicyDoc } from './sendPolicyDoc.js';
 export { createPolicy } from './createPolicy.js';
-export { calcQuote } from './calcQuote';
+export { calcQuote } from './calcQuote.js';
+export { getTenantIdFromEmail } from './getTenantIdFromEmail.js';
+export { createTenantFromSubmission } from './createTenantFromSubmission.js';
+export { sendAgencyApprovedNotification } from './sendAgencyApprovedNotification.js';
+export { inviteUsers } from './inviteUsers.js';
+export { resendInvite } from './resendInvite.js';

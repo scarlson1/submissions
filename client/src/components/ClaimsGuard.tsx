@@ -44,7 +44,6 @@ export const ClaimsGuard: React.FC<ClaimsGuardProps> = ({
     return {};
   }, [requiredClaims, signInCheckProps, requireAll]);
 
-  console.log('CHECK PROPS: ', checkProps);
   const { status, data } = useSigninCheck({ ...checkProps });
   // const { status, data } = useSigninCheck({ requiredClaims: claimsObj, suspense: false });
 

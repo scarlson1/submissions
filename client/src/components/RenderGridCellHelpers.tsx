@@ -77,6 +77,7 @@ export const GridCellCopy = ({ value }: { value?: string | number | null }) => {
     <Box sx={{ display: 'flex', alignItems: 'center', maxWidth: '100%' }}>
       <Typography
         variant='body2'
+        component='div'
         sx={{
           mr: 1,
           flex: '0 1 auto',

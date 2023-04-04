@@ -14,7 +14,7 @@ export enum COLLECTIONS {
   SR_RES = 'swissReRes',
   PAYMENT_METHODS = 'paymentMethods',
   TRANSACTIONS = 'transactions',
-  AGENCY_APPLICATIONS = 'agencyApplications',
+  AGENCY_APPLICATIONS = 'agencySubmissions',
   LICENSES = 'licenses',
   NOTIFICATIONS = 'notifications',
 }
@@ -52,9 +52,10 @@ export enum PRODUCT {
 }
 
 export enum AGENCY_STATUS {
-  Active = 'active',
-  Inactive = 'inactive',
-  PendingInfo = 'pending_info',
+  SUBMITTED = 'submitted',
+  ACTIVE = 'active',
+  INACTIVE = 'inactive',
+  PENDING_INFO = 'pending_info',
 }
 
 export enum UW_NOTE_CODE {

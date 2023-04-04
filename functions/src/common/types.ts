@@ -12,6 +12,10 @@ export interface BaseMetadata {
   created: any; // WithFieldValue<Timestamp>;
   updated: any; // WithFieldValue<Timestamp>;
 }
+
+export interface BaseDoc {
+  metadata: BaseMetadata;
+}
 export interface RequestUserAuth extends Request {
   user?: DecodedIdToken;
   tenantId?: string;
@@ -140,6 +144,28 @@ export interface Address {
   countyName?: string;
 }
 
+export interface AgencyApplication extends BaseDoc {
+  orgName: string;
+  address: Address;
+  contact: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+  };
+  agents: { firstName: string; lastName: string; email: string; phone: string }[];
+
+  bankDetails: {
+    accountNumber: string;
+    routingNumber: string;
+  };
+  FEIN: string;
+  EandO: string;
+  status: 'TODO' | 'COPY' | 'FROM' | 'OTHER' | 'APP'; // AgencySubmissionStatus;
+  sendAppReceivedNotification?: boolean;
+  coordinates?: GeoPoint | null;
+}
+
 export type AuthProviders =
   | 'password'
   | 'phone'
@@ -153,7 +179,7 @@ export type AuthProviders =
 
 export interface Organization {
   address?: Address;
-  coordinates?: GeoPoint;
+  coordinates?: GeoPoint | null;
   orgName: string;
   tenantId: string | null;
   primaryContact?: {
@@ -434,6 +460,54 @@ export interface Invite {
     email: string;
   } | null;
   metadata: BaseMetadata;
+}
+
+export interface InviteClassInterface extends Invite {
+  getLink: () => string;
+}
+
+export class InviteClass implements InviteClassInterface {
+  public email: string;
+  public displayName?: string;
+  public firstName?: string;
+  public lastName?: string;
+  public link?: string; // eslint-disable-next-line
+  public customClaims?: { [key: string]: any };
+  public orgId: string | null;
+  public orgName?: string;
+  public status: InviteStatus;
+  public isCreateOrgInvite?: boolean;
+  public id: string;
+  public invitedBy?: {
+    userId?: string;
+    name?: string;
+    email: string;
+  } | null;
+  public metadata: BaseMetadata;
+
+  constructor(inviteInfo: Invite) {
+    this.email = inviteInfo.email;
+    this.displayName = inviteInfo.displayName;
+    this.firstName = inviteInfo.firstName;
+    this.lastName = inviteInfo.lastName;
+    this.link = inviteInfo.link;
+    this.customClaims = inviteInfo.customClaims;
+    this.orgId = inviteInfo.orgId;
+    this.orgName = inviteInfo.orgName;
+    this.status = inviteInfo.status;
+    this.isCreateOrgInvite = !!inviteInfo.isCreateOrgInvite;
+    this.id = inviteInfo.id;
+    this.invitedBy = inviteInfo.invitedBy;
+    this.metadata = inviteInfo.metadata;
+  }
+
+  getLink() {
+    return `${process.env.HOSTING_BASE_URL}/auth/create-account/${
+      this.orgId
+    }?email=${encodeURIComponent(this.email)}&firstName=${encodeURIComponent(
+      this.firstName ?? ''
+    )}&lastName=${encodeURIComponent(this.lastName ?? '')}`;
+  }
 }
 
 export interface EPayPaymentMethodDetails {

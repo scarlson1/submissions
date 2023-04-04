@@ -178,8 +178,10 @@ export const formatGridCurrency = (
 ) => (params.value == null ? '' : numeral(params.value).format(mask));
 // TODO: use regex to get rid of everything except digits and decimals ??
 
-export const formatGridPercent = (params: GridValueFormatterParams<number>, round: number = 1) =>
-  params.value == null ? '' : numeral(params.value).format(`0.${'0'.repeat(round)}%`); // '0'.repeat(magnitude)
+export const formatGridPercent = (
+  params: GridValueFormatterParams<number | null>,
+  round: number = 1
+) => (params.value == null ? '' : numeral(params.value).format(`0.${'0'.repeat(round)}%`)); // '0'.repeat(magnitude)
 
 /**
  * checks validity of routing number by summing 3, 7, 1 multiples checking whether the sumproduct is divisible by 10

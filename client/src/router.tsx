@@ -37,6 +37,9 @@ import {
   DisclosureNew,
   DisclosureEdit,
   Home as AdminHome,
+  CreateTenant,
+  Organizations,
+  Organization,
 } from 'views/admin';
 import { SuccessStep, ActionHandler } from 'elements';
 import { Product } from 'common';
@@ -91,12 +94,18 @@ export enum ADMIN_ROUTES {
   DISCLOSURES = '/admin/disclosures',
   DISCLOSURE_NEW = '/admin/disclosures/new',
   DISCLOSURE_EDIT = '/admin/disclosures/:disclosureId/edit',
+  CREATE_TENANT = '/admin/agencies/new',
+  ORGANIZATIONS = '/admin/orgs',
+  ORGANIZATION = '/admin/orgs/:orgId',
 }
 
 export enum AUTH_ROUTES {
-  LOGIN = '/auth/login',
+  LOGIN = '/auth/login/',
   CREATE_ACCOUNT = '/auth/create-account',
   ACTIONS_HANDLER = '/auth/actions-handler',
+  TENANT_LOGIN = '/auth/login/:tenantId?',
+  TENANT_CREATE_ACCOUNT = '/auth/create-account/:tenantId?',
+  TENANT_ACTIONS_HANDLER = '/auth/actions-handler/:tenantId?',
 }
 
 export enum ACCOUNT_ROUTES {
@@ -135,10 +144,20 @@ type TArgs =
   | { path: ADMIN_ROUTES.DISCLOSURES }
   | { path: ADMIN_ROUTES.DISCLOSURE_NEW }
   | { path: ADMIN_ROUTES.DISCLOSURE_EDIT; params: { disclosureId: string } }
+  | { path: ADMIN_ROUTES.CREATE_TENANT }
+  | { path: ADMIN_ROUTES.ORGANIZATIONS }
+  | { path: ADMIN_ROUTES.ORGANIZATION; params: { orgId: string } }
   | { path: AUTH_ROUTES.CREATE_ACCOUNT }
   | { path: AUTH_ROUTES.LOGIN }
+  | { path: AUTH_ROUTES.TENANT_CREATE_ACCOUNT; params?: { tenantId?: string } }
+  | { path: AUTH_ROUTES.TENANT_LOGIN; params?: { tenantId?: string } }
   | {
       path: AUTH_ROUTES.ACTIONS_HANDLER;
+      search: { mode: string; oobCode: string; continueUrl?: string | null };
+    }
+  | {
+      path: AUTH_ROUTES.ACTIONS_HANDLER;
+      params?: { tenantId?: string };
       search: { mode: string; oobCode: string; continueUrl?: string | null };
     }
   | { path: ACCOUNT_ROUTES.ACCOUNT };
@@ -290,15 +309,44 @@ export const router = createBrowserRouter([
           },
           {
             path: AUTH_ROUTES.LOGIN,
-            element: <Login />,
+            children: [
+              {
+                path: '',
+                element: <Login />,
+              },
+              {
+                path: ':tenantId',
+                element: <Login />,
+              },
+            ],
           },
           {
             path: AUTH_ROUTES.CREATE_ACCOUNT,
-            element: <CreateAccount />,
+            children: [
+              {
+                path: '',
+                element: <CreateAccount />,
+              },
+              {
+                path: ':tenantId',
+                element: <CreateAccount />,
+              },
+            ],
+            // element: <CreateAccount />,
           },
           {
             path: AUTH_ROUTES.ACTIONS_HANDLER,
-            element: <ActionHandler />,
+            children: [
+              {
+                path: '',
+                element: <ActionHandler />,
+              },
+              {
+                path: ':tenantId',
+                element: <ActionHandler />,
+              },
+            ],
+            // element: <ActionHandler />,
           },
           {
             path: ROUTES.ACCOUNT,
@@ -558,6 +606,30 @@ export const router = createBrowserRouter([
             element: (
               <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
                 <DisclosureEdit />
+              </RequireAuthReactFire>
+            ),
+          },
+          {
+            path: ADMIN_ROUTES.CREATE_TENANT,
+            element: (
+              <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
+                <CreateTenant />
+              </RequireAuthReactFire>
+            ),
+          },
+          {
+            path: ADMIN_ROUTES.ORGANIZATIONS,
+            element: (
+              <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
+                <Organizations />
+              </RequireAuthReactFire>
+            ),
+          },
+          {
+            path: ADMIN_ROUTES.ORGANIZATION,
+            element: (
+              <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
+                <Organization />
               </RequireAuthReactFire>
             ),
           },
