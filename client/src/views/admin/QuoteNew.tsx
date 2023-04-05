@@ -26,7 +26,7 @@ import { toast } from 'react-hot-toast';
 import axios from 'axios';
 import { round } from 'lodash';
 import { getFunctions } from 'firebase/functions';
-import { doc, getFirestore, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, getFirestore, updateDoc } from 'firebase/firestore';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import {
@@ -44,7 +44,7 @@ import {
 import { AddressStep, LimitsStep } from 'elements';
 import { emailVal, limitAVal, limitBVal, limitCVal, limitDVal } from 'common/quoteValidation';
 import { dollarFormat, sumArr } from 'modules/utils/helpers';
-import { useActiveStates, useCreateQuote, useDocDataOnce, useJsonDialog } from 'hooks';
+import { useActiveStates, useCreateQuote, useJsonDialog } from 'hooks';
 import { IconButtonMenu } from 'components';
 import { ADMIN_ROUTES, createPath } from 'router';
 import {
@@ -54,38 +54,110 @@ import {
   submissionsCollection,
   SUBMISSION_STATUS,
 } from 'common';
-import { calcQuote } from 'modules/api';
+import { calcQuote, getAnnualPremium } from 'modules/api';
 import { ShowRatingDialog } from './SubmissionView';
+import { useFunctions } from 'reactfire';
 
 // TODO: hover chip to show errors
 
 // TODO: standardize fee type names in enum
 
-// export const newQuoteSubmissionLoader = async ({ request }: LoaderFunctionArgs) => {
-//   try {
-//     const url = new URL(request.url);
-//     const subId = url.searchParams.get('submissionId');
-//     if (!subId) return null;
-//     const submissionRef = doc(submissionsCollection(getFirestore()), subId);
+const useSubData = (submissionId?: string | null) => {
+  const [submissionData, setSubmissionData] = useState<Submission | null>(null);
 
-//     const snap = await getDoc(submissionRef);
-//     let data = snap.data();
+  React.useEffect(() => {
+    if (!submissionId) return;
 
-//     if (!snap.exists() || !data) {
-//       throw new Response('Not Found', { status: 404 });
-//     }
+    const subRef = doc(submissionsCollection(getFirestore()), submissionId);
 
-//     return { ...data, id: snap.id };
-//   } catch (err) {
-//     throw new Response(`Error fetching submission`);
-//   }
-// };
+    getDoc(subRef)
+      .then((snap) => {
+        setSubmissionData(snap.data() || null);
+      })
+      .catch(console.log);
+  }, [submissionId]);
+
+  return submissionData;
+};
 
 export const getSubproducerAdj = (premium: number, defaultCom: number, newCom: number) => {
   let comDiff = newCom - defaultCom;
 
   let adj = premium / (1 - comDiff / (1 - defaultCom)) - premium;
   return round(adj, 2);
+};
+
+const useRerate = (
+  submissionId?: string | null | undefined,
+  onSuccess?: (premium: number) => void,
+  onError?: (msg: string) => void
+) => {
+  const functions = useFunctions();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const rerate = useCallback(
+    async (values: NewQuoteValues) => {
+      if (!values || !values.latitude || !values.longitude) {
+        return setError('Invalid values');
+      }
+      setError(null);
+      setLoading(true);
+      const {
+        deductible,
+        limitA,
+        limitB,
+        limitC,
+        limitD,
+        numStories,
+        state,
+        ratingPropertyData,
+        subproducerCommission,
+      } = values;
+
+      console.log('VALUES: ', values);
+      try {
+        const { data } = await getAnnualPremium(functions, {
+          lat: values.latitude,
+          lng: values.longitude,
+          rcvA: limitA, // TODO: add rcv field
+          rcvB: limitB,
+          rcvC: limitC,
+          rcvD: limitD,
+          limitA,
+          limitB,
+          limitC,
+          limitD,
+          deductible,
+          numStories: numStories || 1,
+          state,
+          floodZone: ratingPropertyData.floodZone || undefined,
+          basement: ratingPropertyData.basement || undefined,
+          commissionPct: subproducerCommission,
+          submissionId,
+        });
+
+        console.log('PREMIUM RES: ', data);
+        if (!data.annualPremium || typeof data.annualPremium !== 'number') {
+          throw new Error('Error calculating premium');
+        }
+
+        if (onSuccess) onSuccess(data.annualPremium);
+        setLoading(false);
+        return data.annualPremium;
+      } catch (err: any) {
+        console.log('ERROR: ', err);
+        let msg = 'error recalculating premium';
+        if (err.message) msg = err.message;
+
+        if (onError) onError(msg);
+        setLoading(false);
+      }
+    },
+    [functions, submissionId, onSuccess, onError]
+  );
+
+  return { rerate, loading, error };
 };
 
 const gridProps = {
@@ -195,15 +267,26 @@ export interface NewQuoteValues {
 
 export const QuoteNew: React.FC = () => {
   const navigate = useNavigate();
+
   const [searchParams] = useSearchParams();
   const submissionId = searchParams.get('submissionId');
-  // const submissionData = useLoaderData() as WithId<Submission>;
-  const { data: submissionData } = useDocDataOnce<Submission>('SUBMISSIONS', submissionId || '');
+  const submissionData = useSubData(submissionId);
+
   const formikRef = useRef<FormikProps<NewQuoteValues>>(null);
   const showDialog = useJsonDialog();
   const activeStates = useActiveStates('flood');
   const [taxesLoading, setTaxesLoading] = useState(false);
   const [calcQuoteLoading, setCalcQuoteLoading] = useState(false);
+
+  const { rerate, loading: rerateLoading } = useRerate(
+    submissionId,
+    (newPrem: number) => {
+      setTimeout(() => {
+        formikRef.current?.setFieldValue('annualPremium', newPrem);
+      }, 50);
+    },
+    (msg: string) => toast.error(msg)
+  );
 
   const createQuote = useCreateQuote(
     async () => {
@@ -643,6 +726,22 @@ export const QuoteNew: React.FC = () => {
                     <LoadingButton
                       size='small'
                       variant='outlined'
+                      onClick={() => rerate(values)}
+                      loading={rerateLoading}
+                      // disabled={
+                      //   !(
+                      //     values.state &&
+                      //     values.limitA &&
+                      //     values.ratingPropertyData.replacementCost
+                      //   )
+                      // }
+                      startIcon={<CalculateRounded />}
+                    >
+                      Re-rate
+                    </LoadingButton>
+                    <LoadingButton
+                      size='small'
+                      variant='outlined'
                       onClick={calcPremium}
                       loading={calcQuoteLoading}
                       disabled={
@@ -1033,3 +1132,23 @@ export const QuoteNew: React.FC = () => {
     </Box>
   );
 };
+
+// export const newQuoteSubmissionLoader = async ({ request }: LoaderFunctionArgs) => {
+//   try {
+//     const url = new URL(request.url);
+//     const subId = url.searchParams.get('submissionId');
+//     if (!subId) return null;
+//     const submissionRef = doc(submissionsCollection(getFirestore()), subId);
+
+//     const snap = await getDoc(submissionRef);
+//     let data = snap.data();
+
+//     if (!snap.exists() || !data) {
+//       throw new Response('Not Found', { status: 404 });
+//     }
+
+//     return { ...data, id: snap.id };
+//   } catch (err) {
+//     throw new Response(`Error fetching submission`);
+//   }
+// };

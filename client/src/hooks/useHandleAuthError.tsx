@@ -78,7 +78,7 @@ export const useHandleAuthError = () => {
         return Promise.reject({ code: errCode, message: errMsg });
       }
     },
-    []
+    [auth, functions]
   );
 
   const handleInternalError = useCallback(

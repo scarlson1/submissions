@@ -15,3 +15,4 @@ export { createTenantFromSubmission } from './createTenantFromSubmission.js';
 export { sendAgencyApprovedNotification } from './sendAgencyApprovedNotification.js';
 export { inviteUsers } from './inviteUsers.js';
 export { resendInvite } from './resendInvite.js';
+export { getAnnualPremium } from './getAnnualPremium.js';

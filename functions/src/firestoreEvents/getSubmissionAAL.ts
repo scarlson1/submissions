@@ -218,7 +218,7 @@ export const getSubmissionAAL = functions
     // TODO: FETCH TAXES ??
   });
 
-function getSRVars(sub: Submission) {
+export function getSRVars(sub: Submission) {
   const { replacementCost, limitA, limitB, limitC, limitD, deductible, numStories } = sub;
 
   invariant(replacementCost, 'replacementCost required');

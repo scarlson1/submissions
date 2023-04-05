@@ -92,7 +92,7 @@ export const Home: React.FC = () => {
 interface StateCardProps {
   title: string;
   content: React.ReactNode;
-  cardClick: () => void;
+  cardClick?: () => void;
   actionClick?: () => void;
   buttonText?: string;
   cardProps?: CardProps;
