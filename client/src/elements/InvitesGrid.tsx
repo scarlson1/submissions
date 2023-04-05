@@ -15,16 +15,15 @@ import { Invite, WithId } from 'common';
 import { useAsyncToast } from 'hooks';
 import { CancelRounded, CheckRounded, QueryBuilderRounded, SendRounded } from '@mui/icons-material';
 
-interface InvitesGridProps {
-  data: WithId<Invite>[];
-  loading?: boolean;
-}
-
 const resendInvite = (functions: Functions, args: { orgId: string; inviteId: string }) =>
   httpsCallable<{ orgId: string; inviteId: string }, { status: string }>(
     functions,
     'resendInvite'
   )(args);
+interface InvitesGridProps {
+  data: WithId<Invite>[];
+  loading?: boolean;
+}
 
 export const InvitesGrid: React.FC<InvitesGridProps> = ({ data = [], loading }) => {
   const functions = useFunctions();
@@ -160,6 +159,23 @@ export const InvitesGrid: React.FC<InvitesGridProps> = ({ data = [], loading }) 
             </Box>
           );
         },
+      },
+      {
+        field: 'invitedBy',
+        headerName: 'Invited By',
+        flex: 1,
+        minWidth: 180,
+        editable: false,
+        valueGetter: (params) => params.row.invitedBy.name ?? (params.row.invitedBy.email || null),
+      },
+      {
+        field: 'isCreateOrgInvite',
+        headerName: 'Create Org Invite',
+        type: 'boolean',
+        flex: 1,
+        minWidth: 140,
+        editable: false,
+        valueGetter: (params) => params.row.invitedBy.name ?? (params.row.invitedBy.email || null),
       },
       {
         field: 'orgId',

@@ -20,15 +20,23 @@ export enum COLLECTIONS {
 }
 
 export enum SUBMISSION_STATUS {
-  Draft = 'draft',
-  Submitted = 'submitted',
-  Approved = 'approved',
-  Rejected = 'rejected',
-  UnderReview = 'under_review',
-  AwaitingInfo = 'awaiting:info',
-  Expired = 'expired',
-  Cancelled = 'cancelled',
-  AwaitingPayment = 'awaiting:payment',
+  DRAFT = 'draft',
+  SUBMITTED = 'submitted',
+  UNDER_REVIEW = 'under_review',
+  PENDING_INFO = 'pending_info',
+  CANCELLED = 'cancelled',
+  QUOTED = 'quoted',
+  NOT_ELIGIBLE = 'ineligible',
+}
+
+export enum INVITE_STATUS {
+  ACCECPTED = 'accepted',
+  PENDING = 'pending',
+  REVOKED = 'revoked',
+  EXPIRED = 'expired',
+  REPLACED = 'replaced',
+  REJECTED = 'rejected',
+  ERROR = 'error',
 }
 
 export enum QUOTE_STATUS {

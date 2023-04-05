@@ -16,6 +16,7 @@ export const useInviteUsers = (
       try {
         toast.loading('sending invites...');
         const { data } = await inviteUsersCF(functions, { users, tenantId });
+        toast.success(`invites sent!`);
 
         if (onSuccess) onSuccess(data);
       } catch (err: any) {

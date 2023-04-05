@@ -115,12 +115,17 @@ export const AccountDetails: React.FC = () => {
           </Grid>
         </Box>
       </Paper>
+
+      <ClaimsGuard requiredClaims={['ORG_ADMIN', 'IDEMAND_ADMIN']} requireAll={false}>
+        <Box sx={{ p: 1 }}>
+          <AddUsersDialog />
+        </Box>
+      </ClaimsGuard>
       <ClaimsGuard requiredClaims={['IDEMAND_ADMIN']}>
-        <Box>
+        <Box sx={{ p: 1 }}>
           <InitializeFIPS />
         </Box>
       </ClaimsGuard>
-      <AddUsersDialog />
     </Container>
   );
 };

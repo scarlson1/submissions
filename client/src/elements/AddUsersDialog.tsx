@@ -5,8 +5,8 @@ import * as yup from 'yup';
 
 import { FormikFieldArray } from 'components/forms';
 import { useInviteUsers } from 'hooks';
-import { ClaimsGuard } from 'components';
 import { InviteUsersResponse, NewUser } from 'modules/api';
+import { CUSTOM_CLAIMS } from 'modules/components';
 
 export interface AddUserValues {
   users: NewUser[];
@@ -32,7 +32,7 @@ const validation = yup.object().shape({
         .required('Full name is required'),
       access: yup
         .string()
-        .oneOf(['admin', 'agent'], 'Please select an option')
+        .oneOf(['agent', 'orgAdmin'], 'Please select an option')
         .required('Access level required'),
     })
   ),
@@ -76,122 +76,121 @@ export const AddUsersDialog: React.FC<AddUsersDialogProps> = ({ orgId }) => {
   );
 
   return (
-    <ClaimsGuard requiredClaims={['IDEMAND_ADMIN', 'ORG_ADMIN']}>
-      <>
-        <Button variant='outlined' onClick={handleOpen}>
-          Add Users (agents)
-        </Button>
-        <Dialog open={open} onClose={handleClose} fullWidth maxWidth='md'>
-          <DialogTitle>Add Users</DialogTitle>
+    <>
+      <Button variant='outlined' onClick={handleOpen}>
+        Add Users (agents)
+      </Button>
+      <Dialog open={open} onClose={handleClose} fullWidth maxWidth='md'>
+        <DialogTitle>Add Users</DialogTitle>
 
-          <Formik
-            initialValues={initialValues}
-            validationSchema={validation}
-            onSubmit={handleSubmit}
-            innerRef={formikRef}
-          >
-            {({
-              values,
-              touched,
-              errors,
-              isValid,
-              isSubmitting,
-              isValidating,
-              setFieldValue,
-              setFieldError,
-              setFieldTouched,
-              handleSubmit,
-              dirty,
-            }) => (
-              <Form onSubmit={handleSubmit}>
-                <DialogContent>
-                  <FormikFieldArray
-                    parentField='users'
-                    inputFields={[
-                      {
-                        name: 'name',
-                        label: 'Name',
-                        required: true,
-                        inputType: 'text',
-                      },
-                      {
-                        name: 'email',
-                        label: 'Email',
-                        required: true,
-                        inputType: 'text',
-                      },
-                      {
-                        name: 'access',
-                        label: 'Role / Permissions',
-                        required: true,
-                        inputType: 'select',
-                        selectOptions: [
-                          {
-                            label: 'Agent',
-                            value: 'agent',
-                          },
-                          {
-                            label: 'Admin',
-                            value: 'admin',
-                          },
-                        ],
-                      },
-                    ]}
-                    values={values}
-                    errors={errors}
-                    touched={touched}
-                    isSubmitting={isSubmitting}
-                    isValidating={isValidating}
-                    dirty={dirty}
-                    setFieldValue={setFieldValue}
-                    setFieldError={setFieldError}
-                    setFieldTouched={setFieldTouched}
-                  />
-                </DialogContent>
-                <DialogActions>
-                  <Button
-                    variant='outlined'
-                    disabled={isSubmitting || isValidating}
-                    sx={{
-                      mt: 2,
-                      color: (theme) =>
+        <Formik
+          initialValues={initialValues}
+          validationSchema={validation}
+          onSubmit={handleSubmit}
+          innerRef={formikRef}
+        >
+          {({
+            values,
+            touched,
+            errors,
+            isValid,
+            isSubmitting,
+            isValidating,
+            setFieldValue,
+            setFieldError,
+            setFieldTouched,
+            handleSubmit,
+            dirty,
+          }) => (
+            <Form onSubmit={handleSubmit}>
+              <DialogContent dividers>
+                <FormikFieldArray
+                  parentField='users'
+                  inputFields={[
+                    {
+                      name: 'name',
+                      label: 'Name',
+                      required: true,
+                      inputType: 'text',
+                    },
+                    {
+                      name: 'email',
+                      label: 'Email',
+                      required: true,
+                      inputType: 'text',
+                    },
+                    {
+                      name: 'access',
+                      label: 'Role / Permissions',
+                      required: true,
+                      inputType: 'select',
+                      selectOptions: [
+                        {
+                          label: 'Agent',
+                          value: CUSTOM_CLAIMS.AGENT,
+                        },
+                        {
+                          label: 'Admin',
+                          value: CUSTOM_CLAIMS.ORG_ADMIN,
+                        },
+                      ],
+                    },
+                  ]}
+                  values={values}
+                  errors={errors}
+                  touched={touched}
+                  isSubmitting={isSubmitting}
+                  isValidating={isValidating}
+                  dirty={dirty}
+                  setFieldValue={setFieldValue}
+                  setFieldError={setFieldError}
+                  setFieldTouched={setFieldTouched}
+                />
+              </DialogContent>
+              <DialogActions>
+                <Button
+                  variant='outlined'
+                  disabled={isSubmitting || isValidating}
+                  onClick={handleClose}
+                  sx={{
+                    mt: 2,
+                    color: (theme) =>
+                      theme.palette.mode === 'light'
+                        ? theme.palette.grey[700]
+                        : theme.palette.grey[300],
+                    border: (theme) =>
+                      `1px solid ${
                         theme.palette.mode === 'light'
-                          ? theme.palette.grey[700]
-                          : theme.palette.grey[300],
+                          ? alpha(theme.palette.grey[700], 0.5)
+                          : alpha(theme.palette.grey[300], 0.5)
+                      }`,
+                    '&:hover': {
                       border: (theme) =>
                         `1px solid ${
                           theme.palette.mode === 'light'
-                            ? alpha(theme.palette.grey[700], 0.5)
-                            : alpha(theme.palette.grey[300], 0.5)
+                            ? theme.palette.grey[700]
+                            : theme.palette.grey[300]
                         }`,
-                      '&:hover': {
-                        border: (theme) =>
-                          `1px solid ${
-                            theme.palette.mode === 'light'
-                              ? theme.palette.grey[700]
-                              : theme.palette.grey[300]
-                          }`,
-                      },
-                      transition: (theme) =>
-                        `border ${theme.transitions.duration.standard}ms ${theme.transitions.easing.easeInOut}`,
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    type='submit'
-                    variant='outlined'
-                    disabled={!isValid || !dirty || isSubmitting || isValidating}
-                    sx={{ mt: 2 }}
-                  >
-                    Invite Users
-                  </Button>
-                </DialogActions>
-              </Form>
-            )}
-          </Formik>
-        </Dialog>
-      </>
-    </ClaimsGuard>
+                    },
+                    transition: (theme) =>
+                      `border ${theme.transitions.duration.standard}ms ${theme.transitions.easing.easeInOut}`,
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type='submit'
+                  variant='outlined'
+                  disabled={!isValid || !dirty || isSubmitting || isValidating}
+                  sx={{ mt: 2 }}
+                >
+                  Invite Users
+                </Button>
+              </DialogActions>
+            </Form>
+          )}
+        </Formik>
+      </Dialog>
+    </>
   );
 };

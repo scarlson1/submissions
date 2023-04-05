@@ -417,8 +417,8 @@ export const QuoteNew: React.FC = () => {
           insuredLastName: submissionData?.lastName ?? '',
           insuredEmail: submissionData?.email ?? '',
           insuredPhone: '',
-          agentId: null,
-          agentEmail: '',
+          agentId: submissionData?.agentId || null,
+          agentEmail: '', // TODO: decide whether to add agency / agent data with submission or query later
           agentName: '',
           agentPhone: '',
           agencyName: '',

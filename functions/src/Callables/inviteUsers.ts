@@ -6,13 +6,15 @@ import { getAuth } from 'firebase-admin/auth';
 import { invitesCollection, orgsCollection } from '../common/dbCollections';
 import { inviteConverter } from '../common/converters';
 import { InviteClass } from '../common/types';
+import { CLAIMS, INVITE_STATUS } from '../common';
 
 // TODO: allow invites without tenant association ??
+// MOVE TO FRONT END ?? IS CLOUD FUNCTION NEEDED ?? BATCH ??
 
 export interface NewUser {
   email: string;
   name: string;
-  access: 'admin' | 'agent' | ''; // AccessLevels | '';
+  access: CLAIMS.ORG_ADMIN | CLAIMS.AGENT | ''; // AccessLevels | '';
 }
 
 export interface InviteUsersRequest {
@@ -36,18 +38,21 @@ export const inviteUsers = functions.https.onCall(
     if (!auth?.uid) {
       throw new functions.https.HttpsError('unauthenticated', 'Must be signed in.');
     }
-    if (!auth?.token.admin) {
+    if (!(auth?.token[CLAIMS.ORG_ADMIN] || auth?.token[CLAIMS.IDEMAND_ADMIN])) {
       throw new functions.https.HttpsError('permission-denied', 'Admin permissions required');
     }
 
     // TODO: check for company ID? allow invites using different function if not inviting agents ? inviteUsers vs inviteOrgUsers
 
-    if (!context.auth?.token.firebase.tenant && !auth?.token.iDemandAdmin) {
+    if (!context.auth?.token.firebase.tenant && !auth?.token[CLAIMS.IDEMAND_ADMIN]) {
       throw new functions.https.HttpsError('failed-precondition', 'User missing tenantId');
     }
     // allow other users to invite (super admins, etc. ??)
     if (!data.users || !Array.isArray(data.users)) {
-      throw new functions.https.HttpsError('failed-precondition', 'Request body missing users');
+      throw new functions.https.HttpsError(
+        'failed-precondition',
+        'Request body missing array of users'
+      );
     }
 
     let { users, tenantId } = data;
@@ -82,7 +87,9 @@ export const inviteUsers = functions.https.onCall(
       const res: { [key: string]: any } = {};
 
       for (const user of users) {
-        const inviteDocRef = inviteColRef.withConverter(inviteConverter).doc(user.email);
+        const inviteDocRef = inviteColRef
+          .withConverter(inviteConverter)
+          .doc(user.email.toLocaleLowerCase().trim());
 
         functions.logger.log(
           `invite doc created for ${user.name} - ${user.email} with permission level: ${user.access}`
@@ -91,15 +98,15 @@ export const inviteUsers = functions.https.onCall(
 
         const customClaims = user.access ? { [user.access]: true } : {};
         const newInvite = new InviteClass({
-          email: user.email,
-          displayName: user.name,
+          email: user.email.toLowerCase().trim(),
+          displayName: user.name.trim(),
           firstName: user.name.split(' ')[0] || '',
           lastName: user.name.split(' ')[1] || '',
           // link,
           customClaims,
           orgId: tenantId,
           orgName: orgData?.orgName,
-          status: 'pending',
+          status: INVITE_STATUS.PENDING,
           id: inviteDocRef.id,
           invitedBy: {
             name: reqUser.displayName || '',
@@ -116,7 +123,7 @@ export const inviteUsers = functions.https.onCall(
         batch.set(inviteDocRef, newInvite);
 
         res[user.email] = {
-          status: 'pending',
+          status: INVITE_STATUS.PENDING,
           inviteId: inviteDocRef.id,
           inviteRef: inviteDocRef.path,
           email: user.email,

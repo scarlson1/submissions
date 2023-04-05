@@ -1,9 +1,10 @@
 import { Functions, httpsCallable } from 'firebase/functions';
+import { CUSTOM_CLAIMS } from 'modules/components';
 
 export interface NewUser {
   email: string;
   name: string;
-  access: 'admin' | 'agent' | ''; // AccessLevels | '';
+  access: CUSTOM_CLAIMS | '';
 }
 
 export interface InviteUsersRequest {

@@ -3,16 +3,19 @@ import { addDoc, GeoPoint, Timestamp } from 'firebase/firestore';
 
 import { AgencyAppValues } from 'views/AgencyNew';
 import { useUploadStorageFiles } from 'hooks';
-import { agencyAppCollection } from 'common';
+import { agencyAppCollection, AGENCY_SUBMISSION_STATUS } from 'common';
 import { FirebaseError } from 'firebase/app';
 import { useFirestore } from 'reactfire';
 
-export interface UseCreateAgencyProps {
+export interface useCreateAgencySubmissionProps {
   onSuccess?: (subId: string) => void;
   onError?: (err: unknown, msg: string) => void;
 }
 
-export const useCreateAgency = ({ onSuccess, onError }: UseCreateAgencyProps) => {
+export const useCreateAgencySubmission = ({
+  onSuccess,
+  onError,
+}: useCreateAgencySubmissionProps) => {
   const firestore = useFirestore();
   const [error, setError] = useState<string | null>(null);
   const { uploadFiles } = useUploadStorageFiles('newAgencySubmissions');
@@ -48,7 +51,7 @@ export const useCreateAgency = ({ onSuccess, onError }: UseCreateAgencyProps) =>
           },
           FEIN: values.FEIN,
           EandO: uploadResult[0].metadata.fullPath,
-          status: 'TODO', // AgencySubmissionStatus.Submitted,
+          status: AGENCY_SUBMISSION_STATUS.SUBMITTED,
           coordinates:
             values.latitude && values.longitude
               ? new GeoPoint(values.latitude, values.longitude)

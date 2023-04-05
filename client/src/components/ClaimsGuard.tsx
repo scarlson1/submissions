@@ -5,6 +5,7 @@ import {
   SignInCheckOptionsClaimsValidator,
   useSigninCheck,
 } from 'reactfire';
+import { IdTokenResult } from 'firebase/auth';
 
 import { CustomClaimKeys, getRequiredClaimValidator } from './RequireAuthReactFire';
 import { CUSTOM_CLAIMS } from 'modules/components';
@@ -29,17 +30,24 @@ export const ClaimsGuard: React.FC<ClaimsGuardProps> = ({
   requireAll = false,
 }) => {
   const checkProps = useMemo<SignInCheckProps>(() => {
-    // if (signInCheckProps) return signInCheckProps
     if (requiredClaims.length > 0) {
-      const claims = requiredClaims.reduce((acc, curr) => {
-        return { ...acc, [CUSTOM_CLAIMS[curr]]: true };
-      }, {} as any);
+      if (!requireAll && requiredClaims.length > 1)
+        return {
+          validateCustomClaims: getRequiredClaimValidator(requiredClaims),
+          suspense: false,
+          ...signInCheckProps,
+        };
 
-      if (!!requireAll) return { requiredClaims: claims, suspense: false, ...signInCheckProps };
+      // const claims = requiredClaims.reduce(
+      //   (acc, curr) => ({ ...acc, [CUSTOM_CLAIMS[curr]]: true }),
+      //   {}
+      // );
+      const claims: IdTokenResult['claims'] = {};
+      requiredClaims.forEach((key) => {
+        claims[CUSTOM_CLAIMS[key]] = true;
+      });
 
-      const validator = getRequiredClaimValidator(requiredClaims);
-
-      return { validateCustomClaims: validator, ...signInCheckProps };
+      return { requiredClaims: claims, suspense: false, ...signInCheckProps };
     }
     return {};
   }, [requiredClaims, signInCheckProps, requireAll]);

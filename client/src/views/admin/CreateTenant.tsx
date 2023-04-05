@@ -22,12 +22,11 @@ import {
   FormikDragDrop,
 } from 'components/forms';
 import FormikAddress from 'elements/FormikAddress';
-import { useCreateAgency, useCreateTenant } from 'hooks';
+import { useCreateAgencySubmission, useCreateTenant } from 'hooks';
 import { useAsyncToast } from 'hooks';
 import { FirebaseError } from 'firebase/app';
 import { ADMIN_ROUTES, createPath } from 'router';
 import { AgencyAppValues, INITIAL_VALUES } from 'views/AgencyNew';
-import { useConfirmation } from 'modules/components';
 
 // DIRECTLY CREATES TENANT - INSTEAD OF APPROVAL PROCESS
 
@@ -36,67 +35,12 @@ import { useConfirmation } from 'modules/components';
 export const CreateTenant: React.FC = () => {
   const navigate = useNavigate();
   const toast = useAsyncToast();
-  const confirm = useConfirmation();
-  const { handleSubmission, error: createAgencyError } = useCreateAgency({});
-  const {
-    createTenant,
-    sendApprovedNotification,
-    // sendRejectedNotification,
-    error: createTenantError,
-    // loading,
-  } = useCreateTenant({});
-
-  const createOrg = useCallback(
-    async (submissionId: string) => {
-      try {
-        const createTenantRes = await createTenant(submissionId);
-        console.log('CREATE TENANT RES: ', createTenantRes);
-        console.log(`tenant created res: `, createTenantRes);
-
-        return createTenantRes;
-      } catch (error) {
-        if (error instanceof FirebaseError) {
-          toast.error(`${error.message} (${error.code})`);
-        } else {
-          toast.error(
-            'An error occurred while attempting to create tenant. See console for details.'
-          );
-        }
-      }
+  const { handleSubmission, error: createAgencyError } = useCreateAgencySubmission({});
+  const { createTenant, error: createTenantError } = useCreateTenant({
+    onSuccess: ({ tenantId }) => {
+      if (tenantId) navigate(createPath({ path: ADMIN_ROUTES.ORGANIZATIONS }));
     },
-    [createTenant, toast]
-  );
-
-  const promptForNotification = useCallback(async () => {
-    try {
-      await confirm({
-        catchOnCancel: true,
-        variant: 'danger',
-        title: 'Notify Primary Contact?',
-        confirmButtonText: 'Submit',
-        description:
-          'Would you like to notify the primary contact and invite them to create an account?',
-        dialogContentProps: { dividers: true },
-      });
-      return true;
-    } catch (err) {
-      return false;
-    }
-  }, [confirm]);
-
-  const handleSuccess = useCallback(
-    async (agencyId: string, tenantId?: string) => {
-      const shouldNotify = await promptForNotification();
-      if (!!shouldNotify) {
-        toast.loading('sending notification...');
-        await sendApprovedNotification(agencyId, `${tenantId}`);
-        toast.success('Error delivering notification');
-      }
-
-      navigate(createPath({ path: ADMIN_ROUTES.ORGANIZATIONS }));
-    },
-    [promptForNotification, sendApprovedNotification, navigate, toast]
-  );
+  });
 
   const handleSubmit = useCallback(
     async (values: AgencyAppValues, helpers: FormikHelpers<AgencyAppValues>) => {
@@ -105,7 +49,6 @@ export const CreateTenant: React.FC = () => {
       console.log('values => ', values);
 
       // TODO: only create new submission if draft not saved (submission created)
-      // TODO: send notifications to users prompt
 
       try {
         // TODO: set status to something other than submitted ??
@@ -114,13 +57,15 @@ export const CreateTenant: React.FC = () => {
         if (!agencyId) {
           throw new Error('Error creating submission. See console for details.');
         }
+        toast.success(`Agency app doc created (ID: ${agencyId})`);
 
-        toast.updateLoadingMsg('creating tenant ...');
-        let newTenant = await createOrg(agencyId);
-        toast.success(`Org created (ID: ${newTenant?.tenantId}) 🎉`);
+        // toast.updateLoadingMsg('creating tenant ...');
+        // let newTenant = await createOrg(agencyId);
+        // toast.success(`Org created (ID: ${newTenant?.tenantId}) 🎉`);
+        await createTenant(agencyId);
 
         helpers.setSubmitting(false);
-        return handleSuccess(agencyId, newTenant?.tenantId);
+        // return handleSuccess(agencyId, newTenant?.tenantId);
       } catch (err) {
         console.log('ERR => ', err);
 
@@ -132,7 +77,7 @@ export const CreateTenant: React.FC = () => {
         return;
       }
     },
-    [createOrg, handleSubmission, handleSuccess, toast]
+    [handleSubmission, createTenant, toast]
   );
 
   const handleSaveDraft = useCallback(() => {
@@ -151,14 +96,6 @@ export const CreateTenant: React.FC = () => {
   return (
     <Box>
       <Box sx={{ pb: 3, mt: -2 }}>
-        {/* <Breadcrumbs aria-label='breadcrumb'>
-          <Link component={RouterLink} to='/idemand/submissions' sx={{ fontSize: 14 }}>
-            Submissions
-          </Link>
-          <Typography color='GrayText.primary' sx={{ fontSize: 14 }}>
-            New
-          </Typography>
-        </Breadcrumbs> */}
         <Formik
           initialValues={INITIAL_VALUES}
           onSubmit={handleSubmit}
@@ -438,3 +375,53 @@ export const CreateTenant: React.FC = () => {
     </Box>
   );
 };
+
+// const createOrg = useCallback(
+//   async (submissionId: string) => {
+//     try {
+//       const createTenantRes = await createTenant(submissionId);
+
+//       return createTenantRes;
+//     } catch (error) {
+//       if (error instanceof FirebaseError) {
+//         toast.error(`${error.message} (${error.code})`);
+//       } else {
+//         toast.error(
+//           'An error occurred while attempting to create tenant. See console for details.'
+//         );
+//       }
+//     }
+//   },
+//   [createTenant, toast]
+// );
+
+// const promptForNotification = useCallback(async () => {
+//   try {
+//     await confirm({
+//       catchOnCancel: true,
+//       variant: 'danger',
+//       title: 'Notify Primary Contact?',
+//       confirmButtonText: 'Submit',
+//       description:
+//         'Would you like to notify the primary contact and invite them to create an account?',
+//       dialogContentProps: { dividers: true },
+//     });
+//     return true;
+//   } catch (err) {
+//     return false;
+//   }
+// }, [confirm]);
+
+// const handleSuccess = useCallback(
+//   async (agencyId: string, tenantId?: string) => {
+//     const shouldNotify = await promptForNotification();
+//     if (!!shouldNotify) {
+//       toast.loading('sending notification...');
+//       await sendApprovedNotification(agencyId, `${tenantId}`);
+//       toast.success('Error delivering notification');
+//     }
+
+//     navigate(createPath({ path: ADMIN_ROUTES.ORGANIZATIONS }));
+//   },
+//   [promptForNotification, sendApprovedNotification, navigate, toast]
+// );

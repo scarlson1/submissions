@@ -147,6 +147,32 @@ export const Header: React.FC<HeaderProps> = () => {
     []
   );
 
+  const agentNavPages = useMemo(
+    () => [
+      {
+        title: 'New Submission',
+        route: createPath({ path: ROUTES.SUBMISSION_NEW, params: { productId: 'flood' } }),
+        icon: <FiberNewRounded color='primary' fontSize='small' />,
+      },
+      {
+        title: 'Submissions',
+        route: createPath({ path: ROUTES.SUBMISSIONS }),
+        icon: <PageviewRounded color='primary' fontSize='small' />,
+      },
+      {
+        title: 'Quotes',
+        route: createPath({ path: ROUTES.QUOTES }),
+        icon: <RequestQuoteRounded color='primary' fontSize='small' />,
+      },
+      // {
+      //   title: 'Policies',
+      //   route: createPath({ path: ADMIN_ROUTES.POLICIES }),
+      //   icon: <PolicyRounded color='primary' fontSize='small' />,
+      // },
+    ],
+    []
+  );
+
   const userNavPages = useMemo(() => {
     const userPages = [
       {
@@ -166,8 +192,12 @@ export const Header: React.FC<HeaderProps> = () => {
     if (!!customClaims.iDemandAdmin) {
       return adminNavPages;
     }
+    if (!!customClaims.agent) {
+      return agentNavPages;
+    }
+
     return userNavPages;
-  }, [customClaims.iDemandAdmin, adminNavPages, userNavPages]);
+  }, [customClaims, adminNavPages, agentNavPages, userNavPages]);
 
   const settings = useMemo(() => {
     let sItems = [

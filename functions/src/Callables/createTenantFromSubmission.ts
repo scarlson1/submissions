@@ -4,7 +4,7 @@ import { Tenant, getAuth } from 'firebase-admin/auth';
 import { Firestore, getFirestore, Timestamp } from 'firebase-admin/firestore';
 
 import { getFunctionsErrorCode, getErrorMessage } from '../utils';
-import { AGENCY_STATUS } from '../common/enums';
+import { AGENCY_STATUS, CLAIMS } from '../common/enums';
 import {
   agencyApplicationCollection,
   orgsCollection,
@@ -137,7 +137,7 @@ export const createTenantFromSubmission = functions.https.onCall(async (data, co
         displayName: `${docData.contact.firstName} ${docData.contact.lastName}`,
         firstName: docData.contact.firstName,
         lastName: docData.contact.lastName,
-        customClaims: { admin: true, agent: true },
+        customClaims: { [CLAIMS.ORG_ADMIN]: true, [CLAIMS.AGENT]: true },
         orgName: docData.orgName,
         isCreateOrgInvite: true,
         invitedBy: {

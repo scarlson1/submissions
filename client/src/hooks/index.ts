@@ -13,7 +13,7 @@ export { useContactUs } from './useContactUs';
 export { useUsersPolicies } from './useUsersPolicies';
 export { useRegisterEmailNotification } from './useRegisterEmailNotification';
 export { useUploadStorageFiles } from './useUploadStorageFiles';
-export { useCreateAgency } from './useCreateAgency';
+export { useCreateAgencySubmission } from './useCreateAgencySubmission';
 export { useCreateMoratorium } from './useCreateMoratorium';
 export { useCreateSLLicense } from './useCreateSLLicense';
 export { useDocCount, mapWhereConstraints } from './useDocCount';

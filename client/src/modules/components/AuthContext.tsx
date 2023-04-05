@@ -19,19 +19,18 @@ import {
   verifyBeforeUpdateEmail,
   multiFactor,
   updatePassword,
-  // getAuth,
 } from '@firebase/auth';
-import { doc, onSnapshot, DocumentSnapshot, getFirestore } from '@firebase/firestore';
+import { doc, onSnapshot, DocumentSnapshot } from '@firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import { differenceInSeconds } from 'date-fns';
-import { useAuth as useFireAuth } from 'reactfire';
+import { useAuth as useFireAuth, useFirestore } from 'reactfire';
+import { toast } from 'react-hot-toast';
 // import { authState } from 'rxfire/auth';
 // import { filter } from 'rxjs/operators';
 
 import { userClaimsCollection } from 'common/firestoreCollections';
 import { UserClaims } from 'common';
 import { ReauthDialog } from 'components';
-import { toast } from 'react-hot-toast';
 
 // TODO: set up reducer & actions
 // https://www.youtube.com/watch?v=YmHEzjglRMk
@@ -85,6 +84,7 @@ export const AuthContext = createContext<AuthContextValue>({
 export const AuthContextProvider = ({ children }: { children: React.ReactNode }) => {
   // const auth = getAuth();
   const auth = useFireAuth();
+  const firestore = useFirestore();
   const [user, setUser] = useState<User | null>(null);
   const [error, setError] = useState<Error | null | unknown>(null);
   const [loading, setLoading] = useState(false);
@@ -106,12 +106,11 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
   const updateClaims = useCallback(async () => {
     setLoading(true);
     if (!auth.currentUser) {
-      setCustomClaims({
+      return setCustomClaims({
         orgAdmin: false,
         agent: false,
         iDemandAdmin: false,
       });
-      return;
     }
     await auth.currentUser?.getIdToken(true);
     const idTokenResult: IdTokenResult = await auth.currentUser.getIdTokenResult();
@@ -144,12 +143,12 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
   useEffect(() => {
     if (!user || !user.tenantId) return;
     const unsubscribe = onSnapshot(
-      doc(userClaimsCollection(getFirestore(), user.tenantId), user.uid),
+      doc(userClaimsCollection(firestore, user.tenantId), user.uid),
       onNewClaims
     );
 
     return () => unsubscribe();
-  }, [onNewClaims, user]);
+  }, [onNewClaims, firestore, user]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(

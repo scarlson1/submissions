@@ -5,12 +5,13 @@ import { Layout, RequireAuth, RouterErrorBoundary } from 'components';
 import {
   SubmissionNew,
   ContactUs,
+  Quotes,
   ViewQuote,
   Login,
   CreateAccount,
   Policy,
   Policies,
-  UserSubmissions,
+  Submissions,
   Home,
   AgencyNew,
   // Protosure, // TODO: move protosureLoader to useEffect
@@ -31,7 +32,7 @@ import {
   Licenses,
   AgencyApp,
   AgencyApps,
-  Quotes,
+  Quotes as AdminQuotes,
   PolicyDelivery,
   Policies as PoliciesAdmin,
   DisclosureNew,
@@ -41,6 +42,7 @@ import {
   Organizations,
   Organization,
 } from 'views/admin';
+// import { Submissions as AgentSubmissions } from 'views/agent';
 import { SuccessStep, ActionHandler } from 'elements';
 import { Product } from 'common';
 import { BindSuccess } from 'elements/SuccessStep';
@@ -63,6 +65,7 @@ export enum ROUTES {
   SUBMISSION_NEW = '/new/:productId',
   SUBMISSION_SUBMITTED = '/quotes/:submissionId/submitted',
   SUBMISSIONS = '/submissions',
+  QUOTES = '/quotes',
   QUOTE_VIEW = '/quotes/:quoteId',
   QUOTE_BIND = '/quotes/:quoteId/bind',
   QUOTE_BIND_SUCCESS = '/quotes/:quoteId/bind/success/:transactionId?',
@@ -99,6 +102,13 @@ export enum ADMIN_ROUTES {
   ORGANIZATION = '/admin/orgs/:orgId',
 }
 
+// export enum AGENT_ROUTES {
+//   SUBMISSIONS = '/agent/submissions',
+//   SUBMISSION_VIEW = '/agent/submissions/:submissionId',
+//   QUOTES = '/agent/quotes',
+//   QUOTES_VIEW = '/agent/submissions',
+// }
+
 export enum AUTH_ROUTES {
   LOGIN = '/auth/login/',
   CREATE_ACCOUNT = '/auth/create-account',
@@ -117,6 +127,7 @@ type TArgs =
   | { path: ROUTES.SUBMISSION_NEW; params: { productId: Product } }
   | { path: ROUTES.SUBMISSION_SUBMITTED; params: { submissionId: string } }
   | { path: ROUTES.SUBMISSIONS }
+  | { path: ROUTES.QUOTES }
   | { path: ROUTES.QUOTE_VIEW; params: { quoteId: string } }
   | { path: ROUTES.QUOTE_BIND; params: { quoteId: string } } // INCLUDE PRODUCT ID ??
   | { path: ROUTES.QUOTE_BIND_SUCCESS; params: { quoteId: string; transactionId?: string } }
@@ -187,21 +198,6 @@ export function createPath(args: TArgs) {
   return resolvedPath;
 }
 
-// function ensureUserSession() {
-//   let user = getAuth().currentUser;
-//   if (!user || !user.uid) throw redirect('/auth/login');
-//   return true;
-// }
-
-// const user = getAuth().currentUser;
-
-// BUG: doesn't detect authed user on first load
-// const testPoliciesLoader = (getUser?: any) => async (args: any) => {
-//   const user = getUser().currentUser;
-//   console.log('USER: ', user);
-//   return adminPoliciesLoader(args);
-// };
-
 export const router = createBrowserRouter([
   {
     path: '/',
@@ -263,38 +259,29 @@ export const router = createBrowserRouter([
           // },
           {
             path: ROUTES.SUBMISSIONS,
-            element: <UserSubmissions />,
+            element: <Submissions />,
+            errorElement: <RouterErrorBoundary />,
+          },
+          {
+            path: ROUTES.QUOTES,
+            element: <Quotes />,
             errorElement: <RouterErrorBoundary />,
           },
           {
             path: ROUTES.QUOTE_VIEW,
-            // loader: quoteLoader(getAuth()),
-            // loader: quoteLoader(db),
-            // loader: (args: LoaderFunctionArgs) => {
-            //   const db = getFirestore();
-            //   console.log('DB: ', db.app.name);
-            //   return quoteLoader(db);
-            // },
             element: <ViewQuote />,
           },
           {
             path: ROUTES.QUOTE_BIND,
-            // loader: quoteLoader(db),
-            // loader: quoteLoader(getAuth()),
-            // loader: quoteLoader(auth),
             element: <QuoteBind />,
           },
           {
             path: ROUTES.QUOTE_BIND_SUCCESS,
-            // loader: quoteLoader(db),
-            // loader: quoteLoader(getAuth()),
-            // loader: quoteLoader(auth),
             element: <BindSuccess />,
           },
           {
             path: ROUTES.SUBMISSION_SUBMITTED,
             element: <SuccessStep />,
-            // loader: submissionLoader,
             errorElement: <RouterErrorBoundary />,
           },
           {
@@ -332,7 +319,6 @@ export const router = createBrowserRouter([
                 element: <CreateAccount />,
               },
             ],
-            // element: <CreateAccount />,
           },
           {
             path: AUTH_ROUTES.ACTIONS_HANDLER,
@@ -346,7 +332,6 @@ export const router = createBrowserRouter([
                 element: <ActionHandler />,
               },
             ],
-            // element: <ActionHandler />,
           },
           {
             path: ROUTES.ACCOUNT,
@@ -354,6 +339,39 @@ export const router = createBrowserRouter([
           },
         ],
       },
+      // {
+      //   path: '/',
+      //   element: <Layout containerProps={{ maxWidth: 'lg' }} />,
+      //   errorElement: <RouterErrorBoundary />,
+      //   children: [
+      //     {
+      //       index: true,
+      //       element: <Home />,
+      //     },
+      //     {
+      //       path: '/agent',
+      //       element: <Home />,
+      //     },
+      //     {
+      //       path: AGENT_ROUTES.SUBMISSIONS,
+      //       element: (
+      //         <RequireAuthReactFire signInCheckProps={{ requiredClaims: { agent: true } }}>
+      //           <AgentSubmissions />
+      //         </RequireAuthReactFire>
+      //       ),
+      //       errorElement: <RouterErrorBoundary />,
+      //     },
+      //     {
+      //       path: AGENT_ROUTES.SUBMISSION_VIEW,
+      //       element: (
+      //         <RequireAuthReactFire signInCheckProps={{ requiredClaims: { agent: true } }}>
+      //           <div>TODO: agent submission view component</div>
+      //         </RequireAuthReactFire>
+      //       ),
+      //       errorElement: <RouterErrorBoundary />,
+      //     },
+      //   ],
+      // },
       {
         path: '/policies',
         element: (
@@ -438,7 +456,7 @@ export const router = createBrowserRouter([
             element: (
               // <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
               <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
-                <Quotes />
+                <AdminQuotes />
               </RequireAuthReactFire>
 
               // </RequireAuth>

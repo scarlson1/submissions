@@ -1,35 +1,30 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { limit, orderBy } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
-import { Box, Button, Typography } from '@mui/material';
-import { GridCellParams, GridColDef } from '@mui/x-data-grid';
+import { Alert, AlertTitle, Box, Button, Tooltip, Typography } from '@mui/material';
+import {
+  GridActionsCellItem,
+  GridCellParams,
+  GridColDef,
+  GridRowId,
+  GridRowParams,
+} from '@mui/x-data-grid';
 
 import { BasicDataGrid, renderGridEmail, renderGridPhone, FileLink } from 'components';
 import { formatGridFirestoreTimestamp, getGridAddressComponent } from 'modules/utils/helpers';
 import { ADMIN_ROUTES, createPath } from 'router';
-import { useCollectionData } from 'hooks';
-
-// export const agencyAppsLoader = async () => {
-//   try {
-//     const ref = collection(getFirestore(), COLLECTIONS.AGENCY_APPLICATIONS);
-//     return getDocs(query(ref, orderBy('metadata.created', 'desc'), limit(100))).then((querySnap) =>
-//       querySnap.docs.map((snap) => ({ ...snap.data(), id: snap.id }))
-//     );
-//     // return getDocs(
-//     //   query(agencyAppCollection, orderBy('metadata.created', 'desc'), limit(100))
-//     // ).then((querySnap) => querySnap.docs.map((snap) => ({ ...snap.data(), id: snap.id })));
-//   } catch (err) {
-//     throw new Response(`Error fetching submissions`);
-//   }
-// };
+import { useCollectionData, useCreateTenant } from 'hooks';
+import { CheckCircleOutlineRounded } from '@mui/icons-material';
+import { FirebaseError } from 'firebase/app';
 
 export const AgencyApps: React.FC = () => {
   const navigate = useNavigate();
-  // const data = useLoaderData() as AgencyApplicationWithId[];
   const { data, status } = useCollectionData('AGENCY_APPLICATIONS', [
     orderBy('metadata.created', 'desc'),
     limit(100),
   ]);
+
+  const { createTenant, error: createTenantError } = useCreateTenant({});
 
   const handleCellClick = (params: GridCellParams<any>) => {
     const ignoreFieldsContaining = ['email', 'phone', 'EandO'];
@@ -48,31 +43,76 @@ export const AgencyApps: React.FC = () => {
     }
   };
 
+  // const promptForNotification = useCallback(async () => {
+  //   try {
+  //     await confirm({
+  //       catchOnCancel: true,
+  //       variant: 'danger',
+  //       title: 'Notify Primary Contact?',
+  //       confirmButtonText: 'Submit',
+  //       description:
+  //         'Would you like to notify the primary contact and invite them to create an account?',
+  //       dialogContentProps: { dividers: true },
+  //     });
+  //     return true;
+  //   } catch (err) {
+  //     return false;
+  //   }
+  // }, [confirm]);
+
+  // const handleTenantCreatedSuccess = useCallback(
+  //   async (agencyId: string, tenantId?: string) => {
+  //     const shouldNotify = await promptForNotification();
+  //     if (!!shouldNotify) {
+  //       toast.loading('sending notification...');
+  //       await sendApprovedNotification(agencyId, `${tenantId}`);
+  //       toast.success('Error delivering notification');
+  //     }
+
+  //     // navigate(createPath({ path: ADMIN_ROUTES.ORGANIZATIONS }));
+  //   },
+  //   [promptForNotification, sendApprovedNotification, toast]
+  // );
+
+  const handleApprove = useCallback(
+    (id: GridRowId) => async () => {
+      try {
+        // toast.loading('creating tenant ...');
+        const createTenantRes = await createTenant(`${id}`);
+        console.log('CREATE TENANT RES: ', createTenantRes);
+        // toast.success(`Org created (ID: ${createTenantRes?.tenantId}) 🎉`);
+
+        // return handleTenantCreatedSuccess(`${id}`, createTenantRes.tenantId);
+      } catch (err) {
+        console.log('ERROR: ', err);
+        // let msg = 'An error occurred while attempting to create tenant. See console for details.';
+        // if (err instanceof FirebaseError) msg = `${err.message} (${err.code})`;
+
+        // toast.error(msg);
+      }
+    },
+    [createTenant]
+  );
+
   const agencyAppColumns: GridColDef[] = useMemo(
     () => [
-      // {
-      //   field: 'actions',
-      //   headerName: 'Actions',
-      //   type: 'actions',
-      //   width: 100,
-      //   getActions: (params: GridRowParams) => [
-      //     <GridActionsCellItem
-      //       icon={<VisibilityRounded />}
-      //       onClick={showDetails(params.id)}
-      //       label='View Counties'
-      //     />,
-      //     <GridActionsCellItem
-      //       icon={<MapRounded />}
-      //       onClick={showMap(params.id)}
-      //       label='Show Map'
-      //     />,
-      //     <GridActionsCellItem
-      //       icon={<BlockRounded />}
-      //       onClick={deactivate(params.id)}
-      //       label='Deactivate'
-      //     />,
-      //   ],
-      // },
+      {
+        field: 'actions',
+        headerName: 'Actions',
+        type: 'actions',
+        width: 100,
+        getActions: (params: GridRowParams) => [
+          <GridActionsCellItem
+            icon={
+              <Tooltip title='approve' placement='top'>
+                <CheckCircleOutlineRounded color='success' />
+              </Tooltip>
+            }
+            onClick={handleApprove(params.id)}
+            label='Approve'
+          />,
+        ],
+      },
       {
         field: 'id',
         headerName: 'Doc ID',
@@ -85,6 +125,13 @@ export const AgencyApps: React.FC = () => {
         headerName: 'Company Name',
         minWidth: 200,
         flex: 1,
+        editable: false,
+      },
+      {
+        field: 'status',
+        headerName: 'Status',
+        minWidth: 140,
+        flex: 0.8,
         editable: false,
       },
       {
@@ -211,8 +258,7 @@ export const AgencyApps: React.FC = () => {
         valueFormatter: formatGridFirestoreTimestamp,
       },
     ],
-    []
-    // [showDetails, showMap, deactivate]
+    [handleApprove]
   );
 
   return (
@@ -229,6 +275,18 @@ export const AgencyApps: React.FC = () => {
           New Agency
         </Button>
       </Box>
+
+      {/* TODO: put error inside collapse */}
+      {Boolean(createTenantError) && (
+        <Box sx={{ maxWidth: 500, pb: 4 }}>
+          <Alert severity='error'>
+            <AlertTitle>Create Submission Error</AlertTitle>
+            {createTenantError instanceof FirebaseError
+              ? `${createTenantError.message} ${createTenantError.code}`
+              : 'See console for details'}
+          </Alert>
+        </Box>
+      )}
 
       <Box sx={{ height: 500, width: '100%' }}>
         <BasicDataGrid

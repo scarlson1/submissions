@@ -1,17 +1,16 @@
 import React, { useCallback, useMemo } from 'react';
-import { Box, Chip, ChipProps, Tooltip, Typography } from '@mui/material';
+import { Box, Chip, ChipProps, Tooltip } from '@mui/material';
 import {
+  DataGridProps,
   GridActionsCellItem,
+  GridActionsCellItemProps,
   GridColDef,
   GridRenderCellParams,
-  GridRowId,
   GridRowParams,
   GridToolbar,
   GridValueFormatterParams,
   GridValueGetterParams,
 } from '@mui/x-data-grid';
-import { orderBy, limit, doc, updateDoc, getDoc, getFirestore } from 'firebase/firestore';
-import { createSearchParams, useNavigate } from 'react-router-dom';
 import {
   CloseRounded,
   FiberNewRounded,
@@ -24,59 +23,28 @@ import {
 } from '@mui/icons-material';
 import { toast } from 'react-hot-toast';
 
-import { submissionsCollection, SUBMISSION_STATUS, Submission } from 'common';
+import { Submission, SUBMISSION_STATUS, WithId } from 'common';
 import { BasicDataGrid, GridCellCopy, renderGridEmail } from 'components';
 import {
   formatGridCurrency,
   formatGridFirestoreTimestamp,
   numberFormat,
 } from 'modules/utils/helpers';
-import { ADMIN_ROUTES, createPath } from 'router';
-import { withIdConverter } from 'common/firestoreConverters';
-import { useConfirmAndUpdate } from './Quotes';
-import { useCollectionData } from 'hooks';
+import { useNavigate } from 'react-router-dom';
 
-const useUpdateSubmission = () => {
-  const update = useCallback(async (id: string, updateValues: Partial<Submission>) => {
-    const ref = doc(submissionsCollection(getFirestore()), id).withConverter(
-      withIdConverter<Submission>()
-    );
-    // TODO: fix nested dot notation typescript complaint https://stackoverflow.com/a/47058976/10887890
-    // https://github.com/googleapis/nodejs-firestore/issues/1448
-    await updateDoc(ref, { status: updateValues.status });
+export interface SubmissionGridProps extends Partial<DataGridProps> {
+  rows: WithId<Submission>[];
+  actions?: React.ReactElement<GridActionsCellItemProps>[];
+  columnOverrides?: GridColDef<any, any, any>[];
+}
 
-    const snap = await getDoc(ref);
-    const updatedData = snap.data();
-    if (!updatedData) throw new Error('Error updating data');
-
-    return { ...updatedData };
-  }, []);
-
-  return update;
-};
-
-export interface SubmissionsProps {}
-
-export const Submissions: React.FC<SubmissionsProps> = () => {
+export const SubmissionGrid: React.FC<SubmissionGridProps> = ({
+  rows,
+  actions = [],
+  columnOverrides = [],
+  ...props
+}) => {
   const navigate = useNavigate();
-  const { data, status } = useCollectionData('SUBMISSIONS', [
-    orderBy('metadata.created', 'desc'),
-    limit(100),
-  ]);
-  const updateSubmission = useUpdateSubmission();
-  const confirmAndUpdate = useConfirmAndUpdate(updateSubmission);
-
-  const handleCreateQuote = useCallback(
-    (subId: GridRowId) => () => {
-      navigate({
-        pathname: createPath({ path: ADMIN_ROUTES.QUOTE_NEW, params: { productId: 'flood' } }),
-        search: createSearchParams({
-          submissionId: `${subId}`,
-        }).toString(),
-      });
-    },
-    [navigate]
-  );
 
   const openGoogleMaps = useCallback(
     (params: GridRowParams) => () => {
@@ -87,6 +55,7 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
     []
   );
 
+  // TODO: use lodash or deep merge to merge column overrides (so we dont need to repeat rest of column properties)
   const submissionColumns: GridColDef[] = useMemo(
     () => [
       {
@@ -95,15 +64,7 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
         type: 'actions',
         width: 80,
         getActions: (params: GridRowParams) => [
-          <GridActionsCellItem
-            icon={
-              <Tooltip title='Create Quote' placement='top'>
-                <RequestQuoteRounded />
-              </Tooltip>
-            }
-            onClick={handleCreateQuote(params.id)}
-            label='Create Quote'
-          />,
+          ...actions,
           <GridActionsCellItem
             icon={
               <Tooltip title='Google Maps' placement='top'>
@@ -111,26 +72,15 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
               </Tooltip>
             }
             onClick={openGoogleMaps(params)}
-            label='Google Maps'
+            label='View Google Maps'
           />,
         ],
       },
       {
         field: 'status',
         headerName: 'Status',
-        type: 'singleSelect',
-        valueOptions: [
-          SUBMISSION_STATUS.QUOTED,
-          SUBMISSION_STATUS.SUBMITTED,
-          SUBMISSION_STATUS.NOT_ELIGIBLE,
-          SUBMISSION_STATUS.PENDING_INFO,
-          SUBMISSION_STATUS.CANCELLED,
-          SUBMISSION_STATUS.DRAFT,
-        ],
-        editable: true,
         minWidth: 160,
         flex: 0.6,
-        disableClickEventBubbling: true,
         renderCell: (params) => (
           <Chip
             label={params.value}
@@ -142,7 +92,7 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
       },
       {
         field: 'displayName',
-        headerName: 'Name',
+        headerName: 'Contact Name',
         description: 'Provided contact name',
         minWidth: 160,
         flex: 0.8,
@@ -166,7 +116,7 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
       },
       {
         field: 'email',
-        headerName: 'Email',
+        headerName: 'Contact Email',
         description: 'Provided contact email',
         minWidth: 200,
         flex: 1,
@@ -461,6 +411,18 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
         valueFormatter: formatGridFirestoreTimestamp,
       },
       {
+        field: 'agentId',
+        headerName: 'Agent ID',
+        description:
+          'agent ID of the user that created submission (if user had agent permission role)',
+        minWidth: 240,
+        flex: 1,
+        editable: false,
+        renderCell: (params) => {
+          return <GridCellCopy value={params.value} />;
+        },
+      },
+      {
         field: 'userId',
         headerName: 'User ID',
         description:
@@ -482,63 +444,47 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
           return <GridCellCopy value={params.value} />;
         },
       },
+      ...columnOverrides,
     ],
-    [handleCreateQuote, openGoogleMaps]
+    [openGoogleMaps, actions, columnOverrides]
   );
 
-  const handleProcessRowUpdateError = useCallback((err: Error) => {
-    console.log('ERROR: ', err);
-  }, []);
-
   return (
-    <Box>
-      <Typography variant='h5' gutterBottom sx={{ ml: { xs: 0, sm: 3, md: 4 } }}>
-        All Submissions
-      </Typography>
-      <Box sx={{ height: 500, width: '100%' }}>
-        <BasicDataGrid
-          rows={data || []}
-          columns={submissionColumns}
-          loading={status === 'loading'}
-          density='compact'
-          autoHeight
-          onCellDoubleClick={(params, event) => {
-            if (!params.isEditable) {
-              navigate(
-                createPath({
-                  path: ADMIN_ROUTES.SUBMISSION_VIEW,
-                  params: { submissionId: params.id.toString() },
-                })
-              );
-            }
-          }}
-          processRowUpdate={confirmAndUpdate}
-          onProcessRowUpdateError={handleProcessRowUpdateError}
-          experimentalFeatures={{ newEditingApi: true }}
-          components={{ Toolbar: GridToolbar }}
-          componentsProps={{ toolbar: { csvOptions: { allColumns: true } } }}
-          initialState={{
-            columns: {
-              columnVisibilityModel: {
-                firstName: false,
-                lastName: false,
-                addressLine2: false,
-                postal: false,
-                countyName: false,
-                countyFIPS: false,
-                latitude: false,
-                longitude: false,
-                updated: false,
-                spatialKeyDocId: false,
-              },
+    <Box sx={{ height: 500, width: '100%' }}>
+      <BasicDataGrid
+        rows={rows || []}
+        columns={submissionColumns}
+        density='compact'
+        autoHeight
+        onCellDoubleClick={(params, event) => {
+          if (!params.isEditable) {
+            navigate(params.id.toString());
+          }
+        }}
+        components={{ Toolbar: GridToolbar }}
+        componentsProps={{ toolbar: { csvOptions: { allColumns: true } } }}
+        initialState={{
+          columns: {
+            columnVisibilityModel: {
+              firstName: false,
+              lastName: false,
+              addressLine2: false,
+              postal: false,
+              countyName: false,
+              countyFIPS: false,
+              latitude: false,
+              longitude: false,
+              updated: false,
+              spatialKeyDocId: false,
             },
-            sorting: {
-              sortModel: [{ field: 'created', sort: 'desc' }],
-            },
-            pagination: { pageSize: 10 },
-          }}
-        />
-      </Box>
+          },
+          sorting: {
+            sortModel: [{ field: 'created', sort: 'desc' }],
+          },
+          pagination: { pageSize: 10 },
+        }}
+        {...props}
+      />
     </Box>
   );
 };

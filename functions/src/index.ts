@@ -29,6 +29,7 @@ export {
   mirrorCustomClaims,
   newAgencyAppNotification,
   getSubmissionFIPS,
+  sendInviteEmail,
 } from './firestoreEvents';
 export {
   beforeSignIn,

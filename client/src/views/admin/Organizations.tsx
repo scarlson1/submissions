@@ -2,12 +2,16 @@ import React, { useMemo } from 'react';
 import { Box } from '@mui/material';
 import { limit, orderBy } from 'firebase/firestore';
 import { GridColDef, GridValueFormatterParams } from '@mui/x-data-grid';
+import { useNavigate } from 'react-router-dom';
 
 import { BasicDataGrid, renderGridEmail, renderGridPhone } from 'components';
 import { useCollectionData } from 'hooks';
 import { formatGridFirestoreTimestamp, formatGridPercent } from 'modules/utils';
 
+import { createPath, ADMIN_ROUTES } from 'router';
+
 export const Organizations: React.FC = () => {
+  const navigate = useNavigate();
   const { data, status } = useCollectionData(
     'ORGANIZATIONS',
     [orderBy('metadata.created', 'desc'), limit(100)],
@@ -219,16 +223,16 @@ export const Organizations: React.FC = () => {
           loading={status === 'loading'}
           density='compact'
           autoHeight
-          // onCellDoubleClick={(params, event) => {
-          //   if (!params.isEditable) {
-          //     navigate(
-          //       createPath({
-          //         path: ADMIN_ROUTES.SUBMISSION_VIEW,
-          //         params: { submissionId: params.id.toString() },
-          //       })
-          //     );
-          //   }
-          // }}
+          onCellDoubleClick={(params, event) => {
+            if (!params.isEditable) {
+              navigate(
+                createPath({
+                  path: ADMIN_ROUTES.ORGANIZATION,
+                  params: { orgId: params.id.toString() },
+                })
+              );
+            }
+          }}
           // processRowUpdate={confirmAndUpdate}
           // onProcessRowUpdateError={handleProcessRowUpdateError}
           // experimentalFeatures={{ newEditingApi: true }}

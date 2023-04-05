@@ -8,6 +8,8 @@ import {
   STATE_ABBREVIATION,
   QUOTE_STATUS,
   POLICY_STATUS,
+  INVITE_STATUS,
+  AGENCY_SUBMISSION_STATUS,
 } from './enums';
 import { FloodValues } from 'views/SubmissionNew';
 import { FetchPropertyDataResponse } from 'modules/api/index';
@@ -28,6 +30,7 @@ export interface Submission extends FloodValues, FetchPropertyDataResponse {
   coordinates: GeoPoint;
   countyFIPS?: string | null;
   userId?: string | null;
+  agentId?: string | null;
   status: SUBMISSION_STATUS;
   submittedById?: string | null;
   darkMapImageURL?: string;
@@ -503,15 +506,10 @@ export interface AgencyApplication extends BaseDoc {
   // metadata: BaseMetadata;
   // createdByUid: string | null;
   // createdByName: string | null;
-  status: 'TODO' | 'COPY' | 'FROM' | 'OTHER' | 'APP'; // AgencySubmissionStatus;
+  status: AGENCY_SUBMISSION_STATUS;
   sendAppReceivedNotification?: boolean;
   coordinates?: GeoPoint | null;
-  // latitude?: number | null;
-  // longitude?: number | null;
 }
-// export interface AgencyApplicationWithId extends AgencyApplication {
-//   id: string;
-// }
 
 export interface Agency {
   address: Address;
@@ -574,7 +572,7 @@ export interface Organization extends BaseDoc {
 
 // TODO: convert dates to Firestore timestamps so that they're queryable
 
-export type InviteStatus = 'pending' | 'accepted' | 'revoked' | 'replaced' | 'rejected' | 'error';
+// export type InviteStatus = 'pending' | 'accepted' | 'revoked' | 'replaced' | 'rejected' | 'error';
 
 export interface Invite extends BaseDoc {
   email: string;
@@ -585,7 +583,7 @@ export interface Invite extends BaseDoc {
   customClaims?: { [key: string]: any };
   orgId: string | null;
   orgName?: string;
-  status: InviteStatus;
+  status: keyof typeof INVITE_STATUS; // InviteStatus;
   id: string;
   invitedBy?: {
     userId?: string;

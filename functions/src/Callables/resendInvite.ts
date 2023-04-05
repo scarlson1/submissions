@@ -6,6 +6,7 @@ import { defineSecret } from 'firebase-functions/params';
 import { invitesCollection } from '../common/dbCollections';
 import { inviteConverter } from '../common/converters';
 import { sendUserInvite } from '../services/sendgrid';
+import { CLAIMS } from '../common';
 
 const sendgridApiKey = defineSecret('SENDGRID_API_KEY');
 
@@ -17,7 +18,7 @@ export const resendInvite = functions
     if (!auth?.uid) {
       throw new functions.https.HttpsError('unauthenticated', 'Must be signed in.');
     }
-    if (!(auth?.token.admin || auth?.token.iDemandAdmin)) {
+    if (!(auth?.token[CLAIMS.ORG_ADMIN] || auth?.token[CLAIMS.IDEMAND_ADMIN])) {
       throw new functions.https.HttpsError('permission-denied', 'Admin permissions required');
     }
 

@@ -13,7 +13,6 @@ export const beforeSignIn = functions
   .auth.user()
   .beforeSignIn(async (user, context) => {
     // REQUIRE EMAIL VERIFICATION BEFORE CREATING ACCOUNT IF @idemandinsurance.com DOMAIN
-
     if (user.email && user.email?.toLowerCase().endsWith('@idemandinsurance.com')) {
       if (!user.emailVerified) {
         try {
