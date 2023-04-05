@@ -14,21 +14,29 @@ export enum COLLECTIONS {
   SR_RES = 'swissReRes',
   PAYMENT_METHODS = 'paymentMethods',
   TRANSACTIONS = 'transactions',
-  AGENCY_APPLICATIONS = 'agencyApplications',
+  AGENCY_APPLICATIONS = 'agencySubmissions',
   LICENSES = 'licenses',
   NOTIFICATIONS = 'notifications',
 }
 
 export enum SUBMISSION_STATUS {
-  Draft = 'draft',
-  Submitted = 'submitted',
-  Approved = 'approved',
-  Rejected = 'rejected',
-  UnderReview = 'under_review',
-  AwaitingInfo = 'awaiting:info',
-  Expired = 'expired',
-  Cancelled = 'cancelled',
-  AwaitingPayment = 'awaiting:payment',
+  DRAFT = 'draft',
+  SUBMITTED = 'submitted',
+  UNDER_REVIEW = 'under_review',
+  PENDING_INFO = 'pending_info',
+  CANCELLED = 'cancelled',
+  QUOTED = 'quoted',
+  NOT_ELIGIBLE = 'ineligible',
+}
+
+export enum INVITE_STATUS {
+  ACCECPTED = 'accepted',
+  PENDING = 'pending',
+  REVOKED = 'revoked',
+  EXPIRED = 'expired',
+  REPLACED = 'replaced',
+  REJECTED = 'rejected',
+  ERROR = 'error',
 }
 
 export enum QUOTE_STATUS {
@@ -52,9 +60,10 @@ export enum PRODUCT {
 }
 
 export enum AGENCY_STATUS {
-  Active = 'active',
-  Inactive = 'inactive',
-  PendingInfo = 'pending_info',
+  SUBMITTED = 'submitted',
+  ACTIVE = 'active',
+  INACTIVE = 'inactive',
+  PENDING_INFO = 'pending_info',
 }
 
 export enum UW_NOTE_CODE {

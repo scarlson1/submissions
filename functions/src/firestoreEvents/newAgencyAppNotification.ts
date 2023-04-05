@@ -42,12 +42,16 @@ export const newAgencyAppNotification = functions
     //   null,
     //   submission.addressLine1
     // );
-    console.log('sending admin notifications to: ', adminRecipients);
-    await sendNewAgencySubmissionAdminNotification(
-      process.env.SENDGRID_API_KEY!,
-      link,
-      submission.orgName,
-      adminRecipients
-    );
+
+    if (submission.sendAppReceivedNotification) {
+      console.log('sending admin notifications to: ', adminRecipients);
+      await sendNewAgencySubmissionAdminNotification(
+        process.env.SENDGRID_API_KEY!,
+        link,
+        submission.orgName,
+        adminRecipients
+      );
+    }
+
     return;
   });

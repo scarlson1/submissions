@@ -5,14 +5,16 @@ import {
   MultiFactorError,
   OperationType,
   sendEmailVerification,
-  // signInWithEmailAndPassword,
+  signInWithEmailAndPassword,
 } from 'firebase/auth';
 // import { httpsCallable } from 'firebase/functions';
-// import { FirebaseError } from 'firebase/app';
+import { FirebaseError } from 'firebase/app';
 import { toast } from 'react-hot-toast';
 
 // import { auth } from 'firebaseConfig';
 import { LoginValues } from 'views/Login';
+import { getTenantIdFromEmail } from 'modules/api';
+import { useFunctions } from 'reactfire';
 // import { useMultiFactorAuth } from 'hooks/auth';
 
 // TODO: combine all auth error handling here - microsoft, google, email, etc.
@@ -27,6 +29,7 @@ import { LoginValues } from 'views/Login';
 // TODO: handle each error code. If resolves error, do not return err / promise.reject
 
 export const useHandleAuthError = () => {
+  const functions = useFunctions();
   const auth = getAuth();
   // const { handleMFA } = useMultiFactorAuth({});
 
@@ -34,45 +37,49 @@ export const useHandleAuthError = () => {
     toast.error('An error occured. See console for details.');
   }, []);
 
-  const handleUserNotFound = useCallback((err: AuthError, { email, password }: LoginValues) => {
-    toast.error('User not found');
+  // const handleUserNotFound = useCallback((err: AuthError, { email, password }: LoginValues) => {
+  //   toast.error('User not found');
 
-    return Promise.reject(err);
-  }, []);
+  //   return Promise.reject(err);
+  // }, []);
 
-  // const handleUserNotFound = useCallback(
-  //   async (err: AuthError, { email, password }: LoginValues) => {
-  //     let getTenantIdFromEmail = httpsCallable<GetTenantRequest, GetTenantResponse>(
-  //       functions,
-  //       'getTenantIdFromEmail'
-  //     );
-  //     try {
-  //       console.log(`Checking for tenant with user under ${email}...`);
-  //       let {
-  //         data: { tenantId },
-  //       } = await getTenantIdFromEmail({ email: email.trim() });
-  //       console.log('tenantId: ', tenantId);
+  const handleUserNotFound = useCallback(
+    async (err: AuthError, { email, password }: LoginValues) => {
+      // let getTenantIdFromEmail = httpsCallable<GetTenantRequest, GetTenantResponse>(
+      //   functions,
+      //   'getTenantIdFromEmail'
+      // );
+      try {
+        console.log(`Checking for tenant with user under ${email}...`);
+        let {
+          data: { tenantId },
+        } = await getTenantIdFromEmail(functions, { email: email.trim().toLowerCase() });
+        console.log('tenantId: ', tenantId);
 
-  //       if (!!tenantId) {
-  //         // TODO: set tenantId in url without refreshing page ?? old comment ??
-  //         console.log(`Setting tenantId (${tenantId}) and reauthenticating...`);
-  //         auth.tenantId = tenantId;
-  //         const userRes = await signInWithEmailAndPassword(auth, email.trim(), password.trim());
+        if (!!tenantId) {
+          // TODO: set tenantId in url without refreshing page ?? old comment ??
+          console.log(`Setting tenantId (${tenantId}) and reauthenticating...`);
+          auth.tenantId = tenantId;
+          const userRes = await signInWithEmailAndPassword(
+            auth,
+            email.trim().toLowerCase(),
+            password.trim()
+          );
 
-  //         return userRes;
-  //       } else {
-  //         return Promise.reject({ ...err });
-  //       }
-  //     } catch (error) {
-  //       console.log('error getting tenantId and reauthenticating: ', error);
-  //       const errCode = error instanceof FirebaseError ? error.code : 'unknown';
-  //       const errMsg = error instanceof FirebaseError ? error.code : 'An error occurred';
+          return userRes;
+        } else {
+          return Promise.reject({ ...err });
+        }
+      } catch (error) {
+        console.log('error getting tenantId and reauthenticating: ', error);
+        const errCode = error instanceof FirebaseError ? error.code : 'unknown';
+        const errMsg = error instanceof FirebaseError ? error.code : 'An error occurred';
 
-  //       return Promise.reject({ code: errCode, message: errMsg });
-  //     }
-  //   },
-  //   []
-  // );
+        return Promise.reject({ code: errCode, message: errMsg });
+      }
+    },
+    []
+  );
 
   const handleInternalError = useCallback(
     (err: AuthError, values?: LoginValues) => {

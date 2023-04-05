@@ -7,3 +7,4 @@ export { adminNewAgencySubmission } from './adminNewAgencySubmission.js';
 export { newQuote } from './newQuote.js';
 export { adminPaymentReceived } from './adminPaymentReceived.js';
 export { policyDelivery } from './policyDelivery.js';
+export { agencyAppApproved } from './agencyAppApproved.js';

@@ -13,5 +13,7 @@ export { Protosure, protosureLoader } from './Protosure';
 export { Account } from './Account';
 export { QuoteBind } from './QuoteBind';
 export { AccountDetails } from './AccountDetails';
+export { Quotes } from './Quotes';
+export { Submissions } from './Submissions';
 
 export type { QuoteValues } from './QuoteBind';

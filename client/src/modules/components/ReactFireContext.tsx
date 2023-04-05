@@ -28,7 +28,6 @@ export function ReactFireServicesContext({ children }: { children: React.ReactNo
   const functions = getFunctions(app);
   const storage = getStorage(app);
 
-  console.log('REACT_APP_EMULATORS: ', process.env.REACT_APP_EMULATORS);
   if (process.env.REACT_APP_EMULATORS === 'true') {
     console.log('USING FIREBASE AUTH, FIRESTORE, FUNCTIONS, STORAGE EMULATORS');
     connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });

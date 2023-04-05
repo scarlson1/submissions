@@ -102,7 +102,7 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
               </Tooltip>
             }
             onClick={handleCreateQuote(params.id)}
-            label='View Counties'
+            label='Create Quote'
           />,
           <GridActionsCellItem
             icon={
@@ -111,7 +111,7 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
               </Tooltip>
             }
             onClick={openGoogleMaps(params)}
-            label='View Counties'
+            label='Google Maps'
           />,
         ],
       },

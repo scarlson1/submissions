@@ -16,7 +16,7 @@ export const userInvite = ({ toName, fromName, link }: UserInviteProps) => {
             <p style="padding-bottom: 8px">Hi${toName ? ` ${toName},` : ','}</p>
             ${
               fromName
-                ? `<p>${fromName} has invited you to create an account iDemand Insurance. Click the link below to get started!</p>`
+                ? `<p>${fromName} has invited you to create an account at iDemand Insurance. Click the link below to get started!</p>`
                 : "<p>You've been invited to create an account at iDemand Insurance. Click the link below to get started</p>"
             }
             <div>

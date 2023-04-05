@@ -31,14 +31,9 @@ export enum COLLECTIONS {
 export enum SUBMISSION_STATUS {
   DRAFT = 'draft',
   SUBMITTED = 'submitted',
-  // APPROVED = 'approved',
-  // REJECTED = 'rejected',
   UNDER_REVIEW = 'under_review',
   PENDING_INFO = 'pending_info',
-  // EXPIRED = 'expired',
   CANCELLED = 'cancelled',
-  // AWAITING_USER = 'awaiting:user',
-  // AWAITING_PAYMENT = 'awaiting:payment',
   QUOTED = 'quoted',
   NOT_ELIGIBLE = 'ineligible',
 }
@@ -65,6 +60,23 @@ export enum POLICY_STATUS {
   PAYMENT_PROCESSING = 'processing:payment',
   AWAITING_PAYMENT = 'awaiting:payment',
   CANCELLED = 'cancelled',
+}
+
+export enum AGENCY_SUBMISSION_STATUS {
+  ACCECPTED = 'accepted',
+  SUBMITTED = 'submitted',
+  REVIEW_REQUIRED = 'review:required',
+}
+
+// 'pending' | 'accepted' | 'revoked' | 'replaced' | 'rejected' | 'error';
+export enum INVITE_STATUS {
+  ACCECPTED = 'accepted',
+  PENDING = 'pending',
+  REVOKED = 'revoked',
+  EXPIRED = 'expired',
+  REPLACED = 'replaced',
+  REJECTED = 'rejected',
+  ERROR = 'error',
 }
 
 export enum TRANSACTION_TYPE {

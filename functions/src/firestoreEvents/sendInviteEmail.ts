@@ -3,14 +3,13 @@ import 'firebase-functions';
 import { defineSecret } from 'firebase-functions/params';
 
 import { sendUserInvite } from '../services/sendgrid';
-import { Invite } from '../common';
+import { COLLECTIONS, Invite } from '../common';
 
 const sendgridApiKey = defineSecret('SENDGRID_API_KEY');
 
 export const sendInviteEmail = functions
   .runWith({ secrets: [sendgridApiKey] })
-  // .firestore.document('invitations/{inviteId}')
-  .firestore.document('organizations/{orgId}/invitations/{inviteId}')
+  .firestore.document(`${COLLECTIONS.ORGANIZATIONS}/{orgId}/${COLLECTIONS.INVITES}/{inviteId}`)
   .onCreate((snap, context) => {
     const data = snap.data() as Invite;
     const { link, firstName, displayName = '' } = data;
@@ -29,7 +28,8 @@ export const sendInviteEmail = functions
     }
 
     let to = [data.email];
-    if (process.env.AUDIENCE === 'DEV HUMANS') to.push('spencercarlson@mac.com');
+    if (process.env.AUDIENCE === 'DEV HUMANS' || process.env.AUDIENCE === 'LOCAL HUMANS')
+      to.push('spencercarlson@mac.com');
 
     sendUserInvite(
       process.env.SENDGRID_API_KEY || '',

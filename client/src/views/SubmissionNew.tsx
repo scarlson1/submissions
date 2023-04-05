@@ -107,7 +107,7 @@ export const initialValues: FloodValues = {
 
 export const SubmissionNew: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, customClaims } = useAuth();
   const formikRef = useRef<FormikProps<FormikValues>>(null);
   const activeStates = useActiveStates('flood');
   // const { propertyDetails, fetchPropertyData } = usePropertyDetails();
@@ -183,6 +183,7 @@ export const SubmissionNew: React.FC = () => {
           coordinates: coords,
           status: SUBMISSION_STATUS.SUBMITTED,
           userId: user?.uid ?? null,
+          agentId: !!customClaims.agent ? user?.uid || null : null,
           submittedById: user?.uid ?? null,
           metadata: {
             created: serverTimestamp(),
@@ -199,7 +200,7 @@ export const SubmissionNew: React.FC = () => {
 
       setSubmitting(false);
     },
-    [navigate, propertyDetails, user]
+    [navigate, propertyDetails, user, customClaims]
   );
 
   return (

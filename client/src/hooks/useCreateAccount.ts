@@ -14,7 +14,7 @@ import { setDoc, doc, getFirestore } from 'firebase/firestore';
 import { useAuth } from 'modules/components/AuthContext';
 // import { auth } from 'firebaseConfig';
 import { toast } from 'react-hot-toast';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { usersCollection } from 'common/firestoreCollections';
 import { FirebaseError } from 'firebase/app';
@@ -37,6 +37,8 @@ interface CreatePasswordProps {
 
 export const useCreateAccount = () => {
   const auth = getAuth();
+  const params = useParams();
+  const location = useLocation();
   const { user, isAuthenticated, isAnonymous, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -142,7 +144,12 @@ export const useCreateAccount = () => {
           ) {
             toast('Email verification required');
 
-            return navigate(`/auth/login?email=${encodeURIComponent(email)}`);
+            return navigate(
+              `/auth/login${params.tenandId || ''}?email=${encodeURIComponent(email)}`,
+              {
+                state: { ...location.state },
+              }
+            );
           }
           // TODO: handle other blocking fn errors, if any
           // what do errors returned from before create look like ??
@@ -156,7 +163,9 @@ export const useCreateAccount = () => {
         if (!isAnonymous) {
           toast.error(`Account with email ${email} already exists. Please login.`);
           // TODO: forward success redirect, if in state (move logic to this hook from component?)
-          navigate('/auth/login');
+          navigate(`/auth/login/${params.tenandId || ''}email=${encodeURIComponent(email)}`, {
+            state: { ...location.state },
+          });
           // try {
           //   // TODO: set up to handle below when attempting to sign in with provider instead of email ??
           //   // SignInMethod.EMAIL_PASSWORD vs SignInMethod.EMAIL_LINK.
@@ -224,7 +233,7 @@ export const useCreateAccount = () => {
         toast.error(`Auth error: ${code}`);
       }
     },
-    [isAnonymous, logout, navigate]
+    [isAnonymous, logout, navigate, location, params]
   );
 
   let memoizedValues = useMemo(

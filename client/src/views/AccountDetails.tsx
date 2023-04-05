@@ -1,9 +1,23 @@
 import React from 'react';
-import { Box, Paper, Typography, alpha, useTheme, Container } from '@mui/material';
-import Grid from '@mui/material/Unstable_Grid2';
+import {
+  Box,
+  Paper,
+  Typography,
+  alpha,
+  useTheme,
+  Container,
+  Button,
+  Unstable_Grid2 as Grid,
+} from '@mui/material';
+import { useFirestore } from 'reactfire';
+import { doc, setDoc } from 'firebase/firestore';
+import { toast } from 'react-hot-toast';
+import axios from 'axios';
 
 import { useAuth } from 'modules/components/AuthContext';
-import { UpdateProfileImg } from 'elements';
+import { AddUsersDialog, UpdateProfileImg } from 'elements';
+import { COLLECTIONS } from 'common';
+import { ClaimsGuard } from 'components';
 
 // TODO: react-router to fetch firebase data
 
@@ -101,6 +115,17 @@ export const AccountDetails: React.FC = () => {
           </Grid>
         </Box>
       </Paper>
+
+      <ClaimsGuard requiredClaims={['ORG_ADMIN', 'IDEMAND_ADMIN']} requireAll={false}>
+        <Box sx={{ p: 1 }}>
+          <AddUsersDialog />
+        </Box>
+      </ClaimsGuard>
+      <ClaimsGuard requiredClaims={['IDEMAND_ADMIN']}>
+        <Box sx={{ p: 1 }}>
+          <InitializeFIPS />
+        </Box>
+      </ClaimsGuard>
     </Container>
   );
 };
@@ -112,3 +137,22 @@ export default AccountDetails;
 // url(http://localhost:9199/v0/b/idemand-dev.appspot.com/o/orgs%2FebBBPevWc5CQxxYBCbzVx5OTaISp%2Fstatic_map_light.jpeg?alt=media&token=cc6a06ab-b22d-4056-ab71-968e5ba686ff)
 
 // sunset: https://firebasestorage.googleapis.com/v0/b/idemand-dev.appspot.com/o/common%2Fbeach_sunset.jpg?alt=media&token=4897fae0-8417-4c3f-8eab-f0ed7ec11cc2
+
+function InitializeFIPS() {
+  const firebase = useFirestore();
+
+  const initFIPS = React.useCallback(async () => {
+    try {
+      const { data } = await axios.get('https://scarlson1.github.io/data/fips.json');
+
+      const fipsRef = doc(firebase, COLLECTIONS.PUBLIC, 'fips');
+      await setDoc(fipsRef, { counties: data });
+      toast.success('FIPS uploaded');
+    } catch (err) {
+      console.log(err);
+      toast.error(`Error occurred. See console.`);
+    }
+  }, [firebase]);
+
+  return <Button onClick={initFIPS}>Initialize FIPS data</Button>;
+}

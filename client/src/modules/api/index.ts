@@ -10,6 +10,10 @@ export { executePayment } from './executePayment';
 export { sendPolicyDoc } from './sendPolicyDoc';
 export { createPolicy } from './createPolicy';
 export { calcQuote } from './calcQuote';
+export { getTenantIdFromEmail } from './getTenantIdFromEmail';
+export { createTenantFromSubmission } from './createTenantFromSubmission';
+export { sendAgencyApprovedNotification } from './sendAgencyApprovedNotification';
+export { inviteUsers } from './inviteUsers';
 
 export type { FetchPropertyDataRequest, FetchPropertyDataResponse } from './fetchPropertyDetails';
 export type { SendContactEmailRequest, SendContactEmailResponse } from './sendContactEmail';
@@ -24,3 +28,6 @@ export type {
   GetPropertyDetailsAttomRequest,
   GetPropertyDetailsAttomResponse,
 } from './getPropertyDetailsAttom';
+export type { GetTenantRequest, GetTenantResponse } from './getTenantIdFromEmail';
+export type { CreateTenantRequest, CreateTenantResponse } from './createTenantFromSubmission';
+export type { InviteUsersRequest, InviteUsersResponse, NewUser } from './inviteUsers';

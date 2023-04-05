@@ -75,15 +75,27 @@ service cloud.firestore {
     }
 
     match /organizations/{orgId} {
-      allow read: if isUser(existingData().userId)
-      allow create: if isSignedIn() && emailVerified() && isIDemandAdmin()
-      allow update: if isSignedIn() && emailVerified() && (isIDemandAdmin() || (isOrgAdmin() && isTenantUser(orgId)))
-      allow delete: if isSignedIn() && emailVerified() && isIDemandAdmin()
+      allow read: if true // TODO: ALLOW ANYONE TO READ ?? ONLY AUTHENTICATED USERS ?? // isUser(existingData().userId)
+      allow create: if isIDemandAdmin() && emailVerified()
+      allow update: if ((isIDemandAdmin() && emailVerified())|| (isOrgAdmin() && isTenantUser(orgId)))
+      allow delete: if isIDemandAdmin() && emailVerified()
     }
 
     match /organizations/{orgId}/invitations/{inviteId} {
-      allow read: if isSignedIn() && isTenantUser(orgId)
+      allow read: if (isSignedIn() && isTenantUser(orgId)) || isIDemandAdmin()
       allow create, update, delete: if isSignedIn() && emailVerified() && (isIDemandAdmin() || (isOrgAdmin() && isTenantUser(orgId)))
+    }
+
+    match /organizations/{orgId}/userClaims/{userId} {
+      allow read: if (isSignedIn() && isTenantUser(orgId)) || isIDemandAdmin()
+      allow create, update: if isSignedIn() && emailVerified() && (isIDemandAdmin() || (isOrgAdmin() && isTenantUser(orgId)))
+      allow delete: if false
+    }
+
+    // organizations userClaims
+    
+    match /{paths=**}/invitations/{inviteId} {
+      allow read, create, update, delete: if isIDemandAdmin()
     }
 
     match /spatialKey/{skDocId} {

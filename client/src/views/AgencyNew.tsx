@@ -25,7 +25,7 @@ import {
   ContactStep,
 } from 'elements';
 import { addressValidation, emailVal, phoneVal } from 'common';
-import { useCreateAgency } from 'hooks';
+import { useCreateAgencySubmission } from 'hooks';
 
 export const orgNameValidation = yup.object().shape({
   orgName: yup.string().required(),
@@ -101,12 +101,12 @@ export const INITIAL_VALUES: AgencyAppValues = {
 
 export const AgencyNew: React.FC = () => {
   const navigate = useNavigate();
-  const { handleSubmission, error } = useCreateAgency({
+  const { handleSubmission, error } = useCreateAgencySubmission({
     onSuccess: () => {
       toast.success('Submission received');
       navigate('/');
     },
-    onError: (_, msg) => toast.error(msg),
+    onError: (_: any, msg: string) => toast.error(msg),
   });
 
   const handleSubmit = useCallback(

@@ -89,10 +89,20 @@ export const getRequiredClaimValidator =
   (requiredClaims: CustomClaimKeys[]): ClaimsValidator =>
   (userClaims: Claims) => {
     // check each required claim, returns true if all claims are missing
-    const notAuthorized = requiredClaims.every((key) => !userClaims[CUSTOM_CLAIMS[key]]);
+    // const notAuthorized = requiredClaims.every((key) => !userClaims[CUSTOM_CLAIMS[key]]);
+    let notAuthorized = true;
+
+    requiredClaims.forEach((key) => {
+      const claim = CUSTOM_CLAIMS[key];
+      console.log('CLAIM: ', claim, !!userClaims[claim]);
+      if (!!userClaims[claim]) {
+        console.log('SETTING NOT AUTHORIZED TO FALSE');
+        notAuthorized = false;
+      }
+    });
 
     const errors: { [key: string]: any[] } = {};
-    if (notAuthorized) errors.claims = ['Must have at least one of required claims.'];
+    if (!!notAuthorized) errors.claims = ['Must have at least one of the required claims.'];
 
     return {
       hasRequiredClaims: !notAuthorized,

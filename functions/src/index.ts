@@ -16,6 +16,11 @@ export {
   executePayment,
   createPolicy,
   calcQuote,
+  getTenantIdFromEmail,
+  createTenantFromSubmission,
+  sendAgencyApprovedNotification,
+  inviteUsers,
+  resendInvite,
 } from './callables';
 export {
   newSubmissionNotifications,
@@ -24,6 +29,7 @@ export {
   mirrorCustomClaims,
   newAgencyAppNotification,
   getSubmissionFIPS,
+  sendInviteEmail,
 } from './firestoreEvents';
 export {
   beforeSignIn,
