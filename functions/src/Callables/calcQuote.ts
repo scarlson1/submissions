@@ -43,6 +43,7 @@ export const calcQuote = functions.https.onCall(async (data, context) => {
     floodZone = 'D',
     state,
     basement = 'unknown',
+    // TODO: prior loss count
     commissionPct = 0.15,
     submissionId,
   } = data;

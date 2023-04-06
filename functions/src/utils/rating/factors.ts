@@ -11,10 +11,10 @@ export function getPM(aal: number, tiv: number) {
 }
 
 export const getHistoryMultInland = (score: number) => {
-  if (score <= 1) return 1; // less than 1, return 1
-  if (score <= 21) return 1.25; // 1 return 1
-  if (score <= 51) return 1.5; // 1.01 - 21 return 1.5
-  if (score <= 71) return 1.75; // 21.01 - 51 return 1.75
+  if (score <= 1) return 1; // less than or eq 1, return 1
+  if (score <= 21) return 1.25; // 1-21 return 1.25
+  if (score <= 51) return 1.5; // 21 - 51 return 1.5
+  if (score <= 71) return 1.75; // 51 - 71 return 1.75
 
   console.log('INLAND FLOOD HISTORY CHECK FAILED. RISK SCORE: ', score);
   return null;
@@ -93,6 +93,8 @@ export const getSecondaryModifiers = ({
   };
 
   secondaryModifiers.basementMult = getBasementFactor(basement);
+
+  // TODO: pass loss history. If 0, history mults = 1 || if 1, get history mult || if 2+, decline
 
   secondaryModifiers.history.inland = getHistoryMultInland(inlandRiskScore);
   secondaryModifiers.history.surge = getHistoryMultSurge(surgeRiskScore);
