@@ -13,6 +13,7 @@ export interface CalcQuoteRequest {
   deductible: number;
   state: string;
   floodZone: string;
+  priorLossCount: string;
   submissionId?: string | null;
   basement?: string;
   commissionPct?: number;

@@ -32,6 +32,7 @@ interface GetAnnualPremiumRequest {
   limitD: number;
   deductible: number;
   numStories: number;
+  priorLossCount: string;
   submissionId?: string | null;
   state: string;
   floodZone?: string;
@@ -71,6 +72,7 @@ export const getAnnualPremium = functions
       limitC,
       limitD,
       deductible,
+      priorLossCount,
       numStories = 1,
       rcvA,
       rcvB,
@@ -89,6 +91,7 @@ export const getAnnualPremium = functions
         deductible && typeof deductible === 'number' && deductible > 1000,
         'invalid deductible. must be number > 1000'
       );
+      invariant(priorLossCount, 'priorLossCount required');
       invariant(numStories && typeof numStories === 'number', 'invalid numStories');
       invariant(
         limitA && typeof limitA === 'number' && limitA > minLimitA,
@@ -177,6 +180,7 @@ export const getAnnualPremium = functions
       let secondaryFactorMults = getSecondaryFactorMults({
         ffe: 0,
         basement: basement,
+        priorLossCount,
         inlandRiskScore: riskScore.inland,
         surgeRiskScore: riskScore.surge,
       });

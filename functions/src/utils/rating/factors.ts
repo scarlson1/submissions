@@ -50,6 +50,7 @@ export const getBasementFactor = (basementValue = 'unknown') => {
 interface SecondaryModifiersProps {
   ffe: number;
   basement: string;
+  priorLossCount: string;
   inlandRiskScore: number;
   surgeRiskScore: number;
 }
@@ -81,6 +82,7 @@ const initialValues: SecondaryModifiers = {
 export const getSecondaryModifiers = ({
   ffe = 0,
   basement = 'unknown',
+  priorLossCount,
   inlandRiskScore,
   surgeRiskScore,
 }: SecondaryModifiersProps) => {
@@ -96,8 +98,10 @@ export const getSecondaryModifiers = ({
 
   // TODO: pass loss history. If 0, history mults = 1 || if 1, get history mult || if 2+, decline
 
-  secondaryModifiers.history.inland = getHistoryMultInland(inlandRiskScore);
-  secondaryModifiers.history.surge = getHistoryMultSurge(surgeRiskScore);
+  secondaryModifiers.history.inland =
+    priorLossCount === '1' ? 1 : getHistoryMultInland(inlandRiskScore);
+  secondaryModifiers.history.surge =
+    priorLossCount === '1' ? 1 : getHistoryMultSurge(surgeRiskScore);
 
   console.log('Secondary Modifiers: ', secondaryModifiers);
   return secondaryModifiers;

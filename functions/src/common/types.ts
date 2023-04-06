@@ -273,7 +273,7 @@ export interface FloodFormValues {
   deductible: number;
   exclusionsExist: boolean | null;
   exclusions: string[];
-  priorLossCount: number;
+  priorLossCount: string;
   firstName: string;
   lastName: string;
   email: string;

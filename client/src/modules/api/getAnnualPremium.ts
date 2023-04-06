@@ -13,6 +13,7 @@ export interface GetAnnualPremiumRequest {
   limitD: number;
   deductible: number;
   numStories?: number;
+  priorLossCount: string; // number;
   submissionId?: string | null;
   state: string;
   floodZone?: string;

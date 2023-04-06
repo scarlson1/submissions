@@ -23,7 +23,6 @@ import {
 import * as yup from 'yup';
 import { add } from 'date-fns';
 import { toast } from 'react-hot-toast';
-import axios from 'axios';
 import { round } from 'lodash';
 import { getFunctions } from 'firebase/functions';
 import { doc, getDoc, getFirestore, updateDoc } from 'firebase/firestore';
@@ -45,7 +44,7 @@ import {
 import { AddressStep, LimitsStep } from 'elements';
 import { emailVal, limitAVal, limitBVal, limitCVal, limitDVal } from 'common/quoteValidation';
 import { dollarFormat, sumArr } from 'modules/utils/helpers';
-import { useActiveStates, useCreateQuote, useGetDiff, useJsonDialog } from 'hooks';
+import { useActiveStates, useCreateQuote, useFetchTaxes, useGetDiff, useJsonDialog } from 'hooks';
 import { IconButtonMenu } from 'components';
 import { ADMIN_ROUTES, createPath } from 'router';
 import {
@@ -54,6 +53,7 @@ import {
   Submission,
   submissionsCollection,
   SUBMISSION_STATUS,
+  TaxItem,
 } from 'common';
 import { calcQuote, getAnnualPremium } from 'modules/api';
 import { ShowRatingDialog } from './SubmissionView';
@@ -65,9 +65,16 @@ import { ShowRatingDialog } from './SubmissionView';
 const useSubData = (submissionId?: string | null) => {
   const [submissionData, setSubmissionData] = useState<Submission | null>(null);
   const [loading, setLoading] = useState(true);
+  const [hasLoaded2, setHasLoaded] = useState(false);
 
-  React.useEffect(() => {
-    if (!submissionId) return setLoading(false);
+  useEffect(() => {
+    let hasLoaded = false;
+    if (!submissionId || hasLoaded) return setLoading(false);
+    console.log('HAS LOADED: ', hasLoaded);
+    console.log('HAS LOADED 2: ', hasLoaded2);
+
+    hasLoaded = true;
+    setHasLoaded(true);
 
     const subRef = doc(submissionsCollection(getFirestore()), submissionId);
 
@@ -80,17 +87,14 @@ const useSubData = (submissionId?: string | null) => {
         console.log('ERR FETCHING SUBMISSION: ', err);
         setLoading(false);
       });
-  }, [submissionId]);
+
+    return () => {
+      hasLoaded = false;
+    };
+  }, [submissionId, hasLoaded2]);
 
   return { submissionData, loading };
 };
-
-// export const getSubproducerAdj = (premium: number, defaultCom: number, newCom: number) => {
-//   let comDiff = newCom - defaultCom;
-
-//   let adj = premium / (1 - comDiff / (1 - defaultCom)) - premium;
-//   return round(adj, 2);
-// };
 
 const useRerate = (
   submissionId: string | null,
@@ -118,6 +122,7 @@ const useRerate = (
         state,
         ratingPropertyData,
         subproducerCommission,
+        priorLossCount,
       } = values;
 
       console.log('VALUES: ', values);
@@ -136,6 +141,7 @@ const useRerate = (
           deductible,
           numStories: numStories || 1,
           state,
+          priorLossCount,
           floodZone: ratingPropertyData.floodZone || undefined,
           basement: ratingPropertyData.basement || undefined,
           commissionPct: subproducerCommission,
@@ -208,6 +214,7 @@ const quoteNewValidation = yup.object().shape({
   agentPhone: yup.string(),
   agencyName: yup.string(),
   agencyId: yup.string().nullable(),
+  priorLossCount: yup.string().required(),
   ratingPropertyData: yup.object().shape({
     CBRSDesignation: yup.string().required(),
     basement: yup.string().required(),
@@ -221,15 +228,12 @@ const quoteNewValidation = yup.object().shape({
   }),
 });
 
-export interface TaxItem {
-  displayName: string;
-  rate: number; // | string;
-  value: number; // | string;
-}
 export interface FeeItem {
   feeName: string;
   feeValue: number;
 }
+
+// TODO: change priorLossCount to type number ?? need to change submission too
 export interface NewQuoteValues {
   addressLine1: string;
   addressLine2: string;
@@ -244,6 +248,7 @@ export interface NewQuoteValues {
   limitD: number;
   // replacementCost: string | number;
   deductible: number;
+
   numStories: number | null;
   numUnits: number | null;
   yearBuilt: string | number | null;
@@ -266,6 +271,7 @@ export interface NewQuoteValues {
   agentPhone: string | null;
   agencyName: string | null;
   agencyId: string | null;
+  priorLossCount: string;
   ratingPropertyData: RatingPropertyData;
   // submissionId: string | null;
 }
@@ -280,7 +286,6 @@ export const QuoteNew: React.FC = () => {
   const formikRef = useRef<FormikProps<NewQuoteValues>>(null);
   const showDialog = useJsonDialog();
   const activeStates = useActiveStates('flood');
-  const [taxesLoading, setTaxesLoading] = useState(false);
   const [calcQuoteLoading, setCalcQuoteLoading] = useState(false);
 
   const [ratingInputsSnap, setRatingInputsSnap] = useState({});
@@ -300,6 +305,11 @@ export const QuoteNew: React.FC = () => {
     },
     (msg: string) => toast.error(msg)
   );
+
+  const { fetchTaxes, loading: taxesLoading } = useFetchTaxes((newTaxes: TaxItem[]) => {
+    setTimeout(() => formikRef.current?.setFieldValue('taxes', [...newTaxes]), 50);
+    // formikRef.current?.setFieldValue('taxes', newTaxes);
+  }); //
 
   const createQuote = useCreateQuote(
     async () => {
@@ -332,58 +342,6 @@ export const QuoteNew: React.FC = () => {
 
     showDialog(submissionData, 'Submission Data');
   }, [showDialog, submissionData]);
-
-  const fetchTaxes = useCallback(async () => {
-    const values = formikRef.current?.values;
-    if (!values) return;
-    const { annualPremium, state, fees } = values;
-
-    // TODO: validate all required fields are present
-    if (!annualPremium) return toast.error('Term premium required');
-    if (!state) return toast.error('State required');
-
-    const mgaObj = fees.find((f) => f.feeName === 'MGA Fee');
-    const inspectionObj = fees.find((f) => f.feeName === 'Inspection Fee');
-    let mgaFees = mgaObj ? mgaObj.feeValue : 0;
-    let inspectionFees = inspectionObj ? inspectionObj.feeValue : 0;
-
-    const body = {
-      state,
-      homeStatePremium: annualPremium,
-      outStatePremium: 0,
-      premium: annualPremium,
-      mgaFees,
-      inspectionFees,
-      transactionType: 'new',
-    };
-    console.log('body: ', body);
-
-    try {
-      setTaxesLoading(true);
-      const { data } = await axios.post(`${process.env.REACT_APP_SUBMISSIONS_API}/state-tax`, body);
-      console.log('DATA: ', data);
-
-      let newTaxes: TaxItem[] = [];
-      if (data && data.lineItems?.length > 0) {
-        newTaxes = data.lineItems.map((t: any) => ({
-          displayName: t.displayName || '',
-          rate: `${t.rate || ''}`,
-          value: `${t.value || ''}`,
-        }));
-      }
-      if (data && data.lineItems?.length === 0) {
-        setTaxesLoading(false);
-        return toast.success(`No applicable taxes for ${state}`, { duration: 5000 });
-      }
-
-      setTimeout(() => formikRef.current?.setFieldValue('taxes', [...newTaxes]), 50);
-      setTaxesLoading(false);
-    } catch (err) {
-      console.log('ERROR FETCHING TAXES: ', err);
-      toast.error('An error occurred while fetching taxes');
-      setTaxesLoading(false);
-    }
-  }, []);
 
   const calcTotal = useCallback(async () => {
     try {
@@ -430,6 +388,7 @@ export const QuoteNew: React.FC = () => {
         replacementCost,
         deductible: values.deductible,
         state: values.state,
+        priorLossCount: values.priorLossCount,
         floodZone: values.ratingPropertyData.floodZone ?? 'D',
         submissionId,
         basement: values.ratingPropertyData.basement ?? undefined,
@@ -446,9 +405,7 @@ export const QuoteNew: React.FC = () => {
       formikRef.current?.setFieldValue('quoteTotal', '');
 
       formikRef.current?.setFieldValue('annualPremium', data.annualPremium);
-      formikRef.current?.setFieldTouched('annualPremium');
-      // setTimeout(() => formikRef.current?.setFieldTouched('annualPremium'), 100);
-      setTimeout(() => formikRef.current?.validateField('annualPremium'), 100);
+      setTimeout(() => formikRef.current?.setFieldTouched('annualPremium'), 50);
     } catch (err) {
       console.log('ERROR: ', err);
     }
@@ -512,6 +469,7 @@ export const QuoteNew: React.FC = () => {
           agentPhone: '',
           agencyName: '',
           agencyId: '',
+          priorLossCount: submissionData?.priorLossCount || '',
           ratingPropertyData: {
             CBRSDesignation: submissionData?.CBRSDesignation ?? '',
             basement: `${submissionData?.basement ?? ''}`.toLowerCase(), // @ts-ignore
@@ -527,7 +485,7 @@ export const QuoteNew: React.FC = () => {
         validationSchema={quoteNewValidation}
         onSubmit={handleSubmit}
         innerRef={formikRef}
-        enableReinitialize
+        // enableReinitialize
       >
         {({
           dirty,
@@ -764,7 +722,7 @@ export const QuoteNew: React.FC = () => {
                     <LoadingButton
                       size='small'
                       variant='outlined'
-                      onClick={fetchTaxes}
+                      onClick={() => fetchTaxes(values)}
                       loading={taxesLoading}
                       disabled={!(values.state && values.annualPremium)}
                       startIcon={<DownloadRounded />}
@@ -937,6 +895,19 @@ export const QuoteNew: React.FC = () => {
               <Grid xs={6} sm={4} md={3} lg={2}>
                 <FormikNativeSelect
                   fullWidth
+                  id='priorLossCount'
+                  label='Prior Loss Count'
+                  name='priorLossCount'
+                  selectOptions={[
+                    { label: '0', value: '0' },
+                    { label: '1', value: '1' },
+                    { label: '2', value: '2' },
+                  ]}
+                />
+              </Grid>
+              <Grid xs={6} sm={4} md={3} lg={2}>
+                <FormikNativeSelect
+                  fullWidth
                   id='ratingPropertyData.CBRSDesignation'
                   label='CBRS Designation'
                   name='ratingPropertyData.CBRSDesignation'
@@ -954,7 +925,7 @@ export const QuoteNew: React.FC = () => {
                   label='Basement'
                   name='ratingPropertyData.basement'
                   selectOptions={[
-                    { label: '', value: '' },
+                    { label: 'No', value: 'no' },
                     { label: 'Unknown', value: 'unknown' },
                     { label: 'Finished', value: 'finished' },
                     { label: 'Unfinished Basement', value: 'unfinished basement' },
@@ -997,6 +968,7 @@ export const QuoteNew: React.FC = () => {
                   selectOptions={[
                     { label: '', value: '' },
                     { label: 'Unknown', value: 'unknown' },
+                    { label: 'SFR', value: 'SFR' },
                     { label: 'Single Family Residence', value: 'Single Family Residence' },
                     { label: 'Condominium', value: 'Condominium' },
                     { label: 'Other', value: 'other' },
@@ -1159,6 +1131,7 @@ function getRatingInputsFromSubmission(subData?: Submission) {
     limitD: subData?.limitD, // || null,
     deductible: subData?.deductible, // || null,
     numStories: subData?.numStories,
+    priorLossCount: subData?.priorLossCount,
     state: subData?.state,
     floodZone: subData?.floodZone,
     basement: subData?.basement,
@@ -1197,6 +1170,7 @@ function Diff({ ratingInputsPrev }: { ratingInputsPrev: any }) {
     limitC,
     limitD,
     deductible,
+    priorLossCount,
     // numStories,
     state,
     subproducerCommission,
@@ -1215,6 +1189,7 @@ function Diff({ ratingInputsPrev }: { ratingInputsPrev: any }) {
       deductible,
       state,
       subproducerCommission,
+      priorLossCount,
       numStories: ratingPropertyData.numStories,
       floodZone: ratingPropertyData.floodZone,
       replacementCost: ratingPropertyData.replacementCost,
@@ -1235,6 +1210,7 @@ function Diff({ ratingInputsPrev }: { ratingInputsPrev: any }) {
     limitD,
     deductible,
     state,
+    priorLossCount,
     subproducerCommission,
     ratingPropertyData,
     ratingInputsPrev,

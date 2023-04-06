@@ -39,7 +39,10 @@ export const getPropertyDetailsAttom = functions
       );
     }
 
-    const attomInstance = getAttomInstance(process.env.ATTOM_API_KEY);
+    const attomKey = process.env.ATTOM_API_KEY;
+    if (!attomKey)
+      throw new functions.https.HttpsError('internal', `Missing property data api key`);
+    const attomInstance = getAttomInstance(attomKey);
 
     let basicProfileRes;
     let profile;
@@ -176,7 +179,7 @@ async function validateAttomRes(attomData: AttomBasicProfile) {
   let yearBuilt = summary?.yearBuilt || null; // TODO: worth calling details endpoint for effectiveyearbuilt ??
   let floodZone = 'TODO'; // attomData.us_hh_fema_all_params_zone;
   let CBRSDesignation = 'TODO'; // attomData.us_hh_fema_cbrs_params_designation;
-  let basement = building?.interior?.bsmtType ? building?.interior?.bsmtType.toLowerCase() : null;
+  let basement = building?.interior?.bsmtType ? building?.interior?.bsmtType.toLowerCase() : 'no';
   let distToCoastFeet = 1000000;
 
   // TODO: BUILDING SQ FOOTAGE. WHICH NUMBER? living size ??

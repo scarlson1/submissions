@@ -109,7 +109,9 @@ export const LimitsStep: React.FC<LimitsStepProps> = ({
     if (!replacementCost) return result;
 
     Object.keys(result).forEach((key) => {
-      const ht = getFormattedPct(parseInt(values[key as LimitKeys]), replacementCost);
+      const limitVal = values[key as LimitKeys];
+      const limitNum = typeof limitVal === 'string' ? parseInt(limitVal) : limitVal;
+      const ht = getFormattedPct(limitNum, replacementCost);
       if (!isNaN(ht)) {
         result[key] = `${ht}% of building replacement cost`;
       }

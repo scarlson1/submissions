@@ -12,6 +12,8 @@ import {
   getSecondaryFactorMults,
 } from '../utils/rating';
 
+// TODO: create rating inputs interface (used in multiple funcs), extend where needed
+
 export interface CalcQuoteRequest {
   limitA: number;
   limitB: number;
@@ -23,6 +25,7 @@ export interface CalcQuoteRequest {
   deductible: number;
   state: string;
   floodZone: string;
+  priorLossCount: string;
   submissionId: string;
   basement?: string;
   commissionPct?: number;
@@ -40,6 +43,7 @@ export const calcQuote = functions.https.onCall(async (data, context) => {
     surgeAAL,
     replacementCost,
     deductible,
+    priorLossCount,
     floodZone = 'D',
     state,
     basement = 'unknown',
@@ -124,6 +128,7 @@ export const calcQuote = functions.https.onCall(async (data, context) => {
     let secondaryFactorMults = getSecondaryFactorMults({
       ffe: 0,
       basement,
+      priorLossCount,
       inlandRiskScore: riskScore.inland,
       surgeRiskScore: riskScore.surge,
     });
@@ -171,6 +176,7 @@ export const calcQuote = functions.https.onCall(async (data, context) => {
       floodZone,
       basement,
       ffe: 0,
+      priorLossCount,
       premiumData: {
         minPremium,
         ...premiumData,

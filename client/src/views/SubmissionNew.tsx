@@ -34,24 +34,6 @@ import { submissionsCollection } from 'common';
 // TODO: fix bug - need to separate geocodeing from address
 // if address manually changed (not google autocomple), need to update lat lng
 
-// export const newSubmissionLoader = async ({ params }: LoaderFunctionArgs) => {
-//   try {
-//     const statesCollection = collection(getFirestore(), COLLECTIONS.ACTIVE_STATES);
-//     const snap = await getDoc(doc(statesCollection, params.productId));
-
-//     const data = snap.data();
-//     if (!snap.exists() || !data) return {};
-
-//     return data;
-//   } catch (err) {
-//     let msg = `Error fetching active states document`;
-//     if (err instanceof FirebaseError) {
-//       msg = err.message;
-//     }
-//     throw new Response(msg);
-//   }
-// };
-
 const DEFAULT_FLOOD_DEDUCTIBLE = '0.01';
 
 const gridProps = {
@@ -68,10 +50,10 @@ export interface FloodValues {
   countyName?: string;
   latitude: number | null;
   longitude: number | null;
-  limitA: string;
-  limitB: string;
-  limitC: string;
-  limitD: string;
+  limitA: number; // string;
+  limitB: number; // string;
+  limitC: number; // string;
+  limitD: number; // string;
   deductible: number;
   exclusionsExist: boolean | null;
   exclusions: string[];
@@ -91,10 +73,10 @@ export const initialValues: FloodValues = {
   countyName: '',
   latitude: null,
   longitude: null,
-  limitA: '250000',
-  limitB: '25000',
-  limitC: '63000',
-  limitD: '38000',
+  limitA: 250000, // '250000',
+  limitB: 25000, // '25000',
+  limitC: 63000, // '63000',
+  limitD: 38000, // '38000',
   deductible: 4000,
   exclusionsExist: false,
   exclusions: [],
@@ -296,3 +278,21 @@ export const SubmissionNew: React.FC = () => {
     </Container>
   );
 };
+
+// export const newSubmissionLoader = async ({ params }: LoaderFunctionArgs) => {
+//   try {
+//     const statesCollection = collection(getFirestore(), COLLECTIONS.ACTIVE_STATES);
+//     const snap = await getDoc(doc(statesCollection, params.productId));
+
+//     const data = snap.data();
+//     if (!snap.exists() || !data) return {};
+
+//     return data;
+//   } catch (err) {
+//     let msg = `Error fetching active states document`;
+//     if (err instanceof FirebaseError) {
+//       msg = err.message;
+//     }
+//     throw new Response(msg);
+//   }
+// };

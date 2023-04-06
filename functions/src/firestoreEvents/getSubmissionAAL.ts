@@ -32,6 +32,7 @@ export const getSubmissionAAL = functions
     const db = getFirestore();
     let commissionPct = DEFAULT_COMMISSION;
 
+    // TODO: get company default submission
     if (sub.submittedById) {
       let userSnap = await usersCollection(db).doc(sub.submittedById).get();
       const data = userSnap.data();
@@ -104,10 +105,10 @@ export const getSubmissionAAL = functions
     try {
       const { inlandAAL, surgeAAL } = ratingUpdates;
 
-      invariant(sub.limitA, 'limitA required');
-      invariant(sub.limitB, 'limitB required');
-      invariant(sub.limitC, 'limitC required');
-      invariant(sub.limitD, 'limitD required');
+      invariant(typeof sub.limitA === 'number', 'limitA required (type "number")');
+      invariant(typeof sub.limitB === 'number', 'limitB required (type "number")');
+      invariant(typeof sub.limitC === 'number', 'limitC required (type "number")');
+      invariant(typeof sub.limitD === 'number', 'limitD required (type "number")');
       invariant(sub.limitA > 100000, 'limitA must be > 100k');
       invariant(typeof inlandAAL === 'number', 'inland AAL required');
       invariant(typeof surgeAAL === 'number', 'surge AAL required');
@@ -134,6 +135,7 @@ export const getSubmissionAAL = functions
       let secondaryFactorMults = getSecondaryFactorMults({
         ffe: 0,
         basement: sub.basement,
+        priorLossCount: sub.priorLossCount,
         inlandRiskScore: riskScore.inland,
         surgeRiskScore: riskScore.surge,
       });
@@ -186,6 +188,7 @@ export const getSubmissionAAL = functions
         propertyCode: sub.propertyCode,
         yearBuilt: sub.yearBuilt,
         CBRSDesignation: sub.CBRSDesignation,
+        priorLossCount: sub.priorLossCount,
         premiumData: {
           minPremium,
           ...premiumData,
