@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState, useEffect } from 'react';
 import {
   Box,
   Button,
@@ -11,7 +11,7 @@ import {
   Typography,
 } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
-import { Formik, FormikHelpers, FormikProps } from 'formik';
+import { Formik, FormikHelpers, FormikProps, useFormikContext } from 'formik';
 import { LoadingButton } from '@mui/lab';
 import {
   CalculateRounded,
@@ -27,6 +27,7 @@ import axios from 'axios';
 import { round } from 'lodash';
 import { getFunctions } from 'firebase/functions';
 import { doc, getDoc, getFirestore, updateDoc } from 'firebase/firestore';
+import { useFunctions } from 'reactfire';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import {
@@ -44,7 +45,7 @@ import {
 import { AddressStep, LimitsStep } from 'elements';
 import { emailVal, limitAVal, limitBVal, limitCVal, limitDVal } from 'common/quoteValidation';
 import { dollarFormat, sumArr } from 'modules/utils/helpers';
-import { useActiveStates, useCreateQuote, useJsonDialog } from 'hooks';
+import { useActiveStates, useCreateQuote, useGetDiff, useJsonDialog } from 'hooks';
 import { IconButtonMenu } from 'components';
 import { ADMIN_ROUTES, createPath } from 'router';
 import {
@@ -56,7 +57,6 @@ import {
 } from 'common';
 import { calcQuote, getAnnualPremium } from 'modules/api';
 import { ShowRatingDialog } from './SubmissionView';
-import { useFunctions } from 'reactfire';
 
 // TODO: hover chip to show errors
 
@@ -64,31 +64,36 @@ import { useFunctions } from 'reactfire';
 
 const useSubData = (submissionId?: string | null) => {
   const [submissionData, setSubmissionData] = useState<Submission | null>(null);
+  const [loading, setLoading] = useState(true);
 
   React.useEffect(() => {
-    if (!submissionId) return;
+    if (!submissionId) return setLoading(false);
 
     const subRef = doc(submissionsCollection(getFirestore()), submissionId);
 
     getDoc(subRef)
       .then((snap) => {
         setSubmissionData(snap.data() || null);
+        setLoading(false);
       })
-      .catch(console.log);
+      .catch((err) => {
+        console.log('ERR FETCHING SUBMISSION: ', err);
+        setLoading(false);
+      });
   }, [submissionId]);
 
-  return submissionData;
+  return { submissionData, loading };
 };
 
-export const getSubproducerAdj = (premium: number, defaultCom: number, newCom: number) => {
-  let comDiff = newCom - defaultCom;
+// export const getSubproducerAdj = (premium: number, defaultCom: number, newCom: number) => {
+//   let comDiff = newCom - defaultCom;
 
-  let adj = premium / (1 - comDiff / (1 - defaultCom)) - premium;
-  return round(adj, 2);
-};
+//   let adj = premium / (1 - comDiff / (1 - defaultCom)) - premium;
+//   return round(adj, 2);
+// };
 
 const useRerate = (
-  submissionId?: string | null | undefined,
+  submissionId: string | null,
   onSuccess?: (premium: number) => void,
   onError?: (msg: string) => void
 ) => {
@@ -270,7 +275,7 @@ export const QuoteNew: React.FC = () => {
 
   const [searchParams] = useSearchParams();
   const submissionId = searchParams.get('submissionId');
-  const submissionData = useSubData(submissionId);
+  const { submissionData, loading: subLoading } = useSubData(submissionId);
 
   const formikRef = useRef<FormikProps<NewQuoteValues>>(null);
   const showDialog = useJsonDialog();
@@ -278,12 +283,20 @@ export const QuoteNew: React.FC = () => {
   const [taxesLoading, setTaxesLoading] = useState(false);
   const [calcQuoteLoading, setCalcQuoteLoading] = useState(false);
 
+  const [ratingInputsSnap, setRatingInputsSnap] = useState({});
+  useEffect(() => {
+    const newSnap = getRatingInputsFromSubmission(submissionData || undefined);
+    console.log('SETTING RATING INPUTS SNAP: ', newSnap);
+    setRatingInputsSnap(newSnap);
+  }, [submissionData]);
+
   const { rerate, loading: rerateLoading } = useRerate(
     submissionId,
     (newPrem: number) => {
       setTimeout(() => {
         formikRef.current?.setFieldValue('annualPremium', newPrem);
       }, 50);
+      // TODO: set rating inputs snap here ??
     },
     (msg: string) => toast.error(msg)
   );
@@ -420,7 +433,7 @@ export const QuoteNew: React.FC = () => {
         floodZone: values.ratingPropertyData.floodZone ?? 'D',
         submissionId,
         basement: values.ratingPropertyData.basement ?? undefined,
-        commissionPct: values?.subproducerCommission,
+        commissionPct: values.subproducerCommission,
       };
       console.log('REQUEST BODY: ', reqBody);
 
@@ -442,14 +455,6 @@ export const QuoteNew: React.FC = () => {
     setCalcQuoteLoading(false);
   }, [submissionId, submissionData]);
 
-  // TODO: paginated or searchable model
-  // const promptForSubmission = useCallback(async () => {
-
-  //   const submission = modal({
-
-  //   })
-  // }, [])
-
   const menuItems = useMemo(
     () => [
       { label: 'Start from submission', action: createPath({ path: ADMIN_ROUTES.SUBMISSIONS }) },
@@ -463,8 +468,9 @@ export const QuoteNew: React.FC = () => {
     []
   );
 
-  //TODO: CHANGE SUBMISSION LIMITS TO BE TYPE NUMBER
-  if (submissionId && !submissionData) return <div>Loading...</div>;
+  // TODO: CHANGE SUBMISSION LIMITS TO BE TYPE NUMBER
+
+  if (subLoading) return <div>Loading...</div>;
 
   return (
     <Box>
@@ -511,7 +517,7 @@ export const QuoteNew: React.FC = () => {
             basement: `${submissionData?.basement ?? ''}`.toLowerCase(), // @ts-ignore
             distToCoastFeet: `${submissionData?.distToCoastFeet ?? ''}`,
             floodZone: submissionData?.floodZone ?? '',
-            numStories: submissionData?.numStories ?? null,
+            numStories: submissionData?.numStories ?? 1,
             propertyCode: `${submissionData?.propertyCode ?? ''}`,
             replacementCost: submissionData?.replacementCost ?? null, // @ts-ignore
             sqFootage: `${submissionData?.sqFootage ?? ''}`, // @ts-ignore
@@ -917,6 +923,135 @@ export const QuoteNew: React.FC = () => {
                   }}
                 />
               </Grid>
+
+              <Grid xs={12}>
+                <Divider sx={{ my: 3 }} />
+                <Typography
+                  variant='overline'
+                  color='text.secondary'
+                  sx={{ pl: 4, lineHeight: 1.4 }}
+                >
+                  Property Data
+                </Typography>
+              </Grid>
+              <Grid xs={6} sm={4} md={3} lg={2}>
+                <FormikNativeSelect
+                  fullWidth
+                  id='ratingPropertyData.CBRSDesignation'
+                  label='CBRS Designation'
+                  name='ratingPropertyData.CBRSDesignation'
+                  selectOptions={[
+                    { label: 'Unknown', value: '' },
+                    { label: 'Out', value: 'OUT' },
+                    { label: 'In', value: 'IN' },
+                  ]}
+                />
+              </Grid>
+              <Grid xs={6} sm={4} md={3} lg={2}>
+                <FormikNativeSelect
+                  fullWidth
+                  id='ratingPropertyData.basement'
+                  label='Basement'
+                  name='ratingPropertyData.basement'
+                  selectOptions={[
+                    { label: '', value: '' },
+                    { label: 'Unknown', value: 'unknown' },
+                    { label: 'Finished', value: 'finished' },
+                    { label: 'Unfinished Basement', value: 'unfinished basement' },
+                  ]}
+                />
+              </Grid>
+
+              <Grid xs={6} sm={4} md={3} lg={2}>
+                <FormikNativeSelect
+                  fullWidth
+                  id='ratingPropertyData.floodZone'
+                  label='Flood Zone'
+                  name='ratingPropertyData.floodZone'
+                  selectOptions={['', 'A', 'B', 'C', 'D', 'V', 'X', 'AE', 'AO', 'AH', 'AR', 'VE']}
+                />
+              </Grid>
+              <Grid xs={6} sm={4} md={3} lg={2}>
+                <FormikNativeSelect
+                  fullWidth
+                  id='ratingPropertyData.numStories'
+                  label='# Stories'
+                  name='ratingPropertyData.numStories'
+                  selectOptions={[
+                    { label: '--', value: '' },
+                    // { label: '0', value: 0 },
+                    { label: '1', value: 1 },
+                    { label: '2', value: 2 },
+                    { label: '3', value: 3 },
+                    { label: '4', value: 4 },
+                    { label: '5', value: 5 },
+                  ]}
+                />
+              </Grid>
+              <Grid xs={6} sm={4} md={3} lg={2}>
+                <FormikNativeSelect
+                  fullWidth
+                  id='ratingPropertyData.propertyCode'
+                  label='Property Code'
+                  name='ratingPropertyData.propertyCode'
+                  selectOptions={[
+                    { label: '', value: '' },
+                    { label: 'Unknown', value: 'unknown' },
+                    { label: 'Single Family Residence', value: 'Single Family Residence' },
+                    { label: 'Condominium', value: 'Condominium' },
+                    { label: 'Other', value: 'other' },
+                  ]}
+                />
+              </Grid>
+              <Grid xs={6} sm={4} md={3} lg={2}>
+                <FormikMaskField
+                  fullWidth
+                  id='ratingPropertyData.distToCoastFeet'
+                  label='Dist. to Coast (ft.)'
+                  name='ratingPropertyData.distToCoastFeet'
+                  maskComponent={IMask}
+                  inputProps={{
+                    maskProps: { mask: Number, thousandsSeparator: ',' },
+                  }}
+                />
+              </Grid>
+              <Grid xs={6} sm={4} md={3} lg={2}>
+                <FormikDollarMaskField
+                  fullWidth
+                  id='ratingPropertyData.replacementCost'
+                  label='Replacement Cost'
+                  name='ratingPropertyData.replacementCost'
+                />
+              </Grid>
+              <Grid xs={6} sm={4} md={3} lg={2}>
+                <FormikMaskField
+                  fullWidth
+                  id='ratingPropertyData.sqFootage'
+                  label='Square Footage'
+                  name='ratingPropertyData.sqFootage'
+                  maskComponent={IMask}
+                  inputProps={{
+                    maskProps: { mask: Number, max: 9999, thousandsSeparator: ',', unmask: true },
+                  }}
+                />
+              </Grid>
+              <Grid xs={6} sm={4} md={3} lg={2}>
+                <FormikMaskField
+                  fullWidth
+                  id='ratingPropertyData.yearBuilt'
+                  label='Year Built'
+                  name='ratingPropertyData.yearBuilt'
+                  maskComponent={IMask}
+                  inputProps={{
+                    maskProps: {
+                      mask: '#!00',
+                      definitions: { '#': /[1-2]/, '!': /[0,9]/ },
+                      unmask: true,
+                    },
+                  }}
+                />
+              </Grid>
+
               <Grid xs={12}>
                 <Divider sx={{ my: 3 }} />
                 <Typography
@@ -997,141 +1132,39 @@ export const QuoteNew: React.FC = () => {
               <Grid xs={6} sm={4}>
                 <FormikTextField name='agencyId' label='Agency ID' fullWidth />
               </Grid>
-
-              <Grid xs={12}>
-                <Divider sx={{ my: 3 }} />
-                <Typography
-                  variant='overline'
-                  color='text.secondary'
-                  sx={{ pl: 4, lineHeight: 1.4 }}
-                >
-                  Property Data
-                </Typography>
-              </Grid>
-              <Grid xs={6} sm={4} md={3} lg={2}>
-                <FormikNativeSelect
-                  fullWidth
-                  id='ratingPropertyData.CBRSDesignation'
-                  label='CBRS Designation'
-                  name='ratingPropertyData.CBRSDesignation'
-                  selectOptions={[
-                    { label: 'Unknown', value: '' },
-                    { label: 'Out', value: 'OUT' },
-                    { label: 'In', value: 'IN' },
-                  ]}
-                />
-              </Grid>
-              <Grid xs={6} sm={4} md={3} lg={2}>
-                <FormikNativeSelect
-                  fullWidth
-                  id='ratingPropertyData.basement'
-                  label='Basement'
-                  name='ratingPropertyData.basement'
-                  selectOptions={[
-                    { label: '', value: '' },
-                    { label: 'Unknown', value: 'unknown' },
-                    { label: 'Finished', value: 'finished' },
-                    { label: 'Unfinished Basement', value: 'unfinished basement' },
-                  ]}
-                />
-              </Grid>
-
-              <Grid xs={6} sm={4} md={3} lg={2}>
-                <FormikNativeSelect
-                  fullWidth
-                  id='ratingPropertyData.floodZone'
-                  label='Flood Zone'
-                  name='ratingPropertyData.floodZone'
-                  selectOptions={['', 'A', 'B', 'C', 'D', 'V', 'X', 'AE', 'AO', 'AH', 'AR', 'VE']}
-                />
-              </Grid>
-              <Grid xs={6} sm={4} md={3} lg={2}>
-                <FormikNativeSelect
-                  fullWidth
-                  id='ratingPropertyData.numStories'
-                  label='# Stories'
-                  name='ratingPropertyData.numStories'
-                  selectOptions={[
-                    { label: '--', value: '' },
-                    { label: '0', value: 0 },
-                    { label: '1', value: 1 },
-                    { label: '2', value: 2 },
-                    { label: '3', value: 3 },
-                    { label: '4', value: 4 },
-                    { label: '5', value: 5 },
-                  ]}
-                />
-              </Grid>
-              <Grid xs={6} sm={4} md={3} lg={2}>
-                <FormikNativeSelect
-                  fullWidth
-                  id='ratingPropertyData.propertyCode'
-                  label='Property Code'
-                  name='ratingPropertyData.propertyCode'
-                  selectOptions={[
-                    { label: '', value: '' },
-                    { label: 'Unknown', value: 'unknown' },
-                    { label: 'Single Family Residence', value: 'Single Family Residence' },
-                    { label: 'Condominium', value: 'Condominium' },
-                    { label: 'Other', value: 'other' },
-                  ]}
-                />
-              </Grid>
-              <Grid xs={6} sm={4} md={3} lg={2}>
-                <FormikMaskField
-                  fullWidth
-                  id='ratingPropertyData.distToCoastFeet'
-                  label='Dist. to Coast (ft.)'
-                  name='ratingPropertyData.distToCoastFeet'
-                  maskComponent={IMask}
-                  inputProps={{
-                    maskProps: { mask: Number, thousandsSeparator: ',' },
-                  }}
-                />
-              </Grid>
-              <Grid xs={6} sm={4} md={3} lg={2}>
-                <FormikDollarMaskField
-                  fullWidth
-                  id='ratingPropertyData.replacementCost'
-                  label='Replacement Cost'
-                  name='ratingPropertyData.replacementCost'
-                />
-              </Grid>
-              <Grid xs={6} sm={4} md={3} lg={2}>
-                <FormikMaskField
-                  fullWidth
-                  id='ratingPropertyData.sqFootage'
-                  label='Square Footage'
-                  name='ratingPropertyData.sqFootage'
-                  maskComponent={IMask}
-                  inputProps={{
-                    maskProps: { mask: Number, max: 9999, thousandsSeparator: ',', unmask: true },
-                  }}
-                />
-              </Grid>
-              <Grid xs={6} sm={4} md={3} lg={2}>
-                <FormikMaskField
-                  fullWidth
-                  id='ratingPropertyData.yearBuilt'
-                  label='Year Built'
-                  name='ratingPropertyData.yearBuilt'
-                  maskComponent={IMask}
-                  inputProps={{
-                    maskProps: {
-                      mask: '#!00',
-                      definitions: { '#': /[1-2]/, '!': /[0,9]/ },
-                      unmask: true,
-                    },
-                  }}
-                />
-              </Grid>
             </Grid>
+            <Diff ratingInputsPrev={ratingInputsSnap} />
           </>
         )}
       </Formik>
+      {/* <Typography variant='h6' gutterBottom>{`isDiff: ${isDiff}`}</Typography>
+      <Typography variant='h6' gutterBottom>
+        Diff:{' '}
+      </Typography>
+      <div>
+        <pre>{JSON.stringify(diff, null, 2)}</pre>
+      </div> */}
     </Box>
   );
 };
+
+function getRatingInputsFromSubmission(subData?: Submission) {
+  return {
+    latitude: subData?.latitude, // || null,
+    longitude: subData?.longitude, // || null,
+    replacementCost: subData?.replacementCost, // || null,
+    limitA: subData?.limitA, // || null,
+    limitB: subData?.limitB, // || null,
+    limitC: subData?.limitC, // || null,
+    limitD: subData?.limitD, // || null,
+    deductible: subData?.deductible, // || null,
+    numStories: subData?.numStories,
+    state: subData?.state,
+    floodZone: subData?.floodZone,
+    basement: subData?.basement,
+    subproducerCommission: subData?.subproducerCommission,
+  };
+}
 
 // export const newQuoteSubmissionLoader = async ({ request }: LoaderFunctionArgs) => {
 //   try {
@@ -1152,3 +1185,69 @@ export const QuoteNew: React.FC = () => {
 //     throw new Response(`Error fetching submission`);
 //   }
 // };
+
+function Diff({ ratingInputsPrev }: { ratingInputsPrev: any }) {
+  const { values } = useFormikContext<NewQuoteValues>();
+  const [getDiff, diff, isDiff] = useGetDiff();
+  const {
+    latitude,
+    longitude,
+    limitA,
+    limitB,
+    limitC,
+    limitD,
+    deductible,
+    // numStories,
+    state,
+    subproducerCommission,
+    ratingPropertyData,
+  } = values;
+
+  // TODO: useDebounce (could pull off values inside useMemo ??)
+  useEffect(() => {
+    const newRatingInputs = {
+      latitude,
+      longitude,
+      limitA,
+      limitB,
+      limitC,
+      limitD,
+      deductible,
+      state,
+      subproducerCommission,
+      numStories: ratingPropertyData.numStories,
+      floodZone: ratingPropertyData.floodZone,
+      replacementCost: ratingPropertyData.replacementCost,
+      basement: ratingPropertyData.basement,
+    };
+
+    console.log('OLD OBJ: ', ratingInputsPrev);
+    console.log('NEW OBJ: ', newRatingInputs);
+    // @ts-ignore
+    getDiff(ratingInputsPrev, newRatingInputs);
+  }, [
+    getDiff,
+    latitude,
+    longitude,
+    limitA,
+    limitB,
+    limitC,
+    limitD,
+    deductible,
+    state,
+    subproducerCommission,
+    ratingPropertyData,
+    ratingInputsPrev,
+  ]);
+
+  return (
+    <>
+      <div>{`isDiff: ${isDiff}`}</div>
+      {diff && (
+        <div>
+          <pre>{JSON.stringify(diff, null, 2)}</pre>
+        </div>
+      )}
+    </>
+  );
+}

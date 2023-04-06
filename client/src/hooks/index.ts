@@ -39,7 +39,7 @@ export { useFetchFirestore } from './useFetchFirestore';
 export { useDisclosure } from './useDisclosure';
 export { useCreateTenant } from './useCreateTenant';
 export { useInviteUsers } from './useInviteUsers';
-// export {  } from './'
+export { useDiff, useGetDiff } from './useDiff';
 
 export type { UseFileUploadProps } from './useFileUpload';
 export type { UseSendPasswordResetProps } from './useSendPasswordReset';

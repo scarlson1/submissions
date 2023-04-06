@@ -76,8 +76,8 @@ export const verifyEPayToken = functions
       }
 
       return { ...paymentMethodDetails, paymentMethodDocId };
-    } catch (err) {
+    } catch (err: any) {
       console.log('ERROR: ', err);
-      return err;
+      throw new functions.https.HttpsError('internal', 'Error verifying token');
     }
   });

@@ -5,6 +5,8 @@ import { Location } from 'react-router-dom';
 import { GridValueFormatterParams, GridValueGetterParams } from '@mui/x-data-grid';
 import { FirestoreError, Timestamp, WhereFilterOp } from 'firebase/firestore';
 import { FirebaseError } from '@firebase/util';
+// import { inspect } from 'util';
+import { transform, isEqual, isArray, isObject } from 'lodash';
 
 import { AddressComponent, AddressComponentType } from 'components/forms';
 import { Address, FirestoreTimestamp } from 'common/types';
@@ -465,3 +467,91 @@ export const muiOperatorToFirestoreOperator = (op: string): WhereFilterOp | null
       return null;
   }
 };
+
+// https://davidwells.io/snippets/get-difference-between-two-objects-javascript
+// alternative if diff fields aren't required: https://github.com/epoberezkin/fast-deep-equal
+
+export interface Obj {
+  [key: string | number | symbol]: any;
+}
+
+/**
+ * Find difference between two objects
+ * @param  {object} origObj - Source object to compare newObj against
+ * @param  {object} newObj  - New object with potential changes
+ * @return {object} differences
+ */
+
+export function getDifference(origObj: any, newObj: any) {
+  function changes(newObj: any, origObj: any) {
+    let arrayIndexCounter = 0;
+
+    // alternative to .reduce - transforms object to a new accumulator object
+    return transform(newObj, function (acc: Obj, value, key) {
+      // if current value not equal to current value in original object, add property to accumulator/result
+      if (!isEqual(value, origObj[key])) {
+        // if array, use the index as the key on the accumulator/result
+        let resultKey = isArray(origObj) ? arrayIndexCounter++ : key;
+
+        // set the difference
+        acc[resultKey] =
+          isObject(value) && isObject(origObj[key]) ? changes(value, origObj[key]) : value;
+      }
+    });
+  }
+
+  return changes(newObj, origObj);
+}
+
+/* USAGE */
+
+// const originalObject = {
+//   foo: 'bar',
+//   baz: 'fizz',
+//   cool: true,
+//   what: {
+//     one: 'one',
+//     two: 'two',
+//   },
+//   wow: {
+//     deep: {
+//       key: ['a', 'b', 'c'],
+//       values: '123',
+//     },
+//   },
+//   array: ['lol', 'hi', 'there'],
+// };
+
+// const newObject = {
+//   foo: 'bar',
+//   baz: 'fizz',
+//   cool: false, // <-- diff
+//   what: {
+//     one: 'one',
+//     two: 'twox', // <-- diff
+//   },
+//   wow: {
+//     deep: {
+//       key: ['x', 'y', 'c'], // <-- diff
+//       values: '098', // <-- diff
+//     },
+//   },
+//   array: ['lol', 'hi', 'difference'], // <-- diff
+// };
+
+// // Get the Diff!
+// const diff = getDifference(originalObject, newObject);
+
+// console.log(inspect(diff, { showHidden: false, depth: null, colors: true }));
+// /* result:
+// {
+//   cool: false,
+//   what: { two: 'twox' },
+//   wow: { deep: { key: [ 'x', 'y' ], values: '098' } },
+//   array: [ 'difference' ]
+// }
+// */
+
+// if (diff.cool) {
+//   console.log('Coolness changed to', diff.cool);
+// }

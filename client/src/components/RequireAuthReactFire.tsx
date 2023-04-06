@@ -94,9 +94,9 @@ export const getRequiredClaimValidator =
 
     requiredClaims.forEach((key) => {
       const claim = CUSTOM_CLAIMS[key];
-      console.log('CLAIM: ', claim, !!userClaims[claim]);
+      // console.log('CLAIM: ', claim, !!userClaims[claim]);
       if (!!userClaims[claim]) {
-        console.log('SETTING NOT AUTHORIZED TO FALSE');
+        // console.log('SETTING NOT AUTHORIZED TO FALSE');
         notAuthorized = false;
       }
     });
