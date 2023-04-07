@@ -15,6 +15,7 @@ import { Formik, FormikHelpers, FormikProps, useFormikContext } from 'formik';
 import { LoadingButton } from '@mui/lab';
 import {
   CalculateRounded,
+  CheckCircleOutlineRounded,
   Done,
   DownloadRounded,
   PolicyRounded,
@@ -25,8 +26,7 @@ import { add } from 'date-fns';
 import { toast } from 'react-hot-toast';
 import { round } from 'lodash';
 import { getFunctions } from 'firebase/functions';
-import { doc, getDoc, getFirestore, updateDoc } from 'firebase/firestore';
-import { useFunctions } from 'reactfire';
+import { doc, getFirestore, updateDoc } from 'firebase/firestore';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import {
@@ -44,7 +44,16 @@ import {
 import { AddressStep, LimitsStep } from 'elements';
 import { emailVal, limitAVal, limitBVal, limitCVal, limitDVal } from 'common/quoteValidation';
 import { dollarFormat, sumArr } from 'modules/utils/helpers';
-import { useActiveStates, useCreateQuote, useFetchTaxes, useGetDiff, useJsonDialog } from 'hooks';
+import {
+  extractRatingInputsFromValues,
+  useActiveStates,
+  useCreateQuote,
+  useDocDataOnce,
+  useFetchTaxes,
+  useGetDiff,
+  useJsonDialog,
+  useRateQuote,
+} from 'hooks';
 import { IconButtonMenu } from 'components';
 import { ADMIN_ROUTES, createPath } from 'router';
 import {
@@ -55,128 +64,74 @@ import {
   SUBMISSION_STATUS,
   TaxItem,
 } from 'common';
-import { calcQuote, getAnnualPremium } from 'modules/api';
+import { calcQuote } from 'modules/api';
 import { ShowRatingDialog } from './SubmissionView';
 
 // TODO: hover chip to show errors
 // TODO: standardize fee type names in enum
 
-const useSubData = (submissionId?: string | null) => {
-  const [submissionData, setSubmissionData] = useState<Submission | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let loadedOnce = false;
-    if (!submissionId || loadedOnce) return setLoading(false);
-    loadedOnce = true;
-
-    const subRef = doc(submissionsCollection(getFirestore()), submissionId);
-
-    getDoc(subRef)
-      .then((snap) => {
-        setSubmissionData(snap.data() || null);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.log('ERR FETCHING SUBMISSION: ', err);
-        setLoading(false);
-      });
-
-    return () => {
-      loadedOnce = false;
-    };
-  }, [submissionId]);
-
-  return { submissionData, loading };
-};
-
-const useRerate = (
-  submissionId: string | null,
-  onSuccess?: (premium: number) => void,
-  onError?: (msg: string) => void,
-  initialRatingSnap?: any
+const useCalcPremium = (
+  submissionData: Submission | null,
+  onSuccess?: (newPremium: number) => void,
+  onError?: (msg: string, err: any) => void,
+  submissionId?: string | null
 ) => {
-  const functions = useFunctions();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [ratingInputsSnap, setRatingInputsSnap] = useState(initialRatingSnap);
 
-  useEffect(() => {
-    console.log('INITIAL RATING SNAP UPDATED: ', initialRatingSnap);
-  }, [initialRatingSnap]);
-
-  const rerate = useCallback(
+  const calcPremium = useCallback(
     async (values: NewQuoteValues) => {
-      if (
-        !values ||
-        !values.latitude ||
-        !values.longitude ||
-        !values.ratingPropertyData.replacementCost
-      ) {
-        return setError('Invalid values');
-      }
-      setError(null);
-      setLoading(true);
-      const {
-        latitude,
-        longitude,
-        deductible,
-        limitA,
-        limitB,
-        limitC,
-        limitD,
-        state,
-        ratingPropertyData,
-        subproducerCommission,
-        priorLossCount,
-      } = values;
-
-      console.log('VALUES: ', values);
       try {
-        const ratingInputs = {
-          lat: latitude,
-          lng: longitude,
-          rcvA: ratingPropertyData.replacementCost as number, // TODO: RCVs
-          rcvB: limitB,
-          rcvC: limitC,
-          rcvD: limitD,
-          limitA,
-          limitB,
-          limitC,
-          limitD,
-          deductible,
-          numStories: ratingPropertyData.numStories || 1,
-          state,
-          priorLossCount,
-          floodZone: ratingPropertyData.floodZone || undefined,
-          basement: ratingPropertyData.basement || undefined,
-          commissionPct: subproducerCommission,
+        setLoading(true);
+        if (!submissionData) throw new Error('submission data required to call calc permium');
+        if (!values) throw new Error('missing values');
+
+        const {
+          ratingPropertyData: { replacementCost },
+        } = values;
+        const { inlandAAL, surgeAAL } = submissionData;
+        if (!(replacementCost && (inlandAAL || inlandAAL === 0) && (surgeAAL || surgeAAL === 0)))
+          throw new Error('Missing replacement cost or aal');
+
+        let reqBody = {
+          limitA: values.limitA,
+          limitB: values.limitB,
+          limitC: values.limitC,
+          limitD: values.limitD,
+          inlandAAL,
+          surgeAAL,
+          replacementCost,
+          deductible: values.deductible,
+          state: values.state,
+          priorLossCount: values.priorLossCount,
+          floodZone: values.ratingPropertyData.floodZone ?? 'D',
+          basement: values.ratingPropertyData.basement ?? undefined,
+          commissionPct: values.subproducerCommission,
           submissionId,
         };
-        const { data } = await getAnnualPremium(functions, ratingInputs);
+        console.log('REQUEST BODY: ', reqBody);
 
-        console.log('PREMIUM RES: ', data);
-        if (!data.annualPremium || typeof data.annualPremium !== 'number') {
-          throw new Error('Error calculating premium');
-        }
+        const { data } = await calcQuote(getFunctions(), reqBody);
 
-        setRatingInputsSnap(ratingInputs);
+        console.log('RES: ', data);
+        if (!data.annualPremium) throw new Error('Missing premium in response');
+
         if (onSuccess) onSuccess(data.annualPremium);
         setLoading(false);
         return data.annualPremium;
       } catch (err: any) {
         console.log('ERROR: ', err);
-        let msg = 'error recalculating premium';
-        if (err.message) msg = err.message;
+        let msg = 'Error calculating premium. See console.';
+        if (err?.message) msg = err.message;
 
-        if (onError) onError(msg);
+        if (onError) onError(msg, err);
         setLoading(false);
+        return null;
       }
     },
-    [functions, submissionId, onSuccess, onError]
+    [onSuccess, onError, submissionData, submissionId]
   );
 
-  return { rerate, loading, error, ratingInputsSnap };
+  return { calcPremium, loading };
 };
 
 const gridProps = {
@@ -286,7 +241,6 @@ export interface FeeItem {
   feeValue: number;
 }
 
-// TODO: change priorLossCount to type number ?? need to change submission too
 export interface NewQuoteValues {
   addressLine1: string;
   addressLine2: string;
@@ -324,7 +278,7 @@ export interface NewQuoteValues {
 
 export interface QuoteNewProps {
   initialValues?: NewQuoteValues;
-  submissionData?: Submission;
+  submissionData?: Submission | null;
   submissionId?: string | null;
 }
 
@@ -335,63 +289,41 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
 }) => {
   const navigate = useNavigate();
 
-  // const [searchParams] = useSearchParams();
-  // const submissionId = searchParams.get('submissionId');
-  // const { submissionData, loading: subLoading } = useSubData(submissionId);
-
   const formikRef = useRef<FormikProps<NewQuoteValues>>(null);
   const showDialog = useJsonDialog();
   const activeStates = useActiveStates('flood');
-  const [calcQuoteLoading, setCalcQuoteLoading] = useState(false);
-
-  // const [ratingInputsSnap, setRatingInputsSnap] = useState({});
-  // useEffect(() => {
-  //   const newSnap = getRatingInputsFromSubmission(submissionData || undefined);
-  //   console.log('SETTING RATING INPUTS SNAP: ', newSnap);
-  //   setRatingInputsSnap(newSnap);
-  // }, [submissionData]);
 
   const {
     rerate,
     loading: rerateLoading,
     ratingInputsSnap,
-  } = useRerate(
+  } = useRateQuote(
     submissionId,
     (newPrem: number) => {
       setTimeout(() => {
         formikRef.current?.setFieldValue('annualPremium', newPrem);
       }, 50);
-      // const values = formikRef.current?.values;
-      // if (!values) return;
-      // const updatedRatingInputs = {
-      //   lat: values.latitude,
-      //   lng: values.longitude,
-      //   rcvA: values.ratingPropertyData.replacementCost as number, // TODO: RCVs
-      //   rcvB: values.limitB,
-      //   rcvC: values.limitC,
-      //   rcvD: values.limitD,
-      //   limitA: values.limitA,
-      //   limitB: values.limitB,
-      //   limitC: values.limitC,
-      //   limitD: values.limitD,
-      //   deductible: values.deductible,
-      //   numStories: values.ratingPropertyData.numStories || 1,
-      //   state: values.state,
-      //   priorLossCount: values.priorLossCount,
-      //   floodZone: values.ratingPropertyData.floodZone || undefined,
-      //   basement: values.ratingPropertyData.basement || undefined,
-      //   commissionPct: values.subproducerCommission,
-      // };
-      // setRatingInputsSnap(updatedRatingInputs)
     },
     (msg: string) => toast.error(msg),
     getRatingInputsFromSubmission(submissionData || undefined)
   );
 
+  const { calcPremium, loading: calcLoading } = useCalcPremium(
+    submissionData || null,
+    (newPrem: number) => {
+      formikRef.current?.setFieldValue('taxes', []);
+      formikRef.current?.setFieldValue('quoteTotal', '');
+
+      formikRef.current?.setFieldValue('annualPremium', newPrem);
+      setTimeout(() => formikRef.current?.setFieldTouched('annualPremium'), 50);
+    },
+    (msg: string) => toast.error(msg),
+    submissionId
+  );
+
   const { fetchTaxes, loading: taxesLoading } = useFetchTaxes((newTaxes: TaxItem[]) => {
     setTimeout(() => formikRef.current?.setFieldValue('taxes', [...newTaxes]), 50);
-    // formikRef.current?.setFieldValue('taxes', newTaxes);
-  }); //
+  });
 
   const createQuote = useCreateQuote(
     async () => {
@@ -441,58 +373,12 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
 
       formikRef.current?.setFieldValue('quoteTotal', total);
       formikRef.current?.setFieldTouched('quoteTotal');
-      setTimeout(() => formikRef.current?.validateField('quoteTotal'), 100);
+      setTimeout(() => formikRef.current?.validateField('quoteTotal'), 50);
     } catch (err) {
       console.log(err);
       toast.error('Error calculating total. See console for details');
     }
   }, []);
-
-  const calcPremium = useCallback(async () => {
-    try {
-      const values = formikRef.current?.values;
-      setCalcQuoteLoading(true);
-      if (!(values && submissionData)) throw new Error('missing values');
-      const {
-        ratingPropertyData: { replacementCost },
-      } = values;
-      const { inlandAAL, surgeAAL } = submissionData;
-      if (!(replacementCost && (inlandAAL || inlandAAL === 0) && (surgeAAL || surgeAAL === 0)))
-        throw new Error('Missing replacement cost or aal');
-
-      let reqBody = {
-        limitA: values.limitA,
-        limitB: values.limitB,
-        limitC: values.limitC,
-        limitD: values.limitD,
-        inlandAAL,
-        surgeAAL,
-        replacementCost,
-        deductible: values.deductible,
-        state: values.state,
-        priorLossCount: values.priorLossCount,
-        floodZone: values.ratingPropertyData.floodZone ?? 'D',
-        submissionId,
-        basement: values.ratingPropertyData.basement ?? undefined,
-        commissionPct: values.subproducerCommission,
-      };
-      console.log('REQUEST BODY: ', reqBody);
-
-      const { data } = await calcQuote(getFunctions(), reqBody);
-
-      console.log('RES: ', data);
-      if (!data.annualPremium) throw new Error('Missing premium in response');
-
-      formikRef.current?.setFieldValue('taxes', []);
-      formikRef.current?.setFieldValue('quoteTotal', '');
-
-      formikRef.current?.setFieldValue('annualPremium', data.annualPremium);
-      setTimeout(() => formikRef.current?.setFieldTouched('annualPremium'), 50);
-    } catch (err) {
-      console.log('ERROR: ', err);
-    }
-    setCalcQuoteLoading(false);
-  }, [submissionId, submissionData]);
 
   const menuItems = useMemo(
     () => [
@@ -507,66 +393,13 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
     []
   );
 
-  // if (subLoading) return <div>Loading submission...</div>;
-
   return (
     <Box>
       <Formik
         initialValues={initialValues}
-        // initialValues={{
-        //   addressLine1: submissionData?.addressLine1 ?? '',
-        //   addressLine2: submissionData?.addressLine2 ?? '',
-        //   city: submissionData?.city ?? '',
-        //   state: submissionData?.state ?? '',
-        //   postal: submissionData?.postal ?? '',
-        //   latitude: submissionData?.coordinates?.latitude ?? null,
-        //   longitude: submissionData?.coordinates?.longitude ?? null, // @ts-ignore
-        //   limitA: submissionData?.limitA ?? 250000, // @ts-ignore
-        //   limitB: submissionData?.limitB ?? 12500, // @ts-ignore
-        //   limitC: submissionData?.limitC ?? 68000, // @ts-ignore
-        //   limitD: submissionData?.limitD ?? 25000,
-        //   deductible: submissionData?.deductible ?? 1000,
-        //   // replacementCost: submissionData?.replacementCost ?? 250000,
-        //   // basement: submissionData?.basement ?? 'unknown',
-        //   // numStories: submissionData?.numStories ?? 1,
-        //   // numUnits: 1,
-        //   // yearBuilt: submissionData?.yearBuilt ?? '',
-        //   // squareFootage: submissionData?.sqFootage ?? '',
-        //   quoteExpiration: add(new Date(), { days: 60 }),
-        //   policyEffectiveDate: add(new Date(), { days: 15 }),
-        //   policyExpirationDate: add(new Date(), { days: 15, years: 1 }),
-        //   fees: [], // [{ feeName: '', feeValue: '' }],
-        //   taxes: [], // [{ displayName: '', rate: '', value: '' }],
-        //   annualPremium: submissionData?.annualPremium ?? null,
-        //   subproducerCommission: submissionData?.subproducerCommission ?? 0.15,
-        //   quoteTotal: null, // calculated
-        //   insuredFirstName: submissionData?.firstName ?? '',
-        //   insuredLastName: submissionData?.lastName ?? '',
-        //   insuredEmail: submissionData?.email ?? '',
-        //   insuredPhone: '',
-        //   agentId: submissionData?.agentId || null,
-        //   agentEmail: '', // TODO: decide whether to add agency / agent data with submission or query later
-        //   agentName: '',
-        //   agentPhone: '',
-        //   agencyName: '',
-        //   agencyId: '',
-        //   priorLossCount: submissionData?.priorLossCount || '',
-        //   ratingPropertyData: {
-        //     CBRSDesignation: submissionData?.CBRSDesignation ?? '',
-        //     basement: `${submissionData?.basement ?? ''}`.toLowerCase(), // @ts-ignore
-        //     distToCoastFeet: `${submissionData?.distToCoastFeet ?? ''}`,
-        //     floodZone: submissionData?.floodZone ?? '',
-        //     numStories: submissionData?.numStories ?? 1,
-        //     propertyCode: `${submissionData?.propertyCode ?? ''}`,
-        //     replacementCost: submissionData?.replacementCost ?? null, // @ts-ignore
-        //     sqFootage: `${submissionData?.sqFootage ?? ''}`, // @ts-ignore
-        //     yearBuilt: `${submissionData?.yearBuilt ?? ''}`,
-        //   },
-        // }}
         validationSchema={quoteNewValidation}
         onSubmit={handleSubmit}
         innerRef={formikRef}
-        // enableReinitialize
       >
         {({
           dirty,
@@ -601,7 +434,7 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
               <Typography variant='h5' sx={{ display: { xs: 'none', sm: 'block' } }}>
                 New Quote
               </Typography>
-              <Stack direction='row' spacing={2}>
+              <Stack direction='row' spacing={2} sx={{ alignItems: 'center' }}>
                 <Typography
                   variant='subtitle2'
                   fontWeight='fontWeightMedium'
@@ -626,6 +459,14 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                   }
                   sx={{ mx: 2 }}
                 />
+                <Diff ratingInputsPrev={ratingInputsSnap} />
+                {/* <Tooltip title='re-rating required' placement='bottom'>
+                  {diff ? (
+                    <CalculateRounded fontSize='small' color='warning' sx={{ mx: 2 }} />
+                  ) : (
+                    <CheckCircleOutlineRounded fontSize='small' color='success' sx={{ mx: 2 }} />
+                  )}
+                </Tooltip> */}
               </Stack>
               <Stack direction='row' spacing={2}>
                 <LoadingButton
@@ -787,8 +628,8 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                     <LoadingButton
                       size='small'
                       variant='outlined'
-                      onClick={calcPremium}
-                      loading={calcQuoteLoading}
+                      onClick={() => calcPremium(values)}
+                      loading={calcLoading}
                       disabled={
                         !(
                           values.state &&
@@ -993,7 +834,7 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                   label='CBRS Designation'
                   name='ratingPropertyData.CBRSDesignation'
                   selectOptions={[
-                    { label: 'Unknown', value: '' },
+                    // { label: 'Unknown', value: '' },
                     { label: 'Out', value: 'OUT' },
                     { label: 'In', value: 'IN' },
                   ]}
@@ -1030,8 +871,6 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                   label='# Stories'
                   name='ratingPropertyData.numStories'
                   selectOptions={[
-                    { label: '--', value: '' },
-                    // { label: '0', value: 0 },
                     { label: '1', value: 1 },
                     { label: '2', value: 2 },
                     { label: '3', value: 3 },
@@ -1047,7 +886,6 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                   label='Property Code'
                   name='ratingPropertyData.propertyCode'
                   selectOptions={[
-                    { label: '', value: '' },
                     { label: 'Unknown', value: 'unknown' },
                     { label: 'SFR', value: 'SFR' },
                     { label: 'Single Family Residence', value: 'Single Family Residence' },
@@ -1186,37 +1024,32 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                 <FormikTextField name='agencyId' label='Agency ID' fullWidth />
               </Grid>
             </Grid>
-            <Diff ratingInputsPrev={ratingInputsSnap} />
           </>
         )}
       </Formik>
-      {/* <Typography variant='h6' gutterBottom>{`isDiff: ${isDiff}`}</Typography>
-      <Typography variant='h6' gutterBottom>
-        Diff:{' '}
-      </Typography>
-      <div>
-        <pre>{JSON.stringify(diff, null, 2)}</pre>
-      </div> */}
     </Box>
   );
 };
 
 function getRatingInputsFromSubmission(subData?: Submission) {
   return {
-    latitude: subData?.latitude, // || null,
-    longitude: subData?.longitude, // || null,
-    replacementCost: subData?.replacementCost, // || null,
-    limitA: subData?.limitA, // || null,
-    limitB: subData?.limitB, // || null,
-    limitC: subData?.limitC, // || null,
-    limitD: subData?.limitD, // || null,
-    deductible: subData?.deductible, // || null,
+    lat: subData?.latitude,
+    lng: subData?.longitude,
+    rcvA: subData?.replacementCost,
+    rcvB: subData?.limitB,
+    rcvC: subData?.limitC,
+    rcvD: subData?.limitD,
+    limitA: subData?.limitA,
+    limitB: subData?.limitB,
+    limitC: subData?.limitC,
+    limitD: subData?.limitD,
+    deductible: subData?.deductible,
     numStories: subData?.numStories,
     priorLossCount: subData?.priorLossCount,
     state: subData?.state,
     floodZone: subData?.floodZone,
     basement: subData?.basement,
-    subproducerCommission: subData?.subproducerCommission,
+    commissionPct: subData?.subproducerCommission,
   };
 }
 
@@ -1228,7 +1061,9 @@ function Diff({
   checkFields?: string[];
 }) {
   const { values } = useFormikContext<NewQuoteValues>();
+  const dialog = useJsonDialog();
   const [getDiff, diff, isDiff] = useGetDiff(checkFields);
+
   const {
     latitude,
     longitude,
@@ -1237,16 +1072,14 @@ function Diff({
     limitC,
     limitD,
     deductible,
-    priorLossCount,
-    // numStories,
-    state,
     subproducerCommission,
+    priorLossCount,
+    state,
     ratingPropertyData,
   } = values;
-
-  // TODO: useDebounce (could pull off values inside useMemo ??)
-  useEffect(() => {
-    const newRatingInputs = {
+  const ratingInputsCurr: any = useMemo(
+    () => extractRatingInputsFromValues(values), // eslint-disable-next-line react-hooks/exhaustive-deps
+    [
       latitude,
       longitude,
       limitA,
@@ -1254,74 +1087,67 @@ function Diff({
       limitC,
       limitD,
       deductible,
-      state,
       subproducerCommission,
       priorLossCount,
-      numStories: ratingPropertyData.numStories,
-      floodZone: ratingPropertyData.floodZone,
-      replacementCost: ratingPropertyData.replacementCost,
-      basement: ratingPropertyData.basement,
-    };
+      state,
+      ratingPropertyData,
+    ]
+  );
 
+  useEffect(() => {
     console.log('OLD OBJ: ', ratingInputsPrev);
-    console.log('NEW OBJ: ', newRatingInputs);
+    console.log('NEW OBJ: ', ratingInputsCurr);
 
-    getDiff(ratingInputsPrev, newRatingInputs);
-  }, [
-    getDiff,
-    latitude,
-    longitude,
-    limitA,
-    limitB,
-    limitC,
-    limitD,
-    deductible,
-    state,
-    priorLossCount,
-    subproducerCommission,
-    ratingPropertyData,
-    ratingInputsPrev,
-  ]);
+    getDiff(ratingInputsPrev, ratingInputsCurr);
+  }, [getDiff, ratingInputsPrev, ratingInputsCurr]);
+
+  const handleClick = useCallback(() => {
+    if (!diff) return;
+    dialog(diff, 'Rating Inputs Diff');
+  }, [dialog, diff]);
 
   return (
     <>
-      <div>{`isDiff: ${isDiff}`}</div>
+      {/* <Tooltip title={`re-rating required: ${isDiff}`} placement='bottom'> */}
+      <Tooltip
+        title={
+          <Box>
+            <Typography variant='body2' fontWeight={500}>
+              {`re-rating required: ${isDiff}`}
+            </Typography>
+            {isDiff && (
+              <Typography variant='body2' component='div'>
+                <pre>{JSON.stringify(diff, null, 2)}</pre>
+              </Typography>
+            )}
+          </Box>
+        }
+        placement='bottom'
+      >
+        {isDiff ? (
+          <CalculateRounded fontSize='small' color='warning' sx={{ mx: 2 }} onClick={handleClick} />
+        ) : (
+          <CheckCircleOutlineRounded fontSize='small' color='success' sx={{ mx: 2 }} />
+        )}
+      </Tooltip>
+      {/* <div>{`isDiff: ${isDiff}`}</div>
       {diff && (
         <div>
           <pre>{JSON.stringify(diff, null, 2)}</pre>
         </div>
-      )}
+      )} */}
     </>
   );
 }
 
-// export const newQuoteSubmissionLoader = async ({ request }: LoaderFunctionArgs) => {
-//   try {
-//     const url = new URL(request.url);
-//     const subId = url.searchParams.get('submissionId');
-//     if (!subId) return null;
-//     const submissionRef = doc(submissionsCollection(getFirestore()), subId);
-
-//     const snap = await getDoc(submissionRef);
-//     let data = snap.data();
-
-//     if (!snap.exists() || !data) {
-//       throw new Response('Not Found', { status: 404 });
-//     }
-
-//     return { ...data, id: snap.id };
-//   } catch (err) {
-//     throw new Response(`Error fetching submission`);
-//   }
-// };
+// TODO: error boundary && loading component
 
 export const QuoteNewFromSub = () => {
-  // const [searchParams] = useSearchParams();
-  // const submissionId = searchParams.get('submissionId');
   const params = useParams();
-  const { submissionData, loading } = useSubData(params.submissionId); // or use suspense / reactfire ??
+  if (!params.submissionId) throw new Error('missing submission id in QuoteNewFromSub');
+  const { data: submissionData } = useDocDataOnce<Submission>('SUBMISSIONS', params.submissionId);
 
-  // @ts-ignore
+  // @ts-ignore TODO: fix types (can't pass null to iMask component)
   const initialValues: NewQuoteValues = useMemo(
     () => ({
       addressLine1: submissionData?.addressLine1 ?? '',
@@ -1370,9 +1196,6 @@ export const QuoteNewFromSub = () => {
     [submissionData]
   );
 
-  if (loading) return <div>Loading submission...</div>;
-  if (!submissionData) throw new Error('Failed to load submission data'); // TODO: USE SUSPENSE / REACTFIRE
-
   return (
     <QuoteNew
       initialValues={initialValues}
@@ -1381,3 +1204,54 @@ export const QuoteNewFromSub = () => {
     />
   );
 };
+
+// initialValues={{
+//   addressLine1: submissionData?.addressLine1 ?? '',
+//   addressLine2: submissionData?.addressLine2 ?? '',
+//   city: submissionData?.city ?? '',
+//   state: submissionData?.state ?? '',
+//   postal: submissionData?.postal ?? '',
+//   latitude: submissionData?.coordinates?.latitude ?? null,
+//   longitude: submissionData?.coordinates?.longitude ?? null, // @ts-ignore
+//   limitA: submissionData?.limitA ?? 250000, // @ts-ignore
+//   limitB: submissionData?.limitB ?? 12500, // @ts-ignore
+//   limitC: submissionData?.limitC ?? 68000, // @ts-ignore
+//   limitD: submissionData?.limitD ?? 25000,
+//   deductible: submissionData?.deductible ?? 1000,
+//   // replacementCost: submissionData?.replacementCost ?? 250000,
+//   // basement: submissionData?.basement ?? 'unknown',
+//   // numStories: submissionData?.numStories ?? 1,
+//   // numUnits: 1,
+//   // yearBuilt: submissionData?.yearBuilt ?? '',
+//   // squareFootage: submissionData?.sqFootage ?? '',
+//   quoteExpiration: add(new Date(), { days: 60 }),
+//   policyEffectiveDate: add(new Date(), { days: 15 }),
+//   policyExpirationDate: add(new Date(), { days: 15, years: 1 }),
+//   fees: [], // [{ feeName: '', feeValue: '' }],
+//   taxes: [], // [{ displayName: '', rate: '', value: '' }],
+//   annualPremium: submissionData?.annualPremium ?? null,
+//   subproducerCommission: submissionData?.subproducerCommission ?? 0.15,
+//   quoteTotal: null, // calculated
+//   insuredFirstName: submissionData?.firstName ?? '',
+//   insuredLastName: submissionData?.lastName ?? '',
+//   insuredEmail: submissionData?.email ?? '',
+//   insuredPhone: '',
+//   agentId: submissionData?.agentId || null,
+//   agentEmail: '', // TODO: decide whether to add agency / agent data with submission or query later
+//   agentName: '',
+//   agentPhone: '',
+//   agencyName: '',
+//   agencyId: '',
+//   priorLossCount: submissionData?.priorLossCount || '',
+//   ratingPropertyData: {
+//     CBRSDesignation: submissionData?.CBRSDesignation ?? '',
+//     basement: `${submissionData?.basement ?? ''}`.toLowerCase(), // @ts-ignore
+//     distToCoastFeet: `${submissionData?.distToCoastFeet ?? ''}`,
+//     floodZone: submissionData?.floodZone ?? '',
+//     numStories: submissionData?.numStories ?? 1,
+//     propertyCode: `${submissionData?.propertyCode ?? ''}`,
+//     replacementCost: submissionData?.replacementCost ?? null, // @ts-ignore
+//     sqFootage: `${submissionData?.sqFootage ?? ''}`, // @ts-ignore
+//     yearBuilt: `${submissionData?.yearBuilt ?? ''}`,
+//   },
+// }}

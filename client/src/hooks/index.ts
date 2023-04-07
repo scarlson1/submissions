@@ -41,6 +41,7 @@ export { useCreateTenant } from './useCreateTenant';
 export { useInviteUsers } from './useInviteUsers';
 export { useDiff, useGetDiff } from './useDiff';
 export { useFetchTaxes } from './useFetchTaxes';
+export { useRateQuote, extractRatingInputsFromValues } from './useRateQuote';
 
 export type { UseFileUploadProps } from './useFileUpload';
 export type { UseSendPasswordResetProps } from './useSendPasswordReset';
