@@ -115,7 +115,6 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
     await auth.currentUser?.getIdToken(true);
     const idTokenResult: IdTokenResult = await auth.currentUser.getIdTokenResult();
     // Show admin UI. TODO: UI by claim level
-    console.log('CLAIMS: ', idTokenResult.claims);
 
     setCustomClaims({
       ...idTokenResult.claims,

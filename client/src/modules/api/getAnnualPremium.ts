@@ -1,19 +1,16 @@
 import { Functions, httpsCallable } from 'firebase/functions';
 
 export interface GetAnnualPremiumRequest {
-  lat: number;
-  lng: number;
-  rcvA: number;
-  rcvB: number;
-  rcvC: number;
-  rcvD: number;
+  latitude: number;
+  longitude: number;
+  replacementCost: number;
   limitA: number;
   limitB: number;
   limitC: number;
   limitD: number;
   deductible: number;
   numStories?: number;
-  priorLossCount: string; // number;
+  priorLossCount: string;
   submissionId?: string | null;
   state: string;
   floodZone?: string;

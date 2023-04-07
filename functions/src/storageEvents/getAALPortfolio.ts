@@ -9,7 +9,7 @@ import { snakeCase } from 'lodash';
 
 import { getNumber } from '../common';
 import { getSwissReInstance } from '../services';
-import { swissReBody } from '../firestoreEvents/getSubmissionAAL.js';
+import { swissReBody } from '../utils/rating/swissReBody.js';
 
 const swissReClientId = defineSecret('SWISS_RE_CLIENT_ID');
 const swissReClientSecret = defineSecret('SWISS_RE_CLIENT_SECRET');

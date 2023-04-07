@@ -24,7 +24,7 @@ import {
 import * as yup from 'yup';
 import { add } from 'date-fns';
 import { toast } from 'react-hot-toast';
-import { round } from 'lodash';
+import { isEmpty, round } from 'lodash';
 import { getFunctions } from 'firebase/functions';
 import { doc, getFirestore, updateDoc } from 'firebase/firestore';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -293,6 +293,7 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
   const showDialog = useJsonDialog();
   const activeStates = useActiveStates('flood');
 
+  // TODO: use calc quote hook internally - check diff to determine which function to call
   const {
     rerate,
     loading: rerateLoading,
@@ -459,14 +460,22 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                   }
                   sx={{ mx: 2 }}
                 />
-                <Diff ratingInputsPrev={ratingInputsSnap} />
-                {/* <Tooltip title='re-rating required' placement='bottom'>
-                  {diff ? (
-                    <CalculateRounded fontSize='small' color='warning' sx={{ mx: 2 }} />
-                  ) : (
-                    <CheckCircleOutlineRounded fontSize='small' color='success' sx={{ mx: 2 }} />
-                  )}
-                </Tooltip> */}
+                <Diff
+                  ratingInputsPrev={ratingInputsSnap}
+                  initialRerateRequired={!values.annualPremium}
+                  rerateFields={[
+                    'latitude',
+                    'longitude',
+                    'limitA',
+                    'limitB',
+                    'limitC',
+                    'limitD',
+                    'deductible',
+                    'priorLossCount',
+                    'numStories',
+                    'replacementCost',
+                  ]}
+                />
               </Stack>
               <Stack direction='row' spacing={2}>
                 <LoadingButton
@@ -1035,10 +1044,7 @@ function getRatingInputsFromSubmission(subData?: Submission) {
   return {
     lat: subData?.latitude,
     lng: subData?.longitude,
-    rcvA: subData?.replacementCost,
-    rcvB: subData?.limitB,
-    rcvC: subData?.limitC,
-    rcvD: subData?.limitD,
+    replacementCost: subData?.replacementCost,
     limitA: subData?.limitA,
     limitB: subData?.limitB,
     limitC: subData?.limitC,
@@ -1048,21 +1054,29 @@ function getRatingInputsFromSubmission(subData?: Submission) {
     priorLossCount: subData?.priorLossCount,
     state: subData?.state,
     floodZone: subData?.floodZone,
-    basement: subData?.basement,
-    commissionPct: subData?.subproducerCommission,
+    basement: subData?.basement?.toLowerCase(),
+    commissionPct: subData?.subproducerCommission || 0.15,
   };
 }
 
+// TODO: pass annual premium to initialize rerateRequired ??
+// TODO: combine with formik errors to display on hover
+
 function Diff({
   ratingInputsPrev,
+  rerateFields,
+  initialRerateRequired,
   checkFields,
 }: {
   ratingInputsPrev: any;
+  rerateFields: string[];
+  initialRerateRequired: boolean;
   checkFields?: string[];
 }) {
   const { values } = useFormikContext<NewQuoteValues>();
   const dialog = useJsonDialog();
   const [getDiff, diff, isDiff] = useGetDiff(checkFields);
+  const [rerateRequired, setRerateRequired] = useState<boolean>(initialRerateRequired);
 
   const {
     latitude,
@@ -1072,11 +1086,13 @@ function Diff({
     limitC,
     limitD,
     deductible,
-    subproducerCommission,
-    priorLossCount,
     state,
     ratingPropertyData,
+    // RE-CALC ONLY FIELDS  (and floodZone, basement under ratingPropData)
+    priorLossCount,
+    subproducerCommission,
   } = values;
+
   const ratingInputsCurr: any = useMemo(
     () => extractRatingInputsFromValues(values), // eslint-disable-next-line react-hooks/exhaustive-deps
     [
@@ -1101,6 +1117,19 @@ function Diff({
     getDiff(ratingInputsPrev, ratingInputsCurr);
   }, [getDiff, ratingInputsPrev, ratingInputsCurr]);
 
+  useEffect(() => {
+    if (isEmpty(diff)) return setRerateRequired(false);
+
+    const shouldRerate = rerateFields.some((key) => {
+      return diff[key];
+    });
+    setRerateRequired(shouldRerate);
+  }, [diff, rerateFields]);
+
+  useEffect(() => {
+    console.log('IS DIFF | RE-RATE: ', isDiff, rerateRequired);
+  }, [isDiff, rerateRequired]);
+
   const handleClick = useCallback(() => {
     if (!diff) return;
     dialog(diff, 'Rating Inputs Diff');
@@ -1108,12 +1137,14 @@ function Diff({
 
   return (
     <>
-      {/* <Tooltip title={`re-rating required: ${isDiff}`} placement='bottom'> */}
       <Tooltip
         title={
           <Box>
             <Typography variant='body2' fontWeight={500}>
-              {`re-rating required: ${isDiff}`}
+              {`AAL call required: ${rerateRequired === null ? 'no changes' : rerateRequired}`}
+            </Typography>
+            <Typography variant='body2' fontWeight={500}>
+              {`Prem. calc. required: ${isDiff}`}
             </Typography>
             {isDiff && (
               <Typography variant='body2' component='div'>
@@ -1130,12 +1161,6 @@ function Diff({
           <CheckCircleOutlineRounded fontSize='small' color='success' sx={{ mx: 2 }} />
         )}
       </Tooltip>
-      {/* <div>{`isDiff: ${isDiff}`}</div>
-      {diff && (
-        <div>
-          <pre>{JSON.stringify(diff, null, 2)}</pre>
-        </div>
-      )} */}
     </>
   );
 }
@@ -1204,6 +1229,94 @@ export const QuoteNewFromSub = () => {
     />
   );
 };
+
+// function Diff({
+//   ratingInputsPrev,
+//   checkFields,
+// }: {
+//   ratingInputsPrev: any;
+//   checkFields?: string[];
+// }) {
+//   const { values } = useFormikContext<NewQuoteValues>();
+//   const dialog = useJsonDialog();
+//   const [getDiff, diff, isDiff] = useGetDiff(checkFields);
+
+//   const {
+//     latitude,
+//     longitude,
+//     limitA,
+//     limitB,
+//     limitC,
+//     limitD,
+//     deductible,
+//     subproducerCommission,
+//     priorLossCount,
+//     state,
+//     ratingPropertyData,
+//   } = values;
+
+//   const ratingInputsCurr: any = useMemo(
+//     () => extractRatingInputsFromValues(values), // eslint-disable-next-line react-hooks/exhaustive-deps
+//     [
+//       latitude,
+//       longitude,
+//       limitA,
+//       limitB,
+//       limitC,
+//       limitD,
+//       deductible,
+//       subproducerCommission,
+//       priorLossCount,
+//       state,
+//       ratingPropertyData,
+//     ]
+//   );
+
+//   useEffect(() => {
+//     console.log('OLD OBJ: ', ratingInputsPrev);
+//     console.log('NEW OBJ: ', ratingInputsCurr);
+
+//     getDiff(ratingInputsPrev, ratingInputsCurr);
+//   }, [getDiff, ratingInputsPrev, ratingInputsCurr]);
+
+//   const handleClick = useCallback(() => {
+//     if (!diff) return;
+//     dialog(diff, 'Rating Inputs Diff');
+//   }, [dialog, diff]);
+
+//   return (
+//     <>
+//       {/* <Tooltip title={`re-rating required: ${isDiff}`} placement='bottom'> */}
+//       <Tooltip
+//         title={
+//           <Box>
+//             <Typography variant='body2' fontWeight={500}>
+//               {`re-rating required: ${isDiff}`}
+//             </Typography>
+//             {isDiff && (
+//               <Typography variant='body2' component='div'>
+//                 <pre>{JSON.stringify(diff, null, 2)}</pre>
+//               </Typography>
+//             )}
+//           </Box>
+//         }
+//         placement='bottom'
+//       >
+//         {isDiff ? (
+//           <CalculateRounded fontSize='small' color='warning' sx={{ mx: 2 }} onClick={handleClick} />
+//         ) : (
+//           <CheckCircleOutlineRounded fontSize='small' color='success' sx={{ mx: 2 }} />
+//         )}
+//       </Tooltip>
+//       {/* <div>{`isDiff: ${isDiff}`}</div>
+//       {diff && (
+//         <div>
+//           <pre>{JSON.stringify(diff, null, 2)}</pre>
+//         </div>
+//       )} */}
+//     </>
+//   );
+// }
 
 // initialValues={{
 //   addressLine1: submissionData?.addressLine1 ?? '',

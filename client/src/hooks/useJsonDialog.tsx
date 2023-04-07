@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import ReactJson from '@microlink/react-json-view';
-import { Box, useTheme } from '@mui/material';
+import { Box, DialogProps, useTheme } from '@mui/material';
 import { toast } from 'react-hot-toast';
 
 import { useConfirmation } from 'modules/components/ConfirmationService';
@@ -39,7 +39,7 @@ export const useJsonTheme = () => {
   );
 };
 
-export const useJsonDialog = () => {
+export const useJsonDialog = (dialogProps?: Partial<DialogProps>) => {
   const dialog = useConfirmation();
   const [, copy] = useCopyToClipboard();
   const theme = useJsonTheme();
@@ -57,7 +57,7 @@ export const useJsonDialog = () => {
             onAccept={() => {}}
             onClose={() => {}}
             open={false}
-            dialogProps={{ maxWidth: 'md' }}
+            dialogProps={{ maxWidth: 'md', ...dialogProps }}
             dialogContentProps={{ dividers: true }}
           >
             <Box
@@ -79,7 +79,7 @@ export const useJsonDialog = () => {
         ),
       });
     },
-    [dialog, theme, copy]
+    [dialog, theme, copy, dialogProps]
   );
 
   return showJson;

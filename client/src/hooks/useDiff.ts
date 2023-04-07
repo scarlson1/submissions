@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 
-import { getDifference, Obj } from 'modules/utils';
+import { getDifference, isObjEmpty, Obj } from 'modules/utils';
 
 // TODO: parse & highlight diff fields included in checkFields ??
 
@@ -54,7 +54,3 @@ export const useGetDiff = (checkFields?: string[]) => {
 
   return [getDiff, diff, isDiff] as const;
 };
-
-function isObjEmpty(obj: any) {
-  return Object.keys(obj).length === 0;
-}

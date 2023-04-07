@@ -3,6 +3,39 @@ import { useCallback, useState } from 'react';
 import { useFunctions } from 'reactfire';
 import { NewQuoteValues } from 'views/admin/QuoteNew';
 
+// const SR_ONLY = {
+//   lat,
+//   lng,
+//   rcvB,
+//   rcvC,
+//   rcvD,
+// };
+
+// const PREM_CALC_ONLY = {
+//   inlandAAL,
+//   surgeAAL,
+// };
+
+// const common = {
+//   limitA,
+//   limitB,
+//   limitC,
+//   limitD,
+//   deductible,
+//   priorLossCount,
+//   floodZone,
+//   state,
+//   basement,
+//   commissionPct,
+// };
+
+// FACTORS REQUIRE PREMIUM RE-CALC BUT NOT SR:
+//    - basement
+//    - priorLossCount
+//    - commission
+//    - floodZone
+//    -
+
 export function extractRatingInputsFromValues(values: NewQuoteValues) {
   const {
     latitude,
@@ -20,12 +53,9 @@ export function extractRatingInputsFromValues(values: NewQuoteValues) {
   console.log('VALUES: ', values);
 
   return {
-    lat: latitude as number,
-    lng: longitude as number,
-    rcvA: ratingPropertyData.replacementCost as number, // TODO: RCVs
-    rcvB: limitB,
-    rcvC: limitC,
-    rcvD: limitD,
+    latitude: latitude as number,
+    longitude: longitude as number,
+    replacementCost: ratingPropertyData.replacementCost as number,
     limitA,
     limitB,
     limitC,
@@ -35,8 +65,8 @@ export function extractRatingInputsFromValues(values: NewQuoteValues) {
     state,
     priorLossCount,
     floodZone: ratingPropertyData.floodZone || undefined,
-    basement: ratingPropertyData.basement || undefined,
-    commissionPct: subproducerCommission,
+    basement: ratingPropertyData.basement?.toLowerCase() || undefined,
+    commissionPct: subproducerCommission || 0.15, // TODO: use env var ??
   };
 }
 
