@@ -52,7 +52,7 @@ export const useGetDiff = (checkFields?: string[]) => {
     return result;
   }, []);
 
-  return [getDiff, diff, isDiff];
+  return [getDiff, diff, isDiff] as const;
 };
 
 function isObjEmpty(obj: any) {

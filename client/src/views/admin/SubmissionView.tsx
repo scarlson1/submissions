@@ -11,7 +11,7 @@ import {
 } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
 import { ArrowBackIosRounded, OpenInNewRounded } from '@mui/icons-material';
-import { createSearchParams, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 
 import { Submission } from 'common/types';
@@ -110,10 +110,13 @@ export const SubmissionView: React.FC = () => {
 
   const handleCreateQuote = useCallback(() => {
     navigate({
-      pathname: createPath({ path: ADMIN_ROUTES.QUOTE_NEW, params: { productId: 'flood' } }),
-      search: createSearchParams({
-        submissionId: `${submissionId}`,
-      }).toString(),
+      pathname: createPath({
+        path: ADMIN_ROUTES.QUOTE_NEW,
+        params: { productId: 'flood', submissionId: `${submissionId}` },
+      }),
+      // search: createSearchParams({
+      //   submissionId: `${submissionId}`,
+      // }).toString(),
     });
   }, [navigate, submissionId]);
 

@@ -49,6 +49,7 @@ import { BindSuccess } from 'elements/SuccessStep';
 import { TasksPagination } from 'views/admin/TasksPagination';
 import { RequireAuthReactFire, getRequiredClaimValidator } from 'components/RequireAuthReactFire';
 import { Disclosures } from 'views/admin/Disclosures';
+import { QuoteNewFromSub } from 'views/admin/QuoteNew';
 
 // import RouterErrorBoundary from 'components/errorBoundaries/RouterErrorBoundary';
 
@@ -82,7 +83,8 @@ export enum ADMIN_ROUTES {
   SUBMISSIONS = '/admin/submissions',
   SUBMISSION_VIEW = '/admin/submissions/:submissionId',
   QUOTES = '/admin/quotes',
-  QUOTE_NEW = '/admin/quotes/:productId/new',
+  QUOTE_NEW_BLANK = '/admin/quotes/:productId/new', // QuoteNewFromSub
+  QUOTE_NEW = '/admin/quotes/:productId/new/:submissionId',
   POLICY_DELIVERY = '/admin/policies/:policyId/delivery',
   POLICIES = '/admin/policies',
   SL_TAXES = '/admin/sl-tax',
@@ -140,7 +142,8 @@ type TArgs =
   | { path: ADMIN_ROUTES.SUBMISSIONS }
   | { path: ADMIN_ROUTES.SUBMISSION_VIEW; params: { submissionId: string } }
   | { path: ADMIN_ROUTES.QUOTES }
-  | { path: ADMIN_ROUTES.QUOTE_NEW; params: { productId: Product } }
+  | { path: ADMIN_ROUTES.QUOTE_NEW_BLANK; params: { productId: Product } }
+  | { path: ADMIN_ROUTES.QUOTE_NEW; params: { productId: Product; submissionId: string } }
   | { path: ADMIN_ROUTES.POLICY_DELIVERY; params: { policyId: string } }
   | { path: ADMIN_ROUTES.POLICIES; search?: { productId?: Product } }
   | { path: ADMIN_ROUTES.SL_TAXES }
@@ -215,7 +218,6 @@ export const router = createBrowserRouter([
           },
           {
             path: ROUTES.SUBMISSION_NEW,
-            // loader: newSubmissionLoader,
             element: (
               <RequireAuth shouldSignInAnonymously={true}>
                 <SubmissionNew />
@@ -440,16 +442,20 @@ export const router = createBrowserRouter([
             errorElement: <RouterErrorBoundary />,
           },
           {
-            path: ADMIN_ROUTES.QUOTE_NEW,
+            path: ADMIN_ROUTES.QUOTE_NEW_BLANK,
             element: (
-              // <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
               <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
                 <QuoteNew />
               </RequireAuthReactFire>
-
-              // </RequireAuth>
             ),
-            // loader: newQuoteSubmissionLoader,
+          },
+          {
+            path: ADMIN_ROUTES.QUOTE_NEW,
+            element: (
+              <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
+                <QuoteNewFromSub />
+              </RequireAuthReactFire>
+            ),
           },
           {
             path: ADMIN_ROUTES.QUOTES,

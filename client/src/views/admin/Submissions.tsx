@@ -11,7 +11,7 @@ import {
   GridValueGetterParams,
 } from '@mui/x-data-grid';
 import { orderBy, limit, doc, updateDoc, getDoc, getFirestore } from 'firebase/firestore';
-import { createSearchParams, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import {
   CloseRounded,
   FiberNewRounded,
@@ -69,10 +69,13 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
   const handleCreateQuote = useCallback(
     (subId: GridRowId) => () => {
       navigate({
-        pathname: createPath({ path: ADMIN_ROUTES.QUOTE_NEW, params: { productId: 'flood' } }),
-        search: createSearchParams({
-          submissionId: `${subId}`,
-        }).toString(),
+        pathname: createPath({
+          path: ADMIN_ROUTES.QUOTE_NEW,
+          params: { productId: 'flood', submissionId: `${subId}` },
+        }),
+        // search: createSearchParams({
+        //   submissionId: `${subId}`,
+        // }).toString(),
       });
     },
     [navigate]

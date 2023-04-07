@@ -606,7 +606,9 @@ export const Quotes: React.FC = () => {
         </Typography>
         <Button
           onClick={() =>
-            navigate(createPath({ path: ADMIN_ROUTES.QUOTE_NEW, params: { productId: 'flood' } }))
+            navigate(
+              createPath({ path: ADMIN_ROUTES.QUOTE_NEW_BLANK, params: { productId: 'flood' } })
+            )
           }
           sx={{ maxHeight: 36 }}
         >
