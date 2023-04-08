@@ -21,6 +21,8 @@ export interface GetAnnualPremiumRequest {
 export interface GetAnnualPremiumResponse {
   // data: { annualPremium: number };
   annualPremium: number;
+  inlandAAL: number;
+  surgeAAL: number;
 }
 
 export const getAnnualPremium = (functions: Functions, args: GetAnnualPremiumRequest) =>

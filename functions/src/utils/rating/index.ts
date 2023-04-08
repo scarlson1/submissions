@@ -20,3 +20,4 @@ export {
 } from './factors.js';
 export { getRCVs } from './getRCVs.js';
 export { getAALs, validateGetAALsProps } from './getAALs.js';
+export { getPremium } from './getPremium.js';

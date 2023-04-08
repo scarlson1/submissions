@@ -72,8 +72,8 @@ import { ShowRatingDialog } from './SubmissionView';
 // TODO: standardize fee type names in enum
 
 const useCalcPremium = (
-  submissionData: Submission | null,
-  onSuccess?: (newPremium: number) => void,
+  // submissionData: Submission | null,
+  onSuccess?: (newPremium: number, ratingInputs: any) => void,
   onError?: (msg: string, err: any) => void,
   submissionId?: string | null
 ) => {
@@ -83,40 +83,49 @@ const useCalcPremium = (
     async (values: NewQuoteValues) => {
       try {
         setLoading(true);
-        if (!submissionData) throw new Error('submission data required to call calc permium');
         if (!values) throw new Error('missing values');
 
         const {
           ratingPropertyData: { replacementCost },
+          AAL: { inland, surge },
         } = values;
-        const { inlandAAL, surgeAAL } = submissionData;
-        if (!(replacementCost && (inlandAAL || inlandAAL === 0) && (surgeAAL || surgeAAL === 0)))
+
+        if (!(replacementCost && (inland || inland === 0) && (surge || surge === 0)))
           throw new Error('Missing replacement cost or aal');
 
+        // aals
         let reqBody = {
           limitA: values.limitA,
           limitB: values.limitB,
           limitC: values.limitC,
           limitD: values.limitD,
-          inlandAAL,
-          surgeAAL,
+          inlandAAL: inland,
+          surgeAAL: surge,
           replacementCost,
           deductible: values.deductible,
           state: values.state,
           priorLossCount: values.priorLossCount,
           floodZone: values.ratingPropertyData.floodZone ?? 'D',
           basement: values.ratingPropertyData.basement ?? undefined,
-          commissionPct: values.subproducerCommission,
-          submissionId,
+          commissionPct:
+            typeof values.subproducerCommission === 'string'
+              ? parseFloat(values.subproducerCommission)
+              : values.subproducerCommission,
         };
         console.log('REQUEST BODY: ', reqBody);
 
-        const { data } = await calcQuote(getFunctions(), reqBody);
+        const { data } = await calcQuote(getFunctions(), { ...reqBody, submissionId });
 
         console.log('RES: ', data);
-        if (!data.annualPremium) throw new Error('Missing premium in response');
+        if (!data.annualPremium || typeof data.annualPremium !== 'number')
+          throw new Error('Missing premium in response');
 
-        if (onSuccess) onSuccess(data.annualPremium);
+        if (onSuccess)
+          onSuccess(data.annualPremium, {
+            ...reqBody,
+            latitude: values.latitude,
+            longitude: values.longitude,
+          });
         setLoading(false);
         return data.annualPremium;
       } catch (err: any) {
@@ -129,7 +138,7 @@ const useCalcPremium = (
         return null;
       }
     },
-    [onSuccess, onError, submissionData, submissionId]
+    [onSuccess, onError, submissionId]
   );
 
   return { calcPremium, loading };
@@ -182,6 +191,10 @@ const DEFAULT_VALUES = {
     replacementCost: null, // '',
     sqFootage: null, // '',
     yearBuilt: null, // '',
+  },
+  AAL: {
+    inland: null,
+    surge: null,
   },
 };
 
@@ -275,6 +288,10 @@ export interface NewQuoteValues {
   agencyId: string | null;
   priorLossCount: string;
   ratingPropertyData: RatingPropertyData;
+  AAL: {
+    inland: number | null;
+    surge: number | null;
+  };
 }
 
 export interface QuoteNewProps {
@@ -298,6 +315,11 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
     rerateRequired: !initialValues.annualPremium,
     recalcRequired: !initialValues.annualPremium,
   });
+  const [ratingInputsSnap, setRatingInputsSnap] = useState<any>({
+    ...getRatingInputsFromSubmission(submissionData || undefined),
+    inlandAAL: initialValues.AAL.inland,
+    surgeAAL: initialValues.AAL.surge,
+  });
 
   const handleDiffChange = useCallback(
     (newVals: { rerateRequired: boolean; recalcRequired: boolean }) => {
@@ -309,8 +331,9 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
   const { fetchTaxes, loading: taxesLoading } = useFetchTaxes(
     (newTaxes: TaxItem[]) => {
       setTimeout(() => {
+        // @ts-ignore
         formikRef.current?.setFieldValue('taxes', [...newTaxes]);
-        calcTotal();
+        setTimeout(() => calcTotal(), 10);
       }, 50);
       toast.success('premium & taxes updated 🎉');
     },
@@ -319,8 +342,8 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
 
   const handleRecalcSuccess = useCallback(
     (newPrem: number) => {
-      formikRef.current?.setFieldValue('taxes', []);
-      formikRef.current?.setFieldValue('quoteTotal', '');
+      // formikRef.current?.setFieldValue('taxes', []);
+      // formikRef.current?.setFieldValue('quoteTotal', '101');
       const values = formikRef.current?.values;
       if (!values) return;
 
@@ -333,14 +356,15 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
   const {
     rerate,
     loading: rerateLoading,
-    ratingInputsSnap,
+    // ratingInputsSnap,
   } = useRateQuote(
     submissionId,
-    (newPrem: number) => {
+    (newPrem: number, ratingInputs) => {
       setTimeout(() => {
         formikRef.current?.setFieldValue('annualPremium', newPrem);
       }, 50);
 
+      setRatingInputsSnap({ ...ratingInputs });
       handleRecalcSuccess(newPrem);
     },
     (msg: string) => toast.error(msg),
@@ -348,11 +372,14 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
   );
 
   const { calcPremium, loading: calcLoading } = useCalcPremium(
-    submissionData || null,
-    (newPrem: number) => {
+    // submissionData || null,
+    (newPrem: number, ratingInputs) => {
       setTimeout(() => formikRef.current?.setFieldValue('annualPremium', newPrem), 50);
-      // setTimeout(() => formikRef.current?.setFieldTouched('annualPremium'), 50);
 
+      setRatingInputsSnap({
+        ...ratingInputs,
+        numStories: formikRef.current?.values.ratingPropertyData.numStories,
+      });
       handleRecalcSuccess(newPrem);
     },
     (msg: string) => toast.error(msg),
@@ -717,23 +744,27 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
               </Grid>
               <Grid xs={12}>
                 <Typography variant='body2' color='text.secondary'>
-                  Order:{' '}
+                  Guide:{' '}
                 </Typography>
                 <Typography variant='body2' color='text.secondary'>
-                  1) Annual premium (can use "calc annual premium" button)
+                  1) Make changes to rating / premium inputs
                 </Typography>
                 <Typography variant='body2' color='text.secondary'>
                   2) Fees & commission (add manually)
                 </Typography>
                 <Typography variant='body2' color='text.secondary'>
-                  3) Fetch taxes (can use "fetch taxes" button)
+                  2.5) Hover icon at the top-center to see diff summary
                 </Typography>
                 <Typography variant='body2' color='text.secondary'>
-                  4) Calculate quote (click calculator button)
+                  3) Click "rate and calc premium" button if changes were made
+                </Typography>
+                <Typography variant='body2' color='text.secondary'>
+                  4) taxes should automatically populate after premium is returned
                 </Typography>
                 <Typography variant='body2' color='text.secondary'>
                   Taxes and calc total are dependent on premium, fees and commission. Must repeat 3
-                  & 4, if changed. Must repeat all steps if changing commission.
+                  & 4, if changed. Must repeat all steps if changing commission or other rating
+                  data. Currently not watching fees to force recalc.
                 </Typography>
               </Grid>
               <Grid xs={12} sm={4} md={3}>
@@ -996,6 +1027,48 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                     },
                   }}
                 />
+              </Grid>
+              <Grid xs={6} sm={4} md={3} lg={2}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                  <Typography variant='body2' color='text.secondary' sx={{ fontSize: '0.75rem' }}>
+                    Inland AAL
+                  </Typography>
+                  <Box
+                    sx={{
+                      flexGrow: 1,
+                      display: 'flex',
+                      alignContent: 'center',
+                    }}
+                  >
+                    <Typography
+                      variant='body1'
+                      sx={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}
+                    >
+                      {values.AAL.inland}
+                    </Typography>
+                  </Box>
+                </Box>
+              </Grid>
+              <Grid xs={6} sm={4} md={3} lg={2}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                  <Typography variant='body2' color='text.secondary' sx={{ fontSize: '0.75rem' }}>
+                    surge AAL
+                  </Typography>
+                  <Box
+                    sx={{
+                      flexGrow: 1,
+                      display: 'flex',
+                      alignContent: 'center',
+                    }}
+                  >
+                    <Typography
+                      variant='body1'
+                      sx={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}
+                    >
+                      {values.AAL.surge}
+                    </Typography>
+                  </Box>
+                </Box>
               </Grid>
 
               <Grid xs={12}>
@@ -1267,6 +1340,10 @@ export const QuoteNewFromSub = () => {
         replacementCost: submissionData?.replacementCost ?? null, // @ts-ignore
         sqFootage: `${submissionData?.sqFootage ?? ''}`, // @ts-ignore submissionData?.sqFootage ?? null,
         yearBuilt: `${submissionData?.yearBuilt ?? ''}`, // submissionData?.yearBuilt ?? null,
+      },
+      AAL: {
+        inland: submissionData?.inlandAAL ?? null,
+        surge: submissionData?.surgeAAL ?? null,
       },
     }),
     [submissionData]

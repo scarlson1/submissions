@@ -1,16 +1,9 @@
 import * as functions from 'firebase-functions';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
+import invariant from 'tiny-invariant';
 
-import { calcSum, COLLECTIONS } from '../common';
-import {
-  multipliersByState,
-  getInlandRiskScore,
-  getSurgeRiskScore,
-  getMinPremium,
-  getPremiumData,
-  getPM,
-  getSecondaryFactorMults,
-} from '../utils/rating';
+import { COLLECTIONS } from '../common';
+import { getPremium } from '../utils/rating';
 
 // TODO: create rating inputs interface (used in multiple funcs), extend where needed
 
@@ -56,97 +49,69 @@ export const calcQuote = functions.https.onCall(async (data, context) => {
   if (!context.auth?.token.iDemandAdmin)
     throw new functions.https.HttpsError('permission-denied', 'must have admin permissions');
 
-  if (!(limitA && limitB && limitC && limitD)) {
-    throw new functions.https.HttpsError(
-      'failed-precondition',
-      'must provide value for each limits'
+  try {
+    const MAX_A = parseInt(process.env.FLOOD_MAX_LIMIT_A || '1000000');
+    const MIN_A = parseInt(process.env.FLOOD_MIN_LIMIT_A || '100000');
+    const MAX_BCD = parseInt(process.env.FLOOD_MAX_LIMIT_B_C_D || '1000000');
+
+    invariant(
+      limitA && typeof limitA === 'number' && limitA > MIN_A,
+      `LimitA must be a number > ${MIN_A}`
     );
-  }
-  if (
-    !(
-      typeof limitA === 'number' &&
-      typeof limitB === 'number' &&
-      typeof limitC === 'number' &&
-      typeof limitD === 'number'
-    )
-  ) {
-    throw new functions.https.HttpsError('failed-precondition', 'limits must be a number');
-  }
-  if (limitA < 100000) {
-    throw new functions.https.HttpsError('failed-precondition', 'limitA must be at least 100,000');
-  }
-  if (!(replacementCost && typeof replacementCost === 'number')) {
-    throw new functions.https.HttpsError(
-      'failed-precondition',
-      'replacementCost required and must be a number'
+    invariant(limitA >= MIN_A && limitA <= MAX_A, `limitA must be between ${MIN_A} and ${MAX_A}`);
+    invariant(limitB && typeof limitB === 'number', 'LimitB must be a number');
+    invariant(limitC && typeof limitC === 'number', 'LimitC must be a number');
+    invariant(limitD && typeof limitD === 'number', 'LimitD must be a number');
+    const totalBCD = limitB + limitC + limitD;
+    invariant(totalBCD <= MAX_BCD, `sum of limits B, C, D must be less than ${MAX_BCD}`);
+
+    invariant(
+      deductible && typeof deductible === 'number' && deductible > 1000,
+      'invalid deductible. must be number > 1000'
     );
-  }
-  if (!(deductible && typeof deductible === 'number' && deductible > 1000)) {
-    throw new functions.https.HttpsError(
-      'failed-precondition',
-      'deductible must be a number greater than 1000'
+
+    invariant(replacementCost, 'replacementCost required');
+    invariant(typeof replacementCost === 'number', 'replacementCost must be a number');
+    invariant(replacementCost > 100000, 'replacementCost must be > 100k');
+
+    invariant(floodZone && typeof floodZone === 'string', 'floodZone is required');
+    invariant(basement && typeof basement === 'string', 'basement must be a string');
+
+    invariant(commissionPct && typeof commissionPct === 'number', 'commissionPct');
+    invariant(
+      (inlandAAL || inlandAAL === 0) && typeof inlandAAL === 'number',
+      'inland AAL must be a number'
     );
-  }
-  if (
-    !(
-      (inlandAAL || inlandAAL === 0) &&
-      typeof inlandAAL === 'number' &&
-      (surgeAAL || surgeAAL === 0) &&
-      typeof surgeAAL === 'number'
-    )
-  ) {
-    throw new functions.https.HttpsError(
-      'failed-precondition',
-      'inlandAAL and surgeAAL must be numbers'
+    invariant(
+      (surgeAAL || surgeAAL === 0) && typeof surgeAAL === 'number',
+      'surgeAAL must be a number'
     );
-  }
-  if (!(state && typeof state === 'string' && state.length === 2)) {
-    throw new functions.https.HttpsError(
-      'failed-precondition',
-      'state must be a two character string'
+    invariant(
+      state && typeof state === 'string' && state.length === 2,
+      'state must be a two letter abbreviation'
     );
+  } catch (err: any) {
+    console.log('INVALID PROPS: ', err);
+
+    throw new functions.https.HttpsError('failed-precondition', err.message);
   }
 
   try {
-    const tiv = calcSum([limitA, limitB, limitC, limitD]);
-
-    const minPremium = getMinPremium(floodZone, tiv);
-
-    const pm = {
-      inland: getPM(inlandAAL, tiv),
-      surge: getPM(surgeAAL, tiv),
-    };
-    const riskScore = {
-      inland: getInlandRiskScore(pm.inland),
-      surge: getSurgeRiskScore(pm.surge),
-    };
-
-    // Flood type multipliers by state
-    const { inlandStateMult = 1.5, surgeStateMult = 3 } = multipliersByState[state];
-
-    let secondaryFactorMults = getSecondaryFactorMults({
-      ffe: 0,
+    const result = getPremium({
+      inlandAAL,
+      surgeAAL,
+      limitA,
+      limitB,
+      limitC,
+      limitD,
+      floodZone,
+      state,
       basement,
       priorLossCount,
-      inlandRiskScore: riskScore.inland,
-      surgeRiskScore: riskScore.surge,
+      commissionPct,
     });
 
-    let premiumData = getPremiumData({
-      AAL: {
-        inland: inlandAAL,
-        surge: surgeAAL,
-      },
-      secondaryFactorMults,
-      stateMultipliers: {
-        inland: inlandStateMult,
-        surge: surgeStateMult,
-      },
-      minPremium,
-      subproducerComPct: commissionPct,
-    });
-
-    console.log('PREMIUM DATA: ', premiumData);
+    console.log('PREMIUM DATA: ', result);
     // TODO: fetch taxes ??
 
     // TODO: save rating data
@@ -159,26 +124,22 @@ export const calcQuote = functions.https.onCall(async (data, context) => {
         limitC,
         limitD,
       },
-      tiv,
+      tiv: result.tiv,
       replacementCost,
       aal: {
         inland: inlandAAL,
         surge: surgeAAL,
       },
-      pm,
-      riskScore,
-      stateMultipliers: {
-        inland: inlandStateMult,
-        surge: surgeStateMult,
-      },
-      secondaryFactorMults,
+      pm: result.pm,
+      riskScore: result.riskScore,
+      stateMultipliers: result.stateMultipliers,
+      secondaryFactorMults: result.secondaryFactorMults,
       floodZone,
       basement,
       ffe: 0,
       priorLossCount,
       premiumData: {
-        minPremium,
-        ...premiumData,
+        ...result.premiumData,
       },
       metadata: {
         created: Timestamp.now(),
@@ -188,9 +149,47 @@ export const calcQuote = functions.https.onCall(async (data, context) => {
 
     // TODO: update the submission ?? quote data not stored on submission
 
-    return { annualPremium: premiumData.directWrittenPremium };
+    return { annualPremium: result.premiumData.directWrittenPremium };
   } catch (err) {
     console.log('ERROR: ', err);
     throw new functions.https.HttpsError('invalid-argument', 'Error calculating quote');
   }
 });
+
+// const tiv = calcSum([limitA, limitB, limitC, limitD]);
+
+// const minPremium = getMinPremium(floodZone, tiv);
+
+// const pm = {
+//   inland: getPM(inlandAAL, tiv),
+//   surge: getPM(surgeAAL, tiv),
+// };
+// const riskScore = {
+//   inland: getInlandRiskScore(pm.inland),
+//   surge: getSurgeRiskScore(pm.surge),
+// };
+
+// // Flood type multipliers by state
+// const { inlandStateMult = 1.5, surgeStateMult = 3 } = multipliersByState[state];
+
+// let secondaryFactorMults = getSecondaryFactorMults({
+//   ffe: 0,
+//   basement,
+//   priorLossCount,
+//   inlandRiskScore: riskScore.inland,
+//   surgeRiskScore: riskScore.surge,
+// });
+
+// let premiumData = getPremiumData({
+//   AAL: {
+//     inland: inlandAAL,
+//     surge: surgeAAL,
+//   },
+//   secondaryFactorMults,
+//   stateMultipliers: {
+//     inland: inlandStateMult,
+//     surge: surgeStateMult,
+//   },
+//   minPremium,
+//   subproducerComPct: commissionPct,
+// });

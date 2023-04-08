@@ -47,10 +47,20 @@ export function extractRatingInputsFromValues(values: NewQuoteValues) {
     deductible,
     priorLossCount,
     state,
-    subproducerCommission,
+    // subproducerCommission,
     ratingPropertyData,
   } = values;
   console.log('VALUES: ', values);
+
+  let subproducerCommission =
+    typeof values.subproducerCommission === 'string'
+      ? parseFloat(values.subproducerCommission)
+      : values.subproducerCommission;
+  let numStories = ratingPropertyData.numStories;
+
+  if (numStories && typeof numStories === 'string') {
+    numStories = parseInt(numStories);
+  }
 
   return {
     latitude: latitude as number,
@@ -61,7 +71,7 @@ export function extractRatingInputsFromValues(values: NewQuoteValues) {
     limitC,
     limitD,
     deductible,
-    numStories: ratingPropertyData.numStories || 1,
+    numStories: numStories || 1,
     state,
     priorLossCount,
     floodZone: ratingPropertyData.floodZone || undefined,
@@ -73,7 +83,10 @@ export function extractRatingInputsFromValues(values: NewQuoteValues) {
 // TODO: check if SR call is required or only premium calculation (call different cloud functions ?? )
 export const useRateQuote = (
   submissionId: string | null,
-  onSuccess?: (premium: number) => void,
+  onSuccess?: (
+    premium: number,
+    ratingInputs: any // Omit<GetAnnualPremiumRequest, 'submissionId'>
+  ) => void,
   onError?: (msg: string) => void,
   initialRatingSnap?: any
 ) => {
@@ -107,7 +120,8 @@ export const useRateQuote = (
         }
 
         setRatingInputsSnap(ratingInputs);
-        if (onSuccess) onSuccess(data.annualPremium);
+        const { inlandAAL, surgeAAL } = data;
+        if (onSuccess) onSuccess(data.annualPremium, { ...ratingInputs, inlandAAL, surgeAAL });
         setLoading(false);
 
         return data.annualPremium;

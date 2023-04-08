@@ -80,7 +80,7 @@ export const getAnnualPremium = functions
       invariant(floodZone && typeof floodZone === 'string', 'floodZone is required');
       invariant(basement && typeof basement === 'string', 'basement must be a string');
       invariant(
-        commissionPct && typeof commissionPct === 'number',
+        commissionPct, // && typeof commissionPct === 'number',
         'commissionPct must be a number'
       );
       invariant(commissionPct <= 0.2, 'commissionPct must be <= 20% (provided as decimal)');
@@ -118,7 +118,7 @@ export const getAnnualPremium = functions
       invariant(typeof inlandAAL === 'number');
       invariant(typeof surgeAAL === 'number');
 
-      const premiumData = getPremium({
+      const result = getPremium({
         inlandAAL,
         surgeAAL,
         limitA,
@@ -131,6 +131,8 @@ export const getAnnualPremium = functions
         priorLossCount,
         commissionPct,
       });
+
+      const { premiumData } = result;
 
       // TODO: save to ratingData collection
       // TODO: update original submission
@@ -146,6 +148,8 @@ export const getAnnualPremium = functions
 
       return {
         annualPremium: premiumData.directWrittenPremium,
+        inlandAAL,
+        surgeAAL,
       };
     } catch (err) {
       throw new functions.https.HttpsError('internal', 'Error calculating annual premium');

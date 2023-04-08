@@ -116,7 +116,7 @@ export const validateGetAALsProps = (props: Partial<GetAALsProps>) => {
     deductible && typeof deductible === 'number' && deductible > 1000,
     'invalid deductible. must be number > 1000'
   );
-  invariant(numStories && typeof numStories === 'number', 'numStories must be a number');
+  invariant(numStories, 'numStories must be a number'); // && typeof numStories === 'number'
 
   invariant(replacementCost, 'replacementCost required');
   invariant(typeof replacementCost === 'number', 'replacementCost must be a number');
@@ -130,7 +130,6 @@ export const validateGetAALsProps = (props: Partial<GetAALsProps>) => {
   invariant(limitB && typeof limitB === 'number', 'LimitB must be a number');
   invariant(limitC && typeof limitC === 'number', 'LimitC must be a number');
   invariant(limitD && typeof limitD === 'number', 'LimitD must be a number');
-
   const totalBCD = limitB + limitC + limitD;
   invariant(totalBCD <= MAX_BCD, `sum of limits B, C, D must be less than ${MAX_BCD}`);
 };

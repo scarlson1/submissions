@@ -57,7 +57,7 @@ export const getPremium = (props: GetPremiumProps) => {
     surgeRiskScore: riskScore.surge,
   });
 
-  return getPremiumData({
+  const premResult = getPremiumData({
     AAL: {
       inland: inlandAAL,
       surge: surgeAAL,
@@ -70,4 +70,15 @@ export const getPremium = (props: GetPremiumProps) => {
     minPremium,
     subproducerComPct: commissionPct,
   });
+
+  return {
+    // ...premResult,
+    premiumData: premResult,
+    tiv,
+    secondaryFactorMults,
+    stateMultipliers: { inland: inlandStateMult, surge: surgeStateMult },
+    riskScore,
+    pm,
+    minPremium,
+  };
 };
