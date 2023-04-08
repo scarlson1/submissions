@@ -2,7 +2,7 @@ import React, { useCallback, useMemo, useRef, useState, useEffect } from 'react'
 import {
   Box,
   Button,
-  Chip,
+  // Chip,
   Divider,
   IconButton,
   InputAdornment,
@@ -14,16 +14,16 @@ import Grid from '@mui/material/Unstable_Grid2';
 import { Formik, FormikHelpers, FormikProps, useFormikContext } from 'formik';
 import { LoadingButton } from '@mui/lab';
 import {
+  CalculateOutlined,
   CalculateRounded,
   CheckCircleOutlineRounded,
-  Done,
+  // Done,
   DownloadRounded,
   PolicyRounded,
-  WarningAmberRounded,
+  // WarningAmberRounded,
 } from '@mui/icons-material';
 import * as yup from 'yup';
 import { add } from 'date-fns';
-import { toast } from 'react-hot-toast';
 import { isEmpty, round } from 'lodash';
 import { getFunctions } from 'firebase/functions';
 import { doc, getFirestore, updateDoc } from 'firebase/firestore';
@@ -47,6 +47,7 @@ import { dollarFormat, sumArr } from 'modules/utils/helpers';
 import {
   extractRatingInputsFromValues,
   useActiveStates,
+  useAsyncToast,
   useCreateQuote,
   useDocDataOnce,
   useFetchTaxes,
@@ -290,10 +291,45 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
   const navigate = useNavigate();
 
   const formikRef = useRef<FormikProps<NewQuoteValues>>(null);
-  const showDialog = useJsonDialog();
+  const showDialog = useJsonDialog({ maxWidth: 'sm' });
+  const toast = useAsyncToast({ position: 'top-right' });
   const activeStates = useActiveStates('flood');
+  const [ratingState, setRatingState] = useState({
+    rerateRequired: !initialValues.annualPremium,
+    recalcRequired: !initialValues.annualPremium,
+  });
 
-  // TODO: use calc quote hook internally - check diff to determine which function to call
+  const handleDiffChange = useCallback(
+    (newVals: { rerateRequired: boolean; recalcRequired: boolean }) => {
+      setRatingState(newVals);
+    },
+    []
+  );
+
+  const { fetchTaxes, loading: taxesLoading } = useFetchTaxes(
+    (newTaxes: TaxItem[]) => {
+      setTimeout(() => {
+        formikRef.current?.setFieldValue('taxes', [...newTaxes]);
+        calcTotal();
+      }, 50);
+      toast.success('premium & taxes updated 🎉');
+    },
+    (msg) => toast.error(msg)
+  );
+
+  const handleRecalcSuccess = useCallback(
+    (newPrem: number) => {
+      formikRef.current?.setFieldValue('taxes', []);
+      formikRef.current?.setFieldValue('quoteTotal', '');
+      const values = formikRef.current?.values;
+      if (!values) return;
+
+      toast.updateLoadingMsg('fetching taxes...');
+      return fetchTaxes({ ...values, annualPremium: newPrem });
+    },
+    [fetchTaxes, toast]
+  );
+
   const {
     rerate,
     loading: rerateLoading,
@@ -304,6 +340,8 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
       setTimeout(() => {
         formikRef.current?.setFieldValue('annualPremium', newPrem);
       }, 50);
+
+      handleRecalcSuccess(newPrem);
     },
     (msg: string) => toast.error(msg),
     getRatingInputsFromSubmission(submissionData || undefined)
@@ -312,19 +350,14 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
   const { calcPremium, loading: calcLoading } = useCalcPremium(
     submissionData || null,
     (newPrem: number) => {
-      formikRef.current?.setFieldValue('taxes', []);
-      formikRef.current?.setFieldValue('quoteTotal', '');
+      setTimeout(() => formikRef.current?.setFieldValue('annualPremium', newPrem), 50);
+      // setTimeout(() => formikRef.current?.setFieldTouched('annualPremium'), 50);
 
-      formikRef.current?.setFieldValue('annualPremium', newPrem);
-      setTimeout(() => formikRef.current?.setFieldTouched('annualPremium'), 50);
+      handleRecalcSuccess(newPrem);
     },
     (msg: string) => toast.error(msg),
     submissionId
   );
-
-  const { fetchTaxes, loading: taxesLoading } = useFetchTaxes((newTaxes: TaxItem[]) => {
-    setTimeout(() => formikRef.current?.setFieldValue('taxes', [...newTaxes]), 50);
-  });
 
   const createQuote = useCreateQuote(
     async () => {
@@ -336,7 +369,23 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
       navigate(createPath({ path: ADMIN_ROUTES.QUOTES }), { replace: true });
     },
     (msg: string) => toast.success(msg, { duration: 3000 }),
-    (err, msg) => toast.error(msg)
+    (err: any, msg: string) => toast.error(msg)
+  );
+
+  const handleRecalc = useCallback(
+    (values: NewQuoteValues) => {
+      // TODO: confirm fees are correct before ??
+      if (ratingState.rerateRequired) {
+        toast.loading('rating...');
+        return rerate(values);
+      }
+      if (ratingState.recalcRequired) {
+        toast.loading('calculating premium...');
+        return calcPremium(values);
+      }
+      toast.info('All up to date!');
+    },
+    [rerate, calcPremium, ratingState, toast]
   );
 
   const submitForm = useCallback(() => {
@@ -356,7 +405,7 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
     if (!submissionData) return toast.error('Quote not initiated from a submission');
 
     showDialog(submissionData, 'Submission Data');
-  }, [showDialog, submissionData]);
+  }, [showDialog, submissionData, toast]);
 
   const calcTotal = useCallback(async () => {
     try {
@@ -379,7 +428,7 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
       console.log(err);
       toast.error('Error calculating total. See console for details');
     }
-  }, []);
+  }, [toast]);
 
   const menuItems = useMemo(
     () => [
@@ -446,7 +495,7 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                 <Typography variant='subtitle2'>{`${
                   values.quoteTotal ? dollarFormat(values.quoteTotal) : '--'
                 }`}</Typography>
-                <Chip
+                {/* <Chip
                   label={values.quoteTotal && values.quoteTotal > 100 ? 'valid' : 'invalid'}
                   color={values.quoteTotal && values.quoteTotal > 100 ? 'success' : 'warning'}
                   size='small'
@@ -459,10 +508,9 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                     )
                   }
                   sx={{ mx: 2 }}
-                />
+                /> */}
                 <Diff
                   ratingInputsPrev={ratingInputsSnap}
-                  initialRerateRequired={!values.annualPremium}
                   rerateFields={[
                     'latitude',
                     'longitude',
@@ -475,6 +523,8 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                     'numStories',
                     'replacementCost',
                   ]}
+                  ratingState={ratingState}
+                  setRatingState={handleDiffChange}
                 />
               </Stack>
               <Stack direction='row' spacing={2}>
@@ -552,7 +602,6 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                     name='deductible'
                     incrementBy={500}
                     min={1000}
-                    // max={maxDeductible}
                     valueFormatter={(val: number | undefined) => {
                       if (!val) return;
                       return dollarFormat(val);
@@ -621,41 +670,38 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                     <LoadingButton
                       size='small'
                       variant='outlined'
-                      onClick={() => rerate(values)}
-                      loading={rerateLoading}
-                      // disabled={
-                      //   !(
-                      //     values.state &&
-                      //     values.limitA &&
-                      //     values.ratingPropertyData.replacementCost
-                      //   )
-                      // }
-                      startIcon={<CalculateRounded />}
-                    >
-                      Re-rate
-                    </LoadingButton>
-                    <LoadingButton
-                      size='small'
-                      variant='outlined'
-                      onClick={() => calcPremium(values)}
-                      loading={calcLoading}
+                      onClick={() => handleRecalc(values)}
+                      loading={calcLoading || rerateLoading}
                       disabled={
+                        !(ratingState.recalcRequired || ratingState.rerateRequired) ||
                         !(
                           values.state &&
                           values.limitA &&
+                          (values.limitB || values.limitB === 0) &&
+                          (values.limitC || values.limitC === 0) &&
+                          (values.limitD || values.limitD === 0) &&
+                          values.latitude &&
+                          values.longitude &&
+                          values.deductible &&
+                          values.ratingPropertyData.basement &&
+                          values.ratingPropertyData.numStories &&
                           values.ratingPropertyData.replacementCost
                         )
                       }
                       startIcon={<CalculateRounded />}
                     >
-                      Calc Annual Premium
+                      Rate & Calc Premium
                     </LoadingButton>
                     <LoadingButton
                       size='small'
                       variant='outlined'
                       onClick={() => fetchTaxes(values)}
                       loading={taxesLoading}
-                      disabled={!(values.state && values.annualPremium)}
+                      disabled={
+                        !(values.state && values.annualPremium) ||
+                        ratingState.recalcRequired ||
+                        ratingState.rerateRequired
+                      }
                       startIcon={<DownloadRounded />}
                     >
                       Fetch taxes
@@ -859,7 +905,7 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                     { label: 'No', value: 'no' },
                     { label: 'Unknown', value: 'unknown' },
                     { label: 'Finished', value: 'finished' },
-                    { label: 'Unfinished Basement', value: 'unfinished basement' },
+                    { label: 'Unfinished', value: 'unfinished' },
                   ]}
                 />
               </Grid>
@@ -1042,8 +1088,8 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
 
 function getRatingInputsFromSubmission(subData?: Submission) {
   return {
-    lat: subData?.latitude,
-    lng: subData?.longitude,
+    latitude: subData?.latitude,
+    longitude: subData?.longitude,
     replacementCost: subData?.replacementCost,
     limitA: subData?.limitA,
     limitB: subData?.limitB,
@@ -1059,24 +1105,24 @@ function getRatingInputsFromSubmission(subData?: Submission) {
   };
 }
 
-// TODO: pass annual premium to initialize rerateRequired ??
 // TODO: combine with formik errors to display on hover
 
 function Diff({
   ratingInputsPrev,
   rerateFields,
-  initialRerateRequired,
   checkFields,
+  ratingState: { rerateRequired, recalcRequired },
+  setRatingState,
 }: {
   ratingInputsPrev: any;
   rerateFields: string[];
-  initialRerateRequired: boolean;
+  ratingState: { rerateRequired: boolean; recalcRequired: boolean };
+  setRatingState: (newVals: { rerateRequired: boolean; recalcRequired: boolean }) => void;
   checkFields?: string[];
 }) {
   const { values } = useFormikContext<NewQuoteValues>();
   const dialog = useJsonDialog();
   const [getDiff, diff, isDiff] = useGetDiff(checkFields);
-  const [rerateRequired, setRerateRequired] = useState<boolean>(initialRerateRequired);
 
   const {
     latitude,
@@ -1118,22 +1164,26 @@ function Diff({
   }, [getDiff, ratingInputsPrev, ratingInputsCurr]);
 
   useEffect(() => {
-    if (isEmpty(diff)) return setRerateRequired(false);
-
+    if (isEmpty(diff)) return setRatingState({ rerateRequired: false, recalcRequired: false });
     const shouldRerate = rerateFields.some((key) => {
       return diff[key];
     });
-    setRerateRequired(shouldRerate);
-  }, [diff, rerateFields]);
-
-  useEffect(() => {
-    console.log('IS DIFF | RE-RATE: ', isDiff, rerateRequired);
-  }, [isDiff, rerateRequired]);
+    setRatingState({ rerateRequired: shouldRerate, recalcRequired: isDiff });
+  }, [diff, isDiff, rerateFields, setRatingState]);
 
   const handleClick = useCallback(() => {
     if (!diff) return;
     dialog(diff, 'Rating Inputs Diff');
   }, [dialog, diff]);
+
+  const stateIcon =
+    !rerateRequired && !recalcRequired ? (
+      <CheckCircleOutlineRounded fontSize='small' color='success' sx={{ mx: 2 }} />
+    ) : rerateRequired ? (
+      <CalculateRounded fontSize='small' color='warning' sx={{ mx: 2 }} onClick={handleClick} />
+    ) : (
+      <CalculateOutlined fontSize='small' color='info' sx={{ mx: 2 }} onClick={handleClick} />
+    );
 
   return (
     <>
@@ -1141,10 +1191,10 @@ function Diff({
         title={
           <Box>
             <Typography variant='body2' fontWeight={500}>
-              {`AAL call required: ${rerateRequired === null ? 'no changes' : rerateRequired}`}
+              {`Rerate (AAL) required: ${rerateRequired === null ? 'no changes' : rerateRequired}`}
             </Typography>
             <Typography variant='body2' fontWeight={500}>
-              {`Prem. calc. required: ${isDiff}`}
+              {`Premium calc required: ${recalcRequired}`}
             </Typography>
             {isDiff && (
               <Typography variant='body2' component='div'>
@@ -1155,11 +1205,12 @@ function Diff({
         }
         placement='bottom'
       >
-        {isDiff ? (
+        {stateIcon}
+        {/* {isDiff ? (
           <CalculateRounded fontSize='small' color='warning' sx={{ mx: 2 }} onClick={handleClick} />
         ) : (
           <CheckCircleOutlineRounded fontSize='small' color='success' sx={{ mx: 2 }} />
-        )}
+        )} */}
       </Tooltip>
     </>
   );

@@ -11,7 +11,7 @@ export const useFetchTaxes = (
   const [currTaxes, setCurrTaxes] = useState<TaxItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const toast = useAsyncToast();
+  const toast = useAsyncToast({ position: 'bottom-center' });
 
   const fetchTaxes = useCallback(
     async (values: NewQuoteValues) => {
@@ -19,9 +19,8 @@ export const useFetchTaxes = (
       const { annualPremium, state, fees } = values;
 
       // TODO: validate all required fields are present
-      // TODO: set error if missing
-      if (!annualPremium) return toast.error('Term premium required');
-      if (!state) return toast.error('State required');
+      if (!annualPremium) throw new Error('Term premium required'); // return toast.error('Term premium required');
+      if (!state) throw new Error('state required'); // return toast.error('State required');
 
       const mgaObj = fees.find((f) => f.feeName === 'MGA Fee');
       const inspectionObj = fees.find((f) => f.feeName === 'Inspection Fee');
@@ -41,7 +40,7 @@ export const useFetchTaxes = (
 
       try {
         setLoading(true);
-        toast.loading('fetching taxes...');
+        // toast.loading('fetching taxes...');
 
         const { data } = await axios.post(
           `${process.env.REACT_APP_SUBMISSIONS_API}/state-tax`,
@@ -59,12 +58,10 @@ export const useFetchTaxes = (
             value: `${t.value || ''}`,
           }));
 
-          toast.success(
-            `${data.lineItems.length} tax${data.lineItems.length > 1 ? 'es' : ''} found`
-          );
+          toast.info(`${data.lineItems.length} tax${data.lineItems.length > 1 ? 'es' : ''} found`);
         }
         if (data && data.lineItems?.length === 0) {
-          toast.success(`No applicable taxes for ${state}`, { duration: 5000 });
+          toast.info(`No applicable taxes for ${state}`, { duration: 5000 });
         }
 
         setCurrTaxes(newTaxes);
@@ -77,7 +74,7 @@ export const useFetchTaxes = (
         let msg = 'An error occurred while fetching taxes';
         if (err.message) msg = err.message;
 
-        toast.error(msg);
+        // toast.error(msg);
         setLoading(false);
         setError(msg);
         if (onError) onError(msg, err);

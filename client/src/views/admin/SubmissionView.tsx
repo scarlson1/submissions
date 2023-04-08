@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { doc, getDoc, getFirestore, where } from 'firebase/firestore';
+import { doc, getDoc, getFirestore, orderBy, where } from 'firebase/firestore';
 import {
   Box,
   Button,
@@ -26,7 +26,10 @@ export const ShowRatingDialog = ({ id, btnProps }: { id: string; btnProps?: Butt
     fetchData,
     loading,
     data: ratingData,
-  } = useFetchFirestore<RatingData>(COLLECTIONS.RATING_DATA, [where('submissionId', '==', id)]);
+  } = useFetchFirestore<RatingData>(COLLECTIONS.RATING_DATA, [
+    where('submissionId', '==', id),
+    orderBy('metadata.created', 'desc'),
+  ]);
 
   const handleShowRatingDialog = useCallback(async () => {
     const data = ratingData ?? (await fetchData());
