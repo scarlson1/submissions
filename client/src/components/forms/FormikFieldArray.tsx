@@ -51,6 +51,7 @@ export interface FormikFieldArrayProps {
   errors: { [key: string]: any };
   touched: { [key: string]: any };
   dirty: boolean;
+  disabled?: boolean;
   isSubmitting?: boolean;
   isValidating?: boolean;
   setFieldValue: (field: string, value: any, shouldValidate?: boolean) => void;
@@ -86,6 +87,7 @@ export const FormikFieldArray: React.FC<FormikFieldArrayProps> = ({
   listContainerProps,
   children,
   errors,
+  disabled,
 }) => {
   const getNewRow = () => {
     let row: { [key: string]: string | { [key: string]: string } } = {};
@@ -155,6 +157,7 @@ export const FormikFieldArray: React.FC<FormikFieldArrayProps> = ({
                                   size={size}
                                   name={`${parentField}[${index}][${name}]`}
                                   inputProps={inputProps}
+                                  disabled={disabled}
                                   {...rest}
                                 />
                               </Grid>
@@ -171,6 +174,7 @@ export const FormikFieldArray: React.FC<FormikFieldArrayProps> = ({
                                   variant={variant}
                                   name={`${parentField}[${index}][${name}]`}
                                   selectOptions={selectOptions}
+                                  disabled={disabled}
                                   {...rest}
                                 />
                               </Grid>
@@ -187,6 +191,7 @@ export const FormikFieldArray: React.FC<FormikFieldArrayProps> = ({
                                   name={`${parentField}[${index}][${name}]`}
                                   maskComponent={PhoneMask}
                                   inputProps={inputProps}
+                                  disabled={disabled}
                                   {...rest}
                                 />
                               </Grid>
@@ -203,6 +208,7 @@ export const FormikFieldArray: React.FC<FormikFieldArrayProps> = ({
                                   name={`${parentField}[${index}][${name}]`}
                                   maskComponent={maskComponent || PhoneMask}
                                   inputProps={inputProps}
+                                  disabled={disabled}
                                   {...rest}
                                 />
                               </Grid>
@@ -219,6 +225,7 @@ export const FormikFieldArray: React.FC<FormikFieldArrayProps> = ({
                                   name={`${parentField}[${index}][${name}]`}
                                   decimalScale={2}
                                   inputProps={inputProps}
+                                  disabled={disabled}
                                   {...rest}
                                 />
                               </Grid>
@@ -260,7 +267,7 @@ export const FormikFieldArray: React.FC<FormikFieldArrayProps> = ({
                         color='secondary'
                         onClick={() => remove(index)}
                         // disabled={values[parentField].length === 1 || isValidating || isSubmitting}
-                        disabled={isValidating || isSubmitting}
+                        disabled={isValidating || isSubmitting || disabled}
                         sx={{ maxHeight: 40 }}
                       >
                         <RemoveCircleOutlineRounded fontSize='inherit' />
@@ -291,7 +298,7 @@ export const FormikFieldArray: React.FC<FormikFieldArrayProps> = ({
                     <Button
                       aria-label='add'
                       onClick={() => push(getNewRow())}
-                      disabled={!arrayValid || isValidating || isSubmitting}
+                      disabled={!arrayValid || isValidating || isSubmitting || disabled}
                       variant='contained'
                       {...addButtonProps}
                     >
@@ -305,7 +312,7 @@ export const FormikFieldArray: React.FC<FormikFieldArrayProps> = ({
               <Button
                 aria-label='add'
                 onClick={() => push(getNewRow())}
-                disabled={!arrayValid || isValidating || isSubmitting}
+                disabled={!arrayValid || isValidating || isSubmitting || disabled}
                 variant='contained'
                 {...addButtonProps}
               >

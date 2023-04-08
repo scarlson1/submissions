@@ -138,9 +138,7 @@ export const calcQuote = functions.https.onCall(async (data, context) => {
       basement,
       ffe: 0,
       priorLossCount,
-      premiumData: {
-        ...result.premiumData,
-      },
+      premiumData: result.premiumData,
       metadata: {
         created: Timestamp.now(),
         updated: Timestamp.now(),

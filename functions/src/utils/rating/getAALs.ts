@@ -3,12 +3,12 @@ import invariant from 'tiny-invariant';
 // import isLatLong from 'validator/es/lib/isLatLong';
 // import validator from 'validator';
 
-import { calcSum, isLatLng } from '../../common';
+import { SRRes, calcSum, isLatLng } from '../../common';
 import { getSwissReInstance } from '../../services';
 import { getRCVs } from './getRCVs.js';
 import { swissReBody } from './swissReBody.js';
 
-interface GetAALsProps {
+export interface GetAALsProps {
   srClientId: string;
   srClientSecret: string;
   srSubKey: string;
@@ -23,7 +23,13 @@ interface GetAALsProps {
   numStories: number;
 }
 
-export const getAALs = async (props: GetAALsProps) => {
+interface GetAALRes {
+  inlandAAL: number;
+  surgeAAL: number;
+  srRes: SRRes;
+}
+
+export const getAALs = async (props: GetAALsProps): Promise<GetAALRes> => {
   const {
     srClientId,
     srClientSecret,
@@ -81,7 +87,7 @@ export const getAALs = async (props: GetAALsProps) => {
 
   console.log(`AAL: ${JSON.stringify(AALs)}`);
 
-  return AALs;
+  return { srRes, inlandAAL: AALs.inlandAAL, surgeAAL: AALs.surgeAAL };
 };
 
 export const validateGetAALsProps = (props: Partial<GetAALsProps>) => {

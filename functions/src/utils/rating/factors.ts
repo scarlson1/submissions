@@ -131,10 +131,6 @@ export function getSecondaryFactorMults(props: SecondaryModifiersProps) {
     console.log('FAILED HISTORY TEST. ALLOWING BYPASS WITH MULTPLE = 1.5');
     history.inland = 1.5;
     history.surge = 1.5;
-    // return {
-    //   inland: null,
-    //   surge: null,
-    // };
   }
 
   let inlandSecondaryMult = calcSecondaryMult(history.inland, ffeMult.inland, basementMult);
@@ -143,5 +139,14 @@ export function getSecondaryFactorMults(props: SecondaryModifiersProps) {
   return {
     inland: inlandSecondaryMult,
     surge: surgeSecondaryMult,
+    secondaryFactorMultsByFactor: {
+      ffeMult,
+      basementMult,
+      historyMult: history,
+      contentsMult: CONTENTS_RCV_MULT,
+      ordinanceMult: ORDINANCE_MULT,
+      distanceToCoastMult: DISTANCE_TO_COAST_MULT,
+      tier1Mult: TIER_1_MULT,
+    },
   };
 }

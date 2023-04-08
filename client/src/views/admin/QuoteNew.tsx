@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useRef, useState, useEffect } from 'react';
 import {
+  Badge,
   Box,
-  Button,
   // Chip,
   Divider,
   IconButton,
@@ -17,15 +17,12 @@ import {
   CalculateOutlined,
   CalculateRounded,
   CheckCircleOutlineRounded,
-  // Done,
   DownloadRounded,
   PolicyRounded,
-  // WarningAmberRounded,
 } from '@mui/icons-material';
 import * as yup from 'yup';
 import { add } from 'date-fns';
 import { isEmpty, round } from 'lodash';
-import { getFunctions } from 'firebase/functions';
 import { doc, getFirestore, updateDoc } from 'firebase/firestore';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -48,6 +45,7 @@ import {
   extractRatingInputsFromValues,
   useActiveStates,
   useAsyncToast,
+  useCalcPremium,
   useCreateQuote,
   useDocDataOnce,
   useFetchTaxes,
@@ -65,84 +63,10 @@ import {
   SUBMISSION_STATUS,
   TaxItem,
 } from 'common';
-import { calcQuote } from 'modules/api';
 import { ShowRatingDialog } from './SubmissionView';
 
 // TODO: hover chip to show errors
 // TODO: standardize fee type names in enum
-
-const useCalcPremium = (
-  // submissionData: Submission | null,
-  onSuccess?: (newPremium: number, ratingInputs: any) => void,
-  onError?: (msg: string, err: any) => void,
-  submissionId?: string | null
-) => {
-  const [loading, setLoading] = useState(false);
-
-  const calcPremium = useCallback(
-    async (values: NewQuoteValues) => {
-      try {
-        setLoading(true);
-        if (!values) throw new Error('missing values');
-
-        const {
-          ratingPropertyData: { replacementCost },
-          AAL: { inland, surge },
-        } = values;
-
-        if (!(replacementCost && (inland || inland === 0) && (surge || surge === 0)))
-          throw new Error('Missing replacement cost or aal');
-
-        // aals
-        let reqBody = {
-          limitA: values.limitA,
-          limitB: values.limitB,
-          limitC: values.limitC,
-          limitD: values.limitD,
-          inlandAAL: inland,
-          surgeAAL: surge,
-          replacementCost,
-          deductible: values.deductible,
-          state: values.state,
-          priorLossCount: values.priorLossCount,
-          floodZone: values.ratingPropertyData.floodZone ?? 'D',
-          basement: values.ratingPropertyData.basement ?? undefined,
-          commissionPct:
-            typeof values.subproducerCommission === 'string'
-              ? parseFloat(values.subproducerCommission)
-              : values.subproducerCommission,
-        };
-        console.log('REQUEST BODY: ', reqBody);
-
-        const { data } = await calcQuote(getFunctions(), { ...reqBody, submissionId });
-
-        console.log('RES: ', data);
-        if (!data.annualPremium || typeof data.annualPremium !== 'number')
-          throw new Error('Missing premium in response');
-
-        if (onSuccess)
-          onSuccess(data.annualPremium, {
-            ...reqBody,
-            latitude: values.latitude,
-            longitude: values.longitude,
-          });
-        setLoading(false);
-        return data.annualPremium;
-      } catch (err: any) {
-        console.log('ERROR: ', err);
-        let msg = 'Error calculating premium. See console.';
-        if (err?.message) msg = err.message;
-
-        if (onError) onError(msg, err);
-        setLoading(false);
-        return null;
-      }
-    },
-    [onSuccess, onError, submissionId]
-  );
-
-  return { calcPremium, loading };
-};
 
 const gridProps = {
   columnSpacing: { xs: 3, sm: 4, md: 6 },
@@ -522,20 +446,6 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                 <Typography variant='subtitle2'>{`${
                   values.quoteTotal ? dollarFormat(values.quoteTotal) : '--'
                 }`}</Typography>
-                {/* <Chip
-                  label={values.quoteTotal && values.quoteTotal > 100 ? 'valid' : 'invalid'}
-                  color={values.quoteTotal && values.quoteTotal > 100 ? 'success' : 'warning'}
-                  size='small'
-                  variant='outlined'
-                  icon={
-                    values.quoteTotal && values.quoteTotal > 100 ? (
-                      <Done />
-                    ) : (
-                      <WarningAmberRounded />
-                    )
-                  }
-                  sx={{ mx: 2 }}
-                /> */}
                 <Diff
                   ratingInputsPrev={ratingInputsSnap}
                   rerateFields={[
@@ -598,14 +508,14 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                   Limits
                 </Typography>
               </Grid>
-              <Grid xs={12} sm={12} md={8} lg={10}>
+              <Grid xs={12}>
                 <LimitsStep
                   inputProps={{ variant: 'outlined' }}
                   gridProps={{
                     ...gridProps,
                     sx: { px: 0 },
                   }}
-                  gridItemProps={{ xs: 6, sm: 6, lg: 3 }}
+                  gridItemProps={{ xs: 6, sm: 6, md: 3 }}
                   replacementCost={
                     typeof values.ratingPropertyData.replacementCost === 'string'
                       ? parseInt(values.ratingPropertyData.replacementCost) || 250000
@@ -673,222 +583,6 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                   </Stack>
                 </Box>
               </Grid>
-              <Grid xs={12}>
-                <Divider sx={{ my: 3 }} />
-                <Box
-                  sx={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    flexWrap: 'wrap',
-                  }}
-                >
-                  <Typography
-                    variant='overline'
-                    color='text.secondary'
-                    sx={{ pl: 4, lineHeight: 1.4 }}
-                  >
-                    Taxes & Fees & Premium
-                  </Typography>
-                  <Stack
-                    direction={{ xs: 'column', sm: 'row' }}
-                    spacing={2}
-                    sx={{ mt: { xs: 3, sm: 0 } }}
-                  >
-                    <LoadingButton
-                      size='small'
-                      variant='outlined'
-                      onClick={() => handleRecalc(values)}
-                      loading={calcLoading || rerateLoading}
-                      disabled={
-                        !(ratingState.recalcRequired || ratingState.rerateRequired) ||
-                        !(
-                          values.state &&
-                          values.limitA &&
-                          (values.limitB || values.limitB === 0) &&
-                          (values.limitC || values.limitC === 0) &&
-                          (values.limitD || values.limitD === 0) &&
-                          values.latitude &&
-                          values.longitude &&
-                          values.deductible &&
-                          values.ratingPropertyData.basement &&
-                          values.ratingPropertyData.numStories &&
-                          values.ratingPropertyData.replacementCost
-                        )
-                      }
-                      startIcon={<CalculateRounded />}
-                    >
-                      Rate & Calc Premium
-                    </LoadingButton>
-                    <LoadingButton
-                      size='small'
-                      variant='outlined'
-                      onClick={() => fetchTaxes(values)}
-                      loading={taxesLoading}
-                      disabled={
-                        !(values.state && values.annualPremium) ||
-                        ratingState.recalcRequired ||
-                        ratingState.rerateRequired
-                      }
-                      startIcon={<DownloadRounded />}
-                    >
-                      Fetch taxes
-                    </LoadingButton>
-                    {submissionId && (
-                      <ShowRatingDialog
-                        id={submissionId}
-                        btnProps={{ size: 'small', variant: 'outlined' }}
-                      />
-                    )}
-                  </Stack>
-                </Box>
-              </Grid>
-              <Grid xs={12}>
-                <Typography variant='body2' color='text.secondary'>
-                  Guide:{' '}
-                </Typography>
-                <Typography variant='body2' color='text.secondary'>
-                  1) Make changes to rating / premium inputs
-                </Typography>
-                <Typography variant='body2' color='text.secondary'>
-                  2) Fees & commission (add manually)
-                </Typography>
-                <Typography variant='body2' color='text.secondary'>
-                  2.5) Hover icon at the top-center to see diff summary
-                </Typography>
-                <Typography variant='body2' color='text.secondary'>
-                  3) Click "rate and calc premium" button if changes were made
-                </Typography>
-                <Typography variant='body2' color='text.secondary'>
-                  4) taxes should automatically populate after premium is returned
-                </Typography>
-                <Typography variant='body2' color='text.secondary'>
-                  Taxes and calc total are dependent on premium, fees and commission. Must repeat 3
-                  & 4, if changed. Must repeat all steps if changing commission or other rating
-                  data. Currently not watching fees to force recalc.
-                </Typography>
-              </Grid>
-              <Grid xs={12} sm={4} md={3}>
-                <FormikNativeSelect
-                  name='subproducerCommission'
-                  label='Subproducer Commission'
-                  selectOptions={commOptions}
-                  sx={{ mt: 3 }}
-                />
-              </Grid>
-              <Grid xs={12} md={3}>
-                <FormikDollarMaskField
-                  name='annualPremium'
-                  label='Annual Premium'
-                  decimalScale={2}
-                  sx={{ mt: 3 }}
-                  fullWidth
-                  helperText='before taxes & fees'
-                />
-              </Grid>
-              <Grid xs></Grid>
-              <Grid xs={12} sm={8} md={6}>
-                <Box sx={{ maxWidth: 600 }}>
-                  <FormikFieldArray
-                    parentField='fees'
-                    inputFields={[
-                      {
-                        name: 'feeName',
-                        label: 'Fee Name',
-                        required: false,
-                        inputType: 'select',
-                        selectOptions: [
-                          {
-                            label: 'Inspection Fee',
-                            value: 'Inspection Fee',
-                          },
-                          { label: 'MGA Fee', value: 'MGA Fee' },
-                          { label: 'Stamping Fee', value: 'Stamping Fee' },
-                          { label: 'Surplus Lines Fee', value: 'Surplus Lines Fee' },
-                        ],
-                        gridProps: { xs: 6 },
-                      },
-                      {
-                        name: 'feeValue',
-                        label: 'Fee Value',
-                        required: false,
-                        inputType: 'dollar',
-                        gridProps: { xs: 6 },
-                      },
-                    ]}
-                    values={values}
-                    errors={errors}
-                    touched={touched}
-                    dirty={dirty}
-                    setFieldValue={setFieldValue}
-                    setFieldError={setFieldError}
-                    setFieldTouched={setFieldTouched}
-                    gridProps={{ sx: { px: 0 } }}
-                    addButtonText='Add Fee'
-                  />
-                </Box>
-              </Grid>
-              <Grid xs={12} sm={8} md={6}>
-                <Box sx={{ maxWidth: 600 }}>
-                  <FormikFieldArray
-                    parentField='taxes'
-                    inputFields={[
-                      {
-                        name: 'displayName',
-                        label: 'Tax Display Name',
-                        required: false,
-                        inputType: 'text',
-                      },
-                      {
-                        name: 'rate',
-                        label: 'Tax Rate',
-                        required: false,
-                        inputType: 'mask',
-                        maskComponent: PercentMask,
-                        inputProps: { maskProps: { scale: 5 } },
-                      },
-                      {
-                        name: 'value',
-                        label: 'Tax Amount',
-                        required: false,
-                        inputType: 'dollar',
-                      },
-                    ]}
-                    values={values}
-                    errors={errors}
-                    touched={touched}
-                    dirty={dirty}
-                    setFieldValue={setFieldValue}
-                    setFieldError={setFieldError}
-                    setFieldTouched={setFieldTouched}
-                    gridProps={{ sx: { px: 0 } }}
-                    addButtonText='Add Tax'
-                  />
-                </Box>
-              </Grid>
-              <Grid xs={12} md={3}>
-                <FormikDollarMaskField
-                  name='quoteTotal'
-                  label='Quote Total'
-                  decimalScale={2}
-                  sx={{ mt: 3 }}
-                  fullWidth
-                  InputProps={{
-                    endAdornment: (
-                      <InputAdornment position='end'>
-                        <Tooltip title='calc quote' placement='top'>
-                          <IconButton
-                            color='primary'
-                            aria-label='Calculate Total'
-                            onClick={calcTotal}
-                          >
-                            <CalculateRounded />
-                          </IconButton>
-                        </Tooltip>
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-              </Grid>
 
               <Grid xs={12}>
                 <Divider sx={{ my: 3 }} />
@@ -940,7 +634,6 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                   ]}
                 />
               </Grid>
-
               <Grid xs={6} sm={4} md={3} lg={2}>
                 <FormikNativeSelect
                   fullWidth
@@ -1073,6 +766,274 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
 
               <Grid xs={12}>
                 <Divider sx={{ my: 3 }} />
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    flexWrap: 'wrap',
+                  }}
+                >
+                  <Typography
+                    variant='overline'
+                    color='text.secondary'
+                    sx={{ pl: 4, lineHeight: 1.4 }}
+                  >
+                    Taxes & Fees & Premium
+                  </Typography>
+                  <Stack
+                    direction={{ xs: 'column', sm: 'row' }}
+                    spacing={2}
+                    sx={{ mt: { xs: 3, sm: 0 } }}
+                  >
+                    <Badge
+                      anchorOrigin={{
+                        vertical: 'top',
+                        horizontal: 'left',
+                      }}
+                      badgeContent={3}
+                      color='secondary'
+                    >
+                      <LoadingButton
+                        size='small'
+                        variant='outlined'
+                        onClick={() => handleRecalc(values)}
+                        loading={calcLoading || rerateLoading}
+                        disabled={
+                          !(ratingState.recalcRequired || ratingState.rerateRequired) ||
+                          !(
+                            values.state &&
+                            values.limitA &&
+                            (values.limitB || values.limitB === 0) &&
+                            (values.limitC || values.limitC === 0) &&
+                            (values.limitD || values.limitD === 0) &&
+                            values.latitude &&
+                            values.longitude &&
+                            values.deductible &&
+                            values.ratingPropertyData.basement &&
+                            values.ratingPropertyData.numStories &&
+                            values.ratingPropertyData.replacementCost
+                          )
+                        }
+                        startIcon={<CalculateRounded />}
+                      >
+                        Rate & Calc Premium
+                      </LoadingButton>
+                    </Badge>
+                    <Badge
+                      anchorOrigin={{
+                        vertical: 'top',
+                        horizontal: 'left',
+                      }}
+                      badgeContent={4}
+                      color='secondary'
+                    >
+                      <LoadingButton
+                        size='small'
+                        variant='outlined'
+                        onClick={() => fetchTaxes(values)}
+                        loading={taxesLoading}
+                        disabled={
+                          !(values.state && values.annualPremium) ||
+                          ratingState.recalcRequired ||
+                          ratingState.rerateRequired
+                        }
+                        startIcon={<DownloadRounded />}
+                      >
+                        Fetch taxes
+                      </LoadingButton>
+                    </Badge>
+
+                    {submissionId && (
+                      <ShowRatingDialog
+                        id={submissionId}
+                        btnProps={{ size: 'small', variant: 'outlined' }}
+                      />
+                    )}
+                  </Stack>
+                </Box>
+              </Grid>
+              <Grid xs={12} md={6}>
+                <Typography variant='body2' color='text.secondary'>
+                  Guide:{' '}
+                </Typography>
+                <Typography variant='body2' color='text.secondary'>
+                  1) Make changes to rating / premium inputs
+                </Typography>
+                <Typography variant='body2' color='text.secondary'>
+                  2) Fees & commission (add manually)
+                </Typography>
+                <Typography variant='body2' color='text.secondary'>
+                  2.5) Hover icon at the top-center to see diff summary
+                </Typography>
+                <Typography variant='body2' color='text.secondary'>
+                  3) Click "rate and calc premium" button if changes were made
+                </Typography>
+                <Typography variant='body2' color='text.secondary'>
+                  4) taxes should automatically populate after premium is returned (shouldn't need
+                  to click "get taxes" button)
+                </Typography>
+                <Typography variant='body2' color='text.secondary' sx={{ py: 2 }}>
+                  Taxes and calc total are dependent on premium, fees and commission. Must repeat 3
+                  & 4, if changed. Must repeat all steps if changing commission or other rating
+                  data. Currently not watching fees to force recalc.
+                </Typography>
+              </Grid>
+              <Grid xs={12} sm={4} md={3}>
+                <Badge
+                  anchorOrigin={{
+                    vertical: 'top',
+                    horizontal: 'left',
+                  }}
+                  badgeContent={2}
+                  color='secondary'
+                  sx={{ width: '100%' }}
+                >
+                  <FormikNativeSelect
+                    name='subproducerCommission'
+                    label='Subproducer Commission'
+                    selectOptions={commOptions}
+                    sx={{ mt: 3 }}
+                  />
+                </Badge>
+              </Grid>
+              <Grid xs={12} md={3}>
+                <FormikDollarMaskField
+                  name='annualPremium'
+                  label='Annual Premium'
+                  decimalScale={2}
+                  sx={{ mt: 3 }}
+                  fullWidth
+                  helperText='before taxes & fees'
+                />
+              </Grid>
+              {/* <Grid xs></Grid> */}
+              <Grid xs={12} sm={8} md={6}>
+                <Box sx={{ maxWidth: 600 }}>
+                  <Badge
+                    anchorOrigin={{
+                      vertical: 'top',
+                      horizontal: 'left',
+                    }}
+                    badgeContent={1}
+                    color='secondary'
+                    sx={{ width: '100%' }}
+                  >
+                    <FormikFieldArray
+                      parentField='fees'
+                      inputFields={[
+                        {
+                          name: 'feeName',
+                          label: 'Fee Name',
+                          required: false,
+                          inputType: 'select',
+                          selectOptions: [
+                            {
+                              label: 'Inspection Fee',
+                              value: 'Inspection Fee',
+                            },
+                            { label: 'MGA Fee', value: 'MGA Fee' },
+                            { label: 'Stamping Fee', value: 'Stamping Fee' },
+                            { label: 'Surplus Lines Fee', value: 'Surplus Lines Fee' },
+                          ],
+                          gridProps: { xs: 6 },
+                        },
+                        {
+                          name: 'feeValue',
+                          label: 'Fee Value',
+                          required: false,
+                          inputType: 'dollar',
+                          gridProps: { xs: 6 },
+                        },
+                      ]}
+                      values={values}
+                      errors={errors}
+                      touched={touched}
+                      dirty={dirty}
+                      setFieldValue={setFieldValue}
+                      setFieldError={setFieldError}
+                      setFieldTouched={setFieldTouched}
+                      gridProps={{ sx: { px: 0 } }}
+                      addButtonText='Add Fee'
+                    />
+                  </Badge>
+                </Box>
+              </Grid>
+              <Grid xs={12} sm={8} md={6}>
+                <Box sx={{ maxWidth: 600 }}>
+                  <FormikFieldArray
+                    parentField='taxes'
+                    inputFields={[
+                      {
+                        name: 'displayName',
+                        label: 'Tax Display Name',
+                        required: false,
+                        inputType: 'text',
+                      },
+                      {
+                        name: 'rate',
+                        label: 'Tax Rate',
+                        required: false,
+                        inputType: 'mask',
+                        maskComponent: PercentMask,
+                        inputProps: { maskProps: { scale: 5 } },
+                      },
+                      {
+                        name: 'value',
+                        label: 'Tax Amount',
+                        required: false,
+                        inputType: 'dollar',
+                      },
+                    ]}
+                    values={values}
+                    errors={errors}
+                    touched={touched}
+                    dirty={dirty}
+                    disabled={taxesLoading}
+                    setFieldValue={setFieldValue}
+                    setFieldError={setFieldError}
+                    setFieldTouched={setFieldTouched}
+                    gridProps={{ sx: { px: 0 } }}
+                    addButtonText='Add Tax'
+                  />
+                </Box>
+              </Grid>
+              <Grid xs={12} md={3}>
+                <FormikDollarMaskField
+                  name='quoteTotal'
+                  label='Quote Total'
+                  decimalScale={2}
+                  sx={{ mt: 3 }}
+                  fullWidth
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position='end'>
+                        <Tooltip title='calc quote' placement='top'>
+                          <Badge
+                            anchorOrigin={{
+                              vertical: 'top',
+                              horizontal: 'left',
+                            }}
+                            badgeContent={5}
+                            color='secondary'
+                            sx={{ width: '100%' }}
+                          >
+                            <IconButton
+                              color='primary'
+                              aria-label='Calculate Total'
+                              onClick={calcTotal}
+                            >
+                              <CalculateRounded />
+                            </IconButton>
+                          </Badge>
+                        </Tooltip>
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Grid>
+
+              <Grid xs={12}>
+                <Divider sx={{ my: 3 }} />
                 <Typography
                   variant='overline'
                   color='text.secondary'
@@ -1108,7 +1069,7 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                 >
                   Agent & Agency
                 </Typography>
-                <Button
+                {/* <Button
                   variant='outlined'
                   size='small'
                   onClick={() =>
@@ -1127,15 +1088,15 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                   sx={{ ml: 4 }}
                 >
                   Find agency
-                </Button>
+                </Button> */}
               </Grid>
-              <Grid xs={6} sm={4}>
+              <Grid xs={6} sm={3}>
                 <FormikTextField name='agentName' label='Agent name' fullWidth />
               </Grid>
-              <Grid xs={6} sm={4}>
+              <Grid xs={6} sm={3}>
                 <FormikTextField name='agentEmail' label='Agent email' fullWidth />
               </Grid>
-              <Grid xs={6} sm={4}>
+              <Grid xs={6} sm={3}>
                 <FormikMaskField
                   fullWidth
                   id='agentPhone'
@@ -1144,11 +1105,14 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                   maskComponent={PhoneMask}
                 />
               </Grid>
+              <Grid xs={6} sm={3}>
+                <FormikTextField name='agentId' label='Agent ID' fullWidth />
+              </Grid>
               <Grid xs={12}></Grid>
-              <Grid xs={6} sm={4}>
+              <Grid xs={6} sm={3}>
                 <FormikTextField name='agencyName' label='Agency Name' fullWidth />
               </Grid>
-              <Grid xs={6} sm={4}>
+              <Grid xs={6} sm={3}>
                 <FormikTextField name='agencyId' label='Agency ID' fullWidth />
               </Grid>
             </Grid>
@@ -1271,6 +1235,7 @@ function Diff({
             </Typography>
             {isDiff && (
               <Typography variant='body2' component='div'>
+                <Divider sx={{ my: 2 }} />
                 <pre>{JSON.stringify(diff, null, 2)}</pre>
               </Typography>
             )}
@@ -1323,7 +1288,7 @@ export const QuoteNewFromSub = () => {
       insuredLastName: submissionData?.lastName ?? '',
       insuredEmail: submissionData?.email ?? '',
       insuredPhone: '',
-      agentId: submissionData?.agentId || null,
+      agentId: submissionData?.agentId || '',
       agentEmail: '', // TODO: decide whether to add agency / agent data with submission or query later
       agentName: '',
       agentPhone: '',

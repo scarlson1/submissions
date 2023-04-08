@@ -2,15 +2,14 @@ import * as functions from 'firebase-functions';
 import { defineSecret } from 'firebase-functions/params';
 import invariant from 'tiny-invariant';
 
-import { CLAIMS } from '../common';
+import { CLAIMS, COLLECTIONS } from '../common';
 import { getAALs, validateGetAALsProps } from '../utils/rating';
-import { getPremium } from '../utils/rating/getPremium';
+import { getPremium } from '../utils/rating';
+import { GeoPoint, Timestamp, getFirestore } from 'firebase-admin/firestore';
 
 const swissReClientId = defineSecret('SWISS_RE_CLIENT_ID');
 const swissReClientSecret = defineSecret('SWISS_RE_CLIENT_SECRET');
 const swissReSubscriptionKey = defineSecret('SWISS_RE_SUBSCRIPTION_KEY');
-
-// TODO: calc rcv from limits
 
 interface GetAnnualPremiumRequest {
   latitude: number;
@@ -23,17 +22,17 @@ interface GetAnnualPremiumRequest {
   deductible: number;
   numStories: number;
   priorLossCount: string;
-  submissionId?: string | null;
   state: string;
   floodZone?: string;
   basement?: string;
   commissionPct?: number;
+  submissionId?: string | null;
 }
 
 export const getAnnualPremium = functions
   .runWith({ secrets: [swissReClientId, swissReClientSecret, swissReSubscriptionKey] })
   .https.onCall(async (data: GetAnnualPremiumRequest, context) => {
-    // const db = getFirestore();
+    const db = getFirestore();
     const { auth } = context;
     console.log('GET ANNUAL PREMIUM CALLED', data);
 
@@ -67,7 +66,9 @@ export const getAnnualPremium = functions
       state,
       basement = 'unknown',
       commissionPct = 0.15,
+      submissionId,
     } = data;
+
     try {
       // VALIDATE SWISS RE PROPS
       validateGetAALsProps(data);
@@ -112,13 +113,14 @@ export const getAnnualPremium = functions
       throw new functions.https.HttpsError('internal', 'Error fetching Average Anuual Loss');
     }
 
-    // TODO: abstrct to one function to do rating
+    const { inlandAAL, surgeAAL } = AALs;
+    let result;
+
     try {
-      const { inlandAAL, surgeAAL } = AALs;
       invariant(typeof inlandAAL === 'number');
       invariant(typeof surgeAAL === 'number');
 
-      const result = getPremium({
+      result = getPremium({
         inlandAAL,
         surgeAAL,
         limitA,
@@ -145,15 +147,56 @@ export const getAnnualPremium = functions
         premiumData.directWrittenPremium < 100
       )
         throw new Error('Error calculating premium');
-
-      return {
-        annualPremium: premiumData.directWrittenPremium,
-        inlandAAL,
-        surgeAAL,
-      };
     } catch (err) {
       throw new functions.https.HttpsError('internal', 'Error calculating annual premium');
     }
+
+    try {
+      await db.collection(COLLECTIONS.RATING_DATA).add({
+        submissionId: submissionId || null,
+        deductible: deductible,
+        limits: {
+          limitA,
+          limitB,
+          limitC,
+          limitD,
+        },
+        tiv: result.tiv,
+        replacementCost,
+        aal: {
+          inland: inlandAAL,
+          surge: surgeAAL,
+        },
+        pm: result.pm,
+        riskScore: result.riskScore,
+        stateMultipliers: result.stateMultipliers,
+        secondaryFactorMults: result.secondaryFactorMults,
+        floodZone,
+        basement,
+        ffe: 0,
+        numStories,
+        // sqFootage,
+        // distToCoast: 1000000,
+        // propertyCode: sub.propertyCode,
+        // yearBuilt: sub.yearBuilt,
+        // CBRSDesignation: sub.CBRSDesignation,
+        priorLossCount,
+        premiumData: result.premiumData,
+        coordinates: new GeoPoint(latitude, longitude),
+        metadata: {
+          created: Timestamp.now(),
+          updated: Timestamp.now(),
+        },
+      });
+    } catch (err) {
+      console.log('ERROR SAVING RATING DOC: ', err);
+    }
+
+    return {
+      annualPremium: result.premiumData.directWrittenPremium,
+      inlandAAL,
+      surgeAAL,
+    };
   });
 
 // import * as functions from 'firebase-functions';
