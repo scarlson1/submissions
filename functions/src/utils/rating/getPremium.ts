@@ -27,7 +27,7 @@ export const getPremium = (props: GetPremiumProps) => {
     limitB,
     limitC,
     limitD,
-    floodZone = 'D',
+    floodZone = 'X',
     state,
     basement = 'unknown',
     priorLossCount,

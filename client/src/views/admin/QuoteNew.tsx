@@ -778,7 +778,7 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                     color='text.secondary'
                     sx={{ pl: 4, lineHeight: 1.4 }}
                   >
-                    Taxes & Fees & Premium
+                    Taxes & Adjustments & Premium
                   </Typography>
                   <Stack
                     direction={{ xs: 'column', sm: 'row' }}
@@ -923,7 +923,7 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                       inputFields={[
                         {
                           name: 'feeName',
-                          label: 'Fee Name',
+                          label: 'Adj. Type',
                           required: false,
                           inputType: 'select',
                           selectOptions: [
@@ -932,17 +932,22 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                               value: 'Inspection Fee',
                             },
                             { label: 'MGA Fee', value: 'MGA Fee' },
-                            { label: 'Stamping Fee', value: 'Stamping Fee' },
-                            { label: 'Surplus Lines Fee', value: 'Surplus Lines Fee' },
+                            { label: 'UW Adjustment', value: 'uw_adjustment' },
                           ],
-                          gridProps: { xs: 6 },
+                          gridProps: { xs: 6, sm: 6, md: 6 },
+                          componentProps: {
+                            sx: { minWidth: 50 },
+                          },
                         },
                         {
                           name: 'feeValue',
-                          label: 'Fee Value',
+                          label: 'Value',
                           required: false,
                           inputType: 'dollar',
-                          gridProps: { xs: 6 },
+                          gridProps: { xs: 6, sm: 6, md: 6 },
+                          componentProps: {
+                            allowNegative: true,
+                          },
                         },
                       ]}
                       values={values}

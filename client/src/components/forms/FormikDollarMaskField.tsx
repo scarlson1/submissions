@@ -18,6 +18,7 @@ export const DollarMask = React.forwardRef<typeof NumericFormat<InputAttributes>
     return (
       <NumericFormat
         decimalScale={decimalScale}
+        allowNegative={false}
         {...other}
         getInputRef={ref}
         onValueChange={(values: any) => {
@@ -31,7 +32,6 @@ export const DollarMask = React.forwardRef<typeof NumericFormat<InputAttributes>
         }}
         thousandSeparator
         valueIsNumericString
-        allowNegative={false}
         allowLeadingZeros={false}
         prefix='$'
       />
@@ -39,7 +39,11 @@ export const DollarMask = React.forwardRef<typeof NumericFormat<InputAttributes>
   }
 );
 
-export type FormikDollarMaskFieldProps = TextFieldProps & { name: string; decimalScale?: number };
+export type FormikDollarMaskFieldProps = TextFieldProps & {
+  name: string;
+  decimalScale?: number;
+  allowNegative?: boolean;
+};
 
 export const FormikDollarMaskField: React.FC<FormikDollarMaskFieldProps> = ({
   name,
@@ -47,6 +51,7 @@ export const FormikDollarMaskField: React.FC<FormikDollarMaskFieldProps> = ({
   inputProps,
   // onBlur,
   decimalScale = 0,
+  allowNegative = false,
   ...rest
 }) => {
   const [field, meta] = useField(name);
@@ -63,6 +68,7 @@ export const FormikDollarMaskField: React.FC<FormikDollarMaskFieldProps> = ({
         inputProps: {
           ...inputProps,
           decimalScale,
+          allowNegative,
         },
         ...rest?.InputProps,
       }}

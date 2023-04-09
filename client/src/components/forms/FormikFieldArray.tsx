@@ -8,18 +8,19 @@ import {
   Divider,
   DividerProps,
   IconButton,
-  InputBaseComponentProps,
+  // InputBaseComponentProps,
 } from '@mui/material';
 import Grid, { Grid2Props } from '@mui/material/Unstable_Grid2';
 import { RemoveCircleOutlineRounded } from '@mui/icons-material';
 import { FieldArray } from 'formik'; // getIn
 
-import FormikTextField from './FormikTextField';
+import FormikTextField, { FormikTextFieldProps } from './FormikTextField';
 import FormikMaskField from './FormikMaskField';
 import PhoneMask from './PhoneMask';
-import FormikDollarMaskField from './FormikDollarMaskField';
-import { FormikNativeSelect } from './FormikNativeSelect';
-import { FormikAddressLite } from 'elements';
+import FormikDollarMaskField, { FormikDollarMaskFieldProps } from './FormikDollarMaskField';
+import { FormikNativeSelect, FormikNativeSelectProps } from './FormikNativeSelect';
+import { FormikAddressLite, FormikAddressLiteProps } from 'elements';
+import { FormikMaskFieldProps } from './FormikMaskField';
 
 // https://stackoverflow.com/questions/53958028/how-to-use-generics-in-props-in-react-in-a-functional-component
 
@@ -29,24 +30,77 @@ export interface SelectOption {
   label: string;
   value: string | number;
 }
-export interface InputSchema {
+
+export interface CommonFieldProps {
   name: string;
   label: string;
   required: boolean;
-  inputType: 'text' | 'select' | 'phone' | 'dollar' | 'address' | 'mask';
-  selectOptions?: SelectOption[];
+  // inputType: 'text' | 'select' | 'phone' | 'dollar' | 'address' | 'mask';
   variant?: 'standard' | 'outlined' | 'filled';
   size?: 'small' | 'medium';
   gridProps?: Grid2Props;
   propsGetterFunc?: (index: number, parentField: string, name: string) => any;
-  maskComponent?: ForwardRefExoticComponent<any>;
-  inputProps?: InputBaseComponentProps;
+  // inputProps?: InputBaseComponentProps;
   helperText?: string;
 }
 
+export interface TextTypeProps extends Omit<CommonFieldProps, 'inputProps' | 'variant'> {
+  inputType: 'text';
+  variant?: 'outlined' | 'standard' | 'filled';
+  componentProps?: Partial<FormikTextFieldProps>;
+}
+export interface SelectTypeProps extends CommonFieldProps {
+  inputType: 'select';
+  selectOptions: SelectOption[];
+  componentProps?: Partial<FormikNativeSelectProps>;
+}
+export interface PhoneTypeProps extends CommonFieldProps {
+  inputType: 'phone';
+  componentProps?: Partial<FormikMaskFieldProps>;
+  // inputProps?: FormikMaskFieldProps['inputProps'];
+}
+export interface DollarTypeProps extends Omit<CommonFieldProps, 'inputProps'> {
+  inputType: 'dollar';
+  componentProps?: Partial<FormikDollarMaskFieldProps>;
+  // dollarMaskProps?: FormikDollarMaskFieldProps;
+}
+export interface AddressTypeProps extends Omit<CommonFieldProps, 'inputProps'> {
+  inputType: 'address';
+  componentProps?: Partial<FormikAddressLiteProps>;
+}
+export interface MaskTypeProps extends Omit<CommonFieldProps, 'inputProps'> {
+  inputType: 'mask';
+  maskComponent: ForwardRefExoticComponent<any>;
+  inputProps?: FormikMaskFieldProps['inputProps'];
+  componentProps?: Omit<FormikMaskFieldProps, 'id' | 'name' | 'label' | 'maskComponent'>; // Partial<FormikMaskFieldProps>
+}
+
+export type InputSchemas =
+  | TextTypeProps
+  | SelectTypeProps
+  | PhoneTypeProps
+  | DollarTypeProps
+  | AddressTypeProps
+  | MaskTypeProps;
+
+// export interface InputSchema {
+//   name: string;
+//   label: string;
+//   required: boolean;
+//   inputType: 'text' | 'select' | 'phone' | 'dollar' | 'address' | 'mask';
+//   selectOptions?: SelectOption[];
+//   variant?: 'standard' | 'outlined' | 'filled';
+//   size?: 'small' | 'medium';
+//   gridProps?: Grid2Props;
+//   propsGetterFunc?: (index: number, parentField: string, name: string) => any;
+//   maskComponent?: ForwardRefExoticComponent<any>;
+//   inputProps?: InputBaseComponentProps;
+//   helperText?: string;
+// }
+
 export interface FormikFieldArrayProps {
   parentField: string;
-  inputFields: InputSchema[];
+  inputFields: InputSchemas[];
   values: { [key: string]: any };
   errors: { [key: string]: any };
   touched: { [key: string]: any };
@@ -114,7 +168,7 @@ export const FormikFieldArray: React.FC<FormikFieldArrayProps> = ({
   }
 
   return (
-    <Box>
+    <Box sx={{ flexGrow: 1 }}>
       <FieldArray name={parentField}>
         {({ remove, push }) => (
           <Box {...listContainerProps}>
@@ -136,18 +190,21 @@ export const FormikFieldArray: React.FC<FormikFieldArrayProps> = ({
                           label,
                           required,
                           inputType,
-                          selectOptions = [],
+                          // selectOptions = [],
                           variant = 'outlined',
                           size = 'medium',
                           gridProps,
                           propsGetterFunc = () => {},
-                          maskComponent,
-                          inputProps,
-                          ...rest
+                          componentProps = {},
+                          ...props
+                          // maskComponent,
+                          // inputProps,
+                          // ...rest
                         }) => {
                           if (inputType === 'text') {
                             return (
                               <Grid key={name} xs={12} sm={6} md={4} {...gridProps}>
+                                {/* @ts-ignore */}
                                 <FormikTextField
                                   fullWidth
                                   id={name}
@@ -156,9 +213,12 @@ export const FormikFieldArray: React.FC<FormikFieldArrayProps> = ({
                                   variant={variant}
                                   size={size}
                                   name={`${parentField}[${index}][${name}]`}
-                                  inputProps={inputProps}
+                                  // inputProps={...{rest.inputProps}}
                                   disabled={disabled}
-                                  {...rest}
+                                  {...props}
+                                  {...(componentProps as TextTypeProps['componentProps'])}
+                                  {...propsGetterFunc(index, parentField, name)}
+                                  // {...(componentProps as Omit<FormikMaskFieldProps, 'id' | 'name' | 'label'>)}
                                 />
                               </Grid>
                             );
@@ -173,9 +233,14 @@ export const FormikFieldArray: React.FC<FormikFieldArrayProps> = ({
                                   required={required}
                                   variant={variant}
                                   name={`${parentField}[${index}][${name}]`}
-                                  selectOptions={selectOptions}
+                                  // @ts-ignore
+                                  selectOptions={props.selectOptions}
                                   disabled={disabled}
-                                  {...rest}
+                                  {...(componentProps as SelectTypeProps['componentProps'])}
+                                  {...propsGetterFunc(index, parentField, name)}
+                                  // {...componentProps as Omit<FormikNativeSelectProps, 'id' | 'name' | 'label'>}
+
+                                  // {...rest}
                                 />
                               </Grid>
                             );
@@ -190,9 +255,12 @@ export const FormikFieldArray: React.FC<FormikFieldArrayProps> = ({
                                   required={required}
                                   name={`${parentField}[${index}][${name}]`}
                                   maskComponent={PhoneMask}
-                                  inputProps={inputProps}
+                                  // @ts-ignore
+                                  inputProps={{ ...props.inputProps }}
                                   disabled={disabled}
-                                  {...rest}
+                                  {...(componentProps as MaskTypeProps['componentProps'])}
+                                  {...propsGetterFunc(index, parentField, name)}
+                                  // {...rest}
                                 />
                               </Grid>
                             );
@@ -206,10 +274,16 @@ export const FormikFieldArray: React.FC<FormikFieldArrayProps> = ({
                                   label={label}
                                   required={required}
                                   name={`${parentField}[${index}][${name}]`}
-                                  maskComponent={maskComponent || PhoneMask}
-                                  inputProps={inputProps}
+                                  //@ts-ignore
+                                  maskComponent={props.maskComponent || PhoneMask}
+                                  // inputProps={{ ...props.inputProps }}
                                   disabled={disabled}
-                                  {...rest}
+                                  {...(componentProps as MaskTypeProps['componentProps'])}
+                                  {...propsGetterFunc(index, parentField, name)}
+                                  // {...(componentProps as Omit<
+                                  //   FormikMaskFieldProps,
+                                  //   'id' | 'name' | 'label' | 'maskComponent'
+                                  // >)}
                                 />
                               </Grid>
                             );
@@ -224,9 +298,11 @@ export const FormikFieldArray: React.FC<FormikFieldArrayProps> = ({
                                   required={required}
                                   name={`${parentField}[${index}][${name}]`}
                                   decimalScale={2}
-                                  inputProps={inputProps}
+                                  // inputProps={{...rest.inputProps} as FormikMaskFieldProps}
                                   disabled={disabled}
-                                  {...rest}
+                                  {...(componentProps as DollarTypeProps['componentProps'])}
+                                  {...propsGetterFunc(index, parentField, name)}
+                                  // {...rest}
                                 />
                               </Grid>
                             );
@@ -245,8 +321,9 @@ export const FormikFieldArray: React.FC<FormikFieldArrayProps> = ({
                                     latitude: `${parentField}[${index}].latitude`,
                                     longitude: `${parentField}[${index}].longitude`,
                                   }}
+                                  {...(componentProps as AddressTypeProps['componentProps'])}
                                   {...propsGetterFunc(index, parentField, name)}
-                                  {...rest}
+                                  // {...props}
                                 />
                               </Grid>
                             );

@@ -37,7 +37,7 @@ export const calcQuote = functions.https.onCall(async (data, context) => {
     replacementCost,
     deductible,
     priorLossCount,
-    floodZone = 'D',
+    floodZone = 'X',
     state,
     basement = 'unknown',
     commissionPct = 0.15,
@@ -50,6 +50,8 @@ export const calcQuote = functions.https.onCall(async (data, context) => {
     throw new functions.https.HttpsError('permission-denied', 'must have admin permissions');
 
   try {
+    // TODO: reuse existing validation function
+
     const MAX_A = parseInt(process.env.FLOOD_MAX_LIMIT_A || '1000000');
     const MIN_A = parseInt(process.env.FLOOD_MIN_LIMIT_A || '100000');
     const MAX_BCD = parseInt(process.env.FLOOD_MAX_LIMIT_B_C_D || '1000000');

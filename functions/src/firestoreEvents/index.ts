@@ -1,6 +1,6 @@
 export { newSubmissionNotifications } from './newSubmissionNotifications.js';
 export { getStaticSubmissionImg } from './getStaticSubmissionImg.js';
-export { getSubmissionAAL, getSRVars } from './getSubmissionAAL.js';
+export { getSubmissionAAL } from './getSubmissionAAL.js';
 export { mirrorCustomClaims } from './mirrorCustomClaims.js';
 export { newAgencyAppNotification } from './newAgencyAppNotification.js';
 export { getSubmissionFIPS } from './getSubmissionFIPS.js';

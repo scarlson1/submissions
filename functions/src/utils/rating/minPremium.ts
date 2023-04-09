@@ -1,7 +1,7 @@
 import { roundUpToNearest } from '../../common';
 import { FloodZones } from '../../common/types';
 
-export const getMinPremium = (floodZone: string = 'D', tiv: number) => {
+export const getMinPremium = (floodZone: string = 'X', tiv: number) => {
   let fz = floodZone.charAt(0) as FloodZones;
   let lookup = minPremiumTable[fz] || { minPrem: 300, minRate: 0.0004 };
   let minRatePrem = roundUpToNearest(lookup.minRate * tiv, 0);
