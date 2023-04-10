@@ -37,7 +37,7 @@ export const calcQuote = functions.https.onCall(async (data, context) => {
     replacementCost,
     deductible,
     priorLossCount,
-    floodZone = 'X',
+    floodZone = 'Xcalc',
     state,
     basement = 'unknown',
     commissionPct = 0.15,
@@ -51,7 +51,6 @@ export const calcQuote = functions.https.onCall(async (data, context) => {
 
   try {
     // TODO: reuse existing validation function
-
     const MAX_A = parseInt(process.env.FLOOD_MAX_LIMIT_A || '1000000');
     const MIN_A = parseInt(process.env.FLOOD_MIN_LIMIT_A || '100000');
     const MAX_BCD = parseInt(process.env.FLOOD_MAX_LIMIT_B_C_D || '1000000');
@@ -61,9 +60,9 @@ export const calcQuote = functions.https.onCall(async (data, context) => {
       `LimitA must be a number > ${MIN_A}`
     );
     invariant(limitA >= MIN_A && limitA <= MAX_A, `limitA must be between ${MIN_A} and ${MAX_A}`);
-    invariant(limitB && typeof limitB === 'number', 'LimitB must be a number');
-    invariant(limitC && typeof limitC === 'number', 'LimitC must be a number');
-    invariant(limitD && typeof limitD === 'number', 'LimitD must be a number');
+    invariant((limitB || limitB === 0) && typeof limitB === 'number', 'LimitB must be a number');
+    invariant((limitC || limitC === 0) && typeof limitC === 'number', 'LimitC must be a number');
+    invariant((limitD || limitD === 0) && typeof limitD === 'number', 'LimitD must be a number');
     const totalBCD = limitB + limitC + limitD;
     invariant(totalBCD <= MAX_BCD, `sum of limits B, C, D must be less than ${MAX_BCD}`);
 

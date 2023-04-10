@@ -1,40 +1,8 @@
-import { getAnnualPremium } from 'modules/api';
 import { useCallback, useState } from 'react';
 import { useFunctions } from 'reactfire';
+
+import { getAnnualPremium } from 'modules/api';
 import { NewQuoteValues } from 'views/admin/QuoteNew';
-
-// const SR_ONLY = {
-//   lat,
-//   lng,
-//   rcvB,
-//   rcvC,
-//   rcvD,
-// };
-
-// const PREM_CALC_ONLY = {
-//   inlandAAL,
-//   surgeAAL,
-// };
-
-// const common = {
-//   limitA,
-//   limitB,
-//   limitC,
-//   limitD,
-//   deductible,
-//   priorLossCount,
-//   floodZone,
-//   state,
-//   basement,
-//   commissionPct,
-// };
-
-// FACTORS REQUIRE PREMIUM RE-CALC BUT NOT SR:
-//    - basement
-//    - priorLossCount
-//    - commission
-//    - floodZone
-//    -
 
 export function extractRatingInputsFromValues(values: NewQuoteValues) {
   const {
@@ -80,7 +48,6 @@ export function extractRatingInputsFromValues(values: NewQuoteValues) {
   };
 }
 
-// TODO: check if SR call is required or only premium calculation (call different cloud functions ?? )
 export const useRateQuote = (
   submissionId: string | null,
   onSuccess?: (

@@ -1,9 +1,9 @@
 import { calcSum } from '../../common';
-import { getPremiumData } from './calcPremium';
-import { getPM, getSecondaryFactorMults } from './factors';
-import { getMinPremium } from './minPremium';
-import { multipliersByState } from './multipliersByState';
-import { getInlandRiskScore, getSurgeRiskScore } from './riskScore';
+import { getPremiumData } from './calcPremium.js';
+import { getPM, getSecondaryFactorMults } from './factors.js';
+import { getMinPremium } from './minPremium.js';
+import { multipliersByState } from './multipliersByState.js';
+import { getInlandRiskScore, getSurgeRiskScore } from './riskScore.js';
 
 interface GetPremiumProps {
   inlandAAL: number;

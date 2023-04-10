@@ -19,13 +19,12 @@ export const useDiff = (origObj: any, newObj: any, checkFields?: string[]) => {
     if (!checkFields) return !isObjEmpty(diff);
 
     const passAllChecks = checkFields.every((key) => !diff[key]);
-    console.log('PASS ALL CHECKS: ', passAllChecks);
+
     return passAllChecks;
   }, [checkFields, diff]);
 
   useEffect(() => {
     const result = getDifference(origObj, newObj);
-    console.log('DIFF: ', result);
 
     setDiff(result);
   }, [origObj, newObj]);
@@ -40,13 +39,12 @@ export const useGetDiff = (checkFields?: string[]) => {
     if (!checkFields) return !isObjEmpty(diff);
 
     const passAllChecks = checkFields.every((key) => !diff[key]);
-    console.log('PASS ALL CHECKS: ', passAllChecks);
+
     return passAllChecks;
   }, [checkFields, diff]);
 
   const getDiff = useCallback((origObj: any, newObj: any) => {
     const result = getDifference(origObj, newObj);
-    console.log('DIFF: ', result);
 
     setDiff(result);
     return result;

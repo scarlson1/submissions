@@ -65,7 +65,7 @@ export const multipliersByState: MultipliersByState = {
   FL: {
     fullname: 'Florida',
     inlandStateMult: 1.5,
-    surgeStateMult: 2.5,
+    surgeStateMult: 2,
     tsunamiStateMult: 1,
   },
   GA: {

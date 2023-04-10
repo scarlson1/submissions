@@ -286,6 +286,8 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
     (newPrem: number, ratingInputs) => {
       setTimeout(() => {
         formikRef.current?.setFieldValue('annualPremium', newPrem);
+        formikRef.current?.setFieldValue('AAL.inland', ratingInputs.inlandAAL);
+        formikRef.current?.setFieldValue('AAL.surge', ratingInputs.surgeAAL);
       }, 50);
 
       setRatingInputsSnap({ ...ratingInputs });
@@ -299,10 +301,11 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
     // submissionData || null,
     (newPrem: number, ratingInputs) => {
       setTimeout(() => formikRef.current?.setFieldValue('annualPremium', newPrem), 50);
-
+      let numStories = formikRef.current?.values.ratingPropertyData.numStories;
+      numStories = typeof numStories === 'number' ? numStories : parseInt(numStories || '1');
       setRatingInputsSnap({
         ...ratingInputs,
-        numStories: formikRef.current?.values.ratingPropertyData.numStories,
+        numStories,
       });
       handleRecalcSuccess(newPrem);
     },
@@ -878,7 +881,7 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                   data. Currently not watching fees to force recalc.
                 </Typography>
               </Grid>
-              <Grid xs={12} sm={4} md={3}>
+              <Grid xs={12} sm={6} md={3}>
                 <Badge
                   anchorOrigin={{
                     vertical: 'top',
@@ -896,7 +899,7 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                   />
                 </Badge>
               </Grid>
-              <Grid xs={12} md={3}>
+              <Grid xs={12} sm={6} md={3}>
                 <FormikDollarMaskField
                   name='annualPremium'
                   label='Annual Premium'
@@ -907,7 +910,7 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                 />
               </Grid>
               {/* <Grid xs></Grid> */}
-              <Grid xs={12} sm={8} md={6}>
+              <Grid xs={12} sm={12} md={6}>
                 <Box sx={{ maxWidth: 600 }}>
                   <Badge
                     anchorOrigin={{
@@ -963,7 +966,7 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                   </Badge>
                 </Box>
               </Grid>
-              <Grid xs={12} sm={8} md={6}>
+              <Grid xs={12} sm={12} md={6}>
                 <Box sx={{ maxWidth: 600 }}>
                   <FormikFieldArray
                     parentField='taxes'
@@ -1002,7 +1005,7 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                   />
                 </Box>
               </Grid>
-              <Grid xs={12} md={3}>
+              <Grid xs={12} sm={6} md={3}>
                 <FormikDollarMaskField
                   name='quoteTotal'
                   label='Quote Total'
@@ -1249,11 +1252,6 @@ function Diff({
         placement='bottom'
       >
         {stateIcon}
-        {/* {isDiff ? (
-          <CalculateRounded fontSize='small' color='warning' sx={{ mx: 2 }} onClick={handleClick} />
-        ) : (
-          <CheckCircleOutlineRounded fontSize='small' color='success' sx={{ mx: 2 }} />
-        )} */}
       </Tooltip>
     </>
   );

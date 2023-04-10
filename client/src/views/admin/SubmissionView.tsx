@@ -22,22 +22,24 @@ import { COLLECTIONS, RatingData } from 'common';
 
 export const ShowRatingDialog = ({ id, btnProps }: { id: string; btnProps?: ButtonProps }) => {
   const dialog = useJsonDialog();
-  const {
-    fetchData,
-    loading,
-    data: ratingData,
-  } = useFetchFirestore<RatingData>(COLLECTIONS.RATING_DATA, [
+  const { fetchData, loading } = useFetchFirestore<RatingData>(COLLECTIONS.RATING_DATA, [
     where('submissionId', '==', id),
     orderBy('metadata.created', 'desc'),
   ]);
 
   const handleShowRatingDialog = useCallback(async () => {
-    const data = ratingData ?? (await fetchData());
+    // const data = ratingData ?? (await fetchData());
+    // if (!data) {
+    //   await fetchData();
+    // } else {
+    //   fetchData();
+    // }
+    let d = await fetchData();
 
-    if (!data) return toast(`No rating documents found`);
+    if (!d) return toast(`No rating documents found`);
 
-    dialog(data, 'Rating Data');
-  }, [dialog, fetchData, ratingData]);
+    dialog(d, 'Rating Data');
+  }, [dialog, fetchData]);
 
   return (
     <>

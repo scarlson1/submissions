@@ -1,4 +1,4 @@
-import { round } from 'lodash';
+import { round, ceil } from 'lodash';
 
 export const INLAND_LAE_FACTOR = 0.1;
 export const SURGE_LAE_FACTOR = 0.15;
@@ -31,9 +31,11 @@ export const getPremium = (techPremium: number, multiplier: number, com: number)
 };
 
 export const getSubproducerAdj = (premium: number, defaultCom: number, newCom: number) => {
-  let comDiff = newCom - defaultCom;
+  let f = (newCom - defaultCom) / (1 - defaultCom);
 
-  return round(premium / (1 - comDiff / (1 - defaultCom)) - premium, 2);
+  return ceil(premium * f, 0);
+  // let comDiff = newCom - defaultCom;
+  // return round(premium / (1 - comDiff / (1 - defaultCom)) - premium, 2);
 };
 
 interface GetPremiumDataProps {

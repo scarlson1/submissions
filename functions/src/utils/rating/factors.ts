@@ -1,4 +1,4 @@
-import { getFirstFloorDiffFactors } from './firstFloorDiff';
+import { getFirstFloorDiffFactors } from './firstFloorDiff.js';
 
 const CONTENTS_RCV_MULT = 1;
 const ORDINANCE_MULT = 1.05;
@@ -99,9 +99,9 @@ export const getSecondaryModifiers = ({
   // TODO: pass loss history. If 0, history mults = 1 || if 1, get history mult || if 2+, decline
 
   secondaryModifiers.history.inland =
-    priorLossCount === '1' ? 1 : getHistoryMultInland(inlandRiskScore);
+    priorLossCount === '0' ? 1 : getHistoryMultInland(inlandRiskScore);
   secondaryModifiers.history.surge =
-    priorLossCount === '1' ? 1 : getHistoryMultSurge(surgeRiskScore);
+    priorLossCount === '0' ? 1 : getHistoryMultSurge(surgeRiskScore);
 
   console.log('Secondary Modifiers: ', secondaryModifiers);
   return secondaryModifiers;

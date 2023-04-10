@@ -59,7 +59,7 @@ export const FormikDollarMaskField: React.FC<FormikDollarMaskFieldProps> = ({
   return (
     <TextField
       {...field}
-      value={field.value ? field.value : ''}
+      value={field.value || field.value === 0 ? field.value : ''}
       {...rest}
       error={meta.touched && Boolean(meta.error)}
       helperText={meta.touched && !!meta.error ? meta.error : helperText}
@@ -72,7 +72,7 @@ export const FormikDollarMaskField: React.FC<FormikDollarMaskFieldProps> = ({
         },
         ...rest?.InputProps,
       }}
-      InputLabelProps={{ shrink: true }}
+      // InputLabelProps={{ shrink: true }}
     />
   );
 };
