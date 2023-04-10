@@ -71,10 +71,25 @@ export const formatPhoneNumber = (str: string) => {
   return null;
 };
 
+/**
+ * formats value as dollar, with decimals if needed
+ * @param {string | numnber} val - value to format
+ * @return {string} string value with dollar formatting
+ */
 export const dollarFormat = (val: string | number) => numeral(val).format('$0,0[.]00');
 
+/**
+ * formats value as dollar, with 2 decimal places
+ * @param {string | numnber} val - value to format
+ * @return {string} string value with dollar formatting
+ */
 export const dollarFormat2 = (val: string | number) => numeral(val).format('$0,0.00');
 
+/**
+ * formats value as string with commas
+ * @param {string | numnber} val - value to format
+ * @return {string} string value with comma formatting
+ */
 export const numberFormat = (val: string | number) => numeral(val).format('0,0');
 
 /**

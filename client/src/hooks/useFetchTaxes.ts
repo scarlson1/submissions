@@ -22,10 +22,14 @@ export const useFetchTaxes = (
       if (!annualPremium) throw new Error('Term premium required'); // return toast.error('Term premium required');
       if (!state) throw new Error('state required'); // return toast.error('State required');
 
+      // TODO: need to check for multiple items (could be two inspection fees...)
       const mgaObj = fees.find((f) => f.feeName === 'MGA Fee');
       const inspectionObj = fees.find((f) => f.feeName === 'Inspection Fee');
+      // const uwAdjustmentObj = fees.find((f) => f.feeName === 'uw_adjustment');
+
       let mgaFees = mgaObj ? mgaObj.feeValue : 0;
       let inspectionFees = inspectionObj ? inspectionObj.feeValue : 0;
+      // let uwAdjustments = uwAdjustmentObj ? uwAdjustmentObj.feeValue : 0;
 
       const body = {
         state,

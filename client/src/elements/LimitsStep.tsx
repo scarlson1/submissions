@@ -2,10 +2,11 @@ import React, { useMemo } from 'react';
 import { Typography } from '@mui/material';
 import Grid, { Grid2Props } from '@mui/material/Unstable_Grid2';
 import { useFormikContext } from 'formik';
+import { round } from 'lodash';
 
 import { FormikDollarMaskField, FormikDollarMaskFieldProps } from 'components/forms';
 import { FloodValues } from 'views/SubmissionNew';
-import { round, roundToNearest } from 'modules/utils/helpers';
+import { extractNumber } from 'modules/utils/helpers'; // round, roundToNearest
 import { LimitKeys } from 'common/types';
 
 // TODO: use increment cards & text field or slider ??
@@ -147,8 +148,10 @@ export const LimitsStep: React.FC<LimitsStepProps> = ({
             disabled={false}
             fullWidth
             onBlur={(e) => {
-              const digits = ('' + e.target.value).replace(/\D/g, '');
-              const newVal = roundToNearest(parseInt(digits), 3);
+              // const digits = ('' + e.target.value).replace(/\D/g, '');
+              // const newVal = roundToNearest(parseInt(digits), 3);
+              const num = extractNumber(e.target.value || '');
+              const newVal = round(num);
               setFieldValue(field.name, newVal);
               setTimeout(() => {
                 setFieldTouched(field.name, true);

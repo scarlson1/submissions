@@ -72,6 +72,7 @@ export const FormikDollarMaskField: React.FC<FormikDollarMaskFieldProps> = ({
         },
         ...rest?.InputProps,
       }}
+      InputLabelProps={{ shrink: true }}
     />
   );
 };

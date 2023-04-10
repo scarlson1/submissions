@@ -133,9 +133,10 @@ export const validateGetAALsProps = (props: Partial<GetAALsProps>) => {
     `LimitA must be a number > ${MIN_A}`
   );
   invariant(limitA >= MIN_A && limitA <= MAX_A, `limitA must be between ${MIN_A} and ${MAX_A}`);
-  invariant(limitB && typeof limitB === 'number', 'LimitB must be a number');
-  invariant(limitC && typeof limitC === 'number', 'LimitC must be a number');
-  invariant(limitD && typeof limitD === 'number', 'LimitD must be a number');
+  invariant(limitB || limitB === 0, 'LimitB required');
+  invariant(typeof limitB === 'number', 'LimitB must be a number');
+  invariant((limitC || limitC === 0) && typeof limitC === 'number', 'LimitC must be a number');
+  invariant((limitD || limitD === 0) && typeof limitD === 'number', 'LimitD must be a number');
   const totalBCD = limitB + limitC + limitD;
   invariant(totalBCD <= MAX_BCD, `sum of limits B, C, D must be less than ${MAX_BCD}`);
 };
