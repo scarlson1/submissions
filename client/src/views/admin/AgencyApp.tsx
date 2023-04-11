@@ -5,26 +5,6 @@ import ReactJson from '@microlink/react-json-view';
 
 import { useDocDataOnce } from 'hooks';
 
-// export const agencyAppLoader =
-//   // (db: Firestore) =>
-//   async ({ params }: LoaderFunctionArgs) => {
-//     try {
-//       // const ref = doc(agencyAppCollection, params.submissionId);
-//       const ref = doc(getFirestore(), COLLECTIONS.AGENCY_APPLICATIONS, params.submissionId!);
-
-//       const snap = await getDoc(ref);
-//       const data = snap.data();
-//       if (!snap.exists() || !data)
-//         throw new Response(`Agency submission ${params.submissionId} not found`, { status: 404 });
-
-//       return { ...data, id: snap.id };
-//     } catch (err) {
-//       console.log(err);
-
-//       throw new Response(`Agency submission ${params.submissionId} could not be retrieved`);
-//     }
-//   };
-
 export const AgencyApp: React.FC = () => {
   const theme = useTheme();
   // const data = useLoaderData() as AgencyApplicationWithId;

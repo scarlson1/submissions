@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useRef, useCallback, useMemo } from 'react';
 
 import { ConfirmationDialog } from 'components';
-import { DialogContentProps, DialogProps } from '@mui/material';
+import { ButtonProps, DialogContentProps, DialogProps } from '@mui/material';
 
 // TODO: set up with ID (useConfirmation('some-id')) ??
 
@@ -11,6 +11,8 @@ export interface ConfirmationOptions {
   title?: React.ReactNode; // string;
   description?: React.ReactNode; // string
   confirmButtonText?: string;
+  confirmButtonProps?: Partial<ButtonProps>;
+  cancelButtonProps?: Partial<ButtonProps>;
   component?: React.ReactElement;
   dialogProps?: Partial<DialogProps>;
   dialogContentProps?: Partial<DialogContentProps>;

@@ -3,7 +3,14 @@ import { DecodedIdToken } from 'firebase-admin/auth';
 import { GeoPoint, Timestamp } from 'firebase-admin/firestore';
 // import { Timestamp, WithFieldValue } from '@google-cloud/firestore';
 
-import { SUBMISSION_STATUS, PRODUCT, AGENCY_STATUS, QUOTE_STATUS, POLICY_STATUS } from './enums.js';
+import {
+  SUBMISSION_STATUS,
+  PRODUCT,
+  AGENCY_STATUS,
+  QUOTE_STATUS,
+  POLICY_STATUS,
+  AGENCY_SUBMISSION_STATUS,
+} from './enums.js';
 
 // TODO: fix typescript error app.use(thisMiddleware) is users.ts
 
@@ -161,7 +168,7 @@ export interface AgencyApplication extends BaseDoc {
   };
   FEIN: string;
   EandO: string;
-  status: 'TODO' | 'COPY' | 'FROM' | 'OTHER' | 'APP'; // AgencySubmissionStatus;
+  status: AGENCY_SUBMISSION_STATUS;
   sendAppReceivedNotification?: boolean;
   coordinates?: GeoPoint | null;
 }

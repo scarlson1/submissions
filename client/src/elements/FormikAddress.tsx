@@ -1,5 +1,12 @@
 import React from 'react';
-import { Box, Grid, Grid2Props, SelectProps, TextFieldProps } from '@mui/material';
+import {
+  Box,
+  Grid,
+  Grid2Props,
+  NativeSelectProps,
+  SelectProps,
+  TextFieldProps,
+} from '@mui/material';
 
 import {
   FormikTextField,
@@ -37,7 +44,7 @@ export interface FormikAddressProps {
   setFieldValue: (field: string, value: any, shouldValidate?: boolean) => void;
   textFieldProps?: TextFieldProps;
   autocompleteTextFieldProps?: TextFieldProps;
-  selectFieldProps?: Omit<SelectProps, 'label'>;
+  selectFieldProps?: Omit<NativeSelectProps, 'name' | 'label'>; // Omit<SelectProps, 'label'>;
   gridProps?: Grid2Props;
   names?: AddressFieldNames;
   children?: React.ReactNode;
@@ -50,7 +57,7 @@ export const FormikAddress: React.FC<FormikAddressProps> = ({
   autocompleteTextFieldProps,
   gridProps,
   names = DEFAULT_FIELD_NAMES,
-  // selectFieldProps,
+  selectFieldProps = {},
   children,
 }) => {
   const handleAddressSelection = ({ address_components, geometry }: NewAddress) => {
@@ -147,6 +154,7 @@ export const FormikAddress: React.FC<FormikAddressProps> = ({
             selectOptions={statesAbrvSelectOptions}
             required
             sx={{ minWidth: 80 }}
+            {...selectFieldProps}
           />
         </Grid>
         <Grid item xs={6} sm={4} lg={4}>

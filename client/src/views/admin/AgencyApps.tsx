@@ -14,7 +14,7 @@ import { BasicDataGrid, renderGridEmail, renderGridPhone, FileLink } from 'compo
 import { formatGridFirestoreTimestamp, getGridAddressComponent } from 'modules/utils/helpers';
 import { ADMIN_ROUTES, createPath } from 'router';
 import { useCollectionData, useCreateTenant } from 'hooks';
-import { CheckCircleOutlineRounded } from '@mui/icons-material';
+import { CheckCircleOutlineRounded, SendRounded } from '@mui/icons-material';
 import { FirebaseError } from 'firebase/app';
 
 export const AgencyApps: React.FC = () => {
@@ -24,7 +24,7 @@ export const AgencyApps: React.FC = () => {
     limit(100),
   ]);
 
-  const { createTenant, error: createTenantError } = useCreateTenant({});
+  const { createTenant, error: createTenantError, sendApprovedNotification } = useCreateTenant({});
 
   const handleCellClick = (params: GridCellParams<any>) => {
     const ignoreFieldsContaining = ['email', 'phone', 'EandO'];
@@ -94,6 +94,15 @@ export const AgencyApps: React.FC = () => {
     [createTenant]
   );
 
+  const handleResendInvite = useCallback(
+    (params: GridRowParams) => async () => {
+      // check if status === approved
+      alert('Not implemented yet');
+      // await sendApprovedNotification(docId, tenantId)
+    },
+    []
+  );
+
   const agencyAppColumns: GridColDef[] = useMemo(
     () => [
       {
@@ -110,6 +119,15 @@ export const AgencyApps: React.FC = () => {
             }
             onClick={handleApprove(params.id)}
             label='Approve'
+          />,
+          <GridActionsCellItem
+            icon={
+              <Tooltip title='send invite' placement='top'>
+                <SendRounded color='success' />
+              </Tooltip>
+            }
+            onClick={handleResendInvite(params)}
+            label='Send invite'
           />,
         ],
       },
@@ -258,7 +276,7 @@ export const AgencyApps: React.FC = () => {
         valueFormatter: formatGridFirestoreTimestamp,
       },
     ],
-    [handleApprove]
+    [handleApprove, handleResendInvite]
   );
 
   return (

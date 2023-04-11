@@ -19,7 +19,7 @@ export const useCreateTenant = ({ onSuccess, onError }: UseCreateTenantProps) =>
   const [error, setError] = useState<any>();
   const [loading, setLoading] = useState(false);
 
-  // CALLED INTERNALLY
+  // CALLED INTERNALLY & callable in hook ?? or just use regular send invite hook ??
   const sendApprovedNotification = useCallback(
     async (docId: string, tenantId: string) => {
       let { data } = await sendAgencyApprovedNotification(functions, {
@@ -33,7 +33,7 @@ export const useCreateTenant = ({ onSuccess, onError }: UseCreateTenantProps) =>
     [functions]
   );
 
-  // CALLED INTERNALLY
+  // TODO: CALLED INTERNALLY
   // const sendRejectedNotification = useCallback(async (docId: string) => {
   //   alert('not implemented');
   //   return 'not implemented';
@@ -48,6 +48,8 @@ export const useCreateTenant = ({ onSuccess, onError }: UseCreateTenantProps) =>
           variant: 'danger',
           title: 'Notify Primary Contact?',
           confirmButtonText: 'Notify',
+          confirmButtonProps: { variant: 'contained' },
+          cancelButtonProps: { variant: 'greyText' },
           description: msg,
           dialogContentProps: { dividers: true },
         });
@@ -108,5 +110,5 @@ export const useCreateTenant = ({ onSuccess, onError }: UseCreateTenantProps) =>
     [onError, handleSuccess, functions, toast]
   );
 
-  return { createTenant, error, loading }; // sendApprovedNotification, sendRejectedNotification,
+  return { createTenant, error, loading, sendApprovedNotification }; // sendApprovedNotification, sendRejectedNotification,
 };

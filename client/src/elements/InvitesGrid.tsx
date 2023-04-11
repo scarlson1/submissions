@@ -11,7 +11,7 @@ import { useFunctions } from 'reactfire';
 
 import { BasicDataGrid, GridCellCopy, renderGridEmail } from 'components';
 import { formatGridFirestoreTimestamp } from 'modules/utils';
-import { Invite, WithId } from 'common';
+import { INVITE_STATUS, Invite, WithId } from 'common';
 import { useAsyncToast } from 'hooks';
 import { CancelRounded, CheckRounded, QueryBuilderRounded, SendRounded } from '@mui/icons-material';
 
@@ -70,6 +70,7 @@ export const InvitesGrid: React.FC<InvitesGridProps> = ({ data = [], loading }) 
             }
             onClick={() => handleResendInvite(params)}
             label='Resend Invite'
+            disabled={params.row.status !== INVITE_STATUS.PENDING}
           />,
           <GridActionsCellItem
             icon={
@@ -79,6 +80,7 @@ export const InvitesGrid: React.FC<InvitesGridProps> = ({ data = [], loading }) 
             }
             onClick={() => handleCancel(params)}
             label='Cancel'
+            disabled={params.row.status !== INVITE_STATUS.PENDING}
           />,
         ],
       },

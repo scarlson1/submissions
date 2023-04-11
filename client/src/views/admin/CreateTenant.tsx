@@ -110,18 +110,19 @@ export const CreateTenant: React.FC = () => {
                   justifyContent: 'flex-end',
                   alignItems: 'center',
                   position: 'sticky',
-                  top: 64,
-                  [theme.breakpoints.down('md')]: {
-                    top: 60,
-                  },
-                  [theme.breakpoints.down('sm')]: {
-                    top: 54,
-                  },
+                  top: 0,
+                  // [theme.breakpoints.down('md')]: {
+                  //   top: 60,
+                  // },
+                  // [theme.breakpoints.down('sm')]: {
+                  //   top: 54,
+                  // },
                   backgroundColor: (theme) =>
                     theme.palette.mode === 'light' ? '#FAFAFB' : theme.palette.background.paper,
-                  zIndex: 1050,
+                  borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
+                  zIndex: 10,
                   py: 2,
-                  mt: -1,
+                  // mt: -1,
                   // top: (theme) => theme.mixins.toolbar.minHeight ? theme.mixins.toolbar.minHeight.replace( /^\D+/g, '') + 12 : 64
                 })}
               >
@@ -170,7 +171,7 @@ export const CreateTenant: React.FC = () => {
                 </Box>
               )}
 
-              <Typography variant='h6' gutterBottom sx={{ pl: 6, mt: -1 }}>
+              <Typography variant='h6' gutterBottom sx={{ pl: 6, mt: 2 }}>
                 Company Details
               </Typography>
               <Card sx={{ mb: 8 }}>

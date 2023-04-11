@@ -108,3 +108,7 @@ export const addToDate = (duration: Duration, date: Date = new Date()) => {
     ...duration,
   });
 };
+
+export function isSingleLetter(str: string) {
+  return str.length === 1 && str.match(/[a-z]/i);
+}

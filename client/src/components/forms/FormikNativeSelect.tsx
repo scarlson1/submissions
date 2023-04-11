@@ -29,6 +29,7 @@ export const FormikNativeSelect: React.FC<FormikNativeSelectProps> = ({
   fullWidth = true,
   sx = { minWidth: 160 },
   formikConfig,
+  inputProps = {},
   ...props
 }) => {
   const [field, meta] = useField({ name, ...formikConfig });
@@ -53,6 +54,7 @@ export const FormikNativeSelect: React.FC<FormikNativeSelectProps> = ({
         inputProps={{
           id: name,
           name,
+          ...inputProps,
         }}
         fullWidth={fullWidth}
         {...field}

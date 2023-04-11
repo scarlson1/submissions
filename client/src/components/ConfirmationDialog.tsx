@@ -22,7 +22,8 @@ export interface ConfirmationDialogProps extends ConfirmationOptions {
   onSubmitError?: (err: unknown) => Promise<void>;
   onCancel?: () => Promise<void>;
   children?: React.ReactNode;
-  confirmButtonText?: string;
+  // confirmButtonText?: string;
+  // confirmButtonProps: Partial<ButtonProps>
   submitDisabled?: boolean;
   // requiredClaims?: null | CustomClaimKeys[];
 }
@@ -39,6 +40,8 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
   description,
   children,
   confirmButtonText = 'Yes, I agree',
+  confirmButtonProps = {},
+  cancelButtonProps = {},
   submitDisabled = false,
   dialogProps,
   dialogContentProps,
@@ -103,16 +106,26 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
       <DialogActions>
         {variant === 'danger' && (
           <>
-            <Button color='primary' onClick={handleCancel}>
+            <Button color='primary' onClick={handleCancel} {...cancelButtonProps}>
               Cancel
             </Button>
-            <Button color='primary' onClick={handleSubmit} disabled={submitDisabled}>
+            <Button
+              color='primary'
+              onClick={handleSubmit}
+              disabled={submitDisabled}
+              {...confirmButtonProps}
+            >
               {confirmButtonText}
             </Button>
           </>
         )}
         {variant === 'info' && (
-          <Button color='primary' onClick={handleSubmit} disabled={submitDisabled}>
+          <Button
+            color='primary'
+            onClick={handleSubmit}
+            disabled={submitDisabled}
+            {...confirmButtonProps}
+          >
             OK
           </Button>
         )}

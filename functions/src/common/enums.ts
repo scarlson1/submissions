@@ -59,6 +59,13 @@ export enum PRODUCT {
   Wind = 'wind',
 }
 
+export enum AGENCY_SUBMISSION_STATUS {
+  ACCECPTED = 'accepted',
+  SUBMITTED = 'submitted',
+  REVIEW_REQUIRED = 'review:required',
+  REJECTED = 'rejected',
+}
+
 export enum AGENCY_STATUS {
   SUBMITTED = 'submitted',
   ACTIVE = 'active',

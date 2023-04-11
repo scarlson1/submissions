@@ -66,6 +66,7 @@ export enum AGENCY_SUBMISSION_STATUS {
   ACCECPTED = 'accepted',
   SUBMITTED = 'submitted',
   REVIEW_REQUIRED = 'review:required',
+  REJECTED = 'rejected',
 }
 
 // 'pending' | 'accepted' | 'revoked' | 'replaced' | 'rejected' | 'error';

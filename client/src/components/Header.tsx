@@ -14,6 +14,8 @@ import {
   List,
   ListItemButton,
   ListItemText,
+  Divider,
+  ListItemIcon,
 } from '@mui/material';
 import {
   Brightness4,
@@ -33,6 +35,10 @@ import {
   HomeRounded,
   CloseRounded,
   CorporateFareRounded,
+  ContactSupportRounded,
+  PersonRounded,
+  ManageAccountsRounded,
+  PasswordRounded,
 } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
 import { matchPath, useLocation, useNavigate } from 'react-router-dom';
@@ -200,10 +206,11 @@ export const Header: React.FC<HeaderProps> = () => {
   }, [customClaims, adminNavPages, agentNavPages, userNavPages]);
 
   const settings = useMemo(() => {
-    let sItems = [
+    let sItems: { label: string; onClick: () => void; icon?: JSX.Element }[] = [
       {
         label: 'Contact Us',
         onClick: () => navigate(createPath({ path: ROUTES.CONTACT })),
+        icon: <ContactSupportRounded color='inherit' fontSize='small' />,
       },
     ];
 
@@ -211,23 +218,26 @@ export const Header: React.FC<HeaderProps> = () => {
       sItems.unshift({
         label: 'Account Settings',
         onClick: () => navigate(createPath({ path: ACCOUNT_ROUTES.ACCOUNT })),
+        icon: <ManageAccountsRounded color='inherit' fontSize='small' />,
       });
 
     if (user?.isAnonymous) {
       sItems.push({
         label: 'Create Account',
         onClick: () => navigate(createPath({ path: AUTH_ROUTES.CREATE_ACCOUNT })),
+        icon: <PersonRounded color='primary' fontSize='small' />,
       });
       sItems.push({
-        label: 'Login',
+        label: 'Already have an account? Login',
         onClick: () =>
           navigate(createPath({ path: AUTH_ROUTES.LOGIN }), { state: { from: location } }),
+        icon: <PasswordRounded fontSize='small' />,
       });
     }
-    sItems.push({ label: 'Logout', onClick: logout });
+    // sItems.push({ label: 'Logout', onClick: logout });
 
     return sItems;
-  }, [logout, navigate, location, user]);
+  }, [navigate, location, user]);
 
   return (
     <AppBar
@@ -462,10 +472,13 @@ export default Header;
 
 interface UserMenuProps {
   user: User;
-  menuItems: { label: string; onClick: () => void }[];
+  menuItems: { label: string; onClick: () => void; icon?: JSX.Element }[];
 }
 
 const UserMenu: React.FC<UserMenuProps> = ({ user, menuItems }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { logout } = useAuth();
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
 
   const handleOpenMenu = (event: React.MouseEvent<HTMLElement>) => {
@@ -499,6 +512,19 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, menuItems }) => {
         open={Boolean(anchorEl)}
         onClose={handleCloseMenu}
       >
+        {user && (
+          <>
+            <Box sx={{ px: 4, py: 2 }}>
+              {user.displayName && <Typography fontWeight={500}>{user.displayName}</Typography>}
+              {user.email && (
+                <Typography variant='body2' color='text.secondary'>
+                  {user.email}
+                </Typography>
+              )}
+            </Box>
+            <Divider />
+          </>
+        )}
         {menuItems.map((item) => (
           <MenuItem
             key={item.label}
@@ -507,11 +533,31 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, menuItems }) => {
               handleCloseMenu();
             }}
           >
-            <Typography textAlign='center' color='text.primary'>
+            <ListItemIcon>{item.icon && item.icon}</ListItemIcon>
+            <ListItemText>{item.label}</ListItemText>
+            {/* <Box sx={{ minWidth: 30 }}>{item.icon && item.icon}</Box> */}
+            {/* <Typography textAlign='center' color='text.primary'>
               {item.label}
-            </Typography>
+            </Typography> */}
           </MenuItem>
         ))}
+        <Divider />
+        <Box sx={{ display: 'flex', justifyContent: 'center', p: 1 }}>
+          {user && user.uid ? (
+            <Button size='small' onClick={() => logout()}>
+              Logout
+            </Button>
+          ) : (
+            <Button
+              size='small'
+              onClick={() =>
+                navigate(createPath({ path: AUTH_ROUTES.LOGIN }), { state: { from: location } })
+              }
+            >
+              Sign In
+            </Button>
+          )}
+        </Box>
       </Menu>
     </>
   );
