@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { Suspense, useMemo } from 'react';
 import {
   AppBar,
   Avatar,
@@ -16,6 +16,7 @@ import {
   ListItemText,
   Divider,
   ListItemIcon,
+  Skeleton,
 } from '@mui/material';
 import {
   Brightness4,
@@ -51,6 +52,7 @@ import { User } from 'firebase/auth';
 import { NavListItem } from './NavListItem';
 import { NavMenu as PopperNavMenu } from './NavMenu';
 import { NavDrawer } from './NavDrawer';
+import { SigninCheckResult, useSigninCheck, useUser } from 'reactfire';
 
 // TODO: GENERALIZE MENU COMPONENT - allow for button or user avatar as button. nested items. icons.
 // could have optional render function to render button??
@@ -471,7 +473,7 @@ export const Header: React.FC<HeaderProps> = () => {
             </IconButton>
 
             {!!user ? (
-              <UserMenu user={user} menuItems={settings} />
+              <UserMenu menuItems={settings} />
             ) : (
               <Button
                 onClick={() =>
@@ -491,14 +493,39 @@ export const Header: React.FC<HeaderProps> = () => {
 
 export default Header;
 
+export const AuthWrapper = ({
+  children,
+  fallback,
+  ifAnonymousChildren,
+}: React.PropsWithChildren<{
+  fallback: JSX.Element;
+  ifAnonymousChildren?: JSX.Element;
+}>): JSX.Element => {
+  const { data: signInCheckResult } = useSigninCheck();
+
+  if (!children) {
+    throw new Error('Children must be provided');
+  }
+
+  if (signInCheckResult.signedIn === true) {
+    if (signInCheckResult.user.isAnonymous && ifAnonymousChildren) {
+      return ifAnonymousChildren as JSX.Element;
+    }
+    return children as JSX.Element;
+  } else {
+    return fallback;
+  }
+};
+
 interface UserMenuProps {
-  user: User;
+  // user: User;
   menuItems: { label: string; onClick: () => void; icon?: JSX.Element }[];
 }
 
-const UserMenu: React.FC<UserMenuProps> = ({ user, menuItems }) => {
+const UserMenu: React.FC<UserMenuProps> = ({ menuItems }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { data: authCheckResult } = useSigninCheck({ suspense: false });
   const { logout } = useAuth();
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
 
@@ -513,7 +540,10 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, menuItems }) => {
     <>
       <Tooltip title='Open settings'>
         <IconButton onClick={handleOpenMenu} sx={{ p: 0 }}>
-          <Avatar alt={user.displayName || undefined} src={user.photoURL || ''} />
+          <Avatar
+            alt={authCheckResult?.user?.displayName || undefined}
+            src={authCheckResult?.user?.photoURL || ''}
+          />
         </IconButton>
       </Tooltip>
 
@@ -533,17 +563,29 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, menuItems }) => {
         open={Boolean(anchorEl)}
         onClose={handleCloseMenu}
       >
-        {user && (
-          <Box sx={{ px: 4, pt: 2 }}>
-            {user.displayName && <Typography fontWeight={500}>{user.displayName}</Typography>}
-            {user.email && (
-              <Typography variant='body2' color='text.secondary'>
-                {user.email}
-              </Typography>
-            )}
-            <Divider />
-          </Box>
-        )}
+        <Box sx={{ px: 4, pt: 2 }}>
+          <Suspense
+            fallback={
+              <>
+                <Skeleton variant='text' sx={{ fontSize: '1rem' }} />
+                <Skeleton variant='text' sx={{ fontSize: '0.75rem' }} />
+              </>
+            }
+          >
+            <AuthWrapper fallback={<Typography>Not signed in</Typography>}>
+              {authCheckResult?.user?.displayName && (
+                <Typography fontWeight={500}>{authCheckResult?.user.displayName}</Typography>
+              )}
+              {authCheckResult?.user?.email && (
+                <Typography variant='body2' color='text.secondary'>
+                  {authCheckResult?.user.email}
+                </Typography>
+              )}
+              <Divider />
+            </AuthWrapper>
+          </Suspense>
+          <Divider />
+        </Box>
         {menuItems.map((item) => (
           <MenuItem
             key={item.label}
@@ -558,20 +600,24 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, menuItems }) => {
         ))}
         <Divider />
         <Box sx={{ display: 'flex', justifyContent: 'center', pb: 1 }}>
-          {user && user.uid ? (
-            <Button size='small' onClick={() => logout()}>
-              Logout
-            </Button>
-          ) : (
-            <Button
-              size='small'
-              onClick={() =>
-                navigate(createPath({ path: AUTH_ROUTES.LOGIN }), { state: { from: location } })
+          <Suspense fallback={<Skeleton variant='rounded' width={80} height={36} />}>
+            <AuthWrapper
+              fallback={
+                <Button
+                  size='small'
+                  onClick={() =>
+                    navigate(createPath({ path: AUTH_ROUTES.LOGIN }), { state: { from: location } })
+                  }
+                >
+                  Sign In
+                </Button>
               }
             >
-              Sign In
-            </Button>
-          )}
+              <Button size='small' onClick={() => logout()}>
+                Logout
+              </Button>
+            </AuthWrapper>
+          </Suspense>
         </Box>
       </Menu>
     </>
