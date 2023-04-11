@@ -20,6 +20,7 @@ export { CreateTenant } from './CreateTenant';
 export { Organizations } from './Organizations';
 export { Organization } from './Organization';
 export { Home } from './Home';
+export { Users } from './Users';
 
 export type { SubmissionsProps } from './Submissions';
 export type { SLTaxesProps } from './SLTaxes';

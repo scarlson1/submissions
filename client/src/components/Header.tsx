@@ -114,6 +114,13 @@ export const Header: React.FC<HeaderProps> = () => {
             icon: <CorporateFareRounded color='primary' fontSize='small' />,
           },
           {
+            title: 'Users',
+            route: createPath({
+              path: ADMIN_ROUTES.USERS,
+            }),
+            icon: <PersonRounded color='primary' fontSize='small' />,
+          },
+          {
             title: 'Taxes',
             route: createPath({ path: ADMIN_ROUTES.SL_TAXES }),
             icon: <AccountBalanceRounded color='primary' fontSize='small' />,
@@ -401,7 +408,21 @@ export const Header: React.FC<HeaderProps> = () => {
                       },
                     }}
                   >
-                    <List sx={{ minWidth: 160, maxWidth: 260 }} dense>
+                    <List
+                      sx={{
+                        minWidth: 160,
+                        maxWidth: 260,
+                        '& .MuiListItemButton-root:first-of-type': {
+                          borderTopLeftRadius: (theme) => theme.shape.borderRadius,
+                          borderTopRightRadius: (theme) => theme.shape.borderRadius,
+                        },
+                        '& .MuiListItemButton-root:last-of-type': {
+                          borderBottomLeftRadius: (theme) => theme.shape.borderRadius,
+                          borderBottomRightRadius: (theme) => theme.shape.borderRadius,
+                        },
+                      }}
+                      dense
+                    >
                       {page.items.map((i) => (
                         <ListItemButton
                           component={RouterLink as any}
@@ -513,17 +534,15 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, menuItems }) => {
         onClose={handleCloseMenu}
       >
         {user && (
-          <>
-            <Box sx={{ px: 4, py: 2 }}>
-              {user.displayName && <Typography fontWeight={500}>{user.displayName}</Typography>}
-              {user.email && (
-                <Typography variant='body2' color='text.secondary'>
-                  {user.email}
-                </Typography>
-              )}
-            </Box>
+          <Box sx={{ px: 4, pt: 2 }}>
+            {user.displayName && <Typography fontWeight={500}>{user.displayName}</Typography>}
+            {user.email && (
+              <Typography variant='body2' color='text.secondary'>
+                {user.email}
+              </Typography>
+            )}
             <Divider />
-          </>
+          </Box>
         )}
         {menuItems.map((item) => (
           <MenuItem
@@ -535,14 +554,10 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, menuItems }) => {
           >
             <ListItemIcon>{item.icon && item.icon}</ListItemIcon>
             <ListItemText>{item.label}</ListItemText>
-            {/* <Box sx={{ minWidth: 30 }}>{item.icon && item.icon}</Box> */}
-            {/* <Typography textAlign='center' color='text.primary'>
-              {item.label}
-            </Typography> */}
           </MenuItem>
         ))}
         <Divider />
-        <Box sx={{ display: 'flex', justifyContent: 'center', p: 1 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'center', pb: 1 }}>
           {user && user.uid ? (
             <Button size='small' onClick={() => logout()}>
               Logout
@@ -562,6 +577,12 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, menuItems }) => {
     </>
   );
 };
+
+/* <Box sx={{ minWidth: 30 }}>{item.icon && item.icon}</Box> */
+
+/* <Typography textAlign='center' color='text.primary'>
+              {item.label}
+            </Typography> */
 
 // interface NavMenuProps {
 //   title: string;

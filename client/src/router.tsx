@@ -41,6 +41,7 @@ import {
   CreateTenant,
   Organizations,
   Organization,
+  Users,
 } from 'views/admin';
 // import { Submissions as AgentSubmissions } from 'views/agent';
 import { SuccessStep, ActionHandler } from 'elements';
@@ -102,6 +103,7 @@ export enum ADMIN_ROUTES {
   CREATE_TENANT = '/admin/agencies/new',
   ORGANIZATIONS = '/admin/orgs',
   ORGANIZATION = '/admin/orgs/:orgId',
+  USERS = '/admin/users',
 }
 
 // export enum AGENT_ROUTES {
@@ -161,6 +163,7 @@ type TArgs =
   | { path: ADMIN_ROUTES.CREATE_TENANT }
   | { path: ADMIN_ROUTES.ORGANIZATIONS }
   | { path: ADMIN_ROUTES.ORGANIZATION; params: { orgId: string } }
+  | { path: ADMIN_ROUTES.USERS }
   | { path: AUTH_ROUTES.CREATE_ACCOUNT }
   | { path: AUTH_ROUTES.LOGIN }
   | { path: AUTH_ROUTES.TENANT_CREATE_ACCOUNT; params?: { tenantId?: string } }
@@ -654,6 +657,14 @@ export const router = createBrowserRouter([
             element: (
               <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
                 <Organization />
+              </RequireAuthReactFire>
+            ),
+          },
+          {
+            path: ADMIN_ROUTES.USERS,
+            element: (
+              <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
+                <Users />
               </RequireAuthReactFire>
             ),
           },
