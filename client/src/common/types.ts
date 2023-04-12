@@ -461,6 +461,7 @@ export interface User extends BaseDoc {
   phone?: string;
   photoURL?: string;
   stripe_customer_id?: string;
+  insuredOfAgency?: string[];
   tenantId?: string | null;
   orgId?: string | null; // org doc id (not always tenant (ex 'idemand'))
 }

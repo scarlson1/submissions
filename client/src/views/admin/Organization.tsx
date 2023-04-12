@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { Box, Tab } from '@mui/material';
 import ReactJson from '@microlink/react-json-view';
+import { useParams } from 'react-router-dom';
+import { limit, where } from 'firebase/firestore';
+import { TabContext, TabList, TabPanel } from '@mui/lab';
 
 import { useCollectionData, useJsonTheme } from 'hooks';
 import { InvitesGrid, UsersGrid } from 'elements';
 import { COLLECTIONS, Invite } from 'common';
-import { useParams } from 'react-router-dom';
-import { limit, where } from 'firebase/firestore';
-import { TabContext, TabList, TabPanel } from '@mui/lab';
 
 // TODO: use tabs (company details, users, invites, etc, policies, quotes, settings, banking, etc.)
 
@@ -58,7 +58,12 @@ export const Organization: React.FC = () => {
           </Box>
           <TabPanel value='policies'>Policies contents</TabPanel>
           <TabPanel value='quotes'>Quotes tab content</TabPanel>
-          <TabPanel value='insureds'>Insureds tab content</TabPanel>
+          <TabPanel value='insureds'>
+            {/* TODO: use rxjs to fetch all policies under agency, then fetch users by id */}
+            {/* Need to flatten many-to-one relationship. which rxjs operator ?? distinct (import { distinct } from 'rxjs/operators';) ?? */}
+            {/* .pipe(distinct(e => e.id)) */}
+            <UsersGrid queryConstraints={[where('insuredOfAgency', 'array-contains', orgId)]} />
+          </TabPanel>
           <TabPanel value='team'>
             <UsersGrid queryConstraints={[where('orgId', '==', orgId)]} />
           </TabPanel>

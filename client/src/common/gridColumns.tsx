@@ -204,48 +204,77 @@ export const addressSummaryCol: GridColDef = {
   valueGetter: (params: GridValueGetterParams<any, any>) =>
     `${params.row.address.addressLine1}, ${params.row.address.city}, ${params.row.address.state}`,
 };
-export const addrLine1Col: GridColDef = {
-  field: 'address.addressLine1',
+
+export const address1Col: GridColDef = {
+  field: 'addressLine1',
   headerName: 'Address 1',
   minWidth: 120,
   flex: 1,
   editable: false,
-  valueGetter: (params: GridValueGetterParams<any, any>) =>
-    getGridAddressComponent(params, 'addressLine1'),
 };
-export const addrLine2Col: GridColDef = {
-  field: 'address.addressLine2',
-  headerName: 'Address 2',
+
+export const address2Col: GridColDef = {
+  field: 'addressLine2',
+  headerName: 'Suite / Unit',
   minWidth: 120,
   flex: 1,
   editable: false,
+};
+
+export const cityCol: GridColDef = {
+  field: 'city',
+  headerName: 'City',
+  minWidth: 120,
+  flex: 1,
+  editable: false,
+};
+
+export const stateCol: GridColDef = {
+  field: 'state',
+  headerName: 'State',
+  minWidth: 80,
+  flex: 1,
+  editable: false,
+};
+
+export const postalCol: GridColDef = {
+  field: 'postal',
+  headerName: 'Postal',
+  minWidth: 100,
+  flex: 1,
+  editable: false,
+};
+
+export const addrLine1Col: GridColDef = {
+  ...address1Col,
+  field: 'address.addressLine1',
+  valueGetter: (params: GridValueGetterParams<any, any>) =>
+    getGridAddressComponent(params, 'addressLine1'),
+};
+
+export const addrLine2Col: GridColDef = {
+  ...address2Col,
+  field: 'address.addressLine2',
   valueGetter: (params: GridValueGetterParams<any, any>) =>
     getGridAddressComponent(params, 'addressLine2'),
 };
 
 export const addrCityCol: GridColDef = {
+  ...cityCol,
   field: 'address.city',
-  headerName: 'City',
-  minWidth: 120,
-  flex: 1,
-  editable: false,
   valueGetter: (params: GridValueGetterParams<any, any>) => getGridAddressComponent(params, 'city'),
 };
+
 export const addrStateCol: GridColDef = {
+  ...stateCol,
   field: 'address.state',
-  headerName: 'State',
-  minWidth: 80,
-  flex: 1,
-  editable: false,
   valueGetter: (params: GridValueGetterParams<any, any>) =>
     getGridAddressComponent(params, 'state'),
 };
+
 export const addrPostalCol: GridColDef = {
+  ...postalCol,
   field: 'address.postal',
-  headerName: 'Postal',
-  minWidth: 100,
-  flex: 1,
-  editable: false,
   valueGetter: (params: GridValueGetterParams<any, any>) =>
     getGridAddressComponent(params, 'postal'),
 };

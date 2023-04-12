@@ -2,7 +2,6 @@ import React, { useCallback, useMemo, useRef, useState, useEffect } from 'react'
 import {
   Badge,
   Box,
-  // Chip,
   Divider,
   IconButton,
   InputAdornment,

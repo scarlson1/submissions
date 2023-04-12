@@ -20,6 +20,8 @@ import { ADMIN_ROUTES, createPath } from 'router';
 import { useDocData, useFetchFirestore, useJsonDialog } from 'hooks';
 import { COLLECTIONS, RatingData } from 'common';
 
+// TODO: use observable to lazy load rating data collection
+// https://firebase.blog/posts/2018/09/introducing-rxfire-easy-async-firebase
 export const ShowRatingDialog = ({ id, btnProps }: { id: string; btnProps?: ButtonProps }) => {
   const dialog = useJsonDialog();
   const { fetchData, loading } = useFetchFirestore<RatingData>(COLLECTIONS.RATING_DATA, [
