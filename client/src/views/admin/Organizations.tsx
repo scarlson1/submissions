@@ -4,15 +4,32 @@ import { limit, orderBy } from 'firebase/firestore';
 import { GridColDef, GridValueFormatterParams } from '@mui/x-data-grid';
 import { useNavigate } from 'react-router-dom';
 
-import { BasicDataGrid, renderGridEmail, renderGridPhone } from 'components';
+import { BasicDataGrid } from 'components';
 import { useCollectionData } from 'hooks';
-import { formatGridFirestoreTimestamp, formatGridPercent } from 'modules/utils';
+import { formatGridPercent } from 'modules/utils';
 
 import { createPath, ADMIN_ROUTES } from 'router';
+import {
+  Organization,
+  addrLine1Col,
+  addrLine2Col,
+  addressSummaryCol,
+  createdCol,
+  emailCol,
+  fileLinkCol,
+  firstNameCol,
+  lastNameCol,
+  latitudeCol,
+  longitudeCol,
+  orgIdCol,
+  orgNameCol,
+  phoneCol,
+  updatedCol,
+} from 'common';
 
 export const Organizations: React.FC = () => {
   const navigate = useNavigate();
-  const { data, status } = useCollectionData(
+  const { data, status } = useCollectionData<Organization>(
     'ORGANIZATIONS',
     [orderBy('metadata.created', 'desc'), limit(100)],
     { suspense: false }
@@ -46,13 +63,7 @@ export const Organizations: React.FC = () => {
       //     />,
       //   ],
       // },
-      {
-        field: 'orgName',
-        headerName: 'Org Name',
-        minWidth: 220,
-        flex: 1,
-        editable: false,
-      },
+      orgNameCol,
       {
         field: 'status',
         headerName: 'Status',
@@ -71,95 +82,42 @@ export const Organizations: React.FC = () => {
         // valueGetter: (params) =>
         //   `${params.row.primaryContact.firstName} ${params.row.primaryContact.lastName}`,
       },
+      firstNameCol,
+      lastNameCol,
       {
-        field: 'firstName',
-        headerName: 'First Name',
-        minWidth: 120,
-        flex: 0.6,
-        editable: false,
-      },
-      {
-        field: 'lastName',
-        headerName: 'Last Name',
-        minWidth: 120,
-        flex: 0.6,
-        editable: false,
-      },
-      {
-        field: 'email',
+        ...emailCol,
+        valueGetter: (params) => params.row.primaryContact?.email || null,
+        field: 'primaryContact.email',
         headerName: 'Contact Email',
         description: 'Provided primary contact email',
-        minWidth: 200,
-        flex: 1,
-        editable: false,
-        valueGetter: (params) => params.row.primaryContact?.email || null,
-        renderCell: (params) => renderGridEmail(params),
       },
+      // {
+      //   field: 'email',
+      //   headerName: 'Contact Email',
+      //   description: 'Provided primary contact email',
+      //   minWidth: 200,
+      //   flex: 1,
+      //   editable: false,
+      //   valueGetter: (params) => params.row.primaryContact?.email || null,
+      //   renderCell: (params) => renderGridEmail(params),
+      // },
       {
-        field: 'phone',
+        ...phoneCol,
+        field: 'primaryContact.phone',
         headerName: 'Contact Phone',
-        description: 'Provided primary contact email',
-        minWidth: 200,
-        flex: 1,
-        editable: false,
         valueGetter: (params) => params.row.primaryContact?.phone || null,
-        renderCell: (params) => renderGridPhone(params),
       },
       {
+        ...orgIdCol,
         field: 'tenantId',
         headerName: 'Tenant ID',
-        minWidth: 160,
-        flex: 1,
-        editable: false,
       },
-      {
-        field: 'EandORL',
-        headerName: 'E & O',
-        minWidth: 140,
-        flex: 1,
-        editable: false,
-      },
-      {
-        field: 'address',
-        headerName: 'Address',
-        minWidth: 260,
-        flex: 1,
-        editable: false,
-        valueGetter: (params) =>
-          `${params.row.address.addressLine1}, ${params.row.address.city}, ${params.row.address.state}`,
-      },
-      {
-        field: 'addressLine1',
-        headerName: 'Address 1',
-        minWidth: 120,
-        flex: 1,
-        editable: false,
-        valueGetter: (params) => params.row.address?.addressLine1 || null,
-      },
-      {
-        field: 'addressLine2',
-        headerName: 'Address 2',
-        minWidth: 120,
-        flex: 1,
-        editable: false,
-        valueGetter: (params) => params.row.address?.addressLine2 || null,
-      },
-      {
-        field: 'latitude',
-        headerName: 'Latitude',
-        minWidth: 120,
-        flex: 1,
-        editable: false,
-        valueGetter: (params) => params.row.coordinates?.latitude || null,
-      },
-      {
-        field: 'longitude',
-        headerName: 'Longitude',
-        minWidth: 120,
-        flex: 1,
-        editable: false,
-        valueGetter: (params) => params.row.coordinates?.longitude || null,
-      },
+      { ...fileLinkCol, field: 'EandOURL', headerName: 'E & O', minWidth: 200 },
+      addressSummaryCol,
+      addrLine1Col,
+      addrLine2Col,
+      latitudeCol,
+      longitudeCol,
       {
         field: 'emailDomain',
         headerName: 'Domain',
@@ -190,25 +148,12 @@ export const Organizations: React.FC = () => {
         valueFormatter: (params: GridValueFormatterParams<number | null>) =>
           formatGridPercent(params, 0),
       },
+      createdCol,
+      updatedCol,
       {
-        field: 'created',
-        headerName: 'Created',
-        type: 'dateTime',
-        minWidth: 180,
-        flex: 1,
-        editable: false,
-        valueGetter: (params) => params.row.metadata?.created || null,
-        valueFormatter: formatGridFirestoreTimestamp,
-      },
-      {
-        field: 'updated',
-        headerName: 'Updated',
-        type: 'dateTime',
-        minWidth: 180,
-        flex: 1,
-        editable: false,
-        valueGetter: (params) => params.row.metadata?.created || null,
-        valueFormatter: formatGridFirestoreTimestamp,
+        ...orgIdCol,
+        field: 'id',
+        headerName: 'User ID',
       },
     ],
     []

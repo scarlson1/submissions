@@ -1,36 +1,49 @@
 import React, { useCallback, useMemo } from 'react';
-import { Box, Chip, ChipProps, Tooltip, Typography } from '@mui/material';
+import { Box, Tooltip, Typography } from '@mui/material';
 import {
   GridActionsCellItem,
   GridColDef,
-  GridRenderCellParams,
   GridRowId,
   GridRowParams,
   GridToolbar,
-  GridValueFormatterParams,
-  GridValueGetterParams,
 } from '@mui/x-data-grid';
 import { orderBy, limit, doc, updateDoc, getDoc, getFirestore } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
-import {
-  CloseRounded,
-  FiberNewRounded,
-  FindInPageRounded,
-  HourglassBottomRounded,
-  MapRounded,
-  PendingRounded,
-  RequestQuoteRounded,
-  ThumbDownRounded,
-} from '@mui/icons-material';
+import { MapRounded, RequestQuoteRounded } from '@mui/icons-material';
 import { toast } from 'react-hot-toast';
 
-import { submissionsCollection, SUBMISSION_STATUS, Submission } from 'common';
-import { BasicDataGrid, GridCellCopy, renderGridEmail } from 'components';
 import {
-  formatGridCurrency,
-  formatGridFirestoreTimestamp,
-  numberFormat,
-} from 'modules/utils/helpers';
+  submissionsCollection,
+  SUBMISSION_STATUS,
+  Submission,
+  coordinatesCol,
+  latitudeCol,
+  longitudeCol,
+  deductibleCol,
+  emailCol,
+  createdCol,
+  updatedCol,
+  userIdCol,
+  idCol,
+  priorLossCountCol,
+  distToCoastFeetCol,
+  basementCol,
+  numStoriesCol,
+  propertyCodeCol,
+  sqFootageCol,
+  yearBuiltCol,
+  floodZoneCol,
+  CBRSCol,
+  inlandAALCol,
+  surgeAALCol,
+  replacementCostCol,
+  annualPremiumCol,
+  displayNameCol,
+  firstNameCol,
+  lastNameCol,
+  statusCol,
+} from 'common';
+import { BasicDataGrid } from 'components';
 import { ADMIN_ROUTES, createPath } from 'router';
 import { withIdConverter } from 'common/firestoreConverters';
 import { useConfirmAndUpdate } from './Quotes';
@@ -119,8 +132,7 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
         ],
       },
       {
-        field: 'status',
-        headerName: 'Status',
+        ...statusCol,
         type: 'singleSelect',
         valueOptions: [
           SUBMISSION_STATUS.QUOTED,
@@ -131,51 +143,13 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
           SUBMISSION_STATUS.DRAFT,
         ],
         editable: true,
-        minWidth: 160,
-        flex: 0.6,
-        disableClickEventBubbling: true,
-        renderCell: (params) => (
-          <Chip
-            label={params.value}
-            size='small'
-            variant='outlined'
-            {...getChipProps(params.value)}
-          />
-        ),
       },
+      displayNameCol,
+      firstNameCol,
+      lastNameCol,
       {
-        field: 'displayName',
-        headerName: 'Name',
-        description: 'Provided contact name',
-        minWidth: 160,
-        flex: 0.8,
-        editable: false,
-        valueGetter: (params: GridValueGetterParams) =>
-          `${params.row.firstName} ${params.row.lastName}`,
-      },
-      {
-        field: 'firstName',
-        headerName: 'First Name',
-        minWidth: 120,
-        flex: 0.6,
-        editable: false,
-      },
-      {
-        field: 'lastName',
-        headerName: 'Last Name',
-        minWidth: 120,
-        flex: 0.6,
-        editable: false,
-      },
-      {
-        field: 'email',
-        headerName: 'Email',
+        ...emailCol,
         description: 'Provided contact email',
-        minWidth: 200,
-        flex: 1,
-        editable: false,
-        // valueGetter: (params) => `${params.row.email}`,
-        renderCell: (params: GridRenderCellParams) => renderGridEmail(params),
       },
       {
         field: 'addressLine1',
@@ -228,104 +202,12 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
         flex: 0.6,
         editable: false,
       },
-      {
-        field: 'latitude',
-        headerName: 'Latitude',
-        minWidth: 100,
-        flex: 0.6,
-        editable: false,
-        valueGetter: (params) => {
-          const { coordinates } = params.row;
-          return coordinates ? coordinates?.latitude || null : null;
-        },
-      },
-      {
-        field: 'longitude',
-        headerName: 'Longitude',
-        minWidth: 100,
-        flex: 0.6,
-        editable: false,
-        valueGetter: (params) => {
-          const { coordinates } = params.row;
-          return coordinates ? coordinates?.longitude || null : null;
-        },
-      },
-      {
-        field: 'annualPremium',
-        headerName: 'Annual Premium',
-        description: 'Annual premium before taxes and fees',
-        minWidth: 140,
-        flex: 0.8,
-        editable: false,
-        headerAlign: 'center',
-        align: 'right',
-        valueFormatter: formatGridCurrency,
-      },
-      {
-        field: 'limitA',
-        headerName: 'Limit A',
-        description: 'Coverage A limit (building)',
-        minWidth: 120,
-        flex: 0.8,
-        editable: false,
-        headerAlign: 'center',
-        align: 'right',
-        valueFormatter: formatGridCurrency,
-      },
-      {
-        field: 'limitB',
-        headerName: 'Limit B',
-        description: 'Coverage B limit (Additional structures)',
-        minWidth: 120,
-        flex: 0.8,
-        editable: false,
-        headerAlign: 'center',
-        align: 'right',
-        valueFormatter: formatGridCurrency,
-      },
-      {
-        field: 'limitC',
-        headerName: 'Limit C',
-        description: 'Coverage C limit (contents)',
-        minWidth: 120,
-        flex: 0.8,
-        editable: false,
-        headerAlign: 'center',
-        align: 'right',
-        valueFormatter: formatGridCurrency,
-      },
-      {
-        field: 'limitD',
-        headerName: 'Limit D',
-        description: 'Coverage D limit (living expenses)',
-        minWidth: 120,
-        flex: 0.8,
-        editable: false,
-        headerAlign: 'center',
-        align: 'right',
-        valueFormatter: formatGridCurrency,
-      },
-      {
-        field: 'deductible',
-        headerName: 'Deductible',
-        description: 'Dollar based deductible submitted by user',
-        minWidth: 100,
-        flex: 0.5,
-        editable: false,
-        headerAlign: 'center',
-        align: 'right',
-        valueFormatter: formatGridCurrency,
-      },
-      {
-        field: 'replacementCost',
-        headerName: 'Replacement Cost',
-        description: 'Building replacement cost',
-        minWidth: 140,
-        flex: 0.8,
-        headerAlign: 'center',
-        align: 'right',
-        valueFormatter: formatGridCurrency,
-      },
+      coordinatesCol,
+      latitudeCol,
+      longitudeCol,
+      annualPremiumCol,
+      deductibleCol,
+      replacementCostCol,
       {
         field: 'exclusions',
         headerName: 'Exclusions',
@@ -335,155 +217,29 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
         editable: false,
         // TODO: valueFormatter
       },
+      priorLossCountCol,
+      distToCoastFeetCol,
+      basementCol,
+      numStoriesCol,
+      propertyCodeCol,
+      sqFootageCol,
+      yearBuiltCol,
+      floodZoneCol,
+      CBRSCol,
+      inlandAALCol,
+      surgeAALCol,
+      createdCol,
+      updatedCol,
       {
-        field: 'priorLossCount',
-        headerName: 'Prior Losses',
-        description: 'Prior loss count provided by user',
-        minWidth: 100,
-        flex: 0.4,
-        editable: false,
-        headerAlign: 'center',
-        align: 'right',
-        // TODO: valueFormatter
-      },
-      {
-        field: 'distToCoastFeet',
-        headerName: 'Dist. to Coast',
-        description: 'Converted to feet from the value provided by property data api',
-        minWidth: 120,
-        flex: 0.4,
-        headerAlign: 'center',
-        align: 'right',
-        valueFormatter: (params: GridValueFormatterParams<number>) =>
-          params.value ? numberFormat(params.value) : null,
-      },
-      {
-        field: 'basement',
-        headerName: 'Basement',
-        description: 'Basement value provided by property api',
-        minWidth: 140,
-        flex: 0.4,
-      },
-      {
-        field: 'numStories',
-        headerName: 'Num. Stories',
-        description: 'Number of stories provided by property api',
-        minWidth: 100,
-        flex: 0.4,
-        headerAlign: 'center',
-        align: 'right',
-      },
-      {
-        field: 'propertyCode',
-        headerName: 'Property Code',
-        description: 'Property code provided by property api',
-        minWidth: 180,
-        flex: 0.8,
-      },
-      {
-        field: 'sqFootage',
-        headerName: 'Sq. Footage',
-        description: 'Square footage provided by property api',
-        minWidth: 100,
-        flex: 0.4,
-        headerAlign: 'center',
-        align: 'right',
-        valueFormatter: (params: GridValueFormatterParams<number>) =>
-          params.value ? numberFormat(params.value) : null,
-      },
-      {
-        field: 'yearBuilt',
-        headerName: 'Year Built',
-        description: 'Year built provided by property api',
-        minWidth: 80,
-        flex: 0.4,
-        headerAlign: 'center',
-        align: 'center',
-      },
-      {
-        field: 'spatialKeyDocId',
-        headerName: 'SK Doc ID',
-        description: 'Document/database ID for the entire property data response',
-        minWidth: 140,
-        flex: 0.4,
-      },
-      {
-        field: 'floodZone',
-        headerName: 'FZ',
-        description: 'Flood zone provided by property api',
-        minWidth: 60,
-        flex: 0.4,
-      },
-      {
-        field: 'CBRSDesignation',
-        headerName: 'CBRS Des.',
-        description: 'Coastal Barrier Reef System Designation provided by property api',
-        minWidth: 100,
-        flex: 0.5,
-      },
-      {
-        field: 'inlandAAL',
-        headerName: 'inlandAAL',
-        description: 'Inland Peril Average Annual Loss from Swiss Re',
-        minWidth: 150,
-        flex: 0.8,
-        valueGetter: (params) => params.value || null,
-        renderCell: (params) => {
-          return <GridCellCopy value={params.value} />;
-        },
-      },
-      {
-        field: 'surgeAAL',
-        headerName: 'surgeAAL',
-        description: 'Surge Peril Average Annual Loss from Swiss Re',
-        minWidth: 150,
-        flex: 0.8,
-        valueGetter: (params) => params.value || null,
-        renderCell: (params) => {
-          return <GridCellCopy value={params.value} />;
-        },
-      },
-      {
-        field: 'created',
-        headerName: 'Created',
-        type: 'dateTime',
-        minWidth: 180,
-        flex: 1,
-        editable: false,
-        valueGetter: (params: GridValueGetterParams) => params.row.metadata?.created || null,
-        valueFormatter: formatGridFirestoreTimestamp,
-      },
-      {
-        field: 'updated',
-        headerName: 'Updated',
-        type: 'dateTime',
-        minWidth: 180,
-        flex: 1,
-        editable: false,
-        valueGetter: (params: GridValueGetterParams) => params.row.metadata?.created || null,
-        valueFormatter: formatGridFirestoreTimestamp,
-      },
-      {
-        field: 'userId',
-        headerName: 'User ID',
+        ...userIdCol,
         description:
           'user ID of the user that created submission (could have been anonymous if they were not signed in)',
-        minWidth: 240,
-        flex: 1,
-        editable: false,
-        renderCell: (params) => {
-          return <GridCellCopy value={params.value} />;
-        },
       },
+
       {
-        field: 'id',
+        ...idCol,
         headerName: 'Submission ID',
         description: 'Document/database ID for the submission',
-        minWidth: 220,
-        flex: 1,
-        renderCell: (params) => {
-          return <GridCellCopy value={params.value} />;
-        },
       },
     ],
     [handleCreateQuote, openGoogleMaps]
@@ -545,24 +301,3 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
     </Box>
   );
 };
-
-function getChipProps(status: SUBMISSION_STATUS): Partial<ChipProps> {
-  switch (status) {
-    case SUBMISSION_STATUS.SUBMITTED:
-      return { icon: <FiberNewRounded />, color: 'primary' };
-    case SUBMISSION_STATUS.UNDER_REVIEW:
-      return { icon: <FindInPageRounded />, color: 'warning' };
-    case SUBMISSION_STATUS.DRAFT:
-      return { icon: <PendingRounded />, color: 'info' };
-    case SUBMISSION_STATUS.NOT_ELIGIBLE:
-      return { icon: <ThumbDownRounded />, color: 'default' };
-    case SUBMISSION_STATUS.PENDING_INFO:
-      return { icon: <HourglassBottomRounded />, color: 'warning' };
-    case SUBMISSION_STATUS.QUOTED:
-      return { icon: <RequestQuoteRounded />, color: 'success' };
-    case SUBMISSION_STATUS.CANCELLED:
-      return { icon: <CloseRounded />, color: 'default' };
-    default:
-      return { color: 'default' };
-  }
-}

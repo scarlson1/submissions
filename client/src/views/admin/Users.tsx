@@ -1,7 +1,8 @@
-import { Box, Typography } from '@mui/material';
-import { UsersGrid } from 'elements';
-import { where } from 'firebase/firestore';
 import React from 'react';
+import { Box, Typography } from '@mui/material';
+import { where } from 'firebase/firestore';
+
+import { UsersGrid } from 'elements';
 
 export const Users: React.FC = () => {
   return (

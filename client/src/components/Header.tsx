@@ -48,11 +48,10 @@ import { Link as RouterLink } from 'react-router-dom';
 import { useChangeTheme } from 'modules/components/ThemeContext';
 import { useAuth } from 'modules/components/AuthContext';
 import { ROUTES, ADMIN_ROUTES, createPath, AUTH_ROUTES, ACCOUNT_ROUTES } from 'router';
-import { User } from 'firebase/auth';
 import { NavListItem } from './NavListItem';
 import { NavMenu as PopperNavMenu } from './NavMenu';
 import { NavDrawer } from './NavDrawer';
-import { SigninCheckResult, useSigninCheck, useUser } from 'reactfire';
+import { useSigninCheck } from 'reactfire';
 
 // TODO: GENERALIZE MENU COMPONENT - allow for button or user avatar as button. nested items. icons.
 // could have optional render function to render button??
@@ -74,7 +73,7 @@ export const Header: React.FC<HeaderProps> = () => {
   const changeTheme = useChangeTheme();
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, customClaims, logout } = useAuth();
+  const { user, customClaims } = useAuth();
 
   const adminNavPages = useMemo(
     () => [
@@ -227,17 +226,17 @@ export const Header: React.FC<HeaderProps> = () => {
       sItems.unshift({
         label: 'Account Settings',
         onClick: () => navigate(createPath({ path: ACCOUNT_ROUTES.ACCOUNT })),
-        icon: <ManageAccountsRounded color='inherit' fontSize='small' />,
+        icon: <ManageAccountsRounded fontSize='small' />,
       });
 
     if (user?.isAnonymous) {
       sItems.push({
         label: 'Create Account',
         onClick: () => navigate(createPath({ path: AUTH_ROUTES.CREATE_ACCOUNT })),
-        icon: <PersonRounded color='primary' fontSize='small' />,
+        icon: <PersonRounded fontSize='small' />,
       });
       sItems.push({
-        label: 'Already have an account? Login',
+        label: 'Have an account? Login',
         onClick: () =>
           navigate(createPath({ path: AUTH_ROUTES.LOGIN }), { state: { from: location } }),
         icon: <PasswordRounded fontSize='small' />,
@@ -548,7 +547,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ menuItems }) => {
       </Tooltip>
 
       <Menu
-        sx={{ mt: '45px' }}
+        sx={{ mt: '45px', minWidth: 240, maxWidth: 340 }}
         id='account-menu'
         anchorEl={anchorEl}
         anchorOrigin={{
@@ -563,7 +562,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ menuItems }) => {
         open={Boolean(anchorEl)}
         onClose={handleCloseMenu}
       >
-        <Box sx={{ px: 4, pt: 2 }}>
+        <Box sx={{ px: 4, py: 3 }}>
           <Suspense
             fallback={
               <>
@@ -581,11 +580,30 @@ const UserMenu: React.FC<UserMenuProps> = ({ menuItems }) => {
                   {authCheckResult?.user.email}
                 </Typography>
               )}
-              <Divider />
+              {authCheckResult?.user?.isAnonymous && (
+                <>
+                  <Typography
+                    variant='body1'
+                    onClick={() =>
+                      navigate(createPath({ path: AUTH_ROUTES.CREATE_ACCOUNT }), {
+                        state: { from: location },
+                      })
+                    }
+                    sx={{ pb: 1, '&:hover': { textDecoration: 'underline', cursor: 'pointer' } }}
+                  >
+                    Create an account to save progress
+                  </Typography>
+                  <Typography
+                    variant='body2'
+                    color='text.secondary'
+                    sx={{ whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}
+                  >{`User ID: ${authCheckResult.user.uid}`}</Typography>
+                </>
+              )}
             </AuthWrapper>
           </Suspense>
-          <Divider />
         </Box>
+        <Divider sx={{ my: 0 }} />
         {menuItems.map((item) => (
           <MenuItem
             key={item.label}
@@ -598,7 +616,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ menuItems }) => {
             <ListItemText>{item.label}</ListItemText>
           </MenuItem>
         ))}
-        <Divider />
+        <Divider sx={{ my: 0 }} />
         <Box sx={{ display: 'flex', justifyContent: 'center', pb: 1 }}>
           <Suspense fallback={<Skeleton variant='rounded' width={80} height={36} />}>
             <AuthWrapper

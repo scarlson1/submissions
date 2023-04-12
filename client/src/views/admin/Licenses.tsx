@@ -2,36 +2,25 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { limit, orderBy } from 'firebase/firestore';
 import { Box, Button, Chip, Typography } from '@mui/material';
-import { BusinessRounded, CheckRounded, CloseRounded, PersonRounded } from '@mui/icons-material';
+import { BusinessRounded, PersonRounded } from '@mui/icons-material';
 import { GridColDef } from '@mui/x-data-grid';
 
 import { ADMIN_ROUTES, createPath } from 'router';
 import { BasicDataGrid } from 'components';
-import {
-  formatGridFirestoreTimestamp,
-  formatGridFirestoreTimestampAsDate,
-  isCurrentDateBetween,
-} from 'modules/utils/helpers';
 import { useCollectionData } from 'hooks';
-
-// export const licensesLoader = async ({ params }: LoaderFunctionArgs) => {
-//   try {
-//     // TODO: pass query params for order, limit, etc. ??
-//     return getDocs(
-//       query(licensesCollection(getFirestore()), orderBy('metadata.created', 'desc'), limit(100))
-//     ).then((querySnap) => querySnap.docs.map((snap) => ({ ...snap.data(), id: snap.id })));
-//   } catch (err) {
-//     throw new Response(`Error fetching licenses`);
-//   }
-// };
+import {
+  booleanCalcActiveCol,
+  createdCol,
+  effectiveDateCol,
+  expirationDateCol,
+  idCol,
+  updatedCol,
+} from 'common';
 
 const licensesColumns: GridColDef[] = [
   {
-    field: 'id',
+    ...idCol,
     headerName: 'Doc ID',
-    minWidth: 160,
-    flex: 0.6,
-    editable: false,
   },
   {
     field: 'state',
@@ -85,46 +74,9 @@ const licensesColumns: GridColDef[] = [
     flex: 1,
     editable: false,
   },
-  {
-    field: 'active',
-    headerName: 'Active',
-    type: 'boolean',
-    description:
-      'Current date is after effective date (if exists) and before expiration (if exists)',
-    minWidth: 80,
-    flex: 0.5,
-    headerAlign: 'center',
-    align: 'center',
-    editable: false,
-    valueGetter: (params) =>
-      isCurrentDateBetween(params.row.effectiveDate?.toDate(), params.row.expirationDate?.toDate()),
-    renderCell: (params) => {
-      const isActive = !!params.value;
-
-      if (isActive) return <CheckRounded color='success' fontSize='small' />;
-      return <CloseRounded color='disabled' fontSize='small' />;
-    },
-  },
-  {
-    field: 'effectiveDate',
-    headerName: 'Effective Date',
-    type: 'date',
-    minWidth: 160,
-    flex: 1,
-    editable: false,
-    valueGetter: (params) => params.row.effectiveDate || null,
-    valueFormatter: formatGridFirestoreTimestampAsDate,
-  },
-  {
-    field: 'expirationDate',
-    headerName: 'Expiration Date',
-    type: 'date',
-    minWidth: 160,
-    flex: 1,
-    editable: false,
-    valueGetter: (params) => params.row.expirationDate || null,
-    valueFormatter: formatGridFirestoreTimestampAsDate,
-  },
+  booleanCalcActiveCol,
+  effectiveDateCol,
+  expirationDateCol,
   {
     field: 'surplusLinesProducerOfRecord',
     headerName: 'SL Producer of Record',
@@ -143,26 +95,8 @@ const licensesColumns: GridColDef[] = [
     editable: false,
     type: 'boolean',
   },
-  {
-    field: 'metadata.created',
-    headerName: 'Created',
-    type: 'dateTime',
-    minWidth: 160,
-    flex: 0.6,
-    editable: false,
-    valueGetter: (params) => params.row.metadata.created || null,
-    valueFormatter: formatGridFirestoreTimestamp,
-  },
-  {
-    field: 'metadata.updated',
-    headerName: 'Updated',
-    type: 'dateTime',
-    minWidth: 160,
-    flex: 0.6,
-    editable: false,
-    valueGetter: (params) => params.row.metadata.updated || null,
-    valueFormatter: formatGridFirestoreTimestamp,
-  },
+  createdCol,
+  updatedCol,
 ];
 
 export const Licenses: React.FC = () => {

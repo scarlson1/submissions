@@ -18,7 +18,6 @@ import {
 import { BasicDataGrid } from 'components';
 import { useCollectionData } from 'hooks';
 import { QueryConstraint, limit } from 'firebase/firestore';
-import { Link } from 'react-router-dom';
 
 export interface UsersGridProps {
   queryConstraints?: QueryConstraint[];
@@ -49,16 +48,6 @@ export const UsersGrid: React.FC<UsersGridProps> = ({ queryConstraints = [] }) =
             label='Message'
             // disabled={params.row.status !== INVITE_STATUS.PENDING}
           />,
-          // <GridActionsCellItem
-          //   icon={
-          //     <Tooltip title='Cancel' placement='top'>
-          //       <CancelRounded />
-          //     </Tooltip>
-          //   }
-          //   onClick={() => handleCancel(params)}
-          //   label='Cancel'
-          //   disabled={params.row.status !== INVITE_STATUS.PENDING}
-          // />,
         ],
       },
       displayNameCol,

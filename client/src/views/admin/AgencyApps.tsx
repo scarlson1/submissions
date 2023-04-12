@@ -8,14 +8,28 @@ import {
   GridColDef,
   GridRowId,
   GridRowParams,
+  GridValueGetterParams,
 } from '@mui/x-data-grid';
 
-import { BasicDataGrid, renderGridEmail, renderGridPhone, FileLink } from 'components';
-import { formatGridFirestoreTimestamp, getGridAddressComponent } from 'modules/utils/helpers';
+import { BasicDataGrid } from 'components';
 import { ADMIN_ROUTES, createPath } from 'router';
 import { useCollectionData, useCreateTenant } from 'hooks';
 import { CheckCircleOutlineRounded, SendRounded } from '@mui/icons-material';
 import { FirebaseError } from 'firebase/app';
+import {
+  addrLine1Col,
+  addrLine2Col,
+  createdCol,
+  emailCol,
+  fileLinkCol,
+  firstNameCol,
+  idCol,
+  lastNameCol,
+  orgNameCol,
+  phoneCol,
+  statusCol,
+  updatedCol,
+} from 'common';
 
 export const AgencyApps: React.FC = () => {
   const navigate = useNavigate();
@@ -24,7 +38,7 @@ export const AgencyApps: React.FC = () => {
     limit(100),
   ]);
 
-  const { createTenant, error: createTenantError, sendApprovedNotification } = useCreateTenant({});
+  const { createTenant, error: createTenantError } = useCreateTenant({});
 
   const handleCellClick = (params: GridCellParams<any>) => {
     const ignoreFieldsContaining = ['email', 'phone', 'EandO'];
@@ -131,27 +145,9 @@ export const AgencyApps: React.FC = () => {
           />,
         ],
       },
-      {
-        field: 'id',
-        headerName: 'Doc ID',
-        minWidth: 160,
-        flex: 0.6,
-        editable: false,
-      },
-      {
-        field: 'orgName',
-        headerName: 'Company Name',
-        minWidth: 200,
-        flex: 1,
-        editable: false,
-      },
-      {
-        field: 'status',
-        headerName: 'Status',
-        minWidth: 140,
-        flex: 0.8,
-        editable: false,
-      },
+      { ...idCol, headerName: 'Doc ID' },
+      orgNameCol,
+      statusCol,
       {
         field: 'contact',
         headerName: 'Contact',
@@ -161,94 +157,36 @@ export const AgencyApps: React.FC = () => {
         valueGetter: (params) => `${params.row.contact.firstName} ${params.row.contact.lastName}`,
       },
       {
+        ...firstNameCol,
         field: 'contact.firstName',
         headerName: 'Contact First Name',
-        minWidth: 120,
-        flex: 1,
-        editable: false,
-        valueGetter: (params) => params.row.contact?.firstName || null,
+        valueGetter: (params: GridValueGetterParams<any, any>) =>
+          params.row.contact?.firstName || null,
       },
       {
+        ...lastNameCol,
         field: 'contact.lastName',
         headerName: 'Contact Last Name',
-        minWidth: 120,
-        flex: 1,
-        editable: false,
         valueGetter: (params) => params.row.contact?.lastName || null,
       },
       {
+        ...emailCol,
         field: 'contact.email',
         headerName: 'Contact Email',
-        minWidth: 200,
-        flex: 1,
-        editable: false,
         valueGetter: (params) => params.row.contact?.email || null,
-        renderCell: (params) => renderGridEmail(params),
       },
       {
+        ...phoneCol,
         field: 'contact.phone',
         headerName: 'Contact Phone',
-        minWidth: 160,
-        flex: 1,
-        editable: false,
         valueGetter: (params) => params.row.contact?.phone || null,
-        renderCell: (params) => renderGridPhone(params),
       },
+      addrLine1Col,
+      addrLine2Col,
       {
-        field: 'address.addressLine1',
-        headerName: 'Address',
-        minWidth: 200,
-        flex: 1,
-        editable: false,
-        valueGetter: (params) => getGridAddressComponent(params, 'addressLine1'),
-      },
-      {
-        field: 'address.addressLine2',
-        headerName: 'Suite/Unit',
-        minWidth: 80,
-        flex: 1,
-        editable: false,
-        valueGetter: (params) => getGridAddressComponent(params, 'addressLine2'),
-      },
-      {
-        field: 'address.city',
-        headerName: 'City',
-        minWidth: 120,
-        flex: 1,
-        editable: false,
-        valueGetter: (params) => getGridAddressComponent(params, 'city'),
-      },
-      {
-        field: 'address.state',
-        headerName: 'State',
-        minWidth: 80,
-        flex: 1,
-        editable: false,
-        valueGetter: (params) => getGridAddressComponent(params, 'state'),
-      },
-      {
-        field: 'address.postal',
-        headerName: 'Postal',
-        minWidth: 100,
-        flex: 1,
-        editable: false,
-        valueGetter: (params) => getGridAddressComponent(params, 'postal'),
-      },
-      {
+        ...fileLinkCol,
         field: 'EandO',
         headerName: 'E & O',
-        minWidth: 180,
-        flex: 1,
-        editable: false,
-        renderCell: ({ value }) => (
-          <FileLink
-            filepath={value}
-            url={value}
-            fileType='.pdf'
-            typographyProps={{ variant: 'body2', fontWeight: 'fontWeightMedium' }}
-            linkProps={{ underline: 'hover' }}
-          />
-        ),
       },
       {
         field: 'FEIN',
@@ -257,24 +195,8 @@ export const AgencyApps: React.FC = () => {
         flex: 1,
         editable: false,
       },
-      {
-        field: 'metadata.created',
-        headerName: 'Created',
-        minWidth: 160,
-        flex: 0.6,
-        editable: false,
-        valueGetter: (params) => params.row.metadata.created || null,
-        valueFormatter: formatGridFirestoreTimestamp,
-      },
-      {
-        field: 'metadata.updated',
-        headerName: 'Updated',
-        minWidth: 160,
-        flex: 0.6,
-        editable: false,
-        valueGetter: (params) => params.row.metadata.updated || null,
-        valueFormatter: formatGridFirestoreTimestamp,
-      },
+      createdCol,
+      updatedCol,
     ],
     [handleApprove, handleResendInvite]
   );

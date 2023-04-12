@@ -1,78 +1,60 @@
 import React, { useCallback, useMemo } from 'react';
-import {
-  Box,
-  Button,
-  Chip,
-  ChipProps,
-  Link,
-  Tooltip,
-  Typography,
-  useMediaQuery,
-  useTheme,
-} from '@mui/material';
+import { Box, Button, Link, Tooltip, Typography, useMediaQuery, useTheme } from '@mui/material';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import { doc, getDoc, getFirestore, limit, orderBy, updateDoc } from 'firebase/firestore';
 import {
   GridActionsCellItem,
   GridColDef,
-  GridRenderCellParams,
   GridRowModel,
   GridRowParams,
   GridToolbar,
   GridValueGetterParams,
 } from '@mui/x-data-grid';
-import {
-  CloseRounded,
-  DataObjectRounded,
-  DoneRounded,
-  EditRounded,
-  HourglassBottomRounded,
-  HourglassEmptyRounded,
-  SendRounded,
-} from '@mui/icons-material';
+import { DataObjectRounded, EditRounded, SendRounded } from '@mui/icons-material';
 import { toast } from 'react-hot-toast';
 
 import { ADMIN_ROUTES, createPath } from 'router';
-import { SubmissionQuoteData, submissionsQuotesCollection, QUOTE_STATUS, WithId } from 'common';
-import { BasicDataGrid, renderGridEmail, renderGridPhone, GridCellCopy } from 'components';
 import {
-  formatGridCurrency,
-  formatGridFirestoreTimestamp,
-  formatGridPercent,
-} from 'modules/utils/helpers';
+  SubmissionQuoteData,
+  submissionsQuotesCollection,
+  QUOTE_STATUS,
+  WithId,
+  addrLine1Col,
+  addrLine2Col,
+  addrCityCol,
+  addrStateCol,
+  addrPostalCol,
+  currencyCol,
+  statusCol,
+  emailCol,
+  phoneCol,
+  limitACol,
+  limitBCol,
+  limitCCol,
+  limitDCol,
+  deductibleCol,
+  ratingDataReplacementCostCol,
+  ratingDataPropertyCodeCol,
+  ratingDataYearBuiltCol,
+  ratingDataSqFootageCol,
+  ratingDataNumStoriesCol,
+  ratingDataBasementCol,
+  ratingDataDistToCoastFeetCol,
+  ratingDataCBRSCol,
+  ratingDataFloodZoneCol,
+  subproducerCommissionCol,
+  createdCol,
+  updatedCol,
+  orgNameCol,
+  agentIdCol,
+  userIdCol,
+  idCol,
+} from 'common';
+import { BasicDataGrid, GridCellCopy } from 'components';
+import { formatGridCurrency } from 'modules/utils/helpers';
 import { useAsyncToast, useCollectionData, useJsonDialog, useSendQuoteNotification } from 'hooks';
 import { useConfirmation } from 'modules/components';
 import { submissionQuoteConverter } from 'common/firestoreConverters';
-
-const getChipProps = (status: QUOTE_STATUS): Partial<ChipProps> => {
-  switch (status) {
-    case QUOTE_STATUS.AWAITING_USER:
-      return { icon: <HourglassEmptyRounded />, color: 'primary' };
-    case QUOTE_STATUS.BOUND:
-      return { icon: <DoneRounded />, color: 'success' };
-    case QUOTE_STATUS.EXPIRED:
-      return { icon: <HourglassBottomRounded />, color: 'warning' };
-    case QUOTE_STATUS.CANCELLED:
-      return { icon: <CloseRounded />, color: 'default' };
-    default:
-      return { color: 'default' };
-  }
-};
-
-// export const quotesLoader = async ({ params }: LoaderFunctionArgs) => {
-//   try {
-//     // TODO: pass query params for order, limit, etc.
-//     return getDocs(
-//       query(
-//         submissionsQuotesCollection(getFirestore()),
-//         orderBy('metadata.created', 'desc'),
-//         limit(100)
-//       )
-//     ).then((querySnap) => querySnap.docs.map((snap) => ({ ...snap.data(), id: snap.id })));
-//   } catch (err) {
-//     throw new Response(`Error fetching submissions`);
-//   }
-// };
 
 const useUpdateQuote = () => {
   const update = useCallback(async (id: string, updateValues: Partial<SubmissionQuoteData>) => {
@@ -90,7 +72,6 @@ const useUpdateQuote = () => {
   return update;
 };
 
-// const useConfirmAndUpdate = (updateFn: <T = any>(id: string, vals: Partial<T>) => Promise<T>) => {
 export const useConfirmAndUpdate = (updateFn: (id: string, vals: Partial<any>) => Promise<any>) => {
   const modal = useConfirmation();
   const toast = useAsyncToast();
@@ -145,7 +126,6 @@ export const useConfirmAndUpdate = (updateFn: (id: string, vals: Partial<any>) =
 
 export const Quotes: React.FC = () => {
   const navigate = useNavigate();
-  // const data = useLoaderData() as WithId<SubmissionQuoteData>[];
   const { data, status } = useCollectionData('SUBMISSIONS_QUOTES', [
     orderBy('metadata.created', 'desc'),
     limit(100),
@@ -217,63 +197,39 @@ export const Quotes: React.FC = () => {
         ],
       },
       {
-        field: 'addressLine1',
-        headerName: 'Address',
-        minWidth: 200,
-        flex: 1,
-        editable: false,
+        ...addrLine1Col,
+        field: 'insuredAddress.addressLine1',
+        headerName: 'Insured Address 1',
         valueGetter: (params) => params.row.insuredAddress.addressLine1,
       },
       {
-        field: 'addressLine2',
+        ...addrLine2Col,
+        field: 'insuredAddress.addressLine2',
         headerName: 'Unit/Suite',
-        minWidth: 80,
-        flex: 0.4,
-        editable: false,
         valueGetter: (params) => params.row.insuredAddress.addressLine2,
       },
       {
-        field: 'city',
-        headerName: 'City',
-        minWidth: 150,
-        flex: 1,
-        editable: false,
+        ...addrCityCol,
+        field: 'insuredAddress.city',
         valueGetter: (params) => params.row.insuredAddress.city,
       },
       {
-        field: 'state',
-        headerName: 'State',
-        minWidth: 72,
-        flex: 0.1,
-        editable: false,
+        ...addrStateCol,
+        field: 'insuredAddress.state',
         valueGetter: (params) => params.row.insuredAddress.state,
       },
       {
-        field: 'postal',
-        headerName: 'Postal',
-        minWidth: 100,
-        flex: 0.6,
-        editable: false,
+        ...addrPostalCol,
+        field: 'insuredAddress.postal',
         valueGetter: (params) => params.row.insuredAddress.postal,
       },
       {
+        ...currencyCol,
         field: 'quoteTotal',
         headerName: 'Quote Total',
-        minWidth: 120,
-        flex: 0.8,
-        editable: false,
-        headerAlign: 'center',
-        align: 'right',
-        valueFormatter: (params) => formatGridCurrency(params, '$0,0.00'),
-        renderCell: (params) => (
-          <Typography variant='body2' fontWeight='medium'>
-            {params.formattedValue}
-          </Typography>
-        ),
       },
       {
-        field: 'status',
-        headerName: 'Status',
+        ...statusCol,
         type: 'singleSelect',
         valueOptions: [
           QUOTE_STATUS.BOUND,
@@ -281,21 +237,6 @@ export const Quotes: React.FC = () => {
           QUOTE_STATUS.EXPIRED,
           QUOTE_STATUS.AWAITING_USER,
         ],
-        minWidth: 180,
-        flex: 0.8,
-        editable: true,
-        renderCell: (params: GridRenderCellParams) => (
-          <Chip
-            label={params.value}
-            size='small'
-            variant='outlined'
-            {...getChipProps(params.value)}
-          />
-        ),
-        // preProcessEditCellProps: (params: GridPreProcessEditCellProps) => {
-        //   const hasError = params.props.value.length < 3;
-        //   return { ...params.props, error: hasError };
-        // },
       },
       {
         field: 'insuredName',
@@ -321,20 +262,14 @@ export const Quotes: React.FC = () => {
         editable: false,
       },
       {
+        ...emailCol,
         field: 'insuredEmail',
         headerName: 'Insured Email',
-        minWidth: 220,
-        flex: 1,
-        editable: false,
-        renderCell: renderGridEmail,
       },
       {
+        ...phoneCol,
         field: 'insuredPhone',
         headerName: 'Insured Phone',
-        minWidth: 140,
-        flex: 1,
-        editable: false,
-        renderCell: renderGridPhone,
       },
       {
         field: 'termPremium',
@@ -346,152 +281,21 @@ export const Quotes: React.FC = () => {
         align: 'right',
         valueFormatter: formatGridCurrency,
       },
-      {
-        field: 'limitA',
-        headerName: 'Limit A',
-        minWidth: 120,
-        flex: 0.8,
-        editable: false,
-        headerAlign: 'center',
-        align: 'right',
-        valueGetter: (params) => params.row.limits.limitA,
-        valueFormatter: formatGridCurrency,
-      },
-      {
-        field: 'limitB',
-        headerName: 'Limit B',
-        minWidth: 120,
-        flex: 0.8,
-        editable: false,
-        headerAlign: 'center',
-        align: 'right',
-        valueGetter: (params) => params.row.limits.limitB,
-        valueFormatter: formatGridCurrency,
-      },
-      {
-        field: 'limitC',
-        headerName: 'Limit C',
-        minWidth: 120,
-        flex: 0.8,
-        editable: false,
-        headerAlign: 'center',
-        align: 'right',
-        valueGetter: (params) => params.row.limits.limitC,
-        valueFormatter: formatGridCurrency,
-      },
-      {
-        field: 'limitD',
-        headerName: 'Limit D',
-        minWidth: 120,
-        flex: 0.8,
-        editable: false,
-        headerAlign: 'center',
-        align: 'right',
-        valueGetter: (params) => params.row.limits.limitD,
-        valueFormatter: formatGridCurrency,
-      },
-      {
-        field: 'deductible',
-        headerName: 'Deductible',
-        minWidth: 100,
-        flex: 0.5,
-        editable: false,
-        headerAlign: 'center',
-        align: 'right',
-        valueFormatter: formatGridCurrency,
-      },
-      {
-        field: 'replacementCost',
-        headerName: 'Replacement Cost',
-        minWidth: 140,
-        flex: 0.8,
-        headerAlign: 'center',
-        align: 'right',
-        valueGetter: (params) => params.row.ratingPropertyData?.replacementCost ?? null,
-        valueFormatter: formatGridCurrency,
-      },
-      {
-        field: 'propertyCode',
-        headerName: 'Property Code',
-        minWidth: 140,
-        flex: 0.8,
-        headerAlign: 'center',
-        align: 'right',
-        valueGetter: (params) => params.row.ratingPropertyData?.propertyCode ?? null,
-      },
-      {
-        field: 'yearBuilt',
-        headerName: 'Year Built',
-        minWidth: 140,
-        flex: 0.8,
-        headerAlign: 'center',
-        align: 'right',
-        valueGetter: (params) => params.row.ratingPropertyData?.yearBuilt ?? null,
-      },
-      {
-        field: 'sqFootage',
-        headerName: 'Sq. Footage',
-        minWidth: 140,
-        flex: 0.8,
-        headerAlign: 'center',
-        align: 'right',
-        valueGetter: (params) => params.row.ratingPropertyData?.sqFootage ?? null,
-      },
-      {
-        field: 'numStories',
-        headerName: 'Num. Stories',
-        minWidth: 140,
-        flex: 0.8,
-        headerAlign: 'center',
-        align: 'right',
-        valueGetter: (params) => params.row.ratingPropertyData?.numStories ?? null,
-      },
-      {
-        field: 'basement',
-        headerName: 'Basement',
-        minWidth: 140,
-        flex: 0.8,
-        headerAlign: 'center',
-        align: 'right',
-        valueGetter: (params) => params.row.ratingPropertyData?.basement ?? null,
-      },
-      {
-        field: 'distToCoastFeet',
-        headerName: 'Dist. to Coast (ft.)',
-        minWidth: 160,
-        flex: 0.8,
-        headerAlign: 'center',
-        align: 'right',
-        valueGetter: (params) => params.row.ratingPropertyData?.distToCoastFeet ?? null,
-      },
-      {
-        field: 'CBRSDesignation',
-        headerName: 'CBRS Des.',
-        minWidth: 140,
-        flex: 0.8,
-        headerAlign: 'center',
-        align: 'right',
-        valueGetter: (params) => params.row.ratingPropertyData?.CBRSDesignation ?? null,
-      },
-      {
-        field: 'floodZone',
-        headerName: 'Flood Zone',
-        minWidth: 140,
-        flex: 0.8,
-        headerAlign: 'center',
-        align: 'right',
-        valueGetter: (params) => params.row.ratingPropertyData?.floodZone ?? null,
-      },
-      {
-        field: 'subproducerCommission',
-        headerName: 'Commission',
-        minWidth: 120,
-        flex: 0.8,
-        editable: false,
-        headerAlign: 'center',
-        align: 'right',
-        valueFormatter: (params) => formatGridPercent(params, 0),
-      },
+      limitACol,
+      limitBCol,
+      limitCCol,
+      limitDCol,
+      deductibleCol,
+      ratingDataReplacementCostCol,
+      ratingDataPropertyCodeCol,
+      ratingDataYearBuiltCol,
+      ratingDataSqFootageCol,
+      ratingDataNumStoriesCol,
+      ratingDataBasementCol,
+      ratingDataDistToCoastFeetCol,
+      ratingDataCBRSCol,
+      ratingDataFloodZoneCol,
+      subproducerCommissionCol,
       {
         field: 'agentName',
         headerName: 'Agent Name',
@@ -500,73 +304,38 @@ export const Quotes: React.FC = () => {
         editable: false,
       },
       {
+        ...emailCol,
         field: 'agentEmail',
         headerName: 'Agent Email',
-        minWidth: 220,
-        flex: 0.8,
-        editable: false,
-        renderCell: renderGridEmail,
       },
       {
+        ...phoneCol,
         field: 'agentPhone',
         headerName: 'Agent Email',
-        minWidth: 140,
-        flex: 0.8,
-        editable: false,
-        renderCell: renderGridPhone,
       },
       {
+        ...orgNameCol,
         field: 'agencyName',
         headerName: 'Agency',
-        minWidth: 180,
-        flex: 0.8,
-        editable: false,
       },
+      createdCol,
+      updatedCol,
       {
-        field: 'created',
-        headerName: 'Created',
-        minWidth: 180,
-        flex: 1,
-        editable: false,
-        valueGetter: (params: GridValueGetterParams) => params.row.metadata?.created || null,
-        valueFormatter: formatGridFirestoreTimestamp,
+        ...agentIdCol,
+        valueGetter: (params: GridValueGetterParams) => params.row.agentId || null,
+        // field: 'agentId',
+        // headerName: 'Agent ID',
+        // minWidth: 260,
+        // flex: 1,
+        // renderCell: (params) => {
+        //   return <GridCellCopy value={params.value} />;
+        // },
       },
+      userIdCol,
+
       {
-        field: 'updated',
-        headerName: 'Updated',
-        minWidth: 180,
-        flex: 1,
-        editable: false,
-        valueGetter: (params: GridValueGetterParams) => params.row.metadata?.created || null,
-        valueFormatter: formatGridFirestoreTimestamp,
-      },
-      {
-        field: 'agentId',
-        headerName: 'Agent ID',
-        minWidth: 260,
-        flex: 1,
-        renderCell: (params) => {
-          return <GridCellCopy value={params.value} />;
-        },
-      },
-      {
-        field: 'userId',
-        headerName: 'User ID',
-        minWidth: 260,
-        flex: 1,
-        editable: false,
-        renderCell: (params) => {
-          return <GridCellCopy value={params.value} />;
-        },
-      },
-      {
-        field: 'id',
+        ...idCol,
         headerName: 'Quote ID',
-        minWidth: 240,
-        flex: 1,
-        renderCell: (params) => {
-          return <GridCellCopy value={params.value} />;
-        },
       },
       {
         field: 'submissionId',

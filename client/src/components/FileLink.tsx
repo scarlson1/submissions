@@ -34,6 +34,8 @@ export const FileLink: React.FC<FileLinkProps> = ({
     openFileInNewTab(fileLocation);
   };
 
+  if (!filepath || !url) return null;
+
   return (
     <>
       <Link

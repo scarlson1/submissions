@@ -1,12 +1,6 @@
 import React, { useCallback, useMemo, Suspense } from 'react';
 import { Box, Button, Card, Tooltip, Typography, useMediaQuery, useTheme } from '@mui/material';
-import {
-  BlockRounded,
-  CheckRounded,
-  CloseRounded,
-  DataObjectRounded,
-  MapRounded,
-} from '@mui/icons-material';
+import { BlockRounded, DataObjectRounded, MapRounded } from '@mui/icons-material';
 import {
   doc,
   getDoc,
@@ -28,14 +22,20 @@ import { ErrorBoundary } from 'react-error-boundary';
 
 import { ADMIN_ROUTES, createPath } from 'router';
 import { BasicDataGrid, ConfirmationDialog } from 'components';
+import { formatFirestoreTimestamp, formatGridFirestoreTimestampAsDate } from 'modules/utils';
+import { renderChips } from 'components/RenderGridCellHelpers';
 import {
-  formatFirestoreTimestamp,
-  formatGridFirestoreTimestamp,
-  formatGridFirestoreTimestampAsDate,
-  isCurrentDateBetween,
-} from 'modules/utils';
-import { GridCellCopy, renderChips } from 'components/RenderGridCellHelpers';
-import { FIPSDetails, Moratorium, moratoriumsCollection, WithId } from 'common';
+  booleanCalcActiveCol,
+  createdCol,
+  effectiveDateCol,
+  expirationDateCol,
+  FIPSDetails,
+  idCol,
+  Moratorium,
+  moratoriumsCollection,
+  updatedCol,
+  WithId,
+} from 'common';
 import { useConfirmation } from 'modules/components/ConfirmationService';
 import { CountiesMap } from 'elements';
 import { useAsyncToast, useCollectionData, useJsonDialog } from 'hooks';
@@ -79,17 +79,6 @@ const getMutationMsg = (
   }
   return changeItems;
 };
-
-// export const moratoriumsLoader = async ({ params }: LoaderFunctionArgs) => {
-//   try {
-//     // TODO: pass query params for order, limit, etc. ??
-//     return getDocs(
-//       query(moratoriumsCollection(getFirestore()), orderBy('metadata.created', 'desc'), limit(100))
-//     ).then((querySnap) => querySnap.docs.map((snap) => ({ ...snap.data(), id: snap.id })));
-//   } catch (err) {
-//     throw new Response(`Error fetching submissions`);
-//   }
-// };
 
 export const Moratoriums: React.FC = () => {
   const navigate = useNavigate();
@@ -181,7 +170,6 @@ export const Moratoriums: React.FC = () => {
     []
   );
 
-  // const moratoriumColumns: GridColDef[] = useMemo<GridColumns<any>>(
   const moratoriumColumns: GridColDef[] = useMemo(
     () => [
       {
@@ -219,29 +207,7 @@ export const Moratoriums: React.FC = () => {
           />,
         ],
       },
-      {
-        field: 'active',
-        headerName: 'Active',
-        type: 'boolean',
-        description:
-          'Current date is after effective date (if exists) and before expiration (if exists)',
-        minWidth: 80,
-        flex: 0.5,
-        headerAlign: 'center',
-        align: 'center',
-        editable: false,
-        valueGetter: (params) =>
-          isCurrentDateBetween(
-            params.row.effectiveDate?.toDate(),
-            params.row.expirationDate?.toDate()
-          ),
-        renderCell: (params) => {
-          const isActive = !!params.value;
-
-          if (isActive) return <CheckRounded color='success' fontSize='small' />;
-          return <CloseRounded color='disabled' fontSize='small' />;
-        },
-      },
+      booleanCalcActiveCol,
       {
         field: 'locations',
         headerName: 'FIPS',
@@ -274,13 +240,7 @@ export const Moratoriums: React.FC = () => {
         valueGetter: (params) => params.row.locations.length || null,
       },
       {
-        field: 'effectiveDate',
-        headerName: 'Effective Date',
-        minWidth: 160,
-        flex: 0.6,
-        type: 'date',
-        editable: true,
-        valueGetter: (params) => params.row.effectiveDate || null,
+        ...effectiveDateCol,
         valueSetter: (params) => {
           let newVal =
             params.value instanceof Date ? Timestamp.fromDate(params.value) : params.value;
@@ -289,17 +249,7 @@ export const Moratoriums: React.FC = () => {
         valueFormatter: formatGridFirestoreTimestampAsDate,
       },
       {
-        field: 'expirationDate',
-        headerName: 'Expiration Date',
-        minWidth: 160,
-        flex: 0.6,
-        type: 'date',
-        editable: true,
-        // preProcessEditCellProps: (params: GridPreProcessEditCellProps) => {
-        //   // const hasError = params.props.value.length < 3;
-        //   return { ...params.props, error: false }; // hasError };
-        // },
-        valueGetter: (params) => params.row.expirationDate || null,
+        ...expirationDateCol,
         valueSetter: (params) => {
           let newVal =
             params.value instanceof Date ? Timestamp.fromDate(params.value) : params.value;
@@ -307,33 +257,11 @@ export const Moratoriums: React.FC = () => {
         },
         valueFormatter: formatGridFirestoreTimestampAsDate,
       },
+      createdCol,
+      updatedCol,
       {
-        field: 'created',
-        headerName: 'Created',
-        minWidth: 180,
-        flex: 0.6,
-        editable: false,
-        valueGetter: (params) => params.row.metadata.created || null,
-        valueFormatter: formatGridFirestoreTimestamp,
-      },
-      {
-        field: 'updated',
-        headerName: 'Updated',
-        minWidth: 180,
-        flex: 0.6,
-        editable: false,
-        valueGetter: (params) => params.row.metadata.updated || null,
-        valueFormatter: formatGridFirestoreTimestamp,
-      },
-      {
-        field: 'id',
+        ...idCol,
         headerName: 'Doc ID',
-        minWidth: 180,
-        flex: 0.6,
-        editable: false,
-        renderCell: (params) => {
-          return <GridCellCopy value={params.value} />;
-        },
       },
     ],
     [showDetails, showMap, deactivate]

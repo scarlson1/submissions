@@ -1,19 +1,14 @@
 import React, { useCallback, useMemo } from 'react';
-import { Box, Chip, ChipProps, Tooltip } from '@mui/material';
-import {
-  GridActionsCellItem,
-  GridColDef,
-  GridRenderCellParams,
-  GridRowParams,
-} from '@mui/x-data-grid';
+import { Box, Chip, Tooltip } from '@mui/material';
+import { GridActionsCellItem, GridColDef, GridRowParams } from '@mui/x-data-grid';
 import { Functions, httpsCallable } from 'firebase/functions';
 import { useFunctions } from 'reactfire';
 
 import { BasicDataGrid, GridCellCopy, renderGridEmail } from 'components';
 import { formatGridFirestoreTimestamp } from 'modules/utils';
-import { INVITE_STATUS, Invite, WithId } from 'common';
+import { INVITE_STATUS, Invite, WithId, statusCol } from 'common';
 import { useAsyncToast } from 'hooks';
-import { CancelRounded, CheckRounded, QueryBuilderRounded, SendRounded } from '@mui/icons-material';
+import { CancelRounded, SendRounded } from '@mui/icons-material';
 
 const resendInvite = (functions: Functions, args: { orgId: string; inviteId: string }) =>
   httpsCallable<{ orgId: string; inviteId: string }, { status: string }>(
@@ -120,21 +115,22 @@ export const InvitesGrid: React.FC<InvitesGridProps> = ({ data = [], loading }) 
         minWidth: 120,
         editable: false,
       },
-      {
-        field: 'status',
-        headerName: 'Status',
-        flex: 0.5,
-        minWidth: 160,
-        editable: false,
-        renderCell: (params: GridRenderCellParams) => (
-          <Chip
-            label={params.value}
-            size='small'
-            variant='outlined'
-            {...getChipProps(params.value)}
-          />
-        ),
-      },
+      statusCol,
+      // {
+      //   field: 'status',
+      //   headerName: 'Status',
+      //   flex: 0.5,
+      //   minWidth: 160,
+      //   editable: false,
+      //   renderCell: (params: GridRenderCellParams) => (
+      //     <Chip
+      //       label={params.value}
+      //       size='small'
+      //       variant='outlined'
+      //       {...getChipProps(params.value)}
+      //     />
+      //   ),
+      // },
       {
         field: 'customClaims',
         headerName: 'Claims',
@@ -235,16 +231,4 @@ export const InvitesGrid: React.FC<InvitesGridProps> = ({ data = [], loading }) 
       />
     </Box>
   );
-};
-
-const getChipProps = (status: any): Partial<ChipProps> => {
-  // INVITE_STATUS
-  switch (status) {
-    case 'pending': // INVITE_STATUS.PAID:
-      return { icon: <QueryBuilderRounded />, color: 'warning' };
-    case 'accepted': // INVITE_STATUS.PAYMENT_PROCESSING:
-      return { icon: <CheckRounded />, color: 'success' };
-    default:
-      return { color: 'default' };
-  }
 };
