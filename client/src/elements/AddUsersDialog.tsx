@@ -1,5 +1,13 @@
 import React, { useState, useCallback, useRef } from 'react';
-import { Button, Dialog, DialogContent, DialogActions, DialogTitle, alpha } from '@mui/material';
+import {
+  Button,
+  Dialog,
+  DialogContent,
+  DialogActions,
+  DialogTitle,
+  alpha,
+  ButtonProps,
+} from '@mui/material';
 import { Form, Formik, FormikHelpers, FormikProps } from 'formik';
 import * as yup from 'yup';
 
@@ -40,9 +48,15 @@ const validation = yup.object().shape({
 
 interface AddUsersDialogProps {
   orgId?: string;
+  buttonText?: string;
+  buttonProps?: Omit<ButtonProps, 'onClick'>;
 }
 
-export const AddUsersDialog: React.FC<AddUsersDialogProps> = ({ orgId }) => {
+export const AddUsersDialog: React.FC<AddUsersDialogProps> = ({
+  orgId,
+  buttonText = 'Add Users (agents)',
+  buttonProps,
+}) => {
   const formikRef = useRef<FormikProps<AddUserValues>>(null);
   const [open, setOpen] = useState(false);
 
@@ -77,12 +91,11 @@ export const AddUsersDialog: React.FC<AddUsersDialogProps> = ({ orgId }) => {
 
   return (
     <>
-      <Button variant='outlined' onClick={handleOpen}>
-        Add Users (agents)
+      <Button variant='outlined' onClick={handleOpen} {...buttonProps}>
+        {buttonText}
       </Button>
       <Dialog open={open} onClose={handleClose} fullWidth maxWidth='md'>
         <DialogTitle>Add Users</DialogTitle>
-
         <Formik
           initialValues={initialValues}
           validationSchema={validation}

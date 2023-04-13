@@ -1,17 +1,20 @@
 import React, { useCallback, useMemo } from 'react';
-import { limit, orderBy } from 'firebase/firestore';
-import { Box, Tooltip, Typography } from '@mui/material';
+import { Box, Tooltip } from '@mui/material';
+import { DataObjectRounded } from '@mui/icons-material';
 import {
+  DataGridProps,
   GridActionsCellItem,
   GridColDef,
   GridRowParams,
+  GridToolbar,
   GridValueGetterParams,
 } from '@mui/x-data-grid';
-import { DataObjectRounded } from '@mui/icons-material';
+import { QueryConstraint } from 'firebase/firestore';
 
 import { BasicDataGrid } from 'components';
-import { renderChips } from 'components/RenderGridCellHelpers';
+import { useCollectionData, useJsonDialog } from 'hooks';
 import {
+  Policy,
   ratingDataCBRSCol,
   POLICY_STATUS,
   addrCityCol,
@@ -49,17 +52,20 @@ import {
   userIdCol,
   ratingDataYearBuiltCol,
 } from 'common';
-import { useCollectionData, useJsonDialog } from 'hooks';
+import { renderChips } from 'components/RenderGridCellHelpers';
+import { useNavigate } from 'react-router-dom';
 
-// loader - use search or params to optionally prefilter by product ?
-// TODO: can use useEffect + subscription to automatically update query when filter changes (like react query)
+export interface PoliciesGridProps extends Partial<DataGridProps> {
+  queryConstraints: QueryConstraint[];
+}
 
-export const Policies: React.FC = () => {
-  const { data, status } = useCollectionData('POLICIES', [
-    orderBy('metadata.created', 'desc'),
-    limit(100),
-  ]);
+export const PoliciesGrid: React.FC<PoliciesGridProps> = ({ queryConstraints, ...props }) => {
+  const navigate = useNavigate();
   const dialog = useJsonDialog();
+  const { data, status } = useCollectionData<Policy>('POLICIES', queryConstraints, {
+    suspense: false,
+    initialData: [],
+  });
 
   const showJson = useCallback(
     (params: GridRowParams) => () => {
@@ -135,14 +141,14 @@ export const Policies: React.FC = () => {
         ...emailCol,
         field: 'insuredEmail',
         headerName: 'Insured Email',
-        valueGetter: (params: GridValueGetterParams) => params.row.namedInsured.email,
+        valueGetter: (params: GridValueGetterParams) => params.row.namedInsured?.email || null,
         // renderCell: renderGridEmail,
       },
       {
         ...phoneCol,
         field: 'insuredPhone',
         headerName: 'Insured Phone',
-        valueGetter: (params: GridValueGetterParams) => params.row.namedInsured.phone,
+        valueGetter: (params: GridValueGetterParams) => params.row.namedInsured?.phone || null,
         // renderCell: renderGridPhone,
       },
       limitACol,
@@ -157,7 +163,7 @@ export const Policies: React.FC = () => {
         ...emailCol,
         field: 'agentEmail',
         headerName: 'Agent Email',
-        valueGetter: (params: GridValueGetterParams<any, any>) => params.row.agent.email || null,
+        valueGetter: (params: GridValueGetterParams<any, any>) => params.row.agent?.email || null,
         // renderCell: renderGridEmail,
       },
       {
@@ -167,7 +173,7 @@ export const Policies: React.FC = () => {
         // minWidth: 140,
         // flex: 0.8,
         // editable: false,
-        valueGetter: (params: GridValueGetterParams<any, any>) => params.row.agent.phone || null,
+        valueGetter: (params: GridValueGetterParams<any, any>) => params.row.agent?.phone || null,
         // renderCell: renderGridPhone,
       },
       {
@@ -197,13 +203,11 @@ export const Policies: React.FC = () => {
       ratingDataFloodZoneCol,
       createdCol,
       updatedCol,
-
       {
         field: 'transactions',
         headerName: 'Transactions',
         minWidth: 140,
         flex: 1,
-        // valueGetter: (params: GridValueGetterParams) => params.row.agent.userId || null,
         renderCell: (params) =>
           renderChips(params, {}, (t: string) => ({
             onClick: () =>
@@ -228,53 +232,44 @@ export const Policies: React.FC = () => {
 
   return (
     <Box>
-      <Typography variant='h5' gutterBottom>
-        Policies
-      </Typography>
-
-      <Box sx={{ height: 500, width: '100%' }}>
-        <BasicDataGrid
-          rows={data || []}
-          columns={policyColumns}
-          loading={status === 'loading'}
-          density='compact'
-          autoHeight
-          // onRowDoubleClick={(params) => {
-          //   navigate(
-          //     createPath({
-          //       path: ADMIN_ROUTES.SUBMISSION_VIEW,
-          //       params: { submissionId: params.id.toString() },
-          //     })
-          //   );
-          // }}
-          initialState={{
-            columns: {
-              columnVisibilityModel: {
-                insuredFirstName: false,
-                insuredLastName: false,
-                addressLine2: false,
-                postal: false,
-                updated: false,
-                agentId: false,
-                agencyId: false,
-                replacementCost: false,
-                CBRSDesignation: false,
-                basement: false,
-                distToCoastFeet: false,
-                floodZone: false,
-                numStories: false,
-                propertyCode: false,
-                sqFootage: false,
-                yearBuilt: false,
-              },
+      <BasicDataGrid
+        // @ts-ignore
+        rows={data}
+        columns={policyColumns}
+        loading={status === 'loading'}
+        density='compact'
+        autoHeight
+        // TODO: relative navigation ?? issues when shown in org view
+        onRowDoubleClick={(params) => navigate(params.id.toString())}
+        components={{ Toolbar: GridToolbar }}
+        componentsProps={{ toolbar: { csvOptions: { allColumns: true } } }}
+        initialState={{
+          columns: {
+            columnVisibilityModel: {
+              insuredFirstName: false,
+              insuredLastName: false,
+              addressLine2: false,
+              postal: false,
+              termPremium: false,
+              updated: false,
+              agentId: false,
+              CBRSDesignation: false,
+              basement: false,
+              distToCoastFeet: false,
+              floodZone: false,
+              numStories: false,
+              propertyCode: false,
+              sqFootage: false,
+              yearBuilt: false,
             },
-            sorting: {
-              sortModel: [{ field: 'created', sort: 'desc' }],
-            },
-            pagination: { pageSize: 10 },
-          }}
-        />
-      </Box>
+          },
+          sorting: {
+            sortModel: [{ field: 'created', sort: 'desc' }],
+          },
+          pagination: { pageSize: 10 },
+        }}
+        {...props}
+      />
     </Box>
   );
 };

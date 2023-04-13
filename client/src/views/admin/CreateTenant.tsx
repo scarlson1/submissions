@@ -80,10 +80,10 @@ export const CreateTenant: React.FC = () => {
     [handleSubmission, createTenant, toast]
   );
 
-  const handleSaveDraft = useCallback(() => {
-    alert('save draft not implemented yet.');
-    // CREATE SUBMISSION -> REDIRECT TO EDIT SUBMISSION ??
-  }, []);
+  // const handleSaveDraft = useCallback(() => {
+  //   alert('save draft not implemented yet.');
+  //   // CREATE SUBMISSION -> REDIRECT TO EDIT SUBMISSION ??
+  // }, []);
 
   const handleCancel = useCallback(
     (setValues: (values: AgencyAppValues) => void) => {
@@ -134,13 +134,13 @@ export const CreateTenant: React.FC = () => {
                   >
                     Create Agency
                   </Button>
-                  <Button
+                  {/* <Button
                     variant='contained'
                     disabled={isSubmitting || !isValid || !dirty}
                     onClick={handleSaveDraft}
                   >
                     Save Draft
-                  </Button>
+                  </Button> */}
                   <Button
                     variant='outlined'
                     disabled={isSubmitting || !isValid}

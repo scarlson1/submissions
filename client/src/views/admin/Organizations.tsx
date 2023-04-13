@@ -24,6 +24,7 @@ import {
   orgIdCol,
   orgNameCol,
   phoneCol,
+  statusCol,
   updatedCol,
 } from 'common';
 
@@ -64,13 +65,7 @@ export const Organizations: React.FC = () => {
       //   ],
       // },
       orgNameCol,
-      {
-        field: 'status',
-        headerName: 'Status',
-        minWidth: 120,
-        flex: 0.5,
-        editable: false,
-      },
+      statusCol,
       {
         field: 'contactName',
         headerName: 'Contact Name',

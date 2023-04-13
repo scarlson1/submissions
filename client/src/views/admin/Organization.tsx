@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { Box, Tab } from '@mui/material';
-import ReactJson from '@microlink/react-json-view';
 import { useParams } from 'react-router-dom';
-import { limit, where } from 'firebase/firestore';
+import { collection, getFirestore, limit, orderBy, query, where } from 'firebase/firestore';
 import { TabContext, TabList, TabPanel } from '@mui/lab';
 
-import { useCollectionData, useJsonTheme } from 'hooks';
-import { InvitesGrid, UsersGrid } from 'elements';
-import { COLLECTIONS, Invite } from 'common';
+import { AddUsersDialog, InvitesGrid, PoliciesGrid, QuoteGrid, UsersGrid } from 'elements';
+
+import { useAgencyInsureds } from 'hooks/useAgencyInsureds';
+import { useRx } from 'hooks/useRx';
+import { ClaimsGuard } from 'components';
+import { PersonAddRounded } from '@mui/icons-material';
 
 // TODO: use tabs (company details, users, invites, etc, policies, quotes, settings, banking, etc.)
 
@@ -16,14 +18,12 @@ const MIN_TAB_HEIGHT = 40;
 export const Organization: React.FC = () => {
   const { orgId } = useParams();
   const [tabValue, setTabValue] = useState('invites');
-  const { data: invites, status } = useCollectionData<Invite>(
-    'ORGANIZATIONS',
-    [limit(100)],
-    { suspense: false },
-    [`${orgId}`, COLLECTIONS.INVITES]
-  );
-  // const { data, status } = useCollectionGroupData<Invite>('INVITES', [where()], { suspense: false });
-  const theme = useJsonTheme();
+  // const { data: invites, status } = useCollectionData<Invite>(
+  //   'ORGANIZATIONS',
+  //   [limit(100)],
+  //   { suspense: false },
+  //   [`${orgId}`, COLLECTIONS.INVITES]
+  // );
 
   const handleChange = (event: React.SyntheticEvent, newValue: string) => {
     setTabValue(newValue);
@@ -56,35 +56,89 @@ export const Organization: React.FC = () => {
               <Tab label='Invites' value='invites' />
             </TabList>
           </Box>
-          <TabPanel value='policies'>Policies contents</TabPanel>
-          <TabPanel value='quotes'>Quotes tab content</TabPanel>
+          <TabPanel value='policies'>
+            <PoliciesGrid
+              queryConstraints={[
+                // where('agencyId', '==', `${orgId}`),
+                where('orgId', '==', `123`),
+                // orderBy('metadata.created', 'desc'),
+                limit(100),
+              ]}
+            />
+          </TabPanel>
+          <TabPanel value='quotes'>
+            <QuoteGrid
+              queryConstraints={[
+                where('agencyId', '==', `${orgId}`),
+                orderBy('metadata.created', 'desc'),
+                limit(100),
+              ]}
+            />
+          </TabPanel>
           <TabPanel value='insureds'>
             {/* TODO: use rxjs to fetch all policies under agency, then fetch users by id */}
             {/* Need to flatten many-to-one relationship. which rxjs operator ?? distinct (import { distinct } from 'rxjs/operators';) ?? */}
             {/* .pipe(distinct(e => e.id)) */}
             <UsersGrid queryConstraints={[where('insuredOfAgency', 'array-contains', orgId)]} />
+            <TestAgencyInsureds orgId='123' />
           </TabPanel>
           <TabPanel value='team'>
             <UsersGrid queryConstraints={[where('orgId', '==', orgId)]} />
           </TabPanel>
           <TabPanel value='invites'>
-            <InvitesGrid data={invites} loading={status === 'loading'} />
-            <Box
-              sx={{
-                typography: 'body2',
-              }}
-            >
-              <ReactJson
-                src={invites}
-                style={{ backgroundColor: 'inherit' }}
-                theme={theme}
-                iconStyle='circle'
-                collapseStringsAfterLength={30}
-              />
-            </Box>
+            <>
+              <ClaimsGuard requiredClaims={['IDEMAND_ADMIN', 'ORG_ADMIN']}>
+                <Box sx={{ width: '100%', display: 'flex', justifyContent: 'flex-end', pb: 2 }}>
+                  <AddUsersDialog
+                    orgId={orgId}
+                    buttonText='Add'
+                    buttonProps={{
+                      size: 'large',
+                      startIcon: <PersonAddRounded />,
+                      sx: { maxHeight: 36 },
+                    }}
+                  />
+                </Box>
+              </ClaimsGuard>
+              {/* {orgId && <InvitesGrid queryConstraints={[]} orgId={orgId} />} */}
+              {orgId && <InvitesGrid queryConstraints={[]} />}
+              {/* <InvitesGrid data={invites} loading={status === 'loading'} /> */}
+            </>
           </TabPanel>
         </TabContext>
       </Box>
     </Box>
   );
 };
+
+function TestAgencyInsureds({ orgId }: { orgId: string }) {
+  // const firestore = useFirestore();
+  // const q = query(collection(firestore, 'policies'), where('orgId', '==', '123'));
+  // const a = useAgencyInsureds(q, { suspense: false });
+  // console.log('OBSERVABLE: ', a);
+  // if (a.status === 'loading') return <div>loading...</div>;
+  // console.log('DATA: ', a.data);
+
+  const { policies, users } = useAgencyInsureds(orgId);
+
+  const q = query(collection(getFirestore(), 'policies'), where('orgId', '==', '123'));
+  const { data, status } = useRx(q, { idField: 'policyId', suspense: false });
+
+  return (
+    <>
+      <div>Test agency insureds</div>
+      <div>RxJs Observable - Policy combined with user</div>
+      <div>
+        {status === 'loading' ? <div>loading...</div> : <pre>{JSON.stringify(data, null, 2)}</pre>}
+      </div>
+      <hr />
+      <div>
+        <pre>{JSON.stringify(users, null, 2)}</pre>
+      </div>
+      <div>Policies</div>
+      <div>
+        <pre>{JSON.stringify(policies, null, 2)}</pre>
+      </div>
+    </>
+  );
+}

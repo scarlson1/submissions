@@ -29,6 +29,7 @@ export const createFirestoreUser = functions.auth.user().onCreate(async (user) =
         phone: user.phoneNumber,
         photoURL: user.photoURL,
         tenantId: user.tenantId ?? null,
+        orgId: user.tenantId ?? null,
         initialAnonymous: user.providerData.length === 0 ? true : false,
         metadata: {
           created: Timestamp.now(),

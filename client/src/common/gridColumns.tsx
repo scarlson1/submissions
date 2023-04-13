@@ -3,6 +3,7 @@ import {
   CheckRounded,
   CloseRounded,
   CreditScoreRounded,
+  DisabledByDefaultRounded,
   DoneRounded,
   FiberNewRounded,
   FindInPageRounded,
@@ -208,7 +209,7 @@ export const addressSummaryCol: GridColDef = {
 export const address1Col: GridColDef = {
   field: 'addressLine1',
   headerName: 'Address 1',
-  minWidth: 120,
+  minWidth: 200,
   flex: 1,
   editable: false,
 };
@@ -407,6 +408,10 @@ export function getChipProps(status: ChipStatus): Partial<ChipProps> {
       return { icon: <QueryBuilderRounded />, color: 'warning' };
     case INVITE_STATUS.ACCECPTED:
       return { icon: <CheckRounded />, color: 'success' };
+    case 'active':
+      return { icon: <CheckRounded />, color: 'success' };
+    case 'inactive':
+      return { icon: <DisabledByDefaultRounded />, color: 'default' };
     default:
       return { color: 'default' };
   }
@@ -479,7 +484,7 @@ export const limitACol: GridColDef = {
   editable: false,
   headerAlign: 'center',
   align: 'right',
-  valueGetter: (params) => params.row.limits.limitA,
+  valueGetter: (params) => params.row.limits?.limitA || null,
   valueFormatter: formatGridCurrency,
 };
 
@@ -492,7 +497,7 @@ export const limitBCol: GridColDef = {
   editable: false,
   headerAlign: 'center',
   align: 'right',
-  valueGetter: (params) => params.row.limits.limitB,
+  valueGetter: (params) => params.row.limits?.limitB || null,
   valueFormatter: formatGridCurrency,
 };
 
@@ -505,7 +510,7 @@ export const limitCCol: GridColDef = {
   editable: false,
   headerAlign: 'center',
   align: 'right',
-  valueGetter: (params) => params.row.limits.limitC,
+  valueGetter: (params) => params.row.limits?.limitC || null,
   valueFormatter: formatGridCurrency,
 };
 
@@ -518,7 +523,7 @@ export const limitDCol: GridColDef = {
   editable: false,
   headerAlign: 'center',
   align: 'right',
-  valueGetter: (params) => params.row.limits.limitD,
+  valueGetter: (params) => params.row.limits?.limitD || null,
   valueFormatter: formatGridCurrency,
 };
 
@@ -540,7 +545,9 @@ export const namedInsuredDisplayNameCol: GridColDef = {
   flex: 0.8,
   editable: false,
   valueGetter: (params: GridValueGetterParams) =>
-    `${params.row.namedInsured.firstName || ''} ${params.row.namedInsured.lastName || ''}`.trim(),
+    `${params.row.namedInsured?.firstName || ''} ${
+      params.row.namedInsured?.lastName || ''
+    }`.trim() || null,
 };
 
 export const namedInsuredFirstNameCol: GridColDef = {
@@ -549,7 +556,7 @@ export const namedInsuredFirstNameCol: GridColDef = {
   minWidth: 140,
   flex: 1,
   editable: false,
-  valueGetter: (params: GridValueGetterParams) => params.row.namedInsured.lastName,
+  valueGetter: (params: GridValueGetterParams) => params.row.namedInsured?.lastName || null,
 };
 
 export const namedInsuredLastNameCol: GridColDef = {
@@ -558,7 +565,7 @@ export const namedInsuredLastNameCol: GridColDef = {
   minWidth: 140,
   flex: 1,
   editable: false,
-  valueGetter: (params: GridValueGetterParams) => params.row.namedInsured.firstName,
+  valueGetter: (params: GridValueGetterParams) => params.row.namedInsured?.firstName || null,
 };
 
 export const replacementCostCol: GridColDef = {
@@ -738,21 +745,37 @@ export const agentNameCol: GridColDef = {
   minWidth: 180,
   flex: 0.8,
   editable: false,
-  valueGetter: (params: GridValueGetterParams<any, any>) => params.row.agent.name || null,
+};
+
+export const nestedAgentNameCol: GridColDef = {
+  ...agentNameCol,
+  field: 'agent.name',
+  valueGetter: (params: GridValueGetterParams<any, any>) => params.row.agent?.name || null,
 };
 
 export const agentIdCol: GridColDef = {
   field: 'agentId',
   headerName: 'Agent ID',
-  valueGetter: (params: GridValueGetterParams) => params.row.agent.userId || null,
+  ...copyBaseProps,
+};
+
+export const nestedAgentUserIdCol: GridColDef = {
+  ...agentIdCol,
+  field: 'agent.userId',
+  valueGetter: (params: GridValueGetterParams) => params.row.agent?.userId || null,
   ...copyBaseProps,
 };
 
 export const agencyIdCol: GridColDef = {
   field: 'agencyId',
   headerName: 'Agency ID',
-  valueGetter: (params: GridValueGetterParams) => params.row.agency.orgId || null,
   ...copyBaseProps,
+};
+
+export const nestedAgencyOrgIdCol: GridColDef = {
+  ...agencyIdCol,
+  field: 'agency.orgId',
+  valueGetter: (params: GridValueGetterParams) => params.row.agency?.orgId || null,
 };
 
 export const inlandAALCol: GridColDef = {

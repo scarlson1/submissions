@@ -26,13 +26,17 @@ import { isRangeComparison, muiOperatorToFirestoreOperator } from 'modules/utils
 
 export interface ServerDataGridProps extends Partial<DataGridProps> {
   collName: keyof typeof COLLECTIONS;
+  pathSegments?: string[];
   constraints?: QueryFieldFilterConstraint[];
+  isCollectionGroup?: boolean;
   columns: GridColDef[];
 }
 
 export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
   collName,
+  pathSegments = [],
   constraints = [],
+  isCollectionGroup = false,
   columns,
   ...rest
 }) => {
@@ -60,10 +64,16 @@ export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
   // keep cursors in memory
   const cursors = useRef<Map<number, DocumentSnapshot>>(new Map());
 
-  const { data, status } = useFetchDocsWithCursor(collName, queryOptions, {
-    cursor: cursors.current.get(page),
-    itemsPerPage: pageSize,
-  });
+  const { data, status } = useFetchDocsWithCursor(
+    collName,
+    queryOptions,
+    {
+      cursor: cursors.current.get(page),
+      itemsPerPage: pageSize,
+    },
+    isCollectionGroup,
+    pathSegments
+  );
 
   const rowData = useMemo(() => {
     return data?.docs?.map((doc) => ({ ...doc.data(), id: doc.id })) ?? [];

@@ -51,6 +51,7 @@ import { TasksPagination } from 'views/admin/TasksPagination';
 import { RequireAuthReactFire, getRequiredClaimValidator } from 'components/RequireAuthReactFire';
 import { Disclosures } from 'views/admin/Disclosures';
 import { QuoteNewFromSub } from 'views/admin/QuoteNew';
+import { PoliciesMap } from 'elements/PoliciesMap';
 
 // import RouterErrorBoundary from 'components/errorBoundaries/RouterErrorBoundary';
 
@@ -672,6 +673,14 @@ export const router = createBrowserRouter([
             path: 'pagination/data-grid',
             element: <TasksPagination />,
             // element: <TestDataGridPagination />,
+          },
+          {
+            path: '/admin/map/submissions',
+            element: (
+              <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
+                <PoliciesMap />
+              </RequireAuthReactFire>
+            ),
           },
         ],
       },

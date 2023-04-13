@@ -1,7 +1,7 @@
 import React from 'react';
 import { Box, Typography } from '@mui/material';
 import Map from 'react-map-gl';
-import DeckGL from '@deck.gl/react/typed';
+import DeckGL, { DeckGLProps } from '@deck.gl/react/typed';
 import { GeoJsonLayerProps, LayersList, MapViewState, PickingInfo } from 'deck.gl/typed';
 
 import { useTheme } from '@mui/material/styles';
@@ -33,7 +33,7 @@ export const defaultGeoJsonLayerProps: Partial<GeoJsonLayerProps> = {
   getLineWidth: 10,
 };
 
-export interface DeckMapProps {
+export interface DeckMapProps extends Partial<DeckGLProps> {
   mapViewState?: MapViewState;
   layers?: LayersList | undefined;
   hoverInfo?: PickingInfo | null | undefined;
@@ -47,6 +47,7 @@ export const DeckMap: React.FC<DeckMapProps> = ({
   hoverInfo,
   renderTooltipContent,
   children,
+  ...rest
 }) => {
   const theme = useTheme();
 
@@ -59,6 +60,7 @@ export const DeckMap: React.FC<DeckMapProps> = ({
         width='100%'
         height='100%'
         style={{ position: 'relative' }}
+        {...rest}
       >
         <Map
           mapStyle={

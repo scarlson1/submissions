@@ -566,7 +566,7 @@ export interface Organization extends BaseDoc {
   EandOURL?: string;
   accountNumber?: string;
   routingNumber?: string;
-  status: 'TODO' | 'COPY' | 'FROM' | 'OTHER' | 'APP'; // AgencyStatus;
+  status: 'active' | 'inactive' | string; // 'TODO' | 'COPY' | 'FROM' | 'OTHER' | 'APP'; // AgencyStatus;
   defaultCommission: { [key in PRODUCT]: number };
   // metadata: BaseMetadata;
 }
