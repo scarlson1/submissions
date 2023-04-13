@@ -27,6 +27,7 @@ export { InvitesGrid } from './InvitesGrid';
 export { SubmissionGrid } from './SubmissionGrid';
 export { QuoteGrid } from './QuoteGrid';
 export { UsersGrid } from './UsersGrid';
+export { PoliciesGrid } from './PoliciesGrid';
 
 export type { FormikAddressProps } from './FormikAddress';
 export type { DeductibleStepProps } from './DeductibleStep';

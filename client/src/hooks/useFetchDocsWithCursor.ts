@@ -1,5 +1,6 @@
 import {
   collection,
+  collectionGroup,
   CollectionReference,
   DocumentSnapshot,
   limit,
@@ -14,7 +15,9 @@ import { COLLECTIONS } from 'common';
 export function useFetchDocsWithCursor<T = any>(
   collName: keyof typeof COLLECTIONS,
   constraints: QueryConstraint[],
-  params: { cursor?: DocumentSnapshot; itemsPerPage: number }
+  params: { cursor?: DocumentSnapshot; itemsPerPage: number },
+  isCollectionGroup: boolean = false,
+  pathSegments: string[] = []
 ) {
   const db = useFirestore();
 
@@ -23,7 +26,19 @@ export function useFetchDocsWithCursor<T = any>(
     qConstraints.push(startAfter(params.cursor));
   }
 
-  const collectionRef = collection(db, COLLECTIONS[collName]) as CollectionReference<T>;
+  let collectionRef;
+  if (!!isCollectionGroup) {
+    console.log('USING COLLECTION GROUP QUERY');
+    collectionRef = collectionGroup(db, COLLECTIONS[collName]) as CollectionReference<T>;
+  } else {
+    console.log('NOT USING COLLECTION GROUP QUERY');
+    collectionRef = collection(
+      db,
+      COLLECTIONS[collName],
+      ...pathSegments
+    ) as CollectionReference<T>;
+  }
+
   const q = query(collectionRef, ...qConstraints);
 
   return useFirestoreCollection<T>(q, { idField: 'id' });

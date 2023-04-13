@@ -39,10 +39,11 @@ export interface User {
   photoURL?: string;
   stripe_customer_id?: string;
   tenantId?: string | null; // useOrgId ??
+  orgId?: string | null;
   firstName?: string;
   lastName?: string;
   initialAnonymous?: boolean;
-  defaultCommission?: DefaultCommission; // TODO: extends user to create Agent type ??
+  defaultCommission?: DefaultCommission; // TODO: extends user to create Agent type ?? or store settings in subcollection ??
   metadata: BaseMetadata;
 }
 

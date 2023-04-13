@@ -91,8 +91,6 @@ service cloud.firestore {
       allow create, update: if isSignedIn() && emailVerified() && (isIDemandAdmin() || (isOrgAdmin() && isTenantUser(orgId)))
       allow delete: if false
     }
-
-    // organizations userClaims
     
     match /{paths=**}/invitations/{inviteId} {
       allow read, create, update, delete: if isIDemandAdmin()

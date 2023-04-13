@@ -46,7 +46,7 @@ import {
   createdCol,
   updatedCol,
   orgNameCol,
-  agentIdCol,
+  nestedAgentUserIdCol,
   userIdCol,
   idCol,
 } from 'common';
@@ -321,7 +321,7 @@ export const Quotes: React.FC = () => {
       createdCol,
       updatedCol,
       {
-        ...agentIdCol,
+        ...nestedAgentUserIdCol,
         valueGetter: (params: GridValueGetterParams) => params.row.agentId || null,
         // field: 'agentId',
         // headerName: 'Agent ID',

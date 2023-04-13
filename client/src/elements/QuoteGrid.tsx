@@ -11,14 +11,14 @@ import {
   GridValueGetterParams,
 } from '@mui/x-data-grid';
 import { DataObjectRounded } from '@mui/icons-material';
+import { QueryConstraint } from 'firebase/firestore';
 
 import { ADMIN_ROUTES, createPath } from 'router';
 import {
   SubmissionQuoteData,
-  WithId,
   address1Col,
   address2Col,
-  agentIdCol,
+  nestedAgentUserIdCol,
   agentNameCol,
   cityCol,
   createdCol,
@@ -51,35 +51,39 @@ import {
   userIdCol,
 } from 'common';
 import { BasicDataGrid, GridCellCopy } from 'components';
-import { useJsonDialog } from 'hooks';
+import { useCollectionData, useJsonDialog } from 'hooks';
 
 export interface QuoteGridProps extends Partial<DataGridProps> {
-  rows: WithId<SubmissionQuoteData>[];
+  // rows: WithId<SubmissionQuoteData>[];
+  queryConstraints?: QueryConstraint[];
   actions?: React.ReactElement<GridActionsCellItemProps>[];
   columnOverrides?: GridColDef<any, any, any>[];
 }
 
 export const QuoteGrid: React.FC<QuoteGridProps> = ({
-  rows = [],
+  // rows = [],
+  queryConstraints = [], // [where('agentId', '==', `${user?.uid}`), orderBy('metadata.created', 'desc'), limit(100)]
   actions = [],
   columnOverrides = [],
   ...props
 }) => {
   const navigate = useNavigate();
-  // const { data, status } = useCollectionData('SUBMISSIONS_QUOTES', [
-  //   orderBy('metadata.created', 'desc'),
-  //   limit(100),
-  // ]); // TODO: add constraints for filtering / sorting
   const dialog = useJsonDialog();
   // const sendNotifications = useSendQuoteNotification();
 
+  const { data, status } = useCollectionData<SubmissionQuoteData>(
+    'SUBMISSIONS_QUOTES',
+    queryConstraints,
+    { suspense: false, initialData: [] }
+  );
+
   const showJson = useCallback(
     (params: GridRowParams) => () => {
-      let d = rows.find((q) => q.id === params.id);
+      let d = data.find((q) => q.id === params.id);
       if (!d) return;
       dialog(d, `Quote Data ${params.id}`);
     },
-    [rows, dialog]
+    [data, dialog]
   );
 
   // const handleSendNotifications = useCallback(
@@ -220,7 +224,7 @@ export const QuoteGrid: React.FC<QuoteGridProps> = ({
       },
       createdCol,
       updatedCol,
-      agentIdCol,
+      nestedAgentUserIdCol,
       userIdCol,
       {
         ...idCol,
@@ -255,8 +259,10 @@ export const QuoteGrid: React.FC<QuoteGridProps> = ({
   return (
     <Box sx={{ height: 500, width: '100%' }}>
       <BasicDataGrid
-        rows={rows || []}
+        // @ts-ignore
+        rows={data}
         columns={quoteColumns}
+        loading={status === 'loading'}
         density='compact'
         autoHeight
         onRowDoubleClick={(params) => navigate(params.id.toString())}
