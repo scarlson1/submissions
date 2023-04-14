@@ -1,29 +1,21 @@
 import React, { useState } from 'react';
 import { Box, Tab } from '@mui/material';
 import { useParams } from 'react-router-dom';
-import { collection, getFirestore, limit, orderBy, query, where } from 'firebase/firestore';
+import { collection, doc, getFirestore, limit, orderBy, query, where } from 'firebase/firestore';
 import { TabContext, TabList, TabPanel } from '@mui/lab';
 
 import { AddUsersDialog, InvitesGrid, PoliciesGrid, QuoteGrid, UsersGrid } from 'elements';
 
 import { useAgencyInsureds } from 'hooks/useAgencyInsureds';
-import { useRx } from 'hooks/useRx';
+import { useRx, useRxDocJoin, useRxInnerJoin } from 'hooks/useRx';
 import { ClaimsGuard } from 'components';
 import { PersonAddRounded } from '@mui/icons-material';
-
-// TODO: use tabs (company details, users, invites, etc, policies, quotes, settings, banking, etc.)
 
 const MIN_TAB_HEIGHT = 40;
 
 export const Organization: React.FC = () => {
   const { orgId } = useParams();
   const [tabValue, setTabValue] = useState('invites');
-  // const { data: invites, status } = useCollectionData<Invite>(
-  //   'ORGANIZATIONS',
-  //   [limit(100)],
-  //   { suspense: false },
-  //   [`${orgId}`, COLLECTIONS.INVITES]
-  // );
 
   const handleChange = (event: React.SyntheticEvent, newValue: string) => {
     setTabValue(newValue);
@@ -41,7 +33,7 @@ export const Organization: React.FC = () => {
                 minHeight: MIN_TAB_HEIGHT,
                 '& .MuiTab-root': {
                   textTransform: 'none',
-                  fontWeight: 400,
+                  fontWeight: 500,
                   minHeight: MIN_TAB_HEIGHT,
                   p: 2,
                   fontFamily:
@@ -77,8 +69,6 @@ export const Organization: React.FC = () => {
           </TabPanel>
           <TabPanel value='insureds'>
             {/* TODO: use rxjs to fetch all policies under agency, then fetch users by id */}
-            {/* Need to flatten many-to-one relationship. which rxjs operator ?? distinct (import { distinct } from 'rxjs/operators';) ?? */}
-            {/* .pipe(distinct(e => e.id)) */}
             <UsersGrid queryConstraints={[where('insuredOfAgency', 'array-contains', orgId)]} />
             <TestAgencyInsureds orgId='123' />
           </TabPanel>
@@ -100,9 +90,7 @@ export const Organization: React.FC = () => {
                   />
                 </Box>
               </ClaimsGuard>
-              {/* {orgId && <InvitesGrid queryConstraints={[]} orgId={orgId} />} */}
-              {orgId && <InvitesGrid queryConstraints={[]} />}
-              {/* <InvitesGrid data={invites} loading={status === 'loading'} /> */}
+              {orgId && <InvitesGrid queryConstraints={[]} orgId={orgId} />}
             </>
           </TabPanel>
         </TabContext>
@@ -122,11 +110,44 @@ function TestAgencyInsureds({ orgId }: { orgId: string }) {
   const { policies, users } = useAgencyInsureds(orgId);
 
   const q = query(collection(getFirestore(), 'policies'), where('orgId', '==', '123'));
+
   const { data, status } = useRx(q, { idField: 'policyId', suspense: false });
+
+  const pRef = doc(getFirestore(), 'policies', 'YBdp0k6fji8acPQVBgvG');
+  const { data: docJoinData, status: docJoinStatus } = useRxDocJoin(
+    pRef,
+    { userId: 'users' },
+    { idField: 'policyId', suspense: false }
+  );
+
+  const { data: innerJoinData, status: innerJoinStatus } = useRxInnerJoin(
+    q,
+    'userId',
+    'submissions',
+    { suspense: false, idField: 'policyId' }
+  );
 
   return (
     <>
       <div>Test agency insureds</div>
+      <div>RxJs Observable - Policy combined with user (docJoin)</div>
+      <div>
+        {docJoinStatus === 'loading' ? (
+          <div>loading docJoin Observable...</div>
+        ) : (
+          <pre>{JSON.stringify(docJoinData, null, 2)}</pre>
+        )}
+      </div>
+      <hr />
+      <div>RxJs Observable - Policy combined with user (innerJoin)</div>
+      <div>
+        {innerJoinStatus === 'loading' ? (
+          <div>loading innerJoin Observable...</div>
+        ) : (
+          <pre>{JSON.stringify(innerJoinData, null, 2)}</pre>
+        )}
+      </div>
+      <hr />
       <div>RxJs Observable - Policy combined with user</div>
       <div>
         {status === 'loading' ? <div>loading...</div> : <pre>{JSON.stringify(data, null, 2)}</pre>}

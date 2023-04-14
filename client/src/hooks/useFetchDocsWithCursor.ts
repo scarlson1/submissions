@@ -8,7 +8,7 @@ import {
   QueryConstraint,
   startAfter,
 } from 'firebase/firestore';
-import { useFirestore, useFirestoreCollection } from 'reactfire';
+import { ReactFireOptions, useFirestore, useFirestoreCollection } from 'reactfire';
 
 import { COLLECTIONS } from 'common';
 
@@ -17,21 +17,22 @@ export function useFetchDocsWithCursor<T = any>(
   constraints: QueryConstraint[],
   params: { cursor?: DocumentSnapshot; itemsPerPage: number },
   isCollectionGroup: boolean = false,
-  pathSegments: string[] = []
+  pathSegments: string[] = [],
+  options?: ReactFireOptions<T[]> | undefined
 ) {
   const db = useFirestore();
 
   const qConstraints: QueryConstraint[] = [...constraints, limit(params.itemsPerPage)];
+
   if (params.cursor) {
     qConstraints.push(startAfter(params.cursor));
   }
 
   let collectionRef;
+  // ALLOW FOR COLLECTION GROUP QUERIES
   if (!!isCollectionGroup) {
-    console.log('USING COLLECTION GROUP QUERY');
     collectionRef = collectionGroup(db, COLLECTIONS[collName]) as CollectionReference<T>;
   } else {
-    console.log('NOT USING COLLECTION GROUP QUERY');
     collectionRef = collection(
       db,
       COLLECTIONS[collName],
@@ -41,5 +42,5 @@ export function useFetchDocsWithCursor<T = any>(
 
   const q = query(collectionRef, ...qConstraints);
 
-  return useFirestoreCollection<T>(q, { idField: 'id' });
+  return useFirestoreCollection<T>(q, { idField: 'id', ...options });
 }

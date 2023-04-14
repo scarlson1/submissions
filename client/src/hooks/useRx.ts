@@ -3,12 +3,18 @@ import {
   Query as FirestoreQuery,
   queryEqual,
   Query,
-  doc as fsDoc,
   getFirestore,
+  doc as fsDoc,
+  DocumentReference,
 } from 'firebase/firestore';
 import { ReactFireGlobals, ReactFireOptions, checkIdField, useObservable } from 'reactfire';
 
-import { from, groupBy, map, mergeMap, tap, toArray } from 'rxjs';
+import { from, groupBy, map, mergeMap, of, reduce, tap, toArray, zip } from 'rxjs';
+import { innerJoin } from 'modules/rxOperators/innerJoin';
+import { docJoin } from 'modules/rxOperators/docJoin';
+
+// example group: https://stackoverflow.com/a/56307873
+// DONT USE GROUPBY WITH INFINITE STREAMS
 
 // https://github.com/FirebaseExtended/reactfire/blob/main/src/firestore.tsx
 const cachedQueries: Array<FirestoreQuery> =
@@ -26,7 +32,49 @@ function getUniqueIdForFirestoreQuery(query: FirestoreQuery) {
   return cachedQueries.push(query) - 1;
 }
 
-// FOR TESTING RXJS - ONLY USED IN ORG COMPONENT FOR TEST
+// FOR TESTING/DEV/EXAMPLE RXJS - ONLY USED IN ORG COMPONENT FOR TEST
+
+// JOINS ANOTHER COLLECTION BASED ON A SHARED FIELD NAME/VALUE - WORKS
+
+export const useRxInnerJoin = <T>(
+  query: Query<T>,
+  joinField: string,
+  withCollection: string,
+  options?: ReactFireOptions<T[]>
+) => {
+  const idField = options ? checkIdField(options) : 'NO_ID_FIELD';
+  const observable1Id = `firestore:collectionData:${getUniqueIdForFirestoreQuery(
+    // @ts-ignore
+    query
+  )}:innerJoin:${joinField}:${withCollection}:idField=${idField}`;
+
+  const policies$ = collectionData<T>(query);
+  const combinedObservable$ = policies$.pipe(innerJoin(getFirestore(), joinField, withCollection));
+
+  // TODO: need to incorporate merged query into observableId
+  // ADD `innerJoin:${joinfields}` before idField=... ??
+  return useObservable(observable1Id, combinedObservable$, options);
+};
+
+export const useRxDocJoin = <T>(
+  docRef: DocumentReference<T>,
+  join: { [key: string]: string },
+  options?: ReactFireOptions<T[]>
+) => {
+  const idField = options ? checkIdField(options) : 'NO_ID_FIELD';
+  const observable1Id = `firestore:collectionData:${docRef.path}}:docJoin:${JSON.stringify(
+    join
+  )}:idField=${idField}`;
+
+  const policy$ = docData<T>(docRef, options);
+  const combinedObservable$ = policy$.pipe(docJoin(getFirestore(), join));
+
+  // TODO: need to incorporate merged query into observableId
+  // ADD `docJoin:${joinfields}` before idField=... ??
+  return useObservable(observable1Id, combinedObservable$, options);
+};
+
+// ATTEMPTS TO GET POLICIES AND FETCH USER AFTER - not fully working
 
 export const useRx = <T>(query: Query<T>, options?: ReactFireOptions<T[]>) => {
   const idField = options ? checkIdField(options) : 'NO_ID_FIELD';
@@ -36,6 +84,52 @@ export const useRx = <T>(query: Query<T>, options?: ReactFireOptions<T[]>) => {
   )}:idField=${idField}`;
 
   const policies$ = collectionData<T>(query);
+
+  // const combinedObservable$ = policies$.pipe(
+  //   tap((p) => console.log('POLICIES: ', p)),
+  //   mergeMap((policies: any) =>
+  //     // from EMITS EACH POLICY SEPARATELY
+  //     from(policies).pipe(
+  //       tap((val: any) => console.log('POLICY: ', val)),
+  //       // groupBy((policy) => policy.userId),
+  //       mergeMap((p) =>
+  //         docData(fsDoc(getFirestore(), 'users', p.userId)).pipe(
+  //           tap((u) => console.log('USER RES: ', u)),
+  //           map((u) => ({ user: u, policy: p }))
+  //         )
+  //       ),
+  //       tap((val) => console.log('CLG 3: ', val)),
+  //       reduce((acc: any[], cur) => [...acc, cur], []),
+  //       tap((v) => console.log('FINAL: ', v))
+  //       // mergeMap(() => )
+  //       // mergeMap((group$) =>
+  //       //   group$.pipe(
+  //       //     toArray(),
+  //       //     map((p) => ({ policies: p, userId: group$.key }))
+  //       //     // reduce((acc, curr) => ({ ...acc, [curr.userId]: curr.policies }), {})
+  //       //   )
+  //       // ),
+  //       // { policies: Policy[], userId: string }
+  //       // tap((preUser) => console.log('PRE USER POPULATE: ', preUser)), // toArray(),
+  //       // // @ts-ignore
+  //       // mergeMap((u: any) => {
+  //       //   const userRef = fsDoc(getFirestore(), 'users', u.userId);
+  //       //   return docData(userRef).pipe(
+  //       //     map((user) => ({ ...user, userId: u.userId, policies: u.policies }))
+  //       //   );
+  //       //   // return docData(userRef).pipe(map((user) => [u, user]));
+  //       // }),
+  //       // tap((postUser) => console.log('POST USER: ', postUser)),
+  //       // // map((combinedArr) => ({ ...combinedArr[1], policies: combinedArr[0].policies })),
+  //       // // { ...user, policies: Policy[] }
+  //       // tap((postMap) => console.log('POST MAP: ', postMap))
+  //       // toArray(),
+  //       // reduce((acc: any[], curr) => [...acc, curr], [])
+  //       // tap((last) => console.log('LAST: ', last))
+  //     )
+  //   )
+  // );
+
   const combinedObservable$ = policies$.pipe(
     tap((p) => console.log('POLICIES: ', p)),
     mergeMap((policies: any) =>
@@ -57,10 +151,13 @@ export const useRx = <T>(query: Query<T>, options?: ReactFireOptions<T[]>) => {
         // @ts-ignore
         mergeMap((u: any) => {
           const userRef = fsDoc(getFirestore(), 'users', u.userId);
-          return docData(userRef).pipe(map((user) => [u, user]));
+          return docData(userRef).pipe(
+            map((user) => ({ ...user, userId: u.userId, policies: u.policies }))
+          );
+          // return docData(userRef).pipe(map((user) => [u, user]));
         }),
         tap((postUser) => console.log('POST USER: ', postUser)),
-        map((combinedArr) => ({ ...combinedArr[1], policies: combinedArr[0].policies })),
+        // map((combinedArr) => ({ ...combinedArr[1], policies: combinedArr[0].policies })),
         // { ...user, policies: Policy[] }
         tap((postMap) => console.log('POST MAP: ', postMap))
         // toArray(),
@@ -68,7 +165,6 @@ export const useRx = <T>(query: Query<T>, options?: ReactFireOptions<T[]>) => {
         // tap((last) => console.log('LAST: ', last))
       )
     )
-    // toArray()
   );
 
   return useObservable(observable1Id, combinedObservable$, options);
