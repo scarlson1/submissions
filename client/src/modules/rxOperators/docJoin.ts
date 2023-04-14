@@ -5,7 +5,7 @@
 import { Firestore, doc } from 'firebase/firestore';
 import { docData } from 'rxfire/firestore';
 import { combineLatest, defer } from 'rxjs';
-import { map, switchMap, tap } from 'rxjs/operators';
+import { map, switchMap } from 'rxjs/operators';
 
 // works like populate in mongoose ??
 

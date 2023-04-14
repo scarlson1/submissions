@@ -7,9 +7,10 @@ import { TabContext, TabList, TabPanel } from '@mui/lab';
 import { AddUsersDialog, InvitesGrid, PoliciesGrid, QuoteGrid, UsersGrid } from 'elements';
 
 import { useAgencyInsureds } from 'hooks/useAgencyInsureds';
-import { useRx, useRxDocJoin, useRxInnerJoin } from 'hooks/useRx';
+import { useCollectionDataInnerJoin, useRx, useRxDocJoin } from 'hooks/useRx';
 import { ClaimsGuard } from 'components';
 import { PersonAddRounded } from '@mui/icons-material';
+import { AdminManageUsersGrid } from 'elements/UsersGrid';
 
 const MIN_TAB_HEIGHT = 40;
 
@@ -46,8 +47,12 @@ export const Organization: React.FC = () => {
               <Tab label='Insureds' value='insureds' />
               <Tab label='Team' value='team' />
               <Tab label='Invites' value='invites' />
+              <Tab label='Admin Users (test)' value='test' />
             </TabList>
           </Box>
+          <TabPanel value='test'>
+            <AdminManageUsersGrid orgId='idemand' />
+          </TabPanel>
           <TabPanel value='policies'>
             <PoliciesGrid
               queryConstraints={[
@@ -120,10 +125,10 @@ function TestAgencyInsureds({ orgId }: { orgId: string }) {
     { idField: 'policyId', suspense: false }
   );
 
-  const { data: innerJoinData, status: innerJoinStatus } = useRxInnerJoin(
+  const { data: innerJoinData, status: innerJoinStatus } = useCollectionDataInnerJoin(
     q,
     'userId',
-    'submissions',
+    { root: 'submissions' },
     { suspense: false, idField: 'policyId' }
   );
 

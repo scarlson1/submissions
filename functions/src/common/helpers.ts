@@ -112,3 +112,18 @@ export const addToDate = (duration: Duration, date: Date = new Date()) => {
 export function isSingleLetter(str: string) {
   return str.length === 1 && str.match(/[a-z]/i);
 }
+
+/**
+ * Validate an object to check if it is valid JSON
+ * @param {string} obj - strinified json object to validate
+ * @return {boolean} boolean value, true if valid JSON
+ */
+
+export const isJSON = (obj: string) => {
+  try {
+    JSON.parse(obj);
+    return true;
+  } catch (e) {
+    return false;
+  }
+};

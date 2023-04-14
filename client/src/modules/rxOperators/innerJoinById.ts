@@ -1,27 +1,32 @@
-import { Firestore, query, where, limit, collection } from 'firebase/firestore';
-import { collectionData as rxCollectionData } from 'rxfire/firestore';
+import { Firestore, doc as fsDoc } from 'firebase/firestore';
+import { docData } from 'rxfire/firestore';
 import { combineLatest, defer, map, of, switchMap, tap } from 'rxjs';
 
 // REQUIRES SAME DOCUMENT FIELD IN BOTH DOCUMENTS/COLLECTION
 // EXAMPLE
 // user = { userId: '123', ...rest }
 // policy = { userId: '123', ...rest }
-// --> returns: { ...user, [collectionName]: [ ...docsWithMatchingUserId ]}
+// --> returns: { ...user, [lastSegmentName]: { ...doc }}
+
+type dynamicSegments = string[] | { value: string; fromDoc?: boolean }[];
+
+const getPaths = (segments: dynamicSegments, doc: { [key: string]: any }) =>
+  segments.map((s) => (typeof s === 'string' ? s : s.fromDoc ? doc[s.value] : s.value));
 
 /**
- * Joins docs from another collection with saved field:value
+ * Joins docs from another collection using id from docIdField and coll path
  * @param {Firestore} firestore - firestore instance
- * @param {string} field - field present on doc and used to match on populate collection
- * @param {string} collName - name of the collection to search
- * @param {number} joinlimit - max # of object to join with parent doc
+ * @param {string} docIdField - field present on doc and used to match on populate collection
+ * @param {object} coll - name of the collection to search
  * @returns {Observable<unknown>} - combined observable of parent documents with a field using the collection name as the key and an array of any documents in the collection matching the field:value from the parent
  */
 
-export const innerJoin = (
+// TODO: USE OBJECT / ARRAY TO ALLOW MULTIPLE POPULATES
+
+export const populateById = (
   firestore: Firestore,
-  field: string,
-  coll: { root: string; pathSegments?: string[] },
-  joinlimit = 100 // limits # of objects that get joined in parent query
+  docIdField: string,
+  coll: { root: string; pathSegments?: dynamicSegments }
 ) => {
   return (source: any) =>
     defer(() => {
@@ -42,30 +47,46 @@ export const innerJoin = (
             // Push doc read to Array
 
             // only get docs where shared key:value pair in both collections
-            if (doc[field]) {
+            if (doc[docIdField]) {
               // Perform query to join key, with optional limit
-              // const collectionRef = collection(firestore, collName, ...pathSements);
-              const collectionRef = collection(firestore, coll.root, ...(coll.pathSegments || []));
-              const q = query(collectionRef, where(field, '==', doc[field]), limit(joinlimit));
+              const segments = coll.pathSegments ? getPaths(coll.pathSegments, doc) : [];
 
-              // reads$.push(rxCollection(q));
-              reads$.push(rxCollectionData(q));
+              const docRef = fsDoc(
+                firestore,
+                coll.root,
+                ...segments,
+                // ...(coll.pathSegments || []),
+                doc[docIdField]
+              );
 
-              // Firestore v8
-              // const q = ref => ref.where(field, '==', doc[field])
-              // reads$.push(firestore.collection(collection,q))
+              reads$.push(docData(docRef));
             } else {
-              reads$.push(of([]));
+              reads$.push(of({}));
             }
           }
 
           return combineLatest(reads$);
         }),
         map((joins: any[]) => {
+          console.log('JOINS: ', joins);
+          const lastSegment =
+            coll.pathSegments && coll.pathSegments.length > 0
+              ? coll.pathSegments[coll.pathSegments.length - 1]
+              : null;
+
+          const keyName = lastSegment
+            ? typeof lastSegment === 'string'
+              ? lastSegment
+              : lastSegment.value
+            : coll.root;
+          // const keyName = `${coll.root}${
+          //   coll.pathSegments ? `:` + coll.pathSegments.join(':') : ''
+          // }`;
+
           // @ts-ignore
           return collectionData.map((v, i) => {
             totalJoins += joins[i].length;
-            return { ...v, [coll.root]: joins[i] || null };
+            return { ...v, [keyName]: joins[i] || null };
           });
         }),
         tap((final) => {

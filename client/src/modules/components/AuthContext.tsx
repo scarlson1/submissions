@@ -115,6 +115,7 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
     await auth.currentUser?.getIdToken(true);
     const idTokenResult: IdTokenResult = await auth.currentUser.getIdTokenResult();
     // Show admin UI. TODO: UI by claim level
+    console.log('TOKEN RESULT: ', idTokenResult);
 
     setCustomClaims({
       ...idTokenResult.claims,
@@ -128,6 +129,7 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
   const onNewClaims = useCallback(
     async (snap: DocumentSnapshot<UserClaims>) => {
       const data = snap.data();
+      console.log('DATA: ', data);
       if (data?._lastCommitted) {
         if (lastCommittedRef.current && !data._lastCommitted.isEqual(lastCommittedRef.current)) {
           console.log('Refreshing ID token');
@@ -139,16 +141,27 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
     [updateClaims]
   );
 
+  // TODO: use rxjs to pipe user auth && subscribe to claims doc?
   // listen to changes in userClaims firestore doc
   useEffect(() => {
-    if (!user || !user.tenantId) return;
+    if (!user) return;
+    if (!user.tenantId && !customClaims.iDemandAdmin) return;
+
+    console.log(
+      'subscribing to: ',
+      customClaims.iDemandAdmin ? 'idemand' : user.tenantId,
+      user.uid
+    );
+
+    const userOrgId = !!customClaims.iDemandAdmin ? 'idemand' : user.tenantId;
+
     const unsubscribe = onSnapshot(
-      doc(userClaimsCollection(firestore, user.tenantId), user.uid),
+      doc(userClaimsCollection(firestore, userOrgId as string), user.uid),
       onNewClaims
     );
 
     return () => unsubscribe();
-  }, [onNewClaims, firestore, user]);
+  }, [onNewClaims, firestore, user, customClaims]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(

@@ -9,9 +9,10 @@ import {
 } from 'firebase/firestore';
 import { ReactFireGlobals, ReactFireOptions, checkIdField, useObservable } from 'reactfire';
 
-import { from, groupBy, map, mergeMap, of, reduce, tap, toArray, zip } from 'rxjs';
+import { from, groupBy, map, mergeMap, tap, toArray } from 'rxjs';
 import { innerJoin } from 'modules/rxOperators/innerJoin';
 import { docJoin } from 'modules/rxOperators/docJoin';
+import { populateById } from 'modules/rxOperators/innerJoinById';
 
 // example group: https://stackoverflow.com/a/56307873
 // DONT USE GROUPBY WITH INFINITE STREAMS
@@ -36,20 +37,47 @@ function getUniqueIdForFirestoreQuery(query: FirestoreQuery) {
 
 // JOINS ANOTHER COLLECTION BASED ON A SHARED FIELD NAME/VALUE - WORKS
 
-export const useRxInnerJoin = <T>(
+export const useCollectionDataInnerJoin = <T>(
   query: Query<T>,
   joinField: string,
-  withCollection: string,
-  options?: ReactFireOptions<T[]>
+  coll: { root: string; pathSegments?: string[] },
+  // withCollection: string,
+  // pathSegments: string[] = [],
+  options: ReactFireOptions<T[]> = {},
+  limit: number = 100
 ) => {
   const idField = options ? checkIdField(options) : 'NO_ID_FIELD';
+  const idSegments = coll.pathSegments ? `:${coll.pathSegments.join(':')}` : '';
   const observable1Id = `firestore:collectionData:${getUniqueIdForFirestoreQuery(
     // @ts-ignore
     query
-  )}:innerJoin:${joinField}:${withCollection}:idField=${idField}`;
+  )}:innerJoin:${joinField}:${coll.root}${idSegments}:idField=${idField}`;
 
   const policies$ = collectionData<T>(query);
-  const combinedObservable$ = policies$.pipe(innerJoin(getFirestore(), joinField, withCollection));
+  const combinedObservable$ = policies$.pipe(innerJoin(getFirestore(), joinField, coll, limit));
+
+  // TODO: need to incorporate merged query into observableId
+  // ADD `innerJoin:${joinfields}` before idField=... ??
+  return useObservable(observable1Id, combinedObservable$, options);
+};
+
+export const useCollectionDataPopulateById = <T>(
+  query: Query<T>,
+  joinField: string,
+  coll: { root: string; pathSegments?: string[] },
+  // withCollection: string,
+  // pathSegments: string[] = [],
+  options: ReactFireOptions<T[]> = {}
+) => {
+  const idField = options ? checkIdField(options) : 'NO_ID_FIELD';
+  const idSegments = coll.pathSegments ? `:${coll.pathSegments.join(':')}` : '';
+  const observable1Id = `firestore:collectionData:${getUniqueIdForFirestoreQuery(
+    // @ts-ignore
+    query
+  )}:innerJoin:${joinField}:${coll.root}${idSegments}:idField=${idField}`;
+
+  const policies$ = collectionData<T>(query);
+  const combinedObservable$ = policies$.pipe(populateById(getFirestore(), joinField, coll));
 
   // TODO: need to incorporate merged query into observableId
   // ADD `innerJoin:${joinfields}` before idField=... ??

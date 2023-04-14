@@ -3,7 +3,7 @@ import 'firebase-functions';
 import { DocumentData, Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { getAuth, TenantAwareAuth, Auth } from 'firebase-admin/auth';
 
-import { CLAIMS, COLLECTIONS, orgsCollection } from '../common';
+import { CLAIMS, COLLECTIONS, isJSON, orgsCollection } from '../common';
 
 // TODO: cloud functions for updating user claims docs
 
@@ -41,12 +41,23 @@ export const mirrorCustomClaims = functions.firestore
         return;
       }
 
+      const isValid = isJSON(stringifiedClaims);
+
+      if (!isValid) {
+        console.log('Invalid JSON. returning early');
+        await change.after.ref.set({
+          ...beforeData,
+        });
+      }
+
       if (
         (Object.keys(newClaims).includes(CLAIMS.IDEMAND_ADMIN) ||
           Object.keys(newClaims).includes(CLAIMS.IDEMAND_USER)) &&
         orgId !== 'idemand'
       ) {
-        console.log('New custom claims contained reserved custom claim (iDemandAdmin).');
+        console.log(
+          'New custom claims contained reserved custom claim (iDemandAdmin). Removing claim.'
+        );
         // delete newClaims.iDemandAdmin;
         delete newClaims[CLAIMS.IDEMAND_ADMIN];
         delete newClaims[CLAIMS.IDEMAND_USER];
@@ -60,16 +71,6 @@ export const mirrorCustomClaims = functions.firestore
       // for (const key in request) {
       //   if (!(key in validKeys)) {
       //     delete request[key];
-      //   }
-      // }
-
-      // TODO: verify newClaims is valid JSON
-      // https://www.geeksforgeeks.org/javascript-check-if-a-string-is-a-valid-json-string/
-      // function isJSON(str) {
-      //   try {
-      //     return JSON.parse(str) && !!str;
-      //   } catch (e) {
-      //     return false;
       //   }
       // }
 

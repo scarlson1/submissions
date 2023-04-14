@@ -72,7 +72,7 @@ export const emailCol: GridColDef = {
   field: 'email',
   headerName: 'Email',
   flex: 1,
-  minWidth: 180,
+  minWidth: 220,
   editable: false,
   renderCell: (params: GridRenderCellParams<any, any, any>) => renderGridEmail(params),
 };
@@ -106,7 +106,7 @@ export const displayNameCol: GridColDef = {
   field: 'displayName',
   headerName: 'Name',
   flex: 1,
-  minWidth: 180,
+  minWidth: 160,
   editable: false,
   valueGetter: (params: GridValueGetterParams<any, any>) => {
     if (params.value) return params.value;
