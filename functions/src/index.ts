@@ -40,7 +40,7 @@ export {
   setClaimsFromInvite,
 } from './authEvents';
 export { authRequests } from './routes';
-export { getAALPortfolio } from './storageEvents';
+export { getAALPortfolio, importPolicies } from './storageEvents';
 export { tempGetFIPS } from './storageEvents/tempGetFIPS.js';
 export { checkAchStatus } from './pubsub';
 export { markpaidonpaymentcomplete } from './pubsub/markPaidOnPaymentComplete.js';

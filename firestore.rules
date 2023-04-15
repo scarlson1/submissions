@@ -170,6 +170,10 @@ service cloud.firestore {
       allow update: if isIDemandAdmin() && emailVerified()
       allow delete: if isIDemandAdmin() && emailVerified()
     }
+    
+    match /dataImports/{docId} {
+      allow read, create, update, delete: if isIDemandAdmin() && emailVerified()
+    }
 
     match /tasks/{taskId} {
       allow read: if true

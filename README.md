@@ -15,7 +15,7 @@ Large, static, public data files are hosted in github:
 - County GeoJSON
 - State GeoJSON
 
-## Invites
+### Invites
 
 Invites are created in two scenarios:
 
@@ -26,7 +26,7 @@ Invites are created when a new document is created under _organizations/{orgId}/
 
 Once a user creates an account (within a tenant), the beforeCreate blocking function checks the invite collection under the org to ensure the user was invited to join the tenant (/organizations/{orgId}/invites/{userEmail}).
 
-## Claims
+### Claims
 
 Claims are set up to mirror the properties of the firebase document under _organizations/{orgId}/userClaims/{userId}_. Firestore rules restrict updating the user claims document to iDemand Admins and Org Admins. (note: idemand's orgId is 'idemand', although it is not set up as a tenant).
 
@@ -34,9 +34,37 @@ Claims are kept up to date in the AuthContext component. To get around the issue
 
 [Patterns for security with Firebase: supercharged custom claims with Firestore and Cloud Functions - Doug Stevenson](https://medium.com/firebase-developers/patterns-for-security-with-firebase-supercharged-custom-claims-with-firestore-and-cloud-functions-bb8f46b24e11)
 
-## Blocking Functions
+## App structure
 
-#### beforeCreate
+### Routing
+
+### Search
+
+Algolia
+
+###### Search Structure & Indicies
+
+###### Search Keys / Permissions
+
+## Cloud Functions
+
+### Callables
+
+- TODO: LIST CLOUD FUNCTIONS & SUMMARY OF WHAT THEY DO
+
+### Storage Triggered
+
+### HTTPS Triggered
+
+### Pub/Sub
+
+### Firestore Triggered
+
+### Auth Triggered
+
+##### Blocking Functions
+
+###### beforeCreate
 
 If tenant is **not** present:
 
@@ -52,18 +80,6 @@ All:
 - checks to ensure a user does not already exist with matching email (wouldn't be caught if under different tenant or no tenant)
 - checks if email domain ends with _@idemandinsurance.com_, and assigns _iDemandAdmin_ claims. Must be verified beforeSignIn.
 
-#### beforeSignIn
+###### beforeSignIn
 
 If _@idemandinsurance.com_ and email is not verified, creates a JWT signed with EMAIL_VERIFICATION_KEY env var, expiring in 10 mins and sends email with link to `{FUNCTIONS_BASE_URL}/authRequests/verify-email/${token}`, which will verify the token and set the email as verified, allowing the iDemandAdmin email address to sign in.
-
-## Search
-
-Algolia
-
-###### Search Structure & Indicies
-
-###### Search Keys / Permissions
-
-## App structure
-
-### Routing

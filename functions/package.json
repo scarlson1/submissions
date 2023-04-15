@@ -19,6 +19,7 @@
   "main": "dist/index.js",
   "dependencies": {
     "@google-cloud/pubsub": "^3.4.1",
+    "@google-cloud/storage": "^6.9.5",
     "@sendgrid/mail": "^7.7.0",
     "@turf/meta": "^6.5.0",
     "@turf/turf": "^6.5.0",

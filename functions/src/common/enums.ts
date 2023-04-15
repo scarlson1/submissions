@@ -17,6 +17,7 @@ export enum COLLECTIONS {
   AGENCY_APPLICATIONS = 'agencySubmissions',
   LICENSES = 'licenses',
   NOTIFICATIONS = 'notifications',
+  DATA_IMPORTS = 'dataImports',
 }
 
 export enum SUBMISSION_STATUS {

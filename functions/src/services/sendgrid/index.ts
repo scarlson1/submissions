@@ -10,6 +10,7 @@ import {
   adminPaymentReceived,
   policyDelivery,
   agencyAppApproved,
+  adminPolicyImportNotification,
 } from './templates';
 
 export interface AttachmentJSON {
@@ -198,4 +199,35 @@ export const sendAgencyAppApprovedNotification = async (
   );
 
   return { link };
+};
+
+// adminPolicyImportNotification
+
+export const sendAdminPolicyImportNotification = async (
+  key: string,
+  to: string | string[],
+  successCount: number,
+  errorCount: number,
+  invalidDataCount: number,
+  fileName: string,
+  link?: string | null | undefined,
+  toName?: string
+) => {
+  const html = adminPolicyImportNotification({
+    successCount,
+    errorCount,
+    invalidDataCount,
+    fileName,
+    link,
+    toName,
+  });
+
+  sgMail.setApiKey(key);
+  await sgMail.send(
+    createMsgContent({
+      to,
+      html,
+      subject: 'Policy import complete',
+    })
+  );
 };
