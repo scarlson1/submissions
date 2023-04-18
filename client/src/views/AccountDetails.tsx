@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
   Box,
   Paper,
@@ -8,18 +8,21 @@ import {
   Container,
   Button,
   Unstable_Grid2 as Grid,
+  TextField,
+  Stack,
 } from '@mui/material';
-import { useFirestore } from 'reactfire';
+import { useFirestore, useUser } from 'reactfire';
 import { doc, setDoc } from 'firebase/firestore';
 import { toast } from 'react-hot-toast';
 import axios from 'axios';
+import { useForm, SubmitHandler, Controller } from 'react-hook-form';
 
-import { useAuth } from 'modules/components/AuthContext';
+// import { useAuth } from 'modules/components/AuthContext';
 import { AddUsersDialog, UpdateProfileImg } from 'elements';
-import { COLLECTIONS } from 'common';
+import { COLLECTIONS, User, usersCollection } from 'common';
 import { ClaimsGuard } from 'components';
-
-// TODO: react-router to fetch firebase data
+import { UpdateProfileRes, useAsyncToast, useDocData, useUpdateProfile } from 'hooks';
+import { useAuth } from 'modules/components';
 
 // TODO: get download image from url using rxfire
 // https://firebase.blog/posts/2018/09/introducing-rxfire-easy-async-firebase
@@ -40,9 +43,12 @@ import { ClaimsGuard } from 'components';
 //     console.log('the logged in user's photo', photoURL);
 //   });
 
+// TODO: auth check
 export const AccountDetails: React.FC = () => {
-  const { user } = useAuth();
+  const { data } = useUser();
   const theme = useTheme();
+
+  console.log('DATA: ', data);
 
   return (
     <Container maxWidth='md' disableGutters>
@@ -98,19 +104,21 @@ export const AccountDetails: React.FC = () => {
                 </Box>
               </Grid>
               <Grid xs>
-                <Typography variant='h5'>{user?.displayName}</Typography>
+                {/* <Typography variant='h5'>{user?.displayName}</Typography> */}
+                <Typography variant='h5'>{data ? data.displayName : ''}</Typography>
                 {/* <Typography variant='subtitle2' color='text.secondary'>
                   TODO: get org name or user's position/role
                 </Typography> */}
               </Grid>
             </Grid>
-            <Grid>
-              {/* <Typography variant='h6' color='warning.main'>
-                TODO: user profile & settings
-              </Typography> */}
-              <Typography variant='h6' color='warning.main'>
-                [Profile page under construction]
+            <Grid xs={12} sm={3} md={4}>
+              <Typography variant='h6' gutterBottom>
+                User Details
               </Typography>
+            </Grid>
+            <Grid xs={12} sm={9} md={8}>
+              <UserDetailsForm />
+              <UpdateUserEmail />
             </Grid>
           </Grid>
         </Box>
@@ -155,4 +163,181 @@ function InitializeFIPS() {
   }, [firebase]);
 
   return <Button onClick={initFIPS}>Initialize FIPS data</Button>;
+}
+
+// import { yupResolver } from '@hookform/resolvers/yup';
+// const schema = yup
+//   .object({
+//     firstName: yup.string().required(),
+//     age: yup.number().positive().integer().required(),
+//   })
+//   .required();
+
+// MUI example: https://codesandbox.io/s/react-hook-form-v7-controller-5h1q5?file=/src/Mui.js
+
+type UserDetailsInputs = {
+  firstName: string;
+  lastName: string;
+};
+
+function UserDetailsForm() {
+  const firestore = useFirestore();
+  // const auth = useAuth();
+  const { data: user } = useUser();
+  const { data: fsUser } = useDocData<User>('USERS', `${user?.uid}`);
+  const toast = useAsyncToast();
+
+  const {
+    handleSubmit,
+    control,
+    // formState: { errors },
+  } = useForm<UserDetailsInputs>({
+    defaultValues: {
+      firstName: fsUser.firstName || '',
+      lastName: fsUser.lastName || '',
+      // email: 'test@example.com',
+    },
+    // resolver: yupResolver(schema),
+  });
+
+  const updateUserDoc = useCallback(
+    async ({ displayName, firstName, lastName }: UpdateProfileRes) => {
+      if (!user || !user.uid) return toast.error('Must be signed in');
+      let userRef = doc(usersCollection(firestore), user?.uid);
+      await setDoc(
+        userRef,
+        { displayName, firstName: `${firstName}`, lastName: `${lastName}` },
+        { merge: true }
+      );
+      // await auth.currentUser?.getIdToken(true);
+      toast.success('profile updated!');
+    },
+    [firestore, user, toast]
+  );
+
+  const { updateProfile } = useUpdateProfile(
+    (res) => updateUserDoc(res),
+    (msg) => toast.error(msg)
+  );
+
+  const onSubmit: SubmitHandler<UserDetailsInputs> = useCallback(
+    async (data) => {
+      console.log(data);
+      toast.loading('updating profile...');
+
+      await updateProfile({ firstName: data.firstName, lastName: data.lastName });
+    },
+    [toast, updateProfile]
+  );
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <Grid container spacing={5}>
+        {/* <Stack spacing={{ xs: 1, sm: 2 }} direction='row' flexWrap='wrap' alignItems='center'> */}
+        <Grid xs={6} sm={4} md={5}>
+          <Controller
+            name='firstName'
+            control={control}
+            rules={{ required: 'First name required' }}
+            // defaultValue='John'
+            // {...register('firstName', { required: true })}
+            render={({ field, fieldState: { error } }) => (
+              <TextField
+                {...field}
+                variant='filled'
+                label='First Name'
+                error={!!error}
+                helperText={error ? error.message : null}
+                fullWidth
+              />
+            )}
+          />
+        </Grid>
+        <Grid xs={6} sm={4} md={5}>
+          <Controller
+            name='lastName'
+            control={control}
+            rules={{ required: 'Last name required' }}
+            // defaultValue='John'
+            // {...register('lastName', { required: true })}
+            render={({ field, fieldState: { error } }) => (
+              <TextField
+                {...field}
+                variant='filled'
+                label='Last Name'
+                error={!!error}
+                helperText={error?.message ?? null}
+                fullWidth
+              />
+            )}
+          />
+        </Grid>
+        {/* <Grid xs={6}></Grid> */}
+        <Grid xs={6} sm={4} md={2} sx={{ alignSelf: 'center' }}>
+          <Button type='submit' sx={{ maxHeight: 34 }}>
+            Save
+          </Button>
+        </Grid>
+      </Grid>
+    </form>
+  );
+}
+
+type UserEmailInputs = {
+  email: string;
+};
+
+function UpdateUserEmail() {
+  const toast = useAsyncToast();
+  const { data: user } = useUser();
+  const { updateUserEmail } = useAuth();
+
+  const {
+    handleSubmit,
+    control,
+    // formState: { errors },
+  } = useForm<UserEmailInputs>({
+    defaultValues: {
+      email: user?.email || '',
+    },
+  });
+
+  const onSubmit: SubmitHandler<UserEmailInputs> = useCallback(
+    async (data) => {
+      console.log(data);
+      toast.loading('updating...');
+
+      try {
+        // @ts-ignore
+        await updateUserEmail(data.email, (msg: string) => toast.success(msg));
+      } catch (err) {
+        toast.error('Error updating email');
+      }
+    },
+    [toast, updateUserEmail]
+  );
+
+  return (
+    <Box sx={{ width: '100%' }}>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <Controller
+          name='email'
+          control={control}
+          rules={{ required: 'Email required' }}
+          render={({ field, fieldState: { error } }) => (
+            <TextField
+              {...field}
+              variant='filled'
+              label='Email'
+              error={!!error}
+              helperText={error?.message ?? null}
+            />
+          )}
+        />
+        <Button type='submit' sx={{ maxHeight: 34 }}>
+          Update
+        </Button>
+      </form>
+    </Box>
+  );
 }

@@ -25,7 +25,9 @@ export const adminPolicyImportNotification = ({
           <div>
             <p style="padding-bottom: 8px">Hi${toName ? ` ${toName},` : ','}</p>
             <p>Policy import complete from ${fileName}.</p>
-            <p>Imported ${successCount} with ${errorCount} record creation errors and ${invalidDataCount} rows skipped due to invalid data.</p>
+            <p>Imported ${successCount} record${
+    successCount > 2 ? 's' : ''
+  } with ${errorCount} record creation errors and ${invalidDataCount} rows skipped due to invalid data.</p>
 
             ${
               link

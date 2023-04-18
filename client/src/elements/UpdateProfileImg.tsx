@@ -1,7 +1,7 @@
 import React from 'react';
 import { Avatar, Badge, SxProps } from '@mui/material';
 import { Edit } from '@mui/icons-material';
-import { FirebaseError } from 'firebase/app';
+
 import { getDownloadURL } from 'firebase/storage';
 
 import { useAuth } from 'modules/components/AuthContext';
@@ -22,13 +22,7 @@ export const UpdateProfileImg: React.FC<UpdateProfileImgProps> = ({ avatarSx }) 
       toast.dismiss();
       toast.success('Profile updated');
     },
-    (err) => {
-      let msg;
-      if (err instanceof FirebaseError) {
-        msg = `${err.message} (${err.code})`;
-      } else {
-        msg = 'An error occurred.';
-      }
+    (msg: string) => {
       toast.error(msg);
     }
   );

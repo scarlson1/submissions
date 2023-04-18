@@ -11,6 +11,7 @@ import {
   POLICY_STATUS,
   AGENCY_SUBMISSION_STATUS,
 } from './enums.js';
+import { Geohash } from 'geofire-common';
 
 // TODO: fix typescript error app.use(thisMiddleware) is users.ts
 
@@ -312,6 +313,7 @@ export interface FetchPropertyDataResponse extends Partial<RatingPropertyData> {
 
 export interface Submission extends FloodFormValues, FetchPropertyDataResponse {
   coordinates: GeoPoint;
+  geoHash?: Geohash | null;
   countyFIPS?: string | null;
   userId?: string | null;
   status: SUBMISSION_STATUS;
@@ -418,6 +420,7 @@ export interface Policy {
   deductible: number;
   address: Address;
   coordinates: GeoPoint | null; // TODO: get rid of null in SubmissionQuoteData
+  geoHash?: Geohash | null;
   namedInsured: {
     firstName: string;
     lastName: string;

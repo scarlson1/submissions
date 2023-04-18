@@ -6,7 +6,7 @@ import { FIPSDetails } from 'common';
 import { GeoJsonLayer, PickingInfo } from 'deck.gl/typed';
 
 // const COUNTIES_JSON_STORAGE_PATH = `public/geo-spatial/counties_20m.json`;
-const COUNTIES_URL = 'https://scarlson1.github.io/data/states_20m.json';
+const COUNTIES_URL = 'https://scarlson1.github.io/data/counties_20m.json';
 
 export interface CountiesMapProps {
   selectedCounties?: FIPSDetails[];
@@ -31,7 +31,6 @@ export const CountiesMap: React.FC<CountiesMapProps> = ({ selectedCounties, laye
           ...defaultGeoJsonLayerProps,
           id: `geojson-layer-counties`, // @ts-ignore
           // data: countiesData,
-          // data: countiesURL,
           data: COUNTIES_URL,
           highlightColor: theme.palette.mode === 'dark' ? [255, 255, 255, 25] : [80, 144, 211, 20],
           getLineColor: theme.palette.mode === 'dark' ? [255, 255, 255, 200] : [178, 186, 194, 200],

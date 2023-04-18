@@ -11,7 +11,6 @@ import {
   Button,
   MenuItem,
   Tooltip,
-  List,
   ListItemButton,
   ListItemText,
   Divider,
@@ -33,8 +32,6 @@ import {
   BlockRounded,
   PlagiarismRounded,
   SourceRounded,
-  HomeRounded,
-  CloseRounded,
   CorporateFareRounded,
   ContactSupportRounded,
   PersonRounded,
@@ -296,62 +293,96 @@ export const Header: React.FC<HeaderProps> = () => {
           </Typography>
 
           <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
-            <NavDrawer>
-              {({ toggleDrawer }) => (
-                <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-                  <Box
-                    sx={{
-                      py: 3,
-                      px: 3,
-                      borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
-                      width: '100%',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                    }}
-                  >
-                    <IconButton color='primary' size='small' onClick={() => navigate('/')}>
-                      <HomeRounded />
-                    </IconButton>
-                    <IconButton size='small' onClick={toggleDrawer}>
-                      <CloseRounded />
-                    </IconButton>
-                  </Box>
-                  <Box sx={{ flex: '1 1 auto', overflow: 'auto' }}>
-                    <List sx={{ minWidth: 260, maxWidth: 280, p: 3 }}>
-                      {navPages?.map((item, i) => (
-                        <NavListItem
-                          title={item.title}
-                          route={item.route}
-                          items={item.items}
-                          icon={item.icon}
-                          key={`${item.title}-${i}`}
-                          selected={
-                            (item.route && !!matchPath({ path: item.route }, location.pathname)) ||
-                            false
-                          }
-                        />
-                      ))}
-                    </List>
-                  </Box>
-                  <Box
-                    sx={{
-                      py: 4,
-                      px: 5,
-                      borderTop: (theme) => `1px solid ${theme.palette.divider}`,
-                    }}
-                  >
-                    <Typography
-                      variant='subtitle2'
-                      color='text.secondary'
-                      onClick={() => navigate(createPath({ path: ROUTES.CONTACT }))}
-                      sx={{ '&:hover': { textDecoration: 'underline', cursor: 'pointer' } }}
-                    >
-                      Contact us
-                    </Typography>
-                  </Box>
-                </Box>
-              )}
-            </NavDrawer>
+            <NavDrawer
+              items={navPages}
+              renderItem={({ title, route, items, icon, key }) => {
+                // navPages?.map((item, i) => (
+                return (
+                  <NavListItem
+                    title={title}
+                    route={route}
+                    items={items}
+                    icon={icon}
+                    key={key}
+                    // key={`${title}-${i}`}
+                    selected={
+                      (route && !!matchPath({ path: route as string }, location.pathname)) || false
+                    }
+                    // handleClose={toggleDrawer}
+                  />
+                );
+                // ));
+              }}
+            />
+            {/* {({ toggleDrawer }) => {
+                return (
+                  // <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                  //   <Box
+                  //     sx={{
+                  //       py: 3,
+                  //       px: 3,
+                  //       borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
+                  //       width: '100%',
+                  //       display: 'flex',
+                  //       justifyContent: 'space-between',
+                  //     }}
+                  //   >
+                  //     <IconButton
+                  //       color='primary'
+                  //       size='small'
+                  //       onClick={() => {
+                  //         toggleDrawer();
+                  //         navigate('/');
+                  //       }}
+                  //     >
+                  //       <HomeRounded />
+                  //     </IconButton>
+                  //     <IconButton size='small' onClick={toggleDrawer}>
+                  //       <CloseRounded />
+                  //     </IconButton>
+                  //   </Box>
+                  //   <Box sx={{ flex: '1 1 auto', overflow: 'auto' }}>
+                  //     <List sx={{ minWidth: 260, maxWidth: 280, p: 3 }}>
+                  //       {navPages?.map((item, i) => (
+                  //         <NavListItem
+                  //           title={item.title}
+                  //           route={item.route}
+                  //           items={item.items}
+                  //           icon={item.icon}
+                  //           key={`${item.title}-${i}`}
+                  //           selected={
+                  //             (item.route &&
+                  //               !!matchPath({ path: item.route as string }, location.pathname)) ||
+                  //             false
+                  //           }
+                  //           handleClose={toggleDrawer}
+                  //         />
+                  //       ))}
+                  //     </List>
+                  //   </Box>
+                  //   <Box
+                  //     sx={{
+                  //       py: 4,
+                  //       px: 5,
+                  //       borderTop: (theme) => `1px solid ${theme.palette.divider}`,
+                  //     }}
+                  //   >
+                  //     <Typography
+                  //       variant='subtitle2'
+                  //       color='text.secondary'
+                  //       onClick={() => {
+                  //         toggleDrawer();
+                  //         navigate(createPath({ path: ROUTES.CONTACT }));
+                  //       }}
+                  //       sx={{ '&:hover': { textDecoration: 'underline', cursor: 'pointer' } }}
+                  //     >
+                  //       Contact us
+                  //     </Typography>
+                  //   </Box>
+                  // </Box>
+                );
+              }} */}
+            {/* </NavDrawer> */}
           </Box>
           <WaterRounded
             sx={{
@@ -408,35 +439,65 @@ export const Header: React.FC<HeaderProps> = () => {
                         whiteSpace: 'nowrap',
                       },
                     }}
-                  >
-                    <List
-                      sx={{
-                        minWidth: 160,
-                        maxWidth: 260,
-                        '& .MuiListItemButton-root:first-of-type': {
-                          borderTopLeftRadius: (theme) => theme.shape.borderRadius,
-                          borderTopRightRadius: (theme) => theme.shape.borderRadius,
-                        },
-                        '& .MuiListItemButton-root:last-of-type': {
-                          borderBottomLeftRadius: (theme) => theme.shape.borderRadius,
-                          borderBottomRightRadius: (theme) => theme.shape.borderRadius,
-                        },
-                      }}
-                      dense
-                    >
-                      {page.items.map((i) => (
+                    items={page.items}
+                    renderItem={({ route, title, handleClose }) => {
+                      // matchPath(route, { path: key, exact: true });
+                      let selected =
+                        (route && !!matchPath({ path: route }, location.pathname)) || false;
+
+                      return (
                         <ListItemButton
                           component={RouterLink as any}
-                          to={i.route}
-                          // selected={}
-                          key={i.route}
-                          sx={{ py: 1, px: 4 }}
+                          to={route}
+                          selected={selected}
+                          key={route}
+                          sx={{
+                            py: 1,
+                            px: 4,
+                            '&.Mui-selected': {
+                              borderRadius: 0,
+                              border: '1px solid transparent',
+                              borderColor: 'transparent !important',
+                              '& .MuiListItemText-primary': {
+                                fontWeight: 500,
+                              },
+                            },
+                          }}
+                          onClick={handleClose}
                         >
-                          <ListItemText primary={i.title} sx={{ my: 1 }} />
+                          <ListItemText primary={title} sx={{ my: 1 }} />
                         </ListItemButton>
-                      ))}
-                    </List>
-                  </PopperNavMenu>
+                      );
+                    }}
+                  />
+                  // <List
+                  //   sx={{
+                  //     minWidth: 160,
+                  //     maxWidth: 260,
+                  //     '& .MuiListItemButton-root:first-of-type': {
+                  //       borderTopLeftRadius: (theme) => theme.shape.borderRadius,
+                  //       borderTopRightRadius: (theme) => theme.shape.borderRadius,
+                  //     },
+                  //     '& .MuiListItemButton-root:last-of-type': {
+                  //       borderBottomLeftRadius: (theme) => theme.shape.borderRadius,
+                  //       borderBottomRightRadius: (theme) => theme.shape.borderRadius,
+                  //     },
+                  //   }}
+                  //   dense
+                  // >
+                  //   {page.items.map((i) => (
+                  //     <ListItemButton
+                  //       component={RouterLink as any}
+                  //       to={i.route}
+                  //       // selected={}
+                  //       key={i.route}
+                  //       sx={{ py: 1, px: 4 }}
+                  //     >
+                  //       <ListItemText primary={i.title} sx={{ my: 1 }} />
+                  //     </ListItemButton>
+                  //   ))}
+                  // </List>
+                  // </PopperNavMenu>
                 );
                 // return (
                 //   <NavMenu title={page.title} menuItems={page.items} key={`${page.title}-${i}`} />
@@ -584,11 +645,12 @@ const UserMenu: React.FC<UserMenuProps> = ({ menuItems }) => {
                 <>
                   <Typography
                     variant='body1'
-                    onClick={() =>
+                    onClick={() => {
+                      handleCloseMenu();
                       navigate(createPath({ path: AUTH_ROUTES.CREATE_ACCOUNT }), {
                         state: { from: location },
-                      })
-                    }
+                      });
+                    }}
                     sx={{ pb: 1, '&:hover': { textDecoration: 'underline', cursor: 'pointer' } }}
                   >
                     Create an account to save progress
@@ -608,8 +670,8 @@ const UserMenu: React.FC<UserMenuProps> = ({ menuItems }) => {
           <MenuItem
             key={item.label}
             onClick={() => {
-              item.onClick();
               handleCloseMenu();
+              item.onClick();
             }}
           >
             <ListItemIcon>{item.icon && item.icon}</ListItemIcon>
@@ -631,7 +693,13 @@ const UserMenu: React.FC<UserMenuProps> = ({ menuItems }) => {
                 </Button>
               }
             >
-              <Button size='small' onClick={() => logout()}>
+              <Button
+                size='small'
+                onClick={() => {
+                  handleCloseMenu();
+                  logout();
+                }}
+              >
                 Logout
               </Button>
             </AuthWrapper>

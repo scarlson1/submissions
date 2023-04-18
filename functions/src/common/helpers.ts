@@ -97,6 +97,10 @@ export const isValidEmail = (str: string) => {
 
 export const getNumber = (str: string) => str.replace(/[^0-9\.]+/g, ''); // eslint-disable-line
 
+export function extractNumber(str: string) {
+  return parseFloat(`${str}`.replace(/[^0-9.]/g, ''));
+}
+
 /**
  *
  * @param {Duration} duration -  object specifying time to add (seconds, days, weeks, months, years, etc.)

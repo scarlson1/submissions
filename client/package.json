@@ -60,6 +60,8 @@
     "env-cmd": "^10.1.0",
     "firebase": "^9.15.0",
     "formik": "^2.2.9",
+    "geofire": "^6.0.0",
+    "geofire-common": "^6.0.0",
     "lodash": "^4.17.21",
     "lottie-react": "^2.3.1",
     "mapbox-gl": "^2.12.0",

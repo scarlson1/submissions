@@ -14,6 +14,7 @@ import {
 import { FloodValues } from 'views/SubmissionNew';
 import { FetchPropertyDataResponse } from 'modules/api/index';
 import { JSONContent } from '@tiptap/react';
+import { Geohash } from 'geofire-common';
 
 export interface BaseMetadata {
   created: FirestoreTimestamp;
@@ -45,6 +46,7 @@ export interface Submission extends FloodValues, FetchPropertyDataResponse {
   surgeAAL?: number;
   annualPremium?: number;
   subproducerCommission?: number;
+  geoHash?: Geohash | null;
   metadata: BaseMetadata;
 }
 
@@ -201,6 +203,7 @@ export interface SubmissionQuoteData {
   imageUrls?: { [key: string]: string | null };
   imagePaths?: { [key: string]: string | null };
   ratingPropertyData: RatingPropertyData;
+  geoHash?: Geohash | null;
   // quoteIds?: WithFieldValue<string[]>;
   statusTransitions: {
     published: FirestoreTimestamp;
@@ -541,6 +544,7 @@ export interface Agency {
 export interface Organization extends BaseDoc {
   address: Address;
   coordinates?: GeoPoint; // Coordinates;
+  geoHash?: Geohash | null;
   orgName: string;
   tenantId: string;
   primaryContact: {

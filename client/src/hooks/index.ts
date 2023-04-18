@@ -47,3 +47,4 @@ export { useCalcPremium } from './useCalcPremium';
 export type { UseFileUploadProps } from './useFileUpload';
 export type { UseSendPasswordResetProps } from './useSendPasswordReset';
 export type { PolicyWithId } from './useUsersPolicies';
+export type { UpdateProfileArgs, UpdateProfileRes } from './useUpdateProfile';

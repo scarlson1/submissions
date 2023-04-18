@@ -3,11 +3,13 @@ import { FirebaseError } from 'firebase/app';
 import { addDoc, FirestoreError, GeoPoint, getFirestore, Timestamp } from 'firebase/firestore';
 import invariant from 'tiny-invariant';
 import { round } from 'lodash';
+import * as geofire from 'geofire-common';
 
 import { NewQuoteValues } from 'views/admin/QuoteNew';
 import { extractNumber, readableFirebaseCode } from 'modules/utils/helpers';
 import { QUOTE_STATUS, Submission, SubmissionQuoteData, submissionsQuotesCollection } from 'common';
 import { useSendQuoteNotification } from './useSendQuoteNotification';
+// const hash = geofire.geohashForLocation([lat, lng]);
 
 const CARD_FEE_RATE = 0.035;
 
@@ -27,6 +29,12 @@ export const useCreateQuote = (
       try {
         const quoteData = getFormattedQuote(values);
 
+        const latitude = submissionData?.coordinates.latitude;
+        const longitude = submissionData?.coordinates.longitude;
+        const geoHash =
+          latitude && longitude ? geofire.geohashForLocation([latitude, longitude]) : null;
+        // const hash = geofir.geohashForLocation([lat, lng]);
+
         const quoteRef = await addDoc(submissionsQuotesCollection(getFirestore()), {
           ...quoteData,
           submissionId,
@@ -43,6 +51,7 @@ export const useCreateQuote = (
             satelliteStreetsMapImageFilePath:
               submissionData?.satelliteStreetsMapImageFilePath || null,
           },
+          geoHash,
         });
 
         if (onStepSuccess) onStepSuccess(`Quote created ${quoteRef.id}`);

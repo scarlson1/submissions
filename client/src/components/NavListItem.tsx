@@ -9,7 +9,7 @@ import {
   ListItemButton,
 } from '@mui/material';
 import { ExpandLessRounded, ExpandMoreRounded } from '@mui/icons-material';
-import { Link as RouterLink, matchPath, useLocation } from 'react-router-dom';
+import { matchPath, useLocation, useNavigate } from 'react-router-dom'; // Link as RouterLink,
 
 interface NavListItemProps {
   title: string;
@@ -17,6 +17,7 @@ interface NavListItemProps {
   items?: NavListItemProps[];
   icon?: React.ReactNode;
   selected?: boolean;
+  // handleClose?: () => void;
 }
 
 export const NavListItem: React.FC<NavListItemProps> = ({
@@ -24,19 +25,30 @@ export const NavListItem: React.FC<NavListItemProps> = ({
   route,
   items,
   icon,
+  // handleClose,
   ...props
 }) => {
   const location = useLocation();
   const isExpandable = items && items.length > 0;
   const [open, setOpen] = React.useState(false);
 
-  const handleClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    e.stopPropagation();
-    setOpen((o) => !o);
-  }, []);
+  const handleExpandClick = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      if (isExpandable) e.stopPropagation();
+      setOpen((o) => !o);
+      // if (route && props.handleClose) props.handleClose();
+    },
+    [isExpandable]
+  );
 
   const rootItem = (
-    <NavItemComponent route={route} onClick={handleClick} {...props}>
+    <NavItemComponent
+      route={route}
+      handleExpandClick={handleExpandClick}
+      // handleClose={handleClose}
+      // handleClose={props.handleClose}
+      {...props}
+    >
       {!!icon && <ListItemIcon>{icon}</ListItemIcon>}
       <ListItemText primary={title} />
       {isExpandable && !open && <ExpandMoreRounded />}
@@ -53,6 +65,7 @@ export const NavListItem: React.FC<NavListItemProps> = ({
             route={item.route}
             selected={(item.route && !!matchPath({ path: item.route }, location.pathname)) || false}
             key={`${title}-${item.route}-${i}`}
+            // handleClose={handleClose}
           >
             {!!item.icon && <ListItemIcon>{item.icon}</ListItemIcon>}
             <ListItemText primary={item.title} />
@@ -72,15 +85,23 @@ export const NavListItem: React.FC<NavListItemProps> = ({
 
 interface NavItemComponentProps {
   route?: string;
-  onClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
+  handleExpandClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
   children: React.ReactNode;
   selected?: boolean;
+  // handleClose?: () => void;
 }
 
-function NavItemComponent({ onClick, route, children, ...props }: NavItemComponentProps) {
+function NavItemComponent({
+  handleExpandClick,
+  route,
+  children,
+  // handleClose,
+  ...props
+}: NavItemComponentProps) {
+  const navigate = useNavigate();
   if (!route || typeof route !== 'string') {
     return (
-      <ListItemButton onClick={onClick} sx={{ borderRadius: 1 }}>
+      <ListItemButton onClick={handleExpandClick} sx={{ my: 1, borderRadius: 1 }}>
         {children}
       </ListItemButton>
     );
@@ -88,11 +109,18 @@ function NavItemComponent({ onClick, route, children, ...props }: NavItemCompone
 
   return (
     <ListItemButton
-      component={RouterLink as any}
-      to={route}
+      onClick={(e: any) => {
+        // e.stopPropagation();
+        // handleClose && handleClose();
+        navigate(route);
+      }}
+      // component={RouterLink as any}
+      // to={route}
       sx={{
+        my: 1,
         borderRadius: 1,
         '&.Mui-selected': {
+          border: 'none',
           borderColor: 'transparent !important',
           color: 'primary',
           '& .MuiListItemText-primary': {

@@ -5,10 +5,16 @@ import { Timestamp, getFirestore } from 'firebase-admin/firestore';
 import path from 'path';
 import os from 'os';
 import fs from 'fs';
-import { ParserHeaderArray, ParserOptionsArgs, parseStream } from 'fast-csv'; // format, parse, ParserHeaderTransformFunction,
+import {
+  ParserHeaderArray,
+  ParserHeaderTransformFunction,
+  ParserOptionsArgs,
+  parseStream,
+} from 'fast-csv'; // format, parse, ParserHeaderTransformFunction,
 
-import { COLLECTIONS, getNumber, policiesCollection } from '../common';
+import { COLLECTIONS, extractNumber, getNumber, policiesCollection } from '../common';
 import { sendAdminPolicyImportNotification } from '../services/sendgrid';
+import { camelCase } from 'lodash'; //  snakeCase
 
 // import { snakeCase } from 'lodash';
 
@@ -18,42 +24,47 @@ const sendgridApiKey = defineSecret('SENDGRID_API_KEY');
 
 const IMPORT_POLICIES_FOLDER = 'importPolicies';
 // IMPORTANT: The order of the headers array will should match the order of fields in the CSV, otherwise the data columns will not match.
-const HEADERS: ParserHeaderArray = [
-  'policyId',
-  'externalLocationId',
-  'product',
-  'limitA',
-  'limitB',
-  'limitC',
-  'limitD',
-  'deductible',
-  'latitude',
-  'longitude',
-  'addressLine1',
-  'addressLine2',
-  'city',
-  'state',
-  'postal',
-  'countyFIPS',
-  'effectiveDate',
-  'expirationDate',
-  'insuredFirstName',
-  'insuredLastName',
-  'insuredEmail',
-  'insuredPhone',
-  'userId',
-  'agentId',
-  'agentName',
-  'agencyId',
-  'agencyName',
-  // TODO: additional insureds
-  // TODO: mortgagee interest
-  'status',
-  'annualPremium',
-  'subproducerCommission',
-  // TODO: taxes and fees
-  'price',
-];
+
+const transformHeaders: ParserHeaderTransformFunction = (headers: ParserHeaderArray) => {
+  return headers.map((h) => camelCase(h || ''));
+};
+
+// const HEADERS: ParserHeaderArray = [
+//   'policyId',
+//   'externalLocationId',
+//   'product',
+//   'limitA',
+//   'limitB',
+//   'limitC',
+//   'limitD',
+//   'deductible',
+//   'latitude',
+//   'longitude',
+//   'addressLine1',
+//   'addressLine2',
+//   'city',
+//   'state',
+//   'postal',
+//   'countyFIPS',
+//   'effectiveDate',
+//   'expirationDate',
+//   'insuredFirstName',
+//   'insuredLastName',
+//   'insuredEmail',
+//   'insuredPhone',
+//   'userId',
+//   'agentId',
+//   'agentName',
+//   'agencyId',
+//   'agencyName',
+//   // TODO: additional insureds
+//   // TODO: mortgagee interest
+//   'status',
+//   'annualPremium',
+//   'subproducerCommission',
+//   // TODO: taxes and fees
+//   'price',
+// ];
 
 interface PolicyRow {
   policyId: string;
@@ -97,16 +108,27 @@ interface TransformedPolicyRow extends Omit<PolicyRow, 'limitA'> {
 }
 
 const transformRow = (data: PolicyRow) => {
-  console.log('TYPE OF LIMITA: ', typeof data.limitA);
+  console.log('DATA:', data);
+  console.log('TYPE OF LIMITA: ', data.limitA, typeof data.limitA);
 
   return {
     ...data,
     displayName: `${data.insuredFirstName} ${data.insuredLastName}`.trim(),
     limitA: data.limitA ? parseInt(getNumber(data.limitA)) : '',
-    limitB: data.limitA ? parseInt(getNumber(data.limitB)) : '',
-    limitC: data.limitA ? parseInt(getNumber(data.limitC)) : '',
-    limitD: data.limitA ? parseInt(getNumber(data.limitD)) : '',
-    deductible: data.deductible ? parseInt(getNumber(data.limitD)) : '',
+    limitB: data.limitB ? parseInt(getNumber(data.limitB)) : '',
+    limitC: data.limitC ? parseInt(getNumber(data.limitC)) : '',
+    limitD: data.limitD ? parseInt(getNumber(data.limitD)) : '',
+    deductible: data.deductible ? parseInt(getNumber(data.deductible)) : '',
+    effectiveDate: data.effectiveDate ? new Date(data.effectiveDate) : null,
+    expirationDate: data.expirationDate ? new Date(data.expirationDate) : null,
+    latitude: data.latitude ? extractNumber(data.latitude) : '',
+    longitude: data.longitude ? extractNumber(data.longitude) : '',
+    annualPremium: data.annualPremium ? parseFloat(getNumber(data.annualPremium)) : '',
+    subproducerCommission: data.subproducerCommission
+      ? parseFloat(getNumber(data.subproducerCommission))
+      : '',
+    price: data.price ? parseFloat(getNumber(data.price)) : '',
+    // insuredPhone
     // DO TRANSFORMS IF NEEDED (convert to number, default values, etc.)
   };
 };
@@ -114,6 +136,10 @@ const transformRow = (data: PolicyRow) => {
 // Return false if validation fails, otherwise true
 const validateRow = (data: TransformedPolicyRow) => {
   if (typeof data.limitA !== 'number' || data.limitA < 100000) return false;
+
+  // TODO: validate limits
+  // TODO: validate deductible
+  // TODO: validate effective and expiration dates, etc.
 
   return true;
 };
@@ -155,14 +181,10 @@ export const importPolicies = functions
     const dataArr: any[] = [];
     const invalidRows: { rowNum: any; rowData: any }[] = [];
 
-    // const transformHeaders: ParserHeaderTransformFunction = (headers: ParserHeaderArray) => {
-    //   return headers.map((h) => snakeCase(h || ''));
-    // }
-
     const parseOptions: ParserOptionsArgs = {
-      // headers: transformHeaders,
-      headers: HEADERS,
-      ignoreEmpty: true,
+      headers: transformHeaders,
+      // headers: HEADERS,
+      // ignoreEmpty: true,
       discardUnmappedColumns: true,
     };
 
@@ -204,25 +226,25 @@ export const importPolicies = functions
 
         for (let row of data) {
           try {
-            if (row.policyId) {
-              await policiesCollRef.doc(row.policyId).set({
-                ...row,
-                metadata: {
-                  created: Timestamp.now(),
-                  updated: Timestamp.now(),
-                },
-              });
-              policyIds.push(row.policyId);
-            } else {
-              let newDocRef = await policiesCollRef.add({
-                ...row,
-                metadata: {
-                  created: Timestamp.now(),
-                  updated: Timestamp.now(),
-                },
-              });
-              policyIds.push(newDocRef.id);
-            }
+            // if (row.policyId) {
+            //   await policiesCollRef.doc(row.policyId).set({
+            //     ...row,
+            //     metadata: {
+            //       created: Timestamp.now(),
+            //       updated: Timestamp.now(),
+            //     },
+            //   });
+            //   policyIds.push(row.policyId);
+            // } else {
+            let newDocRef = await policiesCollRef.add({
+              ...row,
+              metadata: {
+                created: Timestamp.now(),
+                updated: Timestamp.now(),
+              },
+            });
+            policyIds.push(newDocRef.id);
+            // }
           } catch (err) {
             console.error(`ERROR CREATING POLICY DOC. ROW => ${JSON.stringify(row)}`);
             createErrors.push(row);

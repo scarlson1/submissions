@@ -1,14 +1,29 @@
 import React, { useState } from 'react';
-import { Box, Button, ButtonProps, ClickAwayListener, Popper } from '@mui/material';
+import { Box, Button, ButtonProps, ClickAwayListener, List, Popper } from '@mui/material';
 // import { useSpring, animated } from '@react-spring/web';
 
 export interface NavMenuProps {
   btnTitle: string;
   btnProps?: Partial<ButtonProps>;
-  children?: React.ReactNode;
+  items: { route: string; title: string }[];
+  renderItem: ({
+    route,
+    title,
+    handleClose,
+  }: {
+    route: string;
+    title: string;
+    handleClose: () => void;
+  }) => React.ReactElement;
+  // children?: React.ReactNode;
 }
 
-export const NavMenu: React.FC<NavMenuProps> = ({ btnTitle = 'open', btnProps, children }) => {
+export const NavMenu: React.FC<NavMenuProps> = ({
+  btnTitle = 'open',
+  btnProps,
+  items,
+  renderItem,
+}) => {
   const [open, setOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
@@ -39,9 +54,28 @@ export const NavMenu: React.FC<NavMenuProps> = ({ btnTitle = 'open', btnProps, c
               borderRadius: 1,
               bgcolor: 'background.paper',
             }}
-            onClick={handleClose}
+            // onClick={handleClose}
           >
-            {children}
+            {/* {children} */}
+            <List
+              sx={{
+                minWidth: 160,
+                maxWidth: 260,
+                '& .MuiListItemButton-root:first-of-type': {
+                  borderTopLeftRadius: (theme) => theme.shape.borderRadius,
+                  borderTopRightRadius: (theme) => theme.shape.borderRadius,
+                },
+                '& .MuiListItemButton-root:last-of-type': {
+                  borderBottomLeftRadius: (theme) => theme.shape.borderRadius,
+                  borderBottomRightRadius: (theme) => theme.shape.borderRadius,
+                },
+              }}
+              dense
+            >
+              {items.map((itemProps) => {
+                return renderItem({ ...itemProps, handleClose });
+              })}
+            </List>
           </Box>
         </ClickAwayListener>
         {/* </Fade>

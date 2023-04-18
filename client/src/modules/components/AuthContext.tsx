@@ -129,10 +129,9 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
   const onNewClaims = useCallback(
     async (snap: DocumentSnapshot<UserClaims>) => {
       const data = snap.data();
-      console.log('DATA: ', data);
+
       if (data?._lastCommitted) {
         if (lastCommittedRef.current && !data._lastCommitted.isEqual(lastCommittedRef.current)) {
-          console.log('Refreshing ID token');
           updateClaims();
         }
         lastCommittedRef.current = data._lastCommitted;
@@ -146,12 +145,6 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
   useEffect(() => {
     if (!user) return;
     if (!user.tenantId && !customClaims.iDemandAdmin) return;
-
-    console.log(
-      'subscribing to: ',
-      customClaims.iDemandAdmin ? 'idemand' : user.tenantId,
-      user.uid
-    );
 
     const userOrgId = !!customClaims.iDemandAdmin ? 'idemand' : user.tenantId;
 
@@ -231,6 +224,7 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
   const sendVerification = useCallback(async () => {
     if (!auth.currentUser) throw new Error('Must be signed in');
     await sendEmailVerification(auth.currentUser);
+
     return auth.currentUser.email;
   }, [auth]);
 
@@ -310,19 +304,26 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
 
   // TODO: customize action handler: https://cloud.google.com/identity-platform/docs/work-with-mfa-users#updating_a_users_email
   const updateUserEmail = useCallback(
-    async (newEmail: string) => {
+    async (newEmail: string, onSuccess?: (msg: string) => void) => {
       // TODO: validate email
       try {
         if (!user) throw new Error('User must be authenticated to update email.');
         await reauthIfRequired();
+
         // check if user has mfa enabled
         const enrolledFactors = multiFactor(user).enrolledFactors;
         if (enrolledFactors.length > 0) {
           await verifyBeforeUpdateEmail(user, newEmail);
-          toast(`Click the verification link sent to ${newEmail} to complete the email change.`);
+
+          const msg = `Click the verification link sent to ${newEmail} to complete the email change.`;
+          toast(msg);
+
+          if (onSuccess) onSuccess(msg);
           return;
         }
+
         await updateEmail(user, newEmail);
+        if (onSuccess) onSuccess('Email updated!');
       } catch (err) {
         return Promise.reject(err);
       }

@@ -46,6 +46,7 @@ export const useCreateAccount = () => {
   const [errMsg, setErrMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  // TODO: use useUpdateProfile hook
   const updateUserDocOnCreate = useCallback(
     async (user: User, { firstName, lastName }: { firstName: string; lastName: string }) => {
       let displayName = `${firstName.trim()} ${lastName.trim()}`;
