@@ -59,7 +59,8 @@ service cloud.firestore {
 
     // TODO: update allow read of user profile (tenant/agent/insured etc.)
     match /users/{userId} {
-      allow read: if isUser(userId) || (isIDemandAdmin() && emailVerified())
+      // allow read: if isUser(userId) || isTenantUser(existingData().orgId)|| (isIDemandAdmin() && emailVerified())
+      allow read: if true
       allow create: if isUser(userId) || (isIDemandAdmin() && emailVerified())
       allow update: if isUser(userId) || (isIDemandAdmin() && emailVerified())
       allow delete: if isIDemandAdmin() && emailVerified()
@@ -188,7 +189,7 @@ service cloud.firestore {
 
     // Does the logged-in user match the requested userId?
     function isUser(userId) {
-      return isSignedIn()  && request.auth.uid == userId;
+      return isSignedIn() && request.auth.uid == userId;
     }
 
     function isTenantUser(tenantId) {

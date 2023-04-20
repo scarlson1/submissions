@@ -419,18 +419,27 @@ export interface PaymentMethod extends EPayPaymentMethodDetails, Partial<BaseDoc
   // metadata?: BaseMetadata;
 }
 
+export interface BaseContact {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+}
+
+export interface PolicyLocation {
+  address: Address;
+  coordinates: GeoPoint;
+  geoHash: Geohash;
+}
+
 export interface Policy extends BaseDoc {
   status: POLICY_STATUS;
   limits: Limits;
   deductible: number;
-  address: Address;
-  coordinates: GeoPoint; // Coordinates;
-  namedInsured: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone: string;
-  };
+  address: Address; // TODO: REMOVE (handle as location level / replace with mailing address)
+  mailingAddress: Address;
+  mailingCoordinates: GeoPoint; // Coordinates;
+  namedInsured: BaseContact;
   additionalInsureds?: { firstName: string; lastName: string; email: string }[];
   mortgageeInterest?: any;
   effectiveDate: FirestoreTimestamp;
@@ -445,8 +454,8 @@ export interface Policy extends BaseDoc {
     orgId: string;
     name: string;
   };
+  // TODO: GENERATE DOCS INSTEAD OF STORING
   documents: [{ displayName: string; downloadUrl: string; storagePath: string }];
-  // TODO: fixed files? use array of files ?? or policyDocument: { path: '123/doc', downloadUrl: '123download', etc.}
   imageUrls?: { [key: string]: string | null } | null;
   imagePaths?: { [key: string]: string | null } | null;
   // darkMapImageURL?: string;

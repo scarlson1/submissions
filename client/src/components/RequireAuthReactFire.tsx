@@ -37,7 +37,7 @@ export const RequireAuthReactFire: React.FC<RequireAuthReactFireProps> = ({
 }) => {
   const location = useLocation();
   const auth = useAuth();
-  const { status, data } = useSigninCheck(signInCheckProps); // ex: {requiredClaims: {admin: true}}
+  const { status, data } = useSigninCheck(signInCheckProps); // ex: {requiredClaims: {admin: true}, suspense: false }
 
   useEffect(() => {
     if (status === 'loading') return;

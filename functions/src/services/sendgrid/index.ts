@@ -1,5 +1,16 @@
 import sgMail, { MailDataRequired } from '@sendgrid/mail';
 
+// TODO: https://docs.sendgrid.com/for-developers/sending-email/personalizations
+// TODO: switch to dynamic templates
+// dynamic templates ref: https://docs.sendgrid.com/for-developers/sending-email/using-handlebars#password-reset
+// categorize (action: password reset, confirm email, etc.; receipt: new policy, policy renewal, etc.; )
+
+// dynamic templates nodejs lib implementation: https://stackoverflow.com/a/68423849
+
+// TODO: error handling: https://docs.sendgrid.com/api-reference/mail-send/errors
+
+// API DOCS: https://docs.sendgrid.com/api-reference/mail-send/mail-send
+
 import {
   submissionReceived,
   adminNewSubmission,

@@ -138,7 +138,7 @@ export const tempGetFIPS = functions
     }
 
     async function writeToStorage(data: any[], filename: string) {
-      const storageFile = bucket.file(`${PORTFOLIO_UPLOAD_FOLDER}-processed/processed_${filename}`);
+      const storageFile = bucket.file(`${PORTFOLIO_UPLOAD_FOLDER}/processed_${filename}`);
 
       const csvStream = format({ headers: true });
 

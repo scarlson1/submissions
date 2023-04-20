@@ -341,43 +341,16 @@ export const router = createBrowserRouter([
           },
           {
             path: ROUTES.ACCOUNT,
-            element: <Account />,
+            element: (
+              <RequireAuthReactFire signInCheckProps={{ suspense: false }}>
+                {/* <Suspense fallback={<div>Loading user...</div>}> */}
+                <Account />
+                {/* </Suspense> */}
+              </RequireAuthReactFire>
+            ),
           },
         ],
       },
-      // {
-      //   path: '/',
-      //   element: <Layout containerProps={{ maxWidth: 'lg' }} />,
-      //   errorElement: <RouterErrorBoundary />,
-      //   children: [
-      //     {
-      //       index: true,
-      //       element: <Home />,
-      //     },
-      //     {
-      //       path: '/agent',
-      //       element: <Home />,
-      //     },
-      //     {
-      //       path: AGENT_ROUTES.SUBMISSIONS,
-      //       element: (
-      //         <RequireAuthReactFire signInCheckProps={{ requiredClaims: { agent: true } }}>
-      //           <AgentSubmissions />
-      //         </RequireAuthReactFire>
-      //       ),
-      //       errorElement: <RouterErrorBoundary />,
-      //     },
-      //     {
-      //       path: AGENT_ROUTES.SUBMISSION_VIEW,
-      //       element: (
-      //         <RequireAuthReactFire signInCheckProps={{ requiredClaims: { agent: true } }}>
-      //           <div>TODO: agent submission view component</div>
-      //         </RequireAuthReactFire>
-      //       ),
-      //       errorElement: <RouterErrorBoundary />,
-      //     },
-      //   ],
-      // },
       {
         path: '/policies',
         element: (

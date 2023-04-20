@@ -1,3 +1,4 @@
+import { inspect } from 'util';
 import { add, Duration } from 'date-fns';
 
 /**
@@ -130,4 +131,8 @@ export const isJSON = (obj: string) => {
   } catch (e) {
     return false;
   }
+};
+
+export const printObj = (obj: any) => {
+  console.log(inspect(obj, false, null));
 };

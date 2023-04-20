@@ -1,0 +1,29 @@
+import { TextField, TextFieldProps } from '@mui/material';
+import React from 'react';
+import { UseControllerProps, useController } from 'react-hook-form';
+
+export interface RHFTextFieldProps extends UseControllerProps<any, any> {
+  textFieldProps?: TextFieldProps;
+  label: string;
+}
+
+export const RHFTextField: React.FC<RHFTextFieldProps> = ({ textFieldProps, label, ...props }) => {
+  const {
+    field,
+    fieldState: { isTouched, error },
+  } = useController({ ...props });
+  // control optional when using context
+
+  return (
+    <TextField
+      {...textFieldProps}
+      label={label}
+      onChange={field.onChange}
+      onBlur={field.onBlur}
+      value={field.value}
+      name={field.name}
+      inputRef={field.ref}
+      helperText={isTouched && Boolean(error) ? error?.message : ''}
+    />
+  );
+};

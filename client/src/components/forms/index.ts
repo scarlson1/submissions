@@ -22,7 +22,8 @@ export { RoutingNumberMask } from './RoutingNumberMask';
 export { FormikMultiTextInput } from './FormikMultiTextInput';
 export { IMask } from './IMask';
 export { VirtualizedAutocomplete } from './VirtualizedAutocomplete';
-
+export { RHFTextField } from './RHFTextField';
+export { RHFFieldArray } from './RHFFieldArray';
 export { TooltipToggleButton } from './TooltipToggleButton';
 // export {  } from './';
 // export {  } from './';

@@ -76,7 +76,7 @@ export const useCollectionDataPopulateById = <T>(
     query
   )}:innerJoin:${joinField}:${coll.root}${idSegments}:idField=${idField}`;
 
-  const policies$ = collectionData<T>(query);
+  const policies$ = collectionData<T>(query, options);
   const combinedObservable$ = policies$.pipe(populateById(getFirestore(), joinField, coll));
 
   // TODO: need to incorporate merged query into observableId

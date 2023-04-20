@@ -16,3 +16,4 @@ export { sendAgencyApprovedNotification } from './sendAgencyApprovedNotification
 export { inviteUsers } from './inviteUsers.js';
 export { resendInvite } from './resendInvite.js';
 export { getAnnualPremium } from './getAnnualPremium.js';
+export { getValuationEstimate } from './getValuationEstimate.js';

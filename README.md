@@ -2,6 +2,25 @@
 
 ## Firestore / DB Structure
 
+- submissions
+- quotes
+- policies
+  - history
+- users
+  - paymentMethods
+  - transactions
+- agencySubmissions (partner applications)
+- organizations
+  - invites
+  - userClaims
+- licenses
+- notifications
+- surplusLinesTaxes
+- states (active states by product)
+- moratoriums
+- disclosures
+- public (random stuff like fips)
+
 ## File Storage
 
 ## External Data (outside Google Cloud Project)
@@ -38,27 +57,110 @@ Claims are kept up to date in the AuthContext component. To get around the issue
 
 ### Routing
 
+- `/` - Landing page displays dashboard (differs if privileged user)
+- `new/:productId` - [auth] new submission / get quote
+- `submissions` - [auth] submissions for currently authed user
+- `quotes` - [auth] lists quotes (query differs by privilege level)
+  - `:quoteId` - details for specific quote
+  - `:quoteId/bind` - form to complete quote, pay, bind.
+    - `success/:transactionId?` - bind complete page
+- `policies` - [auth] lists policies for current user (grid if agent or idemand admin)
+  - `policyId` - details for current policy
+- `agency/new` - partner with us form
+- `account` - user settings / account page
+
+###### Admin routes
+
+- `quotes/:productId/new` - create quote from scratch
+- `quotes/:productId/new/:submissionId` - create new quote from data in `submissionId`
+- `admin/policies/:policyId/delivery` - form to upload policy document (PDF) to storage, and optionally deliver to user via email (policy pdf attached). Eventually will be replaced when backend is ready to generate documents.
+- `admin/sl-tax` - grid of surplus lines taxes
+  - `new` - create new surplus lines tax
+- `admin/moratoriums` - grid of moratoriums
+  - `new` - create new moratorium
+- `licenses` - grid of licenses
+  - `new` - add new license
+- `admin/agencies/submissions` - grid of 'partner with us' submissions
+  - `:submissionId` - details of 'partner with us' submission
+- `admin/disclosures` - grid of disclosures for each state
+  - `new` - create a new disclosure
+  - `:disclosureId/edit` - edit an existing disclosure
+- `admin/agencies/new` - create a new agency from scratch (as opposed to from a 'partner with us' submission)
+- `admin/orgs` - grid of organizations (agencies)
+  - `:orgId` - details for an org. Tab view (quotes, policies, team, invites)
+
 ### Search
 
-Algolia
+##### Algolia
+
+Copies and indexes database. Not implemented yet.
 
 ###### Search Structure & Indicies
 
 ###### Search Keys / Permissions
 
+Eventually, will need to generate Algolia api key on a per-user basis to limit access of searchable documents.
+
 ## Cloud Functions
+
+Cloud Functions are kind of like an API or server. They serve as the backend in most cases. Some boilerplate is handled by Firebase (like including user auth token and some metadata). There are different types of Cloud Functions, categorized by how the function is triggered:
+
+- **Callables** - triggered ("called") by the client/frontend
+- **HTTPS** - very similar to callables. Can be called with URL, like a regular api
+- **Storage** - triggered from a file upload or metadata change
+- **Auth** - triggered when a new user is created (including anonymous user)
+- **Blocking Function** - two types: **_before sign in_** and **_before create_**. Executed before their respective actions and can block the action from proceeding if the function finds a reason to block it.
 
 ### Callables
 
 - TODO: LIST CLOUD FUNCTIONS & SUMMARY OF WHAT THEY DO
 
+- `assignQuote`
+  - called when user 'claims' quote when moving the bind step and either signing into their account or creating a new one.
+- `calcQuote`
+  - called by idemand admin when button is clicked to recalculate quote
+  - Required Claims: iDemandAdmin
+- `createPolicy`
+- `createTenantFromSubmission`
+- `executePayment`
+- `getAnnualPremium` - runs swiss re to get AALs and recalculates quote
+- `getPropertyDetails` - called after address step in the new submission form
+- `getTenantIdFromEmail` - called when "user not found" error code is returned from sign in attempt. Searches across all users in _users_ collection (all tenants). If user is found, returns the tenantId and retries signing the user in. This would happen is user was a tenant auth user (agent) and tried to sign into the non tenant-aware login page (_`/auth/login`_ instead of _`/auth/login/:tenantId`_)
+- `initializeQuote`
+- `inviteUsers` - takes an array (list) of users (email, name, userClaims/permissions/role) and creates a new invite doc under _`organizations/:orgId/invitations`_ collection. Another Firestore triggered Cloud Function executes when a new document is created in this sub collection, which will send an email to the invited user(s)
+- `resendInvite`
+- `sendAgencyApprovedNotification`
+- `sendContactEmail`
+- `sendPolicyDoc`
+- `updateAndRateQuote` - not sure if this is still being used ??
+- `verifyEPayToken` - calls ePay endpoint with provided token and receives a few details about the payment method, which are saved under _`users/userId/paymentMethods`_. Can later be used to execute payment
+
 ### Storage Triggered
+
+- `getAALPortfolio` - runs Swiss Re api call for each row in csv. Triggered by upload to _/portfolio-aal_ folder. Saves result to the same folder with "processed\_" prefixed to the file name.
+- `importPolicies` - creates a new policy doc for each row in csv. Triggered by csv upload to _/importPolicies_ folder.
+- `tempGetFIPS` - not sure if we're still using this. Adds county FIPS to csv file. Uses counties GeoJSON and latitude & longitude columns from csv to find which county the coordinates are located within.
 
 ### HTTPS Triggered
 
+- `authRequests` - used to verify idemand email addresses. Link in verification email calles this endpoint. Returns "example@email.com has been verified, if successful. (weird bug with blocking function prevents using the Firebase SDK email verification method)
+
 ### Pub/Sub
 
+- `checkAchStatus` - ePay doesn't have webooks to determine when ACH payment is confirmed. This function is scheduled to run at 10:35 AM Monday-Friday. It fetches all transactions where the status is 'processing,' then calls `/api/v1/transactions/${charge.id}` to check the status of the transaction. Not well tested because ePay's documentation isn't great and the development emulator doesnt support pub/sub. Need further testing in dev.
+  `markpaidonpaymentcomplete` - triggered when '`payment.complete` event is published (either from ACH scheduled pubsub or from payment execution if method is a card). Updates the status on the policy doc to 'paid' and sends notification to iDemand admins, which contains a link to /admin/policy-delivery, so the policy documents can be uploaded to storaged and delivered to the insured.
+
 ### Firestore Triggered
+
+- `getStaticSubmissionImg`
+- `getSubmissionAAL`
+- `getSubmissionFIPS`
+- `mirrorCustomClaims` - monitors changes to documents located at _`organizations/:orgId/userClaims/:userId`_. When a change is detected, the function will take the properties from the doc and assign each property as a Custom Claim (role/permission) in Auth for the user with an id matching the document ID. Necessary for a couple reasons:
+  - No way to view Auth Custom Claims (even in the Google Cloud Dashboard). Since this is stored in the database, and then mirrored as Custom Claims in Auth (user token), we can display the data in the Firestore database to show all claims by userId
+  - Frontend can subscribe to changes to the document, and force a token refresh when a change is detected (`getIdToken(true)`). Without this, the user would have to sign out and sign back in in order to get current Custom Claims.
+- `newAgencyAppNotification` - email iDemand Admins when a new agency 'partner with us' doc is created
+- `newSubmissionNotification`
+- `sendInviteEmail` - sends invite to create an account when a new doc is created under _`organizations/:orgId/invitations`_
 
 ### Auth Triggered
 

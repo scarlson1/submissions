@@ -15,6 +15,7 @@ export { createTenantFromSubmission } from './createTenantFromSubmission';
 export { sendAgencyApprovedNotification } from './sendAgencyApprovedNotification';
 export { inviteUsers } from './inviteUsers';
 export { getAnnualPremium } from './getAnnualPremium';
+export { getValuationEstimate } from './getValuationEstimate';
 
 export type { FetchPropertyDataRequest, FetchPropertyDataResponse } from './fetchPropertyDetails';
 export type { SendContactEmailRequest, SendContactEmailResponse } from './sendContactEmail';

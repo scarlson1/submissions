@@ -56,7 +56,7 @@
     "@types/react-dom": "^18.0.10",
     "autosuggest-highlight": "^3.3.4",
     "axios": "^1.2.2",
-    "deck.gl": "^8.8.23",
+    "deck.gl": "^8.9.8",
     "env-cmd": "^10.1.0",
     "firebase": "^9.15.0",
     "formik": "^2.2.9",

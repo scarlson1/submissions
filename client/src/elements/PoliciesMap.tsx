@@ -1,20 +1,25 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import {
   Box,
+  Button,
   FormControl,
   InputLabel,
   MenuItem,
-  NativeSelect,
   OutlinedInput,
   Select,
   SelectChangeEvent,
   Typography,
 } from '@mui/material';
 import { QueryConstraint, where } from 'firebase/firestore';
+import { IconLayer, PickingInfo } from 'deck.gl/typed';
 
 import { DeckMap } from './DeckMap';
 import { useCollectionData } from 'hooks';
-import { IconLayer, PickingInfo } from 'deck.gl/typed';
+import { getValuationEstimate } from 'modules/api';
+import { getFunctions } from 'firebase/functions';
+// @ts-ignore
+// import { DataFilterExtension } from '@deck.gl/extensions';
+// import { Policy } from 'common';
 
 const stateOptions = ['MN', 'FL', 'TN'];
 
@@ -48,15 +53,21 @@ export const PoliciesMap: React.FC<PoliciesMapProps> = ({
     if (state && state.length > 0) filters.push(where('state', '==', state));
     if (orgId) filters.push(where('orgId', '==', orgId));
 
-    console.log('FILTERS: ', filters);
+    // console.log('FILTERS: ', filters);
 
     return filters;
   }, [state, orgId, queryConstraints]);
+
   const { data: submissionData } = useCollectionData('SUBMISSIONS', filters, { idField: 'id' });
 
   // MAP STATE
   const [hoverInfo, setHoverInfo] = useState<PickingInfo>();
   const [selected, setSelected] = useState<any[]>([]);
+  // PASS TO GPU FILTER EXTENSION
+  // const [dateRange, setDateRange] = useState<number[]>([
+  //   new Date('04/01/2023').getTime() / 1000,
+  //   Date.now() / 1000,
+  // ]);
 
   const handleClicked = useCallback(
     (info: PickingInfo) => {
@@ -83,6 +94,21 @@ export const PoliciesMap: React.FC<PoliciesMapProps> = ({
       typeof value === 'string' ? value.split(',') : value
     );
   };
+
+  const testValuation = useCallback(async () => {
+    try {
+      let test = await getValuationEstimate(getFunctions(), {
+        addressLine1: '1382 Hunter Drive',
+        city: 'Wayzata',
+        state: 'MN',
+        postal: '55391',
+      });
+
+      console.log('RES: ', test);
+    } catch (err) {
+      console.log('ERROR: ', err);
+    }
+  }, []);
 
   return (
     <Box>
@@ -125,6 +151,11 @@ export const PoliciesMap: React.FC<PoliciesMapProps> = ({
               updateTriggers: {
                 getColor: [selected],
               },
+
+              // WORKS
+              // getFilterValue: (d: Policy) => d.metadata?.created.seconds,
+              // filterRange: dateRange, // [0, 1],
+              // extensions: [new DataFilterExtension({ filterSize: 1 })],
             }),
           ]}
           // layers={[
@@ -172,6 +203,7 @@ export const PoliciesMap: React.FC<PoliciesMapProps> = ({
           <Typography variant='body2' key={s.id}>{`${s.addressLine1} (ID: ${s.id})`}</Typography>
         ))}
       </Box>
+      <Button onClick={testValuation}>Test get valuation</Button>
     </Box>
   );
 };

@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Box,
   Paper,
@@ -8,14 +8,14 @@ import {
   Container,
   Button,
   Unstable_Grid2 as Grid,
-  TextField,
-  Stack,
+  Tab,
 } from '@mui/material';
 import { useFirestore, useUser } from 'reactfire';
 import { doc, setDoc } from 'firebase/firestore';
 import { toast } from 'react-hot-toast';
 import axios from 'axios';
-import { useForm, SubmitHandler, Controller } from 'react-hook-form';
+import { useForm, SubmitHandler, useFormState } from 'react-hook-form';
+import { LoadingButton, TabContext, TabList, TabPanel } from '@mui/lab';
 
 // import { useAuth } from 'modules/components/AuthContext';
 import { AddUsersDialog, UpdateProfileImg } from 'elements';
@@ -23,6 +23,8 @@ import { COLLECTIONS, User, usersCollection } from 'common';
 import { ClaimsGuard } from 'components';
 import { UpdateProfileRes, useAsyncToast, useDocData, useUpdateProfile } from 'hooks';
 import { useAuth } from 'modules/components';
+import { RHFTextField } from 'components/forms';
+import { AdminManageUsersGrid } from 'elements/UsersGrid';
 
 // TODO: get download image from url using rxfire
 // https://firebase.blog/posts/2018/09/introducing-rxfire-easy-async-firebase
@@ -43,12 +45,17 @@ import { useAuth } from 'modules/components';
 //     console.log('the logged in user's photo', photoURL);
 //   });
 
+const MIN_TAB_HEIGHT = 40;
+
 // TODO: auth check
 export const AccountDetails: React.FC = () => {
   const { data } = useUser();
   const theme = useTheme();
+  const [tabValue, setTabValue] = useState('account');
 
-  console.log('DATA: ', data);
+  const handleChange = (event: React.SyntheticEvent, newValue: string) => {
+    setTabValue(newValue);
+  };
 
   return (
     <Container maxWidth='md' disableGutters>
@@ -111,24 +118,79 @@ export const AccountDetails: React.FC = () => {
                 </Typography> */}
               </Grid>
             </Grid>
-            <Grid xs={12} sm={3} md={4}>
-              <Typography variant='h6' gutterBottom>
-                User Details
-              </Typography>
-            </Grid>
-            <Grid xs={12} sm={9} md={8}>
-              <UserDetailsForm />
-              <UpdateUserEmail />
-            </Grid>
           </Grid>
+          <TabContext value={tabValue}>
+            <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+              <TabList
+                onChange={handleChange}
+                aria-label='account tabs'
+                sx={{
+                  minHeight: MIN_TAB_HEIGHT,
+                  '& .MuiTab-root': {
+                    textTransform: 'none',
+                    fontWeight: 500,
+                    minHeight: MIN_TAB_HEIGHT,
+                    p: 2,
+                    fontFamily:
+                      'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji"',
+                  },
+                }}
+              >
+                <Tab label='Account' value='account' />
+                {/* <ClaimsGuard requiredClaims={['IDEMAND_ADMIN', 'AGENT', 'ORG_ADMIN']}> */}
+                <Tab label='Team' value='team' />
+                {/* </ClaimsGuard> */}
+
+                {/* <Tab label='Invites' value='invites' /> */}
+                {/* <Tab label='Admin Users (test)' value='test' /> */}
+              </TabList>
+            </Box>
+            <TabPanel value='account'>
+              <Grid container spacing={5}>
+                <Grid xs={12} sm={3} md={4}>
+                  <Typography variant='h6' gutterBottom>
+                    User Details
+                  </Typography>
+                </Grid>
+                <Grid xs={12} sm={9} md={8}>
+                  <UserDetailsForm />
+                  <UpdateUserEmail />
+                </Grid>
+              </Grid>
+            </TabPanel>
+            <TabPanel value='team'>
+              <Box>
+                <Box sx={{ pb: 2 }}>
+                  <ClaimsGuard requiredClaims={['ORG_ADMIN', 'IDEMAND_ADMIN']} requireAll={false}>
+                    <Box sx={{ p: 1 }}>
+                      <AddUsersDialog />
+                    </Box>
+                  </ClaimsGuard>
+                </Box>
+                <AdminManageUsersGrid
+                  orgId='idemand'
+                  columnVisibilityModel={{
+                    displayName: false,
+                    firstName: false,
+                    lastName: false,
+                    email: false,
+                    phone: false,
+                    actions: false,
+                    'metadata.created': false,
+                    created: false,
+                    'metadata.updated': false,
+                    updated: false,
+                    orgId: false,
+                    id: false,
+                  }}
+                  density='standard'
+                />
+              </Box>
+            </TabPanel>
+          </TabContext>
         </Box>
       </Paper>
 
-      <ClaimsGuard requiredClaims={['ORG_ADMIN', 'IDEMAND_ADMIN']} requireAll={false}>
-        <Box sx={{ p: 1 }}>
-          <AddUsersDialog />
-        </Box>
-      </ClaimsGuard>
       <ClaimsGuard requiredClaims={['IDEMAND_ADMIN']}>
         <Box sx={{ p: 1 }}>
           <InitializeFIPS />
@@ -182,7 +244,6 @@ type UserDetailsInputs = {
 
 function UserDetailsForm() {
   const firestore = useFirestore();
-  // const auth = useAuth();
   const { data: user } = useUser();
   const { data: fsUser } = useDocData<User>('USERS', `${user?.uid}`);
   const toast = useAsyncToast();
@@ -190,15 +251,35 @@ function UserDetailsForm() {
   const {
     handleSubmit,
     control,
-    // formState: { errors },
+    reset,
+    formState: { isSubmitSuccessful },
   } = useForm<UserDetailsInputs>({
     defaultValues: {
-      firstName: fsUser.firstName || '',
-      lastName: fsUser.lastName || '',
-      // email: 'test@example.com',
+      firstName: fsUser?.firstName || '',
+      lastName: fsUser?.lastName || '',
+    },
+    values: {
+      firstName: fsUser?.firstName || '',
+      lastName: fsUser?.lastName || '',
+    },
+    resetOptions: {
+      keepDirtyValues: true, // user-interacted input will be retained
+      keepErrors: true, // input errors will be retained with value update
     },
     // resolver: yupResolver(schema),
   });
+
+  const { isValid, isSubmitting, isDirty } = useFormState({
+    control,
+  });
+
+  useEffect(() => {
+    if (isSubmitSuccessful)
+      reset({
+        firstName: fsUser?.firstName || '',
+        lastName: fsUser?.lastName || '',
+      });
+  }, [isSubmitSuccessful, reset, fsUser?.firstName, fsUser?.lastName]);
 
   const updateUserDoc = useCallback(
     async ({ displayName, firstName, lastName }: UpdateProfileRes) => {
@@ -233,50 +314,33 @@ function UserDetailsForm() {
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <Grid container spacing={5}>
-        {/* <Stack spacing={{ xs: 1, sm: 2 }} direction='row' flexWrap='wrap' alignItems='center'> */}
         <Grid xs={6} sm={4} md={5}>
-          <Controller
+          <RHFTextField
+            control={control}
             name='firstName'
-            control={control}
-            rules={{ required: 'First name required' }}
-            // defaultValue='John'
-            // {...register('firstName', { required: true })}
-            render={({ field, fieldState: { error } }) => (
-              <TextField
-                {...field}
-                variant='filled'
-                label='First Name'
-                error={!!error}
-                helperText={error ? error.message : null}
-                fullWidth
-              />
-            )}
+            rules={{ required: true }}
+            label='First name'
+            textFieldProps={{ variant: 'outlined', fullWidth: true }}
           />
         </Grid>
         <Grid xs={6} sm={4} md={5}>
-          <Controller
-            name='lastName'
+          <RHFTextField
             control={control}
-            rules={{ required: 'Last name required' }}
-            // defaultValue='John'
-            // {...register('lastName', { required: true })}
-            render={({ field, fieldState: { error } }) => (
-              <TextField
-                {...field}
-                variant='filled'
-                label='Last Name'
-                error={!!error}
-                helperText={error?.message ?? null}
-                fullWidth
-              />
-            )}
+            name='lastName'
+            rules={{ required: true }}
+            label='Last name'
+            textFieldProps={{ variant: 'outlined', fullWidth: true }}
           />
         </Grid>
-        {/* <Grid xs={6}></Grid> */}
         <Grid xs={6} sm={4} md={2} sx={{ alignSelf: 'center' }}>
-          <Button type='submit' sx={{ maxHeight: 34 }}>
+          <LoadingButton
+            type='submit'
+            disabled={!isValid || !isDirty}
+            loading={isSubmitting}
+            sx={{ maxHeight: 34 }}
+          >
             Save
-          </Button>
+          </LoadingButton>
         </Grid>
       </Grid>
     </form>
@@ -295,12 +359,31 @@ function UpdateUserEmail() {
   const {
     handleSubmit,
     control,
-    // formState: { errors },
+    reset,
+    formState: { isSubmitSuccessful },
   } = useForm<UserEmailInputs>({
     defaultValues: {
+      email: '',
+    },
+    values: {
       email: user?.email || '',
     },
+    resetOptions: {
+      keepDirtyValues: true, // user-interacted input will be retained
+    },
   });
+
+  const { isValid, isSubmitting, isDirty } = useFormState({
+    control,
+  });
+
+  useEffect(() => {
+    if (isSubmitSuccessful)
+      reset({
+        email: user?.email || '',
+        // test: [],
+      });
+  }, [isSubmitSuccessful, reset, user?.email]);
 
   const onSubmit: SubmitHandler<UserEmailInputs> = useCallback(
     async (data) => {
@@ -320,23 +403,62 @@ function UpdateUserEmail() {
   return (
     <Box sx={{ width: '100%' }}>
       <form onSubmit={handleSubmit(onSubmit)}>
-        <Controller
-          name='email'
-          control={control}
-          rules={{ required: 'Email required' }}
-          render={({ field, fieldState: { error } }) => (
-            <TextField
-              {...field}
-              variant='filled'
+        <Grid container spacing={5}>
+          <Grid xs={8} sm={8} md={10}>
+            <RHFTextField
+              control={control}
+              name='email'
+              rules={{ required: true }}
               label='Email'
-              error={!!error}
-              helperText={error?.message ?? null}
+              textFieldProps={{ variant: 'outlined', fullWidth: true }}
             />
-          )}
-        />
-        <Button type='submit' sx={{ maxHeight: 34 }}>
-          Update
-        </Button>
+            {/* <Controller
+              name='email'
+              control={control}
+              rules={{ required: 'Email required' }}
+              render={({ field, fieldState: { error } }) => (
+                <TextField
+                  {...field}
+                  variant='filled'
+                  label='Email'
+                  error={!!error}
+                  helperText={error?.message ?? null}
+                />
+              )}
+            /> */}
+          </Grid>
+          {/* <Grid xs={12}>
+            <RHFFieldArray
+              name='test'
+              control={control}
+              inputFields={[
+                {
+                  name: 'firstName',
+                  label: 'First name',
+                  inputType: 'text',
+                  required: false,
+                },
+                {
+                  name: 'lastName',
+                  label: 'Last name',
+                  inputType: 'text',
+                  required: false,
+                },
+              ]}
+            />
+          </Grid> */}
+
+          <Grid xs={4} sm={4} md={2} sx={{ alignSelf: 'center' }}>
+            <LoadingButton
+              type='submit'
+              disabled={!isValid || !isDirty}
+              loading={isSubmitting}
+              sx={{ maxHeight: 34 }}
+            >
+              Update
+            </LoadingButton>
+          </Grid>
+        </Grid>
       </form>
     </Box>
   );

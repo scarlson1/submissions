@@ -1,7 +1,14 @@
 import React, { useMemo } from 'react';
 import { SendRounded } from '@mui/icons-material';
-import { Box, Tooltip } from '@mui/material';
-import { GridActionsCellItem, GridColDef, GridRowParams } from '@mui/x-data-grid';
+import { Avatar, Box, Tooltip, Typography } from '@mui/material';
+import {
+  DataGridProps,
+  GridActionsCellItem,
+  GridColDef,
+  GridRenderCellParams,
+  GridRowParams,
+} from '@mui/x-data-grid';
+import { purple, blue, red, lightBlue, lightGreen } from '@mui/material/colors';
 
 import {
   COLLECTIONS,
@@ -22,6 +29,9 @@ import { QueryConstraint, collection, limit, query, where } from 'firebase/fires
 import { useCollectionDataPopulateById } from 'hooks/useRx';
 import { useFirestore } from 'reactfire';
 import { renderChips } from 'components/RenderGridCellHelpers';
+import { getRandomItem } from 'modules/utils';
+
+const AVATAR_BACKGROUNDS = [purple[200], blue[200], red[200], lightBlue[200], lightGreen[200]];
 
 export interface UsersGridProps {
   queryConstraints?: QueryConstraint[];
@@ -96,14 +106,19 @@ export const UsersGrid: React.FC<UsersGridProps> = ({ queryConstraints = [] }) =
   );
 };
 
-export interface AdminManageUsersGridProps {
+export interface AdminManageUsersGridProps extends Omit<DataGridProps, 'rows' | 'columns'> {
   queryConstraints?: QueryConstraint[];
   orgId: string;
+  columnVisibilityModel?: { [key: string]: boolean }; //  GridInitialStateCommunity['columns']
+  columnAdjustments?: GridColDef[];
 }
 
 export const AdminManageUsersGrid: React.FC<AdminManageUsersGridProps> = ({
   queryConstraints = [],
   orgId,
+  columnVisibilityModel = {},
+  columnAdjustments = [],
+  ...props
 }) => {
   // const { data, status } = useCollectionData<User>('USERS', [...queryConstraints, limit(100)], {
   //   suspense: false,
@@ -120,7 +135,7 @@ export const AdminManageUsersGrid: React.FC<AdminManageUsersGridProps> = ({
     q,
     'userId',
     { root: COLLECTIONS.ORGANIZATIONS, pathSegments: [orgId, COLLECTIONS.USER_CLAIMS] },
-    { suspense: true, idField: 'id', initialData: [] }
+    { suspense: true, idField: 'userId', initialData: [] }
   );
 
   console.log('POPULATE RESULT: ', populateData);
@@ -147,6 +162,45 @@ export const AdminManageUsersGrid: React.FC<AdminManageUsersGridProps> = ({
             // disabled={params.row.status !== INVITE_STATUS.PENDING}
           />,
         ],
+      },
+      {
+        field: 'member',
+        headerName: 'Member',
+        flex: 1,
+        minWidth: 280,
+        editable: false,
+        valueGetter: (params) => {
+          const name = `${params.row.firstName} ${params.row.lastName}`.trim();
+          const email = params.row.email || '';
+          const photoURL = params.row.photoURL || '';
+
+          return { name, email, photoURL };
+        },
+        renderCell: (params: GridRenderCellParams<any>) => (
+          <Box sx={{ display: 'flex' }}>
+            <Box sx={{ p: 2 }}>
+              <Avatar
+                alt={params.value?.name}
+                src={params.value.photoURL}
+                sx={{ backgroundColor: getRandomItem(AVATAR_BACKGROUNDS) }}
+              />
+            </Box>
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+              }}
+            >
+              <Typography variant='body2' sx={{ fontWeight: 500 }}>
+                {params.value?.name || ''}
+              </Typography>
+              <Typography variant='body2' color='text.secondary'>
+                {params.value?.email || ''}
+              </Typography>
+            </Box>
+          </Box>
+        ),
       },
       displayNameCol,
       firstNameCol,
@@ -182,15 +236,16 @@ export const AdminManageUsersGrid: React.FC<AdminManageUsersGridProps> = ({
         headerName: 'User ID',
       },
       orgIdCol,
+      ...columnAdjustments,
     ],
-    []
+    [columnAdjustments]
   );
 
   return (
     <Box>
       <BasicDataGrid
         // @ts-ignore
-        rows={populateData}
+        rows={populateData || []}
         columns={userColumns}
         getRowId={(row) => row.userId}
         loading={populateStatus === 'loading'}
@@ -199,16 +254,21 @@ export const AdminManageUsersGrid: React.FC<AdminManageUsersGridProps> = ({
         initialState={{
           columns: {
             columnVisibilityModel: {
+              displayName: false,
               firstName: false,
               lastName: false,
+              email: false,
               // id: false,
+              ...columnVisibilityModel,
             },
           },
           sorting: {
             sortModel: [{ field: 'created', sort: 'desc' }],
           },
           pagination: { pageSize: 10 },
+          ...props?.initialState,
         }}
+        {...props}
       />
     </Box>
   );
