@@ -191,8 +191,8 @@ export const ViewQuote: React.FC = () => {
             )}
             {data.notes && data.notes.length > 0 && (
               <Box sx={{ py: 2 }}>
-                {data.notes.map(({ note }) => (
-                  <Alert severity='info' sx={{ borderColor: 'transparent' }}>
+                {data.notes.map(({ note }, i) => (
+                  <Alert severity='info' sx={{ borderColor: 'transparent' }} key={`uw-note-${i}`}>
                     {note}
                   </Alert>
                 ))}

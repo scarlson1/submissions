@@ -101,6 +101,7 @@ function getFormattedQuote(values: NewQuoteValues): SubmissionQuoteData {
     fees,
     subproducerCommission,
     ratingPropertyData,
+    notes,
   } = values;
 
   // TODO: validation
@@ -151,6 +152,7 @@ function getFormattedQuote(values: NewQuoteValues): SubmissionQuoteData {
     agentPhone: agentPhone ?? null,
     agencyId: agencyId ?? null,
     agencyName: agencyName ?? null,
+    notes: notes || [],
     status: QUOTE_STATUS.AWAITING_USER,
     ratingPropertyData: {
       CBRSDesignation: ratingPropertyData.CBRSDesignation,

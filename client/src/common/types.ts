@@ -204,7 +204,7 @@ export interface SubmissionQuoteData {
   imagePaths?: { [key: string]: string | null };
   ratingPropertyData: RatingPropertyData;
   geoHash?: Geohash | null;
-  notes?: { note: string }[];
+  notes?: { [key: string]: string }[];
   // quoteIds?: WithFieldValue<string[]>;
   statusTransitions: {
     published: FirestoreTimestamp;

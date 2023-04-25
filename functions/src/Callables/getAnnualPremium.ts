@@ -62,7 +62,7 @@ export const getAnnualPremium = functions
       replacementCost,
       numStories,
       priorLossCount,
-      floodZone,
+      floodZone = 'X',
       state,
       basement = 'unknown',
       commissionPct = 0.15,
