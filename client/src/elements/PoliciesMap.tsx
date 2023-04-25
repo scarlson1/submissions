@@ -97,11 +97,17 @@ export const PoliciesMap: React.FC<PoliciesMapProps> = ({
 
   const testValuation = useCallback(async () => {
     try {
+      // let { data } = await getValuationEstimate(getFunctions(), {
+      //   addressLine1: '1382 Hunter Drive',
+      //   city: 'Wayzata',
+      //   state: 'MN',
+      //   postal: '55391',
+      // });
       let { data } = await getValuationEstimate(getFunctions(), {
-        addressLine1: '1382 Hunter Drive',
-        city: 'Wayzata',
-        state: 'MN',
-        postal: '55391',
+        addressLine1: '208 Aiken Hunt Circle',
+        city: 'Columbia',
+        state: 'SC',
+        postal: '29229',
       });
 
       console.log('RES: ', data);

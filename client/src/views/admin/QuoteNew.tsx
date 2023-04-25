@@ -984,7 +984,10 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                         required: false,
                         inputType: 'mask',
                         maskComponent: PercentMask,
-                        inputProps: { maskProps: { scale: 5 } },
+                        // inputProps: { maskProps: { scale: 5 } },
+                        componentProps: {
+                          inputProps: { maskProps: { scale: 5 } },
+                        },
                       },
                       {
                         name: 'value',

@@ -3,7 +3,8 @@ import { defineSecret } from 'firebase-functions/params';
 // import { parseString } from 'xml2js';
 import { Parser } from 'xml2js';
 import { stripPrefix, parseNumbers, parseBooleans } from 'xml2js/lib/processors.js';
-import axios from 'axios';
+// import axios from 'axios';
+import fs from 'fs';
 
 import { getVeriskInstance } from '../services';
 import { printObj } from '../common';
@@ -63,24 +64,25 @@ export const getValuationEstimate = functions
       });
 
       let data;
-      if (process.env.AUDIENCE === 'DEV HUMANS ' || process.env.AUDIENCE === 'LOCAL HUMANS') {
-        console.log('USING MOCK RES FROM GITHUB (1382 HUNTER DR)');
-        const { data: githubMockData } = await axios.get(
-          'https://scarlson1.github.io/data/sample_verisk_res.xml'
-        );
-        data = githubMockData;
-      } else {
-        const { data: veriskData } = await veriskInstance.post(
-          '/apps/iv/services/valuation',
-          body,
-          config
-        );
-        data = veriskData;
-      }
+      // if (process.env.AUDIENCE === 'DEV HUMANS ' || process.env.AUDIENCE === 'LOCAL HUMANS') {
+      //   console.log('USING MOCK RES FROM GITHUB (1382 HUNTER DR)');
+      //   const { data: githubMockData } = await axios.get(
+      //     'https://scarlson1.github.io/data/sample_verisk_res.xml'
+      //   );
+      //   data = githubMockData;
+      // } else {
+      const { data: veriskData } = await veriskInstance.post(
+        '/apps/iv/services/valuation',
+        body,
+        config
+      );
+      data = veriskData;
+      // }
 
       // console.log('VERISK RESPONSE: ', data);
       if (data) {
         veriskXML = data;
+        fs.writeFileSync('./208_aiken_verisk_res.xml', data);
       } else {
         throw Error('error fetching valuation');
       }
