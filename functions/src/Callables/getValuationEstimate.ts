@@ -3,17 +3,20 @@ import { defineSecret } from 'firebase-functions/params';
 // import { parseString } from 'xml2js';
 import { Parser } from 'xml2js';
 import { stripPrefix, parseNumbers, parseBooleans } from 'xml2js/lib/processors.js';
+import axios from 'axios';
 
 import { getVeriskInstance } from '../services';
 import { printObj } from '../common';
 
-const veriskGroupId = defineSecret('VERISK_GROUP_ID');
-const veriskPassword = defineSecret('VERISK_PASSWORD');
-const veriskUserData = defineSecret('VERISK_USER_DATA');
+// const veriskGroupId = defineSecret('VERISK_GROUP_ID');
+// const veriskPassword = defineSecret('VERISK_PASSWORD');
+// const veriskUserData = defineSecret('VERISK_USER_DATA');
+// veriskGroupId, veriskPassword, veriskUserData,
+const veriskCredsDemo = defineSecret('VERISK_CREDS_DEMO');
 
 export const getValuationEstimate = functions
   .runWith({
-    secrets: [veriskGroupId, veriskPassword, veriskUserData],
+    secrets: [veriskCredsDemo],
     minInstances: 1,
     memory: '128MB',
   })
@@ -27,9 +30,18 @@ export const getValuationEstimate = functions
       );
     }
 
-    const groupId = process.env.VERISK_GROUP_ID;
-    const password = process.env.VERISK_PASSWORD;
-    const userData = process.env.VERISK_USER_DATA;
+    // const groupId = process.env.VERISK_GROUP_ID;
+    // const password = process.env.VERISK_PASSWORD;
+    // const userData = process.env.VERISK_USER_DATA;
+
+    // const testCreds = process.env.VERISK_CREDS_DEMO;
+    // console.log('VERISK CREDS: ', testCreds, typeof testCreds);
+
+    const veriskCreds = veriskCredsDemo.value();
+    const parsedCreds = veriskCreds ? JSON.parse(veriskCreds) : null;
+    const groupId = parsedCreds?.GROUP_ID;
+    const password = parsedCreds?.PASSWORD;
+    const userData = parsedCreds?.USER_DATA;
 
     if (!(groupId && password && userData)) {
       throw new functions.https.HttpsError('internal', `Missing external API credentials`);
@@ -50,12 +62,23 @@ export const getValuationEstimate = functions
         postal,
       });
 
-      // let body = fs.readFileSync(
-      //   '/Users/spencercarlson/code/submissions/functions/src/callables/test.xml'
-      // );
-      const { data } = await veriskInstance.post('/apps/iv/services/valuation', body, config);
+      let data;
+      if (process.env.AUDIENCE === 'DEV HUMANS ' || process.env.AUDIENCE === 'LOCAL HUMANS') {
+        console.log('USING MOCK RES FROM GITHUB (1382 HUNTER DR)');
+        const { data: githubMockData } = await axios.get(
+          'https://scarlson1.github.io/data/sample_verisk_res.xml'
+        );
+        data = githubMockData;
+      } else {
+        const { data: veriskData } = await veriskInstance.post(
+          '/apps/iv/services/valuation',
+          body,
+          config
+        );
+        data = veriskData;
+      }
 
-      console.log('VERISK RESPONSE: ', data);
+      // console.log('VERISK RESPONSE: ', data);
       if (data) {
         veriskXML = data;
       } else {
@@ -71,7 +94,8 @@ export const getValuationEstimate = functions
     try {
       const parser = new Parser({
         explicitArray: false,
-        // ignoreAttrs: true, // 'report' fields are attrs
+        // ignoreAttrs: true, // 'report' fields are attrs (converts to empty strings if this is enabled)
+        mergeAttrs: true,
         tagNameProcessors: [stripPrefix],
         valueProcessors: [parseNumbers, parseBooleans],
       }); // { mergeAttrs: true }
@@ -88,19 +112,27 @@ export const getValuationEstimate = functions
       console.log('EXTRACTED VALUATION: ', valuation);
       console.log('VALUATION ID: ', valuationId);
 
-      let parsedReport;
+      let parsedReport: { [key: string]: any } = {};
       if (report) {
+        // TODO: use different parser settings on report ?? (explicitArray: true)
         const parsedReportInit = await parser.parseStringPromise(report);
-        parsedReport = parsedReportInit; // TODO: flatten data
-        // const residentialReport = parsedReportInit?.CONTEXT?.RESIDENTIAL_REPORT;
-        // if (residentialReport) {
-        //   parsedReport = {};
-        //   for (let key in residentialReport) {
-        //   }
-        // }
+        console.log('PARSED REPORT: ', parsedReportInit);
+        const residentialReport = parsedReportInit?.CONTEXT?.RESIDENTIAL_REPORT || null;
+        if (residentialReport) {
+          // parsedReport = formatResidentialReport(residentialReport);
+          parsedReport = residentialReport;
+        }
       }
 
-      return { resJson, resBody, valRes, valuation, valuationId, report, parsedReport };
+      return {
+        resJson,
+        resBody,
+        valRes,
+        valuation,
+        valuationId,
+        report,
+        parsedReport, // : parsedReport?.CONTEXT?.RESIDENTIAL_REPORT || null,
+      };
 
       // const resBody = resJson?.Envelope?.Body[0];
       // const valRes = resBody?.calculateRecalculatableValuationResponse[0]?.return[0];
@@ -175,6 +207,50 @@ function getVeriskXML({
     </soapenv:Envelope>
   `;
 }
+
+// WHEN MERGEATTRS PARSING SETTING SET TO FALSE:
+
+// export function formatResidentialReport(residentialReport: any) {
+//   let parsedReport: { [key: string]: any } = {};
+
+//   parsedReport['ADDITIONAL_INFO'] = residentialReport.ADDITIONAL_INFO?.$ || null;
+
+//   parsedReport['ANSWER'] = residentialReport.ANSWER?.map((i: any) => i.$ || {}) || [];
+
+//   parsedReport['COST_BREAKDOWN'] =
+//     residentialReport.COST_BREAKDOWN?.ANSWER?.map((i: any) => i.$ || {}) || [];
+
+//   parsedReport['DECK'] = residentialReport.DECK?.ANSWER?.map((i: any) => i.$ || {}) || [];
+
+//   parsedReport['FIREPLACE'] =
+//     residentialReport.FIREPLACE?.map((f: any) => ({
+//       ...f.$,
+//       DETAILS: f.GROUP?.ANSWER.map((detail: any) => detail?.$),
+//     })) || [];
+
+//   parsedReport['GARAGE'] = residentialReport.GARAGE?.ANSWER?.map((i: any) => i.$) || [];
+
+//   parsedReport['GROUP'] = residentialReport.GROUP?.map((g: any) => {
+//     let item: { [key: string]: any } = { meta: g.$ };
+//     if (Array.isArray(g.ANSWER)) {
+//       item['details'] = g.ANSWER.map((a: any) => a?.$ || {});
+//     } else {
+//       item['details'] = [g.ANSWER?.$];
+//     }
+
+//     return item;
+//   });
+
+//   parsedReport['OWNER_INFORMATION'] =
+//     residentialReport.OWNER_INFORMATION?.ANSWER?.map((i: any) => i.$ || {}) || [];
+
+//   parsedReport['PORCH'] = residentialReport.PORCH?.ANSWER?.map((i: any) => i.$) || [];
+
+//   parsedReport['QUALITY_WIZARD_INFORMATION'] =
+//     residentialReport.QUALITY_WIZARD_INFORMATION?.ANSWER?.map((i: any) => i.$);
+
+//   return parsedReport;
+// }
 
 // <![CDATA[
 // <CONTEXT>

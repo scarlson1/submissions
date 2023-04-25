@@ -193,7 +193,7 @@ service cloud.firestore {
     }
 
     function isTenantUser(tenantId) {
-      return request.auth.token.firebase.tenant == tenantId
+      return request.auth.token.firebase.tenant && request.auth.token.firebase.tenant == tenantId
     }
 
     function isOrgAdmin() {

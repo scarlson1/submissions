@@ -17,7 +17,8 @@ const ePayCreds = defineSecret('ENCODED_EPAY_AUTH');
 export const checkAchStatus = functions
   .runWith({ secrets: [ePayCreds] })
   // .pubsub.schedule('*/1 * * * *')
-  .pubsub.schedule('35 10 * * 1-5') // 10:35 monday-friday
+  // .pubsub.schedule('35 10 * * 1-5') // 10:35 monday-friday
+  .pubsub.schedule('35 10 1-31 1-12 1-5')
   .onRun(async (context) => {
     console.log('CHECKING PAYMENT STATUS FOR OUTSTANDING EPAY ACH TRANSACTIONS');
     const db = getFirestore();

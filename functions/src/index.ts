@@ -23,6 +23,7 @@ export {
   resendInvite,
   getAnnualPremium,
   getValuationEstimate,
+  getRiskFactorId,
 } from './callables';
 export {
   newSubmissionNotifications,

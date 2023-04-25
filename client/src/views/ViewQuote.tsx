@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  Alert,
   alpha,
   Badge,
   Box,
@@ -18,7 +19,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useFirestore, useFirestoreDocData } from 'reactfire';
 import { doc } from 'firebase/firestore';
 
-import { submissionsQuotesCollection } from 'common';
+import { QUOTE_STATUS, submissionsQuotesCollection } from 'common';
 import { dollarFormat } from 'modules/utils/helpers';
 import { FlexCard, FlexCardContent, IconButtonMenu, LineItem } from 'components';
 import {
@@ -58,7 +59,12 @@ export const ViewQuote: React.FC = () => {
           >{`Quote ID: ${quoteId}`}</Typography>
         </Box>
         <Stack direction='row' spacing={1}>
-          <Button variant='contained' sx={{ maxHeight: 34 }} onClick={() => navigate('bind')}>
+          <Button
+            variant='contained'
+            sx={{ maxHeight: 34 }}
+            onClick={() => navigate('bind')}
+            disabled={data.status !== QUOTE_STATUS.AWAITING_USER}
+          >
             Continue to bind
           </Button>
           <IconButtonMenu
@@ -120,7 +126,7 @@ export const ViewQuote: React.FC = () => {
                     color: (theme) => theme.palette.getContrastText(theme.palette.primary.main),
                   }}
                 >
-                  {dollarFormat(data?.quoteTotal || '')}
+                  {dollarFormat(data?.quoteTotal ? data.quoteTotal.toString().split('.')[0] : '')}
                 </Typography>
               </Badge>
               <Typography
@@ -167,9 +173,31 @@ export const ViewQuote: React.FC = () => {
               formatVal={dollarFormat}
               withDivider={false}
             />
-            <Button variant='contained' fullWidth onClick={() => navigate('bind')} sx={{ my: 2 }}>
+            <Button
+              variant='contained'
+              fullWidth
+              onClick={() => navigate('bind')}
+              sx={{ my: 2 }}
+              disabled={data.status !== QUOTE_STATUS.AWAITING_USER}
+            >
               Looks Good! Let's continue
             </Button>
+            {data.status !== QUOTE_STATUS.AWAITING_USER && (
+              <Typography
+                variant='body2'
+                color='text.secondary'
+                sx={{ py: 2 }}
+              >{`status: ${data.status}`}</Typography>
+            )}
+            {data.notes && data.notes.length > 0 && (
+              <Box sx={{ py: 2 }}>
+                {data.notes.map(({ note }) => (
+                  <Alert severity='info' sx={{ borderColor: 'transparent' }}>
+                    {note}
+                  </Alert>
+                ))}
+              </Box>
+            )}
           </Box>
         </>
       )}

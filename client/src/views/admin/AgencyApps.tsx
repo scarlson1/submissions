@@ -128,7 +128,7 @@ export const AgencyApps: React.FC = () => {
           <GridActionsCellItem
             icon={
               <Tooltip title='approve' placement='top'>
-                <CheckCircleOutlineRounded color='success' />
+                <CheckCircleOutlineRounded color='action' />
               </Tooltip>
             }
             onClick={handleApprove(params.id)}
@@ -137,7 +137,7 @@ export const AgencyApps: React.FC = () => {
           <GridActionsCellItem
             icon={
               <Tooltip title='send invite' placement='top'>
-                <SendRounded color='success' />
+                <SendRounded color='action' />
               </Tooltip>
             }
             onClick={handleResendInvite(params)}

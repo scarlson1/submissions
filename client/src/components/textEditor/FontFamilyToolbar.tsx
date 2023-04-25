@@ -7,7 +7,9 @@ export interface FontFamilyToolbarProps {
 }
 
 const FONTS = [
+  'Bradley Hand',
   'Baskerville',
+  'Brush Script MT',
   'Comic Sans MS',
   'Courier',
   'Georgia',

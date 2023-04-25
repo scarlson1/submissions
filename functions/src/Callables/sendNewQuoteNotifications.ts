@@ -16,7 +16,7 @@ export const sendNewQuoteNotifications = functions
   .https.onCall(async (data, ctx) => {
     console.log('data: ', data);
     const { emails, quoteId } = data;
-    console.log('AUTH.TOKEN: ', ctx.auth?.token);
+
     // TODO: must be admin
     if (!ctx.auth?.token.iDemandAdmin)
       throw new functions.https.HttpsError('permission-denied', `Must be an admin`);
@@ -35,6 +35,8 @@ export const sendNewQuoteNotifications = functions
       throw new functions.https.HttpsError('failed-precondition', 'Missing Sendgrid api key');
 
     try {
+      console.log(`SENDING QUOTE NOTIFICATIONS TO ${JSON.stringify(emails)} for quote ${quoteId}`);
+
       const link = `${process.env.HOSTING_BASE_URL}/quotes/${quoteId}`;
       await sendNewQuoteEmail(sgKey, link, emails);
 
@@ -43,7 +45,7 @@ export const sendNewQuoteNotifications = functions
         emails,
       };
     } catch (err) {
-      console.log('ERROR SENDING "CONTACT US" EMAIL: ', err);
+      console.log('ERROR SENDING "New Quote Notifications" EMAIL: ', err);
       throw new functions.https.HttpsError('internal', 'Failed to deliver email.');
     }
   });

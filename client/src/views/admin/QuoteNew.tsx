@@ -85,7 +85,7 @@ const DEFAULT_VALUES = {
   limitC: 67500,
   limitD: 25000,
   deductible: 1000,
-  quoteExpiration: add(new Date(), { days: 60 }),
+  quoteExpiration: add(new Date(), { days: 30 }),
   policyEffectiveDate: add(new Date(), { days: 15 }),
   policyExpirationDate: add(new Date(), { days: 15, years: 1 }),
   fees: [],
@@ -119,6 +119,7 @@ const DEFAULT_VALUES = {
     inland: null,
     surge: null,
   },
+  notes: [],
 };
 
 const quoteNewValidation = yup.object().shape({
@@ -215,6 +216,7 @@ export interface NewQuoteValues {
     inland: number | null;
     surge: number | null;
   };
+  notes: { [key: string]: string }[];
 }
 
 export interface QuoteNewProps {
@@ -1122,6 +1124,39 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
               <Grid xs={6} sm={3}>
                 <FormikTextField name='agencyId' label='Agency ID' fullWidth />
               </Grid>
+              <Grid xs={12}>
+                <Divider sx={{ my: 3 }} />
+                <Typography
+                  variant='overline'
+                  color='text.secondary'
+                  sx={{ pl: 4, lineHeight: 1.4 }}
+                >
+                  UW Notes
+                </Typography>
+              </Grid>
+              <Grid xs={12}>
+                <FormikFieldArray
+                  parentField='notes'
+                  inputFields={[
+                    {
+                      name: 'note',
+                      label: 'Note',
+                      required: false,
+                      inputType: 'text',
+                      gridProps: { xs: 12, sm: 12, md: 12 },
+                    },
+                  ]}
+                  values={values}
+                  errors={errors}
+                  touched={touched}
+                  dirty={dirty}
+                  setFieldValue={setFieldValue}
+                  setFieldError={setFieldError}
+                  setFieldTouched={setFieldTouched}
+                  gridProps={{ sx: { px: 0 } }}
+                  addButtonText='Add Note'
+                />
+              </Grid>
             </Grid>
           </>
         )}
@@ -1312,6 +1347,7 @@ export const QuoteNewFromSub = () => {
         inland: submissionData?.inlandAAL ?? null,
         surge: submissionData?.surgeAAL ?? null,
       },
+      notes: [],
     }),
     [submissionData]
   );

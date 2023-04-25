@@ -17,7 +17,7 @@ export const policyDelivery = ({ toName, addressName }: PoliicyDeliveryProps) =>
             
             <p>Your new policy ${
               addressName ? `for ${addressName} ` : ''
-            }is attached below. It's not be the most interesting read, but it does contains important details you may want to know.</p>
+            }is attached below. It's not be the most interesting read, but it does contain important details you may want to know.</p>
 
             <p>If you have any questions, please don't hesitate to reach out.</p>
             

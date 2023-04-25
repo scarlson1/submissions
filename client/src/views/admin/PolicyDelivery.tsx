@@ -122,6 +122,8 @@ export const PolicyDelivery: React.FC = () => {
 
   const { updatePolicy } = useUpdatePolicy(console.log, console.error);
 
+  console.log('POLICY ID: ', policyId);
+
   const {
     files: uploadFiles,
     loading: uploadLoading,
@@ -130,9 +132,9 @@ export const PolicyDelivery: React.FC = () => {
     handleSubmit,
     handleCancel,
   } = useCreateStorageFiles(
-    `policies/${data.id}`,
+    `policies/${policyId}`,
     {
-      policyId: data.id,
+      policyId, // data.id,
       userId: data.userId || null,
       insuredEmail: data.namedInsured?.email || null,
       insuredName: `${data.namedInsured?.firstName} $${data.namedInsured?.lastName}`.trim() || null,
@@ -148,10 +150,10 @@ export const PolicyDelivery: React.FC = () => {
         let downloadUrl = await getDownloadURL(uploadResult[0].ref);
         console.log('downloadUrl: ', downloadUrl);
 
-        await updatePolicy(data.id, {
+        await updatePolicy(policyId!, {
           documents: [
             {
-              displayName: `Policy Document - ${data.id}`,
+              displayName: `Policy Document - ${policyId}`,
               downloadUrl,
               storagePath: uploadResult[0].metadata.fullPath,
             },
@@ -187,12 +189,12 @@ export const PolicyDelivery: React.FC = () => {
 
       if (!emails || emails.length < 1) throw new Error('no emails selected');
 
-      await deliverDocs(data.id, emails);
+      await deliverDocs(policyId!, emails);
     } catch (err) {
       console.log('ERR: ', err);
       toast.error('documents not delivered');
     }
-  }, [promptForEmails, deliverDocs, data]);
+  }, [promptForEmails, deliverDocs, data, policyId]);
 
   if (status === 'loading') {
     return <span>loading...</span>;

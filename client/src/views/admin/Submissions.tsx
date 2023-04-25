@@ -9,8 +9,9 @@ import {
 } from '@mui/x-data-grid';
 import { orderBy, limit, doc, updateDoc, getDoc, getFirestore } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
-import { MapRounded, RequestQuoteRounded } from '@mui/icons-material';
+import { FloodRounded, MapRounded, RequestQuoteRounded } from '@mui/icons-material';
 import { toast } from 'react-hot-toast';
+// import axios from 'axios';
 
 import {
   submissionsCollection,
@@ -48,6 +49,20 @@ import { ADMIN_ROUTES, createPath } from 'router';
 import { withIdConverter } from 'common/firestoreConverters';
 import { useConfirmAndUpdate } from './Quotes';
 import { useCollectionData } from 'hooks';
+import { getRiskFactorId } from 'modules/api';
+import { useFunctions } from 'reactfire';
+
+// https://riskfactor.com/api/autocomplete/208%20aiken%20hunt%20 --> returns { fsid, lat, lng, display, score }
+
+// can use fsid to get data from urls below
+
+// https://riskfactor.com/property/2012-mcpherson-ln-nashville-tn-37221/471459653_fsid/overview
+
+// https://riskfactor.com/property/2012-mcpherson-ln-nashville-tn-37221/471459653_fsid/flood
+
+function firstStreetFormat(str: string) {
+  return str.toLowerCase().replaceAll(' ', '-');
+}
 
 const useUpdateSubmission = () => {
   const update = useCallback(async (id: string, updateValues: Partial<Submission>) => {
@@ -78,6 +93,7 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
   ]);
   const updateSubmission = useUpdateSubmission();
   const confirmAndUpdate = useConfirmAndUpdate(updateSubmission);
+  const functions = useFunctions();
 
   const handleCreateQuote = useCallback(
     (subId: GridRowId) => () => {
@@ -103,13 +119,53 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
     []
   );
 
+  const openFloodFactor = useCallback(
+    (params: GridRowParams) => async () => {
+      let { addressLine1, city, state, postal } = params.row;
+      if (!addressLine1) return;
+
+      let fsid;
+
+      try {
+        const { data } = await getRiskFactorId(functions, {
+          addressLine1,
+          city,
+          state,
+        });
+        console.log('GET ID RES: ', data);
+        fsid = data.fsid;
+        // const { data: fsidRes } = await axios.get<any, any>(
+        //   `https://riskfactor.com/api/autocomplete/${encodeURIComponent(
+        //     `${addressLine1} ${city} ${state}`.trim()
+        //   )}`,
+        //   { headers: { 'Access-Control-Allow-Origin': '*' } }
+        // );
+        // if (!fsidRes) return;
+        // fsid = fsidRes.fsid || null;
+      } catch (err) {
+        console.log('ERROR: ', err);
+      }
+
+      if (fsid) {
+        let floodStreetUrl = `https://riskfactor.com/property/${firstStreetFormat(
+          addressLine1
+        )}-${firstStreetFormat(city)}-${firstStreetFormat(state)}-${firstStreetFormat(
+          postal
+        )}/${fsid}_fsid/overview`; // 2012-mcpherson-ln-nashville-tn-37221
+
+        window.open(floodStreetUrl, '_blank');
+      }
+    },
+    [functions]
+  );
+
   const submissionColumns: GridColDef[] = useMemo(
     () => [
       {
         field: 'actions',
         headerName: 'Actions',
         type: 'actions',
-        width: 80,
+        width: 120,
         getActions: (params: GridRowParams) => [
           <GridActionsCellItem
             icon={
@@ -127,6 +183,15 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
               </Tooltip>
             }
             onClick={openGoogleMaps(params)}
+            label='Google Maps'
+          />,
+          <GridActionsCellItem
+            icon={
+              <Tooltip title='Flood Factor' placement='top'>
+                <FloodRounded />
+              </Tooltip>
+            }
+            onClick={openFloodFactor(params)}
             label='Google Maps'
           />,
         ],
@@ -242,7 +307,7 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
         description: 'Document/database ID for the submission',
       },
     ],
-    [handleCreateQuote, openGoogleMaps]
+    [handleCreateQuote, openGoogleMaps, openFloodFactor]
   );
 
   const handleProcessRowUpdateError = useCallback((err: Error) => {

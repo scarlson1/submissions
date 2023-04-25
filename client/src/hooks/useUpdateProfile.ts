@@ -1,8 +1,9 @@
 import { useCallback, useState } from 'react';
 import { updateProfile as updateAuthProfile } from 'firebase/auth';
 import { FirebaseError } from 'firebase/app';
+import { useUser } from 'reactfire';
 
-import { useAuth } from 'modules/components/AuthContext';
+// import { useAuth } from 'modules/components/AuthContext';
 
 export interface UpdateProfileArgs {
   // displayName?: string | null | undefined;
@@ -24,7 +25,8 @@ export const useUpdateProfile = (
   onSuccess?: (updateValues: UpdateProfileRes) => void,
   onError?: (msg: string, err?: unknown) => void
 ) => {
-  const { user, isAuthenticated } = useAuth();
+  // const { user, isAuthenticated } = useAuth();
+  const { data: user } = useUser();
   const [error, setError] = useState<FormattedError | undefined>();
 
   const updateError = useCallback(
@@ -43,7 +45,7 @@ export const useUpdateProfile = (
 
   const updateProfile = useCallback(
     async (args: UpdateProfileArgs) => {
-      if (!user || !isAuthenticated) {
+      if (!user) {
         updateError({ code: 'auth-required', message: 'Must be signed in to update profile' });
         if (onError) onError('must be signed in');
         return;
@@ -68,7 +70,7 @@ export const useUpdateProfile = (
         updateError(err);
       }
     },
-    [isAuthenticated, onSuccess, onError, updateError, user]
+    [onSuccess, onError, updateError, user]
   );
 
   return { updateProfile, error };

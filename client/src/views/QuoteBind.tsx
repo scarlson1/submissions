@@ -66,6 +66,8 @@ import { useFirestore, useFirestoreDocData } from 'reactfire';
 // TODO: check quote expiration date (30 days for quote creation) -- use cloud function ??
 // firestore rules - only allow iDemand admin to override
 
+// TODO: check quote status - dont allow continue if not "awaiting:user"
+
 // TODO: use transform to remove empty additional insured & mortagee rows ??
 // 'Password': yup.string().notRequired().min(8).nullable().transform((value) => !!value ? value : null)
 
@@ -1016,6 +1018,17 @@ export function BindReviewStep({ data }: { data: WithId<SubmissionQuoteData> }) 
         )}
         <LineItem label='Total' value={total} withDivider={false} />
       </Box>
+      {data.notes && (
+        <Box>
+          <Divider sx={{ my: 3 }} />
+          <Typography sx={{ py: 2 }}>Underwriter Notes</Typography>
+          {data.notes.map(({ note }) => (
+            <Typography variant='body2' color='text.secondary' sx={{ py: 1 }}>
+              {note}
+            </Typography>
+          ))}
+        </Box>
+      )}
     </Box>
   );
 }

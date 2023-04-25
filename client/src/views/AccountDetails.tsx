@@ -161,11 +161,11 @@ export const AccountDetails: React.FC = () => {
             <TabPanel value='team'>
               <Box>
                 <Box sx={{ pb: 2 }}>
-                  <ClaimsGuard requiredClaims={['ORG_ADMIN', 'IDEMAND_ADMIN']} requireAll={false}>
-                    <Box sx={{ p: 1 }}>
-                      <AddUsersDialog />
-                    </Box>
-                  </ClaimsGuard>
+                  {/* <ClaimsGuard requiredClaims={['ORG_ADMIN', 'IDEMAND_ADMIN']} requireAll={false}> */}
+                  <Box sx={{ p: 1 }}>
+                    <AddUsersDialog />
+                  </Box>
+                  {/* </ClaimsGuard> */}
                 </Box>
                 <AdminManageUsersGrid
                   orgId='idemand'

@@ -97,14 +97,14 @@ export const PoliciesMap: React.FC<PoliciesMapProps> = ({
 
   const testValuation = useCallback(async () => {
     try {
-      let test = await getValuationEstimate(getFunctions(), {
+      let { data } = await getValuationEstimate(getFunctions(), {
         addressLine1: '1382 Hunter Drive',
         city: 'Wayzata',
         state: 'MN',
         postal: '55391',
       });
 
-      console.log('RES: ', test);
+      console.log('RES: ', data);
     } catch (err) {
       console.log('ERROR: ', err);
     }
