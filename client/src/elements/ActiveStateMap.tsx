@@ -11,6 +11,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { DeckMap, defaultGeoJsonLayerProps } from 'elements';
 
 // TODO: create generalized component (use with counties)
+// TODO: use zustand ? or recoil or kotai for shared state between switch and map without rerendering all components?
 
 const INITIAL_VIEW_STATE = {
   longitude: -94.25,

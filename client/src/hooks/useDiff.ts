@@ -44,6 +44,7 @@ export const useGetDiff = (checkFields?: string[]) => {
   }, [checkFields, diff]);
 
   const getDiff = useCallback((origObj: any, newObj: any) => {
+    console.log('GET DIFF CALLED');
     const result = getDifference(origObj, newObj);
 
     setDiff(result);

@@ -23,7 +23,7 @@ export interface EditActiveStatesValues {
 
 export const EditActiveStates: React.FC = () => {
   let { productId } = useParams();
-  const { data, status } = useDocData<{ [key: string]: boolean }>('ACTIVE_STATES', productId || '');
+  const { data } = useDocData<{ [key: string]: boolean }>('ACTIVE_STATES', productId || '');
   const formikRef = useRef<FormikProps<EditActiveStatesValues>>(null);
 
   const handleSave = useCallback(() => {
@@ -56,8 +56,6 @@ export const EditActiveStates: React.FC = () => {
     const currVal = formikRef.current?.values[key];
     formikRef.current?.setFieldValue(key, !currVal);
   }, []);
-
-  if (status === 'loading') return <div>Loading...</div>;
 
   return (
     <Box>

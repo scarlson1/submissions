@@ -27,6 +27,8 @@ const stateOptions = ['MN', 'FL', 'TN'];
 
 //  TODO: checkout data filter extension: https://deck.gl/docs/api-reference/extensions/data-filter-extension
 
+// TODO: draw layers using nebula: https://github.com/uber/nebula.gl/blob/master/modules/edit-modes/src/lib/draw-circle-from-center-mode.ts
+
 // TODO: SWITCH TO POLICIES
 
 const ICON_MAPPING = {

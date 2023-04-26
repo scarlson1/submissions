@@ -103,10 +103,17 @@ export interface Limits {
   limitD: number;
 }
 
+// TODO: change to UWRatingNote
 export interface UWNote {
   code: keyof typeof UW_NOTE_CODE;
   message: string;
   property?: string;
+}
+
+export interface Note {
+  note: string; // text: string;
+  userId?: string | null;
+  created: FirestoreTimestamp;
 }
 
 export interface AdditionalInsured {
@@ -204,7 +211,7 @@ export interface SubmissionQuoteData {
   imagePaths?: { [key: string]: string | null };
   ratingPropertyData: RatingPropertyData;
   geoHash?: Geohash | null;
-  notes?: { [key: string]: string }[];
+  notes?: Note[]; // { [key: string]: string }[];
   // quoteIds?: WithFieldValue<string[]>;
   statusTransitions: {
     published: FirestoreTimestamp;

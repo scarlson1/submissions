@@ -10,7 +10,7 @@ import {
   Typography,
 } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
-import { Formik, FormikHelpers, FormikProps, useFormikContext } from 'formik';
+import { Formik, FormikErrors, FormikHelpers, FormikProps, useFormikContext } from 'formik';
 import { LoadingButton } from '@mui/lab';
 import {
   CalculateOutlined,
@@ -18,6 +18,7 @@ import {
   CheckCircleOutlineRounded,
   DownloadRounded,
   PolicyRounded,
+  WarningAmberRounded,
 } from '@mui/icons-material';
 import * as yup from 'yup';
 import { add } from 'date-fns';
@@ -71,6 +72,19 @@ const gridProps = {
   columnSpacing: { xs: 3, sm: 4, md: 6 },
   rowSpacing: 6,
 };
+
+const RATING_FIELDS = [
+  'latitude',
+  'longitude',
+  'limitA',
+  'limitB',
+  'limitC',
+  'limitD',
+  'deductible',
+  'priorLossCount',
+  'numStories',
+  'replacementCost',
+];
 
 const DEFAULT_VALUES = {
   addressLine1: '',
@@ -149,7 +163,10 @@ const quoteNewValidation = yup.object().shape({
   ),
   annualPremium: yup.number().min(100).required('Term premium is required'),
   subproducerCommission: yup.number().required('Commission is required'),
-  quoteTotal: yup.number().min(100).required('Quote total is required'),
+  quoteTotal: yup
+    .number()
+    .min(100, 'quote total must be over $100')
+    .required('Quote total is required'),
   insuredFirstName: yup.string(),
   insuredLastName: yup.string(),
   insuredEmail: emailVal.notRequired(),
@@ -172,6 +189,11 @@ const quoteNewValidation = yup.object().shape({
     sqFootage: yup.number().required(),
     yearBuilt: yup.number().required(),
   }),
+  notes: yup.array().of(
+    yup.object().shape({
+      note: yup.string(),
+    })
+  ),
 });
 
 export interface FeeItem {
@@ -324,7 +346,7 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
       navigate(createPath({ path: ADMIN_ROUTES.QUOTES }), { replace: true });
     },
     (msg: string) => toast.success(msg, { duration: 3000 }),
-    (err: any, msg: string) => toast.error(msg)
+    (msg: string, err: any) => toast.error(msg)
   );
 
   const handleRecalc = useCallback(
@@ -398,6 +420,8 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
     []
   );
 
+  console.log('RERENDER');
+
   return (
     <Box>
       <Formik
@@ -405,6 +429,7 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
         validationSchema={quoteNewValidation}
         onSubmit={handleSubmit}
         innerRef={formikRef}
+        validateOnMount={true}
       >
         {({
           dirty,
@@ -440,6 +465,7 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                 New Quote
               </Typography>
               <Stack direction='row' spacing={2} sx={{ alignItems: 'center' }}>
+                <RequiredFieldsIndicator errors={errors} />
                 <Typography
                   variant='subtitle2'
                   fontWeight='fontWeightMedium'
@@ -452,18 +478,7 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                 }`}</Typography>
                 <Diff
                   ratingInputsPrev={ratingInputsSnap}
-                  rerateFields={[
-                    'latitude',
-                    'longitude',
-                    'limitA',
-                    'limitB',
-                    'limitC',
-                    'limitD',
-                    'deductible',
-                    'priorLossCount',
-                    'numStories',
-                    'replacementCost',
-                  ]}
+                  rerateFields={RATING_FIELDS}
                   ratingState={ratingState}
                   setRatingState={handleDiffChange}
                 />
@@ -636,6 +651,7 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                     { label: 'Finished', value: 'finished' },
                     { label: 'Unfinished', value: 'unfinished' },
                   ]}
+                  required
                 />
               </Grid>
               <Grid xs={6} sm={4} md={3} lg={2}>
@@ -645,6 +661,7 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                   label='Flood Zone'
                   name='ratingPropertyData.floodZone'
                   selectOptions={['', 'A', 'B', 'C', 'D', 'V', 'X', 'AE', 'AO', 'AH', 'AR', 'VE']}
+                  required
                 />
               </Grid>
               <Grid xs={6} sm={4} md={3} lg={2}>
@@ -653,6 +670,7 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                   id='ratingPropertyData.numStories'
                   label='# Stories'
                   name='ratingPropertyData.numStories'
+                  required
                   selectOptions={[
                     { label: '1', value: 1 },
                     { label: '2', value: 2 },
@@ -695,6 +713,7 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                   id='ratingPropertyData.replacementCost'
                   label='Replacement Cost'
                   name='ratingPropertyData.replacementCost'
+                  required
                 />
               </Grid>
               <Grid xs={6} sm={4} md={3} lg={2}>
@@ -1188,6 +1207,7 @@ function getRatingInputsFromSubmission(subData?: Submission) {
 }
 
 // TODO: combine with formik errors to display on hover
+// TODO: use something like recoil for automatically derived state ??
 
 function Diff({
   ratingInputsPrev,
@@ -1239,8 +1259,8 @@ function Diff({
   );
 
   useEffect(() => {
-    console.log('OLD OBJ: ', ratingInputsPrev);
-    console.log('NEW OBJ: ', ratingInputsCurr);
+    // console.log('OLD OBJ: ', ratingInputsPrev);
+    // console.log('NEW OBJ: ', ratingInputsCurr);
 
     getDiff(ratingInputsPrev, ratingInputsCurr);
   }, [getDiff, ratingInputsPrev, ratingInputsCurr]);
@@ -1291,6 +1311,53 @@ function Diff({
         {stateIcon}
       </Tooltip>
     </>
+  );
+}
+
+// function RequiredFieldsIndicator({ errors }: { errors: { [field: string]: string } }) {
+function RequiredFieldsIndicator({ errors }: { errors: FormikErrors<NewQuoteValues> }) {
+  console.log('ERRORS: ', errors);
+  const errorEntries = useMemo(() => Object.entries(errors), [errors]);
+  console.log('ENTRIES: ', errorEntries);
+
+  const stateIcon = errorEntries.length ? (
+    <WarningAmberRounded fontSize='small' color='warning' sx={{ mx: 2 }} />
+  ) : null;
+
+  return (
+    <Tooltip
+      title={
+        <Box>
+          {errorEntries.length > 0 ? (
+            <>
+              <Typography variant='body1' fontWeight={500} gutterBottom>
+                Errors
+              </Typography>
+              {errorEntries.map(([fieldname, errMsg]) => (
+                <Typography variant='body2' key={fieldname}>{`${fieldname}: ${errMsg}`}</Typography>
+              ))}
+            </>
+          ) : (
+            <Typography variant='body2' fontWeight={500}>
+              No errors
+            </Typography>
+          )}
+        </Box>
+      }
+      placement='bottom'
+    >
+      <Box
+        sx={{
+          minHeight: 20,
+          minWidth: 20,
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+        }}
+      >
+        {stateIcon}
+      </Box>
+    </Tooltip>
   );
 }
 

@@ -9,6 +9,7 @@ import { NewQuoteValues } from 'views/admin/QuoteNew';
 import { extractNumber, readableFirebaseCode } from 'modules/utils/helpers';
 import { QUOTE_STATUS, Submission, SubmissionQuoteData, submissionsQuotesCollection } from 'common';
 import { useSendQuoteNotification } from './useSendQuoteNotification';
+import { useUser } from 'reactfire';
 // const hash = geofire.geohashForLocation([lat, lng]);
 
 const CARD_FEE_RATE = 0.035;
@@ -16,8 +17,9 @@ const CARD_FEE_RATE = 0.035;
 export const useCreateQuote = (
   onComplete?: () => void | Promise<void>,
   onStepSuccess?: (msg: string) => void,
-  onError?: (err: unknown, msg: string) => void
+  onError?: (msg: string, err: unknown) => void
 ) => {
+  const { data: user } = useUser();
   const sendEmailNotifications = useSendQuoteNotification();
 
   const createQuote = useCallback(
@@ -27,7 +29,7 @@ export const useCreateQuote = (
       submissionData: Submission | null = null
     ) => {
       try {
-        const quoteData = getFormattedQuote(values);
+        const quoteData = getFormattedQuote(values, user?.uid);
 
         const latitude = submissionData?.coordinates.latitude;
         const longitude = submissionData?.coordinates.longitude;
@@ -64,16 +66,16 @@ export const useCreateQuote = (
         console.log('ERROR CREATING QUOTE', err);
         let msg = 'Error creating quote';
         if (err instanceof FirebaseError) msg += readableFirebaseCode(err as FirestoreError);
-        if (onError) onError(err, msg);
+        if (onError) onError(msg, err);
       }
     },
-    [onStepSuccess, onComplete, onError, sendEmailNotifications]
+    [onStepSuccess, onComplete, onError, sendEmailNotifications, user]
   );
 
   return createQuote;
 };
 
-function getFormattedQuote(values: NewQuoteValues): SubmissionQuoteData {
+function getFormattedQuote(values: NewQuoteValues, uid?: string | null): SubmissionQuoteData {
   const {
     limitA,
     limitB,
@@ -107,7 +109,7 @@ function getFormattedQuote(values: NewQuoteValues): SubmissionQuoteData {
   // TODO: validation
   if (!quoteTotal) throw new Error('Missing quote total');
   invariant(annualPremium, 'missing annualPremium');
-  invariant(insuredEmail || agentEmail, 'Must have atleast one email (insured or agent)');
+  invariant(insuredEmail || agentEmail, 'Must have at least one email (insured or agent)');
 
   return {
     product: 'flood',
@@ -152,7 +154,12 @@ function getFormattedQuote(values: NewQuoteValues): SubmissionQuoteData {
     agentPhone: agentPhone ?? null,
     agencyId: agencyId ?? null,
     agencyName: agencyName ?? null,
-    notes: notes || [],
+    notes:
+      notes && notes.length > 0
+        ? notes
+            .filter((n) => n.note)
+            .map((n) => ({ note: n.note, created: Timestamp.now(), userId: uid || null }))
+        : [],
     status: QUOTE_STATUS.AWAITING_USER,
     ratingPropertyData: {
       CBRSDesignation: ratingPropertyData.CBRSDesignation,
