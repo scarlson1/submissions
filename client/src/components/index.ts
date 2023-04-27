@@ -25,7 +25,6 @@ export { LineItem } from './LineItem';
 export { ServerDataGrid, numericOperators, dateOperators, stringOperators } from './ServerDataGrid';
 export { ErrorFallback } from './ErrorFallback';
 export { Breadcrumbs } from './Breadcrumbs';
-export { LazyLoad } from './LazyLoad';
 export { ClaimsGuard } from './ClaimsGuard';
 // export {  } from './'
 

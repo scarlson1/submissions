@@ -17,6 +17,8 @@ import { useWidth, useScroll } from 'hooks';
 // TODO: use router instead of index state ??
 // https://blog.logrocket.com/building-multi-step-wizards-with-formik-and-react-query/
 
+// TODO: use react string transitions: https://www.react-spring.dev/docs/components/use-transition
+
 export interface FormikWizardProps extends Partial<FormikProps<any>> {
   children: React.ReactElement<StepProps> | React.ReactElement<StepProps>[]; // JSX.Element | JSX.Element[];
   initialValues: { [key: string]: any };

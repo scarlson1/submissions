@@ -3,6 +3,8 @@ import { Box, Container, ContainerProps, SxProps } from '@mui/material';
 import { Outlet } from 'react-router-dom';
 
 import { Header, Footer, Breadcrumbs } from 'components';
+// import { useConcurrentLocation } from 'hooks';
+// import ProgressBar from './ProgressBar';
 
 export interface LayoutProps {
   noPadding?: boolean;
@@ -19,6 +21,10 @@ export const Layout: React.FC<LayoutProps> = ({
   containerProps,
   withBreadcrumbs = false,
 }) => {
+  // const { isPending } = useConcurrentLocation();
+
+  // console.log('isPending: ', isPending);
+
   return (
     <Box
       sx={{
@@ -38,6 +44,7 @@ export const Layout: React.FC<LayoutProps> = ({
           ...mainSX,
         }}
       >
+        {/* <ProgressBar isAnimating={true} /> */}
         <Header />
         <Container {...containerProps}>
           <Box

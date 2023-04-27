@@ -372,11 +372,19 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
 
   const handleSubmit = useCallback(
     async (values: NewQuoteValues, { setSubmitting }: FormikHelpers<NewQuoteValues>) => {
-      await createQuote(values, submissionId, submissionData);
+      const { fees, taxes, annualPremium, quoteTotal } = values;
+      const total = sumfeesTaxesPremium(fees, taxes, annualPremium || 0);
+      if (total !== quoteTotal) {
+        toast.error(
+          `Invalid total quote. Sum of components does not match quote total (${quoteTotal} vs ${total})`
+        );
+      } else {
+        await createQuote(values, submissionId, submissionData);
+      }
 
       setSubmitting(false);
     },
-    [createQuote, submissionId, submissionData]
+    [createQuote, submissionId, submissionData, toast]
   );
 
   const showSubmissionDialog = useCallback(() => {
@@ -394,10 +402,11 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
       if (!annualPremium || typeof annualPremium !== 'number')
         return toast.error('Term premium required');
 
-      const feeTotal = sumArr(fees.map((f) => f.feeValue));
-      const taxTotal = sumArr(taxes.map((t) => t.value));
+      // const feeTotal = sumArr(fees.map((f) => f.feeValue));
+      // const taxTotal = sumArr(taxes.map((t) => t.value));
 
-      const total = round(annualPremium + feeTotal + taxTotal, 2);
+      // const total = round(annualPremium + feeTotal + taxTotal, 2);
+      const total = sumfeesTaxesPremium(fees, taxes, annualPremium);
 
       formikRef.current?.setFieldValue('quoteTotal', total);
       formikRef.current?.setFieldTouched('quoteTotal');
@@ -1209,6 +1218,13 @@ function getRatingInputsFromSubmission(subData?: Submission) {
   };
 }
 
+function sumfeesTaxesPremium(fees: FeeItem[], taxes: TaxItem[], premium: number) {
+  const feeTotal = sumArr(fees.map((f) => f.feeValue));
+  const taxTotal = sumArr(taxes.map((t) => t.value));
+
+  return round(premium + feeTotal + taxTotal, 2);
+}
+
 // TODO: use something like recoil for automatically derived state ??
 
 function Diff({
@@ -1450,94 +1466,6 @@ export const QuoteNewFromSub = () => {
     />
   );
 };
-
-// function Diff({
-//   ratingInputsPrev,
-//   checkFields,
-// }: {
-//   ratingInputsPrev: any;
-//   checkFields?: string[];
-// }) {
-//   const { values } = useFormikContext<NewQuoteValues>();
-//   const dialog = useJsonDialog();
-//   const [getDiff, diff, isDiff] = useGetDiff(checkFields);
-
-//   const {
-//     latitude,
-//     longitude,
-//     limitA,
-//     limitB,
-//     limitC,
-//     limitD,
-//     deductible,
-//     subproducerCommission,
-//     priorLossCount,
-//     state,
-//     ratingPropertyData,
-//   } = values;
-
-//   const ratingInputsCurr: any = useMemo(
-//     () => extractRatingInputsFromValues(values), // eslint-disable-next-line react-hooks/exhaustive-deps
-//     [
-//       latitude,
-//       longitude,
-//       limitA,
-//       limitB,
-//       limitC,
-//       limitD,
-//       deductible,
-//       subproducerCommission,
-//       priorLossCount,
-//       state,
-//       ratingPropertyData,
-//     ]
-//   );
-
-//   useEffect(() => {
-//     console.log('OLD OBJ: ', ratingInputsPrev);
-//     console.log('NEW OBJ: ', ratingInputsCurr);
-
-//     getDiff(ratingInputsPrev, ratingInputsCurr);
-//   }, [getDiff, ratingInputsPrev, ratingInputsCurr]);
-
-//   const handleClick = useCallback(() => {
-//     if (!diff) return;
-//     dialog(diff, 'Rating Inputs Diff');
-//   }, [dialog, diff]);
-
-//   return (
-//     <>
-//       {/* <Tooltip title={`re-rating required: ${isDiff}`} placement='bottom'> */}
-//       <Tooltip
-//         title={
-//           <Box>
-//             <Typography variant='body2' fontWeight={500}>
-//               {`re-rating required: ${isDiff}`}
-//             </Typography>
-//             {isDiff && (
-//               <Typography variant='body2' component='div'>
-//                 <pre>{JSON.stringify(diff, null, 2)}</pre>
-//               </Typography>
-//             )}
-//           </Box>
-//         }
-//         placement='bottom'
-//       >
-//         {isDiff ? (
-//           <CalculateRounded fontSize='small' color='warning' sx={{ mx: 2 }} onClick={handleClick} />
-//         ) : (
-//           <CheckCircleOutlineRounded fontSize='small' color='success' sx={{ mx: 2 }} />
-//         )}
-//       </Tooltip>
-//       {/* <div>{`isDiff: ${isDiff}`}</div>
-//       {diff && (
-//         <div>
-//           <pre>{JSON.stringify(diff, null, 2)}</pre>
-//         </div>
-//       )} */}
-//     </>
-//   );
-// }
 
 // initialValues={{
 //   addressLine1: submissionData?.addressLine1 ?? '',

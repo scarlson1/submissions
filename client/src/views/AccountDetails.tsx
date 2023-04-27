@@ -40,6 +40,8 @@ import { passwordValidation } from './CreateAccount';
 import { RHFPassword } from 'elements/FormikPassword';
 import { MoreVertRounded } from '@mui/icons-material';
 
+// react spring animated gradient: https://codesandbox.io/s/xg8jhi
+
 // TODO: get download image from url using rxfire
 // https://firebase.blog/posts/2018/09/introducing-rxfire-easy-async-firebase
 // import 'firebase/auth';
