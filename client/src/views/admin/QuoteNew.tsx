@@ -8,6 +8,7 @@ import {
   Stack,
   Tooltip,
   Typography,
+  tooltipClasses,
 } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
 import { Formik, FormikErrors, FormikHelpers, FormikProps, useFormikContext } from 'formik';
@@ -22,7 +23,7 @@ import {
 } from '@mui/icons-material';
 import * as yup from 'yup';
 import { add } from 'date-fns';
-import { isEmpty, round } from 'lodash';
+import { isEmpty, merge, omit, round } from 'lodash';
 import { doc, getFirestore, updateDoc } from 'firebase/firestore';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -137,11 +138,11 @@ const DEFAULT_VALUES = {
 };
 
 const quoteNewValidation = yup.object().shape({
-  addressLine1: yup.string(),
+  addressLine1: yup.string().required(),
   addressLine2: yup.string(),
-  city: yup.string(),
-  state: yup.string(),
-  postal: yup.string(),
+  city: yup.string().required(),
+  state: yup.string().required(),
+  postal: yup.string().required(),
   limitA: limitAVal,
   limitB: limitBVal,
   limitC: limitCVal,
@@ -150,15 +151,15 @@ const quoteNewValidation = yup.object().shape({
   deductible: yup.number().min(1000).required(),
   fees: yup.array().of(
     yup.object().shape({
-      feeName: yup.string(),
-      feeValue: yup.string(),
+      feeName: yup.string().required('fee name is required'),
+      feeValue: yup.string().required('fee value is required'),
     })
   ),
   taxes: yup.array().of(
     yup.object().shape({
-      displayName: yup.string(),
+      displayName: yup.string().required('display name is required'),
       rate: yup.number(),
-      value: yup.number(),
+      value: yup.number().required('tax value is required'),
     })
   ),
   annualPremium: yup.number().min(100).required('Term premium is required'),
@@ -177,17 +178,17 @@ const quoteNewValidation = yup.object().shape({
   agentPhone: yup.string(),
   agencyName: yup.string(),
   agencyId: yup.string().nullable(),
-  priorLossCount: yup.string().required(),
+  priorLossCount: yup.string(), // .required(),
   ratingPropertyData: yup.object().shape({
-    CBRSDesignation: yup.string().required(),
-    basement: yup.string().required(),
-    distToCoastFeet: yup.number().required(),
-    floodZone: yup.string().required(),
-    numStories: yup.number().required(),
-    propertyCode: yup.string().required(),
-    replacementCost: yup.number().required(),
-    sqFootage: yup.number().required(),
-    yearBuilt: yup.number().required(),
+    CBRSDesignation: yup.string().required(`CBRS designation is required`),
+    basement: yup.string().required(`basement is required`),
+    distToCoastFeet: yup.number(), // .required(`distance to coast is required`),
+    floodZone: yup.string().required(`flood zone is required`),
+    numStories: yup.number().required(`# of stories is required`),
+    propertyCode: yup.string().required(`property code is required`),
+    replacementCost: yup.number().required(`replacement cost is required`),
+    sqFootage: yup.number().required(`square footage is required`),
+    yearBuilt: yup.number().required(`year built is required`),
   }),
   notes: yup.array().of(
     yup.object().shape({
@@ -420,8 +421,6 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
     []
   );
 
-  console.log('RERENDER');
-
   return (
     <Box>
       <Formik
@@ -632,6 +631,7 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                   id='ratingPropertyData.CBRSDesignation'
                   label='CBRS Designation'
                   name='ratingPropertyData.CBRSDesignation'
+                  required
                   selectOptions={[
                     // { label: 'Unknown', value: '' },
                     { label: 'Out', value: 'OUT' },
@@ -686,6 +686,7 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                   id='ratingPropertyData.propertyCode'
                   label='Property Code'
                   name='ratingPropertyData.propertyCode'
+                  required
                   selectOptions={[
                     { label: 'Unknown', value: 'unknown' },
                     { label: 'SFR', value: 'SFR' },
@@ -722,6 +723,7 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                   id='ratingPropertyData.sqFootage'
                   label='Square Footage'
                   name='ratingPropertyData.sqFootage'
+                  required
                   maskComponent={IMask}
                   inputProps={{
                     maskProps: { mask: Number, max: 9999, thousandsSeparator: ',', unmask: true },
@@ -735,6 +737,7 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                   label='Year Built'
                   name='ratingPropertyData.yearBuilt'
                   maskComponent={IMask}
+                  required
                   inputProps={{
                     maskProps: {
                       mask: '#!00',
@@ -892,8 +895,8 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                   3) Click "rate and calc premium" button if changes were made
                 </Typography>
                 <Typography variant='body2' color='text.secondary'>
-                  4) taxes should automatically populate after premium is returned (shouldn't need
-                  to click "get taxes" button)
+                  4) taxes and total should automatically populate after premium is returned
+                  (shouldn't need to click "get taxes" button)
                 </Typography>
                 <Typography variant='body2' color='text.secondary' sx={{ py: 2 }}>
                   Taxes and calc total are dependent on premium, fees and commission. Must repeat 3
@@ -1206,7 +1209,6 @@ function getRatingInputsFromSubmission(subData?: Submission) {
   };
 }
 
-// TODO: combine with formik errors to display on hover
 // TODO: use something like recoil for automatically derived state ??
 
 function Diff({
@@ -1314,11 +1316,12 @@ function Diff({
   );
 }
 
-// function RequiredFieldsIndicator({ errors }: { errors: { [field: string]: string } }) {
 function RequiredFieldsIndicator({ errors }: { errors: FormikErrors<NewQuoteValues> }) {
-  console.log('ERRORS: ', errors);
-  const errorEntries = useMemo(() => Object.entries(errors), [errors]);
-  console.log('ENTRIES: ', errorEntries);
+  const errorEntries = useMemo(
+    () =>
+      Object.entries(merge(omit(errors, 'ratingPropertyData'), errors.ratingPropertyData || {})),
+    [errors]
+  );
 
   const stateIcon = errorEntries.length ? (
     <WarningAmberRounded fontSize='small' color='warning' sx={{ mx: 2 }} />
@@ -1334,7 +1337,18 @@ function RequiredFieldsIndicator({ errors }: { errors: FormikErrors<NewQuoteValu
                 Errors
               </Typography>
               {errorEntries.map(([fieldname, errMsg]) => (
-                <Typography variant='body2' key={fieldname}>{`${fieldname}: ${errMsg}`}</Typography>
+                <Grid container spacing={2} key={fieldname}>
+                  <Grid xs='auto'>
+                    <Typography
+                      variant='body2'
+                      component='span'
+                      sx={{ pr: 2, fontWeight: 500 }}
+                    >{`${fieldname}`}</Typography>
+                  </Grid>
+                  <Grid xs>
+                    <Typography variant='body2' component='span'>{`${errMsg}`}</Typography>
+                  </Grid>
+                </Grid>
               ))}
             </>
           ) : (
@@ -1345,6 +1359,12 @@ function RequiredFieldsIndicator({ errors }: { errors: FormikErrors<NewQuoteValu
         </Box>
       }
       placement='bottom'
+      sx={{
+        // maxWidth: 400,
+        [`& .${tooltipClasses.tooltip}`]: {
+          maxWidth: 460,
+        },
+      }}
     >
       <Box
         sx={{

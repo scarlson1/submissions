@@ -226,7 +226,7 @@ export const ViewQuote: React.FC = () => {
         <Grid xs={12} sm={6} md={4}>
           <HighlightCard
             title='Appliances'
-            content='Refrigerator, stove, heating/AC'
+            content='Refrigerator, stove'
             renderSvgImg={(props: any) => (
               <CoffeeSVG preserveAspectRatio='xMidYMin meet' {...props} />
             )}

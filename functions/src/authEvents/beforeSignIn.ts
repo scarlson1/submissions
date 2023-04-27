@@ -52,6 +52,8 @@ export const beforeSignIn = functions
       }
     }
 
+    // TODO: create login doc under user/userId/authHistory ??
+
     return {
       sessionClaims: {
         signInIpAddress: context.ipAddress,

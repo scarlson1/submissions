@@ -8,6 +8,9 @@ import axios from 'axios';
 import { getVeriskInstance } from '../services';
 import { printObj } from '../common';
 
+const VERISK_SAMPLE_URL = 'https://scarlson1.github.io/data/208_aiken_verisk_res.xml';
+// https://scarlson1.github.io/data/sample_verisk_res.xml
+
 // const veriskGroupId = defineSecret('VERISK_GROUP_ID');
 // const veriskPassword = defineSecret('VERISK_PASSWORD');
 // const veriskUserData = defineSecret('VERISK_USER_DATA');
@@ -65,9 +68,7 @@ export const getValuationEstimate = functions
       let data;
       if (process.env.AUDIENCE === 'DEV HUMANS ' || process.env.AUDIENCE === 'LOCAL HUMANS') {
         console.log('USING MOCK RES FROM GITHUB (1382 HUNTER DR)');
-        const { data: githubMockData } = await axios.get(
-          'https://scarlson1.github.io/data/sample_verisk_res.xml'
-        );
+        const { data: githubMockData } = await axios.get(VERISK_SAMPLE_URL);
         data = githubMockData;
       } else {
         const { data: veriskData } = await veriskInstance.post(

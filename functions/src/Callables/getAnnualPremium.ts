@@ -1,5 +1,6 @@
 import * as functions from 'firebase-functions';
 import { defineSecret } from 'firebase-functions/params';
+import logger from 'firebase-functions/logger';
 import invariant from 'tiny-invariant';
 
 import { CLAIMS, COLLECTIONS } from '../common';
@@ -147,7 +148,12 @@ export const getAnnualPremium = functions
         premiumData.directWrittenPremium < 100
       )
         throw new Error('Error calculating premium');
-    } catch (err) {
+    } catch (err: any) {
+      logger.error('Error calculating premium', {
+        data,
+        userId: auth.uid || null,
+        message: err?.message || null,
+      });
       throw new functions.https.HttpsError('internal', 'Error calculating annual premium');
     }
 

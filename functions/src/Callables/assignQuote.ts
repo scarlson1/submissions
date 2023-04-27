@@ -1,5 +1,6 @@
 import { getFirestore } from 'firebase-admin/firestore';
 import * as functions from 'firebase-functions';
+import logger from 'firebase-functions/logger';
 
 import { submissionsQuotesCollection } from '../common';
 
@@ -37,8 +38,14 @@ export const assignQuote = functions
       console.log(message);
 
       return { message };
-    } catch (err) {
+    } catch (err: any) {
       console.log('ERROR SENDING "CONTACT US" EMAIL: ', err);
+      logger.error('ERROR SENDING "CONTACT US" EMAIL: ', {
+        stack: err.stack,
+        message: err.message,
+        quoteId,
+        userId: uid,
+      });
       throw new functions.https.HttpsError('internal', 'Failed to set userId on quote ${quoteId}.');
     }
   });

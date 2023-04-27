@@ -23,7 +23,7 @@ export const RHFTextField: React.FC<RHFTextFieldProps> = ({ textFieldProps, labe
       value={field.value}
       name={field.name}
       inputRef={field.ref}
-      helperText={isTouched && Boolean(error) ? error?.message : ''}
+      helperText={isTouched && Boolean(error) ? error?.message : textFieldProps?.helperText ?? ''}
     />
   );
 };

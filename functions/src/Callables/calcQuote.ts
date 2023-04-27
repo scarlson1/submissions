@@ -1,4 +1,5 @@
 import * as functions from 'firebase-functions';
+import logger from 'firebase-functions/logger';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import invariant from 'tiny-invariant';
 
@@ -93,6 +94,11 @@ export const calcQuote = functions.https.onCall(async (data, context) => {
     );
   } catch (err: any) {
     console.log('INVALID PROPS: ', err);
+    logger.error('Invalid props', {
+      props: data,
+      userId,
+      function: 'calcQuote',
+    });
 
     throw new functions.https.HttpsError('failed-precondition', err.message);
   }
@@ -149,8 +155,15 @@ export const calcQuote = functions.https.onCall(async (data, context) => {
     // TODO: update the submission ?? quote data not stored on submission
 
     return { annualPremium: result.premiumData.directWrittenPremium };
-  } catch (err) {
+  } catch (err: any) {
     console.log('ERROR: ', err);
+    logger.error('Error calculating quote', {
+      props: data,
+      userId,
+      function: 'calcQuote',
+      message: err?.message || '',
+      stack: err?.stack || null,
+    });
     throw new functions.https.HttpsError('invalid-argument', 'Error calculating quote');
   }
 });

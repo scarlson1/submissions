@@ -2,8 +2,12 @@ import React, { useState } from 'react';
 import { InputAdornment, IconButton } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 
-import { FormikTextField } from 'components/forms';
-import { FormikTextFieldProps } from 'components/forms/FormikTextField';
+import {
+  FormikTextField,
+  RHFTextField,
+  FormikTextFieldProps,
+  RHFTextFieldProps,
+} from 'components/forms';
 
 export const FormikPassword: React.FC<Partial<FormikTextFieldProps>> = (props) => {
   const [showPassword, setShowPassword] = useState(false);
@@ -35,3 +39,42 @@ export const FormikPassword: React.FC<Partial<FormikTextFieldProps>> = (props) =
 };
 
 export default FormikPassword;
+
+interface RHFPasswordProps extends Omit<RHFTextFieldProps, 'name' | 'label' | 'type'> {
+  name?: string;
+  label?: string;
+}
+
+export const RHFPassword: React.FC<RHFPasswordProps> = (props) => {
+  const [showPassword, setShowPassword] = useState(false);
+
+  return (
+    <RHFTextField
+      name='password'
+      rules={{ required: true }}
+      label='Password'
+      {...props}
+      textFieldProps={{
+        variant: 'outlined',
+        fullWidth: true,
+        type: showPassword ? 'text' : 'password',
+        InputProps: {
+          endAdornment: (
+            <InputAdornment position='end'>
+              <IconButton
+                aria-label='toggle password visibility'
+                onClick={() => setShowPassword((prev) => !prev)}
+                onMouseDown={(e) => e.preventDefault()}
+                edge='end'
+              >
+                {showPassword ? <VisibilityOff /> : <Visibility />}
+              </IconButton>
+            </InputAdornment>
+          ),
+          autoComplete: 'new-password',
+        },
+        ...(props?.textFieldProps || {}),
+      }}
+    />
+  );
+};

@@ -7,9 +7,9 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
-  Divider,
+  // Divider,
   Typography,
-  Stack,
+  // Stack,
   DialogProps,
   DialogContentProps,
 } from '@mui/material';
@@ -30,7 +30,7 @@ import { PasswordRounded } from '@mui/icons-material';
 
 import { FormikPassword } from 'elements';
 import { useHandleAuthError } from 'hooks';
-import { GoogleAuth, MicrosoftAuth } from 'components';
+// import { GoogleAuth, MicrosoftAuth } from 'components';
 
 // let providersList = [
 //   {
@@ -137,12 +137,12 @@ export const ReauthDialog: React.FC<ReauthDialogProps> = ({
     [onResult, handleError, onClose, auth.currentUser]
   );
 
-  const handleProviderSuccess = useCallback(
-    (userCred: UserCredential) => {
-      return onResult(userCred);
-    },
-    [onResult]
-  );
+  // const handleProviderSuccess = useCallback(
+  //   (userCred: UserCredential) => {
+  //     return onResult(userCred);
+  //   },
+  //   [onResult]
+  // );
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth='xs' {...dialogProps}>
@@ -154,9 +154,9 @@ export const ReauthDialog: React.FC<ReauthDialogProps> = ({
         {({ isValid, isValidating, isSubmitting, dirty, handleSubmit }) => (
           <Form onSubmit={handleSubmit}>
             <DialogTitle id='dialog-title'>{title}</DialogTitle>
-            <DialogContent {...dialogContentProps}>
+            <DialogContent dividers {...dialogContentProps}>
               <DialogContentText>{description}</DialogContentText>
-              <Box sx={{ py: 2 }}>
+              {/* <Box sx={{ py: 2 }}>
                 <Stack
                   direction={{ xs: 'column', sm: 'row' }}
                   spacing={{ xs: 2, md: 3 }}
@@ -184,7 +184,7 @@ export const ReauthDialog: React.FC<ReauthDialogProps> = ({
                     or reauth with email/password
                   </Typography>
                 </Divider>
-              </Box>
+              </Box> */}
 
               <Box sx={{ pt: 4, pb: 2, px: 4 }}>
                 <FormikPassword />

@@ -58,6 +58,7 @@ export type { FormikMultiTextInputProps } from './FormikMultiTextInput';
 export type { IMaskProps } from './IMask';
 export type { VirtualizedAutocompleteProps } from './VirtualizedAutocomplete';
 export type { TooltipToggleButtonProps } from './TooltipToggleButton';
+export type { RHFTextFieldProps } from './RHFTextField';
 // export type {  } from './';
 // export type {  } from './';
 // export type {  } from './';

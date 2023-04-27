@@ -1,4 +1,5 @@
 import * as functions from 'firebase-functions';
+import logger from 'firebase-functions/logger';
 import { getFirestore, Timestamp, DocumentSnapshot } from 'firebase-admin/firestore';
 import { defineSecret } from 'firebase-functions/params';
 
@@ -176,6 +177,12 @@ export const executePayment = functions
       console.log('ERROR: ', err);
       // TODO: extract error message from ePay error if code is 400: https://docs.epaypolicy.com/knowledgebase/faqs/
       let msg = err?.response?.data?.message || 'Payment could not be processed.';
+      logger.error(msg, {
+        data,
+        userId: uid,
+        stack: err?.stack || null,
+        message: err?.response?.data?.message ?? (err?.message || null),
+      });
 
       throw new functions.https.HttpsError('internal', msg);
     }

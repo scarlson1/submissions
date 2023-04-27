@@ -9,22 +9,36 @@ import {
   Button,
   Unstable_Grid2 as Grid,
   Tab,
+  Card,
+  CardContent,
+  IconButton,
 } from '@mui/material';
 import { useFirestore, useUser } from 'reactfire';
 import { doc, setDoc } from 'firebase/firestore';
 import { toast } from 'react-hot-toast';
 import axios from 'axios';
 import { useForm, SubmitHandler, useFormState } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
 import { LoadingButton, TabContext, TabList, TabPanel } from '@mui/lab';
 
 // import { useAuth } from 'modules/components/AuthContext';
 import { AddUsersDialog, UpdateProfileImg } from 'elements';
 import { COLLECTIONS, User, usersCollection } from 'common';
-import { ClaimsGuard } from 'components';
-import { UpdateProfileRes, useAsyncToast, useDocData, useUpdateProfile } from 'hooks';
+import { ClaimsGuard, FlexCard, FlexCardContent } from 'components';
+import {
+  UpdateProfileRes,
+  useAsyncToast,
+  useCollectionData,
+  useDocData,
+  useUpdateProfile,
+} from 'hooks';
 import { useAuth } from 'modules/components';
 import { RHFTextField } from 'components/forms';
 import { AdminManageUsersGrid } from 'elements/UsersGrid';
+import { passwordValidation } from './CreateAccount';
+import { RHFPassword } from 'elements/FormikPassword';
+import { MoreVertRounded } from '@mui/icons-material';
 
 // TODO: get download image from url using rxfire
 // https://firebase.blog/posts/2018/09/introducing-rxfire-easy-async-firebase
@@ -49,13 +63,15 @@ const MIN_TAB_HEIGHT = 40;
 
 // TODO: auth check
 export const AccountDetails: React.FC = () => {
-  const { data } = useUser();
+  const { data: user } = useUser();
   const theme = useTheme();
   const [tabValue, setTabValue] = useState('account');
 
   const handleChange = (event: React.SyntheticEvent, newValue: string) => {
     setTabValue(newValue);
   };
+
+  if (!user || !user.uid) return <div>not signed in</div>;
 
   return (
     <Container maxWidth='md' disableGutters>
@@ -112,7 +128,7 @@ export const AccountDetails: React.FC = () => {
               </Grid>
               <Grid xs>
                 {/* <Typography variant='h5'>{user?.displayName}</Typography> */}
-                <Typography variant='h5'>{data ? data.displayName : ''}</Typography>
+                <Typography variant='h5'>{user ? user.displayName : ''}</Typography>
                 {/* <Typography variant='subtitle2' color='text.secondary'>
                   TODO: get org name or user's position/role
                 </Typography> */}
@@ -143,6 +159,8 @@ export const AccountDetails: React.FC = () => {
 
                 {/* <Tab label='Invites' value='invites' /> */}
                 {/* <Tab label='Admin Users (test)' value='test' /> */}
+                <Tab label='Security' value='security' />
+                <Tab label='Billing' value='billing' />
               </TabList>
             </Box>
             <TabPanel value='account'>
@@ -186,6 +204,31 @@ export const AccountDetails: React.FC = () => {
                   density='standard'
                 />
               </Box>
+            </TabPanel>
+            <TabPanel value='security'>
+              <Grid container spacing={5}>
+                <Grid xs={12} sm={3} md={4}>
+                  <Typography variant='h6' gutterBottom>
+                    Change Password
+                  </Typography>
+                </Grid>
+                <Grid xs={12} sm={9} md={8}>
+                  <UpdatePasswordForm />
+                </Grid>
+              </Grid>
+            </TabPanel>
+
+            <TabPanel value='billing'>
+              <Grid container spacing={5}>
+                <Grid xs={12} sm={3} md={4}>
+                  <Typography variant='h6' gutterBottom>
+                    Payment Methods
+                  </Typography>
+                </Grid>
+                <Grid>
+                  <SavedPaymentMethods />
+                </Grid>
+              </Grid>
             </TabPanel>
           </TabContext>
         </Box>
@@ -412,20 +455,6 @@ function UpdateUserEmail() {
               label='Email'
               textFieldProps={{ variant: 'outlined', fullWidth: true }}
             />
-            {/* <Controller
-              name='email'
-              control={control}
-              rules={{ required: 'Email required' }}
-              render={({ field, fieldState: { error } }) => (
-                <TextField
-                  {...field}
-                  variant='filled'
-                  label='Email'
-                  error={!!error}
-                  helperText={error?.message ?? null}
-                />
-              )}
-            /> */}
           </Grid>
           {/* <Grid xs={12}>
             <RHFFieldArray
@@ -461,5 +490,180 @@ function UpdateUserEmail() {
         </Grid>
       </form>
     </Box>
+  );
+}
+
+const updatePasswordSchema = yup
+  .object()
+  .shape({
+    password: passwordValidation, // yup.string().required(),
+  })
+  .required();
+
+interface UpdatePasswordValues {
+  password: string;
+}
+
+function UpdatePasswordForm() {
+  const toast = useAsyncToast({ position: 'top-right' });
+  const { updateUserPassword } = useAuth();
+
+  const {
+    handleSubmit,
+    control,
+    reset,
+    formState: { isSubmitSuccessful, isDirty, isValid, isSubmitting },
+  } = useForm<UpdatePasswordValues>({
+    defaultValues: {
+      password: '',
+    },
+    values: {
+      password: '',
+    },
+    resetOptions: {
+      keepDirtyValues: false, // user-interacted input will be retained
+    },
+    resolver: yupResolver(updatePasswordSchema),
+  });
+
+  useEffect(() => {
+    if (isSubmitSuccessful)
+      reset({
+        password: '',
+      });
+  }, [isSubmitSuccessful, reset]);
+
+  const onSubmit: SubmitHandler<UpdatePasswordValues> = useCallback(
+    async (data) => {
+      toast.loading('updating...');
+
+      try {
+        await updateUserPassword(data.password);
+        toast.success(`Password updated!`);
+      } catch (err) {
+        toast.error('Error updating email');
+      }
+    },
+    [toast, updateUserPassword]
+  );
+
+  return (
+    <Box sx={{ width: '100%' }}>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <Grid container spacing={5}>
+          <Grid xs={8} sm={8} md={10}>
+            <RHFPassword
+              control={control}
+              rules={{ required: true }}
+              label='New Password'
+              textFieldProps={{
+                helperText: 'Upper & lower letters, symbol, number, and min. 8 characters',
+              }}
+            />
+            {/* <RHFTextField
+              control={control}
+              name='password'
+              rules={{ required: true }}
+              label='New Password'
+              textFieldProps={{ variant: 'outlined', fullWidth: true }}
+            /> */}
+          </Grid>
+          <Grid xs={4} sm={4} md={2} sx={{ alignSelf: 'center' }}>
+            <LoadingButton
+              type='submit'
+              disabled={!isValid || !isDirty}
+              loading={isSubmitting}
+              sx={{ maxHeight: 34 }}
+            >
+              Update
+            </LoadingButton>
+          </Grid>
+        </Grid>
+      </form>
+    </Box>
+  );
+}
+
+function SavedPaymentMethods() {
+  const { data: user } = useUser();
+  const { data } = useCollectionData('USERS', [], { idField: 'paymentMethodId' }, [
+    `${user?.uid}`,
+    COLLECTIONS.PAYMENT_METHODS,
+  ]);
+
+  return (
+    <Box sx={{ width: '100%' }}>
+      <Box sx={{ maxWidth: 400 }}>
+        <PaymentMethodCard />
+      </Box>
+
+      {data.length > 0 ? (
+        <>
+          {data.map((pmtmthd) => (
+            <Typography variant='body2' color='text.secondary'>
+              <pre>{JSON.stringify(pmtmthd, null, 2)}</pre>
+            </Typography>
+          ))}
+        </>
+      ) : (
+        <Typography variant='body2' color='text.secondary' fontWeight={600} textAlign='center'>
+          No payment methods saved
+        </Typography>
+      )}
+    </Box>
+  );
+}
+
+function PaymentMethodCard() {
+  return (
+    <FlexCard
+      sx={{
+        // TODO: background colors & contrast text color
+        backgroundColor: (theme) =>
+          theme.palette.mode === 'dark'
+            ? theme.palette.primaryDark[600]
+            : theme.palette.primaryDark[100],
+      }}
+    >
+      <FlexCardContent sx={{ pb: 4 }}>
+        <Grid container spacing={3}>
+          <Grid xs='auto'>
+            <Typography variant='body2' color='text.secondary' fontWeight={600}>
+              Temp overline
+            </Typography>
+          </Grid>
+          <Grid xs sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <IconButton>
+              <MoreVertRounded />
+            </IconButton>
+          </Grid>
+          <Grid xs={12}>
+            <Typography variant='h6'>**** **** **** 1234</Typography>
+          </Grid>
+          <Grid xs={6}>
+            <Box>
+              <Typography
+                variant='body2'
+                color='text.secondary'
+                sx={{ fontSize: '0.75rem', lineHeight: '1.8rem' }}
+              >
+                Card Holder
+              </Typography>
+              <Typography variant='subtitle2'>John Doe</Typography>
+            </Box>
+          </Grid>
+          <Grid xs={4}>
+            <Typography
+              variant='body2'
+              color='text.secondary'
+              sx={{ fontSize: '0.75rem', lineHeight: '1.8rem' }}
+            >
+              Expires
+            </Typography>
+            <Typography variant='subtitle2'>11/24</Typography>
+          </Grid>
+        </Grid>
+      </FlexCardContent>
+    </FlexCard>
   );
 }

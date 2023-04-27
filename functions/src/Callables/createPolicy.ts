@@ -1,4 +1,5 @@
 import * as functions from 'firebase-functions';
+import logger from 'firebase-functions/logger';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { round } from 'lodash';
 
@@ -54,6 +55,11 @@ export const createPolicy = functions.https.onCall(async (data, ctx) => {
     return { policyId: policyRef.id };
   } catch (err: any) {
     console.log('ERROR => ', err);
+    logger.error('Error creating policy', {
+      data,
+      quoteId,
+      userId: uid,
+    });
     if (err instanceof functions.https.HttpsError) {
       throw new functions.https.HttpsError(err.code, err.message, err.details);
     } else {

@@ -28,7 +28,6 @@ export const NavMenu: React.FC<NavMenuProps> = ({
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
-    console.log('CLICK CALLED');
     setAnchorEl(event.currentTarget);
     setOpen((previousOpen) => !previousOpen);
   };

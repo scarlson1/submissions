@@ -1,4 +1,4 @@
-import React, { Suspense, useMemo } from 'react';
+import React, { Suspense, useMemo, useState } from 'react';
 import {
   AppBar,
   Avatar,
@@ -41,6 +41,7 @@ import {
 import { useTheme } from '@mui/material/styles';
 import { matchPath, useLocation, useNavigate } from 'react-router-dom';
 import { Link as RouterLink } from 'react-router-dom';
+import { useSigninCheck } from 'reactfire';
 
 import { useChangeTheme } from 'modules/components/ThemeContext';
 import { useAuth } from 'modules/components/AuthContext';
@@ -48,7 +49,6 @@ import { ROUTES, ADMIN_ROUTES, createPath, AUTH_ROUTES, ACCOUNT_ROUTES } from 'r
 import { NavListItem } from './NavListItem';
 import { NavMenu as PopperNavMenu } from './NavMenu';
 import { NavDrawer } from './NavDrawer';
-import { useSigninCheck } from 'reactfire';
 
 // TODO: GENERALIZE MENU COMPONENT - allow for button or user avatar as button. nested items. icons.
 // could have optional render function to render button??
@@ -210,40 +210,6 @@ export const Header: React.FC<HeaderProps> = () => {
     return userNavPages;
   }, [customClaims, adminNavPages, agentNavPages, userNavPages]);
 
-  const settings = useMemo(() => {
-    let sItems: { label: string; onClick: () => void; icon?: JSX.Element }[] = [
-      {
-        label: 'Contact Us',
-        onClick: () => navigate(createPath({ path: ROUTES.CONTACT })),
-        icon: <ContactSupportRounded color='inherit' fontSize='small' />,
-      },
-    ];
-
-    if (user && !user.isAnonymous)
-      sItems.unshift({
-        label: 'Account Settings',
-        onClick: () => navigate(createPath({ path: ACCOUNT_ROUTES.ACCOUNT })),
-        icon: <ManageAccountsRounded fontSize='small' />,
-      });
-
-    if (user?.isAnonymous) {
-      sItems.push({
-        label: 'Create Account',
-        onClick: () => navigate(createPath({ path: AUTH_ROUTES.CREATE_ACCOUNT })),
-        icon: <PersonRounded fontSize='small' />,
-      });
-      sItems.push({
-        label: 'Have an account? Login',
-        onClick: () =>
-          navigate(createPath({ path: AUTH_ROUTES.LOGIN }), { state: { from: location } }),
-        icon: <PasswordRounded fontSize='small' />,
-      });
-    }
-    // sItems.push({ label: 'Logout', onClick: logout });
-
-    return sItems;
-  }, [navigate, location, user]);
-
   return (
     <AppBar
       position='static'
@@ -296,7 +262,6 @@ export const Header: React.FC<HeaderProps> = () => {
             <NavDrawer
               items={navPages}
               renderItem={({ title, route, items, icon, key }) => {
-                // navPages?.map((item, i) => (
                 return (
                   <NavListItem
                     title={title}
@@ -304,85 +269,14 @@ export const Header: React.FC<HeaderProps> = () => {
                     items={items}
                     icon={icon}
                     key={key}
-                    // key={`${title}-${i}`}
                     selected={
                       (route && !!matchPath({ path: route as string }, location.pathname)) || false
                     }
                     // handleClose={toggleDrawer}
                   />
                 );
-                // ));
               }}
             />
-            {/* {({ toggleDrawer }) => {
-                return (
-                  // <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-                  //   <Box
-                  //     sx={{
-                  //       py: 3,
-                  //       px: 3,
-                  //       borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
-                  //       width: '100%',
-                  //       display: 'flex',
-                  //       justifyContent: 'space-between',
-                  //     }}
-                  //   >
-                  //     <IconButton
-                  //       color='primary'
-                  //       size='small'
-                  //       onClick={() => {
-                  //         toggleDrawer();
-                  //         navigate('/');
-                  //       }}
-                  //     >
-                  //       <HomeRounded />
-                  //     </IconButton>
-                  //     <IconButton size='small' onClick={toggleDrawer}>
-                  //       <CloseRounded />
-                  //     </IconButton>
-                  //   </Box>
-                  //   <Box sx={{ flex: '1 1 auto', overflow: 'auto' }}>
-                  //     <List sx={{ minWidth: 260, maxWidth: 280, p: 3 }}>
-                  //       {navPages?.map((item, i) => (
-                  //         <NavListItem
-                  //           title={item.title}
-                  //           route={item.route}
-                  //           items={item.items}
-                  //           icon={item.icon}
-                  //           key={`${item.title}-${i}`}
-                  //           selected={
-                  //             (item.route &&
-                  //               !!matchPath({ path: item.route as string }, location.pathname)) ||
-                  //             false
-                  //           }
-                  //           handleClose={toggleDrawer}
-                  //         />
-                  //       ))}
-                  //     </List>
-                  //   </Box>
-                  //   <Box
-                  //     sx={{
-                  //       py: 4,
-                  //       px: 5,
-                  //       borderTop: (theme) => `1px solid ${theme.palette.divider}`,
-                  //     }}
-                  //   >
-                  //     <Typography
-                  //       variant='subtitle2'
-                  //       color='text.secondary'
-                  //       onClick={() => {
-                  //         toggleDrawer();
-                  //         navigate(createPath({ path: ROUTES.CONTACT }));
-                  //       }}
-                  //       sx={{ '&:hover': { textDecoration: 'underline', cursor: 'pointer' } }}
-                  //     >
-                  //       Contact us
-                  //     </Typography>
-                  //   </Box>
-                  // </Box>
-                );
-              }} */}
-            {/* </NavDrawer> */}
           </Box>
           <WaterRounded
             sx={{
@@ -470,38 +364,7 @@ export const Header: React.FC<HeaderProps> = () => {
                       );
                     }}
                   />
-                  // <List
-                  //   sx={{
-                  //     minWidth: 160,
-                  //     maxWidth: 260,
-                  //     '& .MuiListItemButton-root:first-of-type': {
-                  //       borderTopLeftRadius: (theme) => theme.shape.borderRadius,
-                  //       borderTopRightRadius: (theme) => theme.shape.borderRadius,
-                  //     },
-                  //     '& .MuiListItemButton-root:last-of-type': {
-                  //       borderBottomLeftRadius: (theme) => theme.shape.borderRadius,
-                  //       borderBottomRightRadius: (theme) => theme.shape.borderRadius,
-                  //     },
-                  //   }}
-                  //   dense
-                  // >
-                  //   {page.items.map((i) => (
-                  //     <ListItemButton
-                  //       component={RouterLink as any}
-                  //       to={i.route}
-                  //       // selected={}
-                  //       key={i.route}
-                  //       sx={{ py: 1, px: 4 }}
-                  //     >
-                  //       <ListItemText primary={i.title} sx={{ my: 1 }} />
-                  //     </ListItemButton>
-                  //   ))}
-                  // </List>
-                  // </PopperNavMenu>
                 );
-                // return (
-                //   <NavMenu title={page.title} menuItems={page.items} key={`${page.title}-${i}`} />
-                // );
               }
               if (!page.route) return null;
 
@@ -523,7 +386,16 @@ export const Header: React.FC<HeaderProps> = () => {
             })}
           </Box>
 
-          <Box sx={{ flexGrow: 0, flexShrink: 0 }}>
+          {/* <Box sx={{ flexGrow: 0, flexShrink: 0 }}> */}
+          <Box
+            sx={{
+              flexGrow: 0,
+              flexShrink: 0,
+              display: 'flex',
+              alignItems: 'center',
+              textAlign: 'center',
+            }}
+          >
             <IconButton sx={{ mx: { xs: 1, sm: 2, md: 3 } }} onClick={changeTheme} color='primary'>
               {theme.palette.mode === 'dark' ? (
                 <Brightness7 fontSize='small' />
@@ -533,7 +405,8 @@ export const Header: React.FC<HeaderProps> = () => {
             </IconButton>
 
             {!!user ? (
-              <UserMenu menuItems={settings} />
+              // <UserMenu menuItems={settings} />
+              <UserMenu />
             ) : (
               <Button
                 onClick={() =>
@@ -579,33 +452,81 @@ export const AuthWrapper = ({
 
 interface UserMenuProps {
   // user: User;
-  menuItems: { label: string; onClick: () => void; icon?: JSX.Element }[];
+  // menuItems: { label: string; onClick: () => void; icon?: JSX.Element }[];
 }
 
-const UserMenu: React.FC<UserMenuProps> = ({ menuItems }) => {
+const UserMenu: React.FC<UserMenuProps> = () => {
+  //  ({ menuItems }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  // TODO: use suspense
   const { data: authCheckResult } = useSigninCheck({ suspense: false });
   const { logout } = useAuth();
-  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  // const [open, setOpen] = useState<boolean>(false);
+  const open = Boolean(anchorEl);
 
   const handleOpenMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
+    // setOpen(true);
   };
   const handleCloseMenu = () => {
     setAnchorEl(null);
+    // setOpen(false);
   };
+
+  const settings = useMemo(() => {
+    let sItems: { label: string; onClick: () => void; icon?: JSX.Element }[] = [
+      {
+        label: 'Contact Us',
+        onClick: () => navigate(createPath({ path: ROUTES.CONTACT })),
+        icon: <ContactSupportRounded color='inherit' fontSize='small' />,
+      },
+    ];
+
+    if (authCheckResult?.user && !authCheckResult?.user?.isAnonymous)
+      sItems.unshift({
+        label: 'Account Settings',
+        onClick: () => navigate(createPath({ path: ACCOUNT_ROUTES.ACCOUNT })),
+        icon: <ManageAccountsRounded fontSize='small' />,
+      });
+
+    if (authCheckResult?.user?.isAnonymous) {
+      sItems.push({
+        label: 'Create Account',
+        onClick: () => navigate(createPath({ path: AUTH_ROUTES.CREATE_ACCOUNT })),
+        icon: <PersonRounded fontSize='small' />,
+      });
+      sItems.push({
+        label: 'Have an account? Login',
+        onClick: () =>
+          navigate(createPath({ path: AUTH_ROUTES.LOGIN }), { state: { from: location } }),
+        icon: <PasswordRounded fontSize='small' />,
+      });
+    }
+    // sItems.push({ label: 'Logout', onClick: logout });
+
+    return sItems;
+  }, [navigate, location, authCheckResult]);
 
   return (
     <>
+      {/* <Box sx={{ display: 'block' }}> */}
       <Tooltip title='Open settings'>
-        <IconButton onClick={handleOpenMenu} sx={{ p: 0 }}>
+        <IconButton
+          onClick={handleOpenMenu}
+          sx={{ p: 0 }}
+          aria-controls={open ? 'account-menu' : undefined}
+          aria-haspopup='true'
+          aria-expanded={open ? 'true' : undefined}
+        >
           <Avatar
             alt={authCheckResult?.user?.displayName || undefined}
             src={authCheckResult?.user?.photoURL || ''}
           />
         </IconButton>
       </Tooltip>
+      {/* </Box> */}
 
       <Menu
         sx={{ mt: '45px', minWidth: 240, maxWidth: 340 }}
@@ -620,8 +541,10 @@ const UserMenu: React.FC<UserMenuProps> = ({ menuItems }) => {
           vertical: 'top',
           horizontal: 'right',
         }}
-        open={Boolean(anchorEl)}
+        open={open}
         onClose={handleCloseMenu}
+        onClick={handleCloseMenu}
+        // onBlur={handleCloseMenu}
       >
         <Box sx={{ px: 4, py: 3 }}>
           <Suspense
@@ -666,7 +589,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ menuItems }) => {
           </Suspense>
         </Box>
         <Divider sx={{ my: 0 }} />
-        {menuItems.map((item) => (
+        {settings.map((item: any) => (
           <MenuItem
             key={item.label}
             onClick={() => {
@@ -685,9 +608,12 @@ const UserMenu: React.FC<UserMenuProps> = ({ menuItems }) => {
               fallback={
                 <Button
                   size='small'
-                  onClick={() =>
-                    navigate(createPath({ path: AUTH_ROUTES.LOGIN }), { state: { from: location } })
-                  }
+                  onClick={() => {
+                    handleCloseMenu();
+                    navigate(createPath({ path: AUTH_ROUTES.LOGIN }), {
+                      state: { from: location },
+                    });
+                  }}
                 >
                   Sign In
                 </Button>
