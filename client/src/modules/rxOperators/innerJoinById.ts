@@ -85,7 +85,7 @@ export const populateById = (
 
           // @ts-ignore
           return collectionData.map((v, i) => {
-            totalJoins += joins[i].length;
+            totalJoins += joins[i]?.length || 0;
             return { ...v, [keyName]: joins[i] || null };
           });
         }),

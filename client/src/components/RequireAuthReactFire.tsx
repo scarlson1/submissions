@@ -60,7 +60,6 @@ export const RequireAuthReactFire: React.FC<RequireAuthReactFireProps> = ({
 
   // TODO: flush out component (buttons, image, etc.)
   if (!data.hasRequiredClaims) {
-    console.log('CLAIM CHECK ERRORS: ', data.errors);
     return (
       <Box sx={{ py: 5 }}>
         <Typography variant='h6' align='center'>

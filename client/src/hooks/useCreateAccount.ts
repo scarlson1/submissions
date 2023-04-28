@@ -158,6 +158,10 @@ export const useCreateAccount = () => {
           // TODO: figure out how to update user name - handle in blocking fn ??
           // await updateUserDocOnCreate(userCreateRes, { firstName, lastName });
         }
+        if (msg.indexOf('ALREADY_EXISTS') !== -1 || msg.indexOf('already exists') !== -1) {
+          return toast('Account already exists. Please sign in.');
+        }
+        toast.error(`Auth error: ${code}`);
         // Emulator doesn't return response with 'Cloud Function' added || above as work around
         // Firebase: ((HTTP request to http://127.0.0.1:5001/idemand-dev/us-central1/beforeSignIn returned HTTP error 400: {"error":{"message":"Please verify your email before proceeding (atest@idemandinsurance.com)","status":"INVALID_ARGUMENT"}})) (auth/internal-error).
       } else if (code === 'auth/email-already-in-use') {

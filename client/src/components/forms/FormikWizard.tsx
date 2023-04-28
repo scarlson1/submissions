@@ -18,7 +18,7 @@ import { useWidth, useScroll } from 'hooks';
 // https://blog.logrocket.com/building-multi-step-wizards-with-formik-and-react-query/
 
 // TODO: use react string transitions: https://www.react-spring.dev/docs/components/use-transition
-
+// https://codesandbox.io/embed/physics-animation-in-react-router-5hn85?fontsize=14&hidenavigation=1&theme=dark
 export interface FormikWizardProps extends Partial<FormikProps<any>> {
   children: React.ReactElement<StepProps> | React.ReactElement<StepProps>[]; // JSX.Element | JSX.Element[];
   initialValues: { [key: string]: any };

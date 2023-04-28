@@ -18,3 +18,4 @@ export { resendInvite } from './resendInvite.js';
 export { getAnnualPremium } from './getAnnualPremium.js';
 export { getValuationEstimate } from './getValuationEstimate.js';
 export { getRiskFactorId } from './getRiskFactorId.js';
+export { deliverAgencyAgreement } from './deliverAgencyAgreement.js';

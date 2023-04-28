@@ -43,7 +43,7 @@ service cloud.firestore {
       allow delete: if false
     }
     
-     match /submissionsQuotes/{quoteId} {
+    match /submissionsQuotes/{quoteId} {
       allow read: if true
       allow create: if isIDemandAdmin()
       allow update: if (isUser(existingData().userId) && !(containsRestrictedFields(['quoteExpiration', 'subproducerCommission', 'quoteTotal', 'termPremium', 'taxes', 'fees', 'replacementCost', 'product', 'status', 'statusTransitions']))) || (isIDemandAdmin() && emailVerified())
@@ -184,7 +184,7 @@ service cloud.firestore {
     }
 
     function isIDemandAdmin() {
-      return isSignedIn() && request.auth.token.iDemandAdmin == true
+      return isSignedIn() && request.auth.token.iDemandAdmin && request.auth.token.iDemandAdmin == true
     }
 
     // Does the logged-in user match the requested userId?
@@ -193,11 +193,11 @@ service cloud.firestore {
     }
 
     function isTenantUser(tenantId) {
-      return request.auth.token.firebase.tenant && request.auth.token.firebase.tenant == tenantId
+      return isSignedIn() && request.auth.token.firebase.tenant == tenantId
     }
 
     function isOrgAdmin() {
-      return request.auth.token.orgAdmin == true
+      return isSignedIn() && request.auth.token.orgAdmin && request.auth.token.orgAdmin == true
     }
 
     // // Fetch a user from Firestore

@@ -17,6 +17,7 @@ export { inviteUsers } from './inviteUsers';
 export { getAnnualPremium } from './getAnnualPremium';
 export { getValuationEstimate } from './getValuationEstimate';
 export { getRiskFactorId } from './getRiskFactorId';
+export { deliverAgencyAgreement } from './deliverAgencyAgreement';
 
 export type { FetchPropertyDataRequest, FetchPropertyDataResponse } from './fetchPropertyDetails';
 export type { SendContactEmailRequest, SendContactEmailResponse } from './sendContactEmail';

@@ -24,6 +24,7 @@ export {
   getAnnualPremium,
   getValuationEstimate,
   getRiskFactorId,
+  deliverAgencyAgreement,
 } from './callables';
 export {
   newSubmissionNotifications,

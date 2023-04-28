@@ -114,8 +114,7 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
     }
     await auth.currentUser?.getIdToken(true);
     const idTokenResult: IdTokenResult = await auth.currentUser.getIdTokenResult();
-    // Show admin UI. TODO: UI by claim level
-    console.log('TOKEN RESULT: ', idTokenResult);
+    // console.log('TOKEN RESULT: ', idTokenResult);
 
     setCustomClaims({
       ...idTokenResult.claims,
@@ -187,7 +186,7 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
       try {
         console.log('auth.tenantId: ', auth.tenantId);
         let res = await signInWithEmailAndPassword(auth, email, password);
-        console.log('SIGN IN RES: ', res);
+        // console.log('SIGN IN RES: ', res);
         await updateClaims();
 
         return res;

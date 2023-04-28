@@ -6,8 +6,10 @@ import InputDialog from 'components/InputDialog';
 // import { auth } from 'firebaseConfig';
 import { isValidEmail, readableFirebaseCode } from 'modules/utils/helpers';
 import { FirebaseError } from 'firebase/app';
+import { getTenantIdFromEmail } from 'modules/api';
+import { useFunctions } from 'reactfire';
 
-// TODO: requires reauth before sending ?? catch in error ??
+// TODO: call function to check if user is tenant user
 
 export interface UseSendPasswordResetProps {
   onSuccess?: (email?: string) => void;
@@ -18,6 +20,7 @@ export const useSendPasswordReset = ({ onSuccess, onError }: UseSendPasswordRese
   const [error, setError] = useState<any>();
   const confirm = useConfirmation();
   const auth = getAuth();
+  const functions = useFunctions();
 
   const sendPasswordReset = useCallback(
     async (email: string, continueUrl?: string) => {
@@ -42,6 +45,17 @@ export const useSendPasswordReset = ({ onSuccess, onError }: UseSendPasswordRese
       }
 
       try {
+        const {
+          data: { tenantId },
+        } = await getTenantIdFromEmail(functions, {
+          email: email.trim().toLowerCase(),
+        });
+        if (tenantId) auth.tenantId = tenantId;
+      } catch (err) {
+        console.log('ERROR CHECKING FOR TENANT ID ', err);
+      }
+
+      try {
         // var actionCodeSettings = {
         //   url:
         //     continueUrl ||
@@ -63,7 +77,7 @@ export const useSendPasswordReset = ({ onSuccess, onError }: UseSendPasswordRese
         if (onError) onError(err, msg);
       }
     },
-    [confirm, onSuccess, onError, auth]
+    [confirm, onSuccess, onError, auth, functions]
   );
 
   return { sendPasswordReset, error };

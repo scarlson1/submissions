@@ -9,10 +9,11 @@ import {
   Button,
   Unstable_Grid2 as Grid,
   Tab,
-  Card,
-  CardContent,
-  IconButton,
+  // Card,
+  // CardContent,
+  // IconButton,
 } from '@mui/material';
+// import { MoreVertRounded } from '@mui/icons-material';
 import { useFirestore, useUser } from 'reactfire';
 import { doc, setDoc } from 'firebase/firestore';
 import { toast } from 'react-hot-toast';
@@ -21,15 +22,16 @@ import { useForm, SubmitHandler, useFormState } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { LoadingButton, TabContext, TabList, TabPanel } from '@mui/lab';
+// import Slider from 'react-slick';
 
 // import { useAuth } from 'modules/components/AuthContext';
 import { AddUsersDialog, UpdateProfileImg } from 'elements';
 import { COLLECTIONS, User, usersCollection } from 'common';
-import { ClaimsGuard, FlexCard, FlexCardContent } from 'components';
+import { ClaimsGuard } from 'components';
 import {
   UpdateProfileRes,
   useAsyncToast,
-  useCollectionData,
+  // useCollectionData,
   useDocData,
   useUpdateProfile,
 } from 'hooks';
@@ -38,7 +40,6 @@ import { RHFTextField } from 'components/forms';
 import { AdminManageUsersGrid } from 'elements/UsersGrid';
 import { passwordValidation } from './CreateAccount';
 import { RHFPassword } from 'elements/FormikPassword';
-import { MoreVertRounded } from '@mui/icons-material';
 
 // react spring animated gradient: https://codesandbox.io/s/xg8jhi
 
@@ -156,13 +157,14 @@ export const AccountDetails: React.FC = () => {
               >
                 <Tab label='Account' value='account' />
                 {/* <ClaimsGuard requiredClaims={['IDEMAND_ADMIN', 'AGENT', 'ORG_ADMIN']}> */}
-                <Tab label='Team' value='team' />
+                {user.tenantId || user.email?.includes('@idemandinsurance.com') ? (
+                  <Tab label='Team' value='team' />
+                ) : null}
                 {/* </ClaimsGuard> */}
-
                 {/* <Tab label='Invites' value='invites' /> */}
                 {/* <Tab label='Admin Users (test)' value='test' /> */}
                 <Tab label='Security' value='security' />
-                <Tab label='Billing' value='billing' />
+                {/* <Tab label='Billing' value='billing' /> */}
               </TabList>
             </Box>
             <TabPanel value='account'>
@@ -179,33 +181,35 @@ export const AccountDetails: React.FC = () => {
               </Grid>
             </TabPanel>
             <TabPanel value='team'>
-              <Box>
-                <Box sx={{ pb: 2 }}>
-                  {/* <ClaimsGuard requiredClaims={['ORG_ADMIN', 'IDEMAND_ADMIN']} requireAll={false}> */}
-                  <Box sx={{ p: 1 }}>
-                    <AddUsersDialog />
+              {user.tenantId ? (
+                <Box>
+                  <Box sx={{ pb: 2, width: '100%', display: 'flex', justifyContent: 'flex-end' }}>
+                    <ClaimsGuard requiredClaims={['ORG_ADMIN', 'IDEMAND_ADMIN']} requireAll={false}>
+                      <AddUsersDialog />
+                    </ClaimsGuard>
                   </Box>
-                  {/* </ClaimsGuard> */}
+                  <AdminManageUsersGrid
+                    orgId={user.tenantId} // 'idemand'
+                    columnVisibilityModel={{
+                      displayName: false,
+                      firstName: false,
+                      lastName: false,
+                      email: false,
+                      phone: false,
+                      actions: false,
+                      'metadata.created': false,
+                      created: false,
+                      'metadata.updated': false,
+                      updated: false,
+                      orgId: false,
+                      id: false,
+                    }}
+                    density='standard'
+                  />
                 </Box>
-                <AdminManageUsersGrid
-                  orgId='idemand'
-                  columnVisibilityModel={{
-                    displayName: false,
-                    firstName: false,
-                    lastName: false,
-                    email: false,
-                    phone: false,
-                    actions: false,
-                    'metadata.created': false,
-                    created: false,
-                    'metadata.updated': false,
-                    updated: false,
-                    orgId: false,
-                    id: false,
-                  }}
-                  density='standard'
-                />
-              </Box>
+              ) : (
+                <Typography>Must be associated with an organization to add users.</Typography>
+              )}
             </TabPanel>
             <TabPanel value='security'>
               <Grid container spacing={5}>
@@ -220,7 +224,7 @@ export const AccountDetails: React.FC = () => {
               </Grid>
             </TabPanel>
 
-            <TabPanel value='billing'>
+            {/* <TabPanel value='billing'>
               <Grid container spacing={5}>
                 <Grid xs={12} sm={3} md={4}>
                   <Typography variant='h6' gutterBottom>
@@ -231,7 +235,7 @@ export const AccountDetails: React.FC = () => {
                   <SavedPaymentMethods />
                 </Grid>
               </Grid>
-            </TabPanel>
+            </TabPanel> */}
           </TabContext>
         </Box>
       </Paper>
@@ -586,86 +590,183 @@ function UpdatePasswordForm() {
   );
 }
 
-function SavedPaymentMethods() {
-  const { data: user } = useUser();
-  const { data } = useCollectionData('USERS', [], { idField: 'paymentMethodId' }, [
-    `${user?.uid}`,
-    COLLECTIONS.PAYMENT_METHODS,
-  ]);
+// function SavedPaymentMethods() {
+//   const { data: user } = useUser();
+//   const { data } = useCollectionData('USERS', [], { idField: 'paymentMethodId' }, [
+//     `${user?.uid}`,
+//     COLLECTIONS.PAYMENT_METHODS,
+//   ]);
 
-  return (
-    <Box sx={{ width: '100%' }}>
-      <Box sx={{ maxWidth: 400 }}>
-        <PaymentMethodCard />
-      </Box>
+//   return (
+//     <Box sx={{ width: '100%' }}>
+//       <Box sx={{ maxWidth: 400 }}>
+//         <PaymentMethodCardSlider>
+//           <Box>
+//             <Grid container spacing={3}>
+//               <Grid xs='auto'>
+//                 <Typography variant='body2' color='text.secondary' fontWeight={600}>
+//                   Temp overline
+//                 </Typography>
+//               </Grid>
+//               <Grid xs sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+//                 <IconButton size='small' sx={{ mr: -2, mt: -2 }}>
+//                   <MoreVertRounded fontSize='small' />
+//                 </IconButton>
+//               </Grid>
+//               <Grid xs={12}>
+//                 <Typography variant='h6'>**** **** **** 1234</Typography>
+//               </Grid>
+//               <Grid xs={6}>
+//                 <Box>
+//                   <Typography
+//                     variant='body2'
+//                     color='text.secondary'
+//                     sx={{ fontSize: '0.75rem', lineHeight: '1.8rem' }}
+//                   >
+//                     Card Holder
+//                   </Typography>
+//                   <Typography variant='subtitle2'>John Doe</Typography>
+//                 </Box>
+//               </Grid>
+//               <Grid xs={4}>
+//                 <Typography
+//                   variant='body2'
+//                   color='text.secondary'
+//                   sx={{ fontSize: '0.75rem', lineHeight: '1.8rem' }}
+//                 >
+//                   Expires
+//                 </Typography>
+//                 <Typography variant='subtitle2'>11/24</Typography>
+//               </Grid>
+//             </Grid>
+//           </Box>
+//           {/* <Box>
+//             <Grid container spacing={3}>
+//               <Grid xs='auto'>
+//                 <Typography variant='body2' color='text.secondary' fontWeight={600}>
+//                   Temp overline
+//                 </Typography>
+//               </Grid>
+//               <Grid xs sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+//                 <IconButton size='small' sx={{ mr: -2, mt: -2 }}>
+//                   <MoreVertRounded fontSize='small' />
+//                 </IconButton>
+//               </Grid>
+//               <Grid xs={12}>
+//                 <Typography variant='h6'>**** **** **** 5678</Typography>
+//               </Grid>
+//               <Grid xs={6}>
+//                 <Box>
+//                   <Typography
+//                     variant='body2'
+//                     color='text.secondary'
+//                     sx={{ fontSize: '0.75rem', lineHeight: '1.8rem' }}
+//                   >
+//                     Card Holder
+//                   </Typography>
+//                   <Typography variant='subtitle2'>Jane Doe</Typography>
+//                 </Box>
+//               </Grid>
+//               <Grid xs={4}>
+//                 <Typography
+//                   variant='body2'
+//                   color='text.secondary'
+//                   sx={{ fontSize: '0.75rem', lineHeight: '1.8rem' }}
+//                 >
+//                   Expires
+//                 </Typography>
+//                 <Typography variant='subtitle2'>01/26</Typography>
+//               </Grid>
+//             </Grid>
+//           </Box> */}
+//         </PaymentMethodCardSlider>
+//       </Box>
 
-      {data.length > 0 ? (
-        <>
-          {data.map((pmtmthd) => (
-            <Typography variant='body2' color='text.secondary'>
-              <pre>{JSON.stringify(pmtmthd, null, 2)}</pre>
-            </Typography>
-          ))}
-        </>
-      ) : (
-        <Typography variant='body2' color='text.secondary' fontWeight={600} textAlign='center'>
-          No payment methods saved
-        </Typography>
-      )}
-    </Box>
-  );
-}
+//       {data.length ? (
+//         <>
+//           {data.map((pmtmthd) => (
+//             <Typography variant='body2' color='text.secondary' component='div'>
+//               <pre>{JSON.stringify(pmtmthd, null, 2)}</pre>
+//             </Typography>
+//           ))}
+//         </>
+//       ) : (
+//         <Typography variant='body2' color='text.secondary' fontWeight={600} textAlign='center'>
+//           No payment methods saved
+//         </Typography>
+//       )}
+//     </Box>
+//   );
+// }
+// const settings = {
+//   dots: true,
+//   infinite: false, // true,
+//   speed: 500,
+//   slidesToShow: 1,
+//   slidesToScroll: 1,
+//   // autoplay: true,
+//   // autoplaySpeed: 2000
+// };
+// function PaymentMethodCardSlider({ children }: { children: React.ReactNode }) {
+//   return (
+//     <Card
+//       sx={{
+//         // TODO: background colors & contrast text color
+//         backgroundColor: (theme) =>
+//           theme.palette.mode === 'dark'
+//             ? theme.palette.primaryDark[600]
+//             : theme.palette.primaryDark[100],
+//       }}
+//     >
+//       <CardContent sx={{ pb: 4 }}>
+//         {children}
+//         {/* <Slider {...settings}>
+//           {methodDetails.length &&
+//               methodDetails.map((method, i) => (
+//                 <div id={method.id}>
 
-function PaymentMethodCard() {
-  return (
-    <FlexCard
-      sx={{
-        // TODO: background colors & contrast text color
-        backgroundColor: (theme) =>
-          theme.palette.mode === 'dark'
-            ? theme.palette.primaryDark[600]
-            : theme.palette.primaryDark[100],
-      }}
-    >
-      <FlexCardContent sx={{ pb: 4 }}>
-        <Grid container spacing={3}>
-          <Grid xs='auto'>
-            <Typography variant='body2' color='text.secondary' fontWeight={600}>
-              Temp overline
-            </Typography>
-          </Grid>
-          <Grid xs sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <IconButton>
-              <MoreVertRounded />
-            </IconButton>
-          </Grid>
-          <Grid xs={12}>
-            <Typography variant='h6'>**** **** **** 1234</Typography>
-          </Grid>
-          <Grid xs={6}>
-            <Box>
-              <Typography
-                variant='body2'
-                color='text.secondary'
-                sx={{ fontSize: '0.75rem', lineHeight: '1.8rem' }}
-              >
-                Card Holder
-              </Typography>
-              <Typography variant='subtitle2'>John Doe</Typography>
-            </Box>
-          </Grid>
-          <Grid xs={4}>
-            <Typography
-              variant='body2'
-              color='text.secondary'
-              sx={{ fontSize: '0.75rem', lineHeight: '1.8rem' }}
-            >
-              Expires
-            </Typography>
-            <Typography variant='subtitle2'>11/24</Typography>
-          </Grid>
-        </Grid>
-      </FlexCardContent>
-    </FlexCard>
-  );
-}
+//                 </div>
+//               ))}
+
+//         </Slider> */}
+//         {/* <Grid container spacing={3}>
+//           <Grid xs='auto'>
+//             <Typography variant='body2' color='text.secondary' fontWeight={600}>
+//               Temp overline
+//             </Typography>
+//           </Grid>
+//           <Grid xs sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+//             <IconButton size='small' sx={{ mr: -2, mt: -2 }}>
+//               <MoreVertRounded fontSize='small' />
+//             </IconButton>
+//           </Grid>
+//           <Grid xs={12}>
+//             <Typography variant='h6'>**** **** **** 1234</Typography>
+//           </Grid>
+//           <Grid xs={6}>
+//             <Box>
+//               <Typography
+//                 variant='body2'
+//                 color='text.secondary'
+//                 sx={{ fontSize: '0.75rem', lineHeight: '1.8rem' }}
+//               >
+//                 Card Holder
+//               </Typography>
+//               <Typography variant='subtitle2'>John Doe</Typography>
+//             </Box>
+//           </Grid>
+//           <Grid xs={4}>
+//             <Typography
+//               variant='body2'
+//               color='text.secondary'
+//               sx={{ fontSize: '0.75rem', lineHeight: '1.8rem' }}
+//             >
+//               Expires
+//             </Typography>
+//             <Typography variant='subtitle2'>11/24</Typography>
+//           </Grid>
+//         </Grid> */}
+//       </CardContent>
+//     </Card>
+//   );
+// }

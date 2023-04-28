@@ -15,8 +15,9 @@ import { IconLayer, PickingInfo } from 'deck.gl/typed';
 
 import { DeckMap } from './DeckMap';
 import { useCollectionData } from 'hooks';
-import { getValuationEstimate } from 'modules/api';
+import { deliverAgencyAgreement, getValuationEstimate } from 'modules/api';
 import { getFunctions } from 'firebase/functions';
+import { useFunctions } from 'reactfire';
 // @ts-ignore
 // import { DataFilterExtension } from '@deck.gl/extensions';
 // import { Policy } from 'common';
@@ -212,6 +213,37 @@ export const PoliciesMap: React.FC<PoliciesMapProps> = ({
         ))}
       </Box>
       <Button onClick={testValuation}>Test get valuation</Button>
+      <TestSignNow />
     </Box>
   );
 };
+
+function TestSignNow() {
+  const functions = useFunctions();
+
+  const handleClick = useCallback(async () => {
+    try {
+      const { data } = await deliverAgencyAgreement(functions, {
+        recipientName: 'John Doe',
+        email: 'spencercarlson@mac.com',
+        companyName: 'Engulfed Insurance',
+        companyAddress: {
+          addressLine1: '123 main st.',
+          addressLine2: '',
+          city: 'Nashville',
+          state: 'TN',
+          postal: '37203',
+        },
+      });
+      console.log('RES: ', data);
+    } catch (err) {
+      console.log('ERROR: ', err);
+    }
+  }, [functions]);
+
+  return (
+    <Button onClick={handleClick} sx={{ m: 2 }}>
+      Test Sign Now
+    </Button>
+  );
+}
