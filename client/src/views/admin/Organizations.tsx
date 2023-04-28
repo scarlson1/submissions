@@ -73,7 +73,7 @@ export const Organizations: React.FC = () => {
         minWidth: 180,
         flex: 1,
         editable: false,
-        valueGetter: (params) => params.row.primaryContact.displayName,
+        valueGetter: (params) => params.row.primaryContact?.displayName,
         // valueGetter: (params) =>
         //   `${params.row.primaryContact.firstName} ${params.row.primaryContact.lastName}`,
       },
@@ -139,7 +139,7 @@ export const Organizations: React.FC = () => {
         flex: 1,
         editable: false,
         align: 'center',
-        valueGetter: (params) => params.row.defaultCommission.flood || null,
+        valueGetter: (params) => params.row.defaultCommission?.flood || null,
         valueFormatter: (params: GridValueFormatterParams<number | null>) =>
           formatGridPercent(params, 0),
       },
