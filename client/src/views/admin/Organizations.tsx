@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Box } from '@mui/material';
+import { Box, Button } from '@mui/material';
 import { limit, orderBy } from 'firebase/firestore';
 import { GridColDef, GridValueFormatterParams } from '@mui/x-data-grid';
 import { useNavigate } from 'react-router-dom';
@@ -156,6 +156,11 @@ export const Organizations: React.FC = () => {
 
   return (
     <Box>
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', pb: 2 }}>
+        <Button onClick={() => navigate(createPath({ path: ADMIN_ROUTES.CREATE_TENANT }))}>
+          New Org
+        </Button>
+      </Box>
       <Box sx={{ height: 500, width: '100%' }}>
         <BasicDataGrid
           rows={data || []}

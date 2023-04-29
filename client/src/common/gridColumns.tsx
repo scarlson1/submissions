@@ -185,15 +185,19 @@ export const fileLinkCol: GridColDef = {
   minWidth: 180,
   flex: 1,
   editable: false,
-  renderCell: ({ value }: GridRenderCellParams<any, any, any>) => (
-    <FileLink
-      filepath={value}
-      url={value}
-      fileType='.pdf'
-      typographyProps={{ variant: 'body2', fontWeight: 'fontWeightMedium' }}
-      linkProps={{ underline: 'hover' }}
-    />
-  ),
+  renderCell: ({ value }: GridRenderCellParams<any, any, any>) => {
+    if (!value) return null;
+
+    return (
+      <FileLink
+        filepath={value}
+        url={value}
+        fileType='.pdf'
+        typographyProps={{ variant: 'body2', fontWeight: 'fontWeightMedium' }}
+        linkProps={{ underline: 'hover' }}
+      />
+    );
+  },
 };
 
 export const addressSummaryCol: GridColDef = {
