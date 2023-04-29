@@ -91,7 +91,8 @@ export const Header: React.FC<HeaderProps> = () => {
       },
       {
         title: 'Policies',
-        route: createPath({ path: ADMIN_ROUTES.POLICIES }),
+        route: createPath({ path: ROUTES.POLICIES }),
+        // route: createPath({ path: ADMIN_ROUTES.POLICIES }),
         icon: <PolicyRounded color='primary' fontSize='small' />,
       },
       {
@@ -175,11 +176,11 @@ export const Header: React.FC<HeaderProps> = () => {
         route: createPath({ path: ROUTES.QUOTES }),
         icon: <RequestQuoteRounded color='primary' fontSize='small' />,
       },
-      // {
-      //   title: 'Policies',
-      //   route: createPath({ path: ADMIN_ROUTES.POLICIES }),
-      //   icon: <PolicyRounded color='primary' fontSize='small' />,
-      // },
+      {
+        title: 'Policies',
+        route: createPath({ path: ROUTES.POLICIES }),
+        icon: <PolicyRounded color='primary' fontSize='small' />,
+      },
     ],
     []
   );

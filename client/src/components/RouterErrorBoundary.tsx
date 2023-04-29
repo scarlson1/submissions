@@ -9,6 +9,54 @@ import { ServerDownSVG, PageNotFoundSVG, SecureLoginSVG, SearchingSVG } from 'as
 // TODO: tailor error responses using isRouteErrorResponse
 // https://reactrouter.com/en/main/route/error-element
 
+// TODO: wrap in layout ?? includes nav? What about if caughts at lower levels of router ??
+
+export const NotFound = ({
+  msg,
+  actionButtons,
+}: {
+  msg?: string;
+  actionButtons?: { label: string; path: string }[];
+}) => {
+  const navigate = useNavigate();
+
+  return (
+    <Container maxWidth='xs' sx={{ py: 8 }}>
+      <Box
+        sx={{
+          textAlign: 'center',
+          height: { xs: '100px', sm: '140px', md: '160px' },
+          m: 8,
+        }}
+      >
+        <PageNotFoundSVG style={{ width: 'inherit', height: 'inherit', margin: 'auto' }} />
+      </Box>
+      <Box>
+        <Typography variant='h5' gutterBottom sx={{ py: 2 }}>
+          The requested resource could not be found
+        </Typography>
+        <Typography variant='body2' color='text.secondary' sx={{ py: 2 }}>
+          {msg ?? 'Something went wrong...'}
+        </Typography>
+      </Box>
+      {/* {actionButtons && ( */}
+      <Box>
+        <Stack spacing={3} direction={{ xs: 'column', sm: 'row' }}>
+          <Button onClick={() => navigate('/')}>Home</Button>
+          <Button onClick={() => navigate(-1)}>Back</Button>
+          {actionButtons &&
+            actionButtons?.map((button) => (
+              <Button onClick={() => navigate(button.path)} key={button.path}>
+                {button.label}
+              </Button>
+            ))}
+        </Stack>
+      </Box>
+      {/* )} */}
+    </Container>
+  );
+};
+
 export interface RouterErrorBoundaryProps {
   actionButtons?: { label: string; path: string }[];
 }
@@ -23,41 +71,40 @@ export const RouterErrorBoundary: React.FC<RouterErrorBoundaryProps> = ({ action
     let msg = typeof error.data === 'string' ? error.data : undefined;
 
     if (error.status === 404) {
-      return (
-        <Container maxWidth='xs' sx={{ py: 8 }}>
-          <Box
-            sx={{
-              textAlign: 'center',
-              height: { xs: '100px', sm: '140px', md: '160px' },
-              m: 8,
-            }}
-          >
-            <PageNotFoundSVG style={{ width: 'inherit', height: 'inherit', margin: 'auto' }} />
-          </Box>
-          <Box>
-            <Typography variant='h5' gutterBottom sx={{ py: 2 }}>
-              The requested resource could not be found
-            </Typography>
-            <Typography variant='body2' color='text.secondary' sx={{ py: 2 }}>
-              {msg ?? 'Something went wrong...'}
-            </Typography>
-          </Box>
-          {/* {actionButtons && ( */}
-          <Box>
-            <Stack spacing={3} direction={{ xs: 'column', sm: 'row' }}>
-              <Button onClick={() => navigate('/')}>Home</Button>
-              <Button onClick={() => navigate(-1)}>Back</Button>
-              {actionButtons &&
-                actionButtons?.map((button) => (
-                  <Button onClick={() => navigate(button.path)} key={button.path}>
-                    {button.label}
-                  </Button>
-                ))}
-            </Stack>
-          </Box>
-          {/* )} */}
-        </Container>
-      );
+      return <NotFound msg={msg} actionButtons={actionButtons} />;
+      // return (
+      //   <Container maxWidth='xs' sx={{ py: 8 }}>
+      //     <Box
+      //       sx={{
+      //         textAlign: 'center',
+      //         height: { xs: '100px', sm: '140px', md: '160px' },
+      //         m: 8,
+      //       }}
+      //     >
+      //       <PageNotFoundSVG style={{ width: 'inherit', height: 'inherit', margin: 'auto' }} />
+      //     </Box>
+      //     <Box>
+      //       <Typography variant='h5' gutterBottom sx={{ py: 2 }}>
+      //         The requested resource could not be found
+      //       </Typography>
+      //       <Typography variant='body2' color='text.secondary' sx={{ py: 2 }}>
+      //         {msg ?? 'Something went wrong...'}
+      //       </Typography>
+      //     </Box>
+      //     <Box>
+      //       <Stack spacing={3} direction={{ xs: 'column', sm: 'row' }}>
+      //         <Button onClick={() => navigate('/')}>Home</Button>
+      //         <Button onClick={() => navigate(-1)}>Back</Button>
+      //         {actionButtons &&
+      //           actionButtons?.map((button) => (
+      //             <Button onClick={() => navigate(button.path)} key={button.path}>
+      //               {button.label}
+      //             </Button>
+      //           ))}
+      //       </Stack>
+      //     </Box>
+      //   </Container>
+      // );
     }
     // EXAMPLE: <p>Go ahead and email {error.data.hrEmail} if you feel like this is a mistake.</p>;
 

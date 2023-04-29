@@ -1,13 +1,8 @@
-import React from 'react';
-import { Box } from '@mui/material';
-
-import { useAuth } from 'modules/components';
-
-// USER POLICIES COMPONENT IMPORTS
-import { useCallback } from 'react';
+import React, { useCallback } from 'react';
 import {
   Avatar,
   AvatarGroup,
+  Box,
   Button,
   CardActionArea,
   CardMedia,
@@ -24,58 +19,6 @@ import { FlexCard, FlexCardContent, LoadingSpinner } from 'components';
 import { useNavigate } from 'react-router-dom';
 import { createPath, ROUTES } from 'router';
 import { Item } from './UserSubmissions';
-import { PoliciesGrid } from 'elements';
-import { limit, orderBy, where } from 'firebase/firestore';
-
-// TODO: change policies view to allow switching between card and grid view
-// pull data state up. default initial view state by claim type
-
-export const Policies: React.FC = () => {
-  const { customClaims, user } = useAuth();
-
-  const header = (
-    <>
-      <Typography variant='h5' sx={{ ml: { xs: 0, sm: 3 } }}>
-        Policies
-      </Typography>
-      <Divider sx={{ my: 3 }} />
-    </>
-  );
-
-  if (customClaims.iDemandAdmin)
-    return (
-      <Container maxWidth='xl' sx={{ py: { xs: 4, md: 6 } }}>
-        <Box>
-          {header}
-          <PoliciesGrid
-            queryConstraints={[
-              // where('agencyId', '==', `${orgId}`),
-              orderBy('metadata.created', 'desc'),
-              limit(100),
-            ]}
-          />
-        </Box>
-      </Container>
-    );
-
-  if ((customClaims.agent || customClaims.orgAdmin) && user?.tenantId)
-    return (
-      <Container maxWidth='xl' sx={{ py: { xs: 4, md: 6 } }}>
-        <Box>
-          {header}
-          <PoliciesGrid
-            queryConstraints={[
-              where('agency.orgId', '==', `${user?.tenantId}`),
-              orderBy('metadata.created', 'desc'),
-              limit(100),
-            ]}
-          />
-        </Box>
-      </Container>
-    );
-
-  return <UserPolicies />;
-};
 
 // TODO: use rxjs to get user profile for avatars
 
@@ -94,7 +37,7 @@ export const fallbackImages = [
   'https://firebasestorage.googleapis.com/v0/b/idemand-submissions.appspot.com/o/common%2Fneighborhood-aerial-1.jpg?alt=media&token=9f80797b-2449-4229-bb2d-b5eb224d86af',
 ];
 
-export const UserPolicies: React.FC = () => {
+export const Policies: React.FC = () => {
   const navigate = useNavigate();
   const theme = useTheme();
   const { policies, initialLoading, error } = useUsersPolicies();
@@ -203,3 +146,18 @@ export const UserPolicies: React.FC = () => {
     </Container>
   );
 };
+
+// export const policiesLoader = (auth: Auth) => async (args: LoaderFunctionArgs) => {
+//   console.log('current user: ', auth.currentUser);
+
+//   if (!auth.currentUser || !auth.currentUser.uid) {
+//     throw new Response('Must be authenticated to view requested resource.', { status: 401 });
+//   }
+//   try {
+//     return getDocs(query(policiesCollection, where('userId', '==', auth.currentUser.uid))).then(
+//       (querySnap) => querySnap.docs.map((snap) => ({ ...snap.data(), id: snap.id }))
+//     );
+//   } catch (err) {
+//     throw new Response(`Error fetching policies`);
+//   }
+// };

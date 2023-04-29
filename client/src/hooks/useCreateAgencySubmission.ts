@@ -39,10 +39,10 @@ export const useCreateAgencySubmission = ({
             postal: values.postal,
           },
           contact: {
-            firstName: values.firstName,
-            lastName: values.lastName,
-            email: values.email,
-            phone: values.phone,
+            firstName: values.firstName.trim(),
+            lastName: values.lastName.trim(),
+            email: values.email.toLowerCase().trim(),
+            phone: values.phone.trim(),
           },
           agents: values.agents,
           bankDetails: {

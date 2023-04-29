@@ -21,7 +21,7 @@ import * as CheckmarkLottie from 'assets/checkmark.json';
 import { ROUTES, createPath, AUTH_ROUTES } from 'router';
 import { Submission } from 'common/types';
 import { useAuth } from 'modules/components/AuthContext';
-import { fallbackImages } from 'views/Policies';
+import { fallbackImages } from 'views/PoliciesOld';
 import {
   Charge,
   submissionsCollection,

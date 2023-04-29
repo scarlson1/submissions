@@ -34,7 +34,7 @@ import {
   AgencyApps,
   Quotes as AdminQuotes,
   PolicyDelivery,
-  Policies as PoliciesAdmin,
+  // Policies as PoliciesAdmin,
   DisclosureNew,
   DisclosureEdit,
   Home as AdminHome,
@@ -74,7 +74,7 @@ export enum ROUTES {
   QUOTE_BIND_SUCCESS = '/quotes/:quoteId/bind/success/:transactionId?',
   CONTACT = '/contact',
   USER_QUOTES = '/quotes/list/:userId',
-  USER_POLICIES = '/policies',
+  POLICIES = '/policies', // '/policies/:productId?'
   USER_POLICY = '/policies/:policyId',
   AGENCY_NEW = '/agency/new',
   PROTOSURE = '/protosure/new/:productId/:quoteId?',
@@ -88,7 +88,7 @@ export enum ADMIN_ROUTES {
   QUOTE_NEW_BLANK = '/admin/quotes/:productId/new', // QuoteNewFromSub
   QUOTE_NEW = '/admin/quotes/:productId/new/:submissionId',
   POLICY_DELIVERY = '/admin/policies/:policyId/delivery',
-  POLICIES = '/admin/policies',
+  // POLICIES = '/admin/policies',
   SL_TAXES = '/admin/sl-tax',
   SL_TAXES_NEW = '/admin/sl-tax/new',
   EDIT_ACTIVE_STATES = '/admin/active-states/:productId/edit',
@@ -136,7 +136,7 @@ type TArgs =
   | { path: ROUTES.QUOTE_VIEW; params: { quoteId: string } }
   | { path: ROUTES.QUOTE_BIND; params: { quoteId: string } } // INCLUDE PRODUCT ID ??
   | { path: ROUTES.QUOTE_BIND_SUCCESS; params: { quoteId: string; transactionId?: string } }
-  | { path: ROUTES.USER_POLICIES }
+  | { path: ROUTES.POLICIES; search?: { productId?: Product } }
   | { path: ROUTES.USER_POLICY; params: { policyId: string } }
   | { path: ROUTES.AGENCY_NEW }
   | { path: ROUTES.CONTACT }
@@ -148,7 +148,7 @@ type TArgs =
   | { path: ADMIN_ROUTES.QUOTE_NEW_BLANK; params: { productId: Product } }
   | { path: ADMIN_ROUTES.QUOTE_NEW; params: { productId: Product; submissionId: string } }
   | { path: ADMIN_ROUTES.POLICY_DELIVERY; params: { policyId: string } }
-  | { path: ADMIN_ROUTES.POLICIES; search?: { productId?: Product } }
+  // | { path: ADMIN_ROUTES.POLICIES; search?: { productId?: Product } }
   | { path: ADMIN_ROUTES.SL_TAXES }
   | { path: ADMIN_ROUTES.SL_TAXES_NEW }
   | { path: ADMIN_ROUTES.EDIT_ACTIVE_STATES; params: { productId: Product } }
@@ -458,27 +458,14 @@ export const router = createBrowserRouter([
             ),
             // loader: policyLoader,
           },
-          {
-            path: ADMIN_ROUTES.POLICIES,
-            element: (
-              // <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
-              <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
-                <PoliciesAdmin />
-              </RequireAuthReactFire>
-
-              // </RequireAuth>
-            ),
-            // loader: testPoliciesLoader(getAuth),
-            // loader: (params) => async () => {
-            //   const user = getAuth().currentUser;
-            //   console.log('USER: ', user);
-            //   return adminPoliciesLoader(params);
-            // },
-            // loader: async (params) => {
-            //   await ensureUserSession();
-            //   return adminPoliciesLoader(params);
-            // },
-          },
+          // {
+          //   path: ADMIN_ROUTES.POLICIES,
+          //   element: (
+          //     <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
+          //       <PoliciesAdmin />
+          //     </RequireAuthReactFire>
+          //   ),
+          // },
           {
             path: ADMIN_ROUTES.SL_TAXES,
             element: (
@@ -668,6 +655,27 @@ export const router = createBrowserRouter([
           },
         ],
       },
+      // {
+      //   path: '*',
+      //   element: <Layout containerProps={{ maxWidth: 'lg' }} />,
+      //   children: [
+      //     {
+      //       index: true,
+      //       element: (() => (
+      //         <div
+      //           style={{
+      //             display: 'flex',
+      //             justifyContent: 'center',
+      //             alignItems: 'center',
+      //             minHeight: 400,
+      //           }}
+      //         >
+      //           test
+      //         </div>
+      //       ))(), // <NotFound />,
+      //     },
+      //   ],
+      // },
     ],
   },
 ]);

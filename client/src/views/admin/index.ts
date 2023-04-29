@@ -12,7 +12,7 @@ export { Licenses } from './Licenses';
 export { AgencyApp } from './AgencyApp';
 export { AgencyApps } from './AgencyApps';
 export { PolicyDelivery } from './PolicyDelivery';
-export { Policies } from './Policies';
+// export { Policies } from './Policies.Old';
 export { Disclosures } from './Disclosures';
 export { DisclosureNew } from './DisclosureNew';
 export { DisclosureEdit } from './DisclosureEdit';

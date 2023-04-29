@@ -51,6 +51,10 @@ import {
 } from 'common';
 import { useCollectionData, useJsonDialog } from 'hooks';
 
+// REPLACED WITH POLICIES COMPONENT
+// route changed from /admin/policies to /policies
+// component handles different queries dependent on claims
+
 // loader - use search or params to optionally prefilter by product ?
 // TODO: can use useEffect + subscription to automatically update query when filter changes (like react query)
 
@@ -135,14 +139,14 @@ export const Policies: React.FC = () => {
         ...emailCol,
         field: 'insuredEmail',
         headerName: 'Insured Email',
-        valueGetter: (params: GridValueGetterParams) => params.row.namedInsured.email,
+        valueGetter: (params: GridValueGetterParams) => params.row.namedInsured?.email,
         // renderCell: renderGridEmail,
       },
       {
         ...phoneCol,
         field: 'insuredPhone',
         headerName: 'Insured Phone',
-        valueGetter: (params: GridValueGetterParams) => params.row.namedInsured.phone,
+        valueGetter: (params: GridValueGetterParams) => params.row.namedInsured?.phone,
         // renderCell: renderGridPhone,
       },
       limitACol,
@@ -157,7 +161,7 @@ export const Policies: React.FC = () => {
         ...emailCol,
         field: 'agentEmail',
         headerName: 'Agent Email',
-        valueGetter: (params: GridValueGetterParams<any, any>) => params.row.agent.email || null,
+        valueGetter: (params: GridValueGetterParams<any, any>) => params.row.agent?.email || null,
         // renderCell: renderGridEmail,
       },
       {
@@ -167,7 +171,7 @@ export const Policies: React.FC = () => {
         // minWidth: 140,
         // flex: 0.8,
         // editable: false,
-        valueGetter: (params: GridValueGetterParams<any, any>) => params.row.agent.phone || null,
+        valueGetter: (params: GridValueGetterParams<any, any>) => params.row.agent?.phone || null,
         // renderCell: renderGridPhone,
       },
       {

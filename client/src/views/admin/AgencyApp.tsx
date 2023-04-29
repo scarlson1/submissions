@@ -7,7 +7,6 @@ import { useDocDataOnce } from 'hooks';
 
 export const AgencyApp: React.FC = () => {
   const theme = useTheme();
-  // const data = useLoaderData() as AgencyApplicationWithId;
   const { submissionId } = useParams();
   const { data, status } = useDocDataOnce('AGENCY_APPLICATIONS', submissionId || '');
 
