@@ -63,23 +63,25 @@ interface AuthContextValue {
   updateUserEmail: (newEmail: string) => Promise<void>;
 }
 
-export const AuthContext = createContext<AuthContextValue>({
-  user: null,
-  error: null,
-  loading: false,
-  loadingInitial: true,
-  login: (email, password) => Promise.reject(),
-  logout: () => {},
-  sendPasswordReset: () => Promise.reject(),
-  updateUserPassword: () => Promise.reject(),
-  sendVerification: () => Promise.reject(),
-  getSecondsFromLastAuth: () => null,
-  setUpdatedUser: () => {},
-  reauthenticateUser: () => Promise.reject('initialized func'),
-  reauthIfRequired: () => Promise.reject(),
-  updateUserEmail: () => Promise.reject(),
-  customClaims: { orgAdmin: false, agent: false, iDemandAdmin: false },
-});
+export const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+
+// export const AuthContext = createContext<AuthContextValue>({
+//   user: null,
+//   error: null,
+//   loading: false,
+//   loadingInitial: true,
+//   login: (email, password) => Promise.reject(),
+//   logout: () => {},
+//   sendPasswordReset: () => Promise.reject(),
+//   updateUserPassword: () => Promise.reject(),
+//   sendVerification: () => Promise.reject(),
+//   getSecondsFromLastAuth: () => null,
+//   setUpdatedUser: () => {},
+//   reauthenticateUser: () => Promise.reject('initialized func'),
+//   reauthIfRequired: () => Promise.reject(),
+//   updateUserEmail: () => Promise.reject(),
+//   customClaims: { orgAdmin: false, agent: false, iDemandAdmin: false },
+// });
 
 export const AuthContextProvider = ({ children }: { children: React.ReactNode }) => {
   // const auth = getAuth();
@@ -415,7 +417,11 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
 };
 
 export const useAuth = () => {
-  const auth: AuthContextValue = useContext(AuthContext);
+  const auth: AuthContextValue | undefined = useContext(AuthContext);
+
+  if (auth === undefined) {
+    throw new Error('useAuth must be used within AuthContextProvider');
+  }
 
   return {
     ...auth,
