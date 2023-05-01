@@ -19,3 +19,4 @@ export { getAnnualPremium } from './getAnnualPremium.js';
 export { getValuationEstimate } from './getValuationEstimate.js';
 export { getRiskFactorId } from './getRiskFactorId.js';
 export { deliverAgencyAgreement } from './deliverAgencyAgreement.js';
+export { moveUserToTenant } from './moveUserToTenant.js';

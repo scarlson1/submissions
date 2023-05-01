@@ -44,6 +44,7 @@ export { useFetchTaxes } from './useFetchTaxes';
 export { useRateQuote, extractRatingInputsFromValues } from './useRateQuote';
 export { useCalcPremium } from './useCalcPremium';
 export { useConcurrentLocation } from './useConcurrentLocation';
+export { useMoveUserToTenant } from './useMoveUserToTenant';
 
 export type { UseFileUploadProps } from './useFileUpload';
 export type { UseSendPasswordResetProps } from './useSendPasswordReset';

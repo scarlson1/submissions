@@ -18,6 +18,7 @@ export { getAnnualPremium } from './getAnnualPremium';
 export { getValuationEstimate } from './getValuationEstimate';
 export { getRiskFactorId } from './getRiskFactorId';
 export { deliverAgencyAgreement } from './deliverAgencyAgreement';
+export { moveUserToTenant } from './moveUserToTenant';
 
 export type { FetchPropertyDataRequest, FetchPropertyDataResponse } from './fetchPropertyDetails';
 export type { SendContactEmailRequest, SendContactEmailResponse } from './sendContactEmail';
@@ -36,3 +37,4 @@ export type { GetTenantRequest, GetTenantResponse } from './getTenantIdFromEmail
 export type { CreateTenantRequest, CreateTenantResponse } from './createTenantFromSubmission';
 export type { InviteUsersRequest, InviteUsersResponse, NewUser } from './inviteUsers';
 export type { GetAnnualPremiumRequest, GetAnnualPremiumResponse } from './getAnnualPremium';
+export type { MoveUserToTenantRequest, MoveUserToTenantResponse } from './moveUserToTenant';

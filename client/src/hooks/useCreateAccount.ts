@@ -10,7 +10,7 @@ import {
   User,
   getAuth,
 } from 'firebase/auth';
-import { setDoc, doc, getFirestore } from 'firebase/firestore';
+import { setDoc, doc, getFirestore, Timestamp } from 'firebase/firestore';
 import { useAuth } from 'modules/components/AuthContext';
 // import { auth } from 'firebaseConfig';
 import { toast } from 'react-hot-toast';
@@ -55,7 +55,15 @@ export const useCreateAccount = () => {
       let userRef = doc(usersCollection(getFirestore()), user.uid);
       await setDoc(
         userRef,
-        { displayName, firstName: firstName.trim(), lastName: lastName.trim() },
+        {
+          displayName,
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          metadata: {
+            created: Timestamp.now(),
+            updated: Timestamp.now(),
+          },
+        },
         { merge: true }
       );
 
@@ -160,6 +168,9 @@ export const useCreateAccount = () => {
         }
         if (msg.indexOf('ALREADY_EXISTS') !== -1 || msg.indexOf('already exists') !== -1) {
           return toast('Account already exists. Please sign in.');
+        }
+        if (msg.indexOf('Cloud function deadline exceeded') !== -1) {
+          return toast('Timeout error. Please try again!');
         }
         toast.error(`Auth error: ${code}`);
         // Emulator doesn't return response with 'Cloud Function' added || above as work around

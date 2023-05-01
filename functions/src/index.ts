@@ -24,6 +24,7 @@ export {
   getAnnualPremium,
   getValuationEstimate,
   getRiskFactorId,
+  moveUserToTenant,
   // deliverAgencyAgreement,
 } from './callables';
 export {

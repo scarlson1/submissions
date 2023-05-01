@@ -477,7 +477,7 @@ export interface User extends BaseDoc {
   displayName?: string;
   firstName?: string;
   lastName?: string;
-  email?: string;
+  email?: string | null;
   phone?: string;
   photoURL?: string;
   stripe_customer_id?: string;
