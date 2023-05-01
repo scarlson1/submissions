@@ -206,8 +206,20 @@ export const addressSummaryCol: GridColDef = {
   minWidth: 260,
   flex: 1,
   editable: false,
-  valueGetter: (params: GridValueGetterParams<any, any>) =>
-    `${params.row.address.addressLine1}, ${params.row.address.city}, ${params.row.address.state}`,
+  valueGetter: (params: GridValueGetterParams<any, any>) => {
+    if (!params.row.address) return null;
+
+    const { addressLine1, city, state } = params.row.address;
+    if (!(addressLine1 || city || state)) return null;
+
+    let formatted = '';
+    if (addressLine1) formatted += `${addressLine1}`;
+    if (city) formatted += `, ${city}`;
+    if (state) formatted += `, ${state}`;
+
+    return formatted;
+    // return `${addressLine1}, ${city}, ${state}`;
+  },
 };
 
 export const address1Col: GridColDef = {

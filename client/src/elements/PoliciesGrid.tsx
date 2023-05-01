@@ -54,6 +54,8 @@ import {
 } from 'common';
 import { renderChips } from 'components/RenderGridCellHelpers';
 import { useNavigate } from 'react-router-dom';
+import { useSigninCheck } from 'reactfire';
+import { CUSTOM_CLAIMS } from 'modules/components';
 
 export interface PoliciesGridProps extends Partial<DataGridProps> {
   queryConstraints: QueryConstraint[];
@@ -62,6 +64,11 @@ export interface PoliciesGridProps extends Partial<DataGridProps> {
 export const PoliciesGrid: React.FC<PoliciesGridProps> = ({ queryConstraints, ...props }) => {
   const navigate = useNavigate();
   const dialog = useJsonDialog();
+
+  const { status: claimsCheckStatus, data: iDAdminResult } = useSigninCheck({
+    requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true },
+  });
+
   const { data, status } = useCollectionData<Policy>('POLICIES', queryConstraints, {
     suspense: false,
     initialData: [],
@@ -122,7 +129,7 @@ export const PoliciesGrid: React.FC<PoliciesGridProps> = ({ queryConstraints, ..
           POLICY_STATUS.PAYMENT_PROCESSING,
           POLICY_STATUS.CANCELLED,
         ],
-        editable: true,
+        editable: claimsCheckStatus === 'success' && iDAdminResult.hasRequiredClaims, // true,
       },
       addrLine1Col,
       addrLine2Col,
@@ -227,7 +234,7 @@ export const PoliciesGrid: React.FC<PoliciesGridProps> = ({ queryConstraints, ..
         minWidth: 240,
       },
     ],
-    [showJson]
+    [showJson, claimsCheckStatus, iDAdminResult]
   );
 
   return (

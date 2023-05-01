@@ -149,7 +149,7 @@ export const Policy: React.FC = () => {
               top: { xs: 12, sm: 16, md: 20 },
               left: { xs: 4, sm: 8, md: 16 },
             }}
-            onClick={() => navigate(createPath({ path: ROUTES.USER_POLICIES }))}
+            onClick={() => navigate(createPath({ path: ROUTES.POLICIES }))}
           >
             <ArrowBackIosNewRounded />
           </IconButton>

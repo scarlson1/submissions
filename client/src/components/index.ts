@@ -26,7 +26,8 @@ export { ServerDataGrid, numericOperators, dateOperators, stringOperators } from
 export { ErrorFallback } from './ErrorFallback';
 export { Breadcrumbs } from './Breadcrumbs';
 export { ClaimsGuard } from './ClaimsGuard';
-// export {  } from './'
+export { Carousel } from './Carousel';
+export { Copy } from './Copy';
 
 export type { ConfirmationDialogProps } from './ConfirmationDialog';
 export type { FileLinkProps } from './FileLink';
@@ -40,3 +41,5 @@ export type { IconButtonMenuProps } from './IconButtonMenu';
 // export type { TabPanelProps } from './TabPanel';
 export type { LineItemProps } from './LineItem';
 export type { ServerDataGridProps } from './ServerDataGrid';
+export type { CarouselProps } from './Carousel';
+export type { CopyProps } from './Copy';

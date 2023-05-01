@@ -59,7 +59,7 @@ import { billingValidation, PaymentStep, ContactStep } from 'elements';
 import { addToDate, dollarFormat, formatDate } from 'modules/utils/helpers';
 import { AUTH_ROUTES, ROUTES, createPath } from 'router';
 import { useAuth } from 'modules/components/AuthContext';
-import { fallbackImages } from './Policies';
+import { fallbackImages } from './PoliciesOld';
 import { toast } from 'react-hot-toast';
 import { useFirestore, useFirestoreDocData } from 'reactfire';
 

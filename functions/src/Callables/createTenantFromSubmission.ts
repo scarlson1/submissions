@@ -21,7 +21,8 @@ export const createInvite = async (
 ) => {
   const invitesColRef = invitesCollection(db, tenantId);
   // const { firstName, lastName, email, customClaims, orgName, invitedBy } = inviteInfo
-  const { firstName, lastName, email } = inviteInfo;
+  let { firstName, lastName, email } = inviteInfo;
+  email = email.toLowerCase().trim();
 
   await invitesColRef.doc(email).set({
     ...inviteInfo,

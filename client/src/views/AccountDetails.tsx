@@ -9,11 +9,11 @@ import {
   Button,
   Unstable_Grid2 as Grid,
   Tab,
-  // Card,
-  // CardContent,
-  // IconButton,
+  Card,
+  CardContent,
+  IconButton,
 } from '@mui/material';
-// import { MoreVertRounded } from '@mui/icons-material';
+import { MoreVertRounded } from '@mui/icons-material';
 import { useFirestore, useUser } from 'reactfire';
 import { doc, setDoc } from 'firebase/firestore';
 import { toast } from 'react-hot-toast';
@@ -22,15 +22,16 @@ import { useForm, SubmitHandler, useFormState } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { LoadingButton, TabContext, TabList, TabPanel } from '@mui/lab';
-// import Slider from 'react-slick';
+import Slider from 'react-slick';
 
 // import { useAuth } from 'modules/components/AuthContext';
 import { AddUsersDialog, UpdateProfileImg } from 'elements';
 import { COLLECTIONS, User, usersCollection } from 'common';
-import { ClaimsGuard } from 'components';
+import { Carousel, ClaimsGuard, Copy } from 'components';
 import {
   UpdateProfileRes,
   useAsyncToast,
+  useCollectionData,
   // useCollectionData,
   useDocData,
   useUpdateProfile,
@@ -112,7 +113,7 @@ export const AccountDetails: React.FC = () => {
             borderTopRightRadius: 'inherit',
           }}
         />
-        <Box sx={{ px: 4, pb: 5 }}>
+        <Box sx={{ px: 4, pb: 4 }}>
           <Grid container rowSpacing={8} columnSpacing={0}>
             <Grid xs={12} container spacing={5}>
               <Grid xs='auto'>
@@ -164,7 +165,7 @@ export const AccountDetails: React.FC = () => {
                 {/* <Tab label='Invites' value='invites' /> */}
                 {/* <Tab label='Admin Users (test)' value='test' /> */}
                 <Tab label='Security' value='security' />
-                {/* <Tab label='Billing' value='billing' /> */}
+                <Tab label='Billing' value='billing' />
               </TabList>
             </Box>
             <TabPanel value='account'>
@@ -177,6 +178,18 @@ export const AccountDetails: React.FC = () => {
                 <Grid xs={12} sm={9} md={8}>
                   <UserDetailsForm />
                   <UpdateUserEmail />
+                </Grid>
+                <Grid xs={12} sx={{ display: 'flex', alignItems: 'center' }}>
+                  <Typography
+                    variant='body2'
+                    color='text.secondary'
+                    sx={{ mr: 1, fontSize: '0.725rem' }}
+                  >
+                    User ID:
+                  </Typography>
+                  <Copy value={user.uid} textProps={{ sx: { fontSize: '0.725rem' } }}>
+                    {user.uid}
+                  </Copy>
                 </Grid>
               </Grid>
             </TabPanel>
@@ -224,7 +237,7 @@ export const AccountDetails: React.FC = () => {
               </Grid>
             </TabPanel>
 
-            {/* <TabPanel value='billing'>
+            <TabPanel value='billing'>
               <Grid container spacing={5}>
                 <Grid xs={12} sm={3} md={4}>
                   <Typography variant='h6' gutterBottom>
@@ -235,7 +248,7 @@ export const AccountDetails: React.FC = () => {
                   <SavedPaymentMethods />
                 </Grid>
               </Grid>
-            </TabPanel> */}
+            </TabPanel>
           </TabContext>
         </Box>
       </Paper>
@@ -590,183 +603,212 @@ function UpdatePasswordForm() {
   );
 }
 
-// function SavedPaymentMethods() {
-//   const { data: user } = useUser();
-//   const { data } = useCollectionData('USERS', [], { idField: 'paymentMethodId' }, [
-//     `${user?.uid}`,
-//     COLLECTIONS.PAYMENT_METHODS,
-//   ]);
+function SavedPaymentMethods() {
+  const { data: user } = useUser();
+  const { data } = useCollectionData('USERS', [], { idField: 'paymentMethodId' }, [
+    `${user?.uid}`,
+    COLLECTIONS.PAYMENT_METHODS,
+  ]);
 
-//   return (
-//     <Box sx={{ width: '100%' }}>
-//       <Box sx={{ maxWidth: 400 }}>
-//         <PaymentMethodCardSlider>
-//           <Box>
-//             <Grid container spacing={3}>
-//               <Grid xs='auto'>
-//                 <Typography variant='body2' color='text.secondary' fontWeight={600}>
-//                   Temp overline
-//                 </Typography>
-//               </Grid>
-//               <Grid xs sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-//                 <IconButton size='small' sx={{ mr: -2, mt: -2 }}>
-//                   <MoreVertRounded fontSize='small' />
-//                 </IconButton>
-//               </Grid>
-//               <Grid xs={12}>
-//                 <Typography variant='h6'>**** **** **** 1234</Typography>
-//               </Grid>
-//               <Grid xs={6}>
-//                 <Box>
-//                   <Typography
-//                     variant='body2'
-//                     color='text.secondary'
-//                     sx={{ fontSize: '0.75rem', lineHeight: '1.8rem' }}
-//                   >
-//                     Card Holder
-//                   </Typography>
-//                   <Typography variant='subtitle2'>John Doe</Typography>
-//                 </Box>
-//               </Grid>
-//               <Grid xs={4}>
-//                 <Typography
-//                   variant='body2'
-//                   color='text.secondary'
-//                   sx={{ fontSize: '0.75rem', lineHeight: '1.8rem' }}
-//                 >
-//                   Expires
-//                 </Typography>
-//                 <Typography variant='subtitle2'>11/24</Typography>
-//               </Grid>
-//             </Grid>
-//           </Box>
-//           {/* <Box>
-//             <Grid container spacing={3}>
-//               <Grid xs='auto'>
-//                 <Typography variant='body2' color='text.secondary' fontWeight={600}>
-//                   Temp overline
-//                 </Typography>
-//               </Grid>
-//               <Grid xs sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-//                 <IconButton size='small' sx={{ mr: -2, mt: -2 }}>
-//                   <MoreVertRounded fontSize='small' />
-//                 </IconButton>
-//               </Grid>
-//               <Grid xs={12}>
-//                 <Typography variant='h6'>**** **** **** 5678</Typography>
-//               </Grid>
-//               <Grid xs={6}>
-//                 <Box>
-//                   <Typography
-//                     variant='body2'
-//                     color='text.secondary'
-//                     sx={{ fontSize: '0.75rem', lineHeight: '1.8rem' }}
-//                   >
-//                     Card Holder
-//                   </Typography>
-//                   <Typography variant='subtitle2'>Jane Doe</Typography>
-//                 </Box>
-//               </Grid>
-//               <Grid xs={4}>
-//                 <Typography
-//                   variant='body2'
-//                   color='text.secondary'
-//                   sx={{ fontSize: '0.75rem', lineHeight: '1.8rem' }}
-//                 >
-//                   Expires
-//                 </Typography>
-//                 <Typography variant='subtitle2'>01/26</Typography>
-//               </Grid>
-//             </Grid>
-//           </Box> */}
-//         </PaymentMethodCardSlider>
-//       </Box>
+  return (
+    <Box sx={{ width: '100%' }}>
+      <Box sx={{ maxWidth: 400 }}>
+        <Box sx={{ py: 6 }}>
+          <Carousel
+            items={[
+              <Box
+                sx={{
+                  position: 'relative',
+                  height: 240,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  color: 'white',
+                  background:
+                    'linear-gradient(rgba(22, 28, 36, 0.9), rgba(22, 28, 36, 0.9)) center center / cover no-repeat, url(/assets/background/overlay_2.jpg)',
+                  backgroundRepeat: 'no-repeat',
+                  backgroundPosition: 'center center',
+                  padding: 5,
+                }}
+                // sx={{
+                //   position: 'relative',
+                //   height:'260px',
+                //   color: 'white',
+                //   display: 'flex',
+                //   flex-direction: 'column',
+                //   justify-content: 'space-between',
+                //   background: 'linear-gradient(rgba(22, 28, 36, 0.9), rgba(22, 28, 36, 0.9)) center center / cover no-repeat, url(/assets/background/overlay_2.jpg)',
+                //   backgroundRepeat: 'no-repeat',
+                //   backgroundPosition: 'center center',
+                //   padding: '20px'
+                // }}
+              >
+                <Typography>Content</Typography>
+              </Box>,
+              <div>test2</div>,
+            ]}
+          />
+        </Box>
 
-//       {data.length ? (
-//         <>
-//           {data.map((pmtmthd) => (
-//             <Typography variant='body2' color='text.secondary' component='div'>
-//               <pre>{JSON.stringify(pmtmthd, null, 2)}</pre>
-//             </Typography>
-//           ))}
-//         </>
-//       ) : (
-//         <Typography variant='body2' color='text.secondary' fontWeight={600} textAlign='center'>
-//           No payment methods saved
-//         </Typography>
-//       )}
-//     </Box>
-//   );
-// }
-// const settings = {
-//   dots: true,
-//   infinite: false, // true,
-//   speed: 500,
-//   slidesToShow: 1,
-//   slidesToScroll: 1,
-//   // autoplay: true,
-//   // autoplaySpeed: 2000
-// };
-// function PaymentMethodCardSlider({ children }: { children: React.ReactNode }) {
-//   return (
-//     <Card
-//       sx={{
-//         // TODO: background colors & contrast text color
-//         backgroundColor: (theme) =>
-//           theme.palette.mode === 'dark'
-//             ? theme.palette.primaryDark[600]
-//             : theme.palette.primaryDark[100],
-//       }}
-//     >
-//       <CardContent sx={{ pb: 4 }}>
-//         {children}
-//         {/* <Slider {...settings}>
-//           {methodDetails.length &&
-//               methodDetails.map((method, i) => (
-//                 <div id={method.id}>
+        <PaymentMethodCardSlider>
+          <Box>
+            <Grid container spacing={3}>
+              <Grid xs='auto'>
+                <Typography variant='body2' color='text.secondary' fontWeight={600}>
+                  Temp overline
+                </Typography>
+              </Grid>
+              <Grid xs sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <IconButton size='small' sx={{ mr: -2, mt: -2 }}>
+                  <MoreVertRounded fontSize='small' />
+                </IconButton>
+              </Grid>
+              <Grid xs={12}>
+                <Typography variant='h6'>**** **** **** 1234</Typography>
+              </Grid>
+              <Grid xs={6}>
+                <Box>
+                  <Typography
+                    variant='body2'
+                    color='text.secondary'
+                    sx={{ fontSize: '0.75rem', lineHeight: '1.8rem' }}
+                  >
+                    Card Holder
+                  </Typography>
+                  <Typography variant='subtitle2'>John Doe</Typography>
+                </Box>
+              </Grid>
+              <Grid xs={4}>
+                <Typography
+                  variant='body2'
+                  color='text.secondary'
+                  sx={{ fontSize: '0.75rem', lineHeight: '1.8rem' }}
+                >
+                  Expires
+                </Typography>
+                <Typography variant='subtitle2'>11/24</Typography>
+              </Grid>
+            </Grid>
+          </Box>
+          {/* <Box>
+            <Grid container spacing={3}>
+              <Grid xs='auto'>
+                <Typography variant='body2' color='text.secondary' fontWeight={600}>
+                  Temp overline
+                </Typography>
+              </Grid>
+              <Grid xs sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <IconButton size='small' sx={{ mr: -2, mt: -2 }}>
+                  <MoreVertRounded fontSize='small' />
+                </IconButton>
+              </Grid>
+              <Grid xs={12}>
+                <Typography variant='h6'>**** **** **** 5678</Typography>
+              </Grid>
+              <Grid xs={6}>
+                <Box>
+                  <Typography
+                    variant='body2'
+                    color='text.secondary'
+                    sx={{ fontSize: '0.75rem', lineHeight: '1.8rem' }}
+                  >
+                    Card Holder
+                  </Typography>
+                  <Typography variant='subtitle2'>Jane Doe</Typography>
+                </Box>
+              </Grid>
+              <Grid xs={4}>
+                <Typography
+                  variant='body2'
+                  color='text.secondary'
+                  sx={{ fontSize: '0.75rem', lineHeight: '1.8rem' }}
+                >
+                  Expires
+                </Typography>
+                <Typography variant='subtitle2'>01/26</Typography>
+              </Grid>
+            </Grid>
+          </Box> */}
+        </PaymentMethodCardSlider>
+      </Box>
 
-//                 </div>
-//               ))}
+      {data.length ? (
+        <>
+          {data.map((pmtmthd, i) => (
+            <Typography variant='body2' color='text.secondary' component='div' key={`mthd-${i}`}>
+              <pre>{JSON.stringify(pmtmthd, null, 2)}</pre>
+            </Typography>
+          ))}
+        </>
+      ) : (
+        <Typography variant='body2' color='text.secondary' fontWeight={600} textAlign='center'>
+          No payment methods saved
+        </Typography>
+      )}
+    </Box>
+  );
+}
 
-//         </Slider> */}
-//         {/* <Grid container spacing={3}>
-//           <Grid xs='auto'>
-//             <Typography variant='body2' color='text.secondary' fontWeight={600}>
-//               Temp overline
-//             </Typography>
-//           </Grid>
-//           <Grid xs sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-//             <IconButton size='small' sx={{ mr: -2, mt: -2 }}>
-//               <MoreVertRounded fontSize='small' />
-//             </IconButton>
-//           </Grid>
-//           <Grid xs={12}>
-//             <Typography variant='h6'>**** **** **** 1234</Typography>
-//           </Grid>
-//           <Grid xs={6}>
-//             <Box>
-//               <Typography
-//                 variant='body2'
-//                 color='text.secondary'
-//                 sx={{ fontSize: '0.75rem', lineHeight: '1.8rem' }}
-//               >
-//                 Card Holder
-//               </Typography>
-//               <Typography variant='subtitle2'>John Doe</Typography>
-//             </Box>
-//           </Grid>
-//           <Grid xs={4}>
-//             <Typography
-//               variant='body2'
-//               color='text.secondary'
-//               sx={{ fontSize: '0.75rem', lineHeight: '1.8rem' }}
-//             >
-//               Expires
-//             </Typography>
-//             <Typography variant='subtitle2'>11/24</Typography>
-//           </Grid>
-//         </Grid> */}
-//       </CardContent>
-//     </Card>
-//   );
-// }
+function PaymentMethodCardSlider({ children }: { children: React.ReactNode }) {
+  return (
+    <Card
+      sx={{
+        // TODO: background colors & contrast text color
+        backgroundColor: (theme) =>
+          theme.palette.mode === 'dark'
+            ? theme.palette.primaryDark[600]
+            : theme.palette.primaryDark[100],
+      }}
+    >
+      <CardContent sx={{ pb: 4 }}>
+        {children}
+        {/* <Slider {...settings}>
+          {methodDetails.length &&
+              methodDetails.map((method, i) => (
+                <div id={method.id}>
+
+                </div>
+              ))}
+
+        </Slider> */}
+        {/* <Grid container spacing={3}>
+          <Grid xs='auto'>
+            <Typography variant='body2' color='text.secondary' fontWeight={600}>
+              Temp overline
+            </Typography>
+          </Grid>
+          <Grid xs sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <IconButton size='small' sx={{ mr: -2, mt: -2 }}>
+              <MoreVertRounded fontSize='small' />
+            </IconButton>
+          </Grid>
+          <Grid xs={12}>
+            <Typography variant='h6'>**** **** **** 1234</Typography>
+          </Grid>
+          <Grid xs={6}>
+            <Box>
+              <Typography
+                variant='body2'
+                color='text.secondary'
+                sx={{ fontSize: '0.75rem', lineHeight: '1.8rem' }}
+              >
+                Card Holder
+              </Typography>
+              <Typography variant='subtitle2'>John Doe</Typography>
+            </Box>
+          </Grid>
+          <Grid xs={4}>
+            <Typography
+              variant='body2'
+              color='text.secondary'
+              sx={{ fontSize: '0.75rem', lineHeight: '1.8rem' }}
+            >
+              Expires
+            </Typography>
+            <Typography variant='subtitle2'>11/24</Typography>
+          </Grid>
+        </Grid> */}
+      </CardContent>
+    </Card>
+  );
+}

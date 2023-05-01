@@ -28,6 +28,26 @@ import { FirebaseError } from 'firebase/app';
 import { ADMIN_ROUTES, createPath } from 'router';
 import { AgencyAppValues, INITIAL_VALUES } from 'views/AgencyNew';
 
+// const Test: React.FC<any> = ({ name, label, required = true, }) => {
+
+//   return (
+//     <FormikMaskField
+//       fullWidth
+//       id={name}
+//       label={label}
+//       required={required}
+//       name={name}
+//       // name={`${parentField}[${index}][${name}]`}
+//       maskComponent={PhoneMask}
+//       // @ts-ignore
+//       // inputProps={{ ...props.inputProps }}
+//       // disabled={disabled}
+//       // {...(componentProps as MaskTypeProps['componentProps'])}
+//       // {...propsGetterFunc(index, parentField, name)}
+//     />
+//   );
+// }
+
 // DIRECTLY CREATES TENANT - INSTEAD OF APPROVAL PROCESS
 
 // TODO: use rxFire to upload to storage and create submission in Observable ??
@@ -35,7 +55,9 @@ import { AgencyAppValues, INITIAL_VALUES } from 'views/AgencyNew';
 export const CreateTenant: React.FC = () => {
   const navigate = useNavigate();
   const toast = useAsyncToast();
+
   const { handleSubmission, error: createAgencyError } = useCreateAgencySubmission({});
+
   const { createTenant, error: createTenantError } = useCreateTenant({
     onSuccess: ({ tenantId }) => {
       if (tenantId) navigate(createPath({ path: ADMIN_ROUTES.ORGANIZATIONS }));

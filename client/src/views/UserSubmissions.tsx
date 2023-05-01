@@ -19,7 +19,7 @@ import { onSnapshot, query, orderBy, where, limit, getFirestore } from 'firebase
 import { useNavigate } from 'react-router-dom';
 
 import { useAuth } from 'modules/components/AuthContext';
-import { fallbackImages } from './Policies';
+import { fallbackImages } from './PoliciesOld';
 import { dollarFormat, formatFirestoreTimestamp, numberFormat } from 'modules/utils/helpers';
 import { createPath, ROUTES } from 'router';
 import { Submission, submissionsCollection, WithId } from 'common';

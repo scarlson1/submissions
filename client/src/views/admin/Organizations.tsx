@@ -157,7 +157,12 @@ export const Organizations: React.FC = () => {
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', pb: 2 }}>
-        <Button onClick={() => navigate(createPath({ path: ADMIN_ROUTES.CREATE_TENANT }))}>
+        <Button
+          variant='contained'
+          size='small'
+          onClick={() => navigate(createPath({ path: ADMIN_ROUTES.CREATE_TENANT }))}
+          sx={{ maxHeight: 34 }}
+        >
           New Org
         </Button>
       </Box>
