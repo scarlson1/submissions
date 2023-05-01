@@ -44,7 +44,7 @@ export const Policies: React.FC = () => {
 
   if (customClaims.iDemandAdmin)
     return (
-      <Container maxWidth='xl' sx={{ py: { xs: 4, md: 6 } }}>
+      <Container maxWidth='lg' sx={{ py: { xs: 4, md: 6 } }}>
         <Box>
           {header}
           <PoliciesGrid
@@ -60,7 +60,7 @@ export const Policies: React.FC = () => {
 
   if ((customClaims.agent || customClaims.orgAdmin) && user?.tenantId)
     return (
-      <Container maxWidth='xl' sx={{ py: { xs: 4, md: 6 } }}>
+      <Container maxWidth='lg' sx={{ py: { xs: 4, md: 6 } }}>
         <Box>
           {header}
           <PoliciesGrid

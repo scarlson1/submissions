@@ -423,6 +423,10 @@ export const useAuth = () => {
     throw new Error('useAuth must be used within AuthContextProvider');
   }
 
+  if (!auth) {
+    throw new Error('useAuth must be used within AuthContextProvider');
+  }
+
   return {
     ...auth,
     isAuthenticated: auth.user != null,
