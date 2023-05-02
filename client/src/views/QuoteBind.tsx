@@ -32,6 +32,8 @@ import { doc, getDoc, getFirestore, Timestamp, updateDoc } from 'firebase/firest
 import { RiMastercardFill, RiVisaLine } from 'react-icons/ri';
 import { MdPayments } from 'react-icons/md';
 import { isEqual } from 'lodash';
+import { toast } from 'react-hot-toast';
+import { useFirestore, useFirestoreDocData } from 'reactfire';
 
 import {
   FormikCheckbox,
@@ -60,8 +62,8 @@ import { addToDate, dollarFormat, formatDate } from 'modules/utils/helpers';
 import { AUTH_ROUTES, ROUTES, createPath } from 'router';
 import { useAuth } from 'modules/components/AuthContext';
 import { fallbackImages } from './PoliciesOld';
-import { toast } from 'react-hot-toast';
-import { useFirestore, useFirestoreDocData } from 'reactfire';
+
+// TODO: error boundary & reset: https://blog.logrocket.com/react-error-handling-react-error-boundary/
 
 // TODO: check quote expiration date (30 days for quote creation) -- use cloud function ??
 // firestore rules - only allow iDemand admin to override

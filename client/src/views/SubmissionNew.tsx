@@ -31,6 +31,8 @@ import { roundUpToNearest, sumArr } from 'modules/utils/helpers';
 import { useAuth } from 'modules/components/AuthContext';
 import { submissionsCollection } from 'common';
 
+// TODO: error boundary & reset: https://blog.logrocket.com/react-error-handling-react-error-boundary/
+
 // TODO: fix bug - need to separate geocodeing from address
 // if address manually changed (not google autocomple), need to update lat lng
 

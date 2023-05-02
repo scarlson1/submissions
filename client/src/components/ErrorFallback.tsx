@@ -7,6 +7,7 @@ export interface ErrorFallbackProps {
 }
 
 export function ErrorFallback({ error, resetErrorBoundary }: ErrorFallbackProps) {
+  console.log('ErrorFallback (App.tsx)');
   return (
     <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 8 }}>
       <Alert

@@ -21,9 +21,10 @@ import {
   updatePassword,
 } from '@firebase/auth';
 import { doc, onSnapshot, DocumentSnapshot } from '@firebase/firestore';
+import { setUserId, setUserProperties } from 'firebase/analytics';
 import { useNavigate } from 'react-router-dom';
 import { differenceInSeconds } from 'date-fns';
-import { useAuth as useFireAuth, useFirestore } from 'reactfire';
+import { useAnalytics, useAuth as useFireAuth, useFirestore } from 'reactfire';
 import { toast } from 'react-hot-toast';
 // import { authState } from 'rxfire/auth';
 // import { filter } from 'rxjs/operators';
@@ -31,6 +32,17 @@ import { toast } from 'react-hot-toast';
 import { userClaimsCollection } from 'common/firestoreCollections';
 import { UserClaims } from 'common';
 import { ReauthDialog } from 'components';
+
+// TODO: set userId in analytics
+// https://fireship.io/lessons/firebase-analytics-web-guide/
+// const analytics = firebase.analytics();
+
+// firebase.auth().onIdTokenChanged((user) => {
+//   if (user) {
+//     analytics.setUserId(user.uid);
+//     analytics.setUserProperties({ level: user.claims.level });
+//   }
+// });
 
 // TODO: set up reducer & actions
 // https://www.youtube.com/watch?v=YmHEzjglRMk
@@ -87,6 +99,7 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
   // const auth = getAuth();
   const auth = useFireAuth();
   const firestore = useFirestore();
+  const analytics = useAnalytics();
   const [user, setUser] = useState<User | null>(null);
   const [error, setError] = useState<Error | null | unknown>(null);
   const [loading, setLoading] = useState(false);
@@ -118,14 +131,22 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
     const idTokenResult: IdTokenResult = await auth.currentUser.getIdTokenResult();
     // console.log('TOKEN RESULT: ', idTokenResult);
 
+    let orgAdmin = !!idTokenResult.claims.orgAdmin;
+    let agent = !!idTokenResult.claims.agent;
+    let iDemandAdmin = !!idTokenResult.claims.iDemandAdmin;
     setCustomClaims({
       ...idTokenResult.claims,
-      orgAdmin: !!idTokenResult.claims.orgAdmin,
-      agent: !!idTokenResult.claims.agent,
-      iDemandAdmin: !!idTokenResult.claims.iDemandAdmin,
+      orgAdmin,
+      agent,
+      iDemandAdmin,
     });
+
+    if (orgAdmin || agent || iDemandAdmin) {
+      setUserProperties(analytics, { ...idTokenResult.claims });
+    }
+
     setLoading(false);
-  }, [auth]);
+  }, [auth, analytics]);
 
   const onNewClaims = useCallback(
     async (snap: DocumentSnapshot<UserClaims>) => {
@@ -168,6 +189,11 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
         await updateClaims();
         if (!newUser) auth.tenantId = null;
 
+        if (newUser) {
+          setUserId(analytics, newUser.uid);
+          // setUserProperties({ level: user.claims.level });
+        }
+
         setLoading(false);
         setLoadingInitial(false);
       },
@@ -175,7 +201,7 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
     );
 
     return () => unsubscribe();
-  }, [auth, updateClaims]);
+  }, [auth, updateClaims, analytics]);
 
   /**
    * Login user using email/password auth

@@ -6,6 +6,8 @@ import { addDays, subDays, startOfToday } from 'date-fns';
 import { QUOTE_STATUS, SubmissionQuoteData, WithId, submissionsQuotesCollection } from '../common';
 import { sendQuoteExpiringSoonNotification } from '../services/sendgrid';
 
+// TODO: test and finish function before deploy
+
 // docs: https://cloud.google.com/scheduler/docs/tut-pub-sub
 
 // NOTE: firestore timestamps stored in UTC

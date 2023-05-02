@@ -9,10 +9,19 @@ import './index.css';
 // import reportWebVitals from './reportWebVitals';
 import { RouterProvider } from 'react-router-dom';
 import { Box, CircularProgress } from '@mui/material';
-import { ErrorBoundary } from 'react-error-boundary';
+import { ErrorBoundary, FallbackProps } from 'react-error-boundary';
+// import { getAnalytics, logEvent } from 'firebase/analytics';
 
 import { router } from './router';
 import { ReactFireAppContext, ReactFireServicesContext } from 'modules/components/ReactFireContext';
+
+// TODO: set up google analytics
+// https://github.com/FirebaseExtended/reactfire/blob/main/docs/use.md#log-page-views-to-google-analytics-for-firebase-with-react-router
+
+// const logError = (error: Error, info: { componentStack: string }) => {
+//   // NEED TO BE WITHIN ANALYTICS PROVIDER
+//   // Do something with the error, e.g. log to an external API
+// };
 
 const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
 root.render(
@@ -38,6 +47,8 @@ root.render(
 );
 
 function LoadingSpinner() {
+  const emulatorsMsg =
+    process.env.REACT_APP_EMULATORS === 'true' ? <div>top level suspense fallback</div> : null;
   return (
     <Box
       sx={{
@@ -48,14 +59,23 @@ function LoadingSpinner() {
       }}
     >
       <CircularProgress size={28} />
+      {emulatorsMsg}
     </Box>
   );
 }
 
-function LastResortErrorBoundary() {
+function LastResortErrorBoundary({ error, resetErrorBoundary }: FallbackProps) {
+  const msg =
+    error && error.message ? (
+      <div>
+        <pre>{error.message}</pre>
+      </div>
+    ) : null;
+
   return (
-    <div style={{ display: 'flex', alignContent: 'center', alignItems: 'center' }}>
-      <p>An error occurred. See console for details</p>
+    <div style={{ display: 'flex', alignContent: 'center', alignItems: 'center' }} role='alert'>
+      <p>An error occurred. See console for details.</p>
+      {msg}
     </div>
   );
 }
