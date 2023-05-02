@@ -4,7 +4,7 @@ import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import {
   DataGridProps,
   GridActionsCellItem,
-  GridActionsCellItemProps,
+  GridActionsColDef,
   GridColDef,
   GridRowParams,
   GridToolbar,
@@ -56,14 +56,16 @@ import { useCollectionData, useJsonDialog } from 'hooks';
 export interface QuoteGridProps extends Partial<DataGridProps> {
   // rows: WithId<SubmissionQuoteData>[];
   queryConstraints?: QueryConstraint[];
-  actions?: React.ReactElement<GridActionsCellItemProps>[];
-  columnOverrides?: GridColDef<any, any, any>[];
+  // actions?: React.ReactElement<GridActionsCellItemProps>[];
+  renderActions?: (params: GridRowParams) => JSX.Element[];
+  columnOverrides?: GridColDef<any, any, any>[] | GridActionsColDef[];
 }
 
 export const QuoteGrid: React.FC<QuoteGridProps> = ({
   // rows = [],
-  queryConstraints = [], // [where('agentId', '==', `${user?.uid}`), orderBy('metadata.created', 'desc'), limit(100)]
-  actions = [],
+  queryConstraints = [],
+  // actions = [],
+  renderActions = () => [],
   columnOverrides = [],
   ...props
 }) => {
@@ -101,7 +103,8 @@ export const QuoteGrid: React.FC<QuoteGridProps> = ({
         type: 'actions',
         width: 120,
         getActions: (params: GridRowParams) => [
-          ...actions,
+          ...renderActions(params),
+          // ...actions,
           <GridActionsCellItem
             icon={
               <Tooltip placement='top' title='View Raw JSON'>
@@ -253,7 +256,7 @@ export const QuoteGrid: React.FC<QuoteGridProps> = ({
       },
       ...columnOverrides,
     ],
-    [showJson, actions, columnOverrides]
+    [showJson, columnOverrides, renderActions]
   );
 
   return (

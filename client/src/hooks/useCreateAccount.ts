@@ -49,7 +49,7 @@ export const useCreateAccount = () => {
   // TODO: use useUpdateProfile hook
   const updateUserDocOnCreate = useCallback(
     async (user: User, { firstName, lastName }: { firstName: string; lastName: string }) => {
-      let displayName = `${firstName.trim()} ${lastName.trim()}`;
+      let displayName = `${firstName.trim()} ${lastName.trim()}`.trim();
       await updateProfile(user, { displayName });
 
       let userRef = doc(usersCollection(getFirestore()), user.uid);
@@ -59,6 +59,9 @@ export const useCreateAccount = () => {
           displayName,
           firstName: firstName.trim(),
           lastName: lastName.trim(),
+          orgId: auth.tenantId || null,
+          tenantId: auth.tenantId || null,
+          email: user.email || null,
           metadata: {
             created: Timestamp.now(),
             updated: Timestamp.now(),
@@ -69,7 +72,7 @@ export const useCreateAccount = () => {
 
       await sendEmailVerification(user);
     },
-    []
+    [auth]
   );
 
   const createAccount = useCallback(

@@ -192,11 +192,24 @@ export const Header: React.FC<HeaderProps> = () => {
         route: createPath({ path: ROUTES.SUBMISSION_NEW, params: { productId: 'flood' } }),
       },
     ];
-    if (user)
+    if (user) {
       userPages.push({
         title: 'Submissions',
         route: createPath({ path: ROUTES.SUBMISSIONS }),
       });
+      userPages.push({
+        title: 'Quotes',
+        route: createPath({ path: ROUTES.QUOTES }),
+      });
+
+      if (!user.isAnonymous) {
+        userPages.push({
+          title: 'Policies',
+          route: createPath({ path: ROUTES.POLICIES }),
+        });
+      }
+    }
+
     return userPages;
   }, [user]);
 

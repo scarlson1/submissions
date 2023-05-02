@@ -24,6 +24,8 @@ export interface BaseMetadata {
 export interface BaseDoc {
   metadata: BaseMetadata;
 }
+
+export type WithId<T> = T & { id: string };
 export interface RequestUserAuth extends Request {
   user?: DecodedIdToken;
   tenantId?: string;

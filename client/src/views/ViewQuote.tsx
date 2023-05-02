@@ -349,8 +349,8 @@ export function HighlightCard({
             }}
           >
             {renderSvgImg({
-              width: 'inherit',
-              height: 'inherit',
+              width: '100%',
+              height: '100%',
               preserveAspectRatio: 'xMidYMin meet',
               ...svgProps,
             })}

@@ -22,6 +22,7 @@ import {
   policyDelivery,
   agencyAppApproved,
   adminPolicyImportNotification,
+  quoteExpiringSoon,
 } from './templates';
 
 export interface AttachmentJSON {
@@ -239,6 +240,29 @@ export const sendAdminPolicyImportNotification = async (
       to,
       html,
       subject: 'Policy import complete',
+    })
+  );
+};
+
+export const sendQuoteExpiringSoonNotification = async (
+  key: string,
+  to: string | string[],
+  link: string,
+  addressLine1: string,
+  toName?: string
+) => {
+  const html = quoteExpiringSoon({
+    link,
+    addressLine1,
+    toName,
+  });
+
+  sgMail.setApiKey(key);
+  await sgMail.send(
+    createMsgContent({
+      to,
+      html,
+      subject: 'Quote expires tomorrow',
     })
   );
 };

@@ -1,11 +1,16 @@
-interface NewQuoteProps {
+interface QuoteExpiringProps {
   toName?: string | null;
-  addressLine1?: string;
+  addressLine1: string;
   link: string;
-  product?: string;
+  // product?: string;
 }
 
-export const newQuote = ({ toName, addressLine1, link, product = 'flood' }: NewQuoteProps) => {
+export const quoteExpiringSoon = ({
+  toName,
+  addressLine1,
+  link,
+}: // product = 'flood',
+QuoteExpiringProps) => {
   return `<!doctype html>
       <html>
         <head>
@@ -15,15 +20,15 @@ export const newQuote = ({ toName, addressLine1, link, product = 'flood' }: NewQ
         <body>
           <div>
             <p style="padding-bottom: 8px">Hi${toName ? ` ${toName},` : ','}</p>
-            <p>Please follow the link below to see your ${product} coverage quote${
-    addressLine1 ? ' for ' + addressLine1 : ''
-  }.</p>
+            <p>Your quote for ${addressLine1} expires in 24 hours. Please follow the link below if you would like to bind coverage.</p>
             <br>
             <div>
               <a href='${link}'>
                 <p>View Quote</p>
               </a>
             </div>
+            <br>
+            <p style="padding-bottom: 8px">Thanks for throwing our hat in the ring. If the quote expires, you're always welcome to create a new one. Please reach out if you have any questions.</p>
             <div style="padding-top: 8px">
               <p>
                 Cheers,<br />
