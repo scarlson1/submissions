@@ -133,9 +133,9 @@ export const useCreateAccount = () => {
       err: unknown,
       email: string,
       password: string,
-      successRedirect: string
-      // firstName?: string,
-      // lastName?: string
+      successRedirect: string,
+      firstName?: string,
+      lastName?: string
     ) => {
       const { code, message: msg } = getErrorDetails(err);
       console.log(`error code: ${code}`);
@@ -173,7 +173,14 @@ export const useCreateAccount = () => {
           return toast('Account already exists. Please sign in.');
         }
         if (msg.indexOf('Cloud function deadline exceeded') !== -1) {
-          return toast('Timeout error. Please try again!');
+          console.log('Blocking function deadline exceeded. Retrying createAccount');
+          return createAccount({
+            email,
+            password,
+            firstName: firstName ?? '',
+            lastName: lastName ?? '',
+          });
+          // return toast('Timeout error. Please try again!');
         }
         toast.error(`Auth error: ${code}`);
         // Emulator doesn't return response with 'Cloud Function' added || above as work around
@@ -252,7 +259,7 @@ export const useCreateAccount = () => {
         toast.error(`Auth error: ${code}`);
       }
     },
-    [isAnonymous, logout, navigate, location, params]
+    [isAnonymous, logout, navigate, location, params, createAccount]
   );
 
   let memoizedValues = useMemo(

@@ -82,7 +82,14 @@ export const CreateAccount: React.FC = () => {
       navigate(getRedirectPath(location), { replace: true });
     } catch (err) {
       setSubmitting(false);
-      await handleEmailAuthError(err, values.email, values.password, getRedirectPath(location));
+      await handleEmailAuthError(
+        err,
+        values.email,
+        values.password,
+        getRedirectPath(location),
+        values.firstName,
+        values.lastName
+      );
     }
   }
 

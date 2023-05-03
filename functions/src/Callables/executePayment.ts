@@ -1,7 +1,8 @@
-import * as functions from 'firebase-functions';
+// import * as functions from 'firebase-functions';
 import logger from 'firebase-functions/logger';
 import { getFirestore, Timestamp, DocumentSnapshot } from 'firebase-admin/firestore';
-import { defineSecret } from 'firebase-functions/params';
+import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
+// import { defineSecret } from 'firebase-functions/params';
 
 import {
   PaymentMethod,
@@ -15,178 +16,165 @@ import {
 } from '../common';
 import { getEPayInstance } from '../services';
 import { publishMessage } from '../services/pubsub/publishMessage.js';
+import { ePayCreds as ePayCredsSecret } from './index.js';
 
-const ePayCreds = defineSecret('ENCODED_EPAY_AUTH');
+// const ePayCreds = defineSecret('ENCODED_EPAY_AUTH');
 const CARD_FEE = 0.035;
 
-export const executePayment = functions
-  .runWith({
-    secrets: [ePayCreds],
-  })
-  .https.onCall(async (data, ctx) => {
-    const { policyId, paymentMethodId } = data;
-    const uid: string | undefined = ctx.auth?.uid;
+export default async (data: any, ctx: CallableContext) => {
+  const { policyId, paymentMethodId } = data;
+  const uid: string | undefined = ctx.auth?.uid;
 
-    if (!uid) throw new functions.https.HttpsError('unauthenticated', 'Must be signed in');
+  if (!uid) throw new HttpsError('unauthenticated', 'Must be signed in');
 
-    if (!policyId) throw new functions.https.HttpsError('failed-precondition', 'Missing policy ID');
-    if (!paymentMethodId)
-      throw new functions.https.HttpsError('failed-precondition', 'Missing paymentMethodId');
+  if (!policyId) throw new HttpsError('failed-precondition', 'Missing policy ID');
+  if (!paymentMethodId) throw new HttpsError('failed-precondition', 'Missing paymentMethodId');
 
-    try {
-      const db = getFirestore();
-      const policiesCol = policiesCollection(db);
+  try {
+    const db = getFirestore();
+    const policiesCol = policiesCollection(db);
 
-      const policySnap: DocumentSnapshot<Policy> = await policiesCol.doc(policyId).get();
-      const policy = policySnap.data();
-      console.log('POLICY: ', policy);
-      if (!policySnap.exists || !policy)
-        throw new functions.https.HttpsError(
-          'not-found',
-          `Could not find policy with ID: ${policyId}`
-        );
+    const policySnap: DocumentSnapshot<Policy> = await policiesCol.doc(policyId).get();
+    const policy = policySnap.data();
+    console.log('POLICY: ', policy);
+    if (!policySnap.exists || !policy)
+      throw new HttpsError('not-found', `Could not find policy with ID: ${policyId}`);
 
-      let { price, effectiveDate, status } = policy;
-      if (!price || !effectiveDate)
-        throw new functions.https.HttpsError(
-          'failed-precondition',
-          'Quote is missing required fields'
-        );
+    let { price, effectiveDate, status } = policy;
+    if (!price || !effectiveDate)
+      throw new HttpsError('failed-precondition', 'Quote is missing required fields');
 
-      if (status !== POLICY_STATUS.AWAITING_PAYMENT)
-        throw new functions.https.HttpsError(
-          'failed-precondition',
-          'Policy status must be "awaiting payment"'
-        );
+    if (status !== POLICY_STATUS.AWAITING_PAYMENT)
+      throw new HttpsError('failed-precondition', 'Policy status must be "awaiting payment"');
 
-      const paymentMethodSnap: DocumentSnapshot<PaymentMethod> = await paymentMethodsCollection(
-        db,
-        uid
-      )
-        .doc(paymentMethodId)
-        .get();
+    const paymentMethodSnap: DocumentSnapshot<PaymentMethod> = await paymentMethodsCollection(
+      db,
+      uid
+    )
+      .doc(paymentMethodId)
+      .get();
 
-      let paymentMethodDetails = paymentMethodSnap.data();
-      if (!paymentMethodSnap.exists || !paymentMethodDetails)
-        throw new functions.https.HttpsError('not-found', 'Payment method not found');
+    let paymentMethodDetails = paymentMethodSnap.data();
+    if (!paymentMethodSnap.exists || !paymentMethodDetails)
+      throw new HttpsError('not-found', 'Payment method not found');
 
-      const ePayCreds = process.env.ENCODED_EPAY_AUTH;
-      if (!ePayCreds) throw new Error('Missing required env vars');
+    const ePayCreds = ePayCredsSecret.value(); // process.env.ENCODED_EPAY_AUTH;
+    if (!ePayCreds) throw new Error('Missing required env vars');
 
-      const ePayInstance = getEPayInstance(ePayCreds);
+    const ePayInstance = getEPayInstance(ePayCreds);
 
-      let ePayFees =
-        paymentMethodDetails.transactionType === 'Ach'
-          ? 0
-          : policy.cardFee || round(price * CARD_FEE, 2);
+    let ePayFees =
+      paymentMethodDetails.transactionType === 'Ach'
+        ? 0
+        : policy.cardFee || round(price * CARD_FEE, 2);
 
-      const total = price + ePayFees;
-      console.log(`PRICE (${price}) + EPAY_FEES (${ePayFees}) = TOTAL (${total})`);
+    const total = price + ePayFees;
+    console.log(`PRICE (${price}) + EPAY_FEES (${ePayFees}) = TOTAL (${total})`);
 
-      if (total < 100) throw new Error('Total less than minimum premium');
+    if (total < 100) throw new Error('Total less than minimum premium');
 
-      let {
-        headers: { location },
-      } = await ePayInstance.post('/api/v1/transactions', {
-        payer: paymentMethodDetails.payer,
-        amount: total,
-        payerFee: ePayFees,
-        attributeValues: {
-          policyNumber: policyId,
-          namedInsured: `${policy.namedInsured.firstName} ${policy.namedInsured.lastName}`,
-          policyId,
-          userId: uid,
-          agentId: policy.agent.agentId || null,
-          agencyId: policy.agency.orgId || null,
-        },
-        emailAddress: paymentMethodDetails.emailAddress,
-        tokenId: paymentMethodId,
-        sendReceipt: true,
-        ipAddress: ctx.auth?.token.signInIpAddress, // ctx.rawRequest.ip,
-      });
-
-      let transactionId = location?.split('/')[2];
-      console.log('transactionId: ', transactionId);
-
-      if (!transactionId) throw new Error('Missing transactionId');
-
-      // TODO: move handling status to payment:complete event listener
-      // TODO: emit event "payment:complete" data: { policyId, transactionId }
-      // trigger same event when ach payment is complete
-      // handle policy status and transaction status updates
-
-      await publishMessage('payment.complete', {
+    let {
+      headers: { location },
+    } = await ePayInstance.post('/api/v1/transactions', {
+      payer: paymentMethodDetails.payer,
+      amount: total,
+      payerFee: ePayFees,
+      attributeValues: {
+        policyNumber: policyId,
+        namedInsured: `${policy.namedInsured.firstName} ${policy.namedInsured.lastName}`,
         policyId,
-        transactionId,
-      });
-
-      await transactionsCollection(db)
-        .doc(transactionId)
-        .set({
-          transactionId,
-          amount: total,
-          amountCaptured: 0,
-          amountRefunded: 0,
-          processingFees: ePayFees,
-          billingDetails: {
-            address: null,
-            email: paymentMethodDetails.emailAddress,
-            name: paymentMethodDetails.payer,
-            phone: null,
-          },
-          invoiceId: null,
-          policyId,
-          userId: uid,
-          paymentMethodId,
-          paymentMethodDetails,
-          receiptEmail: paymentMethodDetails.emailAddress,
-          receiptNumber: null,
-          receiptUrl: null,
-          refunded: false,
-          publicDescriptor: `Flood insurance for ${policy.address.addressLine1}`,
-          publicDescriptorTitle: 'Flood insurance',
-          // status: newStatus === QUOTE_STATUS.PAID ? 'succeeded' : 'processing',
-          status:
-            paymentMethodDetails.transactionType === 'Ach'
-              ? TRANSACTION_STATUS.PROCESSING
-              : TRANSACTION_STATUS.SUCCEEDED,
-          metadata: {
-            created: Timestamp.now(),
-            updated: Timestamp.now(),
-          },
-        });
-
-      // await publishMessage('sk-upload', {
-      //   uploadId,
-      //   uploadFileName,
-      //   iDemandProcessId,
-      //   iDemandFileId: fileId,
-      //   iDemandBatchIds: fileIds,
-      //   filesInBatchCount: batch,
-      //   originalHeaders: headers,
-      //   originalFilePath: filePath,
-      //   totalRowCount: dataArray.length,
-      // });
-
-      return {
-        transactionId,
-        status: paymentMethodDetails.transactionType === 'Ach' ? 'processing' : 'succeeded',
-      };
-    } catch (err: any) {
-      // TODO: save failed transaction in db so it matches ePay ??
-      console.log('ERROR: ', err);
-      // TODO: extract error message from ePay error if code is 400: https://docs.epaypolicy.com/knowledgebase/faqs/
-      let msg = err?.response?.data?.message || 'Payment could not be processed.';
-      logger.error(msg, {
-        data,
         userId: uid,
-        stack: err?.stack || null,
-        message: err?.response?.data?.message ?? (err?.message || null),
+        agentId: policy.agent.agentId || null,
+        agencyId: policy.agency.orgId || null,
+      },
+      emailAddress: paymentMethodDetails.emailAddress,
+      tokenId: paymentMethodId,
+      sendReceipt: true,
+      ipAddress: ctx.auth?.token.signInIpAddress, // ctx.rawRequest.ip,
+    });
+
+    let transactionId = location?.split('/')[2];
+    console.log('transactionId: ', transactionId);
+
+    if (!transactionId) throw new Error('Missing transactionId');
+
+    // TODO: move handling status to payment:complete event listener
+    // TODO: emit event "payment:complete" data: { policyId, transactionId }
+    // trigger same event when ach payment is complete
+    // handle policy status and transaction status updates
+
+    await publishMessage('payment.complete', {
+      policyId,
+      transactionId,
+    });
+
+    await transactionsCollection(db)
+      .doc(transactionId)
+      .set({
+        transactionId,
+        amount: total,
+        amountCaptured: 0,
+        amountRefunded: 0,
+        processingFees: ePayFees,
+        billingDetails: {
+          address: null,
+          email: paymentMethodDetails.emailAddress,
+          name: paymentMethodDetails.payer,
+          phone: null,
+        },
+        invoiceId: null,
+        policyId,
+        userId: uid,
+        paymentMethodId,
+        paymentMethodDetails,
+        receiptEmail: paymentMethodDetails.emailAddress,
+        receiptNumber: null,
+        receiptUrl: null,
+        refunded: false,
+        publicDescriptor: `Flood insurance for ${policy.address.addressLine1}`,
+        publicDescriptorTitle: 'Flood insurance',
+        // status: newStatus === QUOTE_STATUS.PAID ? 'succeeded' : 'processing',
+        status:
+          paymentMethodDetails.transactionType === 'Ach'
+            ? TRANSACTION_STATUS.PROCESSING
+            : TRANSACTION_STATUS.SUCCEEDED,
+        metadata: {
+          created: Timestamp.now(),
+          updated: Timestamp.now(),
+        },
       });
 
-      throw new functions.https.HttpsError('internal', msg);
-    }
-  });
+    // await publishMessage('sk-upload', {
+    //   uploadId,
+    //   uploadFileName,
+    //   iDemandProcessId,
+    //   iDemandFileId: fileId,
+    //   iDemandBatchIds: fileIds,
+    //   filesInBatchCount: batch,
+    //   originalHeaders: headers,
+    //   originalFilePath: filePath,
+    //   totalRowCount: dataArray.length,
+    // });
+
+    return {
+      transactionId,
+      status: paymentMethodDetails.transactionType === 'Ach' ? 'processing' : 'succeeded',
+    };
+  } catch (err: any) {
+    // TODO: save failed transaction in db so it matches ePay ??
+    console.log('ERROR: ', err);
+    // TODO: extract error message from ePay error if code is 400: https://docs.epaypolicy.com/knowledgebase/faqs/
+    let msg = err?.response?.data?.message || 'Payment could not be processed.';
+    logger.error(msg, {
+      data,
+      userId: uid,
+      stack: err?.stack || null,
+      message: err?.response?.data?.message ?? (err?.message || null),
+    });
+
+    throw new HttpsError('internal', msg);
+  }
+};
 
 // validate
 // calc expiration date
@@ -226,11 +214,11 @@ export const executePayment = functions
 //     const { quoteId, paymentMethodId } = data;
 //     const uid: string | undefined = ctx.auth?.uid;
 
-//     if (!uid) throw new functions.https.HttpsError('unauthenticated', 'Must be signed in');
+//     if (!uid) throw new .HttpsError('unauthenticated', 'Must be signed in');
 
-//     if (!quoteId) throw new functions.https.HttpsError('failed-precondition', 'Missing quote ID');
+//     if (!quoteId) throw new .HttpsError('failed-precondition', 'Missing quote ID');
 //     if (!paymentMethodId)
-//       throw new functions.https.HttpsError('failed-precondition', 'Missing paymentMethodId');
+//       throw new .HttpsError('failed-precondition', 'Missing paymentMethodId');
 
 //     try {
 //       const db = getFirestore();
@@ -240,20 +228,20 @@ export const executePayment = functions
 //       const quote = quoteSnap.data();
 //       console.log('QUOTE: ', quote);
 //       if (!quoteSnap.exists || !quote)
-//         throw new functions.https.HttpsError(
+//         throw new .HttpsError(
 //           'not-found',
 //           `Could not find quote with ID: ${quoteId}`
 //         );
 
 //       let { quoteTotal, quoteExpiration, status } = quote;
 //       if (!quoteTotal || !quoteExpiration)
-//         throw new functions.https.HttpsError(
+//         throw new .HttpsError(
 //           'failed-precondition',
 //           'Quote is missing required fields'
 //         );
 
 //       if (status !== QUOTE_STATUS.AWAITING_USER)
-//         throw new functions.https.HttpsError('failed-precondition', 'Blocked by quote status');
+//         throw new .HttpsError('failed-precondition', 'Blocked by quote status');
 
 //       const paymentMethodSnap: DocumentSnapshot<PaymentMethod> = await paymentMethodsCollection(
 //         db,
@@ -264,7 +252,7 @@ export const executePayment = functions
 
 //       let paymentMethodDetails = paymentMethodSnap.data();
 //       if (!paymentMethodSnap.exists || !paymentMethodDetails)
-//         throw new functions.https.HttpsError('not-found', 'Payment method not found');
+//         throw new .HttpsError('not-found', 'Payment method not found');
 
 //       const ePayCreds = process.env.ENCODED_EPAY_AUTH;
 //       if (!ePayCreds) throw new Error('Missing required env vars');
@@ -361,7 +349,7 @@ export const executePayment = functions
 //       // TODO: extract error message from ePay error if code is 400: https://docs.epaypolicy.com/knowledgebase/faqs/
 //       let msg = err?.response?.data?.message || 'Payment could not be processed.';
 
-//       throw new functions.https.HttpsError('internal', msg);
+//       throw new .HttpsError('internal', msg);
 //     }
 //   });
 

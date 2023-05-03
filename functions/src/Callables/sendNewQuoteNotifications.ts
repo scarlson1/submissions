@@ -1,51 +1,40 @@
-import * as functions from 'firebase-functions';
-// import { getFirestore } from 'firebase-admin/firestore'; // Timestamp, FieldValue
-import { defineSecret } from 'firebase-functions/params';
-// import { isValidEmail } from '../common';
+import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
 
 import { sendNewQuoteEmail } from '../services/sendgrid';
+import { sendgridApiKey } from './index.js';
 
-const sendgridApiKey = defineSecret('SENDGRID_API_KEY');
+// const sendgridApiKey = defineSecret('SENDGRID_API_KEY');
 
-export const sendNewQuoteNotifications = functions
-  .runWith({
-    secrets: [sendgridApiKey],
-    minInstances: 1,
-    memory: '128MB',
-  })
-  .https.onCall(async (data, ctx) => {
-    console.log('data: ', data);
-    const { emails, quoteId } = data;
+export default async (data: any, ctx: CallableContext) => {
+  console.log('data: ', data);
+  const { emails, quoteId } = data;
 
-    // TODO: must be admin
-    if (!ctx.auth?.token.iDemandAdmin)
-      throw new functions.https.HttpsError('permission-denied', `Must be an admin`);
+  // TODO: must be admin
+  if (!ctx.auth?.token.iDemandAdmin) throw new HttpsError('permission-denied', `Must be an admin`);
 
-    if (!emails || !quoteId)
-      throw new functions.https.HttpsError('invalid-argument', `Missing email or body`);
+  if (!emails || !quoteId) throw new HttpsError('invalid-argument', `Missing email or body`);
 
-    // if (emails.every(isValidEmail))
-    //   throw new functions.https.HttpsError(
-    //     'failed-precondition',
-    //     'emails must be an array of valid email addresses'
-    //   );
+  // if (emails.every(isValidEmail))
+  //   throw new HttpsError(
+  //     'failed-precondition',
+  //     'emails must be an array of valid email addresses'
+  //   );
 
-    const sgKey = process.env.SENDGRID_API_KEY;
-    if (!sgKey)
-      throw new functions.https.HttpsError('failed-precondition', 'Missing Sendgrid api key');
+  const sgKey = sendgridApiKey.value(); // process.env.SENDGRID_API_KEY;
+  if (!sgKey) throw new HttpsError('failed-precondition', 'Missing Sendgrid api key');
 
-    try {
-      console.log(`SENDING QUOTE NOTIFICATIONS TO ${JSON.stringify(emails)} for quote ${quoteId}`);
+  try {
+    console.log(`SENDING QUOTE NOTIFICATIONS TO ${JSON.stringify(emails)} for quote ${quoteId}`);
 
-      const link = `${process.env.HOSTING_BASE_URL}/quotes/${quoteId}`;
-      await sendNewQuoteEmail(sgKey, link, emails);
+    const link = `${process.env.HOSTING_BASE_URL}/quotes/${quoteId}`;
+    await sendNewQuoteEmail(sgKey, link, emails);
 
-      return {
-        status: 'success',
-        emails,
-      };
-    } catch (err) {
-      console.log('ERROR SENDING "New Quote Notifications" EMAIL: ', err);
-      throw new functions.https.HttpsError('internal', 'Failed to deliver email.');
-    }
-  });
+    return {
+      status: 'success',
+      emails,
+    };
+  } catch (err) {
+    console.log('ERROR SENDING "New Quote Notifications" EMAIL: ', err);
+    throw new HttpsError('internal', 'Failed to deliver email.');
+  }
+};

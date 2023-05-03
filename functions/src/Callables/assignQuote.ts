@@ -4,51 +4,92 @@ import logger from 'firebase-functions/logger';
 
 import { submissionsQuotesCollection } from '../common';
 
-export const assignQuote = functions
-  .runWith({
-    minInstances: 1,
-    memory: '128MB',
-  })
-  .https.onCall(async (data, ctx) => {
-    console.log('data: ', data);
-    const { quoteId } = data;
-    const uid = ctx.auth?.uid;
+export default async (data: any, ctx: functions.https.CallableContext) => {
+  console.log('data: ', data);
+  const { quoteId } = data;
+  const uid = ctx.auth?.uid;
 
-    if (!quoteId) {
-      throw new functions.https.HttpsError('invalid-argument', `Missing quoteId`);
-    }
-    if (!uid)
-      throw new functions.https.HttpsError(
-        'unauthenticated',
-        `Must be authenticated to associate quote with your account`
-      );
+  if (!quoteId) {
+    throw new functions.https.HttpsError('invalid-argument', `Missing quoteId`);
+  }
+  if (!uid)
+    throw new functions.https.HttpsError(
+      'unauthenticated',
+      `Must be authenticated to associate quote with your account`
+    );
 
-    try {
-      const db = getFirestore();
-      const quoteSnap = await submissionsQuotesCollection(db).doc(quoteId).get();
+  try {
+    const db = getFirestore();
+    const quoteSnap = await submissionsQuotesCollection(db).doc(quoteId).get();
 
-      if (!quoteSnap.exists)
-        throw new functions.https.HttpsError('not-found', `Quote not found with ID ${quoteId}`);
+    if (!quoteSnap.exists)
+      throw new functions.https.HttpsError('not-found', `Quote not found with ID ${quoteId}`);
 
-      // TODO: check to see if quote is already claimed ??
+    // TODO: check to see if quote is already claimed ??
 
-      quoteSnap.ref.update({ userId: uid });
+    quoteSnap.ref.update({ userId: uid });
 
-      const message = `Quote ${quoteId} userId updated to ${uid}`;
-      console.log(message);
+    const message = `Quote ${quoteId} userId updated to ${uid}`;
+    console.log(message);
 
-      return { message };
-    } catch (err: any) {
-      console.log('ERROR SENDING "CONTACT US" EMAIL: ', err);
-      logger.error('ERROR SENDING "CONTACT US" EMAIL: ', {
-        stack: err.stack,
-        message: err.message,
-        quoteId,
-        userId: uid,
-      });
-      throw new functions.https.HttpsError('internal', 'Failed to set userId on quote ${quoteId}.');
-    }
-  });
+    return { message };
+  } catch (err: any) {
+    console.log('ERROR SENDING "CONTACT US" EMAIL: ', err);
+    logger.error('ERROR SENDING "CONTACT US" EMAIL: ', {
+      stack: err.stack,
+      message: err.message,
+      quoteId,
+      userId: uid,
+    });
+    throw new functions.https.HttpsError('internal', 'Failed to set userId on quote ${quoteId}.');
+  }
+};
+
+// export const assignQuote = functions
+//   .runWith({
+//     minInstances: 1,
+//     memory: '128MB',
+//   })
+//   .https.onCall(async (data, ctx) => {
+//     console.log('data: ', data);
+//     const { quoteId } = data;
+//     const uid = ctx.auth?.uid;
+
+//     if (!quoteId) {
+//       throw new functions.https.HttpsError('invalid-argument', `Missing quoteId`);
+//     }
+//     if (!uid)
+//       throw new functions.https.HttpsError(
+//         'unauthenticated',
+//         `Must be authenticated to associate quote with your account`
+//       );
+
+//     try {
+//       const db = getFirestore();
+//       const quoteSnap = await submissionsQuotesCollection(db).doc(quoteId).get();
+
+//       if (!quoteSnap.exists)
+//         throw new functions.https.HttpsError('not-found', `Quote not found with ID ${quoteId}`);
+
+//       // TODO: check to see if quote is already claimed ??
+
+//       quoteSnap.ref.update({ userId: uid });
+
+//       const message = `Quote ${quoteId} userId updated to ${uid}`;
+//       console.log(message);
+
+//       return { message };
+//     } catch (err: any) {
+//       console.log('ERROR SENDING "CONTACT US" EMAIL: ', err);
+//       logger.error('ERROR SENDING "CONTACT US" EMAIL: ', {
+//         stack: err.stack,
+//         message: err.message,
+//         quoteId,
+//         userId: uid,
+//       });
+//       throw new functions.https.HttpsError('internal', 'Failed to set userId on quote ${quoteId}.');
+//     }
+//   });
 
 // const { quoteId } = req.params;
 // const db = getFirestore();

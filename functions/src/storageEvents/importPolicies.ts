@@ -1,7 +1,10 @@
-import * as functions from 'firebase-functions';
-import { defineSecret, projectID } from 'firebase-functions/params';
+// import * as functions from 'firebase-functions';
+import { projectID } from 'firebase-functions/params';
 import { getStorage } from 'firebase-admin/storage';
 import { Timestamp, getFirestore } from 'firebase-admin/firestore';
+import { camelCase } from 'lodash'; // snakeCase
+import { ObjectMetadata } from 'firebase-functions/v1/storage';
+import { EventContext, logger } from 'firebase-functions/v1';
 import path from 'path';
 import os from 'os';
 import fs from 'fs';
@@ -14,11 +17,9 @@ import {
 
 import { COLLECTIONS, extractNumber, getNumber, policiesCollection } from '../common';
 import { sendAdminPolicyImportNotification } from '../services/sendgrid';
-import { camelCase } from 'lodash'; //  snakeCase
+import { sendgridApiKey } from '.';
 
-// import { snakeCase } from 'lodash';
-
-const sendgridApiKey = defineSecret('SENDGRID_API_KEY');
+// const sendgridApiKey = defineSecret('SENDGRID_API_KEY');
 
 // TODO: create helper functions to reduce boilerplate (downloadFile(storage, filePath, etc.))
 
@@ -144,161 +145,160 @@ const validateRow = (data: TransformedPolicyRow) => {
   return true;
 };
 
-export const importPolicies = functions
-  .runWith({ secrets: [sendgridApiKey] })
-  .storage.object()
-  .onFinalize(async (object) => {
-    const fileBucket = object.bucket;
-    const filePath = object.name; // File path in the bucket.
-    const fileName = path.basename(filePath || '');
-    const contentType = object.contentType;
-    const metageneration = object.metageneration;
+export default async (object: ObjectMetadata, context: EventContext<Record<string, string>>) => {
+  const fileBucket = object.bucket;
+  const filePath = object.name; // File path in the bucket.
+  const fileName = path.basename(filePath || '');
+  const contentType = object.contentType;
+  const metageneration = object.metageneration;
 
-    if (!object.name?.startsWith(`${IMPORT_POLICIES_FOLDER}/`)) {
-      functions.logger.log(
-        `Ignoring upload "${object.name}" because is not in the "/${IMPORT_POLICIES_FOLDER}/*" folder.`
-      );
-      return null;
-    }
+  if (!object.name?.startsWith(`${IMPORT_POLICIES_FOLDER}/`)) {
+    logger.log(
+      `Ignoring upload "${object.name}" because is not in the "/${IMPORT_POLICIES_FOLDER}/*" folder.`
+    );
+    return null;
+  }
 
-    if (metageneration !== '1' || contentType !== 'text/csv' || !filePath) {
-      console.log(
-        `validation failed. contentType: ${contentType}. metageneration: ${metageneration}. filepath: ${filePath}`
-      );
-      return null;
-    }
+  if (metageneration !== '1' || contentType !== 'text/csv' || !filePath) {
+    console.log(
+      `validation failed. contentType: ${contentType}. metageneration: ${metageneration}. filepath: ${filePath}`
+    );
+    return null;
+  }
 
-    const db = getFirestore();
-    const policiesCollRef = policiesCollection(db);
+  const db = getFirestore();
+  const policiesCollRef = policiesCollection(db);
 
-    const storage = getStorage();
-    const bucket = storage.bucket(fileBucket);
-    const tempFilePath = path.join(os.tmpdir(), `temp_portfolio_import_${fileName}`);
+  const storage = getStorage();
+  const bucket = storage.bucket(fileBucket);
+  const tempFilePath = path.join(os.tmpdir(), `temp_portfolio_import_${fileName}`);
 
-    await bucket.file(filePath).download({ destination: tempFilePath });
-    functions.logger.log('File downloaded locally to', tempFilePath);
+  await bucket.file(filePath).download({ destination: tempFilePath });
+  logger.log('File downloaded locally to', tempFilePath);
 
-    const dataArr: any[] = [];
-    const invalidRows: { rowNum: any; rowData: any }[] = [];
+  const dataArr: any[] = [];
+  const invalidRows: { rowNum: any; rowData: any }[] = [];
 
-    const parseOptions: ParserOptionsArgs = {
-      headers: transformHeaders,
-      // headers: HEADERS,
-      // ignoreEmpty: true,
-      discardUnmappedColumns: true,
-    };
+  const parseOptions: ParserOptionsArgs = {
+    headers: transformHeaders,
+    // headers: HEADERS,
+    // ignoreEmpty: true,
+    discardUnmappedColumns: true,
+  };
 
-    const stream = fs.createReadStream(tempFilePath);
+  const stream = fs.createReadStream(tempFilePath);
 
-    parseStream<PolicyRow, PolicyRow>(stream, parseOptions)
-      .transform((data: PolicyRow) => transformRow(data))
-      // TODO: validation
-      .validate((data: TransformedPolicyRow): boolean => validateRow(data))
-      .on('error', (err) => {
-        console.error(err);
-        fs.unlinkSync(tempFilePath);
-        // update metadata --> status: error
-        return;
-      })
-      .on('data', (row) => {
-        console.log('ROW => ', row);
-        dataArr.push(row);
-      })
-      .on('data-invalid', (row, rowNumber) => {
-        console.log(`Invalid [rowNumber=${rowNumber}] [row=${JSON.stringify(row)}]`);
-        invalidRows.push({
-          rowNum: rowNumber,
-          rowData: row,
-        });
-      })
-      .on('end', (rowCount: number) => {
-        console.log(`Finished parsing ${rowCount} rows`);
-        fs.unlinkSync(tempFilePath);
-        return handleParsedData(dataArr);
+  parseStream<PolicyRow, PolicyRow>(stream, parseOptions)
+    .transform((data: PolicyRow) => transformRow(data))
+    // TODO: validation
+    .validate((data: TransformedPolicyRow): boolean => validateRow(data))
+    .on('error', (err) => {
+      console.error(err);
+      fs.unlinkSync(tempFilePath);
+      // update metadata --> status: error
+      return;
+    })
+    .on('data', (row) => {
+      console.log('ROW => ', row);
+      dataArr.push(row);
+    })
+    .on('data-invalid', (row, rowNumber) => {
+      console.log(`Invalid [rowNumber=${rowNumber}] [row=${JSON.stringify(row)}]`);
+      invalidRows.push({
+        rowNum: rowNumber,
+        rowData: row,
       });
+    })
+    .on('end', (rowCount: number) => {
+      console.log(`Finished parsing ${rowCount} rows`);
+      fs.unlinkSync(tempFilePath);
+      return handleParsedData(dataArr);
+    });
 
-    async function handleParsedData(data: any[]) {
-      try {
-        // for each row, create policy
-        // save policy id to array (save in summary)
-        let policyIds: string[] = [];
-        let createErrors: any[] = [];
+  async function handleParsedData(data: any[]) {
+    try {
+      // for each row, create policy
+      // save policy id to array (save in summary)
+      let policyIds: string[] = [];
+      let createErrors: any[] = [];
 
-        for (let row of data) {
-          try {
-            // if (row.policyId) {
-            //   await policiesCollRef.doc(row.policyId).set({
-            //     ...row,
-            //     metadata: {
-            //       created: Timestamp.now(),
-            //       updated: Timestamp.now(),
-            //     },
-            //   });
-            //   policyIds.push(row.policyId);
-            // } else {
-            let newDocRef = await policiesCollRef.add({
-              ...row,
-              metadata: {
-                created: Timestamp.now(),
-                updated: Timestamp.now(),
-              },
-            });
-            policyIds.push(newDocRef.id);
-            // }
-          } catch (err) {
-            console.error(`ERROR CREATING POLICY DOC. ROW => ${JSON.stringify(row)}`);
-            createErrors.push(row);
-          }
+      for (let row of data) {
+        try {
+          // if (row.policyId) {
+          //   await policiesCollRef.doc(row.policyId).set({
+          //     ...row,
+          //     metadata: {
+          //       created: Timestamp.now(),
+          //       updated: Timestamp.now(),
+          //     },
+          //   });
+          //   policyIds.push(row.policyId);
+          // } else {
+          let newDocRef = await policiesCollRef.add({
+            ...row,
+            metadata: {
+              created: Timestamp.now(),
+              updated: Timestamp.now(),
+            },
+          });
+          policyIds.push(newDocRef.id);
+          // }
+        } catch (err) {
+          console.error(`ERROR CREATING POLICY DOC. ROW => ${JSON.stringify(row)}`);
+          createErrors.push(row);
         }
-
-        console.log(
-          `CREATED ${policyIds.length} policies from ${data.length} successfully parsed rows.`
-        );
-
-        // Save import summary
-        let importSummaryColRef = db.collection(COLLECTIONS.DATA_IMPORTS);
-        let summaryRef = await importSummaryColRef.add({
-          importCollection: COLLECTIONS.POLICIES,
-          importDocIds: policyIds,
-          docCreationErrors: createErrors,
-          invalidRows,
-        });
-        console.log(`SAVED IMPORT SUMMARY TO DOC ${summaryRef.id}`);
-
-        console.log('PROJECT ID PARAM: ', projectID);
-
-        // Send email notification
-        const sgKey = process.env.SENDGRID_API_KEY;
-        if (sgKey) {
-          const to = ['spencer.carlson@idemandinsurance.com'];
-          let link;
-
-          if (process.env.AUDIENCE !== 'LOCAL HUMANS') {
-            to.push('ron.carlson@idemandinsurance.com');
-
-            link = `https://console.firebase.google.com/project/${projectID}/firestore/data/~2F${COLLECTIONS.DATA_IMPORTS}~2F${summaryRef.id}`;
-          }
-
-          await sendAdminPolicyImportNotification(
-            sgKey,
-            to,
-            policyIds.length,
-            createErrors.length,
-            invalidRows.length,
-            fileName,
-            link
-          );
-        }
-
-        return;
-      } catch (err) {
-        console.error(`ERROR CREATING POLICY DOCS: `, err);
-        return;
       }
-    }
 
-    // TODO: update file metadata --> status: imported
-    // return fs.unlinkSync(tempFilePath);
-    return;
-  });
+      console.log(
+        `CREATED ${policyIds.length} policies from ${data.length} successfully parsed rows.`
+      );
+
+      // Save import summary
+      let importSummaryColRef = db.collection(COLLECTIONS.DATA_IMPORTS);
+      let summaryRef = await importSummaryColRef.add({
+        importCollection: COLLECTIONS.POLICIES,
+        importDocIds: policyIds,
+        docCreationErrors: createErrors,
+        invalidRows,
+      });
+      console.log(`SAVED IMPORT SUMMARY TO DOC ${summaryRef.id}`);
+
+      console.log('PROJECT ID PARAM: ', projectID);
+
+      // Send email notification
+      const sgKey = sendgridApiKey.value();
+      if (!sgKey) {
+        const to = ['spencer.carlson@idemandinsurance.com'];
+        let link;
+
+        if (process.env.AUDIENCE !== 'LOCAL HUMANS') {
+          to.push('ron.carlson@idemandinsurance.com');
+
+          link = `https://console.firebase.google.com/project/${projectID}/firestore/data/~2F${COLLECTIONS.DATA_IMPORTS}~2F${summaryRef.id}`;
+        }
+
+        await sendAdminPolicyImportNotification(
+          sgKey,
+          to,
+          policyIds.length,
+          createErrors.length,
+          invalidRows.length,
+          fileName,
+          link
+        );
+      } else {
+        console.log('Policies imported. Missing SENDGRID_API_KEY env var to notify admins.');
+      }
+
+      return;
+    } catch (err) {
+      console.error(`ERROR CREATING POLICY DOCS: `, err);
+      return;
+    }
+  }
+
+  // TODO: update file metadata --> status: imported
+  // return fs.unlinkSync(tempFilePath);
+  return;
+};
 // https://console.firebase.google.com/project/idemand-submissions-dev/firestore/data/~2FagencySubmissions~2FzTkE8uDeseW4OK3hxudA

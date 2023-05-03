@@ -10,8 +10,6 @@ import {
 import { orderBy, limit, doc, updateDoc, getDoc, getFirestore } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import { FloodRounded, MapRounded, RequestQuoteRounded } from '@mui/icons-material';
-import { toast } from 'react-hot-toast';
-// import axios from 'axios';
 
 import {
   submissionsCollection,
@@ -48,7 +46,7 @@ import { BasicDataGrid } from 'components';
 import { ADMIN_ROUTES, createPath } from 'router';
 import { withIdConverter } from 'common/firestoreConverters';
 import { useConfirmAndUpdate } from './Quotes';
-import { useCollectionData } from 'hooks';
+import { useAsyncToast, useCollectionData } from 'hooks';
 import { getRiskFactorId } from 'modules/api';
 import { useFunctions } from 'reactfire';
 
@@ -94,6 +92,7 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
   const updateSubmission = useUpdateSubmission();
   const confirmAndUpdate = useConfirmAndUpdate(updateSubmission);
   const functions = useFunctions();
+  const toast = useAsyncToast();
 
   const handleCreateQuote = useCallback(
     (subId: GridRowId) => () => {
@@ -116,7 +115,7 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
       if (!(latitude && longitude)) return toast.error('Missing coordinates');
       window.open(`https://www.google.com/maps/search/?api=1&query=${latitude}%2C${longitude}`);
     },
-    []
+    [toast]
   );
 
   const openFloodFactor = useCallback(
@@ -127,21 +126,14 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
       let fsid;
 
       try {
+        toast.loading('fetching location ID...');
         const { data } = await getRiskFactorId(functions, {
           addressLine1,
           city,
           state,
         });
         console.log('GET ID RES: ', data);
-        fsid = data.fsid;
-        // const { data: fsidRes } = await axios.get<any, any>(
-        //   `https://riskfactor.com/api/autocomplete/${encodeURIComponent(
-        //     `${addressLine1} ${city} ${state}`.trim()
-        //   )}`,
-        //   { headers: { 'Access-Control-Allow-Origin': '*' } }
-        // );
-        // if (!fsidRes) return;
-        // fsid = fsidRes.fsid || null;
+        fsid = data?.fsid;
       } catch (err) {
         console.log('ERROR: ', err);
       }
@@ -151,12 +143,15 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
           addressLine1
         )}-${firstStreetFormat(city)}-${firstStreetFormat(state)}-${firstStreetFormat(
           postal
-        )}/${fsid}_fsid/overview`; // 2012-mcpherson-ln-nashville-tn-37221
+        )}/${fsid}_fsid/flood`;
+        toast.success(`opening in new tab (FSID: ${fsid})`);
 
         window.open(floodStreetUrl, '_blank');
+      } else {
+        toast.error('Unable to get location ID');
       }
     },
-    [functions]
+    [functions, toast]
   );
 
   const submissionColumns: GridColDef[] = useMemo(

@@ -1,17 +1,16 @@
-import * as functions from 'firebase-functions';
+// import * as functions from 'firebase-functions';
+import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
 import {
   Auth,
-  // ListUsersResult,
   UserImportOptions,
   UserImportRecord,
   getAuth,
   TenantAwareAuth,
 } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
-import { defineSecret } from 'firebase-functions/params';
-import { CLAIMS, usersCollection } from '../common';
 
-const firebaseHashConfig = defineSecret('FIREBASE_AUTH_HASH_CONFIG');
+import { CLAIMS, usersCollection } from '../common';
+import { firebaseHashConfig } from './index.js';
 
 // Source: https://cloud.google.com/identity-platform/docs/migrate-users-between-projects-tenants#migrating_users_to_a_tenant
 
@@ -102,85 +101,72 @@ async function migrateUser(
   }
 }
 
-export const moveUserToTenant = functions
-  .runWith({ secrets: [firebaseHashConfig] })
-  .https.onCall(async (data, context) => {
-    const { toTenantId, userId, fromTenantId } = data;
-    console.log('MOVE USER TO TENANT CALLED: ', data);
+export default async (data: any, context: CallableContext) => {
+  const { toTenantId, userId, fromTenantId } = data;
+  console.log('MOVE USER TO TENANT CALLED: ', data);
 
-    const authCtx = context.auth;
-    if (!authCtx || !authCtx.token || !authCtx.token[CLAIMS.IDEMAND_ADMIN]) {
-      throw new functions.https.HttpsError(
-        'permission-denied',
-        `iDemandAdmin permissions required`
-      );
-    }
+  const authCtx = context.auth;
+  if (!authCtx || !authCtx.token || !authCtx.token[CLAIMS.IDEMAND_ADMIN]) {
+    throw new HttpsError('permission-denied', `iDemandAdmin permissions required`);
+  }
 
-    if (!(toTenantId || fromTenantId) || !userId) {
-      throw new functions.https.HttpsError(
-        'failed-precondition',
-        `tenantId and userId are required`
-      );
-    }
+  if (!(toTenantId || fromTenantId) || !userId) {
+    throw new HttpsError('failed-precondition', `tenantId and userId are required`);
+  }
 
-    const hashConfigStr = firebaseHashConfig.value();
-    if (!hashConfigStr)
-      throw new functions.https.HttpsError('internal', 'Missing required environment variables');
-    let parsedHashConfig = JSON.parse(hashConfigStr);
-    let { algorithm, base64_signer_key, base64_salt_separator, rounds, mem_cost } =
-      parsedHashConfig;
-    if (!(algorithm && base64_signer_key && base64_salt_separator && rounds && mem_cost)) {
-      throw new functions.https.HttpsError(
-        'internal',
-        'Missing required environment variables (password hash config)'
-      );
-    }
+  const hashConfigStr = firebaseHashConfig.value();
+  if (!hashConfigStr) throw new HttpsError('internal', 'Missing required environment variables');
+  let parsedHashConfig = JSON.parse(hashConfigStr);
+  let { algorithm, base64_signer_key, base64_salt_separator, rounds, mem_cost } = parsedHashConfig;
+  if (!(algorithm && base64_signer_key && base64_salt_separator && rounds && mem_cost)) {
+    throw new HttpsError(
+      'internal',
+      'Missing required environment variables (password hash config)'
+    );
+  }
 
-    let firestore = getFirestore();
-    let authFrom: Auth | TenantAwareAuth = getAuth();
-    let authTo: Auth | TenantAwareAuth = getAuth();
+  let firestore = getFirestore();
+  let authFrom: Auth | TenantAwareAuth = getAuth();
+  let authTo: Auth | TenantAwareAuth = getAuth();
 
-    if (fromTenantId) {
-      authFrom = authFrom.tenantManager().authForTenant(fromTenantId);
-    }
-    if (toTenantId) {
-      authTo = authTo.tenantManager().authForTenant(toTenantId);
-    }
+  if (fromTenantId) {
+    authFrom = authFrom.tenantManager().authForTenant(fromTenantId);
+  }
+  if (toTenantId) {
+    authTo = authTo.tenantManager().authForTenant(toTenantId);
+  }
 
-    try {
-      const userImportOptions = {
-        hash: {
-          algorithm,
-          key: base64_signer_key,
-          saltSeparator: base64_salt_separator,
-          rounds,
-          memoryCost: mem_cost,
-        },
-      };
-      await migrateUser(authFrom, authTo, userId, userImportOptions);
+  try {
+    const userImportOptions = {
+      hash: {
+        algorithm,
+        key: base64_signer_key,
+        saltSeparator: base64_salt_separator,
+        rounds,
+        memoryCost: mem_cost,
+      },
+    };
+    await migrateUser(authFrom, authTo, userId, userImportOptions);
 
-      console.log(`USER ${userId} move to tenant ${toTenantId}`);
-    } catch (err) {
-      console.log('ERROR IMPORTING USER: ', err);
-      throw new functions.https.HttpsError(
-        'internal',
-        'An error occurred while attempting to import users'
-      );
-    }
+    console.log(`USER ${userId} move to tenant ${toTenantId}`);
+  } catch (err) {
+    console.log('ERROR IMPORTING USER: ', err);
+    throw new HttpsError('internal', 'An error occurred while attempting to import users');
+  }
 
-    try {
-      // TODO: update user doc (tenantId)
-      // need to update all policies, quotes, submissions etc. ??
-      let userDocRef = usersCollection(firestore).doc(userId);
-      await userDocRef.update({ orgId: toTenantId, tenantId: toTenantId });
+  try {
+    // TODO: update user doc (tenantId)
+    // need to update all policies, quotes, submissions etc. ??
+    let userDocRef = usersCollection(firestore).doc(userId);
+    await userDocRef.update({ orgId: toTenantId, tenantId: toTenantId });
 
-      console.log(`UPDATED USER RECORD (${userId}) tenantId to (${toTenantId})`);
+    console.log(`UPDATED USER RECORD (${userId}) tenantId to (${toTenantId})`);
 
-      return { status: 'success' };
-    } catch (err) {
-      throw new functions.https.HttpsError(
-        'internal',
-        'User successfully moved to tenant, but an error occurred updating corresponding database records.'
-      );
-    }
-  });
+    return { status: 'success' };
+  } catch (err) {
+    throw new HttpsError(
+      'internal',
+      'User successfully moved to tenant, but an error occurred updating corresponding database records.'
+    );
+  }
+};

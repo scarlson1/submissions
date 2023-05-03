@@ -25,7 +25,7 @@ export interface CalcQuoteRequest {
   commissionPct?: number;
 }
 
-export const calcQuote = functions.https.onCall(async (data, context) => {
+export default async (data: any, context: functions.https.CallableContext) => {
   console.log('data: ', data);
   const db = getFirestore();
   const {
@@ -166,7 +166,7 @@ export const calcQuote = functions.https.onCall(async (data, context) => {
     });
     throw new functions.https.HttpsError('invalid-argument', 'Error calculating quote');
   }
-});
+};
 
 // const tiv = calcSum([limitA, limitB, limitC, limitD]);
 

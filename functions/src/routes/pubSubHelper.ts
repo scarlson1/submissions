@@ -1,10 +1,10 @@
-import * as functions from 'firebase-functions';
 import { PubSub } from '@google-cloud/pubsub';
+import { Request, Response, logger } from 'firebase-functions/v1';
 
-export const pubsubHelper = functions.https.onRequest(async (request, response) => {
+export default async (request: Request, response: Response) => {
   // 1. make sure the function can't be used in production
   if (!process.env.PUBSUB_EMULATOR_HOST) {
-    functions.logger.error('This function should only run locally in an emulator.');
+    logger.error('This function should only run locally in an emulator.');
     response.status(400).end();
   }
 
@@ -44,4 +44,4 @@ export const pubsubHelper = functions.https.onRequest(async (request, response) 
   //   console.log('ERROR PUBLIHING MESSAGE: ', err);
   //   response.status(200).send({});
   // }
-});
+};

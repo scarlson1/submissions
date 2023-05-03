@@ -1,6 +1,6 @@
-import * as functions from 'firebase-functions';
+// import * as functions from 'firebase-functions';
 import { getFirestore } from 'firebase-admin/firestore';
-import { defineSecret } from 'firebase-functions/params';
+// import { defineSecret } from 'firebase-functions/params';
 import { AxiosResponse } from 'axios';
 
 import {
@@ -13,6 +13,7 @@ import {
   COLLECTIONS,
 } from '../common';
 import { getSpatialKeyInstance } from '../services';
+import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
 
 let defaultLimitPercents: { [key in LimitTypes]: number } = {
   limitA: 1,
@@ -28,9 +29,9 @@ interface InitLimits {
   initLimitD: number;
 }
 
-const spatialKeyUserKey = defineSecret('SPATIALKEY_USER_API_KEY');
-const spatialKeyOrgKey = defineSecret('SPATIALKEY_ORG_API_KEY');
-const spatialKeySecretKey = defineSecret('SPATIALKEY_ORG_SECRET_KEY');
+// const spatialKeyUserKey = defineSecret('SPATIALKEY_USER_API_KEY');
+// const spatialKeyOrgKey = defineSecret('SPATIALKEY_ORG_API_KEY');
+// const spatialKeySecretKey = defineSecret('SPATIALKEY_ORG_SECRET_KEY');
 
 // const maxLimitA = defineInt('FLOOD_MAX_LIMIT_A', {
 //   default: 1000000,
@@ -39,126 +40,120 @@ const spatialKeySecretKey = defineSecret('SPATIALKEY_ORG_SECRET_KEY');
 //   default: 100000,
 // });
 
-export const getPropertyDetails = functions
-  .runWith({
-    secrets: [spatialKeyUserKey, spatialKeyOrgKey, spatialKeySecretKey],
-    minInstances: 1,
-    memory: '128MB',
-  })
-  .https.onCall(async (data) => {
-    console.log('data: ', data);
-    const { lat, lng } = data;
-    if (!lat || !lng || !isLatLng(lat, lng)) {
-      throw new functions.https.HttpsError('invalid-argument', `Invalid coordinates`);
-    }
+export default async (data: any, context: CallableContext) => {
+  console.log('data: ', data);
+  const { lat, lng } = data;
+  if (!lat || !lng || !isLatLng(lat, lng)) {
+    throw new HttpsError('invalid-argument', `Invalid coordinates`);
+  }
 
-    const spatialKeyInstance = getSpatialKeyInstance({
-      userApiKey: process.env.SPATIALKEY_USER_API_KEY!,
-      orgApiKey: process.env.SPATIALKEY_ORG_API_KEY!,
-      orgSecretKey: process.env.SPATIALKEY_ORG_SECRET_KEY!,
-    });
-
-    let spatialKeyData;
-    try {
-      let { data: propResData }: AxiosResponse<SpatialKeyResponse[]> = await spatialKeyInstance.get(
-        `/api/analytics/v3/uw/single.json?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(
-          lng
-        )}&shortFieldNames=true`
-      );
-      spatialKeyData = propResData[0];
-    } catch (err) {
-      throw new functions.https.HttpsError('internal', `Error fetching property data`);
-    }
-
-    if (spatialKeyData) {
-      const fallback: { [key: string]: number | string | null } = {
-        initLimitA: null,
-        initLimitB: null,
-        initLimitC: null,
-        initLimitD: null,
-        initDeductible: null,
-        maxDeductible: 200000,
-        spatialKeyDocId: null,
-      };
-      let skDocRef;
-
-      try {
-        skDocRef = await getFirestore()
-          .collection(COLLECTIONS.SK_RES)
-          .add({
-            ...spatialKeyData,
-          });
-        console.log(`SpatialKey data saved to doc: ${skDocRef.id}`);
-        fallback.spatialKeyDocId = skDocRef.id;
-      } catch (err) {
-        console.log('Error saving SK data to Firestore', err);
-      }
-
-      try {
-        let validatedRatingData = await validateSpatialKeyRes(spatialKeyData!);
-        let { replacementCost } = validatedRatingData;
-        console.log('validated data: ', validatedRatingData);
-
-        // invariant(!isNaN(replacementCost), 'Unable to determine data required for rating.');
-        if (!replacementCost) return { ...validatedRatingData, ...fallback };
-
-        let res: any;
-
-        try {
-          let MAX_A = parseInt(process.env.FLOOD_MAX_LIMIT_A!) || 1000000;
-          // let MAX_BCD = parseInt(process.env.FLOOD_MAX_LIMIT_B_C_D!) || 1000000;
-          let MIN_A = parseInt(process.env.FLOOD_MIN_LIMIT_A!) || 100000;
-          // let MAX_A = maxLimitA.value() || 1000000;
-          // let MIN_A = minLimitA.value() || 100000;
-
-          // let RCVRef = Math.min(replacementCost, MAX_A);
-          let limitARef = roundUpToNearest(Math.min(Math.max(replacementCost, MIN_A), MAX_A), 3);
-
-          let defaults: InitLimits = {
-            initLimitA: limitARef,
-            initLimitB: roundUpToNearest(limitARef * defaultLimitPercents['limitB'], 3),
-            initLimitC: roundUpToNearest(limitARef * defaultLimitPercents['limitC'], 3),
-            initLimitD: roundUpToNearest(limitARef * defaultLimitPercents['limitD'], 3),
-          };
-
-          // DONT NEED TO VALIDATE SUM B,C,D - CALC BASED ON MAX OF 1M
-          // let totalBCDRequested = defaults.initLimitB + defaults.initLimitC + defaults.initLimitD;
-          // if (totalBCDRequested > MAX_BCD) {
-          //   console.log('Recalculating limits. Total B, C, D: ', totalBCDRequested);
-          //   // Pro rated B, C, D coverages (rounded down to 100)
-          //   for (const [key, val] of Object.entries(defaults)) {
-          //     if (key !== 'limitA') {
-          //       defaults[key as keyof InitLimits] = roundDownToNearest(
-          //         (val / totalBCDRequested) * MAX_BCD
-          //       );
-          //     }
-          //   }
-          // }
-
-          res = { ...defaults, spatialKeyDocId: skDocRef?.id ?? null };
-          const sumCoverage = calcSum(Object.values(defaults));
-          res.initDeductible = roundUpToNearest(sumCoverage * 0.01, 3);
-          res.maxDeductible = roundUpToNearest(sumCoverage * 0.2, 3);
-
-          console.log('res: ', res);
-
-          return { ...validatedRatingData, ...res };
-        } catch (err) {
-          console.log('ERROR CALCULATING DEFAULT LIMITS/DEDUCTIBLE. USING FALLBACK NFIP: ', err);
-          return { ...validatedRatingData, ...fallback };
-        }
-      } catch (err) {
-        console.log('ERROR VALIDATING SPATIAL KEY RESPONSE. USING FALLBACK NFIP: ', err);
-        return { ...fallback };
-        // throw new functions.https.HttpsError(
-        //   'internal',
-        //   `Unable to determine data required for quoting.`
-        // );
-      }
-    } else {
-      throw new functions.https.HttpsError('internal', `Error fetching property data`);
-    }
+  const spatialKeyInstance = getSpatialKeyInstance({
+    userApiKey: process.env.SPATIALKEY_USER_API_KEY!,
+    orgApiKey: process.env.SPATIALKEY_ORG_API_KEY!,
+    orgSecretKey: process.env.SPATIALKEY_ORG_SECRET_KEY!,
   });
+
+  let spatialKeyData;
+  try {
+    let { data: propResData }: AxiosResponse<SpatialKeyResponse[]> = await spatialKeyInstance.get(
+      `/api/analytics/v3/uw/single.json?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(
+        lng
+      )}&shortFieldNames=true`
+    );
+    spatialKeyData = propResData[0];
+  } catch (err) {
+    throw new HttpsError('internal', `Error fetching property data`);
+  }
+
+  if (spatialKeyData) {
+    const fallback: { [key: string]: number | string | null } = {
+      initLimitA: null,
+      initLimitB: null,
+      initLimitC: null,
+      initLimitD: null,
+      initDeductible: null,
+      maxDeductible: 200000,
+      spatialKeyDocId: null,
+    };
+    let skDocRef;
+
+    try {
+      skDocRef = await getFirestore()
+        .collection(COLLECTIONS.SK_RES)
+        .add({
+          ...spatialKeyData,
+        });
+      console.log(`SpatialKey data saved to doc: ${skDocRef.id}`);
+      fallback.spatialKeyDocId = skDocRef.id;
+    } catch (err) {
+      console.log('Error saving SK data to Firestore', err);
+    }
+
+    try {
+      let validatedRatingData = await validateSpatialKeyRes(spatialKeyData!);
+      let { replacementCost } = validatedRatingData;
+      console.log('validated data: ', validatedRatingData);
+
+      // invariant(!isNaN(replacementCost), 'Unable to determine data required for rating.');
+      if (!replacementCost) return { ...validatedRatingData, ...fallback };
+
+      let res: any;
+
+      try {
+        let MAX_A = parseInt(process.env.FLOOD_MAX_LIMIT_A!) || 1000000;
+        // let MAX_BCD = parseInt(process.env.FLOOD_MAX_LIMIT_B_C_D!) || 1000000;
+        let MIN_A = parseInt(process.env.FLOOD_MIN_LIMIT_A!) || 100000;
+        // let MAX_A = maxLimitA.value() || 1000000;
+        // let MIN_A = minLimitA.value() || 100000;
+
+        // let RCVRef = Math.min(replacementCost, MAX_A);
+        let limitARef = roundUpToNearest(Math.min(Math.max(replacementCost, MIN_A), MAX_A), 3);
+
+        let defaults: InitLimits = {
+          initLimitA: limitARef,
+          initLimitB: roundUpToNearest(limitARef * defaultLimitPercents['limitB'], 3),
+          initLimitC: roundUpToNearest(limitARef * defaultLimitPercents['limitC'], 3),
+          initLimitD: roundUpToNearest(limitARef * defaultLimitPercents['limitD'], 3),
+        };
+
+        // DONT NEED TO VALIDATE SUM B,C,D - CALC BASED ON MAX OF 1M
+        // let totalBCDRequested = defaults.initLimitB + defaults.initLimitC + defaults.initLimitD;
+        // if (totalBCDRequested > MAX_BCD) {
+        //   console.log('Recalculating limits. Total B, C, D: ', totalBCDRequested);
+        //   // Pro rated B, C, D coverages (rounded down to 100)
+        //   for (const [key, val] of Object.entries(defaults)) {
+        //     if (key !== 'limitA') {
+        //       defaults[key as keyof InitLimits] = roundDownToNearest(
+        //         (val / totalBCDRequested) * MAX_BCD
+        //       );
+        //     }
+        //   }
+        // }
+
+        res = { ...defaults, spatialKeyDocId: skDocRef?.id ?? null };
+        const sumCoverage = calcSum(Object.values(defaults));
+        res.initDeductible = roundUpToNearest(sumCoverage * 0.01, 3);
+        res.maxDeductible = roundUpToNearest(sumCoverage * 0.2, 3);
+
+        console.log('res: ', res);
+
+        return { ...validatedRatingData, ...res };
+      } catch (err) {
+        console.log('ERROR CALCULATING DEFAULT LIMITS/DEDUCTIBLE. USING FALLBACK NFIP: ', err);
+        return { ...validatedRatingData, ...fallback };
+      }
+    } catch (err) {
+      console.log('ERROR VALIDATING SPATIAL KEY RESPONSE. USING FALLBACK NFIP: ', err);
+      return { ...fallback };
+      // throw new HttpsError(
+      //   'internal',
+      //   `Unable to determine data required for quoting.`
+      // );
+    }
+  } else {
+    throw new HttpsError('internal', `Error fetching property data`);
+  }
+};
 
 async function validateSpatialKeyRes(spatialKeyData: SpatialKeyResponse) {
   // let requiresReview = false;

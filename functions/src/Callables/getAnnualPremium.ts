@@ -1,16 +1,17 @@
-import * as functions from 'firebase-functions';
-import { defineSecret } from 'firebase-functions/params';
+// import * as functions from 'firebase-functions';
+// import { defineSecret } from 'firebase-functions/params';
 import logger from 'firebase-functions/logger';
 import invariant from 'tiny-invariant';
+import { GeoPoint, Timestamp, getFirestore } from 'firebase-admin/firestore';
+import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
 
 import { CLAIMS, COLLECTIONS } from '../common';
 import { getAALs, validateGetAALsProps } from '../utils/rating';
 import { getPremium } from '../utils/rating';
-import { GeoPoint, Timestamp, getFirestore } from 'firebase-admin/firestore';
 
-const swissReClientId = defineSecret('SWISS_RE_CLIENT_ID');
-const swissReClientSecret = defineSecret('SWISS_RE_CLIENT_SECRET');
-const swissReSubscriptionKey = defineSecret('SWISS_RE_SUBSCRIPTION_KEY');
+// const swissReClientId = defineSecret('SWISS_RE_CLIENT_ID');
+// const swissReClientSecret = defineSecret('SWISS_RE_CLIENT_SECRET');
+// const swissReSubscriptionKey = defineSecret('SWISS_RE_SUBSCRIPTION_KEY');
 
 interface GetAnnualPremiumRequest {
   latitude: number;
@@ -30,180 +31,350 @@ interface GetAnnualPremiumRequest {
   submissionId?: string | null;
 }
 
-export const getAnnualPremium = functions
-  .runWith({ secrets: [swissReClientId, swissReClientSecret, swissReSubscriptionKey] })
-  .https.onCall(async (data: GetAnnualPremiumRequest, context) => {
-    const db = getFirestore();
-    const { auth } = context;
-    console.log('GET ANNUAL PREMIUM CALLED', data);
+export default async (data: GetAnnualPremiumRequest, context: CallableContext) => {
+  const db = getFirestore();
+  const { auth } = context;
+  console.log('GET ANNUAL PREMIUM CALLED', data);
 
-    if (!(auth && auth.uid && auth?.token[CLAIMS['IDEMAND_ADMIN']])) {
-      throw new functions.https.HttpsError(
-        'permission-denied',
-        'iDemand admin permissions required'
-      );
-    }
+  if (!(auth && auth.uid && auth?.token[CLAIMS['IDEMAND_ADMIN']])) {
+    throw new HttpsError('permission-denied', 'iDemand admin permissions required');
+  }
 
-    const srClientId = process.env.SWISS_RE_CLIENT_ID;
-    const srClientSecret = process.env.SWISS_RE_CLIENT_SECRET;
-    const srSubKey = process.env.SWISS_RE_SUBSCRIPTION_KEY;
+  const srClientId = process.env.SWISS_RE_CLIENT_ID;
+  const srClientSecret = process.env.SWISS_RE_CLIENT_SECRET;
+  const srSubKey = process.env.SWISS_RE_SUBSCRIPTION_KEY;
 
-    if (!(srClientId && srClientSecret && srSubKey))
-      throw new functions.https.HttpsError('failed-precondition', 'missing Swiss Re credentials');
+  if (!(srClientId && srClientSecret && srSubKey))
+    throw new HttpsError('failed-precondition', 'missing Swiss Re credentials');
 
-    // VALIDATE REQUEST DATA
-    const {
-      latitude,
-      longitude,
+  // VALIDATE REQUEST DATA
+  const {
+    latitude,
+    longitude,
+    limitA,
+    limitB,
+    limitC,
+    limitD,
+    deductible,
+    replacementCost,
+    numStories,
+    priorLossCount,
+    floodZone = 'X',
+    state,
+    basement = 'unknown',
+    commissionPct = 0.15,
+    submissionId,
+  } = data;
+
+  try {
+    // VALIDATE SWISS RE PROPS
+    validateGetAALsProps(data);
+
+    // VALIDATE NON-SWISS RE PROPS
+    invariant(
+      priorLossCount && typeof priorLossCount === 'string',
+      'prior loss count must be "0", "1", or "2"'
+    );
+    invariant(floodZone && typeof floodZone === 'string', 'floodZone is required');
+    invariant(basement && typeof basement === 'string', 'basement must be a string');
+    invariant(
+      commissionPct, // && typeof commissionPct === 'number',
+      'commissionPct must be a number'
+    );
+    invariant(commissionPct <= 0.2, 'commissionPct must be <= 20% (provided as decimal)');
+  } catch (err: any) {
+    console.log('INVALID PROPS: ', err);
+
+    throw new HttpsError('failed-precondition', err.message);
+  }
+
+  let AALs;
+  try {
+    AALs = await getAALs({
+      srClientId,
+      srClientSecret,
+      srSubKey,
+      replacementCost,
       limitA,
       limitB,
       limitC,
       limitD,
       deductible,
-      replacementCost,
+      latitude,
+      longitude,
       numStories,
-      priorLossCount,
-      floodZone = 'X',
-      state,
-      basement = 'unknown',
-      commissionPct = 0.15,
-      submissionId,
-    } = data;
+    });
+  } catch (err: any) {
+    console.log('ERROR GETTING AALs: ', err);
 
-    try {
-      // VALIDATE SWISS RE PROPS
-      validateGetAALsProps(data);
+    throw new HttpsError('internal', 'Error fetching Average Anuual Loss');
+  }
 
-      // VALIDATE NON-SWISS RE PROPS
-      invariant(
-        priorLossCount && typeof priorLossCount === 'string',
-        'prior loss count must be "0", "1", or "2"'
-      );
-      invariant(floodZone && typeof floodZone === 'string', 'floodZone is required');
-      invariant(basement && typeof basement === 'string', 'basement must be a string');
-      invariant(
-        commissionPct, // && typeof commissionPct === 'number',
-        'commissionPct must be a number'
-      );
-      invariant(commissionPct <= 0.2, 'commissionPct must be <= 20% (provided as decimal)');
-    } catch (err: any) {
-      console.log('INVALID PROPS: ', err);
+  const { inlandAAL, surgeAAL } = AALs;
+  let result;
 
-      throw new functions.https.HttpsError('failed-precondition', err.message);
-    }
+  try {
+    invariant(typeof inlandAAL === 'number');
+    invariant(typeof surgeAAL === 'number');
 
-    let AALs;
-    try {
-      AALs = await getAALs({
-        srClientId,
-        srClientSecret,
-        srSubKey,
-        replacementCost,
-        limitA,
-        limitB,
-        limitC,
-        limitD,
-        deductible,
-        latitude,
-        longitude,
-        numStories,
-      });
-    } catch (err: any) {
-      console.log('ERROR GETTING AALs: ', err);
-
-      throw new functions.https.HttpsError('internal', 'Error fetching Average Anuual Loss');
-    }
-
-    const { inlandAAL, surgeAAL } = AALs;
-    let result;
-
-    try {
-      invariant(typeof inlandAAL === 'number');
-      invariant(typeof surgeAAL === 'number');
-
-      result = getPremium({
-        inlandAAL,
-        surgeAAL,
-        limitA,
-        limitB,
-        limitC,
-        limitD,
-        floodZone,
-        state,
-        basement,
-        priorLossCount,
-        commissionPct,
-      });
-
-      const { premiumData } = result;
-
-      // TODO: save to ratingData collection
-      // TODO: update original submission
-
-      console.log(`PREMIUM: ${premiumData.directWrittenPremium}`);
-
-      if (
-        !premiumData.directWrittenPremium ||
-        typeof premiumData.directWrittenPremium !== 'number' ||
-        premiumData.directWrittenPremium < 100
-      )
-        throw new Error('Error calculating premium');
-    } catch (err: any) {
-      logger.error('Error calculating premium', {
-        data,
-        userId: auth.uid || null,
-        message: err?.message || null,
-      });
-      throw new functions.https.HttpsError('internal', 'Error calculating annual premium');
-    }
-
-    try {
-      await db.collection(COLLECTIONS.RATING_DATA).add({
-        submissionId: submissionId || null,
-        deductible: deductible,
-        limits: {
-          limitA,
-          limitB,
-          limitC,
-          limitD,
-        },
-        tiv: result.tiv,
-        replacementCost,
-        aal: {
-          inland: inlandAAL,
-          surge: surgeAAL,
-        },
-        pm: result.pm,
-        riskScore: result.riskScore,
-        stateMultipliers: result.stateMultipliers,
-        secondaryFactorMults: result.secondaryFactorMults,
-        floodZone,
-        basement,
-        ffe: 0,
-        numStories,
-        // sqFootage,
-        // distToCoast: 1000000,
-        // propertyCode: sub.propertyCode,
-        // yearBuilt: sub.yearBuilt,
-        // CBRSDesignation: sub.CBRSDesignation,
-        priorLossCount,
-        premiumData: result.premiumData,
-        coordinates: new GeoPoint(latitude, longitude),
-        metadata: {
-          created: Timestamp.now(),
-          updated: Timestamp.now(),
-        },
-      });
-    } catch (err) {
-      console.log('ERROR SAVING RATING DOC: ', err);
-    }
-
-    return {
-      annualPremium: result.premiumData.directWrittenPremium,
+    result = getPremium({
       inlandAAL,
       surgeAAL,
-    };
-  });
+      limitA,
+      limitB,
+      limitC,
+      limitD,
+      floodZone,
+      state,
+      basement,
+      priorLossCount,
+      commissionPct,
+    });
+
+    const { premiumData } = result;
+
+    // TODO: save to ratingData collection
+    // TODO: update original submission
+
+    console.log(`PREMIUM: ${premiumData.directWrittenPremium}`);
+
+    if (
+      !premiumData.directWrittenPremium ||
+      typeof premiumData.directWrittenPremium !== 'number' ||
+      premiumData.directWrittenPremium < 100
+    )
+      throw new Error('Error calculating premium');
+  } catch (err: any) {
+    logger.error('Error calculating premium', {
+      data,
+      userId: auth.uid || null,
+      message: err?.message || null,
+    });
+    throw new HttpsError('internal', 'Error calculating annual premium');
+  }
+
+  try {
+    await db.collection(COLLECTIONS.RATING_DATA).add({
+      submissionId: submissionId || null,
+      deductible: deductible,
+      limits: {
+        limitA,
+        limitB,
+        limitC,
+        limitD,
+      },
+      tiv: result.tiv,
+      replacementCost,
+      aal: {
+        inland: inlandAAL,
+        surge: surgeAAL,
+      },
+      pm: result.pm,
+      riskScore: result.riskScore,
+      stateMultipliers: result.stateMultipliers,
+      secondaryFactorMults: result.secondaryFactorMults,
+      floodZone,
+      basement,
+      ffe: 0,
+      numStories,
+      // sqFootage,
+      // distToCoast: 1000000,
+      // propertyCode: sub.propertyCode,
+      // yearBuilt: sub.yearBuilt,
+      // CBRSDesignation: sub.CBRSDesignation,
+      priorLossCount,
+      premiumData: result.premiumData,
+      coordinates: new GeoPoint(latitude, longitude),
+      metadata: {
+        created: Timestamp.now(),
+        updated: Timestamp.now(),
+      },
+    });
+  } catch (err) {
+    console.log('ERROR SAVING RATING DOC: ', err);
+  }
+
+  return {
+    annualPremium: result.premiumData.directWrittenPremium,
+    inlandAAL,
+    surgeAAL,
+  };
+};
+
+// export const getAnnualPremium = functions
+//   .runWith({ secrets: [swissReClientId, swissReClientSecret, swissReSubscriptionKey] })
+//   .https.onCall(async (data: GetAnnualPremiumRequest, context) => {
+//     const db = getFirestore();
+//     const { auth } = context;
+//     console.log('GET ANNUAL PREMIUM CALLED', data);
+
+//     if (!(auth && auth.uid && auth?.token[CLAIMS['IDEMAND_ADMIN']])) {
+//       throw new HttpsError(
+//         'permission-denied',
+//         'iDemand admin permissions required'
+//       );
+//     }
+
+//     const srClientId = process.env.SWISS_RE_CLIENT_ID;
+//     const srClientSecret = process.env.SWISS_RE_CLIENT_SECRET;
+//     const srSubKey = process.env.SWISS_RE_SUBSCRIPTION_KEY;
+
+//     if (!(srClientId && srClientSecret && srSubKey))
+//       throw new HttpsError('failed-precondition', 'missing Swiss Re credentials');
+
+//     // VALIDATE REQUEST DATA
+//     const {
+//       latitude,
+//       longitude,
+//       limitA,
+//       limitB,
+//       limitC,
+//       limitD,
+//       deductible,
+//       replacementCost,
+//       numStories,
+//       priorLossCount,
+//       floodZone = 'X',
+//       state,
+//       basement = 'unknown',
+//       commissionPct = 0.15,
+//       submissionId,
+//     } = data;
+
+//     try {
+//       // VALIDATE SWISS RE PROPS
+//       validateGetAALsProps(data);
+
+//       // VALIDATE NON-SWISS RE PROPS
+//       invariant(
+//         priorLossCount && typeof priorLossCount === 'string',
+//         'prior loss count must be "0", "1", or "2"'
+//       );
+//       invariant(floodZone && typeof floodZone === 'string', 'floodZone is required');
+//       invariant(basement && typeof basement === 'string', 'basement must be a string');
+//       invariant(
+//         commissionPct, // && typeof commissionPct === 'number',
+//         'commissionPct must be a number'
+//       );
+//       invariant(commissionPct <= 0.2, 'commissionPct must be <= 20% (provided as decimal)');
+//     } catch (err: any) {
+//       console.log('INVALID PROPS: ', err);
+
+//       throw new HttpsError('failed-precondition', err.message);
+//     }
+
+//     let AALs;
+//     try {
+//       AALs = await getAALs({
+//         srClientId,
+//         srClientSecret,
+//         srSubKey,
+//         replacementCost,
+//         limitA,
+//         limitB,
+//         limitC,
+//         limitD,
+//         deductible,
+//         latitude,
+//         longitude,
+//         numStories,
+//       });
+//     } catch (err: any) {
+//       console.log('ERROR GETTING AALs: ', err);
+
+//       throw new HttpsError('internal', 'Error fetching Average Anuual Loss');
+//     }
+
+//     const { inlandAAL, surgeAAL } = AALs;
+//     let result;
+
+//     try {
+//       invariant(typeof inlandAAL === 'number');
+//       invariant(typeof surgeAAL === 'number');
+
+//       result = getPremium({
+//         inlandAAL,
+//         surgeAAL,
+//         limitA,
+//         limitB,
+//         limitC,
+//         limitD,
+//         floodZone,
+//         state,
+//         basement,
+//         priorLossCount,
+//         commissionPct,
+//       });
+
+//       const { premiumData } = result;
+
+//       // TODO: save to ratingData collection
+//       // TODO: update original submission
+
+//       console.log(`PREMIUM: ${premiumData.directWrittenPremium}`);
+
+//       if (
+//         !premiumData.directWrittenPremium ||
+//         typeof premiumData.directWrittenPremium !== 'number' ||
+//         premiumData.directWrittenPremium < 100
+//       )
+//         throw new Error('Error calculating premium');
+//     } catch (err: any) {
+//       logger.error('Error calculating premium', {
+//         data,
+//         userId: auth.uid || null,
+//         message: err?.message || null,
+//       });
+//       throw new HttpsError('internal', 'Error calculating annual premium');
+//     }
+
+//     try {
+//       await db.collection(COLLECTIONS.RATING_DATA).add({
+//         submissionId: submissionId || null,
+//         deductible: deductible,
+//         limits: {
+//           limitA,
+//           limitB,
+//           limitC,
+//           limitD,
+//         },
+//         tiv: result.tiv,
+//         replacementCost,
+//         aal: {
+//           inland: inlandAAL,
+//           surge: surgeAAL,
+//         },
+//         pm: result.pm,
+//         riskScore: result.riskScore,
+//         stateMultipliers: result.stateMultipliers,
+//         secondaryFactorMults: result.secondaryFactorMults,
+//         floodZone,
+//         basement,
+//         ffe: 0,
+//         numStories,
+//         // sqFootage,
+//         // distToCoast: 1000000,
+//         // propertyCode: sub.propertyCode,
+//         // yearBuilt: sub.yearBuilt,
+//         // CBRSDesignation: sub.CBRSDesignation,
+//         priorLossCount,
+//         premiumData: result.premiumData,
+//         coordinates: new GeoPoint(latitude, longitude),
+//         metadata: {
+//           created: Timestamp.now(),
+//           updated: Timestamp.now(),
+//         },
+//       });
+//     } catch (err) {
+//       console.log('ERROR SAVING RATING DOC: ', err);
+//     }
+
+//     return {
+//       annualPremium: result.premiumData.directWrittenPremium,
+//       inlandAAL,
+//       surgeAAL,
+//     };
+//   });
 
 // import * as functions from 'firebase-functions';
 // import { defineSecret } from 'firebase-functions/params';
@@ -255,7 +426,7 @@ export const getAnnualPremium = functions
 //     console.log('GET ANNUAL PREMIUM CALLED', data);
 
 //     if (!(auth && auth.uid && auth?.token[CLAIMS['IDEMAND_ADMIN']])) {
-//       throw new functions.https.HttpsError(
+//       throw new HttpsError(
 //         'permission-denied',
 //         'iDemand admin permissions required'
 //       );
@@ -268,7 +439,7 @@ export const getAnnualPremium = functions
 //     const minLimitA = parseInt(process.env.FLOOD_MIN_LIMIT_A || '100000');
 
 //     if (!(srClientId && srClientSecret && srSubKey))
-//       throw new functions.https.HttpsError('failed-precondition', 'missing swiss re credentials');
+//       throw new HttpsError('failed-precondition', 'missing swiss re credentials');
 
 //     // VALIDATE REQUEST DATA
 //     const {
@@ -305,7 +476,7 @@ export const getAnnualPremium = functions
 //       invariant(limitC && typeof limitC === 'number', 'LimitC must be a number');
 //       invariant(limitD && typeof limitD === 'number', 'LimitD must be a number');
 //     } catch (err: any) {
-//       throw new functions.https.HttpsError('failed-precondition', err.message);
+//       throw new HttpsError('failed-precondition', err.message);
 //     }
 
 //     const swissReInstance = getSwissReInstance(srClientId, srClientSecret, srSubKey);
@@ -369,7 +540,7 @@ export const getAnnualPremium = functions
 //       // });
 //     } catch (err) {
 //       console.log('ERROR FETCHING SR AAL DATA', err);
-//       throw new functions.https.HttpsError('internal', 'Error calling Swiss Re api');
+//       throw new HttpsError('internal', 'Error calling Swiss Re api');
 //     }
 
 //     // TODO: abstrct to one function to do rating
@@ -423,6 +594,6 @@ export const getAnnualPremium = functions
 //         annualPremium: premiumData.directWrittenPremium,
 //       };
 //     } catch (err) {
-//       throw new functions.https.HttpsError('internal', 'Error calculating annual premium');
+//       throw new HttpsError('internal', 'Error calculating annual premium');
 //     }
 //   });

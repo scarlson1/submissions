@@ -1,6 +1,7 @@
-import * as functions from 'firebase-functions';
 import logger from 'firebase-functions/logger';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
+import { HttpsError } from 'firebase-functions/v1/auth';
+import { CallableContext } from 'firebase-functions/v1/https';
 import { round } from 'lodash';
 
 import {
@@ -15,14 +16,14 @@ import {
 
 // TODO: calc mustBePaidByDate
 
-export const createPolicy = functions.https.onCall(async (data, ctx) => {
+export default async (data: any, ctx: CallableContext) => {
   const db = getFirestore();
 
   const { quoteId } = data;
   const uid: string | undefined = ctx.auth?.uid;
 
-  if (!uid) throw new functions.https.HttpsError('unauthenticated', 'Must be signed in');
-  if (!quoteId) throw new functions.https.HttpsError('failed-precondition', 'Missing quote ID');
+  if (!uid) throw new HttpsError('unauthenticated', 'Must be signed in');
+  if (!quoteId) throw new HttpsError('failed-precondition', 'Missing quote ID');
 
   try {
     // 1) get quote
@@ -32,7 +33,7 @@ export const createPolicy = functions.https.onCall(async (data, ctx) => {
     let quoteSnap = await quotesCol.doc(quoteId).get();
     const quoteData = quoteSnap.data();
     if (!quoteSnap.exists || !quoteData)
-      throw new functions.https.HttpsError('not-found', `Quote not found (${quoteId})`);
+      throw new HttpsError('not-found', `Quote not found (${quoteId})`);
 
     // 2) TODO: validate quote (expired, amount, all values exist, etc.) invariant
 
@@ -60,13 +61,13 @@ export const createPolicy = functions.https.onCall(async (data, ctx) => {
       quoteId,
       userId: uid,
     });
-    if (err instanceof functions.https.HttpsError) {
-      throw new functions.https.HttpsError(err.code, err.message, err.details);
+    if (err instanceof HttpsError) {
+      throw new HttpsError(err.code, err.message, err.details);
     } else {
-      throw new functions.https.HttpsError('unknown', 'Error creating policy');
+      throw new HttpsError('unknown', 'Error creating policy');
     }
   }
-});
+};
 
 function convertQuoteToPolicy(data: SubmissionQuoteData): Policy {
   return {
@@ -110,3 +111,99 @@ function convertQuoteToPolicy(data: SubmissionQuoteData): Policy {
     },
   };
 }
+
+// export const createPolicy = functions.https.onCall(async (data, ctx) => {
+//   const db = getFirestore();
+
+//   const { quoteId } = data;
+//   const uid: string | undefined = ctx.auth?.uid;
+
+//   if (!uid) throw new functions.https.HttpsError('unauthenticated', 'Must be signed in');
+//   if (!quoteId) throw new functions.https.HttpsError('failed-precondition', 'Missing quote ID');
+
+//   try {
+//     // 1) get quote
+//     const quotesCol = submissionsQuotesCollection(db);
+//     const policiesCol = policiesCollection(db);
+
+//     let quoteSnap = await quotesCol.doc(quoteId).get();
+//     const quoteData = quoteSnap.data();
+//     if (!quoteSnap.exists || !quoteData)
+//       throw new functions.https.HttpsError('not-found', `Quote not found (${quoteId})`);
+
+//     // 2) TODO: validate quote (expired, amount, all values exist, etc.) invariant
+
+//     // 3) create policy doc
+//     // TODO: use set ?? or get policy to see if it exists. If it does, need to check status
+//     // error if already paid. could be scenario where policy was created but payment failed
+//     // TODO: validate data? quote total?
+//     const policyData = convertQuoteToPolicy(quoteData);
+//     const policyRef = await policiesCol.add({
+//       ...policyData,
+//     });
+//     console.log(`POLICY CREATED => ${policyRef.id}`);
+
+//     // 4) emit policy created event ??
+
+//     // 5) update quote status
+//     await quoteSnap.ref.update({ status: QUOTE_STATUS.BOUND });
+
+//     // 5) return policyId
+//     return { policyId: policyRef.id };
+//   } catch (err: any) {
+//     console.log('ERROR => ', err);
+//     logger.error('Error creating policy', {
+//       data,
+//       quoteId,
+//       userId: uid,
+//     });
+//     if (err instanceof functions.https.HttpsError) {
+//       throw new functions.https.HttpsError(err.code, err.message, err.details);
+//     } else {
+//       throw new functions.https.HttpsError('unknown', 'Error creating policy');
+//     }
+//   }
+// });
+
+// function convertQuoteToPolicy(data: SubmissionQuoteData): Policy {
+//   return {
+//     status: POLICY_STATUS.AWAITING_PAYMENT,
+//     price: data.quoteTotal || 100000, // TODO: fix quote total validation
+//     cardFee: data.cardFee || round(data.quoteTotal ? data.quoteTotal * 0.035 : 0, 2),
+//     limits: data.limits,
+//     deductible: data.deductible,
+//     address: data.insuredAddress,
+//     coordinates: data.insuredCoordinates,
+//     namedInsured: {
+//       firstName: data.insuredFirstName || '', // TODO: validation to get rid of || ''
+//       lastName: data.insuredLastName || '',
+//       email: data.insuredEmail || '',
+//       phone: data.insuredPhone || '',
+//       userId: data.userId || null,
+//     },
+//     // additionalInsureds: data.additionalInsureds,
+//     // mortgageeInterest: data.mortgageeInterest,
+//     // additionalInterests: data.additionalInterests, TODO: update Policy interface
+//     effectiveDate: data.policyEffectiveDate ?? Timestamp.fromDate(addToDate({ days: 15 })),
+//     expirationDate:
+//       data.policyExpirationDate ?? Timestamp.fromDate(addToDate({ days: 15, years: 1 })),
+//     userId: data.userId,
+//     agent: {
+//       agentId: data.agentId,
+//       name: data.agentName,
+//       email: data.agentEmail,
+//     },
+//     agency: {
+//       orgId: data.agencyId,
+//       name: data.agencyName,
+//     },
+//     documents: [],
+//     imageUrls: data.imageUrls || null,
+//     imagePaths: data.imagePaths || null,
+//     transactions: [],
+//     metadata: {
+//       created: Timestamp.now(),
+//       updated: Timestamp.now(),
+//     },
+//   };
+// }

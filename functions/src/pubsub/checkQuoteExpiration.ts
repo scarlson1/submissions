@@ -1,10 +1,10 @@
-import * as functions from 'firebase-functions';
 import { Timestamp, getFirestore } from 'firebase-admin/firestore';
-import { defineSecret } from 'firebase-functions/params';
+import { EventContext } from 'firebase-functions/v1';
 import { addDays, subDays, startOfToday } from 'date-fns';
 
 import { QUOTE_STATUS, SubmissionQuoteData, WithId, submissionsQuotesCollection } from '../common';
 import { sendQuoteExpiringSoonNotification } from '../services/sendgrid';
+import { sendgridApiKey } from '.';
 
 // TODO: test and finish function before deploy
 
@@ -16,7 +16,7 @@ import { sendQuoteExpiringSoonNotification } from '../services/sendgrid';
 // Send notification ??
 //    - include -1 day and send email notification of 1-day expiry ??
 
-const sendgridApiKey = defineSecret('SENDGRID_API_KEY');
+// const sendgridApiKey = defineSecret('SENDGRID_API_KEY');
 
 /**
  * Scheduled to run at 12:01 AM every day
@@ -25,111 +25,108 @@ const sendgridApiKey = defineSecret('SENDGRID_API_KEY');
  * sends notification if expiring within 24 hours
  */
 
-export const checkQuoteExpiration = functions
-  .runWith({ secrets: [sendgridApiKey] })
-  .pubsub.schedule('01 00 1-31 1-12 1-7') // 12:01 AM sun-sat
-  .onRun(async (context) => {
-    let sgKey = sendgridApiKey.value();
-    if (!sgKey) {
-      throw new functions.https.HttpsError('failed-precondition', 'Missing Sendgrid API key');
+export default async (context: EventContext<Record<string, string>>) => {
+  let sgKey = sendgridApiKey.value();
+  if (!sgKey) {
+    throw new Error('Missing Sendgrid API key');
+  }
+
+  console.log('CHECKING QUOTE STATUS FOR QUOTES EXPIRING IN THE NEXT 24 HOURS');
+  const db = getFirestore();
+
+  // let currentDate = new Date();
+  // currentDate.setHours(0, 0, 0, 0);
+  // TODO: FIX START OF DAY IS IN LOCAL TIME ZONE
+  let currentDate = startOfToday();
+
+  const startDate = subDays(currentDate, 1);
+  const endDate = addDays(currentDate, 1);
+
+  const quotesCollRef = submissionsQuotesCollection(db);
+
+  // TODO: ensure firestore index is created for query
+  const q = quotesCollRef
+    .where('quoteExpiration', '>=', startDate)
+    .where('quoteExpiration', '<=', endDate);
+
+  let quoteDocs: WithId<SubmissionQuoteData>[] = [];
+  try {
+    const querySnap = await q.get();
+    if (querySnap.empty) {
+      console.log('No docs found with expirationDate within +/- 1 day');
+      return;
     }
 
-    console.log('CHECKING QUOTE STATUS FOR QUOTES EXPIRING IN THE NEXT 24 HOURS');
-    const db = getFirestore();
+    quoteDocs = querySnap.docs.map((s) => ({
+      ...s.data(),
+      id: s.id,
+    }));
 
-    // let currentDate = new Date();
-    // currentDate.setHours(0, 0, 0, 0);
-    // TODO: FIX START OF DAY IS IN LOCAL TIME ZONE
-    let currentDate = startOfToday();
+    // quoteDocs.forEach(q => console.log(`QUOTE ${q.id} expires ${new Date(q.quoteExpiration.seconds * 1000).toString()}`))
+  } catch (err) {
+    console.log('ERROR FETCHING QUOTES EXPIRING WITH 24 HOURS');
+  }
 
-    const startDate = subDays(currentDate, 1);
-    const endDate = addDays(currentDate, 1);
+  let expired = [];
+  let expireIn24Hours = [];
 
-    const quotesCollRef = submissionsQuotesCollection(db);
+  try {
+    let currDateSeconds = currentDate.getTime();
+    for (const quote of quoteDocs) {
+      let expTS = quote.quoteExpiration as Timestamp;
+      if (expTS.toMillis() < currDateSeconds || expTS.isEqual(Timestamp.fromDate(currentDate))) {
+        console.log(`QUOTE ${quote.id} expires ${expTS.toDate()} --> SETTING STATUS: EXPIRED`);
 
-    // TODO: ensure firestore index is created for query
-    const q = quotesCollRef
-      .where('quoteExpiration', '>=', startDate)
-      .where('quoteExpiration', '<=', endDate);
+        expired.push(quote);
+      } else {
+        console.log(
+          `QUOTE ${quote.id} expires within 24 hours --> SENDING REMINDER EMAIL TO INSURED AND AGENT`
+        );
 
-    let quoteDocs: WithId<SubmissionQuoteData>[] = [];
-    try {
-      const querySnap = await q.get();
-      if (querySnap.empty) {
-        console.log('No docs found with expirationDate within +/- 1 day');
-        return;
+        expireIn24Hours.push(quote);
       }
-
-      quoteDocs = querySnap.docs.map((s) => ({
-        ...s.data(),
-        id: s.id,
-      }));
-
-      // quoteDocs.forEach(q => console.log(`QUOTE ${q.id} expires ${new Date(q.quoteExpiration.seconds * 1000).toString()}`))
-    } catch (err) {
-      console.log('ERROR FETCHING QUOTES EXPIRING WITH 24 HOURS');
     }
+  } catch (err) {
+    console.log('ERROR SEPARATING EXPIRED QUOTES FROM QUOTES EXPIRING WITHIN 24 HOURS');
+  }
 
-    let expired = [];
-    let expireIn24Hours = [];
+  try {
+    if (expired.length) {
+      // TODO: update status for each doc
+      for (const quote of expired) {
+        let quoteRef = quotesCollRef.doc(quote.id);
+        await quoteRef.update({ status: QUOTE_STATUS.EXPIRED });
+        console.log(`QUOTE ${quote.id} STATUS UPDATED TO "${QUOTE_STATUS.EXPIRED}"`);
+      }
+    }
+  } catch (err) {
+    console.log('ERROR UPDATING STATUS TO EXPIRED: ', err);
+    // TODO: notify admins
+  }
 
-    try {
-      let currDateSeconds = currentDate.getTime();
-      for (const quote of quoteDocs) {
-        let expTS = quote.quoteExpiration as Timestamp;
-        if (expTS.toMillis() < currDateSeconds || expTS.isEqual(Timestamp.fromDate(currentDate))) {
-          console.log(`QUOTE ${quote.id} expires ${expTS.toDate()} --> SETTING STATUS: EXPIRED`);
+  try {
+    if (expireIn24Hours.length) {
+      // TODO: send notifications
+      for (const quote of expireIn24Hours) {
+        let to = [];
+        if (quote.insuredEmail) to.push(quote.insuredEmail);
+        if (quote.agentEmail) to.push(quote.agentEmail);
+        if (process.env.AUDIENCE === 'DEV HUMANS' || process.env.AUDIENCE === 'LOCAL HUMANS') {
+          to.push('spencer.carlson@idemandinsurance.com');
+        }
 
-          expired.push(quote);
-        } else {
-          console.log(
-            `QUOTE ${quote.id} expires within 24 hours --> SENDING REMINDER EMAIL TO INSURED AND AGENT`
-          );
+        if (to.length) {
+          console.log(`Expires soon notification ${quote.id}. Notifying: ${to}`);
 
-          expireIn24Hours.push(quote);
+          const link = `${process.env.HOSTING_BASE_URL}/quotes/${quote.id}`;
+
+          const addressLine1 = quote.insuredAddress.addressLine1;
+
+          await sendQuoteExpiringSoonNotification(sgKey, to, link, addressLine1);
         }
       }
-    } catch (err) {
-      console.log('ERROR SEPARATING EXPIRED QUOTES FROM QUOTES EXPIRING WITHIN 24 HOURS');
     }
-
-    try {
-      if (expired.length) {
-        // TODO: update status for each doc
-        for (const quote of expired) {
-          let quoteRef = quotesCollRef.doc(quote.id);
-          await quoteRef.update({ status: QUOTE_STATUS.EXPIRED });
-          console.log(`QUOTE ${quote.id} STATUS UPDATED TO "${QUOTE_STATUS.EXPIRED}"`);
-        }
-      }
-    } catch (err) {
-      console.log('ERROR UPDATING STATUS TO EXPIRED: ', err);
-      // TODO: notify admins
-    }
-
-    try {
-      if (expireIn24Hours.length) {
-        // TODO: send notifications
-        for (const quote of expireIn24Hours) {
-          let to = [];
-          if (quote.insuredEmail) to.push(quote.insuredEmail);
-          if (quote.agentEmail) to.push(quote.agentEmail);
-          if (process.env.AUDIENCE === 'DEV HUMANS' || process.env.AUDIENCE === 'LOCAL HUMANS') {
-            to.push('spencer.carlson@idemandinsurance.com');
-          }
-
-          if (to.length) {
-            console.log(`Expires soon notification ${quote.id}. Notifying: ${to}`);
-
-            const link = `${process.env.HOSTING_BASE_URL}/quotes/${quote.id}`;
-
-            const addressLine1 = quote.insuredAddress.addressLine1;
-
-            await sendQuoteExpiringSoonNotification(sgKey, to, link, addressLine1);
-          }
-        }
-      }
-    } catch (err) {
-      console.log('ERROR SENDING EXPIRES SOON NOTIFICATION: ', err);
-    }
-  });
+  } catch (err) {
+    console.log('ERROR SENDING EXPIRES SOON NOTIFICATION: ', err);
+  }
+};

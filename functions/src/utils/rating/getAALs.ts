@@ -7,6 +7,9 @@ import { SRRes, calcSum, isLatLng } from '../../common';
 import { getSwissReInstance } from '../../services';
 import { getRCVs } from './getRCVs.js';
 import { swissReBody } from './swissReBody.js';
+import { AxiosInstance } from 'axios';
+
+let swissReInstance: AxiosInstance | undefined;
 
 export interface GetAALsProps {
   srClientId: string;
@@ -43,7 +46,7 @@ export const getAALs = async (props: GetAALsProps): Promise<GetAALRes> => {
     longitude,
   } = props;
 
-  const swissReInstance = getSwissReInstance(srClientId, srClientSecret, srSubKey);
+  swissReInstance = swissReInstance || getSwissReInstance(srClientId, srClientSecret, srSubKey);
 
   let AALs: { [key: string]: number } = { inlandAAL: 0, surgeAAL: 0 };
 

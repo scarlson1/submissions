@@ -1,67 +1,63 @@
-import * as functions from 'firebase-functions';
+// import * as functions from 'firebase-functions';
 import axios from 'axios';
+import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
 
 // TODO: check metadata.status !== 'BOUND'
 
-export const initializeQuote = functions
-  .runWith({
-    minInstances: 1,
-    memory: '128MB',
-  })
-  .https.onCall(async (data) => {
-    console.log('data: ', data);
-    const { quoteId } = data;
+export default async (data: any, ctx: CallableContext) => {
+  console.log('data: ', data);
+  const { quoteId } = data;
 
-    if (!quoteId) {
-      try {
-        const { data } = await axios.post(
-          `${process.env.PROTOSURE_API_URL_DEV}/public-api/${process.env.PROTOSURE_TENANT_ID_V2}/quotes/get_or_create/`,
-          {},
-          {
-            headers: {
-              'Access-Control-Allow-Origin': '*',
-              'Content-Type': 'application/json',
-            },
-          }
-        );
+  if (!quoteId) {
+    try {
+      const { data } = await axios.post(
+        `${process.env.PROTOSURE_API_URL_DEV}/public-api/${process.env.PROTOSURE_TENANT_ID_V2}/quotes/get_or_create/`,
+        {},
+        {
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Content-Type': 'application/json',
+          },
+        }
+      );
 
-        let res = {
-          protosureData: data,
-          initialFormData: getInitialFormData(data),
-        };
+      let res = {
+        protosureData: data,
+        initialFormData: getInitialFormData(data),
+      };
 
-        return res;
-      } catch (err) {
-        console.log('ERROR: ', err);
+      return res;
+    } catch (err) {
+      console.log('ERROR: ', err);
 
-        throw new functions.https.HttpsError('internal', `Error retrieving or initializing quote`);
-      }
-    } else {
-      try {
-        const { data } = await axios.get(
-          `${process.env.PROTOSURE_API_URL_DEV}/public-api/${process.env.PROTOSURE_TENANT_ID_V2}/quotes/${quoteId}/`,
-          {
-            headers: {
-              'Access-Control-Allow-Origin': '*',
-              'Content-Type': 'application/json',
-            },
-          }
-        );
-        console.log('GET QUOTE RES: ', data);
-        delete data.raterData;
-        let res = {
-          protosureData: data,
-          initialFormData: getInitialFormData(data),
-        };
-
-        return res;
-      } catch (err) {
-        console.log('ERROR: ', err);
-
-        throw new functions.https.HttpsError('internal', `Error fetching quote data`);
-      }
+      throw new HttpsError('internal', `Error retrieving or initializing quote`);
     }
-  });
+  } else {
+    try {
+      const { data } = await axios.get(
+        `${process.env.PROTOSURE_API_URL_DEV}/public-api/${process.env.PROTOSURE_TENANT_ID_V2}/quotes/${quoteId}/`,
+        {
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      console.log('GET QUOTE RES: ', data);
+      delete data.raterData;
+      let res = {
+        protosureData: data,
+        initialFormData: getInitialFormData(data),
+      };
+
+      return res;
+    } catch (err) {
+      console.log('ERROR: ', err);
+
+      throw new HttpsError('internal', `Error fetching quote data`);
+    }
+  }
+};
 
 function getInitialFormData(p: any) {
   const { formData } = p;
