@@ -8,7 +8,7 @@ import {
   useRef,
 } from 'react';
 import {
-  onAuthStateChanged,
+  // onAuthStateChanged,
   User,
   IdTokenResult,
   signInWithEmailAndPassword,
@@ -22,9 +22,10 @@ import {
 } from '@firebase/auth';
 import { doc, onSnapshot, DocumentSnapshot } from '@firebase/firestore';
 import { setUserId, setUserProperties } from 'firebase/analytics';
+import { useAnalytics, useAuth as useFireAuth, useFirestore, useUser } from 'reactfire';
 import { useNavigate } from 'react-router-dom';
 import { differenceInSeconds } from 'date-fns';
-import { useAnalytics, useAuth as useFireAuth, useFirestore } from 'reactfire';
+
 import { toast } from 'react-hot-toast';
 // import { authState } from 'rxfire/auth';
 // import { filter } from 'rxjs/operators';
@@ -32,17 +33,6 @@ import { toast } from 'react-hot-toast';
 import { userClaimsCollection } from 'common/firestoreCollections';
 import { UserClaims } from 'common';
 import { ReauthDialog } from 'components';
-
-// TODO: set userId in analytics
-// https://fireship.io/lessons/firebase-analytics-web-guide/
-// const analytics = firebase.analytics();
-
-// firebase.auth().onIdTokenChanged((user) => {
-//   if (user) {
-//     analytics.setUserId(user.uid);
-//     analytics.setUserProperties({ level: user.claims.level });
-//   }
-// });
 
 // TODO: set up reducer & actions
 // https://www.youtube.com/watch?v=YmHEzjglRMk
@@ -56,7 +46,7 @@ export type CustomClaimsInterface = Record<CUSTOM_CLAIMS, boolean> & IdTokenResu
 
 interface AuthContextValue {
   user: User | null;
-  error: Error | null | unknown;
+  // error: Error | null | unknown;
   loading: boolean;
   loadingInitial: boolean;
   customClaims: CustomClaimsInterface;
@@ -66,7 +56,7 @@ interface AuthContextValue {
   updateUserPassword: (newPassword: string) => Promise<void>;
   sendVerification: () => Promise<any>;
   getSecondsFromLastAuth: () => number | null;
-  setUpdatedUser: (user: User | null) => void;
+  // setUpdatedUser: (user: User | null) => void;
   reauthenticateUser: (dialogMsg?: string) => Promise<void>; // Promise<UserCredential>;
   reauthIfRequired: (
     secondLimit?: number,
@@ -96,12 +86,13 @@ export const AuthContext = createContext<AuthContextValue | undefined>(undefined
 // });
 
 export const AuthContextProvider = ({ children }: { children: React.ReactNode }) => {
-  // const auth = getAuth();
   const auth = useFireAuth();
   const firestore = useFirestore();
   const analytics = useAnalytics();
-  const [user, setUser] = useState<User | null>(null);
-  const [error, setError] = useState<Error | null | unknown>(null);
+
+  const { data: user } = useUser();
+  // const [user, setUser] = useState<User | null>(null);
+  // const [error, setError] = useState<Error | null | unknown>(null);
   const [loading, setLoading] = useState(false);
   const [loadingInitial, setLoadingInitial] = useState(true);
   const [customClaims, setCustomClaims] = useState<CustomClaimsInterface>({
@@ -129,11 +120,10 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
     }
     await auth.currentUser?.getIdToken(true);
     const idTokenResult: IdTokenResult = await auth.currentUser.getIdTokenResult();
-    // console.log('TOKEN RESULT: ', idTokenResult);
 
-    let orgAdmin = !!idTokenResult.claims.orgAdmin;
-    let agent = !!idTokenResult.claims.agent;
-    let iDemandAdmin = !!idTokenResult.claims.iDemandAdmin;
+    const orgAdmin = !!idTokenResult.claims.orgAdmin;
+    const agent = !!idTokenResult.claims.agent;
+    const iDemandAdmin = !!idTokenResult.claims.iDemandAdmin;
     setCustomClaims({
       ...idTokenResult.claims,
       orgAdmin,
@@ -152,6 +142,7 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
     async (snap: DocumentSnapshot<UserClaims>) => {
       const data = snap.data();
 
+      // if _lastCommitted not equal to ref, fetch claims from token
       if (data?._lastCommitted) {
         if (lastCommittedRef.current && !data._lastCommitted.isEqual(lastCommittedRef.current)) {
           updateClaims();
@@ -163,7 +154,8 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
   );
 
   // TODO: use rxjs to pipe user auth && subscribe to claims doc?
-  // listen to changes in userClaims firestore doc
+  // TODO: does subscription terminate when user signs out ??
+  // listen to changes in userClaims firestore doc (orgs/{orgId}/userClaims/{uid})
   useEffect(() => {
     if (!user) return;
     if (!user.tenantId && !customClaims.iDemandAdmin) return;
@@ -178,30 +170,51 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
     return () => unsubscribe();
   }, [onNewClaims, firestore, user, customClaims]);
 
+  // on user change
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(
-      auth,
-      async (newUser: User | null) => {
-        setLoading(true);
-        // console.log('auth state change => ', newUser);
+    console.log('USER CHANGE USE EFFECT CALLED');
+    const update = async () => {
+      setLoading(true);
+      await updateClaims();
+      if (!user) auth.tenantId = null;
 
-        setUser(newUser);
-        await updateClaims();
-        if (!newUser) auth.tenantId = null;
+      if (user) {
+        setUserId(analytics, user.uid);
+      }
+      setLoadingInitial(false);
+      setLoading(false);
+    };
+    update().catch((err) => {
+      console.log('ERR: ', err);
+      setLoading(false);
+      setLoadingInitial(false);
+    });
+  }, [user, auth, updateClaims, analytics]);
 
-        if (newUser) {
-          setUserId(analytics, newUser.uid);
-          // setUserProperties({ level: user.claims.level });
-        }
+  // useEffect(() => {
+  //   const unsubscribe = onAuthStateChanged(
+  //     auth,
+  //     async (newUser: User | null) => {
+  //       setLoading(true);
+  //       // console.log('auth state change => ', newUser);
 
-        setLoading(false);
-        setLoadingInitial(false);
-      },
-      setError
-    );
+  //       setUser(newUser);
+  //       await updateClaims();
+  //       if (!newUser) auth.tenantId = null;
 
-    return () => unsubscribe();
-  }, [auth, updateClaims, analytics]);
+  //       if (newUser) {
+  //         setUserId(analytics, newUser.uid);
+  //         // setUserProperties({ level: user.claims.level });
+  //       }
+
+  //       setLoading(false);
+  //       setLoadingInitial(false);
+  //     },
+  //     setError
+  //   );
+
+  //   return () => unsubscribe();
+  // }, [auth, updateClaims, analytics]);
 
   /**
    * Login user using email/password auth
@@ -294,9 +307,9 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
   }, [user]);
 
   // TODO: decide whether to use updateCurrentUser() or user.reload() from sdk ??
-  const setUpdatedUser = useCallback((updatedUser: User | null) => {
-    setUser(updatedUser);
-  }, []);
+  // const setUpdatedUser = useCallback((updatedUser: User | null) => {
+  //   setUser(updatedUser);
+  // }, []);
 
   // REAUTHENTICATE USER DIALOG
 
@@ -395,7 +408,7 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
   const memoedValue = useMemo(
     () => ({
       user,
-      error,
+      // error,
       loading,
       loadingInitial,
       customClaims,
@@ -405,7 +418,7 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
       updateUserPassword,
       sendVerification,
       getSecondsFromLastAuth,
-      setUpdatedUser,
+      // setUpdatedUser,
       reauthenticateUser,
       reauthIfRequired,
       updateUserEmail,
@@ -413,7 +426,7 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
     [
       user,
       loading,
-      error,
+      // error,
       loadingInitial,
       customClaims,
       login,
@@ -422,7 +435,7 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
       updateUserPassword,
       sendVerification,
       getSecondsFromLastAuth,
-      setUpdatedUser,
+      // setUpdatedUser,
       reauthenticateUser,
       reauthIfRequired,
       updateUserEmail,

@@ -1,6 +1,5 @@
-// import * as functions from 'firebase-functions';
+import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
 import { getFirestore } from 'firebase-admin/firestore';
-// import { defineSecret } from 'firebase-functions/params';
 import { AxiosResponse } from 'axios';
 
 import {
@@ -13,7 +12,6 @@ import {
   COLLECTIONS,
 } from '../common';
 import { getSpatialKeyInstance } from '../services';
-import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
 
 let defaultLimitPercents: { [key in LimitTypes]: number } = {
   limitA: 1,

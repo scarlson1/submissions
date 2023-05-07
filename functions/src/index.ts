@@ -28,6 +28,7 @@ export {
   getAnnualPremium,
   getValuationEstimate,
   getRiskFactorId,
+  getriskfactoridv2,
   moveUserToTenant,
   // deliverAgencyAgreement,
 } from './callables';
@@ -48,7 +49,12 @@ export {
   setClaimsFromInvite,
 } from './authEvents';
 export { authRequests } from './routes';
-export { getAALPortfolio, importPolicies, getAALAndRatePortfolio } from './storageEvents';
+export {
+  getAALPortfolio,
+  importPolicies,
+  getAALAndRatePortfolio,
+  // tempGetFIPS
+} from './storageEvents';
 export {
   checkAchStatus,
   markpaidonpaymentcomplete,

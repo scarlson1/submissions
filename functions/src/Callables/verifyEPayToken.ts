@@ -1,6 +1,5 @@
+import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
-import { HttpsError } from 'firebase-functions/v1/auth';
-import { CallableContext } from 'firebase-functions/v1/https';
 
 import { getEPayInstance } from '../services';
 import { EPayVerifiedResponse, PaymentMethod, paymentMethodsCollection } from '../common';

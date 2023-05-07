@@ -31,7 +31,7 @@ export const useRequireAuth = ({
   shouldSignInAnonymously = false,
   unauthorizedCallback,
 }: UseRequireAuthProps) => {
-  const { error, loading, isAuthenticated, loadingInitial, isAnonymous, customClaims } = useAuth();
+  const { loading, isAuthenticated, loadingInitial, isAnonymous, customClaims } = useAuth(); // error,
   const toast = useAsyncToast();
   let location = useLocation();
   const navigate = useNavigate();
@@ -117,7 +117,7 @@ export const useRequireAuth = ({
   return {
     user,
     loading: Boolean(loadingInitial || loading),
-    error,
+    // error,
     isAuthenticated,
     isAnonymous,
     customClaims,

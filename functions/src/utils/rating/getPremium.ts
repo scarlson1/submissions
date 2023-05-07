@@ -49,7 +49,7 @@ export const getPremium = (props: GetPremiumProps) => {
   // Flood type multipliers by state
   const { inlandStateMult = 1.5, surgeStateMult = 3 } = multipliersByState[state];
 
-  let secondaryFactorMults = getSecondaryFactorMults({
+  const secondaryFactorMults = getSecondaryFactorMults({
     ffe: 0,
     basement: basement,
     priorLossCount,

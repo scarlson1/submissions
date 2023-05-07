@@ -1,6 +1,7 @@
-import * as functions from 'firebase-functions';
 import { getFirestore } from 'firebase-admin/firestore';
 import { AuthEventContext, AuthUserRecord } from 'firebase-functions/lib/common/providers/identity';
+// import { HttpsError } from 'firebase-functions/v1/auth';
+import { HttpsError } from 'firebase-functions/v2/identity';
 
 import { COLLECTIONS, invitesCollection, orgsCollection, usersCollection } from '../common';
 
@@ -12,10 +13,7 @@ export default async (user: AuthUserRecord, context: AuthEventContext) => {
   console.log('USER: ', user);
 
   if (!user.email) {
-    throw new functions.auth.HttpsError(
-      'failed-precondition',
-      'email required to create a new account'
-    );
+    throw new HttpsError('failed-precondition', 'email required to create a new account');
   }
 
   // check to see if user attempted to create account without tenant aware auth
@@ -30,7 +28,7 @@ export default async (user: AuthUserRecord, context: AuthEventContext) => {
 
     if (!inviteSnap.empty) {
       const inviteData = inviteSnap.docs.map((snap) => snap.data());
-      throw new functions.auth.HttpsError(
+      throw new HttpsError(
         'failed-precondition',
         `Email matched invite from ${inviteData[0].orgName} (ID: ${inviteData[0].orgId}). Add orgId to end of auth url to accept (/auth/create-account/{orgId})`,
         { matchedInviteOrgId: inviteData[0].orgId }
@@ -43,29 +41,41 @@ export default async (user: AuthUserRecord, context: AuthEventContext) => {
     console.log(`Checking domain restriction settings for tenant ${tenantId}`);
     const tenantSnap = await orgsCollection(db).doc(tenantId).get();
     if (!tenantSnap.exists) {
-      throw new functions.auth.HttpsError('not-found', `tenant doc not found (${tenantId})`);
+      throw new HttpsError('not-found', `tenant doc not found (ID: ${tenantId})`, {
+        providedTenantId: tenantId,
+      });
     }
     // TODO: check if setting enabled to force domain restrictions ??
     const enforceRestriction = tenantSnap.data()?.enforceDomainRestriction;
     const tenantDomain = tenantSnap.data()?.emailDomain;
 
-    if (!!enforceRestriction && !tenantDomain) {
-      throw new functions.auth.HttpsError(
-        'failed-precondition',
-        'domain restriction enabled but domain value has not been set'
-      );
-    }
+    // if (!!enforceRestriction && !tenantDomain) {
+    //   throw new HttpsError(
+    //     'failed-precondition',
+    //     'domain restriction enabled but domain value has not been set'
+    //   );
+    // }
 
-    if (!!enforceRestriction && (!user.email || user.email.indexOf(tenantDomain || '') === -1)) {
-      throw new functions.auth.HttpsError('invalid-argument', `Unauthorized email "${user.email}"`);
+    if (
+      !!enforceRestriction &&
+      tenantDomain &&
+      (!user.email || user.email.indexOf(tenantDomain || '') === -1)
+    ) {
+      throw new HttpsError('invalid-argument', `Unauthorized email "${user.email}"`, {
+        providedTenantId: tenantId,
+      });
     }
 
     console.log(`Fetching invite for ${user.email} under tenant ${tenantId}`);
     const invitesSnap = await invitesCollection(db, tenantId).doc(user.email).get();
     if (!invitesSnap.exists) {
-      throw new functions.auth.HttpsError(
+      console.log(`INVITE NOT FOUND FOR ${user.email} (tenant ID: ${tenantId})`);
+      throw new HttpsError(
         'permission-denied',
-        `Invitation required. No invite found for email ${user.email} under org ID ${tenantId}`
+        `Invitation required. No invite found for email ${user.email} under org ID ${tenantId}`,
+        {
+          providedTenantId: tenantId,
+        }
       );
     }
   }
@@ -75,10 +85,7 @@ export default async (user: AuthUserRecord, context: AuthEventContext) => {
   const userSnap = await usersCollection(db).where('email', '==', user.email).get();
   if (!userSnap.empty) {
     console.log(`USER ALREADY EXISTS WITH EMAIL: ${user.email}`);
-    throw new functions.auth.HttpsError(
-      'already-exists',
-      `Account with email ${user.email} already exists`
-    );
+    throw new HttpsError('already-exists', `Account with email ${user.email} already exists`);
   }
 
   if (user.email && user.email?.toLowerCase().endsWith('@idemandinsurance.com')) {

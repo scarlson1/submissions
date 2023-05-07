@@ -1,15 +1,22 @@
+import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
 import { getFirestore } from 'firebase-admin/firestore';
 
 import { sendAgencyAppApprovedNotification } from '../services/sendgrid';
 import { getFunctionsErrorCode, getErrorMessage } from '../utils/errorHelpers';
-import { agencyApplicationCollection } from '../common/dbCollections';
-import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
+import { agencyApplicationCollection, invitesCollection } from '../common/dbCollections';
 
 // const sendgridApiKey = defineSecret('SENDGRID_API_KEY');
 
-export default async (data: { docId: string; tenantId: string }, context: CallableContext) => {
+// TODO: standardize email notification response
+// array with recipient email and status ?
+
+export default async (
+  data: { docId: string; tenantId: string; message?: string | null },
+  context: CallableContext
+) => {
   try {
     const applicationDocId = data.docId;
+    const msg = data.message || null;
     const { auth } = context;
 
     if (!auth || !auth.token || !auth.token.iDemandAdmin) {
@@ -41,9 +48,19 @@ export default async (data: { docId: string; tenantId: string }, context: Callab
       throw new HttpsError('invalid-argument', 'Missing contact first name or company name');
     }
 
+    const inviteRef = invitesCollection(db, data.tenantId).doc(contact.email);
+    const inviteSnap = await inviteRef.get();
+
+    if (!inviteSnap.exists) {
+      throw new HttpsError(
+        'failed-precondition',
+        `No invite found under ${data.tenantId} for ${contact.email}`
+      );
+    }
+
     const to = [contact.email];
     if (process.env.AUDIENCE === 'LOCAL HUMANS' || process.env.AUDIENCE === 'DEV HUMANS') {
-      to.push('spencercarlson@mac.com');
+      to.push('spencer.carlson@idemandinsurance.com');
     }
 
     await sendAgencyAppApprovedNotification(
@@ -53,7 +70,8 @@ export default async (data: { docId: string; tenantId: string }, context: Callab
       contact.email,
       to,
       contact.firstName,
-      contact.lastName
+      contact.lastName,
+      msg
     );
 
     return {

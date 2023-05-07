@@ -184,8 +184,9 @@ export const sendAgencyAppApprovedNotification = async (
   orgName: string,
   email: string,
   to: string | string[],
-  firstName?: string,
-  lastName?: string
+  firstName?: string | null,
+  lastName?: string | null,
+  message?: string | null
 ) => {
   const link = `${process.env.HOSTING_BASE_URL}/auth/create-account/${encodeURIComponent(
     tenantId
@@ -193,7 +194,7 @@ export const sendAgencyAppApprovedNotification = async (
     firstName || ''
   )}&lastName=${encodeURIComponent(lastName || '')}`;
 
-  const html = agencyAppApproved({ firstName, orgName, link });
+  const html = agencyAppApproved({ firstName, orgName, link, message });
 
   sgMail.setApiKey(key);
 

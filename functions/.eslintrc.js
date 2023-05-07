@@ -28,7 +28,7 @@ module.exports = {
     'import/no-unresolved': 0,
     'object-curly-spacing': ['warn', 'always'],
     // https://eslint.org/docs/rules/indent
-    indent: ['warn', 2],
+    indent: ['warn', 2, { SwitchCase: 1 }],
     'max-len': [
       'warn',
       {

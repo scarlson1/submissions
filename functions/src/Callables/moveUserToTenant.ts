@@ -1,4 +1,3 @@
-// import * as functions from 'firebase-functions';
 import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
 import {
   Auth,

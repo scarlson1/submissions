@@ -1,9 +1,7 @@
-// import * as functions from 'firebase-functions';
-// import { defineSecret } from 'firebase-functions/params';
 import logger from 'firebase-functions/logger';
-import invariant from 'tiny-invariant';
-import { GeoPoint, Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
+import { GeoPoint, Timestamp, getFirestore } from 'firebase-admin/firestore';
+import invariant from 'tiny-invariant';
 
 import { CLAIMS, COLLECTIONS } from '../common';
 import { getAALs, validateGetAALsProps } from '../utils/rating';

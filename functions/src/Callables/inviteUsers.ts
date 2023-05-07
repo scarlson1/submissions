@@ -68,9 +68,16 @@ export default async (data: { users: NewUser[]; tenantId?: string }, context: Ca
     throw new HttpsError('failed-precondition', `Org doc not found with ID ${tenantId}`);
   }
   const orgData = orgSnap.data();
-  // Require email domain matches org ? make it a setting ?
-  const tenantAuth = getAuth().tenantManager().authForTenant(tenantId);
-  const reqUser = await tenantAuth.getUser(auth.uid);
+
+  let reqUser;
+  if (!auth?.token[CLAIMS.IDEMAND_ADMIN]) {
+    // Require email domain matches org ? make it a setting ?
+    const tenantAuth = getAuth().tenantManager().authForTenant(tenantId);
+    reqUser = await tenantAuth.getUser(auth.uid);
+  } else {
+    reqUser = await getAuth().getUser(auth.uid);
+  }
+
   console.log('users: ', users);
   try {
     const batch = db.batch();

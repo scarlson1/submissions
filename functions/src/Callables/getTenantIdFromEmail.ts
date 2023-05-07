@@ -1,7 +1,5 @@
-// import * as functions from 'firebase-functions';
-// import 'firebase-functions';
-import { getFirestore } from 'firebase-admin/firestore';
 import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
+import { getFirestore } from 'firebase-admin/firestore';
 
 import { usersCollection } from '../common/dbCollections';
 

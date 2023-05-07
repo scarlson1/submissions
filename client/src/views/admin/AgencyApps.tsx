@@ -1,5 +1,6 @@
 import React, { useMemo, useCallback } from 'react';
-import { limit, orderBy } from 'firebase/firestore';
+import { collection, getDocs, limit, orderBy, query, where } from 'firebase/firestore';
+import { FirebaseError } from 'firebase/app';
 import { useNavigate } from 'react-router-dom';
 import { Alert, AlertTitle, Box, Button, Tooltip, Typography } from '@mui/material';
 import {
@@ -10,13 +11,13 @@ import {
   GridRowParams,
   GridValueGetterParams,
 } from '@mui/x-data-grid';
+import { CheckCircleOutlineRounded, SendRounded } from '@mui/icons-material';
 
 import { BasicDataGrid } from 'components';
 import { ADMIN_ROUTES, createPath } from 'router';
-import { useCollectionData, useCreateTenant } from 'hooks';
-import { CheckCircleOutlineRounded, SendRounded } from '@mui/icons-material';
-import { FirebaseError } from 'firebase/app';
+import { useAsyncToast, useCollectionData, useCreateTenant } from 'hooks';
 import {
+  COLLECTIONS,
   addrLine1Col,
   addrLine2Col,
   createdCol,
@@ -30,13 +31,24 @@ import {
   statusCol,
   updatedCol,
 } from 'common';
+import { useSendAgencyAppNotification } from 'hooks/useCreateTenant';
+import { useFirestore } from 'reactfire';
 
 export const AgencyApps: React.FC = () => {
+  const firestore = useFirestore();
   const navigate = useNavigate();
+  const toast = useAsyncToast();
+
   const { data, status } = useCollectionData('AGENCY_APPLICATIONS', [
     orderBy('metadata.created', 'desc'),
     limit(100),
   ]);
+
+  const { confirmAndSend } = useSendAgencyAppNotification(
+    // () => toast.success('notification delivered'),
+    null,
+    (errMsg: string) => toast.error(errMsg)
+  );
 
   const { createTenant, error: createTenantError } = useCreateTenant({});
 
@@ -108,13 +120,42 @@ export const AgencyApps: React.FC = () => {
     [createTenant]
   );
 
+  // TODO: add tenantCreated: tenantId to agency app doc
   const handleResendInvite = useCallback(
     (params: GridRowParams) => async () => {
       // check if status === approved
-      alert('Not implemented yet');
+      // alert('Not implemented yet');
       // await sendApprovedNotification(docId, tenantId)
+
+      try {
+        let orgName = params.row.orgName;
+        if (!orgName) return toast.error('missing orgName to search for Org record');
+
+        let orgQuery = query(
+          collection(firestore, COLLECTIONS.ORGANIZATIONS),
+          where('orgName', '==', orgName)
+        );
+
+        let orgSnap = await getDocs(orgQuery);
+
+        if (orgSnap.empty) throw new Error(`No org doc found with orgName ${orgName}`);
+
+        const orgs = orgSnap.docs.map((snap) => snap.data());
+
+        if (orgs.length > 1)
+          console.log(`${orgs.length} orgs found matching orgName = ${orgName}`, orgs);
+
+        const orgId = orgs[0].tenantId;
+        if (!orgId) throw new Error('Org record did not have tenantId');
+
+        await confirmAndSend('approved', params.id.toString(), orgId);
+      } catch (err: any) {
+        console.log('ERR: ', err);
+        let msg = err?.message ?? 'Error getting Org record';
+        toast.error(msg);
+      }
     },
-    []
+    [firestore, confirmAndSend, toast]
   );
 
   const agencyAppColumns: GridColDef[] = useMemo(

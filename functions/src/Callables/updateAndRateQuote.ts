@@ -1,6 +1,6 @@
+import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
 import axios from 'axios';
 import merge from 'deepmerge';
-import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
 
 const TENANT_ID = '516ffcbc-6e4e-4dad-98ee-ac5f615fbab6';
 

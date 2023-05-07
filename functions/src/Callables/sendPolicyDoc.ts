@@ -1,9 +1,9 @@
+import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
 
 import { sendPolicyDocDelivery } from '../services/sendgrid';
 import { policiesCollection } from '../common';
-import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
 import { sendgridApiKey } from './index.js';
 
 // TODO: add policy docs as param

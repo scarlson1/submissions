@@ -1,6 +1,5 @@
-// import * as functions from 'firebase-functions';
-import axios from 'axios';
 import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
+import axios from 'axios';
 
 // TODO: check metadata.status !== 'BOUND'
 

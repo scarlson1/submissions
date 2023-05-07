@@ -1,7 +1,6 @@
 import logger from 'firebase-functions/logger';
+import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
-import { HttpsError } from 'firebase-functions/v1/auth';
-import { CallableContext } from 'firebase-functions/v1/https';
 import { round } from 'lodash';
 
 import {

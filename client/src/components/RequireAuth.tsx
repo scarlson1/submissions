@@ -28,7 +28,7 @@ export const RequireAuth: React.FC<RequireAuthProps> = ({
   shouldSignInAnonymously = false,
 }) => {
   const auth = getAuth();
-  let { error, loadingInitial, customClaims } = useAuth();
+  let { loadingInitial, customClaims } = useAuth(); //error,
   let location = useLocation();
   const navigate = useNavigate();
 
@@ -76,10 +76,10 @@ export const RequireAuth: React.FC<RequireAuthProps> = ({
   }
 
   // If auth error, redirect to home page by default
-  if (error) {
-    console.log('AUTH ERROR REDIRECTING TO SIGNIN');
-    return <Navigate to={'/'} state={{ from: location }} replace />;
-  }
+  // if (error) {
+  //   console.log('AUTH ERROR REDIRECTING TO SIGNIN');
+  //   return <Navigate to={'/'} state={{ from: location }} replace />;
+  // }
 
   // if not signed in, redirect to sign in page
   if (

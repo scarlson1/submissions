@@ -1,10 +1,10 @@
-import * as functions from 'firebase-functions';
+// import * as functions from 'firebase-functions';
 import logger from 'firebase-functions/logger';
+import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
 import { Tenant, getAuth } from 'firebase-admin/auth';
 import { Firestore, getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { kebabCase, random } from 'lodash';
 
-// import { getFunctionsErrorCode, getErrorMessage } from '../utils';
 import { AGENCY_STATUS, AGENCY_SUBMISSION_STATUS, CLAIMS } from '../common/enums';
 import {
   agencyApplicationCollection,
@@ -13,7 +13,6 @@ import {
 } from '../common/dbCollections';
 import { Invite } from '../common/types';
 import { isSingleLetter } from '../common';
-import { CallableContext } from 'firebase-functions/v1/https';
 
 export const createInvite = async (
   db: Firestore,
@@ -47,14 +46,11 @@ export const createInvite = async (
 export default async (data: any, context: CallableContext) => {
   const { auth } = context;
   if (!auth || !auth.token || !auth.token.iDemandAdmin) {
-    throw new functions.https.HttpsError(
-      'failed-precondition',
-      'iDemand Admin permissions required'
-    );
+    throw new HttpsError('failed-precondition', 'iDemand Admin permissions required');
   }
 
   if (!data.docId) {
-    throw new functions.https.HttpsError('invalid-argument', 'Missing application document ID');
+    throw new HttpsError('invalid-argument', 'Missing application document ID');
   }
 
   let org;
@@ -66,15 +62,12 @@ export default async (data: any, context: CallableContext) => {
     const docSnap = await docRef.get();
 
     if (!docSnap.exists) {
-      throw new functions.https.HttpsError(
-        'not-found',
-        `No agency application found with ID ${data.docId}`
-      );
+      throw new HttpsError('not-found', `No agency application found with ID ${data.docId}`);
     }
     const docData = docSnap.data();
     console.log('agency app docData: ', docData);
     if (!docData) {
-      throw new functions.https.HttpsError('not-found', `Data missing from doc ID ${data.docId}`);
+      throw new HttpsError('not-found', `Data missing from doc ID ${data.docId}`);
     }
     org = docData;
   } catch (err: any) {
@@ -84,26 +77,20 @@ export default async (data: any, context: CallableContext) => {
       data,
       userId: auth?.uid || null,
     });
-    throw new functions.https.HttpsError('not-found', msg);
+    throw new HttpsError('not-found', msg);
   }
 
   if (!org) {
-    throw new functions.https.HttpsError('not-found', `Agency app not found (ID: ${data.docId})`);
+    throw new HttpsError('not-found', `Agency app not found (ID: ${data.docId})`);
   }
 
   try {
     const orgExistsSnap = await orgsCollection(db).where('orgName', '==', org?.orgName).get();
     if (!orgExistsSnap.empty) {
-      throw new functions.https.HttpsError(
-        'already-exists',
-        `Org already exists with name ${org?.orgName}`
-      );
+      throw new HttpsError('already-exists', `Org already exists with name ${org?.orgName}`);
     }
   } catch (err) {
-    throw new functions.https.HttpsError(
-      'internal',
-      `error checking for exisiting orgs with same name`
-    );
+    throw new HttpsError('internal', `error checking for exisiting orgs with same name`);
   }
 
   let newTenantId;
@@ -137,14 +124,11 @@ export default async (data: any, context: CallableContext) => {
   } catch (err: any) {
     let msg = 'Error creating Tenant';
     if (err?.message) msg = err.message;
-    throw new functions.https.HttpsError('internal', msg);
+    throw new HttpsError('internal', msg);
   }
 
   if (!newTenantId)
-    throw new functions.https.HttpsError(
-      'internal',
-      'Error creating tenant. Tenant ID not returned.'
-    );
+    throw new HttpsError('internal', 'Error creating tenant. Tenant ID not returned.');
 
   // try {
   // TODO: use batch to set company and invites ??
@@ -214,27 +198,27 @@ export default async (data: any, context: CallableContext) => {
     let msg = 'Tenant successfully created. Error creating org doc and/or invite. ';
     if (err.message) msg += ` Error message: ${err.message}`;
 
-    throw new functions.https.HttpsError('internal', msg);
+    throw new HttpsError('internal', msg);
   }
   // } catch (err) {
   //   console.log('err: ', err);
   //   const code = getFunctionsErrorCode(err);
   //   const msg = getErrorMessage(err);
-  //   throw new functions.https.HttpsError(code, msg);
+  //   throw new HttpsError(code, msg);
   // }
 };
 
-// export const createTenantFromSubmission = functions.https.onCall(async (data, context) => {
+// export const createTenantFromSubmission = onCall(async (data, context) => {
 //   const { auth } = context;
 //   if (!auth || !auth.token || !auth.token.iDemandAdmin) {
-//     throw new functions.https.HttpsError(
+//     throw new HttpsError(
 //       'failed-precondition',
 //       'iDemand Admin permissions required'
 //     );
 //   }
 
 //   if (!data.docId) {
-//     throw new functions.https.HttpsError('invalid-argument', 'Missing application document ID');
+//     throw new HttpsError('invalid-argument', 'Missing application document ID');
 //   }
 
 //   let org;
@@ -246,7 +230,7 @@ export default async (data: any, context: CallableContext) => {
 //     const docSnap = await docRef.get();
 
 //     if (!docSnap.exists) {
-//       throw new functions.https.HttpsError(
+//       throw new HttpsError(
 //         'not-found',
 //         `No agency application found with ID ${data.docId}`
 //       );
@@ -254,7 +238,7 @@ export default async (data: any, context: CallableContext) => {
 //     const docData = docSnap.data();
 //     console.log('agency app docData: ', docData);
 //     if (!docData) {
-//       throw new functions.https.HttpsError('not-found', `Data missing from doc ID ${data.docId}`);
+//       throw new HttpsError('not-found', `Data missing from doc ID ${data.docId}`);
 //     }
 //     org = docData;
 //   } catch (err: any) {
@@ -264,23 +248,23 @@ export default async (data: any, context: CallableContext) => {
 //       data,
 //       userId: auth?.uid || null,
 //     });
-//     throw new functions.https.HttpsError('not-found', msg);
+//     throw new HttpsError('not-found', msg);
 //   }
 
 //   if (!org) {
-//     throw new functions.https.HttpsError('not-found', `Agency app not found (ID: ${data.docId})`);
+//     throw new HttpsError('not-found', `Agency app not found (ID: ${data.docId})`);
 //   }
 
 //   try {
 //     const orgExistsSnap = await orgsCollection(db).where('orgName', '==', org?.orgName).get();
 //     if (!orgExistsSnap.empty) {
-//       throw new functions.https.HttpsError(
+//       throw new HttpsError(
 //         'already-exists',
 //         `Org already exists with name ${org?.orgName}`
 //       );
 //     }
 //   } catch (err) {
-//     throw new functions.https.HttpsError(
+//     throw new HttpsError(
 //       'internal',
 //       `error checking for exisiting orgs with same name`
 //     );
@@ -317,11 +301,11 @@ export default async (data: any, context: CallableContext) => {
 //   } catch (err: any) {
 //     let msg = 'Error creating Tenant';
 //     if (err?.message) msg = err.message;
-//     throw new functions.https.HttpsError('internal', msg);
+//     throw new HttpsError('internal', msg);
 //   }
 
 //   if (!newTenantId)
-//     throw new functions.https.HttpsError(
+//     throw new HttpsError(
 //       'internal',
 //       'Error creating tenant. Tenant ID not returned.'
 //     );
@@ -394,13 +378,13 @@ export default async (data: any, context: CallableContext) => {
 //     let msg = 'Tenant successfully created. Error creating org doc and/or invite. ';
 //     if (err.message) msg += ` Error message: ${err.message}`;
 
-//     throw new functions.https.HttpsError('internal', msg);
+//     throw new HttpsError('internal', msg);
 //   }
 //   // } catch (err) {
 //   //   console.log('err: ', err);
 //   //   const code = getFunctionsErrorCode(err);
 //   //   const msg = getErrorMessage(err);
-//   //   throw new functions.https.HttpsError(code, msg);
+//   //   throw new HttpsError(code, msg);
 //   // }
 // });
 

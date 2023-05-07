@@ -1,13 +1,11 @@
-import * as functions from 'firebase-functions';
+import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
-// import { defineSecret } from 'firebase-functions/params';
 import axios, { AxiosResponse } from 'axios';
 
 import { LimitTypes, calcSum, roundUpToNearest } from '../common';
 import { getAttomInstance } from '../services';
 import { round } from 'lodash';
 import { attomKey as attomKeySecret } from './index.js';
-import { CallableContext } from 'firebase-functions/v1/https';
 
 let defaultLimitPercents: { [key in LimitTypes]: number } = {
   limitA: 1,
@@ -29,14 +27,11 @@ export default async (data: any, ctx: CallableContext) => {
   console.log('data: ', data);
   const { addressLine1, addressLine2 = '', city, state, postal = '' } = data;
   if (!addressLine1 || !city || !state) {
-    throw new functions.https.HttpsError(
-      'invalid-argument',
-      `Missing address components in request body`
-    );
+    throw new HttpsError('invalid-argument', `Missing address components in request body`);
   }
 
   const attomKey = attomKeySecret.value(); // process.env.ATTOM_API_KEY;
-  if (!attomKey) throw new functions.https.HttpsError('internal', `Missing property data api key`);
+  if (!attomKey) throw new HttpsError('internal', `Missing property data api key`);
   const attomInstance = getAttomInstance(attomKey);
 
   let basicProfileRes;
@@ -65,7 +60,7 @@ export default async (data: any, ctx: CallableContext) => {
 
     // TODO: get property details ??
   } catch (err) {
-    throw new functions.https.HttpsError('internal', `Error fetching property data`);
+    throw new HttpsError('internal', `Error fetching property data`);
   }
 
   if (profile) {
@@ -156,7 +151,7 @@ export default async (data: any, ctx: CallableContext) => {
       return { ...fallback };
     }
   } else {
-    throw new functions.https.HttpsError('internal', `Error fetching property data`);
+    throw new HttpsError('internal', `Error fetching property data`);
   }
 };
 

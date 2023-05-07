@@ -2,9 +2,19 @@ interface AgencyAppApprovedProps {
   link: string;
   firstName?: string | null;
   orgName: string;
+  message?: string | null;
 }
 
-export const agencyAppApproved = ({ link, firstName, orgName }: AgencyAppApprovedProps) => {
+export const agencyAppApproved = ({
+  link,
+  firstName,
+  orgName,
+  message,
+}: AgencyAppApprovedProps) => {
+  let body =
+    message ??
+    `Your submission has been processed and approved for ${orgName}.  We're exciting to work with you! Please click the link below to finish setting up your account and inviting your colleagues.`;
+
   return `<!doctype html>
       <html>
         <head>
@@ -14,7 +24,7 @@ export const agencyAppApproved = ({ link, firstName, orgName }: AgencyAppApprove
         <body>
           <div>
             <p style="padding-bottom: 8px">Hi${firstName ? ` ${firstName},` : ','}</p>
-            <p>Your submission has been processed and approved for ${orgName}.  We're exciting to work with you! Please click the link below to finish setting up your account and inviting your colleagues.</p>
+            <p>${body}</p>
             <br>
             <p>
               <a href=${link}>Finish setting up your account</a>

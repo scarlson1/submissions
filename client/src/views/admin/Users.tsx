@@ -57,7 +57,7 @@ export const Users: React.FC = () => {
         console.log('ERROR MOVING USER TO TENANT: ', err);
       }
     },
-    [toast, moveUser]
+    [toast, moveUser, confirm]
   );
 
   return (

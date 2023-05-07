@@ -1,28 +1,6 @@
 import * as functions from 'firebase-functions';
 import { defineSecret } from 'firebase-functions/params';
-
-// export { assignQuote } from './assignQuote.js';
-// export { calcQuote } from './calcQuote.js';
-// export { createPolicy } from './createPolicy.js';
-// export { createTenantFromSubmission } from './createTenantFromSubmission.js';
-// export { deliverAgencyAgreement } from './deliverAgencyAgreement.js';
-// export { executePayment } from './executePayment.js';
-// export { getAnnualPremium } from './getAnnualPremium.js';
-// export { getPropertyDetails } from './getPropertyDetails.js';
-// export { getPropertyDetailsAttom } from './getPropertyDetailsAttom.js';
-// export { getRiskFactorId } from './getRiskFactorId.js';
-// export { getTenantIdFromEmail } from './getTenantIdFromEmail.js';
-// export { getValuationEstimate } from './getValuationEstimate.js';
-// export { initializeQuote } from './initializeQuote.js';
-// export { inviteUsers } from './inviteUsers.js';
-// export { moveUserToTenant } from './moveUserToTenant.js';
-// export { resendInvite } from './resendInvite.js';
-// export { sendAgencyApprovedNotification } from './sendAgencyApprovedNotification.js';
-// export { sendContactEmail } from './sendContactEmail.js';
-// export { sendNewQuoteNotifications } from './sendNewQuoteNotifications.js';
-// export { sendPolicyDoc } from './sendPolicyDoc.js';
-// export { updateAndRateQuote } from './updateAndRateQuote.js';
-// export { verifyEPayToken } from './verifyEPayToken.js';
+import { onCall as onCallv2 } from 'firebase-functions/v2/https';
 
 const swissReClientId = defineSecret('SWISS_RE_CLIENT_ID');
 const swissReClientSecret = defineSecret('SWISS_RE_CLIENT_SECRET');
@@ -108,6 +86,10 @@ export const getPropertyDetailsAttom = functions
 
 export const getRiskFactorId = functions.https.onCall(async (data, ctx) => {
   return (await import('./getRiskFactorId.js')).default(data, ctx);
+});
+
+export const getriskfactoridv2 = onCallv2(async (request) => {
+  return (await import('./getRiskFactorIdv2.js')).default(request);
 });
 
 export const getTenantIdFromEmail = functions.https.onCall(async (data, ctx) => {
@@ -203,3 +185,26 @@ export const verifyEPayToken = functions
   .https.onCall(async (data, ctx) => {
     return (await import('./verifyEPayToken.js')).default(data, ctx);
   });
+
+// export { assignQuote } from './assignQuote.js';
+// export { calcQuote } from './calcQuote.js';
+// export { createPolicy } from './createPolicy.js';
+// export { createTenantFromSubmission } from './createTenantFromSubmission.js';
+// export { deliverAgencyAgreement } from './deliverAgencyAgreement.js';
+// export { executePayment } from './executePayment.js';
+// export { getAnnualPremium } from './getAnnualPremium.js';
+// export { getPropertyDetails } from './getPropertyDetails.js';
+// export { getPropertyDetailsAttom } from './getPropertyDetailsAttom.js';
+// export { getRiskFactorId } from './getRiskFactorId.js';
+// export { getTenantIdFromEmail } from './getTenantIdFromEmail.js';
+// export { getValuationEstimate } from './getValuationEstimate.js';
+// export { initializeQuote } from './initializeQuote.js';
+// export { inviteUsers } from './inviteUsers.js';
+// export { moveUserToTenant } from './moveUserToTenant.js';
+// export { resendInvite } from './resendInvite.js';
+// export { sendAgencyApprovedNotification } from './sendAgencyApprovedNotification.js';
+// export { sendContactEmail } from './sendContactEmail.js';
+// export { sendNewQuoteNotifications } from './sendNewQuoteNotifications.js';
+// export { sendPolicyDoc } from './sendPolicyDoc.js';
+// export { updateAndRateQuote } from './updateAndRateQuote.js';
+// export { verifyEPayToken } from './verifyEPayToken.js';

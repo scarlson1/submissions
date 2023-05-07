@@ -1,8 +1,6 @@
-// import * as functions from 'firebase-functions';
 import logger from 'firebase-functions/logger';
-import { getFirestore, Timestamp, DocumentSnapshot } from 'firebase-admin/firestore';
 import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
-// import { defineSecret } from 'firebase-functions/params';
+import { getFirestore, Timestamp, DocumentSnapshot } from 'firebase-admin/firestore';
 
 import {
   PaymentMethod,

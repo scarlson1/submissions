@@ -22,7 +22,7 @@ import { useForm, SubmitHandler, useFormState } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { LoadingButton, TabContext, TabList, TabPanel } from '@mui/lab';
-import Slider from 'react-slick';
+// import Slider from 'react-slick';
 
 // import { useAuth } from 'modules/components/AuthContext';
 import { AddUsersDialog, UpdateProfileImg } from 'elements';

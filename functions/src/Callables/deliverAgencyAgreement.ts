@@ -1,15 +1,10 @@
 /* eslint-disable */
-// import * as functions from 'firebase-functions';
-// import { defineSecret } from 'firebase-functions/params';
-import { HttpsError } from 'firebase-functions/v1/auth';
-import { CallableContext } from 'firebase-functions/v1/https';
+import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
 
 import { Address } from '../common';
 import { getSignNowInstance } from '../services';
 import { signNowCreds, signNowUserCreds } from './index.js';
 
-// const signNowCreds = defineSecret('SIGN_NOW_CREDS');
-// const signNowUserCreds = defineSecret('SIGN_NOW_USER_CREDS');
 const DEFAULT_TEMPLATE_ID = '6f59b30e2005428998518ade9f325f6c405391d6';
 
 interface GetAnnualPremiumData {

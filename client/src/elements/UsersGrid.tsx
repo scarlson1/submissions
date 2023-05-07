@@ -140,14 +140,14 @@ export const AdminManageUsersGrid: React.FC<AdminManageUsersGridProps> = ({
   // TODO: get orgId dynamically from doc
   // could set pathSegments: [{ value: string, fromDoc?: boolean }]
   // getPaths(segments){ segments.map(s => typeof s === 'string' ? s : s.fromDoc ? doc[s.value] : s.value ) }
-  const { data: populateData, status: populateStatus } = useCollectionDataPopulateById(
+  const { data, status } = useCollectionDataPopulateById(
     q,
     'userId',
     { root: COLLECTIONS.ORGANIZATIONS, pathSegments: [orgId, COLLECTIONS.USER_CLAIMS] },
     { suspense: true, idField: 'userId', initialData: [] }
   );
 
-  console.log('POPULATE RESULT: ', populateData);
+  console.log('POPULATE RESULT: ', data);
 
   const userColumns: GridColDef[] = useMemo(
     () => [
@@ -255,11 +255,11 @@ export const AdminManageUsersGrid: React.FC<AdminManageUsersGridProps> = ({
     <Box>
       <BasicDataGrid
         // @ts-ignore
-        rows={populateData || []}
+        rows={data || []}
         columns={userColumns}
         getRowId={(row) => row.userId}
-        loading={populateStatus === 'loading'}
-        density='compact'
+        loading={status === 'loading'}
+        density='standard' // 'compact'
         autoHeight
         initialState={{
           columns: {

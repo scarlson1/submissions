@@ -137,41 +137,62 @@ export const useCreateAccount = () => {
       firstName?: string,
       lastName?: string
     ) => {
+      console.log('AUTH ERROR: ', err);
+
       const { code, message: msg } = getErrorDetails(err);
       console.log(`error code: ${code}`);
       console.log(`error message: ${msg}`);
 
-      // if (code !== 'auth/internal-error' && msg.indexOf('Cloud Function') !== -1) {
-      //   console.log('BLOCKING FUNCTION ERROR');
-      // } else {
-      //   // registration succeeded
-      // }
+      // BLOCKING FUNCTION ERRORS:
+      //    - if not tenant, email matched outstanding invite
+      //    - tenant doc not found (retreived for domain restriction)
+      //    - invitation not found under tenant for email
+      //    - user doc already exists with email
       if (code === 'auth/internal-error') {
-        if (msg.indexOf('Cloud Function') !== -1 || msg.indexOf('verify your email') !== -1) {
-          // registration succeeded
-          console.log('registration succeeded. need to handle blocking function');
-          if (
-            msg.indexOf('needs to be verified') !== -1 ||
-            msg.indexOf('verify your email') !== -1
-          ) {
-            toast('Email verification required');
+        if (msg.indexOf('Cloud Function') !== -1) {
+          if (msg.indexOf('verify your email') !== -1) {
+            // registration succeeded
+            console.log('registration succeeded. need to handle blocking function');
+            if (
+              msg.indexOf('needs to be verified') !== -1 ||
+              msg.indexOf('verify your email') !== -1
+            ) {
+              toast('Email verification required');
 
-            return navigate(
-              `/auth/login${params.tenandId || ''}?email=${encodeURIComponent(email)}`,
-              {
-                state: { ...location.state },
-              }
+              return navigate(
+                `/auth/login${params.tenandId || ''}?email=${encodeURIComponent(email)}`,
+                {
+                  state: { ...location.state },
+                }
+              );
+            }
+            // TODO: handle other blocking fn errors, if any
+
+            // TODO: figure out how to update user name - handle in blocking fn ??
+            // await updateUserDocOnCreate(userCreateRes, { firstName, lastName });
+          }
+          if (msg.indexOf('ALREADY_EXISTS') !== -1 || msg.indexOf('already exists') !== -1) {
+            return toast.error('Account already exists. Please sign in.');
+          }
+          if (msg.indexOf('tenant doc not found') !== -1) {
+            return toast.error('Tenant not found. Please verify the ID in the URL is correct.');
+          }
+          if (msg.indexOf('Unauthorized email') !== -1) {
+            return toast.error(
+              `Org has email domain restrictions enabled that do not match "@${
+                email.split('@')[1]
+              }"`,
+              { duration: 6000 }
             );
           }
-          // TODO: handle other blocking fn errors, if any
-          // what do errors returned from before create look like ??
+          if (msg.indexOf('Invitation required') !== -1) {
+            return toast.error(
+              `Invite required to join org. Please contact the organization to create an invite.`,
+              { duration: 6000 }
+            );
+          }
+        }
 
-          // TODO: figure out how to update user name - handle in blocking fn ??
-          // await updateUserDocOnCreate(userCreateRes, { firstName, lastName });
-        }
-        if (msg.indexOf('ALREADY_EXISTS') !== -1 || msg.indexOf('already exists') !== -1) {
-          return toast('Account already exists. Please sign in.');
-        }
         if (msg.indexOf('Cloud function deadline exceeded') !== -1) {
           console.log('Blocking function deadline exceeded. Retrying createAccount');
           return createAccount({
@@ -182,6 +203,7 @@ export const useCreateAccount = () => {
           });
           // return toast('Timeout error. Please try again!');
         }
+
         toast.error(`Auth error: ${code}`);
         // Emulator doesn't return response with 'Cloud Function' added || above as work around
         // Firebase: ((HTTP request to http://127.0.0.1:5001/idemand-dev/us-central1/beforeSignIn returned HTTP error 400: {"error":{"message":"Please verify your email before proceeding (atest@idemandinsurance.com)","status":"INVALID_ARGUMENT"}})) (auth/internal-error).
@@ -262,7 +284,7 @@ export const useCreateAccount = () => {
     [isAnonymous, logout, navigate, location, params, createAccount]
   );
 
-  let memoizedValues = useMemo(
+  return useMemo(
     () => ({
       createAccount,
       handleEmailAuthError,
@@ -273,5 +295,5 @@ export const useCreateAccount = () => {
     [createAccount, handleEmailAuthError, errMsg, errCode, loading]
   );
 
-  return { ...memoizedValues };
+  // return { ...memoizedValues };
 };

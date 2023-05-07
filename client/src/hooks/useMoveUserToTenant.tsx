@@ -40,7 +40,7 @@ export const useMoveUserToTenant = (
         setError(msg);
       }
     },
-    [functions]
+    [functions, onSuccess, onError]
   );
 
   return useMemo(() => ({ moveUser, loading, error }), [moveUser, loading, error]);
