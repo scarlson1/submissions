@@ -63,6 +63,7 @@ export const beforeCreate = functions
       console.log(`Fetching invite for ${user.email} under tenant ${tenantId}`);
       const invitesSnap = await invitesCollection(db, tenantId).doc(user.email).get();
       if (!invitesSnap.exists) {
+        console.log('Invite not found. Throwing error.');
         throw new functions.auth.HttpsError(
           'permission-denied',
           `Invitation required. No invite found for email ${user.email} under org ID ${tenantId}`
