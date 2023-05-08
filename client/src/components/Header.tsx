@@ -507,7 +507,10 @@ const UserMenu: React.FC<UserMenuProps> = () => {
     let sItems: { label: string; onClick: () => void; icon?: JSX.Element }[] = [
       {
         label: 'Contact Us',
-        onClick: () => navigate(createPath({ path: ROUTES.CONTACT })),
+        onClick: () => {
+          handleCloseMenu();
+          navigate(createPath({ path: ROUTES.CONTACT }));
+        },
         icon: <ContactSupportRounded color='inherit' fontSize='small' />,
       },
     ];
@@ -515,20 +518,28 @@ const UserMenu: React.FC<UserMenuProps> = () => {
     if (authCheckResult?.user && !authCheckResult?.user?.isAnonymous)
       sItems.unshift({
         label: 'Account Settings',
-        onClick: () => navigate(createPath({ path: ACCOUNT_ROUTES.ACCOUNT })),
+        onClick: () => {
+          handleCloseMenu();
+          navigate(createPath({ path: ACCOUNT_ROUTES.ACCOUNT }));
+        },
         icon: <ManageAccountsRounded fontSize='small' />,
       });
 
     if (authCheckResult?.user?.isAnonymous) {
       sItems.push({
         label: 'Create Account',
-        onClick: () => navigate(createPath({ path: AUTH_ROUTES.CREATE_ACCOUNT })),
+        onClick: () => {
+          handleCloseMenu();
+          navigate(createPath({ path: AUTH_ROUTES.CREATE_ACCOUNT }));
+        },
         icon: <PersonRounded fontSize='small' />,
       });
       sItems.push({
         label: 'Have an account? Login',
-        onClick: () =>
-          navigate(createPath({ path: AUTH_ROUTES.LOGIN }), { state: { from: location } }),
+        onClick: () => {
+          handleCloseMenu();
+          navigate(createPath({ path: AUTH_ROUTES.LOGIN }), { state: { from: location } });
+        },
         icon: <PasswordRounded fontSize='small' />,
       });
     }

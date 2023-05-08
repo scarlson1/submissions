@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState, startTransition } from 'react';
 import { Box } from '@mui/material';
 import {
   DataGrid,
@@ -40,6 +40,7 @@ export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
   columns,
   ...rest
 }) => {
+  // const [isPending, startTransition] = useTransition();
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
   const [rowCount, setRowCount] = useState<number>(0);
@@ -74,7 +75,11 @@ export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
     isCollectionGroup,
     pathSegments
   );
+  // const deferredData = useDeferredValue(data);
 
+  // const rowData = useMemo(() => {
+  //   return deferredData?.docs?.map((doc) => ({ ...doc.data(), id: doc.id })) ?? [];
+  // }, [deferredData]);
   const rowData = useMemo(() => {
     return data?.docs?.map((doc) => ({ ...doc.data(), id: doc.id })) ?? [];
   }, [data]);
@@ -82,12 +87,14 @@ export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
   // TODO: use useTransition hook to prevent grid flashing when loading next page's data
   const onPageChanged = useCallback(
     (nextPage: number) => {
-      setPage((page) => {
-        // first, save the last document as page's cursor (query uses "startAfter(snap)")
-        cursors.current.set(page + 1, data.docs[data.docs.length - 1]);
+      startTransition(() => {
+        setPage((page) => {
+          // save the last document as page's cursor (query uses "startAfter(snap)")
+          cursors.current.set(page + 1, data.docs[data.docs.length - 1]);
 
-        // update state to the next page's number
-        return nextPage;
+          // update state to the next page's number
+          return nextPage;
+        });
       });
     },
     [data]
@@ -100,7 +107,9 @@ export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
       if (f.sort) newOptions.push(orderBy(f.field, f.sort));
     });
 
-    setSortOptions([...newOptions]);
+    startTransition(() => {
+      setSortOptions([...newOptions]);
+    });
   }, []);
 
   const handleFilterChange = useCallback((filterModel: GridFilterModel) => {
@@ -124,8 +133,13 @@ export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
     });
 
     console.log('NEW FILTERS: ', newFilters);
-    setFilters(newFilters);
+    startTransition(() => {
+      setFilters(newFilters);
+    });
   }, []);
+
+  // console.log('IS_PENDING: ', isPending);
+  // console.log('DATA: ', rowData);
 
   return (
     <Box sx={{ height: 500, width: '100%' }}>
@@ -133,8 +147,9 @@ export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
         rowsPerPageOptions={[5, 10, 25, 100]}
         {...rest}
         rows={rowData}
+        // rows={deferredData}
         columns={columns}
-        loading={status === 'loading'}
+        loading={status === 'loading'} // || isPending
         pagination
         paginationMode='server'
         page={page}

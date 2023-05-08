@@ -24,7 +24,6 @@ import * as yup from 'yup';
 import { LoadingButton, TabContext, TabList, TabPanel } from '@mui/lab';
 // import Slider from 'react-slick';
 
-// import { useAuth } from 'modules/components/AuthContext';
 import { AddUsersDialog, UpdateProfileImg } from 'elements';
 import { COLLECTIONS, User, usersCollection } from 'common';
 import { Carousel, ClaimsGuard, Copy } from 'components';
@@ -36,7 +35,7 @@ import {
   useDocData,
   useUpdateProfile,
 } from 'hooks';
-import { useAuth, useAuthActions } from 'modules/components';
+import { useAuthActions } from 'modules/components';
 import { RHFTextField } from 'components/forms';
 import { AdminManageUsersGrid } from 'elements/UsersGrid';
 import { passwordValidation } from './CreateAccount';
@@ -526,7 +525,8 @@ interface UpdatePasswordValues {
 
 function UpdatePasswordForm() {
   const toast = useAsyncToast({ position: 'top-right' });
-  const { updateUserPassword } = useAuth();
+  // const { updateUserPassword } = useAuth();
+  const { updateUserPassword } = useAuthActions();
 
   const {
     handleSubmit,
