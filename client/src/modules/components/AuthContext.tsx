@@ -18,7 +18,7 @@ import {
   // updateEmail,
   // verifyBeforeUpdateEmail,
   // multiFactor,
-  updatePassword,
+  // updatePassword,
 } from '@firebase/auth';
 import { doc, onSnapshot, DocumentSnapshot } from '@firebase/firestore';
 import { setUserId, setUserProperties } from 'firebase/analytics';
@@ -52,7 +52,7 @@ interface AuthContextValue {
   // login: (email: string, password: string) => Promise<UserCredential>;
   // logout: (cb?: VoidFunction) => void;
   // sendPasswordReset: (email: string) => Promise<any>;
-  updateUserPassword: (newPassword: string) => Promise<void>;
+  // updateUserPassword: (newPassword: string) => Promise<void>;
   // sendVerification: () => Promise<any>;
   getSecondsFromLastAuth: () => number | null;
   // setUpdatedUser: (user: User | null) => void;
@@ -370,19 +370,19 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
   //   [reauthIfRequired, user]
   // );
 
-  /**
-   * Change password dialog for already authenticated users.
-   * @param {string} newPassword - new password for current user.
-   */
-  const updateUserPassword = useCallback(
-    async (newPassword: string) => {
-      // TODO: validation
-      if (!user) throw new Error('Must be signed in.');
-      await reauthIfRequired();
-      await updatePassword(user, newPassword);
-    },
-    [reauthIfRequired, user]
-  );
+  // /**
+  //  * Change password dialog for already authenticated users.
+  //  * @param {string} newPassword - new password for current user.
+  //  */
+  // const updateUserPassword = useCallback(
+  //   async (newPassword: string) => {
+  //     // TODO: validation
+  //     if (!user) throw new Error('Must be signed in.');
+  //     await reauthIfRequired();
+  //     await updatePassword(user, newPassword);
+  //   },
+  //   [reauthIfRequired, user]
+  // );
 
   const handleReauthResult = useCallback(
     (userCred: UserCredential) => {
@@ -414,7 +414,7 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
       // login,
       // logout,
       // sendPasswordReset,
-      updateUserPassword,
+      // updateUserPassword,
       // sendVerification,
       getSecondsFromLastAuth,
       // setUpdatedUser,
@@ -431,7 +431,7 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
       // login,
       // logout,
       // sendPasswordReset,
-      updateUserPassword,
+      // updateUserPassword,
       // sendVerification,
       getSecondsFromLastAuth,
       // setUpdatedUser,
