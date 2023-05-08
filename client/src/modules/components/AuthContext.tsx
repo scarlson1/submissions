@@ -11,22 +11,21 @@ import {
   // onAuthStateChanged,
   User,
   IdTokenResult,
-  signInWithEmailAndPassword,
-  sendPasswordResetEmail,
+  // signInWithEmailAndPassword,
+  // sendPasswordResetEmail,
   UserCredential,
-  sendEmailVerification,
-  updateEmail,
-  verifyBeforeUpdateEmail,
-  multiFactor,
+  // sendEmailVerification,
+  // updateEmail,
+  // verifyBeforeUpdateEmail,
+  // multiFactor,
   updatePassword,
 } from '@firebase/auth';
 import { doc, onSnapshot, DocumentSnapshot } from '@firebase/firestore';
 import { setUserId, setUserProperties } from 'firebase/analytics';
 import { useAnalytics, useAuth as useFireAuth, useFirestore, useUser } from 'reactfire';
-import { useNavigate } from 'react-router-dom';
+// import { useNavigate } from 'react-router-dom';
 import { differenceInSeconds } from 'date-fns';
-
-import { toast } from 'react-hot-toast';
+// import { toast } from 'react-hot-toast';
 // import { authState } from 'rxfire/auth';
 // import { filter } from 'rxjs/operators';
 
@@ -50,11 +49,11 @@ interface AuthContextValue {
   loading: boolean;
   loadingInitial: boolean;
   customClaims: CustomClaimsInterface;
-  login: (email: string, password: string) => Promise<UserCredential>;
-  logout: (cb?: VoidFunction) => void;
-  sendPasswordReset: (email: string) => Promise<any>;
+  // login: (email: string, password: string) => Promise<UserCredential>;
+  // logout: (cb?: VoidFunction) => void;
+  // sendPasswordReset: (email: string) => Promise<any>;
   updateUserPassword: (newPassword: string) => Promise<void>;
-  sendVerification: () => Promise<any>;
+  // sendVerification: () => Promise<any>;
   getSecondsFromLastAuth: () => number | null;
   // setUpdatedUser: (user: User | null) => void;
   reauthenticateUser: (dialogMsg?: string) => Promise<void>; // Promise<UserCredential>;
@@ -62,7 +61,7 @@ interface AuthContextValue {
     secondLimit?: number,
     dialogMsg?: string
   ) => Promise<void | { user: User | null }>;
-  updateUserEmail: (newEmail: string) => Promise<void>;
+  // updateUserEmail: (newEmail: string) => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -107,7 +106,7 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
   //   .pipe(filter((u) => u !== null))
   //   .subscribe((u) => console.log('rxFire authState user: ', u));
 
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
 
   const updateClaims = useCallback(async () => {
     setLoading(true);
@@ -184,6 +183,7 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
       setLoadingInitial(false);
       setLoading(false);
     };
+
     update().catch((err) => {
       console.log('ERR: ', err);
       setLoading(false);
@@ -216,83 +216,83 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
   //   return () => unsubscribe();
   // }, [auth, updateClaims, analytics]);
 
-  /**
-   * Login user using email/password auth
-   * @param {string} email - user's email.
-   * @param {string} password - provided password.
-   * @returns {UserCredential} UserCredential returned from signin method.
-   */
-  const login = useCallback(
-    async (email: string, password: string) => {
-      try {
-        console.log('auth.tenantId: ', auth.tenantId);
-        let res = await signInWithEmailAndPassword(auth, email, password);
-        // console.log('SIGN IN RES: ', res);
-        await updateClaims();
+  // /**
+  //  * Login user using email/password auth
+  //  * @param {string} email - user's email.
+  //  * @param {string} password - provided password.
+  //  * @returns {UserCredential} UserCredential returned from signin method.
+  //  */
+  // const login = useCallback(
+  //   async (email: string, password: string) => {
+  //     try {
+  //       console.log('auth.tenantId: ', auth.tenantId);
+  //       let res = await signInWithEmailAndPassword(auth, email, password);
+  //       // console.log('SIGN IN RES: ', res);
+  //       await updateClaims();
 
-        return res;
-      } catch (err) {
-        console.log('error authenticating user => ', err);
-        // TODO: error handling in catch from returned error ??
-        return Promise.reject(err);
-      }
-    },
-    [auth, updateClaims]
-  );
+  //       return res;
+  //     } catch (err) {
+  //       console.log('error authenticating user => ', err);
+  //       // TODO: error handling in catch from returned error ??
+  //       return Promise.reject(err);
+  //     }
+  //   },
+  //   [auth, updateClaims]
+  // );
 
-  /**
-   * Logs out the current user and clears react-query. Redirects to /auth/login by default
-   * @param {VoidFunction} cb - Optional callback
-   */
-  const logout = useCallback(
-    async (cb?: VoidFunction) => {
-      setLoading(true);
+  // /**
+  //  * Logs out the current user and clears react-query. Redirects to /auth/login by default
+  //  * @param {VoidFunction} cb - Optional callback
+  //  */
+  // const logout = useCallback(
+  //   async (cb?: VoidFunction) => {
+  //     setLoading(true);
 
-      await auth.signOut();
-      // queryClient.invalidateQueries();
+  //     await auth.signOut();
+  //     // queryClient.invalidateQueries();
 
-      cb !== undefined ? cb() : navigate(`/auth/login`, { replace: true });
-      setLoading(false);
-    },
-    [auth, navigate]
-  );
+  //     cb !== undefined ? cb() : navigate(`/auth/login`, { replace: true });
+  //     setLoading(false);
+  //   },
+  //   [auth, navigate]
+  // );
 
-  /**
-   * Sends email verification to currentUser
-   * @returns {Promise} returns sendEmailVerification which resolves current users email
-   */
-  const sendVerification = useCallback(async () => {
-    if (!auth.currentUser) throw new Error('Must be signed in');
-    await sendEmailVerification(auth.currentUser);
+  // /**
+  //  * Sends email verification to currentUser
+  //  * @returns {Promise} returns sendEmailVerification which resolves current users email
+  //  */
+  // const sendVerification = useCallback(async () => {
+  //   if (!auth.currentUser) throw new Error('Must be signed in');
+  //   await sendEmailVerification(auth.currentUser);
 
-    return auth.currentUser.email;
-  }, [auth]);
+  //   return auth.currentUser.email;
+  // }, [auth]);
 
-  /**
-   * Sends password reset to the provided email. Used for "forgot password" situations.
-   * @param {string} email - email to which the reset email is sent.
-   * @param {string} continueUrl - url the link redirects to.
-   * @returns {string} informational success message which can be display to user
-   */
-  const sendPasswordReset = useCallback(
-    async (email: string, continueUrl?: string) => {
-      var actionCodeSettings = {
-        url:
-          continueUrl ||
-          `${process.env.REACT_APP_HOSTING_URL}/auth/login/${
-            auth.currentUser && auth.currentUser.tenantId ? auth.currentUser.tenantId : ''
-          }`,
-        handleCodeInApp: false,
-      };
-      try {
-        await sendPasswordResetEmail(auth, email, actionCodeSettings);
-        return `Password reset email sent to ${email}`;
-      } catch (err) {
-        return Promise.reject(err);
-      }
-    },
-    [auth]
-  );
+  // /**
+  //  * Sends password reset to the provided email. Used for "forgot password" situations.
+  //  * @param {string} email - email to which the reset email is sent.
+  //  * @param {string} continueUrl - url the link redirects to.
+  //  * @returns {string} informational success message which can be display to user
+  //  */
+  // const sendPasswordReset = useCallback(
+  //   async (email: string, continueUrl?: string) => {
+  //     var actionCodeSettings = {
+  //       url:
+  //         continueUrl ||
+  //         `${process.env.REACT_APP_HOSTING_URL}/auth/login/${
+  //           auth.currentUser && auth.currentUser.tenantId ? auth.currentUser.tenantId : ''
+  //         }`,
+  //       handleCodeInApp: false,
+  //     };
+  //     try {
+  //       await sendPasswordResetEmail(auth, email, actionCodeSettings);
+  //       return `Password reset email sent to ${email}`;
+  //     } catch (err) {
+  //       return Promise.reject(err);
+  //     }
+  //   },
+  //   [auth]
+  // );
 
   /**
    * Calculates seconds from last authentication of currentUser or returns null
@@ -342,34 +342,33 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
     [reauthenticateUser, getSecondsFromLastAuth, user]
   );
 
-  // TODO: customize action handler: https://cloud.google.com/identity-platform/docs/work-with-mfa-users#updating_a_users_email
-  const updateUserEmail = useCallback(
-    async (newEmail: string, onSuccess?: (msg: string) => void) => {
-      // TODO: validate email
-      try {
-        if (!user) throw new Error('User must be authenticated to update email.');
-        await reauthIfRequired();
+  // const updateUserEmail = useCallback(
+  //   async (newEmail: string, onSuccess?: (msg: string) => void) => {
+  //     // TODO: validate email
+  //     try {
+  //       if (!user) throw new Error('User must be authenticated to update email.');
+  //       await reauthIfRequired();
 
-        // check if user has mfa enabled
-        const enrolledFactors = multiFactor(user).enrolledFactors;
-        if (enrolledFactors.length > 0) {
-          await verifyBeforeUpdateEmail(user, newEmail);
+  //       // check if user has mfa enabled
+  //       const enrolledFactors = multiFactor(user).enrolledFactors;
+  //       if (enrolledFactors.length > 0) {
+  //         await verifyBeforeUpdateEmail(user, newEmail);
 
-          const msg = `Click the verification link sent to ${newEmail} to complete the email change.`;
-          toast(msg);
+  //         const msg = `Click the verification link sent to ${newEmail} to complete the email change.`;
+  //         toast(msg);
 
-          if (onSuccess) onSuccess(msg);
-          return;
-        }
+  //         if (onSuccess) onSuccess(msg);
+  //         return;
+  //       }
 
-        await updateEmail(user, newEmail);
-        if (onSuccess) onSuccess('Email updated!');
-      } catch (err) {
-        return Promise.reject(err);
-      }
-    },
-    [reauthIfRequired, user]
-  );
+  //       await updateEmail(user, newEmail);
+  //       if (onSuccess) onSuccess('Email updated!');
+  //     } catch (err) {
+  //       return Promise.reject(err);
+  //     }
+  //   },
+  //   [reauthIfRequired, user]
+  // );
 
   /**
    * Change password dialog for already authenticated users.
@@ -412,16 +411,16 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
       loading,
       loadingInitial,
       customClaims,
-      login,
-      logout,
-      sendPasswordReset,
+      // login,
+      // logout,
+      // sendPasswordReset,
       updateUserPassword,
-      sendVerification,
+      // sendVerification,
       getSecondsFromLastAuth,
       // setUpdatedUser,
       reauthenticateUser,
       reauthIfRequired,
-      updateUserEmail,
+      // updateUserEmail,
     }),
     [
       user,
@@ -429,16 +428,16 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
       // error,
       loadingInitial,
       customClaims,
-      login,
-      logout,
-      sendPasswordReset,
+      // login,
+      // logout,
+      // sendPasswordReset,
       updateUserPassword,
-      sendVerification,
+      // sendVerification,
       getSecondsFromLastAuth,
       // setUpdatedUser,
       reauthenticateUser,
       reauthIfRequired,
-      updateUserEmail,
+      // updateUserEmail,
     ]
   );
 

@@ -321,6 +321,7 @@ export const coordinatesCol: GridColDef = {
   minWidth: 220,
   flex: 0.5,
   editable: false,
+  sortable: false,
   renderCell: (params: GridRenderCellParams<GeoPoint, any, any>) => {
     if (!params.value) return null;
     const latitude = params.value.latitude;

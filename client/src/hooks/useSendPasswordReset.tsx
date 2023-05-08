@@ -1,13 +1,13 @@
 import { useCallback, useState } from 'react';
-import { sendPasswordResetEmail, getAuth, AuthError } from 'firebase/auth';
+import { getAuth, AuthError } from 'firebase/auth'; // sendPasswordResetEmail,
+import { FirebaseError } from 'firebase/app';
+import { useFunctions } from 'reactfire';
 
 import { useConfirmation } from 'modules/components/ConfirmationService';
 import InputDialog from 'components/InputDialog';
-// import { auth } from 'firebaseConfig';
 import { isValidEmail, readableFirebaseCode } from 'modules/utils/helpers';
-import { FirebaseError } from 'firebase/app';
 import { getTenantIdFromEmail } from 'modules/api';
-import { useFunctions } from 'reactfire';
+import { useAuthActions } from 'modules/components';
 
 // TODO: call function to check if user is tenant user
 
@@ -17,10 +17,11 @@ export interface UseSendPasswordResetProps {
 }
 
 export const useSendPasswordReset = ({ onSuccess, onError }: UseSendPasswordResetProps = {}) => {
-  const [error, setError] = useState<any>();
-  const confirm = useConfirmation();
   const auth = getAuth();
   const functions = useFunctions();
+  const [error, setError] = useState<any>();
+  const confirm = useConfirmation();
+  const { sendPasswordReset: sendPWReset } = useAuthActions();
 
   const sendPasswordReset = useCallback(
     async (email: string, continueUrl?: string) => {
@@ -56,16 +57,8 @@ export const useSendPasswordReset = ({ onSuccess, onError }: UseSendPasswordRese
       }
 
       try {
-        // var actionCodeSettings = {
-        //   url:
-        //     continueUrl ||
-        //     `${process.env.REACT_APP_HOSTING_URL}/auth/login/${
-        //       auth.currentUser && auth.currentUser.tenantId ? auth.currentUser.tenantId : ''
-        //     }`,
-        //   handleCodeInApp: false,
-        // };
-
-        await sendPasswordResetEmail(auth, email); // , actionCodeSettings);
+        // await sendPasswordResetEmail(auth, email);
+        await sendPWReset(email, continueUrl);
         if (onSuccess) onSuccess(email);
       } catch (err) {
         console.log('ERROR: ', err);
@@ -77,7 +70,7 @@ export const useSendPasswordReset = ({ onSuccess, onError }: UseSendPasswordRese
         if (onError) onError(err, msg);
       }
     },
-    [confirm, onSuccess, onError, auth, functions]
+    [confirm, onSuccess, onError, sendPWReset, auth, functions]
   );
 
   return { sendPasswordReset, error };

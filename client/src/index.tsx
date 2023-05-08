@@ -47,8 +47,8 @@ root.render(
 );
 
 function LoadingSpinner() {
-  const emulatorsMsg =
-    process.env.REACT_APP_EMULATORS === 'true' ? <div>top level suspense fallback</div> : null;
+  // const emulatorsMsg =
+  //   process.env.REACT_APP_EMULATORS === 'true' ? <div>top level suspense fallback</div> : null;
   return (
     <Box
       sx={{
@@ -59,7 +59,7 @@ function LoadingSpinner() {
       }}
     >
       <CircularProgress size={28} />
-      {emulatorsMsg}
+      {/* {emulatorsMsg} */}
     </Box>
   );
 }

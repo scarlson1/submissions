@@ -12,13 +12,13 @@ import {
 } from 'firebase/auth';
 import { setDoc, doc, getFirestore, Timestamp } from 'firebase/firestore';
 import { useAuth } from 'modules/components/AuthContext';
-// import { auth } from 'firebaseConfig';
 import { toast } from 'react-hot-toast';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { usersCollection } from 'common/firestoreCollections';
 import { FirebaseError } from 'firebase/app';
 import { getErrorDetails } from 'modules/utils/helpers';
+import { useAuthActions } from 'modules/components';
 // import { getProviderForProviderId } from 'modules/utils/getProviderForProviderId';
 // import {
 //   getErrorCode,
@@ -39,7 +39,8 @@ export const useCreateAccount = () => {
   const auth = getAuth();
   const params = useParams();
   const location = useLocation();
-  const { user, isAuthenticated, isAnonymous, logout } = useAuth();
+  const { user, isAuthenticated, isAnonymous } = useAuth(); // logout
+  const { logout } = useAuthActions();
   const navigate = useNavigate();
 
   const [errCode, setErrCode] = useState<string | null>(null);

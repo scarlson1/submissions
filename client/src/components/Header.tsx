@@ -49,6 +49,7 @@ import { ROUTES, ADMIN_ROUTES, createPath, AUTH_ROUTES, ACCOUNT_ROUTES } from 'r
 import { NavListItem } from './NavListItem';
 import { NavMenu as PopperNavMenu } from './NavMenu';
 import { NavDrawer } from './NavDrawer';
+import { AuthActionsProvider, useAuthActions } from 'modules/components';
 
 // TODO: GENERALIZE MENU COMPONENT - allow for button or user avatar as button. nested items. icons.
 // could have optional render function to render button??
@@ -420,7 +421,11 @@ export const Header: React.FC<HeaderProps> = () => {
 
             {!!user ? (
               // <UserMenu menuItems={settings} />
-              <UserMenu />
+              <AuthActionsProvider>
+                <Suspense fallback={<UserMenuSkeleton />}>
+                  <UserMenu />
+                </Suspense>
+              </AuthActionsProvider>
             ) : (
               <Button
                 onClick={() =>
@@ -464,6 +469,14 @@ export const AuthWrapper = ({
   }
 };
 
+const UserMenuSkeleton = () => {
+  return (
+    <Skeleton variant='circular'>
+      <Avatar />
+    </Skeleton>
+  );
+};
+
 interface UserMenuProps {
   // user: User;
   // menuItems: { label: string; onClick: () => void; icon?: JSX.Element }[];
@@ -475,7 +488,8 @@ const UserMenu: React.FC<UserMenuProps> = () => {
   const location = useLocation();
   // TODO: use suspense
   const { data: authCheckResult } = useSigninCheck({ suspense: false });
-  const { logout } = useAuth();
+  // const { logout } = useAuth();
+  const { logout } = useAuthActions();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   // const [open, setOpen] = useState<boolean>(false);
   const open = Boolean(anchorEl);

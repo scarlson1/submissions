@@ -79,6 +79,7 @@ export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
     return data?.docs?.map((doc) => ({ ...doc.data(), id: doc.id })) ?? [];
   }, [data]);
 
+  // TODO: use useTransition hook to prevent grid flashing when loading next page's data
   const onPageChanged = useCallback(
     (nextPage: number) => {
       setPage((page) => {

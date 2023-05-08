@@ -18,6 +18,7 @@ import { FormikTextField } from 'components/forms';
 import { readableFirebaseCode } from 'modules/utils/helpers';
 import { useAuth } from 'modules/components/AuthContext';
 import { User, usersCollection, WithId } from 'common';
+import { useAuthActions } from 'modules/components';
 
 const useUserAccount = (onError?: (err: unknown, msg: string) => void) => {
   const { user } = useAuth();
@@ -152,7 +153,8 @@ export const Account: React.FC = () => {
 };
 
 export function VerifyEmailButton() {
-  const { sendVerification } = useAuth();
+  // const { sendVerification } = useAuth();
+  const { sendVerification } = useAuthActions();
 
   const send = useCallback(async () => {
     try {

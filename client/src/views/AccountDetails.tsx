@@ -36,7 +36,7 @@ import {
   useDocData,
   useUpdateProfile,
 } from 'hooks';
-import { useAuth } from 'modules/components';
+import { useAuth, useAuthActions } from 'modules/components';
 import { RHFTextField } from 'components/forms';
 import { AdminManageUsersGrid } from 'elements/UsersGrid';
 import { passwordValidation } from './CreateAccount';
@@ -416,7 +416,8 @@ type UserEmailInputs = {
 function UpdateUserEmail() {
   const toast = useAsyncToast();
   const { data: user } = useUser();
-  const { updateUserEmail } = useAuth();
+  // const { updateUserEmail } = useAuth();
+  const { updateUserEmail } = useAuthActions();
 
   const {
     handleSubmit,

@@ -1,10 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Box, CircularProgress, Typography } from '@mui/material';
 import { Navigate } from 'react-router-dom';
+import { getFunctions } from 'firebase/functions';
 
 import { getParamByName } from 'modules/utils/helpers';
 import { assignQuote } from 'modules/api';
-import { getFunctions } from 'firebase/functions';
 
 export const ActionHandler: React.FC = () => {
   const mode = useMemo(() => getParamByName(window.location.search, 'mode'), []);

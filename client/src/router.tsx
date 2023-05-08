@@ -52,6 +52,7 @@ import { RequireAuthReactFire, getRequiredClaimValidator } from 'components/Requ
 import { Disclosures } from 'views/admin/Disclosures';
 import { QuoteNewFromSub } from 'views/admin/QuoteNew';
 import { PoliciesMap } from 'elements/PoliciesMap';
+import { AuthActionsProvider } from 'modules/components';
 
 // import RouterErrorBoundary from 'components/errorBoundaries/RouterErrorBoundary';
 
@@ -301,6 +302,31 @@ export const router = createBrowserRouter([
             errorElement: <RouterErrorBoundary />,
           },
           {
+            path: ROUTES.ACCOUNT,
+            element: (
+              <RequireAuthReactFire signInCheckProps={{ suspense: false }}>
+                {/* <Suspense fallback={<div>Loading user...</div>}> */}
+                <Account />
+                {/* </Suspense> */}
+              </RequireAuthReactFire>
+            ),
+          },
+        ],
+      },
+      {
+        path: '/auth',
+        element: (
+          <AuthActionsProvider>
+            <Layout containerProps={{ maxWidth: 'lg' }} />
+          </AuthActionsProvider>
+        ),
+        errorElement: <RouterErrorBoundary />,
+        children: [
+          {
+            index: true,
+            element: <Login />,
+          },
+          {
             path: AUTH_ROUTES.LOGIN,
             children: [
               {
@@ -338,16 +364,6 @@ export const router = createBrowserRouter([
                 element: <ActionHandler />,
               },
             ],
-          },
-          {
-            path: ROUTES.ACCOUNT,
-            element: (
-              <RequireAuthReactFire signInCheckProps={{ suspense: false }}>
-                {/* <Suspense fallback={<div>Loading user...</div>}> */}
-                <Account />
-                {/* </Suspense> */}
-              </RequireAuthReactFire>
-            ),
           },
         ],
       },
@@ -646,7 +662,11 @@ export const router = createBrowserRouter([
       },
       {
         path: 'account',
-        element: <Layout />,
+        element: (
+          <AuthActionsProvider>
+            <Layout />
+          </AuthActionsProvider>
+        ),
         errorElement: <RouterErrorBoundary />,
         children: [
           {
