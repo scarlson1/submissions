@@ -232,8 +232,8 @@ export const SLTaxes: React.FC<SLTaxesProps> = () => {
             sorting: {
               sortModel: [{ field: 'created', sort: 'desc' }],
             },
-            // pagination: { paginationModel: { pageSize: 5 } },
-            pagination: { pageSize: 10 },
+            pagination: { paginationModel: { pageSize: 10 } },
+            // pagination: { pageSize: 10 },
             // filter: {
             //   filterModel: {
             //     items: [{ columnField: 'status', operatorValue: 'equals', value: 'pending' }],

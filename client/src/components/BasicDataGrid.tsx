@@ -28,8 +28,8 @@ export const BasicDataGrid: React.FC<AdditionalNamedInsuredsProps> = ({
         rows={rows}
         columns={columns}
         components={{ Toolbar: withToolbar ? GridToolbar : undefined }}
-        rowsPerPageOptions={[5, 10, 20]}
-        // pageSizeOptions={[5, 10, 20]}
+        // rowsPerPageOptions={[5, 10, 20]}
+        pageSizeOptions={[5, 10, 20]}
         initialState={{
           columns: {
             columnVisibilityModel: {
@@ -39,10 +39,10 @@ export const BasicDataGrid: React.FC<AdditionalNamedInsuredsProps> = ({
           sorting: {
             sortModel: [{ field: 'updated', sort: 'desc' }],
           },
-          pagination: {
-            pageSize: 10,
-          },
-          // pagination: { paginationModel: { pageSize: 5 } },
+          // pagination: {
+          //   pageSize: 10,
+          // },
+          pagination: { paginationModel: { pageSize: 10 } },
         }}
         sx={{
           px: 3,

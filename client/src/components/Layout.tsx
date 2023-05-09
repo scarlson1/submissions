@@ -38,6 +38,7 @@ export const Layout: React.FC<LayoutProps> = ({
           display: 'flex',
           flexDirection: 'column',
           minHeight: '100vh',
+          maxWidth: '100vw',
           backgroundColor: (theme) => theme.palette.background.default,
           // theme.palette.mode === 'light' ? '#FAFAFB' : 'background.paper',
           flexGrow: 1,

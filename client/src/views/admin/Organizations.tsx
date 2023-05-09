@@ -207,7 +207,8 @@ export const Organizations: React.FC = () => {
             sorting: {
               sortModel: [{ field: 'created', sort: 'desc' }],
             },
-            pagination: { pageSize: 10 },
+            // pagination: { pageSize: 10 },
+            pagination: { paginationModel: { pageSize: 10 } },
           }}
         />
       </Box>

@@ -347,12 +347,12 @@ export const Moratoriums: React.FC = () => {
             sorting: {
               sortModel: [{ field: 'created', sort: 'desc' }],
             },
-            // pagination: { paginationModel: { pageSize: 5 } },
-            pagination: { pageSize: 10 },
+            pagination: { paginationModel: { pageSize: 10 } },
+            // pagination: { pageSize: 10 },
           }}
           processRowUpdate={processRowUpdate}
           onProcessRowUpdateError={handleProcessRowUpdateError}
-          experimentalFeatures={{ newEditingApi: true }}
+          // experimentalFeatures={{ newEditingApi: true }} // v5
         />
       </Box>
     </Box>

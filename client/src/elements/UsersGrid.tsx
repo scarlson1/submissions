@@ -106,7 +106,8 @@ export const UsersGrid: React.FC<UsersGridProps> = ({
           sorting: {
             sortModel: [{ field: 'created', sort: 'desc' }],
           },
-          pagination: { pageSize: 10 },
+          // pagination: { pageSize: 10 },
+          pagination: { paginationModel: { pageSize: 10 } },
         }}
       />
     </Box>
@@ -275,7 +276,8 @@ export const AdminManageUsersGrid: React.FC<AdminManageUsersGridProps> = ({
           sorting: {
             sortModel: [{ field: 'created', sort: 'desc' }],
           },
-          pagination: { pageSize: 10 },
+          // pagination: { pageSize: 10 },
+          pagination: { paginationModel: { pageSize: 10 } },
           ...props?.initialState,
         }}
         {...props}

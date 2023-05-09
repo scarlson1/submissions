@@ -56,7 +56,8 @@ export const AgencyApps: React.FC = () => {
     const ignoreFieldsContaining = ['email', 'phone', 'EandO'];
 
     if (ignoreFieldsContaining.some((partialField) => params.field.includes(partialField))) {
-      if (params.value && params.value.length > 0) return;
+      // if (params.value && params.value.length > 0) return;
+      if (params.value) return;
     } else if (params.field === 'actions') {
       return;
     } else {
@@ -298,8 +299,8 @@ export const AgencyApps: React.FC = () => {
             sorting: {
               sortModel: [{ field: 'created', sort: 'desc' }],
             },
-
-            pagination: { pageSize: 10 },
+            // pagination: { pageSize: 10 },
+            pagination: { paginationModel: { pageSize: 10 } },
           }}
         />
       </Box>

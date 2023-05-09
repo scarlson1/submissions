@@ -347,7 +347,7 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
           }}
           processRowUpdate={confirmAndUpdate}
           onProcessRowUpdateError={handleProcessRowUpdateError}
-          experimentalFeatures={{ newEditingApi: true }}
+          // experimentalFeatures={{ newEditingApi: true }} // v5
           components={{ Toolbar: GridToolbar }}
           componentsProps={{ toolbar: { csvOptions: { allColumns: true } } }}
           initialState={{
@@ -368,7 +368,8 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
             sorting: {
               sortModel: [{ field: 'created', sort: 'desc' }],
             },
-            pagination: { pageSize: 10 },
+            pagination: { paginationModel: { page: 0, pageSize: 10 } },
+            // pagination: { pageSize: 10 },
           }}
         />
         {/* <BasicDataGrid
