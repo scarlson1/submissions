@@ -86,10 +86,16 @@ export const RadioListItem: React.FC<RadioListItemProps> = ({
 
 export interface PaymentStepProps {
   pmtOptions: PaymentMethod[];
+  logAnalyticsStep?: (step: number, stepName?: string) => void;
 }
 
-export const PaymentStep: React.FC<PaymentStepProps> = ({ pmtOptions }) => {
+export const PaymentStep: React.FC<PaymentStepProps> = ({ pmtOptions, logAnalyticsStep }) => {
   const { values, setFieldValue } = useFormikContext<any>();
+
+  // TODO: abstract step analytics so index isn't manual
+  React.useEffect(() => {
+    if (logAnalyticsStep) logAnalyticsStep(3, 'payment step');
+  }, [logAnalyticsStep]);
 
   const handleToggle = useCallback(
     (value: RadioListVal) => {

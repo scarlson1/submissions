@@ -45,7 +45,7 @@ export { useRateQuote, extractRatingInputsFromValues } from './useRateQuote';
 export { useCalcPremium } from './useCalcPremium';
 export { useConcurrentLocation } from './useConcurrentLocation';
 export { useMoveUserToTenant } from './useMoveUserToTenant';
-export { useLogEvent } from './useLogEvent';
+export { useAnalyticsEvent } from './useAnalyticsEvent';
 
 export type { UseFileUploadProps } from './useFileUpload';
 export type { UseSendPasswordResetProps } from './useSendPasswordReset';

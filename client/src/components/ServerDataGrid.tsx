@@ -45,12 +45,12 @@ export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
 }) => {
   // const [isPending, startTransition] = useTransition();
   // const [densityV, setDensity] = useState<GridDensity>(density);
-  const [page, setPage] = useState(0);
-  const [pageSize, setPageSize] = useState(10);
-  // const [paginationModel, setPaginationModel] = React.useState({
-  //   pageSize: 10,
-  //   page: 0,
-  // });
+  // const [page, setPage] = useState(0);
+  // const [pageSize, setPageSize] = useState(10);
+  const [paginationModel, setPaginationModel] = React.useState({
+    pageSize: 10,
+    page: 0,
+  });
   const [rowCount, setRowCount] = useState<number>(0);
   const [sortOptions, setSortOptions] = useState<QueryOrderByConstraint[]>([
     orderBy('metadata.created', 'desc'),
@@ -77,8 +77,8 @@ export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
     collName,
     queryOptions,
     {
-      cursor: cursors.current.get(page),
-      itemsPerPage: pageSize,
+      cursor: cursors.current.get(paginationModel.page),
+      itemsPerPage: paginationModel.pageSize,
     },
     isCollectionGroup,
     pathSegments
@@ -92,40 +92,33 @@ export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
     return data?.docs?.map((doc) => ({ ...doc.data(), id: doc.id })) ?? [];
   }, [data]);
 
-  // const onPageChanged = useCallback(
-  //   (nextPage: number) => {
-  //     startTransition(() => {
-  //       setPage((page) => {
-  //         // save the last document as page's cursor (query uses "startAfter(snap)")
-  //         cursors.current.set(page + 1, data.docs[data.docs.length - 1]);
-
-  //         // update state to the next page's number
-  //         return nextPage;
-  //       });
-  //     });
-  //   },
-  //   [data]
-  // );
-
   // TODO: combine page size and page state
   const handlePaginationModelChange = useCallback(
     (model: GridPaginationModel, details: GridCallbackDetails<any>) => {
-      if (model.page !== page) {
-        startTransition(() => {
-          setPage((page) => {
-            // save the last document as page's cursor (query uses "startAfter(snap)")
-            cursors.current.set(page + 1, data.docs[data.docs.length - 1]);
+      // if (model.page !== page) {
+      startTransition(() => {
+        setPaginationModel((currModel) => {
+          // save the last document as page's cursor (query uses "startAfter(snap)")
+          if (model.page !== currModel.page)
+            cursors.current.set(currModel.page + 1, data.docs[data.docs.length - 1]);
 
-            // update state to the next page's number
-            return model.page;
-          });
+          // update state to the next page's number
+          return model; // model.page;
         });
-      }
-      if (model.pageSize !== pageSize) {
-        setPageSize(model.pageSize);
-      }
+        // setPage((page) => {
+        //   // save the last document as page's cursor (query uses "startAfter(snap)")
+        //   cursors.current.set(page + 1, data.docs[data.docs.length - 1]);
+
+        //   // update state to the next page's number
+        //   return model.page;
+        // });
+      });
+      // }
+      // if (model.pageSize !== pageSize) {
+      //   setPageSize(model.pageSize);
+      // }
     },
-    [data, page, pageSize]
+    [data] // page, pageSize]
   );
 
   // TODO: store filter in same array ??
@@ -174,11 +167,6 @@ export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
   // }, [density]);
   // const baseHeight = useMemo(() => {}, []);
 
-  // console.log('IS_PENDING: ', isPending);
-  // console.log('DATA: ', rowData);
-  // console.log('ROW HEIGHT: ', rowHeight);
-  // console.log('DENSITY: ', density);
-
   return (
     <Box sx={{ height: 500, width: '100%' }}>
       {/* <Box
@@ -189,6 +177,7 @@ export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
       }}
     > */}
       <DataGrid
+        sx={{ transition: 'height 0.25s ease-in-out' }}
         // rowsPerPageOptions={[5, 10, 25, 100]}
         pageSizeOptions={[5, 10, 25, 100]}
         {...rest}
@@ -205,7 +194,8 @@ export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
         loading={status === 'loading'} // || isPending
         pagination
         paginationMode='server'
-        paginationModel={{ page, pageSize }}
+        // paginationModel={{ page, pageSize }}
+        paginationModel={paginationModel}
         onPaginationModelChange={handlePaginationModelChange}
         // page={page}
         // onPageChange={onPageChanged}

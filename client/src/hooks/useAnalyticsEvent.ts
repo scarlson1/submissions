@@ -2,10 +2,10 @@ import { useCallback } from 'react';
 import { useAnalytics } from 'reactfire';
 import { AnalyticsCallOptions, EventNameString, EventParams, logEvent } from 'firebase/analytics';
 
-export const useLogEvent = (options?: AnalyticsCallOptions | undefined) => {
+export const useAnalyticsEvent = (options?: AnalyticsCallOptions | undefined) => {
   const analytics = useAnalytics();
 
-  const logE = useCallback(
+  return useCallback(
     (eventName: EventNameString | string, eventParams: EventParams) => {
       if (!analytics) return console.log('analytics missing. event not logged.');
       try {
@@ -16,6 +16,4 @@ export const useLogEvent = (options?: AnalyticsCallOptions | undefined) => {
     },
     [analytics, options]
   );
-
-  return logE;
 };

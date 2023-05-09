@@ -224,11 +224,35 @@ export const RouterErrorBoundary: React.FC<RouterErrorBoundaryProps> = ({ action
     }
   }
 
+  let msg = null;
+  const err = error as any;
+  if (err?.message && err.message.indexOf('query requires an index') !== -1) {
+    msg = (
+      <p>
+        Indexing error. Our team has been notified and the issue should be resolved within the hour.
+        Appologies for the inconvenience.
+      </p>
+    );
+  }
+  if (err?.message && err.message.indexOf('PERMISSION_DENIED') !== -1) {
+    msg =
+      'Permission denied error. Your account does not have the required permissions to access the requested resource.';
+  }
+
   return (
     <Container maxWidth='xs' sx={{ p: 8 }}>
-      <Alert severity='error'>
+      <Alert
+        severity='error'
+        action={
+          <Button color='inherit' size='small' onClick={() => navigate('/')}>
+            Home
+          </Button>
+        }
+      >
         <AlertTitle>Error</AlertTitle>
-        See console for details. <span onClick={() => navigate('/')}>Return home</span>
+        See console for details.
+        {/* <span onClick={() => navigate('/')}>Return home</span> */}
+        {msg ? <Typography>{msg}</Typography> : null}
       </Alert>
     </Container>
   );

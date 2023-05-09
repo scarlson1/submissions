@@ -55,8 +55,9 @@ import {
   AdditionalInterest,
   submissionsQuotesCollection,
   paymentMethodsCollection,
+  ANALYTICS_EVENTS,
 } from 'common';
-import { useBindQuote, useUserPaymentMethods } from 'hooks';
+import { useAnalyticsEvent, useBindQuote, useUserPaymentMethods } from 'hooks';
 import { billingValidation, PaymentStep, ContactStep } from 'elements';
 import { addToDate, dollarFormat, formatDate } from 'modules/utils/helpers';
 import { AUTH_ROUTES, ROUTES, createPath } from 'router';
@@ -150,7 +151,8 @@ export const QuoteBind: React.FC = () => {
 
   const firestore = useFirestore();
   const quoteRef = doc(submissionsQuotesCollection(firestore), quoteId);
-  const { status, data } = useFirestoreDocData(quoteRef);
+  const { data } = useFirestoreDocData(quoteRef);
+  const logAnalyticsStep = useLogCheckoutProgress(quoteId, 5);
 
   const formikRef = useRef<FormikProps<QuoteValues>>(null);
 
@@ -217,11 +219,7 @@ export const QuoteBind: React.FC = () => {
   // TODO: handle setting userId when user is authenticated
   // TODO: submission needs isAnonymous flag so userId can/should be overwritten ??
   if (!isAuthenticated || isAnonymous || !data.userId) {
-    return <AuthStep quoteId={quoteId!} />;
-  }
-
-  if (status === 'loading') {
-    return <span>loading...</span>;
+    return <AuthStep quoteId={quoteId} />;
   }
 
   return (
@@ -256,10 +254,10 @@ export const QuoteBind: React.FC = () => {
           validationSchema={contactValidation}
           mutateOnSubmit={saveValues}
         >
-          <NamedInsuredStep />
+          <NamedInsuredStep logAnalyticsStep={logAnalyticsStep} />
         </Step>
         <Step label='Additional Interests' stepperNavLabel='+1s' mutateOnSubmit={saveValues}>
-          <AdditionalInterestsStep />
+          <AdditionalInterestsStep logAnalyticsStep={logAnalyticsStep} />
         </Step>
         <Step
           label='Effective Date'
@@ -267,20 +265,23 @@ export const QuoteBind: React.FC = () => {
           // validationSchema={contactValidation}
           mutateOnSubmit={saveValues}
         >
-          <EffectiveDateStep expiration={addToDate({ days: 60 })} />
+          <EffectiveDateStep
+            expiration={addToDate({ days: 60 })}
+            logAnalyticsStep={logAnalyticsStep}
+          />
         </Step>
         <Step label='Billing' stepperNavLabel='Billing' validationSchema={billingValidation}>
-          <PaymentStep pmtOptions={[...paymentMethods]} />
+          <PaymentStep pmtOptions={[...paymentMethods]} logAnalyticsStep={logAnalyticsStep} />
         </Step>
         <Step label='Review' stepperNavLabel='Review'>
-          <BindReviewStep data={{ ...data, id: quoteId! }} />
+          <BindReviewStep data={{ ...data, id: quoteId! }} logAnalyticsStep={logAnalyticsStep} />
         </Step>
       </FormikWizard>
     </Box>
   );
 };
 
-// TODO: hanlde anonymous
+// TODO: handle anonymous
 export function AuthStep({ quoteId }: { quoteId: string }) {
   const navigate = useNavigate();
   const { user, isAuthenticated, isAnonymous } = useAuth();
@@ -391,7 +392,15 @@ export function AuthStep({ quoteId }: { quoteId: string }) {
 // https://mui.com/material-ui/react-list/#checkbox
 // https://flowbite.com/docs/forms/radio/#radio-in-dropdown
 
-export function NamedInsuredStep() {
+interface LogAnalyticsProp {
+  logAnalyticsStep: (step: number, stepName?: string) => void;
+}
+
+export function NamedInsuredStep({ logAnalyticsStep }: LogAnalyticsProp) {
+  useEffect(() => {
+    logAnalyticsStep(0, 'named insured step');
+  }, [logAnalyticsStep]);
+
   return (
     <Box>
       <Typography variant='body2' sx={{ pb: { xs: 3, sm: 4, md: 5 } }}>
@@ -422,9 +431,13 @@ export function NamedInsuredStep() {
 // Mortgagee (recorded priority lien rights)Additional
 // Insured (non-owner with insurance interest in property)
 
-export function AdditionalInterestsStep() {
+export function AdditionalInterestsStep({ logAnalyticsStep }: LogAnalyticsProp) {
   const { values, errors, touched, dirty, setFieldValue, setFieldTouched, setFieldError } =
     useFormikContext<QuoteValues>();
+
+  useEffect(() => {
+    logAnalyticsStep(1, 'addititional named insureds step');
+  }, [logAnalyticsStep]);
 
   return (
     <Box>
@@ -654,12 +667,19 @@ export function AdditionalInterestsStep() {
 // TODO: expiration date (handle expired quotes)
 // don't allow effective date to be after expiration
 
-export interface EffectiveDateStepProp {
+export interface EffectiveDateStepProp extends LogAnalyticsProp {
   expiration?: Date | null;
 }
 
-export const EffectiveDateStep: React.FC<EffectiveDateStepProp> = ({ expiration }) => {
+export const EffectiveDateStep: React.FC<EffectiveDateStepProp> = ({
+  expiration,
+  logAnalyticsStep,
+}) => {
   const { values } = useFormikContext<QuoteValues>();
+
+  useEffect(() => {
+    logAnalyticsStep(2, 'effective date step');
+  }, [logAnalyticsStep]);
 
   return (
     <Box>
@@ -873,9 +893,17 @@ export const PaymentCard: React.FC<PaymentCardProps> = ({ cardDetails, loading, 
 
 // TODO: epay fees
 
-export function BindReviewStep({ data }: { data: WithId<SubmissionQuoteData> }) {
+interface BindReviewStepProps extends LogAnalyticsProp {
+  data: WithId<SubmissionQuoteData>;
+}
+
+export function BindReviewStep({ data, logAnalyticsStep }: BindReviewStepProps) {
   const { values } = useFormikContext<QuoteValues>();
   const { cardDetails, loading, error } = useCardDetails(values.paymentMethodId);
+
+  useEffect(() => {
+    logAnalyticsStep(3, 'bind quote review step');
+  }, [logAnalyticsStep]);
 
   const total = useMemo(() => {
     const { quoteTotal, cardFee } = data;
@@ -1034,3 +1062,49 @@ export function BindReviewStep({ data }: { data: WithId<SubmissionQuoteData> }) 
     </Box>
   );
 }
+
+function useLogCheckoutProgress(quoteId: string, stepCount: number) {
+  const [steps, setSteps] = useState(Array(stepCount).fill(false));
+  // const { quoteId } = useParams();
+  const logEvent = useAnalyticsEvent();
+
+  const logStep = useCallback(
+    (step: number, stepName?: string) => {
+      const hasBeenLogged = !!steps[step];
+      if (hasBeenLogged || !quoteId) return;
+
+      logEvent(ANALYTICS_EVENTS.CHECKOUT_PROGRESS, {
+        checkout_step: step,
+        quoteId: quoteId,
+        page_location: window.location.href,
+        page_path: window.location.pathname,
+        stepName,
+      });
+
+      setSteps((prev) => {
+        const newVal = [...prev];
+        newVal[step] = true;
+        return newVal;
+      });
+    },
+    [logEvent, quoteId, steps]
+  );
+
+  return logStep;
+}
+// useEffect(() => {
+//   let eventLogged = false;
+//   if (eventLogged || !quoteId) return;
+
+//   logEvent(ANALYTICS_EVENTS.CHECKOUT_PROGRESS, {
+//     checkout_step: 1,
+//     quoteId: quoteId,
+//     page_location: window.location.href,
+//     page_path: window.location.pathname,
+//   });
+//   eventLogged = true;
+
+//   return () => {
+//     eventLogged = false;
+//   };
+// }, [quoteId]);

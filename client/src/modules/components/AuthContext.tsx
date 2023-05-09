@@ -162,7 +162,11 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
 
         if (newUser) {
           setUserId(analytics, newUser.uid);
-          setSentryUser({ id: newUser.uid, email: newUser.email || undefined });
+          setSentryUser({
+            id: newUser.uid,
+            email: newUser.email || undefined,
+            username: newUser.displayName || undefined,
+          });
         } else {
           auth.tenantId = null;
           setSentryUser(null);

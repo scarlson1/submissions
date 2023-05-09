@@ -19,7 +19,7 @@ import {
   Toaster,
 } from 'modules/components';
 import { ErrorFallback } from 'components';
-import { useLogEvent } from 'hooks';
+import { useAnalyticsEvent } from 'hooks';
 
 // TODO: set up Sentry for error logging
 // https://docs.sentry.io/platforms/javascript/guides/react/?original_referrer=https%3A%2F%2Fsentry.io%2F
@@ -86,7 +86,7 @@ function PageViewLogger() {
   // { location }: { location: Location}
   const location = useLocation();
   // const analytics = useAnalytics();
-  const logE = useLogEvent();
+  const logE = useAnalyticsEvent();
 
   // only log on first render and when the `pathname` changes
   React.useEffect(() => {
