@@ -27,6 +27,7 @@ import {
   statusCol,
   updatedCol,
 } from 'common';
+import { AddBusinessRounded } from '@mui/icons-material';
 
 export const Organizations: React.FC = () => {
   const navigate = useNavigate();
@@ -162,6 +163,7 @@ export const Organizations: React.FC = () => {
           size='small'
           onClick={() => navigate(createPath({ path: ADMIN_ROUTES.CREATE_TENANT }))}
           sx={{ maxHeight: 34 }}
+          startIcon={<AddBusinessRounded fontSize='small' />}
         >
           New Org
         </Button>

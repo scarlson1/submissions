@@ -24,6 +24,8 @@ import { dollarFormat, formatFirestoreTimestamp, numberFormat } from 'modules/ut
 import { createPath, ROUTES } from 'router';
 import { Submission, submissionsCollection, WithId } from 'common';
 
+// TODO: use useSignInCheck
+
 export const useUserSubmissions = () => {
   const { user } = useAuth();
   const [submissions, setSubmissions] = useState<WithId<Submission>[]>([]);

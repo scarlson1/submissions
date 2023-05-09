@@ -20,6 +20,7 @@ export interface PremiumData {
   directWrittenPremium: number;
   subproducerCommissionPct: number;
   minPremium?: number;
+  minPremiumAdj: number;
 }
 
 export const getTechPremium = (AAL: number, secModMult: number, LAE: number) => {
@@ -122,6 +123,7 @@ export const getPremiumData = ({
     },
     premiumSubtotal,
     provisionalPremium,
+    minPremiumAdj,
     subproducerAdj,
     directWrittenPremium,
     subproducerCommissionPct: subproducerComPct,

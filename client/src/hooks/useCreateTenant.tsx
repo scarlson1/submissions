@@ -1,45 +1,47 @@
 import { useState, useCallback } from 'react';
-// import { httpsCallable } from 'firebase/functions';
 import { useFunctions } from 'reactfire';
 
-import { createTenantFromSubmission, sendAgencyApprovedNotification } from 'modules/api';
+import {
+  SendAgencyApprovedResponse,
+  createTenantFromSubmission,
+  sendAgencyApprovedNotification,
+} from 'modules/api';
 import { getErrorCode, getErrorMessage } from 'modules/utils/errorHelpers';
 import { useConfirmation } from 'modules/components';
 import { useAsyncToast } from './useAsyncToast';
 
-interface UseCreateTenantProps {
-  onSuccess?: (data: { tenantId?: string }) => void;
-  onError?: (errArgs: { code: string; message: string }) => void;
-}
-
-export const useCreateTenant = ({ onSuccess, onError }: UseCreateTenantProps) => {
+export const useSendAgencyAppNotification = (
+  onSuccess?: ((res: SendAgencyApprovedResponse) => void) | null,
+  onError?: ((msg: string, err: any) => void) | null
+) => {
   const functions = useFunctions();
   const confirm = useConfirmation();
   const toast = useAsyncToast();
-  const [error, setError] = useState<any>();
-  const [loading, setLoading] = useState(false);
 
-  // CALLED INTERNALLY & callable in hook ?? or just use regular send invite hook ??
-  const sendApprovedNotification = useCallback(
+  const sendApproved = useCallback(
     async (docId: string, tenantId: string) => {
-      let { data } = await sendAgencyApprovedNotification(functions, {
-        docId,
-        tenantId,
-      });
-      console.log('notifications sent res: ', data);
+      try {
+        let { data } = await sendAgencyApprovedNotification(functions, {
+          docId,
+          tenantId,
+        });
+        console.log('notifications sent res: ', data);
 
-      return data;
+        if (onSuccess) onSuccess(data);
+        return data;
+      } catch (err: any) {
+        let msg = 'Error sending approval notification';
+        if (err?.message) msg = err.message;
+        if (onError) onError(msg, err);
+      }
     },
-    [functions]
+    [functions, onSuccess, onError]
   );
 
-  // TODO: CALLED INTERNALLY
-  // const sendRejectedNotification = useCallback(async (docId: string) => {
-  //   alert('not implemented');
-  //   return 'not implemented';
-  // }, []);
+  const sendRejected = useCallback(async () => {
+    alert('Not implemented yet');
+  }, []); // functions, onSuccess, onError
 
-  // CALLED INTERNALLY
   const promptForNotification = useCallback(
     async (msg: string) => {
       try {
@@ -61,6 +63,87 @@ export const useCreateTenant = ({ onSuccess, onError }: UseCreateTenantProps) =>
     [confirm]
   );
 
+  const confirmAndSend = useCallback(
+    async (type: 'approved' | 'rejected', submissionId: string, tenantId?: string) => {
+      try {
+        const descriptionMsg =
+          type === 'approved'
+            ? 'Would you like to notify the primary contact and invite them to create an account?'
+            : 'Would you like to notify the primary contact?';
+        const shouldNotify = await promptForNotification(descriptionMsg);
+
+        if (!!shouldNotify) {
+          toast.loading('sending notification...');
+          if (type === 'rejected') await sendRejected();
+          if (type === 'approved') await sendApproved(submissionId, `${tenantId}`);
+
+          toast.success('notification delivered');
+        }
+      } catch (err) {
+        console.log('ERROR: ', err);
+      }
+    },
+    [promptForNotification, sendApproved, sendRejected, toast]
+  );
+
+  return { sendApproved, sendRejected, promptForNotification, confirmAndSend };
+};
+
+interface UseCreateTenantProps {
+  onSuccess?: (data: { tenantId?: string }) => void;
+  onError?: (errArgs: { code: string; message: string }) => void;
+}
+
+export const useCreateTenant = ({ onSuccess, onError }: UseCreateTenantProps) => {
+  const functions = useFunctions();
+  const toast = useAsyncToast();
+  const { sendApproved, promptForNotification } = useSendAgencyAppNotification();
+
+  const [error, setError] = useState<any>();
+  const [loading, setLoading] = useState(false);
+
+  // // CALLED INTERNALLY & callable in hook ?? or just use regular send invite hook ??
+  // const sendApprovedNotification = useCallback(
+  //   async (docId: string, tenantId: string) => {
+  //     let { data } = await sendAgencyApprovedNotification(functions, {
+  //       docId,
+  //       tenantId,
+  //     });
+  //     console.log('notifications sent res: ', data);
+
+  //     return data;
+  //   },
+  //   [functions]
+  // );
+
+  // TODO: CALLED INTERNALLY
+  // const sendRejectedNotification = useCallback(async (docId: string) => {
+  //   alert('not implemented');
+  //   return 'not implemented';
+  // }, []);
+
+  // // CALLED INTERNALLY
+  // const promptForNotification = useCallback(
+  //   async (msg: string) => {
+  //     try {
+  //       await confirm({
+  //         catchOnCancel: true,
+  //         variant: 'danger',
+  //         title: 'Notify Primary Contact?',
+  //         confirmButtonText: 'Notify',
+  //         confirmButtonProps: { variant: 'contained' },
+  //         cancelButtonProps: { variant: 'greyText' },
+  //         description: msg,
+  //         dialogContentProps: { dividers: true },
+  //       });
+  //       return true;
+  //     } catch (err) {
+  //       return false;
+  //     }
+  //   },
+  //   [confirm]
+  // );
+
   // CALLED INTERNALLY - AFTER CREATING TEANANT
   const handleSuccess = useCallback(
     async (submissionId: string, tenantId?: string) => {
@@ -70,14 +153,15 @@ export const useCreateTenant = ({ onSuccess, onError }: UseCreateTenantProps) =>
 
       if (!!shouldNotify) {
         toast.loading('sending notification...');
-        await sendApprovedNotification(submissionId, `${tenantId}`);
+        // await sendApprovedNotification(submissionId, `${tenantId}`);
+        await sendApproved(submissionId, `${tenantId}`);
         toast.success('notification delivered');
       }
 
       if (onSuccess) onSuccess({ tenantId });
       // navigate(createPath({ path: ADMIN_ROUTES.ORGANIZATIONS }));
     },
-    [promptForNotification, sendApprovedNotification, toast, onSuccess]
+    [promptForNotification, sendApproved, toast, onSuccess]
   );
 
   const createTenant = useCallback(
@@ -110,5 +194,5 @@ export const useCreateTenant = ({ onSuccess, onError }: UseCreateTenantProps) =>
     [onError, handleSuccess, functions, toast]
   );
 
-  return { createTenant, error, loading, sendApprovedNotification }; // sendApprovedNotification, sendRejectedNotification,
+  return { createTenant, error, loading, sendApproved }; // sendRejected,
 };

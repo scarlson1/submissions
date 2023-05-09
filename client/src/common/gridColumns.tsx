@@ -500,7 +500,7 @@ export const limitACol: GridColDef = {
   editable: false,
   headerAlign: 'center',
   align: 'right',
-  valueGetter: (params) => params.row.limits?.limitA || null,
+  valueGetter: (params) => params.row.limits?.limitA ?? null,
   valueFormatter: formatGridCurrency,
 };
 
@@ -513,7 +513,7 @@ export const limitBCol: GridColDef = {
   editable: false,
   headerAlign: 'center',
   align: 'right',
-  valueGetter: (params) => params.row.limits?.limitB || null,
+  valueGetter: (params) => params.row.limits?.limitB ?? null,
   valueFormatter: formatGridCurrency,
 };
 
@@ -526,7 +526,7 @@ export const limitCCol: GridColDef = {
   editable: false,
   headerAlign: 'center',
   align: 'right',
-  valueGetter: (params) => params.row.limits?.limitC || null,
+  valueGetter: (params) => params.row.limits?.limitC ?? null,
   valueFormatter: formatGridCurrency,
 };
 
@@ -539,7 +539,7 @@ export const limitDCol: GridColDef = {
   editable: false,
   headerAlign: 'center',
   align: 'right',
-  valueGetter: (params) => params.row.limits?.limitD || null,
+  valueGetter: (params) => params.row.limits?.limitD ?? null,
   valueFormatter: formatGridCurrency,
 };
 

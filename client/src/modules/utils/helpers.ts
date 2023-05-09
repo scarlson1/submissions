@@ -369,11 +369,20 @@ export const getErrorMessage = (error: unknown) => {
   return toErrorWithMessage(error).message;
 };
 
+/**
+ * Extract message and code from Error
+ * @param {unknown} err - Error
+ * @returns  Object with code, message, readableCode
+ */
+
 export const getErrorDetails = (err: unknown) => {
   const code = err instanceof FirebaseError ? err.code : getErrorCode(err);
   const message = err instanceof FirebaseError ? err.message : getErrorMessage(err);
+  let readableCode = code;
+  let split = code.split('/');
+  if (split.length === 2) readableCode = split[1].replaceAll('-', ' ');
 
-  return { code, message };
+  return { code, message, readableCode };
 };
 
 export function getRandomItem(items: any[]) {

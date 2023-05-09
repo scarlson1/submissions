@@ -1,16 +1,12 @@
-import * as functions from 'firebase-functions';
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import * as bodyParser from 'body-parser';
 import { getAuth } from 'firebase-admin/auth';
-import { defineSecret } from 'firebase-functions/params';
 import jwt from 'jsonwebtoken';
-// import { getFirestore } from 'firebase-admin/firestore';
 
-// import { RequestUserAuth, submissionsQuotesCollection } from '../common';
-// import { validateFirebaseIdToken } from './middlewares';
+import { emailVerificationKey } from './index.js';
 
-const emailVerificationKey = defineSecret('EMAIL_VERIFICATION_KEY');
+// const emailVerificationKey = defineSecret('EMAIL_VERIFICATION_KEY');
 
 const app = express();
 
@@ -29,9 +25,10 @@ app.get('/verify-email/:token', async (req: Request, res: Response) => {
   const { token } = req.params;
 
   try {
-    if (!process.env.EMAIL_VERIFICATION_KEY) throw new Error('Missing environment variable');
+    const verificationKey = emailVerificationKey.value();
+    if (!verificationKey) throw new Error('Missing environment variable');
 
-    const { data } = jwt.verify(token, process.env.EMAIL_VERIFICATION_KEY) as { data: JwtPayload };
+    const { data } = jwt.verify(token, verificationKey) as { data: JwtPayload };
     console.log('decoded: ', data);
     const { uid, email } = data;
 
@@ -46,6 +43,11 @@ app.get('/verify-email/:token', async (req: Request, res: Response) => {
     res.send('Invalid token. Please generate a new verification email.');
   }
 });
+
+export default app;
+// export const authRequests = functions
+//   .runWith({ secrets: [emailVerificationKey] })
+//   .https.onRequest(app);
 
 // TODO: need to add auth middleware and send token with request
 
@@ -92,7 +94,3 @@ app.get('/verify-email/:token', async (req: Request, res: Response) => {
 // );
 
 // app.use(errorHandler);
-
-export const authRequests = functions
-  .runWith({ secrets: [emailVerificationKey] })
-  .https.onRequest(app);

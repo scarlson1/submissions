@@ -1,12 +1,12 @@
-import * as functions from 'firebase-functions';
+import { EventContext } from 'firebase-functions/v1';
 import { getFirestore } from 'firebase-admin/firestore';
-import { defineSecret } from 'firebase-functions/params';
 
 import { getEPayInstance } from '../services';
 import { EPayGetTransactionRes, transactionsCollection, TRANSACTION_STATUS } from '../common';
 import { publishMessage } from '../services/pubsub/publishMessage.js';
+import { ePayCreds as ePayCredsSecret } from './index.js';
 
-const ePayCreds = defineSecret('ENCODED_EPAY_AUTH');
+// const ePayCreds = defineSecret('ENCODED_EPAY_AUTH');
 
 // FOR TESTING: '*/1 * * * *' = every minute
 // '35 10 * * 1-5' = 10:35 monday-friday
@@ -14,62 +14,55 @@ const ePayCreds = defineSecret('ENCODED_EPAY_AUTH');
 // EMULATOR WORK AROUND: https://stackoverflow.com/questions/62759093/how-to-invoke-firebase-schedule-functions-locally-using-pubsub-emulator/65759654#65759654
 // https://github.com/firebase/firebase-tools/issues/2034
 
-export const checkAchStatus = functions
-  .runWith({ secrets: [ePayCreds] })
-  // .pubsub.schedule('*/1 * * * *')
-  // .pubsub.schedule('35 10 * * 1-5') // 10:35 monday-friday
-  .pubsub.schedule('35 10 1-31 1-12 1-5')
-  .onRun(async (context) => {
-    console.log('CHECKING PAYMENT STATUS FOR OUTSTANDING EPAY ACH TRANSACTIONS');
-    const db = getFirestore();
+export default async (context: EventContext<Record<string, string>>) => {
+  console.log('CHECKING PAYMENT STATUS FOR OUTSTANDING EPAY ACH TRANSACTIONS');
+  const db = getFirestore();
 
-    const ePayCreds = process.env.ENCODED_EPAY_AUTH;
-    if (!ePayCreds) throw new Error('Missing ePay credentials');
-    const ePayInstance = getEPayInstance(ePayCreds);
+  const ePayCreds = ePayCredsSecret.value();
+  if (!ePayCreds) throw new Error('Missing ePay credentials');
+  const ePayInstance = getEPayInstance(ePayCreds);
 
-    const transactionsCol = transactionsCollection(db);
+  const transactionsCol = transactionsCollection(db);
 
-    const querySnap = await transactionsCol
-      .where('status', '==', TRANSACTION_STATUS.PROCESSING)
-      .get();
+  const querySnap = await transactionsCol
+    .where('status', '==', TRANSACTION_STATUS.PROCESSING)
+    .get();
 
-    if (querySnap.empty) return console.log('NO OUTSTANDING ACH PAYMENTS FOUND.');
+  if (querySnap.empty) return console.log('NO OUTSTANDING ACH PAYMENTS FOUND.');
 
-    let charges = querySnap.docs.map((s) => ({ ...s.data(), id: s.id }));
-    charges.forEach((c) =>
-      console.log(`CHARGE: ${c.id} - ${c.amount} - ${c.status} - ${c.userId}`)
-    );
+  let charges = querySnap.docs.map((s) => ({ ...s.data(), id: s.id }));
+  charges.forEach((c) => console.log(`CHARGE: ${c.id} - ${c.amount} - ${c.status} - ${c.userId}`));
 
-    for (const charge of charges) {
-      try {
-        const { data } = await ePayInstance.get<EPayGetTransactionRes>(
-          `/api/v1/transactions/${charge.id}`
-        );
-        console.log(`RES ${charge.id} => `, JSON.stringify(data));
-        let events = data.events;
-        if (events && events.length > 0) {
-          events.forEach((e: any) => console.log(`EVENT: ${e.eventType} - ${e.eventDate}`));
+  for (const charge of charges) {
+    try {
+      const { data } = await ePayInstance.get<EPayGetTransactionRes>(
+        `/api/v1/transactions/${charge.id}`
+      );
+      console.log(`RES ${charge.id} => `, JSON.stringify(data));
+      let events = data.events;
+      if (events && events.length > 0) {
+        events.forEach((e: any) => console.log(`EVENT: ${e.eventType} - ${e.eventDate}`));
 
-          const settleEvt = events.find((e) => e.eventType === 'Settle');
-          if (settleEvt) {
-            console.log(`ACH TRANSACTION SETTLED - ID ${charge.id}`, events);
-            await transactionsCol.doc(charge.id).update({ status: TRANSACTION_STATUS.SUCCEEDED });
+        const settleEvt = events.find((e) => e.eventType === 'Settle');
+        if (settleEvt) {
+          console.log(`ACH TRANSACTION SETTLED - ID ${charge.id}`, events);
+          await transactionsCol.doc(charge.id).update({ status: TRANSACTION_STATUS.SUCCEEDED });
 
-            await publishMessage('payment.complete', {
-              policyId: charge.policyId,
-              transactionId: charge.transactionId,
-            });
-          }
+          await publishMessage('payment.complete', {
+            policyId: charge.policyId,
+            transactionId: charge.transactionId,
+          });
         }
-        // TODO: update status if paid or declined
-        // WHAT IS EVENT TYPE NAME FOR DECLINED ACH ??
-
-        // TODO: publish event if status changed (payment:declined)
-      } catch (err) {
-        console.log(`ERROR TRX ID: ${charge.id} => `, err);
       }
+      // TODO: update status if paid or declined
+      // WHAT IS EVENT TYPE NAME FOR DECLINED ACH ??
+
+      // TODO: publish event if status changed (payment:declined)
+    } catch (err) {
+      console.log(`ERROR TRX ID: ${charge.id} => `, err);
     }
-  });
+  }
+};
 
 // export const testEmulatorsCheckAchStatus = functions
 //   .runWith({ secrets: [ePayCreds] })

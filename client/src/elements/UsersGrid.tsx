@@ -35,12 +35,17 @@ const AVATAR_BACKGROUNDS = [purple[200], blue[200], red[200], lightBlue[200], li
 
 export interface UsersGridProps {
   queryConstraints?: QueryConstraint[];
+  renderActions?: (params: GridRowParams) => JSX.Element[];
 }
 
-export const UsersGrid: React.FC<UsersGridProps> = ({ queryConstraints = [] }) => {
+export const UsersGrid: React.FC<UsersGridProps> = ({
+  queryConstraints = [],
+  renderActions = () => [],
+}) => {
   const { data, status } = useCollectionData<User>('USERS', [...queryConstraints, limit(100)], {
     suspense: false,
   });
+
   const userColumns: GridColDef[] = useMemo(
     () => [
       {
@@ -62,6 +67,8 @@ export const UsersGrid: React.FC<UsersGridProps> = ({ queryConstraints = [] }) =
             label='Message'
             // disabled={params.row.status !== INVITE_STATUS.PENDING}
           />,
+          ...renderActions(params),
+          // ...actions,
         ],
       },
       displayNameCol,
@@ -77,7 +84,7 @@ export const UsersGrid: React.FC<UsersGridProps> = ({ queryConstraints = [] }) =
       },
       orgIdCol,
     ],
-    []
+    [renderActions]
   );
 
   return (
@@ -110,6 +117,7 @@ export interface AdminManageUsersGridProps extends Omit<DataGridProps, 'rows' | 
   queryConstraints?: QueryConstraint[];
   orgId: string;
   columnVisibilityModel?: { [key: string]: boolean }; //  GridInitialStateCommunity['columns']
+  actions?: JSX.Element[];
   columnAdjustments?: GridColDef[];
 }
 
@@ -118,6 +126,7 @@ export const AdminManageUsersGrid: React.FC<AdminManageUsersGridProps> = ({
   orgId,
   columnVisibilityModel = {},
   columnAdjustments = [],
+  actions = [],
   ...props
 }) => {
   // const { data, status } = useCollectionData<User>('USERS', [...queryConstraints, limit(100)], {
@@ -131,14 +140,14 @@ export const AdminManageUsersGrid: React.FC<AdminManageUsersGridProps> = ({
   // TODO: get orgId dynamically from doc
   // could set pathSegments: [{ value: string, fromDoc?: boolean }]
   // getPaths(segments){ segments.map(s => typeof s === 'string' ? s : s.fromDoc ? doc[s.value] : s.value ) }
-  const { data: populateData, status: populateStatus } = useCollectionDataPopulateById(
+  const { data, status } = useCollectionDataPopulateById(
     q,
     'userId',
     { root: COLLECTIONS.ORGANIZATIONS, pathSegments: [orgId, COLLECTIONS.USER_CLAIMS] },
     { suspense: true, idField: 'userId', initialData: [] }
   );
 
-  console.log('POPULATE RESULT: ', populateData);
+  console.log('POPULATE RESULT: ', data);
 
   const userColumns: GridColDef[] = useMemo(
     () => [
@@ -154,7 +163,7 @@ export const AdminManageUsersGrid: React.FC<AdminManageUsersGridProps> = ({
                 <SendRounded />
               </Tooltip>
             }
-            onClick={() => alert('button clicked')} // handleResendInvite(params)
+            onClick={() => alert('TODO: implement messaging service')} // handleResendInvite(params)
             // LinkComponent={Link}
             // to={`mailto:${params.row.email}`}
             // disabled={!params.row.email}
@@ -162,6 +171,7 @@ export const AdminManageUsersGrid: React.FC<AdminManageUsersGridProps> = ({
             // disabled={params.row.status !== INVITE_STATUS.PENDING}
           />,
         ],
+        ...actions,
       },
       {
         field: 'member',
@@ -238,18 +248,18 @@ export const AdminManageUsersGrid: React.FC<AdminManageUsersGridProps> = ({
       orgIdCol,
       ...columnAdjustments,
     ],
-    [columnAdjustments]
+    [columnAdjustments, actions]
   );
 
   return (
     <Box>
       <BasicDataGrid
         // @ts-ignore
-        rows={populateData || []}
+        rows={data || []}
         columns={userColumns}
         getRowId={(row) => row.userId}
-        loading={populateStatus === 'loading'}
-        density='compact'
+        loading={status === 'loading'}
+        density='standard' // 'compact'
         autoHeight
         initialState={{
           columns: {

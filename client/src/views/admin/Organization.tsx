@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Tab } from '@mui/material';
+import { Box, Tab, Typography } from '@mui/material';
 import { useParams } from 'react-router-dom';
 import { collection, doc, getFirestore, limit, orderBy, query, where } from 'firebase/firestore';
 import { TabContext, TabList, TabPanel } from '@mui/lab';
@@ -21,6 +21,13 @@ export const Organization: React.FC = () => {
   const handleChange = (event: React.SyntheticEvent, newValue: string) => {
     setTabValue(newValue);
   };
+
+  if (!orgId)
+    return (
+      <Typography align='center' sx={{ py: 4 }}>
+        Missing org ID
+      </Typography>
+    );
 
   return (
     <Box>
@@ -51,13 +58,12 @@ export const Organization: React.FC = () => {
             </TabList>
           </Box>
           <TabPanel value='test'>
-            <AdminManageUsersGrid orgId='idemand' />
+            <AdminManageUsersGrid orgId={`${orgId}`} />
           </TabPanel>
           <TabPanel value='policies'>
             <PoliciesGrid
               queryConstraints={[
-                // where('agencyId', '==', `${orgId}`),
-                where('orgId', '==', `123`),
+                where('orgId', '==', `${orgId}`),
                 // orderBy('metadata.created', 'desc'),
                 limit(100),
               ]}
@@ -75,7 +81,7 @@ export const Organization: React.FC = () => {
           <TabPanel value='insureds'>
             {/* TODO: use rxjs to fetch all policies under agency, then fetch users by id */}
             <UsersGrid queryConstraints={[where('insuredOfAgency', 'array-contains', orgId)]} />
-            <TestAgencyInsureds orgId='123' />
+            <TestAgencyInsureds orgId={orgId} />
           </TabPanel>
           <TabPanel value='team'>
             <UsersGrid queryConstraints={[where('orgId', '==', orgId)]} />

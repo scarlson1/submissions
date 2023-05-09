@@ -1,6 +1,5 @@
-import * as functions from 'firebase-functions';
+import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
 import axios from 'axios';
-// import { merge } from 'lodash-es';
 import merge from 'deepmerge';
 
 const TENANT_ID = '516ffcbc-6e4e-4dad-98ee-ac5f615fbab6';
@@ -15,92 +14,87 @@ const TENANT_ID = '516ffcbc-6e4e-4dad-98ee-ac5f615fbab6';
 //    baseURL: BASE_URL
 // })
 
-export const updateAndRateQuote = functions
-  .runWith({
-    minInstances: 1,
-    memory: '128MB',
-  })
-  .https.onCall(async (data) => {
-    console.log('REQUEST DATA: ', data);
-    const { quoteId, values, protosureData } = data;
-    // TODO: get protosure data from protosure, not from client
+export default async (data: any, ctx: CallableContext) => {
+  console.log('REQUEST DATA: ', data);
+  const { quoteId, values, protosureData } = data;
+  // TODO: get protosure data from protosure, not from client
 
-    // DOES ADDRESS CHANGE RETRIGGER HAZARDHUB CALL ?? OR SHOULD IT RESET QUOTE FORM ??
+  // DOES ADDRESS CHANGE RETRIGGER HAZARDHUB CALL ?? OR SHOULD IT RESET QUOTE FORM ??
 
-    console.log('PROTOSURE INPUT DATA: ', protosureData.inputData);
+  console.log('PROTOSURE INPUT DATA: ', protosureData.inputData);
 
-    const updateBody = merge(protosureData.inputData, {
-      Risk_Location_Address: {
-        ...protosureData.inputData.Risk_Location_Address,
-        street1: values.addressLine1,
-        city: values.city,
-        state: values.state,
-        zip: values.postal,
-        latitude: values.latitude,
-        longitude: values.longitude,
-        // countyFips: '45079',
-        // countyName: 'Richland County',
-      },
-      Building_Coverage_Limit: 100000, // TODO: what about before rater runs ?? pass another param?
-      Unattached_Dwellings_Limit: 20000,
-      Content_Limit: 60000,
-      Living_Expenses_Limit: 20000,
-      // WSelect_Policy_Deductible: values.deductible
-      Historical_losses: values.priorLossCount ?? 0,
-      First_Named_Insured: values.firstName,
-      // Policy_Effective_Date
-      // Policy_Expiration_Date
-      // Surplus_Lines_Home_State
-    });
-    console.log('UPDATE BODY: ', updateBody);
-
-    let res: any = {};
-
-    // UPDATE THE QUOTE INPUT VALUES
-    try {
-      const { data } = await axios.patch(
-        `https://api-demo.protosure.io/public-api/${TENANT_ID}/quotes/${quoteId}/update_input_data/`,
-        { inputData: { ...updateBody } },
-        {
-          headers: {
-            'Access-Control-Allow-Origin': '*',
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-      console.log('UPDATE QUOTE RESPONSE: ', data);
-      res.updateQuoteRes = data;
-
-      const { data: raterRes } = await axios.post(
-        `https://api-demo.protosure.io/public-api/${TENANT_ID}/quotes/${quoteId}/calculate_rater/`,
-        {},
-        {
-          headers: {
-            'Access-Control-Allow-Origin': '*',
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-      console.log('rater res: ', raterRes);
-
-      res.raterData = raterRes;
-
-      // TODO: get values to fill form
-      // initializeForm: getInitialFormData(data),
-
-      return res;
-    } catch (err) {
-      // console.log('ERROR: ', err);
-      // @ts-ignore
-      console.log('ERROR: ', err.response.data);
-
-      throw new functions.https.HttpsError('internal', `Error retrieving or initializing quote`);
-    }
-
-    // // RUN RATER
-    // try {
-    // } catch (err) {}
+  const updateBody = merge(protosureData.inputData, {
+    Risk_Location_Address: {
+      ...protosureData.inputData.Risk_Location_Address,
+      street1: values.addressLine1,
+      city: values.city,
+      state: values.state,
+      zip: values.postal,
+      latitude: values.latitude,
+      longitude: values.longitude,
+      // countyFips: '45079',
+      // countyName: 'Richland County',
+    },
+    Building_Coverage_Limit: 100000, // TODO: what about before rater runs ?? pass another param?
+    Unattached_Dwellings_Limit: 20000,
+    Content_Limit: 60000,
+    Living_Expenses_Limit: 20000,
+    // WSelect_Policy_Deductible: values.deductible
+    Historical_losses: values.priorLossCount ?? 0,
+    First_Named_Insured: values.firstName,
+    // Policy_Effective_Date
+    // Policy_Expiration_Date
+    // Surplus_Lines_Home_State
   });
+  console.log('UPDATE BODY: ', updateBody);
+
+  let res: any = {};
+
+  // UPDATE THE QUOTE INPUT VALUES
+  try {
+    const { data } = await axios.patch(
+      `https://api-demo.protosure.io/public-api/${TENANT_ID}/quotes/${quoteId}/update_input_data/`,
+      { inputData: { ...updateBody } },
+      {
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    console.log('UPDATE QUOTE RESPONSE: ', data);
+    res.updateQuoteRes = data;
+
+    const { data: raterRes } = await axios.post(
+      `https://api-demo.protosure.io/public-api/${TENANT_ID}/quotes/${quoteId}/calculate_rater/`,
+      {},
+      {
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    console.log('rater res: ', raterRes);
+
+    res.raterData = raterRes;
+
+    // TODO: get values to fill form
+    // initializeForm: getInitialFormData(data),
+
+    return res;
+  } catch (err) {
+    // console.log('ERROR: ', err);
+    // @ts-ignore
+    console.log('ERROR: ', err.response.data);
+
+    throw new HttpsError('internal', `Error retrieving or initializing quote`);
+  }
+
+  // // RUN RATER
+  // try {
+  // } catch (err) {}
+};
 
 // function getInitialFormData(p: any) {
 //   const { formData } = p;

@@ -3,7 +3,7 @@ import 'firebase-functions';
 import { DocumentData, Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { getAuth, TenantAwareAuth, Auth } from 'firebase-admin/auth';
 
-import { CLAIMS, COLLECTIONS, isJSON, orgsCollection } from '../common';
+import { CLAIMS, isJSON, orgsCollection } from '../common';
 
 // TODO: cloud functions for updating user claims docs
 
@@ -11,92 +11,96 @@ export interface ClaimsDocData extends DocumentData {
   _lastCommitted?: Timestamp; // WithFieldValue<Timestamp>;
 }
 
-export const mirrorCustomClaims = functions.firestore
-  .document(`${COLLECTIONS.ORGANIZATIONS}/{orgId}/${COLLECTIONS.USER_CLAIMS}/{userId}`)
-  .onWrite(async (change, context) => {
-    const beforeData: ClaimsDocData = change.before.data() || {};
-    const afterData: ClaimsDocData = change.after.data() || {};
-    const { userId, orgId } = context.params;
-    let auth: Auth | TenantAwareAuth = getAuth();
+export default async (
+  change: functions.Change<functions.firestore.DocumentSnapshot>,
+  context: functions.EventContext<{
+    orgId: string;
+    userId: string;
+  }>
+) => {
+  const beforeData: ClaimsDocData = change.before.data() || {};
+  const afterData: ClaimsDocData = change.after.data() || {};
+  const { userId, orgId } = context.params;
+  let auth: Auth | TenantAwareAuth = getAuth();
 
-    console.log(`User claims doc change detected (uid: ${userId})`);
-    console.log('afterData: ', JSON.stringify(afterData));
+  console.log(`User claims doc change detected (uid: ${userId})`);
+  console.log('afterData: ', JSON.stringify(afterData));
 
-    try {
-      // Skip if _lastComitted has changed (already completed update)
-      const skipUpdate =
-        beforeData._lastCommitted &&
-        afterData._lastCommitted &&
-        !beforeData._lastCommitted.isEqual(afterData._lastCommitted);
+  try {
+    // Skip if _lastComitted has changed (already completed update)
+    const skipUpdate =
+      beforeData._lastCommitted &&
+      afterData._lastCommitted &&
+      !beforeData._lastCommitted.isEqual(afterData._lastCommitted);
 
-      if (skipUpdate) {
-        console.log('No changes');
-        return;
-      }
-
-      const { _lastCommitted, ...newClaims } = afterData;
-      const stringifiedClaims = JSON.stringify(newClaims);
-      if (stringifiedClaims.length > 1000) {
-        console.error('new custom claims object string > 1000 characters', stringifiedClaims);
-        return;
-      }
-
-      const isValid = isJSON(stringifiedClaims);
-
-      if (!isValid) {
-        console.log('Invalid JSON. returning early');
-        await change.after.ref.set({
-          ...beforeData,
-        });
-      }
-
-      if (
-        (Object.keys(newClaims).includes(CLAIMS.IDEMAND_ADMIN) ||
-          Object.keys(newClaims).includes(CLAIMS.IDEMAND_USER)) &&
-        orgId !== 'idemand'
-      ) {
-        console.log(
-          'New custom claims contained reserved custom claim (iDemandAdmin). Removing claim.'
-        );
-        // delete newClaims.iDemandAdmin;
-        delete newClaims[CLAIMS.IDEMAND_ADMIN];
-        delete newClaims[CLAIMS.IDEMAND_USER];
-        await change.after.ref.set({
-          ...newClaims,
-          _lastCommitted,
-        });
-        return;
-      }
-      // could limit the allow claims ['iDemandAdmin', 'admin', 'agent'] etc
-      // for (const key in request) {
-      //   if (!(key in validKeys)) {
-      //     delete request[key];
-      //   }
-      // }
-
-      const db = getFirestore();
-      const orgSnap = await orgsCollection(db).doc(orgId).get();
-      const orgData = orgSnap.data();
-
-      if (orgData?.tenantId) {
-        const tenant = await auth.tenantManager().getTenant(orgId);
-        if (!tenant || !tenant.tenantId) {
-          console.log(`No tenant found with ID ${orgId}`);
-          return;
-        }
-        console.log(`Using tenant aware auth for tenant ${tenant.tenantId}`);
-        auth = auth.tenantManager().authForTenant(tenant.tenantId);
-      }
-
-      console.log(`Setting custom claims for ${userId}`, newClaims);
-      await auth.setCustomUserClaims(userId, { ...newClaims });
-
-      await change.after.ref.update({
-        _lastCommitted: Timestamp.now(),
-        ...newClaims,
-      });
-    } catch (err) {
-      console.log('ERROR => ', err);
+    if (skipUpdate) {
+      console.log('No changes');
       return;
     }
-  });
+
+    const { _lastCommitted, ...newClaims } = afterData;
+    const stringifiedClaims = JSON.stringify(newClaims);
+    if (stringifiedClaims.length > 1000) {
+      console.error('new custom claims object string > 1000 characters', stringifiedClaims);
+      return;
+    }
+
+    const isValid = isJSON(stringifiedClaims);
+
+    if (!isValid) {
+      console.log('Invalid JSON. returning early');
+      await change.after.ref.set({
+        ...beforeData,
+      });
+    }
+
+    if (
+      (Object.keys(newClaims).includes(CLAIMS.IDEMAND_ADMIN) ||
+        Object.keys(newClaims).includes(CLAIMS.IDEMAND_USER)) &&
+      orgId !== 'idemand'
+    ) {
+      console.log(
+        'New custom claims contained reserved custom claim (iDemandAdmin). Removing claim.'
+      );
+      // delete newClaims.iDemandAdmin;
+      delete newClaims[CLAIMS.IDEMAND_ADMIN];
+      delete newClaims[CLAIMS.IDEMAND_USER];
+      await change.after.ref.set({
+        ...newClaims,
+        _lastCommitted,
+      });
+      return;
+    }
+    // could limit the allow claims ['iDemandAdmin', 'admin', 'agent'] etc
+    // for (const key in request) {
+    //   if (!(key in validKeys)) {
+    //     delete request[key];
+    //   }
+    // }
+
+    const db = getFirestore();
+    const orgSnap = await orgsCollection(db).doc(orgId).get();
+    const orgData = orgSnap.data();
+
+    if (orgData?.tenantId) {
+      const tenant = await auth.tenantManager().getTenant(orgId);
+      if (!tenant || !tenant.tenantId) {
+        console.log(`No tenant found with ID ${orgId}`);
+        return;
+      }
+      console.log(`Using tenant aware auth for tenant ${tenant.tenantId}`);
+      auth = auth.tenantManager().authForTenant(tenant.tenantId);
+    }
+
+    console.log(`Setting custom claims for ${userId}`, newClaims);
+    await auth.setCustomUserClaims(userId, { ...newClaims });
+
+    await change.after.ref.update({
+      _lastCommitted: Timestamp.now(),
+      ...newClaims,
+    });
+  } catch (err) {
+    console.log('ERROR => ', err);
+    return;
+  }
+};

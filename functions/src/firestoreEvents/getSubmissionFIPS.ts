@@ -1,4 +1,4 @@
-import * as functions from 'firebase-functions';
+import { QueryDocumentSnapshot } from 'firebase-admin/firestore';
 import {
   booleanPointInPolygon,
   FeatureCollection,
@@ -9,44 +9,48 @@ import {
   Properties,
 } from '@turf/turf';
 
-import { COLLECTIONS, Submission, FIPS } from '../common';
+import { Submission, FIPS } from '../common';
+import { EventContext } from 'firebase-functions/v1';
 // import countiesJson from '../assets/counties_20m.json';
 
-export const getSubmissionFIPS = functions.firestore
-  .document(`${COLLECTIONS.SUBMISSIONS}/{submissionId}`)
-  .onCreate(async (snap) => {
-    const submission = snap.data() as Submission;
+export default async (
+  snap: QueryDocumentSnapshot,
+  context: EventContext<{
+    submissionId: string;
+  }>
+) => {
+  const submission = snap.data() as Submission;
 
-    try {
-      let { state, countyName, coordinates } = submission;
+  try {
+    let { state, countyName, coordinates } = submission;
 
-      let fips;
-      let newCountyName = countyName;
-      if (state && countyName) {
-        fips = getFIPS(countyName, state);
-      }
-
-      if (!fips && coordinates && coordinates.latitude && coordinates.longitude) {
-        const matchProperties = await getCountyFromGeoJson(
-          coordinates.latitude,
-          coordinates.longitude
-        );
-        if (matchProperties) {
-          fips = matchProperties.GEOID;
-          if (!countyName) newCountyName = matchProperties.NAME;
-        }
-      }
-
-      if (fips) {
-        await snap.ref.update({ countyFIPS: fips, countyName: newCountyName });
-        console.log(`UPDATED SUBMISSION ${snap.id} FIPS TO ${fips}`);
-      }
-    } catch (err) {
-      console.log(`ERROR GETTING FIPS FOR SUBMISSION ${snap.id}`);
+    let fips;
+    let newCountyName = countyName;
+    if (state && countyName) {
+      fips = getFIPS(countyName, state);
     }
 
-    return {};
-  });
+    if (!fips && coordinates && coordinates.latitude && coordinates.longitude) {
+      const matchProperties = await getCountyFromGeoJson(
+        coordinates.latitude,
+        coordinates.longitude
+      );
+      if (matchProperties) {
+        fips = matchProperties.GEOID;
+        if (!countyName) newCountyName = matchProperties.NAME;
+      }
+    }
+
+    if (fips) {
+      await snap.ref.update({ countyFIPS: fips, countyName: newCountyName });
+      console.log(`UPDATED SUBMISSION ${snap.id} FIPS TO ${fips}`);
+    }
+  } catch (err) {
+    console.log(`ERROR GETTING FIPS FOR SUBMISSION ${snap.id}`);
+  }
+
+  return {};
+};
 
 export function getFIPS(countyName: string, state: string) {
   if (!countyName || !state) return '';

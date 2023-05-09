@@ -27,7 +27,7 @@
     "date-fns": "^2.29.3",
     "fast-csv": "^4.3.6",
     "firebase-admin": "^10.0.2",
-    "firebase-functions": "^4.2.1",
+    "firebase-functions": "^4.3.1",
     "geofire": "^6.0.0",
     "geofire-common": "^6.0.0",
     "lodash": "^4.17.21",

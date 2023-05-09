@@ -3,10 +3,13 @@ import invariant from 'tiny-invariant';
 // import isLatLong from 'validator/es/lib/isLatLong';
 // import validator from 'validator';
 
-import { SRRes, calcSum, isLatLng } from '../../common';
+import { SRPerilAAL, SRRes, calcSum, isLatLng } from '../../common';
 import { getSwissReInstance } from '../../services';
 import { getRCVs } from './getRCVs.js';
 import { swissReBody } from './swissReBody.js';
+import { AxiosInstance } from 'axios';
+
+let swissReInstance: AxiosInstance | undefined;
 
 export interface GetAALsProps {
   srClientId: string;
@@ -43,9 +46,9 @@ export const getAALs = async (props: GetAALsProps): Promise<GetAALRes> => {
     longitude,
   } = props;
 
-  const swissReInstance = getSwissReInstance(srClientId, srClientSecret, srSubKey);
+  swissReInstance = swissReInstance || getSwissReInstance(srClientId, srClientSecret, srSubKey);
 
-  let AALs: { [key: string]: number } = { inlandAAL: 0, surgeAAL: 0 };
+  const AALs: { [key: string]: number } = { inlandAAL: 0, surgeAAL: 0 };
 
   const RCVs = getRCVs(replacementCost, { limitA, limitB, limitC, limitD });
   const rcvAB = RCVs.rvcA + RCVs.rcvB;
@@ -71,11 +74,11 @@ export const getAALs = async (props: GetAALsProps): Promise<GetAALRes> => {
   });
 
   console.log('SWISS RE RES: ', srRes);
-  let code200Index = srRes.expectedLosses.findIndex(
-    (floodObj: any) => floodObj.perilCode === '200'
+  const code200Index = srRes.expectedLosses.findIndex(
+    (floodObj: SRPerilAAL) => floodObj.perilCode === '200'
   );
-  let code300Index = srRes.expectedLosses.findIndex(
-    (floodObj: any) => floodObj.perilCode === '300'
+  const code300Index = srRes.expectedLosses.findIndex(
+    (floodObj: SRPerilAAL) => floodObj.perilCode === '300'
   );
 
   if (code200Index !== -1) {

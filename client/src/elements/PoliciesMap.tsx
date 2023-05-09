@@ -45,21 +45,21 @@ interface PoliciesMapProps {
 export const PoliciesMap: React.FC<PoliciesMapProps> = ({
   queryConstraints,
   initState = [],
-  initOrgId,
+  // initOrgId,
 }) => {
   // DATA / QUERY STATE
   const [state, setState] = useState<string[] | null | undefined>([...initState]);
-  const [orgId, setOrgId] = useState<string | null | undefined>(initOrgId);
+  // const [orgId, setOrgId] = useState<string | null | undefined>(initOrgId);
   const filters = useMemo(() => {
     let filters = [];
     if (queryConstraints) filters.push(...queryConstraints);
     if (state && state.length > 0) filters.push(where('state', '==', state));
-    if (orgId) filters.push(where('orgId', '==', orgId));
+    // if (orgId) filters.push(where('orgId', '==', orgId));
 
     // console.log('FILTERS: ', filters);
 
     return filters;
-  }, [state, orgId, queryConstraints]);
+  }, [state, queryConstraints]);
 
   const { data: submissionData } = useCollectionData('SUBMISSIONS', filters, { idField: 'id' });
 

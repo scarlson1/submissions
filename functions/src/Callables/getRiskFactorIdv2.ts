@@ -1,7 +1,14 @@
-import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
+import { CallableRequest } from 'firebase-functions/v2/https';
+import { HttpsError } from 'firebase-functions/v1/https';
 import axios from 'axios';
 
-export default async (data: any, ctx: CallableContext) => {
+interface GetRiskFactorIdv2Props {
+  addressLine1: string;
+  city: string;
+  state: string;
+}
+
+export default async ({ data }: CallableRequest<GetRiskFactorIdv2Props>) => {
   const { addressLine1, city, state } = data;
 
   try {
@@ -16,7 +23,7 @@ export default async (data: any, ctx: CallableContext) => {
     const { data: fsidRes } = res;
 
     if (!fsidRes || !fsidRes.length) return { fsid: null };
-    console.log(`FSID for ${addressLine1}: ${fsidRes[0].fsid}`);
+    console.log(`[V2] FSID for ${addressLine1}: ${fsidRes[0].fsid}`);
 
     return { fsid: fsidRes[0].fsid };
   } catch (err) {

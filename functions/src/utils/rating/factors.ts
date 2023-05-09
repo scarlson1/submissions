@@ -31,7 +31,7 @@ export const getHistoryMultSurge = (score: number) => {
 
 export const getBasementFactor = (basementValue = 'unknown') => {
   console.log('basementValue: ', basementValue);
-  let checkVal = typeof basementValue === 'string' ? basementValue.toLowerCase() : basementValue;
+  const checkVal = typeof basementValue === 'string' ? basementValue.toLowerCase() : basementValue;
 
   switch (checkVal) {
     case 'no':

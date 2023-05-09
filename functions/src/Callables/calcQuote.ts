@@ -1,5 +1,6 @@
-import * as functions from 'firebase-functions';
+// import * as functions from 'firebase-functions';
 import logger from 'firebase-functions/logger';
+import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import invariant from 'tiny-invariant';
 
@@ -25,7 +26,7 @@ export interface CalcQuoteRequest {
   commissionPct?: number;
 }
 
-export const calcQuote = functions.https.onCall(async (data, context) => {
+export default async (data: any, context: CallableContext) => {
   console.log('data: ', data);
   const db = getFirestore();
   const {
@@ -46,9 +47,9 @@ export const calcQuote = functions.https.onCall(async (data, context) => {
   } = data;
   const userId = context.auth?.uid;
 
-  if (!userId) throw new functions.https.HttpsError('unauthenticated', 'must be authenticated');
+  if (!userId) throw new HttpsError('unauthenticated', 'must be authenticated');
   if (!context.auth?.token.iDemandAdmin)
-    throw new functions.https.HttpsError('permission-denied', 'must have admin permissions');
+    throw new HttpsError('permission-denied', 'must have admin permissions');
 
   try {
     // TODO: reuse existing validation function
@@ -100,7 +101,7 @@ export const calcQuote = functions.https.onCall(async (data, context) => {
       function: 'calcQuote',
     });
 
-    throw new functions.https.HttpsError('failed-precondition', err.message);
+    throw new HttpsError('failed-precondition', err.message);
   }
 
   try {
@@ -164,9 +165,9 @@ export const calcQuote = functions.https.onCall(async (data, context) => {
       message: err?.message || '',
       stack: err?.stack || null,
     });
-    throw new functions.https.HttpsError('invalid-argument', 'Error calculating quote');
+    throw new HttpsError('invalid-argument', 'Error calculating quote');
   }
-});
+};
 
 // const tiv = calcSum([limitA, limitB, limitC, limitD]);
 

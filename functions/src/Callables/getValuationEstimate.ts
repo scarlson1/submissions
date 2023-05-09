@@ -1,5 +1,6 @@
-import * as functions from 'firebase-functions';
-import { defineSecret } from 'firebase-functions/params';
+// import * as functions from 'firebase-functions';
+// import { defineSecret } from 'firebase-functions/params';
+import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
 // import { parseString } from 'xml2js';
 import { Parser } from 'xml2js';
 import { stripPrefix, parseNumbers, parseBooleans } from 'xml2js/lib/processors.js';
@@ -7,6 +8,7 @@ import axios from 'axios';
 
 import { getVeriskInstance } from '../services';
 import { printObj } from '../common';
+import { veriskCredsDemo } from './index.js';
 
 const VERISK_SAMPLE_URL = 'https://scarlson1.github.io/data/208_aiken_verisk_res.xml';
 // https://scarlson1.github.io/data/sample_verisk_res.xml
@@ -15,146 +17,134 @@ const VERISK_SAMPLE_URL = 'https://scarlson1.github.io/data/208_aiken_verisk_res
 // const veriskPassword = defineSecret('VERISK_PASSWORD');
 // const veriskUserData = defineSecret('VERISK_USER_DATA');
 // veriskGroupId, veriskPassword, veriskUserData,
-const veriskCredsDemo = defineSecret('VERISK_CREDS_DEMO');
+// const veriskCredsDemo = defineSecret('VERISK_CREDS_DEMO');
 
-export const getValuationEstimate = functions
-  .runWith({
-    secrets: [veriskCredsDemo],
-    minInstances: 1,
-    memory: '128MB',
-  })
-  .https.onCall(async (data) => {
-    const { addressLine1, city, state, postal } = data;
+export default async (data: any, ctx: CallableContext) => {
+  const { addressLine1, city, state, postal } = data;
 
-    if (!(addressLine1 && city && state && postal)) {
-      throw new functions.https.HttpsError(
-        'invalid-argument',
-        `Missing required address components`
+  if (!(addressLine1 && city && state && postal)) {
+    throw new HttpsError('invalid-argument', `Missing required address components`);
+  }
+
+  // const groupId = process.env.VERISK_GROUP_ID;
+  // const password = process.env.VERISK_PASSWORD;
+  // const userData = process.env.VERISK_USER_DATA;
+
+  // const testCreds = process.env.VERISK_CREDS_DEMO;
+  // console.log('VERISK CREDS: ', testCreds, typeof testCreds);
+
+  const veriskCreds = veriskCredsDemo.value();
+  const parsedCreds = veriskCreds ? JSON.parse(veriskCreds) : null;
+  const groupId = parsedCreds?.GROUP_ID;
+  const password = parsedCreds?.PASSWORD;
+  const userData = parsedCreds?.USER_DATA;
+
+  if (!(groupId && password && userData)) {
+    throw new HttpsError('internal', `Missing external API credentials`);
+  }
+
+  const veriskInstance = getVeriskInstance();
+  let veriskXML;
+
+  try {
+    const config = { headers: { 'Content-Type': 'text/xml' } };
+    const body = getVeriskXML({
+      groupId,
+      password,
+      userData,
+      addressLine1,
+      city,
+      state,
+      postal,
+    });
+
+    let data;
+    if (process.env.AUDIENCE === 'DEV HUMANS ' || process.env.AUDIENCE === 'LOCAL HUMANS') {
+      console.log('USING MOCK RES FROM GITHUB (1382 HUNTER DR)');
+      const { data: githubMockData } = await axios.get(VERISK_SAMPLE_URL);
+      data = githubMockData;
+    } else {
+      const { data: veriskData } = await veriskInstance.post(
+        '/apps/iv/services/valuation',
+        body,
+        config
       );
+      data = veriskData;
     }
 
-    // const groupId = process.env.VERISK_GROUP_ID;
-    // const password = process.env.VERISK_PASSWORD;
-    // const userData = process.env.VERISK_USER_DATA;
-
-    // const testCreds = process.env.VERISK_CREDS_DEMO;
-    // console.log('VERISK CREDS: ', testCreds, typeof testCreds);
-
-    const veriskCreds = veriskCredsDemo.value();
-    const parsedCreds = veriskCreds ? JSON.parse(veriskCreds) : null;
-    const groupId = parsedCreds?.GROUP_ID;
-    const password = parsedCreds?.PASSWORD;
-    const userData = parsedCreds?.USER_DATA;
-
-    if (!(groupId && password && userData)) {
-      throw new functions.https.HttpsError('internal', `Missing external API credentials`);
+    // console.log('VERISK RESPONSE: ', data);
+    if (data) {
+      veriskXML = data;
+    } else {
+      throw Error('error fetching valuation');
     }
+  } catch (err) {
+    throw new HttpsError('internal', `An error occurred getting estimated replacement cost`);
+  }
 
-    const veriskInstance = getVeriskInstance();
-    let veriskXML;
+  try {
+    const parser = new Parser({
+      explicitArray: false,
+      // ignoreAttrs: true, // 'report' fields are attrs (converts to empty strings if this is enabled)
+      mergeAttrs: true,
+      tagNameProcessors: [stripPrefix],
+      valueProcessors: [parseNumbers, parseBooleans],
+    }); // { mergeAttrs: true }
+    let resJson = await parser.parseStringPromise(veriskXML);
+    printObj(resJson);
 
-    try {
-      const config = { headers: { 'Content-Type': 'text/xml' } };
-      const body = getVeriskXML({
-        groupId,
-        password,
-        userData,
-        addressLine1,
-        city,
-        state,
-        postal,
-      });
+    const resBody = resJson?.Envelope?.Body;
+    const valRes = resBody?.calculateRecalculatableValuationResponse?.return;
 
-      let data;
-      if (process.env.AUDIENCE === 'DEV HUMANS ' || process.env.AUDIENCE === 'LOCAL HUMANS') {
-        console.log('USING MOCK RES FROM GITHUB (1382 HUNTER DR)');
-        const { data: githubMockData } = await axios.get(VERISK_SAMPLE_URL);
-        data = githubMockData;
-      } else {
-        const { data: veriskData } = await veriskInstance.post(
-          '/apps/iv/services/valuation',
-          body,
-          config
-        );
-        data = veriskData;
+    const valuation = valRes?.calculatedValue || null;
+    const valuationId = valRes?.valuationId || null;
+    const report = valRes?.report || null;
+
+    console.log('EXTRACTED VALUATION: ', valuation);
+    console.log('VALUATION ID: ', valuationId);
+
+    let parsedReport: { [key: string]: any } = {};
+    if (report) {
+      // TODO: use different parser settings on report ?? (explicitArray: true)
+      const parsedReportInit = await parser.parseStringPromise(report);
+      console.log('PARSED REPORT: ', parsedReportInit);
+      const residentialReport = parsedReportInit?.CONTEXT?.RESIDENTIAL_REPORT || null;
+      if (residentialReport) {
+        // parsedReport = formatResidentialReport(residentialReport);
+        parsedReport = residentialReport;
       }
-
-      // console.log('VERISK RESPONSE: ', data);
-      if (data) {
-        veriskXML = data;
-      } else {
-        throw Error('error fetching valuation');
-      }
-    } catch (err) {
-      throw new functions.https.HttpsError(
-        'internal',
-        `An error occurred getting estimated replacement cost`
-      );
     }
 
-    try {
-      const parser = new Parser({
-        explicitArray: false,
-        // ignoreAttrs: true, // 'report' fields are attrs (converts to empty strings if this is enabled)
-        mergeAttrs: true,
-        tagNameProcessors: [stripPrefix],
-        valueProcessors: [parseNumbers, parseBooleans],
-      }); // { mergeAttrs: true }
-      let resJson = await parser.parseStringPromise(veriskXML);
-      printObj(resJson);
+    return {
+      resJson,
+      resBody,
+      valRes,
+      valuation,
+      valuationId,
+      report,
+      parsedReport, // : parsedReport?.CONTEXT?.RESIDENTIAL_REPORT || null,
+    };
 
-      const resBody = resJson?.Envelope?.Body;
-      const valRes = resBody?.calculateRecalculatableValuationResponse?.return;
+    // const resBody = resJson?.Envelope?.Body[0];
+    // const valRes = resBody?.calculateRecalculatableValuationResponse[0]?.return[0];
 
-      const valuation = valRes?.calculatedValue || null;
-      const valuationId = valRes?.valuationId || null;
-      const report = valRes?.report || null;
+    // const valuation = valRes?.calculatedValue[0] || null;
+    // const valuationId = valRes?.valuationId[0] || null;
+    // const report = valRes?.report[0] || null;
 
-      console.log('EXTRACTED VALUATION: ', valuation);
-      console.log('VALUATION ID: ', valuationId);
+    // console.log('EXTRACTED VALUATION: ', valuation);
+    // console.log('VALUATION ID: ', valuationId);
 
-      let parsedReport: { [key: string]: any } = {};
-      if (report) {
-        // TODO: use different parser settings on report ?? (explicitArray: true)
-        const parsedReportInit = await parser.parseStringPromise(report);
-        console.log('PARSED REPORT: ', parsedReportInit);
-        const residentialReport = parsedReportInit?.CONTEXT?.RESIDENTIAL_REPORT || null;
-        if (residentialReport) {
-          // parsedReport = formatResidentialReport(residentialReport);
-          parsedReport = residentialReport;
-        }
-      }
+    // let parsedReport;
+    // if (report) parsedReport = await parser.parseStringPromise(report);
 
-      return {
-        resJson,
-        resBody,
-        valRes,
-        valuation,
-        valuationId,
-        report,
-        parsedReport, // : parsedReport?.CONTEXT?.RESIDENTIAL_REPORT || null,
-      };
+    // return { resJson, resBody, valRes, valuation, valuationId, report, parsedReport };
+  } catch (err) {
+    throw new HttpsError('internal', `Error parsing replacement cost response`);
+  }
 
-      // const resBody = resJson?.Envelope?.Body[0];
-      // const valRes = resBody?.calculateRecalculatableValuationResponse[0]?.return[0];
-
-      // const valuation = valRes?.calculatedValue[0] || null;
-      // const valuationId = valRes?.valuationId[0] || null;
-      // const report = valRes?.report[0] || null;
-
-      // console.log('EXTRACTED VALUATION: ', valuation);
-      // console.log('VALUATION ID: ', valuationId);
-
-      // let parsedReport;
-      // if (report) parsedReport = await parser.parseStringPromise(report);
-
-      // return { resJson, resBody, valRes, valuation, valuationId, report, parsedReport };
-    } catch (err) {
-      throw new functions.https.HttpsError('internal', `Error parsing replacement cost response`);
-    }
-
-    // return;
-  });
+  // return;
+};
 
 interface GetVeriskXMLProps {
   groupId: string;

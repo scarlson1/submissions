@@ -1,12 +1,11 @@
-import * as functions from 'firebase-functions';
-import 'firebase-functions';
+import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
 import { getFirestore } from 'firebase-admin/firestore';
 
 import { usersCollection } from '../common/dbCollections';
 
-export const getTenantIdFromEmail = functions.https.onCall(async (data) => {
+export default async (data: any, ctx: CallableContext) => {
   if (!data.email || typeof data.email !== 'string') {
-    throw new functions.https.HttpsError('invalid-argument', 'Missing email');
+    throw new HttpsError('invalid-argument', 'Missing email');
   }
 
   try {
@@ -18,8 +17,8 @@ export const getTenantIdFromEmail = functions.https.onCall(async (data) => {
     if (snap.empty) {
       console.log(`No user found matching ${data.email}.`);
       // no user found with email
-      // throw new functions.https.HttpsError('not-found', `No user found under email ${data.email}`);
-      throw new functions.https.HttpsError('not-found', 'No user found under provided email');
+      // throw new HttpsError('not-found', `No user found under email ${data.email}`);
+      throw new HttpsError('not-found', 'No user found under provided email');
     }
 
     // TODO: finalize field name of tenant on User doc
@@ -30,4 +29,4 @@ export const getTenantIdFromEmail = functions.https.onCall(async (data) => {
   } catch (err) {
     return err;
   }
-});
+};

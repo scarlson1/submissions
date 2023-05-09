@@ -32,20 +32,18 @@ export const populateById = (
     defer(() => {
       // OPERATOR STATE
       let collectionData: any;
-
       let totalJoins = 0;
 
       return source.pipe(
         switchMap((data) => {
+          console.log('COLLECTION DATA:', data);
           // Clear mapping on each emitted val
-
           // Save the parent data state
           collectionData = data as any[];
 
           const reads$ = [];
           for (const doc of collectionData) {
             // Push doc read to Array
-
             // only get docs where shared key:value pair in both collections
             if (doc[docIdField]) {
               // Perform query to join key, with optional limit

@@ -1,5 +1,4 @@
-import { ObjectMetadata } from 'firebase-functions/v1/storage';
-import { EventContext, logger } from 'firebase-functions/v1';
+// import * as functions from 'firebase-functions';
 import { getStorage } from 'firebase-admin/storage';
 import path from 'path';
 import os from 'os';
@@ -11,14 +10,14 @@ import { AxiosInstance } from 'axios';
 import { getNumber } from '../common';
 import { getSwissReInstance } from '../services';
 import { swissReBody } from '../utils/rating/swissReBody.js';
+import { getPremium } from '../utils/rating';
+import { swissReClientId, swissReClientSecret, swissReSubscriptionKey } from './index.js';
+import { ObjectMetadata } from 'firebase-functions/v1/storage';
+import { EventContext, logger } from 'firebase-functions/v1';
 
 let swissReInstance: AxiosInstance;
 
-// const swissReClientId = defineSecret('SWISS_RE_CLIENT_ID');
-// const swissReClientSecret = defineSecret('SWISS_RE_CLIENT_SECRET');
-// const swissReSubscriptionKey = defineSecret('SWISS_RE_SUBSCRIPTION_KEY');
-
-const PORTFOLIO_UPLOAD_FOLDER = 'portfolio-aal';
+const PORTFOLIO_UPLOAD_FOLDER = 'portfolio-aal-and-rate';
 
 export default async (object: ObjectMetadata, context: EventContext<Record<string, string>>) => {
   const fileBucket = object.bucket;
@@ -48,9 +47,9 @@ export default async (object: ObjectMetadata, context: EventContext<Record<strin
     return null;
   }
 
-  const clientId = process.env.SWISS_RE_CLIENT_ID;
-  const clientSecret = process.env.SWISS_RE_CLIENT_SECRET;
-  const subKey = process.env.SWISS_RE_SUBSCRIPTION_KEY;
+  const clientId = swissReClientId.value();
+  const clientSecret = swissReClientSecret.value();
+  const subKey = swissReSubscriptionKey.value();
   if (!(clientId && clientSecret && subKey)) {
     console.log('MISSING SR CREDENTIALS. RETURNING EARLY');
     return;
@@ -74,19 +73,27 @@ export default async (object: ObjectMetadata, context: EventContext<Record<strin
       // longitude: parseFloat(data.longitude),
       // building_rcv: data.building_rcv ? parseInt(getNumber(data.building_rcv)) : '',
       cov_a_rcv: data.cov_a_rcv ? parseInt(getNumber(data.cov_a_rcv)) : '',
+      cov_b_rcv: data.cov_b_rcv ? parseInt(getNumber(data.cov_b_rcv)) : '',
       cov_c_rcv: data.cov_c_rcv ? parseInt(getNumber(data.cov_c_rcv)) : '',
       cov_d_rcv: data.cov_d_rcv ? parseInt(getNumber(data.cov_d_rcv)) : '',
       total_rcv: data.total_rcv ? parseInt(getNumber(data.total_rcv)) : '',
       cov_a_limit: data.cov_a_limit ? parseInt(getNumber(data.cov_a_limit)) : '',
+      cov_b_limit: data.cov_b_limit ? parseInt(getNumber(data.cov_b_limit)) : '',
       cov_c_limit: data.cov_c_limit ? parseInt(getNumber(data.cov_c_limit)) : '',
       cov_d_limit: data.cov_d_limit ? parseInt(getNumber(data.cov_d_limit)) : '',
       total_limits: data.total_limits ? parseInt(getNumber(data.total_limits)) : '',
       deductible: parseInt(getNumber(data.deductible)) || 3000,
-    }))
+    })) // If a row is invalid then a data-invalid event will be emitted with the row and the index.
+    .validate((data: any): boolean => {
+      return validateRow(data);
+    })
     .on('error', (err) => {
       console.error(err);
       fs.unlinkSync(tempFilePath);
       return;
+    })
+    .on('headers', (headers) => {
+      console.log('HEADERS => ', headers);
     })
     .on('data', (row) => {
       console.log('ROW => ', row);
@@ -98,10 +105,11 @@ export default async (object: ObjectMetadata, context: EventContext<Record<strin
     .on('end', async (rowCount: number) => {
       console.log(`Parsed ${rowCount} rows`);
       console.log('DATA ARRAY => ', dataArray);
-      fs.unlinkSync(tempFilePath);
+      if (tempFilePath) fs.unlinkSync(tempFilePath);
 
       try {
         await getAALs(dataArray);
+
         await bucket.file(filePath).setMetadata({ metadata: { status: 'processed' } });
       } catch (err) {
         await bucket.file(filePath).setMetadata({ metadata: { status: 'error' } });
@@ -159,9 +167,101 @@ export default async (object: ObjectMetadata, context: EventContext<Record<strin
 
       let merged = parsedData.map((r, i) => ({ ...r, ...aals[i] }));
 
-      console.log('MERGED: ', merged);
-      return writeToStorage(merged);
+      const result: any[] = [];
+
+      for (let r of merged) {
+        try {
+          let getPremProps = getPremCalcVars(r);
+          const rowPremData = getPremium(getPremProps);
+
+          let premium = rowPremData?.premiumData?.directWrittenPremium ?? '';
+          let minPrem = rowPremData?.minPremium ?? '';
+          let inlandMult = rowPremData?.secondaryFactorMults?.inland ?? '';
+          let surgeMult = rowPremData?.secondaryFactorMults?.surge ?? '';
+          let basementMult =
+            rowPremData?.secondaryFactorMults?.secondaryFactorMultsByFactor?.basementMult ?? '';
+          let inlandHistoryMult =
+            rowPremData?.secondaryFactorMults?.secondaryFactorMultsByFactor?.historyMult?.inland ??
+            '';
+          let surgeHistoryMult =
+            rowPremData?.secondaryFactorMults?.secondaryFactorMultsByFactor?.historyMult?.surge ??
+            '';
+          let inlandFFEMult =
+            rowPremData?.secondaryFactorMults?.secondaryFactorMultsByFactor?.ffeMult.inland ?? '';
+          let surgeFFEMult =
+            rowPremData?.secondaryFactorMults?.secondaryFactorMultsByFactor?.ffeMult.surge ?? '';
+          let inlandStateMult = rowPremData?.stateMultipliers?.inland ?? '';
+          let surgeStateMult = rowPremData?.stateMultipliers?.surge ?? '';
+          let inlandPM = rowPremData?.pm?.inland ?? '';
+          let surgePM = rowPremData?.pm?.surge ?? '';
+          let inlandRiskScore = rowPremData?.riskScore?.inland ?? '';
+          let surgeRiskScore = rowPremData?.riskScore?.surge ?? '';
+          let inlandTechPrem = rowPremData?.premiumData?.techPremium.inland ?? '';
+          let surgeTechPrem = rowPremData?.premiumData?.techPremium.surge ?? '';
+          let subproducerAdj = rowPremData?.premiumData?.subproducerAdj ?? '';
+
+          let provisionalPremium = rowPremData?.premiumData?.provisionalPremium ?? '';
+          let premiumSubtotal = rowPremData?.premiumData?.premiumSubtotal;
+          let minPremiumAdj = rowPremData?.premiumData?.minPremiumAdj;
+
+          result.push({
+            ...r,
+            basementMult,
+            inlandHistoryMult,
+            surgeHistoryMult,
+            inlandFFEMult,
+            surgeFFEMult,
+            inlandMult,
+            surgeMult,
+            inlandStateMult,
+            surgeStateMult,
+            inlandPM,
+            surgePM,
+            inlandRiskScore,
+            surgeRiskScore,
+            inlandTechPrem,
+            surgeTechPrem,
+            premiumSubtotal,
+            minPrem,
+            minPremiumAdj,
+            provisionalPremium,
+            subproducerAdj,
+            premium,
+            notes: '',
+          });
+        } catch (err) {
+          result.push({
+            ...r,
+            basementMult: '',
+            inlandHistoryMult: '',
+            surgeHistoryMult: '',
+            inlandFFEMult: '',
+            surgeFFEMult: '',
+            inlandMult: '',
+            surgeMult: '',
+            inlandStateMult: '',
+            surgeStateMult: '',
+            inlandPM: '',
+            surgePM: '',
+            inlandRiskScore: '',
+            surgeRiskScore: '',
+            inlandTechPrem: '',
+            surgeTechPrem: '',
+            premiumSubtotal: '',
+            minPrem: '',
+            minPremiumAdj: '',
+            provisionalPremium: '',
+            subproducerAdj: '',
+            premium: '',
+            notes: 'Error calculating premium',
+          });
+        }
+      }
+
+      // return writeToStorage(merged);
+      return writeToStorage(result);
     } catch (err: any) {
+      console.log('ERR: ', err);
       console.log('ERROR: ', err?.response?.data);
       throw err;
     }
@@ -185,18 +285,55 @@ export default async (object: ObjectMetadata, context: EventContext<Record<strin
 };
 
 function getSRVars(row: any) {
+  let rcvB = row.cov_b_rcv || 0;
+  let limitB = row.cov_b_limit || 0;
+
   return {
     lat: row.latitude,
     lng: row.longitude,
     rcvTotal: row.total_rcv,
-    rcvAB: row.cov_a_rcv, // row.building_rcv,
+    rcvAB: row.cov_a_rcv + rcvB,
     rcvC: row.cov_c_rcv,
     rcvD: row.cov_d_rcv,
-    limitAB: row.cov_a_limit, // row.building_limit,
+    limitAB: row.cov_a_limit + limitB,
     limitC: row.cov_c_limit,
     limitD: row.cov_d_limit,
     deductible: row.deductible,
-    numStories: row.num_stories || 1,
-    externalRef: row.location_id || 'idemand',
+    numStories: row.num_stories || '1',
+    externalRef: 'test',
+    // externalRef: row.location_id || 'idemand',
   };
+}
+
+function getPremCalcVars(row: any) {
+  return {
+    inlandAAL: row.inlandAAL,
+    surgeAAL: row.surgeAAL,
+    limitA: row.cov_a_limit, // row.building_limit,
+    limitB: row.cov_b_limit,
+    limitC: row.cov_c_limit,
+    limitD: row.cov_d_limit,
+    floodZone: row.flood_zone,
+    state: row.state,
+    basement: row.basement,
+    priorLossCount: row.prior_loss_count || '0',
+    commissionPct: row.commission_pct || 0.15,
+  };
+}
+
+function validateRow(data: any) {
+  if (!data.cov_a_rcv) return false;
+  if (!(data.cov_b_rcv && data.cov_b_rcv !== 0)) return false;
+  if (!(data.cov_c_rcv && data.cov_c_rcv !== 0)) return false;
+  if (!(data.cov_d_rcv && data.cov_c_rcv !== 0)) return false;
+  if (!data.cov_a_limit) return false;
+  if (!(data.cov_b_limit && data.cov_b_limit !== 0)) return false;
+  if (!(data.cov_c_limit && data.cov_c_limit !== 0)) return false;
+  if (!(data.cov_d_limit && data.cov_d_limit !== 0)) return false;
+  if (!data.deductible) return false;
+  if (!data.latitude) return false;
+  if (!data.longitude) return false;
+  if (!data.state) return false;
+
+  return true;
 }

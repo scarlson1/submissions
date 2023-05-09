@@ -134,6 +134,7 @@ Cloud Functions are kind of like an API or server. They serve as the backend in 
 - `sendPolicyDoc`
 - `updateAndRateQuote` - not sure if this is still being used ??
 - `verifyEPayToken` - calls ePay endpoint with provided token and receives a few details about the payment method, which are saved under _`users/userId/paymentMethods`_. Can later be used to execute payment
+- `moveUserToTenant` - moves user from non-tenant auth or tenant-auth to a new tenant.
 
 ### Storage Triggered
 

@@ -8,7 +8,7 @@ import {
   useRef,
 } from 'react';
 import {
-  onAuthStateChanged,
+  // onAuthStateChanged,
   User,
   IdTokenResult,
   signInWithEmailAndPassword,
@@ -21,9 +21,11 @@ import {
   updatePassword,
 } from '@firebase/auth';
 import { doc, onSnapshot, DocumentSnapshot } from '@firebase/firestore';
+import { setUserId, setUserProperties } from 'firebase/analytics';
+import { useAnalytics, useAuth as useFireAuth, useFirestore, useUser } from 'reactfire';
 import { useNavigate } from 'react-router-dom';
 import { differenceInSeconds } from 'date-fns';
-import { useAuth as useFireAuth, useFirestore } from 'reactfire';
+
 import { toast } from 'react-hot-toast';
 // import { authState } from 'rxfire/auth';
 // import { filter } from 'rxjs/operators';
@@ -44,7 +46,7 @@ export type CustomClaimsInterface = Record<CUSTOM_CLAIMS, boolean> & IdTokenResu
 
 interface AuthContextValue {
   user: User | null;
-  error: Error | null | unknown;
+  // error: Error | null | unknown;
   loading: boolean;
   loadingInitial: boolean;
   customClaims: CustomClaimsInterface;
@@ -54,7 +56,7 @@ interface AuthContextValue {
   updateUserPassword: (newPassword: string) => Promise<void>;
   sendVerification: () => Promise<any>;
   getSecondsFromLastAuth: () => number | null;
-  setUpdatedUser: (user: User | null) => void;
+  // setUpdatedUser: (user: User | null) => void;
   reauthenticateUser: (dialogMsg?: string) => Promise<void>; // Promise<UserCredential>;
   reauthIfRequired: (
     secondLimit?: number,
@@ -63,30 +65,34 @@ interface AuthContextValue {
   updateUserEmail: (newEmail: string) => Promise<void>;
 }
 
-export const AuthContext = createContext<AuthContextValue>({
-  user: null,
-  error: null,
-  loading: false,
-  loadingInitial: true,
-  login: (email, password) => Promise.reject(),
-  logout: () => {},
-  sendPasswordReset: () => Promise.reject(),
-  updateUserPassword: () => Promise.reject(),
-  sendVerification: () => Promise.reject(),
-  getSecondsFromLastAuth: () => null,
-  setUpdatedUser: () => {},
-  reauthenticateUser: () => Promise.reject('initialized func'),
-  reauthIfRequired: () => Promise.reject(),
-  updateUserEmail: () => Promise.reject(),
-  customClaims: { orgAdmin: false, agent: false, iDemandAdmin: false },
-});
+export const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+
+// export const AuthContext = createContext<AuthContextValue>({
+//   user: null,
+//   error: null,
+//   loading: false,
+//   loadingInitial: true,
+//   login: (email, password) => Promise.reject(),
+//   logout: () => {},
+//   sendPasswordReset: () => Promise.reject(),
+//   updateUserPassword: () => Promise.reject(),
+//   sendVerification: () => Promise.reject(),
+//   getSecondsFromLastAuth: () => null,
+//   setUpdatedUser: () => {},
+//   reauthenticateUser: () => Promise.reject('initialized func'),
+//   reauthIfRequired: () => Promise.reject(),
+//   updateUserEmail: () => Promise.reject(),
+//   customClaims: { orgAdmin: false, agent: false, iDemandAdmin: false },
+// });
 
 export const AuthContextProvider = ({ children }: { children: React.ReactNode }) => {
-  // const auth = getAuth();
   const auth = useFireAuth();
   const firestore = useFirestore();
-  const [user, setUser] = useState<User | null>(null);
-  const [error, setError] = useState<Error | null | unknown>(null);
+  const analytics = useAnalytics();
+
+  const { data: user } = useUser();
+  // const [user, setUser] = useState<User | null>(null);
+  // const [error, setError] = useState<Error | null | unknown>(null);
   const [loading, setLoading] = useState(false);
   const [loadingInitial, setLoadingInitial] = useState(true);
   const [customClaims, setCustomClaims] = useState<CustomClaimsInterface>({
@@ -114,21 +120,29 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
     }
     await auth.currentUser?.getIdToken(true);
     const idTokenResult: IdTokenResult = await auth.currentUser.getIdTokenResult();
-    // console.log('TOKEN RESULT: ', idTokenResult);
 
+    const orgAdmin = !!idTokenResult.claims.orgAdmin;
+    const agent = !!idTokenResult.claims.agent;
+    const iDemandAdmin = !!idTokenResult.claims.iDemandAdmin;
     setCustomClaims({
       ...idTokenResult.claims,
-      orgAdmin: !!idTokenResult.claims.orgAdmin,
-      agent: !!idTokenResult.claims.agent,
-      iDemandAdmin: !!idTokenResult.claims.iDemandAdmin,
+      orgAdmin,
+      agent,
+      iDemandAdmin,
     });
+
+    if (orgAdmin || agent || iDemandAdmin) {
+      setUserProperties(analytics, { ...idTokenResult.claims });
+    }
+
     setLoading(false);
-  }, [auth]);
+  }, [auth, analytics]);
 
   const onNewClaims = useCallback(
     async (snap: DocumentSnapshot<UserClaims>) => {
       const data = snap.data();
 
+      // if _lastCommitted not equal to ref, fetch claims from token
       if (data?._lastCommitted) {
         if (lastCommittedRef.current && !data._lastCommitted.isEqual(lastCommittedRef.current)) {
           updateClaims();
@@ -140,7 +154,8 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
   );
 
   // TODO: use rxjs to pipe user auth && subscribe to claims doc?
-  // listen to changes in userClaims firestore doc
+  // TODO: does subscription terminate when user signs out ??
+  // listen to changes in userClaims firestore doc (orgs/{orgId}/userClaims/{uid})
   useEffect(() => {
     if (!user) return;
     if (!user.tenantId && !customClaims.iDemandAdmin) return;
@@ -155,25 +170,51 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
     return () => unsubscribe();
   }, [onNewClaims, firestore, user, customClaims]);
 
+  // on user change
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(
-      auth,
-      async (newUser: User | null) => {
-        setLoading(true);
-        // console.log('auth state change => ', newUser);
+    console.log('USER CHANGE USE EFFECT CALLED');
+    const update = async () => {
+      setLoading(true);
+      await updateClaims();
+      if (!user) auth.tenantId = null;
 
-        setUser(newUser);
-        await updateClaims();
-        if (!newUser) auth.tenantId = null;
+      if (user) {
+        setUserId(analytics, user.uid);
+      }
+      setLoadingInitial(false);
+      setLoading(false);
+    };
+    update().catch((err) => {
+      console.log('ERR: ', err);
+      setLoading(false);
+      setLoadingInitial(false);
+    });
+  }, [user, auth, updateClaims, analytics]);
 
-        setLoading(false);
-        setLoadingInitial(false);
-      },
-      setError
-    );
+  // useEffect(() => {
+  //   const unsubscribe = onAuthStateChanged(
+  //     auth,
+  //     async (newUser: User | null) => {
+  //       setLoading(true);
+  //       // console.log('auth state change => ', newUser);
 
-    return () => unsubscribe();
-  }, [auth, updateClaims]);
+  //       setUser(newUser);
+  //       await updateClaims();
+  //       if (!newUser) auth.tenantId = null;
+
+  //       if (newUser) {
+  //         setUserId(analytics, newUser.uid);
+  //         // setUserProperties({ level: user.claims.level });
+  //       }
+
+  //       setLoading(false);
+  //       setLoadingInitial(false);
+  //     },
+  //     setError
+  //   );
+
+  //   return () => unsubscribe();
+  // }, [auth, updateClaims, analytics]);
 
   /**
    * Login user using email/password auth
@@ -266,9 +307,9 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
   }, [user]);
 
   // TODO: decide whether to use updateCurrentUser() or user.reload() from sdk ??
-  const setUpdatedUser = useCallback((updatedUser: User | null) => {
-    setUser(updatedUser);
-  }, []);
+  // const setUpdatedUser = useCallback((updatedUser: User | null) => {
+  //   setUser(updatedUser);
+  // }, []);
 
   // REAUTHENTICATE USER DIALOG
 
@@ -367,7 +408,7 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
   const memoedValue = useMemo(
     () => ({
       user,
-      error,
+      // error,
       loading,
       loadingInitial,
       customClaims,
@@ -377,7 +418,7 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
       updateUserPassword,
       sendVerification,
       getSecondsFromLastAuth,
-      setUpdatedUser,
+      // setUpdatedUser,
       reauthenticateUser,
       reauthIfRequired,
       updateUserEmail,
@@ -385,7 +426,7 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
     [
       user,
       loading,
-      error,
+      // error,
       loadingInitial,
       customClaims,
       login,
@@ -394,7 +435,7 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
       updateUserPassword,
       sendVerification,
       getSecondsFromLastAuth,
-      setUpdatedUser,
+      // setUpdatedUser,
       reauthenticateUser,
       reauthIfRequired,
       updateUserEmail,
@@ -415,7 +456,11 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
 };
 
 export const useAuth = () => {
-  const auth: AuthContextValue = useContext(AuthContext);
+  const auth: AuthContextValue | undefined = useContext(AuthContext);
+
+  if (auth === undefined) {
+    throw new Error('useAuth must be used within AuthContextProvider');
+  }
 
   if (!auth) {
     throw new Error('useAuth must be used within AuthContextProvider');

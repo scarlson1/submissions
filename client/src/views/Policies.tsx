@@ -26,6 +26,7 @@ import { createPath, ROUTES } from 'router';
 import { Item } from './UserSubmissions';
 import { PoliciesGrid } from 'elements';
 import { limit, orderBy, where } from 'firebase/firestore';
+import { formatFirestoreTimestamp } from 'modules/utils';
 
 // TODO: change policies view to allow switching between card and grid view
 // pull data state up. default initial view state by claim type
@@ -79,11 +80,11 @@ export const Policies: React.FC = () => {
 
 // TODO: use rxjs to get user profile for avatars
 
-const additionalInsureds = [
-  { img: 'http://i.pravatar.cc/300?img=3', name: 'John Doe', email: 'test1@user.com' },
-  { img: 'http://i.pravatar.cc/300?img=1', name: 'Jane Smith', email: 'test2@user.com' },
-  { img: 'http://i.pravatar.cc/300?img=4', name: 'Tim Jones', email: 'test3@user.com' },
-];
+// const additionalInsureds = [
+//   { img: 'http://i.pravatar.cc/300?img=3', name: 'John Doe', email: 'test1@user.com' },
+//   { img: 'http://i.pravatar.cc/300?img=1', name: 'Jane Smith', email: 'test2@user.com' },
+//   { img: 'http://i.pravatar.cc/300?img=4', name: 'Tim Jones', email: 'test3@user.com' },
+// ];
 
 export const fallbackImages = [
   'https://firebasestorage.googleapis.com/v0/b/idemand-submissions.appspot.com/o/common%2Fhome-interior-1.jpg?alt=media&token=2d23e76d-2ea4-403e-9f0e-93bbaacebf3e',
@@ -166,14 +167,39 @@ export const UserPolicies: React.FC = () => {
                       label='Agency'
                       value={p.agency.name ?? 'iDemand Insurance Agency, Inc.'}
                     />
-                    <Item label='Effective' value={`${p.effectiveDate} - ${p.expirationDate}`} />
+                    <Item
+                      label='Effective'
+                      value={`${formatFirestoreTimestamp(
+                        p.effectiveDate,
+                        'date'
+                      )} - ${formatFirestoreTimestamp(p.expirationDate, 'date')}`}
+                    />
                     <Divider light sx={{ my: { xs: 3, md: 4 } }} />
                     <AvatarGroup max={4} sx={{ justifyContent: 'flex-end' }}>
-                      {additionalInsureds.map((f) => (
-                        <Tooltip title={f.name} key={f.img}>
-                          <Avatar src={f.img} alt={f.name} />
+                      {p.namedInsured ? (
+                        <Tooltip
+                          title={`${p.namedInsured.firstName} ${p.namedInsured.lastName}`}
+                          key={p.namedInsured.firstName}
+                        >
+                          {/* <Avatar src={f.img} alt={p.namedInsured.firstName} /> */}
+                          <Avatar alt={`${p.namedInsured.firstName} ${p.namedInsured.lastName}`} />
                         </Tooltip>
-                      ))}
+                      ) : null}
+                      {p.additionalInsureds?.length
+                        ? p.additionalInsureds.map((f, i) => (
+                            <Tooltip title={`${f.firstName} ${f.lastName}`} key={`${f.email}-${i}`}>
+                              {/* <Avatar src={f.img} alt={f.name} /> */}
+                              <Avatar alt={`${f.email}-${i}`} />
+                            </Tooltip>
+                          ))
+                        : null}
+                      {/* {additionalInsureds.length
+                        ? additionalInsureds.map((f) => (
+                            <Tooltip title={f.name} key={f.img}>
+                              <Avatar src={f.img} alt={f.name} />
+                            </Tooltip>
+                          ))
+                        : null} */}
                     </AvatarGroup>
                   </FlexCardContent>
                 </CardActionArea>
