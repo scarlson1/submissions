@@ -154,3 +154,7 @@ export enum STATE_ABBREVIATION {
   WI = 'WI',
   WY = 'WY',
 }
+
+export enum REMOTE_CONFIG_KEYS {
+  'WELCOME' = 'welcome_message',
+}

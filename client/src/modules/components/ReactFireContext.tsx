@@ -1,10 +1,10 @@
 import React, { useEffect } from 'react';
-// import { initializeApp } from 'firebase/app';
 import { connectAuthEmulator, getAuth } from 'firebase/auth';
 import { connectFirestoreEmulator, Firestore, getFirestore } from 'firebase/firestore';
 import { connectFunctionsEmulator, getFunctions } from 'firebase/functions';
 import { connectStorageEmulator, getStorage } from 'firebase/storage';
 import { getAnalytics } from 'firebase/analytics';
+// import { fetchAndActivate, getRemoteConfig } from 'firebase/remote-config';
 import {
   AnalyticsProvider,
   AuthProvider,
@@ -20,6 +20,8 @@ import { firebaseConfig } from 'firebaseConfig';
 
 // TODO: set up remote config: https://github.com/FirebaseExtended/reactfire/blob/main/example/withSuspense/RemoteConfig.tsx
 
+// TODO: ONLY WRAP REMOTE CONFIG PROVIDER AROUND COMPONENTS THAT USE IT
+
 export let db: Firestore;
 
 export function ReactFireServicesContext({ children }: { children: React.ReactNode }) {
@@ -31,6 +33,17 @@ export function ReactFireServicesContext({ children }: { children: React.ReactNo
   const functions = getFunctions(app);
   const storage = getStorage(app);
   const analytics = getAnalytics(app);
+
+  // const { status, data: remoteConfigInstance } = useInitRemoteConfig(async (fbApp) => {
+  //   const remoteConfig = getRemoteConfig(fbApp);
+  //   remoteConfig.settings = {
+  //     minimumFetchIntervalMillis: 10000,
+  //     fetchTimeoutMillis: 10000,
+  //   };
+
+  //   await fetchAndActivate(remoteConfig);
+  //   return remoteConfig;
+  // });
 
   useInitPerformance(
     async (app) => {
@@ -63,7 +76,9 @@ export function ReactFireServicesContext({ children }: { children: React.ReactNo
       <FirestoreProvider sdk={firestore}>
         <FunctionsProvider sdk={functions}>
           <StorageProvider sdk={storage}>
+            {/* <RemoteConfigProvider sdk={remoteConfigInstance}> */}
             <AnalyticsProvider sdk={analytics}>{children}</AnalyticsProvider>
+            {/* </RemoteConfigProvider> */}
           </StorageProvider>
         </FunctionsProvider>
       </FirestoreProvider>

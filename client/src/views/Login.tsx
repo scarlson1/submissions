@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useCallback } from 'react'; // useMemo
+import React, { useEffect, useRef, useCallback } from 'react';
 import { Button, Typography, Container } from '@mui/material'; // Divider, Stack,
 import { LoadingButton } from '@mui/lab';
 import Grid from '@mui/material/Unstable_Grid2';
@@ -10,13 +10,12 @@ import { FirebaseError } from '@firebase/util';
 import { AuthError, getAuth } from 'firebase/auth'; // , ProviderId
 
 import FormikTextField from 'components/forms/FormikTextField';
-// import { auth } from 'firebaseConfig';
 // import { GoogleAuth, MicrosoftAuth } from 'components';
 import { getRedirectPath } from 'modules/utils/helpers';
-import { useAuth } from 'modules/components/AuthContext';
 import { FormikPassword } from 'elements';
 import { useHandleAuthError } from 'hooks/useHandleAuthError';
 import { useKeyPress, useSendPasswordReset } from 'hooks';
+import { useAuthActions } from 'modules/components';
 
 // const providersList = [
 //   {
@@ -45,7 +44,7 @@ export const Login: React.FC = () => {
   const location = useLocation();
   const params = useParams();
   const [queryParams] = useSearchParams();
-  const { login } = useAuth();
+  const { login } = useAuthActions();
   const { handleError } = useHandleAuthError();
   const { sendPasswordReset } = useSendPasswordReset({
     onSuccess: (email?: string) => toast.success(`Password reset email sent to ${email}`),

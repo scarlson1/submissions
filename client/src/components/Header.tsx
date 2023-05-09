@@ -49,6 +49,7 @@ import { ROUTES, ADMIN_ROUTES, createPath, AUTH_ROUTES, ACCOUNT_ROUTES } from 'r
 import { NavListItem } from './NavListItem';
 import { NavMenu as PopperNavMenu } from './NavMenu';
 import { NavDrawer } from './NavDrawer';
+import { AuthActionsProvider, useAuthActions } from 'modules/components';
 
 // TODO: GENERALIZE MENU COMPONENT - allow for button or user avatar as button. nested items. icons.
 // could have optional render function to render button??
@@ -420,7 +421,11 @@ export const Header: React.FC<HeaderProps> = () => {
 
             {!!user ? (
               // <UserMenu menuItems={settings} />
-              <UserMenu />
+              <AuthActionsProvider>
+                <Suspense fallback={<UserMenuSkeleton />}>
+                  <UserMenu />
+                </Suspense>
+              </AuthActionsProvider>
             ) : (
               <Button
                 onClick={() =>
@@ -464,6 +469,14 @@ export const AuthWrapper = ({
   }
 };
 
+const UserMenuSkeleton = () => {
+  return (
+    <Skeleton variant='circular'>
+      <Avatar />
+    </Skeleton>
+  );
+};
+
 interface UserMenuProps {
   // user: User;
   // menuItems: { label: string; onClick: () => void; icon?: JSX.Element }[];
@@ -475,7 +488,8 @@ const UserMenu: React.FC<UserMenuProps> = () => {
   const location = useLocation();
   // TODO: use suspense
   const { data: authCheckResult } = useSigninCheck({ suspense: false });
-  const { logout } = useAuth();
+  // const { logout } = useAuth();
+  const { logout } = useAuthActions();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   // const [open, setOpen] = useState<boolean>(false);
   const open = Boolean(anchorEl);
@@ -493,7 +507,10 @@ const UserMenu: React.FC<UserMenuProps> = () => {
     let sItems: { label: string; onClick: () => void; icon?: JSX.Element }[] = [
       {
         label: 'Contact Us',
-        onClick: () => navigate(createPath({ path: ROUTES.CONTACT })),
+        onClick: () => {
+          handleCloseMenu();
+          navigate(createPath({ path: ROUTES.CONTACT }));
+        },
         icon: <ContactSupportRounded color='inherit' fontSize='small' />,
       },
     ];
@@ -501,20 +518,28 @@ const UserMenu: React.FC<UserMenuProps> = () => {
     if (authCheckResult?.user && !authCheckResult?.user?.isAnonymous)
       sItems.unshift({
         label: 'Account Settings',
-        onClick: () => navigate(createPath({ path: ACCOUNT_ROUTES.ACCOUNT })),
+        onClick: () => {
+          handleCloseMenu();
+          navigate(createPath({ path: ACCOUNT_ROUTES.ACCOUNT }));
+        },
         icon: <ManageAccountsRounded fontSize='small' />,
       });
 
     if (authCheckResult?.user?.isAnonymous) {
       sItems.push({
         label: 'Create Account',
-        onClick: () => navigate(createPath({ path: AUTH_ROUTES.CREATE_ACCOUNT })),
+        onClick: () => {
+          handleCloseMenu();
+          navigate(createPath({ path: AUTH_ROUTES.CREATE_ACCOUNT }));
+        },
         icon: <PersonRounded fontSize='small' />,
       });
       sItems.push({
         label: 'Have an account? Login',
-        onClick: () =>
-          navigate(createPath({ path: AUTH_ROUTES.LOGIN }), { state: { from: location } }),
+        onClick: () => {
+          handleCloseMenu();
+          navigate(createPath({ path: AUTH_ROUTES.LOGIN }), { state: { from: location } });
+        },
         icon: <PasswordRounded fontSize='small' />,
       });
     }

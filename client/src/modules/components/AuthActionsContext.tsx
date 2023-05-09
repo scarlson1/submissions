@@ -18,10 +18,11 @@ import { toast } from 'react-hot-toast';
 interface AuthActionsContextValue {
   login: (email: string, password: string) => Promise<UserCredential>;
   logout: (cb?: VoidFunction) => void;
-  sendPasswordReset: (email: string) => Promise<any>;
+  sendPasswordReset: (email: string, continueUrl?: string) => Promise<any>;
   updateUserPassword: (newPassword: string) => Promise<void>;
   sendVerification: () => Promise<any>;
   updateUserEmail: (newEmail: string) => Promise<void>;
+  loading: boolean;
 }
 
 export const AuthActionsContext = createContext<AuthActionsContextValue | undefined>(undefined);
@@ -99,9 +100,12 @@ export const AuthActionsProvider = ({ children }: { children: React.ReactNode })
         handleCodeInApp: false,
       };
       try {
+        setLoading(true);
         await sendPasswordResetEmail(auth, email, actionCodeSettings);
+        setLoading(false);
         return `Password reset email sent to ${email}`;
       } catch (err) {
+        setLoading(false);
         return Promise.reject(err);
       }
     },
@@ -159,8 +163,17 @@ export const AuthActionsProvider = ({ children }: { children: React.ReactNode })
       sendPasswordReset,
       updateUserEmail,
       updateUserPassword,
+      loading,
     }),
-    [login, logout, sendVerification, sendPasswordReset, updateUserEmail, updateUserPassword]
+    [
+      login,
+      logout,
+      sendVerification,
+      sendPasswordReset,
+      updateUserEmail,
+      updateUserPassword,
+      loading,
+    ]
   );
 
   return <AuthActionsContext.Provider value={memoed}>{children}</AuthActionsContext.Provider>;

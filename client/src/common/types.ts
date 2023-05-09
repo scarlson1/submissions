@@ -153,9 +153,9 @@ export interface TaxItem {
 
 export interface RatingPropertyData {
   CBRSDesignation: string | null;
-  basement: string | null;
+  basement: string | null; // BasementOptions | null;
   distToCoastFeet: number | null;
-  floodZone: string | null;
+  floodZone: string | null; // FloodZones | null;
   numStories: number | null;
   propertyCode: string | null;
   replacementCost: number | null;
@@ -440,18 +440,42 @@ export interface PolicyLocation {
   geoHash: Geohash;
 }
 
+export type RCVKeys = 'building' | 'otherStructures' | 'contents' | 'BI' | 'total';
+
+export type RCVs = Record<RCVKeys, number>;
+export interface PolicyLocationNew {
+  address: Address;
+  coordinates: GeoPoint;
+  geoHash: Geohash;
+  locationId: string;
+  fips: string;
+  propData: RatingPropertyData;
+  deductible: number;
+  limits: Limits;
+  tiv: number;
+  RCVs: RCVs;
+  RCVXSLimit?: number;
+  annualDWP: number;
+  termDWP: number;
+  policyDays: number;
+}
+
 export interface Policy extends BaseDoc {
   status: POLICY_STATUS;
   limits: Limits;
   deductible: number;
   address: Address; // TODO: REMOVE (handle as location level / replace with mailing address)
+  homeState: string;
   mailingAddress: Address;
   mailingCoordinates: GeoPoint; // Coordinates;
   namedInsured: BaseContact;
   additionalInsureds?: { firstName: string; lastName: string; email: string }[];
+  otherInterestedParties?: Record<string, any>[];
   mortgageeInterest?: any;
   effectiveDate: FirestoreTimestamp;
   expirationDate: FirestoreTimestamp;
+  lastTransactionDate: FirestoreTimestamp;
+  cancelDate: FirestoreTimestamp;
   userId: string;
   agent: {
     userId: string;

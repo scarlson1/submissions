@@ -28,6 +28,7 @@ export { Breadcrumbs } from './Breadcrumbs';
 export { ClaimsGuard } from './ClaimsGuard';
 export { Carousel } from './Carousel';
 export { Copy } from './Copy';
+export { RemoteConfigWrapper } from './RemoteConfigWrapper';
 
 export type { ConfirmationDialogProps } from './ConfirmationDialog';
 export type { FileLinkProps } from './FileLink';
