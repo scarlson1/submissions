@@ -11,9 +11,9 @@ import {
 } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import { useAuth, useUser } from 'reactfire';
+import { toast } from 'react-hot-toast';
 
 import { useAuth as useAuthI } from './AuthContext';
-import { toast } from 'react-hot-toast';
 
 interface AuthActionsContextValue {
   login: (email: string, password: string) => Promise<UserCredential>;

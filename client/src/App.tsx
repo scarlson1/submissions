@@ -1,6 +1,12 @@
 import React from 'react';
 import './App.css';
-import { Outlet, useLocation } from 'react-router-dom';
+import {
+  Outlet,
+  createRoutesFromChildren,
+  matchRoutes,
+  useLocation,
+  useNavigationType,
+} from 'react-router-dom';
 import { ErrorBoundary } from 'react-error-boundary';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
@@ -24,13 +30,26 @@ import { useLogEvent } from 'hooks';
 Sentry.init({
   dsn: 'https://4ae7fbd137ef4a5daec92aa57c0c660a@o4505115580694528.ingest.sentry.io/4505115584757760',
   // TODO: lazy load replay: https://docs.sentry.io/platforms/javascript/guides/react/session-replay/?original_referrer=https%3A%2F%2Fduckduckgo.com%2F#lazy-loading-replay
-  integrations: [new Sentry.BrowserTracing(), new Sentry.Replay()], // can turn on "maskAllText", etc.
+  integrations: [
+    new Sentry.BrowserTracing(),
+    new Sentry.Replay(),
+    new Sentry.BrowserTracing({
+      routingInstrumentation: Sentry.reactRouterV6Instrumentation(
+        React.useEffect,
+        useLocation,
+        useNavigationType,
+        createRoutesFromChildren,
+        matchRoutes
+      ),
+    }),
+  ], // can turn on "maskAllText", etc.
   // Performance Monitoring
   tracesSampleRate: 1.0, // Capture 100% of the transactions, reduce in production!
   // Session Replay
   replaysSessionSampleRate: 0.1, // This sets the sample rate at 10%. You may want to change it to 100% while in development and then sample at a lower rate in production.
   replaysOnErrorSampleRate: 1.0, // If you're not already sampling the entire session, change the sample rate to 100% when sampling sessions where errors occur.
   environment: process.env.REACT_APP_FB_PROJECT_ID,
+  enabled: process.env.REACT_APP_EMULATORS !== 'true',
 });
 
 // const logError = (error: Error, info: { componentStack: string }, analytics: Analytics) => {

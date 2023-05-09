@@ -1,4 +1,5 @@
 import { createBrowserRouter, createSearchParams, URLSearchParamsInit } from 'react-router-dom';
+import { wrapCreateBrowserRouter } from '@sentry/react';
 
 import App from './App';
 import { Layout, RequireAuth, RouterErrorBoundary } from 'components';
@@ -206,7 +207,10 @@ export function createPath(args: TArgs) {
   return resolvedPath;
 }
 
-export const router = createBrowserRouter([
+const sentryCreateBrowserRouter = wrapCreateBrowserRouter(createBrowserRouter);
+
+// export const router = createBrowserRouter([
+export const router = sentryCreateBrowserRouter([
   {
     path: '/',
     element: <App />,

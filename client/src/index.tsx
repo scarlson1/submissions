@@ -65,13 +65,21 @@ function LoadingSpinner() {
 }
 
 function LastResortErrorBoundary({ error, resetErrorBoundary }: FallbackProps) {
-  const msg =
+  let msg =
     error && error.message ? (
       <div>
         <pre>{error.message}</pre>
       </div>
     ) : null;
 
+  if (error && error.message && error.message.indexOf('query requires an index') !== -1) {
+    msg = (
+      <p>
+        Indexing error. Our team has been notified and the issue should be resolved within the hour.
+        Appologies for the inconvenience.
+      </p>
+    );
+  }
   return (
     <div style={{ display: 'flex', alignContent: 'center', alignItems: 'center' }} role='alert'>
       <p>An error occurred. See console for details.</p>

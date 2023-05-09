@@ -7,6 +7,7 @@ import {
   getGridNumericOperators,
   getGridStringOperators,
   GridColDef,
+  GridDensity,
   GridFilterModel,
   GridSortModel,
 } from '@mui/x-data-grid';
@@ -38,9 +39,11 @@ export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
   constraints = [],
   isCollectionGroup = false,
   columns,
+  density = 'compact',
   ...rest
 }) => {
   // const [isPending, startTransition] = useTransition();
+  const [densityV, setDensity] = useState<GridDensity>(density);
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
   const [rowCount, setRowCount] = useState<number>(0);
@@ -138,14 +141,39 @@ export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
     });
   }, []);
 
+  // const rowHeight = useMemo(() => {
+  //   console.log('ROW HEIGHT CHANGE: ', density);
+  //   if (density === 'compact') return 52;
+  //   if (density === 'comfortable') return 100;
+  //   return 76;
+  // }, [density]);
+  // const baseHeight = useMemo(() => {}, []);
+
   // console.log('IS_PENDING: ', isPending);
   // console.log('DATA: ', rowData);
+  // console.log('ROW HEIGHT: ', rowHeight);
+  // console.log('DENSITY: ', density);
 
   return (
     <Box sx={{ height: 500, width: '100%' }}>
+      {/* <Box
+      sx={{
+        height: 108 + Math.min(pageSize, rowData.length) * rowHeight + 'px',
+        width: '100%',
+        transition: 'all 0.25s ease-in-out',
+      }}
+    > */}
       <DataGrid
         rowsPerPageOptions={[5, 10, 25, 100]}
         {...rest}
+        // density={densityV}
+        // rowHeight={rowHeight}
+        // onStateChange={(v) =>
+        //   v.state?.density?.value &&
+        //   densityV !== v.state?.density?.value &&
+        //   setDensity(v.state.density.value)
+        // }
+        autoHeight={false}
         rows={rowData}
         // rows={deferredData}
         columns={columns}
@@ -161,6 +189,13 @@ export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
         onSortModelChange={handleSortModelChange}
         filterMode='server'
         onFilterModelChange={handleFilterChange}
+        // slots={{
+        //   loadingOverlay: LinearProgress, // displayed when loading = true
+        // }}
+        // no rows image: https://mui.com/x/react-data-grid/components/#no-rows-overlay
+        // slots={{
+        //   noRowsOverlay: CustomNoRowsOverlay,
+        // }}
       />
     </Box>
   );
