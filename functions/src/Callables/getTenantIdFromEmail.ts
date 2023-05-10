@@ -1,9 +1,14 @@
-import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
+import { CallableRequest } from 'firebase-functions/v2/https';
+import { HttpsError } from 'firebase-functions/v1/https';
 import { getFirestore } from 'firebase-admin/firestore';
 
 import { usersCollection } from '../common/dbCollections';
 
-export default async (data: any, ctx: CallableContext) => {
+interface GetTenantIdFromEmailProps {
+  email: string;
+}
+
+export default async ({ data }: CallableRequest<GetTenantIdFromEmailProps>) => {
   if (!data.email || typeof data.email !== 'string') {
     throw new HttpsError('invalid-argument', 'Missing email');
   }
@@ -30,3 +35,36 @@ export default async (data: any, ctx: CallableContext) => {
     return err;
   }
 };
+
+// import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
+// import { getFirestore } from 'firebase-admin/firestore';
+
+// import { usersCollection } from '../common/dbCollections';
+
+// export default async (data: any, ctx: CallableContext) => {
+//   if (!data.email || typeof data.email !== 'string') {
+//     throw new HttpsError('invalid-argument', 'Missing email');
+//   }
+
+//   try {
+//     const db = getFirestore();
+//     console.log(`Searching for use with email ${data.email}...`);
+
+//     const snap = await usersCollection(db).where('email', '==', data.email).limit(1).get();
+
+//     if (snap.empty) {
+//       console.log(`No user found matching ${data.email}.`);
+//       // no user found with email
+//       // throw new HttpsError('not-found', `No user found under email ${data.email}`);
+//       throw new HttpsError('not-found', 'No user found under provided email');
+//     }
+
+//     // TODO: finalize field name of tenant on User doc
+//     const userTenantId = snap.docs[0].data().tenantId;
+//     console.log(`TenantId found for email ${data.email}: ${userTenantId}`);
+
+//     return { tenantId: userTenantId || '' };
+//   } catch (err) {
+//     return err;
+//   }
+// };

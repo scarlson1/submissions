@@ -4,11 +4,13 @@ import { AuthEventContext, AuthUserRecord } from 'firebase-functions/lib/common/
 import { HttpsError } from 'firebase-functions/v2/identity';
 
 import { COLLECTIONS, invitesCollection, orgsCollection, usersCollection } from '../common';
+// import { getFirebaseAdmin } from '../services';
 
 // TODO: are all imports getting imported / initialized from all functions ??
 // https://youtu.be/v3eG9xpzNXM
 
 export default async (user: AuthUserRecord, context: AuthEventContext) => {
+  // await getFirebaseAdmin()
   const db = getFirestore();
   console.log('USER: ', user);
 

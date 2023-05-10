@@ -1,6 +1,7 @@
 import * as functions from 'firebase-functions';
 import { defineSecret } from 'firebase-functions/params';
 import { onCall as onCallv2 } from 'firebase-functions/v2/https';
+// import { wrapHttpsOnCallHandler } from '../services/sentryFirebase.js';
 
 const swissReClientId = defineSecret('SWISS_RE_CLIENT_ID');
 const swissReClientSecret = defineSecret('SWISS_RE_CLIENT_SECRET');
@@ -84,17 +85,27 @@ export const getPropertyDetailsAttom = functions
     return (await import('./getPropertyDetailsAttom.js')).default(data, ctx);
   });
 
-export const getRiskFactorId = functions.https.onCall(async (data, ctx) => {
-  return (await import('./getRiskFactorId.js')).default(data, ctx);
+export const getriskfactorid = onCallv2(async (request) => {
+  return (await import('./getRiskFactorId.js')).default(request);
 });
 
-export const getriskfactoridv2 = onCallv2(async (request) => {
-  return (await import('./getRiskFactorIdv2.js')).default(request);
+// export const getRiskFactorId = functions.https.onCall(
+//   wrapHttpsOnCallHandler('getRiskFactorId', async (data, ctx) => {
+//     return (await import('./getRiskFactorId.js')).default(data, ctx);
+//   })
+// );
+
+// export const getriskfactoridv2 = onCallv2(async (request) => {
+//   return (await import('./getRiskFactorIdv2.js')).default(request);
+// });
+
+export const gettenantidfromemail = onCallv2(async (request) => {
+  return (await import('./getTenantIdFromEmail.js')).default(request);
 });
 
-export const getTenantIdFromEmail = functions.https.onCall(async (data, ctx) => {
-  return (await import('./getTenantIdFromEmail.js')).default(data, ctx);
-});
+// export const getTenantIdFromEmail = functions.https.onCall(async (data, ctx) => {
+//   return (await import('./getTenantIdFromEmail.js')).default(data, ctx);
+// });
 
 export const getValuationEstimate = functions
   .runWith({
