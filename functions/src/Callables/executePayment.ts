@@ -1,5 +1,5 @@
 import logger from 'firebase-functions/logger';
-import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
+import { HttpsError } from 'firebase-functions/v1/https';
 import { getFirestore, Timestamp, DocumentSnapshot } from 'firebase-admin/firestore';
 
 import {
@@ -15,13 +15,14 @@ import {
 import { getEPayInstance } from '../services';
 import { publishMessage } from '../services/pubsub/publishMessage.js';
 import { ePayCreds as ePayCredsSecret } from './index.js';
+import { CallableRequest } from 'firebase-functions/v2/https';
 
 // const ePayCreds = defineSecret('ENCODED_EPAY_AUTH');
 const CARD_FEE = 0.035;
 
-export default async (data: any, ctx: CallableContext) => {
+export default async ({ data, auth }: CallableRequest) => {
   const { policyId, paymentMethodId } = data;
-  const uid: string | undefined = ctx.auth?.uid;
+  const uid = auth?.uid;
 
   if (!uid) throw new HttpsError('unauthenticated', 'Must be signed in');
 
@@ -88,7 +89,7 @@ export default async (data: any, ctx: CallableContext) => {
       emailAddress: paymentMethodDetails.emailAddress,
       tokenId: paymentMethodId,
       sendReceipt: true,
-      ipAddress: ctx.auth?.token.signInIpAddress, // ctx.rawRequest.ip,
+      ipAddress: auth?.token.signInIpAddress, // ctx.rawRequest.ip,
     });
 
     let transactionId = location?.split('/')[2];

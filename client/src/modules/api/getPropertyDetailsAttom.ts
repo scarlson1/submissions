@@ -16,5 +16,5 @@ export interface GetPropertyDetailsAttomResponse extends RatingPropertyData {
 export const getPropertyDetailsAttom = (functions: Functions) =>
   httpsCallable<GetPropertyDetailsAttomRequest, GetPropertyDetailsAttomResponse>(
     functions,
-    'getPropertyDetailsAttom'
+    'getpropertydetailsattom'
   );

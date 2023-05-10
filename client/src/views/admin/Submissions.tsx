@@ -49,7 +49,6 @@ import { withIdConverter } from 'common/firestoreConverters';
 import { useConfirmAndUpdate } from './Quotes';
 import { useAsyncToast } from 'hooks';
 import { getRiskFactorId } from 'modules/api';
-import { getRiskFactorIdv2 } from 'modules/api/getRiskFactorId';
 
 // https://riskfactor.com/api/autocomplete/208%20aiken%20hunt%20 --> returns { fsid, lat, lng, display, score }
 
@@ -126,18 +125,18 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
 
       let fsid;
 
-      if (process.env.REACT_APP_EMULATORS === 'true') {
-        try {
-          const { data: data2 } = await getRiskFactorIdv2(functions, {
-            addressLine1,
-            city,
-            state,
-          });
-          console.log('V2 RES: ', data2);
-        } catch (err) {
-          console.log('ERROR CALLING V2: ', err);
-        }
-      }
+      // if (process.env.REACT_APP_EMULATORS === 'true') {
+      //   try {
+      //     const { data: data2 } = await getRiskFactorId(functions, {
+      //       addressLine1,
+      //       city,
+      //       state,
+      //     });
+      //     console.log('V2 RES: ', data2);
+      //   } catch (err) {
+      //     console.log('ERROR CALLING V2: ', err);
+      //   }
+      // }
 
       try {
         toast.loading('fetching location ID...');

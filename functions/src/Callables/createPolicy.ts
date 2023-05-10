@@ -1,5 +1,6 @@
+import { CallableRequest } from 'firebase-functions/v2/https';
+import { HttpsError } from 'firebase-functions/v1/https';
 import logger from 'firebase-functions/logger';
-import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { round } from 'lodash';
 
@@ -15,11 +16,11 @@ import {
 
 // TODO: calc mustBePaidByDate
 
-export default async (data: any, ctx: CallableContext) => {
+export default async ({ data, auth }: CallableRequest<{ quoteId: string }>) => {
   const db = getFirestore();
 
   const { quoteId } = data;
-  const uid: string | undefined = ctx.auth?.uid;
+  const uid = auth?.uid;
 
   if (!uid) throw new HttpsError('unauthenticated', 'Must be signed in');
   if (!quoteId) throw new HttpsError('failed-precondition', 'Missing quote ID');

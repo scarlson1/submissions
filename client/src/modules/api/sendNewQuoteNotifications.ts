@@ -11,10 +11,5 @@ export interface SendNewQuoteEmailResponse {
 export const sendNewQuoteNotifications = (functions: Functions, args: SendNewQuoteEmailRequest) =>
   httpsCallable<SendNewQuoteEmailRequest, SendNewQuoteEmailResponse>(
     functions,
-    'sendNewQuoteNotifications'
+    'sendnewquotenotifications'
   )(args);
-
-// export const sendNewQuoteNotifications = httpsCallable<
-//   SendNewQuoteEmailRequest,
-//   SendNewQuoteEmailResponse
-// >(getFunctions(), 'sendNewQuoteNotifications');

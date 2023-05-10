@@ -1,4 +1,5 @@
-import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
+import { CallableRequest } from 'firebase-functions/v2/https';
+import { HttpsError } from 'firebase-functions/v1/https';
 import axios from 'axios';
 import merge from 'deepmerge';
 
@@ -14,7 +15,7 @@ const TENANT_ID = '516ffcbc-6e4e-4dad-98ee-ac5f615fbab6';
 //    baseURL: BASE_URL
 // })
 
-export default async (data: any, ctx: CallableContext) => {
+export default async ({ data }: CallableRequest) => {
   console.log('REQUEST DATA: ', data);
   const { quoteId, values, protosureData } = data;
   // TODO: get protosure data from protosure, not from client

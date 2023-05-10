@@ -1,4 +1,5 @@
-import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
+import { CallableRequest } from 'firebase-functions/v2/https';
+import { HttpsError } from 'firebase-functions/v1/https';
 import { getFirestore } from 'firebase-admin/firestore';
 
 import { sendAgencyAppApprovedNotification } from '../services/sendgrid';
@@ -10,14 +11,13 @@ import { agencyApplicationCollection, invitesCollection } from '../common/dbColl
 // TODO: standardize email notification response
 // array with recipient email and status ?
 
-export default async (
-  data: { docId: string; tenantId: string; message?: string | null },
-  context: CallableContext
-) => {
+export default async ({
+  data,
+  auth,
+}: CallableRequest<{ docId: string; tenantId: string; message?: string | null }>) => {
   try {
     const applicationDocId = data.docId;
     const msg = data.message || null;
-    const { auth } = context;
 
     if (!auth || !auth.token || !auth.token.iDemandAdmin) {
       throw new HttpsError('failed-precondition', 'iDemand Admin permissions required');

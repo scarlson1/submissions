@@ -1,4 +1,5 @@
-import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
+import { CallableRequest } from 'firebase-functions/v2/https';
+import { HttpsError } from 'firebase-functions/v1/https';
 import { getFirestore } from 'firebase-admin/firestore';
 import { AxiosResponse } from 'axios';
 
@@ -38,7 +39,7 @@ interface InitLimits {
 //   default: 100000,
 // });
 
-export default async (data: any, context: CallableContext) => {
+export default async ({ data }: CallableRequest) => {
   console.log('data: ', data);
   const { lat, lng } = data;
   if (!lat || !lng || !isLatLng(lat, lng)) {

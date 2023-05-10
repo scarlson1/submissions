@@ -8,7 +8,7 @@ export interface InitQuoteResponse {
 }
 
 export const initializeQuote = (functions: Functions, args: InitQuoteRequest) =>
-  httpsCallable<InitQuoteRequest, InitQuoteResponse>(functions, 'initializeQuote')(args);
+  httpsCallable<InitQuoteRequest, InitQuoteResponse>(functions, 'initializequote')(args);
 
 // export const initializeQuote = httpsCallable<InitQuoteRequest, InitQuoteResponse>(
 //   getFunctions(), // functions,

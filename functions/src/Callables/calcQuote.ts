@@ -1,6 +1,6 @@
-// import * as functions from 'firebase-functions';
+import { CallableRequest } from 'firebase-functions/v2/https';
+import { HttpsError } from 'firebase-functions/v1/https';
 import logger from 'firebase-functions/logger';
-import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import invariant from 'tiny-invariant';
 
@@ -26,7 +26,7 @@ export interface CalcQuoteRequest {
   commissionPct?: number;
 }
 
-export default async (data: any, context: CallableContext) => {
+export default async ({ data, auth }: CallableRequest<CalcQuoteRequest>) => {
   console.log('data: ', data);
   const db = getFirestore();
   const {
@@ -45,10 +45,10 @@ export default async (data: any, context: CallableContext) => {
     commissionPct = 0.15,
     submissionId,
   } = data;
-  const userId = context.auth?.uid;
+  const userId = auth?.uid; // context.auth?.uid;
 
   if (!userId) throw new HttpsError('unauthenticated', 'must be authenticated');
-  if (!context.auth?.token.iDemandAdmin)
+  if (!auth?.token.iDemandAdmin)
     throw new HttpsError('permission-denied', 'must have admin permissions');
 
   try {

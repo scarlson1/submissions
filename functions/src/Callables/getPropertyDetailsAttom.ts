@@ -1,4 +1,5 @@
-import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
+import { CallableRequest } from 'firebase-functions/v2/https';
+import { HttpsError } from 'firebase-functions/v1/https';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import axios, { AxiosResponse } from 'axios';
 
@@ -23,7 +24,7 @@ interface InitLimits {
 
 // const attomKey = defineSecret('ATTOM_API_KEY');
 
-export default async (data: any, ctx: CallableContext) => {
+export default async ({ data }: CallableRequest) => {
   console.log('data: ', data);
   const { addressLine1, addressLine2 = '', city, state, postal = '' } = data;
   if (!addressLine1 || !city || !state) {

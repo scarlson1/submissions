@@ -1,5 +1,6 @@
+import { CallableRequest } from 'firebase-functions/v2/https';
+import { HttpsError } from 'firebase-functions/v1/https';
 import { getFirestore } from 'firebase-admin/firestore';
-import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
 
 import { invitesCollection } from '../common/dbCollections';
 import { inviteConverter } from '../common/converters';
@@ -9,9 +10,7 @@ import { sendgridApiKey } from './index.js';
 
 // const sendgridApiKey = defineSecret('SENDGRID_API_KEY');
 
-export default async (data: { orgId: string; inviteId: string }, context: CallableContext) => {
-  const { auth } = context;
-
+export default async ({ data, auth }: CallableRequest<{ orgId: string; inviteId: string }>) => {
   if (!auth?.uid) {
     throw new HttpsError('unauthenticated', 'Must be signed in.');
   }

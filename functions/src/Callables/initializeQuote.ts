@@ -1,9 +1,10 @@
-import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
+import { CallableRequest } from 'firebase-functions/v2/https';
+import { HttpsError } from 'firebase-functions/v1/https';
 import axios from 'axios';
 
 // TODO: check metadata.status !== 'BOUND'
 
-export default async (data: any, ctx: CallableContext) => {
+export default async ({ data }: CallableRequest) => {
   console.log('data: ', data);
   const { quoteId } = data;
 

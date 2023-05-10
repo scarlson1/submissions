@@ -16,5 +16,5 @@ export const sendAgencyApprovedNotification = (
 ) =>
   httpsCallable<SendAgencyApprovedRequest, SendAgencyApprovedResponse>(
     functions,
-    'sendAgencyApprovedNotification'
+    'sendagencyapprovednotification'
   )(args);

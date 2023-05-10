@@ -1,11 +1,12 @@
-import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
+import { CallableRequest } from 'firebase-functions/v2/https';
+import { HttpsError } from 'firebase-functions/v1/https';
 import sgMail from '@sendgrid/mail';
 
 import { newContactMessage } from '../services/sendgrid/templates';
 
 // const sendgridApiKey = defineSecret('SENDGRID_API_KEY');
 
-export default async (data: any, ctx: CallableContext) => {
+export default async ({ data }: CallableRequest) => {
   console.log('data: ', data);
   const { email, subject, body } = data;
   if (!email || !body) {

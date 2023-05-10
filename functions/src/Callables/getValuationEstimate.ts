@@ -1,7 +1,5 @@
-// import * as functions from 'firebase-functions';
-// import { defineSecret } from 'firebase-functions/params';
-import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
-// import { parseString } from 'xml2js';
+import { CallableRequest } from 'firebase-functions/v2/https';
+import { HttpsError } from 'firebase-functions/v1/https';
 import { Parser } from 'xml2js';
 import { stripPrefix, parseNumbers, parseBooleans } from 'xml2js/lib/processors.js';
 import axios from 'axios';
@@ -19,7 +17,7 @@ const VERISK_SAMPLE_URL = 'https://scarlson1.github.io/data/208_aiken_verisk_res
 // veriskGroupId, veriskPassword, veriskUserData,
 // const veriskCredsDemo = defineSecret('VERISK_CREDS_DEMO');
 
-export default async (data: any, ctx: CallableContext) => {
+export default async ({ data }: CallableRequest) => {
   const { addressLine1, city, state, postal } = data;
 
   if (!(addressLine1 && city && state && postal)) {

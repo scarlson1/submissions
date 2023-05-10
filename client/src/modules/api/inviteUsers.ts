@@ -23,4 +23,4 @@ export interface InviteUsersResponse {
 }
 
 export const inviteUsers = (functions: Functions, args: InviteUsersRequest) =>
-  httpsCallable<InviteUsersRequest, InviteUsersResponse>(functions, 'inviteUsers')(args);
+  httpsCallable<InviteUsersRequest, InviteUsersResponse>(functions, 'inviteusers')(args);

@@ -1,4 +1,5 @@
-import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
+import { CallableRequest } from 'firebase-functions/v2/https';
+import { HttpsError } from 'firebase-functions/v1/https';
 import {
   Auth,
   UserImportOptions,
@@ -100,12 +101,11 @@ async function migrateUser(
   }
 }
 
-export default async (data: any, context: CallableContext) => {
+export default async ({ data, auth }: CallableRequest) => {
   const { toTenantId, userId, fromTenantId } = data;
   console.log('MOVE USER TO TENANT CALLED: ', data);
 
-  const authCtx = context.auth;
-  if (!authCtx || !authCtx.token || !authCtx.token[CLAIMS.IDEMAND_ADMIN]) {
+  if (!auth || !auth.token || !auth.token[CLAIMS.IDEMAND_ADMIN]) {
     throw new HttpsError('permission-denied', `iDemandAdmin permissions required`);
   }
 

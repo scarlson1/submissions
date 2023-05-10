@@ -1,4 +1,5 @@
-import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
+import { CallableRequest } from 'firebase-functions/v2/https';
+import { HttpsError } from 'firebase-functions/v1/https';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
 
@@ -11,12 +12,12 @@ import { sendgridApiKey } from './index.js';
 
 // const sendgridApiKey = defineSecret('SENDGRID_API_KEY');
 
-export default async (data: any, ctx: CallableContext) => {
+export default async ({ data, auth }: CallableRequest) => {
   console.log('data: ', data);
   const { policyId, emails } = data;
-  console.log('AUTH.TOKEN: ', ctx.auth?.token);
+  console.log('AUTH.TOKEN: ', auth?.token);
 
-  if (!ctx.auth?.token.iDemandAdmin) throw new HttpsError('permission-denied', `Must be an admin`);
+  if (!auth?.token.iDemandAdmin) throw new HttpsError('permission-denied', `Must be an admin`);
 
   if (!policyId || !emails)
     throw new HttpsError('invalid-argument', `policyId or emails (recipients) required`);

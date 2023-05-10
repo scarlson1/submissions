@@ -1,13 +1,15 @@
+import { CallableRequest } from 'firebase-functions/v2/https';
+import { HttpsError } from 'firebase-functions/v1/https';
 import logger from 'firebase-functions/logger';
-import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
 import { getFirestore } from 'firebase-admin/firestore';
 
 import { submissionsQuotesCollection } from '../common';
 
-export default async (data: any, ctx: CallableContext) => {
+export default async ({ data, auth }: CallableRequest<{ quoteId: string }>) => {
   console.log('data: ', data);
   const { quoteId } = data;
-  const uid = ctx.auth?.uid;
+  // const uid = ctx.auth?.uid;
+  const uid = auth?.uid;
 
   if (!quoteId) {
     throw new HttpsError('invalid-argument', `Missing quoteId`);

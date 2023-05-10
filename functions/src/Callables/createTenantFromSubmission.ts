@@ -1,6 +1,6 @@
-// import * as functions from 'firebase-functions';
+import { CallableRequest } from 'firebase-functions/v2/https';
 import logger from 'firebase-functions/logger';
-import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
+import { HttpsError } from 'firebase-functions/v1/https';
 import { Tenant, getAuth } from 'firebase-admin/auth';
 import { Firestore, getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { kebabCase, random } from 'lodash';
@@ -43,8 +43,7 @@ export const createInvite = async (
   });
 };
 
-export default async (data: any, context: CallableContext) => {
-  const { auth } = context;
+export default async ({ data, auth }: CallableRequest<any>) => {
   if (!auth || !auth.token || !auth.token.iDemandAdmin) {
     throw new HttpsError('failed-precondition', 'iDemand Admin permissions required');
   }

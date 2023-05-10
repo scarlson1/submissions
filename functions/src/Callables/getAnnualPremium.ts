@@ -1,11 +1,12 @@
 import logger from 'firebase-functions/logger';
-import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
+import { HttpsError } from 'firebase-functions/v1/https';
 import { GeoPoint, Timestamp, getFirestore } from 'firebase-admin/firestore';
 import invariant from 'tiny-invariant';
 
 import { CLAIMS, COLLECTIONS } from '../common';
 import { getAALs, validateGetAALsProps } from '../utils/rating';
 import { getPremium } from '../utils/rating';
+import { CallableRequest } from 'firebase-functions/v2/https';
 
 // const swissReClientId = defineSecret('SWISS_RE_CLIENT_ID');
 // const swissReClientSecret = defineSecret('SWISS_RE_CLIENT_SECRET');
@@ -29,9 +30,8 @@ interface GetAnnualPremiumRequest {
   submissionId?: string | null;
 }
 
-export default async (data: GetAnnualPremiumRequest, context: CallableContext) => {
+export default async ({ data, auth }: CallableRequest<GetAnnualPremiumRequest>) => {
   const db = getFirestore();
-  const { auth } = context;
   console.log('GET ANNUAL PREMIUM CALLED', data);
 
   if (!(auth && auth.uid && auth?.token[CLAIMS['IDEMAND_ADMIN']])) {

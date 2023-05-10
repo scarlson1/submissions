@@ -1,7 +1,6 @@
 import { Functions, httpsCallable } from 'firebase/functions';
 
 import { Address, Coordinates, Location, RatingPropertyData } from 'common/types';
-// import { functions } from 'firebaseConfig';
 
 export type FetchPropertyDataRequest = Address | Coordinates | Location;
 export interface FetchPropertyDataResponse extends RatingPropertyData {
@@ -18,10 +17,5 @@ export interface FetchPropertyDataResponse extends RatingPropertyData {
 export const fetchPropertyDetails = (functions: Functions) =>
   httpsCallable<FetchPropertyDataRequest, FetchPropertyDataResponse>(
     functions,
-    'getPropertyDetails'
+    'getpropertydetails'
   );
-
-// export const fetchPropertyDetails = httpsCallable<FetchPropertyDataRequest, FetchPropertyDataResponse>(
-//     getFunctions(),
-//     'getPropertyDetails'
-//   );

@@ -1,5 +1,5 @@
-// import * as functions from 'firebase-functions';
-import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
+import { CallableRequest } from 'firebase-functions/v2/https';
+import { HttpsError } from 'firebase-functions/v1/https';
 import { logger } from 'firebase-functions/v1';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
@@ -33,8 +33,7 @@ export interface InviteUsersResponse {
   };
 }
 
-export default async (data: { users: NewUser[]; tenantId?: string }, context: CallableContext) => {
-  const { auth } = context;
+export default async ({ data, auth }: CallableRequest<{ users: NewUser[]; tenantId?: string }>) => {
   if (!auth?.uid) {
     throw new HttpsError('unauthenticated', 'Must be signed in.');
   }
@@ -44,7 +43,7 @@ export default async (data: { users: NewUser[]; tenantId?: string }, context: Ca
 
   // TODO: check for company ID? allow invites using different function if not inviting agents ? inviteUsers vs inviteOrgUsers
 
-  if (!context.auth?.token.firebase.tenant && !auth?.token[CLAIMS.IDEMAND_ADMIN]) {
+  if (!auth?.token.firebase.tenant && !auth?.token[CLAIMS.IDEMAND_ADMIN]) {
     throw new HttpsError('failed-precondition', 'User missing tenantId');
   }
   // allow other users to invite (super admins, etc. ??)
@@ -54,7 +53,7 @@ export default async (data: { users: NewUser[]; tenantId?: string }, context: Ca
 
   let { users, tenantId } = data;
   if (!tenantId) {
-    tenantId = context.auth?.token.firebase.tenant;
+    tenantId = auth?.token.firebase.tenant;
   }
   if (!tenantId) {
     throw new HttpsError('failed-precondition', 'Missing user tenant and request tenantId');

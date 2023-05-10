@@ -8,4 +8,4 @@ export interface GetTenantResponse {
 }
 
 export const getTenantIdFromEmail = (functions: Functions, args: GetTenantRequest) =>
-  httpsCallable<GetTenantRequest, GetTenantResponse>(functions, 'getTenantIdFromEmail')(args);
+  httpsCallable<GetTenantRequest, GetTenantResponse>(functions, 'gettenantidfromemail')(args);

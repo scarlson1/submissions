@@ -12,5 +12,5 @@ export interface MoveUserToTenantResponse {
 export const moveUserToTenant = (functions: Functions, args: MoveUserToTenantRequest) =>
   httpsCallable<MoveUserToTenantRequest, MoveUserToTenantResponse>(
     functions,
-    'moveUserToTenant'
+    'moveusertotenant'
   )(args);

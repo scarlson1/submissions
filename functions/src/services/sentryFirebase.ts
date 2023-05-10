@@ -1,5 +1,9 @@
 // SOURCE: https://gist.github.com/zanona/0f3d42093eaa8ac5c33286cc7eca1166
 
+// SENTRY SERVERLIST LIB: https://github.com/getsentry/sentry-javascript/blob/develop/packages/serverless/src/google-cloud-grpc.ts
+
+// TODO: build v2 sentry wrappers
+
 /**
  * Temporary wrapper for firebase functions until @sentry/serverless support is implemented
  * It currently supports wrapping https, pubsub and firestore handlers.
