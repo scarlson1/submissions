@@ -25,6 +25,10 @@
     "eject": "react-scripts eject"
   },
   "dependencies": {
+    "@algolia/autocomplete-js": "^1.9.2",
+    "@algolia/autocomplete-plugin-query-suggestions": "^1.9.2",
+    "@algolia/autocomplete-plugin-recent-searches": "^1.9.2",
+    "@algolia/autocomplete-theme-classic": "^1.9.2",
     "@emotion/react": "^11.10.5",
     "@emotion/styled": "^11.10.5",
     "@fontsource/public-sans": "^4.5.11",
@@ -60,6 +64,7 @@
     "@types/node": "^16.18.11",
     "@types/react": "^18.0.26",
     "@types/react-dom": "^18.0.10",
+    "algoliasearch": "^4.17.0",
     "autosuggest-highlight": "^3.3.4",
     "axios": "^1.2.2",
     "deck.gl": "^8.9.8",
@@ -81,6 +86,7 @@
     "react-hot-toast": "^2.4.0",
     "react-icons": "^4.7.1",
     "react-imask": "^6.4.3",
+    "react-instantsearch-hooks-web": "^6.43.0",
     "react-map-gl": "^7.0.21",
     "react-modal-image": "^2.6.0",
     "react-number-format": "^5.1.3",

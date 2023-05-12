@@ -1,4 +1,4 @@
-import React, { Suspense, useMemo, useState } from 'react';
+import React, { Suspense, useEffect, useMemo, useState } from 'react';
 import {
   AppBar,
   Avatar,
@@ -483,15 +483,12 @@ interface UserMenuProps {
 }
 
 const UserMenu: React.FC<UserMenuProps> = () => {
-  //  ({ menuItems }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  // TODO: use suspense
+  // TODO: use suspense ??
   const { data: authCheckResult } = useSigninCheck({ suspense: false });
-  // const { logout } = useAuth();
   const { logout } = useAuthActions();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  // const [open, setOpen] = useState<boolean>(false);
   const open = Boolean(anchorEl);
 
   const handleOpenMenu = (event: React.MouseEvent<HTMLElement>) => {
@@ -503,14 +500,18 @@ const UserMenu: React.FC<UserMenuProps> = () => {
     // setOpen(false);
   };
 
+  useEffect(() => {
+    if (open) {
+      handleCloseMenu();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
+
   const settings = useMemo(() => {
     let sItems: { label: string; onClick: () => void; icon?: JSX.Element }[] = [
       {
         label: 'Contact Us',
-        onClick: () => {
-          handleCloseMenu();
-          navigate(createPath({ path: ROUTES.CONTACT }));
-        },
+        onClick: () => navigate(createPath({ path: ROUTES.CONTACT })),
         icon: <ContactSupportRounded color='inherit' fontSize='small' />,
       },
     ];
@@ -518,32 +519,24 @@ const UserMenu: React.FC<UserMenuProps> = () => {
     if (authCheckResult?.user && !authCheckResult?.user?.isAnonymous)
       sItems.unshift({
         label: 'Account Settings',
-        onClick: () => {
-          handleCloseMenu();
-          navigate(createPath({ path: ACCOUNT_ROUTES.ACCOUNT }));
-        },
+        onClick: () => navigate(createPath({ path: ACCOUNT_ROUTES.ACCOUNT })),
         icon: <ManageAccountsRounded fontSize='small' />,
       });
 
     if (authCheckResult?.user?.isAnonymous) {
       sItems.push({
         label: 'Create Account',
-        onClick: () => {
-          handleCloseMenu();
-          navigate(createPath({ path: AUTH_ROUTES.CREATE_ACCOUNT }));
-        },
+        onClick: () =>
+          navigate(createPath({ path: AUTH_ROUTES.CREATE_ACCOUNT }), { state: { from: location } }),
         icon: <PersonRounded fontSize='small' />,
       });
       sItems.push({
         label: 'Have an account? Login',
-        onClick: () => {
-          handleCloseMenu();
-          navigate(createPath({ path: AUTH_ROUTES.LOGIN }), { state: { from: location } });
-        },
+        onClick: () =>
+          navigate(createPath({ path: AUTH_ROUTES.LOGIN }), { state: { from: location } }),
         icon: <PasswordRounded fontSize='small' />,
       });
     }
-    // sItems.push({ label: 'Logout', onClick: logout });
 
     return sItems;
   }, [navigate, location, authCheckResult]);
@@ -583,7 +576,6 @@ const UserMenu: React.FC<UserMenuProps> = () => {
         open={open}
         onClose={handleCloseMenu}
         onClick={handleCloseMenu}
-        // onBlur={handleCloseMenu}
       >
         <Box sx={{ px: 4, py: 3 }}>
           <Suspense
@@ -595,15 +587,15 @@ const UserMenu: React.FC<UserMenuProps> = () => {
             }
           >
             <AuthWrapper fallback={<Typography>Not signed in</Typography>}>
-              {authCheckResult?.user?.displayName && (
+              {authCheckResult?.user?.displayName ? (
                 <Typography fontWeight={500}>{authCheckResult?.user.displayName}</Typography>
-              )}
-              {authCheckResult?.user?.email && (
+              ) : null}
+              {authCheckResult?.user?.email ? (
                 <Typography variant='body2' color='text.secondary'>
                   {authCheckResult?.user.email}
                 </Typography>
-              )}
-              {authCheckResult?.user?.isAnonymous && (
+              ) : null}
+              {authCheckResult?.user?.isAnonymous ? (
                 <>
                   <Typography
                     variant='body1'
@@ -623,7 +615,7 @@ const UserMenu: React.FC<UserMenuProps> = () => {
                     sx={{ whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}
                   >{`User ID: ${authCheckResult.user.uid}`}</Typography>
                 </>
-              )}
+              ) : null}
             </AuthWrapper>
           </Suspense>
         </Box>

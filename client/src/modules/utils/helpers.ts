@@ -606,3 +606,8 @@ export function getDifference(origObj: any, newObj: any) {
 // if (diff.cool) {
 //   console.log('Coolness changed to', diff.cool);
 // }
+
+/**
+ * No operation
+ */
+export function noop(..._args: any[]): void {}

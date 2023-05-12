@@ -94,7 +94,7 @@ export const getSwissReInstance = (
   return swissReInstance;
 };
 
-function generateSRAccessToken(clientId: string, clientSecret: string) {
+export function generateSRAccessToken(clientId: string, clientSecret: string) {
   return new Promise<string>(async (resolve, reject) => {
     const authScope = process.env.SWISS_RE_AUTH_SCOPE;
     const srAuthURL = process.env.SWISS_RE_ACCESS_TOKEN_URL;

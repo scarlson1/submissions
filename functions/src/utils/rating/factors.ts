@@ -36,7 +36,7 @@ export const getBasementFactor = (basementValue = 'unknown') => {
   switch (checkVal) {
     case 'no':
       return 0.86;
-    case 'No Basement':
+    case 'no basement':
       return 0.86;
     case 'finished':
       return 1.29;

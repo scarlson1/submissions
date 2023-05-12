@@ -1,4 +1,3 @@
-// import * as functions from 'firebase-functions';
 import { getStorage } from 'firebase-admin/storage';
 import path from 'path';
 import os from 'os';
@@ -8,7 +7,7 @@ import { snakeCase } from 'lodash';
 import { AxiosInstance } from 'axios';
 
 import { getNumber } from '../common';
-import { getSwissReInstance } from '../services';
+import { generateSRAccessToken, getSwissReInstance } from '../services';
 import { swissReBody } from '../utils/rating/swissReBody.js';
 import { getPremium } from '../utils/rating';
 import { swissReClientId, swissReClientSecret, swissReSubscriptionKey } from './index.js';
@@ -56,6 +55,11 @@ export default async (object: ObjectMetadata, context: EventContext<Record<strin
   }
 
   swissReInstance = swissReInstance || getSwissReInstance(clientId, clientSecret, subKey);
+  if (!swissReInstance.defaults.headers.common.Authorization) {
+    let accessToken = await generateSRAccessToken(clientId, clientSecret);
+    swissReInstance.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+  }
+
   const storage = getStorage();
   const bucket = storage.bucket(fileBucket);
   const tempFilePath = path.join(os.tmpdir(), `temp_SR_${fileName}`);
@@ -64,6 +68,7 @@ export default async (object: ObjectMetadata, context: EventContext<Record<strin
   logger.log('File downloaded locally to', tempFilePath);
 
   const dataArray: any[] = [];
+  const invalidRows: any[] = [];
 
   fs.createReadStream(tempFilePath)
     .pipe(parse({ headers: (headers) => headers.map((h) => snakeCase(h || '')) }))
@@ -73,16 +78,16 @@ export default async (object: ObjectMetadata, context: EventContext<Record<strin
       // longitude: parseFloat(data.longitude),
       // building_rcv: data.building_rcv ? parseInt(getNumber(data.building_rcv)) : '',
       cov_a_rcv: data.cov_a_rcv ? parseInt(getNumber(data.cov_a_rcv)) : '',
-      cov_b_rcv: data.cov_b_rcv ? parseInt(getNumber(data.cov_b_rcv)) : '',
-      cov_c_rcv: data.cov_c_rcv ? parseInt(getNumber(data.cov_c_rcv)) : '',
-      cov_d_rcv: data.cov_d_rcv ? parseInt(getNumber(data.cov_d_rcv)) : '',
+      cov_b_rcv: data.cov_b_rcv ? parseInt(getNumber(data.cov_b_rcv)) : 0,
+      cov_c_rcv: data.cov_c_rcv ? parseInt(getNumber(data.cov_c_rcv)) : 0,
+      cov_d_rcv: data.cov_d_rcv ? parseInt(getNumber(data.cov_d_rcv)) : 0,
       total_rcv: data.total_rcv ? parseInt(getNumber(data.total_rcv)) : '',
       cov_a_limit: data.cov_a_limit ? parseInt(getNumber(data.cov_a_limit)) : '',
-      cov_b_limit: data.cov_b_limit ? parseInt(getNumber(data.cov_b_limit)) : '',
-      cov_c_limit: data.cov_c_limit ? parseInt(getNumber(data.cov_c_limit)) : '',
-      cov_d_limit: data.cov_d_limit ? parseInt(getNumber(data.cov_d_limit)) : '',
+      cov_b_limit: data.cov_b_limit ? parseInt(getNumber(data.cov_b_limit)) : 0,
+      cov_c_limit: data.cov_c_limit ? parseInt(getNumber(data.cov_c_limit)) : 0,
+      cov_d_limit: data.cov_d_limit ? parseInt(getNumber(data.cov_d_limit)) : 0,
       total_limits: data.total_limits ? parseInt(getNumber(data.total_limits)) : '',
-      deductible: parseInt(getNumber(data.deductible)) || 3000,
+      deductible: parseInt(getNumber(data.deductible)) || '',
     })) // If a row is invalid then a data-invalid event will be emitted with the row and the index.
     .validate((data: any): boolean => {
       return validateRow(data);
@@ -99,9 +104,10 @@ export default async (object: ObjectMetadata, context: EventContext<Record<strin
       console.log('ROW => ', row);
       dataArray.push(row);
     })
-    .on('data-invalid', (row, rowNumber) =>
-      console.log(`Invalid [rowNumber=${rowNumber}] [row=${JSON.stringify(row)}]`)
-    )
+    .on('data-invalid', (row, rowNumber) => {
+      console.warn(`Invalid [rowNumber=${rowNumber}] [row=${JSON.stringify(row)}]`);
+      invalidRows.push({ ...row, rowNumber });
+    })
     .on('end', async (rowCount: number) => {
       console.log(`Parsed ${rowCount} rows`);
       console.log('DATA ARRAY => ', dataArray);
@@ -172,7 +178,7 @@ export default async (object: ObjectMetadata, context: EventContext<Record<strin
       for (let r of merged) {
         try {
           let getPremProps = getPremCalcVars(r);
-          const rowPremData = getPremium(getPremProps);
+          const rowPremData = getPremium({ ...getPremProps, isPortfolio: true });
 
           let premium = rowPremData?.premiumData?.directWrittenPremium ?? '';
           let minPrem = rowPremData?.minPremium ?? '';
@@ -259,6 +265,7 @@ export default async (object: ObjectMetadata, context: EventContext<Record<strin
       }
 
       // return writeToStorage(merged);
+      console.log(`INVALID ROWS (COUNT: ${invalidRows.length}): `, invalidRows);
       return writeToStorage(result);
     } catch (err: any) {
       console.log('ERR: ', err);
@@ -300,8 +307,7 @@ function getSRVars(row: any) {
     limitD: row.cov_d_limit,
     deductible: row.deductible,
     numStories: row.num_stories || '1',
-    externalRef: 'test',
-    // externalRef: row.location_id || 'idemand',
+    externalRef: row.location_id || 'idemand',
   };
 }
 
@@ -309,7 +315,7 @@ function getPremCalcVars(row: any) {
   return {
     inlandAAL: row.inlandAAL,
     surgeAAL: row.surgeAAL,
-    limitA: row.cov_a_limit, // row.building_limit,
+    limitA: row.cov_a_limit,
     limitB: row.cov_b_limit,
     limitC: row.cov_c_limit,
     limitD: row.cov_d_limit,
@@ -322,18 +328,52 @@ function getPremCalcVars(row: any) {
 }
 
 function validateRow(data: any) {
-  if (!data.cov_a_rcv) return false;
-  if (!(data.cov_b_rcv && data.cov_b_rcv !== 0)) return false;
-  if (!(data.cov_c_rcv && data.cov_c_rcv !== 0)) return false;
-  if (!(data.cov_d_rcv && data.cov_c_rcv !== 0)) return false;
-  if (!data.cov_a_limit) return false;
-  if (!(data.cov_b_limit && data.cov_b_limit !== 0)) return false;
-  if (!(data.cov_c_limit && data.cov_c_limit !== 0)) return false;
-  if (!(data.cov_d_limit && data.cov_d_limit !== 0)) return false;
-  if (!data.deductible) return false;
-  if (!data.latitude) return false;
-  if (!data.longitude) return false;
-  if (!data.state) return false;
+  if (!data.cov_a_rcv) {
+    console.log(`INVALID - "cov_a_rcv" - VALUE: ${data.cov_a_rcv}`);
+    return false;
+  }
+  if (!data.cov_b_rcv && data.cov_b_rcv !== 0) {
+    console.log(
+      `INVALID - "cov_b_rcv" - VALUE: ${data.cov_b_rcv} - TYPE: ${typeof data.cov_b_rcv}`
+    );
+    return false;
+  }
+  if (!data.cov_c_rcv && data.cov_c_rcv !== 0) {
+    console.log(`INVALID - "cov_c_rcv" - VALUE: ${data.cov_c_rcv}`);
+    return false;
+  }
+  if (!data.cov_d_rcv && data.cov_d_rcv !== 0) {
+    console.log(`INVALID - "cov_d_rcv" - VALUE: ${data.cov_d_rcv}`);
+    return false;
+  }
+  if (!data.cov_a_limit) {
+    console.log(`INVALID - "cov_a_limit" - VALUE: ${data.cov_a_limit}`);
+    return false;
+  }
+  if (!data.cov_b_limit && data.cov_b_limit !== 0) {
+    console.log(`INVALID - "cov_b_limit" - VALUE: ${data.cov_b_limit}`);
+    return false;
+  }
+  if (!data.cov_c_limit && data.cov_c_limit !== 0) {
+    console.log(`INVALID - "cov_c_limit" - VALUE: ${data.cov_c_limit}`);
+    return false;
+  }
+  if (!data.cov_d_limit && data.cov_d_limit !== 0) {
+    console.log(`INVALID - "cov_d_limit" - VALUE: ${data.cov_d_limit}`);
+    return false;
+  }
+  if (!data.deductible) {
+    console.log(`INVALID - "deductible" - VALUE ${data.deductible}`);
+  }
+  if (!data.latitude) {
+    console.log(`INVALID - "latitude" - VALUE ${data.latitude}`);
+  }
+  if (!data.longitude) {
+    console.log(`INVALID - "longitude" - VALUE ${data.longitude}`);
+  }
+  if (!data.state) {
+    console.log(`INVALID - "state" - VALUE ${data.state}`);
+  }
 
   return true;
 }
