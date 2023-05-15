@@ -19,6 +19,7 @@ export { getValuationEstimate } from './getValuationEstimate';
 export { getRiskFactorId } from './getRiskFactorId';
 export { deliverAgencyAgreement } from './deliverAgencyAgreement';
 export { moveUserToTenant } from './moveUserToTenant';
+export { generateSearchKey } from './generateSearchKey';
 
 export type { FetchPropertyDataRequest, FetchPropertyDataResponse } from './fetchPropertyDetails';
 export type { SendContactEmailRequest, SendContactEmailResponse } from './sendContactEmail';

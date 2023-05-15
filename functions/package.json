@@ -25,6 +25,7 @@
     "@sentry/tracing": "^7.51.2",
     "@turf/meta": "^6.5.0",
     "@turf/turf": "^6.5.0",
+    "algoliasearch": "^4.17.0",
     "axios": "^1.4.0",
     "date-fns": "^2.29.3",
     "fast-csv": "^4.3.6",

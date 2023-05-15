@@ -24,7 +24,8 @@ export function Results<TItem extends StoredDocSearchHit>(props: ResultsProps<TI
   if (!props.collection || props.collection.items.length === 0) {
     return null;
   }
-
+  // @ts-ignore
+  const title = props.title ?? (props.collection?.source?.title || '');
   console.log('RESULTS PROPS: ', props);
 
   return (
@@ -34,10 +35,20 @@ export function Results<TItem extends StoredDocSearchHit>(props: ResultsProps<TI
         variant='subtitle2'
         color='primary'
         fontWeight={600}
-        sx={{ zIndex: 10, pt: 2, px: 1, mx: -1, position: 'sticky', top: 0 }}
-        // className='DocSearch-Hit-source'
+        // sx={{
+        //   zIndex: 10,
+        //   pt: 2,
+        //   px: 1,
+        //   mx: -1,
+        //   position: 'sticky',
+        //   top: 0,
+        //   lineHeight: '32px',
+        //   background: (theme) => theme.palette.background.paper,
+        // }}
+        className='DocSearch-Hit-source'
       >
-        {props.title}
+        {/* {props.title} */}
+        {title}
       </Typography>
 
       <ul {...props.getListProps()}>
@@ -146,13 +157,13 @@ function Result<TItem extends StoredDocSearchHit>({
             </div>
           )} */}
 
-          {item.content && (
+          {/* {item.content && (
             <div className='DocSearch-Hit-content-wrapper'>
               <Snippet className='DocSearch-Hit-title' hit={item} attribute='title' />
               <Snippet className='DocSearch-Hit-path' hit={item} attribute='content' />
-              {/* <Snippet className='DocSearch-Hit-path' hit={item} attribute='hierarchy.lvl1' /> */}
             </div>
-          )}
+          )} */}
+          {renderDisplayComponents(item)}
 
           {renderAction({ item, runDeleteTransition, runFavoriteTransition })}
 
@@ -161,4 +172,29 @@ function Result<TItem extends StoredDocSearchHit>({
       </Hit>
     </li>
   );
+}
+
+function renderDisplayComponents(item: any) {
+  if (item.type === 'user') {
+    return (
+      <div className='DocSearch-Hit-content-wrapper'>
+        <div>
+          <Snippet className='DocSearch-Hit-title' hit={item} attribute='firstname' />{' '}
+          <Snippet className='DocSearch-Hit-title' hit={item} attribute='lastname' style={{}} />
+        </div>
+        <Snippet className='DocSearch-Hit-path' hit={item} attribute='email' />
+        {/* <Snippet className='DocSearch-Hit-path' hit={item} attribute='hierarchy.lvl1' /> */}
+      </div>
+    );
+  }
+  if (item.type === 'task') {
+    return (
+      <div className='DocSearch-Hit-content-wrapper'>
+        <Snippet className='DocSearch-Hit-title' hit={item} attribute='title' />
+        <Snippet className='DocSearch-Hit-path' hit={item} attribute='content' />
+        {/* <Snippet className='DocSearch-Hit-path' hit={item} attribute='hierarchy.lvl1' /> */}
+      </div>
+    );
+  }
+  return null;
 }

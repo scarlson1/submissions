@@ -23,6 +23,8 @@ export const sendgridApiKey = defineSecret('SENDGRID_API_KEY');
 
 export const firebaseHashConfig = defineSecret('FIREBASE_AUTH_HASH_CONFIG');
 
+export const algoliaAdminKey = defineSecret('ALGOLIA_ADMIN_API_KEY');
+
 export const assignquote = onCall({ minInstances: 1, memory: '128MiB' }, async (request) => {
   return (await import('./assignQuote.js')).default(request);
 });
@@ -49,6 +51,15 @@ export const deliveragencyagreement = onCall(
 export const executepayment = onCall(async (request) => {
   return (await import('./executePayment.js')).default(request);
 });
+
+export const generatesearchkey = onCall(
+  {
+    secrets: [algoliaAdminKey],
+  },
+  async (request) => {
+    return (await import('./generateSearchKey.js')).default(request);
+  }
+);
 
 export const getannualpremium = onCall(
   { secrets: [swissReClientId, swissReClientSecret, swissReSubscriptionKey] },

@@ -670,6 +670,7 @@ export const router = sentryCreateBrowserRouter([
                 appId={process.env.REACT_APP_ALGOLIA_APP_ID as string}
                 apiKey={process.env.REACT_APP_ALGOLIA_SEARCH_KEY as string}
                 indexName='local_tasks'
+                indexTitle='Tasks'
                 placeholder='Search...'
               />
             ),

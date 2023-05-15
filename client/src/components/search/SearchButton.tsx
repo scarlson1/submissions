@@ -1,9 +1,24 @@
-import { KeyboardCommandKeyRounded, SearchRounded } from '@mui/icons-material';
-import { Box, Button } from '@mui/material';
+import { SearchRounded } from '@mui/icons-material';
+import { Box, Button, IconButton, styled } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 
 // import { ControlKeyIcon } from './icons/ControlKeyIcon';
 // import { SearchIcon } from './icons/SearchIcon';
+
+const Shortcut = styled('div')(({ theme }) => {
+  return {
+    fontSize: theme.typography.pxToRem(12),
+    fontWeight: 700,
+    lineHeight: '20px',
+    marginLeft: theme.spacing(1),
+    border: `1px solid ${
+      theme.palette.mode === 'dark' ? theme.palette.primaryDark[600] : theme.palette.grey[200]
+    }`,
+    backgroundColor: theme.palette.mode === 'dark' ? theme.palette.primaryDark[800] : '#FFF',
+    padding: theme.spacing(0, 0.5),
+    borderRadius: 7,
+  };
+});
 
 export type ButtonTranslations = Partial<{
   buttonText: string;
@@ -14,7 +29,7 @@ export type DocSearchButtonProps = React.ComponentProps<'button'> & {
   translations?: ButtonTranslations;
 };
 
-const ACTION_KEY_DEFAULT = 'Ctrl' as const;
+const ACTION_KEY_DEFAULT = 'Ctrl+' as const;
 const ACTION_KEY_APPLE = '⌘' as const;
 
 function isAppleDevice() {
@@ -24,7 +39,8 @@ function isAppleDevice() {
 export const SearchButton = React.forwardRef<HTMLButtonElement, DocSearchButtonProps>(
   ({ translations = {}, ...props }, ref) => {
     const { buttonText = 'Search', buttonAriaLabel = 'Search' } = translations;
-
+    // TODO: deprecated ?? need to use navigator.userAgentData.platform ??
+    // const macOS = window.navigator.platform.toUpperCase().indexOf('MAC') >= 0;
     const [key, setKey] = useState<typeof ACTION_KEY_APPLE | typeof ACTION_KEY_DEFAULT | null>(
       null
     );
@@ -36,28 +52,40 @@ export const SearchButton = React.forwardRef<HTMLButtonElement, DocSearchButtonP
     }, []);
 
     return (
-      <Button
-        aria-label={buttonAriaLabel}
-        startIcon={<SearchRounded fontSize='small' />}
-        endIcon={
-          key === ACTION_KEY_DEFAULT ? (
-            <Box>
-              <KeyboardCommandKeyRounded />
-              <span>K</span>
-            </Box>
-          ) : (
-            key
-          )
-        }
-        {...props}
-        color='primary'
-        variant='outlined'
-        ref={ref}
-        sx={{ maxWidth: 200 }}
-        fullWidth={false}
-      >
-        {buttonText}
-      </Button>
+      <>
+        <IconButton
+          sx={{ mx: { xs: 1, sm: 2, md: 3 }, display: { xs: 'flex', md: 'none' } }}
+          onClick={props.onClick}
+          color='primary'
+          ref={ref}
+        >
+          <SearchRounded fontSize='small' />
+        </IconButton>
+
+        <Button
+          aria-label={buttonAriaLabel}
+          startIcon={<SearchRounded fontSize='small' />}
+          {...props}
+          color='primary'
+          variant='outlined'
+          ref={ref}
+          sx={{
+            display: { xs: 'none', md: 'flex' },
+            maxWidth: 200,
+            minWidth: { xs: 34, sm: 150 },
+            px: 2,
+            backgroundColor: (theme) =>
+              theme.palette.mode === 'dark'
+                ? theme.palette.primaryDark[800]
+                : theme.palette.grey[50],
+          }}
+          fullWidth={false}
+        >
+          <Box sx={{ ml: 2, mr: 'auto' }}>{buttonText}</Box>
+          {/* <Shortcut>{macOS ? '⌘' : 'Ctrl+'}K</Shortcut> */}
+          <Shortcut>{key}K</Shortcut>
+        </Button>
+      </>
       // <button
       //   type='button'
       //   className='DocSearch DocSearch-Button'

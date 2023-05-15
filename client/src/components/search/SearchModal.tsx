@@ -6,6 +6,7 @@ import algoliasearch from 'algoliasearch/lite';
 import type { AutocompleteState } from '@algolia/autocomplete-core';
 import { createAutocomplete } from '@algolia/autocomplete-core';
 import { getAlgoliaResults } from '@algolia/autocomplete-preset-algolia';
+// import { AutocompletePlugin } from '@algolia/autocomplete-js';
 
 import type { InternalDocSearchHit, StoredDocSearchHit } from 'common';
 import { createStoredSearches } from './storedSearches';
@@ -15,6 +16,62 @@ import { SearchBox, SearchBoxTranslations } from './SearchBox';
 import { ScreenState, ScreenStateTranslations } from './ScreenState';
 import { Hit } from './Hit';
 import type { FooterTranslations } from './Footer';
+
+// MULTI-INDICE AUTOCOMPLETE EXAMPLE:
+// https://github.com/algolia/autocomplete/blob/next/examples/two-column-layout/src/plugins/productsPlugin.tsx
+
+// DOCS: https://www.algolia.com/doc/ui-libraries/autocomplete/guides/including-multiple-result-types/?client=jsx
+
+// PLUGIN DOCS: https://www.algolia.com/doc/ui-libraries/autocomplete/core-concepts/plugins/
+
+// DOCS USING MULTIPLE SOURCES:
+// https://www.algolia.com/doc/ui-libraries/autocomplete/core-concepts/sources/#using-multiple-sources
+
+// const predefinedItems = [
+//   {
+//     title: 'Documentation',
+//     label: 'Documentation',
+//     url: 'https://www.algolia.com/doc/ui-libraries/autocomplete/introduction/what-is-autocomplete/',
+//   },
+//   {
+//     title: 'GitHub',
+//     label: 'GitHub',
+//     url: 'https://github.com/algolia/autocomplete',
+//   },
+// ];
+
+// // TODO: TYPE AUTOCOMPLETEPLUGIN (REPLACED ProductHit WITH any)
+// export const predefinedItemsPlugin: AutocompletePlugin<any, {}> = {
+//   // @ts-ignore
+//   getSources() {
+//     return [
+//       {
+//         sourceId: 'predefinedItemsPlugin',
+//         getItems({ query }) {
+//           if (!query) {
+//             return predefinedItems;
+//           }
+//           return predefinedItems.filter((item) =>
+//             item.label.toLowerCase().includes(query.toLowerCase())
+//           );
+//         },
+//         getItemUrl({ item }) {
+//           return item.url;
+//         },
+//         templates: {
+//           item({ item }) {
+//             const stars = new Intl.NumberFormat('en-US').format(item.stars);
+
+//             return `${item.tile} (${item.url})`;
+//           },
+//           noResults() {
+//             return 'No results.';
+//           },
+//         },
+//       },
+//     ];
+//   },
+// };
 
 export type ModalTranslations = Partial<{
   searchBox: SearchBoxTranslations;
@@ -32,6 +89,7 @@ export function SearchModal({
   appId,
   apiKey,
   indexName,
+  indexTitle,
   hitComponent = Hit,
   resultsFooterComponent = () => null,
   disableUserPersonalization = false,
@@ -69,13 +127,13 @@ export function SearchModal({
 
   const favoriteSearches = React.useRef(
     createStoredSearches<StoredDocSearchHit>({
-      key: `__DOCSEARCH_FAVORITE_SEARCHES__${indexName}`,
+      key: `__FAVORITE_SEARCHES__${indexName}`,
       limit: 10,
     })
   ).current;
   const recentSearches = React.useRef(
     createStoredSearches<StoredDocSearchHit>({
-      key: `__DOCSEARCH_RECENT_SEARCHES__${indexName}`,
+      key: `__RECENT_SEARCHES__${indexName}`,
       // We display 7 recent searches and there's no favorites, but only
       // 4 when there are favorites.
       limit: favoriteSearches.getAll().length === 0 ? 7 : 4,
@@ -124,6 +182,7 @@ export function SearchModal({
         onStateChange(props) {
           setState(props.state);
         },
+        // plugins: [predefinedItemsPlugin],
         // DOCS IMPLEMENTATION
         // @ts-ignore
         getSources({ query, state: sourcesState, setContext, setStatus }) {
@@ -182,6 +241,7 @@ export function SearchModal({
             // (3) Use an Algolia index source.
             {
               sourceId: indexName, // 'products',
+              title: indexTitle, // indexName.split('_').join(' '),
               getItemInputValue({ item }) {
                 // @ts-ignore
                 return item.query;
@@ -194,7 +254,7 @@ export function SearchModal({
                       indexName, // 'instant_search',
                       query,
                       params: {
-                        hitsPerPage: 4,
+                        hitsPerPage: 10, // 4
                         highlightPreTag: '<mark>',
                         highlightPostTag: '</mark>',
                       },
@@ -205,9 +265,73 @@ export function SearchModal({
               getItemUrl({ item }) {
                 return item.url;
               },
+              templates: {
+                header() {
+                  return 'Test title';
+                },
+              },
+            },
+            {
+              sourceId: 'local_users',
+              title: 'Users',
+              getItems({ query }) {
+                return getAlgoliaResults({
+                  searchClient,
+                  queries: [
+                    {
+                      indexName: 'local_users',
+                      query,
+                      params: {
+                        hitsPerPage: 5, // 4
+                        highlightPreTag: '<mark>',
+                        highlightPostTag: '</mark>',
+                      },
+                    },
+                  ],
+                });
+              },
+              getItemUrl({ item }) {
+                return item.url;
+              },
+              getItemInputValue(item) {
+                // @ts-ignore
+                return `${item?.firstname || ''} ${item?.lastname || ''}`.trim();
+              },
+              templates: {
+                header() {
+                  return 'Users';
+                },
+                item({ item }: any) {
+                  return `User result: ${item.firstname} ${item.lastname}`;
+                },
+                footer() {
+                  return 'Users Footer';
+                },
+              },
             },
           ];
         },
+        // reshape: (params: {
+        //   sources: any[];
+        //   sourcesBySourceId: Record<string, any>;
+        //   state: AutocompleteState<InternalDocSearchHit>;
+        // }) => {
+
+        // },
+        // @ts-ignore
+        // reshape({ sourcesBySourceId }) {
+        //   const { recentSearchesPlugin, querySuggestionsPlugin, local_users, ...rest } = sourcesBySourceId;
+        //   console.log('SOURCES BY SOURCE ID: ', sourcesBySourceId);
+        //   // const removeDuplicates = uniqBy(({ source, item }) =>
+        //   //   source.sourceId === 'querySuggestionsPlugin' ? item.query : item.label
+        //   // );
+        //   let devReshapedUsers = local_users.
+
+        //   return [
+        //     // removeDuplicates(recentSearchesPlugin, querySuggestionsPlugin),
+        //     Object.values(rest),
+        //   ];
+        // },
 
         // DOCSEARCH IMPLEMENTATION
         // getSources({ query, state: sourcesState, setContext, setStatus }) {
@@ -357,6 +481,7 @@ export function SearchModal({
       }),
     [
       indexName,
+      indexTitle,
       // searchParameters,
       searchClient,
       onClose,
@@ -392,7 +517,18 @@ export function SearchModal({
             onClose={onClose}
           />
         </DialogTitle>
-        <DialogContent dividers className='DocSearch-Dropdown' ref={dropdownRef}>
+        <DialogContent
+          dividers
+          className='DocSearch-Dropdown'
+          ref={dropdownRef}
+          sx={{
+            py: '0 !important',
+          }}
+          // sx={{
+          //   maxHeight:
+          //     'calc(var(--docsearch-vh, 1vh) * 100) - var(--docsearch-searchbox-height) - var(--docsearch-spacing) - var(--docsearch-footer-height)',
+          // }}
+        >
           <ScreenState
             {...autocomplete}
             indexName={indexName}

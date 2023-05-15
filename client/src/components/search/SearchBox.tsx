@@ -61,7 +61,7 @@ export function SearchBox({ translations = {}, ...props }: SearchBoxProps) {
   return (
     <>
       <form
-        // className='DocSearch-Form'
+        className='DocSearch-Form'
         onSubmit={(event) => {
           event.preventDefault();
         }}
@@ -69,7 +69,9 @@ export function SearchBox({ translations = {}, ...props }: SearchBoxProps) {
         style={{ display: 'flex', alignItems: 'center', borderRadius: '10px', width: '100%' }}
       >
         <TextField
+          className='DocSearch-SearchBar'
           fullWidth
+          variant='standard'
           ref={props.inputRef}
           {...props.getInputProps({
             inputElement: props.inputRef.current!,
@@ -96,7 +98,6 @@ export function SearchBox({ translations = {}, ...props }: SearchBoxProps) {
               </InputAdornment>
             ),
           }}
-          // sx={{ '& .aa-ClearButton': { display: 'none !important' } }}
         />
         {/* TODO: loading indicator */}
       </form>

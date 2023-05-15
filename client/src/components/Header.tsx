@@ -68,7 +68,7 @@ export interface HeaderProps {}
 
 export const Header: React.FC<HeaderProps> = () => {
   const theme = useTheme();
-  const changeTheme = useChangeTheme();
+  const { toggleColorMode: changeTheme } = useChangeTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const { user, customClaims } = useAuth();

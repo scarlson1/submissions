@@ -9,7 +9,7 @@ export function removeHighlightTags(hit: DocSearchHit | InternalDocSearchHit): s
   const internalDocSearchHit = hit as InternalDocSearchHit;
 
   if (!internalDocSearchHit.__docsearch_parent && !hit._highlightResult) {
-    return hit.hierarchy.lvl0;
+    return hit?.hierarchy?.lvl0;
   }
 
   const { value } =
