@@ -47,6 +47,8 @@ export interface User {
   lastName?: string;
   initialAnonymous?: boolean;
   defaultCommission?: DefaultCommission; // TODO: extends user to create Agent type ?? or store settings in subcollection ??
+  address?: Address;
+  coordinates?: GeoPoint | null;
   metadata: BaseMetadata;
 }
 

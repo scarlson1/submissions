@@ -34,6 +34,8 @@ export const swissReResCollection = (db: Firestore) =>
   createCollection<SRResWithAAL | SRRes>(db, COLLECTIONS.SR_RES);
 export const agencyApplicationCollection = (db: Firestore) =>
   createCollection<AgencyApplication>(db, COLLECTIONS.AGENCY_APPLICATIONS);
+export const emailActivityCollection = (db: Firestore) =>
+  createCollection<any>(db, COLLECTIONS.EMAIL_ACTIVITY);
 
 // // SUBCOLLECTIONS
 // export const notificationsCollection = (db: Firestore, userId: string) =>

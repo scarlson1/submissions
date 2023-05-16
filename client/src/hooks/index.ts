@@ -47,6 +47,8 @@ export { useConcurrentLocation } from './useConcurrentLocation';
 export { useMoveUserToTenant } from './useMoveUserToTenant';
 export { useAnalyticsEvent } from './useAnalyticsEvent';
 export { useDocSearchKeyboardEvents } from './useDocSearchKeyboardEvents';
+export { useGeoSearch } from './useGeoSearch';
+export { useAlgoliaSearchKey } from './useAlgoliaSearchKey';
 
 export type { UseFileUploadProps } from './useFileUpload';
 export type { UseSendPasswordResetProps } from './useSendPasswordReset';

@@ -20,6 +20,9 @@
   "dependencies": {
     "@google-cloud/pubsub": "^3.4.1",
     "@google-cloud/storage": "^6.9.5",
+    "@sendgrid/client": "^7.7.0",
+    "@sendgrid/eventwebhook": "^7.7.0",
+    "@sendgrid/helpers": "^7.7.0",
     "@sendgrid/mail": "^7.7.0",
     "@sentry/node": "^7.51.2",
     "@sentry/tracing": "^7.51.2",

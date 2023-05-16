@@ -171,6 +171,7 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
           auth.tenantId = null;
           setSentryUser(null);
         }
+        localStorage.removeItem('userSearchKey');
 
         setLoading(false);
         setLoadingInitial(false);

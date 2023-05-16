@@ -42,6 +42,14 @@ export {
   sendInviteEmail,
 } from './firestoreEvents';
 export {
+  algoliasyncusers,
+  algoliasyncorgs,
+  algoliasyncsubmissions,
+  algoliasyncsubmissionsquotes,
+  algoliasyncpolicies,
+  algoliasynctransactions,
+} from './firestoreEvents/algolia';
+export {
   beforeSignIn,
   beforeCreate,
   setUidByEmailOnCreate,

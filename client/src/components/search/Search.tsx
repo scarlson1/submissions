@@ -14,11 +14,11 @@ import type { AutocompleteState, AutocompleteOptions } from '@algolia/autocomple
 import type { SearchOptions } from '@algolia/client-search';
 import type { SearchClient } from 'algoliasearch/lite';
 
-import { SearchButton } from './SearchButton';
 import type { DocSearchHit, InternalDocSearchHit, StoredDocSearchHit } from 'common';
+import { SearchButton } from './SearchButton';
 import { SearchModal } from './SearchModal';
 import { useChangeTheme } from 'modules/components';
-import { useDocSearchKeyboardEvents } from 'hooks';
+import { useAlgoliaSearchKey, useDocSearchKeyboardEvents } from 'hooks';
 
 const FADE_DURATION = 100;
 
@@ -101,7 +101,7 @@ export function Search({ maxWidth = 'sm', fullWidth = true, ...props }: SearchPr
       setIsOpen(true);
       // setInitialQuery(event.key);
     },
-    [setIsOpen, setInitialQuery]
+    [setIsOpen]
   );
 
   useDocSearchKeyboardEvents({
@@ -112,6 +112,7 @@ export function Search({ maxWidth = 'sm', fullWidth = true, ...props }: SearchPr
     searchButtonRef,
   });
 
+  // TODO: make search button a loading button (loading when fetching api key)
   // TODO: place searchbox in dialog header, results in dialog content
   return (
     <>
@@ -407,5 +408,26 @@ export function Search({ maxWidth = 'sm', fullWidth = true, ...props }: SearchPr
         ]}
       />
     </>
+  );
+}
+
+export function TempWrappedSearch() {
+  const apiKey = useAlgoliaSearchKey();
+
+  if (!process.env.REACT_APP_ALGOLIA_APP_ID) {
+    throw new Error('missing algolia appID in env variables');
+  }
+
+  if (!apiKey) return null;
+
+  return (
+    <Search
+      appId={process.env.REACT_APP_ALGOLIA_APP_ID as string}
+      // apiKey={process.env.REACT_APP_ALGOLIA_SEARCH_KEY as string}
+      apiKey={apiKey}
+      indexName='local_tasks'
+      indexTitle='Tasks'
+      placeholder='Search...'
+    />
   );
 }

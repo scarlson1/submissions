@@ -54,7 +54,7 @@ import { Disclosures } from 'views/admin/Disclosures';
 import { QuoteNewFromSub } from 'views/admin/QuoteNew';
 import { PoliciesMap } from 'elements/PoliciesMap';
 import { AuthActionsProvider } from 'modules/components';
-import { Search } from 'components/search/Search';
+import { Search, TempWrappedSearch } from 'components/search/Search';
 
 // import RouterErrorBoundary from 'components/errorBoundaries/RouterErrorBoundary';
 
@@ -666,13 +666,14 @@ export const router = sentryCreateBrowserRouter([
           {
             path: 'search',
             element: (
-              <Search
-                appId={process.env.REACT_APP_ALGOLIA_APP_ID as string}
-                apiKey={process.env.REACT_APP_ALGOLIA_SEARCH_KEY as string}
-                indexName='local_tasks'
-                indexTitle='Tasks'
-                placeholder='Search...'
-              />
+              <TempWrappedSearch />
+              // <Search
+              //   appId={process.env.REACT_APP_ALGOLIA_APP_ID as string}
+              //   apiKey={process.env.REACT_APP_ALGOLIA_SEARCH_KEY as string}
+              //   indexName='local_tasks'
+              //   indexTitle='Tasks'
+              //   placeholder='Search...'
+              // />
             ),
           },
         ],

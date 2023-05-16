@@ -1,7 +1,10 @@
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import algoliasearch from 'algoliasearch';
+import { defineString } from 'firebase-functions/params';
 
-import { algoliaAdminKey } from './index.js';
+import { algoliaAdminKey, algoliaUserBaseKey, algoliaIDemandAdminSearchKey } from './index.js';
+
+const algoliaAppId = defineString('ALGOLIA_APP_ID');
 
 // https://firebase.google.com/docs/firestore/solutions/search?provider=algolia#adding_security
 
@@ -14,10 +17,11 @@ import { algoliaAdminKey } from './index.js';
 
 // TODO: how to search users when searching from agent account ??
 
-export default async ({ data, auth }: CallableRequest) => {
-  const appId = process.env.ALGOLIA_APP_ID;
+export default async ({ auth }: CallableRequest) => {
+  const appId = algoliaAppId.value();
   const adminKey = algoliaAdminKey.value();
-  const searchBaseKey = process.env.ALGOLIA_SEARCH_BASE_KEY;
+  const searchBaseKey = algoliaUserBaseKey.value();
+  // const searchBaseKey = process.env.ALGOLIA_SEARCH_KEY;
   if (!(appId && adminKey && searchBaseKey)) {
     throw new HttpsError('failed-precondition', 'Missing Algolia credentials in env vars');
   }
@@ -30,17 +34,34 @@ export default async ({ data, auth }: CallableRequest) => {
   let isOrgAdmin = auth?.token.orgAdmin || false;
   let isAgent = auth?.token.agent || false;
 
-  // TODO: return restricted api key (only search FAQs, etc.)
-  if (!userId) {
-    throw new HttpsError('failed-precondition', 'User not signed in');
+  if (isIDemandAdmin) {
+    const iDemandAdminSearchKey = algoliaIDemandAdminSearchKey.value();
+    if (!iDemandAdminSearchKey)
+      throw new HttpsError('internal', 'Missing iDemand Admin search key in Secret Manager');
+    console.log(
+      `RETURNING ADMIN ALGOLIA SEARCH KEY FOR USER ${auth?.token.email || ''} (UID: ${userId})`
+    );
+    return {
+      key: iDemandAdminSearchKey,
+    };
   }
 
+  // TODO: return restricted api key (only search FAQs, etc.)
+  // if (!userId) {
+  //   throw new HttpsError('failed-precondition', 'User not signed in');
+  // }
+
+  // TODO: add valid until once error boundary is set up to handle refetching expired keys
   const keyConfig: SecuredApiKeyRestrictions = {
     userToken: userId,
+    // validUntil: addDays(new Date(), 30).getTime(),
   };
   if (!userId || isAnon) {
     // TODO: restructed key for not authed/anon users
     keyConfig['restrictIndices'] = 'submissions';
+  }
+  if (!userId) {
+    keyConfig['filters'] = `userId:${null}`;
   }
   if (tenantId) {
     // `visible_by:${currentUserID} OR visible_by:group/${currentGroupID} OR visible_by:group/Everybody
@@ -53,19 +74,18 @@ export default async ({ data, auth }: CallableRequest) => {
       ] = `orgId:${tenantId} OR tenantId:${tenantId} OR userId:${userId} or agentId:${userId}`;
     }
   }
-  if (!tenantId && !isIDemandAdmin) {
+  if (!tenantId && !isIDemandAdmin && userId) {
     keyConfig['filters'] = `userId:${userId}`;
-  }
-  if (isIDemandAdmin) {
-    // no restructions ??
   }
 
   try {
     const securedApiKey = client.generateSecuredApiKey(searchBaseKey, {
       restrictIndices: 'demo_ecommerce',
     });
-
-    console.log('API KEY RES: ', securedApiKey);
+    console.log(
+      `RETURNING ALGOLIA SEARCH KEY FOR USER ${auth?.token.email || ''} (UID: ${userId})`,
+      `ALGOLIA CONFIG: ${JSON.stringify(keyConfig)}`
+    );
 
     return {
       key: securedApiKey,

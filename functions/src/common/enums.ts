@@ -18,6 +18,7 @@ export enum COLLECTIONS {
   LICENSES = 'licenses',
   NOTIFICATIONS = 'notifications',
   DATA_IMPORTS = 'dataImports',
+  EMAIL_ACTIVITY = 'emailActivity',
 }
 
 export enum SUBMISSION_STATUS {

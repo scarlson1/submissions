@@ -24,6 +24,8 @@ export const sendgridApiKey = defineSecret('SENDGRID_API_KEY');
 export const firebaseHashConfig = defineSecret('FIREBASE_AUTH_HASH_CONFIG');
 
 export const algoliaAdminKey = defineSecret('ALGOLIA_ADMIN_API_KEY');
+export const algoliaUserBaseKey = defineSecret('ALGOLIA_BASE_USER_SEARCH_KEY');
+export const algoliaIDemandAdminSearchKey = defineSecret('ALGOLIA_IDEMAND_ADMIN_SEARCH_KEY');
 
 export const assignquote = onCall({ minInstances: 1, memory: '128MiB' }, async (request) => {
   return (await import('./assignQuote.js')).default(request);
@@ -54,7 +56,7 @@ export const executepayment = onCall(async (request) => {
 
 export const generatesearchkey = onCall(
   {
-    secrets: [algoliaAdminKey],
+    secrets: [algoliaAdminKey, algoliaUserBaseKey, algoliaIDemandAdminSearchKey],
   },
   async (request) => {
     return (await import('./generateSearchKey.js')).default(request);

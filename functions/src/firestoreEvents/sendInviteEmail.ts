@@ -37,6 +37,10 @@ export default async (
   const sgKey = sendgridApiKey.value();
   if (!sgKey) throw new Error('missing SENDGRID_API_KEY env var');
 
-  sendUserInvite(sgKey, link, to, firstName ?? displayName, data.invitedBy?.name || '');
+  sendUserInvite(sgKey, link, to, firstName ?? displayName, data.invitedBy?.name || '', {
+    customArgs: {
+      firebaseEventId: context.eventId,
+    },
+  });
   return {};
 };

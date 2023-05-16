@@ -1,6 +1,5 @@
-import * as functions from 'firebase-functions';
-import 'firebase-functions';
-import { DocumentData, Timestamp, getFirestore } from 'firebase-admin/firestore';
+import type { Change, EventContext } from 'firebase-functions';
+import { DocumentData, DocumentSnapshot, Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { getAuth, TenantAwareAuth, Auth } from 'firebase-admin/auth';
 
 import { CLAIMS, isJSON, orgsCollection } from '../common';
@@ -12,8 +11,8 @@ export interface ClaimsDocData extends DocumentData {
 }
 
 export default async (
-  change: functions.Change<functions.firestore.DocumentSnapshot>,
-  context: functions.EventContext<{
+  change: Change<DocumentSnapshot>,
+  context: EventContext<{
     orgId: string;
     userId: string;
   }>
