@@ -2,7 +2,7 @@ import { EventContext } from 'firebase-functions/v1';
 import { getFirestore } from 'firebase-admin/firestore';
 
 import { getEPayInstance } from '../services';
-import { EPayGetTransactionRes, transactionsCollection, TRANSACTION_STATUS } from '../common';
+import { EPayGetTransactionRes, finTrxCollection, TRANSACTION_STATUS } from '../common';
 import { publishMessage } from '../services/pubsub/publishMessage.js';
 import { ePayCreds as ePayCredsSecret } from './index.js';
 
@@ -22,7 +22,7 @@ export default async (context: EventContext<Record<string, string>>) => {
   if (!ePayCreds) throw new Error('Missing ePay credentials');
   const ePayInstance = getEPayInstance(ePayCreds);
 
-  const transactionsCol = transactionsCollection(db);
+  const transactionsCol = finTrxCollection(db);
 
   const querySnap = await transactionsCol
     .where('status', '==', TRANSACTION_STATUS.PROCESSING)

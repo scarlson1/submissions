@@ -57,11 +57,20 @@ export default async (
         },
       ];
       if (newValue.coordinates && newValue.coordinates.latitude) {
-        records[0]['_geoloc'] = {
-          lat: newValue.coordinates?.latitude,
-          lng: newValue.coordinates?.longitude,
-        };
+        records[0]['_geoloc'] = [
+          {
+            lat: newValue.coordinates?.latitude,
+            lng: newValue.coordinates?.longitude,
+          },
+        ];
       }
+      // TODO: store as array extracted from "locations"
+      // https://www.algolia.com/doc/guides/managing-results/refine-results/geolocation/
+      // "_geoloc": [
+      //   { "lat": 47.279430, "lng": 5.106450 },
+      //   { "lat": 47.293228, "lng": 5.004570 },
+      //   { "lat": 47.316669, "lng": 5.016670 }
+      // ]
       console.log(`SAVING POLICIES CHANGE TO ALGILIA INDEX`);
 
       const { objectIDs } = await index.saveObjects(records, {

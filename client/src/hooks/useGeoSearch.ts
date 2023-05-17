@@ -1,4 +1,5 @@
-// useGeoSearch.ts
+// DOCS REF:
+// https://www.algolia.com/doc/guides/building-search-ui/ui-and-ux-patterns/geo-search/react-hooks/
 import connectGeoSearch from 'instantsearch.js/es/connectors/geo-search/connectGeoSearch';
 import { useConnector } from 'react-instantsearch-hooks-web';
 import type { BaseHit } from 'instantsearch.js';
@@ -17,10 +18,15 @@ export function useGeoSearch<THit extends BaseHit>(props?: UseGeoSearchProps<THi
   );
 }
 
-// DEMO: https://preview.algolia.com/geo-search/
+// type Hit<THit extends BaseHit = Record<string, any>> = {
+//   __position: number;
+//   __queryID?: string;
+// } & AlgoliaHit<THit>;
 
-// DOCS REF:
-// https://www.algolia.com/doc/guides/building-search-ui/ui-and-ux-patterns/geo-search/react-hooks/
+// export type GeoHit<THit extends BaseHit = Record<string, any>> = Hit<THit> &
+//   Required<Pick<Hit, '_geoloc'>>;
+
+// DEMO: https://preview.algolia.com/geo-search/
 
 // USAGE:
 

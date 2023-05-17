@@ -57,6 +57,14 @@ service cloud.firestore {
       allow delete: if false
     }
 
+    // POLICY TRANSACTIONS (NOT FINANCIAL/CHARGES)
+    match /transactions/{trxId} {
+      allow read: if isUser(existingData().userId) || isAgent(existingData().agentId) || isIDemandAdmin() 
+      allow create, update: if isIDemandAdmin() && emailVerified()
+      allow delete: if false;
+    }
+    
+
     // TODO: update allow read of user profile (tenant/agent/insured etc.)
     match /users/{userId} {
       // allow read: if isUser(userId) || isTenantUser(existingData().orgId)|| (isIDemandAdmin() && emailVerified())
@@ -70,7 +78,7 @@ service cloud.firestore {
       allow create, update, read, delete: if isUser(userId) || (isIDemandAdmin() && emailVerified())
     }
 
-    match /transactions/{transactionId} {
+    match /financialTransactions/{transactionId} {
       allow read: if isUser(existingData().userId) || isIDemandAdmin()
       allow create, update, delete: if isIDemandAdmin() && emailVerified()
     }
@@ -198,6 +206,10 @@ service cloud.firestore {
 
     function isOrgAdmin() {
       return isSignedIn() && request.auth.token.orgAdmin && request.auth.token.orgAdmin == true
+    }
+
+    function isAgent(agentId) {
+      return isSignedIn() && request.auth.token.agent && request.auth.token.agent == true && request.auth.uid == agentId;
     }
 
     // // Fetch a user from Firestore

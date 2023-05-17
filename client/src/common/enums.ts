@@ -15,6 +15,7 @@ export enum COLLECTIONS {
   SR_RES = 'swissRe',
   PAYMENT_METHODS = 'paymentMethods',
   TRANSACTIONS = 'transactions',
+  FIN_TRANSACTIONS = 'financialTransactions',
   AGENCY_APPLICATIONS = 'agencySubmissions',
   LICENSES = 'licenses',
   NOTIFICATIONS = 'notifications',

@@ -26,8 +26,8 @@ export const submissionsQuotesCollection = (db: Firestore) =>
 // export const submissionsQuotesCollection = createCollection<SubmissionQuoteData>(
 //   COLLECTIONS.SUBMISSIONS_QUOTES
 // );
-export const transactionsCollection = (db: Firestore) =>
-  createCollection<Charge>(db, COLLECTIONS.TRANSACTIONS);
+export const finTrxCollection = (db: Firestore) =>
+  createCollection<Charge>(db, COLLECTIONS.FIN_TRANSACTIONS);
 export const policiesCollection = (db: Firestore) =>
   createCollection<Policy>(db, COLLECTIONS.POLICIES);
 export const swissReResCollection = (db: Firestore) =>

@@ -18,7 +18,7 @@ export default async (
   if (!(appId && adminKey)) throw new Error('Missing algolia credentials');
 
   const client = algoliasearch(appId, adminKey);
-  let indexName = COLLECTIONS.TRANSACTIONS as string;
+  let indexName = COLLECTIONS.FIN_TRANSACTIONS as string;
   if (process.env.AUDIENCE === 'LOCAL HUMANS') {
     indexName = `local_${indexName}`;
   }
@@ -30,13 +30,15 @@ export default async (
   const newValue = event?.data?.after.data() as Charge | undefined;
   if (!newValue) {
     try {
-      console.log(`DELETING DOC ${docId} FROM ALGOLIA TRANSACTIONS INDEX`);
+      console.log(`DELETING DOC ${docId} FROM ALGOLIA FIN TRANSACTIONS INDEX`);
       const res = await index.deleteObject(docId);
 
-      console.log(`SUCCESSFULLY DELETED ${docId} FROM TRANSACTIONS INDEX (taskId: ${res.taskID})`);
+      console.log(
+        `SUCCESSFULLY DELETED ${docId} FROM FIN TRANSACTIONS INDEX (taskId: ${res.taskID})`
+      );
       return;
     } catch (err) {
-      console.log('ERROR DELETING USER FROM ALGOLIA TRANSACTIONS INDEX: ', err);
+      console.log('ERROR DELETING USER FROM ALGOLIA FIN TRANSACTIONS INDEX: ', err);
     }
   } else {
     try {
@@ -59,7 +61,7 @@ export default async (
           },
         },
       ];
-      console.log(`SAVING TRANSACTION CHANGE TO ALGILIA INDEX`);
+      console.log(`SAVING FIN TRANSACTION CHANGE TO ALGILIA INDEX`);
 
       const { objectIDs } = await index.saveObjects(records, {
         autoGenerateObjectIDIfNotExist: false,

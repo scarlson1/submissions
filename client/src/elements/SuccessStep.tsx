@@ -27,7 +27,7 @@ import {
   Charge,
   submissionsCollection,
   submissionsQuotesCollection,
-  transactionsCollection,
+  finTrxCollection,
   withIdConverter,
 } from 'common';
 import { doc, getFirestore, onSnapshot } from 'firebase/firestore';
@@ -252,7 +252,7 @@ export const useFetchTransaction = (id: string) => {
   useEffect(() => {
     if (!id) return setLoading(false);
 
-    let ref = doc(transactionsCollection(getFirestore()), id);
+    let ref = doc(finTrxCollection(getFirestore()), id);
 
     onSnapshot(
       ref,

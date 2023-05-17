@@ -59,10 +59,10 @@ export const algoliasyncpolicies = onDocumentWritten(
 
 export const algoliasynctransactions = onDocumentWritten(
   {
-    document: `${COLLECTIONS.TRANSACTIONS}/{trxId}`,
+    document: `${COLLECTIONS.FIN_TRANSACTIONS}/{trxId}`,
     secrets: [algoliaAdminKey],
   },
   async (event) => {
-    await (await import('./syncTransactions.js')).default(event);
+    await (await import('./syncFinTransactions.js')).default(event);
   }
 );

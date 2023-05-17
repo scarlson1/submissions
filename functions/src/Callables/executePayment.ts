@@ -9,7 +9,7 @@ import {
   Policy,
   POLICY_STATUS,
   round,
-  transactionsCollection,
+  finTrxCollection,
   TRANSACTION_STATUS,
 } from '../common';
 import { getEPayInstance } from '../services';
@@ -107,7 +107,7 @@ export default async ({ data, auth }: CallableRequest) => {
       transactionId,
     });
 
-    await transactionsCollection(db)
+    await finTrxCollection(db)
       .doc(transactionId)
       .set({
         transactionId,

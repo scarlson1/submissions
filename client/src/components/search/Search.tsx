@@ -19,6 +19,7 @@ import { SearchButton } from './SearchButton';
 import { SearchModal } from './SearchModal';
 import { useChangeTheme } from 'modules/components';
 import { useAlgoliaSearchKey, useDocSearchKeyboardEvents } from 'hooks';
+import { GeoSearch } from './GeoSearch';
 
 const FADE_DURATION = 100;
 
@@ -421,13 +422,18 @@ export function TempWrappedSearch() {
   if (!apiKey) return null;
 
   return (
-    <Search
-      appId={process.env.REACT_APP_ALGOLIA_APP_ID as string}
-      // apiKey={process.env.REACT_APP_ALGOLIA_SEARCH_KEY as string}
-      apiKey={apiKey}
-      indexName='local_tasks'
-      indexTitle='Tasks'
-      placeholder='Search...'
-    />
+    <>
+      <Search
+        appId={process.env.REACT_APP_ALGOLIA_APP_ID as string}
+        // apiKey={process.env.REACT_APP_ALGOLIA_SEARCH_KEY as string}
+        apiKey={apiKey}
+        indexName='local_tasks'
+        indexTitle='Tasks'
+        placeholder='Search...'
+      />
+      <div style={{ height: '500px', width: '100%' }}>
+        <GeoSearch />
+      </div>
+    </>
   );
 }
