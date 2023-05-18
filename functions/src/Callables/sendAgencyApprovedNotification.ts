@@ -1,12 +1,10 @@
-import { CallableRequest } from 'firebase-functions/v2/https';
-import { HttpsError } from 'firebase-functions/v1/https';
+import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import { getFirestore } from 'firebase-admin/firestore';
 
 import { sendAgencyAppApprovedNotification } from '../services/sendgrid';
 import { getFunctionsErrorCode, getErrorMessage } from '../utils/errorHelpers';
 import { agencyApplicationCollection, invitesCollection } from '../common/dbCollections';
-
-// const sendgridApiKey = defineSecret('SENDGRID_API_KEY');
+import { audience, sendgridApiKey } from '../common';
 
 // TODO: standardize email notification response
 // array with recipient email and status ?
@@ -59,12 +57,12 @@ export default async ({
     }
 
     const to = [contact.email];
-    if (process.env.AUDIENCE === 'LOCAL HUMANS' || process.env.AUDIENCE === 'DEV HUMANS') {
+    if (audience.value() === 'LOCAL HUMANS' || audience.value() === 'DEV HUMANS') {
       to.push('spencer.carlson@idemandinsurance.com');
     }
 
     await sendAgencyAppApprovedNotification(
-      process.env.SENDGRID_API_KEY || '',
+      sendgridApiKey.value(),
       data.tenantId,
       orgName,
       contact.email,

@@ -1,13 +1,11 @@
-import { CallableRequest } from 'firebase-functions/v2/https';
-import { HttpsError } from 'firebase-functions/v1/https';
+import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import { logger } from 'firebase-functions/v1';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
 
 import { invitesCollection, orgsCollection } from '../common/dbCollections';
 import { inviteConverter } from '../common/converters';
-import { InviteClass } from '../common/types';
-import { CLAIMS, INVITE_STATUS } from '../common';
+import { CLAIMS, INVITE_STATUS, InviteClass } from '../common';
 
 // TODO: allow invites without tenant association ??
 // MOVE TO FRONT END ?? IS CLOUD FUNCTION NEEDED ?? BATCH ??

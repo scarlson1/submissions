@@ -1,6 +1,9 @@
-import { CallableRequest } from 'firebase-functions/v2/https';
-import { HttpsError } from 'firebase-functions/v1/https';
+import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
+import { defineString } from 'firebase-functions/params';
 import axios from 'axios';
+
+const protosureDevURL = defineString('PROTOSURE_API_URL_DEV');
+const protosureTenantId = defineString('PROTOSURE_TENANT_ID_V2');
 
 // TODO: check metadata.status !== 'BOUND'
 
@@ -11,7 +14,7 @@ export default async ({ data }: CallableRequest) => {
   if (!quoteId) {
     try {
       const { data } = await axios.post(
-        `${process.env.PROTOSURE_API_URL_DEV}/public-api/${process.env.PROTOSURE_TENANT_ID_V2}/quotes/get_or_create/`,
+        `${protosureDevURL.value()}/public-api/${protosureTenantId.value()}/quotes/get_or_create/`,
         {},
         {
           headers: {
@@ -35,7 +38,7 @@ export default async ({ data }: CallableRequest) => {
   } else {
     try {
       const { data } = await axios.get(
-        `${process.env.PROTOSURE_API_URL_DEV}/public-api/${process.env.PROTOSURE_TENANT_ID_V2}/quotes/${quoteId}/`,
+        `${protosureDevURL.value()}/public-api/${protosureTenantId.value()}/quotes/${quoteId}/`,
         {
           headers: {
             'Access-Control-Allow-Origin': '*',

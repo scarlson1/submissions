@@ -1,35 +1,32 @@
-import { defineSecret } from 'firebase-functions/params';
 import { onCall } from 'firebase-functions/v2/https';
+
+import {
+  algoliaAdminKey,
+  algoliaIDemandAdminSearchKey,
+  algoliaUserBaseKey,
+  attomKey,
+  ePayCreds,
+  firebaseHashConfig,
+  minInstances,
+  sendgridApiKey,
+  signNowCreds,
+  signNowUserCreds,
+  spatialKeyOrgKey,
+  spatialKeySecretKey,
+  spatialKeyUserKey,
+  swissReClientId,
+  swissReClientSecret,
+  swissReSubscriptionKey,
+  veriskCredsDemo,
+} from '../common';
 // import { wrapHttpsOnCallHandler } from '../services/sentryFirebase.js';
 
-const swissReClientId = defineSecret('SWISS_RE_CLIENT_ID');
-const swissReClientSecret = defineSecret('SWISS_RE_CLIENT_SECRET');
-const swissReSubscriptionKey = defineSecret('SWISS_RE_SUBSCRIPTION_KEY');
-
-export const ePayCreds = defineSecret('ENCODED_EPAY_AUTH');
-
-export const signNowCreds = defineSecret('SIGN_NOW_CREDS');
-export const signNowUserCreds = defineSecret('SIGN_NOW_USER_CREDS');
-
-export const spatialKeyUserKey = defineSecret('SPATIALKEY_USER_API_KEY');
-export const spatialKeyOrgKey = defineSecret('SPATIALKEY_ORG_API_KEY');
-export const spatialKeySecretKey = defineSecret('SPATIALKEY_ORG_SECRET_KEY');
-
-export const attomKey = defineSecret('ATTOM_API_KEY');
-
-export const veriskCredsDemo = defineSecret('VERISK_CREDS_DEMO');
-
-export const sendgridApiKey = defineSecret('SENDGRID_API_KEY');
-
-export const firebaseHashConfig = defineSecret('FIREBASE_AUTH_HASH_CONFIG');
-
-export const algoliaAdminKey = defineSecret('ALGOLIA_ADMIN_API_KEY');
-export const algoliaUserBaseKey = defineSecret('ALGOLIA_BASE_USER_SEARCH_KEY');
-export const algoliaIDemandAdminSearchKey = defineSecret('ALGOLIA_IDEMAND_ADMIN_SEARCH_KEY');
-
-export const assignquote = onCall({ minInstances: 1, memory: '128MiB' }, async (request) => {
-  return (await import('./assignQuote.js')).default(request);
-});
+export const assignquote = onCall(
+  { minInstances: minInstances, memory: '128MiB' },
+  async (request) => {
+    return (await import('./assignQuote.js')).default(request);
+  }
+);
 
 export const calcquote = onCall(async (request) => {
   return (await import('./calcQuote.js')).default(request);
@@ -73,7 +70,7 @@ export const getannualpremium = onCall(
 export const getpropertydetails = onCall(
   {
     secrets: [spatialKeyUserKey, spatialKeyOrgKey, spatialKeySecretKey],
-    minInstances: 1,
+    minInstances,
     memory: '128MiB',
   },
   async (request) => {
@@ -84,7 +81,6 @@ export const getpropertydetails = onCall(
 export const getpropertydetailsattom = onCall(
   {
     secrets: [attomKey],
-    minInstances: 1,
     memory: '128MiB',
   },
   async (request) => {
@@ -103,8 +99,8 @@ export const gettenantidfromemail = onCall(async (request) => {
 export const getvaluationestimate = onCall(
   {
     secrets: [veriskCredsDemo],
-    minInstances: 1,
-    memory: '128MiB',
+    // minInstances: 1,
+    // memory: '128MiB',
   },
   async (request) => {
     return (await import('./getValuationEstimate.js')).default(request);
@@ -113,7 +109,7 @@ export const getvaluationestimate = onCall(
 
 export const initializequote = onCall(
   {
-    minInstances: 1,
+    minInstances,
     memory: '128MiB',
   },
   async (request) => {
@@ -152,8 +148,8 @@ export const sendcontactemail = onCall(
 export const sendnewquotenotifications = onCall(
   {
     secrets: [sendgridApiKey],
-    minInstances: 1,
-    memory: '128MiB',
+    // minInstances: 1,
+    // memory: '128MiB',
   },
   async (request) => {
     return (await import('./sendNewQuoteNotifications.js')).default(request);
@@ -163,8 +159,8 @@ export const sendnewquotenotifications = onCall(
 export const sendpolicydoc = onCall(
   {
     secrets: [sendgridApiKey],
-    minInstances: 1,
-    memory: '128MiB',
+    // minInstances: 1,
+    // memory: '128MiB',
   },
   async (request) => {
     return (await import('./sendPolicyDoc.js')).default(request);

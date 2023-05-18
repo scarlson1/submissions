@@ -1,5 +1,4 @@
-import { CallableRequest } from 'firebase-functions/v2/https';
-import { HttpsError } from 'firebase-functions/v1/https';
+import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import {
   Auth,
   UserImportOptions,
@@ -9,8 +8,7 @@ import {
 } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
 
-import { CLAIMS, usersCollection } from '../common';
-import { firebaseHashConfig } from './index.js';
+import { CLAIMS, usersCollection, firebaseHashConfig } from '../common';
 
 // Source: https://cloud.google.com/identity-platform/docs/migrate-users-between-projects-tenants#migrating_users_to_a_tenant
 

@@ -1,6 +1,5 @@
-import { CallableRequest } from 'firebase-functions/v2/https';
+import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import logger from 'firebase-functions/logger';
-import { HttpsError } from 'firebase-functions/v1/https';
 import { Tenant, getAuth } from 'firebase-admin/auth';
 import { Firestore, getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { kebabCase, random } from 'lodash';
@@ -13,6 +12,7 @@ import {
 } from '../common/dbCollections';
 import { Invite } from '../common/types';
 import { isSingleLetter } from '../common';
+import { hostingBaseURL } from '../common';
 
 export const createInvite = async (
   db: Firestore,
@@ -26,9 +26,7 @@ export const createInvite = async (
 
   await invitesColRef.doc(email).set({
     ...inviteInfo,
-    link: `${
-      process.env.HOSTING_BASE_URL
-    }/auth/create-account/${tenantId}?email=${encodeURIComponent(
+    link: `${hostingBaseURL.value()}/auth/create-account/${tenantId}?email=${encodeURIComponent(
       email
     )}&firstName=${encodeURIComponent(firstName || '')}&lastName=${encodeURIComponent(
       lastName || ''

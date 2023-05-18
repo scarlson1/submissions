@@ -1,8 +1,7 @@
-import { CallableRequest } from 'firebase-functions/v2/https';
-import { HttpsError } from 'firebase-functions/v1/https';
+import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 
 import { sendNewQuoteEmail } from '../services/sendgrid';
-import { sendgridApiKey } from './index.js';
+import { sendgridApiKey } from '../common';
 
 // const sendgridApiKey = defineSecret('SENDGRID_API_KEY');
 

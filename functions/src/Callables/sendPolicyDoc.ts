@@ -1,11 +1,9 @@
-import { CallableRequest } from 'firebase-functions/v2/https';
-import { HttpsError } from 'firebase-functions/v1/https';
+import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
 
 import { sendPolicyDocDelivery } from '../services/sendgrid';
-import { policiesCollection } from '../common';
-import { sendgridApiKey } from './index.js';
+import { policiesCollection, sendgridApiKey } from '../common';
 
 // TODO: add policy docs as param
 // on front end: allow user to select which documents to deliver

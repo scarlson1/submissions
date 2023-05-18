@@ -1,11 +1,11 @@
-import { CallableRequest } from 'firebase-functions/v2/https';
-import { HttpsError } from 'firebase-functions/v1/https';
+import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import logger from 'firebase-functions/logger';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import invariant from 'tiny-invariant';
 
 import { COLLECTIONS } from '../common';
 import { getPremium } from '../utils/rating';
+import { maxA, maxBCD, minA } from '../common';
 
 // TODO: create rating inputs interface (used in multiple funcs), extend where needed
 
@@ -53,9 +53,9 @@ export default async ({ data, auth }: CallableRequest<CalcQuoteRequest>) => {
 
   try {
     // TODO: reuse existing validation function
-    const MAX_A = parseInt(process.env.FLOOD_MAX_LIMIT_A || '1000000');
-    const MIN_A = parseInt(process.env.FLOOD_MIN_LIMIT_A || '100000');
-    const MAX_BCD = parseInt(process.env.FLOOD_MAX_LIMIT_B_C_D || '1000000');
+    const MAX_A = maxA.value();
+    const MIN_A = minA.value();
+    const MAX_BCD = maxBCD.value();
 
     invariant(
       limitA && typeof limitA === 'number' && limitA > MIN_A,

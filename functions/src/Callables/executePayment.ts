@@ -1,5 +1,5 @@
+import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import logger from 'firebase-functions/logger';
-import { HttpsError } from 'firebase-functions/v1/https';
 import { getFirestore, Timestamp, DocumentSnapshot } from 'firebase-admin/firestore';
 
 import {
@@ -14,8 +14,7 @@ import {
 } from '../common';
 import { getEPayInstance } from '../services';
 import { publishMessage } from '../services/pubsub/publishMessage.js';
-import { ePayCreds as ePayCredsSecret } from './index.js';
-import { CallableRequest } from 'firebase-functions/v2/https';
+import { ePayCreds as ePayCredsSecret } from '../common';
 
 // const ePayCreds = defineSecret('ENCODED_EPAY_AUTH');
 const CARD_FEE = 0.035;
@@ -57,7 +56,7 @@ export default async ({ data, auth }: CallableRequest) => {
     if (!paymentMethodSnap.exists || !paymentMethodDetails)
       throw new HttpsError('not-found', 'Payment method not found');
 
-    const ePayCreds = ePayCredsSecret.value(); // process.env.ENCODED_EPAY_AUTH;
+    const ePayCreds = ePayCredsSecret.value();
     if (!ePayCreds) throw new Error('Missing required env vars');
 
     const ePayInstance = getEPayInstance(ePayCreds);

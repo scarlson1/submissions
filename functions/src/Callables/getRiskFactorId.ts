@@ -1,5 +1,4 @@
-import { CallableRequest } from 'firebase-functions/v2/https';
-import { HttpsError } from 'firebase-functions/v1/https';
+import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import axios from 'axios';
 
 interface GetRiskFactorIdProps {

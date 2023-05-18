@@ -1,12 +1,12 @@
+import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import logger from 'firebase-functions/logger';
-import { HttpsError } from 'firebase-functions/v1/https';
 import { GeoPoint, Timestamp, getFirestore } from 'firebase-admin/firestore';
 import invariant from 'tiny-invariant';
 
 import { CLAIMS, COLLECTIONS } from '../common';
 import { getAALs, validateGetAALsProps } from '../utils/rating';
 import { getPremium } from '../utils/rating';
-import { CallableRequest } from 'firebase-functions/v2/https';
+import { swissReClientId, swissReClientSecret, swissReSubscriptionKey } from '../common';
 
 // const swissReClientId = defineSecret('SWISS_RE_CLIENT_ID');
 // const swissReClientSecret = defineSecret('SWISS_RE_CLIENT_SECRET');
@@ -38,12 +38,9 @@ export default async ({ data, auth }: CallableRequest<GetAnnualPremiumRequest>) 
     throw new HttpsError('permission-denied', 'iDemand admin permissions required');
   }
 
-  const srClientId = process.env.SWISS_RE_CLIENT_ID;
-  const srClientSecret = process.env.SWISS_RE_CLIENT_SECRET;
-  const srSubKey = process.env.SWISS_RE_SUBSCRIPTION_KEY;
-
-  if (!(srClientId && srClientSecret && srSubKey))
-    throw new HttpsError('failed-precondition', 'missing Swiss Re credentials');
+  const srClientId = swissReClientId.value();
+  const srClientSecret = swissReClientSecret.value();
+  const srSubKey = swissReSubscriptionKey.value();
 
   // VALIDATE REQUEST DATA
   const {

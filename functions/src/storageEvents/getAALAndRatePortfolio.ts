@@ -1,3 +1,5 @@
+import { StorageEvent } from 'firebase-functions/v2/storage';
+import { logger } from 'firebase-functions/v1';
 import { getStorage } from 'firebase-admin/storage';
 import path from 'path';
 import os from 'os';
@@ -6,36 +8,33 @@ import { format, parse } from 'fast-csv';
 import { snakeCase } from 'lodash';
 import { AxiosInstance } from 'axios';
 
-import { getNumber } from '../common';
+import { getNumber, swissReClientId, swissReClientSecret, swissReSubscriptionKey } from '../common';
 import { generateSRAccessToken, getSwissReInstance } from '../services';
 import { swissReBody } from '../utils/rating/swissReBody.js';
 import { getPremium } from '../utils/rating';
-import { swissReClientId, swissReClientSecret, swissReSubscriptionKey } from './index.js';
-import { ObjectMetadata } from 'firebase-functions/v1/storage';
-import { EventContext, logger } from 'firebase-functions/v1';
 
 let swissReInstance: AxiosInstance;
 
 const PORTFOLIO_UPLOAD_FOLDER = 'portfolio-aal-and-rate';
 
-export default async (object: ObjectMetadata, context: EventContext<Record<string, string>>) => {
-  const fileBucket = object.bucket;
-  const filePath = object.name; // File path in the bucket.
+export default async (event: StorageEvent) => {
+  const fileBucket = event.bucket;
+  const filePath = event.data.name; // File path in the bucket.
   const fileName = path.basename(filePath || '');
-  const contentType = object.contentType;
-  const metageneration = object.metageneration;
+  const contentType = event.data.contentType;
+  const metageneration = event.data.metageneration as unknown;
   console.log('FILE UPLOAD DETECTED: ', fileName);
   // TODO: better filtering to only run on wanted uploads
 
-  if (!object.name?.startsWith(`${PORTFOLIO_UPLOAD_FOLDER}/`)) {
+  if (!event.data.name?.startsWith(`${PORTFOLIO_UPLOAD_FOLDER}/`)) {
     logger.log(
-      `Ignoring upload "${object.name}" because is not in the "/${PORTFOLIO_UPLOAD_FOLDER}/*" folder.`
+      `Ignoring upload "${event.data.name}" because is not in the "/${PORTFOLIO_UPLOAD_FOLDER}/*" folder.`
     );
     return null;
   }
 
   if (fileName.startsWith('processed') || fileName.startsWith('sr')) {
-    logger.log(`Ignoring upload "${object.name}" because it was already processed.`);
+    logger.log(`Ignoring upload "${filePath}" because it was already processed.`);
     return null;
   }
 
@@ -49,10 +48,6 @@ export default async (object: ObjectMetadata, context: EventContext<Record<strin
   const clientId = swissReClientId.value();
   const clientSecret = swissReClientSecret.value();
   const subKey = swissReSubscriptionKey.value();
-  if (!(clientId && clientSecret && subKey)) {
-    console.log('MISSING SR CREDENTIALS. RETURNING EARLY');
-    return;
-  }
 
   swissReInstance = swissReInstance || getSwissReInstance(clientId, clientSecret, subKey);
   if (!swissReInstance.defaults.headers.common.Authorization) {

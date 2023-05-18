@@ -2,10 +2,7 @@ import { QueryDocumentSnapshot } from 'firebase-admin/firestore';
 import { EventContext, logger } from 'firebase-functions/v1';
 
 import { sendUserInvite } from '../services/sendgrid';
-import { Invite } from '../common';
-import { sendgridApiKey } from './index.js';
-
-// const sendgridApiKey = defineSecret('SENDGRID_API_KEY');
+import { Invite, audience, sendgridApiKey } from '../common';
 
 export default async (
   snap: QueryDocumentSnapshot,
@@ -31,11 +28,11 @@ export default async (
   }
 
   let to = [data.email];
-  if (process.env.AUDIENCE === 'DEV HUMANS' || process.env.AUDIENCE === 'LOCAL HUMANS')
-    to.push('spencercarlson@mac.com');
+  if (audience.value() === 'DEV HUMANS' || audience.value() === 'LOCAL HUMANS')
+    to.push('spencer.carlson@idemandinsurance.com');
 
   const sgKey = sendgridApiKey.value();
-  if (!sgKey) throw new Error('missing SENDGRID_API_KEY env var');
+  // if (!sgKey) throw new Error('missing SENDGRID_API_KEY env var');
 
   sendUserInvite(sgKey, link, to, firstName ?? displayName, data.invitedBy?.name || '', {
     customArgs: {

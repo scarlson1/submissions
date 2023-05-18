@@ -1,12 +1,18 @@
-import { CallableRequest } from 'firebase-functions/v2/https';
-import { HttpsError } from 'firebase-functions/v1/https';
+import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import axios, { AxiosResponse } from 'axios';
-
-import { LimitTypes, calcSum, roundUpToNearest } from '../common';
-import { getAttomInstance } from '../services';
 import { round } from 'lodash';
-import { attomKey as attomKeySecret } from './index.js';
+
+import {
+  LimitTypes,
+  calcSum,
+  roundUpToNearest,
+  attomKey as attomKeySecret,
+  audience,
+  maxA,
+  minA,
+} from '../common';
+import { getAttomInstance } from '../services';
 
 let defaultLimitPercents: { [key in LimitTypes]: number } = {
   limitA: 1,
@@ -31,7 +37,7 @@ export default async ({ data }: CallableRequest) => {
     throw new HttpsError('invalid-argument', `Missing address components in request body`);
   }
 
-  const attomKey = attomKeySecret.value(); // process.env.ATTOM_API_KEY;
+  const attomKey = attomKeySecret.value();
   if (!attomKey) throw new HttpsError('internal', `Missing property data api key`);
   const attomInstance = getAttomInstance(attomKey);
 
@@ -39,7 +45,7 @@ export default async ({ data }: CallableRequest) => {
   let profile;
   let propertyDetails;
   try {
-    if (process.env.AUDIENCE === 'DEV HUMANS' || process.env.AUDIENCE === 'LOCAL HUMANS') {
+    if (audience.value() === 'DEV HUMANS' || audience.value() === 'LOCAL HUMANS') {
       console.log('USING MOCK RESPONSE FROM GITHUB');
       const { data: githubMockData } = await axios.get(
         'https://scarlson1.github.io/data/attom.json'
@@ -104,8 +110,8 @@ export default async ({ data }: CallableRequest) => {
       let res: any;
 
       try {
-        let MAX_A = parseInt(process.env.FLOOD_MAX_LIMIT_A!) || 1000000;
-        let MIN_A = parseInt(process.env.FLOOD_MIN_LIMIT_A!) || 100000;
+        let MAX_A = maxA.value();
+        let MIN_A = minA.value();
 
         let limitARef = roundUpToNearest(Math.min(Math.max(replacementCost, MIN_A), MAX_A), 3);
 

@@ -50,24 +50,19 @@ export {
   algoliasynctransactions,
 } from './firestoreEvents/algolia';
 export {
-  beforeSignIn,
-  beforeCreate,
+  beforesignin,
+  beforecreate,
   setUidByEmailOnCreate,
   createFirestoreUser,
   setClaimsFromInvite,
 } from './authEvents';
 export { authRequests } from './routes';
+export { getaalportfolio, importpolicies, getaalandrateportfolio, getfips } from './storageEvents';
+export { markpaidonpaymentcomplete } from './pubsub';
 export {
-  getAALPortfolio,
-  importPolicies,
-  getAALAndRatePortfolio,
-  // tempGetFIPS
-} from './storageEvents';
-export {
-  checkAchStatus,
-  markpaidonpaymentcomplete,
-  // checkQuoteExpiration, // TODO: test and finish function before deploy
-} from './pubsub';
+  checkachstatus,
+  // checkquoteexpiration // TODO: test and finish function before deploy
+} from './scheduler';
 
 // export { pubsubHelper } from './routes/pubSubHelper.js';
 // export { testEmulatorsCheckAchStatus } from './pubsub/checkAchStatus';

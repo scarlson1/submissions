@@ -1,4 +1,5 @@
-import { QueryDocumentSnapshot } from 'firebase-admin/firestore';
+import type { EventContext } from 'firebase-functions/v1';
+import type { QueryDocumentSnapshot } from 'firebase-admin/firestore';
 import {
   booleanPointInPolygon,
   FeatureCollection,
@@ -10,7 +11,7 @@ import {
 } from '@turf/turf';
 
 import { Submission, FIPS } from '../common';
-import { EventContext } from 'firebase-functions/v1';
+
 // import countiesJson from '../assets/counties_20m.json';
 
 export default async (

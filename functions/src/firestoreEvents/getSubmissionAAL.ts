@@ -1,10 +1,18 @@
-import { getFirestore, QueryDocumentSnapshot, Timestamp } from 'firebase-admin/firestore';
-import { EventContext } from 'firebase-functions/v1';
+import type { QueryDocumentSnapshot } from 'firebase-admin/firestore';
+import { getFirestore, Timestamp } from 'firebase-admin/firestore';
+import type { EventContext } from 'firebase-functions/v1';
 import invariant from 'tiny-invariant';
 
-import { swissReResCollection, COLLECTIONS, Submission, usersCollection } from '../common';
+import {
+  swissReResCollection,
+  COLLECTIONS,
+  Submission,
+  usersCollection,
+  swissReClientId,
+  swissReClientSecret,
+  swissReSubscriptionKey,
+} from '../common';
 import { getAALs, GetAALsProps, getPremium, validateGetAALsProps } from '../utils/rating';
-import { swissReClientId, swissReClientSecret, swissReSubscriptionKey } from './index.js';
 
 // const swissReClientId = defineSecret('SWISS_RE_CLIENT_ID');
 // const swissReClientSecret = defineSecret('SWISS_RE_CLIENT_SECRET');
@@ -27,14 +35,9 @@ export default async (snap: QueryDocumentSnapshot, ctx: EventContext) => {
       commissionPct = data.defaultCommission?.flood ?? DEFAULT_COMMISSION;
   }
 
-  const srClientId = swissReClientId.value(); // process.env.SWISS_RE_CLIENT_ID;
-  const srClientSecret = swissReClientSecret.value(); // process.env.SWISS_RE_CLIENT_SECRET;
-  const srSubKey = swissReSubscriptionKey.value(); // process.env.SWISS_RE_SUBSCRIPTION_KEY;
-
-  if (!(srClientId && srClientSecret && srSubKey)) {
-    console.log('MISSING SR CREDENTIALS. RETURNING EARLY');
-    return;
-  }
+  const srClientId = swissReClientId.value();
+  const srClientSecret = swissReClientSecret.value();
+  const srSubKey = swissReSubscriptionKey.value();
 
   let ratingUpdates: { [key: string]: number } = { inlandAAL: 0, surgeAAL: 0 };
 

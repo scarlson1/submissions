@@ -1,12 +1,14 @@
+import type { QueryDocumentSnapshot } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
 import { storageBucket } from 'firebase-functions/params';
+import { EventContext, logger } from 'firebase-functions/v1';
 import axios from 'axios';
 import path from 'path';
 import os from 'os';
 import fs from 'fs';
 import { v4 as uuid } from 'uuid';
-import { QueryDocumentSnapshot } from 'firebase-admin/firestore';
-import { EventContext, logger } from 'firebase-functions/v1';
+
+import { mapboxToken } from '../common';
 
 // TODO: add marker overlay ?? https://docs.mapbox.com/api/maps/static-images/#example-request-retrieve-a-static-map-with-a-marker-overlay
 
@@ -69,10 +71,11 @@ export default async (snap: QueryDocumentSnapshot, ctx: EventContext) => {
     const policyDocUpdates: any = {};
 
     for (const styleType of mapboxStyles) {
-      let MAPBOX_PUBLIC_TOKEN = process.env.MAPBOX_PUBLIC_TOKEN;
-      if (!MAPBOX_PUBLIC_TOKEN) throw new Error('missing MAPBOX_PUBLIC_TOKEN env var');
-
-      const url = `https://api.mapbox.com/styles/v1/${styleType.style}/static/${longitude},${latitude},${styleType.zoom},0,40/1200x720@2x?access_token=${MAPBOX_PUBLIC_TOKEN}&logo=false`;
+      const url = `https://api.mapbox.com/styles/v1/${
+        styleType.style
+      }/static/${longitude},${latitude},${
+        styleType.zoom
+      },0,40/1200x720@2x?access_token=${mapboxToken.value()}&logo=false`;
 
       const tempFilePath = path.join(os.tmpdir(), `temp_mapbox_${styleType.name}.jpeg`);
       cleanUpTempPaths.push(tempFilePath);

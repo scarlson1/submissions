@@ -1,12 +1,13 @@
-import { CallableRequest } from 'firebase-functions/v2/https';
-import { HttpsError } from 'firebase-functions/v1/https';
+import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 
 import { getEPayInstance } from '../services';
-import { EPayVerifiedResponse, PaymentMethod, paymentMethodsCollection } from '../common';
-import { ePayCreds as ePayCredsSecret } from './index.js';
-
-// const ePayCreds = defineSecret('ENCODED_EPAY_AUTH');
+import {
+  EPayVerifiedResponse,
+  PaymentMethod,
+  paymentMethodsCollection,
+  ePayCreds as ePayCredsSecret,
+} from '../common';
 
 export default async ({ data, auth }: CallableRequest) => {
   console.log('data: ', data);

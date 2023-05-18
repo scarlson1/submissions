@@ -1,24 +1,23 @@
 import * as functions from 'firebase-functions';
-import { defineSecret } from 'firebase-functions/params';
+// import { defineSecret, defineString } from 'firebase-functions/params';
 
-import { COLLECTIONS } from '../common/enums.js';
-
-// export { getStaticSubmissionImg } from './getStaticSubmissionImg.js';
-// export { newSubmissionNotifications } from './newSubmissionNotifications.js';
-
-// export { getSubmissionAAL } from './getSubmissionAAL.js';
-// export { getSubmissionFIPS } from './getSubmissionFIPS.js';
-// export { mirrorCustomClaims } from './mirrorCustomClaims.js';
-// export { newAgencyAppNotification } from './newAgencyAppNotification.js';
-// export { sendInviteEmail } from './sendInviteEmail.js';
-
+import {
+  COLLECTIONS,
+  sendgridApiKey,
+  swissReClientId,
+  swissReClientSecret,
+  swissReSubscriptionKey,
+} from '../common';
 export type { ClaimsDocData } from './mirrorCustomClaims.js';
 
-export const swissReClientId = defineSecret('SWISS_RE_CLIENT_ID');
-export const swissReClientSecret = defineSecret('SWISS_RE_CLIENT_SECRET');
-export const swissReSubscriptionKey = defineSecret('SWISS_RE_SUBSCRIPTION_KEY');
+// export const swissReClientId = defineSecret('SWISS_RE_CLIENT_ID');
+// export const swissReClientSecret = defineSecret('SWISS_RE_CLIENT_SECRET');
+// export const swissReSubscriptionKey = defineSecret('SWISS_RE_SUBSCRIPTION_KEY');
 
-export const sendgridApiKey = defineSecret('SENDGRID_API_KEY');
+// export const sendgridApiKey = defineSecret('SENDGRID_API_KEY');
+
+// export const audience = defineString('AUDIENCE');
+// export const hostingBaseURL = defineString('HOSTING_BASE_URL');
 
 // export const firestoreOnCreateFn = functions.firestore
 //   .document('users/{id}')

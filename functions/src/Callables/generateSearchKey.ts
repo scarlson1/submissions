@@ -2,7 +2,7 @@ import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import algoliasearch from 'algoliasearch';
 import { defineString } from 'firebase-functions/params';
 
-import { algoliaAdminKey, algoliaUserBaseKey, algoliaIDemandAdminSearchKey } from './index.js';
+import { algoliaAdminKey, algoliaUserBaseKey, algoliaIDemandAdminSearchKey } from '../common';
 
 const algoliaAppId = defineString('ALGOLIA_APP_ID');
 
@@ -21,7 +21,6 @@ export default async ({ auth }: CallableRequest) => {
   const appId = algoliaAppId.value();
   const adminKey = algoliaAdminKey.value();
   const searchBaseKey = algoliaUserBaseKey.value();
-  // const searchBaseKey = process.env.ALGOLIA_SEARCH_KEY;
   if (!(appId && adminKey && searchBaseKey)) {
     throw new HttpsError('failed-precondition', 'Missing Algolia credentials in env vars');
   }

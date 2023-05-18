@@ -1,10 +1,8 @@
-import { CallableRequest } from 'firebase-functions/v2/https';
-import { HttpsError } from 'firebase-functions/v1/https';
+import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import sgMail from '@sendgrid/mail';
 
 import { newContactMessage } from '../services/sendgrid/templates';
-
-// const sendgridApiKey = defineSecret('SENDGRID_API_KEY');
+import { audience, sendgridApiKey } from '../common';
 
 export default async ({ data }: CallableRequest) => {
   console.log('data: ', data);
@@ -14,12 +12,11 @@ export default async ({ data }: CallableRequest) => {
   }
 
   try {
-    if (!process.env.SENDGRID_API_KEY) throw new Error('Missing sendgrid api key');
-    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+    sgMail.setApiKey(sendgridApiKey.value());
     const html = newContactMessage({ toName: 'Admin', fromEmail: email, body });
 
     const to = ['spencer.carlson@idemandinsurance.com'];
-    if (process.env.AUDIENCE !== 'LOCAL HUMANS') to.push('ron.carlson@idemandinsurance.com');
+    if (audience.value() !== 'LOCAL HUMANS') to.push('ron.carlson@idemandinsurance.com');
     // TODO: optional cc emails
     await sgMail.send({
       html,

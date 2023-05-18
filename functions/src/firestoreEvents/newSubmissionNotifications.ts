@@ -6,9 +6,7 @@ import {
   sendNewSubmissionAdminNotification,
   sendSubmissionRecievedConfirmation,
 } from '../services/sendgrid';
-
-// const sendgridApiKey = defineSecret('SENDGRID_API_KEY');
-// .firestore.document('submissions/{submissionId}')
+import { audience, hostingBaseURL, sendgridApiKey } from '../common';
 
 export default async (
   snap: QueryDocumentSnapshot,
@@ -21,12 +19,11 @@ export default async (
   console.log(`New submission received: ${submission.addressLine1} (id: ${submissionId})`);
 
   // TODO: validate email ??
-  if (!process.env.HOSTING_BASE_URL) throw new Error('Missing HOSTING_BASE_URL env variable');
-  const link = `${process.env.HOSTING_BASE_URL}/admin/submissions/${submissionId}`;
+  const link = `${hostingBaseURL.value()}/admin/submissions/${submissionId}`;
   console.log(`submission link: ${link}`);
 
   const adminRecipients = ['spencer.carlson@idemandinsurance.com'];
-  if (process.env.AUDIENCE !== 'LOCAL HUMANS') {
+  if (audience.value() !== 'LOCAL HUMANS') {
     adminRecipients.push('ron.carlson@idemandinsurance.com');
   }
   const params = {
@@ -34,13 +31,13 @@ export default async (
     lastname: submission.lastName || '',
     email: submission.email || '',
   };
-  const createAccountURL = `${
-    process.env.HOSTING_BASE_URL
-  }/auth/create-account?${querystring.encode(params)}`;
+  const createAccountURL = `${hostingBaseURL.value()}/auth/create-account?${querystring.encode(
+    params
+  )}`;
 
   console.log(`Sending submission received notification to ${submission.email}`);
   await sendSubmissionRecievedConfirmation(
-    process.env.SENDGRID_API_KEY!,
+    sendgridApiKey.value(),
     createAccountURL,
     submission.email,
     null,
@@ -48,7 +45,7 @@ export default async (
   );
   console.log('sending admin notifications to: ', adminRecipients);
   await sendNewSubmissionAdminNotification(
-    process.env.SENDGRID_API_KEY!,
+    sendgridApiKey.value(),
     link,
     submission.addressLine1,
     submission.city,

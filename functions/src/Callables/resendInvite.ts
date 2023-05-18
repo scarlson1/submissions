@@ -1,14 +1,10 @@
-import { CallableRequest } from 'firebase-functions/v2/https';
-import { HttpsError } from 'firebase-functions/v1/https';
+import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import { getFirestore } from 'firebase-admin/firestore';
 
 import { invitesCollection } from '../common/dbCollections';
 import { inviteConverter } from '../common/converters';
+import { CLAIMS, audience, sendgridApiKey } from '../common';
 import { sendUserInvite } from '../services/sendgrid';
-import { CLAIMS } from '../common';
-import { sendgridApiKey } from './index.js';
-
-// const sendgridApiKey = defineSecret('SENDGRID_API_KEY');
 
 export default async ({ data, auth }: CallableRequest<{ orgId: string; inviteId: string }>) => {
   if (!auth?.uid) {
@@ -23,7 +19,7 @@ export default async ({ data, auth }: CallableRequest<{ orgId: string; inviteId:
     throw new HttpsError('failed-precondition', 'Missing orgId or inviteId');
   }
 
-  const sgKey = sendgridApiKey.value(); // process.env.SENDGRID_API_KEY;
+  const sgKey = sendgridApiKey.value();
   if (!sgKey) throw new HttpsError('internal', `Missing Sendgrid api key`);
 
   const db = getFirestore();
@@ -37,7 +33,7 @@ export default async ({ data, auth }: CallableRequest<{ orgId: string; inviteId:
   }
 
   let to = [inviteData?.email];
-  if (process.env.AUDIENCE === 'DEV HUMANS' || process.env.AUDIENCE === 'LOCAL HUMANS')
+  if (audience.value() === 'DEV HUMANS' || audience.value() === 'LOCAL HUMANS')
     to.push('spencercarlson@mac.com');
 
   try {

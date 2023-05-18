@@ -1,10 +1,14 @@
-import { EventContext } from 'firebase-functions/v1';
+import { ScheduledEvent } from 'firebase-functions/v2/scheduler';
 import { getFirestore } from 'firebase-admin/firestore';
 
 import { getEPayInstance } from '../services';
-import { EPayGetTransactionRes, finTrxCollection, TRANSACTION_STATUS } from '../common';
+import {
+  EPayGetTransactionRes,
+  finTrxCollection,
+  TRANSACTION_STATUS,
+  ePayCreds as ePayCredsSecret,
+} from '../common';
 import { publishMessage } from '../services/pubsub/publishMessage.js';
-import { ePayCreds as ePayCredsSecret } from './index.js';
 
 // const ePayCreds = defineSecret('ENCODED_EPAY_AUTH');
 
@@ -14,7 +18,8 @@ import { ePayCreds as ePayCredsSecret } from './index.js';
 // EMULATOR WORK AROUND: https://stackoverflow.com/questions/62759093/how-to-invoke-firebase-schedule-functions-locally-using-pubsub-emulator/65759654#65759654
 // https://github.com/firebase/firebase-tools/issues/2034
 
-export default async (context: EventContext<Record<string, string>>) => {
+// export default async (context: EventContext<Record<string, string>>) => {
+export default async (event: ScheduledEvent) => {
   console.log('CHECKING PAYMENT STATUS FOR OUTSTANDING EPAY ACH TRANSACTIONS');
   const db = getFirestore();
 

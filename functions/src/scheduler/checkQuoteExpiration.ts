@@ -1,10 +1,17 @@
+import { ScheduledEvent } from 'firebase-functions/v2/scheduler';
 import { Timestamp, getFirestore } from 'firebase-admin/firestore';
-import { EventContext } from 'firebase-functions/v1';
 import { addDays, subDays, startOfToday } from 'date-fns';
 
-import { QUOTE_STATUS, SubmissionQuoteData, WithId, submissionsQuotesCollection } from '../common';
+import {
+  QUOTE_STATUS,
+  SubmissionQuoteData,
+  WithId,
+  submissionsQuotesCollection,
+  audience,
+  hostingBaseURL,
+  sendgridApiKey,
+} from '../common';
 import { sendQuoteExpiringSoonNotification } from '../services/sendgrid';
-import { sendgridApiKey } from '.';
 
 // TODO: test and finish function before deploy
 
@@ -25,12 +32,7 @@ import { sendgridApiKey } from '.';
  * sends notification if expiring within 24 hours
  */
 
-export default async (context: EventContext<Record<string, string>>) => {
-  let sgKey = sendgridApiKey.value();
-  if (!sgKey) {
-    throw new Error('Missing Sendgrid API key');
-  }
-
+export default async (event: ScheduledEvent) => {
   console.log('CHECKING QUOTE STATUS FOR QUOTES EXPIRING IN THE NEXT 24 HOURS');
   const db = getFirestore();
 
@@ -111,18 +113,18 @@ export default async (context: EventContext<Record<string, string>>) => {
         let to = [];
         if (quote.insuredEmail) to.push(quote.insuredEmail);
         if (quote.agentEmail) to.push(quote.agentEmail);
-        if (process.env.AUDIENCE === 'DEV HUMANS' || process.env.AUDIENCE === 'LOCAL HUMANS') {
+        if (audience.value() === 'DEV HUMANS' || audience.value() === 'LOCAL HUMANS') {
           to.push('spencer.carlson@idemandinsurance.com');
         }
 
         if (to.length) {
           console.log(`Expires soon notification ${quote.id}. Notifying: ${to}`);
 
-          const link = `${process.env.HOSTING_BASE_URL}/quotes/${quote.id}`;
+          const link = `${hostingBaseURL.value()}/quotes/${quote.id}`;
 
           const addressLine1 = quote.insuredAddress.addressLine1;
 
-          await sendQuoteExpiringSoonNotification(sgKey, to, link, addressLine1);
+          await sendQuoteExpiringSoonNotification(sendgridApiKey.value(), to, link, addressLine1);
         }
       }
     }

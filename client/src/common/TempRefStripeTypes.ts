@@ -1,6 +1,7 @@
 // @ts-nocheck
 // frontend: https://www.npmjs.com/package/@stripe/stripe-js?activeTab=code
 // node: https://www.npmjs.com/package/stripe?activeTab=code
+// node: https://github.com/stripe/stripe-node/tree/master/types
 
 export {};
 
