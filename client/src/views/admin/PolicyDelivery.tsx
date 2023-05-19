@@ -5,18 +5,15 @@ import { OpenInNewRounded, SaveRounded } from '@mui/icons-material';
 import { getDownloadURL } from 'firebase/storage';
 import { doc, getFirestore, updateDoc } from 'firebase/firestore';
 import { useParams } from 'react-router-dom';
-import { getFunctions } from 'firebase/functions';
 import ReactJson from '@microlink/react-json-view';
-import { toast } from 'react-hot-toast';
 
 import { FilesDragDrop } from 'components/forms';
-import { useAsyncToast, useCreateStorageFiles, useDocData } from 'hooks';
+import { useAsyncToast, useCreateStorageFiles, useDocData, useSendEmail } from 'hooks';
 import { policiesCollection, Policy, withIdConverter } from 'common';
-import { ePayInstance, sendPolicyDoc } from 'modules/api';
+import { ePayInstance } from 'modules/api';
 import { usePromptForEmails } from 'hooks/usePromptForEmails';
 
-// TODO: how should document delivery be tracked?? see history / check if doc was delivered ??
-// search sendgrid by recipient: https://docs.sendgrid.com/api-reference/e-mail-activity/filter-all-messages
+// TODO: how should document delivery be tracked?? see history / check if doc was delivered ?? NEED TO USE SENDGRID WEBHOOK & STORE IN COLLECTION
 // TODO: create custom tags for email delivery ('policy_delivery') https://docs.sendgrid.com/for-developers/sending-email/getting-started-email-activity-api#query-reference
 // OR create templates and get by template ID
 
@@ -50,34 +47,34 @@ export const useUpdatePolicy = (
   return useMemo(() => ({ updatePolicy, loading, error }), [updatePolicy, loading, error]);
 };
 
-export const useDeliverPolicyDoc = (
-  onSuccess?: (emails: string[], msg: string) => void,
-  onError?: (err: any) => void
-) => {
-  const toast = useAsyncToast();
+// export const useDeliverPolicyDoc = (
+//   onSuccess?: (emails: string[], msg: string) => void,
+//   onError?: (err: any) => void
+// ) => {
+//   const toast = useAsyncToast();
 
-  const deliverPolicyDoc = useCallback(
-    async (policyId: string, emails: string[] = []) => {
-      // TODO: prompt for emails (select user/agent or add alternative)
-      try {
-        toast.loading('sending documents...');
-        const { data } = await sendPolicyDoc(getFunctions(), {
-          policyId,
-          emails,
-        });
-        if (onSuccess) onSuccess(data.emails, 'Policy documents sent');
-        toast.success('documents delivered!');
-        return data;
-      } catch (err) {
-        toast.error('failed to deliver documents');
-        if (onError) onError(err);
-      }
-    },
-    [onSuccess, onError, toast]
-  );
+//   const deliverPolicyDoc = useCallback(
+//     async (policyId: string, emails: string[] = []) => {
+//       // TODO: prompt for emails (select user/agent or add alternative)
+//       try {
+//         toast.loading('sending documents...');
+//         const { data } = await sendPolicyDoc(getFunctions(), {
+//           policyId,
+//           emails,
+//         });
+//         if (onSuccess) onSuccess(data.emails, 'Policy documents sent');
+//         toast.success('documents delivered!');
+//         return data;
+//       } catch (err) {
+//         toast.error('failed to deliver documents');
+//         if (onError) onError(err);
+//       }
+//     },
+//     [onSuccess, onError, toast]
+//   );
 
-  return deliverPolicyDoc;
-};
+//   return deliverPolicyDoc;
+// };
 
 export const useEPayTransaction = (id: string | null | undefined) => {
   const [transaction, setTransaction] = useState<any>();
@@ -112,17 +109,19 @@ export const useEPayTransaction = (id: string | null | undefined) => {
 };
 
 export const PolicyDelivery: React.FC = () => {
-  // const data = useLoaderData() as WithId<Policy>;
-  // const { policy } = usePolicy(data.id, data);
   const theme = useTheme();
+  const toast = useAsyncToast();
   const promptForEmails = usePromptForEmails();
-  const deliverDocs = useDeliverPolicyDoc();
+  // const deliverDocs = useDeliverPolicyDoc();
+  const { send } = useSendEmail({
+    onSuccess: () => toast.success('policy documents sent!'),
+    onError: (msg) => toast.error(msg),
+  });
   const { policyId } = useParams();
-  const { data, status } = useDocData('POLICIES', policyId || '');
+  if (!policyId) throw new Error('Missing policy ID in url');
+  const { data } = useDocData('POLICIES', policyId || '');
 
   const { updatePolicy } = useUpdatePolicy(console.log, console.error);
-
-  console.log('POLICY ID: ', policyId);
 
   const {
     files: uploadFiles,
@@ -170,7 +169,7 @@ export const PolicyDelivery: React.FC = () => {
     if (!url) return toast.error('no policy doc assigned to policy yet.');
 
     window.open(url, '_blank');
-  }, [data]);
+  }, [data, toast]);
 
   const handleDeliverDocs = useCallback(async () => {
     try {
@@ -189,16 +188,18 @@ export const PolicyDelivery: React.FC = () => {
 
       if (!emails || emails.length < 1) throw new Error('no emails selected');
 
-      await deliverDocs(policyId!, emails);
+      // await deliverDocs(policyId!, emails);
+      toast.loading('sending policy documents...');
+      await send({
+        templateName: 'policy_delivery',
+        policyId,
+        to: emails,
+      });
     } catch (err) {
       console.log('ERR: ', err);
       toast.error('documents not delivered');
     }
-  }, [promptForEmails, deliverDocs, data, policyId]);
-
-  if (status === 'loading') {
-    return <span>loading...</span>;
-  }
+  }, [promptForEmails, send, toast, data, policyId]);
 
   return (
     <Box>

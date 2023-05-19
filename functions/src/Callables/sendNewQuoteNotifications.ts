@@ -3,16 +3,14 @@ import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import { sendNewQuoteEmail } from '../services/sendgrid';
 import { sendgridApiKey } from '../common';
 
-// const sendgridApiKey = defineSecret('SENDGRID_API_KEY');
-
 export default async ({ data, auth }: CallableRequest) => {
   console.log('data: ', data);
-  const { emails, quoteId } = data;
+  const { to, quoteId } = data;
 
   // TODO: must be admin
   if (!auth?.token.iDemandAdmin) throw new HttpsError('permission-denied', `Must be an admin`);
 
-  if (!emails || !quoteId) throw new HttpsError('invalid-argument', `Missing email or body`);
+  if (!to || !quoteId) throw new HttpsError('invalid-argument', `Missing email or body`);
 
   // if (emails.every(isValidEmail))
   //   throw new HttpsError(
@@ -24,14 +22,14 @@ export default async ({ data, auth }: CallableRequest) => {
   if (!sgKey) throw new HttpsError('failed-precondition', 'Missing Sendgrid api key');
 
   try {
-    console.log(`SENDING QUOTE NOTIFICATIONS TO ${JSON.stringify(emails)} for quote ${quoteId}`);
+    console.log(`SENDING QUOTE NOTIFICATIONS TO ${JSON.stringify(to)} for quote ${quoteId}`);
 
     const link = `${process.env.HOSTING_BASE_URL}/quotes/${quoteId}`;
-    await sendNewQuoteEmail(sgKey, link, emails);
+    await sendNewQuoteEmail(sgKey, link, to);
 
     return {
       status: 'success',
-      emails,
+      emails: to,
     };
   } catch (err) {
     console.log('ERROR SENDING "New Quote Notifications" EMAIL: ', err);

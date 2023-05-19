@@ -1,41 +1,36 @@
 import { useState, useCallback } from 'react';
 import { useFunctions } from 'reactfire';
 
-import {
-  SendAgencyApprovedResponse,
-  createTenantFromSubmission,
-  sendAgencyApprovedNotification,
-} from 'modules/api';
+import { createTenantFromSubmission } from 'modules/api';
 import { getErrorCode, getErrorMessage } from 'modules/utils/errorHelpers';
 import { useConfirmation } from 'modules/components';
 import { useAsyncToast } from './useAsyncToast';
+import { useSendEmail } from './useSendEmail';
+import { BaseSendEmailResponse } from 'common';
 
 export const useSendAgencyAppNotification = (
-  onSuccess?: ((res: SendAgencyApprovedResponse) => void) | null,
+  onSuccess?: ((res: BaseSendEmailResponse) => void) | null,
   onError?: ((msg: string, err: any) => void) | null
 ) => {
-  const functions = useFunctions();
   const confirm = useConfirmation();
   const toast = useAsyncToast();
+  const { send: sendApprovedNotification } = useSendEmail({
+    onSuccess: (data: BaseSendEmailResponse) => onSuccess && onSuccess(data),
+    onError: (msg: string, err: any) => {
+      toast.error('email delivery failed');
+      onError && onError(msg, err);
+    },
+  });
 
   const sendApproved = useCallback(
-    async (docId: string, tenantId: string) => {
-      try {
-        let { data } = await sendAgencyApprovedNotification(functions, {
-          docId,
-          tenantId,
-        });
-        console.log('notifications sent res: ', data);
-
-        if (onSuccess) onSuccess(data);
-        return data;
-      } catch (err: any) {
-        let msg = 'Error sending approval notification';
-        if (err?.message) msg = err.message;
-        if (onError) onError(msg, err);
-      }
+    (docId: string, tenantId: string) => {
+      return sendApprovedNotification({
+        templateName: 'agency_approved',
+        docId,
+        tenantId,
+      });
     },
-    [functions, onSuccess, onError]
+    [sendApprovedNotification]
   );
 
   const sendRejected = useCallback(async () => {

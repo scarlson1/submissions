@@ -14,5 +14,5 @@ export interface GetValuationEstimateResponse {
 export const getValuationEstimate = (functions: Functions, args: GetValuationEstimateRequest) =>
   httpsCallable<GetValuationEstimateRequest, GetValuationEstimateResponse>(
     functions,
-    'getValuationEstimate'
+    'getvaluationestimate'
   )(args);

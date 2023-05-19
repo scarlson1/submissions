@@ -6,14 +6,14 @@ import { audience, sendgridApiKey } from '../common';
 
 export default async ({ data }: CallableRequest) => {
   console.log('data: ', data);
-  const { email, subject, body } = data;
-  if (!email || !body) {
+  const { fromEmail, subject, body } = data;
+  if (!fromEmail || !body) {
     throw new HttpsError('invalid-argument', `Missing email or body`);
   }
 
   try {
     sgMail.setApiKey(sendgridApiKey.value());
-    const html = newContactMessage({ toName: 'Admin', fromEmail: email, body });
+    const html = newContactMessage({ toName: 'Admin', fromEmail, body });
 
     const to = ['spencer.carlson@idemandinsurance.com'];
     if (audience.value() !== 'LOCAL HUMANS') to.push('ron.carlson@idemandinsurance.com');
@@ -26,7 +26,7 @@ export default async ({ data }: CallableRequest) => {
     });
 
     return {
-      emails: [email],
+      emails: [fromEmail],
     };
   } catch (err) {
     console.log('ERROR SENDING "CONTACT US" EMAIL: ', err);

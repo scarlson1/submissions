@@ -1164,3 +1164,70 @@ export type InternalDocSearchHit = DocSearchHit & {
 };
 
 export type StoredDocSearchHit = Omit<DocSearchHit, '_highlightResult' | '_snippetResult'>;
+
+export type EmailData = string | { name?: string; email: string };
+
+export type emailTemplateNames =
+  | 'policy_delivery'
+  | 'agency_approved'
+  | 'contact_us'
+  | 'quote_notification'; // 'email_confirmation' | 'user_invite' |
+
+export interface SendEmailBase {
+  templateName: emailTemplateNames;
+  templateVars?: Record<string, any>;
+  to?: EmailData | EmailData[];
+  // cc?: EmailData | EmailData[]; // TODO
+}
+
+interface PolicyDeliveryTemplateVars {
+  toName?: string | null;
+  addressName?: string;
+  // TODO: agent info
+}
+export interface PolicyDeliveryProps extends SendEmailBase {
+  templateName: 'policy_delivery';
+  templateVars?: PolicyDeliveryTemplateVars;
+  to: EmailData | EmailData[];
+  policyId: string;
+}
+
+export interface AgencyApprovedProps extends SendEmailBase {
+  templateName: 'agency_approved';
+  docId: string;
+  tenantId: string;
+  message?: string | null; // TODO: handle additional message (overwrite entire email body). change name to "overrideMessage". create second variant to accept template vars
+  to?: never;
+}
+
+export interface ContactUsEmailProps extends SendEmailBase {
+  templateName: 'contact_us';
+  userName?: string;
+  userEmail: string;
+  subject: string;
+  body: string;
+  to?: never;
+}
+
+export interface NewQuoteEmailProps extends SendEmailBase {
+  templateName: 'quote_notification';
+  to: EmailData | EmailData[];
+  quoteId: string;
+  overrideMessage?: string;
+}
+
+export type SendEmailRequest =
+  | PolicyDeliveryProps
+  | AgencyApprovedProps
+  | ContactUsEmailProps
+  | NewQuoteEmailProps;
+
+// TODO: standardize email delivery response (or will all be the same if calling same cloud function ?? )
+
+export type EmailsRes = {
+  email: string;
+  status: string;
+};
+export interface BaseSendEmailResponse {
+  emails: string[] | EmailsRes[];
+}

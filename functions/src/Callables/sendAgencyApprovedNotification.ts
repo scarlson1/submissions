@@ -6,9 +6,6 @@ import { getFunctionsErrorCode, getErrorMessage } from '../utils/errorHelpers';
 import { agencyApplicationCollection, invitesCollection } from '../common/dbCollections';
 import { audience, sendgridApiKey } from '../common';
 
-// TODO: standardize email notification response
-// array with recipient email and status ?
-
 export default async ({
   data,
   auth,
@@ -74,7 +71,8 @@ export default async ({
 
     return {
       status: 'sent',
-      recipients: [contact.email],
+      emails: [contact.email],
+      // recipients: [contact.email],
     };
   } catch (err) {
     console.log('err: ', err);
