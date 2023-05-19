@@ -9,6 +9,7 @@ import { UsersGrid } from 'elements';
 import { useAsyncToast, useMoveUserToTenant } from 'hooks';
 import { CUSTOM_CLAIMS, useConfirmation } from 'modules/components';
 import InputDialog from 'components/InputDialog';
+import { User } from 'common';
 
 export const Users: React.FC = () => {
   const { status, data: signInCheckResult } = useSigninCheck({
@@ -23,13 +24,14 @@ export const Users: React.FC = () => {
   );
 
   // TODO: prompt for tenantId (select from autocomplete)
+  // TODO: prompt for customClaims
   const handleAssignTenant = useCallback(
-    (params: GridRowParams) => async () => {
+    (params: GridRowParams<User>) => async () => {
       console.log('Assign tenant called ', params);
       let toTenantId: string;
       try {
         toTenantId = await confirm({
-          catchOnCancel: false,
+          catchOnCancel: true,
           variant: 'danger',
           title: 'New Tenant Id',
           description: `Enter the tenant ID for which to assign the user.`,
@@ -50,9 +52,8 @@ export const Users: React.FC = () => {
       }
 
       try {
-        // if (!toTenantId) throw new Error('toTenantId required')
         toast.loading('Setting tenant...');
-        await moveUser(params.id.toString(), null, toTenantId || null);
+        await moveUser(params.id.toString(), params.row.tenantId || null, toTenantId || null);
       } catch (err) {
         console.log('ERROR MOVING USER TO TENANT: ', err);
       }

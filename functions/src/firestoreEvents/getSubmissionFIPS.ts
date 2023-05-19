@@ -1,4 +1,4 @@
-import type { EventContext } from 'firebase-functions/v1';
+import type { FirestoreEvent } from 'firebase-functions/v2/firestore';
 import type { QueryDocumentSnapshot } from 'firebase-admin/firestore';
 import {
   booleanPointInPolygon,
@@ -15,11 +15,18 @@ import { Submission, FIPS } from '../common';
 // import countiesJson from '../assets/counties_20m.json';
 
 export default async (
-  snap: QueryDocumentSnapshot,
-  context: EventContext<{
-    submissionId: string;
-  }>
+  event: FirestoreEvent<
+    QueryDocumentSnapshot | undefined,
+    {
+      submissionId: string;
+    }
+  >
 ) => {
+  const snap = event.data;
+  if (!snap) {
+    console.log('No data associated with event');
+    return;
+  }
   const submission = snap.data() as Submission;
 
   try {

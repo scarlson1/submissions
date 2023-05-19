@@ -1,5 +1,5 @@
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
-import logger from 'firebase-functions/logger';
+import { error } from 'firebase-functions/logger';
 import { GeoPoint, Timestamp, getFirestore } from 'firebase-admin/firestore';
 import invariant from 'tiny-invariant';
 
@@ -140,7 +140,7 @@ export default async ({ data, auth }: CallableRequest<GetAnnualPremiumRequest>) 
     )
       throw new Error('Error calculating premium');
   } catch (err: any) {
-    logger.error('Error calculating premium', {
+    error('Error calculating premium', {
       data,
       userId: auth.uid || null,
       message: err?.message || null,
@@ -315,7 +315,7 @@ export default async ({ data, auth }: CallableRequest<GetAnnualPremiumRequest>) 
 //       )
 //         throw new Error('Error calculating premium');
 //     } catch (err: any) {
-//       logger.error('Error calculating premium', {
+//       error('Error calculating premium', {
 //         data,
 //         userId: auth.uid || null,
 //         message: err?.message || null,

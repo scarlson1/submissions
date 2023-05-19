@@ -1,7 +1,7 @@
-import { getFunctions } from 'firebase/functions';
-import { createPolicy, executePayment } from 'modules/api';
 import { useCallback } from 'react';
+import { useFunctions } from 'reactfire';
 
+import { createPolicy, executePayment } from 'modules/api';
 // TODO: create validation cloud function / validate in createPolicy function
 //    - calc expiration date
 //    - check all required values exist
@@ -12,13 +12,14 @@ export const useBindQuote = (
   onSuccess?: (policyId: string) => void,
   onError?: (err: unknown, msg: string) => void
 ) => {
+  const functions = useFunctions();
   const bindQuote = useCallback(
     async (quoteId: string, paymentMethodId: string) => {
       try {
-        const { data: policyData } = await createPolicy(getFunctions(), { quoteId });
+        const { data: policyData } = await createPolicy(functions, { quoteId });
         console.log('CREATE POLICY RES: ', policyData);
 
-        const { data: pmtData } = await executePayment(getFunctions(), {
+        const { data: pmtData } = await executePayment(functions, {
           policyId: policyData.policyId,
           paymentMethodId,
         });
@@ -37,7 +38,7 @@ export const useBindQuote = (
         if (onError) onError(err, msg);
       }
     },
-    [onSuccess, onError]
+    [functions, onSuccess, onError]
   );
 
   return bindQuote;

@@ -1,7 +1,8 @@
-import { getFunctions } from 'firebase/functions';
-import { calcQuote } from 'modules/api';
 import { useCallback, useState } from 'react';
+import { useFunctions } from 'reactfire';
+
 import { NewQuoteValues } from 'views/admin/QuoteNew';
+import { calcQuote } from 'modules/api';
 
 export const useCalcPremium = (
   // submissionData: Submission | null,
@@ -9,6 +10,7 @@ export const useCalcPremium = (
   onError?: (msg: string, err: any) => void,
   submissionId?: string | null
 ) => {
+  const functions = useFunctions();
   const [loading, setLoading] = useState(false);
 
   const calcPremium = useCallback(
@@ -25,7 +27,6 @@ export const useCalcPremium = (
         if (!(replacementCost && (inland || inland === 0) && (surge || surge === 0)))
           throw new Error('Missing replacement cost or aal');
 
-        // aals
         let reqBody = {
           limitA: values.limitA,
           limitB: values.limitB,
@@ -46,7 +47,7 @@ export const useCalcPremium = (
         };
         console.log('REQUEST BODY: ', reqBody);
 
-        const { data } = await calcQuote(getFunctions(), { ...reqBody, submissionId });
+        const { data } = await calcQuote(functions, { ...reqBody, submissionId });
 
         console.log('RES: ', data);
         if (!data.annualPremium || typeof data.annualPremium !== 'number')
@@ -61,8 +62,10 @@ export const useCalcPremium = (
         setLoading(false);
         return data.annualPremium;
       } catch (err: any) {
-        console.log('ERROR: ', err);
+        // console.log('ERROR: ', err);
+        console.log('ERROR: ', JSON.stringify(err, null, 2));
         let msg = 'Error calculating premium. See console.';
+        console.log('MSG: ', err.message);
         if (err?.message) msg = err.message;
 
         if (onError) onError(msg, err);
@@ -70,7 +73,7 @@ export const useCalcPremium = (
         return null;
       }
     },
-    [onSuccess, onError, submissionId]
+    [functions, onSuccess, onError, submissionId]
   );
 
   return { calcPremium, loading };

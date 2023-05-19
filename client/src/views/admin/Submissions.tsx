@@ -125,19 +125,6 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
 
       let fsid;
 
-      // if (process.env.REACT_APP_EMULATORS === 'true') {
-      //   try {
-      //     const { data: data2 } = await getRiskFactorId(functions, {
-      //       addressLine1,
-      //       city,
-      //       state,
-      //     });
-      //     console.log('V2 RES: ', data2);
-      //   } catch (err) {
-      //     console.log('ERROR CALLING V2: ', err);
-      //   }
-      // }
-
       try {
         toast.loading('fetching location ID...');
 
@@ -365,10 +352,9 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
               },
             },
             sorting: {
-              sortModel: [{ field: 'created', sort: 'desc' }],
+              sortModel: [{ field: 'metadata.created', sort: 'desc' }],
             },
             pagination: { paginationModel: { page: 0, pageSize: 10 } },
-            // pagination: { pageSize: 10 },
           }}
         />
         {/* <BasicDataGrid

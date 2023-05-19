@@ -1,6 +1,6 @@
+import type { FirestoreEvent } from 'firebase-functions/v2/firestore';
 import type { QueryDocumentSnapshot } from 'firebase-admin/firestore';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
-import type { EventContext } from 'firebase-functions/v1';
 import invariant from 'tiny-invariant';
 
 import {
@@ -23,7 +23,19 @@ import { getAALs, GetAALsProps, getPremium, validateGetAALsProps } from '../util
 
 const DEFAULT_COMMISSION = 0.15;
 
-export default async (snap: QueryDocumentSnapshot, ctx: EventContext) => {
+export default async (
+  event: FirestoreEvent<
+    QueryDocumentSnapshot | undefined,
+    {
+      submissionId: string;
+    }
+  >
+) => {
+  const snap = event.data;
+  if (!snap) {
+    console.log('No data associated with event');
+    return;
+  }
   const sub = snap.data() as Submission;
   const db = getFirestore();
   let commissionPct = DEFAULT_COMMISSION;

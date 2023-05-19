@@ -35,7 +35,7 @@ export const useSendAgencyAppNotification = (
 
   const sendRejected = useCallback(async () => {
     alert('Not implemented yet');
-  }, []); // functions, onSuccess, onError
+  }, []);
 
   const promptForNotification = useCallback(
     async (msg: string) => {
@@ -89,7 +89,7 @@ interface UseCreateTenantProps {
   onError?: (errArgs: { code: string; message: string }) => void;
 }
 
-export const useCreateTenant = ({ onSuccess, onError }: UseCreateTenantProps) => {
+export const useCreateTenant = ({ onSuccess, onError }: UseCreateTenantProps | undefined = {}) => {
   const functions = useFunctions();
   const toast = useAsyncToast();
   const { sendApproved, promptForNotification } = useSendAgencyAppNotification();
@@ -147,16 +147,13 @@ export const useCreateTenant = ({ onSuccess, onError }: UseCreateTenantProps) =>
       );
 
       if (!!shouldNotify) {
-        toast.loading('sending notification...');
-        // await sendApprovedNotification(submissionId, `${tenantId}`);
+        // toast.loading('sending notification...');
         await sendApproved(submissionId, `${tenantId}`);
-        toast.success('notification delivered');
       }
 
       if (onSuccess) onSuccess({ tenantId });
-      // navigate(createPath({ path: ADMIN_ROUTES.ORGANIZATIONS }));
     },
-    [promptForNotification, sendApproved, toast, onSuccess]
+    [promptForNotification, sendApproved, onSuccess]
   );
 
   const createTenant = useCallback(
@@ -182,8 +179,6 @@ export const useCreateTenant = ({ onSuccess, onError }: UseCreateTenantProps) =>
 
         toast.error(message);
         if (onError) onError({ code, message });
-
-        // return Promise.reject({ code, message });
       }
     },
     [onError, handleSuccess, functions, toast]

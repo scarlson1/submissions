@@ -1,5 +1,5 @@
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
-import logger from 'firebase-functions/logger';
+import { error } from 'firebase-functions/logger';
 import { Tenant, getAuth } from 'firebase-admin/auth';
 import { Firestore, getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { kebabCase, random } from 'lodash';
@@ -70,7 +70,7 @@ export default async ({ data, auth }: CallableRequest<any>) => {
   } catch (err: any) {
     let msg = `Agency app not found (ID: ${data.docId})`;
     if (err?.message) msg = err.message;
-    logger.error(msg, {
+    error(msg, {
       data,
       userId: auth?.uid || null,
     });
@@ -241,7 +241,7 @@ export default async ({ data, auth }: CallableRequest<any>) => {
 //   } catch (err: any) {
 //     let msg = `Agency app not found (ID: ${data.docId})`;
 //     if (err?.message) msg = err.message;
-//     logger.error(msg, {
+//     error(msg, {
 //       data,
 //       userId: auth?.uid || null,
 //     });

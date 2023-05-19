@@ -1,5 +1,5 @@
+import type { FirestoreEvent } from 'firebase-functions/v2/firestore';
 import { QueryDocumentSnapshot } from 'firebase-admin/firestore';
-import { EventContext } from 'firebase-functions/v1';
 import querystring from 'querystring';
 
 import {
@@ -9,12 +9,19 @@ import {
 import { audience, hostingBaseURL, sendgridApiKey } from '../common';
 
 export default async (
-  snap: QueryDocumentSnapshot,
-  context: EventContext<{
-    submissionId: string;
-  }>
+  event: FirestoreEvent<
+    QueryDocumentSnapshot | undefined,
+    {
+      submissionId: string;
+    }
+  >
 ) => {
-  const submissionId = context.params.submissionId;
+  const { submissionId } = event.params;
+  const snap = event.data;
+  if (!snap) {
+    console.log('No data associated with event');
+    return;
+  }
   const submission = snap.data();
   console.log(`New submission received: ${submission.addressLine1} (id: ${submissionId})`);
 

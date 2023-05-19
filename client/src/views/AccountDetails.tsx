@@ -220,7 +220,7 @@ export const AccountDetails: React.FC = () => {
                   />
                 </Box>
               ) : (
-                <Typography>Must be associated with an organization to add users.</Typography>
+                <Typography>Must be associated with an tenant/org to add users.</Typography>
               )}
             </TabPanel>
             <TabPanel value='security'>

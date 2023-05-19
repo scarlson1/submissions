@@ -1,5 +1,6 @@
-import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
-import logger from 'firebase-functions/logger';
+import { CallableRequest } from 'firebase-functions/v2/https';
+import { HttpsError } from 'firebase-functions/v1/https';
+import { error } from 'firebase-functions/logger';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import invariant from 'tiny-invariant';
 
@@ -27,7 +28,7 @@ export interface CalcQuoteRequest {
 }
 
 export default async ({ data, auth }: CallableRequest<CalcQuoteRequest>) => {
-  console.log('data: ', data);
+  console.log('CALC QUOTE DATA: ', data);
   const db = getFirestore();
   const {
     limitA,
@@ -45,7 +46,7 @@ export default async ({ data, auth }: CallableRequest<CalcQuoteRequest>) => {
     commissionPct = 0.15,
     submissionId,
   } = data;
-  const userId = auth?.uid; // context.auth?.uid;
+  const userId = auth?.uid;
 
   if (!userId) throw new HttpsError('unauthenticated', 'must be authenticated');
   if (!auth?.token.iDemandAdmin)
@@ -94,14 +95,16 @@ export default async ({ data, auth }: CallableRequest<CalcQuoteRequest>) => {
       'state must be a two letter abbreviation'
     );
   } catch (err: any) {
-    console.log('INVALID PROPS: ', err);
-    logger.error('Invalid props', {
+    // console.log('INVALID PROPS: ', err);
+    let msg = err?.message || 'Provided params failed validation';
+    msg = msg.replace(/(Invariant failed: )/g, '');
+    error('Invalid props', {
       props: data,
       userId,
       function: 'calcQuote',
     });
 
-    throw new HttpsError('failed-precondition', err.message);
+    throw new HttpsError('failed-precondition', msg);
   }
 
   try {
@@ -158,7 +161,7 @@ export default async ({ data, auth }: CallableRequest<CalcQuoteRequest>) => {
     return { annualPremium: result.premiumData.directWrittenPremium };
   } catch (err: any) {
     console.log('ERROR: ', err);
-    logger.error('Error calculating quote', {
+    error('Error calculating quote', {
       props: data,
       userId,
       function: 'calcQuote',
@@ -168,41 +171,3 @@ export default async ({ data, auth }: CallableRequest<CalcQuoteRequest>) => {
     throw new HttpsError('invalid-argument', 'Error calculating quote');
   }
 };
-
-// const tiv = calcSum([limitA, limitB, limitC, limitD]);
-
-// const minPremium = getMinPremium(floodZone, tiv);
-
-// const pm = {
-//   inland: getPM(inlandAAL, tiv),
-//   surge: getPM(surgeAAL, tiv),
-// };
-// const riskScore = {
-//   inland: getInlandRiskScore(pm.inland),
-//   surge: getSurgeRiskScore(pm.surge),
-// };
-
-// // Flood type multipliers by state
-// const { inlandStateMult = 1.5, surgeStateMult = 3 } = multipliersByState[state];
-
-// let secondaryFactorMults = getSecondaryFactorMults({
-//   ffe: 0,
-//   basement,
-//   priorLossCount,
-//   inlandRiskScore: riskScore.inland,
-//   surgeRiskScore: riskScore.surge,
-// });
-
-// let premiumData = getPremiumData({
-//   AAL: {
-//     inland: inlandAAL,
-//     surge: surgeAAL,
-//   },
-//   secondaryFactorMults,
-//   stateMultipliers: {
-//     inland: inlandStateMult,
-//     surge: surgeStateMult,
-//   },
-//   minPremium,
-//   subproducerComPct: commissionPct,
-// });

@@ -1,5 +1,5 @@
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
-import logger from 'firebase-functions/logger';
+import { error } from 'firebase-functions/logger';
 import { getFirestore } from 'firebase-admin/firestore';
 
 import { submissionsQuotesCollection } from '../common';
@@ -35,7 +35,7 @@ export default async ({ data, auth }: CallableRequest<{ quoteId: string }>) => {
     return { message };
   } catch (err: any) {
     console.log('ERROR SENDING "CONTACT US" EMAIL: ', err);
-    logger.error('ERROR SENDING "CONTACT US" EMAIL: ', {
+    error('ERROR SENDING "CONTACT US" EMAIL: ', {
       stack: err.stack,
       message: err.message,
       quoteId,
@@ -81,7 +81,7 @@ export default async ({ data, auth }: CallableRequest<{ quoteId: string }>) => {
 //       return { message };
 //     } catch (err: any) {
 //       console.log('ERROR SENDING "CONTACT US" EMAIL: ', err);
-//       logger.error('ERROR SENDING "CONTACT US" EMAIL: ', {
+//       error('ERROR SENDING "CONTACT US" EMAIL: ', {
 //         stack: err.stack,
 //         message: err.message,
 //         quoteId,

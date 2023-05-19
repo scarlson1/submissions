@@ -33,13 +33,13 @@ export {
   verifyepaytoken,
 } from './callables';
 export {
-  newSubmissionNotifications,
-  getStaticSubmissionImg,
-  getSubmissionAAL,
-  mirrorCustomClaims,
-  newAgencyAppNotification,
-  getSubmissionFIPS,
-  sendInviteEmail,
+  newsubmissionnotifications,
+  getstaticsubmissionimg,
+  getsubmissionaal,
+  mirrorcustomclaims,
+  newagencyappnotification,
+  getsubmissionfips,
+  sendinviteemail,
 } from './firestoreEvents';
 export {
   algoliasyncusers,

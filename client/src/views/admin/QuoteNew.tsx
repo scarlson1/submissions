@@ -65,6 +65,7 @@ import {
   TaxItem,
 } from 'common';
 import { ShowRatingDialog } from './SubmissionView';
+import invariant from 'tiny-invariant';
 
 // TODO: hover chip to show errors
 // TODO: standardize fee type names in enum
@@ -1400,9 +1401,11 @@ function RequiredFieldsIndicator({ errors }: { errors: FormikErrors<NewQuoteValu
 // TODO: error boundary && loading component
 
 export const QuoteNewFromSub = () => {
-  const params = useParams();
-  if (!params.submissionId) throw new Error('missing submission id in QuoteNewFromSub');
-  const { data: submissionData } = useDocDataOnce<Submission>('SUBMISSIONS', params.submissionId);
+  const { submissionId } = useParams();
+  invariant(submissionId);
+  const { data: submissionData } = useDocDataOnce<Submission>('SUBMISSIONS', submissionId);
+
+  console.log('submission data: ', submissionData);
 
   // @ts-ignore TODO: fix types (can't pass null to iMask component)
   const initialValues: NewQuoteValues = useMemo(
@@ -1462,7 +1465,7 @@ export const QuoteNewFromSub = () => {
     <QuoteNew
       initialValues={initialValues}
       submissionData={submissionData}
-      submissionId={params.submissionId}
+      submissionId={submissionId}
     />
   );
 };

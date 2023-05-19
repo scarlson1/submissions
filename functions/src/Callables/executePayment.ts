@@ -1,5 +1,5 @@
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
-import logger from 'firebase-functions/logger';
+import { error } from 'firebase-functions/logger';
 import { getFirestore, Timestamp, DocumentSnapshot } from 'firebase-admin/firestore';
 
 import {
@@ -163,7 +163,7 @@ export default async ({ data, auth }: CallableRequest) => {
     console.log('ERROR: ', err);
     // TODO: extract error message from ePay error if code is 400: https://docs.epaypolicy.com/knowledgebase/faqs/
     let msg = err?.response?.data?.message || 'Payment could not be processed.';
-    logger.error(msg, {
+    error(msg, {
       data,
       userId: uid,
       stack: err?.stack || null,

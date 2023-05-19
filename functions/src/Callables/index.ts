@@ -47,7 +47,7 @@ export const deliveragencyagreement = onCall(
   }
 );
 
-export const executepayment = onCall(async (request) => {
+export const executepayment = onCall({ secrets: [ePayCreds] }, async (request) => {
   return (await import('./executePayment.js')).default(request);
 });
 

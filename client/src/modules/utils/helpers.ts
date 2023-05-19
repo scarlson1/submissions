@@ -103,6 +103,7 @@ export const getRedirectPath = (location: Location) => {
   let from = location.state?.from?.pathname || '/';
   let redirectPath = redirectProvided || from;
 
+  // TODO: is this necessary ?? prevent infinite loop (unauthorized redirect) ??
   if (redirectPath === location.pathname) redirectPath = '/';
 
   return redirectPath;

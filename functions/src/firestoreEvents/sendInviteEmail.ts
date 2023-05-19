@@ -1,26 +1,34 @@
-import { QueryDocumentSnapshot } from 'firebase-admin/firestore';
-import { EventContext, logger } from 'firebase-functions/v1';
+import type { FirestoreEvent } from 'firebase-functions/v2/firestore';
+import type { QueryDocumentSnapshot } from 'firebase-admin/firestore';
+import { error, info } from 'firebase-functions/logger';
 
 import { sendUserInvite } from '../services/sendgrid';
 import { Invite, audience, sendgridApiKey } from '../common';
 
 export default async (
-  snap: QueryDocumentSnapshot,
-  context: EventContext<{
-    inviteId: string;
-    orgId: string;
-  }>
+  event: FirestoreEvent<
+    QueryDocumentSnapshot | undefined,
+    {
+      orgId: string;
+      inviteId: string;
+    }
+  >
 ) => {
+  const snap = event.data;
+  if (!snap) {
+    console.log('No data associated with event');
+    return;
+  }
   const data = snap.data() as Invite;
   const { link, firstName, displayName = '' } = data;
-  logger.log(
-    `New invite detected. Initiating invite email (${context.params.inviteId})...  ${JSON.stringify(
+  info(
+    `New invite detected. Initiating invite email (${event.params.inviteId})...  ${JSON.stringify(
       data
     )}`
   );
 
   if (!link) {
-    logger.log('ERROR. INVITE EMAIL NOT SENT. Missing required params');
+    error('ERROR. INVITE EMAIL NOT SENT. Missing required params');
     return { status: 'Error. Email not sent.' };
   }
   if (data.isCreateOrgInvite) {
@@ -31,13 +39,17 @@ export default async (
   if (audience.value() === 'DEV HUMANS' || audience.value() === 'LOCAL HUMANS')
     to.push('spencer.carlson@idemandinsurance.com');
 
-  const sgKey = sendgridApiKey.value();
-  // if (!sgKey) throw new Error('missing SENDGRID_API_KEY env var');
-
-  sendUserInvite(sgKey, link, to, firstName ?? displayName, data.invitedBy?.name || '', {
-    customArgs: {
-      firebaseEventId: context.eventId,
-    },
-  });
+  sendUserInvite(
+    sendgridApiKey.value(),
+    link,
+    to,
+    firstName ?? displayName,
+    data.invitedBy?.name || '',
+    {
+      customArgs: {
+        firebaseEventId: event.id,
+      },
+    }
+  );
   return {};
 };

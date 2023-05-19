@@ -4,7 +4,7 @@ import { LoadingButton } from '@mui/lab';
 import { OpenInNewRounded, SaveRounded } from '@mui/icons-material';
 import { getDownloadURL } from 'firebase/storage';
 import { doc, getFirestore, updateDoc } from 'firebase/firestore';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import ReactJson from '@microlink/react-json-view';
 
 import { FilesDragDrop } from 'components/forms';
@@ -12,6 +12,7 @@ import { useAsyncToast, useCreateStorageFiles, useDocData, useSendEmail } from '
 import { policiesCollection, Policy, withIdConverter } from 'common';
 import { ePayInstance } from 'modules/api';
 import { usePromptForEmails } from 'hooks/usePromptForEmails';
+import { ROUTES, createPath } from 'router';
 
 // TODO: how should document delivery be tracked?? see history / check if doc was delivered ?? NEED TO USE SENDGRID WEBHOOK & STORE IN COLLECTION
 // TODO: create custom tags for email delivery ('policy_delivery') https://docs.sendgrid.com/for-developers/sending-email/getting-started-email-activity-api#query-reference
@@ -110,16 +111,20 @@ export const useEPayTransaction = (id: string | null | undefined) => {
 
 export const PolicyDelivery: React.FC = () => {
   const theme = useTheme();
+  const navigate = useNavigate();
   const toast = useAsyncToast();
   const promptForEmails = usePromptForEmails();
   // const deliverDocs = useDeliverPolicyDoc();
   const { send } = useSendEmail({
-    onSuccess: () => toast.success('policy documents sent!'),
+    onSuccess: () => {
+      toast.success('policy documents sent!');
+      navigate(createPath({ path: ROUTES.POLICIES }));
+    },
     onError: (msg) => toast.error(msg),
   });
   const { policyId } = useParams();
   if (!policyId) throw new Error('Missing policy ID in url');
-  const { data } = useDocData('POLICIES', policyId || '');
+  const { data } = useDocData('POLICIES', policyId, [], { idField: 'policyId' });
 
   const { updatePolicy } = useUpdatePolicy(console.log, console.error);
 

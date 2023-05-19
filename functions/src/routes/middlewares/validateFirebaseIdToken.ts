@@ -1,5 +1,5 @@
 import * as functions from 'firebase-functions';
-import 'firebase-functions';
+import { error } from 'firebase-functions/logger';
 import { Response, NextFunction } from 'express';
 import { getAuth } from 'firebase-admin/auth';
 
@@ -18,7 +18,7 @@ export const validateFirebaseIdToken = async (
       (!req.headers.authorization || !req.headers.authorization.startsWith('Bearer ')) &&
       !(req.cookies && req.cookies.__session)
     ) {
-      functions.logger.error(
+      error(
         'No Firebase ID token was passed as a Bearer token in the Authorization header.',
         'Make sure you authorize your request by providing the following HTTP header:',
         'Authorization: Bearer <Firebase ID Token>',
@@ -75,8 +75,8 @@ export const validateFirebaseIdToken = async (
       res.status(403).send('Unauthorized');
       return;
     }
-  } catch (error) {
-    functions.logger.error('Error while verifying Firebase ID token:', error);
+  } catch (error: any) {
+    error('Error while verifying Firebase ID token:', { ...error });
     // TODO: handle revolked tokens - https://cloud.google.com/identity-platform/docs/multi-tenancy-managing-tenants#managing_user_sessions
 
     // const { code, message } =

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Box, CircularProgress, Typography } from '@mui/material';
+import { Box, Button, CircularProgress, Typography } from '@mui/material';
 import {
   useSigninCheck,
   SignInCheckOptionsBasic,
@@ -9,11 +9,11 @@ import {
   ClaimsValidator,
 } from 'reactfire';
 import { IdTokenResult, signInAnonymously } from 'firebase/auth';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 
 import { CUSTOM_CLAIMS } from 'modules/components';
-import { AUTH_ROUTES } from 'router';
-import { toast } from 'react-hot-toast';
+import { AUTH_ROUTES, createPath } from 'router';
 
 export type CustomClaimKeys = keyof typeof CUSTOM_CLAIMS;
 
@@ -36,8 +36,9 @@ export const RequireAuthReactFire: React.FC<RequireAuthReactFireProps> = ({
   authPath = AUTH_ROUTES.LOGIN,
 }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const auth = useAuth();
-  const { status, data } = useSigninCheck(signInCheckProps); // ex: {requiredClaims: {admin: true}, suspense: false }
+  const { status, data } = useSigninCheck(signInCheckProps);
 
   useEffect(() => {
     if (status === 'loading') return;
@@ -56,15 +57,31 @@ export const RequireAuthReactFire: React.FC<RequireAuthReactFireProps> = ({
     return <CircularProgress />;
   }
 
+  // TODO: WOULD STATUS EVER EQUAL ERROR OR WOULD IT THROW TO THE NEAREST ERROR BOUNDARY ??
   if (status === 'error') return <Navigate to={'/'} state={{ from: location }} />;
 
   // TODO: flush out component (buttons, image, etc.)
   if (!data.hasRequiredClaims) {
     return (
-      <Box sx={{ py: 5 }}>
-        <Typography variant='h6' align='center'>
+      <Box sx={{ py: 5, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+        <Typography variant='h6' align='center' gutterBottom>
           Not authorized
         </Typography>
+        <Box sx={{ mx: 'auto' }}>
+          {data.signedIn ? (
+            <Button onClick={() => navigate(-1)} disabled={location.key === 'default'}>
+              Back
+            </Button>
+          ) : (
+            <Button
+              onClick={() =>
+                navigate(createPath({ path: AUTH_ROUTES.LOGIN }), { state: { from: location } })
+              }
+            >
+              Sign In
+            </Button>
+          )}
+        </Box>
       </Box>
     );
   }

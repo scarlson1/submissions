@@ -2,7 +2,7 @@ import { roundUpToNearest, FloodZones } from '../../common';
 // import { FloodZones } from '../../common/types';
 
 export const getMinPremium = (
-  floodZone: string = 'X',
+  floodZone: string = 'D',
   tiv: number,
   isPortfolio: boolean = false
 ) => {

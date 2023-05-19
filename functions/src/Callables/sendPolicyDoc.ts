@@ -12,12 +12,12 @@ import { policiesCollection, sendgridApiKey } from '../common';
 
 export default async ({ data, auth }: CallableRequest) => {
   console.log('data: ', data);
-  const { policyId, emails } = data;
+  const { policyId, to } = data;
   console.log('AUTH.TOKEN: ', auth?.token);
 
   if (!auth?.token.iDemandAdmin) throw new HttpsError('permission-denied', `Must be an admin`);
 
-  if (!policyId || !emails)
+  if (!policyId || !to)
     throw new HttpsError('invalid-argument', `policyId or emails (recipients) required`);
   // TODO: email validation (array.length > 0, valid emails, etc.)
 
@@ -27,7 +27,7 @@ export default async ({ data, auth }: CallableRequest) => {
   //     'emails must be an array of valid email addresses'
   //   );
 
-  const sgKey = sendgridApiKey.value(); // process.env.SENDGRID_API_KEY;
+  const sgKey = sendgridApiKey.value();
   if (!sgKey) throw new HttpsError('failed-precondition', 'Missing Sendgrid api key');
 
   const db = getFirestore();
@@ -65,7 +65,7 @@ export default async ({ data, auth }: CallableRequest) => {
     // const link = `${process.env.HOSTING_BASE_URL}/policies/${policyId}`;
     await sendPolicyDocDelivery(
       sgKey,
-      emails,
+      to,
       attachmentObj,
       data.namedInsured.firstName,
       data.address.addressLine1
@@ -73,7 +73,7 @@ export default async ({ data, auth }: CallableRequest) => {
 
     return {
       status: 'success',
-      emails,
+      emails: to,
     };
   } catch (err) {
     console.log('ERROR SENDING POLICY DELIVERY EMAIL: ', err);

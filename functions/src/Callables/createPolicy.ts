@@ -1,5 +1,5 @@
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
-import logger from 'firebase-functions/logger';
+import { error } from 'firebase-functions/logger';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { round } from 'lodash';
 
@@ -55,7 +55,7 @@ export default async ({ data, auth }: CallableRequest<{ quoteId: string }>) => {
     return { policyId: policyRef.id };
   } catch (err: any) {
     console.log('ERROR => ', err);
-    logger.error('Error creating policy', {
+    error('Error creating policy', {
       data,
       quoteId,
       userId: uid,
@@ -151,7 +151,7 @@ function convertQuoteToPolicy(data: SubmissionQuoteData): Policy {
 //     return { policyId: policyRef.id };
 //   } catch (err: any) {
 //     console.log('ERROR => ', err);
-//     logger.error('Error creating policy', {
+//     error('Error creating policy', {
 //       data,
 //       quoteId,
 //       userId: uid,

@@ -44,13 +44,11 @@ export const AgencyApps: React.FC = () => {
     limit(100),
   ]);
 
-  const { confirmAndSend } = useSendAgencyAppNotification(
-    // () => toast.success('notification delivered'),
-    null,
-    (errMsg: string) => toast.error(errMsg)
+  const { confirmAndSend } = useSendAgencyAppNotification(null, (errMsg: string) =>
+    toast.error(errMsg)
   );
 
-  const { createTenant, error: createTenantError } = useCreateTenant({});
+  const { createTenant, error: createTenantError } = useCreateTenant();
 
   const handleCellClick = (params: GridCellParams<any>) => {
     const ignoreFieldsContaining = ['email', 'phone', 'EandO'];
@@ -70,54 +68,8 @@ export const AgencyApps: React.FC = () => {
     }
   };
 
-  // const promptForNotification = useCallback(async () => {
-  //   try {
-  //     await confirm({
-  //       catchOnCancel: true,
-  //       variant: 'danger',
-  //       title: 'Notify Primary Contact?',
-  //       confirmButtonText: 'Submit',
-  //       description:
-  //         'Would you like to notify the primary contact and invite them to create an account?',
-  //       dialogContentProps: { dividers: true },
-  //     });
-  //     return true;
-  //   } catch (err) {
-  //     return false;
-  //   }
-  // }, [confirm]);
-
-  // const handleTenantCreatedSuccess = useCallback(
-  //   async (agencyId: string, tenantId?: string) => {
-  //     const shouldNotify = await promptForNotification();
-  //     if (!!shouldNotify) {
-  //       toast.loading('sending notification...');
-  //       await sendApprovedNotification(agencyId, `${tenantId}`);
-  //       toast.success('Error delivering notification');
-  //     }
-
-  //     // navigate(createPath({ path: ADMIN_ROUTES.ORGANIZATIONS }));
-  //   },
-  //   [promptForNotification, sendApprovedNotification, toast]
-  // );
-
   const handleApprove = useCallback(
-    (id: GridRowId) => async () => {
-      try {
-        // toast.loading('creating tenant ...');
-        const createTenantRes = await createTenant(`${id}`);
-        console.log('CREATE TENANT RES: ', createTenantRes);
-        // toast.success(`Org created (ID: ${createTenantRes?.tenantId}) 🎉`);
-
-        // return handleTenantCreatedSuccess(`${id}`, createTenantRes.tenantId);
-      } catch (err) {
-        console.log('ERROR: ', err);
-        // let msg = 'An error occurred while attempting to create tenant. See console for details.';
-        // if (err instanceof FirebaseError) msg = `${err.message} (${err.code})`;
-
-        // toast.error(msg);
-      }
-    },
+    (id: GridRowId) => async () => await createTenant(`${id}`),
     [createTenant]
   );
 
@@ -262,7 +214,7 @@ export const AgencyApps: React.FC = () => {
       {Boolean(createTenantError) && (
         <Box sx={{ maxWidth: 500, pb: 4 }}>
           <Alert severity='error'>
-            <AlertTitle>Create Submission Error</AlertTitle>
+            <AlertTitle>Create Tenant Error</AlertTitle>
             {createTenantError instanceof FirebaseError
               ? `${createTenantError.message} ${createTenantError.code}`
               : 'See console for details'}
