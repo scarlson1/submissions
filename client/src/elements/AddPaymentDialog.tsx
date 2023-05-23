@@ -22,7 +22,6 @@ import { AccountBalanceRounded, CloseRounded, CreditCardRounded } from '@mui/ico
 import { Formik, Form, FormikProps, FormikHelpers } from 'formik';
 import * as yup from 'yup';
 import { useNavigate } from 'react-router-dom';
-// import { toast } from 'react-hot-toast';
 
 import { useAuth } from 'modules/components/AuthContext';
 import { FormikCardDetails, FormikBankFields } from 'elements';

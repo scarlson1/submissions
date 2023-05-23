@@ -130,7 +130,6 @@ export const AccountDetails: React.FC = () => {
                 </Box>
               </Grid>
               <Grid xs>
-                {/* <Typography variant='h5'>{user?.displayName}</Typography> */}
                 <Typography variant='h5'>{user ? user.displayName : ''}</Typography>
                 {/* <Typography variant='subtitle2' color='text.secondary'>
                   TODO: get org name or user's position/role
@@ -164,7 +163,8 @@ export const AccountDetails: React.FC = () => {
                 {/* <Tab label='Invites' value='invites' /> */}
                 {/* <Tab label='Admin Users (test)' value='test' /> */}
                 <Tab label='Security' value='security' />
-                <Tab label='Billing' value='billing' />
+                {/* TODO: uncomment when done with component */}
+                {/* <Tab label='Billing' value='billing' /> */}
               </TabList>
             </Box>
             <TabPanel value='account'>
@@ -201,7 +201,7 @@ export const AccountDetails: React.FC = () => {
                     </ClaimsGuard>
                   </Box>
                   <AdminManageUsersGrid
-                    orgId={user.tenantId} // 'idemand'
+                    orgId={user.tenantId}
                     columnVisibilityModel={{
                       displayName: false,
                       firstName: false,

@@ -229,9 +229,3 @@ function tempCalcRCV(assessment: any) {
 
   return null;
 }
-
-// "market": {
-//     "mktImprValue": 812000.0,
-//     "mktLandValue": 1062000.0,
-//     "mktTtlValue": 1874000.0
-// },

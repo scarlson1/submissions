@@ -108,6 +108,7 @@ export const getRequiredClaimValidator =
     // const notAuthorized = requiredClaims.every((key) => !userClaims[CUSTOM_CLAIMS[key]]);
     let notAuthorized = true;
 
+    // If user has any of the requiredClaims, they're authorized
     requiredClaims.forEach((key) => {
       const claim = CUSTOM_CLAIMS[key];
       // console.log('CLAIM: ', claim, !!userClaims[claim]);

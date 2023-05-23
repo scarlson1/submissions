@@ -1,5 +1,5 @@
 import { StorageEvent } from 'firebase-functions/v2/storage';
-import { logger } from 'firebase-functions/v1';
+import { info, warn, error } from 'firebase-functions/logger';
 import { getStorage } from 'firebase-admin/storage';
 import path from 'path';
 import os from 'os';
@@ -23,23 +23,23 @@ export default async (event: StorageEvent) => {
   const fileName = path.basename(filePath || '');
   const contentType = event.data.contentType;
   const metageneration = event.data.metageneration as unknown;
-  console.log('FILE UPLOAD DETECTED: ', fileName);
+  info('FILE UPLOAD DETECTED: ', fileName);
   // TODO: better filtering to only run on wanted uploads
 
   if (!event.data.name?.startsWith(`${PORTFOLIO_UPLOAD_FOLDER}/`)) {
-    logger.log(
+    info(
       `Ignoring upload "${event.data.name}" because is not in the "/${PORTFOLIO_UPLOAD_FOLDER}/*" folder.`
     );
     return null;
   }
 
   if (fileName.startsWith('processed') || fileName.startsWith('sr')) {
-    logger.log(`Ignoring upload "${filePath}" because it was already processed.`);
+    info(`Ignoring upload "${filePath}" because it was already processed.`);
     return null;
   }
 
   if (metageneration !== '1' || contentType !== 'text/csv' || !filePath) {
-    console.log(
+    info(
       `validation failed. contentType: ${contentType}. metageneration: ${metageneration}. filepath: ${filePath}`
     );
     return null;
@@ -60,7 +60,7 @@ export default async (event: StorageEvent) => {
   const tempFilePath = path.join(os.tmpdir(), `temp_SR_${fileName}`);
 
   await bucket.file(filePath).download({ destination: tempFilePath });
-  logger.log('File downloaded locally to', tempFilePath);
+  info('File downloaded locally to', tempFilePath);
 
   const dataArray: any[] = [];
   const invalidRows: any[] = [];
@@ -88,24 +88,24 @@ export default async (event: StorageEvent) => {
       return validateRow(data);
     })
     .on('error', (err) => {
-      console.error(err);
+      error(err);
       fs.unlinkSync(tempFilePath);
       return;
     })
     .on('headers', (headers) => {
-      console.log('HEADERS => ', headers);
+      info('HEADERS => ', headers);
     })
     .on('data', (row) => {
-      console.log('ROW => ', row);
+      info('ROW => ', row);
       dataArray.push(row);
     })
     .on('data-invalid', (row, rowNumber) => {
-      console.warn(`Invalid [rowNumber=${rowNumber}] [row=${JSON.stringify(row)}]`);
+      warn(`Invalid [rowNumber=${rowNumber}] [row=${JSON.stringify(row)}]`);
       invalidRows.push({ ...row, rowNumber });
     })
     .on('end', async (rowCount: number) => {
-      console.log(`Parsed ${rowCount} rows`);
-      console.log('DATA ARRAY => ', dataArray);
+      info(`Parsed ${rowCount} rows`);
+      info('DATA ARRAY => ', dataArray);
       if (tempFilePath) fs.unlinkSync(tempFilePath);
 
       try {
@@ -121,7 +121,7 @@ export default async (event: StorageEvent) => {
 
   function getSRPromise(data: any) {
     const xmlBodyVars = getSRVars(data);
-    console.log('BODY VARS => ', xmlBodyVars);
+    info('BODY VARS => ', xmlBodyVars);
     const body = swissReBody(xmlBodyVars);
 
     return swissReInstance.post('/rate/sync/srxplus/losses', body, {
@@ -152,15 +152,15 @@ export default async (event: StorageEvent) => {
       const promises = parsedData.map((r) => getSRPromise(r));
 
       let results = await Promise.all(promises);
-      results.forEach((result) => console.log('DATA: ', result.data));
+      results.forEach((result) => info('DATA: ', result.data));
       let aals = results.map((r) =>
         r.data?.expectedLosses ? extractAAL(r.data?.expectedLosses) : { inlandAAL: 0, surgeAAL: 0 }
       );
 
-      console.log('AALs: ', aals);
+      info('AALs: ', aals);
 
       if (parsedData.length !== aals.length) {
-        console.log('AAL COUNT NOT THE SAME AS ROW COUNT - RETURNING EARLY');
+        info('AAL COUNT NOT THE SAME AS ROW COUNT - RETURNING EARLY');
         throw new Error(
           'AAL count not same as row count. Cannot merge without risk if data mismatch'
         );
@@ -175,60 +175,11 @@ export default async (event: StorageEvent) => {
           let getPremProps = getPremCalcVars(r);
           const rowPremData = getPremium({ ...getPremProps, isPortfolio: true });
 
-          let premium = rowPremData?.premiumData?.directWrittenPremium ?? '';
-          let minPrem = rowPremData?.minPremium ?? '';
-          let inlandMult = rowPremData?.secondaryFactorMults?.inland ?? '';
-          let surgeMult = rowPremData?.secondaryFactorMults?.surge ?? '';
-          let basementMult =
-            rowPremData?.secondaryFactorMults?.secondaryFactorMultsByFactor?.basementMult ?? '';
-          let inlandHistoryMult =
-            rowPremData?.secondaryFactorMults?.secondaryFactorMultsByFactor?.historyMult?.inland ??
-            '';
-          let surgeHistoryMult =
-            rowPremData?.secondaryFactorMults?.secondaryFactorMultsByFactor?.historyMult?.surge ??
-            '';
-          let inlandFFEMult =
-            rowPremData?.secondaryFactorMults?.secondaryFactorMultsByFactor?.ffeMult.inland ?? '';
-          let surgeFFEMult =
-            rowPremData?.secondaryFactorMults?.secondaryFactorMultsByFactor?.ffeMult.surge ?? '';
-          let inlandStateMult = rowPremData?.stateMultipliers?.inland ?? '';
-          let surgeStateMult = rowPremData?.stateMultipliers?.surge ?? '';
-          let inlandPM = rowPremData?.pm?.inland ?? '';
-          let surgePM = rowPremData?.pm?.surge ?? '';
-          let inlandRiskScore = rowPremData?.riskScore?.inland ?? '';
-          let surgeRiskScore = rowPremData?.riskScore?.surge ?? '';
-          let inlandTechPrem = rowPremData?.premiumData?.techPremium.inland ?? '';
-          let surgeTechPrem = rowPremData?.premiumData?.techPremium.surge ?? '';
-          let subproducerAdj = rowPremData?.premiumData?.subproducerAdj ?? '';
-
-          let provisionalPremium = rowPremData?.premiumData?.provisionalPremium ?? '';
-          let premiumSubtotal = rowPremData?.premiumData?.premiumSubtotal;
-          let minPremiumAdj = rowPremData?.premiumData?.minPremiumAdj;
+          const formattedPremData = formatPremData(rowPremData);
 
           result.push({
             ...r,
-            basementMult,
-            inlandHistoryMult,
-            surgeHistoryMult,
-            inlandFFEMult,
-            surgeFFEMult,
-            inlandMult,
-            surgeMult,
-            inlandStateMult,
-            surgeStateMult,
-            inlandPM,
-            surgePM,
-            inlandRiskScore,
-            surgeRiskScore,
-            inlandTechPrem,
-            surgeTechPrem,
-            premiumSubtotal,
-            minPrem,
-            minPremiumAdj,
-            provisionalPremium,
-            subproducerAdj,
-            premium,
-            notes: '',
+            ...formattedPremData,
           });
         } catch (err) {
           result.push({
@@ -260,11 +211,11 @@ export default async (event: StorageEvent) => {
       }
 
       // return writeToStorage(merged);
-      console.log(`INVALID ROWS (COUNT: ${invalidRows.length}): `, invalidRows);
+      info(`INVALID ROWS (COUNT: ${invalidRows.length}): `, invalidRows);
       return writeToStorage(result);
     } catch (err: any) {
-      console.log('ERR: ', err);
-      console.log('ERROR: ', err?.response?.data);
+      info('ERR: ', err);
+      info('ERROR: ', err?.response?.data);
       throw err;
     }
   }
@@ -280,13 +231,13 @@ export default async (event: StorageEvent) => {
 
     csvStream
       .pipe(storageFile.createWriteStream())
-      .on('finish', () => console.log(`FINISHED WRITING TO ${storageFile.name}`));
+      .on('finish', () => info(`FINISHED WRITING TO ${storageFile.name}`));
   }
 
   return;
 };
 
-function getSRVars(row: any) {
+export function getSRVars(row: any) {
   let rcvB = row.cov_b_rcv || 0;
   let limitB = row.cov_b_limit || 0;
 
@@ -306,7 +257,7 @@ function getSRVars(row: any) {
   };
 }
 
-function getPremCalcVars(row: any) {
+export function getPremCalcVars(row: any) {
   return {
     inlandAAL: row.inlandAAL,
     surgeAAL: row.surgeAAL,
@@ -322,53 +273,106 @@ function getPremCalcVars(row: any) {
   };
 }
 
-function validateRow(data: any) {
+export function validateRow(data: any) {
   if (!data.cov_a_rcv) {
-    console.log(`INVALID - "cov_a_rcv" - VALUE: ${data.cov_a_rcv}`);
+    info(`INVALID - "cov_a_rcv" - VALUE: ${data.cov_a_rcv}`);
     return false;
   }
   if (!data.cov_b_rcv && data.cov_b_rcv !== 0) {
-    console.log(
-      `INVALID - "cov_b_rcv" - VALUE: ${data.cov_b_rcv} - TYPE: ${typeof data.cov_b_rcv}`
-    );
+    info(`INVALID - "cov_b_rcv" - VALUE: ${data.cov_b_rcv} - TYPE: ${typeof data.cov_b_rcv}`);
     return false;
   }
   if (!data.cov_c_rcv && data.cov_c_rcv !== 0) {
-    console.log(`INVALID - "cov_c_rcv" - VALUE: ${data.cov_c_rcv}`);
+    info(`INVALID - "cov_c_rcv" - VALUE: ${data.cov_c_rcv}`);
     return false;
   }
   if (!data.cov_d_rcv && data.cov_d_rcv !== 0) {
-    console.log(`INVALID - "cov_d_rcv" - VALUE: ${data.cov_d_rcv}`);
+    info(`INVALID - "cov_d_rcv" - VALUE: ${data.cov_d_rcv}`);
     return false;
   }
   if (!data.cov_a_limit) {
-    console.log(`INVALID - "cov_a_limit" - VALUE: ${data.cov_a_limit}`);
+    info(`INVALID - "cov_a_limit" - VALUE: ${data.cov_a_limit}`);
     return false;
   }
   if (!data.cov_b_limit && data.cov_b_limit !== 0) {
-    console.log(`INVALID - "cov_b_limit" - VALUE: ${data.cov_b_limit}`);
+    info(`INVALID - "cov_b_limit" - VALUE: ${data.cov_b_limit}`);
     return false;
   }
   if (!data.cov_c_limit && data.cov_c_limit !== 0) {
-    console.log(`INVALID - "cov_c_limit" - VALUE: ${data.cov_c_limit}`);
+    info(`INVALID - "cov_c_limit" - VALUE: ${data.cov_c_limit}`);
     return false;
   }
   if (!data.cov_d_limit && data.cov_d_limit !== 0) {
-    console.log(`INVALID - "cov_d_limit" - VALUE: ${data.cov_d_limit}`);
+    info(`INVALID - "cov_d_limit" - VALUE: ${data.cov_d_limit}`);
     return false;
   }
   if (!data.deductible) {
-    console.log(`INVALID - "deductible" - VALUE ${data.deductible}`);
+    info(`INVALID - "deductible" - VALUE ${data.deductible}`);
   }
   if (!data.latitude) {
-    console.log(`INVALID - "latitude" - VALUE ${data.latitude}`);
+    info(`INVALID - "latitude" - VALUE ${data.latitude}`);
   }
   if (!data.longitude) {
-    console.log(`INVALID - "longitude" - VALUE ${data.longitude}`);
+    info(`INVALID - "longitude" - VALUE ${data.longitude}`);
   }
   if (!data.state) {
-    console.log(`INVALID - "state" - VALUE ${data.state}`);
+    info(`INVALID - "state" - VALUE ${data.state}`);
   }
 
   return true;
+}
+
+export function formatPremData(rowPremData: any) {
+  let premium = rowPremData?.premiumData?.directWrittenPremium ?? '';
+  let minPrem = rowPremData?.minPremium ?? '';
+  let inlandMult = rowPremData?.secondaryFactorMults?.inland ?? '';
+  let surgeMult = rowPremData?.secondaryFactorMults?.surge ?? '';
+  let basementMult =
+    rowPremData?.secondaryFactorMults?.secondaryFactorMultsByFactor?.basementMult ?? '';
+  let inlandHistoryMult =
+    rowPremData?.secondaryFactorMults?.secondaryFactorMultsByFactor?.historyMult?.inland ?? '';
+  let surgeHistoryMult =
+    rowPremData?.secondaryFactorMults?.secondaryFactorMultsByFactor?.historyMult?.surge ?? '';
+  let inlandFFEMult =
+    rowPremData?.secondaryFactorMults?.secondaryFactorMultsByFactor?.ffeMult.inland ?? '';
+  let surgeFFEMult =
+    rowPremData?.secondaryFactorMults?.secondaryFactorMultsByFactor?.ffeMult.surge ?? '';
+  let inlandStateMult = rowPremData?.stateMultipliers?.inland ?? '';
+  let surgeStateMult = rowPremData?.stateMultipliers?.surge ?? '';
+  let inlandPM = rowPremData?.pm?.inland ?? '';
+  let surgePM = rowPremData?.pm?.surge ?? '';
+  let inlandRiskScore = rowPremData?.riskScore?.inland ?? '';
+  let surgeRiskScore = rowPremData?.riskScore?.surge ?? '';
+  let inlandTechPrem = rowPremData?.premiumData?.techPremium.inland ?? '';
+  let surgeTechPrem = rowPremData?.premiumData?.techPremium.surge ?? '';
+  let subproducerAdj = rowPremData?.premiumData?.subproducerAdj ?? '';
+
+  let provisionalPremium = rowPremData?.premiumData?.provisionalPremium ?? '';
+  let premiumSubtotal = rowPremData?.premiumData?.premiumSubtotal;
+  let minPremiumAdj = rowPremData?.premiumData?.minPremiumAdj;
+
+  return {
+    basementMult,
+    inlandHistoryMult,
+    surgeHistoryMult,
+    inlandFFEMult,
+    surgeFFEMult,
+    inlandMult,
+    surgeMult,
+    inlandStateMult,
+    surgeStateMult,
+    inlandPM,
+    surgePM,
+    inlandRiskScore,
+    surgeRiskScore,
+    inlandTechPrem,
+    surgeTechPrem,
+    premiumSubtotal,
+    minPrem,
+    minPremiumAdj,
+    provisionalPremium,
+    subproducerAdj,
+    premium,
+    notes: '',
+  };
 }

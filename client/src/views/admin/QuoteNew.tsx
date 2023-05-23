@@ -63,6 +63,7 @@ import {
   submissionsCollection,
   SUBMISSION_STATUS,
   TaxItem,
+  Nullable,
 } from 'common';
 import { ShowRatingDialog } from './SubmissionView';
 import invariant from 'tiny-invariant';
@@ -235,7 +236,7 @@ export interface NewQuoteValues {
   agencyName: string | null;
   agencyId: string | null;
   priorLossCount: string;
-  ratingPropertyData: RatingPropertyData;
+  ratingPropertyData: Nullable<RatingPropertyData>;
   AAL: {
     inland: number | null;
     surge: number | null;

@@ -169,7 +169,7 @@ export const sendpolicydoc = onCall(
 
 export const updateandratequote = onCall(
   {
-    minInstances: 1,
+    minInstances,
     memory: '128MiB',
   },
   async (request) => {
@@ -180,7 +180,7 @@ export const updateandratequote = onCall(
 export const verifyepaytoken = onCall(
   {
     secrets: [ePayCreds],
-    minInstances: 1,
+    minInstances,
     memory: '128MiB',
   },
   async (request) => {

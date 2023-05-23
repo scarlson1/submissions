@@ -57,7 +57,13 @@ export {
   setClaimsFromInvite,
 } from './authEvents';
 export { authRequests } from './routes';
-export { getaalportfolio, importpolicies, getaalandrateportfolio, getfips } from './storageEvents';
+export {
+  getaalportfolio,
+  importpolicies,
+  getaalandrateportfolio,
+  getfips,
+  rateportfolio,
+} from './storageEvents';
 export { markpaidonpaymentcomplete } from './pubsub';
 export {
   checkachstatus,

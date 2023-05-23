@@ -1,5 +1,5 @@
 import { StorageEvent } from 'firebase-functions/v2/storage';
-import { logger } from 'firebase-functions/v1';
+import { info, error } from 'firebase-functions/logger';
 import { getStorage } from 'firebase-admin/storage';
 import path from 'path';
 import os from 'os';
@@ -26,14 +26,14 @@ export default async (event: StorageEvent) => {
   // TODO: better filtering to only run on wanted uploads
 
   if (!event.data.name?.startsWith(`${PORTFOLIO_UPLOAD_FOLDER}/`)) {
-    logger.log(
+    info(
       `Ignoring upload "${event.data.name}" because is not in the "/${PORTFOLIO_UPLOAD_FOLDER}/*" folder.`
     );
     return null;
   }
 
   if (fileName.startsWith('processed') || fileName.startsWith('sr')) {
-    logger.log(`Ignoring upload "${event.data.name}" because it was already processed.`);
+    info(`Ignoring upload "${event.data.name}" because it was already processed.`);
     return null;
   }
 
@@ -58,7 +58,7 @@ export default async (event: StorageEvent) => {
   const tempFilePath = path.join(os.tmpdir(), `temp_SR_${fileName}`);
 
   await bucket.file(filePath).download({ destination: tempFilePath });
-  logger.log('File downloaded locally to', tempFilePath);
+  info('File downloaded locally to', tempFilePath);
 
   const dataArray: any[] = [];
 
@@ -80,7 +80,7 @@ export default async (event: StorageEvent) => {
       deductible: parseInt(getNumber(data.deductible)) || 3000,
     }))
     .on('error', (err) => {
-      console.error(err);
+      error(err);
       fs.unlinkSync(tempFilePath);
       return;
     })
@@ -229,14 +229,14 @@ function getSRVars(row: any) {
 //   // TODO: better filtering to only run on wanted uploads
 
 //   if (!object.name?.startsWith(`${PORTFOLIO_UPLOAD_FOLDER}/`)) {
-//     logger.log(
+//     info(
 //       `Ignoring upload "${object.name}" because is not in the "/${PORTFOLIO_UPLOAD_FOLDER}/*" folder.`
 //     );
 //     return null;
 //   }
 
 //   if (fileName.startsWith('processed') || fileName.startsWith('sr')) {
-//     logger.log(`Ignoring upload "${object.name}" because it was already processed.`);
+//     info(`Ignoring upload "${object.name}" because it was already processed.`);
 //     return null;
 //   }
 
@@ -261,7 +261,7 @@ function getSRVars(row: any) {
 //   const tempFilePath = path.join(os.tmpdir(), `temp_SR_${fileName}`);
 
 //   await bucket.file(filePath).download({ destination: tempFilePath });
-//   logger.log('File downloaded locally to', tempFilePath);
+//   info('File downloaded locally to', tempFilePath);
 
 //   const dataArray: any[] = [];
 
@@ -283,7 +283,7 @@ function getSRVars(row: any) {
 //       deductible: parseInt(getNumber(data.deductible)) || 3000,
 //     }))
 //     .on('error', (err) => {
-//       console.error(err);
+//       error(err);
 //       fs.unlinkSync(tempFilePath);
 //       return;
 //     })

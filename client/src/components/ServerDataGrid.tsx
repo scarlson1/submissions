@@ -45,8 +45,6 @@ export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
 }) => {
   // const [isPending, startTransition] = useTransition();
   // const [densityV, setDensity] = useState<GridDensity>(density);
-  // const [page, setPage] = useState(0);
-  // const [pageSize, setPageSize] = useState(10);
   const [paginationModel, setPaginationModel] = React.useState({
     pageSize: 10,
     page: 0,
@@ -85,17 +83,12 @@ export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
   );
   // const deferredData = useDeferredValue(data);
 
-  // const rowData = useMemo(() => {
-  //   return deferredData?.docs?.map((doc) => ({ ...doc.data(), id: doc.id })) ?? [];
-  // }, [deferredData]);
   const rowData = useMemo(() => {
     return data?.docs?.map((doc) => ({ ...doc.data(), id: doc.id })) ?? [];
   }, [data]);
 
-  // TODO: combine page size and page state
   const handlePaginationModelChange = useCallback(
     (model: GridPaginationModel, details: GridCallbackDetails<any>) => {
-      // if (model.page !== page) {
       startTransition(() => {
         setPaginationModel((currModel) => {
           // save the last document as page's cursor (query uses "startAfter(snap)")
@@ -103,20 +96,9 @@ export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
             cursors.current.set(currModel.page + 1, data.docs[data.docs.length - 1]);
 
           // update state to the next page's number
-          return model; // model.page;
+          return model;
         });
-        // setPage((page) => {
-        //   // save the last document as page's cursor (query uses "startAfter(snap)")
-        //   cursors.current.set(page + 1, data.docs[data.docs.length - 1]);
-
-        //   // update state to the next page's number
-        //   return model.page;
-        // });
       });
-      // }
-      // if (model.pageSize !== pageSize) {
-      //   setPageSize(model.pageSize);
-      // }
     },
     [data] // page, pageSize]
   );

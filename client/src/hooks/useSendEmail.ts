@@ -28,6 +28,7 @@ export const useSendEmail = ({ onSuccess, onError }: UseSendEmailProps | undefin
         let errMsg = 'Error delivering email';
         if (err.message) errMsg += ` - ${err.message}`;
         setError(err);
+        console.log('ERROR MSG: ', errMsg);
         if (onError) onError(errMsg, err);
         setLoading(false);
       }

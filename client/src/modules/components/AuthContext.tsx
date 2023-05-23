@@ -227,7 +227,7 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
 
   const handleReauthResult = useCallback(
     (userCred: UserCredential) => {
-      console.log('handleReauthResult userCred: ', userCred);
+      // console.log('handleReauthResult userCred: ', userCred);
       if (reauthPromiseRef.current) {
         reauthPromiseRef.current.resolve(userCred);
       }

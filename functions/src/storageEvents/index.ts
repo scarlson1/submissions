@@ -34,6 +34,15 @@ export const getfips = onObjectFinalized({ secrets: [googleGeoKey] }, async (eve
   await (await import('./getFIPS.js')).default(event);
 });
 
+export const rateportfolio = onObjectFinalized(
+  {
+    secrets: [swissReClientId, swissReClientSecret, swissReSubscriptionKey],
+  },
+  async (event) => {
+    await (await import('./ratePortfolio.js')).default(event);
+  }
+);
+
 // export const storageObjectOnFinalizeFn = functions.storage
 //   .object()
 //   .onFinalize(async (object, context) => {

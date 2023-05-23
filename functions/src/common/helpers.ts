@@ -136,3 +136,16 @@ export const isJSON = (obj: string) => {
 export const printObj = (obj: any) => {
   console.log(inspect(obj, false, null));
 };
+
+/**
+ * Split an array of items into array of provided size
+ * @param {any[]} data - array of data
+ * @param {number} size - number of items in each chunk
+ * @return {any[][]} return array of arrays of "size" length
+ */
+export function splitChunks(data: any[], size: number) {
+  let chunks = [];
+  for (let i = 0; i < data.length; i += size) chunks.push(data.slice(i, i + size));
+
+  return chunks;
+}

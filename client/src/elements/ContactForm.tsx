@@ -29,7 +29,7 @@ export const ContactForm: React.FC<ContactFormProps> = () => {
   // const { sendMessage, loading } = useContactUs();
   const { send: sendMessage, loading } = useSendEmail({
     onSuccess: () => toast.success('message sent!'),
-    onError: () => toast.error('message delivery failed'),
+    onError: (msg: string) => toast.error('message delivery failed'),
   });
 
   const handleSubmit = useCallback(

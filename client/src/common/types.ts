@@ -27,6 +27,12 @@ export interface BaseDoc {
 
 export type WithId<T> = T & { id: string };
 
+export type Nullable<T> = { [K in keyof T]: T[K] | null };
+
+export type DeepNullable<T> = {
+  [K in keyof T]: DeepNullable<T[K]> | null;
+};
+
 export interface Submission extends FloodValues, FetchPropertyDataResponse {
   coordinates: GeoPoint;
   countyFIPS?: string | null;
@@ -152,16 +158,42 @@ export interface TaxItem {
 // TODO: temparary (quote data interface for interim submissions period) REPLACE
 
 export interface RatingPropertyData {
-  CBRSDesignation: string | null;
-  basement: string | null; // BasementOptions | null;
-  distToCoastFeet: number | null;
-  floodZone: string | null; // FloodZones | null;
-  numStories: number | null;
-  propertyCode: string | null;
-  replacementCost: number | null;
-  sqFootage: number | null;
-  yearBuilt: number | null;
+  CBRSDesignation: string;
+  basement: string; // BasementOptions | null;
+  distToCoastFeet: number;
+  floodZone: string; // FloodZones | null;
+  numStories: number;
+  propertyCode: string;
+  replacementCost: number;
+  sqFootage: number;
+  yearBuilt: number;
+  ffe?: number;
 }
+
+interface RatingCalcData {
+  AAL: {
+    inland: number;
+    surge: number;
+  };
+  PM: {
+    inland: number;
+    surge: number;
+  };
+  riskScore: {
+    inland: number;
+    surge: number;
+  };
+  stateMultipliers: {
+    inland: number;
+    surge: number;
+  };
+  secondaryFactorMults: {
+    inland: number;
+    surge: number;
+  };
+}
+
+type PropWithRatingCalcData = Nullable<RatingPropertyData> & RatingCalcData;
 
 export interface SubmissionQuoteData {
   product: Product; // keyof typeof Product;
@@ -209,7 +241,7 @@ export interface SubmissionQuoteData {
   submissionId?: string | null;
   imageUrls?: { [key: string]: string | null };
   imagePaths?: { [key: string]: string | null };
-  ratingPropertyData: RatingPropertyData;
+  ratingPropertyData: Nullable<RatingPropertyData>;
   geoHash?: Geohash | null;
   notes?: Note[]; // { [key: string]: string }[];
   // quoteIds?: WithFieldValue<string[]>;
@@ -294,6 +326,25 @@ export interface VersionAwareMetadata extends BaseMetadata {
   archivedAtVersion: WithFieldValue<number | null>;
 }
 
+// TODO: add UW adjustment?? or is that applied after DWP
+interface PremiumCalcData {
+  minPremium: number;
+  techPremium: {
+    inland: number;
+    surge: number;
+  };
+  floodCategoryPremium: {
+    inland: number;
+    surge: number;
+  };
+  premiumSubtotal: number;
+  provisionalPremium: number;
+  subproducerAdj: number;
+  directWrittenPremium: number;
+  subproducerCommissionPct: number;
+}
+
+// TODO: standardize this interface with the "Trx" interface
 export interface RatingData {
   quoteDocRef: string;
   quoteId: string;
@@ -307,56 +358,42 @@ export interface RatingData {
     d: number;
     spatialKey: number;
   };
-  ratingData: {
-    AAL: {
-      inland: number;
-      surge: number;
-    };
-    PM: {
-      inland: number;
-      surge: number;
-    };
-    riskScore: {
-      inland: number;
-      surge: number;
-    };
-    stateMultipliers: {
-      inland: number;
-      surge: number;
-    };
-    secondaryFactorMults: {
-      inland: number;
-      surge: number;
-    };
-    basement: BasementOptions;
-    floodZone: FloodZones;
-    ffe: number;
-    numStories: number;
-    sqFootage: number;
-    distToCoast: number;
-    propertyCode: string;
-    yearBuilt: number;
-    CBRSDesignation: string;
-  };
-  premiumData: {
-    minPremium: number;
-    techPremium: {
-      inland: number;
-      surge: number;
-    };
-    floodCategoryPremium: {
-      inland: number;
-      surge: number;
-    };
-    premiumSubtotal: number;
-    provisionalPremium: number;
-    subproducerAdj: number;
-    directWrittenPremium: number;
-    subproducerCommissionPct: number;
-  };
+  ratingData: PropWithRatingCalcData;
+  // ratingData: {
+  //   AAL: {
+  //     inland: number;
+  //     surge: number;
+  //   };
+  //   PM: {
+  //     inland: number;
+  //     surge: number;
+  //   };
+  //   riskScore: {
+  //     inland: number;
+  //     surge: number;
+  //   };
+  //   stateMultipliers: {
+  //     inland: number;
+  //     surge: number;
+  //   };
+  //   secondaryFactorMults: {
+  //     inland: number;
+  //     surge: number;
+  //   };
+  //   basement: BasementOptions;
+  //   floodZone: FloodZones;
+  //   ffe: number;
+  //   numStories: number;
+  //   sqFootage: number;
+  //   distToCoast: number;
+  //   propertyCode: string;
+  //   yearBuilt: number;
+  //   CBRSDesignation: string;
+  // };
+  premiumData: PremiumCalcData;
   address: Address;
   geoHash?: any;
-  lat: number;
+  lat: number; // TODO: use GeoPoint ??
   lng: number;
   externalId: string | null;
   metadata: VersionAwareMetadata;
@@ -449,7 +486,7 @@ export interface PolicyLocationNew {
   geoHash: Geohash;
   locationId: string;
   fips: string;
-  propData: RatingPropertyData;
+  propData: Nullable<RatingPropertyData>;
   deductible: number;
   limits: Limits;
   tiv: number;
@@ -495,6 +532,57 @@ export interface Policy extends BaseDoc {
   // darkMapImageFilePath?: string;
   // lightMapImageFilePath?: string;
   // metadata: BaseMetadata;
+}
+
+export interface TrxRatingData extends Nullable<RatingPropertyData> {
+  // dwellingType: string;  same as propertyType ??
+  units: number;
+  tier1: boolean;
+  construction: string;
+  priorLossCount: string | null; // number
+}
+
+export interface Transaction extends BaseDoc {
+  trxType: TransactionType;
+  policyNumber: string;
+  term: number;
+  reportDate: Timestamp;
+  trxTimestamp: Timestamp;
+  bookingDate: Timestamp;
+  issuingCarrier: string;
+  policyType: Product;
+  namedInsured: string;
+  mailingAddress: Address;
+  locationId: string;
+  insuredLocation: PolicyLocation;
+  // insuredAddress: Address;
+  // insuredCoords: GeoPoint;
+  // locationHash: Geohash;
+  policyEffDate: Timestamp;
+  policyExpDate: Timestamp;
+  trxEffDate: Timestamp;
+  trxExpDate: Timestamp; // what's this ?? need example
+  cancelEffDate: Timestamp;
+  ratingPropertyData: TrxRatingData;
+  deductible: number;
+  limits: Limits;
+  tiv: number;
+  rcvs: RCVs;
+  premiumCalcData: PremiumCalcData; // TODO
+  externalId: string | null;
+  policyAnnualDWP: number;
+  termProratedPct: number;
+  policyTermDWP: number;
+  MGACommission: number;
+  netDWP: number;
+  netErrorAdj?: number | null;
+  trxPolicyDays: number;
+  dailyPremium: number; // calcualted in SQL query
+  submission?: string;
+  otherInterestedParties: string[];
+  additionalNamedInsured: string[];
+  mgaCommRate: number;
+  homeState: string;
 }
 
 export interface User extends BaseDoc {

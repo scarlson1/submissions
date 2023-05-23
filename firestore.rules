@@ -59,11 +59,10 @@ service cloud.firestore {
 
     // POLICY TRANSACTIONS (NOT FINANCIAL/CHARGES)
     match /transactions/{trxId} {
-      allow read: if isUser(existingData().userId) || isAgent(existingData().agentId) || isIDemandAdmin() 
+      allow read: if isUser(existingData().userId) || isAgent(existingData().agentId) || isIDemandAdmin() // or isOrgAdmin ??
       allow create, update: if isIDemandAdmin() && emailVerified()
       allow delete: if false;
     }
-    
 
     // TODO: update allow read of user profile (tenant/agent/insured etc.)
     match /users/{userId} {

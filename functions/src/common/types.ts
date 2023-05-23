@@ -1,6 +1,8 @@
 import { Request } from 'express';
 import { DecodedIdToken } from 'firebase-admin/auth';
 import { GeoPoint, Timestamp } from 'firebase-admin/firestore';
+import { v4 as uuid } from 'uuid';
+// import merge from 'deepmerge';
 // import { Timestamp, WithFieldValue } from '@google-cloud/firestore';
 
 import {
@@ -26,6 +28,13 @@ export interface BaseDoc {
 }
 
 export type WithId<T> = T & { id: string };
+
+export type Nullable<T> = { [K in keyof T]: T[K] | null };
+
+export type DeepNullable<T> = {
+  [K in keyof T]: DeepNullable<T[K]> | null;
+};
+
 export interface RequestUserAuth extends Request {
   user?: DecodedIdToken;
   tenantId?: string;
@@ -55,6 +64,25 @@ export interface User {
 export interface Agent extends User {
   defaultCommission?: DefaultCommission;
 }
+
+export interface IndividualNamedInsured {
+  displayName: string;
+  firstName?: string;
+  lastName?: string;
+  email: string;
+  phone: string;
+  userId?: string | null;
+  orgId?: string;
+}
+
+export interface EntityNamedInsured {
+  displayName: string;
+  email: string;
+  phone: string;
+  orgId?: string;
+}
+
+export type NamedInsured = IndividualNamedInsured | EntityNamedInsured;
 
 export interface EPayVerifiedResponse {
   id: string;
@@ -303,7 +331,20 @@ export interface RatingPropertyData {
   replacementCost: number;
   sqFootage: number;
   yearBuilt: number;
+  ffe?: number;
 }
+// export interface RatingPropertyData {
+//   CBRSDesignation: string | null;
+//   basement: string | null; // BasementOptions | null;
+//   distToCoastFeet: number | null;
+//   floodZone: string | null; // FloodZones | null;
+//   numStories: number | null;
+//   propertyCode: string | null;
+//   replacementCost: number | null;
+//   sqFootage: number | null;
+//   yearBuilt: number | null;
+//   ffe?: number | null;
+// }
 
 export interface FetchPropertyDataResponse extends Partial<RatingPropertyData> {
   initDeductible: number;
@@ -418,7 +459,215 @@ export interface SubmissionQuoteData {
   };
 }
 
+export type RCVKeys = 'building' | 'otherStructures' | 'contents' | 'BI' | 'total';
+
+export type RCVs = Record<RCVKeys, number>;
+
+export interface PolicyLocation {
+  address: Address;
+  coordinates: GeoPoint;
+  geoHash: Geohash;
+  limits: Limits;
+  rcvs: RCVs;
+  active: true; // https://stackoverflow.com/a/62626994/10887890
+  additionalInsureds: AdditionalInsured[];
+  mortgageeInterest: Mortgagee[];
+  ratingDocId: string;
+  effectiveDate: Timestamp;
+  expirationDate: Timestamp;
+  metadata: {
+    created: Timestamp;
+    updated: Timestamp;
+  };
+}
+
 export interface Policy {
+  status: POLICY_STATUS;
+  limits: Limits;
+  deductible: number;
+  mailingAddress: Address;
+  namedInsured: NamedInsured;
+  locations: Record<string, PolicyLocation>;
+  effectiveDate: Timestamp;
+  expirationDate: Timestamp;
+  userId: string | null;
+  agent: {
+    agentId: string | null;
+    name: string | null;
+    email: string | null;
+  };
+  agency: {
+    orgId: string | null; // TODO: remove null ??
+    name: string | null;
+  };
+  documents: { displayName: string; downloadUrl: string; storagePath: string }[];
+  imageUrls?: { [key: string]: string | null } | null;
+  imagePaths?: { [key: string]: string | null } | null;
+  // transactions: string[]; // TODO: delete or decide how to associate policies and transactions (just query transactions by policyId ??)
+  price: number;
+  cardFee: number;
+  metadata: BaseMetadata;
+}
+
+export interface IPolicyClass extends Policy {
+  getLocation: (id: string) => any; // TODO LOCATION INTERFACE
+  initIsExpired: () => boolean; // TODO: figure out how to make private (#)
+  addLocation: (
+    locationData: PolicyLocation,
+    id?: string
+  ) => Promise<{ locationId: string; newTotal: number }>;
+  removeLocation: (id: string) => Promise<void>;
+  getLocationCount: () => number;
+  updateLocation: (id: string, newLocationValues: Partial<Location>) => Promise<any>; // TODO: type response
+  calcTotal: () => Promise<number>;
+  cancelPolicy: (cancelDate: Timestamp) => Promise<void>;
+}
+
+export class PolicyClass implements IPolicyClass {
+  readonly id: string;
+  readonly isExpired: boolean;
+  // protected status: POLICY_STATUS;
+  status: POLICY_STATUS;
+  locations: Record<string, PolicyLocation>;
+  public limits: Limits;
+  public deductible: number;
+  public mailingAddress: Address;
+  public namedInsured: NamedInsured;
+  public mortgageeInterest?: Mortgagee[];
+  public effectiveDate: Timestamp;
+  public expirationDate: Timestamp;
+  public price: number;
+  public cardFee: number; // | null;
+  public documents: { displayName: string; downloadUrl: string; storagePath: string }[];
+  // public transactions: any; // TODO: delete ??
+  public userId: string | null;
+  public agency: {
+    orgId: string | null;
+    name: string | null;
+  };
+  public agent: {
+    agentId: string | null;
+    name: string | null;
+    email: string | null;
+  };
+  public metadata: BaseMetadata;
+
+  constructor(policyInfo: WithId<Policy>) {
+    this.id = policyInfo.id;
+    this.status = policyInfo.status;
+    this.locations = {};
+    this.limits = policyInfo.limits;
+    this.deductible = policyInfo.deductible;
+    this.mailingAddress = policyInfo.mailingAddress;
+    this.namedInsured = policyInfo.namedInsured;
+    this.effectiveDate = policyInfo.effectiveDate;
+    this.expirationDate = policyInfo.expirationDate;
+    this.price = policyInfo.price;
+    this.cardFee = policyInfo.cardFee;
+    this.documents = policyInfo.documents || [];
+    // this.transactions = policyInfo.transactions;
+    this.userId = policyInfo.userId;
+    this.agency = policyInfo.agency;
+    this.agent = policyInfo.agent;
+    this.metadata = policyInfo.metadata;
+    this.isExpired = this.initIsExpired();
+  }
+
+  initIsExpired() {
+    return this.expirationDate.toMillis() < new Date().getTime();
+  }
+
+  getLocation(id: string) {
+    // return this.locations[id] || null;
+    const location = this.locations[id] || null;
+    if (!location) throw new Error(`no location found (ID ${id})`);
+    return location;
+  }
+
+  async addLocation(locationData: PolicyLocation, id?: string) {
+    // TODO: validation
+    const locationId = id || uuid();
+    try {
+      this.locations[locationId] = locationData;
+      let newTotal = await this.calcTotal();
+      this.price = newTotal;
+
+      return { locationId, newTotal };
+    } catch (err) {
+      delete this.locations[locationId];
+      throw err;
+    }
+  }
+
+  async removeLocation(id: string) {
+    this.getLocation(id); // will throw if not found
+
+    delete this.locations[id];
+    try {
+      let newTotal = await this.calcTotal();
+      this.price = newTotal;
+    } catch (err) {
+      console.log('ERROR RECALULATING QUOTE: ', err);
+      throw err;
+    }
+  }
+
+  async updateLocation(id: string, newLocationValues: Partial<Location>) {
+    console.log('TODO: update location method');
+    let location = this.getLocation(id);
+
+    try {
+      // TODO: https://www.npmjs.com/package/deepmerge-ts (typings)
+      // this.locations = merge(locations, { [id]: newLocationValues });
+      let newVals = {
+        ...location,
+        ...newLocationValues,
+      };
+      this.locations = {
+        ...this.locations,
+        [id]: newVals,
+      };
+    } catch (err) {}
+  }
+
+  // addAdditionalInsured
+  // removeAdditionalInsured
+  // setAdditionalInsured
+
+  getLocationCount() {
+    return Object.keys(this.locations).length;
+  }
+
+  async calcTotal() {
+    try {
+      // TODO: calc total implementation
+      return 10;
+    } catch (err) {
+      console.log('ERROR CALCULATING TOTAL: ', err);
+      throw new Error('Error calculating quote');
+    }
+  }
+
+  async cancelPolicy(cancelDate: Timestamp) {
+    // TODO: finish method
+    // set status to cancelled
+    // calc refundable amount ??
+  }
+
+  // TODO: use update or set ??
+  updateNamedInsured(newVals: Partial<NamedInsured>) {
+    this.namedInsured = {
+      ...this.namedInsured,
+      ...newVals,
+    };
+  }
+  // setMortgageeInterest
+  // setEffectiveDate
+  // setExpirationDate
+  //
+}
+
+export interface PolicyOld {
   status: POLICY_STATUS;
   limits: Limits;
   deductible: number;
@@ -453,6 +702,76 @@ export interface Policy {
   price: number;
   cardFee: number;
   metadata: BaseMetadata;
+}
+
+interface PremiumCalcData {
+  minPremium: number;
+  techPremium: {
+    inland: number;
+    surge: number;
+  };
+  floodCategoryPremium: {
+    inland: number;
+    surge: number;
+  };
+  premiumSubtotal: number;
+  provisionalPremium: number;
+  subproducerAdj: number;
+  directWrittenPremium: number;
+  subproducerCommissionPct: number;
+}
+
+export interface TrxRatingData extends RatingPropertyData {
+  // dwellingType: string;  same as propertyType ??
+  units: number;
+  tier1: boolean;
+  construction: string;
+  priorLossCount: string | null; // number
+}
+
+export type TransactionType = 'new' | 'renewal' | 'endorsement' | 'cancellation';
+
+export interface Transaction extends BaseDoc {
+  trxType: TransactionType;
+  policyNumber: string;
+  term: number;
+  reportDate: Timestamp;
+  trxTimestamp: Timestamp;
+  bookingDate: Timestamp;
+  issuingCarrier: string;
+  policyType: Product;
+  namedInsured: string;
+  mailingAddress: Address;
+  locationId: string;
+  insuredLocation: PolicyLocation;
+  // insuredAddress: Address;
+  // insuredCoords: GeoPoint;
+  // locationHash: Geohash;
+  policyEffDate: Timestamp;
+  policyExpDate: Timestamp;
+  trxEffDate: Timestamp;
+  trxExpDate: Timestamp; // what's this ?? need example
+  cancelEffDate: Timestamp;
+  ratingPropertyData: TrxRatingData;
+  deductible: number;
+  limits: Limits;
+  tiv: number;
+  rcvs: RCVs;
+  premiumCalcData: PremiumCalcData; // TODO
+  externalId: string | null;
+  policyAnnualDWP: number;
+  termProratedPct: number;
+  policyTermDWP: number;
+  MGACommission: number;
+  netDWP: number;
+  netErrorAdj?: number | null;
+  trxPolicyDays: number;
+  dailyPremium: number; // calcualted in SQL query
+  submission?: string;
+  otherInterestedParties: string[];
+  additionalNamedInsured: string[];
+  mgaCommRate: number;
+  homeState: string;
 }
 
 export type InviteStatus = 'pending' | 'accepted' | 'revoked' | 'replaced' | 'rejected' | 'error';

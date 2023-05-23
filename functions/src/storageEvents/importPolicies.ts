@@ -1,9 +1,9 @@
 import { StorageEvent } from 'firebase-functions/v2/storage';
 import { projectID } from 'firebase-functions/params';
+import { info } from 'firebase-functions/logger';
 import { getStorage } from 'firebase-admin/storage';
 import { Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { camelCase } from 'lodash'; // snakeCase
-import { logger } from 'firebase-functions/v1';
 import path from 'path';
 import os from 'os';
 import fs from 'fs';
@@ -155,7 +155,7 @@ export default async (event: StorageEvent) => {
   const metageneration = event.data.metageneration as unknown;
 
   if (!event.data.name?.startsWith(`${IMPORT_POLICIES_FOLDER}/`)) {
-    logger.log(
+    info(
       `Ignoring upload "${event.data.name}" because is not in the "/${IMPORT_POLICIES_FOLDER}/*" folder.`
     );
     return null;
@@ -176,7 +176,7 @@ export default async (event: StorageEvent) => {
   const tempFilePath = path.join(os.tmpdir(), `temp_portfolio_import_${fileName}`);
 
   await bucket.file(filePath).download({ destination: tempFilePath });
-  logger.log('File downloaded locally to', tempFilePath);
+  info('File downloaded locally to', tempFilePath);
 
   const dataArr: any[] = [];
   const invalidRows: { rowNum: any; rowData: any }[] = [];
