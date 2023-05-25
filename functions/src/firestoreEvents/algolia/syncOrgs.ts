@@ -3,7 +3,7 @@ import type { DocumentSnapshot } from 'firebase-admin/firestore';
 import algoliasearch from 'algoliasearch';
 
 import { algoliaAdminKey, algoliaAppId } from './index.js';
-import { COLLECTIONS, Organization } from '../../common/index.js';
+import { COLLECTIONS, Organization, audience } from '../../common/index.js';
 
 export default async (
   event: FirestoreEvent<
@@ -19,7 +19,7 @@ export default async (
 
   const client = algoliasearch(appId, adminKey);
   let indexName = COLLECTIONS.ORGANIZATIONS as string;
-  if (process.env.AUDIENCE === 'LOCAL HUMANS') {
+  if (audience.value() === 'LOCAL HUMANS') {
     indexName = `local_${indexName}`;
   }
   const index = client.initIndex(indexName);

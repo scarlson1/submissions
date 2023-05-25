@@ -1,3 +1,5 @@
+// import { info } from 'firebase-functions/logger';
+
 import { getFirstFloorDiffFactors } from './firstFloorDiff.js';
 
 const CONTENTS_RCV_MULT = 1;
@@ -16,7 +18,7 @@ export const getHistoryMultInland = (score: number) => {
   if (score <= 51) return 1.5; // 21 - 51 return 1.5
   if (score <= 71) return 1.75; // 51 - 71 return 1.75
 
-  console.log('INLAND FLOOD HISTORY CHECK FAILED. RISK SCORE: ', score);
+  // info('INLAND FLOOD HISTORY CHECK FAILED. RISK SCORE: ', score);
   return null;
 };
 
@@ -25,12 +27,12 @@ export const getHistoryMultSurge = (score: number) => {
   if (score <= 21) return 1.5;
   if (score <= 51) return 1.75;
 
-  console.log('SURGE FLOOD HISTORY CHECK FAILED. RISK SCORE: ', score);
+  // info('SURGE FLOOD HISTORY CHECK FAILED. RISK SCORE: ', score);
   return null;
 };
 
 export const getBasementFactor = (basementValue = 'unknown') => {
-  console.log('basementValue: ', basementValue);
+  // console.log('basementValue: ', basementValue);
   const checkVal = typeof basementValue === 'string' ? basementValue.toLowerCase() : basementValue;
 
   switch (checkVal) {
@@ -103,7 +105,7 @@ export const getSecondaryModifiers = ({
   secondaryModifiers.history.surge =
     priorLossCount === '0' ? 1 : getHistoryMultSurge(surgeRiskScore);
 
-  console.log('Secondary Modifiers: ', secondaryModifiers);
+  // console.log('Secondary Modifiers: ', secondaryModifiers);
   return secondaryModifiers;
 };
 
@@ -122,10 +124,10 @@ export const calcSecondaryMult = (historyMult: number, ffeFactor: number, baseme
 
 export function getSecondaryFactorMults(props: SecondaryModifiersProps) {
   const { ffeMult, basementMult, history } = getSecondaryModifiers(props);
-  console.log('get secondary factor props: ', props);
-  console.log('ffeMult: ', ffeMult);
-  console.log('basementMult: ', basementMult);
-  console.log('history: ', history);
+  // info('get secondary factor props: ', JSON.stringify(props));
+  // info('ffeMult: ', JSON.stringify(ffeMult));
+  // info('basementMult: ', JSON.stringify(basementMult));
+  // info('history: ', JSON.stringify(history));
 
   if (!history.inland || !history.surge) {
     console.log('FAILED HISTORY TEST. ALLOWING BYPASS WITH MULTPLE = 1.5');

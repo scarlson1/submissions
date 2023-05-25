@@ -16,11 +16,12 @@ import {
 
 import {
   COLLECTIONS,
+  audience,
   extractNumber,
   getNumber,
   policiesCollection,
   sendgridApiKey,
-} from '../common';
+} from '../common/index.js';
 import { sendAdminPolicyImportNotification } from '../services/sendgrid';
 
 // TODO: create helper functions to reduce boilerplate (downloadFile(storage, filePath, etc.))
@@ -273,7 +274,7 @@ export default async (event: StorageEvent) => {
         const to = ['spencer.carlson@idemandinsurance.com'];
         let link;
 
-        if (process.env.AUDIENCE !== 'LOCAL HUMANS') {
+        if (audience.value() !== 'LOCAL HUMANS') {
           to.push('ron.carlson@idemandinsurance.com');
 
           link = `https://console.firebase.google.com/project/${projectID}/firestore/data/~2F${COLLECTIONS.DATA_IMPORTS}~2F${summaryRef.id}`;

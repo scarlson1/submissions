@@ -1,4 +1,4 @@
-import { calcSum } from '../../common';
+import { calcSum } from '../../common/index.js';
 import { getPremiumData } from './calcPremium.js';
 import { getPM, getSecondaryFactorMults } from './factors.js';
 import { getMinPremium } from './minPremium.js';

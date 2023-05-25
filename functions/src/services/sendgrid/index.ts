@@ -28,6 +28,7 @@ import {
   agencyAppApproved,
   adminPolicyImportNotification,
   quoteExpiringSoon,
+  blankHTML,
 } from './templates';
 
 export interface AttachmentJSON {
@@ -207,11 +208,6 @@ export const sendAgencyAppApprovedNotification = async (
 
   sgMail.setApiKey(key);
 
-  // const to = [email];
-  // if (process.env.AUDIENCE === 'Local Humans') {
-  //   to.push('spencer.carlson@idemandinsurance.com');
-  // }
-
   await sgMail.send(
     createMsgContent({
       to,
@@ -273,6 +269,24 @@ export const sendQuoteExpiringSoonNotification = async (
       to,
       html,
       subject: 'Quote expires tomorrow',
+    })
+  );
+};
+
+export const sendMessage = async (
+  key: string,
+  to: string | string[],
+  msgBody: string,
+  subject: string,
+  toName?: string
+) => {
+  const html = blankHTML({ toName, content: msgBody });
+  sgMail.setApiKey(key);
+  await sgMail.send(
+    createMsgContent({
+      to,
+      html,
+      subject,
     })
   );
 };

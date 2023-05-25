@@ -36,7 +36,8 @@ export const getfips = onObjectFinalized({ secrets: [googleGeoKey] }, async (eve
 
 export const rateportfolio = onObjectFinalized(
   {
-    secrets: [swissReClientId, swissReClientSecret, swissReSubscriptionKey],
+    secrets: [swissReClientId, swissReClientSecret, swissReSubscriptionKey, sendgridApiKey],
+    timeoutSeconds: 900,
   },
   async (event) => {
     await (await import('./ratePortfolio.js')).default(event);

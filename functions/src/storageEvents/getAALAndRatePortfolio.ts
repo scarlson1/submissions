@@ -6,7 +6,7 @@ import os from 'os';
 import fs from 'fs';
 import { format, parse } from 'fast-csv';
 import { snakeCase } from 'lodash';
-import { AxiosInstance } from 'axios';
+import { AxiosInstance, AxiosResponse } from 'axios';
 
 import { getNumber, swissReClientId, swissReClientSecret, swissReSubscriptionKey } from '../common';
 import { generateSRAccessToken, getSwissReInstance } from '../services';
@@ -124,7 +124,8 @@ export default async (event: StorageEvent) => {
     info('BODY VARS => ', xmlBodyVars);
     const body = swissReBody(xmlBodyVars);
 
-    return swissReInstance.post('/rate/sync/srxplus/losses', body, {
+    // TODO: type response
+    return swissReInstance.post<any, AxiosResponse<any, any>>('/rate/sync/srxplus/losses', body, {
       headers: {
         'Content-Type': 'application/octet-stream',
       },
@@ -149,13 +150,27 @@ export default async (event: StorageEvent) => {
 
   async function getAALs(parsedData: any[]) {
     try {
-      const promises = parsedData.map((r) => getSRPromise(r));
+      // TODO: catch errors - https://codehandbook.org/how-to-handle-error-in-javascript-promise-all/
+      const promises = parsedData.map(
+        (r) => getSRPromise(r)
+        // .catch((err: any) => {
+        //   let errMsg = 'Error fetching alls from Swiss Re.';
+        //   // if (err.data.message) errMsg = err.response
+        //   return {
+        //     data: undefined,
+        //     errMsg,
+        //   };
+        // })
+      );
 
       let results = await Promise.all(promises);
-      results.forEach((result) => info('DATA: ', result.data));
+      // results.forEach((result) => info('DATA: ', result?.data));
       let aals = results.map((r) =>
-        r.data?.expectedLosses ? extractAAL(r.data?.expectedLosses) : { inlandAAL: 0, surgeAAL: 0 }
-      );
+        r?.data?.expectedLosses
+          ? extractAAL(r?.data?.expectedLosses)
+          : { inlandAAL: 0, surgeAAL: 0 }
+      ); // TODO: decide what to return instead of 0 ??
+      // let errs = results.map(r => r.errMsg)
 
       info('AALs: ', aals);
 
@@ -308,15 +323,19 @@ export function validateRow(data: any) {
   }
   if (!data.deductible) {
     info(`INVALID - "deductible" - VALUE ${data.deductible}`);
+    return false;
   }
   if (!data.latitude) {
     info(`INVALID - "latitude" - VALUE ${data.latitude}`);
+    return false;
   }
   if (!data.longitude) {
     info(`INVALID - "longitude" - VALUE ${data.longitude}`);
+    return false;
   }
   if (!data.state) {
     info(`INVALID - "state" - VALUE ${data.state}`);
+    return false;
   }
 
   return true;

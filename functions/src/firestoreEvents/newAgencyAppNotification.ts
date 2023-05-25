@@ -2,7 +2,7 @@ import type { FirestoreEvent } from 'firebase-functions/v2/firestore';
 import { QueryDocumentSnapshot } from 'firebase-admin/firestore';
 
 import { sendNewAgencySubmissionAdminNotification } from '../services/sendgrid';
-import { hostingBaseURL, sendgridApiKey } from '../common';
+import { audience, hostingBaseURL, sendgridApiKey } from '../common/index.js';
 
 // const hostingURL = defineString('HOSTING_BASE_URL');
 
@@ -29,7 +29,7 @@ export default async (
   console.log(`submission link: ${link}`);
 
   const adminRecipients = ['spencer.carlson@idemandinsurance.com'];
-  if (process.env.AUDIENCE !== 'LOCAL HUMANS') {
+  if (audience.value() !== 'LOCAL HUMANS') {
     adminRecipients.push('ron.carlson@idemandinsurance.com');
   }
   // const params = {

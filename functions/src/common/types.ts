@@ -481,34 +481,36 @@ export interface PolicyLocation {
   };
 }
 
+// export interface Policy {
+//   status: POLICY_STATUS;
+//   limits: Limits;
+//   deductible: number;
+//   mailingAddress: Address;
+//   namedInsured: NamedInsured;
+//   locations: Record<string, PolicyLocation>;
+//   effectiveDate: Timestamp;
+//   expirationDate: Timestamp;
+//   userId: string | null;
+//   agent: {
+//     agentId: string | null;
+//     name: string | null;
+//     email: string | null;
+//   };
+//   agency: {
+//     orgId: string | null; // TODO: remove null ??
+//     name: string | null;
+//   };
+//   documents: { displayName: string; downloadUrl: string; storagePath: string }[];
+//   imageUrls?: { [key: string]: string | null } | null;
+//   imagePaths?: { [key: string]: string | null } | null;
+//   // transactions: string[]; // TODO: delete or decide how to associate policies and transactions (just query transactions by policyId ??)
+//   price: number;
+//   cardFee: number;
+//   metadata: BaseMetadata;
+// }
 export interface Policy {
-  status: POLICY_STATUS;
-  limits: Limits;
-  deductible: number;
-  mailingAddress: Address;
-  namedInsured: NamedInsured;
-  locations: Record<string, PolicyLocation>;
-  effectiveDate: Timestamp;
-  expirationDate: Timestamp;
-  userId: string | null;
-  agent: {
-    agentId: string | null;
-    name: string | null;
-    email: string | null;
-  };
-  agency: {
-    orgId: string | null; // TODO: remove null ??
-    name: string | null;
-  };
-  documents: { displayName: string; downloadUrl: string; storagePath: string }[];
-  imageUrls?: { [key: string]: string | null } | null;
-  imagePaths?: { [key: string]: string | null } | null;
-  // transactions: string[]; // TODO: delete or decide how to associate policies and transactions (just query transactions by policyId ??)
-  price: number;
-  cardFee: number;
-  metadata: BaseMetadata;
+  [key: string]: any;
 }
-
 export interface IPolicyClass extends Policy {
   getLocation: (id: string) => any; // TODO LOCATION INTERFACE
   initIsExpired: () => boolean; // TODO: figure out how to make private (#)
@@ -627,7 +629,11 @@ export class PolicyClass implements IPolicyClass {
         ...this.locations,
         [id]: newVals,
       };
-    } catch (err) {}
+    } catch (err) {
+      console.log('ERROR: ', err);
+
+      throw err;
+    }
   }
 
   // addAdditionalInsured
@@ -668,41 +674,45 @@ export class PolicyClass implements IPolicyClass {
 }
 
 export interface PolicyOld {
-  status: POLICY_STATUS;
-  limits: Limits;
-  deductible: number;
-  address: Address;
-  coordinates: GeoPoint | null; // TODO: get rid of null in SubmissionQuoteData
-  geoHash?: Geohash | null;
-  namedInsured: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone: string;
-    userId?: string | null;
-  };
-  additionalInsureds?: AdditionalInsured[];
-  mortgageeInterest?: Mortgagee[];
-  effectiveDate: Timestamp;
-  expirationDate: Timestamp;
-  userId: string | null;
-  agent: {
-    agentId: string | null;
-    name: string | null;
-    email: string | null;
-  };
-  agency: {
-    orgId: string | null; // TODO: remove null ??
-    name: string | null;
-  };
-  documents: { displayName: string; downloadUrl: string; storagePath: string }[];
-  imageUrls?: { [key: string]: string | null } | null;
-  imagePaths?: { [key: string]: string | null } | null;
-  transactions: string[]; // TODO: figure out how to associate policies and transactions
-  price: number;
-  cardFee: number;
-  metadata: BaseMetadata;
+  [key: string]: any;
 }
+
+// export interface PolicyOld {
+//   status: POLICY_STATUS;
+//   limits: Limits;
+//   deductible: number;
+//   address: Address;
+//   coordinates: GeoPoint | null; // TODO: get rid of null in SubmissionQuoteData
+//   geoHash?: Geohash | null;
+//   namedInsured: {
+//     firstName: string;
+//     lastName: string;
+//     email: string;
+//     phone: string;
+//     userId?: string | null;
+//   };
+//   additionalInsureds?: AdditionalInsured[];
+//   mortgageeInterest?: Mortgagee[];
+//   effectiveDate: Timestamp;
+//   expirationDate: Timestamp;
+//   userId: string | null;
+//   agent: {
+//     agentId: string | null;
+//     name: string | null;
+//     email: string | null;
+//   };
+//   agency: {
+//     orgId: string | null; // TODO: remove null ??
+//     name: string | null;
+//   };
+//   documents: { displayName: string; downloadUrl: string; storagePath: string }[];
+//   imageUrls?: { [key: string]: string | null } | null;
+//   imagePaths?: { [key: string]: string | null } | null;
+//   transactions: string[]; // TODO: figure out how to associate policies and transactions
+//   price: number;
+//   cardFee: number;
+//   metadata: BaseMetadata;
+// }
 
 interface PremiumCalcData {
   minPremium: number;

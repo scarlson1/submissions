@@ -40,6 +40,7 @@ module.exports = {
       },
     ],
     'prefer-const': 'warn',
+    'prefer-promise-reject-errors': 'warn',
     '@typescript-eslint/ban-ts-comment': 'warn',
     camelcase: 'warn',
     'spaced-comment': 'warn',
