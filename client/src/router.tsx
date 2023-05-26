@@ -43,6 +43,7 @@ import {
   Organizations,
   Organization,
   Users,
+  // PortfolioRating,
 } from 'views/admin';
 // import { Submissions as AgentSubmissions } from 'views/agent';
 import { SuccessStep, ActionHandler } from 'elements';
@@ -54,7 +55,7 @@ import { Disclosures } from 'views/admin/Disclosures';
 import { QuoteNewFromSub } from 'views/admin/QuoteNew';
 import { PoliciesMap } from 'elements/PoliciesMap';
 import { AuthActionsProvider } from 'modules/components';
-import { Search, TempWrappedSearch } from 'components/search/Search';
+import { TempWrappedSearch } from 'components/search/Search';
 
 // import RouterErrorBoundary from 'components/errorBoundaries/RouterErrorBoundary';
 
@@ -108,6 +109,7 @@ export enum ADMIN_ROUTES {
   ORGANIZATIONS = '/admin/orgs',
   ORGANIZATION = '/admin/orgs/:orgId',
   USERS = '/admin/users',
+  PORTFOLIO_RATING = '/admin/portfolio-rating',
 }
 
 // export enum AGENT_ROUTES {
@@ -168,10 +170,27 @@ type TArgs =
   | { path: ADMIN_ROUTES.ORGANIZATIONS }
   | { path: ADMIN_ROUTES.ORGANIZATION; params: { orgId: string } }
   | { path: ADMIN_ROUTES.USERS }
-  | { path: AUTH_ROUTES.CREATE_ACCOUNT }
-  | { path: AUTH_ROUTES.LOGIN }
-  | { path: AUTH_ROUTES.TENANT_CREATE_ACCOUNT; params?: { tenantId?: string } }
-  | { path: AUTH_ROUTES.TENANT_LOGIN; params?: { tenantId?: string } }
+  | { path: ADMIN_ROUTES.PORTFOLIO_RATING }
+  | {
+      path: AUTH_ROUTES.CREATE_ACCOUNT;
+      params?: { tenantId?: string };
+      search?: { email?: string; firstName?: string; lastName?: string };
+    }
+  | {
+      path: AUTH_ROUTES.LOGIN;
+      params?: { tenantId?: string };
+      search?: { email?: string };
+    }
+  | {
+      path: AUTH_ROUTES.TENANT_CREATE_ACCOUNT;
+      params?: { tenantId?: string };
+      search?: { email?: string; firstName?: string; lastName?: string };
+    }
+  | {
+      path: AUTH_ROUTES.TENANT_LOGIN;
+      params?: { tenantId?: string };
+      search?: { email?: string };
+    }
   | {
       path: AUTH_ROUTES.ACTIONS_HANDLER;
       search: { mode: string; oobCode: string; continueUrl?: string | null };
@@ -650,6 +669,15 @@ export const router = sentryCreateBrowserRouter([
               </RequireAuthReactFire>
             ),
           },
+          // TODO: finish component & uncomment
+          // {
+          //   path: ADMIN_ROUTES.PORTFOLIO_RATING,
+          //   element: (
+          //     <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
+          //       <PortfolioRating />
+          //     </RequireAuthReactFire>
+          //   ),
+          // },
           {
             path: 'pagination/data-grid',
             element: <TasksPagination />,

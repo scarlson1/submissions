@@ -3,6 +3,7 @@ import {
   FirestoreDataConverter,
   QueryDocumentSnapshot,
   SetOptions,
+  Timestamp,
 } from 'firebase-admin/firestore';
 
 import { Policy, PolicyClass } from '../types';
@@ -18,7 +19,10 @@ export const policyConverter: FirestoreDataConverter<Policy> = {
   // toFirestore(policy: PolicyClass): DocumentData {
   toFirestore(policy: Partial<PolicyClass>, options?: SetOptions): DocumentData {
     // let firebaseFields = policy
-    return {};
+    return {
+      ...policy, // TODO: explicitly pull values off (class has methods, extra values, etc.)
+      'metadata.updated': Timestamp.now(),
+    };
   },
   fromFirestore(snapshot: QueryDocumentSnapshot<Policy>): PolicyClass {
     const data = snapshot.data();

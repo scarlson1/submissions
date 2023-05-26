@@ -21,6 +21,7 @@ export { Organizations } from './Organizations';
 export { Organization } from './Organization';
 export { Home } from './Home';
 export { Users } from './Users';
+export { PortfolioRating } from './PortfolioRating';
 
 export type { SubmissionsProps } from './Submissions';
 export type { SLTaxesProps } from './SLTaxes';

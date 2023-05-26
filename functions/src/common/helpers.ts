@@ -1,5 +1,6 @@
 import { inspect } from 'util';
 import { add, Duration } from 'date-fns';
+import { isEqual, remove } from 'lodash';
 
 /**
  * Sums an array of numbers
@@ -171,3 +172,20 @@ export function splitChunks(data: any[], size: number) {
 //   }
 //   return res;
 // }
+
+export const filterUniqueArr = (arr: any[]) => {
+  const unique: any[] = [];
+  for (const item of arr) {
+    const isDuplicate = unique.find((obj) => isEqual(obj, item));
+    if (!isDuplicate) {
+      unique.push(item);
+    }
+  }
+  return unique;
+};
+
+export const removeFromArr = (arr: any[], val: any) => {
+  return remove(arr, function (x) {
+    return !isEqual(x, val);
+  });
+};

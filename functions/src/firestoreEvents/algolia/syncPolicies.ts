@@ -3,7 +3,7 @@ import type { DocumentSnapshot } from 'firebase-admin/firestore';
 import algoliasearch from 'algoliasearch';
 
 import { algoliaAdminKey, algoliaAppId } from './index.js';
-import { COLLECTIONS, Policy, audience } from '../../common/index.js';
+import { COLLECTIONS, PolicyOld, audience } from '../../common/index.js';
 
 export default async (
   event: FirestoreEvent<
@@ -27,7 +27,7 @@ export default async (
   const docId = event.params.policyId;
 
   // If the document does not exist, it was deleted
-  const newValue = event?.data?.after.data() as Policy | undefined;
+  const newValue = event?.data?.after.data() as PolicyOld | undefined;
   if (!newValue) {
     try {
       console.log(`DELETING DOC ${docId} FROM ALGOLIA POLICIES INDEX`);

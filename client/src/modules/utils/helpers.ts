@@ -612,3 +612,14 @@ export function getDifference(origObj: any, newObj: any) {
  * No operation
  */
 export function noop(..._args: any[]): void {}
+
+/**
+ * Sums an array of numbers
+ * @param {number[]} arr - array of numbers to be added.
+ * @return {number} total of all numbers in array
+ */
+export const calcSum = (arr: number[]) => {
+  return arr.reduce((total, current) => {
+    return total + current;
+  }, 0);
+};

@@ -199,7 +199,7 @@ export const AddPaymentDialog: React.FC<AddPaymentDialogProps> = ({
       // navigate('/auth/login', {
       //   state: { redirectPath: `/application/bind/${quoteData.quoteId}` },
       // });
-      navigate('/auth/login');
+      navigate('/auth/login'); // TODO: redirect ?? handle in new / extended require auth hook ??
     }
   }, [user, loading, loadingInitial, isAuthenticated, isAnonymous, navigate]);
 

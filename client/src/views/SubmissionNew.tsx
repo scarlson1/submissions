@@ -98,6 +98,7 @@ export const SubmissionNew: React.FC = () => {
   const activeStates = useActiveStates('flood');
   // const { propertyDetails, fetchPropertyData } = usePropertyDetails();
   const { propertyDetails, fetchPropertyData } = usePropertyDetailsAttom();
+  // const dialog = useConfirmation() // TODO: maybe create custom input component ?? handle validation / ref issue
 
   const handleFetchProperty = useCallback(
     async (values: FloodValues, helpers: FormikHelpers<FloodValues>) => {

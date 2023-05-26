@@ -2,7 +2,8 @@ import { Request } from 'express';
 import { DecodedIdToken } from 'firebase-admin/auth';
 import { GeoPoint, Timestamp } from 'firebase-admin/firestore';
 import { v4 as uuid } from 'uuid';
-// import merge from 'deepmerge';
+import { deepmerge } from 'deepmerge-ts';
+import { Geohash } from 'geofire-common';
 // import { Timestamp, WithFieldValue } from '@google-cloud/firestore';
 
 import {
@@ -13,7 +14,8 @@ import {
   POLICY_STATUS,
   AGENCY_SUBMISSION_STATUS,
 } from './enums.js';
-import { Geohash } from 'geofire-common';
+
+import { filterUniqueArr, removeFromArr } from './helpers.js';
 
 // TODO: fix typescript error app.use(thisMiddleware) is users.ts
 
@@ -458,6 +460,42 @@ export interface SubmissionQuoteData {
     finalized: Timestamp | null;
   };
 }
+export interface PolicyOld {
+  status: POLICY_STATUS;
+  limits: Limits;
+  deductible: number;
+  address: Address;
+  coordinates: GeoPoint | null; // TODO: get rid of null in SubmissionQuoteData
+  geoHash?: Geohash | null;
+  namedInsured: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+    userId?: string | null;
+  };
+  additionalInsureds?: AdditionalInsured[];
+  mortgageeInterest?: Mortgagee[];
+  effectiveDate: Timestamp;
+  expirationDate: Timestamp;
+  userId: string | null;
+  agent: {
+    agentId: string | null;
+    name: string | null;
+    email: string | null;
+  };
+  agency: {
+    orgId: string | null; // TODO: remove null ??
+    name: string | null;
+  };
+  documents: { displayName: string; downloadUrl: string; storagePath: string }[];
+  imageUrls?: { [key: string]: string | null } | null;
+  imagePaths?: { [key: string]: string | null } | null;
+  transactions: string[]; // TODO: figure out how to associate policies and transactions
+  price: number;
+  cardFee: number;
+  metadata: BaseMetadata;
+}
 
 export type RCVKeys = 'building' | 'otherStructures' | 'contents' | 'BI' | 'total';
 
@@ -467,50 +505,55 @@ export interface PolicyLocation {
   address: Address;
   coordinates: GeoPoint;
   geoHash: Geohash;
+  premium: number;
   limits: Limits;
   rcvs: RCVs;
   active: true; // https://stackoverflow.com/a/62626994/10887890
   additionalInsureds: AdditionalInsured[];
   mortgageeInterest: Mortgagee[];
-  ratingDocId: string;
+  ratingDocId: string; // TODO: include rating info ?? make PublicRatingData and PrivateRatingData (extends)
+  propertyData: RatingPropertyData;
   effectiveDate: Timestamp;
   expirationDate: Timestamp;
+  locationId: string;
+  externalId?: string | null;
   metadata: {
     created: Timestamp;
     updated: Timestamp;
   };
 }
 
-// export interface Policy {
-//   status: POLICY_STATUS;
-//   limits: Limits;
-//   deductible: number;
-//   mailingAddress: Address;
-//   namedInsured: NamedInsured;
-//   locations: Record<string, PolicyLocation>;
-//   effectiveDate: Timestamp;
-//   expirationDate: Timestamp;
-//   userId: string | null;
-//   agent: {
-//     agentId: string | null;
-//     name: string | null;
-//     email: string | null;
-//   };
-//   agency: {
-//     orgId: string | null; // TODO: remove null ??
-//     name: string | null;
-//   };
-//   documents: { displayName: string; downloadUrl: string; storagePath: string }[];
-//   imageUrls?: { [key: string]: string | null } | null;
-//   imagePaths?: { [key: string]: string | null } | null;
-//   // transactions: string[]; // TODO: delete or decide how to associate policies and transactions (just query transactions by policyId ??)
-//   price: number;
-//   cardFee: number;
-//   metadata: BaseMetadata;
-// }
 export interface Policy {
-  [key: string]: any;
+  product: Product;
+  status: POLICY_STATUS;
+  limits: Limits;
+  deductible: number;
+  mailingAddress: Address;
+  namedInsured: NamedInsured;
+  locations: Record<string, PolicyLocation>;
+  effectiveDate: Timestamp;
+  expirationDate: Timestamp;
+  userId: string | null;
+  agent: {
+    agentId: string | null;
+    name: string | null;
+    email: string | null;
+  };
+  agency: {
+    orgId: string | null; // TODO: remove null ??
+    name: string | null;
+  };
+  documents: { displayName: string; downloadUrl: string; storagePath: string }[];
+  imageUrls?: { [key: string]: string | null } | null;
+  imagePaths?: { [key: string]: string | null } | null;
+  // transactions: string[]; // TODO: delete or decide how to associate policies and transactions (just query transactions by policyId ??)
+  price: number;
+  cardFee: number;
+  metadata: BaseMetadata;
 }
+// export interface Policy {
+//   [key: string]: any;
+// }
 export interface IPolicyClass extends Policy {
   getLocation: (id: string) => any; // TODO LOCATION INTERFACE
   initIsExpired: () => boolean; // TODO: figure out how to make private (#)
@@ -520,14 +563,15 @@ export interface IPolicyClass extends Policy {
   ) => Promise<{ locationId: string; newTotal: number }>;
   removeLocation: (id: string) => Promise<void>;
   getLocationCount: () => number;
-  updateLocation: (id: string, newLocationValues: Partial<Location>) => Promise<any>; // TODO: type response
-  calcTotal: () => Promise<number>;
+  updateLocation: (id: string, newLocationValues: Partial<PolicyLocation>) => Promise<any>; // TODO: type response
+  sumLocationPremium: () => number; // Promise<number>;
   cancelPolicy: (cancelDate: Timestamp) => Promise<void>;
 }
 
 export class PolicyClass implements IPolicyClass {
   readonly id: string;
   readonly isExpired: boolean;
+  readonly product: Product;
   // protected status: POLICY_STATUS;
   status: POLICY_STATUS;
   locations: Record<string, PolicyLocation>;
@@ -535,7 +579,7 @@ export class PolicyClass implements IPolicyClass {
   public deductible: number;
   public mailingAddress: Address;
   public namedInsured: NamedInsured;
-  public mortgageeInterest?: Mortgagee[];
+  // public mortgageeInterest?: Mortgagee[];
   public effectiveDate: Timestamp;
   public expirationDate: Timestamp;
   public price: number;
@@ -556,8 +600,9 @@ export class PolicyClass implements IPolicyClass {
 
   constructor(policyInfo: WithId<Policy>) {
     this.id = policyInfo.id;
+    this.product = policyInfo.product;
     this.status = policyInfo.status;
-    this.locations = {};
+    this.locations = policyInfo.locations;
     this.limits = policyInfo.limits;
     this.deductible = policyInfo.deductible;
     this.mailingAddress = policyInfo.mailingAddress;
@@ -590,8 +635,8 @@ export class PolicyClass implements IPolicyClass {
     // TODO: validation
     const locationId = id || uuid();
     try {
-      this.locations[locationId] = locationData;
-      let newTotal = await this.calcTotal();
+      this.locations[locationId] = { ...locationData, locationId };
+      let newTotal = await this.sumLocationPremium();
       this.price = newTotal;
 
       return { locationId, newTotal };
@@ -606,7 +651,7 @@ export class PolicyClass implements IPolicyClass {
 
     delete this.locations[id];
     try {
-      let newTotal = await this.calcTotal();
+      let newTotal = await this.sumLocationPremium();
       this.price = newTotal;
     } catch (err) {
       console.log('ERROR RECALULATING QUOTE: ', err);
@@ -614,44 +659,77 @@ export class PolicyClass implements IPolicyClass {
     }
   }
 
-  async updateLocation(id: string, newLocationValues: Partial<Location>) {
-    console.log('TODO: update location method');
-    let location = this.getLocation(id);
+  // TODO: DECIDE WHETHER TO ALLOW ADDING LOCATIONS ??
+  async updateLocation(id: string, newLocationValues: Partial<Omit<PolicyLocation, 'locationId'>>) {
+    let location = this.getLocation(id); // throws if not found
+
+    // TODO: recalc premium if required (limits change)
 
     try {
-      // TODO: https://www.npmjs.com/package/deepmerge-ts (typings)
-      // this.locations = merge(locations, { [id]: newLocationValues });
-      let newVals = {
-        ...location,
-        ...newLocationValues,
-      };
       this.locations = {
         ...this.locations,
-        [id]: newVals,
+        [id]: deepmerge(location, newLocationValues) as PolicyLocation,
       };
     } catch (err) {
-      console.log('ERROR: ', err);
-
+      this.locations = {
+        ...this.locations,
+        [id]: location,
+      };
       throw err;
     }
   }
 
-  // addAdditionalInsured
-  // removeAdditionalInsured
-  // setAdditionalInsured
+  // TODO: DECIDE WHETHER TO ALLOW ADDING LOCATIONS ??
+  updateLocations(id: string, updates: Record<string, Partial<PolicyLocation>>) {
+    // TODO: RECALC TOTAL PRICE
+    this.locations = deepmerge(this.locations, updates) as Record<string, PolicyLocation>;
+  }
+
+  addAdditionalInsureds(locationId: string, newInsureds: AdditionalInsured[]) {
+    const location = this.getLocation(locationId);
+    const newVal = [...location.additionalInsureds, ...newInsureds];
+    const uniqueArr = filterUniqueArr(newVal);
+    this.updateLocation(locationId, { additionalInsureds: uniqueArr });
+    return uniqueArr;
+  }
+
+  removeAdditionalInsured(locationId: string, removeInsured: AdditionalInsured[]) {
+    const location = this.getLocation(locationId);
+    const newVal = removeFromArr(location.additionalInsureds, removeInsured);
+    this.updateLocation(locationId, { additionalInsureds: newVal });
+    return newVal;
+  }
+
+  setAdditionalInsured(locationId: string, additionalInsureds: AdditionalInsured[]) {
+    this.getLocation(locationId);
+    this.updateLocation(locationId, { additionalInsureds });
+    return additionalInsureds;
+  }
+
+  setMortgageeInterest(locationId: string, mortgageeInterest: Mortgagee[]) {
+    this.getLocation(locationId);
+    this.updateLocation(locationId, { mortgageeInterest });
+    return mortgageeInterest;
+  }
 
   getLocationCount() {
     return Object.keys(this.locations).length;
   }
 
-  async calcTotal() {
-    try {
-      // TODO: calc total implementation
-      return 10;
-    } catch (err) {
-      console.log('ERROR CALCULATING TOTAL: ', err);
-      throw new Error('Error calculating quote');
-    }
+  sumLocationPremium() {
+    const locations = Object.values(this.locations);
+
+    const totalPremium = locations.reduce((acc, location) => {
+      if (!location.premium)
+        throw new Error(
+          `Missing premium for ${location.address.addressLine1} (${location.locationId})`
+        );
+      return acc + location.premium;
+    }, 0);
+
+    // TODO: decide whether to directly set price
+
+    return totalPremium;
   }
 
   async cancelPolicy(cancelDate: Timestamp) {
@@ -667,10 +745,9 @@ export class PolicyClass implements IPolicyClass {
       ...newVals,
     };
   }
-  // setMortgageeInterest
-  // setEffectiveDate
+
+  // setEffectiveDate(effDate: Timestamp)
   // setExpirationDate
-  //
 }
 
 export interface PolicyOld {

@@ -34,6 +34,8 @@ import { MdPayments } from 'react-icons/md';
 import { isEqual } from 'lodash';
 import { toast } from 'react-hot-toast';
 import { useFirestore, useFirestoreDocData } from 'reactfire';
+import { startOfToday, endOfToday } from 'date-fns';
+import * as yup from 'yup';
 
 import {
   FormikCheckbox,
@@ -72,60 +74,6 @@ import { fallbackImages } from './PoliciesOld';
 // TODO: check quote status - dont allow continue if not "awaiting:user"
 
 // TODO: use transform to remove empty additional insured & mortagee rows ??
-// 'Password': yup.string().notRequired().min(8).nullable().transform((value) => !!value ? value : null)
-
-// export const quoteLoader = async ({ params }: LoaderFunctionArgs) => {
-//   const quoteRef = doc(submissionsQuotesCollection(getFirestore()), params.quoteId);
-
-//   const snap = await getDoc(quoteRef);
-//   let data = snap.data();
-//   console.log('QUOTE DATA: ', data);
-
-//   if (!snap.exists() || !data) {
-//     throw new Response('Quote not found', { status: 404 });
-//   }
-
-//   return { ...data, id: snap.id };
-// };
-
-// export const quoteLoader =
-//   (db: Firestore) =>
-//   async ({ params }: LoaderFunctionArgs) => {
-//     console.log('db: ', db);
-//     const quoteRef = doc(submissionsQuotesCollection(db), params.quoteId);
-
-//     const snap = await getDoc(quoteRef);
-//     let data = snap.data();
-//     console.log('QUOTE DATA: ', data);
-
-//     if (!snap.exists() || !data) {
-//       throw new Response('Quote not found', { status: 404 });
-//     }
-
-//     return { ...data, id: snap.id };
-//   };
-
-// CAUSES BUG - CALLING GETAUTH BEFORE INITIALIZING FIREBASE ?? only works when not full page refresh
-// export const quoteLoader =
-//   (auth: Auth) =>
-//   async ({ params }: LoaderFunctionArgs) => {
-//     // const submissionsQuotesCollection = collection(
-//     //   getFirestore(),
-//     //   COLLECTIONS.SUBMISSIONS_QUOTES
-//     // ) as CollectionReference<SubmissionQuoteData>;
-//     const quoteRef = doc(submissionsQuotesCollection(getFirestore()), params.quoteId);
-//     // console.log('auth', auth);
-//     // console.log('current user ', auth.currentUser?.uid);
-//     const snap = await getDoc(quoteRef);
-//     let data = snap.data();
-//     // console.log('QUOTE DATA: ', data);
-
-//     if (!snap.exists() || !data) {
-//       throw new Response('Quote not found', { status: 404 });
-//     }
-
-//     return { ...data, id: snap.id };
-//   };
 
 export interface QuoteValues {
   firstName: string;
@@ -183,19 +131,14 @@ export const QuoteBind: React.FC = () => {
   );
 
   const handleCancel = useCallback(() => {
-    navigate('/');
-  }, [navigate]);
+    const navPath = isAuthenticated ? createPath({ path: ROUTES.QUOTES }) : '/';
+    navigate(navPath);
+  }, [navigate, isAuthenticated]);
 
   const saveValues = useCallback(
     async (values: QuoteValues, bag: any, initialValues: QuoteValues) => {
       // alternative pkg: https://github.com/mattphillips/deep-object-diff
       if (isEqual(values, initialValues)) return values;
-
-      // const submissionsQuotesCollection = collection(
-      //   getFirestore(),
-      //   COLLECTIONS.SUBMISSIONS_QUOTES
-      // ) as CollectionReference<SubmissionQuoteData>;
-      // const ref = doc(submissionsQuotesCollection(getFirestore()), quoteId);
 
       await updateDoc(quoteRef, {
         insuredFirstName: values.firstName,
@@ -262,8 +205,20 @@ export const QuoteBind: React.FC = () => {
         <Step
           label='Effective Date'
           stepperNavLabel='Dates'
-          // validationSchema={contactValidation}
-          mutateOnSubmit={saveValues}
+          validationSchema={effectiveDateValidation}
+          // mutateOnSubmit={saveValues}
+          mutateOnSubmit={(values: QuoteValues, bag: any, initialValues: QuoteValues) => {
+            let mutatedVals = values;
+            if (
+              values.policyEffectiveDate > addToDate({ days: 15 }) &&
+              values.policyEffectiveDate < addToDate({ days: 60 })
+            ) {
+              mutatedVals.effectiveExceptionReason = '';
+              mutatedVals.effectiveExceptionRequested = false;
+            }
+            console.log('MUTATED VALS: ', mutatedVals);
+            return saveValues(mutatedVals, bag, initialValues);
+          }}
         >
           <EffectiveDateStep
             expiration={addToDate({ days: 60 })}
@@ -666,6 +621,30 @@ export function AdditionalInterestsStep({ logAnalyticsStep }: LogAnalyticsProp) 
 
 // TODO: expiration date (handle expired quotes)
 // don't allow effective date to be after expiration
+// BUG: load form when eff excp req = true, then turn it off and select valid date ==> validation fails
+
+const minDate = addToDate({ days: 15 }, startOfToday());
+const maxDate = addToDate({ days: 60 }, endOfToday());
+
+console.log('MIN DATE: ', minDate);
+console.log('MAX DATE: ', maxDate);
+
+const effectiveDateValidation = yup.object().shape({
+  effectiveExceptionRequested: yup.boolean(),
+  policyEffectiveDate: yup.date().when('effectiveExceptionRequested', {
+    is: true,
+    then: yup.date().min(new Date(), 'Effective cannot be in the past'),
+    otherwise: yup
+      .date() // addToDate({ days: 15 })
+      .min(minDate, 'Effective date must be at least 15 days from binding coverage')
+      .max(maxDate, 'Effective date must be within 60 days of binding coverage'),
+  }),
+  effectiveExceptionReason: yup.string().when('effectiveExceptionRequested', {
+    is: true,
+    then: yup.string().required('Please select an option'),
+    otherwise: yup.string().notRequired(),
+  }),
+});
 
 export interface EffectiveDateStepProp extends LogAnalyticsProp {
   expiration?: Date | null;
@@ -1048,7 +1027,7 @@ export function BindReviewStep({ data, logAnalyticsStep }: BindReviewStepProps) 
         )}
         <LineItem label='Total' value={total} withDivider={false} />
       </Box>
-      {data.notes && (
+      {data.notes && data.notes.length && (
         <Box>
           <Divider sx={{ my: 3 }} />
           <Typography sx={{ py: 2 }}>Underwriter Notes</Typography>

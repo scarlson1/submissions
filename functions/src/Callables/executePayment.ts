@@ -6,11 +6,11 @@ import {
   PaymentMethod,
   paymentMethodsCollection,
   policiesCollection,
-  Policy,
   POLICY_STATUS,
   round,
   finTrxCollection,
   TRANSACTION_STATUS,
+  PolicyOld,
 } from '../common';
 import { getEPayInstance } from '../services';
 import { publishMessage } from '../services/pubsub/publishMessage.js';
@@ -32,7 +32,7 @@ export default async ({ data, auth }: CallableRequest) => {
     const db = getFirestore();
     const policiesCol = policiesCollection(db);
 
-    const policySnap: DocumentSnapshot<Policy> = await policiesCol.doc(policyId).get();
+    const policySnap: DocumentSnapshot<PolicyOld> = await policiesCol.doc(policyId).get();
     const policy = policySnap.data();
     console.log('POLICY: ', policy);
     if (!policySnap.exists || !policy)

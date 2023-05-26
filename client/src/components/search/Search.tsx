@@ -73,9 +73,10 @@ export interface SearchProps {
 export function Search({ maxWidth = 'sm', fullWidth = true, ...props }: SearchProps) {
   const searchButtonRef = React.useRef<HTMLButtonElement>(null);
   const [isOpen, setIsOpen] = React.useState(false);
-  const [initialQuery, setInitialQuery] = React.useState<string | undefined>(
-    props?.initialQuery || undefined
-  );
+  // TODO: necessary ??
+  // const [initialQuery, setInitialQuery] = React.useState<string | undefined>(
+  //   props?.initialQuery || undefined
+  // );
   const { mode } = useChangeTheme();
 
   useEffect(() => {
@@ -147,7 +148,7 @@ export function Search({ maxWidth = 'sm', fullWidth = true, ...props }: SearchPr
         {/* <DialogContent> */}
         <SearchModal
           {...props}
-          initialQuery={initialQuery}
+          // initialQuery={initialQuery}
           onClose={onClose}
           // initialScrollY={window.scrollY}
           // translations={props?.translations?.modal}

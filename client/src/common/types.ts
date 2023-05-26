@@ -535,7 +535,6 @@ export interface Policy extends BaseDoc {
 }
 
 export interface TrxRatingData extends Nullable<RatingPropertyData> {
-  // dwellingType: string;  same as propertyType ??
   units: number;
   tier1: boolean;
   construction: string;
@@ -577,7 +576,7 @@ export interface Transaction extends BaseDoc {
   netDWP: number;
   netErrorAdj?: number | null;
   trxPolicyDays: number;
-  dailyPremium: number; // calcualted in SQL query
+  dailyPremium: number; // calcualted in SQL query ?? or in converter ??
   submission?: string;
   otherInterestedParties: string[];
   additionalNamedInsured: string[];

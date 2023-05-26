@@ -1,7 +1,6 @@
 import { useCallback, useRef } from 'react';
 import { Form, Formik, FormikHelpers, FormikProps } from 'formik';
-import { Box } from '@mui/material';
-import Grid from '@mui/material/Unstable_Grid2';
+import { Box, Unstable_Grid2 as Grid } from '@mui/material';
 import * as yup from 'yup';
 import { addDoc, getFirestore } from 'firebase/firestore';
 

@@ -8,9 +8,9 @@ import {
   submissionsQuotesCollection,
   policiesCollection,
   SubmissionQuoteData,
-  Policy,
   addToDate,
   POLICY_STATUS,
+  PolicyOld,
 } from '../common';
 
 // TODO: calc mustBePaidByDate
@@ -68,7 +68,7 @@ export default async ({ data, auth }: CallableRequest<{ quoteId: string }>) => {
   }
 };
 
-function convertQuoteToPolicy(data: SubmissionQuoteData): Policy {
+function convertQuoteToPolicy(data: SubmissionQuoteData): PolicyOld {
   return {
     status: POLICY_STATUS.AWAITING_PAYMENT,
     price: data.quoteTotal || 100000, // TODO: fix quote total validation

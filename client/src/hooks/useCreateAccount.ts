@@ -19,6 +19,7 @@ import { usersCollection } from 'common/firestoreCollections';
 import { FirebaseError } from 'firebase/app';
 import { getErrorDetails } from 'modules/utils/helpers';
 import { useAuthActions } from 'modules/components';
+import { AUTH_ROUTES, createPath } from 'router';
 // import { getProviderForProviderId } from 'modules/utils/getProviderForProviderId';
 // import {
 //   getErrorCode,
@@ -212,9 +213,19 @@ export const useCreateAccount = () => {
         if (!isAnonymous) {
           toast.error(`Account with email ${email} already exists. Please login.`);
           // TODO: forward success redirect, if in state (move logic to this hook from component?)
-          navigate(`/auth/login/${params.tenandId || ''}email=${encodeURIComponent(email)}`, {
-            state: { ...location.state },
-          });
+          navigate(
+            createPath({
+              path: AUTH_ROUTES.LOGIN,
+              params: { tenantId: params.tenandId || undefined },
+              search: { email },
+            }),
+            {
+              state: { ...location.state },
+            }
+          );
+          // navigate(`/auth/login/${params.tenandId || ''}?email=${encodeURIComponent(email)}`, {
+          //   state: { ...location.state },
+          // });
           // try {
           //   // TODO: set up to handle below when attempting to sign in with provider instead of email ??
           //   // SignInMethod.EMAIL_PASSWORD vs SignInMethod.EMAIL_LINK.
