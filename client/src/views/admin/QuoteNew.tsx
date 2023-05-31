@@ -256,7 +256,6 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
   submissionId = null,
 }) => {
   const navigate = useNavigate();
-
   const formikRef = useRef<FormikProps<NewQuoteValues>>(null);
   const showDialog = useJsonDialog({ maxWidth: 'sm' });
   const toast = useAsyncToast({ position: 'top-right' });

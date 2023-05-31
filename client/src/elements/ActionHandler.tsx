@@ -1,10 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Box, CircularProgress, Typography } from '@mui/material';
 import { Navigate } from 'react-router-dom';
-import { getFunctions } from 'firebase/functions';
+import { useFunctions } from 'reactfire';
 
 import { getParamByName } from 'modules/utils/helpers';
 import { assignQuote } from 'modules/api';
+
+// TODO: error boundary w/ reset error boundary
 
 export const ActionHandler: React.FC = () => {
   const mode = useMemo(() => getParamByName(window.location.search, 'mode'), []);
@@ -34,13 +36,13 @@ export function AssignQuoteHandler({
   continueUrl: string;
   quoteId: string;
 }) {
-  // const navigate = useNavigate();
+  const functions = useFunctions();
   const [loading, setLoading] = useState(true);
   const [assignSuccessful, setAssignSuccessful] = useState(false);
 
   const setUserId = useCallback(async () => {
     try {
-      await assignQuote(getFunctions(), { quoteId });
+      await assignQuote(functions, { quoteId });
 
       setLoading(false);
       setAssignSuccessful(true);
@@ -50,7 +52,7 @@ export function AssignQuoteHandler({
       setLoading(false);
       setAssignSuccessful(false);
     }
-  }, [quoteId]);
+  }, [quoteId, functions]);
 
   useEffect(() => {
     if (!loading) return;

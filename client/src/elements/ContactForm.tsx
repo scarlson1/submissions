@@ -2,6 +2,7 @@ import React, { useCallback, useRef } from 'react';
 import { Box, Stack } from '@mui/material';
 import LoadingButton from '@mui/lab/LoadingButton';
 import { SendRounded } from '@mui/icons-material';
+import { useUser } from 'reactfire';
 import { Formik, FormikHelpers, FormikProps } from 'formik';
 import * as yup from 'yup';
 
@@ -24,9 +25,9 @@ export const contactUsValidation = yup.object().shape({
 export interface ContactFormProps {}
 
 export const ContactForm: React.FC<ContactFormProps> = () => {
+  const { data: user } = useUser();
   const formikRef = useRef<FormikProps<ContactUsValues>>(null);
   const toast = useAsyncToast();
-  // const { sendMessage, loading } = useContactUs();
   const { send: sendMessage, loading } = useSendEmail({
     onSuccess: () => toast.success('message sent!'),
     onError: (msg: string) => toast.error('message delivery failed'),
@@ -51,7 +52,7 @@ export const ContactForm: React.FC<ContactFormProps> = () => {
       <Box>
         <Formik
           initialValues={{
-            email: '',
+            email: user?.email ?? '',
             subject: '',
             body: '',
           }}

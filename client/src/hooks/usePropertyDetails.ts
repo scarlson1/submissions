@@ -84,13 +84,12 @@ export const usePropertyDetailsAttom = (props?: UsePropertyDetailsProps) => {
         (!data.replacementCost && props?.promptForValuation) ||
         process.env.REACT_APP_FB_PROJECT_ID === 'idemand-submissions-dev'
       ) {
-        // TODO: prompt for value
         const estRCV = await promptRCV();
-        console.log('EST RCV RES: ', estRCV);
+        // console.log('EST RCV RES: ', estRCV);
 
         if (estRCV) {
           const newDefaults = getDefaultsFromRCV(estRCV);
-          console.log('NEW VALUES: ', newDefaults);
+          // console.log('NEW VALUES: ', newDefaults);
 
           const updatedData = {
             ...data,

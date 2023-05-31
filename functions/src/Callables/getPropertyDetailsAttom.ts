@@ -1,4 +1,5 @@
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
+import { error, info } from 'firebase-functions/logger';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import axios, { AxiosResponse } from 'axios';
 import { round } from 'lodash';
@@ -46,7 +47,7 @@ export default async ({ data }: CallableRequest) => {
   let propertyDetails;
   try {
     if (audience.value() === 'DEV HUMANS' || audience.value() === 'LOCAL HUMANS') {
-      console.log('USING MOCK RESPONSE FROM GITHUB');
+      info('USING MOCK RESPONSE FROM GITHUB');
       const { data: githubMockData } = await axios.get(
         'https://scarlson1.github.io/data/attom.json'
       );
@@ -63,7 +64,7 @@ export default async ({ data }: CallableRequest) => {
       basicProfileRes?.property && basicProfileRes.property.length > 0
         ? basicProfileRes.property[0]
         : null;
-    console.log('BASIC PROFILE: ', profile);
+    info('BASIC PROFILE: ', { profile });
 
     // TODO: get property details ??
   } catch (err) {
@@ -94,16 +95,16 @@ export default async ({ data }: CallableRequest) => {
             created: Timestamp.now(),
           },
         });
-      console.log(`Attom data saved to doc: ${attomDocRef.id}`);
+      info(`Attom data saved to doc: ${attomDocRef.id}`);
       fallback.attomDocId = attomDocRef.id;
     } catch (err) {
-      console.log('Error saving Attom data to Firestore', err);
+      info('Error saving Attom data to Firestore', err);
     }
 
     try {
       let validatedRatingData = await validateAttomRes(profile);
       let { replacementCost } = validatedRatingData;
-      console.log('validated data: ', validatedRatingData);
+      info('validated data: ', { ...validatedRatingData });
 
       if (!replacementCost) return { ...validatedRatingData, ...fallback };
 
@@ -141,14 +142,15 @@ export default async ({ data }: CallableRequest) => {
         res.initDeductible = roundUpToNearest(sumCoverage * 0.01, 3);
         res.maxDeductible = roundUpToNearest(sumCoverage * 0.2, 3);
 
-        console.log('res: ', res);
+        info('GET PROPERTY DETAILS ATTOM RES: ', { ...res });
 
         return { ...validatedRatingData, ...res };
-      } catch (err) {
-        console.log(
-          'ERROR CALCULATING DEFAULT LIMITS/DEDUCTIBLE. USING FALLBACK NFIP. ERROR: ',
-          err
-        );
+      } catch (err: any) {
+        error('ERROR CALCULATING DEFAULT LIMITS/DEDUCTIBLE. USING FALLBACK NFIP. ERROR: ', {
+          stack: err?.stack || null,
+          message: err?.message || null,
+          code: err?.code || null,
+        });
 
         return { ...validatedRatingData, ...fallback };
       }

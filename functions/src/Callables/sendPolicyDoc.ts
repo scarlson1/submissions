@@ -3,7 +3,7 @@ import { getFirestore } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
 
 import { sendPolicyDocDelivery } from '../services/sendgrid';
-import { policiesCollection, sendgridApiKey } from '../common';
+import { CLAIMS, policiesCollection, sendgridApiKey } from '../common';
 
 // TODO: add policy docs as param
 // on front end: allow user to select which documents to deliver
@@ -14,8 +14,10 @@ export default async ({ data, auth }: CallableRequest) => {
   console.log('data: ', data);
   const { policyId, to } = data;
   console.log('AUTH.TOKEN: ', auth?.token);
+  const token = auth?.token;
 
-  if (!auth?.token.iDemandAdmin) throw new HttpsError('permission-denied', `Must be an admin`);
+  if (!token || !token[CLAIMS.IDEMAND_ADMIN])
+    throw new HttpsError('permission-denied', `Must be an admin`);
 
   if (!policyId || !to)
     throw new HttpsError('invalid-argument', `policyId or emails (recipients) required`);

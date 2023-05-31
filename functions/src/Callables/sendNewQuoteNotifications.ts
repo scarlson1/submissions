@@ -1,14 +1,16 @@
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 
 import { sendNewQuoteEmail } from '../services/sendgrid';
-import { sendgridApiKey } from '../common';
+import { CLAIMS, sendgridApiKey } from '../common';
 
 export default async ({ data, auth }: CallableRequest) => {
   console.log('data: ', data);
   const { to, quoteId } = data;
+  const token = auth?.token;
 
   // TODO: must be admin
-  if (!auth?.token.iDemandAdmin) throw new HttpsError('permission-denied', `Must be an admin`);
+  if (!token || !token[CLAIMS.IDEMAND_ADMIN])
+    throw new HttpsError('permission-denied', `Must be an admin`);
 
   if (!to || !quoteId) throw new HttpsError('invalid-argument', `Missing email or body`);
 

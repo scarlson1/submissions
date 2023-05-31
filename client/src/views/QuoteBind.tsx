@@ -33,7 +33,7 @@ import { RiMastercardFill, RiVisaLine } from 'react-icons/ri';
 import { MdPayments } from 'react-icons/md';
 import { isEqual } from 'lodash';
 import { toast } from 'react-hot-toast';
-import { useFirestore, useFirestoreDocData } from 'reactfire';
+import { useFirestore, useFirestoreDocData, useSigninCheck } from 'reactfire';
 import { startOfToday, endOfToday } from 'date-fns';
 import * as yup from 'yup';
 
@@ -63,7 +63,7 @@ import { useAnalyticsEvent, useBindQuote, useUserPaymentMethods } from 'hooks';
 import { billingValidation, PaymentStep, ContactStep } from 'elements';
 import { addToDate, dollarFormat, formatDate } from 'modules/utils/helpers';
 import { AUTH_ROUTES, ROUTES, createPath } from 'router';
-import { useAuth } from 'modules/components/AuthContext';
+import { CUSTOM_CLAIMS, useAuth } from 'modules/components/AuthContext';
 import { fallbackImages } from './PoliciesOld';
 
 // TODO: error boundary & reset: https://blog.logrocket.com/react-error-handling-react-error-boundary/
@@ -74,6 +74,8 @@ import { fallbackImages } from './PoliciesOld';
 // TODO: check quote status - dont allow continue if not "awaiting:user"
 
 // TODO: use transform to remove empty additional insured & mortagee rows ??
+
+// quote needs to bind by quote date + 30
 
 export interface QuoteValues {
   firstName: string;
@@ -93,7 +95,7 @@ export interface QuoteValues {
 
 export const QuoteBind: React.FC = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, isAnonymous } = useAuth();
+  const { data: signInCheckResult } = useSigninCheck();
   const { quoteId } = useParams();
   if (!quoteId) throw new Error('missing quoteId');
 
@@ -104,7 +106,7 @@ export const QuoteBind: React.FC = () => {
 
   const formikRef = useRef<FormikProps<QuoteValues>>(null);
 
-  // TODO: FINISH BIND QUOTE HOOK
+  // TODO FINISH BIND QUOTE HOOK
   const bindQuote = useBindQuote(
     (msg: string) => toast.success(msg),
     (err, msg) => toast.error(msg)
@@ -131,9 +133,9 @@ export const QuoteBind: React.FC = () => {
   );
 
   const handleCancel = useCallback(() => {
-    const navPath = isAuthenticated ? createPath({ path: ROUTES.QUOTES }) : '/';
+    const navPath = signInCheckResult.signedIn ? createPath({ path: ROUTES.QUOTES }) : '/';
     navigate(navPath);
-  }, [navigate, isAuthenticated]);
+  }, [navigate, signInCheckResult]);
 
   const saveValues = useCallback(
     async (values: QuoteValues, bag: any, initialValues: QuoteValues) => {
@@ -157,11 +159,11 @@ export const QuoteBind: React.FC = () => {
     [quoteRef]
   );
 
-  // TODO: handle quote expiration (quoteExpiration)
+  // TODO handle quote expiration (quoteExpiration)
 
-  // TODO: handle setting userId when user is authenticated
-  // TODO: submission needs isAnonymous flag so userId can/should be overwritten ??
-  if (!isAuthenticated || isAnonymous || !data.userId) {
+  // TODO submission needs isAnonymous flag so userId can/should be overwritten ??
+  // TODO set agentId if agent not already set ??
+  if (!signInCheckResult.signedIn || signInCheckResult.user.isAnonymous || !data.userId) {
     return <AuthStep quoteId={quoteId} />;
   }
 
@@ -236,7 +238,7 @@ export const QuoteBind: React.FC = () => {
   );
 };
 
-// TODO: handle anonymous
+// TODO: handle anonymous. handle agent.
 export function AuthStep({ quoteId }: { quoteId: string }) {
   const navigate = useNavigate();
   const { user, isAuthenticated, isAnonymous } = useAuth();
@@ -626,8 +628,7 @@ export function AdditionalInterestsStep({ logAnalyticsStep }: LogAnalyticsProp) 
 const minDate = addToDate({ days: 15 }, startOfToday());
 const maxDate = addToDate({ days: 60 }, endOfToday());
 
-console.log('MIN DATE: ', minDate);
-console.log('MAX DATE: ', maxDate);
+// quote good for: quote date + 60
 
 const effectiveDateValidation = yup.object().shape({
   effectiveExceptionRequested: yup.boolean(),
@@ -1027,7 +1028,7 @@ export function BindReviewStep({ data, logAnalyticsStep }: BindReviewStepProps) 
         )}
         <LineItem label='Total' value={total} withDivider={false} />
       </Box>
-      {data.notes && data.notes.length && (
+      {data.notes && data.notes.length > 0 && (
         <Box>
           <Divider sx={{ my: 3 }} />
           <Typography sx={{ py: 2 }}>Underwriter Notes</Typography>

@@ -1,14 +1,21 @@
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
-import { error } from 'firebase-functions/logger';
+import { error, info } from 'firebase-functions/logger';
 import { getFirestore } from 'firebase-admin/firestore';
 
-import { submissionsQuotesCollection } from '../common';
+import {
+  CLAIMS,
+  SubmissionQuoteData,
+  orgsCollection,
+  submissionsQuotesCollection,
+  usersCollection,
+} from '../common';
 
 export default async ({ data, auth }: CallableRequest<{ quoteId: string }>) => {
   console.log('data: ', data);
   const { quoteId } = data;
-  // const uid = ctx.auth?.uid;
   const uid = auth?.uid;
+  const token = auth?.token;
+  const isAgent = token ? token[CLAIMS.AGENT] || false : false;
 
   if (!quoteId) {
     throw new HttpsError('invalid-argument', `Missing quoteId`);
@@ -25,99 +32,59 @@ export default async ({ data, auth }: CallableRequest<{ quoteId: string }>) => {
 
     if (!quoteSnap.exists) throw new HttpsError('not-found', `Quote not found with ID ${quoteId}`);
 
+    const userSnap = await usersCollection(db).doc(uid).get();
+    if (!userSnap.exists) throw new HttpsError('not-found', `No user doc found with ID ${uid}`);
+    const userDoc = userSnap.data();
+
     // TODO: check to see if quote is already claimed ??
+    let updates: Partial<SubmissionQuoteData> = {};
+    if (isAgent) {
+      let orgId = auth.token.email?.endsWith('@idemandinsurance.com')
+        ? 'idemand'
+        : token?.firebase.tenant;
+      if (!orgId) {
+        throw new HttpsError('internal', `Missing tenant ID for Agent`);
+      }
+      const orgSnap = await orgsCollection(db).doc(orgId).get();
+      if (!orgSnap.exists) throw new HttpsError('not-found', `No org found with ID ${orgId}`);
+      const org = orgSnap.data();
 
-    quoteSnap.ref.update({ userId: uid });
+      updates = {
+        agencyId: orgSnap.id,
+        agencyName: org?.orgName || null,
+        agentId: uid,
+        agentName: userDoc?.displayName || null,
+        agentEmail: token?.email || null,
+        agentPhone: token?.phone_number || null,
+      };
+    } else {
+      updates = {
+        userId: uid,
+        insuredUserId: uid,
+        insuredFirstName: userDoc?.firstName || null,
+        insuredLastName: userDoc?.lastName || null,
+        insuredEmail: token?.email || null,
+        insuredPhone: token?.phone_number || null,
+        insuredMailingAddress: userDoc?.address || null,
+      };
+    }
 
-    const message = `Quote ${quoteId} userId updated to ${uid}`;
-    console.log(message);
+    quoteSnap.ref.update({ ...updates });
+
+    const message = `Quote ${quoteId} ${isAgent ? 'agentId' : 'userId'} updated to ${uid}`;
+    info(message);
 
     return { message };
   } catch (err: any) {
-    console.log('ERROR SENDING "CONTACT US" EMAIL: ', err);
-    error('ERROR SENDING "CONTACT US" EMAIL: ', {
+    error('ERROR ASSIGNING QUOTE', {
       stack: err.stack,
       message: err.message,
       quoteId,
       userId: uid,
     });
-    throw new HttpsError('internal', 'Failed to set userId on quote ${quoteId}.');
+    throw new HttpsError(
+      'internal',
+      `Failed to set ${isAgent ? 'agentId' : 'userId'} on quote ${quoteId}.`
+    );
   }
 };
-
-// export const assignQuote = functions
-//   .runWith({
-//     minInstances: 1,
-//     memory: '128MB',
-//   })
-//   .https.onCall(async (data, ctx) => {
-//     console.log('data: ', data);
-//     const { quoteId } = data;
-//     const uid = ctx.auth?.uid;
-
-//     if (!quoteId) {
-//       throw new HttpsError('invalid-argument', `Missing quoteId`);
-//     }
-//     if (!uid)
-//       throw new HttpsError(
-//         'unauthenticated',
-//         `Must be authenticated to associate quote with your account`
-//       );
-
-//     try {
-//       const db = getFirestore();
-//       const quoteSnap = await submissionsQuotesCollection(db).doc(quoteId).get();
-
-//       if (!quoteSnap.exists)
-//         throw new HttpsError('not-found', `Quote not found with ID ${quoteId}`);
-
-//       // TODO: check to see if quote is already claimed ??
-
-//       quoteSnap.ref.update({ userId: uid });
-
-//       const message = `Quote ${quoteId} userId updated to ${uid}`;
-//       console.log(message);
-
-//       return { message };
-//     } catch (err: any) {
-//       console.log('ERROR SENDING "CONTACT US" EMAIL: ', err);
-//       error('ERROR SENDING "CONTACT US" EMAIL: ', {
-//         stack: err.stack,
-//         message: err.message,
-//         quoteId,
-//         userId: uid,
-//       });
-//       throw new HttpsError('internal', 'Failed to set userId on quote ${quoteId}.');
-//     }
-//   });
-
-// const { quoteId } = req.params;
-// const db = getFirestore();
-// console.log('REQ.USER: ', req.user);
-
-// if (!req.user || !req.user.uid) {
-//   return res.status(403).send('Must be authenticated associate your account with a quote.');
-// }
-
-// try {
-//   const quoteRef = submissionsQuotesCollection(db).doc(quoteId);
-//   const quoteSnap = await quoteRef.get();
-//   // TODO: redirect to 404 page
-//   if (!quoteSnap.exists)
-//     return res.status(404).send({ message: `quote not found (ID: ${quoteId})` });
-//   const data = quoteSnap.data();
-
-//   // TODO: decide what to do if userId already exists (could be anonymous)
-
-//   console.log('quote data: ', data);
-//   await quoteRef.update({ userId: req.user?.uid });
-//   console.log(`UPDATED QUOTE USER ID TO ${req.user?.uid}`);
-
-//   // return res.redirect(`${process.env.HOSTING_BASE_URL}/quotes/${quoteId}/bind`);
-//   return res.redirect(`//localhost:3000/quotes/${quoteId}/bind`);
-// } catch (err) {
-//   console.log('ERROR DECODING TOKEN: ', err);
-//   // "Email verification failed, possibly the link is invalid or expired"
-//   // throw new BadRequestError('Invalid token. Please generate a new verification email.');
-//   res.send('Invalid token. Please generate a new verification email.');
-// }

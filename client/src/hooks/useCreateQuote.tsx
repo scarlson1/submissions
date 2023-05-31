@@ -4,9 +4,10 @@ import { addDoc, FirestoreError, GeoPoint, getFirestore, Timestamp } from 'fireb
 import invariant from 'tiny-invariant';
 import { round } from 'lodash';
 import * as geofire from 'geofire-common';
+import { endOfToday } from 'date-fns';
 
 import { NewQuoteValues } from 'views/admin/QuoteNew';
-import { extractNumber, readableFirebaseCode } from 'modules/utils/helpers';
+import { addToDate, extractNumber, readableFirebaseCode } from 'modules/utils/helpers';
 import { QUOTE_STATUS, Submission, SubmissionQuoteData, submissionsQuotesCollection } from 'common';
 import { useSendQuoteNotification } from './useSendQuoteNotification';
 import { useUser } from 'reactfire';
@@ -39,6 +40,7 @@ export const useCreateQuote = (
 
         const quoteRef = await addDoc(submissionsQuotesCollection(getFirestore()), {
           ...quoteData,
+          quoteExpirationDate: Timestamp.fromDate(addToDate({ days: 60 }, endOfToday())),
           submissionId,
           imageUrls: {
             darkMapImageUrl: submissionData?.darkMapImageURL || null,
@@ -75,7 +77,10 @@ export const useCreateQuote = (
   return createQuote;
 };
 
-function getFormattedQuote(values: NewQuoteValues, uid?: string | null): SubmissionQuoteData {
+function getFormattedQuote(
+  values: NewQuoteValues,
+  uid?: string | null
+): Omit<SubmissionQuoteData, 'quoteExpirationDate'> {
   const {
     limitA,
     limitB,

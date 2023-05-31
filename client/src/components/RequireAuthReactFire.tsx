@@ -7,6 +7,7 @@ import {
   SignInCheckOptionsClaimsValidator,
   useAuth,
   ClaimsValidator,
+  ClaimCheckErrors,
 } from 'reactfire';
 import { IdTokenResult, signInAnonymously } from 'firebase/auth';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
@@ -105,20 +106,15 @@ export const getRequiredClaimValidator =
   (requiredClaims: CustomClaimKeys[]): ClaimsValidator =>
   (userClaims: Claims) => {
     // check each required claim, returns true if all claims are missing
-    // const notAuthorized = requiredClaims.every((key) => !userClaims[CUSTOM_CLAIMS[key]]);
     let notAuthorized = true;
 
     // If user has any of the requiredClaims, they're authorized
     requiredClaims.forEach((key) => {
       const claim = CUSTOM_CLAIMS[key];
-      // console.log('CLAIM: ', claim, !!userClaims[claim]);
-      if (!!userClaims[claim]) {
-        // console.log('SETTING NOT AUTHORIZED TO FALSE');
-        notAuthorized = false;
-      }
+      if (!!userClaims[claim]) notAuthorized = false;
     });
 
-    const errors: { [key: string]: any[] } = {};
+    const errors: ClaimCheckErrors = {};
     if (!!notAuthorized) errors.claims = ['Must have at least one of the required claims.'];
 
     return {

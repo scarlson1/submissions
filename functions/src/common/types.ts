@@ -16,6 +16,8 @@ import {
 } from './enums.js';
 
 import { filterUniqueArr, removeFromArr } from './helpers.js';
+import { round } from 'lodash';
+import { cardFeePct } from './environmentVars.js';
 
 // TODO: fix typescript error app.use(thisMiddleware) is users.ts
 
@@ -365,6 +367,7 @@ export interface Submission extends FloodFormValues, FetchPropertyDataResponse {
   userId?: string | null;
   status: SUBMISSION_STATUS;
   submittedById?: string | null;
+  rcvSouceUser?: boolean;
   darkMapImageURL?: string;
   lightMapImageURL?: string;
   darkMapImageFilePath?: string;
@@ -429,6 +432,7 @@ export interface SubmissionQuoteData {
   effectiveExceptionRequested?: boolean;
   effectiveExceptionReason?: string | null;
   policyExpirationDate?: Timestamp;
+  quoteExpirationDate: Timestamp;
   exclusions?: string[];
   additionalInterests?: AdditionalInterest[];
   metadata: {
@@ -442,6 +446,7 @@ export interface SubmissionQuoteData {
   insuredEmail?: string | null;
   insuredPhone?: string | null;
   insuredUserId?: string | null;
+  insuredMailingAddress?: Address | null;
   agencyId: string | null;
   agencyName: string | null;
   agentId: string | null;
@@ -531,29 +536,38 @@ export interface Policy {
   mailingAddress: Address;
   namedInsured: NamedInsured;
   locations: Record<string, PolicyLocation>;
+  homeState: string;
   effectiveDate: Timestamp;
   expirationDate: Timestamp;
   userId: string | null;
   agent: {
     agentId: string | null;
-    name: string | null;
-    email: string | null;
+    name: string; // | null;
+    email: string; // | null;
+    phone: string; // | null;
   };
   agency: {
     orgId: string | null; // TODO: remove null ??
     name: string | null;
+    address: Address; // | null;
   };
+  surplusLinesProducerOfRecord: {
+    name: string;
+    licenseNum: string;
+    licenseState: string;
+    phone: string;
+  };
+  issuingCarrier: string; // INSURER NAME ONLY OR NAME AND ID?
   documents: { displayName: string; downloadUrl: string; storagePath: string }[];
-  imageUrls?: { [key: string]: string | null } | null;
-  imagePaths?: { [key: string]: string | null } | null;
+  imageUrls?: Record<string, string> | null; // { [key: string]: string | null } | null;
+  imagePaths?: Record<string, string> | null; // { [key: string]: string | null } | null;
   // transactions: string[]; // TODO: delete or decide how to associate policies and transactions (just query transactions by policyId ??)
   price: number;
   cardFee: number;
+  // term: number; // Necessary ??
   metadata: BaseMetadata;
 }
-// export interface Policy {
-//   [key: string]: any;
-// }
+
 export interface IPolicyClass extends Policy {
   getLocation: (id: string) => any; // TODO LOCATION INTERFACE
   initIsExpired: () => boolean; // TODO: figure out how to make private (#)
@@ -566,6 +580,9 @@ export interface IPolicyClass extends Policy {
   updateLocation: (id: string, newLocationValues: Partial<PolicyLocation>) => Promise<any>; // TODO: type response
   sumLocationPremium: () => number; // Promise<number>;
   cancelPolicy: (cancelDate: Timestamp) => Promise<void>;
+  calcCardFee: (amt: number) => number;
+  calcCardFeeLocation: (locationId: string, fees?: number) => number;
+  calcCardFeeAllLocations: () => number;
 }
 
 export class PolicyClass implements IPolicyClass {
@@ -578,6 +595,7 @@ export class PolicyClass implements IPolicyClass {
   public limits: Limits;
   public deductible: number;
   public mailingAddress: Address;
+  public homeState: string;
   public namedInsured: NamedInsured;
   // public mortgageeInterest?: Mortgagee[];
   public effectiveDate: Timestamp;
@@ -590,12 +608,18 @@ export class PolicyClass implements IPolicyClass {
   public agency: {
     orgId: string | null;
     name: string | null;
+    address: Address; // | null;
   };
   public agent: {
     agentId: string | null;
-    name: string | null;
-    email: string | null;
+    name: string; // | null;
+    email: string; // | null;
+    phone: string; // | null;
   };
+  public surplusLinesProducerOfRecord: any;
+  public issuingCarrier: string;
+  public imageUrls: Record<string, string> | null;
+  public imagePaths: Record<string, string> | null;
   public metadata: BaseMetadata;
 
   constructor(policyInfo: WithId<Policy>) {
@@ -606,17 +630,20 @@ export class PolicyClass implements IPolicyClass {
     this.limits = policyInfo.limits;
     this.deductible = policyInfo.deductible;
     this.mailingAddress = policyInfo.mailingAddress;
+    this.homeState = policyInfo.homeState;
     this.namedInsured = policyInfo.namedInsured;
     this.effectiveDate = policyInfo.effectiveDate;
     this.expirationDate = policyInfo.expirationDate;
     this.price = policyInfo.price;
-    this.cardFee = policyInfo.cardFee;
+    this.cardFee = policyInfo.cardFee; // remove ?? changes not always based on all locations (add / remove location) --> store at locaiton level or not at all / calc in billing ??
     this.documents = policyInfo.documents || [];
-    // this.transactions = policyInfo.transactions;
     this.userId = policyInfo.userId;
     this.agency = policyInfo.agency;
     this.agent = policyInfo.agent;
+    this.issuingCarrier = policyInfo.issuingCarrier;
     this.metadata = policyInfo.metadata;
+    this.imageUrls = policyInfo.imageUrls || null;
+    this.imagePaths = policyInfo.imagePaths || null;
     this.isExpired = this.initIsExpired();
   }
 
@@ -641,7 +668,7 @@ export class PolicyClass implements IPolicyClass {
 
       return { locationId, newTotal };
     } catch (err) {
-      delete this.locations[locationId];
+      if (this.locations[locationId]) delete this.locations[locationId];
       throw err;
     }
   }
@@ -664,6 +691,7 @@ export class PolicyClass implements IPolicyClass {
     let location = this.getLocation(id); // throws if not found
 
     // TODO: recalc premium if required (limits change)
+    // handle prem calc outside of class
 
     try {
       this.locations = {
@@ -746,12 +774,31 @@ export class PolicyClass implements IPolicyClass {
     };
   }
 
+  calcCardFee(amount: number) {
+    const feePct = Number.parseFloat(cardFeePct.value()) || 0.035;
+    return round(amount * feePct, 2);
+  }
+
+  calcCardFeeAllLocations() {
+    let fee = 0;
+    if (this.price && typeof this.price === 'number') {
+      fee = this.calcCardFee(this.price);
+    }
+    this.cardFee = fee;
+    return fee;
+  }
+
+  // TODO: doesn't account for fees ??
+  calcCardFeeLocation(locationId: string, fees: number = 0) {
+    const location = this.getLocation(locationId);
+    if (!location.premium || typeof location.premium !== 'number')
+      throw new Error('Missing location premium or premium is not a number');
+    const fee = this.calcCardFee(location.premium + fees);
+    return fee;
+  }
+
   // setEffectiveDate(effDate: Timestamp)
   // setExpirationDate
-}
-
-export interface PolicyOld {
-  [key: string]: any;
 }
 
 // export interface PolicyOld {
@@ -844,7 +891,7 @@ export interface Transaction extends BaseDoc {
   limits: Limits;
   tiv: number;
   rcvs: RCVs;
-  premiumCalcData: PremiumCalcData; // TODO
+  premiumCalcData: PremiumCalcData; // TODO: double check PremCalcData interface
   externalId: string | null;
   policyAnnualDWP: number;
   termProratedPct: number;
@@ -853,8 +900,8 @@ export interface Transaction extends BaseDoc {
   netDWP: number;
   netErrorAdj?: number | null;
   trxPolicyDays: number;
-  dailyPremium: number; // calcualted in SQL query
-  submission?: string;
+  dailyPremium: number; // calcualted in reporting SQL query ??
+  // submission?: string;
   otherInterestedParties: string[];
   additionalNamedInsured: string[];
   mgaCommRate: number;

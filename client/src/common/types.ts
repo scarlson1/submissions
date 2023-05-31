@@ -40,6 +40,7 @@ export interface Submission extends FloodValues, FetchPropertyDataResponse {
   agentId?: string | null;
   status: SUBMISSION_STATUS;
   submittedById?: string | null;
+  rcvSouceUser?: boolean;
   darkMapImageURL?: string;
   lightMapImageURL?: string;
   darkMapImageFilePath?: string;
@@ -216,6 +217,7 @@ export interface SubmissionQuoteData {
   effectiveExceptionRequested?: boolean;
   effectiveExceptionReason?: string | null;
   policyExpirationDate?: Timestamp;
+  quoteExpirationDate: Timestamp;
   exclusions?: string[];
   // additionalInsureds?: AdditionalInsured[];
   // mortgageeInterest?: Mortgagee[];
@@ -231,6 +233,7 @@ export interface SubmissionQuoteData {
   insuredEmail?: string | null;
   insuredPhone?: string | null;
   insuredUserId?: string | null;
+  insuredMailingAddress?: Address | null;
   agencyId: string | null;
   agencyName: string | null;
   agentId: string | null;

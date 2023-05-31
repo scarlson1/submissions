@@ -1,11 +1,13 @@
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
+import { info } from 'firebase-functions/logger';
 import sgMail from '@sendgrid/mail';
 
 import { newContactMessage } from '../services/sendgrid/templates';
 import { audience, sendgridApiKey } from '../common';
 
-export default async ({ data }: CallableRequest) => {
-  console.log('data: ', data);
+export default async ({ data, auth }: CallableRequest) => {
+  info('data: ', data);
+  info('User ID: ', auth?.uid);
   const { userEmail, subject, body } = data;
   if (!userEmail || !body) {
     throw new HttpsError('invalid-argument', `Missing email or body`);

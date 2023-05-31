@@ -3,6 +3,7 @@ import { FormikHelpers, FormikProps, FormikValues } from 'formik';
 import { Box, Container, Tooltip, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { addDoc, GeoPoint, getFirestore, serverTimestamp } from 'firebase/firestore';
+import { ErrorBoundary } from 'react-error-boundary';
 
 import { FormikWizard, Step } from 'components/forms';
 import {
@@ -30,7 +31,6 @@ import { useActiveStates, usePropertyDetailsAttom } from 'hooks';
 import { roundUpToNearest, sumArr } from 'modules/utils/helpers';
 import { useAuth } from 'modules/components/AuthContext';
 import { submissionsCollection } from 'common';
-import { ErrorBoundary } from 'react-error-boundary';
 import { ErrorFallbackWithReset } from 'components/ErrorFallback';
 
 // TODO: error boundary & reset: https://blog.logrocket.com/react-error-handling-react-error-boundary/
@@ -96,9 +96,9 @@ export const SubmissionNew: React.FC = () => {
   const { user, customClaims } = useAuth();
   const formikRef = useRef<FormikProps<FormikValues>>(null);
   const activeStates = useActiveStates('flood');
-  // const { propertyDetails, fetchPropertyData } = usePropertyDetails();
-  const { propertyDetails, fetchPropertyData } = usePropertyDetailsAttom();
-  // const dialog = useConfirmation() // TODO: maybe create custom input component ?? handle validation / ref issue
+  const { propertyDetails, fetchPropertyData } = usePropertyDetailsAttom({
+    promptForValuation: true,
+  });
 
   const handleFetchProperty = useCallback(
     async (values: FloodValues, helpers: FormikHelpers<FloodValues>) => {
@@ -203,7 +203,19 @@ export const SubmissionNew: React.FC = () => {
           onReset={handleErrorReset}
           // resetKeys={[activeStates]}
         >
-          <FormikWizard initialValues={initialValues} onSubmit={handleSubmit} formRef={formikRef}>
+          <FormikWizard
+            initialValues={{
+              ...initialValues,
+              firstName: user?.displayName ? `${user?.displayName.split(' ')[0]}`.trim() : '',
+              lastName:
+                user?.displayName && user?.displayName.split(' ').length > 1
+                  ? `${user?.displayName.split(' ')[1]}`.trim()
+                  : '',
+              email: user?.email ?? '',
+            }}
+            onSubmit={handleSubmit}
+            formRef={formikRef}
+          >
             <Step
               label={`What's the Address?`}
               validationSchema={addressValidationActiveStates(activeStates || {})}
@@ -290,7 +302,11 @@ export const SubmissionNew: React.FC = () => {
                 <ContactStep />
               </Box>
             </Step>
-            <Step label='Done!' validationSchema={reviewValidation} stepperNavLabel='Review'>
+            <Step
+              // label='Done!'
+              validationSchema={reviewValidation}
+              stepperNavLabel='Review'
+            >
               <ReviewStep />
             </Step>
           </FormikWizard>
@@ -299,21 +315,3 @@ export const SubmissionNew: React.FC = () => {
     </Container>
   );
 };
-
-// export const newSubmissionLoader = async ({ params }: LoaderFunctionArgs) => {
-//   try {
-//     const statesCollection = collection(getFirestore(), COLLECTIONS.ACTIVE_STATES);
-//     const snap = await getDoc(doc(statesCollection, params.productId));
-
-//     const data = snap.data();
-//     if (!snap.exists() || !data) return {};
-
-//     return data;
-//   } catch (err) {
-//     let msg = `Error fetching active states document`;
-//     if (err instanceof FirebaseError) {
-//       msg = err.message;
-//     }
-//     throw new Response(msg);
-//   }
-// };

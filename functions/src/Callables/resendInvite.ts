@@ -7,10 +7,11 @@ import { CLAIMS, audience, sendgridApiKey } from '../common';
 import { sendUserInvite } from '../services/sendgrid';
 
 export default async ({ data, auth }: CallableRequest<{ orgId: string; inviteId: string }>) => {
-  if (!auth?.uid) {
+  const token = auth?.token;
+  if (!auth?.uid || !token) {
     throw new HttpsError('unauthenticated', 'Must be signed in.');
   }
-  if (!(auth?.token[CLAIMS.ORG_ADMIN] || auth?.token[CLAIMS.IDEMAND_ADMIN])) {
+  if (!(token[CLAIMS.ORG_ADMIN] || token[CLAIMS.IDEMAND_ADMIN])) {
     throw new HttpsError('permission-denied', 'Admin permissions required');
   }
 

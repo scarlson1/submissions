@@ -1,4 +1,10 @@
-import { defineInt, defineSecret, defineString, projectID } from 'firebase-functions/params';
+import {
+  defineInt,
+  // defineFloat, not implemented yet in firebase-functions
+  defineSecret,
+  defineString,
+  projectID,
+} from 'firebase-functions/params';
 
 export const minInstances = projectID.equals('PRODUCTION').thenElse(1, 0);
 
@@ -25,7 +31,15 @@ export const audience = defineString('AUDIENCE');
 export const hostingBaseURL = defineString('HOSTING_BASE_URL');
 export const ePayBaseURL = defineString('EPAY_HOSTING_BASE_URL');
 export const mapboxToken = defineString('MAPBOX_PUBLIC_TOKEN');
+export const counties20mURL = defineString('COUNTIES_URL');
 
 export const maxA = defineInt('FLOOD_MAX_LIMIT_A', { default: 1000000 });
 export const minA = defineInt('FLOOD_MIN_LIMIT_A', { default: 100000 });
 export const maxBCD = defineInt('FLOOD_MAX_LIMIT_B_C_D', { default: 1000000 });
+
+// defineFloat not implemented yet
+// ISSUE REF: https://github.com/firebase/firebase-tools/issues/5433
+// TODO: change to defineFloat once available
+// export const cardFeePct = defineFloat('CARD_FEE_PCT', { default: 0.035 });
+export const cardFeePct = defineString('CARD_FEE_PCT', { default: '0.035 ' });
+// Number.parseFloat(randomFloat.value())
