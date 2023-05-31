@@ -1,6 +1,9 @@
 import { Request } from 'express';
 import { DecodedIdToken } from 'firebase-admin/auth';
 import { GeoPoint, Timestamp } from 'firebase-admin/firestore';
+import { v4 as uuid } from 'uuid';
+import { deepmerge } from 'deepmerge-ts';
+import { Geohash } from 'geofire-common';
 // import { Timestamp, WithFieldValue } from '@google-cloud/firestore';
 
 import {
@@ -11,7 +14,10 @@ import {
   POLICY_STATUS,
   AGENCY_SUBMISSION_STATUS,
 } from './enums.js';
-import { Geohash } from 'geofire-common';
+
+import { filterUniqueArr, removeFromArr } from './helpers.js';
+import { round } from 'lodash';
+import { cardFeePct } from './environmentVars.js';
 
 // TODO: fix typescript error app.use(thisMiddleware) is users.ts
 
@@ -26,6 +32,13 @@ export interface BaseDoc {
 }
 
 export type WithId<T> = T & { id: string };
+
+export type Nullable<T> = { [K in keyof T]: T[K] | null };
+
+export type DeepNullable<T> = {
+  [K in keyof T]: DeepNullable<T[K]> | null;
+};
+
 export interface RequestUserAuth extends Request {
   user?: DecodedIdToken;
   tenantId?: string;
@@ -47,12 +60,33 @@ export interface User {
   lastName?: string;
   initialAnonymous?: boolean;
   defaultCommission?: DefaultCommission; // TODO: extends user to create Agent type ?? or store settings in subcollection ??
+  address?: Address;
+  coordinates?: GeoPoint | null;
   metadata: BaseMetadata;
 }
 
 export interface Agent extends User {
   defaultCommission?: DefaultCommission;
 }
+
+export interface IndividualNamedInsured {
+  displayName: string;
+  firstName?: string;
+  lastName?: string;
+  email: string;
+  phone: string;
+  userId?: string | null;
+  orgId?: string;
+}
+
+export interface EntityNamedInsured {
+  displayName: string;
+  email: string;
+  phone: string;
+  orgId?: string;
+}
+
+export type NamedInsured = IndividualNamedInsured | EntityNamedInsured;
 
 export interface EPayVerifiedResponse {
   id: string;
@@ -301,7 +335,20 @@ export interface RatingPropertyData {
   replacementCost: number;
   sqFootage: number;
   yearBuilt: number;
+  ffe?: number;
 }
+// export interface RatingPropertyData {
+//   CBRSDesignation: string | null;
+//   basement: string | null; // BasementOptions | null;
+//   distToCoastFeet: number | null;
+//   floodZone: string | null; // FloodZones | null;
+//   numStories: number | null;
+//   propertyCode: string | null;
+//   replacementCost: number | null;
+//   sqFootage: number | null;
+//   yearBuilt: number | null;
+//   ffe?: number | null;
+// }
 
 export interface FetchPropertyDataResponse extends Partial<RatingPropertyData> {
   initDeductible: number;
@@ -320,6 +367,7 @@ export interface Submission extends FloodFormValues, FetchPropertyDataResponse {
   userId?: string | null;
   status: SUBMISSION_STATUS;
   submittedById?: string | null;
+  rcvSouceUser?: boolean;
   darkMapImageURL?: string;
   lightMapImageURL?: string;
   darkMapImageFilePath?: string;
@@ -384,6 +432,7 @@ export interface SubmissionQuoteData {
   effectiveExceptionRequested?: boolean;
   effectiveExceptionReason?: string | null;
   policyExpirationDate?: Timestamp;
+  quoteExpirationDate: Timestamp;
   exclusions?: string[];
   additionalInterests?: AdditionalInterest[];
   metadata: {
@@ -397,6 +446,7 @@ export interface SubmissionQuoteData {
   insuredEmail?: string | null;
   insuredPhone?: string | null;
   insuredUserId?: string | null;
+  insuredMailingAddress?: Address | null;
   agencyId: string | null;
   agencyName: string | null;
   agentId: string | null;
@@ -415,8 +465,7 @@ export interface SubmissionQuoteData {
     finalized: Timestamp | null;
   };
 }
-
-export interface Policy {
+export interface PolicyOld {
   status: POLICY_STATUS;
   limits: Limits;
   deductible: number;
@@ -451,6 +500,412 @@ export interface Policy {
   price: number;
   cardFee: number;
   metadata: BaseMetadata;
+}
+
+export type RCVKeys = 'building' | 'otherStructures' | 'contents' | 'BI' | 'total';
+
+export type RCVs = Record<RCVKeys, number>;
+
+export interface PolicyLocation {
+  address: Address;
+  coordinates: GeoPoint;
+  geoHash: Geohash;
+  premium: number;
+  limits: Limits;
+  rcvs: RCVs;
+  active: true; // https://stackoverflow.com/a/62626994/10887890
+  additionalInsureds: AdditionalInsured[];
+  mortgageeInterest: Mortgagee[];
+  ratingDocId: string; // TODO: include rating info ?? make PublicRatingData and PrivateRatingData (extends)
+  propertyData: RatingPropertyData;
+  effectiveDate: Timestamp;
+  expirationDate: Timestamp;
+  locationId: string;
+  externalId?: string | null;
+  metadata: {
+    created: Timestamp;
+    updated: Timestamp;
+  };
+}
+
+export interface Policy {
+  product: Product;
+  status: POLICY_STATUS;
+  limits: Limits;
+  deductible: number;
+  mailingAddress: Address;
+  namedInsured: NamedInsured;
+  locations: Record<string, PolicyLocation>;
+  homeState: string;
+  effectiveDate: Timestamp;
+  expirationDate: Timestamp;
+  userId: string | null;
+  agent: {
+    agentId: string | null;
+    name: string; // | null;
+    email: string; // | null;
+    phone: string; // | null;
+  };
+  agency: {
+    orgId: string | null; // TODO: remove null ??
+    name: string | null;
+    address: Address; // | null;
+  };
+  surplusLinesProducerOfRecord: {
+    name: string;
+    licenseNum: string;
+    licenseState: string;
+    phone: string;
+  };
+  issuingCarrier: string; // INSURER NAME ONLY OR NAME AND ID?
+  documents: { displayName: string; downloadUrl: string; storagePath: string }[];
+  imageUrls?: Record<string, string> | null; // { [key: string]: string | null } | null;
+  imagePaths?: Record<string, string> | null; // { [key: string]: string | null } | null;
+  // transactions: string[]; // TODO: delete or decide how to associate policies and transactions (just query transactions by policyId ??)
+  price: number;
+  cardFee: number;
+  // term: number; // Necessary ??
+  metadata: BaseMetadata;
+}
+
+export interface IPolicyClass extends Policy {
+  getLocation: (id: string) => any; // TODO LOCATION INTERFACE
+  initIsExpired: () => boolean; // TODO: figure out how to make private (#)
+  addLocation: (
+    locationData: PolicyLocation,
+    id?: string
+  ) => Promise<{ locationId: string; newTotal: number }>;
+  removeLocation: (id: string) => Promise<void>;
+  getLocationCount: () => number;
+  updateLocation: (id: string, newLocationValues: Partial<PolicyLocation>) => Promise<any>; // TODO: type response
+  sumLocationPremium: () => number; // Promise<number>;
+  cancelPolicy: (cancelDate: Timestamp) => Promise<void>;
+  calcCardFee: (amt: number) => number;
+  calcCardFeeLocation: (locationId: string, fees?: number) => number;
+  calcCardFeeAllLocations: () => number;
+}
+
+export class PolicyClass implements IPolicyClass {
+  readonly id: string;
+  readonly isExpired: boolean;
+  readonly product: Product;
+  // protected status: POLICY_STATUS;
+  status: POLICY_STATUS;
+  locations: Record<string, PolicyLocation>;
+  public limits: Limits;
+  public deductible: number;
+  public mailingAddress: Address;
+  public homeState: string;
+  public namedInsured: NamedInsured;
+  // public mortgageeInterest?: Mortgagee[];
+  public effectiveDate: Timestamp;
+  public expirationDate: Timestamp;
+  public price: number;
+  public cardFee: number; // | null;
+  public documents: { displayName: string; downloadUrl: string; storagePath: string }[];
+  // public transactions: any; // TODO: delete ??
+  public userId: string | null;
+  public agency: {
+    orgId: string | null;
+    name: string | null;
+    address: Address; // | null;
+  };
+  public agent: {
+    agentId: string | null;
+    name: string; // | null;
+    email: string; // | null;
+    phone: string; // | null;
+  };
+  public surplusLinesProducerOfRecord: any;
+  public issuingCarrier: string;
+  public imageUrls: Record<string, string> | null;
+  public imagePaths: Record<string, string> | null;
+  public metadata: BaseMetadata;
+
+  constructor(policyInfo: WithId<Policy>) {
+    this.id = policyInfo.id;
+    this.product = policyInfo.product;
+    this.status = policyInfo.status;
+    this.locations = policyInfo.locations;
+    this.limits = policyInfo.limits;
+    this.deductible = policyInfo.deductible;
+    this.mailingAddress = policyInfo.mailingAddress;
+    this.homeState = policyInfo.homeState;
+    this.namedInsured = policyInfo.namedInsured;
+    this.effectiveDate = policyInfo.effectiveDate;
+    this.expirationDate = policyInfo.expirationDate;
+    this.price = policyInfo.price;
+    this.cardFee = policyInfo.cardFee; // remove ?? changes not always based on all locations (add / remove location) --> store at locaiton level or not at all / calc in billing ??
+    this.documents = policyInfo.documents || [];
+    this.userId = policyInfo.userId;
+    this.agency = policyInfo.agency;
+    this.agent = policyInfo.agent;
+    this.issuingCarrier = policyInfo.issuingCarrier;
+    this.metadata = policyInfo.metadata;
+    this.imageUrls = policyInfo.imageUrls || null;
+    this.imagePaths = policyInfo.imagePaths || null;
+    this.isExpired = this.initIsExpired();
+  }
+
+  initIsExpired() {
+    return this.expirationDate.toMillis() < new Date().getTime();
+  }
+
+  getLocation(id: string) {
+    // return this.locations[id] || null;
+    const location = this.locations[id] || null;
+    if (!location) throw new Error(`no location found (ID ${id})`);
+    return location;
+  }
+
+  async addLocation(locationData: PolicyLocation, id?: string) {
+    // TODO: validation
+    const locationId = id || uuid();
+    try {
+      this.locations[locationId] = { ...locationData, locationId };
+      let newTotal = await this.sumLocationPremium();
+      this.price = newTotal;
+
+      return { locationId, newTotal };
+    } catch (err) {
+      if (this.locations[locationId]) delete this.locations[locationId];
+      throw err;
+    }
+  }
+
+  async removeLocation(id: string) {
+    this.getLocation(id); // will throw if not found
+
+    delete this.locations[id];
+    try {
+      let newTotal = await this.sumLocationPremium();
+      this.price = newTotal;
+    } catch (err) {
+      console.log('ERROR RECALULATING QUOTE: ', err);
+      throw err;
+    }
+  }
+
+  // TODO: DECIDE WHETHER TO ALLOW ADDING LOCATIONS ??
+  async updateLocation(id: string, newLocationValues: Partial<Omit<PolicyLocation, 'locationId'>>) {
+    let location = this.getLocation(id); // throws if not found
+
+    // TODO: recalc premium if required (limits change)
+    // handle prem calc outside of class
+
+    try {
+      this.locations = {
+        ...this.locations,
+        [id]: deepmerge(location, newLocationValues) as PolicyLocation,
+      };
+    } catch (err) {
+      this.locations = {
+        ...this.locations,
+        [id]: location,
+      };
+      throw err;
+    }
+  }
+
+  // TODO: DECIDE WHETHER TO ALLOW ADDING LOCATIONS ??
+  updateLocations(id: string, updates: Record<string, Partial<PolicyLocation>>) {
+    // TODO: RECALC TOTAL PRICE
+    this.locations = deepmerge(this.locations, updates) as Record<string, PolicyLocation>;
+  }
+
+  addAdditionalInsureds(locationId: string, newInsureds: AdditionalInsured[]) {
+    const location = this.getLocation(locationId);
+    const newVal = [...location.additionalInsureds, ...newInsureds];
+    const uniqueArr = filterUniqueArr(newVal);
+    this.updateLocation(locationId, { additionalInsureds: uniqueArr });
+    return uniqueArr;
+  }
+
+  removeAdditionalInsured(locationId: string, removeInsured: AdditionalInsured[]) {
+    const location = this.getLocation(locationId);
+    const newVal = removeFromArr(location.additionalInsureds, removeInsured);
+    this.updateLocation(locationId, { additionalInsureds: newVal });
+    return newVal;
+  }
+
+  setAdditionalInsured(locationId: string, additionalInsureds: AdditionalInsured[]) {
+    this.getLocation(locationId);
+    this.updateLocation(locationId, { additionalInsureds });
+    return additionalInsureds;
+  }
+
+  setMortgageeInterest(locationId: string, mortgageeInterest: Mortgagee[]) {
+    this.getLocation(locationId);
+    this.updateLocation(locationId, { mortgageeInterest });
+    return mortgageeInterest;
+  }
+
+  getLocationCount() {
+    return Object.keys(this.locations).length;
+  }
+
+  sumLocationPremium() {
+    const locations = Object.values(this.locations);
+
+    const totalPremium = locations.reduce((acc, location) => {
+      if (!location.premium)
+        throw new Error(
+          `Missing premium for ${location.address.addressLine1} (${location.locationId})`
+        );
+      return acc + location.premium;
+    }, 0);
+
+    // TODO: decide whether to directly set price
+
+    return totalPremium;
+  }
+
+  async cancelPolicy(cancelDate: Timestamp) {
+    // TODO: finish method
+    // set status to cancelled
+    // calc refundable amount ??
+  }
+
+  // TODO: use update or set ??
+  updateNamedInsured(newVals: Partial<NamedInsured>) {
+    this.namedInsured = {
+      ...this.namedInsured,
+      ...newVals,
+    };
+  }
+
+  calcCardFee(amount: number) {
+    const feePct = Number.parseFloat(cardFeePct.value()) || 0.035;
+    return round(amount * feePct, 2);
+  }
+
+  calcCardFeeAllLocations() {
+    let fee = 0;
+    if (this.price && typeof this.price === 'number') {
+      fee = this.calcCardFee(this.price);
+    }
+    this.cardFee = fee;
+    return fee;
+  }
+
+  // TODO: doesn't account for fees ??
+  calcCardFeeLocation(locationId: string, fees: number = 0) {
+    const location = this.getLocation(locationId);
+    if (!location.premium || typeof location.premium !== 'number')
+      throw new Error('Missing location premium or premium is not a number');
+    const fee = this.calcCardFee(location.premium + fees);
+    return fee;
+  }
+
+  // setEffectiveDate(effDate: Timestamp)
+  // setExpirationDate
+}
+
+// export interface PolicyOld {
+//   status: POLICY_STATUS;
+//   limits: Limits;
+//   deductible: number;
+//   address: Address;
+//   coordinates: GeoPoint | null; // TODO: get rid of null in SubmissionQuoteData
+//   geoHash?: Geohash | null;
+//   namedInsured: {
+//     firstName: string;
+//     lastName: string;
+//     email: string;
+//     phone: string;
+//     userId?: string | null;
+//   };
+//   additionalInsureds?: AdditionalInsured[];
+//   mortgageeInterest?: Mortgagee[];
+//   effectiveDate: Timestamp;
+//   expirationDate: Timestamp;
+//   userId: string | null;
+//   agent: {
+//     agentId: string | null;
+//     name: string | null;
+//     email: string | null;
+//   };
+//   agency: {
+//     orgId: string | null; // TODO: remove null ??
+//     name: string | null;
+//   };
+//   documents: { displayName: string; downloadUrl: string; storagePath: string }[];
+//   imageUrls?: { [key: string]: string | null } | null;
+//   imagePaths?: { [key: string]: string | null } | null;
+//   transactions: string[]; // TODO: figure out how to associate policies and transactions
+//   price: number;
+//   cardFee: number;
+//   metadata: BaseMetadata;
+// }
+
+interface PremiumCalcData {
+  minPremium: number;
+  techPremium: {
+    inland: number;
+    surge: number;
+  };
+  floodCategoryPremium: {
+    inland: number;
+    surge: number;
+  };
+  premiumSubtotal: number;
+  provisionalPremium: number;
+  subproducerAdj: number;
+  directWrittenPremium: number;
+  subproducerCommissionPct: number;
+}
+
+export interface TrxRatingData extends RatingPropertyData {
+  // dwellingType: string;  same as propertyType ??
+  units: number;
+  tier1: boolean;
+  construction: string;
+  priorLossCount: string | null; // number
+}
+
+export type TransactionType = 'new' | 'renewal' | 'endorsement' | 'cancellation';
+
+export interface Transaction extends BaseDoc {
+  trxType: TransactionType;
+  policyNumber: string;
+  term: number;
+  reportDate: Timestamp;
+  trxTimestamp: Timestamp;
+  bookingDate: Timestamp;
+  issuingCarrier: string;
+  policyType: Product;
+  namedInsured: string;
+  mailingAddress: Address;
+  locationId: string;
+  insuredLocation: PolicyLocation;
+  // insuredAddress: Address;
+  // insuredCoords: GeoPoint;
+  // locationHash: Geohash;
+  policyEffDate: Timestamp;
+  policyExpDate: Timestamp;
+  trxEffDate: Timestamp;
+  trxExpDate: Timestamp; // what's this ?? need example
+  cancelEffDate: Timestamp;
+  ratingPropertyData: TrxRatingData;
+  deductible: number;
+  limits: Limits;
+  tiv: number;
+  rcvs: RCVs;
+  premiumCalcData: PremiumCalcData; // TODO: double check PremCalcData interface
+  externalId: string | null;
+  policyAnnualDWP: number;
+  termProratedPct: number;
+  policyTermDWP: number;
+  MGACommission: number;
+  netDWP: number;
+  netErrorAdj?: number | null;
+  trxPolicyDays: number;
+  dailyPremium: number; // calcualted in reporting SQL query ??
+  // submission?: string;
+  otherInterestedParties: string[];
+  additionalNamedInsured: string[];
+  mgaCommRate: number;
+  homeState: string;
 }
 
 export type InviteStatus = 'pending' | 'accepted' | 'revoked' | 'replaced' | 'rejected' | 'error';

@@ -1,8 +1,13 @@
 import React, { Suspense, useCallback, useRef } from 'react';
-import { Box, Button, Card, CircularProgress, Typography } from '@mui/material';
-import Grid from '@mui/material/Unstable_Grid2';
+import {
+  Box,
+  Button,
+  Card,
+  CircularProgress,
+  Typography,
+  Unstable_Grid2 as Grid,
+} from '@mui/material';
 import { Formik, FormikHelpers, FormikProps } from 'formik';
-import { useParams } from 'react-router-dom';
 import { doc, setDoc, getFirestore } from 'firebase/firestore';
 import { PickingInfo } from 'deck.gl/typed';
 import { capitalize } from 'lodash';
@@ -14,7 +19,7 @@ import { statesDetailsArr } from 'common/statesList';
 import { FormikSwitch } from 'components/forms';
 import { statesCollection } from 'common';
 import { ActiveStateMap } from 'elements/ActiveStateMap';
-import { useDocData } from 'hooks';
+import { useDocData, useSafeParams } from 'hooks';
 import { ErrorFallback } from 'components';
 
 export interface EditActiveStatesValues {
@@ -22,8 +27,8 @@ export interface EditActiveStatesValues {
 }
 
 export const EditActiveStates: React.FC = () => {
-  let { productId } = useParams();
-  const { data } = useDocData<{ [key: string]: boolean }>('ACTIVE_STATES', productId || '');
+  let { productId } = useSafeParams(['productId']);
+  const { data } = useDocData<{ [key: string]: boolean }>('ACTIVE_STATES', productId);
   const formikRef = useRef<FormikProps<EditActiveStatesValues>>(null);
 
   const handleSave = useCallback(() => {

@@ -103,6 +103,7 @@ export const getRedirectPath = (location: Location) => {
   let from = location.state?.from?.pathname || '/';
   let redirectPath = redirectProvided || from;
 
+  // TODO: is this necessary ?? prevent infinite loop (unauthorized redirect) ??
   if (redirectPath === location.pathname) redirectPath = '/';
 
   return redirectPath;
@@ -606,3 +607,19 @@ export function getDifference(origObj: any, newObj: any) {
 // if (diff.cool) {
 //   console.log('Coolness changed to', diff.cool);
 // }
+
+/**
+ * No operation
+ */
+export function noop(..._args: any[]): void {}
+
+/**
+ * Sums an array of numbers
+ * @param {number[]} arr - array of numbers to be added.
+ * @return {number} total of all numbers in array
+ */
+export const calcSum = (arr: number[]) => {
+  return arr.reduce((total, current) => {
+    return total + current;
+  }, 0);
+};

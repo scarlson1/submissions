@@ -8,9 +8,4 @@ export interface InitQuoteResponse {
 }
 
 export const initializeQuote = (functions: Functions, args: InitQuoteRequest) =>
-  httpsCallable<InitQuoteRequest, InitQuoteResponse>(functions, 'initializeQuote')(args);
-
-// export const initializeQuote = httpsCallable<InitQuoteRequest, InitQuoteResponse>(
-//   getFunctions(), // functions,
-//   'initializeQuote'
-// );
+  httpsCallable<InitQuoteRequest, InitQuoteResponse>(functions, 'initializequote')(args);

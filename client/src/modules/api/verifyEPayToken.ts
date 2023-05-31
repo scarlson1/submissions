@@ -14,7 +14,7 @@ export interface VerifyEPayTokenResponse extends EPayPaymentMethodDetails {
 export const verifyEPayToken = (functions: Functions, args: VerifyEPayTokenRequest) =>
   httpsCallable<VerifyEPayTokenRequest, VerifyEPayTokenResponse>(
     functions,
-    'verifyEPayToken'
+    'verifyepaytoken'
   )(args);
 
 // export const verifyEPayToken = httpsCallable<VerifyEPayTokenRequest, VerifyEPayTokenResponse>(

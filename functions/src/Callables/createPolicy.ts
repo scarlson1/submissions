@@ -1,5 +1,5 @@
-import logger from 'firebase-functions/logger';
-import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
+import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
+import { error } from 'firebase-functions/logger';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { round } from 'lodash';
 
@@ -8,18 +8,18 @@ import {
   submissionsQuotesCollection,
   policiesCollection,
   SubmissionQuoteData,
-  Policy,
   addToDate,
   POLICY_STATUS,
+  PolicyOld,
 } from '../common';
 
 // TODO: calc mustBePaidByDate
 
-export default async (data: any, ctx: CallableContext) => {
+export default async ({ data, auth }: CallableRequest<{ quoteId: string }>) => {
   const db = getFirestore();
 
   const { quoteId } = data;
-  const uid: string | undefined = ctx.auth?.uid;
+  const uid = auth?.uid;
 
   if (!uid) throw new HttpsError('unauthenticated', 'Must be signed in');
   if (!quoteId) throw new HttpsError('failed-precondition', 'Missing quote ID');
@@ -55,7 +55,7 @@ export default async (data: any, ctx: CallableContext) => {
     return { policyId: policyRef.id };
   } catch (err: any) {
     console.log('ERROR => ', err);
-    logger.error('Error creating policy', {
+    error('Error creating policy', {
       data,
       quoteId,
       userId: uid,
@@ -68,7 +68,7 @@ export default async (data: any, ctx: CallableContext) => {
   }
 };
 
-function convertQuoteToPolicy(data: SubmissionQuoteData): Policy {
+function convertQuoteToPolicy(data: SubmissionQuoteData): PolicyOld {
   return {
     status: POLICY_STATUS.AWAITING_PAYMENT,
     price: data.quoteTotal || 100000, // TODO: fix quote total validation
@@ -151,7 +151,7 @@ function convertQuoteToPolicy(data: SubmissionQuoteData): Policy {
 //     return { policyId: policyRef.id };
 //   } catch (err: any) {
 //     console.log('ERROR => ', err);
-//     logger.error('Error creating policy', {
+//     error('Error creating policy', {
 //       data,
 //       quoteId,
 //       userId: uid,

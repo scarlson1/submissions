@@ -1,6 +1,6 @@
-import * as functions from 'firebase-functions';
-import 'firebase-functions';
-import { DocumentData, Timestamp, getFirestore } from 'firebase-admin/firestore';
+import type { FirestoreEvent } from 'firebase-functions/v2/firestore';
+import type { Change } from 'firebase-functions';
+import { DocumentData, DocumentSnapshot, Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { getAuth, TenantAwareAuth, Auth } from 'firebase-admin/auth';
 
 import { CLAIMS, isJSON, orgsCollection } from '../common';
@@ -12,15 +12,17 @@ export interface ClaimsDocData extends DocumentData {
 }
 
 export default async (
-  change: functions.Change<functions.firestore.DocumentSnapshot>,
-  context: functions.EventContext<{
-    orgId: string;
-    userId: string;
-  }>
+  event: FirestoreEvent<
+    Change<DocumentSnapshot> | undefined,
+    {
+      orgId: string;
+      userId: string;
+    }
+  >
 ) => {
-  const beforeData: ClaimsDocData = change.before.data() || {};
-  const afterData: ClaimsDocData = change.after.data() || {};
-  const { userId, orgId } = context.params;
+  const beforeData: ClaimsDocData = event?.data?.before.data() || {};
+  const afterData: ClaimsDocData = event?.data?.after.data() || {};
+  const { userId, orgId } = event.params;
   let auth: Auth | TenantAwareAuth = getAuth();
 
   console.log(`User claims doc change detected (uid: ${userId})`);
@@ -49,7 +51,7 @@ export default async (
 
     if (!isValid) {
       console.log('Invalid JSON. returning early');
-      await change.after.ref.set({
+      await event?.data?.after.ref.set({
         ...beforeData,
       });
     }
@@ -65,10 +67,14 @@ export default async (
       // delete newClaims.iDemandAdmin;
       delete newClaims[CLAIMS.IDEMAND_ADMIN];
       delete newClaims[CLAIMS.IDEMAND_USER];
-      await change.after.ref.set({
+      await event?.data?.after.ref.set({
         ...newClaims,
         _lastCommitted,
       });
+      // await change.after.ref.set({
+      //   ...newClaims,
+      //   _lastCommitted,
+      // });
       return;
     }
     // could limit the allow claims ['iDemandAdmin', 'admin', 'agent'] etc
@@ -95,7 +101,7 @@ export default async (
     console.log(`Setting custom claims for ${userId}`, newClaims);
     await auth.setCustomUserClaims(userId, { ...newClaims });
 
-    await change.after.ref.update({
+    await event?.data?.after.ref.update({
       _lastCommitted: Timestamp.now(),
       ...newClaims,
     });

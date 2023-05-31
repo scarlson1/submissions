@@ -27,6 +27,12 @@ export interface BaseDoc {
 
 export type WithId<T> = T & { id: string };
 
+export type Nullable<T> = { [K in keyof T]: T[K] | null };
+
+export type DeepNullable<T> = {
+  [K in keyof T]: DeepNullable<T[K]> | null;
+};
+
 export interface Submission extends FloodValues, FetchPropertyDataResponse {
   coordinates: GeoPoint;
   countyFIPS?: string | null;
@@ -34,6 +40,7 @@ export interface Submission extends FloodValues, FetchPropertyDataResponse {
   agentId?: string | null;
   status: SUBMISSION_STATUS;
   submittedById?: string | null;
+  rcvSouceUser?: boolean;
   darkMapImageURL?: string;
   lightMapImageURL?: string;
   darkMapImageFilePath?: string;
@@ -152,16 +159,42 @@ export interface TaxItem {
 // TODO: temparary (quote data interface for interim submissions period) REPLACE
 
 export interface RatingPropertyData {
-  CBRSDesignation: string | null;
-  basement: string | null; // BasementOptions | null;
-  distToCoastFeet: number | null;
-  floodZone: string | null; // FloodZones | null;
-  numStories: number | null;
-  propertyCode: string | null;
-  replacementCost: number | null;
-  sqFootage: number | null;
-  yearBuilt: number | null;
+  CBRSDesignation: string;
+  basement: string; // BasementOptions | null;
+  distToCoastFeet: number;
+  floodZone: string; // FloodZones | null;
+  numStories: number;
+  propertyCode: string;
+  replacementCost: number;
+  sqFootage: number;
+  yearBuilt: number;
+  ffe?: number;
 }
+
+interface RatingCalcData {
+  AAL: {
+    inland: number;
+    surge: number;
+  };
+  PM: {
+    inland: number;
+    surge: number;
+  };
+  riskScore: {
+    inland: number;
+    surge: number;
+  };
+  stateMultipliers: {
+    inland: number;
+    surge: number;
+  };
+  secondaryFactorMults: {
+    inland: number;
+    surge: number;
+  };
+}
+
+type PropWithRatingCalcData = Nullable<RatingPropertyData> & RatingCalcData;
 
 export interface SubmissionQuoteData {
   product: Product; // keyof typeof Product;
@@ -184,6 +217,7 @@ export interface SubmissionQuoteData {
   effectiveExceptionRequested?: boolean;
   effectiveExceptionReason?: string | null;
   policyExpirationDate?: Timestamp;
+  quoteExpirationDate: Timestamp;
   exclusions?: string[];
   // additionalInsureds?: AdditionalInsured[];
   // mortgageeInterest?: Mortgagee[];
@@ -199,6 +233,7 @@ export interface SubmissionQuoteData {
   insuredEmail?: string | null;
   insuredPhone?: string | null;
   insuredUserId?: string | null;
+  insuredMailingAddress?: Address | null;
   agencyId: string | null;
   agencyName: string | null;
   agentId: string | null;
@@ -209,7 +244,7 @@ export interface SubmissionQuoteData {
   submissionId?: string | null;
   imageUrls?: { [key: string]: string | null };
   imagePaths?: { [key: string]: string | null };
-  ratingPropertyData: RatingPropertyData;
+  ratingPropertyData: Nullable<RatingPropertyData>;
   geoHash?: Geohash | null;
   notes?: Note[]; // { [key: string]: string }[];
   // quoteIds?: WithFieldValue<string[]>;
@@ -294,6 +329,25 @@ export interface VersionAwareMetadata extends BaseMetadata {
   archivedAtVersion: WithFieldValue<number | null>;
 }
 
+// TODO: add UW adjustment?? or is that applied after DWP
+interface PremiumCalcData {
+  minPremium: number;
+  techPremium: {
+    inland: number;
+    surge: number;
+  };
+  floodCategoryPremium: {
+    inland: number;
+    surge: number;
+  };
+  premiumSubtotal: number;
+  provisionalPremium: number;
+  subproducerAdj: number;
+  directWrittenPremium: number;
+  subproducerCommissionPct: number;
+}
+
+// TODO: standardize this interface with the "Trx" interface
 export interface RatingData {
   quoteDocRef: string;
   quoteId: string;
@@ -307,56 +361,42 @@ export interface RatingData {
     d: number;
     spatialKey: number;
   };
-  ratingData: {
-    AAL: {
-      inland: number;
-      surge: number;
-    };
-    PM: {
-      inland: number;
-      surge: number;
-    };
-    riskScore: {
-      inland: number;
-      surge: number;
-    };
-    stateMultipliers: {
-      inland: number;
-      surge: number;
-    };
-    secondaryFactorMults: {
-      inland: number;
-      surge: number;
-    };
-    basement: BasementOptions;
-    floodZone: FloodZones;
-    ffe: number;
-    numStories: number;
-    sqFootage: number;
-    distToCoast: number;
-    propertyCode: string;
-    yearBuilt: number;
-    CBRSDesignation: string;
-  };
-  premiumData: {
-    minPremium: number;
-    techPremium: {
-      inland: number;
-      surge: number;
-    };
-    floodCategoryPremium: {
-      inland: number;
-      surge: number;
-    };
-    premiumSubtotal: number;
-    provisionalPremium: number;
-    subproducerAdj: number;
-    directWrittenPremium: number;
-    subproducerCommissionPct: number;
-  };
+  ratingData: PropWithRatingCalcData;
+  // ratingData: {
+  //   AAL: {
+  //     inland: number;
+  //     surge: number;
+  //   };
+  //   PM: {
+  //     inland: number;
+  //     surge: number;
+  //   };
+  //   riskScore: {
+  //     inland: number;
+  //     surge: number;
+  //   };
+  //   stateMultipliers: {
+  //     inland: number;
+  //     surge: number;
+  //   };
+  //   secondaryFactorMults: {
+  //     inland: number;
+  //     surge: number;
+  //   };
+  //   basement: BasementOptions;
+  //   floodZone: FloodZones;
+  //   ffe: number;
+  //   numStories: number;
+  //   sqFootage: number;
+  //   distToCoast: number;
+  //   propertyCode: string;
+  //   yearBuilt: number;
+  //   CBRSDesignation: string;
+  // };
+  premiumData: PremiumCalcData;
   address: Address;
   geoHash?: any;
-  lat: number;
+  lat: number; // TODO: use GeoPoint ??
   lng: number;
   externalId: string | null;
   metadata: VersionAwareMetadata;
@@ -449,7 +489,7 @@ export interface PolicyLocationNew {
   geoHash: Geohash;
   locationId: string;
   fips: string;
-  propData: RatingPropertyData;
+  propData: Nullable<RatingPropertyData>;
   deductible: number;
   limits: Limits;
   tiv: number;
@@ -497,13 +537,54 @@ export interface Policy extends BaseDoc {
   // metadata: BaseMetadata;
 }
 
-export type ChangeRequestStatus = 'submitted' | 'accepted' | 'denied' | 'under_review';
+export interface TrxRatingData extends Nullable<RatingPropertyData> {
+  units: number;
+  tier1: boolean;
+  construction: string;
+  priorLossCount: string | null; // number
+}
 
-export interface ChangeRequest extends BaseDoc {
-  field: string;
-  newValue: string | number;
-  userId: string;
-  status: ChangeRequestStatus;
+export interface Transaction extends BaseDoc {
+  trxType: TransactionType;
+  policyNumber: string;
+  term: number;
+  reportDate: Timestamp;
+  trxTimestamp: Timestamp;
+  bookingDate: Timestamp;
+  issuingCarrier: string;
+  policyType: Product;
+  namedInsured: string;
+  mailingAddress: Address;
+  locationId: string;
+  insuredLocation: PolicyLocation;
+  // insuredAddress: Address;
+  // insuredCoords: GeoPoint;
+  // locationHash: Geohash;
+  policyEffDate: Timestamp;
+  policyExpDate: Timestamp;
+  trxEffDate: Timestamp;
+  trxExpDate: Timestamp; // what's this ?? need example
+  cancelEffDate: Timestamp;
+  ratingPropertyData: TrxRatingData;
+  deductible: number;
+  limits: Limits;
+  tiv: number;
+  rcvs: RCVs;
+  premiumCalcData: PremiumCalcData; // TODO
+  externalId: string | null;
+  policyAnnualDWP: number;
+  termProratedPct: number;
+  policyTermDWP: number;
+  MGACommission: number;
+  netDWP: number;
+  netErrorAdj?: number | null;
+  trxPolicyDays: number;
+  dailyPremium: number; // calcualted in SQL query ?? or in converter ??
+  submission?: string;
+  otherInterestedParties: string[];
+  additionalNamedInsured: string[];
+  mgaCommRate: number;
+  homeState: string;
 }
 
 export interface User extends BaseDoc {
@@ -1084,4 +1165,159 @@ export interface SpatialKeyResponse {
   us_hh_locale: string; // 'suburban',
   us_hh_fema_base_elevation_meter: string; // '',
   us_hh_mls_ex_foundation_features: string; // '',
+}
+
+type DocSearchContentType =
+  | 'content'
+  | 'lvl0'
+  | 'lvl1'
+  | 'lvl2'
+  | 'lvl3'
+  | 'lvl4'
+  | 'lvl5'
+  | 'lvl6';
+
+interface DocSearchHitAttributeHighlightResult {
+  value: string;
+  matchLevel: 'full' | 'none' | 'partial';
+  matchedWords: string[];
+  fullyHighlighted?: boolean;
+}
+
+interface DocSearchHitHighlightResultHierarchy {
+  lvl0: DocSearchHitAttributeHighlightResult;
+  lvl1: DocSearchHitAttributeHighlightResult;
+  lvl2: DocSearchHitAttributeHighlightResult;
+  lvl3: DocSearchHitAttributeHighlightResult;
+  lvl4: DocSearchHitAttributeHighlightResult;
+  lvl5: DocSearchHitAttributeHighlightResult;
+  lvl6: DocSearchHitAttributeHighlightResult;
+}
+
+interface DocSearchHitHighlightResult {
+  content: DocSearchHitAttributeHighlightResult;
+  hierarchy: DocSearchHitHighlightResultHierarchy;
+  hierarchy_camel: DocSearchHitHighlightResultHierarchy[];
+}
+
+interface DocSearchHitAttributeSnippetResult {
+  value: string;
+  matchLevel: 'full' | 'none' | 'partial';
+}
+
+interface DocSearchHitSnippetResult {
+  content: DocSearchHitAttributeSnippetResult;
+  hierarchy: DocSearchHitHighlightResultHierarchy;
+  hierarchy_camel: DocSearchHitHighlightResultHierarchy[];
+}
+
+export declare type DocSearchHit = {
+  objectID: string;
+  content: string | null;
+  url: string;
+  url_without_anchor: string;
+  type: DocSearchContentType;
+  anchor: string | null;
+  hierarchy: {
+    lvl0: string;
+    lvl1: string;
+    lvl2: string | null;
+    lvl3: string | null;
+    lvl4: string | null;
+    lvl5: string | null;
+    lvl6: string | null;
+  };
+  _highlightResult: DocSearchHitHighlightResult;
+  _snippetResult: DocSearchHitSnippetResult;
+  _rankingInfo?: {
+    promoted: boolean;
+    nbTypos: number;
+    firstMatchedWord: number;
+    proximityDistance?: number;
+    geoDistance: number;
+    geoPrecision?: number;
+    nbExactWords: number;
+    words: number;
+    filters: number;
+    userScore: number;
+    matchedGeoLocation?: {
+      lat: number;
+      lng: number;
+      distance: number;
+    };
+  };
+  _distinctSeqID?: number;
+};
+
+export type InternalDocSearchHit = DocSearchHit & {
+  __docsearch_parent: InternalDocSearchHit | null;
+};
+
+export type StoredDocSearchHit = Omit<DocSearchHit, '_highlightResult' | '_snippetResult'>;
+
+export type EmailData = string | { name?: string; email: string };
+
+export type emailTemplateNames =
+  | 'policy_delivery'
+  | 'agency_approved'
+  | 'contact_us'
+  | 'quote_notification'; // 'email_confirmation' | 'user_invite' |
+
+export interface SendEmailBase {
+  templateName: emailTemplateNames;
+  templateVars?: Record<string, any>;
+  to?: EmailData | EmailData[];
+  // cc?: EmailData | EmailData[]; // TODO
+}
+
+interface PolicyDeliveryTemplateVars {
+  toName?: string | null;
+  addressName?: string;
+  // TODO: agent info
+}
+export interface PolicyDeliveryProps extends SendEmailBase {
+  templateName: 'policy_delivery';
+  templateVars?: PolicyDeliveryTemplateVars;
+  to: EmailData | EmailData[];
+  policyId: string;
+}
+
+export interface AgencyApprovedProps extends SendEmailBase {
+  templateName: 'agency_approved';
+  docId: string;
+  tenantId: string;
+  message?: string | null; // TODO: handle additional message (overwrite entire email body). change name to "overrideMessage". create second variant to accept template vars
+  to?: never;
+}
+
+export interface ContactUsEmailProps extends SendEmailBase {
+  templateName: 'contact_us';
+  userName?: string;
+  userEmail: string;
+  subject: string;
+  body: string;
+  to?: never;
+}
+
+export interface NewQuoteEmailProps extends SendEmailBase {
+  templateName: 'quote_notification';
+  to: EmailData | EmailData[];
+  quoteId: string;
+  overrideMessage?: string;
+}
+
+export type SendEmailRequest =
+  | PolicyDeliveryProps
+  | AgencyApprovedProps
+  | ContactUsEmailProps
+  | NewQuoteEmailProps;
+
+// TODO: standardize email delivery response (or will all be the same if calling same cloud function ?? )
+
+export type EmailsRes = {
+  email: string;
+  status: string;
+};
+export interface BaseSendEmailResponse {
+  emails: string[] | EmailsRes[];
 }

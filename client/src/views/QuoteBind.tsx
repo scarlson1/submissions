@@ -33,7 +33,9 @@ import { RiMastercardFill, RiVisaLine } from 'react-icons/ri';
 import { MdPayments } from 'react-icons/md';
 import { isEqual } from 'lodash';
 import { toast } from 'react-hot-toast';
-import { useFirestore, useFirestoreDocData } from 'reactfire';
+import { useFirestore, useFirestoreDocData, useSigninCheck } from 'reactfire';
+import { startOfToday, endOfToday } from 'date-fns';
+import * as yup from 'yup';
 
 import {
   FormikCheckbox,
@@ -55,12 +57,13 @@ import {
   AdditionalInterest,
   submissionsQuotesCollection,
   paymentMethodsCollection,
+  ANALYTICS_EVENTS,
 } from 'common';
-import { useBindQuote, useUserPaymentMethods } from 'hooks';
+import { useAnalyticsEvent, useBindQuote, useUserPaymentMethods } from 'hooks';
 import { billingValidation, PaymentStep, ContactStep } from 'elements';
 import { addToDate, dollarFormat, formatDate } from 'modules/utils/helpers';
 import { AUTH_ROUTES, ROUTES, createPath } from 'router';
-import { useAuth } from 'modules/components/AuthContext';
+import { CUSTOM_CLAIMS, useAuth } from 'modules/components/AuthContext';
 import { fallbackImages } from './PoliciesOld';
 
 // TODO: error boundary & reset: https://blog.logrocket.com/react-error-handling-react-error-boundary/
@@ -71,60 +74,8 @@ import { fallbackImages } from './PoliciesOld';
 // TODO: check quote status - dont allow continue if not "awaiting:user"
 
 // TODO: use transform to remove empty additional insured & mortagee rows ??
-// 'Password': yup.string().notRequired().min(8).nullable().transform((value) => !!value ? value : null)
 
-// export const quoteLoader = async ({ params }: LoaderFunctionArgs) => {
-//   const quoteRef = doc(submissionsQuotesCollection(getFirestore()), params.quoteId);
-
-//   const snap = await getDoc(quoteRef);
-//   let data = snap.data();
-//   console.log('QUOTE DATA: ', data);
-
-//   if (!snap.exists() || !data) {
-//     throw new Response('Quote not found', { status: 404 });
-//   }
-
-//   return { ...data, id: snap.id };
-// };
-
-// export const quoteLoader =
-//   (db: Firestore) =>
-//   async ({ params }: LoaderFunctionArgs) => {
-//     console.log('db: ', db);
-//     const quoteRef = doc(submissionsQuotesCollection(db), params.quoteId);
-
-//     const snap = await getDoc(quoteRef);
-//     let data = snap.data();
-//     console.log('QUOTE DATA: ', data);
-
-//     if (!snap.exists() || !data) {
-//       throw new Response('Quote not found', { status: 404 });
-//     }
-
-//     return { ...data, id: snap.id };
-//   };
-
-// CAUSES BUG - CALLING GETAUTH BEFORE INITIALIZING FIREBASE ?? only works when not full page refresh
-// export const quoteLoader =
-//   (auth: Auth) =>
-//   async ({ params }: LoaderFunctionArgs) => {
-//     // const submissionsQuotesCollection = collection(
-//     //   getFirestore(),
-//     //   COLLECTIONS.SUBMISSIONS_QUOTES
-//     // ) as CollectionReference<SubmissionQuoteData>;
-//     const quoteRef = doc(submissionsQuotesCollection(getFirestore()), params.quoteId);
-//     // console.log('auth', auth);
-//     // console.log('current user ', auth.currentUser?.uid);
-//     const snap = await getDoc(quoteRef);
-//     let data = snap.data();
-//     // console.log('QUOTE DATA: ', data);
-
-//     if (!snap.exists() || !data) {
-//       throw new Response('Quote not found', { status: 404 });
-//     }
-
-//     return { ...data, id: snap.id };
-//   };
+// quote needs to bind by quote date + 30
 
 export interface QuoteValues {
   firstName: string;
@@ -144,17 +95,18 @@ export interface QuoteValues {
 
 export const QuoteBind: React.FC = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, isAnonymous } = useAuth();
+  const { data: signInCheckResult } = useSigninCheck();
   const { quoteId } = useParams();
   if (!quoteId) throw new Error('missing quoteId');
 
   const firestore = useFirestore();
   const quoteRef = doc(submissionsQuotesCollection(firestore), quoteId);
-  const { status, data } = useFirestoreDocData(quoteRef);
+  const { data } = useFirestoreDocData(quoteRef);
+  const logAnalyticsStep = useLogCheckoutProgress(quoteId, 5);
 
   const formikRef = useRef<FormikProps<QuoteValues>>(null);
 
-  // TODO: FINISH BIND QUOTE HOOK
+  // TODO FINISH BIND QUOTE HOOK
   const bindQuote = useBindQuote(
     (msg: string) => toast.success(msg),
     (err, msg) => toast.error(msg)
@@ -181,19 +133,14 @@ export const QuoteBind: React.FC = () => {
   );
 
   const handleCancel = useCallback(() => {
-    navigate('/');
-  }, [navigate]);
+    const navPath = signInCheckResult.signedIn ? createPath({ path: ROUTES.QUOTES }) : '/';
+    navigate(navPath);
+  }, [navigate, signInCheckResult]);
 
   const saveValues = useCallback(
     async (values: QuoteValues, bag: any, initialValues: QuoteValues) => {
       // alternative pkg: https://github.com/mattphillips/deep-object-diff
       if (isEqual(values, initialValues)) return values;
-
-      // const submissionsQuotesCollection = collection(
-      //   getFirestore(),
-      //   COLLECTIONS.SUBMISSIONS_QUOTES
-      // ) as CollectionReference<SubmissionQuoteData>;
-      // const ref = doc(submissionsQuotesCollection(getFirestore()), quoteId);
 
       await updateDoc(quoteRef, {
         insuredFirstName: values.firstName,
@@ -212,16 +159,12 @@ export const QuoteBind: React.FC = () => {
     [quoteRef]
   );
 
-  // TODO: handle quote expiration (quoteExpiration)
+  // TODO handle quote expiration (quoteExpiration)
 
-  // TODO: handle setting userId when user is authenticated
-  // TODO: submission needs isAnonymous flag so userId can/should be overwritten ??
-  if (!isAuthenticated || isAnonymous || !data.userId) {
-    return <AuthStep quoteId={quoteId!} />;
-  }
-
-  if (status === 'loading') {
-    return <span>loading...</span>;
+  // TODO submission needs isAnonymous flag so userId can/should be overwritten ??
+  // TODO set agentId if agent not already set ??
+  if (!signInCheckResult.signedIn || signInCheckResult.user.isAnonymous || !data.userId) {
+    return <AuthStep quoteId={quoteId} />;
   }
 
   return (
@@ -256,31 +199,46 @@ export const QuoteBind: React.FC = () => {
           validationSchema={contactValidation}
           mutateOnSubmit={saveValues}
         >
-          <NamedInsuredStep />
+          <NamedInsuredStep logAnalyticsStep={logAnalyticsStep} />
         </Step>
         <Step label='Additional Interests' stepperNavLabel='+1s' mutateOnSubmit={saveValues}>
-          <AdditionalInterestsStep />
+          <AdditionalInterestsStep logAnalyticsStep={logAnalyticsStep} />
         </Step>
         <Step
           label='Effective Date'
           stepperNavLabel='Dates'
-          // validationSchema={contactValidation}
-          mutateOnSubmit={saveValues}
+          validationSchema={effectiveDateValidation}
+          // mutateOnSubmit={saveValues}
+          mutateOnSubmit={(values: QuoteValues, bag: any, initialValues: QuoteValues) => {
+            let mutatedVals = values;
+            if (
+              values.policyEffectiveDate > addToDate({ days: 15 }) &&
+              values.policyEffectiveDate < addToDate({ days: 60 })
+            ) {
+              mutatedVals.effectiveExceptionReason = '';
+              mutatedVals.effectiveExceptionRequested = false;
+            }
+            console.log('MUTATED VALS: ', mutatedVals);
+            return saveValues(mutatedVals, bag, initialValues);
+          }}
         >
-          <EffectiveDateStep expiration={addToDate({ days: 60 })} />
+          <EffectiveDateStep
+            expiration={addToDate({ days: 60 })}
+            logAnalyticsStep={logAnalyticsStep}
+          />
         </Step>
         <Step label='Billing' stepperNavLabel='Billing' validationSchema={billingValidation}>
-          <PaymentStep pmtOptions={[...paymentMethods]} />
+          <PaymentStep pmtOptions={[...paymentMethods]} logAnalyticsStep={logAnalyticsStep} />
         </Step>
         <Step label='Review' stepperNavLabel='Review'>
-          <BindReviewStep data={{ ...data, id: quoteId! }} />
+          <BindReviewStep data={{ ...data, id: quoteId! }} logAnalyticsStep={logAnalyticsStep} />
         </Step>
       </FormikWizard>
     </Box>
   );
 };
 
-// TODO: hanlde anonymous
+// TODO: handle anonymous. handle agent.
 export function AuthStep({ quoteId }: { quoteId: string }) {
   const navigate = useNavigate();
   const { user, isAuthenticated, isAnonymous } = useAuth();
@@ -391,7 +349,15 @@ export function AuthStep({ quoteId }: { quoteId: string }) {
 // https://mui.com/material-ui/react-list/#checkbox
 // https://flowbite.com/docs/forms/radio/#radio-in-dropdown
 
-export function NamedInsuredStep() {
+interface LogAnalyticsProp {
+  logAnalyticsStep: (step: number, stepName?: string) => void;
+}
+
+export function NamedInsuredStep({ logAnalyticsStep }: LogAnalyticsProp) {
+  useEffect(() => {
+    logAnalyticsStep(0, 'named insured step');
+  }, [logAnalyticsStep]);
+
   return (
     <Box>
       <Typography variant='body2' sx={{ pb: { xs: 3, sm: 4, md: 5 } }}>
@@ -422,9 +388,13 @@ export function NamedInsuredStep() {
 // Mortgagee (recorded priority lien rights)Additional
 // Insured (non-owner with insurance interest in property)
 
-export function AdditionalInterestsStep() {
+export function AdditionalInterestsStep({ logAnalyticsStep }: LogAnalyticsProp) {
   const { values, errors, touched, dirty, setFieldValue, setFieldTouched, setFieldError } =
     useFormikContext<QuoteValues>();
+
+  useEffect(() => {
+    logAnalyticsStep(1, 'addititional named insureds step');
+  }, [logAnalyticsStep]);
 
   return (
     <Box>
@@ -653,13 +623,43 @@ export function AdditionalInterestsStep() {
 
 // TODO: expiration date (handle expired quotes)
 // don't allow effective date to be after expiration
+// BUG: load form when eff excp req = true, then turn it off and select valid date ==> validation fails
 
-export interface EffectiveDateStepProp {
+const minDate = addToDate({ days: 15 }, startOfToday());
+const maxDate = addToDate({ days: 60 }, endOfToday());
+
+// quote good for: quote date + 60
+
+const effectiveDateValidation = yup.object().shape({
+  effectiveExceptionRequested: yup.boolean(),
+  policyEffectiveDate: yup.date().when('effectiveExceptionRequested', {
+    is: true,
+    then: yup.date().min(new Date(), 'Effective cannot be in the past'),
+    otherwise: yup
+      .date() // addToDate({ days: 15 })
+      .min(minDate, 'Effective date must be at least 15 days from binding coverage')
+      .max(maxDate, 'Effective date must be within 60 days of binding coverage'),
+  }),
+  effectiveExceptionReason: yup.string().when('effectiveExceptionRequested', {
+    is: true,
+    then: yup.string().required('Please select an option'),
+    otherwise: yup.string().notRequired(),
+  }),
+});
+
+export interface EffectiveDateStepProp extends LogAnalyticsProp {
   expiration?: Date | null;
 }
 
-export const EffectiveDateStep: React.FC<EffectiveDateStepProp> = ({ expiration }) => {
+export const EffectiveDateStep: React.FC<EffectiveDateStepProp> = ({
+  expiration,
+  logAnalyticsStep,
+}) => {
   const { values } = useFormikContext<QuoteValues>();
+
+  useEffect(() => {
+    logAnalyticsStep(2, 'effective date step');
+  }, [logAnalyticsStep]);
 
   return (
     <Box>
@@ -873,9 +873,17 @@ export const PaymentCard: React.FC<PaymentCardProps> = ({ cardDetails, loading, 
 
 // TODO: epay fees
 
-export function BindReviewStep({ data }: { data: WithId<SubmissionQuoteData> }) {
+interface BindReviewStepProps extends LogAnalyticsProp {
+  data: WithId<SubmissionQuoteData>;
+}
+
+export function BindReviewStep({ data, logAnalyticsStep }: BindReviewStepProps) {
   const { values } = useFormikContext<QuoteValues>();
   const { cardDetails, loading, error } = useCardDetails(values.paymentMethodId);
+
+  useEffect(() => {
+    logAnalyticsStep(3, 'bind quote review step');
+  }, [logAnalyticsStep]);
 
   const total = useMemo(() => {
     const { quoteTotal, cardFee } = data;
@@ -1020,7 +1028,7 @@ export function BindReviewStep({ data }: { data: WithId<SubmissionQuoteData> }) 
         )}
         <LineItem label='Total' value={total} withDivider={false} />
       </Box>
-      {data.notes && (
+      {data.notes && data.notes.length > 0 && (
         <Box>
           <Divider sx={{ my: 3 }} />
           <Typography sx={{ py: 2 }}>Underwriter Notes</Typography>
@@ -1034,3 +1042,49 @@ export function BindReviewStep({ data }: { data: WithId<SubmissionQuoteData> }) 
     </Box>
   );
 }
+
+function useLogCheckoutProgress(quoteId: string, stepCount: number) {
+  const [steps, setSteps] = useState(Array(stepCount).fill(false));
+  // const { quoteId } = useParams();
+  const logEvent = useAnalyticsEvent();
+
+  const logStep = useCallback(
+    (step: number, stepName?: string) => {
+      const hasBeenLogged = !!steps[step];
+      if (hasBeenLogged || !quoteId) return;
+
+      logEvent(ANALYTICS_EVENTS.CHECKOUT_PROGRESS, {
+        checkout_step: step,
+        quoteId: quoteId,
+        page_location: window.location.href,
+        page_path: window.location.pathname,
+        stepName,
+      });
+
+      setSteps((prev) => {
+        const newVal = [...prev];
+        newVal[step] = true;
+        return newVal;
+      });
+    },
+    [logEvent, quoteId, steps]
+  );
+
+  return logStep;
+}
+// useEffect(() => {
+//   let eventLogged = false;
+//   if (eventLogged || !quoteId) return;
+
+//   logEvent(ANALYTICS_EVENTS.CHECKOUT_PROGRESS, {
+//     checkout_step: 1,
+//     quoteId: quoteId,
+//     page_location: window.location.href,
+//     page_path: window.location.pathname,
+//   });
+//   eventLogged = true;
+
+//   return () => {
+//     eventLogged = false;
+//   };
+// }, [quoteId]);

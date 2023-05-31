@@ -1,4 +1,6 @@
 import sgMail, { MailDataRequired } from '@sendgrid/mail';
+import { MailData } from '@sendgrid/helpers/classes/mail';
+import { EmailData } from '@sendgrid/helpers/classes/email-address';
 
 // TODO: https://docs.sendgrid.com/for-developers/sending-email/personalizations
 // TODO: switch to dynamic templates
@@ -10,6 +12,9 @@ import sgMail, { MailDataRequired } from '@sendgrid/mail';
 // TODO: error handling: https://docs.sendgrid.com/api-reference/mail-send/errors
 
 // API DOCS: https://docs.sendgrid.com/api-reference/mail-send/mail-send
+
+// TODO: add firebase event ID to customArgs for all requests
+// Use webhook to listen to events save to DB
 
 import {
   submissionReceived,
@@ -23,7 +28,7 @@ import {
   agencyAppApproved,
   adminPolicyImportNotification,
   quoteExpiringSoon,
-  adminChangeRequest,
+  blankHTML,
 } from './templates';
 
 export interface AttachmentJSON {
@@ -34,8 +39,11 @@ export interface AttachmentJSON {
   content_id?: string;
 }
 
-export interface CreateMsgContentProps {
-  to: string | string[];
+export type EmailJSON = { name?: string; email: string };
+
+export interface CreateMsgContentProps extends Omit<MailData, 'from'> {
+  to: EmailData | EmailData[];
+  from?: EmailData;
   subject: string;
   html: string;
   attachments?: AttachmentJSON[];
@@ -55,19 +63,19 @@ export interface CreateMsgContentProps {
 
 const createMsgContent = ({
   to,
+  from = { name: 'iDemand Insurance', email: 'Hello@idemandinsurance.com' },
   subject,
   html,
   attachments,
+  ...rest
 }: CreateMsgContentProps): MailDataRequired => {
-  // if (process.env.AUDIENCE === 'LOCAL HUMANS') {
-  //   to = 'spencercarlson@mac.com';
-  // }
   return {
     to,
-    from: 'Hello@idemandinsurance.com',
+    from,
     subject,
     html,
     attachments,
+    ...rest,
   };
 };
 
@@ -115,14 +123,15 @@ export const sendUserInvite = async (
   link: string,
   to: string | string[],
   toName: string | null | undefined = undefined,
-  fromName: string | null | undefined = undefined
+  fromName: string | null | undefined = undefined,
+  config?: Partial<CreateMsgContentProps>
 ) => {
   const html = userInvite({ toName, fromName, link });
   sgMail.setApiKey(key);
 
   await sgMail
     // .sendMultiple(msg)
-    .send(createMsgContent({ html, subject: 'Create an account', to }));
+    .send(createMsgContent({ ...config, html, subject: 'Create an account', to }));
 };
 
 export const sendNewAgencySubmissionAdminNotification = async (
@@ -199,11 +208,6 @@ export const sendAgencyAppApprovedNotification = async (
 
   sgMail.setApiKey(key);
 
-  // const to = [email];
-  // if (process.env.AUDIENCE === 'Local Humans') {
-  //   to.push('spencer.carlson@idemandinsurance.com');
-  // }
-
   await sgMail.send(
     createMsgContent({
       to,
@@ -269,27 +273,20 @@ export const sendQuoteExpiringSoonNotification = async (
   );
 };
 
-export const sendAdminChangeRequestNotification = async (
+export const sendMessage = async (
   key: string,
   to: string | string[],
-  link: string,
-  requestType: string,
-  entityId: string,
-  changes: Record<string, any>
+  msgBody: string,
+  subject: string,
+  toName?: string
 ) => {
-  const html = adminChangeRequest({
-    link,
-    requestType,
-    entityId,
-    changes,
-  });
-
+  const html = blankHTML({ toName, content: msgBody });
   sgMail.setApiKey(key);
   await sgMail.send(
     createMsgContent({
       to,
       html,
-      subject: 'Change request received',
+      subject,
     })
   );
 };

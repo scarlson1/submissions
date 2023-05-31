@@ -1,5 +1,6 @@
 import { inspect } from 'util';
 import { add, Duration } from 'date-fns';
+import { isEqual, remove } from 'lodash';
 
 /**
  * Sums an array of numbers
@@ -135,4 +136,56 @@ export const isJSON = (obj: string) => {
 
 export const printObj = (obj: any) => {
   console.log(inspect(obj, false, null));
+};
+
+/**
+ * Split an array of items into array of provided size
+ * @param {any[]} data - array of data
+ * @param {number} size - number of items in each chunk
+ * @return {Array} return array of arrays of "size" length
+ */
+export function splitChunks(data: any[], size: number) {
+  let chunks = [];
+  // for (let i = 0; i < data.length; i += size) chunks.push(data.slice(i, i + size));
+  if (size < 1) throw new Error('splitChunks array size must be a positive number');
+  for (let i = 0; i < data.length; i += size) {
+    chunks.push(data.slice(i, i + size));
+  }
+
+  return chunks;
+}
+
+// export function sliceIntoChunks(arr: any[], chunkSize: number) {
+//   const res = [];
+//   for (let i = 0; i < arr.length; i += chunkSize) {
+//     const chunk = arr.slice(i, i + chunkSize);
+//     res.push(chunk);
+//   }
+//   return res;
+// }
+
+// export function spliceIntoChunks(arr: any[], chunkSize: number) {
+//   const res = [];
+//   while (arr.length > 0) {
+//     const chunk = arr.splice(0, chunkSize);
+//     res.push(chunk);
+//   }
+//   return res;
+// }
+
+export const filterUniqueArr = (arr: any[]) => {
+  const unique: any[] = [];
+  for (const item of arr) {
+    const isDuplicate = unique.find((obj) => isEqual(obj, item));
+    if (!isDuplicate) {
+      unique.push(item);
+    }
+  }
+  return unique;
+};
+
+export const removeFromArr = (arr: any[], val: any) => {
+  return remove(arr, function (x) {
+    return !isEqual(x, val);
+  });
 };

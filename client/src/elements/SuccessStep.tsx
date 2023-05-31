@@ -23,15 +23,17 @@ import { Submission } from 'common/types';
 import { useAuth } from 'modules/components/AuthContext';
 import { fallbackImages } from 'views/PoliciesOld';
 import {
+  ANALYTICS_EVENTS,
   Charge,
   submissionsCollection,
   submissionsQuotesCollection,
-  transactionsCollection,
+  finTrxCollection,
   withIdConverter,
 } from 'common';
 import { doc, getFirestore, onSnapshot } from 'firebase/firestore';
 import { dollarFormat2 } from 'modules/utils/helpers';
 import { useFirestore, useFirestoreDocData } from 'reactfire';
+import { useAnalyticsEvent } from 'hooks';
 
 interface FAQ {
   title: React.ReactNode;
@@ -250,7 +252,7 @@ export const useFetchTransaction = (id: string) => {
   useEffect(() => {
     if (!id) return setLoading(false);
 
-    let ref = doc(transactionsCollection(getFirestore()), id);
+    let ref = doc(finTrxCollection(getFirestore()), id);
 
     onSnapshot(
       ref,
@@ -275,7 +277,6 @@ export const useFetchTransaction = (id: string) => {
 // TODO: redo component (not using card)
 
 // TODO: use rxjs to fetch transaction from quote response
-
 export const BindSuccess: React.FC = () => {
   const navigate = useNavigate();
   const { transactionId } = useParams();
@@ -284,13 +285,30 @@ export const BindSuccess: React.FC = () => {
 
   const firestore = useFirestore();
   const quoteRef = doc(submissionsQuotesCollection(firestore), quoteId);
-  const { status, data } = useFirestoreDocData(quoteRef);
+  const { data } = useFirestoreDocData(quoteRef);
 
   const { transaction } = useFetchTransaction(transactionId || '');
+  const logEvent = useAnalyticsEvent();
 
-  if (status === 'loading') {
-    return <span>loading...</span>;
-  }
+  useEffect(() => {
+    let eventLogged = false;
+    if (eventLogged || !transactionId || !data) return;
+
+    logEvent(ANALYTICS_EVENTS.PURCHASE, {
+      transaction_id: transactionId,
+      quoteId,
+      value: data.quoteTotal || undefined,
+      status: data.status,
+      agentId: data.agentId,
+      userId: data.userId,
+      agencyId: data.agencyId,
+      product: data.product,
+    });
+    eventLogged = true;
+    return () => {
+      eventLogged = false;
+    };
+  }, [logEvent, data, transactionId, quoteId]);
 
   return (
     <Container maxWidth='xs'>

@@ -1,9 +1,9 @@
 /* eslint-disable */
-import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
+import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 
 import { Address } from '../common';
 import { getSignNowInstance } from '../services';
-import { signNowCreds, signNowUserCreds } from './index.js';
+import { signNowCreds, signNowUserCreds } from '../common';
 
 const DEFAULT_TEMPLATE_ID = '6f59b30e2005428998518ade9f325f6c405391d6';
 
@@ -15,8 +15,8 @@ interface GetAnnualPremiumData {
   companyAddress: Address;
 }
 
-export default async (data: GetAnnualPremiumData, context: CallableContext) => {
-  if (!context.auth?.token.iDemandAdmin)
+export default async ({ data, auth }: CallableRequest<GetAnnualPremiumData>) => {
+  if (!auth?.token.iDemandAdmin)
     throw new HttpsError('permission-denied', 'must have admin permissions');
 
   const {

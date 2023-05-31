@@ -1,17 +1,19 @@
-import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
+import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 
 import { getEPayInstance } from '../services';
-import { EPayVerifiedResponse, PaymentMethod, paymentMethodsCollection } from '../common';
-import { ePayCreds as ePayCredsSecret } from './index.js';
+import {
+  EPayVerifiedResponse,
+  PaymentMethod,
+  paymentMethodsCollection,
+  ePayCreds as ePayCredsSecret,
+} from '../common';
 
-// const ePayCreds = defineSecret('ENCODED_EPAY_AUTH');
-
-export default async (data: any, context: CallableContext) => {
+export default async ({ data, auth }: CallableRequest) => {
   console.log('data: ', data);
   const db = getFirestore();
   const { tokenId, accountHolder, expiration } = data;
-  const userId = context.auth?.uid;
+  const userId = auth?.uid;
 
   if (!tokenId || typeof tokenId !== 'string' || tokenId.length === 0) {
     throw new HttpsError('failed-precondition', 'missing or invalid tokenId');

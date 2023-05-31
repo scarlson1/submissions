@@ -3,7 +3,7 @@ import invariant from 'tiny-invariant';
 // import isLatLong from 'validator/es/lib/isLatLong';
 // import validator from 'validator';
 
-import { SRPerilAAL, SRRes, calcSum, isLatLng } from '../../common';
+import { SRPerilAAL, SRRes, calcSum, isLatLng } from '../../common/index.js';
 import { getSwissReInstance } from '../../services';
 import { getRCVs } from './getRCVs.js';
 import { swissReBody } from './swissReBody.js';

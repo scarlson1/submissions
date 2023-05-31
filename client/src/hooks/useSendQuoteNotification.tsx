@@ -1,11 +1,10 @@
 import { useCallback } from 'react';
 import { doc, getDoc, getFirestore } from 'firebase/firestore';
 
-import { submissionsQuotesCollection } from 'common';
-import { sendNewQuoteNotifications } from 'modules/api/sendNewQuoteNotifications';
+import { BaseSendEmailResponse, submissionsQuotesCollection } from 'common';
 import { usePromptForEmails } from './usePromptForEmails';
 import { useAsyncToast } from './useAsyncToast';
-import { getFunctions } from 'firebase/functions';
+import { useSendEmail } from './useSendEmail';
 
 export interface NotificationEmailValues {
   notifyInsured: boolean;
@@ -14,11 +13,12 @@ export interface NotificationEmailValues {
 }
 
 export const useSendQuoteNotification = (
-  onSuccess?: (emails: string[], msg?: string) => void,
+  onSuccess?: (emails: BaseSendEmailResponse['emails'], msg?: string) => void,
   onError?: (err: any, msg: string) => void
 ) => {
   const toast = useAsyncToast();
   const promptForEmails = usePromptForEmails();
+  const { send } = useSendEmail();
 
   const handleSendNotifications = useCallback(
     async (docId?: string | null) => {
@@ -27,7 +27,6 @@ export const useSendQuoteNotification = (
         const snap = await getDoc(doc(submissionsQuotesCollection(getFirestore()), docId));
         if (!snap.exists() || !snap.data()) throw new Error(`Cannot find doc with ID ${docId}`);
         const data = snap.data();
-        // const emails = await promptForEmails(docId);
 
         const emails = await promptForEmails(
           {
@@ -45,8 +44,9 @@ export const useSendQuoteNotification = (
         if (emails && emails.length > 0 && Array.isArray(emails)) {
           try {
             toast.loading('sending emails...');
-            const { data } = await sendNewQuoteNotifications(getFunctions(), {
-              emails,
+            const data = await send({
+              templateName: 'quote_notification',
+              to: emails,
               quoteId: docId,
             });
             console.log('RES: ', data);
@@ -56,7 +56,7 @@ export const useSendQuoteNotification = (
               if (onSuccess) onSuccess(data.emails, 'Email notifications sent!');
             } else toast.error('No emails provided');
 
-            return data.emails || [];
+            return data?.emails || [];
           } catch (err) {
             throw err;
           }
@@ -68,7 +68,7 @@ export const useSendQuoteNotification = (
         if (onError) onError(err, msg);
       }
     },
-    [onSuccess, onError, promptForEmails, toast]
+    [onSuccess, onError, promptForEmails, toast, send]
   );
 
   return handleSendNotifications;

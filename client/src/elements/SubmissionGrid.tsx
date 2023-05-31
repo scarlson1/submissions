@@ -450,7 +450,7 @@ export const SubmissionGrid: React.FC<SubmissionGridProps> = ({
   );
 
   return (
-    <Box sx={{ height: 500, width: '100%' }}>
+    <Box sx={{ height: 500, width: '100%', overflowX: 'hidden', maxWidth: '100%' }}>
       <BasicDataGrid
         rows={rows || []}
         columns={submissionColumns}
@@ -481,7 +481,8 @@ export const SubmissionGrid: React.FC<SubmissionGridProps> = ({
           sorting: {
             sortModel: [{ field: 'created', sort: 'desc' }],
           },
-          pagination: { pageSize: 10 },
+          // pagination: { pageSize: 10 },
+          pagination: { paginationModel: { pageSize: 10 } },
         }}
         {...props}
       />

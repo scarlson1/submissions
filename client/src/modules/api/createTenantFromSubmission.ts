@@ -20,5 +20,5 @@ export interface CreateTenantResponse {
 export const createTenantFromSubmission = (functions: Functions, args: CreateTenantRequest) =>
   httpsCallable<CreateTenantRequest, CreateTenantResponse>(
     functions,
-    'createTenantFromSubmission'
+    'createtenantfromsubmission'
   )(args);

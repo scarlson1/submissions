@@ -1,5 +1,7 @@
 import { round, ceil } from 'lodash';
 
+// TODO: use firebase params / env vars
+
 export const INLAND_LAE_FACTOR = 0.1;
 export const SURGE_LAE_FACTOR = 0.15;
 export const DISTRIBUTION_EXPENSE = 0.3735;
@@ -63,11 +65,11 @@ export const getPremiumData = ({
   minPremium,
   subproducerComPct,
 }: GetPremiumDataProps): PremiumData => {
-  console.log('aal: ', AAL);
-  console.log('scondaryfactormults: ', secondaryFactorMults);
-  console.log('state mults: ', stateMultipliers);
-  console.log('min prem: ', minPremium);
-  console.log('sub prod com pct: ', subproducerComPct);
+  // console.log('aal: ', AAL);
+  // console.log('scondaryfactormults: ', secondaryFactorMults);
+  // console.log('state mults: ', stateMultipliers);
+  // console.log('min prem: ', minPremium);
+  // console.log('sub prod com pct: ', subproducerComPct);
   let inlandTechPremium = round(
     getTechPremium(
       AAL.inland, // inlandAAL,
@@ -101,16 +103,6 @@ export const getPremiumData = ({
     subproducerComPct // subproducerCommission
   );
   let directWrittenPremium = Math.ceil(provisionalPremium + subproducerAdj);
-
-  // console.log(`Inland tech premium: ${numeral(inlandTechPremium).format('$0,0[.]00')}`);
-  // console.log(`Surge tech premium: ${numeral(surgeTechPremium).format('$0,0[.]00')}`);
-  // console.log(`Inland premium: ${numeral(inlandPremium).format('$0,0[.]00')}`);
-  // console.log(`Surge premium: ${numeral(surgePremium).format('$0,0[.]00')}`);
-  // console.log(`Premium Subtotal: ${numeral(premiumSubtotal).format('$0,0[.]00')}`);
-  // console.log(`Min premium adj: ${numeral(minPremiumAdj).format('$0,0[.]00')}`);
-  // console.log(`provisional premium: ${numeral(provisionalPremium).format('$0,0[.]00')}`);
-  // console.log(`Subproducer adj: ${numeral(subproducerAdj).format('$0,0[.]00')}`);
-  // console.log(`Direct written premium: ${numeral(directWrittenPremium).format('$0,0[.]00')}`);
 
   return {
     techPremium: {

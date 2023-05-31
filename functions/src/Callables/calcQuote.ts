@@ -1,11 +1,12 @@
-// import * as functions from 'firebase-functions';
-import logger from 'firebase-functions/logger';
-import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
+import { CallableRequest } from 'firebase-functions/v2/https';
+import { HttpsError } from 'firebase-functions/v1/https';
+import { error } from 'firebase-functions/logger';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import invariant from 'tiny-invariant';
 
 import { COLLECTIONS } from '../common';
 import { getPremium } from '../utils/rating';
+import { maxA, maxBCD, minA } from '../common';
 
 // TODO: create rating inputs interface (used in multiple funcs), extend where needed
 
@@ -26,8 +27,8 @@ export interface CalcQuoteRequest {
   commissionPct?: number;
 }
 
-export default async (data: any, context: CallableContext) => {
-  console.log('data: ', data);
+export default async ({ data, auth }: CallableRequest<CalcQuoteRequest>) => {
+  console.log('CALC QUOTE DATA: ', data);
   const db = getFirestore();
   const {
     limitA,
@@ -45,17 +46,17 @@ export default async (data: any, context: CallableContext) => {
     commissionPct = 0.15,
     submissionId,
   } = data;
-  const userId = context.auth?.uid;
+  const userId = auth?.uid;
 
   if (!userId) throw new HttpsError('unauthenticated', 'must be authenticated');
-  if (!context.auth?.token.iDemandAdmin)
+  if (!auth?.token.iDemandAdmin)
     throw new HttpsError('permission-denied', 'must have admin permissions');
 
   try {
     // TODO: reuse existing validation function
-    const MAX_A = parseInt(process.env.FLOOD_MAX_LIMIT_A || '1000000');
-    const MIN_A = parseInt(process.env.FLOOD_MIN_LIMIT_A || '100000');
-    const MAX_BCD = parseInt(process.env.FLOOD_MAX_LIMIT_B_C_D || '1000000');
+    const MAX_A = maxA.value();
+    const MIN_A = minA.value();
+    const MAX_BCD = maxBCD.value();
 
     invariant(
       limitA && typeof limitA === 'number' && limitA > MIN_A,
@@ -94,14 +95,16 @@ export default async (data: any, context: CallableContext) => {
       'state must be a two letter abbreviation'
     );
   } catch (err: any) {
-    console.log('INVALID PROPS: ', err);
-    logger.error('Invalid props', {
+    // console.log('INVALID PROPS: ', err);
+    let msg = err?.message || 'Provided params failed validation';
+    msg = msg.replace(/(Invariant failed: )/g, '');
+    error('Invalid props', {
       props: data,
       userId,
       function: 'calcQuote',
     });
 
-    throw new HttpsError('failed-precondition', err.message);
+    throw new HttpsError('failed-precondition', msg);
   }
 
   try {
@@ -158,7 +161,7 @@ export default async (data: any, context: CallableContext) => {
     return { annualPremium: result.premiumData.directWrittenPremium };
   } catch (err: any) {
     console.log('ERROR: ', err);
-    logger.error('Error calculating quote', {
+    error('Error calculating quote', {
       props: data,
       userId,
       function: 'calcQuote',
@@ -168,41 +171,3 @@ export default async (data: any, context: CallableContext) => {
     throw new HttpsError('invalid-argument', 'Error calculating quote');
   }
 };
-
-// const tiv = calcSum([limitA, limitB, limitC, limitD]);
-
-// const minPremium = getMinPremium(floodZone, tiv);
-
-// const pm = {
-//   inland: getPM(inlandAAL, tiv),
-//   surge: getPM(surgeAAL, tiv),
-// };
-// const riskScore = {
-//   inland: getInlandRiskScore(pm.inland),
-//   surge: getSurgeRiskScore(pm.surge),
-// };
-
-// // Flood type multipliers by state
-// const { inlandStateMult = 1.5, surgeStateMult = 3 } = multipliersByState[state];
-
-// let secondaryFactorMults = getSecondaryFactorMults({
-//   ffe: 0,
-//   basement,
-//   priorLossCount,
-//   inlandRiskScore: riskScore.inland,
-//   surgeRiskScore: riskScore.surge,
-// });
-
-// let premiumData = getPremiumData({
-//   AAL: {
-//     inland: inlandAAL,
-//     surge: surgeAAL,
-//   },
-//   secondaryFactorMults,
-//   stateMultipliers: {
-//     inland: inlandStateMult,
-//     surge: surgeStateMult,
-//   },
-//   minPremium,
-//   subproducerComPct: commissionPct,
-// });

@@ -393,7 +393,7 @@ export const Quotes: React.FC = () => {
           autoHeight
           processRowUpdate={confirmAndUpdate}
           onProcessRowUpdateError={handleProcessRowUpdateError}
-          experimentalFeatures={{ newEditingApi: true }}
+          // experimentalFeatures={{ newEditingApi: true }} // v5
           // onRowDoubleClick={(params) => {
           //   navigate(
           //     createPath({
@@ -427,7 +427,8 @@ export const Quotes: React.FC = () => {
             sorting: {
               sortModel: [{ field: 'created', sort: 'desc' }],
             },
-            pagination: { pageSize: 10 },
+            // pagination: { pageSize: 10 },
+            pagination: { paginationModel: { pageSize: 10 } },
           }}
         />
       </Box>

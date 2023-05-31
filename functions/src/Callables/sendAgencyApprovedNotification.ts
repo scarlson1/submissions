@@ -1,23 +1,18 @@
-import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
+import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import { getFirestore } from 'firebase-admin/firestore';
 
 import { sendAgencyAppApprovedNotification } from '../services/sendgrid';
 import { getFunctionsErrorCode, getErrorMessage } from '../utils/errorHelpers';
 import { agencyApplicationCollection, invitesCollection } from '../common/dbCollections';
+import { audience, sendgridApiKey } from '../common';
 
-// const sendgridApiKey = defineSecret('SENDGRID_API_KEY');
-
-// TODO: standardize email notification response
-// array with recipient email and status ?
-
-export default async (
-  data: { docId: string; tenantId: string; message?: string | null },
-  context: CallableContext
-) => {
+export default async ({
+  data,
+  auth,
+}: CallableRequest<{ docId: string; tenantId: string; message?: string | null }>) => {
   try {
     const applicationDocId = data.docId;
     const msg = data.message || null;
-    const { auth } = context;
 
     if (!auth || !auth.token || !auth.token.iDemandAdmin) {
       throw new HttpsError('failed-precondition', 'iDemand Admin permissions required');
@@ -59,12 +54,12 @@ export default async (
     }
 
     const to = [contact.email];
-    if (process.env.AUDIENCE === 'LOCAL HUMANS' || process.env.AUDIENCE === 'DEV HUMANS') {
+    if (audience.value() === 'LOCAL HUMANS' || audience.value() === 'DEV HUMANS') {
       to.push('spencer.carlson@idemandinsurance.com');
     }
 
     await sendAgencyAppApprovedNotification(
-      process.env.SENDGRID_API_KEY || '',
+      sendgridApiKey.value(),
       data.tenantId,
       orgName,
       contact.email,
@@ -76,7 +71,8 @@ export default async (
 
     return {
       status: 'sent',
-      recipients: [contact.email],
+      emails: [contact.email],
+      // recipients: [contact.email],
     };
   } catch (err) {
     console.log('err: ', err);

@@ -9,7 +9,6 @@ export { usePropertyDetails, usePropertyDetailsAttom } from './usePropertyDetail
 export { useSocialAuth } from './useSocialAuth';
 export { useSendPasswordReset } from './useSendPasswordReset';
 export { useHandleAuthError } from './useHandleAuthError';
-export { useContactUs } from './useContactUs';
 export { useUsersPolicies } from './useUsersPolicies';
 export { useRegisterEmailNotification } from './useRegisterEmailNotification';
 export { useUploadStorageFiles } from './useUploadStorageFiles';
@@ -45,7 +44,12 @@ export { useRateQuote, extractRatingInputsFromValues } from './useRateQuote';
 export { useCalcPremium } from './useCalcPremium';
 export { useConcurrentLocation } from './useConcurrentLocation';
 export { useMoveUserToTenant } from './useMoveUserToTenant';
-export { useLogEvent } from './useLogEvent';
+export { useAnalyticsEvent } from './useAnalyticsEvent';
+export { useDocSearchKeyboardEvents } from './useDocSearchKeyboardEvents';
+export { useGeoSearch } from './useGeoSearch';
+export { useAlgoliaSearchKey } from './useAlgoliaSearchKey';
+export { useSendEmail } from './useSendEmail';
+export { useSafeParams } from './useSafeParams';
 
 export type { UseFileUploadProps } from './useFileUpload';
 export type { UseSendPasswordResetProps } from './useSendPasswordReset';

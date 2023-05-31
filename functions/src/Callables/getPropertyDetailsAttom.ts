@@ -1,11 +1,19 @@
-import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
+import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
+import { error, info } from 'firebase-functions/logger';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import axios, { AxiosResponse } from 'axios';
-
-import { LimitTypes, calcSum, roundUpToNearest } from '../common';
-import { getAttomInstance } from '../services';
 import { round } from 'lodash';
-import { attomKey as attomKeySecret } from './index.js';
+
+import {
+  LimitTypes,
+  calcSum,
+  roundUpToNearest,
+  attomKey as attomKeySecret,
+  audience,
+  maxA,
+  minA,
+} from '../common';
+import { getAttomInstance } from '../services';
 
 let defaultLimitPercents: { [key in LimitTypes]: number } = {
   limitA: 1,
@@ -23,14 +31,14 @@ interface InitLimits {
 
 // const attomKey = defineSecret('ATTOM_API_KEY');
 
-export default async (data: any, ctx: CallableContext) => {
+export default async ({ data }: CallableRequest) => {
   console.log('data: ', data);
   const { addressLine1, addressLine2 = '', city, state, postal = '' } = data;
   if (!addressLine1 || !city || !state) {
     throw new HttpsError('invalid-argument', `Missing address components in request body`);
   }
 
-  const attomKey = attomKeySecret.value(); // process.env.ATTOM_API_KEY;
+  const attomKey = attomKeySecret.value();
   if (!attomKey) throw new HttpsError('internal', `Missing property data api key`);
   const attomInstance = getAttomInstance(attomKey);
 
@@ -38,8 +46,8 @@ export default async (data: any, ctx: CallableContext) => {
   let profile;
   let propertyDetails;
   try {
-    if (process.env.AUDIENCE === 'DEV HUMANS' || process.env.AUDIENCE === 'LOCAL HUMANS') {
-      console.log('USING MOCK RESPONSE FROM GITHUB');
+    if (audience.value() === 'DEV HUMANS' || audience.value() === 'LOCAL HUMANS') {
+      info('USING MOCK RESPONSE FROM GITHUB');
       const { data: githubMockData } = await axios.get(
         'https://scarlson1.github.io/data/attom.json'
       );
@@ -56,7 +64,7 @@ export default async (data: any, ctx: CallableContext) => {
       basicProfileRes?.property && basicProfileRes.property.length > 0
         ? basicProfileRes.property[0]
         : null;
-    console.log('BASIC PROFILE: ', profile);
+    info('BASIC PROFILE: ', { profile });
 
     // TODO: get property details ??
   } catch (err) {
@@ -87,24 +95,24 @@ export default async (data: any, ctx: CallableContext) => {
             created: Timestamp.now(),
           },
         });
-      console.log(`Attom data saved to doc: ${attomDocRef.id}`);
+      info(`Attom data saved to doc: ${attomDocRef.id}`);
       fallback.attomDocId = attomDocRef.id;
     } catch (err) {
-      console.log('Error saving Attom data to Firestore', err);
+      info('Error saving Attom data to Firestore', err);
     }
 
     try {
       let validatedRatingData = await validateAttomRes(profile);
       let { replacementCost } = validatedRatingData;
-      console.log('validated data: ', validatedRatingData);
+      info('validated data: ', { ...validatedRatingData });
 
       if (!replacementCost) return { ...validatedRatingData, ...fallback };
 
       let res: any;
 
       try {
-        let MAX_A = parseInt(process.env.FLOOD_MAX_LIMIT_A!) || 1000000;
-        let MIN_A = parseInt(process.env.FLOOD_MIN_LIMIT_A!) || 100000;
+        let MAX_A = maxA.value();
+        let MIN_A = minA.value();
 
         let limitARef = roundUpToNearest(Math.min(Math.max(replacementCost, MIN_A), MAX_A), 3);
 
@@ -134,14 +142,15 @@ export default async (data: any, ctx: CallableContext) => {
         res.initDeductible = roundUpToNearest(sumCoverage * 0.01, 3);
         res.maxDeductible = roundUpToNearest(sumCoverage * 0.2, 3);
 
-        console.log('res: ', res);
+        info('GET PROPERTY DETAILS ATTOM RES: ', { ...res });
 
         return { ...validatedRatingData, ...res };
-      } catch (err) {
-        console.log(
-          'ERROR CALCULATING DEFAULT LIMITS/DEDUCTIBLE. USING FALLBACK NFIP. ERROR: ',
-          err
-        );
+      } catch (err: any) {
+        error('ERROR CALCULATING DEFAULT LIMITS/DEDUCTIBLE. USING FALLBACK NFIP. ERROR: ', {
+          stack: err?.stack || null,
+          message: err?.message || null,
+          code: err?.code || null,
+        });
 
         return { ...validatedRatingData, ...fallback };
       }
@@ -222,9 +231,3 @@ function tempCalcRCV(assessment: any) {
 
   return null;
 }
-
-// "market": {
-//     "mktImprValue": 812000.0,
-//     "mktLandValue": 1062000.0,
-//     "mktTtlValue": 1874000.0
-// },

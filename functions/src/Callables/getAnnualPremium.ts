@@ -1,11 +1,12 @@
-import logger from 'firebase-functions/logger';
-import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
+import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
+import { error } from 'firebase-functions/logger';
 import { GeoPoint, Timestamp, getFirestore } from 'firebase-admin/firestore';
 import invariant from 'tiny-invariant';
 
 import { CLAIMS, COLLECTIONS } from '../common';
 import { getAALs, validateGetAALsProps } from '../utils/rating';
 import { getPremium } from '../utils/rating';
+import { swissReClientId, swissReClientSecret, swissReSubscriptionKey } from '../common';
 
 // const swissReClientId = defineSecret('SWISS_RE_CLIENT_ID');
 // const swissReClientSecret = defineSecret('SWISS_RE_CLIENT_SECRET');
@@ -29,21 +30,17 @@ interface GetAnnualPremiumRequest {
   submissionId?: string | null;
 }
 
-export default async (data: GetAnnualPremiumRequest, context: CallableContext) => {
+export default async ({ data, auth }: CallableRequest<GetAnnualPremiumRequest>) => {
   const db = getFirestore();
-  const { auth } = context;
   console.log('GET ANNUAL PREMIUM CALLED', data);
 
   if (!(auth && auth.uid && auth?.token[CLAIMS['IDEMAND_ADMIN']])) {
     throw new HttpsError('permission-denied', 'iDemand admin permissions required');
   }
 
-  const srClientId = process.env.SWISS_RE_CLIENT_ID;
-  const srClientSecret = process.env.SWISS_RE_CLIENT_SECRET;
-  const srSubKey = process.env.SWISS_RE_SUBSCRIPTION_KEY;
-
-  if (!(srClientId && srClientSecret && srSubKey))
-    throw new HttpsError('failed-precondition', 'missing Swiss Re credentials');
+  const srClientId = swissReClientId.value();
+  const srClientSecret = swissReClientSecret.value();
+  const srSubKey = swissReSubscriptionKey.value();
 
   // VALIDATE REQUEST DATA
   const {
@@ -143,7 +140,7 @@ export default async (data: GetAnnualPremiumRequest, context: CallableContext) =
     )
       throw new Error('Error calculating premium');
   } catch (err: any) {
-    logger.error('Error calculating premium', {
+    error('Error calculating premium', {
       data,
       userId: auth.uid || null,
       message: err?.message || null,
@@ -318,7 +315,7 @@ export default async (data: GetAnnualPremiumRequest, context: CallableContext) =
 //       )
 //         throw new Error('Error calculating premium');
 //     } catch (err: any) {
-//       logger.error('Error calculating premium', {
+//       error('Error calculating premium', {
 //         data,
 //         userId: auth.uid || null,
 //         message: err?.message || null,

@@ -18,5 +18,5 @@ export interface DeliverAgreementResponse {
 export const deliverAgencyAgreement = (functions: Functions, args: DeliverAgreementRequest) =>
   httpsCallable<DeliverAgreementRequest, DeliverAgreementResponse>(
     functions,
-    'deliverAgencyAgreement'
+    'deliveragencyagreement'
   )(args);

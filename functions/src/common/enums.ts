@@ -15,10 +15,12 @@ export enum COLLECTIONS {
   SR_RES = 'swissReRes',
   PAYMENT_METHODS = 'paymentMethods',
   TRANSACTIONS = 'transactions',
+  FIN_TRANSACTIONS = 'financialTransactions',
   AGENCY_APPLICATIONS = 'agencySubmissions',
   LICENSES = 'licenses',
   NOTIFICATIONS = 'notifications',
   DATA_IMPORTS = 'dataImports',
+  EMAIL_ACTIVITY = 'emailActivity',
 }
 
 export enum SUBMISSION_STATUS {

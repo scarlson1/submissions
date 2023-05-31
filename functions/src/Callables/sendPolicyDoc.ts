@@ -1,24 +1,25 @@
-import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
+import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
 
 import { sendPolicyDocDelivery } from '../services/sendgrid';
-import { policiesCollection } from '../common';
-import { sendgridApiKey } from './index.js';
+import { CLAIMS, policiesCollection, sendgridApiKey } from '../common';
 
 // TODO: add policy docs as param
 // on front end: allow user to select which documents to deliver
 
 // const sendgridApiKey = defineSecret('SENDGRID_API_KEY');
 
-export default async (data: any, ctx: CallableContext) => {
+export default async ({ data, auth }: CallableRequest) => {
   console.log('data: ', data);
-  const { policyId, emails } = data;
-  console.log('AUTH.TOKEN: ', ctx.auth?.token);
+  const { policyId, to } = data;
+  console.log('AUTH.TOKEN: ', auth?.token);
+  const token = auth?.token;
 
-  if (!ctx.auth?.token.iDemandAdmin) throw new HttpsError('permission-denied', `Must be an admin`);
+  if (!token || !token[CLAIMS.IDEMAND_ADMIN])
+    throw new HttpsError('permission-denied', `Must be an admin`);
 
-  if (!policyId || !emails)
+  if (!policyId || !to)
     throw new HttpsError('invalid-argument', `policyId or emails (recipients) required`);
   // TODO: email validation (array.length > 0, valid emails, etc.)
 
@@ -28,7 +29,7 @@ export default async (data: any, ctx: CallableContext) => {
   //     'emails must be an array of valid email addresses'
   //   );
 
-  const sgKey = sendgridApiKey.value(); // process.env.SENDGRID_API_KEY;
+  const sgKey = sendgridApiKey.value();
   if (!sgKey) throw new HttpsError('failed-precondition', 'Missing Sendgrid api key');
 
   const db = getFirestore();
@@ -66,7 +67,7 @@ export default async (data: any, ctx: CallableContext) => {
     // const link = `${process.env.HOSTING_BASE_URL}/policies/${policyId}`;
     await sendPolicyDocDelivery(
       sgKey,
-      emails,
+      to,
       attachmentObj,
       data.namedInsured.firstName,
       data.address.addressLine1
@@ -74,7 +75,7 @@ export default async (data: any, ctx: CallableContext) => {
 
     return {
       status: 'success',
-      emails,
+      emails: to,
     };
   } catch (err) {
     console.log('ERROR SENDING POLICY DELIVERY EMAIL: ', err);

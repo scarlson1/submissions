@@ -1,10 +1,9 @@
-// import * as functions from 'firebase-functions';
+import { StorageEvent } from 'firebase-functions/v2/storage';
 import { projectID } from 'firebase-functions/params';
+import { info } from 'firebase-functions/logger';
 import { getStorage } from 'firebase-admin/storage';
 import { Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { camelCase } from 'lodash'; // snakeCase
-import { ObjectMetadata } from 'firebase-functions/v1/storage';
-import { EventContext, logger } from 'firebase-functions/v1';
 import path from 'path';
 import os from 'os';
 import fs from 'fs';
@@ -15,11 +14,15 @@ import {
   parseStream,
 } from 'fast-csv'; // format, parse, ParserHeaderTransformFunction,
 
-import { COLLECTIONS, extractNumber, getNumber, policiesCollection } from '../common';
+import {
+  COLLECTIONS,
+  audience,
+  extractNumber,
+  getNumber,
+  policiesCollection,
+  sendgridApiKey,
+} from '../common/index.js';
 import { sendAdminPolicyImportNotification } from '../services/sendgrid';
-import { sendgridApiKey } from '.';
-
-// const sendgridApiKey = defineSecret('SENDGRID_API_KEY');
 
 // TODO: create helper functions to reduce boilerplate (downloadFile(storage, filePath, etc.))
 
@@ -145,16 +148,16 @@ const validateRow = (data: TransformedPolicyRow) => {
   return true;
 };
 
-export default async (object: ObjectMetadata, context: EventContext<Record<string, string>>) => {
-  const fileBucket = object.bucket;
-  const filePath = object.name; // File path in the bucket.
+export default async (event: StorageEvent) => {
+  const fileBucket = event.bucket;
+  const filePath = event.data.name; // File path in the bucket.
   const fileName = path.basename(filePath || '');
-  const contentType = object.contentType;
-  const metageneration = object.metageneration;
+  const contentType = event.data.contentType;
+  const metageneration = event.data.metageneration as unknown;
 
-  if (!object.name?.startsWith(`${IMPORT_POLICIES_FOLDER}/`)) {
-    logger.log(
-      `Ignoring upload "${object.name}" because is not in the "/${IMPORT_POLICIES_FOLDER}/*" folder.`
+  if (!event.data.name?.startsWith(`${IMPORT_POLICIES_FOLDER}/`)) {
+    info(
+      `Ignoring upload "${event.data.name}" because is not in the "/${IMPORT_POLICIES_FOLDER}/*" folder.`
     );
     return null;
   }
@@ -174,7 +177,7 @@ export default async (object: ObjectMetadata, context: EventContext<Record<strin
   const tempFilePath = path.join(os.tmpdir(), `temp_portfolio_import_${fileName}`);
 
   await bucket.file(filePath).download({ destination: tempFilePath });
-  logger.log('File downloaded locally to', tempFilePath);
+  info('File downloaded locally to', tempFilePath);
 
   const dataArr: any[] = [];
   const invalidRows: { rowNum: any; rowData: any }[] = [];
@@ -271,7 +274,7 @@ export default async (object: ObjectMetadata, context: EventContext<Record<strin
         const to = ['spencer.carlson@idemandinsurance.com'];
         let link;
 
-        if (process.env.AUDIENCE !== 'LOCAL HUMANS') {
+        if (audience.value() !== 'LOCAL HUMANS') {
           to.push('ron.carlson@idemandinsurance.com');
 
           link = `https://console.firebase.google.com/project/${projectID}/firestore/data/~2F${COLLECTIONS.DATA_IMPORTS}~2F${summaryRef.id}`;

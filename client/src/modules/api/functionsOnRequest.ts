@@ -1,8 +1,6 @@
 import axios from 'axios';
 import { getAuth } from 'firebase/auth';
 
-// import { auth } from 'firebaseConfig';
-
 export const functionsInstance = axios.create({
   baseURL: process.env.REACT_APP_FUNCTIONS_BASE_URL,
 });

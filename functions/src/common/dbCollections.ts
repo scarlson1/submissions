@@ -1,6 +1,6 @@
 import { DocumentData, CollectionReference, Firestore } from 'firebase-admin/firestore';
 
-import { AgencyApplication, Charge, COLLECTIONS, Policy, SubmissionQuoteData } from '../common';
+import { AgencyApplication, Charge, COLLECTIONS, PolicyOld, SubmissionQuoteData } from '../common';
 import {
   Submission,
   User,
@@ -26,14 +26,16 @@ export const submissionsQuotesCollection = (db: Firestore) =>
 // export const submissionsQuotesCollection = createCollection<SubmissionQuoteData>(
 //   COLLECTIONS.SUBMISSIONS_QUOTES
 // );
-export const transactionsCollection = (db: Firestore) =>
-  createCollection<Charge>(db, COLLECTIONS.TRANSACTIONS);
+export const finTrxCollection = (db: Firestore) =>
+  createCollection<Charge>(db, COLLECTIONS.FIN_TRANSACTIONS);
 export const policiesCollection = (db: Firestore) =>
-  createCollection<Policy>(db, COLLECTIONS.POLICIES);
+  createCollection<PolicyOld>(db, COLLECTIONS.POLICIES);
 export const swissReResCollection = (db: Firestore) =>
   createCollection<SRResWithAAL | SRRes>(db, COLLECTIONS.SR_RES);
 export const agencyApplicationCollection = (db: Firestore) =>
   createCollection<AgencyApplication>(db, COLLECTIONS.AGENCY_APPLICATIONS);
+export const emailActivityCollection = (db: Firestore) =>
+  createCollection<any>(db, COLLECTIONS.EMAIL_ACTIVITY);
 
 // // SUBCOLLECTIONS
 // export const notificationsCollection = (db: Firestore, userId: string) =>

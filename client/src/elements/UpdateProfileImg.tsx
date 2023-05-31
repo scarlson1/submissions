@@ -1,7 +1,6 @@
 import React from 'react';
 import { Avatar, Badge, SxProps } from '@mui/material';
 import { Edit } from '@mui/icons-material';
-
 import { getDownloadURL } from 'firebase/storage';
 
 import { useAuth } from 'modules/components/AuthContext';
@@ -48,6 +47,8 @@ export const UpdateProfileImg: React.FC<UpdateProfileImgProps> = ({ avatarSx }) 
     },
     (err, msg) => console.log('upload failed: ', msg, err)
   );
+
+  if (!user) return null;
 
   return (
     <UploadFilesDialog

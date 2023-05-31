@@ -1,46 +1,41 @@
 import { useState, useCallback } from 'react';
 import { useFunctions } from 'reactfire';
 
-import {
-  SendAgencyApprovedResponse,
-  createTenantFromSubmission,
-  sendAgencyApprovedNotification,
-} from 'modules/api';
+import { createTenantFromSubmission } from 'modules/api';
 import { getErrorCode, getErrorMessage } from 'modules/utils/errorHelpers';
 import { useConfirmation } from 'modules/components';
 import { useAsyncToast } from './useAsyncToast';
+import { useSendEmail } from './useSendEmail';
+import { BaseSendEmailResponse } from 'common';
 
 export const useSendAgencyAppNotification = (
-  onSuccess?: ((res: SendAgencyApprovedResponse) => void) | null,
+  onSuccess?: ((res: BaseSendEmailResponse) => void) | null,
   onError?: ((msg: string, err: any) => void) | null
 ) => {
-  const functions = useFunctions();
   const confirm = useConfirmation();
   const toast = useAsyncToast();
+  const { send: sendApprovedNotification } = useSendEmail({
+    onSuccess: (data: BaseSendEmailResponse) => onSuccess && onSuccess(data),
+    onError: (msg: string, err: any) => {
+      toast.error('email delivery failed');
+      onError && onError(msg, err);
+    },
+  });
 
   const sendApproved = useCallback(
-    async (docId: string, tenantId: string) => {
-      try {
-        let { data } = await sendAgencyApprovedNotification(functions, {
-          docId,
-          tenantId,
-        });
-        console.log('notifications sent res: ', data);
-
-        if (onSuccess) onSuccess(data);
-        return data;
-      } catch (err: any) {
-        let msg = 'Error sending approval notification';
-        if (err?.message) msg = err.message;
-        if (onError) onError(msg, err);
-      }
+    (docId: string, tenantId: string) => {
+      return sendApprovedNotification({
+        templateName: 'agency_approved',
+        docId,
+        tenantId,
+      });
     },
-    [functions, onSuccess, onError]
+    [sendApprovedNotification]
   );
 
   const sendRejected = useCallback(async () => {
     alert('Not implemented yet');
-  }, []); // functions, onSuccess, onError
+  }, []);
 
   const promptForNotification = useCallback(
     async (msg: string) => {
@@ -94,7 +89,7 @@ interface UseCreateTenantProps {
   onError?: (errArgs: { code: string; message: string }) => void;
 }
 
-export const useCreateTenant = ({ onSuccess, onError }: UseCreateTenantProps) => {
+export const useCreateTenant = ({ onSuccess, onError }: UseCreateTenantProps | undefined = {}) => {
   const functions = useFunctions();
   const toast = useAsyncToast();
   const { sendApproved, promptForNotification } = useSendAgencyAppNotification();
@@ -152,16 +147,13 @@ export const useCreateTenant = ({ onSuccess, onError }: UseCreateTenantProps) =>
       );
 
       if (!!shouldNotify) {
-        toast.loading('sending notification...');
-        // await sendApprovedNotification(submissionId, `${tenantId}`);
+        // toast.loading('sending notification...');
         await sendApproved(submissionId, `${tenantId}`);
-        toast.success('notification delivered');
       }
 
       if (onSuccess) onSuccess({ tenantId });
-      // navigate(createPath({ path: ADMIN_ROUTES.ORGANIZATIONS }));
     },
-    [promptForNotification, sendApproved, toast, onSuccess]
+    [promptForNotification, sendApproved, onSuccess]
   );
 
   const createTenant = useCallback(
@@ -187,8 +179,6 @@ export const useCreateTenant = ({ onSuccess, onError }: UseCreateTenantProps) =>
 
         toast.error(message);
         if (onError) onError({ code, message });
-
-        // return Promise.reject({ code, message });
       }
     },
     [onError, handleSuccess, functions, toast]

@@ -1,26 +1,49 @@
 import * as functions from 'firebase-functions';
-import { defineSecret } from 'firebase-functions/params';
+import { projectID } from 'firebase-functions/params';
+import { beforeUserCreated, beforeUserSignedIn } from 'firebase-functions/v2/identity';
 
-// export { beforeCreate } from './beforeCreate.js';
-// export { beforeSignIn } from './beforeSignIn.js';
-// export { setUidByEmailOnCreate } from './setUidByEmailOnCreate.js';
-// export { createFirestoreUser } from './createFirestoreUser.js';
-// export { setClaimsFromInvite } from './setClaimsFromInvite.js';
+import { emailVerificationKey, sendgridApiKey } from '../common';
 
-const sendgridApiKey = defineSecret('SENDGRID_API_KEY');
-const emailVerificationKey = defineSecret('EMAIL_VERIFICATION_KEY');
+const minInstancesAuth = projectID.equals('PRODUCTION').thenElse(1, 0);
 
-export const beforeSignIn = functions
-  .runWith({ secrets: [sendgridApiKey, emailVerificationKey], minInstances: 1, memory: '128MB' })
-  .auth.user()
-  .beforeSignIn(async (user, context) => {
-    await (await import('./beforeSignIn.js')).default(user, context);
-  });
+export const beforesignin = beforeUserSignedIn(
+  {
+    secrets: [sendgridApiKey, emailVerificationKey],
+    minInstances: minInstancesAuth,
+    memory: '128MiB',
+  },
+  async (event) => {
+    await (await import('./beforeSignInV2.js')).default(event);
+  }
+);
 
-export const beforeCreate = functions.auth.user().beforeCreate(async (user, context) => {
-  await (await import('./beforeCreate.js')).default(user, context);
-  // await (await import('./fn/authUserOnCreateFn')).default(user, context);
-});
+export const beforecreate = beforeUserCreated(
+  {
+    minInstances: minInstancesAuth,
+  },
+  async (event) => {
+    await (await import('./beforeCreateV2.js')).default(event);
+  }
+);
+
+// export const beforeSignIn = functions
+//   .runWith({
+//     secrets: [sendgridApiKey, emailVerificationKey],
+//     minInstances: minInstancesAuth,
+//     memory: '128MB',
+//   })
+//   .auth.user()
+//   .beforeSignIn(async (user, context) => {
+//     await (await import('./beforeSignIn.js')).default(user, context);
+//   });
+
+// export const beforeCreate = functions
+//   .runWith({ minInstances: minInstancesAuth })
+//   .auth.user()
+//   .beforeCreate(async (user, context) => {
+//     await (await import('./beforeCreate.js')).default(user, context);
+//     // await (await import('./fn/authUserOnCreateFn')).default(user, context);
+//   });
 
 export const createFirestoreUser = functions.auth.user().onCreate(async (user, context) => {
   await (await import('./createFirestoreUser.js')).default(user, context);

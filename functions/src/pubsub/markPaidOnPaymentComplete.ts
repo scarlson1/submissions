@@ -1,34 +1,30 @@
-import { EventContext } from 'firebase-functions/v1';
-import { Message } from 'firebase-functions/v1/pubsub';
-// import { onMessagePublished } from 'firebase-functions/v2/pubsub';
+import type { CloudEvent } from 'firebase-functions/lib/v2/core';
+import type { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 import { getFirestore } from 'firebase-admin/firestore';
 
-import { policiesCollection, POLICY_STATUS } from '../common';
+import {
+  policiesCollection,
+  POLICY_STATUS,
+  audience,
+  ePayBaseURL,
+  hostingBaseURL,
+  sendgridApiKey,
+} from '../common';
 import { sendAdminPaidNotification } from '../services/sendgrid';
 
-// const sendgridApiKey = defineSecret('SENDGRID_API_KEY');
-
-// TODO: failureRetry policy
-
-// GEN 2
-
-// export const markpaidonpaymentcomplete = onMessagePublished('payment.complete', async (event) => {
-export default async (message: Message, context: EventContext<Record<string, string>>) => {
-  console.log('MSG JSON: ', message.json);
+export default async (event: CloudEvent<MessagePublishedData>) => {
+  console.log('MSG JSON: ', event.data.message.json);
 
   let transactionId = null;
   let policyId = null;
   try {
-    transactionId = message.json?.transactionId;
-    policyId = message.json?.policyId;
+    transactionId = event.data.message.json?.transactionId;
+    policyId = event.data.message.json?.policyId;
   } catch (e) {
     console.error('PubSub message was not JSON', e);
   }
   console.log(`PAYMENT COMPLETE - TRX ID: ${transactionId} - POLICY ID: ${policyId}`);
   if (!(transactionId && policyId)) return console.error('Missing transaction or policy id');
-
-  const sgKey = process.env.SENDGRID_API_KEY;
-  if (!sgKey) return console.error('MISSING SENDGRID API KEY');
 
   const db = getFirestore();
   const policyRef = policiesCollection(db).doc(policyId);
@@ -46,11 +42,18 @@ export default async (message: Message, context: EventContext<Record<string, str
   console.log(`POLICY ${policyId} STATUS UPDATED TO PAID - TRX ID: ${transactionId}`);
 
   const to = ['spencer.carlson@idemandinsurance.com'];
-  if (process.env.AUDIENCE !== 'LOCAL HUMANS') to.push('ron.carlson@idemandinsurance.com');
-  const policyLink = `${process.env.HOSTING_BASE_URL}/admin/policies/${policyId}/delivery`;
-  const transactionLink = `${process.env.EPAY_HOSTING_BASE_URL}/Transactions/Index/${transactionId}`;
+  if (audience.value() !== 'LOCAL HUMANS') to.push('ron.carlson@idemandinsurance.com');
+  const policyLink = `${hostingBaseURL.value()}/admin/policies/${policyId}/delivery`;
+  const transactionLink = `${ePayBaseURL.value()}/Transactions/Index/${transactionId}`;
 
-  await sendAdminPaidNotification(sgKey, to, policyLink, policyId, transactionLink, transactionId);
+  await sendAdminPaidNotification(
+    sendgridApiKey.value(),
+    to,
+    policyLink,
+    policyId,
+    transactionLink,
+    transactionId
+  );
 
   return;
 };

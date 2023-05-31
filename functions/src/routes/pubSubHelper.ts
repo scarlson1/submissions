@@ -1,10 +1,11 @@
 import { PubSub } from '@google-cloud/pubsub';
-import { Request, Response, logger } from 'firebase-functions/v1';
+import { Request, Response } from 'firebase-functions/v1';
+import { error } from 'firebase-functions/logger';
 
 export default async (request: Request, response: Response) => {
   // 1. make sure the function can't be used in production
   if (!process.env.PUBSUB_EMULATOR_HOST) {
-    logger.error('This function should only run locally in an emulator.');
+    error('This function should only run locally in an emulator.');
     response.status(400).end();
   }
 

@@ -135,15 +135,18 @@ export const MoratoriumNew: React.FC = () => {
       >
         {({ dirty, isValid, isSubmitting, isValidating, values }) => (
           <>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Box
+              sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 2 }}
+            >
               <Typography variant='h5' gutterBottom sx={{ ml: 4 }}>
                 New Moratorium
               </Typography>
               <Button
+                variant='contained'
                 onClick={submitForm}
                 disabled={!dirty || !isValid || isSubmitting || isValidating}
               >
-                Submit
+                Save
               </Button>
             </Box>
             <Divider sx={{ my: 2 }} />

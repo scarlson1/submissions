@@ -27,7 +27,6 @@ export const getSwissReInstance = (
         try {
           const accessToken = await generateSRAccessToken(clientId, clientSecret);
 
-          // console.log('ACCESS TOKEN => ', accessToken);
           config.headers['Authorization'] = `Bearer ${accessToken}`;
           swissReInstance.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
         } catch (err) {
@@ -58,7 +57,6 @@ export const getSwissReInstance = (
 
           try {
             let accessToken = await generateSRAccessToken(clientId, clientSecret);
-            // console.log('REFRESHED TOKEN => ', accessToken);
 
             if (accessToken)
               swissReInstance.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
@@ -75,7 +73,6 @@ export const getSwissReInstance = (
 
           try {
             let accessToken = await generateSRAccessToken(clientId, clientSecret);
-            // console.log('REFRESHED TOKEN => ', accessToken);
 
             if (accessToken)
               swissReInstance.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
@@ -94,7 +91,7 @@ export const getSwissReInstance = (
   return swissReInstance;
 };
 
-function generateSRAccessToken(clientId: string, clientSecret: string) {
+export function generateSRAccessToken(clientId: string, clientSecret: string) {
   return new Promise<string>(async (resolve, reject) => {
     const authScope = process.env.SWISS_RE_AUTH_SCOPE;
     const srAuthURL = process.env.SWISS_RE_ACCESS_TOKEN_URL;

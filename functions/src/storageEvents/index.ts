@@ -1,45 +1,48 @@
-import * as functions from 'firebase-functions';
-import { defineSecret } from 'firebase-functions/params';
+import { onObjectFinalized } from 'firebase-functions/v2/storage';
 
-// export { getAALAndRatePortfolio } from './getAALAndRatePortfolio.js';
-// export { getAALPortfolio } from './getAALPortfolio.js';
-// export { importPolicies } from './importPolicies.js';
+import {
+  googleGeoKey,
+  sendgridApiKey,
+  swissReClientId,
+  swissReClientSecret,
+  swissReSubscriptionKey,
+} from '../common';
 
-export const swissReClientId = defineSecret('SWISS_RE_CLIENT_ID');
-export const swissReClientSecret = defineSecret('SWISS_RE_CLIENT_SECRET');
-export const swissReSubscriptionKey = defineSecret('SWISS_RE_SUBSCRIPTION_KEY');
+export const getaalandrateportfolio = onObjectFinalized(
+  {
+    secrets: [swissReClientId, swissReClientSecret, swissReSubscriptionKey],
+  },
+  async (event) => {
+    await (await import('./getAALAndRatePortfolio.js')).default(event);
+  }
+);
 
-export const sendgridApiKey = defineSecret('SENDGRID_API_KEY');
+export const getaalportfolio = onObjectFinalized(
+  {
+    secrets: [swissReClientId, swissReClientSecret, swissReSubscriptionKey],
+  },
+  async (event) => {
+    await (await import('./getAALPortfolio.js')).default(event);
+  }
+);
 
-export const googleGeoKey = defineSecret('GOOGLE_BACKEND_GEO_KEY');
+export const importpolicies = onObjectFinalized({ secrets: [sendgridApiKey] }, async (event) => {
+  await (await import('./importPolicies.js')).default(event);
+});
 
-export const getAALAndRatePortfolio = functions
-  .runWith({ secrets: [swissReClientId, swissReClientSecret, swissReSubscriptionKey] })
-  .storage.object()
-  .onFinalize(async (object, context) => {
-    await (await import('./getAALAndRatePortfolio.js')).default(object, context);
-  });
+export const getfips = onObjectFinalized({ secrets: [googleGeoKey] }, async (event) => {
+  await (await import('./getFIPS.js')).default(event);
+});
 
-export const getAALPortfolio = functions
-  .runWith({ secrets: [swissReClientId, swissReClientSecret, swissReSubscriptionKey] })
-  .storage.object()
-  .onFinalize(async (object, context) => {
-    await (await import('./getAALPortfolio.js')).default(object, context);
-  });
-
-export const importPolicies = functions
-  .runWith({ secrets: [sendgridApiKey] })
-  .storage.object()
-  .onFinalize(async (object, context) => {
-    await (await import('./getAALPortfolio.js')).default(object, context);
-  });
-
-export const tempGetFIPS = functions
-  .runWith({ secrets: [googleGeoKey] })
-  .storage.object()
-  .onFinalize(async (object, context) => {
-    await (await import('./tempGetFIPS.js')).default(object, context);
-  });
+export const rateportfolio = onObjectFinalized(
+  {
+    secrets: [swissReClientId, swissReClientSecret, swissReSubscriptionKey, sendgridApiKey],
+    timeoutSeconds: 900,
+  },
+  async (event) => {
+    await (await import('./ratePortfolio.js')).default(event);
+  }
+);
 
 // export const storageObjectOnFinalizeFn = functions.storage
 //   .object()

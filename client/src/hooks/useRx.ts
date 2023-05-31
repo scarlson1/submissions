@@ -84,9 +84,12 @@ export const useCollectionDataPopulateById = <T>(
   return useObservable(observable1Id, combinedObservable$, options);
 };
 
-export const useRxDocJoin = <T>(
+// works like mongoose populate
+// TODO: typing so return type of populated docs is known
+export const useRxDocJoin = <T = any, J = { [key: string]: string }>(
   docRef: DocumentReference<T>,
-  join: { [key: string]: string },
+  // join: { [key: string]: string },
+  join: { [Property in keyof J]: string },
   options?: ReactFireOptions<T[]>
 ) => {
   const idField = options ? checkIdField(options) : 'NO_ID_FIELD';
@@ -96,10 +99,14 @@ export const useRxDocJoin = <T>(
 
   const policy$ = docData<T>(docRef, options);
   const combinedObservable$ = policy$.pipe(docJoin(getFirestore(), join));
+  // const combinedObservable$ = policy$.pipe<T & { [Property in keyof J]: any }>(
+  //   docJoin(getFirestore(), join)
+  // );
 
   // TODO: need to incorporate merged query into observableId
   // ADD `docJoin:${joinfields}` before idField=... ??
-  return useObservable(observable1Id, combinedObservable$, options);
+  // return useObservable<T & { [Property in keyof J]: any }>(
+  return useObservable(observable1Id, combinedObservable$, options); // as ObservableStatus<T & { [Property in keyof J]: any }>;
 };
 
 // ATTEMPTS TO GET POLICIES AND FETCH USER AFTER - not fully working

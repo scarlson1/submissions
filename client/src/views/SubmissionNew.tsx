@@ -3,6 +3,7 @@ import { FormikHelpers, FormikProps, FormikValues } from 'formik';
 import { Box, Container, Tooltip, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { addDoc, GeoPoint, getFirestore, serverTimestamp } from 'firebase/firestore';
+import { ErrorBoundary } from 'react-error-boundary';
 
 import { FormikWizard, Step } from 'components/forms';
 import {
@@ -30,6 +31,7 @@ import { useActiveStates, usePropertyDetailsAttom } from 'hooks';
 import { roundUpToNearest, sumArr } from 'modules/utils/helpers';
 import { useAuth } from 'modules/components/AuthContext';
 import { submissionsCollection } from 'common';
+import { ErrorFallbackWithReset } from 'components/ErrorFallback';
 
 // TODO: error boundary & reset: https://blog.logrocket.com/react-error-handling-react-error-boundary/
 
@@ -94,8 +96,9 @@ export const SubmissionNew: React.FC = () => {
   const { user, customClaims } = useAuth();
   const formikRef = useRef<FormikProps<FormikValues>>(null);
   const activeStates = useActiveStates('flood');
-  // const { propertyDetails, fetchPropertyData } = usePropertyDetails();
-  const { propertyDetails, fetchPropertyData } = usePropertyDetailsAttom();
+  const { propertyDetails, fetchPropertyData } = usePropertyDetailsAttom({
+    promptForValuation: true,
+  });
 
   const handleFetchProperty = useCallback(
     async (values: FloodValues, helpers: FormikHelpers<FloodValues>) => {
@@ -187,114 +190,128 @@ export const SubmissionNew: React.FC = () => {
     [navigate, propertyDetails, user, customClaims]
   );
 
+  const handleErrorReset = useCallback((...details: unknown[]) => {
+    // TODO: reload page ? reset form? reset formik wizard to index 0 ??
+    alert('Reset not implemented yet. Please reload the page.');
+  }, []);
+
   return (
     <Container maxWidth='sm'>
       <Box>
-        <FormikWizard initialValues={initialValues} onSubmit={handleSubmit} formRef={formikRef}>
-          <Step
-            label={`What's the Address?`}
-            validationSchema={addressValidationActiveStates(activeStates || {})}
-            mutateOnSubmit={handleFetchProperty}
-            stepperNavLabel='Address'
+        <ErrorBoundary
+          FallbackComponent={ErrorFallbackWithReset}
+          onReset={handleErrorReset}
+          // resetKeys={[activeStates]}
+        >
+          <FormikWizard
+            initialValues={{
+              ...initialValues,
+              firstName: user?.displayName ? `${user?.displayName.split(' ')[0]}`.trim() : '',
+              lastName:
+                user?.displayName && user?.displayName.split(' ').length > 1
+                  ? `${user?.displayName.split(' ')[1]}`.trim()
+                  : '',
+              email: user?.email ?? '',
+            }}
+            onSubmit={handleSubmit}
+            formRef={formikRef}
           >
-            <AddressStep activeStates={activeStates} shouldValidateStates={true} />
-          </Step>
-          <Step
-            label='Limits'
-            validationSchema={limitsValidation}
-            mutateOnSubmit={handleOnToDeductible}
-            stepperNavLabel='Limits'
-          >
-            <Box sx={{ pb: { xs: 4, sm: 6, md: 8 }, pt: { sm: 2 } }}>
-              <LimitsStep
-                inputProps={{ variant: 'outlined' }}
-                gridProps={gridProps}
-                replacementCost={propertyDetails?.replacementCost || 250000}
-                description="We've set some default coverage limits based on the estimated replacement cost of your home and belongings. Feel free to adjust them to fit your needs."
-              />
-            </Box>
-          </Step>
-          <Step
-            label='Choose your deductible'
-            validationSchema={deductibleValidation}
-            stepperNavLabel='Deductible'
-          >
-            <Box sx={{ pb: { xs: 4, sm: 6, md: 8 }, pt: { xs: 2, sm: 4 } }}>
-              <DeductibleStep
-                gridProps={gridProps}
-                maxDeductible={propertyDetails?.maxDeductible ?? undefined}
-              />
-            </Box>
-          </Step>
-          <Step
-            label='Checking the boxes...'
-            validationSchema={exclusionsValidation}
-            stepperNavLabel='Exclusions'
-          >
-            <Box sx={{ pb: { xs: 4, sm: 6, md: 8 }, pt: { xs: 2, sm: 4 } }}>
-              <ExclusionsStep />
-            </Box>
-          </Step>
-          <Step
-            label='How many losses has the property had in the past 10 years that were caused by flooding?'
-            validationSchema={priorLossValidation}
-            stepperNavLabel='History'
-          >
-            <Box
-              sx={{
-                pb: { xs: 4, sm: 6, md: 8 },
-                pt: { xs: 2, sm: 4 },
-                display: 'flex',
-                justifyContent: 'center',
-              }}
+            <Step
+              label={`What's the Address?`}
+              validationSchema={addressValidationActiveStates(activeStates || {})}
+              mutateOnSubmit={handleFetchProperty}
+              stepperNavLabel='Address'
             >
-              <PriorFloodLossStep />
-            </Box>
-          </Step>
-          <Step
-            // label='Where should we send the quote?'
-            label={
-              <Tooltip
-                title={`This can be any valid email to which you have access. It is only used to deliver the quote. It does not need to be the policy holder or agent.`}
-                placement='top-end'
+              <AddressStep activeStates={activeStates} shouldValidateStates={true} />
+            </Step>
+            <Step
+              label='Limits'
+              validationSchema={limitsValidation}
+              mutateOnSubmit={handleOnToDeductible}
+              stepperNavLabel='Limits'
+            >
+              <Box sx={{ pb: { xs: 4, sm: 6, md: 8 }, pt: { sm: 2 } }}>
+                <LimitsStep
+                  inputProps={{ variant: 'outlined' }}
+                  gridProps={gridProps}
+                  replacementCost={propertyDetails?.replacementCost || 250000}
+                  description="We've set some default coverage limits based on the estimated replacement cost of your home and belongings. Feel free to adjust them to fit your needs."
+                />
+              </Box>
+            </Step>
+            <Step
+              label='Choose your deductible'
+              validationSchema={deductibleValidation}
+              stepperNavLabel='Deductible'
+            >
+              <Box sx={{ pb: { xs: 4, sm: 6, md: 8 }, pt: { xs: 2, sm: 4 } }}>
+                <DeductibleStep
+                  gridProps={gridProps}
+                  maxDeductible={propertyDetails?.maxDeductible ?? undefined}
+                />
+              </Box>
+            </Step>
+            <Step
+              label='Checking the boxes...'
+              validationSchema={exclusionsValidation}
+              stepperNavLabel='Exclusions'
+            >
+              <Box sx={{ pb: { xs: 4, sm: 6, md: 8 }, pt: { xs: 2, sm: 4 } }}>
+                <ExclusionsStep />
+              </Box>
+            </Step>
+            <Step
+              label='How many losses has the property had in the past 10 years that were caused by flooding?'
+              validationSchema={priorLossValidation}
+              stepperNavLabel='History'
+            >
+              <Box
+                sx={{
+                  pb: { xs: 4, sm: 6, md: 8 },
+                  pt: { xs: 2, sm: 4 },
+                  display: 'flex',
+                  justifyContent: 'center',
+                }}
               >
-                <Typography variant='h6' gutterBottom align='center' sx={{ my: 3 }}>
-                  Where should we send the quote?
-                </Typography>
-              </Tooltip>
-            }
-            validationSchema={contactValidation}
-            stepperNavLabel='Contact'
-          >
-            <Box
-              sx={{ pb: { xs: 4, sm: 6, md: 8 }, pt: { xs: 2, sm: 4 }, maxWidth: 480, mx: 'auto' }}
+                <PriorFloodLossStep />
+              </Box>
+            </Step>
+            <Step
+              // label='Where should we send the quote?'
+              label={
+                <Tooltip
+                  title={`This can be any valid email to which you have access. It is only used to deliver the quote. It does not need to be the policy holder or agent.`}
+                  placement='top-end'
+                >
+                  <Typography variant='h6' gutterBottom align='center' sx={{ my: 3 }}>
+                    Where should we send the quote?
+                  </Typography>
+                </Tooltip>
+              }
+              validationSchema={contactValidation}
+              stepperNavLabel='Contact'
             >
-              <ContactStep />
-            </Box>
-          </Step>
-          <Step label='Done!' validationSchema={reviewValidation} stepperNavLabel='Review'>
-            <ReviewStep />
-          </Step>
-        </FormikWizard>
+              <Box
+                sx={{
+                  pb: { xs: 4, sm: 6, md: 8 },
+                  pt: { xs: 2, sm: 4 },
+                  maxWidth: 480,
+                  mx: 'auto',
+                }}
+              >
+                <ContactStep />
+              </Box>
+            </Step>
+            <Step
+              // label='Done!'
+              validationSchema={reviewValidation}
+              stepperNavLabel='Review'
+            >
+              <ReviewStep />
+            </Step>
+          </FormikWizard>
+        </ErrorBoundary>
       </Box>
     </Container>
   );
 };
-
-// export const newSubmissionLoader = async ({ params }: LoaderFunctionArgs) => {
-//   try {
-//     const statesCollection = collection(getFirestore(), COLLECTIONS.ACTIVE_STATES);
-//     const snap = await getDoc(doc(statesCollection, params.productId));
-
-//     const data = snap.data();
-//     if (!snap.exists() || !data) return {};
-
-//     return data;
-//   } catch (err) {
-//     let msg = `Error fetching active states document`;
-//     if (err instanceof FirebaseError) {
-//       msg = err.message;
-//     }
-//     throw new Response(msg);
-//   }
-// };

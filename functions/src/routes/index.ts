@@ -1,9 +1,6 @@
 import * as functions from 'firebase-functions';
-import { defineSecret } from 'firebase-functions/params';
 
-// export { authRequests } from './authRequests.js';
-
-export const emailVerificationKey = defineSecret('EMAIL_VERIFICATION_KEY');
+import { emailVerificationKey } from '../common';
 
 export const authRequests = functions
   .runWith({ secrets: [emailVerificationKey] })

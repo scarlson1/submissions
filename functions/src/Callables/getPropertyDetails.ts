@@ -1,4 +1,4 @@
-import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
+import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import { getFirestore } from 'firebase-admin/firestore';
 import { AxiosResponse } from 'axios';
 
@@ -10,6 +10,11 @@ import {
   roundUpToNearest,
   getNumber,
   COLLECTIONS,
+  spatialKeyUserKey,
+  spatialKeyOrgKey,
+  spatialKeySecretKey,
+  maxA,
+  minA,
 } from '../common';
 import { getSpatialKeyInstance } from '../services';
 
@@ -38,17 +43,16 @@ interface InitLimits {
 //   default: 100000,
 // });
 
-export default async (data: any, context: CallableContext) => {
+export default async ({ data }: CallableRequest) => {
   console.log('data: ', data);
   const { lat, lng } = data;
   if (!lat || !lng || !isLatLng(lat, lng)) {
     throw new HttpsError('invalid-argument', `Invalid coordinates`);
   }
-
   const spatialKeyInstance = getSpatialKeyInstance({
-    userApiKey: process.env.SPATIALKEY_USER_API_KEY!,
-    orgApiKey: process.env.SPATIALKEY_ORG_API_KEY!,
-    orgSecretKey: process.env.SPATIALKEY_ORG_SECRET_KEY!,
+    userApiKey: spatialKeyUserKey.value(),
+    orgApiKey: spatialKeyOrgKey.value(),
+    orgSecretKey: spatialKeySecretKey.value(),
   });
 
   let spatialKeyData;
@@ -98,11 +102,8 @@ export default async (data: any, context: CallableContext) => {
       let res: any;
 
       try {
-        let MAX_A = parseInt(process.env.FLOOD_MAX_LIMIT_A!) || 1000000;
-        // let MAX_BCD = parseInt(process.env.FLOOD_MAX_LIMIT_B_C_D!) || 1000000;
-        let MIN_A = parseInt(process.env.FLOOD_MIN_LIMIT_A!) || 100000;
-        // let MAX_A = maxLimitA.value() || 1000000;
-        // let MIN_A = minLimitA.value() || 100000;
+        let MAX_A = maxA.value();
+        let MIN_A = minA.value();
 
         // let RCVRef = Math.min(replacementCost, MAX_A);
         let limitARef = roundUpToNearest(Math.min(Math.max(replacementCost, MIN_A), MAX_A), 3);

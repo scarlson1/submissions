@@ -4,9 +4,7 @@ import * as bodyParser from 'body-parser';
 import { getAuth } from 'firebase-admin/auth';
 import jwt from 'jsonwebtoken';
 
-import { emailVerificationKey } from './index.js';
-
-// const emailVerificationKey = defineSecret('EMAIL_VERIFICATION_KEY');
+import { emailVerificationKey } from '../common';
 
 const app = express();
 

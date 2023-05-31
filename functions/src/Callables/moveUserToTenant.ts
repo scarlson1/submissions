@@ -1,4 +1,5 @@
-import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
+import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
+import { info, error } from 'firebase-functions/logger';
 import {
   Auth,
   UserImportOptions,
@@ -8,60 +9,14 @@ import {
 } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
 
-import { CLAIMS, usersCollection } from '../common';
-import { firebaseHashConfig } from './index.js';
+import { CLAIMS, usersCollection, firebaseHashConfig } from '../common';
+
+// TODO: remove customClaims ??
+// TODO: include customClaims in props ?? ** yes
+// redirect / prompt for custom claims after user moved ??
+// TODO: batch uploads
 
 // Source: https://cloud.google.com/identity-platform/docs/migrate-users-between-projects-tenants#migrating_users_to_a_tenant
-
-// /**
-//  * Import all users from one tenant to another tenantv or from one project to another project (depending on authFrom and authTo)
-//  * @param {Auth} authFrom - Auth instance from which to import user
-//  * @param {Auth} authTo - Destination Auth instance
-//  * @param {UserImportOptions} userImportOptions  - password hashing config/options
-//  * @param {string | undefined} nextPageToken - cursor (1000 users at a time)
-//  * @return {void}
-//  */
-
-// function migrateUsers(
-//   authFrom: Auth | TenantAwareAuth,
-//   authTo: Auth | TenantAwareAuth,
-//   userImportOptions: UserImportOptions,
-//   nextPageToken: ListUsersResult['pageToken']
-// ) {
-//   var pageToken: string | undefined;
-//   authFrom
-//     .listUsers(1000, nextPageToken)
-//     .then(function (listUsersResult) {
-//       var users: UserImportRecord[] = [];
-//       listUsersResult.users.forEach(function (user) {
-//         var modifiedUser = user.toJSON() as UserImportRecord; //  as UserRecord
-//         // Convert to bytes.
-//         if (user.passwordHash && user.passwordSalt) {
-//           modifiedUser.passwordHash = Buffer.from(user.passwordHash, 'base64');
-//           modifiedUser.passwordSalt = Buffer.from(user.passwordSalt, 'base64');
-//         }
-//         // Delete tenant ID if available. This will be set automatically.
-//         delete modifiedUser.tenantId;
-//         users.push(modifiedUser);
-//       });
-//       // Save next page token.
-//       pageToken = listUsersResult.pageToken;
-//       // Upload current chunk.
-//       return authTo.importUsers(users, userImportOptions);
-//     })
-//     .then(function (results) {
-//       results.errors.forEach(function (indexedError) {
-//         console.log('Error importing user ' + indexedError.index);
-//       });
-//       // Continue if there is another page.
-//       if (pageToken) {
-//         migrateUsers(authFrom, authTo, userImportOptions, pageToken);
-//       }
-//     })
-//     .catch(function (error) {
-//       console.log('Error importing users:', error);
-//     });
-// }
 
 /**
  * Import a single user from one tenant to another tenant or from one project to another project (depending on authFrom and authTo)
@@ -81,18 +36,15 @@ async function migrateUser(
   if (!user) throw new Error(`User not found with ID ${userId}`);
 
   try {
-    var modifiedUser = user.toJSON() as UserImportRecord; //  as UserRecord
+    var modifiedUser = user.toJSON() as UserImportRecord;
     // Convert to bytes.
     if (user.passwordHash && user.passwordSalt) {
       modifiedUser.passwordHash = Buffer.from(user.passwordHash, 'base64');
       modifiedUser.passwordSalt = Buffer.from(user.passwordSalt, 'base64');
     }
-    // Delete tenant ID if available. This will be set automatically.
+    // Delete tenantId - will be set automatically.
     delete modifiedUser.tenantId;
 
-    console.log(`Migrating user ${modifiedUser.uid}`);
-
-    // Upload current chunk.
     await authTo.importUsers([modifiedUser], userImportOptions);
   } catch (err) {
     console.log('ERROR IMPORTING USER: ', err);
@@ -100,23 +52,27 @@ async function migrateUser(
   }
 }
 
-export default async (data: any, context: CallableContext) => {
+export default async ({ data, auth }: CallableRequest) => {
   const { toTenantId, userId, fromTenantId } = data;
   console.log('MOVE USER TO TENANT CALLED: ', data);
 
-  const authCtx = context.auth;
-  if (!authCtx || !authCtx.token || !authCtx.token[CLAIMS.IDEMAND_ADMIN]) {
+  if (!auth || !auth.token || !auth.token[CLAIMS.IDEMAND_ADMIN]) {
     throw new HttpsError('permission-denied', `iDemandAdmin permissions required`);
   }
 
   if (!(toTenantId || fromTenantId) || !userId) {
-    throw new HttpsError('failed-precondition', `tenantId and userId are required`);
+    throw new HttpsError(
+      'failed-precondition',
+      `atleast one tenantId (to/from) and userId are required`
+    );
   }
 
   const hashConfigStr = firebaseHashConfig.value();
   if (!hashConfigStr) throw new HttpsError('internal', 'Missing required environment variables');
+
   let parsedHashConfig = JSON.parse(hashConfigStr);
   let { algorithm, base64_signer_key, base64_salt_separator, rounds, mem_cost } = parsedHashConfig;
+
   if (!(algorithm && base64_signer_key && base64_salt_separator && rounds && mem_cost)) {
     throw new HttpsError(
       'internal',
@@ -139,17 +95,31 @@ export default async (data: any, context: CallableContext) => {
     const userImportOptions = {
       hash: {
         algorithm,
-        key: base64_signer_key,
-        saltSeparator: base64_salt_separator,
+        key: Buffer.from(base64_signer_key, 'base64'),
+        saltSeparator: Buffer.from(base64_salt_separator, 'base64'),
         rounds,
         memoryCost: mem_cost,
       },
     };
     await migrateUser(authFrom, authTo, userId, userImportOptions);
 
-    console.log(`USER ${userId} move to tenant ${toTenantId}`);
-  } catch (err) {
-    console.log('ERROR IMPORTING USER: ', err);
+    info(`USER ${userId} move from ${fromTenantId} to tenant ${toTenantId}`, {
+      userId,
+      fromTenantId,
+      toTenantId,
+    });
+
+    return {
+      status: 'success',
+      userId,
+      fromTenantId,
+      toTenantId,
+    };
+  } catch (err: any) {
+    error(`ERROR SETTING TENANT FOR USER ${userId}: `, {
+      errCode: err?.code || null,
+      errMsg: err?.message || null,
+    });
     throw new HttpsError('internal', 'An error occurred while attempting to import users');
   }
 

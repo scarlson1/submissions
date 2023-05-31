@@ -1,4 +1,5 @@
-import { QueryDocumentSnapshot } from 'firebase-admin/firestore';
+import type { FirestoreEvent } from 'firebase-functions/v2/firestore';
+import type { QueryDocumentSnapshot } from 'firebase-admin/firestore';
 import {
   booleanPointInPolygon,
   FeatureCollection,
@@ -9,17 +10,35 @@ import {
   Properties,
 } from '@turf/turf';
 
-import { Submission, FIPS } from '../common';
-import { EventContext } from 'firebase-functions/v1';
-// import countiesJson from '../assets/counties_20m.json';
+import { Submission, FIPS, counties20mURL } from '../common';
+import axios from 'axios';
+import { error, info } from 'firebase-functions/logger';
+
+export let countiesJson: FeatureCollection | undefined;
 
 export default async (
-  snap: QueryDocumentSnapshot,
-  context: EventContext<{
-    submissionId: string;
-  }>
+  event: FirestoreEvent<
+    QueryDocumentSnapshot | undefined,
+    {
+      submissionId: string;
+    }
+  >
 ) => {
+  const snap = event.data;
+  if (!snap) {
+    console.log('No data associated with event');
+    return;
+  }
   const submission = snap.data() as Submission;
+
+  if (!countiesJson) {
+    try {
+      await loadCountiesGeoJson();
+    } catch (err) {
+      error(`ERROR GETTING COUNTRY DATA FROM ${counties20mURL.value()}. RETURNING EARLY`);
+      return;
+    }
+  }
 
   try {
     let { state, countyName, coordinates } = submission;
@@ -69,7 +88,8 @@ export function getFIPS(countyName: string, state: string) {
 }
 
 export async function getCountyFromGeoJson(latitude: number, longitude: number) {
-  const countiesJson = await require('../assets/counties_20m.json');
+  // const countiesJson = await require('../assets/counties_20m.json');
+  if (!countiesJson) throw new Error('Missing countiesJson');
 
   let matchProperties: Properties | undefined;
   const p = point([longitude, latitude]);
@@ -86,4 +106,12 @@ export async function getCountyFromGeoJson(latitude: number, longitude: number) 
   console.log('MATCH PROPERTIES: ', matchProperties);
 
   return matchProperties;
+}
+
+export async function loadCountiesGeoJson() {
+  info(`Loading county GeoJSON from ${counties20mURL.value()}`);
+  const { data } = await axios.get(counties20mURL.value());
+  if (!data) throw new Error(`Missing county data from ${counties20mURL.value()}`);
+
+  countiesJson = data;
 }

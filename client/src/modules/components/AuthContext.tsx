@@ -7,11 +7,12 @@ import {
   createContext,
   useRef,
 } from 'react';
-import { User, IdTokenResult, UserCredential } from '@firebase/auth';
+import { User, IdTokenResult, UserCredential, onAuthStateChanged } from '@firebase/auth';
 import { doc, onSnapshot, DocumentSnapshot } from '@firebase/firestore';
 import { setUserId, setUserProperties } from 'firebase/analytics';
 import { useAnalytics, useAuth as useFireAuth, useFirestore, useUser } from 'reactfire';
 import { differenceInSeconds } from 'date-fns';
+import { setUser as setSentryUser } from '@sentry/react';
 // import { authState } from 'rxfire/auth';
 // import { filter } from 'rxjs/operators';
 
@@ -125,27 +126,61 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
     return () => unsubscribe();
   }, [onNewClaims, firestore, user, customClaims]);
 
+  // called more than necessary
   // on user change
+  // useEffect(() => {
+  //   console.log('USER CHANGE USE EFFECT CALLED');
+  //   const update = async () => {
+  //     setLoading(true);
+  //     await updateClaims();
+
+  //     if (user) {
+  //       setUserId(analytics, user.uid);
+  //       setSentryUser({ id: user.uid, email: user.email || undefined });
+  //     } else {
+  //       auth.tenantId = null;
+  //       setSentryUser(null);
+  //     }
+
+  //     setLoadingInitial(false);
+  //     setLoading(false);
+  //   };
+
+  //   update().catch((err) => {
+  //     console.log('ERR: ', err);
+  //     setLoading(false);
+  //     setLoadingInitial(false);
+  //   });
+  // }, [user, auth, updateClaims, analytics]);
+
   useEffect(() => {
-    console.log('USER CHANGE USE EFFECT CALLED');
-    const update = async () => {
-      setLoading(true);
-      await updateClaims();
-      if (!user) auth.tenantId = null;
+    const unsubscribe = onAuthStateChanged(
+      auth,
+      async (newUser: User | null) => {
+        setLoading(true);
+        await updateClaims();
 
-      if (user) {
-        setUserId(analytics, user.uid);
-      }
-      setLoadingInitial(false);
-      setLoading(false);
-    };
+        if (newUser) {
+          setUserId(analytics, newUser.uid);
+          setSentryUser({
+            id: newUser.uid,
+            email: newUser.email || undefined,
+            username: newUser.displayName || undefined,
+          });
+        } else {
+          auth.tenantId = null;
+          setSentryUser(null);
+        }
+        localStorage.removeItem('userSearchKey');
 
-    update().catch((err) => {
-      console.log('ERR: ', err);
-      setLoading(false);
-      setLoadingInitial(false);
-    });
-  }, [user, auth, updateClaims, analytics]);
+        setLoading(false);
+        setLoadingInitial(false);
+      },
+      console.error
+    );
+
+    return () => unsubscribe();
+  }, [auth, updateClaims, analytics]);
 
   /**
    * Calculates seconds from last authentication of currentUser or returns null
@@ -192,7 +227,7 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
 
   const handleReauthResult = useCallback(
     (userCred: UserCredential) => {
-      console.log('handleReauthResult userCred: ', userCred);
+      // console.log('handleReauthResult userCred: ', userCred);
       if (reauthPromiseRef.current) {
         reauthPromiseRef.current.resolve(userCred);
       }

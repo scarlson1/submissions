@@ -8,59 +8,67 @@ import { initializeApp } from 'firebase-admin/app';
 initializeApp();
 
 export {
-  getPropertyDetails,
-  getPropertyDetailsAttom,
-  sendContactEmail,
-  initializeQuote,
-  updateAndRateQuote,
-  verifyEPayToken,
-  assignQuote,
-  sendNewQuoteNotifications,
-  sendPolicyDoc,
-  executePayment,
-  createPolicy,
-  calcQuote,
-  getTenantIdFromEmail,
-  createTenantFromSubmission,
-  sendAgencyApprovedNotification,
-  inviteUsers,
-  resendInvite,
-  getAnnualPremium,
-  getValuationEstimate,
-  getRiskFactorId,
-  getriskfactoridv2,
-  moveUserToTenant,
-  // deliverAgencyAgreement,
+  assignquote,
+  calcquote,
+  createpolicy,
+  createtenantfromsubmission,
+  // deliveragencyagreement,
+  executepayment,
+  getpropertydetails,
+  generatesearchkey,
+  getannualpremium,
+  getpropertydetailsattom,
+  getriskfactorid,
+  gettenantidfromemail,
+  getvaluationestimate,
+  initializequote,
+  inviteusers,
+  moveusertotenant,
+  resendinvite,
+  sendagencyapprovednotification,
+  sendcontactemail,
+  sendnewquotenotifications,
+  sendpolicydoc,
+  updateandratequote,
+  verifyepaytoken,
 } from './callables';
 export {
-  newSubmissionNotifications,
-  getStaticSubmissionImg,
-  getSubmissionAAL,
-  mirrorCustomClaims,
-  newAgencyAppNotification,
-  getSubmissionFIPS,
-  sendInviteEmail,
-  notifyPolicyChangeRequest,
+  newsubmissionnotifications,
+  getstaticsubmissionimg,
+  getsubmissionaal,
+  mirrorcustomclaims,
+  newagencyappnotification,
+  getsubmissionfips,
+  sendinviteemail,
 } from './firestoreEvents';
 export {
-  beforeSignIn,
-  beforeCreate,
+  algoliasyncusers,
+  algoliasyncorgs,
+  algoliasyncsubmissions,
+  algoliasyncsubmissionsquotes,
+  algoliasyncpolicies,
+  algoliasynctransactions,
+} from './firestoreEvents/algolia';
+export {
+  beforesignin,
+  beforecreate,
   setUidByEmailOnCreate,
   createFirestoreUser,
   setClaimsFromInvite,
 } from './authEvents';
 export { authRequests } from './routes';
 export {
-  getAALPortfolio,
-  importPolicies,
-  getAALAndRatePortfolio,
-  // tempGetFIPS
+  getaalportfolio,
+  importpolicies,
+  getaalandrateportfolio,
+  getfips,
+  rateportfolio,
 } from './storageEvents';
+export { markpaidonpaymentcomplete } from './pubsub';
 export {
-  checkAchStatus,
-  markpaidonpaymentcomplete,
-  // checkQuoteExpiration, // TODO: test and finish function before deploy
-} from './pubsub';
+  checkachstatus,
+  // checkquoteexpiration // TODO: test and finish function before deploy
+} from './scheduler';
 
 // export { pubsubHelper } from './routes/pubSubHelper.js';
 // export { testEmulatorsCheckAchStatus } from './pubsub/checkAchStatus';

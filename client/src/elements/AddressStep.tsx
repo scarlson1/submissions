@@ -1,4 +1,5 @@
 import React, { useState, useCallback, Suspense } from 'react';
+import { ErrorBoundary } from 'react-error-boundary';
 import { Card, CircularProgress, Grid2Props, Typography } from '@mui/material';
 import { useFormikContext } from 'formik';
 import { FlyToInterpolator, MapViewState } from '@deck.gl/core/typed';
@@ -9,7 +10,6 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { FormikAddress } from 'elements';
 import { useRegisterEmailNotification } from 'hooks';
 import { ActiveStateMap } from './ActiveStateMap';
-import { ErrorBoundary } from 'react-error-boundary';
 
 export interface AddressStepValues {
   addressLine1: string;
@@ -30,6 +30,7 @@ export interface AddressStepProps {
 
 // TODO: state and postal validation
 // TODO: load by product /flood/new - get active states from /state/:productId in db
+// TODO: emial lists in email service (sendgrid)
 
 export const AddressStep: React.FC<AddressStepProps> = ({
   activeStates = {},

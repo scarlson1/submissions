@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   Alert,
   alpha,
@@ -19,7 +19,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useFirestore, useFirestoreDocData } from 'reactfire';
 import { doc } from 'firebase/firestore';
 
-import { QUOTE_STATUS, submissionsQuotesCollection } from 'common';
+import { ANALYTICS_EVENTS, QUOTE_STATUS, submissionsQuotesCollection } from 'common';
 import { dollarFormat } from 'modules/utils/helpers';
 import { FlexCard, FlexCardContent, IconButtonMenu, LineItem } from 'components';
 import {
@@ -31,6 +31,7 @@ import {
   AtHomeSVG,
 } from 'assets/images';
 import { createPath, ROUTES } from 'router';
+import { useAnalyticsEvent } from 'hooks';
 
 export const ViewQuote: React.FC = () => {
   const navigate = useNavigate();
@@ -39,11 +40,18 @@ export const ViewQuote: React.FC = () => {
 
   const firestore = useFirestore();
   const quoteRef = doc(submissionsQuotesCollection(firestore), quoteId); // .withConverter(withIdConverter())
-  const { status, data } = useFirestoreDocData(quoteRef);
+  const { data } = useFirestoreDocData(quoteRef);
+  const logEvent = useAnalyticsEvent();
 
-  if (status === 'loading') {
-    return <span>loading...</span>;
-  }
+  useEffect(() => {
+    if (!data) return;
+    logEvent(ANALYTICS_EVENTS.VIEW_QUOTE, {
+      page_location: window.location.href,
+      page_path: window.location.pathname,
+      value: data.quoteTotal,
+      product: data.product,
+    });
+  }, [data, logEvent]);
 
   return (
     <Box>

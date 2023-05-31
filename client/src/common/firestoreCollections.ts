@@ -100,8 +100,8 @@ export const moratoriumsCollection = (db: Firestore) =>
   createCollection<Moratorium>(db, COLLECTIONS.MORATORIUMS);
 export const agencyAppCollection = (db: Firestore) =>
   createCollection<AgencyApplication>(db, COLLECTIONS.AGENCY_APPLICATIONS);
-export const transactionsCollection = (db: Firestore) =>
-  createCollection<Charge>(db, COLLECTIONS.TRANSACTIONS);
+export const finTrxCollection = (db: Firestore) =>
+  createCollection<Charge>(db, COLLECTIONS.FIN_TRANSACTIONS);
 
 // SUB COLLECTIONS
 export const userClaimsCollection = (db: Firestore, orgId: string) =>

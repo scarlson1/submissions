@@ -28,10 +28,5 @@ export interface GetAnnualPremiumResponse {
 export const getAnnualPremium = (functions: Functions, args: GetAnnualPremiumRequest) =>
   httpsCallable<GetAnnualPremiumRequest, GetAnnualPremiumResponse>(
     functions,
-    'getAnnualPremium'
+    'getannualpremium'
   )(args);
-
-// export const calcQuote = httpsCallable<CalcQuoteRequest, CalcQuoteResponse>(
-//   getFunctions(),
-//   'calcQuote'
-// );

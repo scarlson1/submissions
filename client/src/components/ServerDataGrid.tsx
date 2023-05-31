@@ -6,8 +6,10 @@ import {
   getGridDateOperators,
   getGridNumericOperators,
   getGridStringOperators,
+  GridCallbackDetails,
   GridColDef,
   GridFilterModel,
+  GridPaginationModel,
   GridSortModel,
 } from '@mui/x-data-grid';
 import {
@@ -38,11 +40,15 @@ export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
   constraints = [],
   isCollectionGroup = false,
   columns,
+  // density = 'compact',
   ...rest
 }) => {
   // const [isPending, startTransition] = useTransition();
-  const [page, setPage] = useState(0);
-  const [pageSize, setPageSize] = useState(10);
+  // const [densityV, setDensity] = useState<GridDensity>(density);
+  const [paginationModel, setPaginationModel] = React.useState({
+    pageSize: 10,
+    page: 0,
+  });
   const [rowCount, setRowCount] = useState<number>(0);
   const [sortOptions, setSortOptions] = useState<QueryOrderByConstraint[]>([
     orderBy('metadata.created', 'desc'),
@@ -69,35 +75,32 @@ export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
     collName,
     queryOptions,
     {
-      cursor: cursors.current.get(page),
-      itemsPerPage: pageSize,
+      cursor: cursors.current.get(paginationModel.page),
+      itemsPerPage: paginationModel.pageSize,
     },
     isCollectionGroup,
     pathSegments
   );
   // const deferredData = useDeferredValue(data);
 
-  // const rowData = useMemo(() => {
-  //   return deferredData?.docs?.map((doc) => ({ ...doc.data(), id: doc.id })) ?? [];
-  // }, [deferredData]);
   const rowData = useMemo(() => {
     return data?.docs?.map((doc) => ({ ...doc.data(), id: doc.id })) ?? [];
   }, [data]);
 
-  // TODO: use useTransition hook to prevent grid flashing when loading next page's data
-  const onPageChanged = useCallback(
-    (nextPage: number) => {
+  const handlePaginationModelChange = useCallback(
+    (model: GridPaginationModel, details: GridCallbackDetails<any>) => {
       startTransition(() => {
-        setPage((page) => {
+        setPaginationModel((currModel) => {
           // save the last document as page's cursor (query uses "startAfter(snap)")
-          cursors.current.set(page + 1, data.docs[data.docs.length - 1]);
+          if (model.page !== currModel.page)
+            cursors.current.set(currModel.page + 1, data.docs[data.docs.length - 1]);
 
           // update state to the next page's number
-          return nextPage;
+          return model;
         });
       });
     },
-    [data]
+    [data] // page, pageSize]
   );
 
   // TODO: store filter in same array ??
@@ -122,13 +125,13 @@ export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
 
     filterModel.items.forEach((f) => {
       // TODO: bug - isNotEmpty passes a value of undefined
-      if (f.value !== undefined && f.operatorValue) {
-        let op = muiOperatorToFirestoreOperator(f.operatorValue);
-        let val = f.operatorValue === 'isNotEmpty' ? false : f.value;
-        if (op) newFilters.push(where(f.columnField, op, val));
+      if (f.value !== undefined && f.operator) {
+        let op = muiOperatorToFirestoreOperator(f.operator);
+        let val = f.operator === 'isNotEmpty' ? false : f.value;
+        if (op) newFilters.push(where(f.field, op, val));
         // TODO: handle isNotEmpty (where('field', '!=', false))
         // FIRESTORE LIMITATION - MUST SORT BY COLUMN IF USING >, < >=, <= OPERATORS
-        if (isRangeComparison(f.operatorValue)) newFilters.push(orderBy(f.columnField));
+        if (isRangeComparison(f.operator)) newFilters.push(orderBy(f.field));
       }
     });
 
@@ -138,29 +141,60 @@ export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
     });
   }, []);
 
-  // console.log('IS_PENDING: ', isPending);
-  // console.log('DATA: ', rowData);
+  // const rowHeight = useMemo(() => {
+  //   console.log('ROW HEIGHT CHANGE: ', density);
+  //   if (density === 'compact') return 52;
+  //   if (density === 'comfortable') return 100;
+  //   return 76;
+  // }, [density]);
+  // const baseHeight = useMemo(() => {}, []);
 
   return (
     <Box sx={{ height: 500, width: '100%' }}>
+      {/* <Box
+      sx={{
+        height: 108 + Math.min(pageSize, rowData.length) * rowHeight + 'px',
+        width: '100%',
+        transition: 'all 0.25s ease-in-out',
+      }}
+    > */}
       <DataGrid
-        rowsPerPageOptions={[5, 10, 25, 100]}
+        sx={{ transition: 'height 0.25s ease-in-out' }}
+        // rowsPerPageOptions={[5, 10, 25, 100]}
+        pageSizeOptions={[5, 10, 25, 100]}
         {...rest}
+        // density={densityV}
+        // rowHeight={rowHeight}
+        // onStateChange={(v) =>
+        //   v.state?.density?.value &&
+        //   densityV !== v.state?.density?.value &&
+        //   setDensity(v.state.density.value)
+        // }
         rows={rowData}
         // rows={deferredData}
         columns={columns}
         loading={status === 'loading'} // || isPending
         pagination
         paginationMode='server'
-        page={page}
-        onPageChange={onPageChanged}
-        pageSize={pageSize}
-        onPageSizeChange={(newSize) => setPageSize(newSize)}
+        // paginationModel={{ page, pageSize }}
+        paginationModel={paginationModel}
+        onPaginationModelChange={handlePaginationModelChange}
+        // page={page}
+        // onPageChange={onPageChanged}
+        // pageSize={pageSize}
+        // onPageSizeChange={(newSize) => setPageSize(newSize)}
         rowCount={rowCount}
         sortingMode='server'
         onSortModelChange={handleSortModelChange}
         filterMode='server'
         onFilterModelChange={handleFilterChange}
+        // slots={{
+        //   loadingOverlay: LinearProgress, // displayed when loading = true
+        // }}
+        // no rows image: https://mui.com/x/react-data-grid/components/#no-rows-overlay
+        // slots={{
+        //   noRowsOverlay: CustomNoRowsOverlay,
+        // }}
       />
     </Box>
   );

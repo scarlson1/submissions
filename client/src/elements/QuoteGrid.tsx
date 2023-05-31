@@ -294,7 +294,8 @@ export const QuoteGrid: React.FC<QuoteGridProps> = ({
           sorting: {
             sortModel: [{ field: 'created', sort: 'desc' }],
           },
-          pagination: { pageSize: 10 },
+          // pagination: { pageSize: 10 },
+          pagination: { paginationModel: { page: 0, pageSize: 10 } },
         }}
         {...props}
       />

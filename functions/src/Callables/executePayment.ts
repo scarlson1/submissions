@@ -1,27 +1,27 @@
-import logger from 'firebase-functions/logger';
-import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
+import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
+import { error } from 'firebase-functions/logger';
 import { getFirestore, Timestamp, DocumentSnapshot } from 'firebase-admin/firestore';
 
 import {
   PaymentMethod,
   paymentMethodsCollection,
   policiesCollection,
-  Policy,
   POLICY_STATUS,
   round,
-  transactionsCollection,
+  finTrxCollection,
   TRANSACTION_STATUS,
+  PolicyOld,
 } from '../common';
 import { getEPayInstance } from '../services';
 import { publishMessage } from '../services/pubsub/publishMessage.js';
-import { ePayCreds as ePayCredsSecret } from './index.js';
+import { ePayCreds as ePayCredsSecret } from '../common';
 
 // const ePayCreds = defineSecret('ENCODED_EPAY_AUTH');
 const CARD_FEE = 0.035;
 
-export default async (data: any, ctx: CallableContext) => {
+export default async ({ data, auth }: CallableRequest) => {
   const { policyId, paymentMethodId } = data;
-  const uid: string | undefined = ctx.auth?.uid;
+  const uid = auth?.uid;
 
   if (!uid) throw new HttpsError('unauthenticated', 'Must be signed in');
 
@@ -32,7 +32,7 @@ export default async (data: any, ctx: CallableContext) => {
     const db = getFirestore();
     const policiesCol = policiesCollection(db);
 
-    const policySnap: DocumentSnapshot<Policy> = await policiesCol.doc(policyId).get();
+    const policySnap: DocumentSnapshot<PolicyOld> = await policiesCol.doc(policyId).get();
     const policy = policySnap.data();
     console.log('POLICY: ', policy);
     if (!policySnap.exists || !policy)
@@ -56,7 +56,7 @@ export default async (data: any, ctx: CallableContext) => {
     if (!paymentMethodSnap.exists || !paymentMethodDetails)
       throw new HttpsError('not-found', 'Payment method not found');
 
-    const ePayCreds = ePayCredsSecret.value(); // process.env.ENCODED_EPAY_AUTH;
+    const ePayCreds = ePayCredsSecret.value();
     if (!ePayCreds) throw new Error('Missing required env vars');
 
     const ePayInstance = getEPayInstance(ePayCreds);
@@ -88,7 +88,7 @@ export default async (data: any, ctx: CallableContext) => {
       emailAddress: paymentMethodDetails.emailAddress,
       tokenId: paymentMethodId,
       sendReceipt: true,
-      ipAddress: ctx.auth?.token.signInIpAddress, // ctx.rawRequest.ip,
+      ipAddress: auth?.token.signInIpAddress, // ctx.rawRequest.ip,
     });
 
     let transactionId = location?.split('/')[2];
@@ -106,7 +106,7 @@ export default async (data: any, ctx: CallableContext) => {
       transactionId,
     });
 
-    await transactionsCollection(db)
+    await finTrxCollection(db)
       .doc(transactionId)
       .set({
         transactionId,
@@ -163,7 +163,7 @@ export default async (data: any, ctx: CallableContext) => {
     console.log('ERROR: ', err);
     // TODO: extract error message from ePay error if code is 400: https://docs.epaypolicy.com/knowledgebase/faqs/
     let msg = err?.response?.data?.message || 'Payment could not be processed.';
-    logger.error(msg, {
+    error(msg, {
       data,
       userId: uid,
       stack: err?.stack || null,

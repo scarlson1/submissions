@@ -27,7 +27,7 @@ import { QueryConstraint } from 'firebase/firestore';
 const resendInvite = (functions: Functions, args: { orgId: string; inviteId: string }) =>
   httpsCallable<{ orgId: string; inviteId: string }, { status: string }>(
     functions,
-    'resendInvite'
+    'resendinvite'
   )(args);
 interface InvitesGridProps {
   orgId?: string;

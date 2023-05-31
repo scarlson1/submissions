@@ -1,4 +1,5 @@
 import { createBrowserRouter, createSearchParams, URLSearchParamsInit } from 'react-router-dom';
+import { wrapCreateBrowserRouter } from '@sentry/react';
 
 import App from './App';
 import { Layout, RequireAuth, RouterErrorBoundary } from 'components';
@@ -42,6 +43,7 @@ import {
   Organizations,
   Organization,
   Users,
+  // PortfolioRating,
 } from 'views/admin';
 // import { Submissions as AgentSubmissions } from 'views/agent';
 import { SuccessStep, ActionHandler } from 'elements';
@@ -53,6 +55,7 @@ import { Disclosures } from 'views/admin/Disclosures';
 import { QuoteNewFromSub } from 'views/admin/QuoteNew';
 import { PoliciesMap } from 'elements/PoliciesMap';
 import { AuthActionsProvider } from 'modules/components';
+import { TempWrappedSearch } from 'components/search/Search';
 
 // import RouterErrorBoundary from 'components/errorBoundaries/RouterErrorBoundary';
 
@@ -106,6 +109,7 @@ export enum ADMIN_ROUTES {
   ORGANIZATIONS = '/admin/orgs',
   ORGANIZATION = '/admin/orgs/:orgId',
   USERS = '/admin/users',
+  PORTFOLIO_RATING = '/admin/portfolio-rating',
 }
 
 // export enum AGENT_ROUTES {
@@ -166,10 +170,27 @@ type TArgs =
   | { path: ADMIN_ROUTES.ORGANIZATIONS }
   | { path: ADMIN_ROUTES.ORGANIZATION; params: { orgId: string } }
   | { path: ADMIN_ROUTES.USERS }
-  | { path: AUTH_ROUTES.CREATE_ACCOUNT }
-  | { path: AUTH_ROUTES.LOGIN }
-  | { path: AUTH_ROUTES.TENANT_CREATE_ACCOUNT; params?: { tenantId?: string } }
-  | { path: AUTH_ROUTES.TENANT_LOGIN; params?: { tenantId?: string } }
+  | { path: ADMIN_ROUTES.PORTFOLIO_RATING }
+  | {
+      path: AUTH_ROUTES.CREATE_ACCOUNT;
+      params?: { tenantId?: string };
+      search?: { email?: string; firstName?: string; lastName?: string };
+    }
+  | {
+      path: AUTH_ROUTES.LOGIN;
+      params?: { tenantId?: string };
+      search?: { email?: string };
+    }
+  | {
+      path: AUTH_ROUTES.TENANT_CREATE_ACCOUNT;
+      params?: { tenantId?: string };
+      search?: { email?: string; firstName?: string; lastName?: string };
+    }
+  | {
+      path: AUTH_ROUTES.TENANT_LOGIN;
+      params?: { tenantId?: string };
+      search?: { email?: string };
+    }
   | {
       path: AUTH_ROUTES.ACTIONS_HANDLER;
       search: { mode: string; oobCode: string; continueUrl?: string | null };
@@ -206,7 +227,10 @@ export function createPath(args: TArgs) {
   return resolvedPath;
 }
 
-export const router = createBrowserRouter([
+const sentryCreateBrowserRouter = wrapCreateBrowserRouter(createBrowserRouter);
+
+// export const router = createBrowserRouter([
+export const router = sentryCreateBrowserRouter([
   {
     path: '/',
     element: <App />,
@@ -645,6 +669,15 @@ export const router = createBrowserRouter([
               </RequireAuthReactFire>
             ),
           },
+          // TODO: finish component & uncomment
+          // {
+          //   path: ADMIN_ROUTES.PORTFOLIO_RATING,
+          //   element: (
+          //     <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
+          //       <PortfolioRating />
+          //     </RequireAuthReactFire>
+          //   ),
+          // },
           {
             path: 'pagination/data-grid',
             element: <TasksPagination />,
@@ -656,6 +689,19 @@ export const router = createBrowserRouter([
               <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
                 <PoliciesMap />
               </RequireAuthReactFire>
+            ),
+          },
+          {
+            path: 'search',
+            element: (
+              <TempWrappedSearch />
+              // <Search
+              //   appId={process.env.REACT_APP_ALGOLIA_APP_ID as string}
+              //   apiKey={process.env.REACT_APP_ALGOLIA_SEARCH_KEY as string}
+              //   indexName='local_tasks'
+              //   indexTitle='Tasks'
+              //   placeholder='Search...'
+              // />
             ),
           },
         ],

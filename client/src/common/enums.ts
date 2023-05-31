@@ -16,6 +16,7 @@ export enum COLLECTIONS {
   SR_RES = 'swissRe',
   PAYMENT_METHODS = 'paymentMethods',
   TRANSACTIONS = 'transactions',
+  FIN_TRANSACTIONS = 'financialTransactions',
   AGENCY_APPLICATIONS = 'agencySubmissions',
   LICENSES = 'licenses',
   NOTIFICATIONS = 'notifications',
@@ -25,6 +26,7 @@ export enum COLLECTIONS {
   MORATORIUMS = 'moratoriums',
   PUBLIC = 'public',
   DISCLOSURES = 'disclosures',
+  EMAIL_ACTIVITY = 'emailActivity',
   TASKS = 'tasks', // TODO: DELETE
 }
 
@@ -158,4 +160,33 @@ export enum STATE_ABBREVIATION {
 
 export enum REMOTE_CONFIG_KEYS {
   'WELCOME' = 'welcome_message',
+}
+
+export enum ANALYTICS_EVENTS {
+  CHECKOUT_BEGIN = 'begin_checkout',
+  CHECKOUT_PROGRESS = 'checkout_progress',
+  CHECKOUT_SET_OPTION = 'set_checkout_option',
+  PURCHASE = 'purchase',
+  VIEW_CART = 'view_cart',
+  VIEW_ITEM = 'view_item',
+  VIEW_ITEM_LIST = 'view_item_list',
+  VIEW_PROMOTION = 'view_promotion',
+  VIEW_QUOTE = 'view_quote',
+  SELECT_ITEM = 'select_item',
+  SELECT_PROMOTION = 'select_promotion',
+  SELECT_CONTENT = 'select_content',
+  SHARE = 'share',
+  SEARCH = 'search',
+  SEARCH_VIEW_RESULTS = 'view_search_results',
+  REMOVE_FROM_CART = 'remove_from_cart',
+  ADD_TO_CART = 'add_to_cart',
+  ADD_TO_WISHLIST = 'add_to_wishlist',
+  ADD_PAYMENT_INFO = 'add_payment_info',
+  ADD_SHIPPING_INFO = 'add_shipping_info',
+  LOGIN = 'login',
+  SIGN_UP = 'sign_up',
+  EXCEPTION = 'exception',
+  SCREEN_VIEW = 'screen_view',
+  PAGE_VIEW = 'page_view',
+  GENTERATE_LEAD = 'generate_lead',
 }

@@ -1,21 +1,17 @@
+import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import { getFirestore } from 'firebase-admin/firestore';
-import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
 
 import { invitesCollection } from '../common/dbCollections';
 import { inviteConverter } from '../common/converters';
+import { CLAIMS, audience, sendgridApiKey } from '../common';
 import { sendUserInvite } from '../services/sendgrid';
-import { CLAIMS } from '../common';
-import { sendgridApiKey } from './index.js';
 
-// const sendgridApiKey = defineSecret('SENDGRID_API_KEY');
-
-export default async (data: { orgId: string; inviteId: string }, context: CallableContext) => {
-  const { auth } = context;
-
-  if (!auth?.uid) {
+export default async ({ data, auth }: CallableRequest<{ orgId: string; inviteId: string }>) => {
+  const token = auth?.token;
+  if (!auth?.uid || !token) {
     throw new HttpsError('unauthenticated', 'Must be signed in.');
   }
-  if (!(auth?.token[CLAIMS.ORG_ADMIN] || auth?.token[CLAIMS.IDEMAND_ADMIN])) {
+  if (!(token[CLAIMS.ORG_ADMIN] || token[CLAIMS.IDEMAND_ADMIN])) {
     throw new HttpsError('permission-denied', 'Admin permissions required');
   }
 
@@ -24,7 +20,7 @@ export default async (data: { orgId: string; inviteId: string }, context: Callab
     throw new HttpsError('failed-precondition', 'Missing orgId or inviteId');
   }
 
-  const sgKey = sendgridApiKey.value(); // process.env.SENDGRID_API_KEY;
+  const sgKey = sendgridApiKey.value();
   if (!sgKey) throw new HttpsError('internal', `Missing Sendgrid api key`);
 
   const db = getFirestore();
@@ -38,7 +34,7 @@ export default async (data: { orgId: string; inviteId: string }, context: Callab
   }
 
   let to = [inviteData?.email];
-  if (process.env.AUDIENCE === 'DEV HUMANS' || process.env.AUDIENCE === 'LOCAL HUMANS')
+  if (audience.value() === 'DEV HUMANS' || audience.value() === 'LOCAL HUMANS')
     to.push('spencercarlson@mac.com');
 
   try {

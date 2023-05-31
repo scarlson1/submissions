@@ -1,6 +1,5 @@
-// import * as functions from 'firebase-functions';
-import logger from 'firebase-functions/logger';
-import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
+import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
+import { error } from 'firebase-functions/logger';
 import { Tenant, getAuth } from 'firebase-admin/auth';
 import { Firestore, getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { kebabCase, random } from 'lodash';
@@ -13,6 +12,7 @@ import {
 } from '../common/dbCollections';
 import { Invite } from '../common/types';
 import { isSingleLetter } from '../common';
+import { hostingBaseURL } from '../common';
 
 export const createInvite = async (
   db: Firestore,
@@ -26,9 +26,7 @@ export const createInvite = async (
 
   await invitesColRef.doc(email).set({
     ...inviteInfo,
-    link: `${
-      process.env.HOSTING_BASE_URL
-    }/auth/create-account/${tenantId}?email=${encodeURIComponent(
+    link: `${hostingBaseURL.value()}/auth/create-account/${tenantId}?email=${encodeURIComponent(
       email
     )}&firstName=${encodeURIComponent(firstName || '')}&lastName=${encodeURIComponent(
       lastName || ''
@@ -43,8 +41,7 @@ export const createInvite = async (
   });
 };
 
-export default async (data: any, context: CallableContext) => {
-  const { auth } = context;
+export default async ({ data, auth }: CallableRequest<any>) => {
   if (!auth || !auth.token || !auth.token.iDemandAdmin) {
     throw new HttpsError('failed-precondition', 'iDemand Admin permissions required');
   }
@@ -73,7 +70,7 @@ export default async (data: any, context: CallableContext) => {
   } catch (err: any) {
     let msg = `Agency app not found (ID: ${data.docId})`;
     if (err?.message) msg = err.message;
-    logger.error(msg, {
+    error(msg, {
       data,
       userId: auth?.uid || null,
     });
@@ -244,7 +241,7 @@ export default async (data: any, context: CallableContext) => {
 //   } catch (err: any) {
 //     let msg = `Agency app not found (ID: ${data.docId})`;
 //     if (err?.message) msg = err.message;
-//     logger.error(msg, {
+//     error(msg, {
 //       data,
 //       userId: auth?.uid || null,
 //     });

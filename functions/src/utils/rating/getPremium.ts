@@ -1,4 +1,4 @@
-import { calcSum } from '../../common';
+import { calcSum } from '../../common/index.js';
 import { getPremiumData } from './calcPremium.js';
 import { getPM, getSecondaryFactorMults } from './factors.js';
 import { getMinPremium } from './minPremium.js';
@@ -17,6 +17,7 @@ interface GetPremiumProps {
   basement?: string;
   floodZone?: string;
   commissionPct?: number;
+  isPortfolio?: boolean;
 }
 
 export const getPremium = (props: GetPremiumProps) => {
@@ -32,11 +33,12 @@ export const getPremium = (props: GetPremiumProps) => {
     basement = 'unknown',
     priorLossCount,
     commissionPct = 0.15,
+    isPortfolio = false,
   } = props;
 
   const tiv = calcSum([limitA, limitB, limitC, limitD]);
 
-  const minPremium = getMinPremium(floodZone || 'D', tiv);
+  const minPremium = getMinPremium(floodZone || 'D', tiv, isPortfolio);
 
   const pm = {
     inland: getPM(inlandAAL, tiv),

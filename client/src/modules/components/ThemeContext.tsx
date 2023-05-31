@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   ThemeProvider as MuiThemeProvider,
   createTheme,
@@ -14,10 +14,16 @@ import { useLocalStorage } from 'hooks';
 // https://github.com/mui/material-ui/blob/master/docs/src/modules/brandingTheme.ts
 // https://github.com/mui/material-ui/blob/master/docs/src/modules/components/ThemeContext.js
 
-export const ColorModeContext = React.createContext({
-  mode: 'light',
-  toggleColorMode: () => {},
-});
+interface ColorModeContextValue {
+  mode: 'light' | 'dark';
+  toggleColorMode: () => void;
+}
+
+export const ColorModeContext = React.createContext<ColorModeContextValue | undefined>(undefined);
+// export const ColorModeContext = React.createContext({
+//   mode: 'light',
+//   toggleColorMode: () => {},
+// });
 
 export function ThemeProvider(props: any) {
   const { children } = props;
@@ -79,5 +85,11 @@ export function ThemeProvider(props: any) {
 export function useChangeTheme() {
   const colorMode = React.useContext(ColorModeContext);
 
-  return React.useCallback(() => colorMode.toggleColorMode(), [colorMode]);
+  if (colorMode === undefined) {
+    throw new Error('useChangeTheme must be used within ThemeProvider');
+  }
+
+  // return React.useCallback(() => colorMode.toggleColorMode(), [colorMode]);
+
+  return colorMode;
 }

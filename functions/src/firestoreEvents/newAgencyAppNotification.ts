@@ -1,28 +1,35 @@
-import { EventContext } from 'firebase-functions/v1';
+import type { FirestoreEvent } from 'firebase-functions/v2/firestore';
 import { QueryDocumentSnapshot } from 'firebase-admin/firestore';
 
 import { sendNewAgencySubmissionAdminNotification } from '../services/sendgrid';
+import { audience, hostingBaseURL, sendgridApiKey } from '../common/index.js';
 
 // const hostingURL = defineString('HOSTING_BASE_URL');
 
 export default async (
-  snap: QueryDocumentSnapshot,
-  context: EventContext<{
-    submissionId: string;
-  }>
+  event: FirestoreEvent<
+    QueryDocumentSnapshot | undefined,
+    {
+      submissionId: string;
+    }
+  >
 ) => {
-  const submissionId = context.params.submissionId;
+  const snap = event.data;
+  if (!snap) {
+    console.log('No data associated with event');
+    return;
+  }
+  const { submissionId } = event.params;
   const submission = snap.data();
   console.log(`New submission received: ${submission.orgName} (id: ${submissionId})`);
 
   // TODO: validate email ??
-  if (!process.env.HOSTING_BASE_URL) throw new Error('Missing HOSTING_BASE_URL env variable');
-  const link = `${process.env.HOSTING_BASE_URL}/admin/agencies/submissions/${submissionId}`;
+  const link = `${hostingBaseURL.value()}/admin/agencies/submissions/${submissionId}`;
   // const link = `${hostingURL.value()}/admin/agencies/submissions/${submissionId}`;
   console.log(`submission link: ${link}`);
 
   const adminRecipients = ['spencer.carlson@idemandinsurance.com'];
-  if (process.env.AUDIENCE !== 'LOCAL HUMANS') {
+  if (audience.value() !== 'LOCAL HUMANS') {
     adminRecipients.push('ron.carlson@idemandinsurance.com');
   }
   // const params = {
@@ -46,7 +53,7 @@ export default async (
   if (submission.sendAppReceivedNotification) {
     console.log('sending admin notifications to: ', adminRecipients);
     await sendNewAgencySubmissionAdminNotification(
-      process.env.SENDGRID_API_KEY!,
+      sendgridApiKey.value(),
       link,
       submission.orgName,
       adminRecipients

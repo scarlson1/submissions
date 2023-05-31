@@ -1,13 +1,14 @@
 import React, { useCallback, useRef } from 'react';
 import { Box, Stack } from '@mui/material';
 import LoadingButton from '@mui/lab/LoadingButton';
+import { SendRounded } from '@mui/icons-material';
+import { useUser } from 'reactfire';
 import { Formik, FormikHelpers, FormikProps } from 'formik';
 import * as yup from 'yup';
 
 import { FormikTextField } from 'components/forms';
-import { SendRounded } from '@mui/icons-material';
 import { emailVal } from 'common/quoteValidation';
-import { useContactUs } from 'hooks';
+import { useAsyncToast, useSendEmail } from 'hooks';
 
 export interface ContactUsValues {
   email: string;
@@ -24,17 +25,22 @@ export const contactUsValidation = yup.object().shape({
 export interface ContactFormProps {}
 
 export const ContactForm: React.FC<ContactFormProps> = () => {
+  const { data: user } = useUser();
   const formikRef = useRef<FormikProps<ContactUsValues>>(null);
-  const { sendMessage, loading } = useContactUs({});
+  const toast = useAsyncToast();
+  const { send: sendMessage, loading } = useSendEmail({
+    onSuccess: () => toast.success('message sent!'),
+    onError: (msg: string) => toast.error('message delivery failed'),
+  });
 
   const handleSubmit = useCallback(
     async (values: ContactUsValues, { setSubmitting }: FormikHelpers<ContactUsValues>) => {
-      alert(JSON.stringify(values, null, 2));
-      await sendMessage({ ...values });
+      toast.loading('sending...');
+      await sendMessage({ ...values, userEmail: values.email, templateName: 'contact_us' });
 
       setSubmitting(false);
     },
-    [sendMessage]
+    [sendMessage, toast]
   );
 
   const submitForm = useCallback(() => {
@@ -46,7 +52,7 @@ export const ContactForm: React.FC<ContactFormProps> = () => {
       <Box>
         <Formik
           initialValues={{
-            email: '',
+            email: user?.email ?? '',
             subject: '',
             body: '',
           }}

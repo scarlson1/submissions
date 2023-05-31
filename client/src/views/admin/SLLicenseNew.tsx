@@ -110,7 +110,7 @@ export const SLLicenseNew: React.FC = () => {
                 startIcon={<SaveRounded />}
                 variant='contained'
               >
-                Submit
+                Save
               </LoadingButton>
             </Box>
             <Grid
