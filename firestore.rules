@@ -57,6 +57,14 @@ service cloud.firestore {
       allow delete: if false
     }
 
+    match /policies/{policyId}/changeRequest/{requestId} {
+      allow read: if isSignedIn() && (isUser(get(/databases/$(database)/documents/policies/$(policyId)).data.userId) || isIDemandAdmin())
+      // get(/databases/$(database)/documents/users/$(request.auth.uid)).data.admin == true
+      allow create: if isSignedIn() && (isUser(get(/databases/$(database)/documents/policies/$(policyId)).data.userId) || (isIDemandAdmin() && emailVerified()))
+      allow update: if isIDemandAdmin() && emailVerified()
+      allow delete: if false
+    }
+
     // TODO: update allow read of user profile (tenant/agent/insured etc.)
     match /users/{userId} {
       // allow read: if isUser(userId) || isTenantUser(existingData().orgId)|| (isIDemandAdmin() && emailVerified())

@@ -5,6 +5,7 @@ export enum COLLECTIONS {
   RATING_DATA = 'ratingData',
   USERS = 'users',
   POLICIES = 'policies',
+  CHANGE_REQUESTS = 'changeRequests',
   ORGANIZATIONS = 'organizations',
   INVITES = 'invitations',
   USER_CLAIMS = 'userClaims',

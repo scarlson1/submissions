@@ -40,6 +40,7 @@ export {
   newAgencyAppNotification,
   getSubmissionFIPS,
   sendInviteEmail,
+  notifyPolicyChangeRequest,
 } from './firestoreEvents';
 export {
   beforeSignIn,

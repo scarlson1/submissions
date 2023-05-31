@@ -23,6 +23,7 @@ import {
   agencyAppApproved,
   adminPolicyImportNotification,
   quoteExpiringSoon,
+  adminChangeRequest,
 } from './templates';
 
 export interface AttachmentJSON {
@@ -264,6 +265,31 @@ export const sendQuoteExpiringSoonNotification = async (
       to,
       html,
       subject: 'Quote expires tomorrow',
+    })
+  );
+};
+
+export const sendAdminChangeRequestNotification = async (
+  key: string,
+  to: string | string[],
+  link: string,
+  requestType: string,
+  entityId: string,
+  changes: Record<string, any>
+) => {
+  const html = adminChangeRequest({
+    link,
+    requestType,
+    entityId,
+    changes,
+  });
+
+  sgMail.setApiKey(key);
+  await sgMail.send(
+    createMsgContent({
+      to,
+      html,
+      subject: 'Change request received',
     })
   );
 };

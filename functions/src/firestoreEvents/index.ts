@@ -71,3 +71,12 @@ export const sendInviteEmail = functions
   .onCreate(async (snapshot, context) => {
     await (await import('./sendInviteEmail.js')).default(snapshot, context);
   });
+
+export const notifyPolicyChangeRequest = functions
+  .runWith({ secrets: [sendgridApiKey] })
+  .firestore.document(
+    `${COLLECTIONS.POLICIES}/{policyId}/${COLLECTIONS.CHANGE_REQUESTS}/{requestId}`
+  )
+  .onCreate(async (snapshot, context) => {
+    await (await import('./notifyPolicyChangeRequest.js')).default(snapshot, context);
+  });
