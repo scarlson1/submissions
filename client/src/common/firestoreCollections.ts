@@ -20,6 +20,7 @@ import {
   SubmissionQuoteData,
   PaymentMethod,
   Charge,
+  ChangeRequest,
 } from './types';
 // // import { db } from 'firebaseConfig';
 // import { getFirestore } from 'firebase/firestore';
@@ -113,6 +114,14 @@ export const paymentMethodsCollection = (db: Firestore, userId: string, ...rest:
     COLLECTIONS.USERS,
     userId,
     COLLECTIONS.PAYMENT_METHODS,
+    ...rest
+  );
+export const policyChangeReqestsCollection = (db: Firestore, policyId: string, ...rest: any) =>
+  createCollection<ChangeRequest>(
+    db,
+    COLLECTIONS.POLICIES,
+    policyId,
+    COLLECTIONS.CHANGE_REQUESTS,
     ...rest
   );
 // export const notificationsCollection = (userId: string) =>

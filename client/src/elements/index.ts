@@ -24,7 +24,7 @@ export { CountiesMap } from './CountiesMap';
 export { DisclosureForm } from './DisclosureForm';
 export { AddUsersDialog } from './AddUsersDialog';
 export { InvitesGrid } from './InvitesGrid';
-export { SubmissionGrid } from './SubmissionGrid';
+export { SubmissionsGrid } from './SubmissionsGrid';
 export { QuoteGrid } from './QuoteGrid';
 export { UsersGrid } from './UsersGrid';
 export { PoliciesGrid } from './PoliciesGrid';

@@ -1,8 +1,10 @@
 import React, { useCallback, useMemo } from 'react';
-import { alpha, Box, Container, IconButton, Tooltip, Typography } from '@mui/material';
+import { alpha, Box, Container, IconButton, Skeleton, Tooltip, Typography } from '@mui/material';
 import { ArrowBackIosNewRounded, EditRounded } from '@mui/icons-material';
 import Grid from '@mui/material/Unstable_Grid2';
 import { useNavigate, useParams } from 'react-router-dom';
+import { Timestamp, addDoc } from 'firebase/firestore';
+import { useFirestore, useSigninCheck } from 'reactfire';
 
 import { FlexCard, FlexCardContent, InputDialog } from 'components';
 import { dollarFormat } from 'modules/utils/helpers';
@@ -14,30 +16,62 @@ import {
   RelaxingAtHomeSVG,
   ApartmentRentSVG,
 } from 'assets/images';
-import { useDocData } from 'hooks';
+import { useAsyncToast, useDocData } from 'hooks';
+import { policyChangeReqestsCollection } from 'common';
 
-// export const policyLoader = async ({ params }: LoaderFunctionArgs) => {
-//   try {
-//     const policyRef = doc(policiesCollection(getFirestore()), params.policyId);
-//     console.log(`fetching policy: ${params.policyId}`);
-//     const snap = await getDoc(policyRef);
-//     let data = snap.data();
+// TODO: create admin side process for accepting / denying
+export const useCreatePolicyChangeRequest = (
+  onSuccess?: (docId: string, policyId: string, newVal: string | number) => void,
+  onError?: (msg: string, err: any) => void
+) => {
+  const { data: signInResult } = useSigninCheck();
+  const firestore = useFirestore();
+  const toast = useAsyncToast();
 
-//     if (!snap.exists() || !data) {
-//       throw new Response('Not Found', { status: 404 });
-//     }
+  const requestChange = useCallback(
+    async (policyId: string, field: string, newVal: string | number) => {
+      if (!signInResult.signedIn)
+        return toast.error('must be authenticated to submit update request');
 
-//     return { ...data, id: snap.id };
-//   } catch (err) {
-//     throw new Response(`Error fetching submission (ID: ${params.submissionId})`);
-//   }
-// };
+      try {
+        const changeColRef = policyChangeReqestsCollection(firestore, policyId);
+        toast.loading('submitting request...');
+
+        const docRef = await addDoc(changeColRef, {
+          field,
+          newValue: newVal,
+          userId: signInResult.user.uid,
+          status: 'submitted',
+          metadata: {
+            created: Timestamp.now(),
+            updated: Timestamp.now(),
+          },
+        });
+
+        toast.success('request submitted!');
+        if (onSuccess) onSuccess(docRef.id, policyId, newVal);
+      } catch (err: any) {
+        console.log('ERROR: ', err);
+        let msg = 'Error creating change request';
+        if (err?.message) msg += `. (${err.message})`;
+        if (onError) onError(msg, err);
+        toast.error('an error occurred');
+      }
+    },
+    [firestore, signInResult, onSuccess, onError, toast]
+  );
+
+  return { requestChange };
+};
 
 export const Policy: React.FC = () => {
   const navigate = useNavigate();
   const confirm = useConfirmation();
   const { policyId } = useParams();
-  const { data, status } = useDocData('POLICIES', policyId || '');
+  if (!policyId) throw new Error('policyId missing in url params');
+  const { data } = useDocData('POLICIES', policyId);
+
+  const { requestChange } = useCreatePolicyChangeRequest();
 
   const limits = useMemo(
     () => [
@@ -82,6 +116,7 @@ export const Policy: React.FC = () => {
   const handleRequestEdit = useCallback(
     async (field: string, initialValue?: string | number) => {
       console.log('request edit', field);
+      if (!policyId) return;
       try {
         const initVal = typeof initialValue === 'number' ? initialValue.toString() : initialValue;
 
@@ -105,20 +140,13 @@ export const Policy: React.FC = () => {
         if (!newVal) return;
         console.log('new val: ', newVal);
 
-        // TODO: send update request
+        await requestChange(policyId, field, newVal);
       } catch (err) {
         console.log(err);
       }
-
-      // TODO: send email notification requesting change
-      // policyId, policy field, new value
     },
-    [confirm]
+    [confirm, policyId]
   );
-
-  if (status === 'loading') {
-    return <span>loading...</span>;
-  }
 
   return (
     <Box>
@@ -255,6 +283,24 @@ export const Policy: React.FC = () => {
         </Typography>
         <AirRounded />
       </Container> */}
+    </Box>
+  );
+};
+
+export const PolicyLoading = () => {
+  return (
+    <Box>
+      <Skeleton variant='rounded' width={300} height={60} />
+      <Typography
+        variant='h3'
+        gutterBottom
+        align='center'
+        fontSize={{ xs: '1.6rem', sm: '2rem', md: '2.4rem' }}
+        fontWeight='fontWeightMedium'
+        sx={{ pt: { xs: 4, md: 8, lg: 12 }, pb: { sm: 6, md: 8 } }}
+      >
+        <Skeleton />
+      </Typography>
     </Box>
   );
 };

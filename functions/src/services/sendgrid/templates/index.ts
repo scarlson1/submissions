@@ -11,3 +11,4 @@ export { agencyAppApproved } from './agencyAppApproved.js';
 export { adminPolicyImportNotification } from './adminPolicyImportNotification.js';
 export { quoteExpiringSoon } from './quoteExpiringSoon.js';
 export { blankHTML } from './blankHTML.js';
+export { adminChangeRequest } from './adminChangeRequest.js';

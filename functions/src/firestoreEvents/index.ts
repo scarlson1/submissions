@@ -69,3 +69,13 @@ export const sendinviteemail = onDocumentCreated(
     await (await import('./sendInviteEmail.js')).default(event);
   }
 );
+
+export const notifypolicychangerequest = onDocumentCreated(
+  {
+    document: `${COLLECTIONS.POLICIES}/{policyId}/${COLLECTIONS.CHANGE_REQUESTS}/{requestId}`,
+    secrets: [sendgridApiKey],
+  },
+  async (event) => {
+    await (await import('./notifyPolicyChangeRequest.js')).default(event);
+  }
+);

@@ -97,7 +97,7 @@ function Result<TItem extends StoredDocSearchHit>({
     action.current = cb;
   }
 
-  console.log('ITEM: ', item);
+  console.log('RESULT ITEM: ', item);
 
   return (
     <li
@@ -175,6 +175,33 @@ function Result<TItem extends StoredDocSearchHit>({
 }
 
 function renderDisplayComponents(item: any) {
+  if (item.type === 'task') {
+    return (
+      <div className='DocSearch-Hit-content-wrapper'>
+        <Snippet className='DocSearch-Hit-title' hit={item} attribute='title' />
+        <Snippet className='DocSearch-Hit-path' hit={item} attribute='content' />
+        {/* <Snippet className='DocSearch-Hit-path' hit={item} attribute='hierarchy.lvl1' /> */}
+      </div>
+    );
+  }
+  if (item.searchTitle) {
+    return (
+      <div className='DocSearch-Hit-content-wrapper'>
+        <Snippet className='DocSearch-Hit-title' hit={item} attribute='searchTitle' />
+        {item.searchPreview && (
+          <Snippet className='DocSearch-Hit-path' hit={item} attribute='searchPreview' />
+        )}
+      </div>
+    );
+  }
+  if (item.title) {
+    return (
+      <div className='DocSearch-Hit-content-wrapper'>
+        <Snippet className='DocSearch-Hit-title' hit={item} attribute='title' />
+        {item.content && <Snippet className='DocSearch-Hit-path' hit={item} attribute='content' />}
+      </div>
+    );
+  }
   if (item.type === 'user') {
     return (
       <div className='DocSearch-Hit-content-wrapper'>
@@ -183,15 +210,6 @@ function renderDisplayComponents(item: any) {
           <Snippet className='DocSearch-Hit-title' hit={item} attribute='lastname' style={{}} />
         </div>
         <Snippet className='DocSearch-Hit-path' hit={item} attribute='email' />
-        {/* <Snippet className='DocSearch-Hit-path' hit={item} attribute='hierarchy.lvl1' /> */}
-      </div>
-    );
-  }
-  if (item.type === 'task') {
-    return (
-      <div className='DocSearch-Hit-content-wrapper'>
-        <Snippet className='DocSearch-Hit-title' hit={item} attribute='title' />
-        <Snippet className='DocSearch-Hit-path' hit={item} attribute='content' />
         {/* <Snippet className='DocSearch-Hit-path' hit={item} attribute='hierarchy.lvl1' /> */}
       </div>
     );
