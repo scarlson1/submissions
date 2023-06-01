@@ -37,11 +37,12 @@ export const innerJoin = (
           // Save the parent data state
           collectionData = data as any[];
 
+          if (!data || collectionData.length === 0) return of(data);
+
           const reads$ = [];
           for (const doc of collectionData) {
             // Push doc read to Array
-
-            // only get docs where shared key:value pair in both collections
+            // Only get docs where shared key:value pair in both collections
             if (doc[field]) {
               // Perform query to join key, with optional limit
               // const collectionRef = collection(firestore, collName, ...pathSements);

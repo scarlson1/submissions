@@ -587,6 +587,15 @@ export interface Transaction extends BaseDoc {
   homeState: string;
 }
 
+export type ChangeRequestStatus = 'submitted' | 'accepted' | 'denied' | 'under_review';
+
+export interface ChangeRequest extends BaseDoc {
+  field: string;
+  newValue: string | number;
+  userId: string;
+  status: ChangeRequestStatus;
+}
+
 export interface User extends BaseDoc {
   displayName?: string;
   firstName?: string;

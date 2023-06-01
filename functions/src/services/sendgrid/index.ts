@@ -29,6 +29,7 @@ import {
   adminPolicyImportNotification,
   quoteExpiringSoon,
   blankHTML,
+  adminChangeRequest,
 } from './templates';
 
 export interface AttachmentJSON {
@@ -219,7 +220,30 @@ export const sendAgencyAppApprovedNotification = async (
   return { link };
 };
 
-// adminPolicyImportNotification
+export const sendAdminChangeRequestNotification = async (
+  key: string,
+  to: string | string[],
+  link: string,
+  requestType: string,
+  entityId: string,
+  changes: Record<string, any>
+) => {
+  const html = adminChangeRequest({
+    link,
+    requestType,
+    entityId,
+    changes,
+  });
+
+  sgMail.setApiKey(key);
+  await sgMail.send(
+    createMsgContent({
+      to,
+      html,
+      subject: 'Change request received',
+    })
+  );
+};
 
 export const sendAdminPolicyImportNotification = async (
   key: string,

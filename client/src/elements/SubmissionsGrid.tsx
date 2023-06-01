@@ -38,7 +38,7 @@ export interface SubmissionGridProps extends Partial<DataGridProps> {
   columnOverrides?: GridColDef<any, any, any>[];
 }
 
-export const SubmissionGrid: React.FC<SubmissionGridProps> = ({
+export const SubmissionsGrid: React.FC<SubmissionGridProps> = ({
   rows,
   actions = [],
   columnOverrides = [],

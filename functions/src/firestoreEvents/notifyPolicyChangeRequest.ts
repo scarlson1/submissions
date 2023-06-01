@@ -1,27 +1,36 @@
+import type { FirestoreEvent } from 'firebase-functions/v2/firestore';
+import { error, info } from 'firebase-functions/logger';
 import { QueryDocumentSnapshot } from 'firebase-admin/firestore';
-import { EventContext, logger } from 'firebase-functions/v1';
 
-import { sendAdminChangeRequestNotification } from '../services/sendgrid';
-// import { Invite } from '../common';
-import { sendgridApiKey } from './index.js';
+import { sendAdminChangeRequestNotification } from '../services/sendgrid/index.js';
+import { ChangeRequest, sendgridApiKey } from '../common/index.js';
 
 export default async (
-  snap: QueryDocumentSnapshot,
-  context: EventContext<{
-    policyId: string;
-    requestId: string;
-  }>
+  event: FirestoreEvent<
+    QueryDocumentSnapshot | undefined,
+    {
+      policyId: string;
+      requestId: string;
+    }
+  >
 ) => {
-  const data = snap.data() as any; // as Invite;
+  const { policyId, requestId } = event.params;
+  const snap = event.data;
+  if (!snap) {
+    console.log('No data associated with event');
+    return;
+  }
+  const data = snap.data() as ChangeRequest;
+
   const { field, newValue } = data;
-  logger.log(
-    `New policy change request detected. Initiating notification email (policyId: ${
-      context.params.policyId
-    })...  ${JSON.stringify(data)}`
+  info(
+    `New policy change request detected. Initiating notification email (policyId: ${policyId})`,
+    { policyId, requestId, data }
   );
 
   if (!field) {
-    logger.log('ERROR. INVITE EMAIL NOT SENT. Missing required params');
+    error('ERROR - POLICY CHANGE REQUEST EMAIL NOT SENT. Missing required params');
+    // TODO: email error ? report to sentry ??
     return { status: 'Error. Email not sent.' };
   }
   if (newValue) {
@@ -35,11 +44,11 @@ export default async (
   const sgKey = sendgridApiKey.value();
   if (!sgKey) throw new Error('missing SENDGRID_API_KEY env var');
 
-  const link = `${process.env.HOSTING_BASE_URL}/policies/${context.params.policyId}`;
+  const link = `${process.env.HOSTING_BASE_URL}/policies/${policyId}`;
 
   // sendUserInvite(sgKey, link, to, firstName ?? displayName, data.invitedBy?.name || '');
   sendAdminChangeRequestNotification(sgKey, to, link, 'policy change', snap.id, {
     [`${field}`]: newValue,
   });
-  return {};
+  return;
 };

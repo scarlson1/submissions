@@ -801,6 +801,15 @@ export class PolicyClass implements IPolicyClass {
   // setExpirationDate
 }
 
+export type ChangeRequestStatus = 'submitted' | 'accepted' | 'denied' | 'under_review';
+
+export interface ChangeRequest extends BaseDoc {
+  field: string;
+  newValue: string | number;
+  userId: string;
+  status: ChangeRequestStatus;
+}
+
 // export interface PolicyOld {
 //   status: POLICY_STATUS;
 //   limits: Limits;

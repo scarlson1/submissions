@@ -4,7 +4,7 @@ import { limit, orderBy, where } from 'firebase/firestore';
 import { useCollectionData } from 'hooks';
 import { Submission } from 'common';
 import { useAuth } from 'modules/components';
-import { SubmissionGrid } from 'elements';
+import { SubmissionsGrid } from 'elements';
 
 export const Submissions: React.FC = () => {
   // const navigate = useNavigate();
@@ -15,5 +15,5 @@ export const Submissions: React.FC = () => {
     { suspense: false }
   );
 
-  return <SubmissionGrid rows={data || []} loading={status === 'loading'} />;
+  return <SubmissionsGrid rows={data || []} loading={status === 'loading'} />;
 };

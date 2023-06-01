@@ -4,16 +4,24 @@ import { TabContext, TabList, TabPanel } from '@mui/lab';
 import { PersonAddRounded } from '@mui/icons-material';
 import { useParams } from 'react-router-dom';
 import { collection, doc, limit, orderBy, query, where } from 'firebase/firestore';
+import { useFirestore } from 'reactfire';
 import { ErrorBoundary } from 'react-error-boundary';
 import ReactJson from '@microlink/react-json-view';
 
-import { AddUsersDialog, InvitesGrid, PoliciesGrid, QuoteGrid, UsersGrid } from 'elements';
+import {
+  AddUsersDialog,
+  InvitesGrid,
+  PoliciesGrid,
+  QuoteGrid,
+  SubmissionsGrid,
+  UsersGrid,
+} from 'elements';
 import { useAgencyInsureds } from 'hooks/useAgencyInsureds';
 import { useCollectionDataInnerJoin, useRx, useRxDocJoin } from 'hooks/useRx';
 import { ClaimsGuard } from 'components';
 import { AdminManageUsersGrid } from 'elements/UsersGrid';
-import { useJsonTheme } from 'hooks';
-import { useFirestore } from 'reactfire';
+import { useCollectionData, useJsonTheme } from 'hooks';
+import { Submission } from 'common';
 
 const MIN_TAB_HEIGHT = 40;
 
@@ -25,12 +33,7 @@ export const Organization: React.FC = () => {
     setTabValue(newValue);
   };
 
-  if (!orgId)
-    return (
-      <Typography align='center' sx={{ py: 4 }}>
-        Missing org ID
-      </Typography>
-    );
+  if (!orgId) throw new Error('Missing orgId in URL params');
 
   return (
     <Box>
@@ -51,9 +54,12 @@ export const Organization: React.FC = () => {
                     'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji"',
                 },
               }}
+              scrollButtons='auto'
+              variant='scrollable'
             >
               <Tab label='Policies' value='policies' />
               <Tab label='Quotes' value='quotes' />
+              <Tab label='Submissions' value='submissions' />
               <Tab label='Insureds' value='insureds' />
               <Tab label='Team' value='team' />
               <Tab label='Invites' value='invites' />
@@ -80,6 +86,9 @@ export const Organization: React.FC = () => {
                 limit(100),
               ]}
             />
+          </TabPanel>
+          <TabPanel value='submissions'>
+            <TempSubmissionsGridWorkaround orgId={orgId} />
           </TabPanel>
           <TabPanel value='insureds'>
             {/* TODO: use rxjs to fetch all policies under agency, then fetch users by id ?? use innerJoin observable ?? */}
@@ -130,7 +139,8 @@ function TestAgencyInsureds({ orgId }: { orgId: string }) {
   const { policies, users } = useAgencyInsureds(orgId);
   // const { policies, users } = useAgencyInsureds('123');
 
-  const q = query(collection(firestore, 'policies'), where('orgId', '==', '123'));
+  // const q = query(collection(firestore, 'policies'), where('orgId', '==', '123'));
+  const q = query(collection(firestore, 'policies'), where('orgId', '==', orgId));
 
   // NOT WORKING ?? GROUPS POLICIES RESULT BY USER ID RETURNING:
   // { userId: uid, policies: Policy[] }
@@ -254,4 +264,14 @@ function TestAgencyInsureds({ orgId }: { orgId: string }) {
       </Typography>
     </>
   );
+}
+
+function TempSubmissionsGridWorkaround({ orgId }: { orgId: string }) {
+  const { data, status } = useCollectionData<Submission>(
+    'SUBMISSIONS',
+    [where('orgId', '==', orgId), orderBy('metadata.created', 'desc'), limit(100)],
+    { suspense: false, initialData: [] }
+  );
+
+  return <SubmissionsGrid rows={data} loading={status === 'loading'} />;
 }

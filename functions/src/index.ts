@@ -39,15 +39,17 @@ export {
   mirrorcustomclaims,
   newagencyappnotification,
   getsubmissionfips,
+  notifypolicychangerequest,
   sendinviteemail,
 } from './firestoreEvents';
 export {
   algoliasyncusers,
-  algoliasyncorgs,
-  algoliasyncsubmissions,
-  algoliasyncsubmissionsquotes,
-  algoliasyncpolicies,
-  algoliasynctransactions,
+  // TEMP DISABLE TO AVOID ALGOLIA INDEX LIMIT
+  // algoliasyncorgs,
+  // algoliasyncsubmissions,
+  // algoliasyncsubmissionsquotes,
+  // algoliasyncpolicies,
+  // algoliasynctransactions,
 } from './firestoreEvents/algolia';
 export {
   beforesignin,

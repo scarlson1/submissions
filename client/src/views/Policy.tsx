@@ -68,7 +68,8 @@ export const Policy: React.FC = () => {
   const navigate = useNavigate();
   const confirm = useConfirmation();
   const { policyId } = useParams();
-  const { data } = useDocData('POLICIES', policyId || '');
+  if (!policyId) throw new Error('policyId missing in url params');
+  const { data } = useDocData('POLICIES', policyId);
 
   const { requestChange } = useCreatePolicyChangeRequest();
 
