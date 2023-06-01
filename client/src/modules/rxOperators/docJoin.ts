@@ -38,7 +38,8 @@ export const docJoin = (
 ) => {
   return (source: any) =>
     defer(() => {
-      let parent: any; // defer creates state on a per subscription basis
+      // defer creates state on a per subscription basis
+      let parent: any;
       const keys = Object.keys(paths);
 
       return source.pipe(

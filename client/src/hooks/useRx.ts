@@ -168,6 +168,7 @@ export const useRx = <T>(query: Query<T>, options?: ReactFireOptions<T[]>) => {
   const combinedObservable$ = policies$.pipe(
     tap((p) => console.log('POLICIES: ', p)),
     mergeMap((policies: any) =>
+      // if (!policies) return of([])
       // from EMITS EACH POLICY SEPARATELY
       from(policies).pipe(
         tap((val: any) => console.log('CLG 2: ', val)),

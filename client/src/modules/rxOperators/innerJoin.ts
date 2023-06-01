@@ -25,6 +25,7 @@ export const innerJoin = (
 ) => {
   return (source: any) =>
     defer(() => {
+      // defer creates state on a per subscription basis
       // OPERATOR STATE
       let collectionData: any;
 

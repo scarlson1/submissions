@@ -153,6 +153,8 @@ function TestAgencyInsureds({ orgId }: { orgId: string }) {
   // user = { userId: '123', ...rest }
   // policy = { userId: '123', ...rest }
   // --> returns: { ...user, [collectionName]: [ ...docsWithMatchingUserId ]}
+  // TODO: include id in joined data
+  // TODO: observable idField not working
   const { data: innerJoinData, status: innerJoinStatus } = useCollectionDataInnerJoin(
     q,
     'userId',
@@ -166,6 +168,9 @@ function TestAgencyInsureds({ orgId }: { orgId: string }) {
         Test agency insureds
       </Typography>
       <Typography sx={{ py: 2 }}>RxJs Observable - Policy combined with user (docJoin)</Typography>
+      <Typography variant='body2' color='text.secondary' sx={{ pb: 2 }}>
+        (hard coded policyId "YBdp0k6fji8acPQVBgvG" for testing)
+      </Typography>
       <Typography variant='body2' color='text.secondary' component='div'>
         {docJoinStatus === 'loading' ? (
           <div>loading docJoin Observable...</div>
@@ -185,6 +190,9 @@ function TestAgencyInsureds({ orgId }: { orgId: string }) {
       <hr />
       <Typography sx={{ py: 2 }}>
         RxJs Observable - Policy combined with submissions, joined on userId (innerJoin)
+      </Typography>
+      <Typography variant='body2' color='text.secondary' sx={{ pb: 2 }}>
+        (hard coded orgId "123" for testing)
       </Typography>
       <Typography variant='body2' color='text.secondary' component='div'>
         {innerJoinStatus === 'loading' ? (
