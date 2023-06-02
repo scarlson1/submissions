@@ -3,7 +3,7 @@ import type { DocumentSnapshot } from 'firebase-admin/firestore';
 import algoliasearch from 'algoliasearch';
 
 import { algoliaAdminKey, algoliaAppId } from './index.js';
-import { COLLECTIONS, SubmissionQuoteData, audience } from '../../common/index.js';
+import { COLLECTIONS, SubmissionQuoteData, algoliaIndex } from '../../common/index.js';
 
 export default async (
   event: FirestoreEvent<
@@ -18,11 +18,7 @@ export default async (
   if (!(appId && adminKey)) throw new Error('Missing algolia credentials');
 
   const client = algoliasearch(appId, adminKey);
-  let indexName = COLLECTIONS.SUBMISSIONS_QUOTES as string;
-  if (audience.value() === 'LOCAL HUMANS') {
-    indexName = `local_${indexName}`;
-  }
-  const index = client.initIndex(indexName);
+  const index = client.initIndex(algoliaIndex.value());
 
   const docId = event.params.quoteId;
 
@@ -44,14 +40,22 @@ export default async (
       let subtitle =
         `${newValue.insuredEmail} ${newValue.insuredFirstName} ${newValue.insuredLastName}`.trim();
       if (!subtitle) {
-        subtitle = `${newValue.metadata.created.toDate}`;
+        subtitle = `${newValue.metadata.created.toDate()}`;
       }
+
+      const visibleBy: string[] = [];
+      if (newValue.userId) visibleBy.push(`${newValue.userId}`);
+      if (newValue.agentId) visibleBy.push(newValue.agentId);
+      if (newValue.agencyId) visibleBy.push(`group/admins/${newValue.agencyId}`);
+
       const records: Record<string, any>[] = [
         {
           ...newValue,
           objectID: docId,
+          visibleBy,
           userId: newValue.userId || null,
           docType: 'quote',
+          collectionName: COLLECTIONS.QUOTES,
           searchTitle: `${newValue.insuredAddress.addressLine1} ${newValue.insuredAddress.city}, ${newValue.insuredAddress.state}`,
           searchSubtitle: subtitle,
           metadata: {

@@ -1,16 +1,25 @@
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
+import { info } from 'firebase-functions/logger';
 import algoliasearch from 'algoliasearch';
-import { defineString } from 'firebase-functions/params';
 
-import { algoliaAdminKey, algoliaUserBaseKey, algoliaIDemandAdminSearchKey } from '../common';
-
-const algoliaAppId = defineString('ALGOLIA_APP_ID');
+import {
+  algoliaAdminKey,
+  algoliaUserBaseKey,
+  algoliaIDemandAdminSearchKey,
+  algoliaAppId,
+  algoliaIndex,
+  COLLECTIONS,
+} from '../common';
 
 // https://firebase.google.com/docs/firestore/solutions/search?provider=algolia#adding_security
 
 // DOCS: https://www.algolia.com/doc/api-reference/api-methods/generate-secured-api-key/?client=javascript
 
 // FILTERS: https://www.algolia.com/doc/api-reference/api-parameters/filters/#examples
+
+// VISIBLE BY: https://www.algolia.com/doc/guides/security/api-keys/how-to/user-restricted-access-to-data/?client=javascript#making-sensitive-attributes-unretrievable
+
+// FILTER VALIDATOR: https://www.algolia.com/doc/api-reference/api-parameters/filters/#filters-syntax-validator
 
 // TODO: set attibutes for faceting
 // https://firebase.google.com/docs/firestore/solutions/search?provider=algolia
@@ -26,20 +35,18 @@ export default async ({ auth }: CallableRequest) => {
   }
   const client = algoliasearch(appId, adminKey);
 
-  let userId = auth?.uid;
+  const userId = auth?.uid;
   const isAnon = auth?.token.firebase.sign_in_provider === 'anonymous';
-  let tenantId = auth?.token.firebase.tenant;
-  let isIDemandAdmin = auth?.token.iDemandAdmin || false;
-  let isOrgAdmin = auth?.token.orgAdmin || false;
-  let isAgent = auth?.token.agent || false;
+  const tenantId = auth?.token.firebase.tenant;
+  const isIDemandAdmin = auth?.token.iDemandAdmin || false;
+  const isOrgAdmin = auth?.token.orgAdmin || false;
+  const isAgent = auth?.token.agent || false;
 
   if (isIDemandAdmin) {
     const iDemandAdminSearchKey = algoliaIDemandAdminSearchKey.value();
     if (!iDemandAdminSearchKey)
       throw new HttpsError('internal', 'Missing iDemand Admin search key in Secret Manager');
-    console.log(
-      `RETURNING ADMIN ALGOLIA SEARCH KEY FOR USER ${auth?.token.email || ''} (UID: ${userId})`
-    );
+    info(`RETURNING ADMIN ALGOLIA SEARCH KEY FOR USER ${auth?.token.email || ''} (UID: ${userId})`);
     return {
       key: iDemandAdminSearchKey,
     };
@@ -52,25 +59,44 @@ export default async ({ auth }: CallableRequest) => {
 
   // TODO: add valid until once error boundary is set up to handle refetching expired keys
   const keyConfig: SecuredApiKeyRestrictions = {
+    restrictIndices: algoliaIndex.value(),
     userToken: userId,
     // validUntil: addDays(new Date(), 30).getTime(),
   };
-  if (!userId || isAnon) {
-    // TODO: restructed key for not authed/anon users
-    keyConfig['restrictIndices'] = 'submissions';
-  }
   if (!userId) {
     keyConfig['filters'] = `userId:${null}`;
+  }
+  if (isAnon) {
+    // TODO: restructed key for not authed/anon users
+    const ownerFilters = `userId:${userId}`;
+    const collectionFilters = `collectionName:${COLLECTIONS.SUBMISSIONS}`;
+    keyConfig['filters'] = `(${ownerFilters}) AND (${collectionFilters})`;
   }
   if (tenantId) {
     // `visible_by:${currentUserID} OR visible_by:group/${currentGroupID} OR visible_by:group/Everybody
     if (isAgent) {
-      keyConfig['filters'] = `userId:${userId} OR agentId:${userId}`;
-    }
-    if (isOrgAdmin) {
+      // You can use nested attributes for filtering.
+      // For example, authors.mainAuthor:"John Doe" is a valid filter, as long as you declare authors.mainAuthor in attributesForFaceting.
+      const ownerFilters = `userId:${userId} OR agentId:${userId} OR agent.userId:${userId}`;
+
+      const collectionFilters = `collectionName:${COLLECTIONS.SUBMISSIONS} OR collectionName:${COLLECTIONS.QUOTES} OR collectionName:${COLLECTIONS.SUBMISSIONS_QUOTES} OR collectionName:${COLLECTIONS.CHANGE_REQUESTS} OR collectionName:${COLLECTIONS.USERS}`;
+
+      // For example, if a record contains the array attribute genres: ["fiction", "thriller", "sci-fi"], the filter genres:thriller returns this record.
+      // TODO: add visibleBy to applicable docs when indexing
+      const visibleByFilters = `visibleBy:group/${tenantId}`;
+
+      // TODO: fix: not valid syntax - invalid AND / OR combo
+      // We limit filter expressions to a conjunction (ANDs) of disjunctions (ORs). For example you can use filter1 AND (filter2 OR filter3)), but not ORs of ANDs (e.g. filter1 OR (filter2 AND filter3).
       keyConfig[
         'filters'
-      ] = `orgId:${tenantId} OR tenantId:${tenantId} OR userId:${userId} or agentId:${userId}`;
+      ] = `((${ownerFilters}) AND (${collectionFilters})) OR (${visibleByFilters})`;
+    }
+    if (isOrgAdmin) {
+      // TODO: standardize how orgId is stored across docs
+      // TODO: cover all scenarios using visibleBy:group/${orgId} when indexing
+      keyConfig[
+        'filters'
+      ] = `orgId:${tenantId} OR tenantId:${tenantId} OR userId:${userId} OR agentId:${userId} OR agent.userId:${userId} OR org.orgId:${tenantId} OR org.id:${tenantId}`;
     }
   }
   if (!tenantId && !isIDemandAdmin && userId) {
@@ -79,7 +105,7 @@ export default async ({ auth }: CallableRequest) => {
 
   try {
     const securedApiKey = client.generateSecuredApiKey(searchBaseKey, {
-      restrictIndices: 'demo_ecommerce',
+      restrictIndices: [algoliaIndex.value()], // 'demo_ecommerce',
     });
     console.log(
       `RETURNING ALGOLIA SEARCH KEY FOR USER ${auth?.token.email || ''} (UID: ${userId})`,

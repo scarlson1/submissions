@@ -3,7 +3,7 @@ import type { DocumentSnapshot } from 'firebase-admin/firestore';
 import algoliasearch from 'algoliasearch';
 
 import { algoliaAdminKey, algoliaAppId } from './index.js';
-import { COLLECTIONS, PolicyOld, audience } from '../../common/index.js';
+import { COLLECTIONS, PolicyOld, algoliaIndex } from '../../common/index.js';
 
 export default async (
   event: FirestoreEvent<
@@ -18,11 +18,7 @@ export default async (
   if (!(appId && adminKey)) throw new Error('Missing algolia credentials');
 
   const client = algoliasearch(appId, adminKey);
-  let indexName = COLLECTIONS.POLICIES as string;
-  if (audience.value() === 'LOCAL HUMANS') {
-    indexName = `local_${indexName}`;
-  }
-  const index = client.initIndex(indexName);
+  const index = client.initIndex(algoliaIndex.value());
 
   const docId = event.params.policyId;
 
@@ -40,11 +36,18 @@ export default async (
     }
   } else {
     try {
+      const visibleBy = [];
+      if (newValue.userId) visibleBy.push(`${newValue.userId}`);
+      if (newValue.agent?.agentId) visibleBy.push(`${newValue.agent?.agentId}`);
+      // TODO: decide whether to allow org admins to read policies
+      if (newValue.agency.orgId) visibleBy.push(`group/admin/${newValue.agency.orgId}`);
+
       const records: Record<string, any>[] = [
         {
           ...newValue,
           objectID: docId,
           docType: 'policy',
+          collectionName: COLLECTIONS.POLICIES,
           searchTitle: `${newValue.address.addressLine1} ${newValue.address.city} ${newValue.address.state}`,
           searchSubtitle: `${newValue.namedInsured.firstName} ${newValue.namedInsured.lastName}`,
           metadata: {

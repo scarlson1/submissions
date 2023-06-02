@@ -784,6 +784,7 @@ export function SearchMultiIndicies({
 }
 
 export function TempWrappedSearch() {
+  // TODO: return loading state
   const apiKey = useAlgoliaSearchKey();
 
   if (!process.env.REACT_APP_ALGOLIA_APP_ID) {
@@ -794,7 +795,7 @@ export function TempWrappedSearch() {
 
   return (
     <>
-      <Box sx={{ pb: 3 }}>
+      {/* <Box sx={{ pb: 3 }}>
         <Typography variant='subtitle2' gutterBottom>
           Multi-index implementation
         </Typography>
@@ -806,7 +807,7 @@ export function TempWrappedSearch() {
           indexTitle='Tasks'
           placeholder='Search...'
         />
-      </Box>
+      </Box> */}
       <Box sx={{ pb: 3 }}>
         <Typography variant='subtitle2' gutterBottom>
           Single index implementation
@@ -815,8 +816,8 @@ export function TempWrappedSearch() {
           appId={process.env.REACT_APP_ALGOLIA_APP_ID as string}
           // apiKey={process.env.REACT_APP_ALGOLIA_SEARCH_KEY as string}
           apiKey={apiKey}
-          indexName='local_all_records'
-          indexTitle='Tasks'
+          indexName='local_idemand_search'
+          indexTitle='All Records'
           placeholder='Search...'
         />
       </Box>

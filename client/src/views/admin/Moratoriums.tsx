@@ -84,15 +84,15 @@ export const Moratoriums: React.FC = () => {
   const navigate = useNavigate();
   const modal = useConfirmation();
   const dialog = useJsonDialog();
+  const updateMoratorium = useUpdateMoratorium();
   const theme = useTheme();
   const toast = useAsyncToast();
-  let fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
+  const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
   const { data, status } = useCollectionData<Moratorium>('MORATORIUMS', [
     orderBy('metadata.created', 'desc'),
     limit(100),
   ]);
-  const updateMoratorium = useUpdateMoratorium();
 
   const showDetails = useCallback(
     (id: GridRowId) => async () => {
@@ -165,6 +165,7 @@ export const Moratoriums: React.FC = () => {
 
   const deactivate = useCallback(
     (id: GridRowId) => async () => {
+      // TODO: implementation
       alert('Deactivation not set up yet.');
     },
     []
@@ -348,7 +349,6 @@ export const Moratoriums: React.FC = () => {
               sortModel: [{ field: 'created', sort: 'desc' }],
             },
             pagination: { paginationModel: { pageSize: 10 } },
-            // pagination: { pageSize: 10 },
           }}
           processRowUpdate={processRowUpdate}
           onProcessRowUpdateError={handleProcessRowUpdateError}

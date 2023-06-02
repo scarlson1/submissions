@@ -1,4 +1,3 @@
-// Custom autocomplete (like DocSearch)
 // DOCS: https://www.algolia.com/doc/ui-libraries/autocomplete/guides/creating-a-renderer/
 import React, { useMemo, useState } from 'react';
 import { DialogContent, DialogTitle } from '@mui/material';
@@ -6,7 +5,6 @@ import algoliasearch from 'algoliasearch/lite';
 import type { AutocompleteState } from '@algolia/autocomplete-core';
 import { createAutocomplete } from '@algolia/autocomplete-core';
 import { getAlgoliaResults } from '@algolia/autocomplete-preset-algolia';
-// import { AutocompletePlugin } from '@algolia/autocomplete-js';
 
 import type { InternalDocSearchHit, StoredDocSearchHit } from 'common';
 import { createStoredSearches } from './storedSearches';
@@ -14,8 +12,13 @@ import { noop } from 'modules/utils';
 import { SearchProps } from './Search';
 import { SearchBox, SearchBoxTranslations } from './SearchBox';
 import { ScreenState, ScreenStateTranslations } from './ScreenState';
-import { Hit } from './Hit';
+import { Hit, getURLByType } from './Hit';
 import type { FooterTranslations } from './Footer';
+import { groupByCollectionName, identity } from './utils'; // removeDuplicates
+
+// TODO: use tages to filter results by collectionName when user clicks Chip
+// https://www.algolia.com/doc/ui-libraries/autocomplete/guides/filtering-results/#adding-tags
+// TODO: pass initial tag as filter when search button clicked in x grid view
 
 export type ModalTranslations = Partial<{
   searchBox: SearchBoxTranslations;
@@ -43,6 +46,7 @@ export function SearchModal({
   translations = {},
   getMissingResultsUrl,
   onClose = noop,
+  transformItems = identity,
 }: SearchModalProps) {
   const {
     footer: footerTranslations,
@@ -184,8 +188,9 @@ export function SearchModal({
           return [
             // (3) Use an Algolia index source.
             {
-              sourceId: indexName, // 'products',
+              sourceId: indexName,
               title: indexTitle, // indexName.split('_').join(' '),
+              distinct: 1,
               getItemInputValue({ item }) {
                 // @ts-ignore
                 return item.query;
@@ -195,10 +200,10 @@ export function SearchModal({
                   searchClient,
                   queries: [
                     {
-                      indexName, // 'instant_search',
+                      indexName,
                       query,
                       params: {
-                        hitsPerPage: 10, // 4
+                        hitsPerPage: 10,
                         highlightPreTag: '<mark>',
                         highlightPostTag: '</mark>',
                       },
@@ -207,15 +212,9 @@ export function SearchModal({
                 });
               },
               getItemUrl({ item }) {
-                console.log('GET ITEM URL CALLED: ', item);
-                // TODO: construct item url depending on type
-                // @ts-ignore
-                if (item.type === 'user') {
-                  const url = `${process.env.REACT_APP_HOSTING_URL}/user/${item.objectID}`;
-                  console.log('USER URL: ', url);
-                  return url;
-                }
-                return item.url;
+                // called when item is hovered
+                return getURLByType(item);
+                // return item.url;
               },
               onSelect({ item, event }) {
                 saveRecentSearch(item);
@@ -230,70 +229,36 @@ export function SearchModal({
                 },
               },
             },
-            // IF SEARCHING MULTIPLE INDICIES EXAMPLE:
-            // {
-            //   sourceId: 'local_users',
-            //   title: 'Users',
-            //   getItems({ query }) {
-            //     return getAlgoliaResults({
-            //       searchClient,
-            //       queries: [
-            //         {
-            //           indexName: 'local_users',
-            //           query,
-            //           params: {
-            //             hitsPerPage: 5, // 4
-            //             highlightPreTag: '<mark>',
-            //             highlightPostTag: '</mark>',
-            //           },
-            //         },
-            //       ],
-            //     });
-            //   },
-            //   getItemUrl({ item }) {
-            //     return item.url;
-            //   },
-            //   getItemInputValue(item) {
-            //     // @ts-ignore
-            //     return `${item?.firstname || ''} ${item?.lastname || ''}`.trim();
-            //   },
-            //   templates: {
-            //     header() {
-            //       return 'Users';
-            //     },
-            //     item({ item }: any) {
-            //       return `User result: ${item.firstname} ${item.lastname}`;
-            //     },
-            //     footer() {
-            //       return 'Users Footer';
-            //     },
-            //   },
-            // },
           ];
         },
-        // reshape: (params: {
-        //   sources: any[];
-        //   sourcesBySourceId: Record<string, any>;
-        //   state: AutocompleteState<InternalDocSearchHit>;
-        // }) => {
-
-        // },
         // @ts-ignore
-        // reshape({ sourcesBySourceId }) {
-        //   const { recentSearchesPlugin, querySuggestionsPlugin, local_users, ...rest } = sourcesBySourceId;
-        //   console.log('SOURCES BY SOURCE ID: ', sourcesBySourceId);
-        //   // const removeDuplicates = uniqBy(({ source, item }) =>
-        //   //   source.sourceId === 'querySuggestionsPlugin' ? item.query : item.label
-        //   // );
-        //   let devReshapedUsers = local_users.
+        reshape(params: {
+          sources: any[];
+          sourcesBySourceId: Record<string, any>;
+          state: AutocompleteState<InternalDocSearchHit>;
+        }) {
+          const { recentSearches, ...rest } = params.sourcesBySourceId;
+          const searchSource = params.sourcesBySourceId[indexName];
 
-        //   return [
-        //     // removeDuplicates(recentSearchesPlugin, querySuggestionsPlugin),
-        //     Object.values(rest),
-        //   ];
-        // },
+          if (!searchSource) return [Object.values(rest)];
+
+          return [groupByCollectionName(searchSource)]; //  Object.values(rest)
+          // including Object.values(rest) results in duplicates (add and use dedup func ??)
+
+          // const items = searchSource.getItems();
+          // const groupByResult = groupByOld(items, (item: any) => item.type, 4);
+          // return [removeDuplicates(recentSearches), Object.values(rest)];
+
+          // multiple reshape functions example:
+          // return [
+          //   limitSuggestions(removeDuplicates(recentSearchesPlugin, querySuggestionsPlugin)),
+          //   Object.values(rest),
+          // ];
+        },
 
         // DOCSEARCH IMPLEMENTATION
+        // https://github.com/algolia/docsearch/blob/main/packages/docsearch-react/src/DocSearchModal.tsx
+
         // getSources({ query, state: sourcesState, setContext, setStatus }) {
         //   if (!query) {
         //     if (disableUserPersonalization) {

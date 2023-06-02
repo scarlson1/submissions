@@ -44,12 +44,11 @@ export {
 } from './firestoreEvents';
 export {
   algoliasyncusers,
-  // TEMP DISABLE TO AVOID ALGOLIA INDEX LIMIT
-  // algoliasyncorgs,
-  // algoliasyncsubmissions,
-  // algoliasyncsubmissionsquotes,
-  // algoliasyncpolicies,
-  // algoliasynctransactions,
+  algoliasyncorgs,
+  algoliasyncsubmissions,
+  algoliasyncsubmissionsquotes,
+  algoliasyncpolicies,
+  algoliasynctransactions,
 } from './firestoreEvents/algolia';
 export {
   beforesignin,

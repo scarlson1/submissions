@@ -32,6 +32,8 @@ export const hostingBaseURL = defineString('HOSTING_BASE_URL');
 export const ePayBaseURL = defineString('EPAY_HOSTING_BASE_URL');
 export const mapboxToken = defineString('MAPBOX_PUBLIC_TOKEN');
 export const counties20mURL = defineString('COUNTIES_URL');
+export const algoliaIndex = defineString('ALGOLIA_INDEX');
+export const algoliaAppId = defineString('ALGOLIA_APP_ID');
 
 export const maxA = defineInt('FLOOD_MAX_LIMIT_A', { default: 1000000 });
 export const minA = defineInt('FLOOD_MIN_LIMIT_A', { default: 100000 });

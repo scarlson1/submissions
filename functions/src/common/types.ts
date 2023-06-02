@@ -394,6 +394,7 @@ export interface AdditionalInsured {
   relation: string | number;
   address?: AddressWithCoords;
 }
+
 export interface Mortgagee {
   company: string;
   contactName: string;
@@ -528,11 +529,13 @@ export interface PolicyLocation {
   };
 }
 
+// store taxes & fees in policy doc ??
 export interface Policy {
   product: Product;
   status: POLICY_STATUS;
-  limits: Limits;
-  deductible: number;
+  // term: number; // TODO: add to policy class & uncomment
+  // limits: Limits;
+  // deductible: number;
   mailingAddress: Address;
   namedInsured: NamedInsured;
   locations: Record<string, PolicyLocation>;
@@ -563,7 +566,7 @@ export interface Policy {
   imagePaths?: Record<string, string> | null; // { [key: string]: string | null } | null;
   // transactions: string[]; // TODO: delete or decide how to associate policies and transactions (just query transactions by policyId ??)
   price: number;
-  cardFee: number;
+  // cardFee: number;
   // term: number; // Necessary ??
   metadata: BaseMetadata;
 }
@@ -592,8 +595,8 @@ export class PolicyClass implements IPolicyClass {
   // protected status: POLICY_STATUS;
   status: POLICY_STATUS;
   locations: Record<string, PolicyLocation>;
-  public limits: Limits;
-  public deductible: number;
+  // public limits: Limits;
+  // public deductible: number;
   public mailingAddress: Address;
   public homeState: string;
   public namedInsured: NamedInsured;
@@ -601,7 +604,7 @@ export class PolicyClass implements IPolicyClass {
   public effectiveDate: Timestamp;
   public expirationDate: Timestamp;
   public price: number;
-  public cardFee: number; // | null;
+  // public cardFee: number; // | null;
   public documents: { displayName: string; downloadUrl: string; storagePath: string }[];
   // public transactions: any; // TODO: delete ??
   public userId: string | null;
@@ -627,15 +630,15 @@ export class PolicyClass implements IPolicyClass {
     this.product = policyInfo.product;
     this.status = policyInfo.status;
     this.locations = policyInfo.locations;
-    this.limits = policyInfo.limits;
-    this.deductible = policyInfo.deductible;
+    // this.limits = policyInfo.limits;
+    // this.deductible = policyInfo.deductible;
     this.mailingAddress = policyInfo.mailingAddress;
     this.homeState = policyInfo.homeState;
     this.namedInsured = policyInfo.namedInsured;
     this.effectiveDate = policyInfo.effectiveDate;
     this.expirationDate = policyInfo.expirationDate;
     this.price = policyInfo.price;
-    this.cardFee = policyInfo.cardFee; // remove ?? changes not always based on all locations (add / remove location) --> store at locaiton level or not at all / calc in billing ??
+    // this.cardFee = policyInfo.cardFee; // remove ?? changes not always based on all locations (add / remove location) --> store at locaiton level or not at all / calc in billing ??
     this.documents = policyInfo.documents || [];
     this.userId = policyInfo.userId;
     this.agency = policyInfo.agency;
@@ -784,7 +787,7 @@ export class PolicyClass implements IPolicyClass {
     if (this.price && typeof this.price === 'number') {
       fee = this.calcCardFee(this.price);
     }
-    this.cardFee = fee;
+    // this.cardFee = fee;
     return fee;
   }
 
@@ -865,27 +868,34 @@ interface PremiumCalcData {
 }
 
 export interface TrxRatingData extends RatingPropertyData {
-  // dwellingType: string;  same as propertyType ??
   units: number;
   tier1: boolean;
   construction: string;
-  priorLossCount: string | null; // number
+  priorLossCount: string | null;
 }
 
-export type TransactionType = 'new' | 'renewal' | 'endorsement' | 'cancellation';
+export type TransactionType =
+  | 'new'
+  | 'renewal'
+  | 'prem_endorsement'
+  | 'non_prem_endorsement'
+  | 'cancellation';
+
+// one transaction per location
 
 export interface Transaction extends BaseDoc {
   trxType: TransactionType;
+  policyType: Product;
   policyNumber: string;
   term: number;
-  reportDate: Timestamp;
+  // reportDate: Timestamp; // calced in report query
   trxTimestamp: Timestamp;
-  bookingDate: Timestamp;
+  bookingDate: Timestamp; // later of trx timestamp or trx eff date
   issuingCarrier: string;
-  policyType: Product;
   namedInsured: string;
   mailingAddress: Address;
   locationId: string;
+  externalId: string | null;
   insuredLocation: PolicyLocation;
   // insuredAddress: Address;
   // insuredCoords: GeoPoint;
@@ -893,27 +903,26 @@ export interface Transaction extends BaseDoc {
   policyEffDate: Timestamp;
   policyExpDate: Timestamp;
   trxEffDate: Timestamp;
-  trxExpDate: Timestamp; // what's this ?? need example
-  cancelEffDate: Timestamp;
+  trxExpDate: Timestamp; // when action takes affect
+  cancelEffDate: Timestamp; // decide whether to calc in query (same as trx eff date in cancellation trx)
   ratingPropertyData: TrxRatingData;
   deductible: number;
   limits: Limits;
   tiv: number;
   rcvs: RCVs;
   premiumCalcData: PremiumCalcData; // TODO: double check PremCalcData interface
-  externalId: string | null;
   policyAnnualDWP: number;
   termProratedPct: number;
   policyTermDWP: number;
-  MGACommission: number;
+  mgaCommRate: number;
+  MGACommission: number; // TODO: circle back - total idemand comm + subprod comm
   netDWP: number;
   netErrorAdj?: number | null;
-  trxPolicyDays: number;
-  dailyPremium: number; // calcualted in reporting SQL query ??
+  trxPolicyDays: number; // trxExpDate - trxEffDate - calcualted in reporting SQL query ??
+  dailyPremium: number; // calcualted in reporting SQL query ?? rounded to 2 decimals
   // submission?: string;
   otherInterestedParties: string[];
   additionalNamedInsured: string[];
-  mgaCommRate: number;
   homeState: string;
 }
 

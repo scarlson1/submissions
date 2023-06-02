@@ -3,7 +3,7 @@ import type { DocumentSnapshot } from 'firebase-admin/firestore';
 import algoliasearch from 'algoliasearch';
 
 import { algoliaAdminKey, algoliaAppId } from './index.js';
-import { COLLECTIONS, Charge, audience } from '../../common/index.js';
+import { COLLECTIONS, Charge, algoliaIndex, dollarFormat } from '../../common/index.js';
 
 export default async (
   event: FirestoreEvent<
@@ -18,11 +18,7 @@ export default async (
   if (!(appId && adminKey)) throw new Error('Missing algolia credentials');
 
   const client = algoliasearch(appId, adminKey);
-  let indexName = COLLECTIONS.FIN_TRANSACTIONS as string;
-  if (audience.value() === 'LOCAL HUMANS') {
-    indexName = `local_${indexName}`;
-  }
-  const index = client.initIndex(indexName);
+  const index = client.initIndex(algoliaIndex.value());
 
   const docId = event.params.trxId;
 
@@ -42,16 +38,19 @@ export default async (
     }
   } else {
     try {
+      const visibleBy = [];
+      if (newValue.userId) visibleBy.push(`${newValue.userId}`);
       const records: Record<string, any>[] = [
         {
           ...newValue,
           objectID: docId,
-          orgId: docId,
-          docType: 'org',
-          searchTitle: newValue.transactionId,
-          searchSubtitle: `${newValue.amount} - ${
+          visibleBy,
+          // orgId: docId,
+          collectionName: COLLECTIONS.FIN_TRANSACTIONS,
+          searchTitle: `TRX ID ${newValue.transactionId}`,
+          searchSubtitle: `${dollarFormat(newValue.amount)} - ${
             newValue.receiptEmail
-          } - ${newValue.metadata.updated.toDate()}`,
+          } - ${newValue.metadata.updated.toDate().toDateString()}`,
           metadata: {
             ...(newValue.metadata || {}),
             created: newValue.metadata?.created?.toDate() || null,

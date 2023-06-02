@@ -11,10 +11,10 @@ interface HitProps {
 }
 
 export function Hit({ hit, children }: HitProps) {
-  console.log('HIT: ', hit);
+  // console.log('HIT: ', hit);
   const url = hit.url || getURLByType(hit);
 
-  console.log('HIT URL: ', url);
+  // console.log('HIT URL: ', url);
 
   // function renderChip(type: string) {
   //   // if (!pathname.match(/^\/(material-ui|joy-ui|base)\//)) {
@@ -42,24 +42,25 @@ export function Hit({ hit, children }: HitProps) {
 export function getURLByType(item: any) {
   // const base = process.env.REACT_APP_HOSTING_URL;
   let url = '';
-  if (item.type === 'user') {
-    // url = `${base}/user/${item.objectID}`;
-    url = `/user/${item.objectID}`;
+  // TODO: user route, financial trxs,
+  // if (item.type === 'user') {
+  //   // url = `${base}/user/${item.objectID}`;
+  //   url = `/user/${item.objectID}`;
+  // }
+  if (item.type === COLLECTIONS.QUOTES) {
+    url = createPath({ path: ROUTES.QUOTE_VIEW, params: { quoteId: item.objectID } });
   }
-  // if (item.type === 'submission') {
-  //   url = createPath({ path: ROUTES.SUBMISSIONS, params: { submissionId: item.objectID } })
-  // }
-  // if (item.type === COLLECTIONS.QUOTES) {
-  //   url = createPath({ path: ROUTES.QUOTES, params: { quoteId: item.objectID } });
-  // }
-  if (item.type === COLLECTIONS.ORGANIZATIONS) {
+  if (item.collectionName === COLLECTIONS.ORGANIZATIONS) {
     url = createPath({ path: ADMIN_ROUTES.ORGANIZATION, params: { orgId: item.objectID } });
   }
-  if (item.type === COLLECTIONS.ORGANIZATIONS) {
-    url = createPath({ path: ADMIN_ROUTES.ORGANIZATION, params: { orgId: item.objectID } });
+  if (item.collectionName === COLLECTIONS.SUBMISSIONS) {
+    url = createPath({
+      path: ADMIN_ROUTES.SUBMISSION_VIEW,
+      params: { submissionId: item.objectID },
+    });
   }
   // TODO: standardize routes
-  if (item.type === COLLECTIONS.POLICIES) {
+  if (item.collectionName === COLLECTIONS.POLICIES) {
     url = createPath({ path: ROUTES.USER_POLICY, params: { policyId: item.objectID } });
   }
   // TODO: finish getUrl func

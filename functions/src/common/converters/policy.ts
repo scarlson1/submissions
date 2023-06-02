@@ -22,14 +22,13 @@ export const policyConverter: FirestoreDataConverter<IPolicy> = {
   toFirestore(policy: Partial<PolicyClass>, options?: SetOptions): DocumentData {
     console.log('TO FIRESTORE POLICY PROPS: ', JSON.stringify(policy, null, 2));
 
-    // let firebaseFields = policy
     return {
       ...policy,
       // TODO: explicitly pull values off (class has methods, extra values, etc.)
       product: policy.product,
       status: policy.status,
-      limits: policy.limits,
-      deductible: policy.deductible,
+      // limits: policy.limits,
+      // deductible: policy.deductible,
       mailingAddress: policy.mailingAddress,
       homestate: policy.homeState,
       namedInsured: policy.namedInsured,
@@ -41,7 +40,7 @@ export const policyConverter: FirestoreDataConverter<IPolicy> = {
       agency: policy.agency,
       issuingCarrier: policy.issuingCarrier,
       price: policy.price,
-      cardFee: policy.cardFee, // TODO: calc in billing (could be add location, etc.)
+      // cardFee: policy.cardFee, // TODO: calc in billing (could be add location, etc.)
       imageUrls: policy.imageUrls,
       imagePaths: policy.imagePaths,
       'metadata.updated': Timestamp.now(),

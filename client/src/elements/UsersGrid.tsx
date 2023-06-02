@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { SendRounded } from '@mui/icons-material';
 import { Avatar, Box, Tooltip, Typography } from '@mui/material';
 import {
@@ -6,6 +6,8 @@ import {
   GridActionsCellItem,
   GridColDef,
   GridRenderCellParams,
+  GridRenderEditCellParams,
+  GridRowModel,
   GridRowParams,
 } from '@mui/x-data-grid';
 import { purple, blue, red, lightBlue, lightGreen } from '@mui/material/colors';
@@ -13,6 +15,7 @@ import { purple, blue, red, lightBlue, lightGreen } from '@mui/material/colors';
 import {
   COLLECTIONS,
   User,
+  WithId,
   createdCol,
   displayNameCol,
   emailCol,
@@ -27,9 +30,15 @@ import { BasicDataGrid } from 'components';
 import { useCollectionData } from 'hooks';
 import { QueryConstraint, collection, limit, query, where } from 'firebase/firestore';
 import { useCollectionDataPopulateById } from 'hooks/useRx';
-import { useFirestore } from 'reactfire';
+import { useFirestore, useSigninCheck } from 'reactfire';
 import { renderChips } from 'components/RenderGridCellHelpers';
 import { getRandomItem } from 'modules/utils';
+import { getRequiredClaimValidator } from 'components/RequireAuthReactFire';
+import { CUSTOM_CLAIMS } from 'modules/components';
+import {
+  CustomEditMultiSelectComponent,
+  GridEditMultiSelectCell,
+} from 'components/GridEditMultiSelectCell';
 
 const AVATAR_BACKGROUNDS = [purple[200], blue[200], red[200], lightBlue[200], lightGreen[200]];
 
@@ -106,13 +115,14 @@ export const UsersGrid: React.FC<UsersGridProps> = ({
           sorting: {
             sortModel: [{ field: 'created', sort: 'desc' }],
           },
-          // pagination: { pageSize: 10 },
           pagination: { paginationModel: { pageSize: 10 } },
         }}
       />
     </Box>
   );
 };
+
+type UsersWithClaims = User & { userClaims: any };
 
 export interface AdminManageUsersGridProps extends Omit<DataGridProps, 'rows' | 'columns'> {
   queryConstraints?: QueryConstraint[];
@@ -133,14 +143,18 @@ export const AdminManageUsersGrid: React.FC<AdminManageUsersGridProps> = ({
   // const { data, status } = useCollectionData<User>('USERS', [...queryConstraints, limit(100)], {
   //   suspense: false,
   // });
-
   const firestore = useFirestore();
+  const { data: signInResult } = useSigninCheck({
+    validateCustomClaims: getRequiredClaimValidator(['ORG_ADMIN', 'IDEMAND_ADMIN']),
+  });
+  console.log('SIGN IN CHECK RESULT: ', signInResult);
 
   const q = query(collection(firestore, COLLECTIONS.USERS), where('orgId', '==', orgId));
 
   // TODO: get orgId dynamically from doc
   // could set pathSegments: [{ value: string, fromDoc?: boolean }]
   // getPaths(segments){ segments.map(s => typeof s === 'string' ? s : s.fromDoc ? doc[s.value] : s.value ) }
+  // TODO: type hook
   const { data, status } = useCollectionDataPopulateById(
     q,
     'userId',
@@ -223,22 +237,40 @@ export const AdminManageUsersGrid: React.FC<AdminManageUsersGridProps> = ({
         headerName: 'Roles',
         flex: 1,
         minWidth: 240,
-        editable: false,
+        editable: signInResult.hasRequiredClaims,
+        type: 'multiSelect',
+        valueOptions: [CUSTOM_CLAIMS.AGENT, CUSTOM_CLAIMS.ORG_ADMIN],
+        // valueOptions: [
+        //   { label: 'Agent', value: `${CUSTOM_CLAIMS.AGENT}:true` },
+        //   { label: 'Admin', value: `${CUSTOM_CLAIMS.ORG_ADMIN}:true` },
+        // ],
+        // getOptionValue: (value: any) => value.value,
+        // getOptionLabel: (value: any) => value.label,
+        // valueGetter: (params) => {
+        //   if (!params.value) return [];
+        //   let keys = Object.keys(params.value).filter((k) => k !== '_lastCommitted');
+        //   return keys.map((k) => `${k}:${params.value[k]}`);
+        // },
         valueGetter: (params) => {
           if (!params.value) return [];
-          let keys = Object.keys(params.value).filter((k) => k !== '_lastCommitted');
-          return keys.map((k) => `${k}:${params.value[k]}`);
-          // return keys;
+          return Object.keys(params.value).filter((k) => params.value[k] && k !== '_lastCommitted');
+          // let keys = Object.keys(params.value).filter((k) => k !== '_lastCommitted');
+          // return keys.map((k) => `${k}:${params.value[k]}`);
+          // return keys.map((k) => `${k}:${params.value[k]}`);
         },
         renderCell: renderChips,
-        // renderCell: (params: GridRenderCellParams<any, any, any>) => {
-        //   if (params.value) return null;
-
-        //   let claimKeys = Object.keys(params.value);
-
-        //   // @ts-ignore
-        //   return renderChips({ value: claimKeys });
-        // },
+        renderEditCell: (params: GridRenderEditCellParams) => (
+          <CustomEditMultiSelectComponent {...params} />
+          // <GridEditMultiSelectCell {...params} />
+        ),
+        valueSetter: (params) => {
+          console.log('VALUE SETTER PARAMS: ', params);
+          // usually necessary if valueGetter is necessary
+          return { ...params.row };
+          // let newVal =
+          //   params.value instanceof Date ? Timestamp.fromDate(params.value) : params.value;
+          // return { ...params.row, effectiveDate: newVal };
+        },
       },
       createdCol,
       updatedCol,
@@ -249,8 +281,25 @@ export const AdminManageUsersGrid: React.FC<AdminManageUsersGridProps> = ({
       orgIdCol,
       ...columnAdjustments,
     ],
-    [columnAdjustments, actions]
+    [columnAdjustments, actions, signInResult]
   );
+
+  const processRowUpdate = useCallback(
+    (
+      newRow: GridRowModel<WithId<UsersWithClaims>>,
+      oldRow: GridRowModel<WithId<UsersWithClaims>>
+    ) => {
+      console.log('NEW ROW: ', newRow);
+      console.log('OLD ROW: ', oldRow);
+      return oldRow;
+    },
+    []
+  );
+
+  const handleProcessRowUpdateError = useCallback((err: Error) => {
+    // toast.error('update failed');
+    console.log('ERROR: ', err);
+  }, []);
 
   return (
     <Box>
@@ -280,6 +329,8 @@ export const AdminManageUsersGrid: React.FC<AdminManageUsersGridProps> = ({
           pagination: { paginationModel: { pageSize: 10 } },
           ...props?.initialState,
         }}
+        processRowUpdate={processRowUpdate}
+        onProcessRowUpdateError={handleProcessRowUpdateError}
         {...props}
       />
     </Box>

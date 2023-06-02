@@ -4,7 +4,7 @@ import type { AutocompleteApi, AutocompleteState, BaseItem } from '@algolia/auto
 
 import { Snippet } from './Snippet';
 import type { SearchProps } from './Search';
-import type { InternalDocSearchHit, StoredDocSearchHit } from 'common';
+import { COLLECTIONS, InternalDocSearchHit, StoredDocSearchHit } from 'common';
 
 interface ResultsProps<TItem extends BaseItem>
   extends AutocompleteApi<TItem, React.FormEvent, React.MouseEvent, React.KeyboardEvent> {
@@ -24,9 +24,6 @@ export function Results<TItem extends StoredDocSearchHit>(props: ResultsProps<TI
   if (!props.collection || props.collection.items.length === 0) {
     return null;
   }
-  // @ts-ignore
-  const title = props.title ?? (props.collection?.source?.title || '');
-  console.log('RESULTS PROPS: ', props);
 
   return (
     <section className='DocSearch-Hits'>
@@ -47,8 +44,7 @@ export function Results<TItem extends StoredDocSearchHit>(props: ResultsProps<TI
         // }}
         className='DocSearch-Hit-source'
       >
-        {/* {props.title} */}
-        {title}
+        {props.title}
       </Typography>
 
       <ul {...props.getListProps()}>
@@ -96,8 +92,7 @@ function Result<TItem extends StoredDocSearchHit>({
     setIsFavoriting(true);
     action.current = cb;
   }
-
-  console.log('RESULT ITEM: ', item);
+  // console.log('RESULT ITEM: ', item);
 
   return (
     <li
@@ -163,56 +158,88 @@ function Result<TItem extends StoredDocSearchHit>({
               <Snippet className='DocSearch-Hit-path' hit={item} attribute='content' />
             </div>
           )} */}
-          {renderDisplayComponents(item)}
+          {/* {renderDisplayComponents(item)} */}
+          <div className='DocSearch-Hit-content-wrapper'>
+            <Snippet className='DocSearch-Hit-title' hit={item} attribute='searchTitle' />
+            <Snippet className='DocSearch-Hit-path' hit={item} attribute='searchSubtitle' />
+          </div>
 
           {renderAction({ item, runDeleteTransition, runFavoriteTransition })}
 
-          {item.type && <Chip label={item.type} variant='outlined' size='small' sx={{ ml: 2 }} />}
+          {item.collectionName && (
+            <Chip
+              label={getShortenedChipLabel(item.collectionName)}
+              variant='outlined'
+              size='small'
+              sx={{ ml: 2 }}
+            />
+          )}
         </div>
       </Hit>
     </li>
   );
 }
 
-function renderDisplayComponents(item: any) {
-  if (item.type === 'task') {
-    return (
-      <div className='DocSearch-Hit-content-wrapper'>
-        <Snippet className='DocSearch-Hit-title' hit={item} attribute='title' />
-        <Snippet className='DocSearch-Hit-path' hit={item} attribute='content' />
-        {/* <Snippet className='DocSearch-Hit-path' hit={item} attribute='hierarchy.lvl1' /> */}
-      </div>
-    );
+function getShortenedChipLabel(collectionName: string) {
+  switch (collectionName) {
+    case COLLECTIONS.ORGANIZATIONS:
+      return 'Org';
+    case COLLECTIONS.FIN_TRANSACTIONS:
+      return 'Trx';
+    case COLLECTIONS.POLICIES:
+      return 'Policy';
+    case COLLECTIONS.QUOTES:
+      return 'Quote';
+    case COLLECTIONS.SUBMISSIONS_QUOTES:
+      return 'Quote';
+    case COLLECTIONS.SUBMISSIONS:
+      return 'Sub';
+    case COLLECTIONS.USERS:
+      return 'User';
+    default:
+      return 'Doc';
   }
-  if (item.searchTitle) {
-    return (
-      <div className='DocSearch-Hit-content-wrapper'>
-        <Snippet className='DocSearch-Hit-title' hit={item} attribute='searchTitle' />
-        {item.searchPreview && (
-          <Snippet className='DocSearch-Hit-path' hit={item} attribute='searchPreview' />
-        )}
-      </div>
-    );
-  }
-  if (item.title) {
-    return (
-      <div className='DocSearch-Hit-content-wrapper'>
-        <Snippet className='DocSearch-Hit-title' hit={item} attribute='title' />
-        {item.content && <Snippet className='DocSearch-Hit-path' hit={item} attribute='content' />}
-      </div>
-    );
-  }
-  if (item.type === 'user') {
-    return (
-      <div className='DocSearch-Hit-content-wrapper'>
-        <div>
-          <Snippet className='DocSearch-Hit-title' hit={item} attribute='firstname' />{' '}
-          <Snippet className='DocSearch-Hit-title' hit={item} attribute='lastname' style={{}} />
-        </div>
-        <Snippet className='DocSearch-Hit-path' hit={item} attribute='email' />
-        {/* <Snippet className='DocSearch-Hit-path' hit={item} attribute='hierarchy.lvl1' /> */}
-      </div>
-    );
-  }
-  return null;
 }
+
+// function renderDisplayComponents(item: any) {
+//   if (item.type === 'task') {
+//     return (
+//       <div className='DocSearch-Hit-content-wrapper'>
+//         <Snippet className='DocSearch-Hit-title' hit={item} attribute='title' />
+//         <Snippet className='DocSearch-Hit-path' hit={item} attribute='content' />
+//         {/* <Snippet className='DocSearch-Hit-path' hit={item} attribute='hierarchy.lvl1' /> */}
+//       </div>
+//     );
+//   }
+//   if (item.searchTitle) {
+//     return (
+//       <div className='DocSearch-Hit-content-wrapper'>
+//         <Snippet className='DocSearch-Hit-title' hit={item} attribute='searchTitle' />
+//         {item.searchPreview && (
+//           <Snippet className='DocSearch-Hit-path' hit={item} attribute='searchPreview' />
+//         )}
+//       </div>
+//     );
+//   }
+//   if (item.title) {
+//     return (
+//       <div className='DocSearch-Hit-content-wrapper'>
+//         <Snippet className='DocSearch-Hit-title' hit={item} attribute='title' />
+//         {item.content && <Snippet className='DocSearch-Hit-path' hit={item} attribute='content' />}
+//       </div>
+//     );
+//   }
+//   if (item.type === 'user') {
+//     return (
+//       <div className='DocSearch-Hit-content-wrapper'>
+//         <div>
+//           <Snippet className='DocSearch-Hit-title' hit={item} attribute='firstname' />{' '}
+//           <Snippet className='DocSearch-Hit-title' hit={item} attribute='lastname' style={{}} />
+//         </div>
+//         <Snippet className='DocSearch-Hit-path' hit={item} attribute='email' />
+//         {/* <Snippet className='DocSearch-Hit-path' hit={item} attribute='hierarchy.lvl1' /> */}
+//       </div>
+//     );
+//   }
+//   return null;
+// }

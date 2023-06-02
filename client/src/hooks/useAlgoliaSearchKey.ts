@@ -8,6 +8,7 @@ export function useAlgoliaSearchKey() {
   const functions = useFunctions();
   const [apiKey, setApiKey] = useLocalStorage<string>('userSearchKey');
 
+  // TODO: move loading var outside useEffect ??
   useEffect(() => {
     // let keyFetched = false;
     let loading = false;

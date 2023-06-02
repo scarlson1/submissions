@@ -112,13 +112,6 @@ export enum ADMIN_ROUTES {
   PORTFOLIO_RATING = '/admin/portfolio-rating',
 }
 
-// export enum AGENT_ROUTES {
-//   SUBMISSIONS = '/agent/submissions',
-//   SUBMISSION_VIEW = '/agent/submissions/:submissionId',
-//   QUOTES = '/agent/quotes',
-//   QUOTES_VIEW = '/agent/submissions',
-// }
-
 export enum AUTH_ROUTES {
   LOGIN = '/auth/login/',
   CREATE_ACCOUNT = '/auth/create-account',

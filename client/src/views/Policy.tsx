@@ -145,7 +145,7 @@ export const Policy: React.FC = () => {
         console.log(err);
       }
     },
-    [confirm, policyId]
+    [confirm, policyId, requestChange]
   );
 
   return (

@@ -1226,6 +1226,7 @@ export declare type DocSearchHit = {
   url: string;
   url_without_anchor: string;
   type: DocSearchContentType;
+  collectionName: string; // TODO: use COLLECTIONS enum
   anchor: string | null;
   hierarchy: {
     lvl0: string;

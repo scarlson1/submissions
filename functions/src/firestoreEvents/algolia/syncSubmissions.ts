@@ -3,7 +3,7 @@ import type { DocumentSnapshot } from 'firebase-admin/firestore';
 import algoliasearch from 'algoliasearch';
 
 import { algoliaAdminKey, algoliaAppId } from './index.js';
-import { COLLECTIONS, Submission, audience } from '../../common/index.js';
+import { COLLECTIONS, Submission, algoliaIndex } from '../../common/index.js';
 
 export default async (
   event: FirestoreEvent<
@@ -18,11 +18,7 @@ export default async (
   if (!(appId && adminKey)) throw new Error('Missing algolia credentials');
 
   const client = algoliasearch(appId, adminKey);
-  let indexName = COLLECTIONS.SUBMISSIONS as string;
-  if (audience.value() === 'LOCAL HUMANS') {
-    indexName = `local_${indexName}`;
-  }
-  const index = client.initIndex(indexName);
+  const index = client.initIndex(algoliaIndex.value());
 
   const docId = event.params.submissionId;
 
@@ -40,14 +36,27 @@ export default async (
   } else {
     try {
       // TODO: if coordinates (mailing address), need to use _geoloc: { lat, lng }
+
+      // Allow all users to search submission if no userId or agent (always has userId b/c anon) add isAnon to submisssion doc ??
+      const visibleBy: string[] = [];
+      if (newValue.userId) {
+        visibleBy.push(`${newValue.userId}`);
+      } else {
+        visibleBy.push('group/allUsers');
+      }
+      // if (newValue.agent?.agentId) visibleBy.push(`${newValue.agent?.agentId}`);
+      // if (newValue.agency.orgId) visibleBy.push(`group/admin/${newValue.agency.orgId}`);
+
       const records: Record<string, any>[] = [
         {
           ...newValue,
           objectID: docId,
+          visibleBy,
           userId: newValue.userId || null,
           docType: 'submission',
+          collectionName: COLLECTIONS.SUBMISSIONS,
           searchTitle: `${newValue.addressLine1} ${newValue.city}, ${newValue.state}`,
-          searchSubtitle: newValue.metadata?.created?.toDate() || '',
+          searchSubtitle: newValue.metadata?.created?.toDate().toDateString() || '',
           metadata: {
             ...(newValue.metadata || {}),
             created: newValue.metadata?.created?.toDate() || null,

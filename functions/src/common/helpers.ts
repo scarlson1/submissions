@@ -1,6 +1,7 @@
 import { inspect } from 'util';
 import { add, Duration } from 'date-fns';
 import { isEqual, remove } from 'lodash';
+import numeral from 'numeral';
 
 /**
  * Sums an array of numbers
@@ -188,4 +189,8 @@ export const removeFromArr = (arr: any[], val: any) => {
   return remove(arr, function (x) {
     return !isEqual(x, val);
   });
+};
+
+export const dollarFormat = (amt: number) => {
+  return numeral(amt).format('$0,0[.]00');
 };

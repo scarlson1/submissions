@@ -3,7 +3,7 @@ import React from 'react';
 import { Results } from './Results';
 import type { ScreenStateProps } from './ScreenState';
 import type { InternalDocSearchHit } from 'common';
-import { removeHighlightTags } from './utils';
+// import { removeHighlightTags } from './utils';
 
 type ResultsScreenProps = Omit<ScreenStateProps<InternalDocSearchHit>, 'translations'>;
 
@@ -15,7 +15,11 @@ export function ResultsScreen(props: ResultsScreenProps) {
           return null;
         }
 
-        const title = removeHighlightTags(collection.items[0]);
+        // const title = removeHighlightTags(collection.items[0]);
+        // @ts-ignore
+        const title = collection.title ?? (collection?.source?.title || '');
+        // TODO: remove? not being used.
+        // pulling title from collection.source.title in the results component
 
         return (
           <Results

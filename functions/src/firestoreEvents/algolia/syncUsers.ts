@@ -3,7 +3,7 @@ import type { DocumentSnapshot } from 'firebase-admin/firestore';
 import algoliasearch from 'algoliasearch';
 
 import { algoliaAdminKey, algoliaAppId } from './index.js';
-import { COLLECTIONS, User, audience } from '../../common/index.js';
+import { COLLECTIONS, User, algoliaIndex } from '../../common/index.js';
 
 export default async (
   event: FirestoreEvent<
@@ -18,11 +18,7 @@ export default async (
   if (!(appId && adminKey)) throw new Error('Missing algolia credentials');
 
   const client = algoliasearch(appId, adminKey);
-  let indexName = COLLECTIONS.USERS as string;
-  if (audience.value() === 'LOCAL HUMANS') {
-    indexName = `local_${indexName}`;
-  }
-  const index = client.initIndex(indexName);
+  const index = client.initIndex(algoliaIndex.value());
 
   const docId = event.params.userId;
 
@@ -40,12 +36,23 @@ export default async (
   } else {
     try {
       // TODO: if coordinates (mailing address), need to use _geoloc: { lat, lng }
+      const searchTitle = newValue.displayName
+        ? newValue.displayName
+        : `${newValue.firstName} ${newValue.lastName}`.trim() || docId;
+
+      const visibleBy = [docId];
+      if (newValue.orgId) visibleBy.push(`group/${newValue.orgId}`);
+
       const records: Record<string, any>[] = [
         {
           ...newValue,
           objectID: docId,
+          visibleBy,
           userId: docId,
           docType: 'user',
+          collectionName: COLLECTIONS.USERS,
+          searchTitle,
+          searchSubtitle: newValue.email || `UID: ${docId}`,
           metadata: {
             ...(newValue.metadata || {}),
             created: newValue.metadata?.created?.toDate() || null,
