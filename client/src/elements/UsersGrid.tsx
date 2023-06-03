@@ -35,10 +35,7 @@ import { renderChips } from 'components/RenderGridCellHelpers';
 import { getRandomItem } from 'modules/utils';
 import { getRequiredClaimValidator } from 'components/RequireAuthReactFire';
 import { CUSTOM_CLAIMS } from 'modules/components';
-import {
-  CustomEditMultiSelectComponent,
-  GridEditMultiSelectCell,
-} from 'components/GridEditMultiSelectCell';
+import { GridEditMultiSelectCell } from 'components/GridEditMultiSelectCell';
 
 const AVATAR_BACKGROUNDS = [purple[200], blue[200], red[200], lightBlue[200], lightGreen[200]];
 
@@ -254,14 +251,10 @@ export const AdminManageUsersGrid: React.FC<AdminManageUsersGridProps> = ({
         valueGetter: (params) => {
           if (!params.value) return [];
           return Object.keys(params.value).filter((k) => params.value[k] && k !== '_lastCommitted');
-          // let keys = Object.keys(params.value).filter((k) => k !== '_lastCommitted');
-          // return keys.map((k) => `${k}:${params.value[k]}`);
-          // return keys.map((k) => `${k}:${params.value[k]}`);
         },
         renderCell: renderChips,
         renderEditCell: (params: GridRenderEditCellParams) => (
-          <CustomEditMultiSelectComponent {...params} />
-          // <GridEditMultiSelectCell {...params} />
+          <GridEditMultiSelectCell {...params} />
         ),
         valueSetter: (params) => {
           console.log('VALUE SETTER PARAMS: ', params);

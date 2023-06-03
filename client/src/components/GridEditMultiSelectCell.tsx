@@ -2,10 +2,7 @@ import React from 'react';
 import {
   Checkbox,
   ListItemText,
-  // FormControl,
-  // InputLabel,
   MenuItem,
-  // OutlinedInput,
   Select,
   SelectChangeEvent,
   SelectProps,
@@ -26,17 +23,18 @@ import {
 import { GridBaseColDef } from '@mui/x-data-grid/internals';
 import { isEscapeKey } from '@mui/x-data-grid/utils/keyboardUtils';
 
-const defGetOptionValue = (option: string | Record<string, any>) => {
-  if (typeof option === 'string') return option;
+const defGetOptionValue = (option: string | number | Record<string, any>) => {
+  if (typeof option === 'string' || typeof option === 'number') return option;
   return option?.value || '';
 };
 
-const defGetOptionLabel = (option: string | Record<string, any>) => {
-  if (typeof option === 'string') return option;
+const defGetOptionLabel = (option: string | number | Record<string, any>) => {
+  if (typeof option === 'string' || typeof option === 'number') return option;
   return option?.label || '';
 };
 
-export function CustomEditMultiSelectComponent(props: any) {
+// export function CustomEditMultiSelectComponent(props: any) {
+export function GridEditMultiSelectCell(props: GridEditMultiSelectCellProps) {
   console.log('CUSTOM MULTI SELECT PROPS: ', props);
   const rootProps = useGridRootProps();
 
@@ -73,9 +71,12 @@ export function CustomEditMultiSelectComponent(props: any) {
   const { MenuProps, ...otherBaseSelectProps } = rootProps.slotProps?.baseSelect || {};
 
   let valueOptions: Array<ValueOptions> | undefined;
+  // @ts-ignore
   if (typeof colDef?.valueOptions === 'function') {
+    // @ts-ignore
     valueOptions = colDef?.valueOptions({ id, row, field });
   } else {
+    // @ts-ignore
     valueOptions = colDef?.valueOptions;
   }
 
@@ -96,15 +97,10 @@ export function CustomEditMultiSelectComponent(props: any) {
     const target = event.target as HTMLInputElement;
     console.log('TARGET.VALUE: ', target.value);
     let tval = typeof target.value === 'string' ? [target.value] : target.value;
+    // NativeSelect casts the value to a string.
     const formattedTargetValue = tval.map((v) =>
       getValueFromValueOptions(target.value, valueOptions, getOptionValue)
     );
-    // NativeSelect casts the value to a string.
-    // const formattedTargetValue = getValueFromValueOptions(
-    //   target.value,
-    //   valueOptions,
-    //   getOptionValue
-    // );
 
     if (onValueChange) {
       console.log('CALLING ON VALUE CHANGE');
@@ -145,8 +141,8 @@ export function CustomEditMultiSelectComponent(props: any) {
 
   return (
     <Select
-      labelId='demo-multiple-name-label'
-      id='demo-multiple-name'
+      labelId={`multi-select-${id}-label`}
+      id={`multi-select-${id}`}
       inputRef={inputRef}
       multiple
       value={valueProp}
@@ -159,6 +155,7 @@ export function CustomEditMultiSelectComponent(props: any) {
         onClose: handleClose,
         ...MenuProps,
       }}
+      {...other}
       {...otherBaseSelectProps}
     >
       {valueOptions.map((valueOption) => {
@@ -271,7 +268,7 @@ export function getLabelFromValueOption(valueOption: ValueOptions) {
   return label != null ? String(label) : '';
 }
 
-export function GridEditMultiSelectCell(props: GridEditMultiSelectCellProps) {
+export function GridEditMultiSelectCellRef(props: GridEditMultiSelectCellProps) {
   console.log('MULTI SELECT PROPS: ', props);
 
   const rootProps = useGridRootProps();
