@@ -194,8 +194,14 @@ export const useCreateAccount = () => {
             );
           }
         }
-
+        if (msg.indexOf('Email matched invite')) {
+          return toast.error(
+            `Your email matched an outstanding invite. Please check your inbox and use the provided link.`
+          );
+        }
         if (msg.indexOf('Cloud function deadline exceeded') !== -1) {
+          // s7nQCvsiarxC5Azk1CXSsLgVfPxF
+
           console.log('Blocking function deadline exceeded. Retrying createAccount');
           return createAccount({
             email,

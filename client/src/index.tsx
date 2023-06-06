@@ -65,6 +65,7 @@ function LoadingSpinner() {
 }
 
 function LastResortErrorBoundary({ error, resetErrorBoundary }: FallbackProps) {
+  console.log('Last Error Boundary');
   let msg =
     error && error.message ? (
       <div>

@@ -26,6 +26,7 @@ export const useCalcPremium = (
 
         if (!(replacementCost && (inland || inland === 0) && (surge || surge === 0)))
           throw new Error('Missing replacement cost or aal');
+        if (!values.ratingPropertyData.floodZone) throw new Error('flood zone is required');
 
         let reqBody = {
           limitA: values.limitA,
@@ -38,7 +39,7 @@ export const useCalcPremium = (
           deductible: values.deductible,
           state: values.state,
           priorLossCount: values.priorLossCount,
-          floodZone: values.ratingPropertyData.floodZone ?? 'D',
+          floodZone: values.ratingPropertyData.floodZone, // ?? 'D',
           basement: values.ratingPropertyData.basement ?? undefined,
           commissionPct:
             typeof values.subproducerCommission === 'string'

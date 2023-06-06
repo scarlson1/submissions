@@ -11,6 +11,14 @@ import { ServerDownSVG, PageNotFoundSVG, SecureLoginSVG, SearchingSVG } from 'as
 
 // TODO: wrap in layout ?? includes nav? What about if caughts at lower levels of router ??
 
+// @ts-ignore
+export const firestoreRulesErrorRegex = /([A-Za-z0-9]+( [A-Za-z0-9]+)+)\. for '[A-Za-z]+' @ L\d*/i;
+// /([A-Za-z0-9]+( [A-Za-z0-9]+)+)\.\s[A-Za-z]+\s'(?:[^\\']|\\\\|\\')*'\s@\s?L\d*\s([A-Za-z]+( [A-Za-z]+)+)/i;
+
+export function checkRulesRegex(str: string) {
+  return firestoreRulesErrorRegex.test(str);
+}
+
 export const NotFound = ({
   msg,
   actionButtons,
@@ -65,7 +73,8 @@ export const RouterErrorBoundary: React.FC<RouterErrorBoundaryProps> = ({ action
   let error = useRouteError();
   const navigate = useNavigate();
 
-  console.log('ERROR: ', error);
+  console.log('ERROR (RouterErrorBoundary): ', error, typeof error);
+  console.log('STRINGIFIED ERROR: ', JSON.stringify(error));
 
   if (isRouteErrorResponse(error)) {
     let msg = typeof error.data === 'string' ? error.data : undefined;
@@ -234,6 +243,16 @@ export const RouterErrorBoundary: React.FC<RouterErrorBoundaryProps> = ({ action
       </p>
     );
   }
+  if (err?.code && err.code === 'permission-denied') {
+    // could be error in rules
+    console.log('err.message ', err?.message);
+    const isFirestoreRulesError = err?.message && checkRulesRegex(err.message);
+    console.log('IS RULES ERROR: ', isFirestoreRulesError);
+    if (isFirestoreRulesError) {
+      msg =
+        "A security rule is preventing you from viewing the record(s) you've requested. It is likely one of the fields being referenced in the security rules is missing a value. Our team has been notified. We're sorry for the inconvenience.";
+    }
+  }
   if (err?.message && err.message.indexOf('PERMISSION_DENIED') !== -1) {
     msg =
       'Permission denied error. Your account does not have the required permissions to access the requested resource.';
@@ -250,9 +269,8 @@ export const RouterErrorBoundary: React.FC<RouterErrorBoundaryProps> = ({ action
         }
       >
         <AlertTitle>Error</AlertTitle>
-        See console for details.
         {/* <span onClick={() => navigate('/')}>Return home</span> */}
-        {msg ? <Typography>{msg}</Typography> : null}
+        <Typography>{msg ?? 'See console for details'}</Typography>
       </Alert>
     </Container>
   );

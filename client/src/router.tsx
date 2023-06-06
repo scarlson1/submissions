@@ -161,7 +161,7 @@ type TArgs =
   | { path: ADMIN_ROUTES.DISCLOSURE_EDIT; params: { disclosureId: string } }
   | { path: ADMIN_ROUTES.CREATE_TENANT }
   | { path: ADMIN_ROUTES.ORGANIZATIONS }
-  | { path: ADMIN_ROUTES.ORGANIZATION; params: { orgId: string } }
+  | { path: ADMIN_ROUTES.ORGANIZATION; params: { orgId: string }; search?: { tab: string } }
   | { path: ADMIN_ROUTES.USERS }
   | { path: ADMIN_ROUTES.PORTFOLIO_RATING }
   | {

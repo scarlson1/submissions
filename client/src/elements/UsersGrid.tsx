@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { SendRounded } from '@mui/icons-material';
-import { Avatar, Box, Tooltip, Typography } from '@mui/material';
+import { Avatar, Box, Checkbox, ListItemText, MenuItem, Tooltip, Typography } from '@mui/material';
 import {
   DataGridProps,
   GridActionsCellItem,
@@ -11,6 +11,9 @@ import {
   GridRowParams,
 } from '@mui/x-data-grid';
 import { purple, blue, red, lightBlue, lightGreen } from '@mui/material/colors';
+import { DocumentData, QueryConstraint, limit, query, where } from 'firebase/firestore';
+import { useFirestore, useSigninCheck } from 'reactfire';
+import { isEqual } from 'lodash';
 
 import {
   COLLECTIONS,
@@ -25,12 +28,11 @@ import {
   orgIdCol,
   phoneCol,
   updatedCol,
+  usersCollection,
 } from 'common';
 import { BasicDataGrid } from 'components';
-import { useCollectionData } from 'hooks';
-import { QueryConstraint, collection, limit, query, where } from 'firebase/firestore';
+import { useAsyncToast, useCollectionData, useUpdateClaims } from 'hooks';
 import { useCollectionDataPopulateById } from 'hooks/useRx';
-import { useFirestore, useSigninCheck } from 'reactfire';
 import { renderChips } from 'components/RenderGridCellHelpers';
 import { getRandomItem } from 'modules/utils';
 import { getRequiredClaimValidator } from 'components/RequireAuthReactFire';
@@ -119,7 +121,7 @@ export const UsersGrid: React.FC<UsersGridProps> = ({
   );
 };
 
-type UsersWithClaims = User & { userClaims: any };
+type UsersWithClaims = User & { userClaims: Record<string, any> };
 
 export interface AdminManageUsersGridProps extends Omit<DataGridProps, 'rows' | 'columns'> {
   queryConstraints?: QueryConstraint[];
@@ -144,21 +146,22 @@ export const AdminManageUsersGrid: React.FC<AdminManageUsersGridProps> = ({
   const { data: signInResult } = useSigninCheck({
     validateCustomClaims: getRequiredClaimValidator(['ORG_ADMIN', 'IDEMAND_ADMIN']),
   });
-  console.log('SIGN IN CHECK RESULT: ', signInResult);
+  const toast = useAsyncToast();
+  const updateClaims = useUpdateClaims();
 
-  const q = query(collection(firestore, COLLECTIONS.USERS), where('orgId', '==', orgId));
+  const q = query(usersCollection(firestore), where('orgId', '==', orgId));
 
   // TODO: get orgId dynamically from doc
   // could set pathSegments: [{ value: string, fromDoc?: boolean }]
   // getPaths(segments){ segments.map(s => typeof s === 'string' ? s : s.fromDoc ? doc[s.value] : s.value ) }
-  // TODO: type hook
-  const { data, status } = useCollectionDataPopulateById(
+  // TODO: type hook (both parent and populated doc types)
+  // possible to create type that detects like key item in pathSegments (used as key for joined data) ??
+  const { data, status } = useCollectionDataPopulateById<'userId', User, DocumentData>(
     q,
     'userId',
     { root: COLLECTIONS.ORGANIZATIONS, pathSegments: [orgId, COLLECTIONS.USER_CLAIMS] },
     { suspense: true, idField: 'userId', initialData: [] }
   );
-
   console.log('POPULATE RESULT: ', data);
 
   const userColumns: GridColDef[] = useMemo(
@@ -256,14 +259,25 @@ export const AdminManageUsersGrid: React.FC<AdminManageUsersGridProps> = ({
         renderEditCell: (params: GridRenderEditCellParams) => (
           <GridEditMultiSelectCell {...params} />
         ),
+        // usually necessary if valueGetter is necessary
+        // called when value changes and when "stopEditing" is triggerd (click away, enter, esc, etc.)
         valueSetter: (params) => {
-          console.log('VALUE SETTER PARAMS: ', params);
-          // usually necessary if valueGetter is necessary
-          return { ...params.row };
-          // let newVal =
-          //   params.value instanceof Date ? Timestamp.fromDate(params.value) : params.value;
-          // return { ...params.row, effectiveDate: newVal };
+          // console.log('VALUE SETTER PARAMS: ', params);
+          const newUserClaims: Record<string, boolean> = {};
+
+          if (params.value) {
+            if (typeof params.value === 'string') {
+              newUserClaims[params.value] = true;
+            } else if (Array.isArray(params.value)) {
+              for (let claim of params.value) {
+                newUserClaims[claim] = true;
+              }
+            }
+          }
+          return { ...params.row, userClaims: newUserClaims };
         },
+        closeOnChange: false,
+        // autoStopEditMode: true,
       },
       createdCol,
       updatedCol,
@@ -278,21 +292,57 @@ export const AdminManageUsersGrid: React.FC<AdminManageUsersGridProps> = ({
   );
 
   const processRowUpdate = useCallback(
-    (
-      newRow: GridRowModel<WithId<UsersWithClaims>>,
+    async (
+      newRow: GridRowModel<WithId<UsersWithClaims>>, // after processing in valueSetter
       oldRow: GridRowModel<WithId<UsersWithClaims>>
     ) => {
       console.log('NEW ROW: ', newRow);
       console.log('OLD ROW: ', oldRow);
-      return oldRow;
+      // try {
+      let orgId = newRow.orgId; // @ts-ignore (TODO: fix typing id --> userId)
+      let userId = newRow.userId;
+
+      console.log('ORG ID: ', orgId);
+      console.log('USER ID: ', userId);
+
+      if (!orgId) return Promise.reject(new Error('Missing org ID'));
+      if (!userId) return Promise.reject(new Error('Missing user ID'));
+
+      const oldClaims = oldRow.userClaims;
+      if (oldClaims._lastCommitted) delete oldClaims._lastCommitted;
+      const newClaims = newRow.userClaims;
+      if (!newClaims) return Promise.reject(new Error('Missing user claims'));
+      console.log('old claims: ', oldClaims);
+      console.log('SETTING NEW CLAIMS: ', newClaims);
+
+      const hasChanged = !isEqual(oldClaims, newClaims);
+      console.log('has changed: ', hasChanged);
+      if (!hasChanged) return oldRow;
+
+      toast.loading('updating permissions...');
+      await updateClaims(orgId, userId, newClaims);
+
+      toast.success('permissions saved!');
+      return newRow;
+      // OPTION 1: CATCH AND RETURNING OLD ROW WILL EXIT EDIT MODE
+      // OPTION 2: pass error to handleProcessRowUpdateError
+
+      // } catch (err) {
+      //   return oldRow;
+      // }
     },
-    []
+    [updateClaims, toast]
   );
 
-  const handleProcessRowUpdateError = useCallback((err: Error) => {
-    // toast.error('update failed');
-    console.log('ERROR: ', err);
-  }, []);
+  const handleProcessRowUpdateError = useCallback(
+    (err: Error) => {
+      console.log('ERROR: ', err);
+      let msg = 'Error updating claims';
+      if (err.message) msg = err.message;
+      toast.error(msg);
+    },
+    [toast]
+  );
 
   return (
     <Box>
@@ -324,8 +374,37 @@ export const AdminManageUsersGrid: React.FC<AdminManageUsersGridProps> = ({
         }}
         processRowUpdate={processRowUpdate}
         onProcessRowUpdateError={handleProcessRowUpdateError}
+        slots={{
+          baseSelectOption: TestCustomSelectOption,
+        }}
+        // slotProps={{
+        //   baseSelectOption: {
+        //     native: true,
+        //   },
+        // }}
         {...props}
       />
     </Box>
   );
 };
+
+function TestCustomSelectOption(props: any) {
+  // console.log('SELECT OPTION PROPS: ', props);
+  return (
+    <MenuItem
+      {...props}
+      native={props.native.toString()}
+      key={props['data-value']}
+      value={props['data-value']}
+    >
+      <Checkbox
+        // checked={props.value?.indexOf(props['data-value']) > -1}
+        checked={props.selected}
+        size='small'
+        sx={{ py: 1, mr: 1 }}
+      />
+      {/* <ListItemText primary={getOptionLabel(props['data-value'])} /> */}
+      <ListItemText primary={props.children} />
+    </MenuItem>
+  );
+}

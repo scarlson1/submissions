@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Box, Tab, Typography } from '@mui/material';
 import { TabContext, TabList, TabPanel } from '@mui/lab';
 import { PersonAddRounded } from '@mui/icons-material';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { collection, doc, limit, orderBy, query, where } from 'firebase/firestore';
 import { useFirestore } from 'reactfire';
 import { ErrorBoundary } from 'react-error-boundary';
@@ -27,10 +27,11 @@ const MIN_TAB_HEIGHT = 40;
 
 export const Organization: React.FC = () => {
   const { orgId } = useParams();
-  const [tabValue, setTabValue] = useState('invites');
+  let [searchParams, setSearchParams] = useSearchParams();
+  const tabValue = searchParams.get('tab') || 'policies';
 
   const handleChange = (event: React.SyntheticEvent, newValue: string) => {
-    setTabValue(newValue);
+    setSearchParams({ tab: newValue });
   };
 
   if (!orgId) throw new Error('Missing orgId in URL params');

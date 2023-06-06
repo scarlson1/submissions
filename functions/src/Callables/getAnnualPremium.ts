@@ -1,16 +1,14 @@
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
-import { error } from 'firebase-functions/logger';
+import { error, info } from 'firebase-functions/logger';
 import { GeoPoint, Timestamp, getFirestore } from 'firebase-admin/firestore';
 import invariant from 'tiny-invariant';
 
-import { CLAIMS, COLLECTIONS } from '../common';
+import { CLAIMS, defaultFloodZone, ratingDataCollection } from '../common';
 import { getAALs, validateGetAALsProps } from '../utils/rating';
 import { getPremium } from '../utils/rating';
 import { swissReClientId, swissReClientSecret, swissReSubscriptionKey } from '../common';
-
-// const swissReClientId = defineSecret('SWISS_RE_CLIENT_ID');
-// const swissReClientSecret = defineSecret('SWISS_RE_CLIENT_SECRET');
-// const swissReSubscriptionKey = defineSecret('SWISS_RE_SUBSCRIPTION_KEY');
+import { GetPremiumCalcResult } from '../utils/rating/getPremium';
+import { GetAALRes } from '../utils/rating/getAALs';
 
 interface GetAnnualPremiumRequest {
   latitude: number;
@@ -28,6 +26,8 @@ interface GetAnnualPremiumRequest {
   basement?: string;
   commissionPct?: number;
   submissionId?: string | null;
+  locationId?: string | null;
+  externalId?: string | null;
 }
 
 export default async ({ data, auth }: CallableRequest<GetAnnualPremiumRequest>) => {
@@ -35,14 +35,9 @@ export default async ({ data, auth }: CallableRequest<GetAnnualPremiumRequest>) 
   console.log('GET ANNUAL PREMIUM CALLED', data);
 
   if (!(auth && auth.uid && auth?.token[CLAIMS['IDEMAND_ADMIN']])) {
-    throw new HttpsError('permission-denied', 'iDemand admin permissions required');
+    throw new HttpsError('permission-denied', `${CLAIMS['IDEMAND_ADMIN']} permissions required`);
   }
 
-  const srClientId = swissReClientId.value();
-  const srClientSecret = swissReClientSecret.value();
-  const srSubKey = swissReSubscriptionKey.value();
-
-  // VALIDATE REQUEST DATA
   const {
     latitude,
     longitude,
@@ -54,11 +49,13 @@ export default async ({ data, auth }: CallableRequest<GetAnnualPremiumRequest>) 
     replacementCost,
     numStories,
     priorLossCount,
-    floodZone = 'X',
+    floodZone = defaultFloodZone.value(),
     state,
     basement = 'unknown',
     commissionPct = 0.15,
     submissionId,
+    locationId = null,
+    externalId = null,
   } = data;
 
   try {
@@ -76,6 +73,7 @@ export default async ({ data, auth }: CallableRequest<GetAnnualPremiumRequest>) 
       commissionPct, // && typeof commissionPct === 'number',
       'commissionPct must be a number'
     );
+    // TODO: DECIDE WHETHER TO HAVE A HARD LIMIT (can't override) ??
     invariant(commissionPct <= 0.2, 'commissionPct must be <= 20% (provided as decimal)');
   } catch (err: any) {
     console.log('INVALID PROPS: ', err);
@@ -83,8 +81,12 @@ export default async ({ data, auth }: CallableRequest<GetAnnualPremiumRequest>) 
     throw new HttpsError('failed-precondition', err.message);
   }
 
-  let AALs;
+  let AALs: GetAALRes | undefined;
   try {
+    const srClientId = swissReClientId.value();
+    const srClientSecret = swissReClientSecret.value();
+    const srSubKey = swissReSubscriptionKey.value();
+
     AALs = await getAALs({
       srClientId,
       srClientSecret,
@@ -99,6 +101,7 @@ export default async ({ data, auth }: CallableRequest<GetAnnualPremiumRequest>) 
       longitude,
       numStories,
     });
+    // TODO: save to SR collection (see getSubmissionAAL)
   } catch (err: any) {
     console.log('ERROR GETTING AALs: ', err);
 
@@ -106,7 +109,7 @@ export default async ({ data, auth }: CallableRequest<GetAnnualPremiumRequest>) 
   }
 
   const { inlandAAL, surgeAAL } = AALs;
-  let result;
+  let result: GetPremiumCalcResult | undefined;
 
   try {
     invariant(typeof inlandAAL === 'number');
@@ -128,10 +131,9 @@ export default async ({ data, auth }: CallableRequest<GetAnnualPremiumRequest>) 
 
     const { premiumData } = result;
 
-    // TODO: save to ratingData collection
-    // TODO: update original submission
+    // TODO: update original submission ??
 
-    console.log(`PREMIUM: ${premiumData.directWrittenPremium}`);
+    info(`PREMIUM: ${premiumData.directWrittenPremium}`);
 
     if (
       !premiumData.directWrittenPremium ||
@@ -140,17 +142,24 @@ export default async ({ data, auth }: CallableRequest<GetAnnualPremiumRequest>) 
     )
       throw new Error('Error calculating premium');
   } catch (err: any) {
-    error('Error calculating premium', {
+    error(`Error calculating premium`, {
       data,
       userId: auth.uid || null,
       message: err?.message || null,
+      submissionId: submissionId || null,
     });
-    throw new HttpsError('internal', 'Error calculating annual premium');
+    let msg = `Error calculating annual premium`;
+    if (err?.message) msg += ` (${err.message})`;
+
+    throw new HttpsError('internal', msg);
   }
 
   try {
-    await db.collection(COLLECTIONS.RATING_DATA).add({
+    const ratingColRef = ratingDataCollection(db);
+    await ratingColRef.add({
       submissionId: submissionId || null,
+      locationId,
+      externalId,
       deductible: deductible,
       limits: {
         limitA,
@@ -159,27 +168,39 @@ export default async ({ data, auth }: CallableRequest<GetAnnualPremiumRequest>) 
         limitD,
       },
       tiv: result.tiv,
-      replacementCost,
+      // replacementCost,
+      rcvs: {
+        // TODO: change getAAL func to use same rcv keys (rcvA -> building, etc.)
+        building: AALs.rcvs.rcvA,
+        otherStructures: AALs.rcvs.rcvB,
+        contents: AALs.rcvs.rcvC,
+        BI: AALs.rcvs.rcvD,
+        total: AALs.rcvs.total,
+      },
+      ratingPropertyData: {
+        replacementCost,
+        basement,
+        floodZone,
+        numStories,
+        propertyCode: null,
+        CBRSDesignation: null,
+        distToCoastFeet: null,
+        sqFootage: null,
+        yearBuilt: null,
+        ffe: null,
+        // priorLossCount, TODO: fix typing error
+      },
       aal: {
         inland: inlandAAL,
         surge: surgeAAL,
       },
+      premiumCalcData: result.premiumData,
       pm: result.pm,
       riskScore: result.riskScore,
       stateMultipliers: result.stateMultipliers,
       secondaryFactorMults: result.secondaryFactorMults,
-      floodZone,
-      basement,
-      ffe: 0,
-      numStories,
-      // sqFootage,
-      // distToCoast: 1000000,
-      // propertyCode: sub.propertyCode,
-      // yearBuilt: sub.yearBuilt,
-      // CBRSDesignation: sub.CBRSDesignation,
-      priorLossCount,
-      premiumData: result.premiumData,
       coordinates: new GeoPoint(latitude, longitude),
+      address: null,
       metadata: {
         created: Timestamp.now(),
         updated: Timestamp.now(),

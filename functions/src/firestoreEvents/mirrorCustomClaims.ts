@@ -1,5 +1,6 @@
 import type { FirestoreEvent } from 'firebase-functions/v2/firestore';
 import type { Change } from 'firebase-functions';
+import { info } from 'firebase-functions/logger';
 import { DocumentData, DocumentSnapshot, Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { getAuth, TenantAwareAuth, Auth } from 'firebase-admin/auth';
 
@@ -25,11 +26,12 @@ export default async (
   const { userId, orgId } = event.params;
   let auth: Auth | TenantAwareAuth = getAuth();
 
-  console.log(`User claims doc change detected (uid: ${userId})`);
-  console.log('afterData: ', JSON.stringify(afterData));
+  info(`User claims doc change detected (uid: ${userId})`, {
+    newClaims: afterData,
+  });
 
   try {
-    // Skip if _lastComitted has changed (already completed update)
+    // Skip if _lastCommitted has changed (already completed update)
     const skipUpdate =
       beforeData._lastCommitted &&
       afterData._lastCommitted &&

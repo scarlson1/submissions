@@ -1,6 +1,6 @@
-import { Firestore, doc as fsDoc } from 'firebase/firestore';
+import { DocumentData, DocumentReference, Firestore, doc as fsDoc } from 'firebase/firestore';
 import { docData } from 'rxfire/firestore';
-import { combineLatest, defer, map, of, switchMap, tap } from 'rxjs';
+import { Observable, combineLatest, defer, map, of, switchMap, tap } from 'rxjs';
 
 // REQUIRES SAME DOCUMENT FIELD IN BOTH DOCUMENTS/COLLECTION
 // EXAMPLE
@@ -8,10 +8,18 @@ import { combineLatest, defer, map, of, switchMap, tap } from 'rxjs';
 // policy = { userId: '123', ...rest }
 // --> returns: { ...user, [lastSegmentName]: { ...doc }}
 
-type dynamicSegments = string[] | { value: string; fromDoc?: boolean }[];
+type DynamicSegments = string[] | { value: string; fromDoc?: boolean }[];
 
-const getPaths = (segments: dynamicSegments, doc: { [key: string]: any }) =>
+const getPaths = (segments: DynamicSegments, doc: DocumentData) =>
   segments.map((s) => (typeof s === 'string' ? s : s.fromDoc ? doc[s.value] : s.value));
+
+// function isFish(pet: Fish | Bird): pet is Fish {
+//   return (pet as Fish).swim !== undefined;
+// }
+
+// function isDocWithProp<T>(doc: any, field: string): doc is T {
+//   return (doc as T)[field] !== undefined;
+// }
 
 /**
  * Joins docs from another collection using id from docIdField and coll path
@@ -23,15 +31,15 @@ const getPaths = (segments: dynamicSegments, doc: { [key: string]: any }) =>
 
 // TODO: USE OBJECT / ARRAY TO ALLOW MULTIPLE POPULATES
 
-export const populateById = (
+export const populateById = <JoinKey extends string, T = DocumentData, K = DocumentData>(
   firestore: Firestore,
-  docIdField: string,
-  coll: { root: string; pathSegments?: dynamicSegments }
+  docIdField: JoinKey,
+  coll: { root: string; pathSegments?: DynamicSegments }
 ) => {
-  return (source: any) =>
+  return (source: Observable<T[]>) =>
     defer(() => {
       // OPERATOR STATE
-      let collectionData: any;
+      let collectionData: T[];
       let totalJoins = 0;
 
       return source.pipe(
@@ -39,25 +47,28 @@ export const populateById = (
           console.log('COLLECTION DATA:', data);
           // Clear mapping on each emitted val
           // Save the parent data state
-          collectionData = data as any[];
+          collectionData = data; // as T[]; // as any
 
-          const reads$ = [];
+          const reads$: Observable<K | {}>[] = [];
           for (const doc of collectionData) {
             // Push doc read to Array
             // only get docs where shared key:value pair in both collections
+            // @ts-ignore // TODO: type checking / assertion
             if (doc[docIdField]) {
+              // if (docIdField in doc) {
               // Perform query to join key, with optional limit
-              const segments = coll.pathSegments ? getPaths(coll.pathSegments, doc) : [];
+              const segments = coll.pathSegments
+                ? getPaths(coll.pathSegments, doc as DocumentData)
+                : [];
 
-              const docRef = fsDoc(
+              const joinDocRef = fsDoc(
                 firestore,
                 coll.root,
-                ...segments,
-                // ...(coll.pathSegments || []),
+                ...segments, // @ts-ignore
                 doc[docIdField]
-              );
+              ) as DocumentReference<K>;
 
-              reads$.push(docData(docRef));
+              reads$.push(docData(joinDocRef));
             } else {
               reads$.push(of({}));
             }
@@ -65,7 +76,7 @@ export const populateById = (
 
           return combineLatest(reads$);
         }),
-        map((joins: any[]) => {
+        map((joins: (K | {})[]) => {
           console.log('JOINS: ', joins);
           const lastSegment =
             coll.pathSegments && coll.pathSegments.length > 0
@@ -81,9 +92,9 @@ export const populateById = (
           //   coll.pathSegments ? `:` + coll.pathSegments.join(':') : ''
           // }`;
 
-          // @ts-ignore
           return collectionData.map((v, i) => {
-            totalJoins += joins[i]?.length || 0;
+            // @ts-ignore
+            if (joins[i]) totalJoins += joins[i]?.length || 0;
             return { ...v, [keyName]: joins[i] || null };
           });
         }),

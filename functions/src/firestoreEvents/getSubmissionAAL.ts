@@ -1,27 +1,27 @@
 import type { FirestoreEvent } from 'firebase-functions/v2/firestore';
 import type { QueryDocumentSnapshot } from 'firebase-admin/firestore';
+import { info } from 'firebase-functions/logger';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import invariant from 'tiny-invariant';
 
 import {
   swissReResCollection,
-  COLLECTIONS,
   Submission,
   usersCollection,
   swissReClientId,
   swissReClientSecret,
   swissReSubscriptionKey,
+  defaultFloodZone,
+  defaultCommissionAsInt,
+  ratingDataCollection,
 } from '../common';
 import { getAALs, GetAALsProps, getPremium, validateGetAALsProps } from '../utils/rating';
-
-// const swissReClientId = defineSecret('SWISS_RE_CLIENT_ID');
-// const swissReClientSecret = defineSecret('SWISS_RE_CLIENT_SECRET');
-// const swissReSubscriptionKey = defineSecret('SWISS_RE_SUBSCRIPTION_KEY');
+import type { GetAALRes } from '../utils/rating/getAALs';
 
 // TODO: get commission if submitted by agent
 // TODO: HOW IS COMM HANDLED BETWEEN SUB AND QUOTE ?? how does quote form know what to pre-fill with if agent's commission is different than 15% ?? include commission in subission doc ??
 
-const DEFAULT_COMMISSION = 0.15;
+// const DEFAULT_COMMISSION = 0.15;
 
 export default async (
   event: FirestoreEvent<
@@ -38,20 +38,31 @@ export default async (
   }
   const sub = snap.data() as Submission;
   const db = getFirestore();
-  let commissionPct = DEFAULT_COMMISSION;
+  let commissionPct = defaultCommissionAsInt.value() / 100;
 
+  // If submitted by userId present, fetch user and check to see if they have a default commission set
+  // TODO: refactor to use agent.userId
   if (sub.submittedById) {
     let userSnap = await usersCollection(db).doc(sub.submittedById).get();
     const data = userSnap.data();
-    if (data?.defaultCommission)
-      commissionPct = data.defaultCommission?.flood ?? DEFAULT_COMMISSION;
+    let agentFloodComm = data?.defaultCommission?.flood;
+    if (
+      agentFloodComm &&
+      typeof agentFloodComm === 'number' &&
+      agentFloodComm > 0 &&
+      agentFloodComm <= 0.2
+    ) {
+      commissionPct = agentFloodComm;
+    }
   }
 
   const srClientId = swissReClientId.value();
   const srClientSecret = swissReClientSecret.value();
   const srSubKey = swissReSubscriptionKey.value();
 
-  let ratingUpdates: { [key: string]: number } = { inlandAAL: 0, surgeAAL: 0 };
+  let AALs: GetAALRes | undefined;
+  // let ratingUpdates: { [key: string]: number } = { inlandAAL: 0, surgeAAL: 0 };
+  // let srRequestId TODO: save swiss re request id with rating data
 
   try {
     const srVals: Partial<GetAALsProps> = {
@@ -68,41 +79,16 @@ export default async (
     validateGetAALsProps(srVals);
 
     // @ts-ignore
-    const AALs = await getAALs({
+    AALs = await getAALs({
       srClientId,
       srClientSecret,
       srSubKey,
       ...srVals,
     });
-    ratingUpdates = {
-      inlandAAL: AALs.inlandAAL,
-      surgeAAL: AALs.surgeAAL,
-    };
-    // fetch SR data
-    // const xmlBodyVars = getSRVars(sub);
-    // const body = swissReBody(xmlBodyVars);
-    // const { data } = await swissReInstance.post('/rate/sync/srxplus/losses', body, {
-    //   headers: {
-    //     'Content-Type': 'application/octet-stream',
-    //   },
-    // });
-    // // extract AALs
-    // console.log('SWISS RE RES: ', data);
-    // let code200Index = data.expectedLosses.findIndex(
-    //   (floodObj: any) => floodObj.perilCode === '200'
-    // );
-    // let code300Index = data.expectedLosses.findIndex(
-    //   (floodObj: any) => floodObj.perilCode === '300'
-    // );
-
-    // if (code200Index !== -1) {
-    //   ratingUpdates.surgeAAL = data.expectedLosses[code200Index]?.preCatLoss ?? 0;
-    // }
-    // if (code300Index !== -1) {
-    //   ratingUpdates.inlandAAL = data.expectedLosses[code300Index]?.preCatLoss ?? 0;
-    // }
-
-    // console.log(`AAL: ${JSON.stringify(ratingUpdates)}`);
+    // ratingUpdates = {
+    //   inlandAAL: AALs.inlandAAL,
+    //   surgeAAL: AALs.surgeAAL,
+    // };
 
     const swissReRef = await swissReResCollection(db).add({
       ...AALs.srRes,
@@ -115,12 +101,26 @@ export default async (
         postal: sub.postal,
       },
       coordinates: sub.coordinates,
+      requestValues: {
+        replacementCost: srVals.replacementCost || null,
+        limitA: srVals.limitA || null,
+        limitB: srVals.limitB || null,
+        limitC: srVals.limitC || null,
+        limitD: srVals.limitD || null,
+        latitude: srVals.latitude || null,
+        longitude: srVals.longitude || null,
+        deductible: srVals.deductible || null,
+        numStories: srVals.numStories || null,
+      },
     });
-    console.log(
-      `SWISS RE DOC SAVED: ${swissReRef.id} - AALs =>  inland: ${AALs.inlandAAL}; surge: ${AALs.surgeAAL}`
+    info(
+      `SWISS RE DOC SAVED: ${swissReRef.id} - AALs =>  inland: ${AALs.inlandAAL}; surge: ${AALs.surgeAAL}`,
+      {
+        ...AALs,
+      }
     );
 
-    // update submission doc
+    // update submission doc with AALs
     await snap.ref.update({ inlandAAL: AALs.inlandAAL, surgeAAL: AALs.surgeAAL });
   } catch (err) {
     console.log('ERROR FETCHING SR AAL DATA', err);
@@ -129,7 +129,8 @@ export default async (
 
   // CALCULATE ANNUAL PREMIUM
   try {
-    const { inlandAAL, surgeAAL } = ratingUpdates;
+    // const { inlandAAL, surgeAAL } = ratingUpdates;
+    const { inlandAAL, surgeAAL } = AALs;
     invariant(typeof inlandAAL === 'number');
     invariant(typeof surgeAAL === 'number');
 
@@ -140,7 +141,7 @@ export default async (
       limitB: sub.limitB,
       limitC: sub.limitC,
       limitD: sub.limitD,
-      floodZone: sub.floodZone || 'X',
+      floodZone: sub.floodZone || defaultFloodZone.value(),
       state: sub.state,
       basement: sub.basement,
       priorLossCount: sub.priorLossCount,
@@ -148,7 +149,10 @@ export default async (
     });
     const { premiumData } = result;
 
-    await db.collection(COLLECTIONS.RATING_DATA).add({
+    // TODO: move saving rating data to it's own try/catch ?? see getAnnualPremium
+    const ratingColRef = ratingDataCollection(db);
+    // await db.collection(COLLECTIONS.RATING_DATA).add({
+    await ratingColRef.add({
       submissionId: snap.id,
       deductible: sub.deductible,
       limits: {
@@ -158,29 +162,40 @@ export default async (
         limitD: sub.limitD,
       },
       tiv: result.tiv,
-      replacementCost: sub.replacementCost,
+      // replacementCost: sub.replacementCost,
+      rcvs: {
+        // TODO: change getAAL func to use same rcv keys (rcvA -> building, etc.)
+        building: AALs.rcvs.rcvA,
+        otherStructures: AALs.rcvs.rcvB,
+        contents: AALs.rcvs.rcvC,
+        BI: AALs.rcvs.rcvD,
+        total: AALs.rcvs.total,
+      },
+      ratingPropertyData: {
+        replacementCost: sub.replacementCost || null,
+        basement: sub.basement || null,
+        floodZone: sub.floodZone || null,
+        numStories: sub.numStories || null,
+        propertyCode: null,
+        CBRSDesignation: null,
+        distToCoastFeet: null,
+        sqFootage: null,
+        yearBuilt: null,
+        ffe: null,
+        // priorLossCount: sub.priorLossCount || null, // TODO: fix confiction with priorLossCount in Submission doc
+      },
       aal: {
         inland: inlandAAL,
         surge: surgeAAL,
       },
+      premiumCalcData: result.premiumData,
       pm: result.pm,
       riskScore: result.riskScore,
       stateMultipliers: result.stateMultipliers,
       secondaryFactorMults: result.secondaryFactorMults,
-      floodZone: sub.floodZone || 'X',
-      basement: sub.basement,
-      ffe: 0,
-      numStories: sub.numStories,
-      sqFootage: sub.sqFootage,
-      distToCoast: sub.distToCoastFeet,
-      propertyCode: sub.propertyCode,
-      yearBuilt: sub.yearBuilt,
-      CBRSDesignation: sub.CBRSDesignation,
-      priorLossCount: sub.priorLossCount,
-      premiumData,
       address: {
         addressLine1: sub.addressLine1,
-        addressLine2: sub.addressLine2 || null,
+        addressLine2: sub.addressLine2 || '',
         city: sub.city,
         state: sub.state,
         postal: sub.postal,
@@ -197,111 +212,9 @@ export default async (
       subproducerCommission: commissionPct,
     });
 
-    console.log(`UPDATED SUBMISSION ${snap.id} - PREMIUM: ${premiumData.directWrittenPremium}`);
-
-    // const { inlandAAL, surgeAAL } = ratingUpdates;
-
-    // invariant(typeof inlandAAL === 'number', 'inland AAL required');
-    // invariant(typeof surgeAAL === 'number', 'surge AAL required');
-    // invariant(sub.state, 'state required');
-    // invariant(sub.basement, 'state required');
-
-    // const tiv = calcSum([sub.limitA, sub.limitB, sub.limitC, sub.limitD]);
-
-    // const minPremium = getMinPremium(sub.floodZone || 'D', tiv);
-
-    // const pm = {
-    //   inland: getPM(inlandAAL, tiv),
-    //   surge: getPM(surgeAAL, tiv),
-    // };
-    // const riskScore = {
-    //   inland: getInlandRiskScore(pm.inland),
-    //   surge: getSurgeRiskScore(pm.surge),
-    // };
-    // // Flood type multipliers by state
-    // const { inlandStateMult = 1.5, surgeStateMult = 3 } = multipliersByState[sub.state];
-
-    // let secondaryFactorMults = getSecondaryFactorMults({
-    //   ffe: 0,
-    //   basement: sub.basement,
-    //   priorLossCount: sub.priorLossCount,
-    //   inlandRiskScore: riskScore.inland,
-    //   surgeRiskScore: riskScore.surge,
-    // });
-
-    // let premiumData = getPremiumData({
-    //   AAL: {
-    //     inland: inlandAAL,
-    //     surge: surgeAAL,
-    //   },
-    //   secondaryFactorMults,
-    //   stateMultipliers: {
-    //     inland: inlandStateMult,
-    //     surge: surgeStateMult,
-    //   },
-    //   minPremium,
-    //   subproducerComPct: commissionPct,
-    // });
-
-    // console.log('PREMIUM DATA: ', premiumData);
-    // if (!premiumData.directWrittenPremium) throw new Error('Missing DWP');
-
-    // await db.collection(COLLECTIONS.RATING_DATA).add({
-    //   submissionId: snap.id,
-    //   deductible: sub.deductible,
-    //   limits: {
-    //     limitA: sub.limitA,
-    //     limitB: sub.limitB,
-    //     limitC: sub.limitC,
-    //     limitD: sub.limitD,
-    //   },
-    //   tiv,
-    //   replacementCost: sub.replacementCost,
-    //   aal: {
-    //     inland: inlandAAL,
-    //     surge: surgeAAL,
-    //   },
-    //   pm,
-    //   riskScore,
-    //   stateMultipliers: {
-    //     inland: inlandStateMult,
-    //     surge: surgeStateMult,
-    //   },
-    //   secondaryFactorMults,
-    //   floodZone: sub.floodZone,
-    //   basement: sub.basement,
-    //   ffe: 0,
-    //   numStories: sub.numStories,
-    //   sqFootage: sub.sqFootage,
-    //   distToCoast: sub.distToCoastFeet,
-    //   propertyCode: sub.propertyCode,
-    //   yearBuilt: sub.yearBuilt,
-    //   CBRSDesignation: sub.CBRSDesignation,
-    //   priorLossCount: sub.priorLossCount,
-    //   premiumData: {
-    //     minPremium,
-    //     ...premiumData,
-    //   },
-    //   address: {
-    //     addressLine1: sub.addressLine1,
-    //     addressLine2: sub.addressLine2 || null,
-    //     city: sub.city,
-    //     state: sub.state,
-    //     postal: sub.postal,
-    //   },
-    //   coordinates: sub.coordinates,
-    //   metadata: {
-    //     created: Timestamp.now(),
-    //     updated: Timestamp.now(),
-    //   },
-    // });
-
-    // await snap.ref.update({
-    //   annualPremium: premiumData.directWrittenPremium,
-    //   subproducerCommission: commissionPct,
-    // });
-
-    // console.log(`UPDATED SUBMISSION ${snap.id} - PREMIUM: ${premiumData.directWrittenPremium}`);
+    info(`UPDATED SUBMISSION ${snap.id} - PREMIUM: ${premiumData.directWrittenPremium}`, {
+      ...result,
+    });
   } catch (err) {
     console.log('ERROR CALCULATING QUOTE: ', err);
     return;

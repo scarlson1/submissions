@@ -104,11 +104,17 @@ export const finTrxCollection = (db: Firestore) =>
   createCollection<Charge>(db, COLLECTIONS.FIN_TRANSACTIONS);
 
 // SUB COLLECTIONS
-export const userClaimsCollection = (db: Firestore, orgId: string) =>
-  createCollection<UserClaims>(db, COLLECTIONS.ORGANIZATIONS, orgId, COLLECTIONS.USER_CLAIMS);
-export const invitesCollection = (db: Firestore, orgId: string, ...rest: any) =>
+export const userClaimsCollection = (db: Firestore, orgId: string, ...rest: string[]) =>
+  createCollection<UserClaims>(
+    db,
+    COLLECTIONS.ORGANIZATIONS,
+    orgId,
+    COLLECTIONS.USER_CLAIMS,
+    ...rest
+  );
+export const invitesCollection = (db: Firestore, orgId: string, ...rest: string[]) =>
   createCollection<Invite>(db, COLLECTIONS.ORGANIZATIONS, orgId, COLLECTIONS.INVITES, ...rest);
-export const paymentMethodsCollection = (db: Firestore, userId: string, ...rest: any) =>
+export const paymentMethodsCollection = (db: Firestore, userId: string, ...rest: string[]) =>
   createCollection<PaymentMethod>(
     db,
     COLLECTIONS.USERS,
@@ -116,7 +122,7 @@ export const paymentMethodsCollection = (db: Firestore, userId: string, ...rest:
     COLLECTIONS.PAYMENT_METHODS,
     ...rest
   );
-export const policyChangeReqestsCollection = (db: Firestore, policyId: string, ...rest: any) =>
+export const policyChangeReqestsCollection = (db: Firestore, policyId: string, ...rest: string[]) =>
   createCollection<ChangeRequest>(
     db,
     COLLECTIONS.POLICIES,

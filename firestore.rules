@@ -51,7 +51,8 @@ service cloud.firestore {
     }
 
     match /policies/{policyId} {
-      allow read: if isSignedIn() && (isUser(existingData().userId) || isIDemandAdmin())
+      // TODO: change agent.agentId to agent.userId
+      allow read: if isSignedIn() && (isUser(existingData().userId) || isAgent(existingData().agent.agentId) || (isOrgAdmin() && isTenantUser(existingData().agency.orgId)) || isIDemandAdmin()) // && isTenantUser(orgId)
       allow create: if isIDemandAdmin() && emailVerified()
       allow update: if isIDemandAdmin() && emailVerified()
       allow delete: if false
@@ -96,9 +97,15 @@ service cloud.firestore {
 
     match /organizations/{orgId}/userClaims/{userId} {
       allow read: if (isSignedIn() && isTenantUser(orgId)) || isIDemandAdmin()
-      allow create, update: if isSignedIn() && emailVerified() && (isIDemandAdmin() || (isOrgAdmin() && isTenantUser(orgId)))
+      // _lastCommitted is set in mirrorCustomClaims function and should never be set by user
+      allow create, update: if isSignedIn() && emailVerified() && (isIDemandAdmin() || (isOrgAdmin() && isTenantUser(orgId))) && (!request.resource.data.keys().hasAny(['_lastCommitted']))
       allow delete: if false
     }
+
+    // // Allow the client to update a document only if that document doesn't
+    // // change the average_score or rating_count fields
+    // allow update: if (!request.resource.data.diff(resource.data).affectedKeys()
+    //   .hasAny(['average_score', 'rating_count']));
     
     match /{paths=**}/invitations/{inviteId} {
       allow read, create, update, delete: if isIDemandAdmin()

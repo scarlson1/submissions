@@ -13,6 +13,7 @@ import { from, groupBy, map, mergeMap, tap, toArray } from 'rxjs';
 import { innerJoin } from 'modules/rxOperators/innerJoin';
 import { docJoin } from 'modules/rxOperators/docJoin';
 import { populateById } from 'modules/rxOperators/innerJoinById';
+import { DocumentData } from 'rxfire/firestore/interfaces';
 
 // example group: https://stackoverflow.com/a/56307873
 // DONT USE GROUPBY WITH INFINITE STREAMS
@@ -61,13 +62,17 @@ export const useCollectionDataInnerJoin = <T>(
   return useObservable(observable1Id, combinedObservable$, options);
 };
 
-export const useCollectionDataPopulateById = <T>(
+export const useCollectionDataPopulateById = <
+  JoinKey extends string,
+  T = DocumentData,
+  K = DocumentData
+>(
   query: Query<T>,
-  joinField: string,
+  joinField: JoinKey,
   coll: { root: string; pathSegments?: string[] },
   // withCollection: string,
   // pathSegments: string[] = [],
-  options: ReactFireOptions<T[]> = {}
+  options: ReactFireOptions<T & { [key in JoinKey]: K }[]> = {}
 ) => {
   const idField = options ? checkIdField(options) : 'NO_ID_FIELD';
   const idSegments = coll.pathSegments ? `:${coll.pathSegments.join(':')}` : '';
@@ -77,7 +82,9 @@ export const useCollectionDataPopulateById = <T>(
   )}:innerJoin:${joinField}:${coll.root}${idSegments}:idField=${idField}`;
 
   const policies$ = collectionData<T>(query, options);
-  const combinedObservable$ = policies$.pipe(populateById(getFirestore(), joinField, coll));
+  const combinedObservable$ = policies$.pipe(
+    populateById<JoinKey, T, K>(getFirestore(), joinField, coll)
+  );
 
   // TODO: need to incorporate merged query into observableId
   // ADD `innerJoin:${joinfields}` before idField=... ??

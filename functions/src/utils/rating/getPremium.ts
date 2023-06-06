@@ -1,6 +1,6 @@
-import { calcSum } from '../../common/index.js';
+import { PremiumCalcData, ValueByRiskType, calcSum, defaultFloodZone } from '../../common/index.js';
 import { getPremiumData } from './calcPremium.js';
-import { getPM, getSecondaryFactorMults } from './factors.js';
+import { SecondaryFactorMults, getPM, getSecondaryFactorMults } from './factors.js';
 import { getMinPremium } from './minPremium.js';
 import { multipliersByState } from './multipliersByState.js';
 import { getInlandRiskScore, getSurgeRiskScore } from './riskScore.js';
@@ -20,7 +20,17 @@ interface GetPremiumProps {
   isPortfolio?: boolean;
 }
 
-export const getPremium = (props: GetPremiumProps) => {
+export interface GetPremiumCalcResult {
+  premiumData: PremiumCalcData;
+  tiv: number;
+  minPremium: number;
+  secondaryFactorMults: SecondaryFactorMults;
+  stateMultipliers: ValueByRiskType;
+  riskScore: ValueByRiskType;
+  pm: ValueByRiskType;
+}
+
+export const getPremium = (props: GetPremiumProps): GetPremiumCalcResult => {
   const {
     inlandAAL,
     surgeAAL,
@@ -28,7 +38,7 @@ export const getPremium = (props: GetPremiumProps) => {
     limitB,
     limitC,
     limitD,
-    floodZone = 'X',
+    floodZone,
     state,
     basement = 'unknown',
     priorLossCount,
@@ -36,9 +46,10 @@ export const getPremium = (props: GetPremiumProps) => {
     isPortfolio = false,
   } = props;
 
+  // TODO: redundant ?? also summed in getPremiumData
   const tiv = calcSum([limitA, limitB, limitC, limitD]);
 
-  const minPremium = getMinPremium(floodZone || 'D', tiv, isPortfolio);
+  const minPremium = getMinPremium(floodZone || defaultFloodZone.value(), tiv, isPortfolio);
 
   const pm = {
     inland: getPM(inlandAAL, tiv),

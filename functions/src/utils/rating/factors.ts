@@ -1,5 +1,6 @@
 // import { info } from 'firebase-functions/logger';
 
+import { Nullable, ValueByRiskType } from '../../common/types.js';
 import { getFirstFloorDiffFactors } from './firstFloorDiff.js';
 
 const CONTENTS_RCV_MULT = 1;
@@ -121,6 +122,19 @@ export const calcSecondaryMult = (historyMult: number, ffeFactor: number, baseme
 
   return mult;
 };
+export interface SecondaryFactorMults {
+  inland: number;
+  surge: number;
+  secondaryFactorMultsByFactor: {
+    ffeMult: ValueByRiskType;
+    basementMult: number;
+    historyMult: Nullable<ValueByRiskType>;
+    contentsMult: number;
+    ordinanceMult: number;
+    distanceToCoastMult: number;
+    tier1Mult: number;
+  };
+}
 
 export function getSecondaryFactorMults(props: SecondaryModifiersProps) {
   const { ffeMult, basementMult, history } = getSecondaryModifiers(props);
@@ -130,9 +144,10 @@ export function getSecondaryFactorMults(props: SecondaryModifiersProps) {
   // info('history: ', JSON.stringify(history));
 
   if (!history.inland || !history.surge) {
-    console.log('FAILED HISTORY TEST. ALLOWING BYPASS WITH MULTPLE = 1.5');
-    history.inland = 1.5;
-    history.surge = 1.5;
+    // console.log('FAILED HISTORY TEST. ALLOWING BYPASS WITH MULTPLE = 1.5');
+    // history.inland = 1.5;
+    // history.surge = 1.5;
+    throw new Error('Underwriting violation - prior loss count');
   }
 
   let inlandSecondaryMult = calcSecondaryMult(history.inland, ffeMult.inland, basementMult);

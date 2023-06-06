@@ -50,6 +50,7 @@ export { useGeoSearch } from './useGeoSearch';
 export { useAlgoliaSearchKey } from './useAlgoliaSearchKey';
 export { useSendEmail } from './useSendEmail';
 export { useSafeParams } from './useSafeParams';
+export { useUpdateClaims } from './useUpdateClaims';
 
 export type { UseFileUploadProps } from './useFileUpload';
 export type { UseSendPasswordResetProps } from './useSendPasswordReset';

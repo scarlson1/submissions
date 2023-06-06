@@ -18,6 +18,7 @@ import {
 import { filterUniqueArr, removeFromArr } from './helpers.js';
 import { round } from 'lodash';
 import { cardFeePct } from './environmentVars.js';
+import { SecondaryFactorMults } from '../utils/rating/factors.js';
 
 // TODO: fix typescript error app.use(thisMiddleware) is users.ts
 
@@ -325,6 +326,7 @@ export interface FloodFormValues {
   userAcceptance: boolean;
 }
 
+// TODO: derive getAAL props from RatingPropertyData ??
 export interface RatingPropertyData {
   CBRSDesignation: string;
   basement: string;
@@ -336,6 +338,7 @@ export interface RatingPropertyData {
   sqFootage: number;
   yearBuilt: number;
   ffe?: number;
+  // priorLossCount?: string | number | null;
 }
 // export interface RatingPropertyData {
 //   CBRSDesignation: string | null;
@@ -349,6 +352,25 @@ export interface RatingPropertyData {
 //   yearBuilt: number | null;
 //   ffe?: number | null;
 // }
+
+export interface RatingData extends BaseDoc {
+  submissionId: string | null;
+  locationId?: string | null; // any point to locationId at this stage ? pre policy ??
+  externalId?: string | null;
+  limits: Limits;
+  tiv: number;
+  deductible: number;
+  rcvs: RCVs;
+  ratingPropertyData: Nullable<RatingPropertyData>;
+  premiumCalcData: PremiumCalcData;
+  aal: Nullable<ValueByRiskType>;
+  pm: ValueByRiskType;
+  riskScore: ValueByRiskType;
+  stateMultipliers: ValueByRiskType;
+  secondaryFactorMults: SecondaryFactorMults;
+  address?: Address | null;
+  coordinates: GeoPoint;
+}
 
 export interface FetchPropertyDataResponse extends Partial<RatingPropertyData> {
   initDeductible: number;
@@ -850,21 +872,18 @@ export interface ChangeRequest extends BaseDoc {
 //   metadata: BaseMetadata;
 // }
 
-interface PremiumCalcData {
-  minPremium: number;
-  techPremium: {
-    inland: number;
-    surge: number;
-  };
-  floodCategoryPremium: {
-    inland: number;
-    surge: number;
-  };
+export type ValueByRiskType = Record<'inland' | 'surge', number>;
+
+export interface PremiumCalcData {
+  techPremium: ValueByRiskType;
+  floodCategoryPremium: ValueByRiskType;
   premiumSubtotal: number;
   provisionalPremium: number;
   subproducerAdj: number;
-  directWrittenPremium: number;
   subproducerCommissionPct: number;
+  minPremium: number;
+  minPremiumAdj: number;
+  directWrittenPremium: number;
 }
 
 export interface TrxRatingData extends RatingPropertyData {
@@ -1016,6 +1035,17 @@ export interface VerifyEPayTokenResponse extends EPayPaymentMethodDetails {
   };
 }
 
+export interface GetAALRequest {
+  replacementCost: number;
+  limitA: number;
+  limitB: number;
+  limitC: number;
+  limitD: number;
+  latitude: number;
+  longitude: number;
+  deductible: number;
+  numStories: number;
+}
 export interface SRPerilAAL {
   tiv: number;
   fguLoss: number;
@@ -1046,6 +1076,7 @@ export interface SRResWithAAL extends SRRes {
     postal: string;
   };
   coordinates?: GeoPoint;
+  requestValues?: Nullable<GetAALRequest>;
 }
 
 export interface FIPSDetails {

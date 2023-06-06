@@ -59,7 +59,7 @@ export const Policies: React.FC = () => {
       </Container>
     );
 
-  if ((customClaims.agent || customClaims.orgAdmin) && user?.tenantId)
+  if (customClaims.orgAdmin && user?.tenantId)
     return (
       <Container maxWidth='lg' sx={{ py: { xs: 4, md: 6 } }}>
         <Box>
@@ -67,6 +67,22 @@ export const Policies: React.FC = () => {
           <PoliciesGrid
             queryConstraints={[
               where('agency.orgId', '==', `${user?.tenantId}`),
+              orderBy('metadata.created', 'desc'),
+              limit(100),
+            ]}
+          />
+        </Box>
+      </Container>
+    );
+
+  if (customClaims.agent && user?.uid)
+    return (
+      <Container maxWidth='lg' sx={{ py: { xs: 4, md: 6 } }}>
+        <Box>
+          {header}
+          <PoliciesGrid
+            queryConstraints={[
+              where('agent.userId', '==', `${user?.uid}`),
               orderBy('metadata.created', 'desc'),
               limit(100),
             ]}

@@ -1,9 +1,9 @@
 import React from 'react';
 import {
-  Checkbox,
+  Box,
+  // Checkbox,
+  Chip,
   ListItemText,
-  MenuItem,
-  Select,
   SelectChangeEvent,
   SelectProps,
   unstable_useEnhancedEffect as useEnhancedEffect,
@@ -23,20 +23,15 @@ import {
 import { GridBaseColDef } from '@mui/x-data-grid/internals';
 import { isEscapeKey } from '@mui/x-data-grid/utils/keyboardUtils';
 
-const defGetOptionValue = (option: string | number | Record<string, any>) => {
-  if (typeof option === 'string' || typeof option === 'number') return option;
-  return option?.value || '';
-};
+// DOCS: https://mui.com/x/react-data-grid/editing/#create-your-own-edit-component
 
-const defGetOptionLabel = (option: string | number | Record<string, any>) => {
-  if (typeof option === 'string' || typeof option === 'number') return option;
-  return option?.label || '';
-};
+// SINGLE SELECT EDIT COMPONENT:
+// https://github.com/mui/mui-x/blob/master/packages/grid/x-data-grid/src/components/cell/GridEditSingleSelectCell.tsx
 
-// export function CustomEditMultiSelectComponent(props: any) {
 export function GridEditMultiSelectCell(props: GridEditMultiSelectCellProps) {
-  console.log('CUSTOM MULTI SELECT PROPS: ', props);
+  // console.log('CUSTOM MULTI SELECT PROPS: ', props);
   const rootProps = useGridRootProps();
+  // console.log('GRID ROOT PROPS: ', rootProps);
 
   const {
     id,
@@ -70,6 +65,12 @@ export function GridEditMultiSelectCell(props: GridEditMultiSelectCellProps) {
   const isSelectNative = baseSelectProps.native ?? false;
   const { MenuProps, ...otherBaseSelectProps } = rootProps.slotProps?.baseSelect || {};
 
+  useEnhancedEffect(() => {
+    if (hasFocus) {
+      inputRef.current?.focus();
+    }
+  }, [hasFocus]);
+
   let valueOptions: Array<ValueOptions> | undefined;
   // @ts-ignore
   if (typeof colDef?.valueOptions === 'function') {
@@ -89,31 +90,34 @@ export function GridEditMultiSelectCell(props: GridEditMultiSelectCellProps) {
 
   const handleChange = async (event: SelectChangeEvent) => {
     if (!isMultiSelectColDef(colDef) || !valueOptions) {
-      console.log('RETURNING EARLY');
       return;
     }
 
-    setOpen(false);
+    !!colDef.closeOnChange && setOpen(false);
     const target = event.target as HTMLInputElement;
-    console.log('TARGET.VALUE: ', target.value);
     let tval = typeof target.value === 'string' ? [target.value] : target.value;
     // NativeSelect casts the value to a string.
     const formattedTargetValue = tval.map((v) =>
-      getValueFromValueOptions(target.value, valueOptions, getOptionValue)
+      getValueFromValueOptions(v, valueOptions, getOptionValue)
     );
+    // getValueFromValueOptions(target.value, valueOptions, getOptionValue)
 
     if (onValueChange) {
-      console.log('CALLING ON VALUE CHANGE');
       await onValueChange(event, formattedTargetValue);
     }
-    console.log('FORMATTED TARGET VALUE: ', formattedTargetValue);
-    await apiRef.current.setEditCellValue({ id, field, value: formattedTargetValue }, event);
-    // const newValue = typeof eventValue === 'string' ? eventValue.split(',') : eventValue;
-    // apiRef.current.setEditCellValue({
-    //   id,
-    //   field,
-    //   value: newValue.filter((x: string) => x !== ''),
-    // });
+
+    const isValid = await apiRef.current.setEditCellValue(
+      {
+        id,
+        field,
+        value: formattedTargetValue,
+      },
+      event
+    );
+    // with auto-stop (exits edit mode without needing to click away):
+    if (isValid && colDef.autoStopEditMode) {
+      apiRef.current.stopCellEditMode({ id, field });
+    }
   };
 
   const handleClose = (event: React.KeyboardEvent, reason: string) => {
@@ -140,16 +144,34 @@ export function GridEditMultiSelectCell(props: GridEditMultiSelectCellProps) {
   };
 
   return (
-    <Select
+    <rootProps.slots.baseSelect
       labelId={`multi-select-${id}-label`}
       id={`multi-select-${id}`}
       inputRef={inputRef}
       multiple
       value={valueProp}
       onChange={handleChange}
-      sx={{ width: '100%' }}
+      error={error}
       open={open}
       onOpen={handleOpen}
+      sx={{
+        width: '100%',
+        maxHeight: `${api.unstable_getRowHeight(id) || 52}px`,
+        '& #simple-select': {
+          whiteSpace: 'normal',
+        },
+      }} // TODO: extract row height from props and set maxHeight
+      // can use autocomplete & limitTags to fix overflow issue
+      // https://mui.com/material-ui/react-autocomplete/#limit-tags
+      // input={<OutlinedInput id='select-multiple-chip' label='Chip' />}
+      // TODO: use grid slot props to render default (match how its displayed when not editing ??)
+      renderValue={(selected: string[]) => (
+        <Box sx={{ display: 'flex', flexWrap: 'nowrap', gap: 0.5 }}>
+          {selected.map((value: string) => (
+            <Chip key={value} label={value} size='small' sx={{ minWidth: 0 }} />
+          ))}
+        </Box>
+      )}
       native={isSelectNative}
       MenuProps={{
         onClose: handleClose,
@@ -162,39 +184,23 @@ export function GridEditMultiSelectCell(props: GridEditMultiSelectCellProps) {
         const val = getOptionValue(valueOption);
 
         return (
-          <MenuItem key={val} value={val}>
-            <Checkbox checked={valueProp.indexOf(val) > -1} />
+          <rootProps.slots.baseSelectOption
+            {...(rootProps.slotProps?.baseSelectOption || {})}
+            native={isSelectNative}
+            key={val}
+            value={val}
+          >
+            {/* <Checkbox checked={valueProp.indexOf(val) > -1} /> */}
             <ListItemText primary={getOptionLabel(valueOption)} />
-          </MenuItem>
-          // <MenuItem key={option} value={option}>
-          //   {option}
-          // </MenuItem>
+          </rootProps.slots.baseSelectOption>
         );
-        // TODO: use grid slots
-        // return (
-        //   <rootProps.slots.baseSelectOption
-        //     {...(rootProps.slotProps?.baseSelectOption || {})}
-        //     native={isSelectNative}
-        //     key={value}
-        //     value={value}
-        //   >
-        //     {getOptionLabel(valueOption)}
-        //   </rootProps.slots.baseSelectOption>
-        // );
       })}
-    </Select>
+    </rootProps.slots.baseSelect>
   );
 }
 
-// DOCS: https://mui.com/x/react-data-grid/editing/#create-your-own-edit-component
-
-// SINGLE SELECT EDIT COMPONENT:
-// https://github.com/mui/mui-x/blob/master/packages/grid/x-data-grid/src/components/cell/GridEditSingleSelectCell.tsx
-
 /**
- * Column Definition interface used for columns with the `singleSelect` type.
- * @demos
- *   - [Special column properties](/x/react-data-grid/column-definition/#special-properties)
+ * Column Definition interface used for columns with the `multiSelect` type.
  */
 export interface GridMultiSelectColDef<R extends GridValidRowModel = any, V = any, F = V>
   extends GridBaseColDef<R, V, F> {
@@ -219,10 +225,20 @@ export interface GridMultiSelectColDef<R extends GridValidRowModel = any, V = an
    * @returns {string} The value to be used.
    */
   getOptionValue?: (value: ValueOptions) => any;
+  // /**
+  //  * trigger stop edit mode when value changes (instead of click away)
+  //  */
+  // autoStopEditMode?: boolean;
 }
 
+// Add custom props to multiSelect column def
+type MultiSelectColDef = GridRenderEditCellParams['colDef'] & {
+  closeOnChange?: boolean;
+  autoStopEditMode?: boolean;
+};
+
 export interface GridEditMultiSelectCellProps
-  extends GridRenderEditCellParams,
+  extends Omit<GridRenderEditCellParams, 'colDef'>,
     Omit<SelectProps, 'id' | 'tabIndex' | 'value'>,
     Pick<GridSingleSelectColDef, 'getOptionLabel' | 'getOptionValue'> {
   /**
@@ -236,10 +252,7 @@ export interface GridEditMultiSelectCellProps
    * If true, the select opens by default.
    */
   initialOpen?: boolean;
-}
-
-function isKeyboardEvent(event: any): event is React.KeyboardEvent {
-  return !!event.key;
+  colDef: MultiSelectColDef;
 }
 
 // SINGLE SELECT UTILS REF: https://github.com/mui/mui-x/blob/master/packages/grid/x-data-grid/src/components/panel/filterPanel/filterPanelUtils.ts
@@ -268,190 +281,16 @@ export function getLabelFromValueOption(valueOption: ValueOptions) {
   return label != null ? String(label) : '';
 }
 
-export function GridEditMultiSelectCellRef(props: GridEditMultiSelectCellProps) {
-  console.log('MULTI SELECT PROPS: ', props);
+const defGetOptionValue = (option: string | number | Record<string, any>) => {
+  if (typeof option === 'string' || typeof option === 'number') return option;
+  return option?.value || '';
+};
 
-  const rootProps = useGridRootProps();
-  const {
-    id,
-    value: valueProp,
-    formattedValue,
-    api,
-    field,
-    row,
-    rowNode,
-    colDef,
-    cellMode,
-    isEditable,
-    tabIndex,
-    className,
-    hasFocus,
-    isValidating,
-    isProcessingProps,
-    error,
-    onValueChange,
-    initialOpen = rootProps.editMode === GridEditModes.Cell,
-    getOptionLabel: getOptionLabelProp,
-    getOptionValue: getOptionValueProp,
-    ...other
-  } = props;
+const defGetOptionLabel = (option: string | number | Record<string, any>) => {
+  if (typeof option === 'string' || typeof option === 'number') return option;
+  return option?.label || '';
+};
 
-  const apiRef = useGridApiContext();
-  const ref = React.useRef<any>();
-  const inputRef = React.useRef<any>();
-  const [open, setOpen] = React.useState(initialOpen);
-
-  const baseSelectProps = rootProps.slotProps?.baseSelect || {};
-  const isSelectNative = baseSelectProps.native ?? false;
-  const { MenuProps, ...otherBaseSelectProps } = rootProps.slotProps?.baseSelect || {};
-
-  useEnhancedEffect(() => {
-    if (hasFocus) {
-      inputRef.current?.focus();
-    }
-  }, [hasFocus]);
-
-  if (!isMultiSelectColDef(colDef)) {
-    return null;
-  }
-
-  let valueOptions: Array<ValueOptions> | undefined;
-  if (typeof colDef?.valueOptions === 'function') {
-    valueOptions = colDef?.valueOptions({ id, row, field });
-  } else {
-    valueOptions = colDef?.valueOptions;
-  }
-
-  if (!valueOptions) {
-    return null;
-  }
-
-  const getOptionValue = getOptionValueProp || colDef.getOptionValue!;
-  const getOptionLabel = getOptionLabelProp || colDef.getOptionLabel!;
-
-  const handleChange: SelectProps['onChange'] = async (event) => {
-    if (!isMultiSelectColDef(colDef) || !valueOptions) {
-      return;
-    }
-
-    setOpen(false);
-    const target = event.target as HTMLInputElement;
-    // NativeSelect casts the value to a string.
-    // const formattedTargetValue = getValueFromValueOptions(
-    //   target.value,
-    //   valueOptions,
-    //   getOptionValue
-    // );
-
-    const formattedTargetValue = getValueFromValueOptions(
-      target.value,
-      valueOptions,
-      getOptionValue
-    );
-
-    if (onValueChange) {
-      await onValueChange(event, formattedTargetValue);
-    }
-
-    await apiRef.current.setEditCellValue({ id, field, value: formattedTargetValue }, event);
-  };
-
-  const handleClose = (event: React.KeyboardEvent, reason: string) => {
-    if (rootProps.editMode === GridEditModes.Row) {
-      setOpen(false);
-      return;
-    }
-    if (reason === 'backdropClick' || isEscapeKey(event.key)) {
-      const params = apiRef.current.getCellParams(id, field);
-      apiRef.current.publishEvent('cellEditStop', {
-        ...params,
-        reason: isEscapeKey(event.key)
-          ? GridCellEditStopReasons.escapeKeyDown
-          : GridCellEditStopReasons.cellFocusOut,
-      });
-    }
-  };
-
-  const handleOpen: SelectProps['onOpen'] = (event) => {
-    if (isKeyboardEvent(event) && event.key === 'Enter') {
-      return;
-    }
-    setOpen(true);
-  };
-
-  if (!valueOptions || !colDef) {
-    return null;
-  }
-
-  // const [personName, setPersonName] = React.useState<string[]>([]);
-
-  // const handleChange = (event: SelectChangeEvent<typeof personName>) => {
-  //   const {
-  //     target: { value },
-  //   } = event;
-  //   setPersonName(
-  //     // On autofill we get a stringified value.
-  //     typeof value === 'string' ? value.split(',') : value
-  //   );
-  // };
-
-  return (
-    <rootProps.slots.baseSelect
-      ref={ref}
-      inputRef={inputRef}
-      value={valueProp}
-      onChange={handleChange}
-      open={open}
-      onOpen={handleOpen}
-      MenuProps={{
-        onClose: handleClose,
-        ...MenuProps,
-      }}
-      error={error}
-      native={isSelectNative}
-      fullWidth
-      multiple
-      {...other}
-      {...otherBaseSelectProps}
-    >
-      {valueOptions.map((valueOption) => {
-        const value = getOptionValue(valueOption);
-
-        return (
-          <rootProps.slots.baseSelectOption
-            {...(rootProps.slotProps?.baseSelectOption || {})}
-            native={isSelectNative}
-            key={value}
-            value={value}
-          >
-            {getOptionLabel(valueOption)}
-          </rootProps.slots.baseSelectOption>
-        );
-      })}
-    </rootProps.slots.baseSelect>
-    // <div>
-    //   <FormControl sx={{ m: 1, width: 300 }}>
-    //     <InputLabel id='demo-multiple-name-label'>Name</InputLabel>
-    //     <Select
-    //       labelId='demo-multiple-name-label'
-    //       id='demo-multiple-name'
-    //       multiple
-    //       value={personName}
-    //       onChange={handleChange}
-    //       input={<OutlinedInput label='Name' />}
-    //       // MenuProps={MenuProps}
-    //     >
-    //       {names.map((name) => (
-    //         <MenuItem
-    //           key={name}
-    //           value={name}
-    //           // style={getStyles(name, personName, theme)}
-    //         >
-    //           {name}
-    //         </MenuItem>
-    //       ))}
-    //     </Select>
-    //   </FormControl>
-    // </div>
-  );
+function isKeyboardEvent(event: any): event is React.KeyboardEvent {
+  return !!event.key;
 }

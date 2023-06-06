@@ -3,33 +3,26 @@ import invariant from 'tiny-invariant';
 // import isLatLong from 'validator/es/lib/isLatLong';
 // import validator from 'validator';
 
-import { SRPerilAAL, SRRes, calcSum, isLatLng } from '../../common/index.js';
+import { GetAALRequest, SRPerilAAL, SRRes, isLatLng } from '../../common/index.js';
 import { getSwissReInstance } from '../../services';
 import { getRCVs } from './getRCVs.js';
 import { swissReBody } from './swissReBody.js';
 import { AxiosInstance } from 'axios';
+import { info } from 'firebase-functions/logger';
 
 let swissReInstance: AxiosInstance | undefined;
 
-export interface GetAALsProps {
+export interface GetAALsProps extends GetAALRequest {
   srClientId: string;
   srClientSecret: string;
   srSubKey: string;
-  replacementCost: number;
-  limitA: number;
-  limitB: number;
-  limitC: number;
-  limitD: number;
-  latitude: number;
-  longitude: number;
-  deductible: number;
-  numStories: number;
 }
 
-interface GetAALRes {
+export interface GetAALRes {
   inlandAAL: number;
   surgeAAL: number;
   srRes: SRRes;
+  rcvs: Record<'rcvA' | 'rcvB' | 'rcvC' | 'rcvD' | 'total', number>; // TODO: replce with RCVs in types
 }
 
 export const getAALs = async (props: GetAALsProps): Promise<GetAALRes> => {
@@ -51,8 +44,7 @@ export const getAALs = async (props: GetAALsProps): Promise<GetAALRes> => {
   const AALs: { [key: string]: number } = { inlandAAL: 0, surgeAAL: 0 };
 
   const RCVs = getRCVs(replacementCost, { limitA, limitB, limitC, limitD });
-  const rcvAB = RCVs.rvcA + RCVs.rcvB;
-  const rcvTotal = calcSum(Object.values(RCVs));
+  const rcvAB = RCVs.rcvA + RCVs.rcvB;
   const limitAB = limitA + limitB;
 
   const xmlBodyVars = {
@@ -63,7 +55,7 @@ export const getAALs = async (props: GetAALsProps): Promise<GetAALRes> => {
     rcvC: RCVs.rcvC,
     rcvD: RCVs.rcvD,
     limitAB,
-    rcvTotal,
+    rcvTotal: RCVs.total,
   };
   const body = swissReBody(xmlBodyVars);
 
@@ -73,7 +65,7 @@ export const getAALs = async (props: GetAALsProps): Promise<GetAALRes> => {
     },
   });
 
-  console.log('SWISS RE RES: ', srRes);
+  info('SWISS RE RES: ', { ...srRes });
   const code200Index = srRes.expectedLosses.findIndex(
     (floodObj: SRPerilAAL) => floodObj.perilCode === '200'
   );
@@ -90,7 +82,7 @@ export const getAALs = async (props: GetAALsProps): Promise<GetAALRes> => {
 
   console.log(`AAL: ${JSON.stringify(AALs)}`);
 
-  return { srRes, inlandAAL: AALs.inlandAAL, surgeAAL: AALs.surgeAAL };
+  return { srRes, inlandAAL: AALs.inlandAAL, surgeAAL: AALs.surgeAAL, rcvs: RCVs };
 };
 
 export const validateGetAALsProps = (props: Partial<GetAALsProps>) => {

@@ -40,6 +40,7 @@ export function ErrorFallback({ error, resetErrorBoundary }: ErrorFallbackProps)
 export default ErrorFallback;
 
 export function ErrorFallbackWithReset({ error, resetErrorBoundary }: FallbackProps) {
+  console.log('ErrorFallbackWithReset');
   let err = error as any;
   return (
     <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 8 }}>

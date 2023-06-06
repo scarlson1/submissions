@@ -1,8 +1,17 @@
 import type { AuthBlockingEvent } from 'firebase-functions/v2/identity';
 import { HttpsError } from 'firebase-functions/v2/identity';
+import { info, warn } from 'firebase-functions/logger';
 import { getFirestore } from 'firebase-admin/firestore';
 
-import { COLLECTIONS, invitesCollection, orgsCollection, usersCollection } from '../common';
+import {
+  COLLECTIONS,
+  invitesCollection,
+  orgsCollection,
+  sendgridApiKey,
+  usersCollection,
+} from '../common';
+import { inviteConverter } from '../common/converters';
+import { sendUserInvite } from '../services/sendgrid';
 
 // TODO: are all imports getting imported / initialized from all functions ??
 // https://youtu.be/v3eG9xpzNXM
@@ -21,14 +30,40 @@ export default async (event: AuthBlockingEvent) => {
   // but an invite exists matching email
   const tenantId = user.tenantId;
   if (!tenantId) {
-    console.log(`Checking for existing invite for email ${user.email}`);
+    info(`Checking for existing invite for email ${user.email}`);
     const inviteSnap = await db
       .collectionGroup(COLLECTIONS.INVITES)
+      .withConverter(inviteConverter)
       .where('email', '==', user.email)
       .get();
 
     if (!inviteSnap.empty) {
       const inviteData = inviteSnap.docs.map((snap) => snap.data());
+      const invite = inviteData[0];
+      if (invite) {
+        try {
+          const to = invite.email;
+          const sgKey = sendgridApiKey.value();
+          const link = invite.getLink();
+          info(`Invite found matching ${user.email}. Resending link.`, {
+            ...invite,
+          });
+          await sendUserInvite(
+            sgKey,
+            link,
+            to,
+            invite.firstName ?? invite.displayName,
+            invite.invitedBy?.name || ''
+          );
+        } catch (err: any) {
+          warn(`Error resending invite email`, {
+            errMsg: err?.message,
+            email: invite.email,
+            link: invite.getLink(),
+          });
+        }
+      }
+
       throw new HttpsError(
         'failed-precondition',
         `Email matched invite from ${inviteData[0].orgName} (ID: ${inviteData[0].orgId}). Add orgId to end of auth url to accept (/auth/create-account/{orgId})`,
@@ -39,7 +74,7 @@ export default async (event: AuthBlockingEvent) => {
 
   // check if org has domain restrictions enabled
   if (!!tenantId) {
-    console.log(`Checking domain restriction settings for tenant ${tenantId}`);
+    info(`Checking domain restriction settings for tenant ${tenantId}`);
     const tenantSnap = await orgsCollection(db).doc(tenantId).get();
     if (!tenantSnap.exists) {
       throw new HttpsError('not-found', `tenant doc not found (ID: ${tenantId})`, {
@@ -67,10 +102,10 @@ export default async (event: AuthBlockingEvent) => {
       });
     }
 
-    console.log(`Fetching invite for ${user.email} under tenant ${tenantId}`);
+    info(`Fetching invite for ${user.email} under tenant ${tenantId}`);
     const invitesSnap = await invitesCollection(db, tenantId).doc(user.email).get();
     if (!invitesSnap.exists) {
-      console.log(`INVITE NOT FOUND FOR ${user.email} (tenant ID: ${tenantId})`);
+      warn(`INVITE NOT FOUND FOR ${user.email} (tenant ID: ${tenantId})`);
       throw new HttpsError(
         'permission-denied',
         `Invitation required. No invite found for email ${user.email} under org ID ${tenantId}`,
@@ -82,10 +117,10 @@ export default async (event: AuthBlockingEvent) => {
   }
 
   // Verify user doc does not already exist with email = user.email
-  console.log(`verifying user doc does not exist with email ${user.email}`);
+  info(`verifying user doc does not exist with email ${user.email}`);
   const userSnap = await usersCollection(db).where('email', '==', user.email).get();
   if (!userSnap.empty) {
-    console.log(`USER ALREADY EXISTS WITH EMAIL: ${user.email}`);
+    warn(`USER ALREADY EXISTS WITH EMAIL: ${user.email}`);
     throw new HttpsError('already-exists', `Account with email ${user.email} already exists`);
   }
 
