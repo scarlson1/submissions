@@ -33,6 +33,8 @@ export type DeepNullable<T> = {
   [K in keyof T]: DeepNullable<T[K]> | null;
 };
 
+export type Maybe<T> = T | null | undefined;
+
 export interface Submission extends FloodValues, FetchPropertyDataResponse {
   coordinates: GeoPoint;
   countyFIPS?: string | null;
@@ -134,7 +136,6 @@ export interface Mortgagee {
   contactName: string;
   contactEmail: string;
   loanNumber: string;
-  // priority: string | number;
   address?: AddressWithCoords;
 }
 
@@ -740,7 +741,7 @@ export interface Invite extends BaseDoc {
 
 // TODO: create Transaction type to used like: Transaction['charge'] and Transaction['refund']
 
-export type TransactionStatus = 'processing' | 'succeeded' | 'payment_failed';
+export type FinTransactionStatus = 'processing' | 'succeeded' | 'payment_failed';
 
 // https://stripe.com/docs/api/charges/object
 export interface Charge extends BaseDoc {
@@ -769,7 +770,7 @@ export interface Charge extends BaseDoc {
   refunded?: boolean;
   publicDescriptor: string | null;
   publicDescriptorTitle: string | null;
-  status: TransactionStatus;
+  status: FinTransactionStatus;
   // metadata: BaseMetadata;
 }
 

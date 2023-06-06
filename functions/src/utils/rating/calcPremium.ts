@@ -23,8 +23,6 @@ export const getSubproducerAdj = (premium: number, defaultCom: number, newCom: n
   let f = (newCom - defaultCom) / (1 - defaultCom);
 
   return ceil(premium * f, 0);
-  // let comDiff = newCom - defaultCom;
-  // return round(premium / (1 - comDiff / (1 - defaultCom)) - premium, 2);
 };
 
 interface GetPremiumDataProps {
@@ -76,6 +74,7 @@ export const getPremiumData = ({
     subproducerComPct
   );
   let directWrittenPremium = Math.ceil(provisionalPremium + subproducerAdj);
+  const MGACommission = directWrittenPremium * subproducerComPct;
 
   return {
     techPremium: {
@@ -93,5 +92,6 @@ export const getPremiumData = ({
     subproducerAdj,
     directWrittenPremium,
     subproducerCommissionPct: subproducerComPct,
+    MGACommission,
   };
 };

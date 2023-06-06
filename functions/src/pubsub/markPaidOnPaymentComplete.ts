@@ -1,5 +1,6 @@
 import type { CloudEvent } from 'firebase-functions/lib/v2/core';
 import type { MessagePublishedData } from 'firebase-functions/v2/pubsub';
+import { info } from 'firebase-functions/logger';
 import { getFirestore } from 'firebase-admin/firestore';
 
 import {
@@ -13,7 +14,7 @@ import {
 import { sendAdminPaidNotification } from '../services/sendgrid';
 
 export default async (event: CloudEvent<MessagePublishedData>) => {
-  console.log('MSG JSON: ', event.data.message.json);
+  info('MSG JSON: ', event.data.message.json);
 
   let transactionId = null;
   let policyId = null;

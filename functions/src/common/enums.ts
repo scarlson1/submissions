@@ -40,7 +40,7 @@ export enum INVITE_STATUS {
   EXPIRED = 'expired',
   REPLACED = 'replaced',
   REJECTED = 'rejected',
-  ERROR = 'error',
+  ERROR = 'error', // remove ??
 }
 
 export enum QUOTE_STATUS {
@@ -56,6 +56,12 @@ export enum POLICY_STATUS {
   PAYMENT_PROCESSING = 'processing:payment',
   AWAITING_PAYMENT = 'awaiting:payment',
   CANCELLED = 'cancelled',
+}
+
+export enum FIN_TRANSACTION_STATUS {
+  PROCESSING = 'processing',
+  SUCCEEDED = 'succeeded',
+  PAYMENT_FAILED = 'payment_failed',
 }
 
 export enum PRODUCT {
@@ -90,7 +96,7 @@ export enum CLAIMS {
   AGENT = 'agent',
 }
 
-// export enum TRANSACTION_STATUS {
+// export enum FIN_TRANSACTION_STATUS {
 
 // }
 

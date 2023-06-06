@@ -1,5 +1,5 @@
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
-import { error } from 'firebase-functions/logger';
+import { error, info } from 'firebase-functions/logger';
 import { getFirestore, Timestamp, DocumentSnapshot } from 'firebase-admin/firestore';
 
 import {
@@ -9,15 +9,14 @@ import {
   POLICY_STATUS,
   round,
   finTrxCollection,
-  TRANSACTION_STATUS,
+  FIN_TRANSACTION_STATUS,
   PolicyOld,
 } from '../common';
 import { getEPayInstance } from '../services';
 import { publishMessage } from '../services/pubsub/publishMessage.js';
 import { ePayCreds as ePayCredsSecret } from '../common';
 
-// const ePayCreds = defineSecret('ENCODED_EPAY_AUTH');
-const CARD_FEE = 0.035;
+const CARD_FEE = 0.035; // TODO: use env var
 
 export default async ({ data, auth }: CallableRequest) => {
   const { policyId, paymentMethodId } = data;
@@ -67,7 +66,7 @@ export default async ({ data, auth }: CallableRequest) => {
         : policy.cardFee || round(price * CARD_FEE, 2);
 
     const total = price + ePayFees;
-    console.log(`PRICE (${price}) + EPAY_FEES (${ePayFees}) = TOTAL (${total})`);
+    info(`PRICE (${price}) + EPAY_FEES (${ePayFees}) = TOTAL (${total})`);
 
     if (total < 100) throw new Error('Total less than minimum premium');
 
@@ -92,7 +91,7 @@ export default async ({ data, auth }: CallableRequest) => {
     });
 
     let transactionId = location?.split('/')[2];
-    console.log('transactionId: ', transactionId);
+    info('transactionId: ', transactionId);
 
     if (!transactionId) throw new Error('Missing transactionId');
 
@@ -134,25 +133,13 @@ export default async ({ data, auth }: CallableRequest) => {
         // status: newStatus === QUOTE_STATUS.PAID ? 'succeeded' : 'processing',
         status:
           paymentMethodDetails.transactionType === 'Ach'
-            ? TRANSACTION_STATUS.PROCESSING
-            : TRANSACTION_STATUS.SUCCEEDED,
+            ? FIN_TRANSACTION_STATUS.PROCESSING
+            : FIN_TRANSACTION_STATUS.SUCCEEDED,
         metadata: {
           created: Timestamp.now(),
           updated: Timestamp.now(),
         },
       });
-
-    // await publishMessage('sk-upload', {
-    //   uploadId,
-    //   uploadFileName,
-    //   iDemandProcessId,
-    //   iDemandFileId: fileId,
-    //   iDemandBatchIds: fileIds,
-    //   filesInBatchCount: batch,
-    //   originalHeaders: headers,
-    //   originalFilePath: filePath,
-    //   totalRowCount: dataArray.length,
-    // });
 
     return {
       transactionId,
@@ -197,7 +184,7 @@ export default async ({ data, auth }: CallableRequest) => {
 //   round,
 //   submissionsQuotesCollection,
 //   transactionsCollection,
-//   TRANSACTION_STATUS,
+//   FIN_TRANSACTION_STATUS,
 // } from '../common';
 // import { getEPayInstance } from '../services';
 
@@ -329,8 +316,8 @@ export default async ({ data, auth }: CallableRequest) => {
 //           // status: newStatus === QUOTE_STATUS.PAID ? 'succeeded' : 'processing',
 //           status:
 //             paymentMethodDetails.transactionType === 'Ach'
-//               ? TRANSACTION_STATUS.PROCESSING
-//               : TRANSACTION_STATUS.SUCCEEDED,
+//               ? FIN_TRANSACTION_STATUS.PROCESSING
+//               : FIN_TRANSACTION_STATUS.SUCCEEDED,
 //           metadata: {
 //             created: Timestamp.now(),
 //             updated: Timestamp.now(),

@@ -1,4 +1,5 @@
 import { PubSub } from '@google-cloud/pubsub';
+import { info } from 'firebase-functions/logger';
 
 const pubSubClient = new PubSub();
 
@@ -8,7 +9,9 @@ export async function publishMessage(topicNameOrId: string, data: { [key: string
 
   try {
     const messageId = await pubSubClient.topic(topicNameOrId).publishMessage({ data: dataBuffer });
-    console.log(`Message ${messageId} published to ${topicNameOrId}.`);
+
+    info(`Message ${messageId} published to ${topicNameOrId}.`);
+
     return messageId;
   } catch (error) {
     // eslint-disable-next-line

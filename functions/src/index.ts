@@ -65,7 +65,7 @@ export {
   getfips,
   rateportfolio,
 } from './storageEvents';
-export { markpaidonpaymentcomplete } from './pubsub';
+export { markpaidonpaymentcomplete, policycreatedlistener } from './pubsub';
 export {
   checkachstatus,
   // checkquoteexpiration // TODO: test and finish function before deploy

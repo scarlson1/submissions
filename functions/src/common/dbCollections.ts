@@ -7,6 +7,7 @@ import {
   PolicyOld,
   RatingData,
   SubmissionQuoteData,
+  Transaction,
 } from '../common';
 import {
   Submission,
@@ -39,6 +40,8 @@ export const finTrxCollection = (db: Firestore) =>
   createCollection<Charge>(db, COLLECTIONS.FIN_TRANSACTIONS);
 export const policiesCollection = (db: Firestore) =>
   createCollection<PolicyOld>(db, COLLECTIONS.POLICIES);
+export const transactionsCollection = (db: Firestore) =>
+  createCollection<Transaction>(db, COLLECTIONS.TRANSACTIONS);
 export const swissReResCollection = (db: Firestore) =>
   createCollection<SRResWithAAL | SRRes>(db, COLLECTIONS.SR_RES);
 export const agencyApplicationCollection = (db: Firestore) =>

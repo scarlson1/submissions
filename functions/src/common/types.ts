@@ -13,6 +13,7 @@ import {
   QUOTE_STATUS,
   POLICY_STATUS,
   AGENCY_SUBMISSION_STATUS,
+  FIN_TRANSACTION_STATUS,
 } from './enums.js';
 
 import { filterUniqueArr, removeFromArr } from './helpers.js';
@@ -40,6 +41,8 @@ export type DeepNullable<T> = {
   [K in keyof T]: DeepNullable<T[K]> | null;
 };
 
+export type Maybe<T> = T | null | undefined;
+
 export interface RequestUserAuth extends Request {
   user?: DecodedIdToken;
   tenantId?: string;
@@ -48,6 +51,39 @@ export interface RequestUserAuth extends Request {
 export type DefaultCommission = {
   [key in PRODUCT]?: number;
 };
+
+// TODO: use discriminating unions for user type (agent vs user vs id admin)
+
+// export interface BaseUser {
+//   displayName?: string;
+//   firstName?: string;
+//   lastName?: string;
+//   email?: string;
+//   phone?: string;
+//   photoURL?: string;
+//   stripe_customer_id?: string;
+//   initialAnonymous?: boolean; // TODO:  used ?? delete ??
+//   address?: Address;
+//   coordinates?: GeoPoint | null;
+//   metadata: BaseMetadata;
+// }
+
+// export interface RegularUser extends BaseUser {
+//   userType: 'regular';
+// }
+
+// export interface AgencyUser extends BaseUser {
+//   userType: 'agency';
+//   tenantId?: string | null; // useOrgId ??
+//   orgId?: string | null;
+//   defaultCommission?: DefaultCommission;
+// }
+
+// export interface iDemandUser extends BaseUser {
+//   userType: 'idemand';
+// }
+
+// export type User = RegularUser | AgencyUser | iDemandUser;
 
 export interface User {
   displayName?: string;
@@ -66,9 +102,9 @@ export interface User {
   metadata: BaseMetadata;
 }
 
-export interface Agent extends User {
-  defaultCommission?: DefaultCommission;
-}
+// export interface Agent extends User {
+//   defaultCommission?: DefaultCommission;
+// }
 
 export interface IndividualNamedInsured {
   displayName: string;
@@ -87,6 +123,7 @@ export interface EntityNamedInsured {
   orgId?: string;
 }
 
+// TODO: decide whether to use discriminating type vs same fields
 export type NamedInsured = IndividualNamedInsured | EntityNamedInsured;
 
 export interface EPayVerifiedResponse {
@@ -108,12 +145,7 @@ export interface PaymentMethod extends EPayVerifiedResponse {
   metadata: BaseMetadata;
 }
 
-export type TransactionStatus = 'processing' | 'succeeded' | 'payment_failed';
-export enum TRANSACTION_STATUS {
-  PROCESSING = 'processing',
-  SUCCEEDED = 'succeeded',
-  PAYMENT_FAILED = 'payment_failed',
-}
+// export type FinTransactionStatus = 'processing' | 'succeeded' | 'payment_failed';
 
 // EPAY STATUSES: Processed | Declined | Chargebacks | Pending Approval | Pending My Approval
 
@@ -145,7 +177,7 @@ export interface Charge {
   refunded?: boolean;
   publicDescriptor: string | null;
   publicDescriptorTitle: string | null;
-  status: TRANSACTION_STATUS; // TransactionStatus;
+  status: FIN_TRANSACTION_STATUS;
   metadata: BaseMetadata;
 }
 
@@ -410,13 +442,26 @@ export interface AddressWithCoords extends Address {
   longitude: number;
 }
 
+export interface AgentDetails {
+  agentId: string | null; // use userId ??
+  name: string;
+  email: string;
+  phone: string;
+}
+
+export interface AgencyDetails {
+  orgId: string | null; // TODO: remove null once agency being set in system (set to idemand if agent not set) ??
+  name: string | null;
+  address: Address;
+}
+
 export interface AdditionalInsured {
   name: string;
   email: string;
   relation: string | number;
   address?: AddressWithCoords;
 }
-
+// other interest - types = mortgagee | other interest
 export interface Mortgagee {
   company: string;
   contactName: string;
@@ -535,7 +580,10 @@ export interface PolicyLocation {
   geoHash: Geohash;
   premium: number;
   limits: Limits;
+  // TODO: add tiv sum in Policy class
+  tiv: number;
   rcvs: RCVs;
+  deductible: number;
   active: true; // https://stackoverflow.com/a/62626994/10887890
   additionalInsureds: AdditionalInsured[];
   mortgageeInterest: Mortgagee[];
@@ -555,9 +603,7 @@ export interface PolicyLocation {
 export interface Policy {
   product: Product;
   status: POLICY_STATUS;
-  // term: number; // TODO: add to policy class & uncomment
-  // limits: Limits;
-  // deductible: number;
+  term: number;
   mailingAddress: Address;
   namedInsured: NamedInsured;
   locations: Record<string, PolicyLocation>;
@@ -565,17 +611,8 @@ export interface Policy {
   effectiveDate: Timestamp;
   expirationDate: Timestamp;
   userId: string | null;
-  agent: {
-    agentId: string | null;
-    name: string; // | null;
-    email: string; // | null;
-    phone: string; // | null;
-  };
-  agency: {
-    orgId: string | null; // TODO: remove null ??
-    name: string | null;
-    address: Address; // | null;
-  };
+  agent: AgentDetails;
+  agency: AgencyDetails;
   surplusLinesProducerOfRecord: {
     name: string;
     licenseNum: string;
@@ -587,7 +624,7 @@ export interface Policy {
   imageUrls?: Record<string, string> | null; // { [key: string]: string | null } | null;
   imagePaths?: Record<string, string> | null; // { [key: string]: string | null } | null;
   // transactions: string[]; // TODO: delete or decide how to associate policies and transactions (just query transactions by policyId ??)
-  price: number;
+  price: number; // TODO: break up total premium, taxes, fees, etc. ?? how are taxes and fees stored ? how are they recalculated
   // cardFee: number;
   // term: number; // Necessary ??
   metadata: BaseMetadata;
@@ -614,6 +651,7 @@ export class PolicyClass implements IPolicyClass {
   readonly id: string;
   readonly isExpired: boolean;
   readonly product: Product;
+  term: number;
   // protected status: POLICY_STATUS;
   status: POLICY_STATUS;
   locations: Record<string, PolicyLocation>;
@@ -650,6 +688,7 @@ export class PolicyClass implements IPolicyClass {
   constructor(policyInfo: WithId<Policy>) {
     this.id = policyInfo.id;
     this.product = policyInfo.product;
+    this.term = policyInfo.term;
     this.status = policyInfo.status;
     this.locations = policyInfo.locations;
     // this.limits = policyInfo.limits;
@@ -884,6 +923,7 @@ export interface PremiumCalcData {
   minPremium: number;
   minPremiumAdj: number;
   directWrittenPremium: number;
+  MGACommission: number;
 }
 
 export interface TrxRatingData extends RatingPropertyData {
@@ -902,12 +942,16 @@ export type TransactionType =
 
 // one transaction per location
 
+// TODO: create transaction class ?? like mongoose constructor ??
+// TODO: use discriminating union types ??
 export interface Transaction extends BaseDoc {
   trxType: TransactionType;
-  policyType: Product;
-  policyNumber: string;
+  // policyType: Product;
+  product: Product;
+  // policyNumber: string;
+  policyId: string;
   term: number;
-  // reportDate: Timestamp; // calced in report query
+  // reportDate: Timestamp; // calc in report query
   trxTimestamp: Timestamp;
   bookingDate: Timestamp; // later of trx timestamp or trx eff date
   issuingCarrier: string;
@@ -921,28 +965,29 @@ export interface Transaction extends BaseDoc {
   // locationHash: Geohash;
   policyEffDate: Timestamp;
   policyExpDate: Timestamp;
-  trxEffDate: Timestamp;
+  trxEffDate: Timestamp; //
   trxExpDate: Timestamp; // when action takes affect
-  cancelEffDate: Timestamp; // decide whether to calc in query (same as trx eff date in cancellation trx)
+  trxDays: number; // trxExpDate - trxEffDate
+  cancelEffDate: Timestamp | null; // decide whether to calc in query (same as trx eff date in cancellation trx)
   ratingPropertyData: TrxRatingData;
   deductible: number;
   limits: Limits;
   tiv: number;
   rcvs: RCVs;
   premiumCalcData: PremiumCalcData; // TODO: double check PremCalcData interface
-  policyAnnualDWP: number;
-  termProratedPct: number;
-  policyTermDWP: number;
-  mgaCommRate: number;
-  MGACommission: number; // TODO: circle back - total idemand comm + subprod comm
-  netDWP: number;
-  netErrorAdj?: number | null;
-  trxPolicyDays: number; // trxExpDate - trxEffDate - calcualted in reporting SQL query ??
-  dailyPremium: number; // calcualted in reporting SQL query ?? rounded to 2 decimals
+  locationAnnualPremium: number;
+  termProratedPct: number; // (trxExpDate - trxEffDate) / (policyExpDate - policyEffDate)
+  termPremium: number; // annual prem * termProratedPct (rounded up to nearest dollar)
+  // MGACommRate: number;
+  MGACommission: number; // idemand & subproducer
+  netDWP: number; // policy term premium - mga commission
+  netErrorAdj?: number;
+  dailyPremium: number; // term premium / trxPolicyDays rounded to 2
   // submission?: string;
-  otherInterestedParties: string[];
+  otherInterestedParties: string[]; // TODO: how is this different from additional named insured ? is it stored in PolicyLocation ?
   additionalNamedInsured: string[];
   homeState: string;
+  eventId: string;
 }
 
 export type InviteStatus = 'pending' | 'accepted' | 'revoked' | 'replaced' | 'rejected' | 'error';

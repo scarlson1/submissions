@@ -5,7 +5,7 @@ import { getEPayInstance } from '../services';
 import {
   EPayGetTransactionRes,
   finTrxCollection,
-  TRANSACTION_STATUS,
+  FIN_TRANSACTION_STATUS,
   ePayCreds as ePayCredsSecret,
 } from '../common';
 import { publishMessage } from '../services/pubsub/publishMessage.js';
@@ -30,7 +30,7 @@ export default async (event: ScheduledEvent) => {
   const transactionsCol = finTrxCollection(db);
 
   const querySnap = await transactionsCol
-    .where('status', '==', TRANSACTION_STATUS.PROCESSING)
+    .where('status', '==', FIN_TRANSACTION_STATUS.PROCESSING)
     .get();
 
   if (querySnap.empty) return console.log('NO OUTSTANDING ACH PAYMENTS FOUND.');
@@ -51,7 +51,7 @@ export default async (event: ScheduledEvent) => {
         const settleEvt = events.find((e) => e.eventType === 'Settle');
         if (settleEvt) {
           console.log(`ACH TRANSACTION SETTLED - ID ${charge.id}`, events);
-          await transactionsCol.doc(charge.id).update({ status: TRANSACTION_STATUS.SUCCEEDED });
+          await transactionsCol.doc(charge.id).update({ status: FIN_TRANSACTION_STATUS.SUCCEEDED });
 
           await publishMessage('payment.complete', {
             policyId: charge.policyId,
@@ -84,7 +84,7 @@ export default async (event: ScheduledEvent) => {
 //     const transactionsCol = transactionsCollection(db);
 
 //     const querySnap = await transactionsCol
-//       .where('status', '==', TRANSACTION_STATUS.PROCESSING)
+//       .where('status', '==', FIN_TRANSACTION_STATUS.PROCESSING)
 //       .get();
 
 //     if (querySnap.empty) return console.log('NO OUTSTANDING ACH PAYMENTS FOUND.');
@@ -107,7 +107,7 @@ export default async (event: ScheduledEvent) => {
 //           const settleEvt = events.find((e) => e.eventType === 'Settle');
 //           if (settleEvt) {
 //             console.log(`ACH TRANSACTION SETTLED - ID ${charge.id}`, events);
-//             await transactionsCol.doc(charge.id).update({ status: TRANSACTION_STATUS.SUCCEEDED });
+//             await transactionsCol.doc(charge.id).update({ status: FIN_TRANSACTION_STATUS.SUCCEEDED });
 
 //             await publishMessage('payment.complete', {
 //               policyId: charge.policyId,

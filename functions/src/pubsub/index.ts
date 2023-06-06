@@ -10,3 +10,10 @@ export const markpaidonpaymentcomplete = onMessagePublished(
     await (await import('./markPaidOnPaymentComplete.js')).default(event);
   }
 );
+
+export const policycreatedlistener = onMessagePublished(
+  { topic: 'policy:created' },
+  async (event) => {
+    await (await import('./policyCreatedListener.js')).default(event);
+  }
+);
