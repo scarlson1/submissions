@@ -209,22 +209,23 @@ export const SubmissionView: React.FC = () => {
           </Typography>
           <RowItem
             title='Replacement Cost'
-            value={dollarFormat(data.propertyDataRes?.replacementCost ?? '')}
+            value={dollarFormat(data.ratingPropertyData?.replacementCost ?? '')}
           />
+          <RowItem title='RCV Source User' value={data.rcvSourceUser || '--'} />
           <RowItem
             title='Square Footage'
-            value={numberFormat(data.propertyDataRes?.sqFootage ?? '')}
+            value={numberFormat(data.ratingPropertyData?.sqFootage ?? '')}
           />
-          <RowItem title='Year Built' value={data.propertyDataRes?.yearBuilt} />
+          <RowItem title='Year Built' value={data.ratingPropertyData?.yearBuilt} />
           <RowItem
             title='Distance To Coast (ft)'
-            value={numberFormat(data.propertyDataRes?.distToCoastFeet ?? '')}
+            value={numberFormat(data.ratingPropertyData?.distToCoastFeet ?? '')}
           />
-          <RowItem title='Property Code' value={data.propertyDataRes?.propertyCode} />
-          <RowItem title='CBRS Designation' value={data.propertyDataRes?.CBRSDesignation} />
-          <RowItem title='Basement' value={data.propertyDataRes?.basement} />
-          <RowItem title='Flood Zone' value={data.propertyDataRes?.floodZone} />
-          <RowItem title='Number of Stories' value={data.propertyDataRes?.numStories} />
+          <RowItem title='Property Code' value={data.ratingPropertyData?.propertyCode} />
+          <RowItem title='CBRS Designation' value={data.ratingPropertyData?.CBRSDesignation} />
+          <RowItem title='Basement' value={data.ratingPropertyData?.basement} />
+          <RowItem title='Flood Zone' value={data.ratingPropertyData?.floodZone} />
+          <RowItem title='Number of Stories' value={data.ratingPropertyData?.numStories} />
         </Box>
         <Box sx={{ pb: 3 }}>
           <Typography variant='overline' color='text.secondary'>
@@ -243,28 +244,26 @@ export const SubmissionView: React.FC = () => {
         <Typography variant='overline' color='text.secondary'>
           Additional Details
         </Typography>
-        {data.propertyDataRes?.spatialKeyDocId && (
+        {/* {data.ratingPropertyData?.spatialKeyDocId && (
           <Button
             size='small'
             sx={{ m: 1, ml: 0 }}
             onClick={() =>
               showDialog(
                 COLLECTIONS.SK_RES,
-                data.propertyDataRes?.spatialKeyDocId!,
+                data.ratingPropertyData?.spatialKeyDocId!,
                 'Spatial Key Property Data'
               )
             }
           >
             Show Spatial Key Data
           </Button>
-        )}
-        {data.propertyDataRes?.attomDocId && (
+        )} */}
+        {data.propertyDataDocId && (
           <Button
             size='small'
             sx={{ m: 1, ml: 0 }}
-            onClick={() =>
-              showDialog('attom', data.propertyDataRes?.attomDocId!, 'Attom Property Data')
-            }
+            onClick={() => showDialog('attom', data.propertyDataDocId!, 'Attom Property Data')}
           >
             Show Attom Data
           </Button>

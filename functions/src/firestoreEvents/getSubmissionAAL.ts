@@ -73,8 +73,8 @@ export default async (
       limitC: sub.limits?.limitC,
       limitD: sub.limits?.limitD,
       deductible: sub.deductible,
-      replacementCost: sub.propertyDataRes?.replacementCost,
-      numStories: sub.propertyDataRes?.numStories || 1,
+      replacementCost: sub.ratingPropertyData?.replacementCost,
+      numStories: sub.ratingPropertyData?.numStories || 1,
     };
     validateGetAALsProps(srVals);
 
@@ -141,9 +141,9 @@ export default async (
       limitB: sub.limits?.limitB,
       limitC: sub.limits?.limitC,
       limitD: sub.limits?.limitD,
-      floodZone: sub.propertyDataRes?.floodZone || defaultFloodZone.value(),
+      floodZone: sub.ratingPropertyData?.floodZone || defaultFloodZone.value(),
       state: sub.address?.state,
-      basement: sub.propertyDataRes?.basement,
+      basement: sub.ratingPropertyData?.basement,
       priorLossCount: sub.priorLossCount,
       commissionPct,
     });
@@ -172,10 +172,10 @@ export default async (
         total: AALs.rcvs.total,
       },
       ratingPropertyData: {
-        replacementCost: sub.propertyDataRes?.replacementCost || null,
-        basement: sub.propertyDataRes?.basement || null,
-        floodZone: sub.propertyDataRes?.floodZone || null,
-        numStories: sub.propertyDataRes?.numStories || null,
+        replacementCost: sub.ratingPropertyData?.replacementCost || null,
+        basement: sub.ratingPropertyData?.basement || null,
+        floodZone: sub.ratingPropertyData?.floodZone || null,
+        numStories: sub.ratingPropertyData?.numStories || null,
         propertyCode: null,
         CBRSDesignation: null,
         distToCoastFeet: null,

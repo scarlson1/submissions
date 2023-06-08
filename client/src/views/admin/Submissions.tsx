@@ -8,9 +8,14 @@ import {
   GridToolbar,
 } from '@mui/x-data-grid';
 import { doc, updateDoc, getDoc, getFirestore } from 'firebase/firestore';
-import { useFunctions } from 'reactfire';
+import { useFirestore, useFunctions } from 'reactfire';
 import { useNavigate } from 'react-router-dom';
-import { FloodRounded, MapRounded, RequestQuoteRounded } from '@mui/icons-material';
+import {
+  DataObjectRounded,
+  FloodRounded,
+  MapRounded,
+  RequestQuoteRounded,
+} from '@mui/icons-material';
 
 import {
   submissionsCollection,
@@ -26,28 +31,41 @@ import {
   userIdCol,
   idCol,
   priorLossCountCol,
-  distToCoastFeetCol,
-  basementCol,
-  numStoriesCol,
-  propertyCodeCol,
-  sqFootageCol,
-  yearBuiltCol,
-  floodZoneCol,
-  CBRSCol,
+  ratingDataCBRSCol,
   inlandAALCol,
   surgeAALCol,
-  replacementCostCol,
   annualPremiumCol,
   displayNameCol,
   firstNameCol,
   lastNameCol,
   statusCol,
+  ratingDataFloodZoneCol,
+  addrLine2Col,
+  addrCityCol,
+  addrStateCol,
+  addrPostalCol,
+  addrFIPSCol,
+  addrCountyCol,
+  addrLine1Col,
+  ratingDataReplacementCostCol,
+  ratingDataPropertyCodeCol,
+  ratingDataYearBuiltCol,
+  ratingDataSqFootageCol,
+  ratingDataNumStoriesCol,
+  ratingDataBasementCol,
+  ratingDataDistToCoastFeetCol,
+  limitACol,
+  limitBCol,
+  limitCCol,
+  limitDCol,
+  tivCol,
+  copyBaseProps,
 } from 'common';
 import { ServerDataGrid } from 'components';
 import { ADMIN_ROUTES, createPath } from 'router';
 import { withIdConverter } from 'common/firestoreConverters';
 import { useConfirmAndUpdate } from './Quotes';
-import { useAsyncToast } from 'hooks';
+import { useAsyncToast, useJsonDialog } from 'hooks';
 import { getRiskFactorId } from 'modules/api';
 
 // https://riskfactor.com/api/autocomplete/208%20aiken%20hunt%20 --> returns { fsid, lat, lng, display, score }
@@ -85,10 +103,12 @@ export interface SubmissionsProps {}
 
 export const Submissions: React.FC<SubmissionsProps> = () => {
   const navigate = useNavigate();
+  const firestore = useFirestore();
   // const { data, status } = useCollectionData('SUBMISSIONS', [
   //   orderBy('metadata.created', 'desc'),
   //   limit(100),
   // ]);
+  const dialog = useJsonDialog();
   const updateSubmission = useUpdateSubmission();
   const confirmAndUpdate = useConfirmAndUpdate(updateSubmission);
   const functions = useFunctions();
@@ -155,13 +175,29 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
     [functions, toast]
   );
 
+  const openSubmissionDataDialog = useCallback(
+    (params: GridRowParams) => async () => {
+      try {
+        const subSnap = await getDoc(doc(submissionsCollection(firestore), params.id.toString()));
+
+        const subData = subSnap.data();
+        if (!subData) return;
+
+        dialog(subData, `Submission Data ${params.id}`);
+      } catch (err) {
+        console.log('Error fetching submission doc');
+      }
+    },
+    [firestore, dialog]
+  );
+
   const submissionColumns: GridColDef[] = useMemo(
     () => [
       {
         field: 'actions',
         headerName: 'Actions',
         type: 'actions',
-        width: 120,
+        width: 160,
         getActions: (params: GridRowParams) => [
           <GridActionsCellItem
             icon={
@@ -190,6 +226,15 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
             onClick={openFloodFactor(params)}
             label='Google Maps'
           />,
+          <GridActionsCellItem
+            icon={
+              <Tooltip title='Show JSON' placement='top'>
+                <DataObjectRounded />
+              </Tooltip>
+            }
+            onClick={openSubmissionDataDialog(params)}
+            label='Show JSON'
+          />,
         ],
       },
       {
@@ -205,70 +250,53 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
         ],
         editable: true,
       },
-      { ...displayNameCol, sortable: false },
-      firstNameCol,
-      lastNameCol,
+      {
+        ...displayNameCol,
+        sortable: false,
+        valueGetter: (params) => {
+          if (params.value) return params.value;
+          if (params.row.firstName || params.row.lastName)
+            return `${params.row.firstName} ${params.row.lastName}`.trim();
+          if (params.row.contact?.firstName || params.row.contact?.lastName)
+            return `${params.row.contact?.firstName} ${params.row.contact?.lastName}`.trim();
+          return null;
+        },
+      },
+      {
+        ...firstNameCol,
+        field: 'contact.firstname',
+        valueGetter: (params) => params.row.contact?.firstName || null,
+      },
+      {
+        ...lastNameCol,
+        field: 'contact.lastName',
+        valueGetter: (params) => params.row.contact?.lastName || null,
+      },
       {
         ...emailCol,
+        field: 'contact.email',
+        valueGetter: (params) => params.row.contact?.email || null,
         description: 'Provided contact email',
       },
       {
-        field: 'addressLine1',
-        headerName: 'Address',
+        ...addrLine1Col,
         description: 'Submission address to be used for insured location',
-        minWidth: 200,
-        flex: 1,
-        editable: false,
       },
-      {
-        field: 'addressLine2',
-        headerName: 'Unit/Suite',
-        minWidth: 80,
-        flex: 0.4,
-        editable: false,
-      },
-      {
-        field: 'city',
-        headerName: 'City',
-        minWidth: 150,
-        flex: 1,
-        editable: false,
-      },
-      {
-        field: 'state',
-        headerName: 'State',
-        minWidth: 80,
-        flex: 0.1,
-        editable: false,
-      },
-      {
-        field: 'postal',
-        headerName: 'Postal',
-        minWidth: 100,
-        flex: 0.6,
-        editable: false,
-      },
-      {
-        field: 'countyName',
-        headerName: 'County',
-        minWidth: 160,
-        flex: 0.6,
-        editable: false,
-        // valueGetter: (params) => params.row.countyName || null
-      },
-      {
-        field: 'countyFIPS',
-        headerName: 'FIPS',
-        minWidth: 120,
-        flex: 0.6,
-        editable: false,
-      },
-      coordinatesCol,
-      latitudeCol,
-      longitudeCol,
+      addrLine2Col,
+      addrCityCol,
+      addrStateCol,
+      addrPostalCol,
+      addrCountyCol,
+      addrFIPSCol,
       annualPremiumCol,
       deductibleCol,
-      replacementCostCol,
+      limitACol,
+      limitBCol,
+      limitCCol,
+      limitDCol,
+      tivCol,
+      // replacementCostCol,
+      ratingDataReplacementCostCol,
       {
         field: 'exclusions',
         headerName: 'Exclusions',
@@ -279,18 +307,36 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
         // TODO: valueFormatter
       },
       priorLossCountCol,
-      distToCoastFeetCol,
-      basementCol,
-      numStoriesCol,
-      propertyCodeCol,
-      sqFootageCol,
-      yearBuiltCol,
-      floodZoneCol,
-      CBRSCol,
+      // distToCoastFeetCol,
+      ratingDataDistToCoastFeetCol,
+      // basementCol,
+      ratingDataBasementCol,
+      // numStoriesCol,
+      ratingDataNumStoriesCol,
+      // propertyCodeCol,
+      ratingDataPropertyCodeCol,
+      // sqFootageCol,
+      ratingDataSqFootageCol,
+      // yearBuiltCol,
+      ratingDataYearBuiltCol,
+      // floodZoneCol,
+      ratingDataFloodZoneCol,
+      // CBRSCol,
+      ratingDataCBRSCol,
       inlandAALCol,
       surgeAALCol,
+      coordinatesCol,
+      latitudeCol,
+      longitudeCol,
       createdCol,
       updatedCol,
+      {
+        field: 'propertyDataDocId',
+        headerName: 'Property Data Doc ID',
+        description: 'Document ID for the property data response',
+        valueGetter: (params) => params.row.propertyDataDocId || null,
+        ...copyBaseProps,
+      },
       {
         ...userIdCol,
         description:
@@ -303,7 +349,7 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
         description: 'Document/database ID for the submission',
       },
     ],
-    [handleCreateQuote, openGoogleMaps, openFloodFactor]
+    [handleCreateQuote, openGoogleMaps, openFloodFactor, openSubmissionDataDialog]
   );
 
   const handleProcessRowUpdateError = useCallback((err: Error) => {

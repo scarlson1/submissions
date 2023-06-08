@@ -212,28 +212,28 @@ export const UserSubmissions: React.FC = () => {
                   <Item label='Email' value={s.contact?.email} />
                   <Item
                     label='Year built'
-                    value={s.propertyDataRes?.yearBuilt?.toString() || '--'}
+                    value={s.ratingPropertyData?.yearBuilt?.toString() || '--'}
                     containerSx={{ pt: 2 }}
                   />
                   <Item
                     label='# Stories'
-                    value={s.propertyDataRes?.numStories?.toString() || '--'}
+                    value={s.ratingPropertyData?.numStories?.toString() || '--'}
                   />
                   <Item
                     label='Square Footage'
                     value={
-                      s.propertyDataRes?.sqFootage
-                        ? numberFormat(s.propertyDataRes?.sqFootage)
+                      s.ratingPropertyData?.sqFootage
+                        ? numberFormat(s.ratingPropertyData?.sqFootage)
                         : '--'
                     }
                   />
-                  <Item label='Basement' value={s.propertyDataRes?.basement ?? '--'} />
-                  <Item label='Flood Zone' value={s.propertyDataRes?.floodZone ?? '--'} />
+                  <Item label='Basement' value={s.ratingPropertyData?.basement ?? '--'} />
+                  <Item label='Flood Zone' value={s.ratingPropertyData?.floodZone ?? '--'} />
                   <Item
                     label='Est. Replacement Cost'
                     value={
-                      s.propertyDataRes?.replacementCost
-                        ? dollarFormat(s.propertyDataRes?.replacementCost)
+                      s.ratingPropertyData?.replacementCost
+                        ? dollarFormat(s.ratingPropertyData?.replacementCost)
                         : '--'
                     }
                   />

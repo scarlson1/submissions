@@ -56,6 +56,7 @@ function parseStreamToArray<RowType = any>(stream: fs.ReadStream) {
         total_limits: data.total_limits ? parseInt(getNumber(data.total_limits)) : '',
         deductible: parseInt(getNumber(data.deductible)) || '',
         skip: data?.skip && data?.skip?.toLowerCase().trim() === 'true',
+        google_maps_link: getGoogleMapsUrl(data.latitude, data.longitude),
       })) // If a row is invalid then a data-invalid event will be emitted with the row and the index.
       .validate((data: any): boolean => {
         if (data.skip) return true;
@@ -261,6 +262,11 @@ function waitMilliSeconds(ms: number = 1000) {
       resolve();
     }, ms);
   });
+}
+
+function getGoogleMapsUrl(latitude: number | undefined, longitude: number | undefined) {
+  if (!(latitude && longitude)) return '';
+  return `https://www.google.com/maps/search/?api=1&query=${latitude}%2C${longitude}`;
 }
 
 export default async (event: StorageEvent) => {

@@ -6,7 +6,7 @@ import {
   getPropertyDetailsAttom,
   GetPropertyDetailsAttomRequest,
 } from 'modules/api';
-import { Coordinates, LimitKeys } from 'common/types';
+import { Coordinates, LimitKeys, Nullable, RatingPropertyData } from 'common/types';
 import { getFunctions } from 'firebase/functions';
 import { usePromptRCV } from './usePromptRCV';
 import { calcSum } from 'modules/utils';
@@ -42,11 +42,11 @@ let defaultLimitPercents: TDefaultLimitPct = {
 
 function getDefaultsFromRCV(rcv: number) {
   let defaults = {
-    initLimitA: 250000,
-    initLimitB: 25000,
-    initLimitC: 63000,
-    initLimitD: 38000,
-    initDeductible: 4000,
+    limitA: 250000,
+    limitB: 25000,
+    limitC: 63000,
+    limitD: 38000,
+    deductible: 4000,
     maxDeductible: 200000,
   };
   if (!rcv || rcv < 100000) return defaults;
@@ -54,25 +54,57 @@ function getDefaultsFromRCV(rcv: number) {
   let limitARef = round(Math.min(Math.max(rcv, MIN_A), MAX_A), -3);
 
   const calcDefaults = {
-    initLimitA: limitARef,
-    initLimitB: round(limitARef * defaultLimitPercents['limitB'], -3),
-    initLimitC: round(limitARef * defaultLimitPercents['limitC'], -3),
-    initLimitD: round(limitARef * defaultLimitPercents['limitD'], -3),
+    limitA: limitARef,
+    limitB: round(limitARef * defaultLimitPercents['limitB'], -3),
+    limitC: round(limitARef * defaultLimitPercents['limitC'], -3),
+    limitD: round(limitARef * defaultLimitPercents['limitD'], -3),
   };
 
   const sumCoverage = calcSum(Object.values(defaults));
-  const initDeductible = round(sumCoverage * 0.01, -3);
+  const deductible = round(sumCoverage * 0.01, -3);
   const maxDeductible = round(sumCoverage * 0.2, -3);
 
-  return { ...calcDefaults, initDeductible, maxDeductible };
+  return { ...calcDefaults, deductible, maxDeductible };
 }
+
+export interface InitRatingValues {
+  deductible: number;
+  limitA: number;
+  limitB: number;
+  limitC: number;
+  limitD: number;
+  maxDeductible: number;
+}
+
+const DEFAULT_INIT_VALUES = {
+  deductible: 4000,
+  limitA: 250000,
+  limitB: 25000,
+  limitC: 63000,
+  limitD: 38000,
+  maxDeductible: 100000,
+};
 
 interface UsePropertyDetailsProps {
   promptForValuation: boolean;
 }
 
 export const usePropertyDetailsAttom = (props?: UsePropertyDetailsProps) => {
-  const [propertyDetails, setPropertyDetails] = useState<any>();
+  const [propertyDetails, setPropertyDetails] = useState<Nullable<RatingPropertyData>>({
+    CBRSDesignation: null,
+    basement: null,
+    distToCoastFeet: null,
+    floodZone: null,
+    numStories: null,
+    propertyCode: null,
+    replacementCost: null,
+    sqFootage: null,
+    yearBuilt: null,
+    ffe: null,
+  });
+  const [rcvSourceUser, setRcvSourceUser] = useState<boolean>(false);
+  const [initRatingValues, setInitRatingValues] = useState<InitRatingValues>(DEFAULT_INIT_VALUES);
+  const [propertyDataDocId, setPropertyDataDocId] = useState<string | null>(null);
   const promptRCV = usePromptRCV();
 
   const fetchPropertyData = useCallback(
@@ -80,38 +112,62 @@ export const usePropertyDetailsAttom = (props?: UsePropertyDetailsProps) => {
       const fetchDetails = getPropertyDetailsAttom(getFunctions());
       const { data } = await fetchDetails(args);
 
+      let newPropDetails = {
+        CBRSDesignation: data.CBRSDesignation || null,
+        basement: data.basement || null,
+        distToCoastFeet: data.distToCoastFeet || null,
+        floodZone: data.floodZone || null,
+        numStories: data.numStories || null,
+        propertyCode: data.propertyCode || null,
+        replacementCost: data.replacementCost || null,
+        sqFootage: data.sqFootage || null,
+        yearBuilt: data.yearBuilt || null,
+        ffe: data.ffe || null,
+      };
+
+      setPropertyDataDocId(data.attomDocId || null);
+
       if (
         (!data.replacementCost && props?.promptForValuation) ||
         process.env.REACT_APP_FB_PROJECT_ID === 'idemand-submissions-dev'
       ) {
         const estRCV = await promptRCV();
-        // console.log('EST RCV RES: ', estRCV);
 
         if (estRCV) {
+          setRcvSourceUser(true);
           const newDefaults = getDefaultsFromRCV(estRCV);
-          // console.log('NEW VALUES: ', newDefaults);
 
-          const updatedData = {
-            ...data,
+          setInitRatingValues({
             ...newDefaults,
-            replacementCost: estRCV || null,
-            rcvSouceUser: true,
-          };
+          });
+          setPropertyDetails({ ...newPropDetails, replacementCost: estRCV });
 
-          setPropertyDetails(updatedData);
-
-          return updatedData;
+          return newDefaults;
         } else {
-          setPropertyDetails({ ...data, rcvSouceUser: false });
-          return data;
+          setRcvSourceUser(false);
+          setPropertyDetails(newPropDetails);
+          setInitRatingValues(DEFAULT_INIT_VALUES);
+
+          return DEFAULT_INIT_VALUES;
         }
       } else {
-        setPropertyDetails({ ...data, rcvSouceUser: false });
-        return data;
+        setRcvSourceUser(false);
+        setPropertyDetails(newPropDetails);
+        const initVals = {
+          deductible: data.initDeductible,
+          limitA: data.initLimitA,
+          limitB: data.initLimitB,
+          limitC: data.initLimitC,
+          limitD: data.initLimitD,
+          maxDeductible: data.maxDeductible,
+        };
+        setInitRatingValues(initVals);
+
+        return initVals; // data;
       }
     },
     [promptRCV, props]
   );
 
-  return { fetchPropertyData, propertyDetails };
+  return { fetchPropertyData, rcvSourceUser, initRatingValues, propertyDataDocId, propertyDetails };
 };
