@@ -74,7 +74,9 @@ export const getPremiumData = ({
     subproducerComPct
   );
   let directWrittenPremium = Math.ceil(provisionalPremium + subproducerAdj);
-  const MGACommission = directWrittenPremium * subproducerComPct;
+
+  // not correct, missing another adjustment
+  const MGACommission = round(directWrittenPremium * 0.3, 2);
 
   return {
     techPremium: {

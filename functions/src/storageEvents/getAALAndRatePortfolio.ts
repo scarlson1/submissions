@@ -85,6 +85,7 @@ export default async (event: StorageEvent) => {
       deductible: parseInt(getNumber(data.deductible)) || '',
     })) // If a row is invalid then a data-invalid event will be emitted with the row and the index.
     .validate((data: any): boolean => {
+      // TODO: add floodzone, etc. to validation
       return validateRow(data);
     })
     .on('error', (err) => {
