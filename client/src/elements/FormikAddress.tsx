@@ -6,6 +6,7 @@ import {
   AddressAutocomplete,
   NewAddress,
   FormikNativeSelect,
+  AddressAutocompleteProps,
 } from 'components/forms';
 import { findAddressValueByType } from 'modules/utils/helpers';
 import { statesAbrvSelectOptions } from 'common/statesList';
@@ -33,25 +34,27 @@ const DEFAULT_FIELD_NAMES = {
 };
 
 export interface FormikAddressProps {
-  cb?: (coords: { lat: number | null; lng: number | null }, state?: string) => void; // (values?: any) => Promise<any>;
+  cb?: (coords: { lat: number | null; lng: number | null }, state?: string) => void;
   setFieldValue: (field: string, value: any, shouldValidate?: boolean) => void;
-  textFieldProps?: TextFieldProps;
-  autocompleteTextFieldProps?: TextFieldProps;
-  selectFieldProps?: Omit<NativeSelectProps, 'name' | 'label'>; // Omit<SelectProps, 'label'>;
+  selectFieldProps?: Omit<NativeSelectProps, 'name' | 'label'>;
   gridProps?: Grid2Props;
   names?: AddressFieldNames;
   children?: React.ReactNode;
+  textFieldProps?: TextFieldProps;
+  // autocompleteTextFieldProps?: TextFieldProps;
+  autocompleteProps?: Omit<AddressAutocompleteProps, 'resetFields' | 'handleSelection'>;
 }
 
 export const FormikAddress: React.FC<FormikAddressProps> = ({
   setFieldValue,
   cb,
   textFieldProps,
-  autocompleteTextFieldProps,
+  // autocompleteTextFieldProps,
   gridProps,
   names = DEFAULT_FIELD_NAMES,
   selectFieldProps = {},
   children,
+  autocompleteProps = {},
 }) => {
   const handleAddressSelection = ({ address_components, geometry }: NewAddress) => {
     const newStreetNumber = findAddressValueByType(address_components, 'street_number');
@@ -102,7 +105,9 @@ export const FormikAddress: React.FC<FormikAddressProps> = ({
           <AddressAutocomplete
             handleSelection={handleAddressSelection}
             resetFields={handleClearAutocomplete}
-            textFieldProps={{ ...textFieldProps, ...autocompleteTextFieldProps }}
+            // textFieldProps={{ ...textFieldProps, ...autocompleteTextFieldProps }}
+            {...autocompleteProps}
+            textFieldProps={{ ...textFieldProps, ...(autocompleteProps?.textFieldProps || {}) }}
           />
           {/* <Field name={names.addressLine1}>
             {({ field, form, meta }: FieldProps) => {
@@ -125,7 +130,8 @@ export const FormikAddress: React.FC<FormikAddressProps> = ({
           <FormikTextField
             fullWidth
             id='addressLine2'
-            name='addressLine2'
+            // name='addressLine2'
+            name={names.addressLine2}
             label='Unit/Suite'
             {...textFieldProps}
           />
@@ -134,7 +140,8 @@ export const FormikAddress: React.FC<FormikAddressProps> = ({
           <FormikTextField
             fullWidth
             id='city'
-            name='city'
+            // name='city'
+            name={names.city}
             label='City'
             required
             {...textFieldProps}
@@ -142,7 +149,8 @@ export const FormikAddress: React.FC<FormikAddressProps> = ({
         </Grid>
         <Grid item xs={6} sm={4} lg={4}>
           <FormikNativeSelect
-            name='state'
+            // name='state'
+            name={names.state}
             label='State'
             selectOptions={statesAbrvSelectOptions}
             required
@@ -154,7 +162,8 @@ export const FormikAddress: React.FC<FormikAddressProps> = ({
           <FormikTextField
             fullWidth
             id='postal'
-            name='postal'
+            // name='postal'
+            name={names.postal}
             label='Postal'
             required
             {...textFieldProps}

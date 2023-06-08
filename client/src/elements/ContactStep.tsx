@@ -24,13 +24,25 @@ export const ContactStep: React.FC<ContactStepProps> = ({
       {...gridProps}
     >
       <Grid xs={6} {...gridItemProps}>
-        <FormikTextField name='firstName' label='First Name' fullWidth required {...inputProps} />
+        <FormikTextField
+          name='contact.firstName'
+          label='First Name'
+          fullWidth
+          required
+          {...inputProps}
+        />
       </Grid>
       <Grid xs={6} {...gridItemProps}>
-        <FormikTextField name='lastName' label='Last Name' fullWidth required {...inputProps} />
+        <FormikTextField
+          name='contact.lastName'
+          label='Last Name'
+          fullWidth
+          required
+          {...inputProps}
+        />
       </Grid>
       <Grid xs={12} {...gridItemProps}>
-        <FormikTextField name='email' label='Email' fullWidth required {...inputProps} />
+        <FormikTextField name='contact.email' label='Email' fullWidth required {...inputProps} />
       </Grid>
       {children}
     </Grid>

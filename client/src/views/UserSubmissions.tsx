@@ -172,16 +172,16 @@ export const UserSubmissions: React.FC = () => {
                 //   (theme.palette.mode === 'dark' ? s.darkMapImageURL : s.lightMapImageURL) ||
                 //   getRandomItem(fallbackImages)
                 // }
-                title={`${s.addressLine1} map`}
+                title={`${s.address?.addressLine1} map`}
               />
               <CardContent sx={{ p: 5 }}>
                 <Typography fontWeight={900} fontSize={24} gutterBottom>
-                  {s.addressLine1}
+                  {s.address?.addressLine1}
                 </Typography>
-                <Item label='Building Coverage' value={dollarFormat(s.limitA)} />
-                <Item label='Other Structures Coverage' value={dollarFormat(s.limitB)} />
-                <Item label='Contents Coverage' value={dollarFormat(s.limitC)} />
-                <Item label='Additional Expenses Coverage' value={dollarFormat(s.limitD)} />
+                <Item label='Building Coverage' value={dollarFormat(s.limits.limitA)} />
+                <Item label='Other Structures Coverage' value={dollarFormat(s.limits.limitB)} />
+                <Item label='Contents Coverage' value={dollarFormat(s.limits.limitC)} />
+                <Item label='Additional Expenses Coverage' value={dollarFormat(s.limits.limitD)} />
                 <Item
                   label='Submitted'
                   value={formatFirestoreTimestamp(s.metadata.created)}
@@ -205,23 +205,37 @@ export const UserSubmissions: React.FC = () => {
               </CardActions>
               <Collapse in={Boolean(expanded && !!expanded[s.id])} timeout='auto' unmountOnExit>
                 <CardContent>
-                  <Item label='Submitted by' value={`${s.firstName} ${s.lastName}`} />
-                  <Item label='Email' value={s.email} />
+                  <Item
+                    label='Submitted by'
+                    value={`${s.contact?.firstName} ${s.contact?.lastName}`}
+                  />
+                  <Item label='Email' value={s.contact?.email} />
                   <Item
                     label='Year built'
-                    value={s.yearBuilt?.toString() || '--'}
+                    value={s.propertyDataRes?.yearBuilt?.toString() || '--'}
                     containerSx={{ pt: 2 }}
                   />
-                  <Item label='# Stories' value={s.numStories?.toString() || '--'} />
+                  <Item
+                    label='# Stories'
+                    value={s.propertyDataRes?.numStories?.toString() || '--'}
+                  />
                   <Item
                     label='Square Footage'
-                    value={s.sqFootage ? numberFormat(s.sqFootage) : '--'}
+                    value={
+                      s.propertyDataRes?.sqFootage
+                        ? numberFormat(s.propertyDataRes?.sqFootage)
+                        : '--'
+                    }
                   />
-                  <Item label='Basement' value={s.basement ?? '--'} />
-                  <Item label='Flood Zone' value={s.floodZone ?? '--'} />
+                  <Item label='Basement' value={s.propertyDataRes?.basement ?? '--'} />
+                  <Item label='Flood Zone' value={s.propertyDataRes?.floodZone ?? '--'} />
                   <Item
                     label='Est. Replacement Cost'
-                    value={s.replacementCost ? dollarFormat(s.replacementCost) : '--'}
+                    value={
+                      s.propertyDataRes?.replacementCost
+                        ? dollarFormat(s.propertyDataRes?.replacementCost)
+                        : '--'
+                    }
                   />
                   <Item label='Submission ID' value={s.id} containerSx={{ pt: 2 }} />
                 </CardContent>

@@ -12,11 +12,17 @@ import { LimitKeys } from 'common/types';
 // TODO: use increment cards & text field or slider ??
 // TODO: round value to nearest 1,000
 
+// enum FieldNames {
+//   A = 'limitA',
+//   B = 'limitB',
+//   C = 'limitC',
+//   D = 'limitD',
+// }
 enum FieldNames {
-  A = 'limitA',
-  B = 'limitB',
-  C = 'limitC',
-  D = 'limitD',
+  A = 'limits.limitA',
+  B = 'limits.limitB',
+  C = 'limits.limitC',
+  D = 'limits.limitD',
 }
 
 const limitFields = [
@@ -110,7 +116,7 @@ export const LimitsStep: React.FC<LimitsStepProps> = ({
     if (!replacementCost) return result;
 
     Object.keys(result).forEach((key) => {
-      const limitVal = values[key as LimitKeys];
+      const limitVal = values.limits[key as LimitKeys];
       const limitNum = typeof limitVal === 'string' ? parseInt(limitVal) : limitVal;
       const ht = getFormattedPct(limitNum, replacementCost);
       if (!isNaN(ht)) {

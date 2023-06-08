@@ -128,7 +128,7 @@ export const SubmissionView: React.FC = () => {
   }, [navigate, submissionId]);
 
   const openGoogleMaps = useCallback(() => {
-    let { latitude, longitude } = data;
+    let { latitude, longitude } = data.coordinates;
     if (!(latitude && longitude)) return toast.error('Missing coordinates');
     window.open(`https://www.google.com/maps/search/?api=1&query=${latitude}%2C${longitude}`);
   }, [data]);
@@ -169,15 +169,15 @@ export const SubmissionView: React.FC = () => {
           <Typography variant='overline' color='text.secondary'>
             Address
           </Typography>
-          <Typography>{`${data.addressLine1} ${data.addressLine2}`}</Typography>
-          <Typography>{`${data.city}, ${data.state} ${data.postal}`}</Typography>
+          <Typography>{`${data.address?.addressLine1} ${data.address?.addressLine2}`}</Typography>
+          <Typography>{`${data.address?.city}, ${data.address?.state} ${data.address?.postal}`}</Typography>
         </Box>
         <Box sx={{ pb: 3 }}>
           <Typography variant='overline' color='text.secondary'>
             Contact
           </Typography>
-          <RowItem title='Name' value={`${data.firstName} ${data.lastName}`} />
-          <RowItem title='Email' value={`${data.email}`} />
+          <RowItem title='Name' value={`${data.contact?.firstName} ${data.contact?.lastName}`} />
+          <RowItem title='Email' value={`${data.contact?.email}`} />
         </Box>
       </Grid>
       <Grid xs={12} sm={6} md={4} lg={3}>
@@ -185,20 +185,20 @@ export const SubmissionView: React.FC = () => {
           <Typography variant='overline' color='text.secondary'>
             Limits & Deductible
           </Typography>
-          <RowItem title='A: Building Limit' value={dollarFormat(data.limitA)} />
-          <RowItem title={`B: Add'l Structures Limit`} value={dollarFormat(data.limitB)} />
-          <RowItem title='C: Contents Limit' value={dollarFormat(data.limitC)} />
-          <RowItem title='D: Additional Expenses Limit' value={dollarFormat(data.limitD)} />
+          <RowItem title='A: Building Limit' value={dollarFormat(data.limits?.limitA)} />
+          <RowItem title={`B: Add'l Structures Limit`} value={dollarFormat(data.limits?.limitB)} />
+          <RowItem title='C: Contents Limit' value={dollarFormat(data.limits?.limitC)} />
+          <RowItem title='D: Additional Expenses Limit' value={dollarFormat(data.limits?.limitD)} />
           <RowItem title='Deductible' value={dollarFormat(data.deductible)} />
         </Box>
         <Box>
           <Typography variant='overline' color='text.secondary'>
-            Additional Details
+            Additional Detailsaddress?.
           </Typography>
           <RowItem title='Prior Loss Count' value={data.priorLossCount} />
           <RowItem title='Exclusions' value={data.exclusions} />
-          <RowItem title='FIPS' value={data.countyFIPS || null} />
-          <RowItem title='County' value={data.countyName || null} />
+          <RowItem title='FIPS' value={data.address?.countyFIPS || null} />
+          <RowItem title='County' value={data.address?.countyName || null} />
         </Box>
       </Grid>
 
@@ -207,18 +207,24 @@ export const SubmissionView: React.FC = () => {
           <Typography variant='overline' color='text.secondary'>
             Spatial Key Data
           </Typography>
-          <RowItem title='Replacement Cost' value={dollarFormat(data.replacementCost ?? '')} />
-          <RowItem title='Square Footage' value={numberFormat(data.sqFootage ?? '')} />
-          <RowItem title='Year Built' value={data.yearBuilt} />
+          <RowItem
+            title='Replacement Cost'
+            value={dollarFormat(data.propertyDataRes?.replacementCost ?? '')}
+          />
+          <RowItem
+            title='Square Footage'
+            value={numberFormat(data.propertyDataRes?.sqFootage ?? '')}
+          />
+          <RowItem title='Year Built' value={data.propertyDataRes?.yearBuilt} />
           <RowItem
             title='Distance To Coast (ft)'
-            value={numberFormat(data.distToCoastFeet ?? '')}
+            value={numberFormat(data.propertyDataRes?.distToCoastFeet ?? '')}
           />
-          <RowItem title='Property Code' value={data.propertyCode} />
-          <RowItem title='CBRS Designation' value={data.CBRSDesignation} />
-          <RowItem title='Basement' value={data.basement} />
-          <RowItem title='Flood Zone' value={data.floodZone} />
-          <RowItem title='Number of Stories' value={data.numStories} />
+          <RowItem title='Property Code' value={data.propertyDataRes?.propertyCode} />
+          <RowItem title='CBRS Designation' value={data.propertyDataRes?.CBRSDesignation} />
+          <RowItem title='Basement' value={data.propertyDataRes?.basement} />
+          <RowItem title='Flood Zone' value={data.propertyDataRes?.floodZone} />
+          <RowItem title='Number of Stories' value={data.propertyDataRes?.numStories} />
         </Box>
         <Box sx={{ pb: 3 }}>
           <Typography variant='overline' color='text.secondary'>
@@ -237,22 +243,28 @@ export const SubmissionView: React.FC = () => {
         <Typography variant='overline' color='text.secondary'>
           Additional Details
         </Typography>
-        {data.spatialKeyDocId && (
+        {data.propertyDataRes?.spatialKeyDocId && (
           <Button
             size='small'
             sx={{ m: 1, ml: 0 }}
             onClick={() =>
-              showDialog(COLLECTIONS.SK_RES, data.spatialKeyDocId!, 'Spatial Key Property Data')
+              showDialog(
+                COLLECTIONS.SK_RES,
+                data.propertyDataRes?.spatialKeyDocId!,
+                'Spatial Key Property Data'
+              )
             }
           >
             Show Spatial Key Data
           </Button>
         )}
-        {data.attomDocId && (
+        {data.propertyDataRes?.attomDocId && (
           <Button
             size='small'
             sx={{ m: 1, ml: 0 }}
-            onClick={() => showDialog('attom', data.attomDocId!, 'Attom Property Data')}
+            onClick={() =>
+              showDialog('attom', data.propertyDataRes?.attomDocId!, 'Attom Property Data')
+            }
           >
             Show Attom Data
           </Button>

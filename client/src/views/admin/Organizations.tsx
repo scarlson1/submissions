@@ -11,8 +11,11 @@ import { formatGridPercent } from 'modules/utils';
 import { createPath, ADMIN_ROUTES } from 'router';
 import {
   Organization,
+  addrCityCol,
   addrLine1Col,
   addrLine2Col,
+  addrPostalCol,
+  addrStateCol,
   addressSummaryCol,
   createdCol,
   emailCol,
@@ -87,16 +90,6 @@ export const Organizations: React.FC = () => {
         headerName: 'Contact Email',
         description: 'Provided primary contact email',
       },
-      // {
-      //   field: 'email',
-      //   headerName: 'Contact Email',
-      //   description: 'Provided primary contact email',
-      //   minWidth: 200,
-      //   flex: 1,
-      //   editable: false,
-      //   valueGetter: (params) => params.row.primaryContact?.email || null,
-      //   renderCell: (params) => renderGridEmail(params),
-      // },
       {
         ...phoneCol,
         field: 'primaryContact.phone',
@@ -112,6 +105,9 @@ export const Organizations: React.FC = () => {
       addressSummaryCol,
       addrLine1Col,
       addrLine2Col,
+      addrCityCol,
+      addrStateCol,
+      addrPostalCol,
       latitudeCol,
       longitudeCol,
       {
@@ -149,7 +145,7 @@ export const Organizations: React.FC = () => {
       {
         ...orgIdCol,
         field: 'id',
-        headerName: 'User ID',
+        headerName: 'Org ID',
       },
     ],
     []
@@ -193,11 +189,11 @@ export const Organizations: React.FC = () => {
           initialState={{
             columns: {
               columnVisibilityModel: {
-                addressLine1: false,
-                addressLine2: false,
-                city: false,
-                state: false,
-                postal: false,
+                'address.addressLine1': false,
+                'address.addressLine2': false,
+                'address.city': false,
+                'address.state': false,
+                'address.postal': false,
                 firstName: false,
                 lastName: false,
                 latitude: false,

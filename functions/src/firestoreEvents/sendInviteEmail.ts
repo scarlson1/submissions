@@ -1,5 +1,5 @@
 import type { FirestoreEvent } from 'firebase-functions/v2/firestore';
-import type { QueryDocumentSnapshot } from 'firebase-admin/firestore';
+import type { DocumentReference, QueryDocumentSnapshot } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 
 import { sendUserInvite } from '../services/sendgrid';
@@ -14,18 +14,26 @@ export default async (
     }
   >
 ) => {
+  const { inviteId, orgId } = event.params;
   const snap = event.data;
-  if (!snap) {
+  const inviteRef = event.data?.ref as DocumentReference<Invite> | undefined;
+  if (!snap || !inviteRef) {
     console.log('No data associated with event');
     return;
   }
   const data = snap.data() as Invite;
   const { link, firstName, displayName = '' } = data;
-  info(
-    `New invite detected. Initiating invite email (${event.params.inviteId})...  ${JSON.stringify(
-      data
-    )}`
-  );
+  const alreadySent = data.sent || false;
+
+  let logMsg = `New invite detected. Initiating invite email (${event.params.inviteId})...`;
+  if (alreadySent) logMsg = `New invite detected. Returning early - sent status: ${data.sent}`;
+
+  info(logMsg, {
+    inviteId,
+    orgId,
+    data,
+  });
+  if (alreadySent) return;
 
   if (!link) {
     error('ERROR. INVITE EMAIL NOT SENT. Missing required params');
@@ -39,17 +47,30 @@ export default async (
   if (audience.value() === 'DEV HUMANS' || audience.value() === 'LOCAL HUMANS')
     to.push('spencer.carlson@idemandinsurance.com');
 
-  sendUserInvite(
-    sendgridApiKey.value(),
-    link,
-    to,
-    firstName ?? displayName,
-    data.invitedBy?.name || '',
-    {
-      customArgs: {
-        firebaseEventId: event.id,
-      },
-    }
-  );
-  return {};
+  try {
+    await sendUserInvite(
+      sendgridApiKey.value(),
+      link,
+      to,
+      firstName ?? displayName,
+      data.invitedBy?.name || '',
+      {
+        customArgs: {
+          firebaseEventId: event.id,
+        },
+      }
+    );
+    await markSent(inviteRef);
+    info(`Invite for org ${data.orgId} (${data.orgName}) sent to ${JSON.stringify(to)}`, { link });
+  } catch (err: any) {
+    error(`Error sending invite email to ${data.email} for org ${data.orgId}`, {
+      errMsg: err?.message,
+    });
+  }
+
+  return;
 };
+
+function markSent(inviteRef: DocumentReference<Invite>) {
+  return inviteRef.update({ sent: true });
+}

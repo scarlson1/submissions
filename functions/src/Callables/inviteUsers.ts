@@ -1,5 +1,5 @@
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
-import { logger } from 'firebase-functions/v1';
+import { info } from 'firebase-functions/logger';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
 
@@ -8,12 +8,13 @@ import { inviteConverter } from '../common/converters';
 import { CLAIMS, INVITE_STATUS, InviteClass } from '../common';
 
 // TODO: allow invites without tenant association ??
+// TODO: rename to inviteOrgUsers
 // MOVE TO FRONT END ?? IS CLOUD FUNCTION NEEDED ?? BATCH ??
 
 export interface NewUser {
   email: string;
   name: string;
-  access: CLAIMS.ORG_ADMIN | CLAIMS.AGENT | ''; // AccessLevels | '';
+  access: CLAIMS.ORG_ADMIN | CLAIMS.AGENT | CLAIMS.IDEMAND_ADMIN | CLAIMS.IDEMAND_USER | ''; // AccessLevels | '';
 }
 
 export interface InviteUsersRequest {
@@ -75,7 +76,7 @@ export default async ({ data, auth }: CallableRequest<{ users: NewUser[]; tenant
     reqUser = await getAuth().getUser(auth.uid);
   }
 
-  console.log('users: ', users);
+  info('invite users: ', { users });
   try {
     const batch = db.batch();
     // eslint-disable-next-line
@@ -86,22 +87,24 @@ export default async ({ data, auth }: CallableRequest<{ users: NewUser[]; tenant
         .withConverter(inviteConverter)
         .doc(user.email.toLocaleLowerCase().trim());
 
-      logger.log(
-        `invite doc created for ${user.name} - ${user.email} with permission level: ${user.access}`
+      info(
+        `Creating invite doc for ${user.name} - ${user.email} with permission level: ${user.access}`
       );
       // TODO: check if already exist? allow multiple accounts in different tenants?
 
+      // link, set in firestore converter - move outside so error can be handled if there is one ?
+      // TODO: better data validation ??
       const customClaims = user.access ? { [user.access]: true } : {};
       const newInvite = new InviteClass({
         email: user.email.toLowerCase().trim(),
         displayName: user.name.trim(),
         firstName: user.name.split(' ')[0] || '',
         lastName: user.name.split(' ')[1] || '',
-        // link,
         customClaims,
         orgId: tenantId,
-        orgName: orgData?.orgName,
+        orgName: orgData?.orgName || '',
         status: INVITE_STATUS.PENDING,
+        sent: false,
         id: inviteDocRef.id,
         invitedBy: {
           name: reqUser.displayName || '',
@@ -113,7 +116,6 @@ export default async ({ data, auth }: CallableRequest<{ users: NewUser[]; tenant
           updated: Timestamp.now(),
         },
       });
-      console.log('New Invite: ', newInvite);
 
       batch.set(inviteDocRef, newInvite);
 
@@ -125,12 +127,12 @@ export default async ({ data, auth }: CallableRequest<{ users: NewUser[]; tenant
         recipientName: user.name,
         customClaims,
       };
-      console.log('res: ', res);
     }
 
-    console.log('committing batch...');
+    info('committing batch...');
     await batch.commit();
 
+    info('INVITE USERS RES: ', { res });
     return { ...res };
   } catch (err) {
     return err;

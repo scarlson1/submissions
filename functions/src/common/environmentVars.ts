@@ -35,6 +35,7 @@ export const counties20mURL = defineString('COUNTIES_URL');
 export const algoliaIndex = defineString('ALGOLIA_INDEX');
 export const algoliaAppId = defineString('ALGOLIA_APP_ID');
 export const defaultFloodZone = defineString('DEFAULT_FLOOD_ZONE');
+export const iDemandOrgId = defineString('IDEMAND_ORG_ID');
 
 export const maxA = defineInt('FLOOD_MAX_LIMIT_A', { default: 1000000 });
 export const minA = defineInt('FLOOD_MIN_LIMIT_A', { default: 100000 });

@@ -1,7 +1,8 @@
 // import * as functions from 'firebase-functions';
+import { EventContext } from 'firebase-functions/v1';
+import { info } from 'firebase-functions/logger';
 import { getFirestore } from 'firebase-admin/firestore';
 import { UserRecord } from 'firebase-admin/auth';
-import { EventContext } from 'firebase-functions/v1';
 
 import { invitesCollection, userClaimsCollection } from '../common';
 
@@ -9,7 +10,7 @@ export default async (user: UserRecord, context: EventContext<Record<string, str
   const db = getFirestore();
 
   if (!!user.tenantId && !!user.email) {
-    console.log(`Fetching invite for user ${user.tenantId} / ${user.email}`);
+    info(`Fetching invite for user ${user.tenantId} / ${user.email}`);
     const inviteRef = invitesCollection(db, user.tenantId).doc(user.email);
     const inviteSnap = await inviteRef.get();
     if (!inviteSnap.exists) return;
@@ -25,9 +26,6 @@ export default async (user: UserRecord, context: EventContext<Record<string, str
     console.log(`Setting invite status to accepted ${inviteRef.id}`);
     await inviteRef.update({ status: 'accepted' });
   }
-
-  // TODO: create invite in beforeCreate for @idemandinsurance.com ??
-  // what if want to set claims other than iDemandAdmin ?? would have to check if invite exists
 
   return;
 };

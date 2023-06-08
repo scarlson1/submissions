@@ -133,6 +133,7 @@ export default async ({ data, auth }: CallableRequest<any>) => {
   try {
     const orgRef = orgsCollection(db).doc(newTenantId);
     await orgRef.set({
+      orgId: newTenantId,
       orgName: org.orgName,
       address: org.address,
       coordinates: org.coordinates || null,

@@ -151,50 +151,48 @@ export const useCreateAccount = () => {
       //    - invitation not found under tenant for email
       //    - user doc already exists with email
       if (code === 'auth/internal-error') {
-        if (msg.indexOf('Cloud Function') !== -1) {
-          if (msg.indexOf('verify your email') !== -1) {
-            // registration succeeded
-            console.log('registration succeeded. need to handle blocking function');
-            if (
-              msg.indexOf('needs to be verified') !== -1 ||
-              msg.indexOf('verify your email') !== -1
-            ) {
-              toast('Email verification required');
+        // if (msg.indexOf('Cloud Function') !== -1) {
+        if (msg.indexOf('verify your email') !== -1) {
+          // registration succeeded
+          console.log('registration succeeded. need to handle blocking function');
+          if (
+            msg.indexOf('needs to be verified') !== -1 ||
+            msg.indexOf('verify your email') !== -1
+          ) {
+            toast('Email verification required');
 
-              return navigate(
-                `/auth/login${params.tenandId || ''}?email=${encodeURIComponent(email)}`,
-                {
-                  state: { ...location.state },
-                }
-              );
-            }
-            // TODO: handle other blocking fn errors, if any
-
-            // TODO: figure out how to update user name - handle in blocking fn ??
-            // await updateUserDocOnCreate(userCreateRes, { firstName, lastName });
-          }
-          if (msg.indexOf('ALREADY_EXISTS') !== -1 || msg.indexOf('already exists') !== -1) {
-            return toast.error('Account already exists. Please sign in.');
-          }
-          if (msg.indexOf('tenant doc not found') !== -1) {
-            return toast.error('Tenant not found. Please verify the ID in the URL is correct.');
-          }
-          if (msg.indexOf('Unauthorized email') !== -1) {
-            return toast.error(
-              `Org has email domain restrictions enabled that do not match "@${
-                email.split('@')[1]
-              }"`,
-              { duration: 6000 }
+            return navigate(
+              `/auth/login${params.tenandId || ''}?email=${encodeURIComponent(email)}`,
+              {
+                state: { ...location.state },
+              }
             );
           }
-          if (msg.indexOf('Invitation required') !== -1) {
-            return toast.error(
-              `Invite required to join org. Please contact the organization to create an invite.`,
-              { duration: 6000 }
-            );
-          }
+          // TODO: handle other blocking fn errors, if any
+
+          // TODO: figure out how to update user name - handle in blocking fn ??
+          // await updateUserDocOnCreate(userCreateRes, { firstName, lastName });
         }
-        if (msg.indexOf('Email matched invite')) {
+        if (msg.indexOf('ALREADY_EXISTS') !== -1 || msg.indexOf('already exists') !== -1) {
+          return toast.error('Account already exists. Please sign in.');
+        }
+        if (msg.indexOf('tenant doc not found') !== -1) {
+          return toast.error('Tenant not found. Please verify the ID in the URL is correct.');
+        }
+        if (msg.indexOf('Unauthorized email') !== -1) {
+          return toast.error(
+            `Org has email domain restrictions enabled that do not match "@${email.split('@')[1]}"`,
+            { duration: 6000 }
+          );
+        }
+        if (msg.indexOf('Invitation required') !== -1) {
+          return toast.error(
+            `Invite required to join org. Please contact the organization to create an invite.`,
+            { duration: 6000 }
+          );
+        }
+        // }
+        if (msg.indexOf('Email matched invite') !== -1) {
           return toast.error(
             `Your email matched an outstanding invite. Please check your inbox and use the provided link.`
           );

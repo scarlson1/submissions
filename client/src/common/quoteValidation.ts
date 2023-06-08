@@ -53,6 +53,11 @@ export const addressValidationActiveStates = (activeStates: { [key: string]: boo
     postal: yup.string().required('Postal code is required'),
   });
 
+export const addressValidationActiveStatesNested = (activeStates: { [key: string]: boolean }) =>
+  yup.object().shape({
+    address: addressValidationActiveStates(activeStates),
+  });
+
 // export const addressValidationActiveStates = yup.object().shape({
 //   addressLine1: yup.string().required('Address is required'),
 //   addressLine2: yup.string().notRequired(),
@@ -129,33 +134,44 @@ export const limitDVal = yup
   });
 
 export const limitsValidation = yup.object({
-  coverageActive: yup.object({
-    building: yup.bool(),
-    structures: yup.bool(),
-    contents: yup.bool(),
-    additional: yup.bool(),
-  }),
-  coverageActiveBuilding: yup.boolean(),
-  coverageActiveStructures: yup.boolean(),
-  coverageActiveContents: yup.boolean(),
-  coverageActiveAdditional: yup.boolean(),
-  limitA: yup.string().when('coverageActiveBuilding', {
-    is: true,
-    then: limitAVal,
-  }),
-  limitB: yup.string().when('coverageActiveStructures', {
-    is: true,
-    then: limitBVal,
-  }),
-  limitC: yup.string().when('coverageActiveStructures', {
-    is: true,
-    then: limitCVal,
-  }),
-  limitD: yup.string().when('coverageActiveStructures', {
-    is: true,
-    then: limitDVal,
-  }),
+  limitA: limitAVal,
+  limitB: limitBVal,
+  limitC: limitCVal,
+  limitD: limitDVal,
 });
+
+export const limitsValidationNested = yup.object({
+  limits: limitsValidation,
+});
+
+// export const limitsValidation = yup.object({
+//   coverageActive: yup.object({
+//     building: yup.bool(),
+//     structures: yup.bool(),
+//     contents: yup.bool(),
+//     additional: yup.bool(),
+//   }),
+//   coverageActiveBuilding: yup.boolean(),
+//   coverageActiveStructures: yup.boolean(),
+//   coverageActiveContents: yup.boolean(),
+//   coverageActiveAdditional: yup.boolean(),
+//   limitA: yup.string().when('coverageActiveBuilding', {
+//     is: true,
+//     then: limitAVal,
+//   }),
+//   limitB: yup.string().when('coverageActiveStructures', {
+//     is: true,
+//     then: limitBVal,
+//   }),
+//   limitC: yup.string().when('coverageActiveStructures', {
+//     is: true,
+//     then: limitCVal,
+//   }),
+//   limitD: yup.string().when('coverageActiveStructures', {
+//     is: true,
+//     then: limitDVal,
+//   }),
+// });
 
 // TODO: max validation
 export const deductibleValidation = yup.object().shape({
@@ -184,6 +200,10 @@ export const contactValidation = yup.object().shape({
   lastName: yup.string().required('Last name is required'),
   email: emailVal, // .required('Email required'), // yup.string().email().required(),
   phone: phoneVal.notRequired(),
+});
+
+export const contactValidationNested = yup.object().shape({
+  contact: contactValidation,
 });
 
 export const reviewValidation = yup.object({

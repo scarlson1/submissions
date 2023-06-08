@@ -47,6 +47,10 @@ export default async (
       // if (newValue.agent?.agentId) visibleBy.push(`${newValue.agent?.agentId}`);
       // if (newValue.agency.orgId) visibleBy.push(`group/admin/${newValue.agency.orgId}`);
 
+      const searchSubtitle = `${newValue.product} - ${
+        newValue.metadata?.created?.toDate().toDateString() || ''
+      }`;
+
       const records: Record<string, any>[] = [
         {
           ...newValue,
@@ -55,8 +59,8 @@ export default async (
           userId: newValue.userId || null,
           docType: 'submission',
           collectionName: COLLECTIONS.SUBMISSIONS,
-          searchTitle: `${newValue.addressLine1} ${newValue.city}, ${newValue.state}`,
-          searchSubtitle: newValue.metadata?.created?.toDate().toDateString() || '',
+          searchTitle: `${newValue.address?.addressLine1} ${newValue.address?.city}, ${newValue.address?.state}`,
+          searchSubtitle,
           metadata: {
             ...(newValue.metadata || {}),
             created: newValue.metadata?.created?.toDate() || null,

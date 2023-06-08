@@ -13,7 +13,7 @@ export const beforesignin = beforeUserSignedIn(
     memory: '128MiB',
   },
   async (event) => {
-    await (await import('./beforeSignInV2.js')).default(event);
+    await (await import('./beforeSignIn.js')).default(event);
   }
 );
 
@@ -22,7 +22,7 @@ export const beforecreate = beforeUserCreated(
     minInstances: minInstancesAuth,
   },
   async (event) => {
-    await (await import('./beforeCreateV2.js')).default(event);
+    await (await import('./beforeCreate.js')).default(event);
   }
 );
 
