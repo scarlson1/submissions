@@ -45,10 +45,6 @@ export const useHandleAuthError = () => {
 
   const handleUserNotFound = useCallback(
     async (err: AuthError, { email, password }: LoginValues) => {
-      // let getTenantIdFromEmail = httpsCallable<GetTenantRequest, GetTenantResponse>(
-      //   functions,
-      //   'getTenantIdFromEmail'
-      // );
       try {
         console.log(`Checking for tenant with user under ${email}...`);
         let {
@@ -68,6 +64,7 @@ export const useHandleAuthError = () => {
 
           return userRes;
         } else {
+          toast.error(`Account not found for ${email}`);
           return Promise.reject({ ...err });
         }
       } catch (error) {

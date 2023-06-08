@@ -1202,20 +1202,20 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
 
 function getRatingInputsFromSubmission(subData?: Submission) {
   return {
-    latitude: subData?.latitude,
-    longitude: subData?.longitude,
-    replacementCost: subData?.replacementCost,
-    limitA: subData?.limitA,
-    limitB: subData?.limitB,
-    limitC: subData?.limitC,
-    limitD: subData?.limitD,
+    latitude: subData?.coordinates?.latitude,
+    longitude: subData?.coordinates?.longitude,
+    replacementCost: subData?.propertyDataRes?.replacementCost,
+    limitA: subData?.limits?.limitA,
+    limitB: subData?.limits?.limitB,
+    limitC: subData?.limits?.limitC,
+    limitD: subData?.limits?.limitD,
     deductible: subData?.deductible,
-    numStories: subData?.numStories,
+    numStories: subData?.propertyDataRes?.numStories,
     priorLossCount: subData?.priorLossCount,
-    state: subData?.state,
-    floodZone: subData?.floodZone,
-    basement: subData?.basement?.toLowerCase(),
-    commissionPct: subData?.subproducerCommission || 0.15,
+    state: subData?.address?.state,
+    floodZone: subData?.propertyDataRes?.floodZone,
+    basement: subData?.propertyDataRes?.basement?.toLowerCase(),
+    commissionPct: subData?.subproducerCommission || 0.15, // TODO: delete - must look up subrpoducer comm from agent ID or org ID from server, or producer from clinet if idemand admin
   };
 }
 
@@ -1410,11 +1410,11 @@ export const QuoteNewFromSub = () => {
   // @ts-ignore TODO: fix types (can't pass null to iMask component)
   const initialValues: NewQuoteValues = useMemo(
     () => ({
-      addressLine1: submissionData?.addressLine1 ?? '',
-      addressLine2: submissionData?.addressLine2 ?? '',
-      city: submissionData?.city ?? '',
-      state: submissionData?.state ?? '',
-      postal: submissionData?.postal ?? '',
+      addressLine1: submissionData?.address?.addressLine1 ?? '',
+      addressLine2: submissionData?.address?.addressLine2 ?? '',
+      city: submissionData?.address?.city ?? '',
+      state: submissionData?.address?.state ?? '',
+      postal: submissionData?.address?.postal ?? '',
       latitude: submissionData?.coordinates?.latitude ?? null,
       longitude: submissionData?.coordinates?.longitude ?? null, // @ts-ignore
       limitA: submissionData?.limitA ?? 250000, // @ts-ignore
@@ -1430,11 +1430,11 @@ export const QuoteNewFromSub = () => {
       annualPremium: submissionData?.annualPremium ?? null,
       subproducerCommission: submissionData?.subproducerCommission ?? 0.15,
       quoteTotal: null, // calculated
-      insuredFirstName: submissionData?.firstName ?? '',
-      insuredLastName: submissionData?.lastName ?? '',
-      insuredEmail: submissionData?.email ?? '',
+      insuredFirstName: submissionData?.contact?.firstName ?? '',
+      insuredLastName: submissionData?.contact?.lastName ?? '',
+      insuredEmail: submissionData?.contact?.email ?? '',
       insuredPhone: '',
-      agentId: submissionData?.agentId || '',
+      agentId: submissionData?.agent?.agentId || '',
       agentEmail: '', // TODO: decide whether to add agency / agent data with submission or query later
       agentName: '',
       agentPhone: '',
@@ -1442,15 +1442,15 @@ export const QuoteNewFromSub = () => {
       agencyId: '',
       priorLossCount: submissionData?.priorLossCount || '',
       ratingPropertyData: {
-        CBRSDesignation: submissionData?.CBRSDesignation ?? '',
-        basement: `${submissionData?.basement ?? ''}`.toLowerCase(), // @ts-ignore
-        distToCoastFeet: `${submissionData?.distToCoastFeet ?? ''}`, // submissionData?.distToCoastFeet ?? null,
-        floodZone: submissionData?.floodZone ?? '',
-        numStories: submissionData?.numStories ?? 1,
-        propertyCode: `${submissionData?.propertyCode ?? ''}`,
-        replacementCost: submissionData?.replacementCost ?? null, // @ts-ignore
-        sqFootage: `${submissionData?.sqFootage ?? ''}`, // @ts-ignore submissionData?.sqFootage ?? null,
-        yearBuilt: `${submissionData?.yearBuilt ?? ''}`, // submissionData?.yearBuilt ?? null,
+        CBRSDesignation: submissionData?.propertyDataRes?.CBRSDesignation ?? '',
+        basement: `${submissionData?.propertyDataRes?.basement ?? ''}`.toLowerCase(), // @ts-ignore
+        distToCoastFeet: `${submissionData?.propertyDataRes?.distToCoastFeet ?? ''}`, // submissionData?.distToCoastFeet ?? null,
+        floodZone: submissionData?.propertyDataRes?.floodZone ?? '',
+        numStories: submissionData?.propertyDataRes?.numStories ?? 1,
+        propertyCode: `${submissionData?.propertyDataRes?.propertyCode ?? ''}`,
+        replacementCost: submissionData?.propertyDataRes?.replacementCost ?? null, // @ts-ignore
+        sqFootage: `${submissionData?.propertyDataRes?.sqFootage ?? ''}`, // @ts-ignore submissionData?.sqFootage ?? null,
+        yearBuilt: `${submissionData?.propertyDataRes?.yearBuilt ?? ''}`, // submissionData?.yearBuilt ?? null,
       },
       AAL: {
         inland: submissionData?.inlandAAL ?? null,

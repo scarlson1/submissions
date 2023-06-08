@@ -1,4 +1,5 @@
 import type { FirestoreEvent } from 'firebase-functions/v2/firestore';
+import { error, info, warn } from 'firebase-functions/logger';
 import type { QueryDocumentSnapshot } from 'firebase-admin/firestore';
 import {
   booleanPointInPolygon,
@@ -12,7 +13,6 @@ import {
 
 import { Submission, FIPS, counties20mURL } from '../common';
 import axios from 'axios';
-import { error, info } from 'firebase-functions/logger';
 
 export let countiesJson: FeatureCollection | undefined;
 
@@ -26,7 +26,7 @@ export default async (
 ) => {
   const snap = event.data;
   if (!snap) {
-    console.log('No data associated with event');
+    warn('No data associated with event');
     return;
   }
   const submission = snap.data() as Submission;
@@ -41,7 +41,8 @@ export default async (
   }
 
   try {
-    let { state, countyName, coordinates } = submission;
+    const { address, coordinates } = submission;
+    const { state, countyName } = address;
 
     let fips;
     let newCountyName = countyName;
@@ -61,7 +62,12 @@ export default async (
     }
 
     if (fips) {
-      await snap.ref.update({ countyFIPS: fips, countyName: newCountyName });
+      await snap.ref.update({
+        countyFIPS: fips, // TODO: remove once converted to new types (property of address)
+        countyName: newCountyName,
+        'address.countyFIPS': fips,
+        'address.countyName': newCountyName || '',
+      });
       console.log(`UPDATED SUBMISSION ${snap.id} FIPS TO ${fips}`);
     }
   } catch (err) {
@@ -81,8 +87,8 @@ export function getFIPS(countyName: string, state: string) {
   );
   if (!details) return '';
 
-  console.log('SEARCH TERMS: ', countyName, state);
-  console.log('COUNTY DETAILS: ', details);
+  info('COUNTY SEARCH TERMS: ', { countyName, state });
+  info('COUNTY DETAILS: ', { details });
 
   return `${details.stateFP}${details.countyFP}`;
 }
@@ -103,7 +109,7 @@ export async function getCountyFromGeoJson(latitude: number, longitude: number) 
       }
     }
   });
-  console.log('MATCH PROPERTIES: ', matchProperties);
+  info('MATCH PROPERTIES: ', { matchProperties });
 
   return matchProperties;
 }

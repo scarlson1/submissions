@@ -35,14 +35,18 @@ export type DeepNullable<T> = {
 
 export type Maybe<T> = T | null | undefined;
 
-export interface Submission extends FloodValues, FetchPropertyDataResponse {
+export interface Submission extends FloodValues {
+  product: Product;
   coordinates: GeoPoint;
-  countyFIPS?: string | null;
+  // countyFIPS?: string | null;
   userId?: string | null;
-  agentId?: string | null;
+  // agentId?: string | null;
+  agent?: Nullable<AgentDetails>;
+  agency?: Nullable<AgencyDetails>;
   status: SUBMISSION_STATUS;
   submittedById?: string | null;
   rcvSouceUser?: boolean;
+  propertyDataRes: FetchPropertyDataResponse;
   darkMapImageURL?: string;
   lightMapImageURL?: string;
   darkMapImageFilePath?: string;
@@ -61,6 +65,7 @@ export interface Submission extends FloodValues, FetchPropertyDataResponse {
 
 export type LimitKeys = 'limitA' | 'limitB' | 'limitC' | 'limitD';
 export type Product = 'flood' | 'wind';
+export type CovTypeNames = 'building' | 'otherStructures' | 'contents' | 'BI';
 
 export interface FirestoreTimestamp {
   readonly nanoseconds: number;
@@ -78,7 +83,8 @@ export interface Address {
   city: string;
   state: string;
   postal: string;
-  countyName?: string;
+  countyFIPS?: string | null;
+  countyName?: string | null;
 }
 
 export interface AddressWithCoords extends Address {
@@ -105,12 +111,14 @@ export interface QuoteLocation extends Location {
   swissReResDocId: string;
 }
 
-export interface Limits {
-  limitA: number;
-  limitB: number;
-  limitC: number;
-  limitD: number;
-}
+// export interface Limits {
+//   limitA: number;
+//   limitB: number;
+//   limitC: number;
+//   limitD: number;
+// }
+export type LimitTypes = 'limitA' | 'limitB' | 'limitC' | 'limitD';
+export type Limits = Record<LimitTypes, number>;
 
 // TODO: change to UWRatingNote
 export interface UWNote {
@@ -144,6 +152,27 @@ export interface AdditionalInterest {
   name: string;
   accountNumber: string;
   address: AddressWithCoords;
+}
+
+export interface NamedInsuredDetails {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  userId?: string | null;
+}
+
+export interface AgentDetails {
+  agentId: string | null; // use userId ??
+  name: string;
+  email: string;
+  phone: string | null;
+}
+
+export interface AgencyDetails {
+  orgId: string | null; // TODO: remove null once agency being set in system (set to idemand if agent not set) ??
+  name: string | null;
+  address: Address;
 }
 
 export interface Deductible {

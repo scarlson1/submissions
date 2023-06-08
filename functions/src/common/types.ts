@@ -4,7 +4,6 @@ import { GeoPoint, Timestamp } from 'firebase-admin/firestore';
 import { v4 as uuid } from 'uuid';
 import { deepmerge } from 'deepmerge-ts';
 import { Geohash } from 'geofire-common';
-// import { Timestamp, WithFieldValue } from '@google-cloud/firestore';
 
 import {
   SUBMISSION_STATUS,
@@ -113,13 +112,15 @@ export interface IndividualNamedInsured {
   email: string;
   phone: string;
   userId?: string | null;
-  orgId?: string;
+  orgId?: string; // ever used ??
 }
 
 export interface EntityNamedInsured {
+  // TODO: add type: 'entity' ??
   displayName: string;
   email: string;
   phone: string;
+  userId?: string | null;
   orgId?: string;
 }
 
@@ -219,6 +220,7 @@ export interface Address {
   city: string;
   state: string;
   postal: string;
+  countyFIPS?: string;
   countyName?: string;
 }
 
@@ -259,6 +261,7 @@ export interface Organization {
   address?: Address;
   coordinates?: GeoPoint | null;
   orgName: string;
+  orgId: string;
   tenantId: string | null;
   primaryContact?: {
     displayName: string;
@@ -279,7 +282,7 @@ export interface Organization {
   };
   FEIN?: string;
   EandOURL?: string;
-  accountNumber?: string;
+  accountNumber?: string; // TODO: store as subcollection ?? different permissions
   routingNumber?: string;
   emailDomain?: string;
   enforceDomainRestriction?: boolean;
@@ -331,32 +334,49 @@ export type Product = 'flood' | 'wind';
 //   metadata: BaseMetadata;
 // }
 
+export type CovTypeNames = 'building' | 'otherStructures' | 'contents' | 'BI';
+
 export interface FloodFormValues {
-  addressLine1: string;
-  addressLine2?: string;
-  city: string;
-  state: string;
-  postal: string;
-  countyName?: string;
-  latitude: number | null;
-  longitude: number | null;
-  coverageActiveBuilding: boolean;
-  coverageActiveStructures: boolean;
-  coverageActiveContents: boolean;
-  coverageActiveAdditional: boolean;
-  limitA: number; // string;
-  limitB: number; // string;
-  limitC: number; // string;
-  limitD: number; // string;
+  address: Address;
+  coordinates: {
+    latitude: number | null;
+    longitude: number | null;
+  };
+  limits: Limits;
+  // coverageActive: Record<CovTypeNames, boolean>;
   deductible: number;
   exclusionsExist: boolean | null;
   exclusions: string[];
   priorLossCount: string;
-  firstName: string;
-  lastName: string;
-  email: string;
+  contact: Omit<NamedInsuredDetails, 'phone'>;
   userAcceptance: boolean;
 }
+// export interface FloodFormValues {
+//   addressLine1: string;
+//   addressLine2?: string;
+//   city: string;
+//   state: string;
+//   postal: string;
+//   countyName?: string;
+//   latitude: number | null;
+//   longitude: number | null;
+//   coverageActiveBuilding: boolean;
+//   coverageActiveStructures: boolean;
+//   coverageActiveContents: boolean;
+//   coverageActiveAdditional: boolean;
+//   limitA: number; // string;
+//   limitB: number; // string;
+//   limitC: number; // string;
+//   limitD: number; // string;
+//   firstName: string;
+//   lastName: string;
+//   email: string;
+//   deductible: number;
+//   exclusionsExist: boolean | null;
+//   exclusions: string[];
+//   priorLossCount: string;
+//   userAcceptance: boolean;
+// }
 
 // TODO: derive getAAL props from RatingPropertyData ??
 export interface RatingPropertyData {
@@ -414,7 +434,8 @@ export interface FetchPropertyDataResponse extends Partial<RatingPropertyData> {
   spatialKeyDocId?: string | null;
 }
 
-export interface Submission extends FloodFormValues, FetchPropertyDataResponse {
+export interface Submission extends FloodFormValues {
+  product: Product;
   coordinates: GeoPoint;
   geoHash?: Geohash | null;
   countyFIPS?: string | null;
@@ -422,6 +443,7 @@ export interface Submission extends FloodFormValues, FetchPropertyDataResponse {
   status: SUBMISSION_STATUS;
   submittedById?: string | null;
   rcvSouceUser?: boolean;
+  propertyDataRes: FetchPropertyDataResponse;
   darkMapImageURL?: string;
   lightMapImageURL?: string;
   darkMapImageFilePath?: string;
@@ -442,11 +464,19 @@ export interface AddressWithCoords extends Address {
   longitude: number;
 }
 
+export interface NamedInsuredDetails {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  userId?: string | null;
+}
+
 export interface AgentDetails {
   agentId: string | null; // use userId ??
   name: string;
   email: string;
-  phone: string;
+  phone: string | null;
 }
 
 export interface AgencyDetails {
@@ -540,13 +570,7 @@ export interface PolicyOld {
   address: Address;
   coordinates: GeoPoint | null; // TODO: get rid of null in SubmissionQuoteData
   geoHash?: Geohash | null;
-  namedInsured: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone: string;
-    userId?: string | null;
-  };
+  namedInsured: NamedInsuredDetails;
   additionalInsureds?: AdditionalInsured[];
   mortgageeInterest?: Mortgagee[];
   effectiveDate: Timestamp;
@@ -570,7 +594,7 @@ export interface PolicyOld {
   metadata: BaseMetadata;
 }
 
-export type RCVKeys = 'building' | 'otherStructures' | 'contents' | 'BI' | 'total';
+export type RCVKeys = CovTypeNames | 'total'; // 'building' | 'otherStructures' | 'contents' | 'BI'
 
 export type RCVs = Record<RCVKeys, number>;
 
@@ -611,7 +635,7 @@ export interface Policy {
   effectiveDate: Timestamp;
   expirationDate: Timestamp;
   userId: string | null;
-  agent: AgentDetails;
+  agent: Nullable<AgentDetails>; // TODO: remove nullable (defaults to idemand)
   agency: AgencyDetails;
   surplusLinesProducerOfRecord: {
     name: string;
@@ -673,12 +697,13 @@ export class PolicyClass implements IPolicyClass {
     name: string | null;
     address: Address; // | null;
   };
-  public agent: {
-    agentId: string | null;
-    name: string; // | null;
-    email: string; // | null;
-    phone: string; // | null;
-  };
+  public agent: Nullable<AgentDetails>;
+  // public agent: {
+  //   agentId: string | null;
+  //   name: string; // | null;
+  //   email: string; // | null;
+  //   phone: string; // | null;
+  // };
   public surplusLinesProducerOfRecord: any;
   public issuingCarrier: string;
   public imageUrls: Record<string, string> | null;
@@ -1002,6 +1027,7 @@ export interface Invite {
   orgId: string | null;
   orgName?: string;
   status: InviteStatus;
+  sent?: boolean;
   isCreateOrgInvite?: boolean;
   id: string;
   invitedBy?: {
@@ -1026,6 +1052,7 @@ export class InviteClass implements InviteClassInterface {
   public orgId: string | null;
   public orgName?: string;
   public status: InviteStatus;
+  public sent: boolean;
   public isCreateOrgInvite?: boolean;
   public id: string;
   public invitedBy?: {
@@ -1045,6 +1072,7 @@ export class InviteClass implements InviteClassInterface {
     this.orgId = inviteInfo.orgId;
     this.orgName = inviteInfo.orgName;
     this.status = inviteInfo.status;
+    this.sent = inviteInfo.sent || false;
     this.isCreateOrgInvite = !!inviteInfo.isCreateOrgInvite;
     this.id = inviteInfo.id;
     this.invitedBy = inviteInfo.invitedBy;

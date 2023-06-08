@@ -12,7 +12,7 @@ import {
 import { useFormikContext } from 'formik';
 
 import { FloodValues } from 'views/SubmissionNew';
-import { LimitKeys } from 'common/types';
+import { LimitKeys } from 'common';
 import { dollarFormat } from 'modules/utils/helpers';
 import { FormikCheckbox } from 'components/forms';
 import { useConfirmation } from 'modules/components/ConfirmationService';
@@ -20,9 +20,13 @@ import { useDisclosure } from 'hooks';
 
 // TODO: generalize component
 
+// type NestedLimits = {
+//   [Property in keyof Limits as `limits.${string & Property}`]: Limits[Property]
+// }
+
 interface Detail {
   title: string;
-  valueKey: LimitKeys | 'deductible';
+  valueKey: LimitKeys | 'deductible'; //  keyof NestedLimits | 'deductible'
 }
 
 export const policyDetails: Detail[] = [
@@ -51,7 +55,7 @@ export const policyDetails: Detail[] = [
 export const ReviewStep: React.FC = () => {
   const { values } = useFormikContext<FloodValues>();
   const confirm = useConfirmation();
-  const { disclosureHTML, status } = useDisclosure(values.state);
+  const { disclosureHTML, status } = useDisclosure(values.address?.state);
 
   const showDisclosure = useCallback(
     async (e: React.MouseEvent<HTMLSpanElement, MouseEvent>) => {
@@ -94,15 +98,15 @@ export const ReviewStep: React.FC = () => {
             }}
           >
             <Typography variant='subtitle2' align='right'>
-              {values.addressLine1}
+              {values.address?.addressLine1}
             </Typography>
-            {values.addressLine2 && (
+            {values.address?.addressLine2 && (
               <Typography variant='subtitle2' align='right'>
-                {values.addressLine2}
+                {values.address?.addressLine2}
               </Typography>
             )}
             <Typography variant='subtitle2' align='right'>
-              {`${values.city}, ${values.state} ${values.postal}`}
+              {`${values.address?.city}, ${values.address?.state} ${values.address?.postal}`}
             </Typography>
           </Grid>
           <Grid item xs={12}>
@@ -132,7 +136,9 @@ export const ReviewStep: React.FC = () => {
                     {item.title}
                   </Typography>
                   <Typography variant='body1' sx={{ fontWeight: 500 }}>
-                    {dollarFormat(values[item.valueKey])}
+                    {item.valueKey === 'deductible'
+                      ? dollarFormat(values[item.valueKey])
+                      : dollarFormat(values.limits[item.valueKey])}
                   </Typography>
                 </Box>
               ))}
@@ -145,7 +151,7 @@ export const ReviewStep: React.FC = () => {
             </Typography>
             <Typography variant='body2' sx={{ color: 'text.secondary' }} gutterBottom>
               {`Keep an eye on your inbox! We'll deliver a quote to the provided email address  (
-              ${values.email}). It will include a link to proceed with binding a policy.`}
+              ${values.contact.email}). It will include a link to proceed with binding a policy.`}
             </Typography>
 
             <Divider sx={{ my: 3 }} />

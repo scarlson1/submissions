@@ -167,10 +167,12 @@ export const SuccessStep: React.FC = () => {
                   Address
                 </Typography>
                 <Typography variant='subtitle2' textAlign='right'>
-                  {`${data?.addressLine1}${data.addressLine2 ? ' ' + data.addressLine2 + ' ' : ''}`}
+                  {`${data?.address.addressLine1}${
+                    data.address.addressLine2 ? ' ' + data.address.addressLine2 + ' ' : ''
+                  }`}
                 </Typography>
                 <Typography variant='subtitle2' textAlign='right'>
-                  {`${data.city}, ${data.state} ${data.postal}`}
+                  {`${data.address.city}, ${data.address.state} ${data.address.postal}`}
                 </Typography>
               </Box>
             </Box>
@@ -185,9 +187,9 @@ export const SuccessStep: React.FC = () => {
             </Typography>
 
             <Typography variant='body2' color='text.secondary' sx={{ p: 4 }} gutterBottom>
-              {data.firstName ? `Thanks, ${data.firstName}! ` : 'Thank you!'} We'll send the quote
-              for your review shortly. If you have any question or need to get in touch, please
-              don't hesitate to reach out.
+              {data.contact.firstName ? `Thanks, ${data.contact.firstName}! ` : 'Thank you!'} We'll
+              send the quote for your review shortly. If you have any question or need to get in
+              touch, please don't hesitate to reach out.
             </Typography>
             <Divider flexItem sx={{ mt: 3, mb: -4 }} />
           </Box>
@@ -201,9 +203,9 @@ export const SuccessStep: React.FC = () => {
                     {
                       pathname: createPath({ path: AUTH_ROUTES.CREATE_ACCOUNT }),
                       search: createSearchParams({
-                        email: data.email,
-                        firstName: data.firstName,
-                        lastName: data.lastName,
+                        email: data.contact.email,
+                        firstName: data.contact.firstName,
+                        lastName: data.contact.lastName,
                       }).toString(),
                     }
                     // { replace: true }

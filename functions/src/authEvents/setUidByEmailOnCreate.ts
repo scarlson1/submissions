@@ -20,7 +20,9 @@ export default async (user: UserRecord, context: EventContext<Record<string, str
   }
 
   try {
-    const submissionsSnaps = await submissionsCollection(db).where('email', '==', user.email).get();
+    const submissionsSnaps = await submissionsCollection(db)
+      .where('contact.email', '==', user.email)
+      .get();
     if (!submissionsSnaps.empty) {
       const subDocs = submissionsSnaps.docs;
 

@@ -192,10 +192,43 @@ export const AddressAutocomplete: FunctionComponent<AddressAutocompleteProps> = 
         onInputChange={(event, newInputValue) => {
           helpers.setValue(newInputValue);
         }}
+        // renderInput={(params) => {
+        //   console.log('AUTOCOMPLETE PARAMS: ', params);
+        //   return (
+        //     <TextField
+        //       {...params}
+        //       id='address.addressLine1'
+        //       label='Address'
+        //       size='medium'
+        //       autoComplete='off'
+        //       fullWidth
+        //       error={Boolean(meta) && meta.touched && Boolean(meta.error)}
+        //       onBlur={() => helpers.setTouched(true)}
+        //       {...textFieldProps}
+        //       helperText={(meta && meta.touched && meta.error) ?? meta.error}
+        //       // helperText={
+        //       //   meta && meta.touched && meta.error
+        //       //     ? meta.error
+        //       //     : textFieldProps?.helperText || undefined
+        //       // }
+        //       InputProps={{
+        //         autoComplete: 'new-password',
+        //         ...params.InputProps,
+        //         endAdornment:
+        //           textFieldProps?.InputProps?.endAdornment || params?.InputProps?.endAdornment ? (
+        //             <Stack direction='row' spacing={1}>
+        //               {textFieldProps?.InputProps?.endAdornment}
+        //               {params?.InputProps?.endAdornment}
+        //             </Stack>
+        //           ) : undefined,
+        //       }}
+        //     />
+        //   );
+        // }}
         renderInput={(params) => (
           <TextField
             {...params}
-            id='addressLine1'
+            // id='addressLine1'
             label='Address'
             size='medium'
             autoComplete='off'

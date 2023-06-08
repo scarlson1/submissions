@@ -7,21 +7,27 @@ import { Marker } from 'react-map-gl';
 import { toast } from 'react-hot-toast';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
-import { FormikAddress } from 'elements';
+import { FormikAddress, FormikAddressProps } from 'elements';
 import { useRegisterEmailNotification } from 'hooks';
 import { ActiveStateMap } from './ActiveStateMap';
+import { Address } from 'common';
 
 export interface AddressStepValues {
-  addressLine1: string;
-  addressLine2?: string;
-  city: string;
-  state: string;
-  postal: string;
-  latitude: number | null;
-  longitude: number | null;
+  // addressLine1: string;
+  // addressLine2?: string;
+  // city: string;
+  // state: string;
+  // postal: string;
+  // latitude: number | null;
+  // longitude: number | null;
+  address: Address;
+  coordinates: {
+    latitude: number | null;
+    longitude: number | null;
+  };
 }
 
-export interface AddressStepProps {
+export interface AddressStepProps extends Omit<FormikAddressProps, 'setFieldValue'> {
   activeStates?: { [key: string]: boolean };
   shouldValidateStates?: boolean;
   withMap?: boolean;
@@ -37,13 +43,19 @@ export const AddressStep: React.FC<AddressStepProps> = ({
   shouldValidateStates = false,
   withMap = true,
   gridProps,
+  ...props
 }) => {
   const { values, setFieldValue, validateForm } = useFormikContext<AddressStepValues>();
-  const [showMarker, setShowMarker] = useState(Boolean(values.latitude && values.longitude));
+  const [showMarker, setShowMarker] = useState(
+    Boolean(values.coordinates?.latitude && values.coordinates?.longitude)
+  );
   const [mapViewState, setMapViewState] = useState<MapViewState>({
-    latitude: values.latitude || 37.25,
-    longitude: values.longitude || -94.75,
-    zoom: values.latitude && values.longitude ? 15 : 2.5,
+    // latitude: values.latitude || 37.25,
+    // longitude: values.longitude || -94.75,
+    // zoom: values.latitude && values.longitude ? 15 : 2.5,
+    latitude: values.coordinates?.latitude || 37.25,
+    longitude: values.coordinates?.longitude || -94.75,
+    zoom: values.coordinates?.latitude && values.coordinates?.longitude ? 15 : 2.5,
     maxZoom: 16,
     minZoom: 2,
     bearing: 0,
@@ -98,16 +110,18 @@ export const AddressStep: React.FC<AddressStepProps> = ({
     <FormikAddress
       setFieldValue={setFieldValue}
       cb={addressChangeCb}
-      autocompleteTextFieldProps={{
-        helperText: values.addressLine1 ? (
-          <Typography
-            variant='subtitle2'
-            color='text.primary'
-            component='span'
-          >{`Current value: ${values.addressLine1}`}</Typography>
-        ) : undefined,
-      }}
+      // replaced with 'autocompleteProps.textFieldProps'
+      // autocompleteTextFieldProps={{
+      //   helperText: values.address?.addressLine1 ? (
+      //     <Typography
+      //       variant='subtitle2'
+      //       color='text.primary'
+      //       component='span'
+      //     >{`Current value: ${values.address?.addressLine1}`}</Typography>
+      //   ) : undefined,
+      // }}
       gridProps={gridProps}
+      {...props}
     >
       {!!withMap && (
         <>
@@ -121,10 +135,10 @@ export const AddressStep: React.FC<AddressStepProps> = ({
                   statesValues={activeStates}
                   mapViewState={mapViewState}
                 >
-                  {showMarker && values.latitude && values.longitude && (
+                  {showMarker && values.coordinates?.latitude && values.coordinates?.longitude && (
                     <Marker
-                      longitude={values.longitude}
-                      latitude={values.latitude}
+                      longitude={values.coordinates?.longitude}
+                      latitude={values.coordinates?.latitude}
                       anchor='bottom'
                     ></Marker>
                   )}
@@ -133,6 +147,7 @@ export const AddressStep: React.FC<AddressStepProps> = ({
             </ErrorBoundary>
           </Card>
 
+          {/* TODO: move within error boundary ?? */}
           <Typography
             variant='caption'
             color='text.secondary'

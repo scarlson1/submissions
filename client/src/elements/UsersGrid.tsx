@@ -283,6 +283,7 @@ export const AdminManageUsersGrid: React.FC<AdminManageUsersGridProps> = ({
       updatedCol,
       {
         ...idCol,
+        field: 'userId',
         headerName: 'User ID',
       },
       orgIdCol,
@@ -309,7 +310,7 @@ export const AdminManageUsersGrid: React.FC<AdminManageUsersGridProps> = ({
       if (!userId) return Promise.reject(new Error('Missing user ID'));
 
       const oldClaims = oldRow.userClaims;
-      if (oldClaims._lastCommitted) delete oldClaims._lastCommitted;
+      if (oldClaims?._lastCommitted) delete oldClaims._lastCommitted;
       const newClaims = newRow.userClaims;
       if (!newClaims) return Promise.reject(new Error('Missing user claims'));
       console.log('old claims: ', oldClaims);

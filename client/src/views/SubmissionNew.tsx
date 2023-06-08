@@ -2,7 +2,8 @@ import React, { useCallback, useRef } from 'react';
 import { FormikHelpers, FormikProps, FormikValues } from 'formik';
 import { Box, Container, Tooltip, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { addDoc, GeoPoint, getFirestore, serverTimestamp } from 'firebase/firestore';
+import { addDoc, GeoPoint, serverTimestamp } from 'firebase/firestore';
+import { useFirestore } from 'reactfire';
 import { ErrorBoundary } from 'react-error-boundary';
 
 import { FormikWizard, Step } from 'components/forms';
@@ -16,13 +17,13 @@ import {
   PriorFloodLossStep,
 } from 'elements';
 import {
-  limitsValidation,
   deductibleValidation,
-  contactValidation,
   reviewValidation,
   exclusionsValidation,
   priorLossValidation,
-  addressValidationActiveStates,
+  addressValidationActiveStatesNested,
+  limitsValidationNested,
+  contactValidationNested,
 } from 'common/quoteValidation';
 import { ROUTES, createPath } from 'router';
 // import { statesCollection, submissionsCollection } from 'common/firestoreCollections';
@@ -30,7 +31,7 @@ import { SUBMISSION_STATUS } from 'common/enums';
 import { useActiveStates, usePropertyDetailsAttom } from 'hooks';
 import { roundUpToNearest, sumArr } from 'modules/utils/helpers';
 import { useAuth } from 'modules/components/AuthContext';
-import { submissionsCollection } from 'common';
+import { Address, Limits, NamedInsuredDetails, submissionsCollection } from 'common';
 import { ErrorFallbackWithReset } from 'components/ErrorFallback';
 
 // TODO: error boundary & reset: https://blog.logrocket.com/react-error-handling-react-error-boundary/
@@ -45,53 +46,102 @@ const gridProps = {
   columnSpacing: { xs: 6, sm: 9, md: 12 },
 };
 
+// export interface FloodValuesOld {
+//   addressLine1: string;
+//   addressLine2?: string;
+//   city: string;
+//   state: string;
+//   postal: string;
+//   countyName?: string;
+//   latitude: number | null;
+//   longitude: number | null;
+//   limitA: number; // string;
+//   limitB: number; // string;
+//   limitC: number; // string;
+//   limitD: number; // string;
+//   deductible: number;
+//   exclusionsExist: boolean | null;
+//   exclusions: string[];
+//   priorLossCount: string; // number;
+//   firstName: string;
+//   lastName: string;
+//   email: string;
+//   userAcceptance: boolean;
+// }
+
+// export const initialValuesOld: FloodValuesOld = {
+//   addressLine1: '',
+//   addressLine2: '',
+//   city: '',
+//   state: '',
+//   postal: '',
+//   countyName: '',
+//   latitude: null,
+//   longitude: null,
+//   limitA: 250000, // '250000',
+//   limitB: 25000, // '25000',
+//   limitC: 63000, // '63000',
+//   limitD: 38000, // '38000',
+//   deductible: 4000,
+//   exclusionsExist: false,
+//   exclusions: [],
+//   priorLossCount: '0', // 0,
+//   firstName: '',
+//   lastName: '',
+//   email: '',
+//   userAcceptance: false,
+// };
+
 export interface FloodValues {
-  addressLine1: string;
-  addressLine2?: string;
-  city: string;
-  state: string;
-  postal: string;
-  countyName?: string;
-  latitude: number | null;
-  longitude: number | null;
-  limitA: number; // string;
-  limitB: number; // string;
-  limitC: number; // string;
-  limitD: number; // string;
+  address: Address;
+  coordinates: {
+    latitude: number | null;
+    longitude: number | null;
+  };
+  limits: Limits;
+  // coverageActive: Record<CovTypeNames, boolean>;
   deductible: number;
   exclusionsExist: boolean | null;
   exclusions: string[];
-  priorLossCount: string; // number;
-  firstName: string;
-  lastName: string;
-  email: string;
+  priorLossCount: string;
+  contact: Omit<NamedInsuredDetails, 'phone'>;
   userAcceptance: boolean;
 }
 
 export const initialValues: FloodValues = {
-  addressLine1: '',
-  addressLine2: '',
-  city: '',
-  state: '',
-  postal: '',
-  countyName: '',
-  latitude: null,
-  longitude: null,
-  limitA: 250000, // '250000',
-  limitB: 25000, // '25000',
-  limitC: 63000, // '63000',
-  limitD: 38000, // '38000',
+  address: {
+    addressLine1: '',
+    addressLine2: '',
+    city: '',
+    state: '',
+    postal: '',
+    countyName: '',
+  },
+  coordinates: {
+    latitude: null,
+    longitude: null,
+  },
+  limits: {
+    limitA: 250000,
+    limitB: 25000,
+    limitC: 63000,
+    limitD: 38000,
+  },
   deductible: 4000,
   exclusionsExist: false,
   exclusions: [],
   priorLossCount: '0', // 0,
-  firstName: '',
-  lastName: '',
-  email: '',
+  contact: {
+    firstName: '',
+    lastName: '',
+    email: '',
+    userId: null,
+  },
   userAcceptance: false,
 };
 
 export const SubmissionNew: React.FC = () => {
+  const firestore = useFirestore();
   const navigate = useNavigate();
   const { user, customClaims } = useAuth();
   const formikRef = useRef<FormikProps<FormikValues>>(null);
@@ -110,18 +160,24 @@ export const SubmissionNew: React.FC = () => {
 
         // const res = await fetchPropertyData({ lat: values.latitude, lng: values.longitude });
         const res = await fetchPropertyData({
-          addressLine1: values.addressLine1,
-          city: values.city,
-          state: values.state,
-          postal: values.postal,
+          addressLine1: values.address.addressLine1,
+          city: values.address.city,
+          state: values.address.state,
+          postal: values.address.postal,
         });
         console.log('PROPERTY DATA RES: ', res);
         return {
           ...values,
-          limitA: res.initLimitA ?? '250000',
-          limitB: res.initLimitB ?? '25000',
-          limitC: res.initLimitC ?? '63000',
-          limitD: res.initLimitD ?? '38000',
+          limits: {
+            limitA: res.initLimitA ?? '250000',
+            limitB: res.initLimitB ?? '25000',
+            limitC: res.initLimitC ?? '63000',
+            limitD: res.initLimitD ?? '38000',
+          },
+          // limitA: res.initLimitA ?? '250000',
+          // limitB: res.initLimitB ?? '25000',
+          // limitC: res.initLimitC ?? '63000',
+          // limitD: res.initLimitD ?? '38000',
           deductible: res.initDeductible ?? 4000,
         };
       } catch (err) {
@@ -136,10 +192,10 @@ export const SubmissionNew: React.FC = () => {
     const initValues = formikRef.current?.initialValues;
     if (!initValues) return values;
     const initSum = sumArr([
-      parseInt(initValues.limitA),
-      parseInt(initValues.limitB),
-      parseInt(initValues.limitC),
-      parseInt(initValues.limitD),
+      parseInt(initValues.limits.limitA),
+      parseInt(initValues.limits.limitB),
+      parseInt(initValues.limits.limitC),
+      parseInt(initValues.limits.limitD),
     ]);
 
     const defaultDeductible = roundUpToNearest(initSum * parseFloat(DEFAULT_FLOOD_DEDUCTIBLE), 3);
@@ -147,7 +203,8 @@ export const SubmissionNew: React.FC = () => {
     const userChangedDeductible = defaultDeductible !== values.deductible;
     if (userChangedDeductible) return values;
 
-    const sumLimits = sumArr([values.limitA, values.limitB, values.limitC, values.limitD]);
+    const { limits } = values;
+    const sumLimits = sumArr(Object.values(limits));
 
     const newDeductible = roundUpToNearest(sumLimits * parseFloat(DEFAULT_FLOOD_DEDUCTIBLE), 3);
 
@@ -157,21 +214,32 @@ export const SubmissionNew: React.FC = () => {
   const handleSubmit = useCallback(
     async (values: FloodValues, { setSubmitting }: FormikHelpers<FloodValues>) => {
       console.log(values);
-      const coords =
-        values.latitude && values.longitude
-          ? new GeoPoint(values.latitude, values.longitude)
-          : null;
+      // const coords =
+      //   values.coordinates.latitude && values.coordinates.longitude
+      //     ? new GeoPoint(values.coordinates.latitude, values.coordinates.longitude)
+      //     : null;
 
       try {
-        // const submissionsCollection = collection(getFirestore(), COLLECTIONS.SUBMISSIONS);
-        const docRef = await addDoc(submissionsCollection(getFirestore()), {
-          ...propertyDetails,
+        if (!(values.coordinates.latitude && values.coordinates.longitude))
+          throw new Error('Missing coords');
+
+        const docRef = await addDoc(submissionsCollection(firestore), {
+          // ...propertyDetails,
           ...values,
-          coordinates: coords,
+          product: 'flood',
+          coordinates: new GeoPoint(values.coordinates.latitude, values.coordinates.longitude),
           status: SUBMISSION_STATUS.SUBMITTED,
           userId: user?.uid ?? null,
-          agentId: !!customClaims.agent ? user?.uid || null : null,
+          // agentId: !!customClaims.agent ? user?.uid || null : null,
+          agent: {
+            agentId: !!customClaims.agent ? user?.uid || null : null,
+            name: !!customClaims.agent ? user?.displayName || null : null,
+            email: !!customClaims.agent ? user?.email || null : null,
+            phone: !!customClaims.agent ? user?.phoneNumber || null : null,
+          },
+          // TODO: agency info
           submittedById: user?.uid ?? null,
+          propertyDataRes: propertyDetails,
           metadata: {
             created: serverTimestamp(),
             updated: serverTimestamp(),
@@ -187,7 +255,7 @@ export const SubmissionNew: React.FC = () => {
 
       setSubmitting(false);
     },
-    [navigate, propertyDetails, user, customClaims]
+    [firestore, navigate, propertyDetails, user, customClaims]
   );
 
   const handleErrorReset = useCallback((...details: unknown[]) => {
@@ -206,27 +274,45 @@ export const SubmissionNew: React.FC = () => {
           <FormikWizard
             initialValues={{
               ...initialValues,
-              firstName: user?.displayName ? `${user?.displayName.split(' ')[0]}`.trim() : '',
-              lastName:
-                user?.displayName && user?.displayName.split(' ').length > 1
-                  ? `${user?.displayName.split(' ')[1]}`.trim()
-                  : '',
-              email: user?.email ?? '',
+              contact: {
+                firstName: user?.displayName ? `${user?.displayName.split(' ')[0]}`.trim() : '',
+                lastName:
+                  user?.displayName && user?.displayName.split(' ').length > 1
+                    ? `${user?.displayName.split(' ')[1]}`.trim()
+                    : '',
+                email: user?.email ?? '',
+              },
             }}
             onSubmit={handleSubmit}
             formRef={formikRef}
           >
             <Step
               label={`What's the Address?`}
-              validationSchema={addressValidationActiveStates(activeStates || {})}
+              validationSchema={addressValidationActiveStatesNested(activeStates || {})}
               mutateOnSubmit={handleFetchProperty}
               stepperNavLabel='Address'
             >
-              <AddressStep activeStates={activeStates} shouldValidateStates={true} />
+              <AddressStep
+                activeStates={activeStates}
+                shouldValidateStates={true}
+                names={{
+                  addressLine1: `address.addressLine1`,
+                  addressLine2: `address.addressLine2`,
+                  city: `address.city`,
+                  state: `address.state`,
+                  postal: `address.postal`,
+                  county: `address.countyName`,
+                  latitude: `coordinates.latitude`,
+                  longitude: `coordinates.longitude`,
+                }}
+                autocompleteProps={{
+                  name: 'address.addressLine1',
+                }}
+              />
             </Step>
             <Step
               label='Limits'
-              validationSchema={limitsValidation}
+              validationSchema={limitsValidationNested}
               mutateOnSubmit={handleOnToDeductible}
               stepperNavLabel='Limits'
             >
@@ -288,7 +374,7 @@ export const SubmissionNew: React.FC = () => {
                   </Typography>
                 </Tooltip>
               }
-              validationSchema={contactValidation}
+              validationSchema={contactValidationNested}
               stepperNavLabel='Contact'
             >
               <Box
