@@ -38,13 +38,14 @@ export type Maybe<T> = T | null | undefined;
 export interface Submission extends FloodValues {
   product: Product;
   coordinates: GeoPoint;
+  geoHash?: Geohash | null;
   // countyFIPS?: string | null;
   userId?: string | null;
+  submittedById?: string | null;
   // agentId?: string | null;
   agent?: Nullable<AgentDetails>;
   agency?: Nullable<AgencyDetails>;
   status: SUBMISSION_STATUS;
-  submittedById?: string | null;
   rcvSourceUser?: boolean;
   // propertyDataRes: FetchPropertyDataResponse;
   ratingPropertyData: Nullable<RatingPropertyData>; // FetchPropertyDataResponse;
@@ -61,8 +62,7 @@ export interface Submission extends FloodValues {
   inlandAAL?: number;
   surgeAAL?: number;
   annualPremium?: number;
-  subproducerCommission?: number;
-  geoHash?: Geohash | null;
+  subproducerCommission?: number; // TODO: delete ?? look up by agent / agency if present
   metadata: BaseMetadata;
 }
 

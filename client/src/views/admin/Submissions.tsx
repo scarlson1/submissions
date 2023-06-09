@@ -121,9 +121,6 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
           path: ADMIN_ROUTES.QUOTE_NEW,
           params: { productId: 'flood', submissionId: `${subId}` },
         }),
-        // search: createSearchParams({
-        //   submissionId: `${subId}`,
-        // }).toString(),
       });
     },
     [navigate]

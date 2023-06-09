@@ -6,7 +6,7 @@ import {
   getPropertyDetailsAttom,
   GetPropertyDetailsAttomRequest,
 } from 'modules/api';
-import { Coordinates, LimitKeys, Nullable, RatingPropertyData } from 'common/types';
+import { Coordinates, LimitKeys, Limits, Nullable, RatingPropertyData } from 'common/types';
 import { getFunctions } from 'firebase/functions';
 import { usePromptRCV } from './usePromptRCV';
 import { calcSum } from 'modules/utils';
@@ -67,14 +67,12 @@ function getDefaultsFromRCV(rcv: number) {
   return { ...calcDefaults, deductible, maxDeductible };
 }
 
-export interface InitRatingValues {
+export interface InitRatingValues extends Limits {
   deductible: number;
-  limitA: number;
-  limitB: number;
-  limitC: number;
-  limitD: number;
   maxDeductible: number;
 }
+
+// TODO: match response from cloud function to mirror how data is stored below
 
 const DEFAULT_INIT_VALUES = {
   deductible: 4000,

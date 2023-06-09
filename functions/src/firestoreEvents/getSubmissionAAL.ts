@@ -40,9 +40,13 @@ export default async (
   const db = getFirestore();
   let commissionPct = defaultCommissionAsInt.value() / 100;
 
-  // If submitted by userId present, fetch user and check to see if they have a default commission set
-  // TODO: refactor to use agent.userId
+  if (!sub.ratingPropertyData?.replacementCost) {
+    info('Missing replacement cost --> returning early', { ...sub });
+    return;
+  }
   if (sub.submittedById) {
+    // If submitted by userId present, fetch user and check to see if they have a default commission set
+    // TODO: refactor to use agent.userId
     let userSnap = await usersCollection(db).doc(sub.submittedById).get();
     const data = userSnap.data();
     let agentFloodComm = data?.defaultCommission?.flood;
@@ -143,7 +147,7 @@ export default async (
       limitD: sub.limits?.limitD,
       floodZone: sub.ratingPropertyData?.floodZone || defaultFloodZone.value(),
       state: sub.address?.state,
-      basement: sub.ratingPropertyData?.basement,
+      basement: sub.ratingPropertyData?.basement || 'unknown',
       priorLossCount: sub.priorLossCount,
       commissionPct,
     });

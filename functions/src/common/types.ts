@@ -434,17 +434,26 @@ export interface FetchPropertyDataResponse extends Partial<RatingPropertyData> {
   spatialKeyDocId?: string | null;
 }
 
+export interface InitRatingValues extends Limits {
+  deductible: number;
+  maxDeductible: number;
+}
+
 export interface Submission extends FloodFormValues {
   product: Product;
   coordinates: GeoPoint;
   geoHash?: Geohash | null;
-  countyFIPS?: string | null;
+  // countyFIPS?: string | null;
   userId?: string | null;
-  status: SUBMISSION_STATUS;
   submittedById?: string | null;
+  agent?: Nullable<AgentDetails>;
+  agency?: Nullable<AgencyDetails>;
+  status: SUBMISSION_STATUS;
   rcvSouceUser?: boolean;
   // propertyDataRes: FetchPropertyDataResponse;
-  ratingPropertyData: FetchPropertyDataResponse;
+  ratingPropertyData: Nullable<RatingPropertyData>; // FetchPropertyDataResponse;
+  propertyDataDocId: string | null;
+  initValues: InitRatingValues;
   darkMapImageURL?: string;
   lightMapImageURL?: string;
   darkMapImageFilePath?: string;
@@ -456,7 +465,7 @@ export interface Submission extends FloodFormValues {
   inlandAAL?: number;
   surgeAAL?: number;
   annualPremium?: number;
-  subproducerCommission?: number;
+  subproducerCommission?: number; // TODO: delete ?? look up by agent / agency if present
   metadata: BaseMetadata;
 }
 
