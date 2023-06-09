@@ -6,15 +6,18 @@ import { NewQuoteValues } from 'views/admin/QuoteNew';
 
 export function extractRatingInputsFromValues(values: NewQuoteValues) {
   const {
-    latitude,
-    longitude,
-    limitA,
-    limitB,
-    limitC,
-    limitD,
+    // latitude,
+    // longitude,
+    // limitA,
+    // limitB,
+    // limitC,
+    // limitD,
+    coordinates,
+    limits,
     deductible,
     priorLossCount,
-    state,
+    // state,
+    address,
     // subproducerCommission,
     ratingPropertyData,
   } = values;
@@ -31,16 +34,17 @@ export function extractRatingInputsFromValues(values: NewQuoteValues) {
   }
 
   return {
-    latitude: latitude as number,
-    longitude: longitude as number,
+    latitude: coordinates?.latitude as number,
+    longitude: coordinates?.longitude as number,
     replacementCost: ratingPropertyData.replacementCost as number,
-    limitA,
-    limitB,
-    limitC,
-    limitD,
+    // limitA,
+    // limitB,
+    // limitC,
+    // limitD,
+    ...limits,
     deductible,
     numStories: numStories || 1,
-    state,
+    state: address?.state,
     priorLossCount,
     floodZone: ratingPropertyData.floodZone || undefined,
     basement: ratingPropertyData.basement?.toLowerCase() || undefined,
@@ -66,9 +70,9 @@ export const useRateQuote = (
     async (values: NewQuoteValues) => {
       if (
         !values ||
-        !values.latitude ||
-        !values.longitude ||
-        !values.ratingPropertyData.replacementCost
+        !values.coordinates?.latitude ||
+        !values.coordinates?.longitude ||
+        !values.ratingPropertyData?.replacementCost
       ) {
         return setError('missing required values');
       }
@@ -79,6 +83,7 @@ export const useRateQuote = (
       try {
         const ratingInputs = extractRatingInputsFromValues(values);
 
+        // TODO: return AAL res in AAL: { inland: 29384 } format
         const { data } = await getAnnualPremium(functions, { ...ratingInputs, submissionId });
 
         console.log('PREMIUM RES: ', data);

@@ -40,15 +40,22 @@ export const addressValidation = yup.object().shape({
   postal: yup.string().required('Postal code is required'),
 });
 
+export const validateActiveState = (activeStates: { [key: string]: boolean }) =>
+  yup
+    .string()
+    .required('State is required')
+    .test('activeState', 'Ineligible state', (val) => Boolean(val) && activeStates[`${val}`]);
+
 export const addressValidationActiveStates = (activeStates: { [key: string]: boolean }) =>
   yup.object().shape({
     addressLine1: yup.string().required('Address is required'),
     addressLine2: yup.string().notRequired(),
     city: yup.string().required('City is required'),
-    state: yup
-      .string()
-      .required('State is required')
-      .test('activeState', 'Ineligible state', (val) => Boolean(val) && activeStates[`${val}`]),
+    state: validateActiveState(activeStates),
+    // state: yup
+    //   .string()
+    //   .required('State is required')
+    //   .test('activeState', 'Ineligible state', (val) => Boolean(val) && activeStates[`${val}`]),
     // state: yup.string().required('State is required').oneOf(ACTIVE_STATES_ABRV, 'Ineligible state'),
     postal: yup.string().required('Postal code is required'),
   });

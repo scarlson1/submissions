@@ -300,6 +300,9 @@ export interface Limits {
   limitD: number;
 }
 
+export type FloodPerilCategories = 'inland' | 'surge' | 'tsunami';
+export type AALByPeril = Record<FloodPerilCategories, number>;
+
 export type FloodZones = 'A' | 'B' | 'C' | 'D' | 'V' | 'X' | 'AE' | 'AO' | 'AH' | 'AR' | 'VE';
 
 export type UWNoteCode = 'requires-review' | 'not-ratable' | 'info' | 'unknown';
@@ -453,8 +456,9 @@ export interface Submission extends FloodFormValues {
   satelliteStreetsMapImageURL?: string;
   satelliteMapImageFilePath?: string;
   satelliteStreetsMapImageFilePath?: string;
-  inlandAAL?: number;
-  surgeAAL?: number;
+  AAL?: Nullable<AALByPeril>;
+  // inlandAAL?: number;
+  // surgeAAL?: number;
   annualPremium?: number;
   subproducerCommission?: number;
   metadata: BaseMetadata;

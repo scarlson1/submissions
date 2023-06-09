@@ -24,8 +24,10 @@ import {
 import * as yup from 'yup';
 import { add } from 'date-fns';
 import { isEmpty, merge, omit, round } from 'lodash';
-import { doc, getFirestore, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc } from 'firebase/firestore';
+import { useFirestore } from 'reactfire';
 import { useNavigate, useParams } from 'react-router-dom';
+import invariant from 'tiny-invariant';
 
 import {
   FormikDatePicker,
@@ -40,7 +42,7 @@ import {
   IMask,
 } from 'components/forms';
 import { AddressStep, LimitsStep } from 'elements';
-import { emailVal, limitAVal, limitBVal, limitCVal, limitDVal } from 'common/quoteValidation';
+import { addressValidation, limitsValidation } from 'common/quoteValidation';
 import { dollarFormat, sumArr } from 'modules/utils/helpers';
 import {
   extractRatingInputsFromValues,
@@ -64,11 +66,15 @@ import {
   SUBMISSION_STATUS,
   TaxItem,
   Nullable,
+  Address,
+  Limits,
+  AgentDetails,
+  NamedInsuredDetails,
+  AgencyDetails,
+  AALByPeril,
 } from 'common';
 import { ShowRatingDialog } from './SubmissionView';
-import invariant from 'tiny-invariant';
 
-// TODO: hover chip to show errors
 // TODO: standardize fee type names in enum
 
 const gridProps = {
@@ -89,18 +95,77 @@ const RATING_FIELDS = [
   'replacementCost',
 ];
 
+// const DEFAULT_VALUES = {
+//   addressLine1: '',
+//   addressLine2: '',
+//   city: '',
+//   state: '',
+//   postal: '',
+//   latitude: null,
+//   longitude: null,
+//   limitA: 250000,
+//   limitB: 12500,
+//   limitC: 67500,
+//   limitD: 25000,
+//   deductible: 1000,
+//   quoteExpiration: add(new Date(), { days: 30 }),
+//   policyEffectiveDate: add(new Date(), { days: 15 }),
+//   policyExpirationDate: add(new Date(), { days: 15, years: 1 }),
+//   fees: [],
+//   taxes: [],
+//   annualPremium: null,
+//   subproducerCommission: 0.15,
+//   quoteTotal: null,
+//   insuredFirstName: '',
+//   insuredLastName: '',
+//   insuredEmail: '',
+//   insuredPhone: '',
+//   agentId: '',
+//   agentEmail: '',
+//   agentName: '',
+//   agentPhone: '',
+//   agencyName: '',
+//   agencyId: '',
+//   priorLossCount: '',
+//   ratingPropertyData: {
+//     CBRSDesignation: '',
+//     basement: '',
+//     distToCoastFeet: null, // '',
+//     floodZone: '',
+//     numStories: null, // '',
+//     propertyCode: '',
+//     replacementCost: null, // '',
+//     sqFootage: null, // '',
+//     yearBuilt: null, // '',
+//   },
+//   AAL: {
+//     inland: null,
+//     surge: null,
+//   },
+//   notes: [],
+// };
+
 const DEFAULT_VALUES = {
-  addressLine1: '',
-  addressLine2: '',
-  city: '',
-  state: '',
-  postal: '',
-  latitude: null,
-  longitude: null,
-  limitA: 250000,
-  limitB: 12500,
-  limitC: 67500,
-  limitD: 25000,
+  address: {
+    addressLine1: '',
+    addressLine2: '',
+    city: '',
+    state: '',
+    postal: '',
+    countyName: '',
+    countyFIPS: '',
+  },
+  coordinates: {
+    latitude: null,
+    longitude: null,
+  },
+  limits: {
+    limitA: 250000,
+    limitB: 12500,
+    limitC: 67500,
+    limitD: 25000,
+  },
+
   deductible: 1000,
   quoteExpiration: add(new Date(), { days: 30 }),
   policyEffectiveDate: add(new Date(), { days: 15 }),
@@ -110,16 +175,30 @@ const DEFAULT_VALUES = {
   annualPremium: null,
   subproducerCommission: 0.15,
   quoteTotal: null,
-  insuredFirstName: '',
-  insuredLastName: '',
-  insuredEmail: '',
-  insuredPhone: '',
-  agentId: '',
-  agentEmail: '',
-  agentName: '',
-  agentPhone: '',
-  agencyName: '',
-  agencyId: '',
+  namedInsured: {
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    userId: '',
+  },
+  agent: {
+    agentId: '',
+    name: '',
+    email: '',
+    phone: '',
+  },
+  agency: {
+    name: '',
+    orgId: '',
+    address: {
+      addressLine1: '',
+      addressLine2: '',
+      city: '',
+      state: '',
+      postal: '',
+    },
+  },
   priorLossCount: '',
   ratingPropertyData: {
     CBRSDesignation: '',
@@ -135,21 +214,14 @@ const DEFAULT_VALUES = {
   AAL: {
     inland: null,
     surge: null,
+    tsunami: null,
   },
   notes: [],
 };
 
 const quoteNewValidation = yup.object().shape({
-  addressLine1: yup.string().required(),
-  addressLine2: yup.string(),
-  city: yup.string().required(),
-  state: yup.string().required(),
-  postal: yup.string().required(),
-  limitA: limitAVal,
-  limitB: limitBVal,
-  limitC: limitCVal,
-  limitD: limitDVal,
-  // replacementCost: yup.number().min(100000).required(),
+  address: addressValidation, // TODO: use active states validation (useMemo)
+  limits: limitsValidation,
   deductible: yup.number().min(1000).required(),
   fees: yup.array().of(
     yup.object().shape({
@@ -170,17 +242,19 @@ const quoteNewValidation = yup.object().shape({
     .number()
     .min(100, 'quote total must be over $100')
     .required('Quote total is required'),
-  insuredFirstName: yup.string(),
-  insuredLastName: yup.string(),
-  insuredEmail: emailVal.notRequired(),
-  insuredPhone: yup.string(),
-  agentId: yup.string().nullable(),
-  agentEmail: emailVal.notRequired(),
-  agentName: yup.string(),
-  agentPhone: yup.string(),
-  agencyName: yup.string(),
-  agencyId: yup.string().nullable(),
+  // TODO: named insured, agent, agency validation
+  // insuredFirstName: yup.string(),
+  // insuredLastName: yup.string(),
+  // insuredEmail: emailVal.notRequired(),
+  // insuredPhone: yup.string(),
+  // agentId: yup.string().nullable(),
+  // agentEmail: emailVal.notRequired(),
+  // agentName: yup.string(),
+  // agentPhone: yup.string(),
+  // agencyName: yup.string(),
+  // agencyId: yup.string().nullable(),
   priorLossCount: yup.string(), // .required(),
+  // TODO: reusable rating data validation
   ratingPropertyData: yup.object().shape({
     CBRSDesignation: yup.string().required(`CBRS designation is required`),
     basement: yup.string().required(`basement is required`),
@@ -204,45 +278,71 @@ export interface FeeItem {
   feeValue: number;
 }
 
+// TODO: add additional insured (extend bind quote form values ?? except agent & agency)
 export interface NewQuoteValues {
-  addressLine1: string;
-  addressLine2: string;
-  city: string;
-  state: string;
-  postal: string;
-  latitude: number | null;
-  longitude: number | null;
-  limitA: number;
-  limitB: number;
-  limitC: number;
-  limitD: number;
+  address: Address;
+  coordinates: {
+    latitude: number | null;
+    longitude: number | null;
+  };
+  limits: Limits;
   deductible: number;
   policyEffectiveDate: Date;
   policyExpirationDate: Date;
-  quoteExpiration: Date;
+  quoteExpiration: Date; // TODO: delete ?? generated when created ??
   fees: FeeItem[];
   taxes: TaxItem[];
   annualPremium: number | null;
   subproducerCommission: number;
   quoteTotal: number | null;
-  insuredFirstName: string;
-  insuredLastName: string;
-  insuredEmail: string;
-  insuredPhone: string;
-  agentId: string | null;
-  agentEmail: string | null;
-  agentName: string | null;
-  agentPhone: string | null;
-  agencyName: string | null;
-  agencyId: string | null;
+  namedInsured: NamedInsuredDetails;
+  agent: AgentDetails;
+  agency: AgencyDetails;
   priorLossCount: string;
   ratingPropertyData: Nullable<RatingPropertyData>;
-  AAL: {
-    inland: number | null;
-    surge: number | null;
-  };
+  AAL: Nullable<AALByPeril>;
   notes: { [key: string]: string }[];
 }
+
+// export interface NewQuoteValuesOld {
+//   addressLine1: string;
+//   addressLine2: string;
+//   city: string;
+//   state: string;
+//   postal: string;
+//   latitude: number | null;
+//   longitude: number | null;
+//   limitA: number;
+//   limitB: number;
+//   limitC: number;
+//   limitD: number;
+//   deductible: number;
+//   policyEffectiveDate: Date;
+//   policyExpirationDate: Date;
+//   quoteExpiration: Date;
+//   fees: FeeItem[];
+//   taxes: TaxItem[];
+//   annualPremium: number | null;
+//   subproducerCommission: number;
+//   quoteTotal: number | null;
+//   insuredFirstName: string;
+//   insuredLastName: string;
+//   insuredEmail: string;
+//   insuredPhone: string;
+//   agentId: string | null;
+//   agentEmail: string | null;
+//   agentName: string | null;
+//   agentPhone: string | null;
+//   agencyName: string | null;
+//   agencyId: string | null;
+//   priorLossCount: string;
+//   ratingPropertyData: Nullable<RatingPropertyData>;
+//   AAL: {
+//     inland: number | null;
+//     surge: number | null;
+//   };
+//   notes: { [key: string]: string }[];
+// }
 
 export interface QuoteNewProps {
   initialValues?: NewQuoteValues;
@@ -256,6 +356,7 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
   submissionId = null,
 }) => {
   const navigate = useNavigate();
+  const firestore = useFirestore();
   const formikRef = useRef<FormikProps<NewQuoteValues>>(null);
   const showDialog = useJsonDialog({ maxWidth: 'sm' });
   const toast = useAsyncToast({ position: 'top-right' });
@@ -341,7 +442,7 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
   const createQuote = useCreateQuote(
     async () => {
       if (submissionId) {
-        await updateDoc(doc(submissionsCollection(getFirestore()), submissionId), {
+        await updateDoc(doc(submissionsCollection(firestore), submissionId), {
           status: SUBMISSION_STATUS.QUOTED,
         });
       }
@@ -524,6 +625,19 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                 <AddressStep
                   activeStates={activeStates}
                   gridProps={{ rowSpacing: 4, columnSpacing: 6 }}
+                  names={{
+                    addressLine1: `address.addressLine1`,
+                    addressLine2: `address.addressLine2`,
+                    city: `address.city`,
+                    state: `address.state`,
+                    postal: `address.postal`,
+                    county: `address.countyName`,
+                    latitude: `coordinates.latitude`,
+                    longitude: `coordinates.longitude`,
+                  }}
+                  autocompleteProps={{
+                    name: 'address.addressLine1',
+                  }}
                 />
               </Grid>
               <Grid xs={12} sx={{ my: 6 }}>
@@ -773,7 +887,7 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                       variant='body1'
                       sx={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}
                     >
-                      {values.AAL.inland}
+                      {values.AAL?.inland}
                     </Typography>
                   </Box>
                 </Box>
@@ -794,7 +908,7 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                       variant='body1'
                       sx={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}
                     >
-                      {values.AAL.surge}
+                      {values.AAL?.surge}
                     </Typography>
                   </Box>
                 </Box>
@@ -837,13 +951,13 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                         disabled={
                           !(ratingState.recalcRequired || ratingState.rerateRequired) ||
                           !(
-                            values.state &&
-                            values.limitA &&
-                            (values.limitB || values.limitB === 0) &&
-                            (values.limitC || values.limitC === 0) &&
-                            (values.limitD || values.limitD === 0) &&
-                            values.latitude &&
-                            values.longitude &&
+                            values.address?.state &&
+                            values.limits?.limitA &&
+                            (values.limits?.limitB || values.limits?.limitB === 0) &&
+                            (values.limits?.limitC || values.limits?.limitC === 0) &&
+                            (values.limits?.limitD || values.limits?.limitD === 0) &&
+                            values.coordinates?.latitude &&
+                            values.coordinates?.longitude &&
                             values.deductible &&
                             values.ratingPropertyData.basement &&
                             values.ratingPropertyData.numStories &&
@@ -869,7 +983,7 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                         onClick={() => fetchTaxes(values)}
                         loading={taxesLoading}
                         disabled={
-                          !(values.state && values.annualPremium) ||
+                          !(values.address?.state && values.annualPremium) ||
                           ratingState.recalcRequired ||
                           ratingState.rerateRequired
                         }
@@ -1201,6 +1315,7 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
 };
 
 function getRatingInputsFromSubmission(subData?: Submission) {
+  // TODO: decide whether to flatten or keep in obj ?? does diff function compare nested values ??
   return {
     latitude: subData?.coordinates?.latitude,
     longitude: subData?.coordinates?.longitude,
@@ -1235,7 +1350,7 @@ function Diff({
   ratingState: { rerateRequired, recalcRequired },
   setRatingState,
 }: {
-  ratingInputsPrev: any;
+  ratingInputsPrev: any; // TODO: type - generic type ??
   rerateFields: string[];
   ratingState: { rerateRequired: boolean; recalcRequired: boolean };
   setRatingState: (newVals: { rerateRequired: boolean; recalcRequired: boolean }) => void;
@@ -1246,33 +1361,41 @@ function Diff({
   const [getDiff, diff, isDiff] = useGetDiff(checkFields);
 
   const {
-    latitude,
-    longitude,
-    limitA,
-    limitB,
-    limitC,
-    limitD,
+    // latitude,
+    // longitude,
+    coordinates,
+    limits,
+    // limitA,
+    // limitB,
+    // limitC,
+    // limitD,
     deductible,
-    state,
+    address,
+    // state,
     ratingPropertyData,
     // RE-CALC ONLY FIELDS  (and floodZone, basement under ratingPropData)
     priorLossCount,
     subproducerCommission,
   } = values;
+  // const { limitA, limitB, limitC, limitD } = limits
+  // const { latitude, longitude } = coordinates;
 
   const ratingInputsCurr: any = useMemo(
     () => extractRatingInputsFromValues(values), // eslint-disable-next-line react-hooks/exhaustive-deps
     [
-      latitude,
-      longitude,
-      limitA,
-      limitB,
-      limitC,
-      limitD,
+      // latitude,
+      // longitude,
+      // limitA,
+      // limitB,
+      // limitC,
+      // limitD,
+      coordinates,
+      limits,
       deductible,
       subproducerCommission,
       priorLossCount,
-      state,
+      // state,
+      address,
       ratingPropertyData,
     ]
   );
@@ -1334,9 +1457,20 @@ function Diff({
 }
 
 function RequiredFieldsIndicator({ errors }: { errors: FormikErrors<NewQuoteValues> }) {
+  // TODO: need to extract all nested fields
   const errorEntries = useMemo(
     () =>
-      Object.entries(merge(omit(errors, 'ratingPropertyData'), errors.ratingPropertyData || {})),
+      Object.entries(
+        merge(
+          omit(errors, 'ratingPropertyData', 'limits', 'agent', 'agency', 'AAL', 'address'),
+          errors.ratingPropertyData || {},
+          errors.address || {},
+          errors.limits || {},
+          errors.agent || {},
+          errors.agency || {},
+          errors.AAL || {}
+        )
+      ),
     [errors]
   );
 
@@ -1410,37 +1544,53 @@ export const QuoteNewFromSub = () => {
   // @ts-ignore TODO: fix types (can't pass null to iMask component)
   const initialValues: NewQuoteValues = useMemo(
     () => ({
-      addressLine1: submissionData?.address?.addressLine1 ?? '',
-      addressLine2: submissionData?.address?.addressLine2 ?? '',
-      city: submissionData?.address?.city ?? '',
-      state: submissionData?.address?.state ?? '',
-      postal: submissionData?.address?.postal ?? '',
-      latitude: submissionData?.coordinates?.latitude ?? null,
-      longitude: submissionData?.coordinates?.longitude ?? null, // @ts-ignore
-      limitA: submissionData?.limitA ?? 250000, // @ts-ignore
-      limitB: submissionData?.limitB ?? 12500, // @ts-ignore
-      limitC: submissionData?.limitC ?? 68000, // @ts-ignore
-      limitD: submissionData?.limitD ?? 25000,
+      address: submissionData?.address || {
+        addressLine1: submissionData?.address?.addressLine1 ?? '',
+        addressLine2: submissionData?.address?.addressLine2 ?? '',
+        city: submissionData?.address?.city ?? '',
+        state: submissionData?.address?.state ?? '',
+        postal: submissionData?.address?.postal ?? '',
+        countyName: submissionData?.address?.countyName ?? '',
+        countyFIPS: submissionData?.address?.countyFIPS ?? '',
+      },
+      coordinates: {
+        latitude: submissionData?.coordinates?.latitude || null,
+        longitude: submissionData?.coordinates?.longitude || null,
+      },
+      limits: {
+        limitA: submissionData?.limits.limitA ?? 250000,
+        limitB: submissionData?.limits.limitB ?? 12500,
+        limitC: submissionData?.limits.limitC ?? 68000,
+        limitD: submissionData?.limits.limitD ?? 25000,
+      },
       deductible: submissionData?.deductible ?? 1000,
-      quoteExpiration: add(new Date(), { days: 60 }),
+      quoteExpiration: add(new Date(), { days: 60 }), // TODO: delete ?? set on quote created
       policyEffectiveDate: add(new Date(), { days: 15 }),
       policyExpirationDate: add(new Date(), { days: 15, years: 1 }),
-      fees: [], // [{ feeName: '', feeValue: '' }],
-      taxes: [], // [{ displayName: '', rate: '', value: '' }],
+      fees: [],
+      taxes: [],
       annualPremium: submissionData?.annualPremium ?? null,
       subproducerCommission: submissionData?.subproducerCommission ?? 0.15,
-      quoteTotal: null, // calculated
-      insuredFirstName: submissionData?.contact?.firstName ?? '',
-      insuredLastName: submissionData?.contact?.lastName ?? '',
-      insuredEmail: submissionData?.contact?.email ?? '',
-      insuredPhone: '',
-      agentId: submissionData?.agent?.agentId || '',
-      agentEmail: '', // TODO: decide whether to add agency / agent data with submission or query later
-      agentName: '',
-      agentPhone: '',
-      agencyName: '',
-      agencyId: '',
+      quoteTotal: null,
+      namedInsured: {
+        firstName: submissionData?.contact?.firstName ?? '',
+        lastName: submissionData?.contact?.lastName ?? '',
+        email: submissionData?.contact?.email ?? '',
+        phone: submissionData?.contact?.email ?? '',
+      },
+      agent: {
+        agentId: submissionData?.agent?.agentId || '',
+        name: submissionData?.agent?.name || '',
+        email: submissionData?.agent?.email || '',
+        phone: submissionData?.agent?.phone || '',
+      },
+      agency: {
+        orgId: submissionData?.agency?.orgId || '',
+        name: submissionData?.agency?.name || '',
+        address: submissionData?.agency?.address || '', // TODO: is address in form ??
+      },
       priorLossCount: submissionData?.priorLossCount || '',
+      // TODO: note if RCV source is from user
       ratingPropertyData: {
         CBRSDesignation: submissionData?.ratingPropertyData?.CBRSDesignation ?? '',
         basement: `${submissionData?.ratingPropertyData?.basement ?? ''}`.toLowerCase(), // @ts-ignore
@@ -1453,13 +1603,67 @@ export const QuoteNewFromSub = () => {
         yearBuilt: `${submissionData?.ratingPropertyData?.yearBuilt ?? ''}`, // submissionData?.yearBuilt ?? null,
       },
       AAL: {
-        inland: submissionData?.inlandAAL ?? null,
-        surge: submissionData?.surgeAAL ?? null,
+        inland: submissionData?.AAL?.inland ?? null,
+        surge: submissionData?.AAL?.surge ?? null, // @ts-ignore
+        tsunami: submissionData?.AAL?.tsunami ?? null,
       },
       notes: [],
     }),
     [submissionData]
   );
+
+  // const initialValues: NewQuoteValues = useMemo(
+  //   () => ({
+  //     addressLine1: submissionData?.address?.addressLine1 ?? '',
+  //     addressLine2: submissionData?.address?.addressLine2 ?? '',
+  //     city: submissionData?.address?.city ?? '',
+  //     state: submissionData?.address?.state ?? '',
+  //     postal: submissionData?.address?.postal ?? '',
+  //     latitude: submissionData?.coordinates?.latitude ?? null,
+  //     longitude: submissionData?.coordinates?.longitude ?? null, // @ts-ignore
+  //     limitA: submissionData?.limitA ?? 250000, // @ts-ignore
+  //     limitB: submissionData?.limitB ?? 12500, // @ts-ignore
+  //     limitC: submissionData?.limitC ?? 68000, // @ts-ignore
+  //     limitD: submissionData?.limitD ?? 25000,
+  //     deductible: submissionData?.deductible ?? 1000,
+  //     quoteExpiration: add(new Date(), { days: 60 }),
+  //     policyEffectiveDate: add(new Date(), { days: 15 }),
+  //     policyExpirationDate: add(new Date(), { days: 15, years: 1 }),
+  //     fees: [], // [{ feeName: '', feeValue: '' }],
+  //     taxes: [], // [{ displayName: '', rate: '', value: '' }],
+  //     annualPremium: submissionData?.annualPremium ?? null,
+  //     subproducerCommission: submissionData?.subproducerCommission ?? 0.15,
+  //     quoteTotal: null, // calculated
+  //     insuredFirstName: submissionData?.contact?.firstName ?? '',
+  //     insuredLastName: submissionData?.contact?.lastName ?? '',
+  //     insuredEmail: submissionData?.contact?.email ?? '',
+  //     insuredPhone: '',
+  //     agentId: submissionData?.agent?.agentId || '',
+  //     agentEmail: '', // TODO: decide whether to add agency / agent data with submission or query later
+  //     agentName: '',
+  //     agentPhone: '',
+  //     agencyName: '',
+  //     agencyId: '',
+  //     priorLossCount: submissionData?.priorLossCount || '',
+  //     ratingPropertyData: {
+  //       CBRSDesignation: submissionData?.ratingPropertyData?.CBRSDesignation ?? '',
+  //       basement: `${submissionData?.ratingPropertyData?.basement ?? ''}`.toLowerCase(), // @ts-ignore
+  //       distToCoastFeet: `${submissionData?.ratingPropertyData?.distToCoastFeet ?? ''}`, // submissionData?.distToCoastFeet ?? null,
+  //       floodZone: submissionData?.ratingPropertyData?.floodZone ?? '',
+  //       numStories: submissionData?.ratingPropertyData?.numStories ?? 1,
+  //       propertyCode: `${submissionData?.ratingPropertyData?.propertyCode ?? ''}`,
+  //       replacementCost: submissionData?.ratingPropertyData?.replacementCost ?? null, // @ts-ignore
+  //       sqFootage: `${submissionData?.ratingPropertyData?.sqFootage ?? ''}`, // @ts-ignore submissionData?.sqFootage ?? null,
+  //       yearBuilt: `${submissionData?.ratingPropertyData?.yearBuilt ?? ''}`, // submissionData?.yearBuilt ?? null,
+  //     },
+  //     AAL: {
+  //       inland: submissionData?.inlandAAL ?? null,
+  //       surge: submissionData?.surgeAAL ?? null,
+  //     },
+  //     notes: [],
+  //   }),
+  //   [submissionData]
+  // );
 
   return (
     <QuoteNew
@@ -1469,54 +1673,3 @@ export const QuoteNewFromSub = () => {
     />
   );
 };
-
-// initialValues={{
-//   addressLine1: submissionData?.addressLine1 ?? '',
-//   addressLine2: submissionData?.addressLine2 ?? '',
-//   city: submissionData?.city ?? '',
-//   state: submissionData?.state ?? '',
-//   postal: submissionData?.postal ?? '',
-//   latitude: submissionData?.coordinates?.latitude ?? null,
-//   longitude: submissionData?.coordinates?.longitude ?? null, // @ts-ignore
-//   limitA: submissionData?.limitA ?? 250000, // @ts-ignore
-//   limitB: submissionData?.limitB ?? 12500, // @ts-ignore
-//   limitC: submissionData?.limitC ?? 68000, // @ts-ignore
-//   limitD: submissionData?.limitD ?? 25000,
-//   deductible: submissionData?.deductible ?? 1000,
-//   // replacementCost: submissionData?.replacementCost ?? 250000,
-//   // basement: submissionData?.basement ?? 'unknown',
-//   // numStories: submissionData?.numStories ?? 1,
-//   // numUnits: 1,
-//   // yearBuilt: submissionData?.yearBuilt ?? '',
-//   // squareFootage: submissionData?.sqFootage ?? '',
-//   quoteExpiration: add(new Date(), { days: 60 }),
-//   policyEffectiveDate: add(new Date(), { days: 15 }),
-//   policyExpirationDate: add(new Date(), { days: 15, years: 1 }),
-//   fees: [], // [{ feeName: '', feeValue: '' }],
-//   taxes: [], // [{ displayName: '', rate: '', value: '' }],
-//   annualPremium: submissionData?.annualPremium ?? null,
-//   subproducerCommission: submissionData?.subproducerCommission ?? 0.15,
-//   quoteTotal: null, // calculated
-//   insuredFirstName: submissionData?.firstName ?? '',
-//   insuredLastName: submissionData?.lastName ?? '',
-//   insuredEmail: submissionData?.email ?? '',
-//   insuredPhone: '',
-//   agentId: submissionData?.agentId || null,
-//   agentEmail: '', // TODO: decide whether to add agency / agent data with submission or query later
-//   agentName: '',
-//   agentPhone: '',
-//   agencyName: '',
-//   agencyId: '',
-//   priorLossCount: submissionData?.priorLossCount || '',
-//   ratingPropertyData: {
-//     CBRSDesignation: submissionData?.CBRSDesignation ?? '',
-//     basement: `${submissionData?.basement ?? ''}`.toLowerCase(), // @ts-ignore
-//     distToCoastFeet: `${submissionData?.distToCoastFeet ?? ''}`,
-//     floodZone: submissionData?.floodZone ?? '',
-//     numStories: submissionData?.numStories ?? 1,
-//     propertyCode: `${submissionData?.propertyCode ?? ''}`,
-//     replacementCost: submissionData?.replacementCost ?? null, // @ts-ignore
-//     sqFootage: `${submissionData?.sqFootage ?? ''}`, // @ts-ignore
-//     yearBuilt: `${submissionData?.yearBuilt ?? ''}`,
-//   },
-// }}
