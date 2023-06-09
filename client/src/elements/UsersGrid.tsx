@@ -334,6 +334,7 @@ export const AdminManageUsersGrid: React.FC<AdminManageUsersGridProps> = ({
     },
     [updateClaims, toast]
   );
+  // https://maps.googleapis.com/maps/api/streetview?key=AIzaSyCcxci2JbSKEPqH3iEFhSHE7Wc2AA_3NQU&size=640x640&fov=45&pitch=0&location=33.445735,-112.536360&heading=62.154628
 
   const handleProcessRowUpdateError = useCallback(
     (err: Error) => {
