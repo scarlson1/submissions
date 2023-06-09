@@ -1,6 +1,6 @@
 import type { AuthBlockingEvent } from 'firebase-functions/v2/identity';
 import { HttpsError } from 'firebase-functions/v2/identity';
-import { info, warn } from 'firebase-functions/logger';
+import { error, info, warn } from 'firebase-functions/logger';
 import { getFirestore } from 'firebase-admin/firestore';
 
 import {
@@ -130,13 +130,17 @@ export default async (event: AuthBlockingEvent) => {
   // use invite to set permissions ??
 
   if (user.email && user.email?.toLowerCase().endsWith('@idemandinsurance.com')) {
-    const inviteColRef = userClaimsCollection(db, iDemandOrgId.value());
+    const claimsColRef = userClaimsCollection(db, iDemandOrgId.value());
     try {
-      await inviteColRef.doc(user.uid).set({
+      await claimsColRef.doc(user.uid).set({
         // [CLAIMS.IDEMAND_ADMIN]: true, // TODO: decide whether to set as admin by default
         [CLAIMS.IDEMAND_USER]: true,
       });
-    } catch (err) {}
+    } catch (err) {
+      error('Error creating custom user claims doc for idemand user', {
+        userId: user.uid,
+      });
+    }
 
     return {
       customClaims: { iDemandAdmin: true },

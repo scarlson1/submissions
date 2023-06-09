@@ -1,4 +1,6 @@
 import { WithFieldValue, GeoPoint, Timestamp } from 'firebase/firestore';
+import { JSONContent } from '@tiptap/react';
+import { Geohash } from 'geofire-common';
 
 import {
   PRODUCT,
@@ -12,9 +14,7 @@ import {
   AGENCY_SUBMISSION_STATUS,
 } from './enums';
 import { FloodValues } from 'views/SubmissionNew';
-import { FetchPropertyDataResponse } from 'modules/api/index';
-import { JSONContent } from '@tiptap/react';
-import { Geohash } from 'geofire-common';
+import { InitRatingValues } from 'hooks/usePropertyDetails';
 
 export interface BaseMetadata {
   created: FirestoreTimestamp;
@@ -45,8 +45,11 @@ export interface Submission extends FloodValues {
   agency?: Nullable<AgencyDetails>;
   status: SUBMISSION_STATUS;
   submittedById?: string | null;
-  rcvSouceUser?: boolean;
-  propertyDataRes: FetchPropertyDataResponse;
+  rcvSourceUser?: boolean;
+  // propertyDataRes: FetchPropertyDataResponse;
+  ratingPropertyData: Nullable<RatingPropertyData>; // FetchPropertyDataResponse;
+  propertyDataDocId: string | null; // attom response
+  initValues: InitRatingValues;
   darkMapImageURL?: string;
   lightMapImageURL?: string;
   darkMapImageFilePath?: string;

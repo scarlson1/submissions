@@ -56,6 +56,7 @@ function parseStreamToArray<RowType = any>(stream: fs.ReadStream) {
         total_limits: data.total_limits ? parseInt(getNumber(data.total_limits)) : '',
         deductible: parseInt(getNumber(data.deductible)) || '',
         skip: data?.skip && data?.skip?.toLowerCase().trim() === 'true',
+        google_maps_link: getGoogleMapsUrl(data.latitude, data.longitude),
       })) // If a row is invalid then a data-invalid event will be emitted with the row and the index.
       .validate((data: any): boolean => {
         if (data.skip) return true;
@@ -71,7 +72,7 @@ function parseStreamToArray<RowType = any>(stream: fs.ReadStream) {
         info('HEADERS => ', headers);
       })
       .on('data', (row) => {
-        info('ROW => ', JSON.stringify(row, null, 2));
+        info(`ROW (Location ID: ${row.location_id || 'no ID'}) => `, { ...row });
         dataArray.push(row);
       })
       .on('data-invalid', (row, rowNumber) => {
@@ -198,6 +199,14 @@ async function getAALs(parsedData: any[]) {
         let errMsg = 'Error fetching AALs from Swiss Re.';
         if (err?.message && typeof err.message === 'string') errMsg = err.message;
         if (err?.response?.data) errMsg += ` ${[JSON.stringify(err.response.data)]}`;
+
+        error(`Error fetching AAL for row index ${i}`, {
+          errMsg,
+          errRes: err?.response || null,
+          errResData: err?.response?.data || null,
+          err: { ...err },
+        });
+
         return {
           data: undefined,
           errMsg,
@@ -238,6 +247,28 @@ async function getAALs(parsedData: any[]) {
   }
 }
 
+async function unlinkFile(filePath: string) {
+  try {
+    if (filePath) fs.unlinkSync(filePath);
+  } catch (err: any) {
+    error('Error unlinking file ', { errMsg: err?.message, err });
+  }
+}
+
+function waitMilliSeconds(ms: number = 1000) {
+  return new Promise<void>((resolve, reject) => {
+    info(`Waiting ${ms}ms to space out Swiss Re API calls`);
+    setTimeout(() => {
+      resolve();
+    }, ms);
+  });
+}
+
+function getGoogleMapsUrl(latitude: number | undefined, longitude: number | undefined) {
+  if (!(latitude && longitude)) return '';
+  return `https://www.google.com/maps/search/?api=1&query=${latitude}%2C${longitude}`;
+}
+
 export default async (event: StorageEvent) => {
   const fileBucket = event.bucket;
   const filePath = event.data.name; // File path in the bucket.
@@ -266,6 +297,16 @@ export default async (event: StorageEvent) => {
     return null;
   }
 
+  // TODO: check meetadata for processed status
+  const eventAge = Date.now() - Date.parse(event.time);
+  const eventMaxAge = 1000 * 60 * 10; // 10 mins
+
+  // Ignore events that are too old
+  if (eventAge > eventMaxAge) {
+    info(`Dropping event ${event.id} with age ${eventAge} ms.`, { ...event });
+    return;
+  }
+
   const clientId = swissReClientId.value();
   const clientSecret = swissReClientSecret.value();
   const subKey = swissReSubscriptionKey.value();
@@ -286,7 +327,7 @@ export default async (event: StorageEvent) => {
   const tempFilePath = path.join(os.tmpdir(), `temp_SR_${fileName}`);
 
   await bucket.file(filePath).download({ destination: tempFilePath });
-  info('File downloaded locally to', tempFilePath);
+  info(`File downloaded locally: ${tempFilePath}`);
 
   async function splitAndRate(data: any[]) {
     let ratedArray: any[] = [];
@@ -297,14 +338,17 @@ export default async (event: StorageEvent) => {
     for (let chunk of chunks) {
       const chunkWithAAL = await getAALs(chunk);
       info(`FINISHED FETCHING AAL FOR CHUNK (${currChunk}/${chunks.length})`);
+
       const ratedChunk = calcPrem(chunkWithAAL);
       info(`RATED CHUNK (${currChunk}/${chunks.length}) [${ratedChunk.length} ROWS]: `);
+
+      await waitMilliSeconds(2000);
+
       ratedArray = [...ratedArray, ...ratedChunk];
       currChunk++;
     }
 
     return ratedArray;
-    // return writeToStorage(ratedArray);
   }
 
   const storageFile = bucket.file(`${PORTFOLIO_UPLOAD_FOLDER}/processed_${fileName}`);
@@ -330,7 +374,8 @@ export default async (event: StorageEvent) => {
   try {
     const { dataArray, invalidRows } = await parseStreamToArray(fs.createReadStream(tempFilePath));
 
-    if (tempFilePath) fs.unlinkSync(tempFilePath);
+    // if (tempFilePath) fs.unlinkSync(tempFilePath);
+    await unlinkFile(tempFilePath);
     info(
       `FINISHED PARSING FILE (${dataArray.length} VALID ROWS - ${invalidRows.length} INVALID ROWS)`
     );
@@ -341,19 +386,21 @@ export default async (event: StorageEvent) => {
 
     await bucket.file(filePath).setMetadata({ metadata: { status: 'processed' } });
 
-    const storageLink = `https://console.cloud.google.com/storage/browser/_details/${storageBucket.value()}/${
-      storageFile.name
-    };tab=live_object?project=${projectID.value()}`;
+    // TODO: MOVE TO IT'S OWN FUNC (sendAdminNotification)
+    try {
+      const storageLink = `https://console.cloud.google.com/storage/browser/_details/${storageBucket.value()}/${
+        storageFile.name
+      };tab=live_object?project=${projectID.value()}`;
 
-    const downloadURL: GetSignedUrlResponse = await storageFile.getSignedUrl({
-      action: 'read',
-      expires: addDays(new Date(), 7),
-    });
+      const downloadURL: GetSignedUrlResponse = await storageFile.getSignedUrl({
+        action: 'read',
+        expires: addDays(new Date(), 7),
+      });
 
-    const to = ['spencer.carlson@idemandinsurance.com'];
-    if (audience.value() === 'PROD HUMANS') to.push('ron.carlson@idemandinsurance.com');
+      const to = ['spencer.carlson@idemandinsurance.com'];
+      if (audience.value() === 'PROD HUMANS') to.push('ron.carlson@idemandinsurance.com');
 
-    const msgBody = `<div>
+      const msgBody = `<div>
       <p>
         Portfolio rating complete (<a href=${downloadURL[0]}>download: ${fileName}</a>). Download link expires in 7 days.
       </p>
@@ -362,243 +409,16 @@ export default async (event: StorageEvent) => {
       </div>
     </div>`;
 
-    await sendMessage(sendgridApiKey.value(), to, msgBody, 'Portfolio rating complete');
+      await sendMessage(sendgridApiKey.value(), to, msgBody, 'Portfolio rating complete');
+    } catch (err: any) {
+      error('Error generating file link and sending admin notification', { err });
+    }
 
     return;
   } catch (err) {
-    if (tempFilePath) fs.unlinkSync(tempFilePath);
     error('ERROR: ', err);
+    await unlinkFile(tempFilePath);
     // TODO: send error email to admin
     return;
   }
 };
-
-// const dataArray: any[] = [];
-// const invalidRows: any[] = [];
-
-// fs.createReadStream(tempFilePath)
-//   .pipe(parse({ headers: (headers) => headers.map((h) => snakeCase(h || '')) }))
-//   .transform((data: any): any => ({
-//     ...data,
-//     // latitude: parseFloat(data.latitude),
-//     // longitude: parseFloat(data.longitude),
-//     // building_rcv: data.building_rcv ? parseInt(getNumber(data.building_rcv)) : '',
-//     cov_a_rcv: data.cov_a_rcv ? parseInt(getNumber(data.cov_a_rcv)) : '',
-//     cov_b_rcv: data.cov_b_rcv ? parseInt(getNumber(data.cov_b_rcv)) : 0,
-//     cov_c_rcv: data.cov_c_rcv ? parseInt(getNumber(data.cov_c_rcv)) : 0,
-//     cov_d_rcv: data.cov_d_rcv ? parseInt(getNumber(data.cov_d_rcv)) : 0,
-//     total_rcv: data.total_rcv ? parseInt(getNumber(data.total_rcv)) : '',
-//     cov_a_limit: data.cov_a_limit ? parseInt(getNumber(data.cov_a_limit)) : '',
-//     cov_b_limit: data.cov_b_limit ? parseInt(getNumber(data.cov_b_limit)) : 0,
-//     cov_c_limit: data.cov_c_limit ? parseInt(getNumber(data.cov_c_limit)) : 0,
-//     cov_d_limit: data.cov_d_limit ? parseInt(getNumber(data.cov_d_limit)) : 0,
-//     total_limits: data.total_limits ? parseInt(getNumber(data.total_limits)) : '',
-//     deductible: parseInt(getNumber(data.deductible)) || '',
-//   })) // If a row is invalid then a data-invalid event will be emitted with the row and the index.
-//   .validate((data: any): boolean => {
-//     return validateRow(data);
-//   })
-//   .on('error', (err) => {
-//     error(err);
-//     fs.unlinkSync(tempFilePath);
-//     return;
-//   })
-//   .on('headers', (headers) => {
-//     info('HEADERS => ', headers);
-//   })
-//   .on('data', (row) => {
-//     info('ROW => ', row);
-//     dataArray.push(row);
-//   })
-//   .on('data-invalid', (row, rowNumber) => {
-//     warn(`Invalid [rowNumber=${rowNumber}] [row=${JSON.stringify(row)}]`);
-//     invalidRows.push({ ...row, rowNumber });
-//   })
-//   .on('end', async (rowCount: number) => {
-//     info(`Parsed ${rowCount} rows`);
-//     info('DATA ARRAY => ', dataArray);
-//     if (tempFilePath) fs.unlinkSync(tempFilePath);
-
-//     try {
-//       // await getAALs(dataArray);
-//       await splitAndRate(dataArray);
-
-//       await bucket.file(filePath).setMetadata({ metadata: { status: 'processed' } });
-//     } catch (err) {
-//       await bucket.file(filePath).setMetadata({ metadata: { status: 'error' } });
-//     }
-
-//     // return;
-//   });
-
-// import { StorageEvent } from 'firebase-functions/v2/storage';
-// import { logger } from 'firebase-functions/v1';
-// import { getStorage } from 'firebase-admin/storage';
-// import path from 'path';
-// import os from 'os';
-// import fs from 'fs';
-// import { format, parse } from 'fast-csv';
-// import { snakeCase } from 'lodash';
-// import axios from 'axios';
-
-// const CHUNK_COUNT = 2;
-// const TEST_UPLOAD_FOLDER = 'test';
-
-// /**
-//  * Split an array of items into array of provided size
-//  * @param data array of data
-//  * @param size number of items in each chunk
-//  */
-// function splitChunks(data: any[], size: number = CHUNK_COUNT) {
-//   let chunks = [];
-//   for (let i = 0; i < data.length; i += size) chunks.push(data.slice(i, i + size));
-
-//   return chunks;
-// }
-
-// export default async (event: StorageEvent) => {
-//   const fileBucket = event.bucket;
-//   const filePath = event.data.name; // File path in the bucket.
-//   const fileName = path.basename(filePath || '');
-//   const contentType = event.data.contentType;
-//   const metageneration = event.data.metageneration as unknown;
-//   console.log('FILE UPLOAD DETECTED: ', fileName);
-
-//   console.log('is in test folder: ', event.data.name?.startsWith(`${TEST_UPLOAD_FOLDER}/`));
-
-//   if (!event.data.name?.startsWith(`${TEST_UPLOAD_FOLDER}/`)) {
-//     logger.log(
-//       `Ignoring upload "${event.data.name}" because is not in the "/${TEST_UPLOAD_FOLDER}/*" folder. **TEST**`
-//     );
-//     return null;
-//   }
-
-//   if (fileName.startsWith('processed') || fileName.startsWith('sr')) {
-//     logger.log(`Ignoring upload "${filePath}" because it was already processed.`);
-//     return null;
-//   }
-
-//   if (metageneration !== '1' || contentType !== 'text/csv' || !filePath) {
-//     console.log(
-//       `validation failed. contentType: ${contentType}. metageneration: ${metageneration}. filepath: ${filePath}`
-//     );
-//     return null;
-//   }
-
-//   const storage = getStorage();
-//   const bucket = storage.bucket(fileBucket);
-//   const tempFilePath = path.join(os.tmpdir(), `temp_SR_${fileName}`);
-
-//   await bucket.file(filePath).download({ destination: tempFilePath });
-//   logger.log('File downloaded locally to', tempFilePath);
-
-//   const dataArray: any[] = [];
-//   const invalidRows: any[] = [];
-
-//   let ratedArray: any[] = [];
-
-//   fs.createReadStream(tempFilePath)
-//     .pipe(parse({ headers: (headers) => headers.map((h) => snakeCase(h || '')) }))
-//     // .transform((data: any): any => ({
-//     //   ...data,
-//     //   cov_a_rcv: data.cov_a_rcv ? parseInt(getNumber(data.cov_a_rcv)) : '',
-//     //   cov_b_rcv: data.cov_b_rcv ? parseInt(getNumber(data.cov_b_rcv)) : 0,
-//     //   cov_c_rcv: data.cov_c_rcv ? parseInt(getNumber(data.cov_c_rcv)) : 0,
-//     //   cov_d_rcv: data.cov_d_rcv ? parseInt(getNumber(data.cov_d_rcv)) : 0,
-//     //   total_rcv: data.total_rcv ? parseInt(getNumber(data.total_rcv)) : '',
-//     //   cov_a_limit: data.cov_a_limit ? parseInt(getNumber(data.cov_a_limit)) : '',
-//     //   cov_b_limit: data.cov_b_limit ? parseInt(getNumber(data.cov_b_limit)) : 0,
-//     //   cov_c_limit: data.cov_c_limit ? parseInt(getNumber(data.cov_c_limit)) : 0,
-//     //   cov_d_limit: data.cov_d_limit ? parseInt(getNumber(data.cov_d_limit)) : 0,
-//     //   total_limits: data.total_limits ? parseInt(getNumber(data.total_limits)) : '',
-//     //   deductible: parseInt(getNumber(data.deductible)) || '',
-//     // })) // If a row is invalid then a data-invalid event will be emitted with the row and the index.
-//     // .validate((data: any): boolean => {
-//     //   return validateRow(data);
-//     // })
-//     .on('error', (err) => {
-//       console.error(err);
-//       fs.unlinkSync(tempFilePath);
-//       return;
-//     })
-//     .on('headers', (headers) => {
-//       console.log('HEADERS => ', headers);
-//     })
-//     .on('data', (row) => {
-//       console.log('ROW => ', row);
-//       dataArray.push(row);
-//     })
-//     .on('data-invalid', (row, rowNumber) => {
-//       console.warn(`Invalid [rowNumber=${rowNumber}] [row=${JSON.stringify(row)}]`);
-//       invalidRows.push({ ...row, rowNumber });
-//     })
-//     .on('end', async (rowCount: number) => {
-//       console.log(`Parsed ${rowCount} rows`);
-//       console.log('DATA ARRAY => ', dataArray);
-//       if (tempFilePath) fs.unlinkSync(tempFilePath);
-
-//       try {
-//         await splitAndRate(dataArray);
-
-//         await bucket.file(filePath).setMetadata({ metadata: { status: 'processed' } });
-//       } catch (err) {
-//         await bucket.file(filePath).setMetadata({ metadata: { status: 'error' } });
-//       }
-
-//       return;
-//     });
-
-//   async function splitAndRate(data: any[]) {
-//     let chunks = splitChunks(data, CHUNK_COUNT);
-
-//     for (let chunk of chunks) {
-//       console.log('fetching data for chunk');
-//       const ratedChunk = await getAALs(chunk);
-
-//       console.log('RATED CHUNK: ', ratedChunk);
-//       ratedArray = [...ratedArray, ...ratedChunk];
-//     }
-
-//     console.log('WRITING RESULT TO CSV');
-//     console.log(ratedArray);
-//     return writeToStorage(ratedArray);
-//   }
-
-//   function getSRPromise(data: any, id: any) {
-//     return axios.get(`https://jsonplaceholder.typicode.com/todos/${id}`);
-//   }
-
-//   async function getAALs(parsedData: any[]) {
-//     try {
-//       const promises = parsedData.map((r) => getSRPromise(r, r.id));
-
-//       let results = await Promise.all(promises);
-//       results.forEach((result) => console.log('DATA: ', result.data));
-
-//       let merged = parsedData.map((r, i) => ({ ...r, ...results[i].data }));
-
-//       console.log(`INVALID ROWS (COUNT: ${invalidRows.length}): `, invalidRows);
-
-//       return merged;
-//     } catch (err: any) {
-//       console.log('ERR: ', err);
-//       console.log('ERROR: ', err?.response?.data);
-//       throw err;
-//     }
-//   }
-
-//   const storageFile = bucket.file(`${TEST_UPLOAD_FOLDER}/processed_${fileName}`);
-
-//   async function writeToStorage(data: any[]) {
-//     const csvStream = format({ headers: true });
-
-//     data.forEach((r) => csvStream.write(r));
-//     csvStream.end();
-
-//     csvStream
-//       .pipe(storageFile.createWriteStream())
-//       .on('finish', () => console.log(`FINISHED WRITING TO ${storageFile.name}`));
-//   }
-
-//   return;
-// };

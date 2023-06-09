@@ -85,6 +85,7 @@ export default async (event: StorageEvent) => {
       deductible: parseInt(getNumber(data.deductible)) || '',
     })) // If a row is invalid then a data-invalid event will be emitted with the row and the index.
     .validate((data: any): boolean => {
+      // TODO: add floodzone, commission, etc. to validation
       return validateRow(data);
     })
     .on('error', (err) => {
@@ -93,10 +94,10 @@ export default async (event: StorageEvent) => {
       return;
     })
     .on('headers', (headers) => {
-      info('HEADERS => ', headers);
+      info('HEADERS => ', { headers });
     })
     .on('data', (row) => {
-      info('ROW => ', row);
+      info(`ROW (ID: ${row.location_id || 'no ID'}) => `, row);
       dataArray.push(row);
     })
     .on('data-invalid', (row, rowNumber) => {
@@ -121,7 +122,7 @@ export default async (event: StorageEvent) => {
 
   function getSRPromise(data: any) {
     const xmlBodyVars = getSRVars(data);
-    info('BODY VARS => ', xmlBodyVars);
+    info(`BODY VARS (ID: ${data.location_id || 'no ID'}) => `, xmlBodyVars);
     const body = swissReBody(xmlBodyVars);
 
     // TODO: type response
@@ -229,8 +230,8 @@ export default async (event: StorageEvent) => {
       info(`INVALID ROWS (COUNT: ${invalidRows.length}): `, invalidRows);
       return writeToStorage(result);
     } catch (err: any) {
-      info('ERR: ', err);
-      info('ERROR: ', err?.response?.data);
+      error('ERR: ', err);
+      error('ERROR DATA: ', err?.response?.data);
       throw err;
     }
   }

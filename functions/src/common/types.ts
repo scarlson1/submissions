@@ -443,7 +443,8 @@ export interface Submission extends FloodFormValues {
   status: SUBMISSION_STATUS;
   submittedById?: string | null;
   rcvSouceUser?: boolean;
-  propertyDataRes: FetchPropertyDataResponse;
+  // propertyDataRes: FetchPropertyDataResponse;
+  ratingPropertyData: FetchPropertyDataResponse;
   darkMapImageURL?: string;
   lightMapImageURL?: string;
   darkMapImageFilePath?: string;

@@ -29,6 +29,7 @@ import {
 import { FileLink, renderGridEmail, renderGridPhone } from 'components';
 import { GridCellCopy } from 'components';
 import {
+  calcSum,
   formatGridCurrency,
   formatGridFirestoreTimestamp,
   formatGridFirestoreTimestampAsDate,
@@ -47,7 +48,7 @@ import {
 import { GeoPoint } from 'firebase/firestore';
 // import { ADMIN_ROUTES, createPath } from 'router';
 
-const copyBaseProps: Partial<GridColDef> = {
+export const copyBaseProps: Partial<GridColDef> = {
   flex: 1,
   minWidth: 200,
   editable: false,
@@ -262,38 +263,68 @@ export const postalCol: GridColDef = {
   editable: false,
 };
 
+export const countyCol: GridColDef = {
+  field: 'countyName',
+  headerName: 'County',
+  minWidth: 160,
+  flex: 1,
+  editable: false,
+};
+
+export const fipsCol: GridColDef = {
+  field: 'countyFIPS',
+  headerName: 'FIPS',
+  minWidth: 120,
+  flex: 1,
+  editable: false,
+};
+
 export const addrLine1Col: GridColDef = {
   ...address1Col,
-  field: 'address.addressLine1',
+  // field: 'address.addressLine1',
   valueGetter: (params: GridValueGetterParams<any, any>) =>
     getGridAddressComponent(params, 'addressLine1'),
 };
 
 export const addrLine2Col: GridColDef = {
   ...address2Col,
-  field: 'address.addressLine2',
+  // field: 'address.addressLine2',
   valueGetter: (params: GridValueGetterParams<any, any>) =>
     getGridAddressComponent(params, 'addressLine2'),
 };
 
 export const addrCityCol: GridColDef = {
   ...cityCol,
-  field: 'address.city',
+  // field: 'address.city',
   valueGetter: (params: GridValueGetterParams<any, any>) => getGridAddressComponent(params, 'city'),
 };
 
 export const addrStateCol: GridColDef = {
   ...stateCol,
-  field: 'address.state',
+  // field: 'address.state',
   valueGetter: (params: GridValueGetterParams<any, any>) =>
     getGridAddressComponent(params, 'state'),
 };
 
 export const addrPostalCol: GridColDef = {
   ...postalCol,
-  field: 'address.postal',
+  // field: 'address.postal',
   valueGetter: (params: GridValueGetterParams<any, any>) =>
     getGridAddressComponent(params, 'postal'),
+};
+
+export const addrCountyCol: GridColDef = {
+  ...countyCol,
+  // field: 'address.countyName',
+  valueGetter: (params: GridValueGetterParams<any, any>) =>
+    getGridAddressComponent(params, 'countyName'),
+};
+
+export const addrFIPSCol: GridColDef = {
+  ...fipsCol,
+  // field: 'address.countyFIPS',
+  valueGetter: (params: GridValueGetterParams<any, any>) =>
+    getGridAddressComponent(params, 'countyFIPS'),
 };
 
 export const latitudeCol: GridColDef = {
@@ -543,6 +574,33 @@ export const limitDCol: GridColDef = {
   valueGetter: (params) => params.row.limits?.limitD ?? null,
   valueFormatter: formatGridCurrency,
 };
+
+export const tivCol: GridColDef = {
+  field: 'tiv',
+  headerName: 'TIV',
+  description: 'Sum of coverage limits',
+  minWidth: 120,
+  flex: 0.8,
+  editable: false,
+  headerAlign: 'center',
+  align: 'right',
+  valueGetter: (params) => {
+    if (params.row.tiv) return params.row.tiv;
+    if (params.row.limits?.tiv) return params.row.limits.tiv;
+
+    const limits = params.row.limits;
+    if (!limits) return null;
+    try {
+      const tiv = calcSum(Object.values(limits));
+      return tiv;
+    } catch (err) {
+      return null;
+    }
+  },
+  valueFormatter: formatGridCurrency,
+};
+
+// TODO: TIV COLUMN
 
 export const deductibleCol: GridColDef = {
   field: 'deductible',

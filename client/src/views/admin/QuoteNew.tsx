@@ -1204,17 +1204,17 @@ function getRatingInputsFromSubmission(subData?: Submission) {
   return {
     latitude: subData?.coordinates?.latitude,
     longitude: subData?.coordinates?.longitude,
-    replacementCost: subData?.propertyDataRes?.replacementCost,
+    replacementCost: subData?.ratingPropertyData?.replacementCost,
     limitA: subData?.limits?.limitA,
     limitB: subData?.limits?.limitB,
     limitC: subData?.limits?.limitC,
     limitD: subData?.limits?.limitD,
     deductible: subData?.deductible,
-    numStories: subData?.propertyDataRes?.numStories,
+    numStories: subData?.ratingPropertyData?.numStories,
     priorLossCount: subData?.priorLossCount,
     state: subData?.address?.state,
-    floodZone: subData?.propertyDataRes?.floodZone,
-    basement: subData?.propertyDataRes?.basement?.toLowerCase(),
+    floodZone: subData?.ratingPropertyData?.floodZone,
+    basement: subData?.ratingPropertyData?.basement?.toLowerCase(),
     commissionPct: subData?.subproducerCommission || 0.15, // TODO: delete - must look up subrpoducer comm from agent ID or org ID from server, or producer from clinet if idemand admin
   };
 }
@@ -1442,15 +1442,15 @@ export const QuoteNewFromSub = () => {
       agencyId: '',
       priorLossCount: submissionData?.priorLossCount || '',
       ratingPropertyData: {
-        CBRSDesignation: submissionData?.propertyDataRes?.CBRSDesignation ?? '',
-        basement: `${submissionData?.propertyDataRes?.basement ?? ''}`.toLowerCase(), // @ts-ignore
-        distToCoastFeet: `${submissionData?.propertyDataRes?.distToCoastFeet ?? ''}`, // submissionData?.distToCoastFeet ?? null,
-        floodZone: submissionData?.propertyDataRes?.floodZone ?? '',
-        numStories: submissionData?.propertyDataRes?.numStories ?? 1,
-        propertyCode: `${submissionData?.propertyDataRes?.propertyCode ?? ''}`,
-        replacementCost: submissionData?.propertyDataRes?.replacementCost ?? null, // @ts-ignore
-        sqFootage: `${submissionData?.propertyDataRes?.sqFootage ?? ''}`, // @ts-ignore submissionData?.sqFootage ?? null,
-        yearBuilt: `${submissionData?.propertyDataRes?.yearBuilt ?? ''}`, // submissionData?.yearBuilt ?? null,
+        CBRSDesignation: submissionData?.ratingPropertyData?.CBRSDesignation ?? '',
+        basement: `${submissionData?.ratingPropertyData?.basement ?? ''}`.toLowerCase(), // @ts-ignore
+        distToCoastFeet: `${submissionData?.ratingPropertyData?.distToCoastFeet ?? ''}`, // submissionData?.distToCoastFeet ?? null,
+        floodZone: submissionData?.ratingPropertyData?.floodZone ?? '',
+        numStories: submissionData?.ratingPropertyData?.numStories ?? 1,
+        propertyCode: `${submissionData?.ratingPropertyData?.propertyCode ?? ''}`,
+        replacementCost: submissionData?.ratingPropertyData?.replacementCost ?? null, // @ts-ignore
+        sqFootage: `${submissionData?.ratingPropertyData?.sqFootage ?? ''}`, // @ts-ignore submissionData?.sqFootage ?? null,
+        yearBuilt: `${submissionData?.ratingPropertyData?.yearBuilt ?? ''}`, // submissionData?.yearBuilt ?? null,
       },
       AAL: {
         inland: submissionData?.inlandAAL ?? null,

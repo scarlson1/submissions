@@ -146,9 +146,10 @@ export const SubmissionNew: React.FC = () => {
   const { user, customClaims } = useAuth();
   const formikRef = useRef<FormikProps<FormikValues>>(null);
   const activeStates = useActiveStates('flood');
-  const { propertyDetails, fetchPropertyData } = usePropertyDetailsAttom({
-    promptForValuation: true,
-  });
+  const { propertyDetails, rcvSourceUser, propertyDataDocId, initRatingValues, fetchPropertyData } =
+    usePropertyDetailsAttom({
+      promptForValuation: true,
+    });
 
   const handleFetchProperty = useCallback(
     async (values: FloodValues, helpers: FormikHelpers<FloodValues>) => {
@@ -169,16 +170,16 @@ export const SubmissionNew: React.FC = () => {
         return {
           ...values,
           limits: {
-            limitA: res.initLimitA ?? '250000',
-            limitB: res.initLimitB ?? '25000',
-            limitC: res.initLimitC ?? '63000',
-            limitD: res.initLimitD ?? '38000',
+            limitA: res.limitA ?? '250000',
+            limitB: res.limitB ?? '25000',
+            limitC: res.limitC ?? '63000',
+            limitD: res.limitD ?? '38000',
           },
           // limitA: res.initLimitA ?? '250000',
           // limitB: res.initLimitB ?? '25000',
           // limitC: res.initLimitC ?? '63000',
           // limitD: res.initLimitD ?? '38000',
-          deductible: res.initDeductible ?? 4000,
+          deductible: res.deductible ?? 4000,
         };
       } catch (err) {
         console.log('ERROR: ', err);
@@ -239,7 +240,12 @@ export const SubmissionNew: React.FC = () => {
           },
           // TODO: agency info
           submittedById: user?.uid ?? null,
-          propertyDataRes: propertyDetails,
+          // propertyDataRes: propertyDetails,
+          // TODO: don't save initLimits and rating doc ids in rating property data, save separately so rating data is consistent across quote, etc. types
+          ratingPropertyData: propertyDetails,
+          initValues: initRatingValues,
+          propertyDataDocId,
+          rcvSourceUser,
           metadata: {
             created: serverTimestamp(),
             updated: serverTimestamp(),
@@ -255,7 +261,16 @@ export const SubmissionNew: React.FC = () => {
 
       setSubmitting(false);
     },
-    [firestore, navigate, propertyDetails, user, customClaims]
+    [
+      firestore,
+      navigate,
+      propertyDetails,
+      initRatingValues,
+      propertyDataDocId,
+      rcvSourceUser,
+      user,
+      customClaims,
+    ]
   );
 
   const handleErrorReset = useCallback((...details: unknown[]) => {
@@ -333,7 +348,7 @@ export const SubmissionNew: React.FC = () => {
               <Box sx={{ pb: { xs: 4, sm: 6, md: 8 }, pt: { xs: 2, sm: 4 } }}>
                 <DeductibleStep
                   gridProps={gridProps}
-                  maxDeductible={propertyDetails?.maxDeductible ?? undefined}
+                  maxDeductible={initRatingValues?.maxDeductible ?? undefined}
                 />
               </Box>
             </Step>
