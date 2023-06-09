@@ -28,16 +28,18 @@ export const useCalcPremium = (
           throw new Error('Missing replacement cost or aal');
         if (!values.ratingPropertyData.floodZone) throw new Error('flood zone is required');
 
+        // TODO: change backend to accept limits as object
         let reqBody = {
-          limitA: values.limitA,
-          limitB: values.limitB,
-          limitC: values.limitC,
-          limitD: values.limitD,
+          // limitA: values.limits.limitA,
+          // limitB: values.limits.limitB,
+          // limitC: values.limits.limitC,
+          // limitD: values.limits.limitD,
+          ...values.limits,
           inlandAAL: inland,
           surgeAAL: surge,
           replacementCost,
           deductible: values.deductible,
-          state: values.state,
+          state: values.address?.state,
           priorLossCount: values.priorLossCount,
           floodZone: values.ratingPropertyData.floodZone, // ?? 'D',
           basement: values.ratingPropertyData.basement ?? undefined,
@@ -57,8 +59,8 @@ export const useCalcPremium = (
         if (onSuccess)
           onSuccess(data.annualPremium, {
             ...reqBody,
-            latitude: values.latitude,
-            longitude: values.longitude,
+            latitude: values.coordinates?.latitude,
+            longitude: values.coordinates?.longitude,
           });
         setLoading(false);
         return data.annualPremium;

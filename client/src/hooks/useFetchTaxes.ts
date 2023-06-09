@@ -16,11 +16,11 @@ export const useFetchTaxes = (
   const fetchTaxes = useCallback(
     async (values: NewQuoteValues) => {
       if (!values) return toast.error('missing values');
-      const { annualPremium, state, fees } = values;
+      const { annualPremium, address, fees } = values;
 
       // TODO: validate all required fields are present
       if (!annualPremium) throw new Error('Term premium required'); // return toast.error('Term premium required');
-      if (!state) throw new Error('state required'); // return toast.error('State required');
+      if (!address?.state) throw new Error('state required'); // return toast.error('State required');
 
       // TODO: need to check for multiple items (could be two inspection fees...)
       const mgaObj = fees.find((f) => f.feeName === 'MGA Fee');
@@ -32,7 +32,7 @@ export const useFetchTaxes = (
       // let uwAdjustments = uwAdjustmentObj ? uwAdjustmentObj.feeValue : 0;
 
       const body = {
-        state,
+        state: address.state,
         homeStatePremium: annualPremium,
         outStatePremium: 0,
         premium: annualPremium,
@@ -65,7 +65,7 @@ export const useFetchTaxes = (
           toast.info(`${data.lineItems.length} tax${data.lineItems.length > 1 ? 'es' : ''} found`);
         }
         if (data && data.lineItems?.length === 0) {
-          toast.info(`No applicable taxes for ${state}`, { duration: 5000 });
+          toast.info(`No applicable taxes for ${address?.state}`, { duration: 5000 });
         }
 
         setCurrTaxes(newTaxes);

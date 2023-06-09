@@ -68,14 +68,6 @@ import { useConfirmAndUpdate } from './Quotes';
 import { useAsyncToast, useJsonDialog } from 'hooks';
 import { getRiskFactorId } from 'modules/api';
 
-// https://riskfactor.com/api/autocomplete/208%20aiken%20hunt%20 --> returns { fsid, lat, lng, display, score }
-
-// can use fsid to get data from urls below
-
-// https://riskfactor.com/property/2012-mcpherson-ln-nashville-tn-37221/471459653_fsid/overview
-
-// https://riskfactor.com/property/2012-mcpherson-ln-nashville-tn-37221/471459653_fsid/flood
-
 function firstStreetFormat(str: string) {
   return str.toLowerCase().replaceAll(' ', '-');
 }
@@ -119,7 +111,7 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
       navigate({
         pathname: createPath({
           path: ADMIN_ROUTES.QUOTE_NEW,
-          params: { productId: 'flood', submissionId: `${subId}` },
+          params: { productId: 'flood', submissionId: subId.toString() },
         }),
       });
     },
@@ -127,8 +119,9 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
   );
 
   const openGoogleMaps = useCallback(
-    (params: GridRowParams) => () => {
-      let { latitude, longitude } = params.row;
+    (params: GridRowParams<Submission>) => () => {
+      const latitude = params.row.coordinates?.latitude;
+      const longitude = params.row.coordinates?.longitude;
       if (!(latitude && longitude)) return toast.error('Missing coordinates');
       window.open(`https://www.google.com/maps/search/?api=1&query=${latitude}%2C${longitude}`);
     },
@@ -136,9 +129,10 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
   );
 
   const openFloodFactor = useCallback(
-    (params: GridRowParams) => async () => {
-      let { addressLine1, city, state, postal } = params.row;
-      if (!addressLine1) return;
+    (params: GridRowParams<Submission>) => async () => {
+      const address = params.row.address;
+      if (!address) return toast.error('Missing address');
+      const { addressLine1, city, state, postal } = address;
 
       let fsid;
 
@@ -173,19 +167,20 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
   );
 
   const openSubmissionDataDialog = useCallback(
-    (params: GridRowParams) => async () => {
+    (params: GridRowParams<Submission>) => async () => {
       try {
         const subSnap = await getDoc(doc(submissionsCollection(firestore), params.id.toString()));
 
         const subData = subSnap.data();
-        if (!subData) return;
+        if (!subData)
+          return toast.error(`Submission data not found for ID ${params.id.toString()}`);
 
-        dialog(subData, `Submission Data ${params.id}`);
+        dialog(subData, `Submission Data ${params.id.toString()}`);
       } catch (err) {
         console.log('Error fetching submission doc');
       }
     },
-    [firestore, dialog]
+    [firestore, dialog, toast]
   );
 
   const submissionColumns: GridColDef[] = useMemo(
@@ -248,34 +243,6 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
         editable: true,
       },
       {
-        ...displayNameCol,
-        sortable: false,
-        valueGetter: (params) => {
-          if (params.value) return params.value;
-          if (params.row.firstName || params.row.lastName)
-            return `${params.row.firstName} ${params.row.lastName}`.trim();
-          if (params.row.contact?.firstName || params.row.contact?.lastName)
-            return `${params.row.contact?.firstName} ${params.row.contact?.lastName}`.trim();
-          return null;
-        },
-      },
-      {
-        ...firstNameCol,
-        field: 'contact.firstname',
-        valueGetter: (params) => params.row.contact?.firstName || null,
-      },
-      {
-        ...lastNameCol,
-        field: 'contact.lastName',
-        valueGetter: (params) => params.row.contact?.lastName || null,
-      },
-      {
-        ...emailCol,
-        field: 'contact.email',
-        valueGetter: (params) => params.row.contact?.email || null,
-        description: 'Provided contact email',
-      },
-      {
         ...addrLine1Col,
         description: 'Submission address to be used for insured location',
       },
@@ -292,6 +259,31 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
       limitCCol,
       limitDCol,
       tivCol,
+      {
+        ...displayNameCol,
+        sortable: false,
+        valueGetter: (params) => {
+          if (params.value) return params.value;
+          if (params.row.firstName || params.row.lastName)
+            return `${params.row.firstName} ${params.row.lastName}`.trim();
+          if (params.row.contact?.firstName || params.row.contact?.lastName)
+            return `${params.row.contact?.firstName} ${params.row.contact?.lastName}`.trim();
+          return null;
+        },
+      },
+      {
+        ...firstNameCol,
+        valueGetter: (params) => params.row.contact?.firstName || null,
+      },
+      {
+        ...lastNameCol,
+        valueGetter: (params) => params.row.contact?.lastName || null,
+      },
+      {
+        ...emailCol,
+        valueGetter: (params) => params.row.contact?.email || null,
+        description: 'Provided contact email',
+      },
       // replacementCostCol,
       ratingDataReplacementCostCol,
       {
@@ -377,8 +369,14 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
           processRowUpdate={confirmAndUpdate}
           onProcessRowUpdateError={handleProcessRowUpdateError}
           // experimentalFeatures={{ newEditingApi: true }} // v5
-          components={{ Toolbar: GridToolbar }}
-          componentsProps={{ toolbar: { csvOptions: { allColumns: true } } }}
+          // components={{ Toolbar: GridToolbar }}
+          // componentsProps={{ toolbar: { csvOptions: { allColumns: true } } }}
+          slots={{
+            toolbar: GridToolbar,
+          }}
+          slotProps={{
+            toolbar: { csvOptions: { allColumns: true } },
+          }}
           initialState={{
             columns: {
               columnVisibilityModel: {

@@ -231,8 +231,9 @@ export const SubmissionView: React.FC = () => {
           <Typography variant='overline' color='text.secondary'>
             AAL & Premium
           </Typography>
-          <RowItem title='Inland AAL' value={data.inlandAAL} />
-          <RowItem title='Surge AAL' value={data.surgeAAL} />
+          <RowItem title='Inland AAL' value={data.AAL?.inland} />
+          <RowItem title='Surge AAL' value={data.AAL?.surge} />
+          <RowItem title='Tsunami AAL' value={data.AAL?.tsunami} />
           <RowItem
             title='Annual Premium'
             value={data.annualPremium ? dollarFormat(data.annualPremium) : null}

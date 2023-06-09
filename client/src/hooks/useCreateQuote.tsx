@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { FirebaseError } from 'firebase/app';
 import { addDoc, FirestoreError, GeoPoint, getFirestore, Timestamp } from 'firebase/firestore';
+import { useUser } from 'reactfire';
 import invariant from 'tiny-invariant';
 import { round } from 'lodash';
 import * as geofire from 'geofire-common';
@@ -10,7 +11,6 @@ import { NewQuoteValues } from 'views/admin/QuoteNew';
 import { addToDate, extractNumber, readableFirebaseCode } from 'modules/utils/helpers';
 import { QUOTE_STATUS, Submission, SubmissionQuoteData, submissionsQuotesCollection } from 'common';
 import { useSendQuoteNotification } from './useSendQuoteNotification';
-import { useUser } from 'reactfire';
 // const hash = geofire.geohashForLocation([lat, lng]);
 
 const CARD_FEE_RATE = 0.035;
@@ -32,11 +32,10 @@ export const useCreateQuote = (
       try {
         const quoteData = getFormattedQuote(values, user?.uid);
 
-        const latitude = submissionData?.coordinates.latitude;
-        const longitude = submissionData?.coordinates.longitude;
+        const latitude = submissionData?.coordinates?.latitude;
+        const longitude = submissionData?.coordinates?.longitude;
         const geoHash =
           latitude && longitude ? geofire.geohashForLocation([latitude, longitude]) : null;
-        // const hash = geofir.geohashForLocation([lat, lng]);
 
         const quoteRef = await addDoc(submissionsQuotesCollection(getFirestore()), {
           ...quoteData,
@@ -82,26 +81,31 @@ function getFormattedQuote(
   uid?: string | null
 ): Omit<SubmissionQuoteData, 'quoteExpirationDate'> {
   const {
-    limitA,
-    limitB,
-    limitC,
-    limitD,
-    // replacementCost,
-    latitude,
-    longitude,
+    // limitA,
+    // limitB,
+    // limitC,
+    // limitD,
+    // latitude,
+    // longitude,
+    address,
+    limits,
+    coordinates,
     quoteExpiration,
     policyEffectiveDate,
     policyExpirationDate,
-    insuredFirstName,
-    insuredLastName,
-    insuredEmail,
-    insuredPhone,
-    agentId,
-    agentName,
-    agentEmail,
-    agentPhone,
-    agencyName,
-    agencyId,
+    namedInsured,
+    agent,
+    agency,
+    // insuredFirstName,
+    // insuredLastName,
+    // insuredEmail,
+    // insuredPhone,
+    // agentId,
+    // agentName,
+    // agentEmail,
+    // agentPhone,
+    // agencyName,
+    // agencyId,
     quoteTotal,
     annualPremium,
     taxes,
@@ -114,27 +118,31 @@ function getFormattedQuote(
   // TODO: validation
   if (!quoteTotal) throw new Error('Missing quote total');
   invariant(annualPremium, 'missing annualPremium');
-  invariant(insuredEmail || agentEmail, 'Must have at least one email (insured or agent)');
+  invariant(namedInsured?.email || agent?.email, 'Must have at least one email (insured or agent)');
 
   return {
     product: 'flood',
     deductible: values.deductible,
     limits: {
-      limitA, // extractNumber(values.limitA),
-      limitB, // extractNumber(values.limitB) || 0,
-      limitC, // extractNumber(values.limitC) || 0,
-      limitD, // extractNumber(values.limitD) || 0,
+      limitA: limits.limitA, // extractNumber(values.limitA),
+      limitB: limits.limitA, // extractNumber(values.limitB) || 0,
+      limitC: limits.limitA, // extractNumber(values.limitC) || 0,
+      limitD: limits.limitA, // extractNumber(values.limitD) || 0,
     },
     // replacementCost:
     //   typeof replacementCost === 'string' ? extractNumber(replacementCost) : replacementCost,
-    insuredAddress: {
-      addressLine1: values.addressLine1,
-      addressLine2: values.addressLine2,
-      city: values.city,
-      state: values.state,
-      postal: values.postal,
-    },
-    insuredCoordinates: longitude && latitude ? new GeoPoint(latitude, longitude) : null,
+    // insuredAddress: {
+    //   addressLine1: values.addressLine1,
+    //   addressLine2: values.addressLine2,
+    //   city: values.city,
+    //   state: values.state,
+    //   postal: values.postal,
+    // },
+    insuredAddress: address,
+    insuredCoordinates:
+      coordinates.longitude && coordinates.latitude
+        ? new GeoPoint(coordinates.latitude, coordinates.longitude)
+        : null,
     quoteExpiration: Timestamp.fromDate(quoteExpiration),
     policyEffectiveDate: Timestamp.fromDate(policyEffectiveDate),
     policyExpirationDate: Timestamp.fromDate(policyExpirationDate),
@@ -148,17 +156,17 @@ function getFormattedQuote(
     subproducerCommission,
     cardFee: round(quoteTotal * CARD_FEE_RATE, 2),
     quoteTotal, // calculate on server ??
-    userId: null,
-    insuredFirstName: insuredFirstName ?? null,
-    insuredLastName: insuredLastName ?? null,
-    insuredEmail: insuredEmail ?? null,
-    insuredPhone: insuredPhone ?? null,
-    agentId: agentId ?? null,
-    agentName: agentName ?? null,
-    agentEmail: agentEmail ?? null,
-    agentPhone: agentPhone ?? null,
-    agencyId: agencyId ?? null,
-    agencyName: agencyName ?? null,
+    userId: namedInsured.userId || null,
+    insuredFirstName: namedInsured.firstName ?? null,
+    insuredLastName: namedInsured.lastName ?? null,
+    insuredEmail: namedInsured.email ?? null,
+    insuredPhone: namedInsured.phone ?? null,
+    agentId: agent.agentId ?? null,
+    agentName: agent.name ?? null,
+    agentEmail: agent.email ?? null,
+    agentPhone: agent.phone ?? null,
+    agencyId: agency.orgId ?? null,
+    agencyName: agent.name ?? null,
     notes:
       notes && notes.length > 0
         ? notes

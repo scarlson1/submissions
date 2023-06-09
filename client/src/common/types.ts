@@ -59,8 +59,9 @@ export interface Submission extends FloodValues {
   satelliteStreetsMapImageURL?: string;
   satelliteMapImageFilePath?: string;
   satelliteStreetsMapImageFilePath?: string;
-  inlandAAL?: number;
-  surgeAAL?: number;
+  AAL?: Nullable<AALByPeril>;
+  // inlandAAL?: number;
+  // surgeAAL?: number;
   annualPremium?: number;
   subproducerCommission?: number; // TODO: delete ?? look up by agent / agency if present
   metadata: BaseMetadata;
@@ -123,6 +124,9 @@ export interface QuoteLocation extends Location {
 export type LimitTypes = 'limitA' | 'limitB' | 'limitC' | 'limitD';
 export type Limits = Record<LimitTypes, number>;
 
+export type FloodPerilCategories = 'inland' | 'surge' | 'tsunami';
+export type AALByPeril = Record<FloodPerilCategories, number>;
+
 // TODO: change to UWRatingNote
 export interface UWNote {
   code: keyof typeof UW_NOTE_CODE;
@@ -166,7 +170,7 @@ export interface NamedInsuredDetails {
 }
 
 export interface AgentDetails {
-  agentId: string | null; // use userId ??
+  agentId: string | null; // TODO: use userId ??
   name: string;
   email: string;
   phone: string | null;
@@ -234,7 +238,7 @@ export interface SubmissionQuoteData {
   deductible: number;
   limits: Limits;
   // replacementCost: number;
-  insuredAddress: Address;
+  insuredAddress: Address; // TODO: change to address (use mailing address, etc. for other addresses)
   insuredCoordinates: GeoPoint | null;
   fees: { feeName: string; feeValue: number }[];
   taxes: TaxItem[]; // { taxName: string; taxValue: number; taxRate?: number }[];

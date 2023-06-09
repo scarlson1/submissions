@@ -89,10 +89,6 @@ export default async (
       srSubKey,
       ...srVals,
     });
-    // ratingUpdates = {
-    //   inlandAAL: AALs.inlandAAL,
-    //   surgeAAL: AALs.surgeAAL,
-    // };
 
     const swissReRef = await swissReResCollection(db).add({
       ...AALs.srRes,
@@ -125,7 +121,12 @@ export default async (
     );
 
     // update submission doc with AALs
-    await snap.ref.update({ inlandAAL: AALs.inlandAAL, surgeAAL: AALs.surgeAAL });
+    // await snap.ref.update({ inlandAAL: AALs.inlandAAL, surgeAAL: AALs.surgeAAL });
+    // TODO: extract tsunami AAL
+    const updates: Partial<Submission> = {
+      AAL: { inland: AALs.inlandAAL, surge: AALs.surgeAAL, tsunami: null },
+    };
+    await snap.ref.update(updates);
   } catch (err) {
     console.log('ERROR FETCHING SR AAL DATA', err);
     return;
@@ -134,7 +135,7 @@ export default async (
   // CALCULATE ANNUAL PREMIUM
   try {
     // const { inlandAAL, surgeAAL } = ratingUpdates;
-    const { inlandAAL, surgeAAL } = AALs;
+    const { inlandAAL, surgeAAL } = AALs; // TODO: add tsunami
     invariant(typeof inlandAAL === 'number');
     invariant(typeof surgeAAL === 'number');
 
