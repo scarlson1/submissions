@@ -30,8 +30,8 @@ export const useSendQuoteNotification = (
 
         const emails = await promptForEmails(
           {
-            insuredEmail: data.insuredEmail || null,
-            agentEmail: data.agentEmail || null,
+            insuredEmail: data.namedInsured?.email || null,
+            agentEmail: data.agent?.email || null,
           },
           {
             title: 'Deliver quote notification',

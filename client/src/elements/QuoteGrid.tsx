@@ -15,7 +15,7 @@ import { QueryConstraint } from 'firebase/firestore';
 
 import { ADMIN_ROUTES, createPath } from 'router';
 import {
-  SubmissionQuoteData,
+  Quote,
   address1Col,
   address2Col,
   nestedAgentUserIdCol,
@@ -54,7 +54,7 @@ import { BasicDataGrid, GridCellCopy } from 'components';
 import { useCollectionData, useJsonDialog } from 'hooks';
 
 export interface QuoteGridProps extends Partial<DataGridProps> {
-  // rows: WithId<SubmissionQuoteData>[];
+  // rows: WithId<Quote>[];
   queryConstraints?: QueryConstraint[];
   // actions?: React.ReactElement<GridActionsCellItemProps>[];
   renderActions?: (params: GridRowParams) => JSX.Element[];
@@ -73,11 +73,10 @@ export const QuoteGrid: React.FC<QuoteGridProps> = ({
   const dialog = useJsonDialog();
   // const sendNotifications = useSendQuoteNotification();
 
-  const { data, status } = useCollectionData<SubmissionQuoteData>(
-    'SUBMISSIONS_QUOTES',
-    queryConstraints,
-    { suspense: false, initialData: [] }
-  );
+  const { data, status } = useCollectionData<Quote>('SUBMISSIONS_QUOTES', queryConstraints, {
+    suspense: false,
+    initialData: [],
+  });
 
   const showJson = useCallback(
     (params: GridRowParams) => () => {

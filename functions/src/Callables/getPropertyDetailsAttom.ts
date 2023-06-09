@@ -12,6 +12,7 @@ import {
   audience,
   maxA,
   minA,
+  propertyDataResCollection,
 } from '../common';
 import { getAttomInstance } from '../services';
 
@@ -84,17 +85,18 @@ export default async ({ data }: CallableRequest) => {
     let attomDocRef;
 
     try {
-      attomDocRef = await getFirestore()
-        .collection('attom')
-        .add({
-          basicProfileResponse: basicProfileRes,
-          profile: profile || null,
-          detailsRes: propertyDetails || null,
-          attomId: profile.identifier.attomId || null,
-          metadata: {
-            created: Timestamp.now(),
-          },
-        });
+      const propertyDataCol = propertyDataResCollection(getFirestore());
+      // attomDocRef = await getFirestore()
+      //   .collection('attom')
+      attomDocRef = await propertyDataCol.add({
+        basicProfileResponse: basicProfileRes,
+        profile: profile || null,
+        detailsRes: propertyDetails || null,
+        attomId: profile.identifier.attomId || null,
+        metadata: {
+          created: Timestamp.now(),
+        },
+      });
       info(`Attom data saved to doc: ${attomDocRef.id}`);
       fallback.attomDocId = attomDocRef.id;
     } catch (err) {

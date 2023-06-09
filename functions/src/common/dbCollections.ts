@@ -6,8 +6,9 @@ import {
   COLLECTIONS,
   PolicyOld,
   RatingData,
-  SubmissionQuoteData,
+  Quote,
   Transaction,
+  PropertyDataRes,
 } from '../common';
 import {
   Submission,
@@ -25,40 +26,56 @@ export const createCollection = <T = DocumentData>(db: Firestore, collectionName
 };
 
 export const usersCollection = (db: Firestore) => createCollection<User>(db, COLLECTIONS.USERS);
+
 export const orgsCollection = (db: Firestore) =>
   createCollection<Organization>(db, COLLECTIONS.ORGANIZATIONS);
+
 export const submissionsCollection = (db: Firestore) =>
   createCollection<Submission>(db, COLLECTIONS.SUBMISSIONS);
+
 export const ratingDataCollection = (db: Firestore) =>
   createCollection<RatingData>(db, COLLECTIONS.RATING_DATA);
+
 export const submissionsQuotesCollection = (db: Firestore) =>
-  createCollection<SubmissionQuoteData>(db, COLLECTIONS.SUBMISSIONS_QUOTES);
-// export const submissionsQuotesCollection = createCollection<SubmissionQuoteData>(
+  createCollection<Quote>(db, COLLECTIONS.SUBMISSIONS_QUOTES);
+// export const submissionsQuotesCollection = createCollection<Quote>(
 //   COLLECTIONS.SUBMISSIONS_QUOTES
 // );
+
+export const propertyDataResCollection = (db: Firestore) =>
+  createCollection<PropertyDataRes>(db, COLLECTIONS.PROPERTY_DATA_RES);
+
 export const finTrxCollection = (db: Firestore) =>
   createCollection<Charge>(db, COLLECTIONS.FIN_TRANSACTIONS);
+
 export const policiesCollection = (db: Firestore) =>
   createCollection<PolicyOld>(db, COLLECTIONS.POLICIES);
+
 export const transactionsCollection = (db: Firestore) =>
   createCollection<Transaction>(db, COLLECTIONS.TRANSACTIONS);
+
 export const swissReResCollection = (db: Firestore) =>
   createCollection<SRResWithAAL | SRRes>(db, COLLECTIONS.SR_RES);
+
 export const agencyApplicationCollection = (db: Firestore) =>
   createCollection<AgencyApplication>(db, COLLECTIONS.AGENCY_APPLICATIONS);
+
 export const emailActivityCollection = (db: Firestore) =>
   createCollection<any>(db, COLLECTIONS.EMAIL_ACTIVITY);
 
 // // SUBCOLLECTIONS
 // export const notificationsCollection = (db: Firestore, userId: string) =>
 //   createCollection<Notification>(db, `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.NOTIFICATIONS}`);
+
 export const invitesCollection = (db: Firestore, orgId: string) =>
   createCollection<Invite>(db, `${COLLECTIONS.ORGANIZATIONS}/${orgId}/${COLLECTIONS.INVITES}`);
+
 export const userClaimsCollection = (db: Firestore, orgId: string) =>
   createCollection<ClaimsDocData>(
     db,
     `${COLLECTIONS.ORGANIZATIONS}/${orgId}/${COLLECTIONS.USER_CLAIMS}`
   );
+
 export const paymentMethodsCollection = (db: Firestore, userId: string) =>
   createCollection<PaymentMethod>(
     db,

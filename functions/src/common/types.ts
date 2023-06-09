@@ -40,6 +40,8 @@ export type DeepNullable<T> = {
   [K in keyof T]: DeepNullable<T[K]> | null;
 };
 
+export type Optional<T> = { [K in keyof T]?: T[K] | undefined | null };
+
 export type Maybe<T> = T | null | undefined;
 
 export interface RequestUserAuth extends Request {
@@ -224,6 +226,10 @@ export interface Address {
   countyName?: string;
 }
 
+export interface MailingAddress extends Address {
+  name: string;
+}
+
 export interface AgencyApplication extends BaseDoc {
   orgName: string;
   address: Address;
@@ -292,6 +298,8 @@ export interface Organization {
   authProviders: AuthProviders[];
 }
 
+export type Product = 'flood' | 'wind';
+
 export type LimitTypes = 'limitA' | 'limitB' | 'limitC' | 'limitD';
 export interface Limits {
   limitA: number;
@@ -300,8 +308,16 @@ export interface Limits {
   limitD: number;
 }
 
-export type FloodPerilCategories = 'inland' | 'surge' | 'tsunami';
-export type AALByPeril = Record<FloodPerilCategories, number>;
+export type CovTypeNames = 'building' | 'otherStructures' | 'contents' | 'BI';
+
+export type RCVKeys = CovTypeNames | 'total';
+
+export type RCVs = Record<RCVKeys, number>;
+
+export type FloodPerilCategories = 'inland' | 'surge'; // | 'tsunami';
+
+// TODO: finish adding tsunami
+export type ValueByRiskType = Record<FloodPerilCategories, number> & { tsunami?: number };
 
 export type FloodZones = 'A' | 'B' | 'C' | 'D' | 'V' | 'X' | 'AE' | 'AO' | 'AH' | 'AR' | 'VE';
 
@@ -312,32 +328,6 @@ export interface UWNote {
   message: string;
   property?: string;
 }
-
-export type Product = 'flood' | 'wind';
-
-// export interface Submission {
-//   addressLine1: string;
-//   addressLine2?: string;
-//   city: string;
-//   state: string;
-//   postal: string;
-//   latitude: number | null;
-//   longitude: number | null;
-//   coverageActiveBuilding: boolean;
-//   coverageActiveStructures: boolean;
-//   coverageActiveContents: boolean;
-//   coverageActiveAdditional: boolean;
-//   limitA: string;
-//   limitB: string;
-//   limitC: string;
-//   limitD: string;
-//   deductible: number;
-//   email: string;
-//   status: SUBMISSION_STATUS;
-//   metadata: BaseMetadata;
-// }
-
-export type CovTypeNames = 'building' | 'otherStructures' | 'contents' | 'BI';
 
 export interface FloodFormValues {
   address: Address;
@@ -354,32 +344,6 @@ export interface FloodFormValues {
   contact: Omit<NamedInsuredDetails, 'phone'>;
   userAcceptance: boolean;
 }
-// export interface FloodFormValues {
-//   addressLine1: string;
-//   addressLine2?: string;
-//   city: string;
-//   state: string;
-//   postal: string;
-//   countyName?: string;
-//   latitude: number | null;
-//   longitude: number | null;
-//   coverageActiveBuilding: boolean;
-//   coverageActiveStructures: boolean;
-//   coverageActiveContents: boolean;
-//   coverageActiveAdditional: boolean;
-//   limitA: number; // string;
-//   limitB: number; // string;
-//   limitC: number; // string;
-//   limitD: number; // string;
-//   firstName: string;
-//   lastName: string;
-//   email: string;
-//   deductible: number;
-//   exclusionsExist: boolean | null;
-//   exclusions: string[];
-//   priorLossCount: string;
-//   userAcceptance: boolean;
-// }
 
 // TODO: derive getAAL props from RatingPropertyData ??
 export interface RatingPropertyData {
@@ -395,31 +359,19 @@ export interface RatingPropertyData {
   ffe?: number;
   // priorLossCount?: string | number | null;
 }
-// export interface RatingPropertyData {
-//   CBRSDesignation: string | null;
-//   basement: string | null; // BasementOptions | null;
-//   distToCoastFeet: number | null;
-//   floodZone: string | null; // FloodZones | null;
-//   numStories: number | null;
-//   propertyCode: string | null;
-//   replacementCost: number | null;
-//   sqFootage: number | null;
-//   yearBuilt: number | null;
-//   ffe?: number | null;
-// }
 
 export interface RatingData extends BaseDoc {
   submissionId: string | null;
   locationId?: string | null; // any point to locationId at this stage ? pre policy ??
   externalId?: string | null;
   limits: Limits;
-  tiv: number;
+  TIV: number;
   deductible: number;
-  rcvs: RCVs;
+  RCVs: RCVs;
   ratingPropertyData: Nullable<RatingPropertyData>;
   premiumCalcData: PremiumCalcData;
-  aal: Nullable<ValueByRiskType>;
-  pm: ValueByRiskType;
+  AAL: Nullable<ValueByRiskType>;
+  PM: ValueByRiskType;
   riskScore: ValueByRiskType;
   stateMultipliers: ValueByRiskType;
   secondaryFactorMults: SecondaryFactorMults;
@@ -465,7 +417,7 @@ export interface Submission extends FloodFormValues {
   satelliteStreetsMapImageURL?: string;
   satelliteMapImageFilePath?: string;
   satelliteStreetsMapImageFilePath?: string;
-  AAL?: Nullable<AALByPeril>;
+  AAL?: Nullable<ValueByRiskType>;
   // inlandAAL?: number;
   // surgeAAL?: number;
   annualPremium?: number;
@@ -473,6 +425,7 @@ export interface Submission extends FloodFormValues {
   metadata: BaseMetadata;
 }
 
+// TODO: either store as coordinates: lat,lng or remove
 export interface AddressWithCoords extends Address {
   latitude: number;
   longitude: number;
@@ -487,7 +440,7 @@ export interface NamedInsuredDetails {
 }
 
 export interface AgentDetails {
-  agentId: string | null; // use userId ??
+  userId: string | null; // TODO: use userId ??
   name: string;
   email: string;
   phone: string | null;
@@ -502,18 +455,19 @@ export interface AgencyDetails {
 export interface AdditionalInsured {
   name: string;
   email: string;
-  relation: string | number;
-  address?: AddressWithCoords;
+  address?: Nullable<Address> | null;
 }
 // other interest - types = mortgagee | other interest
 export interface Mortgagee {
-  company: string;
+  name: string;
   contactName: string;
   contactEmail: string;
   loanNumber: string;
-  priority: string | number;
-  address?: AddressWithCoords;
+  address?: Nullable<Address> | null;
 }
+// decide whether to use discriminating union type
+// could use on front end for input component
+// then split in submit
 
 export interface AdditionalInterest {
   type: string;
@@ -522,24 +476,25 @@ export interface AdditionalInterest {
   address: AddressWithCoords;
 }
 
-export interface SubmissionQuoteData {
+export interface Note {
+  note: string; // text: string;
+  userId?: string | null;
+  created: Timestamp;
+}
+
+export interface Quote {
   product: Product;
   deductible: number;
   limits: Limits;
-  // tiv: number;
-  // replacementCost: number;
-  insuredAddress: Address;
-  insuredCoordinates: GeoPoint | null;
+  address: Address;
+  coordinates: GeoPoint | null;
   fees: { feeName: string; feeValue: string }[];
   taxes: { taxName: string; taxValue: string }[];
-  termPremium: number;
+  annualPremium: number; // termPremium: number;
   subproducerCommission: number;
   cardFee: number;
   quoteTotal?: number;
-  quoteExpiration: {
-    seconds: number;
-    nanoseconds: number;
-  };
+  quoteExpiration: Timestamp;
   policyEffectiveDate?: Timestamp;
   effectiveExceptionRequested?: boolean;
   effectiveExceptionReason?: string | null;
@@ -553,23 +508,17 @@ export interface SubmissionQuoteData {
     version: number; // WithFieldValue<number>;
   };
   userId: string | null;
-  insuredFirstName?: string | null;
-  insuredLastName?: string | null;
-  insuredEmail?: string | null;
-  insuredPhone?: string | null;
-  insuredUserId?: string | null;
-  insuredMailingAddress?: Address | null;
-  agencyId: string | null;
-  agencyName: string | null;
-  agentId: string | null;
-  agentName: string | null;
-  agentEmail: string | null;
-  agentPhone?: string | null;
+  namedInsured: Nullable<NamedInsuredDetails>;
+  mailingAddress: MailingAddress;
+  agent: Nullable<AgentDetails>;
+  agency: Nullable<AgencyDetails>;
   status: QUOTE_STATUS;
   submissionId?: string | null;
   imageUrls?: { [key: string]: string | null };
   imagePaths?: { [key: string]: string | null };
   ratingPropertyData: RatingPropertyData;
+  geoHash?: Geohash | null;
+  notes?: Note[];
   statusTransitions: {
     published: Timestamp;
     accepted: Timestamp | null;
@@ -582,7 +531,7 @@ export interface PolicyOld {
   limits: Limits;
   deductible: number;
   address: Address;
-  coordinates: GeoPoint | null; // TODO: get rid of null in SubmissionQuoteData
+  coordinates: GeoPoint | null; // TODO: get rid of null in Quote
   geoHash?: Geohash | null;
   namedInsured: NamedInsuredDetails;
   additionalInsureds?: AdditionalInsured[];
@@ -590,11 +539,7 @@ export interface PolicyOld {
   effectiveDate: Timestamp;
   expirationDate: Timestamp;
   userId: string | null;
-  agent: {
-    agentId: string | null;
-    name: string | null;
-    email: string | null;
-  };
+  agent: AgentDetails;
   agency: {
     orgId: string | null; // TODO: remove null ??
     name: string | null;
@@ -607,10 +552,6 @@ export interface PolicyOld {
   cardFee: number;
   metadata: BaseMetadata;
 }
-
-export type RCVKeys = CovTypeNames | 'total'; // 'building' | 'otherStructures' | 'contents' | 'BI'
-
-export type RCVs = Record<RCVKeys, number>;
 
 export interface PolicyLocation {
   address: Address;
@@ -918,7 +859,7 @@ export interface ChangeRequest extends BaseDoc {
 //   limits: Limits;
 //   deductible: number;
 //   address: Address;
-//   coordinates: GeoPoint | null; // TODO: get rid of null in SubmissionQuoteData
+//   coordinates: GeoPoint | null; // TODO: get rid of null in Quote
 //   geoHash?: Geohash | null;
 //   namedInsured: {
 //     firstName: string;
@@ -949,8 +890,6 @@ export interface ChangeRequest extends BaseDoc {
 //   cardFee: number;
 //   metadata: BaseMetadata;
 // }
-
-export type ValueByRiskType = Record<'inland' | 'surge', number>;
 
 export interface PremiumCalcData {
   techPremium: ValueByRiskType;
@@ -1173,6 +1112,9 @@ export interface FIPSDetails {
   countyFP: string;
   classFP?: string;
 }
+
+// TODO: swiss re property data res type
+export type PropertyDataRes = Record<string, any>;
 
 export interface SpatialKeyResponse {
   us_hh_mls_rm_room11_features: string; // '',

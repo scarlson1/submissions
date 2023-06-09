@@ -12,6 +12,7 @@ export enum COLLECTIONS {
   INVITES = 'invitations',
   QUOTE_HISTORY = 'quoteHistory',
   RATING_DATA_HISTORY = 'ratingDataHistory',
+  PROPERTY_DATA_RES = 'propertyDataRes',
   SK_RES = 'spatialKey',
   SR_RES = 'swissRe',
   PAYMENT_METHODS = 'paymentMethods',

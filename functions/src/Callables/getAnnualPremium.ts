@@ -81,13 +81,13 @@ export default async ({ data, auth }: CallableRequest<GetAnnualPremiumRequest>) 
     throw new HttpsError('failed-precondition', err.message);
   }
 
-  let AALs: GetAALRes | undefined;
+  let AALsRes: GetAALRes | undefined;
   try {
     const srClientId = swissReClientId.value();
     const srClientSecret = swissReClientSecret.value();
     const srSubKey = swissReSubscriptionKey.value();
 
-    AALs = await getAALs({
+    AALsRes = await getAALs({
       srClientId,
       srClientSecret,
       srSubKey,
@@ -108,7 +108,9 @@ export default async ({ data, auth }: CallableRequest<GetAnnualPremiumRequest>) 
     throw new HttpsError('internal', 'Error fetching Average Anuual Loss');
   }
 
-  const { inlandAAL, surgeAAL } = AALs;
+  const inlandAAL = AALsRes.AAL.inland;
+  const surgeAAL = AALsRes.AAL.surge;
+  const tsunamiAAL = AALsRes.AAL.tsunami;
   let result: GetPremiumCalcResult | undefined;
 
   try {
@@ -167,15 +169,13 @@ export default async ({ data, auth }: CallableRequest<GetAnnualPremiumRequest>) 
         limitC,
         limitD,
       },
-      tiv: result.tiv,
-      // replacementCost,
-      rcvs: {
-        // TODO: change getAAL func to use same rcv keys (rcvA -> building, etc.)
-        building: AALs.rcvs.rcvA,
-        otherStructures: AALs.rcvs.rcvB,
-        contents: AALs.rcvs.rcvC,
-        BI: AALs.rcvs.rcvD,
-        total: AALs.rcvs.total,
+      TIV: result.tiv,
+      RCVs: {
+        building: AALsRes.rcvs.building,
+        otherStructures: AALsRes.rcvs.otherStructures,
+        contents: AALsRes.rcvs.contents,
+        BI: AALsRes.rcvs.BI,
+        total: AALsRes.rcvs.total,
       },
       ratingPropertyData: {
         replacementCost,
@@ -190,12 +190,13 @@ export default async ({ data, auth }: CallableRequest<GetAnnualPremiumRequest>) 
         ffe: null,
         // priorLossCount, TODO: fix typing error
       },
-      aal: {
+      AAL: {
         inland: inlandAAL,
         surge: surgeAAL,
+        tsunami: tsunamiAAL,
       },
       premiumCalcData: result.premiumData,
-      pm: result.pm,
+      PM: result.pm,
       riskScore: result.riskScore,
       stateMultipliers: result.stateMultipliers,
       secondaryFactorMults: result.secondaryFactorMults,

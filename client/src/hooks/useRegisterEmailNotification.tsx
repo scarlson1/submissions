@@ -7,7 +7,7 @@ import { addDoc, getFirestore } from 'firebase/firestore';
 import { useConfirmation } from 'modules/components/ConfirmationService';
 import { ConfirmationDialog } from 'components';
 import { FormikSelect, FormikTextField } from 'components/forms';
-import { emailVal } from 'common/quoteValidation';
+import { emailVal } from 'common/validation';
 import { notifyRegistration } from 'common/firestoreCollections';
 import { statesAbrvSelectOptions } from 'common/statesList';
 import { useActiveStates } from './useActiveStates';

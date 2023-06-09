@@ -51,8 +51,7 @@ service cloud.firestore {
     }
 
     match /policies/{policyId} {
-      // TODO: change agent.agentId to agent.userId
-      allow read: if isSignedIn() && (isUser(existingData().userId) || isAgent(existingData().agent.agentId) || (isOrgAdmin() && isTenantUser(existingData().agency.orgId)) || isIDemandAdmin()) // && isTenantUser(orgId)
+      allow read: if isSignedIn() && (isUser(existingData().userId) || isAgent(existingData().agent.userId) || (isOrgAdmin() && isTenantUser(existingData().agency.orgId)) || isIDemandAdmin()) // && isTenantUser(orgId)
       allow create: if isIDemandAdmin() && emailVerified()
       allow update: if isIDemandAdmin() && emailVerified()
       allow delete: if false

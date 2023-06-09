@@ -855,11 +855,11 @@ export const nestedAgencyOrgIdCol: GridColDef = {
 
 export const inlandAALCol: GridColDef = {
   field: 'inlandAAL',
-  headerName: 'inlandAAL',
+  headerName: 'Inland AAL',
   description: 'Inland Peril Average Annual Loss from Swiss Re',
   minWidth: 150,
   flex: 0.8,
-  valueGetter: (params) => params.value || null,
+  valueGetter: (params) => params.row.AAL?.inland ?? null,
   renderCell: (params) => {
     return <GridCellCopy value={params.value} />;
   },
@@ -867,11 +867,11 @@ export const inlandAALCol: GridColDef = {
 
 export const surgeAALCol: GridColDef = {
   field: 'surgeAAL',
-  headerName: 'surgeAAL',
+  headerName: 'Surge AAL',
   description: 'Surge Peril Average Annual Loss from Swiss Re',
   minWidth: 150,
   flex: 0.8,
-  valueGetter: (params) => params.value || null,
+  valueGetter: (params) => params.row.AAL?.surge ?? null,
   renderCell: (params) => {
     return <GridCellCopy value={params.value} />;
   },

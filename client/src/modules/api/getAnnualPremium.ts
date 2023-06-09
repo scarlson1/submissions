@@ -1,6 +1,6 @@
 import { Functions, httpsCallable } from 'firebase/functions';
 
-export interface GetAnnualPremiumRequest {
+export interface RatingInputs {
   latitude: number;
   longitude: number;
   replacementCost: number;
@@ -11,11 +11,14 @@ export interface GetAnnualPremiumRequest {
   deductible: number;
   numStories?: number;
   priorLossCount: string;
-  submissionId?: string | null;
   state: string;
   floodZone?: string;
   basement?: string;
   commissionPct?: number;
+}
+
+export interface GetAnnualPremiumRequest extends RatingInputs {
+  submissionId?: string | null;
 }
 
 export interface GetAnnualPremiumResponse {

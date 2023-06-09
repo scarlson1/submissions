@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useAsyncToast } from './useAsyncToast';
-import { TaxItem } from 'common';
+import { TaxItem, TransactionType } from 'common';
 import { NewQuoteValues } from 'views/admin/QuoteNew';
 import axios from 'axios';
 
@@ -14,7 +14,7 @@ export const useFetchTaxes = (
   const toast = useAsyncToast({ position: 'bottom-center' });
 
   const fetchTaxes = useCallback(
-    async (values: NewQuoteValues) => {
+    async (values: NewQuoteValues, transactionType: TransactionType) => {
       if (!values) return toast.error('missing values');
       const { annualPremium, address, fees } = values;
 
@@ -38,7 +38,7 @@ export const useFetchTaxes = (
         premium: annualPremium,
         mgaFees,
         inspectionFees,
-        transactionType: 'new',
+        transactionType,
       };
       console.log('body: ', body, fees);
 

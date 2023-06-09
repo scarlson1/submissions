@@ -52,7 +52,7 @@ import {
   contactValidation,
   phoneRequiredVal,
   PaymentMethod,
-  SubmissionQuoteData,
+  Quote,
   WithId,
   AdditionalInterest,
   submissionsQuotesCollection,
@@ -63,7 +63,7 @@ import { useAnalyticsEvent, useBindQuote, useUserPaymentMethods } from 'hooks';
 import { billingValidation, PaymentStep, ContactStep } from 'elements';
 import { addToDate, dollarFormat, formatDate } from 'modules/utils/helpers';
 import { AUTH_ROUTES, ROUTES, createPath } from 'router';
-import { CUSTOM_CLAIMS, useAuth } from 'modules/components/AuthContext';
+import { useAuth } from 'modules/components/AuthContext';
 import { fallbackImages } from './PoliciesOld';
 
 // TODO: error boundary & reset: https://blog.logrocket.com/react-error-handling-react-error-boundary/
@@ -143,10 +143,16 @@ export const QuoteBind: React.FC = () => {
       if (isEqual(values, initialValues)) return values;
 
       await updateDoc(quoteRef, {
-        insuredFirstName: values.firstName,
-        insuredLastName: values.lastName,
-        insuredEmail: values.email,
-        insuredPhone: values.phone,
+        namedInsured: {
+          firstName: values.firstName,
+          lastName: values.lastName,
+          email: values.email,
+          phone: values.phone,
+        },
+        // insuredFirstName: values.firstName,
+        // insuredLastName: values.lastName,
+        // insuredEmail: values.email,
+        // insuredPhone: values.phone,
         // additionalInsureds: values.additionalInsureds || [],
         // mortgageeInterest: values.mortgageeInterest || [],
         additionalInterests: values.additionalInterests || [],
@@ -174,10 +180,10 @@ export const QuoteBind: React.FC = () => {
       </Typography>
       <FormikWizard
         initialValues={{
-          firstName: data?.insuredFirstName ?? '',
-          lastName: data?.insuredLastName ?? '',
-          email: data?.insuredEmail ?? '',
-          phone: data?.insuredPhone ?? '',
+          firstName: data?.namedInsured?.firstName ?? '',
+          lastName: data?.namedInsured?.lastName ?? '',
+          email: data?.namedInsured?.email ?? '',
+          phone: data?.namedInsured?.phone ?? '',
           // additionalInsureds: data?.additionalInsureds ? [...data?.additionalInsureds] : [],
           // mortgageeInterest: data?.mortgageeInterest ? [...data?.mortgageeInterest] : [],
           additionalInterests: data?.additionalInterests ? [...data?.additionalInterests] : [],
@@ -472,54 +478,6 @@ export function AdditionalInterestsStep({ logAnalyticsStep }: LogAnalyticsProp) 
               },
             },
           ]}
-          // inputFields={[
-          //   {
-          //     name: 'name',
-          //     label: 'Name',
-          //     required: false,
-          //     inputType: 'text',
-          //   },
-          //   {
-          //     name: 'email',
-          //     label: 'Email',
-          //     required: false,
-          //     inputType: 'text',
-          //   },
-          //   {
-          //     name: 'relation',
-          //     label: 'Relation',
-          //     required: false,
-          //     inputType: 'select',
-          //     selectOptions: [
-          //       {
-          //         label: 'Additional Named Insured',
-          //         value: 'additional_named_insured',
-          //       },
-          //       { label: 'Mortgagee', value: 'mortgagee' },
-          //       { label: 'Additional Insured', value: 'additional_insured' },
-          //     ],
-          //   },
-          //   {
-          //     name: 'address.addressLine1',
-          //     label: 'Mailing Address',
-          //     required: false,
-          //     inputType: 'address',
-          //     propsGetterFunc: (index, parentField) => {
-          //       return {
-          //         names: {
-          //           addressLine1: `${parentField}[${index}].address.addressLine1`,
-          //           addressLine2: `${parentField}[${index}].address.addressLine2`,
-          //           city: `${parentField}[${index}].address.city`,
-          //           state: `${parentField}[${index}].address.state`,
-          //           postal: `${parentField}[${index}].address.postal`,
-          //           county: `${parentField}[${index}].address.countyName`,
-          //           latitude: `${parentField}[${index}].address.latitude`,
-          //           longitude: `${parentField}[${index}].address.longitude`,
-          //         },
-          //       };
-          //     },
-          //   },
-          // ]}
           addButtonText='Add additional interest'
           addButtonProps={{ startIcon: <PersonAddAltRounded /> }}
           values={values}
@@ -533,90 +491,6 @@ export function AdditionalInterestsStep({ logAnalyticsStep }: LogAnalyticsProp) 
           setFieldTouched={setFieldTouched}
         />
       </Box>
-      {/* <Divider sx={{ my: 3 }} />
-      <Typography variant='overline' color='text.secondary'>
-        Morgagee Interest
-      </Typography>
-      <Typography variant='body2' sx={{ pb: { xs: 3, md: 4 } }}>
-        If there is a mortgage on the home, your lender may require that you add them as a named
-        insured on the policy.
-      </Typography>
-      <Box
-        sx={{
-          maxHeight: 400,
-          overflowY: 'auto',
-          my: 4,
-          p: 2,
-          border: (theme) =>
-            `1px solid ${
-              values.additionalInsureds.length > 0 ? theme.palette.divider : 'transparent'
-            }`,
-          borderRadius: 1,
-        }}
-      >
-        <FormikFieldArray
-          parentField='mortgageeInterest'
-          inputFields={[
-            {
-              name: 'company',
-              label: 'Mortgage Company',
-              required: false,
-              inputType: 'text',
-            },
-            {
-              name: 'contactName',
-              label: 'Contact Name',
-              required: false,
-              inputType: 'text',
-            },
-            {
-              name: 'contactEmail',
-              label: 'Contact Email',
-              required: false,
-              inputType: 'text',
-            },
-            {
-              name: 'address.addressLine1',
-              label: 'Mailing Address',
-              required: false,
-              inputType: 'address',
-              gridProps: { xs: 12, sm: 8 },
-              propsGetterFunc: (index, parentField) => {
-                return {
-                  names: {
-                    addressLine1: `${parentField}[${index}].address.addressLine1`,
-                    addressLine2: `${parentField}[${index}].address.addressLine2`,
-                    city: `${parentField}[${index}].address.city`,
-                    state: `${parentField}[${index}].address.state`,
-                    postal: `${parentField}[${index}].address.postal`,
-                    county: `${parentField}[${index}].address.countyName`,
-                    latitude: `${parentField}[${index}].address.latitude`,
-                    longitude: `${parentField}[${index}].address.longitude`,
-                  },
-                };
-              },
-            },
-            {
-              name: 'loanNumber',
-              label: 'Loan Number',
-              required: false,
-              inputType: 'text',
-              gridProps: { xs: 6, sm: 4 },
-            },
-          ]}
-          addButtonText='Add Mortgagee'
-          addButtonProps={{ startIcon: <AccountBalanceRounded /> }}
-          values={values}
-          errors={errors}
-          touched={touched}
-          dirty={dirty}
-          dividers={true}
-          dividerProps={{ sx: { my: { xs: 2, sm: 3, md: 4 } } }}
-          setFieldValue={setFieldValue}
-          setFieldError={setFieldError}
-          setFieldTouched={setFieldTouched}
-        />
-      </Box> */}
     </Box>
   );
 }
@@ -874,7 +748,7 @@ export const PaymentCard: React.FC<PaymentCardProps> = ({ cardDetails, loading, 
 // TODO: epay fees
 
 interface BindReviewStepProps extends LogAnalyticsProp {
-  data: WithId<SubmissionQuoteData>;
+  data: WithId<Quote>;
 }
 
 export function BindReviewStep({ data, logAnalyticsStep }: BindReviewStepProps) {
@@ -929,17 +803,17 @@ export function BindReviewStep({ data, logAnalyticsStep }: BindReviewStepProps) 
             width: { xs: 120, sm: 130, md: 140 }, // 140,
             minHeight: { xs: 100, sm: 120, md: 140 },
           }}
-          alt={`${data?.insuredAddress?.addressLine1} map`}
+          alt={`${data?.address?.addressLine1} map`}
           image={
             data?.imageUrls?.satelliteMapImageUrl
               ? data.imageUrls?.satelliteMapImageUrl
               : fallbackImages[0]
           }
-          title={`${data?.insuredAddress?.addressLine1} map`}
+          title={`${data?.address?.addressLine1} map`}
         />
         <Box sx={{ display: 'flex', flexDirection: 'column', flex: '1 1 auto' }}>
           <CardContent sx={{ flex: '1 0 auto' }}>
-            <Typography variant='h6'>{data.insuredAddress.addressLine1}</Typography>
+            <Typography variant='h6'>{data.address.addressLine1}</Typography>
             <Typography variant='body2' color='text.secondary' fontSize='0.775rem'>
               {`Effective: ${formatDate(values.policyEffectiveDate, `MMM dd, yy`) || '--'} - ${
                 formatDate(addToDate({ years: 1 }, values.policyEffectiveDate), `MMM dd, yy`) ||
@@ -958,7 +832,7 @@ export function BindReviewStep({ data, logAnalyticsStep }: BindReviewStepProps) 
               <Tooltip title='Building Coverage Limit' placement='top'>
                 <Chip
                   icon={<HouseRounded />}
-                  label={dollarFormat(data.limits.limitA)}
+                  label={dollarFormat(data.limits?.limitA)}
                   size='small'
                 />
               </Tooltip>
@@ -968,7 +842,7 @@ export function BindReviewStep({ data, logAnalyticsStep }: BindReviewStepProps) 
               <Tooltip title='Additional Structures Coverage Limit' placement='top'>
                 <Chip
                   icon={<FenceRounded />}
-                  label={dollarFormat(data.limits.limitB)}
+                  label={dollarFormat(data.limits?.limitB)}
                   size='small'
                 />
               </Tooltip>
@@ -978,7 +852,7 @@ export function BindReviewStep({ data, logAnalyticsStep }: BindReviewStepProps) 
               <Tooltip title='Contents Coverage Limit' placement='top'>
                 <Chip
                   icon={<WeekendRounded />}
-                  label={dollarFormat(data.limits.limitC)}
+                  label={dollarFormat(data.limits?.limitC)}
                   size='small'
                 />
               </Tooltip>

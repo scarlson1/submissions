@@ -1,14 +1,22 @@
 import invariant from 'tiny-invariant';
-// import isDecimal from 'validator/es/lib/isDecimal';
-// import isLatLong from 'validator/es/lib/isLatLong';
-// import validator from 'validator';
+import { AxiosInstance } from 'axios';
+import { info } from 'firebase-functions/logger';
 
-import { GetAALRequest, SRPerilAAL, SRRes, isLatLng } from '../../common/index.js';
+import {
+  ValueByRiskType,
+  GetAALRequest,
+  Nullable,
+  RCVs,
+  SRPerilAAL,
+  SRRes,
+  isLatLng,
+  maxA,
+  maxBCD,
+  minA,
+} from '../../common/index.js';
 import { getSwissReInstance } from '../../services';
 import { getRCVs } from './getRCVs.js';
 import { swissReBody } from './swissReBody.js';
-import { AxiosInstance } from 'axios';
-import { info } from 'firebase-functions/logger';
 
 let swissReInstance: AxiosInstance | undefined;
 
@@ -19,10 +27,11 @@ export interface GetAALsProps extends GetAALRequest {
 }
 
 export interface GetAALRes {
-  inlandAAL: number;
-  surgeAAL: number;
+  AAL: Nullable<ValueByRiskType>;
+  // inlandAAL: number;
+  // surgeAAL: number;
   srRes: SRRes;
-  rcvs: Record<'rcvA' | 'rcvB' | 'rcvC' | 'rcvD' | 'total', number>; // TODO: replce with RCVs in types
+  rcvs: RCVs; // Record<'rcvA' | 'rcvB' | 'rcvC' | 'rcvD' | 'total', number>; // TODO: replce with RCVs in types
 }
 
 export const getAALs = async (props: GetAALsProps): Promise<GetAALRes> => {
@@ -41,10 +50,10 @@ export const getAALs = async (props: GetAALsProps): Promise<GetAALRes> => {
 
   swissReInstance = swissReInstance || getSwissReInstance(srClientId, srClientSecret, srSubKey);
 
-  const AALs: { [key: string]: number } = { inlandAAL: 0, surgeAAL: 0 };
+  const AAL: Nullable<ValueByRiskType> = { inland: 0, surge: 0, tsunami: 0 };
 
   const RCVs = getRCVs(replacementCost, { limitA, limitB, limitC, limitD });
-  const rcvAB = RCVs.rcvA + RCVs.rcvB;
+  const rcvAB = RCVs.building + RCVs.otherStructures;
   const limitAB = limitA + limitB;
 
   const xmlBodyVars = {
@@ -52,8 +61,8 @@ export const getAALs = async (props: GetAALsProps): Promise<GetAALRes> => {
     lat: latitude,
     lng: longitude,
     rcvAB,
-    rcvC: RCVs.rcvC,
-    rcvD: RCVs.rcvD,
+    rcvC: RCVs.contents,
+    rcvD: RCVs.BI,
     limitAB,
     rcvTotal: RCVs.total,
   };
@@ -72,17 +81,25 @@ export const getAALs = async (props: GetAALsProps): Promise<GetAALRes> => {
   const code300Index = srRes.expectedLosses.findIndex(
     (floodObj: SRPerilAAL) => floodObj.perilCode === '300'
   );
+  // TODO: TSUNAMI CODE
+  const codeTEMPIndex = srRes.expectedLosses.findIndex(
+    (floodObj: SRPerilAAL) => floodObj.perilCode === '300000'
+  );
 
   if (code200Index !== -1) {
-    AALs.surgeAAL = srRes.expectedLosses[code200Index]?.preCatLoss ?? 0;
+    AAL.surge = srRes.expectedLosses[code200Index]?.preCatLoss ?? 0;
   }
   if (code300Index !== -1) {
-    AALs.inlandAAL = srRes.expectedLosses[code300Index]?.preCatLoss ?? 0;
+    AAL.inland = srRes.expectedLosses[code300Index]?.preCatLoss ?? 0;
+  }
+  // TODO: tsunami
+  if (codeTEMPIndex !== -1) {
+    AAL.inland = srRes.expectedLosses[code300Index]?.preCatLoss ?? 0;
   }
 
-  console.log(`AAL: ${JSON.stringify(AALs)}`);
+  info(`AAL: ${JSON.stringify(AAL)}`);
 
-  return { srRes, inlandAAL: AALs.inlandAAL, surgeAAL: AALs.surgeAAL, rcvs: RCVs };
+  return { srRes, AAL, rcvs: RCVs };
 };
 
 export const validateGetAALsProps = (props: Partial<GetAALsProps>) => {
@@ -103,15 +120,13 @@ export const validateGetAALsProps = (props: Partial<GetAALsProps>) => {
     // commissionPct = 0.15,
   } = props;
 
-  const MAX_A = parseInt(process.env.FLOOD_MAX_LIMIT_A || '1000000');
-  const MIN_A = parseInt(process.env.FLOOD_MIN_LIMIT_A || '100000');
-  const MAX_BCD = parseInt(process.env.FLOOD_MAX_LIMIT_B_C_D || '1000000');
+  const MAX_A = maxA.value() || 1000000;
+  const MIN_A = minA.value() || 100000;
+  const MAX_BCD = maxBCD.value() || 1000000;
 
-  // invariant(latitude && isDecimal(latitude.toString()), 'latitude must be a decimal');
-  // invariant(longitude && isDecimal(longitude.toString()), 'longitude must be a decimal');
   invariant(
     latitude && longitude && isLatLng(latitude, longitude),
-    'latitude or longitude in invalid'
+    'latitude or longitude is missing or invalid'
   );
   invariant(
     deductible && typeof deductible === 'number' && deductible > 1000,

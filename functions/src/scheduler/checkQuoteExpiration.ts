@@ -4,7 +4,7 @@ import { addDays, subDays, startOfToday } from 'date-fns';
 
 import {
   QUOTE_STATUS,
-  SubmissionQuoteData,
+  Quote,
   WithId,
   submissionsQuotesCollection,
   audience,
@@ -51,7 +51,7 @@ export default async (event: ScheduledEvent) => {
     .where('quoteExpiration', '>=', startDate)
     .where('quoteExpiration', '<=', endDate);
 
-  let quoteDocs: WithId<SubmissionQuoteData>[] = [];
+  let quoteDocs: WithId<Quote>[] = [];
   try {
     const querySnap = await q.get();
     if (querySnap.empty) {
@@ -111,8 +111,8 @@ export default async (event: ScheduledEvent) => {
       // TODO: send notifications
       for (const quote of expireIn24Hours) {
         let to = [];
-        if (quote.insuredEmail) to.push(quote.insuredEmail);
-        if (quote.agentEmail) to.push(quote.agentEmail);
+        if (quote.namedInsured?.email) to.push(quote.namedInsured?.email);
+        if (quote.agent?.email) to.push(quote.agent?.email);
         if (audience.value() === 'DEV HUMANS' || audience.value() === 'LOCAL HUMANS') {
           to.push('spencer.carlson@idemandinsurance.com');
         }
@@ -122,7 +122,7 @@ export default async (event: ScheduledEvent) => {
 
           const link = `${hostingBaseURL.value()}/quotes/${quote.id}`;
 
-          const addressLine1 = quote.insuredAddress.addressLine1;
+          const addressLine1 = quote.address?.addressLine1;
 
           await sendQuoteExpiringSoonNotification(sendgridApiKey.value(), to, link, addressLine1);
         }

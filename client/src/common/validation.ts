@@ -1,12 +1,11 @@
-import { isValidEmail } from 'modules/utils/helpers';
 import * as yup from 'yup';
 
-// import { ACTIVE_STATES_ABRV } from 'common/constants';
+import { isValidEmail } from 'modules/utils/helpers';
 import { statesArr } from './statesList';
 
 export const phoneRegEx = /^\+1[1-9]{1}[0-9]{9}$/;
 
-export const phoneVal = yup.string().matches(phoneRegEx, 'Phone number is not valid');
+export const phoneVal = yup.string().matches(phoneRegEx, 'phone number invalid');
 
 export function phoneRequiredVal(val: any) {
   let error;
@@ -33,11 +32,11 @@ export const emailVal = yup.string().test('valid-email', 'Invalid email', async 
 // export const isAvailableState = yup.string().oneOf(ACTIVE_STATES_ABRV);
 
 export const addressValidation = yup.object().shape({
-  addressLine1: yup.string().required('Address is required'),
+  addressLine1: yup.string().required('address is required'),
   addressLine2: yup.string().notRequired(),
-  city: yup.string().required('City is required'),
-  state: yup.string().required('State is required').oneOf(statesArr, 'State required'),
-  postal: yup.string().required('Postal code is required'),
+  city: yup.string().required('city is required'),
+  state: yup.string().required('state is required').oneOf(statesArr, 'state required'),
+  postal: yup.string().required('postal code is required'),
 });
 
 export const validateActiveState = (activeStates: { [key: string]: boolean }) =>
@@ -216,3 +215,32 @@ export const contactValidationNested = yup.object().shape({
 export const reviewValidation = yup.object({
   userAcceptance: yup.boolean().oneOf([true], 'Required'),
 }); // Must accept Terms
+
+export const namedInsuredValidation = yup.object().shape({
+  firstName: yup.string().required(),
+  lastName: yup.string().required(),
+  email: emailVal,
+  phone: phoneVal,
+  userId: yup.string().notRequired(),
+});
+
+export const namedInsuredValidationNotRequired = yup.object().shape({
+  firstName: yup.string().notRequired(),
+  lastName: yup.string().notRequired(),
+  email: emailVal.notRequired(),
+  phone: phoneVal.notRequired(),
+  userId: yup.string().notRequired(),
+});
+
+export const agentValidation = yup.object().shape({
+  name: yup.string().required(),
+  email: emailVal,
+  phone: phoneVal,
+  userId: yup.string().notRequired(),
+});
+
+export const agencyValidation = yup.object().shape({
+  orgId: yup.string().required(),
+  name: yup.string().required(),
+  address: addressValidation,
+});

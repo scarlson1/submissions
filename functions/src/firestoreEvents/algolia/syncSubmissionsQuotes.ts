@@ -3,7 +3,7 @@ import type { DocumentSnapshot } from 'firebase-admin/firestore';
 import algoliasearch from 'algoliasearch';
 
 import { algoliaAdminKey, algoliaAppId } from './index.js';
-import { COLLECTIONS, SubmissionQuoteData, algoliaIndex } from '../../common/index.js';
+import { COLLECTIONS, Quote, algoliaIndex } from '../../common/index.js';
 
 export default async (
   event: FirestoreEvent<
@@ -23,7 +23,7 @@ export default async (
   const docId = event.params.quoteId;
 
   // If the document does not exist, it was deleted
-  const newValue = event?.data?.after.data() as SubmissionQuoteData | undefined;
+  const newValue = event?.data?.after.data() as Quote | undefined;
   if (!newValue) {
     try {
       console.log(`DELETING DOC ${docId} FROM ALGOLIA QUOTES INDEX`);
@@ -38,15 +38,15 @@ export default async (
     try {
       // TODO: if coordinates (mailing address), need to use _geoloc: { lat, lng }
       let subtitle =
-        `${newValue.insuredEmail} ${newValue.insuredFirstName} ${newValue.insuredLastName}`.trim();
+        `${newValue.namedInsured?.email} ${newValue.namedInsured?.firstName} ${newValue.namedInsured?.lastName}`.trim();
       if (!subtitle) {
         subtitle = `${newValue.metadata.created.toDate()}`;
       }
 
       const visibleBy: string[] = [];
       if (newValue.userId) visibleBy.push(`${newValue.userId}`);
-      if (newValue.agentId) visibleBy.push(newValue.agentId);
-      if (newValue.agencyId) visibleBy.push(`group/admins/${newValue.agencyId}`);
+      if (newValue.agent?.userId) visibleBy.push(newValue.agent?.userId);
+      if (newValue.agency?.orgId) visibleBy.push(`group/admins/${newValue.agency.orgId}`);
 
       const records: Record<string, any>[] = [
         {
@@ -56,7 +56,7 @@ export default async (
           userId: newValue.userId || null,
           docType: 'quote',
           collectionName: COLLECTIONS.QUOTES,
-          searchTitle: `${newValue.insuredAddress.addressLine1} ${newValue.insuredAddress.city}, ${newValue.insuredAddress.state}`,
+          searchTitle: `${newValue.address?.addressLine1} ${newValue.address?.city}, ${newValue.address?.state}`,
           searchSubtitle: subtitle,
           metadata: {
             ...(newValue.metadata || {}),
@@ -67,10 +67,10 @@ export default async (
           },
         },
       ];
-      if (newValue.insuredCoordinates && newValue.insuredCoordinates.latitude) {
+      if (newValue.coordinates && newValue.coordinates.latitude) {
         records[0]['_geoloc'] = {
-          lat: newValue.insuredCoordinates?.latitude,
-          lng: newValue.insuredCoordinates?.longitude,
+          lat: newValue.coordinates?.latitude,
+          lng: newValue.coordinates?.longitude,
         };
       }
       console.log(`SAVING QUOTE CHANGE TO ALGILIA INDEX`);

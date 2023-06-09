@@ -6,18 +6,13 @@ import {
   Timestamp,
   WithFieldValue,
 } from 'firebase/firestore';
-import { SubmissionQuoteData, WithId } from './types';
+import { Quote, WithId } from './types';
 
 export const submissionQuoteConverter = {
-  toFirestore(
-    submission: PartialWithFieldValue<SubmissionQuoteData> | WithFieldValue<SubmissionQuoteData>
-  ): DocumentData {
+  toFirestore(submission: PartialWithFieldValue<Quote> | WithFieldValue<Quote>): DocumentData {
     return { ...submission, 'metadata.updated': Timestamp.now() };
   },
-  fromFirestore(
-    snap: QueryDocumentSnapshot<SubmissionQuoteData>,
-    options: SnapshotOptions
-  ): WithId<SubmissionQuoteData> {
+  fromFirestore(snap: QueryDocumentSnapshot<Quote>, options: SnapshotOptions): WithId<Quote> {
     const data = snap.data(options)!;
 
     return { ...data, id: snap.id };

@@ -143,7 +143,7 @@ service firebase.storage {
     }
 
   function isUserOrAgent(doc) {
-    return doc.userId == request.auth.uid || doc.agentId == request.auth.uid || (doc.agent && (doc.agent.userId == request.auth.uid || doc.agent.agentId == request.auth.uid));
+    return doc.userId == request.auth.uid || doc.agentId == request.auth.uid || (doc.agent && (doc.agent.userId == request.auth.uid));
   }
 
   function getDoc(path) {

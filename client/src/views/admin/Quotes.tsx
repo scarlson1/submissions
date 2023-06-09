@@ -15,7 +15,7 @@ import { toast } from 'react-hot-toast';
 
 import { ADMIN_ROUTES, createPath } from 'router';
 import {
-  SubmissionQuoteData,
+  Quote,
   submissionsQuotesCollection,
   QUOTE_STATUS,
   WithId,
@@ -58,7 +58,7 @@ import { useConfirmation } from 'modules/components';
 import { submissionQuoteConverter } from 'common/firestoreConverters';
 
 const useUpdateQuote = () => {
-  const update = useCallback(async (id: string, updateValues: Partial<SubmissionQuoteData>) => {
+  const update = useCallback(async (id: string, updateValues: Partial<Quote>) => {
     const ref = doc(submissionsQuotesCollection(getFirestore()), id).withConverter(
       submissionQuoteConverter
     );
@@ -80,10 +80,7 @@ export const useConfirmAndUpdate = (updateFn: (id: string, vals: Partial<any>) =
   let fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
   const confirm = useCallback(
-    async (
-      newRow: GridRowModel<WithId<SubmissionQuoteData>>,
-      oldRow: GridRowModel<WithId<SubmissionQuoteData>>
-    ) => {
+    async (newRow: GridRowModel<WithId<Quote>>, oldRow: GridRowModel<WithId<Quote>>) => {
       let changeMsg =
         newRow.status !== oldRow.status
           ? `"status" from ${oldRow.status} to ${newRow.status}`

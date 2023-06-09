@@ -7,7 +7,7 @@ import {
   QUOTE_STATUS,
   submissionsQuotesCollection,
   policiesCollection,
-  SubmissionQuoteData,
+  Quote,
   addToDate,
   POLICY_STATUS,
   PolicyOld,
@@ -68,21 +68,21 @@ export default async ({ data, auth }: CallableRequest<{ quoteId: string }>) => {
   }
 };
 
-function convertQuoteToPolicy(data: SubmissionQuoteData): PolicyOld {
+function convertQuoteToPolicy(data: Quote): PolicyOld {
   return {
     status: POLICY_STATUS.AWAITING_PAYMENT,
     price: data.quoteTotal || 100000, // TODO: fix quote total validation
     cardFee: data.cardFee || round(data.quoteTotal ? data.quoteTotal * 0.035 : 0, 2),
     limits: data.limits,
     deductible: data.deductible,
-    address: data.insuredAddress,
-    coordinates: data.insuredCoordinates,
+    address: data.address,
+    coordinates: data.coordinates,
     namedInsured: {
-      firstName: data.insuredFirstName || '', // TODO: validation to get rid of || ''
-      lastName: data.insuredLastName || '',
-      email: data.insuredEmail || '',
-      phone: data.insuredPhone || '',
-      userId: data.userId || null,
+      firstName: data.namedInsured?.firstName || '', // TODO: validation to get rid of || ''
+      lastName: data.namedInsured?.lastName || '',
+      email: data.namedInsured?.email || '',
+      phone: data.namedInsured?.phone || '',
+      userId: data.namedInsured?.userId || null,
     },
     // additionalInsureds: data.additionalInsureds,
     // mortgageeInterest: data.mortgageeInterest,
@@ -92,13 +92,14 @@ function convertQuoteToPolicy(data: SubmissionQuoteData): PolicyOld {
       data.policyExpirationDate ?? Timestamp.fromDate(addToDate({ days: 15, years: 1 })),
     userId: data.userId,
     agent: {
-      agentId: data.agentId,
-      name: data.agentName,
-      email: data.agentEmail,
+      userId: data.agent?.userId || null,
+      name: data.agent?.name || '', // TODO: FIX TYPING
+      email: data.agent?.email || '',
+      phone: data.agent?.phone,
     },
     agency: {
-      orgId: data.agencyId,
-      name: data.agencyName,
+      orgId: data.agency.orgId || null,
+      name: data.agency.name || null,
     },
     documents: [],
     imageUrls: data.imageUrls || null,
@@ -164,7 +165,7 @@ function convertQuoteToPolicy(data: SubmissionQuoteData): PolicyOld {
 //   }
 // });
 
-// function convertQuoteToPolicy(data: SubmissionQuoteData): Policy {
+// function convertQuoteToPolicy(data: Quote): Policy {
 //   return {
 //     status: POLICY_STATUS.AWAITING_PAYMENT,
 //     price: data.quoteTotal || 100000, // TODO: fix quote total validation

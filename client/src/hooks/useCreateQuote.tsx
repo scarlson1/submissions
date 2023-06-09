@@ -9,7 +9,7 @@ import { endOfToday } from 'date-fns';
 
 import { NewQuoteValues } from 'views/admin/QuoteNew';
 import { addToDate, extractNumber, readableFirebaseCode } from 'modules/utils/helpers';
-import { QUOTE_STATUS, Submission, SubmissionQuoteData, submissionsQuotesCollection } from 'common';
+import { QUOTE_STATUS, Submission, Quote, submissionsQuotesCollection } from 'common';
 import { useSendQuoteNotification } from './useSendQuoteNotification';
 // const hash = geofire.geohashForLocation([lat, lng]);
 
@@ -79,7 +79,7 @@ export const useCreateQuote = (
 function getFormattedQuote(
   values: NewQuoteValues,
   uid?: string | null
-): Omit<SubmissionQuoteData, 'quoteExpirationDate'> {
+): Omit<Quote, 'quoteExpirationDate'> {
   const {
     // limitA,
     // limitB,
@@ -138,11 +138,16 @@ function getFormattedQuote(
     //   state: values.state,
     //   postal: values.postal,
     // },
-    insuredAddress: address,
-    insuredCoordinates:
+    address,
+    coordinates:
       coordinates.longitude && coordinates.latitude
         ? new GeoPoint(coordinates.latitude, coordinates.longitude)
         : null,
+    mailingAddress: {
+      // TODO: add mailing address and name fields
+      name: '',
+      ...address,
+    },
     quoteExpiration: Timestamp.fromDate(quoteExpiration),
     policyEffectiveDate: Timestamp.fromDate(policyEffectiveDate),
     policyExpirationDate: Timestamp.fromDate(policyExpirationDate),
@@ -157,16 +162,13 @@ function getFormattedQuote(
     cardFee: round(quoteTotal * CARD_FEE_RATE, 2),
     quoteTotal, // calculate on server ??
     userId: namedInsured.userId || null,
-    insuredFirstName: namedInsured.firstName ?? null,
-    insuredLastName: namedInsured.lastName ?? null,
-    insuredEmail: namedInsured.email ?? null,
-    insuredPhone: namedInsured.phone ?? null,
-    agentId: agent.agentId ?? null,
-    agentName: agent.name ?? null,
-    agentEmail: agent.email ?? null,
-    agentPhone: agent.phone ?? null,
-    agencyId: agency.orgId ?? null,
-    agencyName: agent.name ?? null,
+    namedInsured,
+    agent: agent,
+    agency: {
+      orgId: agency.orgId || null,
+      name: agency.name || null,
+      address: agency.address || null,
+    },
     notes:
       notes && notes.length > 0
         ? notes

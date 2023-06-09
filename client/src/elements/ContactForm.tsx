@@ -7,7 +7,7 @@ import { Formik, FormikHelpers, FormikProps } from 'formik';
 import * as yup from 'yup';
 
 import { FormikTextField } from 'components/forms';
-import { emailVal } from 'common/quoteValidation';
+import { emailVal } from 'common/validation';
 import { useAsyncToast, useSendEmail } from 'hooks';
 
 export interface ContactUsValues {

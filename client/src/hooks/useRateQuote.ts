@@ -3,24 +3,16 @@ import { useFunctions } from 'reactfire';
 
 import { getAnnualPremium } from 'modules/api';
 import { NewQuoteValues } from 'views/admin/QuoteNew';
+import { RatingInputs } from 'modules/api/getAnnualPremium';
+import { Optional } from 'common';
 
-export function extractRatingInputsFromValues(values: NewQuoteValues) {
-  const {
-    // latitude,
-    // longitude,
-    // limitA,
-    // limitB,
-    // limitC,
-    // limitD,
-    coordinates,
-    limits,
-    deductible,
-    priorLossCount,
-    // state,
-    address,
-    // subproducerCommission,
-    ratingPropertyData,
-  } = values;
+export interface RatingInputsWithAAL extends RatingInputs {
+  inlandAAL: number | null;
+  surgeAAL: number | null;
+}
+
+export function extractRatingInputsFromValues(values: NewQuoteValues): RatingInputs {
+  const { coordinates, limits, deductible, priorLossCount, address, ratingPropertyData } = values;
   console.log('VALUES: ', values);
 
   let subproducerCommission =
@@ -37,10 +29,6 @@ export function extractRatingInputsFromValues(values: NewQuoteValues) {
     latitude: coordinates?.latitude as number,
     longitude: coordinates?.longitude as number,
     replacementCost: ratingPropertyData.replacementCost as number,
-    // limitA,
-    // limitB,
-    // limitC,
-    // limitD,
     ...limits,
     deductible,
     numStories: numStories || 1,
@@ -54,17 +42,16 @@ export function extractRatingInputsFromValues(values: NewQuoteValues) {
 
 export const useRateQuote = (
   submissionId: string | null,
-  onSuccess?: (
-    premium: number,
-    ratingInputs: any // Omit<GetAnnualPremiumRequest, 'submissionId'>
-  ) => void,
+  onSuccess?: (premium: number, ratingInputs: RatingInputsWithAAL) => void,
   onError?: (msg: string) => void,
-  initialRatingSnap?: any
+  initialRatingSnap?: Optional<RatingInputs>
 ) => {
   const functions = useFunctions();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [ratingInputsSnap, setRatingInputsSnap] = useState(initialRatingSnap);
+  const [ratingInputsSnap, setRatingInputsSnap] = useState<Optional<RatingInputs> | undefined>(
+    initialRatingSnap
+  );
 
   const rerate = useCallback(
     async (values: NewQuoteValues) => {

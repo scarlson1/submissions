@@ -23,7 +23,7 @@ import {
   exclusionsValidation,
   priorLossValidation,
   addressValidationActiveStates,
-} from 'common/quoteValidation';
+} from 'common/validation';
 import { ROUTES, createPath } from 'router';
 import { SUBMISSION_STATUS } from 'common/enums';
 import { useActiveStates, usePropertyDetails } from 'hooks';

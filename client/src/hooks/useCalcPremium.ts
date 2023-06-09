@@ -3,10 +3,11 @@ import { useFunctions } from 'reactfire';
 
 import { NewQuoteValues } from 'views/admin/QuoteNew';
 import { calcQuote } from 'modules/api';
+import { RatingInputs } from 'modules/api/getAnnualPremium';
+import { Optional } from 'common';
 
 export const useCalcPremium = (
-  // submissionData: Submission | null,
-  onSuccess?: (newPremium: number, ratingInputs: any) => void,
+  onSuccess?: (newPremium: number, ratingInputs: Optional<RatingInputs>) => void,
   onError?: (msg: string, err: any) => void,
   submissionId?: string | null
 ) => {
@@ -26,14 +27,11 @@ export const useCalcPremium = (
 
         if (!(replacementCost && (inland || inland === 0) && (surge || surge === 0)))
           throw new Error('Missing replacement cost or aal');
+
         if (!values.ratingPropertyData.floodZone) throw new Error('flood zone is required');
 
         // TODO: change backend to accept limits as object
         let reqBody = {
-          // limitA: values.limits.limitA,
-          // limitB: values.limits.limitB,
-          // limitC: values.limits.limitC,
-          // limitD: values.limits.limitD,
           ...values.limits,
           inlandAAL: inland,
           surgeAAL: surge,
@@ -41,7 +39,7 @@ export const useCalcPremium = (
           deductible: values.deductible,
           state: values.address?.state,
           priorLossCount: values.priorLossCount,
-          floodZone: values.ratingPropertyData.floodZone, // ?? 'D',
+          floodZone: values.ratingPropertyData.floodZone,
           basement: values.ratingPropertyData.basement ?? undefined,
           commissionPct:
             typeof values.subproducerCommission === 'string'
@@ -65,10 +63,8 @@ export const useCalcPremium = (
         setLoading(false);
         return data.annualPremium;
       } catch (err: any) {
-        // console.log('ERROR: ', err);
         console.log('ERROR: ', JSON.stringify(err, null, 2));
         let msg = 'Error calculating premium. See console.';
-        console.log('MSG: ', err.message);
         if (err?.message) msg = err.message;
 
         if (onError) onError(msg, err);

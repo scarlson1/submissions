@@ -301,9 +301,9 @@ export const BindSuccess: React.FC = () => {
       quoteId,
       value: data.quoteTotal || undefined,
       status: data.status,
-      agentId: data.agentId,
+      agentId: data.agent.userId,
       userId: data.userId,
-      agencyId: data.agencyId,
+      agencyId: data.agency.orgId,
       product: data.product,
     });
     eventLogged = true;

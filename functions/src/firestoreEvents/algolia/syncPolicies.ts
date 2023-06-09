@@ -38,7 +38,7 @@ export default async (
     try {
       const visibleBy = [];
       if (newValue.userId) visibleBy.push(`${newValue.userId}`);
-      if (newValue.agent?.agentId) visibleBy.push(`${newValue.agent?.agentId}`);
+      if (newValue.agent?.userId) visibleBy.push(`${newValue.agent?.userId}`);
       // TODO: decide whether to allow org admins to read policies
       if (newValue.agency.orgId) visibleBy.push(`group/admin/${newValue.agency.orgId}`);
 

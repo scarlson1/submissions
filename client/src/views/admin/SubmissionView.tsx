@@ -205,13 +205,13 @@ export const SubmissionView: React.FC = () => {
       <Grid xs={12} sm={6} md={4} lg={3}>
         <Box sx={{ pb: 3 }}>
           <Typography variant='overline' color='text.secondary'>
-            Spatial Key Data
+            Property Data
           </Typography>
           <RowItem
             title='Replacement Cost'
             value={dollarFormat(data.ratingPropertyData?.replacementCost ?? '')}
           />
-          <RowItem title='RCV Source User' value={data.rcvSourceUser || '--'} />
+          <RowItem title='RCV Source User' value={data.rcvSourceUser ? 'true' : 'false'} />
           <RowItem
             title='Square Footage'
             value={numberFormat(data.ratingPropertyData?.sqFootage ?? '')}
@@ -264,9 +264,15 @@ export const SubmissionView: React.FC = () => {
           <Button
             size='small'
             sx={{ m: 1, ml: 0 }}
-            onClick={() => showDialog('attom', data.propertyDataDocId!, 'Attom Property Data')}
+            onClick={() =>
+              showDialog(
+                COLLECTIONS.PROPERTY_DATA_RES,
+                data.propertyDataDocId!,
+                'Property Data Response'
+              )
+            }
           >
-            Show Attom Data
+            Show Property Data
           </Button>
         )}
         <ShowRatingDialog id={submissionId} btnProps={{ size: 'small', sx: { m: 1, ml: 0 } }} />

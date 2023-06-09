@@ -2,6 +2,7 @@ import React, { useCallback, useMemo, useRef, useState, useEffect } from 'react'
 import {
   Badge,
   Box,
+  Button,
   Divider,
   IconButton,
   InputAdornment,
@@ -42,7 +43,13 @@ import {
   IMask,
 } from 'components/forms';
 import { AddressStep, LimitsStep } from 'elements';
-import { addressValidation, limitsValidation } from 'common/quoteValidation';
+import {
+  addressValidation,
+  agencyValidation,
+  agentValidation,
+  limitsValidation,
+  namedInsuredValidationNotRequired,
+} from 'common/validation';
 import { dollarFormat, sumArr } from 'modules/utils/helpers';
 import {
   extractRatingInputsFromValues,
@@ -71,9 +78,13 @@ import {
   AgentDetails,
   NamedInsuredDetails,
   AgencyDetails,
-  AALByPeril,
+  ValueByRiskType,
+  WithId,
+  User,
 } from 'common';
 import { ShowRatingDialog } from './SubmissionView';
+import { RatingInputsWithAAL } from 'hooks/useRateQuote';
+import { useGetAgentDetails } from 'hooks/useGetAgentDetails';
 
 // TODO: standardize fee type names in enum
 
@@ -94,56 +105,6 @@ const RATING_FIELDS = [
   'numStories',
   'replacementCost',
 ];
-
-// const DEFAULT_VALUES = {
-//   addressLine1: '',
-//   addressLine2: '',
-//   city: '',
-//   state: '',
-//   postal: '',
-//   latitude: null,
-//   longitude: null,
-//   limitA: 250000,
-//   limitB: 12500,
-//   limitC: 67500,
-//   limitD: 25000,
-//   deductible: 1000,
-//   quoteExpiration: add(new Date(), { days: 30 }),
-//   policyEffectiveDate: add(new Date(), { days: 15 }),
-//   policyExpirationDate: add(new Date(), { days: 15, years: 1 }),
-//   fees: [],
-//   taxes: [],
-//   annualPremium: null,
-//   subproducerCommission: 0.15,
-//   quoteTotal: null,
-//   insuredFirstName: '',
-//   insuredLastName: '',
-//   insuredEmail: '',
-//   insuredPhone: '',
-//   agentId: '',
-//   agentEmail: '',
-//   agentName: '',
-//   agentPhone: '',
-//   agencyName: '',
-//   agencyId: '',
-//   priorLossCount: '',
-//   ratingPropertyData: {
-//     CBRSDesignation: '',
-//     basement: '',
-//     distToCoastFeet: null, // '',
-//     floodZone: '',
-//     numStories: null, // '',
-//     propertyCode: '',
-//     replacementCost: null, // '',
-//     sqFootage: null, // '',
-//     yearBuilt: null, // '',
-//   },
-//   AAL: {
-//     inland: null,
-//     surge: null,
-//   },
-//   notes: [],
-// };
 
 const DEFAULT_VALUES = {
   address: {
@@ -183,7 +144,7 @@ const DEFAULT_VALUES = {
     userId: '',
   },
   agent: {
-    agentId: '',
+    userId: '',
     name: '',
     email: '',
     phone: '',
@@ -236,23 +197,24 @@ const quoteNewValidation = yup.object().shape({
       value: yup.number().required('tax value is required'),
     })
   ),
-  annualPremium: yup.number().min(100).required('Term premium is required'),
-  subproducerCommission: yup.number().required('Commission is required'),
+  annualPremium: yup.number().min(100).required('term premium is required'),
+  subproducerCommission: yup.number().required('commission is required'),
   quoteTotal: yup
     .number()
-    .min(100, 'quote total must be over $100')
-    .required('Quote total is required'),
+    .min(100, 'total must be above 100')
+    .test('correct-total', 'quote must total: premium + fees + taxes', (val, ctx) => {
+      const { fees, taxes, annualPremium } = ctx.parent;
+
+      const total = sumfeesTaxesPremium(fees, taxes, annualPremium || 0);
+
+      if (total !== val) return false;
+
+      return true;
+    }),
   // TODO: named insured, agent, agency validation
-  // insuredFirstName: yup.string(),
-  // insuredLastName: yup.string(),
-  // insuredEmail: emailVal.notRequired(),
-  // insuredPhone: yup.string(),
-  // agentId: yup.string().nullable(),
-  // agentEmail: emailVal.notRequired(),
-  // agentName: yup.string(),
-  // agentPhone: yup.string(),
-  // agencyName: yup.string(),
-  // agencyId: yup.string().nullable(),
+  namedInsured: namedInsuredValidationNotRequired,
+  agent: agentValidation,
+  agency: agencyValidation,
   priorLossCount: yup.string(), // .required(),
   // TODO: reusable rating data validation
   ratingPropertyData: yup.object().shape({
@@ -300,49 +262,9 @@ export interface NewQuoteValues {
   agency: AgencyDetails;
   priorLossCount: string;
   ratingPropertyData: Nullable<RatingPropertyData>;
-  AAL: Nullable<AALByPeril>;
+  AAL: Nullable<ValueByRiskType>;
   notes: { [key: string]: string }[];
 }
-
-// export interface NewQuoteValuesOld {
-//   addressLine1: string;
-//   addressLine2: string;
-//   city: string;
-//   state: string;
-//   postal: string;
-//   latitude: number | null;
-//   longitude: number | null;
-//   limitA: number;
-//   limitB: number;
-//   limitC: number;
-//   limitD: number;
-//   deductible: number;
-//   policyEffectiveDate: Date;
-//   policyExpirationDate: Date;
-//   quoteExpiration: Date;
-//   fees: FeeItem[];
-//   taxes: TaxItem[];
-//   annualPremium: number | null;
-//   subproducerCommission: number;
-//   quoteTotal: number | null;
-//   insuredFirstName: string;
-//   insuredLastName: string;
-//   insuredEmail: string;
-//   insuredPhone: string;
-//   agentId: string | null;
-//   agentEmail: string | null;
-//   agentName: string | null;
-//   agentPhone: string | null;
-//   agencyName: string | null;
-//   agencyId: string | null;
-//   priorLossCount: string;
-//   ratingPropertyData: Nullable<RatingPropertyData>;
-//   AAL: {
-//     inland: number | null;
-//     surge: number | null;
-//   };
-//   notes: { [key: string]: string }[];
-// }
 
 export interface QuoteNewProps {
   initialValues?: NewQuoteValues;
@@ -398,7 +320,7 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
       if (!values) return;
 
       toast.updateLoadingMsg('fetching taxes...');
-      return fetchTaxes({ ...values, annualPremium: newPrem });
+      return fetchTaxes({ ...values, annualPremium: newPrem }, 'new');
     },
     [fetchTaxes, toast]
   );
@@ -409,7 +331,7 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
     // ratingInputsSnap,
   } = useRateQuote(
     submissionId,
-    (newPrem: number, ratingInputs) => {
+    (newPrem: number, ratingInputs: RatingInputsWithAAL) => {
       setTimeout(() => {
         formikRef.current?.setFieldValue('annualPremium', newPrem);
         formikRef.current?.setFieldValue('AAL.inland', ratingInputs.inlandAAL);
@@ -518,6 +440,55 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
       toast.error('Error calculating total. See console for details');
     }
   }, [toast]);
+
+  const handleSetAgent = useCallback((agent: WithId<User>) => {
+    // toast.success(`User found: ${agent.displayName}`);
+    const setFieldValue = formikRef.current?.setFieldValue;
+    if (!setFieldValue) return;
+    const agentFloodComm = agent.defaultCommission?.flood;
+    if (agentFloodComm)
+      setFieldValue(
+        'subproducerCommission',
+        agentFloodComm || formikRef.current?.values?.subproducerCommission
+      );
+    setFieldValue('agent.name', agent.displayName || '');
+    setFieldValue('agent.email', agent.email || '');
+    setFieldValue('agent.phone', agent.phone || '');
+    setFieldValue('agent.userId', agent.id || ''); // @ts-ignore
+    setFieldValue('agency.name', agent.orgName || '');
+    setFieldValue('agency.orgId', agent.orgId || ''); // @ts-ignore
+    setFieldValue('agency.address.addressLine1', agent.address?.addressLine1 || ''); // @ts-ignore
+    setFieldValue('agency.address.addressLine2', agent.address?.addressLine1 || ''); // @ts-ignore
+    setFieldValue('agency.address.city', agent.address?.city || ''); // @ts-ignore
+    setFieldValue('agency.address.state', agent.address?.state || ''); // @ts-ignore
+    setFieldValue('agency.address.postal', agent.address?.postal || '');
+  }, []);
+
+  const handleSetAgentError = useCallback((msg: string) => console.log(msg), []);
+
+  const { searchAgent } = useGetAgentDetails(handleSetAgent, handleSetAgentError);
+
+  const handleSetAgentByEmail = useCallback(async () => {
+    const agentDetails = await searchAgent();
+    // TODO: handle setting in onSuccess ??
+    console.log('AGENT DETAILS: ', agentDetails);
+  }, [searchAgent]);
+
+  const setIDemand = useCallback(() => {
+    const setFieldValue = formikRef.current?.setFieldValue;
+    if (!setFieldValue) return;
+    setFieldValue('agent.name', 'Ron Carlson');
+    setFieldValue('agent.email', 'ron.carlson@idemandinsurance.com');
+    setFieldValue('agent.phone', '+16159889300');
+    setFieldValue('agent.userId', 'TODO');
+    setFieldValue('agency.name', 'iDemand Insurance Agency, Inc.');
+    setFieldValue('agency.orgId', 'idemand');
+    setFieldValue('agency.address.addressLine1', '6019 Pine Ridge Rd.');
+    setFieldValue('agency.address.addressLine2', 'Suite 401');
+    setFieldValue('agency.address.city', 'Naples');
+    setFieldValue('agency.address.state', 'FL');
+    setFieldValue('agency.address.postal', '34119');
+  }, []);
 
   const menuItems = useMemo(
     () => [
@@ -980,7 +951,7 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                       <LoadingButton
                         size='small'
                         variant='outlined'
-                        onClick={() => fetchTaxes(values)}
+                        onClick={() => fetchTaxes(values, 'new')}
                         loading={taxesLoading}
                         disabled={
                           !(values.address?.state && values.annualPremium) ||
@@ -1201,20 +1172,24 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                 </Typography>
               </Grid>
               <Grid xs={6} md={3}>
-                <FormikTextField name='insuredFirstName' label='Insured first name' fullWidth />
+                <FormikTextField
+                  name='namedInsured.firstName'
+                  label='Insured first name'
+                  fullWidth
+                />
               </Grid>
               <Grid xs={6} md={3}>
-                <FormikTextField name='insuredLastName' label='Insured last name' fullWidth />
+                <FormikTextField name='namedInsured.lastName' label='Insured last name' fullWidth />
               </Grid>
               <Grid xs={6} md={3}>
-                <FormikTextField name='insuredEmail' label='Insured email' fullWidth />
+                <FormikTextField name='namedInsured.email' label='Insured email' fullWidth />
               </Grid>
               <Grid xs={6} md={3}>
                 <FormikMaskField
                   fullWidth
-                  id='insuredPhone'
+                  id='namedInsured.phone'
                   label='Insured phone'
-                  name='insuredPhone'
+                  name='namedInsured.phone'
                   maskComponent={PhoneMask}
                 />
               </Grid>
@@ -1227,16 +1202,18 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                 >
                   Agent & Agency
                 </Typography>
-                {/* <Button
+                <Button variant='outlined' size='small' onClick={setIDemand} sx={{ ml: 4 }}>
+                  Set iDemand
+                </Button>
+                <Button
                   variant='outlined'
                   size='small'
-                  onClick={() =>
-                    alert('TODO: implement search agents (or implement search / autocomplete)')
-                  }
+                  onClick={handleSetAgentByEmail}
                   sx={{ ml: 4 }}
                 >
                   Find agent
                 </Button>
+                {/* 
                 <Button
                   variant='outlined'
                   size='small'
@@ -1249,29 +1226,29 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                 </Button> */}
               </Grid>
               <Grid xs={6} sm={3}>
-                <FormikTextField name='agentName' label='Agent name' fullWidth />
+                <FormikTextField name='agent.name' label='Agent name' fullWidth />
               </Grid>
               <Grid xs={6} sm={3}>
-                <FormikTextField name='agentEmail' label='Agent email' fullWidth />
+                <FormikTextField name='agent.email' label='Agent email' fullWidth />
               </Grid>
               <Grid xs={6} sm={3}>
                 <FormikMaskField
                   fullWidth
-                  id='agentPhone'
+                  id='agent.phone'
                   label='Agent Phone'
-                  name='agentPhone'
+                  name='agent.phone'
                   maskComponent={PhoneMask}
                 />
               </Grid>
               <Grid xs={6} sm={3}>
-                <FormikTextField name='agentId' label='Agent ID' fullWidth />
+                <FormikTextField name='agent.userId' label='Agent ID' fullWidth />
               </Grid>
               <Grid xs={12}></Grid>
               <Grid xs={6} sm={3}>
-                <FormikTextField name='agencyName' label='Agency Name' fullWidth />
+                <FormikTextField name='agency.name' label='Agency Name' fullWidth />
               </Grid>
               <Grid xs={6} sm={3}>
-                <FormikTextField name='agencyId' label='Agency ID' fullWidth />
+                <FormikTextField name='agency.orgId' label='Agency ID' fullWidth />
               </Grid>
               <Grid xs={12}>
                 <Divider sx={{ my: 3 }} />
@@ -1361,40 +1338,23 @@ function Diff({
   const [getDiff, diff, isDiff] = useGetDiff(checkFields);
 
   const {
-    // latitude,
-    // longitude,
     coordinates,
     limits,
-    // limitA,
-    // limitB,
-    // limitC,
-    // limitD,
     deductible,
     address,
-    // state,
     ratingPropertyData,
-    // RE-CALC ONLY FIELDS  (and floodZone, basement under ratingPropData)
     priorLossCount,
     subproducerCommission,
   } = values;
-  // const { limitA, limitB, limitC, limitD } = limits
-  // const { latitude, longitude } = coordinates;
 
   const ratingInputsCurr: any = useMemo(
     () => extractRatingInputsFromValues(values), // eslint-disable-next-line react-hooks/exhaustive-deps
     [
-      // latitude,
-      // longitude,
-      // limitA,
-      // limitB,
-      // limitC,
-      // limitD,
       coordinates,
       limits,
       deductible,
       subproducerCommission,
       priorLossCount,
-      // state,
       address,
       ratingPropertyData,
     ]
@@ -1462,12 +1422,13 @@ function RequiredFieldsIndicator({ errors }: { errors: FormikErrors<NewQuoteValu
     () =>
       Object.entries(
         merge(
-          omit(errors, 'ratingPropertyData', 'limits', 'agent', 'agency', 'AAL', 'address'),
+          omit(errors, ['ratingPropertyData', 'limits', 'agent', 'agency', 'AAL', 'address']),
           errors.ratingPropertyData || {},
           errors.address || {},
           errors.limits || {},
           errors.agent || {},
-          errors.agency || {},
+          omit(errors.agency, 'address') || {},
+          errors.agency?.address ? { 'agency.address': errors.agency?.address } : {},
           errors.AAL || {}
         )
       ),
@@ -1496,9 +1457,18 @@ function RequiredFieldsIndicator({ errors }: { errors: FormikErrors<NewQuoteValu
                       sx={{ pr: 2, fontWeight: 500 }}
                     >{`${fieldname}`}</Typography>
                   </Grid>
-                  <Grid xs>
-                    <Typography variant='body2' component='span'>{`${errMsg}`}</Typography>
-                  </Grid>
+
+                  {typeof errMsg === 'string' ? (
+                    <Grid xs>
+                      <Typography variant='body2' component='span'>{`${errMsg}`}</Typography>
+                    </Grid>
+                  ) : (
+                    <Grid xs={12}>
+                      <Typography variant='body2' component='span'>
+                        <pre>{JSON.stringify(errMsg, null, 2)}</pre>
+                      </Typography>
+                    </Grid>
+                  )}
                 </Grid>
               ))}
             </>
@@ -1575,11 +1545,11 @@ export const QuoteNewFromSub = () => {
       namedInsured: {
         firstName: submissionData?.contact?.firstName ?? '',
         lastName: submissionData?.contact?.lastName ?? '',
-        email: submissionData?.contact?.email ?? '',
-        phone: submissionData?.contact?.email ?? '',
+        email: submissionData?.contact?.email ?? '', // @ts-ignore
+        phone: submissionData?.contact?.phone ?? '',
       },
       agent: {
-        agentId: submissionData?.agent?.agentId || '',
+        userId: submissionData?.agent?.userId || '',
         name: submissionData?.agent?.name || '',
         email: submissionData?.agent?.email || '',
         phone: submissionData?.agent?.phone || '',
@@ -1587,7 +1557,7 @@ export const QuoteNewFromSub = () => {
       agency: {
         orgId: submissionData?.agency?.orgId || '',
         name: submissionData?.agency?.name || '',
-        address: submissionData?.agency?.address || '', // TODO: is address in form ??
+        address: submissionData?.agency?.address || '',
       },
       priorLossCount: submissionData?.priorLossCount || '',
       // TODO: note if RCV source is from user
@@ -1604,66 +1574,13 @@ export const QuoteNewFromSub = () => {
       },
       AAL: {
         inland: submissionData?.AAL?.inland ?? null,
-        surge: submissionData?.AAL?.surge ?? null, // @ts-ignore
+        surge: submissionData?.AAL?.surge ?? null,
         tsunami: submissionData?.AAL?.tsunami ?? null,
       },
       notes: [],
     }),
     [submissionData]
   );
-
-  // const initialValues: NewQuoteValues = useMemo(
-  //   () => ({
-  //     addressLine1: submissionData?.address?.addressLine1 ?? '',
-  //     addressLine2: submissionData?.address?.addressLine2 ?? '',
-  //     city: submissionData?.address?.city ?? '',
-  //     state: submissionData?.address?.state ?? '',
-  //     postal: submissionData?.address?.postal ?? '',
-  //     latitude: submissionData?.coordinates?.latitude ?? null,
-  //     longitude: submissionData?.coordinates?.longitude ?? null, // @ts-ignore
-  //     limitA: submissionData?.limitA ?? 250000, // @ts-ignore
-  //     limitB: submissionData?.limitB ?? 12500, // @ts-ignore
-  //     limitC: submissionData?.limitC ?? 68000, // @ts-ignore
-  //     limitD: submissionData?.limitD ?? 25000,
-  //     deductible: submissionData?.deductible ?? 1000,
-  //     quoteExpiration: add(new Date(), { days: 60 }),
-  //     policyEffectiveDate: add(new Date(), { days: 15 }),
-  //     policyExpirationDate: add(new Date(), { days: 15, years: 1 }),
-  //     fees: [], // [{ feeName: '', feeValue: '' }],
-  //     taxes: [], // [{ displayName: '', rate: '', value: '' }],
-  //     annualPremium: submissionData?.annualPremium ?? null,
-  //     subproducerCommission: submissionData?.subproducerCommission ?? 0.15,
-  //     quoteTotal: null, // calculated
-  //     insuredFirstName: submissionData?.contact?.firstName ?? '',
-  //     insuredLastName: submissionData?.contact?.lastName ?? '',
-  //     insuredEmail: submissionData?.contact?.email ?? '',
-  //     insuredPhone: '',
-  //     agentId: submissionData?.agent?.agentId || '',
-  //     agentEmail: '', // TODO: decide whether to add agency / agent data with submission or query later
-  //     agentName: '',
-  //     agentPhone: '',
-  //     agencyName: '',
-  //     agencyId: '',
-  //     priorLossCount: submissionData?.priorLossCount || '',
-  //     ratingPropertyData: {
-  //       CBRSDesignation: submissionData?.ratingPropertyData?.CBRSDesignation ?? '',
-  //       basement: `${submissionData?.ratingPropertyData?.basement ?? ''}`.toLowerCase(), // @ts-ignore
-  //       distToCoastFeet: `${submissionData?.ratingPropertyData?.distToCoastFeet ?? ''}`, // submissionData?.distToCoastFeet ?? null,
-  //       floodZone: submissionData?.ratingPropertyData?.floodZone ?? '',
-  //       numStories: submissionData?.ratingPropertyData?.numStories ?? 1,
-  //       propertyCode: `${submissionData?.ratingPropertyData?.propertyCode ?? ''}`,
-  //       replacementCost: submissionData?.ratingPropertyData?.replacementCost ?? null, // @ts-ignore
-  //       sqFootage: `${submissionData?.ratingPropertyData?.sqFootage ?? ''}`, // @ts-ignore submissionData?.sqFootage ?? null,
-  //       yearBuilt: `${submissionData?.ratingPropertyData?.yearBuilt ?? ''}`, // submissionData?.yearBuilt ?? null,
-  //     },
-  //     AAL: {
-  //       inland: submissionData?.inlandAAL ?? null,
-  //       surge: submissionData?.surgeAAL ?? null,
-  //     },
-  //     notes: [],
-  //   }),
-  //   [submissionData]
-  // );
 
   return (
     <QuoteNew

@@ -1,12 +1,12 @@
-import type { Limits } from '../../common/index.js';
+import type { Limits, RCVs } from '../../common/index.js';
 
-interface RCVs {
-  rcvA: number;
-  rcvB: number;
-  rcvC: number;
-  rcvD: number;
-  total: number;
-}
+// interface RCVs {
+//   rcvA: number;
+//   rcvB: number;
+//   rcvC: number;
+//   rcvD: number;
+//   total: number;
+// }
 
 /**
  * Calculate RCVs for each limit from building RCV & limits
@@ -26,10 +26,10 @@ export const getRCVs = (
   // TODO: use RCVs (standardize RCVKeys)
   // return {
   const rcvs: Omit<RCVs, 'total'> = {
-    rcvA: Math.max(replacementCost, limits.limitA),
-    rcvB: limits.limitB ? defaultB : 0,
-    rcvC: limits.limitC ? defaultC : 0,
-    rcvD: limits.limitD,
+    building: Math.max(replacementCost, limits.limitA),
+    otherStructures: limits.limitB ? defaultB : 0,
+    contents: limits.limitC ? defaultC : 0,
+    BI: limits.limitD,
   };
 
   let total = Object.values(rcvs).reduce((total, current) => {

@@ -81,7 +81,7 @@ export default async ({ data, auth }: CallableRequest) => {
         namedInsured: `${policy.namedInsured.firstName} ${policy.namedInsured.lastName}`,
         policyId,
         userId: uid,
-        agentId: policy.agent.agentId || null,
+        agentId: policy.agent.userId || null,
         agencyId: policy.agency.orgId || null,
       },
       emailAddress: paymentMethodDetails.emailAddress,

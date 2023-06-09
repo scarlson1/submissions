@@ -98,10 +98,10 @@ export const ViewQuote: React.FC = () => {
         iDemand Flood Insurance
       </Typography>
       <Typography variant='subtitle1' color='text.secondary' align='center' gutterBottom>{`${
-        data?.insuredAddress.addressLine1
-      } ${data?.insuredAddress.addressLine2 ? data?.insuredAddress.addressLine2 + ', ' : ','} ${
-        data?.insuredAddress.city
-      } ${data?.insuredAddress.state} ${data?.insuredAddress.postal}`}</Typography>
+        data?.address.addressLine1
+      } ${data?.address.addressLine2 ? data?.address.addressLine2 + ', ' : ','} ${
+        data?.address.city
+      } ${data?.address.state} ${data?.address.postal}`}</Typography>
 
       {data && (
         <>

@@ -33,6 +33,8 @@ export type DeepNullable<T> = {
   [K in keyof T]: DeepNullable<T[K]> | null;
 };
 
+export type Optional<T> = { [K in keyof T]?: T[K] | undefined | null };
+
 export type Maybe<T> = T | null | undefined;
 
 export interface Submission extends FloodValues {
@@ -59,7 +61,7 @@ export interface Submission extends FloodValues {
   satelliteStreetsMapImageURL?: string;
   satelliteMapImageFilePath?: string;
   satelliteStreetsMapImageFilePath?: string;
-  AAL?: Nullable<AALByPeril>;
+  AAL?: Nullable<ValueByRiskType>;
   // inlandAAL?: number;
   // surgeAAL?: number;
   annualPremium?: number;
@@ -70,6 +72,19 @@ export interface Submission extends FloodValues {
 export type LimitKeys = 'limitA' | 'limitB' | 'limitC' | 'limitD';
 export type Product = 'flood' | 'wind';
 export type CovTypeNames = 'building' | 'otherStructures' | 'contents' | 'BI';
+
+// export interface Limits {
+//   limitA: number;
+//   limitB: number;
+//   limitC: number;
+//   limitD: number;
+// }
+export type LimitTypes = 'limitA' | 'limitB' | 'limitC' | 'limitD';
+export type Limits = Record<LimitTypes, number>;
+
+export type FloodPerilCategories = 'inland' | 'surge'; // | 'tsunami';
+// TODO: finish adding tsunami
+export type ValueByRiskType = Record<FloodPerilCategories, number> & { tsunami?: number };
 
 export interface FirestoreTimestamp {
   readonly nanoseconds: number;
@@ -89,6 +104,10 @@ export interface Address {
   postal: string;
   countyFIPS?: string | null;
   countyName?: string | null;
+}
+
+export interface MailingAddress extends Address {
+  name: string;
 }
 
 export interface AddressWithCoords extends Address {
@@ -111,21 +130,10 @@ export interface QuoteLocation extends Location {
   directWrittenPremium: number;
   tiv: number;
   externalId: string | null;
-  spatialKeyResDocId: string;
+  // spatialKeyResDocId: string;
+  propertyDataResDocId: string;
   swissReResDocId: string;
 }
-
-// export interface Limits {
-//   limitA: number;
-//   limitB: number;
-//   limitC: number;
-//   limitD: number;
-// }
-export type LimitTypes = 'limitA' | 'limitB' | 'limitC' | 'limitD';
-export type Limits = Record<LimitTypes, number>;
-
-export type FloodPerilCategories = 'inland' | 'surge' | 'tsunami';
-export type AALByPeril = Record<FloodPerilCategories, number>;
 
 // TODO: change to UWRatingNote
 export interface UWNote {
@@ -137,22 +145,25 @@ export interface UWNote {
 export interface Note {
   note: string; // text: string;
   userId?: string | null;
-  created: FirestoreTimestamp;
+  created: Timestamp;
 }
 
 export interface AdditionalInsured {
   name: string;
   email: string;
-  relation: string | number;
-  address?: AddressWithCoords; // Address;
+  address?: Nullable<Address> | null;
 }
+// other interest - types = mortgagee | other interest
 export interface Mortgagee {
-  company: string;
+  name: string;
   contactName: string;
   contactEmail: string;
   loanNumber: string;
-  address?: AddressWithCoords;
+  address?: Nullable<Address> | null;
 }
+// decide whether to use discriminating union type
+// could use on front end for input component
+// then split in submit
 
 export interface AdditionalInterest {
   type: string;
@@ -170,7 +181,7 @@ export interface NamedInsuredDetails {
 }
 
 export interface AgentDetails {
-  agentId: string | null; // TODO: use userId ??
+  userId: string | null; // TODO: use userId ??
   name: string;
   email: string;
   phone: string | null;
@@ -209,47 +220,28 @@ export interface RatingPropertyData {
 }
 
 interface RatingCalcData {
-  AAL: {
-    inland: number;
-    surge: number;
-  };
-  PM: {
-    inland: number;
-    surge: number;
-  };
-  riskScore: {
-    inland: number;
-    surge: number;
-  };
-  stateMultipliers: {
-    inland: number;
-    surge: number;
-  };
-  secondaryFactorMults: {
-    inland: number;
-    surge: number;
-  };
+  AAL: ValueByRiskType;
+  PM: ValueByRiskType;
+  riskScore: ValueByRiskType;
+  stateMultipliers: ValueByRiskType;
+  secondaryFactorMults: ValueByRiskType;
 }
 
 type PropWithRatingCalcData = Nullable<RatingPropertyData> & RatingCalcData;
 
-export interface SubmissionQuoteData {
+export interface Quote {
   product: Product; // keyof typeof Product;
   deductible: number;
   limits: Limits;
-  // replacementCost: number;
-  insuredAddress: Address; // TODO: change to address (use mailing address, etc. for other addresses)
-  insuredCoordinates: GeoPoint | null;
+  address: Address;
+  coordinates: GeoPoint | null;
   fees: { feeName: string; feeValue: number }[];
   taxes: TaxItem[]; // { taxName: string; taxValue: number; taxRate?: number }[];
   annualPremium: number;
   subproducerCommission: number;
   quoteTotal?: number;
-  cardFee: number;
-  quoteExpiration: {
-    seconds: number;
-    nanoseconds: number;
-  };
+  cardFee: number; // TODO: keep ?? delete ?? add security rules ??
+  quoteExpiration: Timestamp;
   policyEffectiveDate?: Timestamp;
   effectiveExceptionRequested?: boolean;
   effectiveExceptionReason?: string | null;
@@ -260,23 +252,15 @@ export interface SubmissionQuoteData {
   // mortgageeInterest?: Mortgagee[];
   additionalInterests?: AdditionalInterest[];
   metadata: {
-    created: FirestoreTimestamp;
-    updated: FirestoreTimestamp;
+    created: Timestamp; // FirestoreTimestamp;
+    updated: Timestamp; // FirestoreTimestamp;
     version: WithFieldValue<number>;
   };
   userId: string | null;
-  insuredFirstName?: string | null;
-  insuredLastName?: string | null;
-  insuredEmail?: string | null;
-  insuredPhone?: string | null;
-  insuredUserId?: string | null;
-  insuredMailingAddress?: Address | null;
-  agencyId: string | null;
-  agencyName: string | null;
-  agentId: string | null;
-  agentName: string | null;
-  agentEmail: string | null;
-  agentPhone?: string | null;
+  namedInsured: Nullable<NamedInsuredDetails>;
+  mailingAddress: MailingAddress;
+  agent: Nullable<AgentDetails>; // TODO: REMOVE NULLABLE
+  agency: Nullable<AgencyDetails>; // TODO: REMOVE NULLABLE ??
   status: QUOTE_STATUS; // SUBMISSION_STATUS;
   submissionId?: string | null;
   imageUrls?: { [key: string]: string | null };
@@ -633,6 +617,10 @@ export interface ChangeRequest extends BaseDoc {
   status: ChangeRequestStatus;
 }
 
+export type DefaultCommission = {
+  [key in PRODUCT]?: number;
+};
+
 export interface User extends BaseDoc {
   displayName?: string;
   firstName?: string;
@@ -644,6 +632,9 @@ export interface User extends BaseDoc {
   insuredOfAgency?: string[];
   tenantId?: string | null;
   orgId?: string | null; // org doc id (not always tenant (ex 'idemand'))
+  orgName?: string | null;
+  // store org address ??
+  defaultCommission?: DefaultCommission;
 }
 
 export interface UserClaims {
@@ -935,6 +926,9 @@ export interface Disclosure extends BaseDoc {
   type?: string | null;
   content: JSONContent;
 }
+
+// TODO: swiss re property data res type
+export type PropertyDataRes = Record<string, any>;
 
 export interface SpatialKeyResponse {
   us_hh_mls_rm_room11_features: string; // '',

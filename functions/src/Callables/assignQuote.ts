@@ -4,7 +4,7 @@ import { getFirestore } from 'firebase-admin/firestore';
 
 import {
   CLAIMS,
-  SubmissionQuoteData,
+  Quote,
   orgsCollection,
   submissionsQuotesCollection,
   usersCollection,
@@ -37,7 +37,7 @@ export default async ({ data, auth }: CallableRequest<{ quoteId: string }>) => {
     const userDoc = userSnap.data();
 
     // TODO: check to see if quote is already claimed ??
-    let updates: Partial<SubmissionQuoteData> = {};
+    let updates: Partial<Quote> = {};
     if (isAgent) {
       let orgId = auth.token.email?.endsWith('@idemandinsurance.com')
         ? 'idemand'
@@ -50,22 +50,38 @@ export default async ({ data, auth }: CallableRequest<{ quoteId: string }>) => {
       const org = orgSnap.data();
 
       updates = {
-        agencyId: orgSnap.id,
-        agencyName: org?.orgName || null,
-        agentId: uid,
-        agentName: userDoc?.displayName || null,
-        agentEmail: token?.email || null,
-        agentPhone: token?.phone_number || null,
+        agency: {
+          orgId: orgSnap.id,
+          name: org?.orgName || null,
+          address: org?.address || null,
+        },
+        agent: {
+          userId: uid,
+          name: userDoc?.displayName || null,
+          email: token?.email || null,
+          phone: token?.phone_number || null,
+        },
       };
     } else {
       updates = {
         userId: uid,
-        insuredUserId: uid,
-        insuredFirstName: userDoc?.firstName || null,
-        insuredLastName: userDoc?.lastName || null,
-        insuredEmail: token?.email || null,
-        insuredPhone: token?.phone_number || null,
-        insuredMailingAddress: userDoc?.address || null,
+        namedInsured: {
+          userId: uid,
+          firstName: userDoc?.firstName || null,
+          lastName: userDoc?.lastName || null,
+          email: token?.email || null,
+          phone: token?.phone_number || null,
+        },
+        mailingAddress: {
+          name: `${userDoc?.firstName || ''} ${userDoc?.lastName || ''}`.trim(),
+          addressLine1: userDoc?.address?.addressLine1 || '',
+          addressLine2: userDoc?.address?.addressLine2 || '',
+          city: userDoc?.address?.city || '',
+          state: userDoc?.address?.state || '',
+          postal: userDoc?.address?.postal || '',
+          countyName: userDoc?.address?.countyName || '',
+          countyFIPS: userDoc?.address?.countyFIPS || '',
+        },
       };
     }
 

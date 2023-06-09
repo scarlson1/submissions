@@ -74,6 +74,7 @@ export const getPremium = (props: GetPremiumProps): GetPremiumCalcResult => {
     AAL: {
       inland: inlandAAL,
       surge: surgeAAL,
+      // tsunami: tsunamiAAL
     },
     secondaryFactorMults,
     stateMultipliers: {

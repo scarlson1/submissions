@@ -9,12 +9,12 @@ import {
   calcSum,
   roundUpToNearest,
   getNumber,
-  COLLECTIONS,
   spatialKeyUserKey,
   spatialKeyOrgKey,
   spatialKeySecretKey,
   maxA,
   minA,
+  propertyDataResCollection,
 } from '../common';
 import { getSpatialKeyInstance } from '../services';
 
@@ -31,17 +31,6 @@ interface InitLimits {
   initLimitC: number;
   initLimitD: number;
 }
-
-// const spatialKeyUserKey = defineSecret('SPATIALKEY_USER_API_KEY');
-// const spatialKeyOrgKey = defineSecret('SPATIALKEY_ORG_API_KEY');
-// const spatialKeySecretKey = defineSecret('SPATIALKEY_ORG_SECRET_KEY');
-
-// const maxLimitA = defineInt('FLOOD_MAX_LIMIT_A', {
-//   default: 1000000,
-// });
-// const minLimitA = defineInt('FLOOD_MIN_LIMIT_A', {
-//   default: 100000,
-// });
 
 export default async ({ data }: CallableRequest) => {
   console.log('data: ', data);
@@ -80,11 +69,17 @@ export default async ({ data }: CallableRequest) => {
     let skDocRef;
 
     try {
-      skDocRef = await getFirestore()
-        .collection(COLLECTIONS.SK_RES)
-        .add({
-          ...spatialKeyData,
-        });
+      const propertyDataCol = propertyDataResCollection(getFirestore());
+
+      skDocRef = await propertyDataCol.add({
+        ...spatialKeyData,
+      });
+
+      // skDocRef = await getFirestore()
+      //   .collection(COLLECTIONS.SK_RES)
+      //   .add({
+      //     ...spatialKeyData,
+      //   });
       console.log(`SpatialKey data saved to doc: ${skDocRef.id}`);
       fallback.spatialKeyDocId = skDocRef.id;
     } catch (err) {

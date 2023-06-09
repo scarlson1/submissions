@@ -64,7 +64,7 @@ export default async (
   const srClientSecret = swissReClientSecret.value();
   const srSubKey = swissReSubscriptionKey.value();
 
-  let AALs: GetAALRes | undefined;
+  let AALsRes: GetAALRes | undefined;
   // let ratingUpdates: { [key: string]: number } = { inlandAAL: 0, surgeAAL: 0 };
   // let srRequestId TODO: save swiss re request id with rating data
 
@@ -83,7 +83,7 @@ export default async (
     validateGetAALsProps(srVals);
 
     // @ts-ignore
-    AALs = await getAALs({
+    AALsRes = await getAALs({
       srClientId,
       srClientSecret,
       srSubKey,
@@ -91,7 +91,7 @@ export default async (
     });
 
     const swissReRef = await swissReResCollection(db).add({
-      ...AALs.srRes,
+      ...AALsRes.srRes,
       submissionId: snap.id,
       address: {
         addressLine1: sub.address?.addressLine1,
@@ -114,9 +114,9 @@ export default async (
       },
     });
     info(
-      `SWISS RE DOC SAVED: ${swissReRef.id} - AALs =>  inland: ${AALs.inlandAAL}; surge: ${AALs.surgeAAL}`,
+      `SWISS RE DOC SAVED: ${swissReRef.id} - AALs =>  inland: ${AALsRes.AAL.inland}; surge: ${AALsRes.AAL.surge}; tsunami: ${AALsRes.AAL.tsunami}`,
       {
-        ...AALs,
+        ...AALsRes,
       }
     );
 
@@ -124,7 +124,11 @@ export default async (
     // await snap.ref.update({ inlandAAL: AALs.inlandAAL, surgeAAL: AALs.surgeAAL });
     // TODO: extract tsunami AAL
     const updates: Partial<Submission> = {
-      AAL: { inland: AALs.inlandAAL, surge: AALs.surgeAAL, tsunami: null },
+      AAL: {
+        inland: AALsRes.AAL?.inland ?? null,
+        surge: AALsRes.AAL?.surge ?? null,
+        tsunami: AALsRes.AAL?.tsunami ?? null,
+      },
     };
     await snap.ref.update(updates);
   } catch (err) {
@@ -135,7 +139,9 @@ export default async (
   // CALCULATE ANNUAL PREMIUM
   try {
     // const { inlandAAL, surgeAAL } = ratingUpdates;
-    const { inlandAAL, surgeAAL } = AALs; // TODO: add tsunami
+    const inlandAAL = AALsRes.AAL.inland; // TODO: add tsunami
+    const surgeAAL = AALsRes.AAL.surge;
+    // const tsunamiAAL = AALsRes.AAL.tsunami;
     invariant(typeof inlandAAL === 'number');
     invariant(typeof surgeAAL === 'number');
 
@@ -166,15 +172,15 @@ export default async (
         limitC: sub.limits?.limitC,
         limitD: sub.limits?.limitD,
       },
-      tiv: result.tiv,
+      TIV: result.tiv,
       // replacementCost: sub.replacementCost,
-      rcvs: {
+      RCVs: {
         // TODO: change getAAL func to use same rcv keys (rcvA -> building, etc.)
-        building: AALs.rcvs.rcvA,
-        otherStructures: AALs.rcvs.rcvB,
-        contents: AALs.rcvs.rcvC,
-        BI: AALs.rcvs.rcvD,
-        total: AALs.rcvs.total,
+        building: AALsRes.rcvs.building,
+        otherStructures: AALsRes.rcvs.otherStructures,
+        contents: AALsRes.rcvs.contents,
+        BI: AALsRes.rcvs.BI,
+        total: AALsRes.rcvs.total,
       },
       ratingPropertyData: {
         replacementCost: sub.ratingPropertyData?.replacementCost || null,
@@ -189,12 +195,12 @@ export default async (
         ffe: null,
         // priorLossCount: sub.priorLossCount || null, // TODO: fix confiction with priorLossCount in Submission doc
       },
-      aal: {
+      AAL: {
         inland: inlandAAL,
         surge: surgeAAL,
       },
       premiumCalcData: result.premiumData,
-      pm: result.pm,
+      PM: result.pm,
       riskScore: result.riskScore,
       stateMultipliers: result.stateMultipliers,
       secondaryFactorMults: result.secondaryFactorMults,

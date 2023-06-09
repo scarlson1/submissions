@@ -24,7 +24,7 @@ import {
   addressValidationActiveStatesNested,
   limitsValidationNested,
   contactValidationNested,
-} from 'common/quoteValidation';
+} from 'common/validation';
 import { ROUTES, createPath } from 'router';
 // import { statesCollection, submissionsCollection } from 'common/firestoreCollections';
 import { SUBMISSION_STATUS } from 'common/enums';
@@ -233,7 +233,7 @@ export const SubmissionNew: React.FC = () => {
           userId: user?.uid ?? null,
           // agentId: !!customClaims.agent ? user?.uid || null : null,
           agent: {
-            agentId: !!customClaims.agent ? user?.uid || null : null,
+            userId: !!customClaims.agent ? user?.uid || null : null,
             name: !!customClaims.agent ? user?.displayName || null : null,
             email: !!customClaims.agent ? user?.email || null : null,
             phone: !!customClaims.agent ? user?.phoneNumber || null : null,
