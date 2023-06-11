@@ -121,6 +121,7 @@ export function SearchModal({
         placeholder,
         openOnFocus: true,
         initialState: {
+          // TODO: apply filters here ??
           query: '', // initialQuery,
           context: {
             searchSuggestions: [],
