@@ -6,7 +6,7 @@ import type { AutocompleteState } from '@algolia/autocomplete-core';
 import { createAutocomplete } from '@algolia/autocomplete-core';
 import { getAlgoliaResults } from '@algolia/autocomplete-preset-algolia';
 
-import type { InternalDocSearchHit, StoredDocSearchHit } from 'common';
+import { type InternalDocSearchHit, type StoredDocSearchHit } from 'common';
 import { createStoredSearches } from './storedSearches';
 import { noop } from 'modules/utils';
 import { SearchProps } from './Search';
@@ -14,7 +14,7 @@ import { SearchBox, SearchBoxTranslations } from './SearchBox';
 import { ScreenState, ScreenStateTranslations } from './ScreenState';
 import { Hit, getURLByType } from './Hit';
 import type { FooterTranslations } from './Footer';
-import { groupByCollectionName, identity } from './utils';
+import { groupByCollectionName, identity, isModifierEvent } from './utils';
 
 // TODO: use tages to filter results by collectionName when user clicks Chip
 // https://www.algolia.com/doc/ui-libraries/autocomplete/guides/filtering-results/#adding-tags
@@ -38,6 +38,7 @@ export function SearchModal({
   apiKey,
   indexName,
   indexTitle,
+  searchParameters, // = {},
   hitComponent = Hit,
   resultsFooterComponent = () => null,
   disableUserPersonalization = false,
@@ -47,6 +48,7 @@ export function SearchModal({
   translations = {},
   getMissingResultsUrl,
   onClose = noop,
+  onSelect,
   transformItems = identity,
 }: SearchModalProps) {
   const {
@@ -63,6 +65,10 @@ export function SearchModal({
     activeItemId: null,
     status: 'idle',
   });
+
+  // React.useEffect(() => {
+  //   console.log('STATE: ', state);
+  // }, [state]);
 
   const containerRef = React.useRef<HTMLDivElement | null>(null);
   const modalRef = React.useRef<HTMLDivElement | null>(null);
@@ -121,7 +127,6 @@ export function SearchModal({
         placeholder,
         openOnFocus: true,
         initialState: {
-          // TODO: apply filters here ??
           query: '', // initialQuery,
           context: {
             searchSuggestions: [],
@@ -155,9 +160,6 @@ export function SearchModal({
                   // TODO: getItemUrl func
                   // item.__autocomplete_indexName
                   // but need to use "type" when indexing in algolia b/c could be in suggestions index
-                  // console.log('GET ITEM URL ITEM: ', item);
-                  // console.log('GET ITEM URL REST: ', rest); // @ts-ignore
-                  // console.log('INDEX NAME: ', item.__autocomplete_indexName);
                   // @ts-ignore
                   if (item.__autocomplete_indexName) return 'https://google.com'; // TODO: fix
                   return item.url;
@@ -188,16 +190,25 @@ export function SearchModal({
           }
 
           return [
-            // (3) Use an Algolia index source.
             {
               sourceId: indexName,
-              title: indexTitle, // indexName.split('_').join(' '),
+              title: indexTitle,
               distinct: 1,
+              onSelect({ item, event }) {
+                saveRecentSearch(item);
+                console.log('ON SELECT ITEM: ', item);
+
+                // if (!isModifierEvent(event)) { // TODO: isModifierEvent helper func
+                onClose();
+                // }
+              },
               getItemInputValue({ item }) {
                 // @ts-ignore
                 return item.query;
               },
-              getItems({ query }) {
+              getItems(params) {
+                const { query } = params;
+                console.log('PARAMS: ', params);
                 return getAlgoliaResults({
                   searchClient,
                   queries: [
@@ -208,6 +219,8 @@ export function SearchModal({
                         hitsPerPage: 10,
                         highlightPreTag: '<mark>',
                         highlightPostTag: '</mark>',
+                        ...searchParameters,
+                        // filters: `collectionName:${COLLECTIONS.USERS}`,
                       },
                     },
                   ],
@@ -218,18 +231,12 @@ export function SearchModal({
                 return getURLByType(item);
                 // return item.url;
               },
-              onSelect({ item, event }) {
-                saveRecentSearch(item);
 
-                // if (!isModifierEvent(event)) { // TODO: isModifierEvent helper func
-                onClose();
-                // }
-              },
-              templates: {
-                header() {
-                  return 'Test title';
-                },
-              },
+              // templates: {
+              //   header() {
+              //     return 'Test title';
+              //   },
+              // },
             },
           ];
         },
@@ -264,7 +271,7 @@ export function SearchModal({
     [
       indexName,
       indexTitle,
-      // searchParameters,
+      searchParameters,
       searchClient,
       onClose,
       recentSearches,
@@ -322,10 +329,12 @@ export function SearchModal({
             translations={screenStateTranslations}
             getMissingResultsUrl={getMissingResultsUrl}
             onItemClick={(item, event) => {
+              console.log('ON ITEM CLICK: ', item);
               saveRecentSearch(item);
-              // if (!isModifierEvent(event)) {
-              //   onClose();
-              // }
+              if (onSelect) onSelect(item);
+              if (!isModifierEvent(event)) {
+                onClose();
+              }
             }}
           />
         </DialogContent>

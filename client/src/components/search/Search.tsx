@@ -9,7 +9,6 @@ import {
   DialogActions,
   DialogProps,
   GlobalStyles,
-  Typography,
   alpha,
 } from '@mui/material';
 import type { AutocompleteState, AutocompleteOptions } from '@algolia/autocomplete-core';
@@ -17,7 +16,7 @@ import type { SearchOptions } from '@algolia/client-search';
 import type { SearchClient } from 'algoliasearch/lite';
 
 import type { DocSearchHit, InternalDocSearchHit, StoredDocSearchHit } from 'common';
-import { SearchButton } from './SearchButton';
+import { ButtonTranslations, SearchButton } from './SearchButton';
 import { SearchModal } from './SearchModal';
 import { useChangeTheme } from 'modules/components';
 import { useAlgoliaSearchKey, useDocSearchKeyboardEvents } from 'hooks';
@@ -25,6 +24,9 @@ import { GeoSearch } from './GeoSearch';
 
 const FADE_DURATION = 100;
 
+interface Translations {
+  button: ButtonTranslations;
+}
 export interface SearchProps {
   appId: string;
   apiKey: string;
@@ -44,10 +46,12 @@ export interface SearchProps {
   disableUserPersonalization?: boolean;
   // initialQuery?: string;
   navigator?: AutocompleteOptions<InternalDocSearchHit>['navigator'];
-  // translations?: DocSearchTranslations;
+  translations?: Partial<Translations>; // DocSearchTranslations;
   getMissingResultsUrl?: ({ query }: { query: string }) => string;
   maxWidth?: DialogProps['maxWidth'];
   fullWidth?: DialogProps['fullWidth'];
+  // optionally handle Selected item (searching agents)
+  onSelect?: (item: any) => void;
 }
 
 export function Search({ maxWidth = 'sm', fullWidth = true, ...props }: SearchProps) {
@@ -94,7 +98,7 @@ export function Search({ maxWidth = 'sm', fullWidth = true, ...props }: SearchPr
     <>
       <SearchButton
         ref={searchButtonRef}
-        // translations={props?.translations?.button}
+        translations={props?.translations?.button}
         onClick={onOpen}
       />
       <Dialog
@@ -393,26 +397,61 @@ export function TempWrappedSearch() {
     throw new Error('missing algolia appID in env variables');
   }
 
+  // const handleOnSelect = useCallback((item: any) => {
+  //   console.log('SELECTED: ', item);
+  // }, []);
+
   if (!apiKey) return null;
 
   return (
     <>
       <Box sx={{ pb: 3 }}>
-        <Typography variant='subtitle2' gutterBottom>
-          Single index implementation
-        </Typography>
         <Search
           appId={process.env.REACT_APP_ALGOLIA_APP_ID as string}
-          // apiKey={process.env.REACT_APP_ALGOLIA_SEARCH_KEY as string}
           apiKey={apiKey}
           indexName='local_idemand_search'
           indexTitle='All Records'
           placeholder='Search...'
+          // searchParameters={{
+          //   filters: 'collectionName:users',
+          // }}
+          // hitComponent={OnSelectHit}
+          // onSelect={handleOnSelect}
         />
       </Box>
       <div style={{ height: '500px', width: '100%' }}>
         <GeoSearch />
       </div>
     </>
+  );
+}
+
+export function TempAgentSearch({ onSelect }: { onSelect: (item: any) => void }) {
+  // TODO: return loading state
+  const apiKey = useAlgoliaSearchKey();
+
+  if (!process.env.REACT_APP_ALGOLIA_APP_ID) {
+    throw new Error('missing algolia appID in env variables');
+  }
+
+  // const handleSelected = useCallback((item: any) => {
+  //   console.log('SELECTED: ', item);
+  // }, []);
+
+  if (!apiKey) return null;
+
+  return (
+    <Search
+      appId={process.env.REACT_APP_ALGOLIA_APP_ID as string}
+      apiKey={apiKey}
+      indexName='local_idemand_search'
+      indexTitle='Agents'
+      placeholder='Search Agent...'
+      searchParameters={{
+        filters: 'collectionName:users',
+      }}
+      // hitComponent={OnSelectHit}
+      onSelect={onSelect}
+    />
   );
 }

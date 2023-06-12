@@ -1,14 +1,14 @@
 import { useCallback, useRef, useState } from 'react';
+import { useFirestore, useSigninCheck } from 'reactfire';
+import { getDocs, limit, query, where } from 'firebase/firestore';
+import { Form, Formik, FormikProps } from 'formik';
+import { Box, CircularProgress, InputAdornment } from '@mui/material';
 import * as yup from 'yup';
 
 import { User, WithId, emailVal, usersCollection } from 'common';
 import { ConfirmationDialog } from 'components';
 import { CUSTOM_CLAIMS, ConfirmationOptions, useConfirmation } from 'modules/components';
-import { Form, Formik, FormikProps } from 'formik';
-import { Box, CircularProgress, InputAdornment } from '@mui/material';
 import { FormikTextField } from 'components/forms';
-import { useFirestore, useSigninCheck } from 'reactfire';
-import { getDocs, limit, query, where } from 'firebase/firestore';
 
 // TODO: permissions
 // TODO: generalize search component  - search algolia

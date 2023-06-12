@@ -25,7 +25,7 @@ import {
 import * as yup from 'yup';
 import { add } from 'date-fns';
 import { isEmpty, merge, omit, round } from 'lodash';
-import { doc, updateDoc } from 'firebase/firestore';
+import { Firestore, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { useFirestore } from 'reactfire';
 import { useNavigate, useParams } from 'react-router-dom';
 import invariant from 'tiny-invariant';
@@ -42,7 +42,7 @@ import {
   PhoneMask,
   IMask,
 } from 'components/forms';
-import { AddressStep, LimitsStep } from 'elements';
+import { AddressStep, FormikAddressLite, LimitsStep } from 'elements';
 import {
   addressValidation,
   agencyValidation,
@@ -81,12 +81,23 @@ import {
   ValueByRiskType,
   WithId,
   User,
+  orgsCollection,
+  Organization,
 } from 'common';
 import { ShowRatingDialog } from './SubmissionView';
 import { RatingInputsWithAAL } from 'hooks/useRateQuote';
 import { useGetAgentDetails } from 'hooks/useGetAgentDetails';
+import { TempAgentSearch } from 'components/search/Search';
 
 // TODO: standardize fee type names in enum
+
+async function getOrg(firestore: Firestore, orgId: string) {
+  const orgRef = doc(orgsCollection(firestore), orgId);
+  const orgSnap = await getDoc(orgRef);
+  const org = orgSnap.data();
+  if (!org) throw new Error(`Org not found (ID: ${orgId})`);
+  return org;
+}
 
 const gridProps = {
   columnSpacing: { xs: 3, sm: 4, md: 6 },
@@ -441,30 +452,35 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
     }
   }, [toast]);
 
-  const handleSetAgent = useCallback((agent: WithId<User>) => {
-    // toast.success(`User found: ${agent.displayName}`);
-    const setFieldValue = formikRef.current?.setFieldValue;
-    if (!setFieldValue) return;
-    const agentFloodComm = agent.defaultCommission?.flood;
-    if (agentFloodComm)
-      setFieldValue(
-        'subproducerCommission',
-        agentFloodComm || formikRef.current?.values?.subproducerCommission
-      );
-    setFieldValue('agent.name', agent.displayName || '');
-    setFieldValue('agent.email', agent.email || '');
-    setFieldValue('agent.phone', agent.phone || '');
-    setFieldValue('agent.userId', agent.id || ''); // @ts-ignore
-    setFieldValue('agency.name', agent.orgName || '');
-    setFieldValue('agency.orgId', agent.orgId || ''); // @ts-ignore
-    setFieldValue('agency.address.addressLine1', agent.address?.addressLine1 || ''); // @ts-ignore
-    setFieldValue('agency.address.addressLine2', agent.address?.addressLine1 || ''); // @ts-ignore
-    setFieldValue('agency.address.city', agent.address?.city || ''); // @ts-ignore
-    setFieldValue('agency.address.state', agent.address?.state || ''); // @ts-ignore
-    setFieldValue('agency.address.postal', agent.address?.postal || '');
-  }, []);
+  const handleSetAgent = useCallback(
+    (agent: WithId<User>) => {
+      // toast.success(`User found: ${agent.displayName}`);
+      const setFieldValue = formikRef.current?.setFieldValue;
+      if (!setFieldValue) return;
+      const agentFloodComm = agent.defaultCommission?.flood;
+      if (agentFloodComm)
+        setFieldValue(
+          'subproducerCommission',
+          agentFloodComm || formikRef.current?.values?.subproducerCommission
+        );
+      setFieldValue('agent.name', agent.displayName || '');
+      setFieldValue('agent.email', agent.email || '');
+      setFieldValue('agent.phone', agent.phone || '');
+      setFieldValue('agent.userId', agent.id || ''); // @ts-ignore
+      setFieldValue('agency.name', agent.orgName || '');
+      setFieldValue('agency.orgId', agent.orgId || ''); // @ts-ignore
+      setFieldValue('agency.address.addressLine1', agent.address?.addressLine1 || ''); // @ts-ignore
+      setFieldValue('agency.address.addressLine2', agent.address?.addressLine1 || ''); // @ts-ignore
+      setFieldValue('agency.address.city', agent.address?.city || ''); // @ts-ignore
+      setFieldValue('agency.address.state', agent.address?.state || ''); // @ts-ignore
+      setFieldValue('agency.address.postal', agent.address?.postal || '');
 
-  const handleSetAgentError = useCallback((msg: string) => console.log(msg), []);
+      toast.success(`Setting agent to ${agent.email}`);
+    },
+    [toast]
+  );
+
+  const handleSetAgentError = useCallback((msg: string) => toast.error(msg), [toast]);
 
   const { searchAgent } = useGetAgentDetails(handleSetAgent, handleSetAgentError);
 
@@ -474,21 +490,103 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
     console.log('AGENT DETAILS: ', agentDetails);
   }, [searchAgent]);
 
-  const setIDemand = useCallback(() => {
-    const setFieldValue = formikRef.current?.setFieldValue;
-    if (!setFieldValue) return;
-    setFieldValue('agent.name', 'Ron Carlson');
-    setFieldValue('agent.email', 'ron.carlson@idemandinsurance.com');
-    setFieldValue('agent.phone', '+16159889300');
-    setFieldValue('agent.userId', 'TODO');
-    setFieldValue('agency.name', 'iDemand Insurance Agency, Inc.');
-    setFieldValue('agency.orgId', 'idemand');
-    setFieldValue('agency.address.addressLine1', '6019 Pine Ridge Rd.');
-    setFieldValue('agency.address.addressLine2', 'Suite 401');
-    setFieldValue('agency.address.city', 'Naples');
-    setFieldValue('agency.address.state', 'FL');
-    setFieldValue('agency.address.postal', '34119');
-  }, []);
+  const setAgent = useCallback(
+    (userId: string | null, name: string | null, email: string | null, phone: string | null) => {
+      const setFieldValue = formikRef.current?.setFieldValue;
+      if (!setFieldValue) return toast.error('Missing formik ref');
+
+      setFieldValue('agent.name', name || '');
+      setFieldValue('agent.email', email || '');
+      setFieldValue('agent.phone', phone || '');
+      setFieldValue('agent.userId', userId || '');
+    },
+    [toast]
+  );
+
+  const setAgency = useCallback(
+    (orgId: string | null, orgName: string | null, address?: Nullable<Address>) => {
+      const setFieldValue = formikRef.current?.setFieldValue;
+      if (!setFieldValue) return toast.error('Missing formik ref');
+
+      setFieldValue('agency.name', orgName || '');
+      setFieldValue('agency.orgId', orgId || '');
+      setFieldValue('agency.address.addressLine1', address?.addressLine1 || '');
+      setFieldValue('agency.address.addressLine2', address?.addressLine2 || '');
+      setFieldValue('agency.address.city', address?.city || '');
+      setFieldValue('agency.address.state', address?.state || '');
+      setFieldValue('agency.address.postal', address?.postal || '');
+    },
+    [toast]
+  );
+  // setAgency('idemand', 'iDemand Insurance Agency, Inc.', iDAddress);
+  // const iDAddress = {
+  //   addressLine1: '6019 Pine Ridge Rd.',
+  //   addressLine2: 'Suite 401',
+  //   city: 'Naples',
+  //   state: 'FL',
+  //   postal: '34119',
+  // };
+
+  const setIDemand = useCallback(async () => {
+    setAgent('TODO', 'Ron Carlson', 'ron.carlson@idemandinsurance.com', '+16159889300');
+
+    try {
+      const org = await getOrg(firestore, 'idemand');
+      console.log('SETTING ORG: ', org);
+      setAgency('idemand', org.orgName, org.address);
+    } catch (err: any) {
+      let msg = `Error fetching org`;
+      if (err?.message) msg += err.message;
+      toast.error(msg);
+    }
+  }, [firestore, toast, setAgent, setAgency]);
+
+  const setSubComm = useCallback(
+    (agent?: User, org?: Organization) => {
+      const setFieldValue = formikRef.current?.setFieldValue;
+      if (!setFieldValue) return toast.error('form error - missing formik ref');
+
+      const newComm = agent?.defaultCommission?.flood ?? org?.defaultCommission?.flood;
+      if (newComm) return setFieldValue('subproducerCommission', newComm);
+    },
+    [toast]
+  );
+
+  const handleAgentSelected = useCallback(
+    async (agentUser: User & { objectID: string }) => {
+      console.log('AGENT USER: ', agentUser);
+      const setFieldValue = formikRef.current?.setFieldValue;
+      if (!setFieldValue) return toast.error('form error - missing formik ref');
+
+      setAgent(
+        agentUser.objectID,
+        agentUser.displayName || null,
+        agentUser.email || null,
+        agentUser.phone || null
+      );
+
+      try {
+        const orgId = agentUser.orgId;
+        if (!orgId) {
+          toast.error(`warning: user missing orgId`);
+        } else {
+          const org = await getOrg(firestore, orgId);
+          console.log('SETTING ORG: ', org);
+          setAgency(orgId, org.orgName, org.address);
+
+          const agentFloodComm = agentUser.defaultCommission?.flood;
+          if (agentFloodComm) {
+            setFieldValue('subproducerCommission', agentFloodComm);
+          }
+        }
+      } catch (err: any) {
+        let msg = `Error fetching org`;
+        if (err?.message) msg += ` (${err.message})`;
+        toast.error(msg);
+      }
+    },
+    [firestore, toast, setAgent, setAgency]
+  );
 
   const menuItems = useMemo(
     () => [
@@ -1213,17 +1311,10 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                 >
                   Find agent
                 </Button>
-                {/* 
-                <Button
-                  variant='outlined'
-                  size='small'
-                  onClick={() =>
-                    alert('TODO: implement search agencies (or implement search / autocomplete)')
-                  }
-                  sx={{ ml: 4 }}
-                >
-                  Find agency
-                </Button> */}
+                <TempAgentSearch
+                  onSelect={handleAgentSelected}
+                  // translations={{ button: { buttonText: 'Find Agent', buttonAriaLabel: 'Find Agent' } }}
+                />
               </Grid>
               <Grid xs={6} sm={3}>
                 <FormikTextField name='agent.name' label='Agent name' fullWidth />
@@ -1249,6 +1340,23 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
               </Grid>
               <Grid xs={6} sm={3}>
                 <FormikTextField name='agency.orgId' label='Agency ID' fullWidth />
+              </Grid>
+              <Grid xs={12} sm={6}>
+                <FormikAddressLite
+                  names={{
+                    addressLine1: 'agency.address.addressLine1',
+                    addressLine2: 'agency.address.addressLine2',
+                    city: 'agency.address.city',
+                    state: 'agency.address.state',
+                    postal: 'agency.address.postal',
+                  }}
+                  autocompleteProps={{
+                    name: 'agency.address.addressLine1',
+                    textFieldProps: {
+                      label: 'Agency Address',
+                    },
+                  }}
+                />
               </Grid>
               <Grid xs={12}>
                 <Divider sx={{ my: 3 }} />

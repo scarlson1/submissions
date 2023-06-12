@@ -25,7 +25,7 @@ export { VirtualizedAutocomplete } from './VirtualizedAutocomplete';
 export { RHFTextField } from './RHFTextField';
 export { RHFFieldArray } from './RHFFieldArray';
 export { TooltipToggleButton } from './TooltipToggleButton';
-// export {  } from './';
+export { PostalMask } from './PostalMask';
 // export {  } from './';
 // export {  } from './';
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from '@mui/material';
+import { Box, Link } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 
 import { COLLECTIONS, InternalDocSearchHit, StoredDocSearchHit } from 'common';
@@ -11,21 +11,8 @@ interface HitProps {
 }
 
 export function Hit({ hit, children }: HitProps) {
-  // console.log('HIT: ', hit);
   const url = hit.url || getURLByType(hit);
 
-  // console.log('HIT URL: ', url);
-
-  // function renderChip(type: string) {
-  //   // if (!pathname.match(/^\/(material-ui|joy-ui|base)\//)) {
-  //   if (!type.match(/^\/(policy|quote|user|submission|task)\//)) {
-  //     return null;
-  //   }
-  //   // TODO: extact text from url ?? see example below
-  //   return <Chip label={type} variant='outlined' size='small' sx={{ ml: 2 }} />;
-  // }
-
-  // return <a href={url}>{children}</a>;
   return (
     <Link
       component={RouterLink}
@@ -65,6 +52,19 @@ export function getURLByType(item: any) {
   }
   // TODO: finish getUrl func
   return url;
+}
+
+export function OnSelectHit({ hit, children }: HitProps) {
+  // console.log('HIT: ', hit);
+
+  // const handleSelect = React.useCallback((selectedHit: any) => {
+  //   console.log('SELECTED HIT: ', hit);
+  // }, []);
+
+  return (
+    // <Box onClick={() => handleSelect(hit)} sx={{ width: '100%' }}>
+    <Box sx={{ width: '100%' }}>{children}</Box>
+  );
 }
 
 // https://github.com/mui/material-ui/blob/master/docs/src/modules/components/AppSearch.js#L24

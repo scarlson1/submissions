@@ -3,10 +3,11 @@ import { useFunctions } from 'reactfire';
 
 import { useLocalStorage } from './useLocalStorage';
 import { generateSearchKey } from 'modules/api';
+import { LOCAL_STORAGE } from 'common';
 
-export function useAlgoliaSearchKey() {
+export function useAlgoliaSearchKey(filters?: string) {
   const functions = useFunctions();
-  const [apiKey, setApiKey] = useLocalStorage<string>('userSearchKey');
+  const [apiKey, setApiKey] = useLocalStorage<string>(LOCAL_STORAGE.USER_SEARCH_KEY);
 
   // TODO: move loading var outside useEffect ??
   useEffect(() => {
@@ -17,7 +18,7 @@ export function useAlgoliaSearchKey() {
       // && !keyFetched
       // keyFetched = true;
       loading = true;
-      console.log('NO SEARCH KEY FOUND. FETCHING NEW KEY...');
+      console.log('FETCHING NEW SEARCH KEY...');
       generateSearchKey(functions)
         .then(({ data }) => {
           if (data && data.key) {

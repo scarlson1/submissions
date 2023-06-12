@@ -18,9 +18,12 @@ import { useFormikContext } from 'formik';
 
 import {
   AddressAutocomplete,
+  AddressAutocompleteProps,
+  FormikMaskField,
   FormikNativeSelect,
   FormikTextField,
   NewAddress,
+  PostalMask,
 } from 'components/forms';
 import { findAddressValueByType } from 'modules/utils/helpers';
 import { AddressFieldNames } from './FormikAddress';
@@ -44,15 +47,17 @@ const DEFAULT_FIELD_NAMES = {
 export interface FormikAddressLiteProps {
   cb?: (coords: { lat: number | null; lng: number | null }, state?: string) => void;
   textFieldProps?: TextFieldProps;
-  autocompleteTextFieldProps?: TextFieldProps;
-  names?: AddressFieldNames;
+  // autocompleteTextFieldProps?: TextFieldProps;
+  autocompleteProps?: Omit<AddressAutocompleteProps, 'resetFields' | 'handleSelection'>;
+  names?: Partial<AddressFieldNames>;
   title?: string;
 }
 
 export const FormikAddressLite: React.FC<FormikAddressLiteProps> = ({
   cb,
   textFieldProps,
-  autocompleteTextFieldProps,
+  autocompleteProps,
+  // autocompleteTextFieldProps,
   names = DEFAULT_FIELD_NAMES,
   title = 'Address Details',
 }) => {
@@ -69,17 +74,19 @@ export const FormikAddressLite: React.FC<FormikAddressLiteProps> = ({
     const newState = findAddressValueByType(address_components, 'administrative_area_level_1');
     const newPostal = findAddressValueByType(address_components, 'postal_code');
 
-    setFieldValue(
-      names.addressLine1,
-      `${newStreetNumber?.long_name || ''} ${newStreetName?.long_name || ''}`.trim()
-    );
-    setFieldValue(names.addressLine2, '');
-    setFieldValue(names.city, `${newCity?.long_name || ''}`);
-    setFieldValue(names.county, `${newCounty?.long_name || ''}`);
-    setFieldValue(names.state, `${newState?.short_name || ''}`);
-    setFieldValue(names.postal, `${newPostal?.long_name || ''}`);
-    setFieldValue(names.latitude, geometry?.location.lat() ?? null);
-    setFieldValue(names.longitude, geometry?.location.lng() ?? null);
+    names.addressLine1 &&
+      setFieldValue(
+        names.addressLine1,
+        `${newStreetNumber?.long_name || ''} ${newStreetName?.long_name || ''}`.trim()
+      );
+    names.addressLine2 && setFieldValue(names.addressLine2, '');
+    names.city && setFieldValue(names.city, `${newCity?.long_name || ''}`);
+    names.county && setFieldValue(names.county, `${newCounty?.long_name || ''}`);
+    names.state && setFieldValue(names.state, `${newState?.short_name || ''}`);
+    names.postal && setFieldValue(names.postal, `${newPostal?.long_name || ''}`);
+    names.county && setFieldValue(names.county, `${newPostal?.long_name || ''}`);
+    names.latitude && setFieldValue(names.latitude, geometry?.location.lat() ?? null);
+    names.longitude && setFieldValue(names.longitude, geometry?.location.lng() ?? null);
 
     if (cb) {
       cb({ lat: geometry?.location.lat(), lng: geometry?.location.lng() }, newState?.short_name);
@@ -89,13 +96,13 @@ export const FormikAddressLite: React.FC<FormikAddressLiteProps> = ({
   };
 
   const handleClearAutocomplete = () => {
-    setFieldValue(names.addressLine2, '');
-    setFieldValue(names.city, '');
-    setFieldValue(names.state, '');
-    setFieldValue(names.postal, '');
-    setFieldValue(names.county, '');
-    setFieldValue(names.latitude, '');
-    setFieldValue(names.longitude, '');
+    names.addressLine2 && setFieldValue(names.addressLine2, '');
+    names.city && setFieldValue(names.city, '');
+    names.state && setFieldValue(names.state, '');
+    names.postal && setFieldValue(names.postal, '');
+    names.county && setFieldValue(names.county, '');
+    names.latitude && setFieldValue(names.latitude, '');
+    names.longitude && setFieldValue(names.longitude, '');
   };
 
   const handleEdit = useCallback(() => {
@@ -111,9 +118,12 @@ export const FormikAddressLite: React.FC<FormikAddressLiteProps> = ({
         name={names.addressLine1}
         handleSelection={handleAddressSelection}
         resetFields={handleClearAutocomplete}
+        {...autocompleteProps}
+        // textFieldProps={{ ...textFieldProps, ...(autocompleteProps?.textFieldProps || {}) }}
         textFieldProps={{
           ...textFieldProps,
-          ...autocompleteTextFieldProps,
+          ...(autocompleteProps?.textFieldProps || {}),
+          // ...autocompleteTextFieldProps,
           InputProps: {
             endAdornment: (
               <InputAdornment position='end'>
@@ -155,33 +165,54 @@ export const FormikAddressLite: React.FC<FormikAddressLiteProps> = ({
         </DialogTitle>
         <DialogContent dividers sx={{ py: 5 }}>
           <Grid container rowSpacing={3} columnSpacing={4}>
-            <Grid xs={9}>
-              <FormikTextField name={names.addressLine1} label='Address Line 1' fullWidth />
-            </Grid>
-            <Grid xs={3}>
-              <FormikTextField name={names.addressLine2} label='Suite' fullWidth />
-            </Grid>
-            <Grid xs={6}>
-              <FormikTextField name={names.city} label='City' fullWidth />
-            </Grid>
-            <Grid xs={6}>
-              <FormikNativeSelect
-                name={names.state}
-                label='State'
-                fullWidth
-                selectOptions={statesAbrvSelectOptions}
-              />
-            </Grid>
-            <Grid xs={6}>
-              <FormikTextField name={names.postal} label='Postal' fullWidth />
-            </Grid>
-            <Grid xs></Grid>
-            <Grid xs={6}>
-              <FormikTextField name={names.latitude} label='Latitude' fullWidth />
-            </Grid>
-            <Grid xs={6}>
-              <FormikTextField name={names.longitude} label='Longitude' fullWidth />
-            </Grid>
+            {names.addressLine1 && (
+              <Grid xs={9}>
+                <FormikTextField name={names.addressLine1} label='Address Line 1' fullWidth />
+              </Grid>
+            )}
+            {names.addressLine2 && (
+              <Grid xs={3}>
+                <FormikTextField name={names.addressLine2} label='Suite' fullWidth />
+              </Grid>
+            )}
+            {names.city && (
+              <Grid xs={6}>
+                <FormikTextField name={names.city} label='City' fullWidth />
+              </Grid>
+            )}
+            {names.state && (
+              <Grid xs={6}>
+                <FormikNativeSelect
+                  name={names.state}
+                  label='State'
+                  fullWidth
+                  selectOptions={statesAbrvSelectOptions}
+                />
+              </Grid>
+            )}
+            {names.postal && (
+              <Grid xs={6}>
+                {/* <FormikTextField name={names.postal} label='Postal' fullWidth /> */}
+                <FormikMaskField
+                  id={names.postal}
+                  name={names.postal}
+                  label='Postal'
+                  fullWidth
+                  maskComponent={PostalMask}
+                />
+              </Grid>
+            )}
+            {names.latitude && names.longitude ? (
+              <>
+                <Grid xs></Grid>
+                <Grid xs={6}>
+                  <FormikTextField name={names.latitude} label='Latitude' fullWidth />
+                </Grid>
+                <Grid xs={6}>
+                  <FormikTextField name={names.longitude} label='Longitude' fullWidth />
+                </Grid>
+              </>
+            ) : null}
           </Grid>
         </DialogContent>
         <DialogActions sx={{ display: { xs: 'none', sm: 'flex' } }}>

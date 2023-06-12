@@ -739,7 +739,8 @@ export interface Organization extends BaseDoc {
   accountNumber?: string;
   routingNumber?: string;
   status: 'active' | 'inactive' | string; // 'TODO' | 'COPY' | 'FROM' | 'OTHER' | 'APP'; // AgencyStatus;
-  defaultCommission: { [key in PRODUCT]: number };
+  defaultCommission: DefaultCommission;
+  authProviders: AuthProviders[];
   // metadata: BaseMetadata;
 }
 

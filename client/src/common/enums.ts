@@ -105,6 +105,10 @@ export enum DEDUCTIBLE_OPTIONS {
   abs = 'absolute',
 }
 
+export enum LOCAL_STORAGE {
+  USER_SEARCH_KEY = 'userSearchKey',
+}
+
 export enum STATE_ABBREVIATION {
   AL = 'AL',
   AK = 'AK',

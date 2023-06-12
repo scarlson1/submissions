@@ -17,7 +17,7 @@ import { setUser as setSentryUser } from '@sentry/react';
 // import { filter } from 'rxjs/operators';
 
 import { userClaimsCollection } from 'common/firestoreCollections';
-import { UserClaims } from 'common';
+import { LOCAL_STORAGE, UserClaims } from 'common';
 import { ReauthDialog } from 'components';
 
 // TODO: refactor to use rxFire observables ?? https://firebase.blog/posts/2018/09/introducing-rxfire-easy-async-firebase
@@ -171,7 +171,7 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
           auth.tenantId = null;
           setSentryUser(null);
         }
-        localStorage.removeItem('userSearchKey');
+        localStorage.removeItem(LOCAL_STORAGE.USER_SEARCH_KEY);
 
         setLoading(false);
         setLoadingInitial(false);

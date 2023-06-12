@@ -29,6 +29,9 @@ export const emailVal = yup.string().test('valid-email', 'Invalid email', async 
   return true;
 });
 
+export const postalRegEx = /^[0-9]{5}(?:-[0-9]{4})?/;
+export const postalVal = yup.string().matches(postalRegEx, 'postal code invalid');
+
 // export const isAvailableState = yup.string().oneOf(ACTIVE_STATES_ABRV);
 
 export const addressValidation = yup.object().shape({
@@ -36,7 +39,7 @@ export const addressValidation = yup.object().shape({
   addressLine2: yup.string().notRequired(),
   city: yup.string().required('city is required'),
   state: yup.string().required('state is required').oneOf(statesArr, 'state required'),
-  postal: yup.string().required('postal code is required'),
+  postal: postalVal.required('postal code is required'), // yup.string().required('postal code is required'),
 });
 
 export const validateActiveState = (activeStates: { [key: string]: boolean }) =>
