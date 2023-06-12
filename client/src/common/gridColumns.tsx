@@ -61,12 +61,6 @@ export const idCol: GridColDef = {
   field: 'id',
   headerName: 'ID',
   ...copyBaseProps,
-  // flex: 1,
-  // minWidth: 200,
-  // editable: false,
-  // renderCell: (params: GridRenderCellParams<any, any, any>) => {
-  //   return <GridCellCopy value={params.value} />;
-  // },
 };
 
 export const emailCol: GridColDef = {
@@ -75,7 +69,8 @@ export const emailCol: GridColDef = {
   flex: 1,
   minWidth: 220,
   editable: false,
-  renderCell: (params: GridRenderCellParams<any, any, any>) => renderGridEmail(params),
+  renderCell: (params) => renderGridEmail(params),
+  // renderCell: (params: GridRenderCellParams<any, any, any>) => renderGridEmail(params),
 };
 
 export const phoneCol: GridColDef = {
@@ -91,7 +86,7 @@ export const firstNameCol: GridColDef = {
   field: 'firstName',
   headerName: 'First Name',
   flex: 0.8,
-  minWidth: 120,
+  minWidth: 140,
   editable: false,
 };
 
@@ -151,6 +146,13 @@ export const orgNameCol: GridColDef = {
       </Typography>
     );
   },
+};
+
+export const agencyNameCol: GridColDef = {
+  ...orgNameCol,
+  field: 'agency.name',
+  headerName: 'Agency',
+  valueGetter: (params) => params.row.agency?.name || null,
 };
 
 export const orgIdCol: GridColDef = {
@@ -274,55 +276,55 @@ export const countyCol: GridColDef = {
 export const fipsCol: GridColDef = {
   field: 'countyFIPS',
   headerName: 'FIPS',
-  minWidth: 120,
+  minWidth: 80,
   flex: 1,
   editable: false,
 };
 
 export const addrLine1Col: GridColDef = {
   ...address1Col,
-  // field: 'address.addressLine1',
+  field: 'address.addressLine1',
   valueGetter: (params: GridValueGetterParams<any, any>) =>
     getGridAddressComponent(params, 'addressLine1'),
 };
 
 export const addrLine2Col: GridColDef = {
   ...address2Col,
-  // field: 'address.addressLine2',
+  field: 'address.addressLine2',
   valueGetter: (params: GridValueGetterParams<any, any>) =>
     getGridAddressComponent(params, 'addressLine2'),
 };
 
 export const addrCityCol: GridColDef = {
   ...cityCol,
-  // field: 'address.city',
+  field: 'address.city',
   valueGetter: (params: GridValueGetterParams<any, any>) => getGridAddressComponent(params, 'city'),
 };
 
 export const addrStateCol: GridColDef = {
   ...stateCol,
-  // field: 'address.state',
+  field: 'address.state',
   valueGetter: (params: GridValueGetterParams<any, any>) =>
     getGridAddressComponent(params, 'state'),
 };
 
 export const addrPostalCol: GridColDef = {
   ...postalCol,
-  // field: 'address.postal',
+  field: 'address.postal',
   valueGetter: (params: GridValueGetterParams<any, any>) =>
     getGridAddressComponent(params, 'postal'),
 };
 
 export const addrCountyCol: GridColDef = {
   ...countyCol,
-  // field: 'address.countyName',
+  field: 'address.countyName',
   valueGetter: (params: GridValueGetterParams<any, any>) =>
     getGridAddressComponent(params, 'countyName'),
 };
 
 export const addrFIPSCol: GridColDef = {
   ...fipsCol,
-  // field: 'address.countyFIPS',
+  field: 'address.countyFIPS',
   valueGetter: (params: GridValueGetterParams<any, any>) =>
     getGridAddressComponent(params, 'countyFIPS'),
 };
@@ -626,21 +628,29 @@ export const namedInsuredDisplayNameCol: GridColDef = {
 };
 
 export const namedInsuredFirstNameCol: GridColDef = {
-  field: 'insured.lastName',
-  headerName: 'Last Name',
-  minWidth: 140,
-  flex: 1,
-  editable: false,
-  valueGetter: (params: GridValueGetterParams) => params.row.namedInsured?.lastName || null,
+  ...firstNameCol,
+  field: 'namedInsured.firstname', // 'insured.firstName',
+  valueGetter: (params: GridValueGetterParams) => params.row.namedInsured?.firstName || null,
 };
 
 export const namedInsuredLastNameCol: GridColDef = {
-  field: 'insured.firstName',
-  headerName: 'First Name',
-  minWidth: 140,
-  flex: 1,
-  editable: false,
-  valueGetter: (params: GridValueGetterParams) => params.row.namedInsured?.firstName || null,
+  ...lastNameCol,
+  field: 'namedInsured.lastName',
+  valueGetter: (params: GridValueGetterParams) => params.row.namedInsured?.lastName || null,
+};
+
+export const namedInsuredEmailCol: GridColDef = {
+  ...emailCol,
+  field: 'namedInsured.email',
+  headerName: 'Insured Email',
+  valueGetter: (params: GridValueGetterParams) => params.row.namedInsured?.email || null,
+};
+
+export const namedInsuredPhoneCol: GridColDef = {
+  ...phoneCol,
+  field: 'namedInsured.phone',
+  headerName: 'Insured Phone',
+  valueGetter: (params: GridValueGetterParams) => params.row.namedInsured?.phone || null,
 };
 
 export const replacementCostCol: GridColDef = {
@@ -780,7 +790,7 @@ export const ratingDataCBRSCol: GridColDef = {
 export const floodZoneCol: GridColDef = {
   field: 'floodZone',
   headerName: 'Flood Zone',
-  minWidth: 140,
+  minWidth: 100,
   flex: 0.8,
   headerAlign: 'center',
   align: 'right',
@@ -882,6 +892,18 @@ export const annualPremiumCol: GridColDef = {
   headerName: 'Annual Premium',
   description: 'Annual premium before taxes and fees',
   minWidth: 140,
+  flex: 0.8,
+  editable: false,
+  headerAlign: 'center',
+  align: 'right',
+  valueFormatter: formatGridCurrency,
+};
+
+// TODO: delete termPremium ?? same as annual ?? or term is pro-rated ??
+export const termPremiumCol: GridColDef = {
+  field: 'termPremium',
+  headerName: 'Term Premium',
+  minWidth: 120,
   flex: 0.8,
   editable: false,
   headerAlign: 'center',

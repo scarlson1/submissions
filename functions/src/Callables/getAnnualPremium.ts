@@ -213,8 +213,12 @@ export default async ({ data, auth }: CallableRequest<GetAnnualPremiumRequest>) 
 
   return {
     annualPremium: result.premiumData.directWrittenPremium,
-    inlandAAL,
-    surgeAAL,
+    AAL: {
+      inland: inlandAAL,
+      surge: surgeAAL,
+    },
+    // inlandAAL,
+    // surgeAAL,
   };
 };
 

@@ -134,6 +134,7 @@ export const AddressStep: React.FC<AddressStepProps> = ({
                   handleClick={(i, e) => {}}
                   statesValues={activeStates}
                   mapViewState={mapViewState}
+                  controller={{ scrollZoom: false, touchZoom: true }}
                 >
                   {showMarker && values.coordinates?.latitude && values.coordinates?.longitude && (
                     <Marker

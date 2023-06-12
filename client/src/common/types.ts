@@ -33,6 +33,10 @@ export type DeepNullable<T> = {
   [K in keyof T]: DeepNullable<T[K]> | null;
 };
 
+export type DeepNonNullable<T> = {
+  [K in keyof T]: DeepNonNullable<NonNullable<T[K]>>;
+};
+
 export type Optional<T> = { [K in keyof T]?: T[K] | undefined | null };
 
 export type Maybe<T> = T | null | undefined;

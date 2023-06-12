@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { FirebaseError } from 'firebase/app';
 import { addDoc, FirestoreError, GeoPoint, getFirestore, Timestamp } from 'firebase/firestore';
-import { useUser } from 'reactfire';
+import { useSigninCheck } from 'reactfire'; // useUser
 import invariant from 'tiny-invariant';
 import { round } from 'lodash';
 import * as geofire from 'geofire-common';
@@ -11,6 +11,7 @@ import { NewQuoteValues } from 'views/admin/QuoteNew';
 import { addToDate, extractNumber, readableFirebaseCode } from 'modules/utils/helpers';
 import { QUOTE_STATUS, Submission, Quote, submissionsQuotesCollection } from 'common';
 import { useSendQuoteNotification } from './useSendQuoteNotification';
+import { CUSTOM_CLAIMS } from 'modules/components';
 // const hash = geofire.geohashForLocation([lat, lng]);
 
 const CARD_FEE_RATE = 0.035;
@@ -20,7 +21,9 @@ export const useCreateQuote = (
   onStepSuccess?: (msg: string) => void,
   onError?: (msg: string, err: unknown) => void
 ) => {
-  const { data: user } = useUser();
+  const { data: signInCheckResult } = useSigninCheck({
+    requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true },
+  });
   const sendEmailNotifications = useSendQuoteNotification();
 
   const createQuote = useCallback(
@@ -29,8 +32,10 @@ export const useCreateQuote = (
       submissionId: string | null = null,
       submissionData: Submission | null = null
     ) => {
+      if (!signInCheckResult.hasRequiredClaims) throw new Error('Missing required permissions');
+
       try {
-        const quoteData = getFormattedQuote(values, user?.uid);
+        const quoteData = getFormattedQuote(values, signInCheckResult.user?.uid);
 
         const latitude = submissionData?.coordinates?.latitude;
         const longitude = submissionData?.coordinates?.longitude;
@@ -63,14 +68,18 @@ export const useCreateQuote = (
 
         if (onComplete) onComplete();
         return;
-      } catch (err) {
+      } catch (err: any) {
         console.log('ERROR CREATING QUOTE', err);
         let msg = 'Error creating quote';
-        if (err instanceof FirebaseError) msg += readableFirebaseCode(err as FirestoreError);
+
+        if (err instanceof FirebaseError) {
+          msg += readableFirebaseCode(err as FirestoreError);
+        } else if (err?.message) msg = err.message;
+
         if (onError) onError(msg, err);
       }
     },
-    [onStepSuccess, onComplete, onError, sendEmailNotifications, user]
+    [onStepSuccess, onComplete, onError, sendEmailNotifications, signInCheckResult]
   );
 
   return createQuote;
@@ -121,7 +130,7 @@ function getFormattedQuote(
   invariant(namedInsured?.email || agent?.email, 'Must have at least one email (insured or agent)');
 
   return {
-    product: 'flood',
+    product: 'flood', // TODO: pass as prop
     deductible: values.deductible,
     limits: {
       limitA: limits.limitA, // extractNumber(values.limitA),

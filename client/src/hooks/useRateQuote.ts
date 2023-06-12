@@ -4,7 +4,8 @@ import { useFunctions } from 'reactfire';
 import { getAnnualPremium } from 'modules/api';
 import { NewQuoteValues } from 'views/admin/QuoteNew';
 import { RatingInputs } from 'modules/api/getAnnualPremium';
-import { Optional } from 'common';
+import invariant from 'tiny-invariant';
+import { validateCommonInputs } from './useCalcPremium';
 
 export interface RatingInputsWithAAL extends RatingInputs {
   inlandAAL: number | null;
@@ -13,7 +14,7 @@ export interface RatingInputsWithAAL extends RatingInputs {
 
 export function extractRatingInputsFromValues(values: NewQuoteValues): RatingInputs {
   const { coordinates, limits, deductible, priorLossCount, address, ratingPropertyData } = values;
-  console.log('VALUES: ', values);
+  console.log('EXTRACTING RATING DATA FROM VALUES: ', values);
 
   let subproducerCommission =
     typeof values.subproducerCommission === 'string'
@@ -28,48 +29,60 @@ export function extractRatingInputsFromValues(values: NewQuoteValues): RatingInp
   return {
     latitude: coordinates?.latitude as number,
     longitude: coordinates?.longitude as number,
-    replacementCost: ratingPropertyData.replacementCost as number,
+    replacementCost: ratingPropertyData?.replacementCost as number,
     ...limits,
     deductible,
     numStories: numStories || 1,
     state: address?.state,
     priorLossCount,
-    floodZone: ratingPropertyData.floodZone || undefined,
-    basement: ratingPropertyData.basement?.toLowerCase() || undefined,
+    floodZone: ratingPropertyData?.floodZone, // || undefined,
+    basement: ratingPropertyData?.basement?.toLowerCase(), // || undefined,
     commissionPct: subproducerCommission || 0.15, // TODO: use env var ??
   };
+}
+
+export function getValideRatingInputs(values: NewQuoteValues) {
+  // const { coordinates, ratingPropertyData, limits, address, subproducerCommission } = values;
+  // const { coordinates,  limits } = values;
+  const commValidated = validateCommonInputs(values);
+  const { coordinates } = commValidated;
+
+  invariant(coordinates?.latitude && coordinates?.longitude, 'coordinates required');
+
+  return extractRatingInputsFromValues(commValidated);
 }
 
 export const useRateQuote = (
   submissionId: string | null,
   onSuccess?: (premium: number, ratingInputs: RatingInputsWithAAL) => void,
-  onError?: (msg: string) => void,
-  initialRatingSnap?: Optional<RatingInputs>
+  onError?: (msg: string) => void
+  // initialRatingSnap?: Optional<RatingInputs>
 ) => {
   const functions = useFunctions();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [ratingInputsSnap, setRatingInputsSnap] = useState<Optional<RatingInputs> | undefined>(
-    initialRatingSnap
-  );
+  // TODO: delete ?? pass as prop - dup of state in QuoteNew
+  // pass rating inputs when function called
+  // const [ratingInputsSnap, setRatingInputsSnap] = useState<Optional<RatingInputs> | undefined>(
+  //   initialRatingSnap
+  // );
 
   const rerate = useCallback(
     async (values: NewQuoteValues) => {
-      if (
-        !values ||
-        !values.coordinates?.latitude ||
-        !values.coordinates?.longitude ||
-        !values.ratingPropertyData?.replacementCost
-      ) {
-        return setError('missing required values');
+      let ratingInputs;
+      try {
+        ratingInputs = getValideRatingInputs(values);
+      } catch (err: any) {
+        let msg = `missing required values`;
+        if (err?.message) msg = err.message.replace('Invariant failed: ', '');
+        if (onError) onError(msg);
+        return;
       }
+
       setError(null);
       setLoading(true);
 
-      console.log('VALUES: ', values);
       try {
-        const ratingInputs = extractRatingInputsFromValues(values);
-
         // TODO: return AAL res in AAL: { inland: 29384 } format
         const { data } = await getAnnualPremium(functions, { ...ratingInputs, submissionId });
 
@@ -78,9 +91,13 @@ export const useRateQuote = (
           throw new Error('Error calculating premium');
         }
 
-        setRatingInputsSnap(ratingInputs);
-        const { inlandAAL, surgeAAL } = data;
-        if (onSuccess) onSuccess(data.annualPremium, { ...ratingInputs, inlandAAL, surgeAAL });
+        const { AAL } = data;
+        if (onSuccess)
+          onSuccess(data.annualPremium, {
+            ...ratingInputs,
+            inlandAAL: AAL.inland,
+            surgeAAL: AAL.surge,
+          });
         setLoading(false);
 
         return data.annualPremium;
@@ -97,5 +114,5 @@ export const useRateQuote = (
     [functions, submissionId, onSuccess, onError]
   );
 
-  return { rerate, loading, error, ratingInputsSnap };
+  return { rerate, loading, error }; // ratingInputsSnap
 };

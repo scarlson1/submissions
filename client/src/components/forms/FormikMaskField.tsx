@@ -37,7 +37,7 @@ export const FormikMaskField: React.FC<FormikMaskFieldProps> = ({
 
   return (
     <FormControl variant={variant} fullWidth={fullWidth} required={required} size={size} sx={sx}>
-      <InputLabel htmlFor={id} variant={variant} required={required}>
+      <InputLabel htmlFor={id} variant={variant} required={required} error={Boolean(meta.error)}>
         {label}
       </InputLabel>
       {variant === 'standard' ? (

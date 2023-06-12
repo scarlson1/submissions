@@ -11,12 +11,10 @@ export function useAlgoliaSearchKey(filters?: string) {
 
   // TODO: move loading var outside useEffect ??
   useEffect(() => {
-    // let keyFetched = false;
     let loading = false;
     // TODO: if user not authed - use default key ??
+
     if (!apiKey && !loading) {
-      // && !keyFetched
-      // keyFetched = true;
       loading = true;
       console.log('FETCHING NEW SEARCH KEY...');
       generateSearchKey(functions)
@@ -40,9 +38,6 @@ export function useAlgoliaSearchKey(filters?: string) {
     return () => {
       loading = false;
     };
-    // return () => {
-    //   keyFetched = false;
-    // };
   }, [functions, apiKey, setApiKey]);
 
   // TODO: check expiration date

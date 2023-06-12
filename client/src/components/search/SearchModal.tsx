@@ -66,10 +66,6 @@ export function SearchModal({
     status: 'idle',
   });
 
-  // React.useEffect(() => {
-  //   console.log('STATE: ', state);
-  // }, [state]);
-
   const containerRef = React.useRef<HTMLDivElement | null>(null);
   const modalRef = React.useRef<HTMLDivElement | null>(null);
   const formElementRef = React.useRef<HTMLDivElement | null>(null);
@@ -157,12 +153,14 @@ export function SearchModal({
                   onClose();
                 },
                 getItemUrl({ item, ...rest }) {
-                  // TODO: getItemUrl func
+                  // TODO: getItemUrl func (use func from below)
+                  return getURLByType(item);
                   // item.__autocomplete_indexName
                   // but need to use "type" when indexing in algolia b/c could be in suggestions index
+
                   // @ts-ignore
-                  if (item.__autocomplete_indexName) return 'https://google.com'; // TODO: fix
-                  return item.url;
+                  // if (item.__autocomplete_indexName) return ''; // TODO: fix
+                  // return item.url;
                 },
                 getItems() {
                   return recentSearches.getAll();
@@ -179,8 +177,8 @@ export function SearchModal({
                   onClose();
                 },
                 getItemUrl({ item }) {
-                  // TODO: getItemUrl func
-                  return item.url;
+                  return getURLByType(item);
+                  // return item.url;
                 },
                 getItems() {
                   return favoriteSearches.getAll();

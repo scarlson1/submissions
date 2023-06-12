@@ -27,6 +27,7 @@ export type ButtonTranslations = Partial<{
 
 export type DocSearchButtonProps = React.ComponentProps<'button'> & {
   translations?: ButtonTranslations;
+  shortcutKey?: string;
 };
 
 const ACTION_KEY_DEFAULT = 'Ctrl+' as const;
@@ -37,7 +38,7 @@ function isAppleDevice() {
 }
 
 export const SearchButton = React.forwardRef<HTMLButtonElement, DocSearchButtonProps>(
-  ({ translations = {}, ...props }, ref) => {
+  ({ translations = {}, shortcutKey = 'k', ...props }, ref) => {
     const { buttonText = 'Search', buttonAriaLabel = 'Search' } = translations;
     // TODO: deprecated ?? need to use navigator.userAgentData.platform ??
     // const macOS = window.navigator.platform.toUpperCase().indexOf('MAC') >= 0;
@@ -83,7 +84,10 @@ export const SearchButton = React.forwardRef<HTMLButtonElement, DocSearchButtonP
         >
           <Box sx={{ ml: 2, mr: 'auto' }}>{buttonText}</Box>
           {/* <Shortcut>{macOS ? '⌘' : 'Ctrl+'}K</Shortcut> */}
-          <Shortcut>{key}K</Shortcut>
+          <Shortcut>
+            {key}
+            {shortcutKey.toUpperCase()}
+          </Shortcut>
         </Button>
       </>
       // <button

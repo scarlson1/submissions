@@ -2,13 +2,11 @@ import React, { useState } from 'react';
 import { Box } from '@mui/material';
 import { CancelRounded, CheckCircleRounded } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
-// import { useStorage, useStorageDownloadURL } from 'reactfire';
-// import { ref } from 'firebase/storage';
 import { GeoJsonLayer } from '@deck.gl/layers/typed';
-import { MapViewState, PickingInfo } from 'deck.gl/typed';
+import { PickingInfo } from 'deck.gl/typed';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
-import { DeckMap, defaultGeoJsonLayerProps } from 'elements';
+import { DeckMap, DeckMapProps, defaultGeoJsonLayerProps } from 'elements';
 
 // TODO: create generalized component (use with counties)
 // TODO: use zustand ? or recoil or kotai for shared state between switch and map without rerendering all components?
@@ -23,11 +21,11 @@ const INITIAL_VIEW_STATE = {
   bearing: 0,
 };
 
-export interface ActiveStateMapProps {
+export interface ActiveStateMapProps extends DeckMapProps {
   handleClick?: (pickingInfo: PickingInfo, event: any) => void;
   statesValues: { [key: string]: boolean } | undefined;
-  mapViewState?: MapViewState;
-  children?: React.ReactNode;
+  // mapViewState?: MapViewState;
+  // children?: React.ReactNode;
 }
 
 // const STATES_JSON_STORAGE_PATH = `public/geo-spatial/states_20m.json`;
@@ -38,13 +36,10 @@ export const ActiveStateMap: React.FC<ActiveStateMapProps> = ({
   statesValues,
   mapViewState = INITIAL_VIEW_STATE,
   children,
+  ...props
 }) => {
   const theme = useTheme();
   const [hoverInfo, setHoverInfo] = useState<PickingInfo>();
-  // const storage = useStorage();
-
-  // const { status, data: statesURL } = useStorageDownloadURL(ref(storage, STATES_JSON_STORAGE_PATH));
-  // if (status === 'loading') return <CircularProgress />;
 
   return (
     <DeckMap
@@ -60,7 +55,9 @@ export const ActiveStateMap: React.FC<ActiveStateMapProps> = ({
           )}
         </Box>
       )}
+      {...props}
       layers={[
+        ...(props?.layers || []),
         new GeoJsonLayer({
           ...defaultGeoJsonLayerProps,
           id: `geojson-layer-states`,
