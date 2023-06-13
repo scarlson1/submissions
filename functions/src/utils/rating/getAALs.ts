@@ -52,7 +52,7 @@ export const getAALs = async (props: GetAALsProps): Promise<GetAALRes> => {
 
   swissReInstance = swissReInstance || getSwissReInstance(srClientId, srClientSecret, srSubKey);
 
-  const AAL: ValueByRiskType = { inland: 0, surge: 0, tsunami: 0 }; // Nullable<ValueByRiskType>
+  // const AAL: ValueByRiskType = { inland: 0, surge: 0, tsunami: 0 };
 
   const RCVs = getRCVs(replacementCost, { limitA, limitB, limitC, limitD });
   const rcvAB = RCVs.building + RCVs.otherStructures;
@@ -81,27 +81,7 @@ export const getAALs = async (props: GetAALsProps): Promise<GetAALRes> => {
   });
 
   info('SWISS RE RES: ', { ...srRes });
-  const code200Index = srRes.expectedLosses.findIndex(
-    (floodObj: SRPerilAAL) => floodObj.perilCode === '200'
-  );
-  const code300Index = srRes.expectedLosses.findIndex(
-    (floodObj: SRPerilAAL) => floodObj.perilCode === '300'
-  );
-  // TODO: TSUNAMI CODE
-  const code104Index = srRes.expectedLosses.findIndex(
-    (floodObj: SRPerilAAL) => floodObj.perilCode === '104'
-  );
-
-  if (code200Index !== -1) {
-    AAL.surge = srRes.expectedLosses[code200Index]?.preCatLoss ?? 0;
-  }
-  if (code300Index !== -1) {
-    AAL.inland = srRes.expectedLosses[code300Index]?.preCatLoss ?? 0;
-  }
-  // TODO: tsunami
-  if (code104Index !== -1) {
-    AAL.surge = srRes.expectedLosses[code300Index]?.preCatLoss ?? 0;
-  }
+  const AAL = extractSRAALs(srRes?.expectedLosses);
 
   info(`AAL: ${JSON.stringify(AAL)}`);
 
@@ -109,8 +89,10 @@ export const getAALs = async (props: GetAALsProps): Promise<GetAALRes> => {
 };
 
 // TODO REPLACE ABOVE WITH THIS FUNC
-export function extractSRAALs(expectedLosses: any) {
-  let AAL = { surge: 0, inland: 0, tsunami: 0 };
+export function extractSRAALs(expectedLosses?: any) {
+  let AAL: ValueByRiskType = { surge: 0, inland: 0, tsunami: 0 };
+
+  if (!expectedLosses) return { surge: -1, inland: -1, tsunami: -1 };
 
   const code200Index = expectedLosses?.findIndex(
     (floodObj: SRPerilAAL) => floodObj.perilCode === '200'

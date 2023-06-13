@@ -21,7 +21,7 @@ import {
 import { generateSRAccessToken, getSwissReInstance } from '../services';
 import { swissReBody } from '../utils/rating/swissReBody.js';
 import { getPremium } from '../utils/rating';
-import { formatPremData, getPremCalcVars, getSRVars, validateRow } from './getAALAndRatePortfolio';
+import { formatPremData, getSRVars, validateRow } from './getAALAndRatePortfolio';
 import { sendMessage } from '../services/sendgrid';
 import { addDays } from 'date-fns';
 import { GetSignedUrlResponse } from '@google-cloud/storage';
@@ -137,6 +137,27 @@ function getSRPromise(data: any) {
 //   return { inlandAAL, surgeAAL };
 // };
 
+function getPremCalcVars(row: any) {
+  return {
+    AAL: {
+      inland: row.inland,
+      surge: row.surge,
+      tsunami: row.tsunami,
+    },
+    limits: {
+      limitA: row.cov_a_limit,
+      limitB: row.cov_b_limit,
+      limitC: row.cov_c_limit,
+      limitD: row.cov_d_limit,
+    },
+    floodZone: row.flood_zone,
+    state: row.state,
+    basement: row.basement,
+    priorLossCount: row.prior_loss_count || '0',
+    commissionPct: row.commission_pct || 0.15,
+  };
+}
+
 const calcPrem = (data: any[]) => {
   const result: any[] = [];
 
@@ -168,18 +189,25 @@ const calcPrem = (data: any[]) => {
         basementMult: '',
         inlandHistoryMult: '',
         surgeHistoryMult: '',
+        tsunamiHistoryMult: '',
         inlandFFEMult: '',
         surgeFFEMult: '',
+        tsunamiFFEMult: '',
         inlandMult: '',
         surgeMult: '',
+        tsunamiMult: '',
         inlandStateMult: '',
         surgeStateMult: '',
+        tsunamiStateMult: '',
         inlandPM: '',
         surgePM: '',
+        tsunamiPM: '',
         inlandRiskScore: '',
         surgeRiskScore: '',
+        tsunamiRiskScore: '',
         inlandTechPrem: '',
         surgeTechPrem: '',
+        tsunamiTechPrem: '',
         premiumSubtotal: '',
         minPrem: '',
         minPremiumAdj: '',
@@ -229,11 +257,21 @@ async function getAALs(parsedData: any[]) {
 
     let results = await Promise.all(promises);
 
-    let aals = results.map((r) =>
-      r?.data?.expectedLosses
-        ? { ...extractSRAALs(r?.data?.expectedLosses), errMsg: '' }
-        : { inland: -1, surge: -1, tsunami: -1, errMsg: r?.data?.errMsg || '' }
-    );
+    // let aals = results.map((r) =>
+    //   r?.data?.expectedLosses
+    //     ? { ...extractSRAALs(r?.data?.expectedLosses), errMsg: '' }
+    //     : { inland: -1, surge: -1, tsunami: -1, errMsg: r?.data?.errMsg || '' }
+    // );
+
+    let aals = results.map((r) => {
+      if (!r?.data?.expectedLosses)
+        return { inland: -1, surge: -1, tsunami: -1, errMsg: r?.data?.errMsg || '' };
+
+      let AAL = extractSRAALs(r.data.expectedLosses);
+      console.log('EXTRACTED AAL: ', AAL);
+
+      return { ...AAL, errMsg: '' };
+    });
 
     if (parsedData.length !== aals.length) {
       error('AAL COUNT NOT THE SAME AS ROW COUNT - RETURNING EARLY');
@@ -279,7 +317,7 @@ export default async (event: StorageEvent) => {
   const contentType = event.data.contentType;
   const metageneration = event.data.metageneration as unknown;
   info('FILE UPLOAD DETECTED: ', { fileName });
-  // TODO: better filtering to only run on wanted uploads
+  // TODO: better filtering to only run on wanted uploads & idempotency
 
   if (!event.data.name?.startsWith(`${PORTFOLIO_UPLOAD_FOLDER}/`)) {
     info(
@@ -332,6 +370,7 @@ export default async (event: StorageEvent) => {
   await bucket.file(filePath).download({ destination: tempFilePath });
   info(`File downloaded locally: ${tempFilePath}`);
 
+  // move outside function ??
   async function splitAndRate(data: any[]) {
     let ratedArray: any[] = [];
     let chunkCountVal = chunkCount.value() || 100;

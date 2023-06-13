@@ -348,50 +348,66 @@ export function validateRow(data: any) {
 }
 
 export function formatPremData(rowPremData: any) {
-  let premium = rowPremData?.premiumData?.directWrittenPremium ?? '';
-  let minPrem = rowPremData?.minPremium ?? '';
-  let inlandMult = rowPremData?.secondaryFactorMults?.inland ?? '';
-  let surgeMult = rowPremData?.secondaryFactorMults?.surge ?? '';
-  let basementMult =
+  const premium = rowPremData?.premiumData?.directWrittenPremium ?? '';
+  const minPrem = rowPremData?.minPremium ?? '';
+  const inlandMult = rowPremData?.secondaryFactorMults?.inland ?? '';
+  const surgeMult = rowPremData?.secondaryFactorMults?.surge ?? '';
+  const tsunamiMult = rowPremData?.secondaryFactorMults?.tsunami ?? '';
+  const basementMult =
     rowPremData?.secondaryFactorMults?.secondaryFactorMultsByFactor?.basementMult ?? '';
-  let inlandHistoryMult =
+  const inlandHistoryMult =
     rowPremData?.secondaryFactorMults?.secondaryFactorMultsByFactor?.historyMult?.inland ?? '';
-  let surgeHistoryMult =
+  const surgeHistoryMult =
     rowPremData?.secondaryFactorMults?.secondaryFactorMultsByFactor?.historyMult?.surge ?? '';
-  let inlandFFEMult =
+  const tsunamiHistoryMult =
+    rowPremData?.secondaryFactorMults?.secondaryFactorMultsByFactor?.historyMult?.tsunami ?? '';
+  const inlandFFEMult =
     rowPremData?.secondaryFactorMults?.secondaryFactorMultsByFactor?.ffeMult.inland ?? '';
-  let surgeFFEMult =
+  const surgeFFEMult =
     rowPremData?.secondaryFactorMults?.secondaryFactorMultsByFactor?.ffeMult.surge ?? '';
-  let inlandStateMult = rowPremData?.stateMultipliers?.inland ?? '';
-  let surgeStateMult = rowPremData?.stateMultipliers?.surge ?? '';
-  let inlandPM = rowPremData?.pm?.inland ?? '';
-  let surgePM = rowPremData?.pm?.surge ?? '';
-  let inlandRiskScore = rowPremData?.riskScore?.inland ?? '';
-  let surgeRiskScore = rowPremData?.riskScore?.surge ?? '';
-  let inlandTechPrem = rowPremData?.premiumData?.techPremium.inland ?? '';
-  let surgeTechPrem = rowPremData?.premiumData?.techPremium.surge ?? '';
-  let subproducerAdj = rowPremData?.premiumData?.subproducerAdj ?? '';
+  const tsunamiFFEMult =
+    rowPremData?.secondaryFactorMults?.secondaryFactorMultsByFactor?.ffeMult.tsunami ?? '';
+  const inlandStateMult = rowPremData?.stateMultipliers?.inland ?? '';
+  const surgeStateMult = rowPremData?.stateMultipliers?.surge ?? '';
+  const tsunamiStateMult = rowPremData?.stateMultipliers?.tsunami ?? '';
+  const inlandPM = rowPremData?.pm?.inland ?? '';
+  const surgePM = rowPremData?.pm?.surge ?? '';
+  const tsunamiPM = rowPremData?.pm?.tsunami ?? '';
+  const inlandRiskScore = rowPremData?.riskScore?.inland ?? '';
+  const surgeRiskScore = rowPremData?.riskScore?.surge ?? '';
+  const tsunamiRiskScore = rowPremData?.riskScore?.tsunami ?? '';
+  const inlandTechPrem = rowPremData?.premiumData?.techPremium.inland ?? '';
+  const surgeTechPrem = rowPremData?.premiumData?.techPremium.surge ?? '';
+  const tsunamiTechPrem = rowPremData?.premiumData?.techPremium.tsunami ?? '';
+  const subproducerAdj = rowPremData?.premiumData?.subproducerAdj ?? '';
 
-  let provisionalPremium = rowPremData?.premiumData?.provisionalPremium ?? '';
-  let premiumSubtotal = rowPremData?.premiumData?.premiumSubtotal;
-  let minPremiumAdj = rowPremData?.premiumData?.minPremiumAdj;
+  const provisionalPremium = rowPremData?.premiumData?.provisionalPremium ?? '';
+  const premiumSubtotal = rowPremData?.premiumData?.premiumSubtotal;
+  const minPremiumAdj = rowPremData?.premiumData?.minPremiumAdj;
 
   return {
     basementMult,
     inlandHistoryMult,
     surgeHistoryMult,
+    tsunamiHistoryMult,
     inlandFFEMult,
     surgeFFEMult,
+    tsunamiFFEMult,
     inlandMult,
     surgeMult,
+    tsunamiMult,
     inlandStateMult,
     surgeStateMult,
+    tsunamiStateMult,
     inlandPM,
     surgePM,
+    tsunamiPM,
     inlandRiskScore,
     surgeRiskScore,
+    tsunamiRiskScore,
     inlandTechPrem,
     surgeTechPrem,
+    tsunamiTechPrem,
     premiumSubtotal,
     minPrem,
     minPremiumAdj,
