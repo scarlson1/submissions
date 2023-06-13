@@ -94,6 +94,7 @@ export interface User {
   stripe_customer_id?: string;
   tenantId?: string | null; // useOrgId ??
   orgId?: string | null;
+  orgName?: string | null;
   firstName?: string;
   lastName?: string;
   initialAnonymous?: boolean;
@@ -314,10 +315,10 @@ export type RCVKeys = CovTypeNames | 'total';
 
 export type RCVs = Record<RCVKeys, number>;
 
-export type FloodPerilCategories = 'inland' | 'surge'; // | 'tsunami';
+export type FloodPerilCategories = 'inland' | 'surge' | 'tsunami';
 
 // TODO: finish adding tsunami
-export type ValueByRiskType = Record<FloodPerilCategories, number> & { tsunami?: number };
+export type ValueByRiskType = Record<FloodPerilCategories, number>; // & { tsunami?: number };
 
 export type FloodZones = 'A' | 'B' | 'C' | 'D' | 'V' | 'X' | 'AE' | 'AO' | 'AH' | 'AR' | 'VE';
 
@@ -360,6 +361,7 @@ export interface RatingPropertyData {
   // priorLossCount?: string | number | null;
 }
 
+// TODO: use discriminating union type: 'rating' | 'premium-recalc' ??
 export interface RatingData extends BaseDoc {
   submissionId: string | null;
   locationId?: string | null; // any point to locationId at this stage ? pre policy ??
@@ -367,7 +369,7 @@ export interface RatingData extends BaseDoc {
   limits: Limits;
   TIV: number;
   deductible: number;
-  RCVs: RCVs;
+  RCVs: RCVs | null;
   ratingPropertyData: Nullable<RatingPropertyData>;
   premiumCalcData: PremiumCalcData;
   AAL: Nullable<ValueByRiskType>;
@@ -376,7 +378,7 @@ export interface RatingData extends BaseDoc {
   stateMultipliers: ValueByRiskType;
   secondaryFactorMults: SecondaryFactorMults;
   address?: Address | null;
-  coordinates: GeoPoint;
+  coordinates: GeoPoint | null;
 }
 
 export interface FetchPropertyDataResponse extends Partial<RatingPropertyData> {
@@ -1061,14 +1063,21 @@ export interface VerifyEPayTokenResponse extends EPayPaymentMethodDetails {
   };
 }
 
-export interface GetAALRequest {
-  replacementCost: number;
-  limitA: number;
-  limitB: number;
-  limitC: number;
-  limitD: number;
+export interface Coordinates {
   latitude: number;
   longitude: number;
+}
+
+export interface GetAALRequest {
+  replacementCost: number;
+  // limitA: number;
+  // limitB: number;
+  // limitC: number;
+  // limitD: number;
+  limits: Limits;
+  // latitude: number;
+  // longitude: number;
+  coordinates: Coordinates;
   deductible: number;
   numStories: number;
 }

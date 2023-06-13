@@ -231,7 +231,6 @@ export const Quotes: React.FC = () => {
       namedInsuredLastNameCol,
       namedInsuredEmailCol,
       namedInsuredPhoneCol,
-
       limitACol,
       limitBCol,
       limitCCol,
@@ -285,8 +284,6 @@ export const Quotes: React.FC = () => {
     console.log('ERROR: ', err);
   }, []);
 
-  console.log('DATA: ', data);
-
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 2 }}>
@@ -322,8 +319,12 @@ export const Quotes: React.FC = () => {
           //     })
           //   );
           // }}
-          components={{ Toolbar: GridToolbar }}
-          componentsProps={{ toolbar: { csvOptions: { allColumns: true } } }}
+          slots={{
+            toolbar: GridToolbar,
+          }}
+          slotProps={{
+            toolbar: { csvOptions: { allColumns: true } },
+          }}
           initialState={{
             columns: {
               columnVisibilityModel: {

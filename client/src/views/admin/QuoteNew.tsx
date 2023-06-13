@@ -323,7 +323,7 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
       // setRatingState(newVals)
       // Directly setting rerate misses checking for AALs
       const aals = formikRef.current?.values.AAL;
-      console.log('AALS: ', aals);
+      // console.log('AALS: ', aals);
       const missingAAL = !(aals?.inland || aals?.surge);
       setRatingState({ ...newVals, rerateRequired: newVals.rerateRequired || missingAAL });
     },
@@ -465,6 +465,17 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
     }
   }, [toast]);
 
+  const setTouched = useCallback(async (key?: keyof FormikErrors<NewQuoteValues>) => {
+    const validationErrors = await formikRef.current?.validateForm();
+    // https://github.com/jaredpalmer/formik/issues/2734#issuecomment-923337541
+    if (validationErrors && Object.keys(validationErrors).length > 0) {
+      let keys = key ? validationErrors[key] : validationErrors;
+
+      setTimeout(() => formikRef.current?.setTouched(setNestedObjectValues(keys, true)), 50);
+      return;
+    }
+  }, []);
+
   const setAgent = useCallback(
     (userId: string | null, name: string | null, email: string | null, phone: string | null) => {
       const setFieldValue = formikRef.current?.setFieldValue;
@@ -474,18 +485,11 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
       setFieldValue('agent.email', email || '');
       setFieldValue('agent.phone', phone || '');
       setFieldValue('agent.userId', userId || '');
-    },
-    [toast]
-  );
 
-  const setAllTouched = useCallback(async () => {
-    const validationErrors = await formikRef.current?.validateForm();
-    // https://github.com/jaredpalmer/formik/issues/2734#issuecomment-923337541
-    if (validationErrors && Object.keys(validationErrors).length > 0) {
-      formikRef.current?.setTouched(setNestedObjectValues(validationErrors, true));
-      return;
-    }
-  }, []);
+      return setTouched('agent');
+    },
+    [toast, setTouched]
+  );
 
   const setAgency = useCallback(
     (orgId: string | null, orgName: string | null, address?: Nullable<Address> | null) => {
@@ -500,9 +504,9 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
       setFieldValue('agency.address.state', address?.state || '');
       setFieldValue('agency.address.postal', address?.postal || '');
 
-      return setAllTouched();
+      return setTouched('agency');
     },
-    [toast, setAllTouched]
+    [toast, setTouched]
   );
 
   const setSubComm = useCallback(
@@ -600,7 +604,7 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                 New Quote
               </Typography>
               <Stack direction='row' spacing={2} sx={{ alignItems: 'center' }}>
-                <RequiredFieldsIndicator errors={errors} displayErrors={setAllTouched} />
+                <RequiredFieldsIndicator errors={errors} displayErrors={setTouched} />
                 <Typography
                   variant='subtitle2'
                   fontWeight='fontWeightMedium'
@@ -934,6 +938,27 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                       sx={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}
                     >
                       {values.AAL?.surge}
+                    </Typography>
+                  </Box>
+                </Box>
+              </Grid>
+              <Grid xs={6} sm={4} md={3} lg={2}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                  <Typography variant='body2' color='text.secondary' sx={{ fontSize: '0.75rem' }}>
+                    tsunami AAL
+                  </Typography>
+                  <Box
+                    sx={{
+                      flexGrow: 1,
+                      display: 'flex',
+                      alignContent: 'center',
+                    }}
+                  >
+                    <Typography
+                      variant='body1'
+                      sx={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}
+                    >
+                      {values.AAL?.tsunami}
                     </Typography>
                   </Box>
                 </Box>
@@ -1418,8 +1443,8 @@ function Diff({
 
   // recalc diff whenever ratingInputs change
   useEffect(() => {
-    // console.log('OLD OBJ: ', ratingInputsPrev);
-    // console.log('NEW OBJ: ', ratingInputsCurr);
+    console.log('OLD OBJ: ', ratingInputsPrev);
+    console.log('NEW OBJ: ', ratingInputsCurr);
 
     getDiff(ratingInputsPrev, ratingInputsCurr);
   }, [getDiff, ratingInputsPrev, ratingInputsCurr]);

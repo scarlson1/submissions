@@ -3,7 +3,7 @@ import { error, info } from 'firebase-functions/logger';
 import { GeoPoint, Timestamp, getFirestore } from 'firebase-admin/firestore';
 import invariant from 'tiny-invariant';
 
-import { CLAIMS, defaultFloodZone, ratingDataCollection } from '../common';
+import { CLAIMS, Coordinates, Limits, defaultFloodZone, ratingDataCollection } from '../common';
 import { getAALs, validateGetAALsProps } from '../utils/rating';
 import { getPremium } from '../utils/rating';
 import { swissReClientId, swissReClientSecret, swissReSubscriptionKey } from '../common';
@@ -11,13 +11,9 @@ import { GetPremiumCalcResult } from '../utils/rating/getPremium';
 import { GetAALRes } from '../utils/rating/getAALs';
 
 interface GetAnnualPremiumRequest {
-  latitude: number;
-  longitude: number;
+  coordinates: Coordinates;
   replacementCost: number;
-  limitA: number;
-  limitB: number;
-  limitC: number;
-  limitD: number;
+  limits: Limits;
   deductible: number;
   numStories: number;
   priorLossCount: string;
@@ -39,12 +35,8 @@ export default async ({ data, auth }: CallableRequest<GetAnnualPremiumRequest>) 
   }
 
   const {
-    latitude,
-    longitude,
-    limitA,
-    limitB,
-    limitC,
-    limitD,
+    coordinates,
+    limits,
     deductible,
     replacementCost,
     numStories,
@@ -92,13 +84,15 @@ export default async ({ data, auth }: CallableRequest<GetAnnualPremiumRequest>) 
       srClientSecret,
       srSubKey,
       replacementCost,
-      limitA,
-      limitB,
-      limitC,
-      limitD,
+      limits,
+      // limitA,
+      // limitB,
+      // limitC,
+      // limitD,
       deductible,
-      latitude,
-      longitude,
+      coordinates,
+      // latitude,
+      // longitude,
       numStories,
     });
     // TODO: save to SR collection (see getSubmissionAAL)
@@ -108,22 +102,38 @@ export default async ({ data, auth }: CallableRequest<GetAnnualPremiumRequest>) 
     throw new HttpsError('internal', 'Error fetching Average Anuual Loss');
   }
 
-  const inlandAAL = AALsRes.AAL.inland;
-  const surgeAAL = AALsRes.AAL.surge;
-  const tsunamiAAL = AALsRes.AAL.tsunami;
+  // invariant(
+  //   (AALsRes?.AAL?.inland || AALsRes?.AAL?.inland === 0) && typeof AALsRes.AAL.inland === 'number',
+  //   'Missing inland AAL'
+  // );
+  // invariant(
+  //   (AALsRes?.AAL?.surge || AALsRes?.AAL?.inland === 0) && typeof AALsRes?.AAL?.surge === 'number',
+  //   'Missing surge AAL'
+  // );
+  // invariant(
+  //   (AALsRes?.AAL?.tsunami || AALsRes?.AAL?.inland === 0) &&
+  //     typeof AALsRes?.AAL?.tsunami === 'number',
+  //   'Missing tsunami AAL'
+  // );
+  invariant(typeof AALsRes?.AAL?.inland === 'number', 'Missing inland AAL');
+  invariant(typeof AALsRes?.AAL?.surge === 'number', 'Missing surge AAL');
+  invariant(typeof AALsRes?.AAL?.tsunami === 'number', 'Missing tsunami AAL');
+
   let result: GetPremiumCalcResult | undefined;
-
   try {
-    invariant(typeof inlandAAL === 'number');
-    invariant(typeof surgeAAL === 'number');
-
     result = getPremium({
-      inlandAAL,
-      surgeAAL,
-      limitA,
-      limitB,
-      limitC,
-      limitD,
+      AAL: {
+        inland: AALsRes.AAL.inland,
+        surge: AALsRes.AAL.surge,
+        tsunami: AALsRes.AAL.tsunami,
+      },
+      limits,
+      // {
+      //   limitA,
+      //   limitB,
+      //   limitC,
+      //   limitD,
+      // },
       floodZone,
       state,
       basement,
@@ -163,12 +173,13 @@ export default async ({ data, auth }: CallableRequest<GetAnnualPremiumRequest>) 
       locationId,
       externalId,
       deductible: deductible,
-      limits: {
-        limitA,
-        limitB,
-        limitC,
-        limitD,
-      },
+      limits,
+      // {
+      //   limitA,
+      //   limitB,
+      //   limitC,
+      //   limitD,
+      // },
       TIV: result.tiv,
       RCVs: {
         building: AALsRes.rcvs.building,
@@ -190,17 +201,18 @@ export default async ({ data, auth }: CallableRequest<GetAnnualPremiumRequest>) 
         ffe: null,
         // priorLossCount, TODO: fix typing error
       },
-      AAL: {
-        inland: inlandAAL,
-        surge: surgeAAL,
-        tsunami: tsunamiAAL,
-      },
+      AAL: AALsRes.AAL,
+      // AAL: {
+      //   inland: inlandAAL,
+      //   surge: surgeAAL,
+      //   tsunami: tsunamiAAL,
+      // },
       premiumCalcData: result.premiumData,
       PM: result.pm,
       riskScore: result.riskScore,
       stateMultipliers: result.stateMultipliers,
       secondaryFactorMults: result.secondaryFactorMults,
-      coordinates: new GeoPoint(latitude, longitude),
+      coordinates: new GeoPoint(coordinates.latitude, coordinates.longitude),
       address: null,
       metadata: {
         created: Timestamp.now(),
@@ -213,10 +225,7 @@ export default async ({ data, auth }: CallableRequest<GetAnnualPremiumRequest>) 
 
   return {
     annualPremium: result.premiumData.directWrittenPremium,
-    AAL: {
-      inland: inlandAAL,
-      surge: surgeAAL,
-    },
+    AAL: AALsRes.AAL,
     // inlandAAL,
     // surgeAAL,
   };

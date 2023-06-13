@@ -3,18 +3,18 @@ import { useFunctions } from 'reactfire';
 
 import { getAnnualPremium } from 'modules/api';
 import { NewQuoteValues } from 'views/admin/QuoteNew';
-import { RatingInputs } from 'modules/api/getAnnualPremium';
+import { GetAnnualPremiumRequest, RatingInputs } from 'modules/api/getAnnualPremium';
 import invariant from 'tiny-invariant';
 import { validateCommonInputs } from './useCalcPremium';
 
 export interface RatingInputsWithAAL extends RatingInputs {
   inlandAAL: number | null;
   surgeAAL: number | null;
+  tsunamiAAL: number | null;
 }
 
 export function extractRatingInputsFromValues(values: NewQuoteValues): RatingInputs {
   const { coordinates, limits, deductible, priorLossCount, address, ratingPropertyData } = values;
-  console.log('EXTRACTING RATING DATA FROM VALUES: ', values);
 
   let subproducerCommission =
     typeof values.subproducerCommission === 'string'
@@ -41,7 +41,7 @@ export function extractRatingInputsFromValues(values: NewQuoteValues): RatingInp
   };
 }
 
-export function getValideRatingInputs(values: NewQuoteValues) {
+export function getValidRatingInputs(values: NewQuoteValues) {
   // const { coordinates, ratingPropertyData, limits, address, subproducerCommission } = values;
   // const { coordinates,  limits } = values;
   const commValidated = validateCommonInputs(values);
@@ -71,7 +71,7 @@ export const useRateQuote = (
     async (values: NewQuoteValues) => {
       let ratingInputs;
       try {
-        ratingInputs = getValideRatingInputs(values);
+        ratingInputs = getValidRatingInputs(values);
       } catch (err: any) {
         let msg = `missing required values`;
         if (err?.message) msg = err.message.replace('Invariant failed: ', '');
@@ -83,8 +83,27 @@ export const useRateQuote = (
       setLoading(true);
 
       try {
-        // TODO: return AAL res in AAL: { inland: 29384 } format
-        const { data } = await getAnnualPremium(functions, { ...ratingInputs, submissionId });
+        const reformatRatingInputs: GetAnnualPremiumRequest = {
+          coordinates: { latitude: ratingInputs.latitude, longitude: ratingInputs.longitude },
+          replacementCost: ratingInputs.replacementCost,
+          limits: {
+            limitA: ratingInputs.limitA,
+            limitB: ratingInputs.limitB,
+            limitC: ratingInputs.limitC,
+            limitD: ratingInputs.limitD,
+          },
+          deductible: ratingInputs.deductible,
+          numStories: ratingInputs.numStories,
+          priorLossCount: ratingInputs.priorLossCount,
+          state: ratingInputs.state,
+          floodZone: ratingInputs.floodZone,
+          basement: ratingInputs.basement,
+          commissionPct: ratingInputs.commissionPct,
+        };
+        const { data } = await getAnnualPremium(functions, {
+          ...reformatRatingInputs,
+          submissionId,
+        }); // ...ratingInputs
 
         console.log('PREMIUM RES: ', data);
         if (!data.annualPremium || typeof data.annualPremium !== 'number') {
@@ -97,6 +116,7 @@ export const useRateQuote = (
             ...ratingInputs,
             inlandAAL: AAL.inland,
             surgeAAL: AAL.surge,
+            tsunamiAAL: AAL.tsunami,
           });
         setLoading(false);
 

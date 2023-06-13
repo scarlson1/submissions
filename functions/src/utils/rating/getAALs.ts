@@ -40,17 +40,19 @@ export const getAALs = async (props: GetAALsProps): Promise<GetAALRes> => {
     srClientSecret,
     srSubKey,
     replacementCost,
-    limitA,
-    limitB,
-    limitC,
-    limitD,
-    latitude,
-    longitude,
+    limits: { limitA, limitB, limitC, limitD },
+    coordinates,
+    // limitA,
+    // limitB,
+    // limitC,
+    // limitD,
+    // latitude,
+    // longitude,
   } = props;
 
   swissReInstance = swissReInstance || getSwissReInstance(srClientId, srClientSecret, srSubKey);
 
-  const AAL: Nullable<ValueByRiskType> = { inland: 0, surge: 0, tsunami: 0 };
+  const AAL: ValueByRiskType = { inland: 0, surge: 0, tsunami: 0 }; // Nullable<ValueByRiskType>
 
   const RCVs = getRCVs(replacementCost, { limitA, limitB, limitC, limitD });
   const rcvAB = RCVs.building + RCVs.otherStructures;
@@ -58,8 +60,12 @@ export const getAALs = async (props: GetAALsProps): Promise<GetAALRes> => {
 
   const xmlBodyVars = {
     ...props,
-    lat: latitude,
-    lng: longitude,
+    limitA,
+    limitB,
+    limitC,
+    limitD,
+    lat: coordinates.latitude,
+    lng: coordinates.longitude,
     rcvAB,
     rcvC: RCVs.contents,
     rcvD: RCVs.BI,
@@ -82,8 +88,8 @@ export const getAALs = async (props: GetAALsProps): Promise<GetAALRes> => {
     (floodObj: SRPerilAAL) => floodObj.perilCode === '300'
   );
   // TODO: TSUNAMI CODE
-  const codeTEMPIndex = srRes.expectedLosses.findIndex(
-    (floodObj: SRPerilAAL) => floodObj.perilCode === '300000'
+  const code104Index = srRes.expectedLosses.findIndex(
+    (floodObj: SRPerilAAL) => floodObj.perilCode === '104'
   );
 
   if (code200Index !== -1) {
@@ -93,8 +99,8 @@ export const getAALs = async (props: GetAALsProps): Promise<GetAALRes> => {
     AAL.inland = srRes.expectedLosses[code300Index]?.preCatLoss ?? 0;
   }
   // TODO: tsunami
-  if (codeTEMPIndex !== -1) {
-    AAL.inland = srRes.expectedLosses[code300Index]?.preCatLoss ?? 0;
+  if (code104Index !== -1) {
+    AAL.surge = srRes.expectedLosses[code300Index]?.preCatLoss ?? 0;
   }
 
   info(`AAL: ${JSON.stringify(AAL)}`);
@@ -104,12 +110,14 @@ export const getAALs = async (props: GetAALsProps): Promise<GetAALRes> => {
 
 export const validateGetAALsProps = (props: Partial<GetAALsProps>) => {
   const {
-    latitude,
-    longitude,
-    limitA,
-    limitB,
-    limitC,
-    limitD,
+    // latitude,
+    // longitude,
+    coordinates,
+    limits,
+    // limitA,
+    // limitB,
+    // limitC,
+    // limitD,
     deductible,
     // priorLossCount,
     numStories = 1,
@@ -124,6 +132,8 @@ export const validateGetAALsProps = (props: Partial<GetAALsProps>) => {
   const MIN_A = minA.value() || 100000;
   const MAX_BCD = maxBCD.value() || 1000000;
 
+  invariant(coordinates, 'coordinates required');
+  const { latitude, longitude } = coordinates;
   invariant(
     latitude && longitude && isLatLng(latitude, longitude),
     'latitude or longitude is missing or invalid'
@@ -137,6 +147,9 @@ export const validateGetAALsProps = (props: Partial<GetAALsProps>) => {
   invariant(replacementCost, 'replacementCost required');
   invariant(typeof replacementCost === 'number', 'replacementCost must be a number');
   invariant(replacementCost > 100000, 'replacementCost must be > 100k');
+
+  invariant(limits, 'misssing limits');
+  const { limitA, limitB, limitC, limitD } = limits;
 
   invariant(
     limitA && typeof limitA === 'number' && limitA > MIN_A,

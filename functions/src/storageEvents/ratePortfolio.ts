@@ -33,6 +33,8 @@ let tenMins = 60 * 1000 * 10;
 const chunkCount = defineInt('SR_CHUNK_COUNT');
 const PORTFOLIO_UPLOAD_FOLDER = 'ratePortfolio';
 
+// TODO: RowType
+
 function parseStreamToArray<RowType = any>(stream: fs.ReadStream) {
   return new Promise<{ dataArray: RowType[]; invalidRows: RowType[] }>((resolve, reject) => {
     const dataArray: any[] = [];

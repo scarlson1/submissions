@@ -71,7 +71,7 @@ export const GridCellCopy = ({ value }: { value?: string | number | null }) => {
     [copy, value]
   );
 
-  if (!value) return null;
+  if (value === undefined || value === null) return null;
 
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', maxWidth: '100%' }}>

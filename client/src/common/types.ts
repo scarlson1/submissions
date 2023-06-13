@@ -86,9 +86,9 @@ export type CovTypeNames = 'building' | 'otherStructures' | 'contents' | 'BI';
 export type LimitTypes = 'limitA' | 'limitB' | 'limitC' | 'limitD';
 export type Limits = Record<LimitTypes, number>;
 
-export type FloodPerilCategories = 'inland' | 'surge'; // | 'tsunami';
+export type FloodPerilCategories = 'inland' | 'surge' | 'tsunami';
 // TODO: finish adding tsunami
-export type ValueByRiskType = Record<FloodPerilCategories, number> & { tsunami?: number };
+export type ValueByRiskType = Record<FloodPerilCategories, number>; //  & { tsunami?: number };
 
 export interface FirestoreTimestamp {
   readonly nanoseconds: number;
@@ -119,9 +119,14 @@ export interface AddressWithCoords extends Address {
   longitude: number;
 }
 
+// export interface Coordinates {
+//   lat: number;
+//   lng: number;
+// }
+
 export interface Coordinates {
-  lat: number;
-  lng: number;
+  latitude: number;
+  longitude: number;
 }
 
 export interface Location extends Address {

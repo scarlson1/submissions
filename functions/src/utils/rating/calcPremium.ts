@@ -1,18 +1,20 @@
 import { round, ceil } from 'lodash';
-import { PremiumCalcData } from '../../common';
+import { PremiumCalcData, ValueByRiskType } from '../../common';
 import { getCommRates } from './commRates';
 
 // TODO: use firebase params / env vars ??
 
 export const INLAND_LAE_FACTOR = 0.1;
 export const SURGE_LAE_FACTOR = 0.15;
+export const TSUNAMI_LAE_FACTOR = 0.15; // TODO: get actual value (copied surge for temp value)
 export const DISTRIBUTION_EXPENSE = 0.3735;
 // export const SUBPRODUCER_COMMISSION_DEFAULT = 0.15;
 
 // TODO: min premium missing from response so using ? as workaroud for now
 // add min premium calc to flow ? pass as required prop?
 
-export const getTechPremium = (AAL: number, secModMult: number, LAE: number) => {
+export const getTechPremium = (AAL: number | null, secModMult: number, LAE: number) => {
+  if (!AAL) return 0;
   return AAL * secModMult * (1 + LAE);
 };
 
@@ -27,18 +29,9 @@ export const getPremium = (techPremium: number, multiplier: number, com: number)
 // };
 
 interface GetPremiumDataProps {
-  AAL: {
-    inland: number;
-    surge: number;
-  };
-  secondaryFactorMults: {
-    inland: number;
-    surge: number;
-  };
-  stateMultipliers: {
-    inland: number;
-    surge: number;
-  };
+  AAL: ValueByRiskType; // Nullable<ValueByRiskType>;
+  secondaryFactorMults: ValueByRiskType;
+  stateMultipliers: ValueByRiskType;
   minPremium: number;
   subproducerComPct: number;
 }
@@ -62,6 +55,9 @@ export const getPremiumData = ({
     getTechPremium(AAL.surge, secondaryFactorMults.surge, SURGE_LAE_FACTOR),
     2
   );
+  const tsunamiTechPremium = round(
+    getTechPremium(AAL.tsunami, secondaryFactorMults.tsunami, TSUNAMI_LAE_FACTOR)
+  );
 
   const inlandPremium = getPremium(
     inlandTechPremium,
@@ -69,7 +65,12 @@ export const getPremiumData = ({
     DISTRIBUTION_EXPENSE
   );
   const surgePremium = getPremium(surgeTechPremium, stateMultipliers.surge, DISTRIBUTION_EXPENSE);
-  const premiumSubtotal = inlandPremium + surgePremium;
+  const tsunamiPremium = getPremium(
+    tsunamiTechPremium,
+    stateMultipliers.tsunami,
+    DISTRIBUTION_EXPENSE
+  );
+  const premiumSubtotal = inlandPremium + surgePremium + tsunamiPremium;
 
   const minPremiumAdj = Math.max(minPremium - premiumSubtotal, 0);
   const provisionalPremium = ceil(premiumSubtotal + minPremiumAdj);
@@ -84,10 +85,12 @@ export const getPremiumData = ({
     techPremium: {
       inland: inlandTechPremium,
       surge: surgeTechPremium,
+      tsunami: tsunamiTechPremium,
     },
     floodCategoryPremium: {
       inland: inlandPremium,
       surge: surgePremium,
+      tsunami: tsunamiPremium,
     },
     premiumSubtotal,
     provisionalPremium,

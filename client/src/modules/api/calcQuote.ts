@@ -1,14 +1,17 @@
+import { Limits, ValueByRiskType } from 'common';
 import { Functions, httpsCallable } from 'firebase/functions';
 
 // import { functions } from 'firebaseConfig';
 
 export interface CalcQuoteRequest {
-  limitA: number;
-  limitB: number;
-  limitC: number;
-  limitD: number;
-  inlandAAL: number;
-  surgeAAL: number;
+  // limitA: number;
+  // limitB: number;
+  // limitC: number;
+  // limitD: number;
+  // inlandAAL: number;
+  // surgeAAL: number;
+  limits: Limits;
+  AAL: ValueByRiskType;
   replacementCost: number;
   deductible: number;
   state: string;

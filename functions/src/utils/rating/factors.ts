@@ -1,5 +1,3 @@
-// import { info } from 'firebase-functions/logger';
-
 import { Nullable, ValueByRiskType } from '../../common/types.js';
 import { getFirstFloorDiffFactors } from './firstFloorDiff.js';
 
@@ -32,6 +30,15 @@ export const getHistoryMultSurge = (score: number) => {
   return null;
 };
 
+export const getHistoryMultTsunami = (score: number) => {
+  if (score <= 1) return 1;
+  if (score <= 21) return 1.5;
+  if (score <= 51) return 1.75;
+
+  // info('SURGE FLOOD HISTORY CHECK FAILED. RISK SCORE: ', score);
+  return null;
+};
+
 export const getBasementFactor = (basementValue = 'unknown') => {
   // console.log('basementValue: ', basementValue);
   const checkVal = typeof basementValue === 'string' ? basementValue.toLowerCase() : basementValue;
@@ -56,29 +63,26 @@ interface SecondaryModifiersProps {
   priorLossCount: string;
   inlandRiskScore: number;
   surgeRiskScore: number;
+  tsunamiRiskScore: number;
 }
 
 interface SecondaryModifiers {
-  ffeMult: {
-    inland: number;
-    surge: number;
-  };
+  ffeMult: ValueByRiskType;
   basementMult: number;
-  history: {
-    inland: number | null;
-    surge: number | null;
-  };
+  history: Nullable<ValueByRiskType>;
 }
 
 const initialValues: SecondaryModifiers = {
   ffeMult: {
     inland: 1,
     surge: 1,
+    tsunami: 1,
   },
   basementMult: 1.29,
   history: {
     inland: 1,
     surge: 1,
+    tsunami: 1,
   },
 };
 
@@ -88,13 +92,15 @@ export const getSecondaryModifiers = ({
   priorLossCount,
   inlandRiskScore,
   surgeRiskScore,
+  tsunamiRiskScore,
 }: SecondaryModifiersProps) => {
   let secondaryModifiers = initialValues;
 
-  let { inland_ffe_factor, surge_ffe_factor } = getFirstFloorDiffFactors(ffe);
+  let { inland_ffe_factor, surge_ffe_factor, tsunami_ffe_factor } = getFirstFloorDiffFactors(ffe);
   secondaryModifiers.ffeMult = {
     inland: inland_ffe_factor,
     surge: surge_ffe_factor,
+    tsunami: tsunami_ffe_factor,
   };
 
   secondaryModifiers.basementMult = getBasementFactor(basement);
@@ -105,6 +111,8 @@ export const getSecondaryModifiers = ({
     priorLossCount === '0' ? 1 : getHistoryMultInland(inlandRiskScore);
   secondaryModifiers.history.surge =
     priorLossCount === '0' ? 1 : getHistoryMultSurge(surgeRiskScore);
+  secondaryModifiers.history.tsunami =
+    priorLossCount === '0' ? 1 : getHistoryMultTsunami(tsunamiRiskScore);
 
   // console.log('Secondary Modifiers: ', secondaryModifiers);
   return secondaryModifiers;
@@ -125,6 +133,7 @@ export const calcSecondaryMult = (historyMult: number, ffeFactor: number, baseme
 export interface SecondaryFactorMults {
   inland: number;
   surge: number;
+  tsunami: number;
   secondaryFactorMultsByFactor: {
     ffeMult: ValueByRiskType;
     basementMult: number;
@@ -138,24 +147,22 @@ export interface SecondaryFactorMults {
 
 export function getSecondaryFactorMults(props: SecondaryModifiersProps) {
   const { ffeMult, basementMult, history } = getSecondaryModifiers(props);
-  // info('get secondary factor props: ', JSON.stringify(props));
-  // info('ffeMult: ', JSON.stringify(ffeMult));
-  // info('basementMult: ', JSON.stringify(basementMult));
-  // info('history: ', JSON.stringify(history));
 
-  if (!history.inland || !history.surge) {
+  if (!history.inland || !history.surge || !history.tsunami) {
     // console.log('FAILED HISTORY TEST. ALLOWING BYPASS WITH MULTPLE = 1.5');
     // history.inland = 1.5;
     // history.surge = 1.5;
     throw new Error('Underwriting violation - prior loss count');
   }
 
-  let inlandSecondaryMult = calcSecondaryMult(history.inland, ffeMult.inland, basementMult);
-  let surgeSecondaryMult = calcSecondaryMult(history.surge, ffeMult.surge, basementMult);
+  const inlandSecondaryMult = calcSecondaryMult(history.inland, ffeMult.inland, basementMult);
+  const surgeSecondaryMult = calcSecondaryMult(history.surge, ffeMult.surge, basementMult);
+  const tsunamiSecondaryMult = calcSecondaryMult(history.tsunami, ffeMult.tsunami, basementMult);
 
   return {
     inland: inlandSecondaryMult,
     surge: surgeSecondaryMult,
+    tsunami: tsunamiSecondaryMult,
     secondaryFactorMultsByFactor: {
       ffeMult,
       basementMult,

@@ -275,12 +275,17 @@ export function getSRVars(row: any) {
 
 export function getPremCalcVars(row: any) {
   return {
-    inlandAAL: row.inlandAAL,
-    surgeAAL: row.surgeAAL,
-    limitA: row.cov_a_limit,
-    limitB: row.cov_b_limit,
-    limitC: row.cov_c_limit,
-    limitD: row.cov_d_limit,
+    AAL: {
+      inland: row.inlandAAL,
+      surge: row.surgeAAL,
+      tsunami: row.tsunamiAAL,
+    },
+    limits: {
+      limitA: row.cov_a_limit,
+      limitB: row.cov_b_limit,
+      limitC: row.cov_c_limit,
+      limitD: row.cov_d_limit,
+    },
     floodZone: row.flood_zone,
     state: row.state,
     basement: row.basement,
