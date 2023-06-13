@@ -547,7 +547,10 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
       if (!setFieldValue) return toast.error('form error - missing formik ref');
 
       const newComm = agent?.defaultCommission?.flood ?? org?.defaultCommission?.flood;
-      if (newComm) return setFieldValue('subproducerCommission', newComm);
+      if (newComm) {
+        setFieldValue('subproducerCommission', newComm);
+        toast.info(`Updated commission to ${newComm}`);
+      }
     },
     [toast]
   );
