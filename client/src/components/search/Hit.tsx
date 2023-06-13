@@ -63,7 +63,9 @@ export function OnSelectHit({ hit, children }: HitProps) {
 
   return (
     // <Box onClick={() => handleSelect(hit)} sx={{ width: '100%' }}>
-    <Box sx={{ width: '100%' }}>{children}</Box>
+    <Box sx={{ width: '100%' }} className='onSelect-Item'>
+      {children}
+    </Box>
   );
 }
 

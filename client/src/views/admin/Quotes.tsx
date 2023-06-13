@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
-import { Box, Button, Link, Tooltip, Typography, useMediaQuery, useTheme } from '@mui/material';
-import { useNavigate, Link as RouterLink } from 'react-router-dom';
+import { Box, Button, Tooltip, Typography, useMediaQuery, useTheme } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 import { doc, getDoc, getFirestore, limit, orderBy, updateDoc } from 'firebase/firestore';
 import {
   GridActionsCellItem,
@@ -8,7 +8,6 @@ import {
   GridRowModel,
   GridRowParams,
   GridToolbar,
-  GridValueGetterParams,
 } from '@mui/x-data-grid';
 import { DataObjectRounded, EditRounded, SendRounded } from '@mui/icons-material';
 import { toast } from 'react-hot-toast';
@@ -46,13 +45,22 @@ import {
   subproducerCommissionCol,
   createdCol,
   updatedCol,
-  orgNameCol,
   nestedAgentUserIdCol,
   userIdCol,
   idCol,
+  namedInsuredFirstNameCol,
+  namedInsuredLastNameCol,
+  namedInsuredDisplayNameCol,
+  nestedAgentNameCol,
+  agencyNameCol,
+  namedInsuredEmailCol,
+  namedInsuredPhoneCol,
+  addrCountyCol,
+  addrFIPSCol,
+  copyBaseProps,
+  annualPremiumCol,
 } from 'common';
-import { BasicDataGrid, GridCellCopy } from 'components';
-import { formatGridCurrency } from 'modules/utils/helpers';
+import { BasicDataGrid } from 'components';
 import { useAsyncToast, useCollectionData, useJsonDialog, useSendQuoteNotification } from 'hooks';
 import { useConfirmation } from 'modules/components';
 import { submissionQuoteConverter } from 'common/firestoreConverters';
@@ -195,38 +203,6 @@ export const Quotes: React.FC = () => {
         ],
       },
       {
-        ...addrLine1Col,
-        field: 'insuredAddress.addressLine1',
-        headerName: 'Insured Address 1',
-        valueGetter: (params) => params.row.insuredAddress.addressLine1,
-      },
-      {
-        ...addrLine2Col,
-        field: 'insuredAddress.addressLine2',
-        headerName: 'Unit/Suite',
-        valueGetter: (params) => params.row.insuredAddress.addressLine2,
-      },
-      {
-        ...addrCityCol,
-        field: 'insuredAddress.city',
-        valueGetter: (params) => params.row.insuredAddress.city,
-      },
-      {
-        ...addrStateCol,
-        field: 'insuredAddress.state',
-        valueGetter: (params) => params.row.insuredAddress.state,
-      },
-      {
-        ...addrPostalCol,
-        field: 'insuredAddress.postal',
-        valueGetter: (params) => params.row.insuredAddress.postal,
-      },
-      {
-        ...currencyCol,
-        field: 'quoteTotal',
-        headerName: 'Quote Total',
-      },
-      {
         ...statusCol,
         type: 'singleSelect',
         valueOptions: [
@@ -236,49 +212,26 @@ export const Quotes: React.FC = () => {
           QUOTE_STATUS.AWAITING_USER,
         ],
       },
+      addrLine1Col,
+      addrLine2Col,
+      addrCityCol,
+      addrStateCol,
+      addrPostalCol,
+      addrCountyCol,
+      addrFIPSCol,
+      // termPremiumCol,
+      annualPremiumCol,
       {
-        field: 'insuredName',
-        headerName: 'Insured Name',
-        minWidth: 160,
-        flex: 0.8,
-        editable: false,
-        valueGetter: (params: GridValueGetterParams) =>
-          `${params.row.insuredFirstName || ''} ${params.row.insuredLastName || ''}`.trim(),
+        ...currencyCol,
+        field: 'quoteTotal',
+        headerName: 'Quote Total',
       },
-      {
-        field: 'insuredLastName',
-        headerName: 'Last Name',
-        minWidth: 140,
-        flex: 1,
-        editable: false,
-      },
-      {
-        field: 'insuredFirstName',
-        headerName: 'First Name',
-        minWidth: 140,
-        flex: 1,
-        editable: false,
-      },
-      {
-        ...emailCol,
-        field: 'insuredEmail',
-        headerName: 'Insured Email',
-      },
-      {
-        ...phoneCol,
-        field: 'insuredPhone',
-        headerName: 'Insured Phone',
-      },
-      {
-        field: 'termPremium',
-        headerName: 'Term Premium',
-        minWidth: 120,
-        flex: 0.8,
-        editable: false,
-        headerAlign: 'center',
-        align: 'right',
-        valueFormatter: formatGridCurrency,
-      },
+      namedInsuredDisplayNameCol,
+      namedInsuredFirstNameCol,
+      namedInsuredLastNameCol,
+      namedInsuredEmailCol,
+      namedInsuredPhoneCol,
+
       limitACol,
       limitBCol,
       limitCCol,
@@ -295,43 +248,24 @@ export const Quotes: React.FC = () => {
       ratingDataCBRSCol,
       ratingDataFloodZoneCol,
       subproducerCommissionCol,
-      {
-        field: 'agentName',
-        headerName: 'Agent Name',
-        minWidth: 180,
-        flex: 0.8,
-        editable: false,
-      },
+      nestedAgentNameCol,
       {
         ...emailCol,
-        field: 'agentEmail',
+        field: 'agent.email',
         headerName: 'Agent Email',
+        valueGetter: (params) => params.row.agent?.email || null,
       },
       {
         ...phoneCol,
-        field: 'agentPhone',
-        headerName: 'Agent Email',
+        field: 'agent.phone',
+        headerName: 'Agent Phone',
+        valueGetter: (params) => params.row.agent?.phone || null,
       },
-      {
-        ...orgNameCol,
-        field: 'agencyName',
-        headerName: 'Agency',
-      },
+      agencyNameCol,
       createdCol,
       updatedCol,
-      {
-        ...nestedAgentUserIdCol,
-        valueGetter: (params: GridValueGetterParams) => params.row.agentId || null,
-        // field: 'agentId',
-        // headerName: 'Agent ID',
-        // minWidth: 260,
-        // flex: 1,
-        // renderCell: (params) => {
-        //   return <GridCellCopy value={params.value} />;
-        // },
-      },
-      userIdCol,
-
+      nestedAgentUserIdCol,
+      { ...userIdCol, description: 'userId of record owner (named insured in most cases)' },
       {
         ...idCol,
         headerName: 'Quote ID',
@@ -340,22 +274,7 @@ export const Quotes: React.FC = () => {
         field: 'submissionId',
         headerName: 'Submission ID',
         description: 'Submission from which the quote was created',
-        minWidth: 240,
-        flex: 1,
-        renderCell: (params) => {
-          if (!params.value) return null;
-          return (
-            <Link
-              component={RouterLink}
-              to={createPath({
-                path: ADMIN_ROUTES.SUBMISSION_VIEW,
-                params: { submissionId: params.value },
-              })}
-            >
-              <GridCellCopy value={params.value} />
-            </Link>
-          );
-        },
+        ...copyBaseProps,
       },
     ],
     [showJson, editQuote, handleSendNotifications]
@@ -365,6 +284,8 @@ export const Quotes: React.FC = () => {
     toast.error('update failed');
     console.log('ERROR: ', err);
   }, []);
+
+  console.log('DATA: ', data);
 
   return (
     <Box>
@@ -406,13 +327,16 @@ export const Quotes: React.FC = () => {
           initialState={{
             columns: {
               columnVisibilityModel: {
-                insuredFirstName: false,
-                insuredLastName: false,
+                'namedInsured.firstName': false,
+                'namedInsured.lastName': false,
+                // 'address.addressLine2': false,
+                // 'address.postal': false,
                 addressLine2: false,
                 postal: false,
-                termPremium: false,
+                // termPremium: false,
+                // annualPremium: false,
                 updated: false,
-                agentId: false,
+                'agent.userId': false,
                 CBRSDesignation: false,
                 basement: false,
                 distToCoastFeet: false,

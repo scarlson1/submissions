@@ -2,7 +2,6 @@ import React, { useCallback, useMemo, useRef, useState, useEffect } from 'react'
 import {
   Badge,
   Box,
-  Button,
   Divider,
   IconButton,
   InputAdornment,
@@ -12,7 +11,14 @@ import {
   tooltipClasses,
 } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
-import { Formik, FormikErrors, FormikHelpers, FormikProps, useFormikContext } from 'formik';
+import {
+  Formik,
+  FormikErrors,
+  FormikHelpers,
+  FormikProps,
+  setNestedObjectValues,
+  useFormikContext,
+} from 'formik';
 import { LoadingButton } from '@mui/lab';
 import {
   CalculateOutlined,
@@ -79,14 +85,13 @@ import {
   NamedInsuredDetails,
   AgencyDetails,
   ValueByRiskType,
-  WithId,
   User,
   orgsCollection,
   Organization,
+  Optional,
 } from 'common';
 import { ShowRatingDialog } from './SubmissionView';
 import { RatingInputsWithAAL } from 'hooks/useRateQuote';
-import { useGetAgentDetails } from 'hooks/useGetAgentDetails';
 import { TempAgentSearch } from 'components/search/Search';
 
 // TODO: standardize fee type names in enum
@@ -98,6 +103,11 @@ async function getOrg(firestore: Firestore, orgId: string) {
   if (!org) throw new Error(`Org not found (ID: ${orgId})`);
   return org;
 }
+
+const commOptions = commissionOptions.map((o: number) => ({
+  label: `${(o * 100).toFixed(0)}%`,
+  value: o,
+}));
 
 const gridProps = {
   columnSpacing: { xs: 3, sm: 4, md: 6 },
@@ -295,10 +305,14 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
   const toast = useAsyncToast({ position: 'top-right' });
   const activeStates = useActiveStates('flood');
   const [ratingState, setRatingState] = useState({
-    rerateRequired: !initialValues.annualPremium,
+    rerateRequired: !(
+      initialValues.annualPremium &&
+      initialValues.AAL.inland &&
+      initialValues.AAL.surge
+    ),
     recalcRequired: !initialValues.annualPremium,
   });
-  const [ratingInputsSnap, setRatingInputsSnap] = useState<any>({
+  const [ratingInputsSnap, setRatingInputsSnap] = useState<Optional<RatingInputsWithAAL>>({
     ...getRatingInputsFromSubmission(submissionData || undefined),
     inlandAAL: initialValues.AAL.inland,
     surgeAAL: initialValues.AAL.surge,
@@ -306,7 +320,12 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
 
   const handleDiffChange = useCallback(
     (newVals: { rerateRequired: boolean; recalcRequired: boolean }) => {
-      setRatingState(newVals);
+      // setRatingState(newVals)
+      // Directly setting rerate misses checking for AALs
+      const aals = formikRef.current?.values.AAL;
+      console.log('AALS: ', aals);
+      const missingAAL = !(aals?.inland || aals?.surge);
+      setRatingState({ ...newVals, rerateRequired: newVals.rerateRequired || missingAAL });
     },
     []
   );
@@ -325,8 +344,6 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
 
   const handleRecalcSuccess = useCallback(
     (newPrem: number) => {
-      // formikRef.current?.setFieldValue('taxes', []);
-      // formikRef.current?.setFieldValue('quoteTotal', '101');
       const values = formikRef.current?.values;
       if (!values) return;
 
@@ -336,24 +353,20 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
     [fetchTaxes, toast]
   );
 
-  const {
-    rerate,
-    loading: rerateLoading,
-    // ratingInputsSnap,
-  } = useRateQuote(
+  const { rerate, loading: rerateLoading } = useRateQuote(
     submissionId,
     (newPrem: number, ratingInputs: RatingInputsWithAAL) => {
-      setTimeout(() => {
-        formikRef.current?.setFieldValue('annualPremium', newPrem);
-        formikRef.current?.setFieldValue('AAL.inland', ratingInputs.inlandAAL);
-        formikRef.current?.setFieldValue('AAL.surge', ratingInputs.surgeAAL);
-      }, 50);
+      // setTimeout(() => {
+      formikRef.current?.setFieldValue('annualPremium', newPrem);
+      formikRef.current?.setFieldValue('AAL.inland', ratingInputs.inlandAAL);
+      formikRef.current?.setFieldValue('AAL.surge', ratingInputs.surgeAAL);
+      // }, 50);
 
       setRatingInputsSnap({ ...ratingInputs });
       handleRecalcSuccess(newPrem);
     },
-    (msg: string) => toast.error(msg),
-    getRatingInputsFromSubmission(submissionData || undefined)
+    (msg: string) => toast.error(msg)
+    // getRatingInputsFromSubmission(submissionData || undefined)
   );
 
   const { calcPremium, loading: calcLoading } = useCalcPremium(
@@ -452,44 +465,6 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
     }
   }, [toast]);
 
-  const handleSetAgent = useCallback(
-    (agent: WithId<User>) => {
-      // toast.success(`User found: ${agent.displayName}`);
-      const setFieldValue = formikRef.current?.setFieldValue;
-      if (!setFieldValue) return;
-      const agentFloodComm = agent.defaultCommission?.flood;
-      if (agentFloodComm)
-        setFieldValue(
-          'subproducerCommission',
-          agentFloodComm || formikRef.current?.values?.subproducerCommission
-        );
-      setFieldValue('agent.name', agent.displayName || '');
-      setFieldValue('agent.email', agent.email || '');
-      setFieldValue('agent.phone', agent.phone || '');
-      setFieldValue('agent.userId', agent.id || ''); // @ts-ignore
-      setFieldValue('agency.name', agent.orgName || '');
-      setFieldValue('agency.orgId', agent.orgId || ''); // @ts-ignore
-      setFieldValue('agency.address.addressLine1', agent.address?.addressLine1 || ''); // @ts-ignore
-      setFieldValue('agency.address.addressLine2', agent.address?.addressLine1 || ''); // @ts-ignore
-      setFieldValue('agency.address.city', agent.address?.city || ''); // @ts-ignore
-      setFieldValue('agency.address.state', agent.address?.state || ''); // @ts-ignore
-      setFieldValue('agency.address.postal', agent.address?.postal || '');
-
-      toast.success(`Setting agent to ${agent.email}`);
-    },
-    [toast]
-  );
-
-  const handleSetAgentError = useCallback((msg: string) => toast.error(msg), [toast]);
-
-  const { searchAgent } = useGetAgentDetails(handleSetAgent, handleSetAgentError);
-
-  const handleSetAgentByEmail = useCallback(async () => {
-    const agentDetails = await searchAgent();
-    // TODO: handle setting in onSuccess ??
-    console.log('AGENT DETAILS: ', agentDetails);
-  }, [searchAgent]);
-
   const setAgent = useCallback(
     (userId: string | null, name: string | null, email: string | null, phone: string | null) => {
       const setFieldValue = formikRef.current?.setFieldValue;
@@ -503,8 +478,17 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
     [toast]
   );
 
+  const setAllTouched = useCallback(async () => {
+    const validationErrors = await formikRef.current?.validateForm();
+    // https://github.com/jaredpalmer/formik/issues/2734#issuecomment-923337541
+    if (validationErrors && Object.keys(validationErrors).length > 0) {
+      formikRef.current?.setTouched(setNestedObjectValues(validationErrors, true));
+      return;
+    }
+  }, []);
+
   const setAgency = useCallback(
-    (orgId: string | null, orgName: string | null, address?: Nullable<Address>) => {
+    (orgId: string | null, orgName: string | null, address?: Nullable<Address> | null) => {
       const setFieldValue = formikRef.current?.setFieldValue;
       if (!setFieldValue) return toast.error('Missing formik ref');
 
@@ -515,31 +499,11 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
       setFieldValue('agency.address.city', address?.city || '');
       setFieldValue('agency.address.state', address?.state || '');
       setFieldValue('agency.address.postal', address?.postal || '');
+
+      return setAllTouched();
     },
-    [toast]
+    [toast, setAllTouched]
   );
-  // setAgency('idemand', 'iDemand Insurance Agency, Inc.', iDAddress);
-  // const iDAddress = {
-  //   addressLine1: '6019 Pine Ridge Rd.',
-  //   addressLine2: 'Suite 401',
-  //   city: 'Naples',
-  //   state: 'FL',
-  //   postal: '34119',
-  // };
-
-  const setIDemand = useCallback(async () => {
-    setAgent('TODO', 'Ron Carlson', 'ron.carlson@idemandinsurance.com', '+16159889300');
-
-    try {
-      const org = await getOrg(firestore, 'idemand');
-      console.log('SETTING ORG: ', org);
-      setAgency('idemand', org.orgName, org.address);
-    } catch (err: any) {
-      let msg = `Error fetching org`;
-      if (err?.message) msg += err.message;
-      toast.error(msg);
-    }
-  }, [firestore, toast, setAgent, setAgency]);
 
   const setSubComm = useCallback(
     (agent?: User, org?: Organization) => {
@@ -549,7 +513,9 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
       const newComm = agent?.defaultCommission?.flood ?? org?.defaultCommission?.flood;
       if (newComm) {
         setFieldValue('subproducerCommission', newComm);
-        toast.info(`Updated commission to ${newComm}`);
+        formikRef.current?.setFieldTouched('subproducerCommission', true, true);
+        const source = agent?.defaultCommission?.flood ? 'agent' : 'org';
+        toast.info(`updated subproducer commission to ${source} default (${newComm * 100}%)`);
       }
     },
     [toast]
@@ -557,10 +523,6 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
 
   const handleAgentSelected = useCallback(
     async (agentUser: User & { objectID: string }) => {
-      console.log('AGENT USER: ', agentUser);
-      const setFieldValue = formikRef.current?.setFieldValue;
-      if (!setFieldValue) return toast.error('form error - missing formik ref');
-
       setAgent(
         agentUser.objectID,
         agentUser.displayName || null,
@@ -568,27 +530,23 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
         agentUser.phone || null
       );
 
+      let org;
       try {
         const orgId = agentUser.orgId;
-        if (!orgId) {
-          toast.error(`warning: user missing orgId`);
-        } else {
-          const org = await getOrg(firestore, orgId);
-          console.log('SETTING ORG: ', org);
-          setAgency(orgId, org.orgName, org.address);
+        if (!orgId) throw new Error('warning: user missing orgId');
 
-          const agentFloodComm = agentUser.defaultCommission?.flood;
-          if (agentFloodComm) {
-            setFieldValue('subproducerCommission', agentFloodComm);
-          }
-        }
+        org = await getOrg(firestore, orgId);
+        setAgency(orgId, org.orgName, org.address);
       } catch (err: any) {
         let msg = `Error fetching org`;
         if (err?.message) msg += ` (${err.message})`;
         toast.error(msg);
+
+        setAgency(null, null, null);
       }
+      setSubComm(agentUser, org);
     },
-    [firestore, toast, setAgent, setAgency]
+    [firestore, toast, setAgent, setAgency, setSubComm]
   );
 
   const menuItems = useMemo(
@@ -597,11 +555,6 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
       { label: 'View submission data', action: showSubmissionDialog },
     ],
     [showSubmissionDialog]
-  );
-
-  const commOptions = useMemo(
-    () => commissionOptions.map((o: number) => ({ label: `${(o * 100).toFixed(0)}%`, value: o })),
-    []
   );
 
   return (
@@ -647,7 +600,7 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                 New Quote
               </Typography>
               <Stack direction='row' spacing={2} sx={{ alignItems: 'center' }}>
-                <RequiredFieldsIndicator errors={errors} />
+                <RequiredFieldsIndicator errors={errors} displayErrors={setAllTouched} />
                 <Typography
                   variant='subtitle2'
                   fontWeight='fontWeightMedium'
@@ -1296,28 +1249,19 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
               </Grid>
               <Grid xs={12}>
                 <Divider sx={{ my: 3 }} />
-                <Typography
-                  variant='overline'
-                  color='text.secondary'
-                  sx={{ pl: 4, lineHeight: 1.4 }}
-                >
-                  Agent & Agency
-                </Typography>
-                <Button variant='outlined' size='small' onClick={setIDemand} sx={{ ml: 4 }}>
-                  Set iDemand
-                </Button>
-                <Button
-                  variant='outlined'
-                  size='small'
-                  onClick={handleSetAgentByEmail}
-                  sx={{ ml: 4 }}
-                >
-                  Find agent
-                </Button>
-                <TempAgentSearch
-                  onSelect={handleAgentSelected}
-                  // translations={{ button: { buttonText: 'Find Agent', buttonAriaLabel: 'Find Agent' } }}
-                />
+                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <Typography
+                    variant='overline'
+                    color='text.secondary'
+                    sx={{ pl: 4, lineHeight: 1.4 }}
+                  >
+                    Agent & Agency
+                  </Typography>
+                  <TempAgentSearch
+                    onSelect={handleAgentSelected}
+                    // translations={{ button: { buttonText: 'Find Agent', buttonAriaLabel: 'Find Agent' } }}
+                  />
+                </Box>
               </Grid>
               <Grid xs={6} sm={3}>
                 <FormikTextField name='agent.name' label='Agent name' fullWidth />
@@ -1402,6 +1346,7 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
   );
 };
 
+// TODO: can use useReateQuote extraction func since submissions schema not matches quote schemas
 function getRatingInputsFromSubmission(subData?: Submission) {
   // TODO: decide whether to flatten or keep in obj ?? does diff function compare nested values ??
   return {
@@ -1418,7 +1363,7 @@ function getRatingInputsFromSubmission(subData?: Submission) {
     state: subData?.address?.state,
     floodZone: subData?.ratingPropertyData?.floodZone,
     basement: subData?.ratingPropertyData?.basement?.toLowerCase(),
-    commissionPct: subData?.subproducerCommission || 0.15, // TODO: delete - must look up subrpoducer comm from agent ID or org ID from server, or producer from clinet if idemand admin
+    commissionPct: subData?.subproducerCommission || 0.15, // TODO: delete - must look up subproducer comm from agent ID or org ID from server, or producer from clinet if idemand admin
   };
 }
 
@@ -1471,6 +1416,7 @@ function Diff({
     ]
   );
 
+  // recalc diff whenever ratingInputs change
   useEffect(() => {
     // console.log('OLD OBJ: ', ratingInputsPrev);
     // console.log('NEW OBJ: ', ratingInputsCurr);
@@ -1478,11 +1424,14 @@ function Diff({
     getDiff(ratingInputsPrev, ratingInputsCurr);
   }, [getDiff, ratingInputsPrev, ratingInputsCurr]);
 
+  // recalc: if any diff between prev and current rating fields
+  // rerate: if rerate key is included in diff
   useEffect(() => {
     if (isEmpty(diff)) return setRatingState({ rerateRequired: false, recalcRequired: false });
     const shouldRerate = rerateFields.some((key) => {
       return diff[key];
     });
+    // TODO: fix bug - overriding on first render - checking AAL values
     setRatingState({ rerateRequired: shouldRerate, recalcRequired: isDiff });
   }, [diff, isDiff, rerateFields, setRatingState]);
 
@@ -1527,7 +1476,13 @@ function Diff({
   );
 }
 
-function RequiredFieldsIndicator({ errors }: { errors: FormikErrors<NewQuoteValues> }) {
+function RequiredFieldsIndicator({
+  errors,
+  displayErrors,
+}: {
+  errors: FormikErrors<NewQuoteValues>;
+  displayErrors?: () => void;
+}) {
   // TODO: need to extract all nested fields
   const errorEntries = useMemo(
     () =>
@@ -1547,7 +1502,12 @@ function RequiredFieldsIndicator({ errors }: { errors: FormikErrors<NewQuoteValu
   );
 
   const stateIcon = errorEntries.length ? (
-    <WarningAmberRounded fontSize='small' color='warning' sx={{ mx: 2 }} />
+    <WarningAmberRounded
+      fontSize='small'
+      color='warning'
+      sx={{ mx: 2 }}
+      onClick={() => displayErrors && displayErrors()}
+    />
   ) : null;
 
   return (
@@ -1620,7 +1580,7 @@ export const QuoteNewFromSub = () => {
   invariant(submissionId);
   const { data: submissionData } = useDocDataOnce<Submission>('SUBMISSIONS', submissionId);
 
-  console.log('submission data: ', submissionData);
+  // console.log('submission data: ', submissionData);
 
   // @ts-ignore TODO: fix types (can't pass null to iMask component)
   const initialValues: NewQuoteValues = useMemo(

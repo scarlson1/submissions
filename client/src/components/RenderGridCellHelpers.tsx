@@ -27,7 +27,7 @@ export const renderGridPhone = (params: GridRenderCellParams<any, any, any>) => 
   );
 };
 export const renderGridEmail = (params: GridRenderCellParams<any, any, any>) => {
-  if (params.value == null) return '';
+  if (!params.value) return null; // ''
 
   return (
     <Box

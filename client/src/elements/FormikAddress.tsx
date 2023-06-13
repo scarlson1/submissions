@@ -80,7 +80,7 @@ export const FormikAddress: React.FC<FormikAddressProps> = ({
       cb({ lat: geometry?.location.lat(), lng: geometry?.location.lng() }, newState?.short_name);
     }
 
-    document.getElementById('addressLine2')?.focus();
+    names.addressLine2 && document.getElementById(names.addressLine2)?.focus();
   };
 
   const handleClearAutocomplete = () => {

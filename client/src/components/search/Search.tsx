@@ -21,6 +21,7 @@ import { SearchModal } from './SearchModal';
 import { useChangeTheme } from 'modules/components';
 import { useAlgoliaSearchKey, useDocSearchKeyboardEvents } from 'hooks';
 import { GeoSearch } from './GeoSearch';
+import { OnSelectHit } from './Hit';
 
 const FADE_DURATION = 100;
 
@@ -52,9 +53,15 @@ export interface SearchProps {
   fullWidth?: DialogProps['fullWidth'];
   // optionally handle Selected item (searching agents)
   onSelect?: (item: any) => void;
+  shortcutKey?: string;
 }
 
-export function Search({ maxWidth = 'sm', fullWidth = true, ...props }: SearchProps) {
+export function Search({
+  maxWidth = 'sm',
+  fullWidth = true,
+  shortcutKey = 'k',
+  ...props
+}: SearchProps) {
   const searchButtonRef = React.useRef<HTMLButtonElement>(null);
   const [isOpen, setIsOpen] = React.useState(false);
   const { mode } = useChangeTheme();
@@ -92,6 +99,7 @@ export function Search({ maxWidth = 'sm', fullWidth = true, ...props }: SearchPr
     onClose,
     onInput,
     searchButtonRef,
+    shortcutKey,
   });
 
   return (
@@ -100,6 +108,7 @@ export function Search({ maxWidth = 'sm', fullWidth = true, ...props }: SearchPr
         ref={searchButtonRef}
         translations={props?.translations?.button}
         onClick={onOpen}
+        shortcutKey={shortcutKey}
       />
       <Dialog
         fullWidth={fullWidth}
@@ -285,7 +294,7 @@ export function Search({ maxWidth = 'sm', fullWidth = true, ...props }: SearchPr
                 marginTop: '-2px',
               },
             },
-            '& .DocSearch-Hit a': {
+            '& .DocSearch-Hit a, .DocSearch-Hit .onSelect-Item': {
               backgroundColor: 'transparent',
               padding: theme.spacing(0.25, 0),
               paddingLeft: theme.spacing(2),
@@ -307,11 +316,12 @@ export function Search({ maxWidth = 'sm', fullWidth = true, ...props }: SearchPr
               height: '15px',
               width: '15px',
             },
-            '& .DocSearch-Hit[aria-selected="true"] a': {
-              backgroundColor: theme.palette.primary[50],
-              borderColor: theme.palette.primary[500],
-              borderRadius: theme.shape.borderRadius,
-            },
+            '& .DocSearch-Hit[aria-selected="true"] a, .DocSearch-Hit[aria-selected="true"] .onSelect-Item':
+              {
+                backgroundColor: theme.palette.primary[50],
+                borderColor: theme.palette.primary[500],
+                borderRadius: theme.shape.borderRadius,
+              },
             '& .DocSearch-Hit-action, & .DocSearch-Hits mark': {
               color: theme.palette.primary[500],
             },
@@ -368,13 +378,14 @@ export function Search({ maxWidth = 'sm', fullWidth = true, ...props }: SearchPr
                 backgroundColor: alpha(theme.palette.background.paper, 0.3),
               },
             },
-            '& .DocSearch-Hit a': {
+            '& .DocSearch-Hit a, .DocSearch-Hit .onSelect-Item': {
               borderBottomColor: theme.palette.primaryDark[700],
             },
-            '& .DocSearch-Hit[aria-selected="true"] a': {
-              backgroundColor: theme.palette.primaryDark[800],
-              borderColor: theme.palette.primaryDark[400],
-            },
+            '& .DocSearch-Hit[aria-selected="true"] a, .DocSearch-Hit[aria-selected="true"] .onSelect-Item':
+              {
+                backgroundColor: theme.palette.primaryDark[800],
+                borderColor: theme.palette.primaryDark[400],
+              },
             '& .DocSearch-Hit-action, & .DocSearch-Hits mark': {
               color: theme.palette.primary[400],
             },
@@ -397,10 +408,6 @@ export function TempWrappedSearch() {
     throw new Error('missing algolia appID in env variables');
   }
 
-  // const handleOnSelect = useCallback((item: any) => {
-  //   console.log('SELECTED: ', item);
-  // }, []);
-
   if (!apiKey) return null;
 
   return (
@@ -409,14 +416,9 @@ export function TempWrappedSearch() {
         <Search
           appId={process.env.REACT_APP_ALGOLIA_APP_ID as string}
           apiKey={apiKey}
-          indexName='local_idemand_search'
+          indexName={process.env.REACT_APP_ALGOLIA_INDEX_NAME as string}
           indexTitle='All Records'
           placeholder='Search...'
-          // searchParameters={{
-          //   filters: 'collectionName:users',
-          // }}
-          // hitComponent={OnSelectHit}
-          // onSelect={handleOnSelect}
         />
       </Box>
       <div style={{ height: '500px', width: '100%' }}>
@@ -434,24 +436,27 @@ export function TempAgentSearch({ onSelect }: { onSelect: (item: any) => void })
     throw new Error('missing algolia appID in env variables');
   }
 
-  // const handleSelected = useCallback((item: any) => {
-  //   console.log('SELECTED: ', item);
-  // }, []);
-
   if (!apiKey) return null;
 
   return (
     <Search
       appId={process.env.REACT_APP_ALGOLIA_APP_ID as string}
       apiKey={apiKey}
-      indexName='local_idemand_search'
+      indexName={process.env.REACT_APP_ALGOLIA_INDEX_NAME as string}
       indexTitle='Agents'
       placeholder='Search Agent...'
       searchParameters={{
         filters: 'collectionName:users',
       }}
-      // hitComponent={OnSelectHit}
+      hitComponent={OnSelectHit}
       onSelect={onSelect}
+      translations={{
+        button: {
+          buttonText: 'Find Agent',
+          buttonAriaLabel: 'find agent',
+        },
+      }}
+      shortcutKey='u'
     />
   );
 }

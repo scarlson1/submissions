@@ -1,3 +1,4 @@
+import { ValueByRiskType } from 'common';
 import { Functions, httpsCallable } from 'firebase/functions';
 
 export interface RatingInputs {
@@ -12,20 +13,22 @@ export interface RatingInputs {
   numStories?: number;
   priorLossCount: string;
   state: string;
-  floodZone?: string;
-  basement?: string;
-  commissionPct?: number;
+  floodZone?: string | null;
+  basement?: string | null;
+  commissionPct?: number | null;
 }
 
 export interface GetAnnualPremiumRequest extends RatingInputs {
   submissionId?: string | null;
+  locationId?: string | null;
+  externalId?: string | null;
 }
 
 export interface GetAnnualPremiumResponse {
-  // data: { annualPremium: number };
   annualPremium: number;
-  inlandAAL: number;
-  surgeAAL: number;
+  AAL: ValueByRiskType;
+  // inlandAAL: number;
+  // surgeAAL: number;
 }
 
 export const getAnnualPremium = (functions: Functions, args: GetAnnualPremiumRequest) =>
