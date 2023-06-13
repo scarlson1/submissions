@@ -40,6 +40,9 @@ export default async (
         ? newValue.displayName
         : `${newValue.firstName} ${newValue.lastName}`.trim() || docId;
 
+      let searchSubtitle = newValue.email || `UID: ${docId}`;
+      if (newValue.orgName) searchSubtitle += ` - ${newValue.orgName}`;
+
       const visibleBy = [docId];
       if (newValue.orgId) visibleBy.push(`group/${newValue.orgId}`);
 
@@ -52,7 +55,7 @@ export default async (
           docType: 'user',
           collectionName: COLLECTIONS.USERS,
           searchTitle,
-          searchSubtitle: newValue.email || `UID: ${docId}`,
+          searchSubtitle,
           metadata: {
             ...(newValue.metadata || {}),
             created: newValue.metadata?.created?.toDate() || null,

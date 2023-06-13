@@ -1,22 +1,18 @@
 import { CallableRequest } from 'firebase-functions/v2/https';
 import { HttpsError } from 'firebase-functions/v1/https';
-import { error } from 'firebase-functions/logger';
+import { error, info } from 'firebase-functions/logger';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import invariant from 'tiny-invariant';
 
-import { COLLECTIONS } from '../common';
-import { getPremium } from '../utils/rating';
+import { Limits, ValueByRiskType, ratingDataCollection } from '../common';
+import { getPremium, getRCVs } from '../utils/rating';
 import { maxA, maxBCD, minA } from '../common';
 
 // TODO: create rating inputs interface (used in multiple funcs), extend where needed
 
 export interface CalcQuoteRequest {
-  limitA: number;
-  limitB: number;
-  limitC: number;
-  limitD: number;
-  inlandAAL: number;
-  surgeAAL: number;
+  limits: Limits;
+  AAL: ValueByRiskType;
   replacementCost: number;
   deductible: number;
   state: string;
@@ -31,12 +27,8 @@ export default async ({ data, auth }: CallableRequest<CalcQuoteRequest>) => {
   console.log('CALC QUOTE DATA: ', data);
   const db = getFirestore();
   const {
-    limitA,
-    limitB,
-    limitC,
-    limitD,
-    inlandAAL,
-    surgeAAL,
+    limits,
+    AAL,
     replacementCost,
     deductible,
     priorLossCount,
@@ -57,6 +49,11 @@ export default async ({ data, auth }: CallableRequest<CalcQuoteRequest>) => {
     const MAX_A = maxA.value();
     const MIN_A = minA.value();
     const MAX_BCD = maxBCD.value();
+
+    invariant(limits, 'Limits required');
+    invariant(AAL, 'AAL required');
+
+    const { limitA, limitB, limitC, limitD } = limits;
 
     invariant(
       limitA && typeof limitA === 'number' && limitA > MIN_A,
@@ -83,12 +80,16 @@ export default async ({ data, auth }: CallableRequest<CalcQuoteRequest>) => {
 
     invariant(commissionPct && typeof commissionPct === 'number', 'commissionPct');
     invariant(
-      (inlandAAL || inlandAAL === 0) && typeof inlandAAL === 'number',
+      (AAL.inland || AAL.inland === 0) && typeof AAL.inland === 'number',
       'inland AAL must be a number'
     );
     invariant(
-      (surgeAAL || surgeAAL === 0) && typeof surgeAAL === 'number',
+      (AAL.surge || AAL.surge === 0) && typeof AAL.surge === 'number',
       'surgeAAL must be a number'
+    );
+    invariant(
+      (AAL.tsunami || AAL.tsunami === 0) && typeof AAL.tsunami === 'number',
+      'tsunamiAAL must be a number'
     );
     invariant(
       state && typeof state === 'string' && state.length === 2,
@@ -109,12 +110,8 @@ export default async ({ data, auth }: CallableRequest<CalcQuoteRequest>) => {
 
   try {
     const result = getPremium({
-      inlandAAL,
-      surgeAAL,
-      limitA,
-      limitB,
-      limitC,
-      limitD,
+      AAL: AAL,
+      limits,
       floodZone,
       state,
       basement,
@@ -122,34 +119,40 @@ export default async ({ data, auth }: CallableRequest<CalcQuoteRequest>) => {
       commissionPct,
     });
 
-    console.log('PREMIUM DATA: ', result);
-    // TODO: fetch taxes ??
+    info('PREMIUM DATA: ', { ...result });
 
-    // TODO: save rating data
-    await db.collection(COLLECTIONS.RATING_DATA).add({
+    const RCVs = getRCVs(replacementCost, limits);
+
+    const ratingDataCol = ratingDataCollection(db);
+    await ratingDataCol.add({
       submissionId: submissionId || null,
       deductible,
-      limits: {
-        limitA,
-        limitB,
-        limitC,
-        limitD,
+      limits,
+      TIV: result.tiv,
+      RCVs,
+      // TODO: Decide whether to require all rating property data and rcvs in request
+      // OR use a discriminating union type
+      ratingPropertyData: {
+        floodZone,
+        basement,
+        ffe: 0,
+        CBRSDesignation: null,
+        distToCoastFeet: null,
+        numStories: null,
+        propertyCode: null,
+        replacementCost: null,
+        sqFootage: null,
+        yearBuilt: null,
       },
-      tiv: result.tiv,
-      replacementCost,
-      aal: {
-        inland: inlandAAL,
-        surge: surgeAAL,
-      },
-      pm: result.pm,
+      // priorLossCount,
+      // replacementCost,
+      AAL,
+      PM: result.pm,
       riskScore: result.riskScore,
       stateMultipliers: result.stateMultipliers,
       secondaryFactorMults: result.secondaryFactorMults,
-      floodZone,
-      basement,
-      ffe: 0,
-      priorLossCount,
-      premiumData: result.premiumData,
+      premiumCalcData: result.premiumData,
+      coordinates: null,
       metadata: {
         created: Timestamp.now(),
         updated: Timestamp.now(),
@@ -165,7 +168,7 @@ export default async ({ data, auth }: CallableRequest<CalcQuoteRequest>) => {
       props: data,
       userId,
       function: 'calcQuote',
-      message: err?.message || '',
+      message: err?.message || null,
       stack: err?.stack || null,
     });
     throw new HttpsError('invalid-argument', 'Error calculating quote');

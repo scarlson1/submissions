@@ -1,4 +1,4 @@
-import { ValueByRiskType } from 'common';
+import { Coordinates, Limits, ValueByRiskType } from 'common';
 import { Functions, httpsCallable } from 'firebase/functions';
 
 export interface RatingInputs {
@@ -18,7 +18,20 @@ export interface RatingInputs {
   commissionPct?: number | null;
 }
 
-export interface GetAnnualPremiumRequest extends RatingInputs {
+// export interface GetAnnualPremiumRequest extends RatingInputs {
+export interface GetAnnualPremiumRequest {
+  // latitude: number;
+  // longitude: number;
+  coordinates: Coordinates;
+  replacementCost: number;
+  limits: Limits;
+  deductible: number;
+  numStories?: number;
+  priorLossCount: string;
+  state: string;
+  floodZone?: string | null;
+  basement?: string | null;
+  commissionPct?: number | null;
   submissionId?: string | null;
   locationId?: string | null;
   externalId?: string | null;

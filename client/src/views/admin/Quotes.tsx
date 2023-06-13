@@ -312,8 +312,12 @@ export const Quotes: React.FC = () => {
           //     })
           //   );
           // }}
-          components={{ Toolbar: GridToolbar }}
-          componentsProps={{ toolbar: { csvOptions: { allColumns: true } } }}
+          slots={{
+            toolbar: GridToolbar,
+          }}
+          slotProps={{
+            toolbar: { csvOptions: { allColumns: true } },
+          }}
           initialState={{
             columns: {
               columnVisibilityModel: {

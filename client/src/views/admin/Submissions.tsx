@@ -60,6 +60,7 @@ import {
   limitDCol,
   tivCol,
   copyBaseProps,
+  tsunamiAALCol,
 } from 'common';
 import { ServerDataGrid } from 'components';
 import { ADMIN_ROUTES, createPath } from 'router';
@@ -296,24 +297,17 @@ export const Submissions: React.FC<SubmissionsProps> = () => {
         // TODO: valueFormatter
       },
       priorLossCountCol,
-      // distToCoastFeetCol,
       ratingDataDistToCoastFeetCol,
-      // basementCol,
       ratingDataBasementCol,
-      // numStoriesCol,
       ratingDataNumStoriesCol,
-      // propertyCodeCol,
       ratingDataPropertyCodeCol,
-      // sqFootageCol,
       ratingDataSqFootageCol,
-      // yearBuiltCol,
       ratingDataYearBuiltCol,
-      // floodZoneCol,
       ratingDataFloodZoneCol,
-      // CBRSCol,
       ratingDataCBRSCol,
       inlandAALCol,
       surgeAALCol,
+      tsunamiAALCol,
       coordinatesCol,
       latitudeCol,
       longitudeCol,

@@ -50,12 +50,11 @@ function getValidatedCalcInputs(values: NewQuoteValues) {
 
   invariant(AAL?.inland || AAL?.inland === 0, 'inland aal required');
   invariant(AAL?.surge || AAL?.surge === 0, 'surge aal required');
+  invariant(AAL?.tsunami || AAL?.tsunami === 0, 'tsunami aal required');
 
-  // TODO: change backend to accept limits / aal as object
   return {
-    ...limits,
-    inlandAAL: AAL.inland,
-    surgeAAL: AAL.surge,
+    limits,
+    AAL,
     replacementCost,
     deductible,
     state: address.state,
@@ -79,51 +78,18 @@ export const useCalcPremium = (
 
   const calcPremium = useCallback(
     async (values: NewQuoteValues) => {
+      let validatedReqBody;
+      try {
+        validatedReqBody = getValidatedCalcInputs(values) as CalcQuoteRequest;
+      } catch (err: any) {
+        let msg = `missing required values`;
+        if (err?.message) msg = err.message.replace('Invariant failed: ', '');
+        if (onError) onError(msg, err);
+        return;
+      }
+
       try {
         setLoading(true);
-        if (!values) throw new Error('missing values');
-
-        // if (!(replacementCost && (inland || inland === 0) && (surge || surge === 0)))
-        //   throw new Error('Missing replacement cost or aal');
-
-        // if (!values.ratingPropertyData.floodZone) throw new Error('flood zone is required');
-
-        let validatedReqBody;
-        try {
-          validatedReqBody = getValidatedCalcInputs(values) as CalcQuoteRequest;
-        } catch (err: any) {
-          let msg = `missing required values`;
-          if (err?.message) msg = err.message.replace('Invariant failed: ', '');
-          if (onError) onError(msg, err);
-          return;
-        }
-
-        // const {
-        //   ratingPropertyData: { replacementCost, floodZone, basement },
-        //   AAL: { inland, surge },
-        //   deductible,
-        //   address,
-        //   priorLossCount,
-        //   subproducerCommission,
-        // } = validatedValues;
-
-        // // TODO: change backend to accept limits / aal as object
-        // let reqBody = {
-        //   ...values.limits,
-        //   inlandAAL: inland,
-        //   surgeAAL: surge,
-        //   replacementCost,
-        //   deductible,
-        //   state: address.state,
-        //   priorLossCount,
-        //   floodZone,
-        //   basement,
-        //   commissionPct:
-        //     typeof subproducerCommission === 'string'
-        //       ? parseFloat(subproducerCommission)
-        //       : subproducerCommission,
-        // };
-        // console.log('REQUEST BODY: ', reqBody);
 
         const { data } = await calcQuote(functions, { ...validatedReqBody, submissionId });
 
@@ -131,12 +97,28 @@ export const useCalcPremium = (
         if (!data.annualPremium || typeof data.annualPremium !== 'number')
           throw new Error('Missing premium in response');
 
-        if (onSuccess)
-          onSuccess(data.annualPremium, {
-            ...validatedReqBody,
-            latitude: values.coordinates?.latitude,
-            longitude: values.coordinates?.longitude,
-          });
+        const flattenedRatingInputs = {
+          ...validatedReqBody.limits,
+          inlandAAL: validatedReqBody.AAL.inland,
+          surgeAAL: validatedReqBody.AAL.surge,
+          tsunamiAAL: validatedReqBody.AAL.tsunami,
+          state: validatedReqBody.state,
+          floodZone: validatedReqBody.floodZone,
+          basement: validatedReqBody.basement,
+          commissionPct: validatedReqBody.commissionPct,
+          replacementCost: validatedReqBody.replacementCost,
+          deductible: validatedReqBody.deductible,
+          priorLossCount: validatedReqBody.priorLossCount,
+          latitude: values.coordinates?.latitude,
+          longitude: values.coordinates?.longitude,
+        };
+
+        if (onSuccess) onSuccess(data.annualPremium, flattenedRatingInputs);
+        // onSuccess(data.annualPremium, {
+        //   ...validatedReqBody,
+        //   latitude: values.coordinates?.latitude,
+        //   longitude: values.coordinates?.longitude,
+        // });
         setLoading(false);
         return data.annualPremium;
       } catch (err: any) {

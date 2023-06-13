@@ -70,12 +70,14 @@ export default async (
 
   try {
     const srVals: Partial<GetAALsProps> = {
-      latitude: sub.coordinates.latitude,
-      longitude: sub.coordinates.longitude,
-      limitA: sub.limits?.limitA,
-      limitB: sub.limits?.limitB,
-      limitC: sub.limits?.limitC,
-      limitD: sub.limits?.limitD,
+      // latitude: sub.coordinates.latitude,
+      // longitude: sub.coordinates.longitude,
+      coordinates: sub.coordinates,
+      limits: sub.limits,
+      // limitA: sub.limits?.limitA,
+      // limitB: sub.limits?.limitB,
+      // limitC: sub.limits?.limitC,
+      // limitD: sub.limits?.limitD,
       deductible: sub.deductible,
       replacementCost: sub.ratingPropertyData?.replacementCost,
       numStories: sub.ratingPropertyData?.numStories || 1,
@@ -103,12 +105,14 @@ export default async (
       coordinates: sub.coordinates,
       requestValues: {
         replacementCost: srVals.replacementCost || null,
-        limitA: srVals.limitA || null,
-        limitB: srVals.limitB || null,
-        limitC: srVals.limitC || null,
-        limitD: srVals.limitD || null,
-        latitude: srVals.latitude || null,
-        longitude: srVals.longitude || null,
+        limits: srVals.limits || null,
+        coordinates: srVals.coordinates || null,
+        // limitA: srVals.limitA || null,
+        // limitB: srVals.limitB || null,
+        // limitC: srVals.limitC || null,
+        // limitD: srVals.limitD || null,
+        // latitude: srVals.latitude || null,
+        // longitude: srVals.longitude || null,
         deductible: srVals.deductible || null,
         numStories: srVals.numStories || null,
       },
@@ -138,23 +142,25 @@ export default async (
 
   // CALCULATE ANNUAL PREMIUM
   try {
-    // const { inlandAAL, surgeAAL } = ratingUpdates;
-    const inlandAAL = AALsRes.AAL.inland; // TODO: add tsunami
-    const surgeAAL = AALsRes.AAL.surge;
-    const tsunamiAAL = AALsRes.AAL.tsunami;
-    // const tsunamiAAL = AALsRes.AAL.tsunami;
-    invariant(typeof inlandAAL === 'number');
-    invariant(typeof surgeAAL === 'number');
-    invariant(typeof tsunamiAAL === 'number');
+    invariant(AALsRes?.AAL?.inland && typeof AALsRes.AAL.inland === 'number', 'Missing inland AAL');
+    invariant(AALsRes?.AAL?.surge && typeof AALsRes?.AAL?.surge === 'number', 'Missing surge AAL');
+    invariant(
+      AALsRes?.AAL?.tsunami && typeof AALsRes?.AAL?.tsunami === 'number',
+      'Missing tsunami AAL'
+    );
 
     const result = getPremium({
-      inlandAAL,
-      surgeAAL,
-      // tsunamiAAL,
-      limitA: sub.limits?.limitA,
-      limitB: sub.limits?.limitB,
-      limitC: sub.limits?.limitC,
-      limitD: sub.limits?.limitD,
+      AAL: {
+        inland: AALsRes?.AAL?.inland,
+        surge: AALsRes?.AAL?.surge,
+        tsunami: AALsRes?.AAL?.tsunami,
+      },
+      limits: {
+        limitA: sub.limits?.limitA,
+        limitB: sub.limits?.limitB,
+        limitC: sub.limits?.limitC,
+        limitD: sub.limits?.limitD,
+      },
       floodZone: sub.ratingPropertyData?.floodZone || defaultFloodZone.value(),
       state: sub.address?.state,
       basement: sub.ratingPropertyData?.basement || 'unknown',
@@ -199,8 +205,9 @@ export default async (
         // priorLossCount: sub.priorLossCount || null, // TODO: fix confiction with priorLossCount in Submission doc
       },
       AAL: {
-        inland: inlandAAL,
-        surge: surgeAAL,
+        inland: AALsRes.AAL.inland,
+        surge: AALsRes.AAL.surge,
+        tsunami: AALsRes.AAL.tsunami,
       },
       premiumCalcData: result.premiumData,
       PM: result.pm,

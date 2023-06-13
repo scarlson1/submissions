@@ -33,7 +33,7 @@ export const multipliersByState: MultipliersByState = {
     tsunamiStateMult: 1,
   },
   CA: {
-    fullname: 'CalinlandStateMultornia',
+    fullname: 'California',
     inlandStateMult: 1.5,
     surgeStateMult: 2.5,
     tsunamiStateMult: 2.5,
@@ -135,7 +135,7 @@ export const multipliersByState: MultipliersByState = {
     tsunamiStateMult: 1,
   },
   MA: {
-    fullname: 'MasurgeStateMultachusetts',
+    fullname: 'Masachusetts',
     inlandStateMult: 1.5,
     surgeStateMult: 3,
     tsunamiStateMult: 1,
@@ -153,13 +153,13 @@ export const multipliersByState: MultipliersByState = {
     tsunamiStateMult: 1,
   },
   MS: {
-    fullname: 'MisurgeStateMultisurgeStateMultippi',
+    fullname: 'Mississippi',
     inlandStateMult: 1.5,
     surgeStateMult: 2.5,
     tsunamiStateMult: 1,
   },
   MO: {
-    fullname: 'MisurgeStateMultouri',
+    fullname: 'Missouri',
     inlandStateMult: 1.5,
     surgeStateMult: 2.5,
     tsunamiStateMult: 1,
@@ -261,7 +261,7 @@ export const multipliersByState: MultipliersByState = {
     tsunamiStateMult: 1,
   },
   TN: {
-    fullname: 'TennesurgeStateMultee',
+    fullname: 'Tennessee',
     inlandStateMult: 1.5,
     surgeStateMult: 2.5,
     tsunamiStateMult: 1,

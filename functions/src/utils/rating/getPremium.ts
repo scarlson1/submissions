@@ -1,4 +1,10 @@
-import { PremiumCalcData, ValueByRiskType, calcSum, defaultFloodZone } from '../../common/index.js';
+import {
+  Limits,
+  PremiumCalcData,
+  ValueByRiskType,
+  calcSum,
+  defaultFloodZone,
+} from '../../common/index.js';
 import { getPremiumData } from './calcPremium.js';
 import { SecondaryFactorMults, getPM, getSecondaryFactorMults } from './factors.js';
 import { getMinPremium } from './minPremium.js';
@@ -6,12 +12,8 @@ import { multipliersByState } from './multipliersByState.js';
 import { getInlandRiskScore, getSurgeRiskScore } from './riskScore.js';
 
 interface GetPremiumProps {
-  inlandAAL: number;
-  surgeAAL: number;
-  limitA: number;
-  limitB: number;
-  limitC: number;
-  limitD: number;
+  AAL: ValueByRiskType;
+  limits: Limits;
   priorLossCount: string;
   state: string;
   basement?: string;
@@ -32,12 +34,8 @@ export interface GetPremiumCalcResult {
 
 export const getPremium = (props: GetPremiumProps): GetPremiumCalcResult => {
   const {
-    inlandAAL,
-    surgeAAL,
-    limitA,
-    limitB,
-    limitC,
-    limitD,
+    AAL, // : { inland, surge, tsunami },
+    limits, // : { limitA, limitB, limitC, limitD },
     floodZone,
     state,
     basement = 'unknown',
@@ -45,22 +43,27 @@ export const getPremium = (props: GetPremiumProps): GetPremiumCalcResult => {
     commissionPct = 0.15,
     isPortfolio = false,
   } = props;
-
-  // TODO: redundant ?? also summed in getPremiumData
-  const tiv = calcSum([limitA, limitB, limitC, limitD]);
+  // TODO: redundant ?? also summed in getPremiumData (pass as prop ??)
+  const tiv = calcSum(Object.values(limits));
 
   const minPremium = getMinPremium(floodZone || defaultFloodZone.value(), tiv, isPortfolio);
 
   const pm = {
-    inland: getPM(inlandAAL, tiv),
-    surge: getPM(surgeAAL, tiv),
+    inland: getPM(AAL.inland, tiv),
+    surge: getPM(AAL.surge, tiv),
+    tsunami: getPM(AAL.tsunami, tiv),
   };
   const riskScore = {
     inland: getInlandRiskScore(pm.inland),
     surge: getSurgeRiskScore(pm.surge),
+    tsunami: 0,
   };
   // Flood type multipliers by state
-  const { inlandStateMult = 1.5, surgeStateMult = 3 } = multipliersByState[state];
+  const {
+    inlandStateMult = 1.5,
+    surgeStateMult = 3,
+    tsunamiStateMult = 1,
+  } = multipliersByState[state];
 
   const secondaryFactorMults = getSecondaryFactorMults({
     ffe: 0,
@@ -68,17 +71,16 @@ export const getPremium = (props: GetPremiumProps): GetPremiumCalcResult => {
     priorLossCount,
     inlandRiskScore: riskScore.inland,
     surgeRiskScore: riskScore.surge,
+    tsunamiRiskScore: riskScore.tsunami,
   });
 
   const premResult = getPremiumData({
-    AAL: {
-      inland: inlandAAL,
-      surge: surgeAAL,
-    },
+    AAL: props.AAL,
     secondaryFactorMults,
     stateMultipliers: {
       inland: inlandStateMult,
       surge: surgeStateMult,
+      tsunami: tsunamiStateMult,
     },
     minPremium,
     subproducerComPct: commissionPct,
@@ -89,7 +91,7 @@ export const getPremium = (props: GetPremiumProps): GetPremiumCalcResult => {
     premiumData: premResult,
     tiv,
     secondaryFactorMults,
-    stateMultipliers: { inland: inlandStateMult, surge: surgeStateMult },
+    stateMultipliers: { inland: inlandStateMult, surge: surgeStateMult, tsunami: tsunamiStateMult },
     riskScore,
     pm,
     minPremium,

@@ -900,6 +900,18 @@ export const surgeAALCol: GridColDef = {
   },
 };
 
+export const tsunamiAALCol: GridColDef = {
+  field: 'tsunamiAAL',
+  headerName: 'Tsunami AAL',
+  description: 'Tsunami Peril Average Annual Loss from Swiss Re',
+  minWidth: 150,
+  flex: 0.8,
+  valueGetter: (params) => params.row.AAL?.tsunami ?? null,
+  renderCell: (params) => {
+    return <GridCellCopy value={params.value} />;
+  },
+};
+
 export const annualPremiumCol: GridColDef = {
   field: 'annualPremium',
   headerName: 'Annual Premium',
