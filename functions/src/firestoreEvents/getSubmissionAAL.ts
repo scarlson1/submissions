@@ -141,13 +141,16 @@ export default async (
     // const { inlandAAL, surgeAAL } = ratingUpdates;
     const inlandAAL = AALsRes.AAL.inland; // TODO: add tsunami
     const surgeAAL = AALsRes.AAL.surge;
+    const tsunamiAAL = AALsRes.AAL.tsunami;
     // const tsunamiAAL = AALsRes.AAL.tsunami;
     invariant(typeof inlandAAL === 'number');
     invariant(typeof surgeAAL === 'number');
+    invariant(typeof tsunamiAAL === 'number');
 
     const result = getPremium({
       inlandAAL,
       surgeAAL,
+      // tsunamiAAL,
       limitA: sub.limits?.limitA,
       limitB: sub.limits?.limitB,
       limitC: sub.limits?.limitC,

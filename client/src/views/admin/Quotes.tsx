@@ -25,8 +25,6 @@ import {
   addrPostalCol,
   currencyCol,
   statusCol,
-  emailCol,
-  phoneCol,
   limitACol,
   limitBCol,
   limitCCol,
@@ -59,6 +57,9 @@ import {
   addrFIPSCol,
   copyBaseProps,
   annualPremiumCol,
+  agentEmailCol,
+  agentPhoneCol,
+  addressSummaryCol,
 } from 'common';
 import { BasicDataGrid } from 'components';
 import { useAsyncToast, useCollectionData, useJsonDialog, useSendQuoteNotification } from 'hooks';
@@ -212,6 +213,7 @@ export const Quotes: React.FC = () => {
           QUOTE_STATUS.AWAITING_USER,
         ],
       },
+      addressSummaryCol,
       addrLine1Col,
       addrLine2Col,
       addrCityCol,
@@ -225,13 +227,13 @@ export const Quotes: React.FC = () => {
         ...currencyCol,
         field: 'quoteTotal',
         headerName: 'Quote Total',
+        description: 'premium + taxes + fees',
       },
       namedInsuredDisplayNameCol,
       namedInsuredFirstNameCol,
       namedInsuredLastNameCol,
       namedInsuredEmailCol,
       namedInsuredPhoneCol,
-
       limitACol,
       limitBCol,
       limitCCol,
@@ -249,18 +251,8 @@ export const Quotes: React.FC = () => {
       ratingDataFloodZoneCol,
       subproducerCommissionCol,
       nestedAgentNameCol,
-      {
-        ...emailCol,
-        field: 'agent.email',
-        headerName: 'Agent Email',
-        valueGetter: (params) => params.row.agent?.email || null,
-      },
-      {
-        ...phoneCol,
-        field: 'agent.phone',
-        headerName: 'Agent Phone',
-        valueGetter: (params) => params.row.agent?.phone || null,
-      },
+      agentEmailCol,
+      agentPhoneCol,
       agencyNameCol,
       createdCol,
       updatedCol,
@@ -284,8 +276,6 @@ export const Quotes: React.FC = () => {
     toast.error('update failed');
     console.log('ERROR: ', err);
   }, []);
-
-  console.log('DATA: ', data);
 
   return (
     <Box>
@@ -329,12 +319,15 @@ export const Quotes: React.FC = () => {
               columnVisibilityModel: {
                 'namedInsured.firstName': false,
                 'namedInsured.lastName': false,
-                // 'address.addressLine2': false,
-                // 'address.postal': false,
-                addressLine2: false,
-                postal: false,
-                // termPremium: false,
-                // annualPremium: false,
+                'address.addressLine1': false,
+                'address.addressLine2': false,
+                'address.city': false,
+                'address.state': false,
+                'address.postal': false,
+                'address.countyName': false,
+                'address.countyFIPS': false,
+                // addressLine2: false,
+                // postal: false,
                 updated: false,
                 'agent.userId': false,
                 CBRSDesignation: false,

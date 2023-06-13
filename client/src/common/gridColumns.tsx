@@ -221,7 +221,6 @@ export const addressSummaryCol: GridColDef = {
     if (state) formatted += `, ${state}`;
 
     return formatted;
-    // return `${addressLine1}, ${city}, ${state}`;
   },
 };
 
@@ -616,8 +615,8 @@ export const deductibleCol: GridColDef = {
 };
 
 export const namedInsuredDisplayNameCol: GridColDef = {
-  field: 'insuredName',
-  headerName: 'Insured Name',
+  field: 'namedInsured.displayName',
+  headerName: 'Named Insured',
   minWidth: 160,
   flex: 0.8,
   editable: false,
@@ -629,7 +628,7 @@ export const namedInsuredDisplayNameCol: GridColDef = {
 
 export const namedInsuredFirstNameCol: GridColDef = {
   ...firstNameCol,
-  field: 'namedInsured.firstname', // 'insured.firstName',
+  field: 'namedInsured.firstName',
   valueGetter: (params: GridValueGetterParams) => params.row.namedInsured?.firstName || null,
 };
 
@@ -836,6 +835,20 @@ export const nestedAgentNameCol: GridColDef = {
   ...agentNameCol,
   field: 'agent.name',
   valueGetter: (params: GridValueGetterParams<any, any>) => params.row.agent?.name || null,
+};
+
+export const agentEmailCol: GridColDef = {
+  ...emailCol,
+  field: 'agent.email',
+  headerName: 'Agent Email',
+  valueGetter: (params) => params.row.agent?.email || null,
+};
+
+export const agentPhoneCol: GridColDef = {
+  ...phoneCol,
+  field: 'agent.phone',
+  headerName: 'Agent Phone',
+  valueGetter: (params) => params.row.agent?.phone || null,
 };
 
 export const agentIdCol: GridColDef = {

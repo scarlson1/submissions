@@ -10,6 +10,11 @@ export const getSurgeRiskScore = (pm: number) => {
   return surgePMRiskArray.findIndex((i) => pm < i);
 };
 
+// TODO: tsunami array
+export const getTsunamiRiskScore = (pm: number) => {
+  return surgePMRiskArray.findIndex((i) => pm < i);
+};
+
 export const inlandPMRiskArray = [
   0.0, 0.035, 0.053, 0.07, 0.088, 0.106, 0.123, 0.141, 0.158, 0.176, 0.194, 0.211, 0.229, 0.246,
   0.264, 0.282, 0.299, 0.317, 0.334, 0.352, 0.37, 0.387, 0.405, 0.422, 0.44, 0.458, 0.475, 0.493,

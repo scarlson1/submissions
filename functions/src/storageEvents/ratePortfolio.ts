@@ -25,6 +25,7 @@ import { formatPremData, getPremCalcVars, getSRVars, validateRow } from './getAA
 import { sendMessage } from '../services/sendgrid';
 import { addDays } from 'date-fns';
 import { GetSignedUrlResponse } from '@google-cloud/storage';
+import { extractSRAALs } from '../utils/rating/getAALs';
 
 let swissReInstance: AxiosInstance;
 let swissReInstanceTimestamp: number; // TODO: regenerate if > 10 mins
@@ -118,28 +119,28 @@ function getSRPromise(data: any) {
   });
 }
 
-const extractAAL = (expectedLosses: any) => {
-  let code200Index = expectedLosses.findIndex((o: any) => o.perilCode === '200');
-  let code300Index = expectedLosses.findIndex((o: any) => o.perilCode === '300');
+// const extractAAL = (expectedLosses: any) => {
+//   let code200Index = expectedLosses.findIndex((o: any) => o.perilCode === '200');
+//   let code300Index = expectedLosses.findIndex((o: any) => o.perilCode === '300');
 
-  let inlandAAL = 0;
-  let surgeAAL = 0;
-  if (code200Index !== -1) {
-    surgeAAL = expectedLosses[code200Index]?.preCatLoss ?? 0;
-  }
-  if (code300Index !== -1) {
-    inlandAAL = expectedLosses[code300Index]?.preCatLoss ?? 0;
-  }
+//   let inlandAAL = 0;
+//   let surgeAAL = 0;
+//   if (code200Index !== -1) {
+//     surgeAAL = expectedLosses[code200Index]?.preCatLoss ?? 0;
+//   }
+//   if (code300Index !== -1) {
+//     inlandAAL = expectedLosses[code300Index]?.preCatLoss ?? 0;
+//   }
 
-  return { inlandAAL, surgeAAL };
-};
+//   return { inlandAAL, surgeAAL };
+// };
 
 const calcPrem = (data: any[]) => {
   const result: any[] = [];
 
   for (let r of data) {
     try {
-      if (r.inlandAAL === -1) {
+      if (r.inland === -1) {
         let msg = r.skip ? 'skip row' : r.errMsg || 'missing aals';
         throw new Error(msg);
       }
@@ -228,8 +229,8 @@ async function getAALs(parsedData: any[]) {
 
     let aals = results.map((r) =>
       r?.data?.expectedLosses
-        ? { ...extractAAL(r?.data?.expectedLosses), errMsg: '' }
-        : { inlandAAL: -1, surgeAAL: -1, errMsg: r?.data?.errMsg || '' }
+        ? { ...extractSRAALs(r?.data?.expectedLosses), errMsg: '' }
+        : { inland: -1, surge: -1, tsunami: -1, errMsg: r?.data?.errMsg || '' }
     );
 
     if (parsedData.length !== aals.length) {
@@ -337,12 +338,12 @@ export default async (event: StorageEvent) => {
 
     for (let chunk of chunks) {
       const chunkWithAAL = await getAALs(chunk);
-      info(`FINISHED FETCHING AAL FOR CHUNK (${currChunk}/${chunks.length})`);
+      info(`FINISHED FETCHING AAL FOR CHUNK (${currChunk}/${chunks.length})`, { ...chunkWithAAL });
 
       const ratedChunk = calcPrem(chunkWithAAL);
       info(`RATED CHUNK (${currChunk}/${chunks.length}) [${ratedChunk.length} ROWS]: `);
 
-      await waitMilliSeconds(2000);
+      await waitMilliSeconds(30000);
 
       ratedArray = [...ratedArray, ...ratedChunk];
       currChunk++;

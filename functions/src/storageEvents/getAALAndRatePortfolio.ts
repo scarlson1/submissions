@@ -275,8 +275,9 @@ export function getSRVars(row: any) {
 
 export function getPremCalcVars(row: any) {
   return {
-    inlandAAL: row.inlandAAL,
-    surgeAAL: row.surgeAAL,
+    inlandAAL: row.inland, // row.inlandAAL,
+    surgeAAL: row.surge, // row.surgeAAL,
+    tsunamiAAL: row.tsunami,
     limitA: row.cov_a_limit,
     limitB: row.cov_b_limit,
     limitC: row.cov_c_limit,

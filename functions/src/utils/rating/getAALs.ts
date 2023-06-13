@@ -102,6 +102,34 @@ export const getAALs = async (props: GetAALsProps): Promise<GetAALRes> => {
   return { srRes, AAL, rcvs: RCVs };
 };
 
+// TODO REPLACE ABOVE WITH THIS FUNC
+export function extractSRAALs(expectedLosses: any) {
+  let AAL = { surge: 0, inland: 0, tsunami: 0 };
+
+  const code200Index = expectedLosses?.findIndex(
+    (floodObj: SRPerilAAL) => floodObj.perilCode === '200'
+  );
+  const code300Index = expectedLosses?.findIndex(
+    (floodObj: SRPerilAAL) => floodObj.perilCode === '300'
+  );
+  const code104Index = expectedLosses.findIndex(
+    (floodObj: SRPerilAAL) => floodObj.perilCode === '104'
+  );
+
+  if (code200Index !== -1) {
+    AAL.surge = expectedLosses[code200Index]?.preCatLoss ?? 0;
+  }
+  if (code300Index !== -1) {
+    AAL.inland = expectedLosses[code300Index]?.preCatLoss ?? 0;
+  }
+  // TODO: tsunami
+  if (code104Index !== -1) {
+    AAL.tsunami = expectedLosses[code104Index]?.preCatLoss ?? 0;
+  }
+
+  return AAL;
+}
+
 export const validateGetAALsProps = (props: Partial<GetAALsProps>) => {
   const {
     latitude,
