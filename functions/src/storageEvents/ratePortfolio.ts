@@ -24,7 +24,7 @@ import { getPremium } from '../utils/rating';
 import { formatPremData, getSRVars, validateRow } from './getAALAndRatePortfolio';
 import { sendMessage } from '../services/sendgrid';
 import { addDays } from 'date-fns';
-import { GetSignedUrlResponse } from '@google-cloud/storage';
+import { File, GetSignedUrlResponse } from '@google-cloud/storage';
 import { extractSRAALs } from '../utils/rating/getAALs';
 
 let swissReInstance: AxiosInstance;
@@ -101,41 +101,6 @@ function parseStreamToArray<RowType = any>(stream: fs.ReadStream) {
       });
   });
 }
-
-function getSRPromise(data: any) {
-  if (data.skip) {
-    return new Promise(function (resolve, reject) {
-      setTimeout(function () {
-        reject(new Error('skip row'));
-      }, 50);
-    });
-  }
-  if (!swissReInstance) throw Error('SwissReInstance undefined');
-  const xmlBodyVars = getSRVars(data);
-  const body = swissReBody(xmlBodyVars);
-
-  return swissReInstance.post('/rate/sync/srxplus/losses', body, {
-    headers: {
-      'Content-Type': 'application/octet-stream',
-    },
-  });
-}
-
-// const extractAAL = (expectedLosses: any) => {
-//   let code200Index = expectedLosses.findIndex((o: any) => o.perilCode === '200');
-//   let code300Index = expectedLosses.findIndex((o: any) => o.perilCode === '300');
-
-//   let inlandAAL = 0;
-//   let surgeAAL = 0;
-//   if (code200Index !== -1) {
-//     surgeAAL = expectedLosses[code200Index]?.preCatLoss ?? 0;
-//   }
-//   if (code300Index !== -1) {
-//     inlandAAL = expectedLosses[code300Index]?.preCatLoss ?? 0;
-//   }
-
-//   return { inlandAAL, surgeAAL };
-// };
 
 function getPremCalcVars(row: any) {
   return {
@@ -223,10 +188,37 @@ const calcPrem = (data: any[]) => {
   return result;
 };
 
+function getSRPromise(data: any, i?: number) {
+  // if (i === 1) {
+  //   console.log('DEV - RETURNING SR REJECTION');
+  //   return new Promise((resolve, reject) => {
+  //     setTimeout(() => {
+  //       reject(new Error('test throw error for retry refactor'));
+  //     }, 50);
+  //   });
+  // }
+  if (data.skip) {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        reject(new Error('skip row'));
+      }, 50);
+    });
+  }
+  if (!swissReInstance) throw Error('SwissReInstance undefined');
+  const xmlBodyVars = getSRVars(data);
+  const body = swissReBody(xmlBodyVars);
+
+  return swissReInstance.post('/rate/sync/srxplus/losses', body, {
+    headers: {
+      'Content-Type': 'application/octet-stream',
+    },
+  });
+}
+
 async function getAALs(parsedData: any[]) {
   try {
     const promises = parsedData.map((r, i) =>
-      getSRPromise(r).catch((err: any) => {
+      getSRPromise(r, i).catch((err: any) => {
         let errMsg = 'Error fetching AALs from Swiss Re.';
         if (err?.message && typeof err.message === 'string') errMsg = err.message;
         if (err?.response?.data) errMsg += ` ${[JSON.stringify(err.response.data)]}`;
@@ -257,21 +249,16 @@ async function getAALs(parsedData: any[]) {
 
     let results = await Promise.all(promises);
 
+    let aals = results.map((r) => ({
+      ...extractSRAALs(r?.data?.expectedLosses),
+      errMsg: r?.data?.errMsg || '',
+    }));
+
     // let aals = results.map((r) =>
     //   r?.data?.expectedLosses
     //     ? { ...extractSRAALs(r?.data?.expectedLosses), errMsg: '' }
     //     : { inland: -1, surge: -1, tsunami: -1, errMsg: r?.data?.errMsg || '' }
     // );
-
-    let aals = results.map((r) => {
-      if (!r?.data?.expectedLosses)
-        return { inland: -1, surge: -1, tsunami: -1, errMsg: r?.data?.errMsg || '' };
-
-      let AAL = extractSRAALs(r.data.expectedLosses);
-      console.log('EXTRACTED AAL: ', AAL);
-
-      return { ...AAL, errMsg: '' };
-    });
 
     if (parsedData.length !== aals.length) {
       error('AAL COUNT NOT THE SAME AS ROW COUNT - RETURNING EARLY');
@@ -286,6 +273,51 @@ async function getAALs(parsedData: any[]) {
     error('AAL ERR: ', { ...err });
     throw err;
   }
+}
+
+async function getPremiumForChunk(chunk: any[]) {
+  const chunkWithAAL = await getAALs(chunk);
+  // info(`FINISHED FETCHING AAL FOR CHUNK (COUNT: ${currChunk})`, { ...chunkWithAAL });
+
+  const filtered = chunkWithAAL.filter((row) => row.inland !== -1);
+  const errorRows = chunkWithAAL.filter((row) => row.inland === -1);
+
+  const ratedChunk = calcPrem(filtered);
+
+  return { ratedChunk, errorRows };
+}
+
+async function splitAndRate(data: any[]) {
+  let ratedArray: any[] = [];
+  let chunkCountVal = chunkCount.value() || 100;
+  let chunks = data.length > chunkCountVal ? splitChunks(data, chunkCountVal) : [data];
+  // Add an extra array for retries
+  chunks.push([]);
+  let currChunk = 1;
+
+  for (let chunk of chunks) {
+    // retry array might be empty
+    if (chunk.length) {
+      const { ratedChunk, errorRows } = await getPremiumForChunk(chunk);
+
+      info(
+        `RATED CHUNK (${currChunk}/${chunks.length}) [SUCCESS COUNT: ${ratedChunk.length}; ERROR COUNT: ${errorRows.length}]: `
+      );
+
+      if (currChunk !== chunks.length) await waitMilliSeconds(30000);
+
+      ratedArray = [...ratedArray, ...ratedChunk];
+      // Add error rows to "retry" chunk
+      if (currChunk !== chunks.length) {
+        chunks[chunks.length - 1].push(...errorRows);
+      } else {
+        ratedArray = [...ratedArray, ...errorRows];
+      }
+    }
+    currChunk++;
+  }
+
+  return ratedArray;
 }
 
 async function unlinkFile(filePath: string) {
@@ -370,30 +402,9 @@ export default async (event: StorageEvent) => {
   await bucket.file(filePath).download({ destination: tempFilePath });
   info(`File downloaded locally: ${tempFilePath}`);
 
-  // move outside function ??
-  async function splitAndRate(data: any[]) {
-    let ratedArray: any[] = [];
-    let chunkCountVal = chunkCount.value() || 100;
-    let chunks = data.length > chunkCountVal ? splitChunks(data, chunkCountVal) : [data];
-    let currChunk = 1;
-
-    for (let chunk of chunks) {
-      const chunkWithAAL = await getAALs(chunk);
-      info(`FINISHED FETCHING AAL FOR CHUNK (${currChunk}/${chunks.length})`, { ...chunkWithAAL });
-
-      const ratedChunk = calcPrem(chunkWithAAL);
-      info(`RATED CHUNK (${currChunk}/${chunks.length}) [${ratedChunk.length} ROWS]: `);
-
-      await waitMilliSeconds(30000);
-
-      ratedArray = [...ratedArray, ...ratedChunk];
-      currChunk++;
-    }
-
-    return ratedArray;
-  }
-
-  const storageFile = bucket.file(`${PORTFOLIO_UPLOAD_FOLDER}/processed_${fileName}`);
+  const storageFile = bucket.file(
+    `${PORTFOLIO_UPLOAD_FOLDER}/processed_${fileName}`
+  ) as unknown as File;
 
   async function writeToStorage(data: any[]) {
     info(`WRITING TO STORAGE FILE: ${storageFile.name}`);
@@ -428,21 +439,37 @@ export default async (event: StorageEvent) => {
 
     await bucket.file(filePath).setMetadata({ metadata: { status: 'processed' } });
 
-    // TODO: MOVE TO IT'S OWN FUNC (sendAdminNotification)
     try {
-      const storageLink = `https://console.cloud.google.com/storage/browser/_details/${storageBucket.value()}/${
-        storageFile.name
-      };tab=live_object?project=${projectID.value()}`;
-
-      const downloadURL: GetSignedUrlResponse = await storageFile.getSignedUrl({
-        action: 'read',
-        expires: addDays(new Date(), 7),
+      await notifyAdmin(sendgridApiKey.value(), storageFile, fileName);
+    } catch (err: any) {
+      error('Error generating file link and sending admin notification', {
+        errMsg: err?.message || null,
       });
+    }
 
-      const to = ['spencer.carlson@idemandinsurance.com'];
-      if (audience.value() === 'PROD HUMANS') to.push('ron.carlson@idemandinsurance.com');
+    return;
+  } catch (err: any) {
+    error('ERROR: ', { err });
+    await unlinkFile(tempFilePath);
+    // TODO: send error email to admin
+    return;
+  }
+};
 
-      const msgBody = `<div>
+async function notifyAdmin(sgKey: string, storageFile: File, fileName: string = 'File') {
+  const storageLink = `https://console.cloud.google.com/storage/browser/_details/${storageBucket.value()}/${
+    storageFile.name
+  };tab=live_object?project=${projectID.value()}`;
+
+  const downloadURL: GetSignedUrlResponse = await storageFile.getSignedUrl({
+    action: 'read',
+    expires: addDays(new Date(), 7),
+  });
+
+  const to = ['spencer.carlson@idemandinsurance.com'];
+  if (audience.value() === 'PROD HUMANS') to.push('ron.carlson@idemandinsurance.com');
+
+  const msgBody = `<div>
       <p>
         Portfolio rating complete (<a href=${downloadURL[0]}>download: ${fileName}</a>). Download link expires in 7 days.
       </p>
@@ -451,16 +478,5 @@ export default async (event: StorageEvent) => {
       </div>
     </div>`;
 
-      await sendMessage(sendgridApiKey.value(), to, msgBody, 'Portfolio rating complete');
-    } catch (err: any) {
-      error('Error generating file link and sending admin notification', { err });
-    }
-
-    return;
-  } catch (err) {
-    error('ERROR: ', err);
-    await unlinkFile(tempFilePath);
-    // TODO: send error email to admin
-    return;
-  }
-};
+  await sendMessage(sgKey, to, msgBody, 'Portfolio rating complete');
+}

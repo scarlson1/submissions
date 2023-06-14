@@ -247,15 +247,14 @@ export interface Quote {
   fees: { feeName: string; feeValue: number }[];
   taxes: TaxItem[]; // { taxName: string; taxValue: number; taxRate?: number }[];
   annualPremium: number;
-  subproducerCommission: number;
+  subproducerCommission: number; // TODO: remove ??
   quoteTotal?: number;
   cardFee: number; // TODO: keep ?? delete ?? add security rules ??
-  quoteExpiration: Timestamp;
   policyEffectiveDate?: Timestamp;
   effectiveExceptionRequested?: boolean;
   effectiveExceptionReason?: string | null;
   policyExpirationDate?: Timestamp;
-  quoteExpirationDate: Timestamp;
+  quoteExpirationDate: Timestamp; // quoteExpiration: Timestamp;
   exclusions?: string[];
   // additionalInsureds?: AdditionalInsured[];
   // mortgageeInterest?: Mortgagee[];

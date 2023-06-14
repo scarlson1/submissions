@@ -58,10 +58,12 @@ import {
   submissionsQuotesCollection,
   paymentMethodsCollection,
   ANALYTICS_EVENTS,
+  NamedInsuredDetails,
+  AgentDetails,
 } from 'common';
 import { useAnalyticsEvent, useBindQuote, useUserPaymentMethods } from 'hooks';
 import { billingValidation, PaymentStep, ContactStep } from 'elements';
-import { addToDate, dollarFormat, formatDate } from 'modules/utils/helpers';
+import { addToDate, dollarFormat, formatDate, getDateShortcuts } from 'modules/utils/helpers';
 import { AUTH_ROUTES, ROUTES, createPath } from 'router';
 import { useAuth } from 'modules/components/AuthContext';
 import { fallbackImages } from './PoliciesOld';
@@ -77,15 +79,11 @@ import { fallbackImages } from './PoliciesOld';
 
 // quote needs to bind by quote date + 30
 
+const policyEffShortcuts = getDateShortcuts([15, 30, 60]);
+
 export interface QuoteValues {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  agentFirstName: string;
-  agentLastName: string;
-  agentEmail: string;
-  agentPhone: string;
+  namedInsured: Omit<NamedInsuredDetails, 'userId'>;
+  agent: AgentDetails;
   paymentMethodId: string;
   policyEffectiveDate: Date;
   effectiveExceptionRequested: boolean;
@@ -144,17 +142,11 @@ export const QuoteBind: React.FC = () => {
 
       await updateDoc(quoteRef, {
         namedInsured: {
-          firstName: values.firstName,
-          lastName: values.lastName,
-          email: values.email,
-          phone: values.phone,
+          firstName: values.namedInsured?.firstName || '',
+          lastName: values.namedInsured?.lastName || '',
+          email: values.namedInsured?.email || '',
+          phone: values.namedInsured?.phone || '',
         },
-        // insuredFirstName: values.firstName,
-        // insuredLastName: values.lastName,
-        // insuredEmail: values.email,
-        // insuredPhone: values.phone,
-        // additionalInsureds: values.additionalInsureds || [],
-        // mortgageeInterest: values.mortgageeInterest || [],
         additionalInterests: values.additionalInterests || [],
         policyEffectiveDate: Timestamp.fromDate(values.policyEffectiveDate),
         effectiveExceptionRequested: values.effectiveExceptionRequested,
@@ -180,10 +172,12 @@ export const QuoteBind: React.FC = () => {
       </Typography>
       <FormikWizard
         initialValues={{
-          firstName: data?.namedInsured?.firstName ?? '',
-          lastName: data?.namedInsured?.lastName ?? '',
-          email: data?.namedInsured?.email ?? '',
-          phone: data?.namedInsured?.phone ?? '',
+          namedInsured: {
+            firstName: data?.namedInsured?.firstName ?? '',
+            lastName: data?.namedInsured?.lastName ?? '',
+            email: data?.namedInsured?.email ?? '',
+            phone: data?.namedInsured?.phone ?? '',
+          },
           // additionalInsureds: data?.additionalInsureds ? [...data?.additionalInsureds] : [],
           // mortgageeInterest: data?.mortgageeInterest ? [...data?.mortgageeInterest] : [],
           additionalInterests: data?.additionalInterests ? [...data?.additionalInterests] : [],
@@ -229,6 +223,7 @@ export const QuoteBind: React.FC = () => {
           }}
         >
           <EffectiveDateStep
+            // TODO: use expiration date from quote
             expiration={addToDate({ days: 60 })}
             logAnalyticsStep={logAnalyticsStep}
           />
@@ -562,26 +557,7 @@ export const EffectiveDateStep: React.FC<EffectiveDateStepProp> = ({
           disablePast={true}
           slotProps={{
             shortcuts: {
-              items: [
-                {
-                  label: '15 days',
-                  getValue: () => {
-                    return addToDate({ days: 15 });
-                  },
-                },
-                {
-                  label: '30 days',
-                  getValue: () => {
-                    return addToDate({ days: 30 });
-                  },
-                },
-                {
-                  label: '45 days',
-                  getValue: () => {
-                    return addToDate({ days: 45 });
-                  },
-                },
-              ],
+              items: policyEffShortcuts,
             },
           }}
         />

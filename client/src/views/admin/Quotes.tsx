@@ -333,6 +333,7 @@ export const Quotes: React.FC = () => {
                 // addressLine2: false,
                 // postal: false,
                 updated: false,
+                'agent.phone': false,
                 'agent.userId': false,
                 CBRSDesignation: false,
                 basement: false,

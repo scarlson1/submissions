@@ -55,12 +55,6 @@ export function getURLByType(item: any) {
 }
 
 export function OnSelectHit({ hit, children }: HitProps) {
-  // console.log('HIT: ', hit);
-
-  // const handleSelect = React.useCallback((selectedHit: any) => {
-  //   console.log('SELECTED HIT: ', hit);
-  // }, []);
-
   return (
     // <Box onClick={() => handleSelect(hit)} sx={{ width: '100%' }}>
     <Box sx={{ width: '100%' }} className='onSelect-Item'>

@@ -29,7 +29,7 @@ import {
   WarningAmberRounded,
 } from '@mui/icons-material';
 import * as yup from 'yup';
-import { add } from 'date-fns';
+import { add, startOfToday, endOfToday } from 'date-fns';
 import { isEmpty, merge, omit, round } from 'lodash';
 import { Firestore, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { useFirestore } from 'reactfire';
@@ -47,6 +47,7 @@ import {
   PercentMask,
   PhoneMask,
   IMask,
+  FormikCheckbox,
 } from 'components/forms';
 import { AddressStep, FormikAddressLite, LimitsStep } from 'elements';
 import {
@@ -56,7 +57,7 @@ import {
   limitsValidation,
   namedInsuredValidationNotRequired,
 } from 'common/validation';
-import { dollarFormat, sumArr } from 'modules/utils/helpers';
+import { addToDate, dollarFormat, getDateShortcuts, sumArr } from 'modules/utils/helpers';
 import {
   extractRatingInputsFromValues,
   useActiveStates,
@@ -104,6 +105,9 @@ async function getOrg(firestore: Firestore, orgId: string) {
   return org;
 }
 
+const quoteExpShortcuts = getDateShortcuts([15, 30, 60]);
+const policyEffShortcuts = getDateShortcuts([15, 30, 60]);
+
 const commOptions = commissionOptions.map((o: number) => ({
   label: `${(o * 100).toFixed(0)}%`,
   value: o,
@@ -149,7 +153,8 @@ const DEFAULT_VALUES = {
   },
 
   deductible: 1000,
-  quoteExpiration: add(new Date(), { days: 30 }),
+  effectiveExceptionRequested: false,
+  quoteExpirationDate: add(new Date(), { days: 30 }),
   policyEffectiveDate: add(new Date(), { days: 15 }),
   policyExpirationDate: add(new Date(), { days: 15, years: 1 }),
   fees: [],
@@ -201,9 +206,29 @@ const DEFAULT_VALUES = {
   notes: [],
 };
 
+// const today = startOfToday()
+const minDate = addToDate({ days: 15 }, startOfToday());
+const maxDate = addToDate({ days: 60 }, endOfToday());
+
 const quoteNewValidation = yup.object().shape({
   address: addressValidation, // TODO: use active states validation (useMemo)
   limits: limitsValidation,
+  effectiveExceptionRequested: yup.boolean(),
+  quoteExpirationDate: yup.date().min(minDate, 'quote must be valid for at least 15 days'),
+  policyEffectiveDate: yup.date().when('effectiveExceptionRequested', {
+    is: true,
+    then: yup.date().required(), // .min(minDate, 'Effective must be 15+ days'),
+    otherwise: yup
+      .date()
+      .min(minDate, 'effective date must be at least 15 days from now')
+      .max(maxDate, 'effective date must be within 60 days'),
+  }),
+  policyExpirationDate: yup
+    .date()
+    .test('exp-greater-than-eff', 'must be > eff. date', (value, context) => {
+      if (!(context.parent.policyEffectiveDate && value)) return false;
+      return value > context.parent.policyEffectiveDate;
+    }), // TODO: compare - must be > eff date
   deductible: yup.number().min(1000).required(),
   fees: yup.array().of(
     yup.object().shape({
@@ -270,9 +295,10 @@ export interface NewQuoteValues {
   };
   limits: Limits;
   deductible: number;
+  effectiveExceptionRequested: boolean;
   policyEffectiveDate: Date;
   policyExpirationDate: Date;
-  quoteExpiration: Date; // TODO: delete ?? generated when created ??
+  quoteExpirationDate: Date; // TODO: delete ?? generated when created ??
   fees: FeeItem[];
   taxes: TaxItem[];
   annualPremium: number | null;
@@ -365,7 +391,7 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
       setRatingInputsSnap({ ...ratingInputs });
       handleRecalcSuccess(newPrem);
     },
-    (msg: string) => toast.error(msg)
+    (msg: string) => toast.error(msg) // setRatingState({ rerateRequired: true, recalcRequired: true });
     // getRatingInputsFromSubmission(submissionData || undefined)
   );
 
@@ -420,19 +446,19 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
 
   const handleSubmit = useCallback(
     async (values: NewQuoteValues, { setSubmitting }: FormikHelpers<NewQuoteValues>) => {
-      const { fees, taxes, annualPremium, quoteTotal } = values;
-      const total = sumfeesTaxesPremium(fees, taxes, annualPremium || 0);
-      if (total !== quoteTotal) {
-        toast.error(
-          `Invalid total quote. Sum of components does not match quote total (${quoteTotal} vs ${total})`
-        );
-      } else {
-        await createQuote(values, submissionId, submissionData);
-      }
+      // const { fees, taxes, annualPremium, quoteTotal } = values;
+      // const total = sumfeesTaxesPremium(fees, taxes, annualPremium || 0);
+      // if (total !== quoteTotal) {
+      //   toast.error(
+      //     `Invalid total quote. Sum of components does not match quote total (${quoteTotal} vs ${total})`
+      //   );
+      // } else {
+      await createQuote(values, submissionId, submissionData);
+      // }
 
       setSubmitting(false);
     },
-    [createQuote, submissionId, submissionData, toast]
+    [createQuote, submissionId, submissionData]
   );
 
   const showSubmissionDialog = useCallback(() => {
@@ -625,7 +651,9 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
               <Stack direction='row' spacing={2}>
                 <LoadingButton
                   onClick={submitForm}
-                  disabled={!isValid || !dirty}
+                  disabled={
+                    !isValid || !dirty || ratingState?.rerateRequired || ratingState?.recalcRequired
+                  }
                   loading={isValidating || isSubmitting}
                   loadingPosition='start'
                   startIcon={<PolicyRounded />}
@@ -734,24 +762,56 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                   </Typography>
                   <Stack direction={{ xs: 'column', sm: 'row' }} spacing={6} sx={{ my: 3 }}>
                     <FormikDatePicker
-                      name='quoteExpiration'
+                      name='quoteExpirationDate'
                       label='Quote Expiration'
                       minDate={undefined}
                       maxDate={null}
+                      slotProps={{
+                        shortcuts: {
+                          items: [...quoteExpShortcuts],
+                        },
+                      }}
                     />
                     <FormikDatePicker
                       name='policyEffectiveDate'
                       label='Policy Effective Date'
                       minDate={undefined}
                       maxDate={null}
+                      slotProps={{
+                        shortcuts: { items: policyEffShortcuts },
+                      }}
                     />
                     <FormikDatePicker
                       name='policyExpirationDate'
                       label='Policy Expiration Date'
                       minDate={new Date()}
                       maxDate={null}
+                      slotProps={{
+                        shortcuts: {
+                          items: [
+                            {
+                              label: `Eff. + 1 year`,
+                              getValue: () => {
+                                return addToDate(
+                                  { years: 1 },
+                                  values.policyEffectiveDate || endOfToday()
+                                );
+                              },
+                            },
+                          ],
+                        },
+                      }}
                     />
                   </Stack>
+                  <Box sx={{ flexBasis: '100%' }}>
+                    <FormikCheckbox
+                      name='effectiveExceptionRequested'
+                      label='Effective date exception to the 15-60 day window'
+                      componentsProps={{
+                        typography: { variant: 'body2' },
+                      }}
+                    />
+                  </Box>
                 </Box>
               </Grid>
 
@@ -1282,10 +1342,7 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                   >
                     Agent & Agency
                   </Typography>
-                  <TempAgentSearch
-                    onSelect={handleAgentSelected}
-                    // translations={{ button: { buttonText: 'Find Agent', buttonAriaLabel: 'Find Agent' } }}
-                  />
+                  <TempAgentSearch onSelect={handleAgentSelected} />
                 </Box>
               </Grid>
               <Grid xs={6} sm={3}>
@@ -1630,7 +1687,8 @@ export const QuoteNewFromSub = () => {
         limitD: submissionData?.limits.limitD ?? 25000,
       },
       deductible: submissionData?.deductible ?? 1000,
-      quoteExpiration: add(new Date(), { days: 60 }), // TODO: delete ?? set on quote created
+      quoteExpirationDate: add(new Date(), { days: 60 }), // TODO: delete ?? set on quote created
+      effectiveExceptionRequested: false,
       policyEffectiveDate: add(new Date(), { days: 15 }),
       policyExpirationDate: add(new Date(), { days: 15, years: 1 }),
       fees: [],

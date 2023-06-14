@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { FirebaseError } from 'firebase/app';
-import { addDoc, FirestoreError, GeoPoint, getFirestore, Timestamp } from 'firebase/firestore';
-import { useSigninCheck } from 'reactfire'; // useUser
+import { addDoc, FirestoreError, GeoPoint, Timestamp } from 'firebase/firestore';
+import { useFirestore, useSigninCheck } from 'reactfire'; // useUser
 import invariant from 'tiny-invariant';
 import { round } from 'lodash';
 import * as geofire from 'geofire-common';
@@ -12,7 +12,6 @@ import { addToDate, extractNumber, readableFirebaseCode } from 'modules/utils/he
 import { QUOTE_STATUS, Submission, Quote, submissionsQuotesCollection } from 'common';
 import { useSendQuoteNotification } from './useSendQuoteNotification';
 import { CUSTOM_CLAIMS } from 'modules/components';
-// const hash = geofire.geohashForLocation([lat, lng]);
 
 const CARD_FEE_RATE = 0.035;
 
@@ -21,6 +20,7 @@ export const useCreateQuote = (
   onStepSuccess?: (msg: string) => void,
   onError?: (msg: string, err: unknown) => void
 ) => {
+  const firestore = useFirestore();
   const { data: signInCheckResult } = useSigninCheck({
     requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true },
   });
@@ -42,9 +42,8 @@ export const useCreateQuote = (
         const geoHash =
           latitude && longitude ? geofire.geohashForLocation([latitude, longitude]) : null;
 
-        const quoteRef = await addDoc(submissionsQuotesCollection(getFirestore()), {
+        const quoteRef = await addDoc(submissionsQuotesCollection(firestore), {
           ...quoteData,
-          quoteExpirationDate: Timestamp.fromDate(addToDate({ days: 60 }, endOfToday())),
           submissionId,
           imageUrls: {
             darkMapImageUrl: submissionData?.darkMapImageURL || null,
@@ -79,42 +78,24 @@ export const useCreateQuote = (
         if (onError) onError(msg, err);
       }
     },
-    [onStepSuccess, onComplete, onError, sendEmailNotifications, signInCheckResult]
+    [firestore, onStepSuccess, onComplete, onError, sendEmailNotifications, signInCheckResult]
   );
 
   return createQuote;
 };
 
-function getFormattedQuote(
-  values: NewQuoteValues,
-  uid?: string | null
-): Omit<Quote, 'quoteExpirationDate'> {
+function getFormattedQuote(values: NewQuoteValues, uid?: string | null): Quote {
+  // ): Omit<Quote, 'quoteExpirationDate'> {
   const {
-    // limitA,
-    // limitB,
-    // limitC,
-    // limitD,
-    // latitude,
-    // longitude,
     address,
     limits,
     coordinates,
-    quoteExpiration,
+    quoteExpirationDate,
     policyEffectiveDate,
     policyExpirationDate,
     namedInsured,
     agent,
     agency,
-    // insuredFirstName,
-    // insuredLastName,
-    // insuredEmail,
-    // insuredPhone,
-    // agentId,
-    // agentName,
-    // agentEmail,
-    // agentPhone,
-    // agencyName,
-    // agencyId,
     quoteTotal,
     annualPremium,
     taxes,
@@ -157,7 +138,10 @@ function getFormattedQuote(
       name: '',
       ...address,
     },
-    quoteExpiration: Timestamp.fromDate(quoteExpiration),
+    // quoteExpiration: Timestamp.fromDate(quoteExpiration),
+    quoteExpirationDate: quoteExpirationDate
+      ? Timestamp.fromDate(quoteExpirationDate)
+      : Timestamp.fromDate(addToDate({ days: 60 }, endOfToday())),
     policyEffectiveDate: Timestamp.fromDate(policyEffectiveDate),
     policyExpirationDate: Timestamp.fromDate(policyExpirationDate),
     exclusions: [],

@@ -1,16 +1,15 @@
-import * as _ from 'lodash';
-import { formatDistance, format, add, Duration, isPast, isFuture } from 'date-fns';
+import { formatDistance, format, add, Duration, isPast, isFuture, endOfToday } from 'date-fns';
 import numeral from 'numeral';
 import { Location } from 'react-router-dom';
 import { GridValueFormatterParams, GridValueGetterParams } from '@mui/x-data-grid';
 import { FirestoreError, Timestamp, WhereFilterOp } from 'firebase/firestore';
 import { FirebaseError } from '@firebase/util';
 // import { inspect } from 'util';
-import { transform, isEqual, isArray, isObject } from 'lodash';
+import { transform, isEqual, isArray, isObject, find } from 'lodash';
+import { AuthError } from 'firebase/auth';
 
 import { AddressComponent, AddressComponentType } from 'components/forms';
 import { Address, FirestoreTimestamp } from 'common/types';
-import { AuthError } from 'firebase/auth';
 
 /**
  * extracts address string from Google address_components object.
@@ -22,7 +21,7 @@ export const findAddressValueByType = (
   addressObj: AddressComponent[],
   addressType: AddressComponentType
 ) => {
-  return _.find(addressObj, (o) => {
+  return find(addressObj, (o) => {
     return o.types[0] === addressType;
   });
 };
@@ -622,4 +621,13 @@ export const calcSum = (arr: number[]) => {
   return arr.reduce((total, current) => {
     return total + current;
   }, 0);
+};
+
+export const getDateShortcuts = (addDays: number[], date: Date = endOfToday()) => {
+  return addDays.map((days) => ({
+    label: `${days} days`,
+    getValue: () => {
+      return addToDate({ days });
+    },
+  }));
 };

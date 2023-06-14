@@ -5,6 +5,7 @@ import algoliasearch from 'algoliasearch/lite';
 import type { AutocompleteState } from '@algolia/autocomplete-core';
 import { createAutocomplete } from '@algolia/autocomplete-core';
 import { getAlgoliaResults } from '@algolia/autocomplete-preset-algolia';
+import { useNavigate } from 'react-router-dom';
 
 import { type InternalDocSearchHit, type StoredDocSearchHit } from 'common';
 import { createStoredSearches } from './storedSearches';
@@ -38,12 +39,12 @@ export function SearchModal({
   apiKey,
   indexName,
   indexTitle,
-  searchParameters, // = {},
+  searchParameters,
   hitComponent = Hit,
   resultsFooterComponent = () => null,
   disableUserPersonalization = false,
   placeholder = 'Search records',
-  navigator,
+  // navigator,
   // initialQuery = '',
   translations = {},
   getMissingResultsUrl,
@@ -56,6 +57,7 @@ export function SearchModal({
     searchBox: searchBoxTranslations,
     ...screenStateTranslations
   } = translations;
+  const navigate = useNavigate();
   const [state, setState] = useState<AutocompleteState<InternalDocSearchHit>>({
     query: '',
     collections: [],
@@ -128,7 +130,24 @@ export function SearchModal({
             searchSuggestions: [],
           },
         },
-        navigator,
+        // navigator, // default navigator: https://www.algolia.com/doc/ui-libraries/autocomplete/core-concepts/keyboard-navigation/
+        navigator: {
+          navigate({ itemUrl }) {
+            !onSelect && itemUrl && navigate(itemUrl);
+          },
+          navigateNewTab({ itemUrl }) {
+            if (!itemUrl) return;
+            const windowReference = window.open(itemUrl, '_blank', 'noopener');
+
+            if (windowReference) {
+              windowReference.focus();
+            }
+          },
+          navigateNewWindow({ itemUrl }) {
+            if (!itemUrl) return;
+            window.open(itemUrl, '_blank', 'noopener');
+          },
+        },
         onStateChange(props) {
           setState(props.state);
         },
@@ -147,10 +166,9 @@ export function SearchModal({
                 onSelect({ item, event }) {
                   saveRecentSearch(item);
 
-                  // if (!isModifierEvent(event)) { // TODO: create helper func
-                  //   onClose();
-                  // }
-                  onClose();
+                  if (!isModifierEvent(event)) {
+                    onClose();
+                  }
                 },
                 getItemUrl({ item, ...rest }) {
                   // TODO: getItemUrl func (use func from below)
@@ -171,10 +189,9 @@ export function SearchModal({
                 onSelect({ item, event }) {
                   saveRecentSearch(item);
 
-                  // if (!isModifierEvent(event)) {
-                  //   onClose();
-                  // }
-                  onClose();
+                  if (!isModifierEvent(event)) {
+                    onClose();
+                  }
                 },
                 getItemUrl({ item }) {
                   return getURLByType(item);
@@ -192,21 +209,26 @@ export function SearchModal({
               sourceId: indexName,
               title: indexTitle,
               distinct: 1,
-              onSelect({ item, event }) {
+              onSelect(props) {
+                console.log('ON SELECT PROPS: ', props);
+                debugger;
+                const { item, event } = props;
                 saveRecentSearch(item);
                 console.log('ON SELECT ITEM: ', item);
+                if (onSelect) {
+                  event.stopPropagation();
+                  onSelect(item);
+                }
 
-                // if (!isModifierEvent(event)) { // TODO: isModifierEvent helper func
-                onClose();
-                // }
+                if (!isModifierEvent(event)) {
+                  onClose();
+                }
               },
               getItemInputValue({ item }) {
                 // @ts-ignore
                 return item.query;
               },
-              getItems(params) {
-                const { query } = params;
-                console.log('PARAMS: ', params);
+              getItems({ query }) {
                 return getAlgoliaResults({
                   searchClient,
                   queries: [
@@ -218,7 +240,6 @@ export function SearchModal({
                         highlightPreTag: '<mark>',
                         highlightPostTag: '</mark>',
                         ...searchParameters,
-                        // filters: `collectionName:${COLLECTIONS.USERS}`,
                       },
                     },
                   ],
@@ -277,9 +298,11 @@ export function SearchModal({
       saveRecentSearch,
       // initialQuery,
       placeholder,
-      navigator,
+      // navigator,
       // transformItems,
       disableUserPersonalization,
+      navigate,
+      onSelect,
     ]
   );
 
@@ -329,7 +352,10 @@ export function SearchModal({
             onItemClick={(item, event) => {
               console.log('ON ITEM CLICK: ', item);
               saveRecentSearch(item);
-              if (onSelect) onSelect(item);
+              if (onSelect) {
+                event.stopPropagation();
+                onSelect(item);
+              }
               if (!isModifierEvent(event)) {
                 onClose();
               }

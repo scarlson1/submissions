@@ -97,7 +97,7 @@ export const RowItem: React.FC<{ title: string; value: React.ReactNode }> = ({ t
 
 export const SubmissionView: React.FC = () => {
   const { submissionId } = useParams();
-  const { data, status } = useDocData<Submission>('SUBMISSIONS', submissionId!);
+  const { data } = useDocData<Submission>('SUBMISSIONS', submissionId!);
   const navigate = useNavigate();
   const dialog = useJsonDialog();
 
@@ -133,10 +133,16 @@ export const SubmissionView: React.FC = () => {
     window.open(`https://www.google.com/maps/search/?api=1&query=${latitude}%2C${longitude}`);
   }, [data]);
 
-  if (status === 'loading') {
-    return <div>Loading...</div>;
-  }
   if (!submissionId) throw new Error('Missing submission ID');
+
+  // TODO: wont reach here if using suspense - need error boundary
+  if (!data)
+    return (
+      <Typography
+        variant='h6'
+        textAlign='center'
+      >{`Submission not found (ID: ${submissionId})`}</Typography>
+    );
 
   return (
     <Grid container spacing={8}>
