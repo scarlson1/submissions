@@ -49,13 +49,13 @@ import {
 } from 'components/forms';
 import { IconButtonMenu, LineItem } from 'components';
 import {
-  contactValidation,
+  namedInsuredValidationNested,
   phoneRequiredVal,
   PaymentMethod,
   Quote,
   WithId,
   AdditionalInterest,
-  submissionsQuotesCollection,
+  quotesCollection,
   paymentMethodsCollection,
   ANALYTICS_EVENTS,
   NamedInsuredDetails,
@@ -85,7 +85,7 @@ export interface QuoteValues {
   namedInsured: Omit<NamedInsuredDetails, 'userId'>;
   agent: AgentDetails;
   paymentMethodId: string;
-  policyEffectiveDate: Date;
+  effectiveDate: Date;
   effectiveExceptionRequested: boolean;
   effectiveExceptionReason: string | null;
   additionalInterests: AdditionalInterest[];
@@ -98,7 +98,7 @@ export const QuoteBind: React.FC = () => {
   if (!quoteId) throw new Error('missing quoteId');
 
   const firestore = useFirestore();
-  const quoteRef = doc(submissionsQuotesCollection(firestore), quoteId);
+  const quoteRef = doc(quotesCollection(firestore), quoteId);
   const { data } = useFirestoreDocData(quoteRef);
   const logAnalyticsStep = useLogCheckoutProgress(quoteId, 5);
 
@@ -148,7 +148,7 @@ export const QuoteBind: React.FC = () => {
           phone: values.namedInsured?.phone || '',
         },
         additionalInterests: values.additionalInterests || [],
-        policyEffectiveDate: Timestamp.fromDate(values.policyEffectiveDate),
+        effectiveDate: Timestamp.fromDate(values.effectiveDate),
         effectiveExceptionRequested: values.effectiveExceptionRequested,
         effectiveExceptionReason: values.effectiveExceptionReason || null,
       });
@@ -181,7 +181,7 @@ export const QuoteBind: React.FC = () => {
           // additionalInsureds: data?.additionalInsureds ? [...data?.additionalInsureds] : [],
           // mortgageeInterest: data?.mortgageeInterest ? [...data?.mortgageeInterest] : [],
           additionalInterests: data?.additionalInterests ? [...data?.additionalInterests] : [],
-          policyEffectiveDate: data?.policyEffectiveDate?.toDate() ?? new Date(),
+          effectiveDate: data?.effectiveDate?.toDate() ?? new Date(),
           effectiveExceptionRequested: data?.effectiveExceptionRequested ?? false,
           effectiveExceptionReason: data?.effectiveExceptionReason ?? '',
           paymentMethodId: '',
@@ -196,7 +196,7 @@ export const QuoteBind: React.FC = () => {
         <Step
           label='Primary Named Insured'
           stepperNavLabel='Insured'
-          validationSchema={contactValidation}
+          validationSchema={namedInsuredValidationNested}
           mutateOnSubmit={saveValues}
         >
           <NamedInsuredStep logAnalyticsStep={logAnalyticsStep} />
@@ -212,8 +212,8 @@ export const QuoteBind: React.FC = () => {
           mutateOnSubmit={(values: QuoteValues, bag: any, initialValues: QuoteValues) => {
             let mutatedVals = values;
             if (
-              values.policyEffectiveDate > addToDate({ days: 15 }) &&
-              values.policyEffectiveDate < addToDate({ days: 60 })
+              values.effectiveDate > addToDate({ days: 15 }) &&
+              values.effectiveDate < addToDate({ days: 60 })
             ) {
               mutatedVals.effectiveExceptionReason = '';
               mutatedVals.effectiveExceptionRequested = false;
@@ -365,12 +365,19 @@ export function NamedInsuredStep({ logAnalyticsStep }: LogAnalyticsProp) {
         Please enter contact information for the primary named insured (you'll be able to add
         additional insureds later).
       </Typography>
-      <ContactStep gridItemProps={{ xs: 12, sm: 6 }}>
+      <ContactStep
+        gridItemProps={{ xs: 12, sm: 6 }}
+        nameMapping={{
+          firstName: 'namedInsured.firstName',
+          lastName: 'namedInsured.lastName',
+          email: 'namedInsured.email',
+        }}
+      >
         <Grid xs={12} sm={6}>
           <FormikMaskField
             fullWidth
-            id='phone'
-            name='phone'
+            id='namedInsured.phone'
+            name='namedInsured.phone'
             label='Phone'
             required
             maskComponent={PhoneMask}
@@ -501,7 +508,7 @@ const maxDate = addToDate({ days: 60 }, endOfToday());
 
 const effectiveDateValidation = yup.object().shape({
   effectiveExceptionRequested: yup.boolean(),
-  policyEffectiveDate: yup.date().when('effectiveExceptionRequested', {
+  effectiveDate: yup.date().when('effectiveExceptionRequested', {
     is: true,
     then: yup.date().min(new Date(), 'Effective cannot be in the past'),
     otherwise: yup
@@ -549,7 +556,7 @@ export const EffectiveDateStep: React.FC<EffectiveDateStepProp> = ({
           quote.
         </Typography>
         <FormikDatePicker
-          name='policyEffectiveDate'
+          name='effectiveDate'
           label='Effective Date'
           minDate={values.effectiveExceptionRequested ? undefined : addToDate({ days: 15 })}
           // maxDate={values.effectiveExceptionRequested ? undefined : expiration}
@@ -629,7 +636,7 @@ export const useCardDetails = (id: string) => {
     // const paymentMethodsCollection = (userId: string) =>
     //   collection(
     //     getFirestore(),
-    //     COLLECTIONS.SUBMISSIONS_QUOTES,
+    //     COLLECTIONS.QUOTES,
     //     userId,
     //     COLLECTIONS.PAYMENT_METHODS
     //   ) as CollectionReference<PaymentMethod>;
@@ -781,8 +788,8 @@ export function BindReviewStep({ data, logAnalyticsStep }: BindReviewStepProps) 
           }}
           alt={`${data?.address?.addressLine1} map`}
           image={
-            data?.imageUrls?.satelliteMapImageUrl
-              ? data.imageUrls?.satelliteMapImageUrl
+            data?.imageURLs?.satelliteMapImageURL
+              ? data.imageURLs?.satelliteMapImageURL
               : fallbackImages[0]
           }
           title={`${data?.address?.addressLine1} map`}
@@ -791,9 +798,8 @@ export function BindReviewStep({ data, logAnalyticsStep }: BindReviewStepProps) 
           <CardContent sx={{ flex: '1 0 auto' }}>
             <Typography variant='h6'>{data.address.addressLine1}</Typography>
             <Typography variant='body2' color='text.secondary' fontSize='0.775rem'>
-              {`Effective: ${formatDate(values.policyEffectiveDate, `MMM dd, yy`) || '--'} - ${
-                formatDate(addToDate({ years: 1 }, values.policyEffectiveDate), `MMM dd, yy`) ||
-                '--'
+              {`Effective: ${formatDate(values.effectiveDate, `MMM dd, yy`) || '--'} - ${
+                formatDate(addToDate({ years: 1 }, values.effectiveDate), `MMM dd, yy`) || '--'
               }`}
             </Typography>
           </CardContent>

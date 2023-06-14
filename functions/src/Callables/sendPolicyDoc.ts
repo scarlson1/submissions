@@ -65,12 +65,24 @@ export default async ({ data, auth }: CallableRequest) => {
     ];
 
     // const link = `${process.env.HOSTING_BASE_URL}/policies/${policyId}`;
+
+    // TODO: namedInsured
+    // @ts-ignore
+    let toName = data.namedInsured.firstName || undefined;
+
+    // TODO: redo doc delivery template
+    const locations = Object.values(data.locations);
+    let locationStr = data.locations[0].address.addressLine1;
+    if (locations.length > 1) {
+      locationStr += ` and ${locations.length - 1} other locations`;
+    }
+
     await sendPolicyDocDelivery(
       sgKey,
       to,
       attachmentObj,
-      data.namedInsured.firstName,
-      data.address.addressLine1
+      toName,
+      locationStr // data.address.addressLine1
     );
 
     return {

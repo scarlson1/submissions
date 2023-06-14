@@ -2,11 +2,19 @@ import React from 'react';
 import Grid, { Grid2Props } from '@mui/material/Unstable_Grid2';
 
 import { FormikTextField, FormikTextFieldProps } from 'components/forms';
+import { BaseContact } from 'common';
+
+const DEFAULT_NAMES = {
+  firstName: 'contact.firstName',
+  lastName: 'contact.lastName',
+  email: 'contact.email',
+};
 
 export interface ContactStepProps {
   gridProps?: Grid2Props;
   gridItemProps?: Grid2Props;
   inputProps?: FormikTextFieldProps;
+  nameMapping?: Omit<BaseContact, 'phone'>;
   children?: React.ReactNode;
 }
 
@@ -14,6 +22,7 @@ export const ContactStep: React.FC<ContactStepProps> = ({
   gridProps,
   gridItemProps,
   inputProps,
+  nameMapping = DEFAULT_NAMES,
   children,
 }) => {
   return (
@@ -25,7 +34,7 @@ export const ContactStep: React.FC<ContactStepProps> = ({
     >
       <Grid xs={6} {...gridItemProps}>
         <FormikTextField
-          name='contact.firstName'
+          name={nameMapping.firstName}
           label='First Name'
           fullWidth
           required
@@ -34,7 +43,7 @@ export const ContactStep: React.FC<ContactStepProps> = ({
       </Grid>
       <Grid xs={6} {...gridItemProps}>
         <FormikTextField
-          name='contact.lastName'
+          name={nameMapping.lastName}
           label='Last Name'
           fullWidth
           required
@@ -42,7 +51,13 @@ export const ContactStep: React.FC<ContactStepProps> = ({
         />
       </Grid>
       <Grid xs={12} {...gridItemProps}>
-        <FormikTextField name='contact.email' label='Email' fullWidth required {...inputProps} />
+        <FormikTextField
+          name={nameMapping.email}
+          label='Email'
+          fullWidth
+          required
+          {...inputProps}
+        />
       </Grid>
       {children}
     </Grid>

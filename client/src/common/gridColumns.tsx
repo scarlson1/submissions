@@ -935,3 +935,17 @@ export const termPremiumCol: GridColDef = {
   align: 'right',
   valueFormatter: formatGridCurrency,
 };
+
+export const locationsCount: GridColDef = {
+  field: 'locationsCount',
+  headerName: '# locations',
+  minWidth: 100,
+  flex: 0.5,
+  editable: false,
+  headerAlign: 'center',
+  align: 'right',
+  valueGetter: (params) => {
+    if (!params.row.locations) return null;
+    return Object.keys(params.row.locations).length;
+  },
+};

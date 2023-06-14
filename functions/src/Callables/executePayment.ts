@@ -5,18 +5,19 @@ import { getFirestore, Timestamp, DocumentSnapshot } from 'firebase-admin/firest
 import {
   PaymentMethod,
   paymentMethodsCollection,
-  policiesCollection,
   POLICY_STATUS,
   round,
   finTrxCollection,
   FIN_TRANSACTION_STATUS,
-  PolicyOld,
+  cardFeePct,
+  policiesCollection,
+  Policy,
 } from '../common';
 import { getEPayInstance } from '../services';
 import { publishMessage } from '../services/pubsub/publishMessage.js';
 import { ePayCreds as ePayCredsSecret } from '../common';
 
-const CARD_FEE = 0.035; // TODO: use env var
+// const CARD_FEE = 0.035; // TODO: use env var
 
 export default async ({ data, auth }: CallableRequest) => {
   const { policyId, paymentMethodId } = data;
@@ -27,48 +28,44 @@ export default async ({ data, auth }: CallableRequest) => {
   if (!policyId) throw new HttpsError('failed-precondition', 'Missing policy ID');
   if (!paymentMethodId) throw new HttpsError('failed-precondition', 'Missing paymentMethodId');
 
+  const feePct = Number.parseFloat(cardFeePct.value()) || 0.035;
+
+  const db = getFirestore();
+  const policiesCol = policiesCollection(db);
+
+  const policySnap: DocumentSnapshot<Policy> = await policiesCol.doc(policyId).get();
+  const policy = policySnap.data();
+  console.log('POLICY: ', policy);
+  if (!policySnap.exists || !policy)
+    throw new HttpsError('not-found', `Could not find policy with ID: ${policyId}`);
+
+  let { price, effectiveDate, status } = policy;
+  if (!price || !effectiveDate)
+    throw new HttpsError('failed-precondition', 'Quote is missing required fields');
+
+  if (status !== POLICY_STATUS.AWAITING_PAYMENT)
+    throw new HttpsError('failed-precondition', 'Policy status must be "awaiting payment"');
+
+  const paymentMethodSnap: DocumentSnapshot<PaymentMethod> = await paymentMethodsCollection(db, uid)
+    .doc(paymentMethodId)
+    .get();
+
+  let paymentMethodDetails = paymentMethodSnap.data();
+  if (!paymentMethodSnap.exists || !paymentMethodDetails)
+    throw new HttpsError('not-found', 'Payment method not found');
+
+  const ePayCreds = ePayCredsSecret.value();
+  if (!ePayCreds) throw new HttpsError('internal', 'Missing required env vars');
+
   try {
-    const db = getFirestore();
-    const policiesCol = policiesCollection(db);
-
-    const policySnap: DocumentSnapshot<PolicyOld> = await policiesCol.doc(policyId).get();
-    const policy = policySnap.data();
-    console.log('POLICY: ', policy);
-    if (!policySnap.exists || !policy)
-      throw new HttpsError('not-found', `Could not find policy with ID: ${policyId}`);
-
-    let { price, effectiveDate, status } = policy;
-    if (!price || !effectiveDate)
-      throw new HttpsError('failed-precondition', 'Quote is missing required fields');
-
-    if (status !== POLICY_STATUS.AWAITING_PAYMENT)
-      throw new HttpsError('failed-precondition', 'Policy status must be "awaiting payment"');
-
-    const paymentMethodSnap: DocumentSnapshot<PaymentMethod> = await paymentMethodsCollection(
-      db,
-      uid
-    )
-      .doc(paymentMethodId)
-      .get();
-
-    let paymentMethodDetails = paymentMethodSnap.data();
-    if (!paymentMethodSnap.exists || !paymentMethodDetails)
-      throw new HttpsError('not-found', 'Payment method not found');
-
-    const ePayCreds = ePayCredsSecret.value();
-    if (!ePayCreds) throw new Error('Missing required env vars');
-
     const ePayInstance = getEPayInstance(ePayCreds);
 
-    let ePayFees =
-      paymentMethodDetails.transactionType === 'Ach'
-        ? 0
-        : policy.cardFee || round(price * CARD_FEE, 2);
+    let ePayFees = paymentMethodDetails.transactionType === 'Ach' ? 0 : round(price * feePct, 2);
 
     const total = price + ePayFees;
     info(`PRICE (${price}) + EPAY_FEES (${ePayFees}) = TOTAL (${total})`);
 
-    if (total < 100) throw new Error('Total less than minimum premium');
+    if (total < 100) throw new HttpsError('failed-precondition', 'Total less than minimum premium');
 
     let {
       headers: { location },
@@ -78,7 +75,8 @@ export default async ({ data, auth }: CallableRequest) => {
       payerFee: ePayFees,
       attributeValues: {
         policyNumber: policyId,
-        namedInsured: `${policy.namedInsured.firstName} ${policy.namedInsured.lastName}`,
+        // TODO: figure out namedInsured type
+        namedInsured: `${policy.namedInsured.displayName}`,
         policyId,
         userId: uid,
         agentId: policy.agent.userId || null,
@@ -91,9 +89,9 @@ export default async ({ data, auth }: CallableRequest) => {
     });
 
     let transactionId = location?.split('/')[2];
-    info('transactionId: ', transactionId);
+    info(`EPay transactionId: ${transactionId}`, { transactionId });
 
-    if (!transactionId) throw new Error('Missing transactionId');
+    if (!transactionId) throw new HttpsError('internal', 'Missing transactionId');
 
     // TODO: move handling status to payment:complete event listener
     // TODO: emit event "payment:complete" data: { policyId, transactionId }
@@ -128,8 +126,8 @@ export default async ({ data, auth }: CallableRequest) => {
         receiptNumber: null,
         receiptUrl: null,
         refunded: false,
-        publicDescriptor: `Flood insurance for ${policy.address.addressLine1}`,
-        publicDescriptorTitle: 'Flood insurance',
+        publicDescriptor: `Flood insurance for policy ${policySnap.id}`,
+        publicDescriptorTitle: 'iDemand Flood Insurance',
         // status: newStatus === QUOTE_STATUS.PAID ? 'succeeded' : 'processing',
         status:
           paymentMethodDetails.transactionType === 'Ach'
@@ -182,7 +180,7 @@ export default async ({ data, auth }: CallableRequest) => {
 //   paymentMethodsCollection,
 //   QUOTE_STATUS,
 //   round,
-//   submissionsQuotesCollection,
+//   quotesCollection,
 //   transactionsCollection,
 //   FIN_TRANSACTION_STATUS,
 // } from '../common';
@@ -207,7 +205,7 @@ export default async ({ data, auth }: CallableRequest) => {
 
 //     try {
 //       const db = getFirestore();
-//       const quotesCollection = submissionsQuotesCollection(db);
+//       const quotesCollection = quotesCollection(db);
 
 //       const quoteSnap = await quotesCollection.doc(quoteId).get();
 //       const quote = quoteSnap.data();

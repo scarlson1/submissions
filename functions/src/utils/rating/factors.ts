@@ -94,7 +94,7 @@ export const getSecondaryModifiers = ({
   surgeRiskScore,
   tsunamiRiskScore,
 }: SecondaryModifiersProps) => {
-  let secondaryModifiers = initialValues;
+  const secondaryModifiers = initialValues;
 
   let { inland_ffe_factor, surge_ffe_factor, tsunami_ffe_factor } = getFirstFloorDiffFactors(ffe);
   secondaryModifiers.ffeMult = {

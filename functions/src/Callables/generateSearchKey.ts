@@ -79,7 +79,7 @@ export default async ({ auth }: CallableRequest) => {
       // For example, authors.mainAuthor:"John Doe" is a valid filter, as long as you declare authors.mainAuthor in attributesForFaceting.
       const ownerFilters = `userId:${userId} OR agentId:${userId} OR agent.userId:${userId}`;
 
-      const collectionFilters = `collectionName:${COLLECTIONS.SUBMISSIONS} OR collectionName:${COLLECTIONS.QUOTES} OR collectionName:${COLLECTIONS.SUBMISSIONS_QUOTES} OR collectionName:${COLLECTIONS.CHANGE_REQUESTS} OR collectionName:${COLLECTIONS.USERS}`;
+      const collectionFilters = `collectionName:${COLLECTIONS.SUBMISSIONS} OR collectionName:${COLLECTIONS.QUOTES} OR collectionName:${COLLECTIONS.QUOTES} OR collectionName:${COLLECTIONS.CHANGE_REQUESTS} OR collectionName:${COLLECTIONS.USERS}`;
 
       // For example, if a record contains the array attribute genres: ["fiction", "thriller", "sci-fi"], the filter genres:thriller returns this record.
       // TODO: add visibleBy to applicable docs when indexing

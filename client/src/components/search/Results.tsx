@@ -190,8 +190,6 @@ function getShortenedChipLabel(collectionName: string) {
       return 'Policy';
     case COLLECTIONS.QUOTES:
       return 'Quote';
-    case COLLECTIONS.SUBMISSIONS_QUOTES:
-      return 'Quote';
     case COLLECTIONS.SUBMISSIONS:
       return 'Sub';
     case COLLECTIONS.USERS:

@@ -7,16 +7,17 @@ import {
   GridColDef,
   GridRowParams,
   GridToolbar,
-  GridValueGetterParams,
 } from '@mui/x-data-grid';
 import { QueryConstraint } from 'firebase/firestore';
+import { useSigninCheck } from 'reactfire';
+import { useNavigate } from 'react-router-dom';
 
 import { BasicDataGrid } from 'components';
 import { useCollectionData, useJsonDialog } from 'hooks';
 import {
   Policy,
-  ratingDataCBRSCol,
   POLICY_STATUS,
+  ratingDataCBRSCol,
   addrCityCol,
   addrLine1Col,
   addrLine2Col,
@@ -31,7 +32,6 @@ import {
   deductibleCol,
   ratingDataDistToCoastFeetCol,
   effectiveDateCol,
-  emailCol,
   expirationDateCol,
   ratingDataFloodZoneCol,
   idCol,
@@ -43,23 +43,29 @@ import {
   namedInsuredFirstNameCol,
   namedInsuredLastNameCol,
   ratingDataNumStoriesCol,
-  orgNameCol,
-  phoneCol,
   ratingDataPropertyCodeCol,
   ratingDataSqFootageCol,
   statusCol,
   updatedCol,
   userIdCol,
   ratingDataYearBuiltCol,
+  agentEmailCol,
+  agentPhoneCol,
+  namedInsuredEmailCol,
+  namedInsuredPhoneCol,
+  agencyNameCol,
+  ratingDataReplacementCostCol,
+  addressSummaryCol,
+  tivCol,
+  locationsCount,
 } from 'common';
-import { renderChips } from 'components/RenderGridCellHelpers';
-import { useNavigate } from 'react-router-dom';
-import { useSigninCheck } from 'reactfire';
 import { CUSTOM_CLAIMS } from 'modules/components';
 
 export interface PoliciesGridProps extends Partial<DataGridProps> {
   queryConstraints: QueryConstraint[];
 }
+
+// TODO: update named insured column to get displayName
 
 export const PoliciesGrid: React.FC<PoliciesGridProps> = ({ queryConstraints, ...props }) => {
   const navigate = useNavigate();
@@ -83,7 +89,7 @@ export const PoliciesGrid: React.FC<PoliciesGridProps> = ({ queryConstraints, ..
     [data, dialog]
   );
 
-  const policyColumns: GridColDef[] = useMemo(
+  const policyColumns: GridColDef<Policy>[] = useMemo(
     () => [
       {
         field: 'actions',
@@ -129,77 +135,38 @@ export const PoliciesGrid: React.FC<PoliciesGridProps> = ({ queryConstraints, ..
           POLICY_STATUS.PAYMENT_PROCESSING,
           POLICY_STATUS.CANCELLED,
         ],
-        editable: claimsCheckStatus === 'success' && iDAdminResult.hasRequiredClaims, // true,
+        editable: claimsCheckStatus === 'success' && iDAdminResult.hasRequiredClaims,
       },
+      addressSummaryCol,
       addrLine1Col,
       addrLine2Col,
       addrCityCol,
       addrStateCol,
       addrPostalCol,
+      namedInsuredDisplayNameCol,
+      namedInsuredFirstNameCol,
+      namedInsuredLastNameCol,
+      namedInsuredEmailCol,
+      namedInsuredPhoneCol,
       {
         ...currencyCol,
         field: 'price',
         headerName: 'Price',
       },
-      namedInsuredDisplayNameCol,
-      namedInsuredFirstNameCol,
-      namedInsuredLastNameCol,
-      {
-        ...emailCol,
-        field: 'insuredEmail',
-        headerName: 'Insured Email',
-        valueGetter: (params: GridValueGetterParams) => params.row.namedInsured?.email || null,
-        // renderCell: renderGridEmail,
-      },
-      {
-        ...phoneCol,
-        field: 'insuredPhone',
-        headerName: 'Insured Phone',
-        valueGetter: (params: GridValueGetterParams) => params.row.namedInsured?.phone || null,
-        // renderCell: renderGridPhone,
-      },
+      locationsCount,
       limitACol,
       limitBCol,
       limitCCol,
       limitDCol,
+      tivCol,
       deductibleCol,
       effectiveDateCol,
       expirationDateCol,
       nestedAgentNameCol,
-      {
-        ...emailCol,
-        field: 'agentEmail',
-        headerName: 'Agent Email',
-        valueGetter: (params: GridValueGetterParams<any, any>) => params.row.agent?.email || null,
-        // renderCell: renderGridEmail,
-      },
-      {
-        ...phoneCol,
-        field: 'agentPhone',
-        headerName: 'Agent Phone',
-        // minWidth: 140,
-        // flex: 0.8,
-        // editable: false,
-        valueGetter: (params: GridValueGetterParams<any, any>) => params.row.agent?.phone || null,
-        // renderCell: renderGridPhone,
-      },
-      {
-        ...orgNameCol,
-        field: 'agencyName',
-        headerName: 'Agency',
-      },
-      {
-        ...currencyCol,
-        field: 'replacementCost',
-        headerName: 'Replacement Cost',
-        // minWidth: 140,
-        // flex: 0.8,
-        // headerAlign: 'center',
-        // align: 'right',
-        valueGetter: (params: GridValueGetterParams<any, any>) =>
-          params.row.ratingPropertyData?.replacementCost ?? null,
-        // valueFormatter: formatGridCurrency,
-      },
+      agentEmailCol,
+      agentPhoneCol,
+      agencyNameCol,
+      ratingDataReplacementCostCol,
       ratingDataPropertyCodeCol,
       ratingDataYearBuiltCol,
       ratingDataSqFootageCol,
@@ -208,31 +175,31 @@ export const PoliciesGrid: React.FC<PoliciesGridProps> = ({ queryConstraints, ..
       ratingDataDistToCoastFeetCol,
       ratingDataCBRSCol,
       ratingDataFloodZoneCol,
-      createdCol,
-      updatedCol,
-      {
-        field: 'transactions',
-        headerName: 'Transactions',
-        minWidth: 140,
-        flex: 1,
-        renderCell: (params) =>
-          renderChips(params, {}, (t: string) => ({
-            onClick: () =>
-              window.open(
-                `${process.env.REACT_APP_EPAY_HOSTING_BASE_URL}/Transactions/Index/${t}`,
-                '_blank'
-              ),
-          })),
-      },
+      // TODO: rename finTransactions ?? or don't store on policy ??
+      // use join query ?? or no grid --> only show in policy view ??
+      // {
+      //   field: 'transactions',
+      //   headerName: 'Transactions',
+      //   minWidth: 140,
+      //   flex: 1,
+      //   renderCell: (params) =>
+      //     renderChips(params, {}, (t: string) => ({
+      //       onClick: () =>
+      //         window.open(
+      //           `${process.env.REACT_APP_EPAY_HOSTING_BASE_URL}/Transactions/Index/${t}`,
+      //           '_blank'
+      //         ),
+      //     })),
+      // },
       nestedAgentUserIdCol,
       nestedAgencyOrgIdCol,
       userIdCol,
       {
         ...idCol,
-        field: 'id',
         headerName: 'Policy ID',
-        minWidth: 240,
       },
+      createdCol,
+      updatedCol,
     ],
     [showJson, claimsCheckStatus, iDAdminResult]
   );
@@ -240,7 +207,6 @@ export const PoliciesGrid: React.FC<PoliciesGridProps> = ({ queryConstraints, ..
   return (
     <Box>
       <BasicDataGrid
-        // @ts-ignore
         rows={data}
         columns={policyColumns}
         loading={status === 'loading'}
@@ -253,12 +219,21 @@ export const PoliciesGrid: React.FC<PoliciesGridProps> = ({ queryConstraints, ..
         initialState={{
           columns: {
             columnVisibilityModel: {
-              insuredFirstName: false,
-              insuredLastName: false,
-              addressLine2: false,
-              postal: false,
-              termPremium: false,
-              updated: false,
+              'namedInsured.firstName': false,
+              'namedInsured.lastName': false,
+              'namedInsured.email': false,
+              'namedInsured.phone': false,
+              'address.addressLine1': false,
+              'address.addressLine2': false,
+              'address.city': false,
+              'address.state': false,
+              'address.postal': false,
+              'address.countyName': false,
+              'address.countyFIPS': false,
+              'agent.email': false,
+              'agent.phone': false,
+              'agent.userId': false,
+              annualPremium: false,
               agentId: false,
               CBRSDesignation: false,
               basement: false,
@@ -268,6 +243,8 @@ export const PoliciesGrid: React.FC<PoliciesGridProps> = ({ queryConstraints, ..
               propertyCode: false,
               sqFootage: false,
               yearBuilt: false,
+              created: false,
+              updated: false,
             },
           },
           sorting: {

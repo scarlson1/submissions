@@ -19,10 +19,13 @@ import {
   audience,
   extractNumber,
   getNumber,
-  policiesCollection,
+  policiesCollectionOld,
   sendgridApiKey,
 } from '../common/index.js';
 import { sendAdminPolicyImportNotification } from '../services/sendgrid';
+
+// TODO: use new Policy schema
+//    -- use deep merge (smart merge) to combine rows by policy ID
 
 // TODO: create helper functions to reduce boilerplate (downloadFile(storage, filePath, etc.))
 
@@ -170,7 +173,7 @@ export default async (event: StorageEvent) => {
   }
 
   const db = getFirestore();
-  const policiesCollRef = policiesCollection(db);
+  const policiesCollRef = policiesCollectionOld(db);
 
   const storage = getStorage();
   const bucket = storage.bucket(fileBucket);

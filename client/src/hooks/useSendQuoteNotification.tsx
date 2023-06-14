@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { doc, getDoc, getFirestore } from 'firebase/firestore';
 
-import { BaseSendEmailResponse, submissionsQuotesCollection } from 'common';
+import { BaseSendEmailResponse, quotesCollection } from 'common';
 import { usePromptForEmails } from './usePromptForEmails';
 import { useAsyncToast } from './useAsyncToast';
 import { useSendEmail } from './useSendEmail';
@@ -24,7 +24,7 @@ export const useSendQuoteNotification = (
     async (docId?: string | null) => {
       if (!docId) return;
       try {
-        const snap = await getDoc(doc(submissionsQuotesCollection(getFirestore()), docId));
+        const snap = await getDoc(doc(quotesCollection(getFirestore()), docId));
         if (!snap.exists() || !snap.data()) throw new Error(`Cannot find doc with ID ${docId}`);
         const data = snap.data();
 

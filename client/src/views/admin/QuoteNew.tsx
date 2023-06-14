@@ -155,8 +155,8 @@ const DEFAULT_VALUES = {
   deductible: 1000,
   effectiveExceptionRequested: false,
   quoteExpirationDate: add(new Date(), { days: 30 }),
-  policyEffectiveDate: add(new Date(), { days: 15 }),
-  policyExpirationDate: add(new Date(), { days: 15, years: 1 }),
+  effectiveDate: add(new Date(), { days: 15 }),
+  expirationDate: add(new Date(), { days: 15, years: 1 }),
   fees: [],
   taxes: [],
   annualPremium: null,
@@ -215,7 +215,7 @@ const quoteNewValidation = yup.object().shape({
   limits: limitsValidation,
   effectiveExceptionRequested: yup.boolean(),
   quoteExpirationDate: yup.date().min(minDate, 'quote must be valid for at least 15 days'),
-  policyEffectiveDate: yup.date().when('effectiveExceptionRequested', {
+  effectiveDate: yup.date().when('effectiveExceptionRequested', {
     is: true,
     then: yup.date().required(), // .min(minDate, 'Effective must be 15+ days'),
     otherwise: yup
@@ -223,11 +223,11 @@ const quoteNewValidation = yup.object().shape({
       .min(minDate, 'effective date must be at least 15 days from now')
       .max(maxDate, 'effective date must be within 60 days'),
   }),
-  policyExpirationDate: yup
+  expirationDate: yup
     .date()
     .test('exp-greater-than-eff', 'must be > eff. date', (value, context) => {
-      if (!(context.parent.policyEffectiveDate && value)) return false;
-      return value > context.parent.policyEffectiveDate;
+      if (!(context.parent.effectiveDate && value)) return false;
+      return value > context.parent.effectiveDate;
     }), // TODO: compare - must be > eff date
   deductible: yup.number().min(1000).required(),
   fees: yup.array().of(
@@ -296,8 +296,8 @@ export interface NewQuoteValues {
   limits: Limits;
   deductible: number;
   effectiveExceptionRequested: boolean;
-  policyEffectiveDate: Date;
-  policyExpirationDate: Date;
+  effectiveDate: Date;
+  expirationDate: Date;
   quoteExpirationDate: Date; // TODO: delete ?? generated when created ??
   fees: FeeItem[];
   taxes: TaxItem[];
@@ -773,7 +773,7 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                       }}
                     />
                     <FormikDatePicker
-                      name='policyEffectiveDate'
+                      name='effectiveDate'
                       label='Policy Effective Date'
                       minDate={undefined}
                       maxDate={null}
@@ -782,7 +782,7 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                       }}
                     />
                     <FormikDatePicker
-                      name='policyExpirationDate'
+                      name='expirationDate'
                       label='Policy Expiration Date'
                       minDate={new Date()}
                       maxDate={null}
@@ -794,7 +794,7 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                               getValue: () => {
                                 return addToDate(
                                   { years: 1 },
-                                  values.policyEffectiveDate || endOfToday()
+                                  values.effectiveDate || endOfToday()
                                 );
                               },
                             },
@@ -1500,8 +1500,8 @@ function Diff({
 
   // recalc diff whenever ratingInputs change
   useEffect(() => {
-    console.log('OLD OBJ: ', ratingInputsPrev);
-    console.log('NEW OBJ: ', ratingInputsCurr);
+    // console.log('OLD OBJ: ', ratingInputsPrev);
+    // console.log('NEW OBJ: ', ratingInputsCurr);
 
     getDiff(ratingInputsPrev, ratingInputsCurr);
   }, [getDiff, ratingInputsPrev, ratingInputsCurr]);
@@ -1689,8 +1689,8 @@ export const QuoteNewFromSub = () => {
       deductible: submissionData?.deductible ?? 1000,
       quoteExpirationDate: add(new Date(), { days: 60 }), // TODO: delete ?? set on quote created
       effectiveExceptionRequested: false,
-      policyEffectiveDate: add(new Date(), { days: 15 }),
-      policyExpirationDate: add(new Date(), { days: 15, years: 1 }),
+      effectiveDate: add(new Date(), { days: 15 }),
+      expirationDate: add(new Date(), { days: 15, years: 1 }),
       fees: [],
       taxes: [],
       annualPremium: submissionData?.annualPremium ?? null,

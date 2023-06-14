@@ -70,14 +70,8 @@ export default async (
 
   try {
     const srVals: Partial<GetAALsProps> = {
-      // latitude: sub.coordinates.latitude,
-      // longitude: sub.coordinates.longitude,
       coordinates: sub.coordinates,
       limits: sub.limits,
-      // limitA: sub.limits?.limitA,
-      // limitB: sub.limits?.limitB,
-      // limitC: sub.limits?.limitC,
-      // limitD: sub.limits?.limitD,
       deductible: sub.deductible,
       replacementCost: sub.ratingPropertyData?.replacementCost,
       numStories: sub.ratingPropertyData?.numStories || 1,
@@ -107,12 +101,6 @@ export default async (
         replacementCost: srVals.replacementCost || null,
         limits: srVals.limits || null,
         coordinates: srVals.coordinates || null,
-        // limitA: srVals.limitA || null,
-        // limitB: srVals.limitB || null,
-        // limitC: srVals.limitC || null,
-        // limitD: srVals.limitD || null,
-        // latitude: srVals.latitude || null,
-        // longitude: srVals.longitude || null,
         deductible: srVals.deductible || null,
         numStories: srVals.numStories || null,
       },
@@ -125,8 +113,6 @@ export default async (
     );
 
     // update submission doc with AALs
-    // await snap.ref.update({ inlandAAL: AALs.inlandAAL, surgeAAL: AALs.surgeAAL });
-    // TODO: extract tsunami AAL
     const updates: Partial<Submission> = {
       AAL: {
         inland: AALsRes.AAL?.inland ?? null,
@@ -140,14 +126,10 @@ export default async (
     return;
   }
 
-  // CALCULATE ANNUAL PREMIUM
   try {
-    invariant(AALsRes?.AAL?.inland && typeof AALsRes.AAL.inland === 'number', 'Missing inland AAL');
-    invariant(AALsRes?.AAL?.surge && typeof AALsRes?.AAL?.surge === 'number', 'Missing surge AAL');
-    invariant(
-      AALsRes?.AAL?.tsunami && typeof AALsRes?.AAL?.tsunami === 'number',
-      'Missing tsunami AAL'
-    );
+    invariant(typeof AALsRes?.AAL?.inland === 'number', 'Missing inland AAL');
+    invariant(typeof AALsRes?.AAL?.surge === 'number', 'Missing surge AAL');
+    invariant(typeof AALsRes?.AAL?.tsunami === 'number', 'Missing tsunami AAL');
 
     const result = getPremium({
       AAL: {
@@ -162,7 +144,7 @@ export default async (
         limitD: sub.limits?.limitD,
       },
       floodZone: sub.ratingPropertyData?.floodZone || defaultFloodZone.value(),
-      state: sub.address?.state,
+      state: sub.address?.state || '',
       basement: sub.ratingPropertyData?.basement || 'unknown',
       priorLossCount: sub.priorLossCount,
       commissionPct,
@@ -184,7 +166,6 @@ export default async (
       TIV: result.tiv,
       // replacementCost: sub.replacementCost,
       RCVs: {
-        // TODO: change getAAL func to use same rcv keys (rcvA -> building, etc.)
         building: AALsRes.rcvs.building,
         otherStructures: AALsRes.rcvs.otherStructures,
         contents: AALsRes.rcvs.contents,
@@ -242,28 +223,4 @@ export default async (
     console.log('ERROR CALCULATING QUOTE: ', err);
     return;
   }
-
-  // TODO: FETCH TAXES ??
 };
-
-// export function getSRVars(sub: Submission) {
-//   const { replacementCost, limitA, limitB, limitC, limitD, deductible, numStories } = sub;
-
-//   const RCVs = getRCVs(replacementCost, { limitA, limitB, limitC, limitD });
-//   const rcvAB = RCVs.rvcA + RCVs.rcvB;
-//   const rcvTotal = calcSum(Object.values(RCVs));
-
-//   return {
-//     lat: sub.coordinates.latitude,
-//     lng: sub.coordinates.longitude,
-//     rcvTotal,
-//     rcvAB,
-//     rcvC: RCVs.rcvC,
-//     rcvD: RCVs.rcvD,
-//     limitAB: limitA + limitB,
-//     limitC,
-//     limitD,
-//     deductible,
-//     numStories,
-//   };
-// }

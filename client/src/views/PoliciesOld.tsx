@@ -87,8 +87,8 @@ export const fallbackImages = [
 //                     sx={{ height: 140 }}
 //                     image={
 //                       (theme.palette.mode === 'dark'
-//                         ? p.imageUrls?.darkMapImageURL
-//                         : p.imageUrls?.lightMapImageURL) ||
+//                         ? p.imageURLs?.darkMapImageURL
+//                         : p.imageURLs?.lightMapImageURL) ||
 //                       fallbackImages[i] ||
 //                       fallbackImages[0]
 //                     }

@@ -41,6 +41,10 @@ export type Optional<T> = { [K in keyof T]?: T[K] | undefined | null };
 
 export type Maybe<T> = T | null | undefined;
 
+export type Mutable<T> = {
+  -readonly [P in keyof T]: T[P];
+};
+
 export interface Submission extends FloodValues {
   product: Product;
   coordinates: GeoPoint;
@@ -181,6 +185,7 @@ export interface AdditionalInterest {
   address: AddressWithCoords;
 }
 
+// TODO: unify with functions interfaces - below (individual vs org named insured)
 export interface NamedInsuredDetails {
   firstName: string;
   lastName: string;
@@ -188,6 +193,28 @@ export interface NamedInsuredDetails {
   phone: string;
   userId?: string | null;
 }
+
+export interface IndividualNamedInsured {
+  displayName: string;
+  firstName?: string;
+  lastName?: string;
+  email: string;
+  phone: string;
+  userId?: string | null;
+  orgId?: string | null; // ever used ??
+}
+
+export interface EntityNamedInsured {
+  // TODO: add type: 'entity' ??
+  displayName: string;
+  email: string;
+  phone: string;
+  userId?: string | null;
+  orgId?: string | null;
+}
+
+// TODO: decide whether to use discriminating type vs same fields
+export type NamedInsured = IndividualNamedInsured | EntityNamedInsured;
 
 export interface AgentDetails {
   userId: string | null; // TODO: use userId ??
@@ -238,6 +265,7 @@ interface RatingCalcData {
 
 type PropWithRatingCalcData = Nullable<RatingPropertyData> & RatingCalcData;
 
+// TODO: change quote to support multi-location
 export interface Quote {
   product: Product; // keyof typeof Product;
   deductible: number;
@@ -250,11 +278,11 @@ export interface Quote {
   subproducerCommission: number; // TODO: remove ??
   quoteTotal?: number;
   cardFee: number; // TODO: keep ?? delete ?? add security rules ??
-  policyEffectiveDate?: Timestamp;
+  effectiveDate?: Timestamp;
   effectiveExceptionRequested?: boolean;
   effectiveExceptionReason?: string | null;
-  policyExpirationDate?: Timestamp;
-  quoteExpirationDate: Timestamp; // quoteExpiration: Timestamp;
+  expirationDate?: Timestamp;
+  quoteExpirationDate: Timestamp;
   exclusions?: string[];
   // additionalInsureds?: AdditionalInsured[];
   // mortgageeInterest?: Mortgagee[];
@@ -271,8 +299,8 @@ export interface Quote {
   agency: Nullable<AgencyDetails>; // TODO: REMOVE NULLABLE ??
   status: QUOTE_STATUS; // SUBMISSION_STATUS;
   submissionId?: string | null;
-  imageUrls?: { [key: string]: string | null };
-  imagePaths?: { [key: string]: string | null };
+  imageURLs?: Record<string, string> | null;
+  imagePaths?: Record<string, string> | null;
   ratingPropertyData: Nullable<RatingPropertyData>;
   geoHash?: Geohash | null;
   notes?: Note[]; // { [key: string]: string }[];
@@ -285,69 +313,70 @@ export interface Quote {
   };
 }
 
-export interface QuoteData {
-  product: Product; // keyof typeof Product;
-  deductible: Deductible;
-  limits: Limits;
-  tiv: number;
-  replacementCostValues: {
-    a: number;
-    b: number;
-    c: number;
-    d: number;
-  };
-  locations: {
-    [key: string]: QuoteLocation;
-  };
-  ratingDocRefs: {
-    [key: string]: string;
-  };
-  quote: number;
-  reviewRequired: boolean;
-  underwritingNotes: {
-    propertyNotes: UWNote[];
-    ratingNotes: UWNote[];
-  };
-  // TODO: create array of required review locations
-  // check if blocking quote and update if location data changes
-  ratable: boolean;
-  underwriterApproved: boolean;
-  quoteExpiration: {
-    seconds: number;
-    nanoseconds: number;
-  };
-  effectiveDate?: FirestoreTimestamp;
-  effectiveExceptionRequested?: boolean;
-  effectiveExceptionReason?: string;
-  exclusions?: string[];
-  ePayFees?: {
-    achPayerFee: number;
-    creditCardPayerFee: number;
-  };
-  additionalInsureds?: AdditionalInsured[];
-  mortgageeInterest?: Mortgagee[];
-  metadata: {
-    created: FirestoreTimestamp;
-    updated: FirestoreTimestamp;
-    version: WithFieldValue<number>;
-  };
-  insuredName?: string;
-  insuredEmail?: string | null;
-  insuredPhone?: string | null;
-  insuredUserId?: string | null;
-  agencyId: string | null;
-  agencyName: string | null;
-  agentId: string | null;
-  agentName: string | null;
-  agentEmail: string | null;
-  userId: string | null;
-  status: SUBMISSION_STATUS; // QuoteStatus;
-  statusTransitions: {
-    accepted: FirestoreTimestamp | null;
-    canceled: FirestoreTimestamp | null;
-    finalized: FirestoreTimestamp | null;
-  };
-}
+// TODO: delete ??
+// export interface QuoteData {
+//   product: Product; // keyof typeof Product;
+//   deductible: Deductible;
+//   limits: Limits;
+//   tiv: number;
+//   replacementCostValues: {
+//     a: number;
+//     b: number;
+//     c: number;
+//     d: number;
+//   };
+//   locations: {
+//     [key: string]: QuoteLocation;
+//   };
+//   ratingDocRefs: {
+//     [key: string]: string;
+//   };
+//   quote: number;
+//   reviewRequired: boolean;
+//   underwritingNotes: {
+//     propertyNotes: UWNote[];
+//     ratingNotes: UWNote[];
+//   };
+//   // TODO: create array of required review locations
+//   // check if blocking quote and update if location data changes
+//   ratable: boolean;
+//   underwriterApproved: boolean;
+//   quoteExpiration: {
+//     seconds: number;
+//     nanoseconds: number;
+//   };
+//   effectiveDate?: FirestoreTimestamp;
+//   effectiveExceptionRequested?: boolean;
+//   effectiveExceptionReason?: string;
+//   exclusions?: string[];
+//   ePayFees?: {
+//     achPayerFee: number;
+//     creditCardPayerFee: number;
+//   };
+//   additionalInsureds?: AdditionalInsured[];
+//   mortgageeInterest?: Mortgagee[];
+//   metadata: {
+//     created: FirestoreTimestamp;
+//     updated: FirestoreTimestamp;
+//     version: WithFieldValue<number>;
+//   };
+//   insuredName?: string;
+//   insuredEmail?: string | null;
+//   insuredPhone?: string | null;
+//   insuredUserId?: string | null;
+//   agencyId: string | null;
+//   agencyName: string | null;
+//   agentId: string | null;
+//   agentName: string | null;
+//   agentEmail: string | null;
+//   userId: string | null;
+//   status: SUBMISSION_STATUS; // QuoteStatus;
+//   statusTransitions: {
+//     accepted: FirestoreTimestamp | null;
+//     canceled: FirestoreTimestamp | null;
+//     finalized: FirestoreTimestamp | null;
+//   };
+// }
 
 export type FloodZones = 'A' | 'B' | 'C' | 'D' | 'V' | 'X' | 'AE' | 'AO' | 'AH' | 'AR' | 'VE';
 
@@ -377,7 +406,8 @@ interface PremiumCalcData {
 }
 
 // TODO: standardize this interface with the "Trx" interface
-export interface RatingData {
+// TODO: fix - copy from functions types
+export interface RatingDataOld {
   quoteDocRef: string;
   quoteId: string;
   deductible: Deductible;
@@ -391,37 +421,6 @@ export interface RatingData {
     spatialKey: number;
   };
   ratingData: PropWithRatingCalcData;
-  // ratingData: {
-  //   AAL: {
-  //     inland: number;
-  //     surge: number;
-  //   };
-  //   PM: {
-  //     inland: number;
-  //     surge: number;
-  //   };
-  //   riskScore: {
-  //     inland: number;
-  //     surge: number;
-  //   };
-  //   stateMultipliers: {
-  //     inland: number;
-  //     surge: number;
-  //   };
-  //   secondaryFactorMults: {
-  //     inland: number;
-  //     surge: number;
-  //   };
-  //   basement: BasementOptions;
-  //   floodZone: FloodZones;
-  //   ffe: number;
-  //   numStories: number;
-  //   sqFootage: number;
-  //   distToCoast: number;
-  //   propertyCode: string;
-  //   yearBuilt: number;
-  //   CBRSDesignation: string;
-  // };
   premiumData: PremiumCalcData;
   address: Address;
   geoHash?: any;
@@ -429,6 +428,40 @@ export interface RatingData {
   lng: number;
   externalId: string | null;
   metadata: VersionAwareMetadata;
+}
+
+export interface SecondaryFactorMults {
+  inland: number;
+  surge: number;
+  tsunami: number;
+  secondaryFactorMultsByFactor: {
+    ffeMult: ValueByRiskType;
+    basementMult: number;
+    historyMult: Nullable<ValueByRiskType>;
+    contentsMult: number;
+    ordinanceMult: number;
+    distanceToCoastMult: number;
+    tier1Mult: number;
+  };
+}
+
+export interface RatingData extends BaseDoc {
+  submissionId: string | null;
+  locationId?: string | null; // any point to locationId at this stage ? pre policy ??
+  externalId?: string | null;
+  limits: Limits;
+  TIV: number;
+  deductible: number;
+  RCVs: RCVs | null;
+  ratingPropertyData: Nullable<RatingPropertyData>;
+  premiumCalcData: PremiumCalcData;
+  AAL: Nullable<ValueByRiskType>;
+  PM: ValueByRiskType;
+  riskScore: ValueByRiskType;
+  stateMultipliers: ValueByRiskType;
+  secondaryFactorMults: SecondaryFactorMults;
+  address?: Address | null;
+  coordinates: GeoPoint | null;
 }
 
 // TODO: change request interfaces (not live quoting)
@@ -503,67 +536,86 @@ export interface BaseContact {
   phone: string;
 }
 
+export type RCVKeys = 'building' | 'otherStructures' | 'contents' | 'BI' | 'total';
+
+export type RCVs = Record<RCVKeys, number>;
+
+// export interface PolicyLocationNew {
+//   address: Address;
+//   coordinates: GeoPoint;
+//   geoHash: Geohash;
+//   locationId: string;
+//   fips: string;
+//   propData: Nullable<RatingPropertyData>;
+//   deductible: number;
+//   limits: Limits;
+//   tiv: number;
+//   RCVs: RCVs;
+//   RCVXSLimit?: number;
+//   annualDWP: number;
+//   termDWP: number;
+//   policyDays: number;
+// }
+
 export interface PolicyLocation {
   address: Address;
   coordinates: GeoPoint;
   geoHash: Geohash;
-}
-
-export type RCVKeys = 'building' | 'otherStructures' | 'contents' | 'BI' | 'total';
-
-export type RCVs = Record<RCVKeys, number>;
-export interface PolicyLocationNew {
-  address: Address;
-  coordinates: GeoPoint;
-  geoHash: Geohash;
-  locationId: string;
-  fips: string;
-  propData: Nullable<RatingPropertyData>;
-  deductible: number;
+  premium: number;
   limits: Limits;
-  tiv: number;
+  // TODO: add tiv sum in Policy class
+  TIV: number;
   RCVs: RCVs;
-  RCVXSLimit?: number;
-  annualDWP: number;
-  termDWP: number;
-  policyDays: number;
-}
-
-export interface Policy extends BaseDoc {
-  status: POLICY_STATUS;
-  limits: Limits;
   deductible: number;
-  address: Address; // TODO: REMOVE (handle as location level / replace with mailing address)
-  homeState: string;
+  active: true; // https://stackoverflow.com/a/62626994/10887890
+  additionalInsureds: AdditionalInsured[];
+  mortgageeInterest: Mortgagee[];
+  ratingDocId: string; // TODO: include rating info ?? make PublicRatingData and PrivateRatingData (extends)
+  propertyData: RatingPropertyData;
+  effectiveDate: Timestamp;
+  expirationDate: Timestamp;
+  locationId: string;
+  externalId?: string | null;
+  metadata: {
+    created: Timestamp;
+    updated: Timestamp;
+  };
+}
+// address (mailingAddress)
+// namedInsured (could be entity)
+//
+export interface Policy extends BaseDoc {
+  product: Product;
+  status: POLICY_STATUS;
+  term: number;
   mailingAddress: Address;
-  mailingCoordinates: GeoPoint; // Coordinates;
-  namedInsured: BaseContact;
-  additionalInsureds?: { firstName: string; lastName: string; email: string }[];
-  otherInterestedParties?: Record<string, any>[];
-  mortgageeInterest?: any;
-  effectiveDate: FirestoreTimestamp;
-  expirationDate: FirestoreTimestamp;
-  lastTransactionDate: FirestoreTimestamp;
-  cancelDate: FirestoreTimestamp;
+  namedInsured: NamedInsured; // TODO: clerify typing NamedInsuredDetails;
+  // address: Address;
+  // limits: Limits;
+  locations: Record<string, PolicyLocation>;
+  // deductible: number;
+  homeState: string;
+  effectiveDate: Timestamp;
+  expirationDate: Timestamp;
+  // additionalInsureds?: { firstName: string; lastName: string; email: string }[];
+  // otherInterestedParties?: Record<string, any>[]; // TODO: delete
+  // mortgageeInterest?: Mortgagee[];
+  // lastTransactionDate: FirestoreTimestamp;
+  // cancelDate: FirestoreTimestamp;
   userId: string;
-  agent: {
-    userId: string;
+  agent: Nullable<AgentDetails>; // TODO: remove nullable (defaults to idemand)
+  agency: AgencyDetails;
+  surplusLinesProducerOfRecord: {
     name: string;
-    email: string;
+    licenseNum: string;
+    licenseState: string;
+    phone: string;
   };
-  agency: {
-    orgId: string;
-    name: string;
-  };
+  issuingCarrier: string;
   // TODO: GENERATE DOCS INSTEAD OF STORING
   documents: [{ displayName: string; downloadUrl: string; storagePath: string }];
-  imageUrls?: { [key: string]: string | null } | null;
-  imagePaths?: { [key: string]: string | null } | null;
-  // darkMapImageURL?: string;
-  // lightMapImageURL?: string;
-  // darkMapImageFilePath?: string;
-  // lightMapImageFilePath?: string;
-  // metadata: BaseMetadata;
+  imageURLs?: Record<string, string> | null;
+  imagePaths?: Record<string, string> | null;
 }
 
 export interface TrxRatingData extends Nullable<RatingPropertyData> {

@@ -9,8 +9,6 @@ import {
   Quote,
   Transaction,
   PropertyDataRes,
-} from '../common';
-import {
   Submission,
   User,
   SRRes,
@@ -18,6 +16,8 @@ import {
   Organization,
   Invite,
   PaymentMethod,
+  Policy,
+  License,
 } from '../common'; // AgencyApplication, Invite, Notification, Organization,
 import { ClaimsDocData } from '../firestoreEvents/index.js';
 
@@ -36,11 +36,7 @@ export const submissionsCollection = (db: Firestore) =>
 export const ratingDataCollection = (db: Firestore) =>
   createCollection<RatingData>(db, COLLECTIONS.RATING_DATA);
 
-export const submissionsQuotesCollection = (db: Firestore) =>
-  createCollection<Quote>(db, COLLECTIONS.SUBMISSIONS_QUOTES);
-// export const submissionsQuotesCollection = createCollection<Quote>(
-//   COLLECTIONS.SUBMISSIONS_QUOTES
-// );
+export const quotesCollection = (db: Firestore) => createCollection<Quote>(db, COLLECTIONS.QUOTES);
 
 export const propertyDataResCollection = (db: Firestore) =>
   createCollection<PropertyDataRes>(db, COLLECTIONS.PROPERTY_DATA_RES);
@@ -48,8 +44,11 @@ export const propertyDataResCollection = (db: Firestore) =>
 export const finTrxCollection = (db: Firestore) =>
   createCollection<Charge>(db, COLLECTIONS.FIN_TRANSACTIONS);
 
-export const policiesCollection = (db: Firestore) =>
+export const policiesCollectionOld = (db: Firestore) =>
   createCollection<PolicyOld>(db, COLLECTIONS.POLICIES);
+
+export const policiesCollection = (db: Firestore) =>
+  createCollection<Policy>(db, COLLECTIONS.POLICIES);
 
 export const transactionsCollection = (db: Firestore) =>
   createCollection<Transaction>(db, COLLECTIONS.TRANSACTIONS);
@@ -59,6 +58,9 @@ export const swissReResCollection = (db: Firestore) =>
 
 export const agencyApplicationCollection = (db: Firestore) =>
   createCollection<AgencyApplication>(db, COLLECTIONS.AGENCY_APPLICATIONS);
+
+export const licensesCollection = (db: Firestore) =>
+  createCollection<License>(db, COLLECTIONS.LICENSES);
 
 export const emailActivityCollection = (db: Firestore) =>
   createCollection<any>(db, COLLECTIONS.EMAIL_ACTIVITY);

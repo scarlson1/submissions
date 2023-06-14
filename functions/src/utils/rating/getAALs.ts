@@ -28,10 +28,8 @@ export interface GetAALsProps extends GetAALRequest {
 
 export interface GetAALRes {
   AAL: Nullable<ValueByRiskType>;
-  // inlandAAL: number;
-  // surgeAAL: number;
   srRes: SRRes;
-  rcvs: RCVs; // Record<'rcvA' | 'rcvB' | 'rcvC' | 'rcvD' | 'total', number>; // TODO: replce with RCVs in types
+  rcvs: RCVs;
 }
 
 export const getAALs = async (props: GetAALsProps): Promise<GetAALRes> => {
@@ -42,17 +40,9 @@ export const getAALs = async (props: GetAALsProps): Promise<GetAALRes> => {
     replacementCost,
     limits: { limitA, limitB, limitC, limitD },
     coordinates,
-    // limitA,
-    // limitB,
-    // limitC,
-    // limitD,
-    // latitude,
-    // longitude,
   } = props;
 
   swissReInstance = swissReInstance || getSwissReInstance(srClientId, srClientSecret, srSubKey);
-
-  // const AAL: ValueByRiskType = { inland: 0, surge: 0, tsunami: 0 };
 
   const RCVs = getRCVs(replacementCost, { limitA, limitB, limitC, limitD });
   const rcvAB = RCVs.building + RCVs.otherStructures;
@@ -89,8 +79,8 @@ export const getAALs = async (props: GetAALsProps): Promise<GetAALRes> => {
 };
 
 // TODO REPLACE ABOVE WITH THIS FUNC
-export function extractSRAALs(expectedLosses?: any) {
-  let AAL: ValueByRiskType = { surge: 0, inland: 0, tsunami: 0 };
+export function extractSRAALs(expectedLosses?: SRPerilAAL[]) {
+  const AAL: ValueByRiskType = { surge: 0, inland: 0, tsunami: 0 };
 
   if (!expectedLosses) return { surge: -1, inland: -1, tsunami: -1 };
 
@@ -119,24 +109,7 @@ export function extractSRAALs(expectedLosses?: any) {
 }
 
 export const validateGetAALsProps = (props: Partial<GetAALsProps>) => {
-  const {
-    // latitude,
-    // longitude,
-    coordinates,
-    limits,
-    // limitA,
-    // limitB,
-    // limitC,
-    // limitD,
-    deductible,
-    // priorLossCount,
-    numStories = 1,
-    replacementCost,
-    // floodZone,
-    // state,
-    // basement = 'unknown',
-    // commissionPct = 0.15,
-  } = props;
+  const { coordinates, limits, deductible, numStories = 1, replacementCost } = props;
 
   const MAX_A = maxA.value() || 1000000;
   const MIN_A = minA.value() || 100000;

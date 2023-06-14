@@ -3,13 +3,12 @@ import { FirebaseError } from 'firebase/app';
 import { addDoc, FirestoreError, GeoPoint, Timestamp } from 'firebase/firestore';
 import { useFirestore, useSigninCheck } from 'reactfire'; // useUser
 import invariant from 'tiny-invariant';
-import { round } from 'lodash';
-import * as geofire from 'geofire-common';
+import { isEmpty, round } from 'lodash';
 import { endOfToday } from 'date-fns';
 
 import { NewQuoteValues } from 'views/admin/QuoteNew';
-import { addToDate, extractNumber, readableFirebaseCode } from 'modules/utils/helpers';
-import { QUOTE_STATUS, Submission, Quote, submissionsQuotesCollection } from 'common';
+import { addToDate, extractNumber, getGeoHash, readableFirebaseCode } from 'modules/utils/helpers';
+import { QUOTE_STATUS, Submission, Quote, quotesCollection } from 'common';
 import { useSendQuoteNotification } from './useSendQuoteNotification';
 import { CUSTOM_CLAIMS } from 'modules/components';
 
@@ -37,27 +36,16 @@ export const useCreateQuote = (
       try {
         const quoteData = getFormattedQuote(values, signInCheckResult.user?.uid);
 
-        const latitude = submissionData?.coordinates?.latitude;
-        const longitude = submissionData?.coordinates?.longitude;
-        const geoHash =
-          latitude && longitude ? geofire.geohashForLocation([latitude, longitude]) : null;
+        const geoHash = getGeoHash(submissionData?.coordinates);
 
-        const quoteRef = await addDoc(submissionsQuotesCollection(firestore), {
+        // TODO: store images in object on submission
+        const { imageURLs, imagePaths } = getImages(submissionData);
+
+        const quoteRef = await addDoc(quotesCollection(firestore), {
           ...quoteData,
           submissionId,
-          imageUrls: {
-            darkMapImageUrl: submissionData?.darkMapImageURL || null,
-            lightMapImageUrl: submissionData?.lightMapImageURL || null,
-            satelliteMapImageUrl: submissionData?.satelliteMapImageURL || null,
-            satelliteStreetsMapImageUrl: submissionData?.satelliteStreetsMapImageURL || null,
-          },
-          imagePaths: {
-            darkMapImageFilePath: submissionData?.darkMapImageFilePath || null,
-            lightMapImageFilePath: submissionData?.lightMapImageFilePath || null,
-            satelliteMapImageFilePath: submissionData?.satelliteMapImageFilePath || null,
-            satelliteStreetsMapImageFilePath:
-              submissionData?.satelliteStreetsMapImageFilePath || null,
-          },
+          imageURLs,
+          imagePaths,
           geoHash,
         });
 
@@ -91,8 +79,8 @@ function getFormattedQuote(values: NewQuoteValues, uid?: string | null): Quote {
     limits,
     coordinates,
     quoteExpirationDate,
-    policyEffectiveDate,
-    policyExpirationDate,
+    effectiveDate,
+    expirationDate,
     namedInsured,
     agent,
     agency,
@@ -142,8 +130,8 @@ function getFormattedQuote(values: NewQuoteValues, uid?: string | null): Quote {
     quoteExpirationDate: quoteExpirationDate
       ? Timestamp.fromDate(quoteExpirationDate)
       : Timestamp.fromDate(addToDate({ days: 60 }, endOfToday())),
-    policyEffectiveDate: Timestamp.fromDate(policyEffectiveDate),
-    policyExpirationDate: Timestamp.fromDate(policyExpirationDate),
+    effectiveDate: Timestamp.fromDate(effectiveDate),
+    expirationDate: Timestamp.fromDate(expirationDate),
     exclusions: [],
     // additionalInsureds: [],
     // mortgageeInterest: [],
@@ -191,5 +179,39 @@ function getFormattedQuote(values: NewQuoteValues, uid?: string | null): Quote {
       updated: Timestamp.now(),
       version: 1,
     },
+  };
+}
+
+function getImages(submissionData?: Submission | null) {
+  let imageURLs: Record<string, string> = {};
+  let imagePaths: Record<string, string> = {};
+  // MapImageURL MapImageFilePath
+  if (submissionData) {
+    const {
+      darkMapImageURL,
+      lightMapImageURL,
+      satelliteMapImageURL,
+      satelliteStreetsMapImageURL,
+      darkMapImageFilePath,
+      lightMapImageFilePath,
+      satelliteMapImageFilePath,
+      satelliteStreetsMapImageFilePath,
+    } = submissionData;
+
+    if (darkMapImageURL) imageURLs.darkMapImageURL = darkMapImageURL;
+    if (lightMapImageURL) imageURLs.lightMapImageURL = lightMapImageURL;
+    if (satelliteMapImageURL) imageURLs.satelliteMapImageURL = satelliteMapImageURL;
+    if (satelliteStreetsMapImageURL)
+      imageURLs.satelliteStreetsMapImageURL = satelliteStreetsMapImageURL;
+    if (darkMapImageFilePath) imagePaths.darkMapImageFilePath = darkMapImageFilePath;
+    if (lightMapImageFilePath) imagePaths.lightMapImageFilePath = lightMapImageFilePath;
+    if (satelliteMapImageFilePath) imagePaths.satelliteMapImageFilePath = satelliteMapImageFilePath;
+    if (satelliteStreetsMapImageFilePath)
+      imagePaths.satelliteStreetsMapImageFilePath = satelliteStreetsMapImageFilePath;
+  }
+
+  return {
+    imageURLs: isEmpty(imageURLs) ? null : imageURLs,
+    imagePaths: isEmpty(imagePaths) ? null : imagePaths,
   };
 }

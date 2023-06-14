@@ -59,7 +59,7 @@ export default async (event: CloudEvent<MessagePublishedData>) => {
     return;
   }
 
-  // @ts-ignore // TODO: SWITCH POLICIES COLLECTION TO USE NEW POLICY TYPE
+  // TODO: SWITCH POLICIES COLLECTION TO USE NEW POLICY TYPE
   const locationIds = policy?.locations && Object.keys(policy.locations);
   if (!locationIds || !locationIds.length) {
     error('No policy data or no locations found in policy', {
@@ -132,8 +132,8 @@ export default async (event: CloudEvent<MessagePublishedData>) => {
           }, // TODO: needs units, tier1, construction, priorLossCount
           deductible: location.deductible,
           limits: location.limits,
-          tiv: location.tiv,
-          rcvs: location.rcvs,
+          TIV: location.TIV,
+          RCVs: location.RCVs,
           premiumCalcData: ratingData.premiumCalcData,
           locationAnnualPremium: location.premium,
           termProratedPct: 0, // TODO: Transaction days / policy days

@@ -6,7 +6,7 @@ import {
   QUOTE_STATUS,
   Quote,
   WithId,
-  submissionsQuotesCollection,
+  quotesCollection,
   audience,
   hostingBaseURL,
   sendgridApiKey,
@@ -44,7 +44,7 @@ export default async (event: ScheduledEvent) => {
   const startDate = subDays(currentDate, 1);
   const endDate = addDays(currentDate, 1);
 
-  const quotesCollRef = submissionsQuotesCollection(db);
+  const quotesCollRef = quotesCollection(db);
 
   // TODO: ensure firestore index is created for query
   const q = quotesCollRef

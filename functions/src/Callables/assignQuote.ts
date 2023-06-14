@@ -2,13 +2,7 @@ import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import { error, info } from 'firebase-functions/logger';
 import { getFirestore } from 'firebase-admin/firestore';
 
-import {
-  CLAIMS,
-  Quote,
-  orgsCollection,
-  submissionsQuotesCollection,
-  usersCollection,
-} from '../common';
+import { CLAIMS, Quote, orgsCollection, quotesCollection, usersCollection } from '../common';
 
 export default async ({ data, auth }: CallableRequest<{ quoteId: string }>) => {
   console.log('data: ', data);
@@ -28,7 +22,7 @@ export default async ({ data, auth }: CallableRequest<{ quoteId: string }>) => {
 
   try {
     const db = getFirestore();
-    const quoteSnap = await submissionsQuotesCollection(db).doc(quoteId).get();
+    const quoteSnap = await quotesCollection(db).doc(quoteId).get();
 
     if (!quoteSnap.exists) throw new HttpsError('not-found', `Quote not found with ID ${quoteId}`);
 

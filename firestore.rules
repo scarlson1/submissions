@@ -35,15 +35,8 @@ service cloud.firestore {
       allow update: if isIDemandAdmin() // isUser(existingData().userId) || 
       allow delete: if isIDemandAdmin()
     }
-
-    match /quotes/{quoteId} {
-      allow read: if true
-      allow create: if emailVerified() && isIDemandAdmin()
-      allow update: if isUser(existingData().userId) || (isIDemandAdmin() && emailVerified())
-      allow delete: if false
-    }
     
-    match /submissionsQuotes/{quoteId} {
+    match /quotes/{quoteId} {
       allow read: if true
       allow create: if isIDemandAdmin()
       allow update: if (isUser(existingData().userId) && !(containsRestrictedFields(['quoteExpiration', 'subproducerCommission', 'quoteTotal', 'termPremium', 'taxes', 'fees', 'replacementCost', 'product', 'status', 'statusTransitions']))) || (isIDemandAdmin() && emailVerified())

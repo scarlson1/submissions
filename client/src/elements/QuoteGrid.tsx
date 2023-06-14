@@ -73,7 +73,7 @@ export const QuoteGrid: React.FC<QuoteGridProps> = ({
   const dialog = useJsonDialog();
   // const sendNotifications = useSendQuoteNotification();
 
-  const { data, status } = useCollectionData<Quote>('SUBMISSIONS_QUOTES', queryConstraints, {
+  const { data, status } = useCollectionData<Quote>('QUOTES', queryConstraints, {
     suspense: false,
     initialData: [],
   });

@@ -215,6 +215,11 @@ export const contactValidationNested = yup.object().shape({
   contact: contactValidation,
 });
 
+// TODO: clean up variations of named insured validations
+export const namedInsuredValidationNested = yup.object().shape({
+  namedInsured: contactValidation,
+});
+
 export const reviewValidation = yup.object({
   userAcceptance: yup.boolean().oneOf([true], 'Required'),
 }); // Must accept Terms

@@ -15,7 +15,7 @@ import { toast } from 'react-hot-toast';
 import { ADMIN_ROUTES, createPath } from 'router';
 import {
   Quote,
-  submissionsQuotesCollection,
+  quotesCollection,
   QUOTE_STATUS,
   WithId,
   addrLine1Col,
@@ -68,9 +68,7 @@ import { submissionQuoteConverter } from 'common/firestoreConverters';
 
 const useUpdateQuote = () => {
   const update = useCallback(async (id: string, updateValues: Partial<Quote>) => {
-    const ref = doc(submissionsQuotesCollection(getFirestore()), id).withConverter(
-      submissionQuoteConverter
-    );
+    const ref = doc(quotesCollection(getFirestore()), id).withConverter(submissionQuoteConverter);
     await updateDoc(ref, { status: updateValues.status });
 
     const snap = await getDoc(ref);
@@ -133,7 +131,7 @@ export const useConfirmAndUpdate = (updateFn: (id: string, vals: Partial<any>) =
 
 export const Quotes: React.FC = () => {
   const navigate = useNavigate();
-  const { data, status } = useCollectionData('SUBMISSIONS_QUOTES', [
+  const { data, status } = useCollectionData('QUOTES', [
     orderBy('metadata.created', 'desc'),
     limit(100),
   ]); // TODO: add constraints for filtering / sorting
@@ -221,7 +219,6 @@ export const Quotes: React.FC = () => {
       addrPostalCol,
       addrCountyCol,
       addrFIPSCol,
-      // termPremiumCol,
       annualPremiumCol,
       {
         ...currencyCol,
@@ -303,7 +300,6 @@ export const Quotes: React.FC = () => {
           autoHeight
           processRowUpdate={confirmAndUpdate}
           onProcessRowUpdateError={handleProcessRowUpdateError}
-          // experimentalFeatures={{ newEditingApi: true }} // v5
           // onRowDoubleClick={(params) => {
           //   navigate(
           //     createPath({
@@ -321,8 +317,11 @@ export const Quotes: React.FC = () => {
           initialState={{
             columns: {
               columnVisibilityModel: {
+                annualPremium: false,
                 'namedInsured.firstName': false,
                 'namedInsured.lastName': false,
+                'namedInsured.email': false,
+                'namedInsured.phone': false,
                 'address.addressLine1': false,
                 'address.addressLine2': false,
                 'address.city': false,
@@ -348,7 +347,6 @@ export const Quotes: React.FC = () => {
             sorting: {
               sortModel: [{ field: 'created', sort: 'desc' }],
             },
-            // pagination: { pageSize: 10 },
             pagination: { paginationModel: { pageSize: 10 } },
           }}
         />

@@ -2,12 +2,14 @@ import { StorageEvent } from 'firebase-functions/v2/storage';
 import { error, info, warn } from 'firebase-functions/logger';
 import { defineInt, projectID, storageBucket } from 'firebase-functions/params';
 import { getStorage } from 'firebase-admin/storage';
+import { File, GetSignedUrlResponse } from '@google-cloud/storage';
 import path from 'path';
 import os from 'os';
 import fs from 'fs';
 import { format, parse } from 'fast-csv';
 import { snakeCase } from 'lodash';
 import { AxiosInstance, AxiosResponse } from 'axios';
+import { addDays } from 'date-fns';
 
 import {
   getNumber,
@@ -21,10 +23,8 @@ import {
 import { generateSRAccessToken, getSwissReInstance } from '../services';
 import { swissReBody } from '../utils/rating/swissReBody.js';
 import { getPremium } from '../utils/rating';
-import { formatPremData, getSRVars, validateRow } from './getAALAndRatePortfolio';
 import { sendMessage } from '../services/sendgrid';
-import { addDays } from 'date-fns';
-import { File, GetSignedUrlResponse } from '@google-cloud/storage';
+
 import { extractSRAALs } from '../utils/rating/getAALs';
 
 let swissReInstance: AxiosInstance;
@@ -33,8 +33,62 @@ let tenMins = 60 * 1000 * 10;
 
 const chunkCount = defineInt('SR_CHUNK_COUNT');
 const PORTFOLIO_UPLOAD_FOLDER = 'ratePortfolio';
+const SR_WAIT_MS = 30000;
 
 // TODO: RowType
+
+export function validateRow(data: any) {
+  if (!data.cov_a_rcv) {
+    info(`INVALID - "cov_a_rcv" - VALUE: ${data.cov_a_rcv}`);
+    return false;
+  }
+  if (!data.cov_b_rcv && data.cov_b_rcv !== 0) {
+    info(`INVALID - "cov_b_rcv" - VALUE: ${data.cov_b_rcv} - TYPE: ${typeof data.cov_b_rcv}`);
+    return false;
+  }
+  if (!data.cov_c_rcv && data.cov_c_rcv !== 0) {
+    info(`INVALID - "cov_c_rcv" - VALUE: ${data.cov_c_rcv}`);
+    return false;
+  }
+  if (!data.cov_d_rcv && data.cov_d_rcv !== 0) {
+    info(`INVALID - "cov_d_rcv" - VALUE: ${data.cov_d_rcv}`);
+    return false;
+  }
+  if (!data.cov_a_limit) {
+    info(`INVALID - "cov_a_limit" - VALUE: ${data.cov_a_limit}`);
+    return false;
+  }
+  if (!data.cov_b_limit && data.cov_b_limit !== 0) {
+    info(`INVALID - "cov_b_limit" - VALUE: ${data.cov_b_limit}`);
+    return false;
+  }
+  if (!data.cov_c_limit && data.cov_c_limit !== 0) {
+    info(`INVALID - "cov_c_limit" - VALUE: ${data.cov_c_limit}`);
+    return false;
+  }
+  if (!data.cov_d_limit && data.cov_d_limit !== 0) {
+    info(`INVALID - "cov_d_limit" - VALUE: ${data.cov_d_limit}`);
+    return false;
+  }
+  if (!data.deductible) {
+    info(`INVALID - "deductible" - VALUE ${data.deductible}`);
+    return false;
+  }
+  if (!data.latitude) {
+    info(`INVALID - "latitude" - VALUE ${data.latitude}`);
+    return false;
+  }
+  if (!data.longitude) {
+    info(`INVALID - "longitude" - VALUE ${data.longitude}`);
+    return false;
+  }
+  if (!data.state) {
+    info(`INVALID - "state" - VALUE ${data.state}`);
+    return false;
+  }
+
+  return true;
+}
 
 function parseStreamToArray<RowType = any>(stream: fs.ReadStream) {
   return new Promise<{ dataArray: RowType[]; invalidRows: RowType[] }>((resolve, reject) => {
@@ -84,7 +138,7 @@ function parseStreamToArray<RowType = any>(stream: fs.ReadStream) {
       })
       .on('end', async (rowCount: number) => {
         info(`Parsed ${rowCount} rows`);
-        info('DATA ARRAY => ', dataArray);
+        info('DATA ARRAY => ', { dataArray });
         // if (tempFilePath) fs.unlinkSync(tempFilePath);
         resolve({ dataArray, invalidRows });
 
@@ -120,6 +174,77 @@ function getPremCalcVars(row: any) {
     basement: row.basement,
     priorLossCount: row.prior_loss_count || '0',
     commissionPct: row.commission_pct || 0.15,
+  };
+}
+
+export function formatPremData(rowPremData: any) {
+  const premium = rowPremData?.premiumData?.directWrittenPremium ?? '';
+  const minPrem = rowPremData?.minPremium ?? '';
+  const inlandMult = rowPremData?.secondaryFactorMults?.inland ?? '';
+  const surgeMult = rowPremData?.secondaryFactorMults?.surge ?? '';
+  const tsunamiMult = rowPremData?.secondaryFactorMults?.tsunami ?? '';
+  const basementMult =
+    rowPremData?.secondaryFactorMults?.secondaryFactorMultsByFactor?.basementMult ?? '';
+  const inlandHistoryMult =
+    rowPremData?.secondaryFactorMults?.secondaryFactorMultsByFactor?.historyMult?.inland ?? '';
+  const surgeHistoryMult =
+    rowPremData?.secondaryFactorMults?.secondaryFactorMultsByFactor?.historyMult?.surge ?? '';
+  const tsunamiHistoryMult =
+    rowPremData?.secondaryFactorMults?.secondaryFactorMultsByFactor?.historyMult?.tsunami ?? '';
+  const inlandFFEMult =
+    rowPremData?.secondaryFactorMults?.secondaryFactorMultsByFactor?.ffeMult.inland ?? '';
+  const surgeFFEMult =
+    rowPremData?.secondaryFactorMults?.secondaryFactorMultsByFactor?.ffeMult.surge ?? '';
+  const tsunamiFFEMult =
+    rowPremData?.secondaryFactorMults?.secondaryFactorMultsByFactor?.ffeMult.tsunami ?? '';
+  const inlandStateMult = rowPremData?.stateMultipliers?.inland ?? '';
+  const surgeStateMult = rowPremData?.stateMultipliers?.surge ?? '';
+  const tsunamiStateMult = rowPremData?.stateMultipliers?.tsunami ?? '';
+  const inlandPM = rowPremData?.pm?.inland ?? '';
+  const surgePM = rowPremData?.pm?.surge ?? '';
+  const tsunamiPM = rowPremData?.pm?.tsunami ?? '';
+  const inlandRiskScore = rowPremData?.riskScore?.inland ?? '';
+  const surgeRiskScore = rowPremData?.riskScore?.surge ?? '';
+  const tsunamiRiskScore = rowPremData?.riskScore?.tsunami ?? '';
+  const inlandTechPrem = rowPremData?.premiumData?.techPremium.inland ?? '';
+  const surgeTechPrem = rowPremData?.premiumData?.techPremium.surge ?? '';
+  const tsunamiTechPrem = rowPremData?.premiumData?.techPremium.tsunami ?? '';
+  const subproducerAdj = rowPremData?.premiumData?.subproducerAdj ?? '';
+
+  const provisionalPremium = rowPremData?.premiumData?.provisionalPremium ?? '';
+  const premiumSubtotal = rowPremData?.premiumData?.premiumSubtotal;
+  const minPremiumAdj = rowPremData?.premiumData?.minPremiumAdj;
+
+  return {
+    basementMult,
+    inlandHistoryMult,
+    surgeHistoryMult,
+    tsunamiHistoryMult,
+    inlandFFEMult,
+    surgeFFEMult,
+    tsunamiFFEMult,
+    inlandMult,
+    surgeMult,
+    tsunamiMult,
+    inlandStateMult,
+    surgeStateMult,
+    tsunamiStateMult,
+    inlandPM,
+    surgePM,
+    tsunamiPM,
+    inlandRiskScore,
+    surgeRiskScore,
+    tsunamiRiskScore,
+    inlandTechPrem,
+    surgeTechPrem,
+    tsunamiTechPrem,
+    premiumSubtotal,
+    minPrem,
+    minPremiumAdj,
+    provisionalPremium,
+    subproducerAdj,
+    premium,
+    notes: '',
   };
 }
 
@@ -187,6 +312,26 @@ const calcPrem = (data: any[]) => {
 
   return result;
 };
+
+export function getSRVars(row: any) {
+  let rcvB = row.cov_b_rcv || 0;
+  let limitB = row.cov_b_limit || 0;
+
+  return {
+    lat: row.latitude,
+    lng: row.longitude,
+    rcvTotal: row.total_rcv,
+    rcvAB: row.cov_a_rcv + rcvB,
+    rcvC: row.cov_c_rcv,
+    rcvD: row.cov_d_rcv,
+    limitAB: row.cov_a_limit + limitB,
+    limitC: row.cov_c_limit,
+    limitD: row.cov_d_limit,
+    deductible: row.deductible,
+    numStories: row.num_stories || '1',
+    externalRef: row.location_id || 'idemand',
+  };
+}
 
 function getSRPromise(data: any, i?: number) {
   // if (i === 1) {
@@ -304,7 +449,7 @@ async function splitAndRate(data: any[]) {
         `RATED CHUNK (${currChunk}/${chunks.length}) [SUCCESS COUNT: ${ratedChunk.length}; ERROR COUNT: ${errorRows.length}]: `
       );
 
-      if (currChunk !== chunks.length) await waitMilliSeconds(30000);
+      if (currChunk !== chunks.length) await waitMilliSeconds(SR_WAIT_MS, 'space out SR API calls');
 
       ratedArray = [...ratedArray, ...ratedChunk];
       // Add error rows to "retry" chunk
@@ -328,9 +473,9 @@ async function unlinkFile(filePath: string) {
   }
 }
 
-function waitMilliSeconds(ms: number = 1000) {
+function waitMilliSeconds(ms: number, reason?: string) {
   return new Promise<void>((resolve, reject) => {
-    info(`Waiting ${ms}ms to space out Swiss Re API calls`);
+    info(`Waiting ${ms} ms ${reason || ''}`, { reason });
     setTimeout(() => {
       resolve();
     }, ms);

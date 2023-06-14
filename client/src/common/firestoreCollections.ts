@@ -2,7 +2,6 @@ import { collection, CollectionReference, DocumentData, Firestore } from 'fireba
 
 import { COLLECTIONS } from './enums';
 import {
-  QuoteData,
   RatingData,
   SpatialKeyResponse,
   Organization,
@@ -36,11 +35,11 @@ export const createCollection = <T = DocumentData>(
 export const submissionsCollection = (db: Firestore) =>
   createCollection<Submission>(db, COLLECTIONS.SUBMISSIONS);
 
-export const quotesCollection = (db: Firestore) =>
-  createCollection<QuoteData>(db, COLLECTIONS.QUOTES);
+// export const quotesCollection = (db: Firestore) =>
+//   createCollection<QuoteData>(db, COLLECTIONS.QUOTES);
 
-export const submissionsQuotesCollection = (db: Firestore) =>
-  createCollection<Quote>(db, COLLECTIONS.SUBMISSIONS_QUOTES);
+// TODO: change to quotes instead of submission quotes
+export const quotesCollection = (db: Firestore) => createCollection<Quote>(db, COLLECTIONS.QUOTES);
 
 export const ratingCollection = (db: Firestore) =>
   createCollection<RatingData>(db, COLLECTIONS.RATING_DATA);

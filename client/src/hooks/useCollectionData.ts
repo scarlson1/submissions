@@ -10,20 +10,20 @@ import { ReactFireOptions, useFirestore, useFirestoreCollectionData } from 'reac
 import { COLLECTIONS, WithId } from 'common';
 
 export const useCollectionData = <T = DocumentData>(
-  collName: keyof typeof COLLECTIONS, // TODO: better typing - able to check if part of enum?
+  colName: keyof typeof COLLECTIONS, // TODO: better typing - able to check if part of enum?
   constraints: QueryConstraint[] = [],
   options: ReactFireOptions<T> | undefined = {},
   pathSegments: string[] = []
 ) => {
   const firestore = useFirestore();
 
-  const collRef = collection(
+  const colRef = collection(
     firestore,
-    COLLECTIONS[collName],
+    COLLECTIONS[colName],
     ...pathSegments
   ) as CollectionReference<WithId<T>>;
 
-  const q = query(collRef, ...constraints);
+  const q = query(colRef, ...constraints);
 
   return useFirestoreCollectionData<WithId<T>>(q, {
     idField: 'id',

@@ -1,7 +1,7 @@
 export enum COLLECTIONS {
   SUBMISSIONS = 'submissions',
   PROPERTY_DATA_RES = 'propertyDataRes',
-  SUBMISSIONS_QUOTES = 'submissionsQuotes',
+  // QUOTES = 'submissionsQuotes',
   QUOTES = 'quotes',
   RATING_DATA = 'ratingData',
   USERS = 'users',

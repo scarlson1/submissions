@@ -160,8 +160,8 @@ export const Policy: React.FC = () => {
               0.55
             )}), url(${
               theme.palette.mode === 'dark'
-                ? data.imageUrls?.darkMapImageURL
-                : data.imageUrls?.lightMapImageURL
+                ? data.imageURLs?.darkMapImageURL
+                : data.imageURLs?.lightMapImageURL
               // theme.palette.mode === 'dark' ? data.darkMapImageURL : data.lightMapImageURL
             })`,
           backgroundRepeat: 'no-repeat',

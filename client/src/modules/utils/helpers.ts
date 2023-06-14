@@ -2,7 +2,7 @@ import { formatDistance, format, add, Duration, isPast, isFuture, endOfToday } f
 import numeral from 'numeral';
 import { Location } from 'react-router-dom';
 import { GridValueFormatterParams, GridValueGetterParams } from '@mui/x-data-grid';
-import { FirestoreError, Timestamp, WhereFilterOp } from 'firebase/firestore';
+import { FirestoreError, GeoPoint, Timestamp, WhereFilterOp } from 'firebase/firestore';
 import { FirebaseError } from '@firebase/util';
 // import { inspect } from 'util';
 import { transform, isEqual, isArray, isObject, find } from 'lodash';
@@ -10,6 +10,7 @@ import { AuthError } from 'firebase/auth';
 
 import { AddressComponent, AddressComponentType } from 'components/forms';
 import { Address, FirestoreTimestamp } from 'common/types';
+import { geohashForLocation } from 'geofire-common';
 
 /**
  * extracts address string from Google address_components object.
@@ -630,4 +631,12 @@ export const getDateShortcuts = (addDays: number[], date: Date = endOfToday()) =
       return addToDate({ days });
     },
   }));
+};
+
+export const getGeoHash = (
+  coordinates?: { latitude: number | null; longitude: number | null } | GeoPoint | null | undefined
+) => {
+  if (!(coordinates && coordinates.latitude && coordinates.longitude)) return null;
+
+  return geohashForLocation([coordinates.latitude, coordinates.longitude]);
 };

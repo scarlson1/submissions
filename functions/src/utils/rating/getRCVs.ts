@@ -32,7 +32,7 @@ export const getRCVs = (
     BI: limits.limitD,
   };
 
-  let total = Object.values(rcvs).reduce((total, current) => {
+  const total = Object.values(rcvs).reduce((total, current) => {
     return total + current;
   }, 0);
 

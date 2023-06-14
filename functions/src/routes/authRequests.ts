@@ -67,7 +67,7 @@ export default app;
 //     }
 
 //     try {
-//       const quoteRef = submissionsQuotesCollection(db).doc(quoteId);
+//       const quoteRef = quotesCollection(db).doc(quoteId);
 //       const quoteSnap = await quoteRef.get();
 //       // TODO: redirect to 404 page
 //       if (!quoteSnap.exists)

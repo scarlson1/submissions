@@ -1,5 +1,6 @@
 // import axios, { AxiosRequestConfig } from 'axios';
 import axios from 'axios';
+import { error } from 'firebase-functions/logger';
 import querystring from 'querystring';
 
 export const getSwissReInstance = (
@@ -37,7 +38,7 @@ export const getSwissReInstance = (
       return config;
     },
     (err) => {
-      console.log('Axios request interceptor error => ', err.response);
+      error('Axios request interceptor error => ', err.response);
       return Promise.reject(err);
     }
   );
@@ -46,8 +47,8 @@ export const getSwissReInstance = (
     (res) => {
       return res;
     },
-    async (err) => {
-      console.log('ERROR => ', err);
+    async (err: any) => {
+      error('SR REQUEST ERROR => ', { ...err });
       const originalConfig = err.config;
       if (err.response) {
         if (err.response.status === 401 && !originalConfig._retry) {

@@ -449,8 +449,8 @@ export interface AgentDetails {
 }
 
 export interface AgencyDetails {
-  orgId: string | null; // TODO: remove null once agency being set in system (set to idemand if agent not set) ??
-  name: string | null;
+  orgId: string; //  | null; // TODO: remove null once agency being set in system (set to idemand if agent not set) ??
+  name: string; //  | null;
   address: Address;
 }
 
@@ -497,10 +497,10 @@ export interface Quote {
   cardFee: number;
   quoteTotal?: number;
   quoteExpiration: Timestamp;
-  policyEffectiveDate?: Timestamp;
+  effectiveDate?: Timestamp;
   effectiveExceptionRequested?: boolean;
   effectiveExceptionReason?: string | null;
-  policyExpirationDate?: Timestamp;
+  expirationDate?: Timestamp;
   quoteExpirationDate: Timestamp;
   exclusions?: string[];
   additionalInterests?: AdditionalInterest[];
@@ -516,8 +516,8 @@ export interface Quote {
   agency: Nullable<AgencyDetails>;
   status: QUOTE_STATUS;
   submissionId?: string | null;
-  imageUrls?: { [key: string]: string | null };
-  imagePaths?: { [key: string]: string | null };
+  imageURLs?: Record<string, string> | null;
+  imagePaths?: Record<string, string> | null;
   ratingPropertyData: RatingPropertyData;
   geoHash?: Geohash | null;
   notes?: Note[];
@@ -547,7 +547,7 @@ export interface PolicyOld {
     name: string | null;
   };
   documents: { displayName: string; downloadUrl: string; storagePath: string }[];
-  imageUrls?: { [key: string]: string | null } | null;
+  imageURLs?: { [key: string]: string | null } | null;
   imagePaths?: { [key: string]: string | null } | null;
   transactions: string[]; // TODO: figure out how to associate policies and transactions
   price: number;
@@ -562,14 +562,14 @@ export interface PolicyLocation {
   premium: number;
   limits: Limits;
   // TODO: add tiv sum in Policy class
-  tiv: number;
-  rcvs: RCVs;
+  TIV: number;
+  RCVs: RCVs;
   deductible: number;
   active: true; // https://stackoverflow.com/a/62626994/10887890
   additionalInsureds: AdditionalInsured[];
   mortgageeInterest: Mortgagee[];
   ratingDocId: string; // TODO: include rating info ?? make PublicRatingData and PrivateRatingData (extends)
-  propertyData: RatingPropertyData;
+  propertyData: RatingPropertyData; // TODO: use same key in Quote interface
   effectiveDate: Timestamp;
   expirationDate: Timestamp;
   locationId: string;
@@ -589,10 +589,11 @@ export interface Policy {
   namedInsured: NamedInsured;
   locations: Record<string, PolicyLocation>;
   homeState: string;
+  price: number; // TODO: break up total premium, taxes, fees, etc. ?? how are taxes and fees stored ? how are they recalculated
   effectiveDate: Timestamp;
   expirationDate: Timestamp;
   userId: string | null;
-  agent: Nullable<AgentDetails>; // TODO: remove nullable (defaults to idemand)
+  agent: AgentDetails; // Nullable<AgentDetails>; // TODO: remove nullable (defaults to idemand)
   agency: AgencyDetails;
   surplusLinesProducerOfRecord: {
     name: string;
@@ -602,12 +603,10 @@ export interface Policy {
   };
   issuingCarrier: string; // INSURER NAME ONLY OR NAME AND ID?
   documents: { displayName: string; downloadUrl: string; storagePath: string }[];
-  imageUrls?: Record<string, string> | null; // { [key: string]: string | null } | null;
+  imageURLs?: Record<string, string> | null; // { [key: string]: string | null } | null;
   imagePaths?: Record<string, string> | null; // { [key: string]: string | null } | null;
   // transactions: string[]; // TODO: delete or decide how to associate policies and transactions (just query transactions by policyId ??)
-  price: number; // TODO: break up total premium, taxes, fees, etc. ?? how are taxes and fees stored ? how are they recalculated
   // cardFee: number;
-  // term: number; // Necessary ??
   metadata: BaseMetadata;
 }
 
@@ -649,12 +648,8 @@ export class PolicyClass implements IPolicyClass {
   public documents: { displayName: string; downloadUrl: string; storagePath: string }[];
   // public transactions: any; // TODO: delete ??
   public userId: string | null;
-  public agency: {
-    orgId: string | null;
-    name: string | null;
-    address: Address; // | null;
-  };
-  public agent: Nullable<AgentDetails>;
+  public agency: AgencyDetails;
+  public agent: AgentDetails; // Nullable<AgentDetails>;
   // public agent: {
   //   agentId: string | null;
   //   name: string; // | null;
@@ -663,7 +658,7 @@ export class PolicyClass implements IPolicyClass {
   // };
   public surplusLinesProducerOfRecord: any;
   public issuingCarrier: string;
-  public imageUrls: Record<string, string> | null;
+  public imageURLs: Record<string, string> | null;
   public imagePaths: Record<string, string> | null;
   public metadata: BaseMetadata;
 
@@ -688,7 +683,7 @@ export class PolicyClass implements IPolicyClass {
     this.agent = policyInfo.agent;
     this.issuingCarrier = policyInfo.issuingCarrier;
     this.metadata = policyInfo.metadata;
-    this.imageUrls = policyInfo.imageUrls || null;
+    this.imageURLs = policyInfo.imageURLs || null;
     this.imagePaths = policyInfo.imagePaths || null;
     this.isExpired = this.initIsExpired();
   }
@@ -885,7 +880,7 @@ export interface ChangeRequest extends BaseDoc {
 //     name: string | null;
 //   };
 //   documents: { displayName: string; downloadUrl: string; storagePath: string }[];
-//   imageUrls?: { [key: string]: string | null } | null;
+//   imageURLs?: { [key: string]: string | null } | null;
 //   imagePaths?: { [key: string]: string | null } | null;
 //   transactions: string[]; // TODO: figure out how to associate policies and transactions
 //   price: number;
@@ -952,8 +947,8 @@ export interface Transaction extends BaseDoc {
   ratingPropertyData: TrxRatingData;
   deductible: number;
   limits: Limits;
-  tiv: number;
-  rcvs: RCVs;
+  TIV: number;
+  RCVs: RCVs;
   premiumCalcData: PremiumCalcData; // TODO: double check PremCalcData interface
   locationAnnualPremium: number;
   termProratedPct: number; // (trxExpDate - trxEffDate) / (policyExpDate - policyEffDate)
@@ -1099,6 +1094,7 @@ export interface SRRes {
   expectedLosses: SRPerilAAL[];
 }
 
+// TODO: use AAL interface
 export interface SRResWithAAL extends SRRes {
   inlandAAL?: number | null;
   surgeAAL?: number | null;
@@ -1120,6 +1116,24 @@ export interface FIPSDetails {
   countyName: string;
   countyFP: string;
   classFP?: string;
+}
+
+export type LicenseOwner = 'individual' | 'organization';
+export type LicenseType = 'producer' | 'surplus lines' | 'MGA' | 'Tax ID';
+
+export interface License extends BaseDoc {
+  state: string;
+  ownerType: LicenseOwner;
+  licensee: string;
+  licenseType: LicenseType;
+  surplusLinesProducerOfRecord: boolean;
+  licenseNumber: string;
+  effectiveDate: Timestamp;
+  expirationDate?: Timestamp | null;
+  SLAssociationMembershipRequired?: boolean;
+  address?: Address | null;
+  phone?: string | null;
+  // metadata: BaseMetadata;
 }
 
 // TODO: swiss re property data res type

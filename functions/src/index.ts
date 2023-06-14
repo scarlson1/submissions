@@ -46,7 +46,7 @@ export {
   algoliasyncusers,
   algoliasyncorgs,
   algoliasyncsubmissions,
-  algoliasyncsubmissionsquotes,
+  algoliasyncquotes,
   algoliasyncpolicies,
   algoliasynctransactions,
 } from './firestoreEvents/algolia';
@@ -58,13 +58,7 @@ export {
   setClaimsFromInvite,
 } from './authEvents';
 export { authRequests } from './routes';
-export {
-  getaalportfolio,
-  importpolicies,
-  getaalandrateportfolio,
-  getfips,
-  rateportfolio,
-} from './storageEvents';
+export { importpolicies, getfips, rateportfolio } from './storageEvents';
 export { markpaidonpaymentcomplete, policycreatedlistener } from './pubsub';
 export {
   checkachstatus,

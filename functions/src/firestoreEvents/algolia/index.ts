@@ -37,13 +37,13 @@ export const algoliasyncsubmissions = onDocumentWritten(
   }
 );
 
-export const algoliasyncsubmissionsquotes = onDocumentWritten(
+export const algoliasyncquotes = onDocumentWritten(
   {
-    document: `${COLLECTIONS.SUBMISSIONS_QUOTES}/{quoteId}`,
+    document: `${COLLECTIONS.QUOTES}/{quoteId}`,
     secrets: [algoliaAdminKey],
   },
   async (event) => {
-    await (await import('./syncSubmissionsQuotes.js')).default(event);
+    await (await import('./syncQuotes.js')).default(event);
   }
 );
 

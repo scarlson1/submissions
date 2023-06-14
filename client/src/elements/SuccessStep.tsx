@@ -26,7 +26,7 @@ import {
   ANALYTICS_EVENTS,
   Charge,
   submissionsCollection,
-  submissionsQuotesCollection,
+  quotesCollection,
   finTrxCollection,
   withIdConverter,
 } from 'common';
@@ -286,7 +286,7 @@ export const BindSuccess: React.FC = () => {
   if (!quoteId) throw new Error('missing quoteId');
 
   const firestore = useFirestore();
-  const quoteRef = doc(submissionsQuotesCollection(firestore), quoteId);
+  const quoteRef = doc(quotesCollection(firestore), quoteId);
   const { data } = useFirestoreDocData(quoteRef);
 
   const { transaction } = useFetchTransaction(transactionId || '');
@@ -318,8 +318,8 @@ export const BindSuccess: React.FC = () => {
         <CardMedia
           sx={{ height: { xs: 140, sm: 160, md: 180 } }}
           image={
-            data?.imageUrls?.satelliteMapImageUrl
-              ? data.imageUrls?.satelliteMapImageUrl
+            data?.imageURLs?.satelliteMapImageURL
+              ? data.imageURLs?.satelliteMapImageURL
               : fallbackImages[0]
           }
           title={`map`}

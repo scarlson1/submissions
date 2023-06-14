@@ -8,6 +8,8 @@ import { createPolicy, executePayment } from 'modules/api';
 //    - run before final step ??
 //    - display errors in review step ??
 
+// TODO: save policy locations in array
+
 export const useBindQuote = (
   onSuccess?: (policyId: string) => void,
   onError?: (err: unknown, msg: string) => void

@@ -3,7 +3,7 @@ import { Box, BoxProps } from '@mui/material';
 import { DataGrid, GridToolbar, DataGridProps } from '@mui/x-data-grid';
 
 export interface AdditionalNamedInsuredsProps extends DataGridProps {
-  rows: any[];
+  // rows: any[];
   columns: any[];
   containerProps?: BoxProps;
   withToolbar?: boolean;

@@ -19,7 +19,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useFirestore, useFirestoreDocData } from 'reactfire';
 import { doc } from 'firebase/firestore';
 
-import { ANALYTICS_EVENTS, QUOTE_STATUS, submissionsQuotesCollection } from 'common';
+import { ANALYTICS_EVENTS, QUOTE_STATUS, quotesCollection } from 'common';
 import { dollarFormat } from 'modules/utils/helpers';
 import { FlexCard, FlexCardContent, IconButtonMenu, LineItem } from 'components';
 import {
@@ -39,7 +39,7 @@ export const ViewQuote: React.FC = () => {
   if (!quoteId) throw new Error('missing quoteId');
 
   const firestore = useFirestore();
-  const quoteRef = doc(submissionsQuotesCollection(firestore), quoteId); // .withConverter(withIdConverter())
+  const quoteRef = doc(quotesCollection(firestore), quoteId); // .withConverter(withIdConverter())
   const { data } = useFirestoreDocData(quoteRef);
   const logEvent = useAnalyticsEvent();
 

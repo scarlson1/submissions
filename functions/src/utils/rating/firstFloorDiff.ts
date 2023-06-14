@@ -1,3 +1,6 @@
+/* eslint-disable */
+// Ignore camelCase warning
+
 export const getFirstFloorDiffFactors = (ffe: number = 0) => {
   if (ffe > 8) {
     return firstFloorDiff[8];

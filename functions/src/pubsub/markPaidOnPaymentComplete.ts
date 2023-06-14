@@ -4,12 +4,12 @@ import { info } from 'firebase-functions/logger';
 import { getFirestore } from 'firebase-admin/firestore';
 
 import {
-  policiesCollection,
   POLICY_STATUS,
   audience,
   ePayBaseURL,
   hostingBaseURL,
   sendgridApiKey,
+  policiesCollection,
 } from '../common';
 import { sendAdminPaidNotification } from '../services/sendgrid';
 
@@ -44,7 +44,9 @@ export default async (event: CloudEvent<MessagePublishedData>) => {
 
   const to = ['spencer.carlson@idemandinsurance.com'];
   if (audience.value() !== 'LOCAL HUMANS') to.push('ron.carlson@idemandinsurance.com');
+
   const policyLink = `${hostingBaseURL.value()}/admin/policies/${policyId}/delivery`;
+
   const transactionLink = `${ePayBaseURL.value()}/Transactions/Index/${transactionId}`;
 
   await sendAdminPaidNotification(
