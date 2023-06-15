@@ -45,6 +45,40 @@ export type Mutable<T> = {
   -readonly [P in keyof T]: T[P];
 };
 
+// type FlattenObjectKeys<T extends Record<string, unknown>, Key = keyof T> = Key extends string
+//   ? T[Key] extends Record<string, unknown>
+//     ? `${Key}.${FlattenObjectKeys<T[Key]>}`
+//     : `${Key}`
+//   : never;
+export type FlattenObjectKeys<T extends Record<string, any>, Key = keyof T> = Key extends string
+  ? T[Key] extends Record<string, any>
+    ? `${Key}.${FlattenObjectKeys<T[Key]>}`
+    : `${Key}`
+  : never;
+
+// const example = {
+//   a: {
+//     b: 'red',
+//     c: 'green',
+//   },
+//   d: {
+//     e: 'blue',
+//     f: 'yellow',
+//   },
+//   g: 'pink',
+//   h: {
+//     i: {
+//       j: {
+//         k: 'gray',
+//         l: 'grey',
+//       },
+//     },
+//   },
+// } as const;
+
+// type FlatKeys = FlattenObjectKeys<typeof example>;
+// type FlatKeys = "g" | "a.b" | "a.c" | "d.e" | "d.f" | "h.i.j.k" | "h.i.j.l"
+
 export interface Submission extends FloodValues {
   product: Product;
   coordinates: GeoPoint;

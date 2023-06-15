@@ -210,8 +210,6 @@ export function SearchModal({
               title: indexTitle,
               distinct: 1,
               onSelect(props) {
-                console.log('ON SELECT PROPS: ', props);
-                debugger;
                 const { item, event } = props;
                 saveRecentSearch(item);
                 console.log('ON SELECT ITEM: ', item);

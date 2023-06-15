@@ -9,7 +9,7 @@ import { transform, isEqual, isArray, isObject, find } from 'lodash';
 import { AuthError } from 'firebase/auth';
 
 import { AddressComponent, AddressComponentType } from 'components/forms';
-import { Address, FirestoreTimestamp } from 'common/types';
+import { Address, FirestoreTimestamp, FlattenObjectKeys } from 'common/types';
 import { geohashForLocation } from 'geofire-common';
 
 /**
@@ -640,3 +640,38 @@ export const getGeoHash = (
 
   return geohashForLocation([coordinates.latitude, coordinates.longitude]);
 };
+
+// FLATTEN WITHOUT NESTED STRING KEYS:
+// type Primitive = string | number | boolean;
+
+// type FlattenPairs<T> = {
+//   [K in keyof T]: T[K] extends Primitive ? [K, T[K]] : FlattenPairs<T[K]>;
+// }[keyof T] &
+//   [PropertyKey, Primitive];
+
+// type Flatten<T> = { [P in FlattenPairs<T> as P[0]]: P[1] };
+
+export const flattenObj = <T extends Record<string, any>>(obj: T) => {
+  let result: Record<string, any> = {};
+
+  for (const key in obj) {
+    if (!obj.hasOwnProperty(key)) {
+      continue;
+    }
+
+    if (typeof obj[key] === 'object' && !Array.isArray(obj[key])) {
+      const temp = flattenObj(obj[key]);
+
+      for (const j in temp) {
+        // @ts-ignore
+        result[key + '.' + j] = temp[j];
+      }
+    } else {
+      result[key] = obj[key];
+    }
+  }
+
+  return result as Record<FlattenObjectKeys<T>, any>;
+};
+
+export const truthyOrZero = (val: any) => val || val === 0;

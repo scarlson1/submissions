@@ -10,7 +10,13 @@ import {
 import { User, IdTokenResult, UserCredential, onAuthStateChanged } from '@firebase/auth';
 import { doc, onSnapshot, DocumentSnapshot } from '@firebase/firestore';
 import { setUserId, setUserProperties } from 'firebase/analytics';
-import { useAnalytics, useAuth as useFireAuth, useFirestore, useUser } from 'reactfire';
+import {
+  useAnalytics,
+  useAuth as useFireAuth,
+  useFirestore,
+  useFunctions,
+  useUser,
+} from 'reactfire';
 import { differenceInSeconds } from 'date-fns';
 import { setUser as setSentryUser } from '@sentry/react';
 // import { authState } from 'rxfire/auth';
@@ -19,6 +25,7 @@ import { setUser as setSentryUser } from '@sentry/react';
 import { userClaimsCollection } from 'common/firestoreCollections';
 import { LOCAL_STORAGE, UserClaims } from 'common';
 import { ReauthDialog } from 'components';
+import { useAlgoliaStore } from 'hooks';
 
 // TODO: refactor to use rxFire observables ?? https://firebase.blog/posts/2018/09/introducing-rxfire-easy-async-firebase
 // authState(auth)
@@ -53,6 +60,7 @@ export const AuthContext = createContext<AuthContextValue | undefined>(undefined
 export const AuthContextProvider = ({ children }: { children: React.ReactNode }) => {
   const auth = useFireAuth();
   const firestore = useFirestore();
+  const functions = useFunctions();
   const analytics = useAnalytics();
   const { data: user } = useUser();
 
@@ -64,6 +72,7 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
     iDemandAdmin: false,
   });
   const lastCommittedRef = useRef(null);
+  const [generateKey, resetKey] = useAlgoliaStore((state) => [state.generateKey, state.resetKey]);
 
   const updateClaims = useCallback(async () => {
     setLoading(true);
@@ -167,11 +176,13 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
             email: newUser.email || undefined,
             username: newUser.displayName || undefined,
           });
+          generateKey(functions);
         } else {
           auth.tenantId = null;
           setSentryUser(null);
+          localStorage.removeItem(LOCAL_STORAGE.USER_SEARCH_KEY);
+          resetKey();
         }
-        localStorage.removeItem(LOCAL_STORAGE.USER_SEARCH_KEY);
 
         setLoading(false);
         setLoadingInitial(false);
@@ -180,7 +191,7 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
     );
 
     return () => unsubscribe();
-  }, [auth, updateClaims, analytics]);
+  }, [auth, analytics, functions, updateClaims, generateKey, resetKey]);
 
   /**
    * Calculates seconds from last authentication of currentUser or returns null

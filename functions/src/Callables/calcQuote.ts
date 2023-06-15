@@ -80,6 +80,10 @@ export default async ({ data, auth }: CallableRequest<CalcQuoteRequest>) => {
 
     invariant(commissionPct && typeof commissionPct === 'number', 'commissionPct');
     invariant(
+      commissionPct >= 0.05 && commissionPct <= 0.2,
+      'commissionPct must be between 0.05 and 0.2'
+    );
+    invariant(
       (AAL.inland || AAL.inland === 0) && typeof AAL.inland === 'number',
       'inland AAL must be a number'
     );

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
   FormControl,
   InputLabel,
@@ -11,12 +11,14 @@ import {
 import { FieldHookConfig, useField } from 'formik';
 
 import { SelectOption } from './FormikSelect';
+import { extractNumber } from 'modules/utils';
 
 export interface FormikNativeSelectProps extends NativeSelectProps {
   name: string;
   label: string;
   selectOptions: SelectOption[] | string[];
   formikConfig?: Partial<FieldHookConfig<any>>;
+  convertToNumber?: boolean;
 }
 
 export const FormikNativeSelect: React.FC<FormikNativeSelectProps> = ({
@@ -30,9 +32,19 @@ export const FormikNativeSelect: React.FC<FormikNativeSelectProps> = ({
   sx = { minWidth: 160 },
   formikConfig,
   inputProps = {},
+  convertToNumber,
   ...props
 }) => {
-  const [field, meta] = useField({ name, ...formikConfig });
+  const [field, meta, { setValue }] = useField({ name, ...formikConfig });
+
+  const handleChange = useCallback(
+    (event: React.ChangeEvent<HTMLSelectElement>) => {
+      const newVal = convertToNumber ? extractNumber(event.target.value) : event.target.value;
+
+      setValue(newVal);
+    },
+    [setValue, convertToNumber]
+  );
 
   return (
     <FormControl
@@ -59,6 +71,7 @@ export const FormikNativeSelect: React.FC<FormikNativeSelectProps> = ({
         fullWidth={fullWidth}
         {...field}
         {...props}
+        onChange={handleChange}
       >
         <option value=''></option>
         {selectOptions.map((option) => {

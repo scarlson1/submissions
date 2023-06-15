@@ -1,4 +1,5 @@
 import type { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
+import { error } from 'firebase-functions/logger';
 import type { DocumentSnapshot } from 'firebase-admin/firestore';
 import algoliasearch from 'algoliasearch';
 
@@ -15,7 +16,11 @@ export default async (
 ) => {
   const appId = algoliaAppId.value();
   const adminKey = algoliaAdminKey.value();
-  if (!(appId && adminKey)) throw new Error('Missing algolia credentials');
+  if (!(appId && adminKey)) {
+    // TODO: report to sentry
+    error('Missing Algolia credentials returning early');
+    return;
+  }
 
   const client = algoliasearch(appId, adminKey);
   const index = client.initIndex(algoliaIndex.value());

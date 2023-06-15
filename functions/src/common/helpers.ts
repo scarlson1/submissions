@@ -194,3 +194,5 @@ export const removeFromArr = (arr: any[], val: any) => {
 export const dollarFormat = (amt: number) => {
   return numeral(amt).format('$0,0[.]00');
 };
+
+export const truthyOrZero = (val: any) => val || val === 0;

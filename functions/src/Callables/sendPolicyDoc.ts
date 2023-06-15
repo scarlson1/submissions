@@ -72,7 +72,8 @@ export default async ({ data, auth }: CallableRequest) => {
 
     // TODO: redo doc delivery template
     const locations = Object.values(data.locations);
-    let locationStr = data.locations[0].address.addressLine1;
+    console.log('LOCATIONS: ', JSON.stringify(locations, null, 2));
+    let locationStr = locations[0]?.address?.addressLine1 || '';
     if (locations.length > 1) {
       locationStr += ` and ${locations.length - 1} other locations`;
     }

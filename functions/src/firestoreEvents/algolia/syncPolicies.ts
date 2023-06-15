@@ -1,9 +1,11 @@
 import type { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
-import type { DocumentSnapshot } from 'firebase-admin/firestore';
+import { error, info } from 'firebase-functions/logger';
+import { DocumentSnapshot, Timestamp } from 'firebase-admin/firestore';
 import algoliasearch from 'algoliasearch';
+import { capitalize } from 'lodash';
 
 import { algoliaAdminKey, algoliaAppId } from './index.js';
-import { COLLECTIONS, PolicyOld, algoliaIndex } from '../../common/index.js';
+import { COLLECTIONS, Policy, algoliaIndex } from '../../common/index.js';
 
 export default async (
   event: FirestoreEvent<
@@ -15,7 +17,11 @@ export default async (
 ) => {
   const appId = algoliaAppId.value();
   const adminKey = algoliaAdminKey.value();
-  if (!(appId && adminKey)) throw new Error('Missing algolia credentials');
+  if (!(appId && adminKey)) {
+    // TODO: report to sentry
+    error('Missing Algolia credentials returning early');
+    return;
+  }
 
   const client = algoliasearch(appId, adminKey);
   const index = client.initIndex(algoliaIndex.value());
@@ -23,16 +29,16 @@ export default async (
   const docId = event.params.policyId;
 
   // If the document does not exist, it was deleted
-  const newValue = event?.data?.after.data() as PolicyOld | undefined;
+  const newValue = event?.data?.after.data() as Policy | undefined;
   if (!newValue) {
     try {
-      console.log(`DELETING DOC ${docId} FROM ALGOLIA POLICIES INDEX`);
+      info(`DELETING DOC ${docId} FROM ALGOLIA POLICIES INDEX...`);
       const res = await index.deleteObject(docId);
 
-      console.log(`SUCCESSFULLY DELETED ${docId} FROM POLICIES INDEX (taskId: ${res.taskID})`);
+      info(`SUCCESSFULLY DELETED ${docId} FROM POLICIES INDEX (taskId: ${res.taskID})`);
       return;
-    } catch (err) {
-      console.log('ERROR DELETING USER FROM ALGOLIA POLICIES INDEX: ', err);
+    } catch (err: any) {
+      error(`ERROR DELETING USER FROM ALGOLIA POLICIES INDEX (${docId})`, { ...err });
     }
   } else {
     try {
@@ -42,14 +48,48 @@ export default async (
       // TODO: decide whether to allow org admins to read policies
       if (newValue.agency.orgId) visibleBy.push(`group/admin/${newValue.agency.orgId}`);
 
+      const locations = Object.values(newValue.locations || {});
+
+      let searchTitle = `${capitalize(newValue.product)} policy - ID ${docId}`;
+      let _geoloc = [];
+      // https://www.algolia.com/doc/guides/managing-results/refine-results/geolocation/
+
+      if (locations && locations.length) {
+        const firstAddress = locations[0].address;
+
+        searchTitle += ` - ${firstAddress.addressLine1} ${firstAddress.city}, ${firstAddress.state}`;
+
+        if (locations.length > 1) searchTitle += ` and ${locations.length - 1} other locations`;
+
+        for (let loc of locations) {
+          if (loc.coordinates)
+            _geoloc.push({
+              lat: loc.coordinates?.latitude,
+              lng: loc.coordinates?.longitude,
+            });
+        }
+      }
+
+      let searchSubtitle = `${newValue.namedInsured.displayName}`;
+      if (
+        newValue.effectiveDate &&
+        newValue.effectiveDate instanceof Timestamp &&
+        newValue.expirationDate &&
+        newValue.expirationDate instanceof Timestamp
+      )
+        searchSubtitle += ` (${newValue.effectiveDate?.toDate().toDateString()} -  ${
+          newValue.expirationDate.toDate().toDateString() || ''
+        })`;
+
       const records: Record<string, any>[] = [
         {
           ...newValue,
           objectID: docId,
           docType: 'policy',
           collectionName: COLLECTIONS.POLICIES,
-          searchTitle: `${newValue.address.addressLine1} ${newValue.address.city} ${newValue.address.state}`,
-          searchSubtitle: `${newValue.namedInsured.firstName} ${newValue.namedInsured.lastName}`,
+          searchTitle,
+          searchSubtitle,
+          _geoloc,
           metadata: {
             ...(newValue.metadata || {}),
             created: newValue.metadata?.created?.toDate() || null,
@@ -59,31 +99,17 @@ export default async (
           },
         },
       ];
-      if (newValue.coordinates && newValue.coordinates.latitude) {
-        records[0]['_geoloc'] = [
-          {
-            lat: newValue.coordinates?.latitude,
-            lng: newValue.coordinates?.longitude,
-          },
-        ];
-      }
-      // TODO: store as array extracted from "locations"
-      // https://www.algolia.com/doc/guides/managing-results/refine-results/geolocation/
-      // "_geoloc": [
-      //   { "lat": 47.279430, "lng": 5.106450 },
-      //   { "lat": 47.293228, "lng": 5.004570 },
-      //   { "lat": 47.316669, "lng": 5.016670 }
-      // ]
-      console.log(`SAVING POLICIES CHANGE TO ALGILIA INDEX`);
+      info(`SAVING POLICY CHANGE TO ALGILIA INDEX ${docId}`, { ...records });
 
       const { objectIDs } = await index.saveObjects(records, {
         autoGenerateObjectIDIfNotExist: false,
       });
 
-      console.log(`ALGOLIA DOC UPDATED: ${JSON.stringify(objectIDs)}`);
-    } catch (err) {
-      console.log('ERROR: ', err);
+      info(`ALGOLIA DOC UPDATED: ${JSON.stringify(objectIDs)}`);
+    } catch (err: any) {
+      error(`ERROR UPDATING ALGOLIA POLICY ${docId}`, { ...err });
       // TODO: report to sentry ??
+      // TODO: check error code --> rethrow if 50X error ?? handle idempotency
     }
   }
 

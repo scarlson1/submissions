@@ -19,7 +19,11 @@ import type { DocSearchHit, InternalDocSearchHit, StoredDocSearchHit } from 'com
 import { ButtonTranslations, SearchButton } from './SearchButton';
 import { SearchModal } from './SearchModal';
 import { useChangeTheme } from 'modules/components';
-import { useAlgoliaSearchKey, useDocSearchKeyboardEvents } from 'hooks';
+import {
+  // useAlgoliaSearchKey,
+  useAlgoliaStore,
+  useDocSearchKeyboardEvents,
+} from 'hooks';
 import { GeoSearch } from './GeoSearch';
 import { OnSelectHit } from './Hit';
 
@@ -402,7 +406,8 @@ export function Search({
 
 export function TempWrappedSearch() {
   // TODO: return loading state
-  const apiKey = useAlgoliaSearchKey();
+  // const apiKey = useAlgoliaSearchKey();
+  const apiKey = useAlgoliaStore((state) => state.apiKey);
 
   if (!process.env.REACT_APP_ALGOLIA_APP_ID) {
     throw new Error('missing algolia appID in env variables');
@@ -430,7 +435,8 @@ export function TempWrappedSearch() {
 
 export function TempAgentSearch({ onSelect }: { onSelect: (item: any) => void }) {
   // TODO: return loading state
-  const apiKey = useAlgoliaSearchKey();
+  const apiKey = useAlgoliaStore((state) => state.apiKey);
+  // const apiKey = useAlgoliaSearchKey();
 
   if (!process.env.REACT_APP_ALGOLIA_APP_ID) {
     throw new Error('missing algolia appID in env variables');

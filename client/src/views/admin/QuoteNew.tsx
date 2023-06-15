@@ -73,7 +73,7 @@ import {
 import { IconButtonMenu } from 'components';
 import { ADMIN_ROUTES, createPath } from 'router';
 import {
-  commissionOptions,
+  COMMISSION_OPTIONS,
   RatingPropertyData,
   Submission,
   submissionsCollection,
@@ -108,7 +108,7 @@ async function getOrg(firestore: Firestore, orgId: string) {
 const quoteExpShortcuts = getDateShortcuts([15, 30, 60]);
 const policyEffShortcuts = getDateShortcuts([15, 30, 60]);
 
-const commOptions = commissionOptions.map((o: number) => ({
+const commOptions = COMMISSION_OPTIONS.map((o: number) => ({
   label: `${(o * 100).toFixed(0)}%`,
   value: o,
 }));
@@ -399,6 +399,8 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
     // submissionData || null,
     (newPrem: number, ratingInputs) => {
       setTimeout(() => formikRef.current?.setFieldValue('annualPremium', newPrem), 50);
+      // TODO: convert strings to numbers (commission)
+      // native select automatically casts to string
       let numStories = formikRef.current?.values.ratingPropertyData.numStories;
       numStories = typeof numStories === 'number' ? numStories : parseInt(numStories || '1');
       setRatingInputsSnap({
@@ -545,7 +547,9 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
         setFieldValue('subproducerCommission', newComm);
         formikRef.current?.setFieldTouched('subproducerCommission', true, true);
         const source = agent?.defaultCommission?.flood ? 'agent' : 'org';
-        toast.info(`updated subproducer commission to ${source} default (${newComm * 100}%)`);
+        toast.info(`updated commission to ${source} default (${newComm * 100}%)`, {
+          duration: 6000,
+        });
       }
     },
     [toast]
@@ -581,7 +585,7 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
 
   const menuItems = useMemo(
     () => [
-      { label: 'Start from submission', action: createPath({ path: ADMIN_ROUTES.SUBMISSIONS }) },
+      // { label: 'Start from submission', action: createPath({ path: ADMIN_ROUTES.SUBMISSIONS }) },
       { label: 'View submission data', action: showSubmissionDialog },
     ],
     [showSubmissionDialog]
@@ -1152,6 +1156,7 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                     name='subproducerCommission'
                     label='Subproducer Commission'
                     selectOptions={commOptions}
+                    convertToNumber={true}
                     sx={{ mt: 3 }}
                   />
                 </Badge>
@@ -1166,7 +1171,7 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                   helperText='before taxes & fees'
                 />
               </Grid>
-              {/* <Grid xs></Grid> */}
+
               <Grid xs={12} sm={12} md={6}>
                 <Box sx={{ maxWidth: 600 }}>
                   <Badge

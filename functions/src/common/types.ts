@@ -574,6 +574,8 @@ export interface PolicyLocation {
   expirationDate: Timestamp;
   locationId: string;
   externalId?: string | null;
+  imageURLs?: Record<string, string> | null;
+  imagePaths?: Record<string, string> | null;
   metadata: {
     created: Timestamp;
     updated: Timestamp;
@@ -601,10 +603,11 @@ export interface Policy {
     licenseState: string;
     phone: string;
   };
+  // TODO: add address to carrier CarrierDetails: name, address
   issuingCarrier: string; // INSURER NAME ONLY OR NAME AND ID?
   documents: { displayName: string; downloadUrl: string; storagePath: string }[];
-  imageURLs?: Record<string, string> | null; // { [key: string]: string | null } | null;
-  imagePaths?: Record<string, string> | null; // { [key: string]: string | null } | null;
+  // imageURLs?: Record<string, string> | null; // { [key: string]: string | null } | null;
+  // imagePaths?: Record<string, string> | null; // { [key: string]: string | null } | null;
   // transactions: string[]; // TODO: delete or decide how to associate policies and transactions (just query transactions by policyId ??)
   // cardFee: number;
   metadata: BaseMetadata;
@@ -658,8 +661,8 @@ export class PolicyClass implements IPolicyClass {
   // };
   public surplusLinesProducerOfRecord: any;
   public issuingCarrier: string;
-  public imageURLs: Record<string, string> | null;
-  public imagePaths: Record<string, string> | null;
+  // public imageURLs: Record<string, string> | null;
+  // public imagePaths: Record<string, string> | null;
   public metadata: BaseMetadata;
 
   constructor(policyInfo: WithId<Policy>) {
@@ -683,8 +686,8 @@ export class PolicyClass implements IPolicyClass {
     this.agent = policyInfo.agent;
     this.issuingCarrier = policyInfo.issuingCarrier;
     this.metadata = policyInfo.metadata;
-    this.imageURLs = policyInfo.imageURLs || null;
-    this.imagePaths = policyInfo.imagePaths || null;
+    // this.imageURLs = policyInfo.imageURLs || null;
+    // this.imagePaths = policyInfo.imagePaths || null;
     this.isExpired = this.initIsExpired();
   }
 

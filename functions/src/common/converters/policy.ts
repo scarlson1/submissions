@@ -41,8 +41,8 @@ export const policyConverter: FirestoreDataConverter<IPolicy> = {
       issuingCarrier: policy.issuingCarrier,
       price: policy.price,
       // cardFee: policy.cardFee, // TODO: calc in billing (could be add location, etc.)
-      imageURLs: policy.imageURLs,
-      imagePaths: policy.imagePaths,
+      // imageURLs: policy.imageURLs,
+      // imagePaths: policy.imagePaths,
       'metadata.updated': Timestamp.now(),
     };
   },

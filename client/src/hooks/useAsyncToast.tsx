@@ -1,6 +1,10 @@
-import { InfoRounded } from '@mui/icons-material';
 import { useRef, useCallback, useMemo } from 'react';
-import { toast, ToastOptions } from 'react-hot-toast';
+import { CloseRounded, InfoRounded, WarningAmberRounded } from '@mui/icons-material';
+import { Box, IconButton, Typography } from '@mui/material'; // Unstable_Grid2 as Grid
+
+import { Toast, toast, ToastOptions } from 'react-hot-toast';
+
+// TODO: add dismiss button: https://react-hot-toast.com/docs/toast (bottom of page)
 
 export const useAsyncToast = (defOptions?: ToastOptions) => {
   const toastRef = useRef<string>('');
@@ -60,6 +64,46 @@ export const useAsyncToast = (defOptions?: ToastOptions) => {
     [defOptions]
   );
 
+  const warn = useCallback(
+    (msg: string, options?: ToastOptions) =>
+      toast(
+        (t: Toast) => (
+          <Box sx={{ display: 'flex', flexWrap: 'nowrap' }}>
+            <Box
+              sx={{
+                pr: 2,
+                flex: '1 1 auto',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+              }}
+            >
+              <Typography variant='body2'>{`${msg}`}</Typography>
+            </Box>
+
+            <Box sx={{ flex: '0 0 auto' }}>
+              <IconButton
+                aria-label='close'
+                onClick={() => toast.dismiss(t.id)}
+                size='small'
+                // edge='end'
+                sx={{ mt: -1, mr: -2 }}
+              >
+                <CloseRounded />
+              </IconButton>
+            </Box>
+          </Box>
+        ),
+        {
+          id: toastRef.current,
+          icon: <WarningAmberRounded fontSize='small' color='warning' />,
+          ...defOptions,
+          ...options,
+        }
+      ),
+    [defOptions]
+  );
+
   // TODO: warn = ...
 
   const dismiss = useCallback(() => {
@@ -73,9 +117,10 @@ export const useAsyncToast = (defOptions?: ToastOptions) => {
       success,
       info,
       error,
+      warn,
       dismiss,
     }),
-    [loading, updateLoadingMsg, success, info, error, dismiss]
+    [loading, updateLoadingMsg, success, info, error, warn, dismiss]
   );
 
   return memoed;

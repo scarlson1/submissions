@@ -1,59 +1,124 @@
-import { useEffect } from 'react';
-import { useFunctions } from 'reactfire';
+// import { useCallback, useEffect, useState } from 'react';
+// import { useFunctions } from 'reactfire';
+import { create } from 'zustand';
 
-import { useLocalStorage } from './useLocalStorage';
+// import { useLocalStorage } from './useLocalStorage';
 import { generateSearchKey } from 'modules/api';
-import { LOCAL_STORAGE } from 'common';
+// import { LOCAL_STORAGE } from 'common';
+import { Functions } from 'firebase/functions';
 
-export function useAlgoliaSearchKey(filters?: string) {
-  const functions = useFunctions();
-  const [apiKey, setApiKey] = useLocalStorage<string>(LOCAL_STORAGE.USER_SEARCH_KEY);
+// TODO: SAVE KEY IN USER CLAIMS ??
 
-  // TODO: move loading var outside useEffect ??
-  useEffect(() => {
-    let loading = false;
-    // TODO: if user not authed - use default key ??
-
-    if (!apiKey && !loading) {
-      loading = true;
-      console.log('FETCHING NEW SEARCH KEY...');
-      generateSearchKey(functions)
-        .then(({ data }) => {
-          if (data && data.key) {
-            console.log('RES: ', data);
-            setApiKey(data.key);
-          } else {
-            // TODO: use general search key
-            setApiKey(process.env.REACT_APP_ALGOLIA_NOT_AUTHED_SEARCH_KEY);
-          }
-          loading = false;
-        })
-        .catch((err) => {
-          console.log('ERROR FETCHING SEARCH KEY: ', err);
-          setApiKey(process.env.REACT_APP_ALGOLIA_NOT_AUTHED_SEARCH_KEY);
-          loading = false;
-        });
-    }
-
-    return () => {
-      loading = false;
-    };
-  }, [functions, apiKey, setApiKey]);
-
-  // TODO: check expiration date
-
-  // useEffect(() => {
-  //   if (!apiKey) return;
-  //   let checkedExpDate = false;
-
-  //   if (!checkedExpDate) {
-  //     client.getSecuredApiKeyRemainingValidity('YourSecuredAPIkey');
-  //   }
-
-  //   return () => {
-
-  //   }
-  // }, [apiKey])
-
-  return apiKey;
+interface AlgoliaStore {
+  apiKey: string | undefined;
+  generateKey: (functions: Functions) => Promise<void>;
+  resetKey: () => void;
 }
+
+export const useAlgoliaStore = create<AlgoliaStore>((set) => ({
+  apiKey: process.env.REACT_APP_ALGOLIA_NOT_AUTHED_SEARCH_KEY,
+  generateKey: async (functions: Functions) => {
+    try {
+      const { data } = await generateSearchKey(functions);
+      console.log('API KEY RES: ', data);
+      if (data?.key) set({ apiKey: data.key });
+    } catch (err: any) {
+      console.log('ERROR GENERATING SEARCH KEY: ', err);
+    }
+  },
+  resetKey: () => set(() => ({ apiKey: process.env.REACT_APP_ALGOLIA_NOT_AUTHED_SEARCH_KEY })),
+}));
+
+// const apiKey = useAlgoliaStore((state) => state.apiKey);
+
+// const [generateKey, resetKey]= useAlgoliaStore((state) => [state.generateKey, state.resetKey]);
+
+// export function useAlgoliaSearchKey(filters?: string) {
+//   const functions = useFunctions();
+//   const [apiKey, setApiKey] = useLocalStorage<string>(LOCAL_STORAGE.USER_SEARCH_KEY);
+//   const [loading, setLoading] = useState(false);
+//   // const [error, setError] = useState()
+//   console.log('API KEY STORAGE: ', apiKey);
+
+//   const generateKey = useCallback(async () => {
+//     console.log('FETCHING NEW SEARCH KEY...');
+//     try {
+//       setLoading(true);
+//       // setError(undefined)
+//       const { data } = await generateSearchKey(functions);
+//       console.log('RES: ', data);
+//       return data.key;
+//       // if (data && data.key) {
+//       //   console.log('RES: ', data);
+//       //   setApiKey(data.key);
+
+//       // } else {
+//       //   // TODO: use general search key
+//       //   const fallbackKey = process.env.REACT_APP_ALGOLIA_NOT_AUTHED_SEARCH_KEY;
+//       //   if (!fallbackKey) throw new Error('missing fallback search key')
+//       //   setApiKey(fallbackKey);
+//       //   return fallbackKey;
+//       // }
+//     } catch (err) {
+//       console.log('ERROR FETCHING SEARCH KEY: ', err);
+//       // setApiKey(process.env.REACT_APP_ALGOLIA_NOT_AUTHED_SEARCH_KEY);
+//       setLoading(false);
+//     }
+//   }, [functions]);
+
+//   useEffect(() => {
+//     // let loading = false;
+//     // TODO: if user not authed - use default key ??
+//     console.log('LOADING: ', loading);
+
+//     if (!apiKey && !loading) {
+//       generateKey();
+//       // .then(key => {
+//       //   if (key) setApiKey(key)
+//       // })
+
+//       // setLoading(true);
+//       // // loading = true;
+
+//       // generateSearchKey(functions)
+//       //   .then(({ data }) => {
+//       //     if (data && data.key) {
+//       //       console.log('RES: ', data);
+//       //       setApiKey(data.key);
+//       //     } else {
+//       //       // TODO: use general search key
+//       //       setApiKey(process.env.REACT_APP_ALGOLIA_NOT_AUTHED_SEARCH_KEY);
+//       //     }
+//       //     setLoading(false);
+//       //     // loading = false;
+//       //   })
+//       //   .catch((err) => {
+//       //     console.log('ERROR FETCHING SEARCH KEY: ', err);
+//       //     setApiKey(process.env.REACT_APP_ALGOLIA_NOT_AUTHED_SEARCH_KEY);
+//       //     setLoading(false);
+//       //     // loading = false;
+//       //   });
+//     }
+
+//     // return () => {
+//     //   loading = false;
+//     // };
+//   }, [functions, apiKey, setApiKey, loading]);
+
+//   // TODO: check expiration date
+
+//   // useEffect(() => {
+//   //   if (!apiKey) return;
+//   //   let checkedExpDate = false;
+
+//   //   if (!checkedExpDate) {
+//   //     client.getSecuredApiKeyRemainingValidity('YourSecuredAPIkey');
+//   //   }
+
+//   //   return () => {
+
+//   //   }
+//   // }, [apiKey])
+
+//   return apiKey;
+// }

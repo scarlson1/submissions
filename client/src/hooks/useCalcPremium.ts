@@ -6,6 +6,7 @@ import { NewQuoteValues } from 'views/admin/QuoteNew';
 import { CalcQuoteRequest, calcQuote } from 'modules/api';
 import { RatingInputs } from 'modules/api/getAnnualPremium';
 import { Optional } from 'common';
+import { truthyOrZero } from 'modules/utils';
 
 export function validateCommonInputs(values: NewQuoteValues) {
   const { ratingPropertyData, deductible, subproducerCommission, address, limits } = values; // priorLossCount,
@@ -17,9 +18,11 @@ export function validateCommonInputs(values: NewQuoteValues) {
   );
   invariant(ratingPropertyData?.floodZone, 'flood zone required');
   invariant(ratingPropertyData.basement, 'basement required');
+  // subproducerCommission &&
+  // TODO: ALLOW STRING ?? NATIVE SELECT CONVERTS TO STRING
   invariant(
-    subproducerCommission && typeof subproducerCommission === 'number',
-    'subproducer commission required'
+    typeof subproducerCommission === 'number',
+    "subproducer commission required (type: 'number')"
   );
   invariant(
     deductible && typeof deductible === 'number' && deductible > 1000,
@@ -48,9 +51,9 @@ function getValidatedCalcInputs(values: NewQuoteValues) {
     limits,
   } = comValues;
 
-  invariant(AAL?.inland || AAL?.inland === 0, 'inland aal required');
-  invariant(AAL?.surge || AAL?.surge === 0, 'surge aal required');
-  invariant(AAL?.tsunami || AAL?.tsunami === 0, 'tsunami aal required');
+  invariant(truthyOrZero(AAL?.inland), 'inland aal required');
+  invariant(truthyOrZero(AAL?.surge), 'surge aal required');
+  invariant(truthyOrZero(AAL?.tsunami), 'tsunami aal required');
 
   return {
     limits,
@@ -78,6 +81,7 @@ export const useCalcPremium = (
 
   const calcPremium = useCallback(
     async (values: NewQuoteValues) => {
+      console.log('VALUES: ', values);
       let validatedReqBody;
       try {
         validatedReqBody = getValidatedCalcInputs(values) as CalcQuoteRequest;

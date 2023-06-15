@@ -122,8 +122,6 @@ export default async ({ data, auth }: CallableRequest<{ quoteId: string }>) => {
 // TODO: update to handle multiple locations once Quote interface / process is updated
 // TODO: move validation outside function and wrap Quote in NonNullable<Quote>
 function convertQuoteToPolicy(data: Quote, license: License): Policy {
-  let locationId = uuidv4();
-
   invariant(data.coordinates, 'missing coordinates');
   invariant(data.effectiveDate, 'missing effective date');
   invariant(data.expirationDate, 'missing expiration date');
@@ -148,8 +146,9 @@ function convertQuoteToPolicy(data: Quote, license: License): Policy {
 
   const ts = Timestamp.now();
 
+  // TODO: use location ID from quote once using updated Quote interface
   const locations: Record<string, PolicyLocation> = {
-    [locationId]: {
+    [uuidv4()]: {
       address: data.address,
       coordinates: data.coordinates,
       geoHash,
@@ -167,6 +166,8 @@ function convertQuoteToPolicy(data: Quote, license: License): Policy {
       expirationDate: data.expirationDate,
       locationId: '', // TODO: generate location ID
       externalId: null, // TODO: add external location ID to Quote interface
+      imageURLs: data.imageURLs || null,
+      imagePaths: data.imagePaths || null,
       metadata: {
         created: ts,
         updated: ts,
@@ -213,8 +214,8 @@ function convertQuoteToPolicy(data: Quote, license: License): Policy {
     },
     issuingCarrier: 'Rockingham Property & Casualty',
     documents: [],
-    imageURLs: data.imageURLs || null,
-    imagePaths: data.imagePaths || null,
+    // imageURLs: data.imageURLs || null,
+    // imagePaths: data.imagePaths || null,
     // transactions: [],
     metadata: {
       created: Timestamp.now(),
