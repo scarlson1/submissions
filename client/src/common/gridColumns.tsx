@@ -1,10 +1,12 @@
 import {
+  AccountBalanceRounded,
   CachedRounded,
   CheckRounded,
   CloseRounded,
   CreditScoreRounded,
   DisabledByDefaultRounded,
   DoneRounded,
+  FaceRounded,
   FiberNewRounded,
   FindInPageRounded,
   HourglassBottomRounded,
@@ -24,7 +26,6 @@ import {
   GridColDef,
   GridValueFormatterParams,
 } from '@mui/x-data-grid';
-// import { Link as RouterLink } from 'react-router-dom';
 
 import { FileLink, renderGridEmail, renderGridPhone } from 'components';
 import { GridCellCopy } from 'components';
@@ -46,6 +47,8 @@ import {
   SUBMISSION_STATUS,
 } from './enums';
 import { GeoPoint } from 'firebase/firestore';
+import { AdditionalInsured, Address, Mortgagee, Nullable, PolicyLocation } from './types';
+import { renderChips } from 'components/RenderGridCellHelpers';
 // import { ADMIN_ROUTES, createPath } from 'router';
 
 export const copyBaseProps: Partial<GridColDef> = {
@@ -60,6 +63,7 @@ export const copyBaseProps: Partial<GridColDef> = {
 export const idCol: GridColDef = {
   field: 'id',
   headerName: 'ID',
+  editable: false,
   ...copyBaseProps,
 };
 
@@ -203,25 +207,61 @@ export const fileLinkCol: GridColDef = {
   },
 };
 
-export const addressSummaryCol: GridColDef = {
+const addressSummaryBase = {
   field: 'address',
   headerName: 'Address',
   minWidth: 260,
   flex: 1,
   editable: false,
-  valueGetter: (params: GridValueGetterParams<any, any>) => {
-    if (!params.row.address) return null;
+};
 
-    const { addressLine1, city, state } = params.row.address;
-    if (!(addressLine1 || city || state)) return null;
+const formatAddrSummary = (address?: Nullable<Address> | null | undefined) => {
+  if (!address) return null;
 
-    let formatted = '';
-    if (addressLine1) formatted += `${addressLine1}`;
-    if (city) formatted += `, ${city}`;
-    if (state) formatted += `, ${state}`;
+  const { addressLine1, city, state } = address;
+  if (!(addressLine1 || city || state)) return null;
 
-    return formatted;
-  },
+  let formatted = '';
+  if (addressLine1) formatted += `${addressLine1}`;
+  if (city) formatted += `, ${city}`;
+  if (state) formatted += `, ${state}`;
+
+  return formatted;
+};
+
+export const addressSummaryCol: GridColDef = {
+  ...addressSummaryBase,
+  valueGetter: (params: GridValueGetterParams<any, any>) => formatAddrSummary(params.row.address),
+
+  // const { addressLine1, city, state } = params.row.address;
+  // if (!(addressLine1 || city || state)) return null;
+
+  // let formatted = '';
+  // if (addressLine1) formatted += `${addressLine1}`;
+  // if (city) formatted += `, ${city}`;
+  // if (state) formatted += `, ${state}`;
+
+  // return formatted;
+  // },
+};
+
+export const agencyAddressCol: GridColDef = {
+  ...addressSummaryCol,
+  field: 'agency.address',
+  headerName: 'Agency Address',
+  valueGetter: (params) => formatAddrSummary(params.row.agency?.address),
+  // if (!params.row.agency?.address) return null;
+
+  // const { addressLine1, city, state } = params.row.agency.address;
+  // if (!(addressLine1 || city || state)) return null;
+
+  // let formatted = '';
+  // if (addressLine1) formatted += `${addressLine1}`;
+  // if (city) formatted += `, ${city}`;
+  // if (state) formatted += `, ${state}`;
+
+  // return formatted;
+  // },
 };
 
 export const address1Col: GridColDef = {
@@ -907,9 +947,7 @@ export const tsunamiAALCol: GridColDef = {
   minWidth: 150,
   flex: 0.8,
   valueGetter: (params) => params.row.AAL?.tsunami ?? null,
-  renderCell: (params) => {
-    return <GridCellCopy value={params.value} />;
-  },
+  renderCell: (params) => <GridCellCopy value={params.value} />,
 };
 
 export const annualPremiumCol: GridColDef = {
@@ -948,4 +986,175 @@ export const locationsCount: GridColDef = {
     if (!params.row.locations) return null;
     return Object.keys(params.row.locations).length;
   },
+};
+
+export const locationAddresses: GridColDef = {
+  field: 'addressesSummary',
+  headerName: 'Locations',
+  minWidth: 300,
+  flex: 1.5,
+  editable: false,
+  valueGetter: (params) => {
+    if (!params.row.locations) return null;
+
+    const locations = Object.values(params.row.locations) as PolicyLocation[];
+    return locations.map((l) => l.address || null).filter((x) => x);
+  },
+  renderCell: (params) => {
+    if (!params.value || !params.value.length) return null;
+    let addr1 = params.value[0] as Address;
+    let addrSummary = `${addr1.addressLine1}, ${addr1.city}, ${addr1.state}`;
+    let additionalCount = params.value.length - 1;
+
+    return (
+      <Box sx={{ display: 'flex', alignItems: 'center', maxWidth: '100%' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            mr: 1,
+            flex: '0 1 auto',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            minWidth: 0,
+          }}
+        >{`${addrSummary}`}</Typography>
+        {additionalCount ? (
+          <Typography
+            variant='body2'
+            fontSize='0.775rem'
+            fontWeight={500}
+          >{`+ ${additionalCount} more`}</Typography>
+        ) : null}
+      </Box>
+    );
+  },
+};
+
+export const homeStateCol: GridColDef = {
+  field: 'homeState',
+  headerName: 'Home State',
+  minWidth: 100,
+  flex: 0.4,
+  editable: false,
+};
+
+export const productCol: GridColDef = {
+  field: 'product',
+  headerName: 'Product',
+  minWidth: 100,
+  flex: 0.4,
+  editable: false,
+};
+
+export const SLProducerOfRecordNameCol: GridColDef = {
+  field: 'SLProducerOfRecord.name',
+  headerName: 'SL PofR',
+  minWidth: 200,
+  flex: 0.6,
+  editable: false,
+  description: 'Surplus Lines Producer of Record',
+  valueGetter: (params) => params.row.surplusLinesProducerOfRecord?.name || null,
+};
+
+export const SLProducerOfRecordLicenseNum: GridColDef = {
+  ...copyBaseProps,
+  field: 'SLProducerOfRecord.licenseNum',
+  headerName: 'SL PofR License',
+  description: 'Surplus Lines Producer of Record license number',
+  valueGetter: (params) => params.row.surplusLinesProducerOfRecord?.licenseNum || null,
+};
+
+export const SLProducerOfRecordLicenseState: GridColDef = {
+  field: 'SLProducerOfRecord.licenseState',
+  headerName: 'SL PofR License State',
+  description: 'Surplus Lines Producer of Record license state',
+  valueGetter: (params) => params.row.surplusLinesProducerOfRecord?.licenseState || null,
+};
+
+export const SLProducerOfRecordLicensePhone: GridColDef = {
+  ...phoneCol,
+  field: 'SLProducerOfRecord.phone',
+  headerName: 'SL PofR License Phone',
+  description: 'Surplus Lines Producer of Record license provided phone number',
+  valueGetter: (params) => params.row.surplusLinesProducerOfRecord?.phone || null,
+};
+
+export const SLProducerOfRecordLicenseAddress: GridColDef = {
+  ...addressSummaryBase,
+  field: 'SLProducerOfRecord.address',
+  headerName: 'SL PofR License Address',
+  description: 'Surplus Lines Producer of Record license provided address',
+  valueGetter: (params) => formatAddrSummary(params.row.surplusLinesProducerOfRecord?.address),
+};
+
+export const issuingCarrierCol: GridColDef = {
+  field: 'issuingCarrier',
+  headerName: 'Carrier',
+  minWidth: 180,
+  flex: 0.6,
+  editable: false,
+};
+
+export const additionalInsuredsCol: GridColDef = {
+  field: 'additionalInsureds',
+  headerName: 'Additional Insureds',
+  minWidth: 260,
+  flex: 1,
+  editable: false,
+  valueGetter: (params) =>
+    params.row.additionalInsureds?.map((ai: AdditionalInsured) => ai.name) || null,
+  renderCell: (params) =>
+    renderChips(params, { variant: 'outlined', color: 'success', icon: <FaceRounded /> }),
+  // renderCell: (params) => {
+  //   if (!params.value || !params.value.length) return null;
+
+  //   return (
+  //     <Stack direction='row' spacing={1} sx={{ minWidth: 0 }}>
+  //       {params.value.map((ai: AdditionalInsured) => {
+  //         let icon = <FaceRounded fontSize='small' />; // ai.type === 'x" ? <icon1 /> : <othericon />
+  //         const color = 'primary'; // TODO: check AI type
+
+  //         return <Chip label={ai.name} icon={icon} size='small' color={color} variant='outlined' />;
+  //       })}
+  //     </Stack>
+  //   );
+  // },
+};
+
+export const mortgageeCol: GridColDef = {
+  field: 'mortgageeInterest',
+  headerName: 'Mortgagee',
+  minWidth: 260,
+  flex: 1,
+  editable: false,
+  valueGetter: (params) => params.row.mortgageeInterest?.map((m: Mortgagee) => m.name) || null,
+  renderCell: (params) =>
+    renderChips(params, { variant: 'outlined', color: 'info', icon: <AccountBalanceRounded /> }),
+  // renderCell: (params) => {
+  //   if (!params.value || !params.value.length) return null;
+
+  //   return (
+  //     <Stack direction='row' spacing={1} sx={{ minWidth: 0 }}>
+  //       {params.value.map((ai: AdditionalInsured) => {
+  //         let icon = <FaceRounded fontSize='small' />; // ai.type === 'x" ? <icon1 /> : <othericon />
+  //         const color = 'primary'; // TODO: check AI type
+
+  //         return <Chip label={ai.name} icon={icon} size='small' color={color} variant='outlined' />;
+  //       })}
+  //     </Stack>
+  //   );
+  // },
+};
+
+export const externalIdCol: GridColDef = {
+  ...idCol,
+  field: 'externalId',
+  headerName: 'External ID',
+};
+
+export const ratingDocIdCol: GridColDef = {
+  ...idCol,
+  field: 'ratingDocId',
+  headerName: 'Rating Doc ID',
 };

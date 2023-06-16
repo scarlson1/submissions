@@ -2,6 +2,7 @@ import React from 'react';
 import { Box, BoxProps } from '@mui/material';
 import { DataGrid, GridToolbar, DataGridProps } from '@mui/x-data-grid';
 
+// TODO: remove additional insured props ?????!!!!
 export interface AdditionalNamedInsuredsProps extends DataGridProps {
   // rows: any[];
   columns: any[];
@@ -27,8 +28,12 @@ export const BasicDataGrid: React.FC<AdditionalNamedInsuredsProps> = ({
       <DataGrid
         rows={rows}
         columns={columns}
-        components={{ Toolbar: withToolbar ? GridToolbar : undefined }}
-        // rowsPerPageOptions={[5, 10, 20]}
+        slots={{
+          toolbar: withToolbar ? GridToolbar : undefined,
+        }}
+        slotProps={{
+          toolbar: { csvOptions: { allColumns: true } },
+        }}
         pageSizeOptions={[5, 10, 20]}
         initialState={{
           columns: {
@@ -39,9 +44,6 @@ export const BasicDataGrid: React.FC<AdditionalNamedInsuredsProps> = ({
           sorting: {
             sortModel: [{ field: 'updated', sort: 'desc' }],
           },
-          // pagination: {
-          //   pageSize: 10,
-          // },
           pagination: { paginationModel: { pageSize: 10 } },
         }}
         sx={{

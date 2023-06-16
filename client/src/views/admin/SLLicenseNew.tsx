@@ -9,16 +9,19 @@ import { useNavigate } from 'react-router-dom';
 import * as yup from 'yup';
 import { startOfYear, lastDayOfYear } from 'date-fns';
 
-import { License } from 'common';
+import { License, addressValidationNotRequired, phoneVal } from 'common';
 import {
   FormikDatePicker,
+  FormikMaskField,
   FormikNativeSelect,
   FormikSwitch,
   FormikTextField,
+  PhoneMask,
 } from 'components/forms';
 import { statesAbrvSelectOptions } from 'common/statesList';
 import { useCreateSLLicense } from 'hooks';
 import { ADMIN_ROUTES, createPath } from 'router';
+import { FormikAddressLite } from 'elements';
 
 const licenseValidation = yup.object().shape({
   state: yup.string().required('state is required'),
@@ -30,6 +33,8 @@ const licenseValidation = yup.object().shape({
   effectiveDate: yup.date().required(),
   expirationDate: yup.date().nullable(),
   SLAssociationMembershipRequired: yup.boolean(),
+  address: addressValidationNotRequired,
+  phone: phoneVal.notRequired(),
 });
 
 export interface NewSLValues
@@ -53,6 +58,14 @@ const initialValues: NewSLValues = {
   effectiveDate: new Date(),
   expirationDate: null,
   SLAssociationMembershipRequired: false,
+  address: {
+    addressLine1: '',
+    addressLine2: '',
+    city: '',
+    state: '',
+    postal: '',
+  },
+  phone: '',
 };
 
 export const SLLicenseNew: React.FC = () => {
@@ -116,10 +129,10 @@ export const SLLicenseNew: React.FC = () => {
             <Grid
               container
               columnSpacing={6}
-              rowSpacing={4}
+              rowSpacing={5}
               sx={{ py: { xs: 3, sm: 5, md: 6, lg: 8 } }}
             >
-              <Grid xs={6} sm={6} md={3}>
+              <Grid xs={6} sm={6} md={3} lg={2}>
                 <FormikNativeSelect
                   name='state'
                   label='State'
@@ -129,7 +142,7 @@ export const SLLicenseNew: React.FC = () => {
                   fullWidth
                 />
               </Grid>
-              <Grid xs={6} sm={6} md={3}>
+              <Grid xs={6} sm={6} md={3} lg={2}>
                 <FormikNativeSelect
                   name='licenseType'
                   label='License type'
@@ -137,7 +150,7 @@ export const SLLicenseNew: React.FC = () => {
                   required={true}
                 />
               </Grid>
-              <Grid xs={6} sm={6} md={3}>
+              <Grid xs={6} sm={6} md={3} lg={2}>
                 <FormikNativeSelect
                   name='ownerType'
                   label='Owner Type'
@@ -145,10 +158,10 @@ export const SLLicenseNew: React.FC = () => {
                   required={true}
                 />
               </Grid>
-              <Grid xs={12} sm={6} md={3}>
+              <Grid xs={12} sm={6} md={3} lg={2}>
                 <FormikTextField name='licensee' label='Licensee name' fullWidth required={true} />
               </Grid>
-              <Grid xs={12} sm={6} md={6}>
+              <Grid xs={12} sm={6} md={3} lg={2}>
                 <FormikTextField
                   name='licenseNumber'
                   label='License number'
@@ -156,8 +169,35 @@ export const SLLicenseNew: React.FC = () => {
                   required={true}
                 />
               </Grid>
-              <Grid xs={12}>
-                <Stack direction='row' spacing={6} sx={{ my: 3 }}>
+              <Grid xs={12} sm={6} md={3} lg={2}>
+                <FormikMaskField
+                  id='phone'
+                  name='phone'
+                  label='License phone'
+                  fullWidth
+                  required={false}
+                  maskComponent={PhoneMask}
+                />
+              </Grid>
+              <Grid xs={12} sm={6} md={6} lg={4}>
+                <FormikAddressLite
+                  names={{
+                    addressLine1: 'address.addressLine1',
+                    addressLine2: 'address.addressLine2',
+                    city: 'address.city',
+                    state: 'address.state',
+                    postal: 'address.postal',
+                  }}
+                  autocompleteProps={{
+                    name: 'address.addressLine1',
+                    textFieldProps: {
+                      label: 'License address',
+                    },
+                  }}
+                />
+              </Grid>
+              <Grid xs={12} lg={8}>
+                <Stack direction='row' spacing={6}>
                   <FormikDatePicker
                     name='effectiveDate'
                     label='Effective date'

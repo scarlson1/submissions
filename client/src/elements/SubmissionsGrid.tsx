@@ -461,8 +461,12 @@ export const SubmissionsGrid: React.FC<SubmissionGridProps> = ({
             navigate(params.id.toString());
           }
         }}
-        components={{ Toolbar: GridToolbar }}
-        componentsProps={{ toolbar: { csvOptions: { allColumns: true } } }}
+        slots={{
+          toolbar: GridToolbar,
+        }}
+        slotProps={{
+          toolbar: { csvOptions: { allColumns: true } },
+        }}
         initialState={{
           columns: {
             columnVisibilityModel: {

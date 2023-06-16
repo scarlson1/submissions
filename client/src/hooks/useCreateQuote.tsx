@@ -102,31 +102,22 @@ function getFormattedQuote(values: NewQuoteValues, uid?: string | null): Quote {
     product: 'flood', // TODO: pass as prop
     deductible: values.deductible,
     limits: {
-      limitA: limits.limitA, // extractNumber(values.limitA),
-      limitB: limits.limitA, // extractNumber(values.limitB) || 0,
-      limitC: limits.limitA, // extractNumber(values.limitC) || 0,
-      limitD: limits.limitA, // extractNumber(values.limitD) || 0,
+      limitA: limits.limitA,
+      limitB: limits.limitA,
+      limitC: limits.limitA,
+      limitD: limits.limitA,
     },
-    // replacementCost:
-    //   typeof replacementCost === 'string' ? extractNumber(replacementCost) : replacementCost,
-    // insuredAddress: {
-    //   addressLine1: values.addressLine1,
-    //   addressLine2: values.addressLine2,
-    //   city: values.city,
-    //   state: values.state,
-    //   postal: values.postal,
-    // },
     address,
     coordinates:
       coordinates.longitude && coordinates.latitude
         ? new GeoPoint(coordinates.latitude, coordinates.longitude)
         : null,
+    homeState: address.state,
     mailingAddress: {
       // TODO: add mailing address and name fields
       name: '',
       ...address,
     },
-    // quoteExpiration: Timestamp.fromDate(quoteExpiration),
     quoteExpirationDate: quoteExpirationDate
       ? Timestamp.fromDate(quoteExpirationDate)
       : Timestamp.fromDate(addToDate({ days: 60 }, endOfToday())),

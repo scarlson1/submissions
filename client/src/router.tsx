@@ -2,7 +2,12 @@ import { createBrowserRouter, createSearchParams, URLSearchParamsInit } from 're
 import { wrapCreateBrowserRouter } from '@sentry/react';
 
 import App from './App';
-import { Layout, RequireAuth, RouterErrorBoundary } from 'components';
+import {
+  // ConfigLayout,
+  Layout,
+  RequireAuth,
+  RouterErrorBoundary,
+} from 'components';
 import {
   SubmissionNew,
   ContactUs,
@@ -89,27 +94,28 @@ export enum ADMIN_ROUTES {
   SUBMISSIONS = '/admin/submissions',
   SUBMISSION_VIEW = '/admin/submissions/:submissionId',
   QUOTES = '/admin/quotes',
-  QUOTE_NEW_BLANK = '/admin/quotes/:productId/new', // QuoteNewFromSub
+  QUOTE_NEW_BLANK = '/admin/quotes/:productId/new',
   QUOTE_NEW = '/admin/quotes/:productId/new/:submissionId',
   POLICY_DELIVERY = '/admin/policies/:policyId/delivery',
   // POLICIES = '/admin/policies',
-  SL_TAXES = '/admin/sl-tax',
-  SL_TAXES_NEW = '/admin/sl-tax/new',
-  EDIT_ACTIVE_STATES = '/admin/active-states/:productId/edit',
-  MORATORIUMS = '/admin/moratoriums',
-  MORATORIUM_NEW = '/admin/moratoriums/new',
-  SL_LICENSES = '/admin/licenses',
-  SL_LICENSE_NEW = '/admin/licenses/new',
   AGENCY_APPS = '/admin/agencies/submissions',
   AGENCY_APP = '/admin/agencies/submissions/:submissionId',
-  DISCLOSURES = '/admin/disclosures',
-  DISCLOSURE_NEW = '/admin/disclosures/new',
-  DISCLOSURE_EDIT = '/admin/disclosures/:disclosureId/edit',
   CREATE_TENANT = '/admin/agencies/new',
   ORGANIZATIONS = '/admin/orgs',
   ORGANIZATION = '/admin/orgs/:orgId',
   USERS = '/admin/users',
   PORTFOLIO_RATING = '/admin/portfolio-rating',
+
+  SL_TAXES = '/admin/config/sl-tax',
+  SL_TAXES_NEW = '/admin/config/sl-tax/new',
+  EDIT_ACTIVE_STATES = '/admin/config/active-states/:productId/edit',
+  MORATORIUMS = '/admin/config/moratoriums',
+  MORATORIUM_NEW = '/admin/config/moratoriums/new',
+  SL_LICENSES = '/admin/config/licenses',
+  SL_LICENSE_NEW = '/admin/config/licenses/new',
+  DISCLOSURES = '/admin/config/disclosures',
+  DISCLOSURE_NEW = '/admin/config/disclosures/new',
+  DISCLOSURE_EDIT = '/admin/config/disclosures/:disclosureId/edit',
 }
 
 export enum AUTH_ROUTES {
@@ -697,6 +703,28 @@ export const router = sentryCreateBrowserRouter([
               // />
             ),
           },
+          // TODO: set up config routs
+          // {
+          //   path: 'config',
+          //   element: (
+          //     // <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
+          //     <ConfigLayout />
+          //     // </RequireAuthReactFire>
+          //   ),
+          //   errorElement: <RouterErrorBoundary />,
+          //   children: [
+          //     {
+          //       path: ADMIN_ROUTES.DISCLOSURES,
+          //       element: (
+          //         <RequireAuthReactFire
+          //           signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}
+          //         >
+          //           <Disclosures />
+          //         </RequireAuthReactFire>
+          //       ),
+          //     },
+          //   ],
+          // },
         ],
       },
       {

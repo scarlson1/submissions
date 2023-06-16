@@ -1,6 +1,7 @@
 export { Layout } from './Layout';
 export { Header } from './Header';
 export { Footer } from './Footer';
+export { ConfigLayout } from './ConfigLayout';
 export { FlexCard, FlexCardContent } from './FlexCard';
 export { ImgPreview } from './ImgPreview';
 export { ConfirmationDialog } from './ConfirmationDialog';

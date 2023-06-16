@@ -4,6 +4,7 @@ export { ViewQuote } from './ViewQuote';
 export { Checkout } from './Checkout';
 export { Login } from './Login';
 export { CreateAccount } from './CreateAccount';
+export { PolicyOld } from './PolicyOld';
 export { Policy } from './Policy';
 export { Policies } from './Policies';
 export { Home } from './Home';

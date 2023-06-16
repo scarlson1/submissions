@@ -1,11 +1,7 @@
-// import { useCallback, useEffect, useState } from 'react';
-// import { useFunctions } from 'reactfire';
 import { create } from 'zustand';
-
-// import { useLocalStorage } from './useLocalStorage';
-import { generateSearchKey } from 'modules/api';
-// import { LOCAL_STORAGE } from 'common';
 import { Functions } from 'firebase/functions';
+
+import { generateSearchKey } from 'modules/api';
 
 // TODO: SAVE KEY IN USER CLAIMS ??
 
@@ -32,6 +28,15 @@ export const useAlgoliaStore = create<AlgoliaStore>((set) => ({
 // const apiKey = useAlgoliaStore((state) => state.apiKey);
 
 // const [generateKey, resetKey]= useAlgoliaStore((state) => [state.generateKey, state.resetKey]);
+
+// import { useCallback, useEffect, useState } from 'react';
+// import { useFunctions } from 'reactfire';
+// import { create } from 'zustand';
+// import { Functions } from 'firebase/functions';
+
+// import { generateSearchKey } from 'modules/api';
+// import { useLocalStorage } from './useLocalStorage';
+// import { LOCAL_STORAGE } from 'common';
 
 // export function useAlgoliaSearchKey(filters?: string) {
 //   const functions = useFunctions();

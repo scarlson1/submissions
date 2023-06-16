@@ -45,17 +45,16 @@ export default async ({ data, auth }: CallableRequest<{ quoteId: string }>) => {
   if (!quoteSnap.exists || !quoteData)
     throw new HttpsError('not-found', `Quote not found (${quoteId})`);
 
-  // TODO: use homeState property once Quote interface updated
-  const homeState = quoteData.address?.state;
-  if (!homeState) throw new HttpsError('failed-precondition', 'quote is missing home state');
+  if (!quoteData.homeState)
+    throw new HttpsError('failed-precondition', 'quote is missing home state');
 
   const licenseSnap = await licensesCol
-    .where('state', '==', homeState)
+    .where('state', '==', quoteData.homeState)
     .where('surplusLinesProducerOfRecord', '==', true)
     .get();
   // TODO: report error to sentry
   if (licenseSnap.empty)
-    throw new HttpsError('internal', `not licensed in state (state: ${homeState})`);
+    throw new HttpsError('internal', `not licensed in state (state: ${quoteData.homeState})`);
   const licenseData = licenseSnap.docs[0].data();
 
   // 2) TODO: validate quote (expired, exp./eff. dates, amount, taxes, fees, all values exist, etc.)
@@ -189,7 +188,7 @@ function convertQuoteToPolicy(data: Quote, license: License): Policy {
       userId: data.namedInsured?.userId || null,
     },
     locations,
-    homeState: data.address.state, // TODO: add homeState to Quote
+    homeState: data.homeState, // TODO: add homeState to Quote
     price: data.quoteTotal || 100000, // TODO: fix quote total validation
     effectiveDate: data.effectiveDate,
     expirationDate: data.expirationDate,

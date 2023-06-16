@@ -11,11 +11,11 @@ import {
   IconButton,
 } from '@mui/material';
 import { GridRenderCellParams } from '@mui/x-data-grid';
+import { CopyAllRounded } from '@mui/icons-material';
+import { toast } from 'react-hot-toast';
 
 import { formatPhoneNumber } from 'modules/utils/helpers';
 import { useCopyToClipboard } from 'hooks/useCopyToClipboard';
-import { CopyAllRounded } from '@mui/icons-material';
-import { toast } from 'react-hot-toast';
 
 export const renderGridPhone = (params: GridRenderCellParams<any, any, any>) => {
   if (params.value == null) return '';

@@ -30,7 +30,7 @@ import {
 } from '@mui/icons-material';
 import * as yup from 'yup';
 import { add, startOfToday, endOfToday } from 'date-fns';
-import { isEmpty, merge, omit, round } from 'lodash';
+import { isEmpty, merge, omit } from 'lodash';
 import { Firestore, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { useFirestore } from 'reactfire';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -57,7 +57,12 @@ import {
   limitsValidation,
   namedInsuredValidationNotRequired,
 } from 'common/validation';
-import { addToDate, dollarFormat, getDateShortcuts, sumArr } from 'modules/utils/helpers';
+import {
+  addToDate,
+  dollarFormat,
+  getDateShortcuts,
+  sumfeesTaxesPremium,
+} from 'modules/utils/helpers';
 import {
   extractRatingInputsFromValues,
   useActiveStates,
@@ -96,6 +101,7 @@ import { RatingInputsWithAAL } from 'hooks/useRateQuote';
 import { TempAgentSearch } from 'components/search/Search';
 
 // TODO: standardize fee type names in enum
+// TODO: redo diff component to work with nested fields (not maunually / explicitly flattening) so it can be used generally
 
 async function getOrg(firestore: Firestore, orgId: string) {
   const orgRef = doc(orgsCollection(firestore), orgId);
@@ -243,6 +249,11 @@ const quoteNewValidation = yup.object().shape({
       value: yup.number().required('tax value is required'),
     })
   ),
+  // ISSUE: not storing subject base in taxes obj
+  // .test('taxes-fees-match', "tax values don't reflect current fees", (val, ctx) => {
+  //   const fees = ctx.parent.fees;
+  //   if (!fees.length) return true;
+  // }),
   annualPremium: yup.number().min(100).required('term premium is required'),
   subproducerCommission: yup.number().required('commission is required'),
   quoteTotal: yup
@@ -359,7 +370,6 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
   const { fetchTaxes, loading: taxesLoading } = useFetchTaxes(
     (newTaxes: TaxItem[]) => {
       setTimeout(() => {
-        // @ts-ignore
         formikRef.current?.setFieldValue('taxes', [...newTaxes]);
         setTimeout(() => calcTotal(), 10);
       }, 50);
@@ -382,30 +392,25 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
   const { rerate, loading: rerateLoading } = useRateQuote(
     submissionId,
     (newPrem: number, ratingInputs: RatingInputsWithAAL) => {
-      // setTimeout(() => {
-      formikRef.current?.setFieldValue('annualPremium', newPrem);
-      formikRef.current?.setFieldValue('AAL.inland', ratingInputs.inlandAAL);
-      formikRef.current?.setFieldValue('AAL.surge', ratingInputs.surgeAAL);
-      // }, 50);
+      const setVal = formikRef.current?.setFieldValue;
+      setVal && setVal('annualPremium', newPrem);
+      setVal && setVal('AAL.inland', ratingInputs.inlandAAL);
+      setVal && setVal('AAL.surge', ratingInputs.surgeAAL);
+      setVal && setVal('AAL.tsunami', ratingInputs.tsunamiAAL);
 
       setRatingInputsSnap({ ...ratingInputs });
       handleRecalcSuccess(newPrem);
     },
-    (msg: string) => toast.error(msg) // setRatingState({ rerateRequired: true, recalcRequired: true });
+    (msg: string) => toast.error(msg)
     // getRatingInputsFromSubmission(submissionData || undefined)
   );
 
   const { calcPremium, loading: calcLoading } = useCalcPremium(
-    // submissionData || null,
     (newPrem: number, ratingInputs) => {
       setTimeout(() => formikRef.current?.setFieldValue('annualPremium', newPrem), 50);
-      // TODO: convert strings to numbers (commission)
-      // native select automatically casts to string
-      let numStories = formikRef.current?.values.ratingPropertyData.numStories;
-      numStories = typeof numStories === 'number' ? numStories : parseInt(numStories || '1');
+
       setRatingInputsSnap({
         ...ratingInputs,
-        numStories,
       });
       handleRecalcSuccess(newPrem);
     },
@@ -448,15 +453,7 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
 
   const handleSubmit = useCallback(
     async (values: NewQuoteValues, { setSubmitting }: FormikHelpers<NewQuoteValues>) => {
-      // const { fees, taxes, annualPremium, quoteTotal } = values;
-      // const total = sumfeesTaxesPremium(fees, taxes, annualPremium || 0);
-      // if (total !== quoteTotal) {
-      //   toast.error(
-      //     `Invalid total quote. Sum of components does not match quote total (${quoteTotal} vs ${total})`
-      //   );
-      // } else {
       await createQuote(values, submissionId, submissionData);
-      // }
 
       setSubmitting(false);
     },
@@ -478,10 +475,6 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
       if (!annualPremium || typeof annualPremium !== 'number')
         return toast.error('Term premium required');
 
-      // const feeTotal = sumArr(fees.map((f) => f.feeValue));
-      // const taxTotal = sumArr(taxes.map((t) => t.value));
-
-      // const total = round(annualPremium + feeTotal + taxTotal, 2);
       const total = sumfeesTaxesPremium(fees, taxes, annualPremium);
 
       formikRef.current?.setFieldValue('quoteTotal', total);
@@ -497,7 +490,7 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
     const validationErrors = await formikRef.current?.validateForm();
     // https://github.com/jaredpalmer/formik/issues/2734#issuecomment-923337541
     if (validationErrors && Object.keys(validationErrors).length > 0) {
-      let keys = key ? validationErrors[key] : validationErrors;
+      const keys = key ? validationErrors[key] : validationErrors;
 
       setTimeout(() => formikRef.current?.setTouched(setNestedObjectValues(keys, true)), 50);
       return;
@@ -547,7 +540,7 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
         setFieldValue('subproducerCommission', newComm);
         formikRef.current?.setFieldTouched('subproducerCommission', true, true);
         const source = agent?.defaultCommission?.flood ? 'agent' : 'org';
-        toast.info(`updated commission to ${source} default (${newComm * 100}%)`, {
+        toast.info(`commission → ${source} default (${newComm * 100}%)`, {
           duration: 6000,
         });
       }
@@ -877,7 +870,7 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                   id='ratingPropertyData.floodZone'
                   label='Flood Zone'
                   name='ratingPropertyData.floodZone'
-                  selectOptions={['', 'A', 'B', 'C', 'D', 'V', 'X', 'AE', 'AO', 'AH', 'AR', 'VE']}
+                  selectOptions={['A', 'B', 'C', 'D', 'V', 'X', 'AE', 'AO', 'AH', 'AR', 'VE']}
                   required
                 />
               </Grid>
@@ -895,6 +888,7 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                     { label: '4', value: 4 },
                     { label: '5', value: 5 },
                   ]}
+                  convertToNumber={true}
                 />
               </Grid>
               <Grid xs={6} sm={4} md={3} lg={2}>
@@ -1452,13 +1446,6 @@ function getRatingInputsFromSubmission(subData?: Submission) {
     basement: subData?.ratingPropertyData?.basement?.toLowerCase(),
     commissionPct: subData?.subproducerCommission || 0.15, // TODO: delete - must look up subproducer comm from agent ID or org ID from server, or producer from clinet if idemand admin
   };
-}
-
-function sumfeesTaxesPremium(fees: FeeItem[], taxes: TaxItem[], premium: number) {
-  const feeTotal = sumArr(fees.map((f) => f.feeValue));
-  const taxTotal = sumArr(taxes.map((t) => t.value));
-
-  return round(premium + feeTotal + taxTotal, 2);
 }
 
 // TODO: use something like recoil for automatically derived state ??

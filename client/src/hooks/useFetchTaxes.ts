@@ -1,8 +1,10 @@
 import { useCallback, useMemo, useState } from 'react';
+import axios from 'axios';
+import invariant from 'tiny-invariant';
+
 import { useAsyncToast } from './useAsyncToast';
 import { TaxItem, TransactionType } from 'common';
 import { NewQuoteValues } from 'views/admin/QuoteNew';
-import axios from 'axios';
 
 export const useFetchTaxes = (
   onSuccess?: (taxes: TaxItem[]) => void,
@@ -19,8 +21,8 @@ export const useFetchTaxes = (
       const { annualPremium, address, fees } = values;
 
       // TODO: validate all required fields are present
-      if (!annualPremium) throw new Error('Term premium required'); // return toast.error('Term premium required');
-      if (!address?.state) throw new Error('state required'); // return toast.error('State required');
+      invariant(annualPremium, 'annual premium required');
+      invariant(address?.state, 'state required');
 
       // TODO: need to check for multiple items (could be two inspection fees...)
       const mgaObj = fees.find((f) => f.feeName === 'MGA Fee');
@@ -29,7 +31,6 @@ export const useFetchTaxes = (
 
       let mgaFees = mgaObj ? mgaObj.feeValue : 0;
       let inspectionFees = inspectionObj ? inspectionObj.feeValue : 0;
-      // let uwAdjustments = uwAdjustmentObj ? uwAdjustmentObj.feeValue : 0;
 
       const body = {
         state: address.state,
@@ -40,11 +41,10 @@ export const useFetchTaxes = (
         inspectionFees,
         transactionType,
       };
-      console.log('body: ', body, fees);
+      // console.log('body: ', body, fees);
 
       try {
         setLoading(true);
-        // toast.loading('fetching taxes...');
 
         const { data } = await axios.post(
           `${process.env.REACT_APP_SUBMISSIONS_API}/state-tax`,
@@ -52,7 +52,7 @@ export const useFetchTaxes = (
         );
         // DOENS'T WORK WITH EMULATORS
         // const { data } = await axios.post(`/idemand-submissions-api/state-tax`, body);
-        console.log('TAX RES: ', data);
+        console.log('TAXES: ', data);
 
         let newTaxes: TaxItem[] = [];
         if (data && data.lineItems?.length > 0) {
@@ -76,9 +76,8 @@ export const useFetchTaxes = (
       } catch (err: any) {
         console.log('ERROR FETCHING TAXES: ', err);
         let msg = 'An error occurred while fetching taxes';
-        if (err.message) msg = err.message;
+        if (err.message) msg = err.message.replace('Invariant failed: ', '');
 
-        // toast.error(msg);
         setLoading(false);
         setError(msg);
         if (onError) onError(msg, err);

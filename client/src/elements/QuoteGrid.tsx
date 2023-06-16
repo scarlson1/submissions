@@ -268,8 +268,12 @@ export const QuoteGrid: React.FC<QuoteGridProps> = ({
         density='compact'
         autoHeight
         onRowDoubleClick={(params) => navigate(params.id.toString())}
-        components={{ Toolbar: GridToolbar }}
-        componentsProps={{ toolbar: { csvOptions: { allColumns: true } } }}
+        slots={{
+          toolbar: GridToolbar,
+        }}
+        slotProps={{
+          toolbar: { csvOptions: { allColumns: true } },
+        }}
         initialState={{
           columns: {
             columnVisibilityModel: {

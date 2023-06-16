@@ -9,8 +9,9 @@ import { transform, isEqual, isArray, isObject, find } from 'lodash';
 import { AuthError } from 'firebase/auth';
 
 import { AddressComponent, AddressComponentType } from 'components/forms';
-import { Address, FirestoreTimestamp, FlattenObjectKeys } from 'common/types';
+import { Address, FirestoreTimestamp, FlattenObjectKeys, TaxItem } from 'common/types';
 import { geohashForLocation } from 'geofire-common';
+import { FeeItem } from 'views/admin/QuoteNew';
 
 /**
  * extracts address string from Google address_components object.
@@ -675,3 +676,10 @@ export const flattenObj = <T extends Record<string, any>>(obj: T) => {
 };
 
 export const truthyOrZero = (val: any) => val || val === 0;
+
+export function sumfeesTaxesPremium(fees: FeeItem[], taxes: TaxItem[], premium: number) {
+  const feeTotal = sumArr(fees.map((f) => f.feeValue));
+  const taxTotal = sumArr(taxes.map((t) => t.value));
+
+  return round(premium + feeTotal + taxTotal, 2);
+}

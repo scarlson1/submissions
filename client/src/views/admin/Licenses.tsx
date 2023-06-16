@@ -9,11 +9,13 @@ import { ADMIN_ROUTES, createPath } from 'router';
 import { BasicDataGrid } from 'components';
 import { useCollectionData } from 'hooks';
 import {
+  addressSummaryCol,
   booleanCalcActiveCol,
   createdCol,
   effectiveDateCol,
   expirationDateCol,
   idCol,
+  phoneCol,
   updatedCol,
 } from 'common';
 
@@ -77,6 +79,8 @@ const licensesColumns: GridColDef[] = [
   booleanCalcActiveCol,
   effectiveDateCol,
   expirationDateCol,
+  addressSummaryCol,
+  phoneCol,
   {
     field: 'surplusLinesProducerOfRecord',
     headerName: 'SL Producer of Record',

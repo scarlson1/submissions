@@ -238,6 +238,7 @@ export const AdminManageUsersGrid: React.FC<AdminManageUsersGridProps> = ({
         flex: 1,
         minWidth: 240,
         editable: signInResult.hasRequiredClaims,
+        extendType: 'singleSelect',
         type: 'multiSelect',
         valueOptions: [CUSTOM_CLAIMS.AGENT, CUSTOM_CLAIMS.ORG_ADMIN],
         // valueOptions: [

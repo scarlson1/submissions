@@ -306,6 +306,7 @@ export interface Quote {
   limits: Limits;
   address: Address;
   coordinates: GeoPoint | null;
+  homeState: string;
   fees: { feeName: string; feeValue: number }[];
   taxes: TaxItem[]; // { taxName: string; taxValue: number; taxRate?: number }[];
   annualPremium: number;
@@ -322,8 +323,8 @@ export interface Quote {
   // mortgageeInterest?: Mortgagee[];
   additionalInterests?: AdditionalInterest[];
   metadata: {
-    created: Timestamp; // FirestoreTimestamp;
-    updated: Timestamp; // FirestoreTimestamp;
+    created: Timestamp;
+    updated: Timestamp;
     version: WithFieldValue<number>;
   };
   userId: string | null;
@@ -1011,7 +1012,8 @@ export interface License extends BaseDoc {
   effectiveDate: FirestoreTimestamp;
   expirationDate?: FirestoreTimestamp | null;
   SLAssociationMembershipRequired?: boolean;
-  // metadata: BaseMetadata;
+  address?: Address | null;
+  phone?: string | null;
 }
 
 export interface Disclosure extends BaseDoc {

@@ -23,7 +23,7 @@ import { setUser as setSentryUser } from '@sentry/react';
 // import { filter } from 'rxjs/operators';
 
 import { userClaimsCollection } from 'common/firestoreCollections';
-import { LOCAL_STORAGE, UserClaims } from 'common';
+import { UserClaims } from 'common'; // LOCAL_STORAGE,
 import { ReauthDialog } from 'components';
 import { useAlgoliaStore } from 'hooks';
 
@@ -180,7 +180,7 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
         } else {
           auth.tenantId = null;
           setSentryUser(null);
-          localStorage.removeItem(LOCAL_STORAGE.USER_SEARCH_KEY);
+          // localStorage.removeItem(LOCAL_STORAGE.USER_SEARCH_KEY);
           resetKey();
         }
 

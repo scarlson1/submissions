@@ -39,7 +39,15 @@ export const addressValidation = yup.object().shape({
   addressLine2: yup.string().notRequired(),
   city: yup.string().required('city is required'),
   state: yup.string().required('state is required').oneOf(statesArr, 'state required'),
-  postal: postalVal.required('postal code is required'), // yup.string().required('postal code is required'),
+  postal: postalVal.required('postal code is required'),
+});
+
+export const addressValidationNotRequired = yup.object().shape({
+  addressLine1: yup.string().required('address is required'),
+  addressLine2: yup.string().notRequired(),
+  city: yup.string().required('city is required'),
+  state: yup.string().required('state is required').oneOf(statesArr, 'state required'),
+  postal: postalVal.required('postal code is required'),
 });
 
 export const validateActiveState = (activeStates: { [key: string]: boolean }) =>

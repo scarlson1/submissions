@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { Box, Tooltip } from '@mui/material';
-import { DataObjectRounded } from '@mui/icons-material';
+import { DataObjectRounded, DescriptionRounded } from '@mui/icons-material';
 import {
   DataGridProps,
   GridActionsCellItem,
@@ -17,49 +17,39 @@ import { useCollectionData, useJsonDialog } from 'hooks';
 import {
   Policy,
   POLICY_STATUS,
-  ratingDataCBRSCol,
-  addrCityCol,
-  addrLine1Col,
-  addrLine2Col,
-  addrPostalCol,
-  addrStateCol,
   nestedAgencyOrgIdCol,
   nestedAgentUserIdCol,
   nestedAgentNameCol,
-  ratingDataBasementCol,
   createdCol,
   currencyCol,
-  deductibleCol,
-  ratingDataDistToCoastFeetCol,
   effectiveDateCol,
   expirationDateCol,
-  ratingDataFloodZoneCol,
   idCol,
-  limitACol,
-  limitBCol,
-  limitCCol,
-  limitDCol,
   namedInsuredDisplayNameCol,
   namedInsuredFirstNameCol,
   namedInsuredLastNameCol,
-  ratingDataNumStoriesCol,
-  ratingDataPropertyCodeCol,
-  ratingDataSqFootageCol,
   statusCol,
   updatedCol,
   userIdCol,
-  ratingDataYearBuiltCol,
   agentEmailCol,
   agentPhoneCol,
   namedInsuredEmailCol,
   namedInsuredPhoneCol,
   agencyNameCol,
-  ratingDataReplacementCostCol,
-  addressSummaryCol,
-  tivCol,
   locationsCount,
+  locationAddresses,
+  homeStateCol,
+  productCol,
+  agencyAddressCol,
+  issuingCarrierCol,
+  SLProducerOfRecordNameCol,
+  SLProducerOfRecordLicenseNum,
+  SLProducerOfRecordLicensePhone,
+  SLProducerOfRecordLicenseState,
+  SLProducerOfRecordLicenseAddress,
 } from 'common';
 import { CUSTOM_CLAIMS } from 'modules/components';
+import { toast } from 'react-hot-toast';
 
 export interface PoliciesGridProps extends Partial<DataGridProps> {
   queryConstraints: QueryConstraint[];
@@ -89,6 +79,16 @@ export const PoliciesGrid: React.FC<PoliciesGridProps> = ({ queryConstraints, ..
     [data, dialog]
   );
 
+  const viewPolicyDoc = useCallback(
+    (params: GridRowParams) => () => {
+      const docObj = params.row.documents?.[0];
+      if (!docObj || !docObj.downloadUrl) toast.error('no document found');
+
+      window.open(docObj.downloadUrl, '_blank');
+    },
+    []
+  );
+
   const policyColumns: GridColDef<Policy>[] = useMemo(
     () => [
       {
@@ -99,12 +99,23 @@ export const PoliciesGrid: React.FC<PoliciesGridProps> = ({ queryConstraints, ..
         getActions: (params: GridRowParams) => [
           <GridActionsCellItem
             icon={
-              <Tooltip placement='top' title='View Raw JSON'>
+              <Tooltip placement='top' title='view raw JSON'>
                 <DataObjectRounded />
               </Tooltip>
             }
             onClick={showJson(params)}
             label='Details'
+          />,
+          // TODO: add view policy doc action
+          <GridActionsCellItem
+            icon={
+              <Tooltip placement='top' title='view policy'>
+                <DescriptionRounded />
+              </Tooltip>
+            }
+            onClick={viewPolicyDoc(params)}
+            label='View Policy'
+            disabled={!(params.row.documents && params.row.documents[0]?.downloadUrl)}
           />,
           // <GridActionsCellItem
           //   icon={
@@ -137,12 +148,8 @@ export const PoliciesGrid: React.FC<PoliciesGridProps> = ({ queryConstraints, ..
         ],
         editable: claimsCheckStatus === 'success' && iDAdminResult.hasRequiredClaims,
       },
-      addressSummaryCol,
-      addrLine1Col,
-      addrLine2Col,
-      addrCityCol,
-      addrStateCol,
-      addrPostalCol,
+      productCol,
+      locationAddresses,
       namedInsuredDisplayNameCol,
       namedInsuredFirstNameCol,
       namedInsuredLastNameCol,
@@ -154,27 +161,15 @@ export const PoliciesGrid: React.FC<PoliciesGridProps> = ({ queryConstraints, ..
         headerName: 'Price',
       },
       locationsCount,
-      limitACol,
-      limitBCol,
-      limitCCol,
-      limitDCol,
-      tivCol,
-      deductibleCol,
       effectiveDateCol,
       expirationDateCol,
+      homeStateCol,
       nestedAgentNameCol,
       agentEmailCol,
       agentPhoneCol,
       agencyNameCol,
-      ratingDataReplacementCostCol,
-      ratingDataPropertyCodeCol,
-      ratingDataYearBuiltCol,
-      ratingDataSqFootageCol,
-      ratingDataNumStoriesCol,
-      ratingDataBasementCol,
-      ratingDataDistToCoastFeetCol,
-      ratingDataCBRSCol,
-      ratingDataFloodZoneCol,
+      agencyAddressCol,
+      issuingCarrierCol,
       // TODO: rename finTransactions ?? or don't store on policy ??
       // use join query ?? or no grid --> only show in policy view ??
       // {
@@ -198,10 +193,15 @@ export const PoliciesGrid: React.FC<PoliciesGridProps> = ({ queryConstraints, ..
         ...idCol,
         headerName: 'Policy ID',
       },
+      SLProducerOfRecordNameCol,
+      SLProducerOfRecordLicenseNum,
+      SLProducerOfRecordLicenseState,
+      SLProducerOfRecordLicensePhone,
+      SLProducerOfRecordLicenseAddress,
       createdCol,
       updatedCol,
     ],
-    [showJson, claimsCheckStatus, iDAdminResult]
+    [showJson, viewPolicyDoc, claimsCheckStatus, iDAdminResult]
   );
 
   return (
@@ -214,11 +214,16 @@ export const PoliciesGrid: React.FC<PoliciesGridProps> = ({ queryConstraints, ..
         autoHeight
         // TODO: relative navigation ?? issues when shown in org view
         onRowDoubleClick={(params) => navigate(params.id.toString())}
-        components={{ Toolbar: GridToolbar }}
-        componentsProps={{ toolbar: { csvOptions: { allColumns: true } } }}
+        slots={{
+          toolbar: GridToolbar,
+        }}
+        slotProps={{
+          toolbar: { csvOptions: { allColumns: true } },
+        }}
         initialState={{
           columns: {
             columnVisibilityModel: {
+              product: false,
               'namedInsured.firstName': false,
               'namedInsured.lastName': false,
               'namedInsured.email': false,
@@ -233,16 +238,9 @@ export const PoliciesGrid: React.FC<PoliciesGridProps> = ({ queryConstraints, ..
               'agent.email': false,
               'agent.phone': false,
               'agent.userId': false,
+              'agency.address': false,
               annualPremium: false,
               agentId: false,
-              CBRSDesignation: false,
-              basement: false,
-              distToCoastFeet: false,
-              floodZone: false,
-              numStories: false,
-              propertyCode: false,
-              sqFootage: false,
-              yearBuilt: false,
               created: false,
               updated: false,
             },

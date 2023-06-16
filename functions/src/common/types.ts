@@ -489,6 +489,7 @@ export interface Quote {
   deductible: number;
   limits: Limits;
   address: Address;
+  homeState: string;
   coordinates: GeoPoint | null;
   fees: { feeName: string; feeValue: string }[];
   taxes: { taxName: string; taxValue: string }[];
@@ -1136,7 +1137,6 @@ export interface License extends BaseDoc {
   SLAssociationMembershipRequired?: boolean;
   address?: Address | null;
   phone?: string | null;
-  // metadata: BaseMetadata;
 }
 
 // TODO: swiss re property data res type

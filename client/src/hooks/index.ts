@@ -48,7 +48,7 @@ export { useAnalyticsEvent } from './useAnalyticsEvent';
 export { useDocSearchKeyboardEvents } from './useDocSearchKeyboardEvents';
 export { useGeoSearch } from './useGeoSearch';
 // export { useAlgoliaSearchKey } from './useAlgoliaSearchKey';
-export { useAlgoliaStore } from './useAlgoliaSearchKey';
+export { useAlgoliaStore } from './useAlgoliaStore';
 export { useSendEmail } from './useSendEmail';
 export { useSafeParams } from './useSafeParams';
 export { useUpdateClaims } from './useUpdateClaims';
