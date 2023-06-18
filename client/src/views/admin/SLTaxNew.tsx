@@ -1,8 +1,18 @@
 import React, { useCallback, useRef } from 'react';
-import { Box, Button, Chip, Divider, InputAdornment, Typography } from '@mui/material';
-import Grid from '@mui/material/Unstable_Grid2';
+import {
+  Box,
+  Button,
+  Chip,
+  Divider,
+  InputAdornment,
+  Typography,
+  Unstable_Grid2 as Grid,
+} from '@mui/material';
+import { PercentRounded } from '@mui/icons-material';
 import { Formik, FormikHelpers, FormikProps } from 'formik';
 import { addDoc, getFirestore, Timestamp } from 'firebase/firestore';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 import { startOfYear, lastDayOfYear } from 'date-fns';
 import * as yup from 'yup';
 
@@ -17,11 +27,15 @@ import {
 } from 'components/forms';
 import { statesAbrvSelectOptions } from 'common/statesList';
 import { getNumber } from 'modules/utils/helpers';
-import { taxesCollection } from 'common';
-import { toast } from 'react-hot-toast';
-import { useNavigate } from 'react-router-dom';
+import {
+  LineOfBusiness,
+  RoundingType,
+  SubjectBaseItems,
+  TransactionType,
+  taxesCollection,
+} from 'common';
+
 import { ADMIN_ROUTES, createPath } from 'router';
-import { PercentRounded } from '@mui/icons-material';
 
 export const newTaxValidation = yup.object().shape({
   state: yup.string().required(),
@@ -63,24 +77,12 @@ export const newTaxValidation = yup.object().shape({
   // refundable: yup.boolean()
 });
 
-export type SubjectBaseItems =
-  | 'premium'
-  // | 'fees'
-  | 'inspectionFees'
-  | 'mgaFees'
-  | 'outStatePremium'
-  | 'homeStatePremium'
-  | 'fixedFee';
-export type RoundingType = 'nearest' | 'up' | 'down';
-export type TransactionType = 'new' | 'renewal' | 'endorsement' | 'cancellation';
-export type LOB = 'residential' | 'commercial';
-
 export interface NewTaxValues {
   state: string;
   displayName: string;
   effectiveDate: Date;
   expirationDate?: Date | null;
-  LOB: LOB[];
+  LOB: LineOfBusiness[];
   transactionTypes: TransactionType[];
   subjectBase: SubjectBaseItems[];
   rate: string;

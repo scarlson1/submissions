@@ -272,6 +272,11 @@ export interface TaxItem {
   displayName: string;
   rate: number; //| string;
   value: number; //| string;
+  subjectBase: SubjectBaseItems[];
+  baseDigits?: number;
+  resultDigits?: number;
+  baseRoundType?: RoundingType;
+  resultRoundType: RoundingType;
 }
 
 // TODO: temparary (quote data interface for interim submissions period) REPLACE
@@ -922,6 +927,8 @@ export interface NotifyRegistration {
   state?: string;
 }
 
+export type LineOfBusiness = 'commercial' | 'residential';
+
 export type SubjectBaseItems =
   | 'premium'
   | 'inspectionFees'
@@ -932,7 +939,6 @@ export type SubjectBaseItems =
   | 'noFee';
 
 export type RoundingType = 'nearest' | 'up' | 'down';
-
 export type TransactionType = 'new' | 'renewal' | 'endorsement' | 'cancellation';
 
 export interface Tax extends BaseDoc {
@@ -940,7 +946,7 @@ export interface Tax extends BaseDoc {
   displayName: string;
   effectiveDate: Timestamp;
   expirationDate?: Timestamp | null;
-  LOB: string[];
+  LOB: LineOfBusiness[];
   transactionTypes: TransactionType[];
   subjectBase: SubjectBaseItems[];
   baseRoundType?: RoundingType;
@@ -949,7 +955,6 @@ export interface Tax extends BaseDoc {
   resultDigits?: number;
   rate: number;
   rateType: 'fixed' | 'percent';
-  resultRounding?: RoundingType;
   refundable?: boolean;
 }
 

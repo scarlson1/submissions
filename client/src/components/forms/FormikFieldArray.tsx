@@ -169,7 +169,7 @@ export const FormikFieldArray: React.FC<FormikFieldArrayProps> = ({
 
   return (
     <Box sx={{ flexGrow: 1 }}>
-      <FieldArray name={parentField}>
+      <FieldArray name={parentField} validateOnChange={true}>
         {({ remove, push }) => (
           <Box {...listContainerProps}>
             {values[parentField].length > 0 ? (

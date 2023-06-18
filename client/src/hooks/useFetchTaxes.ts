@@ -1,10 +1,34 @@
 import { useCallback, useMemo, useState } from 'react';
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import invariant from 'tiny-invariant';
 
 import { useAsyncToast } from './useAsyncToast';
-import { TaxItem, TransactionType } from 'common';
-import { NewQuoteValues } from 'views/admin/QuoteNew';
+import { LineOfBusiness, SubjectBaseItems, Tax, TaxItem, TransactionType, WithId } from 'common';
+import { FeeItem, NewQuoteValues } from 'views/admin/QuoteNew';
+import { sumByTypes } from 'modules/utils';
+
+export type SubjectBaseKeyVal = Record<Exclude<SubjectBaseItems, 'fixedFee' | 'noFee'>, number>;
+interface StateTaxRequest extends SubjectBaseKeyVal {
+  state: string;
+  transactionType: TransactionType;
+  quoteNumber?: string | null;
+  effectiveDate?: Date | string;
+  lineOfBusiness?: LineOfBusiness;
+}
+
+interface TaxResLineItem
+  extends Omit<WithId<Tax>, 'metadata' | 'effectiveDate' | 'expirationDate' | 'rate'> {
+  displayName: string;
+  calculatedTaxBase: number | null; // null if fixed rate ($10)
+  rate: number | null; // null if fixed rate ($10)
+  value: number;
+  effectiveDate: string;
+  expirationDate: string | null;
+}
+
+export interface StateTaxResponse {
+  lineItems: TaxResLineItem[];
+}
 
 export const useFetchTaxes = (
   onSuccess?: (taxes: TaxItem[]) => void,
@@ -24,15 +48,10 @@ export const useFetchTaxes = (
       invariant(annualPremium, 'annual premium required');
       invariant(address?.state, 'state required');
 
-      // TODO: need to check for multiple items (could be two inspection fees...)
-      const mgaObj = fees.find((f) => f.feeName === 'MGA Fee');
-      const inspectionObj = fees.find((f) => f.feeName === 'Inspection Fee');
-      // const uwAdjustmentObj = fees.find((f) => f.feeName === 'uw_adjustment');
+      const mgaFees = sumByTypes<FeeItem>(fees, 'feeName', 'MGA Fee', 'feeValue');
+      const inspectionFees = sumByTypes<FeeItem>(fees, 'feeName', 'Inspection Fee', 'feeValue');
 
-      let mgaFees = mgaObj ? mgaObj.feeValue : 0;
-      let inspectionFees = inspectionObj ? inspectionObj.feeValue : 0;
-
-      const body = {
+      const body: StateTaxRequest = {
         state: address.state,
         homeStatePremium: annualPremium,
         outStatePremium: 0,
@@ -41,12 +60,12 @@ export const useFetchTaxes = (
         inspectionFees,
         transactionType,
       };
-      // console.log('body: ', body, fees);
 
       try {
         setLoading(true);
 
-        const { data } = await axios.post(
+        // TODO: type response
+        const { data } = await axios.post<StateTaxRequest, AxiosResponse<StateTaxResponse>>(
           `${process.env.REACT_APP_SUBMISSIONS_API}/state-tax`,
           body
         );
@@ -56,10 +75,14 @@ export const useFetchTaxes = (
 
         let newTaxes: TaxItem[] = [];
         if (data && data.lineItems?.length > 0) {
-          newTaxes = data.lineItems.map((t: any) => ({
+          // @ts-ignore
+          newTaxes = data.lineItems.map((t) => ({
             displayName: t.displayName || '',
-            rate: `${t.rate || ''}`,
+            rate: `${t.rate || ''}`, // t.rate (causes iMask error if return number)
             value: `${t.value || ''}`,
+            subjectBase: t.subjectBase || [],
+            baseDigits: t.baseDigits,
+            resultDigits: t.resultDigits,
           }));
 
           toast.info(`${data.lineItems.length} tax${data.lineItems.length > 1 ? 'es' : ''} found`);

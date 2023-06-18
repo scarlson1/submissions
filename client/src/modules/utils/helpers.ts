@@ -5,11 +5,17 @@ import { GridValueFormatterParams, GridValueGetterParams } from '@mui/x-data-gri
 import { FirestoreError, GeoPoint, Timestamp, WhereFilterOp } from 'firebase/firestore';
 import { FirebaseError } from '@firebase/util';
 // import { inspect } from 'util';
-import { transform, isEqual, isArray, isObject, find } from 'lodash';
+import { transform, isEqual, isArray, isObject, find, ceil, floor } from 'lodash';
 import { AuthError } from 'firebase/auth';
 
 import { AddressComponent, AddressComponentType } from 'components/forms';
-import { Address, FirestoreTimestamp, FlattenObjectKeys, TaxItem } from 'common/types';
+import {
+  Address,
+  FirestoreTimestamp,
+  FlattenObjectKeys,
+  RoundingType,
+  TaxItem,
+} from 'common/types';
 import { geohashForLocation } from 'geofire-common';
 import { FeeItem } from 'views/admin/QuoteNew';
 
@@ -682,4 +688,44 @@ export function sumfeesTaxesPremium(fees: FeeItem[], taxes: TaxItem[], premium: 
   const taxTotal = sumArr(taxes.map((t) => t.value));
 
   return round(premium + feeTotal + taxTotal, 2);
+}
+
+// export function sumByType<T, K extends keyof T>(arr: T[], searchKey: K, searchValue: any, valKey: keyof T) {
+//   return arr.reduce((acc, f) => {
+//     // @ts-ignore
+//     const matchVal: number =
+//       isEqual(f[searchKey], searchValue) && typeof f[valKey] === 'number' ? f[valKey] : 0;
+//     return acc + matchVal;
+//   }, 0);
+// }
+
+export function sumByTypes<T>(
+  arr: T[],
+  searchKey: keyof T,
+  searchValues: any | any[],
+  valKey: keyof T
+) {
+  searchValues = Array.isArray(searchValues) ? searchValues : ([searchValues] as any[]);
+  return arr.reduce((acc, f) => {
+    if (searchValues.some((searchVal: any) => isEqual(f[searchKey], searchVal))) {
+      let num = typeof f[valKey] === 'string' ? extractNumber(f[valKey] as string) : f[valKey];
+
+      if (typeof num === 'number') return acc + num;
+    }
+
+    return acc;
+  }, 0);
+}
+
+export function getRoundingFunc(type?: RoundingType | null | undefined) {
+  switch (type) {
+    case 'nearest':
+      return round;
+    case 'up':
+      return ceil;
+    case 'down':
+      return floor;
+    default:
+      return round;
+  }
 }

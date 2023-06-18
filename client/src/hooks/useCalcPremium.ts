@@ -81,7 +81,7 @@ export const useCalcPremium = (
 
   const calcPremium = useCallback(
     async (values: NewQuoteValues) => {
-      console.log('VALUES: ', values);
+      // console.log('VALUES: ', values);
       let validatedReqBody;
       try {
         validatedReqBody = getValidatedCalcInputs(values) as CalcQuoteRequest;
@@ -113,6 +113,7 @@ export const useCalcPremium = (
           replacementCost: validatedReqBody.replacementCost,
           deductible: validatedReqBody.deductible,
           priorLossCount: validatedReqBody.priorLossCount,
+          numStories: values.ratingPropertyData?.numStories,
           latitude: values.coordinates?.latitude,
           longitude: values.coordinates?.longitude,
         };

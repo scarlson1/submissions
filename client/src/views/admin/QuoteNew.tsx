@@ -9,8 +9,8 @@ import {
   Tooltip,
   Typography,
   tooltipClasses,
+  Unstable_Grid2 as Grid,
 } from '@mui/material';
-import Grid from '@mui/material/Unstable_Grid2';
 import {
   Formik,
   FormikErrors,
@@ -28,13 +28,13 @@ import {
   PolicyRounded,
   WarningAmberRounded,
 } from '@mui/icons-material';
-import * as yup from 'yup';
 import { add, startOfToday, endOfToday } from 'date-fns';
-import { isEmpty, merge, omit } from 'lodash';
+import { isEmpty, isEqual, merge, omit } from 'lodash';
 import { Firestore, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { useFirestore } from 'reactfire';
 import { useNavigate, useParams } from 'react-router-dom';
 import invariant from 'tiny-invariant';
+import * as yup from 'yup';
 
 import {
   FormikDatePicker,
@@ -61,6 +61,8 @@ import {
   addToDate,
   dollarFormat,
   getDateShortcuts,
+  getRoundingFunc,
+  sumByTypes,
   sumfeesTaxesPremium,
 } from 'modules/utils/helpers';
 import {
@@ -74,6 +76,8 @@ import {
   useGetDiff,
   useJsonDialog,
   useRateQuote,
+  RatingInputsWithAAL,
+  SubjectBaseKeyVal,
 } from 'hooks';
 import { IconButtonMenu } from 'components';
 import { ADMIN_ROUTES, createPath } from 'router';
@@ -97,7 +101,6 @@ import {
   Optional,
 } from 'common';
 import { ShowRatingDialog } from './SubmissionView';
-import { RatingInputsWithAAL } from 'hooks/useRateQuote';
 import { TempAgentSearch } from 'components/search/Search';
 
 // TODO: standardize fee type names in enum
@@ -246,20 +249,114 @@ const quoteNewValidation = yup.object().shape({
     yup.object().shape({
       displayName: yup.string().required('display name is required'),
       rate: yup.number(),
-      value: yup.number().required('tax value is required'),
+      value: yup
+        .number()
+        .test(
+          'fee-val-current',
+          'value does not match expected value from current fees',
+          // (val, ctx) => {
+          function (val, ctx) {
+            if (!val) return true; // pass to required error
+            // TODO: get subject base
+            const tax = ctx.parent as TaxItem;
+            const baseKeys = tax?.subjectBase?.filter(
+              (b: string) => b !== 'fixedFee' && b !== 'noFee'
+            );
+            if (!baseKeys || !baseKeys.length || !tax.rate) return true;
+
+            // @ts-ignore (formik TS bug - doesn't recognize from)
+            const from = ctx.options.from;
+            if (!(from && from.length > 1)) return true;
+            const values = from[1].value;
+
+            const fees = values.fees;
+            if (!(fees && fees.length)) return true;
+
+            // mirror fetch taxes request body
+            const body = {
+              premium: values.annualPremium || 0,
+              homeStatePremium: values.annualPremium || 0,
+              outStatePremium: 0,
+              inspectionFees: sumByTypes<FeeItem>(fees, 'feeName', 'Inspection Fee', 'feeValue'),
+              mgaFees: sumByTypes<FeeItem>(fees, 'feeName', 'MGA Fee', 'feeValue'),
+            };
+
+            let taxBase = baseKeys.reduce((acc, curr) => {
+              const num = typeof curr === 'string' ? body[curr as keyof SubjectBaseKeyVal] : 0;
+              return acc + (num ?? 0);
+            }, 0);
+            const baseRoundingFunc = getRoundingFunc(tax.baseRoundType);
+            taxBase = baseRoundingFunc(taxBase, tax.baseDigits ?? 2);
+
+            const resultRoundFunc = getRoundingFunc(tax.resultRoundType);
+            const validationValue = resultRoundFunc(taxBase * tax.rate, tax.resultDigits ?? 2);
+
+            if (!isEqual(val, validationValue)) {
+              return this.createError({
+                message: `Expected ${dollarFormat(validationValue)} (base: ${taxBase})`,
+              });
+            }
+
+            return true;
+          }
+        )
+        .required('tax value is required'),
+      subjectBase: yup.array().of(yup.string()),
     })
   ),
-  // ISSUE: not storing subject base in taxes obj
   // .test('taxes-fees-match', "tax values don't reflect current fees", (val, ctx) => {
-  //   const fees = ctx.parent.fees;
-  //   if (!fees.length) return true;
+  //   const fees = ctx.parent.fees as FeeItem[];
+  //   const taxes = val as TaxItem[];
+  //   if (!taxes?.length || !fees.length) return true;
+
+  //   // let taxTotal = 0;
+  //   // get base nums
+  //   // loop taxes
+  //   // check tax sum same as val sum
+  //   // TODO: move to reusable func "getTaxArgs"
+  //   const body: SubjectBaseKeyVal = {
+  //     premium: ctx.parent.annualPremium,
+  //     homeStatePremium: ctx.parent.annualPremium,
+  //     outStatePremium: 0,
+  //     inspectionFees: sumByTypes<FeeItem>(fees, 'feeName', 'Inspection Fee', 'feeValue'),
+  //     mgaFees: sumByTypes<FeeItem>(fees, 'feeName', 'MGA Fee', 'feeValue'),
+  //   };
+
+  //   let validationTaxTotal = 0;
+
+  //   for (let t of taxes) {
+  //     // dont need to validate fixed fees
+  //     const baseKeys = t.subjectBase
+  //       ?.filter((base) => base !== 'fixedFee' && base !== 'noFee')
+  //       .filter((x) => x);
+  //     console.log('BASE KEYS: ', baseKeys);
+  //     if (baseKeys && baseKeys.length) {
+  //       const taxBase = baseKeys.reduce((acc, curr) => {
+  //         const num = typeof curr === 'string' ? body[curr as keyof SubjectBaseKeyVal] : 0;
+  //         return acc + (num ?? 0);
+  //       }, 0);
+
+  //       // POTENTIAL BUG IF ROUNDING TO 0
+  //       // COULD SAVE TAX BASE AND COMPARE TAX BASE NUMBERS
+  //       const taxValue = round(taxBase * t.rate, 2);
+  //       validationTaxTotal += taxValue;
+  //       console.log(`${taxBase} (base) * ${t.rate} (rate) = ${taxValue}`);
+  //     }
+  //   }
+
+  //   const taxTotal = taxes.reduce((acc, curr) => acc + curr.value, 0);
+  //   console.log('TAX TOTAL: ', taxTotal);
+  //   console.log('Validation Total: ', validationTaxTotal);
+  //   console.log('IS EQUAL: ', isEqual(taxTotal, validationTaxTotal));
+
+  //   return true;
   // }),
   annualPremium: yup.number().min(100).required('term premium is required'),
   subproducerCommission: yup.number().required('commission is required'),
   quoteTotal: yup
     .number()
     .min(100, 'total must be above 100')
-    .test('correct-total', 'quote must total: premium + fees + taxes', (val, ctx) => {
+    .test('correct-total', 'total ≠ premium + fees + taxes', (val, ctx) => {
       const { fees, taxes, annualPremium } = ctx.parent;
 
       const total = sumfeesTaxesPremium(fees, taxes, annualPremium || 0);
@@ -366,12 +463,18 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
     },
     []
   );
+  console.log('INITIAL VALUES: ', initialValues);
 
   const { fetchTaxes, loading: taxesLoading } = useFetchTaxes(
     (newTaxes: TaxItem[]) => {
       setTimeout(() => {
         formikRef.current?.setFieldValue('taxes', [...newTaxes]);
-        setTimeout(() => calcTotal(), 10);
+        setTimeout(() => {
+          calcTotal();
+
+          const taxes = newTaxes.map((t) => ({ value: true, displayName: true }));
+          formikRef.current?.setTouched({ ...formikRef.current?.touched, taxes }, true);
+        }, 10);
       }, 50);
       toast.success('premium & taxes updated 🎉');
     },
@@ -488,6 +591,9 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
 
   const setTouched = useCallback(async (key?: keyof FormikErrors<NewQuoteValues>) => {
     const validationErrors = await formikRef.current?.validateForm();
+
+    // console.log('SET NESTED OBJECT VALUES (KEY): ', setNestedObjectValues(keys, true));
+    console.log('SET NESTED OBJECT VALUES (ALL): ', setNestedObjectValues(validationErrors, true));
     // https://github.com/jaredpalmer/formik/issues/2734#issuecomment-923337541
     if (validationErrors && Object.keys(validationErrors).length > 0) {
       const keys = key ? validationErrors[key] : validationErrors;
@@ -1191,7 +1297,7 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
                               value: 'Inspection Fee',
                             },
                             { label: 'MGA Fee', value: 'MGA Fee' },
-                            { label: 'UW Adjustment', value: 'uw_adjustment' },
+                            { label: 'UW Adjustment', value: 'UW Adjustment' },
                           ],
                           gridProps: { xs: 6, sm: 6, md: 6 },
                           componentProps: {
@@ -1430,6 +1536,7 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
 // TODO: can use useReateQuote extraction func since submissions schema not matches quote schemas
 function getRatingInputsFromSubmission(subData?: Submission) {
   // TODO: decide whether to flatten or keep in obj ?? does diff function compare nested values ??
+
   return {
     latitude: subData?.coordinates?.latitude,
     longitude: subData?.coordinates?.longitude,
@@ -1492,8 +1599,8 @@ function Diff({
 
   // recalc diff whenever ratingInputs change
   useEffect(() => {
-    // console.log('OLD OBJ: ', ratingInputsPrev);
-    // console.log('NEW OBJ: ', ratingInputsCurr);
+    console.log('OLD OBJ: ', ratingInputsPrev);
+    console.log('NEW OBJ: ', ratingInputsCurr);
 
     getDiff(ratingInputsPrev, ratingInputsCurr);
   }, [getDiff, ratingInputsPrev, ratingInputsCurr]);
@@ -1574,6 +1681,10 @@ function RequiredFieldsIndicator({
       ),
     [errors]
   );
+
+  useEffect(() => {
+    console.log('ERRORS: ', errors);
+  }, [errors]);
 
   const stateIcon = errorEntries.length ? (
     <WarningAmberRounded

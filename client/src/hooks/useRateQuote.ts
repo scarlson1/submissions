@@ -42,8 +42,6 @@ export function extractRatingInputsFromValues(values: NewQuoteValues): RatingInp
 }
 
 export function getValidRatingInputs(values: NewQuoteValues) {
-  // const { coordinates, ratingPropertyData, limits, address, subproducerCommission } = values;
-  // const { coordinates,  limits } = values;
   const commValidated = validateCommonInputs(values);
   const { coordinates } = commValidated;
 
