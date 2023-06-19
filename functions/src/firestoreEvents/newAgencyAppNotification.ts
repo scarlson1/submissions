@@ -1,10 +1,9 @@
 import type { FirestoreEvent } from 'firebase-functions/v2/firestore';
+import { info } from 'firebase-functions/logger';
 import { QueryDocumentSnapshot } from 'firebase-admin/firestore';
 
 import { sendNewAgencySubmissionAdminNotification } from '../services/sendgrid';
-import { audience, hostingBaseURL, sendgridApiKey } from '../common/index.js';
-
-// const hostingURL = defineString('HOSTING_BASE_URL');
+import { AgencyApplication, audience, hostingBaseURL, sendgridApiKey } from '../common/index.js';
 
 export default async (
   event: FirestoreEvent<
@@ -20,38 +19,19 @@ export default async (
     return;
   }
   const { submissionId } = event.params;
-  const submission = snap.data();
-  console.log(`New submission received: ${submission.orgName} (id: ${submissionId})`);
+  const submission = snap.data() as AgencyApplication;
+  info(`New submission received: ${submission?.orgName} (id: ${submissionId})`);
 
-  // TODO: validate email ??
   const link = `${hostingBaseURL.value()}/admin/agencies/submissions/${submissionId}`;
-  // const link = `${hostingURL.value()}/admin/agencies/submissions/${submissionId}`;
-  console.log(`submission link: ${link}`);
+  info(`submission link: ${link}`);
 
   const adminRecipients = ['spencer.carlson@idemandinsurance.com'];
   if (audience.value() !== 'LOCAL HUMANS') {
     adminRecipients.push('ron.carlson@idemandinsurance.com');
   }
-  // const params = {
-  //   firstName: submission.firstName || '',
-  //   lastname: submission.lastName || '',
-  //   email: submission.email || '',
-  // };
-  // const createAccountURL = `${
-  //   process.env.HOSTING_BASE_URL
-  // }/auth/create-account?${querystring.encode(params)}`;
-
-  // console.log(`Sending submission received notification to ${submission.email}`);
-  // await sendSubmissionRecievedConfirmation(
-  //   process.env.SENDGRID_API_KEY!,
-  //   createAccountURL,
-  //   submission.email,
-  //   null,
-  //   submission.addressLine1
-  // );
 
   if (submission.sendAppReceivedNotification) {
-    console.log('sending admin notifications to: ', adminRecipients);
+    info(`sending admin notifications to: ${JSON.stringify(adminRecipients)}`);
     await sendNewAgencySubmissionAdminNotification(
       sendgridApiKey.value(),
       link,

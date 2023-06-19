@@ -95,14 +95,16 @@ export interface Submission extends FloodValues {
   ratingPropertyData: Nullable<RatingPropertyData>; // FetchPropertyDataResponse;
   propertyDataDocId: string | null; // attom response
   initValues: InitRatingValues;
-  darkMapImageURL?: string;
-  lightMapImageURL?: string;
-  darkMapImageFilePath?: string;
-  lightMapImageFilePath?: string;
-  satelliteMapImageURL?: string;
-  satelliteStreetsMapImageURL?: string;
-  satelliteMapImageFilePath?: string;
-  satelliteStreetsMapImageFilePath?: string;
+  // darkMapImageURL?: string;
+  // lightMapImageURL?: string;
+  // darkMapImageFilePath?: string;
+  // lightMapImageFilePath?: string;
+  // satelliteMapImageURL?: string;
+  // satelliteStreetsMapImageURL?: string;
+  // satelliteMapImageFilePath?: string;
+  // satelliteStreetsMapImageFilePath?: string;
+  imageURLs?: Record<locationImageTypes, string> | null;
+  imagePaths?: Record<locationImageTypes, string> | null;
   AAL?: Nullable<ValueByRiskType>;
   // inlandAAL?: number;
   // surgeAAL?: number;
@@ -291,7 +293,7 @@ export interface RatingPropertyData {
   replacementCost: number;
   sqFootage: number;
   yearBuilt: number;
-  ffe?: number;
+  FFH?: number;
 }
 
 interface RatingCalcData {
@@ -339,8 +341,8 @@ export interface Quote {
   agency: Nullable<AgencyDetails>; // TODO: REMOVE NULLABLE ??
   status: QUOTE_STATUS; // SUBMISSION_STATUS;
   submissionId?: string | null;
-  imageURLs?: Record<string, string> | null;
-  imagePaths?: Record<string, string> | null;
+  imageURLs?: Record<locationImageTypes, string> | null;
+  imagePaths?: Record<locationImageTypes, string> | null;
   ratingPropertyData: Nullable<RatingPropertyData>;
   geoHash?: Geohash | null;
   notes?: Note[]; // { [key: string]: string }[];
@@ -580,6 +582,8 @@ export type RCVKeys = 'building' | 'otherStructures' | 'contents' | 'BI' | 'tota
 
 export type RCVs = Record<RCVKeys, number>;
 
+export type locationImageTypes = 'light' | 'dark' | 'satellite' | 'satelliteStreets';
+
 // export interface PolicyLocationNew {
 //   address: Address;
 //   coordinates: GeoPoint;
@@ -614,6 +618,8 @@ export interface PolicyLocation {
   propertyData: RatingPropertyData;
   effectiveDate: Timestamp;
   expirationDate: Timestamp;
+  imageURLs?: Record<locationImageTypes, string> | null;
+  imagePaths?: Record<locationImageTypes, string> | null;
   locationId: string;
   externalId?: string | null;
   metadata: {
@@ -654,8 +660,8 @@ export interface Policy extends BaseDoc {
   issuingCarrier: string;
   // TODO: GENERATE DOCS INSTEAD OF STORING
   documents: [{ displayName: string; downloadUrl: string; storagePath: string }];
-  imageURLs?: Record<string, string> | null;
-  imagePaths?: Record<string, string> | null;
+  // imageURLs?: Record<string, string> | null;
+  // imagePaths?: Record<string, string> | null;
 }
 
 export interface TrxRatingData extends Nullable<RatingPropertyData> {

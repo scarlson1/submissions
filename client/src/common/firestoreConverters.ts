@@ -6,6 +6,7 @@ import {
   Timestamp,
   WithFieldValue,
 } from 'firebase/firestore';
+
 import { Quote, WithId } from './types';
 
 export const submissionQuoteConverter = {

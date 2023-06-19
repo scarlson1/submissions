@@ -11,13 +11,18 @@ import {
   Typography,
 } from '@mui/material';
 import { QueryConstraint, where } from 'firebase/firestore';
+import { getFunctions } from 'firebase/functions';
+import { useFunctions } from 'reactfire';
 import { IconLayer, PickingInfo } from 'deck.gl/typed';
 
 import { DeckMap } from './DeckMap';
 import { useCollectionData } from 'hooks';
 import { deliverAgencyAgreement, getValuationEstimate } from 'modules/api';
-import { getFunctions } from 'firebase/functions';
-import { useFunctions } from 'reactfire';
+import { MAP_ICON_URL } from 'common';
+
+// TODO: study how MUI 'slots' works to create component that can add filters, etc.
+// TODO: use useReducer to create actions for map ??
+
 // @ts-ignore
 // import { DataFilterExtension } from '@deck.gl/extensions';
 // import { Policy } from 'common';
@@ -144,10 +149,11 @@ export const PoliciesMap: React.FC<PoliciesMapProps> = ({
               pickable: true,
               // iconAtlas and iconMapping are required
               // getIcon: return a string
-              iconAtlas:
-                'https://raw.githubusercontent.com/visgl/deck.gl-data/master/website/icon-atlas.png',
+              // iconAtlas:
+              //   'https://raw.githubusercontent.com/visgl/deck.gl-data/master/website/icon-atlas.png',
+              iconAtlas: MAP_ICON_URL,
               iconMapping: ICON_MAPPING,
-              getPosition: (d) => [d.coordinates.longitude, d.coordinates.latitude],
+              getPosition: (d: any) => [d.coordinates.longitude, d.coordinates.latitude],
               getIcon: (d) => 'marker',
               sizeScale: 5,
               getSize: (d) => 5,

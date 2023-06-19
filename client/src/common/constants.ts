@@ -9,6 +9,12 @@ export const SUPPORTED_AUTH_PROVIDER_IDS = [
   ProviderId.PHONE,
 ];
 
+export const STATES_URL = 'https://scarlson1.github.io/data/states_20m.json';
+
+export const COUNTIES_URL = 'https://scarlson1.github.io/data/counties_20m.json';
+
+export const MAP_ICON_URL = 'https://scarlson1.github.io/icon-atlas.png';
+
 // export const ACTIVE_STATES = [
 //   'Arizona',
 //   'Connecticut',
@@ -102,4 +108,13 @@ export const stateFIPS = {
 // 0, 0.01, 0.02, 0.03, 0.04,
 export const COMMISSION_OPTIONS = [
   0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.11, 0.12, 0.13, 0.14, 0.15, 0.16, 0.17, 0.18, 0.19, 0.2,
+];
+
+export const fallbackImages = [
+  'https://firebasestorage.googleapis.com/v0/b/idemand-submissions.appspot.com/o/common%2Fhome-interior-1.jpg?alt=media&token=2d23e76d-2ea4-403e-9f0e-93bbaacebf3e',
+  'https://firebasestorage.googleapis.com/v0/b/idemand-submissions.appspot.com/o/common%2Fhome-interior-2.jpg?alt=media&token=720e4102-0c2e-48f9-8b36-c85b0daeaa33',
+  'https://firebasestorage.googleapis.com/v0/b/idemand-submissions.appspot.com/o/common%2Fhome-kitchen-1.jpg?alt=media&token=45123914-5cf6-4e2f-976c-76d6009d6371',
+  'https://firebasestorage.googleapis.com/v0/b/idemand-submissions.appspot.com/o/common%2Fhome-snow-dusk-1.jpg?alt=media&token=1de02ecb-2dfc-46fb-a2e6-0a223f0d3ac0',
+  'https://firebasestorage.googleapis.com/v0/b/idemand-submissions.appspot.com/o/common%2Fhouse-day-1.jpg?alt=media&token=c4395078-19af-4fc0-92da-3d9e2ef6ef37',
+  'https://firebasestorage.googleapis.com/v0/b/idemand-submissions.appspot.com/o/common%2Fneighborhood-aerial-1.jpg?alt=media&token=9f80797b-2449-4229-bb2d-b5eb224d86af',
 ];

@@ -182,7 +182,7 @@ export default async (
         distToCoastFeet: null,
         sqFootage: null,
         yearBuilt: null,
-        ffe: null,
+        FFH: null,
         // priorLossCount: sub.priorLossCount || null, // TODO: fix confiction with priorLossCount in Submission doc
       },
       AAL: {

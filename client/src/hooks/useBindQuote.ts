@@ -31,10 +31,10 @@ export const useBindQuote = (
 
         if (onSuccess) onSuccess(`Payment ${pmtData.status} (ID: ${pmtData.transactionId})`);
         return pmtData;
-      } catch (err) {
+      } catch (err: any) {
         console.log('ERROR BINDING QUOTE: ', err);
         let msg = 'Error binding quote';
-        // if (err )
+        if (err?.message) msg += `. ${err.message}`;
 
         // TODO: get error message
         if (onError) onError(err, msg);

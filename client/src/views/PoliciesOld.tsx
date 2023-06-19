@@ -1,3 +1,5 @@
+export {};
+
 // import React, { useCallback } from 'react';
 // import {
 //   Avatar,
@@ -27,15 +29,6 @@
 //   { img: 'http://i.pravatar.cc/300?img=1', name: 'Jane Smith', email: 'test2@user.com' },
 //   { img: 'http://i.pravatar.cc/300?img=4', name: 'Tim Jones', email: 'test3@user.com' },
 // ];
-
-export const fallbackImages = [
-  'https://firebasestorage.googleapis.com/v0/b/idemand-submissions.appspot.com/o/common%2Fhome-interior-1.jpg?alt=media&token=2d23e76d-2ea4-403e-9f0e-93bbaacebf3e',
-  'https://firebasestorage.googleapis.com/v0/b/idemand-submissions.appspot.com/o/common%2Fhome-interior-2.jpg?alt=media&token=720e4102-0c2e-48f9-8b36-c85b0daeaa33',
-  'https://firebasestorage.googleapis.com/v0/b/idemand-submissions.appspot.com/o/common%2Fhome-kitchen-1.jpg?alt=media&token=45123914-5cf6-4e2f-976c-76d6009d6371',
-  'https://firebasestorage.googleapis.com/v0/b/idemand-submissions.appspot.com/o/common%2Fhome-snow-dusk-1.jpg?alt=media&token=1de02ecb-2dfc-46fb-a2e6-0a223f0d3ac0',
-  'https://firebasestorage.googleapis.com/v0/b/idemand-submissions.appspot.com/o/common%2Fhouse-day-1.jpg?alt=media&token=c4395078-19af-4fc0-92da-3d9e2ef6ef37',
-  'https://firebasestorage.googleapis.com/v0/b/idemand-submissions.appspot.com/o/common%2Fneighborhood-aerial-1.jpg?alt=media&token=9f80797b-2449-4229-bb2d-b5eb224d86af',
-];
 
 // export const Policies: React.FC = () => {
 //   const navigate = useNavigate();
@@ -70,57 +63,57 @@ export const fallbackImages = [
 //         {!initialLoading &&
 //           policies?.map((p, i) => (
 //             <Grid xs={12} sm={6} md={4} lg={3} key={p.id}>
-//               <FlexCard
-//                 sx={{
-//                   maxWidth: 340,
-//                   boxShadow: '0 8px 40px -12px rgba(0,0,0,0.3)',
-//                   '&:hover': {
-//                     boxShadow: '0 16px 70px -12.125px rgba(0,0,0,0.3)',
-//                   },
-//                   mx: { xs: 'auto' },
-//                 }}
-//                 variant='elevation'
-//                 raised
-//               >
-//                 <CardActionArea onClick={() => handleClick(p.id)}>
-//                   <CardMedia
-//                     sx={{ height: 140 }}
-//                     image={
-//                       (theme.palette.mode === 'dark'
-//                         ? p.imageURLs?.darkMapImageURL
-//                         : p.imageURLs?.lightMapImageURL) ||
-//                       fallbackImages[i] ||
-//                       fallbackImages[0]
-//                     }
-//                     title={`${p.address.addressLine1} map`}
-//                   />
-//                   <FlexCardContent sx={{ p: 5 }}>
-//                     <Typography fontWeight={900} fontSize={24}>
-//                       {p.address.addressLine1}
-//                     </Typography>
-//                     <Item
-//                       label='Named Insured'
-//                       value={`${p.namedInsured?.firstName || 'John'} ${
-//                         p.namedInsured?.lastName || 'Doe'
-//                       }`}
-//                     />
-//                     <Item label='Agent' value={p.agent.name ?? 'iDemand'} />
-//                     <Item
-//                       label='Agency'
-//                       value={p.agency.name ?? 'iDemand Insurance Agency, Inc.'}
-//                     />
-//                     <Item label='Effective' value={`${p.effectiveDate} - ${p.expirationDate}`} />
-//                     <Divider light sx={{ my: { xs: 3, md: 4 } }} />
-//                     <AvatarGroup max={4} sx={{ justifyContent: 'flex-end' }}>
-//                       {additionalInsureds.map((f) => (
-//                         <Tooltip title={f.name} key={f.img}>
-//                           <Avatar src={f.img} alt={f.name} />
-//                         </Tooltip>
-//                       ))}
-//                     </AvatarGroup>
-//                   </FlexCardContent>
-//                 </CardActionArea>
-//               </FlexCard>
+// <FlexCard
+//   sx={{
+//     maxWidth: 340,
+//     boxShadow: '0 8px 40px -12px rgba(0,0,0,0.3)',
+//     '&:hover': {
+//       boxShadow: '0 16px 70px -12.125px rgba(0,0,0,0.3)',
+//     },
+//     mx: { xs: 'auto' },
+//   }}
+//   variant='elevation'
+//   raised
+// >
+//   <CardActionArea onClick={() => handleClick(p.id)}>
+//     <CardMedia
+//       sx={{ height: 140 }}
+//       image={
+//         (theme.palette.mode === 'dark'
+//           ? p.imageURLs?.darkMapImageURL
+//           : p.imageURLs?.lightMapImageURL) ||
+//         fallbackImages[i] ||
+//         fallbackImages[0]
+//       }
+//       title={`${p.address.addressLine1} map`}
+//     />
+//     <FlexCardContent sx={{ p: 5 }}>
+//       <Typography fontWeight={900} fontSize={24}>
+//         {p.address.addressLine1}
+//       </Typography>
+//       <Item
+//         label='Named Insured'
+//         value={`${p.namedInsured?.firstName || 'John'} ${
+//           p.namedInsured?.lastName || 'Doe'
+//         }`}
+//       />
+//       <Item label='Agent' value={p.agent.name ?? 'iDemand'} />
+//       <Item
+//         label='Agency'
+//         value={p.agency.name ?? 'iDemand Insurance Agency, Inc.'}
+//       />
+//       <Item label='Effective' value={`${p.effectiveDate} - ${p.expirationDate}`} />
+//       <Divider light sx={{ my: { xs: 3, md: 4 } }} />
+//       <AvatarGroup max={4} sx={{ justifyContent: 'flex-end' }}>
+//         {additionalInsureds.map((f) => (
+//           <Tooltip title={f.name} key={f.img}>
+//             <Avatar src={f.img} alt={f.name} />
+//           </Tooltip>
+//         ))}
+//       </AvatarGroup>
+//     </FlexCardContent>
+//   </CardActionArea>
+// </FlexCard>
 //             </Grid>
 //           ))}
 //       </Grid>

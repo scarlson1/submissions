@@ -39,13 +39,13 @@ export const useCreateQuote = (
         const geoHash = getGeoHash(submissionData?.coordinates);
 
         // TODO: store images in object on submission
-        const { imageURLs, imagePaths } = getImages(submissionData);
+        // const { imageURLs, imagePaths } = getImages(submissionData);
 
         const quoteRef = await addDoc(quotesCollection(firestore), {
           ...quoteData,
           submissionId,
-          imageURLs,
-          imagePaths,
+          imageURLs: isEmpty(submissionData?.imageURLs) ? null : submissionData?.imageURLs,
+          imagePaths: isEmpty(submissionData?.imagePaths) ? null : submissionData?.imagePaths,
           geoHash,
         });
 
@@ -173,36 +173,36 @@ function getFormattedQuote(values: NewQuoteValues, uid?: string | null): Quote {
   };
 }
 
-function getImages(submissionData?: Submission | null) {
-  let imageURLs: Record<string, string> = {};
-  let imagePaths: Record<string, string> = {};
-  // MapImageURL MapImageFilePath
-  if (submissionData) {
-    const {
-      darkMapImageURL,
-      lightMapImageURL,
-      satelliteMapImageURL,
-      satelliteStreetsMapImageURL,
-      darkMapImageFilePath,
-      lightMapImageFilePath,
-      satelliteMapImageFilePath,
-      satelliteStreetsMapImageFilePath,
-    } = submissionData;
+// function getImages(submissionData?: Submission | null) {
+//   let imageURLs: Record<string, string> = {};
+//   let imagePaths: Record<string, string> = {};
+//   // MapImageURL MapImageFilePath
+//   if (submissionData) {
+//     const {
+//       darkMapImageURL,
+//       lightMapImageURL,
+//       satelliteMapImageURL,
+//       satelliteStreetsMapImageURL,
+//       darkMapImageFilePath,
+//       lightMapImageFilePath,
+//       satelliteMapImageFilePath,
+//       satelliteStreetsMapImageFilePath,
+//     } = submissionData;
 
-    if (darkMapImageURL) imageURLs.darkMapImageURL = darkMapImageURL;
-    if (lightMapImageURL) imageURLs.lightMapImageURL = lightMapImageURL;
-    if (satelliteMapImageURL) imageURLs.satelliteMapImageURL = satelliteMapImageURL;
-    if (satelliteStreetsMapImageURL)
-      imageURLs.satelliteStreetsMapImageURL = satelliteStreetsMapImageURL;
-    if (darkMapImageFilePath) imagePaths.darkMapImageFilePath = darkMapImageFilePath;
-    if (lightMapImageFilePath) imagePaths.lightMapImageFilePath = lightMapImageFilePath;
-    if (satelliteMapImageFilePath) imagePaths.satelliteMapImageFilePath = satelliteMapImageFilePath;
-    if (satelliteStreetsMapImageFilePath)
-      imagePaths.satelliteStreetsMapImageFilePath = satelliteStreetsMapImageFilePath;
-  }
+//     if (darkMapImageURL) imageURLs.darkMapImageURL = darkMapImageURL;
+//     if (lightMapImageURL) imageURLs.lightMapImageURL = lightMapImageURL;
+//     if (satelliteMapImageURL) imageURLs.satelliteMapImageURL = satelliteMapImageURL;
+//     if (satelliteStreetsMapImageURL)
+//       imageURLs.satelliteStreetsMapImageURL = satelliteStreetsMapImageURL;
+//     if (darkMapImageFilePath) imagePaths.darkMapImageFilePath = darkMapImageFilePath;
+//     if (lightMapImageFilePath) imagePaths.lightMapImageFilePath = lightMapImageFilePath;
+//     if (satelliteMapImageFilePath) imagePaths.satelliteMapImageFilePath = satelliteMapImageFilePath;
+//     if (satelliteStreetsMapImageFilePath)
+//       imagePaths.satelliteStreetsMapImageFilePath = satelliteStreetsMapImageFilePath;
+//   }
 
-  return {
-    imageURLs: isEmpty(imageURLs) ? null : imageURLs,
-    imagePaths: isEmpty(imagePaths) ? null : imagePaths,
-  };
-}
+//   return {
+//     imageURLs: isEmpty(imageURLs) ? null : imageURLs,
+//     imagePaths: isEmpty(imagePaths) ? null : imagePaths,
+//   };
+// }

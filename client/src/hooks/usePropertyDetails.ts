@@ -98,7 +98,7 @@ export const usePropertyDetailsAttom = (props?: UsePropertyDetailsProps) => {
     replacementCost: null,
     sqFootage: null,
     yearBuilt: null,
-    ffe: null,
+    FFH: null,
   });
   const [rcvSourceUser, setRcvSourceUser] = useState<boolean>(false);
   const [initRatingValues, setInitRatingValues] = useState<InitRatingValues>(DEFAULT_INIT_VALUES);
@@ -120,7 +120,7 @@ export const usePropertyDetailsAttom = (props?: UsePropertyDetailsProps) => {
         replacementCost: data.replacementCost || null,
         sqFootage: data.sqFootage || null,
         yearBuilt: data.yearBuilt || null,
-        ffe: data.ffe || null,
+        FFH: data.FFH || null,
       };
 
       setPropertyDataDocId(data.attomDocId || null);

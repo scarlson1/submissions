@@ -180,7 +180,7 @@ export default async ({ data, auth }: CallableRequest<GetAnnualPremiumRequest>) 
         distToCoastFeet: null,
         sqFootage: null,
         yearBuilt: null,
-        ffe: null,
+        FFH: null,
         // priorLossCount, TODO: fix typing error
       },
       AAL: AALsRes.AAL,

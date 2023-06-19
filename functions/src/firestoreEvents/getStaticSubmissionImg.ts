@@ -2,19 +2,27 @@ import { FirestoreEvent } from 'firebase-functions/v2/firestore';
 import type { QueryDocumentSnapshot } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
 import { storageBucket } from 'firebase-functions/params';
-import { error } from 'firebase-functions/logger';
+import { error, info } from 'firebase-functions/logger';
 import axios from 'axios';
 import path from 'path';
 import os from 'os';
 import fs from 'fs';
 import { v4 as uuid } from 'uuid';
 
-import { mapboxToken } from '../common';
+import { Submission, locationImageTypes, mapboxToken, unlinkFile } from '../common';
 
 // TODO: add marker overlay ?? https://docs.mapbox.com/api/maps/static-images/#example-request-retrieve-a-static-map-with-a-marker-overlay
 
 // const MAPBOX_PUBLIC_TOKEN =
 //   'pk.eyJ1Ijoic3BlbmNlci1jYXJsc29uIiwiYSI6ImNqeGtoeHhkNjF2eG4zeW1mYjExcWk1aWkifQ.ikWGkKvnTuopUgSgM8nWcg';
+
+// TODO: idempotency
+
+async function clearTempFiles(filePaths: string[]) {
+  for (const filePath of filePaths) {
+    await unlinkFile(filePath);
+  }
+}
 
 export default async (
   event: FirestoreEvent<
@@ -30,7 +38,7 @@ export default async (
       console.log('No data associated with this event');
       return;
     }
-    const { coordinates: coords } = snap.data(); // userId
+    const { coordinates: coords } = snap.data() as Submission;
 
     if (!coords || !coords.latitude || !coords.longitude) {
       console.log('Policy missing coordinates. falling back on defaut static map images...');
@@ -62,14 +70,14 @@ export default async (
       });
     };
 
-    const clearTempFiles = async (filePaths: string[]) => {
-      for (const filePath of filePaths) {
-        console.log('unlinking temp file: ', filePath);
-        fs.unlinkSync(filePath);
-      }
-    };
+    // const clearTempFiles = async (filePaths: string[]) => {
+    //   for (const filePath of filePaths) {
+    //     console.log('unlinking temp file: ', filePath);
+    //     fs.unlinkSync(filePath);
+    //   }
+    // };
 
-    const mapboxStyles = [
+    const mapboxStyles: { name: locationImageTypes; style: string; zoom: number }[] = [
       { name: 'light', style: 'mapbox/light-v8', zoom: 13 },
       { name: 'dark', style: 'spencer-carlson/cl8dxgtum000w14qix5ft9gw5', zoom: 13 },
       { name: 'satellite', style: 'mapbox/satellite-v9', zoom: 17 },
@@ -80,8 +88,9 @@ export default async (
       },
     ];
 
-    const cleanUpTempPaths = []; // eslint-disable-next-line
-    const policyDocUpdates: any = {};
+    const cleanUpTempPaths = [];
+    // FlattenObjectKeys<Submission, 'imagePaths'> |
+    const policyDocUpdates: Record<string, string> = {};
 
     for (const styleType of mapboxStyles) {
       const url = `https://api.mapbox.com/styles/v1/${
@@ -98,7 +107,7 @@ export default async (
         const fileId = uuid();
         const initialMetadata = {
           metadata: {
-            policyId: snap.id,
+            submissionId: snap.id,
             firebaseStorageDownloadTokens: fileId,
             fileId,
           },
@@ -110,41 +119,42 @@ export default async (
           destination: destinationPath,
           metadata: initialMetadata,
         });
-        console.log(`uploaded file to: ${destinationPath}`);
+        info(`uploaded file to: ${destinationPath}`);
 
         // process.env.STORAGE_BUCKET_NAME
-        console.log('STORAGE_BASE_URL: ', process.env.STORAGE_BASE_URL);
         const downloadURL = `${
           process.env.STORAGE_BASE_URL
         }/v0/b/${storageBucket.value()}/o/${encodeURIComponent(destinationPath)}?alt=media&token=${
           initialMetadata.metadata.firebaseStorageDownloadTokens
         }`;
-        console.log('DOWNLOAD URL: ', downloadURL);
+        info(`STATIC IMG DOWNLOAD URL: ${downloadURL}`);
 
-        policyDocUpdates[`${styleType.name}MapImageFilePath`] = destinationPath;
-        policyDocUpdates[`${styleType.name}MapImageURL`] = downloadURL;
-      } catch (err) {
+        // policyDocUpdates[`${styleType.name}MapImageFilePath`] = destinationPath;
+        // policyDocUpdates[`${styleType.name}MapImageURL`] = downloadURL;
+        policyDocUpdates[`imagePaths.${styleType.name}`] = destinationPath;
+        policyDocUpdates[`imageURLs.${styleType.name}`] = downloadURL;
+      } catch (err: any) {
         error(err);
 
         if (cleanUpTempPaths.length > 0) {
           await clearTempFiles(cleanUpTempPaths);
         }
 
-        return err;
+        return;
       }
     }
 
-    console.log('Updating policy doc: ', JSON.stringify(policyDocUpdates));
+    info('Updating policy doc with static images... ', { ...policyDocUpdates });
     await snap.ref.update({ ...policyDocUpdates });
 
     if (cleanUpTempPaths.length > 0) {
       await clearTempFiles(cleanUpTempPaths);
     }
 
-    return 'ok';
+    return;
   } catch (err) {
     error(err);
-    return err;
+    return;
   }
 };
 

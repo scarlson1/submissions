@@ -463,7 +463,6 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
     },
     []
   );
-  console.log('INITIAL VALUES: ', initialValues);
 
   const { fetchTaxes, loading: taxesLoading } = useFetchTaxes(
     (newTaxes: TaxItem[]) => {
@@ -1599,8 +1598,8 @@ function Diff({
 
   // recalc diff whenever ratingInputs change
   useEffect(() => {
-    console.log('OLD OBJ: ', ratingInputsPrev);
-    console.log('NEW OBJ: ', ratingInputsCurr);
+    // console.log('OLD OBJ: ', ratingInputsPrev);
+    // console.log('NEW OBJ: ', ratingInputsCurr);
 
     getDiff(ratingInputsPrev, ratingInputsCurr);
   }, [getDiff, ratingInputsPrev, ratingInputsCurr]);
@@ -1682,9 +1681,9 @@ function RequiredFieldsIndicator({
     [errors]
   );
 
-  useEffect(() => {
-    console.log('ERRORS: ', errors);
-  }, [errors]);
+  // useEffect(() => {
+  //   console.log('ERRORS: ', errors);
+  // }, [errors]);
 
   const stateIcon = errorEntries.length ? (
     <WarningAmberRounded

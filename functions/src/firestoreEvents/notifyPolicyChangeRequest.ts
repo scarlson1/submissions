@@ -50,5 +50,6 @@ export default async (
   sendAdminChangeRequestNotification(sgKey, to, link, 'policy change', snap.id, {
     [`${field}`]: newValue,
   });
+
   return;
 };

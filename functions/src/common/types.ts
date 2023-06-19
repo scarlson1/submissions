@@ -44,6 +44,12 @@ export type Optional<T> = { [K in keyof T]?: T[K] | undefined | null };
 
 export type Maybe<T> = T | null | undefined;
 
+export type FlattenObjectKeys<T extends Record<string, any>, Key = keyof T> = Key extends string
+  ? T[Key] extends Record<string, any>
+    ? `${Key}.${FlattenObjectKeys<T[Key]>}`
+    : `${Key}`
+  : never;
+
 export interface RequestUserAuth extends Request {
   user?: DecodedIdToken;
   tenantId?: string;
@@ -357,7 +363,7 @@ export interface RatingPropertyData {
   replacementCost: number;
   sqFootage: number;
   yearBuilt: number;
-  ffe?: number;
+  FFH?: number;
   // priorLossCount?: string | number | null;
 }
 
@@ -396,6 +402,8 @@ export interface InitRatingValues extends Limits {
   maxDeductible: number;
 }
 
+export type locationImageTypes = 'light' | 'dark' | 'satellite' | 'satelliteStreets';
+
 export interface Submission extends FloodFormValues {
   product: Product;
   coordinates: GeoPoint;
@@ -411,17 +419,17 @@ export interface Submission extends FloodFormValues {
   ratingPropertyData: Nullable<RatingPropertyData>; // FetchPropertyDataResponse;
   propertyDataDocId: string | null;
   initValues: InitRatingValues;
-  darkMapImageURL?: string;
-  lightMapImageURL?: string;
-  darkMapImageFilePath?: string;
-  lightMapImageFilePath?: string;
-  satelliteMapImageURL?: string;
-  satelliteStreetsMapImageURL?: string;
-  satelliteMapImageFilePath?: string;
-  satelliteStreetsMapImageFilePath?: string;
+  // darkMapImageURL?: string;
+  // lightMapImageURL?: string;
+  // darkMapImageFilePath?: string;
+  // lightMapImageFilePath?: string;
+  // satelliteMapImageURL?: string;
+  // satelliteStreetsMapImageURL?: string;
+  // satelliteMapImageFilePath?: string;
+  // satelliteStreetsMapImageFilePath?: string;
+  imageURLs?: Record<locationImageTypes, string> | null;
+  imagePaths?: Record<locationImageTypes, string> | null;
   AAL?: Nullable<ValueByRiskType>;
-  // inlandAAL?: number;
-  // surgeAAL?: number;
   annualPremium?: number;
   subproducerCommission?: number; // TODO: delete ?? look up by agent / agency if present
   metadata: BaseMetadata;
@@ -517,8 +525,8 @@ export interface Quote {
   agency: Nullable<AgencyDetails>;
   status: QUOTE_STATUS;
   submissionId?: string | null;
-  imageURLs?: Record<string, string> | null;
-  imagePaths?: Record<string, string> | null;
+  imageURLs?: Record<locationImageTypes, string> | null;
+  imagePaths?: Record<locationImageTypes, string> | null;
   ratingPropertyData: RatingPropertyData;
   geoHash?: Geohash | null;
   notes?: Note[];
@@ -548,8 +556,8 @@ export interface PolicyOld {
     name: string | null;
   };
   documents: { displayName: string; downloadUrl: string; storagePath: string }[];
-  imageURLs?: { [key: string]: string | null } | null;
-  imagePaths?: { [key: string]: string | null } | null;
+  imageURLs?: Record<locationImageTypes, string> | null;
+  imagePaths?: Record<locationImageTypes, string> | null;
   transactions: string[]; // TODO: figure out how to associate policies and transactions
   price: number;
   cardFee: number;
@@ -575,8 +583,8 @@ export interface PolicyLocation {
   expirationDate: Timestamp;
   locationId: string;
   externalId?: string | null;
-  imageURLs?: Record<string, string> | null;
-  imagePaths?: Record<string, string> | null;
+  imageURLs?: Record<locationImageTypes, string> | null;
+  imagePaths?: Record<locationImageTypes, string> | null;
   metadata: {
     created: Timestamp;
     updated: Timestamp;

@@ -147,9 +147,10 @@ export const formatDate = (date: Date, options: string = 'MMM dd, yyyy') => {
  * @return {string} date string (5 hours ago or Oct. 6, 1995)
  */
 export const formatFirestoreTimestamp = (
-  ts: FirestoreTimestamp,
+  ts?: FirestoreTimestamp | null | undefined,
   formatType: 'date' | 'relative' = 'relative'
 ) => {
+  if (!ts) return '';
   let tsDate = new Date(ts.seconds * 1000);
   return formatType === 'relative'
     ? formatDistance(tsDate, new Date(), { addSuffix: true })

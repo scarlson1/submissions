@@ -3,7 +3,8 @@ import { Box, Button, Stack, Typography, useTheme } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 import { OpenInNewRounded, SaveRounded } from '@mui/icons-material';
 import { getDownloadURL } from 'firebase/storage';
-import { doc, getFirestore, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc } from 'firebase/firestore';
+import { useFirestore } from 'reactfire';
 import { useNavigate, useParams } from 'react-router-dom';
 import ReactJson from '@microlink/react-json-view';
 
@@ -22,18 +23,21 @@ export const useUpdatePolicy = (
   onSuccess?: (msg: string) => void,
   onError?: (err: any) => void
 ) => {
+  const firestore = useFirestore();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const updatePolicy = useCallback(
-    async (policyId: string, values: Partial<Policy>) => {
+    // async (policyId: string, values: Partial<Policy>) => {
+    async (policyId: string, values: Policy['documents']) => {
       try {
         setLoading(true);
-        const ref = doc(policiesCollection(getFirestore()), policyId).withConverter(
+        const ref = doc(policiesCollection(firestore), policyId).withConverter(
           withIdConverter<Policy>()
         );
 
-        await updateDoc(ref, { ...values });
+        // TODO: fix typescript error so useUpdatePolicy can be used for all fields (error from imageURLs)
+        await updateDoc(ref, { documents: values });
         setLoading(false);
         if (onSuccess) onSuccess(`Policy updated`);
       } catch (err) {
@@ -42,7 +46,7 @@ export const useUpdatePolicy = (
         if (onError) onError(err);
       }
     },
-    [onSuccess, onError]
+    [onSuccess, onError, firestore]
   );
 
   return useMemo(() => ({ updatePolicy, loading, error }), [updatePolicy, loading, error]);
@@ -154,15 +158,23 @@ export const PolicyDelivery: React.FC = () => {
         let downloadUrl = await getDownloadURL(uploadResult[0].ref);
         console.log('downloadUrl: ', downloadUrl);
 
-        await updatePolicy(policyId!, {
-          documents: [
-            {
-              displayName: `Policy Document - ${policyId}`,
-              downloadUrl,
-              storagePath: uploadResult[0].metadata.fullPath,
-            },
-          ],
-        });
+        // await updatePolicy(policyId, {
+        //   documents: [
+        //     {
+        //       displayName: `Policy Document - ${policyId}`,
+        //       downloadUrl,
+        //       storagePath: uploadResult[0].metadata.fullPath,
+        //     },
+        //   ],
+        // });
+
+        await updatePolicy(policyId, [
+          {
+            displayName: `Policy Document - ${policyId}`,
+            downloadUrl,
+            storagePath: uploadResult[0].metadata.fullPath,
+          },
+        ]);
       }
     },
     (err) => console.log('upload failed: ', err)

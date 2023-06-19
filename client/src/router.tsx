@@ -24,6 +24,7 @@ import {
   Account,
   QuoteBind,
   AccountDetails,
+  PolicyOld,
 } from 'views';
 import {
   SubmissionView,
@@ -406,13 +407,16 @@ export const router = sentryCreateBrowserRouter([
           {
             index: true,
             element: <Policies />,
-            // loader: policiesLoader(auth),
             errorElement: <RouterErrorBoundary />,
           },
           {
             path: ROUTES.USER_POLICY,
             element: <Policy />,
-            // loader: policyLoader,
+            errorElement: <RouterErrorBoundary />,
+          },
+          {
+            path: 'old/:policyId',
+            element: <PolicyOld />,
             errorElement: <RouterErrorBoundary />,
           },
         ],

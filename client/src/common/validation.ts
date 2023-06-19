@@ -250,8 +250,8 @@ export const namedInsuredValidationNotRequired = yup.object().shape({
 
 export const agentValidation = yup.object().shape({
   name: yup.string().required(),
-  email: emailVal,
-  phone: phoneVal,
+  email: emailVal.required(),
+  phone: phoneVal.required(),
   userId: yup.string().notRequired(),
 });
 

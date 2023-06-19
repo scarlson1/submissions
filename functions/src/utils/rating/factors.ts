@@ -58,7 +58,7 @@ export const getBasementFactor = (basementValue = 'unknown') => {
 };
 
 interface SecondaryModifiersProps {
-  ffe: number;
+  FFH: number;
   basement: string;
   priorLossCount: string;
   inlandRiskScore: number;
@@ -87,7 +87,7 @@ const initialValues: SecondaryModifiers = {
 };
 
 export const getSecondaryModifiers = ({
-  ffe = 0,
+  FFH = 0,
   basement = 'unknown',
   priorLossCount,
   inlandRiskScore,
@@ -96,7 +96,7 @@ export const getSecondaryModifiers = ({
 }: SecondaryModifiersProps) => {
   const secondaryModifiers = initialValues;
 
-  let { inland_ffe_factor, surge_ffe_factor, tsunami_ffe_factor } = getFirstFloorDiffFactors(ffe);
+  let { inland_ffe_factor, surge_ffe_factor, tsunami_ffe_factor } = getFirstFloorDiffFactors(FFH);
   secondaryModifiers.ffeMult = {
     inland: inland_ffe_factor,
     surge: surge_ffe_factor,

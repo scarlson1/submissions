@@ -139,7 +139,7 @@ export default async ({ data, auth }: CallableRequest<CalcQuoteRequest>) => {
       ratingPropertyData: {
         floodZone,
         basement,
-        ffe: 0,
+        FFH: 0,
         CBRSDesignation: null,
         distToCoastFeet: null,
         numStories: null,

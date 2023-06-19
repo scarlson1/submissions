@@ -60,13 +60,13 @@ import {
   ANALYTICS_EVENTS,
   NamedInsuredDetails,
   AgentDetails,
+  fallbackImages,
 } from 'common';
 import { useAnalyticsEvent, useBindQuote, useUserPaymentMethods } from 'hooks';
 import { billingValidation, PaymentStep, ContactStep } from 'elements';
 import { addToDate, dollarFormat, formatDate, getDateShortcuts } from 'modules/utils/helpers';
 import { AUTH_ROUTES, ROUTES, createPath } from 'router';
 import { useAuth } from 'modules/components/AuthContext';
-import { fallbackImages } from './PoliciesOld';
 
 // TODO: error boundary & reset: https://blog.logrocket.com/react-error-handling-react-error-boundary/
 
@@ -787,11 +787,7 @@ export function BindReviewStep({ data, logAnalyticsStep }: BindReviewStepProps) 
             minHeight: { xs: 100, sm: 120, md: 140 },
           }}
           alt={`${data?.address?.addressLine1} map`}
-          image={
-            data?.imageURLs?.satelliteMapImageURL
-              ? data.imageURLs?.satelliteMapImageURL
-              : fallbackImages[0]
-          }
+          image={data?.imageURLs?.satellite || fallbackImages[0]}
           title={`${data?.address?.addressLine1} map`}
         />
         <Box sx={{ display: 'flex', flexDirection: 'column', flex: '1 1 auto' }}>

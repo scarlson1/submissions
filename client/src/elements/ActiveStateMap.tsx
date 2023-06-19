@@ -7,6 +7,7 @@ import { PickingInfo } from 'deck.gl/typed';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 import { DeckMap, DeckMapProps, defaultGeoJsonLayerProps } from 'elements';
+import { STATES_URL } from 'common';
 
 // TODO: create generalized component (use with counties)
 // TODO: use zustand ? or recoil or kotai for shared state between switch and map without rerendering all components?
@@ -27,9 +28,6 @@ export interface ActiveStateMapProps extends DeckMapProps {
   // mapViewState?: MapViewState;
   // children?: React.ReactNode;
 }
-
-// const STATES_JSON_STORAGE_PATH = `public/geo-spatial/states_20m.json`;
-const STATES_URL = 'https://scarlson1.github.io/data/states_20m.json';
 
 export const ActiveStateMap: React.FC<ActiveStateMapProps> = ({
   handleClick,

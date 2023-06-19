@@ -66,7 +66,7 @@ export const getPremium = (props: GetPremiumProps): GetPremiumCalcResult => {
   } = multipliersByState[state];
 
   const secondaryFactorMults = getSecondaryFactorMults({
-    ffe: 0,
+    FFH: 0,
     basement: basement,
     priorLossCount,
     inlandRiskScore: riskScore.inland,

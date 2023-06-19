@@ -19,6 +19,7 @@ import {
   swissReSubscriptionKey,
   sendgridApiKey,
   audience,
+  unlinkFile,
 } from '../common';
 import { generateSRAccessToken, getSwissReInstance } from '../services';
 import { swissReBody } from '../utils/rating/swissReBody.js';
@@ -465,13 +466,14 @@ async function splitAndRate(data: any[]) {
   return ratedArray;
 }
 
-async function unlinkFile(filePath: string) {
-  try {
-    if (filePath) fs.unlinkSync(filePath);
-  } catch (err: any) {
-    error('Error unlinking file ', { errMsg: err?.message, err });
-  }
-}
+// MOVED TO helpers.ts
+// async function unlinkFile(filePath: string) {
+//   try {
+//     if (filePath) fs.unlinkSync(filePath);
+//   } catch (err: any) {
+//     error('Error unlinking file ', { errMsg: err?.message, err });
+//   }
+// }
 
 function waitMilliSeconds(ms: number, reason?: string) {
   return new Promise<void>((resolve, reject) => {

@@ -29,6 +29,8 @@ export { QuoteGrid } from './QuoteGrid';
 export { UsersGrid } from './UsersGrid';
 export { PoliciesGrid } from './PoliciesGrid';
 export { LocationsGrid } from './LocationsGrid';
+export { LocationCard } from './LocationCard';
+export { LocationsMap } from './LocationsMap';
 
 export type { FormikAddressProps } from './FormikAddress';
 export type { DeductibleStepProps } from './DeductibleStep';
@@ -43,6 +45,8 @@ export type { UpdateProfileImgProps } from './UpdateProfileImg';
 export type { FormikAddressLiteProps } from './FormikAddressLite';
 export type { CountiesMapProps } from './CountiesMap';
 export type { DisclosureFormProps, DisclosureValues } from './DisclosureForm';
+export type { LocationCardProps } from './LocationCard';
+export type { LocationsMapProps } from './LocationsMap';
 // export type {  } from './';
 // export type {  } from './';
 // export type {  } from './';

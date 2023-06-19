@@ -19,10 +19,9 @@ import { onSnapshot, query, orderBy, where, limit, getFirestore } from 'firebase
 import { useNavigate } from 'react-router-dom';
 
 import { useAuth } from 'modules/components/AuthContext';
-import { fallbackImages } from '../PoliciesOld';
 import { dollarFormat, formatFirestoreTimestamp, numberFormat } from 'modules/utils/helpers';
 import { createPath, ROUTES } from 'router';
-import { Submission, submissionsCollection, WithId } from 'common';
+import { Submission, submissionsCollection, WithId, fallbackImages } from 'common';
 
 // TODO: use useSignInCheck
 
@@ -169,7 +168,7 @@ export const Submissions: React.FC = () => {
               <CardMedia
                 sx={{ height: 140 }}
                 // image={fallbackImages[i] || fallbackImages[0]}
-                image={s.satelliteMapImageURL || fallbackImages[i] || fallbackImages[0]}
+                image={s?.imageURLs?.satellite || fallbackImages[i] || fallbackImages[0]}
                 // image={
                 //   (theme.palette.mode === 'dark' ? s.darkMapImageURL : s.lightMapImageURL) ||
                 //   getRandomItem(fallbackImages)

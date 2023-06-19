@@ -1,7 +1,9 @@
 import { inspect } from 'util';
+import fs from 'fs';
 import { add, Duration } from 'date-fns';
 import { isEqual, remove } from 'lodash';
 import numeral from 'numeral';
+import { error, info } from 'firebase-functions/logger';
 
 /**
  * Sums an array of numbers
@@ -196,3 +198,12 @@ export const dollarFormat = (amt: number) => {
 };
 
 export const truthyOrZero = (val: any) => val || val === 0;
+
+export async function unlinkFile(filePath: string) {
+  try {
+    info(`Unlinking file: ${filePath}`, { filePath });
+    if (filePath) fs.unlinkSync(filePath);
+  } catch (err: any) {
+    error(`Error unlinking file ${filePath}`, { errMsg: err?.message, err, filePath });
+  }
+}

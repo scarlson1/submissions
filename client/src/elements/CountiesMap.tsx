@@ -2,11 +2,8 @@ import React, { useState } from 'react';
 import { useTheme } from '@mui/material';
 
 import { DeckMap, defaultGeoJsonLayerProps } from './DeckMap';
-import { FIPSDetails } from 'common';
+import { COUNTIES_URL, FIPSDetails } from 'common';
 import { GeoJsonLayer, PickingInfo } from 'deck.gl/typed';
-
-// const COUNTIES_JSON_STORAGE_PATH = `public/geo-spatial/counties_20m.json`;
-const COUNTIES_URL = 'https://scarlson1.github.io/data/counties_20m.json';
 
 export interface CountiesMapProps {
   selectedCounties?: FIPSDetails[];

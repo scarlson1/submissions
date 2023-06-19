@@ -21,7 +21,6 @@ import * as CheckmarkLottie from 'assets/checkmark.json';
 import { ROUTES, createPath, AUTH_ROUTES } from 'router';
 import { Submission } from 'common/types';
 import { useAuth } from 'modules/components/AuthContext';
-import { fallbackImages } from 'views/PoliciesOld';
 import {
   ANALYTICS_EVENTS,
   Charge,
@@ -29,6 +28,7 @@ import {
   quotesCollection,
   finTrxCollection,
   withIdConverter,
+  fallbackImages,
 } from 'common';
 import { doc, getFirestore, onSnapshot } from 'firebase/firestore';
 import { dollarFormat2 } from 'modules/utils/helpers';
@@ -317,11 +317,7 @@ export const BindSuccess: React.FC = () => {
       <Card sx={{ mt: { xs: 4, sm: 6, md: 8 } }}>
         <CardMedia
           sx={{ height: { xs: 140, sm: 160, md: 180 } }}
-          image={
-            data?.imageURLs?.satelliteMapImageURL
-              ? data.imageURLs?.satelliteMapImageURL
-              : fallbackImages[0]
-          }
+          image={data?.imageURLs?.satellite || fallbackImages[0]}
           title={`map`}
         />
         <CardContent>

@@ -132,7 +132,7 @@ function convertQuoteToPolicy(data: Quote, license: License): Policy {
 
   invariant(data.agent?.name, 'missing agent name');
   invariant(data.agent?.email, 'missing agent email');
-  invariant(data.agent?.phone, 'missing agent phone');
+  // invariant(data.agent?.phone, 'missing agent phone'); // TODO: dont validate if no field on front end
   invariant(data.agency?.name, 'missing agency name');
   invariant(data.agency?.address, 'missing agency address');
   invariant(data.agency?.orgId, 'missing agency orgId');
@@ -146,8 +146,9 @@ function convertQuoteToPolicy(data: Quote, license: License): Policy {
   const ts = Timestamp.now();
 
   // TODO: use location ID from quote once using updated Quote interface
+  const locationId = uuidv4();
   const locations: Record<string, PolicyLocation> = {
-    [uuidv4()]: {
+    [locationId]: {
       address: data.address,
       coordinates: data.coordinates,
       geoHash,
@@ -163,7 +164,7 @@ function convertQuoteToPolicy(data: Quote, license: License): Policy {
       propertyData: data.ratingPropertyData, // TODO: use same key
       effectiveDate: data.effectiveDate,
       expirationDate: data.expirationDate,
-      locationId: '', // TODO: generate location ID
+      locationId, // TODO: generate location ID
       externalId: null, // TODO: add external location ID to Quote interface
       imageURLs: data.imageURLs || null,
       imagePaths: data.imagePaths || null,
@@ -213,8 +214,6 @@ function convertQuoteToPolicy(data: Quote, license: License): Policy {
     },
     issuingCarrier: 'Rockingham Property & Casualty',
     documents: [],
-    // imageURLs: data.imageURLs || null,
-    // imagePaths: data.imagePaths || null,
     // transactions: [],
     metadata: {
       created: Timestamp.now(),
