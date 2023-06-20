@@ -52,35 +52,6 @@ export const useUpdatePolicy = (
   return useMemo(() => ({ updatePolicy, loading, error }), [updatePolicy, loading, error]);
 };
 
-// export const useDeliverPolicyDoc = (
-//   onSuccess?: (emails: string[], msg: string) => void,
-//   onError?: (err: any) => void
-// ) => {
-//   const toast = useAsyncToast();
-
-//   const deliverPolicyDoc = useCallback(
-//     async (policyId: string, emails: string[] = []) => {
-//       // TODO: prompt for emails (select user/agent or add alternative)
-//       try {
-//         toast.loading('sending documents...');
-//         const { data } = await sendPolicyDoc(getFunctions(), {
-//           policyId,
-//           emails,
-//         });
-//         if (onSuccess) onSuccess(data.emails, 'Policy documents sent');
-//         toast.success('documents delivered!');
-//         return data;
-//       } catch (err) {
-//         toast.error('failed to deliver documents');
-//         if (onError) onError(err);
-//       }
-//     },
-//     [onSuccess, onError, toast]
-//   );
-
-//   return deliverPolicyDoc;
-// };
-
 export const useEPayTransaction = (id: string | null | undefined) => {
   const [transaction, setTransaction] = useState<any>();
   const [loading, setLoading] = useState(false);
@@ -157,16 +128,6 @@ export const PolicyDelivery: React.FC = () => {
       if (uploadResult.length > 0) {
         let downloadUrl = await getDownloadURL(uploadResult[0].ref);
         console.log('downloadUrl: ', downloadUrl);
-
-        // await updatePolicy(policyId, {
-        //   documents: [
-        //     {
-        //       displayName: `Policy Document - ${policyId}`,
-        //       downloadUrl,
-        //       storagePath: uploadResult[0].metadata.fullPath,
-        //     },
-        //   ],
-        // });
 
         await updatePolicy(policyId, [
           {

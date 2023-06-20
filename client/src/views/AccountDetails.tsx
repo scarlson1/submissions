@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Box,
   Paper,
@@ -40,6 +40,7 @@ import { RHFTextField } from 'components/forms';
 import { AdminManageUsersGrid } from 'elements/UsersGrid';
 import { passwordValidation } from './CreateAccount';
 import { RHFPassword } from 'elements/FormikPassword';
+import { useDBUser } from 'hooks/useDBUser';
 
 // react spring animated gradient: https://codesandbox.io/s/xg8jhi
 
@@ -65,14 +66,20 @@ import { RHFPassword } from 'elements/FormikPassword';
 const MIN_TAB_HEIGHT = 40;
 
 // TODO: auth check
+// TODO: wrap useUser in RXJS observable merging firestore User doc to get orgId (idemand)
 export const AccountDetails: React.FC = () => {
   const { data: user } = useUser();
   const theme = useTheme();
   const [tabValue, setTabValue] = useState('account');
 
+  const { data } = useDBUser({ suspense: true });
+  console.log('USER OBSERVABLE: ', data);
+
   const handleChange = (event: React.SyntheticEvent, newValue: string) => {
     setTabValue(newValue);
   };
+
+  const orgId = useMemo(() => (data.user?.tenantId ?? data.dbUser?.orgId) || null, [data]);
 
   if (!user || !user.uid) return <div>not signed in</div>;
 
@@ -193,7 +200,8 @@ export const AccountDetails: React.FC = () => {
               </Grid>
             </TabPanel>
             <TabPanel value='team'>
-              {user.tenantId ? (
+              {/* {user.tenantId ? ( */}
+              {orgId ? (
                 <Box>
                   <Box sx={{ pb: 2, width: '100%', display: 'flex', justifyContent: 'flex-end' }}>
                     <ClaimsGuard requiredClaims={['ORG_ADMIN', 'IDEMAND_ADMIN']} requireAll={false}>
@@ -201,7 +209,8 @@ export const AccountDetails: React.FC = () => {
                     </ClaimsGuard>
                   </Box>
                   <AdminManageUsersGrid
-                    orgId={user.tenantId}
+                    // orgId={user.tenantId}
+                    orgId={orgId}
                     columnVisibilityModel={{
                       displayName: false,
                       firstName: false,
@@ -364,7 +373,7 @@ function UserDetailsForm() {
 
   const onSubmit: SubmitHandler<UserDetailsInputs> = useCallback(
     async (data) => {
-      console.log(data);
+      // console.log(data);
       toast.loading('updating profile...');
 
       await updateProfile({ firstName: data.firstName, lastName: data.lastName });

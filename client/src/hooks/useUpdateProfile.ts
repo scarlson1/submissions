@@ -21,6 +21,8 @@ export interface FormattedError {
   message: string;
 }
 
+/** Update User (first/last name and profile img) in Firebase Auth  */
+
 export const useUpdateProfile = (
   onSuccess?: (updateValues: UpdateProfileRes) => void,
   onError?: (msg: string, err?: unknown) => void

@@ -218,7 +218,8 @@ export const QuoteBind: React.FC = () => {
               mutatedVals.effectiveExceptionReason = '';
               mutatedVals.effectiveExceptionRequested = false;
             }
-            console.log('MUTATED VALS: ', mutatedVals);
+            // TODO: if effective date is changed --> update expiration date to one year later
+            // console.log('MUTATED VALS: ', mutatedVals);
             return saveValues(mutatedVals, bag, initialValues);
           }}
         >

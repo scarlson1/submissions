@@ -1,6 +1,14 @@
 import { useCallback } from 'react';
 import { FirebaseError } from 'firebase/app';
-import { addDoc, FirestoreError, GeoPoint, Timestamp } from 'firebase/firestore';
+import {
+  addDoc,
+  FirestoreError,
+  GeoPoint,
+  getDocs,
+  query,
+  Timestamp,
+  where,
+} from 'firebase/firestore';
 import { useFirestore, useSigninCheck } from 'reactfire'; // useUser
 import invariant from 'tiny-invariant';
 import { isEmpty, round } from 'lodash';
@@ -8,7 +16,7 @@ import { endOfToday } from 'date-fns';
 
 import { NewQuoteValues } from 'views/admin/QuoteNew';
 import { addToDate, extractNumber, getGeoHash, readableFirebaseCode } from 'modules/utils/helpers';
-import { QUOTE_STATUS, Submission, Quote, quotesCollection } from 'common';
+import { QUOTE_STATUS, Submission, Quote, quotesCollection, licensesCollection } from 'common';
 import { useSendQuoteNotification } from './useSendQuoteNotification';
 import { CUSTOM_CLAIMS } from 'modules/components';
 
@@ -25,6 +33,27 @@ export const useCreateQuote = (
   });
   const sendEmailNotifications = useSendQuoteNotification();
 
+  const getSLLicense = useCallback(
+    async (state: string) => {
+      try {
+        const q = query(
+          licensesCollection(firestore),
+          where('state', '==', state),
+          where('surplusLinesProducerOfRecord', '==', true)
+        );
+
+        const querySnap = await getDocs(q);
+        if (querySnap.empty) throw new Error(`No SL license found for ${state}`);
+      } catch (err: any) {
+        let msg = `error fetching SL license`;
+        if (err?.message) msg = err.message;
+        if (onError) onError(msg, err);
+        return null;
+      }
+    },
+    [firestore, onError]
+  );
+
   const createQuote = useCallback(
     async (
       values: NewQuoteValues,
@@ -32,13 +61,13 @@ export const useCreateQuote = (
       submissionData: Submission | null = null
     ) => {
       if (!signInCheckResult.hasRequiredClaims) throw new Error('Missing required permissions');
+      // TODO: use homeState instead of address.state once interface is updated
+      const surplusLinesLicense = await getSLLicense(values.address.state);
+      if (!surplusLinesLicense) return;
 
       try {
         const quoteData = getFormattedQuote(values, signInCheckResult.user?.uid);
-
         const geoHash = getGeoHash(submissionData?.coordinates);
-
-        // TODO: store images in object on submission
         // const { imageURLs, imagePaths } = getImages(submissionData);
 
         const quoteRef = await addDoc(quotesCollection(firestore), {
@@ -61,19 +90,26 @@ export const useCreateQuote = (
 
         if (err instanceof FirebaseError) {
           msg += readableFirebaseCode(err as FirestoreError);
-        } else if (err?.message) msg = err.message;
+        } else if (err?.message) msg = err.message.replace('Invariant failed: ', '');
 
         if (onError) onError(msg, err);
       }
     },
-    [firestore, onStepSuccess, onComplete, onError, sendEmailNotifications, signInCheckResult]
+    [
+      firestore,
+      onStepSuccess,
+      onComplete,
+      onError,
+      sendEmailNotifications,
+      getSLLicense,
+      signInCheckResult,
+    ]
   );
 
   return createQuote;
 };
 
 function getFormattedQuote(values: NewQuoteValues, uid?: string | null): Quote {
-  // ): Omit<Quote, 'quoteExpirationDate'> {
   const {
     address,
     limits,
@@ -94,7 +130,7 @@ function getFormattedQuote(values: NewQuoteValues, uid?: string | null): Quote {
   } = values;
 
   // TODO: validation
-  if (!quoteTotal) throw new Error('Missing quote total');
+  invariant(quoteTotal, 'Missing quote total');
   invariant(annualPremium, 'missing annualPremium');
   invariant(namedInsured?.email || agent?.email, 'Must have at least one email (insured or agent)');
 

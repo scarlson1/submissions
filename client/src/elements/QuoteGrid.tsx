@@ -292,6 +292,7 @@ export const QuoteGrid: React.FC<QuoteGridProps> = ({
               propertyCode: false,
               sqFootage: false,
               yearBuilt: false,
+              submissionId: false,
             },
           },
           sorting: {

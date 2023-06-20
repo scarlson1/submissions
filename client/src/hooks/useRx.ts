@@ -8,12 +8,12 @@ import {
   DocumentReference,
 } from 'firebase/firestore';
 import { ReactFireGlobals, ReactFireOptions, checkIdField, useObservable } from 'reactfire';
-
 import { from, groupBy, map, mergeMap, tap, toArray } from 'rxjs';
+import { DocumentData } from 'rxfire/firestore/interfaces';
+
 import { innerJoin } from 'modules/rxOperators/innerJoin';
 import { docJoin } from 'modules/rxOperators/docJoin';
 import { populateById } from 'modules/rxOperators/innerJoinById';
-import { DocumentData } from 'rxfire/firestore/interfaces';
 
 // example group: https://stackoverflow.com/a/56307873
 // DONT USE GROUPBY WITH INFINITE STREAMS

@@ -104,6 +104,7 @@ export const LocationsGrid = ({ locations, ...props }: LocationsGridProps) => {
         initialState={{
           columns: {
             columnVisibilityModel: {
+              id: false,
               product: false,
               'address.addressLine1': false,
               'address.addressLine2': false,
@@ -124,8 +125,8 @@ export const LocationsGrid = ({ locations, ...props }: LocationsGridProps) => {
               sqFootage: false,
               yearBuilt: false,
               replacementCost: false,
-              ratingDocIdCol: false,
-              externalIdCol: false,
+              ratingDocId: false,
+              externalId: false,
               created: false,
               updated: false,
             },
