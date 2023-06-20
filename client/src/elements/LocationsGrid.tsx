@@ -55,6 +55,41 @@ interface LocationsGridProps extends Omit<DataGridProps, 'rows' | 'columns'> {
 export const LocationsGrid = ({ locations, ...props }: LocationsGridProps) => {
   const locationColumns = useMemo(
     () => [
+      // {
+      //   field: 'actions',
+      //   headerName: 'Actions',
+      //   type: 'actions',
+      //   width: 120,
+      //   getActions: (params: GridRowParams) => [
+      //     <GridActionsCellItem
+      //       icon={
+      //         <Tooltip placement='top' title='View Raw JSON'>
+      //           <DataObjectRounded />
+      //         </Tooltip>
+      //       }
+      //       onClick={showJson(params)}
+      //       label='Details'
+      //     />,
+      //     <GridActionsCellItem
+      //       icon={
+      //         <Tooltip placement='top' title='Edit'>
+      //           <EditRounded />
+      //         </Tooltip>
+      //       }
+      //       onClick={editQuote(params)}
+      //       label='Send Notifications'
+      //     />,
+      //     <GridActionsCellItem
+      //       icon={
+      //         <Tooltip placement='top' title='Send Notifications'>
+      //           <SendRounded />
+      //         </Tooltip>
+      //       }
+      //       onClick={handleSendNotifications(params)}
+      //       label='Send Notifications'
+      //     />,
+      //   ],
+      // },
       idCol,
       addressSummaryCol,
       addrLine1Col,

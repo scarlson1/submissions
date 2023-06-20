@@ -719,6 +719,8 @@ export type ChangeRequestStatus = 'submitted' | 'accepted' | 'denied' | 'under_r
 export interface ChangeRequest extends BaseDoc {
   field: string;
   newValue: string | number;
+  policyId: string;
+  locationId?: string | null;
   userId: string;
   status: ChangeRequestStatus;
 }
@@ -953,6 +955,7 @@ export interface Tax extends BaseDoc {
   effectiveDate: Timestamp;
   expirationDate?: Timestamp | null;
   LOB: LineOfBusiness[];
+  products: Product[];
   transactionTypes: TransactionType[];
   subjectBase: SubjectBaseItems[];
   baseRoundType?: RoundingType;

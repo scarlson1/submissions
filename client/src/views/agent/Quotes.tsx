@@ -1,7 +1,7 @@
 import React from 'react';
 import { limit, orderBy, where } from 'firebase/firestore';
 
-import { QuoteGrid } from 'elements';
+import { QuotesGrid } from 'elements';
 import { useAuth } from 'modules/components';
 
 export const Quotes: React.FC = () => {
@@ -13,7 +13,7 @@ export const Quotes: React.FC = () => {
   // );
 
   return (
-    <QuoteGrid
+    <QuotesGrid
       queryConstraints={[
         where('agentId', '==', `${user?.uid}`),
         orderBy('metadata.created', 'desc'),

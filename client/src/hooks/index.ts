@@ -52,6 +52,9 @@ export { useAlgoliaStore } from './useAlgoliaStore';
 export { useSendEmail } from './useSendEmail';
 export { useSafeParams } from './useSafeParams';
 export { useUpdateClaims } from './useUpdateClaims';
+export { usePolicyChangeRequest } from './usePolicyChangeRequest';
+export { useUserClaims } from './useUserClaims';
+export { useFloodFactor } from './useFloodFactor';
 
 export type { UseFileUploadProps } from './useFileUpload';
 export type { UseSendPasswordResetProps } from './useSendPasswordReset';

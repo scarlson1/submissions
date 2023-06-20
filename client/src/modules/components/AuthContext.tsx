@@ -35,6 +35,9 @@ import { useAlgoliaStore } from 'hooks';
 // TODO: set up reducer & actions
 // https://www.youtube.com/watch?v=YmHEzjglRMk
 
+// TODO: switch auth user states subscription to useUserClaims
+// to sync user auth, firestore claims doc, and claims in one observable
+
 export enum CUSTOM_CLAIMS {
   ORG_ADMIN = 'orgAdmin',
   IDEMAND_ADMIN = 'iDemandAdmin',
@@ -63,6 +66,9 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
   const functions = useFunctions();
   const analytics = useAnalytics();
   const { data: user } = useUser();
+  // TODO: useUserClaims once tested
+  // const userClaimsData = useUserClaims();
+  // console.log('CLAIMS OBSERVABLE: ', userClaimsData);
 
   const [loading, setLoading] = useState(false);
   const [loadingInitial, setLoadingInitial] = useState(true);
@@ -83,6 +89,11 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
         iDemandAdmin: false,
       });
     }
+
+    // TODO: compare using below vs signInCheck reactFire hook
+    // is there way for force refresh in reactFire hook when firestore doc changes ?? build custom hook to trigger getIdToken result whenever user or firestore doc changes use signInCheck as template ?? could replace almost all of below in subscription
+    // import { user } from 'rxfire/auth' emits on user change and token refresh --> could cause infinite loop ?? see AuthState() from rxfire/auth instead ??
+
     await auth.currentUser?.getIdToken(true);
     const idTokenResult: IdTokenResult = await auth.currentUser.getIdTokenResult();
 

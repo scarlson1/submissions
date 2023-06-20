@@ -117,6 +117,7 @@ export const Submissions: React.FC = () => {
   const navigate = useNavigate();
   const [expanded, setExpanded] = useState<{ [key: string]: boolean } | null>(null);
   const { submissions, error } = useUserSubmissions();
+  // TODO: use reactfire useCollectionData hook
 
   const handleExpandClick = (id: string) => {
     setExpanded((expanded) => ({ ...expanded, [id]: expanded ? !expanded[id] : true }));

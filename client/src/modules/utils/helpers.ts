@@ -730,3 +730,11 @@ export function getRoundingFunc(type?: RoundingType | null | undefined) {
       return round;
   }
 }
+
+export function openGoogleMaps(latitude: number, longitude: number) {
+  window.open(
+    `https://www.google.com/maps/search/?api=1&query=${latitude}%2C${longitude}`,
+    '_blank',
+    'noopener'
+  );
+}

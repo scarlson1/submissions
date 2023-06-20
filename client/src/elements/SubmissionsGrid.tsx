@@ -1,278 +1,225 @@
 import React, { useCallback, useMemo } from 'react';
-import { Box, Chip, ChipProps, Tooltip } from '@mui/material';
-import {
-  DataGridProps,
-  GridActionsCellItem,
-  GridActionsCellItemProps,
-  GridColDef,
-  GridRenderCellParams,
-  GridRowParams,
-  GridToolbar,
-  GridValueFormatterParams,
-  GridValueGetterParams,
-} from '@mui/x-data-grid';
-import {
-  CloseRounded,
-  FiberNewRounded,
-  FindInPageRounded,
-  HourglassBottomRounded,
-  MapRounded,
-  PendingRounded,
-  RequestQuoteRounded,
-  ThumbDownRounded,
-} from '@mui/icons-material';
-import { toast } from 'react-hot-toast';
+import { Box, Tooltip } from '@mui/material';
+import { DataObjectRounded, FloodRounded, MapRounded } from '@mui/icons-material';
+import { GridActionsCellItem, GridColDef, GridRowParams, GridToolbar } from '@mui/x-data-grid';
+import { doc, getDoc } from 'firebase/firestore';
+import { useFirestore, useSigninCheck } from 'reactfire';
 
-import { Submission, SUBMISSION_STATUS, WithId } from 'common';
-import { BasicDataGrid, GridCellCopy, renderGridEmail } from 'components';
+import { ServerDataGrid, ServerDataGridProps } from 'components';
+import { useAsyncToast, useFloodFactor, useJsonDialog } from 'hooks';
+import { openGoogleMaps } from 'modules/utils';
+import { CUSTOM_CLAIMS } from 'modules/components';
 import {
-  formatGridCurrency,
-  formatGridFirestoreTimestamp,
-  numberFormat,
-} from 'modules/utils/helpers';
-import { useNavigate } from 'react-router-dom';
+  SUBMISSION_STATUS,
+  Submission,
+  coordinatesCol,
+  latitudeCol,
+  longitudeCol,
+  deductibleCol,
+  emailCol,
+  createdCol,
+  updatedCol,
+  userIdCol,
+  idCol,
+  priorLossCountCol,
+  ratingDataCBRSCol,
+  inlandAALCol,
+  surgeAALCol,
+  annualPremiumCol,
+  displayNameCol,
+  firstNameCol,
+  lastNameCol,
+  statusCol,
+  ratingDataFloodZoneCol,
+  addrLine2Col,
+  addrCityCol,
+  addrStateCol,
+  addrPostalCol,
+  addrFIPSCol,
+  addrCountyCol,
+  addrLine1Col,
+  ratingDataReplacementCostCol,
+  ratingDataPropertyCodeCol,
+  ratingDataYearBuiltCol,
+  ratingDataSqFootageCol,
+  ratingDataNumStoriesCol,
+  ratingDataBasementCol,
+  ratingDataDistToCoastFeetCol,
+  limitACol,
+  limitBCol,
+  limitCCol,
+  limitDCol,
+  tivCol,
+  copyBaseProps,
+  tsunamiAALCol,
+  submissionsCollection,
+} from 'common';
 
-export interface SubmissionGridProps extends Partial<DataGridProps> {
-  rows: WithId<Submission>[];
-  actions?: React.ReactElement<GridActionsCellItemProps>[];
-  columnOverrides?: GridColDef<any, any, any>[];
+export interface SubmissionsGridProps
+  extends Omit<
+    ServerDataGridProps,
+    'columns' | 'collName' | 'isCollectionGroup' | 'columns' | 'pathSegments'
+  > {
+  renderActions?: (params: GridRowParams) => JSX.Element[];
 }
 
-export const SubmissionsGrid: React.FC<SubmissionGridProps> = ({
-  rows,
-  actions = [],
-  columnOverrides = [],
-  ...props
-}) => {
-  const navigate = useNavigate();
+export const SubmissionsGrid = ({ renderActions = () => [], ...props }: SubmissionsGridProps) => {
+  const firestore = useFirestore();
+  const toast = useAsyncToast();
+  const openFF = useFloodFactor();
+  const dialog = useJsonDialog();
 
-  const openGoogleMaps = useCallback(
-    (params: GridRowParams) => () => {
-      let { latitude, longitude } = params.row;
+  const { data: iDAdminResult } = useSigninCheck({
+    requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true },
+  });
+
+  const openMap = useCallback(
+    (params: GridRowParams<Submission>) => () => {
+      const latitude = params.row.coordinates?.latitude;
+      const longitude = params.row.coordinates?.longitude;
       if (!(latitude && longitude)) return toast.error('Missing coordinates');
-      window.open(`https://www.google.com/maps/search/?api=1&query=${latitude}%2C${longitude}`);
+
+      openGoogleMaps(latitude, longitude);
     },
-    []
+    [toast]
   );
 
-  // TODO: use lodash or deep merge to merge column overrides (so we dont need to repeat rest of column properties)
+  // TODO: move to hook
+  const openFloodFactor = useCallback(
+    (params: GridRowParams<Submission>) => () => {
+      const address = params.row.address;
+      if (!(address && address.addressLine1)) return toast.error('Missing address');
+
+      openFF(address);
+    },
+    [toast, openFF]
+  );
+
+  const openSubmissionDataDialog = useCallback(
+    (params: GridRowParams<Submission>) => async () => {
+      try {
+        const subSnap = await getDoc(doc(submissionsCollection(firestore), params.id.toString()));
+
+        const subData = subSnap.data();
+        if (!subData) throw new Error(`Submission data not found for ID ${params.id.toString()}`);
+
+        dialog(subData, `Submission Data ${params.id.toString()}`);
+      } catch (err: any) {
+        let msg = `Error fetching submission`;
+        if (err?.message) msg = err.message;
+        toast.error(msg);
+      }
+    },
+    [firestore, dialog, toast]
+  );
+
   const submissionColumns: GridColDef[] = useMemo(
     () => [
       {
         field: 'actions',
         headerName: 'Actions',
         type: 'actions',
-        width: 80,
+        width: 160,
         getActions: (params: GridRowParams) => [
-          ...actions,
+          ...renderActions(params),
+          // <GridActionsCellItem
+          //   icon={
+          //     <Tooltip title='Create Quote' placement='top'>
+          //       <RequestQuoteRounded />
+          //     </Tooltip>
+          //   }
+          //   onClick={handleCreateQuote(params.id)}
+          //   label='Create Quote'
+          // />,
           <GridActionsCellItem
             icon={
               <Tooltip title='Google Maps' placement='top'>
                 <MapRounded />
               </Tooltip>
             }
-            onClick={openGoogleMaps(params)}
-            label='View Google Maps'
+            onClick={openMap(params)}
+            label='Google Maps'
+          />,
+          // TODO: flood factor hook
+          <GridActionsCellItem
+            icon={
+              <Tooltip title='Flood Factor' placement='top'>
+                <FloodRounded />
+              </Tooltip>
+            }
+            onClick={openFloodFactor(params)}
+            label='Google Maps'
+          />,
+          // TODO: admin only
+          <GridActionsCellItem
+            icon={
+              <Tooltip title='Show JSON' placement='top'>
+                <DataObjectRounded />
+              </Tooltip>
+            }
+            onClick={openSubmissionDataDialog(params)}
+            label='Show JSON'
+            disabled={!iDAdminResult.hasRequiredClaims}
           />,
         ],
       },
       {
-        field: 'status',
-        headerName: 'Status',
-        minWidth: 160,
-        flex: 0.6,
-        renderCell: (params) => (
-          <Chip
-            label={params.value}
-            size='small'
-            variant='outlined'
-            {...getChipProps(params.value)}
-          />
-        ),
+        ...statusCol,
+        type: 'singleSelect',
+        valueOptions: [
+          SUBMISSION_STATUS.QUOTED,
+          SUBMISSION_STATUS.SUBMITTED,
+          SUBMISSION_STATUS.NOT_ELIGIBLE,
+          SUBMISSION_STATUS.PENDING_INFO,
+          SUBMISSION_STATUS.CANCELLED,
+          SUBMISSION_STATUS.DRAFT,
+        ],
+        editable: iDAdminResult?.hasRequiredClaims,
       },
       {
-        field: 'displayName',
-        headerName: 'Contact Name',
-        description: 'Provided contact name',
-        minWidth: 160,
-        flex: 0.8,
-        editable: false,
-        valueGetter: (params: GridValueGetterParams) =>
-          `${params.row.firstName} ${params.row.lastName}`,
-      },
-      {
-        field: 'firstName',
-        headerName: 'First Name',
-        minWidth: 120,
-        flex: 0.6,
-        editable: false,
-      },
-      {
-        field: 'lastName',
-        headerName: 'Last Name',
-        minWidth: 120,
-        flex: 0.6,
-        editable: false,
-      },
-      {
-        field: 'email',
-        headerName: 'Contact Email',
-        description: 'Provided contact email',
-        minWidth: 200,
-        flex: 1,
-        editable: false,
-        // valueGetter: (params) => `${params.row.email}`,
-        renderCell: (params: GridRenderCellParams) => renderGridEmail(params),
-      },
-      {
-        field: 'addressLine1',
-        headerName: 'Address',
+        ...addrLine1Col,
         description: 'Submission address to be used for insured location',
-        minWidth: 200,
-        flex: 1,
-        editable: false,
       },
+      addrLine2Col,
+      addrCityCol,
+      addrStateCol,
+      addrPostalCol,
+      addrCountyCol,
+      addrFIPSCol,
+      annualPremiumCol,
+      deductibleCol,
+      limitACol,
+      limitBCol,
+      limitCCol,
+      limitDCol,
+      tivCol,
       {
-        field: 'addressLine2',
-        headerName: 'Unit/Suite',
-        minWidth: 80,
-        flex: 0.4,
-        editable: false,
-      },
-      {
-        field: 'city',
-        headerName: 'City',
-        minWidth: 150,
-        flex: 1,
-        editable: false,
-      },
-      {
-        field: 'state',
-        headerName: 'State',
-        minWidth: 80,
-        flex: 0.1,
-        editable: false,
-      },
-      {
-        field: 'postal',
-        headerName: 'Postal',
-        minWidth: 100,
-        flex: 0.6,
-        editable: false,
-      },
-      {
-        field: 'countyName',
-        headerName: 'County',
-        minWidth: 160,
-        flex: 0.6,
-        editable: false,
-        // valueGetter: (params) => params.row.countyName || null
-      },
-      {
-        field: 'countyFIPS',
-        headerName: 'FIPS',
-        minWidth: 120,
-        flex: 0.6,
-        editable: false,
-      },
-      {
-        field: 'latitude',
-        headerName: 'Latitude',
-        minWidth: 100,
-        flex: 0.6,
-        editable: false,
+        ...displayNameCol,
+        sortable: false,
         valueGetter: (params) => {
-          const { coordinates } = params.row;
-          return coordinates ? coordinates?.latitude || null : null;
+          if (params.value) return params.value;
+          if (params.row.firstName || params.row.lastName)
+            return `${params.row.firstName} ${params.row.lastName}`.trim();
+          if (params.row.contact?.firstName || params.row.contact?.lastName)
+            return `${params.row.contact?.firstName} ${params.row.contact?.lastName}`.trim();
+          return null;
         },
       },
       {
-        field: 'longitude',
-        headerName: 'Longitude',
-        minWidth: 100,
-        flex: 0.6,
-        editable: false,
-        valueGetter: (params) => {
-          const { coordinates } = params.row;
-          return coordinates ? coordinates?.longitude || null : null;
-        },
+        ...firstNameCol,
+        valueGetter: (params) => params.row.contact?.firstName || null,
       },
       {
-        field: 'annualPremium',
-        headerName: 'Annual Premium',
-        description: 'Annual premium before taxes and fees',
-        minWidth: 140,
-        flex: 0.8,
-        editable: false,
-        headerAlign: 'center',
-        align: 'right',
-        valueFormatter: formatGridCurrency,
+        ...lastNameCol,
+        valueGetter: (params) => params.row.contact?.lastName || null,
       },
       {
-        field: 'limitA',
-        headerName: 'Limit A',
-        description: 'Coverage A limit (building)',
-        minWidth: 120,
-        flex: 0.8,
-        editable: false,
-        headerAlign: 'center',
-        align: 'right',
-        valueFormatter: formatGridCurrency,
+        ...emailCol,
+        valueGetter: (params) => params.row.contact?.email || null,
+        description: 'Provided contact email',
       },
-      {
-        field: 'limitB',
-        headerName: 'Limit B',
-        description: 'Coverage B limit (Additional structures)',
-        minWidth: 120,
-        flex: 0.8,
-        editable: false,
-        headerAlign: 'center',
-        align: 'right',
-        valueFormatter: formatGridCurrency,
-      },
-      {
-        field: 'limitC',
-        headerName: 'Limit C',
-        description: 'Coverage C limit (contents)',
-        minWidth: 120,
-        flex: 0.8,
-        editable: false,
-        headerAlign: 'center',
-        align: 'right',
-        valueFormatter: formatGridCurrency,
-      },
-      {
-        field: 'limitD',
-        headerName: 'Limit D',
-        description: 'Coverage D limit (living expenses)',
-        minWidth: 120,
-        flex: 0.8,
-        editable: false,
-        headerAlign: 'center',
-        align: 'right',
-        valueFormatter: formatGridCurrency,
-      },
-      {
-        field: 'deductible',
-        headerName: 'Deductible',
-        description: 'Dollar based deductible submitted by user',
-        minWidth: 100,
-        flex: 0.5,
-        editable: false,
-        headerAlign: 'center',
-        align: 'right',
-        valueFormatter: formatGridCurrency,
-      },
-      {
-        field: 'replacementCost',
-        headerName: 'Replacement Cost',
-        description: 'Building replacement cost',
-        minWidth: 140,
-        flex: 0.8,
-        headerAlign: 'center',
-        align: 'right',
-        valueFormatter: formatGridCurrency,
-      },
+      // replacementCostCol,
+      ratingDataReplacementCostCol,
       {
         field: 'exclusions',
         headerName: 'Exclusions',
@@ -282,185 +229,54 @@ export const SubmissionsGrid: React.FC<SubmissionGridProps> = ({
         editable: false,
         // TODO: valueFormatter
       },
+      priorLossCountCol,
+      ratingDataDistToCoastFeetCol,
+      ratingDataBasementCol,
+      ratingDataNumStoriesCol,
+      ratingDataPropertyCodeCol,
+      ratingDataSqFootageCol,
+      ratingDataYearBuiltCol,
+      ratingDataFloodZoneCol,
+      ratingDataCBRSCol,
+      inlandAALCol,
+      surgeAALCol,
+      tsunamiAALCol,
+      coordinatesCol,
+      latitudeCol,
+      longitudeCol,
+      createdCol,
+      updatedCol,
       {
-        field: 'priorLossCount',
-        headerName: 'Prior Losses',
-        description: 'Prior loss count provided by user',
-        minWidth: 100,
-        flex: 0.4,
-        editable: false,
-        headerAlign: 'center',
-        align: 'right',
-        // TODO: valueFormatter
+        field: 'propertyDataDocId',
+        headerName: 'Property Data Doc ID',
+        description: 'Document ID for the property data response',
+        valueGetter: (params) => params.row.propertyDataDocId || null,
+        ...copyBaseProps,
       },
       {
-        field: 'distToCoastFeet',
-        headerName: 'Dist. to Coast',
-        description: 'Converted to feet from the value provided by property data api',
-        minWidth: 120,
-        flex: 0.4,
-        headerAlign: 'center',
-        align: 'right',
-        valueFormatter: (params: GridValueFormatterParams<number>) =>
-          params.value ? numberFormat(params.value) : null,
-      },
-      {
-        field: 'basement',
-        headerName: 'Basement',
-        description: 'Basement value provided by property api',
-        minWidth: 140,
-        flex: 0.4,
-      },
-      {
-        field: 'numStories',
-        headerName: 'Num. Stories',
-        description: 'Number of stories provided by property api',
-        minWidth: 100,
-        flex: 0.4,
-        headerAlign: 'center',
-        align: 'right',
-      },
-      {
-        field: 'propertyCode',
-        headerName: 'Property Code',
-        description: 'Property code provided by property api',
-        minWidth: 180,
-        flex: 0.8,
-      },
-      {
-        field: 'sqFootage',
-        headerName: 'Sq. Footage',
-        description: 'Square footage provided by property api',
-        minWidth: 100,
-        flex: 0.4,
-        headerAlign: 'center',
-        align: 'right',
-        valueFormatter: (params: GridValueFormatterParams<number>) =>
-          params.value ? numberFormat(params.value) : null,
-      },
-      {
-        field: 'yearBuilt',
-        headerName: 'Year Built',
-        description: 'Year built provided by property api',
-        minWidth: 80,
-        flex: 0.4,
-        headerAlign: 'center',
-        align: 'center',
-      },
-      {
-        field: 'spatialKeyDocId',
-        headerName: 'SK Doc ID',
-        description: 'Document/database ID for the entire property data response',
-        minWidth: 140,
-        flex: 0.4,
-      },
-      {
-        field: 'floodZone',
-        headerName: 'FZ',
-        description: 'Flood zone provided by property api',
-        minWidth: 60,
-        flex: 0.4,
-      },
-      {
-        field: 'CBRSDesignation',
-        headerName: 'CBRS Des.',
-        description: 'Coastal Barrier Reef System Designation provided by property api',
-        minWidth: 100,
-        flex: 0.5,
-      },
-      {
-        field: 'inlandAAL',
-        headerName: 'inlandAAL',
-        description: 'Inland Peril Average Annual Loss from Swiss Re',
-        minWidth: 150,
-        flex: 0.8,
-        valueGetter: (params) => params.value || null,
-        renderCell: (params) => {
-          return <GridCellCopy value={params.value} />;
-        },
-      },
-      {
-        field: 'surgeAAL',
-        headerName: 'surgeAAL',
-        description: 'Surge Peril Average Annual Loss from Swiss Re',
-        minWidth: 150,
-        flex: 0.8,
-        valueGetter: (params) => params.value || null,
-        renderCell: (params) => {
-          return <GridCellCopy value={params.value} />;
-        },
-      },
-      {
-        field: 'created',
-        headerName: 'Created',
-        type: 'dateTime',
-        minWidth: 180,
-        flex: 1,
-        editable: false,
-        valueGetter: (params: GridValueGetterParams) => params.row.metadata?.created || null,
-        valueFormatter: formatGridFirestoreTimestamp,
-      },
-      {
-        field: 'updated',
-        headerName: 'Updated',
-        type: 'dateTime',
-        minWidth: 180,
-        flex: 1,
-        editable: false,
-        valueGetter: (params: GridValueGetterParams) => params.row.metadata?.created || null,
-        valueFormatter: formatGridFirestoreTimestamp,
-      },
-      {
-        field: 'agentId',
-        headerName: 'Agent ID',
-        description:
-          'agent ID of the user that created submission (if user had agent permission role)',
-        minWidth: 240,
-        flex: 1,
-        editable: false,
-        renderCell: (params) => {
-          return <GridCellCopy value={params.value} />;
-        },
-      },
-      {
-        field: 'userId',
-        headerName: 'User ID',
+        ...userIdCol,
         description:
           'user ID of the user that created submission (could have been anonymous if they were not signed in)',
-        minWidth: 240,
-        flex: 1,
-        editable: false,
-        renderCell: (params) => {
-          return <GridCellCopy value={params.value} />;
-        },
       },
+
       {
-        field: 'id',
+        ...idCol,
         headerName: 'Submission ID',
         description: 'Document/database ID for the submission',
-        minWidth: 220,
-        flex: 1,
-        renderCell: (params) => {
-          return <GridCellCopy value={params.value} />;
-        },
       },
-      ...columnOverrides,
     ],
-    [openGoogleMaps, actions, columnOverrides]
+    [openMap, openFloodFactor, openSubmissionDataDialog, renderActions, iDAdminResult] // handleCreateQuote,
   );
 
   return (
-    <Box sx={{ height: 500, width: '100%', overflowX: 'hidden', maxWidth: '100%' }}>
-      <BasicDataGrid
-        rows={rows || []}
+    <Box sx={{ height: 500, width: '100%', overflowY: 'scroll' }}>
+      <ServerDataGrid
+        collName='SUBMISSIONS'
         columns={submissionColumns}
         density='compact'
-        autoHeight
-        onCellDoubleClick={(params, event) => {
-          if (!params.isEditable) {
-            navigate(params.id.toString());
-          }
-        }}
+        // autoHeight
+        // TODO: make "view submission" route exists for all user claim types
+        // onCellDoubleClick={}
         slots={{
           toolbar: GridToolbar,
         }}
@@ -472,10 +288,10 @@ export const SubmissionsGrid: React.FC<SubmissionGridProps> = ({
             columnVisibilityModel: {
               firstName: false,
               lastName: false,
-              addressLine2: false,
-              postal: false,
-              countyName: false,
-              countyFIPS: false,
+              'address.addressLine2': false,
+              'address.postal': false,
+              'address.countyName': false,
+              'address.countyFIPS': false,
               latitude: false,
               longitude: false,
               updated: false,
@@ -483,34 +299,12 @@ export const SubmissionsGrid: React.FC<SubmissionGridProps> = ({
             },
           },
           sorting: {
-            sortModel: [{ field: 'created', sort: 'desc' }],
+            sortModel: [{ field: 'metadata.created', sort: 'desc' }],
           },
-          // pagination: { pageSize: 10 },
-          pagination: { paginationModel: { pageSize: 10 } },
+          pagination: { paginationModel: { page: 0, pageSize: 10 } },
         }}
         {...props}
       />
     </Box>
   );
 };
-
-function getChipProps(status: SUBMISSION_STATUS): Partial<ChipProps> {
-  switch (status) {
-    case SUBMISSION_STATUS.SUBMITTED:
-      return { icon: <FiberNewRounded />, color: 'primary' };
-    case SUBMISSION_STATUS.UNDER_REVIEW:
-      return { icon: <FindInPageRounded />, color: 'warning' };
-    case SUBMISSION_STATUS.DRAFT:
-      return { icon: <PendingRounded />, color: 'info' };
-    case SUBMISSION_STATUS.NOT_ELIGIBLE:
-      return { icon: <ThumbDownRounded />, color: 'default' };
-    case SUBMISSION_STATUS.PENDING_INFO:
-      return { icon: <HourglassBottomRounded />, color: 'warning' };
-    case SUBMISSION_STATUS.QUOTED:
-      return { icon: <RequestQuoteRounded />, color: 'success' };
-    case SUBMISSION_STATUS.CANCELLED:
-      return { icon: <CloseRounded />, color: 'default' };
-    default:
-      return { color: 'default' };
-  }
-}

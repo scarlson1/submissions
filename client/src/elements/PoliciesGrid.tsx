@@ -55,8 +55,6 @@ export interface PoliciesGridProps extends Partial<DataGridProps> {
   queryConstraints: QueryConstraint[];
 }
 
-// TODO: update named insured column to get displayName
-
 export const PoliciesGrid: React.FC<PoliciesGridProps> = ({ queryConstraints, ...props }) => {
   const navigate = useNavigate();
   const dialog = useJsonDialog();
@@ -170,22 +168,6 @@ export const PoliciesGrid: React.FC<PoliciesGridProps> = ({ queryConstraints, ..
       agencyNameCol,
       agencyAddressCol,
       issuingCarrierCol,
-      // TODO: rename finTransactions ?? or don't store on policy ??
-      // use join query ?? or no grid --> only show in policy view ??
-      // {
-      //   field: 'transactions',
-      //   headerName: 'Transactions',
-      //   minWidth: 140,
-      //   flex: 1,
-      //   renderCell: (params) =>
-      //     renderChips(params, {}, (t: string) => ({
-      //       onClick: () =>
-      //         window.open(
-      //           `${process.env.REACT_APP_EPAY_HOSTING_BASE_URL}/Transactions/Index/${t}`,
-      //           '_blank'
-      //         ),
-      //     })),
-      // },
       nestedAgentUserIdCol,
       nestedAgencyOrgIdCol,
       userIdCol,

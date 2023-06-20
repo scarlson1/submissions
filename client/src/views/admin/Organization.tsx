@@ -12,8 +12,8 @@ import {
   AddUsersDialog,
   InvitesGrid,
   PoliciesGrid,
-  QuoteGrid,
-  SubmissionsGrid,
+  QuotesGrid,
+  SubmissionsGridOld,
   UsersGrid,
 } from 'elements';
 import { useAgencyInsureds } from 'hooks/useAgencyInsureds';
@@ -80,7 +80,7 @@ export const Organization: React.FC = () => {
             />
           </TabPanel>
           <TabPanel value='quotes'>
-            <QuoteGrid
+            <QuotesGrid
               queryConstraints={[
                 where('agencyId', '==', `${orgId}`),
                 orderBy('metadata.created', 'desc'),
@@ -89,7 +89,7 @@ export const Organization: React.FC = () => {
             />
           </TabPanel>
           <TabPanel value='submissions'>
-            <TempSubmissionsGridWorkaround orgId={orgId} />
+            <TempSubmissionsGridOldWorkaround orgId={orgId} />
           </TabPanel>
           <TabPanel value='insureds'>
             {/* TODO: use rxjs to fetch all policies under agency, then fetch users by id ?? use innerJoin observable ?? */}
@@ -275,12 +275,12 @@ function TestAgencyInsureds({ orgId }: { orgId: string }) {
   );
 }
 
-function TempSubmissionsGridWorkaround({ orgId }: { orgId: string }) {
+function TempSubmissionsGridOldWorkaround({ orgId }: { orgId: string }) {
   const { data, status } = useCollectionData<Submission>(
     'SUBMISSIONS',
     [where('orgId', '==', orgId), orderBy('metadata.created', 'desc'), limit(100)],
     { suspense: false, initialData: [] }
   );
 
-  return <SubmissionsGrid rows={data} loading={status === 'loading'} />;
+  return <SubmissionsGridOld rows={data} loading={status === 'loading'} />;
 }

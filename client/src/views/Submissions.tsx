@@ -1,15 +1,15 @@
 import React from 'react';
 import { useSigninCheck } from 'reactfire';
+import { where } from 'firebase/firestore';
 import { CircularProgress } from '@mui/material';
 
 import { getRequiredClaimValidator } from 'components/RequireAuthReactFire';
-import { CUSTOM_CLAIMS } from 'modules/components'; // useAuth
+import { CUSTOM_CLAIMS } from 'modules/components';
 import { Submissions as AdminSubmissions } from './admin/Submissions';
-import { Submissions as AgentSubmissions } from './agent/Submissions';
 import { Submissions as UserSubmissions } from './user/Submissions';
+import { SubmissionsGrid } from 'elements';
 
 export const Submissions: React.FC = () => {
-  // const { customClaims } = useAuth(); // can wrap in <RequireAuth> to ensure customClaims has loaded ??
   const { status: status1, data: checkIdAdmin } = useSigninCheck({
     requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true },
     suspense: false,
@@ -22,10 +22,10 @@ export const Submissions: React.FC = () => {
   if (status1 === 'loading' || status2 === 'loading') return <CircularProgress />;
 
   if (checkIdAdmin.hasRequiredClaims) return <AdminSubmissions />;
-  if (checkOrgAdmin.hasRequiredClaims) return <AgentSubmissions />;
-
-  // if (customClaims.iDemandAdmin) return <AdminSubmissions />;
-  // if (customClaims.agent) return <AgentSubmissions />;
+  if (checkOrgAdmin.hasRequiredClaims && checkOrgAdmin.user?.uid)
+    return (
+      <SubmissionsGrid constraints={[where('agent.userId', '==', `${checkOrgAdmin.user?.uid}`)]} />
+    );
 
   return <UserSubmissions />;
 };

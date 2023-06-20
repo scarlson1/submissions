@@ -26,7 +26,7 @@ import { isRangeComparison, muiOperatorToFirestoreOperator } from 'modules/utils
 
 // FIREBASE PAGINATION ARTICLE: https://makerkit.dev/blog/tutorials/pagination-react-firebase-firestore
 
-export interface ServerDataGridProps extends Partial<DataGridProps> {
+export interface ServerDataGridProps extends Partial<Omit<DataGridProps, 'rows'>> {
   collName: keyof typeof COLLECTIONS;
   pathSegments?: string[];
   constraints?: QueryFieldFilterConstraint[];

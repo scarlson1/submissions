@@ -4,6 +4,7 @@ export { QuoteNew } from './QuoteNew';
 export { Quotes } from './Quotes';
 export { SLTaxes } from './SLTaxes';
 export { SLTaxNew } from './SLTaxNew';
+export { SLTaxEdit } from './SLTaxEdit';
 export { EditActiveStates } from './EditActiveStates';
 export { Moratoriums } from './Moratoriums';
 export { MoratoriumNew } from './MoratoriumNew';
@@ -23,7 +24,5 @@ export { Home } from './Home';
 export { Users } from './Users';
 export { PortfolioRating } from './PortfolioRating';
 
-export type { SubmissionsProps } from './Submissions';
-export type { SLTaxesProps } from './SLTaxes';
-export type { SLTaxNewProps } from './SLTaxNew';
+// export type { SubmissionsProps } from './Submissions';
 export type { NewSLValues } from './SLLicenseNew';

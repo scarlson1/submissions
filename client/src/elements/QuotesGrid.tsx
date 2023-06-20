@@ -53,7 +53,7 @@ import {
 import { BasicDataGrid, GridCellCopy } from 'components';
 import { useCollectionData, useJsonDialog } from 'hooks';
 
-export interface QuoteGridProps extends Partial<DataGridProps> {
+export interface QuotesGridProps extends Partial<DataGridProps> {
   // rows: WithId<Quote>[];
   queryConstraints?: QueryConstraint[];
   // actions?: React.ReactElement<GridActionsCellItemProps>[];
@@ -61,7 +61,7 @@ export interface QuoteGridProps extends Partial<DataGridProps> {
   columnOverrides?: GridColDef<any, any, any>[] | GridActionsColDef[];
 }
 
-export const QuoteGrid: React.FC<QuoteGridProps> = ({
+export const QuotesGrid: React.FC<QuotesGridProps> = ({
   // rows = [],
   queryConstraints = [],
   // actions = [],

@@ -15,22 +15,24 @@ import {
   Divider,
   Tooltip,
   Typography,
+  Unstable_Grid2 as Grid,
 } from '@mui/material';
-import Grid from '@mui/material/Unstable_Grid2';
+import { isEmpty } from 'lodash';
+import { useNavigate } from 'react-router-dom';
 
 import { useUsersPolicies } from 'hooks';
 import { FlexCard, FlexCardContent, LoadingSpinner } from 'components';
-import { useNavigate } from 'react-router-dom';
 import { createPath, ROUTES } from 'router';
 import { Item } from './UserSubmissions';
 import { PoliciesGrid } from 'elements';
 import { limit, orderBy, where } from 'firebase/firestore';
 import { formatFirestoreTimestamp } from 'modules/utils';
-import { isEmpty } from 'lodash';
+
 import { AdditionalInsured, fallbackImages } from 'common';
 
 // TODO: change policies view to allow switching between card and grid view
 // pull data state up. default initial view state by claim type
+// TODO: include change requests in grid ?? (could use rxjs and aggregation query)
 
 export const Policies: React.FC = () => {
   const { customClaims, user } = useAuth();

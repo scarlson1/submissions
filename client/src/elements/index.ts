@@ -24,13 +24,15 @@ export { CountiesMap } from './CountiesMap';
 export { DisclosureForm } from './DisclosureForm';
 export { AddUsersDialog } from './AddUsersDialog';
 export { InvitesGrid } from './InvitesGrid';
-export { SubmissionsGrid } from './SubmissionsGrid';
-export { QuoteGrid } from './QuoteGrid';
+export { SubmissionsGridOld } from './SubmissionsGridOld';
+export { QuotesGrid } from './QuotesGrid';
 export { UsersGrid } from './UsersGrid';
 export { PoliciesGrid } from './PoliciesGrid';
 export { LocationsGrid } from './LocationsGrid';
 export { LocationCard } from './LocationCard';
 export { LocationsMap } from './LocationsMap';
+export { TaxForm } from './TaxForm';
+export { SubmissionsGrid } from './SubmissionsGrid';
 
 export type { FormikAddressProps } from './FormikAddress';
 export type { DeductibleStepProps } from './DeductibleStep';

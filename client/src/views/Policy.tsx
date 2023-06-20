@@ -11,23 +11,23 @@ import {
 } from '@mui/material';
 import { GridViewRounded, MapRounded, TableRowsRounded } from '@mui/icons-material';
 import { useParams } from 'react-router-dom';
+import { PickingInfo } from 'deck.gl/typed';
+import { toast } from 'react-hot-toast';
 
 import { useDocData } from 'hooks';
 import { Policy as IPolicy, PolicyLocation, WithId } from 'common';
 import { LocationCard, LocationsGrid, LocationsMap } from 'elements';
 import { formatFirestoreTimestamp } from 'modules/utils';
-import { PickingInfo } from 'deck.gl/typed';
-import { toast } from 'react-hot-toast';
-// import { FlexCard, FlexCardContent } from 'components';
 
 export const Policy: React.FC = () => {
   const { policyId } = useParams();
   if (!policyId) throw new Error('policyId missing in url params');
 
   const { data } = useDocData<IPolicy>('POLICIES', policyId);
+  // const { requestChange } = usePolicyChangeRequest();
 
   const locations = useMemo<WithId<PolicyLocation>[]>(() => {
-    let pLocs = Object.entries(data.locations);
+    let pLocs = Object.entries(data?.locations || {});
     if (!pLocs || !pLocs.length) return [];
 
     return pLocs.map((loc) => ({ ...(loc[1] || {}), locationId: loc[0], id: loc[0] }));
@@ -49,21 +49,22 @@ export const Policy: React.FC = () => {
   const handleViewPolicyDoc = useCallback(() => {
     const docObj = data?.documents[0];
     // TODO: report error to sentry
-    if (!docObj.downloadUrl) return toast.error('missing policy PDF');
+    if (!docObj?.downloadUrl) return toast.error('missing policy PDF');
 
     window.open(docObj?.downloadUrl, '_blank');
   }, [data]);
 
   const handleChangeRequest = useCallback(() => {
     alert('TODO: implement change request');
-  }, []);
+    // could be called by card or grid
+    // pass button to renderActions in locations grid
+  }, []); // policyId
 
   const handleCancelPolicy = useCallback(() => {
     alert('TODO: implement cancel');
   }, []);
 
   // TODO:
-  //    - locations: display as cards or grid
   //    - policy overview details
   //    - submit edit request
   //    - submit claim
@@ -77,6 +78,7 @@ export const Policy: React.FC = () => {
           <Button onClick={handleNewClaim}>Submit Claim</Button>
         </Box>
       </Box>
+      <Box></Box>
 
       <Box>
         <Box
@@ -110,7 +112,7 @@ export const Policy: React.FC = () => {
         </Box>
         {locationsView === 'cards' ? (
           <Grid container spacing={4}>
-            {locations.map((location) => (
+            {locations?.map((location) => (
               <Grid xs={12} sm={6} md={4} xl={3} key={location.id}>
                 <LocationCard
                   location={location}
@@ -140,10 +142,6 @@ export const Policy: React.FC = () => {
                     info.object?.expirationDate,
                     'date'
                   )}`}</Typography>
-                  {/* <Typography
-                    variant='body2'
-                    color='text.secondary'
-                  >{`ID: ${info.object.id}`}</Typography> */}
                 </Box>
               )}
             />
@@ -152,7 +150,7 @@ export const Policy: React.FC = () => {
       </Box>
       <Box sx={{ py: { xs: 3, md: 5, lg: 8 } }}>
         <Typography variant='body2' component='div' color='text.secondary'>
-          {data.effectiveDate && data.expirationDate ? (
+          {data?.effectiveDate && data?.expirationDate ? (
             <Typography component='span' variant='body2'>
               {`This policy is effective ${formatFirestoreTimestamp(
                 data.effectiveDate,

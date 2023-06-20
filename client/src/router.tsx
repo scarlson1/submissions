@@ -49,6 +49,7 @@ import {
   Organizations,
   Organization,
   Users,
+  SLTaxEdit,
   // PortfolioRating,
 } from 'views/admin';
 // import { Submissions as AgentSubmissions } from 'views/agent';
@@ -109,6 +110,7 @@ export enum ADMIN_ROUTES {
 
   SL_TAXES = '/admin/config/sl-tax',
   SL_TAXES_NEW = '/admin/config/sl-tax/new',
+  SL_TAXES_EDIT = '/admin/config/sl-tax/:taxId/edit',
   EDIT_ACTIVE_STATES = '/admin/config/active-states/:productId/edit',
   MORATORIUMS = '/admin/config/moratoriums',
   MORATORIUM_NEW = '/admin/config/moratoriums/new',
@@ -156,6 +158,7 @@ type TArgs =
   // | { path: ADMIN_ROUTES.POLICIES; search?: { productId?: Product } }
   | { path: ADMIN_ROUTES.SL_TAXES }
   | { path: ADMIN_ROUTES.SL_TAXES_NEW }
+  | { path: ADMIN_ROUTES.SL_TAXES_EDIT; params: { taxId: string } }
   | { path: ADMIN_ROUTES.EDIT_ACTIVE_STATES; params: { productId: Product } }
   | { path: ADMIN_ROUTES.MORATORIUMS }
   | { path: ADMIN_ROUTES.MORATORIUM_NEW }
@@ -531,6 +534,14 @@ export const router = sentryCreateBrowserRouter([
               </RequireAuthReactFire>
 
               // </RequireAuth>
+            ),
+          },
+          {
+            path: ADMIN_ROUTES.SL_TAXES_EDIT,
+            element: (
+              <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
+                <SLTaxEdit />
+              </RequireAuthReactFire>
             ),
           },
           {

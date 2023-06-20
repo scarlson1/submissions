@@ -9,6 +9,7 @@ import {
   FaceRounded,
   FiberNewRounded,
   FindInPageRounded,
+  FloodRounded,
   HourglassBottomRounded,
   HourglassEmptyRounded,
   HourglassTopRounded,
@@ -16,6 +17,7 @@ import {
   PendingRounded,
   QueryBuilderRounded,
   RequestQuoteRounded,
+  StormRounded,
   ThumbDownRounded,
 } from '@mui/icons-material';
 import { Box, Chip, ChipProps, Typography } from '@mui/material';
@@ -1047,6 +1049,27 @@ export const productCol: GridColDef = {
   editable: false,
 };
 
+function getProductChipProps(value: string): Partial<ChipProps> {
+  switch (value) {
+    case 'flood':
+      return { icon: <FloodRounded />, color: 'primary' };
+    case 'wind':
+      return { icon: <StormRounded />, color: 'secondary' };
+    default:
+      return { color: 'default' };
+  }
+}
+
+export const productsCol: GridColDef = {
+  field: 'products',
+  headerName: 'Products',
+  minWidth: 180,
+  flex: 1,
+  editable: false,
+  renderCell: (params) =>
+    renderChips(params, { variant: 'outlined', color: 'success' }, getProductChipProps),
+};
+
 export const SLProducerOfRecordNameCol: GridColDef = {
   field: 'SLProducerOfRecord.name',
   headerName: 'SL PofR',
@@ -1157,4 +1180,31 @@ export const ratingDocIdCol: GridColDef = {
   ...idCol,
   field: 'ratingDocId',
   headerName: 'Rating Doc ID',
+};
+
+export const subjectBaseCol: GridColDef = {
+  field: 'subjectBase',
+  headerName: 'Subject Base',
+  minWidth: 340,
+  flex: 1,
+  editable: false,
+  renderCell: renderChips,
+};
+
+export const policyTrxTypesCol: GridColDef = {
+  field: 'transactionTypes',
+  headerName: 'Transaction Types',
+  minWidth: 340,
+  flex: 1,
+  editable: false,
+  renderCell: (params) => renderChips(params, { variant: 'outlined', color: 'success' }),
+};
+
+export const LOBCol: GridColDef = {
+  field: 'LOB',
+  headerName: 'LOB',
+  minWidth: 200,
+  flex: 0.6,
+  editable: false,
+  renderCell: (params) => renderChips(params, { variant: 'outlined' }),
 };

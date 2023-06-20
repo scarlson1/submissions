@@ -140,7 +140,7 @@ const RATING_FIELDS = [
   'replacementCost',
 ];
 
-const DEFAULT_VALUES = {
+const DEFAULT_VALUES: NewQuoteValues = {
   address: {
     addressLine1: '',
     addressLine2: '',
@@ -201,7 +201,7 @@ const DEFAULT_VALUES = {
     basement: '',
     distToCoastFeet: null, // '',
     floodZone: '',
-    numStories: null, // '',
+    numStories: 0, // null, // '',
     propertyCode: '',
     replacementCost: null, // '',
     sqFootage: null, // '',
@@ -304,53 +304,6 @@ const quoteNewValidation = yup.object().shape({
       subjectBase: yup.array().of(yup.string()),
     })
   ),
-  // .test('taxes-fees-match', "tax values don't reflect current fees", (val, ctx) => {
-  //   const fees = ctx.parent.fees as FeeItem[];
-  //   const taxes = val as TaxItem[];
-  //   if (!taxes?.length || !fees.length) return true;
-
-  //   // let taxTotal = 0;
-  //   // get base nums
-  //   // loop taxes
-  //   // check tax sum same as val sum
-  //   // TODO: move to reusable func "getTaxArgs"
-  //   const body: SubjectBaseKeyVal = {
-  //     premium: ctx.parent.annualPremium,
-  //     homeStatePremium: ctx.parent.annualPremium,
-  //     outStatePremium: 0,
-  //     inspectionFees: sumByTypes<FeeItem>(fees, 'feeName', 'Inspection Fee', 'feeValue'),
-  //     mgaFees: sumByTypes<FeeItem>(fees, 'feeName', 'MGA Fee', 'feeValue'),
-  //   };
-
-  //   let validationTaxTotal = 0;
-
-  //   for (let t of taxes) {
-  //     // dont need to validate fixed fees
-  //     const baseKeys = t.subjectBase
-  //       ?.filter((base) => base !== 'fixedFee' && base !== 'noFee')
-  //       .filter((x) => x);
-  //     console.log('BASE KEYS: ', baseKeys);
-  //     if (baseKeys && baseKeys.length) {
-  //       const taxBase = baseKeys.reduce((acc, curr) => {
-  //         const num = typeof curr === 'string' ? body[curr as keyof SubjectBaseKeyVal] : 0;
-  //         return acc + (num ?? 0);
-  //       }, 0);
-
-  //       // POTENTIAL BUG IF ROUNDING TO 0
-  //       // COULD SAVE TAX BASE AND COMPARE TAX BASE NUMBERS
-  //       const taxValue = round(taxBase * t.rate, 2);
-  //       validationTaxTotal += taxValue;
-  //       console.log(`${taxBase} (base) * ${t.rate} (rate) = ${taxValue}`);
-  //     }
-  //   }
-
-  //   const taxTotal = taxes.reduce((acc, curr) => acc + curr.value, 0);
-  //   console.log('TAX TOTAL: ', taxTotal);
-  //   console.log('Validation Total: ', validationTaxTotal);
-  //   console.log('IS EQUAL: ', isEqual(taxTotal, validationTaxTotal));
-
-  //   return true;
-  // }),
   annualPremium: yup.number().min(100).required('term premium is required'),
   subproducerCommission: yup.number().required('commission is required'),
   quoteTotal: yup
@@ -374,13 +327,24 @@ const quoteNewValidation = yup.object().shape({
   ratingPropertyData: yup.object().shape({
     CBRSDesignation: yup.string().required(`CBRS designation is required`),
     basement: yup.string().required(`basement is required`),
-    distToCoastFeet: yup.number(), // .required(`distance to coast is required`),
+    distToCoastFeet: yup.number().min(1), // .required(`distance to coast is required`),
     floodZone: yup.string().required(`flood zone is required`),
-    numStories: yup.number().required(`# of stories is required`),
+    numStories: yup
+      .number()
+      .required(`# of stories is required`)
+      .min(1, 'min of 1 story')
+      .max(10, 'max 10 stories'),
     propertyCode: yup.string().required(`property code is required`),
-    replacementCost: yup.number().required(`replacement cost is required`),
+    replacementCost: yup
+      .number()
+      .required(`replacement cost is required`)
+      .min(80000, `RCV must be at least $80,000`),
     sqFootage: yup.number().required(`square footage is required`),
-    yearBuilt: yup.number().required(`year built is required`),
+    yearBuilt: yup
+      .number()
+      .required(`year built is required`)
+      .min(1900, 'Must be after 1900')
+      .max(new Date().getFullYear(), `Year cannot exceed ${new Date().getFullYear()}`),
   }),
   notes: yup.array().of(
     yup.object().shape({
@@ -438,6 +402,7 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
   const showDialog = useJsonDialog({ maxWidth: 'sm' });
   const toast = useAsyncToast({ position: 'top-right' });
   const activeStates = useActiveStates('flood');
+
   const [ratingState, setRatingState] = useState({
     rerateRequired: !(
       initialValues.annualPremium &&
@@ -590,9 +555,6 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
 
   const setTouched = useCallback(async (key?: keyof FormikErrors<NewQuoteValues>) => {
     const validationErrors = await formikRef.current?.validateForm();
-
-    // console.log('SET NESTED OBJECT VALUES (KEY): ', setNestedObjectValues(keys, true));
-    console.log('SET NESTED OBJECT VALUES (ALL): ', setNestedObjectValues(validationErrors, true));
     // https://github.com/jaredpalmer/formik/issues/2734#issuecomment-923337541
     if (validationErrors && Object.keys(validationErrors).length > 0) {
       const keys = key ? validationErrors[key] : validationErrors;

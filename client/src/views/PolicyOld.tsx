@@ -3,8 +3,6 @@ import { alpha, Box, Container, IconButton, Skeleton, Tooltip, Typography } from
 import { ArrowBackIosNewRounded, EditRounded } from '@mui/icons-material';
 import Grid from '@mui/material/Unstable_Grid2';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Timestamp, addDoc } from 'firebase/firestore';
-import { useFirestore, useSigninCheck } from 'reactfire';
 
 import { FlexCard, FlexCardContent, InputDialog } from 'components';
 import { dollarFormat } from 'modules/utils/helpers';
@@ -16,53 +14,7 @@ import {
   RelaxingAtHomeSVG,
   ApartmentRentSVG,
 } from 'assets/images';
-import { useAsyncToast, useDocData } from 'hooks';
-import { policyChangeReqestsCollection } from 'common';
-
-// TODO: create admin side process for accepting / denying
-export const useCreatePolicyChangeRequest = (
-  onSuccess?: (docId: string, policyId: string, newVal: string | number) => void,
-  onError?: (msg: string, err: any) => void
-) => {
-  const { data: signInResult } = useSigninCheck();
-  const firestore = useFirestore();
-  const toast = useAsyncToast();
-
-  const requestChange = useCallback(
-    async (policyId: string, field: string, newVal: string | number) => {
-      if (!signInResult.signedIn)
-        return toast.error('must be authenticated to submit update request');
-
-      try {
-        const changeColRef = policyChangeReqestsCollection(firestore, policyId);
-        toast.loading('submitting request...');
-
-        const docRef = await addDoc(changeColRef, {
-          field,
-          newValue: newVal,
-          userId: signInResult.user.uid,
-          status: 'submitted',
-          metadata: {
-            created: Timestamp.now(),
-            updated: Timestamp.now(),
-          },
-        });
-
-        toast.success('request submitted!');
-        if (onSuccess) onSuccess(docRef.id, policyId, newVal);
-      } catch (err: any) {
-        console.log('ERROR: ', err);
-        let msg = 'Error creating change request';
-        if (err?.message) msg += `. (${err.message})`;
-        if (onError) onError(msg, err);
-        toast.error('an error occurred');
-      }
-    },
-    [firestore, signInResult, onSuccess, onError, toast]
-  );
-
-  return { requestChange };
-};
+import { useDocData, usePolicyChangeRequest } from 'hooks';
 
 export const PolicyOld: React.FC = () => {
   const navigate = useNavigate();
@@ -71,7 +23,7 @@ export const PolicyOld: React.FC = () => {
   if (!policyId) throw new Error('policyId missing in url params');
   const { data } = useDocData('POLICIES', policyId);
 
-  const { requestChange } = useCreatePolicyChangeRequest();
+  const { requestChange } = usePolicyChangeRequest();
 
   const limits = useMemo(
     () => [
@@ -115,7 +67,6 @@ export const PolicyOld: React.FC = () => {
 
   const handleRequestEdit = useCallback(
     async (field: string, initialValue?: string | number) => {
-      console.log('request edit', field);
       if (!policyId) return;
       try {
         const initVal = typeof initialValue === 'number' ? initialValue.toString() : initialValue;
