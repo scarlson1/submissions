@@ -166,7 +166,7 @@ export const SubmissionNew: React.FC = () => {
           state: values.address.state,
           postal: values.address.postal,
         });
-        console.log('PROPERTY DATA RES: ', res);
+        // console.log('PROPERTY DATA RES: ', res);
         return {
           ...values,
           limits: {
@@ -175,10 +175,6 @@ export const SubmissionNew: React.FC = () => {
             limitC: res.limitC ?? '63000',
             limitD: res.limitD ?? '38000',
           },
-          // limitA: res.initLimitA ?? '250000',
-          // limitB: res.initLimitB ?? '25000',
-          // limitC: res.initLimitC ?? '63000',
-          // limitD: res.initLimitD ?? '38000',
           deductible: res.deductible ?? 4000,
         };
       } catch (err) {

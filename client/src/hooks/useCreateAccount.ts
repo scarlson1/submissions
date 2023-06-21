@@ -15,6 +15,7 @@ import { useAuth } from 'modules/components/AuthContext';
 import { toast } from 'react-hot-toast';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
+import { User as DBUser } from 'common';
 import { usersCollection } from 'common/firestoreCollections';
 import { FirebaseError } from 'firebase/app';
 import { getErrorDetails } from 'modules/utils/helpers';
@@ -55,22 +56,22 @@ export const useCreateAccount = () => {
       await updateProfile(user, { displayName });
 
       let userRef = doc(usersCollection(getFirestore()), user.uid);
-      await setDoc(
-        userRef,
-        {
-          displayName,
-          firstName: firstName.trim(),
-          lastName: lastName.trim(),
-          orgId: auth.tenantId || null,
-          tenantId: auth.tenantId || null,
-          email: user.email || null,
-          metadata: {
-            created: Timestamp.now(),
-            updated: Timestamp.now(),
-          },
+
+      let initUserProperties: Partial<DBUser> = {
+        displayName,
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        // orgId: auth.tenantId || null,
+        tenantId: auth.tenantId || null,
+        email: user.email || null,
+        metadata: {
+          created: Timestamp.now(),
+          updated: Timestamp.now(),
         },
-        { merge: true }
-      );
+      };
+      if (auth.tenantId) initUserProperties.orgId = auth.tenantId;
+
+      await setDoc(userRef, initUserProperties, { merge: true });
 
       await sendEmailVerification(user);
     },

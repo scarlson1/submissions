@@ -21,7 +21,6 @@ export interface LocationsMapProps extends Omit<DeckMapProps, 'layers' | 'hoverI
 
 export const LocationsMap = ({ data, layerProps, ...props }: LocationsMapProps) => {
   const [hoverInfo, setHoverInfo] = useState<PickingInfo>();
-  console.log('HOVER INFO: ', hoverInfo);
 
   return (
     <DeckMap

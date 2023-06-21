@@ -146,6 +146,9 @@ export const AdminManageUsersGrid: React.FC<AdminManageUsersGridProps> = ({
   const { data: signInResult } = useSigninCheck({
     validateCustomClaims: getRequiredClaimValidator(['ORG_ADMIN', 'IDEMAND_ADMIN']),
   });
+  const { data: iDAdminResult } = useSigninCheck({
+    requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true },
+  });
   const toast = useAsyncToast();
   const updateClaims = useUpdateClaims();
 
@@ -162,7 +165,7 @@ export const AdminManageUsersGrid: React.FC<AdminManageUsersGridProps> = ({
     { root: COLLECTIONS.ORGANIZATIONS, pathSegments: [orgId, COLLECTIONS.USER_CLAIMS] },
     { suspense: true, idField: 'userId', initialData: [] }
   );
-  console.log('POPULATE RESULT: ', data);
+  // console.log('POPULATE RESULT: ', data);
 
   const userColumns: GridColDef[] = useMemo(
     () => [
@@ -240,7 +243,15 @@ export const AdminManageUsersGrid: React.FC<AdminManageUsersGridProps> = ({
         editable: signInResult.hasRequiredClaims,
         extendType: 'singleSelect',
         type: 'multiSelect',
-        valueOptions: [CUSTOM_CLAIMS.AGENT, CUSTOM_CLAIMS.ORG_ADMIN],
+        valueOptions: iDAdminResult.hasRequiredClaims
+          ? [
+              CUSTOM_CLAIMS.AGENT,
+              CUSTOM_CLAIMS.ORG_ADMIN,
+              CUSTOM_CLAIMS.IDEMAND_ADMIN,
+              'iDemandUser',
+            ]
+          : [CUSTOM_CLAIMS.AGENT, CUSTOM_CLAIMS.ORG_ADMIN],
+        // valueOptions: [CUSTOM_CLAIMS.AGENT, CUSTOM_CLAIMS.ORG_ADMIN],
         // valueOptions: [
         //   { label: 'Agent', value: `${CUSTOM_CLAIMS.AGENT}:true` },
         //   { label: 'Admin', value: `${CUSTOM_CLAIMS.ORG_ADMIN}:true` },
@@ -290,7 +301,7 @@ export const AdminManageUsersGrid: React.FC<AdminManageUsersGridProps> = ({
       orgIdCol,
       ...columnAdjustments,
     ],
-    [columnAdjustments, actions, signInResult]
+    [columnAdjustments, actions, signInResult, iDAdminResult]
   );
 
   const processRowUpdate = useCallback(

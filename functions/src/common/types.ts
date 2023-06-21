@@ -17,7 +17,7 @@ import {
 
 import { filterUniqueArr, removeFromArr } from './helpers.js';
 import { round } from 'lodash';
-import { cardFeePct } from './environmentVars.js';
+import { cardFeePct, iDemandOrgId } from './environmentVars.js';
 import { SecondaryFactorMults } from '../utils/rating/factors.js';
 
 // TODO: fix typescript error app.use(thisMiddleware) is users.ts
@@ -1042,11 +1042,14 @@ export class InviteClass implements InviteClassInterface {
   }
 
   getLink() {
-    return `${process.env.HOSTING_BASE_URL}/auth/create-account/${
-      this.orgId
-    }?email=${encodeURIComponent(this.email)}&firstName=${encodeURIComponent(
-      this.firstName ?? ''
-    )}&lastName=${encodeURIComponent(this.lastName ?? '')}`;
+    let tenantURL = this.orgId === iDemandOrgId.value() ? '' : `/${this.orgId}`;
+    return `${
+      process.env.HOSTING_BASE_URL
+    }/auth/create-account${tenantURL}?email=${encodeURIComponent(
+      this.email
+    )}&firstName=${encodeURIComponent(this.firstName ?? '')}&lastName=${encodeURIComponent(
+      this.lastName ?? ''
+    )}`;
   }
 }
 

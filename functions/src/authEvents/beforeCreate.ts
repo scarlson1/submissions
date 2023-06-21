@@ -41,9 +41,9 @@ export default async (event: AuthBlockingEvent) => {
       .get();
 
     if (!inviteSnap.empty) {
-      const inviteData = inviteSnap.docs.map((snap) => snap.data());
-      const invite = inviteData[0];
-      if (invite) {
+      const invite = inviteSnap.docs[0]?.data(); // .map((snap) => snap.data());
+      // const invite = inviteData[0];
+      if (invite && invite?.orgId !== iDemandOrgId.value()) {
         try {
           const to = invite.email;
           const sgKey = sendgridApiKey.value();
@@ -66,12 +66,13 @@ export default async (event: AuthBlockingEvent) => {
           });
         }
       }
-
-      throw new HttpsError(
-        'failed-precondition',
-        `Email matched invite from ${inviteData[0].orgName} (ID: ${inviteData[0].orgId}). Add orgId to end of auth url to accept (/auth/create-account/{orgId})`,
-        { matchedInviteOrgId: inviteData[0].orgId }
-      );
+      if (invite?.orgId !== iDemandOrgId.value()) {
+        throw new HttpsError(
+          'failed-precondition',
+          `Email matched invite from ${invite?.orgName} (ID: ${invite?.orgId}). Add orgId to end of auth url to accept (/auth/create-account/{orgId})`,
+          { matchedInviteOrgId: invite?.orgId }
+        );
+      }
     }
   }
 
@@ -128,7 +129,7 @@ export default async (event: AuthBlockingEvent) => {
   }
 
   // use invite to set permissions ??
-
+  // TODO: delete ?? using invites & userClaims collections
   if (user.email && user.email?.toLowerCase().endsWith('@idemandinsurance.com')) {
     const claimsColRef = userClaimsCollection(db, iDemandOrgId.value());
     try {

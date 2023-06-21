@@ -1,30 +1,53 @@
-// import * as functions from 'firebase-functions';
 import { EventContext } from 'firebase-functions/v1';
-import { info } from 'firebase-functions/logger';
+import { error, info } from 'firebase-functions/logger';
 import { getFirestore } from 'firebase-admin/firestore';
 import { UserRecord } from 'firebase-admin/auth';
 
-import { invitesCollection, userClaimsCollection } from '../common';
+import { iDemandOrgId, invitesCollection, userClaimsCollection } from '../common';
 
 export default async (user: UserRecord, context: EventContext<Record<string, string>>) => {
   const db = getFirestore();
 
   if (!!user.tenantId && !!user.email) {
-    info(`Fetching invite for user ${user.tenantId} / ${user.email}`);
-    const inviteRef = invitesCollection(db, user.tenantId).doc(user.email);
-    const inviteSnap = await inviteRef.get();
-    if (!inviteSnap.exists) return;
+    try {
+      info(`Fetching invite for user ${user.tenantId} / ${user.email}`);
+      const inviteRef = invitesCollection(db, user.tenantId).doc(user.email);
+      const inviteSnap = await inviteRef.get();
+      if (!inviteSnap.exists) return;
 
-    const inviteData = inviteSnap.data();
-    const claims = inviteData?.customClaims || {};
+      const inviteData = inviteSnap.data();
+      const claims = inviteData?.customClaims || {};
 
-    console.log(`updating user claims for ${user.email}: ${JSON.stringify(claims)}`);
-    await userClaimsCollection(db, user.tenantId)
-      .doc(user.uid)
-      .set({ ...claims }, { merge: true });
+      info(`updating user claims for ${user.email}: ${JSON.stringify(claims)}`);
+      await userClaimsCollection(db, user.tenantId)
+        .doc(user.uid)
+        .set({ ...claims }, { merge: true });
 
-    console.log(`Setting invite status to accepted ${inviteRef.id}`);
-    await inviteRef.update({ status: 'accepted' });
+      info(`Setting invite status to accepted ${inviteRef.id}`);
+      await inviteRef.update({ status: 'accepted' });
+    } catch (err) {
+      error(`Error setting claims for user ${user.email}`, { err });
+    }
+  }
+
+  if (user.email?.endsWith('@idemandinsurance.com')) {
+    try {
+      info(`Fetching invite for user idemand user: ${user.email}`);
+      const inviteRef = invitesCollection(db, iDemandOrgId.value()).doc(user.email);
+      const inviteSnap = await inviteRef.get();
+      if (!inviteSnap.exists) return;
+
+      const inviteData = inviteSnap.data();
+      const claims = inviteData?.customClaims || {};
+
+      info(`updating user claims for ${user.email}: ${JSON.stringify(claims)}`);
+      await userClaimsCollection(db, iDemandOrgId.value())
+        .doc(user.uid)
+        .set({ ...claims }, { merge: true });
+
+      info(`Setting invite status to accepted ${inviteRef.id}`);
+      await inviteRef.update({ status: 'accepted' });
+    } catch (err) {}
   }
 
   return;

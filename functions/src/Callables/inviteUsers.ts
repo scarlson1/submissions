@@ -1,11 +1,11 @@
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
-import { info } from 'firebase-functions/logger';
+import { error, info } from 'firebase-functions/logger';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
 
 import { invitesCollection, orgsCollection } from '../common/dbCollections';
 import { inviteConverter } from '../common/converters';
-import { CLAIMS, INVITE_STATUS, InviteClass } from '../common';
+import { CLAIMS, INVITE_STATUS, InviteClass, iDemandOrgId } from '../common';
 
 // TODO: allow invites without tenant association ??
 // TODO: rename to inviteOrgUsers
@@ -20,6 +20,7 @@ export interface NewUser {
 export interface InviteUsersRequest {
   users: NewUser[];
   tenantId?: string | null;
+  orgId?: string | null;
 }
 export interface InviteUsersResponse {
   [email: string]: {
@@ -32,51 +33,60 @@ export interface InviteUsersResponse {
   };
 }
 
-export default async ({ data, auth }: CallableRequest<{ users: NewUser[]; tenantId?: string }>) => {
-  if (!auth?.uid) {
-    throw new HttpsError('unauthenticated', 'Must be signed in.');
-  }
-  if (!(auth?.token[CLAIMS.ORG_ADMIN] || auth?.token[CLAIMS.IDEMAND_ADMIN])) {
+export default async ({ data, auth }: CallableRequest<InviteUsersRequest>) => {
+  if (!auth?.uid) throw new HttpsError('unauthenticated', 'Must be signed in.');
+
+  const isIDemandAdmin = auth?.token[CLAIMS.IDEMAND_ADMIN];
+
+  if (!(auth?.token[CLAIMS.ORG_ADMIN] || isIDemandAdmin))
     throw new HttpsError('permission-denied', 'Admin permissions required');
-  }
 
-  // TODO: check for company ID? allow invites using different function if not inviting agents ? inviteUsers vs inviteOrgUsers
+  // TODO: check for org ID? allow invites using different function if not inviting agents ? inviteUsers vs inviteOrgUsers
 
-  if (!auth?.token.firebase.tenant && !auth?.token[CLAIMS.IDEMAND_ADMIN]) {
+  if (!auth?.token.firebase.tenant && !isIDemandAdmin)
     throw new HttpsError('failed-precondition', 'User missing tenantId');
-  }
+
   // allow other users to invite (super admins, etc. ??)
-  if (!data.users || !Array.isArray(data.users)) {
+  if (!data.users || !Array.isArray(data.users))
     throw new HttpsError('failed-precondition', 'Request body missing array of users');
+
+  const userTenantId = auth?.token.firebase.tenant;
+  let { users, tenantId, orgId } = data;
+
+  if (orgId !== iDemandOrgId.value()) {
+    if (!tenantId) tenantId = userTenantId;
+    if (!orgId) orgId = tenantId;
+
+    if (!tenantId)
+      throw new HttpsError('failed-precondition', 'Missing user tenant and request tenantId');
   }
 
-  let { users, tenantId } = data;
-  if (!tenantId) {
-    tenantId = auth?.token.firebase.tenant;
-  }
-  if (!tenantId) {
-    throw new HttpsError('failed-precondition', 'Missing user tenant and request tenantId');
-  }
+  if (userTenantId !== tenantId && !isIDemandAdmin)
+    throw new HttpsError('permission-denied', 'Invites must be to your organization');
+
+  if (!tenantId && !isIDemandAdmin) throw new HttpsError('failed-precondition', 'Missing tenantId');
+
+  if (!orgId) throw new HttpsError('failed-precondition', 'Missing orgId');
 
   const db = getFirestore();
-  const inviteColRef = invitesCollection(db, tenantId);
+  const inviteColRef = invitesCollection(db, orgId);
   const orgsColRef = orgsCollection(db);
-  const orgSnap = await orgsColRef.doc(tenantId).get();
+  const orgSnap = await orgsColRef.doc(orgId).get();
   if (!orgSnap.exists) {
-    throw new HttpsError('failed-precondition', `Org doc not found with ID ${tenantId}`);
+    throw new HttpsError('failed-precondition', `Org doc not found with ID ${orgId}`);
   }
   const orgData = orgSnap.data();
 
   let reqUser;
-  if (!auth?.token[CLAIMS.IDEMAND_ADMIN]) {
+  if (!isIDemandAdmin) {
     // Require email domain matches org ? make it a setting ?
-    const tenantAuth = getAuth().tenantManager().authForTenant(tenantId);
+    const tenantAuth = getAuth().tenantManager().authForTenant(tenantId!);
     reqUser = await tenantAuth.getUser(auth.uid);
   } else {
     reqUser = await getAuth().getUser(auth.uid);
   }
 
-  info('invite users: ', { users });
+  info('creating invite docs for users: ', { users });
   try {
     const batch = db.batch();
     // eslint-disable-next-line
@@ -101,7 +111,8 @@ export default async ({ data, auth }: CallableRequest<{ users: NewUser[]; tenant
         firstName: user.name.split(' ')[0] || '',
         lastName: user.name.split(' ')[1] || '',
         customClaims,
-        orgId: tenantId,
+        // orgId: tenantId,
+        orgId,
         orgName: orgData?.orgName || '',
         status: INVITE_STATUS.PENDING,
         sent: false,
@@ -134,7 +145,12 @@ export default async ({ data, auth }: CallableRequest<{ users: NewUser[]; tenant
 
     info('INVITE USERS RES: ', { res });
     return { ...res };
-  } catch (err) {
-    return err;
+  } catch (err: any) {
+    // return err;
+    let msg = `Error generating invite docs`;
+    if (err?.message) msg = err.message;
+
+    error(msg, { err });
+    throw new HttpsError('internal', msg);
   }
 };

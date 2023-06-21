@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
+import { useFunctions } from 'reactfire';
 
 import { inviteUsers as inviteUsersCF, InviteUsersResponse, NewUser } from 'modules/api';
-import { useFunctions } from 'reactfire';
 import { useAsyncToast } from './useAsyncToast';
 
 export const useInviteUsers = (
@@ -12,10 +12,10 @@ export const useInviteUsers = (
   const toast = useAsyncToast();
 
   const inviteUsers = useCallback(
-    async (users: NewUser[], tenantId?: string | null) => {
+    async (users: NewUser[], tenantId?: string | null, orgId?: string | null) => {
       try {
         toast.loading('sending invites...');
-        const { data } = await inviteUsersCF(functions, { users, tenantId });
+        const { data } = await inviteUsersCF(functions, { users, tenantId, orgId });
         toast.success(`invites sent!`);
 
         if (onSuccess) onSuccess(data);

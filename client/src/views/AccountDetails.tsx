@@ -73,7 +73,7 @@ export const AccountDetails: React.FC = () => {
   const [tabValue, setTabValue] = useState('account');
 
   const { data } = useDBUser({ suspense: true });
-  console.log('USER OBSERVABLE: ', data);
+  // console.log('USER OBSERVABLE: ', data);
 
   const handleChange = (event: React.SyntheticEvent, newValue: string) => {
     setTabValue(newValue);
@@ -205,7 +205,7 @@ export const AccountDetails: React.FC = () => {
                 <Box>
                   <Box sx={{ pb: 2, width: '100%', display: 'flex', justifyContent: 'flex-end' }}>
                     <ClaimsGuard requiredClaims={['ORG_ADMIN', 'IDEMAND_ADMIN']} requireAll={false}>
-                      <AddUsersDialog />
+                      <AddUsersDialog orgId={orgId} />
                     </ClaimsGuard>
                   </Box>
                   <AdminManageUsersGrid

@@ -10,6 +10,7 @@ export interface NewUser {
 export interface InviteUsersRequest {
   users: NewUser[];
   tenantId?: string | null;
+  orgId?: string | null;
 }
 export interface InviteUsersResponse {
   [email: string]: {

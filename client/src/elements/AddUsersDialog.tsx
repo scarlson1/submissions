@@ -83,7 +83,9 @@ export const AddUsersDialog: React.FC<AddUsersDialogProps> = ({
   const handleSubmit = useCallback(
     async (values: AddUserValues, helpers: FormikHelpers<AddUserValues>) => {
       console.log('values => ', values);
-      await inviteUsers(values.users, orgId);
+      let tenantId = orgId === 'idemand' ? null : orgId;
+
+      await inviteUsers(values.users, tenantId, orgId);
       helpers.setSubmitting(false);
     },
     [inviteUsers, orgId]
@@ -95,7 +97,7 @@ export const AddUsersDialog: React.FC<AddUsersDialogProps> = ({
         {buttonText}
       </Button>
       <Dialog open={open} onClose={handleClose} fullWidth maxWidth='md'>
-        <DialogTitle>Add Users</DialogTitle>
+        <DialogTitle>Add Organization Users</DialogTitle>
         <Formik
           initialValues={initialValues}
           validationSchema={validation}

@@ -6,6 +6,7 @@ import { FormikHelpers, Formik, FormikProps } from 'formik';
 import * as yup from 'yup';
 import { useNavigate, useLocation, useParams, useSearchParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
+import { getAuth } from 'firebase/auth';
 
 import FormikTextField from 'components/forms/FormikTextField';
 // import { auth } from 'firebaseConfig';
@@ -14,7 +15,6 @@ import { getRedirectPath } from 'modules/utils/helpers';
 import { FormikPassword } from 'elements';
 import { useCreateAccount } from 'hooks/useCreateAccount';
 import { useKeyPress } from 'hooks';
-import { getAuth } from 'firebase/auth';
 
 export const passwordValidation = yup
   .string()

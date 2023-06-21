@@ -12,7 +12,7 @@ import {
 import { useFirestore, useSigninCheck } from 'reactfire'; // useUser
 import invariant from 'tiny-invariant';
 import { isEmpty, round } from 'lodash';
-import { endOfToday } from 'date-fns';
+import { endOfToday, startOfDay, isValid } from 'date-fns';
 
 import { NewQuoteValues } from 'views/admin/QuoteNew';
 import { addToDate, extractNumber, getGeoHash, readableFirebaseCode } from 'modules/utils/helpers';
@@ -44,6 +44,7 @@ export const useCreateQuote = (
 
         const querySnap = await getDocs(q);
         if (querySnap.empty) throw new Error(`No SL license found for ${state}`);
+        return querySnap.docs[0].data();
       } catch (err: any) {
         let msg = `error fetching SL license`;
         if (err?.message) msg = err.message;
@@ -116,7 +117,7 @@ function getFormattedQuote(values: NewQuoteValues, uid?: string | null): Quote {
     coordinates,
     quoteExpirationDate,
     effectiveDate,
-    expirationDate,
+    // expirationDate,
     namedInsured,
     agent,
     agency,
@@ -133,6 +134,10 @@ function getFormattedQuote(values: NewQuoteValues, uid?: string | null): Quote {
   invariant(quoteTotal, 'Missing quote total');
   invariant(annualPremium, 'missing annualPremium');
   invariant(namedInsured?.email || agent?.email, 'Must have at least one email (insured or agent)');
+  invariant(isValid(effectiveDate), 'Invalid effective date');
+
+  let effDateStartOfDay = startOfDay(effectiveDate);
+  let expDateStartOfDay = addToDate({ years: 1 }, effDateStartOfDay);
 
   return {
     product: 'flood', // TODO: pass as prop
@@ -157,8 +162,10 @@ function getFormattedQuote(values: NewQuoteValues, uid?: string | null): Quote {
     quoteExpirationDate: quoteExpirationDate
       ? Timestamp.fromDate(quoteExpirationDate)
       : Timestamp.fromDate(addToDate({ days: 60 }, endOfToday())),
-    effectiveDate: Timestamp.fromDate(effectiveDate),
-    expirationDate: Timestamp.fromDate(expirationDate),
+    // effectiveDate: Timestamp.fromDate(effectiveDate),
+    // expirationDate: Timestamp.fromDate(expirationDate),
+    effectiveDate: Timestamp.fromDate(effDateStartOfDay),
+    expirationDate: Timestamp.fromDate(expDateStartOfDay),
     exclusions: [],
     // additionalInsureds: [],
     // mortgageeInterest: [],
