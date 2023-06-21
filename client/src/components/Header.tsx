@@ -27,16 +27,17 @@ import {
   RequestQuoteRounded,
   PolicyRounded,
   InboxRounded,
-  AccountBalanceRounded,
-  PublicRounded,
-  BlockRounded,
-  PlagiarismRounded,
-  SourceRounded,
+  // AccountBalanceRounded,
+  // PublicRounded,
+  // BlockRounded,
+  // PlagiarismRounded,
+  // SourceRounded,
   CorporateFareRounded,
   ContactSupportRounded,
   PersonRounded,
   ManageAccountsRounded,
   PasswordRounded,
+  TuneRounded,
 } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
 import { matchPath, useLocation, useNavigate } from 'react-router-dom';
@@ -71,7 +72,7 @@ export const Header: React.FC<HeaderProps> = () => {
   const { toggleColorMode: changeTheme } = useChangeTheme();
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, customClaims } = useAuth();
+  const { user, claims } = useAuth();
 
   const adminNavPages = useMemo(
     () => [
@@ -121,39 +122,47 @@ export const Header: React.FC<HeaderProps> = () => {
             icon: <PersonRounded color='primary' fontSize='small' />,
           },
           {
-            title: 'Taxes',
-            route: createPath({ path: ADMIN_ROUTES.SL_TAXES }),
-            icon: <AccountBalanceRounded color='primary' fontSize='small' />,
-          },
-          {
-            title: 'States',
+            title: 'Config',
             route: createPath({
-              path: ADMIN_ROUTES.EDIT_ACTIVE_STATES,
-              params: { productId: 'flood' },
+              path: ADMIN_ROUTES.CONFIG,
             }),
-            icon: <PublicRounded color='primary' fontSize='small' />,
+            icon: <TuneRounded color='primary' fontSize='small' />,
+            // TODO: add items ??
           },
-          {
-            title: 'Moratoriums',
-            route: createPath({
-              path: ADMIN_ROUTES.MORATORIUMS,
-            }),
-            icon: <BlockRounded color='primary' fontSize='small' />,
-          },
-          {
-            title: 'Licenses',
-            route: createPath({
-              path: ADMIN_ROUTES.SL_LICENSES,
-            }),
-            icon: <SourceRounded color='primary' fontSize='small' />,
-          },
-          {
-            title: 'Disclosures',
-            route: createPath({
-              path: ADMIN_ROUTES.DISCLOSURES,
-            }),
-            icon: <PlagiarismRounded color='primary' fontSize='small' />,
-          },
+          // {
+          //   title: 'Taxes',
+          //   route: createPath({ path: ADMIN_ROUTES.SL_TAXES }),
+          //   icon: <AccountBalanceRounded color='primary' fontSize='small' />,
+          // },
+          // {
+          //   title: 'States',
+          //   route: createPath({
+          //     path: ADMIN_ROUTES.EDIT_ACTIVE_STATES,
+          //     params: { productId: 'flood' },
+          //   }),
+          //   icon: <PublicRounded color='primary' fontSize='small' />,
+          // },
+          // {
+          //   title: 'Moratoriums',
+          //   route: createPath({
+          //     path: ADMIN_ROUTES.MORATORIUMS,
+          //   }),
+          //   icon: <BlockRounded color='primary' fontSize='small' />,
+          // },
+          // {
+          //   title: 'Licenses',
+          //   route: createPath({
+          //     path: ADMIN_ROUTES.SL_LICENSES,
+          //   }),
+          //   icon: <SourceRounded color='primary' fontSize='small' />,
+          // },
+          // {
+          //   title: 'Disclosures',
+          //   route: createPath({
+          //     path: ADMIN_ROUTES.DISCLOSURES,
+          //   }),
+          //   icon: <PlagiarismRounded color='primary' fontSize='small' />,
+          // },
         ],
       },
     ],
@@ -215,15 +224,15 @@ export const Header: React.FC<HeaderProps> = () => {
   }, [user]);
 
   const navPages = useMemo<NavItem[]>(() => {
-    if (!!customClaims.iDemandAdmin) {
+    if (!!claims?.iDemandAdmin) {
       return adminNavPages;
     }
-    if (!!customClaims.agent) {
+    if (!!claims?.agent) {
       return agentNavPages;
     }
 
     return userNavPages;
-  }, [customClaims, adminNavPages, agentNavPages, userNavPages]);
+  }, [claims, adminNavPages, agentNavPages, userNavPages]);
 
   return (
     <AppBar

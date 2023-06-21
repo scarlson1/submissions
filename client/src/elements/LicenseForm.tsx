@@ -1,11 +1,8 @@
 import React, { useCallback, useRef } from 'react';
-import { Box, Stack, Typography } from '@mui/material';
-import { SaveRounded } from '@mui/icons-material';
+import { Box, Stack, Unstable_Grid2 as Grid, IconButton, Tooltip } from '@mui/material';
+import { CloseRounded, SaveRounded } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
-import Grid from '@mui/material/Unstable_Grid2';
 import { Formik, FormikHelpers, FormikProps } from 'formik';
-import { toast } from 'react-hot-toast';
-import { useNavigate } from 'react-router-dom';
 import * as yup from 'yup';
 import { startOfYear, lastDayOfYear } from 'date-fns';
 
@@ -19,9 +16,9 @@ import {
   PhoneMask,
 } from 'components/forms';
 import { statesAbrvSelectOptions } from 'common/statesList';
-import { useCreateSLLicense } from 'hooks';
-import { ADMIN_ROUTES, createPath } from 'router';
 import { FormikAddressLite } from 'elements';
+import { useNavigate } from 'react-router-dom';
+import { ADMIN_ROUTES, createPath } from 'router';
 
 const licenseValidation = yup.object().shape({
   state: yup.string().required('state is required'),
@@ -37,7 +34,7 @@ const licenseValidation = yup.object().shape({
   phone: phoneVal.notRequired(),
 });
 
-export interface NewSLValues
+export interface LicenseValues
   extends Omit<
     License,
     'effectiveDate' | 'expirationDate' | 'ownerType' | 'licenseType' | 'metadata'
@@ -48,7 +45,7 @@ export interface NewSLValues
   expirationDate: Date | null;
 }
 
-const initialValues: NewSLValues = {
+const DEFAULT_VALUES: LicenseValues = {
   state: '',
   ownerType: '',
   licensee: '',
@@ -68,31 +65,31 @@ const initialValues: NewSLValues = {
   phone: '',
 };
 
-export const SLLicenseNew: React.FC = () => {
-  const navigate = useNavigate();
-  const formikRef = useRef<FormikProps<NewSLValues>>(null);
-  const createLicense = useCreateSLLicense({
-    onSuccess: (id: string) => {
-      toast.success(`License created (${id})`);
-      navigate(createPath({ path: ADMIN_ROUTES.SL_LICENSES }));
-    },
-    onError: (err, msg) => toast.error(msg),
-  });
+interface LicenseFormProps {
+  initialValues?: LicenseValues;
+  onSubmit: (values: LicenseValues, helpers: FormikHelpers<LicenseValues>) => void;
+  title?: React.ReactNode;
+}
 
-  const handleSubmit = useCallback(
-    async (values: any, { setSubmitting }: FormikHelpers<NewSLValues>) => {
-      await createLicense(values);
-      setSubmitting(false);
-    },
-    [createLicense]
-  );
+export const LicenseForm = ({
+  onSubmit,
+  initialValues = DEFAULT_VALUES,
+  title,
+}: LicenseFormProps) => {
+  const navigate = useNavigate();
+  const formikRef = useRef<FormikProps<LicenseValues>>(null);
+
+  const handleCancel = useCallback(() => {
+    formikRef.current?.resetForm();
+    navigate(createPath({ path: ADMIN_ROUTES.SL_LICENSES }));
+  }, [navigate]);
 
   return (
     <Box>
       <Formik
         initialValues={initialValues}
         validationSchema={licenseValidation}
-        onSubmit={handleSubmit}
+        onSubmit={onSubmit}
         innerRef={formikRef}
       >
         {({ dirty, isValid, isValidating, isSubmitting, submitForm }) => (
@@ -114,17 +111,30 @@ export const SLLicenseNew: React.FC = () => {
                 py: 2,
               }}
             >
-              <Typography variant='h5'>Create Surplus Lines License</Typography>
-              <LoadingButton
-                onClick={submitForm}
-                disabled={!dirty || !isValid}
-                loading={isValidating || isSubmitting}
-                loadingPosition='start'
-                startIcon={<SaveRounded />}
-                variant='contained'
-              >
-                Save
-              </LoadingButton>
+              {title ? title : null}
+              <Stack direction='row' spacing={2}>
+                <LoadingButton
+                  onClick={submitForm}
+                  disabled={!dirty || !isValid}
+                  loading={isValidating || isSubmitting}
+                  loadingPosition='start'
+                  startIcon={<SaveRounded />}
+                  variant='contained'
+                  size='small'
+                >
+                  Save
+                </LoadingButton>
+                <Tooltip title='cancel' placement='top'>
+                  <IconButton
+                    onClick={handleCancel}
+                    size='small'
+                    color='primary'
+                    aria-label='cancel'
+                  >
+                    <CloseRounded fontSize='inherit' />
+                  </IconButton>
+                </Tooltip>
+              </Stack>
             </Box>
             <Grid
               container

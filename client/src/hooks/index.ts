@@ -55,6 +55,7 @@ export { useUpdateClaims } from './useUpdateClaims';
 export { usePolicyChangeRequest } from './usePolicyChangeRequest';
 export { useUserClaims } from './useUserClaims';
 export { useFloodFactor } from './useFloodFactor';
+export { usePrevious } from './usePrevious';
 
 export type { UseFileUploadProps } from './useFileUpload';
 export type { UseSendPasswordResetProps } from './useSendPasswordReset';

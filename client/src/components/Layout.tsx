@@ -1,10 +1,18 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { Box, Container, ContainerProps, SxProps } from '@mui/material';
 import { Outlet } from 'react-router-dom';
 
-import { Header, Footer, Breadcrumbs } from 'components';
+import { Header, Footer, Breadcrumbs, LoadingSpinner } from 'components';
 // import { useConcurrentLocation } from 'hooks';
 // import ProgressBar from './ProgressBar';
+
+export const LoadingComponent = () => {
+  return (
+    <Box sx={{ display: 'flex', justifyContent: 'center', py: { xs: 3, md: 5, lg: 8 } }}>
+      <LoadingSpinner loading={true} />
+    </Box>
+  );
+};
 
 export interface LayoutProps {
   noPadding?: boolean;
@@ -60,7 +68,9 @@ export const Layout: React.FC<LayoutProps> = ({
             }}
           >
             {!!withBreadcrumbs && <Breadcrumbs sx={{ pb: 1 }} />}
-            <Outlet />
+            <Suspense fallback={<LoadingComponent />}>
+              <Outlet />
+            </Suspense>
           </Box>
         </Container>
         <Footer />

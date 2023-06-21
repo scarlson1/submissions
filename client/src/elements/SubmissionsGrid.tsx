@@ -120,7 +120,7 @@ export const SubmissionsGrid = ({ renderActions = () => [], ...props }: Submissi
         field: 'actions',
         headerName: 'Actions',
         type: 'actions',
-        width: 160,
+        width: isSmall ? 80 : 160,
         getActions: (params: GridRowParams) => [
           ...renderActions(params),
           // <GridActionsCellItem

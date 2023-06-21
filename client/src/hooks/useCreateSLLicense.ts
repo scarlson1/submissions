@@ -1,10 +1,45 @@
 import { useCallback } from 'react';
-import { addDoc, FirestoreError, getFirestore, Timestamp } from 'firebase/firestore';
+import {
+  addDoc,
+  CollectionReference,
+  FirestoreError,
+  getDocs,
+  query,
+  Timestamp,
+  where,
+} from 'firebase/firestore';
+import { useFirestore } from 'reactfire';
 import { FirebaseError } from 'firebase/app';
 
-import { LicenseOwner, licensesCollection, LicenseType } from 'common';
-import { NewSLValues } from 'views/admin';
+import { License, LicenseOwner, licensesCollection, LicenseType } from 'common';
+import { LicenseValues } from 'elements';
 import { readableFirebaseCode } from 'modules/utils/helpers';
+
+export async function checkForSLProducerLicense(
+  licenseColRef: CollectionReference<License>,
+  state: string,
+  effectiveDate: Date,
+  expirationDate: Date | null
+) {
+  const q = query(
+    licenseColRef,
+    where('state', '==', state),
+    where('surplusLinesProducerOfRecord', '==', true)
+  );
+
+  const querySnap = await getDocs(q);
+  if (!querySnap.empty) {
+    let data = querySnap.docs[0].data();
+    let existingEffDateBeforeNewExpDate =
+      expirationDate && data.effectiveDate.toMillis() < expirationDate.getTime();
+
+    let existingExpDateAfterNewEffDate =
+      !data.expirationDate || data.expirationDate.toMillis() > effectiveDate.getTime();
+
+    if (existingEffDateBeforeNewExpDate || existingExpDateAfterNewEffDate)
+      throw new Error(`Surplus Lines Producer of Record already exists for ${state}`);
+  }
+}
 
 export interface UseCreateLicenseProps {
   onSuccess?: (licenseId: string) => void;
@@ -12,10 +47,21 @@ export interface UseCreateLicenseProps {
 }
 
 export const useCreateSLLicense = ({ onSuccess, onError }: UseCreateLicenseProps) => {
+  const firestore = useFirestore();
+
   const createLicense = useCallback(
-    async (values: NewSLValues) => {
+    async (values: LicenseValues) => {
       try {
-        const docRef = await addDoc(licensesCollection(getFirestore()), {
+        const licenseColRef = licensesCollection(firestore);
+
+        await checkForSLProducerLicense(
+          licenseColRef,
+          values.state,
+          values.effectiveDate,
+          values.expirationDate
+        );
+
+        const docRef = await addDoc(licenseColRef, {
           ...values,
           ownerType: values.ownerType as LicenseOwner,
           licenseType: values.licenseType as LicenseType,
@@ -29,16 +75,16 @@ export const useCreateSLLicense = ({ onSuccess, onError }: UseCreateLicenseProps
         console.log(`doc created: ${docRef.id}`);
 
         if (onSuccess) onSuccess(docRef.id);
-      } catch (err) {
+      } catch (err: any) {
         console.log('ERROR: ', err);
         let msg = 'Error creating Surpluse Lines License';
         if (err instanceof FirebaseError) {
           msg += ` ${readableFirebaseCode(err as FirestoreError)}`;
-        }
+        } else if (err?.message) msg = err.message;
         if (onError) onError(err, msg);
       }
     },
-    [onSuccess, onError]
+    [onSuccess, onError, firestore]
   );
 
   return createLicense;

@@ -168,7 +168,7 @@ export const AddPaymentDialog: React.FC<AddPaymentDialogProps> = ({
   containerProps,
 }) => {
   const navigate = useNavigate();
-  const { user, loading, loadingInitial, isAuthenticated, isAnonymous } = useAuth();
+  const { user, isSignedIn, isAnonymous } = useAuth(); // loading, loadingInitial,
   const [open, setOpen] = useState(false);
   const formikRef = useRef<FormikProps<AddPaymentMethodValues>>(null);
   const theme = useTheme();
@@ -194,14 +194,14 @@ export const AddPaymentDialog: React.FC<AddPaymentDialogProps> = ({
   // TODO: If auth loaded && !user, redirect to sign in
   // TODO: useRequireAuth hook ??
   useEffect(() => {
-    if (loading || loadingInitial) return;
-    if (isAnonymous || !isAuthenticated) {
+    // if (loading || loadingInitial) return;
+    if (isAnonymous || !isSignedIn) {
       // navigate('/auth/login', {
       //   state: { redirectPath: `/application/bind/${quoteData.quoteId}` },
       // });
       navigate('/auth/login'); // TODO: redirect ?? handle in new / extended require auth hook ??
     }
-  }, [user, loading, loadingInitial, isAuthenticated, isAnonymous, navigate]);
+  }, [user, isSignedIn, isAnonymous, navigate]); // loading, loadingInitial, isAuthenticated,
 
   const handleSubmit = useCallback(
     async (

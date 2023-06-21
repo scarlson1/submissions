@@ -684,7 +684,6 @@ export interface Transaction extends BaseDoc {
   mailingAddress: Address;
   locationId: string;
   insuredLocation: PolicyLocation;
-  // insuredAddress: Address;
   // insuredCoords: GeoPoint;
   // locationHash: Geohash;
   policyEffDate: Timestamp;
@@ -1023,8 +1022,8 @@ export interface License extends BaseDoc {
   licenseType: LicenseType;
   surplusLinesProducerOfRecord: boolean;
   licenseNumber: string;
-  effectiveDate: FirestoreTimestamp;
-  expirationDate?: FirestoreTimestamp | null;
+  effectiveDate: Timestamp; // FirestoreTimestamp;
+  expirationDate?: Timestamp | null; // FirestoreTimestamp | null;
   SLAssociationMembershipRequired?: boolean;
   address?: Address | null;
   phone?: string | null;

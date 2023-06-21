@@ -33,6 +33,7 @@ export { LocationCard } from './LocationCard';
 export { LocationsMap } from './LocationsMap';
 export { TaxForm } from './TaxForm';
 export { SubmissionsGrid } from './SubmissionsGrid';
+export { LicenseForm } from './LicenseForm';
 
 export type { FormikAddressProps } from './FormikAddress';
 export type { DeductibleStepProps } from './DeductibleStep';
@@ -49,6 +50,6 @@ export type { CountiesMapProps } from './CountiesMap';
 export type { DisclosureFormProps, DisclosureValues } from './DisclosureForm';
 export type { LocationCardProps } from './LocationCard';
 export type { LocationsMapProps } from './LocationsMap';
-// export type {  } from './';
+export type { LicenseValues } from './LicenseForm';
 // export type {  } from './';
 // export type {  } from './';

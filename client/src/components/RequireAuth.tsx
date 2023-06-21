@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { CircularProgress } from '@mui/material';
+// import { CircularProgress } from '@mui/material';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { getAuth, signInAnonymously, UserCredential } from 'firebase/auth';
 
@@ -28,16 +28,20 @@ export const RequireAuth: React.FC<RequireAuthProps> = ({
   shouldSignInAnonymously = false,
 }) => {
   const auth = getAuth();
-  let { loadingInitial, customClaims } = useAuth(); //error,
+  let { claims } = useAuth(); // loadingInitial, //error,
   let location = useLocation();
   const navigate = useNavigate();
 
   let user = getAuth().currentUser;
 
   // If requiredClaims included, check required claims
+  // TODO: use claimsCheck from reactfire
   useEffect(() => {
-    if (requiredClaims && requiredClaims.length > 0 && !loadingInitial) {
-      let notAuthorized = requiredClaims.every((key) => !customClaims[CUSTOM_CLAIMS[key]]);
+    if (requiredClaims && requiredClaims.length > 0) {
+      // && !loadingInitial
+      // let notAuthorized = requiredClaims.every((key) => !claims[CUSTOM_CLAIMS[key]]);
+      let notAuthorized =
+        claims !== null ? requiredClaims.every((key) => !claims![CUSTOM_CLAIMS[key]]) : true;
 
       if (!!notAuthorized) {
         if (user && user.uid) {
@@ -56,11 +60,11 @@ export const RequireAuth: React.FC<RequireAuthProps> = ({
         });
       }
     }
-  }, [requiredClaims, customClaims, loadingInitial, user, location, navigate]);
+  }, [requiredClaims, claims, user, location, navigate]);
 
   // if not authenticated and prop shouldSignInAnonymously = true, sign in anonymously
   useEffect(() => {
-    if (!loadingInitial && !(user && user.uid) && !!shouldSignInAnonymously) {
+    if (!(user && user.uid) && !!shouldSignInAnonymously) {
       signInAnonymously(auth)
         .then((userCred: UserCredential) => {
           console.log('SIGNED IN ANONYMOUSLY: ', userCred);
@@ -69,11 +73,11 @@ export const RequireAuth: React.FC<RequireAuthProps> = ({
           console.log('ERROR => ', err);
         });
     }
-  }, [auth, user, shouldSignInAnonymously, loadingInitial]);
+  }, [auth, user, shouldSignInAnonymously]);
 
-  if (loadingInitial) {
-    return <CircularProgress />;
-  }
+  // if (loadingInitial) {
+  //   return <CircularProgress />;
+  // }
 
   // If auth error, redirect to home page by default
   // if (error) {
@@ -86,7 +90,7 @@ export const RequireAuth: React.FC<RequireAuthProps> = ({
     (!(user && user.uid) || (!allowAnonymous && !!user.isAnonymous)) &&
     !shouldSignInAnonymously
   ) {
-    console.log("not authenticated => routing to '/login'", user, loadingInitial);
+    console.log("not authenticated => routing to '/login'"); // , user, loadingInitial
     // TODO: toast causes bug on start up
     // toast.error('Authentication required to access route');
     return <Navigate to={redirectPath} state={{ from: location }} replace={true} />;

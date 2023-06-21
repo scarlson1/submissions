@@ -35,7 +35,7 @@ import { AdditionalInsured, fallbackImages } from 'common';
 // TODO: include change requests in grid ?? (could use rxjs and aggregation query)
 
 export const Policies: React.FC = () => {
-  const { customClaims, user } = useAuth();
+  const { claims, user } = useAuth();
 
   const header = (
     <>
@@ -46,7 +46,7 @@ export const Policies: React.FC = () => {
     </>
   );
 
-  if (customClaims.iDemandAdmin)
+  if (claims?.iDemandAdmin)
     return (
       <Container maxWidth='lg' sx={{ py: { xs: 4, md: 6 } }}>
         <Box>
@@ -62,7 +62,7 @@ export const Policies: React.FC = () => {
       </Container>
     );
 
-  if (customClaims.orgAdmin && user?.tenantId)
+  if (claims?.orgAdmin && user?.tenantId)
     return (
       <Container maxWidth='lg' sx={{ py: { xs: 4, md: 6 } }}>
         <Box>
@@ -78,7 +78,7 @@ export const Policies: React.FC = () => {
       </Container>
     );
 
-  if (customClaims.agent && user?.uid)
+  if (claims?.agent && user?.uid)
     return (
       <Container maxWidth='lg' sx={{ py: { xs: 4, md: 6 } }}>
         <Box>

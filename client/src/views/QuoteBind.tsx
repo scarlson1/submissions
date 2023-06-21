@@ -243,7 +243,7 @@ export const QuoteBind: React.FC = () => {
 // TODO: handle anonymous. handle agent.
 export function AuthStep({ quoteId }: { quoteId: string }) {
   const navigate = useNavigate();
-  const { user, isAuthenticated, isAnonymous } = useAuth();
+  const { user, isSignedIn, isAnonymous } = useAuth();
 
   const redirectToSignIn = useCallback(() => {
     navigate(
@@ -303,7 +303,7 @@ export function AuthStep({ quoteId }: { quoteId: string }) {
 
   return (
     <Stack direction='column' spacing={3} sx={{ maxWidth: 360, mx: 'auto', my: 4 }}>
-      {isAuthenticated && !isAnonymous && (
+      {isSignedIn && !isAnonymous && (
         <Button
           variant='outlined'
           size='large'

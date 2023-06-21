@@ -8,33 +8,24 @@ import {
   GridColDef,
   GridRowParams,
   GridToolbar,
-  GridValueGetterParams,
 } from '@mui/x-data-grid';
-import { DataObjectRounded } from '@mui/icons-material';
+import { DataObjectRounded, SendRounded } from '@mui/icons-material';
 import { QueryConstraint } from 'firebase/firestore';
+import { useSigninCheck } from 'reactfire';
 
 import { ADMIN_ROUTES, createPath } from 'router';
 import {
   Quote,
-  address1Col,
-  address2Col,
   nestedAgentUserIdCol,
   agentNameCol,
-  cityCol,
   createdCol,
   currencyCol,
   deductibleCol,
-  emailCol,
-  firstNameCol,
   idCol,
-  lastNameCol,
   limitACol,
   limitBCol,
   limitCCol,
   limitDCol,
-  orgNameCol,
-  phoneCol,
-  postalCol,
   ratingDataBasementCol,
   ratingDataCBRSCol,
   ratingDataDistToCoastFeetCol,
@@ -44,14 +35,30 @@ import {
   ratingDataReplacementCostCol,
   ratingDataSqFootageCol,
   ratingDataYearBuiltCol,
-  stateCol,
   statusCol,
   subproducerCommissionCol,
   updatedCol,
   userIdCol,
+  addrLine1Col,
+  addrLine2Col,
+  addrCityCol,
+  addrStateCol,
+  addrPostalCol,
+  namedInsuredFirstNameCol,
+  namedInsuredLastNameCol,
+  namedInsuredEmailCol,
+  namedInsuredPhoneCol,
+  namedInsuredDisplayNameCol,
+  tivCol,
+  agentEmailCol,
+  agentPhoneCol,
+  nestedAgencyOrgIdCol,
+  agencyNameCol,
+  agencyAddressCol,
 } from 'common';
 import { BasicDataGrid, GridCellCopy } from 'components';
-import { useCollectionData, useJsonDialog } from 'hooks';
+import { useCollectionData, useJsonDialog, useSendQuoteNotification, useWidth } from 'hooks';
+import { getRequiredClaimValidator } from 'components/RequireAuthReactFire';
 
 export interface QuotesGridProps extends Partial<DataGridProps> {
   // rows: WithId<Quote>[];
@@ -71,7 +78,11 @@ export const QuotesGrid: React.FC<QuotesGridProps> = ({
 }) => {
   const navigate = useNavigate();
   const dialog = useJsonDialog();
-  // const sendNotifications = useSendQuoteNotification();
+  const { isSmall } = useWidth();
+  const sendNotifications = useSendQuoteNotification();
+  const { data: authCheckResult } = useSigninCheck({
+    validateCustomClaims: getRequiredClaimValidator(['ORG_ADMIN', 'IDEMAND_ADMIN']),
+  });
 
   const { data, status } = useCollectionData<Quote>('QUOTES', queryConstraints, {
     suspense: false,
@@ -87,12 +98,12 @@ export const QuotesGrid: React.FC<QuotesGridProps> = ({
     [data, dialog]
   );
 
-  // const handleSendNotifications = useCallback(
-  //   (params: GridRowParams) => () => {
-  //     sendNotifications(params.id as string);
-  //   },
-  //   [sendNotifications]
-  // );
+  const handleSendNotifications = useCallback(
+    (params: GridRowParams) => () => {
+      sendNotifications(params.id as string);
+    },
+    [sendNotifications]
+  );
 
   const quoteColumns: GridColDef[] = useMemo(
     () => [
@@ -100,10 +111,9 @@ export const QuotesGrid: React.FC<QuotesGridProps> = ({
         field: 'actions',
         headerName: 'Actions',
         type: 'actions',
-        width: 120,
+        width: isSmall ? 60 : 120,
         getActions: (params: GridRowParams) => [
           ...renderActions(params),
-          // ...actions,
           <GridActionsCellItem
             icon={
               <Tooltip placement='top' title='View Raw JSON'>
@@ -112,82 +122,37 @@ export const QuotesGrid: React.FC<QuotesGridProps> = ({
             }
             onClick={showJson(params)}
             label='Details'
+            showInMenu={isSmall}
           />,
-          // <GridActionsCellItem
-          //   icon={
-          //     <Tooltip placement='top' title='Send Notifications'>
-          //       <SendRounded />
-          //     </Tooltip>
-          //   }
-          //   onClick={handleSendNotifications(params)}
-          //   label='Send Notifications'
-          // />,
+          <GridActionsCellItem
+            icon={
+              <Tooltip placement='top' title='Send Notifications'>
+                <SendRounded />
+              </Tooltip>
+            }
+            onClick={handleSendNotifications(params)}
+            label='Send Notifications'
+            disabled={!authCheckResult.hasRequiredClaims}
+            showInMenu={isSmall}
+          />,
         ],
       },
-      {
-        ...address1Col,
-        valueGetter: (params) => params.row.insuredAddress.addressLine1,
-      },
-      {
-        ...address2Col,
-        valueGetter: (params) => params.row.insuredAddress.addressLine2,
-      },
-      {
-        ...cityCol,
-        valueGetter: (params) => params.row.insuredAddress.city,
-      },
-      {
-        ...stateCol,
-        valueGetter: (params) => params.row.insuredAddress.state,
-      },
-      {
-        ...postalCol,
-        valueGetter: (params) => params.row.insuredAddress.postal,
-      },
+      addrLine1Col,
+      addrLine2Col,
+      addrCityCol,
+      addrStateCol,
+      addrPostalCol,
       {
         ...currencyCol,
         field: 'quoteTotal',
         headerName: 'Quote Total',
-        // minWidth: 120,
-        // flex: 0.8,
-        // editable: false,
-        // headerAlign: 'center',
-        // align: 'right',
-        // valueFormatter: (params) => formatGridCurrency(params, '$0,0.00'),
-        // renderCell: (params) => (
-        //   <Typography variant='body2' fontWeight='medium'>
-        //     {params.formattedValue}
-        //   </Typography>
-        // ),
       },
       statusCol,
-      {
-        field: 'insuredName',
-        headerName: 'Insured Name',
-        minWidth: 160,
-        flex: 0.8,
-        editable: false,
-        valueGetter: (params: GridValueGetterParams) =>
-          `${params.row.insuredFirstName || ''} ${params.row.insuredLastName || ''}`.trim(),
-      },
-      {
-        ...lastNameCol,
-        field: 'insuredLastName',
-      },
-      {
-        ...firstNameCol,
-        field: 'insuredFirstName',
-      },
-      {
-        ...emailCol,
-        field: 'insuredEmail',
-        headerName: 'Insured Email',
-      },
-      {
-        ...phoneCol,
-        field: 'insuredPhone',
-        headerName: 'Insured Phone',
-      },
+      namedInsuredDisplayNameCol,
+      namedInsuredFirstNameCol,
+      namedInsuredLastNameCol,
+      namedInsuredEmailCol,
+      namedInsuredPhoneCol,
       {
         ...currencyCol,
         field: 'termPremium',
@@ -197,6 +162,7 @@ export const QuotesGrid: React.FC<QuotesGridProps> = ({
       limitBCol,
       limitCCol,
       limitDCol,
+      tivCol,
       deductibleCol,
       ratingDataReplacementCostCol,
       ratingDataPropertyCodeCol,
@@ -209,23 +175,13 @@ export const QuotesGrid: React.FC<QuotesGridProps> = ({
       ratingDataFloodZoneCol,
       subproducerCommissionCol,
       agentNameCol,
-      {
-        ...emailCol,
-        field: 'agentEmail',
-        headerName: 'Agent Email',
-      },
-      {
-        ...phoneCol,
-        field: 'agentPhone',
-        headerName: 'Agent Phone',
-      },
-      {
-        ...orgNameCol,
-        field: 'agencyName',
-        headerName: 'Agency',
-      },
+      agentEmailCol,
+      agentPhoneCol,
+      agencyNameCol,
+      agencyAddressCol,
       createdCol,
       updatedCol,
+      nestedAgencyOrgIdCol,
       nestedAgentUserIdCol,
       userIdCol,
       {
@@ -255,7 +211,7 @@ export const QuotesGrid: React.FC<QuotesGridProps> = ({
       },
       ...columnOverrides,
     ],
-    [showJson, columnOverrides, renderActions]
+    [showJson, handleSendNotifications, columnOverrides, renderActions, isSmall, authCheckResult]
   );
 
   return (

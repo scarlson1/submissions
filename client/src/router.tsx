@@ -1,8 +1,16 @@
-import { createBrowserRouter, createSearchParams, URLSearchParamsInit } from 'react-router-dom';
+import {
+  createBrowserRouter,
+  createSearchParams,
+  PathMatch,
+  Link as RouterLink,
+  URLSearchParamsInit,
+} from 'react-router-dom';
 import { wrapCreateBrowserRouter } from '@sentry/react';
+import { Link } from '@mui/material';
 
 import App from './App';
 import {
+  ConfigLayout,
   // ConfigLayout,
   Layout,
   RequireAuth,
@@ -35,7 +43,7 @@ import {
   EditActiveStates,
   Moratoriums,
   MoratoriumNew,
-  SLLicenseNew,
+  LicenseNew,
   Licenses,
   AgencyApp,
   AgencyApps,
@@ -50,10 +58,12 @@ import {
   Organization,
   Users,
   SLTaxEdit,
+  LicenseEdit,
   // PortfolioRating,
 } from 'views/admin';
 // import { Submissions as AgentSubmissions } from 'views/agent';
 import { SuccessStep, ActionHandler } from 'elements';
+import { RouterLink as BreadCrumbLink, BreadcrumbText } from 'components/Breadcrumbs';
 import { Product } from 'common';
 import { BindSuccess } from 'elements/SuccessStep';
 import { TasksPagination } from 'views/admin/TasksPagination';
@@ -107,7 +117,7 @@ export enum ADMIN_ROUTES {
   ORGANIZATION = '/admin/orgs/:orgId',
   USERS = '/admin/users',
   PORTFOLIO_RATING = '/admin/portfolio-rating',
-
+  CONFIG = '/admin/config',
   SL_TAXES = '/admin/config/sl-tax',
   SL_TAXES_NEW = '/admin/config/sl-tax/new',
   SL_TAXES_EDIT = '/admin/config/sl-tax/:taxId/edit',
@@ -116,6 +126,7 @@ export enum ADMIN_ROUTES {
   MORATORIUM_NEW = '/admin/config/moratoriums/new',
   SL_LICENSES = '/admin/config/licenses',
   SL_LICENSE_NEW = '/admin/config/licenses/new',
+  LICENSE_EDIT = '/admin/config/licenses/:licenseId/edit',
   DISCLOSURES = '/admin/config/disclosures',
   DISCLOSURE_NEW = '/admin/config/disclosures/new',
   DISCLOSURE_EDIT = '/admin/config/disclosures/:disclosureId/edit',
@@ -156,6 +167,7 @@ type TArgs =
   | { path: ADMIN_ROUTES.QUOTE_NEW; params: { productId: Product; submissionId: string } }
   | { path: ADMIN_ROUTES.POLICY_DELIVERY; params: { policyId: string } }
   // | { path: ADMIN_ROUTES.POLICIES; search?: { productId?: Product } }
+  | { path: ADMIN_ROUTES.CONFIG }
   | { path: ADMIN_ROUTES.SL_TAXES }
   | { path: ADMIN_ROUTES.SL_TAXES_NEW }
   | { path: ADMIN_ROUTES.SL_TAXES_EDIT; params: { taxId: string } }
@@ -164,6 +176,7 @@ type TArgs =
   | { path: ADMIN_ROUTES.MORATORIUM_NEW }
   | { path: ADMIN_ROUTES.SL_LICENSES }
   | { path: ADMIN_ROUTES.SL_LICENSE_NEW }
+  | { path: ADMIN_ROUTES.LICENSE_EDIT; params: { licenseId: string } }
   | { path: ADMIN_ROUTES.AGENCY_APPS }
   | { path: ADMIN_ROUTES.AGENCY_APP; params: { submissionId: string } }
   | { path: ADMIN_ROUTES.DISCLOSURES }
@@ -512,97 +525,93 @@ export const router = sentryCreateBrowserRouter([
           //     </RequireAuthReactFire>
           //   ),
           // },
-          {
-            path: ADMIN_ROUTES.SL_TAXES,
-            element: (
-              // <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
-              <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
-                <SLTaxes />
-              </RequireAuthReactFire>
+          // {
+          //   path: ADMIN_ROUTES.SL_TAXES,
+          //   element: (
+          //     // <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
+          //     <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
+          //       <SLTaxes />
+          //     </RequireAuthReactFire>
 
-              // </RequireAuth>
-            ),
-            // loader: adminTaxLoader,
-            errorElement: <RouterErrorBoundary />,
-          },
-          {
-            path: ADMIN_ROUTES.SL_TAXES_NEW,
-            element: (
-              // <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
-              <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
-                <SLTaxNew />
-              </RequireAuthReactFire>
+          //     // </RequireAuth>
+          //   ),
+          //   // loader: adminTaxLoader,
+          //   errorElement: <RouterErrorBoundary />,
+          // },
+          // {
+          //   path: ADMIN_ROUTES.SL_TAXES_NEW,
+          //   element: (
+          //     // <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
+          //     <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
+          //       <SLTaxNew />
+          //     </RequireAuthReactFire>
 
-              // </RequireAuth>
-            ),
-          },
-          {
-            path: ADMIN_ROUTES.SL_TAXES_EDIT,
-            element: (
-              <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
-                <SLTaxEdit />
-              </RequireAuthReactFire>
-            ),
-          },
-          {
-            path: ADMIN_ROUTES.EDIT_ACTIVE_STATES,
-            element: (
-              // <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
-              <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
-                <EditActiveStates />
-              </RequireAuthReactFire>
+          //     // </RequireAuth>
+          //   ),
+          // },
+          // {
+          //   path: ADMIN_ROUTES.SL_TAXES_EDIT,
+          //   element: (
+          //     <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
+          //       <SLTaxEdit />
+          //     </RequireAuthReactFire>
+          //   ),
+          // },
+          // {
+          //   path: ADMIN_ROUTES.EDIT_ACTIVE_STATES,
+          //   element: (
+          //     <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
+          //       <EditActiveStates />
+          //     </RequireAuthReactFire>
+          //   ),
+          // },
+          // {
+          //   path: ADMIN_ROUTES.MORATORIUMS,
+          //   element: (
+          //     // <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
+          //     <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
+          //       <Moratoriums />
+          //     </RequireAuthReactFire>
 
-              // </RequireAuth>
-            ),
-            // loader: activeStatesLoader,
-          },
-          {
-            path: ADMIN_ROUTES.MORATORIUMS,
-            element: (
-              // <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
-              <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
-                <Moratoriums />
-              </RequireAuthReactFire>
+          //     // </RequireAuth>
+          //   ),
+          //   // loader: moratoriumsLoader,
+          // },
+          // {
+          //   path: ADMIN_ROUTES.MORATORIUM_NEW,
+          //   element: (
+          //     // <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
+          //     <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
+          //       <MoratoriumNew />
+          //     </RequireAuthReactFire>
 
-              // </RequireAuth>
-            ),
-            // loader: moratoriumsLoader,
-          },
-          {
-            path: ADMIN_ROUTES.MORATORIUM_NEW,
-            element: (
-              // <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
-              <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
-                <MoratoriumNew />
-              </RequireAuthReactFire>
+          //     // </RequireAuth>
+          //   ),
+          // },
+          // {
+          //   path: ADMIN_ROUTES.SL_LICENSES,
+          //   // loader: licensesLoader,
+          //   element: (
+          //     <RequireAuthReactFire
+          //       signInCheckProps={{
+          //         validateCustomClaims: getRequiredClaimValidator(['IDEMAND_ADMIN']),
+          //       }}
+          //     >
+          //       <Licenses />
+          //     </RequireAuthReactFire>
+          //   ),
+          // },
+          // {
+          //   path: ADMIN_ROUTES.SL_LICENSE_NEW,
+          //   element: (
+          //     // <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
+          //     <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
+          //       <LicenseNew />
+          //     </RequireAuthReactFire>
 
-              // </RequireAuth>
-            ),
-          },
-          {
-            path: ADMIN_ROUTES.SL_LICENSES,
-            // loader: licensesLoader,
-            element: (
-              <RequireAuthReactFire
-                signInCheckProps={{
-                  validateCustomClaims: getRequiredClaimValidator(['IDEMAND_ADMIN']),
-                }}
-              >
-                <Licenses />
-              </RequireAuthReactFire>
-            ),
-          },
-          {
-            path: ADMIN_ROUTES.SL_LICENSE_NEW,
-            element: (
-              // <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
-              <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
-                <SLLicenseNew />
-              </RequireAuthReactFire>
-
-              // </RequireAuth>
-            ),
-          },
+          //     // </RequireAuth>
+          //   ),
+          // },
           {
             path: ADMIN_ROUTES.AGENCY_APPS,
             // loader: agencyAppsLoader,
@@ -627,30 +636,30 @@ export const router = sentryCreateBrowserRouter([
               // </RequireAuth>
             ),
           },
-          {
-            path: ADMIN_ROUTES.DISCLOSURES,
-            element: (
-              <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
-                <Disclosures />
-              </RequireAuthReactFire>
-            ),
-          },
-          {
-            path: ADMIN_ROUTES.DISCLOSURE_NEW,
-            element: (
-              <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
-                <DisclosureNew />
-              </RequireAuthReactFire>
-            ),
-          },
-          {
-            path: ADMIN_ROUTES.DISCLOSURE_EDIT,
-            element: (
-              <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
-                <DisclosureEdit />
-              </RequireAuthReactFire>
-            ),
-          },
+          // {
+          //   path: ADMIN_ROUTES.DISCLOSURES,
+          //   element: (
+          //     <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
+          //       <Disclosures />
+          //     </RequireAuthReactFire>
+          //   ),
+          // },
+          // {
+          //   path: ADMIN_ROUTES.DISCLOSURE_NEW,
+          //   element: (
+          //     <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
+          //       <DisclosureNew />
+          //     </RequireAuthReactFire>
+          //   ),
+          // },
+          // {
+          //   path: ADMIN_ROUTES.DISCLOSURE_EDIT,
+          //   element: (
+          //     <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
+          //       <DisclosureEdit />
+          //     </RequireAuthReactFire>
+          //   ),
+          // },
           {
             path: ADMIN_ROUTES.CREATE_TENANT,
             element: (
@@ -719,27 +728,240 @@ export const router = sentryCreateBrowserRouter([
             ),
           },
           // TODO: set up config routs
-          // {
-          //   path: 'config',
-          //   element: (
-          //     // <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
-          //     <ConfigLayout />
-          //     // </RequireAuthReactFire>
-          //   ),
-          //   errorElement: <RouterErrorBoundary />,
-          //   children: [
-          //     {
-          //       path: ADMIN_ROUTES.DISCLOSURES,
-          //       element: (
-          //         <RequireAuthReactFire
-          //           signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}
-          //         >
-          //           <Disclosures />
-          //         </RequireAuthReactFire>
-          //       ),
-          //     },
-          //   ],
-          // },
+          {
+            path: 'config',
+            element: (
+              // <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
+              <ConfigLayout />
+              // </RequireAuthReactFire>
+            ),
+            errorElement: <RouterErrorBoundary />,
+            children: [
+              {
+                index: true,
+                element: (
+                  <RequireAuthReactFire
+                    signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}
+                  >
+                    <SLTaxes />
+                  </RequireAuthReactFire>
+                ),
+                errorElement: <RouterErrorBoundary />,
+                handle: {
+                  crumb: (match: PathMatch) => (
+                    <Link
+                      component={RouterLink}
+                      to={createPath({
+                        path: ADMIN_ROUTES.SL_TAXES,
+                      })}
+                    >
+                      Taxes
+                    </Link>
+                  ),
+                },
+              },
+              {
+                // path: ADMIN_ROUTES.SL_TAXES,
+                path: 'sl-tax',
+                element: (
+                  <RequireAuthReactFire
+                    signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}
+                  >
+                    <SLTaxes />
+                  </RequireAuthReactFire>
+                ),
+                errorElement: <RouterErrorBoundary />,
+                handle: {
+                  crumb: (match: PathMatch) => (
+                    <Link
+                      component={RouterLink}
+                      to={createPath({
+                        path: ADMIN_ROUTES.SL_TAXES,
+                      })}
+                    >
+                      Taxes
+                    </Link>
+                  ),
+                },
+              },
+              {
+                // path: ADMIN_ROUTES.SL_TAXES_NEW,
+                path: 'sl-tax/new',
+                element: (
+                  <RequireAuthReactFire
+                    signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}
+                  >
+                    <SLTaxNew />
+                  </RequireAuthReactFire>
+                ),
+                handle: {
+                  crumb: (match: PathMatch) => (
+                    <Link
+                      component={RouterLink}
+                      to={createPath({
+                        path: ADMIN_ROUTES.SL_TAXES_NEW,
+                      })}
+                    >
+                      New
+                    </Link>
+                  ),
+                },
+              },
+              {
+                // path: ADMIN_ROUTES.SL_TAXES_EDIT,
+                path: 'sl-tax/:taxId/edit',
+                element: (
+                  <RequireAuthReactFire
+                    signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}
+                  >
+                    <SLTaxEdit />
+                  </RequireAuthReactFire>
+                ),
+                handle: {
+                  crumb: (match: PathMatch) => {
+                    if (!match.params.taxId) return null;
+                    // TODO: return fragment ?? Tax / :id / edit
+                    // is Tax rendered by above route ??
+                    return (
+                      <>
+                        <BreadcrumbText label={`${match.params.taxId}`} />
+                        <BreadCrumbLink
+                          to={createPath({
+                            path: ADMIN_ROUTES.SL_TAXES_EDIT,
+                            params: { taxId: match.params.taxId },
+                          })}
+                        >
+                          Edit
+                        </BreadCrumbLink>
+                      </>
+                    );
+                  },
+                },
+              },
+              {
+                // path: ADMIN_ROUTES.DISCLOSURES,
+                path: 'disclosures',
+                element: (
+                  <RequireAuthReactFire
+                    signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}
+                  >
+                    <Disclosures />
+                  </RequireAuthReactFire>
+                ),
+                handle: {
+                  crumb: (match: PathMatch) => (
+                    <Link
+                      component={RouterLink}
+                      to={createPath({
+                        path: ADMIN_ROUTES.DISCLOSURES,
+                      })}
+                    >
+                      Disclosures
+                    </Link>
+                  ),
+                },
+              },
+              {
+                // path: ADMIN_ROUTES.DISCLOSURE_NEW,
+                path: 'disclosures/new',
+                element: (
+                  <RequireAuthReactFire
+                    signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}
+                  >
+                    <DisclosureNew />
+                  </RequireAuthReactFire>
+                ),
+              },
+              {
+                // path: ADMIN_ROUTES.DISCLOSURE_EDIT,
+                path: 'disclosures/:disclosureId/edit',
+                element: (
+                  <RequireAuthReactFire
+                    signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}
+                  >
+                    <DisclosureEdit />
+                  </RequireAuthReactFire>
+                ),
+              },
+              {
+                // path: ADMIN_ROUTES.SL_LICENSES,
+                path: 'licenses',
+                element: (
+                  <RequireAuthReactFire
+                    signInCheckProps={{
+                      validateCustomClaims: getRequiredClaimValidator(['IDEMAND_ADMIN']),
+                    }}
+                  >
+                    <Licenses />
+                  </RequireAuthReactFire>
+                ),
+              },
+              {
+                // path: ADMIN_ROUTES.SL_LICENSE_NEW,
+                path: 'licenses/new',
+                element: (
+                  // <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
+                  <RequireAuthReactFire
+                    signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}
+                  >
+                    <LicenseNew />
+                  </RequireAuthReactFire>
+
+                  // </RequireAuth>
+                ),
+              },
+              {
+                // path: ADMIN_ROUTES.SL_LICENSE_NEW,
+                path: 'licenses/:licenseId/edit',
+                element: (
+                  // <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
+                  <RequireAuthReactFire
+                    signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}
+                  >
+                    <LicenseEdit />
+                  </RequireAuthReactFire>
+
+                  // </RequireAuth>
+                ),
+              },
+              {
+                // path: ADMIN_ROUTES.MORATORIUMS,
+                path: 'moratoriums',
+                element: (
+                  <RequireAuthReactFire
+                    signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}
+                  >
+                    <Moratoriums />
+                  </RequireAuthReactFire>
+                ),
+              },
+              {
+                // path: ADMIN_ROUTES.MORATORIUM_NEW,
+                path: 'moratoriums/new',
+                element: (
+                  // <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
+                  <RequireAuthReactFire
+                    signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}
+                  >
+                    <MoratoriumNew />
+                  </RequireAuthReactFire>
+
+                  // </RequireAuth>
+                ),
+              },
+              {
+                // path: ADMIN_ROUTES.EDIT_ACTIVE_STATES,
+                path: 'active-states/:productId/edit',
+                element: (
+                  <RequireAuthReactFire
+                    signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}
+                  >
+                    <EditActiveStates />
+                  </RequireAuthReactFire>
+                ),
+              },
+            ],
+          },
         ],
       },
       {

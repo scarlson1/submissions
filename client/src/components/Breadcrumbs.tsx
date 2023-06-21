@@ -5,39 +5,79 @@ import {
   Link,
   LinkProps,
   Typography,
+  TypographyProps,
 } from '@mui/material';
-import { useLocation, Link as RouterLink } from 'react-router-dom';
+import {
+  useLocation,
+  Link as RLink,
+  // useMatches
+} from 'react-router-dom';
+import { startCase } from 'lodash';
 
-interface LinkRouterProps extends LinkProps {
+import { createPath, ROUTES, ADMIN_ROUTES, ACCOUNT_ROUTES } from 'router';
+
+// TODO: refactor:
+// DOCS - use routes & useMatches
+// https://reactrouter.com/en/6.13.0/hooks/use-matches#breadcrumbs
+
+interface RouterLinkProps extends Omit<LinkProps, 'component'> {
   to: string;
   replace?: boolean;
 }
 
-function LinkRouter(props: LinkRouterProps) {
-  return <Link {...props} component={RouterLink as any} variant='body2' />;
+export function RouterLink(props: RouterLinkProps) {
+  return (
+    <Link
+      component={RLink as any}
+      variant='body2'
+      underline='hover'
+      color='inherit'
+      sx={{ fontSize: '0.75rem' }}
+      {...props}
+    />
+  );
 }
 
-const breadcrumbNameMap: { [key: string]: string } = {
-  '/submissions': 'Submissions',
-  '/quotes': 'Quotes',
-  '/policies': 'Policies',
-  '/account': 'Account',
-  '/admin': 'Admin',
-  '/admin/submissions': 'Submissions',
-  '/admin/quotes': 'Quotes',
-  '/admin/policies': 'Policies',
-  '/admin/sl-taxes': 'Taxes',
-  // '/admin/active-states': 'Active States',
-  '/admin/moratoriums': 'Moratoriums',
-  '/admin/licenses': 'Licenses',
-  '/admin/agencies': 'Agencies',
-  '/admin/agencies/submissions': 'Applications',
-  '/admin/orgs': 'Orgs',
-  '/admin/disclosures': 'Disclosures',
-};
+interface BreadcrumbTextProps extends TypographyProps {
+  label: React.ReactNode;
+}
+export function BreadcrumbText({ label, ...props }: BreadcrumbTextProps) {
+  return (
+    <Typography variant='body2' color='text.secondary' sx={{ fontSize: '0.75rem' }} {...props}>
+      {label}
+    </Typography>
+  );
+}
 
 export const Breadcrumbs: React.FC<BreadcrumbsProps> = (props) => {
   const location = useLocation();
+  // const matches = useMatches();
+  // console.log('MATCHES: ', matches);
+
+  // TODO: derive from ROUTES
+  const breadcrumbNameMap = useMemo(
+    () => ({
+      [createPath({ path: ROUTES.SUBMISSIONS })]: 'Submissions',
+      [createPath({ path: ROUTES.QUOTES })]: 'Quotes',
+      [createPath({ path: ROUTES.POLICIES })]: 'Policies',
+      [createPath({ path: ACCOUNT_ROUTES.ACCOUNT })]: 'Account',
+      // [createPath({ path: ADMIN_ROUTES.HOME })]: 'Admin',
+      '/admin': 'Admin', // TODO: create admin home route
+      [createPath({ path: ADMIN_ROUTES.SUBMISSIONS })]: 'Submissions',
+      // TODO: REFACTOR TO NOT HAVE ADMIN ROUTE FOR COMMON ROUTES & ADD BREADCRUMBS TO USER LAYOUT
+      [createPath({ path: ADMIN_ROUTES.QUOTES })]: 'Quotes',
+      // [createPath({ path: ADMIN_ROUTES.POLICIES})]: 'Policies',
+      '/admin/config': 'Config',
+      [createPath({ path: ADMIN_ROUTES.SL_TAXES })]: 'Taxes',
+      // '/admin/active-states': 'Active States',
+      [createPath({ path: ADMIN_ROUTES.MORATORIUMS })]: 'Moratoriums',
+      [createPath({ path: ADMIN_ROUTES.SL_LICENSES })]: 'Licenses',
+      [createPath({ path: ADMIN_ROUTES.DISCLOSURES })]: 'Disclosures',
+      [createPath({ path: ADMIN_ROUTES.ORGANIZATIONS })]: 'Orgs',
+      [createPath({ path: ADMIN_ROUTES.AGENCY_APPS })]: 'Applications',
+    }),
+    []
+  );
 
   const paths = useMemo<
     {
@@ -51,56 +91,33 @@ export const Breadcrumbs: React.FC<BreadcrumbsProps> = (props) => {
       .map((value, index) => {
         const isLast = index === pathnames.length - 1;
         const to = `/${pathnames.slice(0, index + 1).join('/')}`;
-        const label = isLast ? value : breadcrumbNameMap[to];
+        const label = isLast ? startCase(value) : breadcrumbNameMap[to];
+
+        // TODO: use matchPath to validate to (don't use link if not valid)
 
         if (!label) return { to, label: '', isLast };
 
         return { to, label, isLast };
       })
       .filter((x) => x.label !== '');
-  }, [location]);
+  }, [location, breadcrumbNameMap]);
 
   return (
     <MuiBreadcrumbs aria-label='breadcrumb' {...props}>
-      <LinkRouter to={'/'} underline='hover' color='inherit'>
+      <RouterLink to={'/'} underline='hover' color='inherit'>
         Home
-      </LinkRouter>
+      </RouterLink>
       {paths.map(({ label, to, isLast }) =>
         isLast ? (
-          <Typography variant='body2' color='text.secondary' key={to}>
+          <Typography variant='body2' color='text.secondary' key={to} sx={{ fontSize: '0.75rem' }}>
             {label}
           </Typography>
         ) : (
-          <LinkRouter underline='hover' color='inherit' to={to} key={to}>
+          <RouterLink to={to} key={to}>
             {label}
-          </LinkRouter>
+          </RouterLink>
         )
       )}
     </MuiBreadcrumbs>
   );
 };
-
-// {
-//   pathnames.map((value, index) => {
-//     const last = index === pathnames.length - 1;
-//     const to = `/${pathnames.slice(0, index + 1).join('/')}`;
-
-//     // FILTERS, but cannot handle variables (doc ID, etc.)
-//     const label = breadcrumbNameMap[to];
-//     if (!last && !label) return null;
-
-//     return last ? (
-//       <Typography variant='body2' color='text.secondary' key={to}>
-//         {/* {breadcrumbNameMap[to]} */}
-//         {/* {value} */}
-//         {value}
-//       </Typography>
-//     ) : (
-//       <LinkRouter underline='hover' color='inherit' to={to} key={to}>
-//         {/* {breadcrumbNameMap[to]} */}
-//         {/* {value} */}
-//         {label}
-//       </LinkRouter>
-//     );
-//   });
-// }

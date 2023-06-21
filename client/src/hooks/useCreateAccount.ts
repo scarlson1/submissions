@@ -41,7 +41,7 @@ export const useCreateAccount = () => {
   const auth = getAuth();
   const params = useParams();
   const location = useLocation();
-  const { user, isAuthenticated, isAnonymous } = useAuth(); // logout
+  const { user, isSignedIn, isAnonymous } = useAuth(); // logout
   const { logout } = useAuthActions();
   const navigate = useNavigate();
 
@@ -85,7 +85,7 @@ export const useCreateAccount = () => {
       setLoading(true);
 
       try {
-        if (isAnonymous && isAuthenticated && user) {
+        if (isAnonymous && isSignedIn && user) {
           console.log('linking anonymous user');
           const credential = EmailAuthProvider.credential(
             email.trim().toLowerCase(),
@@ -128,7 +128,7 @@ export const useCreateAccount = () => {
         return Promise.reject(err);
       }
     },
-    [auth, isAnonymous, isAuthenticated, updateUserDocOnCreate, user]
+    [auth, isAnonymous, isSignedIn, updateUserDocOnCreate, user]
   );
 
   const handleEmailAuthError = useCallback(

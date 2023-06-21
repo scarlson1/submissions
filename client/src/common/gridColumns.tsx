@@ -919,7 +919,7 @@ export const nestedAgencyOrgIdCol: GridColDef = {
 };
 
 export const inlandAALCol: GridColDef = {
-  field: 'inlandAAL',
+  field: 'AAL.inland',
   headerName: 'Inland AAL',
   description: 'Inland Peril Average Annual Loss from Swiss Re',
   minWidth: 150,
@@ -931,7 +931,7 @@ export const inlandAALCol: GridColDef = {
 };
 
 export const surgeAALCol: GridColDef = {
-  field: 'surgeAAL',
+  field: 'AAL.surge',
   headerName: 'Surge AAL',
   description: 'Surge Peril Average Annual Loss from Swiss Re',
   minWidth: 150,
@@ -943,7 +943,7 @@ export const surgeAALCol: GridColDef = {
 };
 
 export const tsunamiAALCol: GridColDef = {
-  field: 'tsunamiAAL',
+  field: 'AAL.tsunami',
   headerName: 'Tsunami AAL',
   description: 'Tsunami Peril Average Annual Loss from Swiss Re',
   minWidth: 150,

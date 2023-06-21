@@ -143,7 +143,7 @@ export const initialValues: FloodValues = {
 export const SubmissionNew: React.FC = () => {
   const firestore = useFirestore();
   const navigate = useNavigate();
-  const { user, customClaims } = useAuth();
+  const { user, claims } = useAuth();
   const formikRef = useRef<FormikProps<FormikValues>>(null);
   const activeStates = useActiveStates('flood');
   const { propertyDetails, rcvSourceUser, propertyDataDocId, initRatingValues, fetchPropertyData } =
@@ -227,12 +227,12 @@ export const SubmissionNew: React.FC = () => {
           coordinates: new GeoPoint(values.coordinates.latitude, values.coordinates.longitude),
           status: SUBMISSION_STATUS.SUBMITTED,
           userId: user?.uid ?? null,
-          // agentId: !!customClaims.agent ? user?.uid || null : null,
+          // agentId: !!claims.agent ? user?.uid || null : null,
           agent: {
-            userId: !!customClaims.agent ? user?.uid || null : null,
-            name: !!customClaims.agent ? user?.displayName || null : null,
-            email: !!customClaims.agent ? user?.email || null : null,
-            phone: !!customClaims.agent ? user?.phoneNumber || null : null,
+            userId: !!claims?.agent ? user?.uid || null : null,
+            name: !!claims?.agent ? user?.displayName || null : null,
+            email: !!claims?.agent ? user?.email || null : null,
+            phone: !!claims?.agent ? user?.phoneNumber || null : null,
           },
           // TODO: agency info
           submittedById: user?.uid ?? null,
@@ -265,7 +265,7 @@ export const SubmissionNew: React.FC = () => {
       propertyDataDocId,
       rcvSourceUser,
       user,
-      customClaims,
+      claims,
     ]
   );
 

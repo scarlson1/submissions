@@ -7,12 +7,12 @@ import { ADMIN_ROUTES, createPath, ROUTES } from 'router';
 // TODO: add UI state to authContext (admin, user, authedUser)
 
 export const Home: React.FC = () => {
-  const { customClaims, isAuthenticated, isAnonymous } = useAuth();
+  const { claims, isSignedIn, isAnonymous } = useAuth();
 
-  if (!!customClaims.iDemandAdmin)
+  if (!!claims?.iDemandAdmin)
     return <Navigate to={createPath({ path: ADMIN_ROUTES.SUBMISSIONS })} replace={true} />;
 
-  if (isAuthenticated && !isAnonymous)
+  if (isSignedIn && !isAnonymous)
     return <Navigate to={createPath({ path: ROUTES.SUBMISSIONS })} replace={true} />;
 
   return (

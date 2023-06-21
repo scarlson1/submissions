@@ -34,7 +34,7 @@ function getResult(
   };
 }
 
-interface UserWithClaimsResult {
+export interface UserWithClaimsResult {
   claims: CustomClaimsInterface | null;
   user: User | null;
   orgId: string | null;

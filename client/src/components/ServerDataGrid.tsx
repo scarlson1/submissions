@@ -11,6 +11,7 @@ import {
   GridFilterModel,
   GridPaginationModel,
   GridSortModel,
+  // useGridApiRef,
 } from '@mui/x-data-grid';
 import {
   DocumentSnapshot,
@@ -43,6 +44,7 @@ export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
   // density = 'compact',
   ...rest
 }) => {
+  // const gridApiRef = useGridApiRef()
   // const [isPending, startTransition] = useTransition();
   // const [densityV, setDensity] = useState<GridDensity>(density);
   const [paginationModel, setPaginationModel] = React.useState({

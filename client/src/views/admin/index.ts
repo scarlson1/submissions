@@ -8,7 +8,8 @@ export { SLTaxEdit } from './SLTaxEdit';
 export { EditActiveStates } from './EditActiveStates';
 export { Moratoriums } from './Moratoriums';
 export { MoratoriumNew } from './MoratoriumNew';
-export { SLLicenseNew } from './SLLicenseNew';
+export { LicenseNew } from './LicenseNew';
+export { LicenseEdit } from './LicenseEdit';
 export { Licenses } from './Licenses';
 export { AgencyApp } from './AgencyApp';
 export { AgencyApps } from './AgencyApps';
@@ -25,4 +26,3 @@ export { Users } from './Users';
 export { PortfolioRating } from './PortfolioRating';
 
 // export type { SubmissionsProps } from './Submissions';
-export type { NewSLValues } from './SLLicenseNew';

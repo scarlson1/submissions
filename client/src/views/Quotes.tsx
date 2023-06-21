@@ -8,17 +8,25 @@ import { useNavigate } from 'react-router-dom';
 
 import { useAuth } from 'modules/components';
 import { Quotes as AdminQuotes } from './admin/Quotes';
-import { Quotes as AgentQuotes } from './agent/Quotes';
 import { QuotesGrid } from 'elements';
 import { ROUTES, createPath } from 'router';
 
 // TODO: UPDATE NON-ADMIN VIEW TO USE BREADCRUMBS
 
 export const Quotes: React.FC = () => {
-  const { customClaims } = useAuth(); // TODO: can wrap in <RequireAuth> to ensure customClaims has loaded ??
+  const { claims, user } = useAuth(); // TODO: can wrap in <RequireAuth> to ensure claims has loaded ??
 
-  if (customClaims.iDemandAdmin) return <AdminQuotes />;
-  if (customClaims.agent || customClaims.orgAdmin) return <AgentQuotes />;
+  if (claims?.iDemandAdmin) return <AdminQuotes />;
+  if (claims?.agent || claims?.orgAdmin)
+    return (
+      <QuotesGrid
+        queryConstraints={[
+          where('agentId', '==', `${user?.uid}`),
+          orderBy('metadata.created', 'desc'),
+          limit(100),
+        ]}
+      />
+    );
 
   return <UserQuotes />;
 };
@@ -26,7 +34,7 @@ export const Quotes: React.FC = () => {
 function UserQuotes() {
   const navigate = useNavigate();
   const { data: user } = useUser();
-  // const { customClaims, user } = useAuth();
+  // const { claims, user } = useAuth();
 
   const showDetails = useCallback(
     (params: GridRowParams) => () => {
@@ -48,7 +56,7 @@ function UserQuotes() {
     );
   }
 
-  // if (customClaims.iDemandAdmin)
+  // if (claims.iDemandAdmin)
   //   return (
   //     <QuotesGrid
   //       queryConstraints={[
@@ -59,7 +67,7 @@ function UserQuotes() {
   //     />
   //   );
 
-  // if (customClaims.orgAdmin && user?.tenantId)
+  // if (claims.orgAdmin && user?.tenantId)
   //   return (
   //     <QuotesGrid
   //       queryConstraints={[

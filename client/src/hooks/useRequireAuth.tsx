@@ -23,6 +23,8 @@ export interface UseRequireAuthProps {
   unauthorizedCallback?: () => void;
 }
 
+// TODO: REPLACE WITH USE CLAIMS CHECK
+
 export const useRequireAuth = ({
   redirectPath,
   returnToPath,
@@ -31,7 +33,7 @@ export const useRequireAuth = ({
   shouldSignInAnonymously = false,
   unauthorizedCallback,
 }: UseRequireAuthProps) => {
-  const { loading, isAuthenticated, loadingInitial, isAnonymous, customClaims } = useAuth(); // error,
+  const { isSignedIn, isAnonymous, claims } = useAuth(); // error,
   const toast = useAsyncToast();
   let location = useLocation();
   const navigate = useNavigate();
@@ -40,9 +42,9 @@ export const useRequireAuth = ({
   let user = auth.currentUser;
 
   useEffect(() => {
-    if (loadingInitial || loading) {
-      return;
-    }
+    // if (loadingInitial || loading) {
+    //   return;
+    // }
 
     // if (!isAuthenticated && !!shouldSignInAnonymously) {
     if (!(user && user.uid) && !!shouldSignInAnonymously) {
@@ -82,7 +84,9 @@ export const useRequireAuth = ({
 
     if (requiredClaims && requiredClaims.length > 0) {
       // checks if all claims are falsy (user does not have any of the roles in required)
-      let notAuthorized = requiredClaims.every((key) => !customClaims[CUSTOM_CLAIMS[key]]);
+      let notAuthorized = claims
+        ? requiredClaims.every((key) => !claims[CUSTOM_CLAIMS[key]])
+        : true;
 
       if (!!notAuthorized) {
         if (unauthorizedCallback) unauthorizedCallback();
@@ -97,11 +101,11 @@ export const useRequireAuth = ({
     toast.dismiss();
   }, [
     user,
-    loading,
-    isAuthenticated,
-    loadingInitial,
+    // loading,
+    isSignedIn,
+    // loadingInitial,
     isAnonymous,
-    customClaims,
+    claims,
     requiredClaims,
     allowAnonymous,
     redirectPath,
@@ -116,10 +120,10 @@ export const useRequireAuth = ({
 
   return {
     user,
-    loading: Boolean(loadingInitial || loading),
+    // loading: Boolean(loadingInitial || loading),
     // error,
-    isAuthenticated,
+    isSignedIn,
     isAnonymous,
-    customClaims,
+    claims,
   };
 };
