@@ -1,5 +1,22 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 
+// TODO:  use zustand ??
+
+// import { create } from 'zustand';
+
+// interface DimensionsStore {
+//   isMobile: boolean;
+//   isSmall: boolean;
+//   setSizes: (width: number) => void;
+// }
+
+// export const useAlgoliaStore = create<DimensionsStore>((set) => ({
+//   isMobile: window.innerWidth <= 480,
+//   isSmall: window.innerWidth <= 768,
+//   // increasePopulation: () => set((state) => ({ bears: state.bears + 1 }))
+//   setSizes: (width: number) => set(state => ({ isMobile: width <= 480, isSmall: width <= 768 })),
+// }));
+
 // DEFAULT 480 AS MOBILE WIDTH BREAKPOINT
 
 export const useWidth = (mobileWidth?: number) => {

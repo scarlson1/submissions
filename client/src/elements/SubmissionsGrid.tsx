@@ -6,7 +6,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { useFirestore, useSigninCheck } from 'reactfire';
 
 import { ServerDataGrid, ServerDataGridProps } from 'components';
-import { useAsyncToast, useFloodFactor, useJsonDialog } from 'hooks';
+import { useAsyncToast, useFloodFactor, useJsonDialog, useWidth } from 'hooks';
 import { openGoogleMaps } from 'modules/utils';
 import { CUSTOM_CLAIMS } from 'modules/components';
 import {
@@ -68,6 +68,7 @@ export const SubmissionsGrid = ({ renderActions = () => [], ...props }: Submissi
   const toast = useAsyncToast();
   const openFF = useFloodFactor();
   const dialog = useJsonDialog();
+  const { isSmall } = useWidth(); //  , isMobile
 
   const { data: iDAdminResult } = useSigninCheck({
     requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true },
@@ -139,6 +140,7 @@ export const SubmissionsGrid = ({ renderActions = () => [], ...props }: Submissi
             }
             onClick={openMap(params)}
             label='Google Maps'
+            showInMenu={isSmall}
           />,
           // TODO: flood factor hook
           <GridActionsCellItem
@@ -149,6 +151,7 @@ export const SubmissionsGrid = ({ renderActions = () => [], ...props }: Submissi
             }
             onClick={openFloodFactor(params)}
             label='Google Maps'
+            showInMenu={isSmall}
           />,
           // TODO: admin only
           <GridActionsCellItem
@@ -160,6 +163,7 @@ export const SubmissionsGrid = ({ renderActions = () => [], ...props }: Submissi
             onClick={openSubmissionDataDialog(params)}
             label='Show JSON'
             disabled={!iDAdminResult.hasRequiredClaims}
+            showInMenu={isSmall}
           />,
         ],
       },
@@ -265,11 +269,11 @@ export const SubmissionsGrid = ({ renderActions = () => [], ...props }: Submissi
         description: 'Document/database ID for the submission',
       },
     ],
-    [openMap, openFloodFactor, openSubmissionDataDialog, renderActions, iDAdminResult] // handleCreateQuote,
+    [openMap, openFloodFactor, openSubmissionDataDialog, renderActions, iDAdminResult, isSmall] // handleCreateQuote,
   );
 
   return (
-    <Box sx={{ height: 500, width: '100%', overflowY: 'scroll' }}>
+    <Box sx={{ height: { xs: 400, sm: 460, md: 500 }, width: '100%' }}>
       <ServerDataGrid
         collName='SUBMISSIONS'
         columns={submissionColumns}
