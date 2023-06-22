@@ -10,21 +10,11 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { FormikAddress, FormikAddressProps } from 'elements';
 import { useRegisterEmailNotification } from 'hooks';
 import { ActiveStateMap } from './ActiveStateMap';
-import { Address } from 'common';
+import { Address, Coordinates, Nullable } from 'common';
 
 export interface AddressStepValues {
-  // addressLine1: string;
-  // addressLine2?: string;
-  // city: string;
-  // state: string;
-  // postal: string;
-  // latitude: number | null;
-  // longitude: number | null;
   address: Address;
-  coordinates: {
-    latitude: number | null;
-    longitude: number | null;
-  };
+  coordinates: Nullable<Coordinates>;
 }
 
 export interface AddressStepProps extends Omit<FormikAddressProps, 'setFieldValue'> {

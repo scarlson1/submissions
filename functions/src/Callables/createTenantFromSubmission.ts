@@ -1,5 +1,5 @@
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
-import { error } from 'firebase-functions/logger';
+import { error, info } from 'firebase-functions/logger';
 import { Tenant, getAuth } from 'firebase-admin/auth';
 import { Firestore, getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { kebabCase, random } from 'lodash';
@@ -24,6 +24,8 @@ export const createInvite = async (
   let { firstName, lastName, email } = inviteInfo;
   email = email.toLowerCase().trim();
 
+  // TODO: use invite class ??
+
   await invitesColRef.doc(email).set({
     ...inviteInfo,
     link: `${hostingBaseURL.value()}/auth/create-account/${tenantId}?email=${encodeURIComponent(
@@ -34,6 +36,7 @@ export const createInvite = async (
     orgId: tenantId,
     status: 'pending',
     id: email,
+    sent: false,
     metadata: {
       created: Timestamp.now(),
       updated: Timestamp.now(),
@@ -42,7 +45,7 @@ export const createInvite = async (
 };
 
 export default async ({ data, auth }: CallableRequest<any>) => {
-  if (!auth || !auth.token || !auth.token.iDemandAdmin) {
+  if (!auth || !auth.token || !auth.token[CLAIMS.IDEMAND_ADMIN]) {
     throw new HttpsError('failed-precondition', 'iDemand Admin permissions required');
   }
 
@@ -114,13 +117,15 @@ export default async ({ data, auth }: CallableRequest<any>) => {
       },
     });
 
-    console.log('CREATED TENANT: ', createdTenant.toJSON());
     const { tenantId } = createdTenant;
+    info(`CREATED TENANT (ID: ${tenantId}) `, createdTenant);
 
     newTenantId = tenantId;
   } catch (err: any) {
     let msg = 'Error creating Tenant';
     if (err?.message) msg = err.message;
+
+    error(`Error creating tenant`, { err });
     throw new HttpsError('internal', msg);
   }
 

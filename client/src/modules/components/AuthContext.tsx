@@ -17,6 +17,8 @@ import { ReauthDialog } from 'components';
 import { useAlgoliaStore, usePrevious, useUserClaims } from 'hooks';
 import { UserWithClaimsResult } from 'hooks/useUserClaims';
 import { isEqual } from 'lodash';
+import { matchPath, useLocation } from 'react-router-dom';
+import { AUTH_ROUTES, createPath } from 'router';
 
 // TODO: refactor to use rxFire observables ?? https://firebase.blog/posts/2018/09/introducing-rxfire-easy-async-firebase
 
@@ -45,6 +47,7 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
   const auth = useFireAuth();
   const functions = useFunctions();
   const analytics = useAnalytics();
+  const location = useLocation();
   const { data: userData } = useUserClaims();
 
   const userPrev = usePrevious(userData?.user);
@@ -73,13 +76,26 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
         generateKey(functions);
       } else {
         console.log('USER CHANGE DETECTED --> RESETTING TENANT ID, SENTRY, ALGOLIA KEY');
-        auth.tenantId = null;
+        // only remove auth.tenantId if not on tenant auth page
+        const isTenantLoginPage = matchPath(
+          { path: createPath({ path: AUTH_ROUTES.TENANT_LOGIN }) },
+          location.pathname
+        );
+        const isTenantCreateAccountPage = matchPath(
+          { path: createPath({ path: AUTH_ROUTES.TENANT_CREATE_ACCOUNT }) },
+          location.pathname
+        );
+        console.log('IS TENANT CA PAGE: ', isTenantCreateAccountPage);
+        if (isTenantLoginPage === null && isTenantCreateAccountPage === null) {
+          console.log('SETTING TENANT ID TO NULL');
+          auth.tenantId = null;
+        }
         setSentryUser(null);
         // localStorage.removeItem(LOCAL_STORAGE.USER_SEARCH_KEY);
         resetKey();
       }
     }
-  }, [userData, userPrev, functions, auth, analytics, generateKey, resetKey]);
+  }, [userData, userPrev, functions, auth, analytics, location, generateKey, resetKey]);
 
   // update user properties in analytics on claims change
   useEffect(() => {

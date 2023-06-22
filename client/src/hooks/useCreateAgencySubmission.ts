@@ -1,11 +1,11 @@
 import { useCallback, useState } from 'react';
 import { addDoc, GeoPoint, Timestamp } from 'firebase/firestore';
 import { FirebaseError } from 'firebase/app';
-import { useFirestore } from 'reactfire';
+import { useFirestore, useUser } from 'reactfire';
 
 import { AgencyAppValues } from 'views/AgencyNew';
 import { useUploadStorageFiles } from 'hooks';
-import { agencyAppCollection, AGENCY_SUBMISSION_STATUS } from 'common';
+import { agencyAppCollection, AGENCY_SUBMISSION_STATUS, AgencyApplication } from 'common';
 
 export interface useCreateAgencySubmissionProps {
   onSuccess?: (subId: string) => void;
@@ -16,6 +16,7 @@ export const useCreateAgencySubmission = ({
   onSuccess,
   onError,
 }: useCreateAgencySubmissionProps) => {
+  const { data: user } = useUser();
   const firestore = useFirestore();
   const [error, setError] = useState<string | null>(null);
   const { uploadFiles } = useUploadStorageFiles('newAgencySubmissions');
@@ -29,39 +30,43 @@ export const useCreateAgencySubmission = ({
         const uploadResult = await uploadFiles(values.EandO, {}, `EandO_${values.orgName}_`);
         console.log('uploadResult: ', uploadResult);
 
-        const docRef = await addDoc(agencyAppCollection(firestore), {
+        let agencyAppData: AgencyApplication = {
           orgName: values.orgName,
           address: {
-            addressLine1: values.addressLine1,
-            addressLine2: values.addressLine2,
-            city: values.city,
-            state: values.state,
-            postal: values.postal,
+            addressLine1: values.address?.addressLine1.trim(),
+            addressLine2: values.address?.addressLine2.trim(),
+            city: values.address?.city.trim(),
+            state: values.address?.state.trim(),
+            postal: values.address?.postal.trim(),
+            countyName: values.address?.countyName?.trim(),
           },
           contact: {
-            firstName: values.firstName.trim(),
-            lastName: values.lastName.trim(),
-            email: values.email.toLowerCase().trim(),
-            phone: values.phone.trim(),
+            firstName: values.contact?.firstName.trim(),
+            lastName: values.contact?.lastName.trim(),
+            email: values.contact?.email.toLowerCase().trim(),
+            phone: values.contact?.phone.trim(),
           },
           agents: values.agents,
           bankDetails: {
-            accountNumber: values.accountNumber,
-            routingNumber: values.routingNumber,
+            accountNumber: values.accountNumber.trim(),
+            routingNumber: values.routingNumber.trim(),
           },
-          FEIN: values.FEIN,
+          FEIN: values.FEIN.trim(),
           EandO: uploadResult[0].metadata.fullPath,
           status: AGENCY_SUBMISSION_STATUS.SUBMITTED,
           coordinates:
-            values.latitude && values.longitude
-              ? new GeoPoint(values.latitude, values.longitude)
+            values.coordinates?.latitude && values.coordinates?.longitude
+              ? new GeoPoint(values.coordinates.latitude, values.coordinates.longitude)
               : null,
           sendAppReceivedNotification: sendNotifications,
+          submittedByUserId: user?.uid || null,
           metadata: {
             created: Timestamp.now(),
             updated: Timestamp.now(),
           },
-        });
+        };
+
+        const docRef = await addDoc(agencyAppCollection(firestore), agencyAppData);
 
         if (onSuccess) onSuccess(docRef.id);
 
@@ -76,7 +81,7 @@ export const useCreateAgencySubmission = ({
         if (onError) onError(err, msg);
       }
     },
-    [uploadFiles, onSuccess, onError, firestore]
+    [uploadFiles, onSuccess, onError, firestore, user]
   );
 
   return { handleSubmission, error };

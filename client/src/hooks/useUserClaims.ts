@@ -11,23 +11,27 @@ import { isEmpty } from 'lodash';
 import { userClaimsCollection } from 'common';
 import type { CustomClaimsInterface } from 'modules/components';
 
-const DEFAULT_CLAIMS = {
-  iDemandAdmin: false,
-  orgAdmin: false,
-  agent: false,
-};
+// const DEFAULT_CLAIMS = {
+//   iDemandAdmin: false,
+//   orgAdmin: false,
+//   agent: false,
+// };
 
 function getResult(
   user: User,
   orgId: string | null,
   claims: ParsedToken | null | undefined
 ): UserWithClaimsResult {
+  let customClaims = !claims
+    ? null
+    : {
+        iDemandAdmin: !!claims?.iDemandAdmin,
+        orgAdmin: !!claims?.orgAdmin,
+        agent: !!claims?.agent,
+      };
+
   return {
-    claims: {
-      iDemandAdmin: !!claims?.iDemandAdmin,
-      orgAdmin: !!claims?.orgAdmin,
-      agent: !!claims?.agent,
-    },
+    claims: customClaims,
     user: user,
     orgId: orgId,
     isSignedIn: !!user,
@@ -59,8 +63,8 @@ export const useUserClaims = (): ObservableStatus<UserWithClaimsResult> => {
   const observable$ = authState(auth).pipe(
     switchMap((user) => {
       if (user) {
-        let orgId =
-          user.tenantId ?? (user.email?.endsWith('@idemandinsurance.com') ? 'idemand' : null);
+        let orgId = user.tenantId ?? null;
+        if (!orgId && user.email?.endsWith('@idemandinsurance.com')) orgId = 'idemand';
 
         if (orgId) {
           // subscribe to claims document
@@ -74,7 +78,7 @@ export const useUserClaims = (): ObservableStatus<UserWithClaimsResult> => {
 
               if (!claimsData || isEmpty(claimsData)) {
                 let result: UserWithClaimsResult = {
-                  claims: DEFAULT_CLAIMS,
+                  claims: null, // DEFAULT_CLAIMS,
                   user: user,
                   orgId: orgId,
                   isSignedIn: true,
@@ -131,7 +135,7 @@ export const useUserClaims = (): ObservableStatus<UserWithClaimsResult> => {
           );
         } else {
           let result: UserWithClaimsResult = {
-            claims: DEFAULT_CLAIMS,
+            claims: null, // DEFAULT_CLAIMS,
             user: user,
             orgId: null,
             isSignedIn: true,
@@ -140,7 +144,7 @@ export const useUserClaims = (): ObservableStatus<UserWithClaimsResult> => {
         }
       } else {
         let result: UserWithClaimsResult = {
-          claims: DEFAULT_CLAIMS,
+          claims: null, // DEFAULT_CLAIMS,
           user: null,
           orgId: null,
           isSignedIn: false,

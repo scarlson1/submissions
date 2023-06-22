@@ -42,6 +42,10 @@ export const addressValidation = yup.object().shape({
   postal: postalVal.required('postal code is required'),
 });
 
+export const addressValidationNested = yup.object().shape({
+  address: addressValidation,
+});
+
 export const addressValidationNotRequired = yup.object().shape({
   addressLine1: yup.string().required('address is required'),
   addressLine2: yup.string().notRequired(),

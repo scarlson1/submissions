@@ -6,7 +6,7 @@ import { FormikHelpers, Formik, FormikProps } from 'formik';
 import * as yup from 'yup';
 import { useNavigate, useLocation, useParams, useSearchParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import { getAuth } from 'firebase/auth';
+import { useAuth } from 'reactfire';
 
 import FormikTextField from 'components/forms/FormikTextField';
 // import { auth } from 'firebaseConfig';
@@ -44,7 +44,7 @@ interface SignUpValues {
 // https://firebase.google.com/docs/auth/web/anonymous-auth#email-password-sign-in
 
 export const CreateAccount: React.FC = () => {
-  const auth = getAuth();
+  const auth = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const params = useParams();
@@ -58,7 +58,7 @@ export const CreateAccount: React.FC = () => {
 
   useEffect(() => {
     if (params.tenantId) {
-      console.log('TENANT ID: ', params.tenantId);
+      console.log('SETTING TENANT ID: ', params.tenantId);
       auth.tenantId = params.tenantId;
     } else {
       auth.tenantId = null;

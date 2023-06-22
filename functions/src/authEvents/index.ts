@@ -19,6 +19,7 @@ export const beforesignin = beforeUserSignedIn(
 
 export const beforecreate = beforeUserCreated(
   {
+    secrets: [sendgridApiKey],
     minInstances: minInstancesAuth,
   },
   async (event) => {

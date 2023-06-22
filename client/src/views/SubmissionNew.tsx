@@ -31,7 +31,14 @@ import { SUBMISSION_STATUS } from 'common/enums';
 import { useActiveStates, usePropertyDetailsAttom } from 'hooks';
 import { roundUpToNearest, sumArr } from 'modules/utils/helpers';
 import { useAuth } from 'modules/components/AuthContext';
-import { Address, Limits, NamedInsuredDetails, submissionsCollection } from 'common';
+import {
+  Address,
+  Coordinates,
+  Limits,
+  NamedInsuredDetails,
+  Nullable,
+  submissionsCollection,
+} from 'common';
 import { ErrorFallbackWithReset } from 'components/ErrorFallback';
 
 // TODO: error boundary & reset: https://blog.logrocket.com/react-error-handling-react-error-boundary/
@@ -94,10 +101,7 @@ const gridProps = {
 
 export interface FloodValues {
   address: Address;
-  coordinates: {
-    latitude: number | null;
-    longitude: number | null;
-  };
+  coordinates: Nullable<Coordinates>;
   limits: Limits;
   // coverageActive: Record<CovTypeNames, boolean>;
   deductible: number;

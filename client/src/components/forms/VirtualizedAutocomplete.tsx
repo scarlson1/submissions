@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import {
   Autocomplete,
   autocompleteClasses,
+  AutocompleteProps,
   Box,
   Checkbox,
   ListSubheader,
@@ -20,21 +21,24 @@ const checkedIcon = <CheckBox fontSize='small' />;
 export interface VirtualizedAutocompleteProps {
   name: string;
   options: any[]; // string[]; // TODO: label, value, etc.
-  multiple?: boolean;
+  // multiple?: boolean;
   getOptionLabel: UseAutocompleteProps<any, true, undefined, undefined>['getOptionLabel'];
-  autocompleteProps?: Partial<UseAutocompleteProps<any, true, undefined, undefined>>;
+  autocompleteProps?: Partial<AutocompleteProps<any, any, false, false, any>>; // Partial<UseAutocompleteProps<any, true, undefined, undefined>>;
   textFieldProps?: TextFieldProps;
 }
 
 export const VirtualizedAutocomplete: React.FC<VirtualizedAutocompleteProps> = ({
   name,
   options,
-  multiple = true,
+  // multiple = true,
   getOptionLabel = (o) => `${o}`,
   autocompleteProps,
   textFieldProps,
 }) => {
-  const [field, { error, touched }, { setValue, setTouched }] = useField({ name, multiple });
+  const [field, { error, touched }, { setValue, setTouched }] = useField({
+    name,
+    multiple: autocompleteProps?.multiple || false,
+  });
   const [inputValue, setInputValue] = useState('');
 
   return (
@@ -52,7 +56,7 @@ export const VirtualizedAutocomplete: React.FC<VirtualizedAutocompleteProps> = (
       onClose={() => {
         setTouched(true, true);
       }}
-      multiple
+      multiple={autocompleteProps?.multiple || false}
       options={options}
       disableCloseOnSelect
       limitTags={4}

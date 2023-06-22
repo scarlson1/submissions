@@ -83,8 +83,11 @@ export const Login: React.FC = () => {
         try {
           await handleError(err as AuthError, values);
           navigate(getRedirectPath(location), { replace: true });
-        } catch (error) {
+        } catch (error: any) {
           console.log(error);
+          let msg = 'An error occurred. See console for details';
+          if (error?.message) msg = error.message;
+          toast.error(msg);
         }
       } else {
         console.log(err);

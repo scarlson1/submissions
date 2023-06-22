@@ -23,6 +23,7 @@ rules_version = '2';
 
 // TODO: quote field rules (don't allow changing quote amt)
 // TODO: status rules (don't allow changing of quote is status = bound, etc.)
+// TODO: check email verified on all client side queries if required in rules
 
 // EXAMPLE RULES: https://medium.com/firebase-developers/a-list-of-firebase-firestore-security-rules-for-your-project-fe46cfaf8b2a
 // https://fireship.io/snippets/firestore-rules-recipes/
@@ -104,13 +105,13 @@ service cloud.firestore {
     }
 
     match /spatialKey/{skDocId} {
-      allow read: if isIDemandAdmin() && emailVerified()
+      allow read: if isIDemandAdmin()
       allow create: if false
       allow update, delete: if false
     }
     
     match /attom/{docId} {
-      allow read: if isIDemandAdmin() && emailVerified()
+      allow read: if isIDemandAdmin()
       allow create: if false
       allow update, delete: if false
     }

@@ -29,11 +29,18 @@ function LinkTab({ to, label, ...props }: LinkTabProps) {
   );
 }
 
-const getTab = (currPath: string, pathsArr: string[]) => {
+const getTab = (currPath: string, pathsArr: string[], isRetry: boolean = false): number => {
   for (const [i, p] of pathsArr.entries()) {
-    // console.log(`IS MATCH ([${i}]: ${p}): `, matchPath({ path: p }, currPath));
     if (matchPath({ path: p }, currPath)) return i;
   }
+
+  let currPathArr = currPath.split('/').filter((x) => x);
+  if (currPathArr.length > 3 && !isRetry) {
+    let first3 = currPathArr.slice(0, 3);
+
+    return getTab(`/${first3.join('/')}`, pathsArr, true);
+  }
+
   return 0;
 };
 
@@ -54,7 +61,7 @@ export const ConfigLayout: React.FC = () => {
     ],
     []
   );
-  const [value, setValue] = useState(0); // getTab(location.pathname, paths)
+  const [value, setValue] = useState(0);
 
   useEffect(() => {
     setValue(getTab(location.pathname, paths));

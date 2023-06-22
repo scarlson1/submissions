@@ -60,9 +60,12 @@ export const MoratoriumNew: React.FC = () => {
     counties: FIPSDetails[];
   }>;
   const {
-    data: { counties },
-  } = useFirestoreDocDataOnce(fipsDocRef, { initialData: { counties: [] } });
+    data, // : { counties },
+    status,
+  } = useFirestoreDocDataOnce(fipsDocRef, { initialData: { counties: [] }, suspense: false });
   // TODO: handle doc doesnt exist ? does suspense catch does not exist ?
+
+  const counties = React.useMemo(() => data?.counties || [], [data]);
 
   const createMoratorium = useCreateMoratorium({
     onSuccess: (id: string) => {
@@ -152,6 +155,17 @@ export const MoratoriumNew: React.FC = () => {
             <Divider sx={{ my: 2 }} />
 
             <Grid container spacing={8} sx={{ my: 4 }}>
+              {status !== 'loading' && !counties.length ? (
+                <Grid xs={12}>
+                  <Typography variant='h6' color='warning.main' align='center'>
+                    Error: counties not initialized in database
+                  </Typography>
+                  <Typography variant='subtitle2' color='warning.main' align='center'>
+                    County data from the database is used in the county select dropdown and to look
+                    up the county details when clicked on the map.
+                  </Typography>
+                </Grid>
+              ) : null}
               <Grid xs={12} md={6}>
                 <VirtualizedAutocomplete
                   options={counties}
@@ -159,13 +173,16 @@ export const MoratoriumNew: React.FC = () => {
                   getOptionLabel={(option) =>
                     `${option.stateFP}${option.countyFP} - ${option.countyName}`
                   }
-                  autocompleteProps={{ groupBy: (option) => option.state }}
+                  autocompleteProps={{
+                    loading: status === 'loading',
+                    multiple: true,
+                    groupBy: (option) => option.state,
+                  }}
                   textFieldProps={{
                     label: 'Counties',
                     placeholder: 'search: fips, state, county name',
                   }}
                 />
-                {/* <FIPSAutocomplete name='locationDetails' /> */}
               </Grid>
               <Grid xs={12} sm={6} md={3}>
                 <FormikSelect

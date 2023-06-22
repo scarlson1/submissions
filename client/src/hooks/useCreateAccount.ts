@@ -85,7 +85,8 @@ export const useCreateAccount = () => {
       setLoading(true);
 
       try {
-        if (isAnonymous && isSignedIn && user) {
+        // don't link if new user is tenant user ?? (for now)
+        if (isAnonymous && isSignedIn && user && !auth.tenantId) {
           console.log('linking anonymous user');
           const credential = EmailAuthProvider.credential(
             email.trim().toLowerCase(),

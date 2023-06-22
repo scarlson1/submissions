@@ -763,6 +763,7 @@ export type AuthProviders =
 export interface AgencyApplication extends BaseDoc {
   orgName: string;
   address: Address;
+  coordinates?: GeoPoint | null;
   contact: {
     firstName: string;
     lastName: string;
@@ -787,7 +788,7 @@ export interface AgencyApplication extends BaseDoc {
   // createdByName: string | null;
   status: AGENCY_SUBMISSION_STATUS;
   sendAppReceivedNotification?: boolean;
-  coordinates?: GeoPoint | null;
+  submittedByUserId?: string | null;
 }
 
 export interface Agency {

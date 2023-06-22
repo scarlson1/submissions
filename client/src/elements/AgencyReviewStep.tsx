@@ -83,10 +83,10 @@ export const AgencyReviewStep: React.FC<AgencyReviewStepProps> = () => {
               <Typography variant='h6' gutterBottom>
                 {values.orgName}
               </Typography>
-              <Typography>{`${values.addressLine1}${
-                values.addressLine2 ? ', ' + values.addressLine2 : ''
+              <Typography>{`${values?.address?.addressLine1}${
+                values.address?.addressLine2 ? ', ' + values.address?.addressLine2 : ''
               }`}</Typography>
-              <Typography>{`${values.city}, ${values.state} ${values.postal}`}</Typography>
+              <Typography>{`${values.address?.city}, ${values.address?.state} ${values.address?.postal}`}</Typography>
             </Grid>
             <Grid xs={12} sm={6}>
               <Typography variant='overline' sx={{ color: 'text.secondary' }}>
@@ -95,15 +95,15 @@ export const AgencyReviewStep: React.FC<AgencyReviewStepProps> = () => {
               <ContactList
                 items={[
                   {
-                    primaryText: `${values.firstName} ${values.lastName}`,
+                    primaryText: `${values?.contact?.firstName} ${values?.contact?.lastName}`,
                     icon: <PersonRounded fontSize='small' color='primary' />,
                   },
                   {
-                    primaryText: `${values.email}`,
+                    primaryText: `${values?.contact?.email}`,
                     icon: <EmailRounded fontSize='small' color='primary' />,
                   },
                   {
-                    primaryText: formatPhoneNumber(`${values.phone}`) || '',
+                    primaryText: formatPhoneNumber(`${values?.contact?.phone}`) || '',
                     icon: <PhoneRounded fontSize='small' color='primary' />,
                   },
                 ]}
@@ -120,13 +120,13 @@ export const AgencyReviewStep: React.FC<AgencyReviewStepProps> = () => {
                 <Typography variant='caption' sx={{ color: 'text.secondary' }}>
                   Routing Number
                 </Typography>
-                <Typography>{maskStringShowLast(values.routingNumber, 4)}</Typography>
+                <Typography>{maskStringShowLast(values?.routingNumber, 4)}</Typography>
               </Box>
               <Box sx={{ flex: '1 0 auto' }}>
                 <Typography variant='caption' sx={{ color: 'text.secondary' }}>
                   Account Number
                 </Typography>
-                <Typography>{maskStringShowLast(values.accountNumber, 4)}</Typography>
+                <Typography>{maskStringShowLast(values?.accountNumber, 4)}</Typography>
               </Box>
             </Grid>
             <Grid xs={12}>
@@ -145,7 +145,7 @@ export const AgencyReviewStep: React.FC<AgencyReviewStepProps> = () => {
                   >
                     FEIN:
                   </Typography>
-                  <Typography>{values.FEIN}</Typography>
+                  <Typography>{values?.FEIN}</Typography>
                 </Box>
 
                 <Box
@@ -168,7 +168,7 @@ export const AgencyReviewStep: React.FC<AgencyReviewStepProps> = () => {
                     E&nbsp;&&nbsp;O:{' '}
                   </Typography>
                   {values.EandO && typeof values.EandO[0] !== 'string' ? (
-                    <DisplayFilename file={values.EandO[0]} />
+                    <DisplayFilename file={values?.EandO[0] || ''} />
                   ) : (
                     ''
                   )}
@@ -193,7 +193,7 @@ export const AgencyReviewStep: React.FC<AgencyReviewStepProps> = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {values.agents.map((agent) => (
+                {values.agents?.map((agent) => (
                   <TableRow key={agent.email}>
                     <TableCell component='th' scope='row'>
                       {`${agent.firstName} ${agent.lastName}`}

@@ -16,20 +16,17 @@ import {
 import { inviteConverter } from '../common/converters';
 import { sendUserInvite } from '../services/sendgrid';
 
-// TODO: are all imports getting imported / initialized from all functions ??
-// https://youtu.be/v3eG9xpzNXM
-
 export default async (event: AuthBlockingEvent) => {
   // await getFirebaseAdmin()
   const db = getFirestore();
   const user = event.data;
-  console.log('USER: ', user);
+  info(`CREATE USER (UID: ${user.uid} | TENANT ID: ${user.tenantId})`, user);
 
   if (!user.email) {
     throw new HttpsError('failed-precondition', 'email required to create a new account');
   }
 
-  // check to see if user attempted to create account without tenant aware auth
+  // check if user attempted to create account without tenant aware auth
   // but an invite exists matching email
   const tenantId = user.tenantId;
   if (!tenantId) {

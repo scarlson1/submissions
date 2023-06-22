@@ -24,17 +24,29 @@ import {
   bankingValidation,
   ContactStep,
 } from 'elements';
-import { addressValidation, emailVal, phoneVal } from 'common';
+import {
+  Address,
+  Coordinates,
+  NamedInsuredDetails,
+  Nullable,
+  addressValidationNested,
+  emailVal,
+  phoneVal,
+} from 'common';
 import { useCreateAgencySubmission } from 'hooks';
+
+// TODO: redirect to success page
 
 export const orgNameValidation = yup.object().shape({
   orgName: yup.string().required(),
 });
 export const contactValidation = yup.object().shape({
-  firstName: yup.string().required('First name is required'),
-  lastName: yup.string().required('Last name is required'),
-  email: emailVal.required(), // .required('Email required'), // yup.string().email().required(), //
-  phone: phoneVal.required('Phone is required'),
+  contact: yup.object().shape({
+    firstName: yup.string().required('First name is required'),
+    lastName: yup.string().required('Last name is required'),
+    email: emailVal.required('Email is required'),
+    phone: phoneVal.required('Phone is required'),
+  }),
 });
 export const feinValidation = yup.object().shape({
   FEIN: yup
@@ -61,18 +73,10 @@ export const EandOValidation = yup.object().shape({
 
 export interface AgencyAppValues {
   orgName: string;
-  addressLine1: string;
-  addressLine2: string;
-  city: string;
-  state: string;
-  postal: string;
-  latitude: number | null;
-  longitude: number | null;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  agents: { firstName: string; lastName: string; email: string; phone: string }[];
+  address: Address;
+  coordinates: Nullable<Coordinates>;
+  contact: NamedInsuredDetails;
+  agents: Omit<NamedInsuredDetails, 'userId'>[]; // { firstName: string; lastName: string; email: string; phone: string }
   accountNumber: string;
   routingNumber: string;
   FEIN: string;
@@ -81,17 +85,24 @@ export interface AgencyAppValues {
 
 export const INITIAL_VALUES: AgencyAppValues = {
   orgName: '',
-  addressLine1: '',
-  addressLine2: '',
-  city: '',
-  state: '',
-  postal: '',
-  latitude: null,
-  longitude: null,
-  firstName: '',
-  lastName: '',
-  email: '',
-  phone: '',
+  address: {
+    addressLine1: '',
+    addressLine2: '',
+    city: '',
+    state: '',
+    postal: '',
+    countyName: '',
+  },
+  coordinates: {
+    latitude: null,
+    longitude: null,
+  },
+  contact: {
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+  },
   agents: [{ firstName: '', lastName: '', email: '', phone: '' }],
   accountNumber: '',
   routingNumber: '',
@@ -123,10 +134,10 @@ export const AgencyNew: React.FC = () => {
       ...values,
       agents: [
         {
-          firstName: values.firstName,
-          lastName: values.lastName,
-          email: values.email,
-          phone: values.phone,
+          firstName: values.contact?.firstName || '',
+          lastName: values.contact?.lastName || '',
+          email: values.contact?.email || '',
+          phone: values.contact?.phone || '',
         },
       ],
     };
@@ -160,10 +171,26 @@ export const AgencyNew: React.FC = () => {
         </Step>
         <Step
           label="What's the company's address?"
-          validationSchema={addressValidation}
+          validationSchema={addressValidationNested}
           stepperNavLabel='Address'
         >
-          <AddressStep withMap={false} shouldValidateStates={false} />
+          <AddressStep
+            withMap={false}
+            shouldValidateStates={false}
+            names={{
+              addressLine1: `address.addressLine1`,
+              addressLine2: `address.addressLine2`,
+              city: `address.city`,
+              state: `address.state`,
+              postal: `address.postal`,
+              county: `address.countyName`,
+              latitude: `coordinates.latitude`,
+              longitude: `coordinates.longitude`,
+            }}
+            autocompleteProps={{
+              name: 'address.addressLine1',
+            }}
+          />
         </Step>
         <Step
           label='Primary Contact'
@@ -175,8 +202,8 @@ export const AgencyNew: React.FC = () => {
             <Grid xs={12}>
               <FormikMaskField
                 fullWidth
-                id='phone'
-                name='phone'
+                id='contact.phone'
+                name='contact.phone'
                 label='Phone'
                 required
                 maskComponent={PhoneMask}

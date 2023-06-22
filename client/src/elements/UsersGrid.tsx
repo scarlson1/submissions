@@ -123,11 +123,12 @@ export const UsersGrid: React.FC<UsersGridProps> = ({
 
 type UsersWithClaims = User & { userClaims: Record<string, any> };
 
+// TODO: need to change actions to renderActions(params)
 export interface AdminManageUsersGridProps extends Omit<DataGridProps, 'rows' | 'columns'> {
   queryConstraints?: QueryConstraint[];
   orgId: string;
   columnVisibilityModel?: { [key: string]: boolean }; //  GridInitialStateCommunity['columns']
-  actions?: JSX.Element[];
+  renderActions?: (params: GridRowParams) => JSX.Element[];
   columnAdjustments?: GridColDef[];
 }
 
@@ -136,7 +137,7 @@ export const AdminManageUsersGrid: React.FC<AdminManageUsersGridProps> = ({
   orgId,
   columnVisibilityModel = {},
   columnAdjustments = [],
-  actions = [],
+  renderActions = () => [],
   ...props
 }) => {
   // const { data, status } = useCollectionData<User>('USERS', [...queryConstraints, limit(100)], {
@@ -175,6 +176,7 @@ export const AdminManageUsersGrid: React.FC<AdminManageUsersGridProps> = ({
         type: 'actions',
         width: 80,
         getActions: (params: GridRowParams) => [
+          ...renderActions(params),
           <GridActionsCellItem
             icon={
               <Tooltip title='Message' placement='top'>
@@ -189,7 +191,6 @@ export const AdminManageUsersGrid: React.FC<AdminManageUsersGridProps> = ({
             // disabled={params.row.status !== INVITE_STATUS.PENDING}
           />,
         ],
-        ...actions,
       },
       {
         field: 'member',
@@ -238,6 +239,7 @@ export const AdminManageUsersGrid: React.FC<AdminManageUsersGridProps> = ({
       {
         field: 'userClaims',
         headerName: 'Roles',
+        description: "user's permissions. double click to edit (requires admin permissions)",
         flex: 1,
         minWidth: 240,
         editable: signInResult.hasRequiredClaims,
@@ -301,7 +303,7 @@ export const AdminManageUsersGrid: React.FC<AdminManageUsersGridProps> = ({
       orgIdCol,
       ...columnAdjustments,
     ],
-    [columnAdjustments, actions, signInResult, iDAdminResult]
+    [columnAdjustments, renderActions, signInResult, iDAdminResult]
   );
 
   const processRowUpdate = useCallback(
@@ -309,14 +311,14 @@ export const AdminManageUsersGrid: React.FC<AdminManageUsersGridProps> = ({
       newRow: GridRowModel<WithId<UsersWithClaims>>, // after processing in valueSetter
       oldRow: GridRowModel<WithId<UsersWithClaims>>
     ) => {
-      console.log('NEW ROW: ', newRow);
-      console.log('OLD ROW: ', oldRow);
+      // console.log('NEW ROW: ', newRow);
+      // console.log('OLD ROW: ', oldRow);
       // try {
       let orgId = newRow.orgId; // @ts-ignore (TODO: fix typing id --> userId)
       let userId = newRow.userId;
 
-      console.log('ORG ID: ', orgId);
-      console.log('USER ID: ', userId);
+      // console.log('ORG ID: ', orgId);
+      // console.log('USER ID: ', userId);
 
       if (!orgId) return Promise.reject(new Error('Missing org ID'));
       if (!userId) return Promise.reject(new Error('Missing user ID'));
@@ -325,11 +327,11 @@ export const AdminManageUsersGrid: React.FC<AdminManageUsersGridProps> = ({
       if (oldClaims?._lastCommitted) delete oldClaims._lastCommitted;
       const newClaims = newRow.userClaims;
       if (!newClaims) return Promise.reject(new Error('Missing user claims'));
-      console.log('old claims: ', oldClaims);
-      console.log('SETTING NEW CLAIMS: ', newClaims);
+      // console.log('old claims: ', oldClaims);
+      // console.log('SETTING NEW CLAIMS: ', newClaims);
 
       const hasChanged = !isEqual(oldClaims, newClaims);
-      console.log('has changed: ', hasChanged);
+      // console.log('has changed: ', hasChanged);
       if (!hasChanged) return oldRow;
 
       toast.loading('updating permissions...');

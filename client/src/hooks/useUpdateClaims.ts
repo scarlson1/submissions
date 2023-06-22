@@ -16,7 +16,10 @@ export const useUpdateClaims = (
 
   const updateClaims = useCallback(
     async (orgId: string, userId: string, claims: Record<string, any>) => {
-      if (!claimsCheckResult.hasRequiredClaims) throw new Error('Missing required permissions');
+      if (!claimsCheckResult.hasRequiredClaims) throw new Error('missing required permissions');
+      if (!claimsCheckResult.user?.emailVerified)
+        throw new Error('email verification required to update permissions');
+      // TODO: check if iDemand Admin or orgId === user.tenantId
       try {
         const claimsColRef = userClaimsCollection(firestore, orgId);
         const userClaimsDocRef = doc(claimsColRef, userId);
@@ -25,6 +28,7 @@ export const useUpdateClaims = (
         // removing will ensure _lastCommitted is not equal
         if (claims._lastCommitted) delete claims._lastCommitted;
 
+        console.log('SETTING CLAIMS: ', claims);
         await setDoc(userClaimsDocRef, { ...claims });
 
         if (onSuccess) onSuccess(claims);
@@ -32,9 +36,7 @@ export const useUpdateClaims = (
         let msg = `Error updating claims`;
         if (err.message) msg = err.message;
 
-        if (onError) {
-          onError(msg, err);
-        }
+        if (onError) onError(msg, err);
 
         return Promise.reject(new Error(msg));
       }
