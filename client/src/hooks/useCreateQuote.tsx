@@ -59,7 +59,7 @@ export const useCreateQuote = (
     async (
       values: NewQuoteValues,
       submissionId: string | null = null,
-      submissionData: Submission | null = null
+      submissionData: Partial<Submission> | null = null
     ) => {
       if (!signInCheckResult.hasRequiredClaims) throw new Error('Missing required permissions');
       // TODO: use homeState instead of address.state once interface is updated

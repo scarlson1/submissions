@@ -1,23 +1,13 @@
 import React, { useCallback, useMemo } from 'react';
 import { Box, Link, Tooltip } from '@mui/material';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
-import {
-  DataGridProps,
-  GridActionsCellItem,
-  GridActionsColDef,
-  GridColDef,
-  GridRowParams,
-  GridToolbar,
-} from '@mui/x-data-grid';
+import { Link as RouterLink } from 'react-router-dom';
+import { GridActionsCellItem, GridColDef, GridRowParams, GridToolbar } from '@mui/x-data-grid';
 import { DataObjectRounded, SendRounded } from '@mui/icons-material';
-import { QueryConstraint } from 'firebase/firestore';
 import { useSigninCheck } from 'reactfire';
 
 import { ADMIN_ROUTES, createPath } from 'router';
 import {
-  Quote,
   nestedAgentUserIdCol,
-  agentNameCol,
   createdCol,
   currencyCol,
   deductibleCol,
@@ -36,7 +26,6 @@ import {
   ratingDataSqFootageCol,
   ratingDataYearBuiltCol,
   statusCol,
-  subproducerCommissionCol,
   updatedCol,
   userIdCol,
   addrLine1Col,
@@ -55,47 +44,49 @@ import {
   nestedAgencyOrgIdCol,
   agencyNameCol,
   agencyAddressCol,
+  QUOTE_STATUS,
+  addressSummaryCol,
+  addrCountyCol,
+  addrFIPSCol,
+  annualPremiumCol,
+  nestedAgentNameCol,
+  COLLECTIONS,
 } from 'common';
-import { BasicDataGrid, GridCellCopy } from 'components';
-import { useCollectionData, useJsonDialog, useSendQuoteNotification, useWidth } from 'hooks';
+import { GridCellCopy, ServerDataGrid, ServerDataGridProps } from 'components';
+import { useSendQuoteNotification, useShowJson, useWidth } from 'hooks';
 import { getRequiredClaimValidator } from 'components/RequireAuthReactFire';
+import { useAuth } from 'modules/components';
 
-export interface QuotesGridProps extends Partial<DataGridProps> {
-  // rows: WithId<Quote>[];
-  queryConstraints?: QueryConstraint[];
-  // actions?: React.ReactElement<GridActionsCellItemProps>[];
+// TODO: need to use custom merge function for columnOverrides to prevent duplication "field" values
+
+export interface QuotesGridProps
+  extends Omit<
+    ServerDataGridProps,
+    'columns' | 'collName' | 'isCollectionGroup' | 'columns' | 'pathSegments'
+  > {
   renderActions?: (params: GridRowParams) => JSX.Element[];
-  columnOverrides?: GridColDef<any, any, any>[] | GridActionsColDef[];
+  columnOverrides?: GridColDef<any, any, any>[]; // | GridActionsColDef[];
 }
 
 export const QuotesGrid: React.FC<QuotesGridProps> = ({
-  // rows = [],
-  queryConstraints = [],
-  // actions = [],
   renderActions = () => [],
   columnOverrides = [],
   ...props
 }) => {
-  const navigate = useNavigate();
-  const dialog = useJsonDialog();
+  const { claims } = useAuth();
   const { isSmall } = useWidth();
   const sendNotifications = useSendQuoteNotification();
+  const showJson = useShowJson(COLLECTIONS.QUOTES);
+
   const { data: authCheckResult } = useSigninCheck({
     validateCustomClaims: getRequiredClaimValidator(['ORG_ADMIN', 'IDEMAND_ADMIN']),
   });
 
-  const { data, status } = useCollectionData<Quote>('QUOTES', queryConstraints, {
-    suspense: false,
-    initialData: [],
-  });
-
-  const showJson = useCallback(
-    (params: GridRowParams) => () => {
-      let d = data.find((q) => q.id === params.id);
-      if (!d) return;
-      dialog(d, `Quote Data ${params.id}`);
+  const handleShowJson = useCallback(
+    (params: GridRowParams) => async () => {
+      showJson(params.id.toString());
     },
-    [data, dialog]
+    [showJson]
   );
 
   const handleSendNotifications = useCallback(
@@ -104,6 +95,8 @@ export const QuotesGrid: React.FC<QuotesGridProps> = ({
     },
     [sendNotifications]
   );
+
+  // TODO: create getActions() helper func to get actions depending on permissions (instead of disabling)
 
   const quoteColumns: GridColDef[] = useMemo(
     () => [
@@ -120,9 +113,10 @@ export const QuotesGrid: React.FC<QuotesGridProps> = ({
                 <DataObjectRounded />
               </Tooltip>
             }
-            onClick={showJson(params)}
+            onClick={handleShowJson(params)}
             label='Details'
             showInMenu={isSmall}
+            disabled={!authCheckResult.hasRequiredClaims}
           />,
           <GridActionsCellItem
             icon={
@@ -137,27 +131,36 @@ export const QuotesGrid: React.FC<QuotesGridProps> = ({
           />,
         ],
       },
+      {
+        ...statusCol,
+        valueOptions: [
+          QUOTE_STATUS.BOUND,
+          QUOTE_STATUS.CANCELLED,
+          QUOTE_STATUS.EXPIRED,
+          QUOTE_STATUS.AWAITING_USER,
+        ],
+        editable: Boolean(claims?.iDemandAdmin),
+      },
+      addressSummaryCol,
       addrLine1Col,
       addrLine2Col,
       addrCityCol,
       addrStateCol,
       addrPostalCol,
+      addrCountyCol,
+      addrFIPSCol,
+      annualPremiumCol,
       {
         ...currencyCol,
         field: 'quoteTotal',
         headerName: 'Quote Total',
+        description: 'premium + taxes + fees',
       },
-      statusCol,
       namedInsuredDisplayNameCol,
       namedInsuredFirstNameCol,
       namedInsuredLastNameCol,
       namedInsuredEmailCol,
       namedInsuredPhoneCol,
-      {
-        ...currencyCol,
-        field: 'termPremium',
-        headerName: 'Term Premium',
-      },
       limitACol,
       limitBCol,
       limitCCol,
@@ -173,8 +176,8 @@ export const QuotesGrid: React.FC<QuotesGridProps> = ({
       ratingDataDistToCoastFeetCol,
       ratingDataCBRSCol,
       ratingDataFloodZoneCol,
-      subproducerCommissionCol,
-      agentNameCol,
+      // subproducerCommissionCol,
+      nestedAgentNameCol,
       agentEmailCol,
       agentPhoneCol,
       agencyNameCol,
@@ -183,7 +186,7 @@ export const QuotesGrid: React.FC<QuotesGridProps> = ({
       updatedCol,
       nestedAgencyOrgIdCol,
       nestedAgentUserIdCol,
-      userIdCol,
+      { ...userIdCol, description: 'userId of record owner (named insured in most cases)' },
       {
         ...idCol,
         headerName: 'Quote ID',
@@ -211,19 +214,23 @@ export const QuotesGrid: React.FC<QuotesGridProps> = ({
       },
       ...columnOverrides,
     ],
-    [showJson, handleSendNotifications, columnOverrides, renderActions, isSmall, authCheckResult]
+    [
+      handleShowJson,
+      handleSendNotifications,
+      columnOverrides,
+      renderActions,
+      isSmall,
+      authCheckResult,
+      claims,
+    ]
   );
 
   return (
-    <Box sx={{ height: 500, width: '100%' }}>
-      <BasicDataGrid
-        // @ts-ignore
-        rows={data}
+    <Box sx={{ height: { xs: 400, sm: 460, md: 500 }, width: '100%' }}>
+      <ServerDataGrid
+        collName='QUOTES'
         columns={quoteColumns}
-        loading={status === 'loading'}
         density='compact'
-        autoHeight
-        onRowDoubleClick={(params) => navigate(params.id.toString())}
         slots={{
           toolbar: GridToolbar,
         }}
@@ -233,13 +240,21 @@ export const QuotesGrid: React.FC<QuotesGridProps> = ({
         initialState={{
           columns: {
             columnVisibilityModel: {
-              insuredFirstName: false,
-              insuredLastName: false,
-              addressLine2: false,
-              postal: false,
-              termPremium: false,
+              annualPremium: false,
+              'namedInsured.firstName': false,
+              'namedInsured.lastName': false,
+              'namedInsured.email': false,
+              'namedInsured.phone': false,
+              'address.addressLine1': false,
+              'address.addressLine2': false,
+              'address.city': false,
+              'address.state': false,
+              'address.postal': false,
+              'address.countyName': false,
+              'address.countyFIPS': false,
               updated: false,
-              agentId: false,
+              'agent.phone': false,
+              'agent.userId': false,
               CBRSDesignation: false,
               basement: false,
               distToCoastFeet: false,
@@ -248,17 +263,64 @@ export const QuotesGrid: React.FC<QuotesGridProps> = ({
               propertyCode: false,
               sqFootage: false,
               yearBuilt: false,
-              submissionId: false,
             },
           },
           sorting: {
             sortModel: [{ field: 'created', sort: 'desc' }],
           },
-          // pagination: { pageSize: 10 },
           pagination: { paginationModel: { page: 0, pageSize: 10 } },
         }}
         {...props}
       />
+      {/* <BasicDataGrid
+        // @ts-ignore
+        rows={data}
+        columns={quoteColumns}
+        loading={status === 'loading'}
+        density='compact'
+        autoHeight
+        // onRowDoubleClick={(params) => navigate(params.id.toString())}
+        slots={{
+          toolbar: GridToolbar,
+        }}
+        slotProps={{
+          toolbar: { csvOptions: { allColumns: true } },
+        }}
+        initialState={{
+          columns: {
+            columnVisibilityModel: {
+              annualPremium: false,
+              'namedInsured.firstName': false,
+              'namedInsured.lastName': false,
+              'namedInsured.email': false,
+              'namedInsured.phone': false,
+              'address.addressLine1': false,
+              'address.addressLine2': false,
+              'address.city': false,
+              'address.state': false,
+              'address.postal': false,
+              'address.countyName': false,
+              'address.countyFIPS': false,
+              updated: false,
+              'agent.phone': false,
+              'agent.userId': false,
+              CBRSDesignation: false,
+              basement: false,
+              distToCoastFeet: false,
+              floodZone: false,
+              numStories: false,
+              propertyCode: false,
+              sqFootage: false,
+              yearBuilt: false,
+            },
+          },
+          sorting: {
+            sortModel: [{ field: 'created', sort: 'desc' }],
+          },
+          pagination: { paginationModel: { page: 0, pageSize: 10 } },
+        }}
+        {...props}
+      /> */}
     </Box>
   );
 };

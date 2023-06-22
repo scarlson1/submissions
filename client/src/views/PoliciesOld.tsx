@@ -37,7 +37,7 @@ export {};
 
 //   const handleClick = useCallback(
 //     (policyId: string) => {
-//       navigate(createPath({ path: ROUTES.USER_POLICY, params: { policyId } }));
+//       navigate(createPath({ path: ROUTES.POLICY, params: { policyId } }));
 //     },
 //     [navigate]
 //   );

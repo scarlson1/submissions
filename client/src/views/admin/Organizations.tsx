@@ -1,16 +1,12 @@
 import React, { useMemo } from 'react';
-import { Box, Button } from '@mui/material';
-import { limit, orderBy } from 'firebase/firestore';
+import { Box, Button, Typography } from '@mui/material';
 import { GridColDef, GridValueFormatterParams } from '@mui/x-data-grid';
+import { AddBusinessRounded } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-
-import { BasicDataGrid } from 'components';
-import { useCollectionData } from 'hooks';
-import { formatGridPercent } from 'modules/utils';
+import { useSigninCheck } from 'reactfire';
 
 import { createPath, ADMIN_ROUTES } from 'router';
 import {
-  Organization,
   addrCityCol,
   addrLine1Col,
   addrLine2Col,
@@ -30,15 +26,19 @@ import {
   statusCol,
   updatedCol,
 } from 'common';
-import { AddBusinessRounded } from '@mui/icons-material';
+import { ServerDataGrid } from 'components';
+import { formatGridPercent } from 'modules/utils';
+import { CUSTOM_CLAIMS } from 'modules/components';
 
 export const Organizations: React.FC = () => {
   const navigate = useNavigate();
-  const { data, status } = useCollectionData<Organization>(
-    'ORGANIZATIONS',
-    [orderBy('metadata.created', 'desc'), limit(100)],
-    { suspense: false }
-  );
+  const { data } = useSigninCheck({ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } });
+
+  // const { data, status } = useCollectionData<Organization>(
+  //   'ORGANIZATIONS',
+  //   [orderBy('metadata.created', 'desc'), limit(100)],
+  //   { suspense: false }
+  // );
 
   const orgColumns: GridColDef[] = useMemo(
     () => [
@@ -151,6 +151,14 @@ export const Organizations: React.FC = () => {
     []
   );
 
+  if (!data.hasRequiredClaims) {
+    return (
+      <Typography variant='h6' align='center' sx={{ py: 8 }}>
+        Not Authorized
+      </Typography>
+    );
+  }
+
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', pb: 2 }}>
@@ -164,13 +172,12 @@ export const Organizations: React.FC = () => {
           New Org
         </Button>
       </Box>
-      <Box sx={{ height: 500, width: '100%' }}>
-        <BasicDataGrid
-          rows={data || []}
+      <Box sx={{ height: { xs: 400, md: 460, lg: 500 }, width: '100%' }}>
+        <ServerDataGrid
+          collName='ORGANIZATIONS'
           columns={orgColumns}
-          loading={status === 'loading'}
           density='compact'
-          autoHeight
+          // autoHeight
           onCellDoubleClick={(params, event) => {
             if (!params.isEditable) {
               navigate(
@@ -181,15 +188,6 @@ export const Organizations: React.FC = () => {
               );
             }
           }}
-          // processRowUpdate={confirmAndUpdate}
-          // onProcessRowUpdateError={handleProcessRowUpdateError}
-          // experimentalFeatures={{ newEditingApi: true }}
-          // slots={{
-          //   toolbar: GridToolbar,
-          // }}
-          // slotProps={{
-          //   toolbar: { csvOptions: { allColumns: true } },
-          // }}
           initialState={{
             columns: {
               columnVisibilityModel: {

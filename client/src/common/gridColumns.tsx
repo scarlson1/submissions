@@ -436,7 +436,7 @@ export const coordinatesCol: GridColDef = {
 export const statusCol: GridColDef = {
   field: 'status',
   headerName: 'Status',
-  // type: 'singleSelect',
+  type: 'singleSelect',
   // valueOptions: [
   //   SUBMISSION_STATUS.QUOTED,
   //   SUBMISSION_STATUS.SUBMITTED,

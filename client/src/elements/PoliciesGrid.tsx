@@ -1,19 +1,13 @@
 import React, { useCallback, useMemo } from 'react';
 import { Box, Tooltip } from '@mui/material';
 import { DataObjectRounded, DescriptionRounded } from '@mui/icons-material';
-import {
-  DataGridProps,
-  GridActionsCellItem,
-  GridColDef,
-  GridRowParams,
-  GridToolbar,
-} from '@mui/x-data-grid';
-import { QueryConstraint } from 'firebase/firestore';
+import { GridActionsCellItem, GridColDef, GridRowParams, GridToolbar } from '@mui/x-data-grid';
 import { useSigninCheck } from 'reactfire';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 
-import { BasicDataGrid } from 'components';
-import { useCollectionData, useJsonDialog } from 'hooks';
+import { ServerDataGrid, ServerDataGridProps } from 'components';
+import { useShowJson } from 'hooks';
 import {
   Policy,
   POLICY_STATUS,
@@ -47,34 +41,36 @@ import {
   SLProducerOfRecordLicensePhone,
   SLProducerOfRecordLicenseState,
   SLProducerOfRecordLicenseAddress,
+  COLLECTIONS,
 } from 'common';
 import { CUSTOM_CLAIMS } from 'modules/components';
-import { toast } from 'react-hot-toast';
+import { ROUTES, createPath } from 'router';
 
-export interface PoliciesGridProps extends Partial<DataGridProps> {
-  queryConstraints: QueryConstraint[];
+export interface PoliciesGridProps
+  extends Omit<
+    ServerDataGridProps,
+    'columns' | 'collName' | 'isCollectionGroup' | 'columns' | 'pathSegments'
+  > {
+  renderActions?: (params: GridRowParams) => JSX.Element[];
+  columnOverrides?: GridColDef<any, any, any>[];
 }
 
-export const PoliciesGrid: React.FC<PoliciesGridProps> = ({ queryConstraints, ...props }) => {
+export const PoliciesGrid: React.FC<PoliciesGridProps> = ({
+  renderActions = () => [],
+  ...props
+}) => {
   const navigate = useNavigate();
-  const dialog = useJsonDialog();
+  const showJson = useShowJson(COLLECTIONS.POLICIES);
 
   const { status: claimsCheckStatus, data: iDAdminResult } = useSigninCheck({
     requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true },
   });
 
-  const { data, status } = useCollectionData<Policy>('POLICIES', queryConstraints, {
-    suspense: false,
-    initialData: [],
-  });
-
-  const showJson = useCallback(
+  const handleShowJson = useCallback(
     (params: GridRowParams) => () => {
-      let d = data.find((q) => q.id === params.id);
-      if (!d) return;
-      dialog(d, `Quote Data ${params.id}`);
+      showJson(params.id.toString());
     },
-    [data, dialog]
+    [showJson]
   );
 
   const viewPolicyDoc = useCallback(
@@ -95,14 +91,16 @@ export const PoliciesGrid: React.FC<PoliciesGridProps> = ({ queryConstraints, ..
         type: 'actions',
         width: 120,
         getActions: (params: GridRowParams) => [
+          ...renderActions(params),
           <GridActionsCellItem
             icon={
               <Tooltip placement='top' title='view raw JSON'>
                 <DataObjectRounded />
               </Tooltip>
             }
-            onClick={showJson(params)}
+            onClick={handleShowJson(params)}
             label='Details'
+            disabled={!iDAdminResult.hasRequiredClaims}
           />,
           // TODO: add view policy doc action
           <GridActionsCellItem
@@ -183,19 +181,19 @@ export const PoliciesGrid: React.FC<PoliciesGridProps> = ({ queryConstraints, ..
       createdCol,
       updatedCol,
     ],
-    [showJson, viewPolicyDoc, claimsCheckStatus, iDAdminResult]
+    [handleShowJson, viewPolicyDoc, renderActions, claimsCheckStatus, iDAdminResult]
   );
 
   return (
     <Box>
-      <BasicDataGrid
-        rows={data}
+      <ServerDataGrid
+        collName='SUBMISSIONS'
         columns={policyColumns}
-        loading={status === 'loading'}
         density='compact'
         autoHeight
-        // TODO: relative navigation ?? issues when shown in org view
-        onRowDoubleClick={(params) => navigate(params.id.toString())}
+        onRowDoubleClick={(params) =>
+          navigate(createPath({ path: ROUTES.POLICY, params: { policyId: params.id.toString() } }))
+        }
         slots={{
           toolbar: GridToolbar,
         }}
@@ -233,7 +231,6 @@ export const PoliciesGrid: React.FC<PoliciesGridProps> = ({ queryConstraints, ..
           sorting: {
             sortModel: [{ field: 'created', sort: 'desc' }],
           },
-          // pagination: { pageSize: 10 },
           pagination: { paginationModel: { page: 0, pageSize: 10 } },
         }}
         {...props}

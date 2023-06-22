@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import { useUser } from 'reactfire';
 import { Box, Tooltip, Typography } from '@mui/material';
-import { limit, orderBy, where } from 'firebase/firestore';
+import { where } from 'firebase/firestore';
 import { GridActionsCellItem, GridRowParams } from '@mui/x-data-grid';
 import { VisibilityRounded } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
@@ -18,15 +18,7 @@ export const Quotes: React.FC = () => {
 
   if (claims?.iDemandAdmin) return <AdminQuotes />;
   if (claims?.agent || claims?.orgAdmin)
-    return (
-      <QuotesGrid
-        queryConstraints={[
-          where('agentId', '==', `${user?.uid}`),
-          orderBy('metadata.created', 'desc'),
-          limit(100),
-        ]}
-      />
-    );
+    return <QuotesGrid constraints={[where('agentId', '==', `${user?.uid}`)]} />;
 
   return <UserQuotes />;
 };
@@ -34,7 +26,6 @@ export const Quotes: React.FC = () => {
 function UserQuotes() {
   const navigate = useNavigate();
   const { data: user } = useUser();
-  // const { claims, user } = useAuth();
 
   const showDetails = useCallback(
     (params: GridRowParams) => () => {
@@ -48,6 +39,21 @@ function UserQuotes() {
     [navigate]
   );
 
+  const renderActions = useCallback(
+    (params: GridRowParams) => [
+      <GridActionsCellItem
+        icon={
+          <Tooltip placement='top' title='view quote'>
+            <VisibilityRounded />
+          </Tooltip>
+        }
+        onClick={showDetails(params)}
+        label='Details'
+      />,
+    ],
+    [showDetails]
+  );
+
   if (!user || !user.uid) {
     return (
       <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', py: 4 }}>
@@ -56,54 +62,10 @@ function UserQuotes() {
     );
   }
 
-  // if (claims.iDemandAdmin)
-  //   return (
-  //     <QuotesGrid
-  //       queryConstraints={[
-  //         // where('agencyId', '==', `${orgId}`),
-  //         orderBy('metadata.created', 'desc'),
-  //         limit(100),
-  //       ]}
-  //     />
-  //   );
-
-  // if (claims.orgAdmin && user?.tenantId)
-  //   return (
-  //     <QuotesGrid
-  //       queryConstraints={[
-  //         where('agency.orgId', '==', `${user?.tenantId}`),
-  //         orderBy('metadata.created', 'desc'),
-  //         limit(100),
-  //       ]}
-  //     />
-  //   );
-
   return (
     <QuotesGrid
-      queryConstraints={[
-        where('userId', '==', `${user?.uid}`),
-        orderBy('metadata.created', 'desc'),
-        limit(100),
-      ]}
-      columnOverrides={[
-        {
-          field: 'actions',
-          headerName: 'Actions',
-          type: 'actions',
-          width: 120,
-          getActions: (params: GridRowParams) => [
-            <GridActionsCellItem
-              icon={
-                <Tooltip placement='top' title='view quote'>
-                  <VisibilityRounded />
-                </Tooltip>
-              }
-              onClick={showDetails(params)}
-              label='Details'
-            />,
-          ],
-        },
-      ]}
+      constraints={[where('userId', '==', `${user?.uid}`)]}
+      renderActions={renderActions}
     />
   );
 

@@ -98,7 +98,7 @@ export enum ROUTES {
   CONTACT = '/contact',
   USER_QUOTES = '/quotes/list/:userId',
   POLICIES = '/policies', // '/policies/:productId?'
-  USER_POLICY = '/policies/:policyId',
+  POLICY = '/policies/:policyId',
   AGENCY_NEW = '/agency/new',
   PROTOSURE = '/protosure/new/:productId/:quoteId?',
   ACCOUNT = '/account',
@@ -110,6 +110,7 @@ export enum ADMIN_ROUTES {
   QUOTES = '/admin/quotes',
   QUOTE_NEW_BLANK = '/admin/quotes/:productId/new',
   QUOTE_NEW = '/admin/quotes/:productId/new/:submissionId',
+  QUOTE_EDIT = '/admin/quotes/:productId/edit/:quoteId',
   POLICY_DELIVERY = '/admin/policies/:policyId/delivery',
   // POLICIES = '/admin/policies',
   AGENCY_APPS = '/admin/agencies/submissions',
@@ -157,7 +158,7 @@ type TArgs =
   | { path: ROUTES.QUOTE_BIND; params: { quoteId: string } } // INCLUDE PRODUCT ID ??
   | { path: ROUTES.QUOTE_BIND_SUCCESS; params: { quoteId: string; transactionId?: string } }
   | { path: ROUTES.POLICIES; search?: { productId?: Product } }
-  | { path: ROUTES.USER_POLICY; params: { policyId: string } }
+  | { path: ROUTES.POLICY; params: { policyId: string } }
   | { path: ROUTES.AGENCY_NEW }
   | { path: ROUTES.CONTACT }
   | { path: ROUTES.PROTOSURE; params: { productId: Product; quoteId?: string } }
@@ -167,6 +168,7 @@ type TArgs =
   | { path: ADMIN_ROUTES.QUOTES }
   | { path: ADMIN_ROUTES.QUOTE_NEW_BLANK; params: { productId: Product } }
   | { path: ADMIN_ROUTES.QUOTE_NEW; params: { productId: Product; submissionId: string } }
+  | { path: ADMIN_ROUTES.QUOTE_EDIT; params: { productId: Product; quoteId: string } }
   | { path: ADMIN_ROUTES.POLICY_DELIVERY; params: { policyId: string } }
   // | { path: ADMIN_ROUTES.POLICIES; search?: { productId?: Product } }
   | { path: ADMIN_ROUTES.CONFIG }
@@ -262,14 +264,14 @@ export const router = sentryCreateBrowserRouter([
           {
             index: true,
             element: <Home />,
-            handle: {
-              crumb: (match: CrumbMatch) => [
-                {
-                  label: 'Home',
-                  link: '/',
-                },
-              ],
-            },
+            // handle: {
+            //   crumb: (match: CrumbMatch) => [
+            //     {
+            //       label: 'Home',
+            //       link: '/',
+            //     },
+            //   ],
+            // },
           },
           {
             path: ROUTES.SUBMISSION_NEW,
@@ -585,7 +587,7 @@ export const router = sentryCreateBrowserRouter([
             },
           },
           {
-            path: ROUTES.USER_POLICY,
+            path: ROUTES.POLICY,
             element: <Policy />,
             errorElement: <RouterErrorBoundary />,
             handle: {
@@ -599,7 +601,7 @@ export const router = sentryCreateBrowserRouter([
                 {
                   label: `${match?.params?.policyId || ''}`,
                   link: createPath({
-                    path: ROUTES.USER_POLICY,
+                    path: ROUTES.POLICY,
                     params: { policyId: `${match?.params?.policyId || ''}` },
                   }),
                 },
@@ -729,6 +731,37 @@ export const router = sentryCreateBrowserRouter([
             },
           },
           {
+            path: ADMIN_ROUTES.QUOTE_EDIT,
+            element: (
+              <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
+                <QuoteNewFromSub />
+              </RequireAuthReactFire>
+            ),
+            handle: {
+              crumb: (match: CrumbMatch) => [
+                {
+                  label: 'Quotes',
+                  link: createPath({
+                    path: ADMIN_ROUTES.QUOTES,
+                  }),
+                },
+                {
+                  label: `${match?.params?.productId || ''}`,
+                },
+                {
+                  label: 'Edit',
+                },
+                {
+                  label: `${match?.params?.quoteId || ''}`,
+                  // link: createPath({
+                  //   path: ADMIN_ROUTES.QUOTE,
+                  //   params: { submissionId: `${match?.params?.quoteId}` },
+                  // }),
+                },
+              ],
+            },
+          },
+          {
             path: ADMIN_ROUTES.QUOTES,
             element: (
               <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
@@ -764,7 +797,7 @@ export const router = sentryCreateBrowserRouter([
                 {
                   label: `${match?.params?.policyId || ''}`,
                   link: createPath({
-                    path: ROUTES.USER_POLICY, // TODO: create admin policy view
+                    path: ROUTES.POLICY, // TODO: create admin policy view
                     params: { policyId: `${match?.params?.policyId || ''}` },
                   }),
                 },

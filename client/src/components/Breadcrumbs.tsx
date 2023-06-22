@@ -59,17 +59,8 @@ export const Breadcrumbs: React.FC<BreadcrumbsProps> = (props) => {
     .map((match: any) => match.handle.crumb(match)); // match.data
 
   return (
-    <MuiBreadcrumbs
-      aria-label='breadcrumb'
-      {...props}
-      // sx={{ '& li': { height: '24px', } }}
-    >
-      {/* <RouterLink to={'/'} underline='hover' color='inherit'>
-        Home
-      </RouterLink> */}
-      {/* {crumbs.map((crumb, i) => (
-        <div key={`crumb-${i}`}>{crumb}</div>
-      ))} */}
+    <MuiBreadcrumbs aria-label='breadcrumb' {...props}>
+      <RouterLink to={'/'}>Home</RouterLink>
       {crumbs.map((crumb, j) => {
         if (Array.isArray(crumb)) {
           return crumb.map((c, i) => {
@@ -79,6 +70,7 @@ export const Breadcrumbs: React.FC<BreadcrumbsProps> = (props) => {
                   {c.label}
                 </RouterLink>
               );
+
             if (c.label)
               return (
                 <Typography
@@ -89,7 +81,6 @@ export const Breadcrumbs: React.FC<BreadcrumbsProps> = (props) => {
                   {c.label}
                 </Typography>
               );
-            // <BreadcrumbText label={c.label} sx={{ pt: '3px' }} />;
 
             return null;
           });

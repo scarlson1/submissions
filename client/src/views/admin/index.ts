@@ -1,6 +1,7 @@
 export { SubmissionView } from './SubmissionView';
 export { Submissions } from './Submissions';
 export { QuoteNew } from './QuoteNew';
+export { QuoteEdit } from './QuoteEdit';
 export { Quotes } from './Quotes';
 export { SLTaxes } from './SLTaxes';
 export { SLTaxNew } from './SLTaxNew';

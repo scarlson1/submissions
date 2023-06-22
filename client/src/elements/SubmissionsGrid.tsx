@@ -68,7 +68,7 @@ export const SubmissionsGrid = ({ renderActions = () => [], ...props }: Submissi
   const toast = useAsyncToast();
   const openFF = useFloodFactor();
   const dialog = useJsonDialog();
-  const { isSmall } = useWidth(); //  , isMobile
+  const { isSmall } = useWidth();
 
   const { data: iDAdminResult } = useSigninCheck({
     requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true },
@@ -262,7 +262,6 @@ export const SubmissionsGrid = ({ renderActions = () => [], ...props }: Submissi
         description:
           'user ID of the user that created submission (could have been anonymous if they were not signed in)',
       },
-
       {
         ...idCol,
         headerName: 'Submission ID',

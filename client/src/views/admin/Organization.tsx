@@ -71,20 +71,14 @@ export const Organization: React.FC = () => {
             <AdminManageUsersGrid orgId={`${orgId}`} />
           </TabPanel>
           <TabPanel value='policies'>
-            <PoliciesGrid
-              queryConstraints={[
-                where('orgId', '==', `${orgId}`),
-                // orderBy('metadata.created', 'desc'),
-                limit(100),
-              ]}
-            />
+            <PoliciesGrid constraints={[where('orgId', '==', `${orgId}`)]} />
           </TabPanel>
           <TabPanel value='quotes'>
             <QuotesGrid
-              queryConstraints={[
-                where('agencyId', '==', `${orgId}`),
-                orderBy('metadata.created', 'desc'),
-                limit(100),
+              constraints={[
+                where('agency.orgId', '==', `${orgId}`),
+                // orderBy('metadata.created', 'desc'),
+                // limit(100),
               ]}
             />
           </TabPanel>

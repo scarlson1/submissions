@@ -48,7 +48,7 @@ export function getURLByType(item: any) {
   }
   // TODO: standardize routes
   if (item.collectionName === COLLECTIONS.POLICIES) {
-    url = createPath({ path: ROUTES.USER_POLICY, params: { policyId: item.objectID } });
+    url = createPath({ path: ROUTES.POLICY, params: { policyId: item.objectID } });
   }
   // TODO: finish getUrl func
   return url;

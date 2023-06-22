@@ -387,7 +387,7 @@ export interface NewQuoteValues {
 
 export interface QuoteNewProps {
   initialValues?: NewQuoteValues;
-  submissionData?: Submission | null;
+  submissionData?: Partial<Submission> | null; // (pull off static images & use for inital rating data snap)
   submissionId?: string | null;
 }
 
@@ -1495,7 +1495,7 @@ export const QuoteNew: React.FC<QuoteNewProps> = ({
 };
 
 // TODO: can use useReateQuote extraction func since submissions schema not matches quote schemas
-function getRatingInputsFromSubmission(subData?: Submission) {
+function getRatingInputsFromSubmission(subData?: Partial<Submission> | null) {
   // TODO: decide whether to flatten or keep in obj ?? does diff function compare nested values ??
 
   return {

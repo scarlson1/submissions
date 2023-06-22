@@ -25,13 +25,12 @@ import { FlexCard, FlexCardContent, LoadingSpinner } from 'components';
 import { createPath, ROUTES } from 'router';
 import { Item } from './UserSubmissions';
 import { PoliciesGrid } from 'elements';
-import { limit, orderBy, where } from 'firebase/firestore';
+import { where } from 'firebase/firestore';
 import { formatFirestoreTimestamp } from 'modules/utils';
 
 import { AdditionalInsured, fallbackImages } from 'common';
 
 // TODO: change policies view to allow switching between card and grid view
-// pull data state up. default initial view state by claim type
 // TODO: include change requests in grid ?? (could use rxjs and aggregation query)
 
 export const Policies: React.FC = () => {
@@ -51,13 +50,7 @@ export const Policies: React.FC = () => {
       <Container maxWidth='lg' sx={{ py: { xs: 4, md: 6 } }}>
         <Box>
           {header}
-          <PoliciesGrid
-            queryConstraints={[
-              // where('agencyId', '==', `${orgId}`),
-              orderBy('metadata.created', 'desc'),
-              limit(100),
-            ]}
-          />
+          <PoliciesGrid />
         </Box>
       </Container>
     );
@@ -67,13 +60,7 @@ export const Policies: React.FC = () => {
       <Container maxWidth='lg' sx={{ py: { xs: 4, md: 6 } }}>
         <Box>
           {header}
-          <PoliciesGrid
-            queryConstraints={[
-              where('agency.orgId', '==', `${user?.tenantId}`),
-              orderBy('metadata.created', 'desc'),
-              limit(100),
-            ]}
-          />
+          <PoliciesGrid constraints={[where('agency.orgId', '==', `${user?.tenantId}`)]} />
         </Box>
       </Container>
     );
@@ -83,13 +70,7 @@ export const Policies: React.FC = () => {
       <Container maxWidth='lg' sx={{ py: { xs: 4, md: 6 } }}>
         <Box>
           {header}
-          <PoliciesGrid
-            queryConstraints={[
-              where('agent.userId', '==', `${user?.uid}`),
-              orderBy('metadata.created', 'desc'),
-              limit(100),
-            ]}
-          />
+          <PoliciesGrid constraints={[where('agent.userId', '==', `${user?.uid}`)]} />
         </Box>
       </Container>
     );
@@ -111,7 +92,7 @@ export const UserPolicies: React.FC = () => {
 
   const handleClick = useCallback(
     (policyId: string) => {
-      navigate(createPath({ path: ROUTES.USER_POLICY, params: { policyId } }));
+      navigate(createPath({ path: ROUTES.POLICY, params: { policyId } }));
     },
     [navigate]
   );
