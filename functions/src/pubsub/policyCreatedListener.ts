@@ -4,7 +4,7 @@ import { error, info } from 'firebase-functions/logger';
 import type { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 import {
   Policy,
-  PolicyLocation,
+  // PolicyLocation,
   policiesCollection,
   ratingDataCollection,
   transactionsCollection,
@@ -43,7 +43,7 @@ export default async (event: CloudEvent<MessagePublishedData>) => {
   const trxCol = transactionsCollection(db);
 
   const policyRef = policyCol.doc(policyId);
-  let policy;
+  let policy: Policy;
 
   try {
     let policySnap = await policyRef.get();
@@ -84,8 +84,7 @@ export default async (event: CloudEvent<MessagePublishedData>) => {
 
       if (!trxExists(trxRef)) {
         // TODO: use getLocation(id) once using converter
-        // @ts-ignore
-        const location = policy?.locations[locationId] as PolicyLocation;
+        const location = policy.locations[locationId]; // as PolicyLocation;
         const bookingDateMillis = getBookingDate(
           location.effectiveDate.toMillis(),
           trxEffDate.toMillis()
@@ -93,6 +92,7 @@ export default async (event: CloudEvent<MessagePublishedData>) => {
 
         // TODO: fetch rating data for premium calc fields
         const ratingSnap = await ratingDataCollection(db).doc(location.ratingDocId).get();
+
         const ratingData = ratingSnap.data();
         if (!ratingData) {
           const errMsg = `Missing rating data for location ${locationId}`;
@@ -101,6 +101,7 @@ export default async (event: CloudEvent<MessagePublishedData>) => {
             policyId,
             eventId,
           });
+
           throw new Error(errMsg);
         }
 
@@ -145,9 +146,9 @@ export default async (event: CloudEvent<MessagePublishedData>) => {
           netDWP: 0, // TODO
           netErrorAdj: 0, // TODO
           dailyPremium: 0, // TODO
-          otherInterestedParties: ['TODO'], // includes mortgagee & additional interests - only need name for trx reporting
+          otherInterestedParties: location.mortgageeInterest?.map((m) => m.name) || [], // includes mortgagee & additional interests - only need name for trx reporting
           // TODO: how is this different from additional named insured
-          additionalNamedInsured: location.additionalInsureds?.map((ai) => ai.name),
+          additionalNamedInsured: location.additionalInsureds?.map((ai) => ai.name) || [],
           // TODO: verify whether additional insureds should be stored separately from mortgagee
           // TODO: change ^ to displayName for consistency ??
           homeState: policy.homeState || '',
@@ -184,7 +185,7 @@ function trxExists(trxRef: DocumentReference) {
 //   return query.get().then((snap) => !snap.empty);
 // }
 
-function constructTrxId(policyId: string, locationId: string, eventId: string) {
+export function constructTrxId(policyId: string, locationId: string, eventId: string) {
   return `${policyId}-${locationId}-${eventId}`;
 }
 
