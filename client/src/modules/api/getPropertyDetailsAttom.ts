@@ -1,8 +1,10 @@
 import { Functions, httpsCallable } from 'firebase/functions';
 
-import { Address, Nullable, RatingPropertyData } from 'common/types';
+import { Address, Coordinates, Nullable, RatingPropertyData } from 'common/types';
 
-export interface GetPropertyDetailsAttomRequest extends Omit<Address, 'addressLine2'> {}
+export interface GetPropertyDetailsAttomRequest extends Omit<Address, 'addressLine2'> {
+  coordinates?: Nullable<Coordinates> | null | undefined;
+}
 export interface GetPropertyDetailsAttomResponse extends Nullable<RatingPropertyData> {
   initDeductible: number;
   initLimitA: number;

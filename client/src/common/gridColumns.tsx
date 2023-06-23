@@ -51,6 +51,12 @@ import {
 import { GeoPoint } from 'firebase/firestore';
 import { AdditionalInsured, Address, Mortgagee, Nullable, PolicyLocation } from './types';
 import { renderChips } from 'components/RenderGridCellHelpers';
+import {
+  firestoreNumericOperators,
+  firestoreStringOperators,
+  getGridFirebaseSelectOperators,
+} from './gridFilters';
+import { statesArr } from './statesList';
 // import { ADMIN_ROUTES, createPath } from 'router';
 
 export const copyBaseProps: Partial<GridColDef> = {
@@ -121,6 +127,7 @@ export const displayNameCol: GridColDef = {
 export const createdCol: GridColDef = {
   field: 'metadata.created',
   headerName: 'Created',
+  type: 'date',
   minWidth: 160,
   flex: 0.6,
   editable: false,
@@ -131,6 +138,7 @@ export const createdCol: GridColDef = {
 export const updatedCol: GridColDef = {
   field: 'metadata.updated',
   headerName: 'Updated',
+  type: 'date',
   minWidth: 160,
   flex: 0.6,
   editable: false,
@@ -194,6 +202,7 @@ export const fileLinkCol: GridColDef = {
   minWidth: 180,
   flex: 1,
   editable: false,
+  filterable: false,
   renderCell: ({ value }: GridRenderCellParams<any, any, any>) => {
     if (!value) return null;
 
@@ -215,6 +224,7 @@ const addressSummaryBase = {
   minWidth: 260,
   flex: 1,
   editable: false,
+  filterable: false,
 };
 
 const formatAddrSummary = (address?: Nullable<Address> | null | undefined) => {
@@ -251,19 +261,8 @@ export const agencyAddressCol: GridColDef = {
   ...addressSummaryCol,
   field: 'agency.address',
   headerName: 'Agency Address',
+  filterable: false,
   valueGetter: (params) => formatAddrSummary(params.row.agency?.address),
-  // if (!params.row.agency?.address) return null;
-
-  // const { addressLine1, city, state } = params.row.agency.address;
-  // if (!(addressLine1 || city || state)) return null;
-
-  // let formatted = '';
-  // if (addressLine1) formatted += `${addressLine1}`;
-  // if (city) formatted += `, ${city}`;
-  // if (state) formatted += `, ${state}`;
-
-  // return formatted;
-  // },
 };
 
 export const address1Col: GridColDef = {
@@ -296,6 +295,8 @@ export const stateCol: GridColDef = {
   minWidth: 80,
   flex: 1,
   editable: false,
+  valueOptions: statesArr,
+  filterOperators: getGridFirebaseSelectOperators(),
 };
 
 export const postalCol: GridColDef = {
@@ -449,7 +450,7 @@ export const statusCol: GridColDef = {
   // disableClickEventBubbling: true,
   minWidth: 160,
   flex: 0.6,
-
+  filterOperators: getGridFirebaseSelectOperators(),
   renderCell: (params: GridRenderCellParams<any, any, any>) => (
     <Chip label={params.value} size='small' variant='outlined' {...getChipProps(params.value)} />
   ),
@@ -553,6 +554,7 @@ export const expirationDateCol: GridColDef = {
 export const currencyCol: GridColDef = {
   field: 'currency',
   headerName: 'Currency',
+  type: 'number',
   minWidth: 120,
   flex: 0.8,
   editable: false,
@@ -570,6 +572,7 @@ export const limitACol: GridColDef = {
   field: 'limitA',
   headerName: 'Limit A',
   description: 'Coverage A limit (building)',
+  type: 'number',
   minWidth: 120,
   flex: 0.8,
   editable: false,
@@ -583,6 +586,7 @@ export const limitBCol: GridColDef = {
   field: 'limitB',
   headerName: 'Limit B',
   description: 'Coverage B limit (Additional structures)',
+  type: 'number',
   minWidth: 120,
   flex: 0.8,
   editable: false,
@@ -596,6 +600,7 @@ export const limitCCol: GridColDef = {
   field: 'limitC',
   headerName: 'Limit C',
   description: 'Coverage C limit (contents)',
+  type: 'number',
   minWidth: 120,
   flex: 0.8,
   editable: false,
@@ -609,6 +614,7 @@ export const limitDCol: GridColDef = {
   field: 'limitD',
   headerName: 'Limit D',
   description: 'Coverage D limit (living expenses)',
+  type: 'number',
   minWidth: 120,
   flex: 0.8,
   editable: false,
@@ -622,6 +628,7 @@ export const tivCol: GridColDef = {
   field: 'tiv',
   headerName: 'TIV',
   description: 'Sum of coverage limits',
+  type: 'number',
   minWidth: 120,
   flex: 0.8,
   editable: false,
@@ -648,6 +655,7 @@ export const tivCol: GridColDef = {
 export const deductibleCol: GridColDef = {
   field: 'deductible',
   headerName: 'Deductible',
+  type: 'number',
   minWidth: 100,
   flex: 0.5,
   editable: false,
@@ -672,12 +680,14 @@ export const namedInsuredFirstNameCol: GridColDef = {
   ...firstNameCol,
   field: 'namedInsured.firstName',
   valueGetter: (params: GridValueGetterParams) => params.row.namedInsured?.firstName || null,
+  filterOperators: firestoreStringOperators,
 };
 
 export const namedInsuredLastNameCol: GridColDef = {
   ...lastNameCol,
   field: 'namedInsured.lastName',
   valueGetter: (params: GridValueGetterParams) => params.row.namedInsured?.lastName || null,
+  filterOperators: firestoreStringOperators,
 };
 
 export const namedInsuredEmailCol: GridColDef = {
@@ -685,6 +695,7 @@ export const namedInsuredEmailCol: GridColDef = {
   field: 'namedInsured.email',
   headerName: 'Insured Email',
   valueGetter: (params: GridValueGetterParams) => params.row.namedInsured?.email || null,
+  filterOperators: firestoreStringOperators,
 };
 
 export const namedInsuredPhoneCol: GridColDef = {
@@ -692,12 +703,14 @@ export const namedInsuredPhoneCol: GridColDef = {
   field: 'namedInsured.phone',
   headerName: 'Insured Phone',
   valueGetter: (params: GridValueGetterParams) => params.row.namedInsured?.phone || null,
+  filterOperators: firestoreStringOperators,
 };
 
 export const replacementCostCol: GridColDef = {
   field: 'replacementCost',
   headerName: 'Replacement Cost',
   description: 'Building replacement cost',
+  type: 'number',
   minWidth: 140,
   flex: 0.8,
   headerAlign: 'center',
@@ -713,12 +726,14 @@ export const ratingDataReplacementCostCol: GridColDef = {
 export const subproducerCommissionCol: GridColDef = {
   field: 'subproducerCommission',
   headerName: 'Commission',
+  type: 'number',
   minWidth: 120,
   flex: 0.8,
   editable: false,
   headerAlign: 'center',
   align: 'right',
   valueFormatter: (params) => formatGridPercent(params, 0),
+  filterOperators: firestoreNumericOperators,
 };
 
 export const propertyCodeCol: GridColDef = {
@@ -728,6 +743,7 @@ export const propertyCodeCol: GridColDef = {
   flex: 0.8,
   headerAlign: 'center',
   align: 'right',
+  filterOperators: firestoreStringOperators,
 };
 
 export const ratingDataPropertyCodeCol: GridColDef = {
@@ -740,6 +756,7 @@ export const yearBuiltCol: GridColDef = {
   field: 'yearBuilt',
   headerName: 'Year Built',
   description: 'Year built provided by property api',
+  type: 'number',
   minWidth: 140,
   flex: 0.8,
   headerAlign: 'center',
@@ -755,6 +772,7 @@ export const ratingDataYearBuiltCol: GridColDef = {
 export const sqFootageCol: GridColDef = {
   field: 'sqFootage',
   headerName: 'Sq. Footage',
+  type: 'number',
   minWidth: 140,
   flex: 0.8,
   headerAlign: 'center',
@@ -772,6 +790,7 @@ export const ratingDataSqFootageCol: GridColDef = {
 export const numStoriesCol: GridColDef = {
   field: 'numStories',
   headerName: 'Num. Stories',
+  type: 'number',
   minWidth: 100,
   flex: 0.4,
   headerAlign: 'center',
@@ -790,6 +809,7 @@ export const basementCol: GridColDef = {
   flex: 0.8,
   headerAlign: 'center',
   align: 'right',
+  filterOperators: firestoreStringOperators,
 };
 
 export const ratingDataBasementCol: GridColDef = {
@@ -800,6 +820,7 @@ export const ratingDataBasementCol: GridColDef = {
 export const distToCoastFeetCol: GridColDef = {
   field: 'distToCoastFeet',
   headerName: 'Dist. to Coast (ft.)',
+  type: 'number',
   minWidth: 160,
   flex: 0.8,
   headerAlign: 'center',
@@ -821,6 +842,7 @@ export const CBRSCol: GridColDef = {
   flex: 0.5,
   headerAlign: 'center',
   align: 'right',
+  filterOperators: firestoreStringOperators,
 };
 
 export const ratingDataCBRSCol: GridColDef = {
@@ -835,6 +857,7 @@ export const floodZoneCol: GridColDef = {
   flex: 0.8,
   headerAlign: 'center',
   align: 'right',
+  filterOperators: firestoreStringOperators,
 };
 
 export const ratingDataFloodZoneCol: GridColDef = {
@@ -851,6 +874,7 @@ export const priorLossCountCol: GridColDef = {
   editable: false,
   headerAlign: 'center',
   align: 'right',
+  filterOperators: firestoreStringOperators,
   // TODO: valueFormatter
 };
 
@@ -862,6 +886,7 @@ export const ratingDataPriorLossCountCol: GridColDef = {
 export const userIdCol: GridColDef = {
   field: 'userId',
   headerName: 'User ID',
+  filterOperators: firestoreStringOperators,
   ...copyBaseProps,
 };
 
@@ -871,6 +896,7 @@ export const agentNameCol: GridColDef = {
   minWidth: 180,
   flex: 0.8,
   editable: false,
+  filterOperators: firestoreStringOperators,
 };
 
 export const nestedAgentNameCol: GridColDef = {
@@ -883,6 +909,7 @@ export const agentEmailCol: GridColDef = {
   ...emailCol,
   field: 'agent.email',
   headerName: 'Agent Email',
+  filterOperators: firestoreStringOperators,
   valueGetter: (params) => params.row.agent?.email || null,
 };
 
@@ -890,12 +917,14 @@ export const agentPhoneCol: GridColDef = {
   ...phoneCol,
   field: 'agent.phone',
   headerName: 'Agent Phone',
+  filterOperators: firestoreStringOperators,
   valueGetter: (params) => params.row.agent?.phone || null,
 };
 
 export const agentIdCol: GridColDef = {
   field: 'agentId',
   headerName: 'Agent ID',
+  filterOperators: firestoreStringOperators,
   ...copyBaseProps,
 };
 
@@ -903,12 +932,12 @@ export const nestedAgentUserIdCol: GridColDef = {
   ...agentIdCol,
   field: 'agent.userId',
   valueGetter: (params: GridValueGetterParams) => params.row.agent?.userId || null,
-  ...copyBaseProps,
 };
 
 export const agencyIdCol: GridColDef = {
   field: 'agencyId',
   headerName: 'Agency ID',
+  filterOperators: firestoreStringOperators,
   ...copyBaseProps,
 };
 
@@ -922,8 +951,10 @@ export const inlandAALCol: GridColDef = {
   field: 'AAL.inland',
   headerName: 'Inland AAL',
   description: 'Inland Peril Average Annual Loss from Swiss Re',
+  type: 'number',
   minWidth: 150,
   flex: 0.8,
+  filterOperators: firestoreStringOperators,
   valueGetter: (params) => params.row.AAL?.inland ?? null,
   renderCell: (params) => {
     return <GridCellCopy value={params.value} />;
@@ -934,6 +965,7 @@ export const surgeAALCol: GridColDef = {
   field: 'AAL.surge',
   headerName: 'Surge AAL',
   description: 'Surge Peril Average Annual Loss from Swiss Re',
+  type: 'number',
   minWidth: 150,
   flex: 0.8,
   valueGetter: (params) => params.row.AAL?.surge ?? null,
@@ -946,6 +978,7 @@ export const tsunamiAALCol: GridColDef = {
   field: 'AAL.tsunami',
   headerName: 'Tsunami AAL',
   description: 'Tsunami Peril Average Annual Loss from Swiss Re',
+  type: 'number',
   minWidth: 150,
   flex: 0.8,
   valueGetter: (params) => params.row.AAL?.tsunami ?? null,
@@ -956,6 +989,7 @@ export const annualPremiumCol: GridColDef = {
   field: 'annualPremium',
   headerName: 'Annual Premium',
   description: 'Annual premium before taxes and fees',
+  type: 'number',
   minWidth: 140,
   flex: 0.8,
   editable: false,
@@ -968,6 +1002,7 @@ export const annualPremiumCol: GridColDef = {
 export const termPremiumCol: GridColDef = {
   field: 'termPremium',
   headerName: 'Term Premium',
+  type: 'number',
   minWidth: 120,
   flex: 0.8,
   editable: false,
@@ -979,9 +1014,11 @@ export const termPremiumCol: GridColDef = {
 export const locationsCount: GridColDef = {
   field: 'locationsCount',
   headerName: '# locations',
+  type: 'number',
   minWidth: 100,
   flex: 0.5,
   editable: false,
+  filterable: false,
   headerAlign: 'center',
   align: 'right',
   valueGetter: (params) => {
@@ -996,6 +1033,7 @@ export const locationAddresses: GridColDef = {
   minWidth: 300,
   flex: 1.5,
   editable: false,
+  filterable: false,
   valueGetter: (params) => {
     if (!params.row.locations) return null;
 
@@ -1036,9 +1074,12 @@ export const locationAddresses: GridColDef = {
 export const homeStateCol: GridColDef = {
   field: 'homeState',
   headerName: 'Home State',
+  type: 'singleSelect',
   minWidth: 100,
   flex: 0.4,
   editable: false,
+  valueOptions: statesArr,
+  filterOperators: getGridFirebaseSelectOperators(),
 };
 
 export const productCol: GridColDef = {
@@ -1047,6 +1088,16 @@ export const productCol: GridColDef = {
   minWidth: 100,
   flex: 0.4,
   editable: false,
+  type: 'singleSelect',
+  valueOptions: [
+    SUBMISSION_STATUS.QUOTED,
+    SUBMISSION_STATUS.SUBMITTED,
+    SUBMISSION_STATUS.NOT_ELIGIBLE,
+    SUBMISSION_STATUS.PENDING_INFO,
+    SUBMISSION_STATUS.CANCELLED,
+    SUBMISSION_STATUS.DRAFT,
+  ],
+  filterOperators: getGridFirebaseSelectOperators(),
 };
 
 function getProductChipProps(value: string): Partial<ChipProps> {
@@ -1060,12 +1111,16 @@ function getProductChipProps(value: string): Partial<ChipProps> {
   }
 }
 
+// TODO: multi-select type
 export const productsCol: GridColDef = {
   field: 'products',
   headerName: 'Products',
+  type: 'multiSelect',
   minWidth: 180,
   flex: 1,
   editable: false,
+  filterable: false, // TODO: implement array-contains search (multiselectoperators)
+  filterOperators: getGridFirebaseSelectOperators(),
   renderCell: (params) =>
     renderChips(params, { variant: 'outlined', color: 'success' }, getProductChipProps),
 };
@@ -1077,6 +1132,7 @@ export const SLProducerOfRecordNameCol: GridColDef = {
   flex: 0.6,
   editable: false,
   description: 'Surplus Lines Producer of Record',
+  filterOperators: firestoreStringOperators,
   valueGetter: (params) => params.row.surplusLinesProducerOfRecord?.name || null,
 };
 
@@ -1085,6 +1141,7 @@ export const SLProducerOfRecordLicenseNum: GridColDef = {
   field: 'SLProducerOfRecord.licenseNum',
   headerName: 'SL PofR License',
   description: 'Surplus Lines Producer of Record license number',
+  filterOperators: firestoreStringOperators,
   valueGetter: (params) => params.row.surplusLinesProducerOfRecord?.licenseNum || null,
 };
 
@@ -1092,6 +1149,8 @@ export const SLProducerOfRecordLicenseState: GridColDef = {
   field: 'SLProducerOfRecord.licenseState',
   headerName: 'SL PofR License State',
   description: 'Surplus Lines Producer of Record license state',
+  valueOptions: statesArr,
+  filterOperators: getGridFirebaseSelectOperators(),
   valueGetter: (params) => params.row.surplusLinesProducerOfRecord?.licenseState || null,
 };
 
@@ -1100,6 +1159,7 @@ export const SLProducerOfRecordLicensePhone: GridColDef = {
   field: 'SLProducerOfRecord.phone',
   headerName: 'SL PofR License Phone',
   description: 'Surplus Lines Producer of Record license provided phone number',
+  filterOperators: firestoreStringOperators,
   valueGetter: (params) => params.row.surplusLinesProducerOfRecord?.phone || null,
 };
 
@@ -1108,6 +1168,7 @@ export const SLProducerOfRecordLicenseAddress: GridColDef = {
   field: 'SLProducerOfRecord.address',
   headerName: 'SL PofR License Address',
   description: 'Surplus Lines Producer of Record license provided address',
+  filterable: false,
   valueGetter: (params) => formatAddrSummary(params.row.surplusLinesProducerOfRecord?.address),
 };
 

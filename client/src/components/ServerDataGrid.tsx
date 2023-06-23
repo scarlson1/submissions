@@ -24,6 +24,7 @@ import {
 import { useDocCount, useFetchDocsWithCursor } from 'hooks';
 import { COLLECTIONS } from 'common';
 import { isRangeComparison, muiOperatorToFirestoreOperator } from 'modules/utils';
+import { toast } from 'react-hot-toast';
 
 // FIREBASE PAGINATION ARTICLE: https://makerkit.dev/blog/tutorials/pagination-react-firebase-firestore
 
@@ -33,6 +34,7 @@ export interface ServerDataGridProps extends Partial<Omit<DataGridProps, 'rows'>
   constraints?: QueryFieldFilterConstraint[];
   isCollectionGroup?: boolean;
   columns: GridColDef[];
+  // TODO: initSorting
 }
 
 export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
@@ -41,27 +43,32 @@ export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
   constraints = [],
   isCollectionGroup = false,
   columns,
-  // density = 'compact',
   ...rest
 }) => {
   // const gridApiRef = useGridApiRef()
   // const [isPending, startTransition] = useTransition();
   // const [densityV, setDensity] = useState<GridDensity>(density);
+  const [rowCount, setRowCount] = useState<number>(0);
   const [paginationModel, setPaginationModel] = React.useState({
     pageSize: 10,
     page: 0,
   });
-  const [rowCount, setRowCount] = useState<number>(0);
-  const [sortOptions, setSortOptions] = useState<QueryOrderByConstraint[]>([
-    orderBy('metadata.created', 'desc'),
+
+  const [sortModel, setSortModel] = useState<GridSortModel>([
+    { field: 'metadata.created', sort: 'desc' },
   ]);
+  // ref works because setting sortModel triggers rerender ??
+  const sortOps = useRef<QueryOrderByConstraint[]>([orderBy('metadata.created', 'desc')]);
   const [filters, setFilters] = useState<(QueryFieldFilterConstraint | QueryOrderByConstraint)[]>(
     []
   );
+  // const filters = useRef<(QueryFieldFilterConstraint | QueryOrderByConstraint)[]>([]);
+
   const queryOptions = useMemo(
-    () => [...filters, ...constraints, ...sortOptions],
-    [constraints, sortOptions, filters]
+    () => [...filters, ...constraints, ...sortOps.current],
+    [filters, constraints]
   );
+
   const fetchCount = useDocCount(collName, [...filters, ...constraints]);
 
   useEffect(() => {
@@ -105,18 +112,23 @@ export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
     [data] // page, pageSize]
   );
 
-  // TODO: store filter in same array ??
   const handleSortModelChange = useCallback((sortModel: GridSortModel) => {
     let newOptions: QueryOrderByConstraint[] = [];
+
     sortModel.forEach((f) => {
       if (f.sort) newOptions.push(orderBy(f.field, f.sort));
     });
+    // MOVE sort query options to useRef instead of useState ?? triggers query update --> data triggers rerender ??
 
+    sortOps.current = [...newOptions];
     startTransition(() => {
-      setSortOptions([...newOptions]);
+      setSortModel([...sortModel]);
+      // setSortOptions([...newOptions]);
     });
   }, []);
 
+  // TODO: create custom grid filter operators that map to firebase
+  // https://mui.com/x/react-data-grid/filtering/customization/#create-a-custom-operator
   const handleFilterChange = useCallback((filterModel: GridFilterModel) => {
     console.log('FILTER MODEL: ', filterModel);
     const newFilters: (QueryFieldFilterConstraint | QueryOrderByConstraint)[] = [];
@@ -126,6 +138,8 @@ export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
     // TODO: check for limitations - https://firebase.google.com/docs/firestore/query-data/queries#query_limitations
 
     filterModel.items.forEach((f) => {
+      // TODO: use segments to construct field string or force all column definitions to match DB ??
+      //    -- where does segments come from ? getterFunc ??
       // TODO: bug - isNotEmpty passes a value of undefined
       if (f.value !== undefined && f.operator) {
         let op = muiOperatorToFirestoreOperator(f.operator);
@@ -137,9 +151,13 @@ export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
       }
     });
 
+    toast.error('Filter functionality not implemented yet', { id: 'filter-warning' });
+
     console.log('NEW FILTERS: ', newFilters);
+    // TODO: useRef to store filters ??
     startTransition(() => {
-      setFilters(newFilters);
+      setFilters([...newFilters]);
+      // filters.current = [...newFilters];
     });
   }, []);
 
@@ -162,7 +180,6 @@ export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
     > */}
       <DataGrid
         sx={{ transition: 'height 0.25s ease-in-out' }}
-        // rowsPerPageOptions={[5, 10, 25, 100]}
         pageSizeOptions={[5, 10, 25, 100]}
         {...rest}
         // density={densityV}
@@ -186,7 +203,8 @@ export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
         // pageSize={pageSize}
         // onPageSizeChange={(newSize) => setPageSize(newSize)}
         rowCount={rowCount}
-        sortingMode='server'
+        sortingMode='server' // how can initialSort be set ?? (sortModel ??)
+        sortModel={sortModel}
         onSortModelChange={handleSortModelChange}
         filterMode='server'
         onFilterModelChange={handleFilterChange}

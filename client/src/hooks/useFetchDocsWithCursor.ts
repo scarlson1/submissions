@@ -11,6 +11,7 @@ import {
 import { ReactFireOptions, useFirestore, useFirestoreCollection } from 'reactfire';
 
 import { COLLECTIONS } from 'common';
+import { useEffect, useMemo } from 'react';
 
 export function useFetchDocsWithCursor<T = any>(
   collName: keyof typeof COLLECTIONS,
@@ -22,11 +23,23 @@ export function useFetchDocsWithCursor<T = any>(
 ) {
   const db = useFirestore();
 
-  const qConstraints: QueryConstraint[] = [...constraints, limit(params.itemsPerPage)];
+  // const qConstraints: QueryConstraint[] = [...constraints, limit(params.itemsPerPage)];
+  const qConstraints: QueryConstraint[] = useMemo(
+    () => [...constraints, limit(params.itemsPerPage)],
+    [constraints, params?.itemsPerPage]
+  );
+
+  console.log('CONSTRAINTS: ', constraints);
 
   if (params.cursor) {
     qConstraints.push(startAfter(params.cursor));
   }
+
+  useEffect(() => {
+    // console.log('constraints: ', constraints);
+    // console.log('PARAMS: ', params);
+    console.log('Q CONSTRAINTS: ', qConstraints);
+  }, [qConstraints]);
 
   let collectionRef;
   // ALLOW FOR COLLECTION GROUP QUERIES

@@ -53,52 +53,6 @@ const gridProps = {
   columnSpacing: { xs: 6, sm: 9, md: 12 },
 };
 
-// export interface FloodValuesOld {
-//   addressLine1: string;
-//   addressLine2?: string;
-//   city: string;
-//   state: string;
-//   postal: string;
-//   countyName?: string;
-//   latitude: number | null;
-//   longitude: number | null;
-//   limitA: number; // string;
-//   limitB: number; // string;
-//   limitC: number; // string;
-//   limitD: number; // string;
-//   deductible: number;
-//   exclusionsExist: boolean | null;
-//   exclusions: string[];
-//   priorLossCount: string; // number;
-//   firstName: string;
-//   lastName: string;
-//   email: string;
-//   userAcceptance: boolean;
-// }
-
-// export const initialValuesOld: FloodValuesOld = {
-//   addressLine1: '',
-//   addressLine2: '',
-//   city: '',
-//   state: '',
-//   postal: '',
-//   countyName: '',
-//   latitude: null,
-//   longitude: null,
-//   limitA: 250000, // '250000',
-//   limitB: 25000, // '25000',
-//   limitC: 63000, // '63000',
-//   limitD: 38000, // '38000',
-//   deductible: 4000,
-//   exclusionsExist: false,
-//   exclusions: [],
-//   priorLossCount: '0', // 0,
-//   firstName: '',
-//   lastName: '',
-//   email: '',
-//   userAcceptance: false,
-// };
-
 export interface FloodValues {
   address: Address;
   coordinates: Nullable<Coordinates>;
@@ -169,6 +123,10 @@ export const SubmissionNew: React.FC = () => {
           city: values.address.city,
           state: values.address.state,
           postal: values.address.postal,
+          coordinates: {
+            latitude: values.coordinates?.latitude,
+            longitude: values.coordinates?.longitude,
+          },
         });
         // console.log('PROPERTY DATA RES: ', res);
         return {

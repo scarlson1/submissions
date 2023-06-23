@@ -13,8 +13,11 @@ import {
   maxA,
   minA,
   propertyDataResCollection,
+  Address,
+  Coordinates,
+  Nullable,
 } from '../common';
-import { getAttomInstance } from '../services';
+import { getAttomInstance, getFEMAFloodZone } from '../services';
 
 let defaultLimitPercents: { [key in LimitTypes]: number } = {
   limitA: 1,
@@ -29,12 +32,14 @@ interface InitLimits {
   initLimitC: number;
   initLimitD: number;
 }
+// Omit<Address, 'addressLine2'>
+export interface GetPropertyDetailsAttomRequest extends Address {
+  coordinates?: Nullable<Coordinates> | null | undefined;
+}
 
-// const attomKey = defineSecret('ATTOM_API_KEY');
-
-export default async ({ data }: CallableRequest) => {
-  console.log('data: ', data);
-  const { addressLine1, addressLine2 = '', city, state, postal = '' } = data;
+export default async ({ data }: CallableRequest<GetPropertyDetailsAttomRequest>) => {
+  info('data: ', data);
+  const { addressLine1, addressLine2 = '', city, state, postal = '', coordinates } = data;
   if (!addressLine1 || !city || !state) {
     throw new HttpsError('invalid-argument', `Missing address components in request body`);
   }
@@ -46,6 +51,7 @@ export default async ({ data }: CallableRequest) => {
   let basicProfileRes;
   let profile;
   let propertyDetails;
+  // TODO: call getFEMAFloodZone and promise.all
   try {
     if (audience.value() === 'DEV HUMANS' || audience.value() === 'LOCAL HUMANS') {
       info('USING MOCK RESPONSE FROM GITHUB');
@@ -70,6 +76,18 @@ export default async ({ data }: CallableRequest) => {
     // TODO: get property details ??
   } catch (err) {
     throw new HttpsError('internal', `Error fetching property data`);
+  }
+
+  let floodZone = '';
+  try {
+    const latitude = coordinates?.latitude;
+    const longitude = coordinates?.longitude;
+    if (latitude && longitude) {
+      const fzRes = await getFEMAFloodZone(latitude, longitude);
+      if (fzRes) floodZone = fzRes;
+    }
+  } catch (err: any) {
+    error('Error fetching flood zone: ', { err });
   }
 
   if (profile) {
@@ -104,7 +122,7 @@ export default async ({ data }: CallableRequest) => {
     }
 
     try {
-      let validatedRatingData = await validateAttomRes(profile);
+      let validatedRatingData = await validateAttomRes(profile, floodZone);
       let { replacementCost } = validatedRatingData;
       info('validated data: ', { ...validatedRatingData });
 
@@ -170,7 +188,7 @@ interface AttomBasicProfile {
   [key: string]: any;
 }
 
-async function validateAttomRes(attomData: AttomBasicProfile) {
+async function validateAttomRes(attomData: AttomBasicProfile, fz?: string) {
   const { summary, building, assessment } = attomData;
 
   let sqFootage = building?.size?.livingSize || null;
@@ -178,7 +196,7 @@ async function validateAttomRes(attomData: AttomBasicProfile) {
   let replacementCost = tempCalcRCV(assessment);
   let propertyCode = summary?.propType || null;
   let yearBuilt = summary?.yearBuilt || null; // TODO: worth calling details endpoint for effectiveyearbuilt ??
-  let floodZone = ''; // attomData.us_hh_fema_all_params_zone;
+  let floodZone = fz || ''; // attomData.us_hh_fema_all_params_zone;
   let CBRSDesignation = ''; // attomData.us_hh_fema_cbrs_params_designation;
   let basement = building?.interior?.bsmtType ? building?.interior?.bsmtType.toLowerCase() : 'no';
   let distToCoastFeet = 1000000;

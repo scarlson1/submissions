@@ -10,9 +10,9 @@ import {
   Position,
   Properties,
 } from '@turf/turf';
+import axios from 'axios';
 
 import { Submission, FIPS, counties20mURL } from '../common';
-import axios from 'axios';
 
 export let countiesJson: FeatureCollection | undefined;
 

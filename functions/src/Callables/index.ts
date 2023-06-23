@@ -1,4 +1,4 @@
-import { onCall } from 'firebase-functions/v2/https';
+import { CallableRequest, onCall } from 'firebase-functions/v2/https';
 
 import {
   algoliaAdminKey,
@@ -19,6 +19,7 @@ import {
   swissReSubscriptionKey,
   veriskCredsDemo,
 } from '../common';
+import { GetPropertyDetailsAttomRequest } from './getPropertyDetailsAttom.js';
 // import { wrapHttpsOnCallHandler } from '../services/sentryFirebase.js';
 
 export const assignquote = onCall(
@@ -83,7 +84,7 @@ export const getpropertydetailsattom = onCall(
     secrets: [attomKey],
     memory: '128MiB',
   },
-  async (request) => {
+  async (request: CallableRequest<GetPropertyDetailsAttomRequest>) => {
     return (await import('./getPropertyDetailsAttom.js')).default(request);
   }
 );

@@ -60,16 +60,14 @@ export const PoliciesGrid: React.FC<PoliciesGridProps> = ({
   ...props
 }) => {
   const navigate = useNavigate();
-  const showJson = useShowJson(COLLECTIONS.POLICIES);
+  const showJson = useShowJson<Policy>(COLLECTIONS.POLICIES);
 
   const { status: claimsCheckStatus, data: iDAdminResult } = useSigninCheck({
     requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true },
   });
 
   const handleShowJson = useCallback(
-    (params: GridRowParams) => () => {
-      showJson(params.id.toString());
-    },
+    (params: GridRowParams) => () => showJson(params.id.toString()),
     [showJson]
   );
 
@@ -187,7 +185,7 @@ export const PoliciesGrid: React.FC<PoliciesGridProps> = ({
   return (
     <Box>
       <ServerDataGrid
-        collName='SUBMISSIONS'
+        collName='POLICIES'
         columns={policyColumns}
         density='compact'
         autoHeight

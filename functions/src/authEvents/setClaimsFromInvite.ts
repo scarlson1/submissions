@@ -47,7 +47,9 @@ export default async (user: UserRecord, context: EventContext<Record<string, str
 
       info(`Setting invite status to accepted ${inviteRef.id}`);
       await inviteRef.update({ status: 'accepted' });
-    } catch (err) {}
+    } catch (err: any) {
+      error('Error updating iDemand users claims from invite', { err });
+    }
   }
 
   return;
