@@ -34,6 +34,7 @@ export { LocationsMap } from './LocationsMap';
 export { TaxForm } from './TaxForm';
 export { SubmissionsGrid } from './SubmissionsGrid';
 export { LicenseForm } from './LicenseForm';
+export { QuoteForm } from './QuoteForm';
 
 export type { FormikAddressProps } from './FormikAddress';
 export type { DeductibleStepProps } from './DeductibleStep';

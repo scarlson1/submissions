@@ -28,8 +28,9 @@ import {
 } from 'views';
 import {
   SubmissionView,
-  Submissions as AdminSubmissions,
+  // Submissions as AdminSubmissions,
   QuoteNew,
+  QuoteNewFromSub,
   SLTaxes,
   SLTaxNew,
   EditActiveStates,
@@ -39,7 +40,7 @@ import {
   Licenses,
   AgencyApp,
   AgencyApps,
-  Quotes as AdminQuotes,
+  // Quotes as AdminQuotes,
   PolicyDelivery,
   // Policies as PoliciesAdmin,
   DisclosureNew,
@@ -51,6 +52,7 @@ import {
   Users,
   SLTaxEdit,
   LicenseEdit,
+  QuoteEdit,
   // PortfolioRating,
 } from 'views/admin';
 // import { Submissions as AgentSubmissions } from 'views/agent';
@@ -61,7 +63,6 @@ import { BindSuccess } from 'elements/SuccessStep';
 import { TasksPagination } from 'views/admin/TasksPagination';
 import { RequireAuthReactFire, getRequiredClaimValidator } from 'components/RequireAuthReactFire';
 import { Disclosures } from 'views/admin/Disclosures';
-import { QuoteNewFromSub } from 'views/admin/QuoteNew';
 import { PoliciesMap } from 'elements/PoliciesMap';
 import { AuthActionsProvider } from 'modules/components';
 import { TempWrappedSearch } from 'components/search/Search';
@@ -637,7 +638,8 @@ export const router = sentryCreateBrowserRouter([
             path: ADMIN_ROUTES.SUBMISSIONS,
             element: (
               <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
-                <AdminSubmissions />
+                {/* <AdminSubmissions /> */}
+                <Submissions />
               </RequireAuthReactFire>
             ),
             // loader: adminSubmissionsLoader,
@@ -734,7 +736,7 @@ export const router = sentryCreateBrowserRouter([
             path: ADMIN_ROUTES.QUOTE_EDIT,
             element: (
               <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
-                <QuoteNewFromSub />
+                <QuoteEdit />
               </RequireAuthReactFire>
             ),
             handle: {
@@ -765,7 +767,8 @@ export const router = sentryCreateBrowserRouter([
             path: ADMIN_ROUTES.QUOTES,
             element: (
               <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
-                <AdminQuotes />
+                {/* <AdminQuotes /> */}
+                <Quotes />
               </RequireAuthReactFire>
             ),
             handle: {

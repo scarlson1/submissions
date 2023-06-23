@@ -4,7 +4,7 @@ import invariant from 'tiny-invariant';
 
 import { useAsyncToast } from './useAsyncToast';
 import { LineOfBusiness, SubjectBaseItems, Tax, TaxItem, TransactionType, WithId } from 'common';
-import { FeeItem, NewQuoteValues } from 'views/admin/QuoteNew';
+import { FeeItem, NewQuoteValues } from 'views/admin/QuoteNew.Old';
 import { sumByTypes } from 'modules/utils';
 
 export type SubjectBaseKeyVal = Record<Exclude<SubjectBaseItems, 'fixedFee' | 'noFee'>, number>;

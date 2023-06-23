@@ -14,7 +14,7 @@ import invariant from 'tiny-invariant';
 import { isEmpty, round } from 'lodash';
 import { endOfToday, startOfDay, isValid } from 'date-fns';
 
-import { NewQuoteValues } from 'views/admin/QuoteNew';
+import { NewQuoteValues } from 'views/admin/QuoteNew.Old';
 import { addToDate, extractNumber, getGeoHash, readableFirebaseCode } from 'modules/utils/helpers';
 import { QUOTE_STATUS, Submission, Quote, quotesCollection, licensesCollection } from 'common';
 import { useSendQuoteNotification } from './useSendQuoteNotification';

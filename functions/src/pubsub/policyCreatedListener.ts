@@ -4,7 +4,6 @@ import { error, info } from 'firebase-functions/logger';
 import type { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 import {
   Policy,
-  // PolicyLocation,
   policiesCollection,
   ratingDataCollection,
   transactionsCollection,

@@ -17,7 +17,7 @@ import {
   TaxItem,
 } from 'common/types';
 import { geohashForLocation } from 'geofire-common';
-import { FeeItem } from 'views/admin/QuoteNew';
+import { FeeItem } from 'views/admin/QuoteNew.Old';
 
 /**
  * extracts address string from Google address_components object.

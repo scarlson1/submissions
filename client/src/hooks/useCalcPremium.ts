@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react';
 import { useFunctions } from 'reactfire';
 import invariant from 'tiny-invariant';
 
-import { NewQuoteValues } from 'views/admin/QuoteNew';
+import { NewQuoteValues } from 'views/admin/QuoteNew.Old';
 import { CalcQuoteRequest, calcQuote } from 'modules/api';
 import { RatingInputs } from 'modules/api/getAnnualPremium';
 import { Optional } from 'common';
