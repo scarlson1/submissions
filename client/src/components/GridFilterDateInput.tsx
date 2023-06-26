@@ -1,19 +1,23 @@
 import React from 'react';
 import { GridFilterInputValueProps } from '@mui/x-data-grid';
 import { DatePicker, DateTimePicker } from '@mui/x-date-pickers';
-import { isDate } from 'date-fns';
-import { Timestamp } from 'firebase/firestore';
+// import { isDate } from 'date-fns';
+// import { Timestamp } from 'firebase/firestore';
 
 export function GridFilterDateInput(props: GridFilterInputValueProps & { showTime?: boolean }) {
   const { item, showTime, applyValue, apiRef } = props;
 
   const Component = showTime ? DateTimePicker : DatePicker;
 
+  // if (typeof newValue === 'string') {
+  //   if (isDate(new Date(newValue))) {
+  //     console.log('CONVERTING TO TIMESTAMP');
+  //   }
+  // }
+  // if (newValue instanceof Date) {
+  //   newValue = Timestamp.fromDate(new Date(newValue));
+  // }
   const handleFilterChange = (newValue: unknown) => {
-    if (newValue && typeof newValue === 'string' && isDate(new Date(newValue)))
-      newValue = Timestamp.fromDate(new Date(newValue));
-
-    console.log('new date val: ', newValue);
     applyValue({ ...item, value: newValue });
   };
 

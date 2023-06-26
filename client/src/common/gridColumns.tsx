@@ -812,6 +812,7 @@ export const propertyCodeCol: GridColDef = {
 
 export const ratingDataPropertyCodeCol: GridColDef = {
   ...propertyCodeCol,
+  field: 'ratingPropertyData.propertyCode',
   valueGetter: (params: GridValueGetterParams<any, any>) =>
     params.row.ratingPropertyData?.propertyCode ?? null,
 };

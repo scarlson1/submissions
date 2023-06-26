@@ -17,6 +17,7 @@ import {
   orderBy,
   QueryFieldFilterConstraint,
   QueryOrderByConstraint,
+  Timestamp,
   where,
   WhereFilterOp,
 } from 'firebase/firestore';
@@ -140,8 +141,11 @@ export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
         if ((valDefined || isNotEmptyFilter) && !isEmptyArr && isFilterOp) {
           let op = f.operator as WhereFilterOp;
           let val = f.value ?? false;
+          console.log('val is timestamp: ', val instanceof Timestamp);
+          console.log('val is date: ', val instanceof Date);
+          if (val instanceof Date) val = Timestamp.fromDate(new Date(val));
 
-          if (isInequalityOp(op)) newFilters.push(orderBy(f.field));
+          if (isInequalityOp(op)) newFilters.push(orderBy(f.field, 'desc'));
           if (op) newFilters.push(where(f.field, op, val));
         }
       });

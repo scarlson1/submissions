@@ -53,6 +53,7 @@ import {
   copyBaseProps,
   tsunamiAALCol,
   submissionsCollection,
+  addressSummaryCol,
 } from 'common';
 
 export interface SubmissionsGridProps
@@ -181,6 +182,7 @@ export const SubmissionsGrid = ({ renderActions = () => [], ...props }: Submissi
         editable: iDAdminResult?.hasRequiredClaims,
         filterable: true,
       },
+      addressSummaryCol,
       {
         ...addrLine1Col,
         description: 'Submission address to be used for insured location',
@@ -292,13 +294,23 @@ export const SubmissionsGrid = ({ renderActions = () => [], ...props }: Submissi
             columnVisibilityModel: {
               firstName: false,
               lastName: false,
+              'address.addressLine1': false,
               'address.addressLine2': false,
+              'address.city': false,
+              'address.state': false,
               'address.postal': false,
               'address.countyName': false,
               'address.countyFIPS': false,
+              'limits.limitA': false,
+              'limits.limitB': false,
+              'limits.limitC': false,
+              'limits.limitD': false,
               latitude: false,
               longitude: false,
-              updated: false,
+              'AAL.inland': false,
+              'AAL.surge': false,
+              'AAL.tsunami': false,
+              'metadata.updated': false,
               'ratingPropertyData.replacementCost': false,
               'ratingPropertyData.propertyCode': false,
               'ratingPropertyData.yearBuilt': false,
@@ -318,7 +330,7 @@ export const SubmissionsGrid = ({ renderActions = () => [], ...props }: Submissi
               // CBRSDesignation: false,
               // floodZone: false,
               priorLossCount: false,
-              spatialKeyDocId: false,
+              propertyDataDocId: false,
             },
           },
           sorting: {

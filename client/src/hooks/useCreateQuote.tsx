@@ -19,8 +19,9 @@ import { addToDate, extractNumber, getGeoHash, readableFirebaseCode } from 'modu
 import { QUOTE_STATUS, Submission, Quote, quotesCollection, licensesCollection } from 'common';
 import { useSendQuoteNotification } from './useSendQuoteNotification';
 import { CUSTOM_CLAIMS } from 'modules/components';
+import { QuoteValues } from 'elements/QuoteForm';
 
-const CARD_FEE_RATE = 0.035;
+export const CARD_FEE_RATE = 0.035;
 
 export const useCreateQuote = (
   onComplete?: () => void | Promise<void>,
@@ -110,7 +111,7 @@ export const useCreateQuote = (
   return createQuote;
 };
 
-function getFormattedQuote(values: NewQuoteValues, uid?: string | null): Quote {
+function getFormattedQuote(values: QuoteValues, uid?: string | null): Quote {
   const {
     address,
     limits,
@@ -131,7 +132,7 @@ function getFormattedQuote(values: NewQuoteValues, uid?: string | null): Quote {
   } = values;
 
   // TODO: validation
-  invariant(quoteTotal, 'Missing quote total');
+  invariant(quoteTotal, 'missing quote total');
   invariant(annualPremium, 'missing annualPremium');
   invariant(namedInsured?.email || agent?.email, 'Must have at least one email (insured or agent)');
   invariant(isValid(effectiveDate), 'Invalid effective date');
