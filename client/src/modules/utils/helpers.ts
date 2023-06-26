@@ -453,10 +453,17 @@ export const isRangeComparison = (op: string) => {
   return ['<', '<=', '>', '>='].includes(op);
 };
 
+const inEqualityOps = ['<', '<=', '!=', 'not-in', '>', '>='];
+
+export const isInequalityOp = (op: string) => inEqualityOps.includes(op);
+
+// TODO: delete once filterOperators are built to match firestore query operators
 export const muiOperatorToFirestoreOperator = (op: string): WhereFilterOp | null => {
   switch (op) {
     // TYPE = NUMBER
     case '=':
+      return '==';
+    case '==':
       return '==';
     case '!=':
       return '!=';

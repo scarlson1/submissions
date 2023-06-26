@@ -238,6 +238,9 @@ const commOptions = COMMISSION_OPTIONS.map((o: number) => ({
   label: `${(o * 100).toFixed(0)}%`,
   value: o,
 }));
+export const FLOOD_ZONE_OPTIONS = ['A', 'B', 'C', 'D', 'V', 'X', 'AE', 'AO', 'AH', 'AR', 'VE'];
+export const CBRS_OPTIONS = ['IN', 'OUT'];
+export const PRIOR_LOSS_COUNT_OPTIONS = ['0', '1', '2', '3'];
 
 const gridProps = {
   columnSpacing: { xs: 3, sm: 4, md: 6 },
@@ -871,11 +874,7 @@ export const QuoteForm = ({
                 id='priorLossCount'
                 label='Prior Loss Count'
                 name='priorLossCount'
-                selectOptions={[
-                  { label: '0', value: '0' },
-                  { label: '1', value: '1' },
-                  { label: '2', value: '2' },
-                ]}
+                selectOptions={PRIOR_LOSS_COUNT_OPTIONS}
               />
             </Grid>
             <Grid xs={6} sm={4} md={3} lg={2}>
@@ -885,11 +884,12 @@ export const QuoteForm = ({
                 label='CBRS Designation'
                 name='ratingPropertyData.CBRSDesignation'
                 required
-                selectOptions={[
-                  // { label: 'Unknown', value: '' },
-                  { label: 'Out', value: 'OUT' },
-                  { label: 'In', value: 'IN' },
-                ]}
+                selectOptions={CBRS_OPTIONS}
+                // selectOptions={[
+                //   // { label: 'Unknown', value: '' },
+                //   { label: 'Out', value: 'OUT' },
+                //   { label: 'In', value: 'IN' },
+                // ]}
               />
             </Grid>
             <Grid xs={6} sm={4} md={3} lg={2}>
@@ -913,7 +913,7 @@ export const QuoteForm = ({
                 id='ratingPropertyData.floodZone'
                 label='Flood Zone'
                 name='ratingPropertyData.floodZone'
-                selectOptions={['A', 'B', 'C', 'D', 'V', 'X', 'AE', 'AO', 'AH', 'AR', 'VE']}
+                selectOptions={FLOOD_ZONE_OPTIONS}
                 required
               />
             </Grid>

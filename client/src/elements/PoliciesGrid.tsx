@@ -141,6 +141,7 @@ export const PoliciesGrid: React.FC<PoliciesGridProps> = ({
           POLICY_STATUS.CANCELLED,
         ],
         editable: claimsCheckStatus === 'success' && iDAdminResult.hasRequiredClaims,
+        filterable: true,
       },
       productCol,
       locationAddresses,

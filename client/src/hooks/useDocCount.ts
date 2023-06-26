@@ -25,8 +25,9 @@ export function useDocCount(
 
   return useCallback(() => {
     const collectionRef = collection(db, COLLECTIONS[collName]);
+    const filteredConstraints = constraints.filter((c) => c.type === 'where');
 
-    return getCountFromServer(query(collectionRef, ...constraints));
+    return getCountFromServer(query(collectionRef, ...filteredConstraints));
   }, [db, constraints, collName]);
 }
 

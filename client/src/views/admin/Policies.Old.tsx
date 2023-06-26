@@ -121,6 +121,7 @@ export const Policies: React.FC = () => {
           POLICY_STATUS.CANCELLED,
         ],
         editable: true,
+        filterable: true,
       },
       addrLine1Col,
       addrLine2Col,

@@ -11,7 +11,6 @@ import {
   GridFilterModel,
   GridPaginationModel,
   GridSortModel,
-  // useGridApiRef,
 } from '@mui/x-data-grid';
 import {
   DocumentSnapshot,
@@ -19,12 +18,13 @@ import {
   QueryFieldFilterConstraint,
   QueryOrderByConstraint,
   where,
+  WhereFilterOp,
 } from 'firebase/firestore';
+// import { toast } from 'react-hot-toast';
 
 import { useDocCount, useFetchDocsWithCursor } from 'hooks';
 import { COLLECTIONS } from 'common';
-import { isRangeComparison, muiOperatorToFirestoreOperator } from 'modules/utils';
-import { toast } from 'react-hot-toast';
+import { isInequalityOp, isWhereFilterOp } from 'modules/utils';
 
 // FIREBASE PAGINATION ARTICLE: https://makerkit.dev/blog/tutorials/pagination-react-firebase-firestore
 
@@ -45,7 +45,6 @@ export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
   columns,
   ...rest
 }) => {
-  // const gridApiRef = useGridApiRef()
   // const [isPending, startTransition] = useTransition();
   // const [densityV, setDensity] = useState<GridDensity>(density);
   const [rowCount, setRowCount] = useState<number>(0);
@@ -62,7 +61,6 @@ export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
   const [filters, setFilters] = useState<(QueryFieldFilterConstraint | QueryOrderByConstraint)[]>(
     []
   );
-  // const filters = useRef<(QueryFieldFilterConstraint | QueryOrderByConstraint)[]>([]);
 
   const queryOptions = useMemo(
     () => [...filters, ...constraints, ...sortOps.current],
@@ -118,48 +116,47 @@ export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
     sortModel.forEach((f) => {
       if (f.sort) newOptions.push(orderBy(f.field, f.sort));
     });
-    // MOVE sort query options to useRef instead of useState ?? triggers query update --> data triggers rerender ??
 
     sortOps.current = [...newOptions];
     startTransition(() => {
       setSortModel([...sortModel]);
-      // setSortOptions([...newOptions]);
     });
   }, []);
 
   // TODO: create custom grid filter operators that map to firebase
   // https://mui.com/x/react-data-grid/filtering/customization/#create-a-custom-operator
-  const handleFilterChange = useCallback((filterModel: GridFilterModel) => {
-    console.log('FILTER MODEL: ', filterModel);
-    const newFilters: (QueryFieldFilterConstraint | QueryOrderByConstraint)[] = [];
-    // TODO: mui grid operator to firebase operator convertion (datetime "after" =>  ">", "is" => "==")
-    // TODO: create custom operators that map to firestore - https://mui.com/x/react-data-grid/filtering/#create-a-custom-operator
-    // OR - remove operators - https://mui.com/x/react-data-grid/filtering/#remove-an-operator
-    // TODO: check for limitations - https://firebase.google.com/docs/firestore/query-data/queries#query_limitations
+  const handleFilterChange = useCallback(
+    (filterModel: GridFilterModel, details: GridCallbackDetails) => {
+      console.log('FILTER MODEL: ', filterModel, details);
+      const newFilters: (QueryFieldFilterConstraint | QueryOrderByConstraint)[] = [];
+      // TODO: check for limitations - https://firebase.google.com/docs/firestore/query-data/queries#query_limitations
 
-    filterModel.items.forEach((f) => {
-      // TODO: use segments to construct field string or force all column definitions to match DB ??
-      //    -- where does segments come from ? getterFunc ??
-      // TODO: bug - isNotEmpty passes a value of undefined
-      if (f.value !== undefined && f.operator) {
-        let op = muiOperatorToFirestoreOperator(f.operator);
-        let val = f.operator === 'isNotEmpty' ? false : f.value;
-        if (op) newFilters.push(where(f.field, op, val));
-        // TODO: handle isNotEmpty (where('field', '!=', false))
-        // FIRESTORE LIMITATION - MUST SORT BY COLUMN IF USING >, < >=, <= OPERATORS
-        if (isRangeComparison(f.operator)) newFilters.push(orderBy(f.field));
-      }
-    });
+      filterModel.items.forEach((f) => {
+        let isNotEmptyFilter = f.value !== undefined || f.operator === '!=';
+        let valDefined = f.value !== undefined;
+        let isEmptyArr = Array.isArray(f.value) && !f.value?.length;
+        const isFilterOp = isWhereFilterOp(f.operator);
 
-    toast.error('Filter functionality not implemented yet', { id: 'filter-warning' });
+        if ((valDefined || isNotEmptyFilter) && !isEmptyArr && isFilterOp) {
+          let op = f.operator as WhereFilterOp;
+          let val = f.value ?? false;
 
-    console.log('NEW FILTERS: ', newFilters);
-    // TODO: useRef to store filters ??
-    startTransition(() => {
-      setFilters([...newFilters]);
-      // filters.current = [...newFilters];
-    });
-  }, []);
+          if (isInequalityOp(op)) newFilters.push(orderBy(f.field));
+          if (op) newFilters.push(where(f.field, op, val));
+        }
+      });
+
+      // toast.error('Warning: filter functionality not fully implemented yet', {
+      //   id: 'filter-warning',
+      // });
+
+      console.log('NEW FILTERS: ', newFilters);
+      startTransition(() => {
+        setFilters([...newFilters]);
+      });
+    },
+    []
+  );
 
   // const rowHeight = useMemo(() => {
   //   console.log('ROW HEIGHT CHANGE: ', density);

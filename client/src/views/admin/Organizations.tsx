@@ -69,7 +69,11 @@ export const Organizations: React.FC = () => {
       //   ],
       // },
       orgNameCol,
-      statusCol,
+      {
+        ...statusCol,
+        valueOptions: ['active', 'inactive'],
+        filterable: true,
+      },
       {
         field: 'contactName',
         headerName: 'Contact Name',

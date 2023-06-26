@@ -16,6 +16,7 @@ import {
   expirationDateCol,
   idCol,
   phoneCol,
+  stateCol,
   updatedCol,
 } from 'common';
 import { useSigninCheck } from 'reactfire';
@@ -64,13 +65,14 @@ export const Licenses: React.FC = () => {
         ...idCol,
         headerName: 'Doc ID',
       },
-      {
-        field: 'state',
-        headerName: 'State',
-        minWidth: 64,
-        flex: 0.5,
-        editable: false,
-      },
+      stateCol,
+      // {
+      //   field: 'state',
+      //   headerName: 'State',
+      //   minWidth: 64,
+      //   flex: 0.5,
+      //   editable: false,
+      // },
       {
         field: 'ownerType',
         headerName: 'Owner Type',

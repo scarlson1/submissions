@@ -96,7 +96,7 @@ export const getSecondaryModifiers = ({
 }: SecondaryModifiersProps) => {
   const secondaryModifiers = initialValues;
 
-  let { inland_ffe_factor, surge_ffe_factor, tsunami_ffe_factor } = getFirstFloorDiffFactors(FFH);
+  const { inland_ffe_factor, surge_ffe_factor, tsunami_ffe_factor } = getFirstFloorDiffFactors(FFH);
   secondaryModifiers.ffeMult = {
     inland: inland_ffe_factor,
     surge: surge_ffe_factor,

@@ -13,7 +13,7 @@ import { useGetDiff, useJsonDialog } from 'hooks';
 // TODO: use something like recoil for automatically derived state ??
 // TODO: generalize component
 
-export function Diff({
+export const Diff = ({
   ratingInputsPrev,
   rerateFields,
   checkFields,
@@ -27,7 +27,7 @@ export function Diff({
   setRatingState: (newVals: { rerateRequired: boolean; recalcRequired: boolean }) => void;
   extractInputsFromValues: (values: any) => Record<string, any>;
   checkFields?: string[];
-}) {
+}) => {
   const { values } = useFormikContext<any>();
   const dialog = useJsonDialog();
   const [getDiff, diff, isDiff] = useGetDiff(checkFields);
@@ -123,4 +123,4 @@ export function Diff({
       </Tooltip>
     </>
   );
-}
+};

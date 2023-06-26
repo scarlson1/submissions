@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { Box, Button, Tooltip, Typography } from '@mui/material';
+import { EditRounded } from '@mui/icons-material';
 import {
   GridActionsCellItem,
   GridColDef,
@@ -8,9 +9,9 @@ import {
   GridValueFormatterParams,
 } from '@mui/x-data-grid';
 import { useNavigate } from 'react-router-dom';
+import { limit, orderBy } from 'firebase/firestore';
 
 import { BasicDataGrid } from 'components';
-import { limit, orderBy } from 'firebase/firestore';
 import { formatGridCurrency, formatGridPercent } from 'modules/utils/helpers';
 import { createPath, ADMIN_ROUTES } from 'router';
 import { useCollectionData } from 'hooks';
@@ -27,7 +28,6 @@ import {
   subjectBaseCol,
   updatedCol,
 } from 'common';
-import { EditRounded } from '@mui/icons-material';
 
 export const SLTaxes = () => {
   const navigate = useNavigate();
@@ -109,34 +109,42 @@ export const SLTaxes = () => {
       {
         field: 'baseRoundType',
         headerName: 'Base Round',
+        type: 'number',
         minWidth: 100,
         flex: 0.6,
         editable: false,
+        filterable: false,
       },
       {
         field: 'baseDigits',
         headerName: 'Base Digits',
+        type: 'number',
         minWidth: 100,
         flex: 0.6,
         headerAlign: 'center',
         align: 'right',
         editable: false,
+        filterable: false,
       },
       {
         field: 'resultRoundType',
         headerName: 'Result Round',
+        type: 'number',
         minWidth: 100,
         flex: 0.6,
         editable: false,
+        filterable: false,
       },
       {
         field: 'resultDigits',
         headerName: 'Result Round',
+        type: 'number',
         minWidth: 100,
         flex: 0.6,
         headerAlign: 'center',
         align: 'right',
         editable: false,
+        filterable: false,
       },
       {
         field: 'refundable',
@@ -172,8 +180,10 @@ export const SLTaxes = () => {
           initialState={{
             columns: {
               columnVisibilityModel: {
-                // baseDigits: false,
-                // resultDigits: false,
+                baseRoundType: false,
+                baseDigits: false,
+                resultRoundType: false,
+                resultDigits: false,
                 id: false,
               },
             },

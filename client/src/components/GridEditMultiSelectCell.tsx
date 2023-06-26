@@ -21,12 +21,30 @@ import {
   useGridRootProps,
 } from '@mui/x-data-grid';
 import { GridBaseColDef } from '@mui/x-data-grid/internals';
-import { isEscapeKey } from '@mui/x-data-grid/utils/keyboardUtils';
+import { isEscapeKey, isKeyboardEvent } from '@mui/x-data-grid/utils/keyboardUtils';
 
 // DOCS: https://mui.com/x/react-data-grid/editing/#create-your-own-edit-component
 
 // SINGLE SELECT EDIT COMPONENT:
 // https://github.com/mui/mui-x/blob/master/packages/grid/x-data-grid/src/components/cell/GridEditSingleSelectCell.tsx
+
+export interface GridEditMultiSelectCellProps
+  extends Omit<GridRenderEditCellParams, 'colDef'>,
+    Omit<SelectProps, 'id' | 'tabIndex' | 'value'>,
+    Pick<GridSingleSelectColDef, 'getOptionLabel' | 'getOptionValue'> {
+  /**
+   * Callback called when the value is changed by the user.
+   * @param {SelectChangeEvent<any>} event The event source of the callback.
+   * @param {any} newValue The value that is going to be passed to `apiRef.current.setEditCellValue`.
+   * @returns {Promise<void> | void} A promise to be awaited before calling `apiRef.current.setEditCellValue`
+   */
+  onValueChange?: (event: SelectChangeEvent<any>, newValue: any) => Promise<void> | void;
+  /**
+   * If true, the select opens by default.
+   */
+  initialOpen?: boolean;
+  colDef: MultiSelectColDef;
+}
 
 export function GridEditMultiSelectCell(props: GridEditMultiSelectCellProps) {
   // console.log('CUSTOM MULTI SELECT PROPS: ', props);
@@ -199,6 +217,10 @@ export function GridEditMultiSelectCell(props: GridEditMultiSelectCellProps) {
   );
 }
 
+export const renderEditMultiSelectCell = (params: GridEditMultiSelectCellProps) => (
+  <GridEditMultiSelectCell {...params} />
+);
+
 /**
  * Column Definition interface used for columns with the `multiSelect` type.
  */
@@ -237,27 +259,9 @@ type MultiSelectColDef = GridRenderEditCellParams['colDef'] & {
   autoStopEditMode?: boolean;
 };
 
-export interface GridEditMultiSelectCellProps
-  extends Omit<GridRenderEditCellParams, 'colDef'>,
-    Omit<SelectProps, 'id' | 'tabIndex' | 'value'>,
-    Pick<GridSingleSelectColDef, 'getOptionLabel' | 'getOptionValue'> {
-  /**
-   * Callback called when the value is changed by the user.
-   * @param {SelectChangeEvent<any>} event The event source of the callback.
-   * @param {any} newValue The value that is going to be passed to `apiRef.current.setEditCellValue`.
-   * @returns {Promise<void> | void} A promise to be awaited before calling `apiRef.current.setEditCellValue`
-   */
-  onValueChange?: (event: SelectChangeEvent<any>, newValue: any) => Promise<void> | void;
-  /**
-   * If true, the select opens by default.
-   */
-  initialOpen?: boolean;
-  colDef: MultiSelectColDef;
-}
-
 // SINGLE SELECT UTILS REF: https://github.com/mui/mui-x/blob/master/packages/grid/x-data-grid/src/components/panel/filterPanel/filterPanelUtils.ts
 
-export function isMultiSelectColDef(colDef: GridColDef | null): colDef is GridSingleSelectColDef {
+export function isMultiSelectColDef(colDef: GridColDef | null): colDef is GridMultiSelectColDef {
   return colDef?.type === 'multiSelect';
 }
 
@@ -281,16 +285,12 @@ export function getLabelFromValueOption(valueOption: ValueOptions) {
   return label != null ? String(label) : '';
 }
 
-const defGetOptionValue = (option: string | number | Record<string, any>) => {
+export const defGetOptionValue = (option: string | number | Record<string, any>) => {
   if (typeof option === 'string' || typeof option === 'number') return option;
   return option?.value || '';
 };
 
-const defGetOptionLabel = (option: string | number | Record<string, any>) => {
+export const defGetOptionLabel = (option: string | number | Record<string, any>) => {
   if (typeof option === 'string' || typeof option === 'number') return option;
   return option?.label || '';
 };
-
-function isKeyboardEvent(event: any): event is React.KeyboardEvent {
-  return !!event.key;
-}

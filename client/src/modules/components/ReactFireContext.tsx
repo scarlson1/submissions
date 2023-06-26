@@ -18,6 +18,10 @@ import {
 
 import { firebaseConfig } from 'firebaseConfig';
 
+// look at: https://stackoverflow.com/a/67257713
+// experimentalAutoDetectLongPolling: true,
+//     experimentalForceLongPolling: true
+
 // TODO: set up remote config: https://github.com/FirebaseExtended/reactfire/blob/main/example/withSuspense/RemoteConfig.tsx
 
 // TODO: ONLY WRAP REMOTE CONFIG PROVIDER AROUND COMPONENTS THAT USE IT

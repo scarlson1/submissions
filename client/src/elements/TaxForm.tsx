@@ -14,7 +14,15 @@ import { PercentRounded } from '@mui/icons-material';
 import { startOfYear, lastDayOfYear } from 'date-fns';
 import * as yup from 'yup';
 
-import { LineOfBusiness, Product, RoundingType, SubjectBaseItems, TransactionType } from 'common';
+import {
+  LOB_OPTIONS,
+  LineOfBusiness,
+  PRODUCT_OPTIONS,
+  Product,
+  RoundingType,
+  SubjectBaseItems,
+  TransactionType,
+} from 'common';
 import { statesAbrvSelectOptions } from 'common/statesList';
 import {
   FormikCheckbox,
@@ -28,8 +36,12 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { ADMIN_ROUTES, createPath } from 'router';
 
-const TRANSACTION_OPTIONS = ['new', 'renewal', 'endorsement', 'cancellation'];
-const PRODUCT_OPTIONS = ['flood', 'wind'];
+export const TRANSACTION_OPTIONS: TransactionType[] = [
+  'new',
+  'renewal',
+  'endorsement',
+  'cancellation',
+];
 
 export const newTaxValidation = yup.object().shape({
   state: yup.string().required(),
@@ -272,7 +284,7 @@ export const TaxForm = ({ onSubmit, initialValues = DEFAULT_INIT_VALUES }: TaxFo
             <FormikSelect
               name='LOB'
               label='LOB'
-              selectOptions={['residential', 'commercial']}
+              selectOptions={LOB_OPTIONS}
               multiple // @ts-ignore
               renderValue={(selected: string[]) => (
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.8 }}>

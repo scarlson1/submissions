@@ -1,5 +1,6 @@
 // import { GridColDef } from '@mui/x-data-grid';
 import { ProviderId } from 'firebase/auth';
+import { Product } from './types';
 // import { renderGridEmail } from 'components/RenderGridCellHelpers';
 
 export const SUPPORTED_AUTH_PROVIDER_IDS = [
@@ -14,6 +15,10 @@ export const STATES_URL = 'https://scarlson1.github.io/data/states_20m.json';
 export const COUNTIES_URL = 'https://scarlson1.github.io/data/counties_20m.json';
 
 export const MAP_ICON_URL = 'https://scarlson1.github.io/icon-atlas.png';
+
+export const PRODUCT_OPTIONS: Product[] = ['flood', 'wind'];
+
+export const LOB_OPTIONS: string[] = ['residential', 'commercial'];
 
 // export const ACTIVE_STATES = [
 //   'Arizona',

@@ -31,6 +31,8 @@ export { Carousel } from './Carousel';
 export { Copy } from './Copy';
 export { RemoteConfigWrapper } from './RemoteConfigWrapper';
 export { GridEditMultiSelectCell } from './GridEditMultiSelectCell';
+export { GridFilterInputMultipleMultipleSelect } from './GridFilterInputMultipleMultipleSelectInput';
+// export { GridFilterInputValue } from './GridFilterInputValue';
 
 export type { ConfirmationDialogProps } from './ConfirmationDialog';
 export type { FileLinkProps } from './FileLink';

@@ -140,6 +140,7 @@ export const QuotesGrid: React.FC<QuotesGridProps> = ({
           QUOTE_STATUS.AWAITING_USER,
         ],
         editable: Boolean(claims?.iDemandAdmin),
+        filterable: true,
       },
       addressSummaryCol,
       addrLine1Col,

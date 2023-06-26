@@ -17,6 +17,7 @@ import { BasicDataGrid } from 'components';
 import { ADMIN_ROUTES, createPath } from 'router';
 import { useAsyncToast, useCollectionData, useCreateTenant } from 'hooks';
 import {
+  AGENCY_SUBMISSION_STATUS,
   COLLECTIONS,
   addrLine1Col,
   addrLine2Col,
@@ -141,7 +142,16 @@ export const AgencyApps: React.FC = () => {
       },
       { ...idCol, headerName: 'Doc ID' },
       orgNameCol,
-      statusCol,
+      {
+        ...statusCol,
+        valueOptions: [
+          AGENCY_SUBMISSION_STATUS.ACCECPTED,
+          AGENCY_SUBMISSION_STATUS.REJECTED,
+          AGENCY_SUBMISSION_STATUS.REVIEW_REQUIRED,
+          AGENCY_SUBMISSION_STATUS.SUBMITTED,
+        ],
+        filterable: true,
+      },
       {
         field: 'contact',
         headerName: 'Contact',
