@@ -4,8 +4,8 @@ import invariant from 'tiny-invariant';
 
 import { useAsyncToast } from './useAsyncToast';
 import { LineOfBusiness, SubjectBaseItems, Tax, TaxItem, TransactionType, WithId } from 'common';
-import { FeeItem, NewQuoteValues } from 'views/admin/QuoteNew.Old';
 import { sumByTypes } from 'modules/utils';
+import { FeeItem, QuoteValues } from 'elements/QuoteForm';
 
 export type SubjectBaseKeyVal = Record<Exclude<SubjectBaseItems, 'fixedFee' | 'noFee'>, number>;
 interface StateTaxRequest extends SubjectBaseKeyVal {
@@ -40,7 +40,7 @@ export const useFetchTaxes = (
   const toast = useAsyncToast({ position: 'bottom-center' });
 
   const fetchTaxes = useCallback(
-    async (values: NewQuoteValues, transactionType: TransactionType) => {
+    async (values: QuoteValues, transactionType: TransactionType) => {
       if (!values) return toast.error('missing values');
       const { annualPremium, address, fees } = values;
 

@@ -13,7 +13,7 @@ export function validateCommonInputs(values: NewQuoteValues) {
 
   invariant(address?.state, 'state required');
   invariant(
-    ratingPropertyData?.replacementCost && ratingPropertyData?.replacementCost > 100000,
+    ratingPropertyData?.replacementCost && ratingPropertyData?.replacementCost >= 100000,
     'replacement cost required (>100k)'
   );
   invariant(ratingPropertyData?.floodZone, 'flood zone required');
@@ -25,13 +25,13 @@ export function validateCommonInputs(values: NewQuoteValues) {
     "subproducer commission required (type: 'number')"
   );
   invariant(
-    deductible && typeof deductible === 'number' && deductible > 1000,
+    deductible && typeof deductible === 'number' && deductible >= 1000,
     'deductible required (min $1,000)'
   );
   // invariant(priorLossCount, 'prior loss count required')
   invariant(limits, 'limits required');
   const { limitA, limitB, limitC, limitD } = limits;
-  invariant(limitA && typeof limitA === 'number' && limitA > 100000, 'limitA must be > 100k');
+  invariant(limitA && typeof limitA === 'number' && limitA >= 100000, 'limitA must be > 100k');
   invariant((limitB || limitB === 0) && typeof limitB === 'number', 'limitB required');
   invariant((limitC || limitC === 0) && typeof limitC === 'number', 'limitC required');
   invariant((limitD || limitD === 0) && typeof limitD === 'number', 'limitD required');
@@ -72,7 +72,11 @@ function getValidatedCalcInputs(values: NewQuoteValues) {
 }
 
 export const useCalcPremium = (
-  onSuccess?: (newPremium: number, ratingInputs: Optional<RatingInputs>) => void,
+  onSuccess?: (
+    newPremium: number,
+    ratingInputs: Optional<RatingInputs>,
+    newRatingDocId?: Optional<string>
+  ) => void,
   onError?: (msg: string, err: any) => void,
   submissionId?: string | null
 ) => {
@@ -118,7 +122,7 @@ export const useCalcPremium = (
           longitude: values.coordinates?.longitude,
         };
 
-        if (onSuccess) onSuccess(data.annualPremium, flattenedRatingInputs);
+        if (onSuccess) onSuccess(data.annualPremium, flattenedRatingInputs, data.ratingDocId);
         // onSuccess(data.annualPremium, {
         //   ...validatedReqBody,
         //   latitude: values.coordinates?.latitude,

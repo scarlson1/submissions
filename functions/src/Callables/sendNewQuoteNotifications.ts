@@ -1,8 +1,8 @@
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
+import { error, info } from 'firebase-functions/logger';
 
 import { sendNewQuoteEmail } from '../services/sendgrid';
 import { CLAIMS, hostingBaseURL, sendgridApiKey } from '../common';
-import { error, info } from 'firebase-functions/logger';
 
 export default async ({ data, auth }: CallableRequest) => {
   console.log('data: ', data);

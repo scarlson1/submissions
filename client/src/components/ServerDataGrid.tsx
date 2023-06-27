@@ -8,6 +8,7 @@ import {
   GridFilterModel,
   GridPaginationModel,
   GridSortModel,
+  GridToolbar,
 } from '@mui/x-data-grid';
 import {
   DocumentSnapshot,
@@ -19,9 +20,10 @@ import {
   WhereFilterOp,
 } from 'firebase/firestore';
 
-import { useDocCount, useFetchDocsWithCursor } from 'hooks';
+import { useDocCount, useFetchDocsWithCursor, useWidth } from 'hooks';
 import { COLLECTIONS } from 'common';
 import { isInequalityOp, isWhereFilterOp } from 'modules/utils';
+import { GridMobileToolbar } from './GridMobileToolbar';
 
 // FIREBASE PAGINATION ARTICLE: https://makerkit.dev/blog/tutorials/pagination-react-firebase-firestore
 
@@ -40,8 +42,12 @@ export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
   constraints = [],
   isCollectionGroup = false,
   columns,
+  slots,
+  slotProps,
   ...rest
 }) => {
+  const { isMobile } = useWidth();
+  const toolbar = useMemo(() => (isMobile ? GridMobileToolbar : GridToolbar), [isMobile]);
   // const [isPending, startTransition] = useTransition();
   // const [densityV, setDensity] = useState<GridDensity>(density);
   const [rowCount, setRowCount] = useState<number>(0);
@@ -174,11 +180,23 @@ export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
       <DataGrid
         sx={{
           transition: 'height 0.25s ease-in-out',
+          '& .MuiDataGrid-toolbarContainer': {
+            flexWrap: 'nowrap',
+            overflowX: 'auto',
+            mx: { xs: 2 },
+            '& .MuiButton-root': {
+              flexShrink: 0,
+            },
+          },
+          '& .MuiDataGrid-toolbarContainer::-webkit-scrollbar': {
+            display: 'none',
+          },
           '& .MuiDataGrid-main': {
             maxHeight: { xs: 300, sm: 360, md: 400, lg: 420 },
             overflowY: 'auto',
           },
-          '.MuiDataGrid-main > div:nth-of-type(2)': { overflowY: 'auto !important' },
+          // '& .MuiDataGrid-virtualScroller':
+          '.MuiDataGrid-main > div:nth-child(2)': { overflowY: 'auto !important' },
         }}
         pageSizeOptions={[5, 10, 25, 100]}
         {...rest}
@@ -203,6 +221,14 @@ export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
         onSortModelChange={handleSortModelChange}
         filterMode='server'
         onFilterModelChange={handleFilterChange}
+        slots={{
+          toolbar,
+          ...(slots || {}),
+        }}
+        slotProps={{
+          toolbar: { csvOptions: { allColumns: true } },
+          ...(slotProps || {}),
+        }}
         // slots={{
         //   loadingOverlay: LinearProgress, // displayed when loading = true
         // }}

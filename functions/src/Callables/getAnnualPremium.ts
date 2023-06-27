@@ -3,7 +3,15 @@ import { error, info } from 'firebase-functions/logger';
 import { GeoPoint, Timestamp, getFirestore } from 'firebase-admin/firestore';
 import invariant from 'tiny-invariant';
 
-import { CLAIMS, Coordinates, Limits, defaultFloodZone, ratingDataCollection } from '../common';
+import {
+  CLAIMS,
+  Coordinates,
+  Limits,
+  Optional,
+  ValueByRiskType,
+  defaultFloodZone,
+  ratingDataCollection,
+} from '../common';
 import { getAALs, validateGetAALsProps } from '../utils/rating';
 import { getPremium } from '../utils/rating';
 import { swissReClientId, swissReClientSecret, swissReSubscriptionKey } from '../common';
@@ -24,6 +32,12 @@ interface GetAnnualPremiumRequest {
   submissionId?: string | null;
   locationId?: string | null;
   externalId?: string | null;
+}
+
+export interface GetAnnualPremiumResponse {
+  annualPremium: number;
+  AAL: ValueByRiskType;
+  ratingDocId?: string;
 }
 
 export default async ({ data, auth }: CallableRequest<GetAnnualPremiumRequest>) => {
@@ -68,9 +82,11 @@ export default async ({ data, auth }: CallableRequest<GetAnnualPremiumRequest>) 
     // TODO: DECIDE WHETHER TO HAVE A HARD LIMIT (can't override) ??
     invariant(commissionPct <= 0.2, 'commissionPct must be <= 20% (provided as decimal)');
   } catch (err: any) {
-    console.log('INVALID PROPS: ', err);
+    error('INVALID PROPS: ', { err });
+    let msg = 'request body validation failed';
+    if (err?.message) msg = err.message.replace('Invariant failed: ', '');
 
-    throw new HttpsError('failed-precondition', err.message);
+    throw new HttpsError('failed-precondition', msg);
   }
 
   let AALsRes: GetAALRes | undefined;
@@ -154,9 +170,14 @@ export default async ({ data, auth }: CallableRequest<GetAnnualPremiumRequest>) 
     throw new HttpsError('internal', msg);
   }
 
+  let res: Optional<GetAnnualPremiumResponse> = {
+    annualPremium: result.premiumData.directWrittenPremium,
+    AAL: AALsRes.AAL as ValueByRiskType,
+  };
+
   try {
     const ratingColRef = ratingDataCollection(db);
-    await ratingColRef.add({
+    const ratingDocRef = await ratingColRef.add({
       submissionId: submissionId || null,
       locationId,
       externalId,
@@ -196,12 +217,15 @@ export default async ({ data, auth }: CallableRequest<GetAnnualPremiumRequest>) 
         updated: Timestamp.now(),
       },
     });
+
+    res.ratingDocId = ratingDocRef.id;
   } catch (err) {
     console.log('ERROR SAVING RATING DOC: ', err);
   }
 
-  return {
-    annualPremium: result.premiumData.directWrittenPremium,
-    AAL: AALsRes.AAL,
-  };
+  // return {
+  //   annualPremium: result.premiumData.directWrittenPremium,
+  //   AAL: AALsRes.AAL,
+  // };
+  return res;
 };

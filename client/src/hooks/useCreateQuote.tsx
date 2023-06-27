@@ -140,6 +140,12 @@ function getFormattedQuote(values: QuoteValues, uid?: string | null): Quote {
   let effDateStartOfDay = startOfDay(effectiveDate);
   let expDateStartOfDay = addToDate({ years: 1 }, effDateStartOfDay);
 
+  let numTaxes = taxes.map((t) => ({
+    ...t,
+    value: extractNumber(`${t.value}`) ?? null,
+    rate: extractNumber(`${t.rate}`) ?? null,
+  }));
+
   return {
     product: 'flood', // TODO: pass as prop
     deductible: values.deductible,
@@ -173,7 +179,7 @@ function getFormattedQuote(values: QuoteValues, uid?: string | null): Quote {
     additionalInterests: [],
     annualPremium,
     fees,
-    taxes,
+    taxes: numTaxes,
     subproducerCommission,
     cardFee: round(quoteTotal * CARD_FEE_RATE, 2),
     quoteTotal, // calculate on server ??

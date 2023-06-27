@@ -6,6 +6,7 @@ import { NewQuoteValues } from 'views/admin/QuoteNew.Old';
 import { GetAnnualPremiumRequest, RatingInputs } from 'modules/api/getAnnualPremium';
 import invariant from 'tiny-invariant';
 import { validateCommonInputs } from './useCalcPremium';
+import { Optional } from 'common';
 
 export interface RatingInputsWithAAL extends RatingInputs {
   inlandAAL: number | null;
@@ -52,7 +53,11 @@ export function getValidRatingInputs(values: NewQuoteValues) {
 
 export const useRateQuote = (
   submissionId: string | null,
-  onSuccess?: (premium: number, ratingInputs: RatingInputsWithAAL) => void,
+  onSuccess?: (
+    premium: number,
+    ratingInputs: RatingInputsWithAAL,
+    ratingDocId?: Optional<string>
+  ) => void,
   onError?: (msg: string) => void
   // initialRatingSnap?: Optional<RatingInputs>
 ) => {
@@ -101,7 +106,7 @@ export const useRateQuote = (
         const { data } = await getAnnualPremium(functions, {
           ...reformatRatingInputs,
           submissionId,
-        }); // ...ratingInputs
+        });
 
         console.log('PREMIUM RES: ', data);
         if (!data.annualPremium || typeof data.annualPremium !== 'number') {
@@ -110,12 +115,16 @@ export const useRateQuote = (
 
         const { AAL } = data;
         if (onSuccess)
-          onSuccess(data.annualPremium, {
-            ...ratingInputs,
-            inlandAAL: AAL.inland,
-            surgeAAL: AAL.surge,
-            tsunamiAAL: AAL.tsunami,
-          });
+          onSuccess(
+            data.annualPremium,
+            {
+              ...ratingInputs,
+              inlandAAL: AAL.inland,
+              surgeAAL: AAL.surge,
+              tsunamiAAL: AAL.tsunami,
+            },
+            data.ratingDocId
+          );
         setLoading(false);
 
         return data.annualPremium;

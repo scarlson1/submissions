@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { Box, Tooltip } from '@mui/material';
 import { DataObjectRounded, FloodRounded, MapRounded } from '@mui/icons-material';
-import { GridActionsCellItem, GridColDef, GridRowParams, GridToolbar } from '@mui/x-data-grid';
+import { GridActionsCellItem, GridColDef, GridRowParams } from '@mui/x-data-grid';
 import { useSigninCheck } from 'reactfire';
 
 import { ServerDataGrid, ServerDataGridProps } from 'components';
@@ -260,12 +260,6 @@ export const SubmissionsGrid = ({ renderActions = () => [], ...props }: Submissi
         autoHeight
         // TODO: make "view submission" route exists for all user claim types
         // onCellDoubleClick={}
-        slots={{
-          toolbar: GridToolbar,
-        }}
-        slotProps={{
-          toolbar: { csvOptions: { allColumns: true } },
-        }}
         initialState={{
           columns: {
             columnVisibilityModel: {

@@ -1,15 +1,7 @@
 import { Limits, ValueByRiskType } from 'common';
 import { Functions, httpsCallable } from 'firebase/functions';
 
-// import { functions } from 'firebaseConfig';
-
 export interface CalcQuoteRequest {
-  // limitA: number;
-  // limitB: number;
-  // limitC: number;
-  // limitD: number;
-  // inlandAAL: number;
-  // surgeAAL: number;
   limits: Limits;
   AAL: ValueByRiskType;
   replacementCost: number;
@@ -24,6 +16,7 @@ export interface CalcQuoteRequest {
 
 export interface CalcQuoteResponse {
   annualPremium: number;
+  ratingDocId?: string;
 }
 
 export const calcQuote = (functions: Functions, args: CalcQuoteRequest) =>
