@@ -37,7 +37,7 @@ const useEditQuote = (
   const editQuote = useCallback(
     async (newValues: QuoteValues) => {
       try {
-        invariant(!authCheckResult.hasRequiredClaims, 'missing admin permissions');
+        invariant(authCheckResult.hasRequiredClaims, 'missing admin permissions');
         invariant(newValues.quoteTotal, 'missing quote total');
         invariant(newValues.annualPremium, 'missing annual premium');
         invariant(
@@ -147,6 +147,7 @@ export const QuoteEdit = () => {
     (msg: string, err: any) => toast.error(msg)
   );
   // TODO: figure out how to get AALs for initialValues ??
+  // TODO: need to get rating doc from submission (use rxjs combined observable ??)
 
   // @ts-ignore
   const initialValues: QuoteValues = useMemo(
@@ -165,21 +166,30 @@ export const QuoteEdit = () => {
         longitude: quoteData?.coordinates?.longitude || null,
       },
       limits: {
-        limitA: quoteData?.limits.limitA ?? 250000,
-        limitB: quoteData?.limits.limitB ?? 12500,
-        limitC: quoteData?.limits.limitC ?? 68000,
-        limitD: quoteData?.limits.limitD ?? 25000,
+        limitA: quoteData?.limits?.limitA ?? 250000,
+        limitB: quoteData?.limits?.limitB ?? 12500,
+        limitC: quoteData?.limits?.limitC ?? 68000,
+        limitD: quoteData?.limits?.limitD ?? 25000,
       },
       deductible: quoteData?.deductible ?? 1000,
       quoteExpirationDate: quoteData?.quoteExpirationDate?.toDate() || null, // TODO: delete ?? set on quote created
       effectiveExceptionRequested: quoteData?.effectiveExceptionRequested || false, // @ts-ignore
       effectiveDate: quoteData?.effectiveDate?.toDate() || null, // @ts-ignore
       expirationDate: quoteData?.expirationDate?.toDate() || null,
-      fees: quoteData?.fees || [],
-      taxes: quoteData?.taxes || [],
+      fees:
+        quoteData?.fees?.map((f) => ({
+          ...f,
+          value: `${f.feeValue ?? ''}`,
+        })) || [],
+      taxes:
+        quoteData?.taxes?.map((t) => ({
+          ...t,
+          value: `${t.value ?? ''}`,
+          rate: `${t.rate ?? ''}`,
+        })) || [],
       annualPremium: quoteData?.annualPremium ?? null,
       subproducerCommission: quoteData?.subproducerCommission ?? 0.15,
-      quoteTotal: null,
+      quoteTotal: quoteData?.quoteTotal ?? null,
       namedInsured: {
         firstName: quoteData?.namedInsured?.firstName ?? '',
         lastName: quoteData?.namedInsured?.lastName ?? '',
@@ -226,6 +236,11 @@ export const QuoteEdit = () => {
     [quoteData]
   );
 
+  const initialRatingSnap = useMemo(() => {
+    if (!quoteData) return undefined;
+    return getRatingInputsFromQuote(quoteData);
+  }, [quoteData]);
+
   const handleSubmit = useCallback(
     async (values: QuoteValues, { setSubmitting }: FormikHelpers<QuoteValues>) => {
       await editQuote(values);
@@ -246,7 +261,32 @@ export const QuoteEdit = () => {
         onSubmit={handleSubmit}
         initialValues={initialValues}
         submissionId={quoteData.submissionId || null}
+        initialRatingSnap={initialRatingSnap}
       />
     </Box>
   );
 };
+
+function getRatingInputsFromQuote(data: Partial<Quote> | null) {
+  return {
+    latitude: data?.coordinates?.latitude,
+    longitude: data?.coordinates?.longitude,
+    replacementCost: data?.ratingPropertyData?.replacementCost,
+    limitA: data?.limits?.limitA,
+    limitB: data?.limits?.limitB,
+    limitC: data?.limits?.limitC,
+    limitD: data?.limits?.limitD,
+    deductible: data?.deductible,
+    numStories: data?.ratingPropertyData?.numStories,
+    // priorLossCount: data?.ratingPropertyData.priorLossCount, // data.priorLossCount,
+    state: data?.address?.state,
+    floodZone: data?.ratingPropertyData?.floodZone,
+    basement: data?.ratingPropertyData?.basement?.toLowerCase(),
+    commissionPct: data?.subproducerCommission || 0.15, // TODO: delete - must look up subproducer comm from agent ID or org ID from server, or producer from clinet if idemand admin
+    // TODO: need to get rating doc from submission (use rxjs combined observable ??)
+    // @ts-ignore
+    inlandAAL: data?.AAL?.inland, // @ts-ignore
+    surgeAAL: data?.AAL?.surge, // @ts-ignore
+    tsunamiAAL: data?.AAL?.tsunami,
+  };
+}

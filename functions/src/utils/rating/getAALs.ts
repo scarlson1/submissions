@@ -122,21 +122,21 @@ export const validateGetAALsProps = (props: Partial<GetAALsProps>) => {
     'latitude or longitude is missing or invalid'
   );
   invariant(
-    deductible && typeof deductible === 'number' && deductible > 1000,
+    deductible && typeof deductible === 'number' && deductible >= 1000,
     'invalid deductible. must be number > 1000'
   );
   invariant(numStories, 'numStories must be a number'); // && typeof numStories === 'number'
 
   invariant(replacementCost, 'replacementCost required');
   invariant(typeof replacementCost === 'number', 'replacementCost must be a number');
-  invariant(replacementCost > 100000, 'replacementCost must be > 100k');
+  invariant(replacementCost >= 100000, 'replacementCost must be > 100k');
 
   invariant(limits, 'misssing limits');
   const { limitA, limitB, limitC, limitD } = limits;
 
   invariant(
-    limitA && typeof limitA === 'number' && limitA > MIN_A,
-    `LimitA must be a number > ${MIN_A}`
+    limitA && typeof limitA === 'number' && limitA >= MIN_A,
+    `LimitA must be a number >= ${MIN_A}`
   );
   invariant(limitA >= MIN_A && limitA <= MAX_A, `limitA must be between ${MIN_A} and ${MAX_A}`);
   invariant(limitB || limitB === 0, 'LimitB required');

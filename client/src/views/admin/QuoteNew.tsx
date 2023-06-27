@@ -7,18 +7,26 @@ import { FormikHelpers } from 'formik';
 import invariant from 'tiny-invariant';
 import { add } from 'date-fns';
 
-import { useAsyncToast, useCreateQuote, useDocDataOnce } from 'hooks';
-import { SUBMISSION_STATUS, Submission, submissionsCollection } from 'common';
-import { QuoteForm, QuoteValues } from 'elements/QuoteForm';
+import { RatingInputsWithAAL, useAsyncToast, useCreateQuote, useDocDataOnce } from 'hooks';
+import { Optional, SUBMISSION_STATUS, Submission, submissionsCollection } from 'common';
+import { QuoteForm, QuoteValues, getRatingInputsFromSubmission } from 'elements/QuoteForm';
 import { ADMIN_ROUTES, createPath } from 'router';
+
+// TODO: decide whether to pass along submission data ??
 
 interface QuoteNewProps {
   submissionId?: string | null | undefined;
   initialValues?: QuoteValues;
   submissionData?: Submission;
+  initialRatingSnap?: Optional<RatingInputsWithAAL> | null | undefined;
 }
 
-export const QuoteNew = ({ submissionId, initialValues, submissionData }: QuoteNewProps) => {
+export const QuoteNew = ({
+  submissionId,
+  initialValues,
+  submissionData,
+  initialRatingSnap,
+}: QuoteNewProps) => {
   const firestore = useFirestore();
   const navigate = useNavigate();
   const toast = useAsyncToast();
@@ -47,7 +55,13 @@ export const QuoteNew = ({ submissionId, initialValues, submissionData }: QuoteN
 
   return (
     <Box>
-      <QuoteForm initialValues={initialValues} onSubmit={handleSubmit} title='New Quote' />
+      <QuoteForm
+        initialValues={initialValues}
+        // submissionData={submissionData}
+        initialRatingSnap={initialRatingSnap}
+        onSubmit={handleSubmit}
+        title='New Quote'
+      />
     </Box>
   );
 };
@@ -129,11 +143,23 @@ export const QuoteNewFromSub = () => {
     [submissionData]
   );
 
+  const initialRatingSnap = useMemo(() => {
+    if (!submissionData) return undefined;
+    let partial = getRatingInputsFromSubmission(submissionData);
+    return {
+      ...partial,
+      inlandAAL: submissionData?.AAL?.inland,
+      surgeAAL: submissionData?.AAL?.surge,
+      tsunamiAAL: submissionData?.AAL?.tsunami,
+    };
+  }, [submissionData]);
+
   return (
     <QuoteNew
       initialValues={initialValues}
       submissionData={submissionData}
       submissionId={submissionId}
+      initialRatingSnap={initialRatingSnap}
     />
   );
 };

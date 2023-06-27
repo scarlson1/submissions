@@ -23,6 +23,11 @@ export interface CalcQuoteRequest {
   commissionPct?: number;
 }
 
+export interface CalcQuoteResponse {
+  annualPremium: number;
+  ratingDocId?: string;
+}
+
 export default async ({ data, auth }: CallableRequest<CalcQuoteRequest>) => {
   console.log('CALC QUOTE DATA: ', data);
   const db = getFirestore();
@@ -128,7 +133,7 @@ export default async ({ data, auth }: CallableRequest<CalcQuoteRequest>) => {
     const RCVs = getRCVs(replacementCost, limits);
 
     const ratingDataCol = ratingDataCollection(db);
-    await ratingDataCol.add({
+    const ratingDocRef = await ratingDataCol.add({
       submissionId: submissionId || null,
       deductible,
       limits,
@@ -165,7 +170,7 @@ export default async ({ data, auth }: CallableRequest<CalcQuoteRequest>) => {
 
     // TODO: update the submission ?? quote data not stored on submission
 
-    return { annualPremium: result.premiumData.directWrittenPremium };
+    return { annualPremium: result.premiumData.directWrittenPremium, ratingDocId: ratingDocRef.id };
   } catch (err: any) {
     console.log('ERROR: ', err);
     error('Error calculating quote', {

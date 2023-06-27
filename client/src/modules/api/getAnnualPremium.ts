@@ -40,8 +40,7 @@ export interface GetAnnualPremiumRequest {
 export interface GetAnnualPremiumResponse {
   annualPremium: number;
   AAL: ValueByRiskType;
-  // inlandAAL: number;
-  // surgeAAL: number;
+  ratingDocId?: string;
 }
 
 export const getAnnualPremium = (functions: Functions, args: GetAnnualPremiumRequest) =>

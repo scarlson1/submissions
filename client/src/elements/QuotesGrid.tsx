@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { Box, Link, Tooltip } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
-import { GridActionsCellItem, GridColDef, GridRowParams, GridToolbar } from '@mui/x-data-grid';
+import { GridActionsCellItem, GridColDef, GridRowParams } from '@mui/x-data-grid';
 import { DataObjectRounded, SendRounded } from '@mui/icons-material';
 import { useSigninCheck } from 'reactfire';
 
@@ -232,12 +232,7 @@ export const QuotesGrid: React.FC<QuotesGridProps> = ({
         collName='QUOTES'
         columns={quoteColumns}
         density='compact'
-        slots={{
-          toolbar: GridToolbar,
-        }}
-        slotProps={{
-          toolbar: { csvOptions: { allColumns: true } },
-        }}
+        autoHeight
         initialState={{
           columns: {
             columnVisibilityModel: {
@@ -273,55 +268,6 @@ export const QuotesGrid: React.FC<QuotesGridProps> = ({
         }}
         {...props}
       />
-      {/* <BasicDataGrid
-        // @ts-ignore
-        rows={data}
-        columns={quoteColumns}
-        loading={status === 'loading'}
-        density='compact'
-        autoHeight
-        // onRowDoubleClick={(params) => navigate(params.id.toString())}
-        slots={{
-          toolbar: GridToolbar,
-        }}
-        slotProps={{
-          toolbar: { csvOptions: { allColumns: true } },
-        }}
-        initialState={{
-          columns: {
-            columnVisibilityModel: {
-              annualPremium: false,
-              'namedInsured.firstName': false,
-              'namedInsured.lastName': false,
-              'namedInsured.email': false,
-              'namedInsured.phone': false,
-              'address.addressLine1': false,
-              'address.addressLine2': false,
-              'address.city': false,
-              'address.state': false,
-              'address.postal': false,
-              'address.countyName': false,
-              'address.countyFIPS': false,
-              updated: false,
-              'agent.phone': false,
-              'agent.userId': false,
-              CBRSDesignation: false,
-              basement: false,
-              distToCoastFeet: false,
-              floodZone: false,
-              numStories: false,
-              propertyCode: false,
-              sqFootage: false,
-              yearBuilt: false,
-            },
-          },
-          sorting: {
-            sortModel: [{ field: 'created', sort: 'desc' }],
-          },
-          pagination: { paginationModel: { page: 0, pageSize: 10 } },
-        }}
-        {...props}
-      /> */}
     </Box>
   );
 };

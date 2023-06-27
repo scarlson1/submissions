@@ -1,0 +1,99 @@
+import React from 'react';
+import { IconButton, IconButtonProps, MenuList, useForkRef } from '@mui/material';
+import useId from '@mui/material/utils/useId';
+import {
+  GridMenu,
+  GridMenuProps,
+  gridClasses,
+  useGridApiContext,
+  useGridRootProps,
+} from '@mui/x-data-grid';
+import { isHideMenuKey, isTabKey } from '@mui/x-data-grid/utils/keyboardUtils';
+import { SaveAltRounded } from '@mui/icons-material';
+
+export const GridToolbarExportIconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
+  function GridToolbarExportContainer(props, ref) {
+    const { children, onClick, ...other } = props;
+
+    const apiRef = useGridApiContext();
+    const rootProps = useGridRootProps();
+    const exportButtonId = useId();
+    const exportMenuId = useId();
+
+    const [open, setOpen] = React.useState(false);
+    const buttonRef = React.useRef<HTMLButtonElement>(null);
+    const handleRef = useForkRef(ref, buttonRef);
+
+    const handleMenuOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
+      setOpen((prevOpen) => !prevOpen);
+      onClick?.(event);
+    };
+
+    const handleMenuClose = () => setOpen(false);
+
+    const handleListKeyDown = (event: React.KeyboardEvent) => {
+      if (isTabKey(event.key)) {
+        event.preventDefault();
+      }
+      if (isHideMenuKey(event.key)) {
+        handleMenuClose();
+      }
+    };
+
+    const handleMenuClickAway: GridMenuProps['onClickAway'] = (event) => {
+      if (
+        buttonRef.current === event.target ||
+        // if user clicked on the icon
+        buttonRef.current?.contains(event.target as Element)
+      ) {
+        return;
+      }
+      setOpen(false);
+    };
+
+    if (children == null) {
+      return null;
+    }
+
+    return (
+      <React.Fragment>
+        <IconButton
+          ref={handleRef}
+          size='small'
+          color='info'
+          aria-expanded={open}
+          aria-label={apiRef.current.getLocaleText('toolbarExportLabel')}
+          aria-haspopup='menu'
+          aria-controls={open ? exportMenuId : undefined}
+          id={exportButtonId}
+          {...other}
+          onClick={handleMenuOpen}
+          {...rootProps.slotProps?.baseButton}
+        >
+          <SaveAltRounded fontSize='inherit' />
+        </IconButton>
+        <GridMenu
+          open={open}
+          target={buttonRef.current}
+          onClickAway={handleMenuClickAway}
+          position='bottom-start'
+        >
+          <MenuList
+            id={exportMenuId}
+            className={gridClasses.menuList}
+            aria-labelledby={exportButtonId}
+            onKeyDown={handleListKeyDown}
+            autoFocusItem={open}
+          >
+            {React.Children.map(children, (child) => {
+              if (!React.isValidElement(child)) {
+                return child;
+              }
+              return React.cloneElement<any>(child, { hideMenu: handleMenuClose });
+            })}
+          </MenuList>
+        </GridMenu>
+      </React.Fragment>
+    );
+  }
+);

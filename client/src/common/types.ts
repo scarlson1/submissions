@@ -306,6 +306,7 @@ interface RatingCalcData {
 
 type PropWithRatingCalcData = Nullable<RatingPropertyData> & RatingCalcData;
 
+// TODO: need reference to ratingDocId to get AALs for editing
 // TODO: change quote to support multi-location
 export interface Quote {
   product: Product; // keyof typeof Product;

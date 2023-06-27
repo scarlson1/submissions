@@ -366,13 +366,15 @@ export interface QuoteValues {
   notes: { [key: string]: string }[];
 }
 
+// TODO: pass ratingDocId to onSubmit ?? or store ratingDocId with values
 interface QuoteFormProps {
   initialValues?: QuoteValues | undefined;
   onSubmit: (values: QuoteValues, helpers: FormikHelpers<QuoteValues>) => void;
   title: string;
   product?: Product;
   submissionId?: string | null;
-  submissionData?: Submission | null | undefined;
+  // submissionData?: Submission | null | undefined;
+  initialRatingSnap?: Optional<RatingInputsWithAAL> | null | undefined;
 }
 
 export const QuoteForm = ({
@@ -381,7 +383,8 @@ export const QuoteForm = ({
   title = 'Quote',
   product = 'flood',
   submissionId = null,
-  submissionData,
+  // submissionData,
+  initialRatingSnap,
 }: QuoteFormProps) => {
   const navigate = useNavigate();
   const firestore = useFirestore();
@@ -389,6 +392,7 @@ export const QuoteForm = ({
   const toast = useAsyncToast({ position: 'top-right' });
   const activeStates = useActiveStates(product);
 
+  const ratingDocId = useRef<string>();
   const [ratingState, setRatingState] = useState({
     rerateRequired: !(
       initialValues?.annualPremium &&
@@ -399,25 +403,14 @@ export const QuoteForm = ({
   });
 
   const [ratingInputsSnap, setRatingInputsSnap] = useState<Optional<RatingInputsWithAAL>>({
-    ...getRatingInputsFromSubmission(submissionData || undefined),
-    inlandAAL: initialValues?.AAL?.inland,
-    surgeAAL: initialValues?.AAL?.surge,
-    tsunamiAAL: initialValues?.AAL?.tsunami,
+    ...initialRatingSnap,
   });
-  // TODO: uncomment -- is initializing necessary ?? or is it calced in Diff component right away ??
-  // {
-  //   ...getRatingInputsFromSubmission(submissionData || undefined),
-  //   inlandAAL: initialValues.AAL.inland,
-  //   surgeAAL: initialValues.AAL.surge,
-  //   tsunamiAAL: initialValues.AAL.tsunami
-  // }
 
   const handleDiffChange = useCallback(
     (newVals: { rerateRequired: boolean; recalcRequired: boolean }) => {
       // setRatingState(newVals)
       // Directly setting rerate misses checking for AALs
       const aals = formikRef.current?.values.AAL;
-      // console.log('AALS: ', aals);
       const missingAAL = !(aals?.inland || aals?.surge);
       setRatingState({ ...newVals, rerateRequired: newVals.rerateRequired || missingAAL });
     },
@@ -433,6 +426,14 @@ export const QuoteForm = ({
 
           const taxes = newTaxes.map((t) => ({ value: true, displayName: true }));
           formikRef.current?.setTouched({ ...formikRef.current?.touched, taxes }, true);
+
+          // for (let [i] of taxes.entries()) {
+          //   let valElRef = document.querySelector(
+          //     `[name='taxes[${i}][value]']`
+          //   ) as HTMLInputElement;
+          //   console.log('QUERY SELECTOR EL REF: ', valElRef);
+          //   if (valElRef) valElRef.blur();
+          // }
         }, 10);
       }, 50);
       toast.success('premium & taxes updated 🎉');
@@ -453,7 +454,7 @@ export const QuoteForm = ({
 
   const { rerate, loading: rerateLoading } = useRateQuote(
     submissionId,
-    (newPrem: number, ratingInputs: RatingInputsWithAAL) => {
+    (newPrem: number, ratingInputs: RatingInputsWithAAL, newRatingDocId?: Optional<string>) => {
       const setVal = formikRef.current?.setFieldValue;
       setVal && setVal('annualPremium', newPrem);
       setVal && setVal('AAL.inland', ratingInputs.inlandAAL);
@@ -462,19 +463,21 @@ export const QuoteForm = ({
 
       setRatingInputsSnap({ ...ratingInputs });
       handleRecalcSuccess(newPrem);
+      ratingDocId.current = newRatingDocId;
     },
     (msg: string) => toast.error(msg)
     // getRatingInputsFromSubmission(submissionData || undefined)
   );
 
   const { calcPremium, loading: calcLoading } = useCalcPremium(
-    (newPrem: number, ratingInputs) => {
+    (newPrem: number, ratingInputs, newRatingDocId?: Optional<string>) => {
       setTimeout(() => formikRef.current?.setFieldValue('annualPremium', newPrem), 50);
 
       setRatingInputsSnap({
         ...ratingInputs,
       });
       handleRecalcSuccess(newPrem);
+      ratingDocId.current = newRatingDocId;
     },
     (msg: string) => toast.error(msg),
     submissionId
@@ -1431,7 +1434,7 @@ function AALHelper({ title, value }: AALHelperProps) {
 }
 
 // TODO: can use useReateQuote extraction func since submissions schema not matches quote schemas
-function getRatingInputsFromSubmission(subData?: Partial<Submission> | null) {
+export function getRatingInputsFromSubmission(subData?: Partial<Submission> | null) {
   // TODO: decide whether to flatten or keep in obj ?? does diff function compare nested values ??
 
   return {
