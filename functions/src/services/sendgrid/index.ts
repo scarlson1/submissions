@@ -30,6 +30,7 @@ import {
   quoteExpiringSoon,
   blankHTML,
   adminChangeRequest,
+  moveToTenantConfirmation,
 } from './templates';
 
 export interface AttachmentJSON {
@@ -311,6 +312,29 @@ export const sendMessage = async (
       to,
       html,
       subject,
+    })
+  );
+};
+
+export const moveTenantVerification = async (
+  key: string,
+  to: string | string[],
+  link: string,
+  toName?: string,
+  toOrgName?: string
+) => {
+  const html = moveToTenantConfirmation({
+    toName,
+    toOrgName,
+    link,
+  });
+
+  sgMail.setApiKey(key);
+  await sgMail.send(
+    createMsgContent({
+      to,
+      html,
+      subject: 'Confirm org migration',
     })
   );
 };

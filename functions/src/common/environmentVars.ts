@@ -29,6 +29,7 @@ export const googleGeoKey = defineSecret('GOOGLE_BACKEND_GEO_KEY');
 
 export const audience = defineString('AUDIENCE');
 export const hostingBaseURL = defineString('HOSTING_BASE_URL');
+export const functionsBaseURL = defineString('FUNCTIONS_BASE_URL');
 export const ePayBaseURL = defineString('EPAY_HOSTING_BASE_URL');
 export const mapboxToken = defineString('MAPBOX_PUBLIC_TOKEN');
 export const counties20mURL = defineString('COUNTIES_URL');

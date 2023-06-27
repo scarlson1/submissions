@@ -66,7 +66,6 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
   useEffect(() => {
     if (!isEqual(userData?.user, userPrev)) {
       if (userData?.user) {
-        console.log('USER CHANGE DETECTED --> SETTING ANALYTICS, SENTRY, ALGOLIA KEY');
         setUserId(analytics, userData.user.uid);
         setSentryUser({
           id: userData.user.uid,
@@ -75,7 +74,6 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
         });
         generateKey(functions);
       } else {
-        console.log('USER CHANGE DETECTED --> RESETTING TENANT ID, SENTRY, ALGOLIA KEY');
         // only remove auth.tenantId if not on tenant auth page
         const isTenantLoginPage = matchPath(
           { path: createPath({ path: AUTH_ROUTES.TENANT_LOGIN }) },
@@ -85,7 +83,7 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
           { path: createPath({ path: AUTH_ROUTES.TENANT_CREATE_ACCOUNT }) },
           location.pathname
         );
-        console.log('IS TENANT CA PAGE: ', isTenantCreateAccountPage);
+
         if (isTenantLoginPage === null && isTenantCreateAccountPage === null) {
           console.log('SETTING TENANT ID TO NULL');
           auth.tenantId = null;

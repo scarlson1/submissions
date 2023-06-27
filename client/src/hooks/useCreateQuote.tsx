@@ -145,9 +145,9 @@ function getFormattedQuote(values: QuoteValues, uid?: string | null): Quote {
     deductible: values.deductible,
     limits: {
       limitA: limits.limitA,
-      limitB: limits.limitA,
-      limitC: limits.limitA,
-      limitD: limits.limitA,
+      limitB: limits.limitB,
+      limitC: limits.limitC,
+      limitD: limits.limitD,
     },
     address,
     coordinates:

@@ -23,7 +23,7 @@ export { LoadingSpinner } from './LoadingSpinner';
 export { IconButtonMenu } from './IconButtonMenu';
 // export { TabPanel } from './TabPanel';
 export { LineItem } from './LineItem';
-export { ServerDataGrid, numericOperators, dateOperators, stringOperators } from './ServerDataGrid';
+export { ServerDataGrid } from './ServerDataGrid';
 export { ErrorFallback } from './ErrorFallback';
 export { Breadcrumbs } from './Breadcrumbs';
 export { ClaimsGuard } from './ClaimsGuard';

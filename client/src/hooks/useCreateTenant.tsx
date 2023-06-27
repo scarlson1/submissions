@@ -84,6 +84,7 @@ export const useSendAgencyAppNotification = (
   return { sendApproved, sendRejected, promptForNotification, confirmAndSend };
 };
 
+// TODO: refactor - not using onSuccess rn
 interface UseCreateTenantProps {
   onSuccess?: (data: { tenantId?: string }) => void;
   onError?: (errArgs: { code: string; message: string }) => void;
@@ -148,12 +149,16 @@ export const useCreateTenant = ({ onSuccess, onError }: UseCreateTenantProps | u
 
       if (!!shouldNotify) {
         // toast.loading('sending notification...');
-        await sendApproved(submissionId, `${tenantId}`);
+        let res = await sendApproved(submissionId, `${tenantId}`);
+        if (res && res?.emails && res.emails.length) {
+          const emails = res.emails.map((e) => (typeof e === 'string' ? e : e.email));
+          toast.info(`notifications delivered (${emails.join(', ')})`);
+        }
       }
 
-      if (onSuccess) onSuccess({ tenantId });
+      // if (onSuccess) onSuccess({ tenantId });
     },
-    [promptForNotification, sendApproved, onSuccess]
+    [promptForNotification, sendApproved, onSuccess, toast]
   );
 
   const createTenant = useCallback(

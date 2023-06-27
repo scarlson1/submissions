@@ -3,12 +3,19 @@ import { Box, Button, Tooltip, Typography, useMediaQuery, useTheme } from '@mui/
 import { useNavigate } from 'react-router-dom';
 import { doc, getDoc, getFirestore, updateDoc } from 'firebase/firestore';
 import { GridActionsCellItem, GridRowModel, GridRowParams } from '@mui/x-data-grid';
-import { EditRounded } from '@mui/icons-material';
+import { DataObjectRounded, EditRounded } from '@mui/icons-material';
 import { toast } from 'react-hot-toast';
 
 import { ADMIN_ROUTES, createPath } from 'router';
-import { Quote, quotesCollection, QUOTE_STATUS, WithId, subproducerCommissionCol } from 'common';
-import { useAsyncToast } from 'hooks';
+import {
+  Quote,
+  quotesCollection,
+  QUOTE_STATUS,
+  WithId,
+  subproducerCommissionCol,
+  COLLECTIONS,
+} from 'common';
+import { useAsyncToast, useShowJson } from 'hooks';
 import { useConfirmation } from 'modules/components';
 import { submissionQuoteConverter } from 'common/firestoreConverters';
 import { QuotesGrid } from 'elements';
@@ -80,6 +87,11 @@ export const Quotes: React.FC = () => {
   const navigate = useNavigate();
   const updateQuote = useUpdateQuote();
   const confirmAndUpdate = useConfirmAndUpdate(updateQuote);
+  const showJson = useShowJson<Quote>(
+    COLLECTIONS.QUOTES,
+    [],
+    (q: WithId<Quote>) => `Quote - ${q.address?.addressLine1 || ''} (ID: ${q.id || ''})`
+  );
 
   const editQuote = useCallback(
     (params: GridRowParams) => () => {
@@ -104,6 +116,11 @@ export const Quotes: React.FC = () => {
     console.log('ERROR: ', err);
   }, []);
 
+  const handleShowJson = useCallback(
+    (params: GridRowParams) => async () => showJson(params.id.toString()),
+    [showJson]
+  );
+
   const renderActions = useCallback(
     (params: GridRowParams) => [
       <GridActionsCellItem
@@ -115,8 +132,18 @@ export const Quotes: React.FC = () => {
         onClick={editQuote(params)}
         label='Edit'
       />,
+      <GridActionsCellItem
+        icon={
+          <Tooltip placement='top' title='view JSON'>
+            <DataObjectRounded />
+          </Tooltip>
+        }
+        onClick={handleShowJson(params)}
+        label='view JSON'
+        // disabled={!Boolean(claims?.iDemandAdmin)}
+      />,
     ],
-    [editQuote]
+    [editQuote, handleShowJson]
   );
 
   return (

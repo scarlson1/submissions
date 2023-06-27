@@ -3,9 +3,6 @@ import { Box } from '@mui/material';
 import {
   DataGrid,
   DataGridProps,
-  getGridDateOperators,
-  getGridNumericOperators,
-  getGridStringOperators,
   GridCallbackDetails,
   GridColDef,
   GridFilterModel,
@@ -21,7 +18,6 @@ import {
   where,
   WhereFilterOp,
 } from 'firebase/firestore';
-// import { toast } from 'react-hot-toast';
 
 import { useDocCount, useFetchDocsWithCursor } from 'hooks';
 import { COLLECTIONS } from 'common';
@@ -181,22 +177,9 @@ export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
           '& .MuiDataGrid-main': {
             maxHeight: { xs: 300, sm: 360, md: 400, lg: 420 },
             overflowY: 'auto',
-            // '& .MuiDataGrid-virtualScroller': { overflowY: 'auto' },
           },
-          // '& .MuiDataGrid-virtualScroller':
-          '.MuiDataGrid-main > div:nth-child(2)': { overflowY: 'auto !important' },
+          '.MuiDataGrid-main > div:nth-of-type(2)': { overflowY: 'auto !important' },
         }}
-        // sx={{
-        //   overflow: 'auto',
-        //   '.MuiDataGrid-virtualScroller': {
-        //     height: 'auto',
-        //     overflow: 'hidden',
-        //   },
-        //   '.MuiDataGrid-main > div:nth-child(2)': {
-        //     overflowY: 'auto !important',
-        //     flex: 'unset !important',
-        //   },
-        // }}
         pageSizeOptions={[5, 10, 25, 100]}
         {...rest}
         // density={densityV}
@@ -209,18 +192,13 @@ export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
         rows={rowData}
         // rows={deferredData}
         columns={columns}
-        loading={status === 'loading'} // || isPending
+        loading={status === 'loading'}
         pagination
         paginationMode='server'
-        // paginationModel={{ page, pageSize }}
         paginationModel={paginationModel}
         onPaginationModelChange={handlePaginationModelChange}
-        // page={page}
-        // onPageChange={onPageChanged}
-        // pageSize={pageSize}
-        // onPageSizeChange={(newSize) => setPageSize(newSize)}
         rowCount={rowCount}
-        sortingMode='server' // how can initialSort be set ?? (sortModel ??)
+        sortingMode='server'
         sortModel={sortModel}
         onSortModelChange={handleSortModelChange}
         filterMode='server'
@@ -236,27 +214,3 @@ export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
     </Box>
   );
 };
-
-export const numericOperators = getGridNumericOperators().filter(
-  (operator) =>
-    operator.value === '>' ||
-    operator.value === '<' ||
-    operator.value === '>=' ||
-    operator.value === '<=' ||
-    operator.value === '=' ||
-    operator.value === 'isAnyOf'
-);
-
-export const dateOperators = getGridDateOperators().filter(
-  (operator) =>
-    operator.value === 'is' ||
-    operator.value === 'onOrAfter' ||
-    operator.value === 'onOrBefore' ||
-    operator.value === 'after' ||
-    operator.value === 'before'
-);
-
-export const stringOperators = getGridStringOperators().filter(
-  (operator) =>
-    operator.value === 'equals' || operator.value === 'isAnyOf' || operator.value === 'isNotEmpty'
-);

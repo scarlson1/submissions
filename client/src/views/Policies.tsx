@@ -1,10 +1,9 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Box } from '@mui/material';
 
 import { useAuth } from 'modules/components';
 
 // USER POLICIES COMPONENT IMPORTS
-import { useCallback } from 'react';
 import {
   Avatar,
   AvatarGroup,
@@ -20,7 +19,7 @@ import {
 import { isEmpty } from 'lodash';
 import { useNavigate } from 'react-router-dom';
 
-import { useUsersPolicies } from 'hooks';
+import { useShowJson, useUsersPolicies } from 'hooks';
 import { FlexCard, FlexCardContent, LoadingSpinner } from 'components';
 import { createPath, ROUTES } from 'router';
 import { Item } from './UserSubmissions';
@@ -28,13 +27,37 @@ import { PoliciesGrid } from 'elements';
 import { where } from 'firebase/firestore';
 import { formatFirestoreTimestamp } from 'modules/utils';
 
-import { AdditionalInsured, fallbackImages } from 'common';
+import { AdditionalInsured, COLLECTIONS, Policy, fallbackImages } from 'common';
+import { GridActionsCellItem, GridRowParams } from '@mui/x-data-grid';
+import { DataObjectRounded } from '@mui/icons-material';
 
 // TODO: change policies view to allow switching between card and grid view
 // TODO: include change requests in grid ?? (could use rxjs and aggregation query)
 
 export const Policies: React.FC = () => {
   const { claims, user } = useAuth();
+  const showJson = useShowJson<Policy>(COLLECTIONS.POLICIES);
+
+  const handleShowJson = useCallback(
+    (params: GridRowParams) => () => showJson(params.id.toString()),
+    [showJson]
+  );
+
+  const adminActions = useCallback(
+    (params: GridRowParams) => [
+      <GridActionsCellItem
+        icon={
+          <Tooltip placement='top' title='view raw JSON'>
+            <DataObjectRounded />
+          </Tooltip>
+        }
+        onClick={handleShowJson(params)}
+        label='Details'
+        disabled={!Boolean(claims?.iDemandAdmin)}
+      />,
+    ],
+    [handleShowJson, claims]
+  );
 
   const header = (
     <>
@@ -50,7 +73,7 @@ export const Policies: React.FC = () => {
       <Container maxWidth='lg' sx={{ py: { xs: 4, md: 6 } }}>
         <Box>
           {header}
-          <PoliciesGrid />
+          <PoliciesGrid renderActions={adminActions} />
         </Box>
       </Container>
     );

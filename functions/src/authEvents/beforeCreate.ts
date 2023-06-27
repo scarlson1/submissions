@@ -2,10 +2,13 @@ import type { AuthBlockingEvent } from 'firebase-functions/v2/identity';
 import { HttpsError } from 'firebase-functions/v2/identity';
 import { error, info, warn } from 'firebase-functions/logger';
 import { getFirestore } from 'firebase-admin/firestore';
+import jwt from 'jsonwebtoken';
 
 import {
   CLAIMS,
   COLLECTIONS,
+  emailVerificationKey,
+  functionsBaseURL,
   iDemandOrgId,
   invitesCollection,
   orgsCollection,
@@ -14,7 +17,9 @@ import {
   usersCollection,
 } from '../common';
 import { inviteConverter } from '../common/converters';
-import { sendUserInvite } from '../services/sendgrid';
+import { moveTenantVerification, sendUserInvite } from '../services/sendgrid';
+import { MoveTenantJwtPayload } from '../routes/authRequests';
+import { getAuth } from 'firebase-admin/auth';
 
 export default async (event: AuthBlockingEvent) => {
   // await getFirebaseAdmin()
@@ -118,11 +123,37 @@ export default async (event: AuthBlockingEvent) => {
   }
 
   // Verify user doc does not already exist with email = user.email
-  info(`verifying user doc does not exist with email ${user.email}`);
+  info(`verifying user doc does not exist with email ${user.email}...`);
   const userSnap = await usersCollection(db).where('email', '==', user.email).get();
   if (!userSnap.empty) {
     warn(`USER ALREADY EXISTS WITH EMAIL: ${user.email}`);
-    throw new HttpsError('already-exists', `Account with email ${user.email} already exists`);
+
+    // TODO: if user created regular user account and tries to join tenant --> send email confirmation ?? link account
+    // if invite exists --> send email with link to action handler --> sign in, action handler url --> trigger moving to regular user to tenant
+    // cloud function --> attempts to move user to tenant
+
+    let errMsg = `Account with email ${user.email} already exists`;
+    if (tenantId) {
+      // send email with link to sign in and link account
+      let u = await getAuth().getUserByEmail(user.email);
+      if (!u || !u.email) throw new Error(`No user found with email ${user.email}`);
+      try {
+        await sendMoveToTenantEmail(
+          emailVerificationKey.value(),
+          sendgridApiKey.value(),
+          u.uid, // user.uid,// BUG --> need to use userId from user that already exists
+          user.email,
+          tenantId,
+          null,
+          user.displayName
+        );
+        errMsg += `. click link in email to move account to new org.`;
+      } catch (err: any) {
+        error('Error sending move user to tenant email', { err });
+      }
+    }
+
+    throw new HttpsError('already-exists', errMsg);
   }
 
   // use invite to set permissions ??
@@ -147,3 +178,34 @@ export default async (event: AuthBlockingEvent) => {
 
   return {};
 };
+
+async function sendMoveToTenantEmail(
+  verificationKey: string,
+  sgKey: string,
+  uid: string,
+  email: string | undefined,
+  // toTenantId: string | null | undefined,
+  toTenantId: string | null,
+  fromTenantId: string | null,
+  displayName?: string
+) {
+  if (!email) throw new HttpsError('failed-precondition', 'missing email');
+
+  const payload: MoveTenantJwtPayload = { uid, toTenantId, fromTenantId, email };
+
+  const token = jwt.sign(
+    {
+      data: payload,
+    },
+    verificationKey,
+    { expiresIn: '10m' }
+  );
+
+  const link = `${functionsBaseURL.value()}/authRequests/confirm-move-tenant/${token}`;
+
+  info(`move tenant verification link: ${link}`);
+
+  await moveTenantVerification(sgKey, email, link, displayName || '');
+
+  info(`move user to tenant confirmation email sent to ${email}`);
+}

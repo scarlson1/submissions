@@ -2,11 +2,10 @@ import React, { useCallback, useMemo } from 'react';
 import { Box, Tooltip } from '@mui/material';
 import { DataObjectRounded, FloodRounded, MapRounded } from '@mui/icons-material';
 import { GridActionsCellItem, GridColDef, GridRowParams, GridToolbar } from '@mui/x-data-grid';
-import { doc, getDoc } from 'firebase/firestore';
-import { useFirestore, useSigninCheck } from 'reactfire';
+import { useSigninCheck } from 'reactfire';
 
 import { ServerDataGrid, ServerDataGridProps } from 'components';
-import { useAsyncToast, useFloodFactor, useJsonDialog, useWidth } from 'hooks';
+import { useAsyncToast, useFloodFactor, useShowJson, useWidth } from 'hooks';
 import { openGoogleMaps } from 'modules/utils';
 import { CUSTOM_CLAIMS } from 'modules/components';
 import {
@@ -52,8 +51,8 @@ import {
   tivCol,
   copyBaseProps,
   tsunamiAALCol,
-  submissionsCollection,
   addressSummaryCol,
+  COLLECTIONS,
 } from 'common';
 
 export interface SubmissionsGridProps
@@ -65,10 +64,9 @@ export interface SubmissionsGridProps
 }
 
 export const SubmissionsGrid = ({ renderActions = () => [], ...props }: SubmissionsGridProps) => {
-  const firestore = useFirestore();
-  const toast = useAsyncToast();
-  const openFF = useFloodFactor();
-  const dialog = useJsonDialog();
+  const toast = useAsyncToast({ position: 'top-right' });
+  const openFF = useFloodFactor(toast.error);
+  const showJson = useShowJson<Submission>(COLLECTIONS.SUBMISSIONS);
   const { isSmall } = useWidth();
 
   const { data: iDAdminResult } = useSigninCheck({
@@ -86,7 +84,6 @@ export const SubmissionsGrid = ({ renderActions = () => [], ...props }: Submissi
     [toast]
   );
 
-  // TODO: move to hook
   const openFloodFactor = useCallback(
     (params: GridRowParams<Submission>) => () => {
       const address = params.row.address;
@@ -97,22 +94,9 @@ export const SubmissionsGrid = ({ renderActions = () => [], ...props }: Submissi
     [toast, openFF]
   );
 
-  const openSubmissionDataDialog = useCallback(
-    (params: GridRowParams<Submission>) => async () => {
-      try {
-        const subSnap = await getDoc(doc(submissionsCollection(firestore), params.id.toString()));
-
-        const subData = subSnap.data();
-        if (!subData) throw new Error(`Submission data not found for ID ${params.id.toString()}`);
-
-        dialog(subData, `Submission Data ${params.id.toString()}`);
-      } catch (err: any) {
-        let msg = `Error fetching submission`;
-        if (err?.message) msg = err.message;
-        toast.error(msg);
-      }
-    },
-    [firestore, dialog, toast]
+  const handleShowJson = useCallback(
+    (params: GridRowParams) => () => showJson(params.id.toString()),
+    [showJson]
   );
 
   const submissionColumns: GridColDef[] = useMemo(
@@ -124,18 +108,9 @@ export const SubmissionsGrid = ({ renderActions = () => [], ...props }: Submissi
         width: isSmall ? 80 : 160,
         getActions: (params: GridRowParams) => [
           ...renderActions(params),
-          // <GridActionsCellItem
-          //   icon={
-          //     <Tooltip title='Create Quote' placement='top'>
-          //       <RequestQuoteRounded />
-          //     </Tooltip>
-          //   }
-          //   onClick={handleCreateQuote(params.id)}
-          //   label='Create Quote'
-          // />,
           <GridActionsCellItem
             icon={
-              <Tooltip title='Google Maps' placement='top'>
+              <Tooltip title='Google maps' placement='top'>
                 <MapRounded />
               </Tooltip>
             }
@@ -143,7 +118,6 @@ export const SubmissionsGrid = ({ renderActions = () => [], ...props }: Submissi
             label='Google Maps'
             showInMenu={isSmall}
           />,
-          // TODO: flood factor hook
           <GridActionsCellItem
             icon={
               <Tooltip title='Flood Factor' placement='top'>
@@ -151,17 +125,16 @@ export const SubmissionsGrid = ({ renderActions = () => [], ...props }: Submissi
               </Tooltip>
             }
             onClick={openFloodFactor(params)}
-            label='Google Maps'
+            label='Flood Factor'
             showInMenu={isSmall}
           />,
-          // TODO: admin only
           <GridActionsCellItem
             icon={
-              <Tooltip title='Show JSON' placement='top'>
+              <Tooltip title='show JSON' placement='top'>
                 <DataObjectRounded />
               </Tooltip>
             }
-            onClick={openSubmissionDataDialog(params)}
+            onClick={handleShowJson(params)}
             label='Show JSON'
             disabled={!iDAdminResult.hasRequiredClaims}
             showInMenu={isSmall}
@@ -203,6 +176,7 @@ export const SubmissionsGrid = ({ renderActions = () => [], ...props }: Submissi
       {
         ...displayNameCol,
         sortable: false,
+        filterable: false,
         valueGetter: (params) => {
           if (params.value) return params.value;
           if (params.row.firstName || params.row.lastName)
@@ -214,14 +188,17 @@ export const SubmissionsGrid = ({ renderActions = () => [], ...props }: Submissi
       },
       {
         ...firstNameCol,
+        field: 'contact.firstName',
         valueGetter: (params) => params.row.contact?.firstName || null,
       },
       {
         ...lastNameCol,
+        field: 'contact.lastName',
         valueGetter: (params) => params.row.contact?.lastName || null,
       },
       {
         ...emailCol,
+        field: 'contact.email',
         valueGetter: (params) => params.row.contact?.email || null,
         description: 'Provided contact email',
       },
@@ -271,7 +248,7 @@ export const SubmissionsGrid = ({ renderActions = () => [], ...props }: Submissi
         description: 'Document/database ID for the submission',
       },
     ],
-    [openMap, openFloodFactor, openSubmissionDataDialog, renderActions, iDAdminResult, isSmall] // handleCreateQuote,
+    [openMap, openFloodFactor, handleShowJson, renderActions, iDAdminResult, isSmall]
   );
 
   return (

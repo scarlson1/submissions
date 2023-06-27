@@ -12,3 +12,4 @@ export { adminPolicyImportNotification } from './adminPolicyImportNotification.j
 export { quoteExpiringSoon } from './quoteExpiringSoon.js';
 export { blankHTML } from './blankHTML.js';
 export { adminChangeRequest } from './adminChangeRequest.js';
+export { moveToTenantConfirmation } from './moveToTenantConfirmation.js';

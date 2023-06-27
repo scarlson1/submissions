@@ -2,7 +2,7 @@ import React, { useMemo, useCallback } from 'react';
 import { collection, getDocs, limit, orderBy, query, where } from 'firebase/firestore';
 import { FirebaseError } from 'firebase/app';
 import { useNavigate } from 'react-router-dom';
-import { Alert, AlertTitle, Box, Button, Tooltip, Typography } from '@mui/material';
+import { Alert, AlertTitle, Box, Button, Stack, Tooltip, Typography } from '@mui/material';
 import {
   GridActionsCellItem,
   GridCellParams,
@@ -13,8 +13,8 @@ import {
 } from '@mui/x-data-grid';
 import { CheckCircleOutlineRounded, SendRounded } from '@mui/icons-material';
 
-import { BasicDataGrid } from 'components';
-import { ADMIN_ROUTES, createPath } from 'router';
+import { BasicDataGrid, IconButtonMenu } from 'components';
+import { ADMIN_ROUTES, ROUTES, createPath } from 'router';
 import { useAsyncToast, useCollectionData, useCreateTenant } from 'hooks';
 import {
   AGENCY_SUBMISSION_STATUS,
@@ -110,6 +110,11 @@ export const AgencyApps: React.FC = () => {
       }
     },
     [firestore, confirmAndSend, toast]
+  );
+
+  const navUserAgencyNew = useCallback(
+    () => navigate(createPath({ path: ROUTES.AGENCY_NEW })),
+    [navigate]
   );
 
   const agencyAppColumns: GridColDef[] = useMemo(
@@ -211,13 +216,23 @@ export const AgencyApps: React.FC = () => {
         <Typography variant='h5' sx={{ ml: { xs: 0, sm: 3, md: 4 } }}>
           Agency Submissions
         </Typography>
-        <Button
-          onClick={() => navigate(createPath({ path: ADMIN_ROUTES.CREATE_TENANT }))}
-          variant='contained'
-          sx={{ maxHeight: 34 }}
-        >
-          New Agency
-        </Button>
+        <Stack direction='row' spacing={2}>
+          <Button
+            onClick={() => navigate(createPath({ path: ADMIN_ROUTES.CREATE_TENANT }))}
+            variant='contained'
+            sx={{ maxHeight: 34 }}
+          >
+            New Agency
+          </Button>
+          <IconButtonMenu
+            menuItems={[
+              {
+                label: 'New Agency (user form)',
+                action: navUserAgencyNew,
+              },
+            ]}
+          />
+        </Stack>
       </Box>
 
       {/* TODO: put error inside collapse */}

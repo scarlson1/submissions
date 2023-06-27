@@ -1,20 +1,34 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useFirestore } from 'reactfire';
 import { DocumentData } from 'rxfire/firestore/interfaces';
-import { CollectionReference, collection, doc, getDoc } from 'firebase/firestore';
+import {
+  CollectionReference,
+  FirestoreDataConverter,
+  collection,
+  doc,
+  getDoc,
+} from 'firebase/firestore';
 import { capitalize } from 'lodash';
 import { toast } from 'react-hot-toast';
 
 import { useJsonDialog } from './useJsonDialog';
+import { WithId } from 'common';
 
 export const useShowJson = <T extends DocumentData>(
   colName: string,
   paths: string[] = [],
-  getTitle?: (data: T) => string
+  getTitle?: null | ((data: WithId<T>) => string),
+  converter?: FirestoreDataConverter<T>
 ) => {
   const firestore = useFirestore();
   const dialog = useJsonDialog();
-  const colRef = collection(firestore, colName, ...paths) as CollectionReference<T>;
+
+  const colRef = useMemo(() => {
+    let cr = collection(firestore, colName, ...paths) as CollectionReference<T>;
+    if (converter) cr = cr.withConverter(converter);
+
+    return cr;
+  }, [firestore, colName, paths, converter]);
 
   const showJson = useCallback(
     async (docId: string) => {
@@ -25,7 +39,7 @@ export const useShowJson = <T extends DocumentData>(
 
         let title;
         if (getTitle) {
-          title = getTitle(data);
+          title = getTitle({ ...data, id: snap.id });
         } else {
           title = `${capitalize(colName)}`;
           if (paths.length) {

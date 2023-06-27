@@ -7,7 +7,7 @@ import {
   getAuth,
   TenantAwareAuth,
 } from 'firebase-admin/auth';
-import { getFirestore } from 'firebase-admin/firestore';
+import { Firestore, getFirestore } from 'firebase-admin/firestore';
 
 import { CLAIMS, usersCollection, firebaseHashConfig } from '../common';
 
@@ -26,13 +26,13 @@ import { CLAIMS, usersCollection, firebaseHashConfig } from '../common';
  * @return {void}
  */
 
-async function migrateUser(
+export async function migrateUser(
   authFrom: Auth | TenantAwareAuth,
   authTo: Auth | TenantAwareAuth,
   userId: string,
   userImportOptions: UserImportOptions
 ) {
-  let user = await authFrom.getUser(userId);
+  const user = await authFrom.getUser(userId);
   if (!user) throw new Error(`User not found with ID ${userId}`);
 
   try {
@@ -52,11 +52,37 @@ async function migrateUser(
   }
 }
 
+// TODO: update user doc (tenantId)
+// need to update all policies, quotes, submissions etc. ??
+// TODO: emit event?? handle in sub/sub listener ??
+export async function updateUserDoc(
+  firestore: Firestore,
+  userId: string,
+  newTenantId: string | null
+): Promise<boolean> {
+  try {
+    const userDocRef = usersCollection(firestore).doc(userId);
+    await userDocRef.update({ orgId: newTenantId, tenantId: newTenantId });
+
+    info(`UPDATED USER RECORD (${userId}) tenantId to (${newTenantId})`);
+
+    return true;
+  } catch (err: any) {
+    error(`Error updating user doc ${userId} with new tenant info`, { err });
+    return false;
+  }
+}
+
 export default async ({ data, auth }: CallableRequest) => {
   const { toTenantId, userId, fromTenantId } = data;
-  console.log('MOVE USER TO TENANT CALLED: ', data);
+  info('MOVE USER TO TENANT CALLED', { ...data });
 
-  if (!auth || !auth.token || !auth.token[CLAIMS.IDEMAND_ADMIN]) {
+  // TODO: or allow call from regular user --> joining tenant with outstanding invite
+  // scenario: user creates account before creating agency
+
+  const isIDemandAdmin = auth && auth.token && auth.token[CLAIMS.IDEMAND_ADMIN];
+
+  if (!isIDemandAdmin) {
     throw new HttpsError('permission-denied', `iDemandAdmin permissions required`);
   }
 
@@ -70,8 +96,9 @@ export default async ({ data, auth }: CallableRequest) => {
   const hashConfigStr = firebaseHashConfig.value();
   if (!hashConfigStr) throw new HttpsError('internal', 'Missing required environment variables');
 
-  let parsedHashConfig = JSON.parse(hashConfigStr);
-  let { algorithm, base64_signer_key, base64_salt_separator, rounds, mem_cost } = parsedHashConfig;
+  const parsedHashConfig = JSON.parse(hashConfigStr);
+  const { algorithm, base64_signer_key, base64_salt_separator, rounds, mem_cost } =
+    parsedHashConfig;
 
   if (!(algorithm && base64_signer_key && base64_salt_separator && rounds && mem_cost)) {
     throw new HttpsError(
@@ -80,7 +107,7 @@ export default async ({ data, auth }: CallableRequest) => {
     );
   }
 
-  let firestore = getFirestore();
+  const firestore = getFirestore();
   let authFrom: Auth | TenantAwareAuth = getAuth();
   let authTo: Auth | TenantAwareAuth = getAuth();
 
@@ -109,11 +136,14 @@ export default async ({ data, auth }: CallableRequest) => {
       toTenantId,
     });
 
+    const userDocUpdated = await updateUserDoc(firestore, userId, toTenantId);
+
     return {
       status: 'success',
       userId,
       fromTenantId,
       toTenantId,
+      userDocUpdated,
     };
   } catch (err: any) {
     error(`ERROR SETTING TENANT FOR USER ${userId}: `, {
@@ -121,21 +151,5 @@ export default async ({ data, auth }: CallableRequest) => {
       errMsg: err?.message || null,
     });
     throw new HttpsError('internal', 'An error occurred while attempting to import users');
-  }
-
-  try {
-    // TODO: update user doc (tenantId)
-    // need to update all policies, quotes, submissions etc. ??
-    let userDocRef = usersCollection(firestore).doc(userId);
-    await userDocRef.update({ orgId: toTenantId, tenantId: toTenantId });
-
-    console.log(`UPDATED USER RECORD (${userId}) tenantId to (${toTenantId})`);
-
-    return { status: 'success' };
-  } catch (err) {
-    throw new HttpsError(
-      'internal',
-      'User successfully moved to tenant, but an error occurred updating corresponding database records.'
-    );
   }
 };

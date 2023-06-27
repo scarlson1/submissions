@@ -66,6 +66,7 @@ import { Disclosures } from 'views/admin/Disclosures';
 import { PoliciesMap } from 'elements/PoliciesMap';
 import { AuthActionsProvider } from 'modules/components';
 import { TempWrappedSearch } from 'components/search/Search';
+import { AgencyAppSuccessStep } from 'views/AgencyNew';
 
 export interface CrumbMatch {
   id: string;
@@ -101,6 +102,7 @@ export enum ROUTES {
   POLICIES = '/policies', // '/policies/:productId?'
   POLICY = '/policies/:policyId',
   AGENCY_NEW = '/agency/new',
+  AGENCY_NEW_SUBMITTED = '/agency/new/:submissionId/success',
   PROTOSURE = '/protosure/new/:productId/:quoteId?',
   ACCOUNT = '/account',
 }
@@ -161,6 +163,7 @@ type TArgs =
   | { path: ROUTES.POLICIES; search?: { productId?: Product } }
   | { path: ROUTES.POLICY; params: { policyId: string } }
   | { path: ROUTES.AGENCY_NEW }
+  | { path: ROUTES.AGENCY_NEW_SUBMITTED; params: { submissionId: string } }
   | { path: ROUTES.CONTACT }
   | { path: ROUTES.PROTOSURE; params: { productId: Product; quoteId?: string } }
   // | { path: ROUTES.ACCOUNT }
@@ -464,6 +467,24 @@ export const router = sentryCreateBrowserRouter([
                 },
                 {
                   label: `New`,
+                },
+              ],
+            },
+          },
+          {
+            path: ROUTES.AGENCY_NEW_SUBMITTED,
+            element: <AgencyAppSuccessStep />,
+            errorElement: <RouterErrorBoundary />,
+            handle: {
+              crumb: (match: CrumbMatch) => [
+                {
+                  label: 'Agencies',
+                },
+                {
+                  label: `New`,
+                },
+                {
+                  label: `${match?.params?.submissionId || ''}`,
                 },
               ],
             },

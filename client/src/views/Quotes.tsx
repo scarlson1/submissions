@@ -18,7 +18,7 @@ export const Quotes: React.FC = () => {
 
   if (claims?.iDemandAdmin) return <AdminQuotes />;
   if (claims?.agent || claims?.orgAdmin)
-    return <QuotesGrid constraints={[where('agentId', '==', `${user?.uid}`)]} />;
+    return <QuotesGrid constraints={[where('agent.userId', '==', `${user?.uid}`)]} />;
 
   return <UserQuotes />;
 };

@@ -82,6 +82,7 @@ export const idCol: GridColDef = {
   headerName: 'ID',
   type: 'string',
   editable: false,
+  filterable: false,
   filterOperators: getGridFirestoreStringOperators(),
   ...copyBaseProps,
 };

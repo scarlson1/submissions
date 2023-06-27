@@ -1,10 +1,19 @@
 import React, { useCallback } from 'react';
-import { Box, Card, CardContent, Container, Typography } from '@mui/material';
-import Grid from '@mui/material/Unstable_Grid2';
+import {
+  Box,
+  Card,
+  CardContent,
+  Container,
+  Typography,
+  Unstable_Grid2 as Grid,
+  CardActions,
+  Button,
+} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { FormikHelpers } from 'formik';
 import * as yup from 'yup';
+import Lottie from 'lottie-react';
 
 import {
   FeinMask,
@@ -34,8 +43,8 @@ import {
   phoneVal,
 } from 'common';
 import { useCreateAgencySubmission } from 'hooks';
-
-// TODO: redirect to success page
+import * as CheckmarkLottie from 'assets/checkmark.json';
+import { ROUTES, createPath } from 'router';
 
 export const orgNameValidation = yup.object().shape({
   orgName: yup.string().required(),
@@ -113,9 +122,10 @@ export const INITIAL_VALUES: AgencyAppValues = {
 export const AgencyNew: React.FC = () => {
   const navigate = useNavigate();
   const { handleSubmission, error } = useCreateAgencySubmission({
-    onSuccess: () => {
+    onSuccess: (submissionId: string) => {
       toast.success('Submission received');
-      navigate('/');
+
+      navigate(createPath({ path: ROUTES.AGENCY_NEW_SUBMITTED, params: { submissionId } }));
     },
     onError: (_: any, msg: string) => toast.error(msg),
   });
@@ -279,3 +289,34 @@ export const AgencyNew: React.FC = () => {
     </Container>
   );
 };
+
+export function AgencyAppSuccessStep() {
+  const navigate = useNavigate();
+
+  return (
+    <Container maxWidth='sm' sx={{ py: { xs: 3, sm: 4, md: 6, lg: 8 } }}>
+      <Card>
+        <CardContent>
+          <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+            <Lottie
+              animationData={CheckmarkLottie}
+              loop={false}
+              style={{ height: 100, width: 100, marginTop: -12 }}
+            />
+          </Box>
+
+          <Typography variant='h5' align='center' sx={{ pb: { xs: 4, sm: 5, lg: 6 } }}>
+            Submission recieved!
+          </Typography>
+          <Typography variant='body2' color='text.secondary'>
+            Once your org has been set up, you'll receive an email with a link to finish setting up
+            your account.
+          </Typography>
+        </CardContent>
+        <CardActions sx={{ borderTop: (theme) => `1px solid ${theme.palette.divider}` }}>
+          <Button onClick={() => navigate('/')}>Home</Button>
+        </CardActions>
+      </Card>
+    </Container>
+  );
+}

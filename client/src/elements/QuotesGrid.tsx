@@ -1,8 +1,8 @@
 import React, { useCallback, useMemo } from 'react';
-import { Box, Link, Tooltip } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
+import { Box, Link, Tooltip } from '@mui/material';
 import { GridActionsCellItem, GridColDef, GridRowParams, GridToolbar } from '@mui/x-data-grid';
-import { DataObjectRounded, SendRounded } from '@mui/icons-material';
+import { SendRounded } from '@mui/icons-material';
 import { useSigninCheck } from 'reactfire';
 
 import { ADMIN_ROUTES, createPath } from 'router';
@@ -50,10 +50,9 @@ import {
   addrFIPSCol,
   annualPremiumCol,
   nestedAgentNameCol,
-  COLLECTIONS,
 } from 'common';
 import { GridCellCopy, ServerDataGrid, ServerDataGridProps } from 'components';
-import { useSendQuoteNotification, useShowJson, useWidth } from 'hooks';
+import { useSendQuoteNotification, useWidth } from 'hooks';
 import { getRequiredClaimValidator } from 'components/RequireAuthReactFire';
 import { useAuth } from 'modules/components';
 
@@ -76,18 +75,10 @@ export const QuotesGrid: React.FC<QuotesGridProps> = ({
   const { claims } = useAuth();
   const { isSmall } = useWidth();
   const sendNotifications = useSendQuoteNotification();
-  const showJson = useShowJson(COLLECTIONS.QUOTES);
 
   const { data: authCheckResult } = useSigninCheck({
     validateCustomClaims: getRequiredClaimValidator(['ORG_ADMIN', 'IDEMAND_ADMIN']),
   });
-
-  const handleShowJson = useCallback(
-    (params: GridRowParams) => async () => {
-      showJson(params.id.toString());
-    },
-    [showJson]
-  );
 
   const handleSendNotifications = useCallback(
     (params: GridRowParams) => () => {
@@ -107,17 +98,18 @@ export const QuotesGrid: React.FC<QuotesGridProps> = ({
         width: isSmall ? 60 : 120,
         getActions: (params: GridRowParams) => [
           ...renderActions(params),
-          <GridActionsCellItem
-            icon={
-              <Tooltip placement='top' title='View Raw JSON'>
-                <DataObjectRounded />
-              </Tooltip>
-            }
-            onClick={handleShowJson(params)}
-            label='Details'
-            showInMenu={isSmall}
-            disabled={!authCheckResult.hasRequiredClaims}
-          />,
+          // <GridActionsCellItem
+          //   icon={
+          //     <Tooltip placement='top' title='View JSON'>
+          //       <DataObjectRounded />
+          //     </Tooltip>
+          //   }
+          //   onClick={handleShowJson(params)}
+          //   label='Details'
+          //   showInMenu={isSmall}
+          //   // disabled={!authCheckResult.hasRequiredClaims}
+          //   disabled={!Boolean(claims?.iDemandAdmin)}
+          // />,
           <GridActionsCellItem
             icon={
               <Tooltip placement='top' title='Send Notifications'>
@@ -215,15 +207,7 @@ export const QuotesGrid: React.FC<QuotesGridProps> = ({
       },
       ...columnOverrides,
     ],
-    [
-      handleShowJson,
-      handleSendNotifications,
-      columnOverrides,
-      renderActions,
-      isSmall,
-      authCheckResult,
-      claims,
-    ]
+    [handleSendNotifications, columnOverrides, renderActions, isSmall, authCheckResult, claims]
   );
 
   return (

@@ -5,11 +5,11 @@ import { useFirestore, useUser } from 'reactfire';
 import { getGridDateOperators } from '@mui/x-data-grid';
 import { faker } from '@faker-js/faker';
 import { toast } from 'react-hot-toast';
+import { JSONContent } from '@tiptap/react';
 
-import { ServerDataGrid, numericOperators } from 'components';
+import { ServerDataGrid } from 'components';
 import { TextEditor } from 'components/textEditor/TextEditor';
 import { formatGridFirestoreTimestamp, formatGridFirestoreTimestampAsDate } from 'modules/utils';
-import { JSONContent } from '@tiptap/react';
 import { COLLECTIONS, Disclosure } from 'common';
 
 export const columns = [
@@ -48,10 +48,6 @@ export const columns = [
     field: 'randomNumber',
     headerName: 'Random Number',
     type: 'number',
-    filterOperators: numericOperators,
-    // filterOperators: getGridNumericOperators().filter(
-    //   (operator) => operator.value === '>' || operator.value === '<'
-    // ),
     minWidth: 140,
     flex: 0.6,
     editable: false,

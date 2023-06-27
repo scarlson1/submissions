@@ -1,13 +1,12 @@
 import React, { useCallback, useMemo } from 'react';
 import { Box, Tooltip } from '@mui/material';
-import { DataObjectRounded, DescriptionRounded } from '@mui/icons-material';
+import { DescriptionRounded } from '@mui/icons-material';
 import { GridActionsCellItem, GridColDef, GridRowParams, GridToolbar } from '@mui/x-data-grid';
 import { useSigninCheck } from 'reactfire';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 
 import { ServerDataGrid, ServerDataGridProps } from 'components';
-import { useShowJson } from 'hooks';
 import {
   Policy,
   POLICY_STATUS,
@@ -41,7 +40,6 @@ import {
   SLProducerOfRecordLicensePhone,
   SLProducerOfRecordLicenseState,
   SLProducerOfRecordLicenseAddress,
-  COLLECTIONS,
 } from 'common';
 import { CUSTOM_CLAIMS } from 'modules/components';
 import { ROUTES, createPath } from 'router';
@@ -60,16 +58,10 @@ export const PoliciesGrid: React.FC<PoliciesGridProps> = ({
   ...props
 }) => {
   const navigate = useNavigate();
-  const showJson = useShowJson<Policy>(COLLECTIONS.POLICIES);
 
   const { status: claimsCheckStatus, data: iDAdminResult } = useSigninCheck({
     requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true },
   });
-
-  const handleShowJson = useCallback(
-    (params: GridRowParams) => () => showJson(params.id.toString()),
-    [showJson]
-  );
 
   const viewPolicyDoc = useCallback(
     (params: GridRowParams) => () => {
@@ -90,16 +82,6 @@ export const PoliciesGrid: React.FC<PoliciesGridProps> = ({
         width: 120,
         getActions: (params: GridRowParams) => [
           ...renderActions(params),
-          <GridActionsCellItem
-            icon={
-              <Tooltip placement='top' title='view raw JSON'>
-                <DataObjectRounded />
-              </Tooltip>
-            }
-            onClick={handleShowJson(params)}
-            label='Details'
-            disabled={!iDAdminResult.hasRequiredClaims}
-          />,
           // TODO: add view policy doc action
           <GridActionsCellItem
             icon={
@@ -180,7 +162,7 @@ export const PoliciesGrid: React.FC<PoliciesGridProps> = ({
       createdCol,
       updatedCol,
     ],
-    [handleShowJson, viewPolicyDoc, renderActions, claimsCheckStatus, iDAdminResult]
+    [viewPolicyDoc, renderActions, claimsCheckStatus, iDAdminResult]
   );
 
   return (
