@@ -150,10 +150,6 @@ export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
         }
       });
 
-      // toast.error('Warning: filter functionality not fully implemented yet', {
-      //   id: 'filter-warning',
-      // });
-
       console.log('NEW FILTERS: ', newFilters);
       startTransition(() => {
         setFilters([...newFilters]);
@@ -180,7 +176,27 @@ export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
       }}
     > */}
       <DataGrid
-        sx={{ transition: 'height 0.25s ease-in-out' }}
+        sx={{
+          transition: 'height 0.25s ease-in-out',
+          '& .MuiDataGrid-main': {
+            maxHeight: { xs: 300, sm: 360, md: 400, lg: 420 },
+            overflowY: 'auto',
+            // '& .MuiDataGrid-virtualScroller': { overflowY: 'auto' },
+          },
+          // '& .MuiDataGrid-virtualScroller':
+          '.MuiDataGrid-main > div:nth-child(2)': { overflowY: 'auto !important' },
+        }}
+        // sx={{
+        //   overflow: 'auto',
+        //   '.MuiDataGrid-virtualScroller': {
+        //     height: 'auto',
+        //     overflow: 'hidden',
+        //   },
+        //   '.MuiDataGrid-main > div:nth-child(2)': {
+        //     overflowY: 'auto !important',
+        //     flex: 'unset !important',
+        //   },
+        // }}
         pageSizeOptions={[5, 10, 25, 100]}
         {...rest}
         // density={densityV}

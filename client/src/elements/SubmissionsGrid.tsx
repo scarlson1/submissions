@@ -280,7 +280,7 @@ export const SubmissionsGrid = ({ renderActions = () => [], ...props }: Submissi
         collName='SUBMISSIONS'
         columns={submissionColumns}
         density='compact'
-        // autoHeight
+        autoHeight
         // TODO: make "view submission" route exists for all user claim types
         // onCellDoubleClick={}
         slots={{
