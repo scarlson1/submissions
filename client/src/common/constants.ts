@@ -20,6 +20,10 @@ export const PRODUCT_OPTIONS: Product[] = ['flood', 'wind'];
 
 export const LOB_OPTIONS: string[] = ['residential', 'commercial'];
 
+export const FLOOD_ZONE_OPTIONS = ['A', 'B', 'C', 'D', 'V', 'X', 'AE', 'AO', 'AH', 'AR', 'VE'];
+export const CBRS_OPTIONS = ['IN', 'OUT'];
+export const PRIOR_LOSS_COUNT_OPTIONS = ['0', '1', '2', '3'];
+
 // export const ACTIVE_STATES = [
 //   'Arizona',
 //   'Connecticut',

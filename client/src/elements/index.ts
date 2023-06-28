@@ -52,5 +52,5 @@ export type { DisclosureFormProps, DisclosureValues } from './DisclosureForm';
 export type { LocationCardProps } from './LocationCard';
 export type { LocationsMapProps } from './LocationsMap';
 export type { LicenseValues } from './LicenseForm';
-// export type {  } from './';
+export type { QuoteValues } from './QuoteForm';
 // export type {  } from './';

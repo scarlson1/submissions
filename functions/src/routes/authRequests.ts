@@ -3,7 +3,7 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 import * as bodyParser from 'body-parser';
 import { Firestore, getFirestore } from 'firebase-admin/firestore';
-import { Auth, TenantAwareAuth, getAuth } from 'firebase-admin/auth';
+import { Auth, TenantAwareAuth, UserImportOptions, getAuth } from 'firebase-admin/auth';
 import jwt from 'jsonwebtoken';
 
 import {
@@ -62,6 +62,7 @@ export interface MoveTenantJwtPayload {
   email: string;
 }
 
+// verification when user has account, then creates agency --> move account to tenant auth
 app.get('/confirm-move-tenant/:token', async (req: Request, res: Response) => {
   const { token } = req.params;
   const verificationKey = emailVerificationKey.value();
@@ -104,7 +105,17 @@ app.get('/confirm-move-tenant/:token', async (req: Request, res: Response) => {
       authTo = authTo.tenantManager().authForTenant(toTenantId);
     }
 
-    const userImportOptions = {
+    // {
+    //   hash: {
+    //     algorithm: 'SCRYPT',
+    //     key: Buffer.from('base64-secret', 'base64'),
+    //     saltSeparator: Buffer.from('base64SaltSeparator', 'base64'),
+    //     rounds: 8,
+    //     memoryCost: 14,
+    //   },
+    // }
+
+    const userImportOptions: UserImportOptions = {
       hash: {
         algorithm,
         key: Buffer.from(base64_signer_key, 'base64'),

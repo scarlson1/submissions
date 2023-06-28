@@ -112,19 +112,6 @@ export default async ({ data, auth }: CallableRequest<GetAnnualPremiumRequest>) 
     throw new HttpsError('internal', 'Error fetching Average Anuual Loss');
   }
 
-  // invariant(
-  //   (AALsRes?.AAL?.inland || AALsRes?.AAL?.inland === 0) && typeof AALsRes.AAL.inland === 'number',
-  //   'Missing inland AAL'
-  // );
-  // invariant(
-  //   (AALsRes?.AAL?.surge || AALsRes?.AAL?.inland === 0) && typeof AALsRes?.AAL?.surge === 'number',
-  //   'Missing surge AAL'
-  // );
-  // invariant(
-  //   (AALsRes?.AAL?.tsunami || AALsRes?.AAL?.inland === 0) &&
-  //     typeof AALsRes?.AAL?.tsunami === 'number',
-  //   'Missing tsunami AAL'
-  // );
   invariant(typeof AALsRes?.AAL?.inland === 'number', 'Missing inland AAL');
   invariant(typeof AALsRes?.AAL?.surge === 'number', 'Missing surge AAL');
   invariant(typeof AALsRes?.AAL?.tsunami === 'number', 'Missing tsunami AAL');

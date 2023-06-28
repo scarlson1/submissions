@@ -47,7 +47,7 @@ export const Policies: React.FC = () => {
     (params: GridRowParams) => [
       <GridActionsCellItem
         icon={
-          <Tooltip placement='top' title='view raw JSON'>
+          <Tooltip placement='top' title='view JSON'>
             <DataObjectRounded />
           </Tooltip>
         }

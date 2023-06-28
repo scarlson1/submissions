@@ -87,6 +87,7 @@ export const Login: React.FC = () => {
           console.log(error);
           let msg = 'An error occurred. See console for details';
           if (error?.message) msg = error.message;
+          // TODO: fix duplicate toasts
           toast.error(msg);
         }
       } else {

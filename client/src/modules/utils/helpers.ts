@@ -3,21 +3,20 @@ import numeral from 'numeral';
 import { Location } from 'react-router-dom';
 import { GridValueFormatterParams, GridValueGetterParams } from '@mui/x-data-grid';
 import { FirestoreError, GeoPoint, Timestamp, WhereFilterOp } from 'firebase/firestore';
+import type { AuthError } from 'firebase/auth';
+import { geohashForLocation } from 'geofire-common';
 import { FirebaseError } from '@firebase/util';
-// import { inspect } from 'util';
 import { transform, isEqual, isArray, isObject, find, ceil, floor } from 'lodash';
-import { AuthError } from 'firebase/auth';
 
 import { AddressComponent, AddressComponentType } from 'components/forms';
 import {
   Address,
+  FeeItem,
   FirestoreTimestamp,
   FlattenObjectKeys,
   RoundingType,
   TaxItem,
 } from 'common/types';
-import { geohashForLocation } from 'geofire-common';
-import { FeeItem } from 'views/admin/QuoteNew.Old';
 
 /**
  * extracts address string from Google address_components object.

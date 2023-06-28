@@ -8,16 +8,31 @@ import {
   Link,
   Card,
   Button,
+  Divider,
+  CardContent,
+  CardHeader,
+  Avatar,
+  Stack,
+  Paper,
 } from '@mui/material';
-import { GridViewRounded, MapRounded, TableRowsRounded } from '@mui/icons-material';
+import {
+  AccountBalanceRounded,
+  EmailRounded,
+  GridViewRounded,
+  MapRounded,
+  PhoneRounded,
+  TableRowsRounded,
+} from '@mui/icons-material';
 import { useParams } from 'react-router-dom';
 import { PickingInfo } from 'deck.gl/typed';
 import { toast } from 'react-hot-toast';
 
 import { useDocData } from 'hooks';
-import { Policy as IPolicy, PolicyLocation, WithId } from 'common';
-import { LocationCard, LocationsGrid, LocationsMap } from 'elements';
-import { formatFirestoreTimestamp } from 'modules/utils';
+import { Policy as IPolicy, POLICY_STATUS, PolicyLocation, WithId } from 'common';
+import { ContactList, LocationCard, LocationsGrid, LocationsMap } from 'elements';
+import { formatFirestoreTimestamp, formatPhoneNumber } from 'modules/utils';
+
+// TODO: make location card flip on hover to show additoinal details
 
 export const Policy: React.FC = () => {
   const { policyId } = useParams();
@@ -61,7 +76,7 @@ export const Policy: React.FC = () => {
   }, []); // policyId
 
   const handleCancelPolicy = useCallback(() => {
-    alert('TODO: implement cancel');
+    alert('cancel not implemented yet');
   }, []);
 
   // TODO:
@@ -71,15 +86,174 @@ export const Policy: React.FC = () => {
 
   return (
     // TODO: container ?? layout ??
-    <Box sx={{ px: 10, py: 15 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-        <Typography variant='h5' gutterBottom align='center'>{`Policy ${policyId}`}</Typography>
+    <Box sx={{ px: 10, py: 5 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 2 }}>
+        <Typography
+          variant='overline'
+          color='text.secondary'
+          gutterBottom
+          align='center'
+          sx={{ lineHeight: 1.4 }}
+        >{`Policy ID: ${policyId}`}</Typography>
         <Box>
-          <Button onClick={handleNewClaim}>Submit Claim</Button>
+          <Button size='small' onClick={handleNewClaim}>
+            Submit Claim
+          </Button>
         </Box>
       </Box>
-      <Box></Box>
-
+      <Divider />
+      <Box sx={{ pb: { xs: 6, sm: 8, md: 10 }, pt: { xs: 3, sm: 4, md: 5 } }}>
+        <Grid container spacing={5}>
+          <Grid
+            // xs={12}
+            // sm='auto'
+            sx={{
+              flexGrow: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+            }}
+          >
+            <Box sx={{ pb: 6 }}>
+              <Typography variant='overline' color='text.secondary'>
+                Named Insured
+              </Typography>
+              <Box sx={{ display: 'flex' }}>
+                <Box sx={{ flex: '0 0 auto', mr: { xs: 3, sm: 4 } }}>
+                  <Avatar />
+                </Box>
+                <Box sx={{ flex: '1 0 auto' }}>
+                  <Typography variant='h6' sx={{ fontSize: '1.2rem', lineHeight: 1.2 }}>
+                    {data?.namedInsured?.displayName}
+                  </Typography>
+                  <Typography variant='body2' color='text.secondary'>
+                    {data?.namedInsured?.email}
+                  </Typography>
+                </Box>
+              </Box>
+            </Box>
+            <Paper sx={{ py: { xs: 2, md: 3 }, px: { xs: 4, md: 5 } }}>
+              <Stack
+                direction='row' // {{ xs: 'column', sm: 'row' }}
+                spacing={{ xs: 3, sm: 4, md: 6, lg: 8 }}
+                divider={<Divider orientation='vertical' flexItem />}
+                justifyContent='space-between'
+              >
+                <Box sx={{ width: '100%' }}>
+                  <Typography
+                    variant='subtitle2'
+                    fontWeight={500}
+                    fontSize='0.75rem'
+                    color='text.secondary'
+                  >
+                    Insured Value
+                  </Typography>
+                  <Typography variant='h6' color='primary.main'>
+                    $1.2M
+                  </Typography>
+                </Box>
+                <Box sx={{ width: '100%' }}>
+                  <Typography
+                    variant='subtitle2'
+                    fontWeight={500}
+                    fontSize='0.75rem'
+                    color='text.secondary'
+                  >
+                    Status
+                  </Typography>
+                  <Typography variant='h6' color='primary.main'>
+                    {`${data.status === POLICY_STATUS.PAID ? 'active' : 'inactive'}`}
+                  </Typography>
+                </Box>
+                <Box sx={{ width: '100%' }}>
+                  <Typography
+                    variant='subtitle2'
+                    fontWeight={500}
+                    fontSize='0.75rem'
+                    color='text.secondary'
+                  >
+                    Term
+                  </Typography>
+                  <Typography variant='h6' color='primary.main'>
+                    {`${data.term}`}
+                  </Typography>
+                </Box>
+                <Box sx={{ width: '100%' }}>
+                  <Typography
+                    variant='subtitle2'
+                    fontWeight={500}
+                    fontSize='0.75rem'
+                    color='text.secondary'
+                  >
+                    Locations
+                  </Typography>
+                  <Typography variant='h6' color='primary.main'>{`${locations.length}`}</Typography>
+                </Box>
+              </Stack>
+            </Paper>
+          </Grid>
+          {/* <Grid xs></Grid> */}
+          <Grid xs={12} sm='auto'>
+            <Card>
+              <CardHeader
+                avatar={
+                  // sx={{ bgcolor: red[500] }}
+                  <Avatar aria-label='agent'>R</Avatar>
+                }
+                // action={
+                //   <IconButton aria-label='settings'>
+                //     <MoreVertIcon />
+                //   </IconButton>
+                // }
+                // title={`${data?.agent?.name}`}
+                // subheader='Agent'
+                title={
+                  <Typography
+                    variant='body1'
+                    fontSize='1.1rem'
+                    fontWeight={500}
+                    sx={{ lineHeight: 1.2 }}
+                  >{`${data?.agent?.name}`}</Typography>
+                }
+                subheader={
+                  <Typography
+                    variant='body2'
+                    fontSize='0.725rem'
+                    fontWeight={500}
+                    color='text.secondary'
+                  >
+                    Agent
+                  </Typography>
+                }
+              />
+              <CardContent>
+                {/* <Divider /> */}
+                <ContactList
+                  items={[
+                    {
+                      primaryText: `${data?.agency?.name || ''}`,
+                      icon: <AccountBalanceRounded fontSize='small' color='primary' />,
+                    },
+                    {
+                      primaryText: `${data?.agent?.email}`,
+                      icon: <EmailRounded fontSize='small' color='primary' />,
+                    },
+                    {
+                      primaryText: formatPhoneNumber(`${data?.agent?.phone}`) || '',
+                      icon: <PhoneRounded fontSize='small' color='primary' />,
+                    },
+                  ]}
+                />
+                {/* <Typography variant='body1' fontWeight={500}>{`${data.agent.name}`}</Typography> */}
+                {/* <Typography variant='body2'>{`${data?.agency?.name}`}</Typography>
+                <Typography variant='body2'>{`${data?.agent?.email}`}</Typography>
+                <Typography variant='body2'>{`${data?.agent?.phone}`}</Typography> */}
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+      </Box>
+      <Divider />
       <Box>
         <Box
           sx={{
@@ -117,8 +291,8 @@ export const Policy: React.FC = () => {
                 <LocationCard
                   location={location}
                   namedInsured={data.namedInsured}
-                  agent={data.agent}
-                  agency={data.agency}
+                  // agent={data.agent}
+                  // agency={data.agency}
                 />
               </Grid>
             ))}

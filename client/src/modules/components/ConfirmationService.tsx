@@ -8,13 +8,13 @@ import { ButtonProps, DialogContentProps, DialogProps } from '@mui/material';
 export interface ConfirmationOptions {
   catchOnCancel?: boolean;
   variant?: 'danger' | 'info';
-  title?: React.ReactNode; // string;
-  description?: React.ReactNode; // string
+  title?: React.ReactNode;
+  description?: React.ReactNode;
   confirmButtonText?: string;
   confirmButtonProps?: Partial<ButtonProps>;
   cancelButtonProps?: Partial<ButtonProps>;
   component?: React.ReactElement;
-  dialogProps?: Partial<DialogProps>;
+  dialogProps?: Partial<DialogProps>; // TODO: move componentProps as object (like slotProps)
   dialogContentProps?: Partial<DialogContentProps>;
 }
 

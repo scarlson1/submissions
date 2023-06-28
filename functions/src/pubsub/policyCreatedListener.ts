@@ -16,9 +16,11 @@ import {
 // Check whether trx exists in db (query: locationId && eventId OR use locationId+eventId as trx ID)
 // Only return error if transient error (can't write to db, etc.)
 
+// CREATES TRANSACTION FOR EACH LOCATION IN POLICY
+
 export default async (event: CloudEvent<MessagePublishedData>) => {
   info('MSG JSON: ', event.data.message.json);
-  console.log('EVENT: ', JSON.stringify(event));
+  // console.log('EVENT: ', JSON.stringify(event));
   const eventId = event.id;
   let policyId = null;
   try {
@@ -27,14 +29,14 @@ export default async (event: CloudEvent<MessagePublishedData>) => {
     error('PubSub message was not JSON', e);
   }
 
-  info(`Policy Created - Policy ID: ${policyId}`, {
-    eventId,
-  });
   if (!policyId || typeof policyId !== 'string') {
     error(`Missing policy ID`, { policyId });
     // TODO: report error
     return;
   }
+  info(`Policy Created - Policy ID: ${policyId}`, {
+    eventId,
+  });
 
   const db = getFirestore();
   // TODO: uncomment converter once policiesCollection is changed to new type
@@ -83,7 +85,7 @@ export default async (event: CloudEvent<MessagePublishedData>) => {
 
       if (!trxExists(trxRef)) {
         // TODO: use getLocation(id) once using converter
-        const location = policy.locations[locationId]; // as PolicyLocation;
+        const location = policy.locations[locationId];
         const bookingDateMillis = getBookingDate(
           location.effectiveDate.toMillis(),
           trxEffDate.toMillis()
@@ -106,25 +108,25 @@ export default async (event: CloudEvent<MessagePublishedData>) => {
 
         trxRef.set({
           trxType: 'new',
-          product: policy.product,
+          product: policy.product || '',
           policyId,
           term: policy.term,
           trxTimestamp,
           bookingDate: Timestamp.fromMillis(bookingDateMillis),
-          issuingCarrier: policy.issuingCarrier,
-          namedInsured: policy?.namedInsured.displayName, // (using new type)
+          issuingCarrier: policy?.issuingCarrier || '',
+          namedInsured: policy?.namedInsured?.displayName, // (using new type)
           mailingAddress: policy.mailingAddress,
           locationId,
           externalId: location.externalId || null,
           insuredLocation: location,
           policyEffDate: policy?.effectiveDate,
           policyExpDate: policy?.expirationDate,
-          trxEffDate: location.effectiveDate,
-          trxExpDate: location.expirationDate,
+          trxEffDate: location?.effectiveDate || null,
+          trxExpDate: location?.expirationDate || null,
           trxDays: 0, // TODO // trxExpDate - trxEffDate
           cancelEffDate: null,
           ratingPropertyData: {
-            ...location.propertyData,
+            ...location.ratingPropertyData,
             units: 1, // TODO: get units from property data res
             tier1: false, // TODO: check if tier1
             construction: 'TODO',
@@ -135,7 +137,7 @@ export default async (event: CloudEvent<MessagePublishedData>) => {
           TIV: location.TIV,
           RCVs: location.RCVs,
           premiumCalcData: ratingData.premiumCalcData,
-          locationAnnualPremium: location.premium,
+          locationAnnualPremium: location.annualPremium,
           termProratedPct: 0, // TODO: Transaction days / policy days
           termPremium: 0, // TODO
           // 'TODO: store & fetch comm rate as doc in subcollection'

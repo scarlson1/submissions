@@ -7,11 +7,11 @@ import {
   GridActionsCellItem,
   GridCellParams,
   GridColDef,
-  GridRowId,
   GridRowParams,
   GridValueGetterParams,
 } from '@mui/x-data-grid';
 import { CheckCircleOutlineRounded, SendRounded } from '@mui/icons-material';
+import { useFirestore, useSigninCheck } from 'reactfire';
 
 import { BasicDataGrid, IconButtonMenu } from 'components';
 import { ADMIN_ROUTES, ROUTES, createPath } from 'router';
@@ -33,12 +33,16 @@ import {
   updatedCol,
 } from 'common';
 import { useSendAgencyAppNotification } from 'hooks/useCreateTenant';
-import { useFirestore } from 'reactfire';
+import { CUSTOM_CLAIMS, useConfirmation } from 'modules/components';
 
 export const AgencyApps: React.FC = () => {
   const firestore = useFirestore();
   const navigate = useNavigate();
   const toast = useAsyncToast();
+  const confirm = useConfirmation();
+  const { data: authCheck } = useSigninCheck({
+    requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true },
+  });
 
   const { data, status } = useCollectionData('AGENCY_APPLICATIONS', [
     orderBy('metadata.created', 'desc'),
@@ -70,8 +74,42 @@ export const AgencyApps: React.FC = () => {
   };
 
   const handleApprove = useCallback(
-    (id: GridRowId) => async () => await createTenant(`${id}`),
-    [createTenant]
+    (params: GridRowParams) => async () => {
+      if (params.row?.status !== AGENCY_SUBMISSION_STATUS.SUBMITTED) {
+        try {
+          await confirm({
+            catchOnCancel: true,
+            variant: 'danger',
+            title: (
+              <Typography variant='h6' sx={{ fontSize: '1.2rem' }}>
+                POTENTIAL DUPLICATE - are you sure?
+              </Typography>
+            ),
+            description: (
+              <>
+                <Typography
+                  variant='body2'
+                  color='text.secondary'
+                  sx={{ pb: 2 }}
+                >{`The status of the agency application does not match the expected status ("${AGENCY_SUBMISSION_STATUS.SUBMITTED}"). The current status is "${params.row?.status}." Have you checked to see if the org was already created?`}</Typography>
+                <Typography
+                  variant='body2'
+                  color='text.secondary'
+                >{`Please confirm that you would like to continue.`}</Typography>
+              </>
+            ),
+            confirmButtonText: 'Create Org',
+            dialogProps: { maxWidth: 'sm' },
+            dialogContentProps: { dividers: true },
+          });
+        } catch (err) {
+          toast.warn('Create org aborted');
+          return;
+        }
+      }
+      await createTenant(params.id.toString());
+    },
+    [createTenant, confirm, toast]
   );
 
   // TODO: add tenantCreated: tenantId to agency app doc
@@ -131,8 +169,9 @@ export const AgencyApps: React.FC = () => {
                 <CheckCircleOutlineRounded color='action' />
               </Tooltip>
             }
-            onClick={handleApprove(params.id)}
+            onClick={handleApprove(params)}
             label='Approve'
+            disabled={!authCheck.hasRequiredClaims}
           />,
           <GridActionsCellItem
             icon={
@@ -207,7 +246,7 @@ export const AgencyApps: React.FC = () => {
       createdCol,
       updatedCol,
     ],
-    [handleApprove, handleResendInvite]
+    [handleApprove, handleResendInvite, authCheck]
   );
 
   return (

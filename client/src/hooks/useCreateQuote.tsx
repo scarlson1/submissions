@@ -14,7 +14,6 @@ import invariant from 'tiny-invariant';
 import { isEmpty, round } from 'lodash';
 import { endOfToday, startOfDay, isValid } from 'date-fns';
 
-import { NewQuoteValues } from 'views/admin/QuoteNew.Old';
 import { addToDate, extractNumber, getGeoHash, readableFirebaseCode } from 'modules/utils/helpers';
 import { QUOTE_STATUS, Submission, Quote, quotesCollection, licensesCollection } from 'common';
 import { useSendQuoteNotification } from './useSendQuoteNotification';
@@ -58,7 +57,7 @@ export const useCreateQuote = (
 
   const createQuote = useCallback(
     async (
-      values: NewQuoteValues,
+      values: QuoteValues,
       submissionId: string | null = null,
       submissionData: Partial<Submission> | null = null
     ) => {
@@ -128,6 +127,7 @@ function getFormattedQuote(values: QuoteValues, uid?: string | null): Quote {
     fees,
     subproducerCommission,
     ratingPropertyData,
+    ratingDocId,
     notes,
   } = values;
 
@@ -209,6 +209,7 @@ function getFormattedQuote(values: QuoteValues, uid?: string | null): Quote {
       sqFootage: extractNumber(`${ratingPropertyData.sqFootage}`),
       yearBuilt: extractNumber(`${ratingPropertyData.yearBuilt}`),
     },
+    ratingDocId,
     statusTransitions: {
       published: Timestamp.now(),
       accepted: null,

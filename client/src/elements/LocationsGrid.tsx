@@ -55,41 +55,7 @@ interface LocationsGridProps extends Omit<DataGridProps, 'rows' | 'columns'> {
 export const LocationsGrid = ({ locations, ...props }: LocationsGridProps) => {
   const locationColumns = useMemo(
     () => [
-      // {
-      //   field: 'actions',
-      //   headerName: 'Actions',
-      //   type: 'actions',
-      //   width: 120,
-      //   getActions: (params: GridRowParams) => [
-      //     <GridActionsCellItem
-      //       icon={
-      //         <Tooltip placement='top' title='View Raw JSON'>
-      //           <DataObjectRounded />
-      //         </Tooltip>
-      //       }
-      //       onClick={showJson(params)}
-      //       label='Details'
-      //     />,
-      //     <GridActionsCellItem
-      //       icon={
-      //         <Tooltip placement='top' title='Edit'>
-      //           <EditRounded />
-      //         </Tooltip>
-      //       }
-      //       onClick={editQuote(params)}
-      //       label='Send Notifications'
-      //     />,
-      //     <GridActionsCellItem
-      //       icon={
-      //         <Tooltip placement='top' title='Send Notifications'>
-      //           <SendRounded />
-      //         </Tooltip>
-      //       }
-      //       onClick={handleSendNotifications(params)}
-      //       label='Send Notifications'
-      //     />,
-      //   ],
-      // },
+      // TODO: add request edit button, view google maps, etc.
       idCol,
       addressSummaryCol,
       addrLine1Col,
@@ -99,13 +65,13 @@ export const LocationsGrid = ({ locations, ...props }: LocationsGridProps) => {
       addrPostalCol,
       addrCountyCol,
       addrFIPSCol,
-      annualPremiumCol,
       limitACol,
       limitBCol,
       limitCCol,
       limitDCol,
       tivCol,
       deductibleCol,
+      annualPremiumCol,
       booleanCalcActiveCol,
       effectiveDateCol,
       expirationDateCol,
@@ -150,16 +116,17 @@ export const LocationsGrid = ({ locations, ...props }: LocationsGridProps) => {
               'address.countyFIPS': false,
               latitude: false,
               longitude: false,
-              annualPremium: false,
-              CBRSDesignation: false,
-              basement: false,
-              distToCoastFeet: false,
-              floodZone: false,
-              numStories: false,
-              propertyCode: false,
-              sqFootage: false,
-              yearBuilt: false,
-              replacementCost: false,
+              // annualPremium: false,
+              'ratingPropertyData.CBRSDesignation': false,
+              'ratingPropertyData.basement': false,
+              'ratingPropertyData.distToCoastFeet': false,
+              'ratingPropertyData.floodZone': false,
+              'ratingPropertyData.numStories': false,
+              'ratingPropertyData.propertyCode': false,
+              'ratingPropertyData.sqFootage': false,
+              'ratingPropertyData.yearBuilt': false,
+              'ratingPropertyData.replacementCost': false,
+              'ratingPropertyData.ratingDocId': false,
               ratingDocId: false,
               externalId: false,
               created: false,
@@ -169,7 +136,6 @@ export const LocationsGrid = ({ locations, ...props }: LocationsGridProps) => {
           sorting: {
             sortModel: [{ field: 'created', sort: 'desc' }],
           },
-          // pagination: { pageSize: 10 },
           pagination: { paginationModel: { page: 0, pageSize: 10 } },
         }}
         {...props}

@@ -3,9 +3,17 @@ import axios, { AxiosResponse } from 'axios';
 import invariant from 'tiny-invariant';
 
 import { useAsyncToast } from './useAsyncToast';
-import { LineOfBusiness, SubjectBaseItems, Tax, TaxItem, TransactionType, WithId } from 'common';
+import {
+  FeeItem,
+  LineOfBusiness,
+  SubjectBaseItems,
+  Tax,
+  TaxItem,
+  TransactionType,
+  WithId,
+} from 'common';
 import { sumByTypes } from 'modules/utils';
-import { FeeItem, QuoteValues } from 'elements/QuoteForm';
+import { QuoteValues } from 'elements/QuoteForm';
 
 export type SubjectBaseKeyVal = Record<Exclude<SubjectBaseItems, 'fixedFee' | 'noFee'>, number>;
 interface StateTaxRequest extends SubjectBaseKeyVal {

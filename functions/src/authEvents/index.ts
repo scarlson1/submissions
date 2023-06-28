@@ -27,25 +27,6 @@ export const beforecreate = beforeUserCreated(
   }
 );
 
-// export const beforeSignIn = functions
-//   .runWith({
-//     secrets: [sendgridApiKey, emailVerificationKey],
-//     minInstances: minInstancesAuth,
-//     memory: '128MB',
-//   })
-//   .auth.user()
-//   .beforeSignIn(async (user, context) => {
-//     await (await import('./beforeSignIn.js')).default(user, context);
-//   });
-
-// export const beforeCreate = functions
-//   .runWith({ minInstances: minInstancesAuth })
-//   .auth.user()
-//   .beforeCreate(async (user, context) => {
-//     await (await import('./beforeCreate.js')).default(user, context);
-//     // await (await import('./fn/authUserOnCreateFn')).default(user, context);
-//   });
-
 export const createFirestoreUser = functions.auth.user().onCreate(async (user, context) => {
   await (await import('./createFirestoreUser.js')).default(user, context);
 });

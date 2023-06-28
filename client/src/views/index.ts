@@ -17,4 +17,4 @@ export { AccountDetails } from './AccountDetails';
 export { Quotes } from './Quotes';
 export { Submissions } from './Submissions';
 
-export type { QuoteValues } from './QuoteBind';
+export type { BindQuoteValues } from './QuoteBind';

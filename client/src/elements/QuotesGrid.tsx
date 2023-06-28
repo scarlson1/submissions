@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import { Box, Link, Tooltip } from '@mui/material';
-import { GridActionsCellItem, GridColDef, GridRowParams, GridToolbar } from '@mui/x-data-grid';
+import { GridActionsCellItem, GridColDef, GridRowParams } from '@mui/x-data-grid';
 import { SendRounded } from '@mui/icons-material';
 import { useSigninCheck } from 'reactfire';
 
@@ -98,18 +98,6 @@ export const QuotesGrid: React.FC<QuotesGridProps> = ({
         width: isSmall ? 60 : 120,
         getActions: (params: GridRowParams) => [
           ...renderActions(params),
-          // <GridActionsCellItem
-          //   icon={
-          //     <Tooltip placement='top' title='View JSON'>
-          //       <DataObjectRounded />
-          //     </Tooltip>
-          //   }
-          //   onClick={handleShowJson(params)}
-          //   label='Details'
-          //   showInMenu={isSmall}
-          //   // disabled={!authCheckResult.hasRequiredClaims}
-          //   disabled={!Boolean(claims?.iDemandAdmin)}
-          // />,
           <GridActionsCellItem
             icon={
               <Tooltip placement='top' title='Send Notifications'>

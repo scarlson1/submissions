@@ -309,8 +309,8 @@ export function AgencyAppSuccessStep() {
             Submission recieved!
           </Typography>
           <Typography variant='body2' color='text.secondary'>
-            Once your org has been set up, you'll receive an email with a link to finish setting up
-            your account.
+            Once your org has been set up, you'll receive an email to finish setting up your
+            account.
           </Typography>
         </CardContent>
         <CardActions sx={{ borderTop: (theme) => `1px solid ${theme.palette.divider}` }}>
