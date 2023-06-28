@@ -5,7 +5,7 @@ import { doc, updateDoc, getDoc, getFirestore } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import { RequestQuoteRounded } from '@mui/icons-material';
 
-import { submissionsCollection, Submission } from 'common';
+import { submissionsCollection, Submission, rcvSourceUserCol } from 'common';
 import { ADMIN_ROUTES, createPath } from 'router';
 import { withIdConverter } from 'common/firestoreConverters';
 import { useConfirmAndUpdate } from './Quotes';
@@ -85,6 +85,7 @@ export const Submissions = () => {
         processRowUpdate={confirmAndUpdate}
         onProcessRowUpdateError={handleProcessRowUpdateError}
         renderActions={renderAdminActions}
+        additionalColumns={[rcvSourceUserCol]}
       />
     </Box>
   );

@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { doc, getDoc, getFirestore, orderBy, where } from 'firebase/firestore';
+import { doc, getDoc, orderBy, where } from 'firebase/firestore';
 import {
   Box,
   Button,
@@ -13,6 +13,8 @@ import Grid from '@mui/material/Unstable_Grid2';
 import { ArrowBackIosRounded, OpenInNewRounded } from '@mui/icons-material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
+import invariant from 'tiny-invariant';
+import { useFirestore } from 'reactfire';
 
 import { Submission } from 'common/types';
 import { dollarFormat, formatFirestoreTimestamp, numberFormat } from 'modules/utils/helpers';
@@ -97,35 +99,41 @@ export const RowItem: React.FC<{ title: string; value: React.ReactNode }> = ({ t
 
 export const SubmissionView: React.FC = () => {
   const { submissionId } = useParams();
-  const { data } = useDocData<Submission>('SUBMISSIONS', submissionId!);
+  invariant(submissionId, 'Missing submission record ID');
+
   const navigate = useNavigate();
+  const firestore = useFirestore();
   const dialog = useJsonDialog();
+  const { data } = useDocData<Submission>('SUBMISSIONS', submissionId!);
 
   const showDialog = useCallback(
     async (collection: string, docId: string, title: string) => {
-      const snap = await getDoc(doc(getFirestore(), collection, docId));
+      try {
+        const snap = await getDoc(doc(firestore, collection, docId));
 
-      const d = snap.data();
-      if (!snap.exists() || !d) {
-        return toast.error(`Failed to fetch data for doc ID ${docId}`);
+        const d = snap.data();
+        if (!snap.exists() || !d) return toast.error(`Failed to fetch data for doc ID ${docId}`);
+
+        dialog(d, title);
+      } catch (err: any) {
+        let msg = 'error fetching property data record';
+        if (err?.message) msg = err.message;
+        toast.error(msg);
       }
-
-      dialog(d, title);
     },
-    [dialog]
+    [dialog, firestore]
   );
 
-  const handleCreateQuote = useCallback(() => {
-    navigate({
-      pathname: createPath({
-        path: ADMIN_ROUTES.QUOTE_NEW,
-        params: { productId: 'flood', submissionId: `${submissionId}` },
+  const handleCreateQuote = useCallback(
+    () =>
+      navigate({
+        pathname: createPath({
+          path: ADMIN_ROUTES.QUOTE_NEW,
+          params: { productId: 'flood', submissionId: `${submissionId}` },
+        }),
       }),
-      // search: createSearchParams({
-      //   submissionId: `${submissionId}`,
-      // }).toString(),
-    });
-  }, [navigate, submissionId]);
+    [navigate, submissionId]
+  );
 
   const openGoogleMaps = useCallback(() => {
     let { latitude, longitude } = data.coordinates;
@@ -287,6 +295,7 @@ export const SubmissionView: React.FC = () => {
           size='small'
           sx={{ m: 1, ml: 0 }}
           endIcon={<OpenInNewRounded />}
+          disabled={!data?.coordinates?.latitude}
         >
           Google Maps
         </Button>

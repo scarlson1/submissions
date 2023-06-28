@@ -165,7 +165,7 @@ export const Quotes: React.FC = () => {
       </Box>
       <QuotesGrid
         renderActions={renderActions}
-        columnOverrides={[subproducerCommissionCol]}
+        additionalColumns={[subproducerCommissionCol]}
         density='compact'
         processRowUpdate={confirmAndUpdate}
         onProcessRowUpdateError={handleProcessRowUpdateError}

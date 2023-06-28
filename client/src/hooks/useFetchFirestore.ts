@@ -4,6 +4,8 @@ import { useFirestore } from 'reactfire';
 
 import { RatingData, WithId } from 'common';
 
+// TODO: fix - not working
+
 export const useFetchFirestore = <T = RatingData>(
   collectionName: string,
   constraints: QueryConstraint[]

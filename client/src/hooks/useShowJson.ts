@@ -14,6 +14,9 @@ import { toast } from 'react-hot-toast';
 import { useJsonDialog } from './useJsonDialog';
 import { WithId } from 'common';
 
+// could add another func for querying collection
+// showJsonWhere
+
 export const useShowJson = <T extends DocumentData>(
   colName: string,
   paths: string[] = [],

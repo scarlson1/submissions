@@ -972,6 +972,17 @@ export const ratingDataPriorLossCountCol: GridColDef = {
   valueGetter: (params) => params.row.ratingPropertyData?.priorLossCount ?? null,
 };
 
+export const rcvSourceUserCol: GridColDef = {
+  field: 'rcvSourceUser',
+  headerName: 'RCV Source User',
+  type: 'boolean',
+  minWidth: 120,
+  flex: 0.4,
+  headerAlign: 'center',
+  align: 'center',
+  filterOperators: getGridFirestoreBooleanOperators(),
+};
+
 export const userIdCol: GridColDef = {
   field: 'userId',
   headerName: 'User ID',

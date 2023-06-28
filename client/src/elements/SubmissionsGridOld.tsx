@@ -36,13 +36,13 @@ import {
 export interface SubmissionGridProps extends Partial<DataGridProps> {
   rows: WithId<Submission>[];
   actions?: React.ReactElement<GridActionsCellItemProps>[];
-  columnOverrides?: GridColDef<any, any, any>[];
+  additionalColumns?: GridColDef<any, any, any>[];
 }
 
 export const SubmissionsGridOld: React.FC<SubmissionGridProps> = ({
   rows,
   actions = [],
-  columnOverrides = [],
+  additionalColumns = [],
   ...props
 }) => {
   const navigate = useNavigate();
@@ -445,9 +445,9 @@ export const SubmissionsGridOld: React.FC<SubmissionGridProps> = ({
           return <GridCellCopy value={params.value} />;
         },
       },
-      ...columnOverrides,
+      ...additionalColumns,
     ],
-    [openMap, actions, columnOverrides]
+    [openMap, actions, additionalColumns]
   );
 
   return (

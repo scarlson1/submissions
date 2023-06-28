@@ -56,7 +56,7 @@ import { useSendQuoteNotification, useWidth } from 'hooks';
 import { getRequiredClaimValidator } from 'components/RequireAuthReactFire';
 import { useAuth } from 'modules/components';
 
-// TODO: need to use custom merge function for columnOverrides to prevent duplication "field" values
+// TODO: need to use custom merge function for additionalColumns to prevent duplication "field" values
 
 export interface QuotesGridProps
   extends Omit<
@@ -64,12 +64,12 @@ export interface QuotesGridProps
     'columns' | 'collName' | 'isCollectionGroup' | 'columns' | 'pathSegments'
   > {
   renderActions?: (params: GridRowParams) => JSX.Element[];
-  columnOverrides?: GridColDef<any, any, any>[]; // | GridActionsColDef[];
+  additionalColumns?: GridColDef<any, any, any>[]; // | GridActionsColDef[];
 }
 
 export const QuotesGrid: React.FC<QuotesGridProps> = ({
   renderActions = () => [],
-  columnOverrides = [],
+  additionalColumns = [],
   ...props
 }) => {
   const { claims } = useAuth();
@@ -98,6 +98,18 @@ export const QuotesGrid: React.FC<QuotesGridProps> = ({
         width: isSmall ? 60 : 120,
         getActions: (params: GridRowParams) => [
           ...renderActions(params),
+          // <GridActionsCellItem
+          //   icon={
+          //     <Tooltip placement='top' title='View JSON'>
+          //       <DataObjectRounded />
+          //     </Tooltip>
+          //   }
+          //   onClick={handleShowJson(params)}
+          //   label='Details'
+          //   showInMenu={isSmall}
+          //   // disabled={!authCheckResult.hasRequiredClaims}
+          //   disabled={!Boolean(claims?.iDemandAdmin)}
+          // />,
           <GridActionsCellItem
             icon={
               <Tooltip placement='top' title='Send Notifications'>
@@ -193,9 +205,9 @@ export const QuotesGrid: React.FC<QuotesGridProps> = ({
           );
         },
       },
-      ...columnOverrides,
+      ...additionalColumns,
     ],
-    [handleSendNotifications, columnOverrides, renderActions, isSmall, authCheckResult, claims]
+    [handleSendNotifications, additionalColumns, renderActions, isSmall, authCheckResult, claims]
   );
 
   return (

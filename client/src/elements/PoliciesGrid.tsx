@@ -50,7 +50,7 @@ export interface PoliciesGridProps
     'columns' | 'collName' | 'isCollectionGroup' | 'columns' | 'pathSegments'
   > {
   renderActions?: (params: GridRowParams) => JSX.Element[];
-  columnOverrides?: GridColDef<any, any, any>[];
+  additionalColumns?: GridColDef<any, any, any>[];
 }
 
 export const PoliciesGrid: React.FC<PoliciesGridProps> = ({

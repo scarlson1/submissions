@@ -61,9 +61,14 @@ export interface SubmissionsGridProps
     'columns' | 'collName' | 'isCollectionGroup' | 'columns' | 'pathSegments'
   > {
   renderActions?: (params: GridRowParams) => JSX.Element[];
+  additionalColumns?: GridColDef<any, any, any>[];
 }
 
-export const SubmissionsGrid = ({ renderActions = () => [], ...props }: SubmissionsGridProps) => {
+export const SubmissionsGrid = ({
+  renderActions = () => [],
+  additionalColumns,
+  ...props
+}: SubmissionsGridProps) => {
   const toast = useAsyncToast({ position: 'top-right' });
   const openFF = useFloodFactor(toast.error);
   const showJson = useShowJson<Submission>(COLLECTIONS.SUBMISSIONS);
@@ -247,8 +252,17 @@ export const SubmissionsGrid = ({ renderActions = () => [], ...props }: Submissi
         headerName: 'Submission ID',
         description: 'Document/database ID for the submission',
       },
+      ...(additionalColumns || []),
     ],
-    [openMap, openFloodFactor, handleShowJson, renderActions, iDAdminResult, isSmall]
+    [
+      openMap,
+      openFloodFactor,
+      handleShowJson,
+      renderActions,
+      additionalColumns,
+      iDAdminResult,
+      isSmall,
+    ]
   );
 
   return (
