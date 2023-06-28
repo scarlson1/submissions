@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import { Box, Link, Tooltip } from '@mui/material';
-import { GridActionsCellItem, GridColDef, GridRowParams, GridToolbar } from '@mui/x-data-grid';
+import { GridActionsCellItem, GridColDef, GridRowParams } from '@mui/x-data-grid';
 import { SendRounded } from '@mui/icons-material';
 import { useSigninCheck } from 'reactfire';
 
