@@ -1,3 +1,5 @@
+// import invariant from 'tiny-invariant';
+
 import { Nullable, ValueByRiskType } from '../../common/types.js';
 import { getFirstFloorDiffFactors } from './firstFloorDiff.js';
 
@@ -96,16 +98,14 @@ export const getSecondaryModifiers = ({
 }: SecondaryModifiersProps) => {
   const secondaryModifiers = initialValues;
 
-  const { inland_ffe_factor, surge_ffe_factor, tsunami_ffe_factor } = getFirstFloorDiffFactors(FFH);
+  const { inland_ffe_factor, surge_ffe_factor, tsunami_ffe_factor } = getFirstFloorDiffFactors(FFH); // eslint-disable-line
   secondaryModifiers.ffeMult = {
-    inland: inland_ffe_factor,
-    surge: surge_ffe_factor,
-    tsunami: tsunami_ffe_factor,
+    inland: inland_ffe_factor, // eslint-disable-line
+    surge: surge_ffe_factor, // eslint-disable-line
+    tsunami: tsunami_ffe_factor, // eslint-disable-line
   };
 
   secondaryModifiers.basementMult = getBasementFactor(basement);
-
-  // TODO: pass loss history. If 0, history mults = 1 || if 1, get history mult || if 2+, decline
 
   secondaryModifiers.history.inland =
     priorLossCount === '0' ? 1 : getHistoryMultInland(inlandRiskScore);
@@ -114,12 +114,19 @@ export const getSecondaryModifiers = ({
   secondaryModifiers.history.tsunami =
     priorLossCount === '0' ? 1 : getHistoryMultTsunami(tsunamiRiskScore);
 
+  // TODO: uncomment
+  // for (const k in secondaryModifiers.history)
+  //   invariant(
+  //     secondaryModifiers.history[k as keyof ValueByRiskType] !== null,
+  //     'not ratable - loss history count failed'
+  //   );
+
   // console.log('Secondary Modifiers: ', secondaryModifiers);
   return secondaryModifiers;
 };
 
 export const calcSecondaryMult = (historyMult: number, ffeFactor: number, basementMult: number) => {
-  let mult =
+  const mult =
     CONTENTS_RCV_MULT *
     ORDINANCE_MULT *
     DISTANCE_TO_COAST_MULT *

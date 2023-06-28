@@ -30,7 +30,7 @@ import { extractSRAALs } from '../utils/rating/getAALs';
 
 let swissReInstance: AxiosInstance;
 let swissReInstanceTimestamp: number; // TODO: regenerate if > 10 mins
-let tenMins = 60 * 1000 * 10;
+const tenMins = 60 * 1000 * 10;
 
 const chunkCount = defineInt('SR_CHUNK_COUNT');
 const PORTFOLIO_UPLOAD_FOLDER = 'ratePortfolio';

@@ -7,6 +7,7 @@ import {
   finTrxCollection,
   FIN_TRANSACTION_STATUS,
   ePayCreds as ePayCredsSecret,
+  PUB_SUB_TOPICS,
 } from '../common';
 import { publishMessage } from '../services/pubsub/publishMessage.js';
 
@@ -53,7 +54,7 @@ export default async (event: ScheduledEvent) => {
           console.log(`ACH TRANSACTION SETTLED - ID ${charge.id}`, events);
           await transactionsCol.doc(charge.id).update({ status: FIN_TRANSACTION_STATUS.SUCCEEDED });
 
-          await publishMessage('payment.complete', {
+          await publishMessage(PUB_SUB_TOPICS.PAYMENT_COMPLETE, {
             policyId: charge.policyId,
             transactionId: charge.transactionId,
           });

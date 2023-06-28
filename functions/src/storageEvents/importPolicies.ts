@@ -298,7 +298,7 @@ export default async (event: StorageEvent) => {
 
       return;
     } catch (err) {
-      console.error(`ERROR CREATING POLICY DOCS: `, err);
+      console.error('ERROR CREATING POLICY DOCS', err);
       return;
     }
   }

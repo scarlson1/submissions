@@ -12,6 +12,7 @@ import {
   cardFeePct,
   policiesCollection,
   Policy,
+  PUB_SUB_TOPICS,
 } from '../common';
 import { getEPayInstance } from '../services';
 import { publishMessage } from '../services/pubsub/publishMessage.js';
@@ -98,7 +99,7 @@ export default async ({ data, auth }: CallableRequest) => {
     // trigger same event when ach payment is complete
     // handle policy status and transaction status updates
 
-    await publishMessage('payment.complete', {
+    await publishMessage(PUB_SUB_TOPICS.PAYMENT_COMPLETE, {
       policyId,
       transactionId,
     });

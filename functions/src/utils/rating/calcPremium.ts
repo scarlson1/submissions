@@ -43,7 +43,7 @@ export const getPremiumData = ({
   minPremium,
   subproducerComPct,
 }: GetPremiumDataProps): PremiumCalcData => {
-  let inlandTechPremium = round(
+  const inlandTechPremium = round(
     getTechPremium(
       AAL.inland, // inlandAAL,
       secondaryFactorMults.inland,
@@ -51,7 +51,7 @@ export const getPremiumData = ({
     ),
     2
   );
-  let surgeTechPremium = round(
+  const surgeTechPremium = round(
     getTechPremium(AAL.surge, secondaryFactorMults.surge, SURGE_LAE_FACTOR),
     2
   );

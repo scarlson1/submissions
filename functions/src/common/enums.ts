@@ -105,3 +105,8 @@ export enum TRANSACTION_TYPE {
   CHARGE = 'charge',
   REFUND = 'refund',
 }
+
+export enum PUB_SUB_TOPICS {
+  PAYMENT_COMPLETE = 'payment.complete',
+  POLICY_CREATED = 'policy.created',
+}
