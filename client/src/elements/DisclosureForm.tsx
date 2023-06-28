@@ -6,7 +6,7 @@ import { Content, EditorContent, JSONContent } from '@tiptap/react';
 import { Formik, FormikConfig, FormikHelpers, FormikProps } from 'formik';
 import * as yup from 'yup';
 
-import { statesArr } from 'common/statesList';
+import { STATES_ABV_ARR } from 'common/statesList';
 import { useTextEditor } from 'hooks';
 import { EditorToolbar } from 'components/textEditor/EditorToolbar';
 import { FormikNativeSelect, FormikSelect, FormikTextField } from 'components/forms';
@@ -118,7 +118,7 @@ export const DisclosureForm: React.FC<DisclosureFormProps> = ({
               />
             </Grid>
             <Grid xs={6} sm={4} md={3}>
-              <FormikSelect name='state' label='State' selectOptions={statesArr} fullWidth />
+              <FormikSelect name='state' label='State' selectOptions={STATES_ABV_ARR} fullWidth />
             </Grid>
             <Grid xs={6} sm={4} md={3}>
               <FormikTextField

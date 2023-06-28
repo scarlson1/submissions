@@ -53,7 +53,7 @@ import {
 import { GeoPoint, Timestamp } from 'firebase/firestore';
 import { AdditionalInsured, Address, Mortgagee, Nullable, PolicyLocation } from './types';
 import { renderChips } from 'components/RenderGridCellHelpers';
-import { statesArr } from './statesList';
+import { STATES_ABV_ARR } from './statesList';
 import {
   getGridFirestoreNumericOperators,
   getGridFirestoreDateOperators,
@@ -62,8 +62,13 @@ import {
   getGridFirestoreBooleanOperators,
   // GRID_MULTI_SELECT_COL_DEF,
 } from 'modules/muiGrid';
-import { CBRS_OPTIONS, FLOOD_ZONE_OPTIONS, PRIOR_LOSS_COUNT_OPTIONS } from 'elements/QuoteForm';
-import { LOB_OPTIONS, PRODUCT_OPTIONS } from './constants';
+import {
+  CBRS_OPTIONS,
+  FLOOD_ZONE_OPTIONS,
+  LOB_OPTIONS,
+  PRIOR_LOSS_COUNT_OPTIONS,
+  PRODUCT_OPTIONS,
+} from './constants';
 import { multiSelectExtendsSingle } from 'modules/muiGrid/gridMultiSelectColDef';
 import { TRANSACTION_OPTIONS } from 'elements/TaxForm';
 import { isDate } from 'lodash';
@@ -331,7 +336,7 @@ export const stateCol: GridColDef = {
   minWidth: 80,
   flex: 1,
   editable: false,
-  valueOptions: statesArr,
+  valueOptions: STATES_ABV_ARR,
   filterOperators: getGridFirestoreSelectOperators(),
 };
 
@@ -687,7 +692,7 @@ export const limitDCol: GridColDef = {
 export const tivCol: GridColDef = {
   field: 'tiv',
   headerName: 'TIV',
-  description: 'Sum of coverage limits',
+  description: 'Total Insured Value - sum of coverage limits',
   type: 'number',
   minWidth: 120,
   flex: 0.8,
@@ -1164,7 +1169,7 @@ export const homeStateCol: GridColDef = {
   field: 'homeState',
   headerName: 'Home State',
   type: 'singleSelect',
-  valueOptions: statesArr,
+  valueOptions: STATES_ABV_ARR,
   minWidth: 100,
   flex: 0.4,
   editable: false,
@@ -1241,7 +1246,7 @@ export const SLProducerOfRecordLicenseState: GridColDef = {
   field: 'SLProducerOfRecord.licenseState',
   headerName: 'SL PofR License State',
   description: 'Surplus Lines Producer of Record license state',
-  valueOptions: statesArr,
+  valueOptions: STATES_ABV_ARR,
   filterOperators: getGridFirestoreSelectOperators(),
   valueGetter: (params) => params.row.surplusLinesProducerOfRecord?.licenseState || null,
 };

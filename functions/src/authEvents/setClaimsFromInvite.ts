@@ -5,6 +5,8 @@ import { UserRecord } from 'firebase-admin/auth';
 
 import { iDemandOrgId, invitesCollection, userClaimsCollection } from '../common';
 
+// BUG - are claims set when user is move to tenant ?? (and status stays pending)
+
 export default async (user: UserRecord, context: EventContext<Record<string, string>>) => {
   const db = getFirestore();
 

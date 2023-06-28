@@ -306,6 +306,11 @@ interface RatingCalcData {
 
 type PropWithRatingCalcData = Nullable<RatingPropertyData> & RatingCalcData;
 
+export interface FeeItem {
+  feeName: string;
+  feeValue: number;
+}
+
 // TODO: need reference to ratingDocId to get AALs for editing
 // TODO: change quote to support multi-location
 export interface Quote {
@@ -345,6 +350,7 @@ export interface Quote {
   imageURLs?: Record<locationImageTypes, string> | null;
   imagePaths?: Record<locationImageTypes, string> | null;
   ratingPropertyData: Nullable<RatingPropertyData>;
+  ratingDocId: string;
   geoHash?: Geohash | null;
   notes?: Note[]; // { [key: string]: string }[];
   // quoteIds?: WithFieldValue<string[]>;
@@ -606,7 +612,8 @@ export interface PolicyLocation {
   address: Address;
   coordinates: GeoPoint;
   geoHash: Geohash;
-  premium: number;
+  // premium: number;
+  annualPremium: number;
   limits: Limits;
   // TODO: add tiv sum in Policy class
   TIV: number;
@@ -616,7 +623,8 @@ export interface PolicyLocation {
   additionalInsureds: AdditionalInsured[];
   mortgageeInterest: Mortgagee[];
   ratingDocId: string; // TODO: include rating info ?? make PublicRatingData and PrivateRatingData (extends)
-  propertyData: RatingPropertyData;
+  // propertyData: RatingPropertyData;
+  ratingPropertyData: RatingPropertyData;
   effectiveDate: Timestamp;
   expirationDate: Timestamp;
   imageURLs?: Record<locationImageTypes, string> | null;

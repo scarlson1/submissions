@@ -528,6 +528,7 @@ export interface Quote {
   imageURLs?: Record<locationImageTypes, string> | null;
   imagePaths?: Record<locationImageTypes, string> | null;
   ratingPropertyData: RatingPropertyData;
+  ratingDocId: string;
   geoHash?: Geohash | null;
   notes?: Note[];
   statusTransitions: {
@@ -568,7 +569,8 @@ export interface PolicyLocation {
   address: Address;
   coordinates: GeoPoint;
   geoHash: Geohash;
-  premium: number;
+  // premium: number;
+  annualPremium: number;
   limits: Limits;
   // TODO: add tiv sum in Policy class
   TIV: number;
@@ -578,7 +580,8 @@ export interface PolicyLocation {
   additionalInsureds: AdditionalInsured[];
   mortgageeInterest: Mortgagee[];
   ratingDocId: string; // TODO: include rating info ?? make PublicRatingData and PrivateRatingData (extends)
-  propertyData: RatingPropertyData; // TODO: use same key in Quote interface
+  // propertyData: RatingPropertyData; // TODO: use same key in Quote interface
+  ratingPropertyData: RatingPropertyData;
   effectiveDate: Timestamp;
   expirationDate: Timestamp;
   locationId: string;
@@ -662,12 +665,6 @@ export class PolicyClass implements IPolicyClass {
   public userId: string | null;
   public agency: AgencyDetails;
   public agent: AgentDetails; // Nullable<AgentDetails>;
-  // public agent: {
-  //   agentId: string | null;
-  //   name: string; // | null;
-  //   email: string; // | null;
-  //   phone: string; // | null;
-  // };
   public surplusLinesProducerOfRecord: any;
   public issuingCarrier: string;
   // public imageURLs: Record<string, string> | null;
@@ -801,11 +798,11 @@ export class PolicyClass implements IPolicyClass {
     const locations = Object.values(this.locations);
 
     const totalPremium = locations.reduce((acc, location) => {
-      if (!location.premium)
+      if (!location.annualPremium)
         throw new Error(
           `Missing premium for ${location.address.addressLine1} (${location.locationId})`
         );
-      return acc + location.premium;
+      return acc + location.annualPremium;
     }, 0);
 
     // TODO: decide whether to directly set price
@@ -844,9 +841,9 @@ export class PolicyClass implements IPolicyClass {
   // TODO: doesn't account for fees ??
   calcCardFeeLocation(locationId: string, fees: number = 0) {
     const location = this.getLocation(locationId);
-    if (!location.premium || typeof location.premium !== 'number')
+    if (!location.annualPremium || typeof location.annualPremium !== 'number')
       throw new Error('Missing location premium or premium is not a number');
-    const fee = this.calcCardFee(location.premium + fees);
+    const fee = this.calcCardFee(location.annualPremium + fees);
     return fee;
   }
 
@@ -862,43 +859,6 @@ export interface ChangeRequest extends BaseDoc {
   userId: string;
   status: ChangeRequestStatus;
 }
-
-// export interface PolicyOld {
-//   status: POLICY_STATUS;
-//   limits: Limits;
-//   deductible: number;
-//   address: Address;
-//   coordinates: GeoPoint | null; // TODO: get rid of null in Quote
-//   geoHash?: Geohash | null;
-//   namedInsured: {
-//     firstName: string;
-//     lastName: string;
-//     email: string;
-//     phone: string;
-//     userId?: string | null;
-//   };
-//   additionalInsureds?: AdditionalInsured[];
-//   mortgageeInterest?: Mortgagee[];
-//   effectiveDate: Timestamp;
-//   expirationDate: Timestamp;
-//   userId: string | null;
-//   agent: {
-//     agentId: string | null;
-//     name: string | null;
-//     email: string | null;
-//   };
-//   agency: {
-//     orgId: string | null; // TODO: remove null ??
-//     name: string | null;
-//   };
-//   documents: { displayName: string; downloadUrl: string; storagePath: string }[];
-//   imageURLs?: { [key: string]: string | null } | null;
-//   imagePaths?: { [key: string]: string | null } | null;
-//   transactions: string[]; // TODO: figure out how to associate policies and transactions
-//   price: number;
-//   cardFee: number;
-//   metadata: BaseMetadata;
-// }
 
 export interface PremiumCalcData {
   techPremium: ValueByRiskType;

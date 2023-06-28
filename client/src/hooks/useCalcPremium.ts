@@ -2,13 +2,13 @@ import { useCallback, useState } from 'react';
 import { useFunctions } from 'reactfire';
 import invariant from 'tiny-invariant';
 
-import { NewQuoteValues } from 'views/admin/QuoteNew.Old';
 import { CalcQuoteRequest, calcQuote } from 'modules/api';
 import { RatingInputs } from 'modules/api/getAnnualPremium';
 import { Optional } from 'common';
 import { truthyOrZero } from 'modules/utils';
+import { QuoteValues } from 'elements';
 
-export function validateCommonInputs(values: NewQuoteValues) {
+export function validateCommonInputs(values: QuoteValues) {
   const { ratingPropertyData, deductible, subproducerCommission, address, limits } = values; // priorLossCount,
 
   invariant(address?.state, 'state required');
@@ -39,7 +39,7 @@ export function validateCommonInputs(values: NewQuoteValues) {
   return values;
 }
 
-function getValidatedCalcInputs(values: NewQuoteValues) {
+function getValidatedCalcInputs(values: QuoteValues) {
   let comValues = validateCommonInputs(values);
   const {
     AAL,
@@ -84,7 +84,7 @@ export const useCalcPremium = (
   const [loading, setLoading] = useState(false);
 
   const calcPremium = useCallback(
-    async (values: NewQuoteValues) => {
+    async (values: QuoteValues) => {
       // console.log('VALUES: ', values);
       let validatedReqBody;
       try {

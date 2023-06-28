@@ -148,17 +148,19 @@ export const useCreateTenant = ({ onSuccess, onError }: UseCreateTenantProps | u
       );
 
       if (!!shouldNotify) {
-        // toast.loading('sending notification...');
+        toast.loading(`sending notifications...`);
         let res = await sendApproved(submissionId, `${tenantId}`);
         if (res && res?.emails && res.emails.length) {
           const emails = res.emails.map((e) => (typeof e === 'string' ? e : e.email));
           toast.info(`notifications delivered (${emails.join(', ')})`);
+        } else {
+          toast.warn('There may be been an issue delivering notifications');
         }
       }
 
       // if (onSuccess) onSuccess({ tenantId });
     },
-    [promptForNotification, sendApproved, onSuccess, toast]
+    [promptForNotification, sendApproved, toast]
   );
 
   const createTenant = useCallback(

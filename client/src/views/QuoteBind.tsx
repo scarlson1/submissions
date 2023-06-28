@@ -81,7 +81,7 @@ import { useAuth } from 'modules/components/AuthContext';
 
 const policyEffShortcuts = getDateShortcuts([15, 30, 60]);
 
-export interface QuoteValues {
+export interface BindQuoteValues {
   namedInsured: Omit<NamedInsuredDetails, 'userId'>;
   agent: AgentDetails;
   paymentMethodId: string;
@@ -102,7 +102,7 @@ export const QuoteBind: React.FC = () => {
   const { data } = useFirestoreDocData(quoteRef);
   const logAnalyticsStep = useLogCheckoutProgress(quoteId, 5);
 
-  const formikRef = useRef<FormikProps<QuoteValues>>(null);
+  const formikRef = useRef<FormikProps<BindQuoteValues>>(null);
 
   // TODO FINISH BIND QUOTE HOOK
   const bindQuote = useBindQuote(
@@ -112,7 +112,7 @@ export const QuoteBind: React.FC = () => {
   const paymentMethods = useUserPaymentMethods();
 
   const handleSubmit = useCallback(
-    async (values: QuoteValues, { setSubmitting }: FormikHelpers<QuoteValues>) => {
+    async (values: BindQuoteValues, { setSubmitting }: FormikHelpers<BindQuoteValues>) => {
       if (!values.paymentMethodId) return toast.error('Missing payment method');
 
       const res = await bindQuote(quoteId, values.paymentMethodId);
@@ -136,7 +136,7 @@ export const QuoteBind: React.FC = () => {
   }, [navigate, signInCheckResult]);
 
   const saveValues = useCallback(
-    async (values: QuoteValues, bag: any, initialValues: QuoteValues) => {
+    async (values: BindQuoteValues, bag: any, initialValues: BindQuoteValues) => {
       // alternative pkg: https://github.com/mattphillips/deep-object-diff
       if (isEqual(values, initialValues)) return values;
 
@@ -209,7 +209,7 @@ export const QuoteBind: React.FC = () => {
           stepperNavLabel='Dates'
           validationSchema={effectiveDateValidation}
           // mutateOnSubmit={saveValues}
-          mutateOnSubmit={(values: QuoteValues, bag: any, initialValues: QuoteValues) => {
+          mutateOnSubmit={(values: BindQuoteValues, bag: any, initialValues: BindQuoteValues) => {
             let mutatedVals = values;
             if (
               values.effectiveDate > addToDate({ days: 15 }) &&
@@ -399,7 +399,7 @@ export function NamedInsuredStep({ logAnalyticsStep }: LogAnalyticsProp) {
 
 export function AdditionalInterestsStep({ logAnalyticsStep }: LogAnalyticsProp) {
   const { values, errors, touched, dirty, setFieldValue, setFieldTouched, setFieldError } =
-    useFormikContext<QuoteValues>();
+    useFormikContext<BindQuoteValues>();
 
   useEffect(() => {
     logAnalyticsStep(1, 'addititional named insureds step');
@@ -532,7 +532,7 @@ export const EffectiveDateStep: React.FC<EffectiveDateStepProp> = ({
   expiration,
   logAnalyticsStep,
 }) => {
-  const { values } = useFormikContext<QuoteValues>();
+  const { values } = useFormikContext<BindQuoteValues>();
 
   useEffect(() => {
     logAnalyticsStep(2, 'effective date step');
@@ -736,7 +736,7 @@ interface BindReviewStepProps extends LogAnalyticsProp {
 }
 
 export function BindReviewStep({ data, logAnalyticsStep }: BindReviewStepProps) {
-  const { values } = useFormikContext<QuoteValues>();
+  const { values } = useFormikContext<BindQuoteValues>();
   const { cardDetails, loading, error } = useCardDetails(values.paymentMethodId);
 
   useEffect(() => {

@@ -1,7 +1,7 @@
 import * as yup from 'yup';
 
 import { isValidEmail } from 'modules/utils/helpers';
-import { statesArr } from './statesList';
+import { STATES_ABV_ARR } from './statesList';
 
 export const phoneRegEx = /^\+1[1-9]{1}[0-9]{9}$/;
 
@@ -38,7 +38,7 @@ export const addressValidation = yup.object().shape({
   addressLine1: yup.string().required('address is required'),
   addressLine2: yup.string().notRequired(),
   city: yup.string().required('city is required'),
-  state: yup.string().required('state is required').oneOf(statesArr, 'state required'),
+  state: yup.string().required('state is required').oneOf(STATES_ABV_ARR, 'state required'),
   postal: postalVal.required('postal code is required'),
 });
 
@@ -50,7 +50,7 @@ export const addressValidationNotRequired = yup.object().shape({
   addressLine1: yup.string().required('address is required'),
   addressLine2: yup.string().notRequired(),
   city: yup.string().required('city is required'),
-  state: yup.string().required('state is required').oneOf(statesArr, 'state required'),
+  state: yup.string().required('state is required').oneOf(STATES_ABV_ARR, 'state required'),
   postal: postalVal.required('postal code is required'),
 });
 

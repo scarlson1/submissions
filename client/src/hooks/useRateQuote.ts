@@ -2,11 +2,11 @@ import { useCallback, useState } from 'react';
 import { useFunctions } from 'reactfire';
 
 import { getAnnualPremium } from 'modules/api';
-import { NewQuoteValues } from 'views/admin/QuoteNew.Old';
 import { GetAnnualPremiumRequest, RatingInputs } from 'modules/api/getAnnualPremium';
 import invariant from 'tiny-invariant';
 import { validateCommonInputs } from './useCalcPremium';
 import { Optional } from 'common';
+import { QuoteValues } from 'elements';
 
 export interface RatingInputsWithAAL extends RatingInputs {
   inlandAAL: number | null;
@@ -14,7 +14,7 @@ export interface RatingInputsWithAAL extends RatingInputs {
   tsunamiAAL: number | null;
 }
 
-export function extractRatingInputsFromValues(values: NewQuoteValues): RatingInputs {
+export function extractRatingInputsFromValues(values: QuoteValues): RatingInputs {
   const { coordinates, limits, deductible, priorLossCount, address, ratingPropertyData } = values;
 
   let subproducerCommission =
@@ -42,7 +42,7 @@ export function extractRatingInputsFromValues(values: NewQuoteValues): RatingInp
   };
 }
 
-export function getValidRatingInputs(values: NewQuoteValues) {
+export function getValidRatingInputs(values: QuoteValues) {
   const commValidated = validateCommonInputs(values);
   const { coordinates } = commValidated;
 
@@ -71,7 +71,7 @@ export const useRateQuote = (
   // );
 
   const rerate = useCallback(
-    async (values: NewQuoteValues) => {
+    async (values: QuoteValues) => {
       let ratingInputs;
       try {
         ratingInputs = getValidRatingInputs(values);

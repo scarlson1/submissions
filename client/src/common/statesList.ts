@@ -168,7 +168,7 @@ export const statesDetailsArr = [
   { abbreviation: 'WY', name: 'Wyoming' },
 ];
 
-export const statesArr = [
+export const STATES_ABV_ARR = [
   'AL',
   'AK',
   'AZ',

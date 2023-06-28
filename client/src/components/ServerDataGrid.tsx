@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState, startTransition } from 'react';
-import { Box } from '@mui/material';
+import { Box, LinearProgress } from '@mui/material';
 import {
   DataGrid,
   DataGridProps,
@@ -33,7 +33,7 @@ export interface ServerDataGridProps extends Partial<Omit<DataGridProps, 'rows'>
   constraints?: QueryFieldFilterConstraint[];
   isCollectionGroup?: boolean;
   columns: GridColDef[];
-  // TODO: initSorting
+  // TODO: initSorting as prop
 }
 
 export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
@@ -59,7 +59,6 @@ export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
   const [sortModel, setSortModel] = useState<GridSortModel>([
     { field: 'metadata.created', sort: 'desc' },
   ]);
-  // ref works because setting sortModel triggers rerender ??
   const sortOps = useRef<QueryOrderByConstraint[]>([orderBy('metadata.created', 'desc')]);
   const [filters, setFilters] = useState<(QueryFieldFilterConstraint | QueryOrderByConstraint)[]>(
     []
@@ -160,23 +159,8 @@ export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
     []
   );
 
-  // const rowHeight = useMemo(() => {
-  //   console.log('ROW HEIGHT CHANGE: ', density);
-  //   if (density === 'compact') return 52;
-  //   if (density === 'comfortable') return 100;
-  //   return 76;
-  // }, [density]);
-  // const baseHeight = useMemo(() => {}, []);
-
   return (
     <Box sx={{ height: 500, width: '100%' }}>
-      {/* <Box
-      sx={{
-        height: 108 + Math.min(pageSize, rowData.length) * rowHeight + 'px',
-        width: '100%',
-        transition: 'all 0.25s ease-in-out',
-      }}
-    > */}
       <DataGrid
         sx={{
           transition: 'height 0.25s ease-in-out',
@@ -195,20 +179,11 @@ export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
             maxHeight: { xs: 300, sm: 360, md: 400, lg: 420 },
             overflowY: 'auto',
           },
-          // '& .MuiDataGrid-virtualScroller':
-          '.MuiDataGrid-main > div:nth-child(2)': { overflowY: 'auto !important' },
+          '.MuiDataGrid-main > div:nth-of-type(2)': { overflowY: 'auto !important' },
         }}
         pageSizeOptions={[5, 10, 25, 100]}
         {...rest}
-        // density={densityV}
-        // rowHeight={rowHeight}
-        // onStateChange={(v) =>
-        //   v.state?.density?.value &&
-        //   densityV !== v.state?.density?.value &&
-        //   setDensity(v.state.density.value)
-        // }
         rows={rowData}
-        // rows={deferredData}
         columns={columns}
         loading={status === 'loading'}
         pagination
@@ -223,11 +198,23 @@ export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
         onFilterModelChange={handleFilterChange}
         slots={{
           toolbar,
+          loadingOverlay: LinearProgress,
           ...(slots || {}),
         }}
         slotProps={{
           toolbar: { csvOptions: { allColumns: true } },
           ...(slotProps || {}),
+          baseIconButton: {
+            color: 'primary',
+            size: 'small',
+            sx: {
+              height: { xs: 22, sm: 24, md: 28 },
+              width: { xs: 22, sm: 24, md: 28 },
+              border: 'none',
+              borderRadius: 2,
+              '&:hover': { border: 'none' },
+            },
+          },
         }}
         // slots={{
         //   loadingOverlay: LinearProgress, // displayed when loading = true

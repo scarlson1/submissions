@@ -12,23 +12,23 @@ import {
 import { noop } from 'lodash';
 
 import { FlexCard, FlexCardContent } from 'components';
-import { formatFirestoreTimestamp } from 'modules/utils';
+import { dollarFormat, formatFirestoreTimestamp } from 'modules/utils';
 import { Item } from 'views';
 import { Policy, PolicyLocation, fallbackImages } from 'common';
 
 export interface LocationCardProps {
   location: PolicyLocation;
   namedInsured: Policy['namedInsured'];
-  agent: Policy['agent'];
-  agency: Policy['agency'];
+  // agent: Policy['agent'];
+  // agency: Policy['agency'];
   handleClick?: (id: string) => void;
 }
 
 export const LocationCard = ({
   location,
   namedInsured,
-  agent,
-  agency,
+  // agent,
+  // agency,
   handleClick = noop,
 }: LocationCardProps) => {
   const theme = useTheme();
@@ -63,15 +63,19 @@ export const LocationCard = ({
             {/* @ts-ignore */}
             {location?.address?.addressLine1}
           </Typography>
-          <Item
+          {/* <Item
             label='Named Insured'
             value={`${namedInsured?.displayName}`}
             // value={`${p.namedInsured?.firstName || 'John'} ${
             //   p.namedInsured?.lastName || 'Doe'
             // }`}
           />
-          <Item label='Agent' value={agent.name ?? 'iDemand'} />
-          <Item label='Agency' value={agency.name ?? 'iDemand Insurance Agency, Inc.'} />
+           <Item label='Agent' value={agent.name ?? 'iDemand'} />
+          <Item label='Agency' value={agency.name ?? 'iDemand Insurance Agency, Inc.'} /> */}
+          <Item label='Building' value={`${dollarFormat(location.limits.limitA || 0)}`} />
+          <Item label="Add'l Structures" value={`${dollarFormat(location.limits.limitB || 0)}`} />
+          <Item label='Contents' value={`${dollarFormat(location.limits.limitC || 0)}`} />
+          <Item label='BI' value={`${dollarFormat(location.limits.limitD || 0)}`} />
           <Item
             label='Effective'
             value={`${formatFirestoreTimestamp(

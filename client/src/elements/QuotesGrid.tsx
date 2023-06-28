@@ -98,18 +98,6 @@ export const QuotesGrid: React.FC<QuotesGridProps> = ({
         width: isSmall ? 60 : 120,
         getActions: (params: GridRowParams) => [
           ...renderActions(params),
-          // <GridActionsCellItem
-          //   icon={
-          //     <Tooltip placement='top' title='View JSON'>
-          //       <DataObjectRounded />
-          //     </Tooltip>
-          //   }
-          //   onClick={handleShowJson(params)}
-          //   label='Details'
-          //   showInMenu={isSmall}
-          //   // disabled={!authCheckResult.hasRequiredClaims}
-          //   disabled={!Boolean(claims?.iDemandAdmin)}
-          // />,
           <GridActionsCellItem
             icon={
               <Tooltip placement='top' title='Send Notifications'>

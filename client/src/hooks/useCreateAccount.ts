@@ -85,7 +85,7 @@ export const useCreateAccount = () => {
       setLoading(true);
 
       try {
-        // don't link if new user is tenant user ?? (for now)
+        // don't link if new user is tenant user ?? (for now - requires backend)
         if (isAnonymous && isSignedIn && user && !auth.tenantId) {
           console.log('linking anonymous user');
           const credential = EmailAuthProvider.credential(
@@ -132,6 +132,7 @@ export const useCreateAccount = () => {
     [auth, isAnonymous, isSignedIn, updateUserDocOnCreate, user]
   );
 
+  // TODO: move to it's own hook ??
   const handleEmailAuthError = useCallback(
     async (
       err: unknown,
@@ -176,7 +177,12 @@ export const useCreateAccount = () => {
           // await updateUserDocOnCreate(userCreateRes, { firstName, lastName });
         }
         if (msg.indexOf('ALREADY_EXISTS') !== -1 || msg.indexOf('already exists') !== -1) {
-          return toast.error('Account already exists. Please sign in.');
+          let msg = 'Account already exists.';
+          if (msg.indexOf('click link in email') !== -1) {
+            msg += ' Check your email to move account to new org.';
+          } else msg += ' Please sign in.';
+
+          return toast.error(msg);
         }
         if (msg.indexOf('tenant doc not found') !== -1) {
           return toast.error('Tenant not found. Please verify the ID in the URL is correct.');

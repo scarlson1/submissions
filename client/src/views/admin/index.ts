@@ -1,6 +1,5 @@
 export { SubmissionView } from './SubmissionView';
 export { Submissions } from './Submissions';
-export { QuoteNewOld } from './QuoteNew.Old';
 export { QuoteNew, QuoteNewFromSub } from './QuoteNew';
 export { QuoteEdit } from './QuoteEdit';
 export { Quotes } from './Quotes';
@@ -16,7 +15,6 @@ export { Licenses } from './Licenses';
 export { AgencyApp } from './AgencyApp';
 export { AgencyApps } from './AgencyApps';
 export { PolicyDelivery } from './PolicyDelivery';
-// export { Policies } from './Policies.Old';
 export { Disclosures } from './Disclosures';
 export { DisclosureNew } from './DisclosureNew';
 export { DisclosureEdit } from './DisclosureEdit';
@@ -26,5 +24,3 @@ export { Organization } from './Organization';
 export { Home } from './Home';
 export { Users } from './Users';
 export { PortfolioRating } from './PortfolioRating';
-
-// export type { SubmissionsProps } from './Submissions';

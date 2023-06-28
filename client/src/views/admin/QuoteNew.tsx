@@ -72,7 +72,7 @@ export const QuoteNewFromSub = () => {
   const { data: submissionData } = useDocDataOnce<Submission>('SUBMISSIONS', submissionId);
 
   // @ts-ignore TODO: fix types (can't pass null to iMask component)
-  const initialValues: NewQuoteValues = useMemo(
+  const initialValues: QuoteValues = useMemo(
     () => ({
       address: submissionData?.address || {
         addressLine1: submissionData?.address?.addressLine1 ?? '',
@@ -87,6 +87,7 @@ export const QuoteNewFromSub = () => {
         latitude: submissionData?.coordinates?.latitude || null,
         longitude: submissionData?.coordinates?.longitude || null,
       },
+      homeState: submissionData?.address?.state || '',
       limits: {
         limitA: submissionData?.limits.limitA ?? 250000,
         limitB: submissionData?.limits.limitB ?? 12500,

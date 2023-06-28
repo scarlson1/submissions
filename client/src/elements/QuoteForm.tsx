@@ -22,12 +22,17 @@ import {
   Address,
   AgencyDetails,
   AgentDetails,
+  CBRS_OPTIONS,
   COMMISSION_OPTIONS,
+  Coordinates,
+  FLOOD_ZONE_OPTIONS,
+  FeeItem,
   Limits,
   NamedInsuredDetails,
   Nullable,
   Optional,
   Organization,
+  PRIOR_LOSS_COUNT_OPTIONS,
   Product,
   RatingPropertyData,
   Submission,
@@ -83,6 +88,7 @@ import { useFirestore } from 'reactfire';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES, createPath } from 'router';
 import { IconButtonMenu } from 'components';
+import { STATES_ABV_ARR } from 'common/statesList';
 
 // TODO: move quote type to field (new, renewal, etc.) ??
 
@@ -99,6 +105,7 @@ const maxDate = addToDate({ days: 60 }, endOfToday());
 
 const quoteValidation = yup.object().shape({
   address: addressValidation, // TODO: use active states validation (useMemo)
+  homeState: yup.string().required('home state required'),
   limits: limitsValidation,
   effectiveExceptionRequested: yup.boolean(),
   quoteExpirationDate: yup.date().min(minDate, 'quote must be valid for at least 15 days'),
@@ -238,9 +245,6 @@ const commOptions = COMMISSION_OPTIONS.map((o: number) => ({
   label: `${(o * 100).toFixed(0)}%`,
   value: o,
 }));
-export const FLOOD_ZONE_OPTIONS = ['A', 'B', 'C', 'D', 'V', 'X', 'AE', 'AO', 'AH', 'AR', 'VE'];
-export const CBRS_OPTIONS = ['IN', 'OUT'];
-export const PRIOR_LOSS_COUNT_OPTIONS = ['0', '1', '2', '3'];
 
 const gridProps = {
   columnSpacing: { xs: 3, sm: 4, md: 6 },
@@ -274,6 +278,7 @@ const DEFAULT_VALUES: QuoteValues = {
     latitude: null,
     longitude: null,
   },
+  homeState: '',
   limits: {
     limitA: 250000,
     limitB: 12500,
@@ -327,6 +332,7 @@ const DEFAULT_VALUES: QuoteValues = {
     sqFootage: null,
     yearBuilt: null,
   },
+  ratingDocId: '',
   AAL: {
     inland: null,
     surge: null,
@@ -335,17 +341,10 @@ const DEFAULT_VALUES: QuoteValues = {
   notes: [],
 };
 
-export interface FeeItem {
-  feeName: string;
-  feeValue: number;
-}
-
 export interface QuoteValues {
   address: Address;
-  coordinates: {
-    latitude: number | null;
-    longitude: number | null;
-  };
+  coordinates: Nullable<Coordinates>;
+  homeState: string;
   limits: Limits;
   deductible: number;
   effectiveExceptionRequested: boolean;
@@ -363,6 +362,7 @@ export interface QuoteValues {
   priorLossCount: string;
   ratingPropertyData: Nullable<RatingPropertyData>;
   AAL: Nullable<ValueByRiskType>;
+  ratingDocId: string;
   notes: { [key: string]: string }[];
 }
 
@@ -392,7 +392,6 @@ export const QuoteForm = ({
   const toast = useAsyncToast({ position: 'top-right' });
   const activeStates = useActiveStates(product);
 
-  const ratingDocId = useRef<string>();
   const [ratingState, setRatingState] = useState({
     rerateRequired: !(
       initialValues?.annualPremium &&
@@ -460,10 +459,10 @@ export const QuoteForm = ({
       setVal && setVal('AAL.inland', ratingInputs.inlandAAL);
       setVal && setVal('AAL.surge', ratingInputs.surgeAAL);
       setVal && setVal('AAL.tsunami', ratingInputs.tsunamiAAL);
+      setVal && setVal('ratingDocId', newRatingDocId || '');
 
       setRatingInputsSnap({ ...ratingInputs });
       handleRecalcSuccess(newPrem);
-      ratingDocId.current = newRatingDocId;
     },
     (msg: string) => toast.error(msg)
     // getRatingInputsFromSubmission(submissionData || undefined)
@@ -471,13 +470,15 @@ export const QuoteForm = ({
 
   const { calcPremium, loading: calcLoading } = useCalcPremium(
     (newPrem: number, ratingInputs, newRatingDocId?: Optional<string>) => {
-      setTimeout(() => formikRef.current?.setFieldValue('annualPremium', newPrem), 50);
+      setTimeout(() => {
+        formikRef.current?.setFieldValue('annualPremium', newPrem);
+        formikRef.current?.setFieldValue('ratingDocId', newRatingDocId || '');
+      }, 50);
 
       setRatingInputsSnap({
         ...ratingInputs,
       });
       handleRecalcSuccess(newPrem);
-      ratingDocId.current = newRatingDocId;
     },
     (msg: string) => toast.error(msg),
     submissionId
@@ -871,6 +872,15 @@ export const QuoteForm = ({
               </Typography>
             </Grid>
             <Grid xs={6} sm={4} md={3} lg={2}>
+              <FormikNativeSelect
+                fullWidth
+                id='homeState'
+                label='Home State'
+                name='homeState'
+                selectOptions={STATES_ABV_ARR}
+              />
+            </Grid>
+            <Grid xs={6} sm={4} md={3} lg={2}>
               {/* TODO: use value of type number and convert ?? */}
               <FormikNativeSelect
                 fullWidth
@@ -888,11 +898,6 @@ export const QuoteForm = ({
                 name='ratingPropertyData.CBRSDesignation'
                 required
                 selectOptions={CBRS_OPTIONS}
-                // selectOptions={[
-                //   // { label: 'Unknown', value: '' },
-                //   { label: 'Out', value: 'OUT' },
-                //   { label: 'In', value: 'IN' },
-                // ]}
               />
             </Grid>
             <Grid xs={6} sm={4} md={3} lg={2}>
