@@ -86,8 +86,6 @@ export function SearchModal({
   const recentSearches = React.useRef(
     createStoredSearches<StoredDocSearchHit>({
       key: `__RECENT_SEARCHES__${indexName}`,
-      // We display 7 recent searches and there's no favorites, but only
-      // 4 when there are favorites.
       limit: favoriteSearches.getAll().length === 0 ? 7 : 4,
     })
   ).current;
