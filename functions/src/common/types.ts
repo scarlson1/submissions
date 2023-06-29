@@ -603,7 +603,8 @@ export interface Policy {
   namedInsured: NamedInsured;
   locations: Record<string, PolicyLocation>;
   homeState: string;
-  price: number; // TODO: break up total premium, taxes, fees, etc. ?? how are taxes and fees stored ? how are they recalculated
+  price: number;
+  // TODO: break up total premium, taxes, fees, etc. ?? how are taxes and fees stored ? how are they recalculated
   effectiveDate: Timestamp;
   expirationDate: Timestamp;
   userId: string | null;

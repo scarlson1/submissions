@@ -64,7 +64,13 @@ import {
 } from 'common';
 import { useAnalyticsEvent, useBindQuote, useUserPaymentMethods } from 'hooks';
 import { billingValidation, PaymentStep, ContactStep } from 'elements';
-import { addToDate, dollarFormat, formatDate, getDateShortcuts } from 'modules/utils/helpers';
+import {
+  addToDate,
+  dollarFormat,
+  formatDate,
+  getDateShortcuts,
+  stringAvatar,
+} from 'modules/utils/helpers';
 import { useAuth } from 'modules/components/AuthContext';
 import { AUTH_ROUTES, ROUTES, createPath } from 'router';
 
@@ -312,7 +318,9 @@ export function AuthStep({ quoteId }: { quoteId: string }) {
           variant='outlined'
           size='large'
           onClick={redirectToAssignAction}
-          startIcon={<Avatar></Avatar>}
+          startIcon={
+            user?.displayName ? <Avatar {...stringAvatar(user?.displayName)} /> : <Avatar />
+          }
           sx={{
             justifyContent: 'flex-start',
             '& .MuiButton-startIcon': { minWidth: 40 },

@@ -22,7 +22,6 @@ export const DollarMask = React.forwardRef<typeof NumericFormat<InputAttributes>
         getInputRef={ref}
         onValueChange={(values: any) => {
           // values = {formattedValue: '$10,000', value: '10000', floatValue: 10000}
-          console.log('on value change: ', values.floatValue);
           onChange({
             target: {
               name: props.name,

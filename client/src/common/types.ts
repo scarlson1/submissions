@@ -648,6 +648,7 @@ export interface Policy extends BaseDoc {
   // address: Address;
   // limits: Limits;
   locations: Record<string, PolicyLocation>;
+  price: number; // TODO: taxes, fees, etc. (line items)
   // deductible: number;
   homeState: string;
   effectiveDate: Timestamp;

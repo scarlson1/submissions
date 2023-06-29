@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { Box } from '@mui/material';
-import { DataGridProps } from '@mui/x-data-grid';
+import { DataGridProps, GridColDef, GridRowParams } from '@mui/x-data-grid';
 
 import { BasicDataGrid } from 'components';
 import {
@@ -43,19 +43,42 @@ import {
   externalIdCol,
   ratingDocIdCol,
 } from 'common';
+import { useAsyncToast, useGridActions, useWidth } from 'hooks';
 
 // TODO: handle > 100 locations
 // need to implement pagination
 // TODO: limit viewable columns depending on permissions
-
-interface LocationsGridProps extends Omit<DataGridProps, 'rows' | 'columns'> {
+interface LocationsGridProps extends Omit<DataGridProps, 'rows' | 'columns' | 'initialState'> {
   locations: PolicyLocation[];
+  renderActions?: (params: GridRowParams) => JSX.Element[];
+  additionalColumns?: GridColDef<any, any, any>[];
+  initialState?: Omit<DataGridProps['initialState'], 'pagination'>;
 }
 
-export const LocationsGrid = ({ locations, ...props }: LocationsGridProps) => {
+export const LocationsGrid = ({
+  locations,
+  renderActions = () => [],
+  ...props
+}: LocationsGridProps) => {
+  // const { data: iDAdminCheck } = useSigninCheck({ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true }})
+  const toast = useAsyncToast({ position: 'top-right' });
+  const { isSmall } = useWidth();
+  const { googleMapsAction, floodFactorAction } = useGridActions(toast.error);
+
+  // TODO: add request edit button, etc.
   const locationColumns = useMemo(
     () => [
-      // TODO: add request edit button, view google maps, etc.
+      {
+        field: 'actions',
+        headerName: 'Actions',
+        type: 'actions',
+        width: isSmall ? 60 : 80,
+        getActions: (params: GridRowParams) => [
+          ...renderActions(params),
+          googleMapsAction(params, { showInMenu: isSmall }),
+          floodFactorAction(params, { showInMenu: isSmall }),
+        ],
+      },
       idCol,
       addressSummaryCol,
       addrLine1Col,
@@ -94,7 +117,7 @@ export const LocationsGrid = ({ locations, ...props }: LocationsGridProps) => {
       createdCol,
       updatedCol,
     ],
-    []
+    [renderActions, googleMapsAction, floodFactorAction, isSmall]
   );
 
   return (

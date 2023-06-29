@@ -1,12 +1,11 @@
 import React, { useCallback, useMemo } from 'react';
 import { Box, Tooltip } from '@mui/material';
-import { DataObjectRounded, FloodRounded, MapRounded } from '@mui/icons-material';
+import { DataObjectRounded } from '@mui/icons-material';
 import { GridActionsCellItem, GridColDef, GridRowParams } from '@mui/x-data-grid';
 import { useSigninCheck } from 'reactfire';
 
 import { ServerDataGrid, ServerDataGridProps } from 'components';
-import { useAsyncToast, useFloodFactor, useShowJson, useWidth } from 'hooks';
-import { openGoogleMaps } from 'modules/utils';
+import { useAsyncToast, useGridActions, useShowJson, useWidth } from 'hooks';
 import { CUSTOM_CLAIMS } from 'modules/components';
 import {
   SUBMISSION_STATUS,
@@ -70,34 +69,13 @@ export const SubmissionsGrid = ({
   ...props
 }: SubmissionsGridProps) => {
   const toast = useAsyncToast({ position: 'top-right' });
-  const openFF = useFloodFactor(toast.error);
-  const showJson = useShowJson<Submission>(COLLECTIONS.SUBMISSIONS);
   const { isSmall } = useWidth();
+  const showJson = useShowJson<Submission>(COLLECTIONS.SUBMISSIONS);
+  const { googleMapsAction, floodFactorAction } = useGridActions(toast.error);
 
   const { data: iDAdminResult } = useSigninCheck({
     requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true },
   });
-
-  const openMap = useCallback(
-    (params: GridRowParams<Submission>) => () => {
-      const latitude = params.row.coordinates?.latitude;
-      const longitude = params.row.coordinates?.longitude;
-      if (!(latitude && longitude)) return toast.error('Missing coordinates');
-
-      openGoogleMaps(latitude, longitude);
-    },
-    [toast]
-  );
-
-  const openFloodFactor = useCallback(
-    (params: GridRowParams<Submission>) => () => {
-      const address = params.row.address;
-      if (!(address && address.addressLine1)) return toast.error('Missing address');
-
-      openFF(address);
-    },
-    [toast, openFF]
-  );
 
   const handleShowJson = useCallback(
     (params: GridRowParams) => () => showJson(params.id.toString()),
@@ -113,26 +91,8 @@ export const SubmissionsGrid = ({
         width: isSmall ? 80 : 160,
         getActions: (params: GridRowParams) => [
           ...renderActions(params),
-          <GridActionsCellItem
-            icon={
-              <Tooltip title='Google maps' placement='top'>
-                <MapRounded />
-              </Tooltip>
-            }
-            onClick={openMap(params)}
-            label='Google Maps'
-            showInMenu={isSmall}
-          />,
-          <GridActionsCellItem
-            icon={
-              <Tooltip title='Flood Factor' placement='top'>
-                <FloodRounded />
-              </Tooltip>
-            }
-            onClick={openFloodFactor(params)}
-            label='Flood Factor'
-            showInMenu={isSmall}
-          />,
+          googleMapsAction(params, { showInMenu: isSmall }),
+          floodFactorAction(params, { showInMenu: isSmall }),
           <GridActionsCellItem
             icon={
               <Tooltip title='show JSON' placement='top'>
@@ -255,8 +215,8 @@ export const SubmissionsGrid = ({
       ...(additionalColumns || []),
     ],
     [
-      openMap,
-      openFloodFactor,
+      googleMapsAction,
+      floodFactorAction,
       handleShowJson,
       renderActions,
       additionalColumns,
