@@ -43,6 +43,7 @@ export const Policies: React.FC = () => {
     [showJson]
   );
 
+  // TODO: admin upload new policy documents
   const adminActions = useCallback(
     (params: GridRowParams) => [
       <GridActionsCellItem

@@ -51,6 +51,8 @@ export default async ({ data, auth }: CallableRequest<{ quoteId: string }>) => {
   if (!quoteData.homeState)
     throw new HttpsError('failed-precondition', 'quote is missing home state');
 
+  // TODO: check for moratoriums
+
   const licenseSnap = await licensesCol
     .where('state', '==', quoteData.homeState)
     .where('surplusLinesProducerOfRecord', '==', true)
@@ -67,7 +69,7 @@ export default async ({ data, auth }: CallableRequest<{ quoteId: string }>) => {
 
   let policyData: Policy;
   try {
-    policyData = convertQuoteToPolicy(quoteData, licenseData);
+    policyData = convertQuoteToPolicy(quoteData, licenseData, quoteId);
   } catch (err: any) {
     let msg = 'invalid or missing data';
     if (err?.message) msg = err.message.replace('Invariant failed: ', '');
@@ -126,7 +128,7 @@ export default async ({ data, auth }: CallableRequest<{ quoteId: string }>) => {
 
 // TODO: update to handle multiple locations once Quote interface / process is updated
 // TODO: move validation outside function and wrap Quote in NonNullable<Quote>
-function convertQuoteToPolicy(data: Quote, license: License): Policy {
+function convertQuoteToPolicy(data: Quote, license: License, quoteId: string | null): Policy {
   invariant(data.coordinates, 'missing coordinates');
   invariant(data.effectiveDate, 'missing effective date');
   invariant(data.expirationDate, 'missing expiration date');
@@ -259,6 +261,7 @@ function convertQuoteToPolicy(data: Quote, license: License): Policy {
     },
     issuingCarrier: 'Rockingham Property & Casualty',
     documents: [],
+    quoteId,
     metadata: {
       created: Timestamp.now(),
       updated: Timestamp.now(),

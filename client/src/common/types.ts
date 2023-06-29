@@ -669,6 +669,7 @@ export interface Policy extends BaseDoc {
   issuingCarrier: string;
   // TODO: GENERATE DOCS INSTEAD OF STORING
   documents: [{ displayName: string; downloadUrl: string; storagePath: string }];
+  quoteId?: string | null;
   // imageURLs?: Record<string, string> | null;
   // imagePaths?: Record<string, string> | null;
 }

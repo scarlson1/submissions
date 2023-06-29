@@ -18,7 +18,7 @@ import { addToDate, extractNumber, getGeoHash, readableFirebaseCode } from 'modu
 import { QUOTE_STATUS, Submission, Quote, quotesCollection, licensesCollection } from 'common';
 import { useSendQuoteNotification } from './useSendQuoteNotification';
 import { CUSTOM_CLAIMS } from 'modules/components';
-import { QuoteValues } from 'elements/QuoteForm';
+import type { QuoteValues } from 'elements';
 
 export const CARD_FEE_RATE = 0.035;
 

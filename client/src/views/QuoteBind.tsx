@@ -161,12 +161,12 @@ export const QuoteBind: React.FC = () => {
 
   // TODO submission needs isAnonymous flag so userId can/should be overwritten ??
   // TODO set agentId if agent not already set ??
-  if (
-    !signInCheckResult.signedIn ||
-    signInCheckResult.user.isAnonymous ||
-    !(data?.userId || data?.agent?.userId)
-  ) {
-    return <AuthStep quoteId={quoteId} />;
+
+  // force sign in & set userId for quote (unless agent)
+  if (!signInCheckResult.signedIn || signInCheckResult.user.isAnonymous || !data?.userId) {
+    // current user is not agent
+    if (data?.agent?.userId && data?.agent?.userId !== signInCheckResult.user?.uid)
+      return <AuthStep quoteId={quoteId} />;
   }
 
   return (
@@ -738,6 +738,8 @@ interface BindReviewStepProps extends LogAnalyticsProp {
 export function BindReviewStep({ data, logAnalyticsStep }: BindReviewStepProps) {
   const { values } = useFormikContext<BindQuoteValues>();
   const { cardDetails, loading, error } = useCardDetails(values.paymentMethodId);
+
+  console.log('quote data: ', data);
 
   useEffect(() => {
     logAnalyticsStep(3, 'bind quote review step');

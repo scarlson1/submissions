@@ -106,7 +106,6 @@ const useEditQuote = (
             sqFootage: extractNumber(`${newValues.ratingPropertyData.sqFootage}`),
             yearBuilt: extractNumber(`${newValues.ratingPropertyData.yearBuilt}`),
           },
-          // TODO: fieldValue merge array ??
           notes:
             newValues.notes && newValues.notes.length > 0
               ? newValues.notes

@@ -618,6 +618,7 @@ export interface Policy {
   // TODO: add address to carrier CarrierDetails: name, address
   issuingCarrier: string; // INSURER NAME ONLY OR NAME AND ID?
   documents: { displayName: string; downloadUrl: string; storagePath: string }[];
+  quoteId?: string | null;
   // imageURLs?: Record<string, string> | null; // { [key: string]: string | null } | null;
   // imagePaths?: Record<string, string> | null; // { [key: string]: string | null } | null;
   // transactions: string[]; // TODO: delete or decide how to associate policies and transactions (just query transactions by policyId ??)
