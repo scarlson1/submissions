@@ -28,12 +28,12 @@ import {
 } from '@mui/icons-material';
 import { FormikHelpers, FormikProps, useFormikContext } from 'formik';
 import { useNavigate, useParams } from 'react-router-dom';
-import { doc, getDoc, getFirestore, Timestamp, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, Timestamp, updateDoc } from 'firebase/firestore';
 import { RiMastercardFill, RiVisaLine } from 'react-icons/ri';
 import { MdPayments } from 'react-icons/md';
 import { isEqual } from 'lodash';
 import { toast } from 'react-hot-toast';
-import { useFirestore, useFirestoreDocData, useSigninCheck } from 'reactfire';
+import { useFirestore, useFirestoreDocData, useSigninCheck, useUser } from 'reactfire';
 import { startOfToday, endOfToday } from 'date-fns';
 import * as yup from 'yup';
 
@@ -65,8 +65,8 @@ import {
 import { useAnalyticsEvent, useBindQuote, useUserPaymentMethods } from 'hooks';
 import { billingValidation, PaymentStep, ContactStep } from 'elements';
 import { addToDate, dollarFormat, formatDate, getDateShortcuts } from 'modules/utils/helpers';
-import { AUTH_ROUTES, ROUTES, createPath } from 'router';
 import { useAuth } from 'modules/components/AuthContext';
+import { AUTH_ROUTES, ROUTES, createPath } from 'router';
 
 // TODO: error boundary & reset: https://blog.logrocket.com/react-error-handling-react-error-boundary/
 
@@ -107,7 +107,7 @@ export const QuoteBind: React.FC = () => {
   // TODO FINISH BIND QUOTE HOOK
   const bindQuote = useBindQuote(
     (msg: string) => toast.success(msg),
-    (err, msg) => toast.error(msg)
+    (err: any, msg: string) => toast.error(msg)
   );
   const paymentMethods = useUserPaymentMethods();
 
@@ -161,7 +161,11 @@ export const QuoteBind: React.FC = () => {
 
   // TODO submission needs isAnonymous flag so userId can/should be overwritten ??
   // TODO set agentId if agent not already set ??
-  if (!signInCheckResult.signedIn || signInCheckResult.user.isAnonymous || !data.userId) {
+  if (
+    !signInCheckResult.signedIn ||
+    signInCheckResult.user.isAnonymous ||
+    !(data?.userId || data?.agent?.userId)
+  ) {
     return <AuthStep quoteId={quoteId} />;
   }
 
@@ -625,7 +629,8 @@ const getPaymentIcon = (pmtType: any, color: any) => {
 };
 
 export const useCardDetails = (id: string) => {
-  const { user } = useAuth();
+  const firestore = useFirestore();
+  const { data: user } = useUser();
   const [cardDetails, setCardDetails] = useState<PaymentMethod | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -634,14 +639,9 @@ export const useCardDetails = (id: string) => {
     if (!id || !user || !user.uid) return;
     setError(null);
     setLoading(true);
-    // const paymentMethodsCollection = (userId: string) =>
-    //   collection(
-    //     getFirestore(),
-    //     COLLECTIONS.QUOTES,
-    //     userId,
-    //     COLLECTIONS.PAYMENT_METHODS
-    //   ) as CollectionReference<PaymentMethod>;
-    const docRef = doc(paymentMethodsCollection(getFirestore(), user.uid), id);
+
+    const docRef = doc(paymentMethodsCollection(firestore, user.uid), id);
+
     getDoc(docRef).then((snap) => {
       if (!snap.exists()) {
         setLoading(false);
@@ -652,7 +652,7 @@ export const useCardDetails = (id: string) => {
         setLoading(false);
       }
     });
-  }, [user, id]);
+  }, [user, firestore, id]);
 
   return useMemo(() => ({ cardDetails, loading, error }), [cardDetails, loading, error]);
 };
@@ -746,10 +746,10 @@ export function BindReviewStep({ data, logAnalyticsStep }: BindReviewStepProps) 
   const total = useMemo(() => {
     const { quoteTotal, cardFee } = data;
     if (!cardDetails || !quoteTotal) return null;
+
     let t: number = quoteTotal;
-    if (cardFee && typeof cardFee === 'number' && cardDetails.type === 'card') {
-      t += cardFee;
-    }
+    if (cardFee && typeof cardFee === 'number' && cardDetails.type === 'card') t += cardFee;
+
     return t;
   }, [cardDetails, data]);
   // TODO: handle quoteTotal undefined

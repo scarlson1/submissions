@@ -15,6 +15,7 @@ export const useBindQuote = (
   onError?: (err: unknown, msg: string) => void
 ) => {
   const functions = useFunctions();
+
   const bindQuote = useCallback(
     async (quoteId: string, paymentMethodId: string) => {
       try {

@@ -425,14 +425,6 @@ export const QuoteForm = ({
 
           const taxes = newTaxes.map((t) => ({ value: true, displayName: true }));
           formikRef.current?.setTouched({ ...formikRef.current?.touched, taxes }, true);
-
-          // for (let [i] of taxes.entries()) {
-          //   let valElRef = document.querySelector(
-          //     `[name='taxes[${i}][value]']`
-          //   ) as HTMLInputElement;
-          //   console.log('QUERY SELECTOR EL REF: ', valElRef);
-          //   if (valElRef) valElRef.blur();
-          // }
         }, 10);
       }, 50);
       toast.success('premium & taxes updated 🎉');

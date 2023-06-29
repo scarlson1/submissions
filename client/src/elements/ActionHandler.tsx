@@ -42,7 +42,10 @@ export function AssignQuoteHandler({
 
   const setUserId = useCallback(async () => {
     try {
-      await assignQuote(functions, { quoteId });
+      console.log('assigning quote...');
+      const { data } = await assignQuote(functions, { quoteId });
+      console.log('ASSIGN QUOTE RES: ', data?.message);
+      // TODO: get response and toast if func set userId or agent.userId ("quote assigned to ___")
 
       setLoading(false);
       setAssignSuccessful(true);

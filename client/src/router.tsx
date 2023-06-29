@@ -60,8 +60,7 @@ import { SuccessStep, ActionHandler } from 'elements';
 import { RouterLink as BreadCrumbLink } from 'components/Breadcrumbs';
 import { Product } from 'common';
 import { BindSuccess } from 'elements/SuccessStep';
-import { TasksPagination } from 'views/admin/TasksPagination';
-import { RequireAuthReactFire, getRequiredClaimValidator } from 'components/RequireAuthReactFire';
+import { RequireAuthReactFire } from 'components/RequireAuthReactFire'; // getRequiredClaimValidator
 import { Disclosures } from 'views/admin/Disclosures';
 import { PoliciesMap } from 'elements/PoliciesMap';
 import { AuthActionsProvider } from 'modules/components';
@@ -659,11 +658,9 @@ export const router = sentryCreateBrowserRouter([
             path: ADMIN_ROUTES.SUBMISSIONS,
             element: (
               <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
-                {/* <AdminSubmissions /> */}
                 <Submissions />
               </RequireAuthReactFire>
             ),
-            // loader: adminSubmissionsLoader,
             errorElement: <RouterErrorBoundary />,
             handle: {
               crumb: (match: CrumbMatch) => [
@@ -679,13 +676,10 @@ export const router = sentryCreateBrowserRouter([
           {
             path: ADMIN_ROUTES.SUBMISSION_VIEW,
             element: (
-              // <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
               <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
                 <SubmissionView />
               </RequireAuthReactFire>
-              // </RequireAuth>
             ),
-            // loader: submissionLoader,
             errorElement: <RouterErrorBoundary />,
             handle: {
               crumb: (match: CrumbMatch) => [
@@ -1078,11 +1072,6 @@ export const router = sentryCreateBrowserRouter([
           //   ),
           // },
           {
-            path: 'pagination/data-grid',
-            element: <TasksPagination />,
-            // element: <TestDataGridPagination />,
-          },
-          {
             path: '/admin/map/submissions',
             element: (
               <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
@@ -1319,9 +1308,10 @@ export const router = sentryCreateBrowserRouter([
                 path: 'licenses',
                 element: (
                   <RequireAuthReactFire
-                    signInCheckProps={{
-                      validateCustomClaims: getRequiredClaimValidator(['IDEMAND_ADMIN']),
-                    }}
+                    signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}
+                    // signInCheckProps={{
+                    //   validateCustomClaims: getRequiredClaimValidator(['IDEMAND_ADMIN']),
+                    // }}
                   >
                     <Licenses />
                   </RequireAuthReactFire>

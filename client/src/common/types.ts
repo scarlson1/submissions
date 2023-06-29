@@ -320,7 +320,7 @@ export interface Quote {
   address: Address;
   coordinates: GeoPoint | null;
   homeState: string;
-  fees: { feeName: string; feeValue: number }[];
+  fees: FeeItem[];
   taxes: TaxItem[]; // { taxName: string; taxValue: number; taxRate?: number }[];
   annualPremium: number;
   subproducerCommission: number; // TODO: remove ??

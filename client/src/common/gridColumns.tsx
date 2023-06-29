@@ -828,11 +828,12 @@ export const yearBuiltCol: GridColDef = {
   headerName: 'Year Built',
   description: 'Year built provided by property api',
   type: 'number',
-  minWidth: 140,
+  minWidth: 120,
   flex: 0.8,
   headerAlign: 'center',
   align: 'right',
   filterOperators: getGridFirestoreNumericOperators(),
+  valueFormatter: (params: GridValueFormatterParams<number>) => params.value ?? 0,
 };
 
 export const ratingDataYearBuiltCol: GridColDef = {
