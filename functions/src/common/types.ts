@@ -538,6 +538,14 @@ export interface Quote {
     finalized: Timestamp | null;
   };
 }
+
+export interface SLProdOfRecordDetails {
+  name: string;
+  licenseNum: string;
+  licenseState: string;
+  phone: string;
+}
+
 export interface PolicyOld {
   status: POLICY_STATUS;
   limits: Limits;
@@ -610,12 +618,7 @@ export interface Policy {
   userId: string | null;
   agent: AgentDetails; // Nullable<AgentDetails>; // TODO: remove nullable (defaults to idemand)
   agency: AgencyDetails;
-  surplusLinesProducerOfRecord: {
-    name: string;
-    licenseNum: string;
-    licenseState: string;
-    phone: string;
-  };
+  surplusLinesProducerOfRecord: SLProdOfRecordDetails;
   // TODO: add address to carrier CarrierDetails: name, address
   issuingCarrier: string; // INSURER NAME ONLY OR NAME AND ID?
   documents: { displayName: string; downloadUrl: string; storagePath: string }[];

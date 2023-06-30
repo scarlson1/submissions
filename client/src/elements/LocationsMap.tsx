@@ -33,6 +33,7 @@ export const LocationsMap = ({ data, layerProps, ...props }: LocationsMapProps) 
             'https://raw.githubusercontent.com/visgl/deck.gl-data/master/website/icon-atlas.png',
           iconMapping: ICON_MAPPING,
           getPosition: (d: CoordObj) => [d.coordinates.longitude, d.coordinates.latitude],
+          // getPosition: (d: CoordObj) => [d.coordinates.latitude, d.coordinates.longitude],
           getIcon: (d) => 'marker',
           sizeScale: 5,
           getSize: (d) => 5,

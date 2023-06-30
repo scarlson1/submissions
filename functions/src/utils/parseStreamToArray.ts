@@ -2,7 +2,9 @@ import {
   ParserHeaderArray,
   ParserHeaderTransformFunction,
   ParserOptionsArgs,
-  ParserRowTransformFunction,
+  // ParserRowTransformFunction,
+  // ParserSyncRowTransform,
+  // ParserRowTransformFunction,
   // ParserRowValidate,
   parseStream,
 } from 'fast-csv';
@@ -14,7 +16,7 @@ import { camelCase } from 'lodash';
 export function parseStreamToArray<InitRowType = any, TRowType = any>(
   stream: fs.ReadStream,
   parseOptions: ParserOptionsArgs | undefined = undefined,
-  transformFn: ParserRowTransformFunction<InitRowType[], TRowType[]>,
+  transformFn: (data: InitRowType) => TRowType, // ParserRowTransformFunction<InitRowType, TRowType> ParserSyncRowTransform<InitRowType[], TRowType[]>
   validateFn?: ((data: any) => boolean) | null | undefined
 ) {
   return new Promise<{ dataArr: any[]; invalidRows: { rowNum: number; rowData: any }[] }>(
@@ -22,7 +24,7 @@ export function parseStreamToArray<InitRowType = any, TRowType = any>(
       const dataArr: any[] = [];
       const invalidRows: { rowNum: number; rowData: any }[] = [];
 
-      parseStream<InitRowType[], TRowType[]>(stream, parseOptions)
+      parseStream<InitRowType[], TRowType[]>(stream, parseOptions) // @ts-ignore
         .transform(transformFn)
         .validate((data: any): boolean => {
           if (data.skip) return true;

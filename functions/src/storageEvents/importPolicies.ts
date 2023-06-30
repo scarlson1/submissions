@@ -1,13 +1,7 @@
 import { StorageEvent } from 'firebase-functions/v2/storage';
 import { error, info, warn } from 'firebase-functions/logger';
 import { projectID } from 'firebase-functions/params';
-import {
-  DocumentReference,
-  Firestore,
-  GeoPoint,
-  Timestamp,
-  getFirestore,
-} from 'firebase-admin/firestore';
+import { Firestore, GeoPoint, Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
 import { geohashForLocation } from 'geofire-common';
 import fs from 'fs';
@@ -19,21 +13,33 @@ import { isDate } from 'date-fns';
 
 import { parseStreamToArray, transformHeadersCamelCase } from '../utils/parseStreamToArray';
 import {
+  AdditionalInsured,
+  Address,
   AgencyDetails,
   AgentDetails,
   COLLECTIONS,
+  Limits,
+  Mortgagee,
+  NamedInsured,
+  Nullable,
   POLICY_STATUS,
+  PRODUCT,
   Policy,
   PolicyLocation,
+  Product,
+  RCVs,
   RatingPropertyData,
+  SLProdOfRecordDetails,
   audience,
   extractNumber,
+  extractNumberNeg,
   licensesCollection,
   maxA,
   maxBCD,
   minA,
   policiesCollection,
   sendgridApiKey,
+  throwIfExists,
   truthyOrZero,
 } from '../common';
 import { sendAdminPolicyImportNotification } from '../services/sendgrid';
@@ -45,10 +51,93 @@ const IMPORT_POLICIES_FOLDER = 'importPolicies';
 let surplusLinesLicenseByState: Record<string, any> = {};
 
 // TODO: type input row
-type CSVPolicyRow = Record<string, any>;
+type CSVCamelCaseHeaders =
+  | 'policyId'
+  | 'locationId'
+  | 'addressLine1'
+  | 'addressLine2'
+  | 'city'
+  | 'state'
+  | 'postal'
+  | 'countyName'
+  | 'fips'
+  | 'latitude'
+  | 'longitude'
+  | 'homeState'
+  | 'deductible'
+  | 'limitA'
+  | 'limitB'
+  | 'limitC'
+  | 'limitD'
+  | 'annualPremium'
+  | 'policyPrice'
+  | 'locationEffectiveDate'
+  | 'locationExpirationDate'
+  | 'policyEffectiveDate'
+  | 'policyExpirationDate'
+  | 'term'
+  | 'displayName'
+  | 'firstName'
+  | 'lastName'
+  | 'email'
+  | 'phone'
+  | 'userId'
+  | 'orgId'
+  | 'agentName'
+  | 'agentEmail'
+  | 'agentPhone'
+  | 'agentId'
+  | 'agencyName'
+  | 'agencyId'
+  | 'agencyAddressLine1'
+  | 'agencyAddressLine2'
+  | 'agencyCity'
+  | 'agencyState'
+  | 'agencyPostal'
+  | 'cbrsDesignation'
+  | 'basement'
+  | 'distToCoastFeet'
+  | 'floodZone'
+  | 'numStories'
+  | 'propertyCode'
+  | 'replacementCost'
+  | 'sqFootage'
+  | 'yearBuilt'
+  | 'ffh'
+  | 'product';
 
-// TODO: type parsed output row
-type ParsedPolicyRow = Record<string, any>;
+type CSVPolicyRow = Record<CSVCamelCaseHeaders, string>;
+
+interface ParsedPolicyRow {
+  policyId: string | null;
+  limits: Limits;
+  TIV: number;
+  deductible: number;
+  address: Nullable<Address>;
+  coordinates: GeoPoint | null;
+  homeState: string | null;
+  RCVs: RCVs;
+  annualPremium: number;
+  price: number | null;
+  namedInsured: NamedInsured;
+  userId: string | null;
+  agent: AgentDetails;
+  agency: AgencyDetails;
+  surplusLinesProducerOfRecord?: SLProdOfRecordDetails;
+  issuingCarrier?: string | null;
+  quoteId?: string | null;
+  effectiveDate: Date | null;
+  expirationDate: Date | null;
+  policyEffectiveDate: Date | null;
+  policyExpirationDate: Date | null;
+  externalId: string;
+  additionalInsured: AdditionalInsured[];
+  mortgageeInterest: Mortgagee[];
+  term: number | null;
+  ratingPropertyData: RatingPropertyData;
+  ratingDocId?: string;
+  product: string;
+}
 
 export default async (event: StorageEvent) => {
   const fileBucket = event.bucket;
@@ -97,7 +186,7 @@ export default async (event: StorageEvent) => {
   const stream = fs.createReadStream(tempFilePath);
 
   try {
-    const parsed = await parseStreamToArray(
+    const parsed = await parseStreamToArray<CSVPolicyRow, ParsedPolicyRow>(
       stream,
       { headers: transformHeadersCamelCase },
       transformPolicyRow,
@@ -108,33 +197,25 @@ export default async (event: StorageEvent) => {
     invalidRows = [...parsed.invalidRows];
 
     info(`${parsed.dataArr.length} valid rows and ${parsed.invalidRows.length} invalid rows`);
+    if (!dataArr.length) throw new Error('No valid rows');
 
     fs.unlinkSync(tempFilePath);
   } catch (err: any) {
     error(`ERROR PARSING CSV. RETURNING EARLY`, { err });
 
     fs.unlinkSync(tempFilePath);
-    return;
-  }
-
-  if (!dataArr.length) {
-    error('No valid rows. Returning Early.');
+    // TODO: report error to sentry or send email to admin
     return;
   }
 
   let formattedPolicies: any;
-
   try {
-    // TODO: get surplus lines producer of record by state (lazy load)
     formattedPolicies = await groupByPolicyId(dataArr, db);
+
+    if (!formattedPolicies) throw new Error('Error formatting rows into policies');
   } catch (err: any) {
     // TODO: report error to admin
     error('Errror grouping & formatting locations into policies', { err });
-    return;
-  }
-
-  if (!formattedPolicies) {
-    error('Error formatting rows into policies');
     return;
   }
 
@@ -154,13 +235,10 @@ export default async (event: StorageEvent) => {
 
       await policyRef.set({ ...policyData });
     } catch (err: any) {
-      // error(`Error created policy record in DB ${policyId}`, { err });
-      console.log('ERROR SAVING POLICY', JSON.stringify(err, null, 2));
+      error(`Error created policy record in DB ${policyId}`, { err });
       createErrors.push(policyData);
     }
   }
-
-  console.log('CREATE ERRORS: ', JSON.stringify(createErrors, null, 2));
 
   try {
     let importSummaryColRef = db.collection(COLLECTIONS.DATA_IMPORTS);
@@ -198,6 +276,8 @@ export default async (event: StorageEvent) => {
   return;
 };
 
+// (row: CSVPolicyRow):  ParsedPolicyRow {
+// function transformPolicyRow(row: ParserSyncRowTransform<CSVPolicyRow, ParsedPolicyRow>) {
 function transformPolicyRow(row: CSVPolicyRow): ParsedPolicyRow {
   const limits = {
     limitA: row.limitA ? extractNumber(row.limitA) : 0,
@@ -208,7 +288,7 @@ function transformPolicyRow(row: CSVPolicyRow): ParsedPolicyRow {
 
   const TIV = Object.values(limits).reduce((acc, curr) => acc + curr, 0);
 
-  const RCVs = getRCVs(row.replacementCost || 0, limits);
+  const RCVs = getRCVs(extractNumber(row.replacementCost || '0'), limits);
 
   const displayName = row.displayName ?? `${row.firstName || ''} ${row.lastName || ''}`.trim();
 
@@ -254,8 +334,8 @@ function transformPolicyRow(row: CSVPolicyRow): ParsedPolicyRow {
   };
   if (row.ffh) ratingPropertyData.FFH = extractNumber(row.ffh);
 
-  const latitude = row.latitude ? extractNumber(row.latitude) : null;
-  const longitude = row.longitude ? extractNumber(row.longitude) : null;
+  const latitude = row.latitude ? extractNumberNeg(row.latitude) : null;
+  const longitude = row.longitude ? extractNumberNeg(row.longitude) : null;
   const coordinates = latitude && longitude ? new GeoPoint(latitude, longitude) : null;
 
   const price = row.policyPrice ? extractNumber(row.policyPrice) : null;
@@ -269,7 +349,7 @@ function transformPolicyRow(row: CSVPolicyRow): ParsedPolicyRow {
       state: row.state || null,
       postal: row.postal || null,
       countyName: row.countyName || '',
-      countyFIPS: row.countyFIPS ?? (row.fips || ''),
+      countyFIPS: row.fips || '',
     },
     coordinates,
     homeState: row.homeState || null,
@@ -284,7 +364,7 @@ function transformPolicyRow(row: CSVPolicyRow): ParsedPolicyRow {
     policyEffectiveDate: row.policyEffectiveDate ? new Date(row.policyEffectiveDate) : null,
     policyExpirationDate: row.policyExpirationDate ? new Date(row.policyExpirationDate) : null,
     externalId: row.locationId,
-    additionalInsureds: [],
+    additionalInsured: [],
     mortgageeInterest: [],
     term: row.term ? extractNumber(row.term) : 1,
     namedInsured,
@@ -292,6 +372,7 @@ function transformPolicyRow(row: CSVPolicyRow): ParsedPolicyRow {
     agent,
     agency,
     ratingPropertyData,
+    product: row.product || 'flood',
   };
   return transformed;
 }
@@ -402,6 +483,11 @@ function validatePolicyRow(data: ParsedPolicyRow) {
     invariant(data.ratingPropertyData?.replacementCost, 'replacementCost required');
     invariant(data.ratingPropertyData?.sqFootage, 'sqFootage required');
 
+    invariant(
+      data.product === PRODUCT.Flood || data.product === PRODUCT.Wind,
+      `product must be "${PRODUCT.Flood}" or "${PRODUCT.Wind}"`
+    );
+
     return true;
   } catch (err: any) {
     warn(`ROW VALIDATION FAILED (${err.message})`, { err, row: data });
@@ -417,7 +503,7 @@ async function groupByPolicyId(data: ParsedPolicyRow[], firestore: Firestore) {
     let locId = uuid();
     const formattedLocation = formatPolicyLocation(row, locId, ts);
 
-    const policyId = row.policyId;
+    const policyId = row.policyId as string;
     const existingPolicy = policies[policyId] || null;
 
     if (existingPolicy) {
@@ -447,23 +533,26 @@ function formatPolicyLocation(
   locationId: string,
   ts: Timestamp
 ): PolicyLocation {
-  const geoHash = geohashForLocation([data.coordinates?.latitude, data.coordinates?.longitude]);
+  const geoHash = geohashForLocation([data.coordinates!.latitude, data.coordinates!.longitude]);
+
+  const effDateTs = Timestamp.fromDate(data.effectiveDate || (data.policyEffectiveDate as Date));
+  const expDateTs = Timestamp.fromDate(data.expirationDate || (data.policyExpirationDate as Date));
 
   const location: PolicyLocation = {
-    address: data.address,
-    coordinates: data.coordinates,
+    address: data.address as Address,
+    coordinates: data.coordinates as GeoPoint,
     geoHash,
     annualPremium: data.annualPremium,
     limits: data.limits,
     TIV: data.TIV,
     RCVs: data.RCVs,
     deductible: data.deductible,
-    effectiveDate: data.effectiveDate || data.policyEffectiveDate,
-    expirationDate: data.expirationDate || data.policyExpirationDate,
+    effectiveDate: effDateTs,
+    expirationDate: expDateTs,
     active: true,
-    additionalInsureds: data.additionalInsureds || [],
+    additionalInsureds: data.additionalInsured || [],
     mortgageeInterest: data.mortgageeInterest || [],
-    ratingDocId: data.ratingDocId || null,
+    ratingDocId: data.ratingDocId || '',
     ratingPropertyData: data.ratingPropertyData,
     locationId,
     externalId: data.externalId || null,
@@ -483,33 +572,30 @@ async function getPolicyWithoutLocation(
   ts: Timestamp,
   firestore: Firestore
 ) {
-  let SLPofR = surplusLinesLicenseByState[data.homeState] || null;
+  let SLPofR = surplusLinesLicenseByState[data.homeState as string] || null;
   if (!SLPofR) {
-    SLPofR = await getSPLPofR(firestore, data.homeState);
+    SLPofR = await getSPLPofR(firestore, data.homeState as string);
 
-    surplusLinesLicenseByState[data.homeState] = SLPofR;
+    surplusLinesLicenseByState[data.homeState as string] = SLPofR;
   }
 
+  const effDateTs = Timestamp.fromDate(data.policyEffectiveDate as Date);
+  const expDateTs = Timestamp.fromDate(data.policyExpirationDate as Date);
+
   const p: Omit<Policy, 'locations'> = {
-    product: 'flood',
+    product: data.product as Product,
     status: POLICY_STATUS.PAID, // TODO: get status from csv
-    term: data.term,
-    mailingAddress: data.address,
+    term: data.term as number,
+    mailingAddress: data.address as Address,
     namedInsured: data.namedInsured,
-    homeState: data.homeState,
-    price: data.price,
-    effectiveDate: data.policyEffectiveDate,
-    expirationDate: data.policyExpirationDate,
+    homeState: data.homeState as string,
+    price: data.price as number,
+    effectiveDate: effDateTs,
+    expirationDate: expDateTs,
     userId: data.userId,
     agent: data.agent,
     agency: data.agency,
     surplusLinesProducerOfRecord: SLPofR,
-    // surplusLinesProducerOfRecord: {
-    //   name: '',
-    //   licenseNum: '',
-    //   licenseState: '',
-    //   phone: '',
-    // },
     issuingCarrier: 'Rockingham Property & Casualty',
     documents: [],
     metadata: {
@@ -543,9 +629,4 @@ async function getSPLPofR(firestore: Firestore, state: string) {
     licenseState: '',
     phone: '',
   };
-}
-
-async function throwIfExists(policyRef: DocumentReference<Policy>) {
-  const snap = await policyRef.get();
-  if (snap.exists) throw new Error(`Policy already exists with ID ${policyRef.id}`);
 }

@@ -4,6 +4,7 @@ import { add, Duration } from 'date-fns';
 import { isEqual, remove } from 'lodash';
 import numeral from 'numeral';
 import { error, info } from 'firebase-functions/logger';
+import { DocumentReference } from 'firebase-admin/firestore';
 
 /**
  * Sums an array of numbers
@@ -103,8 +104,15 @@ export const isValidEmail = (str: string) => {
 export const getNumber = (str: string) => str.replace(/[^0-9\.]+/g, ''); // eslint-disable-line
 
 export function extractNumber(str: string) {
-  return parseFloat(`${str}`.replace(/[^0-9.]/g, ''));
+  return parseFloat(`${str}`.replace(/-?[^0-9.]/g, ''));
 }
+
+// testing for negative numbers (use this instead once confirmed)
+export function extractNumberNeg(str: string) {
+  return parseFloat(`${str}`.replace(/[^-][^0-9.]/g, ''));
+}
+
+// ^-?[0-9]\d*(\.\d+)?$
 
 /**
  *
@@ -206,4 +214,9 @@ export async function unlinkFile(filePath: string) {
   } catch (err: any) {
     error(`Error unlinking file ${filePath}`, { errMsg: err?.message, err, filePath });
   }
+}
+
+export async function throwIfExists<T>(docRef: DocumentReference<T>) {
+  const snap = await docRef.get();
+  if (snap.exists) throw new Error(`Document already exists with ID ${docRef.id}`);
 }
