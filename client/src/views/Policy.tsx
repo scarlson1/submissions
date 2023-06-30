@@ -30,7 +30,7 @@ import { toast } from 'react-hot-toast';
 import { useDocData } from 'hooks';
 import { Policy as IPolicy, POLICY_STATUS, PolicyLocation, WithId } from 'common';
 import { ContactList, LocationCard, LocationsGrid, LocationsMap } from 'elements';
-import { formatFirestoreTimestamp, formatPhoneNumber } from 'modules/utils';
+import { formatFirestoreTimestamp, formatPhoneNumber, stringAvatar } from 'modules/utils';
 
 // TODO: make location card flip on hover to show additoinal details
 
@@ -192,14 +192,10 @@ export const Policy: React.FC = () => {
               </Stack>
             </Paper>
           </Grid>
-          {/* <Grid xs></Grid> */}
           <Grid xs={12} sm='auto'>
             <Card>
               <CardHeader
-                avatar={
-                  // sx={{ bgcolor: red[500] }}
-                  <Avatar aria-label='agent'>R</Avatar>
-                }
+                avatar={<Avatar {...stringAvatar(`${data?.agent?.name}`)}></Avatar>}
                 // action={
                 //   <IconButton aria-label='settings'>
                 //     <MoreVertIcon />

@@ -320,7 +320,7 @@ export interface Quote {
   address: Address;
   coordinates: GeoPoint | null;
   homeState: string;
-  fees: { feeName: string; feeValue: number }[];
+  fees: FeeItem[];
   taxes: TaxItem[]; // { taxName: string; taxValue: number; taxRate?: number }[];
   annualPremium: number;
   subproducerCommission: number; // TODO: remove ??
@@ -648,6 +648,7 @@ export interface Policy extends BaseDoc {
   // address: Address;
   // limits: Limits;
   locations: Record<string, PolicyLocation>;
+  price: number; // TODO: taxes, fees, etc. (line items)
   // deductible: number;
   homeState: string;
   effectiveDate: Timestamp;
@@ -669,6 +670,7 @@ export interface Policy extends BaseDoc {
   issuingCarrier: string;
   // TODO: GENERATE DOCS INSTEAD OF STORING
   documents: [{ displayName: string; downloadUrl: string; storagePath: string }];
+  quoteId?: string | null;
   // imageURLs?: Record<string, string> | null;
   // imagePaths?: Record<string, string> | null;
 }

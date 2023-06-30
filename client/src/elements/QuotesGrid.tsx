@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import { Box, Link, Tooltip } from '@mui/material';
-import { GridActionsCellItem, GridColDef, GridRowParams } from '@mui/x-data-grid';
+import { DataGridProps, GridActionsCellItem, GridColDef, GridRowParams } from '@mui/x-data-grid';
 import { SendRounded } from '@mui/icons-material';
 import { useSigninCheck } from 'reactfire';
 
@@ -52,29 +52,35 @@ import {
   nestedAgentNameCol,
 } from 'common';
 import { GridCellCopy, ServerDataGrid, ServerDataGridProps } from 'components';
-import { useSendQuoteNotification, useWidth } from 'hooks';
+import { useAsyncToast, useGridActions, useSendQuoteNotification, useWidth } from 'hooks';
 import { getRequiredClaimValidator } from 'components/RequireAuthReactFire';
 import { useAuth } from 'modules/components';
 
 // TODO: need to use custom merge function for additionalColumns to prevent duplication "field" values
 
-export interface QuotesGridProps
+export interface ServerDataGridCollectionProps
   extends Omit<
     ServerDataGridProps,
-    'columns' | 'collName' | 'isCollectionGroup' | 'columns' | 'pathSegments'
+    'columns' | 'collName' | 'isCollectionGroup' | 'columns' | 'pathSegments' | 'initialState'
   > {
   renderActions?: (params: GridRowParams) => JSX.Element[];
-  additionalColumns?: GridColDef<any, any, any>[]; // | GridActionsColDef[];
+  additionalColumns?: GridColDef<any, any, any>[];
+  initialState?: Omit<DataGridProps['initialState'], 'pagination'>;
 }
+
+export interface QuotesGridProps extends ServerDataGridCollectionProps {}
 
 export const QuotesGrid: React.FC<QuotesGridProps> = ({
   renderActions = () => [],
   additionalColumns = [],
+  initialState,
   ...props
 }) => {
   const { claims } = useAuth();
   const { isSmall } = useWidth();
   const sendNotifications = useSendQuoteNotification();
+  const toast = useAsyncToast({ position: 'top-right' });
+  const { googleMapsAction, floodFactorAction } = useGridActions(toast.error);
 
   const { data: authCheckResult } = useSigninCheck({
     validateCustomClaims: getRequiredClaimValidator(['ORG_ADMIN', 'IDEMAND_ADMIN']),
@@ -95,21 +101,11 @@ export const QuotesGrid: React.FC<QuotesGridProps> = ({
         field: 'actions',
         headerName: 'Actions',
         type: 'actions',
-        width: isSmall ? 60 : 120,
+        width: isSmall ? 60 : 140,
         getActions: (params: GridRowParams) => [
           ...renderActions(params),
-          // <GridActionsCellItem
-          //   icon={
-          //     <Tooltip placement='top' title='View JSON'>
-          //       <DataObjectRounded />
-          //     </Tooltip>
-          //   }
-          //   onClick={handleShowJson(params)}
-          //   label='Details'
-          //   showInMenu={isSmall}
-          //   // disabled={!authCheckResult.hasRequiredClaims}
-          //   disabled={!Boolean(claims?.iDemandAdmin)}
-          // />,
+          googleMapsAction(params, { showInMenu: true }),
+          floodFactorAction(params, { showInMenu: true }),
           <GridActionsCellItem
             icon={
               <Tooltip placement='top' title='Send Notifications'>
@@ -207,7 +203,16 @@ export const QuotesGrid: React.FC<QuotesGridProps> = ({
       },
       ...additionalColumns,
     ],
-    [handleSendNotifications, additionalColumns, renderActions, isSmall, authCheckResult, claims]
+    [
+      handleSendNotifications,
+      additionalColumns,
+      renderActions,
+      isSmall,
+      authCheckResult,
+      claims,
+      googleMapsAction,
+      floodFactorAction,
+    ]
   );
 
   return (
@@ -232,17 +237,19 @@ export const QuotesGrid: React.FC<QuotesGridProps> = ({
               'address.postal': false,
               'address.countyName': false,
               'address.countyFIPS': false,
-              updated: false,
+              'metadata.updated': false,
               'agent.phone': false,
               'agent.userId': false,
-              CBRSDesignation: false,
-              basement: false,
-              distToCoastFeet: false,
-              floodZone: false,
-              numStories: false,
-              propertyCode: false,
-              sqFootage: false,
-              yearBuilt: false,
+              'ratingPropertyData.replacementCost': false,
+              'ratingPropertyData.CBRSDesignation': false,
+              'ratingPropertyData.basement': false,
+              'ratingPropertyData.distToCoastFeet': false,
+              'ratingPropertyData.floodZone': false,
+              'ratingPropertyData.numStories': false,
+              'ratingPropertyData.propertyCode': false,
+              'ratingPropertyData.sqFootage': false,
+              'ratingPropertyData.yearBuilt': false,
+              'agency.address': false,
             },
           },
           sorting: {

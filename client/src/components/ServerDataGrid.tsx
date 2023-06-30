@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState, startTransition } from 'react';
-import { Box, LinearProgress } from '@mui/material';
+import { Box } from '@mui/material';
 import {
   DataGrid,
   DataGridProps,
@@ -24,6 +24,7 @@ import { useDocCount, useFetchDocsWithCursor, useWidth } from 'hooks';
 import { COLLECTIONS } from 'common';
 import { isInequalityOp, isWhereFilterOp } from 'modules/utils';
 import { GridMobileToolbar } from './GridMobileToolbar';
+import { lowerCase } from 'lodash';
 
 // FIREBASE PAGINATION ARTICLE: https://makerkit.dev/blog/tutorials/pagination-react-firebase-firestore
 
@@ -33,7 +34,7 @@ export interface ServerDataGridProps extends Partial<Omit<DataGridProps, 'rows'>
   constraints?: QueryFieldFilterConstraint[];
   isCollectionGroup?: boolean;
   columns: GridColDef[];
-  // TODO: initSorting as prop
+  // TODO: initSorting
 }
 
 export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
@@ -44,7 +45,7 @@ export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
   columns,
   slots,
   slotProps,
-  ...rest
+  ...props
 }) => {
   const { isMobile } = useWidth();
   const toolbar = useMemo(() => (isMobile ? GridMobileToolbar : GridToolbar), [isMobile]);
@@ -59,6 +60,7 @@ export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
   const [sortModel, setSortModel] = useState<GridSortModel>([
     { field: 'metadata.created', sort: 'desc' },
   ]);
+  // ref works because setting sortModel triggers rerender ??
   const sortOps = useRef<QueryOrderByConstraint[]>([orderBy('metadata.created', 'desc')]);
   const [filters, setFilters] = useState<(QueryFieldFilterConstraint | QueryOrderByConstraint)[]>(
     []
@@ -93,7 +95,7 @@ export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
   // const deferredData = useDeferredValue(data);
 
   const rowData = useMemo(() => {
-    return data?.docs?.map((doc) => ({ ...doc.data(), id: doc.id })) ?? [];
+    return data?.docs?.map((doc: any) => ({ ...doc.data(), id: doc.id })) ?? [];
   }, [data]);
 
   const handlePaginationModelChange = useCallback(
@@ -142,8 +144,8 @@ export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
         if ((valDefined || isNotEmptyFilter) && !isEmptyArr && isFilterOp) {
           let op = f.operator as WhereFilterOp;
           let val = f.value ?? false;
-          console.log('val is timestamp: ', val instanceof Timestamp);
-          console.log('val is date: ', val instanceof Date);
+          // console.log('val is timestamp: ', val instanceof Timestamp);
+          // console.log('val is date: ', val instanceof Date);
           if (val instanceof Date) val = Timestamp.fromDate(new Date(val));
 
           if (isInequalityOp(op)) newFilters.push(orderBy(f.field, 'desc'));
@@ -158,6 +160,21 @@ export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
     },
     []
   );
+
+  // const rowHeight = useMemo(() => {
+  //   console.log('ROW HEIGHT CHANGE: ', density);
+  //   if (density === 'compact') return 52;
+  //   if (density === 'comfortable') return 100;
+  //   return 76;
+  // }, [density]);
+  // const baseHeight = useMemo(() => {}, []);
+  // <Box
+  //     sx={{
+  //       height: 108 + Math.min(pageSize, rowData.length) * rowHeight + 'px',
+  //       width: '100%',
+  //       transition: 'all 0.25s ease-in-out',
+  //     }}
+  //   ></Box>
 
   return (
     <Box sx={{ height: 500, width: '100%' }}>
@@ -181,8 +198,8 @@ export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
           },
           '.MuiDataGrid-main > div:nth-of-type(2)': { overflowY: 'auto !important' },
         }}
-        pageSizeOptions={[5, 10, 25, 100]}
-        {...rest}
+        pageSizeOptions={[5, 10, 25]}
+        {...props}
         rows={rowData}
         columns={columns}
         loading={status === 'loading'}
@@ -198,23 +215,17 @@ export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
         onFilterModelChange={handleFilterChange}
         slots={{
           toolbar,
-          loadingOverlay: LinearProgress,
           ...(slots || {}),
         }}
         slotProps={{
-          toolbar: { csvOptions: { allColumns: true } },
-          ...(slotProps || {}),
-          baseIconButton: {
-            color: 'primary',
-            size: 'small',
-            sx: {
-              height: { xs: 22, sm: 24, md: 28 },
-              width: { xs: 22, sm: 24, md: 28 },
-              border: 'none',
-              borderRadius: 2,
-              '&:hover': { border: 'none' },
+          toolbar: {
+            csvOptions: {
+              allColumns: true,
+              fileName: `iDemand ${lowerCase(collName)} export`,
             },
+            printOptions: { disableToolbarButton: true },
           },
+          ...(slotProps || {}),
         }}
         // slots={{
         //   loadingOverlay: LinearProgress, // displayed when loading = true

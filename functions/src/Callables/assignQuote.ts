@@ -5,7 +5,7 @@ import { getFirestore } from 'firebase-admin/firestore';
 import { CLAIMS, Quote, orgsCollection, quotesCollection, usersCollection } from '../common';
 
 export default async ({ data, auth }: CallableRequest<{ quoteId: string }>) => {
-  console.log('data: ', data);
+  info('ASSIGN QUOTE CALLED', { ...data });
   const { quoteId } = data;
   const uid = auth?.uid;
   const token = auth?.token;

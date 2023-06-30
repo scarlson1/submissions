@@ -9,7 +9,7 @@ import {
   Timestamp,
   where,
 } from 'firebase/firestore';
-import { useFirestore, useSigninCheck } from 'reactfire'; // useUser
+import { useFirestore, useSigninCheck } from 'reactfire';
 import invariant from 'tiny-invariant';
 import { isEmpty, round } from 'lodash';
 import { endOfToday, startOfDay, isValid } from 'date-fns';
@@ -18,7 +18,7 @@ import { addToDate, extractNumber, getGeoHash, readableFirebaseCode } from 'modu
 import { QUOTE_STATUS, Submission, Quote, quotesCollection, licensesCollection } from 'common';
 import { useSendQuoteNotification } from './useSendQuoteNotification';
 import { CUSTOM_CLAIMS } from 'modules/components';
-import { QuoteValues } from 'elements/QuoteForm';
+import type { QuoteValues } from 'elements';
 
 export const CARD_FEE_RATE = 0.035;
 
@@ -69,7 +69,6 @@ export const useCreateQuote = (
       try {
         const quoteData = getFormattedQuote(values, signInCheckResult.user?.uid);
         const geoHash = getGeoHash(submissionData?.coordinates);
-        // const { imageURLs, imagePaths } = getImages(submissionData);
 
         const quoteRef = await addDoc(quotesCollection(firestore), {
           ...quoteData,

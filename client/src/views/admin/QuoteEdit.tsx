@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
-import { Box, Typography } from '@mui/material';
+import { Box } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
 import invariant from 'tiny-invariant';
 import { useFirestore, useSigninCheck } from 'reactfire';
@@ -49,6 +49,12 @@ const useEditQuote = (
         let effDateStartOfDay = startOfDay(newValues.effectiveDate);
         let expDateStartOfDay = addToDate({ years: 1 }, effDateStartOfDay);
 
+        let numTaxes = newValues?.taxes?.map((t) => ({
+          ...t,
+          value: extractNumber(`${t.value}`) ?? null,
+          rate: extractNumber(`${t.rate}`) ?? null,
+        }));
+
         let quoteRef = doc(quotesColRef, quoteId);
         // TODO: validation
         let quoteUpdates: Partial<Quote> = {
@@ -56,7 +62,7 @@ const useEditQuote = (
           product: newValues?.product || 'flood',
           address: newValues?.address,
           // TODO: add homestate to the form
-          homeState: newValues?.address?.state,
+          homeState: newValues?.homeState,
           coordinates:
             newValues.coordinates?.longitude && newValues.coordinates?.latitude
               ? new GeoPoint(newValues.coordinates.latitude, newValues.coordinates.longitude)
@@ -64,11 +70,12 @@ const useEditQuote = (
           limits: newValues?.limits,
           deductible: newValues?.deductible,
           fees: newValues?.fees || [],
-          taxes: newValues?.taxes || [], // @ts-ignore
+          taxes: numTaxes || [], //  newValues?.taxes || [], // @ts-ignore
           // TODO: create type wrapping Qutoe with annPrem as optional
           annualPremium: newValues.annualPremium,
           subproducerCommission: newValues?.subproducerCommission,
           cardFee: round(newValues.quoteTotal * CARD_FEE_RATE, 2),
+          quoteTotal: round(newValues.quoteTotal, 2),
           mailingAddress: {
             // TODO: add mailing address and name fields
             name: '',
@@ -99,7 +106,6 @@ const useEditQuote = (
             sqFootage: extractNumber(`${newValues.ratingPropertyData.sqFootage}`),
             yearBuilt: extractNumber(`${newValues.ratingPropertyData.yearBuilt}`),
           },
-          // TODO: fieldValue merge array ??
           notes:
             newValues.notes && newValues.notes.length > 0
               ? newValues.notes
@@ -161,6 +167,7 @@ export const QuoteEdit = () => {
         countyName: quoteData?.address?.countyName ?? '',
         countyFIPS: quoteData?.address?.countyFIPS ?? '',
       },
+      homeState: quoteData?.homeState || '',
       coordinates: {
         latitude: quoteData?.coordinates?.latitude || null,
         longitude: quoteData?.coordinates?.longitude || null,
@@ -253,9 +260,9 @@ export const QuoteEdit = () => {
 
   return (
     <Box>
-      <Typography variant='h5' color='warning.main' align='center' sx={{ py: 5 }}>
+      {/* <Typography variant='h5' color='warning.main' align='center' sx={{ py: 5 }}>
         {`TODO: Finish QuoteEdit Component (ID: ${quoteId})`}
-      </Typography>
+      </Typography> */}
       <QuoteForm
         title='Edit Quote'
         onSubmit={handleSubmit}

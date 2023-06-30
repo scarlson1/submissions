@@ -27,11 +27,6 @@ import {
   RequestQuoteRounded,
   PolicyRounded,
   InboxRounded,
-  // AccountBalanceRounded,
-  // PublicRounded,
-  // BlockRounded,
-  // PlagiarismRounded,
-  // SourceRounded,
   CorporateFareRounded,
   ContactSupportRounded,
   PersonRounded,
@@ -51,6 +46,7 @@ import { NavListItem } from './NavListItem';
 import { NavMenu as PopperNavMenu } from './NavMenu';
 import { NavDrawer } from './NavDrawer';
 import { AuthActionsProvider, useAuthActions } from 'modules/components';
+import { stringAvatar } from 'modules/utils';
 
 // TODO: GENERALIZE MENU COMPONENT - allow for button or user avatar as button. nested items. icons.
 // could have optional render function to render button??
@@ -552,7 +548,6 @@ const UserMenu: React.FC<UserMenuProps> = () => {
 
   return (
     <>
-      {/* <Box sx={{ display: 'block' }}> */}
       <Tooltip title='Open settings'>
         <IconButton
           onClick={handleOpenMenu}
@@ -561,13 +556,23 @@ const UserMenu: React.FC<UserMenuProps> = () => {
           aria-haspopup='true'
           aria-expanded={open ? 'true' : undefined}
         >
-          <Avatar
-            alt={authCheckResult?.user?.displayName || undefined}
-            src={authCheckResult?.user?.photoURL || ''}
-          />
+          {authCheckResult?.user?.photoURL ? (
+            <Avatar
+              alt={authCheckResult?.user?.displayName || undefined}
+              src={authCheckResult?.user?.photoURL || ''}
+            />
+          ) : null}
+
+          {!authCheckResult?.user?.photoURL && authCheckResult?.user?.displayName ? (
+            <Avatar {...stringAvatar(authCheckResult!.user!.displayName)} />
+          ) : null}
+
+          {!authCheckResult.user ||
+          !(authCheckResult.user?.displayName || authCheckResult?.user?.photoURL) ? (
+            <Avatar />
+          ) : null}
         </IconButton>
       </Tooltip>
-      {/* </Box> */}
 
       <Menu
         sx={{ mt: '45px', minWidth: 240, maxWidth: 340 }}
