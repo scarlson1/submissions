@@ -1,7 +1,13 @@
 import { StorageEvent } from 'firebase-functions/v2/storage';
 import { error, info, warn } from 'firebase-functions/logger';
 import { projectID } from 'firebase-functions/params';
-import { Firestore, GeoPoint, Timestamp, getFirestore } from 'firebase-admin/firestore'; //  Firestore,
+import {
+  DocumentReference,
+  Firestore,
+  GeoPoint,
+  Timestamp,
+  getFirestore,
+} from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
 import { geohashForLocation } from 'geofire-common';
 import fs from 'fs';
@@ -31,6 +37,7 @@ import {
   truthyOrZero,
 } from '../common';
 import { sendAdminPolicyImportNotification } from '../services/sendgrid';
+import { getRCVs } from '../utils/rating';
 
 const IMPORT_POLICIES_FOLDER = 'importPolicies';
 
@@ -143,6 +150,8 @@ export default async (event: StorageEvent) => {
       info(`creating policy ${policyId}...`, { ...policyData });
 
       const policyRef = policiesCollRef.doc(policyId);
+      await throwIfExists(policyRef);
+
       await policyRef.set({ ...policyData });
     } catch (err: any) {
       // error(`Error created policy record in DB ${policyId}`, { err });
@@ -199,13 +208,7 @@ function transformPolicyRow(row: CSVPolicyRow): ParsedPolicyRow {
 
   const TIV = Object.values(limits).reduce((acc, curr) => acc + curr, 0);
 
-  const RCVs = {
-    building: row.rcvA ? extractNumber(row.rcvA) : 0,
-    otherStructures: row.rcvA ? extractNumber(row.rcvA) : 0,
-    contents: row.rcvA ? extractNumber(row.rcvA) : 0,
-    BI: row.rcvA ? extractNumber(row.rcvA) : 0,
-  };
-  const rcvTotal = Object.values(RCVs).reduce((acc, curr) => acc + curr, 0);
+  const RCVs = getRCVs(row.replacementCost || 0, limits);
 
   const displayName = row.displayName ?? `${row.firstName || ''} ${row.lastName || ''}`.trim();
 
@@ -273,10 +276,7 @@ function transformPolicyRow(row: CSVPolicyRow): ParsedPolicyRow {
     deductible: row.deductible ? extractNumber(row.deductible) : 0,
     limits,
     TIV,
-    RCVs: {
-      ...RCVs,
-      total: rcvTotal,
-    },
+    RCVs,
     annualPremium: row.annualPremium ? extractNumber(row.annualPremium) : 0,
     price,
     effectiveDate: row.locationEffectiveDate ? new Date(row.locationEffectiveDate) : null,
@@ -333,7 +333,7 @@ function validatePolicyRow(data: ParsedPolicyRow) {
     invariant(typeof data.TIV === 'number', 'Error calcualting TIV (not a number)');
 
     invariant(typeof data.deductible === 'number', 'Deductible must be a number');
-    invariant(data.deductible > 1000, 'Deductible must be > $1,000');
+    invariant(data.deductible >= 1000, 'Deductible must be > $1,000');
 
     invariant(data.address?.addressLine1, 'addressLine1 required');
     invariant(data.address?.city, 'city required');
@@ -346,19 +346,19 @@ function validatePolicyRow(data: ParsedPolicyRow) {
 
     invariant(
       truthyOrZero(data.RCVs?.building) && typeof data.RCVs?.building === 'number',
-      'rcvA must be a number'
+      'building RCV required'
     );
     invariant(
       truthyOrZero(data.RCVs?.otherStructures) && typeof data.RCVs?.otherStructures === 'number',
-      'rcvB must be a number'
+      'error calculating structures RCV'
     );
     invariant(
       truthyOrZero(data.RCVs?.contents) && typeof data.RCVs?.contents === 'number',
-      'rcvC must be a number'
+      'error calculating contents RCV'
     );
     invariant(
       truthyOrZero(data.RCVs?.BI) && typeof data.RCVs?.BI === 'number',
-      'rcvD must be a number'
+      'error calculating BI RCV'
     );
     invariant(
       truthyOrZero(data.RCVs?.total) && typeof data.RCVs?.total === 'number',
@@ -543,4 +543,9 @@ async function getSPLPofR(firestore: Firestore, state: string) {
     licenseState: '',
     phone: '',
   };
+}
+
+async function throwIfExists(policyRef: DocumentReference<Policy>) {
+  const snap = await policyRef.get();
+  if (snap.exists) throw new Error(`Policy already exists with ID ${policyRef.id}`);
 }
