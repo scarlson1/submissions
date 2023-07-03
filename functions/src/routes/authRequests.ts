@@ -105,16 +105,6 @@ app.get('/confirm-move-tenant/:token', async (req: Request, res: Response) => {
       authTo = authTo.tenantManager().authForTenant(toTenantId);
     }
 
-    // {
-    //   hash: {
-    //     algorithm: 'SCRYPT',
-    //     key: Buffer.from('base64-secret', 'base64'),
-    //     saltSeparator: Buffer.from('base64SaltSeparator', 'base64'),
-    //     rounds: 8,
-    //     memoryCost: 14,
-    //   },
-    // }
-
     const userImportOptions: UserImportOptions = {
       hash: {
         algorithm,
@@ -126,7 +116,7 @@ app.get('/confirm-move-tenant/:token', async (req: Request, res: Response) => {
     };
     await migrateUser(authFrom, authTo, uid, userImportOptions);
 
-    info(`USER ${uid} move from ${fromTenantId} to tenant ${toTenantId}`, {
+    info(`USER ${uid} moved from ${fromTenantId} to tenant ${toTenantId}`, {
       userId: uid,
       fromTenantId,
       toTenantId,

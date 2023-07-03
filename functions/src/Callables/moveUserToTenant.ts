@@ -45,11 +45,11 @@ export async function migrateUser(
     // Delete tenantId - will be set automatically.
     delete modifiedUser.tenantId;
 
-    console.log('MODIFIED USER: ', JSON.stringify(modifiedUser, null, 2));
+    info('MODIFIED USER', modifiedUser);
 
     await authTo.importUsers([modifiedUser], userImportOptions);
-  } catch (err) {
-    console.log('ERROR IMPORTING USER: ', err);
+  } catch (err: any) {
+    error('ERROR IMPORTING USER: ', { err });
     throw err;
   }
 }

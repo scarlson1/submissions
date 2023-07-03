@@ -62,6 +62,7 @@ export const SLTaxEdit = () => {
     [navigate, firestore, toast, taxId]
   );
 
+  // values.subjectBase[0] === 'fixedFee';
   return (
     <Box>
       <Typography variant='h5' gutterBottom sx={{ ml: 3 }}>
@@ -77,8 +78,9 @@ export const SLTaxEdit = () => {
           LOB: data?.LOB || [],
           products: data?.products || [],
           transactionTypes: data?.transactionTypes || [],
-          subjectBase: data?.subjectBase || [],
-          rate: data?.rateType === 'percent' ? `${data?.rate * 100}` : '',
+          subjectBase: data?.subjectBase || [], // TODO: uncomment after prod data updated
+          // rate: data?.rateType === 'percent' ? `${data?.rate * 100}` : '',
+          rate: data?.subjectBase[0] === 'fixedFee' ? `${data?.rate * 100}` : '',
           fixedRate: data.rateType === 'fixed' ? data?.rate : null,
           baseRoundType: data?.baseRoundType || 'nearest',
           baseDigits: data?.baseDigits ?? 2,
