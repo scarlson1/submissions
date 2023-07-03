@@ -2,16 +2,14 @@ import { useState, useEffect } from 'react';
 import { getFirestore, limit, onSnapshot, orderBy, query, where } from 'firebase/firestore';
 
 import { policiesCollection } from 'common/firestoreCollections';
-import { Policy } from 'common/types';
+import { Policy, WithId } from 'common/types';
 import { useAuth } from 'modules/components/AuthContext';
 
-export interface PolicyWithId extends Policy {
-  id: string;
-}
+// TODO: handle load more with cursors & infinite scroll
 
 export const useUsersPolicies = () => {
   const { user } = useAuth();
-  const [policies, setPolicies] = useState<PolicyWithId[]>([]);
+  const [policies, setPolicies] = useState<WithId<Policy>[]>([]);
   const [initialLoading, setInitialLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -25,13 +23,13 @@ export const useUsersPolicies = () => {
       policiesCollection(getFirestore()),
       orderBy('metadata.created', 'desc'),
       where('userId', '==', user?.uid),
-      limit(20)
+      limit(100)
     );
 
     const unsubscribe = onSnapshot(
       q,
       (querySnap) => {
-        const newPolicies: PolicyWithId[] = [];
+        const newPolicies: WithId<Policy>[] = [];
         querySnap.forEach((snap) => {
           newPolicies.push({ ...snap.data(), id: snap.id });
         });
