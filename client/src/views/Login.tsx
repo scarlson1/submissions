@@ -37,7 +37,8 @@ export interface LoginValues {
   email: string;
   password: string;
 }
-
+// (email?: string) => toast.success(`Password reset email sent to ${email}`),
+// (msg: string) => toast.error(msg),
 export const Login: React.FC = () => {
   const auth = getAuth();
   const navigate = useNavigate();
@@ -46,10 +47,7 @@ export const Login: React.FC = () => {
   const [queryParams] = useSearchParams();
   const { login } = useAuthActions();
   const { handleError } = useHandleAuthError();
-  const { sendPasswordReset } = useSendPasswordReset({
-    onSuccess: (email?: string) => toast.success(`Password reset email sent to ${email}`),
-    onError: (err: unknown, msg: string) => toast.error(msg),
-  });
+  const { sendPasswordReset } = useSendPasswordReset();
   const formikRef = useRef<FormikProps<LoginValues>>(null);
 
   useKeyPress('Enter', () => {
@@ -82,13 +80,13 @@ export const Login: React.FC = () => {
       if (err instanceof FirebaseError) {
         try {
           await handleError(err as AuthError, values);
+
           navigate(getRedirectPath(location), { replace: true });
         } catch (error: any) {
           console.log(error);
-          let msg = 'An error occurred. See console for details';
-          if (error?.message) msg = error.message;
-          // TODO: fix duplicate toasts
-          toast.error(msg);
+          // let msg = 'An error occurred. See console for details';
+          // if (error?.message) msg = error.message;
+          // toast.error(msg);
         }
       } else {
         console.log(err);

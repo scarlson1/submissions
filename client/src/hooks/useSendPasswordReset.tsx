@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { getAuth, AuthError } from 'firebase/auth'; // sendPasswordResetEmail,
+import { getAuth, AuthError } from 'firebase/auth';
 import { FirebaseError } from 'firebase/app';
 import { useFunctions } from 'reactfire';
 
@@ -8,23 +8,23 @@ import InputDialog from 'components/InputDialog';
 import { isValidEmail, readableFirebaseCode } from 'modules/utils/helpers';
 import { getTenantIdFromEmail } from 'modules/api';
 import { useAuthActions } from 'modules/components';
+import { useAsyncToast } from './useAsyncToast';
 
-// TODO: call function to check if user is tenant user
-
-export interface UseSendPasswordResetProps {
-  onSuccess?: (email?: string) => void;
-  onError?: (err: unknown, msg: string) => void;
-}
-
-export const useSendPasswordReset = ({ onSuccess, onError }: UseSendPasswordResetProps = {}) => {
+export const useSendPasswordReset = (
+  onSuccess?: (email?: string) => void,
+  onError?: (msg: string, err: any) => void
+) => {
   const auth = getAuth();
   const functions = useFunctions();
+
   const [error, setError] = useState<any>();
   const confirm = useConfirmation();
+  const toast = useAsyncToast({ position: 'top-right' });
   const { sendPasswordReset: sendPWReset } = useAuthActions();
 
   const sendPasswordReset = useCallback(
     async (email: string, continueUrl?: string) => {
+      setError(null);
       if (!email || !isValidEmail(email)) {
         email = await confirm({
           catchOnCancel: false,
@@ -42,8 +42,11 @@ export const useSendPasswordReset = ({ onSuccess, onError }: UseSendPasswordRese
             />
           ),
         });
+        // return early if user clicks 'cancel'
         if (!email) return;
       }
+
+      toast.loading('sending password reset email...');
 
       try {
         const {
@@ -57,20 +60,24 @@ export const useSendPasswordReset = ({ onSuccess, onError }: UseSendPasswordRese
       }
 
       try {
-        // await sendPasswordResetEmail(auth, email);
         await sendPWReset(email, continueUrl);
+
+        toast.success('sent! check your email 📧');
         if (onSuccess) onSuccess(email);
       } catch (err) {
         console.log('ERROR: ', err);
+
         let msg = 'Error sending password reset email';
         if (err instanceof FirebaseError) {
           msg += ` (${readableFirebaseCode(err as AuthError)})`;
         }
+
         setError(err);
-        if (onError) onError(err, msg);
+        toast.error(msg);
+        if (onError) onError(msg, err);
       }
     },
-    [confirm, onSuccess, onError, sendPWReset, auth, functions]
+    [confirm, onSuccess, onError, sendPWReset, toast, auth, functions]
   );
 
   return { sendPasswordReset, error };

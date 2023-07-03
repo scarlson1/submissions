@@ -20,6 +20,7 @@ import {
 } from 'modules/components';
 import { ErrorFallback } from 'components';
 import { useAnalyticsEvent } from 'hooks';
+import { ConfirmationProvider2 } from 'modules/components/ConfirmationService2';
 
 // TODO: set up Sentry for error logging
 // https://docs.sentry.io/platforms/javascript/guides/react/?original_referrer=https%3A%2F%2Fsentry.io%2F
@@ -68,10 +69,12 @@ function App() {
       >
         <LocalizationProvider dateAdapter={AdapterDateFns}>
           <ConfirmationProvider>
-            <AuthContextProvider>
-              <Outlet />
-              <Toaster />
-            </AuthContextProvider>
+            <ConfirmationProvider2>
+              <AuthContextProvider>
+                <Outlet />
+                <Toaster />
+              </AuthContextProvider>
+            </ConfirmationProvider2>
           </ConfirmationProvider>
         </LocalizationProvider>
         <PageViewLogger />

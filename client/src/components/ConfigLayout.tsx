@@ -58,6 +58,7 @@ export const ConfigLayout: React.FC = () => {
       createPath({ path: ADMIN_ROUTES.MORATORIUMS }),
       createPath({ path: ADMIN_ROUTES.SL_LICENSES }),
       createPath({ path: ADMIN_ROUTES.DISCLOSURES }),
+      createPath({ path: ADMIN_ROUTES.DATA_IMPORTS }),
     ],
     []
   );
@@ -103,6 +104,7 @@ export const ConfigLayout: React.FC = () => {
           <LinkTab label='Moratoriums' to={createPath({ path: ADMIN_ROUTES.MORATORIUMS })} />
           <LinkTab label='Licenses' to={createPath({ path: ADMIN_ROUTES.SL_LICENSES })} />
           <LinkTab label='Disclosures' to={createPath({ path: ADMIN_ROUTES.DISCLOSURES })} />
+          <LinkTab label='Imports' to={createPath({ path: ADMIN_ROUTES.DATA_IMPORTS })} />
         </Tabs>
       </Box>
       <Box sx={{ py: { xs: 2, md: 3 } }}>
@@ -113,11 +115,3 @@ export const ConfigLayout: React.FC = () => {
     </Box>
   );
 };
-
-/* <TabContext value={value}>
-        <Box>
-          <TabList onChange={handleChange} scrollButtons='auto' variant='scrollable'> */
-
-//     </TabList>
-//   </Box>
-// </TabContext>

@@ -60,9 +60,11 @@ export const usePromptRCV = () => {
 
             return values.rcvEst;
           }
-        } catch (err) {}
+        } catch (err) {
+          console.log('ERROR SUBMITTING FORM', err);
+        }
       } else {
-        return Promise.reject();
+        return Promise.reject('missing formik ref');
       }
     } catch (err) {
       return Promise.reject(err);

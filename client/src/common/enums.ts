@@ -28,6 +28,7 @@ export enum COLLECTIONS {
   PUBLIC = 'public',
   DISCLOSURES = 'disclosures',
   EMAIL_ACTIVITY = 'emailActivity',
+  DATA_IMPORTS = 'dataImports',
   TASKS = 'tasks', // TODO: DELETE
 }
 
