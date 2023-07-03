@@ -3,10 +3,11 @@ import { Box, Stack } from '@mui/material';
 import { Form, Formik, FormikProps } from 'formik';
 import * as yup from 'yup';
 
-import { ConfirmationOptions, useConfirmation } from 'modules/components/ConfirmationService';
-import { ConfirmationDialog } from 'components';
+import { ConfirmationOptions } from 'modules/components/ConfirmationService';
 import { FormikSwitch, FormikMultiTextInput } from 'components/forms';
 import { isValidEmail } from 'modules/utils';
+import { useConfirmation2 } from 'modules/components/ConfirmationService2';
+import { ConfirmationDialog2 } from 'components/ConfirmationDialog';
 
 const notifyValidation = yup.object().shape({
   notifyInsured: yup.boolean().when(['notifyAgent', 'alternative'], {
@@ -46,7 +47,8 @@ export interface NotificationEmailValues {
 }
 
 export const usePromptForEmails = () => {
-  const confirm = useConfirmation();
+  const confirm = useConfirmation2();
+  // const confirm = useConfirmation();
   const formRef = useRef<FormikProps<NotificationEmailValues>>(null);
 
   const handleDialogSubmit = useCallback(async () => {
@@ -70,9 +72,17 @@ export const usePromptForEmails = () => {
     console.log('formSub');
   }, []);
 
-  const handleDialogError = useCallback(async (err: unknown) => {
-    console.log('ERR: ', err);
+  const handleDialogError = useCallback((msg: string, err: any) => {
+    console.log('ERR: ', msg, err);
   }, []);
+
+  // const onAccept = useCallback((args: any) => {
+  //   console.log('onAccept: ', args);
+  // }, []);
+
+  // const onClose = useCallback(() => {
+  //   console.log('onClose: ');
+  // }, []);
 
   const promptForEmails = useCallback(
     async (
@@ -90,14 +100,17 @@ export const usePromptForEmails = () => {
           description:
             'Please select the emails to which you would like to deliver the quote, if any.',
           dialogContentProps: { dividers: true },
+          // TODO: move all onSubmit processing to ConfirmationService
+          onSubmit: handleDialogSubmit,
+          onError: handleDialogError,
           ...options,
           component: (
-            <ConfirmationDialog
-              open={true}
+            <ConfirmationDialog2
+              open={true} // TODO: delete onAccept onClose ??
               onAccept={() => {}}
               onClose={() => {}}
-              onSubmit={handleDialogSubmit}
-              onSubmitError={handleDialogError}
+              // onSubmit={handleDialogSubmit}
+              // onSubmitError={handleDialogError}
               dialogProps={{ maxWidth: 'sm' }}
             >
               <Box sx={{ py: { xs: 3, sm: 4, md: 5 } }}>
@@ -141,7 +154,7 @@ export const usePromptForEmails = () => {
                   )}
                 </Formik>
               </Box>
-            </ConfirmationDialog>
+            </ConfirmationDialog2>
           ),
         });
 

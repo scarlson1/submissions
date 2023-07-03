@@ -1,20 +1,22 @@
 import { useCallback } from 'react';
 import {
   AuthError,
+  AuthErrorCodes,
   getAuth,
   MultiFactorError,
   OperationType,
   sendEmailVerification,
   signInWithEmailAndPassword,
+  UserCredential,
 } from 'firebase/auth';
-// import { httpsCallable } from 'firebase/functions';
 import { FirebaseError } from 'firebase/app';
 import { toast } from 'react-hot-toast';
+import { useFunctions } from 'reactfire';
 
 // import { auth } from 'firebaseConfig';
 import { LoginValues } from 'views/Login';
 import { getTenantIdFromEmail } from 'modules/api';
-import { useFunctions } from 'reactfire';
+import { useAsyncToast } from './useAsyncToast';
 // import { useMultiFactorAuth } from 'hooks/auth';
 
 // TODO: combine all auth error handling here - microsoft, google, email, etc.
@@ -32,28 +34,30 @@ export const useHandleAuthError = () => {
   const functions = useFunctions();
   const auth = getAuth();
   // const { handleMFA } = useMultiFactorAuth({});
+  const toast = useAsyncToast();
 
   const toastGenericError = useCallback(() => {
     toast.error('An error occured. See console for details.');
   }, []);
 
-  // const handleUserNotFound = useCallback((err: AuthError, { email, password }: LoginValues) => {
-  //   toast.error('User not found');
-
-  //   return Promise.reject(err);
-  // }, []);
-
+  /**
+   * Search users collection in case user is a tenant auth user
+   * @param {AuthError} err
+   * @param {LoginValues}
+   * @returns {UserCredential}
+   * */
   const handleUserNotFound = useCallback(
     async (err: AuthError, { email, password }: LoginValues) => {
       try {
         console.log(`Checking for tenant with user under ${email}...`);
-        let {
+
+        const {
           data: { tenantId },
         } = await getTenantIdFromEmail(functions, { email: email.trim().toLowerCase() });
         console.log('tenantId: ', tenantId);
 
+        // Set tenant ID and retry sign in
         if (!!tenantId) {
-          // TODO: set tenantId in url without refreshing page ?? old comment ??
           console.log(`Setting tenantId (${tenantId}) and reauthenticating...`);
           auth.tenantId = tenantId;
           const userRes = await signInWithEmailAndPassword(
@@ -82,7 +86,7 @@ export const useHandleAuthError = () => {
     (err: AuthError, values?: LoginValues) => {
       // Error thrown by auth blocking function
       if (err.message.indexOf('Cloud Function') !== -1) {
-        toast('Verification required. Please check your email.');
+        toast.info('Verification required. Please check your email.');
         if (
           err.message.indexOf('needs to be verified') !== -1 ||
           err.message.indexOf('verify your email') !== -1
@@ -97,32 +101,149 @@ export const useHandleAuthError = () => {
 
       return Promise.reject(err);
     },
-    [toastGenericError]
+    [toastGenericError, toast]
   );
 
-  const handleCredentialAlreadyInUse = useCallback((err: AuthError) => {
-    // providerId: error._tokenResponse.providerId
-    toast(`Credential is already in use (${err.customData.email}).`);
-    return Promise.reject({ ...err });
-  }, []);
+  const handleCredentialAlreadyInUse = useCallback(
+    (err: AuthError) => {
+      // providerId: error._tokenResponse.providerId
+      toast.warn(`Credential is already in use (${err.customData.email}).`);
+      return Promise.reject({ ...err });
+    },
+    [toast]
+  );
 
   const handleUnverifiedEmail = useCallback(
     async (err: AuthError) => {
       if (auth.currentUser) {
         await sendEmailVerification(auth.currentUser);
         // Need to verify email first before enrolling second factors.
-        toast(`Email verification required. Please check your inbox.`);
+        toast.warn(`Email verification required. Please check your inbox.`);
       }
 
       return Promise.reject({ ...err });
     },
-    [auth]
+    [auth, toast]
   );
 
-  const handleWrongPassword = useCallback((err: AuthError) => {
-    toast('Provided credential does not match our records. Please check email/password.');
-    return Promise.reject(new Error('Provided credentials do not match our records.')); // Promise.reject({ ...err });
-  }, []);
+  const handleWrongPassword = useCallback(
+    (err: AuthError) => {
+      toast.error('Provided credential does not match our records. Please check email/password.');
+
+      return Promise.reject(new Error('Provided credentials do not match our records.')); // Promise.reject({ ...err });
+    },
+    [toast]
+  );
+
+  const handleDefault = useCallback(
+    (err: AuthError) => {
+      let msg = `An error occurred. See console for details`;
+      if (err.message) msg += ` (err.message)`;
+      toast.error(msg);
+
+      return Promise.reject({ ...err });
+    },
+    [toast]
+  );
+
+  const handleWeakPassword = useCallback(
+    (err: AuthError) => {
+      toast.error('Password is too week');
+
+      return Promise.reject({ ...err });
+    },
+    [toast]
+  );
+
+  const handleUnsupportedOperation = useCallback(
+    (err: AuthError) => {
+      toast.error('Unsupported operation');
+
+      return Promise.reject({ ...err });
+    },
+    [toast]
+  );
+
+  const handleUserMismatch = useCallback(
+    (err: AuthError) => {
+      toast.error('User mismatch. Please logout and try again.');
+
+      return Promise.reject({ ...err });
+    },
+    [toast]
+  );
+
+  const handleTenantMismatch = useCallback(
+    (err: AuthError) => {
+      toast.error('Tenant ID mismatch');
+
+      return Promise.reject({ ...err });
+    },
+    [toast]
+  );
+
+  const handleTooManyAttempts = useCallback(
+    (err: AuthError) => {
+      toast.error('Too many attempts. Please try again later.');
+
+      return Promise.reject({ ...err });
+    },
+    [toast]
+  );
+
+  const handleTimeout = useCallback(
+    (err: AuthError) => {
+      toast.error('Authentication timed out. Please try again.');
+
+      return Promise.reject({ ...err });
+    },
+    [toast]
+  );
+
+  const handlePopupBlocked = useCallback(
+    (err: AuthError) => {
+      toast.error('Popup blocked');
+
+      return Promise.reject({ ...err });
+    },
+    [toast]
+  );
+
+  const handleNetworkReqFailed = useCallback(
+    (err: AuthError) => {
+      toast.error('Request failed. Please check your connection and try again.');
+
+      return Promise.reject({ ...err });
+    },
+    [toast]
+  );
+
+  const handleRejectErr = useCallback(
+    (msg: string, err: AuthError) => {
+      toast.error(msg);
+
+      return Promise.reject({ ...err });
+    },
+    [toast]
+  );
+
+  const handleRejectWarn = useCallback(
+    (msg: string, err: AuthError) => {
+      toast.warn(msg);
+
+      return Promise.reject({ ...err });
+    },
+    [toast]
+  );
+
+  const x = useCallback(
+    (err: AuthError) => {
+      toast.error('');
+
+      return Promise.reject({ ...err });
+    },
+    [toast]
+  );
 
   // const handleAccountExistsWithDifferentCredential = useCallback((err: AuthError) => {}, []);
 
@@ -227,29 +348,68 @@ export const useHandleAuthError = () => {
     ) => {
       console.log('err code: ', err.code);
       switch (err.code) {
-        case 'auth/user-not-found':
+        case AuthErrorCodes.USER_DELETED:
           if (values && values.email) {
             return handleUserNotFound(err, values);
           }
           return Promise.reject({ ...err });
-        case 'auth/internal-error':
+        case AuthErrorCodes.INTERNAL_ERROR:
           return handleInternalError(err, values);
         // case 'auth/multi-factor-auth-required':
         //   return handleMFA(err as MultiFactorError, recaptchaId, fallbackOpType);
-        case 'auth/no-such-provider':
-          toast(`Provider is not set up as a provider for your account.`); //  (${providerId})
+        case AuthErrorCodes.NO_SUCH_PROVIDER:
+          toast.error(`Provider is not set up as a provider for your account.`); //  (${providerId})
           return Promise.reject({ ...err });
-        case 'auth/credential-already-in-use':
+        case AuthErrorCodes.CREDENTIAL_ALREADY_IN_USE:
           return handleCredentialAlreadyInUse(err);
-        // case 'auth/account-exists-with-different-credential':
+        // case AuthErrorCodes.NEED_CONFIRMATION: // 'auth/account-exists-with-different-credential':
         //   return handleAccountExistsWithDifferentCredential(err);
-        case 'auth/unverified-email':
+        case AuthErrorCodes.UNVERIFIED_EMAIL:
           return handleUnverifiedEmail(err);
-        case 'auth/wrong-password':
+        case AuthErrorCodes.INVALID_EMAIL:
+          return handleRejectErr('Invalid email', err);
+        case AuthErrorCodes.EMAIL_EXISTS:
+          return handleRejectWarn('Email already in use', err);
+        case AuthErrorCodes.INVALID_PASSWORD:
           return handleWrongPassword(err);
+        case AuthErrorCodes.WEAK_PASSWORD:
+          return handleWeakPassword(err);
+        case AuthErrorCodes.UNSUPPORTED_TENANT_OPERATION:
+          return handleUnsupportedOperation(err);
+        case AuthErrorCodes.USER_MISMATCH:
+          return handleUserMismatch(err);
+        case AuthErrorCodes.TENANT_ID_MISMATCH:
+          return handleTenantMismatch(err);
+        case AuthErrorCodes.INVALID_TENANT_ID:
+          return handleRejectErr('Invalid tenant ID', err);
+        case AuthErrorCodes.TOO_MANY_ATTEMPTS_TRY_LATER:
+          return handleTooManyAttempts(err);
+        case AuthErrorCodes.TIMEOUT:
+          return handleTimeout(err);
+        case AuthErrorCodes.POPUP_BLOCKED:
+          return handlePopupBlocked(err);
+        case AuthErrorCodes.POPUP_CLOSED_BY_USER:
+          return handleRejectWarn('Popup close. Action aborted.', err);
+        case AuthErrorCodes.NETWORK_REQUEST_FAILED:
+          return handleNetworkReqFailed(err);
+        case AuthErrorCodes.MFA_REQUIRED:
+          return handleRejectWarn('MFA required', err);
+        case AuthErrorCodes.INVALID_RECIPIENT_EMAIL:
+          return handleRejectErr('Invalid recipient email', err);
+        case AuthErrorCodes.INVALID_PHONE_NUMBER:
+          return handleRejectErr('Invalid phone number', err);
+        case AuthErrorCodes.INVALID_ORIGIN:
+          return handleRejectWarn('Unauthorized domain', err);
+        case AuthErrorCodes.INVALID_MFA_SESSION:
+          return handleRejectErr('MFA invalid. Please refresh and try again', err);
+        case AuthErrorCodes.ADMIN_ONLY_OPERATION:
+          return handleRejectErr('Admin permissions required', err);
+        case AuthErrorCodes.CAPTCHA_CHECK_FAILED:
+          return handleRejectErr('Captcha check failed. Please refresh and try again.', err);
         default:
           // TODO: create getMessage handler to create custom messages (firebase messages not intended for user)
-          return Promise.reject({ ...err });
+          return handleDefault(err);
+        // return Promise.reject({ ...err });
       }
     },
     [
@@ -259,6 +419,18 @@ export const useHandleAuthError = () => {
       handleCredentialAlreadyInUse,
       handleUnverifiedEmail,
       handleWrongPassword,
+      handleDefault,
+      handleNetworkReqFailed,
+      handlePopupBlocked,
+      handleRejectErr,
+      handleRejectWarn,
+      handleTenantMismatch,
+      handleTimeout,
+      handleTooManyAttempts,
+      handleUnsupportedOperation,
+      handleUserMismatch,
+      handleWeakPassword,
+      toast,
     ]
   );
 

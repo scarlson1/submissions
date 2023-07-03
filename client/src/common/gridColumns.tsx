@@ -1397,3 +1397,70 @@ export const LOBCol: GridColDef = {
   // filterable: false,
   renderCell: (params) => renderChips(params, { variant: 'outlined' }),
 };
+
+export const importCollectionCol: GridColDef = {
+  field: 'importCollection',
+  headerName: 'Collection',
+  description: 'target database collection for import',
+  minWidth: 160,
+  flex: 0.8,
+  filterOperators: getGridFirestoreStringOperators(),
+};
+
+export const importDocIdsCol: GridColDef = {
+  field: 'importDocIds',
+  headerName: 'Doc IDs',
+  description: 'IDs of the records created from the import',
+  minWidth: 200,
+  flex: 1,
+  // filterOperators: getGridFirestoreStringOperators(),
+  filterable: false,
+  // TODO: set array filters
+  renderCell: (params) => renderChips(params, { variant: 'outlined', color: 'success' }),
+};
+
+export const importDocIdsCountCol: GridColDef = {
+  field: 'importDocIdsCount',
+  headerName: 'Import Count',
+  description: 'Count of successfully created records',
+  type: 'number',
+  minWidth: 120,
+  flex: 1,
+  filterable: false,
+  valueGetter: (params) => (params.row.importDocIds ? params.row.importDocIds.length : null),
+};
+
+// export const importCreationErrorsCol: GridColDef = {
+//   field: 'docCreationErrors',
+//   headerName: 'Doc Create Errors',
+//   description: 'Errors which occurred when attempting to create the record in the database',
+//   minWidth: 200,
+//   flex: 1,
+//   filterable: false,
+// };
+
+export const importCreationErrorsCountCol: GridColDef = {
+  field: 'docCreationErrorsCount',
+  headerName: 'Doc Create Errors Count',
+  description: 'Errors which occurred when attempting to create the record in the database',
+  type: 'number',
+  headerAlign: 'center',
+  align: 'right',
+  minWidth: 140,
+  flex: 1,
+  filterable: false,
+  valueGetter: (params) => (params.row.docCreateErrors ? params.row.docCreateErrors.length : null),
+};
+
+export const invalidRowsCol: GridColDef = {
+  field: 'invalidRows',
+  headerName: 'Invalid Rows',
+  description: 'Count of rows that failed validation and were NOT imported',
+  type: 'number',
+  minWidth: 100,
+  flex: 1,
+  // filterOperators: getGridFirestoreStringOperators(),
+  filterable: false,
+
+  // TODO: set array filters
+};

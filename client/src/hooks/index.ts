@@ -60,7 +60,6 @@ export { useShowJson } from './useShowJson';
 export { useGridActions } from './useGridActions';
 
 export type { UseFileUploadProps } from './useFileUpload';
-export type { UseSendPasswordResetProps } from './useSendPasswordReset';
 export type { PolicyWithId } from './useUsersPolicies';
 export type { UpdateProfileArgs, UpdateProfileRes } from './useUpdateProfile';
 export type { SubjectBaseKeyVal } from './useFetchTaxes';

@@ -65,9 +65,9 @@ export const LocationsGrid = ({
   const { isSmall } = useWidth();
   const { googleMapsAction, floodFactorAction } = useGridActions(toast.error);
 
-  // TODO: add request edit button, etc.
   const locationColumns = useMemo(
     () => [
+      // TODO: add request edit button, etc.
       {
         field: 'actions',
         headerName: 'Actions',

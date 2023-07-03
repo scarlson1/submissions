@@ -14,13 +14,13 @@ import {
   CheckboxProps,
 } from '@mui/material';
 import { ConfirmationOptions } from 'modules/components/ConfirmationService';
-
+// @ts-ignore
 export interface InputDialogOptions extends ConfirmationOptions {
   open?: boolean;
   onAccept?: (value: string | boolean | any) => void;
   onClose?: () => void;
   onSubmit?: (inputVal: string | boolean) => Promise<any>;
-  onSubmitError?: (err: unknown) => Promise<void>;
+  onSubmitError?: (err: any) => Promise<void>;
   onCancel?: () => Promise<void>;
   label?: string;
   confirmText?: string;

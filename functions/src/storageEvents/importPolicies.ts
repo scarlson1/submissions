@@ -241,14 +241,17 @@ export default async (event: StorageEvent) => {
   }
 
   try {
-    let importSummaryColRef = db.collection(COLLECTIONS.DATA_IMPORTS);
-    let summaryRef = await importSummaryColRef.add({
+    const importSummaryColRef = db.collection(COLLECTIONS.DATA_IMPORTS);
+    const summaryRef = await importSummaryColRef.add({
       importCollection: COLLECTIONS.POLICIES,
       importDocIds: Object.keys(formattedPolicies),
       docCreationErrors: createErrors,
       invalidRows,
+      metadata: {
+        created: Timestamp.now(),
+      },
     });
-    console.log(`SAVED IMPORT SUMMARY TO DOC ${summaryRef.id}`);
+    info(`SAVED IMPORT SUMMARY TO DOC ${summaryRef.id}`);
 
     const sgKey = sendgridApiKey.value();
     const to = ['spencer.carlson@idemandinsurance.com'];

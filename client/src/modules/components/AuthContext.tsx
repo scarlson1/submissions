@@ -12,12 +12,12 @@ import { setUserId, setUserProperties } from 'firebase/analytics';
 import { useAnalytics, useAuth as useFireAuth, useFunctions } from 'reactfire';
 import { differenceInSeconds } from 'date-fns';
 import { setUser as setSentryUser } from '@sentry/react';
+import { isEqual } from 'lodash';
+import { matchPath, useLocation } from 'react-router-dom';
 
 import { ReauthDialog } from 'components';
 import { useAlgoliaStore, usePrevious, useUserClaims } from 'hooks';
 import { UserWithClaimsResult } from 'hooks/useUserClaims';
-import { isEqual } from 'lodash';
-import { matchPath, useLocation } from 'react-router-dom';
 import { AUTH_ROUTES, createPath } from 'router';
 
 // TODO: refactor to use rxFire observables ?? https://firebase.blog/posts/2018/09/introducing-rxfire-easy-async-firebase
@@ -48,7 +48,7 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
   const functions = useFunctions();
   const analytics = useAnalytics();
   const location = useLocation();
-  const { data: userData } = useUserClaims();
+  const { data: userData, status } = useUserClaims();
 
   const userPrev = usePrevious(userData?.user);
   const claimsPrev = usePrevious(userData?.claims);
@@ -172,22 +172,12 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
   const memoedValue = useMemo(
     () => ({
       ...userData,
-      // loading,
-      // loadingInitial,
-      // claims,
+      status,
       getSecondsFromLastAuth,
       reauthenticateUser,
       reauthIfRequired,
     }),
-    [
-      userData,
-      // loading,
-      // loadingInitial,
-      // claims,
-      getSecondsFromLastAuth,
-      reauthenticateUser,
-      reauthIfRequired,
-    ]
+    [userData, status, getSecondsFromLastAuth, reauthenticateUser, reauthIfRequired]
   );
 
   return (

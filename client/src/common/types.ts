@@ -1049,6 +1049,16 @@ export interface Disclosure extends BaseDoc {
   content: JSONContent;
 }
 
+export interface ImportSummary {
+  importCollection: string;
+  importDocIds: string[];
+  docCreationErrors: any[];
+  invalidRows: { rowNum: string | number; rowData: Record<string, any> }[];
+  metadata: {
+    created: Timestamp;
+  };
+}
+
 // TODO: swiss re property data res type
 export type PropertyDataRes = Record<string, any>;
 

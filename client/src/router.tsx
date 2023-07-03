@@ -66,6 +66,7 @@ import { PoliciesMap } from 'elements/PoliciesMap';
 import { AuthActionsProvider } from 'modules/components';
 import { TempWrappedSearch } from 'components/search/Search';
 import { AgencyAppSuccessStep } from 'views/AgencyNew';
+import { ImportsSummaryGrid } from 'elements/ImportsSummaryGrid';
 
 export interface CrumbMatch {
   id: string;
@@ -135,6 +136,7 @@ export enum ADMIN_ROUTES {
   DISCLOSURES = '/admin/config/disclosures',
   DISCLOSURE_NEW = '/admin/config/disclosures/new',
   DISCLOSURE_EDIT = '/admin/config/disclosures/:disclosureId/edit',
+  DATA_IMPORTS = '/admin/config/imports',
 }
 
 export enum AUTH_ROUTES {
@@ -194,6 +196,7 @@ type TArgs =
   | { path: ADMIN_ROUTES.ORGANIZATION; params: { orgId: string }; search?: { tab: string } }
   | { path: ADMIN_ROUTES.USERS }
   | { path: ADMIN_ROUTES.PORTFOLIO_RATING }
+  | { path: ADMIN_ROUTES.DATA_IMPORTS }
   | {
       path: AUTH_ROUTES.CREATE_ACCOUNT;
       params?: { tenantId?: string };
@@ -1454,6 +1457,24 @@ export const router = sentryCreateBrowserRouter([
                       },
                     ];
                   },
+                },
+              },
+              {
+                // path: ADMIN_ROUTES.SL_LICENSES,
+                path: 'imports',
+                element: (
+                  <RequireAuthReactFire
+                    signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}
+                  >
+                    <ImportsSummaryGrid />
+                  </RequireAuthReactFire>
+                ),
+                handle: {
+                  crumb: (match: CrumbMatch) => [
+                    {
+                      label: 'Import Summaries',
+                    },
+                  ],
                 },
               },
             ],
