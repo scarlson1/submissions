@@ -29,6 +29,7 @@ export { QuotesGrid } from './QuotesGrid';
 export { UsersGrid } from './UsersGrid';
 export { PoliciesGrid } from './PoliciesGrid';
 export { LocationsGrid } from './LocationsGrid';
+export { AgencyAppsGrid } from './AgencyAppsGrid';
 export { LocationCard } from './LocationCard';
 export { LocationsMap } from './LocationsMap';
 export { TaxForm } from './TaxForm';

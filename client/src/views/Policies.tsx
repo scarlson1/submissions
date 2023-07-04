@@ -16,21 +16,19 @@ import {
   Typography,
   Unstable_Grid2 as Grid,
 } from '@mui/material';
+import { GridActionsCellItem, GridRowParams } from '@mui/x-data-grid';
+import { DataObjectRounded } from '@mui/icons-material';
 import { isEmpty } from 'lodash';
 import { useNavigate } from 'react-router-dom';
+import { where } from 'firebase/firestore';
 
-import { useCollectionData, useShowJson, useUsersPolicies } from 'hooks';
-import { FlexCard, FlexCardContent, LoadingSpinner } from 'components';
+import { useCollectionData, useShowJson } from 'hooks';
+import { FlexCard, FlexCardContent } from 'components';
 import { createPath, ROUTES } from 'router';
 import { Item } from './UserSubmissions';
 import { PoliciesGrid } from 'elements';
-import { where } from 'firebase/firestore';
 import { formatFirestoreTimestamp } from 'modules/utils';
-
 import { AdditionalInsured, COLLECTIONS, Policy, fallbackImages } from 'common';
-import { GridActionsCellItem, GridRowParams } from '@mui/x-data-grid';
-import { DataObjectRounded } from '@mui/icons-material';
-import { useSigninCheck } from 'reactfire';
 
 // TODO: change policies view to allow switching between card and grid view
 // TODO: include change requests in grid ?? (could use rxjs and aggregation query)

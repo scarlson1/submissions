@@ -1,41 +1,21 @@
-import React, { useMemo, useCallback } from 'react';
-import { collection, getDocs, limit, orderBy, query, where } from 'firebase/firestore';
+import { useCallback } from 'react';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 import { FirebaseError } from 'firebase/app';
 import { useNavigate } from 'react-router-dom';
 import { Alert, AlertTitle, Box, Button, Stack, Tooltip, Typography } from '@mui/material';
-import {
-  GridActionsCellItem,
-  GridCellParams,
-  GridColDef,
-  GridRowParams,
-  GridValueGetterParams,
-} from '@mui/x-data-grid';
+import { GridActionsCellItem, GridCellParams, GridRowParams } from '@mui/x-data-grid';
 import { CheckCircleOutlineRounded, SendRounded } from '@mui/icons-material';
 import { useFirestore, useSigninCheck } from 'reactfire';
 
-import { BasicDataGrid, IconButtonMenu } from 'components';
+import { IconButtonMenu } from 'components';
 import { ADMIN_ROUTES, ROUTES, createPath } from 'router';
-import { useAsyncToast, useCollectionData, useCreateTenant } from 'hooks';
-import {
-  AGENCY_SUBMISSION_STATUS,
-  COLLECTIONS,
-  addrLine1Col,
-  addrLine2Col,
-  createdCol,
-  emailCol,
-  fileLinkCol,
-  firstNameCol,
-  idCol,
-  lastNameCol,
-  orgNameCol,
-  phoneCol,
-  statusCol,
-  updatedCol,
-} from 'common';
+import { useAsyncToast, useCreateTenant } from 'hooks';
+import { AGENCY_SUBMISSION_STATUS, COLLECTIONS } from 'common';
 import { useSendAgencyAppNotification } from 'hooks/useCreateTenant';
 import { CUSTOM_CLAIMS, useConfirmation } from 'modules/components';
+import { AgencyAppsGrid } from 'elements';
 
-export const AgencyApps: React.FC = () => {
+export const AgencyApps = () => {
   const firestore = useFirestore();
   const navigate = useNavigate();
   const toast = useAsyncToast();
@@ -43,11 +23,6 @@ export const AgencyApps: React.FC = () => {
   const { data: authCheck } = useSigninCheck({
     requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true },
   });
-
-  const { data, status } = useCollectionData('AGENCY_APPLICATIONS', [
-    orderBy('metadata.created', 'desc'),
-    limit(100),
-  ]);
 
   const { confirmAndSend } = useSendAgencyAppNotification(null, (errMsg: string) =>
     toast.error(errMsg)
@@ -107,9 +82,32 @@ export const AgencyApps: React.FC = () => {
           return;
         }
       }
+
       await createTenant(params.id.toString());
     },
     [createTenant, confirm, toast]
+  );
+
+  const getTenantIdByOrgName = useCallback(
+    async (orgName: string) => {
+      const orgQuery = query(
+        collection(firestore, COLLECTIONS.ORGANIZATIONS),
+        where('orgName', '==', orgName)
+      );
+
+      const orgSnap = await getDocs(orgQuery);
+      if (orgSnap.empty) throw new Error(`No org doc found with orgName ${orgName}`);
+
+      const orgs = orgSnap.docs.map((snap) => snap.data());
+      if (orgs.length > 1)
+        console.log(`${orgs.length} orgs found matching orgName = ${orgName}`, orgs);
+
+      const orgId = orgs[0].tenantId;
+      if (!orgId) throw new Error('Org record did not have tenantId property');
+
+      return orgId;
+    },
+    [firestore]
   );
 
   // TODO: add tenantCreated: tenantId to agency app doc
@@ -123,31 +121,17 @@ export const AgencyApps: React.FC = () => {
         let orgName = params.row.orgName;
         if (!orgName) return toast.error('missing orgName to search for Org record');
 
-        let orgQuery = query(
-          collection(firestore, COLLECTIONS.ORGANIZATIONS),
-          where('orgName', '==', orgName)
-        );
-
-        let orgSnap = await getDocs(orgQuery);
-
-        if (orgSnap.empty) throw new Error(`No org doc found with orgName ${orgName}`);
-
-        const orgs = orgSnap.docs.map((snap) => snap.data());
-
-        if (orgs.length > 1)
-          console.log(`${orgs.length} orgs found matching orgName = ${orgName}`, orgs);
-
-        const orgId = orgs[0].tenantId;
-        if (!orgId) throw new Error('Org record did not have tenantId');
+        const orgId = await getTenantIdByOrgName(orgName);
 
         await confirmAndSend('approved', params.id.toString(), orgId);
       } catch (err: any) {
-        console.log('ERR: ', err);
+        console.log('RESEND INVITE ERROR: ', err);
         let msg = err?.message ?? 'Error getting Org record';
+
         toast.error(msg);
       }
     },
-    [firestore, confirmAndSend, toast]
+    [confirmAndSend, getTenantIdByOrgName, toast]
   );
 
   const navUserAgencyNew = useCallback(
@@ -155,98 +139,29 @@ export const AgencyApps: React.FC = () => {
     [navigate]
   );
 
-  const agencyAppColumns: GridColDef[] = useMemo(
-    () => [
-      {
-        field: 'actions',
-        headerName: 'Actions',
-        type: 'actions',
-        width: 100,
-        getActions: (params: GridRowParams) => [
-          <GridActionsCellItem
-            icon={
-              <Tooltip title='approve' placement='top'>
-                <CheckCircleOutlineRounded color='action' />
-              </Tooltip>
-            }
-            onClick={handleApprove(params)}
-            label='Approve'
-            disabled={!authCheck.hasRequiredClaims}
-          />,
-          <GridActionsCellItem
-            icon={
-              <Tooltip title='send invite' placement='top'>
-                <SendRounded color='action' />
-              </Tooltip>
-            }
-            onClick={handleResendInvite(params)}
-            label='Send invite'
-          />,
-        ],
-      },
-      { ...idCol, headerName: 'Doc ID' },
-      orgNameCol,
-      {
-        ...statusCol,
-        valueOptions: [
-          AGENCY_SUBMISSION_STATUS.ACCECPTED,
-          AGENCY_SUBMISSION_STATUS.REJECTED,
-          AGENCY_SUBMISSION_STATUS.REVIEW_REQUIRED,
-          AGENCY_SUBMISSION_STATUS.SUBMITTED,
-        ],
-        filterable: true,
-      },
-      {
-        field: 'contact',
-        headerName: 'Contact',
-        minWidth: 180,
-        flex: 1,
-        editable: false,
-        valueGetter: (params) => `${params.row.contact.firstName} ${params.row.contact.lastName}`,
-      },
-      {
-        ...firstNameCol,
-        field: 'contact.firstName',
-        headerName: 'Contact First Name',
-        valueGetter: (params: GridValueGetterParams<any, any>) =>
-          params.row.contact?.firstName || null,
-      },
-      {
-        ...lastNameCol,
-        field: 'contact.lastName',
-        headerName: 'Contact Last Name',
-        valueGetter: (params) => params.row.contact?.lastName || null,
-      },
-      {
-        ...emailCol,
-        field: 'contact.email',
-        headerName: 'Contact Email',
-        valueGetter: (params) => params.row.contact?.email || null,
-      },
-      {
-        ...phoneCol,
-        field: 'contact.phone',
-        headerName: 'Contact Phone',
-        valueGetter: (params) => params.row.contact?.phone || null,
-      },
-      addrLine1Col,
-      addrLine2Col,
-      {
-        ...fileLinkCol,
-        field: 'EandO',
-        headerName: 'E & O',
-      },
-      {
-        field: 'FEIN',
-        headerName: 'FEIN',
-        minWidth: 120,
-        flex: 1,
-        editable: false,
-      },
-      createdCol,
-      updatedCol,
+  const renderActions = useCallback(
+    (params: GridRowParams) => [
+      <GridActionsCellItem
+        icon={
+          <Tooltip title='approve' placement='top'>
+            <CheckCircleOutlineRounded color='action' />
+          </Tooltip>
+        }
+        onClick={handleApprove(params)}
+        label='Approve'
+        disabled={!authCheck.hasRequiredClaims}
+      />,
+      <GridActionsCellItem
+        icon={
+          <Tooltip title='send invite' placement='top'>
+            <SendRounded color='action' />
+          </Tooltip>
+        }
+        onClick={handleResendInvite(params)}
+        label='Send invite'
+      />,
     ],
-    [handleApprove, handleResendInvite, authCheck]
+    [handleApprove, handleResendInvite, authCheck?.hasRequiredClaims]
   );
 
   return (
@@ -286,40 +201,7 @@ export const AgencyApps: React.FC = () => {
         </Box>
       )}
 
-      <Box sx={{ height: 500, width: '100%' }}>
-        <BasicDataGrid
-          rows={data || []}
-          columns={agencyAppColumns}
-          loading={status === 'loading'}
-          density='compact'
-          autoHeight
-          onCellDoubleClick={handleCellClick}
-          // onRowDoubleClick={(params, e, details) => {
-          //   if (e.)
-          // navigate(
-          //   createPath({
-          //     path: ADMIN_ROUTES.AGENCY_APP,
-          //     params: { submissionId: params.id.toString() },
-          //   })
-          // );
-          // }}
-          initialState={{
-            columns: {
-              columnVisibilityModel: {
-                id: false,
-                'address.addressLine2': false,
-                'contact.firstName': false,
-                'contact.lastName': false,
-              },
-            },
-            sorting: {
-              sortModel: [{ field: 'created', sort: 'desc' }],
-            },
-            // pagination: { pageSize: 10 },
-            pagination: { paginationModel: { pageSize: 10 } },
-          }}
-        />
-      </Box>
+      <AgencyAppsGrid renderActions={renderActions} onCellDoubleClick={handleCellClick} />
     </Box>
   );
 };

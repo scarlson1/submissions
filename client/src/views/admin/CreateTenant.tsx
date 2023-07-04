@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import { useCallback } from 'react';
 import {
   Box,
   Button,
@@ -51,7 +51,7 @@ import { AgencyAppValues, INITIAL_VALUES } from 'views/AgencyNew';
 
 // TODO: use rxFire to upload to storage and create submission in Observable ??
 
-export const CreateTenant: React.FC = () => {
+export const CreateTenant = () => {
   const navigate = useNavigate();
   const toast = useAsyncToast();
 

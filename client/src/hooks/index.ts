@@ -9,7 +9,6 @@ export { usePropertyDetails, usePropertyDetailsAttom } from './usePropertyDetail
 export { useSocialAuth } from './useSocialAuth';
 export { useSendPasswordReset } from './useSendPasswordReset';
 export { useHandleAuthError } from './useHandleAuthError';
-export { useUsersPolicies } from './useUsersPolicies';
 export { useRegisterEmailNotification } from './useRegisterEmailNotification';
 export { useUploadStorageFiles } from './useUploadStorageFiles';
 export { useCreateAgencySubmission } from './useCreateAgencySubmission';
@@ -60,7 +59,6 @@ export { useShowJson } from './useShowJson';
 export { useGridActions } from './useGridActions';
 
 export type { UseFileUploadProps } from './useFileUpload';
-export type { PolicyWithId } from './useUsersPolicies';
 export type { UpdateProfileArgs, UpdateProfileRes } from './useUpdateProfile';
 export type { SubjectBaseKeyVal } from './useFetchTaxes';
 export type { RatingInputsWithAAL } from './useRateQuote';

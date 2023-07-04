@@ -1,11 +1,10 @@
-import React from 'react';
 import { Box, Typography, useTheme } from '@mui/material';
 import { useParams } from 'react-router-dom';
 import ReactJson from '@microlink/react-json-view';
 
 import { useDocDataOnce } from 'hooks';
 
-export const AgencyApp: React.FC = () => {
+export const AgencyApp = () => {
   const theme = useTheme();
   const { submissionId } = useParams();
   const { data, status } = useDocDataOnce('AGENCY_APPLICATIONS', submissionId || '');
