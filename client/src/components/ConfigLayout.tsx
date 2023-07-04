@@ -1,4 +1,5 @@
-import React, { Suspense, useEffect, useMemo, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
+
 // import { TabContext, TabList } from '@mui/lab';
 import { Box, Tab, TabProps, Tabs } from '@mui/material';
 import { Outlet, Link as RouterLink, useLocation, matchPath } from 'react-router-dom';
@@ -46,7 +47,7 @@ const getTab = (currPath: string, pathsArr: string[], isRetry: boolean = false):
 
 const MIN_TAB_HEIGHT = 40;
 
-export const ConfigLayout: React.FC = () => {
+export const ConfigLayout = () => {
   const location = useLocation();
   const paths = useMemo(
     () => [

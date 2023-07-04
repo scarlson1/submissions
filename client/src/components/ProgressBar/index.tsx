@@ -1,4 +1,3 @@
-import React from 'react';
 import { useNProgress } from '@tanem/react-nprogress';
 
 import { Bar } from './Bar';
@@ -10,7 +9,7 @@ import { Container } from './Container';
 
 // react docs (suspense enabled router): https://react.dev/reference/react/useTransition#building-a-suspense-enabled-router
 
-const ProgressBar: React.FC<{ isAnimating: boolean }> = ({ isAnimating }) => {
+const ProgressBar = ({ isAnimating }: { isAnimating: boolean }) => {
   const { animationDuration, isFinished, progress } = useNProgress({
     isAnimating,
   });

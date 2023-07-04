@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Results } from './Results';
 import type { ScreenStateProps } from './ScreenState';
 import type { InternalDocSearchHit } from 'common';
@@ -88,7 +86,7 @@ export function SelectIcon() {
   );
 }
 
-const LvlIcon: React.FC = () => {
+const LvlIcon = () => {
   return (
     <svg width='20' height='20' viewBox='0 0 20 20'>
       <path

@@ -27,26 +27,6 @@ import { useCreateAgencySubmission, useCreateTenant, useAsyncToast } from 'hooks
 import { ADMIN_ROUTES, createPath } from 'router';
 import { AgencyAppValues, INITIAL_VALUES } from 'views/AgencyNew';
 
-// const Test: React.FC<any> = ({ name, label, required = true, }) => {
-
-//   return (
-//     <FormikMaskField
-//       fullWidth
-//       id={name}
-//       label={label}
-//       required={required}
-//       name={name}
-//       // name={`${parentField}[${index}][${name}]`}
-//       maskComponent={PhoneMask}
-//       // @ts-ignore
-//       // inputProps={{ ...props.inputProps }}
-//       // disabled={disabled}
-//       // {...(componentProps as MaskTypeProps['componentProps'])}
-//       // {...propsGetterFunc(index, parentField, name)}
-//     />
-//   );
-// }
-
 // DIRECTLY CREATES TENANT - INSTEAD OF APPROVAL PROCESS
 
 // TODO: use rxFire to upload to storage and create submission in Observable ??

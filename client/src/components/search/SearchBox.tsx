@@ -1,6 +1,5 @@
-import React from 'react';
 import type { AutocompleteApi, AutocompleteState } from '@algolia/autocomplete-core';
-import type { MutableRefObject } from 'react';
+import { useEffect, type MutableRefObject } from 'react';
 import { InternalDocSearchHit } from 'common';
 import { ClearRounded, SearchRounded } from '@mui/icons-material';
 import { IconButton, InputAdornment, TextField } from '@mui/material';
@@ -46,7 +45,7 @@ export function SearchBox({ translations = {}, ...props }: SearchBoxProps) {
     inputElement: props.inputRef.current,
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (props.autoFocus && props.inputRef.current) {
       props.inputRef.current.focus();
     }

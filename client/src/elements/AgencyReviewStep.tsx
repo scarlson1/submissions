@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   Box,
   Card,
@@ -18,8 +17,8 @@ import {
   TableHead,
   TableRow,
   Typography,
+  Unstable_Grid2 as Grid,
 } from '@mui/material';
-import Grid from '@mui/material/Unstable_Grid2';
 import { useFormikContext } from 'formik';
 
 import { AgencyAppValues } from 'views/AgencyNew';
@@ -35,7 +34,7 @@ export interface ContactItem {
 export interface ContactCardProps {
   items: ContactItem[];
 }
-export const ContactList: React.FC<ContactCardProps> = ({ items }) => {
+export const ContactList = ({ items }: ContactCardProps) => {
   return (
     <List dense>
       {items.map(({ primaryText, secondaryText, icon, listItemTextProps }, index) => (
@@ -68,7 +67,7 @@ export const DisplayFilename = ({ file }: { file: File }) => {
 
 export interface AgencyReviewStepProps {}
 
-export const AgencyReviewStep: React.FC<AgencyReviewStepProps> = () => {
+export const AgencyReviewStep = (props: AgencyReviewStepProps) => {
   const { values } = useFormikContext<AgencyAppValues>();
 
   return (

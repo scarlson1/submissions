@@ -6,10 +6,12 @@ import {
   useCallback,
   useMemo,
   cloneElement,
+  ReactNode,
+  ReactElement,
 } from 'react';
+import { ButtonProps, DialogContentProps, DialogProps } from '@mui/material';
 
 import { ConfirmationDialog } from 'components';
-import { ButtonProps, DialogContentProps, DialogProps } from '@mui/material';
 
 // TODO: set up with ID (useConfirmation('some-id')) ??
 
@@ -19,12 +21,12 @@ import { ButtonProps, DialogContentProps, DialogProps } from '@mui/material';
 export interface ConfirmationOptions {
   catchOnCancel?: boolean;
   variant?: 'danger' | 'info';
-  title?: React.ReactNode;
+  title?: ReactNode;
   description?: React.ReactNode;
   confirmButtonText?: string;
   confirmButtonProps?: Partial<ButtonProps>;
   cancelButtonProps?: Partial<ButtonProps>;
-  component?: React.ReactElement;
+  component?: ReactElement;
   dialogProps?: Partial<DialogProps>; // TODO: move componentProps as object (like slotProps) ?? or pass as children ??
   dialogContentProps?: Partial<DialogContentProps>;
   // TODO: handle forms (onSubmit / onError) --> move from passing to component to passing in confirmation options

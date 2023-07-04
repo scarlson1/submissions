@@ -1,8 +1,9 @@
-import React, { useCallback, useRef } from 'react';
+import { useCallback, useRef } from 'react';
 import { FormikHelpers, FormikProps, FormikValues } from 'formik';
 import { Box, Container, Tooltip, Typography } from '@mui/material';
 import { LoaderFunctionArgs, useLoaderData, useNavigate } from 'react-router-dom';
 import { addDoc, GeoPoint, getFirestore, serverTimestamp } from 'firebase/firestore';
+import { getFunctions } from 'firebase/functions';
 import axios from 'axios';
 
 import { FormikWizard, Step } from 'components/forms';
@@ -31,7 +32,6 @@ import { roundUpToNearest, sumArr } from 'modules/utils/helpers';
 import { useAuth } from 'modules/components/AuthContext';
 import { initializeQuote } from 'modules/api/initializeQuote';
 import { submissionsCollection } from 'common';
-import { getFunctions } from 'firebase/functions';
 
 // TODO: move active states loader to higher up component loader
 
@@ -131,7 +131,7 @@ export const initialValues: FloodValues = {
   userAcceptance: false,
 };
 
-export const Protosure: React.FC = () => {
+export const Protosure = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const activeStates = useActiveStates('flood');

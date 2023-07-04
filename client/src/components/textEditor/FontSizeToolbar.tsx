@@ -1,4 +1,5 @@
-import React, { useCallback } from 'react';
+import { useCallback } from 'react';
+
 import { Editor } from '@tiptap/react';
 import { alpha, MenuItem, Select, SelectChangeEvent, Typography } from '@mui/material';
 
@@ -8,7 +9,7 @@ export interface FontSizeToolbarProps {
   editor?: Editor;
 }
 
-export const FontSizeToolbar: React.FC<FontSizeToolbarProps> = ({ editor }) => {
+export const FontSizeToolbar = ({ editor }: FontSizeToolbarProps) => {
   const handleChange = useCallback(
     (event: SelectChangeEvent<unknown>, child: React.ReactNode) => {
       let newVal = event.target.value as string;

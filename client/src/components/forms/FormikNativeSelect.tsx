@@ -1,4 +1,5 @@
-import React, { useCallback } from 'react';
+import { useCallback } from 'react';
+
 import {
   FormControl,
   InputLabel,
@@ -21,7 +22,7 @@ export interface FormikNativeSelectProps extends NativeSelectProps {
   convertToNumber?: boolean;
 }
 
-export const FormikNativeSelect: React.FC<FormikNativeSelectProps> = ({
+export const FormikNativeSelect = ({
   name,
   label,
   selectOptions,
@@ -34,7 +35,7 @@ export const FormikNativeSelect: React.FC<FormikNativeSelectProps> = ({
   inputProps = {},
   convertToNumber,
   ...props
-}) => {
+}: FormikNativeSelectProps) => {
   const [field, meta, { setValue }] = useField({ name, ...formikConfig });
 
   const handleChange = useCallback(

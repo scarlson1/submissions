@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import { useCallback } from 'react';
 import {
   Box,
   Card,
@@ -119,7 +119,7 @@ export const INITIAL_VALUES: AgencyAppValues = {
   EandO: '',
 };
 
-export const AgencyNew: React.FC = () => {
+export const AgencyNew = () => {
   const navigate = useNavigate();
   const { handleSubmission, error } = useCreateAgencySubmission({
     onSuccess: (submissionId: string) => {

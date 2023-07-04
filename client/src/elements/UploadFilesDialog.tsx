@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+
 import {
   Button,
   ButtonProps,
@@ -40,7 +41,7 @@ interface UploadFilesDialogProps {
   renderButton?: (props: RenderButtonProps) => JSX.Element | React.ReactElement;
 }
 
-const UploadFilesDialog: React.FC<UploadFilesDialogProps> = ({
+const UploadFilesDialog = ({
   acceptedTypes,
   title,
   bodyText,
@@ -58,7 +59,7 @@ const UploadFilesDialog: React.FC<UploadFilesDialogProps> = ({
   onRemove,
   onCancel,
   renderButton,
-}) => {
+}: UploadFilesDialogProps) => {
   const [open, setOpen] = useState(false);
 
   const handleClose = (event: object, reason: string) => {

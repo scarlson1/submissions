@@ -1,6 +1,5 @@
 // DOC SEARCH REF: https://github.com/algolia/docsearch/blob/main/packages/docsearch-react/src/ScreenState.tsx
-
-import React from 'react';
+import { memo } from 'react';
 import type { AutocompleteApi, AutocompleteState, BaseItem } from '@algolia/autocomplete-core';
 
 import type { SearchProps } from './Search';
@@ -35,7 +34,7 @@ export interface ScreenStateProps<TItem extends BaseItem>
   getMissingResultsUrl?: SearchProps['getMissingResultsUrl'];
 }
 
-export const ScreenState = React.memo(
+export const ScreenState = memo(
   ({ translations = {}, ...props }: ScreenStateProps<InternalDocSearchHit>) => {
     if (props.state.status === 'error') {
       return <ErrorScreen translations={translations?.errorScreen} />;

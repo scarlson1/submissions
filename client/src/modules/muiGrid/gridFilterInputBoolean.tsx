@@ -1,9 +1,10 @@
-import * as React from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { TextFieldProps } from '@mui/material/TextField';
 import { unstable_useId as useId } from '@mui/utils';
 import { styled } from '@mui/material/styles';
 import { GridFilterInputValueProps, useGridRootProps } from '@mui/x-data-grid';
+
 // import { GridFilterInputValueProps } from './GridFilterInputValueProps';
 // import { useGridRootProps } from '../../../hooks/utils/useGridRootProps';
 
@@ -38,7 +39,7 @@ function GridFilterInputBoolean(props: GridFilterInputBooleanProps) {
     label: labelProp,
     ...others
   } = props;
-  const [filterValueState, setFilterValueState] = React.useState(item.value || '');
+  const [filterValueState, setFilterValueState] = useState(item.value || '');
   const rootProps = useGridRootProps();
 
   const labelId = useId();
@@ -49,7 +50,7 @@ function GridFilterInputBoolean(props: GridFilterInputBooleanProps) {
 
   const baseSelectOptionProps = rootProps.slotProps?.baseSelectOption || {};
 
-  const onFilterChange = React.useCallback(
+  const onFilterChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const value = event.target.value;
       setFilterValueState(value);
@@ -58,7 +59,7 @@ function GridFilterInputBoolean(props: GridFilterInputBooleanProps) {
     [applyValue, item]
   );
 
-  React.useEffect(() => {
+  useEffect(() => {
     setFilterValueState(item.value || '');
   }, [item.value]);
 

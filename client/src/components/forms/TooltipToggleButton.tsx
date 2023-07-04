@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
 import ToggleButton, { ToggleButtonProps } from '@mui/material/ToggleButton';
 import Tooltip, { TooltipProps } from '@mui/material/Tooltip';
 

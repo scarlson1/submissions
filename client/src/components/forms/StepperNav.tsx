@@ -1,4 +1,3 @@
-import React from 'react';
 import { Stepper, Step, StepLabel, StepButton, Box } from '@mui/material';
 
 export interface StepperNavProps {
@@ -7,7 +6,7 @@ export interface StepperNavProps {
   setStep: (index: number) => void;
 }
 
-export const StepperNav: React.FC<StepperNavProps> = ({ activeStep, labels, setStep }) => {
+export const StepperNav = ({ activeStep, labels, setStep }: StepperNavProps) => {
   return (
     <Box sx={{ width: '100%' }}>
       <Stepper activeStep={activeStep} alternativeLabel>

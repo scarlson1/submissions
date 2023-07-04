@@ -1,4 +1,3 @@
-import React from 'react';
 import { Control, UseFieldArrayProps, useFieldArray } from 'react-hook-form';
 import { Box, Button, Unstable_Grid2 as Grid } from '@mui/material';
 
@@ -11,7 +10,7 @@ export interface RHFFieldArrayProps extends UseFieldArrayProps<any, any> {
 }
 
 // TODO: finish rest of input types
-export const RHFFieldArray: React.FC<RHFFieldArrayProps> = ({ inputFields, ...props }) => {
+export const RHFFieldArray = ({ inputFields, ...props }: RHFFieldArrayProps) => {
   const { fields, append, remove } = useFieldArray({
     ...props,
     // control, // control props comes from useForm (optional: if you are using FormContext)

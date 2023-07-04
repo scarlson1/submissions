@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   Card as MuiCard,
   CardContent as MuiCardContent,
@@ -17,7 +16,7 @@ export const flexCardContentStyle = {
   height: '100%',
 } as const;
 
-export const FlexCard: React.FC<CardProps> = (props) => {
+export const FlexCard = (props: CardProps) => {
   return (
     <MuiCard {...props} sx={{ ...flexCardStyle, ...props.sx }}>
       {props.children}
@@ -25,7 +24,7 @@ export const FlexCard: React.FC<CardProps> = (props) => {
   );
 };
 
-export const FlexCardContent: React.FC<CardContentProps> = (props) => {
+export const FlexCardContent = (props: CardContentProps) => {
   return (
     <MuiCardContent {...props} sx={{ ...flexCardContentStyle, ...props.sx }}>
       {props.children}

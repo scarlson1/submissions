@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { GeoPoint } from 'firebase/firestore';
 import { IconLayer, IconLayerProps, PickingInfo } from 'deck.gl/typed';
 

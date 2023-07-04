@@ -1,4 +1,4 @@
-import React from 'react';
+import { forwardRef } from 'react';
 import { IMaskInput } from 'react-imask';
 import { IMaskInputProps } from 'react-imask/dist/mixin';
 
@@ -30,7 +30,7 @@ export interface PercentMaskProps {
   maskProps?: Partial<IMaskInputProps>;
 }
 
-export const PercentMask = React.forwardRef<HTMLElement, PercentMaskProps>(function TextMaskCustom(
+export const PercentMask = forwardRef<HTMLElement, PercentMaskProps>(function TextMaskCustom(
   props,
   ref
 ) {

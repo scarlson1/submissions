@@ -6,6 +6,7 @@ import {
   useContext,
   createContext,
   useRef,
+  ReactNode,
 } from 'react';
 import { User, IdTokenResult, UserCredential } from '@firebase/auth';
 import { setUserId, setUserProperties } from 'firebase/analytics';
@@ -43,7 +44,7 @@ interface AuthContextValue extends UserWithClaimsResult {
 
 export const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-export const AuthContextProvider = ({ children }: { children: React.ReactNode }) => {
+export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
   const auth = useFireAuth();
   const functions = useFunctions();
   const analytics = useAnalytics();

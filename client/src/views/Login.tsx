@@ -1,7 +1,6 @@
-import React, { useEffect, useRef, useCallback } from 'react';
-import { Button, Typography, Container } from '@mui/material'; // Divider, Stack,
+import { useEffect, useRef, useCallback } from 'react';
+import { Button, Typography, Container, Unstable_Grid2 as Grid } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
-import Grid from '@mui/material/Unstable_Grid2';
 import { FormikHelpers, Formik, FormikProps } from 'formik';
 import * as yup from 'yup';
 import { useNavigate, useLocation, useParams, useSearchParams } from 'react-router-dom';
@@ -39,7 +38,7 @@ export interface LoginValues {
 }
 // (email?: string) => toast.success(`Password reset email sent to ${email}`),
 // (msg: string) => toast.error(msg),
-export const Login: React.FC = () => {
+export const Login = () => {
   const auth = getAuth();
   const navigate = useNavigate();
   const location = useLocation();

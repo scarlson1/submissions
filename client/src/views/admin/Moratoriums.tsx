@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, Suspense } from 'react';
+import { useCallback, useMemo, Suspense } from 'react';
 import { Box, Button, Card, Tooltip, Typography, useMediaQuery, useTheme } from '@mui/material';
 import { BlockRounded, DataObjectRounded, MapRounded } from '@mui/icons-material';
 import {
@@ -80,7 +80,7 @@ const getMutationMsg = (
   return changeItems;
 };
 
-export const Moratoriums: React.FC = () => {
+export const Moratoriums = () => {
   const navigate = useNavigate();
   const modal = useConfirmation();
   const dialog = useJsonDialog();

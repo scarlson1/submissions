@@ -1,4 +1,5 @@
-import React, { useCallback, useRef } from 'react';
+import { useCallback, useRef } from 'react';
+
 import { FormikHelpers, FormikProps, FormikValues } from 'formik';
 import { Box, Container, Tooltip, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
@@ -98,7 +99,7 @@ export const initialValues: FloodValues = {
   userAcceptance: false,
 };
 
-export const SubmissionNew: React.FC = () => {
+export const SubmissionNew = () => {
   const firestore = useFirestore();
   const navigate = useNavigate();
   const { user, claims } = useAuth();

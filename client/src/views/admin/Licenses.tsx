@@ -1,9 +1,10 @@
-import React, { useCallback, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { limit, orderBy } from 'firebase/firestore';
 import { Box, Button, Chip, Tooltip, Typography } from '@mui/material';
 import { BusinessRounded, EditRounded, PersonRounded } from '@mui/icons-material';
 import { GridActionsCellItem, GridColDef, GridRowParams } from '@mui/x-data-grid';
+import { useSigninCheck } from 'reactfire';
 
 import { ADMIN_ROUTES, createPath } from 'router';
 import { BasicDataGrid } from 'components';
@@ -19,10 +20,9 @@ import {
   stateCol,
   updatedCol,
 } from 'common';
-import { useSigninCheck } from 'reactfire';
 import { CUSTOM_CLAIMS } from 'modules/components';
 
-export const Licenses: React.FC = () => {
+export const Licenses = () => {
   const navigate = useNavigate();
   const { data, status } = useCollectionData('LICENSES', [
     orderBy('metadata.created', 'desc'),

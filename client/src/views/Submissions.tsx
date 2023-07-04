@@ -1,4 +1,3 @@
-import React from 'react';
 import { useSigninCheck } from 'reactfire';
 import { where } from 'firebase/firestore';
 
@@ -8,7 +7,7 @@ import { Submissions as AdminSubmissions } from './admin/Submissions';
 import { Submissions as UserSubmissions } from './user/Submissions';
 import { SubmissionsGrid } from 'elements';
 
-export const Submissions: React.FC = () => {
+export const Submissions = () => {
   const { data: checkIdAdmin } = useSigninCheck({
     requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true },
     // suspense: false,

@@ -1,4 +1,3 @@
-import React from 'react';
 import { FloatingMenu, Editor } from '@tiptap/react';
 import { Button } from '@mui/material';
 
@@ -18,7 +17,7 @@ export interface FloatingMenuToolbarProps {
   editor?: Editor;
 }
 
-export const FloatingMenuToolbar: React.FC<FloatingMenuToolbarProps> = ({ editor }) => {
+export const FloatingMenuToolbar = ({ editor }: FloatingMenuToolbarProps) => {
   if (!editor) return null;
 
   return (

@@ -1,4 +1,3 @@
-import React from 'react';
 import { Box, Tab, Typography } from '@mui/material';
 import { TabContext, TabList, TabPanel } from '@mui/lab';
 import { PersonAddRounded } from '@mui/icons-material';
@@ -25,7 +24,7 @@ import { Submission } from 'common';
 
 const MIN_TAB_HEIGHT = 40;
 
-export const Organization: React.FC = () => {
+export const Organization = () => {
   const { orgId } = useParams();
   let [searchParams, setSearchParams] = useSearchParams();
   const tabValue = searchParams.get('tab') || 'policies';

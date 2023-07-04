@@ -1,4 +1,4 @@
-import React from 'react';
+import { useEffect } from 'react';
 
 export interface UseDocSearchKeyboardEventsProps {
   isOpen: boolean;
@@ -29,7 +29,7 @@ export function useDocSearchKeyboardEvents({
   searchButtonRef,
   shortcutKey = 'k',
 }: UseDocSearchKeyboardEventsProps) {
-  React.useEffect(() => {
+  useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
       function open() {
         // We check that no other DocSearch modal is showing before opening

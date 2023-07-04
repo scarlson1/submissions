@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useRef } from 'react';
 import { alpha, Box, Typography } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
 import { AddPhotoAlternateOutlined } from '@mui/icons-material';
@@ -25,7 +25,7 @@ export interface FilesDragDropProps {
   loading?: boolean;
 }
 
-export const FilesDragDrop: React.FC<FilesDragDropProps> = ({
+export const FilesDragDrop = ({
   files,
   onNewFiles,
   onRemove,
@@ -35,8 +35,8 @@ export const FilesDragDrop: React.FC<FilesDragDropProps> = ({
   maxFileSizeInBytes = DEFAULT_MAX_FILE_SIZE_IN_BYTES,
   maxFileCount = 10,
   loading = false,
-}) => {
-  const inputRef = React.useRef<HTMLInputElement>(null);
+}: FilesDragDropProps) => {
+  const inputRef = useRef<HTMLInputElement>(null);
   const [dragActive, setDragActive] = useState(false);
   const acceptedTypesArr = useMemo(
     () => acceptedTypes.replaceAll('.', '').split(','),

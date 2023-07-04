@@ -1,4 +1,5 @@
-import React, { useCallback, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
+
 import { Editor } from '@tiptap/react';
 import { ToggleButton, ToggleButtonGroup, Tooltip } from '@mui/material';
 import {
@@ -38,7 +39,7 @@ export interface TextAlignToolbarProps {
   editor?: Editor;
 }
 
-export const TextAlignToolbar: React.FC<TextAlignToolbarProps> = ({ editor }) => {
+export const TextAlignToolbar = ({ editor }: TextAlignToolbarProps) => {
   const isLeftAlign = editor?.isActive({ textAlign: 'left' });
   const isRightAlign = editor?.isActive({ textAlign: 'right' });
   const isCenterAlign = editor?.isActive({ textAlign: 'center' });

@@ -1,62 +1,19 @@
-import React, { useCallback, useMemo } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
-import { Box, Link, Tooltip } from '@mui/material';
+import { useCallback, useMemo } from 'react';
+import { Box, Tooltip } from '@mui/material';
 import { DataGridProps, GridActionsCellItem, GridColDef, GridRowParams } from '@mui/x-data-grid';
 import { SendRounded } from '@mui/icons-material';
 import { useSigninCheck } from 'reactfire';
 
-import { ADMIN_ROUTES, createPath } from 'router';
-import {
-  nestedAgentUserIdCol,
-  createdCol,
-  currencyCol,
-  deductibleCol,
-  idCol,
-  limitACol,
-  limitBCol,
-  limitCCol,
-  limitDCol,
-  ratingDataBasementCol,
-  ratingDataCBRSCol,
-  ratingDataDistToCoastFeetCol,
-  ratingDataFloodZoneCol,
-  ratingDataNumStoriesCol,
-  ratingDataPropertyCodeCol,
-  ratingDataReplacementCostCol,
-  ratingDataSqFootageCol,
-  ratingDataYearBuiltCol,
-  statusCol,
-  updatedCol,
-  userIdCol,
-  addrLine1Col,
-  addrLine2Col,
-  addrCityCol,
-  addrStateCol,
-  addrPostalCol,
-  namedInsuredFirstNameCol,
-  namedInsuredLastNameCol,
-  namedInsuredEmailCol,
-  namedInsuredPhoneCol,
-  namedInsuredDisplayNameCol,
-  tivCol,
-  agentEmailCol,
-  agentPhoneCol,
-  nestedAgencyOrgIdCol,
-  agencyNameCol,
-  agencyAddressCol,
-  QUOTE_STATUS,
-  addressSummaryCol,
-  addrCountyCol,
-  addrFIPSCol,
-  annualPremiumCol,
-  nestedAgentNameCol,
-} from 'common';
-import { GridCellCopy, ServerDataGrid, ServerDataGridProps } from 'components';
+import { statusCol, QUOTE_STATUS } from 'common';
+import { ServerDataGrid, ServerDataGridProps } from 'components';
 import { useAsyncToast, useGridActions, useSendQuoteNotification, useWidth } from 'hooks';
 import { getRequiredClaimValidator } from 'components/RequireAuthReactFire';
 import { useAuth } from 'modules/components';
+import { quoteCols } from 'modules/gridColumnDefs';
 
 // TODO: need to use custom merge function for additionalColumns to prevent duplication "field" values
+
+const hasAdminClaims = getRequiredClaimValidator(['ORG_ADMIN', 'IDEMAND_ADMIN']);
 
 export interface ServerDataGridCollectionProps
   extends Omit<
@@ -70,12 +27,12 @@ export interface ServerDataGridCollectionProps
 
 export interface QuotesGridProps extends ServerDataGridCollectionProps {}
 
-export const QuotesGrid: React.FC<QuotesGridProps> = ({
+export const QuotesGrid = ({
   renderActions = () => [],
   additionalColumns = [],
   initialState,
   ...props
-}) => {
+}: QuotesGridProps) => {
   const { claims } = useAuth();
   const { isSmall } = useWidth();
   const sendNotifications = useSendQuoteNotification();
@@ -83,7 +40,7 @@ export const QuotesGrid: React.FC<QuotesGridProps> = ({
   const { googleMapsAction, floodFactorAction } = useGridActions(toast.error);
 
   const { data: authCheckResult } = useSigninCheck({
-    validateCustomClaims: getRequiredClaimValidator(['ORG_ADMIN', 'IDEMAND_ADMIN']),
+    validateCustomClaims: hasAdminClaims,
   });
 
   const handleSendNotifications = useCallback(
@@ -130,77 +87,7 @@ export const QuotesGrid: React.FC<QuotesGridProps> = ({
         editable: Boolean(claims?.iDemandAdmin),
         filterable: true,
       },
-      addressSummaryCol,
-      addrLine1Col,
-      addrLine2Col,
-      addrCityCol,
-      addrStateCol,
-      addrPostalCol,
-      addrCountyCol,
-      addrFIPSCol,
-      annualPremiumCol,
-      {
-        ...currencyCol,
-        field: 'quoteTotal',
-        headerName: 'Quote Total',
-        description: 'premium + taxes + fees',
-      },
-      namedInsuredDisplayNameCol,
-      namedInsuredFirstNameCol,
-      namedInsuredLastNameCol,
-      namedInsuredEmailCol,
-      namedInsuredPhoneCol,
-      limitACol,
-      limitBCol,
-      limitCCol,
-      limitDCol,
-      tivCol,
-      deductibleCol,
-      ratingDataReplacementCostCol,
-      ratingDataPropertyCodeCol,
-      ratingDataYearBuiltCol,
-      ratingDataSqFootageCol,
-      ratingDataNumStoriesCol,
-      ratingDataBasementCol,
-      ratingDataDistToCoastFeetCol,
-      ratingDataCBRSCol,
-      ratingDataFloodZoneCol,
-      // subproducerCommissionCol,
-      nestedAgentNameCol,
-      agentEmailCol,
-      agentPhoneCol,
-      agencyNameCol,
-      agencyAddressCol,
-      createdCol,
-      updatedCol,
-      nestedAgencyOrgIdCol,
-      nestedAgentUserIdCol,
-      { ...userIdCol, description: 'userId of record owner (named insured in most cases)' },
-      {
-        ...idCol,
-        headerName: 'Quote ID',
-      },
-      {
-        field: 'submissionId',
-        headerName: 'Submission ID',
-        description: 'Submission from which the quote was created',
-        minWidth: 240,
-        flex: 1,
-        renderCell: (params) => {
-          if (!params.value) return null;
-          return (
-            <Link
-              component={RouterLink}
-              to={createPath({
-                path: ADMIN_ROUTES.SUBMISSION_VIEW,
-                params: { submissionId: params.value },
-              })}
-            >
-              <GridCellCopy value={params.value} />
-            </Link>
-          );
-        },
-      },
+      ...quoteCols,
       ...additionalColumns,
     ],
     [

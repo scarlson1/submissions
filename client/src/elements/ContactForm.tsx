@@ -1,4 +1,5 @@
-import React, { useCallback, useRef } from 'react';
+import { useCallback, useRef } from 'react';
+
 import { Box, Stack } from '@mui/material';
 import LoadingButton from '@mui/lab/LoadingButton';
 import { SendRounded } from '@mui/icons-material';
@@ -24,7 +25,7 @@ export const contactUsValidation = yup.object().shape({
 
 export interface ContactFormProps {}
 
-export const ContactForm: React.FC<ContactFormProps> = () => {
+export const ContactForm = (props: ContactFormProps) => {
   const { data: user } = useUser();
   const formikRef = useRef<FormikProps<ContactUsValues>>(null);
   const toast = useAsyncToast();

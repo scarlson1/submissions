@@ -1,4 +1,5 @@
-import React, { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef } from 'react';
+
 import {
   Button,
   Dialog,
@@ -52,11 +53,11 @@ interface AddUsersDialogProps {
   buttonProps?: Omit<ButtonProps, 'onClick'>;
 }
 
-export const AddUsersDialog: React.FC<AddUsersDialogProps> = ({
+export const AddUsersDialog = ({
   orgId,
   buttonText = 'Add Users (agents)',
   buttonProps,
-}) => {
+}: AddUsersDialogProps) => {
   const formikRef = useRef<FormikProps<AddUserValues>>(null);
   const [open, setOpen] = useState(false);
 

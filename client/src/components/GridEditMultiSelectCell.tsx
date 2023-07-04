@@ -1,4 +1,4 @@
-import React from 'react';
+import { useRef, useState } from 'react';
 import {
   Box,
   // Checkbox,
@@ -76,8 +76,8 @@ export function GridEditMultiSelectCell(props: GridEditMultiSelectCellProps) {
   } = props;
 
   const apiRef = useGridApiContext();
-  const inputRef = React.useRef<any>();
-  const [open, setOpen] = React.useState(initialOpen);
+  const inputRef = useRef<any>();
+  const [open, setOpen] = useState(initialOpen);
 
   const baseSelectProps = rootProps.slotProps?.baseSelect || {};
   const isSelectNative = baseSelectProps.native ?? false;

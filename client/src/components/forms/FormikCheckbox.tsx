@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   Checkbox,
   CheckboxProps,
@@ -27,12 +26,12 @@ export interface FormikCheckboxProps {
   formikConfig?: Partial<FieldHookConfig<boolean>>;
 }
 
-export const FormikCheckbox: React.FC<FormikCheckboxProps> = ({
+export const FormikCheckbox = ({
   name,
   checkboxProps,
   formikConfig,
   ...props
-}) => {
+}: FormikCheckboxProps) => {
   const [field, meta] = useField({ name, ...formikConfig, type: 'checkbox' });
 
   return (

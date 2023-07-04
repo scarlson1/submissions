@@ -1,4 +1,3 @@
-import React from 'react';
 import { useFormikContext } from 'formik';
 import * as yup from 'yup';
 
@@ -30,7 +29,7 @@ export const agentsValidation = yup.object().shape({
 
 export interface AddAgentsProps {}
 
-export const AddAgents: React.FC<AddAgentsProps> = () => {
+export const AddAgents = (props: AddAgentsProps) => {
   const {
     values,
     touched,

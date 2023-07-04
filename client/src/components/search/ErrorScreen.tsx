@@ -1,6 +1,3 @@
-import React from 'react';
-
-// import { ErrorIcon } from './icons';
 export function ErrorIcon() {
   return (
     <svg

@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState, startTransition } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, startTransition } from 'react';
+
 import { Box } from '@mui/material';
 import {
   DataGrid,
@@ -19,12 +20,12 @@ import {
   where,
   WhereFilterOp,
 } from 'firebase/firestore';
+import { lowerCase } from 'lodash';
 
 import { useDocCount, useFetchDocsWithCursor, useWidth } from 'hooks';
 import { COLLECTIONS } from 'common';
 import { isInequalityOp, isWhereFilterOp } from 'modules/utils';
 import { GridMobileToolbar } from './GridMobileToolbar';
-import { lowerCase } from 'lodash';
 
 // FIREBASE PAGINATION ARTICLE: https://makerkit.dev/blog/tutorials/pagination-react-firebase-firestore
 
@@ -37,7 +38,7 @@ export interface ServerDataGridProps extends Partial<Omit<DataGridProps, 'rows'>
   // TODO: initSorting
 }
 
-export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
+export const ServerDataGrid = ({
   collName,
   pathSegments = [],
   constraints = [],
@@ -46,13 +47,13 @@ export const ServerDataGrid: React.FC<ServerDataGridProps> = ({
   slots,
   slotProps,
   ...props
-}) => {
+}: ServerDataGridProps) => {
   const { isMobile } = useWidth();
   const toolbar = useMemo(() => (isMobile ? GridMobileToolbar : GridToolbar), [isMobile]);
   // const [isPending, startTransition] = useTransition();
   // const [densityV, setDensity] = useState<GridDensity>(density);
   const [rowCount, setRowCount] = useState<number>(0);
-  const [paginationModel, setPaginationModel] = React.useState({
+  const [paginationModel, setPaginationModel] = useState({
     pageSize: 10,
     page: 0,
   });

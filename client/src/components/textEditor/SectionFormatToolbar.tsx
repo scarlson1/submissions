@@ -1,4 +1,5 @@
-import React, { useCallback, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
+
 import { Editor } from '@tiptap/react';
 import { ToggleButton, ToggleButtonGroup, Tooltip } from '@mui/material';
 import {
@@ -14,7 +15,7 @@ export interface SectionFormatToolbarProps {
   editor?: Editor;
 }
 
-export const SectionFormatToolbar: React.FC<SectionFormatToolbarProps> = ({ editor }) => {
+export const SectionFormatToolbar = ({ editor }: SectionFormatToolbarProps) => {
   const orderedListActive = editor?.isActive('orderedList');
   const bulletListActive = editor?.isActive('bulletList');
   const blockquoteActive = editor?.isActive('blockquote');

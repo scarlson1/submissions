@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import { useCallback } from 'react';
 import { Box, Typography } from '@mui/material';
 import { addDoc, collection, CollectionReference, Timestamp } from 'firebase/firestore';
 import { useFirestore } from 'reactfire';
@@ -11,7 +11,7 @@ import { ADMIN_ROUTES, createPath } from 'router';
 import 'components/textEditor/TextEditor.css';
 import { DisclosureForm, DisclosureValues } from 'elements';
 
-export const DisclosureNew: React.FC = () => {
+export const DisclosureNew = () => {
   const navigate = useNavigate();
   const firestore = useFirestore();
   const toast = useAsyncToast();

@@ -1,4 +1,5 @@
-import React, { useCallback } from 'react';
+import { useCallback } from 'react';
+
 import { toast } from 'react-hot-toast';
 import { Box, BoxProps, IconButton, Typography, TypographyProps } from '@mui/material';
 import { CopyAllRounded } from '@mui/icons-material';
@@ -12,13 +13,13 @@ export interface CopyProps extends BoxProps {
   textProps?: TypographyProps;
 }
 
-export const Copy: React.FC<CopyProps> = ({
+export const Copy = ({
   children,
   value,
   withButton = true,
   textProps = {},
   ...props
-}) => {
+}: CopyProps) => {
   const [, copy] = useCopyToClipboard();
 
   const handleCopy = useCallback(

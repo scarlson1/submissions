@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Box,
   Button,
@@ -78,7 +78,7 @@ interface FaqAccordionProps {
   handleChange: (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => void;
 }
 
-const FaqAccordion: React.FC<FaqAccordionProps> = ({ q, expanded, handleChange }) => {
+const FaqAccordion = ({ q, expanded, handleChange }: FaqAccordionProps) => {
   return (
     <Accordion expanded={expanded === q.id} onChange={handleChange(q.id)} key={q.id}>
       <AccordionSummary
@@ -129,7 +129,7 @@ const SubmissionFAQs = () => {
   );
 };
 
-export const SuccessStep: React.FC = () => {
+export const SuccessStep = () => {
   const navigate = useNavigate();
   const { user, isAnonymous } = useAuth();
   const { submissionId } = useParams();
@@ -279,7 +279,7 @@ export const useFetchTransaction = (id: string) => {
 // TODO: redo component (not using card)
 
 // TODO: use rxjs to fetch transaction from quote response
-export const BindSuccess: React.FC = () => {
+export const BindSuccess = () => {
   const navigate = useNavigate();
   const { transactionId } = useParams();
   const { quoteId } = useParams();

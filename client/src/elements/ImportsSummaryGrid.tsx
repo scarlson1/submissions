@@ -4,21 +4,11 @@ import { DataObjectRounded } from '@mui/icons-material';
 import { GridActionsCellItem, GridRowParams } from '@mui/x-data-grid';
 import { capitalize } from 'lodash';
 
-import {
-  COLLECTIONS,
-  ImportSummary,
-  WithId,
-  createdCol,
-  idCol,
-  importCollectionCol,
-  importCreationErrorsCountCol,
-  importDocIdsCol,
-  importDocIdsCountCol,
-  invalidRowsCol,
-} from 'common';
+import { COLLECTIONS, ImportSummary, WithId } from 'common';
 import { ServerDataGrid, ServerDataGridProps } from 'components';
 import { useShowJson } from 'hooks';
 import { formatFirestoreTimestamp } from 'modules/utils';
+import { importSummaryCols } from 'modules/gridColumnDefs';
 
 export interface ImportSummaryGridProps
   extends Omit<
@@ -60,14 +50,7 @@ export const ImportsSummaryGrid = ({
           />,
         ],
       },
-
-      importCollectionCol,
-      importDocIdsCol,
-      importDocIdsCountCol,
-      importCreationErrorsCountCol,
-      invalidRowsCol,
-      createdCol,
-      { ...idCol, headerName: 'Import Doc ID' },
+      ...importSummaryCols,
     ],
     [renderActions, handleShowJson]
   );

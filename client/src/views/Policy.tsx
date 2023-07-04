@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
   Box,
   Typography,
@@ -34,7 +34,7 @@ import { formatFirestoreTimestamp, formatPhoneNumber, stringAvatar } from 'modul
 
 // TODO: make location card flip on hover to show additoinal details
 
-export const Policy: React.FC = () => {
+export const Policy = () => {
   const { policyId } = useParams();
   if (!policyId) throw new Error('policyId missing in url params');
 

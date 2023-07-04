@@ -1,4 +1,4 @@
-import React, { useState, useCallback, Suspense } from 'react';
+import { useState, useCallback, Suspense } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { Card, CircularProgress, Grid2Props, Typography } from '@mui/material';
 import { useFormikContext } from 'formik';
@@ -28,13 +28,13 @@ export interface AddressStepProps extends Omit<FormikAddressProps, 'setFieldValu
 // TODO: load by product /flood/new - get active states from /state/:productId in db
 // TODO: emial lists in email service (sendgrid)
 
-export const AddressStep: React.FC<AddressStepProps> = ({
+export const AddressStep = ({
   activeStates = {},
   shouldValidateStates = false,
   withMap = true,
   gridProps,
   ...props
-}) => {
+}: AddressStepProps) => {
   const { values, setFieldValue, validateForm } = useFormikContext<AddressStepValues>();
   const [showMarker, setShowMarker] = useState(
     Boolean(values.coordinates?.latitude && values.coordinates?.longitude)

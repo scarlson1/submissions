@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo, Children, isValidElement, cloneElement } from 'react';
+
 import { Box, Breakpoint, Button, Container, MobileStepper, Stack } from '@mui/material';
 import { KeyboardArrowRight, KeyboardArrowLeft, NavigateNextRounded } from '@mui/icons-material';
 import LoadingButton from '@mui/lab/LoadingButton';
@@ -37,7 +38,7 @@ export interface FormikWizardProps extends Partial<FormikProps<any>> {
   formRef?: React.RefObject<FormikProps<any>>;
 }
 
-export const FormikWizard: React.FC<FormikWizardProps> = ({
+export const FormikWizard = ({
   children,
   initialValues,
   initialErrors = {},
@@ -53,7 +54,7 @@ export const FormikWizard: React.FC<FormikWizardProps> = ({
   maxWidth = 'sm',
   formRef,
   ...rest
-}) => {
+}: FormikWizardProps) => {
   const [stepIndex, setStepIndex] = useState<number>(initialIndex);
   const [snapshot, setSnapshot] = useState(initialValues);
   const { isMobile } = useWidth();
@@ -63,18 +64,18 @@ export const FormikWizard: React.FC<FormikWizardProps> = ({
   //   formRef?.current?.validateForm().then(console.log);
   // }, [formRef, stepIndex]);
 
-  const steps = useMemo(() => React.Children.toArray(children), [children]);
+  const steps = useMemo(() => Children.toArray(children), [children]);
 
   const stepperNavProps = useMemo(
     () =>
       steps
-        .filter((child) => React.isValidElement(child)) // @ts-ignore
+        .filter((child) => isValidElement(child)) // @ts-ignore
         .map((step) => ({ navLabel: step.props?.stepperNavLabel || '' })),
     [steps]
   );
 
   let currentStep = useMemo(
-    () => React.cloneElement(steps[stepIndex] as React.ReactElement),
+    () => cloneElement(steps[stepIndex] as React.ReactElement),
     [steps, stepIndex]
   );
   const isLastStep = () => stepIndex === steps.length - 1;
@@ -184,7 +185,7 @@ export const FormikWizard: React.FC<FormikWizardProps> = ({
                   <StepperNav
                     activeStep={stepIndex}
                     labels={stepperNavProps}
-                    setStep={(index) => setStepIndex(index)}
+                    setStep={(index: number) => setStepIndex(index)}
                   />
                 </Container>
                 // </Box>

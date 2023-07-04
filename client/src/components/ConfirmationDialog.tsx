@@ -1,4 +1,5 @@
-import React, { useCallback } from 'react';
+import { useCallback } from 'react';
+
 import {
   Button,
   Dialog,
@@ -28,7 +29,7 @@ export interface ConfirmationDialogProps extends ConfirmationOptions {
   // requiredClaims?: null | CustomClaimKeys[];
 }
 
-export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
+export const ConfirmationDialog = ({
   open,
   onAccept,
   onClose,
@@ -45,7 +46,7 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
   submitDisabled = false,
   dialogProps,
   dialogContentProps,
-}) => {
+}: ConfirmationDialogProps) => {
   const handleSubmit = useCallback(async () => {
     if (onSubmit) {
       try {
@@ -150,7 +151,7 @@ export interface ConfirmationDialogProps2 extends ConfirmationOptions {
   // requiredClaims?: null | CustomClaimKeys[];
 }
 
-export const ConfirmationDialog2: React.FC<ConfirmationDialogProps2> = ({
+export const ConfirmationDialog2 = ({
   open,
   onAccept,
   onClose,
@@ -167,7 +168,7 @@ export const ConfirmationDialog2: React.FC<ConfirmationDialogProps2> = ({
   submitDisabled = false,
   dialogProps,
   dialogContentProps,
-}) => {
+}: ConfirmationDialogProps2) => {
   const handleSubmit = useCallback(() => {
     console.log('calling confirmation 2 onAccept()');
     return onAccept();

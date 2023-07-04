@@ -1,4 +1,4 @@
-import React from 'react';
+import { forwardRef } from 'react';
 import { IMaskInput } from 'react-imask';
 import { IMaskInputProps } from 'react-imask/dist/mixin';
 
@@ -8,7 +8,7 @@ export interface IMaskProps {
   maskProps?: Partial<IMaskInputProps>;
 }
 
-export const IMask = React.forwardRef<HTMLElement, IMaskProps>(function TextMaskCustom(props, ref) {
+export const IMask = forwardRef<HTMLElement, IMaskProps>(function TextMaskCustom(props, ref) {
   const { onChange, maskProps, ...other } = props;
 
   return (

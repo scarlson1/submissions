@@ -1,4 +1,4 @@
-import React from 'react';
+import { forwardRef } from 'react';
 import { IMaskInput } from 'react-imask';
 
 export interface RoutingNumberMaskProps {
@@ -6,7 +6,7 @@ export interface RoutingNumberMaskProps {
   name: string;
 }
 
-export const RoutingNumberMask = React.forwardRef<HTMLElement, RoutingNumberMaskProps>(
+export const RoutingNumberMask = forwardRef<HTMLElement, RoutingNumberMaskProps>(
   function TextMaskCustom(props, ref) {
     const { onChange, ...other } = props;
     return (

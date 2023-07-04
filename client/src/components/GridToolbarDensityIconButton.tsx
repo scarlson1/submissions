@@ -1,3 +1,4 @@
+import { forwardRef, useMemo, useRef, useState } from 'react';
 import {
   IconButton,
   IconButtonProps,
@@ -19,7 +20,7 @@ import {
   useGridSelector,
 } from '@mui/x-data-grid';
 import { isHideMenuKey, isTabKey } from '@mui/x-data-grid/utils/keyboardUtils';
-import * as React from 'react';
+
 // import { unstable_useId as useId, unstable_useForkRef as useForkRef } from '@mui/utils';
 // import MenuList from '@mui/material/MenuList';
 // import { ButtonProps } from '@mui/material/Button';
@@ -35,7 +36,7 @@ import * as React from 'react';
 // import { useGridRootProps } from '../../hooks/utils/useGridRootProps';
 // import { gridClasses } from '../../constants/gridClasses';
 
-export const GridToolbarDensityIconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
+export const GridToolbarDensityIconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
   function GridToolbarDensitySelector(props, ref) {
     const { onClick, ...other } = props;
     const apiRef = useGridApiContext();
@@ -44,8 +45,8 @@ export const GridToolbarDensityIconButton = React.forwardRef<HTMLButtonElement, 
     const densityButtonId = useId();
     const densityMenuId = useId();
 
-    const [open, setOpen] = React.useState(false);
-    const buttonRef = React.useRef<HTMLButtonElement>(null);
+    const [open, setOpen] = useState(false);
+    const buttonRef = useRef<HTMLButtonElement>(null);
     const handleRef = useForkRef(ref, buttonRef);
 
     const densityOptions: GridDensityOption[] = [
@@ -66,7 +67,7 @@ export const GridToolbarDensityIconButton = React.forwardRef<HTMLButtonElement, 
       },
     ];
 
-    const startIcon = React.useMemo<React.ReactElement>(() => {
+    const startIcon = useMemo<React.ReactElement>(() => {
       switch (densityValue) {
         case 'compact':
           return <rootProps.slots.densityCompactIcon fontSize='inherit' />;
@@ -122,7 +123,7 @@ export const GridToolbarDensityIconButton = React.forwardRef<HTMLButtonElement, 
     ));
 
     return (
-      <React.Fragment>
+      <>
         <IconButton
           ref={handleRef}
           size='small'
@@ -156,7 +157,7 @@ export const GridToolbarDensityIconButton = React.forwardRef<HTMLButtonElement, 
             {densityElements}
           </MenuList>
         </GridMenu>
-      </React.Fragment>
+      </>
     );
   }
 );

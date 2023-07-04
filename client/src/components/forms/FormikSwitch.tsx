@@ -1,4 +1,5 @@
-import React, { useCallback } from 'react';
+import { useCallback } from 'react';
+
 import {
   FormControl,
   FormControlLabel,
@@ -16,13 +17,13 @@ export interface FormikSwitchProps extends SwitchProps {
   formikConfig?: Partial<FieldHookConfig<any>>;
 }
 
-export const FormikSwitch: React.FC<FormikSwitchProps> = ({
+export const FormikSwitch = ({
   name,
   label,
   formControlLabelProps,
   formikConfig,
   ...rest
-}) => {
+}: FormikSwitchProps) => {
   const [field, meta, { setValue }] = useField({ name, ...formikConfig, type: 'checkbox' });
 
   const handleChange = useCallback(

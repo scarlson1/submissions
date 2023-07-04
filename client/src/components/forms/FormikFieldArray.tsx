@@ -1,5 +1,4 @@
-import React, { ForwardRefExoticComponent, useMemo } from 'react';
-
+import { ForwardRefExoticComponent, useMemo } from 'react';
 import {
   Box,
   BoxProps,
@@ -9,18 +8,18 @@ import {
   DividerProps,
   IconButton,
   // InputBaseComponentProps,
+  Unstable_Grid2 as Grid,
+  Grid2Props,
 } from '@mui/material';
-import Grid, { Grid2Props } from '@mui/material/Unstable_Grid2';
 import { RemoveCircleOutlineRounded } from '@mui/icons-material';
 import { FieldArray } from 'formik'; // getIn
 
-import FormikTextField, { FormikTextFieldProps } from './FormikTextField';
-import FormikMaskField from './FormikMaskField';
+import { FormikTextField, FormikTextFieldProps } from './FormikTextField';
+import { FormikMaskField, FormikMaskFieldProps } from './FormikMaskField';
 import PhoneMask from './PhoneMask';
 import FormikDollarMaskField, { FormikDollarMaskFieldProps } from './FormikDollarMaskField';
 import { FormikNativeSelect, FormikNativeSelectProps } from './FormikNativeSelect';
 import { FormikAddressLite, FormikAddressLiteProps } from 'elements';
-import { FormikMaskFieldProps } from './FormikMaskField';
 
 // https://stackoverflow.com/questions/53958028/how-to-use-generics-in-props-in-react-in-a-functional-component
 
@@ -127,7 +126,7 @@ export interface FormikFieldArrayProps {
 //   return object != null && typeof object === 'object';
 // }
 
-export const FormikFieldArray: React.FC<FormikFieldArrayProps> = ({
+export const FormikFieldArray = ({
   parentField,
   inputFields,
   values,
@@ -142,7 +141,7 @@ export const FormikFieldArray: React.FC<FormikFieldArrayProps> = ({
   children,
   errors,
   disabled,
-}) => {
+}: FormikFieldArrayProps) => {
   const getNewRow = () => {
     let row: { [key: string]: string | { [key: string]: string } } = {};
 

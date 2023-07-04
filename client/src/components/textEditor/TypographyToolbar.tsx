@@ -1,4 +1,5 @@
-import React, { useCallback, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
+
 import { Editor } from '@tiptap/react';
 import { alpha, MenuItem, Select, SelectChangeEvent, Typography } from '@mui/material';
 
@@ -6,7 +7,7 @@ export interface TypographyToolbarProps {
   editor?: Editor;
 }
 
-export const TypographyToolbar: React.FC<TypographyToolbarProps> = ({ editor }) => {
+export const TypographyToolbar = ({ editor }: TypographyToolbarProps) => {
   const paragraphActive = editor?.isActive('paragraph');
   const heading1Active = editor?.isActive('heading', { level: 1 });
   const heading2Active = editor?.isActive('heading', { level: 2 });

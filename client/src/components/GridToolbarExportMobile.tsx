@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { cloneElement, forwardRef } from 'react';
 import PropTypes from 'prop-types';
 import {
   GridCsvExportOptions,
@@ -16,7 +16,7 @@ export interface GridToolbarExportMobileProps extends IconButtonProps {
   [key: string]: any;
 }
 
-const GridToolbarExportMobile = React.forwardRef<HTMLButtonElement, GridToolbarExportMobileProps>(
+const GridToolbarExportMobile = forwardRef<HTMLButtonElement, GridToolbarExportMobileProps>(
   function GridToolbarExport(props, ref) {
     const { csvOptions = {}, printOptions = {}, excelOptions, ...other } = props;
 
@@ -32,9 +32,7 @@ const GridToolbarExportMobile = React.forwardRef<HTMLButtonElement, GridToolbarE
 
     return (
       <GridToolbarExportIconButton {...other} ref={ref}>
-        {preProcessedButtons.map((button, index) =>
-          React.cloneElement(button.component, { key: index })
-        )}
+        {preProcessedButtons.map((button, index) => cloneElement(button.component, { key: index }))}
       </GridToolbarExportIconButton>
     );
   }

@@ -1,4 +1,5 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
+
 import { useTheme } from '@mui/material';
 import { Toaster as HotToaster, DefaultToastOptions } from 'react-hot-toast';
 
@@ -41,7 +42,7 @@ export const darkToastOptions: DefaultToastOptions = {
   },
 };
 
-export const Toaster: React.FC = () => {
+export const Toaster = () => {
   const theme = useTheme();
 
   const options = useMemo(() => {

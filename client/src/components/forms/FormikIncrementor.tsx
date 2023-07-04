@@ -1,4 +1,5 @@
-import React, { useCallback } from 'react';
+import { useCallback } from 'react';
+
 import {
   Box,
   IconButton,
@@ -29,7 +30,7 @@ export interface FormikIncrementorProps {
   valueFormatter?: (value: number | undefined) => React.ReactNode;
 }
 
-export const FormikIncrementor: React.FC<FormikIncrementorProps> = ({
+export const FormikIncrementor = ({
   name,
   formikConfig,
   incrementBy,
@@ -43,7 +44,7 @@ export const FormikIncrementor: React.FC<FormikIncrementorProps> = ({
   iconButtonProps,
   disabled,
   valueFormatter,
-}) => {
+}: FormikIncrementorProps) => {
   const [field, meta, helpers] = useField<number>({ name, ...formikConfig });
 
   const handleIncrease = useCallback(() => {

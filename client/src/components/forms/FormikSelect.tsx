@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   FormControl,
   InputLabel,
@@ -22,7 +21,7 @@ export interface FormikSelectProps extends SelectProps {
   formikConfig?: Partial<FieldHookConfig<any>>;
 }
 
-export const FormikSelect: React.FC<FormikSelectProps> = ({
+export const FormikSelect = ({
   name,
   label,
   selectOptions,
@@ -33,7 +32,7 @@ export const FormikSelect: React.FC<FormikSelectProps> = ({
   sx = { minWidth: 160 },
   formikConfig,
   ...props
-}) => {
+}: FormikSelectProps) => {
   const [field, meta] = useField({ name, ...formikConfig });
 
   return (

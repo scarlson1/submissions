@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+
 import { Box } from '@mui/material';
 import { CancelRounded, CheckCircleRounded } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
@@ -29,13 +30,13 @@ export interface ActiveStateMapProps extends DeckMapProps {
   // children?: React.ReactNode;
 }
 
-export const ActiveStateMap: React.FC<ActiveStateMapProps> = ({
+export const ActiveStateMap = ({
   handleClick,
   statesValues,
   mapViewState = INITIAL_VIEW_STATE,
   children,
   ...props
-}) => {
+}: ActiveStateMapProps) => {
   const theme = useTheme();
   const [hoverInfo, setHoverInfo] = useState<PickingInfo>();
 
@@ -109,7 +110,7 @@ export const ActiveStateMap: React.FC<ActiveStateMapProps> = ({
 //   children?: React.ReactNode;
 // }
 
-// export const ActiveStateMap: React.FC<ActiveStateMapProps> = ({
+// export const ActiveStateMap<ActiveStateMapProps> = ({
 //   handleClick,
 //   statesValues,
 //   mapViewState = INITIAL_VIEW_STATE,

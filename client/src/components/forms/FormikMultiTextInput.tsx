@@ -1,10 +1,10 @@
-import React, { useCallback, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Box, Chip, ChipProps, Stack, StackProps, TextField, TextFieldProps } from '@mui/material';
 import { FieldHookConfig, useField } from 'formik';
+import { toast } from 'react-hot-toast';
 
 import { useKeyPress } from 'hooks';
 import { isValidEmail } from 'modules/utils/helpers';
-import { toast } from 'react-hot-toast';
 
 export type FormikMultiTextInputProps = TextFieldProps & {
   name: string;
@@ -13,7 +13,7 @@ export type FormikMultiTextInputProps = TextFieldProps & {
   chipProps?: ChipProps;
 };
 
-export const FormikMultiTextInput: React.FC<FormikMultiTextInputProps> = ({
+export const FormikMultiTextInput = ({
   name,
   formikConfig,
   helperText,
@@ -21,7 +21,7 @@ export const FormikMultiTextInput: React.FC<FormikMultiTextInputProps> = ({
   stackProps,
   chipProps,
   ...props
-}) => {
+}: FormikMultiTextInputProps) => {
   const [inputVal, setInputVal] = useState('');
   const [field, meta, { setValue, setTouched }] = useField<string[]>({
     name,

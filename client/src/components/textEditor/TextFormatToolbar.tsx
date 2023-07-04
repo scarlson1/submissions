@@ -1,4 +1,5 @@
-import React, { useCallback, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
+
 import { Editor } from '@tiptap/react';
 import { ToggleButton, ToggleButtonGroup, Tooltip } from '@mui/material';
 import {
@@ -17,7 +18,7 @@ export interface TextFormatToolbarProps {
   editor?: Editor;
 }
 
-export const TextFormatToolbar: React.FC<TextFormatToolbarProps> = ({ editor }) => {
+export const TextFormatToolbar = ({ editor }: TextFormatToolbarProps) => {
   const setLink = useCallback(() => {
     const previousUrl = editor?.getAttributes('link').href;
     const url = window.prompt('URL', previousUrl);

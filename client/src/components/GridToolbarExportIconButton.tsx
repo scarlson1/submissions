@@ -1,4 +1,4 @@
-import React from 'react';
+import { Children, cloneElement, forwardRef, isValidElement, useRef, useState } from 'react';
 import { IconButton, IconButtonProps, MenuList, useForkRef } from '@mui/material';
 import useId from '@mui/material/utils/useId';
 import {
@@ -11,7 +11,7 @@ import {
 import { isHideMenuKey, isTabKey } from '@mui/x-data-grid/utils/keyboardUtils';
 import { SaveAltRounded } from '@mui/icons-material';
 
-export const GridToolbarExportIconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
+export const GridToolbarExportIconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
   function GridToolbarExportContainer(props, ref) {
     const { children, onClick, ...other } = props;
 
@@ -20,8 +20,8 @@ export const GridToolbarExportIconButton = React.forwardRef<HTMLButtonElement, I
     const exportButtonId = useId();
     const exportMenuId = useId();
 
-    const [open, setOpen] = React.useState(false);
-    const buttonRef = React.useRef<HTMLButtonElement>(null);
+    const [open, setOpen] = useState(false);
+    const buttonRef = useRef<HTMLButtonElement>(null);
     const handleRef = useForkRef(ref, buttonRef);
 
     const handleMenuOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -56,7 +56,7 @@ export const GridToolbarExportIconButton = React.forwardRef<HTMLButtonElement, I
     }
 
     return (
-      <React.Fragment>
+      <>
         <IconButton
           ref={handleRef}
           size='small'
@@ -85,15 +85,15 @@ export const GridToolbarExportIconButton = React.forwardRef<HTMLButtonElement, I
             onKeyDown={handleListKeyDown}
             autoFocusItem={open}
           >
-            {React.Children.map(children, (child) => {
-              if (!React.isValidElement(child)) {
+            {Children.map(children, (child) => {
+              if (!isValidElement(child)) {
                 return child;
               }
-              return React.cloneElement<any>(child, { hideMenu: handleMenuClose });
+              return cloneElement<any>(child, { hideMenu: handleMenuClose });
             })}
           </MenuList>
         </GridMenu>
-      </React.Fragment>
+      </>
     );
   }
 );

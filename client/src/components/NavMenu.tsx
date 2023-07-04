@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+
 import { Box, Button, ButtonProps, ClickAwayListener, List, Popper } from '@mui/material';
 // import { useSpring, animated } from '@react-spring/web';
 
@@ -18,12 +19,7 @@ export interface NavMenuProps {
   // children?: React.ReactNode;
 }
 
-export const NavMenu: React.FC<NavMenuProps> = ({
-  btnTitle = 'open',
-  btnProps,
-  items,
-  renderItem,
-}) => {
+export const NavMenu = ({ btnTitle = 'open', btnProps, items, renderItem }: NavMenuProps) => {
   const [open, setOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 

@@ -1,4 +1,3 @@
-import React from 'react';
 import { Box } from '@mui/material';
 import Slider, { Settings } from 'react-slick';
 import 'slick-carousel/slick/slick.css';
@@ -90,7 +89,7 @@ export interface CarouselProps {
   items: React.ReactElement[]; // renderItems ?
 }
 
-export const Carousel: React.FC<CarouselProps> = ({ sliderSettings = {}, items }) => {
+export const Carousel = ({ sliderSettings = {}, items }: CarouselProps) => {
   return (
     <Box sx={{ '& div .slick-list': { borderRadius: 2 } }}>
       <Slider {...DEFAULT_SETTINGS} {...sliderSettings}>

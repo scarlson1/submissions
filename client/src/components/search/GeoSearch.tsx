@@ -1,4 +1,4 @@
-import React from 'react';
+import { useMemo, useState, useCallback, useEffect } from 'react';
 import algoliasearch from 'algoliasearch/lite';
 import { InstantSearch, SearchBox, useSearchBox } from 'react-instantsearch-hooks-web';
 import { GeoHit } from 'instantsearch.js/es/connectors/geo-search/connectGeoSearch';
@@ -45,7 +45,7 @@ const getBounds = (viewState: Record<string, any>) => {
 };
 
 export const GeoSearch = () => {
-  const searchClient = React.useMemo(
+  const searchClient = useMemo(
     () =>
       algoliasearch(
         process.env.REACT_APP_ALGOLIA_APP_ID as string,
@@ -78,9 +78,9 @@ export function Airports() {
     currentRefinement,
     clearMapRefinement,
   } = useGeoSearch<Airport>();
-  const [previousQuery, setPreviousQuery] = React.useState(query);
-  const [skipViewEffect, setSkipViewEffect] = React.useState(false);
-  const [viewState, setViewState] = React.useState<MapViewState>({
+  const [previousQuery, setPreviousQuery] = useState(query);
+  const [skipViewEffect, setSkipViewEffect] = useState(false);
+  const [viewState, setViewState] = useState<MapViewState>({
     longitude: -94.25,
     latitude: 38.25,
     zoom: 3.5,
@@ -89,11 +89,11 @@ export function Airports() {
     pitch: 0,
     bearing: 0,
   });
-  const [bounds, setBounds] = React.useState<Bounds>(getBounds(viewState));
+  const [bounds, setBounds] = useState<Bounds>(getBounds(viewState));
   const debouncedBounds = useDebounce<Bounds>(bounds, 100);
-  const [hoverInfo, setHoverInfo] = React.useState<PickingInfo>();
+  const [hoverInfo, setHoverInfo] = useState<PickingInfo>();
 
-  const handleViewChange = React.useCallback(
+  const handleViewChange = useCallback(
     ({
       viewState,
     }: ViewStateChangeParameters & {
@@ -113,7 +113,7 @@ export function Airports() {
     [query, refineQuery]
   );
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (debouncedBounds) refineItems(debouncedBounds);
   }, [debouncedBounds, refineItems]);
 

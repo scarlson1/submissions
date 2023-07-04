@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, FunctionComponent } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import {
   TextField,
   Grid,
@@ -72,17 +72,17 @@ export interface AddressAutocompleteProps {
   textFieldProps?: TextFieldProps;
 }
 
-export const AddressAutocomplete: FunctionComponent<AddressAutocompleteProps> = ({
+export const AddressAutocomplete = ({
   name = 'addressLine1',
   handleSelection,
   resetFields,
   textFieldProps,
   ...rest
-}) => {
+}: AddressAutocompleteProps) => {
   const [field, meta, helpers] = useField(name);
   const [value, setValue] = useState<PlaceType | null>(null); // VALUE WHEN USER SELECTS OPTION
   const [options, setOptions] = useState<readonly PlaceType[]>([]);
-  const loaded = React.useRef(false);
+  const loaded = useRef(false);
 
   if (typeof window !== 'undefined' && !loaded.current) {
     if (!document.querySelector('#google-maps')) {

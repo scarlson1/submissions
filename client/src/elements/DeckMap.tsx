@@ -1,4 +1,3 @@
-import React from 'react';
 import { Box, Typography } from '@mui/material';
 import Map from 'react-map-gl';
 import DeckGL, { DeckGLProps } from '@deck.gl/react/typed';
@@ -41,14 +40,14 @@ export interface DeckMapProps extends Partial<DeckGLProps> {
   children?: React.ReactNode;
 }
 
-export const DeckMap: React.FC<DeckMapProps> = ({
+export const DeckMap = ({
   mapViewState = INITIAL_VIEW_STATE,
   layers,
   hoverInfo,
   renderTooltipContent,
   children,
   ...rest
-}) => {
+}: DeckMapProps) => {
   const theme = useTheme();
 
   return (

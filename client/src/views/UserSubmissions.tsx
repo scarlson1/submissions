@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box,
   Button,
@@ -11,8 +11,8 @@ import {
   IconButton,
   IconButtonProps,
   Typography,
+  Unstable_Grid2 as Grid,
 } from '@mui/material';
-import Grid from '@mui/material/Unstable_Grid2';
 import { styled, SxProps } from '@mui/system';
 import { ExpandMoreRounded } from '@mui/icons-material';
 import { onSnapshot, query, orderBy, where, limit, getFirestore } from 'firebase/firestore';
@@ -111,7 +111,7 @@ export const Item = ({
   );
 };
 
-export const UserSubmissions: React.FC = () => {
+export const UserSubmissions = () => {
   const navigate = useNavigate();
   const [expanded, setExpanded] = useState<{ [key: string]: boolean } | null>(null);
   const { submissions, error } = useUserSubmissions();

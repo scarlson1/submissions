@@ -1,6 +1,6 @@
+import { forwardRef, useEffect, useState } from 'react';
 import { SearchRounded } from '@mui/icons-material';
 import { Box, Button, IconButton, styled } from '@mui/material';
-import React, { useEffect, useState } from 'react';
 
 // import { ControlKeyIcon } from './icons/ControlKeyIcon';
 // import { SearchIcon } from './icons/SearchIcon';
@@ -37,7 +37,7 @@ function isAppleDevice() {
   return /(Mac|iPhone|iPod|iPad)/i.test(navigator.platform);
 }
 
-export const SearchButton = React.forwardRef<HTMLButtonElement, DocSearchButtonProps>(
+export const SearchButton = forwardRef<HTMLButtonElement, DocSearchButtonProps>(
   ({ translations = {}, shortcutKey = 'k', ...props }, ref) => {
     const { buttonText = 'Search', buttonAriaLabel = 'Search' } = translations;
     // TODO: deprecated ?? need to use navigator.userAgentData.platform ??

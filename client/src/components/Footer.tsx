@@ -1,4 +1,5 @@
-import React, { useCallback } from 'react';
+import { useCallback } from 'react';
+
 import { Container, Box, Typography, Link } from '@mui/material';
 import { generateHTML } from '@tiptap/react';
 
@@ -7,7 +8,7 @@ import { EDITOR_EXTENSION_DEFAULTS, useCollectionData } from 'hooks';
 import { Disclosure } from 'common';
 import { where } from 'firebase/firestore';
 
-const Copyright: React.FC = () => {
+const Copyright = () => {
   return (
     <Typography variant='body2' color='text.secondary'>
       {'Copyright © '}
@@ -20,7 +21,7 @@ const Copyright: React.FC = () => {
   );
 };
 
-export const Footer: React.FC = () => {
+export const Footer = () => {
   const { data } = useCollectionData<Disclosure>('DISCLOSURES', [
     where('type', '==', 'general disclosure'),
   ]);

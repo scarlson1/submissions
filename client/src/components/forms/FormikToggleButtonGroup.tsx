@@ -1,4 +1,3 @@
-import React from 'react';
 import { useField, FieldHookConfig } from 'formik';
 import {
   ToggleButtonGroup,
@@ -12,14 +11,14 @@ export interface FormikToggleButtonGroupProps extends ToggleButtonGroupProps {
   useFieldProps?: Partial<FieldHookConfig<any>>;
 }
 
-export const FormikToggleButtonGroup: React.FC<FormikToggleButtonGroupProps> = ({
+export const FormikToggleButtonGroup = ({
   name,
   exclusive = true,
   disabled = false,
   children,
   useFieldProps,
   ...props
-}) => {
+}: FormikToggleButtonGroupProps) => {
   const [field, meta] = useField({ ...useFieldProps, name });
 
   return (

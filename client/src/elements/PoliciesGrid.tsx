@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { Box, Tooltip } from '@mui/material';
 import { DescriptionRounded } from '@mui/icons-material';
 import { GridActionsCellItem, GridColDef, GridRowParams, GridToolbar } from '@mui/x-data-grid';
@@ -7,40 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 
 import { ServerDataGrid, ServerDataGridProps } from 'components';
-import {
-  Policy,
-  POLICY_STATUS,
-  nestedAgencyOrgIdCol,
-  nestedAgentUserIdCol,
-  nestedAgentNameCol,
-  createdCol,
-  currencyCol,
-  effectiveDateCol,
-  expirationDateCol,
-  idCol,
-  namedInsuredDisplayNameCol,
-  namedInsuredFirstNameCol,
-  namedInsuredLastNameCol,
-  statusCol,
-  updatedCol,
-  userIdCol,
-  agentEmailCol,
-  agentPhoneCol,
-  namedInsuredEmailCol,
-  namedInsuredPhoneCol,
-  agencyNameCol,
-  locationsCount,
-  locationAddresses,
-  homeStateCol,
-  productCol,
-  agencyAddressCol,
-  issuingCarrierCol,
-  SLProducerOfRecordNameCol,
-  SLProducerOfRecordLicenseNum,
-  SLProducerOfRecordLicensePhone,
-  SLProducerOfRecordLicenseState,
-  SLProducerOfRecordLicenseAddress,
-} from 'common';
+import { Policy, POLICY_STATUS, statusCol } from 'common';
 import { CUSTOM_CLAIMS } from 'modules/components';
 import { ROUTES, createPath } from 'router';
 
@@ -53,10 +20,7 @@ export interface PoliciesGridProps
   additionalColumns?: GridColDef<any, any, any>[];
 }
 
-export const PoliciesGrid: React.FC<PoliciesGridProps> = ({
-  renderActions = () => [],
-  ...props
-}) => {
+export const PoliciesGrid = ({ renderActions = () => [], ...props }: PoliciesGridProps) => {
   const navigate = useNavigate();
 
   const { status: claimsCheckStatus, data: iDAdminResult } = useSigninCheck({
@@ -125,42 +89,6 @@ export const PoliciesGrid: React.FC<PoliciesGridProps> = ({
         editable: claimsCheckStatus === 'success' && iDAdminResult.hasRequiredClaims,
         filterable: true,
       },
-      productCol,
-      locationAddresses,
-      namedInsuredDisplayNameCol,
-      namedInsuredFirstNameCol,
-      namedInsuredLastNameCol,
-      namedInsuredEmailCol,
-      namedInsuredPhoneCol,
-      {
-        ...currencyCol,
-        field: 'price',
-        headerName: 'Price',
-      },
-      locationsCount,
-      effectiveDateCol,
-      expirationDateCol,
-      homeStateCol,
-      nestedAgentNameCol,
-      agentEmailCol,
-      agentPhoneCol,
-      agencyNameCol,
-      agencyAddressCol,
-      issuingCarrierCol,
-      nestedAgentUserIdCol,
-      nestedAgencyOrgIdCol,
-      userIdCol,
-      {
-        ...idCol,
-        headerName: 'Policy ID',
-      },
-      SLProducerOfRecordNameCol,
-      SLProducerOfRecordLicenseNum,
-      SLProducerOfRecordLicenseState,
-      SLProducerOfRecordLicensePhone,
-      SLProducerOfRecordLicenseAddress,
-      createdCol,
-      updatedCol,
     ],
     [viewPolicyDoc, renderActions, claimsCheckStatus, iDAdminResult]
   );

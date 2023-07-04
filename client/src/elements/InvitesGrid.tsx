@@ -1,25 +1,15 @@
-import React, { useCallback, useMemo } from 'react';
-import { Box, Chip, Tooltip } from '@mui/material';
+import { useCallback, useMemo } from 'react';
+import { Tooltip } from '@mui/material';
 import { GridActionsCellItem, GridColDef, GridRowParams } from '@mui/x-data-grid';
+import { CancelRounded, SendRounded } from '@mui/icons-material';
+import { QueryConstraint } from 'firebase/firestore';
 import { Functions, httpsCallable } from 'firebase/functions';
 import { useFunctions } from 'reactfire';
 
 import { ServerDataGrid, ServerDataGridProps } from 'components';
-import {
-  COLLECTIONS,
-  INVITE_STATUS,
-  Invite,
-  createdCol,
-  displayNameCol,
-  emailCol,
-  idCol,
-  orgIdCol,
-  statusCol,
-  updatedCol,
-} from 'common';
+import { COLLECTIONS, INVITE_STATUS, Invite } from 'common';
 import { useAsyncToast } from 'hooks';
-import { CancelRounded, SendRounded } from '@mui/icons-material';
-import { QueryConstraint } from 'firebase/firestore';
+import { inviteCols } from 'modules/gridColumnDefs';
 
 // TODO: need to use collection group hook if iDemand Admin
 // wrap in parent component and check for claims. if idemandAdmin and orgId not provided, return collection group
@@ -34,8 +24,8 @@ interface InvitesGridProps {
   queryConstraints?: QueryConstraint[];
 }
 
-// export const InvitesGrid: React.FC<InvitesGridProps> = ({ data = [], loading }) => {
-export const InvitesGrid: React.FC<InvitesGridProps> = ({ orgId, queryConstraints }) => {
+// export const InvitesGrid<InvitesGridProps> = ({ data = [], loading }) => {
+export const InvitesGrid = ({ orgId, queryConstraints }: InvitesGridProps) => {
   const functions = useFunctions();
   const toast = useAsyncToast();
 
@@ -110,85 +100,7 @@ export const InvitesGrid: React.FC<InvitesGridProps> = ({ orgId, queryConstraint
           />,
         ],
       },
-      { ...idCol, headerName: 'Invite ID' },
-      emailCol,
-      displayNameCol,
-      {
-        field: 'firstName',
-        headerName: 'First Name',
-        flex: 0.8,
-        minWidth: 120,
-        editable: false,
-      },
-      {
-        field: 'lastName',
-        headerName: 'Last Name',
-        flex: 0.8,
-        minWidth: 120,
-        editable: false,
-      },
-      {
-        ...statusCol,
-        valueOptions: [
-          INVITE_STATUS.ACCECPTED,
-          INVITE_STATUS.PENDING,
-          INVITE_STATUS.EXPIRED,
-          INVITE_STATUS.ERROR,
-          INVITE_STATUS.REJECTED,
-          INVITE_STATUS.REPLACED,
-          INVITE_STATUS.REVOKED,
-        ],
-        filterable: true,
-      },
-      {
-        field: 'customClaims',
-        headerName: 'Claims',
-        flex: 1,
-        minWidth: 180,
-        editable: false,
-        renderCell: (params) => {
-          if (params.value == null) return '';
-          let keys = Object.keys(params.value);
-          if (keys.length < 1) return '';
-
-          return (
-            <Box>
-              {keys.map((claim) => {
-                const claimType = typeof params.value[claim];
-                const label =
-                  claimType === 'boolean'
-                    ? claim
-                    : claimType === 'string' || claimType === 'number'
-                    ? `${claim}: ${params.value[claim]}`
-                    : `${claim}: [object]`;
-                return <Chip label={label} size='small' key={claim} />;
-              })}
-            </Box>
-          );
-        },
-      },
-      {
-        field: 'invitedBy',
-        headerName: 'Invited By',
-        flex: 1,
-        minWidth: 180,
-        editable: false,
-        valueGetter: (params) =>
-          params.row.invitedBy?.name ?? (params.row.invitedBy?.email || null),
-      },
-      {
-        field: 'isCreateOrgInvite',
-        headerName: 'Create Org Invite',
-        type: 'boolean',
-        flex: 1,
-        minWidth: 140,
-        editable: false,
-        valueGetter: (params) =>
-          params.row.invitedBy?.name ?? (params.row.invitedBy?.email || null),
-      },
-      orgIdCol,
-      createdCol,
-      updatedCol,
+      ...inviteCols,
     ],
     [handleResendInvite, handleCancel]
   );
@@ -225,7 +137,7 @@ export const InvitesGrid: React.FC<InvitesGridProps> = ({ orgId, queryConstraint
 //   queryConstraints?: QueryConstraint[];
 // }
 
-// export const InvitesGridNonServer: React.FC<InvitesGridProps> = ({ data = [], loading }) => {
+// export const InvitesGridNonServer<InvitesGridProps> = ({ data = [], loading }) => {
 //   const functions = useFunctions();
 //   const toast = useAsyncToast();
 //   const { data, status } = useCollectionData<Invite>(

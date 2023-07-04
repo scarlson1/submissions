@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import { ReactNode, createContext, useCallback, useContext, useMemo, useState } from 'react';
 import {
   UserCredential,
   multiFactor,
@@ -27,7 +27,7 @@ interface AuthActionsContextValue {
 
 export const AuthActionsContext = createContext<AuthActionsContextValue | undefined>(undefined);
 
-export const AuthActionsProvider = ({ children }: { children: React.ReactNode }) => {
+export const AuthActionsProvider = ({ children }: { children: ReactNode }) => {
   const navigate = useNavigate();
   const auth = useAuth();
   const { data: user } = useUser();

@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import {
   Box,
   Checkbox,
@@ -34,14 +34,14 @@ export interface RadioListItemProps {
   selected?: boolean;
 }
 
-export const RadioListItem: React.FC<RadioListItemProps> = ({
+export const RadioListItem = ({
   listItemProps,
   listItemButtonProps,
   listItemTextProps,
   value,
   onClick,
   selected = false,
-}) => {
+}: RadioListItemProps) => {
   const labelId = `Option - ${value}`;
 
   return (
@@ -89,11 +89,11 @@ export interface PaymentStepProps {
   logAnalyticsStep?: (step: number, stepName?: string) => void;
 }
 
-export const PaymentStep: React.FC<PaymentStepProps> = ({ pmtOptions, logAnalyticsStep }) => {
+export const PaymentStep = ({ pmtOptions, logAnalyticsStep }: PaymentStepProps) => {
   const { values, setFieldValue } = useFormikContext<any>();
 
   // TODO: abstract step analytics so index isn't manual
-  React.useEffect(() => {
+  useEffect(() => {
     if (logAnalyticsStep) logAnalyticsStep(3, 'payment step');
   }, [logAnalyticsStep]);
 

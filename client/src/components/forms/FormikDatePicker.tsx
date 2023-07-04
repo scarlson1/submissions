@@ -1,4 +1,3 @@
-import React from 'react';
 import { DatePicker, DatePickerProps } from '@mui/x-date-pickers';
 import { useField } from 'formik';
 import { format, add } from 'date-fns';
@@ -16,7 +15,7 @@ export interface FormikDatePickerProps extends DatePickerProps<any> {
   textFieldProps?: TextFieldProps;
 }
 
-export const FormikDatePicker: React.FC<FormikDatePickerProps> = ({
+export const FormikDatePicker = ({
   name,
   minDate,
   maxDate,
@@ -24,7 +23,7 @@ export const FormikDatePicker: React.FC<FormikDatePickerProps> = ({
   textFieldProps,
   slotProps,
   ...props
-}) => {
+}: FormikDatePickerProps) => {
   const [field, meta, { setValue, setError }] = useField(name);
 
   const getHelperText = meta.touched && Boolean(meta.error) ? meta.error : undefined;
@@ -79,7 +78,7 @@ export const FormikDatePicker: React.FC<FormikDatePickerProps> = ({
 
 export default FormikDatePicker;
 
-// export const FormikDatePicker: React.FC<FormikDatePickerProps> = ({
+// export const FormikDatePicker<FormikDatePickerProps> = ({
 //   name,
 //   minDate,
 //   maxDate,
@@ -206,7 +205,7 @@ export default FormikDatePicker;
 //   textFieldProps?: TextFieldProps;
 // }
 
-// export const FormikDatePicker: React.FC<FormikDatePickerProps> = ({
+// export const FormikDatePicker<FormikDatePickerProps> = ({
 //   name,
 //   minDate,
 //   maxDate,

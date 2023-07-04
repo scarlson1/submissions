@@ -4,20 +4,23 @@ import {
   fetchAndActivate,
   getRemoteConfig,
 } from 'firebase/remote-config';
-import React from 'react';
 import { RemoteConfigProvider, useInitRemoteConfig } from 'reactfire';
 
-export const RemoteConfigWrapper: React.FC<{
+export const RemoteConfigWrapper = ({
+  children,
+  settings,
+  defaults = {},
+}: {
   children: React.ReactNode;
   settings?: RemoteConfigSettings;
   defaults?: RemoteConfig['defaultConfig'];
-}> = ({ children, settings = {}, defaults = {} }) => {
+}) => {
   const { data: remoteConfigInstance } = useInitRemoteConfig(async (firebaseApp) => {
     const remoteConfig = getRemoteConfig(firebaseApp);
     remoteConfig.settings = {
       minimumFetchIntervalMillis: 10000000, // Defaults to 43200000 (Twelve hours).
       fetchTimeoutMillis: 10000,
-      ...settings,
+      ...(settings || {}),
     };
     remoteConfig.defaultConfig = { welcome_message: 'Welcome', ...defaults };
     await fetchAndActivate(remoteConfig);

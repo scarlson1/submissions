@@ -1,4 +1,4 @@
-import React from 'react';
+import { forwardRef } from 'react';
 import { IMaskInput } from 'react-imask';
 
 // import { postalRegEx } from 'common';
@@ -8,7 +8,7 @@ export interface PostalMaskProps {
   name: string;
 }
 
-export const PostalMask = React.forwardRef<HTMLElement, PostalMaskProps>(function TextMaskCustom(
+export const PostalMask = forwardRef<HTMLElement, PostalMaskProps>(function TextMaskCustom(
   props,
   ref
 ) {

@@ -1,4 +1,5 @@
-import React, { useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
+
 import { Box, Drawer, IconButton, List, Typography } from '@mui/material';
 import { CloseRounded, HomeRounded, MenuRounded } from '@mui/icons-material';
 import { NavItem } from './Header';
@@ -15,7 +16,7 @@ export interface NavDrawerProps {
   // children?: ({ toggleDrawer }: { toggleDrawer: () => void }) => React.ReactNode;
 }
 
-export const NavDrawer: React.FC<NavDrawerProps> = ({ items, renderItem }) => {
+export const NavDrawer = ({ items, renderItem }: NavDrawerProps) => {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
 

@@ -1,4 +1,3 @@
-import React from 'react';
 import { Box, Alert, AlertTitle, Container, Typography, Button, Stack } from '@mui/material';
 import { useRouteError, isRouteErrorResponse, useNavigate } from 'react-router-dom';
 
@@ -69,7 +68,7 @@ export interface RouterErrorBoundaryProps {
   actionButtons?: { label: string; path: string }[];
 }
 
-export const RouterErrorBoundary: React.FC<RouterErrorBoundaryProps> = ({ actionButtons }) => {
+export const RouterErrorBoundary = ({ actionButtons }: RouterErrorBoundaryProps) => {
   let error = useRouteError();
   const navigate = useNavigate();
 

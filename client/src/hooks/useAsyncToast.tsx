@@ -1,7 +1,6 @@
 import { useRef, useCallback, useMemo } from 'react';
 import { CloseRounded, InfoRounded, WarningAmberRounded } from '@mui/icons-material';
-import { Box, IconButton, Typography } from '@mui/material'; // Unstable_Grid2 as Grid
-
+import { Box, IconButton, Typography } from '@mui/material';
 import { Toast, toast, ToastOptions } from 'react-hot-toast';
 
 // TODO: add dismiss button: https://react-hot-toast.com/docs/toast (bottom of page)

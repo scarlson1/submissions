@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from 'react';
+import { Suspense, useCallback, useMemo, useRef } from 'react';
 import {
   Box,
   Button,
@@ -14,14 +14,14 @@ import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import * as yup from 'yup';
 import { addWeeks } from 'date-fns';
+import { useFirestore, useFirestoreDocDataOnce } from 'reactfire';
+import { doc, DocumentReference } from 'firebase/firestore';
 
 import { FormikDatePicker, FormikSelect, VirtualizedAutocomplete } from 'components/forms';
 import { useCreateMoratorium } from 'hooks';
 import { ADMIN_ROUTES, createPath } from 'router';
 import { COLLECTIONS, FIPSDetails } from 'common';
 import { CountiesMap } from 'elements';
-import { useFirestore, useFirestoreDocDataOnce } from 'reactfire';
-import { doc, DocumentReference } from 'firebase/firestore';
 
 // TODO: suspense and error boundary around virtual autocomplete
 
@@ -52,7 +52,7 @@ export interface MoratoriumValues {
   reason: string;
 }
 
-export const MoratoriumNew: React.FC = () => {
+export const MoratoriumNew = () => {
   const navigate = useNavigate();
   const formikRef = useRef<FormikProps<MoratoriumValues>>(null);
   const firestore = useFirestore();
@@ -65,7 +65,7 @@ export const MoratoriumNew: React.FC = () => {
   } = useFirestoreDocDataOnce(fipsDocRef, { initialData: { counties: [] }, suspense: false });
   // TODO: handle doc doesnt exist ? does suspense catch does not exist ?
 
-  const counties = React.useMemo(() => data?.counties || [], [data]);
+  const counties = useMemo(() => data?.counties || [], [data]);
 
   const createMoratorium = useCreateMoratorium({
     onSuccess: (id: string) => {
@@ -263,7 +263,7 @@ export const MoratoriumNew: React.FC = () => {
               <Grid xs={12}>
                 <Box sx={{ py: 10, height: 500, width: '100%', mb: 20 }}>
                   <Card sx={{ height: 'inherit', width: 'inherit' }}>
-                    <React.Suspense
+                    <Suspense
                       fallback={
                         <Typography align='center' sx={{ py: 5 }}>
                           Loading counties...
@@ -283,7 +283,7 @@ export const MoratoriumNew: React.FC = () => {
                               : [255, 255, 255, 20],
                         }}
                       />
-                    </React.Suspense>
+                    </Suspense>
                   </Card>
                 </Box>
               </Grid>

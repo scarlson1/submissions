@@ -1,16 +1,10 @@
-import React from 'react';
-
 interface ContainerProps {
   animationDuration: number;
   isFinished: boolean;
   children: React.ReactNode;
 }
 
-export const Container: React.FC<ContainerProps> = ({
-  animationDuration,
-  isFinished,
-  children,
-}) => (
+export const Container = ({ animationDuration, isFinished, children }: ContainerProps) => (
   <div
     style={{
       opacity: isFinished ? 0 : 1,

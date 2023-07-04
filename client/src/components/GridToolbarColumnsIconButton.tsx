@@ -1,4 +1,4 @@
-import React from 'react';
+import { forwardRef } from 'react';
 import { IconButton, IconButtonProps } from '@mui/material';
 import {
   GridPreferencePanelsValue,
@@ -9,7 +9,7 @@ import {
 } from '@mui/x-data-grid';
 import useId from '@mui/material/utils/useId';
 
-export const GridToolbarColumnsIconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
+export const GridToolbarColumnsIconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
   function GridToolbarColumnsButton(props, ref) {
     const { onClick, ...other } = props;
     const columnButtonId = useId();

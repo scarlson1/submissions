@@ -1,4 +1,5 @@
-import React, { useCallback } from 'react';
+import { useCallback } from 'react';
+
 import { Button } from '@mui/material';
 import { toast } from 'react-hot-toast';
 import { BsMicrosoft } from 'react-icons/bs';
@@ -12,11 +13,7 @@ export interface MicrosoftAuthProps {
   onSuccess?: (userCred: UserCredential) => void;
 }
 
-export const MicrosoftAuth: React.FC<MicrosoftAuthProps> = ({
-  reauth = false,
-  skipRedirect,
-  onSuccess,
-}) => {
+export const MicrosoftAuth = ({ reauth = false, skipRedirect, onSuccess }: MicrosoftAuthProps) => {
   const { loginWithMicrosoft, reauthWithMicrosoft } = useSocialAuth({
     onSuccess,
     onError: (err) => {

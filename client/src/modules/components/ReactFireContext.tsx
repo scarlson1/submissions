@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { ReactNode, useEffect } from 'react';
 import { connectAuthEmulator, getAuth } from 'firebase/auth';
 import { connectFirestoreEmulator, Firestore, getFirestore } from 'firebase/firestore';
 import { connectFunctionsEmulator, getFunctions } from 'firebase/functions';
@@ -28,7 +28,7 @@ import { firebaseConfig } from 'firebaseConfig';
 
 export let db: Firestore;
 
-export function ReactFireServicesContext({ children }: { children: React.ReactNode }) {
+export function ReactFireServicesContext({ children }: { children: ReactNode }) {
   const app = useFirebaseApp();
 
   const auth = getAuth(app);
@@ -90,7 +90,7 @@ export function ReactFireServicesContext({ children }: { children: React.ReactNo
   );
 }
 
-export function ReactFireAppContext({ children }: { children: React.ReactNode }) {
+export function ReactFireAppContext({ children }: { children: ReactNode }) {
   return (
     <FirebaseAppProvider firebaseConfig={firebaseConfig} suspense={true}>
       {children}

@@ -1,4 +1,3 @@
-import React from 'react';
 import Grid, { Grid2Props } from '@mui/material/Unstable_Grid2';
 
 import { FormikTextField, FormikTextFieldProps } from 'components/forms';
@@ -18,13 +17,13 @@ export interface ContactStepProps {
   children?: React.ReactNode;
 }
 
-export const ContactStep: React.FC<ContactStepProps> = ({
+export const ContactStep = ({
   gridProps,
   gridItemProps,
   inputProps,
   nameMapping = DEFAULT_NAMES,
   children,
-}) => {
+}: ContactStepProps) => {
   return (
     <Grid
       container

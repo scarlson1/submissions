@@ -1,4 +1,3 @@
-import React from 'react';
 import { Avatar, Badge, SxProps } from '@mui/material';
 import { Edit } from '@mui/icons-material';
 import { getDownloadURL } from 'firebase/storage';
@@ -11,7 +10,7 @@ export interface UpdateProfileImgProps {
   avatarSx?: SxProps;
 }
 
-export const UpdateProfileImg: React.FC<UpdateProfileImgProps> = ({ avatarSx }) => {
+export const UpdateProfileImg = ({ avatarSx }: UpdateProfileImgProps) => {
   useRequireAuth({});
   const { user } = useAuth();
   const toast = useAsyncToast();

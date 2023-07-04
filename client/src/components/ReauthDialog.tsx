@@ -1,4 +1,5 @@
-import React, { useCallback, useState } from 'react';
+import { useCallback, useState } from 'react';
+
 import {
   Button,
   Box,
@@ -69,7 +70,7 @@ const validation = yup.object({
 
 // TODO: display error (in addition to toasts from useHandleAuthError hook)
 
-export const ReauthDialog: React.FC<ReauthDialogProps> = ({
+export const ReauthDialog = ({
   open,
   onResult,
   onClose,
@@ -78,7 +79,7 @@ export const ReauthDialog: React.FC<ReauthDialogProps> = ({
   description = 'Please reauthenticate to continue with action.',
   dialogProps,
   dialogContentProps,
-}) => {
+}: ReauthDialogProps) => {
   const auth = getAuth();
   const { handleError } = useHandleAuthError();
   const [errMsg, setErrMsg] = useState<string>();

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { Container, Button, Typography } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 import Grid from '@mui/material/Unstable_Grid2';
@@ -43,7 +43,7 @@ interface SignUpValues {
 // and linkinng anonymous accounts
 // https://firebase.google.com/docs/auth/web/anonymous-auth#email-password-sign-in
 
-export const CreateAccount: React.FC = () => {
+export const CreateAccount = () => {
   const auth = useAuth();
   const navigate = useNavigate();
   const location = useLocation();

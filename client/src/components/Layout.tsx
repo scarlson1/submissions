@@ -1,4 +1,5 @@
-import React, { Suspense } from 'react';
+import { Suspense } from 'react';
+
 import { Box, Container, ContainerProps, SxProps } from '@mui/material';
 import { Outlet } from 'react-router-dom';
 
@@ -22,13 +23,13 @@ export interface LayoutProps {
   withBreadcrumbs?: boolean;
 }
 
-export const Layout: React.FC<LayoutProps> = ({
+export const Layout = ({
   noPadding = false,
   mainSX,
   bodyWrapperSX,
   containerProps,
   withBreadcrumbs = false,
-}) => {
+}: LayoutProps) => {
   // const { isPending } = useConcurrentLocation();
 
   // console.log('isPending: ', isPending);

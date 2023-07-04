@@ -1,4 +1,3 @@
-import React from 'react';
 import { Box, Button, Typography, Stack } from '@mui/material';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 
@@ -15,7 +14,7 @@ interface FormErrorProps {
   buttons?: ErrorButtons[];
 }
 
-const FormError: React.FC<FormErrorProps> = ({ title, subTitle, buttons }) => {
+const FormError = ({ title, subTitle, buttons }: FormErrorProps) => {
   const navigate = useNavigate();
 
   return (

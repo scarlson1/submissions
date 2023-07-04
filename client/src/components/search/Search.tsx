@@ -1,6 +1,7 @@
 import './search.css';
 
-import React, { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState, useRef } from 'react';
+
 import {
   Backdrop,
   Box,
@@ -66,8 +67,8 @@ export function Search({
   shortcutKey = 'k',
   ...props
 }: SearchProps) {
-  const searchButtonRef = React.useRef<HTMLButtonElement>(null);
-  const [isOpen, setIsOpen] = React.useState(false);
+  const searchButtonRef = useRef<HTMLButtonElement>(null);
+  const [isOpen, setIsOpen] = useState(false);
   const { mode } = useChangeTheme();
 
   useEffect(() => {

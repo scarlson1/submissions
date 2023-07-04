@@ -1,9 +1,9 @@
 import { AutocompleteReshapeSource, BaseItem } from '@algolia/autocomplete-core';
 import { AutocompleteSource } from '@algolia/autocomplete-js';
 import { flatten } from '@algolia/autocomplete-shared';
+import { startCase } from 'lodash';
 
 import type { DocSearchHit, InternalDocSearchHit } from 'common';
-import { startCase } from 'lodash';
 
 const regexHighlightTags = /(<mark>|<\/mark>)/g;
 const regexHasHighlightTags = RegExp(regexHighlightTags.source);

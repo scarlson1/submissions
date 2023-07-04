@@ -1,4 +1,4 @@
-import React from 'react';
+import { forwardRef } from 'react';
 import { GridToolbarContainer, GridToolbarProps, useGridRootProps } from '@mui/x-data-grid';
 
 import { GridToolbarColumnsIconButton } from './GridToolbarColumnsIconButton';
@@ -6,7 +6,7 @@ import { GridToolbarFilterIconButton } from './GridToolbarFilterIconButton';
 import { GridToolbarDensityIconButton } from './GridToolbarDensityIconButton';
 import { GridToolbarExportMobile } from './GridToolbarExportMobile';
 
-export const GridMobileToolbar = React.forwardRef<HTMLDivElement, GridToolbarProps>(
+export const GridMobileToolbar = forwardRef<HTMLDivElement, GridToolbarProps>(
   function GridMobileToolbar(props, ref) {
     const {
       className,

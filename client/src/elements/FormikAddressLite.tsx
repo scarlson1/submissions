@@ -1,4 +1,5 @@
-import React, { useCallback, useState } from 'react';
+import { useCallback, useState } from 'react';
+
 import {
   Button,
   Dialog,
@@ -53,14 +54,14 @@ export interface FormikAddressLiteProps {
   title?: string;
 }
 
-export const FormikAddressLite: React.FC<FormikAddressLiteProps> = ({
+export const FormikAddressLite = ({
   cb,
   textFieldProps,
   autocompleteProps,
   // autocompleteTextFieldProps,
   names = DEFAULT_FIELD_NAMES,
   title = 'Address Details',
-}) => {
+}: FormikAddressLiteProps) => {
   const { setFieldValue } = useFormikContext<any>();
   const [open, setOpen] = useState(false);
   const theme = useTheme();

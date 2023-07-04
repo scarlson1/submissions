@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Box,
   Button,
@@ -27,7 +27,7 @@ import {
 } from 'firebase/firestore';
 import { COLLECTIONS, Moratorium } from 'common';
 
-export const Home: React.FC = () => {
+export const Home = () => {
   // const navigate = useNavigate();
   const { data: user } = useUser({ suspense: false });
   const fName = useMemo(() => (user && user.displayName?.split(' ')[0]) || '', [user]);

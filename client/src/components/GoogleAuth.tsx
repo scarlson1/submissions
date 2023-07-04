@@ -1,4 +1,5 @@
-import React, { useCallback } from 'react';
+import { useCallback } from 'react';
+
 import { Button } from '@mui/material';
 import { AiOutlineGoogle } from 'react-icons/ai';
 import { toast } from 'react-hot-toast';
@@ -12,11 +13,7 @@ export interface GoogleAuthProps {
   onSuccess?: (userCred: UserCredential) => void;
 }
 
-export const GoogleAuth: React.FC<GoogleAuthProps> = ({
-  reauth = false,
-  skipRedirect,
-  onSuccess,
-}) => {
+export const GoogleAuth = ({ reauth = false, skipRedirect, onSuccess }: GoogleAuthProps) => {
   const { loginWithGoogle, reauthWithGoogle } = useSocialAuth({
     onSuccess, // () => {},
     onError: (err: any) => {

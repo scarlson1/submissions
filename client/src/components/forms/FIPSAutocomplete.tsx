@@ -1,4 +1,4 @@
-import React, { useState, useTransition, useCallback } from 'react';
+import { useState, useTransition, useCallback } from 'react';
 import { Autocomplete, Checkbox, TextField } from '@mui/material';
 import { CheckBox, CheckBoxOutlineBlank } from '@mui/icons-material';
 import { doc, DocumentReference, getDoc, getFirestore } from 'firebase/firestore';
@@ -15,7 +15,7 @@ export interface FormikAutocompleteProps {
   name: string;
 }
 
-export const FIPSAutocomplete: React.FC<FormikAutocompleteProps> = ({ name }) => {
+export const FIPSAutocomplete = ({ name }: FormikAutocompleteProps) => {
   const [field, { error, touched }, { setValue, setTouched }] = useField({ name, multiple: true });
   const [inputValue, setInputValue] = useState('');
 
@@ -114,7 +114,7 @@ export const FIPSAutocomplete: React.FC<FormikAutocompleteProps> = ({ name }) =>
 
 // export const FIPSAutocomplete = <T extends unknown>({ name, autocompleteProps }: FormikAutocompleteProps<T>) => {
 
-// export const FIPSAutocomplete: React.FC<FormikAutocompleteProps> = ({ name }) => {
+// export const FIPSAutocomplete<FormikAutocompleteProps> = ({ name }) => {
 //   const [field, { error, touched }, { setValue, setTouched }] = useField({ name, multiple: true });
 //   const [inputValue, setInputValue] = React.useState('');
 

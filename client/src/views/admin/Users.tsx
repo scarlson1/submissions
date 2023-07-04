@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import { useCallback } from 'react';
 import { Box, Tooltip, Typography } from '@mui/material';
 import { GridActionsCellItem, GridRowParams } from '@mui/x-data-grid';
 import { CorporateFareRounded } from '@mui/icons-material';
@@ -11,7 +11,7 @@ import { CUSTOM_CLAIMS, useConfirmation } from 'modules/components';
 import InputDialog from 'components/InputDialog';
 import { User } from 'common';
 
-export const Users: React.FC = () => {
+export const Users = () => {
   const { status, data: signInCheckResult } = useSigninCheck({
     requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true },
     suspense: false,

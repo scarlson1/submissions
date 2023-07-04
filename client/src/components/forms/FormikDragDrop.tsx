@@ -1,4 +1,5 @@
-import React, { useCallback } from 'react';
+import { useCallback } from 'react';
+
 import { Box, Typography } from '@mui/material';
 import { FieldHookConfig, useField } from 'formik';
 
@@ -11,12 +12,12 @@ export interface FormikDragDropProps {
   formikConfig?: Partial<FieldHookConfig<any>>;
 }
 
-export const FormikDragDrop: React.FC<FormikDragDropProps> = ({
+export const FormikDragDrop = ({
   name,
   acceptedTypes,
   filesDragDropProps,
   formikConfig,
-}) => {
+}: FormikDragDropProps) => {
   const [field, meta, helpers] = useField({ name, ...formikConfig });
 
   const handleNewFiles = useCallback(

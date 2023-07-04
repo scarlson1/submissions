@@ -1,4 +1,5 @@
-import React, { useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
+
 import { Editor } from '@tiptap/react';
 import { Box, Button, Popper, ClickAwayListener, alpha } from '@mui/material';
 import { FormatColorTextRounded } from '@mui/icons-material'; // @ts-ignore
@@ -9,7 +10,7 @@ export interface TextColorToolbarProps {
   editor?: Editor;
 }
 
-export const TextColorToolbar: React.FC<TextColorToolbarProps> = ({ editor }) => {
+export const TextColorToolbar = ({ editor }: TextColorToolbarProps) => {
   const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);

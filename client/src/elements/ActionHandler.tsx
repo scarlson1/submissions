@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+
 import { Box, CircularProgress, Typography } from '@mui/material';
 import { Navigate } from 'react-router-dom';
 import { useFunctions } from 'reactfire';
@@ -8,7 +9,7 @@ import { assignQuote } from 'modules/api';
 
 // TODO: error boundary w/ reset error boundary
 
-export const ActionHandler: React.FC = () => {
+export const ActionHandler = () => {
   const mode = useMemo(() => getParamByName(window.location.search, 'mode'), []);
   const actionCode = useMemo(() => getParamByName(window.location.search, 'oobCode'), []);
   const continueUrl = useMemo(() => getParamByName(window.location.search, 'continueUrl'), []);

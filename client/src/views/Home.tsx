@@ -1,4 +1,3 @@
-import React from 'react';
 import { Navigate } from 'react-router-dom';
 
 import { useAuth } from 'modules/components/AuthContext';
@@ -6,7 +5,7 @@ import { ADMIN_ROUTES, createPath, ROUTES } from 'router';
 
 // TODO: add UI state to authContext (admin, user, authedUser)
 
-export const Home: React.FC = () => {
+export const Home = () => {
   const { claims, isSignedIn, isAnonymous } = useAuth();
 
   if (!!claims?.iDemandAdmin)

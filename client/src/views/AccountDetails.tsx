@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Box,
   Paper,
@@ -67,7 +67,7 @@ const MIN_TAB_HEIGHT = 40;
 
 // TODO: auth check
 // TODO: wrap useUser in RXJS observable merging firestore User doc to get orgId (idemand)
-export const AccountDetails: React.FC = () => {
+export const AccountDetails = () => {
   const { data: user } = useUser();
   const theme = useTheme();
   const [tabValue, setTabValue] = useState('account');
@@ -281,7 +281,7 @@ export default AccountDetails;
 function InitializeFIPS() {
   const firebase = useFirestore();
 
-  const initFIPS = React.useCallback(async () => {
+  const initFIPS = useCallback(async () => {
     try {
       const { data } = await axios.get('https://scarlson1.github.io/data/fips.json');
 

@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { AlgoliaLogo } from './AlgoliaLogo';
 
 export type FooterTranslations = Partial<{

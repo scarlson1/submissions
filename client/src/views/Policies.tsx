@@ -30,8 +30,9 @@ import { PoliciesGrid } from 'elements';
 import { formatFirestoreTimestamp } from 'modules/utils';
 import { AdditionalInsured, COLLECTIONS, Policy, fallbackImages } from 'common';
 
-// TODO: change policies view to allow switching between card and grid view
+// TODO: change policies view to allow switching between card and grid view (and map ??)
 // TODO: include change requests in grid ?? (could use rxjs and aggregation query)
+// TODO: make sure component is wrapped in must be authed wrapper in router
 
 export const Policies = () => {
   const { claims, user } = useAuth();
@@ -124,8 +125,6 @@ export const Policies = () => {
 export const UserPolicies = ({ userId }: { userId: string }) => {
   const navigate = useNavigate();
   const theme = useTheme();
-  // const { policies, initialLoading, error } = useUsersPolicies();
-  // const { data: authCheck} = useSigninCheck()
   const { data: policies } = useCollectionData('POLICIES', [where('userId', '==', userId)]);
 
   const handleClick = useCallback(
@@ -136,15 +135,8 @@ export const UserPolicies = ({ userId }: { userId: string }) => {
   );
 
   return (
-    // <Container maxWidth='xl' sx={{ py: { xs: 4, md: 6 } }}>
     <>
       <Grid container spacing={8}>
-        {/* <Grid xs={12} sx={{ display: 'flex' }}>
-          <Typography variant='h4' gutterBottom>
-            Policies
-          </Typography>
-        </Grid> */}
-
         {policies?.map((p, i) => {
           const location =
             p.locations && typeof p.locations === 'object' && !isEmpty(p.locations)
@@ -257,6 +249,5 @@ export const UserPolicies = ({ userId }: { userId: string }) => {
         </Box>
       )}
     </>
-    // </Container>
   );
 };

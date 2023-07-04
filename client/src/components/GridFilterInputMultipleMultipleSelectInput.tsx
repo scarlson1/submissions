@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 // import PropTypes from 'prop-types';
 import { Autocomplete, AutocompleteProps, createFilterOptions } from '@mui/material';
 import { unstable_useId as useId } from '@mui/utils';
@@ -77,14 +77,14 @@ export const GridFilterInputMultipleMultipleSelect = (
   // const getOptionValue = defGetOptionValue;
   // const getOptionLabel = defGetOptionLabel;
 
-  const isOptionEqualToValue = React.useCallback(
+  const isOptionEqualToValue = useCallback(
     (option: ValueOptions, value: ValueOptions) => getOptionValue(option) === getOptionValue(value),
     [getOptionValue]
   );
 
   // const resolvedValueOptions = React.useMemo(() => ['flood', 'wind'], []);
 
-  const resolvedValueOptions = React.useMemo(() => {
+  const resolvedValueOptions = useMemo(() => {
     if (!resolvedColumn?.valueOptions) {
       return [];
     }
@@ -96,13 +96,13 @@ export const GridFilterInputMultipleMultipleSelect = (
     return resolvedColumn.valueOptions;
   }, [resolvedColumn]);
 
-  const resolvedFormattedValueOptions = React.useMemo(() => {
+  const resolvedFormattedValueOptions = useMemo(() => {
     return resolvedValueOptions?.map(getOptionValue);
   }, [resolvedValueOptions, getOptionValue]);
 
   // The value is computed from the item.value and used directly
   // If it was done by a useEffect/useState, the Autocomplete could receive incoherent value and options
-  const filteredValues = React.useMemo(() => {
+  const filteredValues = useMemo(() => {
     if (!Array.isArray(item.value)) {
       return [];
     }
@@ -121,14 +121,14 @@ export const GridFilterInputMultipleMultipleSelect = (
     return item.value;
   }, [item.value, resolvedValueOptions, resolvedFormattedValueOptions]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!Array.isArray(item.value) || filteredValues.length !== item.value.length) {
       // Updates the state if the filter value has been cleaned by the component
       applyValue({ ...item, value: filteredValues.map(getOptionValue) });
     }
   }, [item, filteredValues, applyValue, getOptionValue]);
 
-  const handleChange = React.useCallback<
+  const handleChange = useCallback<
     NonNullable<AutocompleteProps<ValueOptions, true, false, true>['onChange']>
   >(
     (event, value) => {

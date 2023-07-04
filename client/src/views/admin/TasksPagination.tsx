@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import { useCallback } from 'react';
 import { Box, Button, Typography } from '@mui/material';
 import { addDoc, collection, CollectionReference, Timestamp, where } from 'firebase/firestore';
 import { useFirestore, useUser } from 'reactfire';
@@ -85,7 +85,7 @@ export const columns = [
   },
 ];
 
-export const TasksPagination: React.FC = () => {
+export const TasksPagination = () => {
   const { status, data: user } = useUser();
 
   const db = useFirestore();

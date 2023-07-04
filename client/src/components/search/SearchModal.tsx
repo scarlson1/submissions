@@ -1,5 +1,5 @@
 // DOCS: https://www.algolia.com/doc/ui-libraries/autocomplete/guides/creating-a-renderer/
-import React, { useMemo, useState } from 'react';
+import { useRef, useCallback, useMemo, useState } from 'react';
 import { DialogContent, DialogTitle } from '@mui/material';
 import algoliasearch from 'algoliasearch/lite';
 import type { AutocompleteState } from '@algolia/autocomplete-core';
@@ -68,29 +68,29 @@ export function SearchModal({
     status: 'idle',
   });
 
-  const containerRef = React.useRef<HTMLDivElement | null>(null);
-  const modalRef = React.useRef<HTMLDivElement | null>(null);
-  const formElementRef = React.useRef<HTMLDivElement | null>(null);
-  const dropdownRef = React.useRef<HTMLDivElement | null>(null);
-  const inputRef = React.useRef<HTMLInputElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const modalRef = useRef<HTMLDivElement | null>(null);
+  const formElementRef = useRef<HTMLDivElement | null>(null);
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
   // const snippetLength = React.useRef<number>(10);
 
   const searchClient = useMemo(() => algoliasearch(appId, apiKey), [appId, apiKey]);
 
-  const favoriteSearches = React.useRef(
+  const favoriteSearches = useRef(
     createStoredSearches<StoredDocSearchHit>({
       key: `__FAVORITE_SEARCHES__${indexName}`,
       limit: 10,
     })
   ).current;
-  const recentSearches = React.useRef(
+  const recentSearches = useRef(
     createStoredSearches<StoredDocSearchHit>({
       key: `__RECENT_SEARCHES__${indexName}`,
       limit: favoriteSearches.getAll().length === 0 ? 7 : 4,
     })
   ).current;
 
-  const saveRecentSearch = React.useCallback(
+  const saveRecentSearch = useCallback(
     (item: InternalDocSearchHit) => {
       if (disableUserPersonalization) {
         return;

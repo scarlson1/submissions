@@ -1,4 +1,5 @@
-import React, { useCallback, useRef } from 'react';
+import { useCallback, useRef } from 'react';
+
 import { Box, Chip, Divider, Paper } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2/Grid2';
 import { LoadingButton } from '@mui/lab';
@@ -37,13 +38,13 @@ export interface DisclosureFormProps extends Partial<FormikConfig<DisclosureValu
   title?: React.ReactNode;
 }
 
-export const DisclosureForm: React.FC<DisclosureFormProps> = ({
+export const DisclosureForm = ({
   onSubmit,
   editorContent = '',
   initialValues = { products: ['flood', 'wind'], state: '', displayName: '', type: '' },
   title,
   ...rest
-}) => {
+}: DisclosureFormProps) => {
   const formikRef = useRef<FormikProps<DisclosureValues>>(null);
   const editor = useTextEditor({ initContent: editorContent });
 

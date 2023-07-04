@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+
 import { useTheme } from '@mui/material';
 
 import { DeckMap, defaultGeoJsonLayerProps } from './DeckMap';
@@ -10,7 +11,7 @@ export interface CountiesMapProps {
   layerProps?: any;
 }
 
-export const CountiesMap: React.FC<CountiesMapProps> = ({ selectedCounties, layerProps }) => {
+export const CountiesMap = ({ selectedCounties, layerProps }: CountiesMapProps) => {
   const theme = useTheme();
   // const storage = useStorage();
   const [hoverInfo, setHoverInfo] = useState<PickingInfo>();

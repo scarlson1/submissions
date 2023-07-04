@@ -1,4 +1,5 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
+
 import {
   Box,
   Button,
@@ -47,11 +48,11 @@ interface PoliciesMapProps {
   initOrgId?: string | null | undefined;
 }
 
-export const PoliciesMap: React.FC<PoliciesMapProps> = ({
+export const PoliciesMap = ({
   queryConstraints,
   initState = [],
-  // initOrgId,
-}) => {
+}: // initOrgId,
+PoliciesMapProps) => {
   // DATA / QUERY STATE
   const [state, setState] = useState<string[] | null | undefined>([...initState]);
   // const [orgId, setOrgId] = useState<string | null | undefined>(initOrgId);

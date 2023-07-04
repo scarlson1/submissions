@@ -1,4 +1,3 @@
-import React from 'react';
 import { Breakpoint, Container, ContainerProps, Typography } from '@mui/material';
 import { FormikErrors, FormikHelpers } from 'formik';
 
@@ -16,7 +15,7 @@ export interface StepProps {
 }
 // other props to consider: withIcons, withNumbers, iconColor, etc.
 
-export const Step: React.FC<StepProps> = ({ children, label, maxWidth = 'sm', containerProps }) => {
+export const Step = ({ children, label, maxWidth = 'sm', containerProps }: StepProps) => {
   return (
     <Container
       maxWidth={maxWidth}

@@ -1,4 +1,3 @@
-import React from 'react';
 import { Box, BoxProps } from '@mui/material';
 import { DataGrid, GridToolbar, DataGridProps } from '@mui/x-data-grid';
 
@@ -10,13 +9,13 @@ export interface AdditionalNamedInsuredsProps extends DataGridProps {
   withToolbar?: boolean;
 }
 
-export const BasicDataGrid: React.FC<AdditionalNamedInsuredsProps> = ({
+export const BasicDataGrid = ({
   rows,
   columns,
   containerProps,
   withToolbar = false,
   ...props
-}) => {
+}: AdditionalNamedInsuredsProps) => {
   // <Box
   //   sx={{ height: 500, width: '100%', backgroundColor: 'background.paper' }}
   //   {...containerProps}

@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from 'react';
+import { useCallback, useRef } from 'react';
 import { Formik, FormikHelpers, FormikProps } from 'formik';
 import {
   Box,
@@ -11,6 +11,7 @@ import {
   Typography,
 } from '@mui/material';
 import { PercentRounded } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import { startOfYear, lastDayOfYear } from 'date-fns';
 import * as yup from 'yup';
 
@@ -33,7 +34,6 @@ import {
   FormikTextField,
   PercentMask,
 } from 'components/forms';
-import { useNavigate } from 'react-router-dom';
 import { ADMIN_ROUTES, createPath } from 'router';
 
 export const TRANSACTION_OPTIONS: TransactionType[] = [

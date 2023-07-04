@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import {
   ThemeProvider as MuiThemeProvider,
   createTheme,
@@ -6,9 +6,9 @@ import {
 } from '@mui/material/styles';
 import { PaletteMode as PaletteModeType, useMediaQuery } from '@mui/material';
 import CssBaseline from '@mui/material/CssBaseline';
+import { deepmerge } from '@mui/utils';
 
 import { getDesignTokens, getThemedComponents } from 'modules/theme';
-import { deepmerge } from '@mui/utils';
 import { useLocalStorage } from 'hooks';
 
 // https://github.com/mui/material-ui/blob/master/docs/src/modules/brandingTheme.ts
@@ -19,7 +19,7 @@ interface ColorModeContextValue {
   toggleColorMode: () => void;
 }
 
-export const ColorModeContext = React.createContext<ColorModeContextValue | undefined>(undefined);
+export const ColorModeContext = createContext<ColorModeContextValue | undefined>(undefined);
 // export const ColorModeContext = React.createContext({
 //   mode: 'light',
 //   toggleColorMode: () => {},
@@ -83,7 +83,7 @@ export function ThemeProvider(props: any) {
 }
 
 export function useChangeTheme() {
-  const colorMode = React.useContext(ColorModeContext);
+  const colorMode = useContext(ColorModeContext);
 
   if (colorMode === undefined) {
     throw new Error('useChangeTheme must be used within ThemeProvider');

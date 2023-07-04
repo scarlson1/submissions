@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   Breadcrumbs as MuiBreadcrumbs,
   BreadcrumbsProps,
@@ -51,7 +50,7 @@ export function RouterLink(props: RouterLinkProps) {
 //   );
 // }
 
-export const Breadcrumbs: React.FC<BreadcrumbsProps> = (props) => {
+export const Breadcrumbs = (props: BreadcrumbsProps) => {
   const matches = useMatches() as CrumbMatch[];
 
   let crumbs = matches
@@ -102,7 +101,7 @@ export const Breadcrumbs: React.FC<BreadcrumbsProps> = (props) => {
 //   );
 // }
 
-// export const Breadcrumbs: React.FC<BreadcrumbsProps> = (props) => {
+// export const Breadcrumbs<BreadcrumbsProps> = (props) => {
 //   const location = useLocation();
 //   // const matches = useMatches();
 //   // console.log('MATCHES: ', matches);

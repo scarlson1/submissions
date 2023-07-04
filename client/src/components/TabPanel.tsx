@@ -1,4 +1,3 @@
-import React from 'react';
 import { Box } from '@mui/material';
 
 // REPLACED WITH TabPanel from '@mui/lab';
@@ -9,7 +8,7 @@ export interface TabPanelProps {
   value: number;
 }
 
-export const TabPanel: React.FC<TabPanelProps> = (props) => {
+export const TabPanel = (props: TabPanelProps) => {
   const { children, value, index, ...other } = props;
 
   return (

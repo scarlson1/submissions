@@ -1,5 +1,5 @@
 import { TextField, TextFieldProps } from '@mui/material';
-import React from 'react';
+
 import { UseControllerProps, useController } from 'react-hook-form';
 
 export interface RHFTextFieldProps extends UseControllerProps<any, any> {
@@ -7,7 +7,7 @@ export interface RHFTextFieldProps extends UseControllerProps<any, any> {
   label: string;
 }
 
-export const RHFTextField: React.FC<RHFTextFieldProps> = ({ textFieldProps, label, ...props }) => {
+export const RHFTextField = ({ textFieldProps, label, ...props }: RHFTextFieldProps) => {
   const {
     field,
     fieldState: { isTouched, error },

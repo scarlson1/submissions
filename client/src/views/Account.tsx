@@ -1,6 +1,5 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { Box, Button, Divider, Typography } from '@mui/material';
-import Grid from '@mui/material/Unstable_Grid2';
+import { useCallback, useEffect, useState } from 'react';
+import { Box, Button, Divider, Typography, Unstable_Grid2 as Grid } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 import { SaveRounded } from '@mui/icons-material';
 import { toast } from 'react-hot-toast';
@@ -86,7 +85,7 @@ export interface UserAccountValues {
   phoneNumber: string;
 }
 
-export const Account: React.FC = () => {
+export const Account = () => {
   // TODO: use loader to get user data?? pass user ID in url ? permissions ??
   const account = useUserAccount();
   const updateAccount = useUpdateAccount({

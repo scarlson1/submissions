@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { TextFieldProps } from '@mui/material/TextField';
 import { unstable_useId as useId } from '@mui/utils';
@@ -33,13 +33,13 @@ function GridFilterInputValue(props: GridTypeFilterInputValueProps) {
     InputProps,
     ...others
   } = props;
-  const filterTimeout = React.useRef<any>();
-  const [filterValueState, setFilterValueState] = React.useState<string | number>(item.value ?? '');
-  const [applying, setIsApplying] = React.useState(false);
+  const filterTimeout = useRef<any>();
+  const [filterValueState, setFilterValueState] = useState<string | number>(item.value ?? '');
+  const [applying, setIsApplying] = useState(false);
   const id = useId();
   const rootProps = useGridRootProps();
 
-  const onFilterChange = React.useCallback(
+  const onFilterChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const { value } = event.target;
       clearTimeout(filterTimeout.current);
@@ -55,13 +55,13 @@ function GridFilterInputValue(props: GridTypeFilterInputValueProps) {
     [applyValue, item, type, convertToNumber]
   );
 
-  React.useEffect(() => {
+  useEffect(() => {
     return () => {
       clearTimeout(filterTimeout.current);
     };
   }, []);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const itemValue = item.value ?? '';
     let val = type === 'number' || convertToNumber ? Number(itemValue) || 0 : String(itemValue);
 

@@ -1,6 +1,3 @@
-import React from 'react';
-
-// import { NoResultsIcon } from './icons';
 import type { ScreenStateProps } from './ScreenState';
 import type { InternalDocSearchHit } from 'common';
 

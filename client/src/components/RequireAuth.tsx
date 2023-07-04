@@ -1,4 +1,5 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
+
 // import { CircularProgress } from '@mui/material';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { getAuth, signInAnonymously, UserCredential } from 'firebase/auth';
@@ -20,13 +21,13 @@ export interface RequireAuthProps {
   shouldSignInAnonymously?: boolean;
 }
 
-export const RequireAuth: React.FC<RequireAuthProps> = ({
+export const RequireAuth = ({
   children,
   allowAnonymous = false,
   requiredClaims = null,
   redirectPath = createPath({ path: AUTH_ROUTES.LOGIN }),
   shouldSignInAnonymously = false,
-}) => {
+}: RequireAuthProps) => {
   const auth = getAuth();
   let { claims } = useAuth(); // loadingInitial, //error,
   let location = useLocation();

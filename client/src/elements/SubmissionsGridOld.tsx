@@ -1,4 +1,5 @@
-import React, { useCallback, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
+
 import { Box, Chip, ChipProps, Tooltip } from '@mui/material';
 import {
   DataGridProps,
@@ -39,12 +40,12 @@ export interface SubmissionGridProps extends Partial<DataGridProps> {
   additionalColumns?: GridColDef<any, any, any>[];
 }
 
-export const SubmissionsGridOld: React.FC<SubmissionGridProps> = ({
+export const SubmissionsGridOld = ({
   rows,
   actions = [],
   additionalColumns = [],
   ...props
-}) => {
+}: SubmissionGridProps) => {
   const navigate = useNavigate();
 
   const openMap = useCallback(

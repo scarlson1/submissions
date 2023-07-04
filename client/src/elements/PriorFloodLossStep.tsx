@@ -1,4 +1,5 @@
-import React, { useCallback } from 'react';
+import { useCallback } from 'react';
+
 import { ToggleButton } from '@mui/material';
 import { FormikToggleButtonGroup } from 'components/forms';
 import { useFormikContext } from 'formik';
@@ -6,7 +7,7 @@ import { FloodValues } from 'views/SubmissionNew';
 
 export interface PriorFloodLossStepProps {}
 
-export const PriorFloodLossStep: React.FC<PriorFloodLossStepProps> = () => {
+export const PriorFloodLossStep = (props: PriorFloodLossStepProps) => {
   const { values, setFieldValue } = useFormikContext<FloodValues>();
 
   const handleLossCountChange = useCallback(

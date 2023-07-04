@@ -1,4 +1,5 @@
-import React, { useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
+
 import { Editor } from '@tiptap/react';
 import { Box, Button, Popper, ClickAwayListener } from '@mui/material';
 import { FormatPaintRounded } from '@mui/icons-material'; // @ts-ignore
@@ -8,7 +9,7 @@ export interface HighlightToolbarProps {
   editor?: Editor;
 }
 
-export const HighlightToolbar: React.FC<HighlightToolbarProps> = ({ editor }) => {
+export const HighlightToolbar = ({ editor }: HighlightToolbarProps) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const id = open ? 'highlight-color' : undefined;

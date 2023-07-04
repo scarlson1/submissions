@@ -1,4 +1,5 @@
-import React, { useCallback, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
+
 import { limit, orderBy } from 'firebase/firestore';
 import { Box, Tooltip, Typography } from '@mui/material';
 import {
@@ -58,7 +59,7 @@ import { useCollectionData, useJsonDialog } from 'hooks';
 // loader - use search or params to optionally prefilter by product ?
 // TODO: can use useEffect + subscription to automatically update query when filter changes (like react query)
 
-export const Policies: React.FC = () => {
+export const Policies = () => {
   const { data, status } = useCollectionData('POLICIES', [
     orderBy('metadata.created', 'desc'),
     limit(100),

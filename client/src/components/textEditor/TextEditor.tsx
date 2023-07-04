@@ -1,4 +1,5 @@
-import React, { useCallback } from 'react';
+import { useCallback } from 'react';
+
 import { EditorContent, JSONContent } from '@tiptap/react';
 import { Box, Button, Paper } from '@mui/material';
 import { toast } from 'react-hot-toast';
@@ -17,7 +18,7 @@ export interface TextEditorProps {
   placeholder?: string;
 }
 
-export const TextEditor: React.FC<TextEditorProps> = ({ onSave }) => {
+export const TextEditor = ({ onSave }: TextEditorProps) => {
   const editor = useTextEditor({});
 
   const handleSave = useCallback(() => {

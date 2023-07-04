@@ -1,4 +1,5 @@
-import React, { useCallback } from 'react';
+import { useCallback } from 'react';
+
 import { Editor } from '@tiptap/react';
 import { ToggleButton, ToggleButtonGroup, Tooltip } from '@mui/material';
 import { HorizontalRuleRounded, InsertPageBreakRounded } from '@mui/icons-material';
@@ -9,7 +10,7 @@ export interface SectionBreaksToolbarProps {
   editor?: Editor;
 }
 
-export const SectionBreaksToolbar: React.FC<SectionBreaksToolbarProps> = ({ editor }) => {
+export const SectionBreaksToolbar = ({ editor }: SectionBreaksToolbarProps) => {
   const handleDivider = useCallback(() => {
     editor?.chain().focus().setHorizontalRule().run();
   }, [editor]);

@@ -1,4 +1,5 @@
-import React, { useCallback, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
+
 import { Box, Button, Tooltip, Typography } from '@mui/material';
 import { ArticleRounded, EditRounded, DeleteRounded } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
@@ -29,7 +30,7 @@ const ContentSnippet = ({ json }: { json: JSONContent }) => {
   );
 };
 
-export const Disclosures: React.FC = () => {
+export const Disclosures = () => {
   const navigate = useNavigate();
   const firestore = useFirestore();
   const dialog = useConfirmation();

@@ -1,4 +1,5 @@
-import React, { useCallback } from 'react';
+import { useCallback, useState } from 'react';
+
 import {
   Box,
   Collapse,
@@ -20,17 +21,17 @@ interface NavListItemProps {
   // handleClose?: () => void;
 }
 
-export const NavListItem: React.FC<NavListItemProps> = ({
+export const NavListItem = ({
   title,
   route,
   items,
   icon,
   // handleClose,
   ...props
-}) => {
+}: NavListItemProps) => {
   const location = useLocation();
   const isExpandable = items && items.length > 0;
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = useState(false);
 
   const handleExpandClick = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {

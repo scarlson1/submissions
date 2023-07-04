@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import {
   Alert,
   alpha,
@@ -12,8 +12,8 @@ import {
   Stack,
   Tooltip,
   Typography,
+  Unstable_Grid2 as Grid,
 } from '@mui/material';
-import Grid from '@mui/material/Unstable_Grid2/Grid2';
 import { CancelRounded, CheckCircleRounded } from '@mui/icons-material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useFirestore, useFirestoreDocData } from 'reactfire';
@@ -33,7 +33,7 @@ import {
 import { createPath, ROUTES } from 'router';
 import { useAnalyticsEvent } from 'hooks';
 
-export const ViewQuote: React.FC = () => {
+export const ViewQuote = () => {
   const navigate = useNavigate();
   const { quoteId } = useParams();
   if (!quoteId) throw new Error('missing quoteId');

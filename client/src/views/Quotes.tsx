@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import { useCallback } from 'react';
 import { useUser } from 'reactfire';
 import { Box, Tooltip, Typography } from '@mui/material';
 import { where } from 'firebase/firestore';
@@ -13,7 +13,7 @@ import { ROUTES, createPath } from 'router';
 
 // TODO: UPDATE NON-ADMIN VIEW TO USE BREADCRUMBS
 
-export const Quotes: React.FC = () => {
+export const Quotes = () => {
   const { claims, user } = useAuth(); // TODO: can wrap in <RequireAuth> to ensure claims has loaded ??
 
   if (claims?.iDemandAdmin) return <AdminQuotes />;

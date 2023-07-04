@@ -1,4 +1,4 @@
-import React, { MouseEvent, useCallback } from 'react';
+import { memo, useRef, useState, useEffect, MouseEvent, useCallback } from 'react';
 import {
   Box,
   Chip,
@@ -105,14 +105,14 @@ function isOverflown(element: Element): boolean {
   return element.scrollHeight > element.clientHeight || element.scrollWidth > element.clientWidth;
 }
 
-const GridCellExpand = React.memo(function GridCellExpand(props: GridCellExpandProps) {
+const GridCellExpand = memo(function GridCellExpand(props: GridCellExpandProps) {
   const { width, value } = props;
-  const wrapper = React.useRef<HTMLDivElement | null>(null);
-  const cellDiv = React.useRef(null);
-  const cellValue = React.useRef(null);
-  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-  const [showFullCell, setShowFullCell] = React.useState(false);
-  const [showPopper, setShowPopper] = React.useState(false);
+  const wrapper = useRef<HTMLDivElement | null>(null);
+  const cellDiv = useRef(null);
+  const cellValue = useRef(null);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [showFullCell, setShowFullCell] = useState(false);
+  const [showPopper, setShowPopper] = useState(false);
 
   const handleMouseEnter = () => {
     const isCurrentlyOverflown = isOverflown(cellValue.current!);
@@ -125,7 +125,7 @@ const GridCellExpand = React.memo(function GridCellExpand(props: GridCellExpandP
     setShowFullCell(false);
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!showFullCell) {
       return undefined;
     }

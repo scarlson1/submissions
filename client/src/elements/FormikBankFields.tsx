@@ -1,4 +1,3 @@
-import React from 'react';
 import Grid, { Grid2Props } from '@mui/material/Unstable_Grid2';
 
 import { FormikSelect, FormikTextField } from '../components/forms';
@@ -9,7 +8,7 @@ export interface FormikBankFieldsProps {
   gridProps?: Grid2Props;
 }
 
-export const FormikBankFields: React.FC<FormikBankFieldsProps> = ({ gridProps }) => {
+export const FormikBankFields = ({ gridProps }: FormikBankFieldsProps) => {
   return (
     <Grid container spacing={2} sx={{ mt: 2 }} {...gridProps}>
       <Grid xs={12} sm={6}>

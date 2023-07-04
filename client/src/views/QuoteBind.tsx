@@ -1,4 +1,5 @@
-import React, { useRef, useCallback, useState, useEffect, useMemo } from 'react';
+import { useRef, useCallback, useState, useEffect, useMemo } from 'react';
+
 import {
   Avatar,
   Box,
@@ -97,7 +98,7 @@ export interface BindQuoteValues {
   additionalInterests: AdditionalInterest[];
 }
 
-export const QuoteBind: React.FC = () => {
+export const QuoteBind = () => {
   const navigate = useNavigate();
   const { data: signInCheckResult } = useSigninCheck();
   const { quoteId } = useParams();
@@ -540,10 +541,7 @@ export interface EffectiveDateStepProp extends LogAnalyticsProp {
   expiration?: Date | null;
 }
 
-export const EffectiveDateStep: React.FC<EffectiveDateStepProp> = ({
-  expiration,
-  logAnalyticsStep,
-}) => {
+export const EffectiveDateStep = ({ expiration, logAnalyticsStep }: EffectiveDateStepProp) => {
   const { values } = useFormikContext<BindQuoteValues>();
 
   useEffect(() => {
@@ -672,7 +670,7 @@ export interface PaymentCardProps {
   error: string | null;
 }
 
-export const PaymentCard: React.FC<PaymentCardProps> = ({ cardDetails, loading, error }) => {
+export const PaymentCard = ({ cardDetails, loading, error }: PaymentCardProps) => {
   const theme = useTheme();
   // const { cardDetails, loading, error } = useCardDetails(id);
 

@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import { ReactNode, useCallback } from 'react';
 import { doc, getDoc, orderBy, where } from 'firebase/firestore';
 import {
   Box,
@@ -61,7 +61,7 @@ export const ShowRatingDialog = ({ id, btnProps }: { id: string; btnProps?: Butt
   );
 };
 
-export const RowItem: React.FC<{ title: string; value: React.ReactNode }> = ({ title, value }) => (
+export const RowItem = ({ title, value }: { title: string; value: ReactNode }) => (
   <Stack direction='row' spacing={1} display='flex' alignItems='flex-start'>
     <Box
       sx={{
@@ -97,7 +97,7 @@ export const RowItem: React.FC<{ title: string; value: React.ReactNode }> = ({ t
   </Stack>
 );
 
-export const SubmissionView: React.FC = () => {
+export const SubmissionView = () => {
   const { submissionId } = useParams();
   invariant(submissionId, 'Missing submission record ID');
 

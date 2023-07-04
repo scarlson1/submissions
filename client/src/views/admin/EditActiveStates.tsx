@@ -1,4 +1,4 @@
-import React, { Suspense, useCallback, useRef } from 'react';
+import { Suspense, useCallback, useRef } from 'react';
 import {
   Box,
   Button,
@@ -26,7 +26,7 @@ export interface EditActiveStatesValues {
   [key: string]: boolean;
 }
 
-export const EditActiveStates: React.FC = () => {
+export const EditActiveStates = () => {
   let { productId } = useSafeParams(['productId']);
   const { data } = useDocData<{ [key: string]: boolean }>('ACTIVE_STATES', productId);
   const formikRef = useRef<FormikProps<EditActiveStatesValues>>(null);

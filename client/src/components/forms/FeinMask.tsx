@@ -1,4 +1,4 @@
-import React from 'react';
+import { forwardRef } from 'react';
 import { IMaskInput } from 'react-imask';
 
 export interface FeinMaskProps {
@@ -6,7 +6,7 @@ export interface FeinMaskProps {
   name: string;
 }
 
-export const FeinMask = React.forwardRef<HTMLElement, FeinMaskProps>(function TextMaskCustom(
+export const FeinMask = forwardRef<HTMLElement, FeinMaskProps>(function TextMaskCustom(
   props,
   ref
 ) {

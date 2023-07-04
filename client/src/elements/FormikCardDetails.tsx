@@ -1,15 +1,13 @@
-import React from 'react';
-import { Typography } from '@mui/material';
-import Grid, { Grid2Props } from '@mui/material/Unstable_Grid2';
+import { Typography, Unstable_Grid2 as Grid, Grid2Props as GridProps } from '@mui/material';
 
 import { FormikTextField } from 'components/forms';
 // import { useWidth } from 'hooks/use-width';
 
 export interface FormikCardDetailsProps {
-  gridProps?: Grid2Props;
+  gridProps?: GridProps;
 }
 
-export const FormikCardDetails: React.FC<FormikCardDetailsProps> = ({ gridProps }) => {
+export const FormikCardDetails = ({ gridProps }: FormikCardDetailsProps) => {
   // const isMobile = useWidth();
 
   return (

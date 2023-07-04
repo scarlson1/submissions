@@ -1,10 +1,10 @@
-import React from 'react';
 import { Chip, Typography } from '@mui/material';
 import type { AutocompleteApi, AutocompleteState, BaseItem } from '@algolia/autocomplete-core';
 
 import { Snippet } from './Snippet';
 import type { SearchProps } from './Search';
 import { COLLECTIONS, InternalDocSearchHit, StoredDocSearchHit } from 'common';
+import { useRef, useState } from 'react';
 
 interface ResultsProps<TItem extends BaseItem>
   extends AutocompleteApi<TItem, React.FormEvent, React.MouseEvent, React.KeyboardEvent> {
@@ -78,9 +78,9 @@ function Result<TItem extends StoredDocSearchHit>({
   collection,
   hitComponent,
 }: ResultProps<TItem>) {
-  const [isDeleting, setIsDeleting] = React.useState(false);
-  const [isFavoriting, setIsFavoriting] = React.useState(false);
-  const action = React.useRef<(() => void) | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isFavoriting, setIsFavoriting] = useState(false);
+  const action = useRef<(() => void) | null>(null);
   const Hit = hitComponent!;
 
   function runDeleteTransition(cb: () => void) {

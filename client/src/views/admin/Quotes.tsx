@@ -1,4 +1,5 @@
-import React, { useCallback } from 'react';
+import { useCallback } from 'react';
+
 import { Box, Button, Tooltip, Typography, useMediaQuery, useTheme } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { doc, getDoc, getFirestore, updateDoc } from 'firebase/firestore';
@@ -83,7 +84,7 @@ export const useConfirmAndUpdate = (updateFn: (id: string, vals: Partial<any>) =
   return confirm;
 };
 
-export const Quotes: React.FC = () => {
+export const Quotes = () => {
   const navigate = useNavigate();
   const updateQuote = useUpdateQuote();
   const confirmAndUpdate = useConfirmAndUpdate(updateQuote);
@@ -366,7 +367,7 @@ export const Quotes: React.FC = () => {
 //   return confirm;
 // };
 
-// export const Quotes: React.FC = () => {
+// export const Quotes = () => {
 //   const navigate = useNavigate();
 //   const { data, status } = useCollectionData('QUOTES', [
 //     orderBy('metadata.created', 'desc'),

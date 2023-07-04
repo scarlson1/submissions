@@ -1,4 +1,3 @@
-import React from 'react';
 import { Editor } from '@tiptap/react';
 import { Box, Divider, Paper } from '@mui/material';
 
@@ -18,7 +17,7 @@ export interface EditorToolbarProps {
   editor?: Editor | null;
 }
 
-export const EditorToolbar: React.FC<EditorToolbarProps> = ({ editor }) => {
+export const EditorToolbar = ({ editor }: EditorToolbarProps) => {
   if (!editor) {
     return null;
   }

@@ -1,4 +1,5 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
+
 import { Box, Button, Typography } from '@mui/material';
 import { GridColDef, GridValueFormatterParams } from '@mui/x-data-grid';
 import { AddBusinessRounded } from '@mui/icons-material';
@@ -30,7 +31,7 @@ import { ServerDataGrid } from 'components';
 import { formatGridPercent } from 'modules/utils';
 import { CUSTOM_CLAIMS } from 'modules/components';
 
-export const Organizations: React.FC = () => {
+export const Organizations = () => {
   const navigate = useNavigate();
   const { data } = useSigninCheck({ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } });
 

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import { forwardRef, useCallback, useMemo, useRef, useState } from 'react';
+
 import {
   Autocomplete,
   autocompleteClasses,
@@ -27,14 +28,14 @@ export interface VirtualizedAutocompleteProps {
   textFieldProps?: TextFieldProps;
 }
 
-export const VirtualizedAutocomplete: React.FC<VirtualizedAutocompleteProps> = ({
+export const VirtualizedAutocomplete = ({
   name,
   options,
   // multiple = true,
   getOptionLabel = (o) => `${o}`,
   autocompleteProps,
   textFieldProps,
-}) => {
+}: VirtualizedAutocompleteProps) => {
   const [field, { error, touched }, { setValue, setTouched }] = useField({
     name,
     multiple: autocompleteProps?.multiple || false,
@@ -92,7 +93,7 @@ export const VirtualizedAutocomplete: React.FC<VirtualizedAutocompleteProps> = (
   );
 };
 
-const ListboxComponent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLElement>>(
+const ListboxComponent = forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLElement>>(
   function ListboxComponent({ children, ...rest }, ref) {
     const itemData: any[] = [];
     (children as any[]).forEach((item: any & { children?: any[] }) => {
@@ -100,10 +101,10 @@ const ListboxComponent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<H
       itemData.push(...(item.children || []));
     });
 
-    const parentRef = React.useRef<any>();
+    const parentRef = useRef<any>();
 
-    const activeStickyIndexRef = React.useRef(0);
-    const stickyIndexes = React.useMemo<number[]>(
+    const activeStickyIndexRef = useRef(0);
+    const stickyIndexes = useMemo<number[]>(
       () => itemData.map((r, i) => (r.hasOwnProperty('group') ? i : -1)).filter((x) => x !== -1), // eslint-disable-next-line react-hooks/exhaustive-deps
       []
     );
@@ -113,7 +114,7 @@ const ListboxComponent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<H
       getScrollElement: () => parentRef.current,
       estimateSize: () => 35,
       overscan: 5,
-      rangeExtractor: React.useCallback(
+      rangeExtractor: useCallback(
         (range: Range) => {
           activeStickyIndexRef.current = [...stickyIndexes]
             .reverse()

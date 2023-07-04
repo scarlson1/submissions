@@ -1,11 +1,9 @@
-import React from 'react';
-
 interface BarProps {
   animationDuration: number;
   progress: number;
 }
 
-export const Bar: React.FC<BarProps> = ({ animationDuration, progress }) => {
+export const Bar = ({ animationDuration, progress }: BarProps) => {
   return (
     <div
       style={{

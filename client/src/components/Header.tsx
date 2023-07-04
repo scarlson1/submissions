@@ -1,4 +1,5 @@
-import React, { Suspense, useEffect, useMemo, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
+
 import {
   AppBar,
   Avatar,
@@ -63,7 +64,7 @@ export interface NavItem {
 
 export interface HeaderProps {}
 
-export const Header: React.FC<HeaderProps> = () => {
+export const Header = (props: HeaderProps) => {
   const theme = useTheme();
   const { toggleColorMode: changeTheme } = useChangeTheme();
   const navigate = useNavigate();
@@ -487,7 +488,7 @@ interface UserMenuProps {
   // menuItems: { label: string; onClick: () => void; icon?: JSX.Element }[];
 }
 
-const UserMenu: React.FC<UserMenuProps> = () => {
+const UserMenu = (props: UserMenuProps) => {
   const navigate = useNavigate();
   const location = useLocation();
   // TODO: use suspense ??
@@ -692,7 +693,7 @@ const UserMenu: React.FC<UserMenuProps> = () => {
 //   menuItems: { title: string; route: string }[];
 // }
 // // TODO: fix menu open bug
-// const NavMenu: React.FC<NavMenuProps> = ({ title, menuItems }) => {
+// const NavMenu<NavMenuProps> = ({ title, menuItems }) => {
 //   const location = useLocation();
 //   const navigate = useNavigate();
 //   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);

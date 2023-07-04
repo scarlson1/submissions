@@ -1,4 +1,4 @@
-import React from 'react';
+import { useEffect } from 'react';
 import './App.css';
 import {
   Outlet,
@@ -36,7 +36,7 @@ Sentry.init({
     new Sentry.Replay(),
     new Sentry.BrowserTracing({
       routingInstrumentation: Sentry.reactRouterV6Instrumentation(
-        React.useEffect,
+        useEffect,
         useLocation,
         useNavigationType,
         createRoutesFromChildren,
@@ -92,7 +92,7 @@ function PageViewLogger() {
   const logE = useAnalyticsEvent();
 
   // only log on first render and when the `pathname` changes
-  React.useEffect(() => {
+  useEffect(() => {
     logE('page_view', { page_location: location.pathname });
   }, [location.pathname, logE]);
 

@@ -1,4 +1,5 @@
-import React, { useCallback } from 'react';
+import { useCallback } from 'react';
+
 import { Editor } from '@tiptap/react';
 import { alpha, MenuItem, Select, SelectChangeEvent, Typography } from '@mui/material';
 
@@ -28,7 +29,7 @@ const FONTS = [
   'Verdana',
 ];
 
-export const FontFamilyToolbar: React.FC<FontFamilyToolbarProps> = ({ editor }) => {
+export const FontFamilyToolbar = ({ editor }: FontFamilyToolbarProps) => {
   const handleChange = useCallback(
     (event: SelectChangeEvent<unknown>, child: React.ReactNode) => {
       let newVal = event.target.value as string;

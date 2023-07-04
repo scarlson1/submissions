@@ -1,4 +1,3 @@
-import React from 'react';
 import { Box, Grid, Grid2Props, NativeSelectProps, TextFieldProps } from '@mui/material';
 
 import {
@@ -46,7 +45,7 @@ export interface FormikAddressProps {
   autocompleteProps?: Omit<AddressAutocompleteProps, 'resetFields' | 'handleSelection'>;
 }
 
-export const FormikAddress: React.FC<FormikAddressProps> = ({
+export const FormikAddress = ({
   setFieldValue,
   cb,
   textFieldProps,
@@ -56,7 +55,7 @@ export const FormikAddress: React.FC<FormikAddressProps> = ({
   selectFieldProps = {},
   children,
   autocompleteProps, // = {},
-}) => {
+}: FormikAddressProps) => {
   const handleAddressSelection = ({ address_components, geometry }: NewAddress) => {
     const newStreetNumber = findAddressValueByType(address_components, 'street_number');
     const newStreetName = findAddressValueByType(address_components, 'route');

@@ -1,4 +1,3 @@
-import React from 'react';
 import { Box, Unstable_Grid2 as Grid } from '@mui/material';
 import algoliasearch from 'algoliasearch/lite';
 import {
@@ -7,7 +6,7 @@ import {
   Index,
   Pagination,
   SearchBox,
-  Configure,
+  // Configure,
 } from 'react-instantsearch-hooks-web';
 // import { SearchModal } from './SearchModal';
 
@@ -39,13 +38,13 @@ export const SearchOld = () => {
             </Grid>
             <Grid xs={12}>
               <Index indexName='local_tasks'>
-                <Configure hitsPerPage={2} />
+                {/* <Configure hitsPerPage={2} /> */}
                 <Hits hitComponent={Hit} />
               </Index>
             </Grid>
             <Grid xs={12}>
               <Index indexName='local_users'>
-                <Configure hitsPerPage={2} />
+                {/* <Configure hitsPerPage={2} /> */}
                 <Hits hitComponent={UserHits} />
                 <Pagination />
               </Index>

@@ -1,6 +1,6 @@
-import React from 'react';
 import { TextField, TextFieldProps } from '@mui/material';
 import { useField } from 'formik';
+import { forwardRef } from 'react';
 import { InputAttributes, NumericFormat } from 'react-number-format';
 
 export interface DollarMaskProps {
@@ -10,7 +10,7 @@ export interface DollarMaskProps {
   decimalScale?: number;
 }
 
-export const DollarMask = React.forwardRef<typeof NumericFormat<InputAttributes>, DollarMaskProps>(
+export const DollarMask = forwardRef<typeof NumericFormat<InputAttributes>, DollarMaskProps>(
   function DollarMask(props, ref) {
     const { onChange, decimalScale = 0, ...other } = props;
 
@@ -44,7 +44,7 @@ export type FormikDollarMaskFieldProps = TextFieldProps & {
   allowNegative?: boolean;
 };
 
-export const FormikDollarMaskField: React.FC<FormikDollarMaskFieldProps> = ({
+export const FormikDollarMaskField = ({
   name,
   helperText,
   inputProps,
@@ -52,7 +52,7 @@ export const FormikDollarMaskField: React.FC<FormikDollarMaskFieldProps> = ({
   decimalScale = 0,
   allowNegative = false,
   ...rest
-}) => {
+}: FormikDollarMaskFieldProps) => {
   const [field, meta] = useField(name);
 
   return (

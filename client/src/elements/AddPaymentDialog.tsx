@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { forwardRef, useCallback, useEffect, useRef, useState } from 'react';
+
 import {
   Box,
   Button,
@@ -99,7 +100,7 @@ const addPaymentMethodValidation = yup.object().shape({
   }),
 });
 
-export const Transition = React.forwardRef(function Transition(
+export const Transition = forwardRef(function Transition(
   props: TransitionProps & {
     children: React.ReactElement;
   },
@@ -160,13 +161,13 @@ const DEV_INITIAL_VALUES: AddPaymentMethodValues = {
 const DEFAULT_INITIAL_VALUES =
   process.env.REACT_APP_DEV === 'true' ? DEV_INITIAL_VALUES : PROD_INITIAL_VALUES;
 
-export const AddPaymentDialog: React.FC<AddPaymentDialogProps> = ({
+export const AddPaymentDialog = ({
   cb,
   openButtonText,
   initialValues,
   buttonProps,
   containerProps,
-}) => {
+}: AddPaymentDialogProps) => {
   const navigate = useNavigate();
   const { user, isSignedIn, isAnonymous } = useAuth(); // loading, loadingInitial,
   const [open, setOpen] = useState(false);

@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import { useCallback } from 'react';
 import { Box, Typography } from '@mui/material';
 import { FormikHelpers } from 'formik';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -11,7 +11,7 @@ import { ADMIN_ROUTES, createPath } from 'router';
 import { LicenseForm, LicenseValues } from 'elements';
 import { License, LicenseOwner, LicenseType, licensesCollection } from 'common';
 
-export const LicenseEdit: React.FC = () => {
+export const LicenseEdit = () => {
   const firestore = useFirestore();
   const navigate = useNavigate();
   const toast = useAsyncToast({ position: 'top-right' });

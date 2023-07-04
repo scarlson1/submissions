@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+
 import { Box, Link, LinkProps, Typography, TypographyProps } from '@mui/material';
 
 import { useOpenStorageFile } from 'hooks';
@@ -11,13 +12,13 @@ export interface FileLinkProps {
   linkProps?: LinkProps;
 }
 
-export const FileLink: React.FC<FileLinkProps> = ({
+export const FileLink = ({
   filepath,
   url,
   fileType,
   typographyProps,
   linkProps,
-}) => {
+}: FileLinkProps) => {
   let { openFileInNewTab, error } = useOpenStorageFile();
   const [fileExt, setFileExt] = useState('');
 

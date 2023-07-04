@@ -1,4 +1,3 @@
-import React from 'react';
 import { Box, Divider, Typography, TypographyProps } from '@mui/material';
 import { dollarFormat2 } from 'modules/utils/helpers';
 
@@ -11,14 +10,14 @@ export interface LineItemProps {
   formatVal?: (val: string | number) => string | number | null;
 }
 
-export const LineItem: React.FC<LineItemProps> = ({
+export const LineItem = ({
   label,
   value,
   labelTypographyProps,
   valueTypographyProps,
   withDivider = true,
   formatVal = dollarFormat2,
-}) => {
+}: LineItemProps) => {
   return (
     <>
       <Box

@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   InputLabel,
   FormControl,
@@ -19,7 +18,7 @@ export interface FormikMaskFieldProps extends InputProps {
   formikConfig?: Partial<FieldHookConfig<any>>;
 }
 
-export const FormikMaskField: React.FC<FormikMaskFieldProps> = ({
+export const FormikMaskField = ({
   name,
   label,
   id,
@@ -32,7 +31,7 @@ export const FormikMaskField: React.FC<FormikMaskFieldProps> = ({
   sx,
   formikConfig,
   ...props
-}) => {
+}: FormikMaskFieldProps) => {
   const [field, meta] = useField({ name, ...formikConfig });
 
   return (

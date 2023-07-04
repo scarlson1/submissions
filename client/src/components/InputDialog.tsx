@@ -1,4 +1,5 @@
-import React, { useCallback, useState } from 'react';
+import { useCallback, useState } from 'react';
+
 import {
   Button,
   Box,
@@ -32,7 +33,7 @@ export interface InputDialogOptions extends ConfirmationOptions {
   initialInputValue?: string;
 }
 
-export const InputDialog: React.FC<InputDialogOptions> = ({
+export const InputDialog = ({
   open = false,
   onAccept = () => {},
   onClose = () => {},
@@ -52,7 +53,7 @@ export const InputDialog: React.FC<InputDialogOptions> = ({
   dialogContentProps,
   validation,
   initialInputValue = '',
-}) => {
+}: InputDialogOptions) => {
   const [inputVal, setInputVal] = useState(initialInputValue);
   const [checked, setChecked] = useState(true);
   const [isError, setIsError] = useState(false);

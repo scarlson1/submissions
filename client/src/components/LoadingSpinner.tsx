@@ -1,4 +1,3 @@
-import React from 'react';
 import { CircularProgress, CircularProgressProps, Fade, FadeProps, SxProps } from '@mui/material';
 
 export interface LoadingSpinnerProps {
@@ -8,12 +7,12 @@ export interface LoadingSpinnerProps {
   circularProgressProps?: CircularProgressProps;
 }
 
-export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
+export const LoadingSpinner = ({
   loading,
   fadeProps,
   spinnerSx,
   circularProgressProps,
-}) => {
+}: LoadingSpinnerProps) => {
   // style={{ transitionDelay: '50ms' }}
   return (
     <Fade in={loading} unmountOnExit {...fadeProps}>

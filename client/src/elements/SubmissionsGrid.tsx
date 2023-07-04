@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { Box, Tooltip } from '@mui/material';
 import { DataObjectRounded } from '@mui/icons-material';
 import { GridActionsCellItem, GridColDef, GridRowParams } from '@mui/x-data-grid';
@@ -7,52 +7,8 @@ import { useSigninCheck } from 'reactfire';
 import { ServerDataGrid, ServerDataGridProps } from 'components';
 import { useAsyncToast, useGridActions, useShowJson, useWidth } from 'hooks';
 import { CUSTOM_CLAIMS } from 'modules/components';
-import {
-  SUBMISSION_STATUS,
-  Submission,
-  coordinatesCol,
-  latitudeCol,
-  longitudeCol,
-  deductibleCol,
-  emailCol,
-  createdCol,
-  updatedCol,
-  userIdCol,
-  idCol,
-  priorLossCountCol,
-  ratingDataCBRSCol,
-  inlandAALCol,
-  surgeAALCol,
-  annualPremiumCol,
-  displayNameCol,
-  firstNameCol,
-  lastNameCol,
-  statusCol,
-  ratingDataFloodZoneCol,
-  addrLine2Col,
-  addrCityCol,
-  addrStateCol,
-  addrPostalCol,
-  addrFIPSCol,
-  addrCountyCol,
-  addrLine1Col,
-  ratingDataReplacementCostCol,
-  ratingDataPropertyCodeCol,
-  ratingDataYearBuiltCol,
-  ratingDataSqFootageCol,
-  ratingDataNumStoriesCol,
-  ratingDataBasementCol,
-  ratingDataDistToCoastFeetCol,
-  limitACol,
-  limitBCol,
-  limitCCol,
-  limitDCol,
-  tivCol,
-  copyBaseProps,
-  tsunamiAALCol,
-  addressSummaryCol,
-  COLLECTIONS,
-} from 'common';
+import { SUBMISSION_STATUS, Submission, statusCol, COLLECTIONS } from 'common';
+import { submissionCols } from 'modules/gridColumnDefs';
 
 export interface SubmissionsGridProps
   extends Omit<
@@ -120,98 +76,7 @@ export const SubmissionsGrid = ({
         editable: iDAdminResult?.hasRequiredClaims,
         filterable: true,
       },
-      addressSummaryCol,
-      {
-        ...addrLine1Col,
-        description: 'Submission address to be used for insured location',
-      },
-      addrLine2Col,
-      addrCityCol,
-      addrStateCol,
-      addrPostalCol,
-      addrCountyCol,
-      addrFIPSCol,
-      annualPremiumCol,
-      deductibleCol,
-      limitACol,
-      limitBCol,
-      limitCCol,
-      limitDCol,
-      tivCol,
-      {
-        ...displayNameCol,
-        sortable: false,
-        filterable: false,
-        valueGetter: (params) => {
-          if (params.value) return params.value;
-          if (params.row.firstName || params.row.lastName)
-            return `${params.row.firstName} ${params.row.lastName}`.trim();
-          if (params.row.contact?.firstName || params.row.contact?.lastName)
-            return `${params.row.contact?.firstName} ${params.row.contact?.lastName}`.trim();
-          return null;
-        },
-      },
-      {
-        ...firstNameCol,
-        field: 'contact.firstName',
-        valueGetter: (params) => params.row.contact?.firstName || null,
-      },
-      {
-        ...lastNameCol,
-        field: 'contact.lastName',
-        valueGetter: (params) => params.row.contact?.lastName || null,
-      },
-      {
-        ...emailCol,
-        field: 'contact.email',
-        valueGetter: (params) => params.row.contact?.email || null,
-        description: 'Provided contact email',
-      },
-      // replacementCostCol,
-      ratingDataReplacementCostCol,
-      {
-        field: 'exclusions',
-        headerName: 'Exclusions',
-        description: 'Exclusions selected by user',
-        minWidth: 200,
-        flex: 1,
-        editable: false,
-        // TODO: valueFormatter
-      },
-      priorLossCountCol,
-      ratingDataDistToCoastFeetCol,
-      ratingDataBasementCol,
-      ratingDataNumStoriesCol,
-      ratingDataPropertyCodeCol,
-      ratingDataSqFootageCol,
-      ratingDataYearBuiltCol,
-      ratingDataFloodZoneCol,
-      ratingDataCBRSCol,
-      inlandAALCol,
-      surgeAALCol,
-      tsunamiAALCol,
-      coordinatesCol,
-      latitudeCol,
-      longitudeCol,
-      createdCol,
-      updatedCol,
-      {
-        field: 'propertyDataDocId',
-        headerName: 'Property Data Doc ID',
-        description: 'Document ID for the property data response',
-        valueGetter: (params) => params.row.propertyDataDocId || null,
-        ...copyBaseProps,
-      },
-      {
-        ...userIdCol,
-        description:
-          'user ID of the user that created submission (could have been anonymous if they were not signed in)',
-      },
-      {
-        ...idCol,
-        headerName: 'Submission ID',
-        description: 'Document/database ID for the submission',
-      },
+      ...submissionCols,
       ...(additionalColumns || []),
     ],
     [

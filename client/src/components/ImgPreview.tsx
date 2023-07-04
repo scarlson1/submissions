@@ -1,4 +1,4 @@
-import React from 'react';
+import { useEffect, useState } from 'react';
 import {
   CardMedia,
   IconButton,
@@ -20,15 +20,11 @@ export interface ImgPreviewProps {
 }
 
 // TODO: overlay info: https://codesandbox.io/s/material-ui-full-image-card-qb862?from-embed=&file=/src/FullImageCard/FullImageCard.js
-export const ImgPreview: React.FC<ImgPreviewProps> = ({
-  selectedFile,
-  onDelete,
-  deleteButtonProps,
-}) => {
-  const [preview, setPreview] = React.useState<any>();
-  const [isImage, setIsImage] = React.useState(false);
+export const ImgPreview = ({ selectedFile, onDelete, deleteButtonProps }: ImgPreviewProps) => {
+  const [preview, setPreview] = useState<any>();
+  const [isImage, setIsImage] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!selectedFile) {
       setPreview(undefined);
       return;

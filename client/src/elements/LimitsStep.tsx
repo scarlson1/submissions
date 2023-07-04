@@ -1,4 +1,5 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
+
 import { Typography } from '@mui/material';
 import Grid, { Grid2Props } from '@mui/material/Unstable_Grid2';
 import { useFormikContext } from 'formik';
@@ -67,13 +68,13 @@ export interface LimitsStepProps {
   description?: string;
 }
 
-export const LimitsStep: React.FC<LimitsStepProps> = ({
+export const LimitsStep = ({
   gridProps,
   gridItemProps,
   inputProps,
   replacementCost,
   description,
-}) => {
+}: LimitsStepProps) => {
   const { values, setFieldValue, setFieldTouched } = useFormikContext<FloodValues>(); // setFieldValue, setFieldTouched, setStatus
 
   // const handleCoverageActive = useCallback(

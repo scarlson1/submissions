@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
+import { doc, getFirestore, onSnapshot } from 'firebase/firestore';
 
 import { ActiveStates, Product, statesCollection } from 'common';
-import { doc, getFirestore, onSnapshot } from 'firebase/firestore';
 
 export const useActiveStates = (product: Product) => {
   const [activeStates, setActiveStates] = useState<ActiveStates>();

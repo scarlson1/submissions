@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Box, Button, Stack, Typography, useTheme } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 import { OpenInNewRounded, SaveRounded } from '@mui/icons-material';
@@ -84,7 +84,7 @@ export const useEPayTransaction = (id: string | null | undefined) => {
   return useMemo(() => ({ transaction, loading, error }), [transaction, loading, error]);
 };
 
-export const PolicyDelivery: React.FC = () => {
+export const PolicyDelivery = () => {
   const theme = useTheme();
   const navigate = useNavigate();
   const toast = useAsyncToast();

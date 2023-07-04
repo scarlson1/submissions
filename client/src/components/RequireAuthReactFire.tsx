@@ -1,4 +1,5 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
+
 import { Box, Button, CircularProgress, Typography } from '@mui/material';
 import {
   useSigninCheck,
@@ -29,13 +30,13 @@ export interface RequireAuthReactFireProps {
   shouldSignInAnonymously?: boolean;
 }
 
-export const RequireAuthReactFire: React.FC<RequireAuthReactFireProps> = ({
+export const RequireAuthReactFire = ({
   children,
   signInCheckProps,
   allowAnonymous = false,
   shouldSignInAnonymously,
   authPath = AUTH_ROUTES.LOGIN,
-}) => {
+}: RequireAuthReactFireProps) => {
   const location = useLocation();
   const navigate = useNavigate();
   const auth = useAuth();

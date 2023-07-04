@@ -1,4 +1,5 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
+
 import {
   SignInCheckOptionsBasic,
   SignInCheckOptionsClaimsObject,
@@ -23,12 +24,12 @@ export interface ClaimsGuardProps {
   requireAll?: boolean;
 }
 
-export const ClaimsGuard: React.FC<ClaimsGuardProps> = ({
+export const ClaimsGuard = ({
   children,
   requiredClaims = [],
   signInCheckProps = {},
   requireAll = false,
-}) => {
+}: ClaimsGuardProps) => {
   const checkProps = useMemo<SignInCheckProps>(() => {
     if (requiredClaims.length > 0) {
       if (!requireAll && requiredClaims.length > 1)

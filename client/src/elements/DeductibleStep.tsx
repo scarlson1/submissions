@@ -1,4 +1,3 @@
-import React from 'react';
 import { Box, Typography } from '@mui/material';
 import Grid, { Grid2Props } from '@mui/material/Unstable_Grid2';
 
@@ -15,7 +14,7 @@ export interface DeductibleStepProps {
 //    - deductible faq
 //    - link to "Deductibles explained" article once written
 
-export const DeductibleStep: React.FC<DeductibleStepProps> = ({ gridProps, maxDeductible }) => {
+export const DeductibleStep = ({ gridProps, maxDeductible }: DeductibleStepProps) => {
   // TODO: calc max as 20% of limits
   return (
     <Grid

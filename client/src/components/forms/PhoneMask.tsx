@@ -1,4 +1,4 @@
-import React from 'react';
+import { forwardRef } from 'react';
 import { IMaskInput } from 'react-imask';
 
 // TODO: turn into reuable component
@@ -9,7 +9,7 @@ export interface PhoneMaskProps {
   name: string;
 }
 
-export const PhoneMask = React.forwardRef<HTMLElement, PhoneMaskProps>(function TextMaskCustom(
+export const PhoneMask = forwardRef<HTMLElement, PhoneMaskProps>(function TextMaskCustom(
   props,
   ref
 ) {

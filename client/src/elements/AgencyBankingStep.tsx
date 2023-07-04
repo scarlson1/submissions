@@ -1,6 +1,5 @@
-import React from 'react';
-import { Box, Typography, Tooltip } from '@mui/material';
-import Grid from '@mui/material/Unstable_Grid2';
+import { forwardRef } from 'react';
+import { Box, Typography, Tooltip, Unstable_Grid2 as Grid } from '@mui/material';
 import * as yup from 'yup';
 
 import { FormikMaskField, FormikTextField, RoutingNumberMask } from 'components/forms';
@@ -19,7 +18,7 @@ export const bankingValidation = yup.object().shape({
     .required(),
 });
 
-export const TooltipContent = React.forwardRef(({ text, ...props }: any, ref: any) => {
+export const TooltipContent = forwardRef(({ text, ...props }: any, ref: any) => {
   return (
     <Box sx={{ display: 'inline-flex' }} {...props} ref={ref}>
       <Typography variant='subtitle2' sx={{ color: 'text.secondary', pb: 3 }}>
@@ -32,7 +31,7 @@ export const TooltipContent = React.forwardRef(({ text, ...props }: any, ref: an
 
 export interface AgencyBankingStepProps {}
 
-export const AgencyBankingStep: React.FC<AgencyBankingStepProps> = () => {
+export const AgencyBankingStep = (props: AgencyBankingStepProps) => {
   return (
     <Grid
       container

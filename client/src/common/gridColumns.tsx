@@ -29,6 +29,7 @@ import {
   GridValueFormatterParams,
   GridCellParams,
   GridTreeNode,
+  GridSingleSelectColDef,
 } from '@mui/x-data-grid';
 
 import { FileLink, renderGridEmail, renderGridPhone } from 'components';
@@ -329,7 +330,7 @@ export const cityCol: GridColDef = {
   filterOperators: getGridFirestoreStringOperators(),
 };
 
-export const stateCol: GridColDef = {
+export const stateCol: GridSingleSelectColDef = {
   field: 'state',
   headerName: 'State',
   type: 'singleSelect',
@@ -487,7 +488,7 @@ export const coordinatesCol: GridColDef = {
   // open in google maps on click
 };
 
-export const statusCol: GridColDef = {
+export const statusCol: GridSingleSelectColDef = {
   field: 'status',
   headerName: 'Status',
   type: 'singleSelect',
@@ -915,7 +916,7 @@ export const ratingDataDistToCoastFeetCol: GridColDef = {
   valueGetter: (params) => params.row.ratingPropertyData?.distToCoastFeet ?? null,
 };
 
-export const CBRSCol: GridColDef = {
+export const CBRSCol: GridSingleSelectColDef = {
   field: 'CBRSDesignation',
   headerName: 'CBRS Des.',
   description: 'Coastal Barrier Reef System Designation provided by property api',
@@ -934,7 +935,7 @@ export const ratingDataCBRSCol: GridColDef = {
   valueGetter: (params) => params.row.ratingPropertyData?.CBRSDesignation ?? null,
 };
 
-export const floodZoneCol: GridColDef = {
+export const floodZoneCol: GridSingleSelectColDef = {
   field: 'floodZone',
   headerName: 'Flood Zone',
   type: 'singleSelect',
@@ -952,7 +953,7 @@ export const ratingDataFloodZoneCol: GridColDef = {
   valueGetter: (params) => params.row.ratingPropertyData?.floodZone ?? null,
 };
 
-export const priorLossCountCol: GridColDef = {
+export const priorLossCountCol: GridSingleSelectColDef = {
   field: 'priorLossCount',
   headerName: 'Prior Losses',
   description: 'Prior loss count provided by user',
@@ -1177,7 +1178,7 @@ export const locationAddresses: GridColDef = {
   },
 };
 
-export const homeStateCol: GridColDef = {
+export const homeStateCol: GridSingleSelectColDef = {
   field: 'homeState',
   headerName: 'Home State',
   type: 'singleSelect',
@@ -1188,7 +1189,7 @@ export const homeStateCol: GridColDef = {
   filterOperators: getGridFirestoreSelectOperators(),
 };
 
-export const productCol: GridColDef = {
+export const productCol: GridSingleSelectColDef = {
   field: 'product',
   headerName: 'Product',
   minWidth: 100,
@@ -1218,7 +1219,7 @@ function getProductChipProps(value: string): Partial<ChipProps> {
 }
 
 // TODO: multi-select type
-export const productsCol: GridColDef = {
+export const productsCol: GridSingleSelectColDef = {
   // ...GRID_MULTI_SELECT_COL_DEF,
   ...multiSelectExtendsSingle,
   field: 'products',
@@ -1371,7 +1372,7 @@ export const subjectBaseCol: GridColDef = {
 };
 
 // TODO: make multi-select
-export const policyTrxTypesCol: GridColDef = {
+export const policyTrxTypesCol: GridSingleSelectColDef = {
   ...multiSelectExtendsSingle,
   field: 'transactionTypes',
   headerName: 'Transaction Types',
@@ -1385,7 +1386,7 @@ export const policyTrxTypesCol: GridColDef = {
 };
 
 // TODO: make multi-select
-export const LOBCol: GridColDef = {
+export const LOBCol: GridSingleSelectColDef = {
   ...multiSelectExtendsSingle,
   field: 'LOB',
   headerName: 'LOB',

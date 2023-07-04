@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { alpha, Box, Container, IconButton, Skeleton, Tooltip, Typography } from '@mui/material';
 import { ArrowBackIosNewRounded, EditRounded } from '@mui/icons-material';
 import Grid from '@mui/material/Unstable_Grid2';
@@ -16,7 +16,7 @@ import {
 } from 'assets/images';
 import { useDocData, usePolicyChangeRequest } from 'hooks';
 
-export const PolicyOld: React.FC = () => {
+export const PolicyOld = () => {
   const navigate = useNavigate();
   const confirm = useConfirmation();
   const { policyId } = useParams();

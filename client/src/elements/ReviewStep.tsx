@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import { useCallback } from 'react';
 import {
   Box,
   Card,
@@ -52,7 +52,7 @@ export const policyDetails: Detail[] = [
   },
 ];
 
-export const ReviewStep: React.FC = () => {
+export const ReviewStep = () => {
   const { values } = useFormikContext<FloodValues>();
   const confirm = useConfirmation();
   const { disclosureHTML, status } = useDisclosure(values.address?.state);

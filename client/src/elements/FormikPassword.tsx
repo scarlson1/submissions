@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+
 import { InputAdornment, IconButton } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 
@@ -9,7 +10,7 @@ import {
   RHFTextFieldProps,
 } from 'components/forms';
 
-export const FormikPassword: React.FC<Partial<FormikTextFieldProps>> = (props) => {
+export const FormikPassword = (props: Partial<FormikTextFieldProps>) => {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
@@ -45,7 +46,7 @@ interface RHFPasswordProps extends Omit<RHFTextFieldProps, 'name' | 'label' | 't
   label?: string;
 }
 
-export const RHFPassword: React.FC<RHFPasswordProps> = (props) => {
+export const RHFPassword = (props: RHFPasswordProps) => {
   const [showPassword, setShowPassword] = useState(false);
 
   return (

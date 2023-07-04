@@ -1,4 +1,5 @@
-import React, { useCallback, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
+
 import { SendRounded } from '@mui/icons-material';
 import { Avatar, Box, Checkbox, ListItemText, MenuItem, Tooltip, Typography } from '@mui/material';
 import {
@@ -15,21 +16,7 @@ import { DocumentData, QueryConstraint, limit, query, where } from 'firebase/fir
 import { useFirestore, useSigninCheck } from 'reactfire';
 import { isEqual } from 'lodash';
 
-import {
-  COLLECTIONS,
-  User,
-  WithId,
-  createdCol,
-  displayNameCol,
-  emailCol,
-  firstNameCol,
-  idCol,
-  lastNameCol,
-  orgIdCol,
-  phoneCol,
-  updatedCol,
-  usersCollection,
-} from 'common';
+import { COLLECTIONS, User, WithId, usersCollection } from 'common';
 import { BasicDataGrid } from 'components';
 import { useAsyncToast, useCollectionData, useUpdateClaims } from 'hooks';
 import { useCollectionDataPopulateById } from 'hooks/useRx';
@@ -38,6 +25,7 @@ import { getRandomItem } from 'modules/utils';
 import { getRequiredClaimValidator } from 'components/RequireAuthReactFire';
 import { CUSTOM_CLAIMS } from 'modules/components';
 import { GridEditMultiSelectCell } from 'components/GridEditMultiSelectCell';
+import { userCols } from 'modules/gridColumnDefs';
 
 const AVATAR_BACKGROUNDS = [purple[200], blue[200], red[200], lightBlue[200], lightGreen[200]];
 
@@ -46,10 +34,7 @@ export interface UsersGridProps {
   renderActions?: (params: GridRowParams) => JSX.Element[];
 }
 
-export const UsersGrid: React.FC<UsersGridProps> = ({
-  queryConstraints = [],
-  renderActions = () => [],
-}) => {
+export const UsersGrid = ({ queryConstraints = [], renderActions = () => [] }: UsersGridProps) => {
   const { data, status } = useCollectionData<User>('USERS', [...queryConstraints, limit(100)], {
     suspense: false,
   });
@@ -79,18 +64,7 @@ export const UsersGrid: React.FC<UsersGridProps> = ({
           // ...actions,
         ],
       },
-      displayNameCol,
-      firstNameCol,
-      lastNameCol,
-      emailCol,
-      phoneCol,
-      createdCol,
-      updatedCol,
-      {
-        ...idCol,
-        headerName: 'User ID',
-      },
-      orgIdCol,
+      ...userCols,
     ],
     [renderActions]
   );
@@ -132,14 +106,14 @@ export interface AdminManageUsersGridProps extends Omit<DataGridProps, 'rows' | 
   columnAdjustments?: GridColDef[];
 }
 
-export const AdminManageUsersGrid: React.FC<AdminManageUsersGridProps> = ({
+export const AdminManageUsersGrid = ({
   queryConstraints = [],
   orgId,
   columnVisibilityModel = {},
   columnAdjustments = [],
   renderActions = () => [],
   ...props
-}) => {
+}: AdminManageUsersGridProps) => {
   // const { data, status } = useCollectionData<User>('USERS', [...queryConstraints, limit(100)], {
   //   suspense: false,
   // });
@@ -231,11 +205,6 @@ export const AdminManageUsersGrid: React.FC<AdminManageUsersGridProps> = ({
           </Box>
         ),
       },
-      displayNameCol,
-      firstNameCol,
-      lastNameCol,
-      emailCol,
-      phoneCol,
       {
         field: 'userClaims',
         headerName: 'Roles',
@@ -293,14 +262,7 @@ export const AdminManageUsersGrid: React.FC<AdminManageUsersGridProps> = ({
         closeOnChange: false,
         // autoStopEditMode: true,
       },
-      createdCol,
-      updatedCol,
-      {
-        ...idCol,
-        field: 'userId',
-        headerName: 'User ID',
-      },
-      orgIdCol,
+      ...userCols,
       ...columnAdjustments,
     ],
     [columnAdjustments, renderActions, signInResult, iDAdminResult]

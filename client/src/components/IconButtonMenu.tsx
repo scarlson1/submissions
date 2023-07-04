@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import {
   IconButton,
   IconButtonProps,
@@ -23,13 +23,13 @@ export interface IconButtonMenuProps {
   buttonIcon?: React.ReactNode;
 }
 
-export const IconButtonMenu: React.FC<IconButtonMenuProps> = ({
+export const IconButtonMenu = ({
   menuItems,
   iconButtonProps,
   menuProps,
   menuItemProps,
   buttonIcon,
-}) => {
+}: IconButtonMenuProps) => {
   const navigate = useNavigate();
   const [actionsAnchorEl, setActionsAnchorEl] = useState<null | HTMLElement>(null);
   let actionsMenuOpen = Boolean(actionsAnchorEl);
