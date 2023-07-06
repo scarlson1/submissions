@@ -41,7 +41,7 @@ import {
   copyBaseProps,
   tsunamiAALCol,
   addressSummaryCol,
-} from 'common';
+} from './gridColumns';
 
 export const submissionCols: GridColDef[] = [
   addressSummaryCol,

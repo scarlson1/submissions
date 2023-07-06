@@ -4,12 +4,12 @@ import { DataGridProps, GridActionsCellItem, GridColDef, GridRowParams } from '@
 import { SendRounded } from '@mui/icons-material';
 import { useSigninCheck } from 'reactfire';
 
-import { statusCol, QUOTE_STATUS } from 'common';
+import { QUOTE_STATUS } from 'common';
 import { ServerDataGrid, ServerDataGridProps } from 'components';
 import { useAsyncToast, useGridActions, useSendQuoteNotification, useWidth } from 'hooks';
 import { getRequiredClaimValidator } from 'components/RequireAuthReactFire';
 import { useAuth } from 'modules/components';
-import { quoteCols } from 'modules/gridColumnDefs';
+import { quoteCols, statusCol } from 'modules/gridColumnDefs';
 
 // TODO: need to use custom merge function for additionalColumns to prevent duplication "field" values
 
@@ -140,7 +140,7 @@ export const QuotesGrid = ({
             },
           },
           sorting: {
-            sortModel: [{ field: 'created', sort: 'desc' }],
+            sortModel: [{ field: 'metadata.created', sort: 'desc' }],
           },
           pagination: { paginationModel: { page: 0, pageSize: 10 } },
         }}

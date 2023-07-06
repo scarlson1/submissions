@@ -9,6 +9,7 @@ import {
   Paper,
   Popper,
   IconButton,
+  Tooltip,
 } from '@mui/material';
 import { GridRenderCellParams } from '@mui/x-data-grid';
 import { CopyAllRounded } from '@mui/icons-material';
@@ -193,4 +194,24 @@ const GridCellExpand = memo(function GridCellExpand(props: GridCellExpandProps) 
 
 export function renderCellExpand(params: GridRenderCellParams<any>) {
   return <GridCellExpand value={params.value || ''} width={params.colDef.computedWidth} />;
+}
+
+export function renderFormattedValue(params: GridRenderCellParams<any, any, any>) {
+  if (!params.formattedValue) return null;
+  return (
+    <Tooltip title={`${params.value}`} placement='left'>
+      <Typography variant='body2'>{params.formattedValue}</Typography>
+    </Tooltip>
+  );
+}
+
+export function renderChip(
+  params: GridRenderCellParams<any, any, any>,
+  chipProps: ChipProps = {},
+  propsGetterFunc: (props: any) => Partial<ChipProps> | void = () => {}
+) {
+  if (!params.value) return null;
+  return (
+    <Chip label={params.value} size='small' {...chipProps} {...propsGetterFunc(params.value)} />
+  );
 }

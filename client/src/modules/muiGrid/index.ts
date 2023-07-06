@@ -5,3 +5,4 @@ export { getGridFirestoreNumericOperators } from './gridNumericOperators';
 export { getGridFirestoreBooleanOperators } from './gridBooleanOperators';
 export { getGridFirestoreMultiSelectOperators } from './gridMultiSelectOperators';
 export { GRID_MULTI_SELECT_COL_DEF } from './gridMultiSelectColDef';
+export * from './gridConstraintConverters';

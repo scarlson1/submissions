@@ -38,7 +38,7 @@ import {
   mortgageeCol,
   externalIdCol,
   ratingDocIdCol,
-} from 'common';
+} from './gridColumns';
 
 export const locationCols: GridColDef[] = [
   idCol,

@@ -44,7 +44,7 @@ import {
   addrFIPSCol,
   annualPremiumCol,
   nestedAgentNameCol,
-} from 'common';
+} from './gridColumns';
 import { ADMIN_ROUTES, createPath } from 'router';
 import { GridCellCopy } from 'components';
 

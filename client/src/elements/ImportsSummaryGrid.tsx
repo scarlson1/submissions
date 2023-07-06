@@ -67,7 +67,7 @@ export const ImportsSummaryGrid = ({
             columnVisibilityModel: { id: false },
           },
           sorting: {
-            sortModel: [{ field: 'created', sort: 'desc' }],
+            sortModel: [{ field: 'metadata.created', sort: 'desc' }],
           },
           pagination: { paginationModel: { page: 0, pageSize: 10 } },
         }}

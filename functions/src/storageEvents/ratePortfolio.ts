@@ -112,7 +112,7 @@ function parseStreamToArray<RowType = any>(stream: fs.ReadStream) {
         cov_c_limit: data.cov_c_limit ? parseInt(getNumber(data.cov_c_limit)) : 0,
         cov_d_limit: data.cov_d_limit ? parseInt(getNumber(data.cov_d_limit)) : 0,
         total_limits: data.total_limits ? parseInt(getNumber(data.total_limits)) : '',
-        deductible: parseInt(getNumber(data.deductible)) || '',
+        deductible: data.deductible ? parseInt(getNumber(data.deductible)) : '',
         skip: data?.skip && data?.skip?.toLowerCase().trim() === 'true',
         google_maps_link: getGoogleMapsUrl(data.latitude, data.longitude),
       })) // If a row is invalid then a data-invalid event will be emitted with the row and the index.

@@ -74,7 +74,7 @@ export const Policies = () => {
       <Container maxWidth='lg' sx={{ py: { xs: 4, md: 6 } }}>
         <Box>
           {header}
-          <PoliciesGrid renderActions={adminActions} />
+          <PoliciesGrid renderActions={adminActions} checkboxSelection />
         </Box>
       </Container>
     );

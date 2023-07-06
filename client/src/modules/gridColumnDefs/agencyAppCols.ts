@@ -1,7 +1,7 @@
 import { GridColDef, GridValueGetterParams } from '@mui/x-data-grid';
 
+import { AGENCY_SUBMISSION_STATUS } from 'common';
 import {
-  AGENCY_SUBMISSION_STATUS,
   addrCityCol,
   addrLine1Col,
   addrLine2Col,
@@ -18,7 +18,7 @@ import {
   phoneCol,
   statusCol,
   updatedCol,
-} from 'common';
+} from './gridColumns';
 
 export const agencyAppCols: GridColDef[] = [
   { ...idCol, headerName: 'Doc ID' },

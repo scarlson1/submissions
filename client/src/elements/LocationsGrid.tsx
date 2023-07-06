@@ -10,6 +10,7 @@ import { locationCols } from 'modules/gridColumnDefs';
 // TODO: handle > 100 locations
 // need to implement pagination
 // TODO: limit viewable columns depending on permissions
+
 interface LocationsGridProps extends Omit<DataGridProps, 'rows' | 'columns' | 'initialState'> {
   locations: PolicyLocation[];
   renderActions?: (params: GridRowParams) => JSX.Element[];
@@ -83,7 +84,7 @@ export const LocationsGrid = ({
             },
           },
           sorting: {
-            sortModel: [{ field: 'created', sort: 'desc' }],
+            sortModel: [{ field: 'metadata.created', sort: 'desc' }],
           },
           pagination: { paginationModel: { page: 0, pageSize: 10 } },
         }}

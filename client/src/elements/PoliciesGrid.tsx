@@ -7,9 +7,10 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 
 import { ServerDataGrid, ServerDataGridProps } from 'components';
-import { Policy, POLICY_STATUS, statusCol } from 'common';
+import { Policy, POLICY_STATUS } from 'common';
 import { CUSTOM_CLAIMS } from 'modules/components';
 import { ROUTES, createPath } from 'router';
+import { policyCols, statusCol } from 'modules/gridColumnDefs';
 
 export interface PoliciesGridProps
   extends Omit<
@@ -46,7 +47,6 @@ export const PoliciesGrid = ({ renderActions = () => [], ...props }: PoliciesGri
         width: 120,
         getActions: (params: GridRowParams) => [
           ...renderActions(params),
-          // TODO: add view policy doc action
           <GridActionsCellItem
             icon={
               <Tooltip placement='top' title='view policy'>
@@ -89,6 +89,7 @@ export const PoliciesGrid = ({ renderActions = () => [], ...props }: PoliciesGri
         editable: claimsCheckStatus === 'success' && iDAdminResult.hasRequiredClaims,
         filterable: true,
       },
+      ...policyCols,
     ],
     [viewPolicyDoc, renderActions, claimsCheckStatus, iDAdminResult]
   );
@@ -107,7 +108,7 @@ export const PoliciesGrid = ({ renderActions = () => [], ...props }: PoliciesGri
           toolbar: GridToolbar,
         }}
         slotProps={{
-          toolbar: { csvOptions: { allColumns: true } },
+          toolbar: { csvOptions: { allColumns: false } }, // fields: policyCSVExportCols
         }}
         initialState={{
           columns: {
@@ -117,28 +118,27 @@ export const PoliciesGrid = ({ renderActions = () => [], ...props }: PoliciesGri
               'namedInsured.lastName': false,
               'namedInsured.email': false,
               'namedInsured.phone': false,
-              'address.addressLine1': false,
-              'address.addressLine2': false,
-              'address.city': false,
-              'address.state': false,
-              'address.postal': false,
-              'address.countyName': false,
-              'address.countyFIPS': false,
+              'mailingAddress.addressLine1': false,
+              'mailingAddress.addressLine2': false,
+              'mailingAddress.city': false,
+              'mailingAddress.state': false,
+              'mailingAddress.postal': false,
+              'mailingAddress.countyName': false,
+              'mailingAddress.countyFIPS': false,
               'agent.email': false,
               'agent.phone': false,
               'agent.userId': false,
               'agency.address': false,
               annualPremium: false,
-              agentId: false,
               'SLProducerOfRecord.licenseState': false,
               'SLProducerOfRecord.phone': false,
               'SLProducerOfRecord.address': false,
-              created: false,
-              updated: false,
+              'metadata.created': false,
+              'metadata.updated': false,
             },
           },
           sorting: {
-            sortModel: [{ field: 'created', sort: 'desc' }],
+            sortModel: [{ field: 'metadata.created', sort: 'desc' }],
           },
           pagination: { paginationModel: { page: 0, pageSize: 10 } },
         }}

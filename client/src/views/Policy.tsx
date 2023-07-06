@@ -139,7 +139,8 @@ export const Policy = () => {
                 divider={<Divider orientation='vertical' flexItem />}
                 justifyContent='space-between'
               >
-                <Box sx={{ width: '100%' }}>
+                <StatBox title='Insured Value' value='$1.2M' />
+                {/* <Box sx={{ width: '100%' }}>
                   <Typography
                     variant='subtitle2'
                     fontWeight={500}
@@ -151,7 +152,7 @@ export const Policy = () => {
                   <Typography variant='h6' color='primary.main'>
                     $1.2M
                   </Typography>
-                </Box>
+                </Box> */}
                 <Box sx={{ width: '100%' }}>
                   <Typography
                     variant='subtitle2'
@@ -347,16 +348,20 @@ export const Policy = () => {
   );
 };
 
-// {
-//   locations.map((l) => (
-//     <Typography
-//       variant='body2'
-//       color='text.secondary'
-//       component='div'
-//       id={l.locationId || '123'}
-//       key={l.id}
-//     >
-//       <pre>{JSON.stringify(l, null, 2)}</pre>
-//     </Typography>
-//   ));
-// }
+interface StatBoxProps {
+  title: string;
+  value: string | number;
+}
+
+function StatBox({ title, value }: StatBoxProps) {
+  return (
+    <Box sx={{ width: '100%' }}>
+      <Typography variant='subtitle2' fontWeight={500} fontSize='0.75rem' color='text.secondary'>
+        {title}
+      </Typography>
+      <Typography variant='h6' color='primary.main'>
+        {value}
+      </Typography>
+    </Box>
+  );
+}

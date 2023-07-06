@@ -22,23 +22,12 @@ import { ErrorBoundary } from 'react-error-boundary';
 
 import { ADMIN_ROUTES, createPath } from 'router';
 import { BasicDataGrid, ConfirmationDialog } from 'components';
-import { formatFirestoreTimestamp, formatGridFirestoreTimestampAsDate } from 'modules/utils';
-import { renderChips } from 'components/RenderGridCellHelpers';
-import {
-  booleanCalcActiveCol,
-  createdCol,
-  effectiveDateCol,
-  expirationDateCol,
-  FIPSDetails,
-  idCol,
-  Moratorium,
-  moratoriumsCollection,
-  updatedCol,
-  WithId,
-} from 'common';
+import { formatFirestoreTimestamp } from 'modules/utils';
+import { FIPSDetails, Moratorium, moratoriumsCollection, WithId } from 'common';
 import { useConfirmation } from 'modules/components/ConfirmationService';
 import { CountiesMap } from 'elements';
 import { useAsyncToast, useCollectionData, useJsonDialog } from 'hooks';
+import { moratoriumCols } from 'modules/gridColumnDefs';
 
 // TODO: lazy load map component in modal
 
@@ -208,62 +197,7 @@ export const Moratoriums = () => {
           />,
         ],
       },
-      booleanCalcActiveCol,
-      {
-        field: 'locations',
-        headerName: 'FIPS',
-        minWidth: 200,
-        flex: 1,
-        editable: false,
-      },
-      {
-        field: 'locationDetails',
-        headerName: 'Counties',
-        minWidth: 280,
-        flex: 1,
-        editable: false,
-        valueGetter: (params) => {
-          const ld = params.row.locationDetails;
-          if (ld) return ld.map((l: any) => l.countyName);
-          return [];
-        },
-        renderCell: renderChips,
-      },
-      {
-        field: 'count',
-        headerName: 'Count',
-        description: 'Total count of counties included in moratorium',
-        minWidth: 100,
-        flex: 1,
-        editable: false,
-        headerAlign: 'center',
-        align: 'right',
-        valueGetter: (params) => params.row.locations.length || null,
-      },
-      {
-        ...effectiveDateCol,
-        valueSetter: (params) => {
-          let newVal =
-            params.value instanceof Date ? Timestamp.fromDate(params.value) : params.value;
-          return { ...params.row, effectiveDate: newVal };
-        },
-        valueFormatter: formatGridFirestoreTimestampAsDate,
-      },
-      {
-        ...expirationDateCol,
-        valueSetter: (params) => {
-          let newVal =
-            params.value instanceof Date ? Timestamp.fromDate(params.value) : params.value;
-          return { ...params.row, expirationDate: newVal };
-        },
-        valueFormatter: formatGridFirestoreTimestampAsDate,
-      },
-      createdCol,
-      updatedCol,
-      {
-        ...idCol,
-        headerName: 'Doc ID',
-      },
+      ...moratoriumCols,
     ],
     [showDetails, showMap, deactivate]
   );
@@ -346,7 +280,7 @@ export const Moratoriums = () => {
               },
             },
             sorting: {
-              sortModel: [{ field: 'created', sort: 'desc' }],
+              sortModel: [{ field: 'metadata.created', sort: 'desc' }],
             },
             pagination: { paginationModel: { pageSize: 10 } },
           }}

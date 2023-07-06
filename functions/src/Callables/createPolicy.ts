@@ -207,7 +207,7 @@ function convertQuoteToPolicy(data: Quote, license: License, quoteId: string | n
       active: true,
       additionalInsureds,
       mortgageeInterest,
-      ratingDocId: data.ratingDocId,
+      ratingDocId: data.ratingDocId || '', // TODO: validate & force ratingDocId ??
       ratingPropertyData: data.ratingPropertyData, // TODO: use same key
       effectiveDate: data.effectiveDate,
       expirationDate: data.expirationDate,

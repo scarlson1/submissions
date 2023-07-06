@@ -7,8 +7,8 @@ import { useSigninCheck } from 'reactfire';
 import { ServerDataGrid, ServerDataGridProps } from 'components';
 import { useAsyncToast, useGridActions, useShowJson, useWidth } from 'hooks';
 import { CUSTOM_CLAIMS } from 'modules/components';
-import { SUBMISSION_STATUS, Submission, statusCol, COLLECTIONS } from 'common';
-import { submissionCols } from 'modules/gridColumnDefs';
+import { SUBMISSION_STATUS, Submission, COLLECTIONS } from 'common';
+import { statusCol, submissionCols } from 'modules/gridColumnDefs';
 
 export interface SubmissionsGridProps
   extends Omit<

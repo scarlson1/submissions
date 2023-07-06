@@ -1,33 +1,32 @@
 import { useCallback, useEffect, useMemo, useRef, useState, startTransition } from 'react';
-
 import { Box } from '@mui/material';
 import {
   DataGrid,
   DataGridProps,
   GridCallbackDetails,
   GridColDef,
-  GridFilterModel,
   GridPaginationModel,
-  GridSortModel,
+  GridRowSelectionModel,
   GridToolbar,
 } from '@mui/x-data-grid';
-import {
-  DocumentSnapshot,
-  orderBy,
-  QueryFieldFilterConstraint,
-  QueryOrderByConstraint,
-  Timestamp,
-  where,
-  WhereFilterOp,
-} from 'firebase/firestore';
+import { DocumentSnapshot, QueryFieldFilterConstraint } from 'firebase/firestore';
 import { lowerCase } from 'lodash';
 
-import { useDocCount, useFetchDocsWithCursor, useWidth } from 'hooks';
+import {
+  useDocCount,
+  useFetchDocsWithCursor,
+  useWidth,
+  useGridServerSort,
+  useGridServerFilter,
+} from 'hooks';
 import { COLLECTIONS } from 'common';
-import { isInequalityOp, isWhereFilterOp } from 'modules/utils';
 import { GridMobileToolbar } from './GridMobileToolbar';
 
 // FIREBASE PAGINATION ARTICLE: https://makerkit.dev/blog/tutorials/pagination-react-firebase-firestore
+// TODO: handle row selection for server-side pagination: https://mui.com/x/react-data-grid/row-selection/#usage-with-server-side-pagination
+
+// TODO: move pagination to a hook ?? https://github.com/mui/mui-x/issues/409#issuecomment-1312083757
+// useGridFilter hook: https://github.com/mui/mui-x/blob/master/packages/grid/x-data-grid/src/hooks/features/filter/useGridFilter.tsx
 
 export interface ServerDataGridProps extends Partial<Omit<DataGridProps, 'rows'>> {
   collName: keyof typeof COLLECTIONS;
@@ -35,7 +34,6 @@ export interface ServerDataGridProps extends Partial<Omit<DataGridProps, 'rows'>
   constraints?: QueryFieldFilterConstraint[];
   isCollectionGroup?: boolean;
   columns: GridColDef[];
-  // TODO: initSorting
 }
 
 export const ServerDataGrid = ({
@@ -50,30 +48,24 @@ export const ServerDataGrid = ({
 }: ServerDataGridProps) => {
   const { isMobile } = useWidth();
   const toolbar = useMemo(() => (isMobile ? GridMobileToolbar : GridToolbar), [isMobile]);
-  // const [isPending, startTransition] = useTransition();
-  // const [densityV, setDensity] = useState<GridDensity>(density);
+
   const [rowCount, setRowCount] = useState<number>(0);
   const [paginationModel, setPaginationModel] = useState({
     pageSize: 10,
     page: 0,
   });
 
-  const [sortModel, setSortModel] = useState<GridSortModel>([
-    { field: 'metadata.created', sort: 'desc' },
-  ]);
-  // ref works because setting sortModel triggers rerender ??
-  const sortOps = useRef<QueryOrderByConstraint[]>([orderBy('metadata.created', 'desc')]);
-  const [filters, setFilters] = useState<(QueryFieldFilterConstraint | QueryOrderByConstraint)[]>(
-    []
-  );
+  const { sortModel, sortOps, handleSortModelChange } = useGridServerSort(props?.initialState);
+  const { filters, handleFilterChange } = useGridServerFilter(props?.initialState);
+  const [rowSelectionModel, setRowSelectionModel] = useState<GridRowSelectionModel>([]);
 
   const queryOptions = useMemo(
     () => [...filters, ...constraints, ...sortOps.current],
-    [filters, constraints]
+    [filters, constraints] // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   const fetchCount = useDocCount(collName, [...filters, ...constraints]);
-
+  // fetch count whenever query changes
   useEffect(() => {
     fetchCount().then((result) => {
       setRowCount(result.data().count);
@@ -93,7 +85,6 @@ export const ServerDataGrid = ({
     isCollectionGroup,
     pathSegments
   );
-  // const deferredData = useDeferredValue(data);
 
   const rowData = useMemo(() => {
     return data?.docs?.map((doc: any) => ({ ...doc.data(), id: doc.id })) ?? [];
@@ -112,70 +103,8 @@ export const ServerDataGrid = ({
         });
       });
     },
-    [data] // page, pageSize]
+    [data]
   );
-
-  const handleSortModelChange = useCallback((sortModel: GridSortModel) => {
-    let newOptions: QueryOrderByConstraint[] = [];
-
-    sortModel.forEach((f) => {
-      if (f.sort) newOptions.push(orderBy(f.field, f.sort));
-    });
-
-    sortOps.current = [...newOptions];
-    startTransition(() => {
-      setSortModel([...sortModel]);
-    });
-  }, []);
-
-  // TODO: create custom grid filter operators that map to firebase
-  // https://mui.com/x/react-data-grid/filtering/customization/#create-a-custom-operator
-  const handleFilterChange = useCallback(
-    (filterModel: GridFilterModel, details: GridCallbackDetails) => {
-      console.log('FILTER MODEL: ', filterModel, details);
-      const newFilters: (QueryFieldFilterConstraint | QueryOrderByConstraint)[] = [];
-      // TODO: check for limitations - https://firebase.google.com/docs/firestore/query-data/queries#query_limitations
-
-      filterModel.items.forEach((f) => {
-        let isNotEmptyFilter = f.value !== undefined || f.operator === '!=';
-        let valDefined = f.value !== undefined;
-        let isEmptyArr = Array.isArray(f.value) && !f.value?.length;
-        const isFilterOp = isWhereFilterOp(f.operator);
-
-        if ((valDefined || isNotEmptyFilter) && !isEmptyArr && isFilterOp) {
-          let op = f.operator as WhereFilterOp;
-          let val = f.value ?? false;
-          // console.log('val is timestamp: ', val instanceof Timestamp);
-          // console.log('val is date: ', val instanceof Date);
-          if (val instanceof Date) val = Timestamp.fromDate(new Date(val));
-
-          if (isInequalityOp(op)) newFilters.push(orderBy(f.field, 'desc'));
-          if (op) newFilters.push(where(f.field, op, val));
-        }
-      });
-
-      console.log('NEW FILTERS: ', newFilters);
-      startTransition(() => {
-        setFilters([...newFilters]);
-      });
-    },
-    []
-  );
-
-  // const rowHeight = useMemo(() => {
-  //   console.log('ROW HEIGHT CHANGE: ', density);
-  //   if (density === 'compact') return 52;
-  //   if (density === 'comfortable') return 100;
-  //   return 76;
-  // }, [density]);
-  // const baseHeight = useMemo(() => {}, []);
-  // <Box
-  //     sx={{
-  //       height: 108 + Math.min(pageSize, rowData.length) * rowHeight + 'px',
-  //       width: '100%',
-  //       transition: 'all 0.25s ease-in-out',
-  //     }}
-  //   ></Box>
 
   return (
     <Box sx={{ height: 500, width: '100%' }}>
@@ -219,14 +148,15 @@ export const ServerDataGrid = ({
           ...(slots || {}),
         }}
         slotProps={{
+          ...(slotProps || {}),
           toolbar: {
             csvOptions: {
-              allColumns: true,
+              // allColumns: true,
               fileName: `iDemand ${lowerCase(collName)} export`,
             },
             printOptions: { disableToolbarButton: true },
+            ...(slotProps?.toolbar || {}),
           },
-          ...(slotProps || {}),
         }}
         // slots={{
         //   loadingOverlay: LinearProgress, // displayed when loading = true
@@ -235,6 +165,12 @@ export const ServerDataGrid = ({
         // slots={{
         //   noRowsOverlay: CustomNoRowsOverlay,
         // }}
+        onRowSelectionModelChange={(newRowSelectionModel, details: GridCallbackDetails<any>) => {
+          console.log('NEW ROW SELECTION MODEL: ', newRowSelectionModel, details);
+          setRowSelectionModel(newRowSelectionModel);
+        }}
+        rowSelectionModel={rowSelectionModel}
+        keepNonExistentRowsSelected
       />
     </Box>
   );

@@ -9,7 +9,7 @@ import {
 
 import { Quote, WithId } from './types';
 
-export const submissionQuoteConverter = {
+export const quoteConverter = {
   toFirestore(submission: PartialWithFieldValue<Quote> | WithFieldValue<Quote>): DocumentData {
     return { ...submission, 'metadata.updated': Timestamp.now() };
   },

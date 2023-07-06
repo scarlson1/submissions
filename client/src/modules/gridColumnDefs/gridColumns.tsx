@@ -36,8 +36,8 @@ import { FileLink, renderGridEmail, renderGridPhone } from 'components';
 import { GridCellCopy } from 'components';
 import {
   calcSum,
+  formatFirestoreTimestamp,
   formatGridCurrency,
-  formatGridFirestoreTimestamp,
   formatGridFirestoreTimestampAsDate,
   formatGridPercent,
   getGridAddressComponent,
@@ -50,11 +50,17 @@ import {
   POLICY_STATUS,
   QUOTE_STATUS,
   SUBMISSION_STATUS,
-} from './enums';
+} from '../../common/enums';
 import { GeoPoint, Timestamp } from 'firebase/firestore';
-import { AdditionalInsured, Address, Mortgagee, Nullable, PolicyLocation } from './types';
+import {
+  AdditionalInsured,
+  Address,
+  Mortgagee,
+  Nullable,
+  PolicyLocation,
+} from '../../common/types';
 import { renderChips } from 'components/RenderGridCellHelpers';
-import { STATES_ABV_ARR } from './statesList';
+import { STATES_ABV_ARR } from '../../common/statesList';
 import {
   getGridFirestoreNumericOperators,
   getGridFirestoreDateOperators,
@@ -69,7 +75,7 @@ import {
   LOB_OPTIONS,
   PRIOR_LOSS_COUNT_OPTIONS,
   PRODUCT_OPTIONS,
-} from './constants';
+} from '../../common/constants';
 import { multiSelectExtendsSingle } from 'modules/muiGrid/gridMultiSelectColDef';
 import { TRANSACTION_OPTIONS } from 'elements/TaxForm';
 import { isDate } from 'lodash';
@@ -79,6 +85,7 @@ export const copyBaseProps: Partial<GridColDef> = {
   minWidth: 200,
   editable: false,
   renderCell: (params: GridRenderCellParams<any, any, any>) => {
+    if (!params.value) return null;
     return <GridCellCopy value={params.value} />;
   },
 };
@@ -159,6 +166,7 @@ export const createdCol: GridColDef = {
   minWidth: 160,
   flex: 0.6,
   editable: false,
+  // disableExport: true,
   filterOperators: getGridFirestoreDateOperators(),
   valueGetter: (params: GridValueGetterParams<any, any>) => params.row.metadata?.created || null,
   valueParser: (value: any, params?: GridCellParams<any, any, any, GridTreeNode> | undefined) => {
@@ -168,7 +176,16 @@ export const createdCol: GridColDef = {
     if (isDate(value)) return Timestamp.fromDate(new Date(value));
     return value;
   },
-  valueFormatter: formatGridFirestoreTimestamp,
+  // valueFormatter: formatGridFirestoreTimestamp,
+  valueFormatter: formatGridFirestoreTimestampAsDate,
+  renderCell: (params: GridRenderCellParams<any, any, any>) => {
+    if (!(params.value && params.value.seconds)) return null;
+    return (
+      <Typography variant='body2' color='text.secondary'>
+        {formatFirestoreTimestamp(params.value)}
+      </Typography>
+    );
+  },
   // valueSetter: (params) => {
   //   console.log('VALUE SETTER PARAMS: ', params);
   //   if (!params.value) return null;
@@ -189,9 +206,19 @@ export const updatedCol: GridColDef = {
   minWidth: 160,
   flex: 0.6,
   editable: false,
+  // disableExport: true,
   filterOperators: getGridFirestoreDateOperators(),
   valueGetter: (params: GridValueGetterParams<any, any>) => params.row.metadata?.updated || null,
-  valueFormatter: formatGridFirestoreTimestamp,
+  // valueFormatter: formatGridFirestoreTimestamp,
+  valueFormatter: formatGridFirestoreTimestampAsDate,
+  renderCell: (params: GridRenderCellParams<any, any, any>) => {
+    if (!(params.value && params.value.seconds)) return null;
+    return (
+      <Typography variant='body2' color='text.secondary'>
+        {formatFirestoreTimestamp(params.value)}
+      </Typography>
+    );
+  },
 };
 
 export const orgNameCol: GridColDef = {
@@ -262,14 +289,15 @@ const addressSummaryBase = {
   filterable: false,
 };
 
-const formatAddrSummary = (address?: Nullable<Address> | null | undefined) => {
+const formatAddrSummary = (address?: Nullable<Address> | null | undefined, withLine2?: boolean) => {
   if (!address) return null;
 
-  const { addressLine1, city, state } = address;
+  const { addressLine1, addressLine2, city, state } = address;
   if (!(addressLine1 || city || state)) return null;
 
   let formatted = '';
   if (addressLine1) formatted += `${addressLine1}`;
+  if (addressLine2 && withLine2) formatted += ` ${addressLine2}`;
   if (city) formatted += `, ${city}`;
   if (state) formatted += `, ${state}`;
 
@@ -279,7 +307,10 @@ const formatAddrSummary = (address?: Nullable<Address> | null | undefined) => {
 export const addressSummaryCol: GridColDef = {
   ...addressSummaryBase,
   valueGetter: (params: GridValueGetterParams<any, any>) => formatAddrSummary(params.row.address),
-
+  valueFormatter: ({ value }) => {
+    if (value) return formatAddrSummary(value, true);
+    return '';
+  },
   // const { addressLine1, city, state } = params.row.address;
   // if (!(addressLine1 || city || state)) return null;
 
@@ -451,6 +482,7 @@ export const coordinatesCol: GridColDef = {
   editable: false,
   sortable: false,
   filterable: false,
+  disableExport: true,
   renderCell: (params: GridRenderCellParams<GeoPoint, any, any>) => {
     if (!params.value) return null;
     const latitude = params.value.latitude;
@@ -812,8 +844,8 @@ export const propertyCodeCol: GridColDef = {
   headerName: 'Property Code',
   minWidth: 140,
   flex: 0.8,
-  headerAlign: 'center',
-  align: 'right',
+  // headerAlign: 'center',
+  // align: 'right',
   filterOperators: getGridFirestoreStringOperators(),
 };
 
@@ -884,10 +916,10 @@ export const ratingDataNumStoriesCol: GridColDef = {
 export const basementCol: GridColDef = {
   field: 'basement',
   headerName: 'Basement',
-  minWidth: 140,
+  minWidth: 120,
   flex: 0.8,
-  headerAlign: 'center',
-  align: 'right',
+  // headerAlign: 'center',
+  // align: 'right',
   filterOperators: getGridFirestoreStringOperators(),
 };
 
@@ -924,8 +956,8 @@ export const CBRSCol: GridSingleSelectColDef = {
   valueOptions: CBRS_OPTIONS,
   minWidth: 100,
   flex: 0.5,
-  headerAlign: 'center',
-  align: 'right',
+  // headerAlign: 'center',
+  // align: 'right',
   filterOperators: getGridFirestoreSelectOperators(),
 };
 
@@ -942,8 +974,8 @@ export const floodZoneCol: GridSingleSelectColDef = {
   valueOptions: FLOOD_ZONE_OPTIONS,
   minWidth: 100,
   flex: 0.8,
-  headerAlign: 'center',
-  align: 'right',
+  // headerAlign: 'center',
+  // align: 'right',
   filterOperators: getGridFirestoreSelectOperators(),
 };
 
@@ -1141,6 +1173,13 @@ export const locationAddresses: GridColDef = {
   flex: 1.5,
   editable: false,
   filterable: false,
+  // disableExport: true,
+  valueFormatter: ({ value }) => {
+    if (Array.isArray(value))
+      return value.map((addr) => formatAddrSummary(addr, true)).join('  |  ');
+
+    return value || '';
+  },
   valueGetter: (params) => {
     if (!params.row.locations) return null;
 
@@ -1274,7 +1313,7 @@ export const SLProducerOfRecordLicensePhone: GridColDef = {
 };
 
 export const SLProducerOfRecordLicenseAddress: GridColDef = {
-  ...addressSummaryBase,
+  ...addressSummaryCol,
   field: 'SLProducerOfRecord.address',
   headerName: 'SL PofR License Address',
   description: 'Surplus Lines Producer of Record license provided address',
@@ -1298,8 +1337,14 @@ export const additionalInsuredsCol: GridColDef = {
   flex: 1,
   editable: false,
   filterable: false,
+  disableExport: true,
   valueGetter: (params) =>
     params.row.additionalInsureds?.map((ai: AdditionalInsured) => ai.name) || null,
+  valueFormatter: ({ value }) => {
+    if (Array.isArray(value) && value.length)
+      return value.map((ai: AdditionalInsured) => `${ai.name} (${ai.email})`).join('  |  ');
+    return value;
+  },
   renderCell: (params) =>
     renderChips(params, { variant: 'outlined', color: 'success', icon: <FaceRounded /> }),
   // renderCell: (params) => {
@@ -1325,7 +1370,15 @@ export const mortgageeCol: GridColDef = {
   flex: 1,
   editable: false,
   filterable: false,
+  // disableExport: true,
   valueGetter: (params) => params.row.mortgageeInterest?.map((m: Mortgagee) => m.name) || null,
+  valueFormatter: ({ value }) => {
+    if (Array.isArray(value) && value.length)
+      return value
+        .map((m: Mortgagee) => `${m.name} (${m.contactName} - ${m.contactEmail})`)
+        .join('  |  ');
+    return value;
+  },
   renderCell: (params) =>
     renderChips(params, { variant: 'outlined', color: 'info', icon: <AccountBalanceRounded /> }),
   // renderCell: (params) => {

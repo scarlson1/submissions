@@ -86,7 +86,7 @@ export const UsersGrid = ({ queryConstraints = [], renderActions = () => [] }: U
             },
           },
           sorting: {
-            sortModel: [{ field: 'created', sort: 'desc' }],
+            sortModel: [{ field: 'metadata.created', sort: 'desc' }],
           },
           pagination: { paginationModel: { pageSize: 10 } },
         }}
@@ -344,7 +344,7 @@ export const AdminManageUsersGrid = ({
             },
           },
           sorting: {
-            sortModel: [{ field: 'created', sort: 'desc' }],
+            sortModel: [{ field: 'metadata.created', sort: 'desc' }],
           },
           // pagination: { pageSize: 10 },
           pagination: { paginationModel: { pageSize: 10 } },

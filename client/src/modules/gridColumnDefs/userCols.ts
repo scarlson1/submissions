@@ -10,7 +10,7 @@ import {
   orgIdCol,
   phoneCol,
   updatedCol,
-} from 'common';
+} from './gridColumns';
 
 export const userCols: GridColDef[] = [
   displayNameCol,

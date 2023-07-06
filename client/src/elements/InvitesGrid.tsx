@@ -347,7 +347,7 @@ export const InvitesGrid = ({ orgId, queryConstraints }: InvitesGridProps) => {
 //             },
 //           },
 //           sorting: {
-//             sortModel: [{ field: 'created', sort: 'desc' }],
+//             sortModel: [{ field: 'metadata.created', sort: 'desc' }],
 //           },
 //           pagination: { pageSize: 10 },
 //         }}

@@ -30,7 +30,7 @@ import {
   SLProducerOfRecordLicensePhone,
   SLProducerOfRecordLicenseState,
   SLProducerOfRecordLicenseAddress,
-} from 'common';
+} from './gridColumns';
 
 export const policyCols: GridColDef[] = [
   productCol,
@@ -70,3 +70,35 @@ export const policyCols: GridColDef[] = [
   createdCol,
   updatedCol,
 ];
+
+// OPTION 1: "disableExport" property in the column definition
+// OPTION 2: provide "fields" property to the csvOptions prop
+
+// export const policyCSVExportCols = [
+//   'id',
+//   productCol.field,
+//   namedInsuredFirstNameCol.field,
+//   namedInsuredLastNameCol.field,
+//   namedInsuredEmailCol.field,
+//   namedInsuredPhoneCol.field,
+//   'price',
+//   locationsCount.field,
+//   effectiveDateCol.field,
+//   expirationDateCol.field,
+//   homeStateCol.field,
+//   nestedAgentNameCol.field,
+//   agentEmailCol.field,
+//   agencyNameCol.field,
+//   agencyAddressCol.field,
+//   issuingCarrierCol.field,
+//   nestedAgentUserIdCol.field,
+//   nestedAgencyOrgIdCol.field,
+//   userIdCol.field,
+//   SLProducerOfRecordNameCol.field,
+//   SLProducerOfRecordLicenseNum.field,
+//   SLProducerOfRecordLicenseState.field,
+//   SLProducerOfRecordLicensePhone.field,
+//   SLProducerOfRecordLicenseAddress.field,
+//   // createdCol.field,
+//   // updatedCol.field,
+// ];

@@ -2,7 +2,7 @@ import { Box, Tab, Typography } from '@mui/material';
 import { TabContext, TabList, TabPanel } from '@mui/lab';
 import { PersonAddRounded } from '@mui/icons-material';
 import { useParams, useSearchParams } from 'react-router-dom';
-import { collection, doc, limit, orderBy, query, where } from 'firebase/firestore';
+import { collection, doc, query, where } from 'firebase/firestore';
 import { useFirestore } from 'reactfire';
 import { ErrorBoundary } from 'react-error-boundary';
 import ReactJson from '@microlink/react-json-view';
@@ -12,15 +12,14 @@ import {
   InvitesGrid,
   PoliciesGrid,
   QuotesGrid,
-  SubmissionsGridOld,
+  SubmissionsGrid,
   UsersGrid,
 } from 'elements';
 import { useAgencyInsureds } from 'hooks/useAgencyInsureds';
 import { useCollectionDataInnerJoin, useRx, useRxDocJoin } from 'hooks/useRx';
 import { ClaimsGuard } from 'components';
 import { AdminManageUsersGrid } from 'elements/UsersGrid';
-import { useCollectionData, useJsonTheme } from 'hooks';
-import { Submission } from 'common';
+import { useJsonTheme } from 'hooks';
 
 const MIN_TAB_HEIGHT = 40;
 
@@ -82,7 +81,7 @@ export const Organization = () => {
             />
           </TabPanel>
           <TabPanel value='submissions'>
-            <TempSubmissionsGridOldWorkaround orgId={orgId} />
+            <SubmissionsGrid constraints={[where('agency.orgId', '==', orgId)]} />
           </TabPanel>
           <TabPanel value='insureds'>
             {/* TODO: use rxjs to fetch all policies under agency, then fetch users by id ?? use innerJoin observable ?? */}
@@ -266,14 +265,4 @@ function TestAgencyInsureds({ orgId }: { orgId: string }) {
       </Typography>
     </>
   );
-}
-
-function TempSubmissionsGridOldWorkaround({ orgId }: { orgId: string }) {
-  const { data, status } = useCollectionData<Submission>(
-    'SUBMISSIONS',
-    [where('orgId', '==', orgId), orderBy('metadata.created', 'desc'), limit(100)],
-    { suspense: false, initialData: [] }
-  );
-
-  return <SubmissionsGridOld rows={data} loading={status === 'loading'} />;
 }

@@ -8,7 +8,7 @@ import {
   importDocIdsCol,
   importDocIdsCountCol,
   invalidRowsCol,
-} from 'common';
+} from './gridColumns';
 
 export const importSummaryCols: GridColDef[] = [
   importCollectionCol,
