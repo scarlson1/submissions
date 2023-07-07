@@ -23,7 +23,7 @@ import {
   PhoneRounded,
   TableRowsRounded,
 } from '@mui/icons-material';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { PickingInfo } from 'deck.gl/typed';
 import { toast } from 'react-hot-toast';
 
@@ -34,8 +34,14 @@ import { formatFirestoreTimestamp, formatPhoneNumber, stringAvatar } from 'modul
 
 // TODO: make location card flip on hover to show additoinal details
 
+const LOCATION_TABS = ['cards', 'grid', 'map'];
+const getInitTabView = (searchParam: string | null) =>
+  LOCATION_TABS.includes(searchParam || '') ? searchParam : 'cards';
+
 export const Policy = () => {
   const { policyId } = useParams();
+  let [searchParams, setSearchParams] = useSearchParams();
+
   if (!policyId) throw new Error('policyId missing in url params');
 
   const { data } = useDocData<IPolicy>('POLICIES', policyId);
@@ -48,13 +54,14 @@ export const Policy = () => {
     return pLocs.map((loc) => ({ ...(loc[1] || {}), locationId: loc[0], id: loc[0] }));
   }, [data]);
 
-  const [locationsView, setLocationsView] = useState('cards');
+  const [locationsView, setLocationsView] = useState(getInitTabView(searchParams.get('l_view')));
 
   const handleViewChange = useCallback(
     (event: React.MouseEvent<HTMLElement>, newView: string | null) => {
       newView && setLocationsView(newView);
+      newView && setSearchParams({ l_view: newView });
     },
-    []
+    [setSearchParams]
   );
 
   const handleNewClaim = useCallback(() => {
@@ -134,62 +141,18 @@ export const Policy = () => {
             </Box>
             <Paper sx={{ py: { xs: 2, md: 3 }, px: { xs: 4, md: 5 } }}>
               <Stack
-                direction='row' // {{ xs: 'column', sm: 'row' }}
+                direction='row'
                 spacing={{ xs: 3, sm: 4, md: 6, lg: 8 }}
                 divider={<Divider orientation='vertical' flexItem />}
                 justifyContent='space-between'
               >
                 <StatBox title='Insured Value' value='$1.2M' />
-                {/* <Box sx={{ width: '100%' }}>
-                  <Typography
-                    variant='subtitle2'
-                    fontWeight={500}
-                    fontSize='0.75rem'
-                    color='text.secondary'
-                  >
-                    Insured Value
-                  </Typography>
-                  <Typography variant='h6' color='primary.main'>
-                    $1.2M
-                  </Typography>
-                </Box> */}
-                <Box sx={{ width: '100%' }}>
-                  <Typography
-                    variant='subtitle2'
-                    fontWeight={500}
-                    fontSize='0.75rem'
-                    color='text.secondary'
-                  >
-                    Status
-                  </Typography>
-                  <Typography variant='h6' color='primary.main'>
-                    {`${data.status === POLICY_STATUS.PAID ? 'active' : 'inactive'}`}
-                  </Typography>
-                </Box>
-                <Box sx={{ width: '100%' }}>
-                  <Typography
-                    variant='subtitle2'
-                    fontWeight={500}
-                    fontSize='0.75rem'
-                    color='text.secondary'
-                  >
-                    Term
-                  </Typography>
-                  <Typography variant='h6' color='primary.main'>
-                    {`${data.term}`}
-                  </Typography>
-                </Box>
-                <Box sx={{ width: '100%' }}>
-                  <Typography
-                    variant='subtitle2'
-                    fontWeight={500}
-                    fontSize='0.75rem'
-                    color='text.secondary'
-                  >
-                    Locations
-                  </Typography>
-                  <Typography variant='h6' color='primary.main'>{`${locations.length}`}</Typography>
-                </Box>
+                <StatBox
+                  title='Status'
+                  value={`${data?.status === POLICY_STATUS.PAID ? 'active' : 'inactive'}`}
+                />
+                <StatBox title='Term' value={`${data?.term || ''}`} />
+                <StatBox title='Locations' value={`${locations?.length || '--'}`} />
               </Stack>
             </Paper>
           </Grid>
@@ -202,8 +165,6 @@ export const Policy = () => {
                 //     <MoreVertIcon />
                 //   </IconButton>
                 // }
-                // title={`${data?.agent?.name}`}
-                // subheader='Agent'
                 title={
                   <Typography
                     variant='body1'
@@ -224,7 +185,6 @@ export const Policy = () => {
                 }
               />
               <CardContent>
-                {/* <Divider /> */}
                 <ContactList
                   items={[
                     {
@@ -241,10 +201,6 @@ export const Policy = () => {
                     },
                   ]}
                 />
-                {/* <Typography variant='body1' fontWeight={500}>{`${data.agent.name}`}</Typography> */}
-                {/* <Typography variant='body2'>{`${data?.agency?.name}`}</Typography>
-                <Typography variant='body2'>{`${data?.agent?.email}`}</Typography>
-                <Typography variant='body2'>{`${data?.agent?.phone}`}</Typography> */}
               </CardContent>
             </Card>
           </Grid>
@@ -282,7 +238,7 @@ export const Policy = () => {
           </Box>
         </Box>
         {locationsView === 'cards' ? (
-          <Grid container spacing={4}>
+          <Grid container columnSpacing={4} rowSpacing={8}>
             {locations?.map((location) => (
               <Grid xs={12} sm={6} md={4} xl={3} key={location.id}>
                 <LocationCard

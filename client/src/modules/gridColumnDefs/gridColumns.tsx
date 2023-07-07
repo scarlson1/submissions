@@ -823,6 +823,7 @@ export const replacementCostCol: GridColDef = {
 
 export const ratingDataReplacementCostCol: GridColDef = {
   ...replacementCostCol,
+  field: 'ratingPropertyData.replacementCost',
   valueGetter: (params) => params.row.ratingPropertyData?.replacementCost ?? null,
 };
 

@@ -78,25 +78,6 @@ export const Licenses = () => {
             pagination: { paginationModel: { pageSize: 10 } },
           }}
         />
-        {/* <BasicDataGrid
-          rows={data || []}
-          columns={licensesColumns}
-          loading={status === 'loading'}
-          density='compact'
-          autoHeight
-          initialState={{
-            columns: {
-              columnVisibilityModel: {
-                id: false,
-              },
-            },
-            sorting: {
-              sortModel: [{ field: 'metadata.created', sort: 'desc' }],
-            },
-            pagination: { paginationModel: { pageSize: 10 } },
-            // pagination: { pageSize: 10 },
-          }}
-        /> */}
       </Box>
     </Box>
   );

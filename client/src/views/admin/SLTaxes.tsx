@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from 'react';
-import { Box, Button, Tooltip, Typography } from '@mui/material';
+import { Box, Button, CardContent, CardMedia, Tooltip, Typography } from '@mui/material';
 import { EditRounded } from '@mui/icons-material';
 import { GridActionsCellItem, GridColDef, GridRowParams } from '@mui/x-data-grid';
 import { useNavigate } from 'react-router-dom';
@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { ServerDataGrid } from 'components';
 import { createPath, ADMIN_ROUTES } from 'router';
 import { taxCols } from 'modules/gridColumnDefs';
+import { Flip } from 'components/Flip';
 
 export const SLTaxes = () => {
   const navigate = useNavigate();
@@ -76,6 +77,39 @@ export const SLTaxes = () => {
             },
             pagination: { paginationModel: { pageSize: 10 } },
           }}
+        />
+      </Box>
+      <Box sx={{ height: 500 }}>
+        <Flip
+          front={
+            <>
+              <CardMedia
+                sx={{ height: 140 }}
+                image='https://images.unsplash.com/photo-1544511916-0148ccdeb877?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&w=1901&q=80i&auto=format&fit=crop'
+                // image='/static/images/cards/contemplative-reptile.jpg'
+                // title='green iguana'
+              />
+              <CardContent>
+                {/* sx={{ backgroundColor: '#132F4C', height: 245, opacity: 1 }} */}
+                <Typography variant='h5'>Test card</Typography>
+                <Typography>test card content</Typography>
+              </CardContent>
+            </>
+          }
+          back={
+            <>
+              <CardMedia
+                sx={{ height: 140 }}
+                image='https://images.unsplash.com/photo-1540206395-68808572332f?ixlib=rb-1.2.1&w=1181&q=80&auto=format&fit=crop'
+                // image='/static/images/cards/contemplative-reptile.jpg'
+                // title='green iguana'
+              />
+              <CardContent>
+                <Typography variant='h5'>Back side of card</Typography>
+                <Typography>other content</Typography>
+              </CardContent>
+            </>
+          }
         />
       </Box>
     </Box>

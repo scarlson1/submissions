@@ -28,7 +28,6 @@ import {
 } from 'views';
 import {
   SubmissionView,
-  // Submissions as AdminSubmissions,
   QuoteNew,
   QuoteNewFromSub,
   SLTaxes,
@@ -40,9 +39,7 @@ import {
   Licenses,
   AgencyApp,
   AgencyApps,
-  // Quotes as AdminQuotes,
   PolicyDelivery,
-  // Policies as PoliciesAdmin,
   DisclosureNew,
   DisclosureEdit,
   Home as AdminHome,
@@ -162,7 +159,7 @@ type TArgs =
   | { path: ROUTES.QUOTE_BIND; params: { quoteId: string } } // INCLUDE PRODUCT ID ??
   | { path: ROUTES.QUOTE_BIND_SUCCESS; params: { quoteId: string; transactionId?: string } }
   | { path: ROUTES.POLICIES; search?: { productId?: Product } }
-  | { path: ROUTES.POLICY; params: { policyId: string } }
+  | { path: ROUTES.POLICY; params: { policyId: string }; search?: { l_view: string } }
   | { path: ROUTES.AGENCY_NEW }
   | { path: ROUTES.AGENCY_NEW_SUBMITTED; params: { submissionId: string } }
   | { path: ROUTES.CONTACT }

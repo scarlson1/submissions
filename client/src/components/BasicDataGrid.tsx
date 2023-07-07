@@ -40,9 +40,9 @@ export const BasicDataGrid = ({
               id: false,
             },
           },
-          sorting: {
-            sortModel: [{ field: 'updated', sort: 'desc' }],
-          },
+          // sorting: {
+          //   sortModel: [{ field: 'metadata.updated', sort: 'desc' }],
+          // },
           pagination: { paginationModel: { pageSize: 10 } },
         }}
         sx={{

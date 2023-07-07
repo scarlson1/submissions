@@ -108,7 +108,7 @@ export const PoliciesGrid = ({ renderActions = () => [], ...props }: PoliciesGri
           toolbar: GridToolbar,
         }}
         slotProps={{
-          toolbar: { csvOptions: { allColumns: false } }, // fields: policyCSVExportCols
+          toolbar: { csvOptions: { allColumns: false } },
         }}
         initialState={{
           columns: {
