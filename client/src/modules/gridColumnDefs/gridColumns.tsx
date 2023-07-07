@@ -1,11 +1,15 @@
 import {
   AccountBalanceRounded,
   CachedRounded,
+  CancelRounded,
+  CancelScheduleSendRounded,
   CheckRounded,
   CloseRounded,
   CreditScoreRounded,
   DisabledByDefaultRounded,
   DoneRounded,
+  EmailRounded,
+  ErrorOutlineRounded,
   FaceRounded,
   FiberNewRounded,
   FindInPageRounded,
@@ -81,7 +85,7 @@ import { TRANSACTION_OPTIONS } from 'elements/TaxForm';
 import { isDate } from 'lodash';
 
 export const copyBaseProps: Partial<GridColDef> = {
-  flex: 1,
+  flex: 1.2,
   minWidth: 200,
   editable: false,
   renderCell: (params: GridRenderCellParams<any, any, any>) => {
@@ -540,9 +544,12 @@ export const statusCol: GridSingleSelectColDef = {
   editable: false,
   filterable: false,
   filterOperators: getGridFirestoreSelectOperators(),
-  renderCell: (params: GridRenderCellParams<any, any, any>) => (
-    <Chip label={params.value} size='small' variant='outlined' {...getChipProps(params.value)} />
-  ),
+  renderCell: (params: GridRenderCellParams<any, any, any>) => {
+    if (!params.value) return null;
+    return (
+      <Chip label={params.value} size='small' variant='outlined' {...getChipProps(params.value)} />
+    );
+  },
 };
 
 export type ChipStatus =
@@ -1022,6 +1029,7 @@ export const userIdCol: GridColDef = {
   field: 'userId',
   headerName: 'User ID',
   filterOperators: getGridFirestoreStringOperators(),
+  valueGetter: (params) => params.value || null,
   ...copyBaseProps,
 };
 
@@ -1518,4 +1526,53 @@ export const invalidRowsCol: GridColDef = {
   filterable: false,
 
   // TODO: set array filters
+};
+
+function getEventChipProps(val: string | undefined): Partial<ChipProps> {
+  if (!val) return {};
+  switch (val) {
+    case 'delivered':
+      return { color: 'success', icon: <CheckRounded /> };
+    case 'processed':
+      return { color: 'info', icon: <EmailRounded /> };
+    case 'bounce':
+      return { color: 'error', icon: <CancelScheduleSendRounded /> };
+    case 'deferred':
+      return { color: 'warning', icon: <CancelRounded /> };
+    case 'dropped':
+      return { color: 'warning', icon: <ErrorOutlineRounded /> };
+    default:
+      return { color: 'default', icon: <EmailRounded /> };
+  }
+} // processed, dropped, delivered, deferred, bounce
+
+export const sendgridEventCol: GridColDef = {
+  field: 'event',
+  headerName: 'Event',
+  minWidth: 140,
+  flex: 0.6,
+  valueGetter: (params) => params.row.event || null,
+  renderCell: (params: GridRenderCellParams<any, any, any>) => {
+    if (!params.value || typeof params.value !== 'string') return null;
+    return (
+      <Chip
+        label={params.value}
+        size='small'
+        variant='outlined'
+        {...getEventChipProps(params.value)}
+      />
+    );
+  },
+};
+export const sendgridMsgIdCol: GridColDef = {
+  ...idCol,
+  field: 'sg_message_id',
+  headerName: 'Msg ID',
+};
+export const ipCol: GridColDef = {
+  field: 'ip',
+  headerName: 'IP',
+  minWidth: 140,
+  flex: 0.4,
+  editable: false,
 };

@@ -19,6 +19,7 @@ import { filterUniqueArr, removeFromArr } from './helpers.js';
 import { round } from 'lodash';
 import { cardFeePct, iDemandOrgId } from './environmentVars.js';
 import { SecondaryFactorMults } from '../utils/rating/factors.js';
+import { CreateMsgContentProps } from '../services/sendgrid/index.js';
 
 // TODO: fix typescript error app.use(thisMiddleware) is users.ts
 
@@ -1117,6 +1118,12 @@ export interface License extends BaseDoc {
 
 // TODO: swiss re property data res type
 export type PropertyDataRes = Record<string, any>;
+
+export interface EmailRecord extends CreateMsgContentProps {
+  metadata: {
+    created: Timestamp;
+  };
+}
 
 export interface SpatialKeyResponse {
   us_hh_mls_rm_room11_features: string; // '',

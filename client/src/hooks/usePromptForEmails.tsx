@@ -89,7 +89,6 @@ export const usePromptForEmails = () => {
       { insuredEmail, agentEmail }: { insuredEmail?: string | null; agentEmail?: string | null },
       options?: Omit<ConfirmationOptions, 'component' | 'catchOnCancel'>
     ) => {
-      console.log('PROMPT EMAILS: ', insuredEmail, agentEmail);
       try {
         // TODO: select user type next to the email
         const notificationEmails: NotificationEmailValues | undefined = await confirm({

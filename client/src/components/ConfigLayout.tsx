@@ -1,6 +1,4 @@
 import { Suspense, useEffect, useMemo, useState } from 'react';
-
-// import { TabContext, TabList } from '@mui/lab';
 import { Box, Tab, TabProps, Tabs } from '@mui/material';
 import { Outlet, Link as RouterLink, useLocation, matchPath } from 'react-router-dom';
 
@@ -15,18 +13,10 @@ interface LinkTabProps extends Omit<TabProps, 'href' | 'component'> {
 }
 
 function LinkTab({ to, label, ...props }: LinkTabProps) {
-  // TODO: fix ts error when passing along props
+  // HACK: fix ts error when passing along props
   return (
     // @ts-ignore
-    <Tab
-      label={label}
-      component={RouterLink}
-      to={to}
-      {...props}
-      // onClick={(event: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
-      //   event.preventDefault();
-      // }}
-    />
+    <Tab label={label} component={RouterLink} to={to} {...props} />
   );
 }
 
@@ -60,6 +50,7 @@ export const ConfigLayout = () => {
       createPath({ path: ADMIN_ROUTES.SL_LICENSES }),
       createPath({ path: ADMIN_ROUTES.DISCLOSURES }),
       createPath({ path: ADMIN_ROUTES.DATA_IMPORTS }),
+      createPath({ path: ADMIN_ROUTES.EMAIL_ACTIVITY }),
     ],
     []
   );
@@ -106,6 +97,7 @@ export const ConfigLayout = () => {
           <LinkTab label='Licenses' to={createPath({ path: ADMIN_ROUTES.SL_LICENSES })} />
           <LinkTab label='Disclosures' to={createPath({ path: ADMIN_ROUTES.DISCLOSURES })} />
           <LinkTab label='Imports' to={createPath({ path: ADMIN_ROUTES.DATA_IMPORTS })} />
+          <LinkTab label='Emails' to={createPath({ path: ADMIN_ROUTES.EMAIL_ACTIVITY })} />
         </Tabs>
       </Box>
       <Box sx={{ py: { xs: 2, md: 3 } }}>

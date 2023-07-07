@@ -37,6 +37,7 @@ import {
   maxA,
   maxBCD,
   minA,
+  minDeductibleFlood,
   policiesCollection,
   sendgridApiKey,
   throwIfExists,
@@ -51,7 +52,7 @@ const IMPORT_POLICIES_FOLDER = 'importPolicies';
 let surplusLinesLicenseByState: Record<string, any> = {};
 
 // TODO: type input row
-type CSVCamelCaseHeaders =
+type CSVPolicyCamelCaseHeaders =
   | 'policyId'
   | 'locationId'
   | 'addressLine1'
@@ -106,7 +107,7 @@ type CSVCamelCaseHeaders =
   | 'ffh'
   | 'product';
 
-type CSVPolicyRow = Record<CSVCamelCaseHeaders, string>;
+type CSVPolicyRow = Record<CSVPolicyCamelCaseHeaders, string>;
 
 interface ParsedPolicyRow {
   policyId: string | null;
@@ -281,6 +282,8 @@ export default async (event: StorageEvent) => {
 
 // (row: CSVPolicyRow):  ParsedPolicyRow {
 // function transformPolicyRow(row: ParserSyncRowTransform<CSVPolicyRow, ParsedPolicyRow>) {
+
+/** Converts to correct type and unflattens */
 function transformPolicyRow(row: CSVPolicyRow): ParsedPolicyRow {
   const limits = {
     limitA: row.limitA ? extractNumber(row.limitA) : 0,
@@ -343,7 +346,7 @@ function transformPolicyRow(row: CSVPolicyRow): ParsedPolicyRow {
 
   const price = row.policyPrice ? extractNumber(row.policyPrice) : null;
 
-  const transformed = {
+  const transformed: ParsedPolicyRow = {
     policyId: row.policyId || null,
     address: {
       addressLine1: row.addressLine1 || null,
@@ -380,6 +383,7 @@ function transformPolicyRow(row: CSVPolicyRow): ParsedPolicyRow {
   return transformed;
 }
 
+/** Validates row values - will skip row if any validation fails */
 function validatePolicyRow(data: ParsedPolicyRow) {
   try {
     invariant(
@@ -417,7 +421,10 @@ function validatePolicyRow(data: ParsedPolicyRow) {
     invariant(typeof data.TIV === 'number', 'Error calcualting TIV (not a number)');
 
     invariant(typeof data.deductible === 'number', 'Deductible must be a number');
-    invariant(data.deductible >= 1000, 'Deductible must be > $1,000');
+    invariant(
+      data.deductible >= minDeductibleFlood.value(),
+      `Deductible must be > ${minDeductibleFlood.value()}`
+    );
 
     invariant(data.address?.addressLine1, 'addressLine1 required');
     invariant(data.address?.city, 'city required');

@@ -53,7 +53,7 @@ import {
   // PortfolioRating,
 } from 'views/admin';
 // import { Submissions as AgentSubmissions } from 'views/agent';
-import { SuccessStep, ActionHandler } from 'elements';
+import { SuccessStep, ActionHandler, EmailsGrid } from 'elements';
 import { RouterLink as BreadCrumbLink } from 'components/Breadcrumbs';
 import { Product } from 'common';
 import { BindSuccess } from 'elements/SuccessStep';
@@ -134,6 +134,7 @@ export enum ADMIN_ROUTES {
   DISCLOSURE_NEW = '/admin/config/disclosures/new',
   DISCLOSURE_EDIT = '/admin/config/disclosures/:disclosureId/edit',
   DATA_IMPORTS = '/admin/config/imports',
+  EMAIL_ACTIVITY = '/admin/config/email-activity',
 }
 
 export enum AUTH_ROUTES {
@@ -194,6 +195,7 @@ type TArgs =
   | { path: ADMIN_ROUTES.USERS }
   | { path: ADMIN_ROUTES.PORTFOLIO_RATING }
   | { path: ADMIN_ROUTES.DATA_IMPORTS }
+  | { path: ADMIN_ROUTES.EMAIL_ACTIVITY }
   | {
       path: AUTH_ROUTES.CREATE_ACCOUNT;
       params?: { tenantId?: string };
@@ -1470,6 +1472,24 @@ export const router = sentryCreateBrowserRouter([
                   crumb: (match: CrumbMatch) => [
                     {
                       label: 'Import Summaries',
+                    },
+                  ],
+                },
+              },
+              {
+                // path: ADMIN_ROUTES.SL_LICENSES,
+                path: 'email-activity',
+                element: (
+                  <RequireAuthReactFire
+                    signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}
+                  >
+                    <EmailsGrid />
+                  </RequireAuthReactFire>
+                ),
+                handle: {
+                  crumb: (match: CrumbMatch) => [
+                    {
+                      label: 'Email Activity',
                     },
                   ],
                 },

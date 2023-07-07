@@ -16,6 +16,8 @@ import { EmailData } from '@sendgrid/helpers/classes/email-address';
 // TODO: add firebase event ID to customArgs for all requests
 // Use webhook to listen to events save to DB
 
+// TODO: add msgType to customArgs (ex: msgType: 'deliver policy')
+
 import {
   submissionReceived,
   adminNewSubmission,
@@ -81,17 +83,23 @@ const createMsgContent = ({
   };
 };
 
+interface ExtraSendGridArgs
+  extends Omit<CreateMsgContentProps, 'to' | 'from' | 'subject' | 'html' | 'attachements'> {}
+
 export const sendSubmissionRecievedConfirmation = async (
   key: string,
   createAccountLink: string,
   to: string | string[],
   toName: string | undefined | null,
-  addressLine1: string
+  addressLine1: string,
+  sgArgs?: ExtraSendGridArgs
 ) => {
   const html = submissionReceived({ toName: toName, addressLine1, createAccountLink });
   sgMail.setApiKey(key);
 
-  await sgMail.send(createMsgContent({ html, subject: `We've received your submission!`, to }));
+  await sgMail.send(
+    createMsgContent({ html, subject: `We've received your submission!`, to, ...(sgArgs || {}) })
+  );
 };
 
 export const sendNewSubmissionAdminNotification = async (
@@ -100,24 +108,28 @@ export const sendNewSubmissionAdminNotification = async (
   addressLine1: string,
   city: string,
   state: string,
-  to: string | string[]
+  to: string | string[],
+  sgArgs?: ExtraSendGridArgs
 ) => {
   const html = adminNewSubmission({ link, addressLine1, city, state });
   sgMail.setApiKey(key);
 
-  await sgMail.send(createMsgContent({ html, subject: `New submission!`, to }));
+  await sgMail.send(createMsgContent({ html, subject: `New submission!`, to, ...(sgArgs || {}) }));
 };
 
 export const sendEmailConfirmation = async (
   key: string,
   link: string,
   to: string | string[],
-  toName?: string
+  toName?: string,
+  sgArgs?: ExtraSendGridArgs
 ) => {
   const html = emailConfirmation({ toName, link });
   sgMail.setApiKey(key);
 
-  await sgMail.send(createMsgContent({ html, subject: 'Please confirm your email', to }));
+  await sgMail.send(
+    createMsgContent({ html, subject: 'Please confirm your email', to, ...(sgArgs || {}) })
+  );
 };
 
 export const sendUserInvite = async (
@@ -126,26 +138,30 @@ export const sendUserInvite = async (
   to: string | string[],
   toName: string | null | undefined = undefined,
   fromName: string | null | undefined = undefined,
-  config?: Partial<CreateMsgContentProps>
+  config?: Partial<CreateMsgContentProps>, // TODO: replace with sgArgs ??
+  sgArgs?: ExtraSendGridArgs
 ) => {
   const html = userInvite({ toName, fromName, link });
   sgMail.setApiKey(key);
 
   await sgMail
     // .sendMultiple(msg)
-    .send(createMsgContent({ ...config, html, subject: 'Create an account', to }));
+    .send(
+      createMsgContent({ ...config, html, subject: 'Create an account', to, ...(sgArgs || {}) })
+    );
 };
 
 export const sendNewAgencySubmissionAdminNotification = async (
   key: string,
   link: string,
   orgName: string,
-  to: string | string[]
+  to: string | string[],
+  sgArgs?: ExtraSendGridArgs
 ) => {
   const html = adminNewAgencySubmission({ link, orgName });
   sgMail.setApiKey(key);
 
-  await sgMail.send(createMsgContent({ html, subject: `New submission!`, to }));
+  await sgMail.send(createMsgContent({ html, subject: `New submission!`, to, ...(sgArgs || {}) }));
 };
 
 export const sendNewQuoteEmail = async (
@@ -153,12 +169,15 @@ export const sendNewQuoteEmail = async (
   link: string,
   to: string | string[],
   addressLine1?: string,
-  toName?: string
+  toName?: string,
+  sgArgs?: ExtraSendGridArgs
 ) => {
   const html = newQuote({ link, toName, addressLine1 });
   sgMail.setApiKey(key);
 
-  await sgMail.send(createMsgContent({ html, subject: `Here's your quote!`, to }));
+  await sgMail.send(
+    createMsgContent({ html, subject: `Here's your quote!`, to, ...(sgArgs || {}) })
+  );
 };
 
 export const sendPolicyDocDelivery = async (
@@ -166,13 +185,20 @@ export const sendPolicyDocDelivery = async (
   to: string | string[],
   attachments: AttachmentJSON[],
   toName?: string,
-  addressName?: string
+  addressName?: string,
+  sgArgs?: ExtraSendGridArgs
 ) => {
   const html = policyDelivery({ toName, addressName });
   sgMail.setApiKey(sgKey);
 
   await sgMail.send(
-    createMsgContent({ html, subject: `Congrats! Here's your new policy`, to, attachments })
+    createMsgContent({
+      html,
+      subject: `Congrats! Here's your new policy`,
+      to,
+      attachments,
+      ...(sgArgs || {}),
+    })
   );
 };
 
@@ -182,12 +208,20 @@ export const sendAdminPaidNotification = async (
   policyLink: string,
   policyId: string,
   transactionLink: string,
-  transactionId: string
+  transactionId: string,
+  sgArgs?: ExtraSendGridArgs
 ) => {
   const html = adminPaymentReceived({ policyLink, policyId, transactionLink, transactionId });
   sgMail.setApiKey(sgKey);
 
-  await sgMail.send(createMsgContent({ html, subject: `Payment received (${transactionId})`, to }));
+  await sgMail.send(
+    createMsgContent({
+      html,
+      subject: `Payment received (${transactionId})`,
+      to,
+      ...(sgArgs || {}),
+    })
+  );
 };
 
 export const sendAgencyAppApprovedNotification = async (
@@ -198,7 +232,8 @@ export const sendAgencyAppApprovedNotification = async (
   to: string | string[],
   firstName?: string | null,
   lastName?: string | null,
-  message?: string | null
+  message?: string | null,
+  sgArgs?: ExtraSendGridArgs
 ) => {
   const link = `${process.env.HOSTING_BASE_URL}/auth/create-account/${encodeURIComponent(
     tenantId
@@ -215,6 +250,7 @@ export const sendAgencyAppApprovedNotification = async (
       to,
       html,
       subject: 'Finish setting up your account',
+      ...(sgArgs || {}),
     })
   );
 
@@ -227,7 +263,8 @@ export const sendAdminChangeRequestNotification = async (
   link: string,
   requestType: string,
   entityId: string,
-  changes: Record<string, any>
+  changes: Record<string, any>,
+  sgArgs?: ExtraSendGridArgs
 ) => {
   const html = adminChangeRequest({
     link,
@@ -242,6 +279,7 @@ export const sendAdminChangeRequestNotification = async (
       to,
       html,
       subject: 'Change request received',
+      ...(sgArgs || {}),
     })
   );
 };
@@ -254,7 +292,8 @@ export const sendAdminPolicyImportNotification = async (
   invalidDataCount: number,
   fileName: string,
   link?: string | null | undefined,
-  toName?: string
+  toName?: string,
+  sgArgs?: ExtraSendGridArgs
 ) => {
   const html = adminPolicyImportNotification({
     successCount,
@@ -271,6 +310,7 @@ export const sendAdminPolicyImportNotification = async (
       to,
       html,
       subject: 'Policy import complete',
+      ...(sgArgs || {}),
     })
   );
 };
@@ -280,7 +320,8 @@ export const sendQuoteExpiringSoonNotification = async (
   to: string | string[],
   link: string,
   addressLine1: string,
-  toName?: string
+  toName?: string,
+  sgArgs?: ExtraSendGridArgs
 ) => {
   const html = quoteExpiringSoon({
     link,
@@ -294,6 +335,7 @@ export const sendQuoteExpiringSoonNotification = async (
       to,
       html,
       subject: 'Quote expires tomorrow',
+      ...(sgArgs || {}),
     })
   );
 };
@@ -303,7 +345,8 @@ export const sendMessage = async (
   to: string | string[],
   msgBody: string,
   subject: string,
-  toName?: string
+  toName?: string,
+  sgArgs?: ExtraSendGridArgs
 ) => {
   const html = blankHTML({ toName, content: msgBody });
   sgMail.setApiKey(key);
@@ -312,6 +355,7 @@ export const sendMessage = async (
       to,
       html,
       subject,
+      ...(sgArgs || {}),
     })
   );
 };
@@ -321,7 +365,8 @@ export const moveTenantVerification = async (
   to: string | string[],
   link: string,
   toName?: string,
-  toOrgName?: string
+  toOrgName?: string,
+  sgArgs?: ExtraSendGridArgs
 ) => {
   const html = moveToTenantConfirmation({
     toName,
@@ -335,6 +380,7 @@ export const moveTenantVerification = async (
       to,
       html,
       subject: 'Confirm org migration',
+      ...(sgArgs || {}),
     })
   );
 };

@@ -28,6 +28,8 @@ import {
 import { GeoSearch } from './GeoSearch';
 import { OnSelectHit } from './Hit';
 
+// doc search css ref: https://github.com/algolia/docsearch/blob/main/packages/docsearch-css/src/_variables.css
+
 const FADE_DURATION = 100;
 
 interface Translations {

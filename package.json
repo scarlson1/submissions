@@ -16,7 +16,8 @@
     "setSAPath:prod": "export GOOGLE_APPLICATION_CREDENTIALS=\"/Users/spencercarlson/code/idemand-submissions-firebase-admin.json\"",
     "deploy:rules:firestore": "firebase deploy --only firestore:rules",
     "deploy:rules:storage": "firebase deploy --only storage",
-    "list:java": "ps -ax | grep java"
+    "list:java": "ps -ax | grep java",
+    "ngrok": "ngrok http --hostname=5d548ca8c480-3444825649922910484.ngrok-free.app 5001"
   },
   "repository": {
     "type": "git",

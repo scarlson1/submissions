@@ -33,6 +33,7 @@ export { LocationCard } from './LocationCard';
 export { LocationsMap } from './LocationsMap';
 export { TaxForm } from './TaxForm';
 export { SubmissionsGrid } from './SubmissionsGrid';
+export { EmailsGrid } from './EmailsGrid';
 export { LicenseForm } from './LicenseForm';
 export { QuoteForm } from './QuoteForm';
 

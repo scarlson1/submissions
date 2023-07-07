@@ -10,5 +10,6 @@ export { taxCols } from './taxCols';
 export { licenseCols } from './licenseCols';
 export { orgCols } from './orgCols';
 export { moratoriumCols } from './moratoriumCols';
+export { emailCols } from './emailCols';
 
 export * from './gridColumns';
