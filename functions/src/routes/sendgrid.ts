@@ -4,7 +4,7 @@ import cors from 'cors';
 import * as bodyParser from 'body-parser';
 import { CollectionReference, Timestamp, getFirestore } from 'firebase-admin/firestore';
 // import sgMail from '@sendgrid/mail';
-import client from '@sendgrid/client'; // , { Client as SgClient }
+// import client from '@sendgrid/client'; // , { Client as SgClient }
 // import { HttpMethod } from '@sendgrid/helpers/classes/request';
 // import {
 //   EventWebhook,
@@ -16,7 +16,7 @@ import { v4 as uuid } from 'uuid';
 import {
   emailActivityCollection,
   // sendGridWebhookVerificationKey,
-  sendgridApiKey,
+  // sendgridApiKey,
 } from '../common';
 
 // TODO: signed event verification key:
@@ -116,7 +116,7 @@ app.post('/event', async (req: Request, res: Response) => {
   info('New sendgrid event recieved', { events });
 
   // const client = require('@sendgrid/client');
-  client.setApiKey(sendgridApiKey.value());
+  // client.setApiKey(sendgridApiKey.value());
 
   const db = getFirestore();
   const eventColRef = emailActivityCollection(db);
