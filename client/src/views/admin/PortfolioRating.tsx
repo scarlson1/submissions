@@ -6,7 +6,6 @@ import UploadFilesDialog from 'elements/UploadFilesDialog';
 import { useAsyncToast, useCreateStorageFiles } from 'hooks';
 import { CheckCircleRounded, OpenInNewRounded } from '@mui/icons-material';
 import { snakeCase } from 'lodash';
-import { toast } from 'react-hot-toast';
 
 // TODO: use web worker ??
 // https://www.newline.co/fullstack-react/articles/introduction-to-web-workers-with-react/
@@ -135,7 +134,8 @@ export const PortfolioRating = () => {
         const parsedData = csv?.data;
         const errors = csv?.errors;
 
-        const headers = parsedData && parsedData.length ? Object.keys(parsedData[0]) : [];
+        // const headers = parsedData && parsedData.length ? Object.keys(parsedData[0]) : []; // OR: get headers from csv.meta.fields ??
+        const headers = [...(csv?.meta?.fields || [])];
 
         resolve({ headers, errors, parseResult: csv });
       };
