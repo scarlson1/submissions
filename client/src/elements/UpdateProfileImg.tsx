@@ -1,4 +1,4 @@
-import { Avatar, Badge, SxProps } from '@mui/material';
+import { Avatar, Badge, DialogContentText, SxProps } from '@mui/material';
 import { Edit } from '@mui/icons-material';
 import { getDownloadURL } from 'firebase/storage';
 
@@ -53,7 +53,7 @@ export const UpdateProfileImg = ({ avatarSx }: UpdateProfileImgProps) => {
     <UploadFilesDialog
       acceptedTypes='.png,.jpeg,.jpg'
       title='Update Profile Image'
-      bodyText='Select a new profile image.'
+      children={<DialogContentText>Select a new profile image.</DialogContentText>}
       openButtonText='Change Profile Image'
       filesDragDropProps={{ multiple: false, maxFileSizeInBytes: 4194304 }} // 4 MB
       loading={uploadLoading}

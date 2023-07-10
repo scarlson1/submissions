@@ -6,47 +6,36 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
-  // DialogContentText,
   DialogTitle,
 } from '@mui/material';
 
 import { FilesDragDrop, FilesDragDropProps } from 'components/forms';
 import { UploadResult } from 'firebase/storage';
 
-// render item preferred over cloneElement: https://beta.reactjs.org/apis/react/cloneElement#alternatives
-
-interface RenderButtonProps {
-  handleClickOpen: (
-    event: React.MouseEvent<HTMLButtonElement> | React.MouseEvent<HTMLDivElement>
-  ) => void;
-}
-
-interface UploadFilesDialogProps {
+export interface UploadFilesDialogComponentProps {
+  open: boolean;
   acceptedTypes: string;
-  openButtonText?: string;
-  openButtonProps?: ButtonProps;
   submitButtonText?: string;
   submitButtonProps?: ButtonProps;
   cancelButtonText?: string;
   cancelButtonProps?: ButtonProps;
   title?: string;
-  bodyText?: ReactNode; // string;
+  children?: ReactNode;
   filesDragDropProps?: Partial<FilesDragDropProps>;
   loading?: boolean;
   files: File[];
   onNewFiles: (filesArr: File[]) => void;
-  onSubmit: (filesArr: File[]) => Promise<UploadResult[]>;
   onRemove: (removeFile: File) => void;
   onCancel: (event: object, reason: string) => void;
-  renderButton?: (props: RenderButtonProps) => JSX.Element | React.ReactElement;
+  handleSubmit: () => Promise<void>;
+  isValid?: boolean;
 }
 
-const UploadFilesDialog = ({
+export const UploadFilesDialogComponent = ({
+  open,
   acceptedTypes,
   title,
-  bodyText,
-  openButtonText = 'Upload Files',
-  openButtonProps,
+  children,
   submitButtonText = 'Submit',
   submitButtonProps,
   cancelButtonText = 'Cancel',
@@ -55,10 +44,67 @@ const UploadFilesDialog = ({
   loading = false,
   files,
   onNewFiles,
-  onSubmit,
   onRemove,
   onCancel,
+  handleSubmit,
+  isValid = true,
+}: UploadFilesDialogComponentProps) => {
+  return (
+    <Dialog open={open} onClose={onCancel} fullWidth={true} maxWidth='sm'>
+      <DialogTitle>
+        {title ||
+          `Upload ${filesDragDropProps && !!filesDragDropProps.multiple ? 'files' : 'file'}`}
+      </DialogTitle>
+      <DialogContent dividers>
+        {children}
+        <FilesDragDrop
+          files={files}
+          acceptedTypes={acceptedTypes}
+          onNewFiles={onNewFiles}
+          onRemove={onRemove}
+          {...filesDragDropProps}
+        />
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={(e) => onCancel(e, 'cancel')} disabled={loading} {...cancelButtonProps}>
+          {cancelButtonText}
+        </Button>
+        <Button
+          onClick={handleSubmit}
+          disabled={files.length < 1 || loading || !isValid}
+          {...submitButtonProps}
+        >
+          {submitButtonText}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
+
+export interface RenderButtonProps {
+  handleClickOpen: (
+    event: React.MouseEvent<HTMLButtonElement> | React.MouseEvent<HTMLDivElement>
+  ) => void;
+}
+export interface UploadFilesDialogProps
+  extends Omit<UploadFilesDialogComponentProps, 'open' | 'handleSubmit'> {
+  openButtonText?: string;
+  openButtonProps?: ButtonProps;
+  onSubmit: (filesArr: File[]) => Promise<UploadResult[]>;
+  renderButton?: (props: RenderButtonProps) => JSX.Element | React.ReactElement;
+}
+
+/** Wraps Dialog to handle open state and renders button */
+
+const UploadFilesDialog = ({
+  openButtonText = 'Upload Files',
+  openButtonProps,
+  files,
+  onSubmit,
+  onCancel,
   renderButton,
+  isValid = true,
+  ...props
 }: UploadFilesDialogProps) => {
   const [open, setOpen] = useState(false);
 
@@ -91,39 +137,14 @@ const UploadFilesDialog = ({
           {openButtonText}
         </Button>
       )}
-      <Dialog open={open} onClose={handleClose} fullWidth={true} maxWidth='sm'>
-        <DialogTitle>
-          {title ||
-            `Upload ${filesDragDropProps && !!filesDragDropProps.multiple ? 'files' : 'file'}`}
-        </DialogTitle>
-        <DialogContent dividers>
-          {/* {bodyText && <DialogContentText>{bodyText}</DialogContentText>} */}
-          {bodyText}
-          <FilesDragDrop
-            files={files}
-            acceptedTypes={acceptedTypes}
-            onNewFiles={onNewFiles}
-            onRemove={onRemove}
-            {...filesDragDropProps}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={(e) => handleClose(e, 'cancel')}
-            disabled={loading}
-            {...cancelButtonProps}
-          >
-            {cancelButtonText}
-          </Button>
-          <Button
-            onClick={handleSubmit}
-            disabled={files.length < 1 || loading}
-            {...submitButtonProps}
-          >
-            {submitButtonText}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <UploadFilesDialogComponent
+        open={open}
+        isValid={isValid}
+        onCancel={handleClose}
+        handleSubmit={handleSubmit}
+        files={files}
+        {...props}
+      />
     </>
   );
 };

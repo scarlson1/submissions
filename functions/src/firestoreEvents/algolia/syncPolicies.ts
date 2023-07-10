@@ -5,7 +5,9 @@ import algoliasearch from 'algoliasearch';
 import { capitalize } from 'lodash';
 
 import { algoliaAdminKey, algoliaAppId } from './index.js';
-import { COLLECTIONS, Policy, algoliaIndex } from '../../common/index.js';
+import { COLLECTIONS, Policy, PolicyLocation, algoliaIndex } from '../../common/index.js';
+
+// TODO: store policy location as separate record
 
 export default async (
   event: FirestoreEvent<
@@ -51,9 +53,9 @@ export default async (
       const locations = Object.values(newValue.locations || {});
 
       let searchTitle = `${capitalize(newValue.product)} policy - ID ${docId}`;
-      let _geoloc = [];
-      // https://www.algolia.com/doc/guides/managing-results/refine-results/geolocation/
 
+      const _geoloc = [];
+      // https://www.algolia.com/doc/guides/managing-results/refine-results/geolocation/
       if (locations && locations.length) {
         const firstAddress = locations[0].address;
 
@@ -99,7 +101,31 @@ export default async (
           },
         },
       ];
-      info(`SAVING POLICY CHANGE TO ALGILIA INDEX ${docId}`, { ...records });
+
+      locations.forEach((l: PolicyLocation) => {
+        const locationRecord = {
+          objectId: l.locationId,
+          docType: 'location',
+          collectionName: COLLECTIONS.POLICIES,
+          searchTitle: `${l.address?.addressLine1 + l.address?.addressLine2 || ''} ${
+            l.address?.city
+          }, ${l.address?.state}`,
+          searchSubtitle: `Policy ${docId} | ${
+            newValue.namedInsured?.displayName || newValue.namedInsured?.email
+          }`,
+          metadata: {
+            ...l.metadata,
+            created: l.metadata?.created?.toDate() || null,
+            updated: l.metadata?.updated?.toDate() || null,
+          },
+        };
+        records.push(locationRecord);
+      });
+
+      info(`SAVING POLICY CHANGE TO ALGILIA INDEX ${docId}`, {
+        locationCount: locations.length,
+        ...records,
+      });
 
       const { objectIDs } = await index.saveObjects(records, {
         autoGenerateObjectIDIfNotExist: false,

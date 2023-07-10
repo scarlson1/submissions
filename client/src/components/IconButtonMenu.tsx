@@ -15,22 +15,90 @@ interface Option {
   action: string | (() => void) | (() => Promise<void>);
 }
 
-export interface IconButtonMenuProps {
+export interface IconButtonMenuProps extends IconMenuProps {
   menuItems: Option[];
-  menuProps?: Partial<MenuProps>;
   menuItemProps?: Partial<MenuItemProps>;
-  iconButtonProps?: Partial<IconButtonProps>;
-  buttonIcon?: React.ReactNode;
 }
 
 export const IconButtonMenu = ({
   menuItems,
-  iconButtonProps,
-  menuProps,
+  // iconButtonProps,
+  // menuProps,
   menuItemProps,
-  buttonIcon,
+  // buttonIcon,
+  ...props
 }: IconButtonMenuProps) => {
   const navigate = useNavigate();
+  // const [actionsAnchorEl, setActionsAnchorEl] = useState<null | HTMLElement>(null);
+  // let actionsMenuOpen = Boolean(actionsAnchorEl);
+
+  // const handleActionsOpen = useCallback((e: React.MouseEvent<HTMLElement>) => {
+  //   setActionsAnchorEl(e.currentTarget);
+  // }, []);
+
+  // const handleActionsClose = useCallback(() => {
+  //   setActionsAnchorEl(null);
+  // }, []);
+
+  return (
+    <IconMenu {...props}>
+      {menuItems.map(({ action, label }, i) => (
+        <MenuItem
+          onClick={() => (typeof action === 'string' ? navigate(action) : action())}
+          divider
+          key={`menuItem-${i}-${label}`}
+          {...menuItemProps}
+        >
+          {label}
+        </MenuItem>
+      ))}
+    </IconMenu>
+  );
+  // return (
+  //   <>
+  //     <IconButton
+  //       color='primary'
+  //       aria-label='more'
+  //       onClick={handleActionsOpen}
+  //       // sx={{ ml: 2, borderRadius: 1 }}
+  //       {...iconButtonProps}
+  //     >
+  //       {buttonIcon ? buttonIcon : <MoreVertRounded />}
+  //     </IconButton>
+  //     <Menu
+  //       open={actionsMenuOpen}
+  //       anchorEl={actionsAnchorEl}
+  //       id='account-menu'
+  //       onClose={handleActionsClose}
+  //       onClick={handleActionsClose}
+  //       anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+  //       {...menuProps}
+  //     >
+  //       {menuItems.map(({ action, label }, i) => (
+  //         <MenuItem
+  //           onClick={() => (typeof action === 'string' ? navigate(action) : action())}
+  //           divider
+  //           key={`menuItem-${i}-${label}`}
+  //           {...menuItemProps}
+  //         >
+  //           {label}
+  //         </MenuItem>
+  //       ))}
+  //     </Menu>
+  //   </>
+  // );
+};
+
+export interface IconMenuProps {
+  // menuItems: Option[];
+  menuProps?: Partial<MenuProps>;
+  // menuItemProps?: Partial<MenuItemProps>;
+  iconButtonProps?: Partial<IconButtonProps>;
+  buttonIcon?: React.ReactNode;
+  children?: React.ReactNode;
+}
+
+export const IconMenu = ({ iconButtonProps, menuProps, buttonIcon, children }: IconMenuProps) => {
   const [actionsAnchorEl, setActionsAnchorEl] = useState<null | HTMLElement>(null);
   let actionsMenuOpen = Boolean(actionsAnchorEl);
 
@@ -62,7 +130,8 @@ export const IconButtonMenu = ({
         anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
         {...menuProps}
       >
-        {menuItems.map(({ action, label }, i) => (
+        {children}
+        {/* {menuItems.map(({ action, label }, i) => (
           <MenuItem
             onClick={() => (typeof action === 'string' ? navigate(action) : action())}
             divider
@@ -71,7 +140,7 @@ export const IconButtonMenu = ({
           >
             {label}
           </MenuItem>
-        ))}
+        ))} */}
       </Menu>
     </>
   );

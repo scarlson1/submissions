@@ -1,5 +1,14 @@
-import { useCallback } from 'react';
-import { Box, Button, Tooltip, Typography, useMediaQuery, useTheme } from '@mui/material';
+import { useCallback, useState } from 'react';
+import {
+  Box,
+  Button,
+  MenuItem,
+  Stack,
+  Tooltip,
+  Typography,
+  useMediaQuery,
+  useTheme,
+} from '@mui/material';
 import { GridActionsCellItem, GridRowModel, GridRowParams } from '@mui/x-data-grid';
 import { DataObjectRounded, EditRounded } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
@@ -14,6 +23,8 @@ import { useAsyncToast, useShowJson } from 'hooks';
 import { useConfirmation } from 'modules/components';
 import { quoteConverter } from 'common/firestoreConverters';
 import { QuotesGrid } from 'elements';
+import { IconMenu } from 'components/IconButtonMenu';
+import { PortfolioRatingDialog } from './PortfolioRating';
 
 const useUpdateQuoteStatus = () => {
   const firestore = useFirestore();
@@ -152,16 +163,19 @@ export const Quotes = () => {
         <Typography variant='h5' sx={{ ml: { xs: 0, sm: 3, md: 4 } }}>
           Quotes
         </Typography>
-        <Button
-          onClick={() =>
-            navigate(
-              createPath({ path: ADMIN_ROUTES.QUOTE_NEW_BLANK, params: { productId: 'flood' } })
-            )
-          }
-          sx={{ maxHeight: 36 }}
-        >
-          New Quote
-        </Button>
+        <Stack direction='row' spacing={2}>
+          <Button
+            onClick={() =>
+              navigate(
+                createPath({ path: ADMIN_ROUTES.QUOTE_NEW_BLANK, params: { productId: 'flood' } })
+              )
+            }
+            sx={{ maxHeight: 36 }}
+          >
+            New Quote
+          </Button>
+          <QuotesActionMenu />
+        </Stack>
       </Box>
       <QuotesGrid
         renderActions={renderActions}
@@ -173,3 +187,20 @@ export const Quotes = () => {
     </Box>
   );
 };
+
+// Required to get around dialog unmounting when icon menu closes
+function QuotesActionMenu() {
+  const [open, setOpen] = useState(false);
+
+  const handleOpen = useCallback(() => setOpen(true), []);
+  const handleClose = useCallback(() => setOpen(false), []);
+
+  return (
+    <>
+      <IconMenu>
+        <MenuItem onClick={handleOpen}>Rate Portfolio</MenuItem>
+      </IconMenu>
+      <PortfolioRatingDialog open={open} onClose={handleClose} />
+    </>
+  );
+}
