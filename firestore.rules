@@ -45,7 +45,12 @@ service cloud.firestore {
     }
 
     match /policies/{policyId} {
-      allow read: if isSignedIn() && (isUser(existingData().userId) || isAgent(existingData().agent.userId) || (isOrgAdmin() && isTenantUser(existingData().agency.orgId)) || isIDemandAdmin()) // && isTenantUser(orgId)
+      allow read: if isSignedIn() 
+        && (isUser(existingData().userId) 
+        // || isAgent(existingData().agent.userId)
+        || isAgent(resource.data.agent && resource.data.agent.userId ? resource.data.agent.userId : null)
+        || (isOrgAdmin() && isTenantUser(existingData().agency.orgId)) 
+        || isIDemandAdmin())
       allow create: if isIDemandAdmin() && emailVerified()
       allow update: if isIDemandAdmin() && emailVerified()
       allow delete: if false
@@ -61,7 +66,8 @@ service cloud.firestore {
     // TODO: update allow read of user profile (tenant/agent/insured etc.)
     match /users/{userId} {
       // allow read: if isUser(userId) || isTenantUser(existingData().orgId)|| (isIDemandAdmin() && emailVerified())
-      allow read: if true
+      allow read: if isUser(userId) || isTenantUser(existingData().orgId) || (isIDemandAdmin() && emailVerified()) 
+      // TODO: allow agent / agency users to read if x association (where user.tenantId = policy.agency.orgId, etc.) ?? need to run query ??
       allow create: if isUser(userId) || (isIDemandAdmin() && emailVerified())
       allow update: if isUser(userId) || (isIDemandAdmin() && emailVerified())
       allow delete: if isIDemandAdmin() && emailVerified()
@@ -207,19 +213,19 @@ service cloud.firestore {
     // Does the logged-in user match the requested userId?
     function isUser(userId) {
       return isSignedIn() && request.auth.uid == userId;
-    }
+    } // && request.auth.uid
 
     function isTenantUser(tenantId) {
       return isSignedIn() && request.auth.token.firebase.tenant == tenantId
-    }
+    } // && request.auth.token.firebase.tenant
 
     function isOrgAdmin() {
       return isSignedIn() && request.auth.token.orgAdmin && request.auth.token.orgAdmin == true
     }
 
     function isAgent(agentId) {
-      return isSignedIn() && request.auth.token.agent && request.auth.token.agent == true && request.auth.uid == agentId;
-    }
+      return isSignedIn() && request.auth.token.agent && request.auth.token.agent == true  && request.auth.uid == agentId;
+    } // && request.auth.uid
 
     // // Fetch a user from Firestore
     // function getUserData() {

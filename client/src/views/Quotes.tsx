@@ -18,7 +18,16 @@ export const Quotes = () => {
 
   if (claims?.iDemandAdmin) return <AdminQuotes />;
   if (claims?.agent || claims?.orgAdmin)
-    return <QuotesGrid constraints={[where('agent.userId', '==', `${user?.uid}`)]} />;
+    return (
+      <Box>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+          <Typography variant='h5' gutterBottom sx={{ ml: { xs: 0, sm: 3, md: 4 } }}>
+            Quotes
+          </Typography>
+        </Box>
+        <QuotesGrid constraints={[where('agent.userId', '==', `${user?.uid}`)]} />
+      </Box>
+    );
 
   return <UserQuotes />;
 };

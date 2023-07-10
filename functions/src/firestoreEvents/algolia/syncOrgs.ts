@@ -47,7 +47,6 @@ export default async (
     }
   } else {
     try {
-      // TODO: if coordinates (mailing address), need to use _geoloc: { lat, lng }
       let subtitle = newValue.address?.addressLine1
         ? `${newValue.address?.addressLine1} ${newValue.address?.city} ${newValue.address?.state}`.trim()
         : docId;

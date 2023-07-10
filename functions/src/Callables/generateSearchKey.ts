@@ -74,6 +74,8 @@ export default async ({ auth }: CallableRequest) => {
 
   if (isAnon) filters += ` OR visibleBy:${visibleType.anon}`;
 
+  if (userId && !isAnon) filters += ` OR visibleBy:${visibleType.authed}`;
+
   if (tenantId && userId) {
     filters += ` OR visibleBy:${visibleType.orgUser(tenantId)}`;
 

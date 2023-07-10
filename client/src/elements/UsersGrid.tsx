@@ -21,7 +21,7 @@ import { BasicDataGrid } from 'components';
 import { useAsyncToast, useCollectionData, useUpdateClaims } from 'hooks';
 import { useCollectionDataPopulateById } from 'hooks/useRx';
 import { renderChips } from 'components/RenderGridCellHelpers';
-import { getRandomItem } from 'modules/utils';
+import { getRandomItem, stringToColor } from 'modules/utils';
 import { getRequiredClaimValidator } from 'components/RequireAuthReactFire';
 import { CUSTOM_CLAIMS } from 'modules/components';
 import { GridEditMultiSelectCell } from 'components/GridEditMultiSelectCell';
@@ -185,7 +185,11 @@ export const AdminManageUsersGrid = ({
               <Avatar
                 alt={params.value?.name}
                 src={params.value.photoURL}
-                sx={{ backgroundColor: getRandomItem(AVATAR_BACKGROUNDS) }}
+                sx={{
+                  backgroundColor: params.value?.name
+                    ? stringToColor(params.value.name)
+                    : getRandomItem(AVATAR_BACKGROUNDS),
+                }}
               />
             </Box>
             <Box

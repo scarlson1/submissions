@@ -22,6 +22,7 @@ import { useAuth } from 'modules/components/AuthContext';
 import { dollarFormat, formatFirestoreTimestamp, numberFormat } from 'modules/utils/helpers';
 import { createPath, ROUTES } from 'router';
 import { Submission, submissionsCollection, WithId, fallbackImages } from 'common';
+import { VoidSVG } from 'assets/images';
 
 // TODO: use useSignInCheck
 
@@ -135,10 +136,13 @@ export const Submissions = () => {
       )}
       {submissions && submissions.length === 0 && (
         <Box>
-          <Typography variant='subtitle2' color='text.secondary' align='center'>
+          <Box sx={{ height: { xs: 60, sm: 80, md: 100 }, width: '100%' }}>
+            <VoidSVG height='100%' width='100%' preserveAspectRatio='xMidYMin meet' />
+          </Box>
+          <Typography variant='subtitle2' color='text.secondary' align='center' sx={{ py: 2 }}>
             No Submissions
           </Typography>
-          <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
             <Button
               onClick={() =>
                 navigate(

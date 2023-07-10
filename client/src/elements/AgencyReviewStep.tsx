@@ -38,7 +38,7 @@ export const ContactList = ({ items }: ContactCardProps) => {
   return (
     <List dense>
       {items.map(({ primaryText, secondaryText, icon, listItemTextProps }, index) => (
-        <ListItem key={`${primaryText}-${index}-${Math.random()}`}>
+        <ListItem key={`${primaryText}-${index}-${Math.random()}`} sx={{ overflowX: 'hidden' }}>
           <ListItemIcon sx={{ minWidth: '36px' }}>{icon}</ListItemIcon>
           <ListItemText
             primary={primaryText}
@@ -96,14 +96,23 @@ export const AgencyReviewStep = (props: AgencyReviewStepProps) => {
                   {
                     primaryText: `${values?.contact?.firstName} ${values?.contact?.lastName}`,
                     icon: <PersonRounded fontSize='small' color='primary' />,
+                    listItemTextProps: {
+                      sx: { whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden ' },
+                    },
                   },
                   {
                     primaryText: `${values?.contact?.email}`,
                     icon: <EmailRounded fontSize='small' color='primary' />,
+                    listItemTextProps: {
+                      sx: { whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden ' },
+                    },
                   },
                   {
                     primaryText: formatPhoneNumber(`${values?.contact?.phone}`) || '',
                     icon: <PhoneRounded fontSize='small' color='primary' />,
+                    listItemTextProps: {
+                      sx: { whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden ' },
+                    },
                   },
                 ]}
               />

@@ -55,10 +55,6 @@ export default async (
         userId: newValue.userId || null,
       };
       const visibleBy = getVisibleBy(ids, ['agent', 'orgAdmin', 'user']);
-      // const visibleBy: string[] = [];
-      // if (newValue.userId) visibleBy.push(`${newValue.userId}`);
-      // if (newValue.agent?.userId) visibleBy.push(`${newValue.agent?.userId}`);
-      // if (newValue.agency.orgId) visibleBy.push(`group/admin/${newValue.agency.orgId}`);
 
       const locations = Object.values(newValue.locations || {});
 

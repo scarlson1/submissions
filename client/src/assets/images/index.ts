@@ -20,4 +20,6 @@ export { ReactComponent as TownSVG } from './town.svg';
 export { ReactComponent as TwoFactorAuthenticationSVG } from './two_factor_authentication.svg';
 export { ReactComponent as UnderConstructionSVG } from './under_construction.svg';
 export { ReactComponent as UploadImageSVG } from './upload_image.svg';
+export { ReactComponent as VoidSVG } from './void.svg';
+export { ReactComponent as NotFoundSVG } from './not_found.svg';
 // export { ReactComponent as SVG } from './.svg';
