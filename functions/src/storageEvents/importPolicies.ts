@@ -42,6 +42,7 @@ import {
   sendgridApiKey,
   throwIfExists,
   truthyOrZero,
+  unlinkFile,
 } from '../common';
 import { sendAdminPolicyImportNotification } from '../services/sendgrid';
 import { getRCVs } from '../utils/rating';
@@ -204,7 +205,7 @@ export default async (event: StorageEvent) => {
   } catch (err: any) {
     error(`ERROR PARSING CSV. RETURNING EARLY`, { err });
 
-    fs.unlinkSync(tempFilePath);
+    await unlinkFile(tempFilePath);
     // TODO: report error to sentry or send email to admin
     return;
   }

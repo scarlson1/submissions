@@ -1,13 +1,11 @@
 import { StorageEvent } from 'firebase-functions/v2/storage';
-import { error, info, warn } from 'firebase-functions/logger';
+import { error, info } from 'firebase-functions/logger';
 import { defineInt, projectID, storageBucket } from 'firebase-functions/params';
 import { getStorage } from 'firebase-admin/storage';
 import { File, GetSignedUrlResponse } from '@google-cloud/storage';
 import path from 'path';
 import os from 'os';
 import fs from 'fs';
-import { format, parse } from 'fast-csv';
-import { snakeCase } from 'lodash';
 import { AxiosInstance, AxiosResponse } from 'axios';
 import { addDays } from 'date-fns';
 
@@ -20,13 +18,20 @@ import {
   sendgridApiKey,
   audience,
   unlinkFile,
+  Nullable,
 } from '../common';
 import { generateSRAccessToken, getSwissReInstance } from '../services';
 import { swissReBody } from '../utils/rating/swissReBody.js';
 import { getPremium } from '../utils/rating';
 import { sendMessage } from '../services/sendgrid';
-
 import { extractSRAALs } from '../utils/rating/getAALs';
+import {
+  parseStreamToArray,
+  shouldReturnEarly,
+  // transformHeadersCamelCase,
+  transformHeadersSnakeCase,
+  writeArrayToStorage as writeToStorage,
+} from '../utils';
 
 let swissReInstance: AxiosInstance;
 let swissReInstanceTimestamp: number; // TODO: regenerate if > 10 mins
@@ -36,7 +41,32 @@ const chunkCount = defineInt('SR_CHUNK_COUNT');
 const PORTFOLIO_UPLOAD_FOLDER = 'ratePortfolio';
 const SR_WAIT_MS = 30000;
 
-// TODO: RowType
+interface IRow extends Record<string, string> {
+  cov_a_rcv: string;
+  cov_b_rcv: string;
+  cov_c_rcv: string;
+  cov_d_rcv: string;
+  total_rcv: string;
+  cov_a_limit: string;
+  cov_b_limit: string;
+  cov_c_limit: string;
+  cov_d_limit: string;
+  total_limits: string;
+  deductible: string;
+}
+interface TRow extends Record<string, any> {
+  cov_a_rcv: number;
+  cov_b_rcv: number;
+  cov_c_rcv: number;
+  cov_d_rcv: number;
+  total_rcv: number;
+  cov_a_limit: number;
+  cov_b_limit: number;
+  cov_c_limit: number;
+  cov_d_limit: number;
+  total_limits: number;
+  deductible: number;
+}
 
 export function validateRow(data: any) {
   if (!data.cov_a_rcv) {
@@ -91,70 +121,23 @@ export function validateRow(data: any) {
   return true;
 }
 
-function parseStreamToArray<RowType = any>(stream: fs.ReadStream) {
-  return new Promise<{ dataArray: RowType[]; invalidRows: RowType[] }>((resolve, reject) => {
-    const dataArray: any[] = [];
-    const invalidRows: any[] = [];
-    stream
-      .pipe(parse({ headers: (headers) => headers.map((h) => snakeCase(h || '')) }))
-      .transform((data: any): any => ({
-        ...data,
-        // latitude: parseFloat(data.latitude),
-        // longitude: parseFloat(data.longitude),
-        // building_rcv: data.building_rcv ? parseInt(getNumber(data.building_rcv)) : '',
-        cov_a_rcv: data.cov_a_rcv ? parseInt(getNumber(data.cov_a_rcv)) : '',
-        cov_b_rcv: data.cov_b_rcv ? parseInt(getNumber(data.cov_b_rcv)) : 0,
-        cov_c_rcv: data.cov_c_rcv ? parseInt(getNumber(data.cov_c_rcv)) : 0,
-        cov_d_rcv: data.cov_d_rcv ? parseInt(getNumber(data.cov_d_rcv)) : 0,
-        total_rcv: data.total_rcv ? parseInt(getNumber(data.total_rcv)) : '',
-        cov_a_limit: data.cov_a_limit ? parseInt(getNumber(data.cov_a_limit)) : '',
-        cov_b_limit: data.cov_b_limit ? parseInt(getNumber(data.cov_b_limit)) : 0,
-        cov_c_limit: data.cov_c_limit ? parseInt(getNumber(data.cov_c_limit)) : 0,
-        cov_d_limit: data.cov_d_limit ? parseInt(getNumber(data.cov_d_limit)) : 0,
-        total_limits: data.total_limits ? parseInt(getNumber(data.total_limits)) : '',
-        deductible: data.deductible ? parseInt(getNumber(data.deductible)) : '',
-        skip: data?.skip && data?.skip?.toLowerCase().trim() === 'true',
-        google_maps_link: getGoogleMapsUrl(data.latitude, data.longitude),
-      })) // If a row is invalid then a data-invalid event will be emitted with the row and the index.
-      .validate((data: any): boolean => {
-        if (data.skip) return true;
-        return validateRow(data);
-      })
-      .on('error', (err: any) => {
-        error(err);
-        // fs.unlinkSync(tempFilePath);
-        // return;
-        reject(err);
-      })
-      .on('headers', (headers) => {
-        info('HEADERS => ', headers);
-      })
-      .on('data', (row) => {
-        info(`ROW (Location ID: ${row.location_id || 'no ID'}) => `, { ...row });
-        dataArray.push(row);
-      })
-      .on('data-invalid', (row, rowNumber) => {
-        warn(`Invalid [rowNumber=${rowNumber}] [row=${JSON.stringify(row)}]`);
-        invalidRows.push({ ...row, rowNumber });
-      })
-      .on('end', async (rowCount: number) => {
-        info(`Parsed ${rowCount} rows`);
-        info('DATA ARRAY => ', { dataArray });
-        // if (tempFilePath) fs.unlinkSync(tempFilePath);
-        resolve({ dataArray, invalidRows });
-
-        // try {
-        //   // await getAALs(dataArray);
-        //   await splitAndRate(dataArray);
-
-        //   await bucket.file(filePath).setMetadata({ metadata: { status: 'processed' } });
-        // } catch (err) {
-        //   await bucket.file(filePath).setMetadata({ metadata: { status: 'error' } });
-        // }
-
-        // return;
-      });
-  });
+function transformRow(data: IRow): Nullable<TRow> {
+  return {
+    ...data,
+    cov_a_rcv: data.cov_a_rcv ? parseInt(getNumber(data.cov_a_rcv)) : null, // '',
+    cov_b_rcv: data.cov_b_rcv ? parseInt(getNumber(data.cov_b_rcv)) : 0,
+    cov_c_rcv: data.cov_c_rcv ? parseInt(getNumber(data.cov_c_rcv)) : 0,
+    cov_d_rcv: data.cov_d_rcv ? parseInt(getNumber(data.cov_d_rcv)) : 0,
+    total_rcv: data.total_rcv ? parseInt(getNumber(data.total_rcv)) : null, // TODO: calc instead ??
+    cov_a_limit: data.cov_a_limit ? parseInt(getNumber(data.cov_a_limit)) : null, // '',
+    cov_b_limit: data.cov_b_limit ? parseInt(getNumber(data.cov_b_limit)) : 0,
+    cov_c_limit: data.cov_c_limit ? parseInt(getNumber(data.cov_c_limit)) : 0,
+    cov_d_limit: data.cov_d_limit ? parseInt(getNumber(data.cov_d_limit)) : 0,
+    total_limits: data.total_limits ? parseInt(getNumber(data.total_limits)) : null, // '',
+    deductible: data.deductible ? parseInt(getNumber(data.deductible)) : null, // '',
+    skip: data?.skip && data?.skip?.toLowerCase().trim() === 'true',
+    google_maps_link: getGoogleMapsUrl(data.latitude, data.longitude),
+  };
 }
 
 function getPremCalcVars(row: any) {
@@ -466,15 +449,6 @@ async function splitAndRate(data: any[]) {
   return ratedArray;
 }
 
-// MOVED TO helpers.ts
-// async function unlinkFile(filePath: string) {
-//   try {
-//     if (filePath) fs.unlinkSync(filePath);
-//   } catch (err: any) {
-//     error('Error unlinking file ', { errMsg: err?.message, err });
-//   }
-// }
-
 function waitMilliSeconds(ms: number, reason?: string) {
   return new Promise<void>((resolve, reject) => {
     info(`Waiting ${ms} ms ${reason || ''}`, { reason });
@@ -484,7 +458,10 @@ function waitMilliSeconds(ms: number, reason?: string) {
   });
 }
 
-function getGoogleMapsUrl(latitude: number | undefined, longitude: number | undefined) {
+function getGoogleMapsUrl(
+  latitude: number | string | undefined,
+  longitude: number | string | undefined
+) {
   if (!(latitude && longitude)) return '';
   return `https://www.google.com/maps/search/?api=1&query=${latitude}%2C${longitude}`;
 }
@@ -493,31 +470,12 @@ export default async (event: StorageEvent) => {
   const fileBucket = event.bucket;
   const filePath = event.data.name; // File path in the bucket.
   const fileName = path.basename(filePath || '');
-  const contentType = event.data.contentType;
-  const metageneration = event.data.metageneration as unknown;
   info('FILE UPLOAD DETECTED: ', { fileName });
   // TODO: better filtering to only run on wanted uploads & idempotency
 
-  if (!event.data.name?.startsWith(`${PORTFOLIO_UPLOAD_FOLDER}/`)) {
-    info(
-      `Ignoring upload "${event.data.name}" because is not in the "/${PORTFOLIO_UPLOAD_FOLDER}/*" folder.`
-    );
-    return null;
-  }
+  if (shouldReturnEarly(event, PORTFOLIO_UPLOAD_FOLDER, 'text/csv', 'processed')) return;
 
-  if (fileName.startsWith('processed') || fileName.startsWith('sr')) {
-    info(`Ignoring upload "${filePath}" because it was already processed.`);
-    return null;
-  }
-
-  if (metageneration !== '1' || contentType !== 'text/csv' || !filePath) {
-    warn(
-      `validation failed. contentType: ${contentType}. metageneration: ${metageneration}. filepath: ${filePath}`
-    );
-    return null;
-  }
-
-  // TODO: check meetadata for processed status
+  // TODO: check metadata for processed status ??
   const eventAge = Date.now() - Date.parse(event.time);
   const eventMaxAge = 1000 * 60 * 10; // 10 mins
 
@@ -553,28 +511,19 @@ export default async (event: StorageEvent) => {
     `${PORTFOLIO_UPLOAD_FOLDER}/processed_${fileName}`
   ) as unknown as File;
 
-  async function writeToStorage(data: any[]) {
-    info(`WRITING TO STORAGE FILE: ${storageFile.name}`);
-    const csvStream = format({ headers: true });
-
-    data.forEach((r) => csvStream.write(r));
-    csvStream.end();
-
-    csvStream
-      .pipe(storageFile.createWriteStream())
-      .on('finish', () => {
-        info(`FINISHED WRITING TO ${storageFile.name}`);
-        return;
-      })
-      .on('error', (err) => {
-        throw err;
-      });
-  }
-
   try {
-    const { dataArray, invalidRows } = await parseStreamToArray(fs.createReadStream(tempFilePath));
+    const stream = fs.createReadStream(tempFilePath);
+    const parsed = await parseStreamToArray<IRow, TRow>(
+      stream,
+      { headers: transformHeadersSnakeCase },
+      transformRow,
+      validateRow
+    );
+    const dataArray = parsed.dataArr;
+    const invalidRows = parsed.invalidRows;
+    // parse downloaded file into array
+    // const { dataArray, invalidRows } = await parseStreamToArray(fs.createReadStream(tempFilePath));
 
-    // if (tempFilePath) fs.unlinkSync(tempFilePath);
     await unlinkFile(tempFilePath);
     info(
       `FINISHED PARSING FILE (${dataArray.length} VALID ROWS - ${invalidRows.length} INVALID ROWS)`
@@ -582,7 +531,7 @@ export default async (event: StorageEvent) => {
 
     const ratedArray = await splitAndRate(dataArray);
 
-    await writeToStorage(ratedArray);
+    await writeToStorage(storageFile, ratedArray, { headers: true });
 
     await bucket.file(filePath).setMetadata({ metadata: { status: 'processed' } });
 
@@ -608,6 +557,7 @@ async function notifyAdmin(sgKey: string, storageFile: File, fileName: string = 
     storageFile.name
   };tab=live_object?project=${projectID.value()}`;
 
+  // doesn't work in dev - "Cannot sign data without client_email"
   const downloadURL: GetSignedUrlResponse = await storageFile.getSignedUrl({
     action: 'read',
     expires: addDays(new Date(), 7),

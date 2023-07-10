@@ -3,13 +3,30 @@ import type { QueryDocumentSnapshot } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
 import { storageBucket } from 'firebase-functions/params';
 import { error, info } from 'firebase-functions/logger';
-import axios from 'axios';
+import axios, { AxiosRequestConfig } from 'axios';
 import path from 'path';
 import os from 'os';
 import fs from 'fs';
 import { v4 as uuid } from 'uuid';
 
-import { Submission, locationImageTypes, mapboxToken, unlinkFile } from '../common';
+import {
+  Submission,
+  clearTempFiles,
+  locationImageTypes,
+  mapboxToken,
+  storageBaseUrl,
+} from '../common';
+
+const MAPBOX_STYLES: { name: locationImageTypes; style: string; zoom: number }[] = [
+  { name: 'light', style: 'mapbox/light-v8', zoom: 13 },
+  { name: 'dark', style: 'spencer-carlson/cl8dxgtum000w14qix5ft9gw5', zoom: 13 },
+  { name: 'satellite', style: 'mapbox/satellite-v9', zoom: 17 },
+  {
+    name: 'satelliteStreets',
+    style: 'mapbox/satellite-streets-v12',
+    zoom: 16,
+  },
+];
 
 // TODO: add marker overlay ?? https://docs.mapbox.com/api/maps/static-images/#example-request-retrieve-a-static-map-with-a-marker-overlay
 
@@ -18,10 +35,24 @@ import { Submission, locationImageTypes, mapboxToken, unlinkFile } from '../comm
 
 // TODO: idempotency
 
-async function clearTempFiles(filePaths: string[]) {
-  for (const filePath of filePaths) {
-    await unlinkFile(filePath);
-  }
+export async function downloadFromUrl(
+  url: string,
+  filePath: string,
+  config?: AxiosRequestConfig<any> | undefined
+) {
+  info(`starting file download to ${filePath}`, { filePath, url, config: config || {} });
+  const res = await axios.get(url, config);
+  const writer = res.data.pipe(fs.createWriteStream(filePath));
+
+  return new Promise(async (resolve, reject) => {
+    writer.on('finish', async () => {
+      resolve(filePath);
+    });
+
+    writer.on('error', (err: any) => {
+      reject(err);
+    });
+  });
 }
 
 export default async (
@@ -51,48 +82,30 @@ export default async (
     const { latitude, longitude } = coords;
     const bucket = getStorage().bucket(storageBucket.value());
 
-    const downloadToTemp = async (mapboxUrl: string, tempFilePath: string) => {
-      const res = await axios.get(mapboxUrl, {
-        responseType: 'stream',
-      });
-      const writer = res.data.pipe(fs.createWriteStream(tempFilePath));
+    // const downloadToTemp = async (mapboxUrl: string, tempFilePath: string) => {
+    //   const res = await axios.get(mapboxUrl, {
+    //     responseType: 'stream',
+    //   });
+    //   const writer = res.data.pipe(fs.createWriteStream(tempFilePath));
 
-      // eslint-disable-next-line
-      return new Promise(async (resolve, reject) => {
-        writer.on('finish', async () => {
-          resolve(tempFilePath);
-        });
+    //   // eslint-disable-next-line
+    //   return new Promise(async (resolve, reject) => {
+    //     writer.on('finish', async () => {
+    //       resolve(tempFilePath);
+    //     });
 
-        // eslint-disable-next-line
-        writer.on('error', (err: any) => {
-          reject(err);
-        });
-      });
-    };
-
-    // const clearTempFiles = async (filePaths: string[]) => {
-    //   for (const filePath of filePaths) {
-    //     console.log('unlinking temp file: ', filePath);
-    //     fs.unlinkSync(filePath);
-    //   }
+    //     // eslint-disable-next-line
+    //     writer.on('error', (err: any) => {
+    //       reject(err);
+    //     });
+    //   });
     // };
-
-    const mapboxStyles: { name: locationImageTypes; style: string; zoom: number }[] = [
-      { name: 'light', style: 'mapbox/light-v8', zoom: 13 },
-      { name: 'dark', style: 'spencer-carlson/cl8dxgtum000w14qix5ft9gw5', zoom: 13 },
-      { name: 'satellite', style: 'mapbox/satellite-v9', zoom: 17 },
-      {
-        name: 'satelliteStreets',
-        style: 'mapbox/satellite-streets-v12',
-        zoom: 16,
-      },
-    ];
 
     const cleanUpTempPaths = [];
     // FlattenObjectKeys<Submission, 'imagePaths'> |
     const policyDocUpdates: Record<string, string> = {};
 
-    for (const styleType of mapboxStyles) {
+    for (const styleType of MAPBOX_STYLES) {
       const url = `https://api.mapbox.com/styles/v1/${
         styleType.style
       }/static/${longitude},${latitude},${
@@ -103,7 +116,10 @@ export default async (
       cleanUpTempPaths.push(tempFilePath);
 
       try {
-        await downloadToTemp(url, tempFilePath);
+        await downloadFromUrl(url, tempFilePath, {
+          responseType: 'stream',
+        });
+
         const fileId = uuid();
         const initialMetadata = {
           metadata: {
@@ -113,28 +129,23 @@ export default async (
           },
         };
 
-        // const destinationPath = `users/${userId ?? 'common'}/static_map_${styleType.name}.jpeg`;
-        const destinationPath = `submissions/${snap.id}/static_map_${styleType.name}.jpeg`;
+        // const destinationPath = `submissions/${snap.id}/static_map_${styleType.name}.jpeg`;
+        const destinationPath = `locationMapImages/${snap.id}_map_${styleType.name}.jpeg`;
         await bucket.upload(tempFilePath, {
           destination: destinationPath,
           metadata: initialMetadata,
         });
         info(`uploaded file to: ${destinationPath}`);
 
-        // process.env.STORAGE_BUCKET_NAME
-        const downloadURL = `${
-          process.env.STORAGE_BASE_URL
-        }/v0/b/${storageBucket.value()}/o/${encodeURIComponent(destinationPath)}?alt=media&token=${
-          initialMetadata.metadata.firebaseStorageDownloadTokens
-        }`;
+        const downloadURL = `${storageBaseUrl.value()}/v0/b/${storageBucket.value()}/o/${encodeURIComponent(
+          destinationPath
+        )}?alt=media&token=${initialMetadata.metadata.firebaseStorageDownloadTokens}`;
         info(`STATIC IMG DOWNLOAD URL: ${downloadURL}`);
 
-        // policyDocUpdates[`${styleType.name}MapImageFilePath`] = destinationPath;
-        // policyDocUpdates[`${styleType.name}MapImageURL`] = downloadURL;
         policyDocUpdates[`imagePaths.${styleType.name}`] = destinationPath;
         policyDocUpdates[`imageURLs.${styleType.name}`] = downloadURL;
       } catch (err: any) {
-        error(err);
+        error('Error downloading mapbox images ', { err });
 
         if (cleanUpTempPaths.length > 0) {
           await clearTempFiles(cleanUpTempPaths);

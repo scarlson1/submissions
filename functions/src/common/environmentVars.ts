@@ -38,17 +38,18 @@ export const algoliaIndex = defineString('ALGOLIA_INDEX');
 export const algoliaAppId = defineString('ALGOLIA_APP_ID');
 export const defaultFloodZone = defineString('DEFAULT_FLOOD_ZONE');
 export const iDemandOrgId = defineString('IDEMAND_ORG_ID');
+export const storageBaseUrl = defineString('STORAGE_BASE_URL');
 
 export const maxA = defineInt('FLOOD_MAX_LIMIT_A', { default: 1000000 });
 export const minA = defineInt('FLOOD_MIN_LIMIT_A', { default: 100000 });
 export const maxBCD = defineInt('FLOOD_MAX_LIMIT_B_C_D', { default: 1000000 });
-export const minDeductibleFlood = defineInt('MIN_DEDUCTIBLE_FLOOD', { default: 1000 });
+export const minDeductibleFlood = defineInt('FLOOD_MIN_DEDUCTIBLE', { default: 1000 });
 export const defaultCommissionAsInt = defineInt('DEFAULT_COMMISSION_AS_INT', { default: 15 });
 
 // defineFloat not implemented yet
 // ISSUE REF: https://github.com/firebase/firebase-tools/issues/5433
 // TODO: change to defineFloat once available
 // export const cardFeePct = defineFloat('CARD_FEE_PCT', { default: 0.035 });
-export const cardFeePct = defineString('CARD_FEE_PCT', { default: '0.035 ' });
+export const cardFeePct = defineString('CARD_FEE_PCT', { default: '0.035' });
 // Number.parseFloat(randomFloat.value())
 // TODO: default commission

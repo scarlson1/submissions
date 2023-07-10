@@ -94,8 +94,7 @@ export function getFIPS(countyName: string, state: string) {
 }
 
 export async function getCountyFromGeoJson(latitude: number, longitude: number) {
-  // const countiesJson = await require('../assets/counties_20m.json');
-  if (!countiesJson) throw new Error('Missing countiesJson');
+  if (!countiesJson) throw new Error('Missing counties JSON');
 
   let matchProperties: Properties | undefined;
   const p = point([longitude, latitude]);
@@ -109,7 +108,7 @@ export async function getCountyFromGeoJson(latitude: number, longitude: number) 
       }
     }
   });
-  info('MATCH PROPERTIES: ', { matchProperties });
+  info('COUNTIES JSON MATCH PROPERTIES: ', { matchProperties });
 
   return matchProperties;
 }

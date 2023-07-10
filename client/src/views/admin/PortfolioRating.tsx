@@ -1,15 +1,67 @@
-import { useCallback } from 'react';
-import { Box } from '@mui/material';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Box, Unstable_Grid2 as Grid, Link, Stack, Typography } from '@mui/material';
 import { ParseResult, parse } from 'papaparse';
 
 import UploadFilesDialog from 'elements/UploadFilesDialog';
-import { useCreateStorageFiles } from 'hooks';
+import { useAsyncToast, useCreateStorageFiles } from 'hooks';
+import { CheckCircleRounded, OpenInNewRounded } from '@mui/icons-material';
+import { snakeCase } from 'lodash';
+import { toast } from 'react-hot-toast';
 
 // TODO: use web worker ??
 // https://www.newline.co/fullstack-react/articles/introduction-to-web-workers-with-react/
 // https://medium.com/@ashifa454/offloading-render-using-web-workers-e0f2f463ad0
 
+type ReqHeaders =
+  | 'cov_a_rcv'
+  | 'cov_b_rcv'
+  | 'cov_c_rcv'
+  | 'cov_d_rcv'
+  | 'cov_a_limit'
+  | 'cov_b_limit'
+  | 'cov_c_limit'
+  | 'cov_d_limit'
+  | 'deductible'
+  | 'state'
+  | 'commission_pct';
+
+const REQUIRED_HEADERS: ReqHeaders[] = [
+  'cov_a_rcv',
+  'cov_b_rcv',
+  'cov_c_rcv',
+  'cov_d_rcv',
+  'cov_a_limit',
+  'cov_b_limit',
+  'cov_c_limit',
+  'cov_d_limit',
+  'deductible',
+  'state',
+  'commission_pct',
+];
+
+function getHeaderStatus(headers: string[], formatFn: (str: string) => string = snakeCase) {
+  const formatted = headers.map((h) => formatFn(h));
+  console.log('formatted headers: ', formatted);
+
+  let result: Record<string, boolean | null> = {};
+
+  for (let h of REQUIRED_HEADERS) {
+    result[h] = formatted.includes(h);
+  }
+
+  return result;
+}
+
 export const PortfolioRating = () => {
+  const toast = useAsyncToast({ position: 'top-right' });
+  const [headerStatus, setHeaderStatus] = useState<Record<string, boolean | null>>(
+    getHeaderStatus([])
+  );
+  const [headers, setHeaders] = useState<string[]>([]);
+
+  const isValid = useMemo(() => Object.values(headerStatus).every((v) => v), [headerStatus]);
+  console.log('isValid: ', isValid);
+
   const {
     files: uploadFiles,
     loading: uploadLoading,
@@ -22,14 +74,12 @@ export const PortfolioRating = () => {
     { status: 'pending' },
     async (uploadResult) => {
       console.log('upload successful', uploadResult);
-
-      // if (uploadResult.length > 0 && uploadResult[0].metadata.fullPath) {
-      //   let downloadUrl = await getDownloadURL(uploadResult[0].ref);
-      //   console.log('downloadUrl: ', downloadUrl);
-      //   await updateProfile({ photoURL: downloadUrl }); // uploadResult[0].metadata.fullPath
-      // }
+      toast.info("You'll receive an email upon completion");
     },
-    (err, msg) => console.log('upload failed: ', msg, err)
+    (err, msg) => {
+      console.log('upload failed: ', msg, err);
+      // toast.error(msg);
+    }
   );
 
   // SOURCE: https://refine.dev/blog/how-to-import-csv/
@@ -104,10 +154,12 @@ export const PortfolioRating = () => {
     async (files: File[]) => {
       for (let file of files) {
         try {
-          const { headers, errors } = (await handleParse(file)) as any;
+          const { headers, errors, parseResult } = (await handleParse(file)) as any;
 
           console.log('HEADERS: ', headers);
           console.log('ERRORS: ', errors);
+          console.log('PARSE RESULT: ', parseResult);
+          setHeaders(headers);
         } catch (err) {
           console.log('ERROR: ', err);
         }
@@ -118,12 +170,39 @@ export const PortfolioRating = () => {
     [handleNewFiles, handleParse]
   );
 
+  useEffect(() => {
+    setHeaderStatus(getHeaderStatus(headers));
+  }, [headers]);
+
+  useEffect(() => {
+    if (!uploadFiles || !uploadFiles.length) setHeaderStatus({ ...getHeaderStatus([]) });
+  }, [uploadFiles]);
+
   return (
     <Box>
       <UploadFilesDialog
         acceptedTypes='text/csv,.csv'
         title='Rate Portfolio'
-        bodyText='Upload a CSV file with the following headers (minimum): '
+        bodyText={
+          <Box>
+            <Box sx={{ pb: 4 }}>
+              <Typography>Upload a CSV file with the following headers (minimum):</Typography>
+              <Typography variant='body2' color='text.secondary' component='div'>
+                Headers will be transformed to{' '}
+                <Link
+                  href='https://lodash.com/docs/4.17.15#snakeCase'
+                  target='_blank'
+                  rel='noopener'
+                >
+                  snake case <OpenInNewRounded sx={{ fontSize: 16 }} />
+                </Link>
+                {`. (ex: "CovA limit" → "cov_a_limit")`}
+              </Typography>
+            </Box>
+
+            <RequiredHeaders headerStatus={headerStatus} />
+          </Box>
+        }
         openButtonText='Upload'
         filesDragDropProps={{ maxFileSizeInBytes: 4194304 }} // 4MB
         loading={uploadLoading}
@@ -137,3 +216,30 @@ export const PortfolioRating = () => {
     </Box>
   );
 };
+
+interface RequiredHeadersProps {
+  headerStatus: Record<string, boolean | null>;
+}
+
+function RequiredHeaders(props: RequiredHeadersProps) {
+  const keys = Object.keys(props.headerStatus);
+
+  return (
+    <Grid container spacing={3}>
+      {keys.map((h) => (
+        <Grid xs={6} sm={4} key={h}>
+          {/* <Box sx={{ display: 'flex', }}> */}
+          <Stack direction='row' spacing={2}>
+            <CheckCircleRounded
+              fontSize='small'
+              color={props.headerStatus[h] ? 'success' : 'disabled'}
+            />
+            <Typography variant='body2' color='text.secondary'>
+              {h}
+            </Typography>
+          </Stack>
+        </Grid>
+      ))}
+    </Grid>
+  );
+}

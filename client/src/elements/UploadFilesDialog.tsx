@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { ReactNode, useState } from 'react';
 
 import {
   Button,
@@ -6,7 +6,7 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
-  DialogContentText,
+  // DialogContentText,
   DialogTitle,
 } from '@mui/material';
 
@@ -30,7 +30,7 @@ interface UploadFilesDialogProps {
   cancelButtonText?: string;
   cancelButtonProps?: ButtonProps;
   title?: string;
-  bodyText?: string;
+  bodyText?: ReactNode; // string;
   filesDragDropProps?: Partial<FilesDragDropProps>;
   loading?: boolean;
   files: File[];
@@ -97,7 +97,8 @@ const UploadFilesDialog = ({
             `Upload ${filesDragDropProps && !!filesDragDropProps.multiple ? 'files' : 'file'}`}
         </DialogTitle>
         <DialogContent dividers>
-          {bodyText && <DialogContentText>{bodyText}</DialogContentText>}
+          {/* {bodyText && <DialogContentText>{bodyText}</DialogContentText>} */}
+          {bodyText}
           <FilesDragDrop
             files={files}
             acceptedTypes={acceptedTypes}

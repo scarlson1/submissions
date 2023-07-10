@@ -216,6 +216,12 @@ export async function unlinkFile(filePath: string) {
   }
 }
 
+export async function clearTempFiles(filePaths: string[]) {
+  for (const filePath of filePaths) {
+    await unlinkFile(filePath);
+  }
+}
+
 export async function throwIfExists<T>(docRef: DocumentReference<T>) {
   const snap = await docRef.get();
   if (snap.exists) throw new Error(`Document already exists with ID ${docRef.id}`);
