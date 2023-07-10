@@ -1,11 +1,8 @@
 import { onDocumentWritten } from 'firebase-functions/v2/firestore';
-import { defineSecret, defineString } from 'firebase-functions/params';
-import { COLLECTIONS } from '../../common';
+
+import { COLLECTIONS, algoliaAdminKey } from '../../common';
 
 // DOCS REF: https://firebase.google.com/docs/reference/functions/2nd-gen/node/firebase-functions.firestore.md#firestoreondocumentwritten
-
-export const algoliaAdminKey = defineSecret('ALGOLIA_ADMIN_API_KEY');
-export const algoliaAppId = defineString('ALGOLIA_APP_ID');
 
 export const algoliasyncusers = onDocumentWritten(
   {

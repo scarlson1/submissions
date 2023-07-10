@@ -3,8 +3,8 @@ import { error, info } from 'firebase-functions/logger';
 import type { DocumentSnapshot } from 'firebase-admin/firestore';
 import algoliasearch from 'algoliasearch';
 
-import { algoliaAdminKey, algoliaAppId } from './index.js';
-import { COLLECTIONS, User, algoliaIndex } from '../../common/index.js';
+import { COLLECTIONS, User, algoliaIndex, algoliaAppId, algoliaAdminKey } from '../../common';
+import { VisibleByTypes, getVisibleBy } from '../../utils';
 
 export default async (
   event: FirestoreEvent<
@@ -48,8 +48,13 @@ export default async (
       let searchSubtitle = newValue.email || `UID: ${docId}`;
       if (newValue.orgName) searchSubtitle += ` - ${newValue.orgName}`;
 
-      const visibleBy = [docId];
-      if (newValue.orgId) visibleBy.push(`group/${newValue.orgId}`);
+      const ids = {
+        userId: docId,
+        agentId: null,
+        orgId: newValue.tenantId || newValue.orgId || null,
+      };
+      const groups: VisibleByTypes[] = ['user', 'orgAdmin', 'orgUser'];
+      const visibleBy = getVisibleBy(ids, groups);
 
       const records: Record<string, any>[] = [
         {

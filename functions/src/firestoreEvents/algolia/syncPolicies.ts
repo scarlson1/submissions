@@ -4,10 +4,15 @@ import { DocumentSnapshot, Timestamp } from 'firebase-admin/firestore';
 import algoliasearch from 'algoliasearch';
 import { capitalize } from 'lodash';
 
-import { algoliaAdminKey, algoliaAppId } from './index.js';
-import { COLLECTIONS, Policy, PolicyLocation, algoliaIndex } from '../../common/index.js';
-
-// TODO: store policy location as separate record
+import {
+  COLLECTIONS,
+  Policy,
+  PolicyLocation,
+  algoliaIndex,
+  algoliaAppId,
+  algoliaAdminKey,
+} from '../../common';
+import { getVisibleBy } from '../../utils';
 
 export default async (
   event: FirestoreEvent<
@@ -44,11 +49,16 @@ export default async (
     }
   } else {
     try {
-      const visibleBy = [];
-      if (newValue.userId) visibleBy.push(`${newValue.userId}`);
-      if (newValue.agent?.userId) visibleBy.push(`${newValue.agent?.userId}`);
-      // TODO: decide whether to allow org admins to read policies
-      if (newValue.agency.orgId) visibleBy.push(`group/admin/${newValue.agency.orgId}`);
+      const ids = {
+        orgId: newValue.agency?.orgId || null,
+        agentId: newValue.agent?.userId || null,
+        userId: newValue.userId || null,
+      };
+      const visibleBy = getVisibleBy(ids, ['agent', 'orgAdmin', 'user']);
+      // const visibleBy: string[] = [];
+      // if (newValue.userId) visibleBy.push(`${newValue.userId}`);
+      // if (newValue.agent?.userId) visibleBy.push(`${newValue.agent?.userId}`);
+      // if (newValue.agency.orgId) visibleBy.push(`group/admin/${newValue.agency.orgId}`);
 
       const locations = Object.values(newValue.locations || {});
 
@@ -92,6 +102,7 @@ export default async (
           searchTitle,
           searchSubtitle,
           _geoloc,
+          visibleBy,
           metadata: {
             ...(newValue.metadata || {}),
             created: newValue.metadata?.created?.toDate() || null,
@@ -113,6 +124,7 @@ export default async (
           searchSubtitle: `Policy ${docId} | ${
             newValue.namedInsured?.displayName || newValue.namedInsured?.email
           }`,
+          visibleBy,
           metadata: {
             ...l.metadata,
             created: l.metadata?.created?.toDate() || null,

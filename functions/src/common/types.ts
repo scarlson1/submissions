@@ -161,6 +161,7 @@ export interface PaymentMethod extends EPayVerifiedResponse {
 // EPAY STATUSES: Processed | Declined | Chargebacks | Pending Approval | Pending My Approval
 
 // https://stripe.com/docs/api/charges/object
+// TODO: add agency info for security rules / algolia ??
 export interface Charge {
   transactionId: string;
   amount: number;

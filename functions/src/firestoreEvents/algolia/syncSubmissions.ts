@@ -3,8 +3,8 @@ import { error, info } from 'firebase-functions/logger';
 import type { DocumentSnapshot } from 'firebase-admin/firestore';
 import algoliasearch from 'algoliasearch';
 
-import { algoliaAdminKey, algoliaAppId } from './index.js';
-import { COLLECTIONS, Submission, algoliaIndex } from '../../common/index.js';
+import { COLLECTIONS, Submission, algoliaIndex, algoliaAppId, algoliaAdminKey } from '../../common';
+import { VisibleByTypes, getVisibleBy } from '../../utils';
 
 export default async (
   event: FirestoreEvent<
@@ -40,17 +40,14 @@ export default async (
     }
   } else {
     try {
-      // TODO: if coordinates (mailing address), need to use _geoloc: { lat, lng }
-
       // Allow all users to search submission if no userId or agent (always has userId b/c anon) add isAnon to submisssion doc ??
-      const visibleBy: string[] = [];
-      if (newValue.userId) {
-        visibleBy.push(`${newValue.userId}`);
-      } else {
-        visibleBy.push('group/allUsers');
-      }
-      // if (newValue.agent?.agentId) visibleBy.push(`${newValue.agent?.agentId}`);
-      // if (newValue.agency.orgId) visibleBy.push(`group/admin/${newValue.agency.orgId}`);
+      const ids = {
+        userId: newValue.userId || null,
+        agentId: newValue.agent?.userId || null,
+        orgId: newValue.agency?.orgId || null,
+      };
+      const groups: VisibleByTypes[] = ['user', 'agent', 'orgAdmin'];
+      const visibleBy = getVisibleBy(ids, groups);
 
       const searchSubtitle = `${newValue.product} - ${
         newValue.metadata?.created?.toDate().toDateString() || ''

@@ -3,8 +3,14 @@ import { error, info } from 'firebase-functions/logger';
 import { DocumentSnapshot, GeoPoint } from 'firebase-admin/firestore';
 import algoliasearch from 'algoliasearch';
 
-import { algoliaAdminKey, algoliaAppId } from './index.js';
-import { COLLECTIONS, Organization, algoliaIndex } from '../../common/index.js';
+import {
+  COLLECTIONS,
+  Organization,
+  algoliaIndex,
+  algoliaAppId,
+  algoliaAdminKey,
+} from '../../common';
+import { VisibleByTypes, getVisibleBy } from '../../utils';
 
 export default async (
   event: FirestoreEvent<
@@ -49,7 +55,13 @@ export default async (
         subtitle = `${newValue.metadata.created.toDate()}`;
       }
 
-      const visibleBy = [`group/${docId}`];
+      const ids = {
+        userId: null,
+        agentId: null,
+        orgId: docId || null,
+      };
+      const groups: VisibleByTypes[] = ['orgAdmin', 'orgUser'];
+      const visibleBy = getVisibleBy(ids, groups);
 
       const records: Record<string, any>[] = [
         {

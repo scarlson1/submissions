@@ -8,23 +8,31 @@ import {
   algoliaIDemandAdminSearchKey,
   algoliaAppId,
   algoliaIndex,
-  COLLECTIONS,
 } from '../common';
+import { visibleType } from '../utils';
+
+// VISIBLE BY: https://www.algolia.com/doc/guides/security/api-keys/how-to/user-restricted-access-to-data/#generating-a-secured-api-key
 
 // https://firebase.google.com/docs/firestore/solutions/search?provider=algolia#adding_security
 
 // DOCS: https://www.algolia.com/doc/api-reference/api-methods/generate-secured-api-key/?client=javascript
 
-// FILTERS: https://www.algolia.com/doc/api-reference/api-parameters/filters/#examples
+// filtersS: https://www.algolia.com/doc/api-reference/api-parameters/filterss/#examples
 
-// VISIBLE BY: https://www.algolia.com/doc/guides/security/api-keys/how-to/user-restricted-access-to-data/?client=javascript#making-sensitive-attributes-unretrievable
-
-// FILTER VALIDATOR: https://www.algolia.com/doc/api-reference/api-parameters/filters/#filters-syntax-validator
+// filters VALIDATOR: https://www.algolia.com/doc/api-reference/api-parameters/filterss/#filterss-syntax-validator
 
 // TODO: set attibutes for faceting
 // https://firebase.google.com/docs/firestore/solutions/search?provider=algolia
 
 // TODO: how to search users when searching from agent account ??
+// TODO: add valid until once error boundary is set up to handle refetching expired keys
+
+// You can use nested attributes for filtersing.
+// For example, authors.mainAuthor:"John Doe" is a valid filters, as long as you declare authors.mainAuthor in attributesForFaceting.
+
+// For example, if a record contains the array attribute genres: ["fiction", "thriller", "sci-fi"], the filters genres:thriller returns this record.
+
+// "We limit filters expressions to a conjunction (ANDs) of disjunctions (ORs). For example you can use filters1 AND (filters2 OR filters3)), but not ORs of ANDs (e.g. filters1 OR (filters2 AND filters3)."
 
 export default async ({ auth }: CallableRequest) => {
   const appId = algoliaAppId.value();
@@ -42,75 +50,48 @@ export default async ({ auth }: CallableRequest) => {
   const isOrgAdmin = auth?.token.orgAdmin || false;
   const isAgent = auth?.token.agent || false;
 
+  // return admin search key if user is iDemand Admin
   if (isIDemandAdmin) {
     const iDemandAdminSearchKey = algoliaIDemandAdminSearchKey.value();
     if (!iDemandAdminSearchKey)
       throw new HttpsError('internal', 'Missing iDemand Admin search key in Secret Manager');
+
     info(`RETURNING ADMIN ALGOLIA SEARCH KEY FOR USER ${auth?.token.email || ''} (UID: ${userId})`);
     return {
       key: iDemandAdminSearchKey,
     };
   }
 
-  // TODO: return restricted api key (only search FAQs, etc.)
-  // if (!userId) {
-  //   throw new HttpsError('failed-precondition', 'User not signed in');
-  // }
-
-  // TODO: add valid until once error boundary is set up to handle refetching expired keys
   const keyConfig: SecuredApiKeyRestrictions = {
     restrictIndices: algoliaIndex.value(),
     userToken: userId,
     // validUntil: addDays(new Date(), 30).getTime(),
   };
-  if (!userId) {
-    keyConfig['filters'] = `userId:${null}`;
-  }
-  if (isAnon) {
-    // TODO: restructed key for not authed/anon users
-    const ownerFilters = `userId:${userId}`;
-    const collectionFilters = `collectionName:${COLLECTIONS.SUBMISSIONS}`;
-    keyConfig['filters'] = `(${ownerFilters}) AND (${collectionFilters})`;
-  }
-  if (tenantId) {
-    // `visible_by:${currentUserID} OR visible_by:group/${currentGroupID} OR visible_by:group/Everybody
-    if (isAgent) {
-      // You can use nested attributes for filtering.
-      // For example, authors.mainAuthor:"John Doe" is a valid filter, as long as you declare authors.mainAuthor in attributesForFaceting.
-      const ownerFilters = `userId:${userId} OR agentId:${userId} OR agent.userId:${userId}`;
 
-      const collectionFilters = `collectionName:${COLLECTIONS.SUBMISSIONS} OR collectionName:${COLLECTIONS.QUOTES} OR collectionName:${COLLECTIONS.QUOTES} OR collectionName:${COLLECTIONS.CHANGE_REQUESTS} OR collectionName:${COLLECTIONS.USERS}`;
+  let filters = `visibleBy:${visibleType.all}`;
 
-      // For example, if a record contains the array attribute genres: ["fiction", "thriller", "sci-fi"], the filter genres:thriller returns this record.
-      // TODO: add visibleBy to applicable docs when indexing
-      const visibleByFilters = `visibleBy:group/${tenantId}`;
+  if (userId) filters += ` OR visibleBy:${visibleType.user(userId)}`;
 
-      // TODO: fix: not valid syntax - invalid AND / OR combo
-      // We limit filter expressions to a conjunction (ANDs) of disjunctions (ORs). For example you can use filter1 AND (filter2 OR filter3)), but not ORs of ANDs (e.g. filter1 OR (filter2 AND filter3).
-      keyConfig[
-        'filters'
-      ] = `((${ownerFilters}) AND (${collectionFilters})) OR (${visibleByFilters})`;
-    }
-    if (isOrgAdmin) {
-      // TODO: standardize how orgId is stored across docs
-      // TODO: cover all scenarios using visibleBy:group/${orgId} when indexing
-      keyConfig[
-        'filters'
-      ] = `orgId:${tenantId} OR tenantId:${tenantId} OR userId:${userId} OR agentId:${userId} OR agent.userId:${userId} OR org.orgId:${tenantId} OR org.id:${tenantId}`;
-    }
-  }
-  if (!tenantId && !isIDemandAdmin && userId) {
-    keyConfig['filters'] = `userId:${userId}`;
+  if (isAnon) filters += ` OR visibleBy:${visibleType.anon}`;
+
+  if (tenantId && userId) {
+    filters += ` OR visibleBy:${visibleType.orgUser(tenantId)}`;
+
+    if (isAgent) filters += ` OR visibleBy:${visibleType.agent(userId)}`;
+
+    if (isOrgAdmin) filters += ` OR visibleBy:${visibleType.orgAdmin(tenantId)}`;
   }
 
   try {
     const securedApiKey = client.generateSecuredApiKey(searchBaseKey, {
-      restrictIndices: [algoliaIndex.value()], // 'demo_ecommerce',
+      ...keyConfig,
+      filters,
     });
-    console.log(
-      `RETURNING ALGOLIA SEARCH KEY FOR USER ${auth?.token.email || ''} (UID: ${userId})`,
-      `ALGOLIA CONFIG: ${JSON.stringify(keyConfig)}`
-    );
+
+    info(`RETURNING ALGOLIA SEARCH KEY FOR USER ${auth?.token.email || ''} (UID: ${userId})`, {
+      ...keyConfig,
+      filters,
+    });
 
     return {
       key: securedApiKey,
@@ -119,6 +100,49 @@ export default async ({ auth }: CallableRequest) => {
     throw new HttpsError('internal', 'Error generating user-restricted api key');
   }
 };
+
+// if (!userId) {
+//   // keyConfig['filterss'] = `userId:${null}`;
+//   keyConfig['filterss'] = `visibleBy:group/all`;
+// }
+
+// if (isAnon) {
+//   const ownerfilterss = `visibleBy:${userId}`; // `userId:${userId}`;
+//   const collectionfilterss = `collectionName:${COLLECTIONS.SUBMISSIONS}`;
+
+//   keyConfig['filterss'] = `(${ownerfilterss}) AND (${collectionfilterss})`;
+// }
+
+// if (tenantId) {
+// // `visible_by:${currentUserID} OR visible_by:group/${currentGroupID} OR visible_by:group/Everybody
+// if (isAgent) {
+//   // You can use nested attributes for filtersing.
+//   // For example, authors.mainAuthor:"John Doe" is a valid filters, as long as you declare authors.mainAuthor in attributesForFaceting.
+//   const ownerfilterss = `userId:${userId} OR agentId:${userId} OR agent.userId:${userId}`;
+
+//   const collectionfilterss = `collectionName:${COLLECTIONS.SUBMISSIONS} OR collectionName:${COLLECTIONS.QUOTES} OR collectionName:${COLLECTIONS.QUOTES} OR collectionName:${COLLECTIONS.CHANGE_REQUESTS} OR collectionName:${COLLECTIONS.USERS}`;
+
+//   // For example, if a record contains the array attribute genres: ["fiction", "thriller", "sci-fi"], the filters genres:thriller returns this record.
+
+//   const visibleByfilterss = `visibleBy:group/${tenantId}`;
+
+//   // "We limit filters expressions to a conjunction (ANDs) of disjunctions (ORs). For example you can use filters1 AND (filters2 OR filters3)), but not ORs of ANDs (e.g. filters1 OR (filters2 AND filters3)."
+
+//   keyConfig[
+//     'filterss'
+//   ] = `((${ownerfilterss}) AND (${collectionfilterss})) OR (${visibleByfilterss})`;
+// }
+// if (isOrgAdmin) {
+
+//   keyConfig[
+//     'filterss'
+//   ] = `orgId:${tenantId} OR tenantId:${tenantId} OR userId:${userId} OR agentId:${userId} OR agent.userId:${userId} OR org.orgId:${tenantId} OR org.id:${tenantId}`;
+// }
+// }
+// // regular user --> return userId OR public
+// if (!tenantId && !isIDemandAdmin && userId) {
+//   keyConfig['filterss'] = `userId:${userId}`;
+// }
 
 // EXAMPLE FROM POLICY CONSOLE:
 
@@ -131,7 +155,6 @@ export default async ({ auth }: CallableRequest) => {
 // // const algoliaAppID = defineString('ALGOLIA_APP_ID');
 // // const algoliaSearchKey = defineString('ALGOLIA_SEARCH_KEY');
 // const algoliaAdminKey = defineSecret('ALGOLIA_ADMIN_API_KEY');
-// // TODO: api key inherites from base key
 // //    - create base keys for agent, admin (transactions, etc.), iDemandAdmin, etc.
 
 // export const generateSearchKey = functions
@@ -149,8 +172,8 @@ export default async ({ auth }: CallableRequest) => {
 //       // IF NO USER, CREATE NON AUTHED SEARCH KEY
 //       if (!auth || !auth.uid) {
 //         apiKeyParams = {
-//           // This filter ensures that only documents where owner == uid will be readable
-//           // filters: `owner:${auth.uid}`,
+//           // This filters ensures that only documents where owner == uid will be readable
+//           // filterss: `owner:${auth.uid}`,
 //           // We also proxy the uid as a unique token for this key.
 //           // userToken: auth.uid,
 //           // restrictIndices: 'index1,index2'
@@ -159,8 +182,8 @@ export default async ({ auth }: CallableRequest) => {
 //         // IF AUTHED -> GENERATE KEY WITH PERMISSIONS FOR USER
 //         // https://www.algolia.com/doc/guides/security/api-keys/#generating-api-keys
 //         apiKeyParams = {
-//           // This filter ensures that only documents where owner == uid will be readable
-//           // filters: `owner:${auth.uid}`,
+//           // This filters ensures that only documents where owner == uid will be readable
+//           // filterss: `owner:${auth.uid}`,
 //           // We also proxy the uid as a unique token for this key.
 //           userToken: auth.uid,
 //         };
@@ -192,31 +215,31 @@ export declare type SearchOptions = {
    */
   similarQuery?: string;
   /**
-   *  Filter hits by facet value.
+   *  filters hits by facet value.
    */
-  facetFilters?: string | string[] | ReadonlyArray<string[] | string>;
+  facetfilterss?: string | string[] | ReadonlyArray<string[] | string>;
   /**
-   * Create filters for ranking purposes, where records that match the filter are ranked highest.
+   * Create filterss for ranking purposes, where records that match the filters are ranked highest.
    */
-  optionalFilters?: string | string[] | ReadonlyArray<string[] | string>;
+  optionalfilterss?: string | string[] | ReadonlyArray<string[] | string>;
   /**
-   * Filter on numeric attributes.
+   * filters on numeric attributes.
    */
-  numericFilters?: string | string[] | ReadonlyArray<string[] | string>;
+  numericfilterss?: string | string[] | ReadonlyArray<string[] | string>;
   /**
-   * Filter hits by tags. tagFilters is a different way of filtering, which relies on the _tags
-   * attribute. It uses a simpler syntax than filters. You can use it when you want to do
-   * simple filtering based on tags.
+   * filters hits by tags. tagfilterss is a different way of filtersing, which relies on the _tags
+   * attribute. It uses a simpler syntax than filterss. You can use it when you want to do
+   * simple filtersing based on tags.
    */
-  tagFilters?: string | string[] | ReadonlyArray<string[] | string>;
+  tagfilterss?: string | string[] | ReadonlyArray<string[] | string>;
   /**
-   * Determines how to calculate the total score for filtering.
+   * Determines how to calculate the total score for filtersing.
    */
-  sumOrFiltersScores?: boolean;
+  sumOrfilterssScores?: boolean;
   /**
-   * Filter the query with numeric, facet and/or tag filters.
+   * filters the query with numeric, facet and/or tag filterss.
    */
-  filters?: string;
+  filterss?: string;
   /**
    * Specify the page to retrieve.
    */
@@ -477,9 +500,9 @@ export declare type SearchOptions = {
    */
   enableReRanking?: boolean;
   /**
-   * When Dynamic Re-Ranking is enabled, only records that match these filters will be impacted by Dynamic Re-Ranking.
+   * When Dynamic Re-Ranking is enabled, only records that match these filterss will be impacted by Dynamic Re-Ranking.
    */
-  reRankingApplyFilter?: string | string[] | ReadonlyArray<string[] | string> | null;
+  reRankingApplyfilters?: string | string[] | ReadonlyArray<string[] | string> | null;
   /**
    * Sets the languages to be used by language-specific settings and functionalities such as ignorePlurals, removeStopWords, and CJK word-detection.
    */
