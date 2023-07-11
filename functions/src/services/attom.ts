@@ -1,9 +1,11 @@
 import axios from 'axios';
 
+import { attomBaseURL } from '../common';
+
 export const getAttomInstance = (apiKey?: string) => {
   if (!apiKey) throw new Error('Missing Attom api key');
   const attomInstance = axios.create({
-    baseURL: process.env.ATTOM_BASE_URL,
+    baseURL: attomBaseURL.value(),
     headers: {
       Accept: 'application/json',
       apikey: apiKey,

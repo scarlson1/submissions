@@ -18,6 +18,7 @@ import {
   Nullable,
 } from '../common';
 import { getAttomInstance, getFEMAFloodZone } from '../services';
+import { onCallWrapper } from '../services/sentry';
 
 let defaultLimitPercents: { [key in LimitTypes]: number } = {
   limitA: 1,
@@ -37,7 +38,9 @@ export interface GetPropertyDetailsAttomRequest extends Address {
   coordinates?: Nullable<Coordinates> | null | undefined;
 }
 
-export default async ({ data }: CallableRequest<GetPropertyDetailsAttomRequest>) => {
+const getPropertyDetailsAttom = async ({
+  data,
+}: CallableRequest<GetPropertyDetailsAttomRequest>) => {
   info('data: ', data);
   const { addressLine1, addressLine2 = '', city, state, postal = '', coordinates } = data;
   if (!addressLine1 || !city || !state) {
@@ -183,6 +186,11 @@ export default async ({ data }: CallableRequest<GetPropertyDetailsAttomRequest>)
     throw new HttpsError('internal', `Error fetching property data`);
   }
 };
+
+export default onCallWrapper<GetPropertyDetailsAttomRequest>(
+  'getpropertydetailsattom',
+  getPropertyDetailsAttom
+);
 
 interface AttomBasicProfile {
   [key: string]: any;

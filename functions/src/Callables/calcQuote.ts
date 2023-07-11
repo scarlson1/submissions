@@ -7,6 +7,7 @@ import invariant from 'tiny-invariant';
 import { Limits, ValueByRiskType, ratingDataCollection } from '../common';
 import { getPremium, getRCVs } from '../utils/rating';
 import { maxA, maxBCD, minA } from '../common';
+import { onCallWrapper } from '../services/sentry';
 
 // TODO: create rating inputs interface (used in multiple funcs), extend where needed
 
@@ -28,7 +29,8 @@ export interface CalcQuoteResponse {
   ratingDocId?: string;
 }
 
-export default async ({ data, auth }: CallableRequest<CalcQuoteRequest>) => {
+// export default async ({ data, auth }: CallableRequest<CalcQuoteRequest>) => {
+const calcQuote = async ({ data, auth }: CallableRequest<CalcQuoteRequest>) => {
   console.log('CALC QUOTE DATA: ', data);
   const db = getFirestore();
   const {
@@ -183,3 +185,5 @@ export default async ({ data, auth }: CallableRequest<CalcQuoteRequest>) => {
     throw new HttpsError('invalid-argument', 'Error calculating quote');
   }
 };
+
+export default onCallWrapper<CalcQuoteRequest>('calcQuote', calcQuote);

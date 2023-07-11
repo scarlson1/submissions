@@ -1,19 +1,19 @@
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
+import { error, info } from 'firebase-functions/logger';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
 
 import { sendPolicyDocDelivery } from '../services/sendgrid';
 import { CLAIMS, policiesCollection, sendgridApiKey } from '../common';
+import { onCallWrapper } from '../services/sentry';
 
 // TODO: add policy docs as param
 // on front end: allow user to select which documents to deliver
 
-// const sendgridApiKey = defineSecret('SENDGRID_API_KEY');
-
-export default async ({ data, auth }: CallableRequest) => {
-  console.log('data: ', data);
+const sendPolicyDoc = async ({ data, auth }: CallableRequest) => {
+  info('data: ', data);
   const { policyId, to } = data;
-  console.log('AUTH.TOKEN: ', auth?.token);
+  info('AUTH.TOKEN: ', auth?.token);
   const token = auth?.token;
 
   if (!token || !token[CLAIMS.IDEMAND_ADMIN])
@@ -72,7 +72,7 @@ export default async ({ data, auth }: CallableRequest) => {
 
     // TODO: redo doc delivery template
     const locations = Object.values(data.locations);
-    console.log('LOCATIONS: ', JSON.stringify(locations, null, 2));
+    info('LOCATIONS: ', { locations });
     let locationStr = locations[0]?.address?.addressLine1 || '';
     if (locations.length > 1) {
       locationStr += ` and ${locations.length - 1} other locations`;
@@ -90,9 +90,11 @@ export default async ({ data, auth }: CallableRequest) => {
       status: 'success',
       emails: to,
     };
-  } catch (err) {
-    console.log('ERROR SENDING POLICY DELIVERY EMAIL: ', err);
+  } catch (err: any) {
+    error('ERROR SENDING POLICY DELIVERY EMAIL: ', { err });
     // TODO: notify admins?
     throw new HttpsError('internal', 'Failed to deliver email.');
   }
 };
+
+export default onCallWrapper('sendpolicydoc', sendPolicyDoc);

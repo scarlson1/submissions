@@ -3,8 +3,13 @@ import { error, info } from 'firebase-functions/logger';
 import { getFirestore } from 'firebase-admin/firestore';
 
 import { CLAIMS, Quote, orgsCollection, quotesCollection, usersCollection } from '../common';
+import { onCallWrapper } from '../services/sentry';
 
-export default async ({ data, auth }: CallableRequest<{ quoteId: string }>) => {
+interface AssignQuoteProps {
+  quoteId: string;
+}
+
+const assignQuote = async ({ data, auth }: CallableRequest<AssignQuoteProps>) => {
   info('ASSIGN QUOTE CALLED', { ...data });
   const { quoteId } = data;
   const uid = auth?.uid;
@@ -98,3 +103,5 @@ export default async ({ data, auth }: CallableRequest<{ quoteId: string }>) => {
     );
   }
 };
+
+export default onCallWrapper<AssignQuoteProps>('assignquote', assignQuote);

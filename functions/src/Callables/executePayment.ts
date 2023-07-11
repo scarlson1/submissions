@@ -17,10 +17,16 @@ import {
 import { getEPayInstance } from '../services';
 import { publishMessage } from '../services/pubsub/publishMessage.js';
 import { ePayCreds as ePayCredsSecret } from '../common';
+import { onCallWrapper } from '../services/sentry';
 
 // const CARD_FEE = 0.035; // TODO: use env var
 
-export default async ({ data, auth }: CallableRequest) => {
+interface ExecutePaymentProps {
+  policyId: string;
+  paymentMethodId: string;
+}
+
+const executePayment = async ({ data, auth }: CallableRequest<ExecutePaymentProps>) => {
   const { policyId, paymentMethodId } = data;
   const uid = auth?.uid;
 
@@ -159,6 +165,8 @@ export default async ({ data, auth }: CallableRequest) => {
     throw new HttpsError('internal', msg);
   }
 };
+
+export default onCallWrapper<ExecutePaymentProps>('executepayment', executePayment);
 
 // validate
 // calc expiration date

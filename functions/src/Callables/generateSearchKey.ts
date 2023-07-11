@@ -10,6 +10,7 @@ import {
   algoliaIndex,
 } from '../common';
 import { visibleType } from '../utils';
+import { onCallWrapper } from '../services/sentry';
 
 // VISIBLE BY: https://www.algolia.com/doc/guides/security/api-keys/how-to/user-restricted-access-to-data/#generating-a-secured-api-key
 
@@ -34,7 +35,7 @@ import { visibleType } from '../utils';
 
 // "We limit filters expressions to a conjunction (ANDs) of disjunctions (ORs). For example you can use filters1 AND (filters2 OR filters3)), but not ORs of ANDs (e.g. filters1 OR (filters2 AND filters3)."
 
-export default async ({ auth }: CallableRequest) => {
+const generateSearchKey = async ({ auth }: CallableRequest) => {
   const appId = algoliaAppId.value();
   const adminKey = algoliaAdminKey.value();
   const searchBaseKey = algoliaUserBaseKey.value();
@@ -102,6 +103,8 @@ export default async ({ auth }: CallableRequest) => {
     throw new HttpsError('internal', 'Error generating user-restricted api key');
   }
 };
+
+export default onCallWrapper('generatesearchkey', generateSearchKey);
 
 // if (!userId) {
 //   // keyConfig['filterss'] = `userId:${null}`;

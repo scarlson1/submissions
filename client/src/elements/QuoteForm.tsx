@@ -111,7 +111,6 @@ const quoteValidation = yup.object().shape({
   homeState: yup.string().required('home state required'),
   limits: limitsValidation,
   effectiveExceptionRequested: yup.boolean(),
-  quoteExpirationDate: yup.date().min(minDate, 'quote must be valid for at least 15 days'),
   effectiveDate: yup.date().when('effectiveExceptionRequested', {
     is: true,
     then: yup.date().required(), // .min(minDate, 'Effective must be 15+ days'),
@@ -241,7 +240,6 @@ const quoteValidation = yup.object().shape({
   ),
 });
 
-const quoteExpShortcuts = getDateShortcuts([15, 30, 60]);
 const policyEffShortcuts = getDateShortcuts([15, 30, 60]);
 
 const commOptions = COMMISSION_OPTIONS.map((o: number) => ({
@@ -291,7 +289,6 @@ const DEFAULT_VALUES: QuoteValues = {
 
   deductible: 1000,
   effectiveExceptionRequested: false,
-  quoteExpirationDate: add(new Date(), { days: 30 }),
   effectiveDate: add(new Date(), { days: 15 }),
   expirationDate: add(new Date(), { days: 15, years: 1 }),
   fees: [],
@@ -353,7 +350,7 @@ export interface QuoteValues {
   effectiveExceptionRequested: boolean;
   effectiveDate: Date;
   expirationDate: Date;
-  quoteExpirationDate: Date; // TODO: delete ?? generated when created ??
+  // quoteExpirationDate: Date; // always quoteDate + 30
   fees: FeeItem[];
   taxes: TaxItem[];
   annualPremium: number | null;
@@ -810,17 +807,6 @@ export const QuoteForm = ({
                   Dates
                 </Typography>
                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={6} sx={{ my: 3 }}>
-                  <FormikDatePicker
-                    name='quoteExpirationDate'
-                    label='Quote Expiration'
-                    minDate={undefined}
-                    maxDate={null}
-                    slotProps={{
-                      shortcuts: {
-                        items: [...quoteExpShortcuts],
-                      },
-                    }}
-                  />
                   <FormikDatePicker
                     name='effectiveDate'
                     label='Policy Effective Date'

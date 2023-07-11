@@ -1,4 +1,5 @@
 import {
+  defineBoolean,
   defineInt,
   // defineFloat, not implemented yet in firebase-functions
   defineSecret,
@@ -32,6 +33,7 @@ export const audience = defineString('AUDIENCE');
 export const hostingBaseURL = defineString('HOSTING_BASE_URL');
 export const functionsBaseURL = defineString('FUNCTIONS_BASE_URL');
 export const ePayBaseURL = defineString('EPAY_HOSTING_BASE_URL');
+export const attomBaseURL = defineString('ATTOM_BASE_URL');
 export const mapboxToken = defineString('MAPBOX_PUBLIC_TOKEN');
 export const counties20mURL = defineString('COUNTIES_URL');
 export const algoliaIndex = defineString('ALGOLIA_INDEX');
@@ -39,6 +41,7 @@ export const algoliaAppId = defineString('ALGOLIA_APP_ID');
 export const defaultFloodZone = defineString('DEFAULT_FLOOD_ZONE');
 export const iDemandOrgId = defineString('IDEMAND_ORG_ID');
 export const storageBaseUrl = defineString('STORAGE_BASE_URL');
+export const submissionsApiBaseURL = defineString('SUBMISSIONS_API_BASE_URL');
 
 export const maxA = defineInt('FLOOD_MAX_LIMIT_A', { default: 1000000 });
 export const minA = defineInt('FLOOD_MIN_LIMIT_A', { default: 100000 });
@@ -53,3 +56,5 @@ export const defaultCommissionAsInt = defineInt('DEFAULT_COMMISSION_AS_INT', { d
 export const cardFeePct = defineString('CARD_FEE_PCT', { default: '0.035' });
 // Number.parseFloat(randomFloat.value())
 // TODO: default commission
+
+export const emulators = defineBoolean('EMULATORS');

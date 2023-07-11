@@ -5,8 +5,14 @@ import { invitesCollection } from '../common/dbCollections';
 import { inviteConverter } from '../common/converters';
 import { CLAIMS, audience, sendgridApiKey } from '../common';
 import { sendUserInvite } from '../services/sendgrid';
+import { onCallWrapper } from '../services/sentry';
 
-export default async ({ data, auth }: CallableRequest<{ orgId: string; inviteId: string }>) => {
+interface ResendInviteProps {
+  orgId: string;
+  inviteId: string;
+}
+
+const resendInvite = async ({ data, auth }: CallableRequest<ResendInviteProps>) => {
   const token = auth?.token;
   if (!auth?.uid || !token) {
     throw new HttpsError('unauthenticated', 'Must be signed in.');
@@ -51,3 +57,5 @@ export default async ({ data, auth }: CallableRequest<{ orgId: string; inviteId:
     throw new HttpsError('internal', `Error delivering invite`);
   }
 };
+
+export default onCallWrapper<ResendInviteProps>('resendinvite', resendInvite);

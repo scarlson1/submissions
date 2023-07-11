@@ -5,11 +5,18 @@ import { sendAgencyAppApprovedNotification } from '../services/sendgrid';
 import { getFunctionsErrorCode, getErrorMessage } from '../utils/errorHelpers';
 import { agencyApplicationCollection, invitesCollection } from '../common/dbCollections';
 import { audience, sendgridApiKey } from '../common';
+import { onCallWrapper } from '../services/sentry';
 
-export default async ({
+interface SendAgencyApprovedNotificationProps {
+  docId: string;
+  tenantId: string;
+  message?: string | null;
+}
+
+const sendAgencyApprovedNotification = async ({
   data,
   auth,
-}: CallableRequest<{ docId: string; tenantId: string; message?: string | null }>) => {
+}: CallableRequest<SendAgencyApprovedNotificationProps>) => {
   try {
     const applicationDocId = data.docId;
     const msg = data.message || null;
@@ -81,3 +88,8 @@ export default async ({
     throw new HttpsError(code, msg);
   }
 };
+
+export default onCallWrapper<SendAgencyApprovedNotificationProps>(
+  'sendagencyappapprovednotification',
+  sendAgencyApprovedNotification
+);

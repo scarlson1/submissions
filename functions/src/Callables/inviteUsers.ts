@@ -6,6 +6,7 @@ import { getAuth } from 'firebase-admin/auth';
 import { invitesCollection, orgsCollection } from '../common/dbCollections';
 import { inviteConverter } from '../common/converters';
 import { CLAIMS, INVITE_STATUS, InviteClass, iDemandOrgId } from '../common';
+import { onCallWrapper } from '../services/sentry';
 
 // TODO: allow invites without tenant association ??
 // TODO: rename to inviteOrgUsers
@@ -33,7 +34,7 @@ export interface InviteUsersResponse {
   };
 }
 
-export default async ({ data, auth }: CallableRequest<InviteUsersRequest>) => {
+const inviteUsers = async ({ data, auth }: CallableRequest<InviteUsersRequest>) => {
   if (!auth?.uid) throw new HttpsError('unauthenticated', 'Must be signed in.');
 
   const isIDemandAdmin = auth?.token[CLAIMS.IDEMAND_ADMIN];
@@ -154,3 +155,5 @@ export default async ({ data, auth }: CallableRequest<InviteUsersRequest>) => {
     throw new HttpsError('internal', msg);
   }
 };
+
+export default onCallWrapper<InviteUsersRequest>('inviteusers', inviteUsers);

@@ -1,4 +1,5 @@
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
+import { error, info } from 'firebase-functions/logger';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 
 import { getEPayInstance } from '../services';
@@ -8,9 +9,10 @@ import {
   paymentMethodsCollection,
   ePayCreds as ePayCredsSecret,
 } from '../common';
+import { onCallWrapper } from '../services/sentry';
 
-export default async ({ data, auth }: CallableRequest) => {
-  console.log('data: ', data);
+const verifyEPayToken = async ({ data, auth }: CallableRequest) => {
+  info('data: ', data);
   const db = getFirestore();
   const { tokenId, accountHolder, expiration } = data;
   const userId = auth?.uid;
@@ -73,7 +75,9 @@ export default async ({ data, auth }: CallableRequest) => {
 
     return { ...paymentMethodDetails, paymentMethodDocId };
   } catch (err: any) {
-    console.log('ERROR: ', err);
+    error('ERROR VERFIYING EPAY TOKEN ', { err });
     throw new HttpsError('internal', 'Error verifying token');
   }
 };
+
+export default onCallWrapper('verifyepaytoken', verifyEPayToken);

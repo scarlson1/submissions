@@ -46,6 +46,7 @@ import {
 } from '../common';
 import { sendAdminPolicyImportNotification } from '../services/sendgrid';
 import { getRCVs } from '../utils/rating';
+import { getCarrierByState } from '../callables/createPolicy';
 
 const IMPORT_POLICIES_FOLDER = 'importPolicies';
 
@@ -483,6 +484,24 @@ function validatePolicyRow(data: ParsedPolicyRow) {
       'policyExpirationDate required'
     );
 
+    const locationEffAfterPolicyEff = data.effectiveDate
+      ? data.policyEffectiveDate <= data.effectiveDate
+      : true;
+
+    invariant(
+      locationEffAfterPolicyEff,
+      'location effective date must be equal to or after policy effective date'
+    );
+
+    const locationExpAfterPolicyExp = data.expirationDate
+      ? data.policyExpirationDate >= data.expirationDate
+      : true;
+
+    invariant(
+      locationExpAfterPolicyExp,
+      'location expiration date cannot be after policy expiration date'
+    );
+
     invariant(data.policyId, 'policyId required');
 
     invariant(data.price, 'policyPrice required');
@@ -607,7 +626,7 @@ async function getPolicyWithoutLocation(
     agent: data.agent,
     agency: data.agency,
     surplusLinesProducerOfRecord: SLPofR,
-    issuingCarrier: 'Rockingham Property & Casualty',
+    issuingCarrier: getCarrierByState(data.homeState as string),
     documents: [],
     metadata: {
       created: ts,

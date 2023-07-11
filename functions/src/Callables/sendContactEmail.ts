@@ -4,8 +4,15 @@ import sgMail from '@sendgrid/mail';
 
 import { newContactMessage } from '../services/sendgrid/templates';
 import { audience, sendgridApiKey } from '../common';
+import { onCallWrapper } from '../services/sentry';
 
-export default async ({ data, auth }: CallableRequest) => {
+interface SendContactEmailProps {
+  userEmail: string;
+  subject: string;
+  body: any;
+}
+
+const sendContactEmail = async ({ data, auth }: CallableRequest<SendContactEmailProps>) => {
   info('data: ', data);
   info('User ID: ', auth?.uid);
   const { userEmail, subject, body } = data;
@@ -35,3 +42,5 @@ export default async ({ data, auth }: CallableRequest) => {
     throw new HttpsError('internal', 'Failed to deliver email.');
   }
 };
+
+export default onCallWrapper<SendContactEmailProps>('sendcontactemail', sendContactEmail);

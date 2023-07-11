@@ -10,6 +10,7 @@ import {
 import { Firestore, getFirestore } from 'firebase-admin/firestore';
 
 import { CLAIMS, usersCollection, firebaseHashConfig } from '../common';
+import { onCallWrapper } from '../services/sentry';
 
 // TODO: remove customClaims ??
 // TODO: include customClaims in props ?? ** yes
@@ -75,7 +76,13 @@ export async function updateUserDoc(
   }
 }
 
-export default async ({ data, auth }: CallableRequest) => {
+interface MoveUserToTenantProps {
+  fromTenantId: string | null;
+  toTenantId: string | null;
+  userId: string;
+}
+
+const moveUserToTenant = async ({ data, auth }: CallableRequest<MoveUserToTenantProps>) => {
   const { toTenantId, userId, fromTenantId } = data;
   info('MOVE USER TO TENANT CALLED', { ...data });
 
@@ -155,3 +162,5 @@ export default async ({ data, auth }: CallableRequest) => {
     throw new HttpsError('internal', 'An error occurred while attempting to import users');
   }
 };
+
+export default onCallWrapper<MoveUserToTenantProps>('moveusertotenant', moveUserToTenant);

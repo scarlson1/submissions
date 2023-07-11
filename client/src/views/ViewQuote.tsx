@@ -43,6 +43,10 @@ export const ViewQuote = () => {
   const { data } = useFirestoreDocData(quoteRef);
   const logEvent = useAnalyticsEvent();
 
+  const isExpired = data.quoteExpirationDate
+    ? data.quoteExpirationDate?.toMillis() > new Date().getTime()
+    : false;
+
   useEffect(() => {
     if (!data) return;
     logEvent(ANALYTICS_EVENTS.VIEW_QUOTE, {
@@ -71,7 +75,7 @@ export const ViewQuote = () => {
             variant='contained'
             sx={{ maxHeight: 34 }}
             onClick={() => navigate('bind')}
-            disabled={data.status !== QUOTE_STATUS.AWAITING_USER}
+            disabled={data.status !== QUOTE_STATUS.AWAITING_USER || isExpired}
           >
             Continue to bind
           </Button>
@@ -181,16 +185,39 @@ export const ViewQuote = () => {
               formatVal={dollarFormat}
               withDivider={false}
             />
-            <Button
-              variant='contained'
-              fullWidth
-              onClick={() => navigate('bind')}
-              sx={{ my: 2 }}
-              disabled={data.status !== QUOTE_STATUS.AWAITING_USER}
-            >
-              Looks Good! Let's continue
-            </Button>
-            {data.status !== QUOTE_STATUS.AWAITING_USER && (
+            {isExpired ? (
+              <Button
+                variant='contained'
+                fullWidth
+                onClick={() =>
+                  navigate(
+                    createPath({ path: ROUTES.SUBMISSION_NEW, params: { productId: 'flood' } })
+                  )
+                }
+                sx={{ my: 2 }}
+              >
+                Get a new quote
+              </Button>
+            ) : (
+              <Button
+                variant='contained'
+                fullWidth
+                onClick={() => navigate('bind')}
+                sx={{ my: 2 }}
+                disabled={data.status !== QUOTE_STATUS.AWAITING_USER || isExpired}
+              >
+                Looks Good! Let's continue
+              </Button>
+            )}
+
+            {data.status !== QUOTE_STATUS.AWAITING_USER && !isExpired && (
+              <Typography
+                variant='body2'
+                color='text.secondary'
+                sx={{ py: 2 }}
+              >{`status: ${data.status}`}</Typography>
+            )}
+            {isExpired && (
               <Typography
                 variant='body2'
                 color='text.secondary'

@@ -81,9 +81,8 @@ const useEditQuote = (
             name: '',
             ...newValues?.address,
           },
-          quoteExpirationDate: newValues?.quoteExpirationDate
-            ? Timestamp.fromDate(newValues.quoteExpirationDate)
-            : Timestamp.fromDate(addToDate({ days: 60 }, endOfToday())),
+          quotePublishedDate: Timestamp.now(),
+          quoteExpirationDate: Timestamp.fromDate(addToDate({ days: 60 }, endOfToday())),
           effectiveDate: Timestamp.fromDate(effDateStartOfDay),
           expirationDate: Timestamp.fromDate(expDateStartOfDay),
           namedInsured: newValues?.namedInsured,
@@ -179,7 +178,6 @@ export const QuoteEdit = () => {
         limitD: quoteData?.limits?.limitD ?? 25000,
       },
       deductible: quoteData?.deductible ?? 1000,
-      quoteExpirationDate: quoteData?.quoteExpirationDate?.toDate() || null, // TODO: delete ?? set on quote created
       effectiveExceptionRequested: quoteData?.effectiveExceptionRequested || false, // @ts-ignore
       effectiveDate: quoteData?.effectiveDate?.toDate() || null, // @ts-ignore
       expirationDate: quoteData?.expirationDate?.toDate() || null,

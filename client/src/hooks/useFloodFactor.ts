@@ -39,6 +39,7 @@ export const useFloodFactor = (onError?: (msg: string) => void) => {
         console.log('ERROR: ', err);
         let msg = `Error fetching fsid`;
         if (err.message) msg = err.message;
+        toast.dismiss();
 
         if (onError) onError(msg);
         return;

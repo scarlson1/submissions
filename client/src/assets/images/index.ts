@@ -22,4 +22,5 @@ export { ReactComponent as UnderConstructionSVG } from './under_construction.svg
 export { ReactComponent as UploadImageSVG } from './upload_image.svg';
 export { ReactComponent as VoidSVG } from './void.svg';
 export { ReactComponent as NotFoundSVG } from './not_found.svg';
+export { ReactComponent as TimeManagementSVG } from './time_management.svg';
 // export { ReactComponent as SVG } from './.svg';

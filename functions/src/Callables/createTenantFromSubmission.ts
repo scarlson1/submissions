@@ -13,6 +13,7 @@ import {
 import { Invite } from '../common/types';
 import { isSingleLetter } from '../common';
 import { hostingBaseURL } from '../common';
+import { onCallWrapper } from '../services/sentry';
 
 export const createInvite = async (
   db: Firestore,
@@ -44,7 +45,14 @@ export const createInvite = async (
   });
 };
 
-export default async ({ data, auth }: CallableRequest<any>) => {
+interface CreateTenantFromSubmissionProps {
+  docId: string;
+}
+
+const createTenantFromSubmission = async ({
+  data,
+  auth,
+}: CallableRequest<CreateTenantFromSubmissionProps>) => {
   if (!auth || !auth.token || !auth.token[CLAIMS.IDEMAND_ADMIN]) {
     throw new HttpsError('failed-precondition', 'iDemand Admin permissions required');
   }
@@ -203,13 +211,12 @@ export default async ({ data, auth }: CallableRequest<any>) => {
 
     throw new HttpsError('internal', msg);
   }
-  // } catch (err) {
-  //   console.log('err: ', err);
-  //   const code = getFunctionsErrorCode(err);
-  //   const msg = getErrorMessage(err);
-  //   throw new HttpsError(code, msg);
-  // }
 };
+
+export default onCallWrapper<CreateTenantFromSubmissionProps>(
+  'createtenantfromsubmission',
+  createTenantFromSubmission
+);
 
 // export const createTenantFromSubmission = onCall(async (data, context) => {
 //   const { auth } = context;

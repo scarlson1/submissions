@@ -22,6 +22,7 @@ export enum COLLECTIONS {
   NOTIFICATIONS = 'notifications',
   DATA_IMPORTS = 'dataImports',
   EMAIL_ACTIVITY = 'emailActivity',
+  MORATORIUMS = 'moratoriums',
 }
 
 export enum SUBMISSION_STATUS {

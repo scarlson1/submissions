@@ -35,7 +35,7 @@ import { MdPayments } from 'react-icons/md';
 import { isEqual } from 'lodash';
 import { toast } from 'react-hot-toast';
 import { useFirestore, useFirestoreDocData, useSigninCheck, useUser } from 'reactfire';
-import { startOfToday, endOfToday } from 'date-fns';
+import { startOfDay, endOfDay } from 'date-fns';
 import * as yup from 'yup';
 
 import {
@@ -62,6 +62,7 @@ import {
   NamedInsuredDetails,
   AgentDetails,
   fallbackImages,
+  Product,
 } from 'common';
 import { useAnalyticsEvent, useBindQuote, useUserPaymentMethods } from 'hooks';
 import { billingValidation, PaymentStep, ContactStep } from 'elements';
@@ -74,11 +75,13 @@ import {
 } from 'modules/utils/helpers';
 import { useAuth } from 'modules/components/AuthContext';
 import { AUTH_ROUTES, ROUTES, createPath } from 'router';
+import { TimeManagementSVG } from 'assets/images';
 
 // TODO: error boundary & reset: https://blog.logrocket.com/react-error-handling-react-error-boundary/
 
 // TODO: check quote expiration date (30 days for quote creation) -- use cloud function ??
 // firestore rules - only allow iDemand admin to override
+// check quote expiration date on mount
 
 // TODO: check quote status - dont allow continue if not "awaiting:user"
 
@@ -108,6 +111,15 @@ export const QuoteBind = () => {
   const quoteRef = doc(quotesCollection(firestore), quoteId);
   const { data } = useFirestoreDocData(quoteRef);
   const logAnalyticsStep = useLogCheckoutProgress(quoteId, 5);
+
+  const minEffDate = addToDate(
+    { days: 15 },
+    startOfDay(data.quotePublishedDate?.toDate() || new Date())
+  );
+  const maxEffDate = addToDate(
+    { days: 30 },
+    endOfDay(data.quotePublishedDate?.toDate() || new Date())
+  );
 
   const formikRef = useRef<FormikProps<BindQuoteValues>>(null);
 
@@ -164,7 +176,13 @@ export const QuoteBind = () => {
     [quoteRef]
   );
 
-  // TODO handle quote expiration (quoteExpiration)
+  const isExpired = data.quoteExpirationDate?.toMillis() < new Date().getTime();
+
+  if (isExpired) {
+    return (
+      <QuoteExpired productId={data.product} expiredDate={data.quoteExpirationDate.toDate()} />
+    );
+  }
 
   // TODO submission needs isAnonymous flag so userId can/should be overwritten ??
   // TODO set agentId if agent not already set ??
@@ -218,25 +236,20 @@ export const QuoteBind = () => {
         <Step
           label='Effective Date'
           stepperNavLabel='Dates'
-          validationSchema={effectiveDateValidation}
-          // mutateOnSubmit={saveValues}
+          validationSchema={getEffectiveDateValidation(minEffDate, maxEffDate)}
           mutateOnSubmit={(values: BindQuoteValues, bag: any, initialValues: BindQuoteValues) => {
             let mutatedVals = values;
-            if (
-              values.effectiveDate > addToDate({ days: 15 }) &&
-              values.effectiveDate < addToDate({ days: 60 })
-            ) {
+            if (values.effectiveDate > minEffDate && values.effectiveDate < maxEffDate) {
               mutatedVals.effectiveExceptionReason = '';
               mutatedVals.effectiveExceptionRequested = false;
             }
-            // TODO: if effective date is changed --> update expiration date to one year later
-            // console.log('MUTATED VALS: ', mutatedVals);
+
             return saveValues(mutatedVals, bag, initialValues);
           }}
         >
           <EffectiveDateStep
-            // TODO: use expiration date from quote
-            expiration={addToDate({ days: 60 })}
+            minEffDate={minEffDate}
+            maxEffDate={maxEffDate}
             logAnalyticsStep={logAnalyticsStep}
           />
         </Step>
@@ -250,6 +263,39 @@ export const QuoteBind = () => {
     </Box>
   );
 };
+
+interface QuoteExpiredProps {
+  productId: Product;
+  expiredDate: Date;
+}
+
+function QuoteExpired({ productId, expiredDate }: QuoteExpiredProps) {
+  const navigate = useNavigate();
+
+  return (
+    <Box sx={{ py: 5 }}>
+      <Typography variant='h5' align='center' gutterBottom>
+        Quote Expired
+      </Typography>
+      <Typography variant='subtitle2' color='text.secondary' align='center' gutterBottom>
+        {formatDate(expiredDate)}
+      </Typography>
+      <Box sx={{ py: 5, height: { xs: 60, sm: 80, md: 100 }, width: '100%' }}>
+        <TimeManagementSVG height='100%' width='100%' preserveAspectRatio='xMidYMin meet' />
+      </Box>
+      <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+        <Button
+          onClick={() =>
+            navigate(createPath({ path: ROUTES.SUBMISSION_NEW, params: { productId } }))
+          }
+          variant='contained'
+        >
+          Start a new Quote
+        </Button>
+      </Box>
+    </Box>
+  );
+}
 
 // TODO: handle anonymous. handle agent.
 export function AuthStep({ quoteId }: { quoteId: string }) {
@@ -511,37 +557,36 @@ export function AdditionalInterestsStep({ logAnalyticsStep }: LogAnalyticsProp) 
   );
 }
 
-// TODO: expiration date (handle expired quotes)
-// don't allow effective date to be after expiration
 // BUG: load form when eff excp req = true, then turn it off and select valid date ==> validation fails
 
-const minDate = addToDate({ days: 15 }, startOfToday());
-const maxDate = addToDate({ days: 60 }, endOfToday());
-
-// quote good for: quote date + 60
-
-const effectiveDateValidation = yup.object().shape({
-  effectiveExceptionRequested: yup.boolean(),
-  effectiveDate: yup.date().when('effectiveExceptionRequested', {
-    is: true,
-    then: yup.date().min(new Date(), 'Effective cannot be in the past'),
-    otherwise: yup
-      .date() // addToDate({ days: 15 })
-      .min(minDate, 'Effective date must be at least 15 days from binding coverage')
-      .max(maxDate, 'Effective date must be within 60 days of binding coverage'),
-  }),
-  effectiveExceptionReason: yup.string().when('effectiveExceptionRequested', {
-    is: true,
-    then: yup.string().required('Please select an option'),
-    otherwise: yup.string().notRequired(),
-  }),
-});
+const getEffectiveDateValidation = (minEffDate: Date, maxEffDate: Date) =>
+  yup.object().shape({
+    effectiveExceptionRequested: yup.boolean(),
+    effectiveDate: yup.date().when('effectiveExceptionRequested', {
+      is: true,
+      then: yup.date().min(new Date(), 'Effective cannot be in the past'),
+      otherwise: yup
+        .date() // addToDate({ days: 15 })
+        .min(minEffDate, 'Effective date must be at least 15 days from binding coverage')
+        .max(maxEffDate, 'Effective date must be within 60 days of binding coverage'),
+    }),
+    effectiveExceptionReason: yup.string().when('effectiveExceptionRequested', {
+      is: true,
+      then: yup.string().required('Please select an option'),
+      otherwise: yup.string().notRequired(),
+    }),
+  });
 
 export interface EffectiveDateStepProp extends LogAnalyticsProp {
-  expiration?: Date | null;
+  minEffDate?: Date | null;
+  maxEffDate?: Date | null;
 }
 
-export const EffectiveDateStep = ({ expiration, logAnalyticsStep }: EffectiveDateStepProp) => {
+export const EffectiveDateStep = ({
+  minEffDate,
+  maxEffDate,
+  logAnalyticsStep,
+}: EffectiveDateStepProp) => {
   const { values } = useFormikContext<BindQuoteValues>();
 
   useEffect(() => {
@@ -569,9 +614,9 @@ export const EffectiveDateStep = ({ expiration, logAnalyticsStep }: EffectiveDat
         <FormikDatePicker
           name='effectiveDate'
           label='Effective Date'
-          minDate={values.effectiveExceptionRequested ? undefined : addToDate({ days: 15 })}
+          minDate={values.effectiveExceptionRequested ? undefined : minEffDate || undefined}
           // maxDate={values.effectiveExceptionRequested ? undefined : expiration}
-          maxDate={expiration}
+          maxDate={maxEffDate}
           disablePast={true}
           slotProps={{
             shortcuts: {

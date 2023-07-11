@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import {
   Box,
   // Checkbox,
@@ -11,8 +11,10 @@ import {
 import {
   GridCellEditStopReasons,
   GridColDef,
+  GridEditCellValueParams,
   GridEditModes,
   GridRenderEditCellParams,
+  GridRowModes,
   GridSingleSelectColDef,
   GridValidRowModel,
   GridValueOptionsParams,
@@ -46,6 +48,8 @@ export interface GridEditMultiSelectCellProps
   colDef: MultiSelectColDef;
 }
 
+// TODO: add renderValue with optional onDelete
+// --> use useGridApiContext().setEditCellValue to update value on click
 export function GridEditMultiSelectCell(props: GridEditMultiSelectCellProps) {
   // console.log('CUSTOM MULTI SELECT PROPS: ', props);
   const rootProps = useGridRootProps();
@@ -99,9 +103,9 @@ export function GridEditMultiSelectCell(props: GridEditMultiSelectCellProps) {
     valueOptions = colDef?.valueOptions;
   }
 
-  if (!valueOptions) {
-    return null;
-  }
+  // if (!valueOptions) {
+  //   return null;
+  // }
 
   const getOptionValue = getOptionValueProp || defGetOptionValue; // colDef.getOptionValue!;
   const getOptionLabel = getOptionLabelProp || defGetOptionLabel; // colDef.getOptionLabel!;
@@ -161,10 +165,45 @@ export function GridEditMultiSelectCell(props: GridEditMultiSelectCellProps) {
     setOpen(true);
   };
 
+  const handleDeleteClaim = useCallback(
+    (removeVal: string) => {
+      console.log('VALUE PROP: ', valueProp);
+      // TODO: need to get formatted value (native casts to string)
+      // const formattedTargetValue = tval.map((v) =>
+      //   getValueFromValueOptions(v, valueOptions, getOptionValue)
+      // );
+      const newVal = valueProp.filter((v: string) => v !== removeVal);
+      const editParams: GridEditCellValueParams = {
+        id,
+        field: field,
+        value: newVal,
+      };
+      console.log('edit params: ', editParams);
+      apiRef.current.setEditCellValue(editParams);
+    },
+    [valueProp, id, field, apiRef]
+  );
+
+  const getChipProps = useCallback(
+    (val: string) => {
+      const isEditMode = isEditable && cellMode === GridRowModes.Edit;
+      if (isEditMode)
+        return {
+          onDelete: () => handleDeleteClaim(val),
+        };
+      return {};
+    },
+    [handleDeleteClaim, isEditable, cellMode]
+  );
+
+  if (!valueOptions) {
+    return null;
+  }
+
   return (
     <rootProps.slots.baseSelect
-      labelId={`multi-select-${id}-label`}
-      id={`multi-select-${id}`}
+      labelId={`multi-select-${id}-${field}-label`}
+      id={`multi-select-${id}-${field}`}
       inputRef={inputRef}
       multiple
       value={valueProp}
@@ -186,7 +225,15 @@ export function GridEditMultiSelectCell(props: GridEditMultiSelectCellProps) {
       renderValue={(selected: string[]) => (
         <Box sx={{ display: 'flex', flexWrap: 'nowrap', gap: 0.5 }}>
           {selected.map((value: string) => (
-            <Chip key={value} label={value} size='small' sx={{ minWidth: 0 }} />
+            <Chip
+              key={value}
+              label={value}
+              size='small'
+              sx={{ minWidth: 0 }}
+              // onDelete={() => console.log(apiRef.current)}
+              onMouseDown={(event) => event.stopPropagation()}
+              {...getChipProps(value)}
+            />
           ))}
         </Box>
       )}

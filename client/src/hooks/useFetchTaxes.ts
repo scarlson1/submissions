@@ -71,10 +71,12 @@ export const useFetchTaxes = (
 
       try {
         setLoading(true);
+        let baseApiUrl = process.env.REACT_APP_SUBMISSIONS_API;
+        if (!baseApiUrl) throw new Error('missing api url env var');
 
         // TODO: type response
         const { data } = await axios.post<StateTaxRequest, AxiosResponse<StateTaxResponse>>(
-          `${process.env.REACT_APP_SUBMISSIONS_API}/state-tax`,
+          `${baseApiUrl}/state-tax`,
           body
         );
         // DOENS'T WORK WITH EMULATORS

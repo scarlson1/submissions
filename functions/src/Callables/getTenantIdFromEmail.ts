@@ -2,12 +2,13 @@ import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import { getFirestore } from 'firebase-admin/firestore';
 
 import { usersCollection } from '../common/dbCollections';
+import { onCallWrapper } from '../services/sentry';
 
 interface GetTenantIdFromEmailProps {
   email: string;
 }
 
-export default async ({ data }: CallableRequest<GetTenantIdFromEmailProps>) => {
+const getTenantIdFromEmail = async ({ data }: CallableRequest<GetTenantIdFromEmailProps>) => {
   if (!data.email || typeof data.email !== 'string') {
     throw new HttpsError('invalid-argument', 'Missing email');
   }
@@ -34,6 +35,11 @@ export default async ({ data }: CallableRequest<GetTenantIdFromEmailProps>) => {
     return err;
   }
 };
+
+export default onCallWrapper<GetTenantIdFromEmailProps>(
+  'gettenantidfromemail',
+  getTenantIdFromEmail
+);
 
 // import { CallableContext, HttpsError } from 'firebase-functions/v1/https';
 // import { getFirestore } from 'firebase-admin/firestore';

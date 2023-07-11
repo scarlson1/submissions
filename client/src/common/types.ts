@@ -329,8 +329,12 @@ export interface Quote {
   effectiveDate?: Timestamp;
   effectiveExceptionRequested?: boolean;
   effectiveExceptionReason?: string | null;
-  expirationDate?: Timestamp;
+  expirationDate?: Timestamp; // remove ??
+  quotePublishedDate: Timestamp;
   quoteExpirationDate: Timestamp;
+  // maxEffectiveDate = quoteDate + 60 days
+  // minEffDate = quoteDate + 15 days
+  // must bind by quoteDate + 30
   exclusions?: string[];
   // additionalInsureds?: AdditionalInsured[];
   // mortgageeInterest?: Mortgagee[];

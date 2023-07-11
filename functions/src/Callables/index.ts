@@ -89,6 +89,10 @@ export const getpropertydetailsattom = onCall(
   }
 );
 
+// export const getriskfactorid = onCall(async (request) => {
+//   return (await import('./getRiskFactorId.js')).default(request);
+// });
+
 export const getriskfactorid = onCall(async (request) => {
   return (await import('./getRiskFactorId.js')).default(request);
 });

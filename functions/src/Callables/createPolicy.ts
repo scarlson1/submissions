@@ -14,23 +14,31 @@ import {
   Policy,
   PolicyLocation,
   calcSum,
-  licensesCollection,
   License,
   AdditionalInsured,
   Mortgagee,
 } from '../common';
 import { getRCVs } from '../utils/rating';
+import { checkMoratoriums } from '../services';
+import { getSLLicenseByState } from '../utils';
+import { onCallWrapper } from '../services/sentry';
+// import { getSubmissionsInstance } from '../services';
 
 // TODO: use Policy converter ??
 // TODO: calc mustBePaidByDate (or in converter) OR use created date ??
-// TODO: need to handle payments directly (not via stripe to block outdated policies)
+// TODO: need to handle payments directly (not via stripe to block outdated policies) ?? cannout use checkout link b/c policy status has to be fetched?? or can link have a "valid until" property (and webhook to set policy as invalid)
 // OR need to check date in payments webhook --> automatically refund or notify admin
 // TODO: record userId in Policy ??
 // TODO: dont store RCVs in policy directly --> need to fetch rating doc
 
 // firestore getAll: https://stackoverflow.com/a/53508963
 
-export default async ({ data, auth }: CallableRequest<{ quoteId: string }>) => {
+interface CreatePolicyProps {
+  quoteId: string;
+}
+
+// export default async ({ data, auth }: CallableRequest<{ quoteId: string }>) => {
+const createPolicy = async ({ data, auth }: CallableRequest<CreatePolicyProps>) => {
   const db = getFirestore();
 
   const { quoteId } = data;
@@ -40,7 +48,6 @@ export default async ({ data, auth }: CallableRequest<{ quoteId: string }>) => {
   if (!quoteId) throw new HttpsError('failed-precondition', 'Missing quote ID');
 
   const quotesCol = quotesCollection(db);
-  const licensesCol = licensesCollection(db);
   const policiesCol = policiesCollection(db);
 
   const quoteSnap = await quotesCol.doc(quoteId).get();
@@ -51,21 +58,48 @@ export default async ({ data, auth }: CallableRequest<{ quoteId: string }>) => {
   if (!quoteData.homeState)
     throw new HttpsError('failed-precondition', 'quote is missing home state');
 
-  // TODO: check for moratoriums
+  const isExpired = quoteData.quoteExpirationDate?.toMillis() < new Date().getTime();
+  if (isExpired)
+    throw new HttpsError('failed-precondition', 'Quote expired. Please create a new one.');
 
-  const licenseSnap = await licensesCol
-    .where('state', '==', quoteData.homeState)
-    .where('surplusLinesProducerOfRecord', '==', true)
-    .get();
-  // TODO: filter eff / exp dates
-  // TODO: move to reuseable function
+  // TODO: check effective date within 15-30 day window ?? handle admin approval process if not
+  // TODO: validate quote (expired, exp./eff. dates, amount, taxes, fees, all values exist, etc.)
 
-  // TODO: report error to sentry
-  if (licenseSnap.empty)
-    throw new HttpsError('internal', `not licensed in state (home state: ${quoteData.homeState})`);
-  const licenseData = licenseSnap.docs[0].data();
+  const fips = quoteData.address?.countyFIPS;
+  const effDate = quoteData.effectiveDate;
 
-  // 2) TODO: validate quote (expired, exp./eff. dates, amount, taxes, fees, all values exist, etc.)
+  // check if moratorium exists for county
+  let isMoratorium = false;
+  if (fips && effDate) {
+    try {
+      const { isMoratorium: mortRes } = await checkMoratoriums(db, [fips], effDate, 'flood');
+
+      isMoratorium = mortRes;
+    } catch (err: any) {
+      error(
+        `Error fetching moratoriums for FIPS ${quoteData.address.countyFIPS}. Continuing policy creation.`,
+        { err }
+      );
+    }
+  }
+  if (isMoratorium)
+    throw new HttpsError('failed-precondition', 'Quote expired. Please create a new one.');
+
+  // Fetch surplus lines license
+  let licenseData;
+  try {
+    licenseData = await getSLLicenseByState(
+      db,
+      quoteData.homeState,
+      quoteData.effectiveDate,
+      quoteData.expirationDate
+    );
+  } catch (err: any) {
+    let msg = `Error retrieving SL license`;
+    if (err?.message) msg += ` (${err.message})`;
+    error(msg, { err });
+    throw new HttpsError('internal', msg);
+  }
 
   let policyData: Policy;
   try {
@@ -125,6 +159,8 @@ export default async ({ data, auth }: CallableRequest<{ quoteId: string }>) => {
     }
   }
 };
+
+export default onCallWrapper<CreatePolicyProps>('createpolicy', createPolicy);
 
 // TODO: update to handle multiple locations once Quote interface / process is updated
 // TODO: move validation outside function and wrap Quote in NonNullable<Quote>
@@ -259,7 +295,7 @@ function convertQuoteToPolicy(data: Quote, license: License, quoteId: string | n
       licenseState: license.state,
       phone: license.phone ?? '+18889124320',
     },
-    issuingCarrier: 'Rockingham Property & Casualty',
+    issuingCarrier: getCarrierByState(data.homeState),
     documents: [],
     quoteId,
     metadata: {
@@ -269,4 +305,14 @@ function convertQuoteToPolicy(data: Quote, license: License, quoteId: string | n
   };
 
   return policy;
+}
+
+export function getCarrierByState(state: string) {
+  switch (state) {
+    case 'CA':
+    case 'NY':
+      return 'Rockingham Insurance Company';
+    default:
+      return 'Rockingham Specialty Insurance, Inc.';
+  }
 }

@@ -512,6 +512,7 @@ export interface Quote {
   effectiveExceptionRequested?: boolean;
   effectiveExceptionReason?: string | null;
   expirationDate?: Timestamp;
+  quotePublishedDate: Timestamp;
   quoteExpirationDate: Timestamp;
   exclusions?: string[];
   additionalInterests?: AdditionalInterest[];
@@ -1040,6 +1041,15 @@ export interface VerifyEPayTokenResponse extends EPayPaymentMethodDetails {
   };
 }
 
+export interface Moratorium extends BaseDoc {
+  locationDetails: FIPSDetails[];
+  locations: string[];
+  product: { [key: string]: boolean };
+  effectiveDate: Timestamp;
+  expirationDate?: Timestamp | null;
+  reason?: string;
+}
+
 export interface Coordinates {
   latitude: number;
   longitude: number;
@@ -1047,17 +1057,12 @@ export interface Coordinates {
 
 export interface GetAALRequest {
   replacementCost: number;
-  // limitA: number;
-  // limitB: number;
-  // limitC: number;
-  // limitD: number;
   limits: Limits;
-  // latitude: number;
-  // longitude: number;
   coordinates: Coordinates;
   deductible: number;
   numStories: number;
 }
+
 export interface SRPerilAAL {
   tiv: number;
   fguLoss: number;

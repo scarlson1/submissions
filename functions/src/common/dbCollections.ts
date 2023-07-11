@@ -18,6 +18,7 @@ import {
   PaymentMethod,
   Policy,
   License,
+  Moratorium,
 } from '../common'; // AgencyApplication, Invite, Notification, Organization,
 import { ClaimsDocData } from '../firestoreEvents/index.js';
 
@@ -64,6 +65,9 @@ export const licensesCollection = (db: Firestore) =>
 
 export const emailActivityCollection = (db: Firestore) =>
   createCollection<any>(db, COLLECTIONS.EMAIL_ACTIVITY);
+
+export const moratoriumsCollection = (db: Firestore) =>
+  createCollection<Moratorium>(db, COLLECTIONS.MORATORIUMS);
 
 // // SUBCOLLECTIONS
 // export const notificationsCollection = (db: Firestore, userId: string) =>

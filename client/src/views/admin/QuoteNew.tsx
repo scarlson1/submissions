@@ -95,7 +95,6 @@ export const QuoteNewFromSub = () => {
         limitD: submissionData?.limits.limitD ?? 25000,
       },
       deductible: submissionData?.deductible ?? 1000,
-      quoteExpirationDate: add(new Date(), { days: 60 }), // TODO: delete ?? set on quote created
       effectiveExceptionRequested: false,
       effectiveDate: add(new Date(), { days: 15 }),
       expirationDate: add(new Date(), { days: 15, years: 1 }),

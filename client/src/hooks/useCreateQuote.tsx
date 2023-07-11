@@ -114,9 +114,7 @@ function getFormattedQuote(values: QuoteValues, uid?: string | null): Quote {
     address,
     limits,
     coordinates,
-    quoteExpirationDate,
     effectiveDate,
-    // expirationDate,
     namedInsured,
     agent,
     agency,
@@ -137,7 +135,7 @@ function getFormattedQuote(values: QuoteValues, uid?: string | null): Quote {
   invariant(isValid(effectiveDate), 'Invalid effective date');
 
   let effDateStartOfDay = startOfDay(effectiveDate);
-  let expDateStartOfDay = addToDate({ years: 1 }, effDateStartOfDay);
+  let expDateStartOfDay = addToDate({ years: 1 }, effDateStartOfDay); // use days: 365 ??
 
   let numTaxes = taxes.map((t) => ({
     ...t,
@@ -165,11 +163,8 @@ function getFormattedQuote(values: QuoteValues, uid?: string | null): Quote {
       name: '',
       ...address,
     },
-    quoteExpirationDate: quoteExpirationDate
-      ? Timestamp.fromDate(quoteExpirationDate)
-      : Timestamp.fromDate(addToDate({ days: 60 }, endOfToday())),
-    // effectiveDate: Timestamp.fromDate(effectiveDate),
-    // expirationDate: Timestamp.fromDate(expirationDate),
+    quotePublishedDate: Timestamp.now(),
+    quoteExpirationDate: Timestamp.fromDate(addToDate({ days: 30 }, endOfToday())),
     effectiveDate: Timestamp.fromDate(effDateStartOfDay),
     expirationDate: Timestamp.fromDate(expDateStartOfDay),
     exclusions: [],

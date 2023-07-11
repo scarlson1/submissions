@@ -3,8 +3,17 @@ import { error, info } from 'firebase-functions/logger';
 
 import { sendNewQuoteEmail } from '../services/sendgrid';
 import { CLAIMS, hostingBaseURL, sendgridApiKey } from '../common';
+import { onCallWrapper } from '../services/sentry';
 
-export default async ({ data, auth }: CallableRequest) => {
+interface SendNewQuoteNotificationsProps {
+  to: string | string[];
+  quoteId: string;
+}
+
+const sendNewQuoteNotifications = async ({
+  data,
+  auth,
+}: CallableRequest<SendNewQuoteNotificationsProps>) => {
   console.log('data: ', data);
   const { to, quoteId } = data;
   const token = auth?.token;
@@ -47,3 +56,8 @@ export default async ({ data, auth }: CallableRequest) => {
     throw new HttpsError('internal', msg);
   }
 };
+
+export default onCallWrapper<SendNewQuoteNotificationsProps>(
+  'sendnewquotenotifications',
+  sendNewQuoteNotifications
+);
