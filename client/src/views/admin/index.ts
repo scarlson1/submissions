@@ -23,4 +23,3 @@ export { Organizations } from './Organizations';
 export { Organization } from './Organization';
 export { Home } from './Home';
 export { Users } from './Users';
-export { PortfolioRating } from './PortfolioRating';

@@ -15,7 +15,7 @@ import * as yup from 'yup';
 import { FormikFieldArray } from 'components/forms';
 import { useInviteUsers } from 'hooks';
 import { InviteUsersResponse, NewUser } from 'modules/api';
-import { CUSTOM_CLAIMS } from 'modules/components';
+import { CUSTOM_CLAIMS } from 'common';
 
 export interface AddUserValues {
   users: NewUser[];

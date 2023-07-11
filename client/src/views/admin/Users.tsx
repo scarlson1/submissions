@@ -7,9 +7,9 @@ import { useSigninCheck } from 'reactfire';
 
 import { UsersGrid } from 'elements';
 import { useAsyncToast, useMoveUserToTenant } from 'hooks';
-import { CUSTOM_CLAIMS, useConfirmation } from 'modules/components';
+import { useConfirmation } from 'modules/components';
 import InputDialog from 'components/InputDialog';
-import { User } from 'common';
+import { CUSTOM_CLAIMS, User } from 'common';
 
 export const Users = () => {
   const { status, data: signInCheckResult } = useSigninCheck({

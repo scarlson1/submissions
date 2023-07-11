@@ -106,6 +106,12 @@ export enum DEDUCTIBLE_OPTIONS {
   abs = 'absolute',
 }
 
+export enum CUSTOM_CLAIMS {
+  ORG_ADMIN = 'orgAdmin',
+  IDEMAND_ADMIN = 'iDemandAdmin',
+  AGENT = 'agent',
+}
+
 export enum LOCAL_STORAGE {
   USER_SEARCH_KEY = 'userSearchKey',
 }

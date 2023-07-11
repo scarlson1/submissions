@@ -4,7 +4,7 @@ import { Box, Button, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 
 import { getRequiredClaimValidator } from 'components/RequireAuthReactFire';
-import { CUSTOM_CLAIMS } from 'modules/components';
+import { CUSTOM_CLAIMS } from 'common';
 import { Submissions as AdminSubmissions } from './admin/Submissions';
 import { Submissions as UserSubmissions } from './user/Submissions';
 import { SubmissionsGrid } from 'elements';

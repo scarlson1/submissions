@@ -1,5 +1,5 @@
 import { Functions, httpsCallable } from 'firebase/functions';
-import { CUSTOM_CLAIMS } from 'modules/components';
+import { CUSTOM_CLAIMS } from 'common';
 
 export interface NewUser {
   email: string;

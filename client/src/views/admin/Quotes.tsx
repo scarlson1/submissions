@@ -22,9 +22,8 @@ import { subproducerCommissionCol } from 'modules/gridColumnDefs';
 import { useAsyncToast, useShowJson } from 'hooks';
 import { useConfirmation } from 'modules/components';
 import { quoteConverter } from 'common/firestoreConverters';
-import { QuotesGrid } from 'elements';
+import { QuotesGrid, PortfolioRatingDialog } from 'elements';
 import { IconMenu } from 'components/IconButtonMenu';
-import { PortfolioRatingDialog } from './PortfolioRating';
 
 const useUpdateQuoteStatus = () => {
   const firestore = useFirestore();

@@ -10,9 +10,9 @@ import { useFirestore, useSigninCheck } from 'reactfire';
 import { IconButtonMenu } from 'components';
 import { ADMIN_ROUTES, ROUTES, createPath } from 'router';
 import { useAsyncToast, useCreateTenant } from 'hooks';
-import { AGENCY_SUBMISSION_STATUS, COLLECTIONS } from 'common';
+import { AGENCY_SUBMISSION_STATUS, COLLECTIONS, CUSTOM_CLAIMS } from 'common';
 import { useSendAgencyAppNotification } from 'hooks/useCreateTenant';
-import { CUSTOM_CLAIMS, useConfirmation } from 'modules/components';
+import { useConfirmation } from 'modules/components';
 import { AgencyAppsGrid } from 'elements';
 
 export const AgencyApps = () => {

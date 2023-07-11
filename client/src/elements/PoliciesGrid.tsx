@@ -8,7 +8,7 @@ import { toast } from 'react-hot-toast';
 
 import { ServerDataGrid, ServerDataGridProps } from 'components';
 import { Policy, POLICY_STATUS } from 'common';
-import { CUSTOM_CLAIMS } from 'modules/components';
+import { CUSTOM_CLAIMS } from 'common';
 import { ROUTES, createPath } from 'router';
 import { policyCols, statusCol } from 'modules/gridColumnDefs';
 

@@ -50,8 +50,6 @@ import {
   SLTaxEdit,
   LicenseEdit,
   QuoteEdit,
-  PortfolioRating,
-  // PortfolioRating,
 } from 'views/admin';
 // import { Submissions as AgentSubmissions } from 'views/agent';
 import { SuccessStep, ActionHandler, EmailsGrid } from 'elements';
@@ -1064,15 +1062,6 @@ export const router = sentryCreateBrowserRouter([
                 },
               ],
             },
-          },
-          // TODO: finish component & uncomment
-          {
-            path: ADMIN_ROUTES.PORTFOLIO_RATING,
-            element: (
-              <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
-                <PortfolioRating />
-              </RequireAuthReactFire>
-            ),
           },
           {
             path: '/admin/map/submissions',

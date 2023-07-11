@@ -18,7 +18,7 @@ import { useAsyncToast, useDocDataOnce } from 'hooks';
 import { QUOTE_STATUS, Quote, quotesCollection } from 'common';
 import { QuoteForm } from 'elements';
 import { QuoteValues } from 'elements/QuoteForm';
-import { CUSTOM_CLAIMS } from 'modules/components';
+import { CUSTOM_CLAIMS } from 'common';
 import { ADMIN_ROUTES, createPath } from 'router';
 import { addToDate, extractNumber } from 'modules/utils';
 import { CARD_FEE_RATE } from 'hooks/useCreateQuote';

@@ -14,7 +14,7 @@ import { IdTokenResult, signInAnonymously } from 'firebase/auth';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 
-import { CUSTOM_CLAIMS } from 'modules/components';
+import { CUSTOM_CLAIMS } from 'common';
 import { AUTH_ROUTES, createPath } from 'router';
 
 export type CustomClaimKeys = keyof typeof CUSTOM_CLAIMS;

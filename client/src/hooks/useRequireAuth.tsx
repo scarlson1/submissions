@@ -1,11 +1,13 @@
 // BUG:  DO NOT USE - CAUSES INFINITE LOOP
 
 import { useEffect } from 'react';
-import { useAuth, CUSTOM_CLAIMS } from 'modules/components/AuthContext';
+
 import { useLocation, useNavigate } from 'react-router-dom';
 import { signInAnonymously, UserCredential, getAuth } from 'firebase/auth';
 
 // import { auth } from 'firebaseConfig';
+import { useAuth } from 'modules/components/AuthContext';
+import { CUSTOM_CLAIMS } from 'common';
 import { useAsyncToast } from './useAsyncToast';
 import { AUTH_ROUTES, createPath } from 'router';
 

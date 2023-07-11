@@ -19,19 +19,21 @@ import {
   audience,
   unlinkFile,
   Nullable,
+  SRRes,
+  ValueByRiskType,
 } from '../common';
 import { generateSRAccessToken, getSwissReInstance } from '../services';
 import { swissReBody } from '../utils/rating/swissReBody.js';
-import { getPremium } from '../utils/rating';
+import { getPremium, getRCVs } from '../utils/rating';
 import { sendMessage } from '../services/sendgrid';
 import { extractSRAALs } from '../utils/rating/getAALs';
 import {
   parseStreamToArray,
   shouldReturnEarly,
-  // transformHeadersCamelCase,
   transformHeadersSnakeCase,
   writeArrayToStorage as writeToStorage,
 } from '../utils';
+import { GetPremiumCalcResult } from '../utils/rating/getPremium';
 
 let swissReInstance: AxiosInstance;
 let swissReInstanceTimestamp: number; // TODO: regenerate if > 10 mins
@@ -53,6 +55,7 @@ interface IRow extends Record<string, string> {
   cov_d_limit: string;
   total_limits: string;
   deductible: string;
+  state: string;
 }
 interface TRow extends Record<string, any> {
   cov_a_rcv: number;
@@ -66,6 +69,7 @@ interface TRow extends Record<string, any> {
   cov_d_limit: number;
   total_limits: number;
   deductible: number;
+  state: string;
 }
 
 export function validateRow(data: any) {
@@ -121,23 +125,52 @@ export function validateRow(data: any) {
   return true;
 }
 
+// TODO: transform basement, FFE, etc.
+// TODO: calc rcvs from rcvA
 function transformRow(data: IRow): Nullable<TRow> {
+  const limitA = data.cov_a_limit ? parseInt(getNumber(data.cov_a_limit)) : 0;
+  const limitB = data.cov_b_limit ? parseInt(getNumber(data.cov_b_limit)) : 0;
+  const limitC = data.cov_c_limit ? parseInt(getNumber(data.cov_c_limit)) : 0;
+  const limitD = data.cov_d_limit ? parseInt(getNumber(data.cov_d_limit)) : 0;
+  const total_limits = limitA + limitB + limitC + limitD;
+
+  const rcvA = data.cov_a_rcv ? parseInt(getNumber(data.cov_a_rcv)) : null;
+
+  const rcvs = getRCVs(rcvA || 0, { limitA, limitB, limitC, limitD });
+
   return {
     ...data,
-    cov_a_rcv: data.cov_a_rcv ? parseInt(getNumber(data.cov_a_rcv)) : null, // '',
-    cov_b_rcv: data.cov_b_rcv ? parseInt(getNumber(data.cov_b_rcv)) : 0,
-    cov_c_rcv: data.cov_c_rcv ? parseInt(getNumber(data.cov_c_rcv)) : 0,
-    cov_d_rcv: data.cov_d_rcv ? parseInt(getNumber(data.cov_d_rcv)) : 0,
-    total_rcv: data.total_rcv ? parseInt(getNumber(data.total_rcv)) : null, // TODO: calc instead ??
-    cov_a_limit: data.cov_a_limit ? parseInt(getNumber(data.cov_a_limit)) : null, // '',
-    cov_b_limit: data.cov_b_limit ? parseInt(getNumber(data.cov_b_limit)) : 0,
-    cov_c_limit: data.cov_c_limit ? parseInt(getNumber(data.cov_c_limit)) : 0,
-    cov_d_limit: data.cov_d_limit ? parseInt(getNumber(data.cov_d_limit)) : 0,
-    total_limits: data.total_limits ? parseInt(getNumber(data.total_limits)) : null, // '',
-    deductible: data.deductible ? parseInt(getNumber(data.deductible)) : null, // '',
+    cov_a_rcv: rcvs.building || null,
+    cov_b_rcv: rcvs.otherStructures,
+    cov_c_rcv: rcvs.contents,
+    cov_d_rcv: rcvs.BI,
+    total_rcv: rcvs.total,
+    cov_a_limit: limitA || null,
+    cov_b_limit: limitB,
+    cov_c_limit: limitC,
+    cov_d_limit: limitD,
+    total_limits,
+    deductible: data.deductible ? parseInt(getNumber(data.deductible)) : null,
     skip: data?.skip && data?.skip?.toLowerCase().trim() === 'true',
     google_maps_link: getGoogleMapsUrl(data.latitude, data.longitude),
   };
+
+  // return {
+  //   ...data,
+  //   cov_a_rcv: data.cov_a_rcv ? parseInt(getNumber(data.cov_a_rcv)) : null, // '',
+  //   cov_b_rcv: data.cov_b_rcv ? parseInt(getNumber(data.cov_b_rcv)) : 0,
+  //   cov_c_rcv: data.cov_c_rcv ? parseInt(getNumber(data.cov_c_rcv)) : 0,
+  //   cov_d_rcv: data.cov_d_rcv ? parseInt(getNumber(data.cov_d_rcv)) : 0,
+  //   total_rcv: data.total_rcv ? parseInt(getNumber(data.total_rcv)) : null,
+  //   cov_a_limit: data.cov_a_limit ? parseInt(getNumber(data.cov_a_limit)) : null, // '',
+  //   cov_b_limit: data.cov_b_limit ? parseInt(getNumber(data.cov_b_limit)) : 0,
+  //   cov_c_limit: data.cov_c_limit ? parseInt(getNumber(data.cov_c_limit)) : 0,
+  //   cov_d_limit: data.cov_d_limit ? parseInt(getNumber(data.cov_d_limit)) : 0,
+  //   total_limits: data.total_limits ? parseInt(getNumber(data.total_limits)) : null, // '',
+  //   deductible: data.deductible ? parseInt(getNumber(data.deductible)) : null, // '',
+  //   skip: data?.skip && data?.skip?.toLowerCase().trim() === 'true',
+  //   google_maps_link: getGoogleMapsUrl(data.latitude, data.longitude),
+  // };
 }
 
 function getPremCalcVars(row: any) {
@@ -161,7 +194,40 @@ function getPremCalcVars(row: any) {
   };
 }
 
-export function formatPremData(rowPremData: any) {
+interface FlattenedPremData {
+  basementMult: string | number;
+  inlandHistoryMult: string | number;
+  surgeHistoryMult: string | number;
+  tsunamiHistoryMult: string | number;
+  inlandFFEMult: string | number;
+  surgeFFEMult: string | number;
+  tsunamiFFEMult: string | number;
+  inlandMult: string | number;
+  surgeMult: string | number;
+  tsunamiMult: string | number;
+  inlandStateMult: string | number;
+  surgeStateMult: string | number;
+  tsunamiStateMult: string | number;
+  inlandPM: string | number;
+  surgePM: string | number;
+  tsunamiPM: string | number;
+  inlandRiskScore: string | number;
+  surgeRiskScore: string | number;
+  tsunamiRiskScore: string | number;
+  inlandTechPrem: string | number;
+  surgeTechPrem: string | number;
+  tsunamiTechPrem: string | number;
+  premiumSubtotal: string | number;
+  minPrem: string | number;
+  minPremiumAdj: string | number;
+  provisionalPremium: string | number;
+  subproducerAdj: string | number;
+  premium: string | number;
+  notes: string;
+}
+
+/** fatten premium calc data to depth of 1 for CSV export */
+export function flattenPremData(rowPremData: GetPremiumCalcResult): FlattenedPremData {
   const premium = rowPremData?.premiumData?.directWrittenPremium ?? '';
   const minPrem = rowPremData?.minPremium ?? '';
   const inlandMult = rowPremData?.secondaryFactorMults?.inland ?? '';
@@ -232,8 +298,12 @@ export function formatPremData(rowPremData: any) {
   };
 }
 
-const calcPrem = (data: any[]) => {
-  const result: any[] = [];
+interface TRowWithAAL extends TRow, AALsWithErrMsg {}
+
+interface CalcPremResult extends TRowWithAAL, FlattenedPremData {}
+
+const calcPrem = (data: TRowWithAAL[]) => {
+  const result: CalcPremResult[] = [];
 
   for (let r of data) {
     try {
@@ -241,14 +311,14 @@ const calcPrem = (data: any[]) => {
         let msg = r.skip ? 'skip row' : r.errMsg || 'missing aals';
         throw new Error(msg);
       }
-      let getPremProps = getPremCalcVars(r);
+      const getPremProps = getPremCalcVars(r);
       const rowPremData = getPremium({ ...getPremProps, isPortfolio: true });
 
-      const formattedPremData = formatPremData(rowPremData);
+      const flattenedPremData = flattenPremData(rowPremData);
 
       result.push({
         ...r,
-        ...formattedPremData,
+        ...flattenedPremData,
       });
     } catch (err: any) {
       let errMsg = err?.message || null;
@@ -297,6 +367,7 @@ const calcPrem = (data: any[]) => {
   return result;
 };
 
+/** convert snake case column headers to camel case params used in SR XML template */
 export function getSRVars(row: any) {
   let rcvB = row.cov_b_rcv || 0;
   let limitB = row.cov_b_limit || 0;
@@ -317,15 +388,7 @@ export function getSRVars(row: any) {
   };
 }
 
-function getSRPromise(data: any, i?: number) {
-  // if (i === 1) {
-  //   console.log('DEV - RETURNING SR REJECTION');
-  //   return new Promise((resolve, reject) => {
-  //     setTimeout(() => {
-  //       reject(new Error('test throw error for retry refactor'));
-  //     }, 50);
-  //   });
-  // }
+function getSRPromise(data: TRow): Promise<AxiosResponse<SRRes, any>> {
   if (data.skip) {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
@@ -337,17 +400,27 @@ function getSRPromise(data: any, i?: number) {
   const xmlBodyVars = getSRVars(data);
   const body = swissReBody(xmlBodyVars);
 
-  return swissReInstance.post('/rate/sync/srxplus/losses', body, {
+  return swissReInstance.post<SRRes>('/rate/sync/srxplus/losses', body, {
     headers: {
       'Content-Type': 'application/octet-stream',
     },
   });
 }
 
-async function getAALs(parsedData: any[]) {
+interface AALsWithErrMsg extends ValueByRiskType {
+  errMsg: string;
+}
+interface GetAALsRes extends TRow, AALsWithErrMsg {}
+
+/** fetch AALs for an array of rows
+ * @param {TRow[]} parsedData
+ * @returns {Promise<GetAALsRes[]>}
+ */
+async function getAALs(parsedData: TRow[]): Promise<GetAALsRes[]> {
   try {
+    // Catch error so promise.all doesn't cause all requests to fail
     const promises = parsedData.map((r, i) =>
-      getSRPromise(r, i).catch((err: any) => {
+      getSRPromise(r).catch((err: any) => {
         let errMsg = 'Error fetching AALs from Swiss Re.';
         if (err?.message && typeof err.message === 'string') errMsg = err.message;
         if (err?.response?.data) errMsg += ` ${[JSON.stringify(err.response.data)]}`;
@@ -365,7 +438,7 @@ async function getAALs(parsedData: any[]) {
         };
       })
     ) as Promise<
-      | AxiosResponse<any, any>
+      | AxiosResponse<SRRes, any>
       | {
           data: {
             errMsg: string;
@@ -373,38 +446,25 @@ async function getAALs(parsedData: any[]) {
         }
     >[];
 
-    // const results = await Promise.all(promises.map((p) => p.catch((e) => e)));
-    // const validResults = results.filter((result) => !(result instanceof Error));
-
     let results = await Promise.all(promises);
 
-    let aals = results.map((r) => ({
-      ...extractSRAALs(r?.data?.expectedLosses),
-      errMsg: r?.data?.errMsg || '',
+    // Map results -> get errMsg, inland, surge, tsunami AALs (-1 if error)
+    const aals: AALsWithErrMsg[] = results.map((r) => ({
+      // @ts-ignore
+      ...extractSRAALs(r?.data?.expectedLosses || undefined), // @ts-ignore
+      errMsg: (r?.data?.errMsg as unknown as string) || '',
     }));
 
-    // let aals = results.map((r) =>
-    //   r?.data?.expectedLosses
-    //     ? { ...extractSRAALs(r?.data?.expectedLosses), errMsg: '' }
-    //     : { inland: -1, surge: -1, tsunami: -1, errMsg: r?.data?.errMsg || '' }
-    // );
-
-    if (parsedData.length !== aals.length) {
-      error('AAL COUNT NOT THE SAME AS ROW COUNT - RETURNING EARLY');
-      throw new Error(
-        'AAL count not same as row count. Cannot merge without risk if data mismatch'
-      );
-    }
-
+    // Append AALs and errMsg to each row
     return parsedData.map((r, i) => ({ ...r, ...aals[i] }));
-    // return calcPrem(merged)
   } catch (err: any) {
     error('AAL ERR: ', { ...err });
     throw err;
   }
 }
 
-async function getPremiumForChunk(chunk: any[]) {
+/** fetch AALs for array of rows, then calc premium on rows without errors */
+async function getPremiumForChunk(chunk: TRow[]) {
   const chunkWithAAL = await getAALs(chunk);
   // info(`FINISHED FETCHING AAL FOR CHUNK (COUNT: ${currChunk})`, { ...chunkWithAAL });
 
@@ -416,10 +476,11 @@ async function getPremiumForChunk(chunk: any[]) {
   return { ratedChunk, errorRows };
 }
 
-async function splitAndRate(data: any[]) {
-  let ratedArray: any[] = [];
+/** split rows into chunks of X size, then fetch AALs and calculate premium for each chunk */
+async function splitAndRate(data: TRow[]) {
+  let ratedArray: (CalcPremResult | GetAALsRes)[] = [];
   let chunkCountVal = chunkCount.value() || 100;
-  let chunks = data.length > chunkCountVal ? splitChunks(data, chunkCountVal) : [data];
+  let chunks: TRow[][] = data.length > chunkCountVal ? splitChunks(data, chunkCountVal) : [data];
   // Add an extra array for retries
   chunks.push([]);
   let currChunk = 1;

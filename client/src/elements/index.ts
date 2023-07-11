@@ -36,6 +36,7 @@ export { SubmissionsGrid } from './SubmissionsGrid';
 export { EmailsGrid } from './EmailsGrid';
 export { LicenseForm } from './LicenseForm';
 export { QuoteForm } from './QuoteForm';
+export { PortfolioRatingDialog } from './PortfolioRatingDialog';
 
 export type { FormikAddressProps } from './FormikAddress';
 export type { DeductibleStepProps } from './DeductibleStep';

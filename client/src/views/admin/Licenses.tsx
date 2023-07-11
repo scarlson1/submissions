@@ -7,7 +7,7 @@ import { useSigninCheck } from 'reactfire';
 
 import { ADMIN_ROUTES, createPath } from 'router';
 import { ServerDataGrid } from 'components';
-import { CUSTOM_CLAIMS } from 'modules/components';
+import { CUSTOM_CLAIMS } from 'common';
 import { licenseCols } from 'modules/gridColumnDefs';
 
 export const Licenses = () => {

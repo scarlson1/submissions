@@ -4,7 +4,7 @@ export { locationCols } from './locationCols';
 export { quoteCols } from './quoteCols';
 export { policyCols } from './policyCols';
 export { submissionCols } from './submissionCols';
-export { userCols } from './userCols';
+export { userCols, userClaimsCol, userSummaryCol } from './userCols';
 export { inviteCols } from './inviteCols';
 export { taxCols } from './taxCols';
 export { licenseCols } from './licenseCols';

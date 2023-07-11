@@ -20,17 +20,18 @@ import { ReauthDialog } from 'components';
 import { useAlgoliaStore, usePrevious, useUserClaims } from 'hooks';
 import { UserWithClaimsResult } from 'hooks/useUserClaims';
 import { AUTH_ROUTES, createPath } from 'router';
+import { CUSTOM_CLAIMS } from 'common';
 
 // TODO: refactor to use rxFire observables ?? https://firebase.blog/posts/2018/09/introducing-rxfire-easy-async-firebase
 
 // TODO: set up reducer & actions
 // https://www.youtube.com/watch?v=YmHEzjglRMk
 
-export enum CUSTOM_CLAIMS {
-  ORG_ADMIN = 'orgAdmin',
-  IDEMAND_ADMIN = 'iDemandAdmin',
-  AGENT = 'agent',
-}
+// export enum CUSTOM_CLAIMS {
+//   ORG_ADMIN = 'orgAdmin',
+//   IDEMAND_ADMIN = 'iDemandAdmin',
+//   AGENT = 'agent',
+// }
 export type CustomClaimsInterface = Record<CUSTOM_CLAIMS, boolean> & IdTokenResult['claims'];
 
 interface AuthContextValue extends UserWithClaimsResult {

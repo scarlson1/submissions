@@ -7,7 +7,7 @@ import { useSigninCheck } from 'reactfire';
 
 import { createPath, ADMIN_ROUTES } from 'router';
 import { ServerDataGrid } from 'components';
-import { CUSTOM_CLAIMS } from 'modules/components';
+import { CUSTOM_CLAIMS } from 'common';
 import { orgCols } from 'modules/gridColumnDefs';
 
 export const Organizations = () => {

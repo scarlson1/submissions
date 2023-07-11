@@ -1,12 +1,11 @@
 import { useEffect } from 'react';
-
-// import { CircularProgress } from '@mui/material';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { getAuth, signInAnonymously, UserCredential } from 'firebase/auth';
+import { toast } from 'react-hot-toast';
 
 // import { auth } from 'firebaseConfig';
-import { useAuth, CUSTOM_CLAIMS } from 'modules/components/AuthContext';
-import { toast } from 'react-hot-toast';
+import { useAuth } from 'modules/components/AuthContext';
+import { CUSTOM_CLAIMS } from 'common';
 import { AUTH_ROUTES, createPath } from 'router';
 
 // TODO: read for reference: https://adarshaacharya.com.np/blog/role-based-auth-with-react-router-v6

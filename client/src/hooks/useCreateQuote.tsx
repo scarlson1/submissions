@@ -17,7 +17,7 @@ import { endOfToday, startOfDay, isValid } from 'date-fns';
 import { addToDate, extractNumber, getGeoHash, readableFirebaseCode } from 'modules/utils/helpers';
 import { QUOTE_STATUS, Submission, Quote, quotesCollection, licensesCollection } from 'common';
 import { useSendQuoteNotification } from './useSendQuoteNotification';
-import { CUSTOM_CLAIMS } from 'modules/components';
+import { CUSTOM_CLAIMS } from 'common';
 import type { QuoteValues } from 'elements';
 
 export const CARD_FEE_RATE = 0.035;

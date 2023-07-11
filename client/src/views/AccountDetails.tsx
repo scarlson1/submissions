@@ -41,6 +41,7 @@ import { AdminManageUsersGrid } from 'elements/UsersGrid';
 import { passwordValidation } from './CreateAccount';
 import { RHFPassword } from 'elements/FormikPassword';
 import { useDBUser } from 'hooks/useDBUser';
+import { useSearchParams } from 'react-router-dom';
 
 // react spring animated gradient: https://codesandbox.io/s/xg8jhi
 
@@ -70,13 +71,15 @@ const MIN_TAB_HEIGHT = 40;
 export const AccountDetails = () => {
   const { data: user } = useUser();
   const theme = useTheme();
-  const [tabValue, setTabValue] = useState('account');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [tabValue, setTabValue] = useState(searchParams.get('tab') || 'account');
 
   const { data } = useDBUser({ suspense: true });
   // console.log('USER OBSERVABLE: ', data);
 
   const handleChange = (event: React.SyntheticEvent, newValue: string) => {
     setTabValue(newValue);
+    setSearchParams({ tab: newValue });
   };
 
   const orgId = useMemo(() => (data.user?.tenantId ?? data.dbUser?.orgId) || null, [data]);
@@ -217,11 +220,9 @@ export const AccountDetails = () => {
                       lastName: false,
                       email: false,
                       phone: false,
-                      actions: false,
+                      // actions: false,
                       'metadata.created': false,
-                      created: false,
                       'metadata.updated': false,
-                      updated: false,
                       orgId: false,
                       id: false,
                     }}

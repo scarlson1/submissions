@@ -1,7 +1,7 @@
 import type { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 import { error, info } from 'firebase-functions/logger';
 import { DocumentSnapshot, Timestamp } from 'firebase-admin/firestore';
-import algoliasearch from 'algoliasearch';
+import algoliasearch, { SearchIndex } from 'algoliasearch';
 import { capitalize } from 'lodash';
 
 import {
@@ -13,6 +13,18 @@ import {
   algoliaAdminKey,
 } from '../../common';
 import { getVisibleBy } from '../../utils';
+
+export async function removeAlgoliaRecord(index: SearchIndex, id: string) {
+  try {
+    const res = await index.deleteObject(id);
+    info(`ALGOLIA - SUCCESSFULLY DELETED RECORD (taskId: ${res.taskID})`, { id });
+  } catch (err: any) {
+    error(`ERROR DELETING RECORD FROM ALGOLIA INDEX (ID: ${id})`, {
+      id,
+      err,
+    });
+  }
+}
 
 export default async (
   event: FirestoreEvent<
@@ -37,18 +49,24 @@ export default async (
 
   // If the document does not exist, it was deleted
   const newValue = event?.data?.after.data() as Policy | undefined;
-  if (!newValue) {
-    try {
-      info(`DELETING DOC ${docId} FROM ALGOLIA POLICIES INDEX...`);
-      const res = await index.deleteObject(docId);
 
-      info(`SUCCESSFULLY DELETED ${docId} FROM POLICIES INDEX (taskId: ${res.taskID})`);
-      return;
-    } catch (err: any) {
-      error(`ERROR DELETING USER FROM ALGOLIA POLICIES INDEX (${docId})`, { ...err });
-    }
+  // Remove locations from index if location Id not in new locations
+  const prevData = event?.data?.before.data();
+  const newLocationIds = Object.keys(newValue?.locations || {});
+  const prevLocationIds = Object.keys(prevData?.locations || {});
+
+  const removedLocationIds = prevLocationIds.filter((locId) => newLocationIds.includes(locId));
+
+  for (let locId of removedLocationIds) {
+    await removeAlgoliaRecord(index, locId);
+  }
+
+  if (!newValue) {
+    // Delete policy record
+    await removeAlgoliaRecord(index, docId);
   } else {
     try {
+      // Visible to agent, user, and orgAdmins
       const ids = {
         orgId: newValue.agency?.orgId || null,
         agentId: newValue.agent?.userId || null,
@@ -109,6 +127,7 @@ export default async (
         },
       ];
 
+      // create a record for each location
       locations.forEach((l: PolicyLocation) => {
         const locationRecord = {
           objectId: l.locationId,
@@ -146,9 +165,6 @@ export default async (
       // TODO: check error code --> rethrow if 50X error ?? handle idempotency
     }
   }
-
-  // Get an object with the previous document values
-  // const previousValues = event?.data?.before.data();
 
   return;
 };

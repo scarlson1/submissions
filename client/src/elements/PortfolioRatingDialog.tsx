@@ -16,9 +16,9 @@ import { useAsyncToast, useCreateStorageFiles } from 'hooks';
 
 const REQUIRED_HEADERS = [
   'cov_a_rcv',
-  'cov_b_rcv',
-  'cov_c_rcv',
-  'cov_d_rcv',
+  // 'cov_b_rcv',
+  // 'cov_c_rcv',
+  // 'cov_d_rcv',
   'cov_a_limit',
   'cov_b_limit',
   'cov_c_limit',
@@ -217,40 +217,3 @@ function RequiredHeaders(props: RequiredHeadersProps) {
     </Grid>
   );
 }
-
-interface PortfolioRatingProps {}
-
-export const PortfolioRating = (props: PortfolioRatingProps) => {
-  return <Box>Component under construction</Box>;
-};
-
-// SOURCE: https://refine.dev/blog/how-to-import-csv/
-// const fileReader = new FileReader();
-
-// const csvFileToArray = (str: string) => {
-//   const csvHeader = str.slice(0, str.indexOf('\n')).split(',');
-//   console.log('CSV HEADERS: ', csvHeader);
-//   // const csvRows = str.slice(str.indexOf('\n') + 1).split('\n');
-
-//   // const array = csvRows.map((i) => {
-//   //   const values = i.split(',');
-//   //   const obj = csvHeader.reduce((object, header, index) => {
-//   //     object[header] = values[index];
-//   //     return object;
-//   //   }, {});
-//   //   return obj;
-//   // });
-
-//   // setArray(array);
-// };
-
-// const handleParse2 = (file: File) => {
-//   if (file) {
-//     fileReader.onload = function (event) {
-//       const text = event?.target?.result as string;
-//       if (text) csvFileToArray(text);
-//     };
-
-//     fileReader.readAsText(file);
-//   }
-// };

@@ -9,7 +9,7 @@ import {
 import { IdTokenResult } from 'firebase/auth';
 
 import { CustomClaimKeys, getRequiredClaimValidator } from './RequireAuthReactFire';
-import { CUSTOM_CLAIMS } from 'modules/components';
+import { CUSTOM_CLAIMS } from 'common';
 
 export type SignInCheckProps =
   | SignInCheckOptionsBasic
