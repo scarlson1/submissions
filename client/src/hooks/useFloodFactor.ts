@@ -4,6 +4,7 @@ import { useFunctions } from 'reactfire';
 import { Address, Optional } from 'common';
 import { useAsyncToast } from './useAsyncToast';
 import { getRiskFactorId } from 'modules/api';
+import { popUpWasBlocked } from 'modules/utils';
 
 function firstStreetFormat(str: string) {
   return str.toLowerCase().replaceAll(' ', '-');
@@ -53,7 +54,9 @@ export const useFloodFactor = (onError?: (msg: string) => void) => {
         )}/${fsid}_fsid/flood`;
 
         toast.success(`opening in new tab (FSID: ${fsid})`);
-        window.open(floodStreetUrl, '_blank');
+        const w = window.open(floodStreetUrl, '_blank');
+
+        if (popUpWasBlocked(w)) toast.error('Please allow the new window to view risk factor');
       } else {
         toast.error('Unable to get location ID');
       }

@@ -1,8 +1,10 @@
 import { useCallback, useState, useMemo } from 'react';
 import { ref, getDownloadURL, getStorage } from 'firebase/storage';
+import { toast } from 'react-hot-toast';
 
 // import { storage } from 'firebaseConfig';
 import { FirebaseError } from 'firebase/app';
+import { popUpWasBlocked } from 'modules/utils';
 
 export const useOpenStorageFile = () => {
   const [error, setError] = useState<{ code: string; message: string } | undefined>();
@@ -14,7 +16,8 @@ export const useOpenStorageFile = () => {
       let url = await getDownloadURL(fileRef);
 
       console.log('download url: ', url);
-      window.open(url, '_blank');
+      const w = window.open(url, '_blank');
+      if (popUpWasBlocked(w)) toast.error('New window was blocked by your browser');
       return;
     } catch (err) {
       if (err instanceof FirebaseError) {

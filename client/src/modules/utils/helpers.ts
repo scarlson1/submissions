@@ -17,6 +17,7 @@ import {
   RoundingType,
   TaxItem,
 } from 'common/types';
+import { toast } from 'react-hot-toast';
 
 /**
  * extracts address string from Google address_components object.
@@ -738,11 +739,13 @@ export function getRoundingFunc(type?: RoundingType | null | undefined) {
 }
 
 export function openGoogleMaps(latitude: number, longitude: number) {
-  window.open(
+  const w = window.open(
     `https://www.google.com/maps/search/?api=1&query=${latitude}%2C${longitude}`,
     '_blank',
     'noopener'
   );
+
+  if (popUpWasBlocked(w)) toast.error('Google maps window blocked by browser');
 }
 
 export function stringToColor(string: string) {
@@ -773,3 +776,12 @@ export function stringAvatar(name: string) {
     children: `${name.split(' ')[0][0]}${name.split(' ')[1][0]}`,
   };
 }
+
+export function popUpWasBlocked(popUp: Window | null) {
+  return !popUp || popUp.closed || typeof popUp.closed === 'undefined';
+}
+// USAGE:
+// const w = window.open('/login-as', '_blank');
+// if (popUpWasBlocked(w)) {
+//   // handle the error
+// }

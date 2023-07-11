@@ -47,6 +47,7 @@ import {
   getGridAddressComponent,
   isCurrentDateBetween,
   numberFormat,
+  popUpWasBlocked,
 } from 'modules/utils';
 import {
   AGENCY_SUBMISSION_STATUS,
@@ -83,6 +84,7 @@ import {
 import { multiSelectExtendsSingle } from 'modules/muiGrid/gridMultiSelectColDef';
 import { TRANSACTION_OPTIONS } from 'elements/TaxForm';
 import { isDate } from 'lodash';
+import { toast } from 'react-hot-toast';
 
 export const copyBaseProps: Partial<GridColDef> = {
   flex: 1.2,
@@ -508,11 +510,12 @@ export const coordinatesCol: GridColDef = {
             },
             mr: 2,
           }}
-          onClick={() =>
-            window.open(
+          onClick={() => {
+            const w = window.open(
               `https://www.google.com/maps/search/?api=1&query=${latitude}%2C${longitude}`
-            )
-          }
+            );
+            if (popUpWasBlocked(w)) toast.error('Please allow the new window to view Google Maps');
+          }}
         >
           {`[${latitude}, ${longitude}]`}
         </Typography>
