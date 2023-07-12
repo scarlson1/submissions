@@ -2,7 +2,13 @@ import { info } from 'firebase-functions/logger';
 import type { StorageEvent } from 'firebase-functions/v2/storage';
 import path from 'path';
 
-/** check if folder match, filename prefix, new, or filetype validations match */
+/** check if folder match, filename prefix, new, or filetype validations match
+ * @param {StorageEvent} e firebase cloud storage function event
+ * @param {string} uploadFolder check whether file matches uploadFolder path
+ * @param {string} contentType optionally ensure file type
+ * @param {string} startsWith optionally check if file contains prefix
+ * @returns {boolean} true if any of the checks fail
+ */
 export function shouldReturnEarly(
   e: StorageEvent,
   uploadFolder: string,

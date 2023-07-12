@@ -285,7 +285,10 @@ export default async (event: StorageEvent) => {
 // (row: CSVPolicyRow):  ParsedPolicyRow {
 // function transformPolicyRow(row: ParserSyncRowTransform<CSVPolicyRow, ParsedPolicyRow>) {
 
-/** Converts to correct type and unflattens */
+/** Converts to correct type and unflattens
+ * @param {CSVPolicyRow} row raw input from csv
+ * @returns {ParsedPolicyRow} formatted types, depth, etc.
+ */
 function transformPolicyRow(row: CSVPolicyRow): ParsedPolicyRow {
   const limits = {
     limitA: row.limitA ? extractNumber(row.limitA) : 0,
@@ -385,7 +388,10 @@ function transformPolicyRow(row: CSVPolicyRow): ParsedPolicyRow {
   return transformed;
 }
 
-/** Validates row values - will skip row if any validation fails */
+/** Validates row values - will skip row if any validation fails
+ * @param {ParsedPolicyRow} data formatted row
+ * @returns {boolean} returns false if validation fails, otherwise true
+ */
 function validatePolicyRow(data: ParsedPolicyRow) {
   try {
     invariant(

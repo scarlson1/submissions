@@ -226,7 +226,10 @@ interface FlattenedPremData {
   notes: string;
 }
 
-/** fatten premium calc data to depth of 1 for CSV export */
+/** fatten premium calc data to depth of 1 for CSV export
+ * @param {GetPremiumCalcResult} rowPremData response from "getPremium" function
+ * @returns {FlattenedPremData} 1 dimension object
+ */
 export function flattenPremData(rowPremData: GetPremiumCalcResult): FlattenedPremData {
   const premium = rowPremData?.premiumData?.directWrittenPremium ?? '';
   const minPrem = rowPremData?.minPremium ?? '';
@@ -300,7 +303,8 @@ export function flattenPremData(rowPremData: GetPremiumCalcResult): FlattenedPre
 
 interface TRowWithAAL extends TRow, AALsWithErrMsg {}
 
-interface CalcPremResult extends TRowWithAAL, FlattenedPremData {}
+// interface CalcPremResult extends TRowWithAAL, FlattenedPremData {}
+type CalcPremResult = TRowWithAAL & FlattenedPremData;
 
 const calcPrem = (data: TRowWithAAL[]) => {
   const result: CalcPremResult[] = [];
@@ -321,7 +325,7 @@ const calcPrem = (data: TRowWithAAL[]) => {
         ...flattenedPremData,
       });
     } catch (err: any) {
-      let errMsg = err?.message || null;
+      const errMsg = err?.message || null;
       if (errMsg !== 'skip row') {
         error(`ERROR (location: ${r.location_id || r.address_1 || '"no address_1"'}): `, {
           errMsg,
@@ -367,7 +371,10 @@ const calcPrem = (data: TRowWithAAL[]) => {
   return result;
 };
 
-/** convert snake case column headers to camel case params used in SR XML template */
+/** convert snake case column headers to camel case params used in SR XML template
+ * @param {any} row row data (TODO: type)
+ * @returns {object} variables for Swiss Re xml template
+ */
 export function getSRVars(row: any) {
   let rcvB = row.cov_b_rcv || 0;
   let limitB = row.cov_b_limit || 0;
@@ -412,9 +419,9 @@ interface AALsWithErrMsg extends ValueByRiskType {
 }
 interface GetAALsRes extends TRow, AALsWithErrMsg {}
 
-/** fetch AALs for an array of rows
- * @param {TRow[]} parsedData
- * @returns {Promise<GetAALsRes[]>}
+/** fetch AALs for an array of rows (Promise.all)
+ * @param {TRow[]} parsedData chunk of rows
+ * @returns {Promise<GetAALsRes[]>} promise which resolves to the parsed data array with AALs appended to each item (inland, surge, tsunami, errMsg) aals -1 if error
  */
 async function getAALs(parsedData: TRow[]): Promise<GetAALsRes[]> {
   try {
@@ -463,7 +470,10 @@ async function getAALs(parsedData: TRow[]): Promise<GetAALsRes[]> {
   }
 }
 
-/** fetch AALs for array of rows, then calc premium on rows without errors */
+/** fetch AALs for array of rows, then calc premium on rows without errors
+ * @param {TRow[]} chunk array of rows containing data required for Swiss Re AAL api call
+ * @returns {object} ratedChunk and errorRows
+ */
 async function getPremiumForChunk(chunk: TRow[]) {
   const chunkWithAAL = await getAALs(chunk);
   // info(`FINISHED FETCHING AAL FOR CHUNK (COUNT: ${currChunk})`, { ...chunkWithAAL });
@@ -476,7 +486,10 @@ async function getPremiumForChunk(chunk: TRow[]) {
   return { ratedChunk, errorRows };
 }
 
-/** split rows into chunks of X size, then fetch AALs and calculate premium for each chunk */
+/** split rows into chunks of X size, then fetch AALs and calculate premium for each chunk
+ * @param {TRow[]} data array of data to be split into array of X size (X = env var "chunkCount"), then loop through each chunk to get AAL and calc premium
+ * @returns {(CalcPremResult | GetAALsRes)[]} 1 dimensional array rows with orgininal data, aals, and premium calc details
+ */
 async function splitAndRate(data: TRow[]) {
   let ratedArray: (CalcPremResult | GetAALsRes)[] = [];
   let chunkCountVal = chunkCount.value() || 100;

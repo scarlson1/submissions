@@ -42,6 +42,7 @@ module.exports = {
     'prefer-const': 'warn',
     'prefer-promise-reject-errors': 'warn',
     '@typescript-eslint/ban-ts-comment': 'warn',
+    '@typescript-eslint/no-empty-interface': 'warn',
     camelcase: 'warn',
     'spaced-comment': 'warn',
     'no-async-promise-executor': 'warn',
@@ -58,6 +59,14 @@ module.exports = {
           ClassDeclaration: false,
           ArrowFunctionExpression: false,
           FunctionExpression: false,
+        },
+      },
+    ],
+    'valid-jsdoc': [
+      2,
+      {
+        prefer: {
+          return: 'returns',
         },
       },
     ],

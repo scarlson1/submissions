@@ -9,7 +9,7 @@ import { DocumentReference } from 'firebase-admin/firestore';
 /**
  * Sums an array of numbers
  * @param {number[]} arr - array of numbers to be added.
- * @return {number} total of all numbers in array
+ * @returns {number} total of all numbers in array
  */
 export const calcSum = (arr: number[]) => {
   return arr.reduce((total, current) => {
@@ -21,7 +21,7 @@ export const calcSum = (arr: number[]) => {
  * Round up the the nearest x (10s, 100s, 1,000s, etc.)
  * @param {number} value - array of numbers to be added.
  * @param {number} magnitude - order of magnitude to round. Ex: 0 -> 1111; 1 -> 1110; 2 -> 1100, 3 -> 1000
- * @return {number} total of all numbers in array
+ * @returns {number} total of all numbers in array
  */
 export const roundUpToNearest = (value: number, magnitude = 0) => {
   const factor = parseInt('1' + '0'.repeat(magnitude));
@@ -32,7 +32,7 @@ export const roundUpToNearest = (value: number, magnitude = 0) => {
  * Round down the the nearest x (10s, 100s, 1,000s, etc.)
  * @param {number} value - array of numbers to be added.
  * @param {number} magnitude - order of magnitude to round. Ex: 0 -> 1111, 1 -> 1110; 2 -> 1100, 3 -> 1000
- * @return {number} total of all numbers in array
+ * @returns {number} total of all numbers in array
  */
 export const roundDownToNearest = (value: number, magnitude = 0) => {
   let factor = parseInt('1' + '0'.repeat(magnitude));
@@ -43,7 +43,7 @@ export const roundDownToNearest = (value: number, magnitude = 0) => {
  * Round the the nearest x (10s, 100s, 1,000s, etc.)
  * @param {number} value - array of numbers to be added.
  * @param {number} magnitude - order of magnitude to round. Ex: 0 -> 1111, 1 -> 1110; 2 -> 1100, 3 -> 1000
- * @return {number} total of all numbers in array
+ * @returns {number} total of all numbers in array
  */
 export const roundToNearest = (value: number, magnitude = 0) => {
   let factor = parseInt('1' + '0'.repeat(magnitude));
@@ -53,7 +53,7 @@ export const roundToNearest = (value: number, magnitude = 0) => {
 /**
  * Round to the nearest 2 decimal places
  * @param {number} value - array of numbers to be added.
- * @return {number} total of all numbers in array
+ * @returns {number} total of all numbers in array
  */
 export const roundDollar = (value: number) => {
   return Math.round(value * 100) / 100;
@@ -88,7 +88,7 @@ export const isLatitude = (num: number) => isFinite(num) && Math.abs(num) <= 90;
  * The latitude must be a number between -90 and 90 and the longitude between -180 and 180.
  * @param {number} lat - latitude
  * @param {number} lng - longitude
- * @return {boolean} boolean value, true if coords are valid
+ * @returns {boolean} boolean value, true if coords are valid
  */
 export const isLatLng = (lat: number, lng: number) => {
   return isLatitude(lat) && isLongitude(lng);
@@ -118,7 +118,7 @@ export function extractNumberNeg(str: string) {
  *
  * @param {Duration} duration -  object specifying time to add (seconds, days, weeks, months, years, etc.)
  * @param {Date} date - optional date, defaults to current date
- * @return {Date} current datetime plus the duration
+ * @returns {Date} current datetime plus the duration
  */
 export const addToDate = (duration: Duration, date: Date = new Date()) => {
   return add(date, {
@@ -133,7 +133,7 @@ export function isSingleLetter(str: string) {
 /**
  * Validate an object to check if it is valid JSON
  * @param {string} obj - strinified json object to validate
- * @return {boolean} boolean value, true if valid JSON
+ * @returns {boolean} boolean value, true if valid JSON
  */
 
 export const isJSON = (obj: string) => {
@@ -153,7 +153,7 @@ export const printObj = (obj: any) => {
  * Split an array of items into array of provided size
  * @param {any[]} data - array of data
  * @param {number} size - number of items in each chunk
- * @return {Array} return array of arrays of "size" length
+ * @returns {Array} return array of arrays of "size" length
  */
 export function splitChunks<T = any>(data: T[], size: number) {
   let chunks = [];

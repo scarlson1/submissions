@@ -30,18 +30,25 @@ export function getVisibleBy({ orgId, userId, agentId }: RecordGroupIds, groups:
       case 'orgAdmin':
         // orgId && visibleBy.push(`group/admin/${orgId}`);
         orgId && visibleBy.push(visibleType.orgAdmin(orgId));
+        break;
       case 'agent':
         agentId && visibleBy.push(visibleType.agent(agentId));
+        break;
       case 'user':
         userId && visibleBy.push(visibleType.user(userId));
+        break;
       case 'orgUser':
         orgId && visibleBy.push(visibleType.orgUser(orgId)); // `group/${orgId}`
+        break;
       case 'all':
         visibleBy.push(visibleType.all); // 'group/all'
+        break;
       case 'authed':
         visibleBy.push(visibleType.authed); // 'group/authed'
+        break;
       case 'anon':
         visibleBy.push(visibleType.anon); // 'group/anon'
+        break;
     }
   });
 

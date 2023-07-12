@@ -18,31 +18,6 @@ import { renderChips } from 'components/RenderGridCellHelpers';
 import { getRandomItem, stringToColor } from 'modules/utils';
 import { CUSTOM_CLAIMS } from 'common';
 
-// export const renderChips = (
-//   params: GridRenderCellParams<any, any, any>
-//   // chipProps: ChipProps = {},
-//   // propsGetterFunc: (props: any) => Partial<ChipProps> | void = () => {}
-// ) => {
-//   if (!params.value || params.value.length < 1) return null;
-//   const handleDelete = (val: string) => (props: any) => {
-//     console.log('val: ', val, 'handle delete props: ', props);
-//     // params.cellMode ===
-//     params.api.
-//   };
-
-//   return (
-//     <Stack
-//       spacing={1}
-//       direction='row'
-//       sx={{ overflow: 'auto', whiteSpace: 'nowrap', '&::-webkit-scrollbar': { display: 'none' } }}
-//     >
-//       {params.value.map((i: string) => (
-//         <Chip key={i} label={i} size='small' onDelete={params.cellMode === GridRowModes.Edit ? handleDelete : () => {}} />
-//       ))}
-//     </Stack>
-//   );
-// };
-
 export const userClaimsCol: GridMultiSelectColDef = {
   field: 'userClaims',
   headerName: 'Roles',
