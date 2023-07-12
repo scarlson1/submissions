@@ -63,6 +63,7 @@ import { AuthActionsProvider } from 'modules/components';
 import { TempWrappedSearch } from 'components/search/Search';
 import { AgencyAppSuccessStep } from 'views/AgencyNew';
 import { ImportsSummaryGrid } from 'elements/ImportsSummaryGrid';
+import { EmailVerified } from 'views/EmailVerified';
 
 export interface CrumbMatch {
   id: string;
@@ -143,6 +144,7 @@ export enum AUTH_ROUTES {
   TENANT_LOGIN = '/auth/login/:tenantId', // ?
   TENANT_CREATE_ACCOUNT = '/auth/create-account/:tenantId', // ?
   TENANT_ACTIONS_HANDLER = '/auth/actions-handler/:tenantId', // ?
+  EMAIL_VERIFIED = '/auth/email-verified',
 }
 
 export enum ACCOUNT_ROUTES {
@@ -224,6 +226,7 @@ type TArgs =
       params?: { tenantId?: string };
       search: { mode: string; oobCode: string; continueUrl?: string | null };
     }
+  | { path: AUTH_ROUTES.EMAIL_VERIFIED; search?: { email: string } }
   | { path: ACCOUNT_ROUTES.ACCOUNT };
 
 type TArgsWithParams = Extract<TArgs, { path: any; params: any }>;
@@ -577,6 +580,10 @@ export const router = sentryCreateBrowserRouter([
                 element: <ActionHandler />,
               },
             ],
+          },
+          {
+            path: AUTH_ROUTES.EMAIL_VERIFIED,
+            element: <EmailVerified />,
           },
         ],
       },

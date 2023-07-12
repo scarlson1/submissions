@@ -24,6 +24,10 @@
         "function": "authRequests"
       },
       {
+        "source": "/sendgrid/*",
+        "function": "sendgrid"
+      },
+      {
         "source": "**",
         "destination": "/index.html"
       }

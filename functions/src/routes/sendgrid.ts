@@ -13,6 +13,9 @@ import { CollectionReference, Timestamp, getFirestore } from 'firebase-admin/fir
 // import { CallableRequest } from 'firebase-functions/v2/https';
 import { v4 as uuid } from 'uuid';
 
+// TODO: need to change sendgrid webhook URL to production once deplooyed (requires upgrading to $20/mo. subscription)
+// or hacky option: create one webook and pass the environment as a variable in sendgrid metadata ??
+
 import {
   emailActivityCollection,
   // sendGridWebhookVerificationKey,

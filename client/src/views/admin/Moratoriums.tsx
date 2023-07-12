@@ -1,33 +1,15 @@
-import { useCallback, useMemo, Suspense } from 'react';
-import { Box, Button, Card, Tooltip, Typography, useMediaQuery, useTheme } from '@mui/material';
-import { BlockRounded, DataObjectRounded, MapRounded } from '@mui/icons-material';
-import {
-  doc,
-  getDoc,
-  getFirestore,
-  limit,
-  orderBy,
-  Timestamp,
-  updateDoc,
-} from 'firebase/firestore';
+import { useCallback } from 'react';
+import { Box, Button, Typography, useMediaQuery, useTheme } from '@mui/material';
+import { doc, getDoc, getFirestore, Timestamp, updateDoc } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
-import {
-  GridActionsCellItem,
-  GridColDef,
-  GridRowId,
-  GridRowModel,
-  GridRowParams,
-} from '@mui/x-data-grid';
-import { ErrorBoundary } from 'react-error-boundary';
+import { GridRowModel } from '@mui/x-data-grid';
 
 import { ADMIN_ROUTES, createPath } from 'router';
-import { BasicDataGrid, ConfirmationDialog } from 'components';
 import { formatFirestoreTimestamp } from 'modules/utils';
-import { FIPSDetails, Moratorium, moratoriumsCollection, WithId } from 'common';
+import { Moratorium, moratoriumsCollection, WithId } from 'common';
 import { useConfirmation } from 'modules/components/ConfirmationService';
-import { CountiesMap } from 'elements';
-import { useAsyncToast, useCollectionData, useJsonDialog } from 'hooks';
-import { moratoriumCols } from 'modules/gridColumnDefs';
+import { MoratoriumsGrid } from 'elements';
+import { useAsyncToast } from 'hooks';
 
 // TODO: lazy load map component in modal
 
@@ -72,135 +54,10 @@ const getMutationMsg = (
 export const Moratoriums = () => {
   const navigate = useNavigate();
   const modal = useConfirmation();
-  const dialog = useJsonDialog();
   const updateMoratorium = useUpdateMoratorium();
   const theme = useTheme();
   const toast = useAsyncToast();
   const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
-
-  const { data, status } = useCollectionData<Moratorium>('MORATORIUMS', [
-    orderBy('metadata.created', 'desc'),
-    limit(100),
-  ]);
-
-  const showDetails = useCallback(
-    (id: GridRowId) => async () => {
-      // @ts-ignore
-      const d = data.find((m) => m.id === id);
-      if (!d) return;
-
-      await dialog(d, `Moratorium ${id}`);
-    },
-    [dialog, data]
-  );
-
-  const showMap = useCallback(
-    (id: GridRowId) => async () => {
-      // @ts-ignore
-      const d = data.find((m) => m.id === id);
-      if (!d) return;
-
-      modal({
-        variant: 'info',
-        title: (
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant='h6'>Moratorium</Typography>
-            <Typography variant='subtitle2' color='text.secondary'>{`${formatFirestoreTimestamp(
-              d.effectiveDate,
-              'date'
-            )} - ${
-              d.expirationDate ? formatFirestoreTimestamp(d.expirationDate, 'date') : 'Indefinite'
-            }`}</Typography>
-          </Box>
-        ),
-        catchOnCancel: false,
-        component: (
-          <ConfirmationDialog
-            onAccept={() => {}}
-            onClose={() => {}}
-            open={false}
-            dialogProps={{ maxWidth: 'md' }}
-            dialogContentProps={{ dividers: true }}
-          >
-            <ErrorBoundary FallbackComponent={() => <div>Error loading map & county data</div>}>
-              <Card sx={{ height: 500, width: '100%' }}>
-                <Suspense
-                  fallback={
-                    <Typography align='center' sx={{ py: 5 }}>
-                      Loading counties...
-                    </Typography>
-                  }
-                >
-                  <CountiesMap
-                    selectedCounties={d.locationDetails}
-                    layerProps={{
-                      getFillColor: (f: any) =>
-                        !!d?.locationDetails?.some(
-                          (c: FIPSDetails) => `${c.stateFP}${c.countyFP}` === f.properties?.GEOID
-                        )
-                          ? [0, 125, 255, 50]
-                          : [255, 255, 255, 20],
-                    }}
-                  />
-                </Suspense>
-              </Card>
-            </ErrorBoundary>
-          </ConfirmationDialog>
-        ),
-      });
-    },
-    [data, modal]
-  );
-
-  const deactivate = useCallback(
-    (id: GridRowId) => async () => {
-      // TODO: implementation
-      alert('Deactivation not set up yet.');
-    },
-    []
-  );
-
-  const moratoriumColumns: GridColDef[] = useMemo(
-    () => [
-      {
-        field: 'actions',
-        headerName: 'Actions',
-        type: 'actions',
-        width: 100,
-        getActions: (params: GridRowParams) => [
-          <GridActionsCellItem
-            icon={
-              <Tooltip title='view all data' placement='top'>
-                <DataObjectRounded />
-              </Tooltip>
-            }
-            onClick={showDetails(params.id)}
-            label='View Counties'
-          />,
-          <GridActionsCellItem
-            icon={
-              <Tooltip title='show map' placement='top'>
-                <MapRounded />
-              </Tooltip>
-            }
-            onClick={showMap(params.id)}
-            label='Show Map'
-          />,
-          <GridActionsCellItem
-            icon={
-              <Tooltip title='deactivate' placement='top'>
-                <BlockRounded />
-              </Tooltip>
-            }
-            onClick={deactivate(params.id)}
-            label='Deactivate'
-          />,
-        ],
-      },
-      ...moratoriumCols,
-    ],
-    [showDetails, showMap, deactivate]
-  );
 
   const processRowUpdate = useCallback(
     async (newRow: GridRowModel<WithId<Moratorium>>, oldRow: GridRowModel<WithId<Moratorium>>) => {
@@ -266,27 +123,10 @@ export const Moratoriums = () => {
           New
         </Button>
       </Box>
-      <Box sx={{ height: 500, width: '100%' }}>
-        <BasicDataGrid
-          rows={data || []}
-          columns={moratoriumColumns}
-          loading={status === 'loading'}
-          density='compact'
-          autoHeight
-          initialState={{
-            columns: {
-              columnVisibilityModel: {
-                id: false,
-              },
-            },
-            sorting: {
-              sortModel: [{ field: 'metadata.created', sort: 'desc' }],
-            },
-            pagination: { paginationModel: { pageSize: 10 } },
-          }}
+      <Box sx={{ height: { xs: 400, sm: 460, md: 500 }, width: '100%' }}>
+        <MoratoriumsGrid
           processRowUpdate={processRowUpdate}
           onProcessRowUpdateError={handleProcessRowUpdateError}
-          // experimentalFeatures={{ newEditingApi: true }} // v5
         />
       </Box>
     </Box>

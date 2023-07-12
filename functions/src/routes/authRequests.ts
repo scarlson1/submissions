@@ -44,7 +44,15 @@ app.get('/verify-email/:token', async (req: Request, res: Response) => {
 
     await getAuth().updateUser(uid, { emailVerified: true });
 
-    res.send(`${email} has been verified!`);
+    // TODO: send html template ?? with sign in button link
+    // or redirect ??
+
+    // res.send(`${email} has been verified!`);
+    let url = hostingBaseURL.value();
+    if (url.startsWith('http://')) url.replace('http://', '//');
+    if (url.startsWith('https://')) url.replace('https://', '//');
+
+    res.redirect(`${url}/auth/email-verified?email=${email}`);
   } catch (err: any) {
     error('ERROR DECODING TOKEN: ', err);
     let msg = 'Invalid token. Please generate a new verification email.';

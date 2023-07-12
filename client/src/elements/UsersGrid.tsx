@@ -14,63 +14,51 @@ import {
   GridRowModesModel,
   GridRowParams,
 } from '@mui/x-data-grid';
-import { DocumentData, QueryConstraint, limit, query, where } from 'firebase/firestore';
+import { DocumentData, QueryConstraint, query, where } from 'firebase/firestore';
 import { useFirestore, useSigninCheck } from 'reactfire';
 import { isEqual } from 'lodash';
 
 import { COLLECTIONS, User, WithId, usersCollection, CUSTOM_CLAIMS } from 'common';
-import { BasicDataGrid, GridEditMultiSelectCell } from 'components';
-import { useAsyncToast, useCollectionData, useUpdateClaims } from 'hooks';
+import { BasicDataGrid, GridEditMultiSelectCell, ServerDataGrid } from 'components';
+import { useAsyncToast, useUpdateClaims } from 'hooks';
 import { useCollectionDataPopulateById } from 'hooks/useRx';
 import { getRequiredClaimValidator } from 'components/RequireAuthReactFire';
 import { userClaimsCol, userCols, userSummaryCol } from 'modules/gridColumnDefs';
+import { ServerDataGridCollectionProps } from './QuotesGrid';
 
-export interface UsersGridProps {
-  queryConstraints?: QueryConstraint[];
-  renderActions?: (params: GridRowParams) => JSX.Element[];
-}
+type UsersGridProps = ServerDataGridCollectionProps;
+// export interface UsersGridProps {
+//   queryConstraints?: QueryConstraint[];
+//   renderActions?: (params: GridRowParams) => JSX.Element[];
+// }
 
-export const UsersGrid = ({ queryConstraints = [], renderActions = () => [] }: UsersGridProps) => {
-  const { data, status } = useCollectionData<User>('USERS', [...queryConstraints, limit(100)], {
-    suspense: false,
-  });
+export const UsersGrid = ({
+  renderActions, // = () => [],
+  additionalColumns = [],
+  initialState,
+  ...props
+}: UsersGridProps) => {
+  const columns: GridColDef[] = useMemo(() => {
+    const actions = renderActions
+      ? [
+          {
+            field: 'actions',
+            headerName: 'Actions',
+            type: 'actions',
+            width: 80,
+            getActions: (params: GridRowParams) => [...renderActions(params)],
+          },
+        ]
+      : [];
 
-  const userColumns: GridColDef[] = useMemo(
-    () => [
-      // {
-      //   field: 'actions',
-      //   headerName: 'Actions',
-      //   type: 'actions',
-      //   width: 80,
-      //   getActions: (params: GridRowParams) => [
-      //     <GridActionsCellItem
-      //       icon={
-      //         <Tooltip title='Message' placement='top'>
-      //           <SendRounded />
-      //         </Tooltip>
-      //       }
-      //       onClick={() => alert('button clicked')} // handleResendInvite(params)
-      //       // LinkComponent={Link}
-      //       // to={`mailto:${params.row.email}`}
-      //       // disabled={!params.row.email}
-      //       label='Message'
-      //       // disabled={params.row.status !== INVITE_STATUS.PENDING}
-      //     />,
-      //     ...renderActions(params),
-      //     // ...actions,
-      //   ],
-      // },
-      ...userCols,
-    ],
-    [] // [renderActions]
-  );
+    return [...actions, ...userCols, ...additionalColumns];
+  }, [renderActions, additionalColumns]);
 
   return (
-    <Box>
-      <BasicDataGrid
-        rows={data || []}
-        columns={userColumns}
-        loading={status === 'loading'}
+    <Box sx={{ height: { xs: 400, sm: 460, md: 500 }, width: '100%' }}>
+      <ServerDataGrid
+        collName='USERS'
+        columns={columns}
         density='compact'
         autoHeight
         initialState={{
@@ -78,16 +66,39 @@ export const UsersGrid = ({ queryConstraints = [], renderActions = () => [] }: U
             columnVisibilityModel: {
               firstName: false,
               lastName: false,
-              // id: false,
+              id: false,
             },
           },
           sorting: {
             sortModel: [{ field: 'metadata.created', sort: 'desc' }],
           },
-          pagination: { paginationModel: { pageSize: 10 } },
+          ...initialState,
         }}
+        {...props}
       />
     </Box>
+    // <Box>
+    //   <BasicDataGrid
+    //     rows={data || []}
+    //     columns={userColumns}
+    //     loading={status === 'loading'}
+    //     density='compact'
+    //     autoHeight
+    //     initialState={{
+    //       columns: {
+    //         columnVisibilityModel: {
+    //           firstName: false,
+    //           lastName: false,
+    //           // id: false,
+    //         },
+    //       },
+    //       sorting: {
+    //         sortModel: [{ field: 'metadata.created', sort: 'desc' }],
+    //       },
+    //       pagination: { paginationModel: { pageSize: 10 } },
+    //     }}
+    //   />
+    // </Box>
   );
 };
 
@@ -316,7 +327,6 @@ export const AdminManageUsersGrid = ({
           ...props?.initialState,
         }}
         editMode='row'
-        // isCellEditable={(params) => params.row.age % 2 === 0}
         isCellEditable={(params) => params.field === 'userClaims'}
         rowModesModel={rowModesModel}
         onRowModesModelChange={handleRowModesModelChange}

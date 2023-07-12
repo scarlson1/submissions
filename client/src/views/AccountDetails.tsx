@@ -66,8 +66,7 @@ import { useSearchParams } from 'react-router-dom';
 
 const MIN_TAB_HEIGHT = 40;
 
-// TODO: auth check
-// TODO: wrap useUser in RXJS observable merging firestore User doc to get orgId (idemand)
+// TODO: auth check ?? or wrap in RequireAuth
 export const AccountDetails = () => {
   const { data: user } = useUser();
   const theme = useTheme();
@@ -104,17 +103,6 @@ export const AccountDetails = () => {
                     theme.palette.common.white,
                     0.9
                   )}), url(https://firebasestorage.googleapis.com/v0/b/idemand-dev.appspot.com/o/common%2Fbeach_sunset.jpg?alt=media&token=4897fae0-8417-4c3f-8eab-f0ed7ec11cc2)`,
-            // backgroundImage: (theme) =>
-            //   theme.palette.mode === 'dark'
-            //     ? `linear-gradient(${alpha(theme.palette.primaryDark[700], 0.1)}, ${alpha(
-            //         theme.palette.primaryDark[700],
-            //         0.8
-            //       )}),
-            //       url(https://firebasestorage.googleapis.com/v0/b/idemand-submissions-dev.appspot.com/o/public%2Focean-sky.jpg?alt=media&token=2fb836b6-2386-4518-9d9c-6feb921bdecd)`
-            //     : `linear-gradient(${alpha(theme.palette.grey[100], 0.1)}, ${alpha(
-            //         theme.palette.common.white,
-            //         0.9
-            //       )}), url(https://firebasestorage.googleapis.com/v0/b/idemand-submissions-dev.appspot.com/o/public%2Fbeach_sunset-1.jpg?alt=media&token=64057543-07c7-4267-b36c-13171a261d5f)`,
             backgroundRepeat: 'no-repeat',
             backgroundPosition: 'center',
             backgroundSize: 'cover',

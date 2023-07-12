@@ -25,7 +25,7 @@ export interface ServerDataGridCollectionProps
   initialState?: Omit<DataGridProps['initialState'], 'pagination'>;
 }
 
-export interface QuotesGridProps extends ServerDataGridCollectionProps {}
+export type QuotesGridProps = ServerDataGridCollectionProps;
 
 export const QuotesGrid = ({
   renderActions = () => [],
@@ -143,6 +143,7 @@ export const QuotesGrid = ({
             sortModel: [{ field: 'metadata.created', sort: 'desc' }],
           },
           pagination: { paginationModel: { page: 0, pageSize: 10 } },
+          ...initialState,
         }}
         {...props}
       />

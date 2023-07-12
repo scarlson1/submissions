@@ -26,7 +26,7 @@ import { GridMobileToolbar } from './GridMobileToolbar';
 // TODO: handle row selection for server-side pagination: https://mui.com/x/react-data-grid/row-selection/#usage-with-server-side-pagination
 
 // TODO: move pagination to a hook ?? https://github.com/mui/mui-x/issues/409#issuecomment-1312083757
-// useGridFilter hook: https://github.com/mui/mui-x/blob/master/packages/grid/x-data-grid/src/hooks/features/filter/useGridFilter.tsx
+// mui useGridFilter hook: https://github.com/mui/mui-x/blob/master/packages/grid/x-data-grid/src/hooks/features/filter/useGridFilter.tsx
 
 export interface ServerDataGridProps extends Partial<Omit<DataGridProps, 'rows'>> {
   collName: keyof typeof COLLECTIONS;
@@ -75,6 +75,7 @@ export const ServerDataGrid = ({
   // keep cursors in memory
   const cursors = useRef<Map<number, DocumentSnapshot>>(new Map());
 
+  // subscribe to collection, update when page, filters, sort change
   const { data, status } = useFetchDocsWithCursor(
     collName,
     queryOptions,

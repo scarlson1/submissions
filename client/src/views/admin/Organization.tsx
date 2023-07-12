@@ -85,7 +85,7 @@ export const Organization = () => {
           </TabPanel>
           <TabPanel value='insureds'>
             {/* TODO: use rxjs to fetch all policies under agency, then fetch users by id ?? use innerJoin observable ?? */}
-            <UsersGrid queryConstraints={[where('insuredOfAgency', 'array-contains', orgId)]} />
+            <UsersGrid constraints={[where('insuredOfAgency', 'array-contains', orgId)]} />
             <ErrorBoundary
               fallback={
                 <Typography variant='subtitle2' color='error.main' sx={{ py: 4 }}>
@@ -98,7 +98,7 @@ export const Organization = () => {
             </ErrorBoundary>
           </TabPanel>
           <TabPanel value='team'>
-            <UsersGrid queryConstraints={[where('orgId', '==', orgId)]} />
+            <UsersGrid constraints={[where('orgId', '==', orgId)]} />
           </TabPanel>
           <TabPanel value='invites'>
             <>

@@ -67,7 +67,8 @@ export const Users = () => {
         Users
       </Typography>
       <UsersGrid
-        queryConstraints={[where('email', '!=', null)]}
+        // queryConstraints={[where('email', '!=', null)]}
+        constraints={[where('email', '!=', null)]}
         renderActions={(params: GridRowParams) => [
           <GridActionsCellItem
             icon={
