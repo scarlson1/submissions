@@ -94,6 +94,7 @@ export interface Submission extends FloodValues {
   // propertyDataRes: FetchPropertyDataResponse;
   ratingPropertyData: Nullable<RatingPropertyData>; // FetchPropertyDataResponse;
   propertyDataDocId: string | null; // attom response
+  ratingDocId?: string | null;
   initValues: InitRatingValues;
   // darkMapImageURL?: string;
   // lightMapImageURL?: string;
@@ -354,6 +355,7 @@ export interface Quote {
   imageURLs?: Record<locationImageTypes, string> | null;
   imagePaths?: Record<locationImageTypes, string> | null;
   ratingPropertyData: Nullable<RatingPropertyData>;
+  priorLossCount?: string | null;
   ratingDocId: string;
   geoHash?: Geohash | null;
   notes?: Note[]; // { [key: string]: string }[];

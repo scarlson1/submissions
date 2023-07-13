@@ -1,6 +1,6 @@
 import type { FirestoreEvent } from 'firebase-functions/v2/firestore';
 import type { QueryDocumentSnapshot } from 'firebase-admin/firestore';
-import { info } from 'firebase-functions/logger';
+import { error, info, warn } from 'firebase-functions/logger';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import invariant from 'tiny-invariant';
 
@@ -33,7 +33,7 @@ export default async (
 ) => {
   const snap = event.data;
   if (!snap) {
-    console.log('No data associated with event');
+    warn('No data associated with event');
     return;
   }
   const sub = snap.data() as Submission;
@@ -41,7 +41,7 @@ export default async (
   let commissionPct = defaultCommissionAsInt.value() / 100;
 
   if (!sub.ratingPropertyData?.replacementCost) {
-    info('Missing replacement cost --> returning early', { ...sub });
+    warn('Missing replacement cost --> returning early', { ...sub });
     return;
   }
   if (sub.submittedById) {
@@ -121,8 +121,8 @@ export default async (
       },
     };
     await snap.ref.update(updates);
-  } catch (err) {
-    console.log('ERROR FETCHING SR AAL DATA', err);
+  } catch (err: any) {
+    warn('ERROR FETCHING SR AAL DATA', { err });
     return;
   }
 
@@ -154,7 +154,7 @@ export default async (
     // TODO: move saving rating data to it's own try/catch ?? see getAnnualPremium
     const ratingColRef = ratingDataCollection(db);
     // await db.collection(COLLECTIONS.RATING_DATA).add({
-    await ratingColRef.add({
+    const ratingDocRef = await ratingColRef.add({
       submissionId: snap.id,
       deductible: sub.deductible,
       limits: {
@@ -214,13 +214,14 @@ export default async (
     await snap.ref.update({
       annualPremium: premiumData.directWrittenPremium,
       subproducerCommission: commissionPct,
+      ratingDocId: ratingDocRef.id,
     });
 
     info(`UPDATED SUBMISSION ${snap.id} - PREMIUM: ${premiumData.directWrittenPremium}`, {
       ...result,
     });
-  } catch (err) {
-    console.log('ERROR CALCULATING QUOTE: ', err);
+  } catch (err: any) {
+    error('ERROR CALCULATING QUOTE: ', { err });
     return;
   }
 };

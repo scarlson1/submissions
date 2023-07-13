@@ -167,7 +167,7 @@ export const ServerDataGrid = ({
         //   noRowsOverlay: CustomNoRowsOverlay,
         // }}
         onRowSelectionModelChange={(newRowSelectionModel, details: GridCallbackDetails<any>) => {
-          console.log('NEW ROW SELECTION MODEL: ', newRowSelectionModel, details);
+          // console.log('NEW ROW SELECTION MODEL: ', newRowSelectionModel, details);
           setRowSelectionModel(newRowSelectionModel);
         }}
         rowSelectionModel={rowSelectionModel}

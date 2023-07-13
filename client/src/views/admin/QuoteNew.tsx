@@ -71,6 +71,7 @@ export const QuoteNewFromSub = () => {
   invariant(submissionId);
   const { data: submissionData } = useDocDataOnce<Submission>('SUBMISSIONS', submissionId);
 
+  // TODO: note if RCV source is from user
   // @ts-ignore TODO: fix types (can't pass null to iMask component)
   const initialValues: QuoteValues = useMemo(
     () => ({
@@ -121,7 +122,6 @@ export const QuoteNewFromSub = () => {
         address: submissionData?.agency?.address || '',
       },
       priorLossCount: submissionData?.priorLossCount || '',
-      // TODO: note if RCV source is from user
       ratingPropertyData: {
         CBRSDesignation: submissionData?.ratingPropertyData?.CBRSDesignation ?? '',
         basement: `${submissionData?.ratingPropertyData?.basement ?? ''}`.toLowerCase(), // @ts-ignore
@@ -133,6 +133,7 @@ export const QuoteNewFromSub = () => {
         sqFootage: `${submissionData?.ratingPropertyData?.sqFootage ?? ''}`, // @ts-ignore submissionData?.sqFootage ?? null,
         yearBuilt: `${submissionData?.ratingPropertyData?.yearBuilt ?? ''}`, // submissionData?.yearBuilt ?? null,
       },
+      ratingDocId: submissionData.ratingDocId || '',
       AAL: {
         inland: submissionData?.AAL?.inland ?? null,
         surge: submissionData?.AAL?.surge ?? null,

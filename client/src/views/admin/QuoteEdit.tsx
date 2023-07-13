@@ -3,13 +3,7 @@ import { Box } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
 import invariant from 'tiny-invariant';
 import { useFirestore, useSigninCheck } from 'reactfire';
-import {
-  // FieldValue,
-  GeoPoint,
-  Timestamp,
-  doc,
-  setDoc,
-} from 'firebase/firestore';
+import { GeoPoint, Timestamp, doc, setDoc } from 'firebase/firestore';
 import { FormikHelpers } from 'formik';
 import { endOfToday, isValid, startOfDay } from 'date-fns';
 import { round } from 'lodash';
@@ -70,8 +64,7 @@ const useEditQuote = (
           limits: newValues?.limits,
           deductible: newValues?.deductible,
           fees: newValues?.fees || [],
-          taxes: numTaxes || [], //  newValues?.taxes || [], // @ts-ignore
-          // TODO: create type wrapping Qutoe with annPrem as optional
+          taxes: numTaxes || [], //  newValues?.taxes || [],
           annualPremium: newValues.annualPremium,
           subproducerCommission: newValues?.subproducerCommission,
           cardFee: round(newValues.quoteTotal * CARD_FEE_RATE, 2),
@@ -105,6 +98,8 @@ const useEditQuote = (
             sqFootage: extractNumber(`${newValues.ratingPropertyData.sqFootage}`),
             yearBuilt: extractNumber(`${newValues.ratingPropertyData.yearBuilt}`),
           },
+          ratingDocId: newValues?.ratingDocId || '',
+          priorLossCount: newValues?.priorLossCount || null,
           notes:
             newValues.notes && newValues.notes.length > 0
               ? newValues.notes
@@ -151,10 +146,11 @@ export const QuoteEdit = () => {
     },
     (msg: string, err: any) => toast.error(msg)
   );
+
   // TODO: figure out how to get AALs for initialValues ??
   // TODO: need to get rating doc from submission (use rxjs combined observable ??)
 
-  // @ts-ignore
+  // @ts-ignore number/string type casting issue (tax rate, distToCoast, etc.)
   const initialValues: QuoteValues = useMemo(
     () => ({
       address: quoteData?.address || {
@@ -178,20 +174,21 @@ export const QuoteEdit = () => {
         limitD: quoteData?.limits?.limitD ?? 25000,
       },
       deductible: quoteData?.deductible ?? 1000,
-      effectiveExceptionRequested: quoteData?.effectiveExceptionRequested || false, // @ts-ignore
-      effectiveDate: quoteData?.effectiveDate?.toDate() || null, // @ts-ignore
+      effectiveExceptionRequested: quoteData?.effectiveExceptionRequested || false,
+      effectiveDate: quoteData?.effectiveDate?.toDate() || null,
       expirationDate: quoteData?.expirationDate?.toDate() || null,
       fees:
         quoteData?.fees?.map((f) => ({
           ...f,
           value: `${f.feeValue ?? ''}`,
         })) || [],
-      taxes:
-        quoteData?.taxes?.map((t) => ({
-          ...t,
-          value: `${t.value ?? ''}`,
-          rate: `${t.rate ?? ''}`,
-        })) || [],
+      taxes: [],
+      // taxes:
+      //   quoteData?.taxes?.map((t) => ({
+      //     ...t,
+      //     value: `${t.value ?? ''}`,
+      //     rate: `${t.rate ?? ''}`,
+      //   })) || ([] as TaxItem[]),
       annualPremium: quoteData?.annualPremium ?? null,
       subproducerCommission: quoteData?.subproducerCommission ?? 0.15,
       quoteTotal: quoteData?.quoteTotal ?? null,
@@ -218,19 +215,19 @@ export const QuoteEdit = () => {
           postal: '',
         },
       },
-      // @ts-ignore
       priorLossCount: quoteData?.priorLossCount ?? '',
       ratingPropertyData: {
         CBRSDesignation: quoteData?.ratingPropertyData?.CBRSDesignation ?? '',
-        basement: `${quoteData?.ratingPropertyData?.basement ?? ''}`.toLowerCase(), // @ts-ignore
+        basement: `${quoteData?.ratingPropertyData?.basement ?? ''}`.toLowerCase(),
         distToCoastFeet: `${quoteData?.ratingPropertyData?.distToCoastFeet ?? ''}`, // submissionData?.distToCoastFeet ?? null,
         floodZone: quoteData?.ratingPropertyData?.floodZone ?? '',
         numStories: quoteData?.ratingPropertyData?.numStories ?? 1,
         propertyCode: `${quoteData?.ratingPropertyData?.propertyCode ?? ''}`,
-        replacementCost: quoteData?.ratingPropertyData?.replacementCost ?? null, // @ts-ignore
-        sqFootage: `${quoteData?.ratingPropertyData?.sqFootage ?? ''}`, // @ts-ignore submissionData?.sqFootage ?? null,
+        replacementCost: quoteData?.ratingPropertyData?.replacementCost ?? null,
+        sqFootage: `${quoteData?.ratingPropertyData?.sqFootage ?? ''}`, // submissionData?.sqFootage ?? null,
         yearBuilt: `${quoteData?.ratingPropertyData?.yearBuilt ?? ''}`, // submissionData?.yearBuilt ?? null,
       },
+      ratingDocId: quoteData?.ratingDocId || '',
       AAL: {
         inland: null,
         surge: null,
@@ -288,7 +285,8 @@ function getRatingInputsFromQuote(data: Partial<Quote> | null) {
     floodZone: data?.ratingPropertyData?.floodZone,
     basement: data?.ratingPropertyData?.basement?.toLowerCase(),
     commissionPct: data?.subproducerCommission || 0.15, // TODO: delete - must look up subproducer comm from agent ID or org ID from server, or producer from clinet if idemand admin
-    // TODO: need to get rating doc from submission (use rxjs combined observable ??)
+    // ratingDocId: data?.ratingDocId || '',
+    priorLossCount: data?.priorLossCount,
     // @ts-ignore
     inlandAAL: data?.AAL?.inland, // @ts-ignore
     surgeAAL: data?.AAL?.surge, // @ts-ignore

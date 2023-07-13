@@ -420,6 +420,7 @@ export interface Submission extends FloodFormValues {
   // propertyDataRes: FetchPropertyDataResponse;
   ratingPropertyData: Nullable<RatingPropertyData>; // FetchPropertyDataResponse;
   propertyDataDocId: string | null;
+  ratingDocId?: string | null;
   initValues: InitRatingValues;
   // darkMapImageURL?: string;
   // lightMapImageURL?: string;
@@ -532,6 +533,7 @@ export interface Quote {
   imagePaths?: Record<locationImageTypes, string> | null;
   ratingPropertyData: RatingPropertyData;
   ratingDocId: string;
+  priorLossCount?: string | null;
   geoHash?: Geohash | null;
   notes?: Note[];
   statusTransitions: {

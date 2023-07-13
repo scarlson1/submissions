@@ -125,6 +125,7 @@ function getFormattedQuote(values: QuoteValues, uid?: string | null): Quote {
     subproducerCommission,
     ratingPropertyData,
     ratingDocId,
+    priorLossCount,
     notes,
   } = values;
 
@@ -204,6 +205,7 @@ function getFormattedQuote(values: QuoteValues, uid?: string | null): Quote {
       yearBuilt: extractNumber(`${ratingPropertyData.yearBuilt}`),
     },
     ratingDocId: ratingDocId || '',
+    priorLossCount: priorLossCount || null,
     statusTransitions: {
       published: Timestamp.now(),
       accepted: null,

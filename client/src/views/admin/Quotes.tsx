@@ -141,6 +141,12 @@ export const Quotes = () => {
         }
         onClick={editQuote(params)}
         label='Edit'
+        disabled={
+          !(
+            params.row.status !== QUOTE_STATUS.AWAITING_USER ||
+            params.row.status !== QUOTE_STATUS.DRAFT
+          )
+        }
       />,
       <GridActionsCellItem
         icon={

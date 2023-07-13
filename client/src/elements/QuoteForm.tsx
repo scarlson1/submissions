@@ -16,7 +16,6 @@ import { Firestore, doc, getDoc } from 'firebase/firestore';
 import { useFirestore } from 'reactfire';
 import { useNavigate } from 'react-router-dom';
 import { Formik, FormikErrors, FormikHelpers, FormikProps, setNestedObjectValues } from 'formik';
-
 import { add, startOfToday, endOfToday } from 'date-fns';
 import { isEqual, merge, omit } from 'lodash';
 import * as yup from 'yup';
@@ -85,9 +84,7 @@ import {
   PhoneMask,
   RequiredFieldsIndicator,
 } from 'components/forms';
-
 import FormikAddressLite from './FormikAddressLite';
-
 import { ROUTES, createPath } from 'router';
 import { IconButtonMenu } from 'components';
 import { STATES_ABV_ARR } from 'common/statesList';
@@ -349,7 +346,7 @@ export interface QuoteValues {
   deductible: number;
   effectiveExceptionRequested: boolean;
   effectiveDate: Date;
-  expirationDate: Date;
+  expirationDate: Date | null; // Date;
   // quoteExpirationDate: Date; // always quoteDate + 30
   fees: FeeItem[];
   taxes: TaxItem[];
@@ -392,6 +389,7 @@ export const QuoteForm = ({
   const toast = useAsyncToast({ position: 'top-right' });
   const activeStates = useActiveStates(product);
 
+  // BUG: rerateRequired is true for edit quote because aals are not included
   const [ratingState, setRatingState] = useState({
     rerateRequired: !(
       initialValues?.annualPremium &&
@@ -1419,9 +1417,9 @@ function AALHelper({ title, value }: AALHelperProps) {
   );
 }
 
-// TODO: can use useReateQuote extraction func since submissions schema not matches quote schemas
+// TODO: use useReateQuote extraction func since submissions schema matches quote schema ??
 export function getRatingInputsFromSubmission(subData?: Partial<Submission> | null) {
-  // TODO: decide whether to flatten or keep in obj ?? does diff function compare nested values ??
+  // TODO: decide whether to flatten or keep in obj ??c create diff function to compare nested values ??
 
   return {
     latitude: subData?.coordinates?.latitude,
@@ -1437,6 +1435,6 @@ export function getRatingInputsFromSubmission(subData?: Partial<Submission> | nu
     state: subData?.address?.state,
     floodZone: subData?.ratingPropertyData?.floodZone,
     basement: subData?.ratingPropertyData?.basement?.toLowerCase(),
-    commissionPct: subData?.subproducerCommission || 0.15, // TODO: delete - must look up subproducer comm from agent ID or org ID from server, or producer from clinet if idemand admin
+    commissionPct: subData?.subproducerCommission || 0.15, // TODO: delete - must look up subproducer comm from agent ID or org ID from server, or producer from client if idemand admin (need to fetch from rating doc instead of storing on submission)
   };
 }

@@ -290,7 +290,7 @@ export function Search({
               paddingTop: theme.spacing(2),
               paddingX: 1,
               marginX: -1,
-              background: theme.palette.background.paper,
+              // background: theme.palette.background.paper,
               fontSize: theme.typography.pxToRem(13),
               fontWeight: 500,
               color: theme.palette.text.secondary,
@@ -306,7 +306,10 @@ export function Search({
               padding: theme.spacing(0.25, 0),
               paddingLeft: theme.spacing(2),
               border: '1px solid transparent',
-              borderBottomColor: theme.palette.grey[100],
+              borderBottomColor:
+                theme.palette.mode === 'dark'
+                  ? theme.palette.primaryDark[900]
+                  : theme.palette.grey[100],
             },
             '& .DocSearch-Hit-content-wrapper': {
               paddingLeft: theme.spacing(2),
@@ -325,7 +328,10 @@ export function Search({
             },
             '& .DocSearch-Hit[aria-selected="true"] a, .DocSearch-Hit[aria-selected="true"] .onSelect-Item':
               {
-                backgroundColor: theme.palette.primary[50],
+                backgroundColor:
+                  theme.palette.mode === 'dark'
+                    ? theme.palette.primaryDark[900]
+                    : theme.palette.primary[50],
                 borderColor: theme.palette.primary[500],
                 borderRadius: theme.shape.borderRadius,
               },
@@ -390,7 +396,7 @@ export function Search({
             },
             '& .DocSearch-Hit[aria-selected="true"] a, .DocSearch-Hit[aria-selected="true"] .onSelect-Item':
               {
-                backgroundColor: theme.palette.primaryDark[800],
+                backgroundColor: theme.palette.primaryDark[900],
                 borderColor: theme.palette.primaryDark[400],
               },
             '& .DocSearch-Hit-action, & .DocSearch-Hits mark': {
@@ -453,7 +459,7 @@ export function TempAgentSearch({ onSelect }: { onSelect: (item: any) => void })
       apiKey={apiKey}
       indexName={process.env.REACT_APP_ALGOLIA_INDEX_NAME as string}
       indexTitle='Agents'
-      placeholder='Search Agent...'
+      placeholder='Search agents by name, email, or orgId...'
       searchParameters={{
         filters: 'collectionName:users',
       }}
