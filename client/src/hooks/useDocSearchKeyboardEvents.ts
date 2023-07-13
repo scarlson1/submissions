@@ -41,7 +41,7 @@ export function useDocSearchKeyboardEvents({
       if (
         (event.keyCode === 27 && isOpen) ||
         // The `Cmd+K` shortcut both opens and closes the modal.
-        (event.key.toLowerCase() === shortcutKey.toLowerCase() &&
+        (event.key?.toLowerCase() === shortcutKey?.toLowerCase() &&
           (event.metaKey || event.ctrlKey)) ||
         // The `/` shortcut opens but doesn't close the modal because it's
         // a character.

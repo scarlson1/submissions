@@ -203,7 +203,7 @@ function getFormattedQuote(values: QuoteValues, uid?: string | null): Quote {
       sqFootage: extractNumber(`${ratingPropertyData.sqFootage}`),
       yearBuilt: extractNumber(`${ratingPropertyData.yearBuilt}`),
     },
-    ratingDocId,
+    ratingDocId: ratingDocId || '',
     statusTransitions: {
       published: Timestamp.now(),
       accepted: null,

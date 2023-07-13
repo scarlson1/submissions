@@ -4,7 +4,7 @@ import { error, info } from 'firebase-functions/logger';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import invariant from 'tiny-invariant';
 
-import { Limits, ValueByRiskType, ratingDataCollection } from '../common';
+import { Limits, ValueByRiskType, defaultFloodZone, ratingDataCollection } from '../common';
 import { getPremium, getRCVs } from '../utils/rating';
 import { maxA, maxBCD, minA } from '../common';
 import { onCallWrapper } from '../services/sentry';
@@ -31,7 +31,7 @@ export interface CalcQuoteResponse {
 
 // export default async ({ data, auth }: CallableRequest<CalcQuoteRequest>) => {
 const calcQuote = async ({ data, auth }: CallableRequest<CalcQuoteRequest>) => {
-  console.log('CALC QUOTE DATA: ', data);
+  info('CALC QUOTE DATA: ', data);
   const db = getFirestore();
   const {
     limits,
@@ -39,7 +39,7 @@ const calcQuote = async ({ data, auth }: CallableRequest<CalcQuoteRequest>) => {
     replacementCost,
     deductible,
     priorLossCount,
-    floodZone = 'Xcalc',
+    floodZone = defaultFloodZone.value(),
     state,
     basement = 'unknown',
     commissionPct = 0.15,

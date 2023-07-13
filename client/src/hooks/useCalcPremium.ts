@@ -101,7 +101,7 @@ export const useCalcPremium = (
 
         const { data } = await calcQuote(functions, { ...validatedReqBody, submissionId });
 
-        console.log('RES: ', data);
+        console.log('calcQuote: ', data);
         if (!data.annualPremium || typeof data.annualPremium !== 'number')
           throw new Error('Missing premium in response');
 

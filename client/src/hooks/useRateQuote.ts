@@ -108,7 +108,7 @@ export const useRateQuote = (
           submissionId,
         });
 
-        console.log('PREMIUM RES: ', data);
+        console.log('getPremium: ', data);
         if (!data.annualPremium || typeof data.annualPremium !== 'number') {
           throw new Error('Error calculating premium');
         }

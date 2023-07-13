@@ -42,7 +42,7 @@ export interface GetAnnualPremiumResponse {
 
 export default async ({ data, auth }: CallableRequest<GetAnnualPremiumRequest>) => {
   const db = getFirestore();
-  console.log('GET ANNUAL PREMIUM CALLED', data);
+  info('GET ANNUAL PREMIUM CALLED', data);
 
   if (!(auth && auth.uid && auth?.token[CLAIMS['IDEMAND_ADMIN']])) {
     throw new HttpsError('permission-denied', `${CLAIMS['IDEMAND_ADMIN']} permissions required`);
@@ -210,9 +210,5 @@ export default async ({ data, auth }: CallableRequest<GetAnnualPremiumRequest>) 
     console.log('ERROR SAVING RATING DOC: ', err);
   }
 
-  // return {
-  //   annualPremium: result.premiumData.directWrittenPremium,
-  //   AAL: AALsRes.AAL,
-  // };
   return res;
 };
