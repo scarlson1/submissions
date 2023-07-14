@@ -162,6 +162,7 @@ export const useCreateAccount = () => {
             msg.indexOf('needs to be verified') !== -1 ||
             msg.indexOf('verify your email') !== -1
           ) {
+            // toast.info('Email verification required');
             toast('Email verification required');
 
             return navigate(

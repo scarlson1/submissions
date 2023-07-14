@@ -405,6 +405,7 @@ function getSRPromise(data: TRow): Promise<AxiosResponse<SRRes, any>> {
   }
   if (!swissReInstance) throw Error('SwissReInstance undefined');
   const xmlBodyVars = getSRVars(data);
+  info(`SR XML VARIABLES (${data.location_id || ''})`, { ...xmlBodyVars });
   const body = swissReBody(xmlBodyVars);
 
   return swissReInstance.post<SRRes>('/rate/sync/srxplus/losses', body, {

@@ -21,15 +21,22 @@ rules_version = '2';
 
 // Enforcing field types: https://firebase.google.com/docs/firestore/security/rules-fields#enforcing_field_types
 
+// MATCHES: https://firebase.google.com/docs/reference/rules/rules.String#matches
+// https://github.com/google/re2/wiki/Syntax
+
 // TODO: quote field rules (don't allow changing quote amt)
 // TODO: status rules (don't allow changing of quote is status = bound, etc.)
 // TODO: check email verified on all client side queries if required in rules
+
+    // TODO: use get() for nested values: request.resource.data.get(keys, null)
+    // https://stackoverflow.com/a/72687201
 
 // EXAMPLE RULES: https://medium.com/firebase-developers/a-list-of-firebase-firestore-security-rules-for-your-project-fe46cfaf8b2a
 // https://fireship.io/snippets/firestore-rules-recipes/
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    // TODO: separate out read permissions (list should mirror user/agent/admin/idemandAdmin queries)
     match /submissions/{submissionId} {
       allow read: if true // isUser(existingData().userId) || isIDemandAdmin()
       allow create: if !requestHasAny(['annualPremium'])
@@ -37,18 +44,20 @@ service cloud.firestore {
       allow delete: if isIDemandAdmin()
     }
     
+    // TODO: read specificity if claimed or not (might need to add a field b/c of anonymous auth)
+    // need to update assign quote (only allow sign in if claimed)
+    // TODO: separate out read permissions (list should mirror user/agent/admin/idemandAdmin queries)
     match /quotes/{quoteId} {
       allow read: if true
       allow create: if isIDemandAdmin()
-      allow update: if (isUser(existingData().userId) && !(containsRestrictedFields(['quoteExpiration', 'subproducerCommission', 'quoteTotal', 'termPremium', 'taxes', 'fees', 'replacementCost', 'product', 'status', 'statusTransitions']))) || (isIDemandAdmin() && emailVerified())
+      allow update: if ((isUser(existingData().userId) || (isAgent() && isUser(existingData().get(['agent', 'userId'], null)))) && !(containsRestrictedFields(['quoteExpiration', 'subproducerCommission', 'quoteTotal', 'termPremium', 'taxes', 'fees', 'ratingPropertyData.replacementCost', 'product', 'status', 'statusTransitions']))) || (isIDemandAdmin() && emailVerified())
       allow delete: if false
     }
 
     match /policies/{policyId} {
       allow read: if isSignedIn() 
         && (isUser(existingData().userId) 
-        // || isAgent(existingData().agent.userId)
-        || isAgent(resource.data.agent && resource.data.agent.userId ? resource.data.agent.userId : null)
+        || isAgent() && isUser(existingData().get(['agent', 'userId'], null))
         || (isOrgAdmin() && isTenantUser(existingData().agency.orgId)) 
         || isIDemandAdmin())
       allow create: if isIDemandAdmin() && emailVerified()
@@ -58,7 +67,8 @@ service cloud.firestore {
 
     // POLICY TRANSACTIONS (NOT FINANCIAL/CHARGES)
     match /transactions/{trxId} {
-      allow read: if isUser(existingData().userId) || isAgent(existingData().agentId) || isIDemandAdmin() // or isOrgAdmin ??
+      allow read: if isUser(existingData().userId) || isIDemandAdmin() 
+      // TODO: agentId not stored on trx ?? || isAgent(existingData().agentId)  or isOrgAdmin ??
       allow create, update: if isIDemandAdmin() && emailVerified()
       allow delete: if false;
     }
@@ -95,7 +105,7 @@ service cloud.firestore {
     }
 
     match /organizations/{orgId}/userClaims/{userId} {
-      allow read: if (isSignedIn() && isTenantUser(orgId)) || isIDemandAdmin()
+      allow read: if (isSignedIn() && isTenantUser(orgId)) || isIDemandAdmin() || isIDemandUser()
       // _lastCommitted is set in mirrorCustomClaims function and should never be set by user
       allow create, update: if isSignedIn() && emailVerified() && (isIDemandAdmin() || (isOrgAdmin() && isTenantUser(orgId))) && (!request.resource.data.keys().hasAny(['_lastCommitted']))
       allow delete: if false
@@ -210,6 +220,10 @@ service cloud.firestore {
       return isSignedIn() && request.auth.token.iDemandAdmin && request.auth.token.iDemandAdmin == true
     }
 
+    function isIDemandUser() {
+      return isSignedIn() && request.auth.token.email.matches('.*@idemandinsurance[.]com')
+    }
+
     // Does the logged-in user match the requested userId?
     function isUser(userId) {
       return isSignedIn() && request.auth.uid == userId;
@@ -223,9 +237,9 @@ service cloud.firestore {
       return isSignedIn() && request.auth.token.orgAdmin && request.auth.token.orgAdmin == true
     }
 
-    function isAgent(agentId) {
-      return isSignedIn() && request.auth.token.agent && request.auth.token.agent == true  && request.auth.uid == agentId;
-    } // && request.auth.uid
+    function isAgent() { // agentId
+      return isSignedIn() && request.auth.token.agent && request.auth.token.agent == true
+    } //&& request.auth.uid == agentId;
 
     // // Fetch a user from Firestore
     // function getUserData() {

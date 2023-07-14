@@ -41,7 +41,8 @@ import { AdminManageUsersGrid } from 'elements/UsersGrid';
 import { passwordValidation } from './CreateAccount';
 import { RHFPassword } from 'elements/FormikPassword';
 import { useDBUser } from 'hooks/useDBUser';
-import { useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { AUTH_ROUTES, createPath } from 'router';
 
 // react spring animated gradient: https://codesandbox.io/s/xg8jhi
 
@@ -68,13 +69,14 @@ const MIN_TAB_HEIGHT = 40;
 
 // TODO: auth check ?? or wrap in RequireAuth
 export const AccountDetails = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const { data: user } = useUser();
   const theme = useTheme();
   const [searchParams, setSearchParams] = useSearchParams();
   const [tabValue, setTabValue] = useState(searchParams.get('tab') || 'account');
 
   const { data } = useDBUser({ suspense: true });
-  // console.log('USER OBSERVABLE: ', data);
 
   const handleChange = (event: React.SyntheticEvent, newValue: string) => {
     setTabValue(newValue);
@@ -83,7 +85,19 @@ export const AccountDetails = () => {
 
   const orgId = useMemo(() => (data.user?.tenantId ?? data.dbUser?.orgId) || null, [data]);
 
-  if (!user || !user.uid) return <div>not signed in</div>;
+  // TODO: use require auth wrapper
+  if (!user || !user.uid)
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>
+        <Button
+          onClick={() =>
+            navigate(createPath({ path: AUTH_ROUTES.LOGIN }), { state: { from: location } })
+          }
+        >
+          Login
+        </Button>
+      </Box>
+    );
 
   return (
     <Container maxWidth='md' disableGutters>
@@ -175,6 +189,7 @@ export const AccountDetails = () => {
                 <Grid xs={12} sm={9} md={8}>
                   <UserDetailsForm />
                   <UpdateUserEmail />
+                  {!user.emailVerified ? <VerifyEmailButton /> : null}
                 </Grid>
                 <Grid xs={12} sx={{ display: 'flex', alignItems: 'center' }}>
                   <Typography
@@ -507,6 +522,33 @@ function UpdateUserEmail() {
         </Grid>
       </form>
     </Box>
+  );
+}
+
+function VerifyEmailButton() {
+  const toast = useAsyncToast();
+  const { sendVerification } = useAuthActions();
+  const sendEmailVerification = useCallback(async () => {
+    try {
+      const email = await sendVerification();
+      toast.info(`verification email sent to ${email}`);
+    } catch (err: any) {
+      const errMsg = err?.message ? err.message : 'Error sending verification email';
+      toast.error(errMsg);
+    }
+  }, [toast, sendVerification]);
+
+  return (
+    <Typography
+      variant='subtitle2'
+      color='primary.700'
+      onClick={sendEmailVerification}
+      sx={{
+        '&:hover': { textDecoration: 'underline', color: (theme) => theme.palette.primary[800] },
+      }}
+    >
+      Verify your email
+    </Typography>
   );
 }
 

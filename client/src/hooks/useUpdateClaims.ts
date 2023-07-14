@@ -4,6 +4,7 @@ import { useFirestore, useSigninCheck } from 'reactfire';
 
 import { userClaimsCollection } from 'common';
 import { getRequiredClaimValidator } from 'components/RequireAuthReactFire';
+import { useAuthActions } from 'modules/components';
 
 export const useUpdateClaims = (
   onSuccess?: null | undefined | ((newClaims: Record<string, any>) => void),
@@ -13,12 +14,17 @@ export const useUpdateClaims = (
   const { data: claimsCheckResult } = useSigninCheck({
     validateCustomClaims: getRequiredClaimValidator(['ORG_ADMIN', 'IDEMAND_ADMIN']),
   });
+  const { sendVerification } = useAuthActions();
 
   const updateClaims = useCallback(
     async (orgId: string, userId: string, claims: Record<string, any>) => {
       if (!claimsCheckResult.hasRequiredClaims) throw new Error('missing required permissions');
-      if (!claimsCheckResult.user?.emailVerified)
+
+      if (!claimsCheckResult.user?.emailVerified) {
+        await sendVerification();
         throw new Error('email verification required to update permissions');
+      }
+
       // TODO: check if iDemand Admin or orgId === user.tenantId
       try {
         const claimsColRef = userClaimsCollection(firestore, orgId);
@@ -41,7 +47,7 @@ export const useUpdateClaims = (
         return Promise.reject(new Error(msg));
       }
     },
-    [firestore, onSuccess, onError, claimsCheckResult]
+    [firestore, onSuccess, onError, claimsCheckResult, sendVerification]
   );
 
   return updateClaims;

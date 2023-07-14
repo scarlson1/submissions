@@ -21,6 +21,7 @@ import {
 } from 'hooks';
 import { COLLECTIONS } from 'common';
 import { GridMobileToolbar } from './GridMobileToolbar';
+import { getOrderByIfNecessary } from 'modules/muiGrid/utils';
 
 // FIREBASE PAGINATION ARTICLE: https://makerkit.dev/blog/tutorials/pagination-react-firebase-firestore
 // TODO: handle row selection for server-side pagination: https://mui.com/x/react-data-grid/row-selection/#usage-with-server-side-pagination
@@ -59,10 +60,19 @@ export const ServerDataGrid = ({
   const { filters, handleFilterChange } = useGridServerFilter(props?.initialState);
   const [rowSelectionModel, setRowSelectionModel] = useState<GridRowSelectionModel>([]);
 
+  // Firestore: if constraints inculdes <, <=, !=, not-in, >, or >= operator, must have orderBy
   const queryOptions = useMemo(
-    () => [...filters, ...constraints, ...sortOps.current],
+    () => {
+      const orderByConstraint = getOrderByIfNecessary(constraints);
+
+      return [...filters, ...constraints, ...orderByConstraint, ...sortOps.current];
+    },
     [filters, constraints] // eslint-disable-line react-hooks/exhaustive-deps
   );
+  // const queryOptions = useMemo(
+  //   () => [...filters, ...constraints, ...sortOps.current],
+  //   [filters, constraints] // eslint-disable-line react-hooks/exhaustive-deps
+  // );
 
   const fetchCount = useDocCount(collName, [...filters, ...constraints]);
   // fetch count whenever query changes

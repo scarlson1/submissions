@@ -790,7 +790,7 @@ export function BindReviewStep({ data, logAnalyticsStep }: BindReviewStepProps) 
   const { values } = useFormikContext<BindQuoteValues>();
   const { cardDetails, loading, error } = useCardDetails(values.paymentMethodId);
 
-  console.log('quote data: ', data);
+  // console.log('quote data: ', data);
 
   useEffect(() => {
     logAnalyticsStep(3, 'bind quote review step');

@@ -44,7 +44,7 @@ export const ViewQuote = () => {
   const logEvent = useAnalyticsEvent();
 
   const isExpired = data.quoteExpirationDate
-    ? data.quoteExpirationDate?.toMillis() > new Date().getTime()
+    ? data.quoteExpirationDate?.toMillis() < new Date().getTime()
     : false;
 
   useEffect(() => {
@@ -83,12 +83,11 @@ export const ViewQuote = () => {
             menuItems={[
               {
                 label: 'Start a new quote',
-                action: () =>
-                  createPath({ path: ROUTES.SUBMISSION_NEW, params: { productId: 'flood' } }),
+                action: createPath({ path: ROUTES.SUBMISSION_NEW, params: { productId: 'flood' } }),
               },
               {
                 label: 'Contact us',
-                action: () => createPath({ path: ROUTES.CONTACT }),
+                action: createPath({ path: ROUTES.CONTACT }),
               },
             ]}
             menuProps={{

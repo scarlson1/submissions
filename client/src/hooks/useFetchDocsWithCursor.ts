@@ -23,24 +23,17 @@ export function useFetchDocsWithCursor<T = any>(
 ) {
   const db = useFirestore();
 
-  // const qConstraints: QueryConstraint[] = [...constraints, limit(params.itemsPerPage)];
   const qConstraints: QueryConstraint[] = useMemo(
     () => [...constraints, limit(params.itemsPerPage)],
     [constraints, params?.itemsPerPage]
   );
 
-  // console.log('CONSTRAINTS: ', constraints);
-
   if (params.cursor) {
     qConstraints.push(startAfter(params.cursor));
   }
 
-  // useEffect(() => {
-  //   console.log('Q CONSTRAINTS: ', qConstraints);
-  // }, [qConstraints]);
-
   let collectionRef;
-  // ALLOW FOR COLLECTION GROUP QUERIES
+  // allow for collection group queries
   if (!!isCollectionGroup) {
     collectionRef = collectionGroup(db, COLLECTIONS[collName]) as CollectionReference<T>;
   } else {

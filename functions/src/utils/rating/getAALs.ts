@@ -62,6 +62,7 @@ export const getAALs = async (props: GetAALsProps): Promise<GetAALRes> => {
     limitAB,
     rcvTotal: RCVs.total,
   };
+  info('Swiss Re AAL XML Variables', { ...xmlBodyVars });
   const body = swissReBody(xmlBodyVars);
 
   const { data: srRes } = await swissReInstance.post('/rate/sync/srxplus/losses', body, {

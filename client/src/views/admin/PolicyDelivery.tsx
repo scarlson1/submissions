@@ -14,6 +14,7 @@ import { policiesCollection, Policy, withIdConverter } from 'common';
 import { ePayInstance } from 'modules/api';
 import { usePromptForEmails } from 'hooks/usePromptForEmails';
 import { ROUTES, createPath } from 'router';
+import { onlyUnique } from 'modules/utils';
 
 // TODO: how should document delivery be tracked?? see history / check if doc was delivered ?? NEED TO USE SENDGRID WEBHOOK & STORE IN COLLECTION
 // TODO: create custom tags for email delivery ('policy_delivery') https://docs.sendgrid.com/for-developers/sending-email/getting-started-email-activity-api#query-reference
@@ -166,12 +167,14 @@ export const PolicyDelivery = () => {
 
       if (!emails || emails.length < 1) throw new Error('no emails selected');
 
-      // await deliverDocs(policyId!, emails);
+      const uniqEmails = emails.filter(onlyUnique);
+
       toast.loading('sending policy documents...');
+      // TODO: filter unique emails in hook and backend
       await send({
         templateName: 'policy_delivery',
         policyId,
-        to: emails,
+        to: uniqEmails, // emails,
       });
     } catch (err) {
       console.log('ERR: ', err);

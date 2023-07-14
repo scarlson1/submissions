@@ -48,12 +48,8 @@ export interface GridEditMultiSelectCellProps
   colDef: MultiSelectColDef;
 }
 
-// TODO: add renderValue with optional onDelete
-// --> use useGridApiContext().setEditCellValue to update value on click
 export function GridEditMultiSelectCell(props: GridEditMultiSelectCellProps) {
-  // console.log('CUSTOM MULTI SELECT PROPS: ', props);
   const rootProps = useGridRootProps();
-  // console.log('GRID ROOT PROPS: ', rootProps);
 
   const {
     id,
@@ -167,8 +163,7 @@ export function GridEditMultiSelectCell(props: GridEditMultiSelectCellProps) {
 
   const handleDeleteClaim = useCallback(
     (removeVal: string) => {
-      console.log('VALUE PROP: ', valueProp);
-      // TODO: need to get formatted value (native casts to string)
+      // TODO: need to get formatted value ?? (native casts to string)
       // const formattedTargetValue = tval.map((v) =>
       //   getValueFromValueOptions(v, valueOptions, getOptionValue)
       // );
@@ -178,7 +173,7 @@ export function GridEditMultiSelectCell(props: GridEditMultiSelectCellProps) {
         field: field,
         value: newVal,
       };
-      console.log('edit params: ', editParams);
+
       apiRef.current.setEditCellValue(editParams);
     },
     [valueProp, id, field, apiRef]
@@ -255,7 +250,6 @@ export function GridEditMultiSelectCell(props: GridEditMultiSelectCellProps) {
             key={val}
             value={val}
           >
-            {/* <Checkbox checked={valueProp.indexOf(val) > -1} /> */}
             <ListItemText primary={getOptionLabel(valueOption)} />
           </rootProps.slots.baseSelectOption>
         );

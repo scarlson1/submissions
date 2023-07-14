@@ -16,9 +16,6 @@ import { useAsyncToast, useCreateStorageFiles } from 'hooks';
 
 const REQUIRED_HEADERS = [
   'cov_a_rcv',
-  // 'cov_b_rcv',
-  // 'cov_c_rcv',
-  // 'cov_d_rcv',
   'cov_a_limit',
   'cov_b_limit',
   'cov_c_limit',

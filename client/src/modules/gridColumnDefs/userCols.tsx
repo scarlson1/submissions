@@ -15,7 +15,7 @@ import {
 } from './gridColumns';
 import { GridEditMultiSelectCell, GridMultiSelectColDef } from 'components/GridEditMultiSelectCell';
 import { renderChips } from 'components/RenderGridCellHelpers';
-import { getRandomItem, stringToColor } from 'modules/utils';
+import { getRandomItem, stringAvatar } from 'modules/utils';
 import { CUSTOM_CLAIMS } from 'common';
 
 export const userClaimsCol: GridMultiSelectColDef = {
@@ -59,7 +59,7 @@ export const userClaimsCol: GridMultiSelectColDef = {
 const AVATAR_BACKGROUNDS = [purple[200], blue[200], red[200], lightBlue[200], lightGreen[200]];
 
 export const userSummaryCol: GridColDef = {
-  field: 'user', // 'member'
+  field: 'user',
   headerName: 'User',
   flex: 1,
   minWidth: 280,
@@ -72,35 +72,39 @@ export const userSummaryCol: GridColDef = {
     return { name, email, photoURL };
   },
   valueFormatter: (params) => `${params.value?.name || ''} | ${params.value.email || ''}`,
-  renderCell: (params: GridRenderCellParams<any>) => (
-    <Box sx={{ display: 'flex' }}>
-      <Box sx={{ p: 2 }}>
-        <Avatar
-          alt={params.value?.name}
-          src={params.value.photoURL}
+  renderCell: (params: GridRenderCellParams<any>) => {
+    const avatarProps = params.value?.name
+      ? { ...stringAvatar(params.value.name) }
+      : {
+          sx: { backgroundColor: getRandomItem(AVATAR_BACKGROUNDS) },
+        };
+
+    return (
+      <Box sx={{ display: 'flex' }}>
+        <Box sx={{ p: 2 }}>
+          <Avatar
+            alt={params.value?.name || 'User'}
+            src={params.value?.photoURL}
+            {...avatarProps}
+          />
+        </Box>
+        <Box
           sx={{
-            backgroundColor: params.value?.name
-              ? stringToColor(params.value.name)
-              : getRandomItem(AVATAR_BACKGROUNDS),
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
           }}
-        />
+        >
+          <Typography variant='body2' sx={{ fontWeight: 500 }}>
+            {params.value?.name || ''}
+          </Typography>
+          <Typography variant='body2' color='text.secondary'>
+            {params.value?.email || ''}
+          </Typography>
+        </Box>
       </Box>
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-        }}
-      >
-        <Typography variant='body2' sx={{ fontWeight: 500 }}>
-          {params.value?.name || ''}
-        </Typography>
-        <Typography variant='body2' color='text.secondary'>
-          {params.value?.email || ''}
-        </Typography>
-      </Box>
-    </Box>
-  ),
+    );
+  },
 };
 
 export const userCols: GridColDef[] = [

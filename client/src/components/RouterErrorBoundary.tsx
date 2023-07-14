@@ -2,6 +2,7 @@ import { Box, Alert, AlertTitle, Container, Typography, Button, Stack } from '@m
 import { useRouteError, isRouteErrorResponse, useNavigate } from 'react-router-dom';
 
 import { ServerDownSVG, PageNotFoundSVG, SecureLoginSVG, SearchingSVG } from 'assets/images';
+import { FirestoreError } from 'firebase/firestore';
 
 // FOR HANDLING ERRORS THROWN IN REACT ROUTER LOADERS
 
@@ -16,6 +17,14 @@ export const firestoreRulesErrorRegex = /([A-Za-z0-9]+( [A-Za-z0-9]+)+)\. for '[
 
 export function checkRulesRegex(str: string) {
   return firestoreRulesErrorRegex.test(str);
+}
+
+// function isFish(pet: Fish | Bird): pet is Fish {
+//   return (pet as Fish).swim !== undefined;
+// }
+
+function isFirestoreError(err: unknown): err is FirestoreError {
+  return err instanceof FirestoreError;
 }
 
 export const NotFound = ({
@@ -232,6 +241,12 @@ export const RouterErrorBoundary = ({ actionButtons }: RouterErrorBoundaryProps)
     }
   }
 
+  // TODO: organize Error Boundaries
+  // TODO: check isFirebaseError(), then narrow ??
+  if (isFirestoreError(error)) {
+    console.log('Is firestore error (TODO: refactor error boundary)');
+  }
+
   let msg = null;
   const err = error as any;
   if (err?.message && err.message.indexOf('query requires an index') !== -1) {
@@ -250,6 +265,9 @@ export const RouterErrorBoundary = ({ actionButtons }: RouterErrorBoundaryProps)
     if (isFirestoreRulesError) {
       msg =
         "A security rule is preventing you from viewing the record(s) you've requested. It is likely one of the fields being referenced in the security rules is missing a value. Our team has been notified. We're sorry for the inconvenience.";
+    } else {
+      msg =
+        'Permission denied error. Your account does not have the required permissions to access the requested resource.';
     }
   }
   if (err?.message && err.message.indexOf('PERMISSION_DENIED') !== -1) {

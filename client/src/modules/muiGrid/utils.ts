@@ -7,7 +7,7 @@ import {
   orderBy,
   where,
 } from 'firebase/firestore';
-import { isInequalityOp, isWhereFilterOp } from 'modules/utils';
+import { isInequalityOp, isWhereFilterOp, hasValue } from 'modules/utils';
 
 export function getFirestoreSortOps(sortModel: GridSortModel | undefined = []) {
   let sortOps: QueryOrderByConstraint[] = [];
@@ -43,4 +43,19 @@ export function getFirestoreFilters(filterModel: GridFilterModel | undefined) {
   });
 
   return newFilters;
+}
+
+export const ORDER_BY_OPS = ['<', '<=', '!=', 'not-in', '>', '>='];
+
+export function getOrderByIfNecessary(
+  constraints: QueryFieldFilterConstraint[]
+): QueryOrderByConstraint[] {
+  return constraints // @ts-ignore
+    .filter((c) => ORDER_BY_OPS.includes(c?._op))
+    .map((c) => {
+      // @ts-ignore
+      const fieldStr = typeof c?._field === 'string' ? c?._field : c?._field?.segments?.join('.');
+      return fieldStr ? orderBy(fieldStr, 'desc') : null;
+    })
+    .filter((f) => hasValue(f)) as QueryOrderByConstraint[];
 }

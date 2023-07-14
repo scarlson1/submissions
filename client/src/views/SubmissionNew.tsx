@@ -173,7 +173,7 @@ export const SubmissionNew = () => {
 
   const handleSubmit = useCallback(
     async (values: FloodValues, { setSubmitting }: FormikHelpers<FloodValues>) => {
-      console.log(values);
+      // console.log(values);
       // const coords =
       //   values.coordinates.latitude && values.coordinates.longitude
       //     ? new GeoPoint(values.coordinates.latitude, values.coordinates.longitude)

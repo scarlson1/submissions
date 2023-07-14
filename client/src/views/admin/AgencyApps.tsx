@@ -96,7 +96,8 @@ export const AgencyApps = () => {
       );
 
       const orgSnap = await getDocs(orgQuery);
-      if (orgSnap.empty) throw new Error(`No org doc found with orgName ${orgName}`);
+      if (orgSnap.empty)
+        throw new Error(`No org doc found with orgName ${orgName} (need to accept / create org)`);
 
       const orgs = orgSnap.docs.map((snap) => snap.data());
       if (orgs.length > 1)
@@ -111,6 +112,7 @@ export const AgencyApps = () => {
   );
 
   // TODO: add tenantCreated: tenantId to agency app doc
+  // TODO: check if user already exists ??
   const handleResendInvite = useCallback(
     (params: GridRowParams) => async () => {
       // check if status === approved

@@ -56,7 +56,8 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
   const claimsPrev = usePrevious(userData?.claims);
 
   useEffect(() => {
-    console.log('USER OBS CHANGE: ', userData);
+    process.env.REACT_APP_FB_PROJECT_ID !== 'idemand-submissions' &&
+      console.log('USER OBS CHANGE: ', userData);
   }, [userData]);
 
   // const [loading, setLoading] = useState(false);
@@ -100,11 +101,9 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
   // update user properties in analytics on claims change
   useEffect(() => {
     if (!isEqual(userData?.claims, claimsPrev)) {
-      // at lease one claim is true
-      if (userData?.claims && Object.values(userData.claims).some((claim) => claim === true)) {
-        console.log('SETTING ANALYTICS USER PROPERTIES...');
+      // if at lease one claim is true, update firebase analytics
+      if (userData?.claims && Object.values(userData.claims).some((claim) => claim === true))
         setUserProperties(analytics, { ...userData.claims });
-      }
     }
   }, [userData, claimsPrev, analytics]);
 

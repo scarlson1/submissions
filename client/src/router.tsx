@@ -1499,7 +1499,9 @@ export const router = sentryCreateBrowserRouter([
         path: 'account',
         element: (
           <AuthActionsProvider>
-            <Layout />
+            <RequireAuthReactFire>
+              <Layout />
+            </RequireAuthReactFire>
           </AuthActionsProvider>
         ),
         errorElement: <RouterErrorBoundary />,

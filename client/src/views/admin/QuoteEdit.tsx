@@ -182,13 +182,13 @@ export const QuoteEdit = () => {
           ...f,
           value: `${f.feeValue ?? ''}`,
         })) || [],
-      taxes: [],
-      // taxes:
-      //   quoteData?.taxes?.map((t) => ({
-      //     ...t,
-      //     value: `${t.value ?? ''}`,
-      //     rate: `${t.rate ?? ''}`,
-      //   })) || ([] as TaxItem[]),
+      // taxes: [],
+      taxes:
+        quoteData?.taxes?.map((t) => ({
+          ...t,
+          value: `${t.value ?? ''}`,
+          rate: `${t.rate ?? ''}`,
+        })) || [], // ([] as TaxItem[]),
       annualPremium: quoteData?.annualPremium ?? null,
       subproducerCommission: quoteData?.subproducerCommission ?? 0.15,
       quoteTotal: quoteData?.quoteTotal ?? null,

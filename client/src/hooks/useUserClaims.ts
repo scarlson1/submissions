@@ -102,35 +102,6 @@ export const useUserClaims = (): ObservableStatus<UserWithClaimsResult> => {
                   return of(getResult(user, orgId, claims));
                 })
               );
-
-              // if (requiresRefresh) {
-              //   // updateClaims();
-              //   // pipe to update claims
-              //   return from(user.getIdTokenResult(true)).pipe(
-              //     switchMap((idTokenResult) => {
-              //       const { claims } = idTokenResult;
-
-              //       return of(getResult(user, orgId, claims));
-              //     })
-              //   );
-              // } else {
-              //   return from(user.getIdTokenResult(false)).pipe(
-              //     switchMap((idTokenResult) => {
-              //       const { claims } = idTokenResult;
-
-              //       return of(getResult(user, orgId, claims));
-              //     })
-              //   );
-              // }
-              // } else {
-              //   return from(user.getIdTokenResult(false)).pipe(
-              //     switchMap((idTokenResult) => {
-              //       const { claims } = idTokenResult;
-
-              //       return of(getResult(user, orgId, claims));
-              //     })
-              //   );
-              // }
             })
           );
         } else {

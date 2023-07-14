@@ -23,7 +23,7 @@ import { BasicDataGrid, GridEditMultiSelectCell, ServerDataGrid } from 'componen
 import { useAsyncToast, useUpdateClaims } from 'hooks';
 import { useCollectionDataPopulateById } from 'hooks/useRx';
 import { getRequiredClaimValidator } from 'components/RequireAuthReactFire';
-import { userClaimsCol, userCols, userSummaryCol } from 'modules/gridColumnDefs';
+import { idCol, userClaimsCol, userCols, userSummaryCol } from 'modules/gridColumnDefs';
 import { ServerDataGridCollectionProps } from './QuotesGrid';
 
 type UsersGridProps = ServerDataGridCollectionProps;
@@ -77,28 +77,6 @@ export const UsersGrid = ({
         {...props}
       />
     </Box>
-    // <Box>
-    //   <BasicDataGrid
-    //     rows={data || []}
-    //     columns={userColumns}
-    //     loading={status === 'loading'}
-    //     density='compact'
-    //     autoHeight
-    //     initialState={{
-    //       columns: {
-    //         columnVisibilityModel: {
-    //           firstName: false,
-    //           lastName: false,
-    //           // id: false,
-    //         },
-    //       },
-    //       sorting: {
-    //         sortModel: [{ field: 'metadata.created', sort: 'desc' }],
-    //       },
-    //       pagination: { paginationModel: { pageSize: 10 } },
-    //     }}
-    //   />
-    // </Box>
   );
 };
 
@@ -256,7 +234,12 @@ export const AdminManageUsersGrid = ({
           <GridEditMultiSelectCell {...params} />
         ),
       },
-      ...userCols,
+      ...userCols.filter((c) => c.field === 'id'), // observable using userId as idField
+      {
+        ...idCol,
+        field: 'userId',
+        headerName: 'User ID',
+      },
       ...columnAdjustments,
     ];
   }, [columnAdjustments, renderActions, signInResult, iDAdminResult, testEditRowModeActions]);

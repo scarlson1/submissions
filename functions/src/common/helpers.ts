@@ -226,3 +226,7 @@ export async function throwIfExists<T>(docRef: DocumentReference<T>) {
   const snap = await docRef.get();
   if (snap.exists) throw new Error(`Document already exists with ID ${docRef.id}`);
 }
+
+export function onlyUnique(value: string | number, index: number, array: (string | number)[]) {
+  return array.indexOf(value) === index;
+}

@@ -88,12 +88,7 @@ const createPolicy = async ({ data, auth }: CallableRequest<CreatePolicyProps>) 
   // Fetch surplus lines license
   let licenseData;
   try {
-    licenseData = await getSLLicenseByState(
-      db,
-      quoteData.homeState,
-      quoteData.effectiveDate,
-      quoteData.expirationDate
-    );
+    licenseData = await getSLLicenseByState(db, quoteData.homeState, quoteData.effectiveDate); // quoteData.expirationDate
   } catch (err: any) {
     let msg = `Error retrieving SL license`;
     if (err?.message) msg += ` (${err.message})`;

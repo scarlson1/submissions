@@ -18,6 +18,7 @@ import {
   TaxItem,
 } from 'common/types';
 import { toast } from 'react-hot-toast';
+import { alpha } from '@mui/material';
 
 /**
  * extracts address string from Google address_components object.
@@ -748,13 +749,14 @@ export function openGoogleMaps(latitude: number, longitude: number) {
   if (popUpWasBlocked(w)) toast.error('Google maps window blocked by browser');
 }
 
-export function stringToColor(string: string) {
+export function stringToColor(str: string) {
   let hash = 0;
   let i;
 
   /* eslint-disable no-bitwise */
-  for (i = 0; i < string.length; i += 1) {
-    hash = string.charCodeAt(i) + ((hash << 5) - hash);
+  for (i = 0; i < str.length; i += 1) {
+    // left-shift binary has by 5
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
   }
 
   let color = '#';
@@ -771,7 +773,7 @@ export function stringToColor(string: string) {
 export function stringAvatar(name: string) {
   return {
     sx: {
-      bgcolor: stringToColor(name),
+      bgcolor: alpha(stringToColor(name), 0.7),
     },
     children: `${name.split(' ')[0][0]}${name.split(' ')[1][0]}`,
   };
@@ -785,3 +787,21 @@ export function popUpWasBlocked(popUp: Window | null) {
 // if (popUpWasBlocked(w)) {
 //   // handle the error
 // }
+
+export function hasValue<T>(value: T | undefined | null): value is T {
+  return value !== undefined && value !== null;
+}
+
+export function removeEmptyElementsFromArray<T>(array: Array<T | undefined | null>): T[] {
+  return array.filter(hasValue);
+}
+
+export const uniq = (a: any) => [...new Set(a)];
+
+export function onlyUnique(value: string | number, index: number, array: (string | number)[]) {
+  return array.indexOf(value) === index;
+}
+
+// usage example:
+// var a = ['a', 1, 'a', 2, '1'];
+// var unique = a.filter(onlyUnique);
