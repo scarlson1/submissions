@@ -221,8 +221,6 @@ export const AddressStepTest = ({ gridProps, ...props }: AddressStepTestProps) =
   );
   const { setFieldValue } = useFormikContext<AddressStepValues>();
 
-  console.log('mapStyle: ', mapStyle);
-
   return (
     <FormikAddress setFieldValue={setFieldValue} gridProps={gridProps} {...props}>
       <Card sx={{ height: 280, width: '100%', mt: 5 }}>
@@ -245,8 +243,7 @@ export const AddressStepTest = ({ gridProps, ...props }: AddressStepTestProps) =
         color='text.secondary'
         sx={{ ml: 2, mt: 1, fontSize: '0.725rem' }}
       >
-        Drag pin to edit coordinates. Coordinates are anchored to the bottom of the pin. Zoom in for
-        accuracy.
+        Drag pin to edit coordinates. Zoom in for accuracy.
       </Typography>
     </FormikAddress>
   );

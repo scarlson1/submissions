@@ -80,13 +80,17 @@ export function MapStyleControl({
   const styleProps = useMapboxStyleControl(initStyle, props);
 
   return (
-    <ToggleButtonGroup {...styleProps} sx={{ borderRadius: 0.5, ...(styleProps.sx || {}) }}>
+    <ToggleButtonGroup
+      {...styleProps}
+      sx={{ border: `1px solid grey`, borderRadius: 0.5, ...(styleProps.sx || {}) }}
+    >
       {options.map((s) => (
         <ToggleButton
           value={s.value}
           key={s.value}
           sx={{
             border: 'none !important',
+            borderRadius: 0.5,
             backgroundColor: (theme) => theme.palette.background.paper,
             '&:hover, &.Mui-selected:hover': {
               backgroundColor: (theme) =>

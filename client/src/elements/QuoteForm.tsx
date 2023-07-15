@@ -622,7 +622,7 @@ export const QuoteForm = ({
   }, [navigate]);
 
   const validation = useMemo(() => {
-    console.log('get validation: ', activeStates);
+    // console.log('get validation: ', activeStates);
     return activeStates ? getQuoteValidation(activeStates) : undefined;
   }, [activeStates]);
 
