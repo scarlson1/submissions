@@ -34,6 +34,15 @@ export { GridEditMultiSelectCell } from './GridEditMultiSelectCell';
 export { GridFilterInputMultipleMultipleSelect } from './GridFilterInputMultipleMultipleSelectInput';
 // export { GridFilterInputValue } from './GridFilterInputValue';
 export { GridMobileToolbar } from './GridMobileToolbar';
+export {
+  MapStyleControl,
+  useMapboxStyleControl,
+  usePreferredMapStyle,
+  MAPBOX_LIGHT,
+  MAPBOX_DARK,
+  MAPBOX_STREETS,
+  MAPBOX_SATELLITE,
+} from './MapStyleControl';
 
 export type { ConfirmationDialogProps } from './ConfirmationDialog';
 export type { FileLinkProps } from './FileLink';

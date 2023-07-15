@@ -253,7 +253,8 @@ export const RouterErrorBoundary = ({ actionButtons }: RouterErrorBoundaryProps)
     msg = (
       <p>
         Indexing error. Our team has been notified and the issue should be resolved within the hour.
-        Appologies for the inconvenience.
+        Appologies for the inconvenience. Please also try a hard refresh of the page (ctrl/cmd +
+        shift + R).
       </p>
     );
   }

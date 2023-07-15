@@ -28,6 +28,7 @@ export { TooltipToggleButton } from './TooltipToggleButton';
 export { PostalMask } from './PostalMask';
 export { RequiredFieldsIndicator } from './RequiredFieldsIndicator';
 export { Diff } from './Diff';
+export { FormikCoordsMarker } from './FormikCoordsMarker';
 
 export type {
   AddressAutocompleteProps,

@@ -338,7 +338,12 @@ export const router = sentryCreateBrowserRouter([
           // },
           {
             path: ROUTES.SUBMISSIONS,
-            element: <Submissions />,
+            // element: <Submissions />,
+            element: (
+              <RequireAuthReactFire>
+                <Submissions />
+              </RequireAuthReactFire>
+            ),
             errorElement: <RouterErrorBoundary />,
             handle: {
               crumb: (match: CrumbMatch) => [
@@ -353,7 +358,12 @@ export const router = sentryCreateBrowserRouter([
           },
           {
             path: ROUTES.QUOTES,
-            element: <Quotes />,
+            // element: <Quotes />,
+            element: (
+              <RequireAuthReactFire>
+                <Quotes />
+              </RequireAuthReactFire>
+            ),
             errorElement: <RouterErrorBoundary />,
             handle: {
               crumb: (match: CrumbMatch) => [

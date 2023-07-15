@@ -1,15 +1,15 @@
 import { useCallback } from 'react';
 import { Box, Tooltip, Typography } from '@mui/material';
-import { GridActionsCellItem, GridRowParams } from '@mui/x-data-grid';
-import { CorporateFareRounded } from '@mui/icons-material';
+import { GridActionsCellItem, GridRowId, GridRowParams } from '@mui/x-data-grid';
+import { CorporateFareRounded, DataObjectRounded } from '@mui/icons-material';
 import { where } from 'firebase/firestore';
 import { useSigninCheck } from 'reactfire';
 
 import { UsersGrid } from 'elements';
-import { useAsyncToast, useMoveUserToTenant } from 'hooks';
+import { useAsyncToast, useMoveUserToTenant, useShowJson } from 'hooks';
 import { useConfirmation } from 'modules/components';
 import InputDialog from 'components/InputDialog';
-import { CUSTOM_CLAIMS, User } from 'common';
+import { COLLECTIONS, CUSTOM_CLAIMS, User } from 'common';
 
 export const Users = () => {
   const { status, data: signInCheckResult } = useSigninCheck({
@@ -22,6 +22,7 @@ export const Users = () => {
     (msg: string) => toast.success(msg),
     (msg: string) => toast.error(msg)
   );
+  const showJson = useShowJson(COLLECTIONS.USERS);
 
   // TODO: prompt for tenantId (select from autocomplete)
   // TODO: prompt for customClaims
@@ -61,6 +62,13 @@ export const Users = () => {
     [toast, moveUser, confirm]
   );
 
+  const handleShowJson = useCallback(
+    (id: GridRowId) => () => {
+      showJson(id.toString());
+    },
+    [showJson]
+  );
+
   return (
     <Box sx={{ minHeight: 400 }}>
       <Typography variant='h5' gutterBottom sx={{ pl: { sm: 3 } }}>
@@ -76,7 +84,17 @@ export const Users = () => {
               </Tooltip>
             }
             onClick={handleAssignTenant(params)}
-            label='Message'
+            label='Move to tenant'
+            disabled={status !== 'success' || !signInCheckResult?.hasRequiredClaims}
+          />,
+          <GridActionsCellItem
+            icon={
+              <Tooltip title='view JSON' placement='top'>
+                <DataObjectRounded />
+              </Tooltip>
+            }
+            onClick={handleShowJson(params.id)}
+            label='View JSON'
             disabled={status !== 'success' || !signInCheckResult?.hasRequiredClaims}
           />,
         ]}

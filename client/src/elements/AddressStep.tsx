@@ -1,9 +1,9 @@
 import { useState, useCallback, Suspense } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
-import { Card, CircularProgress, Grid2Props, Typography } from '@mui/material';
+import { Card, CircularProgress, Grid2Props, Typography, useTheme } from '@mui/material';
 import { useFormikContext } from 'formik';
 import { FlyToInterpolator, MapViewState } from '@deck.gl/core/typed';
-import { Marker } from 'react-map-gl';
+import { Map, MapProps, Marker, NavigationControl } from 'react-map-gl';
 import { toast } from 'react-hot-toast';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
@@ -11,6 +11,9 @@ import { FormikAddress, FormikAddressProps } from 'elements';
 import { useRegisterEmailNotification } from 'hooks';
 import { ActiveStateMap } from './ActiveStateMap';
 import { Address, Coordinates, Nullable } from 'common';
+import { MAPBOX_DARK, MAPBOX_LIGHT, MAPBOX_STREETS, MapStyleControl } from 'components';
+import { FormikCoordsMarker } from 'components/forms';
+import { usePreferredMapStyle } from 'components/MapStyleControl';
 
 export interface AddressStepValues {
   address: Address;
@@ -28,6 +31,8 @@ export interface AddressStepProps extends Omit<FormikAddressProps, 'setFieldValu
 // TODO: load by product /flood/new - get active states from /state/:productId in db
 // TODO: emial lists in email service (sendgrid)
 
+// TODO: pass map as child ??
+
 export const AddressStep = ({
   activeStates = {},
   shouldValidateStates = false,
@@ -40,9 +45,6 @@ export const AddressStep = ({
     Boolean(values.coordinates?.latitude && values.coordinates?.longitude)
   );
   const [mapViewState, setMapViewState] = useState<MapViewState>({
-    // latitude: values.latitude || 37.25,
-    // longitude: values.longitude || -94.75,
-    // zoom: values.latitude && values.longitude ? 15 : 2.5,
     latitude: values.coordinates?.latitude || 37.25,
     longitude: values.coordinates?.longitude || -94.75,
     zoom: values.coordinates?.latitude && values.coordinates?.longitude ? 15 : 2.5,
@@ -169,25 +171,83 @@ export const AddressStep = ({
 
 export default AddressStep;
 
-// {
-//   values.latitude && values.longitude && (
-//     <Collapse in={mapOpen} unmountOnExit>
-//       <Card sx={{ height: 240, width: '100%', mt: 5 }}>
-//         <Map
-//           initialViewState={{
-//             longitude: values.longitude,
-//             latitude: values.latitude,
-//             zoom: 13,
-//           }}
-//           mapStyle={
-//             theme.palette.mode === 'light'
-//               ? 'mapbox://styles/mapbox/light-v8'
-//               : 'mapbox://styles/spencer-carlson/cl8dxgtum000w14qix5ft9gw5'
-//           }
-//         >
-//           <Marker longitude={values.longitude} latitude={values.latitude} anchor='center' />
-//         </Map>
-//       </Card>
-//     </Collapse>
-//   );
-// }
+// TODO: break up into composable pieces and pass as children
+interface FormikCoordsMapProps extends Omit<MapProps, 'initialViewState' | 'mapStyle'> {
+  cb?: (coords: { lat: number | null; lng: number | null }, state?: string) => void;
+  mapStyle?: string;
+}
+
+export const FormikCoordsMap = ({
+  cb,
+  children,
+  mapStyle = MAPBOX_STREETS,
+  ...props
+}: FormikCoordsMapProps) => {
+  const { values } = useFormikContext<AddressStepValues>();
+  const [viewState, setViewState] = useState<MapProps['initialViewState']>({
+    longitude: values.coordinates?.longitude || -94.25,
+    latitude: values.coordinates?.latitude || 38.25,
+    zoom: values.coordinates?.latitude && values.coordinates?.longitude ? 16 : 2.5,
+  });
+
+  return (
+    // @ts-ignore
+    <Map
+      {...viewState}
+      onMove={(evt) => setViewState(evt.viewState)}
+      mapStyle={mapStyle}
+      styleDiffing
+      minZoom={2}
+      maxZoom={20}
+      scrollZoom={true}
+      doubleClickZoom={true}
+      {...props}
+    >
+      <FormikCoordsMarker />
+      <NavigationControl />
+      <MapStyleControl initStyle={mapStyle as string} color='standard' sx={{ m: 2 }} />
+    </Map>
+  );
+};
+
+export interface AddressStepTestProps extends Omit<FormikAddressProps, 'setFieldValue'> {
+  gridProps?: Grid2Props;
+}
+
+export const AddressStepTest = ({ gridProps, ...props }: AddressStepTestProps) => {
+  const theme = useTheme();
+  const [mapStyle] = usePreferredMapStyle(
+    theme.palette.mode === 'dark' ? MAPBOX_DARK : MAPBOX_LIGHT
+  );
+  const { setFieldValue } = useFormikContext<AddressStepValues>();
+
+  console.log('mapStyle: ', mapStyle);
+
+  return (
+    <FormikAddress setFieldValue={setFieldValue} gridProps={gridProps} {...props}>
+      <Card sx={{ height: 280, width: '100%', mt: 5 }}>
+        <ErrorBoundary
+          FallbackComponent={() => (
+            <Typography color='text.secondary' variant='subtitle2' align='center' sx={{ py: 5 }}>
+              Error loading map
+            </Typography>
+          )}
+        >
+          <FormikCoordsMap
+            scrollZoom={false}
+            mapStyle={mapStyle || MAPBOX_LIGHT}
+            // mapStyle={theme.palette.mode === 'dark' ? MAPBOX_DARK : MAPBOX_LIGHT}
+          />
+        </ErrorBoundary>
+      </Card>
+      <Typography
+        variant='body2'
+        color='text.secondary'
+        sx={{ ml: 2, mt: 1, fontSize: '0.725rem' }}
+      >
+        Drag pin to edit coordinates. Coordinates are anchored to the bottom of the pin. Zoom in for
+        accuracy.
+      </Typography>
+    </FormikAddress>
+  );
+};

@@ -13,7 +13,7 @@ import { STATES_URL } from 'common';
 // TODO: create generalized component (use with counties)
 // TODO: use zustand ? or recoil or kotai for shared state between switch and map without rerendering all components?
 
-const INITIAL_VIEW_STATE = {
+export const INITIAL_VIEW_STATE = {
   longitude: -94.25,
   latitude: 38.25,
   zoom: 3.5,

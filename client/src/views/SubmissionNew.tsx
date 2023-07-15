@@ -102,7 +102,7 @@ export const initialValues: FloodValues = {
 export const SubmissionNew = () => {
   const firestore = useFirestore();
   const navigate = useNavigate();
-  const { user, claims } = useAuth();
+  const { user, claims, orgId } = useAuth();
   const formikRef = useRef<FormikProps<FormikValues>>(null);
   const activeStates = useActiveStates('flood');
   const { propertyDetails, rcvSourceUser, propertyDataDocId, initRatingValues, fetchPropertyData } =
@@ -184,7 +184,6 @@ export const SubmissionNew = () => {
           throw new Error('Missing coords');
 
         const docRef = await addDoc(submissionsCollection(firestore), {
-          // ...propertyDetails,
           ...values,
           product: 'flood',
           coordinates: new GeoPoint(values.coordinates.latitude, values.coordinates.longitude),
@@ -197,10 +196,13 @@ export const SubmissionNew = () => {
             email: !!claims?.agent ? user?.email || null : null,
             phone: !!claims?.agent ? user?.phoneNumber || null : null,
           },
+          agency: {
+            name: '', // TODO: org name - save on user doc ?? or rxjs obs ??
+            orgId: orgId || null,
+            address: null, // TODO: agency address
+          },
           // TODO: agency info
           submittedById: user?.uid ?? null,
-          // propertyDataRes: propertyDetails,
-          // TODO: don't save initLimits and rating doc ids in rating property data, save separately so rating data is consistent across quote, etc. types
           ratingPropertyData: propertyDetails,
           initValues: initRatingValues,
           propertyDataDocId,
@@ -229,6 +231,7 @@ export const SubmissionNew = () => {
       rcvSourceUser,
       user,
       claims,
+      orgId,
     ]
   );
 

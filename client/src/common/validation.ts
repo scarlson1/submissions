@@ -60,7 +60,7 @@ export const validateActiveState = (activeStates: { [key: string]: boolean }) =>
     .required('State is required')
     .test('activeState', 'Ineligible state', (val) => Boolean(val) && activeStates[`${val}`]);
 
-export const addressValidationActiveStates = (activeStates: { [key: string]: boolean }) =>
+export const addressValidationActiveStates = (activeStates: Record<string, boolean>) =>
   yup.object().shape({
     addressLine1: yup.string().required('Address is required'),
     addressLine2: yup.string().notRequired(),

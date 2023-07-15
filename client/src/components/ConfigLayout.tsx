@@ -7,6 +7,9 @@ import { LoadingComponent } from './Layout';
 
 // https://mui.com/material-ui/react-tabs/#nav-tabs
 
+// Apple style tabs: https://github.com/siriwatknp/mui-treasury/blob/master/packages/mui-styles/src/tabs/apple/appleTabs.styles.ts
+// https://mui-treasury.com/styles/tabs/
+
 interface LinkTabProps extends Omit<TabProps, 'href' | 'component'> {
   label: React.ReactNode;
   to: string;
