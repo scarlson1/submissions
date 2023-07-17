@@ -1,3 +1,4 @@
+import { Box, Chip, ChipProps, Typography } from '@mui/material';
 import {
   AccountBalanceRounded,
   CachedRounded,
@@ -24,7 +25,6 @@ import {
   StormRounded,
   ThumbDownRounded,
 } from '@mui/icons-material';
-import { Box, Chip, ChipProps, Typography } from '@mui/material';
 import {
   GridRenderCellParams,
   GridValueGetterParams,
@@ -35,6 +35,9 @@ import {
   GridTreeNode,
   GridSingleSelectColDef,
 } from '@mui/x-data-grid';
+import { GeoPoint, Timestamp } from 'firebase/firestore';
+import { isDate } from 'lodash';
+import { toast } from 'react-hot-toast';
 
 import { FileLink, renderGridEmail, renderGridPhone } from 'components';
 import { GridCellCopy } from 'components';
@@ -55,15 +58,12 @@ import {
   POLICY_STATUS,
   QUOTE_STATUS,
   SUBMISSION_STATUS,
-} from '../../common/enums';
-import { GeoPoint, Timestamp } from 'firebase/firestore';
-import {
   AdditionalInsured,
   Address,
   Mortgagee,
   Nullable,
   PolicyLocation,
-} from '../../common/types';
+} from 'common';
 import { renderChips } from 'components/RenderGridCellHelpers';
 import { STATES_ABV_ARR } from '../../common/statesList';
 import {
@@ -83,8 +83,6 @@ import {
 } from '../../common/constants';
 import { multiSelectExtendsSingle } from 'modules/muiGrid/gridMultiSelectColDef';
 import { TRANSACTION_OPTIONS } from 'elements/TaxForm';
-import { isDate } from 'lodash';
-import { toast } from 'react-hot-toast';
 
 export const copyBaseProps: Partial<GridColDef> = {
   flex: 1.2,
@@ -102,6 +100,7 @@ export const idCol: GridColDef = {
   type: 'string',
   editable: false,
   filterable: false,
+  sortable: false,
   filterOperators: getGridFirestoreStringOperators(),
   ...copyBaseProps,
 };
@@ -157,6 +156,7 @@ export const displayNameCol: GridColDef = {
   minWidth: 160,
   editable: false,
   filterable: false,
+  sortable: false,
   valueGetter: (params: GridValueGetterParams<any, any>) => {
     if (params.value) return params.value;
     if (params.row.firstName || params.row.lastName)
@@ -271,6 +271,7 @@ export const fileLinkCol: GridColDef = {
   flex: 1,
   editable: false,
   filterable: false,
+  sortable: false,
   renderCell: ({ value }: GridRenderCellParams<any, any, any>) => {
     if (!value) return null;
 
@@ -293,6 +294,7 @@ const addressSummaryBase = {
   flex: 1,
   editable: false,
   filterable: false,
+  sortable: false,
 };
 
 const formatAddrSummary = (address?: Nullable<Address> | null | undefined, withLine2?: boolean) => {
@@ -334,6 +336,7 @@ export const agencyAddressCol: GridColDef = {
   field: 'agency.address',
   headerName: 'Agency Address',
   filterable: false,
+  sortable: false,
   valueGetter: (params) => formatAddrSummary(params.row.agency?.address),
 };
 
@@ -464,6 +467,7 @@ export const latitudeCol: GridColDef = {
   flex: 1,
   editable: false,
   filterable: false,
+  sortable: false,
   filterOperators: getGridFirestoreNumericOperators(),
   valueGetter: (params: GridValueGetterParams<any, any>) =>
     params.row.coordinates?.latitude || null,
@@ -475,6 +479,7 @@ export const longitudeCol: GridColDef = {
   flex: 1,
   editable: false,
   filterable: false,
+  sortable: false,
   filterOperators: getGridFirestoreNumericOperators(),
   valueGetter: (params: GridValueGetterParams<any, any>) =>
     params.row.coordinates?.longitude || null,
@@ -546,6 +551,7 @@ export const statusCol: GridSingleSelectColDef = {
   flex: 0.6,
   editable: false,
   filterable: false,
+  sortable: false,
   filterOperators: getGridFirestoreSelectOperators(),
   renderCell: (params: GridRenderCellParams<any, any, any>) => {
     if (!params.value) return null;
@@ -619,6 +625,7 @@ export const booleanCalcActiveCol: GridColDef = {
   align: 'center' as GridAlignment,
   editable: false,
   filterable: false,
+  sortable: false,
   filterOperators: getGridFirestoreBooleanOperators(), //  getGridFirebaseBooleanOperators(),
   valueGetter: (params: GridValueGetterParams<any, any>) =>
     isCurrentDateBetween(params.row.effectiveDate?.toDate(), params.row.expirationDate?.toDate()),
@@ -743,6 +750,7 @@ export const tivCol: GridColDef = {
   headerAlign: 'center',
   align: 'right',
   filterable: false, // could be calculated value
+  sortable: false,
   valueGetter: (params) => {
     if (params.row.tiv) return params.row.tiv;
     if (params.row.limits?.tiv) return params.row.limits.tiv;
@@ -781,6 +789,7 @@ export const namedInsuredDisplayNameCol: GridColDef = {
   flex: 0.8,
   editable: false,
   filterable: false,
+  sortable: false,
   valueGetter: (params: GridValueGetterParams) =>
     `${params.row.namedInsured?.firstName || ''} ${
       params.row.namedInsured?.lastName || ''
@@ -1170,6 +1179,7 @@ export const locationsCount: GridColDef = {
   flex: 0.5,
   editable: false,
   filterable: false,
+  sortable: false,
   headerAlign: 'center',
   align: 'right',
   valueGetter: (params) => {
@@ -1185,6 +1195,7 @@ export const locationAddresses: GridColDef = {
   flex: 1.5,
   editable: false,
   filterable: false,
+  sortable: false,
   // disableExport: true,
   valueFormatter: ({ value }) => {
     if (Array.isArray(value))
@@ -1247,14 +1258,7 @@ export const productCol: GridSingleSelectColDef = {
   flex: 0.4,
   editable: false,
   type: 'singleSelect',
-  valueOptions: [
-    SUBMISSION_STATUS.QUOTED,
-    SUBMISSION_STATUS.SUBMITTED,
-    SUBMISSION_STATUS.NOT_ELIGIBLE,
-    SUBMISSION_STATUS.PENDING_INFO,
-    SUBMISSION_STATUS.CANCELLED,
-    SUBMISSION_STATUS.DRAFT,
-  ],
+  valueOptions: PRODUCT_OPTIONS,
   filterOperators: getGridFirestoreSelectOperators(),
 };
 
@@ -1280,6 +1284,7 @@ export const productsCol: GridSingleSelectColDef = {
   minWidth: 180,
   flex: 1,
   editable: false,
+  valueFormatter: (params) => `${params.value.join(', ')}`,
   // filterable: false, // TODO: implement array-contains search (multiselectoperators)
   // filterOperators: getGridFirestoreMultiSelectOperators(),
   renderCell: (params) =>
@@ -1330,6 +1335,7 @@ export const SLProducerOfRecordLicenseAddress: GridColDef = {
   headerName: 'SL PofR License Address',
   description: 'Surplus Lines Producer of Record license provided address',
   filterable: false,
+  sortable: false,
   valueGetter: (params) => formatAddrSummary(params.row.surplusLinesProducerOfRecord?.address),
 };
 
@@ -1349,6 +1355,7 @@ export const additionalInsuredsCol: GridColDef = {
   flex: 1,
   editable: false,
   filterable: false,
+  sortable: false,
   disableExport: true,
   valueGetter: (params) =>
     params.row.additionalInsureds?.map((ai: AdditionalInsured) => ai.name) || null,
@@ -1382,6 +1389,7 @@ export const mortgageeCol: GridColDef = {
   flex: 1,
   editable: false,
   filterable: false,
+  sortable: false,
   // disableExport: true,
   valueGetter: (params) => params.row.mortgageeInterest?.map((m: Mortgagee) => m.name) || null,
   valueFormatter: ({ value }) => {
@@ -1433,10 +1441,10 @@ export const subjectBaseCol: GridColDef = {
   flex: 1,
   editable: false,
   filterable: false,
+  sortable: false,
   renderCell: renderChips,
 };
 
-// TODO: make multi-select
 export const policyTrxTypesCol: GridSingleSelectColDef = {
   ...multiSelectExtendsSingle,
   field: 'transactionTypes',
@@ -1447,10 +1455,11 @@ export const policyTrxTypesCol: GridSingleSelectColDef = {
   flex: 1,
   editable: false,
   // filterable: false,
+  sortable: false,
   renderCell: (params) => renderChips(params, { variant: 'outlined', color: 'success' }),
+  valueFormatter: (params) => `${params.value.join(', ')}`,
 };
 
-// TODO: make multi-select
 export const LOBCol: GridSingleSelectColDef = {
   ...multiSelectExtendsSingle,
   field: 'LOB',
@@ -1461,7 +1470,9 @@ export const LOBCol: GridSingleSelectColDef = {
   flex: 0.6,
   editable: false,
   // filterable: false,
+  sortable: false,
   renderCell: (params) => renderChips(params, { variant: 'outlined' }),
+  valueFormatter: (params) => `${params.value.join(', ')}`,
 };
 
 export const importCollectionCol: GridColDef = {
@@ -1481,6 +1492,7 @@ export const importDocIdsCol: GridColDef = {
   flex: 1,
   // filterOperators: getGridFirestoreStringOperators(),
   filterable: false,
+  sortable: false,
   // TODO: set array filters
   renderCell: (params) => renderChips(params, { variant: 'outlined', color: 'success' }),
 };
@@ -1493,6 +1505,7 @@ export const importDocIdsCountCol: GridColDef = {
   minWidth: 120,
   flex: 1,
   filterable: false,
+  sortable: false,
   valueGetter: (params) => (params.row.importDocIds ? params.row.importDocIds.length : null),
 };
 
@@ -1515,6 +1528,7 @@ export const importCreationErrorsCountCol: GridColDef = {
   minWidth: 140,
   flex: 1,
   filterable: false,
+  sortable: false,
   valueGetter: (params) => (params.row.docCreateErrors ? params.row.docCreateErrors.length : null),
 };
 
@@ -1526,8 +1540,9 @@ export const invalidRowsCol: GridColDef = {
   minWidth: 100,
   flex: 1,
   // filterOperators: getGridFirestoreStringOperators(),
+  editable: false,
   filterable: false,
-
+  sortable: false,
   // TODO: set array filters
 };
 

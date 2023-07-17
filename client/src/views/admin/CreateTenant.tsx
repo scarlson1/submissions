@@ -14,6 +14,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { Formik, FormikHelpers, Form } from 'formik';
 import { FirebaseError } from 'firebase/app';
+import * as yup from 'yup';
 
 import {
   FormikTextField,
@@ -25,11 +26,20 @@ import {
 import FormikAddress from 'elements/FormikAddress';
 import { useCreateAgencySubmission, useCreateTenant, useAsyncToast } from 'hooks';
 import { ADMIN_ROUTES, createPath } from 'router';
-import { AgencyAppValues, INITIAL_VALUES } from 'views/AgencyNew';
+import { AgencyAppValues, EandOVal, FEINVal, INITIAL_VALUES } from 'views/AgencyNew';
+import { addressValidation, contactValidation } from 'common';
 
 // DIRECTLY CREATES TENANT - INSTEAD OF APPROVAL PROCESS
 
 // TODO: use rxFire to upload to storage and create submission in Observable ??
+
+const validation = yup.object().shape({
+  orgName: yup.string().required(),
+  address: addressValidation,
+  contact: contactValidation,
+  EandO: EandOVal,
+  FEIN: FEINVal,
+});
 
 export const CreateTenant = () => {
   const navigate = useNavigate();
@@ -37,11 +47,9 @@ export const CreateTenant = () => {
 
   const { handleSubmission, error: createAgencyError } = useCreateAgencySubmission({});
 
-  const { createTenant, error: createTenantError } = useCreateTenant({
-    onSuccess: ({ tenantId }) => {
-      if (tenantId) navigate(createPath({ path: ADMIN_ROUTES.ORGANIZATIONS }));
-    },
-  });
+  const { createTenant, error: createTenantError } = useCreateTenant(
+    ({ tenantId }) => tenantId && navigate(createPath({ path: ADMIN_ROUTES.ORGANIZATIONS }))
+  );
 
   const handleSubmit = useCallback(
     async (values: AgencyAppValues, helpers: FormikHelpers<AgencyAppValues>) => {
@@ -100,7 +108,7 @@ export const CreateTenant = () => {
         <Formik
           initialValues={INITIAL_VALUES}
           onSubmit={handleSubmit}
-          // validationSchema={editValidation}
+          validationSchema={validation}
           enableReinitialize
         >
           {({ values, isSubmitting, isValid, dirty, handleSubmit, setFieldValue, setValues }) => (
@@ -112,19 +120,11 @@ export const CreateTenant = () => {
                   alignItems: 'center',
                   position: 'sticky',
                   top: 0,
-                  // [theme.breakpoints.down('md')]: {
-                  //   top: 60,
-                  // },
-                  // [theme.breakpoints.down('sm')]: {
-                  //   top: 54,
-                  // },
                   backgroundColor: (theme) =>
                     theme.palette.mode === 'light' ? '#FAFAFB' : theme.palette.background.paper,
                   borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
                   zIndex: 10,
                   py: 2,
-                  // mt: -1,
-                  // top: (theme) => theme.mixins.toolbar.minHeight ? theme.mixins.toolbar.minHeight.replace( /^\D+/g, '') + 12 : 64
                 })}
               >
                 <Stack direction='row' spacing={2}>
@@ -135,13 +135,6 @@ export const CreateTenant = () => {
                   >
                     Create Agency
                   </Button>
-                  {/* <Button
-                    variant='contained'
-                    disabled={isSubmitting || !isValid || !dirty}
-                    onClick={handleSaveDraft}
-                  >
-                    Save Draft
-                  </Button> */}
                   <Button
                     variant='outlined'
                     disabled={isSubmitting || !isValid}
@@ -191,6 +184,19 @@ export const CreateTenant = () => {
                           setFieldValue={setFieldValue}
                           textFieldProps={{ variant: 'standard' }}
                           selectFieldProps={{ variant: 'standard' }}
+                          names={{
+                            addressLine1: `address.addressLine1`,
+                            addressLine2: `address.addressLine2`,
+                            city: `address.city`,
+                            state: `address.state`,
+                            postal: `address.postal`,
+                            county: `address.countyName`,
+                            latitude: `coordinates.latitude`,
+                            longitude: `coordinates.longitude`,
+                          }}
+                          autocompleteProps={{
+                            name: 'address.addressLine1',
+                          }}
                         />
                       </Box>
                       <Divider sx={{ mt: 3 }} />
@@ -266,8 +272,8 @@ export const CreateTenant = () => {
                       {/* TODO: make it a select field ?? add search ?? add action button to users section (set as primary contact) */}
                       <Grid xs={6}>
                         <FormikTextField
-                          id='firstName'
-                          name='firstName'
+                          id='contact.firstName'
+                          name='contact.firstName'
                           label='First Name'
                           variant='standard'
                           fullWidth
@@ -276,8 +282,8 @@ export const CreateTenant = () => {
                       </Grid>
                       <Grid xs={6}>
                         <FormikTextField
-                          id='lastName'
-                          name='lastName'
+                          id='contact.lastName'
+                          name='contact.lastName'
                           label='Last Name'
                           variant='standard'
                           fullWidth
@@ -286,8 +292,8 @@ export const CreateTenant = () => {
                       </Grid>
                       <Grid xs={6}>
                         <FormikTextField
-                          id='email'
-                          name='email'
+                          id='contact.email'
+                          name='contact.email'
                           label='Email'
                           variant='standard'
                           fullWidth
@@ -297,12 +303,12 @@ export const CreateTenant = () => {
 
                       <Grid xs={6}>
                         <FormikMaskField
-                          id='phone'
-                          name='phone'
+                          id='contact.phone'
+                          name='contact.phone'
                           label='Phone'
                           variant='standard'
                           fullWidth
-                          required
+                          required={false}
                           maskComponent={PhoneMask}
                         />
                       </Grid>

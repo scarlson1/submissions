@@ -5,6 +5,7 @@ import * as Sentry from '@sentry/node';
 // https://medium.com/qualdesk/how-to-capture-typescript-firebase-functions-errors-in-sentry-d6984951ed9
 
 Sentry.init({
+  dsn: 'https://4ae7fbd137ef4a5daec92aa57c0c660a@o4505115580694528.ingest.sentry.io/4505115584757760',
   maxBreadcrumbs: 50,
   // environment: projectID.value(), // read from SENTRY_ENV
   // enabled: !emulators.value(),

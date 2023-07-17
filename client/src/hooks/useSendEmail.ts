@@ -16,6 +16,7 @@ export const useSendEmail = ({ onSuccess, onError }: UseSendEmailProps | undefin
 
   const send = useCallback(
     async (args: SendEmailRequest) => {
+      // TODO: filter to for unique
       try {
         setLoading(true);
         const { data } = await sendEmail(functions, args);

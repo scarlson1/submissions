@@ -24,11 +24,12 @@ export const userClaimsCol: GridMultiSelectColDef = {
   description: "user's permissions. double click to edit (requires admin permissions)",
   flex: 1,
   minWidth: 240,
-  editable: false,
   // @ts-ignore
   extendType: 'singleSelect',
   type: 'multiSelect',
+  editable: false,
   filterable: false,
+  sortable: false,
   valueOptions: [CUSTOM_CLAIMS.AGENT, CUSTOM_CLAIMS.ORG_ADMIN],
   valueGetter: (params) => {
     if (!params.value) return [];
@@ -64,6 +65,8 @@ export const userSummaryCol: GridColDef = {
   flex: 1,
   minWidth: 280,
   editable: false,
+  filterable: false,
+  sortable: false,
   valueGetter: (params) => {
     const name = `${params.row.firstName} ${params.row.lastName}`.trim();
     const email = params.row.email || '';

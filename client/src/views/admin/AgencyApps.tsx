@@ -34,7 +34,6 @@ export const AgencyApps = () => {
     const ignoreFieldsContaining = ['email', 'phone', 'EandO'];
 
     if (ignoreFieldsContaining.some((partialField) => params.field.includes(partialField))) {
-      // if (params.value && params.value.length > 0) return;
       if (params.value) return;
     } else if (params.field === 'actions') {
       return;

@@ -58,7 +58,7 @@ import { Product } from 'common';
 import { BindSuccess } from 'elements/SuccessStep';
 import { RequireAuthReactFire } from 'components/RequireAuthReactFire'; // getRequiredClaimValidator
 import { Disclosures } from 'views/admin/Disclosures';
-import { PoliciesMap } from 'elements/PoliciesMap';
+import { TestPoliciesMapWithFilters } from 'elements/PoliciesMap';
 import { AuthActionsProvider } from 'modules/components';
 import { TempWrappedSearch } from 'components/search/Search';
 import { AgencyAppSuccessStep } from 'views/AgencyNew';
@@ -1084,7 +1084,7 @@ export const router = sentryCreateBrowserRouter([
             path: '/admin/map/submissions',
             element: (
               <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
-                <PoliciesMap />
+                <TestPoliciesMapWithFilters />
               </RequireAuthReactFire>
             ),
             handle: {

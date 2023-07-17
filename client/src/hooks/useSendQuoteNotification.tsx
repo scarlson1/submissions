@@ -1,10 +1,12 @@
 import { useCallback } from 'react';
-import { doc, getDoc, getFirestore } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
+import { useFirestore } from 'reactfire';
 
 import { BaseSendEmailResponse, quotesCollection } from 'common';
 import { usePromptForEmails } from './usePromptForEmails';
 import { useAsyncToast } from './useAsyncToast';
 import { useSendEmail } from './useSendEmail';
+import { onlyUnique } from 'modules/utils';
 
 export interface NotificationEmailValues {
   notifyInsured: boolean;
@@ -16,6 +18,7 @@ export const useSendQuoteNotification = (
   onSuccess?: (emails: BaseSendEmailResponse['emails'], msg?: string) => void,
   onError?: (err: any, msg: string) => void
 ) => {
+  const firestore = useFirestore();
   const toast = useAsyncToast();
   const promptForEmails = usePromptForEmails();
   const { send } = useSendEmail();
@@ -24,7 +27,7 @@ export const useSendQuoteNotification = (
     async (docId?: string | null) => {
       if (!docId) return;
       try {
-        const snap = await getDoc(doc(quotesCollection(getFirestore()), docId));
+        const snap = await getDoc(doc(quotesCollection(firestore), docId));
         if (!snap.exists() || !snap.data()) throw new Error(`Cannot find doc with ID ${docId}`);
         const data = snap.data();
 
@@ -43,10 +46,11 @@ export const useSendQuoteNotification = (
 
         if (emails && emails.length > 0 && Array.isArray(emails)) {
           try {
+            const uniqEmails = emails.filter(onlyUnique);
             toast.loading('sending emails...');
             const data = await send({
               templateName: 'quote_notification',
-              to: emails,
+              to: uniqEmails, // emails,
               quoteId: docId,
             });
             console.log('RES: ', data);
@@ -68,7 +72,7 @@ export const useSendQuoteNotification = (
         if (onError) onError(err, msg);
       }
     },
-    [onSuccess, onError, promptForEmails, toast, send]
+    [onSuccess, onError, promptForEmails, toast, send, firestore]
   );
 
   return handleSendNotifications;

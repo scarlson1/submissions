@@ -1,8 +1,7 @@
-import { useCallback, useMemo, useState } from 'react';
-
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Box,
-  Button,
+  Card,
   FormControl,
   InputLabel,
   MenuItem,
@@ -10,16 +9,16 @@ import {
   Select,
   SelectChangeEvent,
   Typography,
+  useTheme,
 } from '@mui/material';
 import { QueryConstraint, where } from 'firebase/firestore';
-import { getFunctions } from 'firebase/functions';
-import { useFunctions } from 'reactfire';
-import { IconLayer, PickingInfo } from 'deck.gl/typed';
+import { IconLayer, IconLayerProps, PickingInfo } from 'deck.gl/typed';
 
-import { DeckMap } from './DeckMap';
+import { DeckMap, HoverInfo } from './DeckMap';
 import { useCollectionData } from 'hooks';
-import { deliverAgencyAgreement, getValuationEstimate } from 'modules/api';
-import { MAP_ICON_URL } from 'common';
+// import { deliverAgencyAgreement, getValuationEstimate } from 'modules/api';
+import { MAP_ICON_URL, Submission, WithId } from 'common';
+import { getRGBAArray } from 'modules/utils';
 
 // TODO: study how MUI 'slots' works to create component that can add filters, etc.
 // TODO: use useReducer to create actions for map ??
@@ -27,6 +26,10 @@ import { MAP_ICON_URL } from 'common';
 // @ts-ignore
 // import { DataFilterExtension } from '@deck.gl/extensions';
 // import { Policy } from 'common';
+
+interface TypedPickingInfo<T = any> extends PickingInfo {
+  object?: T;
+}
 
 const stateOptions = ['MN', 'FL', 'TN'];
 
@@ -38,24 +41,105 @@ const stateOptions = ['MN', 'FL', 'TN'];
 
 // TODO: SWITCH TO POLICIES
 
+// TODO: pull filters, etc. up to parent component and pass as prop ??
+
 const ICON_MAPPING = {
-  marker: { x: 0, y: 0, width: 128, height: 128, mask: true },
+  marker: { x: 0, y: 0, width: 128, height: 128, anchorY: 128, mask: true },
 };
 
 interface PoliciesMapProps {
+  constraints?: QueryConstraint[];
+  layerProps?: Omit<Partial<IconLayerProps>, 'getSize' | 'onHover'>;
+  // initState?: string[] | undefined;
+  // initOrgId?: string | null | undefined;
+}
+
+export const PoliciesMap = ({ constraints = [], layerProps }: PoliciesMapProps) => {
+  const { data: submissionData } = useCollectionData('SUBMISSIONS', constraints, { idField: 'id' });
+  useEffect(() => {
+    console.log('DATA: ', submissionData);
+  }, [submissionData]);
+
+  // MAP STATE
+  const [hoverInfo, setHoverInfo] = useState<TypedPickingInfo<WithId<Submission>>>();
+
+  const layers = [
+    new IconLayer({
+      // ...defaultGeoJsonLayerProps,
+      id: `policy-locations-layer`,
+      data: submissionData,
+      pickable: true,
+      // getIcon: return a string alternative to iconAtlas/Mapping (different icons per data point)
+      iconAtlas: MAP_ICON_URL,
+      iconMapping: ICON_MAPPING,
+      getPosition: (d: any) => [d.coordinates.longitude, d.coordinates.latitude],
+      getIcon: (d) => 'marker',
+      sizeScale: 5,
+      getSize: (d) => 5,
+      onHover: (info) => setHoverInfo(info),
+      visible: true,
+      ...(layerProps || {}),
+    }),
+  ];
+
+  return (
+    <DeckMap
+      layers={layers}
+      // hoverInfo={hoverInfo}
+      // renderTooltipContent={(info: PickingInfo) => (
+      //   <Box sx={{ px: 2, borderRadius: 0.5 }}>
+      //     <Typography variant='body2' fontWeight='fontWeightMedium'>
+      //       {info.object.addressLine1 || ''}
+      //     </Typography>
+      //     <Typography variant='body2' color='text.secondary'>{`ID: ${info.object.id}`}</Typography>
+      //   </Box>
+      // )}
+      // layers={[
+      //   new HeatmapLayer({
+      //     // ...defaultGeoJsonLayerProps,
+      //     id: `policy-locations-layer`, // @ts-ignore
+      //     // data: countiesData,
+      //     // data: countiesURL,
+      //     data: submissionData, // COUNTIES_URL,
+      //     getPosition: (d) => [d.coordinates.longitude, d.coordinates.latitude], // d.COORDINATES,
+      //     radiusPixels: 25,
+      //   }),
+      // ]}
+    >
+      <HoverInfo
+        pickingInfo={hoverInfo}
+        renderTooltipContent={(info: TypedPickingInfo<WithId<Submission>>) => {
+          console.log('pick: ', info);
+          return (
+            <Box sx={{ px: 2, borderRadius: 0.5 }}>
+              <Typography variant='body2' fontWeight='fontWeightMedium'>
+                {info.object?.address.addressLine1 || ''}
+              </Typography>
+              <Typography
+                variant='body2'
+                color='text.secondary'
+              >{`ID: ${info.object?.id}`}</Typography>
+            </Box>
+          );
+        }}
+      />
+    </DeckMap>
+  );
+};
+
+interface TestPoliciesMapProps {
   queryConstraints?: QueryConstraint[];
   initState?: string[] | undefined;
   initOrgId?: string | null | undefined;
 }
 
-export const PoliciesMap = ({
+export const TestPoliciesMapWithFilters = ({
   queryConstraints,
   initState = [],
-}: // initOrgId,
-PoliciesMapProps) => {
-  // DATA / QUERY STATE
+}: TestPoliciesMapProps) => {
+  const theme = useTheme();
   const [state, setState] = useState<string[] | null | undefined>([...initState]);
-  // const [orgId, setOrgId] = useState<string | null | undefined>(initOrgId);
+
   const filters = useMemo(() => {
     let filters = [];
     if (queryConstraints) filters.push(...queryConstraints);
@@ -67,17 +151,12 @@ PoliciesMapProps) => {
     return filters;
   }, [state, queryConstraints]);
 
-  const { data: submissionData } = useCollectionData('SUBMISSIONS', filters, { idField: 'id' });
-
-  // MAP STATE
-  const [hoverInfo, setHoverInfo] = useState<PickingInfo>();
-  const [selected, setSelected] = useState<any[]>([]);
+  const [selected, setSelected] = useState<WithId<Submission>[]>([]); // TODO: just store ID ? not all policy json
   // PASS TO GPU FILTER EXTENSION
   // const [dateRange, setDateRange] = useState<number[]>([
   //   new Date('04/01/2023').getTime() / 1000,
   //   Date.now() / 1000,
   // ]);
-
   const handleClicked = useCallback(
     (info: PickingInfo) => {
       let newId = info.object?.id;
@@ -104,89 +183,31 @@ PoliciesMapProps) => {
     );
   };
 
-  const testValuation = useCallback(async () => {
-    try {
-      // let { data } = await getValuationEstimate(getFunctions(), {
-      //   addressLine1: '1382 Hunter Drive',
-      //   city: 'Wayzata',
-      //   state: 'MN',
-      //   postal: '55391',
-      // });
-      let { data } = await getValuationEstimate(getFunctions(), {
-        addressLine1: '208 Aiken Hunt Circle',
-        city: 'Columbia',
-        state: 'SC',
-        postal: '29229',
-      });
-
-      console.log('RES: ', data);
-    } catch (err) {
-      console.log('ERROR: ', err);
-    }
-  }, []);
+  const pinColor = useMemo(
+    () => getRGBAArray(theme.palette.primary.main, 150),
+    [theme.palette.primary.main]
+  );
 
   return (
     <Box>
-      <Box sx={{ height: 500, width: '100%', borderRadius: 1 }}>
-        <DeckMap
-          hoverInfo={hoverInfo}
-          renderTooltipContent={(info: PickingInfo) => (
-            <Box sx={{ px: 2, borderRadius: 0.5 }}>
-              <Typography variant='body2' fontWeight='fontWeightMedium'>
-                {info.object.addressLine1 || ''}
-              </Typography>
-              <Typography
-                variant='body2'
-                color='text.secondary'
-              >{`ID: ${info.object.id}`}</Typography>
-            </Box>
-          )}
-          // getTooltip={({ object }) => object && `${object.addressLine1}\nID: ${object.id}`}
-          layers={[
-            new IconLayer({
-              // ...defaultGeoJsonLayerProps,
-              id: `policy-locations-layer`, // @ts-ignore
-              data: submissionData, // COUNTIES_URL,
-              pickable: true,
-              // iconAtlas and iconMapping are required
-              // getIcon: return a string
-              // iconAtlas:
-              //   'https://raw.githubusercontent.com/visgl/deck.gl-data/master/website/icon-atlas.png',
-              iconAtlas: MAP_ICON_URL,
-              iconMapping: ICON_MAPPING,
-              getPosition: (d: any) => [d.coordinates.longitude, d.coordinates.latitude],
-              getIcon: (d) => 'marker',
-              sizeScale: 5,
-              getSize: (d) => 5,
-              getColor: (f: any) =>
-                selected.length && !!selected.find((s) => s.id === f.id)
-                  ? [255, 125, 125] // [0, 125, 255, 150]
-                  : [255, 255, 255, 150],
-              onHover: (info) => setHoverInfo(info),
-              onClick: (info) => handleClicked(info),
-              updateTriggers: {
-                getColor: [selected],
-              },
-
-              // WORKS
-              // getFilterValue: (d: Policy) => d.metadata?.created.seconds,
-              // filterRange: dateRange, // [0, 1],
-              // extensions: [new DataFilterExtension({ filterSize: 1 })],
-            }),
-          ]}
-          // layers={[
-          //   new HeatmapLayer({
-          //     // ...defaultGeoJsonLayerProps,
-          //     id: `policy-locations-layer`, // @ts-ignore
-          //     // data: countiesData,
-          //     // data: countiesURL,
-          //     data: submissionData, // COUNTIES_URL,
-          //     getPosition: (d) => [d.coordinates.longitude, d.coordinates.latitude], // d.COORDINATES,
-          //     radiusPixels: 25,
-          //   }),
-          // ]}
+      <Card sx={{ height: { xs: 300, sm: 400, md: 460, lg: 500 }, width: '100%' }}>
+        <PoliciesMap
+          constraints={filters}
+          layerProps={{
+            getColor: (f: any) =>
+              selected.length && !!selected.find((s) => s.id === f.id) ? [255, 125, 125] : pinColor,
+            onClick: (info) => handleClicked(info),
+            updateTriggers: {
+              getColor: [selected, pinColor],
+            },
+            // WORKS
+            // getFilterValue: (d: Policy) => d.metadata?.created.seconds,
+            // filterRange: dateRange, // [0, 1],
+            // extensions: [new DataFilterExtension({ filterSize: 1 })],
+          }}
         />
-      </Box>
+      </Card>
+
       <Box>
         <FormControl sx={{ m: 1, width: 200 }}>
           <InputLabel id='state-filter'>State</InputLabel>
@@ -206,8 +227,6 @@ PoliciesMapProps) => {
                 {s}
               </MenuItem>
             ))}
-            {/* <option value='MN'>MN</option>
-            <option value='FL'>FL</option> */}
           </Select>
         </FormControl>
       </Box>
@@ -216,41 +235,65 @@ PoliciesMapProps) => {
           Selected
         </Typography>
         {selected.map((s) => (
-          <Typography variant='body2' key={s.id}>{`${s.addressLine1} (ID: ${s.id})`}</Typography>
+          <Typography
+            variant='body2'
+            key={s.id}
+            onClick={() => handleClicked({ object: { id: s.id } } as PickingInfo)}
+            sx={{ '&:hover': { cursor: 'pointer' } }}
+          >{`${s.address.addressLine1} (ID: ${s.id})`}</Typography>
         ))}
       </Box>
-      <Button onClick={testValuation}>Test get valuation</Button>
-      <TestSignNow />
     </Box>
   );
 };
 
-function TestSignNow() {
-  const functions = useFunctions();
+// const testValuation = useCallback(async () => {
+//   try {
+//     // let { data } = await getValuationEstimate(getFunctions(), {
+//     //   addressLine1: '1382 Hunter Drive',
+//     //   city: 'Wayzata',
+//     //   state: 'MN',
+//     //   postal: '55391',
+//     // });
+//     let { data } = await getValuationEstimate(getFunctions(), {
+//       addressLine1: '208 Aiken Hunt Circle',
+//       city: 'Columbia',
+//       state: 'SC',
+//       postal: '29229',
+//     });
 
-  const handleClick = useCallback(async () => {
-    try {
-      const { data } = await deliverAgencyAgreement(functions, {
-        recipientName: 'John Doe',
-        email: 'spencercarlson@mac.com',
-        companyName: 'Engulfed Insurance',
-        companyAddress: {
-          addressLine1: '123 main st.',
-          addressLine2: '',
-          city: 'Nashville',
-          state: 'TN',
-          postal: '37203',
-        },
-      });
-      console.log('RES: ', data);
-    } catch (err) {
-      console.log('ERROR: ', err);
-    }
-  }, [functions]);
+//     console.log('RES: ', data);
+//   } catch (err) {
+//     console.log('ERROR: ', err);
+//   }
+// }, []);
 
-  return (
-    <Button onClick={handleClick} sx={{ m: 2 }}>
-      Test Sign Now
-    </Button>
-  );
-}
+// function TestSignNow() {
+//   const functions = useFunctions();
+
+//   const handleClick = useCallback(async () => {
+//     try {
+//       const { data } = await deliverAgencyAgreement(functions, {
+//         recipientName: 'John Doe',
+//         email: 'spencercarlson@mac.com',
+//         companyName: 'Engulfed Insurance',
+//         companyAddress: {
+//           addressLine1: '123 main st.',
+//           addressLine2: '',
+//           city: 'Nashville',
+//           state: 'TN',
+//           postal: '37203',
+//         },
+//       });
+//       console.log('RES: ', data);
+//     } catch (err) {
+//       console.log('ERROR: ', err);
+//     }
+//   }, [functions]);
+
+//   return (
+//     <Button onClick={handleClick} sx={{ m: 2 }}>
+//       Test Sign Now
+//     </Button>
+//   );
+// }

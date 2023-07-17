@@ -21,7 +21,7 @@ interface AuthActionsContextValue {
   sendPasswordReset: (email: string, continueUrl?: string) => Promise<any>;
   updateUserPassword: (newPassword: string) => Promise<void>;
   sendVerification: () => Promise<any>;
-  updateUserEmail: (newEmail: string) => Promise<void>;
+  updateUserEmail: (newEmail: string, onSuccess?: (msg: string) => void) => Promise<void>;
   loading: boolean;
 }
 
@@ -133,6 +133,7 @@ export const AuthActionsProvider = ({ children }: { children: ReactNode }) => {
         }
 
         await updateEmail(user, newEmail);
+        // TODO: update database email record
         if (onSuccess) onSuccess('Email updated!');
       } catch (err) {
         return Promise.reject(err);

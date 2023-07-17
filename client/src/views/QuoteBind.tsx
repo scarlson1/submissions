@@ -79,15 +79,11 @@ import { TimeManagementSVG } from 'assets/images';
 
 // TODO: error boundary & reset: https://blog.logrocket.com/react-error-handling-react-error-boundary/
 
-// TODO: check quote expiration date (30 days for quote creation) -- use cloud function ??
+// TODO: check quote expiration date (30 days from quote creation) -- use cloud function ??
 // firestore rules - only allow iDemand admin to override
 // check quote expiration date on mount
 
 // TODO: check quote status - dont allow continue if not "awaiting:user"
-
-// TODO: use transform to remove empty additional insured & mortagee rows ??
-
-// quote needs to bind by quote date + 30
 
 const policyEffShortcuts = getDateShortcuts([15, 30, 60]);
 
@@ -117,7 +113,7 @@ export const QuoteBind = () => {
     startOfDay(data.quotePublishedDate?.toDate() || new Date())
   );
   const maxEffDate = addToDate(
-    { days: 30 },
+    { days: 60 },
     endOfDay(data.quotePublishedDate?.toDate() || new Date())
   );
 
@@ -268,7 +264,7 @@ interface QuoteExpiredProps {
   productId: Product;
   expiredDate: Date;
 }
-
+// TODO: use component or just disable old quote button and put "expired" stamp on it ? prompt to create a new quote
 function QuoteExpired({ productId, expiredDate }: QuoteExpiredProps) {
   const navigate = useNavigate();
 

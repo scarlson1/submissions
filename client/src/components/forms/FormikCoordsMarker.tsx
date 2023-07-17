@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useFormikContext } from 'formik';
 import { toast } from 'react-hot-toast';
-import { Marker, MarkerDragEvent, useMap } from 'react-map-gl';
+import { MapProps, Marker, MarkerDragEvent, NavigationControl, Map, useMap } from 'react-map-gl';
 import { GpsFixedRounded } from '@mui/icons-material';
+import 'mapbox-gl/dist/mapbox-gl.css';
 
 import { AddressStepValues } from 'elements/AddressStep';
+import { MAPBOX_STREETS, MapStyleControl } from 'components/MapStyleControl';
 // popup example https://github.com/visgl/react-map-gl/blob/7.1-release/examples/controls/src/app.tsx
 
 interface FormikCoordsMarkerProps {
@@ -55,15 +57,45 @@ export const FormikCoordsMarker = ({ cb }: FormikCoordsMarkerProps) => {
       anchor='center'
       style={{ height: '26px', width: '26px' }} // default marker: height of 41px and a width of 27px
     >
-      <GpsFixedRounded />
+      <GpsFixedRounded color='primary' />
     </Marker>
   );
 };
 
-// <Marker
-//   latitude={36.040088594038394}
-//   longitude={-86.90773510282183}
-//   style={{ border: `1px solid black` }}
-// >
-//   <GpsNotFixedRounded color='error' fontSize='small' />
-// </Marker>;
+interface FormikCoordsMapProps extends Omit<MapProps, 'initialViewState' | 'mapStyle'> {
+  cb?: (coords: { lat: number | null; lng: number | null }, state?: string) => void;
+  mapStyle?: string;
+}
+
+export const FormikCoordsMap = ({
+  cb,
+  children,
+  mapStyle = MAPBOX_STREETS,
+  ...props
+}: FormikCoordsMapProps) => {
+  const { values } = useFormikContext<AddressStepValues>();
+  const [viewState, setViewState] = useState<MapProps['initialViewState']>({
+    longitude: values.coordinates?.longitude || -94.25,
+    latitude: values.coordinates?.latitude || 38.25,
+    zoom: values.coordinates?.latitude && values.coordinates?.longitude ? 16 : 2.5,
+  });
+
+  return (
+    // @ts-ignore
+    <Map
+      {...viewState}
+      onMove={(evt) => setViewState(evt.viewState)}
+      mapStyle={mapStyle}
+      styleDiffing
+      minZoom={2}
+      maxZoom={20}
+      scrollZoom={true}
+      doubleClickZoom={true}
+      {...props}
+    >
+      <FormikCoordsMarker />
+      <NavigationControl />
+      <MapStyleControl initStyle={mapStyle as string} color='standard' sx={{ m: 2 }} />
+    </Map>
+  );
+};

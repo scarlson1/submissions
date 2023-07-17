@@ -15,7 +15,7 @@ import {
 } from '@mui/material';
 import { MoreVertRounded } from '@mui/icons-material';
 import { useFirestore, useUser } from 'reactfire';
-import { doc, setDoc } from 'firebase/firestore';
+import { Firestore, doc, setDoc } from 'firebase/firestore';
 import { toast } from 'react-hot-toast';
 import axios from 'axios';
 import { useForm, SubmitHandler, useFormState } from 'react-hook-form';
@@ -421,14 +421,31 @@ function UserDetailsForm() {
   );
 }
 
+async function updateDBEmail(
+  firestore: Firestore,
+  userId: string,
+  email: string,
+  onError?: (msg: string, err: any) => void
+) {
+  try {
+    const userRef = doc(usersCollection(firestore));
+    await setDoc(userRef, { email }, { merge: true });
+  } catch (err: any) {
+    let msg = `Error updating email in databse`;
+    if (err.message) msg += ` (${err.message})`;
+    console.log(msg);
+    if (onError) onError(msg, err);
+  }
+}
+
 type UserEmailInputs = {
   email: string;
 };
 
 function UpdateUserEmail() {
+  const firestore = useFirestore();
   const toast = useAsyncToast();
   const { data: user } = useUser();
-  // const { updateUserEmail } = useAuth();
   const { updateUserEmail } = useAuthActions();
 
   const {
@@ -456,7 +473,6 @@ function UpdateUserEmail() {
     if (isSubmitSuccessful)
       reset({
         email: user?.email || '',
-        // test: [],
       });
   }, [isSubmitSuccessful, reset, user?.email]);
 
@@ -466,14 +482,18 @@ function UpdateUserEmail() {
       toast.loading('updating...');
 
       try {
-        // @ts-ignore
-        await updateUserEmail(data.email, (msg: string) => toast.success(msg));
+        await updateUserEmail(data.email, (msg: string) => {
+          toast.success(msg);
+          updateDBEmail(firestore, user!.uid, data.email, console.log);
+        });
       } catch (err) {
         toast.error('Error updating email');
       }
     },
-    [toast, updateUserEmail]
+    [toast, updateUserEmail, firestore, user]
   );
+
+  if (!user?.uid) return null;
 
   return (
     <Box sx={{ width: '100%' }}>

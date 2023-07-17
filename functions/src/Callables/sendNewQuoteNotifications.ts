@@ -2,7 +2,7 @@ import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import { error, info } from 'firebase-functions/logger';
 
 import { sendNewQuoteEmail } from '../services/sendgrid';
-import { CLAIMS, hostingBaseURL, sendgridApiKey } from '../common';
+import { CLAIMS, hostingBaseURL, onlyUnique, sendgridApiKey } from '../common';
 import { onCallWrapper } from '../services/sentry';
 
 interface SendNewQuoteNotificationsProps {
@@ -39,15 +39,21 @@ const sendNewQuoteNotifications = async ({
   const sgKey = sendgridApiKey.value();
   if (!sgKey) throw new HttpsError('failed-precondition', 'missing Sendgrid api key');
 
-  try {
-    info(`SENDING QUOTE NOTIFICATIONS TO ${JSON.stringify(to)} for quote ${quoteId}`);
+  const uniqueTo = Array.isArray(to) ? to.filter(onlyUnique) : to;
 
+  try {
     const link = `${hostingBaseURL.value()}/quotes/${quoteId}`;
-    await sendNewQuoteEmail(sgKey, link, to);
+    info(`SENDING QUOTE NOTIFICATIONS TO ${JSON.stringify(uniqueTo)} for quote ${quoteId}`, {
+      ...data,
+      uniqueTo,
+      link,
+    });
+
+    await sendNewQuoteEmail(sgKey, link, uniqueTo);
 
     return {
       status: 'success',
-      emails: to,
+      emails: uniqueTo,
     };
   } catch (err: any) {
     error('ERROR SENDING "New Quote Notifications" EMAIL', { err });

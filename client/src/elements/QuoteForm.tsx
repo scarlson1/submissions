@@ -67,7 +67,7 @@ import {
   useFetchTaxes,
   useRateQuote,
 } from 'hooks';
-import { AddressStepTest } from './AddressStep';
+// import { AddressStep } from './AddressStep';
 import { LimitsStep } from './LimitsStep';
 import {
   Diff,
@@ -89,6 +89,7 @@ import { ROUTES, createPath } from 'router';
 import { IconButtonMenu } from 'components';
 import { STATES_ABV_ARR } from 'common/statesList';
 import { TempAgentSearch } from 'components/search/Search';
+import { AddressStepQuote } from './AddressStepQuote';
 
 // TODO: move quote type to field (new, renewal, etc.) ??
 
@@ -744,7 +745,7 @@ export const QuoteForm = ({
               </Typography>
             </Grid>
             <Grid xs={12}>
-              <AddressStepTest
+              <AddressStepQuote
                 gridProps={{ rowSpacing: 4, columnSpacing: 6 }}
                 names={{
                   addressLine1: `address.addressLine1`,

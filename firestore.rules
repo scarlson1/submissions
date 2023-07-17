@@ -50,7 +50,15 @@ service cloud.firestore {
     match /quotes/{quoteId} {
       allow read: if true
       allow create: if isIDemandAdmin()
-      allow update: if ((isUser(existingData().userId) || (isAgent() && isUser(existingData().get(['agent', 'userId'], null)))) && !(containsRestrictedFields(['quoteExpiration', 'subproducerCommission', 'quoteTotal', 'termPremium', 'taxes', 'fees', 'ratingPropertyData.replacementCost', 'product', 'status', 'statusTransitions']))) || (isIDemandAdmin() && emailVerified())
+      // user or agent, excluding restricted fields. Or idemand admin
+      allow update: if (
+        (
+          isUser(existingData().userId) // user
+          || (isAgent() && isUser(existingData().get(['agent', 'userId'], null))) // agent
+        ) 
+          && !(containsRestrictedFields(['quoteExpiration', 'subproducerCommission', 'quoteTotal', 'termPremium', 'taxes', 'fees', 'ratingPropertyData.replacementCost', 'product', 'status', 'statusTransitions']))
+        ) 
+        || (isIDemandAdmin() && emailVerified()) // idemand admin
       allow delete: if false
     }
 

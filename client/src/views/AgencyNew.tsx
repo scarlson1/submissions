@@ -57,27 +57,29 @@ export const contactValidation = yup.object().shape({
     phone: phoneVal.required('Phone is required'),
   }),
 });
+export const FEINVal = yup
+  .string()
+  .matches(/^[1-9]\d?-\d{7}$/, 'FEIN must be valid format')
+  .required();
 export const feinValidation = yup.object().shape({
-  FEIN: yup
-    .string()
-    .matches(/^[1-9]\d?-\d{7}$/, 'FEIN must be valid format')
-    .required(),
+  FEIN: FEINVal,
 });
+export const EandOVal = yup
+  .mixed()
+  .test('required', 'E and O is required', (value) => {
+    if (!value || value.length < 1) return false;
+    return true;
+  })
+  .test('fileSize', 'The file must be less than 2mb', (value) => {
+    if (!value || value.length < 1) return false;
+    return value[0].size / 1024 < 2048;
+  })
+  .test('fileType', 'The file type must be .pdf', (value) => {
+    if (!value || !value.length) return false;
+    return value[0].type.includes('pdf');
+  });
 export const EandOValidation = yup.object().shape({
-  EandO: yup
-    .mixed()
-    .test('required', 'E and O is required', (value) => {
-      if (!value || value.length < 1) return false;
-      return true;
-    })
-    .test('fileSize', 'The file must be less than 2mb', (value) => {
-      if (!value || value.length < 1) return false;
-      return value[0].size / 1024 < 2048;
-    })
-    .test('fileType', 'The file type must be .pdf', (value) => {
-      if (!value || !value.length) return false;
-      return value[0].type.includes('pdf');
-    }),
+  EandO: EandOVal,
 });
 
 export interface AgencyAppValues {

@@ -1,16 +1,16 @@
 import { Box, Typography } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import Map from 'react-map-gl';
 import DeckGL, { DeckGLProps } from '@deck.gl/react/typed';
 import { GeoJsonLayerProps, LayersList, MapViewState, PickingInfo } from 'deck.gl/typed';
-
-import { useTheme } from '@mui/material/styles';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import { ReactNode } from 'react';
 
-const INITIAL_VIEW_STATE = {
+export const DEFAULT_INITIAL_VIEW_STATE = {
   longitude: -94.25,
   latitude: 38.25,
   zoom: 3.5,
-  maxZoom: 16,
+  maxZoom: 18,
   minZoom: 3,
   pitch: 0,
   bearing: 0,
@@ -32,16 +32,18 @@ export const defaultGeoJsonLayerProps: Partial<GeoJsonLayerProps> = {
   getLineWidth: 10,
 };
 
+// TODO: pass HoverInfo as child ?? needs to be direct descendant of DeckGl ??
+
 export interface DeckMapProps extends Partial<DeckGLProps> {
   mapViewState?: MapViewState;
   layers?: LayersList | undefined;
   hoverInfo?: PickingInfo | null | undefined;
-  renderTooltipContent?: (info: PickingInfo) => React.ReactNode;
+  renderTooltipContent?: (info: PickingInfo) => ReactNode;
   children?: React.ReactNode;
 }
 
 export const DeckMap = ({
-  mapViewState = INITIAL_VIEW_STATE,
+  mapViewState = DEFAULT_INITIAL_VIEW_STATE,
   layers,
   hoverInfo,
   renderTooltipContent,
@@ -64,7 +66,7 @@ export const DeckMap = ({
         <Map
           mapStyle={
             theme.palette.mode === 'light'
-              ? 'mapbox://styles/mapbox/light-v8'
+              ? 'mapbox://styles/mapbox/light-v11' // 8
               : 'mapbox://styles/spencer-carlson/cl8dxgtum000w14qix5ft9gw5'
           }
           styleDiffing
@@ -73,32 +75,44 @@ export const DeckMap = ({
         >
           {children}
         </Map>
-        {hoverInfo && hoverInfo.object && (
-          <Box
-            sx={{
-              position: 'absolute',
-              // zIndex: 1,
-              zIndex: 2000,
-              pointerEvents: 'none',
-              left: hoverInfo.x,
-              top: hoverInfo.y,
-              backgroundColor: 'background.paper',
-              px: 2,
-              py: 1.5,
-              borderRadius: 1,
-              display: 'flex',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-            }}
-          >
-            <Typography variant='body2' component='div'>
-              {renderTooltipContent
-                ? renderTooltipContent(hoverInfo)
-                : hoverInfo.object.properties?.NAME || ''}
-            </Typography>
-          </Box>
-        )}
+        <HoverInfo pickingInfo={hoverInfo} renderTooltipContent={renderTooltipContent} />
       </DeckGL>
     </Box>
   );
 };
+
+interface HoverInfoProps {
+  pickingInfo?: PickingInfo | null | undefined;
+  renderTooltipContent?: (info: PickingInfo) => ReactNode;
+  children?: ReactNode;
+}
+
+export function HoverInfo({ pickingInfo, renderTooltipContent, children }: HoverInfoProps) {
+  if (!(pickingInfo && pickingInfo.object)) return null;
+
+  return (
+    <Box
+      sx={{
+        position: 'absolute',
+        zIndex: 2000,
+        pointerEvents: 'none',
+        left: pickingInfo.x,
+        top: pickingInfo.y,
+        backgroundColor: 'background.paper',
+        px: 2,
+        py: 1.5,
+        borderRadius: 1,
+        display: 'flex',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+      }}
+    >
+      <Typography variant='body2' component='div'>
+        {renderTooltipContent
+          ? renderTooltipContent(pickingInfo)
+          : pickingInfo.object.properties?.NAME || ''}
+      </Typography>
+      {children}
+    </Box>
+  );
+}

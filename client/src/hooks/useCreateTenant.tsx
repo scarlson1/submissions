@@ -85,12 +85,16 @@ export const useSendAgencyAppNotification = (
 };
 
 // TODO: refactor - not using onSuccess rn
-interface UseCreateTenantProps {
-  onSuccess?: (data: { tenantId?: string }) => void;
-  onError?: (errArgs: { code: string; message: string }) => void;
-}
+// interface UseCreateTenantProps {
+//   onSuccess?: (data: { tenantId?: string }) => void;
+//   onError?: (errArgs: { code: string; message: string }) => void;
+// }
 
-export const useCreateTenant = ({ onSuccess, onError }: UseCreateTenantProps | undefined = {}) => {
+// export const useCreateTenant = ({ onSuccess, onError }: UseCreateTenantProps | undefined = {}) => {
+export const useCreateTenant = (
+  onSuccess?: (data: { tenantId?: string }) => void,
+  onError?: (errArgs: { code: string; message: string }) => void
+) => {
   const functions = useFunctions();
   const toast = useAsyncToast();
   const { sendApproved, promptForNotification } = useSendAgencyAppNotification();
@@ -158,9 +162,9 @@ export const useCreateTenant = ({ onSuccess, onError }: UseCreateTenantProps | u
         }
       }
 
-      // if (onSuccess) onSuccess({ tenantId });
+      if (onSuccess) onSuccess({ tenantId });
     },
-    [promptForNotification, sendApproved, toast]
+    [promptForNotification, sendApproved, toast, onSuccess]
   );
 
   const createTenant = useCallback(

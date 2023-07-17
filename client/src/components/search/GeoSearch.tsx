@@ -67,7 +67,7 @@ export const GeoSearch = () => {
 };
 
 const ICON_MAPPING = {
-  marker: { x: 0, y: 0, width: 128, height: 128, mask: true },
+  marker: { x: 0, y: 0, width: 128, height: 128, anchorY: 128, mask: true },
 };
 
 export function Airports() {
