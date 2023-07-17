@@ -1,8 +1,14 @@
-import { useCallback, useMemo } from 'react';
-import { ToggleButton, ToggleButtonGroup, ToggleButtonGroupProps } from '@mui/material';
+import { ReactElement, useCallback, useMemo } from 'react';
+import { ToggleButton, ToggleButtonGroup, ToggleButtonGroupProps, Tooltip } from '@mui/material';
 import { useMap } from 'react-map-gl';
 
 import { useLocalStorage } from 'hooks';
+import {
+  AddRoadRounded,
+  DarkModeRounded,
+  LightModeRounded,
+  SatelliteAltRounded,
+} from '@mui/icons-material';
 
 export const MAPBOX_LIGHT = 'mapbox://styles/mapbox/light-v11';
 export const MAPBOX_DARK = 'mapbox://styles/spencer-carlson/cl8dxgtum000w14qix5ft9gw5';
@@ -50,8 +56,9 @@ export const useMapboxStyleControl = (
       'aria-label': 'style',
       ...props,
       sx: {
-        border: (theme) => `1px solid ${theme.palette.divider}`,
-        borderRadius: 0.5,
+        border: (theme) => `2px solid ${theme.palette.divider}`,
+        borderRadius: 1, // 0.5,
+        position: 'relative',
         ...(props?.sx || {}),
       },
     }),
@@ -59,38 +66,72 @@ export const useMapboxStyleControl = (
   );
 };
 
-const DEFAULT_STYLE_OPTIONS = [
+export const DEFAULT_MAP_STYLE_OPTIONS: MapStyleOption[] = [
   { label: 'Light', value: MAPBOX_LIGHT },
   { label: 'Dark', value: MAPBOX_DARK },
   { label: 'Streets', value: MAPBOX_STREETS },
   { label: 'Satellite', value: MAPBOX_SATELLITE },
 ];
-
+export const MOBILE_DEFAULT_MAP_STYLE_OPTIONS: MapStyleOption[] = [
+  {
+    label: (
+      <Tooltip title='Light'>
+        <LightModeRounded fontSize='small' />
+      </Tooltip>
+    ),
+    value: MAPBOX_LIGHT,
+  },
+  {
+    label: (
+      <Tooltip title='Dark'>
+        <DarkModeRounded fontSize='small' />
+      </Tooltip>
+    ),
+    value: MAPBOX_DARK,
+  },
+  {
+    label: (
+      <Tooltip title='Streets'>
+        <AddRoadRounded fontSize='small' />
+      </Tooltip>
+    ),
+    value: MAPBOX_STREETS,
+  },
+  {
+    label: (
+      <Tooltip title='Satellite'>
+        <SatelliteAltRounded fontSize='small' />
+      </Tooltip>
+    ),
+    value: MAPBOX_SATELLITE,
+  },
+];
+interface MapStyleOption {
+  label: string | ReactElement;
+  value: string;
+}
 interface MapboxStyleControlProps
   extends Omit<ToggleButtonGroupProps, 'onChange' | 'value' | 'exclusive'> {
   initStyle: string;
-  options?: { label: string; value: string }[];
+  options?: MapStyleOption[];
 }
 
 export function MapStyleControl({
-  options = DEFAULT_STYLE_OPTIONS,
+  options = DEFAULT_MAP_STYLE_OPTIONS,
   initStyle,
   ...props
 }: MapboxStyleControlProps) {
   const styleProps = useMapboxStyleControl(initStyle, props);
 
   return (
-    <ToggleButtonGroup
-      {...styleProps}
-      sx={{ border: `1px solid grey`, borderRadius: 0.5, ...(styleProps.sx || {}) }}
-    >
+    <ToggleButtonGroup {...styleProps} sx={{ ...(styleProps.sx || {}) }}>
       {options.map((s) => (
         <ToggleButton
           value={s.value}
           key={s.value}
           sx={{
             border: 'none !important',
-            borderRadius: 0.5,
+            borderRadius: 1, // 0.5,
             backgroundColor: (theme) => theme.palette.background.paper,
             '&:hover, &.Mui-selected:hover': {
               backgroundColor: (theme) =>

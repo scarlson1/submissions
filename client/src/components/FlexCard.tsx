@@ -3,6 +3,7 @@ import {
   CardContent as MuiCardContent,
   CardProps,
   CardContentProps,
+  Box,
 } from '@mui/material';
 
 export const flexCardStyle = {
@@ -29,5 +30,11 @@ export const FlexCardContent = (props: CardContentProps) => {
     <MuiCardContent {...props} sx={{ ...flexCardContentStyle, ...props.sx }}>
       {props.children}
     </MuiCardContent>
+  );
+};
+
+export const FlexCardContentWrapper = (props: any) => {
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>{props.children}</Box>
   );
 };

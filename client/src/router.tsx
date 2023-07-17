@@ -1044,9 +1044,11 @@ export const router = sentryCreateBrowserRouter([
           {
             path: ADMIN_ROUTES.ORGANIZATION,
             element: (
-              <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
-                <Organization />
-              </RequireAuthReactFire>
+              <AuthActionsProvider>
+                <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
+                  <Organization />
+                </RequireAuthReactFire>
+              </AuthActionsProvider>
             ),
             handle: {
               crumb: (match: CrumbMatch) => [

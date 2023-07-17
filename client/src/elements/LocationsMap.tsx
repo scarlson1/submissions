@@ -17,10 +17,7 @@ const ICON_MAPPING = {
 };
 
 export function getBoundingBox(points: number[][]) {
-  const [xCoords, yCoords] = zip(...points); //  as any as number[][];
-  console.log('X COORDS: ', xCoords);
-  const zipped = zip(...points);
-  console.log('ZIPPED: ', zipped);
+  const [xCoords, yCoords] = zip(...points);
   // return [(min(xCoords), min(yCoords)), (max(xCoords), max(yCoords))]
   // // format: [minLat, minLng, maxLat, maxLng]
   // return [min(xCoords), min(yCoords), max(xCoords), max(yCoords)]

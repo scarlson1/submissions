@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFormikContext } from 'formik';
 import { toast } from 'react-hot-toast';
 import { MapProps, Marker, MarkerDragEvent, NavigationControl, Map, useMap } from 'react-map-gl';
@@ -6,7 +6,13 @@ import { GpsFixedRounded } from '@mui/icons-material';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 import { AddressStepValues } from 'elements/AddressStep';
-import { MAPBOX_STREETS, MapStyleControl } from 'components/MapStyleControl';
+import {
+  DEFAULT_MAP_STYLE_OPTIONS,
+  MAPBOX_STREETS,
+  MOBILE_DEFAULT_MAP_STYLE_OPTIONS,
+  MapStyleControl,
+} from 'components/MapStyleControl';
+import { useWidth } from 'hooks';
 // popup example https://github.com/visgl/react-map-gl/blob/7.1-release/examples/controls/src/app.tsx
 
 interface FormikCoordsMarkerProps {
@@ -79,6 +85,12 @@ export const FormikCoordsMap = ({
     latitude: values.coordinates?.latitude || 38.25,
     zoom: values.coordinates?.latitude && values.coordinates?.longitude ? 16 : 2.5,
   });
+  const { isSmall } = useWidth();
+
+  const mapStyleOptions = useMemo(
+    () => (isSmall ? MOBILE_DEFAULT_MAP_STYLE_OPTIONS : DEFAULT_MAP_STYLE_OPTIONS),
+    [isSmall]
+  );
 
   return (
     // @ts-ignore
@@ -95,7 +107,12 @@ export const FormikCoordsMap = ({
     >
       <FormikCoordsMarker />
       <NavigationControl />
-      <MapStyleControl initStyle={mapStyle as string} color='standard' sx={{ m: 2 }} />
+      <MapStyleControl
+        options={mapStyleOptions}
+        initStyle={mapStyle as string}
+        color='standard'
+        sx={{ m: 2 }}
+      />
     </Map>
   );
 };

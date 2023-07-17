@@ -1,5 +1,4 @@
-import { useCallback, useRef } from 'react';
-
+import { useCallback, useRef, useState } from 'react';
 import { FormikHelpers, FormikProps, FormikValues } from 'formik';
 import { Box, Container, Tooltip, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
@@ -29,7 +28,7 @@ import {
 import { ROUTES, createPath } from 'router';
 // import { statesCollection, submissionsCollection } from 'common/firestoreCollections';
 import { SUBMISSION_STATUS } from 'common/enums';
-import { useActiveStates, usePropertyDetailsAttom } from 'hooks';
+import { useActiveStates, useAsyncToast, usePropertyDetailsAttom } from 'hooks';
 import { roundUpToNearest, sumArr } from 'modules/utils/helpers';
 import { useAuth } from 'modules/components/AuthContext';
 import {
@@ -38,9 +37,11 @@ import {
   Limits,
   NamedInsuredDetails,
   Nullable,
+  RatingPropertyData,
   submissionsCollection,
 } from 'common';
 import { ErrorFallbackWithReset } from 'components/ErrorFallback';
+import { InitRatingValues } from 'hooks/usePropertyDetails';
 
 // TODO: error boundary & reset: https://blog.logrocket.com/react-error-handling-react-error-boundary/
 
@@ -53,6 +54,76 @@ const gridProps = {
   rowSpacing: { xs: 4, sm: 6, md: 8 },
   columnSpacing: { xs: 6, sm: 9, md: 12 },
 };
+
+function useCreateSubmission(
+  onSuccess?: (docId: string) => void,
+  onError?: (msg: string, err: any) => void
+) {
+  const firestore = useFirestore();
+  const { user, claims, orgId } = useAuth();
+  const [loading, setLoading] = useState(false);
+
+  const createSubmission = useCallback(
+    async (
+      values: FloodValues,
+      {
+        propertyDetails,
+        propertyDataDocId,
+        rcvSourceUser,
+        initRatingValues,
+      }: {
+        propertyDetails: Nullable<RatingPropertyData>;
+        propertyDataDocId: string | null;
+        rcvSourceUser: boolean;
+        initRatingValues: InitRatingValues;
+      }
+    ) => {
+      try {
+        if (!(values.coordinates.latitude && values.coordinates.longitude))
+          throw new Error('Missing coords');
+        setLoading(true);
+        const docRef = await addDoc(submissionsCollection(firestore), {
+          ...values,
+          product: 'flood',
+          coordinates: new GeoPoint(values.coordinates.latitude, values.coordinates.longitude),
+          status: SUBMISSION_STATUS.SUBMITTED,
+          userId: user?.uid ?? null,
+          // agentId: !!claims.agent ? user?.uid || null : null,
+          agent: {
+            userId: !!claims?.agent ? user?.uid || null : null,
+            name: !!claims?.agent ? user?.displayName || null : null,
+            email: !!claims?.agent ? user?.email || null : null,
+            phone: !!claims?.agent ? user?.phoneNumber || null : null,
+          },
+          agency: {
+            name: '', // TODO: org name - save on user doc ?? or rxjs obs ??
+            orgId: orgId || null,
+            address: null, // TODO: agency address
+          },
+          submittedById: user?.uid ?? null,
+          ratingPropertyData: propertyDetails,
+          initValues: initRatingValues,
+          propertyDataDocId,
+          rcvSourceUser,
+          metadata: {
+            created: serverTimestamp(),
+            updated: serverTimestamp(),
+          },
+        });
+        setLoading(false);
+        if (onSuccess) onSuccess(docRef.id);
+      } catch (err: any) {
+        let msg = `Error creating submission`;
+        if (err.message) msg += ` (${err.message})`;
+        if (onError) onError(msg, err);
+        setLoading(false);
+      }
+    },
+    [firestore, user, claims, orgId, onSuccess, onError]
+  );
+
+  return { createSubmission, loading };
+}
 
 export interface FloodValues {
   address: Address;
@@ -100,15 +171,23 @@ export const initialValues: FloodValues = {
 };
 
 export const SubmissionNew = () => {
-  const firestore = useFirestore();
   const navigate = useNavigate();
-  const { user, claims, orgId } = useAuth();
+  const { user } = useAuth();
+  const toast = useAsyncToast({ position: 'top-right' });
   const formikRef = useRef<FormikProps<FormikValues>>(null);
   const activeStates = useActiveStates('flood');
   const { propertyDetails, rcvSourceUser, propertyDataDocId, initRatingValues, fetchPropertyData } =
     usePropertyDetailsAttom({
       promptForValuation: true,
     });
+
+  const { createSubmission } = useCreateSubmission(
+    (docId: string) => {
+      toast.success('saved!', { duration: 1000 });
+      navigate(createPath({ path: ROUTES.SUBMISSION_SUBMITTED, params: { submissionId: docId } }));
+    },
+    (msg: string) => toast.error(msg)
+  );
 
   const handleFetchProperty = useCallback(
     async (values: FloodValues, helpers: FormikHelpers<FloodValues>) => {
@@ -173,66 +252,16 @@ export const SubmissionNew = () => {
 
   const handleSubmit = useCallback(
     async (values: FloodValues, { setSubmitting }: FormikHelpers<FloodValues>) => {
-      // console.log(values);
-      // const coords =
-      //   values.coordinates.latitude && values.coordinates.longitude
-      //     ? new GeoPoint(values.coordinates.latitude, values.coordinates.longitude)
-      //     : null;
-
-      try {
-        if (!(values.coordinates.latitude && values.coordinates.longitude))
-          throw new Error('Missing coords');
-
-        const docRef = await addDoc(submissionsCollection(firestore), {
-          ...values,
-          product: 'flood',
-          coordinates: new GeoPoint(values.coordinates.latitude, values.coordinates.longitude),
-          status: SUBMISSION_STATUS.SUBMITTED,
-          userId: user?.uid ?? null,
-          // agentId: !!claims.agent ? user?.uid || null : null,
-          agent: {
-            userId: !!claims?.agent ? user?.uid || null : null,
-            name: !!claims?.agent ? user?.displayName || null : null,
-            email: !!claims?.agent ? user?.email || null : null,
-            phone: !!claims?.agent ? user?.phoneNumber || null : null,
-          },
-          agency: {
-            name: '', // TODO: org name - save on user doc ?? or rxjs obs ??
-            orgId: orgId || null,
-            address: null, // TODO: agency address
-          },
-          // TODO: agency info
-          submittedById: user?.uid ?? null,
-          ratingPropertyData: propertyDetails,
-          initValues: initRatingValues,
-          propertyDataDocId,
-          rcvSourceUser,
-          metadata: {
-            created: serverTimestamp(),
-            updated: serverTimestamp(),
-          },
-        });
-
-        navigate(
-          createPath({ path: ROUTES.SUBMISSION_SUBMITTED, params: { submissionId: docRef.id } })
-        );
-      } catch (err) {
-        console.log('ERROR: ', err);
-      }
+      await createSubmission(values, {
+        propertyDetails,
+        propertyDataDocId,
+        rcvSourceUser,
+        initRatingValues,
+      });
 
       setSubmitting(false);
     },
-    [
-      firestore,
-      navigate,
-      propertyDetails,
-      initRatingValues,
-      propertyDataDocId,
-      rcvSourceUser,
-      user,
-      claims,
-      orgId,
-    ]
+    [createSubmission, propertyDetails, initRatingValues, propertyDataDocId, rcvSourceUser]
   );
 
   const handleErrorReset = useCallback((...details: unknown[]) => {

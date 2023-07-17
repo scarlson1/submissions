@@ -109,6 +109,9 @@ export const policyChangeReqestsCollection = (db: Firestore, policyId: string, .
     ...rest
   );
 
+export const policyClaimsCollection = (db: Firestore, policyId: string, ...rest: string[]) =>
+  createCollection<any>(db, COLLECTIONS.POLICIES, policyId, COLLECTIONS.CLAIMS, ...rest);
+
 // export const notificationsCollection = (userId: string) =>
 //   createCollection<Notification>(COLLECTIONS.USERS, userId, COLLECTIONS.NOTIFICATIONS);
 // export const licensesCollection = (orgId: string) =>

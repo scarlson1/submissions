@@ -38,6 +38,7 @@ export { MoratoriumsGrid } from './MoratoriumsGrid';
 export { LicenseForm } from './LicenseForm';
 export { QuoteForm } from './QuoteForm';
 export { PortfolioRatingDialog } from './PortfolioRatingDialog';
+export { ClaimsForm } from './ClaimsForm';
 
 export type { FormikAddressProps } from './FormikAddress';
 export type { DeductibleStepProps } from './DeductibleStep';
