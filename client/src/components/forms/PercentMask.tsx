@@ -1,6 +1,7 @@
 import { forwardRef } from 'react';
 import { IMaskInput } from 'react-imask';
-import { IMaskInputProps } from 'react-imask/dist/mixin';
+
+import { IMaskProps } from './IMask';
 
 // const percentagePattern = {
 //   mask: [
@@ -24,16 +25,7 @@ import { IMaskInputProps } from 'react-imask/dist/mixin';
 //   ],
 // };
 
-export interface PercentMaskProps {
-  onChange: (event: { target: { name: string; value: string } }) => void;
-  name: string;
-  maskProps?: Partial<IMaskInputProps>;
-}
-
-export const PercentMask = forwardRef<HTMLElement, PercentMaskProps>(function TextMaskCustom(
-  props,
-  ref
-) {
+export const PercentMask = forwardRef<HTMLElement, IMaskProps>(function TextMaskCustom(props, ref) {
   const { onChange, maskProps, ...other } = props;
 
   return (

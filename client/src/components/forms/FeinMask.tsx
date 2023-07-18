@@ -1,16 +1,13 @@
 import { forwardRef } from 'react';
 import { IMaskInput } from 'react-imask';
 
-export interface FeinMaskProps {
-  onChange: (event: { target: { name: string; value: string } }) => void;
-  name: string;
-}
+import { IMaskProps } from './IMask';
 
-export const FeinMask = forwardRef<HTMLElement, FeinMaskProps>(function TextMaskCustom(
-  props,
-  ref
-) {
+// TODO: replace using IMask component
+
+export const FeinMask = forwardRef<HTMLElement, IMaskProps>(function TextMaskCustom(props, ref) {
   const { onChange, ...other } = props;
+
   return (
     <IMaskInput
       {...other}

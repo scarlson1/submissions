@@ -74,7 +74,6 @@ export const FormikMaskField = ({
           variant={variant}
           error={meta.touched && Boolean(meta.error)}
           required={required}
-          // sx={{ color: 'text.secondary', size: '12px' }}
         >
           {meta.error || helperText}
         </FormHelperText>

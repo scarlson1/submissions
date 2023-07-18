@@ -35,7 +35,7 @@ export const userClaimsCol: GridMultiSelectColDef = {
     if (!params.value) return [];
     return Object.keys(params.value).filter((k) => params.value[k] && k !== '_lastCommitted');
   },
-  valueFormatter: (params) => `${params.value.join(', ')}`,
+  valueFormatter: (params) => `${params.value?.join(', ')}`,
   renderCell: renderChips,
   renderEditCell: (params: GridRenderEditCellParams) => <GridEditMultiSelectCell {...params} />,
   // usually necessary if valueGetter is used

@@ -1,18 +1,12 @@
 import { forwardRef } from 'react';
 import { IMaskInput } from 'react-imask';
 
+import { IMaskProps } from './IMask';
+
 // TODO: turn into reuable component
 // pass mask etc as props
 
-export interface PhoneMaskProps {
-  onChange: (event: { target: { name: string; value: string } }) => void;
-  name: string;
-}
-
-export const PhoneMask = forwardRef<HTMLElement, PhoneMaskProps>(function TextMaskCustom(
-  props,
-  ref
-) {
+export const PhoneMask = forwardRef<HTMLElement, IMaskProps>(function TextMaskCustom(props, ref) {
   const { onChange, ...other } = props;
   return (
     <IMaskInput

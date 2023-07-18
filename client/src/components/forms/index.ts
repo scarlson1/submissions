@@ -20,7 +20,15 @@ export { FormikSwitch } from './FormikSwitch';
 export { FormikDragDrop } from './FormikDragDrop';
 export { RoutingNumberMask } from './RoutingNumberMask';
 export { FormikMultiTextInput } from './FormikMultiTextInput';
-export { IMask } from './IMask';
+export {
+  IMask,
+  cardExpDateMaskProps,
+  feinMaskProps,
+  percentMaskProps,
+  phoneMaskProps,
+  postalMaskProps,
+  routingNumberMaskProps,
+} from './IMask';
 export { VirtualizedAutocomplete } from './VirtualizedAutocomplete';
 export { RHFTextField } from './RHFTextField';
 export { RHFFieldArray } from './RHFFieldArray';
@@ -36,12 +44,10 @@ export type {
   AddressComponentType,
   NewAddress,
 } from './AddressAutocomplete';
-export type { FeinMaskProps } from './FeinMask';
 export type { FormikCheckboxProps } from './FormikCheckbox';
 export type { FormikMaskFieldProps } from './FormikMaskField';
 export type { FormikSelectProps } from './FormikSelect';
 export type { FormikTextFieldProps } from './FormikTextField';
-export type { PhoneMaskProps } from './PhoneMask';
 export type { StepperNavProps } from './StepperNav';
 export type { StepProps } from './Step';
 export type { FormikWizardProps } from './FormikWizard';
@@ -54,7 +60,6 @@ export type { FormikDatePickerProps } from './FormikDatePicker';
 export type { FormikNativeSelectProps } from './FormikNativeSelect';
 export type { FormikSwitchProps } from './FormikSwitch';
 export type { FormikDragDropProps } from './FormikDragDrop';
-export type { RoutingNumberMaskProps } from './RoutingNumberMask';
 export type { FormikMultiTextInputProps } from './FormikMultiTextInput';
 export type { IMaskProps } from './IMask';
 export type { VirtualizedAutocompleteProps } from './VirtualizedAutocomplete';

@@ -11,13 +11,19 @@ import {
   IconButton,
 } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
-import { CalculateRounded, DownloadRounded, PolicyRounded } from '@mui/icons-material';
+import {
+  CalculateOutlined,
+  CalculateRounded,
+  CheckCircleOutlineRounded,
+  DownloadRounded,
+  PolicyRounded,
+} from '@mui/icons-material';
 import { Firestore, doc, getDoc } from 'firebase/firestore';
 import { useFirestore } from 'reactfire';
 import { useNavigate } from 'react-router-dom';
 import { Formik, FormikErrors, FormikHelpers, FormikProps, setNestedObjectValues } from 'formik';
 import { add, startOfToday, endOfToday } from 'date-fns';
-import { isEqual, merge, omit } from 'lodash';
+import { isEmpty, isEqual, merge, omit } from 'lodash';
 import * as yup from 'yup';
 
 import {
@@ -49,6 +55,7 @@ import {
   orgsCollection,
 } from 'common';
 import {
+  Obj,
   addToDate,
   dollarFormat,
   getDateShortcuts,
@@ -622,8 +629,34 @@ export const QuoteForm = ({
     navigate(createPath({ path: ROUTES.QUOTES }));
   }, [navigate]);
 
+  const onDiffChange = useCallback((diff: Obj | undefined, isDiff: boolean) => {
+    // recalc: if any diff between prev and current rating fields
+    // rerate: if rerate key is included in diff
+    if (isEmpty(diff)) return setRatingState({ rerateRequired: false, recalcRequired: false });
+    const shouldRerate = RATING_FIELDS.some((key) => {
+      return diff[key];
+    });
+    // setRatingState({ rerateRequired: shouldRerate, recalcRequired: isDiff });
+    // Directly setting rerate misses checking for AALs
+    const aals = formikRef.current?.values.AAL;
+    const missingAAL = !(aals?.inland || aals?.surge);
+    setRatingState({ rerateRequired: shouldRerate || missingAAL, recalcRequired: isDiff });
+  }, []);
+
+  const getDiffIcon = useCallback(
+    (handleClick: () => void) => {
+      return !ratingState.rerateRequired && !ratingState.recalcRequired ? (
+        <CheckCircleOutlineRounded fontSize='small' color='success' sx={{ mx: 2 }} />
+      ) : ratingState.rerateRequired ? (
+        <CalculateRounded fontSize='small' color='warning' sx={{ mx: 2 }} onClick={handleClick} />
+      ) : (
+        <CalculateOutlined fontSize='small' color='info' sx={{ mx: 2 }} onClick={handleClick} />
+      );
+    },
+    [ratingState]
+  );
+
   const validation = useMemo(() => {
-    // console.log('get validation: ', activeStates);
     return activeStates ? getQuoteValidation(activeStates) : undefined;
   }, [activeStates]);
 
@@ -711,12 +744,20 @@ export const QuoteForm = ({
                 values.quoteTotal ? dollarFormat(values.quoteTotal) : '--'
               }`}</Typography>
               <Diff
-                ratingInputsPrev={ratingInputsSnap}
-                rerateFields={RATING_FIELDS}
-                ratingState={ratingState}
-                setRatingState={handleDiffChange}
+                inputsPrev={ratingInputsSnap}
+                onDiffChange={onDiffChange}
+                getStateIcon={getDiffIcon}
                 extractInputsFromValues={extractRatingInputsFromValues}
-              />
+              >
+                <Typography variant='body2' fontWeight={500}>
+                  {`Rerate (AAL) required: ${
+                    ratingState.rerateRequired === null ? 'no changes' : ratingState.rerateRequired
+                  }`}
+                </Typography>
+                <Typography variant='body2' fontWeight={500}>
+                  {`Premium calc required: ${ratingState.recalcRequired}`}
+                </Typography>
+              </Diff>
             </Stack>
             <Stack direction='row' spacing={2}>
               <LoadingButton

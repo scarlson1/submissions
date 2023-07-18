@@ -1,17 +1,11 @@
 import { forwardRef } from 'react';
 import { IMaskInput } from 'react-imask';
 
+import { IMaskProps } from './IMask';
+
 // import { postalRegEx } from 'common';
 
-export interface PostalMaskProps {
-  onChange: (event: { target: { name: string; value: string } }) => void;
-  name: string;
-}
-
-export const PostalMask = forwardRef<HTMLElement, PostalMaskProps>(function TextMaskCustom(
-  props,
-  ref
-) {
+export const PostalMask = forwardRef<HTMLElement, IMaskProps>(function TextMaskCustom(props, ref) {
   const { onChange, ...other } = props;
 
   return (
