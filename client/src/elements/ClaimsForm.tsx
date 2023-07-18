@@ -23,6 +23,7 @@ const useCreateClaim = (
   const createClaim = useCallback(
     async (values: ClaimsValues) => {
       try {
+        // await uploadFiles() TODO: upload files to storage
         const docRef = await addDoc(claimsCol, {
           ...values,
           policyId,
