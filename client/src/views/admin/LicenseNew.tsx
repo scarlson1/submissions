@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { useAsyncToast, useCreateSLLicense } from 'hooks';
 import { ADMIN_ROUTES, createPath } from 'router';
-import { LicenseForm, LicenseValues } from 'elements';
+import { LicenseForm, LicenseValues } from 'elements/forms';
 
 export const LicenseNew = () => {
   const navigate = useNavigate();

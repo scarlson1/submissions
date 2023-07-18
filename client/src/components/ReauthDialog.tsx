@@ -29,7 +29,7 @@ import {
 import { FirebaseError } from 'firebase/app';
 import { PasswordRounded } from '@mui/icons-material';
 
-import { FormikPassword } from 'elements';
+import { FormikPassword } from 'elements/forms';
 import { useHandleAuthError } from 'hooks';
 // import { GoogleAuth, MicrosoftAuth } from 'components';
 

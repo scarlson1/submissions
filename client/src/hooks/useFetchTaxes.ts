@@ -13,7 +13,7 @@ import {
   WithId,
 } from 'common';
 import { sumByTypes } from 'modules/utils';
-import { QuoteValues } from 'elements/QuoteForm';
+import { QuoteValues } from 'elements/forms/QuoteForm';
 
 export type SubjectBaseKeyVal = Record<Exclude<SubjectBaseItems, 'fixedFee' | 'noFee'>, number>;
 interface StateTaxRequest extends SubjectBaseKeyVal {

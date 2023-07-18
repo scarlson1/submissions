@@ -22,7 +22,7 @@ import {
 import { useFormikContext } from 'formik';
 
 import { AgencyAppValues } from 'views/AgencyNew';
-import { formatPhoneNumber, maskStringShowLast } from 'modules/utils/helpers';
+import { formatPhoneNumber } from 'modules/utils/helpers';
 import { EmailRounded, PersonRounded, PhoneRounded } from '@mui/icons-material';
 
 export interface ContactItem {
@@ -117,7 +117,7 @@ export const AgencyReviewStep = (props: AgencyReviewStepProps) => {
                 ]}
               />
             </Grid>
-            <Grid xs={12} display='flex' justifyContent='stretch' sx={{ flexWrap: 'wrap' }}>
+            {/* <Grid xs={12} display='flex' justifyContent='stretch' sx={{ flexWrap: 'wrap' }}>
               <Box sx={{ width: '100%', flex: '1 0 auto' }}>
                 <Divider />
                 <Typography variant='overline' sx={{ color: 'text.secondary' }}>
@@ -136,7 +136,7 @@ export const AgencyReviewStep = (props: AgencyReviewStepProps) => {
                 </Typography>
                 <Typography>{maskStringShowLast(values?.accountNumber, 4)}</Typography>
               </Box>
-            </Grid>
+            </Grid> */}
             <Grid xs={12}>
               <Divider />
               <Stack

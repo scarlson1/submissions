@@ -1,6 +1,6 @@
 import { Container, Typography } from '@mui/material';
 
-import { ContactForm } from 'elements';
+import { ContactForm } from 'elements/forms';
 
 export const ContactUs = () => {
   return (

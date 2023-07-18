@@ -5,7 +5,7 @@ import { MapProps, Marker, MarkerDragEvent, NavigationControl, Map, useMap } fro
 import { GpsFixedRounded } from '@mui/icons-material';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
-import { AddressStepValues } from 'elements/AddressStep';
+import { AddressStepValues } from 'elements/forms/AddressStep';
 import {
   DEFAULT_MAP_STYLE_OPTIONS,
   MAPBOX_STREETS,

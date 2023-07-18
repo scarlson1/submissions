@@ -7,14 +7,8 @@ import { useFirestore } from 'reactfire';
 import { ErrorBoundary } from 'react-error-boundary';
 import ReactJson from '@microlink/react-json-view';
 
-import {
-  AddUsersDialog,
-  InvitesGrid,
-  PoliciesGrid,
-  QuotesGrid,
-  SubmissionsGrid,
-  UsersGrid,
-} from 'elements';
+import { InvitesGrid, PoliciesGrid, QuotesGrid, SubmissionsGrid, UsersGrid } from 'elements';
+import { AddUsersDialog } from 'elements/forms';
 import { useAgencyInsureds } from 'hooks/useAgencyInsureds';
 import { useCollectionDataInnerJoin, useRx, useRxDocJoin } from 'hooks/useRx';
 import { ClaimsGuard } from 'components';

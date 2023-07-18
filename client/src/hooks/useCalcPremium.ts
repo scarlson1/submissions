@@ -6,7 +6,7 @@ import { CalcQuoteRequest, calcQuote } from 'modules/api';
 import { RatingInputs } from 'modules/api/getAnnualPremium';
 import { Optional } from 'common';
 import { truthyOrZero } from 'modules/utils';
-import { QuoteValues } from 'elements';
+import { QuoteValues } from 'elements/forms';
 
 export function validateCommonInputs(values: QuoteValues) {
   const { ratingPropertyData, deductible, subproducerCommission, address, limits } = values; // priorLossCount,

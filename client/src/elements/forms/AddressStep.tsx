@@ -7,9 +7,9 @@ import { Marker } from 'react-map-gl';
 import { toast } from 'react-hot-toast';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
-import { FormikAddress, FormikAddressProps } from 'elements';
+import { FormikAddress, FormikAddressProps } from './FormikAddress';
 import { useRegisterEmailNotification } from 'hooks';
-import { ActiveStateMap } from './ActiveStateMap';
+import { ActiveStateMap } from '../ActiveStateMap';
 import { Address, Coordinates, Nullable } from 'common';
 
 export interface AddressStepValues {

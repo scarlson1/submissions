@@ -9,7 +9,7 @@ import { add } from 'date-fns';
 
 import { RatingInputsWithAAL, useAsyncToast, useCreateQuote, useDocDataOnce } from 'hooks';
 import { Optional, SUBMISSION_STATUS, Submission, submissionsCollection } from 'common';
-import { QuoteForm, QuoteValues, getRatingInputsFromSubmission } from 'elements/QuoteForm';
+import { QuoteForm, QuoteValues, getRatingInputsFromSubmission } from 'elements/forms/QuoteForm';
 import { ADMIN_ROUTES, createPath } from 'router';
 
 // TODO: decide whether to pass along submission data ??

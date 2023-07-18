@@ -8,7 +8,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { getNumber } from 'modules/utils/helpers';
 import { Tax, taxesCollection } from 'common';
 import { ADMIN_ROUTES, createPath } from 'router';
-import { TaxForm, TaxValues } from 'elements/TaxForm';
+import { TaxForm, TaxValues } from 'elements/forms/TaxForm';
 import { useAsyncToast, useDocData } from 'hooks';
 
 export const SLTaxEdit = () => {

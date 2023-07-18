@@ -11,6 +11,7 @@ export { useSendPasswordReset } from './useSendPasswordReset';
 export { useHandleAuthError } from './useHandleAuthError';
 export { useRegisterEmailNotification } from './useRegisterEmailNotification';
 export { useUploadStorageFiles } from './useUploadStorageFiles';
+export { useCreateAccount } from './useCreateAccount';
 export { useCreateAgencySubmission } from './useCreateAgencySubmission';
 export { useCreateMoratorium } from './useCreateMoratorium';
 export { useCreateSLLicense } from './useCreateSLLicense';

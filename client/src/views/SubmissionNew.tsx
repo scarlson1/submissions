@@ -15,7 +15,7 @@ import {
   ExclusionsStep,
   ContactStep,
   PriorFloodLossStep,
-} from 'elements';
+} from 'elements/forms';
 import {
   deductibleValidation,
   reviewValidation,

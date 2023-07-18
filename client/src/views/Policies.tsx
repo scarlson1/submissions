@@ -62,10 +62,10 @@ export const Policies = () => {
 
   const header = (
     <>
-      <Typography variant='h5' sx={{ ml: { xs: 0, sm: 3 } }}>
+      <Typography variant='h5' gutterBottom sx={{ ml: { xs: 0, sm: 3, md: 4 } }}>
         Policies
       </Typography>
-      <Divider sx={{ my: 3 }} />
+      {/* <Divider sx={{ my: 3 }} /> */}
     </>
   );
 

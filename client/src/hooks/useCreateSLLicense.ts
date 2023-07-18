@@ -12,7 +12,7 @@ import { useFirestore } from 'reactfire';
 import { FirebaseError } from 'firebase/app';
 
 import { License, LicenseOwner, licensesCollection, LicenseType } from 'common';
-import { LicenseValues } from 'elements';
+import { LicenseValues } from 'elements/forms';
 import { readableFirebaseCode } from 'modules/utils/helpers';
 
 export async function checkForSLProducerLicense(

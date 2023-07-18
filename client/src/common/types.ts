@@ -788,21 +788,12 @@ export interface AgencyApplication extends BaseDoc {
     phone: string;
   };
   agents: { firstName: string; lastName: string; email: string; phone: string }[];
-  // contactProducerSame: boolean | null;
-  // producerFirstName: string;
-  // producerLastName: string;
-  // producerEmail: string;
-  // producerPhone: string;
-  // producerNPN: string;
-  bankDetails: {
-    accountNumber: string;
-    routingNumber: string;
-  };
+  // bankDetails: {
+  //   accountNumber: string;
+  //   routingNumber: string;
+  // };
   FEIN: string;
   EandO: string;
-  // metadata: BaseMetadata;
-  // createdByUid: string | null;
-  // createdByName: string | null;
   status: AGENCY_SUBMISSION_STATUS;
   sendAppReceivedNotification?: boolean;
   submittedByUserId?: string | null;

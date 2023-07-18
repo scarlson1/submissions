@@ -2,9 +2,8 @@ import { ErrorBoundary } from 'react-error-boundary';
 import { Card, Grid2Props, Typography, useTheme } from '@mui/material';
 import { useFormikContext } from 'formik';
 
-import { FormikAddress, FormikAddressProps } from 'elements';
-import { MAPBOX_DARK, MAPBOX_LIGHT } from 'components';
-import { usePreferredMapStyle } from 'components/MapStyleControl';
+import { FormikAddress, FormikAddressProps } from 'elements/forms';
+import { MAPBOX_DARK, MAPBOX_LIGHT, usePreferredMapStyle } from 'components';
 import { FormikCoordsMap } from 'components/forms/FormikCoordsMarker';
 import { AddressStepValues } from './AddressStep';
 

@@ -19,7 +19,7 @@ import { FormikMaskField, FormikMaskFieldProps } from './FormikMaskField';
 import PhoneMask from './PhoneMask';
 import FormikDollarMaskField, { FormikDollarMaskFieldProps } from './FormikDollarMaskField';
 import { FormikNativeSelect, FormikNativeSelectProps } from './FormikNativeSelect';
-import { FormikAddressLite, FormikAddressLiteProps } from 'elements';
+import { FormikAddressLite, FormikAddressLiteProps } from 'elements/forms';
 
 // https://stackoverflow.com/questions/53958028/how-to-use-generics-in-props-in-react-in-a-functional-component
 

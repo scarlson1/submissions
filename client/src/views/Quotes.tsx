@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { Box, Tooltip, Typography } from '@mui/material';
+import { Box, Button, Tooltip, Typography } from '@mui/material';
 import { where } from 'firebase/firestore';
 import { GridActionsCellItem, GridRowParams } from '@mui/x-data-grid';
 import { VisibilityRounded } from '@mui/icons-material';
@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from 'modules/components';
 import { Quotes as AdminQuotes } from './admin/Quotes';
 import { QuotesGrid } from 'elements';
-import { ROUTES, createPath } from 'router';
+import { AUTH_ROUTES, ROUTES, createPath } from 'router';
 
 // TODO: UPDATE NON-ADMIN VIEW TO USE BREADCRUMBS
 
@@ -68,10 +68,21 @@ export const Quotes = () => {
       </Box>
     );
 
+  // should always be true (wrapped in RequireAuth in router)
   if (!user || !user.uid) {
     return (
-      <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', py: 4 }}>
-        <Typography>Must be signed in</Typography>
+      <Box
+        sx={{
+          width: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          py: 4,
+        }}
+      >
+        <Typography sx={{ pb: 4 }}>Must be signed in</Typography>
+        <Button onClick={() => navigate(createPath({ path: AUTH_ROUTES.LOGIN }))}>Login</Button>
       </Box>
     );
   }
@@ -93,52 +104,3 @@ export const Quotes = () => {
     </Box>
   );
 };
-
-// function UserQuotes() {
-//   const navigate = useNavigate();
-//   const { data: user } = useUser();
-
-//   const showDetails = useCallback(
-//     (params: GridRowParams) => () => {
-//       navigate(
-//         createPath({
-//           path: ROUTES.QUOTE_VIEW,
-//           params: { quoteId: params.id.toString() },
-//         })
-//       );
-//     },
-//     [navigate]
-//   );
-
-//   const renderActions = useCallback(
-//     (params: GridRowParams) => [
-//       <GridActionsCellItem
-//         icon={
-//           <Tooltip placement='top' title='view quote'>
-//             <VisibilityRounded />
-//           </Tooltip>
-//         }
-//         onClick={showDetails(params)}
-//         label='Details'
-//       />,
-//     ],
-//     [showDetails]
-//   );
-
-//   if (!user || !user.uid) {
-//     return (
-//       <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', py: 4 }}>
-//         <Typography>Must be signed in</Typography>
-//       </Box>
-//     );
-//   }
-
-//   return (
-//     <QuotesGrid
-//       constraints={[where('userId', '==', `${user?.uid}`)]}
-
-//     />
-//   );
-
-//   // TODO: return quotes in card view if user doesn't have any claims
-// }

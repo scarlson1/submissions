@@ -65,7 +65,7 @@ import {
   Product,
 } from 'common';
 import { useAnalyticsEvent, useBindQuote, useUserPaymentMethods } from 'hooks';
-import { billingValidation, PaymentStep, ContactStep } from 'elements';
+import { billingValidation, PaymentStep, ContactStep } from 'elements/forms';
 import {
   addToDate,
   dollarFormat,
