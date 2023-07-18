@@ -6,7 +6,7 @@ import { GetAnnualPremiumRequest, RatingInputs } from 'modules/api/getAnnualPrem
 import invariant from 'tiny-invariant';
 import { validateCommonInputs } from './useCalcPremium';
 import { Optional } from 'common';
-import { QuoteValues } from 'elements';
+import { QuoteValues } from 'elements/forms';
 
 export interface RatingInputsWithAAL extends RatingInputs {
   inlandAAL: number | null;

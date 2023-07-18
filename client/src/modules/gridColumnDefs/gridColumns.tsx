@@ -82,7 +82,7 @@ import {
   PRODUCT_OPTIONS,
 } from '../../common/constants';
 import { multiSelectExtendsSingle } from 'modules/muiGrid/gridMultiSelectColDef';
-import { TRANSACTION_OPTIONS } from 'elements/TaxForm';
+import { TRANSACTION_OPTIONS } from 'elements/forms/TaxForm';
 
 export const copyBaseProps: Partial<GridColDef> = {
   flex: 1.2,

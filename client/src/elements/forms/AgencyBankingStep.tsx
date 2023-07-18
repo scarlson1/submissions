@@ -1,10 +1,10 @@
 import { forwardRef } from 'react';
 import { Box, Typography, Tooltip, Unstable_Grid2 as Grid } from '@mui/material';
+import { InfoRounded } from '@mui/icons-material';
 import * as yup from 'yup';
 
 import { FormikMaskField, FormikTextField, RoutingNumberMask } from 'components/forms';
 import { validateRoutingNumber } from 'modules/utils/helpers';
-import { InfoRounded } from '@mui/icons-material';
 
 export const bankingValidation = yup.object().shape({
   routingNumber: yup

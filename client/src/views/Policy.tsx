@@ -29,8 +29,9 @@ import { toast } from 'react-hot-toast';
 
 import { useDocData } from 'hooks';
 import { Policy as IPolicy, POLICY_STATUS, PolicyLocation, WithId } from 'common';
-import { ContactList, LocationCard, LocationsGrid, LocationsMap } from 'elements';
+import { LocationCard, LocationsGrid, LocationsMap } from 'elements';
 import { formatFirestoreTimestamp, formatPhoneNumber, stringAvatar } from 'modules/utils';
+import { ContactList } from 'elements/forms';
 
 // TODO: make location card flip on hover to show additoinal details
 

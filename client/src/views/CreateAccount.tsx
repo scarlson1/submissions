@@ -8,13 +8,12 @@ import { useNavigate, useLocation, useParams, useSearchParams } from 'react-rout
 import { toast } from 'react-hot-toast';
 import { useAuth } from 'reactfire';
 
-import FormikTextField from 'components/forms/FormikTextField';
+import { FormikTextField } from 'components/forms';
 // import { auth } from 'firebaseConfig';
 // import { GoogleAuth, MicrosoftAuth } from 'components';
 import { getRedirectPath } from 'modules/utils/helpers';
-import { FormikPassword } from 'elements';
-import { useCreateAccount } from 'hooks/useCreateAccount';
-import { useKeyPress } from 'hooks';
+import { FormikPassword } from 'elements/forms';
+import { useCreateAccount, useKeyPress } from 'hooks';
 
 export const passwordValidation = yup
   .string()

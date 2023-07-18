@@ -25,7 +25,7 @@ import * as yup from 'yup';
 import { useNavigate } from 'react-router-dom';
 
 import { useAuth } from 'modules/components/AuthContext';
-import { FormikCardDetails, FormikBankFields } from 'elements';
+import { FormikCardDetails, FormikBankFields } from 'elements/forms';
 import { VerifyEPayTokenResponse } from 'modules/api';
 import { validateRoutingNumber } from 'modules/utils/helpers';
 import { FormikTextField } from 'components/forms';

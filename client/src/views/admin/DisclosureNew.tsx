@@ -9,7 +9,7 @@ import { COLLECTIONS, Disclosure, Product } from 'common';
 import { useAsyncToast } from 'hooks';
 import { ADMIN_ROUTES, createPath } from 'router';
 import 'components/textEditor/TextEditor.css';
-import { DisclosureForm, DisclosureValues } from 'elements';
+import { DisclosureForm, DisclosureValues } from 'elements/forms';
 
 export const DisclosureNew = () => {
   const navigate = useNavigate();

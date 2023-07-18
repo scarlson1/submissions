@@ -249,11 +249,10 @@ export interface AgencyApplication extends BaseDoc {
     phone: string;
   };
   agents: { firstName: string; lastName: string; email: string; phone: string }[];
-
-  bankDetails: {
-    accountNumber: string;
-    routingNumber: string;
-  };
+  // bankDetails: {
+  //   accountNumber: string;
+  //   routingNumber: string;
+  // };
   FEIN: string;
   EandO: string;
   status: AGENCY_SUBMISSION_STATUS;

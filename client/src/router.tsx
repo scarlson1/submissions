@@ -52,10 +52,11 @@ import {
   QuoteEdit,
 } from 'views/admin';
 // import { Submissions as AgentSubmissions } from 'views/agent';
-import { SuccessStep, ActionHandler, EmailsGrid } from 'elements';
+import { ActionHandler, EmailsGrid } from 'elements';
+import { SuccessStep } from 'elements/forms';
 import { RouterLink as BreadCrumbLink } from 'components/Breadcrumbs';
 import { Product } from 'common';
-import { BindSuccess } from 'elements/SuccessStep';
+import { BindSuccess } from 'elements/forms/SuccessStep';
 import { RequireAuthReactFire } from 'components/RequireAuthReactFire'; // getRequiredClaimValidator
 import { Disclosures } from 'views/admin/Disclosures';
 import { TestPoliciesMapWithFilters } from 'elements/PoliciesMap';
@@ -98,6 +99,7 @@ export enum ROUTES {
   USER_QUOTES = '/quotes/list/:userId',
   POLICIES = '/policies', // '/policies/:productId?'
   POLICY = '/policies/:policyId',
+  CLAIM_NEW = '/policies/:policyId/claim/new',
   AGENCY_NEW = '/agency/new',
   AGENCY_NEW_SUBMITTED = '/agency/new/:submissionId/success',
   PROTOSURE = '/protosure/new/:productId/:quoteId?',
@@ -162,6 +164,7 @@ type TArgs =
   | { path: ROUTES.QUOTE_BIND_SUCCESS; params: { quoteId: string; transactionId?: string } }
   | { path: ROUTES.POLICIES; search?: { productId?: Product } }
   | { path: ROUTES.POLICY; params: { policyId: string }; search?: { l_view: string } }
+  | { path: ROUTES.CLAIM_NEW; params: { policyId: string } }
   | { path: ROUTES.AGENCY_NEW }
   | { path: ROUTES.AGENCY_NEW_SUBMITTED; params: { submissionId: string } }
   | { path: ROUTES.CONTACT }

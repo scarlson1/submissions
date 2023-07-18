@@ -24,15 +24,7 @@ import {
   PhoneMask,
   Step,
 } from 'components/forms';
-import {
-  AddAgents,
-  AddressStep,
-  AgencyBankingStep,
-  AgencyReviewStep,
-  agentsValidation,
-  bankingValidation,
-  ContactStep,
-} from 'elements';
+import { AgencyReviewStep, ContactStep } from 'elements/forms';
 import {
   Address,
   Coordinates,
@@ -45,6 +37,7 @@ import {
 import { useCreateAgencySubmission } from 'hooks';
 import * as CheckmarkLottie from 'assets/checkmark.json';
 import { ROUTES, createPath } from 'router';
+import { AddAgents, AddressStep, agentsValidation } from 'elements/forms';
 
 export const orgNameValidation = yup.object().shape({
   orgName: yup.string().required(),
@@ -88,8 +81,8 @@ export interface AgencyAppValues {
   coordinates: Nullable<Coordinates>;
   contact: NamedInsuredDetails;
   agents: Omit<NamedInsuredDetails, 'userId'>[]; // { firstName: string; lastName: string; email: string; phone: string }
-  accountNumber: string;
-  routingNumber: string;
+  // accountNumber: string;
+  // routingNumber: string;
   FEIN: string;
   EandO: File[] | string | null;
 }
@@ -115,8 +108,8 @@ export const INITIAL_VALUES: AgencyAppValues = {
     phone: '',
   },
   agents: [{ firstName: '', lastName: '', email: '', phone: '' }],
-  accountNumber: '',
-  routingNumber: '',
+  // accountNumber: '',
+  // routingNumber: '',
   FEIN: '',
   EandO: '',
 };
@@ -252,13 +245,13 @@ export const AgencyNew = () => {
             </Grid>
           </Grid>
         </Step>
-        <Step
+        {/* <Step
           label='Please enter your banking details'
           validationSchema={bankingValidation}
           stepperNavLabel='Bank'
         >
           <AgencyBankingStep />
-        </Step>
+        </Step> */}
         <Step
           label='E & O Upload'
           validationSchema={EandOValidation}

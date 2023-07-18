@@ -8,7 +8,7 @@ import { useFirestore } from 'reactfire';
 import { useAsyncToast, useDocData } from 'hooks';
 import { checkForSLProducerLicense } from 'hooks/useCreateSLLicense';
 import { ADMIN_ROUTES, createPath } from 'router';
-import { LicenseForm, LicenseValues } from 'elements';
+import { LicenseForm, LicenseValues } from 'elements/forms';
 import { License, LicenseOwner, LicenseType, licensesCollection } from 'common';
 
 export const LicenseEdit = () => {

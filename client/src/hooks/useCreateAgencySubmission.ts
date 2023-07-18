@@ -47,10 +47,10 @@ export const useCreateAgencySubmission = ({
             phone: values.contact?.phone.trim(),
           },
           agents: values.agents,
-          bankDetails: {
-            accountNumber: values.accountNumber.trim(),
-            routingNumber: values.routingNumber.trim(),
-          },
+          // bankDetails: {
+          //   accountNumber: values.accountNumber.trim(),
+          //   routingNumber: values.routingNumber.trim(),
+          // },
           FEIN: values.FEIN.trim(),
           EandO: uploadResult[0].metadata.fullPath,
           status: AGENCY_SUBMISSION_STATUS.SUBMITTED,
