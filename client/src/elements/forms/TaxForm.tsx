@@ -32,7 +32,8 @@ import {
   FormikMaskField,
   FormikSelect,
   FormikTextField,
-  PercentMask,
+  IMask,
+  percentMaskProps,
 } from 'components/forms';
 import { ADMIN_ROUTES, createPath } from 'router';
 
@@ -362,7 +363,9 @@ export const TaxForm = ({ onSubmit, initialValues = DEFAULT_INIT_VALUES }: TaxFo
                 id='rate'
                 fullWidth
                 required
-                maskComponent={PercentMask}
+                // maskComponent={PercentMask}
+                maskComponent={IMask}
+                inputProps={{ maskProps: percentMaskProps }}
                 helperText='Formatted as whole number (20 -> 20%)'
                 endAdornment={
                   <InputAdornment position='end'>

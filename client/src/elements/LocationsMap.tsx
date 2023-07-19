@@ -18,11 +18,8 @@ const ICON_MAPPING = {
 
 export function getBoundingBox(points: number[][]) {
   const [xCoords, yCoords] = zip(...points);
-  // return [(min(xCoords), min(yCoords)), (max(xCoords), max(yCoords))]
-  // // format: [minLat, minLng, maxLat, maxLng]
-  // return [min(xCoords), min(yCoords), max(xCoords), max(yCoords)]
   // format: [minLng, minLat, maxLng, maxLat]
-  return [min(yCoords), min(xCoords), max(yCoords), max(xCoords)];
+  return [min(yCoords) || -180, min(xCoords) || -90, max(yCoords) || 180, max(xCoords) || 90];
 }
 
 type CoordObj = Record<string, any> & {
@@ -43,8 +40,11 @@ export const LocationsMap = ({ data, layerProps, ...props }: LocationsMapProps) 
     maxZoom: 16,
     minZoom: 3,
   });
+
   useEffect(() => {
     if (!data.length) return;
+    // alternatively: use bbox from turf and useRef.current.fitBounds with duration: 1000 in config
+    // https://github.com/visgl/react-map-gl/blob/7.1-release/examples/zoom-to-bounds/src/app.tsx
     // TODO: check if prev equal to current --> ignore
     const coordsArr = data.map((d) => [d.coordinates.longitude, d.coordinates.latitude]);
     const [minLng, minLat, maxLng, maxLat] = getBoundingBox(coordsArr);

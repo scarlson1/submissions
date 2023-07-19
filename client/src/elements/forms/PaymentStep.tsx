@@ -16,7 +16,7 @@ import { useFormikContext } from 'formik';
 import { AccountBalanceRounded, AddCardRounded, CreditCardRounded } from '@mui/icons-material';
 import * as yup from 'yup';
 
-import AddPaymentDialog from './AddPaymentDialog';
+import { AddPaymentDialog } from './AddPaymentDialog';
 import { PaymentMethod } from 'common';
 
 export const billingValidation = yup.object().shape({

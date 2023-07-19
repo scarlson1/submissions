@@ -24,7 +24,8 @@ import {
   FormikNativeSelect,
   FormikTextField,
   NewAddress,
-  PostalMask,
+  IMask,
+  postalMaskProps,
 } from 'components/forms';
 import { findAddressValueByType } from 'modules/utils/helpers';
 import { AddressFieldNames } from './FormikAddress';
@@ -199,7 +200,11 @@ export const FormikAddressLite = ({
                   name={names.postal}
                   label='Postal'
                   fullWidth
-                  maskComponent={PostalMask}
+                  // maskComponent={PostalMask}
+                  maskComponent={IMask}
+                  inputProps={{
+                    maskProps: postalMaskProps,
+                  }}
                 />
               </Grid>
             )}

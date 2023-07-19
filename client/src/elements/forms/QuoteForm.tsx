@@ -11,13 +11,19 @@ import {
   IconButton,
 } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
-import { CalculateRounded, DownloadRounded, PolicyRounded } from '@mui/icons-material';
+import {
+  CalculateOutlined,
+  CalculateRounded,
+  CheckCircleOutlineRounded,
+  DownloadRounded,
+  PolicyRounded,
+} from '@mui/icons-material';
 import { Firestore, doc, getDoc } from 'firebase/firestore';
 import { useFirestore } from 'reactfire';
 import { useNavigate } from 'react-router-dom';
 import { Formik, FormikErrors, FormikHelpers, FormikProps, setNestedObjectValues } from 'formik';
 import { add, startOfToday, endOfToday } from 'date-fns';
-import { isEqual, merge, omit } from 'lodash';
+import { isEmpty, isEqual, merge, omit } from 'lodash';
 import * as yup from 'yup';
 
 import {
@@ -49,6 +55,7 @@ import {
   orgsCollection,
 } from 'common';
 import {
+  Obj,
   addToDate,
   dollarFormat,
   getDateShortcuts,
@@ -67,7 +74,6 @@ import {
   useFetchTaxes,
   useRateQuote,
 } from 'hooks';
-// import { AddressStep } from './AddressStep';
 import { LimitsStep } from './LimitsStep';
 import {
   Diff,
@@ -80,9 +86,9 @@ import {
   FormikNativeSelect,
   FormikTextField,
   IMask,
-  PercentMask,
-  PhoneMask,
   RequiredFieldsIndicator,
+  percentMaskProps,
+  phoneMaskProps,
 } from 'components/forms';
 import FormikAddressLite from './FormikAddressLite';
 import { ROUTES, createPath } from 'router';
@@ -410,17 +416,6 @@ export const QuoteForm = ({
     ...initialRatingSnap,
   });
 
-  const handleDiffChange = useCallback(
-    (newVals: { rerateRequired: boolean; recalcRequired: boolean }) => {
-      // setRatingState(newVals)
-      // Directly setting rerate misses checking for AALs
-      const aals = formikRef.current?.values.AAL;
-      const missingAAL = !(aals?.inland || aals?.surge);
-      setRatingState({ ...newVals, rerateRequired: newVals.rerateRequired || missingAAL });
-    },
-    []
-  );
-
   const { fetchTaxes, loading: taxesLoading } = useFetchTaxes(
     (newTaxes: TaxItem[]) => {
       setTimeout(() => {
@@ -622,8 +617,33 @@ export const QuoteForm = ({
     navigate(createPath({ path: ROUTES.QUOTES }));
   }, [navigate]);
 
+  const handleDiffChange = useCallback((diff: Obj | undefined, isDiff: boolean) => {
+    // recalc: if any diff between prev and current rating fields
+    // rerate: if rerate key is included in diff
+    if (isEmpty(diff)) return setRatingState({ rerateRequired: false, recalcRequired: false });
+    const shouldRerate = RATING_FIELDS.some((key) => {
+      return diff[key];
+    });
+    // Directly setting rerate misses checking for AALs
+    const aals = formikRef.current?.values.AAL;
+    const missingAAL = !(aals?.inland || aals?.surge);
+    setRatingState({ rerateRequired: shouldRerate || missingAAL, recalcRequired: isDiff });
+  }, []);
+
+  const getDiffIcon = useCallback(
+    (handleClick: () => void) => {
+      return !ratingState.rerateRequired && !ratingState.recalcRequired ? (
+        <CheckCircleOutlineRounded fontSize='small' color='success' sx={{ mx: 2 }} />
+      ) : ratingState.rerateRequired ? (
+        <CalculateRounded fontSize='small' color='warning' sx={{ mx: 2 }} onClick={handleClick} />
+      ) : (
+        <CalculateOutlined fontSize='small' color='info' sx={{ mx: 2 }} onClick={handleClick} />
+      );
+    },
+    [ratingState]
+  );
+
   const validation = useMemo(() => {
-    // console.log('get validation: ', activeStates);
     return activeStates ? getQuoteValidation(activeStates) : undefined;
   }, [activeStates]);
 
@@ -711,12 +731,20 @@ export const QuoteForm = ({
                 values.quoteTotal ? dollarFormat(values.quoteTotal) : '--'
               }`}</Typography>
               <Diff
-                ratingInputsPrev={ratingInputsSnap}
-                rerateFields={RATING_FIELDS}
-                ratingState={ratingState}
-                setRatingState={handleDiffChange}
+                inputsPrev={ratingInputsSnap}
+                onDiffChange={handleDiffChange}
+                getStateIcon={getDiffIcon}
                 extractInputsFromValues={extractRatingInputsFromValues}
-              />
+              >
+                <Typography variant='body2' fontWeight={500}>
+                  {`Rerate (AAL) required: ${
+                    ratingState.rerateRequired === null ? 'no changes' : ratingState.rerateRequired
+                  }`}
+                </Typography>
+                <Typography variant='body2' fontWeight={500}>
+                  {`Premium calc required: ${ratingState.recalcRequired}`}
+                </Typography>
+              </Diff>
             </Stack>
             <Stack direction='row' spacing={2}>
               <LoadingButton
@@ -1242,10 +1270,14 @@ export const QuoteForm = ({
                       label: 'Tax Rate',
                       required: false,
                       inputType: 'mask',
-                      maskComponent: PercentMask,
+                      maskComponent: IMask,
                       componentProps: {
-                        inputProps: { maskProps: { scale: 5 } },
+                        inputProps: { maskProps: { ...percentMaskProps, scale: 5 } },
                       },
+                      // maskComponent: PercentMask,
+                      // componentProps: {
+                      //   inputProps: { maskProps: { scale: 5 } },
+                      // },
                     },
                     {
                       name: 'value',
@@ -1322,7 +1354,9 @@ export const QuoteForm = ({
                 id='namedInsured.phone'
                 label='Insured phone'
                 name='namedInsured.phone'
-                maskComponent={PhoneMask}
+                // maskComponent={PhoneMask}
+                maskComponent={IMask}
+                inputProps={{ maskProps: phoneMaskProps }}
               />
             </Grid>
             <Grid xs={12}>
@@ -1350,7 +1384,9 @@ export const QuoteForm = ({
                 id='agent.phone'
                 label='Agent Phone'
                 name='agent.phone'
-                maskComponent={PhoneMask}
+                // maskComponent={PhoneMask}
+                maskComponent={IMask}
+                inputProps={{ maskProps: phoneMaskProps }}
               />
             </Grid>
             <Grid xs={6} sm={3}>

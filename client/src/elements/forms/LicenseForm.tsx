@@ -14,7 +14,8 @@ import {
   FormikNativeSelect,
   FormikSwitch,
   FormikTextField,
-  PhoneMask,
+  IMask,
+  phoneMaskProps,
 } from 'components/forms';
 import { statesAbrvSelectOptions } from 'common/statesList';
 import { FormikAddressLite } from './FormikAddressLite';
@@ -186,7 +187,9 @@ export const LicenseForm = ({
                   label='License phone'
                   fullWidth
                   required={false}
-                  maskComponent={PhoneMask}
+                  // maskComponent={PhoneMask}
+                  maskComponent={IMask}
+                  inputProps={{ maskProps: phoneMaskProps }}
                 />
               </Grid>
               <Grid xs={12} sm={6} md={6} lg={4}>

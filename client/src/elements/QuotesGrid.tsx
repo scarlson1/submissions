@@ -7,13 +7,11 @@ import { useSigninCheck } from 'reactfire';
 import { QUOTE_STATUS } from 'common';
 import { ServerDataGrid, ServerDataGridProps } from 'components';
 import { useAsyncToast, useGridActions, useSendQuoteNotification, useWidth } from 'hooks';
-import { getRequiredClaimValidator } from 'components/RequireAuthReactFire';
+import { hasAdminClaimsValidator } from 'components/RequireAuthReactFire';
 import { useAuth } from 'modules/components';
 import { quoteCols, statusCol } from 'modules/gridColumnDefs';
 
 // TODO: need to use custom merge function for additionalColumns to prevent duplication "field" values
-
-const hasAdminClaims = getRequiredClaimValidator(['ORG_ADMIN', 'IDEMAND_ADMIN']);
 
 export interface ServerDataGridCollectionProps
   extends Omit<
@@ -40,7 +38,7 @@ export const QuotesGrid = ({
   const { googleMapsAction, floodFactorAction } = useGridActions(toast.error);
 
   const { data: authCheckResult } = useSigninCheck({
-    validateCustomClaims: hasAdminClaims,
+    validateCustomClaims: hasAdminClaimsValidator,
   });
 
   const handleSendNotifications = useCallback(

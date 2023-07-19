@@ -51,13 +51,12 @@ import {
   LicenseEdit,
   QuoteEdit,
 } from 'views/admin';
-// import { Submissions as AgentSubmissions } from 'views/agent';
 import { ActionHandler, EmailsGrid } from 'elements';
 import { SuccessStep } from 'elements/forms';
 import { RouterLink as BreadCrumbLink } from 'components/Breadcrumbs';
-import { Product } from 'common';
+import { CUSTOM_CLAIMS, Product } from 'common';
 import { BindSuccess } from 'elements/forms/SuccessStep';
-import { RequireAuthReactFire } from 'components/RequireAuthReactFire'; // getRequiredClaimValidator
+import { RequireAuthReactFire } from 'components/RequireAuthReactFire';
 import { Disclosures } from 'views/admin/Disclosures';
 import { TestPoliciesMapWithFilters } from 'elements/PoliciesMap';
 import { AuthActionsProvider } from 'modules/components';
@@ -65,6 +64,7 @@ import { TempWrappedSearch } from 'components/search/Search';
 import { AgencyAppSuccessStep } from 'views/AgencyNew';
 import { ImportsSummaryGrid } from 'elements/ImportsSummaryGrid';
 import { EmailVerified } from 'views/EmailVerified';
+import TestTerrainLayer from 'views/TestTerrainMap';
 
 export interface CrumbMatch {
   id: string;
@@ -660,7 +660,7 @@ export const router = sentryCreateBrowserRouter([
       {
         path: 'admin',
         element: (
-          // <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
+          // <RequireAuthReactFire signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}>
           <Layout withBreadcrumbs={true} />
           // </RequireAuthReactFire>
         ),
@@ -669,7 +669,9 @@ export const router = sentryCreateBrowserRouter([
           {
             index: true,
             element: (
-              <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
+              <RequireAuthReactFire
+                signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}
+              >
                 <AdminHome />
               </RequireAuthReactFire>
             ),
@@ -678,7 +680,9 @@ export const router = sentryCreateBrowserRouter([
           {
             path: ADMIN_ROUTES.SUBMISSIONS,
             element: (
-              <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
+              <RequireAuthReactFire
+                signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}
+              >
                 <Submissions />
               </RequireAuthReactFire>
             ),
@@ -697,7 +701,9 @@ export const router = sentryCreateBrowserRouter([
           {
             path: ADMIN_ROUTES.SUBMISSION_VIEW,
             element: (
-              <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
+              <RequireAuthReactFire
+                signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}
+              >
                 <SubmissionView />
               </RequireAuthReactFire>
             ),
@@ -719,7 +725,9 @@ export const router = sentryCreateBrowserRouter([
           {
             path: ADMIN_ROUTES.QUOTE_NEW_BLANK,
             element: (
-              <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
+              <RequireAuthReactFire
+                signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}
+              >
                 <QuoteNew />
               </RequireAuthReactFire>
             ),
@@ -740,7 +748,9 @@ export const router = sentryCreateBrowserRouter([
           {
             path: ADMIN_ROUTES.QUOTE_NEW,
             element: (
-              <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
+              <RequireAuthReactFire
+                signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}
+              >
                 <QuoteNewFromSub />
               </RequireAuthReactFire>
             ),
@@ -771,7 +781,9 @@ export const router = sentryCreateBrowserRouter([
           {
             path: ADMIN_ROUTES.QUOTE_EDIT,
             element: (
-              <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
+              <RequireAuthReactFire
+                signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}
+              >
                 <QuoteEdit />
               </RequireAuthReactFire>
             ),
@@ -802,7 +814,9 @@ export const router = sentryCreateBrowserRouter([
           {
             path: ADMIN_ROUTES.QUOTES,
             element: (
-              <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
+              <RequireAuthReactFire
+                signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}
+              >
                 {/* <AdminQuotes /> */}
                 <Quotes />
               </RequireAuthReactFire>
@@ -821,7 +835,9 @@ export const router = sentryCreateBrowserRouter([
           {
             path: ADMIN_ROUTES.POLICY_DELIVERY,
             element: (
-              <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
+              <RequireAuthReactFire
+                signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}
+              >
                 <PolicyDelivery />
               </RequireAuthReactFire>
             ),
@@ -849,7 +865,7 @@ export const router = sentryCreateBrowserRouter([
           // {
           //   path: ADMIN_ROUTES.POLICIES,
           //   element: (
-          //     <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
+          //     <RequireAuthReactFire signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}>
           //       <PoliciesAdmin />
           //     </RequireAuthReactFire>
           //   ),
@@ -858,7 +874,7 @@ export const router = sentryCreateBrowserRouter([
           //   path: ADMIN_ROUTES.SL_TAXES,
           //   element: (
           //     // <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
-          //     <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
+          //     <RequireAuthReactFire signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}>
           //       <SLTaxes />
           //     </RequireAuthReactFire>
 
@@ -871,7 +887,7 @@ export const router = sentryCreateBrowserRouter([
           //   path: ADMIN_ROUTES.SL_TAXES_NEW,
           //   element: (
           //     // <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
-          //     <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
+          //     <RequireAuthReactFire signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}>
           //       <SLTaxNew />
           //     </RequireAuthReactFire>
 
@@ -881,7 +897,7 @@ export const router = sentryCreateBrowserRouter([
           // {
           //   path: ADMIN_ROUTES.SL_TAXES_EDIT,
           //   element: (
-          //     <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
+          //     <RequireAuthReactFire signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}>
           //       <SLTaxEdit />
           //     </RequireAuthReactFire>
           //   ),
@@ -889,7 +905,7 @@ export const router = sentryCreateBrowserRouter([
           // {
           //   path: ADMIN_ROUTES.EDIT_ACTIVE_STATES,
           //   element: (
-          //     <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
+          //     <RequireAuthReactFire signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}>
           //       <EditActiveStates />
           //     </RequireAuthReactFire>
           //   ),
@@ -898,7 +914,7 @@ export const router = sentryCreateBrowserRouter([
           //   path: ADMIN_ROUTES.MORATORIUMS,
           //   element: (
           //     // <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
-          //     <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
+          //     <RequireAuthReactFire signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}>
           //       <Moratoriums />
           //     </RequireAuthReactFire>
 
@@ -910,7 +926,7 @@ export const router = sentryCreateBrowserRouter([
           //   path: ADMIN_ROUTES.MORATORIUM_NEW,
           //   element: (
           //     // <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
-          //     <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
+          //     <RequireAuthReactFire signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}>
           //       <MoratoriumNew />
           //     </RequireAuthReactFire>
 
@@ -934,7 +950,7 @@ export const router = sentryCreateBrowserRouter([
           //   path: ADMIN_ROUTES.SL_LICENSE_NEW,
           //   element: (
           //     // <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
-          //     <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
+          //     <RequireAuthReactFire signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}>
           //       <LicenseNew />
           //     </RequireAuthReactFire>
 
@@ -945,7 +961,9 @@ export const router = sentryCreateBrowserRouter([
             path: ADMIN_ROUTES.AGENCY_APPS,
             // loader: agencyAppsLoader,
             element: (
-              <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
+              <RequireAuthReactFire
+                signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}
+              >
                 <AgencyApps />
               </RequireAuthReactFire>
             ),
@@ -963,7 +981,9 @@ export const router = sentryCreateBrowserRouter([
           {
             path: ADMIN_ROUTES.AGENCY_APP,
             element: (
-              <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
+              <RequireAuthReactFire
+                signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}
+              >
                 <AgencyApp />
               </RequireAuthReactFire>
             ),
@@ -984,7 +1004,7 @@ export const router = sentryCreateBrowserRouter([
           // {
           //   path: ADMIN_ROUTES.DISCLOSURES,
           //   element: (
-          //     <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
+          //     <RequireAuthReactFire signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}>
           //       <Disclosures />
           //     </RequireAuthReactFire>
           //   ),
@@ -992,7 +1012,7 @@ export const router = sentryCreateBrowserRouter([
           // {
           //   path: ADMIN_ROUTES.DISCLOSURE_NEW,
           //   element: (
-          //     <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
+          //     <RequireAuthReactFire signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}>
           //       <DisclosureNew />
           //     </RequireAuthReactFire>
           //   ),
@@ -1000,7 +1020,7 @@ export const router = sentryCreateBrowserRouter([
           // {
           //   path: ADMIN_ROUTES.DISCLOSURE_EDIT,
           //   element: (
-          //     <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
+          //     <RequireAuthReactFire signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}>
           //       <DisclosureEdit />
           //     </RequireAuthReactFire>
           //   ),
@@ -1008,7 +1028,9 @@ export const router = sentryCreateBrowserRouter([
           {
             path: ADMIN_ROUTES.CREATE_TENANT,
             element: (
-              <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
+              <RequireAuthReactFire
+                signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}
+              >
                 <CreateTenant />
               </RequireAuthReactFire>
             ),
@@ -1029,7 +1051,9 @@ export const router = sentryCreateBrowserRouter([
           {
             path: ADMIN_ROUTES.ORGANIZATIONS,
             element: (
-              <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
+              <RequireAuthReactFire
+                signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}
+              >
                 <Organizations />
               </RequireAuthReactFire>
             ),
@@ -1048,7 +1072,9 @@ export const router = sentryCreateBrowserRouter([
             path: ADMIN_ROUTES.ORGANIZATION,
             element: (
               <AuthActionsProvider>
-                <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
+                <RequireAuthReactFire
+                  signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}
+                >
                   <Organization />
                 </RequireAuthReactFire>
               </AuthActionsProvider>
@@ -1070,7 +1096,9 @@ export const router = sentryCreateBrowserRouter([
           {
             path: ADMIN_ROUTES.USERS,
             element: (
-              <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
+              <RequireAuthReactFire
+                signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}
+              >
                 <Users />
               </RequireAuthReactFire>
             ),
@@ -1088,7 +1116,9 @@ export const router = sentryCreateBrowserRouter([
           {
             path: '/admin/map/submissions',
             element: (
-              <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
+              <RequireAuthReactFire
+                signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}
+              >
                 <TestPoliciesMapWithFilters />
               </RequireAuthReactFire>
             ),
@@ -1107,6 +1137,10 @@ export const router = sentryCreateBrowserRouter([
             },
           },
           {
+            path: '/admin/terrain',
+            element: <TestTerrainLayer />,
+          },
+          {
             path: 'search',
             element: (
               <TempWrappedSearch />
@@ -1123,7 +1157,7 @@ export const router = sentryCreateBrowserRouter([
           {
             path: 'config',
             element: (
-              // <RequireAuthReactFire signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}>
+              // <RequireAuthReactFire signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}>
               <ConfigLayout />
               // </RequireAuthReactFire>
             ),
@@ -1141,7 +1175,7 @@ export const router = sentryCreateBrowserRouter([
                 index: true,
                 element: (
                   <RequireAuthReactFire
-                    signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}
+                    signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}
                   >
                     <SLTaxes />
                   </RequireAuthReactFire>
@@ -1164,7 +1198,7 @@ export const router = sentryCreateBrowserRouter([
                 path: 'sl-tax',
                 element: (
                   <RequireAuthReactFire
-                    signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}
+                    signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}
                   >
                     <SLTaxes />
                   </RequireAuthReactFire>
@@ -1187,7 +1221,7 @@ export const router = sentryCreateBrowserRouter([
                 path: 'sl-tax/new',
                 element: (
                   <RequireAuthReactFire
-                    signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}
+                    signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}
                   >
                     <SLTaxNew />
                   </RequireAuthReactFire>
@@ -1222,7 +1256,7 @@ export const router = sentryCreateBrowserRouter([
                 path: 'sl-tax/:taxId/edit',
                 element: (
                   <RequireAuthReactFire
-                    signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}
+                    signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}
                   >
                     <SLTaxEdit />
                   </RequireAuthReactFire>
@@ -1249,7 +1283,7 @@ export const router = sentryCreateBrowserRouter([
                 path: 'disclosures',
                 element: (
                   <RequireAuthReactFire
-                    signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}
+                    signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}
                   >
                     <Disclosures />
                   </RequireAuthReactFire>
@@ -1271,7 +1305,7 @@ export const router = sentryCreateBrowserRouter([
                 path: 'disclosures/new',
                 element: (
                   <RequireAuthReactFire
-                    signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}
+                    signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}
                   >
                     <DisclosureNew />
                   </RequireAuthReactFire>
@@ -1295,7 +1329,7 @@ export const router = sentryCreateBrowserRouter([
                 path: 'disclosures/:disclosureId/edit',
                 element: (
                   <RequireAuthReactFire
-                    signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}
+                    signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}
                   >
                     <DisclosureEdit />
                   </RequireAuthReactFire>
@@ -1322,10 +1356,7 @@ export const router = sentryCreateBrowserRouter([
                 path: 'licenses',
                 element: (
                   <RequireAuthReactFire
-                    signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}
-                    // signInCheckProps={{
-                    //   validateCustomClaims: getRequiredClaimValidator(['IDEMAND_ADMIN']),
-                    // }}
+                    signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}
                   >
                     <Licenses />
                   </RequireAuthReactFire>
@@ -1347,7 +1378,7 @@ export const router = sentryCreateBrowserRouter([
                 path: 'licenses/new',
                 element: (
                   <RequireAuthReactFire
-                    signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}
+                    signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}
                   >
                     <LicenseNew />
                   </RequireAuthReactFire>
@@ -1374,7 +1405,7 @@ export const router = sentryCreateBrowserRouter([
                 path: 'licenses/:licenseId/edit',
                 element: (
                   <RequireAuthReactFire
-                    signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}
+                    signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}
                   >
                     <LicenseEdit />
                   </RequireAuthReactFire>
@@ -1401,7 +1432,7 @@ export const router = sentryCreateBrowserRouter([
                 path: 'moratoriums',
                 element: (
                   <RequireAuthReactFire
-                    signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}
+                    signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}
                   >
                     <Moratoriums />
                   </RequireAuthReactFire>
@@ -1423,7 +1454,7 @@ export const router = sentryCreateBrowserRouter([
                 path: 'moratoriums/new',
                 element: (
                   <RequireAuthReactFire
-                    signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}
+                    signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}
                   >
                     <MoratoriumNew />
                   </RequireAuthReactFire>
@@ -1447,7 +1478,7 @@ export const router = sentryCreateBrowserRouter([
                 path: 'active-states/:productId/edit',
                 element: (
                   <RequireAuthReactFire
-                    signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}
+                    signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}
                   >
                     <EditActiveStates />
                   </RequireAuthReactFire>
@@ -1475,7 +1506,7 @@ export const router = sentryCreateBrowserRouter([
                 path: 'imports',
                 element: (
                   <RequireAuthReactFire
-                    signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}
+                    signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}
                   >
                     <ImportsSummaryGrid />
                   </RequireAuthReactFire>
@@ -1493,7 +1524,7 @@ export const router = sentryCreateBrowserRouter([
                 path: 'email-activity',
                 element: (
                   <RequireAuthReactFire
-                    signInCheckProps={{ requiredClaims: { iDemandAdmin: true } }}
+                    signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}
                   >
                     <EmailsGrid />
                   </RequireAuthReactFire>

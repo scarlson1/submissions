@@ -22,18 +22,14 @@ import { COLLECTIONS, User, WithId, usersCollection, CUSTOM_CLAIMS } from 'commo
 import { BasicDataGrid, GridEditMultiSelectCell, ServerDataGrid } from 'components';
 import { useAsyncToast, useUpdateClaims } from 'hooks';
 import { useCollectionDataPopulateById } from 'hooks/useRx';
-import { getRequiredClaimValidator } from 'components/RequireAuthReactFire';
+import { hasAdminClaimsValidator } from 'components/RequireAuthReactFire';
 import { idCol, userClaimsCol, userCols, userSummaryCol } from 'modules/gridColumnDefs';
 import { ServerDataGridCollectionProps } from './QuotesGrid';
 
 type UsersGridProps = ServerDataGridCollectionProps;
-// export interface UsersGridProps {
-//   queryConstraints?: QueryConstraint[];
-//   renderActions?: (params: GridRowParams) => JSX.Element[];
-// }
 
 export const UsersGrid = ({
-  renderActions, // = () => [],
+  renderActions,
   additionalColumns = [],
   initialState,
   ...props
@@ -103,7 +99,7 @@ export const AdminManageUsersGrid = ({
 }: AdminManageUsersGridProps) => {
   const firestore = useFirestore();
   const { data: signInResult } = useSigninCheck({
-    validateCustomClaims: getRequiredClaimValidator(['ORG_ADMIN', 'IDEMAND_ADMIN']),
+    validateCustomClaims: hasAdminClaimsValidator,
   });
   const { data: iDAdminResult } = useSigninCheck({
     requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true },

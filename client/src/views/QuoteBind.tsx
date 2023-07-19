@@ -45,8 +45,9 @@ import {
   FormikMaskField,
   FormikNativeSelect,
   FormikWizard,
-  PhoneMask,
   Step,
+  IMask,
+  phoneMaskProps,
 } from 'components/forms';
 import { IconButtonMenu, LineItem } from 'components';
 import {
@@ -436,7 +437,9 @@ export function NamedInsuredStep({ logAnalyticsStep }: LogAnalyticsProp) {
             name='namedInsured.phone'
             label='Phone'
             required
-            maskComponent={PhoneMask}
+            // maskComponent={PhoneMask}
+            maskComponent={IMask}
+            inputProps={{ maskProps: phoneMaskProps }}
             formikConfig={{ validate: phoneRequiredVal }}
           />
         </Grid>

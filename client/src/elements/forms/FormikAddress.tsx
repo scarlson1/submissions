@@ -6,9 +6,14 @@ import {
   NewAddress,
   FormikNativeSelect,
   AddressAutocompleteProps,
+  FormikMaskField,
+  IMask,
+  postalMaskProps,
 } from 'components/forms';
 import { findAddressValueByType } from 'modules/utils/helpers';
 import { statesAbrvSelectOptions } from 'common/statesList';
+
+// TODO: filter textFieldProps for overlap with InputProps and pass to postal field
 
 export interface AddressFieldNames {
   addressLine1: string;
@@ -22,6 +27,7 @@ export interface AddressFieldNames {
   longitude?: string;
 }
 
+// TODO: change default to be nested under address
 const DEFAULT_FIELD_NAMES = {
   addressLine1: 'addressLine1',
   addressLine2: 'addressLine2',
@@ -41,7 +47,6 @@ export interface FormikAddressProps {
   names?: AddressFieldNames; // TODO: make partial
   children?: React.ReactNode;
   textFieldProps?: TextFieldProps;
-  // autocompleteTextFieldProps?: TextFieldProps;
   autocompleteProps?: Omit<AddressAutocompleteProps, 'resetFields' | 'handleSelection'>;
 }
 
@@ -105,26 +110,9 @@ export const FormikAddress = ({
           <AddressAutocomplete
             handleSelection={handleAddressSelection}
             resetFields={handleClearAutocomplete}
-            // textFieldProps={{ ...textFieldProps, ...autocompleteTextFieldProps }}
             {...autocompleteProps}
             textFieldProps={{ ...textFieldProps, ...(autocompleteProps?.textFieldProps || {}) }}
           />
-          {/* <Field name={names.addressLine1}>
-            {({ field, form, meta }: FieldProps) => {
-              return (
-                <AddressAutocomplete
-                  handleSelection={handleAddressSelection}
-                  inputValue={field.value}
-                  setInputValue={(newValue) => setFieldValue(names.addressLine1, newValue)}
-                  resetFields={handleClearAutocomplete}
-                  field={field}
-                  form={form}
-                  meta={meta}
-                  textFieldProps={{ ...textFieldProps, ...autocompleteTextFieldProps }}
-                />
-              );
-            }}
-          </Field> */}
         </Grid>
         <Grid item xs={12} sm={4}>
           <FormikTextField
@@ -156,14 +144,26 @@ export const FormikAddress = ({
           />
         </Grid>
         <Grid item xs={6} sm={4} lg={4}>
-          <FormikTextField
+          <FormikMaskField
+            id={names.postal}
+            name={names.postal}
+            label='Postal'
+            fullWidth
+            maskComponent={IMask}
+            inputProps={{
+              maskProps: postalMaskProps,
+            }}
+            variant={textFieldProps?.variant === 'standard' ? 'standard' : 'outlined'}
+            size={textFieldProps?.size || 'medium'}
+          />
+          {/* <FormikTextField
             fullWidth
             id='postal'
             name={names.postal}
             label='Postal'
             required
             {...textFieldProps}
-          />
+          /> */}
         </Grid>
       </Grid>
       {children}

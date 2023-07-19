@@ -72,6 +72,7 @@ export const DeckMap = ({
           styleDiffing
           minZoom={2}
           maxZoom={20}
+          maxPitch={85}
         >
           {children}
         </Map>

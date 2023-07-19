@@ -123,3 +123,5 @@ export const getRequiredClaimValidator =
       errors,
     };
   };
+
+export const hasAdminClaimsValidator = getRequiredClaimValidator(['ORG_ADMIN', 'IDEMAND_ADMIN']);

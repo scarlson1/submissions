@@ -32,13 +32,17 @@ export const ClaimsGuard = ({
 }: ClaimsGuardProps) => {
   const checkProps = useMemo<SignInCheckProps>(() => {
     if (requiredClaims.length > 0) {
-      if (!requireAll && requiredClaims.length > 1)
+      if (!requireAll && requiredClaims.length > 1) {
+        const claimsValidatorFunc = getRequiredClaimValidator(requiredClaims);
+
         return {
-          validateCustomClaims: getRequiredClaimValidator(requiredClaims),
+          // TODO: test getRequiredClaimValidator func need to store in variable?
+          // validateCustomClaims: getRequiredClaimValidator(requiredClaims),
+          validateCustomClaims: claimsValidatorFunc,
           suspense: false,
           ...signInCheckProps,
         };
-
+      }
       // const claims = requiredClaims.reduce(
       //   (acc, curr) => ({ ...acc, [CUSTOM_CLAIMS[curr]]: true }),
       //   {}

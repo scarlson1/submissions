@@ -3,7 +3,7 @@ import { doc, setDoc } from 'firebase/firestore';
 import { useFirestore, useSigninCheck } from 'reactfire';
 
 import { userClaimsCollection } from 'common';
-import { getRequiredClaimValidator } from 'components/RequireAuthReactFire';
+import { hasAdminClaimsValidator } from 'components/RequireAuthReactFire';
 import { useAuthActions } from 'modules/components';
 
 export const useUpdateClaims = (
@@ -12,7 +12,7 @@ export const useUpdateClaims = (
 ) => {
   const firestore = useFirestore();
   const { data: claimsCheckResult } = useSigninCheck({
-    validateCustomClaims: getRequiredClaimValidator(['ORG_ADMIN', 'IDEMAND_ADMIN']),
+    validateCustomClaims: hasAdminClaimsValidator,
   });
   const { sendVerification } = useAuthActions();
 

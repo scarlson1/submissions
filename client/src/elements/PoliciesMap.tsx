@@ -83,29 +83,7 @@ export const PoliciesMap = ({ constraints = [], layerProps }: PoliciesMapProps) 
   ];
 
   return (
-    <DeckMap
-      layers={layers}
-      // hoverInfo={hoverInfo}
-      // renderTooltipContent={(info: PickingInfo) => (
-      //   <Box sx={{ px: 2, borderRadius: 0.5 }}>
-      //     <Typography variant='body2' fontWeight='fontWeightMedium'>
-      //       {info.object.addressLine1 || ''}
-      //     </Typography>
-      //     <Typography variant='body2' color='text.secondary'>{`ID: ${info.object.id}`}</Typography>
-      //   </Box>
-      // )}
-      // layers={[
-      //   new HeatmapLayer({
-      //     // ...defaultGeoJsonLayerProps,
-      //     id: `policy-locations-layer`, // @ts-ignore
-      //     // data: countiesData,
-      //     // data: countiesURL,
-      //     data: submissionData, // COUNTIES_URL,
-      //     getPosition: (d) => [d.coordinates.longitude, d.coordinates.latitude], // d.COORDINATES,
-      //     radiusPixels: 25,
-      //   }),
-      // ]}
-    >
+    <DeckMap layers={layers}>
       <HoverInfo
         pickingInfo={hoverInfo}
         renderTooltipContent={(info: TypedPickingInfo<WithId<Submission>>) => {

@@ -1284,7 +1284,7 @@ export const productsCol: GridSingleSelectColDef = {
   minWidth: 180,
   flex: 1,
   editable: false,
-  valueFormatter: (params) => `${params.value.join(', ')}`,
+  valueFormatter: (params) => `${params.value?.join(', ')}`,
   // filterable: false, // TODO: implement array-contains search (multiselectoperators)
   // filterOperators: getGridFirestoreMultiSelectOperators(),
   renderCell: (params) =>
@@ -1457,7 +1457,7 @@ export const policyTrxTypesCol: GridSingleSelectColDef = {
   // filterable: false,
   sortable: false,
   renderCell: (params) => renderChips(params, { variant: 'outlined', color: 'success' }),
-  valueFormatter: (params) => `${params.value.join(', ')}`,
+  valueFormatter: (params) => `${params.value?.join(', ')}`,
 };
 
 export const LOBCol: GridSingleSelectColDef = {
@@ -1472,7 +1472,7 @@ export const LOBCol: GridSingleSelectColDef = {
   // filterable: false,
   sortable: false,
   renderCell: (params) => renderChips(params, { variant: 'outlined' }),
-  valueFormatter: (params) => `${params.value.join(', ')}`,
+  valueFormatter: (params) => `${params.value?.join(', ')}`,
 };
 
 export const importCollectionCol: GridColDef = {
