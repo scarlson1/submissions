@@ -6,7 +6,7 @@ import { addDoc, GeoPoint, serverTimestamp } from 'firebase/firestore';
 import { useFirestore } from 'reactfire';
 import { ErrorBoundary } from 'react-error-boundary';
 
-import { FormikWizard, Step } from 'components/forms';
+import { FormikNativeSelect, FormikWizard, Step } from 'components/forms';
 import {
   AddressStep,
   LimitsStep,
@@ -24,6 +24,7 @@ import {
   addressValidationActiveStatesNested,
   limitsValidationNested,
   contactValidationNested,
+  buildingDetailsValidation,
 } from 'common/validation';
 import { ROUTES, createPath } from 'router';
 // import { statesCollection, submissionsCollection } from 'common/firestoreCollections';
@@ -101,7 +102,7 @@ function useCreateSubmission(
             address: null, // TODO: agency address
           },
           submittedById: user?.uid ?? null,
-          ratingPropertyData: propertyDetails,
+          ratingPropertyData: { ...propertyDetails, ...values.ratingPropertyData },
           initValues: initRatingValues,
           propertyDataDocId,
           rcvSourceUser,
@@ -134,6 +135,10 @@ export interface FloodValues {
   exclusionsExist: boolean | null;
   exclusions: string[];
   priorLossCount: string;
+  ratingPropertyData: {
+    basement: string;
+    numStories: number;
+  };
   contact: Omit<NamedInsuredDetails, 'phone'>;
   userAcceptance: boolean;
 }
@@ -161,6 +166,10 @@ export const initialValues: FloodValues = {
   exclusionsExist: false,
   exclusions: [],
   priorLossCount: '0', // 0,
+  ratingPropertyData: {
+    basement: '', // @ts-ignore
+    numStories: '',
+  },
   contact: {
     firstName: '',
     lastName: '',
@@ -208,7 +217,7 @@ export const SubmissionNew = () => {
             longitude: values.coordinates?.longitude,
           },
         });
-        // console.log('PROPERTY DATA RES: ', res);
+        console.log('PROPERTY DATA RES: ', res);
         return {
           ...values,
           limits: {
@@ -218,6 +227,9 @@ export const SubmissionNew = () => {
             limitD: res.limitD ?? '38000',
           },
           deductible: res.deductible ?? 4000,
+          ratingPropertyData: {
+            ...(res.ratingPropertyData || {}),
+          },
         };
       } catch (err) {
         console.log('ERROR: ', err);
@@ -341,6 +353,53 @@ export const SubmissionNew = () => {
                   gridProps={gridProps}
                   maxDeductible={initRatingValues?.maxDeductible ?? undefined}
                 />
+              </Box>
+            </Step>
+            <Step
+              label='Building details'
+              validationSchema={buildingDetailsValidation}
+              stepperNavLabel='Details'
+            >
+              <Box sx={{ maxWidth: 300, mx: 'auto' }}>
+                <Box sx={{ py: 3 }}>
+                  <FormikNativeSelect
+                    fullWidth
+                    id='ratingPropertyData.basement'
+                    label='Basement'
+                    name='ratingPropertyData.basement'
+                    selectOptions={[
+                      { label: 'No', value: 'no' },
+                      { label: 'Unknown', value: 'unknown' },
+                      { label: 'Finished', value: 'finished' },
+                      { label: 'Unfinished', value: 'unfinished' },
+                    ]}
+                    required
+                  />
+                </Box>
+                <Box sx={{ py: 3 }}>
+                  <FormikNativeSelect
+                    fullWidth
+                    id='ratingPropertyData.numStories'
+                    label='# Stories'
+                    name='ratingPropertyData.numStories'
+                    required
+                    selectOptions={[
+                      { label: '1', value: 1 },
+                      { label: '2', value: 2 },
+                      { label: '3', value: 3 },
+                      { label: '4', value: 4 },
+                      { label: '5', value: 5 },
+                    ]}
+                    convertToNumber={true}
+                  />
+                  <Typography
+                    variant='body2'
+                    color='text.secondary'
+                    sx={{ pl: 2, pt: 2, fontSize: '0.725rem' }}
+                  >
+                    Excluding basement (number of stories above ground)
+                  </Typography>
+                </Box>
               </Box>
             </Step>
             <Step

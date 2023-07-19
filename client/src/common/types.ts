@@ -79,7 +79,7 @@ export type FlattenObjectKeys<T extends Record<string, any>, Key = keyof T> = Ke
 // type FlatKeys = FlattenObjectKeys<typeof example>;
 // type FlatKeys = "g" | "a.b" | "a.c" | "d.e" | "d.f" | "h.i.j.k" | "h.i.j.l"
 
-export interface Submission extends FloodValues {
+export interface Submission extends Omit<FloodValues, 'ratingPropertyData'> {
   product: Product;
   coordinates: GeoPoint;
   geoHash?: Geohash | null;

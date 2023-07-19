@@ -16,14 +16,13 @@ import { FieldArray } from 'formik'; // getIn
 
 import { FormikTextField, FormikTextFieldProps } from './FormikTextField';
 import { FormikMaskField, FormikMaskFieldProps } from './FormikMaskField';
-import PhoneMask from './PhoneMask';
 import FormikDollarMaskField, { FormikDollarMaskFieldProps } from './FormikDollarMaskField';
 import { FormikNativeSelect, FormikNativeSelectProps } from './FormikNativeSelect';
 import { FormikAddressLite, FormikAddressLiteProps } from 'elements/forms';
 
 // https://stackoverflow.com/questions/53958028/how-to-use-generics-in-props-in-react-in-a-functional-component
 
-// TODO: refactor - consolidate all mask fields to use type = 'mask' and pass the mask as a prop
+// TODO: refactor - consolidate all mask fields to use type = 'mask' and pass the mask as a prop (use iMask as component, pass in inputProps: maskProps)
 
 export interface SelectOption {
   label: string;
@@ -81,21 +80,6 @@ export type InputSchemas =
   | DollarTypeProps
   | AddressTypeProps
   | MaskTypeProps;
-
-// export interface InputSchema {
-//   name: string;
-//   label: string;
-//   required: boolean;
-//   inputType: 'text' | 'select' | 'phone' | 'dollar' | 'address' | 'mask';
-//   selectOptions?: SelectOption[];
-//   variant?: 'standard' | 'outlined' | 'filled';
-//   size?: 'small' | 'medium';
-//   gridProps?: Grid2Props;
-//   propsGetterFunc?: (index: number, parentField: string, name: string) => any;
-//   maskComponent?: ForwardRefExoticComponent<any>;
-//   inputProps?: InputBaseComponentProps;
-//   helperText?: string;
-// }
 
 export interface FormikFieldArrayProps {
   parentField: string;
@@ -237,33 +221,30 @@ export const FormikFieldArray = ({
                                   disabled={disabled}
                                   {...(componentProps as SelectTypeProps['componentProps'])}
                                   {...propsGetterFunc(index, parentField, name)}
-                                  // {...componentProps as Omit<FormikNativeSelectProps, 'id' | 'name' | 'label'>}
-
-                                  // {...rest}
                                 />
                               </Grid>
                             );
                           }
-                          if (inputType === 'phone') {
-                            return (
-                              <Grid key={name} xs={12} sm={6} md={4} {...gridProps}>
-                                <FormikMaskField
-                                  fullWidth
-                                  id={name}
-                                  label={label}
-                                  required={required}
-                                  name={`${parentField}[${index}][${name}]`}
-                                  maskComponent={PhoneMask}
-                                  // @ts-ignore
-                                  inputProps={{ ...props.inputProps }}
-                                  disabled={disabled}
-                                  {...(componentProps as MaskTypeProps['componentProps'])}
-                                  {...propsGetterFunc(index, parentField, name)}
-                                  // {...rest}
-                                />
-                              </Grid>
-                            );
-                          }
+                          // if (inputType === 'phone') {
+                          //   return (
+                          //     <Grid key={name} xs={12} sm={6} md={4} {...gridProps}>
+                          //       <FormikMaskField
+                          //         fullWidth
+                          //         id={name}
+                          //         label={label}
+                          //         required={required}
+                          //         name={`${parentField}[${index}][${name}]`}
+                          //         maskComponent={PhoneMask}
+                          //         // @ts-ignore
+                          //         inputProps={{ ...props.inputProps }}
+                          //         disabled={disabled}
+                          //         {...(componentProps as MaskTypeProps['componentProps'])}
+                          //         {...propsGetterFunc(index, parentField, name)}
+                          //         // {...rest}
+                          //       />
+                          //     </Grid>
+                          //   );
+                          // }
                           if (inputType === 'mask') {
                             return (
                               <Grid key={name} xs={12} sm={6} md={4} {...gridProps}>

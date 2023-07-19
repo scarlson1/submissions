@@ -19,9 +19,10 @@ import * as yup from 'yup';
 import {
   FormikTextField,
   FormikMaskField,
-  PhoneMask,
-  FeinMask,
   FormikDragDrop,
+  IMask,
+  phoneMaskProps,
+  feinMaskProps,
 } from 'components/forms';
 import FormikAddress from 'elements/forms/FormikAddress';
 import { useCreateAgencySubmission, useCreateTenant, useAsyncToast } from 'hooks';
@@ -227,7 +228,9 @@ export const CreateTenant = () => {
                           label='FEIN'
                           fullWidth
                           required
-                          maskComponent={FeinMask}
+                          // maskComponent={FeinMask}
+                          maskComponent={IMask}
+                          inputProps={{ maskProps: feinMaskProps }}
                           variant='standard'
                         />
                       </Grid>
@@ -309,7 +312,9 @@ export const CreateTenant = () => {
                           variant='standard'
                           fullWidth
                           required={false}
-                          maskComponent={PhoneMask}
+                          // maskComponent={PhoneMask}
+                          maskComponent={IMask}
+                          inputProps={{ maskProps: phoneMaskProps }}
                         />
                       </Grid>
                     </Grid>

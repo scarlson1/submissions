@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { useFunctions } from 'reactfire';
 import { round } from 'lodash';
 
 import {
@@ -7,23 +8,27 @@ import {
   GetPropertyDetailsAttomRequest,
 } from 'modules/api';
 import { Coordinates, LimitKeys, Limits, Nullable, RatingPropertyData } from 'common/types';
-import { getFunctions } from 'firebase/functions';
+
 import { usePromptRCV } from './usePromptRCV';
 import { calcSum } from 'modules/utils';
 
 export const usePropertyDetails = () => {
+  const functions = useFunctions();
   const [propertyDetails, setPropertyDetails] = useState<any>();
 
-  const fetchPropertyData = useCallback(async (args: Coordinates) => {
-    // const fetchPropertyDetails = httpsCallable<any, any>(getFunctions(), 'getPropertyDetails');
-    const fetchDetails = fetchPropertyDetails(getFunctions());
-    const { data } = await fetchDetails(args);
-    // const { data } = await fetchPropertyDetails(args);
+  const fetchPropertyData = useCallback(
+    async (args: Coordinates) => {
+      // const fetchPropertyDetails = httpsCallable<any, any>(getFunctions(), 'getPropertyDetails');
+      const fetchDetails = fetchPropertyDetails(functions);
+      const { data } = await fetchDetails(args);
+      // const { data } = await fetchPropertyDetails(args);
 
-    setPropertyDetails({ ...data });
+      setPropertyDetails({ ...data });
 
-    return data;
-  }, []);
+      return data;
+    },
+    [functions]
+  );
 
   return { fetchPropertyData, propertyDetails };
 };
@@ -88,6 +93,7 @@ interface UsePropertyDetailsProps {
 }
 
 export const usePropertyDetailsAttom = (props?: UsePropertyDetailsProps) => {
+  const functions = useFunctions();
   const [propertyDetails, setPropertyDetails] = useState<Nullable<RatingPropertyData>>({
     CBRSDesignation: null,
     basement: null,
@@ -106,8 +112,10 @@ export const usePropertyDetailsAttom = (props?: UsePropertyDetailsProps) => {
   const promptRCV = usePromptRCV();
 
   const fetchPropertyData = useCallback(
-    async (args: GetPropertyDetailsAttomRequest) => {
-      const fetchDetails = getPropertyDetailsAttom(getFunctions());
+    async (
+      args: GetPropertyDetailsAttomRequest
+    ): Promise<InitRatingValues & { ratingPropertyData: Partial<RatingPropertyData> }> => {
+      const fetchDetails = getPropertyDetailsAttom(functions);
       const { data } = await fetchDetails(args);
 
       let newPropDetails = {
@@ -137,13 +145,27 @@ export const usePropertyDetailsAttom = (props?: UsePropertyDetailsProps) => {
           });
           setPropertyDetails({ ...newPropDetails, replacementCost: estRCV });
 
-          return newDefaults;
+          return {
+            ...newDefaults,
+            ratingPropertyData: {
+              // @ts-ignore
+              numStories: data.numStories || '',
+              basement: data.basement || '',
+            },
+          };
         } else {
           setRcvSourceUser(false);
           setPropertyDetails(newPropDetails);
           setInitRatingValues(DEFAULT_INIT_VALUES);
 
-          return DEFAULT_INIT_VALUES;
+          return {
+            ...DEFAULT_INIT_VALUES,
+            ratingPropertyData: {
+              // @ts-ignore
+              numStories: data.numStories || '',
+              basement: data.basement || '',
+            },
+          };
         }
       } else {
         setRcvSourceUser(false);
@@ -158,10 +180,17 @@ export const usePropertyDetailsAttom = (props?: UsePropertyDetailsProps) => {
         };
         setInitRatingValues(initVals);
 
-        return initVals; // data;
+        return {
+          ...initVals,
+          ratingPropertyData: {
+            // @ts-ignore
+            numStories: data.numStories || '',
+            basement: data.basement || '',
+          },
+        };
       }
     },
-    [promptRCV, props]
+    [functions, promptRCV, props]
   );
 
   return { fetchPropertyData, rcvSourceUser, initRatingValues, propertyDataDocId, propertyDetails };

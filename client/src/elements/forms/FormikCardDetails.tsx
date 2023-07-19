@@ -1,7 +1,6 @@
 import { Typography, Unstable_Grid2 as Grid, Grid2Props as GridProps } from '@mui/material';
-import { MaskedRange } from 'imask';
 
-import { FormikMaskField, FormikTextField, IMask } from 'components/forms';
+import { FormikMaskField, FormikTextField, IMask, cardExpDateMaskProps } from 'components/forms';
 
 export interface FormikCardDetailsProps {
   gridProps?: GridProps;
@@ -27,23 +26,7 @@ export const FormikCardDetails = ({ gridProps }: FormikCardDetailsProps) => {
           required
           maskComponent={IMask}
           inputProps={{
-            maskProps: {
-              mask: 'MM/YY',
-              blocks: {
-                MM: {
-                  mask: MaskedRange,
-                  from: 1,
-                  to: 12,
-                  autofix: 'pad',
-                },
-                YY: {
-                  mask: MaskedRange,
-                  from: 23,
-                  to: 99,
-                  autofix: true,
-                },
-              },
-            },
+            maskProps: cardExpDateMaskProps,
           }}
         />
       </Grid>

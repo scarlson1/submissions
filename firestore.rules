@@ -83,7 +83,6 @@ service cloud.firestore {
 
     // TODO: update allow read of user profile (tenant/agent/insured etc.)
     match /users/{userId} {
-      // allow read: if isUser(userId) || isTenantUser(existingData().orgId)|| (isIDemandAdmin() && emailVerified())
       allow read: if isUser(userId) || isTenantUser(existingData().orgId) || (isIDemandAdmin() && emailVerified()) 
       // TODO: allow agent / agency users to read if x association (where user.tenantId = policy.agency.orgId, etc.) ?? need to run query ??
       allow create: if isUser(userId) || (isIDemandAdmin() && emailVerified())
@@ -113,7 +112,7 @@ service cloud.firestore {
     }
 
     match /organizations/{orgId}/userClaims/{userId} {
-      allow read: if (isSignedIn() && isTenantUser(orgId)) || isIDemandAdmin() || isIDemandUser()
+      allow read: if isTenantUser(orgId) || isIDemandAdmin() || isIDemandUser()
       // _lastCommitted is set in mirrorCustomClaims function and should never be set by user
       allow create, update: if isSignedIn() && emailVerified() && (isIDemandAdmin() || (isOrgAdmin() && isTenantUser(orgId))) && (!request.resource.data.keys().hasAny(['_lastCommitted']))
       allow delete: if false

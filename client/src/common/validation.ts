@@ -199,6 +199,13 @@ export const deductibleValidation = yup.object().shape({
   deductible: yup.number().min(1000).required(),
 });
 
+export const buildingDetailsValidation = yup.object().shape({
+  ratingPropertyData: yup.object().shape({
+    numStories: yup.number().required('# stories is required'),
+    basement: yup.string().required('basement is required'),
+  }),
+});
+
 export const exclusionsValidation = yup.object({
   exclusionsExist: yup.boolean().oneOf([true, false], 'Please select an option').nullable(),
   exclusions: yup.array().when(['exclusionsExist'], {

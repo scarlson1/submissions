@@ -1,7 +1,7 @@
 import { useFormikContext } from 'formik';
 import * as yup from 'yup';
 
-import { FormikFieldArray } from 'components/forms';
+import { FormikFieldArray, IMask, phoneMaskProps } from 'components/forms';
 import { emailVal, phoneVal } from 'common';
 
 export const agentsValidation = yup.object().shape({
@@ -71,7 +71,11 @@ export const AddAgents = (props: AddAgentsProps) => {
           name: 'phone',
           label: 'Phone',
           required: true,
-          inputType: 'phone',
+          inputType: 'mask',
+          maskComponent: IMask,
+          componentProps: {
+            inputProps: { maskProps: phoneMaskProps },
+          },
         },
         // {
         //   name: 'access',

@@ -1,21 +1,14 @@
 import { ReactElement, ReactNode, useCallback, useEffect, useMemo } from 'react';
 import { useFormikContext } from 'formik';
-import { isEmpty } from 'lodash';
-import {
-  CalculateOutlined,
-  CalculateRounded,
-  CheckCircleOutlineRounded,
-} from '@mui/icons-material';
 import { Box, Divider, Tooltip, Typography } from '@mui/material';
 
 import { useGetDiff, useJsonDialog } from 'hooks';
 import { Obj } from 'modules/utils';
 
-// TODO: use something like recoil for automatically derived state ??
-// TODO: generalize component (ratingInputsPrev --> inputsPrev, etc.)
+// TODO: use something like recoil to derived state ??
 
 interface DiffProps {
-  inputsPrev: any; // TODO: type - generic type ?? "inputsPrev"
+  inputsPrev: any;
   onDiffChange: (diff: Obj | undefined, isDiff: boolean) => void;
   getStateIcon: (handleClick: () => void) => ReactElement;
   extractInputsFromValues: (values: any) => Record<string, any>;
@@ -42,14 +35,12 @@ export const Diff = ({
 
   // recalc diff whenever monitored inputs change
   useEffect(() => {
-    // console.log('OLD OBJ: ', ratingInputsPrev);
-    // console.log('NEW OBJ: ', ratingInputsCurr);
+    // console.log('OLD OBJ: ', inputsPrev);
+    // console.log('NEW OBJ: ', inputsCurr);
 
     getDiff(inputsPrev, inputsCurr);
   }, [getDiff, inputsPrev, inputsCurr]);
 
-  // recalc: if any diff between prev and current rating fields
-  // rerate: if rerate key is included in diff
   useEffect(() => {
     onDiffChange(diff, isDiff);
   }, [diff, isDiff, onDiffChange]);

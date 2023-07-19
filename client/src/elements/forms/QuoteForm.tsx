@@ -74,7 +74,6 @@ import {
   useFetchTaxes,
   useRateQuote,
 } from 'hooks';
-// import { AddressStep } from './AddressStep';
 import { LimitsStep } from './LimitsStep';
 import {
   Diff,
@@ -87,9 +86,9 @@ import {
   FormikNativeSelect,
   FormikTextField,
   IMask,
-  PercentMask,
-  PhoneMask,
   RequiredFieldsIndicator,
+  percentMaskProps,
+  phoneMaskProps,
 } from 'components/forms';
 import FormikAddressLite from './FormikAddressLite';
 import { ROUTES, createPath } from 'router';
@@ -417,17 +416,6 @@ export const QuoteForm = ({
     ...initialRatingSnap,
   });
 
-  const handleDiffChange = useCallback(
-    (newVals: { rerateRequired: boolean; recalcRequired: boolean }) => {
-      // setRatingState(newVals)
-      // Directly setting rerate misses checking for AALs
-      const aals = formikRef.current?.values.AAL;
-      const missingAAL = !(aals?.inland || aals?.surge);
-      setRatingState({ ...newVals, rerateRequired: newVals.rerateRequired || missingAAL });
-    },
-    []
-  );
-
   const { fetchTaxes, loading: taxesLoading } = useFetchTaxes(
     (newTaxes: TaxItem[]) => {
       setTimeout(() => {
@@ -629,14 +617,13 @@ export const QuoteForm = ({
     navigate(createPath({ path: ROUTES.QUOTES }));
   }, [navigate]);
 
-  const onDiffChange = useCallback((diff: Obj | undefined, isDiff: boolean) => {
+  const handleDiffChange = useCallback((diff: Obj | undefined, isDiff: boolean) => {
     // recalc: if any diff between prev and current rating fields
     // rerate: if rerate key is included in diff
     if (isEmpty(diff)) return setRatingState({ rerateRequired: false, recalcRequired: false });
     const shouldRerate = RATING_FIELDS.some((key) => {
       return diff[key];
     });
-    // setRatingState({ rerateRequired: shouldRerate, recalcRequired: isDiff });
     // Directly setting rerate misses checking for AALs
     const aals = formikRef.current?.values.AAL;
     const missingAAL = !(aals?.inland || aals?.surge);
@@ -745,7 +732,7 @@ export const QuoteForm = ({
               }`}</Typography>
               <Diff
                 inputsPrev={ratingInputsSnap}
-                onDiffChange={onDiffChange}
+                onDiffChange={handleDiffChange}
                 getStateIcon={getDiffIcon}
                 extractInputsFromValues={extractRatingInputsFromValues}
               >
@@ -1283,10 +1270,14 @@ export const QuoteForm = ({
                       label: 'Tax Rate',
                       required: false,
                       inputType: 'mask',
-                      maskComponent: PercentMask,
+                      maskComponent: IMask,
                       componentProps: {
-                        inputProps: { maskProps: { scale: 5 } },
+                        inputProps: { maskProps: { ...percentMaskProps, scale: 5 } },
                       },
+                      // maskComponent: PercentMask,
+                      // componentProps: {
+                      //   inputProps: { maskProps: { scale: 5 } },
+                      // },
                     },
                     {
                       name: 'value',
@@ -1363,7 +1354,9 @@ export const QuoteForm = ({
                 id='namedInsured.phone'
                 label='Insured phone'
                 name='namedInsured.phone'
-                maskComponent={PhoneMask}
+                // maskComponent={PhoneMask}
+                maskComponent={IMask}
+                inputProps={{ maskProps: phoneMaskProps }}
               />
             </Grid>
             <Grid xs={12}>
@@ -1391,7 +1384,9 @@ export const QuoteForm = ({
                 id='agent.phone'
                 label='Agent Phone'
                 name='agent.phone'
-                maskComponent={PhoneMask}
+                // maskComponent={PhoneMask}
+                maskComponent={IMask}
+                inputProps={{ maskProps: phoneMaskProps }}
               />
             </Grid>
             <Grid xs={6} sm={3}>

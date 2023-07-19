@@ -16,13 +16,14 @@ import * as yup from 'yup';
 import Lottie from 'lottie-react';
 
 import {
-  FeinMask,
   FormikDragDrop,
   FormikMaskField,
   FormikTextField,
   FormikWizard,
-  PhoneMask,
   Step,
+  IMask,
+  phoneMaskProps,
+  feinMaskProps,
 } from 'components/forms';
 import { AgencyReviewStep, ContactStep } from 'elements/forms';
 import {
@@ -211,7 +212,9 @@ export const AgencyNew = () => {
                 name='contact.phone'
                 label='Phone'
                 required
-                maskComponent={PhoneMask}
+                // maskComponent={PhoneMask}
+                maskComponent={IMask}
+                inputProps={{ maskProps: phoneMaskProps }}
               />
             </Grid>
           </ContactStep>
@@ -240,7 +243,9 @@ export const AgencyNew = () => {
                 label='FEIN'
                 fullWidth
                 required
-                maskComponent={FeinMask}
+                // maskComponent={FeinMask}
+                maskComponent={IMask}
+                inputProps={{ maskProps: feinMaskProps }}
               />
             </Grid>
           </Grid>
