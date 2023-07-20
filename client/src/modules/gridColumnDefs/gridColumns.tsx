@@ -64,7 +64,7 @@ import {
   Nullable,
   PolicyLocation,
 } from 'common';
-import { renderChips } from 'components/RenderGridCellHelpers';
+import { renderChips, renderSplitSnakeCase } from 'components/RenderGridCellHelpers';
 import { STATES_ABV_ARR } from '../../common/statesList';
 import {
   getGridFirestoreNumericOperators,
@@ -1585,12 +1585,24 @@ export const sendgridEventCol: GridColDef = {
 export const sendgridMsgIdCol: GridColDef = {
   ...idCol,
   field: 'sg_message_id',
-  headerName: 'Msg ID',
+  headerName: 'SG Msg ID',
+  description: 'sendgrid message ID',
 };
+
 export const ipCol: GridColDef = {
   field: 'ip',
   headerName: 'IP',
   minWidth: 140,
   flex: 0.4,
   editable: false,
+};
+
+// TODO: make select ??
+export const emailTypeCol: GridColDef = {
+  field: 'eventType',
+  headerName: 'Type',
+  type: 'string',
+  editable: false,
+  renderCell: (params) => renderSplitSnakeCase(params),
+  filterOperators: getGridFirestoreStringOperators(),
 };

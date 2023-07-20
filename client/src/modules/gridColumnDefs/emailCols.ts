@@ -3,6 +3,7 @@ import { GridColDef } from '@mui/x-data-grid';
 import {
   createdCol,
   emailCol,
+  emailTypeCol,
   idCol,
   ipCol,
   sendgridEventCol,
@@ -13,6 +14,7 @@ export const emailCols: GridColDef[] = [
   idCol,
   emailCol,
   sendgridEventCol,
+  emailTypeCol,
   sendgridMsgIdCol,
   ipCol,
   createdCol,

@@ -1,26 +1,17 @@
+import { Request } from 'firebase-functions/v2/https';
+import { Response } from 'firebase-functions/v1';
 import { error, info } from 'firebase-functions/logger';
-import express, { Request, Response } from 'express';
-import cors from 'cors';
-import * as bodyParser from 'body-parser';
 import { CollectionReference, Timestamp, getFirestore } from 'firebase-admin/firestore';
-// import sgMail from '@sendgrid/mail';
-// import client from '@sendgrid/client'; // , { Client as SgClient }
-// import { HttpMethod } from '@sendgrid/helpers/classes/request';
-// import {
-//   EventWebhook,
-//   EventWebhookHeader
-// } from '@sendgrid/eventwebhook';
-// import { CallableRequest } from 'firebase-functions/v2/https';
 import { v4 as uuid } from 'uuid';
+
+import { emailActivityCollection } from '../common';
+
+// local webhook url: https://5d548ca8c480-3444825649922910484.ngrok-free.app/idemand-submissions-dev/us-central1/sendgrid/event
+// dev url ??: ${hosingURL}/sendgrid/event
+// prod (still v1): https://us-central1-idemand-submissions.cloudfunctions.net/sendgrid/event
 
 // TODO: need to change sendgrid webhook URL to production once deplooyed (requires upgrading to $20/mo. subscription)
 // or hacky option: create one webook and pass the environment as a variable in sendgrid metadata ??
-
-import {
-  emailActivityCollection,
-  // sendGridWebhookVerificationKey,
-  // sendgridApiKey,
-} from '../common';
 
 // TODO: signed event verification key:
 // https://docs.sendgrid.com/for-developers/tracking-events/getting-started-event-webhook-security-features
@@ -30,45 +21,6 @@ import {
 // https://docs.sendgrid.com/for-developers/tracking-events/twilio-sendgrid-event-webhook-overview
 
 // verifying request example: https://github.com/sendgrid/sendgrid-nodejs/blob/main/docs/use-cases/event-webhook.md
-
-// const verifyRequest = function (
-//   publicKey: string,
-//   payload: string | Buffer,
-//   signature: string,
-//   timestamp: string
-// ) {
-//   const eventWebhook = new EventWebhook();
-//   const ecPublicKey = eventWebhook.convertPublicKeyToECDSA(publicKey);
-//   return eventWebhook.verifySignature(ecPublicKey, payload, signature, timestamp);
-// };
-
-const app = express();
-
-app.use(cors({ origin: true }));
-// parse req.body as a Buffer (or use req.rawBody)
-// app.use(bodyParser.raw({ type: 'application/json'}))
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
-
-// REQUIRES PURCHASE ($5/month): https://sendgrid.com/solutions/add-ons/30-days-additional-email-activity-history/
-// const getEmailDetails = async (client: SgClient, msgId?: string | null) => {
-//   if (!msgId) return null;
-//   try {
-//     const request = {
-//       url: `/v3/messages/${msgId}`,
-//       method: 'GET' as HttpMethod,
-//     };
-//     const [res, body] = await client.request(request);
-
-//     console.log('SG mes details res', res);
-//     console.log('SG mes details body: ', body);
-
-//     return res.body || null;
-//   } catch (err: any) {
-//     error(`Error fetching email datails ${msgId}`);
-//     return null;
-//   }
-// };
 
 const saveEvent = async (eventColRef: CollectionReference<any>, data: Record<string, any>) => {
   try {
@@ -93,48 +45,168 @@ const saveEvent = async (eventColRef: CollectionReference<any>, data: Record<str
   }
 };
 
-app.post('/event', async (req: Request, res: Response) => {
+export default async (req: Request, res: Response) => {
+  // app.post('/event', async (req: Request, res: Response) => {
   // TODO: enable signature verification
-  // const signature = req.get(EventWebhookHeader.SIGNATURE());
-  // const timestamp = req.get(EventWebhookHeader.TIMESTAMP());
-
-  // // const requestBody = req.body;
-  // // Alternatively, if using firebase cloud functions, remove the middleware and use:
-  // // @ts-ignore
-  // const requestBody = (req as CallableRequest).rawBody;
-
-  // try {
-  //   verifyRequest(
-  //     sendGridWebhookVerificationKey.value(),
-  //     requestBody,
-  //     signature || '',
-  //     timestamp || ''
-  //   );
-  // } catch (err: any) {
-  //   error('Sendgrid event verification failed', { err });
-  //   return;
-  // }
-
   var events = req.body as SGWebhookBody;
   info('New sendgrid event recieved', { events });
-
-  // const client = require('@sendgrid/client');
-  // client.setApiKey(sendgridApiKey.value());
 
   const db = getFirestore();
   const eventColRef = emailActivityCollection(db);
 
   events.forEach(async function (event: any) {
-    // const msgId = event.sg_message_id;
-    // const msgDetails = await getEmailDetails(client, msgId);
-
-    await saveEvent(eventColRef, event); // { event, emailData: msgDetails }
+    // TODO: filter out non-production events using metadata field
+    await saveEvent(eventColRef, event);
   });
 
   res.send({ status: 'processed' });
-});
+};
 
-export default app;
+// USING EXPRESS:
+
+// import { error, info } from 'firebase-functions/logger';
+// import express, { Request, Response } from 'express';
+// import cors from 'cors';
+// import * as bodyParser from 'body-parser';
+// import { CollectionReference, Timestamp, getFirestore } from 'firebase-admin/firestore';
+// // import sgMail from '@sendgrid/mail';
+// // import client from '@sendgrid/client'; // , { Client as SgClient }
+// // import { HttpMethod } from '@sendgrid/helpers/classes/request';
+// // import {
+// //   EventWebhook,
+// //   EventWebhookHeader
+// // } from '@sendgrid/eventwebhook';
+// // import { CallableRequest } from 'firebase-functions/v2/https';
+// import { v4 as uuid } from 'uuid';
+
+// // local webhook url: https://5d548ca8c480-3444825649922910484.ngrok-free.app/idemand-submissions-dev/us-central1/sendgrid/event
+// // dev url ??: ${hosingURL}/sendgrid/event
+// // prod (still v1): https://us-central1-idemand-submissions.cloudfunctions.net/sendgrid/event
+
+// // TODO: set up as normal function ?? doesnt need to use express b/c only need one route
+
+// // TODO: need to change sendgrid webhook URL to production once deplooyed (requires upgrading to $20/mo. subscription)
+// // or hacky option: create one webook and pass the environment as a variable in sendgrid metadata ??
+
+// import {
+//   emailActivityCollection,
+//   // sendGridWebhookVerificationKey,
+//   // sendgridApiKey,
+// } from '../common';
+
+// // TODO: signed event verification key:
+// // https://docs.sendgrid.com/for-developers/tracking-events/getting-started-event-webhook-security-features
+// // https://github.com/sendgrid/sendgrid-nodejs/blob/main/docs/use-cases/event-webhook.md
+
+// // Sendgrid event webhook: https://docs.sendgrid.com/for-developers/tracking-events/event
+// // https://docs.sendgrid.com/for-developers/tracking-events/twilio-sendgrid-event-webhook-overview
+
+// // verifying request example: https://github.com/sendgrid/sendgrid-nodejs/blob/main/docs/use-cases/event-webhook.md
+
+// // const verifyRequest = function (
+// //   publicKey: string,
+// //   payload: string | Buffer,
+// //   signature: string,
+// //   timestamp: string
+// // ) {
+// //   const eventWebhook = new EventWebhook();
+// //   const ecPublicKey = eventWebhook.convertPublicKeyToECDSA(publicKey);
+// //   return eventWebhook.verifySignature(ecPublicKey, payload, signature, timestamp);
+// // };
+
+// const app = express();
+
+// app.use(cors({ origin: true }));
+// // parse req.body as a Buffer (or use req.rawBody)
+// // app.use(bodyParser.raw({ type: 'application/json'}))
+// app.use(bodyParser.json());
+// app.use(bodyParser.urlencoded({ extended: false }));
+
+// // REQUIRES PURCHASE ($5/month): https://sendgrid.com/solutions/add-ons/30-days-additional-email-activity-history/
+// // const getEmailDetails = async (client: SgClient, msgId?: string | null) => {
+// //   if (!msgId) return null;
+// //   try {
+// //     const request = {
+// //       url: `/v3/messages/${msgId}`,
+// //       method: 'GET' as HttpMethod,
+// //     };
+// //     const [res, body] = await client.request(request);
+
+// //     console.log('SG mes details res', res);
+// //     console.log('SG mes details body: ', body);
+
+// //     return res.body || null;
+// //   } catch (err: any) {
+// //     error(`Error fetching email datails ${msgId}`);
+// //     return null;
+// //   }
+// // };
+
+// const saveEvent = async (eventColRef: CollectionReference<any>, data: Record<string, any>) => {
+//   try {
+//     const docId = data.sg_event_id || uuid();
+//     const eventRef = eventColRef.doc(docId);
+
+//     const firestoreTimestamp = data.timestamp
+//       ? Timestamp.fromDate(new Date(data.timestamp * 1000))
+//       : null;
+
+//     await eventRef.set({
+//       ...data,
+//       firestoreTimestamp,
+//       metadata: {
+//         created: Timestamp.now(),
+//       },
+//     });
+
+//     info(`Saved sendgrid event (ID: ${docId})`, { data });
+//   } catch (err: any) {
+//     error(`Error saving sendgrid event to db (ID: )`, { err, data });
+//   }
+// };
+
+// app.post('/event', async (req: Request, res: Response) => {
+//   // TODO: enable signature verification
+//   // const signature = req.get(EventWebhookHeader.SIGNATURE());
+//   // const timestamp = req.get(EventWebhookHeader.TIMESTAMP());
+
+//   // // const requestBody = req.body;
+//   // // Alternatively, if using firebase cloud functions, remove the middleware and use:
+//   // // @ts-ignore
+//   // const requestBody = (req as CallableRequest).rawBody;
+
+//   // try {
+//   //   verifyRequest(
+//   //     sendGridWebhookVerificationKey.value(),
+//   //     requestBody,
+//   //     signature || '',
+//   //     timestamp || ''
+//   //   );
+//   // } catch (err: any) {
+//   //   error('Sendgrid event verification failed', { err });
+//   //   return;
+//   // }
+
+//   var events = req.body as SGWebhookBody;
+//   info('New sendgrid event recieved', { events });
+
+//   // const client = require('@sendgrid/client');
+//   // client.setApiKey(sendgridApiKey.value());
+
+//   const db = getFirestore();
+//   const eventColRef = emailActivityCollection(db);
+
+//   events.forEach(async function (event: any) {
+//     // const msgId = event.sg_message_id;
+//     // const msgDetails = await getEmailDetails(client, msgId);
+
+//     await saveEvent(eventColRef, event); // { event, emailData: msgDetails }
+//   });
+
+//   res.send({ status: 'processed' });
+// });
+
+// export default app;
 
 // SOURCE: https://github.com/sendgrid/sendgrid-nodejs/pull/1370
 

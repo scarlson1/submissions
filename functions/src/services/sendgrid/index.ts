@@ -34,6 +34,8 @@ import {
   adminChangeRequest,
   moveToTenantConfirmation,
 } from './templates';
+import { env } from '../../common';
+import { projectID } from 'firebase-functions/params';
 
 export interface AttachmentJSON {
   content: string;
@@ -83,8 +85,16 @@ const createMsgContent = ({
   };
 };
 
-interface ExtraSendGridArgs
+export interface ExtraSendGridArgs
   extends Omit<CreateMsgContentProps, 'to' | 'from' | 'subject' | 'html' | 'attachements'> {}
+
+function getCustomArgs(args?: Record<string, any> | undefined) {
+  return {
+    projectId: projectID.value(),
+    environment: env.value(),
+    ...(args || {}),
+  };
+}
 
 export const sendSubmissionRecievedConfirmation = async (
   key: string,
@@ -98,7 +108,12 @@ export const sendSubmissionRecievedConfirmation = async (
   sgMail.setApiKey(key);
 
   await sgMail.send(
-    createMsgContent({ html, subject: `We've received your submission!`, to, ...(sgArgs || {}) })
+    createMsgContent({
+      html,
+      subject: `We've received your submission!`,
+      to,
+      ...getCustomArgs(sgArgs),
+    })
   );
 };
 
@@ -114,7 +129,9 @@ export const sendNewSubmissionAdminNotification = async (
   const html = adminNewSubmission({ link, addressLine1, city, state });
   sgMail.setApiKey(key);
 
-  await sgMail.send(createMsgContent({ html, subject: `New submission!`, to, ...(sgArgs || {}) }));
+  await sgMail.send(
+    createMsgContent({ html, subject: `New submission!`, to, ...getCustomArgs(sgArgs) })
+  );
 };
 
 export const sendEmailConfirmation = async (
@@ -128,7 +145,7 @@ export const sendEmailConfirmation = async (
   sgMail.setApiKey(key);
 
   await sgMail.send(
-    createMsgContent({ html, subject: 'Please confirm your email', to, ...(sgArgs || {}) })
+    createMsgContent({ html, subject: 'Please confirm your email', to, ...getCustomArgs(sgArgs) })
   );
 };
 
@@ -147,7 +164,13 @@ export const sendUserInvite = async (
   await sgMail
     // .sendMultiple(msg)
     .send(
-      createMsgContent({ ...config, html, subject: 'Create an account', to, ...(sgArgs || {}) })
+      createMsgContent({
+        ...config,
+        html,
+        subject: 'Create an account',
+        to,
+        ...getCustomArgs(sgArgs),
+      })
     );
 };
 
@@ -161,7 +184,9 @@ export const sendNewAgencySubmissionAdminNotification = async (
   const html = adminNewAgencySubmission({ link, orgName });
   sgMail.setApiKey(key);
 
-  await sgMail.send(createMsgContent({ html, subject: `New submission!`, to, ...(sgArgs || {}) }));
+  await sgMail.send(
+    createMsgContent({ html, subject: `New submission!`, to, ...getCustomArgs(sgArgs) })
+  );
 };
 
 export const sendNewQuoteEmail = async (
@@ -176,7 +201,7 @@ export const sendNewQuoteEmail = async (
   sgMail.setApiKey(key);
 
   await sgMail.send(
-    createMsgContent({ html, subject: `Here's your quote!`, to, ...(sgArgs || {}) })
+    createMsgContent({ html, subject: `Here's your quote!`, to, ...getCustomArgs(sgArgs) })
   );
 };
 
@@ -197,7 +222,7 @@ export const sendPolicyDocDelivery = async (
       subject: `Congrats! Here's your new policy`,
       to,
       attachments,
-      ...(sgArgs || {}),
+      ...getCustomArgs(sgArgs),
     })
   );
 };
@@ -219,7 +244,7 @@ export const sendAdminPaidNotification = async (
       html,
       subject: `Payment received (${transactionId})`,
       to,
-      ...(sgArgs || {}),
+      ...getCustomArgs(sgArgs),
     })
   );
 };
@@ -250,7 +275,7 @@ export const sendAgencyAppApprovedNotification = async (
       to,
       html,
       subject: 'Finish setting up your account',
-      ...(sgArgs || {}),
+      ...getCustomArgs(sgArgs),
     })
   );
 
@@ -279,7 +304,7 @@ export const sendAdminChangeRequestNotification = async (
       to,
       html,
       subject: 'Change request received',
-      ...(sgArgs || {}),
+      ...getCustomArgs(sgArgs),
     })
   );
 };
@@ -310,7 +335,7 @@ export const sendAdminPolicyImportNotification = async (
       to,
       html,
       subject: 'Policy import complete',
-      ...(sgArgs || {}),
+      ...getCustomArgs(sgArgs),
     })
   );
 };
@@ -335,7 +360,7 @@ export const sendQuoteExpiringSoonNotification = async (
       to,
       html,
       subject: 'Quote expires tomorrow',
-      ...(sgArgs || {}),
+      ...getCustomArgs(sgArgs),
     })
   );
 };
@@ -355,7 +380,7 @@ export const sendMessage = async (
       to,
       html,
       subject,
-      ...(sgArgs || {}),
+      ...getCustomArgs(sgArgs),
     })
   );
 };
@@ -380,7 +405,7 @@ export const moveTenantVerification = async (
       to,
       html,
       subject: 'Confirm org migration',
-      ...(sgArgs || {}),
+      ...getCustomArgs(sgArgs),
     })
   );
 };

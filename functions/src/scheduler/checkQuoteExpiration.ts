@@ -12,6 +12,7 @@ import {
   sendgridApiKey,
 } from '../common';
 import { sendQuoteExpiringSoonNotification } from '../services/sendgrid';
+import { error, info } from 'firebase-functions/logger';
 
 // TODO: test and finish function before deploy
 
@@ -33,7 +34,7 @@ import { sendQuoteExpiringSoonNotification } from '../services/sendgrid';
  */
 
 export default async (event: ScheduledEvent) => {
-  console.log('CHECKING QUOTE STATUS FOR QUOTES EXPIRING IN THE NEXT 24 HOURS');
+  info('CHECKING QUOTE STATUS FOR QUOTES EXPIRING IN THE NEXT 24 HOURS');
   const db = getFirestore();
 
   // let currentDate = new Date();
@@ -65,8 +66,8 @@ export default async (event: ScheduledEvent) => {
     }));
 
     // quoteDocs.forEach(q => console.log(`QUOTE ${q.id} expires ${new Date(q.quoteExpiration.seconds * 1000).toString()}`))
-  } catch (err) {
-    console.log('ERROR FETCHING QUOTES EXPIRING WITH 24 HOURS');
+  } catch (err: any) {
+    error('ERROR FETCHING QUOTES EXPIRING WITH 24 HOURS', { err });
   }
 
   let expired = [];
@@ -77,11 +78,11 @@ export default async (event: ScheduledEvent) => {
     for (const quote of quoteDocs) {
       let expTS = quote.quoteExpiration as Timestamp;
       if (expTS.toMillis() < currDateSeconds || expTS.isEqual(Timestamp.fromDate(currentDate))) {
-        console.log(`QUOTE ${quote.id} expires ${expTS.toDate()} --> SETTING STATUS: EXPIRED`);
+        info(`QUOTE ${quote.id} expires ${expTS.toDate()} --> SETTING STATUS: EXPIRED`);
 
         expired.push(quote);
       } else {
-        console.log(
+        info(
           `QUOTE ${quote.id} expires within 24 hours --> SENDING REMINDER EMAIL TO INSURED AND AGENT`
         );
 
@@ -89,7 +90,7 @@ export default async (event: ScheduledEvent) => {
       }
     }
   } catch (err) {
-    console.log('ERROR SEPARATING EXPIRED QUOTES FROM QUOTES EXPIRING WITHIN 24 HOURS');
+    error('ERROR SEPARATING EXPIRED QUOTES FROM QUOTES EXPIRING WITHIN 24 HOURS', { err });
   }
 
   try {
@@ -102,7 +103,7 @@ export default async (event: ScheduledEvent) => {
       }
     }
   } catch (err) {
-    console.log('ERROR UPDATING STATUS TO EXPIRED: ', err);
+    error('ERROR UPDATING STATUS TO EXPIRED: ', { err });
     // TODO: notify admins
   }
 
@@ -118,17 +119,28 @@ export default async (event: ScheduledEvent) => {
         }
 
         if (to.length) {
-          console.log(`Expires soon notification ${quote.id}. Notifying: ${to}`);
+          info(`Expires soon notification ${quote.id}. Notifying: ${JSON.stringify(to)}`);
 
           const link = `${hostingBaseURL.value()}/quotes/${quote.id}`;
 
           const addressLine1 = quote.address?.addressLine1;
 
-          await sendQuoteExpiringSoonNotification(sendgridApiKey.value(), to, link, addressLine1);
+          await sendQuoteExpiringSoonNotification(
+            sendgridApiKey.value(),
+            to,
+            link,
+            addressLine1,
+            undefined,
+            {
+              customArgs: {
+                emailType: 'quote_expiring',
+              },
+            }
+          );
         }
       }
     }
   } catch (err) {
-    console.log('ERROR SENDING EXPIRES SOON NOTIFICATION: ', err);
+    error('ERROR SENDING EXPIRES SOON NOTIFICATION: ', err);
   }
 };

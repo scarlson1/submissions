@@ -273,7 +273,14 @@ export default async (event: StorageEvent) => {
       createErrors.length,
       invalidRows.length,
       fileName,
-      link
+      link,
+      undefined,
+      {
+        customArgs: {
+          firebaseEventId: event.id,
+          emailType: 'policy_import',
+        },
+      }
     );
   } catch (err: any) {
     error('Error saving summary or notifying admin', { err });

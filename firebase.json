@@ -13,18 +13,22 @@
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
     "rewrites": [
       {
-        "source": "/idemand-submissions-api/*",
+        "source": "/idemand-submissions-api{,/**}",
         "run": {
           "serviceId": "idemand-submissions-api",
           "region": "us-central1"
         }
       },
       {
-        "source": "/auth-api/*",
+        "source": "/auth-api{,/**}",
         "function": "authRequests"
       },
       {
-        "source": "/sendgrid/*",
+        "source": "/auth-api-test{,/**}",
+        "function": "authrequeststest"
+      },
+      {
+        "source": "/sendgrid",
         "function": "sendgrid"
       },
       {

@@ -2,6 +2,7 @@ import type { AuthBlockingEvent } from 'firebase-functions/v2/identity';
 import { HttpsError } from 'firebase-functions/v2/identity';
 import { error, info, warn } from 'firebase-functions/logger';
 import { getFirestore } from 'firebase-admin/firestore';
+import { getAuth } from 'firebase-admin/auth';
 import jwt from 'jsonwebtoken';
 
 import {
@@ -17,9 +18,8 @@ import {
   usersCollection,
 } from '../common';
 import { inviteConverter } from '../common/converters';
-import { moveTenantVerification, sendUserInvite } from '../services/sendgrid';
+import { ExtraSendGridArgs, moveTenantVerification, sendUserInvite } from '../services/sendgrid';
 import { MoveTenantJwtPayload } from '../routes/authRequests';
-import { getAuth } from 'firebase-admin/auth';
 
 export default async (event: AuthBlockingEvent) => {
   // await getFirebaseAdmin()
@@ -145,7 +145,13 @@ export default async (event: AuthBlockingEvent) => {
           user.email,
           tenantId,
           null,
-          user.displayName
+          user.displayName,
+          {
+            customArgs: {
+              firebaseEventId: event.eventId,
+              emailType: 'move_to_tenant_verification',
+            },
+          }
         );
         errMsg += `. click link in email to move account to new org.`;
       } catch (err: any) {
@@ -187,7 +193,8 @@ async function sendMoveToTenantEmail(
   // toTenantId: string | null | undefined,
   toTenantId: string | null,
   fromTenantId: string | null,
-  displayName?: string
+  displayName?: string,
+  sgArgs?: ExtraSendGridArgs
 ) {
   if (!email) throw new HttpsError('failed-precondition', 'missing email');
 
@@ -201,11 +208,13 @@ async function sendMoveToTenantEmail(
     { expiresIn: '10m' }
   );
 
+  // TODO: use hosting rewrites so v2 functions can be used
+  // ie: const link = `${hostingBaseURL.value}/auth-api/confirm-move-tenant/${token}`
   const link = `${functionsBaseURL.value()}/authRequests/confirm-move-tenant/${token}`;
 
   info(`move tenant verification link: ${link}`);
 
-  await moveTenantVerification(sgKey, email, link, displayName || '');
+  await moveTenantVerification(sgKey, email, link, displayName || '', undefined, sgArgs);
 
   info(`move user to tenant confirmation email sent to ${email}`);
 }

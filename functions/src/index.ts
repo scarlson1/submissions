@@ -77,7 +77,7 @@ export {
   createFirestoreUser,
   setClaimsFromInvite,
 } from './authEvents';
-export { authRequests, sendgrid } from './routes';
+export { authRequests, sendgrid, authrequeststest } from './routes';
 export { importpolicies, getfips, rateportfolio } from './storageEvents';
 export { markpaidonpaymentcomplete, policycreatedlistener } from './pubsub';
 export {

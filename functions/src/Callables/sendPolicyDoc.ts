@@ -83,7 +83,12 @@ const sendPolicyDoc = async ({ data, auth }: CallableRequest) => {
       to,
       attachmentObj,
       toName,
-      locationStr // data.address.addressLine1
+      locationStr, // data.address.addressLine1
+      {
+        customArgs: {
+          emailType: 'policy_doc_delivery',
+        },
+      }
     );
 
     return {

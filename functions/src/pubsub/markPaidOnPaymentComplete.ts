@@ -55,7 +55,13 @@ export default async (event: CloudEvent<MessagePublishedData>) => {
     policyLink,
     policyId,
     transactionLink,
-    transactionId
+    transactionId,
+    {
+      customArgs: {
+        firebaseEventId: event.id,
+        emailType: 'payment_complete',
+      },
+    }
   );
 
   return;

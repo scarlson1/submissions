@@ -49,7 +49,11 @@ const sendNewQuoteNotifications = async ({
       link,
     });
 
-    await sendNewQuoteEmail(sgKey, link, uniqueTo);
+    await sendNewQuoteEmail(sgKey, link, uniqueTo, undefined, undefined, {
+      customArgs: {
+        emailType: 'new_quote_notification',
+      },
+    });
 
     return {
       status: 'success',

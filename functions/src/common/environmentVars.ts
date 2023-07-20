@@ -42,6 +42,7 @@ export const defaultFloodZone = defineString('DEFAULT_FLOOD_ZONE');
 export const iDemandOrgId = defineString('IDEMAND_ORG_ID');
 export const storageBaseUrl = defineString('STORAGE_BASE_URL');
 export const submissionsApiBaseURL = defineString('SUBMISSIONS_API_BASE_URL');
+export const env = defineString('ENV');
 
 export const maxA = defineInt('FLOOD_MAX_LIMIT_A', { default: 1000000 });
 export const minA = defineInt('FLOOD_MIN_LIMIT_A', { default: 100000 });
