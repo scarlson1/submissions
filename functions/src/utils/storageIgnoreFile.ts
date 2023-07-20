@@ -6,7 +6,7 @@ import path from 'path';
  * @param {StorageEvent} e firebase cloud storage function event
  * @param {string} uploadFolder check whether file matches uploadFolder path
  * @param {string} contentType optionally ensure file type
- * @param {string} startsWith optionally check if file contains prefix
+ * @param {string} startsWith optionally check if file contains prefix (ignore if true)
  * @returns {boolean} true if any of the checks fail
  */
 export function shouldReturnEarly(
@@ -80,5 +80,23 @@ function filePathExists(event: StorageEvent) {
   if (filePath) return true;
 
   info(`Ignoring new file. Missing filePath`);
+  return false;
+}
+
+const DEFAULT_MAX_AGE = 1000 * 60 * 1; // 1 min
+
+/**
+ * check if event is older than maxAge milliseconds
+ * @param {StorageEvent} event - storage event
+ * @param {number} maxAge - max age in milliseconds (defaults to 1 min)
+ * @returns {boolean} returns true if event is older than maxAge
+ */
+export function eventOlderThan(event: StorageEvent, maxAge: number = DEFAULT_MAX_AGE) {
+  const eventAge = Date.now() - Date.parse(event.time);
+
+  if (eventAge > maxAge) {
+    info(`Event ${event.id} age is greater than ${eventAge} ms.`, { ...event });
+    return true;
+  }
   return false;
 }

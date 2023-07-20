@@ -11,7 +11,11 @@ import { v4 as uuid } from 'uuid';
 import invariant from 'tiny-invariant';
 import { isDate } from 'date-fns';
 
-import { parseStreamToArray, transformHeadersCamelCase } from '../utils/parseStreamToArray';
+import {
+  ParseStreamToArrayRes,
+  parseStreamToArray,
+  transformHeadersCamelCase,
+} from '../utils/parseStreamToArray';
 import {
   AdditionalInsured,
   Address,
@@ -47,6 +51,7 @@ import {
 import { sendAdminPolicyImportNotification } from '../services/sendgrid';
 import { getRCVs } from '../utils/rating';
 import { getCarrierByState } from '../callables/createPolicy';
+import { eventOlderThan, shouldReturnEarly } from '../utils';
 
 const IMPORT_POLICIES_FOLDER = 'importPolicies';
 
@@ -149,6 +154,8 @@ export default async (event: StorageEvent) => {
   const contentType = event.data.contentType;
   const metageneration = event.data.metageneration as unknown;
 
+  if (shouldReturnEarly(event, IMPORT_POLICIES_FOLDER, 'text/csv', 'processed')) return;
+
   if (!event.data.name?.startsWith(`${IMPORT_POLICIES_FOLDER}/`)) {
     info(
       `Ignoring upload "${event.data.name}" because is not in the "/${IMPORT_POLICIES_FOLDER}/*" folder.`
@@ -164,14 +171,8 @@ export default async (event: StorageEvent) => {
     return null;
   }
 
-  // idempotency / loop guard - Ignore events that are too old
-  const eventAge = Date.now() - Date.parse(event.time);
-  const eventMaxAge = 1000 * 60 * 1; // 1 min
-
-  if (eventAge > eventMaxAge) {
-    info(`Dropping event ${event.id} with age ${eventAge} ms.`, { ...event });
-    return;
-  }
+  // idempotency / loop guard - Ignore events that are too old (1 min)
+  if (eventOlderThan(event)) return;
 
   const db = getFirestore();
   const policiesCollRef = policiesCollection(db);
@@ -183,8 +184,8 @@ export default async (event: StorageEvent) => {
   await bucket.file(filePath).download({ destination: tempFilePath });
   info(`File downloaded locally to ${tempFilePath}`);
 
-  let dataArr: any[] = [];
-  let invalidRows: { rowNum: any; rowData: any }[] = [];
+  let dataArr: ParseStreamToArrayRes<ParsedPolicyRow>['dataArr'] = [];
+  let invalidRows: ParseStreamToArrayRes<ParsedPolicyRow>['invalidRows'] = [];
 
   const stream = fs.createReadStream(tempFilePath);
 
@@ -263,7 +264,9 @@ export default async (event: StorageEvent) => {
     if (audience.value() !== 'LOCAL HUMANS') {
       to.push('ron.carlson@idemandinsurance.com');
 
-      link = `https://console.firebase.google.com/project/${projectID}/firestore/data/~2F${COLLECTIONS.DATA_IMPORTS}~2F${summaryRef.id}`;
+      link = `https://console.firebase.google.com/project/${projectID.value()}/firestore/data/~2F${
+        COLLECTIONS.DATA_IMPORTS
+      }~2F${summaryRef.id}`;
     }
 
     await sendAdminPolicyImportNotification(

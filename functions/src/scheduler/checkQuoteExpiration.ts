@@ -76,7 +76,7 @@ export default async (event: ScheduledEvent) => {
   try {
     let currDateSeconds = currentDate.getTime();
     for (const quote of quoteDocs) {
-      let expTS = quote.quoteExpiration as Timestamp;
+      let expTS = quote.quoteExpirationDate as Timestamp;
       if (expTS.toMillis() < currDateSeconds || expTS.isEqual(Timestamp.fromDate(currentDate))) {
         info(`QUOTE ${quote.id} expires ${expTS.toDate()} --> SETTING STATUS: EXPIRED`);
 

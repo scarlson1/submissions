@@ -13,7 +13,7 @@ export const useSendAgencyAppNotification = (
   onError?: ((msg: string, err: any) => void) | null
 ) => {
   const confirm = useConfirmation();
-  const toast = useAsyncToast();
+  const toast = useAsyncToast({ position: 'top-right' });
   const { send: sendApprovedNotification } = useSendEmail({
     onSuccess: (data: BaseSendEmailResponse) => onSuccess && onSuccess(data),
     onError: (msg: string, err: any) => {
@@ -68,14 +68,21 @@ export const useSendAgencyAppNotification = (
         const shouldNotify = await promptForNotification(descriptionMsg);
 
         if (!!shouldNotify) {
-          toast.loading('sending notification...');
-          if (type === 'rejected') await sendRejected();
-          if (type === 'approved') await sendApproved(submissionId, `${tenantId}`);
+          try {
+            toast.loading('sending notification...');
+            if (type === 'rejected') await sendRejected();
+            if (type === 'approved') await sendApproved(submissionId, `${tenantId}`);
 
-          toast.success('notification delivered');
+            toast.success('notification delivered', { duration: 1000 });
+          } catch (err: any) {
+            console.log('Error: ', err);
+            let msg = `Error sending notifications`;
+            if (err?.message) msg += ` (${err.message})`;
+            toast.error(msg, { duration: 1500 });
+          }
         }
       } catch (err) {
-        console.log('ERROR: ', err);
+        toast.dismiss();
       }
     },
     [promptForNotification, sendApproved, sendRejected, toast]
@@ -97,7 +104,7 @@ export const useCreateTenant = (
 ) => {
   const functions = useFunctions();
   const toast = useAsyncToast();
-  const { sendApproved, promptForNotification } = useSendAgencyAppNotification();
+  const { sendApproved, promptForNotification, confirmAndSend } = useSendAgencyAppNotification();
 
   const [error, setError] = useState<any>();
   const [loading, setLoading] = useState(false);
@@ -147,20 +154,22 @@ export const useCreateTenant = (
   // CALLED INTERNALLY - AFTER CREATING TEANANT
   const handleSuccess = useCallback(
     async (submissionId: string, tenantId?: string) => {
-      const shouldNotify = await promptForNotification(
-        'Would you like to notify the primary contact and invite them to create an account?'
-      );
+      // // TODO: refactor ?? repeating confirmAndSend ??
+      // const shouldNotify = await promptForNotification(
+      //   'Would you like to notify the primary contact and invite them to create an account?'
+      // );
 
-      if (!!shouldNotify) {
-        toast.loading(`sending notifications...`);
-        let res = await sendApproved(submissionId, `${tenantId}`);
-        if (res && res?.emails && res.emails.length) {
-          const emails = res.emails.map((e) => (typeof e === 'string' ? e : e.email));
-          toast.info(`notifications delivered (${emails.join(', ')})`);
-        } else {
-          toast.warn('There may be been an issue delivering notifications');
-        }
-      }
+      // if (!!shouldNotify) {
+      //   toast.loading(`sending notifications...`);
+      //   let res = await sendApproved(submissionId, `${tenantId}`);
+      //   if (res && res?.emails && res.emails.length) {
+      //     const emails = res.emails.map((e) => (typeof e === 'string' ? e : e.email));
+      //     toast.info(`notifications delivered (${emails.join(', ')})`);
+      //   } else {
+      //     toast.warn('There may be been an issue delivering notifications');
+      //   }
+      // }
+      await confirmAndSend('approved', submissionId, `${tenantId}`);
 
       if (onSuccess) onSuccess({ tenantId });
     },

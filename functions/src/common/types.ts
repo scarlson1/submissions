@@ -494,6 +494,33 @@ export interface Note {
   created: Timestamp;
 }
 
+export type SubjectBaseItems =
+  | 'premium'
+  | 'inspectionFees'
+  | 'mgaFees'
+  | 'outStatePremium'
+  | 'homeStatePremium'
+  | 'fixedFee'
+  | 'noFee';
+
+export type RoundingType = 'nearest' | 'up' | 'down';
+
+export interface TaxItem {
+  displayName: string;
+  rate: number; //| string;
+  value: number; //| string;
+  subjectBase: SubjectBaseItems[];
+  baseDigits?: number;
+  resultDigits?: number;
+  baseRoundType?: RoundingType;
+  resultRoundType: RoundingType;
+}
+
+export interface FeeItem {
+  feeName: string;
+  feeValue: number;
+}
+
 export interface Quote {
   product: Product;
   deductible: number;
@@ -501,17 +528,16 @@ export interface Quote {
   address: Address;
   homeState: string;
   coordinates: GeoPoint | null;
-  fees: { feeName: string; feeValue: string }[];
-  taxes: { taxName: string; taxValue: string }[];
-  annualPremium: number; // termPremium: number;
+  fees: FeeItem[];
+  taxes: TaxItem[]; // { taxName: string; taxValue: string }[];
+  annualPremium: number;
   subproducerCommission: number;
   cardFee: number;
   quoteTotal?: number;
-  quoteExpiration: Timestamp;
   effectiveDate?: Timestamp;
   effectiveExceptionRequested?: boolean;
   effectiveExceptionReason?: string | null;
-  expirationDate?: Timestamp;
+  // expirationDate?: Timestamp;
   quotePublishedDate: Timestamp;
   quoteExpirationDate: Timestamp;
   exclusions?: string[];
@@ -535,8 +561,9 @@ export interface Quote {
   priorLossCount?: string | null;
   geoHash?: Geohash | null;
   notes?: Note[];
+  externalId?: string | null;
   statusTransitions: {
-    published: Timestamp;
+    published: Timestamp; // TODO: remove ?? duplicate of quotePublishedDate
     accepted: Timestamp | null;
     cancelled: Timestamp | null;
     finalized: Timestamp | null;
@@ -895,6 +922,26 @@ export type TransactionType =
   | 'prem_endorsement'
   | 'non_prem_endorsement'
   | 'cancellation';
+
+export type LineOfBusiness = 'commercial' | 'residential';
+
+export interface Tax extends BaseDoc {
+  state: string;
+  displayName: string;
+  effectiveDate: Timestamp;
+  expirationDate?: Timestamp | null;
+  LOB: LineOfBusiness[];
+  products: Product[];
+  transactionTypes: TransactionType[];
+  subjectBase: SubjectBaseItems[];
+  baseRoundType?: RoundingType;
+  baseDigits?: number;
+  resultRoundType: RoundingType;
+  resultDigits?: number;
+  rate: number;
+  rateType: 'fixed' | 'percent';
+  refundable?: boolean;
+}
 
 // one transaction per location
 

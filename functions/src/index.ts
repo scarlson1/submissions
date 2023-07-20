@@ -80,7 +80,7 @@ export {
   setClaimsFromInvite,
 } from './authEvents';
 export { authRequests, sendgrid, authrequeststest } from './routes';
-export { importpolicies, getfips, rateportfolio } from './storageEvents';
+export { importpolicies, importquotes, getfips, rateportfolio } from './storageEvents';
 export { markpaidonpaymentcomplete, policycreatedlistener } from './pubsub';
 export {
   checkachstatus,

@@ -606,7 +606,11 @@ const UserMenu = (props: UserMenuProps) => {
                 <Typography fontWeight={500}>{authCheckResult?.user.displayName}</Typography>
               ) : null}
               {authCheckResult?.user?.email ? (
-                <Typography variant='body2' color='text.secondary'>
+                <Typography
+                  variant='body2'
+                  color='text.secondary'
+                  sx={{ whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}
+                >
                   {authCheckResult?.user.email}
                 </Typography>
               ) : null}

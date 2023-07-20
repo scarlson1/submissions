@@ -5,6 +5,8 @@ import { isEqual, remove } from 'lodash';
 import numeral from 'numeral';
 import { error, info } from 'firebase-functions/logger';
 import { DocumentReference } from 'firebase-admin/firestore';
+import { FeeItem, TaxItem } from './types';
+import { cardFeePct } from './environmentVars';
 
 /**
  * Sums an array of numbers
@@ -229,4 +231,60 @@ export async function throwIfExists<T>(docRef: DocumentReference<T>) {
 
 export function onlyUnique(value: string | number, index: number, array: (string | number)[]) {
   return array.indexOf(value) === index;
+}
+
+export function sumByTypes<T>(
+  arr: T[],
+  searchKey: keyof T,
+  searchValues: any | any[],
+  valKey: keyof T
+) {
+  searchValues = Array.isArray(searchValues) ? searchValues : ([searchValues] as any[]);
+  return arr.reduce((acc, f) => {
+    if (searchValues.some((searchVal: any) => isEqual(f[searchKey], searchVal))) {
+      let num = typeof f[valKey] === 'string' ? extractNumber(f[valKey] as string) : f[valKey];
+
+      if (typeof num === 'number') return acc + num;
+    }
+
+    return acc;
+  }, 0);
+}
+
+/**
+ * Sums an array of numbers
+ * @param {number[]} arr - array of numbers to be added.
+ * @return {number} total of all numbers in array
+ */
+export const sumArr = (arr: (number | string)[]) => {
+  const numArr = arr
+    .filter((i) => typeof i === 'number' || typeof i === 'string')
+    .map((i) => {
+      if (typeof i === 'string') {
+        return parseFloat(getNumber(i)) || 0;
+      }
+      return i;
+    });
+  return numArr.reduce((total, current) => {
+    return total + current;
+  }, 0);
+};
+
+/**
+ * sum taxes, fees, premium
+ * @param fees array of fees objects
+ * @param taxes array of tax objects
+ * @param premium annual premium
+ * @returns quote total = sum of fees, taxes, premium, rounded to 2 decimals
+ */
+export function sumfeesTaxesPremium(fees: FeeItem[], taxes: TaxItem[], premium: number) {
+  const feeTotal = sumArr(fees.map((f) => f.feeValue));
+  const taxTotal = sumArr(taxes.map((t) => t.value));
+
+  return round(premium + feeTotal + taxTotal, 2);
+}
+
+export function getCardFee(quoteTotal: number) {
+  const feePct = Number.parseFloat(cardFeePct.value()) || 0.035;
+  return quoteTotal && typeof feePct === 'number' ? quoteTotal * feePct : 0;
 }

@@ -12,6 +12,10 @@ export const importpolicies = onObjectFinalized({ secrets: [sendgridApiKey] }, a
   await (await import('./importPolicies.js')).default(event);
 });
 
+export const importquotes = onObjectFinalized({ secrets: [sendgridApiKey] }, async (event) => {
+  await (await import('./importQuotes.js')).default(event);
+});
+
 export const getfips = onObjectFinalized({ secrets: [googleGeoKey] }, async (event) => {
   await (await import('./getFIPS.js')).default(event);
 });

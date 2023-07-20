@@ -8,21 +8,28 @@ import {
 import fs from 'fs';
 import { camelCase, snakeCase } from 'lodash';
 
-import { Nullable } from '../common';
+import { DeepNullable } from '../common';
+
+export interface InvalidRow {
+  rowNum: number;
+  rowData: Record<string, any>;
+}
+
+export interface ParseStreamToArrayRes<T = Record<string, any>> {
+  dataArr: T[];
+  invalidRows: InvalidRow[];
+}
 
 // can pass headers transform func in parseOptions
 export function parseStreamToArray<InitRowType = any, TRowType = any>(
   stream: fs.ReadStream,
   parseOptions: ParserOptionsArgs | undefined = undefined,
-  transformFn: (data: InitRowType) => Nullable<TRowType>, // TRowType, // ParserRowTransformFunction<InitRowType, TRowType> ParserSyncRowTransform<InitRowType[], TRowType[]>
+  transformFn: (data: InitRowType) => DeepNullable<TRowType>,
   validateFn?: ((data: any) => boolean) | null | undefined
 ) {
-  return new Promise<{
-    dataArr: TRowType[];
-    invalidRows: { rowNum: number; rowData: Record<string, any> }[];
-  }>((resolve, reject) => {
+  return new Promise<ParseStreamToArrayRes<TRowType>>((resolve, reject) => {
     const dataArr: TRowType[] = [];
-    const invalidRows: { rowNum: number; rowData: Record<string, any> }[] = [];
+    const invalidRows: InvalidRow[] = [];
 
     parseStream<InitRowType[], TRowType[]>(stream, parseOptions) // @ts-ignore
       .transform(transformFn)

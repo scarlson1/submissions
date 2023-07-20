@@ -6,6 +6,7 @@ import { getFunctionsErrorCode, getErrorMessage } from '../utils/errorHelpers';
 import { agencyApplicationCollection, invitesCollection } from '../common/dbCollections';
 import { audience, sendgridApiKey } from '../common';
 import { onCallWrapper } from '../services/sentry';
+import { error, info } from 'firebase-functions/logger';
 
 interface SendAgencyApprovedNotificationProps {
   docId: string;
@@ -39,7 +40,7 @@ const sendAgencyApprovedNotification = async ({
     }
     const docData = docSnap.data();
     if (!docData) return;
-    console.log('docData: ', docData);
+    info('docData: ', { ...docData });
 
     const { contact, orgName } = docData;
 
@@ -80,14 +81,14 @@ const sendAgencyApprovedNotification = async ({
         },
       }
     );
+    info('Invites sent', { to, orgName });
 
     return {
       status: 'sent',
       emails: [contact.email],
-      // recipients: [contact.email],
     };
   } catch (err) {
-    console.log('err: ', err);
+    error('Error sending agency approved notifications ', { err });
     const code = getFunctionsErrorCode(err);
     const msg = getErrorMessage(err);
     throw new HttpsError(code, msg);

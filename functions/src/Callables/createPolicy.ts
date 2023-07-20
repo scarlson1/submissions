@@ -22,6 +22,7 @@ import { getRCVs } from '../utils/rating';
 import { checkMoratoriums } from '../services';
 import { getSLLicenseByState } from '../utils';
 import { onCallWrapper } from '../services/sentry';
+import { add } from 'date-fns';
 // import { getSubmissionsInstance } from '../services';
 
 // TODO: use Policy converter ??
@@ -162,7 +163,7 @@ export default onCallWrapper<CreatePolicyProps>('createpolicy', createPolicy);
 function convertQuoteToPolicy(data: Quote, license: License, quoteId: string | null): Policy {
   invariant(data.coordinates, 'missing coordinates');
   invariant(data.effectiveDate, 'missing effective date');
-  invariant(data.expirationDate, 'missing expiration date');
+  // invariant(data.expirationDate, 'missing expiration date');
   invariant(data.namedInsured?.firstName, 'missing named insured first name');
   invariant(data.namedInsured?.lastName, 'missing named insured last name');
   // TODO: validate email/phone are valid
@@ -222,6 +223,8 @@ function convertQuoteToPolicy(data: Quote, license: License, quoteId: string | n
   // RCVs.total
 
   const ts = Timestamp.now();
+  // TODO: take lesser of policy exp date and location eff. + 365 for location once using multi-location
+  const expirationDate = add(data.effectiveDate.toDate(), { days: 365 });
 
   // TODO: use location ID from quote once using updated Quote interface
   const locationId = uuidv4();
@@ -239,11 +242,11 @@ function convertQuoteToPolicy(data: Quote, license: License, quoteId: string | n
       additionalInsureds,
       mortgageeInterest,
       ratingDocId: data.ratingDocId || '', // TODO: validate & force ratingDocId ??
-      ratingPropertyData: data.ratingPropertyData, // TODO: use same key
+      ratingPropertyData: data.ratingPropertyData,
       effectiveDate: data.effectiveDate,
-      expirationDate: data.expirationDate,
-      locationId, // TODO: generate location ID
-      externalId: null, // TODO: add external location ID to Quote interface
+      expirationDate: Timestamp.fromDate(expirationDate),
+      locationId,
+      externalId: null,
       imageURLs: data.imageURLs || null,
       imagePaths: data.imagePaths || null,
       metadata: {
@@ -270,7 +273,7 @@ function convertQuoteToPolicy(data: Quote, license: License, quoteId: string | n
     homeState: data.homeState, // TODO: add homeState to Quote
     price: data.quoteTotal,
     effectiveDate: data.effectiveDate,
-    expirationDate: data.expirationDate,
+    expirationDate: Timestamp.fromDate(expirationDate),
     userId: data.userId,
     // data.agent,
     agent: {
