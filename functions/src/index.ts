@@ -25,7 +25,9 @@ initializeApp();
 // firebase deploy --only functions:beforesignin,functions:beforecreate,functions:setUidByEmailOnCreate,functions:createFirestoreUser,functions:setClaimsFromInvite
 
 // REST
-// firebase deploy --only functions:authRequests,functions:sendgrid,functions:importpolicies,functions:getfips,functions:rateportfolio,functions:markpaidonpaymentcomplete,functions:policycreatedlistener,functions:checkachstatus
+// firebase deploy --only functions:authRequests,functions:sendgrid,functions:importpolicies,functions:getfips,functions:rateportfolio,functions:policycreatedlistener,functions:checkachstatus
+
+// functions:markpaidonpaymentcomplete,
 
 export {
   assignquote,

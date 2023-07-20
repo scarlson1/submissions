@@ -343,8 +343,8 @@ export const BindSuccess = () => {
             Thank you!
           </Typography>
           <Typography variant='body2' color='text.secondary' sx={{ pb: 5 }}>
-            We're excited to have your with us! You will receive email with your policy attached. If
-            you have any questions, please don't hesitate to reach out.
+            We're excited to have your with us! You will receive email with your policy attached in
+            the next 24 hours. If you have any questions, please don't hesitate to reach out.
           </Typography>
           {/* <Typography>
             TODO: transaction amount, status, receipt email, payer, etc. (and insured address, name,

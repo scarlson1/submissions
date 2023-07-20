@@ -7,6 +7,8 @@ import {
   sendgridApiKey,
 } from '../common';
 
+// TODO: upgrade to v2 onRequest
+
 export const authRequests = functions
   .runWith({ secrets: [emailVerificationKey, firebaseHashConfig] })
   .https.onRequest(async (request, response) => {
