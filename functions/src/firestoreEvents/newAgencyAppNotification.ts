@@ -36,7 +36,13 @@ export default async (
       sendgridApiKey.value(),
       link,
       submission.orgName,
-      adminRecipients
+      adminRecipients,
+      {
+        customArgs: {
+          firebaseEventId: event.id,
+          emailType: 'agency_submission_received',
+        },
+      }
     );
   }
 

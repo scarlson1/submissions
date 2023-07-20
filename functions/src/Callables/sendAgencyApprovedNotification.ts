@@ -73,7 +73,12 @@ const sendAgencyApprovedNotification = async ({
       to,
       contact.firstName,
       contact.lastName,
-      msg
+      msg,
+      {
+        customArgs: {
+          emailType: 'agency_approved',
+        },
+      }
     );
 
     return {

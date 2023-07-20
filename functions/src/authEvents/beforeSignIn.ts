@@ -1,10 +1,10 @@
-import { AuthBlockingEvent } from 'firebase-functions/v2/identity';
+import { AuthBlockingEvent, HttpsError } from 'firebase-functions/v2/identity';
 import { error, info } from 'firebase-functions/logger';
-import { HttpsError } from 'firebase-functions/v2/identity';
+import { projectID } from 'firebase-functions/params';
 import jwt from 'jsonwebtoken';
 
-import { sendEmailConfirmation } from '../services/sendgrid/index.js';
-import { emailVerificationKey, functionsBaseURL, sendgridApiKey } from '../common/index.js';
+import { ExtraSendGridArgs, sendEmailConfirmation } from '../services/sendgrid/index.js';
+import { emailVerificationKey, env, functionsBaseURL, sendgridApiKey } from '../common/index.js';
 
 export default async (event: AuthBlockingEvent) => {
   const user = event.data;
@@ -21,7 +21,15 @@ export default async (event: AuthBlockingEvent) => {
           user.uid,
           user.email,
           user.tenantId,
-          user.displayName
+          user.displayName,
+          {
+            customArgs: {
+              firebaseEventId: event.eventId,
+              emailType: 'email_verification',
+              projectId: projectID.value(),
+              environment: env.value(),
+            },
+          }
         );
 
         throw new HttpsError(
@@ -54,7 +62,8 @@ async function sendAdminVerificationEmail(
   uid: string,
   email: string | undefined,
   tenantId: string | null | undefined,
-  displayName?: string
+  displayName?: string,
+  sgArgs?: ExtraSendGridArgs
 ) {
   if (!email) throw new HttpsError('failed-precondition', 'missing email');
 
@@ -66,11 +75,13 @@ async function sendAdminVerificationEmail(
     { expiresIn: '10m' }
   );
 
+  // TODO: use hosting rewrites so v2 functions can be used
+  // ie: const link = `${hostingBaseURL.value}/auth-api/confirm-move-tenant/${token}`
   const link = `${functionsBaseURL.value()}/authRequests/verify-email/${token}`;
 
   info(`Verification link: ${link}`);
 
-  await sendEmailConfirmation(sgKey, link, email, displayName || '');
+  await sendEmailConfirmation(sgKey, link, email, displayName || '', sgArgs);
 
   info(`iDemand admin verification email sent to ${email}`);
 }

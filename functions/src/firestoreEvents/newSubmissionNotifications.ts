@@ -67,7 +67,13 @@ export default async (
       submission.address.addressLine1,
       submission.address.city,
       submission.address.state,
-      adminRecipients
+      adminRecipients,
+      {
+        customArgs: {
+          firebaseEventId: event.id,
+          emailType: 'new_submission',
+        },
+      }
     );
     return;
   } catch (err: any) {

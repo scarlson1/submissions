@@ -50,6 +50,7 @@ module.exports = {
     'guard-for-in': 'warn',
     'no-var': 'warn',
     'operator-linebreak': 'off',
+    'new-cap': 'warn',
     'require-jsdoc': [
       'warn',
       {

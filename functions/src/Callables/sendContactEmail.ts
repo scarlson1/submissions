@@ -31,7 +31,10 @@ const sendContactEmail = async ({ data, auth }: CallableRequest<SendContactEmail
       html,
       subject: `New contact us submission: ${subject}`,
       to,
-      from: 'hello@idemandinsurance.com', // email,
+      from: 'hello@idemandinsurance.com',
+      customArgs: {
+        emailType: 'contact',
+      },
     });
 
     return {

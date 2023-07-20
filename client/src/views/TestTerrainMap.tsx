@@ -1,6 +1,5 @@
 import { Box } from '@mui/material';
 import Map, { Source, Layer } from 'react-map-gl';
-
 import type { SkyLayer } from 'react-map-gl';
 
 // Deck.gl terrain layer: https://deck.gl/docs/api-reference/geo-layers/terrain-layer

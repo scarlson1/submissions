@@ -47,9 +47,22 @@ export default async (
   const link = `${process.env.HOSTING_BASE_URL}/policies/${policyId}`;
 
   // sendUserInvite(sgKey, link, to, firstName ?? displayName, data.invitedBy?.name || '');
-  sendAdminChangeRequestNotification(sgKey, to, link, 'policy change', snap.id, {
-    [`${field}`]: newValue,
-  });
+  sendAdminChangeRequestNotification(
+    sgKey,
+    to,
+    link,
+    'policy change',
+    snap.id,
+    {
+      [`${field}`]: newValue,
+    },
+    {
+      customArgs: {
+        firebaseEventId: event.id,
+        emailType: 'policy_change_request',
+      },
+    }
+  );
 
   return;
 };

@@ -49,7 +49,13 @@ const resendInvite = async ({ data, auth }: CallableRequest<ResendInviteProps>) 
       inviteData.getLink(),
       to,
       inviteData.firstName ?? inviteData.displayName,
-      inviteData.invitedBy?.name || ''
+      inviteData.invitedBy?.name || '',
+      undefined,
+      {
+        customArgs: {
+          emailType: 'resend_invite',
+        },
+      }
     );
 
     return { status: 'sent' };

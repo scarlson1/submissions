@@ -15,11 +15,14 @@ import { useAsyncToast, useCreateStorageFiles } from 'hooks';
 // https://medium.com/@ashifa454/offloading-render-using-web-workers-e0f2f463ad0
 
 const REQUIRED_HEADERS = [
-  'cov_a_rcv',
   'cov_a_limit',
   'cov_b_limit',
   'cov_c_limit',
   'cov_d_limit',
+  'cov_a_rcv',
+  'cov_b_rcv',
+  'cov_c_rcv',
+  'cov_d_rcv',
   'deductible',
   'state',
   'commission_pct',

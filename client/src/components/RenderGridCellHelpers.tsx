@@ -10,6 +10,7 @@ import {
   Popper,
   IconButton,
   Tooltip,
+  TypographyProps,
 } from '@mui/material';
 import { GridRenderCellParams } from '@mui/x-data-grid';
 import { CopyAllRounded } from '@mui/icons-material';
@@ -216,5 +217,18 @@ export function renderChip(
   if (!params.value) return null;
   return (
     <Chip label={params.value} size='small' {...chipProps} {...propsGetterFunc(params.value)} />
+  );
+}
+
+export function renderSplitSnakeCase(
+  params: GridRenderCellParams<any, any, any>,
+  props?: TypographyProps
+) {
+  if (!params.value || typeof params.value !== 'string') return null;
+
+  return (
+    <Typography variant='body2' {...(props || {})}>
+      {params.value.split('_').join(' ')}
+    </Typography>
   );
 }

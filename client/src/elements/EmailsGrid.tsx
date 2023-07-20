@@ -21,12 +21,10 @@ export const EmailsGrid = ({ renderActions, additionalColumns, ...props }: Email
         columns={emailCols}
         density='compact'
         autoHeight
-        // TODO: make "view submission" route exists for all user claim types
-        // onCellDoubleClick={}
         initialState={{
           columns: {
             columnVisibilityModel: {
-              // sg_message_id: false,
+              id: false,
             },
           },
           sorting: {

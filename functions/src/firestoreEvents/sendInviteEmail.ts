@@ -57,6 +57,7 @@ export default async (
       {
         customArgs: {
           firebaseEventId: event.id,
+          emailType: 'user_invite',
         },
       }
     );

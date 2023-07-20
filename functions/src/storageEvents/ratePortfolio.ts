@@ -24,7 +24,7 @@ import {
 } from '../common';
 import { generateSRAccessToken, getSwissReInstance } from '../services';
 import { swissReBody } from '../utils/rating/swissReBody.js';
-import { getPremium, getRCVs } from '../utils/rating';
+import { getPremium } from '../utils/rating';
 import { sendMessage } from '../services/sendgrid';
 import { extractSRAALs } from '../utils/rating/getAALs';
 import {
@@ -134,17 +134,26 @@ function transformRow(data: IRow): Nullable<TRow> {
   const limitD = data.cov_d_limit ? parseInt(getNumber(data.cov_d_limit)) : 0;
   const total_limits = limitA + limitB + limitC + limitD;
 
-  const rcvA = data.cov_a_rcv ? parseInt(getNumber(data.cov_a_rcv)) : null;
+  const rcvA = data.cov_a_rcv ? parseInt(getNumber(data.cov_a_rcv)) : 0; // null;
+  const rcvB = data.cov_b_rcv ? parseInt(getNumber(data.cov_b_rcv)) : 0; // null;
+  const rcvC = data.cov_c_rcv ? parseInt(getNumber(data.cov_c_rcv)) : 0; // null;
+  const rcvD = data.cov_d_rcv ? parseInt(getNumber(data.cov_d_rcv)) : 0; // null;
+  const total_rcv = rcvA + rcvB + rcvC + rcvD;
 
-  const rcvs = getRCVs(rcvA || 0, { limitA, limitB, limitC, limitD });
+  // const rcvs = getRCVs(rcvA || 0, { limitA, limitB, limitC, limitD });
 
   return {
     ...data,
-    cov_a_rcv: rcvs.building || null,
-    cov_b_rcv: rcvs.otherStructures,
-    cov_c_rcv: rcvs.contents,
-    cov_d_rcv: rcvs.BI,
-    total_rcv: rcvs.total,
+    // cov_a_rcv: rcvs.building || null,
+    // cov_b_rcv: rcvs.otherStructures,
+    // cov_c_rcv: rcvs.contents,
+    // cov_d_rcv: rcvs.BI,
+    // total_rcv: rcvs.total,
+    cov_a_rcv: rcvA || null,
+    cov_b_rcv: rcvB,
+    cov_c_rcv: rcvC,
+    cov_d_rcv: rcvD,
+    total_rcv,
     cov_a_limit: limitA || null,
     cov_b_limit: limitB,
     cov_c_limit: limitC,
@@ -650,5 +659,9 @@ async function notifyAdmin(sgKey: string, storageFile: File, fileName: string = 
       </div>
     </div>`;
 
-  await sendMessage(sgKey, to, msgBody, 'Portfolio rating complete');
+  await sendMessage(sgKey, to, msgBody, 'Portfolio rating complete', undefined, {
+    customArgs: {
+      emailType: 'portfolio_rating_complete',
+    },
+  });
 }
