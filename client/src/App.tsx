@@ -43,6 +43,9 @@ Sentry.init({
         matchRoutes
       ),
     }),
+    // new CaptureConsole({
+    //   levels: ['error']
+    // })
   ], // can turn on "maskAllText", etc.
   // Performance Monitoring
   tracesSampleRate: 1.0, // Capture 100% of the transactions, reduce in production!

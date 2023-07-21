@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import {
   Box,
   Button,
+  Link,
   MenuItem,
   Stack,
   Tooltip,
@@ -10,7 +11,7 @@ import {
   useTheme,
 } from '@mui/material';
 import { GridActionsCellItem, GridRowModel, GridRowParams } from '@mui/x-data-grid';
-import { DataObjectRounded, EditRounded } from '@mui/icons-material';
+import { DataObjectRounded, EditRounded, InfoRounded, OpenInNewRounded } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { useFirestore } from 'reactfire';
@@ -22,8 +23,10 @@ import { subproducerCommissionCol } from 'modules/gridColumnDefs';
 import { useAsyncToast, useShowJson } from 'hooks';
 import { useConfirmation } from 'modules/components';
 import { quoteConverter } from 'common/firestoreConverters';
-import { QuotesGrid, PortfolioRatingDialog } from 'elements';
+import { QuotesGrid, CSVUploadDialog } from 'elements';
 import { IconMenu } from 'components/IconButtonMenu';
+import { camelCase, snakeCase } from 'lodash';
+import { UploadResult } from 'firebase/storage';
 
 const useUpdateQuoteStatus = () => {
   const firestore = useFirestore();
@@ -193,19 +196,140 @@ export const Quotes = () => {
   );
 };
 
+const PORTFOLIO_RATING_REQUIRED_HEADERS = [
+  'cov_a_limit',
+  'cov_b_limit',
+  'cov_c_limit',
+  'cov_d_limit',
+  'cov_a_rcv',
+  'cov_b_rcv',
+  'cov_c_rcv',
+  'cov_d_rcv',
+  'deductible',
+  'state',
+  'commission_pct',
+];
+
+const QUOTE_IMPORT_REQUIRED_HEADERS = [
+  'product',
+  'limitA',
+  'limitB',
+  'limitC',
+  'limitD',
+  'addressLine1',
+  'addressLine2',
+  'city',
+  'state',
+  'postal',
+  'latitude',
+  'longitude',
+  'homeState',
+  'annualPremium',
+  'subproducerCommission',
+  'agentName',
+  'agentEmail',
+  'agentPhone',
+  'agentId',
+  'agencyName',
+  'agencyAddressLine1',
+  'agencyAddressLine2',
+  'agencyCity',
+  'agencyState',
+  'agencyPostal',
+  'orgId',
+  // 'CBRSDesignation',
+  'cbrsDesignation',
+  'basement',
+  'distToCoastFeet',
+  'floodZone',
+  'numStories',
+  'propertyCode',
+  'replacementCost',
+  'sqFootage',
+  'yearBuilt',
+];
+
+function getHeaderStatus(
+  headers: string[],
+  requiredHeaders: string[],
+  formatFn: (str: string) => string = snakeCase
+) {
+  const formatted = headers.map((h) => formatFn(h));
+
+  let result: Record<string, boolean | null> = {};
+
+  for (let h of requiredHeaders) {
+    //  REQUIRED_HEADERS
+    result[h] = formatted.includes(h);
+  }
+
+  console.log('formatted: ', formatted);
+  console.log('result: ', result);
+  console.log('result.CBRSDesignation', result.CBRSDesignation);
+
+  return result;
+}
+
+type OpenOptions = 'ratePortfolio' | 'importQuotes';
+
 // Required to get around dialog unmounting when icon menu closes
 function QuotesActionMenu() {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState<OpenOptions | null>(null);
 
-  const handleOpen = useCallback(() => setOpen(true), []);
-  const handleClose = useCallback(() => setOpen(false), []);
+  const handleOpen = useCallback((val: OpenOptions) => () => setOpen(val), []);
+  const handleClose = useCallback(() => setOpen(null), []);
+
+  const handleHeaderStatus = useCallback(
+    (requiredHeaders: string[], formatFn: (str: string) => string) => (headers: string[]) =>
+      getHeaderStatus(headers, requiredHeaders, formatFn),
+    []
+  );
+
+  const onSuccess = useCallback((uploadResult: UploadResult[]) => {
+    console.log('upload result: ', uploadResult);
+    toast.success("you'll receive an email once complete", {
+      duration: 2000,
+      position: 'top-right',
+      icon: <InfoRounded />,
+    });
+  }, []);
 
   return (
     <>
       <IconMenu>
-        <MenuItem onClick={handleOpen}>Rate Portfolio</MenuItem>
+        <MenuItem onClick={handleOpen('ratePortfolio')}>Rate Portfolio</MenuItem>
+        <MenuItem onClick={handleOpen('importQuotes')}>Import Quotes</MenuItem>
       </IconMenu>
-      <PortfolioRatingDialog open={open} onClose={handleClose} />
+      <CSVUploadDialog
+        open={open === 'ratePortfolio'}
+        onClose={handleClose}
+        destinationFolder='ratePortfolio'
+        getHeaderStatus={handleHeaderStatus(PORTFOLIO_RATING_REQUIRED_HEADERS, snakeCase)}
+        onSuccess={onSuccess}
+      >
+        <Typography variant='body2' color='text.secondary' component='div'>
+          Headers will be transformed to{' '}
+          <Link href='https://lodash.com/docs/4.17.15#snakeCase' target='_blank' rel='noopener'>
+            snake case <OpenInNewRounded sx={{ fontSize: 16 }} />
+          </Link>
+          {`. (ex: "CovA limit" → "cov_a_limit")`}
+        </Typography>
+      </CSVUploadDialog>
+      <CSVUploadDialog
+        open={open === 'importQuotes'}
+        onClose={handleClose}
+        destinationFolder='importQuotes'
+        getHeaderStatus={handleHeaderStatus(QUOTE_IMPORT_REQUIRED_HEADERS, camelCase)}
+        onSuccess={onSuccess}
+      >
+        <Typography variant='body2' color='text.secondary' component='div'>
+          Headers will be transformed to{' '}
+          <Link href='https://lodash.com/docs/4.17.15#camelCase' target='_blank' rel='noopener'>
+            camel case <OpenInNewRounded sx={{ fontSize: 16 }} />
+          </Link>
+          {`. (ex: "cov_a limit" → "covALimit")`}
+        </Typography>
+      </CSVUploadDialog>
     </>
   );
 }

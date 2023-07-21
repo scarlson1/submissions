@@ -28,7 +28,7 @@ import {
   adminPaymentReceived,
   policyDelivery,
   agencyAppApproved,
-  adminPolicyImportNotification,
+  adminImportNotification,
   quoteExpiringSoon,
   blankHTML,
   adminChangeRequest,
@@ -320,7 +320,7 @@ export const sendAdminPolicyImportNotification = async (
   toName?: string,
   sgArgs?: ExtraSendGridArgs
 ) => {
-  const html = adminPolicyImportNotification({
+  const html = adminImportNotification({
     successCount,
     errorCount,
     invalidDataCount,

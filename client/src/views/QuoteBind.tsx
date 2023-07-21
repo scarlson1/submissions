@@ -186,7 +186,7 @@ export const QuoteBind = () => {
 
   // force sign in & set userId for quote (unless agent)
   if (!signInCheckResult.signedIn || signInCheckResult.user.isAnonymous || !data?.userId) {
-    // current user is not agent
+    // current user is not agent --> auth step & set userId
     if (data?.agent?.userId && data?.agent?.userId !== signInCheckResult.user?.uid)
       return <AuthStep quoteId={quoteId} />;
   }

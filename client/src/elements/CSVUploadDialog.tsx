@@ -1,55 +1,74 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Box, Unstable_Grid2 as Grid, Link, Stack, Typography } from '@mui/material';
-import { CheckCircleRounded, OpenInNewRounded } from '@mui/icons-material';
-import { snakeCase } from 'lodash';
+import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
+import { Box, Unstable_Grid2 as Grid, Stack, Typography } from '@mui/material';
+import { CheckCircleRounded } from '@mui/icons-material';
+import { UploadResult } from 'firebase/storage';
 import { ParseResult, parse } from 'papaparse';
 
 import {
   UploadFilesDialogComponent,
   UploadFilesDialogComponentProps,
 } from 'elements/UploadFilesDialog';
-import { useAsyncToast, useCreateStorageFiles } from 'hooks';
+import { useCreateStorageFiles } from 'hooks';
 
 // TODO: use web worker ??
 // https://www.newline.co/fullstack-react/articles/introduction-to-web-workers-with-react/
 // https://medium.com/@ashifa454/offloading-render-using-web-workers-e0f2f463ad0
 
-const REQUIRED_HEADERS = [
-  'cov_a_limit',
-  'cov_b_limit',
-  'cov_c_limit',
-  'cov_d_limit',
-  'cov_a_rcv',
-  'cov_b_rcv',
-  'cov_c_rcv',
-  'cov_d_rcv',
-  'deductible',
-  'state',
-  'commission_pct',
-];
+// const REQUIRED_HEADERS = [
+//   'cov_a_limit',
+//   'cov_b_limit',
+//   'cov_c_limit',
+//   'cov_d_limit',
+//   'cov_a_rcv',
+//   'cov_b_rcv',
+//   'cov_c_rcv',
+//   'cov_d_rcv',
+//   'deductible',
+//   'state',
+//   'commission_pct',
+// ];
 
-function getHeaderStatus(headers: string[], formatFn: (str: string) => string = snakeCase) {
-  const formatted = headers.map((h) => formatFn(h));
+// function getHeaderStatus(headers: string[], formatFn: (str: string) => string = snakeCase) {
+//   const formatted = headers.map((h) => formatFn(h));
 
-  let result: Record<string, boolean | null> = {};
+//   let result: Record<string, boolean | null> = {};
 
-  for (let h of REQUIRED_HEADERS) {
-    result[h] = formatted.includes(h);
-  }
+//   for (let h of REQUIRED_HEADERS) {
+//     result[h] = formatted.includes(h);
+//   }
 
-  return result;
-}
+//   return result;
+// }
 
-interface PortfolioRatingDialogProps
+// interface PortfolioRatingDialogProps
+//   extends Omit<
+//     UploadFilesDialogComponentProps,
+//     'acceptedTypes' | 'files' | 'onNewFiles' | 'onRemove' | 'onSubmit' | 'onCancel' | 'handleSubmit'
+//   > {
+//   onClose: () => void;
+// }
+
+interface CSVUploadDialogProps
   extends Omit<
     UploadFilesDialogComponentProps,
     'acceptedTypes' | 'files' | 'onNewFiles' | 'onRemove' | 'onSubmit' | 'onCancel' | 'handleSubmit'
   > {
   onClose: () => void;
+  destinationFolder: string;
+  getHeaderStatus: (headers: string[]) => Record<string, boolean | null>;
+  children?: ReactNode;
+  onSuccess?: (uploadResult: UploadResult[]) => void;
 }
 
-export const PortfolioRatingDialog = ({ open, onClose, ...props }: PortfolioRatingDialogProps) => {
-  const toast = useAsyncToast({ position: 'top-right' });
+export const CSVUploadDialog = ({
+  open,
+  onClose,
+  destinationFolder,
+  getHeaderStatus,
+  children,
+  onSuccess,
+  ...props
+}: CSVUploadDialogProps) => {
   const [headerStatus, setHeaderStatus] = useState<Record<string, boolean | null>>(
     getHeaderStatus([])
   );
@@ -65,11 +84,10 @@ export const PortfolioRatingDialog = ({ open, onClose, ...props }: PortfolioRati
     handleSubmit,
     handleCancel: uploadHandleCancel,
   } = useCreateStorageFiles(
-    `ratePortfolio`,
+    destinationFolder,
     { status: 'pending' },
     async (uploadResult) => {
-      console.log('upload successful', uploadResult);
-      toast.info("You'll receive an email upon completion");
+      if (onSuccess) onSuccess(uploadResult);
     },
     (err, msg) => console.log('upload failed: ', msg, err)
   );
@@ -93,10 +111,7 @@ export const PortfolioRatingDialog = ({ open, onClose, ...props }: PortfolioRati
           preview: 1,
         }) as unknown as ParseResult<any>;
 
-        // const parsedData = csv?.data;
         const errors = csv?.errors;
-
-        // const headers = parsedData && parsedData.length ? Object.keys(parsedData[0]) : []; // OR: get headers from csv.meta.fields ??
         const headers = [...(csv?.meta?.fields || [])];
 
         resolve({ headers, errors, parseResult: csv });
@@ -134,11 +149,11 @@ export const PortfolioRatingDialog = ({ open, onClose, ...props }: PortfolioRati
 
   useEffect(() => {
     setHeaderStatus(getHeaderStatus(headers));
-  }, [headers]);
+  }, [headers, getHeaderStatus]);
 
   useEffect(() => {
     if (!uploadFiles || !uploadFiles.length) setHeaderStatus({ ...getHeaderStatus([]) });
-  }, [uploadFiles]);
+  }, [uploadFiles, getHeaderStatus]);
 
   const onSubmit = useCallback(async () => {
     try {
@@ -175,13 +190,7 @@ export const PortfolioRatingDialog = ({ open, onClose, ...props }: PortfolioRati
         <Box>
           <Box sx={{ pb: 4 }}>
             <Typography>Upload a CSV file with the following headers (minimum):</Typography>
-            <Typography variant='body2' color='text.secondary' component='div'>
-              Headers will be transformed to{' '}
-              <Link href='https://lodash.com/docs/4.17.15#snakeCase' target='_blank' rel='noopener'>
-                snake case <OpenInNewRounded sx={{ fontSize: 16 }} />
-              </Link>
-              {`. (ex: "CovA limit" → "cov_a_limit")`}
-            </Typography>
+            {children}
           </Box>
 
           <RequiredHeaders headerStatus={headerStatus} />
@@ -202,7 +211,6 @@ function RequiredHeaders(props: RequiredHeadersProps) {
     <Grid container spacing={3}>
       {keys.map((h) => (
         <Grid xs={6} sm={4} key={h}>
-          {/* <Box sx={{ display: 'flex', }}> */}
           <Stack direction='row' spacing={2}>
             <CheckCircleRounded
               fontSize='small'

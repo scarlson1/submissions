@@ -29,7 +29,12 @@ service firebase.storage {
       allow write: if isIDemandAdmin() && request.resource.contentType.matches('text/csv')
     }
 
-     match /ratePortfolio/{fileId} {
+    match /ratePortfolio/{fileId} {
+      allow read: if isIDemandAdmin();
+      allow write: if isIDemandAdmin() && request.resource.contentType.matches('text/csv')
+    }
+
+    match /importQuotes/{fileId} {
       allow read: if isIDemandAdmin();
       allow write: if isIDemandAdmin() && request.resource.contentType.matches('text/csv')
     }

@@ -13,11 +13,10 @@ export { LocationsMap } from './LocationsMap';
 export { SubmissionsGrid } from './SubmissionsGrid';
 export { EmailsGrid } from './EmailsGrid';
 export { MoratoriumsGrid } from './MoratoriumsGrid';
-export { PortfolioRatingDialog } from './PortfolioRatingDialog';
+export { CSVUploadDialog } from './CSVUploadDialog';
 
 export type { DeckMapProps } from './DeckMap';
 export type { UpdateProfileImgProps } from './UpdateProfileImg';
 export type { CountiesMapProps } from './CountiesMap';
 export type { LocationCardProps } from './LocationCard';
 export type { LocationsMapProps } from './LocationsMap';
-// export type {  } from './';

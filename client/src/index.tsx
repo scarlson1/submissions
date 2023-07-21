@@ -1,4 +1,4 @@
-import { Suspense } from 'react';
+import { Suspense, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import '@fontsource/roboto/300.css';
 import '@fontsource/roboto/400.css';
@@ -10,6 +10,7 @@ import './index.css';
 import { RouterProvider } from 'react-router-dom';
 import { Box, CircularProgress } from '@mui/material';
 import { ErrorBoundary, FallbackProps } from 'react-error-boundary';
+import * as Sentry from '@sentry/react';
 // import { getAnalytics, logEvent } from 'firebase/analytics';
 
 import { router } from './router';
@@ -65,6 +66,10 @@ function LoadingSpinner() {
 }
 
 function LastResortErrorBoundary({ error, resetErrorBoundary }: FallbackProps) {
+  useEffect(() => {
+    Sentry.captureException(error);
+  }, [error]);
+
   console.log('Last Error Boundary');
   let msg =
     error && error.message ? (

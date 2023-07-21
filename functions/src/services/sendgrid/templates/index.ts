@@ -8,7 +8,7 @@ export { newQuote } from './newQuote.js';
 export { adminPaymentReceived } from './adminPaymentReceived.js';
 export { policyDelivery } from './policyDelivery.js';
 export { agencyAppApproved } from './agencyAppApproved.js';
-export { adminPolicyImportNotification } from './adminPolicyImportNotification.js';
+export { adminImportNotification } from './adminImportNotification.js';
 export { quoteExpiringSoon } from './quoteExpiringSoon.js';
 export { blankHTML } from './blankHTML.js';
 export { adminChangeRequest } from './adminChangeRequest.js';

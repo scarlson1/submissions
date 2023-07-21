@@ -90,7 +90,7 @@ interface CSVQuoteRow {
   agencyCity: string;
   agencyState: string;
   agencyPostal: string;
-  CBRSDesignation: string;
+  cbrsDesignation: string;
   basement: string;
   distToCoastFeet: string;
   floodZone: string;
@@ -99,7 +99,7 @@ interface CSVQuoteRow {
   replacementCost: string;
   sqFootage: string;
   yearBuilt: string;
-  FFH: string;
+  ffh: string;
   priorLossCount: string;
   ratingDocId?: string;
   locationId?: string;
@@ -274,7 +274,7 @@ function transformQuoteRow(row: CSVQuoteRow): DeepNullable<Quote> {
   const geoHash = latitude && longitude ? geohashForLocation([latitude, longitude]) : null;
 
   const ratingPropertyData: Nullable<RatingPropertyData> = {
-    CBRSDesignation: row.CBRSDesignation || null,
+    CBRSDesignation: row.cbrsDesignation || null,
     basement: row.basement || null,
     distToCoastFeet: row.distToCoastFeet ? extractNumber(row.distToCoastFeet) : null,
     floodZone: row.floodZone || null,
@@ -283,7 +283,7 @@ function transformQuoteRow(row: CSVQuoteRow): DeepNullable<Quote> {
     replacementCost: row.replacementCost ? extractNumber(row.replacementCost) : null,
     sqFootage: row.sqFootage ? extractNumber(row.sqFootage) : null,
     yearBuilt: row.yearBuilt ? extractNumber(row.yearBuilt) : null,
-    FFH: row.FFH ? extractNumber(row.FFH) : null,
+    FFH: row.ffh ? extractNumber(row.ffh) : null,
   };
 
   const namedInsured: Quote['namedInsured'] = {
@@ -298,6 +298,11 @@ function transformQuoteRow(row: CSVQuoteRow): DeepNullable<Quote> {
     name: row.agentName || null,
     email: row.agentEmail || null,
     phone: row.agentPhone || null,
+    // phone: row.agentPhone
+    //   ? row.agentPhone.length === 9
+    //     ? `+1${row.agentPhone}`
+    //     : row.agentPhone
+    //   : null,
     userId: row.agentId || null,
   };
 

@@ -1,8 +1,10 @@
+import { useEffect } from 'react';
+import { FirestoreError } from 'firebase/firestore';
 import { Box, Alert, AlertTitle, Container, Typography, Button, Stack } from '@mui/material';
 import { useRouteError, isRouteErrorResponse, useNavigate } from 'react-router-dom';
+import * as Sentry from '@sentry/react';
 
 import { ServerDownSVG, PageNotFoundSVG, SecureLoginSVG, SearchingSVG } from 'assets/images';
-import { FirestoreError } from 'firebase/firestore';
 
 // FOR HANDLING ERRORS THROWN IN REACT ROUTER LOADERS
 
@@ -83,6 +85,10 @@ export const RouterErrorBoundary = ({ actionButtons }: RouterErrorBoundaryProps)
 
   console.log('ERROR (RouterErrorBoundary): ', error, typeof error);
   console.log('STRINGIFIED ERROR: ', JSON.stringify(error));
+
+  useEffect(() => {
+    Sentry.captureException(err);
+  }, [error]);
 
   if (isRouteErrorResponse(error)) {
     let msg = typeof error.data === 'string' ? error.data : undefined;
