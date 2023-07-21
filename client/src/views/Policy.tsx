@@ -27,7 +27,7 @@ import { useParams, useSearchParams } from 'react-router-dom';
 import { PickingInfo } from 'deck.gl/typed';
 import { toast } from 'react-hot-toast';
 
-import { useDocData } from 'hooks';
+import { useDocData, useGeneratePDF } from 'hooks';
 import { Policy as IPolicy, POLICY_STATUS, PolicyLocation, WithId } from 'common';
 import { LocationCard, LocationsGrid, LocationsMap } from 'elements';
 import { formatFirestoreTimestamp, formatPhoneNumber, stringAvatar } from 'modules/utils';
@@ -47,6 +47,7 @@ export const Policy = () => {
 
   const { data } = useDocData<IPolicy>('POLICIES', policyId);
   // const { requestChange } = usePolicyChangeRequest();
+  const downloadPolicy = useGeneratePDF('generatePolicy');
 
   const locations = useMemo<WithId<PolicyLocation>[]>(() => {
     let pLocs = Object.entries(data?.locations || {});
@@ -76,6 +77,11 @@ export const Policy = () => {
 
     window.open(docObj?.downloadUrl, '_blank');
   }, [data]);
+
+  const handleDownloadPolicy = useCallback(
+    () => downloadPolicy(policyId),
+    [downloadPolicy, policyId]
+  );
 
   const handleChangeRequest = useCallback(() => {
     alert('TODO: implement change request');
@@ -301,6 +307,9 @@ export const Policy = () => {
           {' anytime.'}
         </Typography>
       </Box>
+      <Button variant='contained' size='small' onClick={handleDownloadPolicy}>
+        Test download PDF
+      </Button>
     </Box>
   );
 };

@@ -16,9 +16,8 @@ const assignQuote = async ({ data, auth }: CallableRequest<AssignQuoteProps>) =>
   const token = auth?.token;
   const isAgent = token ? token[CLAIMS.AGENT] || false : false;
 
-  if (!quoteId) {
-    throw new HttpsError('invalid-argument', `Missing quoteId`);
-  }
+  if (!quoteId) throw new HttpsError('invalid-argument', `Missing quoteId`);
+
   if (!uid)
     throw new HttpsError(
       'unauthenticated',

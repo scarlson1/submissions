@@ -60,6 +60,7 @@ export { useShowJson } from './useShowJson';
 export { useGridActions } from './useGridActions';
 export { useGridServerSort } from './useGridServerSort';
 export { useGridServerFilter } from './useGridServerFilter';
+export { useGeneratePDF } from './useGeneratePDF';
 
 export type { UseFileUploadProps } from './useFileUpload';
 export type { UpdateProfileArgs, UpdateProfileRes } from './useUpdateProfile';

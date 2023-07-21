@@ -1,5 +1,4 @@
-import * as functions from 'firebase-functions';
-import { error } from 'firebase-functions/logger';
+import { error, info } from 'firebase-functions/logger';
 import { Response, NextFunction } from 'express';
 import { getAuth } from 'firebase-admin/auth';
 
@@ -12,7 +11,7 @@ export const validateFirebaseIdToken = async (
   res: Response,
   next: NextFunction
 ) => {
-  functions.logger.log('Check if request is authorized with Firebase ID token');
+  info('Check if request is authorized with Firebase ID token');
   try {
     if (
       (!req.headers.authorization || !req.headers.authorization.startsWith('Bearer ')) &&
@@ -33,11 +32,11 @@ export const validateFirebaseIdToken = async (
     const auth = getAuth();
     let idToken;
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
-      functions.logger.log('Found "Authorization" header');
+      info('Found "Authorization" header');
       // Read the ID Token from the Authorization header.
       idToken = req.headers.authorization.split('Bearer ')[1];
     } else if (req.cookies) {
-      functions.logger.log('Found "__session" cookie');
+      info('Found "__session" cookie');
       // Read the ID Token from cookie.
       idToken = req.cookies.__session;
     } else {
@@ -48,10 +47,10 @@ export const validateFirebaseIdToken = async (
     }
 
     try {
-      console.log('ID TOKEN: ', idToken);
+      info(`ID TOKEN: ${idToken}`);
       // console.log(auth.)
       const decodedIdToken = await auth.verifyIdToken(idToken);
-      functions.logger.log('ID Token correctly decoded: ', decodedIdToken);
+      info('ID Token correctly decoded: ', decodedIdToken);
       // if (decodedIdToken.firebase.tenant === 'TENANT-ID1') {
       //   // Allow appropriate level of access for TENANT-ID1.
       // } else if (decodedIdToken.firebase.tenant === 'TENANT-ID2') {
@@ -70,7 +69,7 @@ export const validateFirebaseIdToken = async (
     } catch (err) {
       // eslint-disable-next-line
       // @ts-ignore
-      console.log('ERROR CODE: ', err.code);
+      error('error verifying ID token', { err });
       // throw new NotAuthorizedError('Unauthorized');
       res.status(403).send('Unauthorized');
       return;

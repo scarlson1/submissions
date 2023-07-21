@@ -79,7 +79,7 @@ export {
   createFirestoreUser,
   setClaimsFromInvite,
 } from './authEvents';
-export { authRequests, sendgrid, authrequeststest } from './routes';
+export { authRequests, generatepdf, sendgrid, authrequeststest } from './routes';
 export { importpolicies, importquotes, getfips, rateportfolio } from './storageEvents';
 export { markpaidonpaymentcomplete, policycreatedlistener } from './pubsub';
 export {

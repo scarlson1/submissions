@@ -28,6 +28,7 @@ export const algoliaAdminKey = defineSecret('ALGOLIA_ADMIN_API_KEY');
 export const algoliaUserBaseKey = defineSecret('ALGOLIA_BASE_USER_SEARCH_KEY');
 export const algoliaIDemandAdminSearchKey = defineSecret('ALGOLIA_IDEMAND_ADMIN_SEARCH_KEY');
 export const googleGeoKey = defineSecret('GOOGLE_BACKEND_GEO_KEY');
+export const exportSDKKey = defineSecret('EXPORT_SDK_KEY');
 
 export const audience = defineString('AUDIENCE');
 export const hostingBaseURL = defineString('HOSTING_BASE_URL');
@@ -43,6 +44,7 @@ export const iDemandOrgId = defineString('IDEMAND_ORG_ID');
 export const storageBaseUrl = defineString('STORAGE_BASE_URL');
 export const submissionsApiBaseURL = defineString('SUBMISSIONS_API_BASE_URL');
 export const env = defineString('ENV');
+export const decPageTemplateId = defineString('DEC_PAGE_TEMPLETE_ID');
 
 export const maxA = defineInt('FLOOD_MAX_LIMIT_A', { default: 1000000 });
 export const minA = defineInt('FLOOD_MIN_LIMIT_A', { default: 100000 });
