@@ -43,3 +43,56 @@ export default function TestTerrainLayer() {
     // </Box>
   );
 }
+
+// const geojson: FeatureCollection = {
+//   type: 'FeatureCollection',
+//   features: [{ type: 'Feature', geometry: { type: 'Point', coordinates: [-122.4, 37.8] } }],
+// };
+
+// const layerStyle: CircleLayer = {
+//   id: 'point',
+//   type: 'circle',
+//   paint: {
+//     'circle-radius': 10,
+//     'circle-color': '#007cbf',
+//   },
+// };
+
+// https://docs.mapbox.com/data/tilesets/reference/mapbox-naip/
+
+export function TestNAIPLayer() {
+  return (
+    <Box sx={{ height: 300, width: '100%' }}>
+      <Map
+        initialViewState={{
+          latitude: 36.4654,
+          longitude: -86.6545,
+          zoom: 14,
+          // bearing: 80,
+          // pitch: 80,
+        }}
+        maxPitch={85}
+        mapStyle='mapbox://styles/mapbox/satellite-v9'
+        // terrain={{ source: 'mapbox-dem', exaggeration: 1.5 }}
+      >
+        <Source id='mapbox-naip' type='raster' url='mapbox://mapbox.naip'>
+          <Layer id='mapbox-naip-layer' source='mapbox-naip' type='raster' />
+        </Source>
+      </Map>
+    </Box>
+  );
+}
+
+// "sources": {
+// "mapbox-naip": {
+// "type": "raster",
+// "url": "mapbox://mapbox.naip"
+// }
+// },
+// "layers": [
+// {
+// "id": "mapbox-naip-layer",
+// "source": "mapbox-naip",
+// "type": "raster"
+// }
+// ]

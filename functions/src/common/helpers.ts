@@ -254,7 +254,7 @@ export function sumByTypes<T>(
 /**
  * Sums an array of numbers
  * @param {number[]} arr - array of numbers to be added.
- * @return {number} total of all numbers in array
+ * @returns {number} total of all numbers in array
  */
 export const sumArr = (arr: (number | string)[]) => {
   const numArr = arr
@@ -272,10 +272,10 @@ export const sumArr = (arr: (number | string)[]) => {
 
 /**
  * sum taxes, fees, premium
- * @param fees array of fees objects
- * @param taxes array of tax objects
- * @param premium annual premium
- * @returns quote total = sum of fees, taxes, premium, rounded to 2 decimals
+ * @param {FeeItem[]} fees array of fees objects
+ * @param {TaxItem[]} taxes array of tax objects
+ * @param {number} premium annual premium
+ * @returns {number} quote total = sum of fees, taxes, premium, rounded to 2 decimals
  */
 export function sumfeesTaxesPremium(fees: FeeItem[], taxes: TaxItem[], premium: number) {
   const feeTotal = sumArr(fees.map((f) => f.feeValue));

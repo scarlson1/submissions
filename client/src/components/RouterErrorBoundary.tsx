@@ -1,8 +1,7 @@
-import { useEffect } from 'react';
 import { FirestoreError } from 'firebase/firestore';
 import { Box, Alert, AlertTitle, Container, Typography, Button, Stack } from '@mui/material';
 import { useRouteError, isRouteErrorResponse, useNavigate } from 'react-router-dom';
-import * as Sentry from '@sentry/react';
+// import * as Sentry from '@sentry/react';
 
 import { ServerDownSVG, PageNotFoundSVG, SecureLoginSVG, SearchingSVG } from 'assets/images';
 
@@ -20,10 +19,6 @@ export const firestoreRulesErrorRegex = /([A-Za-z0-9]+( [A-Za-z0-9]+)+)\. for '[
 export function checkRulesRegex(str: string) {
   return firestoreRulesErrorRegex.test(str);
 }
-
-// function isFish(pet: Fish | Bird): pet is Fish {
-//   return (pet as Fish).swim !== undefined;
-// }
 
 function isFirestoreError(err: unknown): err is FirestoreError {
   return err instanceof FirestoreError;
@@ -86,9 +81,10 @@ export const RouterErrorBoundary = ({ actionButtons }: RouterErrorBoundaryProps)
   console.log('ERROR (RouterErrorBoundary): ', error, typeof error);
   console.log('STRINGIFIED ERROR: ', JSON.stringify(error));
 
-  useEffect(() => {
-    Sentry.captureException(err);
-  }, [error]);
+  // causes infinite loop ??
+  // useEffect(() => {
+  //   Sentry.captureException(err);
+  // }, [error]);
 
   if (isRouteErrorResponse(error)) {
     let msg = typeof error.data === 'string' ? error.data : undefined;

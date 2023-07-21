@@ -184,7 +184,7 @@ export const QuoteBind = () => {
   // TODO submission needs isAnonymous flag so userId can/should be overwritten ??
   // TODO set agentId if agent not already set ??
 
-  // force sign in & set userId for quote (unless agent)
+  // force sign in & set userId for quote (unless current user is agent)
   if (!signInCheckResult.signedIn || signInCheckResult.user.isAnonymous || !data?.userId) {
     // current user is not agent --> auth step & set userId
     if (data?.agent?.userId && data?.agent?.userId !== signInCheckResult.user?.uid)

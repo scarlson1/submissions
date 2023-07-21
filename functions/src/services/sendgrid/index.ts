@@ -1,3 +1,4 @@
+import { projectID } from 'firebase-functions/params';
 import sgMail, { MailDataRequired } from '@sendgrid/mail';
 import { MailData } from '@sendgrid/helpers/classes/mail';
 import { EmailData } from '@sendgrid/helpers/classes/email-address';
@@ -35,7 +36,6 @@ import {
   moveToTenantConfirmation,
 } from './templates';
 import { env } from '../../common';
-import { projectID } from 'firebase-functions/params';
 
 export interface AttachmentJSON {
   content: string;

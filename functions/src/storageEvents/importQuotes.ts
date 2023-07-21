@@ -230,14 +230,16 @@ export default async (event: StorageEvent) => {
         },
       }
     );
-  } catch (err: any) {}
+  } catch (err: any) {
+    error('Error saving import summary doc or delivering email notification', { err });
+  }
 
   return;
 };
 
 /**
  * Transform csv row to Quote shape
- * @param row csv row after headers converted (if header transform provided)
+ * @param {CSVQuoteRow} row csv row after headers converted (if header transform provided)
  * @returns {DeepNullable<Quote>} values shaped as quote, null if not provided
  */
 function transformQuoteRow(row: CSVQuoteRow): DeepNullable<Quote> {
