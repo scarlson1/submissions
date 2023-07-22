@@ -14,7 +14,7 @@ import {
   exportSDKKey,
   policiesCollection,
 } from '../common';
-// import { validateFirebaseIdToken } from './middlewares';
+import { validateFirebaseIdToken } from './middlewares';
 
 // example using react-pdf directly: https://exportsdk.com/how-to-generate-pdfs-with-nodejs
 // https://github.com/firebase/functions-samples/blob/main/Node-1st-gen/authorized-https-endpoint/functions/index.js
@@ -70,16 +70,19 @@ const router = express.Router();
 router.use(cors({ origin: true }));
 router.use(bodyParser.json());
 router.use(bodyParser.urlencoded({ extended: false }));
-// router.use(validateFirebaseIdToken);
+router.use(validateFirebaseIdToken);
 
 app.post('/generatePolicy', async (req: RequestUserAuth, res: Response) => {
   const { policyId } = req.body;
   info('new generate policy request received', { ...req.body });
 
   // TODO: uncomment
-  // const userToken = req.user;
+  const userToken = req.user;
 
-  // if (!userToken?.uid) throw new HttpsError('unauthenticated', 'must be signed in');
+  if (!userToken?.uid) {
+    res.status(403).send('must be signed in');
+    return;
+  }
 
   if (!policyId) {
     res.status(400).send('policyId required');
