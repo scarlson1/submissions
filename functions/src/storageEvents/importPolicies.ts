@@ -23,6 +23,7 @@ import {
   AgentDetails,
   COLLECTIONS,
   Limits,
+  MailingAddress,
   Mortgagee,
   NamedInsured,
   Nullable,
@@ -632,7 +633,7 @@ async function getPolicyWithoutLocation(
     product: data.product as Product,
     status: POLICY_STATUS.PAID, // TODO: get status from csv
     term: data.term as number,
-    mailingAddress: data.address as Address,
+    mailingAddress: data.address as MailingAddress,
     namedInsured: data.namedInsured,
     homeState: data.homeState as string,
     price: data.price as number,

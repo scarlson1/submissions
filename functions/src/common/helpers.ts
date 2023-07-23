@@ -288,3 +288,29 @@ export function getCardFee(quoteTotal: number) {
   const feePct = Number.parseFloat(cardFeePct.value()) || 0.035;
   return quoteTotal && typeof feePct === 'number' ? quoteTotal * feePct : 0;
 }
+
+/**
+ * converts string to formatted number. If str, after all non diget characters are removed, does not match optional 1 followed by 9 digits, null is returned.
+ * @param {string} str - string with numbers. other characters will be removed by regex: /\D/g
+ * @return {string | null} returns formatted string +1 (optional) (123) 456-7890 or null
+ */
+export const formatPhoneNumber = (str: string) => {
+  //Filter only numbers from the input
+  let cleaned = ('' + str).replace(/\D/g, '');
+
+  //Check if the input is of correct
+  let match = cleaned.match(/^(1|)?(\d{3})(\d{3})(\d{4})$/);
+
+  if (match) {
+    //Remove the matched extension code
+    //Change this to format for any country code.
+    // Non-breakable space is char 160
+    let intlCode = match[1] ? `+1${String.fromCharCode(160)}` : '';
+    // return [intlCode, '(', match[2], ') ', match[3], '-', match[4]].join('');
+    return [intlCode, '(', match[2], `)${String.fromCharCode(160)}`, match[3], '-', match[4]].join(
+      ''
+    );
+  }
+
+  return null;
+};

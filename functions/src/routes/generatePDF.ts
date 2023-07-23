@@ -7,14 +7,21 @@ import * as bodyParser from 'body-parser';
 import { ExportSdkClient } from '@exportsdk/client';
 
 import {
+  Address,
+  Nullable,
   Policy,
+  PolicyLocation,
   RequestUserAuth,
+  calcSum,
   decPageTemplateId,
   dollarFormat,
   exportSDKKey,
+  formatPhoneNumber,
   policiesCollection,
 } from '../common';
 import { validateFirebaseIdToken } from './middlewares';
+import { flatten } from 'lodash';
+import { format } from 'date-fns';
 
 // example using react-pdf directly: https://exportsdk.com/how-to-generate-pdfs-with-nodejs
 // https://github.com/firebase/functions-samples/blob/main/Node-1st-gen/authorized-https-endpoint/functions/index.js
@@ -24,31 +31,57 @@ import { validateFirebaseIdToken } from './middlewares';
 
 // TODO: store record of when policy was generated in subcollection of policy?
 // with template, template version, timestamp, requesting user, etc. ??
-interface CoverageSummaryItem {
-  coverageTitle: string;
-  coverageAmount: string;
+// interface CoverageSummaryItem {
+//   coverageTitle: string;
+//   coverageAmount: string;
+// }
+
+interface LocationInterestsItem {
+  locationAddress: string;
+  interestType: string;
+  name: string;
+  interestAddress: string;
+  loanNumber: string;
 }
+
+interface LocationCoveragesItem {
+  address: string;
+  limitA: string;
+  limitB: string;
+  limitC: string;
+  limitD: string;
+  TIV: string;
+}
+
+interface PremiumTableItem {
+  itemTitle: string;
+  subjectAmount: string;
+  rate: string;
+  value: string;
+}
+
 interface DecPageTemplateData extends Record<string, unknown> {
-  insuredAddressLine1: string;
-  insuredAddressLine2: string;
-  insuredCity: string;
+  policyId: string;
   insuredEmail: string;
   insuredName: string;
-  insuredPostal: string;
-  insuredState: string;
-  insurerName: string;
+  mailingAddressName: string;
+  mailingAddressLine1: string;
+  mailingAddressLine2: string;
+  mailingCity: string;
+  mailingPostal: string;
+  mailingState: string;
+  policyEffectiveDate: string;
+  policyExpirationDate: string;
+  issuingCarrier: string;
+  agencyName: string;
   agencyAddressLine1: string;
   agencyAddressLine2: string;
   agencyCity: string;
-  agencyName: string;
-  agencyPostal: string;
   agencyState: string;
-  agentEmail: string;
+  agencyPostal: string;
   agentName: string;
+  agentEmail: string;
   agentphone: string;
-  policyEffectiveDate: string;
-  policyExpirationDate: string;
-  policyId: string;
   surplusLinesLicenseNum: string;
   surplusLinesLicensePhone: string;
   surplusLinesLicenseState: string;
@@ -60,23 +93,24 @@ interface DecPageTemplateData extends Record<string, unknown> {
   mortgageeState?: string;
   mortgageePostal?: string;
   mortgageeLoanNum?: string;
-  coverageSummary?: CoverageSummaryItem[];
+  locationCoverages: LocationCoveragesItem[];
+  locationInterests: LocationInterestsItem[];
+  premiumTable: PremiumTableItem[];
   docsAttached: { docTitle: string }[];
 }
 
 const app = express();
-const router = express.Router();
+// const router = express.Router();
 
-router.use(cors({ origin: true }));
-router.use(bodyParser.json());
-router.use(bodyParser.urlencoded({ extended: false }));
-router.use(validateFirebaseIdToken);
+app.use(cors({ origin: true }));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(validateFirebaseIdToken);
 
 app.post('/generatePolicy', async (req: RequestUserAuth, res: Response) => {
   const { policyId } = req.body;
   info('new generate policy request received', { ...req.body });
 
-  // TODO: uncomment
   const userToken = req.user;
 
   if (!userToken?.uid) {
@@ -111,62 +145,76 @@ app.post('/generatePolicy', async (req: RequestUserAuth, res: Response) => {
 
   const client = new ExportSdkClient(exportSDKKey.value());
 
-  const location = policy.locations && Object.values(policy.locations)[0];
-  if (!location) {
+  const locations = policy.locations && Object.values(policy.locations);
+  if (!locations || !locations.length) {
     res.status(400).send('missing locations in policy');
     return;
   }
 
-  const testAddr1 = location?.address?.addressLine1 || '';
-  const limits = location?.limits;
-  const coverageSummary = [];
-  for (const [key, value] of Object.entries(limits)) {
-    coverageSummary.push({
-      coverageTitle: getLimitTitle(key),
-      coverageAmount: `${dollarFormat(value)}`,
-    });
-  }
   const mortgagee: Partial<DecPageTemplateData> = {};
-  const mortgageeInterest = location.mortgageeInterest && location.mortgageeInterest[0];
-  if (mortgageeInterest) {
-    mortgagee.mortgagee = mortgageeInterest.name;
-    const addr = mortgageeInterest.address;
-    mortgagee.mortgageeAddressLine1 = addr?.addressLine1 || '';
-    mortgagee.mortgageeAddressLine2 = addr?.addressLine2 || '';
-    mortgagee.mortgageeCity = addr?.city || '';
-    mortgagee.mortgageeState = addr?.state || '';
-    mortgagee.mortgageePostal = addr?.postal || '';
-    mortgagee.mortgageeLoanNum = mortgageeInterest.loanNumber || '';
+  if (locations.length === 1) {
+    const location = locations[0];
+    const mortgageeInterest = location.mortgageeInterest && location.mortgageeInterest[0];
+    if (mortgageeInterest) {
+      mortgagee.mortgagee = mortgageeInterest.name;
+      const addr = mortgageeInterest.address;
+      mortgagee.mortgageeAddressLine1 = addr?.addressLine1 || '';
+      mortgagee.mortgageeAddressLine2 = addr?.addressLine2 || '';
+      mortgagee.mortgageeCity = addr?.city || '';
+      mortgagee.mortgageeState = addr?.state || '';
+      mortgagee.mortgageePostal = addr?.postal || '';
+      mortgagee.mortgageeLoanNum = mortgageeInterest.loanNumber || '';
+    }
   }
+
+  const locationCoverages = getLocationCoveragesTableData(locations);
+  const test = getLocationCoveragesTableDataTest();
+  const locationInterests = getLocationInterests(locations);
+  const premiumTable = getPremiumTable(policy);
+
+  const policyEffectiveDate = format(policy.effectiveDate.toDate(), 'MMM dd, yyyy');
+  const policyExpirationDate = format(policy.expirationDate.toDate(), 'MMM dd, yyyy');
+
+  const {
+    namedInsured,
+    agent,
+    agency,
+    issuingCarrier,
+    mailingAddress,
+    surplusLinesProducerOfRecord: slLicense,
+  } = policy;
 
   const templateId = decPageTemplateId.value();
   const templateData: DecPageTemplateData = {
-    insuredAddressLine1: testAddr1,
-    insuredAddressLine2: 'STE 204',
-    insuredCity: 'Nashville',
-    insuredEmail: 'spencer.carlson@gmail.com',
-    insuredName: 'Spencer Carlson',
-    insuredPostal: '12333',
-    insuredState: 'TN',
-    insurerName: 'Rockingham Insurance',
-    agencyAddressLine1: '123 Main St',
-    agencyAddressLine2: 'Suite 2000',
-    agencyCity: 'Nashville',
-    agencyName: 'ABC Insurance Co.',
-    agencyPostal: '12345',
-    agencyState: 'TN',
-    agentEmail: 'test@gmail.com',
-    agentName: 'John Doe',
-    agentphone: '(123) 234-2983',
-    policyEffectiveDate: 'August 31, 2023',
-    policyExpirationDate: 'August 31, 2024',
-    policyId: '123LSKDJF2L3K4LKJ',
-    surplusLinesLicenseNum: '123LICENSE',
-    surplusLinesLicensePhone: '(234) 234-2344',
-    surplusLinesLicenseState: 'TN',
-    surplusLinesName: 'Ron Carlson',
+    policyId,
+    mailingAddressName: mailingAddress.name || namedInsured.displayName, // TODO: add name to mailing address // mailingAddress.name,
+    mailingAddressLine1: mailingAddress?.addressLine1 || '',
+    mailingAddressLine2: mailingAddress?.addressLine2 || '',
+    mailingCity: mailingAddress?.city || '',
+    mailingState: mailingAddress?.state || '',
+    mailingPostal: mailingAddress?.postal || '',
+    insuredEmail: namedInsured.email,
+    insuredName: namedInsured.displayName,
+    policyEffectiveDate,
+    policyExpirationDate,
+    agencyName: agency.name,
+    agencyAddressLine1: agency?.address?.addressLine1,
+    agencyAddressLine2: agency?.address?.addressLine2,
+    agencyCity: agency?.address?.city,
+    agencyState: agency?.address?.state,
+    agencyPostal: agency?.address?.postal,
+    agentEmail: agent?.email,
+    agentName: agent?.name,
+    agentphone: formatPhoneNumber(policy?.agent?.phone || '') || '',
+    issuingCarrier: issuingCarrier,
+    surplusLinesLicenseNum: slLicense.licenseNum,
+    surplusLinesName: slLicense.name,
+    surplusLinesLicenseState: slLicense.licenseState,
+    surplusLinesLicensePhone: formatPhoneNumber(slLicense.phone || '') || '',
+    locationCoverages: [...locationCoverages, ...test],
+    locationInterests,
+    premiumTable,
     ...mortgagee,
-    coverageSummary,
     docsAttached: [
       {
         docTitle: 'Example Doc Attachment One',
@@ -199,23 +247,121 @@ app.post('/generatePolicy', async (req: RequestUserAuth, res: Response) => {
   return;
 });
 
-app.use('/pdf-api', router);
+// app.use('/pdf-api', router);
 
 export default app;
 
-function getLimitTitle(key: string) {
-  switch (key) {
-    case 'limitA':
-      return 'Building';
-    case 'limitB':
-      return 'appurtenant Structures';
-    case 'limitC':
-      return 'Contents';
-    case 'limitD':
-      return 'BI';
-    default:
-      return key;
+// function getLimitTitle(key: string) {
+//   switch (key) {
+//     case 'limitA':
+//       return 'Building';
+//     case 'limitB':
+//       return 'appurtenant Structures';
+//     case 'limitC':
+//       return 'Contents';
+//     case 'limitD':
+//       return 'BI';
+//     default:
+//       return key;
+//   }
+// }
+
+function getFormattedAddress(addr: Nullable<Address>) {
+  let formatted = `${addr?.addressLine1 || ''}`;
+  if (addr?.addressLine2) formatted += `, ${addr.addressLine2}`;
+  if (addr?.city) formatted += `, ${addr.city}`;
+  if (addr?.state) formatted += `, ${addr.state}`;
+  if (addr?.postal) formatted += `, ${addr.postal}`;
+
+  return formatted;
+}
+
+function getLocationCoveragesTableData(locations: PolicyLocation[]): LocationCoveragesItem[] {
+  return locations.map((l) => {
+    const tiv = calcSum(Object.values(l.limits));
+    return {
+      address: getFormattedAddress(l.address),
+      limitA: l.limits?.limitA ? dollarFormat(l.limits?.limitA) : '',
+      limitB: l.limits?.limitB ? dollarFormat(l.limits?.limitB) : '',
+      limitC: l.limits?.limitC ? dollarFormat(l.limits?.limitC) : '',
+      limitD: l.limits?.limitD ? dollarFormat(l.limits?.limitD) : '',
+      TIV: typeof tiv === 'number' ? dollarFormat(tiv) : '',
+    };
+  });
+}
+
+function getLocationCoveragesTableDataTest(): LocationCoveragesItem[] {
+  let result = [];
+  for (let i = 0; i < 60; i++) {
+    result.push({
+      address: `Test location ${i}`,
+      limitA: `${i * 1000}`,
+      limitB: `${i * 1000 * 0.1}`,
+      limitC: `${i * 1000 * 0.23}`,
+      limitD: `${i * 1000 * 0.08}`,
+      TIV: `${i * 1000 * 1.32}`,
+    });
   }
+  return result;
+}
+// TODO: refactor - use for loops instead of map and remove flatten
+function getLocationInterests(locations: PolicyLocation[]): LocationInterestsItem[] {
+  let interests = locations.map((l) => {
+    const addr = getFormattedAddress(l.address);
+    const additionalInsureds: LocationInterestsItem[] = l.additionalInsureds?.map((ai) => ({
+      locationAddress: addr,
+      interestType: 'additional insured',
+      name: ai.name,
+      interestAddress: ai.address?.addressLine1 ? getFormattedAddress(ai.address) : '',
+      loanNumber: '',
+    }));
+    const mortgagee = l.mortgageeInterest?.map((mi) => ({
+      locationAddress: addr,
+      interestType: 'mortgagee',
+      name: mi.name,
+      interestAddress: mi.address?.addressLine1 ? getFormattedAddress(mi.address) : '',
+      loanNumber: mi.loanNumber,
+    }));
+    return [...additionalInsureds, ...mortgagee];
+  });
+
+  return flatten(interests);
+}
+
+// itemTitle: string;
+// subjectAmount: string;
+// rate: string;
+// value: string;
+
+// TOOD: finish function -- need to add taxes and fees to policy document
+function getPremiumTable(policy: Policy): PremiumTableItem[] {
+  let result = [{ itemTitle: 'Term Premium', subjectAmount: '', rate: '', value: `TODO` }];
+
+  // TODO: fees
+  result.push({
+    itemTitle: 'Fees',
+    subjectAmount: '',
+    rate: '',
+    value: 'TODO',
+  });
+
+  // TODO: taxes
+  result.push({
+    itemTitle: 'Taxes',
+    subjectAmount: 'TODO',
+    rate: 'TODO',
+    value: 'TODO',
+  });
+
+  // TODO: TOTAL
+  result.push({
+    itemTitle: 'Total price',
+    subjectAmount: '',
+    rate: '',
+    value: dollarFormat(policy.price),
+  });
+
+  return result;
 }
 
 // import { Request, HttpsError } from 'firebase-functions/v2/https';

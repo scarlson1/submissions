@@ -638,7 +638,7 @@ export interface Policy {
   product: Product;
   status: POLICY_STATUS;
   term: number;
-  mailingAddress: Address;
+  mailingAddress: MailingAddress;
   namedInsured: NamedInsured;
   locations: Record<string, PolicyLocation>;
   homeState: string;
@@ -688,7 +688,7 @@ export class PolicyClass implements IPolicyClass {
   locations: Record<string, PolicyLocation>;
   // public limits: Limits;
   // public deductible: number;
-  public mailingAddress: Address;
+  public mailingAddress: MailingAddress;
   public homeState: string;
   public namedInsured: NamedInsured;
   // public mortgageeInterest?: Mortgagee[];

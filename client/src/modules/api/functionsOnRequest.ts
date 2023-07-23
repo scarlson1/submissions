@@ -10,7 +10,7 @@ functionsInstance.interceptors.request.use(
   async (config: any) => {
     const auth = getAuth();
     const token = await auth.currentUser?.getIdToken(true);
-    // console.log('REFRESHED ID TOKEN: ', token);
+    console.log('REFRESHED ID TOKEN: ', token);
     if (!config.headers) config.headers = {};
 
     if (token) {

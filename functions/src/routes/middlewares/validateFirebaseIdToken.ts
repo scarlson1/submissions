@@ -11,7 +11,7 @@ export const validateFirebaseIdToken = async (
   res: Response,
   next: NextFunction
 ) => {
-  info('Check if request is authorized with Firebase ID token');
+  info('Checking if request is authorized with Firebase ID token');
   try {
     if (
       (!req.headers.authorization || !req.headers.authorization.startsWith('Bearer ')) &&
@@ -48,9 +48,8 @@ export const validateFirebaseIdToken = async (
 
     try {
       info(`ID TOKEN: ${idToken}`);
-      // console.log(auth.)
       const decodedIdToken = await auth.verifyIdToken(idToken);
-      info('ID Token correctly decoded: ', decodedIdToken);
+      info('ID Token correctly decoded: ', { decodedIdToken });
       // if (decodedIdToken.firebase.tenant === 'TENANT-ID1') {
       //   // Allow appropriate level of access for TENANT-ID1.
       // } else if (decodedIdToken.firebase.tenant === 'TENANT-ID2') {
