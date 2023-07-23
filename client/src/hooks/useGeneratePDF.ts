@@ -31,7 +31,7 @@ export const useGeneratePDF = (
         document.body.appendChild(link);
         link.click();
         // TODO: clean up "a" element & remove ObjectURL
-        // document.body.removeChild(link);
+        document.body.removeChild(link);
         // URL.revokeObjectURL(href);
 
         toast.success('policy downloaded', { duration: 1000 });
