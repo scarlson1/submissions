@@ -609,13 +609,13 @@ export interface PolicyLocation {
   coordinates: GeoPoint;
   geoHash: Geohash;
   // premium: number;
-  annualPremium: number;
+  annualPremium: number; // need term
   limits: Limits;
   // TODO: add tiv sum in Policy class
   TIV: number;
   RCVs: RCVs;
   deductible: number;
-  active: true; // https://stackoverflow.com/a/62626994/10887890
+  active: true; // TODO: rename "active" // https://stackoverflow.com/a/62626994/10887890
   additionalInsureds: AdditionalInsured[];
   mortgageeInterest: Mortgagee[];
   ratingDocId: string; // TODO: include rating info ?? make PublicRatingData and PrivateRatingData (extends)
@@ -633,7 +633,7 @@ export interface PolicyLocation {
   };
 }
 
-// store taxes & fees in policy doc ??
+// taxes & fees at policy level
 export interface Policy {
   product: Product;
   status: POLICY_STATUS;
@@ -646,6 +646,7 @@ export interface Policy {
   // TODO: break up total premium, taxes, fees, etc. ?? how are taxes and fees stored ? how are they recalculated
   effectiveDate: Timestamp;
   expirationDate: Timestamp;
+  // TODO: add cancellation date
   userId: string | null;
   agent: AgentDetails; // Nullable<AgentDetails>; // TODO: remove nullable (defaults to idemand)
   agency: AgencyDetails;

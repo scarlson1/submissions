@@ -1373,10 +1373,10 @@ export const QuoteForm = ({
               </Box>
             </Grid>
             <Grid xs={6} sm={3}>
-              <FormikTextField name='agent.name' label='Agent name' fullWidth />
+              <FormikTextField name='agent.name' label='Agent name' required fullWidth />
             </Grid>
             <Grid xs={6} sm={3}>
-              <FormikTextField name='agent.email' label='Agent email' fullWidth />
+              <FormikTextField name='agent.email' label='Agent email' required fullWidth />
             </Grid>
             <Grid xs={6} sm={3}>
               <FormikMaskField
@@ -1384,6 +1384,7 @@ export const QuoteForm = ({
                 id='agent.phone'
                 label='Agent Phone'
                 name='agent.phone'
+                required
                 // maskComponent={PhoneMask}
                 maskComponent={IMask}
                 inputProps={{ maskProps: phoneMaskProps }}

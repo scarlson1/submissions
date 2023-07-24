@@ -447,9 +447,8 @@ export function TempAgentSearch({ onSelect }: { onSelect: (item: any) => void })
   const apiKey = useAlgoliaStore((state) => state.apiKey);
   // const apiKey = useAlgoliaSearchKey();
 
-  if (!process.env.REACT_APP_ALGOLIA_APP_ID) {
-    throw new Error('missing algolia appID in env variables');
-  }
+  if (!process.env.REACT_APP_ALGOLIA_APP_ID || !process.env.REACT_APP_ALGOLIA_INDEX_NAME)
+    throw new Error('missing algolia appID or index name in env variables');
 
   if (!apiKey) return null;
 

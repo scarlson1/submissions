@@ -238,7 +238,6 @@ app.post('/generatePolicy', async (req: RequestUserAuth, res: Response) => {
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment;filename=export.pdf`);
 
-    // res.send(stream);
     stream.data.pipe(res);
   } catch (err: any) {
     error('error generating pdf', { err });
