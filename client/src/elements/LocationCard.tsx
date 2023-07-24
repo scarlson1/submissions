@@ -34,6 +34,8 @@ export const LocationCard = ({
 }: LocationCardProps) => {
   const theme = useTheme();
 
+  console.log('named insured: ', namedInsured);
+
   return (
     <FlexCard
       sx={{
@@ -108,7 +110,7 @@ export const LocationCard = ({
                       key={namedInsured.email}
                     >
                       {/* <Avatar src={f.img} alt={p.namedInsured.firstName} /> */}
-                      <Avatar alt={`${namedInsured.displayName}`} />
+                      <Avatar alt={namedInsured.displayName || 'i d'} />
                     </Tooltip>
                   ) : null}
                   {location?.additionalInsureds?.length

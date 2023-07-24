@@ -4,8 +4,12 @@ import { getFirestore } from 'firebase-admin/firestore';
 import express from 'express';
 import cors from 'cors';
 import * as bodyParser from 'body-parser';
-import { ExportSdkClient } from '@exportsdk/client';
+import { flatten } from 'lodash';
+import { format } from 'date-fns';
+// Axios no exported type bug
+// import { ExportSdkClient } from '@exportsdk/client';
 
+import { ExportSdkClient } from '../services/exportSDK';
 import {
   Address,
   Nullable,
@@ -20,8 +24,6 @@ import {
   policiesCollection,
 } from '../common';
 import { validateFirebaseIdToken } from './middlewares';
-import { flatten } from 'lodash';
-import { format } from 'date-fns';
 
 // example using react-pdf directly: https://exportsdk.com/how-to-generate-pdfs-with-nodejs
 // https://github.com/firebase/functions-samples/blob/main/Node-1st-gen/authorized-https-endpoint/functions/index.js

@@ -62,7 +62,7 @@ export const AddressStep = ({
         ...mapViewState,
         latitude: lat,
         longitude: lng,
-        zoom: 15,
+        zoom: 16,
         pitch: 0,
         bearing: 0,
         transitionDuration: 2000,

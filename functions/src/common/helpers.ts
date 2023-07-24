@@ -292,7 +292,7 @@ export function getCardFee(quoteTotal: number) {
 /**
  * converts string to formatted number. If str, after all non diget characters are removed, does not match optional 1 followed by 9 digits, null is returned.
  * @param {string} str - string with numbers. other characters will be removed by regex: /\D/g
- * @return {string | null} returns formatted string +1 (optional) (123) 456-7890 or null
+ * @returns {string | null} returns formatted string +1 (optional) (123) 456-7890 or null
  */
 export const formatPhoneNumber = (str: string) => {
   //Filter only numbers from the input
