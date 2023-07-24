@@ -1,10 +1,11 @@
 import { inspect } from 'util';
 import fs from 'fs';
-import { add, Duration } from 'date-fns';
+import { add, differenceInCalendarDays, Duration } from 'date-fns';
 import { isEqual, remove } from 'lodash';
 import numeral from 'numeral';
 import { error, info } from 'firebase-functions/logger';
 import { DocumentReference } from 'firebase-admin/firestore';
+
 import { FeeItem, TaxItem } from './types';
 import { cardFeePct } from './environmentVars';
 
@@ -207,6 +208,10 @@ export const dollarFormat = (amt: number) => {
   return numeral(amt).format('$0,0[.]00');
 };
 
+export const dollarFormat2 = (amt: number) => {
+  return numeral(amt).format('$0,0.00');
+};
+
 export const truthyOrZero = (val: any) => val || val === 0;
 
 export async function unlinkFile(filePath: string) {
@@ -295,15 +300,15 @@ export function getCardFee(quoteTotal: number) {
  * @returns {string | null} returns formatted string +1 (optional) (123) 456-7890 or null
  */
 export const formatPhoneNumber = (str: string) => {
-  //Filter only numbers from the input
+  // Filter only numbers from the input
   let cleaned = ('' + str).replace(/\D/g, '');
 
-  //Check if the input is of correct
+  // Check if the input is of correct
   let match = cleaned.match(/^(1|)?(\d{3})(\d{3})(\d{4})$/);
 
   if (match) {
-    //Remove the matched extension code
-    //Change this to format for any country code.
+    // Remove the matched extension code
+    // Change this to format for any country code.
     // Non-breakable space is char 160
     let intlCode = match[1] ? `+1${String.fromCharCode(160)}` : '';
     // return [intlCode, '(', match[2], ') ', match[3], '-', match[4]].join('');
@@ -314,3 +319,28 @@ export const formatPhoneNumber = (str: string) => {
 
   return null;
 };
+
+/**
+ * number of days between the two days (time is removed from dates)
+ * @param {Date} effDate effective date
+ * @param {Date} expDate expiration date
+ * @returns {number} number of days between the days (time removed)
+ */
+export function getTermDays(effDate: Date, expDate: Date) {
+  return differenceInCalendarDays(expDate, effDate);
+}
+
+/**
+ * calc term premium and term days
+ * @param {number} annualPremium annual premium for location
+ * @param {Date} effDate location eff date
+ * @param {Date} expDate location exp date
+ * @returns {object} returns termPremium and termDays as numbers
+ */
+export function calcTermPremium(annualPremium: number, effDate: Date, expDate: Date) {
+  const termDays = getTermDays(effDate, expDate);
+
+  const termPremium = annualPremium / termDays;
+
+  return { termDays, termPremium };
+}

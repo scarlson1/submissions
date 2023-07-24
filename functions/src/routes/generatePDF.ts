@@ -19,6 +19,7 @@ import {
   calcSum,
   decPageTemplateId,
   dollarFormat,
+  dollarFormat2,
   exportSDKKey,
   formatPhoneNumber,
   policiesCollection,
@@ -170,7 +171,7 @@ app.post('/generatePolicy', async (req: RequestUserAuth, res: Response) => {
   }
 
   const locationCoverages = getLocationCoveragesTableData(locations);
-  const test = getLocationCoveragesTableDataTest();
+  // const test = getLocationCoveragesTableDataTest();
   const locationInterests = getLocationInterests(locations);
   const premiumTable = getPremiumTable(policy);
 
@@ -213,7 +214,7 @@ app.post('/generatePolicy', async (req: RequestUserAuth, res: Response) => {
     surplusLinesName: slLicense.name,
     surplusLinesLicenseState: slLicense.licenseState,
     surplusLinesLicensePhone: formatPhoneNumber(slLicense.phone || '') || '',
-    locationCoverages: [...locationCoverages, ...test],
+    locationCoverages, // : [...locationCoverages, ...test],
     locationInterests,
     premiumTable,
     ...mortgagee,
@@ -291,20 +292,21 @@ function getLocationCoveragesTableData(locations: PolicyLocation[]): LocationCov
   });
 }
 
-function getLocationCoveragesTableDataTest(): LocationCoveragesItem[] {
-  let result = [];
-  for (let i = 0; i < 60; i++) {
-    result.push({
-      address: `Test location ${i}`,
-      limitA: `${i * 1000}`,
-      limitB: `${i * 1000 * 0.1}`,
-      limitC: `${i * 1000 * 0.23}`,
-      limitD: `${i * 1000 * 0.08}`,
-      TIV: `${i * 1000 * 1.32}`,
-    });
-  }
-  return result;
-}
+// function getLocationCoveragesTableDataTest(): LocationCoveragesItem[] {
+//   let result = [];
+//   for (let i = 0; i < 60; i++) {
+//     result.push({
+//       address: `Test location ${i}`,
+//       limitA: `${i * 1000}`,
+//       limitB: `${i * 1000 * 0.1}`,
+//       limitC: `${i * 1000 * 0.23}`,
+//       limitD: `${i * 1000 * 0.08}`,
+//       TIV: `${i * 1000 * 1.32}`,
+//     });
+//   }
+//   return result;
+// }
+
 // TODO: refactor - use for loops instead of map and remove flatten
 function getLocationInterests(locations: PolicyLocation[]): LocationInterestsItem[] {
   let interests = locations.map((l) => {
@@ -321,7 +323,7 @@ function getLocationInterests(locations: PolicyLocation[]): LocationInterestsIte
       interestType: 'mortgagee',
       name: mi.name,
       interestAddress: mi.address?.addressLine1 ? getFormattedAddress(mi.address) : '',
-      loanNumber: mi.loanNumber,
+      loanNumber: mi.loanNumber || ('' as string),
     }));
     return [...additionalInsureds, ...mortgagee];
   });
@@ -336,30 +338,41 @@ function getLocationInterests(locations: PolicyLocation[]): LocationInterestsIte
 
 // TOOD: finish function -- need to add taxes and fees to policy document
 function getPremiumTable(policy: Policy): PremiumTableItem[] {
-  let result = [{ itemTitle: 'Term Premium', subjectAmount: '', rate: '', value: `TODO` }];
+  let result = [
+    {
+      itemTitle: 'Term Premium',
+      subjectAmount: '',
+      rate: '',
+      value: dollarFormat2(policy.termPremium),
+    },
+  ];
 
-  // TODO: fees
-  result.push({
-    itemTitle: 'Fees',
-    subjectAmount: '',
-    rate: '',
-    value: 'TODO',
-  });
+  if (policy.fees && Array.isArray(policy.fees)) {
+    for (const fee of policy.fees) {
+      result.push({
+        itemTitle: fee.feeName,
+        subjectAmount: '',
+        rate: '',
+        value: dollarFormat2(fee.feeValue),
+      });
+    }
+  }
+  if (policy.taxes && Array.isArray(policy.taxes)) {
+    for (const tax of policy.taxes) {
+      result.push({
+        itemTitle: tax.displayName,
+        subjectAmount: '',
+        rate: '',
+        value: dollarFormat2(tax.value),
+      });
+    }
+  }
 
-  // TODO: taxes
-  result.push({
-    itemTitle: 'Taxes',
-    subjectAmount: 'TODO',
-    rate: 'TODO',
-    value: 'TODO',
-  });
-
-  // TODO: TOTAL
   result.push({
     itemTitle: 'Total price',
     subjectAmount: '',
     rate: '',
-    value: dollarFormat(policy.price),
+    value: dollarFormat2(policy.price),
   });
 
   return result;

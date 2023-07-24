@@ -4,6 +4,7 @@ import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { geohashForLocation } from 'geofire-common';
 import { v4 as uuidv4 } from 'uuid';
 import invariant from 'tiny-invariant';
+import { add } from 'date-fns';
 
 import {
   QUOTE_STATUS,
@@ -17,12 +18,14 @@ import {
   License,
   AdditionalInsured,
   Mortgagee,
+  calcTermPremium,
 } from '../common';
 import { getRCVs } from '../utils/rating';
 import { checkMoratoriums } from '../services';
 import { getSLLicenseByState } from '../utils';
 import { onCallWrapper } from '../services/sentry';
-import { add } from 'date-fns';
+import { sumBy } from 'lodash';
+
 // import { getSubmissionsInstance } from '../services';
 
 // TODO: use Policy converter ??
@@ -224,7 +227,11 @@ function convertQuoteToPolicy(data: Quote, license: License, quoteId: string | n
 
   const ts = Timestamp.now();
   // TODO: take lesser of policy exp date and location eff. + 365 for location once using multi-location
-  const expirationDate = add(data.effectiveDate.toDate(), { days: 365 });
+  const effDate = data.effectiveDate.toDate();
+  const expirationDate = add(effDate, { days: 365 });
+
+  //TODO: calc term permium separetely for policy once using multi-location
+  const { termDays, termPremium } = calcTermPremium(data.annualPremium, effDate, expirationDate);
 
   // TODO: use location ID from quote once using updated Quote interface
   const locationId = uuidv4();
@@ -234,6 +241,8 @@ function convertQuoteToPolicy(data: Quote, license: License, quoteId: string | n
       coordinates: data.coordinates,
       geoHash,
       annualPremium: data.annualPremium,
+      termPremium: termPremium,
+      termDays: termDays,
       deductible: data.deductible,
       limits: data.limits,
       TIV: calcSum(Object.values(data.limits)),
@@ -256,6 +265,9 @@ function convertQuoteToPolicy(data: Quote, license: License, quoteId: string | n
     },
   };
 
+  // TODO: use Policy class to initialize new policy, move calculations to methods
+  const policyTermPremium = sumBy(Object.values(locations), (l) => l.termPremium);
+
   const policy: Policy = {
     product: 'flood',
     status: POLICY_STATUS.AWAITING_PAYMENT,
@@ -270,7 +282,12 @@ function convertQuoteToPolicy(data: Quote, license: License, quoteId: string | n
       userId: data.namedInsured?.userId || null,
     },
     locations,
-    homeState: data.homeState, // TODO: add homeState to Quote
+    homeState: data.homeState,
+    termPremium: policyTermPremium,
+    termDays,
+    fees: data.fees,
+    taxes: data.taxes,
+    // cardFee, need to save card fee or should card fee or should it be added to fees if card is used ??
     price: data.quoteTotal,
     effectiveDate: data.effectiveDate,
     expirationDate: Timestamp.fromDate(expirationDate),

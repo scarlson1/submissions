@@ -22,6 +22,7 @@ import {
   AgencyDetails,
   AgentDetails,
   COLLECTIONS,
+  FeeItem,
   Limits,
   MailingAddress,
   Mortgagee,
@@ -35,9 +36,13 @@ import {
   RCVs,
   RatingPropertyData,
   SLProdOfRecordDetails,
+  SubjectBaseItems,
+  TaxItem,
   audience,
+  calcTermPremium,
   extractNumber,
   extractNumberNeg,
+  getTermDays,
   licensesCollection,
   maxA,
   maxBCD,
@@ -53,6 +58,8 @@ import { sendAdminPolicyImportNotification } from '../services/sendgrid';
 import { getRCVs } from '../utils/rating';
 import { getCarrierByState } from '../callables/createPolicy';
 import { eventOlderThan, shouldReturnEarly } from '../utils';
+import { sumBy } from 'lodash';
+import { CSVQuoteRow } from './importQuotes';
 
 const IMPORT_POLICIES_FOLDER = 'importPolicies';
 
@@ -113,7 +120,19 @@ type CSVPolicyCamelCaseHeaders =
   | 'sqFootage'
   | 'yearBuilt'
   | 'ffh'
-  | 'product';
+  | 'product'
+  | 'fee1Name'
+  | 'fee1Value'
+  | 'fee2Name'
+  | 'fee2Value'
+  | 'tax1Name'
+  | 'tax1Value'
+  | 'tax1Rate'
+  | 'tax1SubjectBase'
+  | 'tax2Name'
+  | 'tax2Value'
+  | 'tax2Rate'
+  | 'tax2SubjectBase';
 
 type CSVPolicyRow = Record<CSVPolicyCamelCaseHeaders, string>;
 
@@ -127,6 +146,8 @@ interface ParsedPolicyRow {
   homeState: string | null;
   RCVs: RCVs;
   annualPremium: number;
+  fees: FeeItem[];
+  taxes: TaxItem[];
   price: number | null;
   namedInsured: NamedInsured;
   userId: string | null;
@@ -362,6 +383,9 @@ function transformPolicyRow(row: CSVPolicyRow): ParsedPolicyRow {
 
   const price = row.policyPrice ? extractNumber(row.policyPrice) : null;
 
+  const fees = getFormattedFees(row);
+  const taxes = getFormattedTaxes(row);
+
   const transformed: ParsedPolicyRow = {
     policyId: row.policyId || null,
     address: {
@@ -379,6 +403,8 @@ function transformPolicyRow(row: CSVPolicyRow): ParsedPolicyRow {
     limits,
     TIV,
     RCVs,
+    fees,
+    taxes,
     annualPremium: row.annualPremium ? extractNumber(row.annualPremium) : 0,
     price,
     effectiveDate: row.locationEffectiveDate ? new Date(row.locationEffectiveDate) : null,
@@ -542,8 +568,14 @@ function validatePolicyRow(data: ParsedPolicyRow) {
   }
 }
 
+/**
+ * Proup each row by policy ID, and set each row as location inside the policy. Policy level data will use the value in the last location row
+ * @param {ParsedPolicyRow[]} data all rows from csv
+ * @param {Firestore} firestore Firestore DB ref
+ * @returns {Record<string, Policy>} object of policies, with policy ID as object key
+ */
 async function groupByPolicyId(data: ParsedPolicyRow[], firestore: Firestore) {
-  let policies: Record<string, Policy> = {};
+  let policies: Record<string, Omit<Policy, 'termPremium'>> = {};
   const ts = Timestamp.now();
 
   for (const row of data) {
@@ -572,7 +604,18 @@ async function groupByPolicyId(data: ParsedPolicyRow[], firestore: Firestore) {
     }
   }
 
-  return policies;
+  // Calc policy level term premium
+  const resultPolicies: Record<string, Policy> = {};
+  for (const [policyId, policy] of Object.entries(policies)) {
+    const policyTermPremium = sumBy(Object.values(policy.locations), (l) => l.termPremium);
+
+    resultPolicies[policyId] = {
+      ...policy,
+      termPremium: policyTermPremium,
+    };
+  }
+
+  return resultPolicies;
 }
 
 function formatPolicyLocation(
@@ -582,14 +625,21 @@ function formatPolicyLocation(
 ): PolicyLocation {
   const geoHash = geohashForLocation([data.coordinates!.latitude, data.coordinates!.longitude]);
 
-  const effDateTs = Timestamp.fromDate(data.effectiveDate || (data.policyEffectiveDate as Date));
-  const expDateTs = Timestamp.fromDate(data.expirationDate || (data.policyExpirationDate as Date));
+  const effDate = data.effectiveDate || (data.policyEffectiveDate as Date);
+  const expDate = data.expirationDate || (data.policyExpirationDate as Date);
+
+  const effDateTs = Timestamp.fromDate(effDate);
+  const expDateTs = Timestamp.fromDate(expDate);
+
+  const { termDays, termPremium } = calcTermPremium(data.annualPremium, effDate, expDate);
 
   const location: PolicyLocation = {
     address: data.address as Address,
     coordinates: data.coordinates as GeoPoint,
     geoHash,
     annualPremium: data.annualPremium,
+    termPremium,
+    termDays,
     limits: data.limits,
     TIV: data.TIV,
     RCVs: data.RCVs,
@@ -629,13 +679,21 @@ async function getPolicyWithoutLocation(
   const effDateTs = Timestamp.fromDate(data.policyEffectiveDate as Date);
   const expDateTs = Timestamp.fromDate(data.policyExpirationDate as Date);
 
-  const p: Omit<Policy, 'locations'> = {
+  const termDays = getTermDays(effDateTs.toDate(), expDateTs.toDate());
+  // TODO: need to accomidate taxes and fee imports.
+  // See importQuotes for reference
+
+  const p: Omit<Policy, 'locations' | 'termPremium'> = {
     product: data.product as Product,
     status: POLICY_STATUS.PAID, // TODO: get status from csv
     term: data.term as number,
     mailingAddress: data.address as MailingAddress,
     namedInsured: data.namedInsured,
     homeState: data.homeState as string,
+    // termPremium: policyTermPremium,
+    termDays,
+    fees: data.fees,
+    taxes: data.taxes,
     price: data.price as number,
     effectiveDate: effDateTs,
     expirationDate: expDateTs,
@@ -676,4 +734,48 @@ async function getSPLPofR(firestore: Firestore, state: string) {
     licenseState: '',
     phone: '',
   };
+}
+
+export function getFormattedFees(row: CSVPolicyRow | CSVQuoteRow) {
+  const fees: FeeItem[] = [];
+  const fee1: FeeItem = {
+    feeName: row.fee1Name || '',
+    feeValue: row.fee1Value ? extractNumber(row.fee1Value) : 0,
+  };
+  const fee2: FeeItem = {
+    feeName: row.fee2Name || '',
+    feeValue: row.fee2Value ? extractNumber(row.fee2Value) : 0,
+  };
+  if (fee1.feeValue) fees.push(fee1);
+  if (fee2.feeValue) fees.push(fee2);
+
+  return fees;
+}
+
+function getFormattedTaxes(row: CSVPolicyRow) {
+  const taxes: Policy['taxes'] = [];
+  const tax1: TaxItem = {
+    displayName: row.tax1Name || '',
+    value: row.tax1Value ? extractNumber(row.tax1Value) : 0,
+    rate: row.tax1Rate
+      ? extractNumber(row.tax1Rate)
+      : row.tax1Value
+      ? extractNumber(row.tax1Value)
+      : 0,
+    subjectBase: row.tax1SubjectBase ? (row.tax1SubjectBase.split(',') as SubjectBaseItems[]) : [],
+  };
+  const tax2: TaxItem = {
+    displayName: row.tax2Name || '',
+    value: row.tax2Value ? extractNumber(row.tax2Value) : 0,
+    rate: row.tax2Rate
+      ? extractNumber(row.tax2Rate)
+      : row.tax2Value
+      ? extractNumber(row.tax2Value)
+      : 0,
+    subjectBase: row.tax2SubjectBase ? (row.tax2SubjectBase.split(',') as SubjectBaseItems[]) : [],
+  };
+  if (tax1.value) taxes.push(tax1);
+  if (tax2.value) taxes.push(tax2);
+
+  return taxes;
 }

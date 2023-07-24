@@ -19,7 +19,6 @@ import { eventOlderThan, fetchTaxes, shouldReturnEarly } from '../utils';
 import {
   COLLECTIONS,
   DeepNullable,
-  FeeItem,
   Nullable,
   Product,
   QUOTE_STATUS,
@@ -39,12 +38,13 @@ import {
   unlinkFile,
 } from '../common';
 import { sendAdminPolicyImportNotification } from '../services/sendgrid';
+import { getFormattedFees } from './importPolicies';
 
 // import { sendAdminPolicyImportNotification } from '../services/sendgrid';
 
 const QUOTE_IMPORT_FOLDER = 'importQuotes';
 
-interface CSVQuoteRow {
+export interface CSVQuoteRow {
   // extends Record<string, string>
   product: string;
   deductible: string;
@@ -320,17 +320,19 @@ function transformQuoteRow(row: CSVQuoteRow): DeepNullable<Quote> {
     orgId: row.orgId,
   };
 
-  const fees: Quote['fees'] = [];
-  const fee1: FeeItem = {
-    feeName: row.fee1Name || '',
-    feeValue: row.fee1Value ? extractNumber(row.fee1Value) : 0,
-  };
-  const fee2: FeeItem = {
-    feeName: row.fee2Name || '',
-    feeValue: row.fee2Value ? extractNumber(row.fee2Value) : 0,
-  };
-  if (fee1.feeValue) fees.push(fee1);
-  if (fee2.feeValue) fees.push(fee2);
+  // const fees: Quote['fees'] = [];
+  // const fee1: FeeItem = {
+  //   feeName: row.fee1Name || '',
+  //   feeValue: row.fee1Value ? extractNumber(row.fee1Value) : 0,
+  // };
+  // const fee2: FeeItem = {
+  //   feeName: row.fee2Name || '',
+  //   feeValue: row.fee2Value ? extractNumber(row.fee2Value) : 0,
+  // };
+  // if (fee1.feeValue) fees.push(fee1);
+  // if (fee2.feeValue) fees.push(fee2);
+
+  const fees = getFormattedFees(row);
 
   const effDate = row.effectiveDate
     ? new Date(row.effectiveDate)

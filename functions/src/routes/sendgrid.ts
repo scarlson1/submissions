@@ -1,6 +1,6 @@
 import { Request } from 'firebase-functions/v2/https';
 import { Response } from 'firebase-functions/v1';
-import { error, info } from 'firebase-functions/logger';
+import { error, info, warn } from 'firebase-functions/logger';
 import { CollectionReference, Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { v4 as uuid } from 'uuid';
 
@@ -56,7 +56,16 @@ export default async (req: Request, res: Response) => {
 
   events.forEach(async function (event: any) {
     // TODO: filter out non-production events using metadata field
-    await saveEvent(eventColRef, event);
+    if (event.projectId === 'idemand-submissions') {
+      await saveEvent(eventColRef, event);
+    } else {
+      warn(
+        `Ignoring sendgrid event because projectId does not match "idemand-submissions" (projectId: ${event.projectId})`,
+        {
+          ...event,
+        }
+      );
+    }
   });
 
   res.send({ status: 'processed' });

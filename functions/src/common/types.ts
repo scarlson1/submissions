@@ -513,7 +513,7 @@ export interface TaxItem {
   baseDigits?: number;
   resultDigits?: number;
   baseRoundType?: RoundingType;
-  resultRoundType: RoundingType;
+  resultRoundType?: RoundingType;
 }
 
 export interface FeeItem {
@@ -610,6 +610,8 @@ export interface PolicyLocation {
   geoHash: Geohash;
   // premium: number;
   annualPremium: number; // need term
+  termPremium: number;
+  termDays: number;
   limits: Limits;
   // TODO: add tiv sum in Policy class
   TIV: number;
@@ -642,11 +644,19 @@ export interface Policy {
   namedInsured: NamedInsured;
   locations: Record<string, PolicyLocation>;
   homeState: string;
-  price: number;
-  // TODO: break up total premium, taxes, fees, etc. ?? how are taxes and fees stored ? how are they recalculated
+  // TODO: break up total premium, taxes, fees, etc. ?? how are taxes and fees stored ? how are they recalculated ?
+  // taxes & fees calced at policy level
+  // annual & term premium stored at location level
+  termPremium: number; // sum of location term premium
+  termDays: number; // diff in policy eff & exp dates
+  fees: FeeItem[];
+  taxes: TaxItem[];
+  // cardFee?: number;
+  price: number; // sum of term premium, taxes, fees
   effectiveDate: Timestamp;
   expirationDate: Timestamp;
   // TODO: add cancellation date
+  cancellationDate?: Timestamp | null;
   userId: string | null;
   agent: AgentDetails; // Nullable<AgentDetails>; // TODO: remove nullable (defaults to idemand)
   agency: AgencyDetails;
@@ -695,6 +705,10 @@ export class PolicyClass implements IPolicyClass {
   // public mortgageeInterest?: Mortgagee[];
   public effectiveDate: Timestamp;
   public expirationDate: Timestamp;
+  public fees: FeeItem[];
+  public taxes: TaxItem[];
+  public termPremium: number;
+  public termDays: number;
   public price: number;
   // public cardFee: number; // | null;
   public documents: { displayName: string; downloadUrl: string; storagePath: string }[];
@@ -721,6 +735,11 @@ export class PolicyClass implements IPolicyClass {
     this.namedInsured = policyInfo.namedInsured;
     this.effectiveDate = policyInfo.effectiveDate;
     this.expirationDate = policyInfo.expirationDate;
+    this.fees = policyInfo.fees;
+    this.taxes = policyInfo.taxes;
+    // TODO: term preium & term days should be calculated in policy class
+    this.termPremium = policyInfo.termPremium;
+    this.termDays = policyInfo.termDays;
     this.price = policyInfo.price;
     // this.cardFee = policyInfo.cardFee; // remove ?? changes not always based on all locations (add / remove location) --> store at locaiton level or not at all / calc in billing ??
     this.documents = policyInfo.documents || [];

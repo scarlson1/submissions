@@ -25,7 +25,6 @@ import {
 } from '@mui/icons-material';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { PickingInfo } from 'deck.gl/typed';
-import { toast } from 'react-hot-toast';
 
 import { useDocData, useGeneratePDF } from 'hooks';
 import { Policy as IPolicy, POLICY_STATUS, PolicyLocation, WithId } from 'common';
@@ -33,7 +32,12 @@ import { LocationCard, LocationsGrid, LocationsMap } from 'elements';
 import { formatFirestoreTimestamp, formatPhoneNumber, stringAvatar } from 'modules/utils';
 import { ContactList } from 'elements/forms';
 
-// TODO: make location card flip on hover to show additoinal details
+// TODO: make location card flip on hover to show additoinal details ??
+
+// TODO:
+//    - policy overview details
+//    - submit edit request
+//    - submit claim
 
 const LOCATION_TABS = ['cards', 'grid', 'map'];
 const getInitTabView = (searchParam: string | null) =>
@@ -70,13 +74,13 @@ export const Policy = () => {
     alert('TODO: handle new claim');
   }, []);
 
-  const handleViewPolicyDoc = useCallback(() => {
-    const docObj = data?.documents[0];
-    // TODO: report error to sentry
-    if (!docObj?.downloadUrl) return toast.error('missing policy PDF');
+  // const handleViewPolicyDoc = useCallback(() => {
+  //   const docObj = data?.documents[0];
+  //   // TODO: report error to sentry
+  //   if (!docObj?.downloadUrl) return toast.error('missing policy PDF');
 
-    window.open(docObj?.downloadUrl, '_blank');
-  }, [data]);
+  //   window.open(docObj?.downloadUrl, '_blank');
+  // }, [data]);
 
   const handleDownloadPolicy = useCallback(
     () => downloadPolicy(policyId),
@@ -92,11 +96,6 @@ export const Policy = () => {
   const handleCancelPolicy = useCallback(() => {
     alert('cancel not implemented yet');
   }, []);
-
-  // TODO:
-  //    - policy overview details
-  //    - submit edit request
-  //    - submit claim
 
   return (
     // TODO: container ?? layout ??
@@ -293,7 +292,7 @@ export const Policy = () => {
             </Typography>
           ) : null}
           You can{' '}
-          <Link component='button' variant='body2' onClick={handleViewPolicyDoc}>
+          <Link component='button' variant='body2' onClick={handleDownloadPolicy}>
             download a copy of your policy
           </Link>
           {', '}
@@ -307,9 +306,6 @@ export const Policy = () => {
           {' anytime.'}
         </Typography>
       </Box>
-      <Button variant='contained' size='small' onClick={handleDownloadPolicy}>
-        Test download PDF
-      </Button>
     </Box>
   );
 };

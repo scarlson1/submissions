@@ -34,8 +34,6 @@ export const LocationCard = ({
 }: LocationCardProps) => {
   const theme = useTheme();
 
-  console.log('named insured: ', namedInsured);
-
   return (
     <FlexCard
       sx={{
