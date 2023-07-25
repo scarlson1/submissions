@@ -25,6 +25,7 @@ import {
   policiesCollection,
 } from '../common';
 import { validateFirebaseIdToken } from './middlewares';
+import { generatePolicyDecPDF } from '../services/pdf';
 
 // example using react-pdf directly: https://exportsdk.com/how-to-generate-pdfs-with-nodejs
 // https://github.com/firebase/functions-samples/blob/main/Node-1st-gen/authorized-https-endpoint/functions/index.js
@@ -63,7 +64,7 @@ interface PremiumTableItem {
   value: string;
 }
 
-interface DecPageTemplateData extends Record<string, unknown> {
+export interface DecPageTemplateData extends Record<string, unknown> {
   policyId: string;
   insuredEmail: string;
   insuredName: string;
@@ -110,6 +111,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(validateFirebaseIdToken);
 
+// using ExportSDK template
 app.post('/generatePolicy', async (req: RequestUserAuth, res: Response) => {
   const { policyId } = req.body;
   info('new generate policy request received', { ...req.body });
@@ -249,6 +251,128 @@ app.post('/generatePolicy', async (req: RequestUserAuth, res: Response) => {
   return;
 });
 
+// using react-pdf
+app.post('/generateDecPDF', async (req: RequestUserAuth, res: Response) => {
+  const { policyId } = req.body;
+  info('new generate policy request received', { ...req.body });
+
+  const userToken = req.user;
+
+  if (!userToken?.uid) {
+    res.status(403).send('must be signed in');
+    return;
+  }
+
+  if (!policyId) {
+    res.status(400).send('policyId required');
+    return;
+  }
+
+  const db = getFirestore();
+
+  let policy: Policy;
+  try {
+    const policySnap = await policiesCollection(db).doc(policyId).get();
+
+    const policyData = policySnap.data();
+
+    if (!policySnap.exists || !policyData) {
+      res.status(404).send(`policy not found (ID: ${policyId})`);
+      return;
+    }
+
+    policy = policyData;
+  } catch (err: any) {
+    error('Error fetching policy', { err });
+    res.status(500).send(`error fetching policy (${policyId})`);
+    return;
+  }
+
+  const locations = policy.locations && Object.values(policy.locations);
+  if (!locations || !locations.length) {
+    res.status(400).send('missing locations in policy');
+    return;
+  }
+
+  const locationCoverages = getLocationCoveragesTableData(locations);
+  // const test = getLocationCoveragesTableDataTest();
+  const locationInterests = getLocationInterests(locations);
+  const premiumTable = getPremiumTable(policy);
+
+  const policyEffectiveDate = format(policy.effectiveDate.toDate(), 'MMM dd, yyyy');
+  const policyExpirationDate = format(policy.expirationDate.toDate(), 'MMM dd, yyyy');
+
+  const {
+    namedInsured,
+    agent,
+    agency,
+    issuingCarrier,
+    mailingAddress,
+    surplusLinesProducerOfRecord: slLicense,
+  } = policy;
+
+  const templateData: DecPageTemplateData = {
+    policyId,
+    mailingAddressName: mailingAddress.name || namedInsured.displayName, // TODO: add name to mailing address // mailingAddress.name,
+    mailingAddressLine1: mailingAddress?.addressLine1 || '',
+    mailingAddressLine2: mailingAddress?.addressLine2 || '',
+    mailingCity: mailingAddress?.city || '',
+    mailingState: mailingAddress?.state || '',
+    mailingPostal: mailingAddress?.postal || '',
+    insuredEmail: namedInsured.email,
+    insuredName: namedInsured.displayName,
+    policyEffectiveDate,
+    policyExpirationDate,
+    agencyName: agency.name,
+    agencyAddressLine1: agency?.address?.addressLine1,
+    agencyAddressLine2: agency?.address?.addressLine2,
+    agencyCity: agency?.address?.city,
+    agencyState: agency?.address?.state,
+    agencyPostal: agency?.address?.postal,
+    agentEmail: agent?.email,
+    agentName: agent?.name,
+    agentphone: formatPhoneNumber(policy?.agent?.phone || '') || '',
+    issuingCarrier: issuingCarrier,
+    surplusLinesLicenseNum: slLicense.licenseNum,
+    surplusLinesName: slLicense.name,
+    surplusLinesLicenseState: slLicense.licenseState,
+    surplusLinesLicensePhone: formatPhoneNumber(slLicense.phone || '') || '',
+    locationCoverages, // : [...locationCoverages, ...test],
+    locationInterests,
+    premiumTable,
+    // ...mortgagee,
+    docsAttached: [
+      {
+        docTitle: 'Example Doc Attachment One',
+      },
+      {
+        docTitle: 'Example Doc Attachment Two',
+      },
+      {
+        docTitle: 'Example Doc Attachment Three',
+      },
+      {
+        docTitle: 'Example Doc Attachment Four',
+      },
+    ],
+  };
+
+  try {
+    const result = await generatePolicyDecPDF(templateData);
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=export.pdf`);
+
+    // Streaming resulting pdf back to the user
+    result.pipe(res);
+  } catch (err: any) {
+    error('Error generating PDF from react-pdf template', { err });
+    res.status(500).send('Error generating pdf');
+  }
+
+  return;
+});
+
 // app.use('/pdf-api', router);
 
 export default app;
@@ -278,7 +402,9 @@ function getFormattedAddress(addr: Nullable<Address>) {
   return formatted;
 }
 
-function getLocationCoveragesTableData(locations: PolicyLocation[]): LocationCoveragesItem[] {
+export function getLocationCoveragesTableData(
+  locations: PolicyLocation[]
+): LocationCoveragesItem[] {
   return locations.map((l) => {
     const tiv = calcSum(Object.values(l.limits));
     return {
@@ -308,7 +434,7 @@ function getLocationCoveragesTableData(locations: PolicyLocation[]): LocationCov
 // }
 
 // TODO: refactor - use for loops instead of map and remove flatten
-function getLocationInterests(locations: PolicyLocation[]): LocationInterestsItem[] {
+export function getLocationInterests(locations: PolicyLocation[]): LocationInterestsItem[] {
   let interests = locations.map((l) => {
     const addr = getFormattedAddress(l.address);
     const additionalInsureds: LocationInterestsItem[] = l.additionalInsureds?.map((ai) => ({
@@ -331,13 +457,7 @@ function getLocationInterests(locations: PolicyLocation[]): LocationInterestsIte
   return flatten(interests);
 }
 
-// itemTitle: string;
-// subjectAmount: string;
-// rate: string;
-// value: string;
-
-// TOOD: finish function -- need to add taxes and fees to policy document
-function getPremiumTable(policy: Policy): PremiumTableItem[] {
+export function getPremiumTable(policy: Policy): PremiumTableItem[] {
   let result = [
     {
       itemTitle: 'Term Premium',

@@ -53,6 +53,8 @@ export const Policy = () => {
   // const { requestChange } = usePolicyChangeRequest();
   const downloadPolicy = useGeneratePDF('generatePolicy');
 
+  const test = useGeneratePDF('generateDecPDF');
+
   const locations = useMemo<WithId<PolicyLocation>[]>(() => {
     let pLocs = Object.entries(data?.locations || {});
     if (!pLocs || !pLocs.length) return [];
@@ -86,6 +88,8 @@ export const Policy = () => {
     () => downloadPolicy(policyId),
     [downloadPolicy, policyId]
   );
+
+  const handleTest = useCallback(() => test(policyId), [test, policyId]);
 
   const handleChangeRequest = useCallback(() => {
     alert('TODO: implement change request');
@@ -306,6 +310,7 @@ export const Policy = () => {
           {' anytime.'}
         </Typography>
       </Box>
+      <Button onClick={handleTest}>Test Policy Dec</Button>
     </Box>
   );
 };
