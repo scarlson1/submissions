@@ -26,6 +26,8 @@ import {
 } from '../common';
 import { validateFirebaseIdToken } from './middlewares';
 import { generatePolicyDecPDF } from '../services/pdf';
+import { formatLocationData } from '../services/pdf/utils';
+import { AdditionalInterestsItem, PolicyDecPDFLocations } from '../services/pdf/Table';
 
 // example using react-pdf directly: https://exportsdk.com/how-to-generate-pdfs-with-nodejs
 // https://github.com/firebase/functions-samples/blob/main/Node-1st-gen/authorized-https-endpoint/functions/index.js
@@ -40,13 +42,13 @@ import { generatePolicyDecPDF } from '../services/pdf';
 //   coverageAmount: string;
 // }
 
-interface LocationInterestsItem {
-  locationAddress: string;
-  interestType: string;
-  name: string;
-  interestAddress: string;
-  loanNumber: string;
-}
+// interface LocationInterestsItem {
+//   locationAddress: string;
+//   interestType: string;
+//   name: string;
+//   interestAddress: string;
+//   loanNumber: string;
+// }
 
 interface LocationCoveragesItem {
   address: string;
@@ -98,7 +100,7 @@ export interface DecPageTemplateData extends Record<string, unknown> {
   mortgageePostal?: string;
   mortgageeLoanNum?: string;
   locationCoverages: LocationCoveragesItem[];
-  locationInterests: LocationInterestsItem[];
+  locationInterests: AdditionalInterestsItem[]; // LocationInterestsItem[];
   premiumTable: PremiumTableItem[];
   docsAttached: { docTitle: string }[];
 }
@@ -251,6 +253,46 @@ app.post('/generatePolicy', async (req: RequestUserAuth, res: Response) => {
   return;
 });
 
+export interface DecPageTemplateData2 extends Record<string, unknown> {
+  policyId: string;
+  insuredEmail: string;
+  insuredName: string;
+  mailingAddressName: string;
+  mailingAddressLine1: string;
+  mailingAddressLine2: string;
+  mailingCity: string;
+  mailingPostal: string;
+  mailingState: string;
+  policyEffectiveDate: string;
+  policyExpirationDate: string;
+  issuingCarrier: string;
+  agencyName: string;
+  agencyAddressLine1: string;
+  agencyAddressLine2: string;
+  agencyCity: string;
+  agencyState: string;
+  agencyPostal: string;
+  agentName: string;
+  agentEmail: string;
+  agentphone: string;
+  surplusLinesLicenseNum: string;
+  surplusLinesLicensePhone: string;
+  surplusLinesLicenseState: string;
+  surplusLinesName: string;
+  mortgagee?: string;
+  mortgageeAddressLine1?: string;
+  mortgageeAddressLine2?: string;
+  mortgageeCity?: string;
+  mortgageeState?: string;
+  mortgageePostal?: string;
+  mortgageeLoanNum?: string;
+  // locationCoverages: LocationCoveragesItem[];
+  locationData: PolicyDecPDFLocations[];
+  locationInterests: AdditionalInterestsItem[];
+  premiumTable: PremiumTableItem[];
+  docsAttached: { docTitle: string }[];
+}
+
 // using react-pdf
 app.post('/generateDecPDF', async (req: RequestUserAuth, res: Response) => {
   const { policyId } = req.body;
@@ -294,7 +336,8 @@ app.post('/generateDecPDF', async (req: RequestUserAuth, res: Response) => {
     return;
   }
 
-  const locationCoverages = getLocationCoveragesTableData(locations);
+  const locationData = formatLocationData(policy.locations);
+  // const locationCoverages = getLocationCoveragesTableData(locations);
   // const test = getLocationCoveragesTableDataTest();
   const locationInterests = getLocationInterests(locations);
   const premiumTable = getPremiumTable(policy);
@@ -311,7 +354,7 @@ app.post('/generateDecPDF', async (req: RequestUserAuth, res: Response) => {
     surplusLinesProducerOfRecord: slLicense,
   } = policy;
 
-  const templateData: DecPageTemplateData = {
+  const templateData: DecPageTemplateData2 = {
     policyId,
     mailingAddressName: mailingAddress.name || namedInsured.displayName, // TODO: add name to mailing address // mailingAddress.name,
     mailingAddressLine1: mailingAddress?.addressLine1 || '',
@@ -337,7 +380,8 @@ app.post('/generateDecPDF', async (req: RequestUserAuth, res: Response) => {
     surplusLinesName: slLicense.name,
     surplusLinesLicenseState: slLicense.licenseState,
     surplusLinesLicensePhone: formatPhoneNumber(slLicense.phone || '') || '',
-    locationCoverages, // : [...locationCoverages, ...test],
+    // locationCoverages, // : [...locationCoverages, ...test],
+    locationData,
     locationInterests,
     premiumTable,
     // ...mortgagee,
@@ -392,7 +436,7 @@ export default app;
 //   }
 // }
 
-function getFormattedAddress(addr: Nullable<Address>) {
+export function getFormattedAddress(addr: Nullable<Address>) {
   let formatted = `${addr?.addressLine1 || ''}`;
   if (addr?.addressLine2) formatted += `, ${addr.addressLine2}`;
   if (addr?.city) formatted += `, ${addr.city}`;
@@ -434,11 +478,12 @@ export function getLocationCoveragesTableData(
 // }
 
 // TODO: refactor - use for loops instead of map and remove flatten
-export function getLocationInterests(locations: PolicyLocation[]): LocationInterestsItem[] {
+export function getLocationInterests(locations: PolicyLocation[]): AdditionalInterestsItem[] {
   let interests = locations.map((l) => {
     const addr = getFormattedAddress(l.address);
-    const additionalInsureds: LocationInterestsItem[] = l.additionalInsureds?.map((ai) => ({
+    const additionalInsureds: AdditionalInterestsItem[] = l.additionalInsureds?.map((ai) => ({
       locationAddress: addr,
+      locationId: l.locationId,
       interestType: 'additional insured',
       name: ai.name,
       interestAddress: ai.address?.addressLine1 ? getFormattedAddress(ai.address) : '',
@@ -446,6 +491,7 @@ export function getLocationInterests(locations: PolicyLocation[]): LocationInter
     }));
     const mortgagee = l.mortgageeInterest?.map((mi) => ({
       locationAddress: addr,
+      locationId: l.locationId,
       interestType: 'mortgagee',
       name: mi.name,
       interestAddress: mi.address?.addressLine1 ? getFormattedAddress(mi.address) : '',

@@ -40,7 +40,7 @@ export const useGeneratePDF = (
         let msg = 'error downloading policy';
         if (err.message) msg += ` (${err.message})`;
 
-        toast.error('an error occurred', { duration: 1500 });
+        toast.error('an error occurred', { duration: 2000 });
         if (onError) onError(msg, err);
       }
     },

@@ -1,6 +1,13 @@
 // import React from 'react';
 import ReactPDF, { Page, Text, View, Document, StyleSheet, Image, Font } from '@react-pdf/renderer';
-import { LocationsTable } from './Table';
+import {
+  AdditionalInterestsItem,
+  AdditionalInterestsTable,
+  LocationsTable,
+  PolicyDecPDFLocations,
+  PremiumTable,
+  PremiumTableItem,
+} from './Table';
 
 export const IDEMAND_LOGO_URL = 'https://scarlson1.github.io/iDemand_SPI_720x240.png';
 
@@ -315,29 +322,32 @@ const LOCATIONS_DATA = [
   },
 ];
 
-interface LocationInterestsItem {
-  locationAddress: string;
-  interestType: string;
-  name: string;
-  interestAddress: string;
-  loanNumber: string;
-}
-
-interface LocationCoveragesItem {
-  address: string;
-  limitA: string;
-  limitB: string;
-  limitC: string;
-  limitD: string;
-  TIV: string;
-}
-
-interface PremiumTableItem {
-  itemTitle: string;
-  subjectAmount: string;
-  rate: string;
-  value: string;
-}
+const ADDL_INSUREDS_DATA = [
+  {
+    locationAddress: '123 Main St. Nashville, TN 37203',
+    locationId: '5-fcdeaa4-bfd8-4140-afb9-2409ea1c23de',
+    interestType: 'additional insured',
+    name: 'Jane Doe',
+    interestAddress: '',
+    loanNumber: '',
+  },
+  {
+    locationAddress: '123 Main St. Nashville, TN 37203',
+    locationId: '5-fcdeaa4-bfd8-4140-afb9-2409ea1c23de',
+    interestType: 'additional insured',
+    name: 'Jane Doe',
+    interestAddress: '',
+    loanNumber: '',
+  },
+  {
+    locationAddress: '123 Main St. Nashville, TN 37203',
+    locationId: '5-fcdeaa4-bfd8-4140-afb9-2409ea1c23de',
+    interestType: 'Mortgagee',
+    name: 'Better Mortgage Co.',
+    interestAddress: '2903 State St. New York, NY 10010',
+    loanNumber: '123TESTLOAN',
+  },
+];
 
 interface DecPageTemplateData extends Record<string, unknown> {
   policyId: string;
@@ -373,8 +383,9 @@ interface DecPageTemplateData extends Record<string, unknown> {
   mortgageeState?: string;
   mortgageePostal?: string;
   mortgageeLoanNum?: string;
-  locationCoverages: LocationCoveragesItem[];
-  locationInterests: LocationInterestsItem[];
+  // locationCoverages: LocationCoveragesItem[];
+  locationData: PolicyDecPDFLocations[];
+  locationInterests: AdditionalInterestsItem[];
   premiumTable: PremiumTableItem[];
   docsAttached: { docTitle: string }[];
 }
@@ -383,12 +394,67 @@ interface PDFProps {
   data: DecPageTemplateData;
 }
 
-// TODO: register fonts
-// Font.register({ family: 'Roboto', src: source });
 Font.register({
   family: 'Roboto',
-  src: 'https://fonts.googleapis.com/css2?family=Roboto&display=swap',
+  fonts: [
+    {
+      src: 'https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Me5Q.ttf',
+      fontWeight: 400,
+      fontStyle: 'normal',
+    },
+    {
+      src: 'https://fonts.gstatic.com/s/roboto/v30/KFOlCnqEu92Fr1MmSU5vAw.ttf',
+      fontWeight: 300,
+      fontStyle: 'light',
+    },
+    {
+      src: 'https://fonts.gstatic.com/s/roboto/v30/KFOlCnqEu92Fr1MmEU9vAw.ttf',
+      fontWeight: 500,
+      fontStyle: 'medium',
+    },
+    {
+      src: 'https://fonts.gstatic.com/s/roboto/v30/KFOlCnqEu92Fr1MmWUlvAw.ttf',
+      fontWeight: 600,
+      fontStyle: 'semi-bold',
+    },
+  ],
 });
+Font.register({
+  family: 'Source Sans Pro',
+  fonts: [
+    {
+      src: 'https://fonts.gstatic.com/s/sourcecodepro/v22/HI_diYsKILxRpg3hIP6sJ7fM7PqPMcMnZFqUwX28DMyQhM4.ttf',
+      fontWeight: 400,
+      fontStyle: 'normal',
+    },
+    {
+      src: 'https://fonts.gstatic.com/s/sourcecodepro/v22/HI_diYsKILxRpg3hIP6sJ7fM7PqPMcMnZFqUwX28DJKQhM4.ttf',
+      fontWeight: 300,
+      fontStyle: 'light',
+    },
+    {
+      src: 'https://fonts.gstatic.com/s/sourcecodepro/v22/HI_diYsKILxRpg3hIP6sJ7fM7PqPMcMnZFqUwX28DP6QhM4.ttf',
+      fontWeight: 500,
+      fontStyle: 'medium',
+    },
+    {
+      src: 'https://fonts.gstatic.com/s/sourcecodepro/v22/HI_diYsKILxRpg3hIP6sJ7fM7PqPMcMnZFqUwX28DBKXhM4.ttf',
+      fontWeight: 600,
+      fontStyle: 'semi-bold',
+    },
+  ],
+});
+Font.register({
+  family: 'Stalemate',
+  fonts: [
+    {
+      src: 'https://fonts.gstatic.com/s/stalemate/v20/taiIGmZ_EJq97-UfkZRpug.ttf',
+      fontWeight: 400,
+    },
+  ],
+});
+
+// curl 'https://fonts.googleapis.com/css2?family=Roboto&display=swap' --> use url in response
 
 export const styles = StyleSheet.create({
   page: {
@@ -426,6 +492,11 @@ export const styles = StyleSheet.create({
     color: '#131925',
     marginBottom: 8,
   },
+  heading2: {
+    fontSize: 16,
+    fontWeight: 500,
+    paddingBottom: 10,
+  },
   statement: {
     fontSize: 20,
     color: '#131925',
@@ -439,14 +510,23 @@ export const styles = StyleSheet.create({
     margin: '24px 0 24px 0',
   },
   paragraph: {
+    fontFamily: 'Roboto',
     fontSize: 12,
-    color: '#212935',
+    // color: '#212935',
     lineHeight: 1.67,
   },
+  body2: {
+    fontFamily: 'Roboto',
+    fontSize: 9,
+    lineHeight: 1.5,
+    color: '#3E5060',
+  },
   textPrimary: {
+    // fontFamily: 'Roboto',
     color: '#1A2027',
   },
   textSecondary: {
+    // fontFamily: 'Roboto',
     color: '#3E5060',
   },
   columnParent: {
@@ -462,23 +542,55 @@ export const styles = StyleSheet.create({
   },
   overline: {
     color: '#3E5060',
-    fontFamily: 'Courier', // 'Helvetica' // 'Source Sans Pro',
+    fontFamily: 'Source Sans Pro', //  'Courier',
     fontSize: '9px',
     textTransform: 'uppercase',
     lineHeight: 1.6,
     paddingBottom: 4,
   },
   blockPrimaryText: {
-    fontSize: '11px',
+    fontFamily: 'Roboto',
+    fontSize: '12px',
     paddingBottom: 6,
+    whiteSpace: 'normal',
   },
   blockSecondaryText: {
-    fontSize: '8px',
+    fontFamily: 'Roboto',
+    fontSize: '9px',
     lineHeight: 1.5,
+  },
+  textCenter: {
+    textAlign: 'center',
+  },
+  pageNumbers: {
+    position: 'absolute',
+    bottom: 20,
+    left: 0,
+    right: 0,
+    textAlign: 'center',
+    fontSize: 10,
+    fontFamily: 'Source Sans Pro',
+  },
+  signature: {
+    fontFamily: 'Stalemate',
+    fontSize: 32,
+    lineHeight: 1,
+  },
+  signatureBox: {
+    padding: 2,
+    marginBottom: 6,
+    borderColor: '#1A2027',
+    // borderColor: '#cc0000',
+    borderStyle: 'solid',
+    borderBottomWidth: 1,
+    width: 180,
   },
 });
 
 const DecPagePDF = ({ data }: PDFProps) => {
+  const shouldBreakInterests = data.locationData.length > 6;
+  const shouldBreakPremium = data.locationInterests?.length > 6;
+
   return (
     <Document
       creator='iDemand Insurace Agency, Inc.'
@@ -642,6 +754,11 @@ const DecPagePDF = ({ data }: PDFProps) => {
             </View>
           </View>
         </View>
+        <Text
+          style={[styles.pageNumbers, styles.textSecondary]}
+          render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`}
+          fixed
+        />
       </Page>
       <Page
         size='A4'
@@ -650,7 +767,46 @@ const DecPagePDF = ({ data }: PDFProps) => {
         style={{ ...styles.page, backgroundColor: '#ffffff' }}
       >
         {/* <LocationsSection locations={TEST_LOCATIONS} /> */}
-        <LocationsTable data={LOCATIONS_DATA} />
+        <View style={{ paddingBottom: 20 }}>
+          <Text style={[styles.heading2, styles.textCenter]}>Insured Locations</Text>
+          <LocationsTable data={[...data.locationData, ...LOCATIONS_DATA]} />
+        </View>
+        {/* {data.locationInterests?.length > 0 ? ( */}
+        <View style={{ paddingTop: 10, paddingBottom: 20 }} break={shouldBreakInterests}>
+          <Text style={[styles.heading2, styles.textCenter]}>Additional Interests</Text>
+          <AdditionalInterestsTable data={[...data.locationInterests, ...ADDL_INSUREDS_DATA]} />
+        </View>
+        {/* ) : null} */}
+        <View
+          style={{ paddingTop: 10, paddingBottom: 20 }}
+          break={shouldBreakInterests || shouldBreakPremium}
+        >
+          <Text style={[styles.heading2, styles.textCenter]}>Premium, Taxes & Fees</Text>
+          <PremiumTable data={data.premiumTable} />
+        </View>
+        <Text
+          style={[styles.pageNumbers, styles.textSecondary]}
+          render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`}
+          fixed
+        />
+      </Page>
+      <Page size='A4' orientation='portrait' wrap={true} style={styles.page}>
+        <View style={styles.section}>
+          <Text style={[styles.textPrimary, styles.paragraph]}>
+            This Policy Declaration updates and replaces any previously issued Policy Declarations.
+          </Text>
+        </View>
+        <View style={[styles.section]}>
+          <View style={[styles.signatureBox]}>
+            <Text style={[styles.textPrimary, styles.signature]}>Ronald Carlson</Text>
+          </View>
+          <View style={{ paddingHorizontal: 4 }}>
+            <Text style={[styles.textSecondary, styles.paragraph]}>Ronald Carlson</Text>
+            <Text style={[styles.textSecondary, styles.body2]}>CEO</Text>
+            <Text style={[styles.textSecondary, styles.body2]}>iDemand Insurance Agency, Inc.</Text>
+            <Text style={[styles.textSecondary, styles.body2]}>Program Administrator</Text>
+          </View>
+        </View>
       </Page>
     </Document>
   );

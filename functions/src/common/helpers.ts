@@ -330,6 +330,8 @@ export function getTermDays(effDate: Date, expDate: Date) {
   return differenceInCalendarDays(expDate, effDate);
 }
 
+// TODO: verify formula is correct
+// (locationExpDate-locationEffDate)/(PolExpDate-PolEffDate) = Prorate %
 /**
  * calc term premium and term days
  * @param {number} annualPremium annual premium for location
@@ -340,7 +342,12 @@ export function getTermDays(effDate: Date, expDate: Date) {
 export function calcTermPremium(annualPremium: number, effDate: Date, expDate: Date) {
   const termDays = getTermDays(effDate, expDate);
 
-  const termPremium = annualPremium / termDays;
+  const dailyAnnualPremium = annualPremium / 365;
+  const termPremium = dailyAnnualPremium * termDays;
 
   return { termDays, termPremium };
 }
+
+// export function newCalcTermPremium(annualPremium: number, policyEffDate, ) {
+
+// }

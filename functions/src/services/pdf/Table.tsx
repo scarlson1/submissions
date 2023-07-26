@@ -1,13 +1,8 @@
 // @ts-nocheck
 import * as React from 'react';
-import ReactPDF, { Font, Text, View, StyleSheet, Page } from '@react-pdf/renderer';
+import ReactPDF, { Text, View, StyleSheet, Page } from '@react-pdf/renderer';
 
 // https://stackoverflow.com/a/63299486/10887890
-
-Font.register({
-  family: 'Roboto',
-  src: 'https://fonts.googleapis.com/css2?family=Roboto&display=swap',
-});
 
 const styles = StyleSheet.create({
   page: { flexDirection: 'column', padding: 25 },
@@ -56,16 +51,21 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
   },
   header: {
-    backgroundColor: '#eee',
+    backgroundColor: '#F3F6F9', //'#eee',
+    borderTopRightRadius: 10,
+    borderTopLeftRadius: 10,
   },
   headerText: {
-    fontSize: 8,
+    fontFamily: 'Source Sans Pro',
+    fontSize: 9,
     lineHeight: 1.2,
     textTransform: 'uppercase',
-    fontWeight: 500,
-    color: '#1A2027', // '#1a245c',
+    // fontWeight: 500,
+    color: '#3E5060', // '#1A2027', // '#1a245c',
     // margin: 4,
     alignSelf: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 8,
   },
   tableText: {
     margin: 10,
@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
     overflowWrap: 'break-word',
     wordWrap: 'break-word',
     wordBreak: 'break-all',
-    hyphens: 'auto',
+    hyphens: 'none', //  'auto',
   },
 });
 
@@ -101,21 +101,17 @@ export const Table = ({ columns, data }: TableProps) => {
 
   return (
     <View style={styles.table}>
-      <View style={[styles.row, styles.header]}>
+      <View style={[styles.row, styles.header]} fixed>
         {columns.map((c) => {
           const cellStyle = { width };
 
-          // if (c.flex) cellStyle['flex'] = `${c.flex} 0 ${flexBasis}`; // auto
           if (c.flex) {
             cellStyle['flexBasis'] = `${flexBasis}`;
             cellStyle['flexGrow'] = c.flex;
             cellStyle['flexShrink'] = 0;
           }
           if (c.minWidth) cellStyle['minWidth'] = `${c.minWidth}px`;
-          // TODO: FIX ALIGN HEADER/CONTENT
-          if (c.alignHeader) {
-            cellStyle['textAlign'] = c.alignHeader;
-          }
+          if (c.alignHeader) cellStyle['textAlign'] = c.alignHeader;
 
           return (
             <Text style={[styles.cell, styles.headerText, cellStyle]} key={c.field}>
@@ -124,29 +120,30 @@ export const Table = ({ columns, data }: TableProps) => {
           );
         })}
       </View>
-      {data.map((r, i) => {
-        let rowKeyVal = Object.entries(r);
-        return (
-          <View style={[styles.row]} key={`table-row-${i}`}>
-            {rowKeyVal.map(([key, val]) => {
-              let cellDef = columns.find((col) => col.field === key);
-              const cellStyle = { width }; // flexBasis
+      {data.map((r, i) => (
+        <View style={[styles.row]} key={`table-row-${i}`}>
+          {columns.map((colDef) => {
+            const cellStyle = { width };
 
-              // if (cellDef.flex)
-              //   cellStyle['flex'] = `${cellDef.flex} 0 ${flexBasis}`;
-              if (cellDef.flex) {
-                cellStyle['flexBasis'] = `${flexBasis}`;
-                cellStyle['flexGrow'] = cellDef?.flex ?? 1;
-                cellStyle['flexShrink'] = 0;
-              }
-              if (cellDef.minWidth) cellStyle['minWidth'] = `${cellDef.minWidth ?? 100}px`;
-              if (cellDef.alignContent) cellStyle['textAlign'] = cellDef.alignContent;
+            const val = r[`${colDef.field}`] || '';
 
-              return <Text style={[styles.cell, cellStyle, styles.breakLongWords]}>{val}</Text>;
-            })}
-          </View>
-        );
-      })}
+            if (colDef?.flex) {
+              cellStyle['flexBasis'] = `${flexBasis}`;
+              cellStyle['flexGrow'] = colDef?.flex ?? 1;
+              cellStyle['flexShrink'] = 0;
+            }
+            if (colDef?.minWidth) cellStyle['minWidth'] = `${colDef.minWidth ?? 100}px`;
+            if (colDef?.alignContent) cellStyle['textAlign'] = colDef.alignContent;
+
+            // TODO: calculate break point
+            return (
+              <Text style={[styles.cell, cellStyle, styles.breakLongWords]} break={i % 12 === 0}>
+                {val}
+              </Text>
+            );
+          })}
+        </View>
+      ))}
     </View>
   );
 };
@@ -156,45 +153,63 @@ const locationColumns: ColumnDef[] = [
     field: 'address',
     headerName: 'Address',
     minWidth: 140,
+    alignHeader: 'left',
+    alignContent: 'left',
   },
   {
     field: 'locationId',
     headerName: 'Location ID',
     minWidth: 120,
+    alignHeader: 'left',
+    alignContent: 'left',
   },
   {
     field: 'annualPremium',
     headerName: 'Annual Premium',
+    alignHeader: 'center',
+    alignContent: 'right',
   },
   {
     field: 'termPremium',
     headerName: 'Term Premium',
+    alignHeader: 'center',
+    alignContent: 'right',
   },
   {
     field: 'deductible',
     headerName: 'Deductible',
+    alignHeader: 'center',
+    alignContent: 'right',
   },
   {
     field: 'limitA',
     headerName: 'Building Cov.',
+    alignHeader: 'center',
+    alignContent: 'right',
   },
   {
     field: 'limitB',
     headerName: 'Appt. Struct. Cov.',
+    alignHeader: 'center',
+    alignContent: 'right',
   },
   {
     field: 'limitC',
     headerName: 'Contents Cov.',
+    alignHeader: 'center',
+    alignContent: 'right',
   },
   {
     field: 'limitD',
     headerName: 'BI Cov.',
     alignHeader: 'right',
     alignContent: 'right',
+    alignHeader: 'center',
+    alignContent: 'right',
   },
 ];
 
-export interface LocationsData {
+export interface PolicyDecPDFLocations {
   address: string;
   locationId: string;
   limitA: string;
@@ -206,6 +221,92 @@ export interface LocationsData {
   termPremium: string;
 }
 
-export const LocationsTable = ({ data }: { data: LocationsData[] }) => {
+export const LocationsTable = ({ data }: { data: PolicyDecPDFLocations[] }) => {
   return <Table columns={locationColumns} data={data} />;
+};
+
+const additionalInterestColumns: ColumnDef[] = [
+  {
+    field: 'locationAddress',
+    headerName: 'Address',
+    minWidth: 140,
+  },
+  {
+    field: 'locationId',
+    headerName: 'Location ID',
+    minWidth: 120,
+  },
+  {
+    field: 'interestType',
+    headerName: 'Type',
+  },
+  {
+    field: 'name',
+    headerName: 'Name',
+  },
+  {
+    field: 'interestAddress',
+    headerName: 'Interest Address',
+  },
+  {
+    field: 'loanNumber',
+    headerName: 'Loan Number',
+  },
+];
+
+export interface AdditionalInterestsItem {
+  locationAddress: string;
+  locationId: string;
+  interestType: string;
+  name: string;
+  interestAddress: string;
+  loanNumber: string;
+}
+
+export const AdditionalInterestsTable = ({ data }: { data: AdditionalInterestsItem[] }) => {
+  return <Table columns={additionalInterestColumns} data={data} />;
+};
+
+const premiumTableColumns: ColumnDef[] = [
+  {
+    field: 'itemTitle',
+    headerName: 'Item',
+    minWidth: 120,
+    flex: 4,
+  },
+  {
+    field: 'subjectAmount',
+    headerName: 'Subject Amount',
+    minWidth: 120,
+    flex: 1,
+    alignHeader: 'center',
+    alignContent: 'right',
+  },
+  {
+    field: 'rate',
+    headerName: 'Rate',
+    minWidth: 120,
+    flex: 1,
+    alignHeader: 'center',
+    alignContent: 'right',
+  },
+  {
+    field: 'value',
+    headerName: 'Amount',
+    minWidth: 160,
+    flex: 3,
+    alignHeader: 'center',
+    alignContent: 'right',
+  },
+];
+
+export interface PremiumTableItem {
+  itemTitle: string;
+  subjectAmount: string;
+  rate: string;
+  value: string;
+}
+
+export const PremiumTable = ({ data }: { data: PremiumTableItem[] }) => {
+  return <Table columns={premiumTableColumns} data={data} />;
 };
