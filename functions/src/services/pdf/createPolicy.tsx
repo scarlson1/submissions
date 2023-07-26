@@ -585,6 +585,21 @@ export const styles = StyleSheet.create({
     borderBottomWidth: 1,
     width: 180,
   },
+  headerContainer: {
+    backgroundColor: '#F3F6F9', //'#eee',
+    borderTopRightRadius: 10,
+    borderTopLeftRadius: 10,
+    padding: 8,
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  header: {
+    fontSize: 12,
+    fontFamily: 'Source Sans Pro',
+    textAlign: 'center',
+    textTransform: 'uppercase',
+  },
 });
 
 const DecPagePDF = ({ data }: PDFProps) => {
@@ -791,6 +806,24 @@ const DecPagePDF = ({ data }: PDFProps) => {
         />
       </Page>
       <Page size='A4' orientation='portrait' wrap={true} style={styles.page}>
+        {data.docsAttached?.length && (
+          <View style={[styles.headerContainer]}>
+            <Text style={[styles.header, styles.textSecondary]}>Attached Documents</Text>
+            {data.docsAttached.map((d) => (
+              <View
+                style={{
+                  width: '100%',
+                  paddingHorizontal: 10,
+                  paddingVertical: 6,
+                  borderBottom: '1px solid #E7EBF0',
+                }}
+              >
+                <Text style={[styles.blockPrimaryText]}>{d.docTitle}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+
         <View style={styles.section}>
           <Text style={[styles.textPrimary, styles.paragraph]}>
             This Policy Declaration updates and replaces any previously issued Policy Declarations.
