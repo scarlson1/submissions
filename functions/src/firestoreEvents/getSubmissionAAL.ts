@@ -183,7 +183,7 @@ export default async (
         sqFootage: null,
         yearBuilt: null,
         FFH: null,
-        // priorLossCount: sub.priorLossCount || null, // TODO: fix confiction with priorLossCount in Submission doc
+        priorLossCount: sub.priorLossCount ?? null,
       },
       AAL: {
         inland: AALsRes.AAL.inland,

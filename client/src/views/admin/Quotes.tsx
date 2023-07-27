@@ -263,9 +263,9 @@ function getHeaderStatus(
     result[h] = formatted.includes(h);
   }
 
-  console.log('formatted: ', formatted);
-  console.log('result: ', result);
-  console.log('result.CBRSDesignation', result.CBRSDesignation);
+  // console.log('formatted: ', formatted);
+  // console.log('result: ', result);
+  // console.log('result.CBRSDesignation', result.CBRSDesignation);
 
   return result;
 }

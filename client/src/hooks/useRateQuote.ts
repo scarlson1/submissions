@@ -15,7 +15,7 @@ export interface RatingInputsWithAAL extends RatingInputs {
 }
 
 export function extractRatingInputsFromValues(values: QuoteValues): RatingInputs {
-  const { coordinates, limits, deductible, priorLossCount, address, ratingPropertyData } = values;
+  const { coordinates, limits, deductible, address, ratingPropertyData } = values;
 
   let subproducerCommission =
     typeof values.subproducerCommission === 'string'
@@ -35,7 +35,7 @@ export function extractRatingInputsFromValues(values: QuoteValues): RatingInputs
     deductible,
     numStories: numStories || 1,
     state: address?.state,
-    priorLossCount,
+    priorLossCount: ratingPropertyData?.priorLossCount || '',
     floodZone: ratingPropertyData?.floodZone, // || undefined,
     basement: ratingPropertyData?.basement?.toLowerCase(), // || undefined,
     commissionPct: subproducerCommission || 0.15, // TODO: use env var ??

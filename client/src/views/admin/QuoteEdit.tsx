@@ -39,7 +39,7 @@ const useEditQuote = (
         invariant(isValid(newValues.effectiveDate), 'Invalid effective date');
 
         let effDateStartOfDay = startOfDay(newValues.effectiveDate);
-        let expDateStartOfDay = addToDate({ years: 1 }, effDateStartOfDay);
+        // let expDateStartOfDay = addToDate({ years: 1 }, effDateStartOfDay);
 
         let numTaxes = newValues?.taxes?.map((t) => ({
           ...t,
@@ -75,7 +75,7 @@ const useEditQuote = (
           quotePublishedDate: Timestamp.now(),
           quoteExpirationDate: Timestamp.fromDate(addToDate({ days: 60 }, endOfToday())),
           effectiveDate: Timestamp.fromDate(effDateStartOfDay),
-          expirationDate: Timestamp.fromDate(expDateStartOfDay),
+          // expirationDate: Timestamp.fromDate(expDateStartOfDay),
           namedInsured: newValues?.namedInsured,
           agent: newValues?.agent,
           agency: {
@@ -95,9 +95,9 @@ const useEditQuote = (
             replacementCost: newValues.ratingPropertyData.replacementCost,
             sqFootage: extractNumber(`${newValues.ratingPropertyData.sqFootage}`),
             yearBuilt: extractNumber(`${newValues.ratingPropertyData.yearBuilt}`),
+            priorLossCount: newValues?.ratingPropertyData?.priorLossCount ?? null,
           },
           ratingDocId: newValues?.ratingDocId || '',
-          priorLossCount: newValues?.priorLossCount || null,
           notes:
             newValues.notes && newValues.notes.length > 0
               ? newValues.notes
@@ -174,7 +174,6 @@ export const QuoteEdit = () => {
       deductible: quoteData?.deductible ?? 1000,
       effectiveExceptionRequested: quoteData?.effectiveExceptionRequested || false,
       effectiveDate: quoteData?.effectiveDate?.toDate() || null,
-      expirationDate: quoteData?.expirationDate?.toDate() || null,
       fees:
         quoteData?.fees?.map((f) => ({
           ...f,
@@ -213,7 +212,7 @@ export const QuoteEdit = () => {
           postal: '',
         },
       },
-      priorLossCount: quoteData?.priorLossCount ?? '',
+
       ratingPropertyData: {
         CBRSDesignation: quoteData?.ratingPropertyData?.CBRSDesignation ?? '',
         basement: `${quoteData?.ratingPropertyData?.basement ?? ''}`.toLowerCase(),
@@ -224,6 +223,7 @@ export const QuoteEdit = () => {
         replacementCost: quoteData?.ratingPropertyData?.replacementCost ?? null,
         sqFootage: `${quoteData?.ratingPropertyData?.sqFootage ?? ''}`, // submissionData?.sqFootage ?? null,
         yearBuilt: `${quoteData?.ratingPropertyData?.yearBuilt ?? ''}`, // submissionData?.yearBuilt ?? null,
+        priorLossCount: quoteData?.ratingPropertyData?.priorLossCount ?? '',
       },
       ratingDocId: quoteData?.ratingDocId || '',
       AAL: {
@@ -284,7 +284,7 @@ function getRatingInputsFromQuote(data: Partial<Quote> | null) {
     basement: data?.ratingPropertyData?.basement?.toLowerCase(),
     commissionPct: data?.subproducerCommission || 0.15, // TODO: delete - must look up subproducer comm from agent ID or org ID from server, or producer from clinet if idemand admin
     // ratingDocId: data?.ratingDocId || '',
-    priorLossCount: data?.priorLossCount,
+    priorLossCount: data?.ratingPropertyData?.priorLossCount,
     // @ts-ignore
     inlandAAL: data?.AAL?.inland, // @ts-ignore
     surgeAAL: data?.AAL?.surge, // @ts-ignore

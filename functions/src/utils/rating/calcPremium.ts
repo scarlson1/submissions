@@ -100,5 +100,6 @@ export const getPremiumData = ({
     directWrittenPremium,
     subproducerCommissionPct: subproducerComPct,
     MGACommission,
+    MGACommissionPct: totalCommRate,
   };
 };

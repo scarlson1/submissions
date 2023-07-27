@@ -7,7 +7,7 @@ import { geohashForLocation } from 'geofire-common';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { v4 as uuid } from 'uuid';
+
 import invariant from 'tiny-invariant';
 import { isDate } from 'date-fns';
 
@@ -42,6 +42,7 @@ import {
   calcTermPremium,
   extractNumber,
   extractNumberNeg,
+  getNewLocationId,
   getTermDays,
   licensesCollection,
   maxA,
@@ -579,7 +580,7 @@ async function groupByPolicyId(data: ParsedPolicyRow[], firestore: Firestore) {
   const ts = Timestamp.now();
 
   for (const row of data) {
-    let locId = uuid();
+    let locId = getNewLocationId(); // uuid();
     const formattedLocation = formatPolicyLocation(row, locId, ts);
 
     const policyId = row.policyId as string;

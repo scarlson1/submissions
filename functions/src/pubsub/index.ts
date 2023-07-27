@@ -17,3 +17,17 @@ export const policycreatedlistener = onMessagePublished(
     await (await import('./policyCreatedListener.js')).default(event);
   }
 );
+
+export const policyrenewallistener = onMessagePublished(
+  { topic: PUB_SUB_TOPICS.POLICY_RENEWAL },
+  async (event) => {
+    await (await import('./policyRenewalListener.js')).default(event);
+  }
+);
+
+export const policypremendorsementlistener = onMessagePublished(
+  { topic: PUB_SUB_TOPICS.POLICY_PREM_ENDORSEMENT },
+  async (event) => {
+    await (await import('./policyPremEndorsementListener.js')).default(event);
+  }
+);

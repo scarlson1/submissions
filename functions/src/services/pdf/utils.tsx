@@ -1,6 +1,6 @@
 import { Policy, dollarFormat } from '../../common';
 import { getFormattedAddress } from '../../routes/generatePDF';
-import { PolicyDecPDFLocations } from './Table';
+import { PolicyDecPDFLocations } from './components';
 
 export function formatLocationData(locations: Policy['locations']) {
   let formatted: PolicyDecPDFLocations[] = [];

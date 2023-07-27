@@ -110,4 +110,9 @@ export enum TRANSACTION_TYPE {
 export enum PUB_SUB_TOPICS {
   PAYMENT_COMPLETE = 'payment.complete',
   POLICY_CREATED = 'policy.created',
+  POLICY_RENEWAL = 'policy.renewal',
+  POLICY_PREM_ENDORSEMENT = 'policy.prem_endorsement',
+  POLICY_NON_PREM_ENDORSEMENT = 'policy.non_prem_endorsement',
+  POLICY_REINSTATEMENT = 'policy.reinstatement',
+  POLICY_CANCELLATION = 'policy.cancellation',
 }

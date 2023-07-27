@@ -24,7 +24,7 @@ export const policyConverter: FirestoreDataConverter<IPolicy> = {
 
     return {
       ...policy,
-      // TODO: explicitly pull values off (class has methods, extra values, etc.)
+      // TODO: explicitly pull values off (class has methods, extra values, etc. or have it be a method of policy class )
       product: policy.product,
       status: policy.status,
       // limits: policy.limits,
@@ -41,8 +41,6 @@ export const policyConverter: FirestoreDataConverter<IPolicy> = {
       issuingCarrier: policy.issuingCarrier,
       price: policy.price,
       // cardFee: policy.cardFee, // TODO: calc in billing (could be add location, etc.)
-      // imageURLs: policy.imageURLs,
-      // imagePaths: policy.imagePaths,
       'metadata.updated': Timestamp.now(),
     };
   },

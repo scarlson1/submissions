@@ -81,7 +81,12 @@ export {
 } from './authEvents';
 export { authRequests, generatepdf, sendgrid, authrequeststest } from './routes';
 export { importpolicies, importquotes, getfips, rateportfolio } from './storageEvents';
-export { markpaidonpaymentcomplete, policycreatedlistener } from './pubsub';
+export {
+  markpaidonpaymentcomplete,
+  policycreatedlistener,
+  policyrenewallistener,
+  policypremendorsementlistener,
+} from './pubsub';
 export {
   checkachstatus,
   // checkquoteexpiration // TODO: test and finish function before deploy

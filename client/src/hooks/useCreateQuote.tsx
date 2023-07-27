@@ -125,7 +125,6 @@ function getFormattedQuote(values: QuoteValues, uid?: string | null): Quote {
     subproducerCommission,
     ratingPropertyData,
     ratingDocId,
-    priorLossCount,
     notes,
   } = values;
 
@@ -136,7 +135,7 @@ function getFormattedQuote(values: QuoteValues, uid?: string | null): Quote {
   invariant(isValid(effectiveDate), 'Invalid effective date');
 
   let effDateStartOfDay = startOfDay(effectiveDate);
-  let expDateStartOfDay = addToDate({ years: 1 }, effDateStartOfDay); // use days: 365 ??
+  // let expDateStartOfDay = addToDate({ years: 1 }, effDateStartOfDay)
 
   let numTaxes = taxes.map((t) => ({
     ...t,
@@ -167,7 +166,7 @@ function getFormattedQuote(values: QuoteValues, uid?: string | null): Quote {
     quotePublishedDate: Timestamp.now(),
     quoteExpirationDate: Timestamp.fromDate(addToDate({ days: 30 }, endOfToday())),
     effectiveDate: Timestamp.fromDate(effDateStartOfDay),
-    expirationDate: Timestamp.fromDate(expDateStartOfDay),
+    // expirationDate: Timestamp.fromDate(expDateStartOfDay),
     exclusions: [],
     // additionalInsureds: [],
     // mortgageeInterest: [],
@@ -203,9 +202,9 @@ function getFormattedQuote(values: QuoteValues, uid?: string | null): Quote {
       replacementCost: ratingPropertyData.replacementCost,
       sqFootage: extractNumber(`${ratingPropertyData.sqFootage}`),
       yearBuilt: extractNumber(`${ratingPropertyData.yearBuilt}`),
+      priorLossCount: ratingPropertyData?.priorLossCount ?? null,
     },
     ratingDocId: ratingDocId || '',
-    priorLossCount: priorLossCount || null,
     statusTransitions: {
       published: Timestamp.now(),
       accepted: null,

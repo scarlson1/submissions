@@ -189,7 +189,7 @@ export default async ({ data, auth }: CallableRequest<GetAnnualPremiumRequest>) 
         sqFootage: null,
         yearBuilt: null,
         FFH: null,
-        // priorLossCount, TODO: fix typing error
+        priorLossCount: priorLossCount ?? null,
       },
       AAL: AALsRes.AAL,
       premiumCalcData: result.premiumData,

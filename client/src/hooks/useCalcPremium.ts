@@ -9,7 +9,7 @@ import { truthyOrZero } from 'modules/utils';
 import { QuoteValues } from 'elements/forms';
 
 export function validateCommonInputs(values: QuoteValues) {
-  const { ratingPropertyData, deductible, subproducerCommission, address, limits } = values; // priorLossCount,
+  const { ratingPropertyData, deductible, subproducerCommission, address, limits } = values;
 
   invariant(address?.state, 'state required');
   invariant(
@@ -43,10 +43,9 @@ function getValidatedCalcInputs(values: QuoteValues) {
   let comValues = validateCommonInputs(values);
   const {
     AAL,
-    ratingPropertyData: { replacementCost, floodZone, basement },
+    ratingPropertyData: { replacementCost, floodZone, basement, priorLossCount },
     deductible,
     address,
-    priorLossCount,
     subproducerCommission,
     limits,
   } = comValues;

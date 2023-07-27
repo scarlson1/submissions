@@ -215,7 +215,6 @@ const getQuoteValidation = (activeStates: Record<string, boolean>) =>
     namedInsured: namedInsuredValidationNotRequired,
     agent: agentValidation,
     agency: agencyValidation,
-    priorLossCount: yup.string(), // .required(),
     // TODO: reusable rating data validation
     ratingPropertyData: yup.object().shape({
       CBRSDesignation: yup.string().required(`CBRS designation is required`),
@@ -238,6 +237,7 @@ const getQuoteValidation = (activeStates: Record<string, boolean>) =>
         .required(`year built is required`)
         .min(1900, 'Must be after 1900')
         .max(new Date().getFullYear(), `Year cannot exceed ${new Date().getFullYear()}`),
+      priorLossCount: yup.string(),
     }),
     notes: yup.array().of(
       yup.object().shape({
@@ -296,7 +296,7 @@ const DEFAULT_VALUES: QuoteValues = {
   deductible: 1000,
   effectiveExceptionRequested: false,
   effectiveDate: add(new Date(), { days: 15 }),
-  expirationDate: add(new Date(), { days: 15, years: 1 }),
+  // expirationDate: add(new Date(), { days: 15, years: 1 }),
   fees: [],
   taxes: [],
   annualPremium: null,
@@ -326,7 +326,6 @@ const DEFAULT_VALUES: QuoteValues = {
       postal: '',
     },
   },
-  priorLossCount: '',
   ratingPropertyData: {
     CBRSDesignation: '',
     basement: '',
@@ -337,6 +336,7 @@ const DEFAULT_VALUES: QuoteValues = {
     replacementCost: null,
     sqFootage: null,
     yearBuilt: null,
+    priorLossCount: '',
   },
   ratingDocId: '',
   AAL: {
@@ -355,7 +355,7 @@ export interface QuoteValues {
   deductible: number;
   effectiveExceptionRequested: boolean;
   effectiveDate: Date;
-  expirationDate: Date | null; // Date;
+  // expirationDate: Date | null; // Date;
   // quoteExpirationDate: Date; // always quoteDate + 30
   fees: FeeItem[];
   taxes: TaxItem[];
@@ -365,7 +365,6 @@ export interface QuoteValues {
   namedInsured: NamedInsuredDetails;
   agent: AgentDetails;
   agency: AgencyDetails;
-  priorLossCount: string;
   ratingPropertyData: Nullable<RatingPropertyData>;
   AAL: Nullable<ValueByRiskType>;
   ratingDocId: string;
@@ -789,23 +788,6 @@ export const QuoteForm = ({
                   name: 'address.addressLine1',
                 }}
               />
-              {/* <AddressStep
-                activeStates={activeStates}
-                gridProps={{ rowSpacing: 4, columnSpacing: 6 }}
-                names={{
-                  addressLine1: `address.addressLine1`,
-                  addressLine2: `address.addressLine2`,
-                  city: `address.city`,
-                  state: `address.state`,
-                  postal: `address.postal`,
-                  county: `address.countyName`,
-                  latitude: `coordinates.latitude`,
-                  longitude: `coordinates.longitude`,
-                }}
-                autocompleteProps={{
-                  name: 'address.addressLine1',
-                }}
-              /> */}
             </Grid>
             <Grid xs={12} sx={{ my: 6 }}>
               <Divider sx={{ my: 3 }} />
@@ -860,6 +842,7 @@ export const QuoteForm = ({
                 >
                   Dates
                 </Typography>
+
                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={6} sx={{ my: 3 }}>
                   <FormikDatePicker
                     name='effectiveDate'
@@ -870,26 +853,6 @@ export const QuoteForm = ({
                       shortcuts: { items: policyEffShortcuts },
                     }}
                   />
-                  <FormikDatePicker
-                    name='expirationDate'
-                    label='Policy Expiration Date'
-                    minDate={new Date()}
-                    maxDate={null}
-                    slotProps={{
-                      shortcuts: {
-                        items: [
-                          {
-                            label: `Eff. + 1 year`,
-                            getValue: () => {
-                              return addToDate({ years: 1 }, values.effectiveDate || endOfToday());
-                            },
-                          },
-                        ],
-                      },
-                    }}
-                  />
-                </Stack>
-                <Box sx={{ flexBasis: '100%' }}>
                   <FormikCheckbox
                     name='effectiveExceptionRequested'
                     label='Effective date exception to the 15-60 day window'
@@ -897,7 +860,7 @@ export const QuoteForm = ({
                       typography: { variant: 'body2' },
                     }}
                   />
-                </Box>
+                </Stack>
               </Box>
             </Grid>
             <Grid xs={12}>
@@ -919,9 +882,9 @@ export const QuoteForm = ({
               {/* TODO: use value of type number and convert ?? */}
               <FormikNativeSelect
                 fullWidth
-                id='priorLossCount'
+                id='ratingPropertyData.priorLossCount'
                 label='Prior Loss Count'
-                name='priorLossCount'
+                name='ratingPropertyData.priorLossCount'
                 selectOptions={PRIOR_LOSS_COUNT_OPTIONS}
               />
             </Grid>

@@ -1,7 +1,6 @@
 import { Request } from 'express';
 import { DecodedIdToken } from 'firebase-admin/auth';
 import { GeoPoint, Timestamp } from 'firebase-admin/firestore';
-import { v4 as uuid } from 'uuid';
 import { deepmerge } from 'deepmerge-ts';
 import { Geohash } from 'geofire-common';
 
@@ -15,7 +14,7 @@ import {
   FIN_TRANSACTION_STATUS,
 } from './enums.js';
 
-import { filterUniqueArr, removeFromArr } from './helpers.js';
+import { filterUniqueArr, getNewLocationId, removeFromArr } from './helpers.js';
 import { round } from 'lodash';
 import { cardFeePct, iDemandOrgId } from './environmentVars.js';
 import { SecondaryFactorMults } from '../utils/rating/factors.js';
@@ -365,7 +364,7 @@ export interface RatingPropertyData {
   sqFootage: number;
   yearBuilt: number;
   FFH?: number;
-  // priorLossCount?: string | number | null;
+  priorLossCount?: string | null;
 }
 
 // TODO: use discriminating union type: 'rating' | 'premium-recalc' ??
@@ -537,7 +536,6 @@ export interface Quote {
   effectiveDate?: Timestamp;
   effectiveExceptionRequested?: boolean;
   effectiveExceptionReason?: string | null;
-  // expirationDate?: Timestamp;
   quotePublishedDate: Timestamp;
   quoteExpirationDate: Timestamp;
   exclusions?: string[];
@@ -558,7 +556,6 @@ export interface Quote {
   imagePaths?: Record<locationImageTypes, string> | null;
   ratingPropertyData: RatingPropertyData;
   ratingDocId: string;
-  priorLossCount?: string | null;
   geoHash?: Geohash | null;
   notes?: Note[];
   externalId?: string | null;
@@ -577,32 +574,32 @@ export interface SLProdOfRecordDetails {
   phone: string;
 }
 
-export interface PolicyOld {
-  status: POLICY_STATUS;
-  limits: Limits;
-  deductible: number;
-  address: Address;
-  coordinates: GeoPoint | null; // TODO: get rid of null in Quote
-  geoHash?: Geohash | null;
-  namedInsured: NamedInsuredDetails;
-  additionalInsureds?: AdditionalInsured[];
-  mortgageeInterest?: Mortgagee[];
-  effectiveDate: Timestamp;
-  expirationDate: Timestamp;
-  userId: string | null;
-  agent: AgentDetails;
-  agency: {
-    orgId: string | null; // TODO: remove null ??
-    name: string | null;
-  };
-  documents: { displayName: string; downloadUrl: string; storagePath: string }[];
-  imageURLs?: Record<locationImageTypes, string> | null;
-  imagePaths?: Record<locationImageTypes, string> | null;
-  transactions: string[]; // TODO: figure out how to associate policies and transactions
-  price: number;
-  cardFee: number;
-  metadata: BaseMetadata;
-}
+// export interface PolicyOld {
+//   status: POLICY_STATUS;
+//   limits: Limits;
+//   deductible: number;
+//   address: Address;
+//   coordinates: GeoPoint | null; // TODO: get rid of null in Quote
+//   geoHash?: Geohash | null;
+//   namedInsured: NamedInsuredDetails;
+//   additionalInsureds?: AdditionalInsured[];
+//   mortgageeInterest?: Mortgagee[];
+//   effectiveDate: Timestamp;
+//   expirationDate: Timestamp;
+//   userId: string | null;
+//   agent: AgentDetails;
+//   agency: {
+//     orgId: string | null; // TODO: remove null ??
+//     name: string | null;
+//   };
+//   documents: { displayName: string; downloadUrl: string; storagePath: string }[];
+//   imageURLs?: Record<locationImageTypes, string> | null;
+//   imagePaths?: Record<locationImageTypes, string> | null;
+//   transactions: string[]; // TODO: figure out how to associate policies and transactions
+//   price: number;
+//   cardFee: number;
+//   metadata: BaseMetadata;
+// }
 
 export interface PolicyLocation {
   address: Address;
@@ -766,7 +763,7 @@ export class PolicyClass implements IPolicyClass {
 
   async addLocation(locationData: PolicyLocation, id?: string) {
     // TODO: validation
-    const locationId = id || uuid();
+    const locationId = id || getNewLocationId();
     try {
       this.locations[locationId] = { ...locationData, locationId };
       let newTotal = await this.sumLocationPremium();
@@ -927,11 +924,12 @@ export interface PremiumCalcData {
   minPremiumAdj: number;
   directWrittenPremium: number;
   MGACommission: number;
+  MGACommissionPct: number;
 }
 
 export interface TrxRatingData extends RatingPropertyData {
-  units: number;
-  tier1: boolean;
+  units: number | null;
+  tier1: boolean | null;
   construction: string;
   priorLossCount: string | null;
 }
@@ -941,7 +939,8 @@ export type TransactionType =
   | 'renewal'
   | 'prem_endorsement'
   | 'non_prem_endorsement'
-  | 'cancellation';
+  | 'cancellation'
+  | 'reinstatement';
 
 export type LineOfBusiness = 'commercial' | 'residential';
 
@@ -964,7 +963,6 @@ export interface Tax extends BaseDoc {
 }
 
 // one transaction per location
-
 // TODO: create transaction class ?? like mongoose constructor ??
 // TODO: use discriminating union types ??
 export interface Transaction extends BaseDoc {
@@ -983,9 +981,6 @@ export interface Transaction extends BaseDoc {
   locationId: string;
   externalId: string | null;
   insuredLocation: PolicyLocation;
-  // insuredAddress: Address;
-  // insuredCoords: GeoPoint;
-  // locationHash: Geohash;
   policyEffDate: Timestamp;
   policyExpDate: Timestamp;
   trxEffDate: Timestamp; //
@@ -1003,7 +998,8 @@ export interface Transaction extends BaseDoc {
   termPremium: number; // annual prem * termProratedPct (rounded up to nearest dollar)
   // MGACommRate: number;
   MGACommission: number; // idemand & subproducer
-  netDWP: number; // policy term premium - mga commission
+  MGACommissionPct: number;
+  netDWP: number; // term premium - mga commission
   netErrorAdj?: number;
   dailyPremium: number; // term premium / trxPolicyDays rounded to 2
   // submission?: string;

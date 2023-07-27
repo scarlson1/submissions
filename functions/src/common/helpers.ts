@@ -1,10 +1,11 @@
 import { inspect } from 'util';
 import fs from 'fs';
 import { add, differenceInCalendarDays, Duration } from 'date-fns';
-import { isEqual, remove } from 'lodash';
+import { ceil, isEqual, remove } from 'lodash';
 import numeral from 'numeral';
 import { error, info } from 'firebase-functions/logger';
 import { DocumentReference } from 'firebase-admin/firestore';
+import { v4 as uuid } from 'uuid';
 
 import { FeeItem, TaxItem } from './types';
 import { cardFeePct } from './environmentVars';
@@ -330,8 +331,6 @@ export function getTermDays(effDate: Date, expDate: Date) {
   return differenceInCalendarDays(expDate, effDate);
 }
 
-// TODO: verify formula is correct
-// (locationExpDate-locationEffDate)/(PolExpDate-PolEffDate) = Prorate %
 /**
  * calc term premium and term days
  * @param {number} annualPremium annual premium for location
@@ -343,11 +342,14 @@ export function calcTermPremium(annualPremium: number, effDate: Date, expDate: D
   const termDays = getTermDays(effDate, expDate);
 
   const dailyAnnualPremium = annualPremium / 365;
-  const termPremium = dailyAnnualPremium * termDays;
+  const termPremium = ceil(dailyAnnualPremium * termDays);
 
   return { termDays, termPremium };
 }
 
-// export function newCalcTermPremium(annualPremium: number, policyEffDate, ) {
-
-// }
+/** generates a unique ID using uuid, removes hyphens
+ * @returns {string} new unique ID
+ */
+export function getNewLocationId() {
+  return uuid().replace(/-/g, '');
+}

@@ -27,7 +27,7 @@ import {
 import { validateFirebaseIdToken } from './middlewares';
 import { generatePolicyDecPDF } from '../services/pdf';
 import { formatLocationData } from '../services/pdf/utils';
-import { AdditionalInterestsItem, PolicyDecPDFLocations } from '../services/pdf/Table';
+import { AdditionalInterestsItem, PolicyDecPDFLocations } from '../services/pdf/components';
 
 // example using react-pdf directly: https://exportsdk.com/how-to-generate-pdfs-with-nodejs
 // https://github.com/firebase/functions-samples/blob/main/Node-1st-gen/authorized-https-endpoint/functions/index.js
@@ -386,18 +386,18 @@ app.post('/generateDecPDF', async (req: RequestUserAuth, res: Response) => {
     premiumTable,
     // ...mortgagee,
     docsAttached: [
-      {
-        docTitle: 'Example Doc Attachment One',
-      },
-      {
-        docTitle: 'Example Doc Attachment Two',
-      },
-      {
-        docTitle: 'Example Doc Attachment Three',
-      },
-      {
-        docTitle: 'Example Doc Attachment Four',
-      },
+      // {
+      //   docTitle: 'Example Doc Attachment One',
+      // },
+      // {
+      //   docTitle: 'Example Doc Attachment Two',
+      // },
+      // {
+      //   docTitle: 'Example Doc Attachment Three',
+      // },
+      // {
+      //   docTitle: 'Example Doc Attachment Four',
+      // },
     ],
   };
 

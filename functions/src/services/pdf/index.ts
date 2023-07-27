@@ -1,1 +1,1 @@
-export { generatePolicyDecPDF } from './createPolicy';
+export { generatePolicyDecPDF } from './generatePolicyDecPDF';

@@ -98,7 +98,7 @@ export const QuoteNewFromSub = () => {
       deductible: submissionData?.deductible ?? 1000,
       effectiveExceptionRequested: false,
       effectiveDate: add(new Date(), { days: 15 }),
-      expirationDate: add(new Date(), { days: 15, years: 1 }),
+      // expirationDate: add(new Date(), { days: 15, years: 1 }),
       fees: [],
       taxes: [],
       annualPremium: submissionData?.annualPremium ?? null,
@@ -121,7 +121,6 @@ export const QuoteNewFromSub = () => {
         name: submissionData?.agency?.name || '',
         address: submissionData?.agency?.address || '',
       },
-      priorLossCount: submissionData?.priorLossCount || '',
       ratingPropertyData: {
         CBRSDesignation: submissionData?.ratingPropertyData?.CBRSDesignation ?? '',
         basement: `${submissionData?.ratingPropertyData?.basement ?? ''}`.toLowerCase(), // @ts-ignore
@@ -132,6 +131,7 @@ export const QuoteNewFromSub = () => {
         replacementCost: submissionData?.ratingPropertyData?.replacementCost ?? null, // @ts-ignore
         sqFootage: `${submissionData?.ratingPropertyData?.sqFootage ?? ''}`, // @ts-ignore submissionData?.sqFootage ?? null,
         yearBuilt: `${submissionData?.ratingPropertyData?.yearBuilt ?? ''}`, // submissionData?.yearBuilt ?? null,
+        priorLossCount: submissionData?.ratingPropertyData?.priorLossCount || '',
       },
       ratingDocId: submissionData.ratingDocId || '',
       AAL: {

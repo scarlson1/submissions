@@ -295,6 +295,7 @@ export interface RatingPropertyData {
   sqFootage: number;
   yearBuilt: number;
   FFH?: number;
+  priorLossCount?: string | null; // | number
 }
 
 interface RatingCalcData {
@@ -330,7 +331,6 @@ export interface Quote {
   effectiveDate?: Timestamp;
   effectiveExceptionRequested?: boolean;
   effectiveExceptionReason?: string | null;
-  expirationDate?: Timestamp; // remove ??
   quotePublishedDate: Timestamp;
   quoteExpirationDate: Timestamp;
   // maxEffectiveDate = quoteDate + 60 days
@@ -355,7 +355,7 @@ export interface Quote {
   imageURLs?: Record<locationImageTypes, string> | null;
   imagePaths?: Record<locationImageTypes, string> | null;
   ratingPropertyData: Nullable<RatingPropertyData>;
-  priorLossCount?: string | null;
+  // priorLossCount?: string | null; // moved to ratingPropertyData
   ratingDocId: string;
   geoHash?: Geohash | null;
   notes?: Note[]; // { [key: string]: string }[];
@@ -685,7 +685,7 @@ export interface TrxRatingData extends Nullable<RatingPropertyData> {
   units: number;
   tier1: boolean;
   construction: string;
-  priorLossCount: string | null; // number
+  // priorLossCount: string | null; // number
 }
 
 export interface Transaction extends BaseDoc {

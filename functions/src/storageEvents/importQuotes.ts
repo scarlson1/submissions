@@ -286,6 +286,7 @@ function transformQuoteRow(row: CSVQuoteRow): DeepNullable<Quote> {
     sqFootage: row.sqFootage ? extractNumber(row.sqFootage) : null,
     yearBuilt: row.yearBuilt ? extractNumber(row.yearBuilt) : null,
     FFH: row.ffh ? extractNumber(row.ffh) : null,
+    priorLossCount: row.priorLossCount ?? null,
   };
 
   const namedInsured: Quote['namedInsured'] = {
@@ -368,7 +369,6 @@ function transformQuoteRow(row: CSVQuoteRow): DeepNullable<Quote> {
     quoteExpirationDate: Timestamp.fromDate(quoteExpDate),
     externalId: row.locationId || null,
     ratingPropertyData,
-    priorLossCount: row.priorLossCount || null,
     userId: row.userId || null,
     namedInsured,
     agent,
@@ -487,7 +487,7 @@ function validateQuoteRow(row: DeepNullable<Quote>): boolean {
       'policyExpirationDate required'
     );
     invariant(row.status, 'missing status');
-    invariant(row.priorLossCount, 'missing priorLossCount');
+    invariant(row?.ratingPropertyData?.priorLossCount, 'missing priorLossCount');
     invariant(row.product, 'missing product');
 
     invariant(Array.isArray(row.fees), 'fees must be an array');

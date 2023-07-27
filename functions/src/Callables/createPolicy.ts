@@ -228,7 +228,7 @@ function convertQuoteToPolicy(data: Quote, license: License, quoteId: string | n
   const ts = Timestamp.now();
   // TODO: take lesser of policy exp date and location eff. + 365 for location once using multi-location
   const effDate = data.effectiveDate.toDate();
-  const expirationDate = add(effDate, { days: 365 });
+  const expirationDate = add(effDate, { years: 1 });
 
   //TODO: calc term permium separetely for policy once using multi-location
   const { termDays, termPremium } = calcTermPremium(data.annualPremium, effDate, expirationDate);

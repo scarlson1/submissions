@@ -33,6 +33,7 @@ import {
   ratingDataNumStoriesCol,
   ratingDataBasementCol,
   ratingDataDistToCoastFeetCol,
+  // ratingDataPriorLossCountCol,
   limitACol,
   limitBCol,
   limitCCol,
@@ -103,6 +104,7 @@ export const submissionCols: GridColDef[] = [
     // TODO: valueFormatter
   },
   priorLossCountCol,
+  // ratingDataPriorLossCountCol,
   ratingDataDistToCoastFeetCol,
   ratingDataBasementCol,
   ratingDataNumStoriesCol,

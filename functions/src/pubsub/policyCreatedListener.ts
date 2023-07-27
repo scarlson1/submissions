@@ -1,30 +1,37 @@
-import { DocumentReference, Timestamp, getFirestore } from 'firebase-admin/firestore';
+import { Timestamp, getFirestore } from 'firebase-admin/firestore';
 import type { CloudEvent } from 'firebase-functions/lib/v2/core';
-import { error, info } from 'firebase-functions/logger';
+import { error, info, warn } from 'firebase-functions/logger';
 import type { MessagePublishedData } from 'firebase-functions/v2/pubsub';
+
+import { transactionsCollection } from '../common';
 import {
-  Policy,
-  policiesCollection,
-  ratingDataCollection,
-  transactionsCollection,
-} from '../common';
-// import { policyConverter } from '../common/converters/policy';
+  constructTrxId,
+  fetchPolicyData,
+  fetchRatingData,
+  formatPremiumTrx,
+  trxExists,
+} from '../utils/transactions';
+
+// using JS Module over classes: https://dev.to/giantmachines/stop-using-javascript-classes-33ij
 
 // Idempotent functions: https://cloud.google.com/blog/products/serverless/cloud-functions-pro-tips-building-idempotent-functions
 
-// Use eventId in transaction
-// Check whether trx exists in db (query: locationId && eventId OR use locationId+eventId as trx ID)
 // Only return error if transient error (can't write to db, etc.)
 
-// CREATES TRANSACTION FOR EACH LOCATION IN POLICY
+// CREATES TRANSACTION FOR EACH LOCATION IN NEW POLICY
 
-export default async (event: CloudEvent<MessagePublishedData>) => {
-  info('MSG JSON: ', event.data.message.json);
-  // console.log('EVENT: ', JSON.stringify(event));
+interface PolicyCreatedPayload {
+  policyId: string;
+}
+
+export default async (event: CloudEvent<MessagePublishedData<PolicyCreatedPayload>>) => {
+  info('POLICY CREATED EVENT - MSG JSON: ', { ...(event.data?.message?.json || {}) });
+
   const eventId = event.id;
   let policyId = null;
   try {
-    policyId = event.data.message.json.policyId;
+    // TODO: is try/catch necessary ??
+    policyId = event.data?.message?.json?.policyId;
   } catch (e) {
     error('PubSub message was not JSON', e);
   }
@@ -40,30 +47,26 @@ export default async (event: CloudEvent<MessagePublishedData>) => {
 
   const db = getFirestore();
   // TODO: uncomment converter once policiesCollection is changed to new type
-  const policyCol = policiesCollection(db); // .withConverter(policyConverter)
+  // const policyCol = policiesCollection(db); // .withConverter(policyConverter)
   const trxCol = transactionsCollection(db);
 
-  const policyRef = policyCol.doc(policyId);
-  let policy: Policy;
-
-  try {
-    let policySnap = await policyRef.get();
-    policy = policySnap.data() as unknown as Policy;
-    if (policySnap.exists || !policy) throw new Error('Policy not found');
-  } catch (err: any) {
-    error('Error retrieving policy', {
-      errMsg: err?.message,
-      eventId,
-      policyId,
-    });
-    // TODO: report error
+  const policy = await fetchPolicyData(db, policyId);
+  if (!policy) {
+    warn(`Policy not found. Returning early.`); // TODO: report error
     return;
   }
 
-  // TODO: SWITCH POLICIES COLLECTION TO USE NEW POLICY TYPE
-  const locationIds = policy?.locations && Object.keys(policy.locations);
-  if (!locationIds || !locationIds.length) {
-    error('No policy data or no locations found in policy', {
+  // const locationIds = policy?.locations && Object.keys(policy.locations);
+  // if (!locationIds || !locationIds.length) {
+  //   error('No policy data or no locations found in policy', {
+  //     policyId,
+  //     eventId,
+  //   }); // TODO: report error
+  //   return;
+  // }
+  const locationEntries = policy?.locations && Object.entries(policy.locations);
+  if (!locationEntries || !locationEntries.length) {
+    error('No policy locations found in policy', {
       policyId,
       eventId,
     }); // TODO: report error
@@ -71,94 +74,80 @@ export default async (event: CloudEvent<MessagePublishedData>) => {
   }
 
   const trxTimestamp = Timestamp.now();
-  const trxEffDate = policy?.effectiveDate;
 
-  // TODO: remove || Timestamp once moved over to new Policy interface
-  // TODO: get later of trx timestamp & trxEffDate (in this case, effectiveDate)
-  for (let locationId of locationIds) {
+  for (let [locationId, location] of locationEntries) {
     try {
-      // const locationTrxQuery = trxCol
-      //   .where('locationId', '==', locationId)
-      //   .where('eventId', '==', eventId);
       const trxId = constructTrxId(policyId, locationId, eventId);
       const trxRef = trxCol.doc(trxId);
 
       if (!trxExists(trxRef)) {
-        // TODO: use getLocation(id) once using converter
-        const location = policy.locations[locationId];
-        const bookingDateMillis = getBookingDate(
-          location.effectiveDate.toMillis(),
-          trxEffDate.toMillis()
-        ); // later of trxEffDate
+        const ratingData = await fetchRatingData(db, location.ratingDocId);
 
-        // TODO: fetch rating data for premium calc fields
-        const ratingSnap = await ratingDataCollection(db).doc(location.ratingDocId).get();
+        // TODO: handle validation
+        // TODO: handle scenarios where rating doc not available (imported policies)
 
-        const ratingData = ratingSnap.data();
-        if (!ratingData) {
-          const errMsg = `Missing rating data for location ${locationId}`;
-          error(errMsg, {
-            locationId,
-            policyId,
-            eventId,
-          });
-
-          throw new Error(errMsg);
-        }
-
-        trxRef.set({
-          trxType: 'new',
-          product: policy.product || '',
+        const locationTrx = formatPremiumTrx(
+          'new',
+          policy,
+          location,
+          ratingData,
           policyId,
-          term: policy.term,
-          trxTimestamp,
-          bookingDate: Timestamp.fromMillis(bookingDateMillis),
-          issuingCarrier: policy?.issuingCarrier || '',
-          namedInsured: policy?.namedInsured?.displayName, // (using new type)
-          mailingAddress: policy.mailingAddress,
-          locationId,
-          externalId: location.externalId || null,
-          insuredLocation: location,
-          policyEffDate: policy?.effectiveDate,
-          policyExpDate: policy?.expirationDate,
-          trxEffDate: location?.effectiveDate || null,
-          trxExpDate: location?.expirationDate || null,
-          trxDays: 0, // TODO // trxExpDate - trxEffDate
-          cancelEffDate: null,
-          ratingPropertyData: {
-            ...location.ratingPropertyData,
-            units: 1, // TODO: get units from property data res
-            tier1: false, // TODO: check if tier1
-            construction: 'TODO',
-            priorLossCount: 'TODO',
-          }, // TODO: needs units, tier1, construction, priorLossCount
-          deductible: location.deductible,
-          limits: location.limits,
-          TIV: location.TIV,
-          RCVs: location.RCVs,
-          premiumCalcData: ratingData.premiumCalcData,
-          locationAnnualPremium: location.annualPremium,
-          termProratedPct: 0, // TODO: Transaction days / policy days
-          termPremium: 0, // TODO
-          // 'TODO: store & fetch comm rate as doc in subcollection'
-          MGACommission: 0, // ratingData.premiumCalcData., // TODO need to use atomic operation to store mga commission when saving policy
-          // get mga commission from rating data
-          // is this calced from value in subcollection ? stored in subcollection ? or does sub collection doc store commission on per location basis ? or store in rating data ??
-          netDWP: 0, // TODO
-          netErrorAdj: 0, // TODO
-          dailyPremium: 0, // TODO
-          otherInterestedParties: location.mortgageeInterest?.map((m) => m.name) || [], // includes mortgagee & additional interests - only need name for trx reporting
-          // TODO: how is this different from additional named insured
-          additionalNamedInsured: location.additionalInsureds?.map((ai) => ai.name) || [],
-          // TODO: verify whether additional insureds should be stored separately from mortgagee
-          // TODO: change ^ to displayName for consistency ??
-          homeState: policy.homeState || '',
           eventId,
-          metadata: {
-            created: Timestamp.now(),
-            updated: Timestamp.now(),
-          },
-        });
+          trxTimestamp
+        );
+
+        await trxRef.set({ ...locationTrx });
+        // await trxRef.set({
+        //   trxType: 'new',
+        //   product: policy.product || '',
+        //   policyId,
+        //   term: policy.term,
+        //   trxTimestamp,
+        //   bookingDate: Timestamp.fromMillis(bookingDateMillis),
+        //   issuingCarrier: policy?.issuingCarrier || '',
+        //   namedInsured: policy?.namedInsured?.displayName,
+        //   mailingAddress: policy.mailingAddress,
+        //   locationId,
+        //   externalId: location.externalId || null,
+        //   insuredLocation: location,
+        //   policyEffDate: policy?.effectiveDate,
+        //   policyExpDate: policy?.expirationDate,
+        //   trxEffDate: location?.effectiveDate || null,
+        //   trxExpDate: location?.expirationDate || null,
+        //   trxDays: location.termDays,
+        //   cancelEffDate: null,
+        //   ratingPropertyData: {
+        //     ...location.ratingPropertyData,
+        //     units: null,
+        //     tier1: null,
+        //     construction: '',
+        //     priorLossCount: location.ratingPropertyData?.priorLossCount ?? null,
+        //   }, // TODO: needs units, tier1, construction from property res
+        //   deductible: location.deductible,
+        //   limits: location.limits,
+        //   TIV: location.TIV,
+        //   RCVs: location.RCVs,
+        //   premiumCalcData: ratingData.premiumCalcData,
+        //   locationAnnualPremium: location.annualPremium,
+        //   termProratedPct,
+        //   termPremium: location.termPremium,
+        //   MGACommission: ratingData?.premiumCalcData?.MGACommission,
+        //   MGACommissionPct: ratingData.premiumCalcData?.MGACommissionPct,
+        //   // get mga commission from rating data
+        //   // is this calced from value in subcollection ? stored in subcollection ? or does sub collection doc store commission on per location basis ? or store in rating data ??
+        //   netDWP: calcNetDWP(location.termPremium, ratingData?.premiumCalcData?.MGACommission || 0),
+        //   netErrorAdj: 0, // TODO
+        //   dailyPremium: round(location.termPremium / location.termDays, 2),
+        //   otherInterestedParties: location.mortgageeInterest?.map((m) => m.name) || [],
+        //   additionalNamedInsured: location.additionalInsureds?.map((ai) => ai.name) || [],
+        //   homeState: policy.homeState || '',
+        //   eventId,
+        //   metadata: {
+        //     created: Timestamp.now(),
+        //     updated: Timestamp.now(),
+        //   },
+        // });
+        info(`New transaction saved for location ${locationId}`, { locationTrx });
       }
     } catch (err: any) {
       error(`Error creating transaction for location ID ${locationId}`, {
@@ -176,23 +165,6 @@ export default async (event: CloudEvent<MessagePublishedData>) => {
 // TODO: decide whether trxExists in necessary
 // https://stackoverflow.com/a/59162013
 // "Bear in mind that idempotency is not the same as parallelism. You don't need to worry about a function being invoked twice at the same time with the same event. There's no need to worry about "locking" anything to prevent this from happening. All you need to worry about is making sure that a second invocation of a function doesn't do anything incorrect beyond what the first successful invocation would do."
-
-function trxExists(trxRef: DocumentReference) {
-  return trxRef.get().then((snap) => snap.exists);
-}
-
-// IF USING QUERY METHOD
-// function trxExists(query: Query) {
-//   return query.get().then((snap) => !snap.empty);
-// }
-
-export function constructTrxId(policyId: string, locationId: string, eventId: string) {
-  return `${policyId}-${locationId}-${eventId}`;
-}
-
-function getBookingDate(locationEffDateSeconds: number, trxEffDateSeconds: number) {
-  return locationEffDateSeconds > trxEffDateSeconds ? locationEffDateSeconds : trxEffDateSeconds;
-}
 
 // Idempotent example:
 
