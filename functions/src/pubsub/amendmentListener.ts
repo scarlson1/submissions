@@ -13,6 +13,9 @@ import {
 } from '../utils/transactions';
 import { reportErrorSentry } from '../services/sentry';
 
+// Trx. eff date (policy amendment): determined by insured (form submission --> pubsub payload)
+// Trx. eff date (location amendment): no clue? insured ?? can mortgagee be backdated by insured ??
+
 interface AmendmentPayload {
   policyId: string;
   locationId: string | null;

@@ -1017,8 +1017,9 @@ export interface OffsetTransaction extends BaseTransaction {
   netDWP: number;
   dailyPremium: number;
   netErrorAdj?: number;
-  // cancelEffDate: Timestamp;
+  // cancelEffDate: Timestamp; // same as trxEffDate ??
   cancelReason: CancellationReason | null;
+  // require premiumCalcData ??
 }
 
 export type PremTrxTypes = 'new' | 'renewal' | 'endorsement' | 'reinstatement';
@@ -1030,7 +1031,7 @@ export interface PremiumTransaction extends BaseTransaction {
   limits: Limits;
   TIV: number;
   RCVs: RCVs;
-  premiumCalcData: PremiumCalcData;
+  premiumCalcData: PremiumCalcData; // necessary ?? optional ??
   locationAnnualPremium: number;
   termPremium: number;
   MGACommission: number; // idemand & subproducer

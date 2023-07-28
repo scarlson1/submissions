@@ -3,7 +3,7 @@ import { CloudEvent } from 'firebase-functions/lib/v2/core';
 import { error, info } from 'firebase-functions/logger';
 import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 
-import { transactionsCollection } from '../common';
+import { getReportErrorFn, transactionsCollection } from '../common';
 import {
   constructTrxId,
   fetchPolicyData,
@@ -11,9 +11,10 @@ import {
   formatPremiumTrx,
   trxExists,
 } from '../utils/transactions';
-import { reportErrorSentry } from '../services/sentry';
 
 // TODO: shared logic with new policy event (abstract into module)
+
+const reportError = getReportErrorFn('policyRenewalListener');
 
 interface PolicyRenewalPayload {
   policyId: string;
@@ -90,7 +91,7 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyRenewalPayloa
   return;
 };
 
-export function reportError(msg: string, ctx: Record<string, any> = {}, err: any = null) {
-  error(msg, { ...ctx, err });
-  reportErrorSentry(err || msg, { func: 'policyRenewalListener', msg, ...ctx });
-}
+// export function reportError(msg: string, ctx: Record<string, any> = {}, err: any = null) {
+//   error(msg, { ...ctx, err });
+//   reportErrorSentry(err || msg, { func: 'policyRenewalListener', msg, ...ctx });
+// }

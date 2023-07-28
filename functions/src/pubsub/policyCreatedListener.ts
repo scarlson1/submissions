@@ -57,7 +57,7 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyCreatedPayloa
     return;
   }
 
-  const trxTimestamp = Timestamp.now();
+  const trxTimestamp = Timestamp.now(); // just so created ts matches for all locations
 
   for (let [locationId, location] of locationEntries) {
     try {
@@ -70,6 +70,7 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyCreatedPayloa
         // TODO: handle validation
         // TODO: handle scenarios where rating doc not available (imported policies)
 
+        // TODO: trxEffDate = location eff date (not trxTimestamp) - need to verify
         const locationTrx = formatPremiumTrx(
           'new',
           policy,

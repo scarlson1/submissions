@@ -9,6 +9,7 @@ import { v4 as uuid } from 'uuid';
 
 import { FeeItem, TaxItem } from './types';
 import { cardFeePct } from './environmentVars';
+import { reportErrorSentry } from '../services/sentry';
 
 /**
  * Sums an array of numbers
@@ -355,3 +356,15 @@ export function calcTermPremium(annualPremium: number, effDate: Date, expDate: D
 export function getNewLocationId() {
   return uuid().replace(/-/g, '');
 }
+
+/**
+ * Function to report errors to Google Logs and Sentry
+ * @param {string} fnName Cloud function name (added as tag / context)
+ * @returns {function} function that will report error to Google logs and Sentry
+ */
+export const getReportErrorFn =
+  (fnName: string) =>
+  (msg: string, ctx: Record<string, any> = {}, err: any = null) => {
+    error(msg, { ...ctx, err });
+    reportErrorSentry(err || msg, { func: fnName, msg, ...ctx });
+  };
