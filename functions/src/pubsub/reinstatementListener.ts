@@ -52,7 +52,6 @@ export default async (event: CloudEvent<MessagePublishedData<ReinstatementPayloa
     reportError('No policy locations found in policy', { policyId });
     return;
   }
-
   // TODO: decide whether to add all transactions to batch ??
   // would need to move try/catch outside for loop
   for (const [locationId, location] of locationEntries) {
