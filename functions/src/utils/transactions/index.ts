@@ -4,11 +4,17 @@ import { round } from 'lodash';
 import { add } from 'date-fns';
 
 import {
+  AmendmentTransaction,
+  CancellationReason,
+  OffsetTransaction,
   Policy,
   PolicyLocation,
+  PremiumTransaction,
   RatingData,
+  StrictExclude,
   Transaction,
   TransactionType,
+  WithId,
   getTermDays,
   policiesCollection,
   ratingDataCollection,
@@ -45,14 +51,6 @@ export const getBookingDate = (locationEffDateSeconds: number, trxEffDateSeconds
 };
 
 /**
- * Net Direct Written Premium = term prem - mga
- * @param termPremium term premium
- * @param mgaComm MGA commission (in dollars)
- * @returns net direct written premium
- */
-export const calcNetDWP = (termPremium: number, mgaComm: number) => termPremium - mgaComm;
-
-/**
  * Calc daily premium, rounded
  * @param {number} termPremium premium between eff. & exp. dates
  * @param {number} termDays days between exp. date and eff. date
@@ -71,16 +69,48 @@ export const getDailyPremium = (termPremium: number, termDays: number, roundTo: 
 export const getTermProratedPct = (policyTermDays: number, locationTermDays: number) =>
   locationTermDays / policyTermDays;
 
+/**
+ * Calculate the term premium for cancellation or premium endorsement (offset portion) transactions
+ * @param {PremiumTransaction} prevTrx most recent premium transaction for location
+ * @param {Timestamp} trxEffDate new transaction effective date
+ * @returns {number} term premium for cancellation or prem endorsement offset (will usually be negative)
+ */
+export const getOffsetTermPremium = (prevTrx: PremiumTransaction, trxEffDate: Timestamp) => {
+  const earnedDays = getTermDays(prevTrx.trxEffDate.toDate(), trxEffDate.toDate());
+  const earnedPremium = earnedDays * prevTrx.dailyPremium;
+
+  return -round(prevTrx.termPremium - earnedPremium, 2);
+};
+
+/**
+ * Calc the MGA portion of term premium
+ * @param {number} termPremium portion of term premium after the new transaction effective date
+ * @param {PremiumTransaction} prevTrx most recent premium tranaction for location
+ * @returns {number} mga portion of premium after the new trx eff. date (negative)
+ */
+export const getMGAComm = (
+  termPremium: number,
+  prevTrx: StrictExclude<Transaction, AmendmentTransaction>
+) => round(termPremium * prevTrx.MGACommissionPct, 2);
+
+/**
+ * Calc net direct written premium = termPremium - mga
+ * @param {number} termPremium term premium
+ * @param {number} MGAComm mga commission (in dollars)
+ * @returns {number} net direct written premium (term - mga portion)
+ */
+export const getNetDWP = (termPremium: number, MGAComm: number) => termPremium - MGAComm;
+
 export function formatPremiumTrx(
-  trxType: TransactionType,
+  trxType: PremiumTransaction['trxType'], // TransactionType,
   policy: Policy,
   location: PolicyLocation,
   ratingData: RatingData,
   policyId: string,
   eventId: string,
   trxTimestamp: Timestamp = Timestamp.now()
-): Transaction {
-  const trxEffDate = policy?.effectiveDate;
+): PremiumTransaction {
+  const trxEffDate = policy?.effectiveDate; // or is trxEffDate the later of location Eff date, policy Eff date and now ??
 
   const bookingDateMillis = getBookingDate(
     location.effectiveDate.toMillis(),
@@ -100,7 +130,7 @@ export function formatPremiumTrx(
     product: policy.product || '',
     policyId,
     term: policy.term,
-    trxTimestamp,
+    // trxTimestamp,
     bookingDate: Timestamp.fromMillis(bookingDateMillis),
     issuingCarrier: policy?.issuingCarrier || '',
     namedInsured: policy?.namedInsured?.displayName || '',
@@ -113,7 +143,6 @@ export function formatPremiumTrx(
     trxEffDate: location.effectiveDate || null,
     trxExpDate: location.expirationDate || null,
     trxDays: location.termDays,
-    cancelEffDate: null,
     ratingPropertyData: {
       ...location.ratingPropertyData,
       units: null,
@@ -131,7 +160,7 @@ export function formatPremiumTrx(
     termPremium: location.termPremium,
     MGACommission: ratingData?.premiumCalcData?.MGACommission,
     MGACommissionPct: ratingData.premiumCalcData?.MGACommissionPct,
-    netDWP: calcNetDWP(location.termPremium, ratingData?.premiumCalcData?.MGACommission || 0),
+    netDWP: getNetDWP(location.termPremium, ratingData?.premiumCalcData?.MGACommission || 0),
     netErrorAdj: 0, // TODO
     dailyPremium,
     otherInterestedParties: location.mortgageeInterest?.map((m) => m.name) || [],
@@ -139,45 +168,39 @@ export function formatPremiumTrx(
     homeState: policy.homeState || '',
     eventId,
     metadata: {
-      created: Timestamp.now(),
-      updated: Timestamp.now(),
+      created: trxTimestamp, // Timestamp.now(),
+      updated: trxTimestamp, // Timestamp.now(),
     },
   };
 }
 
-/* 
-    - calculate trxEffDate (when action takes effect) from the expiration date of the location to get the # days to offset
-    - or subtract trxEffDate - prevTrxEffDate to get earned days. Any benefit of one approach over the other ??
-    - 
-*/
-
-// policyId: string, locationId: string,
-// TODO: reusable for cancellation ??
-export const getPremEndorsementOffsetTrx = (prevTrx: Transaction, trxEffDate: Timestamp) => {
+/**
+ * get formatted offset transaction for cancellation or premium endorsement transactions
+ * @param {PremiumTransaction} prevTrx most recent premium transaction for location
+ * @param {Timestamp} trxEffDate new transaction effective date
+ * @returns {OffsetTransaction} offsetting transaction for cancellation or premium endorsement transactions
+ */
+export const getOffsetTrx = (
+  prevTrx: PremiumTransaction,
+  trxEffDate: Timestamp,
+  eventId: string,
+  trxType: OffsetTransaction['trxType'],
+  cancelReason: CancellationReason | null = null
+): OffsetTransaction => {
   const bookingDateMillis = getBookingDate(prevTrx.trxEffDate.toMillis(), trxEffDate.toMillis());
 
-  // policyTermDWP = -199.00
-  // mgaCommission = -67.89
-  // netDWP = -131.11
-  // trxDays = 1 ??
-  // earnedPremium = -199
-
   const trxExpDate = add(trxEffDate.toDate(), { days: 1 });
-  const trxDays = getTermDays(trxEffDate.toDate(), trxExpDate);
+  const trxDays = 1;
 
-  // const termPremium = dailyPremium * (prevExpDate - trxEffDate)
-  const remainingDays = getTermDays(trxEffDate.toDate(), prevTrx.trxExpDate.toDate());
-  // const termPremium = prevTrx.dailyPremium * remainingDays;
+  // term premium is negative in offset trx (premium uncollected b/c after change/cancel date)
+  const termPremium = getOffsetTermPremium(prevTrx, trxEffDate); // negative
+  const MGACommission = getMGAComm(termPremium, prevTrx); // negative
+  const netDWP = getNetDWP(termPremium, MGACommission); // negative
 
-  const termProratedPct = -(remainingDays / prevTrx.trxDays);
-  const termPremium = prevTrx.locationAnnualPremium * termProratedPct;
-  const MGACommission = prevTrx.MGACommission * termProratedPct;
-  const netDWP = prevTrx.netDWP * termProratedPct;
+  const dailyPremium = termPremium / trxDays;
 
-  // TODO: finish setting rest of values
   return {
-    // ...prevTrx,
-    trxType: 'prem_endorsement_offset' as TransactionType,
+    trxType,
     product: prevTrx.product,
     term: prevTrx.term,
     policyId: prevTrx.policyId,
@@ -186,6 +209,7 @@ export const getPremEndorsementOffsetTrx = (prevTrx: Transaction, trxEffDate: Ti
     issuingCarrier: prevTrx.issuingCarrier,
     namedInsured: prevTrx.namedInsured,
     mailingAddress: prevTrx.mailingAddress,
+    homeState: prevTrx.homeState || '',
     locationId: prevTrx.locationId,
     externalId: prevTrx.externalId,
     insuredLocation: prevTrx.insuredLocation,
@@ -195,7 +219,82 @@ export const getPremEndorsementOffsetTrx = (prevTrx: Transaction, trxEffDate: Ti
     bookingDate: Timestamp.fromMillis(bookingDateMillis),
     termPremium,
     MGACommission,
+    MGACommissionPct: prevTrx.MGACommissionPct,
     netDWP,
+    dailyPremium,
+    cancelReason,
+    eventId,
+    metadata: {
+      created: Timestamp.now(),
+      updated: Timestamp.now(),
+    },
+  };
+};
+
+export const getLocationAmendmentTrx = (
+  policy: WithId<Policy>,
+  location: PolicyLocation,
+  eventId: string
+): AmendmentTransaction => {
+  return {
+    trxType: 'amendment',
+    product: policy.product,
+    policyId: policy.id,
+    locationId: location.locationId,
+    externalId: location.externalId || null,
+    term: policy.term,
+    bookingDate: Timestamp.now(),
+    issuingCarrier: policy.issuingCarrier,
+    namedInsured: policy.namedInsured.displayName,
+    mailingAddress: policy.mailingAddress,
+    insuredLocation: location,
+    homeState: policy.homeState,
+    policyEffDate: policy.effectiveDate,
+    policyExpDate: policy.expirationDate,
+    trxEffDate: Timestamp.now(),
+    trxExpDate: location.expirationDate,
+    trxDays: getTermDays(new Date(), location.expirationDate.toDate()),
+    otherInterestedParties: location.mortgageeInterest.map((m) => m.name),
+    additionalNamedInsured: location.additionalInsureds.map((ai) => ai.name),
+    eventId,
+    metadata: {
+      created: Timestamp.now(),
+      updated: Timestamp.now(),
+    },
+  };
+};
+
+// trxEffDates:
+//    - policy amendment: current date
+//    - location amendment: current date
+//    - renewal: location effective date
+//    - new: location effective date
+//    - cancel: cancellation date
+//    - endorsement offset trx: current date
+//    - endorsement trx: current date
+
+export const getPolicyAmendmentTrx = (
+  policy: WithId<Policy>,
+  eventId: string
+): AmendmentTransaction => {
+  return {
+    trxType: 'amendment',
+    product: policy.product,
+    policyId: policy.id,
+    locationId: '',
+    externalId: '',
+    term: policy.term,
+    bookingDate: Timestamp.now(),
+    issuingCarrier: policy.issuingCarrier,
+    namedInsured: policy.namedInsured.displayName,
+    mailingAddress: policy.mailingAddress,
+    homeState: policy.homeState,
+    policyEffDate: policy.effectiveDate,
+    policyExpDate: policy.expirationDate,
+    trxEffDate: Timestamp.now(),
+    trxExpDate: policy.expirationDate,
+    trxDays: getTermDays(new Date(), policy.expirationDate.toDate()),
+    eventId,
     metadata: {
       created: Timestamp.now(),
       updated: Timestamp.now(),
@@ -211,7 +310,7 @@ export const fetchPolicyData = async (db: Firestore, policyId: string) => {
     const policySnap = await policyRef.get();
     const data = policySnap.data(); //  as unknown as Policy;
     if (policySnap.exists || !data) throw new Error('Policy not found');
-    return data;
+    return { ...data, id: policyId };
   } catch (err: any) {
     error(`Error fetching policy (ID: ${policyId})`, { err });
     return null;

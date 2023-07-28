@@ -107,12 +107,30 @@ export enum TRANSACTION_TYPE {
   REFUND = 'refund',
 }
 
-export enum PUB_SUB_TOPICS {
+export enum PMT_PUB_SUB_TOPICS {
+  PAYMENT_COMPLETE = 'payment.complete',
+}
+
+export enum TRX_PUB_SUB_TOPICS {
   PAYMENT_COMPLETE = 'payment.complete',
   POLICY_CREATED = 'policy.created',
   POLICY_RENEWAL = 'policy.renewal',
-  POLICY_PREM_ENDORSEMENT = 'policy.prem_endorsement',
-  POLICY_NON_PREM_ENDORSEMENT = 'policy.non_prem_endorsement',
+  LOCATION_ENDORSEMENT = 'location.endorsement',
+  POLICY_AMENDMENT = 'policy.admendment',
   POLICY_REINSTATEMENT = 'policy.reinstatement',
-  POLICY_CANCELLATION = 'policy.cancellation',
+  // POLICY_CANCELLATION = 'policy.cancellation',
+  LOCATION_CANCELLATION = 'location.cancellation',
 }
+
+export const PUB_SUB_TOPICS = { ...PMT_PUB_SUB_TOPICS, ...TRX_PUB_SUB_TOPICS };
+
+// export enum PUB_SUB_TOPICS {
+//   PAYMENT_COMPLETE = 'payment.complete',
+//   POLICY_CREATED = 'policy.created',
+//   POLICY_RENEWAL = 'policy.renewal',
+//   POLICY_ENDORSEMENT = 'policy.endorsement',
+//   POLICY_AMENDMENT = 'policy.admendment',
+//   POLICY_REINSTATEMENT = 'policy.reinstatement',
+//   // POLICY_CANCELLATION = 'policy.cancellation',
+//   LOCATION_CANCELLATION = 'location.cancellation',
+// }

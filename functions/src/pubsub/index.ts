@@ -25,9 +25,23 @@ export const policyrenewallistener = onMessagePublished(
   }
 );
 
-export const policypremendorsementlistener = onMessagePublished(
-  { topic: PUB_SUB_TOPICS.POLICY_PREM_ENDORSEMENT },
+export const endorsementlistener = onMessagePublished(
+  { topic: PUB_SUB_TOPICS.LOCATION_ENDORSEMENT },
   async (event) => {
-    await (await import('./policyPremEndorsementListener.js')).default(event);
+    await (await import('./endorsementListener.js')).default(event);
+  }
+);
+
+export const amendmentlistener = onMessagePublished(
+  { topic: PUB_SUB_TOPICS.POLICY_AMENDMENT },
+  async (event) => {
+    await (await import('./amendmentListener.js')).default(event);
+  }
+);
+
+export const locationcancellistener = onMessagePublished(
+  { topic: PUB_SUB_TOPICS.LOCATION_CANCELLATION },
+  async (event) => {
+    await (await import('./locationCancelListener.js')).default(event);
   }
 );

@@ -337,8 +337,6 @@ app.post('/generateDecPDF', async (req: RequestUserAuth, res: Response) => {
   }
 
   const locationData = formatLocationData(policy.locations);
-  // const locationCoverages = getLocationCoveragesTableData(locations);
-  // const test = getLocationCoveragesTableDataTest();
   const locationInterests = getLocationInterests(locations);
   const premiumTable = getPremiumTable(policy);
 
@@ -421,21 +419,6 @@ app.post('/generateDecPDF', async (req: RequestUserAuth, res: Response) => {
 
 export default app;
 
-// function getLimitTitle(key: string) {
-//   switch (key) {
-//     case 'limitA':
-//       return 'Building';
-//     case 'limitB':
-//       return 'appurtenant Structures';
-//     case 'limitC':
-//       return 'Contents';
-//     case 'limitD':
-//       return 'BI';
-//     default:
-//       return key;
-//   }
-// }
-
 export function getFormattedAddress(addr: Nullable<Address>) {
   let formatted = `${addr?.addressLine1 || ''}`;
   if (addr?.addressLine2) formatted += `, ${addr.addressLine2}`;
@@ -461,21 +444,6 @@ export function getLocationCoveragesTableData(
     };
   });
 }
-
-// function getLocationCoveragesTableDataTest(): LocationCoveragesItem[] {
-//   let result = [];
-//   for (let i = 0; i < 60; i++) {
-//     result.push({
-//       address: `Test location ${i}`,
-//       limitA: `${i * 1000}`,
-//       limitB: `${i * 1000 * 0.1}`,
-//       limitC: `${i * 1000 * 0.23}`,
-//       limitD: `${i * 1000 * 0.08}`,
-//       TIV: `${i * 1000 * 1.32}`,
-//     });
-//   }
-//   return result;
-// }
 
 // TODO: refactor - use for loops instead of map and remove flatten
 export function getLocationInterests(locations: PolicyLocation[]): AdditionalInterestsItem[] {

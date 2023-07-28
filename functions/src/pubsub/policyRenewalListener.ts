@@ -1,6 +1,6 @@
 import { Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { CloudEvent } from 'firebase-functions/lib/v2/core';
-import { error, info, warn } from 'firebase-functions/logger';
+import { error, info } from 'firebase-functions/logger';
 import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 
 import { transactionsCollection } from '../common';
@@ -11,6 +11,7 @@ import {
   formatPremiumTrx,
   trxExists,
 } from '../utils/transactions';
+import { reportErrorSentry } from '../services/sentry';
 
 // TODO: shared logic with new policy event (abstract into module)
 
@@ -24,15 +25,14 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyRenewalPayloa
   const eventId = event.id;
   let policyId = null;
   try {
-    // TODO: is try/catch necessary ??
     policyId = event.data?.message?.json?.policyId;
   } catch (e) {
     error('PubSub message was not JSON', e);
   }
 
   if (!policyId || typeof policyId !== 'string') {
-    error(`Missing policy ID`, { policyId });
-    return; // TODO: report error
+    reportError(`Missing policy ID. Returning early.`, { policyId });
+    return;
   }
 
   const db = getFirestore();
@@ -41,17 +41,14 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyRenewalPayloa
 
   const policy = await fetchPolicyData(db, policyId);
   if (!policy) {
-    warn(`Policy not found. Returning early.`); // TODO: report error
+    reportError(`Policy not found. Returning early.`, { policyId });
     return;
   }
 
   const locationEntries = policy?.locations && Object.entries(policy.locations);
   if (!locationEntries || !locationEntries.length) {
-    error('No policy locations found in policy', {
-      policyId,
-      eventId,
-    });
-    return; // TODO: report error
+    reportError('No policy locations found in policy', { policyId });
+    return;
   }
 
   const trxTimestamp = Timestamp.now();
@@ -78,11 +75,22 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyRenewalPayloa
         info(`New transaction saved for location ${locationId}`, { locationTrx });
       }
     } catch (err: any) {
-      error(`Error creating transaction for location ${locationId} (Policy ID: ${policyId})`, {
-        ...location,
-      });
+      // error(`Error creating transaction for location ${locationId} (Policy ID: ${policyId})`, {
+      //   ...location,
+      // });
+      // reportErrorSentry(err, { func: 'policyRenewalListener', policyId, locationId });
+      reportError(
+        `Error creating transaction for location ${locationId} (Policy ID: ${policyId})`,
+        { ...location, policyId },
+        err
+      );
     }
   }
 
   return;
 };
+
+export function reportError(msg: string, ctx: Record<string, any> = {}, err: any = null) {
+  error(msg, { ...ctx, err });
+  reportErrorSentry(err || msg, { func: 'policyRenewalListener', msg, ...ctx });
+}

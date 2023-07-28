@@ -1,6 +1,7 @@
 import { CallableRequest } from 'firebase-functions/v2/https';
 import { projectID } from 'firebase-functions/params';
 import * as Sentry from '@sentry/node';
+import { Primitive } from '../../common';
 
 // https://medium.com/qualdesk/how-to-capture-typescript-firebase-functions-errors-in-sentry-d6984951ed9
 
@@ -60,3 +61,18 @@ export const onCallWrapper = <T = any>(
     }
   };
 };
+
+export const reportErrorSentry = (e: any, tags: Record<string, Primitive> = {}) =>
+  Sentry.captureException(e, { tags });
+
+// export interface ScopeContext {
+//   user: User;
+//   level: Severity | SeverityLevel;
+//   extra: Extras;
+//   contexts: Contexts;
+//   tags: {
+//     [key: string]: Primitive;
+//   };
+//   fingerprint: string[];
+//   requestSession: RequestSession;
+// }

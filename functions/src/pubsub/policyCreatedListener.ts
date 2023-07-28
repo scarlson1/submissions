@@ -1,6 +1,6 @@
 import { Timestamp, getFirestore } from 'firebase-admin/firestore';
 import type { CloudEvent } from 'firebase-functions/lib/v2/core';
-import { error, info, warn } from 'firebase-functions/logger';
+import { error, info } from 'firebase-functions/logger';
 import type { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 
 import { transactionsCollection } from '../common';
@@ -11,6 +11,7 @@ import {
   formatPremiumTrx,
   trxExists,
 } from '../utils/transactions';
+import { reportErrorSentry } from '../services/sentry';
 
 // using JS Module over classes: https://dev.to/giantmachines/stop-using-javascript-classes-33ij
 
@@ -37,39 +38,22 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyCreatedPayloa
   }
 
   if (!policyId || typeof policyId !== 'string') {
-    error(`Missing policy ID`, { policyId });
-    // TODO: report error
+    reportError(`Missing policy ID`, { policyId });
     return;
   }
-  info(`Policy Created - Policy ID: ${policyId}`, {
-    eventId,
-  });
 
   const db = getFirestore();
-  // TODO: uncomment converter once policiesCollection is changed to new type
-  // const policyCol = policiesCollection(db); // .withConverter(policyConverter)
   const trxCol = transactionsCollection(db);
 
   const policy = await fetchPolicyData(db, policyId);
   if (!policy) {
-    warn(`Policy not found. Returning early.`); // TODO: report error
+    reportError(`Policy not found. Returning early.`, { policyId });
     return;
   }
 
-  // const locationIds = policy?.locations && Object.keys(policy.locations);
-  // if (!locationIds || !locationIds.length) {
-  //   error('No policy data or no locations found in policy', {
-  //     policyId,
-  //     eventId,
-  //   }); // TODO: report error
-  //   return;
-  // }
   const locationEntries = policy?.locations && Object.entries(policy.locations);
   if (!locationEntries || !locationEntries.length) {
-    error('No policy locations found in policy', {
-      policyId,
-      eventId,
-    }); // TODO: report error
+    reportError('No policy locations found in policy', { policyId });
     return;
   }
 
@@ -150,17 +134,27 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyCreatedPayloa
         info(`New transaction saved for location ${locationId}`, { locationTrx });
       }
     } catch (err: any) {
-      error(`Error creating transaction for location ID ${locationId}`, {
-        policyId,
-        locationId,
-        eventId,
-      });
-      // TODO: report error
+      // error(`Error creating transaction for location ID ${locationId}`, {
+      //   policyId,
+      //   locationId,
+      //   eventId,
+      // });
+      // reportErrorSentry(err, { func: 'policyCreatedListener', policyId, locationId });
+      reportError(
+        `Error creating transaction for location ID ${locationId}`,
+        { policyId, locationId },
+        err
+      );
     }
   }
 
   return;
 };
+
+export function reportError(msg: string, ctx: Record<string, any> = {}, err: any = null) {
+  error(msg, { ...ctx, err });
+  reportErrorSentry(err || msg, { func: 'policyCreatedListener', msg, ...ctx });
+}
 
 // TODO: decide whether trxExists in necessary
 // https://stackoverflow.com/a/59162013

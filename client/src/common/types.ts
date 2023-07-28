@@ -79,6 +79,8 @@ export type FlattenObjectKeys<T extends Record<string, any>, Key = keyof T> = Ke
 // type FlatKeys = FlattenObjectKeys<typeof example>;
 // type FlatKeys = "g" | "a.b" | "a.c" | "d.e" | "d.f" | "h.i.j.k" | "h.i.j.l"
 
+export type Primitive = string | number | bigint | boolean | symbol | null | undefined;
+
 export interface Submission extends Omit<FloodValues, 'ratingPropertyData'> {
   product: Product;
   coordinates: GeoPoint;

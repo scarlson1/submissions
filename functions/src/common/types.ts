@@ -50,6 +50,10 @@ export type FlattenObjectKeys<T extends Record<string, any>, Key = keyof T> = Ke
     : `${Key}`
   : never;
 
+export type StrictExclude<T, U> = T extends U ? (U extends T ? never : T) : T;
+
+export type Primitive = string | number | bigint | boolean | symbol | null | undefined;
+
 export interface RequestUserAuth extends Request {
   user?: DecodedIdToken;
   tenantId?: string;
@@ -934,12 +938,22 @@ export interface TrxRatingData extends RatingPropertyData {
   priorLossCount: string | null;
 }
 
+// New
+// Renewal
+// Endorsement (change w/ premium)
+// Amendment (change w/o premium)
+// Cancellation
+// Flat Cancel (cancel to effective date - return of all premium and fees)
+// Reinstatement
+
 export type TransactionType =
   | 'new'
   | 'renewal'
-  | 'prem_endorsement'
-  | 'non_prem_endorsement'
+  | 'endorsement' // change w/ premium // 'prem_endorsement'
+  // | 'non_prem_endorsement'
+  | 'amendment' // change w/o premium
   | 'cancellation'
+  | 'flat_cancel'
   | 'reinstatement';
 
 export type LineOfBusiness = 'commercial' | 'residential';
@@ -964,50 +978,123 @@ export interface Tax extends BaseDoc {
 
 // one transaction per location
 // TODO: create transaction class ?? like mongoose constructor ??
-// TODO: use discriminating union types ??
-export interface Transaction extends BaseDoc {
+
+interface BaseTransaction extends BaseDoc {
   trxType: TransactionType;
-  // policyType: Product;
   product: Product;
-  // policyNumber: string;
   policyId: string;
+  locationId: string;
+  externalId: string | null;
   term: number;
   // reportDate: Timestamp; // calc in report query
-  trxTimestamp: Timestamp;
-  bookingDate: Timestamp; // later of trx timestamp or trx eff date
+  // trxTimestamp: Timestamp; // TODO: delete ?? same at metadata.created ??
+  bookingDate: Timestamp; // later of trx timestamp (now/created) or trx eff date
   issuingCarrier: string;
   namedInsured: string;
   mailingAddress: Address;
-  locationId: string;
-  externalId: string | null;
-  insuredLocation: PolicyLocation;
+  // insuredLocation: PolicyLocation;
+  homeState: string;
   policyEffDate: Timestamp;
   policyExpDate: Timestamp;
-  trxEffDate: Timestamp; //
-  trxExpDate: Timestamp; // when action takes affect
+  trxEffDate: Timestamp; // for when premium is earned (where is this retreived from ??)
+  trxExpDate: Timestamp;
   trxDays: number; // trxExpDate - trxEffDate
-  cancelEffDate: Timestamp | null; // decide whether to calc in query (same as trx eff date in cancellation trx)
+  eventId: string;
+}
+
+export type CancellationReason =
+  | 'sold'
+  | 'premium_pmt_failure'
+  | 'exposure_change'
+  | 'insured_choice';
+
+export interface OffsetTransaction extends BaseTransaction {
+  trxType: 'endorsement' | 'cancellation' | 'flat_cancel';
+  insuredLocation: PolicyLocation;
+  termPremium: number;
+  MGACommission: number; // idemand & subproducer
+  MGACommissionPct: number;
+  netDWP: number;
+  dailyPremium: number;
+  netErrorAdj?: number;
+  // cancelEffDate: Timestamp;
+  cancelReason: CancellationReason | null;
+}
+
+export type PremTrxTypes = 'new' | 'renewal' | 'endorsement' | 'reinstatement';
+export interface PremiumTransaction extends BaseTransaction {
+  trxType: PremTrxTypes;
+  insuredLocation: PolicyLocation;
   ratingPropertyData: TrxRatingData;
   deductible: number;
   limits: Limits;
   TIV: number;
   RCVs: RCVs;
-  premiumCalcData: PremiumCalcData; // TODO: double check PremCalcData interface
+  premiumCalcData: PremiumCalcData;
   locationAnnualPremium: number;
-  termProratedPct: number; // (trxExpDate - trxEffDate) / (policyExpDate - policyEffDate)
-  termPremium: number; // annual prem * termProratedPct (rounded up to nearest dollar)
-  // MGACommRate: number;
+  termPremium: number;
   MGACommission: number; // idemand & subproducer
   MGACommissionPct: number;
-  netDWP: number; // term premium - mga commission
+  netDWP: number;
+  dailyPremium: number;
+  termProratedPct: number;
   netErrorAdj?: number;
-  dailyPremium: number; // term premium / trxPolicyDays rounded to 2
-  // submission?: string;
-  otherInterestedParties: string[]; // TODO: how is this different from additional named insured ? is it stored in PolicyLocation ?
+  otherInterestedParties: string[];
   additionalNamedInsured: string[];
-  homeState: string;
-  eventId: string;
 }
+
+export interface AmendmentTransaction extends BaseTransaction {
+  trxType: 'amendment'; // 'non_prem_endorsement';
+  insuredLocation?: PolicyLocation;
+  otherInterestedParties?: string[];
+  additionalNamedInsured?: string[];
+}
+
+export type Transaction = PremiumTransaction | OffsetTransaction | AmendmentTransaction;
+
+// export interface Transaction extends BaseDoc {
+//   trxType: TransactionType;
+//   // policyType: Product;
+//   product: Product;
+//   // policyNumber: string;
+//   policyId: string;
+//   term: number;
+//   // reportDate: Timestamp; // calc in report query
+//   trxTimestamp: Timestamp; // whats difference between trxTimestamp and trxEffDate
+//   bookingDate: Timestamp; // later of trx timestamp or trx eff date
+//   issuingCarrier: string;
+//   namedInsured: string;
+//   mailingAddress: Address;
+//   locationId: string;
+//   externalId: string | null;
+//   insuredLocation: PolicyLocation;
+//   policyEffDate: Timestamp;
+//   policyExpDate: Timestamp;
+//   trxEffDate: Timestamp; //
+//   trxExpDate: Timestamp; // when action takes affect
+//   trxDays: number; // trxExpDate - trxEffDate
+//   cancelEffDate: Timestamp | null; // decide whether to calc in query (same as trx eff date in cancellation trx)
+//   ratingPropertyData: TrxRatingData;
+//   deductible: number;
+//   limits: Limits;
+//   TIV: number;
+//   RCVs: RCVs;
+//   premiumCalcData: PremiumCalcData;
+//   locationAnnualPremium: number;
+//   termProratedPct: number; // (trxExpDate - trxEffDate) / (policyExpDate - policyEffDate)
+//   termPremium: number; // annual prem * termProratedPct (rounded up to nearest dollar)
+//   // MGACommRate: number;
+//   MGACommission: number; // idemand & subproducer
+//   MGACommissionPct: number;
+//   netDWP: number; // term premium - mga commission
+//   netErrorAdj?: number;
+//   dailyPremium: number; // term premium / trxPolicyDays rounded to 2
+//   // submission?: string;
+//   otherInterestedParties: string[]; // TODO: how is this different from additional named insured ? is it stored in PolicyLocation ?
+//   additionalNamedInsured: string[];
+//   homeState: string;
+//   eventId: string;
+// }
 
 export type InviteStatus = 'pending' | 'accepted' | 'revoked' | 'replaced' | 'rejected' | 'error';
 

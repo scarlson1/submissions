@@ -321,8 +321,10 @@ export const formatPhoneNumber = (str: string) => {
   return null;
 };
 
+// TODO: move to policy/transaction JS module
+
 /**
- * number of days between the two days (time is removed from dates)
+ * number of days between the two days (time is removed from dates). Will return negative value if effDate is larger than expDate
  * @param {Date} effDate effective date
  * @param {Date} expDate expiration date
  * @returns {number} number of days between the days (time removed)

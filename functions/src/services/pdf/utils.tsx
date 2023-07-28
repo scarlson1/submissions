@@ -5,10 +5,10 @@ import { PolicyDecPDFLocations } from './components';
 export function formatLocationData(locations: Policy['locations']) {
   let formatted: PolicyDecPDFLocations[] = [];
 
-  for (const [locationId, location] of Object.entries(locations)) {
+  for (const [_, location] of Object.entries(locations)) {
     const test = {
       address: getFormattedAddress(location.address),
-      locationId,
+      locationId: location.externalId || '',
       limitA: location.limits?.limitA ? dollarFormat(location.limits?.limitA) : '',
       limitB: location.limits?.limitA ? dollarFormat(location.limits?.limitB) : '',
       limitC: location.limits?.limitA ? dollarFormat(location.limits?.limitC) : '',
