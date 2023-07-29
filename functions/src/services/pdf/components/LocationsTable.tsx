@@ -2,16 +2,16 @@ import { ColumnDef, Table } from './Table';
 
 const locationColumns: ColumnDef[] = [
   {
-    field: 'address',
-    headerName: 'Address',
-    minWidth: 140,
+    field: 'locationId',
+    headerName: 'Location ID',
+    minWidth: 120,
     alignHeader: 'left',
     alignContent: 'left',
   },
   {
-    field: 'locationId',
-    headerName: 'Location ID',
-    minWidth: 120,
+    field: 'address',
+    headerName: 'Address',
+    minWidth: 140,
     alignHeader: 'left',
     alignContent: 'left',
   },

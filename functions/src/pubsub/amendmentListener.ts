@@ -43,18 +43,8 @@ export default async (event: CloudEvent<MessagePublishedData<AmendmentPayload>>)
     ? Boolean(locationId) && typeof locationId === 'string'
     : true;
   if (!policyId || typeof policyId !== 'string' || locationVerified) {
-    // error(`Missing policy and/or location ID`, {
-    //   policyId,
-    //   locationId,
-    //   amendmentScope,
-    // });
-    // reportErrorSentry(`Missing policy and/or location ID`, {
-    //   func: 'amendmentListener',
-    //   policyId,
-    //   locationId,
-    // });
     reportError(`Missing policy and/or location ID`, { policyId });
-    return; // TODO: report error
+    return;
   }
 
   const db = getFirestore();
@@ -85,8 +75,6 @@ export default async (event: CloudEvent<MessagePublishedData<AmendmentPayload>>)
       warn(`Ignoring event. Transaction already processed ${trxId}`);
     }
   } catch (err: any) {
-    // error(`Error saving transaction to database (policyId: ${policyId})`, { err });
-    // reportErrorSentry(err, { func: 'amendmentListener', policyId });
     reportError(`Error saving transaction to database (policyId: ${policyId})`, { policyId }, err);
   }
 

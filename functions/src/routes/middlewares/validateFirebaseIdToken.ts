@@ -6,6 +6,13 @@ import { RequestUserAuth } from '../../common/index.js';
 
 // https://github.com/firebase/functions-samples/blob/main/authorized-https-endpoint/functions/index.js
 
+// TODO: separate out setting taken on req.user, then delete
+// and require auth into separate middleware
+// ex: https://github.com/StephenGrider/ticketing/blob/master/common/src/middlewares/current-user.ts
+
+// throws if token not found in Authorization or cookie
+// sets decoded token on req.user, if present
+
 export const validateFirebaseIdToken = async (
   req: RequestUserAuth,
   res: Response,

@@ -38,10 +38,13 @@ import {
   mortgageeCol,
   externalIdCol,
   ratingDocIdCol,
+  termPremiumCol,
+  termDaysCol,
 } from './gridColumns';
 
 export const locationCols: GridColDef[] = [
   idCol,
+  externalIdCol,
   addressSummaryCol,
   addrLine1Col,
   addrLine2Col,
@@ -56,10 +59,12 @@ export const locationCols: GridColDef[] = [
   limitDCol,
   tivCol,
   deductibleCol,
+  termPremiumCol,
   annualPremiumCol,
   booleanCalcActiveCol,
   effectiveDateCol,
   expirationDateCol,
+  termDaysCol,
   additionalInsuredsCol,
   mortgageeCol,
   coordinatesCol,
@@ -75,7 +80,7 @@ export const locationCols: GridColDef[] = [
   ratingDataCBRSCol,
   ratingDataFloodZoneCol,
   ratingDocIdCol,
-  externalIdCol,
+
   createdCol,
   updatedCol,
 ];

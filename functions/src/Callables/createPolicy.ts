@@ -18,7 +18,7 @@ import {
   License,
   AdditionalInsured,
   Mortgagee,
-  calcTermPremium,
+  calcTerm,
 } from '../common';
 import { getRCVs } from '../utils/rating';
 import { checkMoratoriums } from '../services';
@@ -231,7 +231,7 @@ function convertQuoteToPolicy(data: Quote, license: License, quoteId: string | n
   const expirationDate = add(effDate, { years: 1 });
 
   //TODO: calc term permium separetely for policy once using multi-location
-  const { termDays, termPremium } = calcTermPremium(data.annualPremium, effDate, expirationDate);
+  const { termDays, termPremium } = calcTerm(data.annualPremium, effDate, expirationDate);
 
   // TODO: use location ID from quote once using updated Quote interface
   const locationId = uuidv4();

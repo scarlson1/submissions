@@ -772,11 +772,15 @@ export function stringToColor(str: string) {
 }
 
 export function stringAvatar(name: string) {
+  const split = name.split(' ');
+  const fLetter = split[0] ? split[0][0] : '';
+  const lLetter = split[1] ? split[1][0] : '';
+
   return {
     sx: {
       bgcolor: alpha(stringToColor(name), 0.7),
     },
-    children: `${name.split(' ')[0][0]}${name.split(' ')[1][0]}`,
+    children: `${fLetter?.toUpperCase() || ''}${lLetter?.toUpperCase() || ''}`,
   };
 }
 

@@ -1,7 +1,7 @@
 import { inspect } from 'util';
 import fs from 'fs';
 import { add, differenceInCalendarDays, Duration } from 'date-fns';
-import { ceil, isEqual, remove } from 'lodash';
+import { isEqual, remove } from 'lodash';
 import numeral from 'numeral';
 import { error, info } from 'firebase-functions/logger';
 import { DocumentReference } from 'firebase-admin/firestore';
@@ -334,6 +334,10 @@ export function getTermDays(effDate: Date, expDate: Date) {
   return differenceInCalendarDays(expDate, effDate);
 }
 
+// (trxExpDate - trxEffDate)/(trxExpDate - Year(1))*Annual Premium = Term Premium
+
+// Daily premium = roundup(Term Premium/ (trxExpDate-trxEffDate),2)
+
 /**
  * calc term premium and term days
  * @param {number} annualPremium annual premium for location
@@ -341,14 +345,30 @@ export function getTermDays(effDate: Date, expDate: Date) {
  * @param {Date} expDate location exp date
  * @returns {object} returns termPremium and termDays as numbers
  */
-export function calcTermPremium(annualPremium: number, effDate: Date, expDate: Date) {
-  const termDays = getTermDays(effDate, expDate);
+export function calcTerm(annualPremium: number, trxEffDate: Date, trxExpDate: Date) {
+  const termDays = getTermDays(trxEffDate, trxExpDate);
+  const yearDays = getTermDays(add(trxExpDate, { years: -1 }), trxExpDate);
 
-  const dailyAnnualPremium = annualPremium / 365;
-  const termPremium = ceil(dailyAnnualPremium * termDays);
+  const termPremium = round((termDays / yearDays) * annualPremium, 2);
 
   return { termDays, termPremium };
 }
+
+// /**
+//  * calc term premium and term days
+//  * @param {number} annualPremium annual premium for location
+//  * @param {Date} effDate location eff date
+//  * @param {Date} expDate location exp date
+//  * @returns {object} returns termPremium and termDays as numbers
+//  */
+// export function calcTermPremium(annualPremium: number, effDate: Date, expDate: Date) {
+//   const termDays = getTermDays(effDate, expDate);
+
+//   const dailyAnnualPremium = annualPremium / 365;
+//   const termPremium = ceil(dailyAnnualPremium * termDays);
+
+//   return { termDays, termPremium };
+// }
 
 /** generates a unique ID using uuid, removes hyphens
  * @returns {string} new unique ID

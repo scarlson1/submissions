@@ -48,11 +48,6 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyCancelPayload
     !cancelEffDateMS ||
     !isValid(cancelEffDateMS)
   ) {
-    // error(`Missing policy and/or location ID and/or cancel effective date`, {
-    //   policyId,
-    //   locationId,
-    //   cancelEffDateMS,
-    // });
     reportError(`Missing policy and/or location ID and/or cancel effective date`, {
       policyId,
       locationId,
@@ -73,11 +68,6 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyCancelPayload
   try {
     prevTrx = await fetchPreviousTrx(db, policyId, locationId, premEndorsementPrevTypes);
   } catch (err: any) {
-    // error(`No previous transactions found matching query. returning early`, {
-    //   policyId,
-    //   locationId,
-    //   err,
-    // });
     reportError(
       `No previous transactions found matching query. returning early`,
       { policyId, locationId },
@@ -91,11 +81,11 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyCancelPayload
     const trxRef = trxCol.doc(trxId);
 
     if (!trxExists(trxRef)) {
-      const trxTimestamp = Timestamp.fromMillis(cancelEffDateMS);
+      const trxEffDate = Timestamp.fromMillis(cancelEffDateMS);
 
       const offsetTrx = getOffsetTrx(
         prevTrx as PremiumTransaction,
-        trxTimestamp,
+        trxEffDate,
         eventId,
         'cancellation',
         cancelReason
@@ -106,8 +96,6 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyCancelPayload
       warn(`Ignoring event. Transaction already processed ${trxId}`);
     }
   } catch (err: any) {
-    // error(`Error saving cancel transaction`, { err, eventId, locationId, policyId, prevTrx });
-    // reportErrorSentry(err, { func: 'locationCancelListener', policyId, locationId });
     reportError(`Error saving cancel transaction`, { policyId, locationId }, err);
   }
 };

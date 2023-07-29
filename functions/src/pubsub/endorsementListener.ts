@@ -14,6 +14,7 @@ import {
   trxExists,
 } from '../utils/transactions';
 import { reportErrorSentry } from '../services/sentry';
+import { isValid } from 'date-fns';
 
 // How is removed location handled ??
 // assume deleted if location not found in policy ??
@@ -35,6 +36,7 @@ export const premEndorsementPrevTypes: PremiumTransaction['trxType'][] = [
 interface PolicyPremEndorsementPayload {
   policyId: string;
   locationId: string;
+  effDateMS: number;
 }
 
 export default async (event: CloudEvent<MessagePublishedData<PolicyPremEndorsementPayload>>) => {
@@ -42,27 +44,24 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyPremEndorseme
   const eventId = event.id;
   let policyId = null;
   let locationId = null;
+  let effDateMS = null;
 
   try {
     policyId = event.data?.message?.json?.policyId;
     locationId = event.data?.message?.json?.locationId;
+    effDateMS = event.data?.message?.json?.effDateMS;
   } catch (e) {
-    reportEndorsementError(
-      'PubSub message was not JSON',
-      {
-        policyId,
-        locationId,
-      },
-      e
-    );
+    reportEndorsementError('PubSub message was not JSON', {}, e);
   }
 
+  // TODO: validate eff date or default to now ??
   if (!policyId || !locationId || typeof policyId !== 'string' || typeof locationId !== 'string') {
     reportEndorsementError(`Missing policy and/or location ID`, {
       policyId,
       locationId,
+      effDateMS,
     });
-    return; // TODO: report error
+    return;
   }
 
   const db = getFirestore();
@@ -70,7 +69,6 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyPremEndorseme
 
   const policy = await fetchPolicyData(db, policyId);
   if (!policy) {
-    // warn(`Policy not found. Returning early.`); // TODO: report error
     reportEndorsementError(`Policy not found. Returning early.`, {
       policyId,
       locationId,
@@ -92,18 +90,8 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyPremEndorseme
   try {
     prevTrx = await fetchPreviousTrx(db, policyId, locationId, premEndorsementPrevTypes);
   } catch (err: any) {
-    // error(`No previous transactions found matching query. returning early`, {
-    //   policyId,
-    //   locationId,
-    //   err,
-    // });
-    // reportErrorSentry(`No previous transactions found matching query. returning early`, {
-    //   func: 'endorsementListener',
-    //   policyId,
-    //   locationId,
-    // });
     reportEndorsementError(
-      `No previous transactions found matching query. returning early`,
+      `No previous transactions found matching query. returning early.`,
       { policyId, locationId },
       err
     );
@@ -119,12 +107,13 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyPremEndorseme
 
       const batch = db.batch();
 
-      const trxTimestamp = Timestamp.now(); // TODO: use booking date ?? (later of now and location eff date)
+      let trxEffDate =
+        effDateMS && isValid(effDateMS) ? Timestamp.fromMillis(effDateMS) : Timestamp.now();
 
       const offsetTrxRef = trxCol.doc(`${trxId}-offset`);
       const offsetTrx = getOffsetTrx(
         prevTrx as PremiumTransaction,
-        trxTimestamp,
+        trxEffDate,
         eventId,
         'endorsement'
       ) as Transaction;
@@ -135,7 +124,7 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyPremEndorseme
         policy,
         location,
         ratingData,
-        policyId,
+        // policyId,
         eventId
       );
       batch.set(trxRef, { ...locationTrx });
@@ -150,8 +139,6 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyPremEndorseme
       warn(`Ignoring event. Transaction already exists ${trxId}`);
     }
   } catch (err: any) {
-    // error(`Error saving batched transactions`, { err });
-    // reportErrorSentry(err, { func: 'endorsementListener', policyId, locationId });
     reportEndorsementError(`Error saving batched transactions`, { policyId, locationId }, err);
   }
 
