@@ -8,7 +8,8 @@ import {
   UploadFilesDialogComponent,
   UploadFilesDialogComponentProps,
 } from 'elements/UploadFilesDialog';
-import { useCreateStorageFiles } from 'hooks';
+import { useAsyncToast, useCreateStorageFiles } from 'hooks';
+import { filter, includes, snakeCase } from 'lodash';
 
 // TODO: use web worker ??
 // https://www.newline.co/fullstack-react/articles/introduction-to-web-workers-with-react/
@@ -69,6 +70,7 @@ export const CSVUploadDialog = ({
   onSuccess,
   ...props
 }: CSVUploadDialogProps) => {
+  const toast = useAsyncToast({ position: 'top-right', duration: 2400 });
   const [headerStatus, setHeaderStatus] = useState<Record<string, boolean | null>>(
     getHeaderStatus([])
   );
@@ -150,6 +152,20 @@ export const CSVUploadDialog = ({
   useEffect(() => {
     setHeaderStatus(getHeaderStatus(headers));
   }, [headers, getHeaderStatus]);
+
+  useEffect(() => {
+    // TODO: verify all headers unique
+    // https://stackoverflow.com/a/31681942
+    // _.filter(arr, (val, i, iteratee) => _.includes(iteratee, val, i + 1))
+    let snake = headers.map((h) => snakeCase(h));
+    let dupHeaders = filter(snake, (val, i, iteratee) => includes(iteratee, val, i + 1));
+
+    console.log('headers: ', headers.length);
+    console.log('dup: ', dupHeaders.length);
+
+    if (dupHeaders.length)
+      toast.warn(`Duplicate headers detected (${dupHeaders.join(', ')})`, { id: 'dup-headers' });
+  }, [toast, headers]);
 
   useEffect(() => {
     if (!uploadFiles || !uploadFiles.length) setHeaderStatus({ ...getHeaderStatus([]) });
