@@ -1,5 +1,4 @@
 import { CallableRequest } from 'firebase-functions/v2/https';
-import { projectID } from 'firebase-functions/params';
 import * as Sentry from '@sentry/node';
 import { Primitive } from '../../common';
 
@@ -10,7 +9,7 @@ Sentry.init({
   maxBreadcrumbs: 50,
   // environment: projectID.value(), // read from SENTRY_ENV
   // enabled: !emulators.value(),
-  debug: projectID.value() === 'idemand-submissions-dev',
+  // debug: projectID.value() === 'idemand-submissions-dev',
 });
 
 export const onCallWrapper = <T = any>(

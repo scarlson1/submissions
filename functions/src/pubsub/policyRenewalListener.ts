@@ -1,4 +1,4 @@
-import { Timestamp, getFirestore } from 'firebase-admin/firestore';
+import { getFirestore } from 'firebase-admin/firestore';
 import { CloudEvent } from 'firebase-functions/lib/v2/core';
 import { error, info } from 'firebase-functions/logger';
 import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
@@ -52,8 +52,6 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyRenewalPayloa
     return;
   }
 
-  const trxTimestamp = Timestamp.now();
-
   for (let [locationId, location] of locationEntries) {
     try {
       const trxId = constructTrxId(policyId, locationId, eventId);
@@ -62,15 +60,7 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyRenewalPayloa
       if (!trxExists(trxRef)) {
         const ratingData = await fetchRatingData(db, location.ratingDocId);
 
-        const locationTrx = formatPremiumTrx(
-          'renewal',
-          policy,
-          location,
-          ratingData,
-          policyId,
-          eventId,
-          trxTimestamp
-        );
+        const locationTrx = formatPremiumTrx('renewal', policy, location, ratingData, eventId);
 
         await trxRef.set({ ...locationTrx });
         info(`New transaction saved for location ${locationId}`, { locationTrx });

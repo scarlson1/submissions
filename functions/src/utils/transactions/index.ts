@@ -54,11 +54,10 @@ export const getBookingDate = (locationEffDateSeconds: number, trxEffDateSeconds
  * Calc daily premium, rounded
  * @param {number} termPremium premium between eff. & exp. dates
  * @param {number} termDays days between exp. date and eff. date
- * @param {number} roundTo decimal place for rounding (default = 2)
  * @returns {number} daily premium
  */
-export const getDailyPremium = (termPremium: number, termDays: number, roundTo: number = 2) =>
-  round(termPremium / termDays, roundTo);
+export const getDailyPremium = (termPremium: number, termDays: number) =>
+  round(termPremium / termDays, 2);
 
 /**
  * Term prorated percent formula
@@ -102,13 +101,13 @@ export const getMGAComm = (
 export const getNetDWP = (termPremium: number, MGAComm: number) => termPremium - MGAComm;
 
 export function formatPremiumTrx(
-  trxType: PremiumTransaction['trxType'], // TransactionType,
-  policy: Policy,
+  trxType: PremiumTransaction['trxType'],
+  policy: WithId<Policy>,
   location: PolicyLocation,
   ratingData: RatingData,
-  policyId: string, // TODO: use WithId<Policy> instead
-  eventId: string,
-  trxTimestamp: Timestamp = Timestamp.now() // TODO: delete ?? does ms matter ??
+  // policyId: string,
+  eventId: string
+  // trxEffDate: Timestamp = Timestamp.now()
 ): PremiumTransaction {
   // const trxEffDate = policy?.effectiveDate; // or is trxEffDate the later of location Eff date, policy Eff date and now ??
   const trxEffDate = location.effectiveDate;
@@ -129,7 +128,7 @@ export function formatPremiumTrx(
   return {
     trxType,
     product: policy.product || '',
-    policyId,
+    policyId: policy.id,
     term: policy.term,
     bookingDate: Timestamp.fromMillis(bookingDateMillis),
     issuingCarrier: policy?.issuingCarrier || '',
@@ -168,8 +167,8 @@ export function formatPremiumTrx(
     homeState: policy.homeState || '',
     eventId,
     metadata: {
-      created: trxTimestamp, // Timestamp.now(),
-      updated: trxTimestamp, // Timestamp.now(),
+      created: Timestamp.now(),
+      updated: Timestamp.now(),
     },
   };
 }

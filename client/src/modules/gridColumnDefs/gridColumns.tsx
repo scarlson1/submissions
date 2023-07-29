@@ -1157,7 +1157,6 @@ export const annualPremiumCol: GridColDef = {
   valueFormatter: formatGridCurrency,
 };
 
-// TODO: delete termPremium ?? same as annual ?? or term is pro-rated ??
 export const termPremiumCol: GridColDef = {
   field: 'termPremium',
   headerName: 'Term Premium',
@@ -1168,7 +1167,19 @@ export const termPremiumCol: GridColDef = {
   headerAlign: 'center',
   align: 'right',
   filterOperators: getGridFirestoreNumericOperators(),
-  valueFormatter: formatGridCurrency,
+  valueFormatter: (params) => formatGridCurrency(params, '$0,0.00'),
+};
+
+export const termDaysCol: GridColDef = {
+  field: 'termDays',
+  headerName: 'Term Days',
+  type: 'number',
+  minWidth: 100,
+  flex: 0.5,
+  editable: false,
+  headerAlign: 'center',
+  align: 'right',
+  filterOperators: getGridFirestoreNumericOperators(),
 };
 
 export const locationsCount: GridColDef = {

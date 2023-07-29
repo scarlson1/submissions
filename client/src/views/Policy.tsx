@@ -101,6 +101,19 @@ export const Policy = () => {
     alert('cancel not implemented yet');
   }, []);
 
+  // TODO: display not found component (or throw & handle in error boundary ??)
+  if (!data)
+    return (
+      <Box sx={{ p: 10, display: 'flex', justifyContent: 'center' }}>
+        <Typography
+          variant='h5'
+          color='warning.main'
+          align='center'
+          gutterBottom
+        >{`Policy not found`}</Typography>
+      </Box>
+    );
+
   return (
     // TODO: container ?? layout ??
     <Box sx={{ px: 10, py: 5 }}>

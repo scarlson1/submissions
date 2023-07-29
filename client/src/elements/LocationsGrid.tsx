@@ -86,7 +86,7 @@ export const LocationsGrid = ({
               coordinates: false,
               latitude: false,
               longitude: false,
-              // annualPremium: false,
+              annualPremium: false,
               'ratingPropertyData.CBRSDesignation': false,
               'ratingPropertyData.basement': false,
               'ratingPropertyData.distToCoastFeet': false,

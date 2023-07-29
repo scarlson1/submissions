@@ -16,6 +16,8 @@ import {
 // reinstatement trxEffDate = cancellation date (from cancellation trx)
 // booking date ??
 
+// TODO: need to handle location reinstatement
+
 const reportError = getReportErrorFn('reinstatementListener');
 
 interface ReinstatementPayload {

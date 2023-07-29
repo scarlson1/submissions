@@ -4,10 +4,10 @@ import { getFirestore } from 'firebase-admin/firestore';
 import express from 'express';
 import cors from 'cors';
 import * as bodyParser from 'body-parser';
-import { flatten } from 'lodash';
 import { format } from 'date-fns';
 // Axios no exported type bug
 // import { ExportSdkClient } from '@exportsdk/client';
+import 'express-async-errors';
 
 import { ExportSdkClient } from '../services/exportSDK';
 import {
@@ -19,14 +19,13 @@ import {
   calcSum,
   decPageTemplateId,
   dollarFormat,
-  dollarFormat2,
   exportSDKKey,
   formatPhoneNumber,
   policiesCollection,
 } from '../common';
-import { validateFirebaseIdToken } from './middlewares';
-import { generatePolicyDecPDF } from '../services/pdf';
-import { formatLocationData } from '../services/pdf/utils';
+import { currentUser, requireAuth, validateRequest } from './middlewares';
+import { generatePolicyDecPDF, getPremiumTable } from '../services/pdf';
+import { formatLocationData, getLocationInterests } from '../services/pdf';
 import { AdditionalInterestsItem, PolicyDecPDFLocations } from '../services/pdf/components';
 
 // example using react-pdf directly: https://exportsdk.com/how-to-generate-pdfs-with-nodejs
@@ -111,7 +110,10 @@ const app = express();
 app.use(cors({ origin: true }));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(validateFirebaseIdToken);
+// app.use(validateFirebaseIdToken);
+app.use(currentUser);
+app.use(requireAuth);
+app.use(validateRequest);
 
 // using ExportSDK template
 app.post('/generatePolicy', async (req: RequestUserAuth, res: Response) => {
@@ -405,7 +407,6 @@ app.post('/generateDecPDF', async (req: RequestUserAuth, res: Response) => {
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename=export.pdf`);
 
-    // Streaming resulting pdf back to the user
     result.pipe(res);
   } catch (err: any) {
     error('Error generating PDF from react-pdf template', { err });
@@ -443,73 +444,6 @@ export function getLocationCoveragesTableData(
       TIV: typeof tiv === 'number' ? dollarFormat(tiv) : '',
     };
   });
-}
-
-// TODO: refactor - use for loops instead of map and remove flatten
-export function getLocationInterests(locations: PolicyLocation[]): AdditionalInterestsItem[] {
-  let interests = locations.map((l) => {
-    const addr = getFormattedAddress(l.address);
-    const additionalInsureds: AdditionalInterestsItem[] = l.additionalInsureds?.map((ai) => ({
-      locationAddress: addr,
-      locationId: l.locationId,
-      interestType: 'additional insured',
-      name: ai.name,
-      interestAddress: ai.address?.addressLine1 ? getFormattedAddress(ai.address) : '',
-      loanNumber: '',
-    }));
-    const mortgagee = l.mortgageeInterest?.map((mi) => ({
-      locationAddress: addr,
-      locationId: l.locationId,
-      interestType: 'mortgagee',
-      name: mi.name,
-      interestAddress: mi.address?.addressLine1 ? getFormattedAddress(mi.address) : '',
-      loanNumber: mi.loanNumber || ('' as string),
-    }));
-    return [...additionalInsureds, ...mortgagee];
-  });
-
-  return flatten(interests);
-}
-
-export function getPremiumTable(policy: Policy): PremiumTableItem[] {
-  let result = [
-    {
-      itemTitle: 'Term Premium',
-      subjectAmount: '',
-      rate: '',
-      value: dollarFormat2(policy.termPremium),
-    },
-  ];
-
-  if (policy.fees && Array.isArray(policy.fees)) {
-    for (const fee of policy.fees) {
-      result.push({
-        itemTitle: fee.feeName,
-        subjectAmount: '',
-        rate: '',
-        value: dollarFormat2(fee.feeValue),
-      });
-    }
-  }
-  if (policy.taxes && Array.isArray(policy.taxes)) {
-    for (const tax of policy.taxes) {
-      result.push({
-        itemTitle: tax.displayName,
-        subjectAmount: '',
-        rate: '',
-        value: dollarFormat2(tax.value),
-      });
-    }
-  }
-
-  result.push({
-    itemTitle: 'Total price',
-    subjectAmount: '',
-    rate: '',
-    value: dollarFormat2(policy.price),
-  });
-
-  return result;
 }
 
 // import { Request, HttpsError } from 'firebase-functions/v2/https';

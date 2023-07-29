@@ -601,7 +601,7 @@ const DecPagePDF = ({ data }: PDFProps) => {
         />
       </Page>
       <Page size='A4' orientation='portrait' wrap={true} style={styles.page}>
-        {data.docsAttached?.length && (
+        {data.docsAttached?.length > 0 && (
           <>
             <View style={[styles.headerContainer]}>
               <Text style={[styles.tableHeader, styles.textSecondary]}>Attached Documents</Text>

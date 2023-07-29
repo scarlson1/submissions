@@ -39,7 +39,7 @@ import {
   SubjectBaseItems,
   TaxItem,
   audience,
-  calcTermPremium,
+  calcTerm,
   extractNumber,
   extractNumberNeg,
   getNewLocationId,
@@ -188,7 +188,7 @@ export default async (event: StorageEvent) => {
 
   // return early if file is not new (metadata change) or not csv
   if (metageneration !== '1' || contentType !== 'text/csv' || !filePath) {
-    console.log(
+    info(
       `validation failed. contentType: ${contentType}. metageneration: ${metageneration}. filepath: ${filePath}`
     );
     return null;
@@ -580,7 +580,7 @@ async function groupByPolicyId(data: ParsedPolicyRow[], firestore: Firestore) {
   const ts = Timestamp.now();
 
   for (const row of data) {
-    let locId = getNewLocationId(); // uuid();
+    let locId = getNewLocationId();
     const formattedLocation = formatPolicyLocation(row, locId, ts);
 
     const policyId = row.policyId as string;
@@ -632,7 +632,7 @@ function formatPolicyLocation(
   const effDateTs = Timestamp.fromDate(effDate);
   const expDateTs = Timestamp.fromDate(expDate);
 
-  const { termDays, termPremium } = calcTermPremium(data.annualPremium, effDate, expDate);
+  const { termDays, termPremium } = calcTerm(data.annualPremium, effDate, expDate);
 
   const location: PolicyLocation = {
     address: data.address as Address,
