@@ -43,6 +43,7 @@ export {
   MAPBOX_STREETS,
   MAPBOX_SATELLITE,
 } from './MapStyleControl';
+export { CtxDialog } from './CtxDialog';
 
 export type { ConfirmationDialogProps } from './ConfirmationDialog';
 export type { FileLinkProps } from './FileLink';

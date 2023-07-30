@@ -29,6 +29,8 @@ export const usePreferredMapStyle = (initVal: string = MAPBOX_STREETS) => {
   return [mapStyle, setMapStyle] as const;
 };
 
+// const callAll = (...fns) => (...args) => fns.forEach(fn => fn?.(...args))
+
 export const useMapboxStyleControl = (
   initial: string,
   props?: Omit<ToggleButtonGroupProps, 'onChange' | 'value' | 'exclusive'>
@@ -47,6 +49,14 @@ export const useMapboxStyleControl = (
     [map, setStyle]
   );
 
+  // TODO: use prop getter function - example:
+  // function getTogglerProps({ onClick, ...props } = {}) {
+  //   return {
+  //     'aria-pressed': on,
+  //     onClick: callAll(onClick, toggle),
+  //     ...props,
+  //   };
+  // }
   return useMemo(
     () => ({
       onChange: handleChange,
@@ -106,10 +116,12 @@ export const MOBILE_DEFAULT_MAP_STYLE_OPTIONS: MapStyleOption[] = [
     value: MAPBOX_SATELLITE,
   },
 ];
+
 interface MapStyleOption {
   label: string | ReactElement;
   value: string;
 }
+
 interface MapboxStyleControlProps
   extends Omit<ToggleButtonGroupProps, 'onChange' | 'value' | 'exclusive'> {
   initStyle: string;

@@ -1,7 +1,10 @@
 import { useCallback, useState } from 'react';
 import {
+  Alert,
+  AlertTitle,
   Box,
   Button,
+  Collapse,
   Link,
   MenuItem,
   Stack,
@@ -13,8 +16,10 @@ import {
 import { GridActionsCellItem, GridRowModel, GridRowParams } from '@mui/x-data-grid';
 import { DataObjectRounded, EditRounded, InfoRounded, OpenInNewRounded } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import { UploadResult } from 'firebase/storage';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { useFirestore } from 'reactfire';
+import { camelCase, snakeCase } from 'lodash';
 import { toast } from 'react-hot-toast';
 
 import { ADMIN_ROUTES, createPath } from 'router';
@@ -25,8 +30,8 @@ import { useConfirmation } from 'modules/components';
 import { quoteConverter } from 'common/firestoreConverters';
 import { QuotesGrid, CSVUploadDialog } from 'elements';
 import { IconMenu } from 'components/IconButtonMenu';
-import { camelCase, snakeCase } from 'lodash';
-import { UploadResult } from 'firebase/storage';
+import { getDuplicates } from 'modules/utils';
+import { Usage } from 'context/DialogContext';
 
 const useUpdateQuoteStatus = () => {
   const firestore = useFirestore();
@@ -192,6 +197,7 @@ export const Quotes = () => {
         processRowUpdate={confirmAndUpdate}
         onProcessRowUpdateError={handleProcessRowUpdateError}
       />
+      <Usage />
     </Box>
   );
 };
@@ -259,13 +265,8 @@ function getHeaderStatus(
   let result: Record<string, boolean | null> = {};
 
   for (let h of requiredHeaders) {
-    //  REQUIRED_HEADERS
     result[h] = formatted.includes(h);
   }
-
-  // console.log('formatted: ', formatted);
-  // console.log('result: ', result);
-  // console.log('result.CBRSDesignation', result.CBRSDesignation);
 
   return result;
 }
@@ -274,25 +275,42 @@ type OpenOptions = 'ratePortfolio' | 'importQuotes';
 
 // Required to get around dialog unmounting when icon menu closes
 function QuotesActionMenu() {
+  const toast = useAsyncToast({ position: 'top-right', duration: 2400 });
   const [open, setOpen] = useState<OpenOptions | null>(null);
+  const [dupHeaders, setDupHeaders] = useState<string[]>([]);
 
   const handleOpen = useCallback((val: OpenOptions) => () => setOpen(val), []);
-  const handleClose = useCallback(() => setOpen(null), []);
+  const handleClose = useCallback(() => {
+    setOpen(null);
+    setDupHeaders([]);
+  }, []);
+
+  const checkForDuplicates = useCallback((headers: string[], formatFn: (str: string) => string) => {
+    let formatted = headers.map((h) => formatFn(h));
+    let dups = getDuplicates(formatted);
+
+    setDupHeaders(dups);
+  }, []);
 
   const handleHeaderStatus = useCallback(
-    (requiredHeaders: string[], formatFn: (str: string) => string) => (headers: string[]) =>
-      getHeaderStatus(headers, requiredHeaders, formatFn),
-    []
+    (requiredHeaders: string[], formatFn: (str: string) => string) => (headers: string[]) => {
+      checkForDuplicates(headers, formatFn);
+      return getHeaderStatus(headers, requiredHeaders, formatFn);
+    },
+    [checkForDuplicates]
   );
 
-  const onSuccess = useCallback((uploadResult: UploadResult[]) => {
-    console.log('upload result: ', uploadResult);
-    toast.success("you'll receive an email once complete", {
-      duration: 2000,
-      position: 'top-right',
-      icon: <InfoRounded />,
-    });
-  }, []);
+  const onSuccess = useCallback(
+    (uploadResult: UploadResult[]) => {
+      console.log('upload result: ', uploadResult);
+      toast.success("you'll receive an email once complete", {
+        duration: 2000,
+        position: 'top-right',
+        icon: <InfoRounded />,
+      });
+    },
+    [toast]
+  );
 
   return (
     <>
@@ -314,6 +332,12 @@ function QuotesActionMenu() {
           </Link>
           {`. (ex: "CovA limit" → "cov_a_limit")`}
         </Typography>
+        <Collapse in={dupHeaders.length > 0}>
+          <Alert severity='warning'>
+            <AlertTitle>Duplicate headers detected</AlertTitle>
+            {dupHeaders.join(', ')}
+          </Alert>
+        </Collapse>
       </CSVUploadDialog>
       <CSVUploadDialog
         open={open === 'importQuotes'}
@@ -329,6 +353,12 @@ function QuotesActionMenu() {
           </Link>
           {`. (ex: "cov_a limit" → "covALimit")`}
         </Typography>
+        <Collapse in={dupHeaders.length > 0}>
+          <Alert severity='warning'>
+            <AlertTitle>Duplicate headers detected</AlertTitle>
+            {dupHeaders.join(', ')}
+          </Alert>
+        </Collapse>
       </CSVUploadDialog>
     </>
   );

@@ -3,6 +3,7 @@ import { deepmerge } from '@mui/utils';
 import { ArrowDropDownRounded } from '@mui/icons-material';
 import type {} from '@mui/x-date-pickers/themeAugmentation';
 
+// TODO: switch to using CSS vars
 // https://github.com/mui/material-ui/blob/master/docs/src/modules/brandingTheme.ts
 // Fonts to consider:
 // Public Sans
@@ -11,6 +12,13 @@ import type {} from '@mui/x-date-pickers/themeAugmentation';
 
 // Secondary grey text options
 // #616161,
+
+// kent c dodds
+// light bg: #F3F6F8 (slightly darker shade: #E9EDF1)
+// light feature color: #C3CCD4 (slightly darker grey)
+// dark bg: #1A212A
+// dark paper: #212B36
+// dark feature color; #8D9DAB (grey)
 
 declare module '@mui/material/styles/createPalette' {
   interface ColorRange {

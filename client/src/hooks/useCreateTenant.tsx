@@ -104,7 +104,7 @@ export const useCreateTenant = (
 ) => {
   const functions = useFunctions();
   const toast = useAsyncToast();
-  const { sendApproved, promptForNotification, confirmAndSend } = useSendAgencyAppNotification();
+  const { sendApproved, confirmAndSend } = useSendAgencyAppNotification(); // promptForNotification,
 
   const [error, setError] = useState<any>();
   const [loading, setLoading] = useState(false);
@@ -173,7 +173,7 @@ export const useCreateTenant = (
 
       if (onSuccess) onSuccess({ tenantId });
     },
-    [promptForNotification, sendApproved, toast, onSuccess]
+    [confirmAndSend, onSuccess] // [promptForNotification, sendApproved, toast, onSuccess]
   );
 
   const createTenant = useCallback(

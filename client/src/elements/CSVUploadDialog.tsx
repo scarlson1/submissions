@@ -1,4 +1,4 @@
-import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
+import { ReactNode, useCallback, useMemo, useState } from 'react';
 import { Box, Unstable_Grid2 as Grid, Stack, Typography } from '@mui/material';
 import { CheckCircleRounded } from '@mui/icons-material';
 import { UploadResult } from 'firebase/storage';
@@ -8,8 +8,7 @@ import {
   UploadFilesDialogComponent,
   UploadFilesDialogComponentProps,
 } from 'elements/UploadFilesDialog';
-import { useAsyncToast, useCreateStorageFiles } from 'hooks';
-import { filter, includes, snakeCase } from 'lodash';
+import { useCreateStorageFiles } from 'hooks';
 
 // TODO: use web worker ??
 // https://www.newline.co/fullstack-react/articles/introduction-to-web-workers-with-react/
@@ -70,11 +69,10 @@ export const CSVUploadDialog = ({
   onSuccess,
   ...props
 }: CSVUploadDialogProps) => {
-  const toast = useAsyncToast({ position: 'top-right', duration: 2400 });
   const [headerStatus, setHeaderStatus] = useState<Record<string, boolean | null>>(
-    getHeaderStatus([])
+    {} // getHeaderStatus([])
   );
-  const [headers, setHeaders] = useState<string[]>([]);
+  // const [headers, setHeaders] = useState<string[]>([]);
 
   const isValid = useMemo(() => Object.values(headerStatus).every((v) => v), [headerStatus]);
 
@@ -138,38 +136,28 @@ export const CSVUploadDialog = ({
           console.log('HEADERS: ', headers);
           console.log('ERRORS: ', errors);
           console.log('PARSE RESULT: ', parseResult);
-          setHeaders(headers);
+
+          // setHeaders(headers);
+          setHeaderStatus(getHeaderStatus(headers));
         } catch (err) {
           console.log('ERROR: ', err);
         }
       }
-      // if (files[0]) handleParse2(files[0]);
+
       handleNewFiles(files);
     },
-    [handleNewFiles, handleParse]
+    [handleNewFiles, handleParse, getHeaderStatus]
   );
 
-  useEffect(() => {
-    setHeaderStatus(getHeaderStatus(headers));
-  }, [headers, getHeaderStatus]);
+  // causes infinite loop b/c sets duplicate headers value --> triggers rerender
+  // and useEffect calls getHeaderStatus with empty array when not intended
+  // useEffect(() => {
+  //   setHeaderStatus(getHeaderStatus(headers));
+  // }, [headers, getHeaderStatus]);
 
-  useEffect(() => {
-    // TODO: verify all headers unique
-    // https://stackoverflow.com/a/31681942
-    // _.filter(arr, (val, i, iteratee) => _.includes(iteratee, val, i + 1))
-    let snake = headers.map((h) => snakeCase(h));
-    let dupHeaders = filter(snake, (val, i, iteratee) => includes(iteratee, val, i + 1));
-
-    console.log('headers: ', headers.length);
-    console.log('dup: ', dupHeaders.length);
-
-    if (dupHeaders.length)
-      toast.warn(`Duplicate headers detected (${dupHeaders.join(', ')})`, { id: 'dup-headers' });
-  }, [toast, headers]);
-
-  useEffect(() => {
-    if (!uploadFiles || !uploadFiles.length) setHeaderStatus({ ...getHeaderStatus([]) });
-  }, [uploadFiles, getHeaderStatus]);
+  // useEffect(() => {
+  //   if (!uploadFiles || !uploadFiles.length) setHeaderStatus({ ...getHeaderStatus([]) });
+  // }, [uploadFiles, getHeaderStatus]);
 
   const onSubmit = useCallback(async () => {
     try {
@@ -183,7 +171,16 @@ export const CSVUploadDialog = ({
   const handleCancel = useCallback(() => {
     uploadHandleCancel();
     onClose();
-  }, [uploadHandleCancel, onClose]);
+    setHeaderStatus({ ...getHeaderStatus([]) });
+  }, [uploadHandleCancel, onClose, getHeaderStatus]);
+
+  const handleRemove = useCallback(
+    (file: File) => {
+      handleRemoveFile(file);
+      setHeaderStatus({ ...getHeaderStatus([]) });
+    },
+    [handleRemoveFile, getHeaderStatus]
+  );
 
   return (
     <Box>
@@ -195,7 +192,7 @@ export const CSVUploadDialog = ({
         files={uploadFiles}
         // onNewFiles={handleNewFiles}
         onNewFiles={validateHeadersOnNewFiles}
-        onRemove={handleRemoveFile}
+        onRemove={handleRemove}
         // onSubmit={onSubmit}
         handleSubmit={onSubmit}
         onCancel={handleCancel}

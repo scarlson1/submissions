@@ -6,7 +6,7 @@ import { FirestoreError, GeoPoint, Timestamp, WhereFilterOp } from 'firebase/fir
 import type { AuthError } from 'firebase/auth';
 import { geohashForLocation } from 'geofire-common';
 import { FirebaseError } from '@firebase/util';
-import { transform, isEqual, isArray, isObject, find, ceil, floor } from 'lodash';
+import { transform, isEqual, isArray, isObject, find, ceil, floor, filter, includes } from 'lodash';
 
 import { AddressComponent, AddressComponentType } from 'components/forms';
 import {
@@ -841,4 +841,14 @@ export function getRGBAArray(
   if (!rgb) return fallback;
 
   return [rgb?.r, rgb?.g, rgb?.b, alpha];
+}
+
+// // https://stackoverflow.com/a/31681942
+/**
+ * Filter array for values that occur more than once
+ * @param {string[]} arr array to evaluate for duplicates
+ * @returns {string[]} array filtered to only include duplicates
+ */
+export function getDuplicates(arr: string[]) {
+  return filter(arr, (val, i, iteratee) => includes(iteratee, val, i + 1));
 }

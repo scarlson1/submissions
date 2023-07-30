@@ -18,6 +18,7 @@ import {
   AuthContextProvider,
   Toaster,
 } from 'modules/components';
+import { DialogProvider } from 'context';
 import { ErrorFallback } from 'components';
 import { useAnalyticsEvent } from 'hooks';
 import { ConfirmationProvider2 } from 'modules/components/ConfirmationService2';
@@ -73,10 +74,12 @@ function App() {
         <LocalizationProvider dateAdapter={AdapterDateFns}>
           <ConfirmationProvider>
             <ConfirmationProvider2>
-              <AuthContextProvider>
-                <Outlet />
-                <Toaster />
-              </AuthContextProvider>
+              <DialogProvider>
+                <AuthContextProvider>
+                  <Outlet />
+                  <Toaster />
+                </AuthContextProvider>
+              </DialogProvider>
             </ConfirmationProvider2>
           </ConfirmationProvider>
         </LocalizationProvider>
