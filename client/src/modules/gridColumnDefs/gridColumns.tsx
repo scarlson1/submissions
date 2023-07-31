@@ -63,8 +63,9 @@ import {
   Mortgagee,
   Nullable,
   PolicyLocation,
+  CHANGE_REQUEST_STATUS,
 } from 'common';
-import { renderChips, renderSplitSnakeCase } from 'components/RenderGridCellHelpers';
+import { renderChip, renderChips, renderSplitSnakeCase } from 'components/RenderGridCellHelpers';
 import { STATES_ABV_ARR } from '../../common/statesList';
 import {
   getGridFirestoreNumericOperators,
@@ -536,17 +537,10 @@ export const statusCol: GridSingleSelectColDef = {
   field: 'status',
   headerName: 'Status',
   type: 'singleSelect',
-  // TODO: set filterable: false --> override in col def when passing valueOptions ??
   // valueOptions: [
   //   SUBMISSION_STATUS.QUOTED,
   //   SUBMISSION_STATUS.SUBMITTED,
-  //   SUBMISSION_STATUS.NOT_ELIGIBLE,
-  //   SUBMISSION_STATUS.PENDING_INFO,
-  //   SUBMISSION_STATUS.CANCELLED,
-  //   SUBMISSION_STATUS.DRAFT,
   // ],
-  // editable: true,
-  // disableClickEventBubbling: true,
   minWidth: 160,
   flex: 0.6,
   editable: false,
@@ -567,6 +561,7 @@ export type ChipStatus =
   | POLICY_STATUS
   | AGENCY_SUBMISSION_STATUS
   | INVITE_STATUS
+  | CHANGE_REQUEST_STATUS
   | string;
 
 export function getChipProps(status: ChipStatus): Partial<ChipProps> {
@@ -601,10 +596,12 @@ export function getChipProps(status: ChipStatus): Partial<ChipProps> {
       return { icon: <HourglassTopRounded />, color: 'warning' };
     case POLICY_STATUS.CANCELLED:
       return { icon: <CloseRounded />, color: 'default' };
-    case INVITE_STATUS.PENDING: // NEVER REACH HERE MATCHES PENDING ABOVE ^^
+    case INVITE_STATUS.PENDING: // NEVER REACH HERE MATCHES PENDING ABOVE
       return { icon: <QueryBuilderRounded />, color: 'warning' };
-    case INVITE_STATUS.ACCECPTED:
+    case INVITE_STATUS.ACCEPTED:
       return { icon: <CheckRounded />, color: 'success' };
+    case CHANGE_REQUEST_STATUS.DENIED:
+      return { icon: <CloseRounded />, color: 'error' };
     case 'active':
       return { icon: <CheckRounded />, color: 'success' };
     case 'inactive':
@@ -1251,6 +1248,18 @@ export const locationAddresses: GridColDef = {
   },
 };
 
+export const locationIdCol: GridColDef = {
+  ...idCol,
+  field: 'locationId',
+  headerName: 'Location ID',
+};
+
+export const policyIdCol: GridColDef = {
+  ...idCol,
+  field: 'policyId',
+  headerName: 'Policy ID',
+};
+
 export const homeStateCol: GridSingleSelectColDef = {
   field: 'homeState',
   headerName: 'Home State',
@@ -1469,6 +1478,27 @@ export const policyTrxTypesCol: GridSingleSelectColDef = {
   sortable: false,
   renderCell: (params) => renderChips(params, { variant: 'outlined', color: 'success' }),
   valueFormatter: (params) => `${params.value?.join(', ')}`,
+};
+
+export const trxTypeCol: GridSingleSelectColDef = {
+  field: 'trxType',
+  headerName: 'Transaction Type',
+  description: 'Type of transaction (endorsement, amendment, cancellation, etc.)',
+  type: 'singleSelect',
+  valueOptions: TRANSACTION_OPTIONS,
+  minWidth: 340,
+  flex: 1,
+  editable: false,
+  sortable: false,
+  renderCell: renderChip,
+};
+
+export const requestEffDateCol: GridColDef = {
+  ...effectiveDateCol,
+  field: 'requestEffDate',
+  headerName: 'Eff. Date',
+  description: 'Requested effective date for changes',
+  valueGetter: (params) => params.row.requestEffDate || null,
 };
 
 export const LOBCol: GridSingleSelectColDef = {

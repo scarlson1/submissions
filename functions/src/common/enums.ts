@@ -36,7 +36,7 @@ export enum SUBMISSION_STATUS {
 }
 
 export enum INVITE_STATUS {
-  ACCECPTED = 'accepted',
+  ACCEPTED = 'accepted',
   PENDING = 'pending',
   REVOKED = 'revoked',
   EXPIRED = 'expired',
@@ -72,7 +72,7 @@ export enum PRODUCT {
 }
 
 export enum AGENCY_SUBMISSION_STATUS {
-  ACCECPTED = 'accepted',
+  ACCEPTED = 'accepted',
   SUBMITTED = 'submitted',
   REVIEW_REQUIRED = 'review:required',
   REJECTED = 'rejected',

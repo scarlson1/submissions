@@ -11,5 +11,6 @@ export { licenseCols } from './licenseCols';
 export { orgCols } from './orgCols';
 export { moratoriumCols } from './moratoriumCols';
 export { emailCols } from './emailCols';
+export { changeRequestCols } from './changeRequestCols';
 
 export * from './gridColumns';

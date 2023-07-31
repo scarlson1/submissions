@@ -29,10 +29,13 @@ import { Item } from './UserSubmissions';
 import { PoliciesGrid } from 'elements';
 import { formatFirestoreTimestamp } from 'modules/utils';
 import { AdditionalInsured, COLLECTIONS, Policy, fallbackImages } from 'common';
+import { ChangeRequestsDialog } from 'elements/ChangeRequestDialog';
 
 // TODO: change policies view to allow switching between card and grid view (and map ??)
 // TODO: include change requests in grid ?? (could use rxjs and aggregation query)
 // TODO: make sure component is wrapped in must be authed wrapper in router
+
+// TODO: add a tab to view change requests
 
 export const Policies = () => {
   const { claims, user } = useAuth();
@@ -73,7 +76,10 @@ export const Policies = () => {
     return (
       <Container maxWidth='lg' sx={{ py: { xs: 4, md: 6 } }}>
         <Box>
-          {header}
+          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+            {header}
+            <ChangeRequestsDialog />
+          </Box>
           <PoliciesGrid renderActions={adminActions} checkboxSelection />
         </Box>
       </Container>

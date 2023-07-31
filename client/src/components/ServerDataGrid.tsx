@@ -69,14 +69,11 @@ export const ServerDataGrid = ({
     },
     [filters, constraints] // eslint-disable-line react-hooks/exhaustive-deps
   );
-  // const queryOptions = useMemo(
-  //   () => [...filters, ...constraints, ...sortOps.current],
-  //   [filters, constraints] // eslint-disable-line react-hooks/exhaustive-deps
-  // );
 
   const fetchCount = useDocCount(collName, [...filters, ...constraints]);
   // fetch count whenever query changes
   useEffect(() => {
+    // TODO: improve dependencies chekcing (currently called 3 times)
     fetchCount().then((result) => {
       setRowCount(result.data().count);
     });

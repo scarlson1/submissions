@@ -5,8 +5,8 @@ export enum COLLECTIONS {
   RATING_DATA = 'ratingData',
   USERS = 'users',
   POLICIES = 'policies',
-  CLAIMS = 'claims',
   CHANGE_REQUESTS = 'changeRequests',
+  CLAIMS = 'claims',
   // POLICIES_TEMP = 'policiesTemp',
   ORGANIZATIONS = 'organizations',
   USER_CLAIMS = 'userClaims',
@@ -69,15 +69,23 @@ export enum POLICY_STATUS {
 }
 
 export enum AGENCY_SUBMISSION_STATUS {
-  ACCECPTED = 'accepted',
+  ACCEPTED = 'accepted',
   SUBMITTED = 'submitted',
   REVIEW_REQUIRED = 'review:required',
   REJECTED = 'rejected',
 }
 
+export enum CHANGE_REQUEST_STATUS {
+  SUBMITTED = 'submitted',
+  ACCEPTED = 'accepted',
+  DENIED = 'denied',
+  UNDER_REVIEW = 'under_review',
+  CANCELLED = 'cancelled',
+}
+
 // 'pending' | 'accepted' | 'revoked' | 'replaced' | 'rejected' | 'error';
 export enum INVITE_STATUS {
-  ACCECPTED = 'accepted',
+  ACCEPTED = 'accepted',
   PENDING = 'pending',
   REVOKED = 'revoked',
   EXPIRED = 'expired',

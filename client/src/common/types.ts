@@ -732,15 +732,38 @@ export interface Transaction extends BaseDoc {
   homeState: string;
 }
 
-export type ChangeRequestStatus = 'submitted' | 'accepted' | 'denied' | 'under_review';
+// export type ChangeRequestTypes = ''
+
+export type ChangeRequestStatus =
+  | 'submitted'
+  | 'accepted'
+  | 'denied'
+  | 'under_review'
+  | 'cancelled';
 
 export interface ChangeRequest extends BaseDoc {
-  field: string;
-  newValue: string | number;
+  trxType: TransactionType;
+  // requestType: // TODO: sub-types ??
+  changes: Partial<Policy>; // DOES THIS WORK FOR LOCATION CHANGES ?? MIGHT NEED DISCRIMINATING UNION --> scope: 'policy' | 'location'
+  requestEffDate: Timestamp;
+  // field: string;
+  // newValue: string | number;
   policyId: string;
   locationId?: string | null;
   userId: string;
+  // submittedByUserId: string;
+  agent: {
+    userId: string | null;
+  };
+  agency: {
+    orgId: string | null;
+  };
   status: ChangeRequestStatus;
+  processedTimestamp?: Timestamp;
+  approvedBy?: {
+    name: string;
+    userId: string;
+  };
 }
 
 export type DefaultCommission = {

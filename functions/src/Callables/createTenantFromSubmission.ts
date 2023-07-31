@@ -191,7 +191,7 @@ const createTenantFromSubmission = async ({
     // TODO: decide whether to create invite for principal producer ?? allow configuration in new agency form ??
 
     docRef.update({
-      status: AGENCY_SUBMISSION_STATUS.ACCECPTED,
+      status: AGENCY_SUBMISSION_STATUS.ACCEPTED,
     });
 
     return { ...createdTenant.toJSON() };

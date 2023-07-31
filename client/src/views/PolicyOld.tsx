@@ -14,7 +14,7 @@ import {
   RelaxingAtHomeSVG,
   ApartmentRentSVG,
 } from 'assets/images';
-import { useDocData, usePolicyChangeRequest } from 'hooks';
+import { useDocData } from 'hooks';
 
 export const PolicyOld = () => {
   const navigate = useNavigate();
@@ -23,7 +23,7 @@ export const PolicyOld = () => {
   if (!policyId) throw new Error('policyId missing in url params');
   const { data } = useDocData('POLICIES', policyId);
 
-  const { requestChange } = usePolicyChangeRequest();
+  // const { requestChange } = usePolicyChangeRequest();
 
   const limits = useMemo(
     () => [
@@ -91,12 +91,12 @@ export const PolicyOld = () => {
         if (!newVal) return;
         console.log('new val: ', newVal);
 
-        await requestChange(policyId, field, newVal);
+        // await requestChange(policyId, field, newVal);
       } catch (err) {
         console.log(err);
       }
     },
-    [confirm, policyId, requestChange]
+    [confirm, policyId] // , requestChange]
   );
 
   return (

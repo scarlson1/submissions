@@ -235,7 +235,7 @@ export default async (event: StorageEvent) => {
     return;
   }
 
-  let formattedPolicies: any;
+  let formattedPolicies: Record<string, Policy>;
   try {
     formattedPolicies = await groupByPolicyId(dataArr, db);
 
@@ -250,10 +250,13 @@ export default async (event: StorageEvent) => {
   // const policies = Object.values(formattedPolicies);
   // TODO: batch transaction
 
+  let importedIds: string[] = [];
   let createErrors: any[] = [];
 
-  for (const policyId in formattedPolicies) {
-    const policyData = formattedPolicies[policyId];
+  // for (const policyId in formattedPolicies) {
+  //   const policyData = formattedPolicies[policyId];
+  for (const [policyId, policyData] of Object.entries(formattedPolicies)) {
+    // const policyData = formattedPolicies[policyId];
     try {
       info(`creating policy ${policyId}...`, { ...policyData });
 
@@ -261,6 +264,7 @@ export default async (event: StorageEvent) => {
       await throwIfExists(policyRef);
 
       await policyRef.set({ ...policyData });
+      importedIds.push(policyId);
     } catch (err: any) {
       error(`Error created policy record in DB ${policyId}`, { err });
       createErrors.push(policyData);
@@ -271,7 +275,7 @@ export default async (event: StorageEvent) => {
     const importSummaryColRef = db.collection(COLLECTIONS.DATA_IMPORTS);
     const summaryRef = await importSummaryColRef.add({
       importCollection: COLLECTIONS.POLICIES,
-      importDocIds: Object.keys(formattedPolicies),
+      importDocIds: importedIds, // Object.keys(formattedPolicies),
       docCreationErrors: createErrors,
       invalidRows,
       metadata: {
@@ -295,7 +299,7 @@ export default async (event: StorageEvent) => {
     await sendAdminPolicyImportNotification(
       sgKey,
       to,
-      Object.keys(formattedPolicies).length,
+      importedIds.length, //Object.keys(formattedPolicies).length - createErrors.length,
       createErrors.length,
       invalidRows.length,
       fileName,

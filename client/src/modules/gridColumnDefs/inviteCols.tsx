@@ -33,7 +33,7 @@ export const inviteCols: GridColDef[] = [
   {
     ...statusCol,
     valueOptions: [
-      INVITE_STATUS.ACCECPTED,
+      INVITE_STATUS.ACCEPTED,
       INVITE_STATUS.PENDING,
       INVITE_STATUS.EXPIRED,
       INVITE_STATUS.ERROR,

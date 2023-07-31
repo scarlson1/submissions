@@ -4,10 +4,10 @@ import { GridActionsCellItem, GridColDef, GridRowParams } from '@mui/x-data-grid
 import { CancelRounded, SendRounded } from '@mui/icons-material';
 import { QueryConstraint } from 'firebase/firestore';
 import { Functions, httpsCallable } from 'firebase/functions';
-import { useFunctions } from 'reactfire';
+import { useFunctions, useSigninCheck } from 'reactfire';
 
 import { ServerDataGrid, ServerDataGridProps } from 'components';
-import { COLLECTIONS, INVITE_STATUS, Invite } from 'common';
+import { COLLECTIONS, CUSTOM_CLAIMS, INVITE_STATUS, Invite } from 'common';
 import { useAsyncToast } from 'hooks';
 import { inviteCols } from 'modules/gridColumnDefs';
 
@@ -28,6 +28,9 @@ interface InvitesGridProps {
 export const InvitesGrid = ({ orgId, queryConstraints }: InvitesGridProps) => {
   const functions = useFunctions();
   const toast = useAsyncToast();
+  const { data: signInRes } = useSigninCheck({
+    requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true },
+  });
 
   const props: Omit<ServerDataGridProps, 'columns'> = useMemo(() => {
     if (orgId) {
@@ -37,13 +40,13 @@ export const InvitesGrid = ({ orgId, queryConstraints }: InvitesGridProps) => {
         isCollectionGroup: false,
       };
     } else {
-      // TODO: check admin claims
+      if (!signInRes.hasRequiredClaims) throw new Error('missing orgId or required claims');
       return {
         collName: 'INVITES',
         isCollectionGroup: true,
       };
     }
-  }, [orgId]);
+  }, [orgId, signInRes]);
 
   // TODO: resend invite cloud function
   const handleResendInvite = useCallback(
