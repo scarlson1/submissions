@@ -1,13 +1,106 @@
-import { useCallback, useRef } from 'react';
-import { Box, Stack } from '@mui/material';
-import { Form, Formik, FormikProps } from 'formik';
+import { RefObject, useCallback, useRef } from 'react';
+import { Box, DialogContentText, Stack } from '@mui/material';
+import { Form, Formik, FormikHelpers, FormikProps } from 'formik';
 import * as yup from 'yup';
 
 import { ConfirmationOptions } from 'modules/components/ConfirmationService';
 import { FormikSwitch, FormikMultiTextInput } from 'components/forms';
 import { isValidEmail } from 'modules/utils';
-import { useConfirmation2 } from 'modules/components/ConfirmationService2';
-import { ConfirmationDialog2 } from 'components/ConfirmationDialog';
+import { useDialog } from 'context';
+
+export interface NotificationEmailValues {
+  notifyInsured: boolean;
+  notifyAgent: boolean;
+  alternative: string[];
+}
+
+export const usePromptForEmails = () => {
+  const dialog = useDialog();
+  // const confirm = useConfirmation();
+  const formikRef = useRef<FormikProps<NotificationEmailValues>>(null);
+
+  const handleSubmitClick = useCallback(async () => {
+    await formikRef.current?.submitForm();
+    // try {
+    //   console.log('handle form submit');
+    //   let vals = await formikRef.current?.submitForm();
+    //   console.log('submitForm result: ', vals);
+    //   // dialog?.handleAccept(vals);
+    // } catch (err: any) {
+    //   console.log('err submitting form: ', err);
+    // }
+  }, []);
+
+  const formOnSubmit = useCallback(
+    async (
+      values: NotificationEmailValues,
+      { setSubmitting }: FormikHelpers<NotificationEmailValues>
+    ) => {
+      console.log('form submit. values: ', values);
+      setSubmitting(false);
+      dialog?.handleAccept(values);
+      return values;
+    },
+    [dialog]
+  );
+
+  const promptForEmails = useCallback(
+    async (
+      { insuredEmail, agentEmail }: { insuredEmail?: string | null; agentEmail?: string | null },
+      options?: Omit<ConfirmationOptions, 'component' | 'catchOnCancel'>
+    ) => {
+      try {
+        // TODO: select user type next to the email
+        const notificationEmails: NotificationEmailValues | undefined = await dialog?.prompt({
+          catchOnCancel: true,
+          variant: 'danger',
+          title: 'Notify Insured & Agent?',
+          // confirmButtonText: 'Submit',
+          description:
+            'Please select the emails to which you would like to deliver the quote, if any.',
+          slotProps: { dialog: { maxWidth: 'sm' }, content: { dividers: true } },
+          onSubmit: handleSubmitClick,
+          ...options,
+          // component: (
+          content: (
+            <>
+              <DialogContentText>
+                Please select the emails to which you would like to deliver the quote, if any.
+              </DialogContentText>
+              <SelectEmailsForm
+                initialValues={{
+                  notifyInsured: Boolean(insuredEmail) || false,
+                  notifyAgent: Boolean(agentEmail) || false,
+                  alternative: [],
+                }}
+                onSubmit={formOnSubmit}
+                formRef={formikRef}
+                insuredEmail={insuredEmail || null}
+                agentEmail={agentEmail || null}
+              />
+            </>
+          ),
+        });
+
+        let emails: string[] = [];
+        console.log('notification email result: ', notificationEmails);
+        if (!!notificationEmails?.notifyInsured) emails.push(insuredEmail || '');
+        if (!!notificationEmails?.notifyAgent) emails.push(agentEmail || '');
+        if (notificationEmails?.alternative && notificationEmails.alternative.length > 0)
+          notificationEmails.alternative.forEach((e) => emails.push(e));
+
+        console.log('EMAILS: ', emails);
+        return emails.filter((i) => i);
+      } catch (err) {
+        console.log('ERR: ', err);
+        return Promise.reject(err);
+      }
+    },
+    [dialog, handleSubmitClick, formOnSubmit]
+  );
+
+  return promptForEmails;
+};
 
 const notifyValidation = yup.object().shape({
   notifyInsured: yup.boolean().when(['notifyAgent', 'alternative'], {
@@ -28,7 +121,8 @@ const notifyValidation = yup.object().shape({
       'alt required when insured and agent are false',
       'At lease one email required. Press tab, enter or space to included alternative email.',
       (value, ctx) => {
-        if (!!ctx.parent.notifyInsured || !!ctx.parent.notifyInsured) return true;
+        console.log('parent', ctx.parent);
+        if (!!ctx.parent.notifyInsured || !!ctx.parent.notifyAgent) return true;
         if (!Boolean(value && value.length > 0)) return false;
 
         for (let email of value!) {
@@ -40,139 +134,187 @@ const notifyValidation = yup.object().shape({
     ),
 });
 
-export interface NotificationEmailValues {
-  notifyInsured: boolean;
-  notifyAgent: boolean;
-  alternative: string[];
+const defaultInitialValues = {
+  notifyAgent: false,
+  notifyInsured: false,
+  alternative: [],
+};
+interface SelectEmailsFormProps extends Partial<FormikProps<NotificationEmailValues>> {
+  onSubmit: (values: NotificationEmailValues, bag: FormikHelpers<NotificationEmailValues>) => void;
+  formRef: RefObject<FormikProps<NotificationEmailValues>>;
+  insuredEmail: string | null;
+  agentEmail: string | null;
 }
 
-export const usePromptForEmails = () => {
-  const confirm = useConfirmation2();
-  // const confirm = useConfirmation();
-  const formRef = useRef<FormikProps<NotificationEmailValues>>(null);
-
-  const handleDialogSubmit = useCallback(async () => {
-    console.log('VALUES: ', formRef.current?.values);
-    if (formRef.current) {
-      try {
-        const { values, validateForm, setTouched } = formRef.current;
-        setTouched({ notifyInsured: true, notifyAgent: true });
-        const valErrors = await validateForm();
-
-        if (Object.keys(valErrors).length === 0 && valErrors.constructor === Object) {
-          return values;
-        } else return Promise.reject();
-      } catch (err) {
-        return Promise.reject(err);
-      }
-    }
-  }, []);
-
-  const formSub = useCallback(async () => {
-    console.log('formSub');
-  }, []);
-
-  const handleDialogError = useCallback((msg: string, err: any) => {
-    console.log('ERR: ', msg, err);
-  }, []);
-
-  // const onAccept = useCallback((args: any) => {
-  //   console.log('onAccept: ', args);
-  // }, []);
-
-  // const onClose = useCallback(() => {
-  //   console.log('onClose: ');
-  // }, []);
-
-  const promptForEmails = useCallback(
-    async (
-      { insuredEmail, agentEmail }: { insuredEmail?: string | null; agentEmail?: string | null },
-      options?: Omit<ConfirmationOptions, 'component' | 'catchOnCancel'>
-    ) => {
-      try {
-        // TODO: select user type next to the email
-        const notificationEmails: NotificationEmailValues | undefined = await confirm({
-          catchOnCancel: true,
-          variant: 'danger',
-          title: 'Notify Insured & Agent?',
-          confirmButtonText: 'Submit',
-          description:
-            'Please select the emails to which you would like to deliver the quote, if any.',
-          dialogContentProps: { dividers: true },
-          // TODO: move all onSubmit processing to ConfirmationService
-          onSubmit: handleDialogSubmit,
-          onError: handleDialogError,
-          ...options,
-          component: (
-            <ConfirmationDialog2
-              open={true} // TODO: delete onAccept onClose ??
-              onAccept={() => {}}
-              onClose={() => {}}
-              // onSubmit={handleDialogSubmit}
-              // onSubmitError={handleDialogError}
-              dialogProps={{ maxWidth: 'sm' }}
-            >
-              <Box sx={{ py: { xs: 3, sm: 4, md: 5 } }}>
-                <Formik
-                  initialValues={{
-                    notifyInsured: Boolean(insuredEmail) || false,
-                    notifyAgent: Boolean(agentEmail) || false,
-                    alternative: [],
-                  }}
-                  validationSchema={notifyValidation}
-                  onSubmit={formSub}
-                  enableReinitialize
-                  innerRef={formRef}
-                >
-                  {({ handleSubmit, values }: FormikProps<NotificationEmailValues>) => (
-                    <Form onSubmit={handleSubmit}>
-                      <Stack direction='column' spacing={3}>
-                        <FormikSwitch
-                          name='notifyInsured'
-                          label={`${insuredEmail} (insured)`}
-                          disabled={!insuredEmail}
-                          formControlLabelProps={{ sx: { ml: 0 } }}
-                        />
-                        <FormikSwitch
-                          name='notifyAgent'
-                          label={`${agentEmail} (agent)`}
-                          disabled={!agentEmail}
-                          formControlLabelProps={{ sx: { ml: 0 } }}
-                        />
-                        <FormikMultiTextInput
-                          name='alternative'
-                          label='Alternative email'
-                          variant='standard'
-                          sx={{ maxWidth: 300 }}
-                          fullWidth
-                          stackProps={{ spacing: 0, sx: { flexWrap: 'wrap', my: 2 } }}
-                          chipProps={{ sx: { m: '2px !important' } }}
-                        />
-                      </Stack>
-                    </Form>
-                  )}
-                </Formik>
-              </Box>
-            </ConfirmationDialog2>
-          ),
-        });
-
-        let emails: string[] = [];
-        console.log('notification email result: ', notificationEmails);
-        if (!!notificationEmails?.notifyInsured) emails.push(insuredEmail || '');
-        if (!!notificationEmails?.notifyAgent) emails.push(agentEmail || '');
-        if (notificationEmails?.alternative && notificationEmails.alternative.length > 0)
-          notificationEmails.alternative.forEach((e) => emails.push(e));
-
-        console.log('EMAILS: ', emails);
-        return emails.filter((i) => i);
-      } catch (err) {
-        console.log('ERR: ', err);
-        return Promise.reject(err);
-      }
-    },
-    [confirm, formSub, handleDialogSubmit, handleDialogError]
+function SelectEmailsForm({
+  initialValues = defaultInitialValues,
+  onSubmit,
+  formRef,
+  insuredEmail,
+  agentEmail,
+  ...props
+}: SelectEmailsFormProps) {
+  return (
+    <Formik
+      initialValues={initialValues}
+      validationSchema={notifyValidation}
+      onSubmit={onSubmit}
+      enableReinitialize
+      innerRef={formRef}
+      {...(props || {})}
+    >
+      {({ handleSubmit }: FormikProps<NotificationEmailValues>) => (
+        <Box>
+          <Form onSubmit={handleSubmit}>
+            <Stack direction='column' spacing={3}>
+              <FormikSwitch
+                name='notifyInsured'
+                label={`${insuredEmail || ''} (insured)`}
+                disabled={!insuredEmail}
+                formControlLabelProps={{ sx: { ml: 0 } }}
+              />
+              <FormikSwitch
+                name='notifyAgent'
+                label={`${agentEmail || ''} (agent)`}
+                disabled={!agentEmail}
+                formControlLabelProps={{ sx: { ml: 0 } }}
+              />
+              <FormikMultiTextInput
+                name='alternative'
+                label='Alternative email'
+                variant='standard'
+                sx={{ maxWidth: 300 }}
+                fullWidth
+                stackProps={{ spacing: 0, sx: { flexWrap: 'wrap', my: 2 } }}
+                chipProps={{ sx: { m: '2px !important' } }}
+              />
+            </Stack>
+          </Form>
+        </Box>
+      )}
+    </Formik>
   );
+}
 
-  return promptForEmails;
-};
+// export const usePromptForEmails = () => {
+//   const confirm = useConfirmation2();
+//   // const confirm = useConfirmation();
+//   const formRef = useRef<FormikProps<NotificationEmailValues>>(null);
+
+//   const handleDialogSubmit = useCallback(async () => {
+//     console.log('VALUES: ', formRef.current?.values);
+//     if (formRef.current) {
+//       try {
+//         const { values, validateForm, setTouched } = formRef.current;
+//         setTouched({ notifyInsured: true, notifyAgent: true });
+//         const valErrors = await validateForm();
+
+//         if (Object.keys(valErrors).length === 0 && valErrors.constructor === Object) {
+//           return values;
+//         } else return Promise.reject();
+//       } catch (err) {
+//         return Promise.reject(err);
+//       }
+//     }
+//   }, []);
+
+//   const formSub = useCallback(async () => {
+//     console.log('formSub');
+//   }, []);
+
+//   const handleDialogError = useCallback((msg: string, err: any) => {
+//     console.log('ERR: ', msg, err);
+//   }, []);
+
+//   const promptForEmails = useCallback(
+//     async (
+//       { insuredEmail, agentEmail }: { insuredEmail?: string | null; agentEmail?: string | null },
+//       options?: Omit<ConfirmationOptions, 'component' | 'catchOnCancel'>
+//     ) => {
+//       try {
+//         // TODO: select user type next to the email
+//         const notificationEmails: NotificationEmailValues | undefined = await confirm({
+//           catchOnCancel: true,
+//           variant: 'danger',
+//           title: 'Notify Insured & Agent?',
+//           confirmButtonText: 'Submit',
+//           description:
+//             'Please select the emails to which you would like to deliver the quote, if any.',
+//           dialogContentProps: { dividers: true },
+//           // TODO: move all onSubmit processing to ConfirmationService
+//           onSubmit: handleDialogSubmit,
+//           onError: handleDialogError,
+//           ...options,
+//           component: (
+//             <ConfirmationDialog2
+//               open={true} // TODO: delete onAccept onClose ??
+//               onAccept={() => {}}
+//               onClose={() => {}}
+//               // onSubmit={handleDialogSubmit}
+//               // onSubmitError={handleDialogError}
+//               dialogProps={{ maxWidth: 'sm' }}
+//             >
+//               <Box sx={{ py: { xs: 3, sm: 4, md: 5 } }}>
+//                 <Formik
+//                   initialValues={{
+//                     notifyInsured: Boolean(insuredEmail) || false,
+//                     notifyAgent: Boolean(agentEmail) || false,
+//                     alternative: [],
+//                   }}
+//                   validationSchema={notifyValidation}
+//                   onSubmit={formSub}
+//                   enableReinitialize
+//                   innerRef={formRef}
+//                 >
+//                   {({ handleSubmit, values }: FormikProps<NotificationEmailValues>) => (
+//                     <Form onSubmit={handleSubmit}>
+//                       <Stack direction='column' spacing={3}>
+//                         <FormikSwitch
+//                           name='notifyInsured'
+//                           label={`${insuredEmail} (insured)`}
+//                           disabled={!insuredEmail}
+//                           formControlLabelProps={{ sx: { ml: 0 } }}
+//                         />
+//                         <FormikSwitch
+//                           name='notifyAgent'
+//                           label={`${agentEmail} (agent)`}
+//                           disabled={!agentEmail}
+//                           formControlLabelProps={{ sx: { ml: 0 } }}
+//                         />
+//                         <FormikMultiTextInput
+//                           name='alternative'
+//                           label='Alternative email'
+//                           variant='standard'
+//                           sx={{ maxWidth: 300 }}
+//                           fullWidth
+//                           stackProps={{ spacing: 0, sx: { flexWrap: 'wrap', my: 2 } }}
+//                           chipProps={{ sx: { m: '2px !important' } }}
+//                         />
+//                       </Stack>
+//                     </Form>
+//                   )}
+//                 </Formik>
+//               </Box>
+//             </ConfirmationDialog2>
+//           ),
+//         });
+
+//         let emails: string[] = [];
+//         console.log('notification email result: ', notificationEmails);
+//         if (!!notificationEmails?.notifyInsured) emails.push(insuredEmail || '');
+//         if (!!notificationEmails?.notifyAgent) emails.push(agentEmail || '');
+//         if (notificationEmails?.alternative && notificationEmails.alternative.length > 0)
+//           notificationEmails.alternative.forEach((e) => emails.push(e));
+
+//         console.log('EMAILS: ', emails);
+//         return emails.filter((i) => i);
+//       } catch (err) {
+//         console.log('ERR: ', err);
+//         return Promise.reject(err);
+//       }
+//     },
+//     [confirm, formSub, handleDialogSubmit, handleDialogError]
+//   );
+
+//   return promptForEmails;
+// };
