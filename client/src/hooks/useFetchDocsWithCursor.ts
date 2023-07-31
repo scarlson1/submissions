@@ -8,6 +8,7 @@ import {
   query,
   QueryConstraint,
   startAfter,
+  where,
 } from 'firebase/firestore';
 import { ReactFireOptions, useFirestore, useFirestoreCollection } from 'reactfire';
 
@@ -44,7 +45,10 @@ export function useFetchDocsWithCursor<T = any>(
     ) as CollectionReference<T>;
   }
 
-  const q = query(collectionRef, ...qConstraints);
+  let q = query(collectionRef, ...qConstraints);
+  if (isCollectionGroup)
+    // @ts-ignore
+    q = query(collectionGroup(db, 'landmarks'), where('userId', '==', '123'));
 
   return useFirestoreCollection<T>(q, { idField: 'id', ...options });
 }

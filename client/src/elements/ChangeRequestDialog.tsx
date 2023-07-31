@@ -15,7 +15,9 @@ export function ChangeRequestsDialog({ policyId }: ChangeRequestsDialogProps) {
 
   return (
     <>
-      <Button onClick={handleOpen}>Change Requests</Button>
+      <Button variant='outlined' onClick={handleOpen} sx={{ maxHeight: 34 }}>
+        Change Requests
+      </Button>
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>Change Requests</DialogTitle>
         <DialogContent>

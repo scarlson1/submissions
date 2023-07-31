@@ -72,6 +72,8 @@ export const ChangeRequestsGrid = ({
     };
   }, [policyId, claims, user, orgId]);
 
+  console.log('PROPS: ', props);
+
   return (
     <Box>
       <ServerDataGrid

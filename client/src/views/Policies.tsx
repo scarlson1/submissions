@@ -76,7 +76,7 @@ export const Policies = () => {
     return (
       <Container maxWidth='lg' sx={{ py: { xs: 4, md: 6 } }}>
         <Box>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', pb: 2 }}>
             {header}
             <ChangeRequestsDialog />
           </Box>
