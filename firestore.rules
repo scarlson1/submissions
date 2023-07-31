@@ -75,27 +75,29 @@ service cloud.firestore {
 
     // https://firebase.google.com/docs/firestore/security/rules-query#secure_and_query_documents_based_on_collection_groups
     match /{path=**}/changeRequests/{requestId} {
-      allow list: if true;
-      allow get: if true;
+      // allow list: if true;
+      allow read, write: if true;
     }
 
-    match /policies/{policyId}/changeRequests/{requestId} {
-      // allow read: if isSignedIn() 
-      //   && (isUser(existingData().userId) 
-      //   || isAgent() && isUser(existingData().get(['agent', 'userId'], null))
-      //   || (isOrgAdmin() && isTenantUser(existingData().agency.orgId)) 
-      //   || isIDemandAdmin())
-      allow create: if isSignedIn() 
-        && (isUser(existingData().userId) 
-        || (isAgent() && isUser(get(/databases/$(database)/documents/policies/$(policyId)).data.agent.userId))
-        // || (isAgent() && isUser(existingData().get(['agent', 'userId'], null)))
-        || (isOrgAdmin() && isTenantUser(get(/databases/$(database)/documents/policies/$(policyId)).data.agency.orgId))
-        // || (isOrgAdmin() && isTenantUser(existingData().agency.orgId)) 
-        || isIDemandAdmin())
-      // TODO: allow updates logic (don't allow changes unless status === 'submitted')
-      allow update: if isIDemandAdmin() && emailVerified()
-      allow delete: if false
-    }
+    // match /policies/{policyId}/changeRequests/{requestId} {
+    //   // allow read: if isSignedIn() 
+    //   //   && (isUser(existingData().userId) 
+    //   //   || isAgent() && isUser(existingData().get(['agent', 'userId'], null))
+    //   //   || (isOrgAdmin() && isTenantUser(existingData().agency.orgId)) 
+    //   //   || isIDemandAdmin())
+    //   // TODO:  allow get if user, agent, orgAdmin, iDAdmin
+    //   allow get: if true;
+    //   allow create: if isSignedIn() 
+    //     && (isUser(existingData().userId) 
+    //     || (isAgent() && isUser(get(/databases/$(database)/documents/policies/$(policyId)).data.agent.userId))
+    //     // || (isAgent() && isUser(existingData().get(['agent', 'userId'], null)))
+    //     || (isOrgAdmin() && isTenantUser(get(/databases/$(database)/documents/policies/$(policyId)).data.agency.orgId))
+    //     // || (isOrgAdmin() && isTenantUser(existingData().agency.orgId)) 
+    //     || isIDemandAdmin())
+    //   // TODO: allow updates logic (don't allow changes unless status === 'submitted')
+    //   allow update: if isIDemandAdmin() && emailVerified()
+    //   allow delete: if false
+    // }
 
     // POLICY TRANSACTIONS (NOT FINANCIAL/CHARGES)
     match /transactions/{trxId} {

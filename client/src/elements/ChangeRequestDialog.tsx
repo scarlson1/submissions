@@ -1,6 +1,6 @@
 // TODO: delete component. display as collapse or tab
 import { useCallback, useState } from 'react';
-import { Box, Button, Dialog, DialogContent, DialogTitle } from '@mui/material';
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
 import { ChangeRequestsGrid } from './ChangeRequestsGrid';
 
 interface ChangeRequestsDialogProps {
@@ -18,13 +18,16 @@ export function ChangeRequestsDialog({ policyId }: ChangeRequestsDialogProps) {
       <Button variant='outlined' onClick={handleOpen} sx={{ maxHeight: 34 }}>
         Change Requests
       </Button>
-      <Dialog open={open} onClose={handleClose}>
+      <Dialog open={open} onClose={handleClose} maxWidth='xl' fullWidth>
         <DialogTitle>Change Requests</DialogTitle>
-        <DialogContent>
+        <DialogContent dividers>
           <Box sx={{ height: 400 }}>
             <ChangeRequestsGrid policyId={policyId} />
           </Box>
         </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose}>Close</Button>
+        </DialogActions>
       </Dialog>
     </>
   );
