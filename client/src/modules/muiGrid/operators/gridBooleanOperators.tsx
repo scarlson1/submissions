@@ -1,6 +1,6 @@
 import { GridFilterItem, GridFilterOperator } from '@mui/x-data-grid';
 
-import { GridFilterInputBoolean } from './gridFilterInputBoolean';
+import { GridFilterInputBoolean } from '../gridFilterInputBoolean';
 
 export const getGridFirestoreBooleanOperators = (): GridFilterOperator<
   any,

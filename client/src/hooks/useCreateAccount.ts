@@ -11,7 +11,7 @@ import {
   getAuth,
 } from 'firebase/auth';
 import { setDoc, doc, getFirestore, Timestamp } from 'firebase/firestore';
-import { useAuth } from 'modules/components/AuthContext';
+import { useAuth } from 'context/AuthContext';
 import { toast } from 'react-hot-toast';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
@@ -19,7 +19,7 @@ import { User as DBUser } from 'common';
 import { usersCollection } from 'common/firestoreCollections';
 import { FirebaseError } from 'firebase/app';
 import { getErrorDetails } from 'modules/utils/helpers';
-import { useAuthActions } from 'modules/components';
+import { useAuthActions } from 'context';
 import { AUTH_ROUTES, createPath } from 'router';
 // import { getProviderForProviderId } from 'modules/utils/getProviderForProviderId';
 // import {

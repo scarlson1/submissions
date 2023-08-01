@@ -7,7 +7,7 @@ import { useSigninCheck } from 'reactfire';
 
 import { UsersGrid } from 'elements';
 import { useAsyncToast, useMoveUserToTenant, useShowJson } from 'hooks';
-import { useConfirmation } from 'modules/components';
+import { useConfirmation } from 'context';
 import InputDialog from 'components/InputDialog';
 import { COLLECTIONS, CUSTOM_CLAIMS, User } from 'common';
 

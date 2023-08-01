@@ -5,7 +5,7 @@ import { GridActionsCellItem, GridRowParams } from '@mui/x-data-grid';
 import { VisibilityRounded } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 
-import { useAuth } from 'modules/components';
+import { useAuth } from 'context';
 import { Quotes as AdminQuotes } from './admin/Quotes';
 import { QuotesGrid } from 'elements';
 import { AUTH_ROUTES, ROUTES, createPath } from 'router';

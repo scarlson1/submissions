@@ -4,7 +4,7 @@ import { Box, Unstable_Grid2 as Grid } from '@mui/material';
 import * as yup from 'yup';
 import { addDoc, getFirestore } from 'firebase/firestore';
 
-import { useConfirmation } from 'modules/components/ConfirmationService';
+import { useConfirmation } from 'context/ConfirmationService';
 import { ConfirmationDialog } from 'components';
 import { FormikSelect, FormikTextField } from 'components/forms';
 import { emailVal } from 'common/validation';

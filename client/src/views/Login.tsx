@@ -14,7 +14,7 @@ import { getRedirectPath } from 'modules/utils/helpers';
 import { FormikPassword } from 'elements/forms';
 import { useHandleAuthError } from 'hooks/useHandleAuthError';
 import { useKeyPress, useSendPasswordReset } from 'hooks';
-import { useAuthActions } from 'modules/components';
+import { useAuthActions } from 'context';
 
 // const providersList = [
 //   {

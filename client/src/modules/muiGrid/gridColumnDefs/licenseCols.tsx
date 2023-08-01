@@ -17,7 +17,7 @@ import {
   getGridFirestoreBooleanOperators,
   getGridFirestoreSelectOperators,
   getGridFirestoreStringOperators,
-} from 'modules/muiGrid';
+} from 'modules/muiGrid/operators';
 
 export const licenseCols: GridColDef[] = [
   {

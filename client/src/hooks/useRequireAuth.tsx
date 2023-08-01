@@ -6,7 +6,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { signInAnonymously, UserCredential, getAuth } from 'firebase/auth';
 
 // import { auth } from 'firebaseConfig';
-import { useAuth } from 'modules/components/AuthContext';
+import { useAuth } from 'context/AuthContext';
 import { CUSTOM_CLAIMS } from 'common';
 import { useAsyncToast } from './useAsyncToast';
 import { AUTH_ROUTES, createPath } from 'router';

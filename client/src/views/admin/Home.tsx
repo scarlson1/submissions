@@ -15,7 +15,7 @@ import { useUser } from 'reactfire';
 
 import { ClaimsGuard, FlexCard, FlexCardContent, IconButtonMenu } from 'components';
 import { ADMIN_ROUTES, createPath, ROUTES } from 'router';
-import { useDocCount } from 'hooks';
+import { useFetchDocCount } from 'hooks';
 import {
   collection,
   getDocs,
@@ -139,7 +139,7 @@ function StatCard({
 function NewSubmissionsCard() {
   const navigate = useNavigate();
   const [count, setCount] = useState<number | null>(null);
-  const fetchCount = useDocCount('SUBMISSIONS', [where('status', '==', 'submitted')]);
+  const fetchCount = useFetchDocCount('SUBMISSIONS', [where('status', '==', 'submitted')]);
 
   useEffect(() => {
     fetchCount().then((result) => {

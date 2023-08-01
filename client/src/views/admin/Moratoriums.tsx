@@ -7,7 +7,7 @@ import { GridRowModel } from '@mui/x-data-grid';
 import { ADMIN_ROUTES, createPath } from 'router';
 import { formatFirestoreTimestamp } from 'modules/utils';
 import { Moratorium, moratoriumsCollection, WithId } from 'common';
-import { useConfirmation } from 'modules/components/ConfirmationService';
+import { useConfirmation } from 'context/ConfirmationService';
 import { MoratoriumsGrid } from 'elements';
 import { useAsyncToast } from 'hooks';
 

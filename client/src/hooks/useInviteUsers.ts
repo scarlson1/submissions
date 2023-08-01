@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { useFunctions } from 'reactfire';
 
-import { inviteUsers as inviteUsersCF, InviteUsersResponse, NewUser } from 'modules/api';
+import { inviteUsers as inviteUsersCF, InviteUsersResponse, NewUser } from 'api';
 import { useAsyncToast } from './useAsyncToast';
 
 export const useInviteUsers = (

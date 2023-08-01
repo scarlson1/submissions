@@ -2,8 +2,8 @@ import { useCallback, useState } from 'react';
 import { useFunctions } from 'reactfire';
 import invariant from 'tiny-invariant';
 
-import { CalcQuoteRequest, calcQuote } from 'modules/api';
-import { RatingInputs } from 'modules/api/getAnnualPremium';
+import { CalcQuoteRequest, calcQuote } from 'api';
+import { RatingInputs } from 'api/getAnnualPremium';
 import { Optional } from 'common';
 import { truthyOrZero } from 'modules/utils';
 import { QuoteValues } from 'elements/forms';

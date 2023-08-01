@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useFunctions } from 'reactfire';
 
-import { moveUserToTenant } from 'modules/api';
+import { moveUserToTenant } from 'api';
 
 export const useMoveUserToTenant = (
   onSuccess?: (msg: string) => void,

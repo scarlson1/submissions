@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { RequestQuoteRounded } from '@mui/icons-material';
 
 import { submissionsCollection, Submission } from 'common';
-import { rcvSourceUserCol } from 'modules/gridColumnDefs';
+import { rcvSourceUserCol } from 'modules/muiGrid/gridColumnDefs';
 import { ADMIN_ROUTES, createPath } from 'router';
 import { withIdConverter } from 'common/firestoreConverters';
 import { useConfirmAndUpdate } from './Quotes';

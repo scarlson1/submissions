@@ -8,7 +8,7 @@
 import { GRID_STRING_COL_DEF, GridColDef, GridColTypeDef, ValueOptions } from '@mui/x-data-grid';
 import { GridSingleSelectColDef, isObject } from '@mui/x-data-grid/internals';
 
-import { getGridFirestoreMultiSelectOperators } from './gridMultiSelectOperators';
+import { getGridFirestoreMultiSelectOperators } from './operators/gridMultiSelectOperators';
 import {
   GridMultiSelectColDef,
   renderEditMultiSelectCell,

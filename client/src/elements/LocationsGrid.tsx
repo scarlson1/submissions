@@ -5,7 +5,7 @@ import { DataGridProps, GridColDef, GridRowParams, useGridApiRef } from '@mui/x-
 import { BasicDataGrid } from 'components';
 import { PolicyLocation } from 'common';
 import { useAsyncToast, useGridActions, useWidth } from 'hooks';
-import { locationCols } from 'modules/gridColumnDefs';
+import { locationCols } from 'modules/muiGrid/gridColumnDefs';
 
 // TODO: handle > 100 locations
 // TODO: limit viewable columns depending on permissions

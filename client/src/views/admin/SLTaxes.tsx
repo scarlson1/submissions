@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { ServerDataGrid } from 'components';
 import { createPath, ADMIN_ROUTES } from 'router';
-import { taxCols } from 'modules/gridColumnDefs';
+import { taxCols } from 'modules/muiGrid/gridColumnDefs';
 
 export const SLTaxes = () => {
   const navigate = useNavigate();

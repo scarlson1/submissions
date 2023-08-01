@@ -2,7 +2,7 @@ import { Box } from '@mui/material';
 import { GridColDef, GridRowParams } from '@mui/x-data-grid';
 
 import { ServerDataGrid, ServerDataGridProps } from 'components';
-import { emailCols } from 'modules/gridColumnDefs';
+import { emailCols } from 'modules/muiGrid/gridColumnDefs';
 
 export interface EmailGridProps
   extends Omit<

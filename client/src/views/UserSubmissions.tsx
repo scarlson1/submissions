@@ -18,7 +18,7 @@ import { ExpandMoreRounded } from '@mui/icons-material';
 import { onSnapshot, query, orderBy, where, limit, getFirestore } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 
-import { useAuth } from 'modules/components/AuthContext';
+import { useAuth } from 'context/AuthContext';
 import { dollarFormat, formatFirestoreTimestamp, numberFormat } from 'modules/utils/helpers';
 import { createPath, ROUTES } from 'router';
 import { Submission, submissionsCollection, WithId, fallbackImages } from 'common';

@@ -6,7 +6,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import { FlexCard, FlexCardContent, InputDialog } from 'components';
 import { dollarFormat } from 'modules/utils/helpers';
-import { useConfirmation } from 'modules/components/ConfirmationService';
+import { useConfirmation } from 'context/ConfirmationService';
 import { createPath, ROUTES } from 'router';
 import {
   SweetHomeSVG,

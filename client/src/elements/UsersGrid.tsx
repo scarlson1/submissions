@@ -23,7 +23,7 @@ import { BasicDataGrid, GridEditMultiSelectCell, ServerDataGrid } from 'componen
 import { useAsyncToast, useUpdateClaims } from 'hooks';
 import { useCollectionDataPopulateById } from 'hooks/useRx';
 import { hasAdminClaimsValidator } from 'components/RequireAuthReactFire';
-import { idCol, userClaimsCol, userCols, userSummaryCol } from 'modules/gridColumnDefs';
+import { idCol, userClaimsCol, userCols, userSummaryCol } from 'modules/muiGrid/gridColumnDefs';
 import { ServerDataGridCollectionProps } from './QuotesGrid';
 
 type UsersGridProps = ServerDataGridCollectionProps;

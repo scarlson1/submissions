@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 
 import { AddPaymentMethodValues } from 'elements/forms/AddPaymentDialog';
-import { ePayInstance, verifyEPayToken, VerifyEPayTokenResponse } from 'modules/api';
+import { ePayInstance, verifyEPayToken, VerifyEPayTokenResponse } from 'api';
 import { useAsyncToast } from './useAsyncToast';
 import { getFunctions } from 'firebase/functions';
 

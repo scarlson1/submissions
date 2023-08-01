@@ -40,13 +40,13 @@ import { matchPath, useLocation, useNavigate } from 'react-router-dom';
 import { Link as RouterLink } from 'react-router-dom';
 import { useSigninCheck } from 'reactfire';
 
-import { useChangeTheme } from 'modules/components/ThemeContext';
-import { useAuth } from 'modules/components/AuthContext';
+import { useChangeTheme } from 'context/ThemeContext';
+import { useAuth } from 'context/AuthContext';
 import { ROUTES, ADMIN_ROUTES, createPath, AUTH_ROUTES, ACCOUNT_ROUTES } from 'router';
 import { NavListItem } from './NavListItem';
 import { NavMenu as PopperNavMenu } from './NavMenu';
 import { NavDrawer } from './NavDrawer';
-import { AuthActionsProvider, useAuthActions } from 'modules/components';
+import { AuthActionsProvider, useAuthActions } from 'context';
 import { stringAvatar } from 'modules/utils';
 
 // TODO: GENERALIZE MENU COMPONENT - allow for button or user avatar as button. nested items. icons.

@@ -15,9 +15,9 @@ import { FirebaseError } from 'firebase/app';
 
 import { FormikTextField } from 'components/forms';
 import { readableFirebaseCode } from 'modules/utils/helpers';
-import { useAuth } from 'modules/components/AuthContext';
+import { useAuth } from 'context/AuthContext';
 import { User, usersCollection, WithId } from 'common';
-import { useAuthActions } from 'modules/components';
+import { useAuthActions } from 'context';
 
 const useUserAccount = (onError?: (err: unknown, msg: string) => void) => {
   const { user } = useAuth();

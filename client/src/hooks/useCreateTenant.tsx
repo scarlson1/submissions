@@ -1,9 +1,9 @@
 import { useState, useCallback } from 'react';
 import { useFunctions } from 'reactfire';
 
-import { createTenantFromSubmission } from 'modules/api';
+import { createTenantFromSubmission } from 'api';
 import { getErrorCode, getErrorMessage } from 'modules/utils/errorHelpers';
-import { useConfirmation } from 'modules/components';
+import { useConfirmation } from 'context';
 import { useAsyncToast } from './useAsyncToast';
 import { useSendEmail } from './useSendEmail';
 import { BaseSendEmailResponse } from 'common';

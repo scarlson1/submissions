@@ -9,7 +9,7 @@ import { useFunctions, useSigninCheck } from 'reactfire';
 import { ServerDataGrid, ServerDataGridProps } from 'components';
 import { COLLECTIONS, CUSTOM_CLAIMS, INVITE_STATUS, Invite } from 'common';
 import { useAsyncToast } from 'hooks';
-import { inviteCols } from 'modules/gridColumnDefs';
+import { inviteCols } from 'modules/muiGrid';
 
 // TODO: need to use collection group hook if iDemand Admin
 // wrap in parent component and check for claims. if idemandAdmin and orgId not provided, return collection group

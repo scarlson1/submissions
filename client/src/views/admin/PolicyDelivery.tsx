@@ -11,7 +11,7 @@ import ReactJson from '@microlink/react-json-view';
 import { FilesDragDrop } from 'components/forms';
 import { useAsyncToast, useCreateStorageFiles, useDocData, useSendEmail } from 'hooks';
 import { policiesCollection, Policy, withIdConverter } from 'common';
-import { ePayInstance } from 'modules/api';
+import { ePayInstance } from 'api';
 import { usePromptForEmails } from 'hooks/usePromptForEmails';
 import { ROUTES, createPath } from 'router';
 import { onlyUnique } from 'modules/utils';

@@ -31,7 +31,7 @@ import { ROUTES, createPath } from 'router';
 import { SUBMISSION_STATUS } from 'common/enums';
 import { useActiveStates, useAsyncToast, usePropertyDetailsAttom } from 'hooks';
 import { roundUpToNearest, sumArr } from 'modules/utils/helpers';
-import { useAuth } from 'modules/components/AuthContext';
+import { useAuth } from 'context/AuthContext';
 import {
   Address,
   Coordinates,

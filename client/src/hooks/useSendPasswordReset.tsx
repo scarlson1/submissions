@@ -3,11 +3,11 @@ import { getAuth, AuthError } from 'firebase/auth';
 import { FirebaseError } from 'firebase/app';
 import { useFunctions } from 'reactfire';
 
-import { useConfirmation } from 'modules/components/ConfirmationService';
+import { useConfirmation } from 'context/ConfirmationService';
 import InputDialog from 'components/InputDialog';
 import { isValidEmail, readableFirebaseCode } from 'modules/utils/helpers';
-import { getTenantIdFromEmail } from 'modules/api';
-import { useAuthActions } from 'modules/components';
+import { getTenantIdFromEmail } from 'api';
+import { useAuthActions } from 'context';
 import { useAsyncToast } from './useAsyncToast';
 
 export const useSendPasswordReset = (

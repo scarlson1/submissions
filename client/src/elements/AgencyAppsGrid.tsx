@@ -3,7 +3,7 @@ import { Box } from '@mui/material';
 import { GridColDef, GridRowParams } from '@mui/x-data-grid';
 
 import { ServerDataGrid, ServerDataGridProps } from 'components';
-import { agencyAppCols } from 'modules/gridColumnDefs';
+import { agencyAppCols } from 'modules/muiGrid/gridColumnDefs';
 
 export interface AgencyAppsGridProps
   extends Omit<

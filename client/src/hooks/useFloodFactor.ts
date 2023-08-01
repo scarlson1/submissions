@@ -3,7 +3,7 @@ import { useFunctions } from 'reactfire';
 
 import { Address, Optional } from 'common';
 import { useAsyncToast } from './useAsyncToast';
-import { getRiskFactorId } from 'modules/api';
+import { getRiskFactorId } from 'api';
 import { popUpWasBlocked } from 'modules/utils';
 
 function firstStreetFormat(str: string) {

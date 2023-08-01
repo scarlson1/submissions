@@ -2,7 +2,7 @@ import { Avatar, Badge, DialogContentText, SxProps } from '@mui/material';
 import { Edit } from '@mui/icons-material';
 import { getDownloadURL } from 'firebase/storage';
 
-import { useAuth } from 'modules/components/AuthContext';
+import { useAuth } from 'context/AuthContext';
 import { useCreateStorageFiles, useUpdateProfile, useAsyncToast, useRequireAuth } from 'hooks';
 import UploadFilesDialog from './UploadFilesDialog';
 

@@ -5,9 +5,9 @@ import { where } from 'firebase/firestore';
 
 import { ServerDataGridCollectionProps } from './QuotesGrid';
 import { ServerDataGrid, ServerDataGridProps } from 'components';
-import { changeRequestCols } from 'modules/gridColumnDefs';
+import { changeRequestCols } from 'modules/muiGrid/gridColumnDefs';
 import { COLLECTIONS } from 'common';
-import { useAuth } from 'modules/components';
+import { useAuth } from 'context';
 
 interface ChangeRequestsGridProps extends ServerDataGridCollectionProps {
   policyId?: string;
@@ -65,6 +65,7 @@ export const ChangeRequestsGrid = ({
       };
     }
 
+    if (!user?.uid) throw new Error('must be signed in');
     return {
       collName: 'CHANGE_REQUESTS',
       isCollectionGroup: true,
@@ -72,13 +73,10 @@ export const ChangeRequestsGrid = ({
     };
   }, [policyId, claims, user, orgId]);
 
-  console.log('props: ', props);
-
   return (
     <Box>
       <ServerDataGrid
         {...props}
-        // collName='CHANGE_REQUESTS'
         columns={columns}
         autoHeight
         initialState={{

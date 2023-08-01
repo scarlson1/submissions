@@ -732,8 +732,6 @@ export interface Transaction extends BaseDoc {
   homeState: string;
 }
 
-// export type ChangeRequestTypes = ''
-
 export type ChangeRequestStatus =
   | 'submitted'
   | 'accepted'

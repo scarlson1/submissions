@@ -1,52 +1,67 @@
-import { useCallback } from 'react';
+import { ReactFireOptions, useFirestore, useObservable } from 'reactfire';
+// collectionCount not exported error
+// import { collectionCount } from 'rxfire/firestore';
 import {
+  AggregateField,
+  AggregateQuerySnapshot,
+  Query,
+  QueryFieldFilterConstraint,
   collection,
-  query,
-  where,
+  collectionGroup,
   getCountFromServer,
-  WhereFilterOp,
-  QueryConstraint,
+  query,
 } from 'firebase/firestore';
-import { useFirestore } from 'reactfire';
+import { Observable, from } from 'rxjs';
+import { map, repeat } from 'rxjs/operators';
 
-import { COLLECTIONS } from 'common';
+// https://github.com/FirebaseExtended/rxfire/blob/main/docs/firestore.md#collectioncount
 
-export function mapWhereConstraints(constraints: QueryArgs[]) {
-  return constraints.map((c) => where(c[0], c[1], c[2]));
+// TODO: handle errors (DEADLINE_EXCEEDED)
+// https://firebase.google.com/docs/firestore/query-data/aggregation-queries#limitations
+
+type CountSnapshot = AggregateQuerySnapshot<{
+  count: AggregateField<number>;
+}>;
+
+export function collectionCountSnap(query: Query<unknown>): Observable<CountSnapshot> {
+  return from(getCountFromServer(query));
 }
 
-type QueryArgs = [string, WhereFilterOp, any];
-
-export function useDocCount(
-  collName: keyof typeof COLLECTIONS,
-  constraints: QueryConstraint[] = []
-) {
-  const db = useFirestore();
-
-  return useCallback(() => {
-    const collectionRef = collection(db, COLLECTIONS[collName]);
-    const filteredConstraints = constraints.filter((c) => c.type === 'where');
-
-    return getCountFromServer(query(collectionRef, ...filteredConstraints));
-  }, [db, constraints, collName]);
+export function collectionCount(query: Query<unknown>): Observable<number> {
+  return collectionCountSnap(query).pipe(map((snap) => snap.data().count));
 }
 
-// export function mapWhereConstraints(constraints: QueryArgs[]) {
-//   return constraints.map((c) => where(c[0], c[1], c[2]));
-// }
+export const useDocCount = (
+  colName: string,
+  constraints: QueryFieldFilterConstraint[] = [],
+  isCollectionGroup: boolean = false,
+  pathSegments: string[] = [],
+  options?: ReactFireOptions | undefined
+) => {
+  const firestore = useFirestore();
 
-// type QueryArgs = [string, WhereFilterOp, any];
+  let path = `${colName}`;
+  if (pathSegments.length) path += `/${pathSegments.join('/')}`;
 
-// export function useDocCount(collName: keyof typeof COLLECTIONS, constraints?: QueryArgs[]) {
-//   const db = useFirestore();
-//   const qConstraints = useMemo<QueryFieldFilterConstraint[]>(
-//     () => (constraints ? mapWhereConstraints(constraints) : []), // where('userId', '==', user?.uid)
-//     [constraints]
-//   );
+  let colRef;
+  if (!!isCollectionGroup) {
+    colRef = collectionGroup(firestore, path);
+  } else {
+    colRef = collection(firestore, path);
+  }
 
-//   return useCallback(() => {
-//     const collectionRef = collection(db, COLLECTIONS[collName]);
+  const q = query(colRef, ...constraints);
 
-//     return getCountFromServer(query(collectionRef, ...qConstraints));
-//   }, [db, qConstraints, collName]);
-// }
+  // refetch every 30 seconds, until 60 fetches (~ 30 mins)
+  const observable$ = collectionCount(q).pipe(
+    // tap(() => console.log('fetching aggregate count')),
+    repeat({ count: 60, delay: 30 * 1000 })
+  );
+
+  const observableId = `firestore:count:${path}:${JSON.stringify(constraints)}:aggregate-count`;
+
+  return useObservable(observableId, observable$, options);
+};
+
+// NEED TO USE RXJS repeat for up to day read
+// https://github.com/FirebaseExtended/rxfire/blob/main/docs/firestore.md#collectioncount

@@ -8,7 +8,7 @@ import { COLLECTIONS, ImportSummary, WithId } from 'common';
 import { ServerDataGrid, ServerDataGridProps } from 'components';
 import { useShowJson } from 'hooks';
 import { formatFirestoreTimestamp } from 'modules/utils';
-import { importSummaryCols } from 'modules/gridColumnDefs';
+import { importSummaryCols } from 'modules/muiGrid/gridColumnDefs';
 
 export interface ImportSummaryGridProps
   extends Omit<

@@ -8,8 +8,8 @@ import { QUOTE_STATUS } from 'common';
 import { ServerDataGrid, ServerDataGridProps } from 'components';
 import { useAsyncToast, useGridActions, useSendQuoteNotification, useWidth } from 'hooks';
 import { hasAdminClaimsValidator } from 'components/RequireAuthReactFire';
-import { useAuth } from 'modules/components';
-import { quoteCols, statusCol } from 'modules/gridColumnDefs';
+import { useAuth } from 'context';
+import { quoteCols, statusCol } from 'modules/muiGrid/gridColumnDefs';
 
 // TODO: need to use custom merge function for additionalColumns to prevent duplication "field" values
 

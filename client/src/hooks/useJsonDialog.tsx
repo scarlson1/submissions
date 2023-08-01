@@ -3,7 +3,7 @@ import ReactJson from '@microlink/react-json-view';
 import { Box, DialogProps, useTheme } from '@mui/material';
 import { toast } from 'react-hot-toast';
 
-import { useConfirmation } from 'modules/components/ConfirmationService';
+import { useConfirmation } from 'context/ConfirmationService';
 import { ConfirmationDialog } from 'components';
 import { isJSON } from 'modules/utils/helpers';
 import { useCopyToClipboard } from './useCopyToClipboard';

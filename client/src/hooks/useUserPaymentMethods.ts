@@ -3,7 +3,7 @@ import { getFirestore, onSnapshot, orderBy, query } from 'firebase/firestore';
 import { FirebaseError } from 'firebase/app';
 
 import { PaymentMethod, paymentMethodsCollection } from 'common';
-import { useAuth } from 'modules/components/AuthContext';
+import { useAuth } from 'context/AuthContext';
 
 export const useUserPaymentMethods = (onError?: (err: any, msg: string) => void) => {
   const { user } = useAuth();

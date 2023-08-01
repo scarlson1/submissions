@@ -19,7 +19,7 @@ import type { SearchClient } from 'algoliasearch/lite';
 import type { DocSearchHit, InternalDocSearchHit, StoredDocSearchHit } from 'common';
 import { ButtonTranslations, SearchButton } from './SearchButton';
 import { SearchModal } from './SearchModal';
-import { useChangeTheme } from 'modules/components';
+import { useChangeTheme } from 'context';
 import {
   // useAlgoliaSearchKey,
   useAlgoliaStore,

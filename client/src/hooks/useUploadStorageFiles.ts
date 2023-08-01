@@ -9,7 +9,7 @@ import {
 } from 'firebase/storage';
 
 // import { storage } from 'firebaseConfig';
-import { useAuth } from 'modules/components/AuthContext';
+import { useAuth } from 'context/AuthContext';
 import { FirebaseError } from 'firebase/app';
 
 // used to upload files to storage

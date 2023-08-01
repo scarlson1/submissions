@@ -12,7 +12,7 @@ import { ADMIN_ROUTES, ROUTES, createPath } from 'router';
 import { useAsyncToast, useCreateTenant } from 'hooks';
 import { AGENCY_SUBMISSION_STATUS, COLLECTIONS, CUSTOM_CLAIMS } from 'common';
 import { useSendAgencyAppNotification } from 'hooks/useCreateTenant';
-import { useConfirmation } from 'modules/components';
+import { useConfirmation } from 'context';
 import { AgencyAppsGrid } from 'elements';
 
 export const AgencyApps = () => {

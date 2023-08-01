@@ -1,8 +1,8 @@
 import { useCallback, useState } from 'react';
 import { useFunctions } from 'reactfire';
 
-import { getAnnualPremium } from 'modules/api';
-import { GetAnnualPremiumRequest, RatingInputs } from 'modules/api/getAnnualPremium';
+import { getAnnualPremium } from 'api';
+import { GetAnnualPremiumRequest, RatingInputs } from 'api/getAnnualPremium';
 import invariant from 'tiny-invariant';
 import { validateCommonInputs } from './useCalcPremium';
 import { Optional } from 'common';

@@ -12,14 +12,8 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import * as Sentry from '@sentry/react';
 
-import {
-  ThemeProvider,
-  ConfirmationProvider,
-  AuthContextProvider,
-  Toaster,
-} from 'modules/components';
-import { DialogProvider } from 'context';
-import { ErrorFallback } from 'components';
+import { AuthProvider, DialogProvider, ThemeProvider, ConfirmationProvider } from 'context';
+import { ErrorFallback, Toaster } from 'components';
 import { useAnalyticsEvent } from 'hooks';
 
 // TODO: set up Sentry for error logging
@@ -73,10 +67,10 @@ function App() {
         <LocalizationProvider dateAdapter={AdapterDateFns}>
           <ConfirmationProvider>
             <DialogProvider>
-              <AuthContextProvider>
+              <AuthProvider>
                 <Outlet />
                 <Toaster />
-              </AuthContextProvider>
+              </AuthProvider>
             </DialogProvider>
           </ConfirmationProvider>
         </LocalizationProvider>

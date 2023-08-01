@@ -3,7 +3,7 @@ import { Box, Unstable_Grid2 as Grid, Typography } from '@mui/material';
 import { Form, Formik, FormikHelpers, FormikProps } from 'formik';
 import * as yup from 'yup';
 
-import { useConfirmation } from 'modules/components';
+import { useConfirmation } from 'context';
 import { ConfirmationDialog } from 'components';
 import { FormikDollarMaskField } from 'components/forms';
 

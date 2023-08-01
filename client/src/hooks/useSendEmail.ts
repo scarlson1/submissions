@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useFunctions } from 'reactfire';
 
-import { sendEmail } from 'modules/api';
+import { sendEmail } from 'api';
 import { BaseSendEmailResponse, SendEmailRequest } from 'common';
 
 export interface UseSendEmailProps {

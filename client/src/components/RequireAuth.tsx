@@ -4,7 +4,7 @@ import { getAuth, signInAnonymously, UserCredential } from 'firebase/auth';
 import { toast } from 'react-hot-toast';
 
 // import { auth } from 'firebaseConfig';
-import { useAuth } from 'modules/components/AuthContext';
+import { useAuth } from 'context/AuthContext';
 import { CUSTOM_CLAIMS } from 'common';
 import { AUTH_ROUTES, createPath } from 'router';
 

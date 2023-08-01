@@ -434,6 +434,37 @@ export function getThemedComponents(theme: Theme): {
                   : theme.palette.primaryDark[100],
             },
           },
+          outlinedPrimary: {
+            color:
+              theme.palette.mode === 'dark'
+                ? theme.palette.primary[200]
+                : theme.palette.primary[500],
+            backgroundColor:
+              theme.palette.mode === 'dark'
+                ? alpha(theme.palette.primary[900], 0.4)
+                : alpha(theme.palette.primary[50], 0.3),
+            borderColor:
+              theme.palette.mode === 'dark'
+                ? theme.palette.primary[900]
+                : theme.palette.primary[100],
+            boxShadow:
+              theme.palette.mode === 'dark'
+                ? '0px 2px 2px #0B0D0E, inset 0px 4px 4px rgba(20, 25, 31, 0.3)'
+                : `0px 2px 2px ${alpha(theme.palette.primary[100], 0.2)}, inset 0px 4px 4px ${alpha(
+                    theme.palette.primary[100],
+                    0.1
+                  )}`,
+            '&:hover': {
+              backgroundColor:
+                theme.palette.mode === 'dark'
+                  ? theme.palette.primary[900]
+                  : theme.palette.primary[50],
+              borderColor:
+                theme.palette.mode === 'dark'
+                  ? theme.palette.primary[700]
+                  : theme.palette.primary[300],
+            },
+          },
           sizeMedium: {
             '& .MuiButton-startIcon': {
               marginLeft: 0,
@@ -447,6 +478,30 @@ export function getThemedComponents(theme: Theme): {
             backgroundColor: theme.palette.primary[500],
             color: '#fff',
           },
+          // containedPrimary: {
+          //   background:
+          //     theme.palette.mode === 'dark'
+          //       ? `linear-gradient(180deg, ${theme.palette.primary[500]} 0%, ${theme.palette.primary[400]} 100%)`
+          //       : `linear-gradient(180deg, ${theme.palette.primary[500]} 0%, ${theme.palette.primary[600]} 100%)`,
+          //   border: '1px solid',
+          //   borderColor: theme.palette.primary[400],
+          //   boxShadow:
+          //     theme.palette.mode === 'dark'
+          //       ? `0px 2px 4px ${alpha(theme.palette.common.black, 0.8)}, inset 0px 4px 8px ${alpha(
+          //           theme.palette.primary[200],
+          //           0.4
+          //         )}`
+          //       : `0px 2px 4px ${alpha(theme.palette.primary[700], 0.2)}, inset 0px 4px 8px ${alpha(
+          //           theme.palette.primary[200],
+          //           0.4
+          //         )}`,
+          //   textShadow: `0px 1px 1px ${alpha(theme.palette.grey[900], 0.3)}`,
+          //   '&:hover': {
+          //     background: `linear-gradient(180deg, ${theme.palette.primary[500]} 0%, ${theme.palette.primary[400]} 100%)`,
+          //     boxShadow:
+          //       '0px 0px 8px rgba(0, 127, 255, 0.2), inset 0px 4px 8px rgba(102, 178, 255, 0.4)',
+          //   },
+          // },
         },
         variants: [
           {

@@ -8,7 +8,7 @@ import { useSigninCheck } from 'reactfire';
 import { createPath, ADMIN_ROUTES } from 'router';
 import { ServerDataGrid } from 'components';
 import { CUSTOM_CLAIMS } from 'common';
-import { orgCols } from 'modules/gridColumnDefs';
+import { orgCols } from 'modules/muiGrid/gridColumnDefs';
 
 export const Organizations = () => {
   const navigate = useNavigate();

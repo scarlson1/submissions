@@ -3,7 +3,7 @@ import { useCallback } from 'react';
 import { Container, Box, Typography, Link } from '@mui/material';
 import { generateHTML } from '@tiptap/react';
 
-import { useConfirmation } from 'modules/components/ConfirmationService';
+import { useConfirmation } from 'context/ConfirmationService';
 import { EDITOR_EXTENSION_DEFAULTS, useCollectionData } from 'hooks';
 import { Disclosure } from 'common';
 import { where } from 'firebase/firestore';

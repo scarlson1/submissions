@@ -5,7 +5,7 @@ import { Navigate } from 'react-router-dom';
 import { useFunctions } from 'reactfire';
 
 import { getParamByName } from 'modules/utils/helpers';
-import { assignQuote } from 'modules/api';
+import { assignQuote } from 'api';
 
 // TODO: error boundary w/ reset error boundary
 

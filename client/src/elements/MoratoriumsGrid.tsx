@@ -7,11 +7,11 @@ import { useFirestore } from 'reactfire';
 import { ErrorBoundary } from 'react-error-boundary';
 
 import { ConfirmationDialog, ServerDataGrid } from 'components';
-import { moratoriumCols } from 'modules/gridColumnDefs';
+import { moratoriumCols } from 'modules/muiGrid/gridColumnDefs';
 import { ServerDataGridCollectionProps } from './QuotesGrid';
 import { useShowJson } from 'hooks';
 import { COLLECTIONS, FIPSDetails, Moratorium, moratoriumsCollection } from 'common';
-import { useConfirmation } from 'modules/components';
+import { useConfirmation } from 'context';
 import { formatFirestoreTimestamp } from 'modules/utils';
 import { CountiesMap } from './CountiesMap';
 

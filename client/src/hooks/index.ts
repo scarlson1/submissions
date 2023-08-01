@@ -15,7 +15,7 @@ export { useCreateAccount } from './useCreateAccount';
 export { useCreateAgencySubmission } from './useCreateAgencySubmission';
 export { useCreateMoratorium } from './useCreateMoratorium';
 export { useCreateSLLicense } from './useCreateSLLicense';
-export { useDocCount, mapWhereConstraints } from './useDocCount';
+export { useFetchDocCount, mapWhereConstraints } from './useFetchDocCount';
 export { useActiveStates } from './useActiveStates';
 export { useCreateQuote } from './useCreateQuote';
 export { useBindQuote } from './useBindQuote';
@@ -61,6 +61,7 @@ export { useGridActions } from './useGridActions';
 export { useGridServerSort } from './useGridServerSort';
 export { useGridServerFilter } from './useGridServerFilter';
 export { useGeneratePDF } from './useGeneratePDF';
+export { useDocCount } from './useDocCount';
 
 export type { UseFileUploadProps } from './useFileUpload';
 export type { UpdateProfileArgs, UpdateProfileRes } from './useUpdateProfile';

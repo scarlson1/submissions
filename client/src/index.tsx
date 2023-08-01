@@ -14,7 +14,7 @@ import * as Sentry from '@sentry/react';
 // import { getAnalytics, logEvent } from 'firebase/analytics';
 
 import { router } from './router';
-import { ReactFireAppContext, ReactFireServicesContext } from 'modules/components/ReactFireContext';
+import { ReactFireAppContext, ReactFireServicesContext } from 'context/ReactFireContext';
 
 // TODO: set up google analytics
 // https://github.com/FirebaseExtended/reactfire/blob/main/docs/use.md#log-page-views-to-google-analytics-for-firebase-with-react-router

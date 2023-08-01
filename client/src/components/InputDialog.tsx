@@ -14,7 +14,7 @@ import {
   TextFieldProps,
   CheckboxProps,
 } from '@mui/material';
-import { ConfirmationOptions } from 'modules/components/ConfirmationService';
+import { ConfirmationOptions } from 'context/ConfirmationService';
 // @ts-ignore
 export interface InputDialogOptions extends ConfirmationOptions {
   open?: boolean;

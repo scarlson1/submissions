@@ -73,7 +73,7 @@ import {
   getDateShortcuts,
   stringAvatar,
 } from 'modules/utils/helpers';
-import { useAuth } from 'modules/components/AuthContext';
+import { useAuth } from 'context/AuthContext';
 import { AUTH_ROUTES, ROUTES, createPath } from 'router';
 import { TimeManagementSVG } from 'assets/images';
 

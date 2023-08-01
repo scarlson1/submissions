@@ -13,7 +13,7 @@ import { DocumentSnapshot, QueryFieldFilterConstraint } from 'firebase/firestore
 import { lowerCase } from 'lodash';
 
 import {
-  useDocCount,
+  useFetchDocCount,
   useFetchDocsWithCursor,
   useWidth,
   useGridServerSort,
@@ -70,7 +70,7 @@ export const ServerDataGrid = ({
     [filters, constraints] // eslint-disable-line react-hooks/exhaustive-deps
   );
 
-  const fetchCount = useDocCount(collName, [...filters, ...constraints]);
+  const fetchCount = useFetchDocCount(collName, [...filters, ...constraints]);
   // fetch count whenever query changes
   useEffect(() => {
     // TODO: improve dependencies chekcing (currently called 3 times)

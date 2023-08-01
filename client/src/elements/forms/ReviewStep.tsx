@@ -15,7 +15,7 @@ import { FloodValues } from 'views/SubmissionNew';
 import { LimitKeys } from 'common';
 import { dollarFormat } from 'modules/utils/helpers';
 import { FormikCheckbox } from 'components/forms';
-import { useConfirmation } from 'modules/components/ConfirmationService';
+import { useConfirmation } from 'context/ConfirmationService';
 import { useDisclosure } from 'hooks';
 
 // TODO: generalize component

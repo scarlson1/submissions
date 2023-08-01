@@ -20,7 +20,7 @@ import { createSearchParams, useNavigate, useParams } from 'react-router-dom';
 import * as CheckmarkLottie from 'assets/checkmark.json';
 import { ROUTES, createPath, AUTH_ROUTES } from 'router';
 import { Submission } from 'common/types';
-import { useAuth } from 'modules/components/AuthContext';
+import { useAuth } from 'context/AuthContext';
 import {
   ANALYTICS_EVENTS,
   Charge,

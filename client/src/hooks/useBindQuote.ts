@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { useFunctions } from 'reactfire';
 
-import { createPolicy, executePayment } from 'modules/api';
+import { createPolicy, executePayment } from 'api';
 // TODO: create validation cloud function / validate in createPolicy function
 //    - calc expiration date
 //    - check all required values exist

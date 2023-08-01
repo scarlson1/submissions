@@ -6,7 +6,7 @@ import { Submissions as AdminSubmissions } from './admin/Submissions';
 import { Submissions as UserSubmissions } from './user/Submissions';
 import { SubmissionsGrid } from 'elements';
 import { ROUTES, createPath } from 'router';
-import { useAuth } from 'modules/components';
+import { useAuth } from 'context';
 
 // TODO: create wrapper for common stuff (title, new submission button, etc.)
 // use useUserClaims to get claims or grab from context ? does reactFire get val from cache if using useUserClaims ??

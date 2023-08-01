@@ -8,7 +8,7 @@ import { useSigninCheck } from 'reactfire';
 import { ADMIN_ROUTES, createPath } from 'router';
 import { ServerDataGrid } from 'components';
 import { CUSTOM_CLAIMS } from 'common';
-import { licenseCols } from 'modules/gridColumnDefs';
+import { licenseCols } from 'modules/muiGrid/gridColumnDefs';
 
 export const Licenses = () => {
   const navigate = useNavigate();

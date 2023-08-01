@@ -21,8 +21,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { setDoc, doc, getFirestore } from 'firebase/firestore';
 
 // import { auth, db } from 'firebaseConfig';
-import { useAuth } from 'modules/components/AuthContext';
-import { useConfirmation } from 'modules/components/ConfirmationService';
+import { useAuth } from 'context/AuthContext';
+import { useConfirmation } from 'context/ConfirmationService';
 import { getProviderForProviderId } from 'modules/utils/getProviderById';
 import { toast } from 'react-hot-toast';
 import { getRedirectPath } from 'modules/utils/helpers';

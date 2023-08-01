@@ -12,7 +12,7 @@ import { FirebaseError } from 'firebase/app';
 import { useFunctions } from 'reactfire';
 
 import { LoginValues } from 'views/Login';
-import { getTenantIdFromEmail } from 'modules/api';
+import { getTenantIdFromEmail } from 'api';
 import { useAsyncToast } from './useAsyncToast';
 // import { useMultiFactorAuth } from 'hooks/auth';
 

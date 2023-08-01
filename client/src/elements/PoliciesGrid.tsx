@@ -10,7 +10,7 @@ import { ServerDataGrid, ServerDataGridProps } from 'components';
 import { Policy, POLICY_STATUS } from 'common';
 import { CUSTOM_CLAIMS } from 'common';
 import { ROUTES, createPath } from 'router';
-import { policyCols, statusCol } from 'modules/gridColumnDefs';
+import { policyCols, statusCol } from 'modules/muiGrid/gridColumnDefs';
 
 export interface PoliciesGridProps
   extends Omit<

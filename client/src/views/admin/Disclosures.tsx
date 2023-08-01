@@ -13,7 +13,7 @@ import { ServerDataGrid } from 'components';
 import { ADMIN_ROUTES, createPath } from 'router';
 import { formatGridFirestoreTimestamp } from 'modules/utils';
 import { GridCellCopy, renderChips } from 'components/RenderGridCellHelpers';
-import { useConfirmation } from 'modules/components';
+import { useConfirmation } from 'context';
 import { deleteDoc, doc } from 'firebase/firestore';
 import { COLLECTIONS } from 'common';
 import { EDITOR_EXTENSION_DEFAULTS } from 'hooks';

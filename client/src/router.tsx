@@ -59,7 +59,7 @@ import { BindSuccess } from 'elements/forms/SuccessStep';
 import { RequireAuthReactFire } from 'components/RequireAuthReactFire';
 import { Disclosures } from 'views/admin/Disclosures';
 import { TestPoliciesMapWithFilters } from 'elements/PoliciesMap';
-import { AuthActionsProvider } from 'modules/components';
+import { AuthActionsProvider } from 'context';
 import { TempWrappedSearch } from 'components/search/Search';
 import { AgencyAppSuccessStep } from 'views/AgencyNew';
 import { ImportsSummaryGrid } from 'elements/ImportsSummaryGrid';

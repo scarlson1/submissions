@@ -4,7 +4,7 @@ import { useFirestore, useSigninCheck } from 'reactfire';
 
 import { userClaimsCollection } from 'common';
 import { hasAdminClaimsValidator } from 'components/RequireAuthReactFire';
-import { useAuthActions } from 'modules/components';
+import { useAuthActions } from 'context';
 
 export const useUpdateClaims = (
   onSuccess?: null | undefined | ((newClaims: Record<string, any>) => void),

@@ -3,7 +3,7 @@ import { Box, DialogContentText, Stack } from '@mui/material';
 import { Form, Formik, FormikHelpers, FormikProps } from 'formik';
 import * as yup from 'yup';
 
-import { ConfirmationOptions } from 'modules/components/ConfirmationService';
+import { ConfirmationOptions } from 'context/ConfirmationService';
 import { FormikSwitch, FormikMultiTextInput } from 'components/forms';
 import { isValidEmail } from 'modules/utils';
 import { useDialog } from 'context';

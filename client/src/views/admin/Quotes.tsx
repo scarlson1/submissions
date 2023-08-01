@@ -24,9 +24,9 @@ import { toast } from 'react-hot-toast';
 
 import { ADMIN_ROUTES, createPath } from 'router';
 import { Quote, quotesCollection, QUOTE_STATUS, WithId, COLLECTIONS } from 'common';
-import { subproducerCommissionCol } from 'modules/gridColumnDefs';
+import { subproducerCommissionCol } from 'modules/muiGrid/gridColumnDefs';
 import { useAsyncToast, useShowJson } from 'hooks';
-import { useConfirmation } from 'modules/components';
+import { useConfirmation } from 'context';
 import { quoteConverter } from 'common/firestoreConverters';
 import { QuotesGrid, CSVUploadDialog } from 'elements';
 import { IconMenu } from 'components/IconButtonMenu';

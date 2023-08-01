@@ -46,6 +46,7 @@ export {
 // import ContextDialog from './CtxDialog';
 // export { ContextDialog };
 export { CtxDialog, ContextDialog } from './CtxDialog';
+export { Toaster } from './Toaster';
 
 export type { ConfirmationDialogProps } from './ConfirmationDialog';
 export type { FileLinkProps } from './FileLink';

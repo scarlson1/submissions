@@ -11,7 +11,7 @@ import {
   IconButton,
   Stack,
 } from '@mui/material';
-import { ConfirmationOptions } from 'modules/components/ConfirmationService';
+import { ConfirmationOptions } from 'context/ConfirmationService';
 import { CloseRounded } from '@mui/icons-material';
 // import { useRequireAuth, CustomClaimKeys } from 'hooks/auth/useRequireAuth';
 

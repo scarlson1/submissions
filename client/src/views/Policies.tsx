@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { Box, useTheme } from '@mui/material';
 
-import { useAuth } from 'modules/components';
+import { useAuth } from 'context';
 
 // USER POLICIES COMPONENT IMPORTS
 import {
@@ -76,7 +76,9 @@ export const Policies = () => {
     return (
       <Container maxWidth='lg' sx={{ py: { xs: 4, md: 6 } }}>
         <Box>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', pb: 2 }}>
+          <Box
+            sx={{ display: 'flex', justifyContent: 'space-between', pb: 2, pr: { xs: 0, sm: 3 } }}
+          >
             {header}
             <ChangeRequestsDialog />
           </Box>

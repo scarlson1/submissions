@@ -1,7 +1,7 @@
 import { Navigate } from 'react-router-dom';
 import { Box, Container, Unstable_Grid2 as Grid, Typography } from '@mui/material';
 
-import { useAuth } from 'modules/components/AuthContext';
+import { useAuth } from 'context/AuthContext';
 import { ADMIN_ROUTES, createPath, ROUTES } from 'router';
 
 // TODO: add UI state to authContext (admin, user, authedUser)

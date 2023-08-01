@@ -29,8 +29,8 @@ import { ROUTES, createPath } from 'router';
 import { SUBMISSION_STATUS } from 'common/enums';
 import { useActiveStates, usePropertyDetails } from 'hooks';
 import { roundUpToNearest, sumArr } from 'modules/utils/helpers';
-import { useAuth } from 'modules/components/AuthContext';
-import { initializeQuote } from 'modules/api/initializeQuote';
+import { useAuth } from 'context/AuthContext';
+import { initializeQuote } from 'api/initializeQuote';
 import { submissionsCollection } from 'common';
 
 // TODO: move active states loader to higher up component loader

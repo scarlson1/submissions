@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 
-import { functionsInstance } from 'modules/api';
+import { functionsInstance } from 'api';
 import { useAsyncToast } from './useAsyncToast';
 
 type PDFRoutes = 'generatePolicy' | 'generateDecPDF';

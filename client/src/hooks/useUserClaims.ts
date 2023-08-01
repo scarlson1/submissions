@@ -9,7 +9,7 @@ import { from, of } from 'rxjs';
 import { isEmpty } from 'lodash';
 
 import { userClaimsCollection } from 'common';
-import type { CustomClaimsInterface } from 'modules/components';
+import type { CustomClaimsInterface } from 'context';
 
 // const DEFAULT_CLAIMS = {
 //   iDemandAdmin: false,

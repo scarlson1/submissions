@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { Functions } from 'firebase/functions';
 
-import { generateSearchKey } from 'modules/api';
+import { generateSearchKey } from 'api';
 
 // TODO: SAVE KEY IN USER CLAIMS ??
 

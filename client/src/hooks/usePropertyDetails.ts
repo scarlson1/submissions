@@ -2,11 +2,7 @@ import { useState, useCallback } from 'react';
 import { useFunctions } from 'reactfire';
 import { round } from 'lodash';
 
-import {
-  fetchPropertyDetails,
-  getPropertyDetailsAttom,
-  GetPropertyDetailsAttomRequest,
-} from 'modules/api';
+import { fetchPropertyDetails, getPropertyDetailsAttom, GetPropertyDetailsAttomRequest } from 'api';
 import { Coordinates, LimitKeys, Limits, Nullable, RatingPropertyData } from 'common/types';
 
 import { usePromptRCV } from './usePromptRCV';

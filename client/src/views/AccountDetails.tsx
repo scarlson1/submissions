@@ -35,7 +35,7 @@ import {
   useDocData,
   useUpdateProfile,
 } from 'hooks';
-import { useAuthActions } from 'modules/components';
+import { useAuthActions } from 'context';
 import { RHFTextField } from 'components/forms';
 import { AdminManageUsersGrid } from 'elements/UsersGrid';
 import { passwordValidation } from './CreateAccount';
