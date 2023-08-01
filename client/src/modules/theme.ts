@@ -77,18 +77,31 @@ export const blue = {
   800: '#004C99',
   900: '#003A75',
 };
+// export const blueDark = {
+//   50: '#E2EDF8',
+//   100: '#CEE0F3',
+//   200: '#91B9E3',
+//   300: '#5090D3',
+//   main: '#5090D3',
+//   400: '#265D97',
+//   500: '#1E4976',
+//   600: '#173A5E',
+//   700: '#132F4C',
+//   800: '#001E3C',
+//   900: '#0A1929',
+// };
 export const blueDark = {
-  50: '#E2EDF8',
-  100: '#CEE0F3',
-  200: '#91B9E3',
-  300: '#5090D3',
-  main: '#5090D3',
-  400: '#265D97',
-  500: '#1E4976',
-  600: '#173A5E',
-  700: '#132F4C',
-  800: '#001E3C',
-  900: '#0A1929',
+  50: '#EAEDF1',
+  100: '#DAE0E7',
+  200: '#ACBAC8',
+  300: '#7B91A7',
+  main: '#7B91A7',
+  400: '#4B5E71',
+  500: '#3B4A59',
+  600: '#2F3A46',
+  700: '#1F262E',
+  800: '#141A1F',
+  900: '#101418',
 };
 const grey = {
   50: '#F3F6F9',
@@ -141,7 +154,7 @@ export const getDesignTokens = (mode: 'light' | 'dark') =>
       mode,
       ...(mode === 'dark' && {
         background: {
-          default: blueDark[900],
+          default: blueDark[800], // default: blueDark[900],
           paper: blueDark[900],
         },
       }),
@@ -158,15 +171,27 @@ export const getDesignTokens = (mode: 'light' | 'dark') =>
         text: {
           primary: grey[900],
           secondary: grey[700],
+          tertiary: grey[600],
         },
       }),
       ...(mode === 'dark' && {
         text: {
           primary: '#fff',
           secondary: grey[400],
+          tertiary: grey[400],
         },
       }),
-      grey,
+      grey: {
+        ...grey,
+        ...(mode === 'light' && {
+          main: grey[100],
+          contrastText: grey[600],
+        }),
+        ...(mode === 'dark' && {
+          main: grey[700],
+          contrastText: grey[600],
+        }),
+      },
       error: {
         50: '#FFF0F1',
         100: '#FFDBDE',
@@ -211,6 +236,24 @@ export const getDesignTokens = (mode: 'light' | 'dark') =>
         800: '#8C5800',
         900: '#5A3600',
       },
+      gradients: {
+        lightGrayRadio:
+          'radial-gradient(50% 50% at 50% 50%, #F0F7FF 0%, rgba(240, 247, 255, 0.05) 100%)',
+        stylizedRadio:
+          mode === 'dark'
+            ? 'linear-gradient(rgba(0 0 0 / 0.1), rgba(0 0 0 / 0.1)), linear-gradient(254.86deg, rgba(0, 58, 117, 0.18) 0%, rgba(11, 13, 14, 0.3) 49.98%, rgba(0, 76, 153, 0.21) 100.95%)'
+            : 'linear-gradient(rgba(255 255 255 / 0.3), rgba(255 255 255 / 0.3)), linear-gradient(254.86deg, rgba(194, 224, 255, 0.12) 0%, rgba(194, 224, 255, 0.12) 0%, rgba(255, 255, 255, 0.3) 49.98%, rgba(240, 247, 255, 0.3) 100.95%)',
+        linearSubtle:
+          mode === 'light'
+            ? `linear-gradient(to top right, ${alpha(blue[50], 0.3)} 40%, ${alpha(
+                grey[50],
+                0.2
+              )} 100%)`
+            : `linear-gradient(to top right, ${alpha(blue[900], 0.1)} 40%, ${alpha(
+                blueDark[800],
+                0.2
+              )} 100%)`,
+      },
     },
     shape: {
       borderRadius: 8,
@@ -218,48 +261,42 @@ export const getDesignTokens = (mode: 'light' | 'dark') =>
     spacing: 4,
     typography: {
       fontFamily: ['"IBM Plex Sans"', ...systemFont].join(','),
-      fontFamilyCode: [
-        'Consolas',
-        'Menlo',
-        'Monaco',
-        'Andale Mono',
-        'Ubuntu Mono',
-        'monospace',
-      ].join(','),
+      fontFamilyCode: ['Consolas', 'Menlo', 'Monaco', '"Droid Sans Mono"', 'monospace'].join(','),
       fontFamilyTagline: ['"PlusJakartaSans-ExtraBold"', ...systemFont].join(','),
       fontFamilySystem: systemFont.join(','),
       fontWeightSemiBold: 600,
       fontWeightExtraBold: 800,
       h1: {
-        fontFamily: ['"PlusJakartaSans-ExtraBold"', ...systemFont].join(','),
-        fontSize: 'clamp(2.625rem, 1.2857rem + 3.5714vw, 4rem)',
-        fontWeight: 800,
+        fontFamily: ['"General Sans"', ...systemFont].join(','),
+        fontSize: 'clamp(2.5rem, 1.125rem + 3.5vw, 3.5em)',
+        fontWeight: 600,
         lineHeight: 78 / 70,
+        letterSpacing: -0.2,
         ...(mode === 'light' && {
           color: blueDark[900],
         }),
       },
       h2: {
-        fontFamily: ['"PlusJakartaSans-ExtraBold"', ...systemFont].join(','),
+        fontFamily: ['"General Sans"', ...systemFont].join(','),
         fontSize: 'clamp(1.5rem, 0.9643rem + 1.4286vw, 2.25rem)',
-        fontWeight: 800,
+        fontWeight: 600,
         lineHeight: 44 / 36,
+        letterSpacing: -0.2,
         color: mode === 'dark' ? grey[100] : blueDark[700],
       },
       h3: {
-        fontFamily: ['"PlusJakartaSans-Bold"', ...systemFont].join(','),
+        fontFamily: ['"General Sans"', ...systemFont].join(','),
         fontSize: defaultTheme.typography.pxToRem(36),
         lineHeight: 44 / 36,
         letterSpacing: 0.2,
       },
       h4: {
-        fontFamily: ['"PlusJakartaSans-Bold"', ...systemFont].join(','),
-        fontSize: defaultTheme.typography.pxToRem(28),
+        fontFamily: ['"General Sans"', ...systemFont].join(','),
+        fontSize: defaultTheme.typography.pxToRem(30),
         lineHeight: 42 / 28,
         letterSpacing: 0.2,
       },
       h5: {
-        fontFamily: ['"PlusJakartaSans-Bold"', ...systemFont].join(','),
         fontSize: defaultTheme.typography.pxToRem(24),
         lineHeight: 36 / 24,
         letterSpacing: 0.1,
@@ -269,6 +306,45 @@ export const getDesignTokens = (mode: 'light' | 'dark') =>
         fontSize: defaultTheme.typography.pxToRem(20),
         lineHeight: 30 / 20,
       },
+      // h1: {
+      //   fontFamily: ['"PlusJakartaSans-ExtraBold"', ...systemFont].join(','),
+      //   fontSize: 'clamp(2.625rem, 1.2857rem + 3.5714vw, 4rem)',
+      //   fontWeight: 800,
+      //   lineHeight: 78 / 70,
+      //   ...(mode === 'light' && {
+      //     color: blueDark[900],
+      //   }),
+      // },
+      // h2: {
+      //   fontFamily: ['"PlusJakartaSans-ExtraBold"', ...systemFont].join(','),
+      //   fontSize: 'clamp(1.5rem, 0.9643rem + 1.4286vw, 2.25rem)',
+      //   fontWeight: 800,
+      //   lineHeight: 44 / 36,
+      //   color: mode === 'dark' ? grey[100] : blueDark[700],
+      // },
+      // h3: {
+      //   fontFamily: ['"PlusJakartaSans-Bold"', ...systemFont].join(','),
+      //   fontSize: defaultTheme.typography.pxToRem(36),
+      //   lineHeight: 44 / 36,
+      //   letterSpacing: 0.2,
+      // },
+      // h4: {
+      //   fontFamily: ['"PlusJakartaSans-Bold"', ...systemFont].join(','),
+      //   fontSize: defaultTheme.typography.pxToRem(28),
+      //   lineHeight: 42 / 28,
+      //   letterSpacing: 0.2,
+      // },
+      // h5: {
+      //   fontFamily: ['"PlusJakartaSans-Bold"', ...systemFont].join(','),
+      //   fontSize: defaultTheme.typography.pxToRem(24),
+      //   lineHeight: 36 / 24,
+      //   letterSpacing: 0.1,
+      //   color: mode === 'dark' ? blue[300] : blue.main,
+      // },
+      // h6: {
+      //   fontSize: defaultTheme.typography.pxToRem(20),
+      //   lineHeight: 30 / 20,
+      // },
       button: {
         textTransform: 'initial',
         fontWeight: 700,
@@ -326,6 +402,37 @@ export function getThemedComponents(theme: Theme): {
             ...theme.typography.body1,
             lineHeight: 21 / 16,
             fontWeight: 700,
+          },
+          outlinedSecondary: {
+            color:
+              theme.palette.mode === 'dark'
+                ? theme.palette.primaryDark[100]
+                : theme.palette.text.secondary,
+            backgroundColor:
+              theme.palette.mode === 'dark'
+                ? theme.palette.primaryDark[700]
+                : alpha(theme.palette.primaryDark[50], 0.3),
+            borderColor:
+              theme.palette.mode === 'dark'
+                ? theme.palette.primaryDark[600]
+                : theme.palette.primaryDark[100],
+            boxShadow:
+              theme.palette.mode === 'dark'
+                ? '0px 2px 2px #0B0D0E, inset 0px 4px 4px rgba(20, 25, 31, 0.3)'
+                : `0px 2px 2px ${alpha(
+                    theme.palette.primaryDark[100],
+                    0.2
+                  )}, inset 0px 4px 4px ${alpha(theme.palette.primaryDark[100], 0.2)}`,
+            '&:hover': {
+              background:
+                theme.palette.mode === 'dark'
+                  ? theme.palette.primaryDark[600]
+                  : theme.palette.primaryDark[50],
+              borderColor:
+                theme.palette.mode === 'dark'
+                  ? theme.palette.primaryDark[600]
+                  : theme.palette.primaryDark[100],
+            },
           },
           sizeMedium: {
             '& .MuiButton-startIcon': {

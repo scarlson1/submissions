@@ -40,8 +40,6 @@ export const usePolicyChangeRequest = (
             ...changes,
           },
           requestEffDate: Timestamp.fromDate(effDate),
-          // field,
-          // newValue: newVal,
           policyId,
           locationId: locationId || null,
           userId: signInResult.user.uid,
@@ -52,6 +50,10 @@ export const usePolicyChangeRequest = (
             orgId: orgId || null,
           },
           status: 'submitted',
+          submittedBy: {
+            userId: signInResult.user.uid || null,
+            displayName: signInResult.user?.displayName || '',
+          },
           metadata: {
             created: Timestamp.now(),
             updated: Timestamp.now(),

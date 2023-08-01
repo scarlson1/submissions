@@ -67,7 +67,7 @@ export const DeckMap = ({
           mapStyle={
             theme.palette.mode === 'light'
               ? 'mapbox://styles/mapbox/light-v11' // 8
-              : 'mapbox://styles/spencer-carlson/cl8dxgtum000w14qix5ft9gw5'
+              : 'mapbox://styles/spencer-carlson/clkrsmyib01wz01qwdbujb4da'
           }
           styleDiffing
           minZoom={2}

@@ -165,7 +165,7 @@ export function Usage() {
   }, [dialog, handleSubmit, formOnSubmit]);
 
   return (
-    <Button variant='contained' onClick={runTest}>
+    <Button variant='outlined' color='secondary' onClick={runTest}>
       Dialog
     </Button>
   );

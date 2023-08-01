@@ -72,7 +72,7 @@ export const ChangeRequestsGrid = ({
     };
   }, [policyId, claims, user, orgId]);
 
-  console.log('PROPS: ', props);
+  console.log('props: ', props);
 
   return (
     <Box>
@@ -85,6 +85,9 @@ export const ChangeRequestsGrid = ({
           columns: {
             columnVisibilityModel: {
               id: false,
+              'metadata.updated': false,
+              userId: false,
+              'approvedBy.userId': false,
             },
           },
         }}

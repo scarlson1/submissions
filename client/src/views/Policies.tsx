@@ -90,6 +90,7 @@ export const Policies = () => {
       <Container maxWidth='lg' sx={{ py: { xs: 4, md: 6 } }}>
         <Box>
           {header}
+          <ChangeRequestsDialog />
           <PoliciesGrid constraints={[where('agency.orgId', '==', `${user.tenantId}`)]} />
         </Box>
       </Container>
@@ -100,6 +101,7 @@ export const Policies = () => {
       <Container maxWidth='lg' sx={{ py: { xs: 4, md: 6 } }}>
         <Box>
           {header}
+          <ChangeRequestsDialog />
           <PoliciesGrid constraints={[where('agent.userId', '==', user.uid)]} />
         </Box>
       </Container>

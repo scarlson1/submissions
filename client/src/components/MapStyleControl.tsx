@@ -11,7 +11,7 @@ import {
 } from '@mui/icons-material';
 
 export const MAPBOX_LIGHT = 'mapbox://styles/mapbox/light-v11';
-export const MAPBOX_DARK = 'mapbox://styles/spencer-carlson/cl8dxgtum000w14qix5ft9gw5';
+export const MAPBOX_DARK = 'mapbox://styles/spencer-carlson/clkrsmyib01wz01qwdbujb4da';
 export const MAPBOX_STREETS = 'mapbox://styles/mapbox/streets-v12';
 export const MAPBOX_SATELLITE = 'mapbox://styles/mapbox/satellite-v9';
 

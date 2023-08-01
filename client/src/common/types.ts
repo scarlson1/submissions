@@ -750,8 +750,8 @@ export interface ChangeRequest extends BaseDoc {
   // newValue: string | number;
   policyId: string;
   locationId?: string | null;
+  externalId?: string | null;
   userId: string;
-  // submittedByUserId: string;
   agent: {
     userId: string | null;
   };
@@ -763,6 +763,10 @@ export interface ChangeRequest extends BaseDoc {
   approvedBy?: {
     name: string;
     userId: string;
+  };
+  submittedBy: {
+    userId: string | null;
+    displayName: string;
   };
 }
 

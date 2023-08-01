@@ -64,7 +64,6 @@ import { TempWrappedSearch } from 'components/search/Search';
 import { AgencyAppSuccessStep } from 'views/AgencyNew';
 import { ImportsSummaryGrid } from 'elements/ImportsSummaryGrid';
 import { EmailVerified } from 'views/EmailVerified';
-import TestTerrainLayer, { TestNAIPLayer } from 'views/TestTerrainMap';
 
 export interface CrumbMatch {
   id: string;
@@ -1135,14 +1134,6 @@ export const router = sentryCreateBrowserRouter([
                 },
               ],
             },
-          },
-          {
-            path: '/admin/terrain',
-            element: <TestTerrainLayer />,
-          },
-          {
-            path: '/admin/naip',
-            element: <TestNAIPLayer />,
           },
           {
             path: 'search',

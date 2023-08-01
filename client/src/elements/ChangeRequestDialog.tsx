@@ -19,7 +19,7 @@ export function ChangeRequestsDialog({ policyId }: ChangeRequestsDialogProps) {
         Change Requests
       </Button>
       <Dialog open={open} onClose={handleClose} maxWidth='xl' fullWidth>
-        <DialogTitle>Change Requests</DialogTitle>
+        <DialogTitle>Policy Change Requests</DialogTitle>
         <DialogContent dividers>
           <Box sx={{ height: 400 }}>
             <ChangeRequestsGrid policyId={policyId} />

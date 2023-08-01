@@ -1482,11 +1482,11 @@ export const policyTrxTypesCol: GridSingleSelectColDef = {
 
 export const trxTypeCol: GridSingleSelectColDef = {
   field: 'trxType',
-  headerName: 'Transaction Type',
+  headerName: 'Type',
   description: 'Type of transaction (endorsement, amendment, cancellation, etc.)',
   type: 'singleSelect',
   valueOptions: TRANSACTION_OPTIONS,
-  minWidth: 340,
+  minWidth: 160,
   flex: 1,
   editable: false,
   sortable: false,
