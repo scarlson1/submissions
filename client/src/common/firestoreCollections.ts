@@ -100,7 +100,7 @@ export const paymentMethodsCollection = (db: Firestore, userId: string, ...rest:
     ...rest
   );
 
-export const policyChangeReqestsCollection = (db: Firestore, policyId: string, ...rest: string[]) =>
+export const changeReqestsCollection = (db: Firestore, policyId: string, ...rest: string[]) =>
   createCollection<ChangeRequest>(
     db,
     COLLECTIONS.POLICIES,

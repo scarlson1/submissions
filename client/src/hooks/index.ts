@@ -62,6 +62,7 @@ export { useGridServerSort } from './useGridServerSort';
 export { useGridServerFilter } from './useGridServerFilter';
 export { useGeneratePDF } from './useGeneratePDF';
 export { useDocCount } from './useDocCount';
+export { useCreateChangeRequest } from './useCreateChangeRequest';
 
 export type { UseFileUploadProps } from './useFileUpload';
 export type { UpdateProfileArgs, UpdateProfileRes } from './useUpdateProfile';

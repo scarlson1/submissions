@@ -1,5 +1,5 @@
 import { RefObject, useCallback, useRef } from 'react';
-import { Box, DialogContentText, Stack } from '@mui/material';
+import { Box, Stack } from '@mui/material';
 import { Form, Formik, FormikHelpers, FormikProps } from 'formik';
 import * as yup from 'yup';
 
@@ -64,9 +64,9 @@ export const usePromptForEmails = () => {
           // component: (
           content: (
             <>
-              <DialogContentText>
+              {/* <DialogContentText>
                 Please select the emails to which you would like to deliver the quote, if any.
-              </DialogContentText>
+              </DialogContentText> */}
               <SelectEmailsForm
                 initialValues={{
                   notifyInsured: Boolean(insuredEmail) || false,

@@ -982,7 +982,15 @@ export type SubjectBaseItems =
   | 'noFee';
 
 export type RoundingType = 'nearest' | 'up' | 'down';
-export type TransactionType = 'new' | 'renewal' | 'endorsement' | 'cancellation';
+// export type TransactionType = 'new' | 'renewal' | 'endorsement' | 'cancellation';
+export type TransactionType =
+  | 'new'
+  | 'renewal'
+  | 'endorsement' // change w/ premium
+  | 'amendment' // change w/o premium
+  | 'cancellation'
+  | 'flat_cancel'
+  | 'reinstatement';
 
 export interface Tax extends BaseDoc {
   state: string;

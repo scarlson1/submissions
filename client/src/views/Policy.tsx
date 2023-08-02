@@ -14,6 +14,8 @@ import {
   Avatar,
   Stack,
   Paper,
+  MenuItem,
+  Badge,
 } from '@mui/material';
 import {
   AccountBalanceRounded,
@@ -26,11 +28,16 @@ import {
 import { useParams, useSearchParams } from 'react-router-dom';
 import { PickingInfo } from 'deck.gl/typed';
 
-import { useDocData, useGeneratePDF } from 'hooks';
+import { useCreateChangeRequest, useDocData, useGeneratePDF } from 'hooks';
 import { Policy as IPolicy, POLICY_STATUS, PolicyLocation, WithId } from 'common';
 import { LocationCard, LocationsGrid, LocationsMap } from 'elements';
 import { formatFirestoreTimestamp, formatPhoneNumber, stringAvatar } from 'modules/utils';
 import { ContactList } from 'elements/forms';
+import {
+  ChangeRequestsDialog,
+  useViewChangeRequestsDialogProps,
+} from 'elements/ChangeRequestDialog';
+import { IconMenu } from 'components/IconButtonMenu';
 
 // TODO: make location card flip on hover to show additoinal details ??
 
@@ -50,7 +57,6 @@ export const Policy = () => {
   if (!policyId) throw new Error('policyId missing in url params');
 
   const { data } = useDocData<IPolicy>('POLICIES', policyId);
-  // const { requestChange } = usePolicyChangeRequest();
   const downloadPolicy = useGeneratePDF('generatePolicy');
 
   const test = useGeneratePDF('generateDecPDF');
@@ -129,6 +135,13 @@ export const Policy = () => {
           <Button size='small' onClick={handleNewClaim}>
             Submit Claim
           </Button>
+          <PolicyIconMenu policyId={policyId} />
+          {/* <IconButtonMenu
+            menuItems={[
+              { label: 'Requst policy change', action: () => policyChangeRequest(policyId) },
+            ]}
+            iconButtonProps={{ sx: { ml: 2, borderRadius: 1 } }}
+          /> */}
         </Box>
       </Box>
       <Divider />
@@ -343,5 +356,32 @@ function StatBox({ title, value }: StatBoxProps) {
         {value}
       </Typography>
     </Box>
+  );
+}
+
+function PolicyIconMenu({ policyId }: { policyId: string }) {
+  const policyChangeRequest = useCreateChangeRequest();
+  const { open, handleOpen, handleClose, count } = useViewChangeRequestsDialogProps(policyId);
+
+  const handleNewRequest = useCallback(() => {
+    policyChangeRequest(policyId);
+  }, [policyChangeRequest, policyId]);
+
+  return (
+    <>
+      <Badge badgeContent={count || 0} color='primary'>
+        <IconMenu iconButtonProps={{ sx: { ml: 2, borderRadius: 1 } }}>
+          <MenuItem onClick={handleNewRequest}>Request policy change</MenuItem>
+          <Badge
+            badgeContent={count || 0}
+            color='primary'
+            sx={{ '& .MuiBadge-badge': { right: '8px' } }}
+          >
+            <MenuItem onClick={handleOpen}>View change requests</MenuItem>
+          </Badge>
+        </IconMenu>
+      </Badge>
+      <ChangeRequestsDialog open={open} handleClose={handleClose} policyId={policyId} />
+    </>
   );
 }

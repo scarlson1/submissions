@@ -86,7 +86,6 @@ service cloud.firestore {
     // || (isAgent() && isUser(get(/databases/$(database)/documents/policies/$(existingData().policyId)).data.agent.userId)) 
     // || (isOrgAdmin() && isTenantUser(get(/databases/$(database)/documents/policies/$(existingData().policyId)).data.agency.orgId))
 
-    // allow create: if request.resource.data.keys().hasAll(['name', 'location', 'city']);
     // TODO: decide whether to allow org admins to create 
     match /policies/{policyId}/changeRequests/{requestId} {
       allow create: if isSignedIn() && (

@@ -1,5 +1,4 @@
 import {
-  ReactElement,
   ReactNode,
   createContext,
   useCallback,
@@ -36,14 +35,15 @@ interface SlotProps {
   acceptButton: Omit<ButtonProps, 'onClick'>;
   cancelButton: Omit<ButtonProps, 'onClick'>;
 }
-
-interface DialogOptions {
+type DialogVariant = 'danger' | 'info';
+export interface DialogOptions {
   onSubmit?: (values?: any, helpers?: any) => void;
   catchOnCancel?: boolean;
-  variant?: 'danger' | 'info';
-  title?: ReactNode;
+  variant: DialogVariant;
+  title?: ReactNode; // TODO: add description (might want text above form)
+  description?: ReactNode;
   content?: ReactNode;
-  component?: ReactElement;
+  // component?: ReactElement;
   slotProps?: Partial<SlotProps>;
   // TODO: slots & slotsProps --> allow replacing header & actions area
 }
@@ -109,6 +109,7 @@ export const DialogProvider = ({ children }: { children: ReactNode }) => {
       handleAccept,
       handleClose,
       isOpen: Boolean(dialogOptions) || false,
+      variant: 'info' as DialogVariant,
       ...(dialogOptions || {}),
     }),
     [openDialog, handleAccept, handleClose, dialogOptions]

@@ -2,10 +2,12 @@ import { useCallback } from 'react';
 import { Timestamp, addDoc } from 'firebase/firestore';
 import { useFirestore, useSigninCheck } from 'reactfire';
 
-import { ChangeRequest, Policy, policyChangeReqestsCollection } from 'common';
+import { ChangeRequest, Policy, changeReqestsCollection } from 'common';
 import { useAsyncToast } from 'hooks';
 
 // TODO: create admin side process for accepting / denying
+
+// DELETE ?? REPLACED BY useCreateChangeRequest
 
 export const usePolicyChangeRequest = (
   onSuccess?: (docId: string, policyId: string) => void,
@@ -31,7 +33,7 @@ export const usePolicyChangeRequest = (
         return toast.error('must be authenticated to submit update request');
 
       try {
-        const changeColRef = policyChangeReqestsCollection(firestore, policyId);
+        const changeColRef = changeReqestsCollection(firestore, policyId);
         toast.loading('submitting request...');
 
         const docRef = await addDoc(changeColRef, {
