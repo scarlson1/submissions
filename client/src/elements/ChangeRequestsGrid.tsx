@@ -18,6 +18,7 @@ export const ChangeRequestsGrid = ({
   additionalColumns,
   initialState,
   policyId,
+  ...rest
 }: ChangeRequestsGridProps) => {
   const { user, claims, orgId } = useAuth();
 
@@ -88,8 +89,10 @@ export const ChangeRequestsGrid = ({
               'approvedBy.userId': false,
             },
           },
+          ...(initialState || {}),
         }}
-        {...(initialState || {})}
+        // {...(initialState || {})}
+        {...rest}
       />
     </Box>
   );

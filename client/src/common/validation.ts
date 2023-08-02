@@ -199,9 +199,11 @@ export const limitsValidationNested = yup.object({
 //   }),
 // });
 
+export const deductibleVal = yup.number().min(1000).required();
+
 // TODO: max validation
 export const deductibleValidation = yup.object().shape({
-  deductible: yup.number().min(1000).required(),
+  deductible: deductibleVal,
 });
 
 export const buildingDetailsValidation = yup.object().shape({

@@ -3,24 +3,15 @@ import { Form, Formik, FormikHelpers, FormikProps } from 'formik';
 import { Divider, Unstable_Grid2 as Grid, Typography } from '@mui/material';
 import * as yup from 'yup';
 
-import {
-  Address,
-  EntityNamedInsured,
-  addressValidation,
-  emailVal,
-  phoneVal,
-  stateVal,
-} from 'common';
+import { Address, EntityNamedInsured, addressValidation, emailVal, phoneVal } from 'common';
 import FormikAddress from './FormikAddress';
 import {
   FormikDatePicker,
   FormikMaskField,
-  FormikNativeSelect,
   FormikTextField,
   IMask,
   phoneMaskProps,
 } from 'components/forms';
-import { STATES_ABV_ARR } from 'common/statesList';
 
 // TODO: cancel policy button
 // or branching form (what would you like to change? (add/remove location, edit location, change policy details, etc.)) --> direct to correct form (set trx type)
@@ -28,7 +19,6 @@ import { STATES_ABV_ARR } from 'common/statesList';
 export interface PolicyChangeValues {
   namedInsured: Omit<EntityNamedInsured, 'userId' | 'orgId'>;
   mailingAddress: Address;
-  homeState: string;
   effectiveDate: Date | null;
   expirationDate: Date | null; // TODO: ability to request date changes ??
   requestEffDate: Date;
@@ -49,7 +39,6 @@ const validation = yup.object().shape({
     phone: phoneVal.required('phone required'),
   }),
   mailingAddress: addressValidation,
-  homeState: stateVal,
   effectiveDate: yup.date().required(),
   expirationDate: yup.date().required(),
 });
@@ -111,16 +100,6 @@ export const PolicyChangeForm = ({
                 autocompleteProps={{
                   name: 'mailingAddress.addressLine1',
                 }}
-              />
-            </Grid>
-            {/* TODO: home state description / helper text */}
-            <Grid xs={6} sm={4}>
-              <FormikNativeSelect
-                fullWidth
-                id='homeState'
-                label='Home State'
-                name='homeState'
-                selectOptions={STATES_ABV_ARR}
               />
             </Grid>
             <Grid xs={12}>

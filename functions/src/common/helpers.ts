@@ -374,7 +374,9 @@ export function calcTerm(annualPremium: number, trxEffDate: Date, trxExpDate: Da
  * @returns {string} new unique ID
  */
 export function getNewLocationId() {
-  return uuid().replace(/-/g, '');
+  let id = uuid().replace(/-/g, '');
+
+  return id.substring(0, id.length / 2);
 }
 
 /**

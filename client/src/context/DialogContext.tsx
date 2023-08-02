@@ -8,7 +8,6 @@ import {
   useState,
 } from 'react';
 import {
-  Button,
   ButtonProps,
   DialogActionsProps,
   DialogContentProps,
@@ -17,8 +16,6 @@ import {
 } from '@mui/material';
 
 import { ContextDialog } from 'components';
-import { DialogTestForm } from './DialogTestForm';
-import { FormikHelpers, FormikProps } from 'formik';
 
 // Option: accept onSubmit prop
 // pass formikRef.current.submitForm()
@@ -124,50 +121,50 @@ export const DialogProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-export function Usage() {
-  const dialog = useDialog();
-  const formikRef = useRef<FormikProps<any>>(null);
+// export function Usage() {
+//   const dialog = useDialog();
+//   const formikRef = useRef<FormikProps<any>>(null);
 
-  const handleSubmit = useCallback(async () => {
-    const submitResult = await formikRef.current?.submitForm();
-    console.log('submitResult: ', submitResult); // dont call handleAccept here
-  }, []);
+//   const handleSubmit = useCallback(async () => {
+//     const submitResult = await formikRef.current?.submitForm();
+//     console.log('submitResult: ', submitResult); // dont call handleAccept here
+//   }, []);
 
-  const formOnSubmit = useCallback(
-    async (vals: any, { setSubmitting }: FormikHelpers<any>) => {
-      try {
-        console.log('form on submit: ', vals);
-        setSubmitting(false);
-        dialog?.handleAccept(vals); // call here b/c this only runs if validation succeeds
-        return vals;
-      } catch (err: any) {
-        console.log('err: ', err);
-        setSubmitting(false);
-      }
-    },
-    [dialog]
-  );
+//   const formOnSubmit = useCallback(
+//     async (vals: any, { setSubmitting }: FormikHelpers<any>) => {
+//       try {
+//         console.log('form on submit: ', vals);
+//         setSubmitting(false);
+//         dialog?.handleAccept(vals); // call here b/c this only runs if validation succeeds
+//         return vals;
+//       } catch (err: any) {
+//         console.log('err: ', err);
+//         setSubmitting(false);
+//       }
+//     },
+//     [dialog]
+//   );
 
-  const runTest = useCallback(async () => {
-    const result = await dialog?.prompt({
-      onSubmit: handleSubmit,
-      catchOnCancel: false,
-      variant: 'danger',
-      title: 'Are you sure?',
-      // content: 'test description content',
-      // component: <SomeForm innerRef={formikRef} />
-      content: <DialogTestForm onSubmit={formOnSubmit} formRef={formikRef} />,
-      slotProps: {
-        content: { dividers: true },
-        // acceptButton: { disabled: !formikRef.current?.isValid },
-      },
-    });
-    console.log('DIALOG RESULT: ', result);
-  }, [dialog, handleSubmit, formOnSubmit]);
+//   const runTest = useCallback(async () => {
+//     const result = await dialog?.prompt({
+//       onSubmit: handleSubmit,
+//       catchOnCancel: false,
+//       variant: 'danger',
+//       title: 'Are you sure?',
+//       // content: 'test description content',
+//       // component: <SomeForm innerRef={formikRef} />
+//       content: <DialogTestForm onSubmit={formOnSubmit} formRef={formikRef} />,
+//       slotProps: {
+//         content: { dividers: true },
+//         // acceptButton: { disabled: !formikRef.current?.isValid },
+//       },
+//     });
+//     console.log('DIALOG RESULT: ', result);
+//   }, [dialog, handleSubmit, formOnSubmit]);
 
-  return (
-    <Button variant='outlined' color='secondary' onClick={runTest}>
-      Dialog
-    </Button>
-  );
-}
+//   return (
+//     <Button variant='outlined' color='secondary' onClick={runTest}>
+//       Dialog
+//     </Button>
+//   );
+// }

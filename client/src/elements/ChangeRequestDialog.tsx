@@ -2,7 +2,6 @@
 import { Suspense, useCallback, useMemo, useState } from 'react';
 import {
   Badge,
-  Box,
   Button,
   Dialog,
   DialogActions,
@@ -11,14 +10,15 @@ import {
   IconButton,
   Tooltip,
 } from '@mui/material';
-import { ChangeCircleRounded } from '@mui/icons-material';
+import { ChangeCircleRounded, DataObjectRounded } from '@mui/icons-material';
 import { where } from 'firebase/firestore';
 
 import { ChangeRequestsGrid } from './ChangeRequestsGrid';
-import { useDocCount } from 'hooks';
+import { useDocCount, useShowJson } from 'hooks';
 import { CHANGE_REQUEST_STATUS, COLLECTIONS } from 'common';
 import { useAuth } from 'context';
 import { LoadingComponent } from 'components/Layout';
+import { GridActionsCellItem, GridRowParams } from '@mui/x-data-grid';
 
 export const useViewChangeRequestsDialogProps = (policyId?: string) => {
   const { claims, user, orgId } = useAuth();
@@ -63,15 +63,47 @@ interface ChangeRequestsDialogProps {
 }
 
 export function ChangeRequestsDialog({ policyId, open, handleClose }: ChangeRequestsDialogProps) {
+  const { claims } = useAuth();
+  const showJson = useShowJson<any>(COLLECTIONS.POLICIES);
+
+  const handleShowJson = useCallback(
+    (params: GridRowParams) => () =>
+      showJson(params.id.toString(), `${params.row.policyId}/${COLLECTIONS.CHANGE_REQUESTS}`),
+    [showJson]
+  );
+
+  const adminProps = useMemo(() => {
+    if (!claims?.iDemandAdmin) return {};
+    return {
+      renderActions: (params: GridRowParams) => [
+        <GridActionsCellItem
+          icon={
+            <Tooltip title='show JSON' placement='top'>
+              <DataObjectRounded />
+            </Tooltip>
+          }
+          onClick={handleShowJson(params)}
+          label='Show JSON'
+          disabled={!claims?.iDemandAdmin}
+        />,
+      ],
+    };
+  }, [claims, handleShowJson]);
+
   return (
     <Dialog open={open} onClose={handleClose} maxWidth='xl' fullWidth>
       <DialogTitle>Policy Change Requests</DialogTitle>
       <DialogContent dividers>
-        <Box sx={{ height: 300 }}>
-          <Suspense fallback={<LoadingComponent />}>
-            <ChangeRequestsGrid policyId={policyId} />
-          </Suspense>
-        </Box>
+        <Suspense fallback={<LoadingComponent />}>
+          <ChangeRequestsGrid
+            policyId={policyId}
+            slots={{
+              toolbar: null,
+            }}
+            initialState={{ pagination: { paginationModel: { pageSize: 5 } } }}
+            {...adminProps}
+          />
+        </Suspense>
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose}>Close</Button>

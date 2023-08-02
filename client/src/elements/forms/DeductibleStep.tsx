@@ -9,6 +9,8 @@ export interface DeductibleStepProps {
   maxDeductible?: number;
 }
 
+// TODO: delete component (just description text and FormikIncrementor)
+
 // TODO: Tell me more accordion
 //    - more detailed explaination
 //    - deductible faq

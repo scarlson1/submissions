@@ -23,6 +23,7 @@ export interface LocationCardProps {
   // agent: Policy['agent'];
   // agency: Policy['agency'];
   handleClick?: (id: string) => void;
+  policyId: string;
 }
 
 export const LocationCard = ({
@@ -31,6 +32,8 @@ export const LocationCard = ({
   // agent,
   // agency,
   handleClick = noop,
+
+  policyId,
 }: LocationCardProps) => {
   const theme = useTheme();
 

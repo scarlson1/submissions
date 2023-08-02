@@ -7,25 +7,16 @@ import { PolicyChangeForm, PolicyChangeValues } from 'elements/forms/PolicyChang
 
 interface UseDialogFormProps<T> {
   formComponent: ReactElement;
-  formProps: Partial<FormikProps<T>>;
+  formProps?: Partial<FormikProps<T>>;
   formRef: RefObject<FormikProps<T>>;
-  dialogOptions: Omit<DialogOptions, 'content' | 'onSubmit' | 'variant'>;
-  onSubmit: ((values: T) => any) | ((values: T) => Promise<any>);
+  dialogOptions?: Omit<DialogOptions, 'content' | 'onSubmit' | 'variant'>;
+  onSubmit: (values: T, bag: FormikHelpers<T>) => Promise<any>;
   onSuccess?:
     | ((res: { values: T; onSubmitResult: any }) => void)
     | ((res: { values: T; onSubmitResult: any }) => Promise<void>);
   onError?: (msg: string, err: any) => void;
+  onCancel?: () => void;
 }
-
-// export function useDialogForm<T extends Record<string, any>>(
-//   config: DialogOptions,
-//   formRef: RefObject<FormikProps<T>>,
-//   onSubmit: ((values: T) => void) | ((values: T) => Promise<void>),
-//   onSuccess?:
-//     | ((res: { values: T; onSubmitResult: any }) => void)
-//     | ((res: { values: T; onSubmitResult: any }) => Promise<void>),
-//   onError?: (msg: string, err: any) => void
-// ) {
 
 export function useDialogForm<T extends Record<string, any>>({
   formComponent,
@@ -35,17 +26,18 @@ export function useDialogForm<T extends Record<string, any>>({
   onSubmit,
   onSuccess,
   onError,
+  onCancel,
 }: UseDialogFormProps<T>) {
   const dialog = useDialog();
 
   const triggerSubmit = useCallback(async () => {
     await formRef.current?.submitForm();
-  }, []);
+  }, [formRef]);
 
   const handleSubmit = useCallback(
     async (values: T, bag: FormikHelpers<T>) => {
       try {
-        const onSubmitResult = onSubmit ? await onSubmit(values) : null;
+        const onSubmitResult = onSubmit ? await onSubmit(values, bag) : null;
         const result = { values, onSubmitResult };
 
         if (onSuccess) onSuccess(result);
@@ -57,24 +49,46 @@ export function useDialogForm<T extends Record<string, any>>({
         if (onError) onError(msg, err);
       }
     },
-    [dialog]
+    [dialog, onSubmit, onSuccess, onError]
   );
 
-  const cloned = cloneElement(formComponent, { ...formProps, onSubmit: handleSubmit });
+  // const cloned = cloneElement(formComponent, { ...formProps, onSubmit: handleSubmit });
 
-  const promptForm = useCallback(async () => {
-    try {
-      return await dialog?.prompt({
-        catchOnCancel: true,
-        ...dialogOptions,
-        variant: 'danger',
-        content: cloned,
-        onSubmit: triggerSubmit,
-      });
-    } catch (err: any) {
-      if (err && onError) onError('an error occurred', err);
-    }
-  }, [dialog]);
+  const promptForm = useCallback(
+    async (initialValues: T) => {
+      try {
+        const cloned = cloneElement(formComponent, {
+          ...formProps,
+          initialValues,
+          onSubmit: handleSubmit,
+        });
+
+        const result = await dialog?.prompt({
+          catchOnCancel: true,
+          ...dialogOptions,
+          variant: 'danger',
+          content: cloned,
+          onSubmit: triggerSubmit,
+        });
+
+        return result;
+      } catch (err: any) {
+        if (!err && onCancel) onCancel();
+
+        if (err && onError) onError('an error occurred', err);
+      }
+    },
+    [
+      dialog,
+      dialogOptions,
+      onCancel,
+      onError,
+      triggerSubmit,
+      formComponent,
+      formProps,
+      handleSubmit,
+    ]
+  );
 
   return promptForm;
 }
@@ -101,7 +115,6 @@ let initialVals = {
 export function Usage() {
   const formRef = useRef<FormikProps<PolicyChangeValues>>(null);
   const handleSubmit = useCallback(async (values: PolicyChangeValues) => {
-    console.log('on submit 1: ', values);
     return { ...values, iam: 'groot' };
   }, []);
 
@@ -114,44 +127,29 @@ export function Usage() {
     },
     formRef,
     dialogOptions: {
+      title: 'Usage example form',
       slotProps: { dialog: { maxWidth: 'md' } },
     },
-    onSubmit: async (values: PolicyChangeValues) => {
-      console.log('on submit 2: ', values);
-      return { ...values, iam: 'groot' };
-    },
+    onSubmit: handleSubmit,
     onSuccess: (vals) => {
       console.log('on success: ', vals);
     },
     onError: (msg: string) => {
       console.log('on err: ', msg);
     },
-    // catchOnCancel: true,
-    // title: 'Usage example form',
+    onCancel: () => {
+      console.log('on cancel');
+    },
   });
-  // const promptForm = useDialogForm({
-  //   catchOnCancel: true,
-  //   title: 'Usage example form',
-  //   content: (
-  //     <PolicyChangeForm
-  //       initialValues={{ namedInsured: { displayName: 'John Doe', email: 'asdf@aslkfj.com', phone: '+12342342345'}, mailingAddress: { addressLine1: '123 Main st.', addressLine2: '', city: 'nash', state: 'TN', postal: '12345'}, homeState: 'TN', effectiveDate: new Date(), expirationDate: new Date(), requestEffDate: new Date() }}
-  //       formRef={formRef}
-  //       onSubmit={async (values) => {
-  //         console.log('on submit values: ', values)
-  //         return {...values, iam: 'groot' }
-  //       }}
-  //     />
-  //   )
-  // }, formRef)
 
   const startTest = useCallback(async () => {
     try {
-      let res = promptForm();
+      let res = await promptForm(initialVals);
       console.log('promp form result: ', res);
     } catch (err: any) {
       console.log('prompt err: ', err);
     }
-  }, []);
+  }, [promptForm]);
 
   return <Button onClick={startTest}>Dialog Test</Button>;
 }
