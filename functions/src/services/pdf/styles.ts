@@ -109,6 +109,11 @@ export const styles = StyleSheet.create({
     fontWeight: 500,
     paddingBottom: 10,
   },
+  subtitle: {
+    fontSize: 14,
+    fontWeight: 400,
+    paddingBottom: 10,
+  },
   statement: {
     fontSize: 20,
     color: '#131925',
@@ -212,6 +217,10 @@ export const styles = StyleSheet.create({
     textAlign: 'center',
     textTransform: 'uppercase',
   },
+  disclosureTN: {
+    color: 'red',
+  }, // TODO: https://www.typescriptlang.org/docs/handbook/2/mapped-types.html#key-remapping-via-as
+  // extends MappedDisclosureState type
 });
 
 export const tableStyles = StyleSheet.create({

@@ -1,6 +1,6 @@
 import { Response } from 'firebase-functions/v1';
 import { error, info } from 'firebase-functions/logger';
-import { getFirestore } from 'firebase-admin/firestore';
+import { CollectionReference, getFirestore } from 'firebase-admin/firestore';
 import express from 'express';
 import cors from 'cors';
 import * as bodyParser from 'body-parser';
@@ -12,19 +12,23 @@ import 'express-async-errors';
 import { ExportSdkClient } from '../services/exportSDK';
 import {
   Address,
+  Disclosure,
   Nullable,
   Policy,
   PolicyLocation,
+  Product,
   RequestUserAuth,
   calcSum,
   decPageTemplateId,
+  disclosuresCollection,
   dollarFormat,
   exportSDKKey,
   formatPhoneNumber,
   policiesCollection,
+  statesList,
 } from '../common';
 import { currentUser, requireAuth, validateRequest } from './middlewares';
-import { generatePolicyDecPDF, getPremiumTable } from '../services/pdf';
+import { generatePolicyDecPDF, getPremiumTable, tiptapJsonToText } from '../services/pdf';
 import { formatLocationData, getLocationInterests } from '../services/pdf';
 import { AdditionalInterestsItem, PolicyDecPDFLocations } from '../services/pdf/components';
 
@@ -36,18 +40,6 @@ import { AdditionalInterestsItem, PolicyDecPDFLocations } from '../services/pdf/
 
 // TODO: store record of when policy was generated in subcollection of policy?
 // with template, template version, timestamp, requesting user, etc. ??
-// interface CoverageSummaryItem {
-//   coverageTitle: string;
-//   coverageAmount: string;
-// }
-
-// interface LocationInterestsItem {
-//   locationAddress: string;
-//   interestType: string;
-//   name: string;
-//   interestAddress: string;
-//   loanNumber: string;
-// }
 
 interface LocationCoveragesItem {
   address: string;
@@ -293,6 +285,9 @@ export interface DecPageTemplateData2 extends Record<string, unknown> {
   locationInterests: AdditionalInterestsItem[];
   premiumTable: PremiumTableItem[];
   docsAttached: { docTitle: string }[];
+  homeState: string;
+  homeStateFullName: string;
+  disclosure?: string;
 }
 
 // using react-pdf
@@ -366,6 +361,8 @@ app.post('/generateDecPDF', async (req: RequestUserAuth, res: Response) => {
     insuredName: namedInsured.displayName,
     policyEffectiveDate,
     policyExpirationDate,
+    homeState: policy?.homeState || '',
+    homeStateFullName: statesList[policy?.homeState || ''] || '',
     agencyName: agency.name,
     agencyAddressLine1: agency?.address?.addressLine1,
     agencyAddressLine2: agency?.address?.addressLine2,
@@ -400,6 +397,16 @@ app.post('/generateDecPDF', async (req: RequestUserAuth, res: Response) => {
       // },
     ],
   };
+
+  try {
+    const disclosureCol = disclosuresCollection(db);
+    const disclosure = await getStateDisclosure(disclosureCol, policy.homeState, policy.product);
+    if (disclosure && disclosure.content) {
+      templateData['disclosure'] = tiptapJsonToText(disclosure.content);
+    } else info(`No state disclosure found for ${policy.homeState}`);
+  } catch (err: any) {
+    console.log('error fetching disclosure / converting to HTML', err);
+  }
 
   try {
     const result = await generatePolicyDecPDF(templateData);
@@ -444,6 +451,32 @@ export function getLocationCoveragesTableData(
       TIV: typeof tiv === 'number' ? dollarFormat(tiv) : '',
     };
   });
+}
+
+// const disclosuresCol = collection(
+//   firestore,
+//   COLLECTIONS.DISCLOSURES
+// ) as CollectionReference<Disclosure>;
+
+// const q = useMemo(() => {
+//   const constraints = [where('state', '==', state)];
+//   if (product) constraints.push(where('products', 'array-contains', product));
+//   return query(disclosuresCol, ...constraints, limit(1));
+// }, [state, product, disclosuresCol]);
+
+export async function getStateDisclosure(
+  colRef: CollectionReference<Disclosure>,
+  state: string,
+  product: Product
+) {
+  const snap = await colRef
+    .where('state', '==', state)
+    .where('products', 'array-contains', product)
+    .limit(1)
+    .get();
+
+  if (snap.empty) return null;
+  return snap.docs[0].data();
 }
 
 // import { Request, HttpsError } from 'firebase-functions/v2/https';

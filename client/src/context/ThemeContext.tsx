@@ -20,10 +20,6 @@ interface ColorModeContextValue {
 }
 
 export const ColorModeContext = createContext<ColorModeContextValue | undefined>(undefined);
-// export const ColorModeContext = React.createContext({
-//   mode: 'light',
-//   toggleColorMode: () => {},
-// });
 
 export function ThemeProvider(props: any) {
   const { children } = props;
@@ -88,8 +84,6 @@ export function useChangeTheme() {
   if (colorMode === undefined) {
     throw new Error('useChangeTheme must be used within ThemeProvider');
   }
-
-  // return React.useCallback(() => colorMode.toggleColorMode(), [colorMode]);
 
   return colorMode;
 }

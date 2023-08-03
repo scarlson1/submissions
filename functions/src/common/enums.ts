@@ -19,6 +19,7 @@ export enum COLLECTIONS {
   FIN_TRANSACTIONS = 'financialTransactions',
   AGENCY_APPLICATIONS = 'agencySubmissions',
   LICENSES = 'licenses',
+  DISCLOSURES = 'disclosures',
   NOTIFICATIONS = 'notifications',
   DATA_IMPORTS = 'dataImports',
   EMAIL_ACTIVITY = 'emailActivity',
