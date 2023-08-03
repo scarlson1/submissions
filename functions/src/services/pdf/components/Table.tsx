@@ -1,5 +1,5 @@
 // @ts-nocheck
-import * as React from 'react';
+// import * as React from 'react';
 import ReactPDF, { Text, View, StyleSheet, Page } from '@react-pdf/renderer';
 
 import { tableStyles as styles } from '../styles';

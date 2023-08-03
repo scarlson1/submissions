@@ -29,7 +29,7 @@ const ContentSnippet = ({ json }: { json: JSONContent }) => {
     </Typography>
   );
 };
-
+// TODO: move disclosure columns to gridcols folder
 export const Disclosures = () => {
   const navigate = useNavigate();
   const firestore = useFirestore();
@@ -219,7 +219,9 @@ export const Disclosures = () => {
         </Button>
       </Box>
 
-      <ServerDataGrid collName='DISCLOSURES' columns={columns} />
+      {/* <Box sx={{ height: 500, width: '100%' }}> */}
+      <ServerDataGrid collName='DISCLOSURES' columns={columns} autoHeight />
+      {/* </Box> */}
     </Box>
   );
 };

@@ -10,6 +10,11 @@ Font.register({
       fontStyle: 'normal',
     },
     {
+      src: 'https://fonts.gstatic.com/s/roboto/v30/KFOkCnqEu92Fr1Mu52xP.ttf',
+      fontWeight: 400,
+      fontStyle: 'italic',
+    },
+    {
       src: 'https://fonts.gstatic.com/s/roboto/v30/KFOlCnqEu92Fr1MmSU5vAw.ttf',
       fontWeight: 300,
       fontStyle: 'light',
@@ -76,8 +81,8 @@ export const styles = StyleSheet.create({
     justifyContent: 'flex-start',
   },
   section: {
-    margin: 10,
-    padding: 10,
+    margin: 8,
+    padding: 8,
     // flexGrow: 1,
   },
   flexSection: {
@@ -120,6 +125,17 @@ export const styles = StyleSheet.create({
     lineHeight: 1.4,
     marginBottom: 4,
   },
+  upper: {
+    textTransform: 'uppercase',
+  },
+  robotoItalic: {
+    fontFamily: 'Roboto',
+    fontStyle: 'italic',
+    fontWeight: 400,
+  },
+  bold: {
+    fontWeight: 600,
+  },
   divider: {
     width: '100%',
     height: 1,
@@ -130,7 +146,8 @@ export const styles = StyleSheet.create({
     fontFamily: 'Roboto',
     fontSize: 12,
     // color: '#212935',
-    lineHeight: 1.67,
+    lineHeight: 1.64,
+    // lineHeight: 1.5,
   },
   body2: {
     fontFamily: 'Roboto',
@@ -156,6 +173,9 @@ export const styles = StyleSheet.create({
   columnEnd: {
     flex: 1,
     alignItems: 'flex-end',
+  },
+  grow: {
+    flex: '1 0 auto',
   },
   overline: {
     color: TEXT_SECONDARY,
@@ -217,9 +237,42 @@ export const styles = StyleSheet.create({
     textAlign: 'center',
     textTransform: 'uppercase',
   },
-  disclosureTN: {
-    color: 'red',
-  }, // TODO: https://www.typescriptlang.org/docs/handbook/2/mapped-types.html#key-remapping-via-as
+  listItem: {
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    alignItems: 'flex-start',
+    width: '100%',
+    fontSize: 10,
+    fontFamily: 'Roboto',
+    marginBottom: 6,
+  },
+  listItemBullet: {
+    marginHorizontal: 12,
+    // flex: '0 0 auto',
+    // fontSize: 11,
+    fontFamily: 'Source Sans Pro',
+    minWidth: 16,
+  },
+  // insetListItem: {
+  //   marginLeft: 20,
+  // },
+  disclosure: {
+    fontSize: 12,
+    fontFamily: 'Roboto',
+  },
+  zeroMinWidth: {
+    minWidth: 0,
+  },
+  padV: {
+    paddingVertical: 10,
+  },
+  padB: {
+    paddingBottom: 10,
+  },
+  // disclosureTN: {
+  //   color: 'red',
+  // }, // TODO: https://www.typescriptlang.org/docs/handbook/2/mapped-types.html#key-remapping-via-as
   // extends MappedDisclosureState type
 });
 

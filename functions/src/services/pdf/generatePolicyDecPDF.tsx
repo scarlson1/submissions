@@ -1,4 +1,3 @@
-// import React from 'react';
 import ReactPDF, { Page, Text, View, Document, Image } from '@react-pdf/renderer';
 
 import {
@@ -10,6 +9,8 @@ import {
   PremiumTableItem,
 } from './components';
 import { styles } from './styles';
+import { MinEarnedPremiumPage } from './pages/MinEarnedPremium';
+import { CyberPage, StateDisclosurePage } from './pages';
 
 export const IDEMAND_LOGO_URL = 'https://scarlson1.github.io/iDemand_SPI_720x240.png';
 
@@ -396,7 +397,7 @@ interface DecPageTemplateData extends Record<string, unknown> {
   disclosure?: string;
 }
 
-interface PDFProps {
+export interface PDFProps {
   data: DecPageTemplateData;
 }
 
@@ -647,23 +648,9 @@ const DecPagePDF = ({ data }: PDFProps) => {
           fixed
         />
       </Page>
-      {data.disclosure ? (
-        <Page size='A4' orientation='portrait' wrap={true} style={styles.page}>
-          <View style={[styles.section]}>
-            <Text style={[styles.heading2, styles.textCenter]}>State Disclosure</Text>
-            {/* TODO: pass state as prop */}
-            <Text style={[styles.overline, styles.textSecondary, styles.textCenter]}>
-              {data.homeStateFullName || ''}
-            </Text>
-            <View style={{ paddingVertical: 12 }}>
-              {/* @ts-ignore */}
-              <Text style={[styles[`disclosure${data.homeState}`] || undefined]}>
-                {data.disclosure}
-              </Text>
-            </View>
-          </View>
-        </Page>
-      ) : null}
+      {data.disclosure ? <StateDisclosurePage data={data} /> : null}
+      <MinEarnedPremiumPage />
+      <CyberPage />
     </Document>
   );
 };

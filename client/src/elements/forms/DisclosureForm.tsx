@@ -59,7 +59,7 @@ export const DisclosureForm = ({
   const handleSubmit = useCallback(
     (values: DisclosureValues, helpers: FormikHelpers<DisclosureValues>) => {
       const content = editor?.getJSON();
-      console.log('CONTENT: ', content);
+
       return onSubmit({ ...values, content }, helpers);
     },
     [editor, onSubmit]

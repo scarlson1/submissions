@@ -32,7 +32,7 @@ export const currentUser = async (req: RequestUserAuth, res: Response, next: Nex
     if (!idToken) return next();
 
     try {
-      info(`ID TOKEN: ${idToken}`);
+      info(`ID TOKEN FOUND`, { idToken });
       const decodedIdToken = await auth.verifyIdToken(idToken);
       // info('ID Token correctly decoded: ', { decodedIdToken });
 
