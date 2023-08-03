@@ -496,10 +496,10 @@ export function AdditionalInterestsStep({ logAnalyticsStep }: LogAnalyticsProp) 
               required: false,
               inputType: 'select',
               selectOptions: [
-                {
-                  label: 'Additional Named Insured',
-                  value: 'additional_named_insured',
-                },
+                // {
+                //   label: 'Additional Named Insured',
+                //   value: 'additional_named_insured',
+                // },
                 { label: 'Mortgagee', value: 'mortgagee' },
                 { label: 'Additional Insured', value: 'additional_insured' },
               ],

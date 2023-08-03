@@ -44,7 +44,7 @@ export const LocationsGrid = ({
         field: 'actions',
         headerName: 'Actions',
         type: 'actions',
-        width: isSmall ? 60 : 80,
+        width: isSmall ? 60 : 100,
         getActions: (params: GridRowParams) => [
           ...renderActions(params),
           googleMapsAction(params, { showInMenu: isSmall }),

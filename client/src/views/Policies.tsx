@@ -29,7 +29,7 @@ import { Item } from './UserSubmissions';
 import { PoliciesGrid } from 'elements';
 import { formatFirestoreTimestamp } from 'modules/utils';
 import { AdditionalInsured, COLLECTIONS, Policy, fallbackImages } from 'common';
-import { ChangeRequestsDialog } from 'elements/ChangeRequestDialog';
+import { ControlledChangeRequestDialog } from 'elements/ChangeRequestDialog';
 
 // TODO: change policies view to allow switching between card and grid view (and map ??)
 // TODO: include change requests in grid ?? (could use rxjs and aggregation query)
@@ -80,7 +80,7 @@ export const Policies = () => {
             sx={{ display: 'flex', justifyContent: 'space-between', pb: 2, pr: { xs: 0, sm: 3 } }}
           >
             {header}
-            <ChangeRequestsDialog />
+            <ControlledChangeRequestDialog />
           </Box>
           <PoliciesGrid renderActions={adminActions} checkboxSelection />
         </Box>
@@ -92,7 +92,7 @@ export const Policies = () => {
       <Container maxWidth='lg' sx={{ py: { xs: 4, md: 6 } }}>
         <Box>
           {header}
-          <ChangeRequestsDialog />
+          <ControlledChangeRequestDialog />
           <PoliciesGrid constraints={[where('agency.orgId', '==', `${user.tenantId}`)]} />
         </Box>
       </Container>
@@ -103,7 +103,7 @@ export const Policies = () => {
       <Container maxWidth='lg' sx={{ py: { xs: 4, md: 6 } }}>
         <Box>
           {header}
-          <ChangeRequestsDialog />
+          <ControlledChangeRequestDialog />
           <PoliciesGrid constraints={[where('agent.userId', '==', user.uid)]} />
         </Box>
       </Container>

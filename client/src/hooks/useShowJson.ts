@@ -34,9 +34,10 @@ export const useShowJson = <T extends DocumentData>(
   }, [firestore, colName, paths, converter]);
 
   const showJson = useCallback(
-    async (docId: string) => {
+    async (docId: string, subPath?: string) => {
       try {
-        const snap = await getDoc(doc(colRef, docId));
+        let docPath = subPath ? `${subPath}/${docId}` : docId;
+        const snap = await getDoc(doc(colRef, docPath)); // docId
         const data = snap.data();
         if (!snap.exists || !data) throw new Error(`doc not found (${colName}/${docId})`);
 

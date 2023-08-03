@@ -31,7 +31,7 @@ import { quoteConverter } from 'common/firestoreConverters';
 import { QuotesGrid, CSVUploadDialog } from 'elements';
 import { IconMenu } from 'components/IconButtonMenu';
 import { getDuplicates } from 'modules/utils';
-import { Usage } from 'context/DialogContext';
+import { Usage } from 'hooks/useDialogForm';
 
 const useUpdateQuoteStatus = () => {
   const firestore = useFirestore();

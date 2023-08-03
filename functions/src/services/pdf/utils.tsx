@@ -1,7 +1,10 @@
 import { flatten } from 'lodash';
-import { Policy, PolicyLocation, dollarFormat, dollarFormat2 } from '../../common';
+import { JSONContent, Policy, PolicyLocation, dollarFormat, dollarFormat2 } from '../../common';
 import { getFormattedAddress } from '../../routes/generatePDF';
 import { AdditionalInterestsItem, PolicyDecPDFLocations, PremiumTableItem } from './components';
+import { convert } from 'html-to-text';
+import { generateHTML } from '@tiptap/html';
+import { EDITOR_EXTENSION_DEFAULTS } from '../../utils';
 
 export function formatLocationData(locations: Policy['locations']) {
   let formatted: PolicyDecPDFLocations[] = [];
@@ -18,7 +21,7 @@ export function formatLocationData(locations: Policy['locations']) {
       annualPremium: location.annualPremium ? dollarFormat(location.annualPremium) : '',
       termPremium: location.termPremium ? dollarFormat(location.termPremium) : '',
     };
-    console.log('formatted: ', test);
+
     formatted.push(test);
   }
 
@@ -90,4 +93,15 @@ export function getPremiumTable(policy: Policy): PremiumTableItem[] {
   });
 
   return result;
+}
+
+/**
+ * converts tiptap JSONContent to HTML, then to text (replacing tags, etc.)
+ * @param content JSONContent saved from tiptap editor
+ * @returns string after using html-to-text to remove html tags
+ */
+export function tiptapJsonToText(content: JSONContent) {
+  const html = generateHTML(content, EDITOR_EXTENSION_DEFAULTS);
+
+  return convert(html);
 }

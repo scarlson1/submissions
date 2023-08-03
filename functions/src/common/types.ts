@@ -1133,6 +1133,28 @@ export type Transaction = PremiumTransaction | OffsetTransaction | AmendmentTran
 //   eventId: string;
 // }
 
+// import type { JSONContent } from '@tiptap/core';
+// https://github.com/ueberdosis/tiptap/blob/develop/packages/core/src/types.ts
+export type JSONContent = {
+  type?: string;
+  attrs?: Record<string, any>;
+  content?: JSONContent[];
+  marks?: {
+    type: string;
+    attrs?: Record<string, any>;
+    [key: string]: any;
+  }[];
+  text?: string;
+  [key: string]: any;
+};
+export interface Disclosure extends BaseDoc {
+  products: Product[];
+  state: string | null;
+  displayName?: string | null;
+  type?: string | null;
+  content: JSONContent;
+}
+
 export type InviteStatus = 'pending' | 'accepted' | 'revoked' | 'replaced' | 'rejected' | 'error';
 
 export interface Invite {

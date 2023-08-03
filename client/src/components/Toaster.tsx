@@ -25,7 +25,7 @@ export const lightToastOptions: DefaultToastOptions = {
 export const darkToastOptions: DefaultToastOptions = {
   style: {
     color: '#B2BAC2',
-    backgroundColor: '#132F4C',
+    backgroundColor: '#1F262E', // '#132F4C',
     borderRadius: '8px',
   },
   success: {

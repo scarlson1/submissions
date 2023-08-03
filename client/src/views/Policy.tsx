@@ -14,9 +14,13 @@ import {
   Avatar,
   Stack,
   Paper,
+  MenuItem,
+  Badge,
+  Tooltip,
 } from '@mui/material';
 import {
   AccountBalanceRounded,
+  EditRounded,
   EmailRounded,
   GridViewRounded,
   MapRounded,
@@ -26,11 +30,22 @@ import {
 import { useParams, useSearchParams } from 'react-router-dom';
 import { PickingInfo } from 'deck.gl/typed';
 
-import { useDocData, useGeneratePDF } from 'hooks';
+import {
+  useCreateChangeRequest,
+  useCreateLocationChangeRequest,
+  useDocData,
+  useGeneratePDF,
+} from 'hooks';
 import { Policy as IPolicy, POLICY_STATUS, PolicyLocation, WithId } from 'common';
 import { LocationCard, LocationsGrid, LocationsMap } from 'elements';
 import { formatFirestoreTimestamp, formatPhoneNumber, stringAvatar } from 'modules/utils';
 import { ContactList } from 'elements/forms';
+import {
+  ChangeRequestsDialog,
+  useViewChangeRequestsDialogProps,
+} from 'elements/ChangeRequestDialog';
+import { IconMenu } from 'components/IconButtonMenu';
+import { GridActionsCellItem, GridRowParams } from '@mui/x-data-grid';
 
 // TODO: make location card flip on hover to show additoinal details ??
 
@@ -50,10 +65,10 @@ export const Policy = () => {
   if (!policyId) throw new Error('policyId missing in url params');
 
   const { data } = useDocData<IPolicy>('POLICIES', policyId);
-  // const { requestChange } = usePolicyChangeRequest();
   const downloadPolicy = useGeneratePDF('generatePolicy');
 
   const test = useGeneratePDF('generateDecPDF');
+  const locationChangeDialog = useCreateLocationChangeRequest(policyId);
 
   const locations = useMemo<WithId<PolicyLocation>[]>(() => {
     let pLocs = Object.entries(data?.locations || {});
@@ -97,9 +112,34 @@ export const Policy = () => {
     // pass button to renderActions in locations grid
   }, []); // policyId
 
+  const handleLocationChangeRequest = useCallback(
+    (params: GridRowParams) => () => {
+      locationChangeDialog(params.row, data);
+    },
+    [data, locationChangeDialog]
+  );
+
   const handleCancelPolicy = useCallback(() => {
     alert('cancel not implemented yet');
   }, []);
+
+  const renderLocationGridActions = useCallback(
+    (params: GridRowParams) => {
+      return [
+        <GridActionsCellItem
+          icon={
+            <Tooltip title='request change' placement='top'>
+              <EditRounded />
+            </Tooltip>
+          }
+          onClick={handleLocationChangeRequest(params)}
+          label='Request change'
+          // showInMenu={isSmall}
+        />,
+      ];
+    },
+    [handleLocationChangeRequest]
+  );
 
   // TODO: display not found component (or throw & handle in error boundary ??)
   if (!data)
@@ -129,6 +169,13 @@ export const Policy = () => {
           <Button size='small' onClick={handleNewClaim}>
             Submit Claim
           </Button>
+          <PolicyIconMenu policyId={policyId} />
+          {/* <IconButtonMenu
+            menuItems={[
+              { label: 'Requst policy change', action: () => policyChangeRequest(policyId) },
+            ]}
+            iconButtonProps={{ sx: { ml: 2, borderRadius: 1 } }}
+          /> */}
         </Box>
       </Box>
       <Divider />
@@ -267,6 +314,7 @@ export const Policy = () => {
                 <LocationCard
                   location={location}
                   namedInsured={data.namedInsured}
+                  policyId={policyId}
                   // agent={data.agent}
                   // agency={data.agency}
                 />
@@ -274,7 +322,9 @@ export const Policy = () => {
             ))}
           </Grid>
         ) : null}
-        {locationsView === 'grid' ? <LocationsGrid locations={locations} /> : null}
+        {locationsView === 'grid' ? (
+          <LocationsGrid locations={locations} renderActions={renderLocationGridActions} />
+        ) : null}
         {locationsView === 'map' ? (
           <Card sx={{ height: 500, width: '100% ' }}>
             <LocationsMap
@@ -343,5 +393,32 @@ function StatBox({ title, value }: StatBoxProps) {
         {value}
       </Typography>
     </Box>
+  );
+}
+
+function PolicyIconMenu({ policyId }: { policyId: string }) {
+  const policyChangeRequest = useCreateChangeRequest();
+  const { open, handleOpen, handleClose, count } = useViewChangeRequestsDialogProps(policyId);
+
+  const handleNewRequest = useCallback(() => {
+    policyChangeRequest(policyId);
+  }, [policyChangeRequest, policyId]);
+
+  return (
+    <>
+      <Badge badgeContent={count || 0} color='primary'>
+        <IconMenu iconButtonProps={{ sx: { ml: 2, borderRadius: 1 } }}>
+          <MenuItem onClick={handleNewRequest}>Request policy change</MenuItem>
+          <Badge
+            badgeContent={count || 0}
+            color='primary'
+            sx={{ '& .MuiBadge-badge': { right: '8px' } }}
+          >
+            <MenuItem onClick={handleOpen}>View change requests</MenuItem>
+          </Badge>
+        </IconMenu>
+      </Badge>
+      <ChangeRequestsDialog open={open} handleClose={handleClose} policyId={policyId} />
+    </>
   );
 }

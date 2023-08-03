@@ -6,6 +6,7 @@ import {
   getCountFromServer,
   WhereFilterOp,
   QueryConstraint,
+  collectionGroup,
 } from 'firebase/firestore';
 import { useFirestore } from 'reactfire';
 
@@ -18,35 +19,26 @@ export function mapWhereConstraints(constraints: QueryArgs[]) {
 type QueryArgs = [string, WhereFilterOp, any];
 
 export function useFetchDocCount(
-  collName: keyof typeof COLLECTIONS,
-  constraints: QueryConstraint[] = []
+  colName: keyof typeof COLLECTIONS,
+  constraints: QueryConstraint[] = [],
+  isCollectionGroup: boolean = false,
+  pathSegments: string[] = []
 ) {
   const db = useFirestore();
 
   return useCallback(() => {
-    const collectionRef = collection(db, COLLECTIONS[collName]);
+    // const collectionRef = collection(db, COLLECTIONS[collName]);
+    let path = COLLECTIONS[colName] as string;
+    if (pathSegments.length) path += `/${pathSegments.join('/')}`;
+
+    let colRef;
+    if (!!isCollectionGroup) {
+      colRef = collectionGroup(db, path);
+    } else {
+      colRef = collection(db, path);
+    }
     const filteredConstraints = constraints.filter((c) => c.type === 'where');
 
-    return getCountFromServer(query(collectionRef, ...filteredConstraints));
-  }, [db, constraints, collName]);
+    return getCountFromServer(query(colRef, ...filteredConstraints));
+  }, [db, constraints, colName, isCollectionGroup, pathSegments]);
 }
-
-// export function mapWhereConstraints(constraints: QueryArgs[]) {
-//   return constraints.map((c) => where(c[0], c[1], c[2]));
-// }
-
-// type QueryArgs = [string, WhereFilterOp, any];
-
-// export function useDocCount(collName: keyof typeof COLLECTIONS, constraints?: QueryArgs[]) {
-//   const db = useFirestore();
-//   const qConstraints = useMemo<QueryFieldFilterConstraint[]>(
-//     () => (constraints ? mapWhereConstraints(constraints) : []), // where('userId', '==', user?.uid)
-//     [constraints]
-//   );
-
-//   return useCallback(() => {
-//     const collectionRef = collection(db, COLLECTIONS[collName]);
-
-//     return getCountFromServer(query(collectionRef, ...qConstraints));
-//   }, [db, qConstraints, collName]);
-// }

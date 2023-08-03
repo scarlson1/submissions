@@ -201,10 +201,6 @@ export const useAuth = () => {
     throw new Error('useAuth must be used within AuthProvider');
   }
 
-  if (!auth) {
-    throw new Error('useAuth must be used within AuthProvider');
-  }
-
   return {
     ...auth,
     // isAuthenticated: auth.user != null,

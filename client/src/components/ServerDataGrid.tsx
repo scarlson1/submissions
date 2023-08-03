@@ -70,7 +70,12 @@ export const ServerDataGrid = ({
     [filters, constraints] // eslint-disable-line react-hooks/exhaustive-deps
   );
 
-  const fetchCount = useFetchDocCount(collName, [...filters, ...constraints]);
+  const fetchCount = useFetchDocCount(
+    collName,
+    [...filters, ...constraints],
+    isCollectionGroup,
+    pathSegments
+  );
   // fetch count whenever query changes
   useEffect(() => {
     // TODO: improve dependencies chekcing (currently called 3 times)

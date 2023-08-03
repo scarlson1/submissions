@@ -1,9 +1,9 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useFirestore, useFirestoreCollectionData } from 'reactfire';
 import { collection, CollectionReference, limit, query, where } from 'firebase/firestore';
+import { generateHTML } from '@tiptap/react';
 
 import { COLLECTIONS, Disclosure, Product } from 'common';
-import { generateHTML } from '@tiptap/react';
 import { EDITOR_EXTENSION_DEFAULTS } from 'hooks';
 
 export const useDisclosure = (state: string, product?: Product) => {

@@ -216,9 +216,9 @@ export interface Mortgagee {
 // decide whether to use discriminating union type
 // could use on front end for input component
 // then split in submit
-
+export type AdditionalInterestType = 'additional_insured' | 'mortgagee';
 export interface AdditionalInterest {
-  type: string;
+  type: AdditionalInterestType; // string;
   name: string;
   accountNumber: string;
   address: AddressWithCoords;
@@ -739,16 +739,41 @@ export type ChangeRequestStatus =
   | 'under_review'
   | 'cancelled';
 
-export interface ChangeRequest extends BaseDoc {
+// export interface ChangeRequest extends BaseDoc {
+//   trxType: TransactionType;
+//   // requestType: // TODO: sub-types ??
+//   changes: Partial<Policy> | Partial<PolicyLocation>; // DOES THIS WORK FOR LOCATION CHANGES ?? MIGHT NEED DISCRIMINATING UNION --> scope: 'policy' | 'location'
+//   requestEffDate: Timestamp;
+//   // field: string;
+//   // newValue: string | number;
+//   policyId: string;
+//   locationId?: string | null;
+//   externalId?: string | null;
+//   userId: string;
+//   agent: {
+//     userId: string | null;
+//   };
+//   agency: {
+//     orgId: string | null;
+//   };
+//   status: ChangeRequestStatus;
+//   processedTimestamp?: Timestamp;
+//   approvedBy?: {
+//     name: string;
+//     userId: string;
+//   };
+//   submittedBy: {
+//     userId: string | null;
+//     displayName: string;
+//   };
+// }
+
+interface BaseChangeRequest extends BaseDoc {
   trxType: TransactionType;
-  // requestType: // TODO: sub-types ??
-  changes: Partial<Policy>; // DOES THIS WORK FOR LOCATION CHANGES ?? MIGHT NEED DISCRIMINATING UNION --> scope: 'policy' | 'location'
+  // scope: 'policy' | 'location';
   requestEffDate: Timestamp;
-  // field: string;
-  // newValue: string | number;
   policyId: string;
-  locationId?: string | null;
-  externalId?: string | null;
+  // locationId?: string | null;
   userId: string;
   agent: {
     userId: string | null;
@@ -767,6 +792,22 @@ export interface ChangeRequest extends BaseDoc {
     displayName: string;
   };
 }
+
+export interface LocationChangeRequest extends BaseChangeRequest {
+  scope: 'location';
+  changes: Partial<PolicyLocation>;
+  locationId: string;
+  externalId?: string | null;
+}
+
+export interface PolicyChangeRequest extends BaseChangeRequest {
+  scope: 'policy';
+  changes: Partial<Policy>;
+  // externalId: never;
+  // locationId: never;
+}
+// TODO: uncomment
+export type ChangeRequest = LocationChangeRequest | PolicyChangeRequest;
 
 export type DefaultCommission = {
   [key in PRODUCT]?: number;
@@ -982,7 +1023,15 @@ export type SubjectBaseItems =
   | 'noFee';
 
 export type RoundingType = 'nearest' | 'up' | 'down';
-export type TransactionType = 'new' | 'renewal' | 'endorsement' | 'cancellation';
+// export type TransactionType = 'new' | 'renewal' | 'endorsement' | 'cancellation';
+export type TransactionType =
+  | 'new'
+  | 'renewal'
+  | 'endorsement' // change w/ premium
+  | 'amendment' // change w/o premium
+  | 'cancellation'
+  | 'flat_cancel'
+  | 'reinstatement';
 
 export interface Tax extends BaseDoc {
   state: string;

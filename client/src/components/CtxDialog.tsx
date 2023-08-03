@@ -5,6 +5,7 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
+  DialogContentText,
   DialogTitle,
 } from '@mui/material';
 
@@ -45,11 +46,22 @@ const Title = () => {
 
 CtxDialog.Title = Title;
 
+const Description = () => {
+  const dialog = useDialog();
+
+  // {...(dialog?.slotProps?.description || {})}
+  return dialog?.description ? (
+    <DialogContentText>{dialog?.description ? dialog?.description : null}</DialogContentText>
+  ) : null;
+};
+
+CtxDialog.Description = Description;
+
 const Content = () => {
   const dialog = useDialog();
 
   return (
-    <DialogContent {...(dialog?.slotProps?.content || {})}>
+    <DialogContent dividers {...(dialog?.slotProps?.content || {})}>
       {dialog?.content ? dialog?.content : null}
     </DialogContent>
   );
@@ -113,6 +125,7 @@ function ContextDialog() {
   return (
     <CtxDialog>
       <CtxDialog.Title />
+      <CtxDialog.Description />
       <CtxDialog.Content />
       <CtxDialog.Actions />
     </CtxDialog>
