@@ -2,8 +2,8 @@ import type { FirestoreEvent } from 'firebase-functions/v2/firestore';
 import { info } from 'firebase-functions/logger';
 import { QueryDocumentSnapshot } from 'firebase-admin/firestore';
 
-import { sendAdminChangeRequestNotification } from '../services/sendgrid/index.js';
-import { ChangeRequest, sendgridApiKey } from '../common/index.js';
+import { sendAdminChangeRequestNotification } from '../services/sendgrid';
+import { ChangeRequest, sendgridApiKey } from '../common';
 
 export default async (
   event: FirestoreEvent<
@@ -27,15 +27,6 @@ export default async (
     `New policy change request detected. Initiating notification email (policyId: ${policyId})`,
     { policyId, requestId, data }
   );
-
-  // if (!field) {
-  //   error('ERROR - POLICY CHANGE REQUEST EMAIL NOT SENT. Missing required params');
-  //   // TODO: email error ? report to sentry ??
-  //   return { status: 'Error. Email not sent.' };
-  // }
-  // if (newValue) {
-  //   return { status: 'Create Org Invite. Email not sent' };
-  // }
 
   let to = ['spencer.carlson@idemandinsurance.com'];
   if (process.env.AUDIENCE !== 'DEV HUMANS' && process.env.AUDIENCE !== 'LOCAL HUMANS')
