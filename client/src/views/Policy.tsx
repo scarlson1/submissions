@@ -65,9 +65,8 @@ export const Policy = () => {
   if (!policyId) throw new Error('policyId missing in url params');
 
   const { data } = useDocData<IPolicy>('POLICIES', policyId);
-  const downloadPolicy = useGeneratePDF('generatePolicy');
+  const downloadPolicy = useGeneratePDF('generateDecPDF'); // useGeneratePDF('generatePolicy');
 
-  const test = useGeneratePDF('generateDecPDF');
   const locationChangeDialog = useCreateLocationChangeRequest(policyId);
 
   const locations = useMemo<WithId<PolicyLocation>[]>(() => {
@@ -91,20 +90,10 @@ export const Policy = () => {
     alert('TODO: handle new claim');
   }, []);
 
-  // const handleViewPolicyDoc = useCallback(() => {
-  //   const docObj = data?.documents[0];
-  //   // TODO: report error to sentry
-  //   if (!docObj?.downloadUrl) return toast.error('missing policy PDF');
-
-  //   window.open(docObj?.downloadUrl, '_blank');
-  // }, [data]);
-
   const handleDownloadPolicy = useCallback(
     () => downloadPolicy(policyId),
     [downloadPolicy, policyId]
   );
-
-  const handleTest = useCallback(() => test(policyId), [test, policyId]);
 
   const handleChangeRequest = useCallback(() => {
     alert('TODO: implement change request');
@@ -373,7 +362,7 @@ export const Policy = () => {
           {' anytime.'}
         </Typography>
       </Box>
-      <Button onClick={handleTest}>Test Policy Dec</Button>
+      {/* <Button onClick={handleTest}>Test Policy Dec</Button> */}
     </Box>
   );
 };

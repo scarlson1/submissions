@@ -50,7 +50,7 @@ export const OrderedListItem = ({ number, content, styles, noParens }: OrderedLi
         style={[
           rootStyles.paragraph,
           rootStyles.textPrimary,
-          // rootStyles.grow,
+          rootStyles.grow,
           rootStyles.zeroMinWidth,
           ...stylesArr,
         ]}
