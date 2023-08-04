@@ -1,5 +1,5 @@
-import 'firebase-functions';
 import { initializeApp } from 'firebase-admin/app';
+import 'firebase-functions';
 
 // https://medium.com/firebase-developers/organize-cloud-functions-for-max-cold-start-performance-and-readability-with-typescript-and-9261ee8450f0
 
@@ -30,15 +30,22 @@ initializeApp();
 // functions:markpaidonpaymentcomplete,
 
 export {
+  beforecreate,
+  beforesignin,
+  createFirestoreUser,
+  setClaimsFromInvite,
+  setUidByEmailOnCreate,
+} from './authEvents';
+export {
   assignquote,
   calcquote,
   createpolicy,
   createtenantfromsubmission,
   // deliveragencyagreement,
   executepayment,
-  getpropertydetails,
   generatesearchkey,
   getannualpremium,
+  getpropertydetails,
   getpropertydetailsattom,
   getriskfactorid,
   gettenantidfromemail,
@@ -55,44 +62,35 @@ export {
   verifyepaytoken,
 } from './callables';
 export {
-  newsubmissionnotifications,
   getstaticsubmissionimg,
   getsubmissionaal,
+  getsubmissionfips,
   mirrorcustomclaims,
   newagencyappnotification,
-  getsubmissionfips,
-  notifypolicychangerequest,
+  newsubmissionnotifications,
+  // notifypolicychangerequest,
+  policychangerequest,
   sendinviteemail,
 } from './firestoreEvents';
 export {
-  algoliasyncusers,
   algoliasyncorgs,
-  algoliasyncsubmissions,
-  algoliasyncquotes,
   algoliasyncpolicies,
+  algoliasyncquotes,
+  algoliasyncsubmissions,
   algoliasynctransactions,
+  algoliasyncusers,
 } from './firestoreEvents/algolia';
 export {
-  beforesignin,
-  beforecreate,
-  setUidByEmailOnCreate,
-  createFirestoreUser,
-  setClaimsFromInvite,
-} from './authEvents';
-export { authRequests, generatepdf, sendgrid, authrequeststest } from './routes';
-export { importpolicies, importquotes, getfips, rateportfolio } from './storageEvents';
-export {
+  amendmentlistener,
+  endorsementlistener,
+  locationcancellistener,
   markpaidonpaymentcomplete,
   policycreatedlistener,
   policyrenewallistener,
-  endorsementlistener,
-  amendmentlistener,
-  locationcancellistener,
 } from './pubsub';
-export {
-  checkachstatus,
-  // checkquoteexpiration // TODO: test and finish function before deploy
-} from './scheduler';
+export { authRequests, authrequeststest, generatepdf, sendgrid } from './routes';
+export { checkachstatus } from './scheduler';
+export { getfips, importpolicies, importquotes, rateportfolio } from './storageEvents';
 
 // export { pubsubHelper } from './routes/pubSubHelper.js';
 // export { testEmulatorsCheckAchStatus } from './pubsub/checkAchStatus';

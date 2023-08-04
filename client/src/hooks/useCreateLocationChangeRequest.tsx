@@ -1,11 +1,8 @@
+import { Timestamp, addDoc } from 'firebase/firestore';
+import { FormikHelpers, FormikProps } from 'formik';
 import { useCallback, useRef } from 'react';
 import { useFirestore } from 'reactfire';
-import { FormikHelpers, FormikProps } from 'formik';
 
-import { useAuth } from 'context';
-import { LocationChangeForm, LocationChangeValues } from 'elements/forms';
-import { useDialogForm } from './useDialogForm';
-import { useAsyncToast } from './useAsyncToast';
 import {
   AdditionalInsured,
   AdditionalInterest,
@@ -19,8 +16,11 @@ import {
   WithId,
   changeReqestsCollection,
 } from 'common';
+import { useAuth } from 'context';
+import { LocationChangeForm, LocationChangeValues } from 'elements/forms';
+import { useAsyncToast } from './useAsyncToast';
 import { formatChanges } from './useCreateChangeRequest';
-import { Timestamp, addDoc } from 'firebase/firestore';
+import { useDialogForm } from './useDialogForm';
 
 export const useCreateLocationChangeRequest = (policyId: string) => {
   const firestore = useFirestore();
@@ -53,6 +53,7 @@ export const useCreateLocationChangeRequest = (policyId: string) => {
         reqEffDateNew,
         { ...policy.current, id: policyId },
         locationData.current.locationId,
+        values,
         user
       );
 
@@ -204,6 +205,7 @@ function getCommonTrxJson(
   reqEffDate: Date,
   policy: WithId<Policy>,
   locationId: string,
+  formValues: LocationChangeValues,
   user?: any
 ): Omit<LocationChangeRequest, 'changes' | 'trxType'> {
   return {
@@ -211,6 +213,7 @@ function getCommonTrxJson(
     requestEffDate: Timestamp.fromDate(reqEffDate),
     policyId: policy.id,
     locationId,
+    formValues,
     userId: policy.userId || '',
     agent: {
       userId: policy.agent.userId || null,
@@ -222,6 +225,7 @@ function getCommonTrxJson(
     submittedBy: {
       userId: user?.uid || null,
       displayName: user?.displayName || '',
+      email: user?.email || null,
     },
     metadata: {
       created: Timestamp.now(),

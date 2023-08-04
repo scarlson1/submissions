@@ -3,7 +3,7 @@ import { useCallback } from 'react';
 import { functionsInstance } from 'api';
 import { useAsyncToast } from './useAsyncToast';
 
-type PDFRoutes = 'generatePolicy' | 'generateDecPDF';
+type PDFRoutes = 'generateDecPDF'; // 'generatePolicy'
 
 export const useGeneratePDF = (
   route: PDFRoutes,

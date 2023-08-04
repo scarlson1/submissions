@@ -4,6 +4,7 @@ import { error, info } from 'firebase-functions/logger';
 import type { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 
 import { transactionsCollection } from '../common';
+import { reportErrorSentry } from '../services/sentry';
 import {
   constructTrxId,
   fetchPolicyData,
@@ -11,7 +12,6 @@ import {
   formatPremiumTrx,
   trxExists,
 } from '../utils/transactions';
-import { reportErrorSentry } from '../services/sentry';
 
 // using JS Module over classes: https://dev.to/giantmachines/stop-using-javascript-classes-33ij
 
@@ -21,7 +21,7 @@ import { reportErrorSentry } from '../services/sentry';
 
 // CREATES TRANSACTION FOR EACH LOCATION IN NEW POLICY
 
-interface PolicyCreatedPayload {
+export interface PolicyCreatedPayload {
   policyId: string;
 }
 

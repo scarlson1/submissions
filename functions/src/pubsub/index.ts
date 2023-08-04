@@ -26,14 +26,14 @@ export const policyrenewallistener = onMessagePublished(
 );
 
 export const endorsementlistener = onMessagePublished(
-  { topic: PUB_SUB_TOPICS.LOCATION_ENDORSEMENT },
+  { topic: PUB_SUB_TOPICS.ENDORSEMENT },
   async (event) => {
     await (await import('./endorsementListener.js')).default(event);
   }
 );
 
 export const amendmentlistener = onMessagePublished(
-  { topic: PUB_SUB_TOPICS.POLICY_AMENDMENT },
+  { topic: PUB_SUB_TOPICS.AMENDMENT },
   async (event) => {
     await (await import('./amendmentListener.js')).default(event);
   }
@@ -46,4 +46,9 @@ export const locationcancellistener = onMessagePublished(
   }
 );
 
-// TODO:
+export type { AmendmentPayload } from './amendmentListener';
+export type { EndorsementPayload } from './endorsementListener';
+export type { LocationCancelPayload } from './locationCancelListener';
+export { PolicyCreatedPayload } from './policyCreatedListener';
+export { PolicyRenewalPayload } from './policyRenewalListener';
+export { ReinstatementPayload } from './reinstatementListener';

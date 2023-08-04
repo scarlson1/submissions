@@ -65,7 +65,7 @@ export const Policy = () => {
   if (!policyId) throw new Error('policyId missing in url params');
 
   const { data } = useDocData<IPolicy>('POLICIES', policyId);
-  const downloadPolicy = useGeneratePDF('generateDecPDF'); // useGeneratePDF('generatePolicy');
+  const downloadPolicy = useGeneratePDF('generateDecPDF');
 
   const locationChangeDialog = useCreateLocationChangeRequest(policyId);
 

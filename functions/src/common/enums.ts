@@ -61,6 +61,14 @@ export enum POLICY_STATUS {
   CANCELLED = 'cancelled',
 }
 
+export enum CHANGE_REQUEST_STATUS {
+  SUBMITTED = 'submitted',
+  ACCEPTED = 'accepted',
+  DENIED = 'denied',
+  UNDER_REVIEW = 'under_review',
+  CANCELLED = 'cancelled',
+}
+
 export enum FIN_TRANSACTION_STATUS {
   PROCESSING = 'processing',
   SUCCEEDED = 'succeeded',
@@ -113,11 +121,11 @@ export enum PMT_PUB_SUB_TOPICS {
 }
 
 export enum TRX_PUB_SUB_TOPICS {
-  PAYMENT_COMPLETE = 'payment.complete',
+  // PAYMENT_COMPLETE = 'payment.complete',
   POLICY_CREATED = 'policy.created',
   POLICY_RENEWAL = 'policy.renewal',
-  LOCATION_ENDORSEMENT = 'location.endorsement',
-  POLICY_AMENDMENT = 'policy.admendment',
+  ENDORSEMENT = 'location.endorsement',
+  AMENDMENT = 'policy.admendment',
   POLICY_REINSTATEMENT = 'policy.reinstatement',
   // POLICY_CANCELLATION = 'policy.cancellation',
   LOCATION_CANCELLATION = 'location.cancellation',

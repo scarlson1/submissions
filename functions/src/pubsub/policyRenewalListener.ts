@@ -16,7 +16,7 @@ import {
 
 const reportError = getReportErrorFn('policyRenewalListener');
 
-interface PolicyRenewalPayload {
+export interface PolicyRenewalPayload {
   policyId: string;
 }
 

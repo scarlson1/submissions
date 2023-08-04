@@ -1,24 +1,24 @@
+import { deepmerge } from 'deepmerge-ts';
 import { Request } from 'express';
 import { DecodedIdToken } from 'firebase-admin/auth';
 import { GeoPoint, Timestamp } from 'firebase-admin/firestore';
-import { deepmerge } from 'deepmerge-ts';
 import { Geohash } from 'geofire-common';
 
 import {
-  SUBMISSION_STATUS,
-  PRODUCT,
   AGENCY_STATUS,
-  QUOTE_STATUS,
-  POLICY_STATUS,
   AGENCY_SUBMISSION_STATUS,
   FIN_TRANSACTION_STATUS,
+  POLICY_STATUS,
+  PRODUCT,
+  QUOTE_STATUS,
+  SUBMISSION_STATUS,
 } from './enums.js';
 
-import { filterUniqueArr, getNewLocationId, removeFromArr } from './helpers.js';
 import { round } from 'lodash';
-import { cardFeePct, iDemandOrgId } from './environmentVars.js';
-import { SecondaryFactorMults } from '../utils/rating/factors.js';
 import { CreateMsgContentProps } from '../services/sendgrid/index.js';
+import { SecondaryFactorMults } from '../utils/rating/factors.js';
+import { cardFeePct, iDemandOrgId } from './environmentVars.js';
+import { filterUniqueArr, getNewLocationId, removeFromArr } from './helpers.js';
 
 // TODO: fix typescript error app.use(thisMiddleware) is users.ts
 
@@ -917,6 +917,24 @@ export class PolicyClass implements IPolicyClass {
 //   status: ChangeRequestStatus;
 // }
 
+export interface PolicyChangeValues {
+  namedInsured: Omit<EntityNamedInsured, 'userId' | 'orgId'>;
+  mailingAddress: Address;
+  effectiveDate: Date | null;
+  expirationDate: Date | null; // TODO: ability to request date changes ??
+  requestEffDate: Date;
+}
+
+export interface LocationChangeValues {
+  limits: Limits;
+  deductible: number;
+  effectiveDate: Date;
+  expirationDate: Date;
+  additionalInterests: AdditionalInterest[];
+  externalId: string;
+  requestEffDate: Date;
+}
+
 export type ChangeRequestStatus =
   | 'submitted'
   | 'accepted'
@@ -924,16 +942,13 @@ export type ChangeRequestStatus =
   | 'under_review'
   | 'cancelled';
 
-export interface ChangeRequest extends BaseDoc {
-  trxType: TransactionType;
-  // requestType: // TODO: sub-types ??
-  changes: Partial<Policy>; // DOES THIS WORK FOR LOCATION CHANGES ?? MIGHT NEED DISCRIMINATING UNION --> scope: 'policy' | 'location'
+// TODO: create ChangeRequestTrxType, then TransactionType  = ChangeRequestTrxType & 'renewal' | 'new'
+interface BaseChangeRequest extends BaseDoc {
+  trxType: ChangeRequestTrxType; // TransactionType;
+  // scope: 'policy' | 'location';
   requestEffDate: Timestamp;
-  // field: string;
-  // newValue: string | number;
   policyId: string;
-  locationId?: string | null;
-  externalId?: string | null;
+  // locationId?: string | null;
   userId: string;
   agent: {
     userId: string | null;
@@ -950,8 +965,37 @@ export interface ChangeRequest extends BaseDoc {
   submittedBy: {
     userId: string | null;
     displayName: string;
+    email: string | null;
   };
+  underWriterNotes?: string;
 }
+
+export interface LocationChangeRequest extends BaseChangeRequest {
+  scope: 'location';
+  changes: Partial<PolicyLocation>;
+  formValues: LocationChangeValues;
+  locationId: string;
+  externalId?: string | null;
+  cancelReason?: CancellationReason;
+}
+
+export interface LocationCancellationRequest extends LocationChangeRequest {
+  trxType: 'cancellation' | 'flat_cancel';
+  cancelReason?: CancellationReason;
+}
+
+export interface PolicyChangeRequest extends BaseChangeRequest {
+  scope: 'policy';
+  changes: Partial<Policy>;
+  formValues: PolicyChangeValues;
+  // externalId: never;
+  // locationId: never;
+}
+// TODO: uncomment
+export type ChangeRequest =
+  | LocationChangeRequest
+  | LocationCancellationRequest
+  | PolicyChangeRequest;
 
 export interface PremiumCalcData {
   techPremium: ValueByRiskType;
@@ -982,15 +1026,24 @@ export interface TrxRatingData extends RatingPropertyData {
 // Flat Cancel (cancel to effective date - return of all premium and fees)
 // Reinstatement
 
-export type TransactionType =
-  | 'new'
-  | 'renewal'
-  | 'endorsement' // change w/ premium // 'prem_endorsement'
-  // | 'non_prem_endorsement'
+export type ChangeRequestTrxType =
+  | 'endorsement' // change w/ premium
   | 'amendment' // change w/o premium
   | 'cancellation'
   | 'flat_cancel'
   | 'reinstatement';
+
+export type TransactionType = ChangeRequestTrxType | 'new' | 'renewal';
+
+// export type TransactionType =
+//   | 'new'
+//   | 'renewal'
+//   | 'endorsement' // change w/ premium // 'prem_endorsement'
+//   // | 'non_prem_endorsement'
+//   | 'amendment' // change w/o premium
+//   | 'cancellation'
+//   | 'flat_cancel'
+//   | 'reinstatement';
 
 export type LineOfBusiness = 'commercial' | 'residential';
 

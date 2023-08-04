@@ -1,20 +1,22 @@
-import { WithFieldValue, GeoPoint, Timestamp } from 'firebase/firestore';
 import { JSONContent } from '@tiptap/react';
+import { GeoPoint, Timestamp, WithFieldValue } from 'firebase/firestore';
 import { Geohash } from 'geofire-common';
 
-import {
-  PRODUCT,
-  UW_NOTE_CODE,
-  DEDUCTIBLE_OPTIONS,
-  SUBMISSION_STATUS,
-  STATE_ABBREVIATION,
-  QUOTE_STATUS,
-  POLICY_STATUS,
-  INVITE_STATUS,
-  AGENCY_SUBMISSION_STATUS,
-} from './enums';
-import { FloodValues } from 'views/SubmissionNew';
+import { LocationChangeValues } from 'elements/forms';
+import { PolicyChangeValues } from 'elements/forms/PolicyChangeForm';
 import { InitRatingValues } from 'hooks/usePropertyDetails';
+import { FloodValues } from 'views/SubmissionNew';
+import {
+  AGENCY_SUBMISSION_STATUS,
+  DEDUCTIBLE_OPTIONS,
+  INVITE_STATUS,
+  POLICY_STATUS,
+  PRODUCT,
+  QUOTE_STATUS,
+  STATE_ABBREVIATION,
+  SUBMISSION_STATUS,
+  UW_NOTE_CODE,
+} from './enums';
 
 export interface BaseMetadata {
   created: FirestoreTimestamp;
@@ -739,37 +741,8 @@ export type ChangeRequestStatus =
   | 'under_review'
   | 'cancelled';
 
-// export interface ChangeRequest extends BaseDoc {
-//   trxType: TransactionType;
-//   // requestType: // TODO: sub-types ??
-//   changes: Partial<Policy> | Partial<PolicyLocation>; // DOES THIS WORK FOR LOCATION CHANGES ?? MIGHT NEED DISCRIMINATING UNION --> scope: 'policy' | 'location'
-//   requestEffDate: Timestamp;
-//   // field: string;
-//   // newValue: string | number;
-//   policyId: string;
-//   locationId?: string | null;
-//   externalId?: string | null;
-//   userId: string;
-//   agent: {
-//     userId: string | null;
-//   };
-//   agency: {
-//     orgId: string | null;
-//   };
-//   status: ChangeRequestStatus;
-//   processedTimestamp?: Timestamp;
-//   approvedBy?: {
-//     name: string;
-//     userId: string;
-//   };
-//   submittedBy: {
-//     userId: string | null;
-//     displayName: string;
-//   };
-// }
-
 interface BaseChangeRequest extends BaseDoc {
-  trxType: TransactionType;
+  trxType: ChangeRequestTrxType; // TransactionType;
   // scope: 'policy' | 'location';
   requestEffDate: Timestamp;
   policyId: string;
@@ -790,19 +763,34 @@ interface BaseChangeRequest extends BaseDoc {
   submittedBy: {
     userId: string | null;
     displayName: string;
+    email: string | null;
   };
+  underWriterNotes?: string;
 }
 
 export interface LocationChangeRequest extends BaseChangeRequest {
   scope: 'location';
   changes: Partial<PolicyLocation>;
+  formValues: LocationChangeValues;
   locationId: string;
   externalId?: string | null;
+}
+
+export type CancellationReason =
+  | 'sold'
+  | 'premium_pmt_failure'
+  | 'exposure_change'
+  | 'insured_choice';
+
+export interface LocationCancellationRequest extends LocationChangeRequest {
+  trxType: 'cancellation' | 'flat_cancel';
+  cancelReason?: CancellationReason;
 }
 
 export interface PolicyChangeRequest extends BaseChangeRequest {
   scope: 'policy';
   changes: Partial<Policy>;
+  formValues: PolicyChangeValues;
   // externalId: never;
   // locationId: never;
 }
@@ -1023,15 +1011,15 @@ export type SubjectBaseItems =
   | 'noFee';
 
 export type RoundingType = 'nearest' | 'up' | 'down';
-// export type TransactionType = 'new' | 'renewal' | 'endorsement' | 'cancellation';
-export type TransactionType =
-  | 'new'
-  | 'renewal'
+
+export type ChangeRequestTrxType =
   | 'endorsement' // change w/ premium
   | 'amendment' // change w/o premium
   | 'cancellation'
   | 'flat_cancel'
   | 'reinstatement';
+
+export type TransactionType = ChangeRequestTrxType | 'new' | 'renewal';
 
 export interface Tax extends BaseDoc {
   state: string;

@@ -1,9 +1,11 @@
-import type { FirestoreEvent } from 'firebase-functions/v2/firestore';
-import { info } from 'firebase-functions/logger';
 import { QueryDocumentSnapshot } from 'firebase-admin/firestore';
+import { info } from 'firebase-functions/logger';
+import type { FirestoreEvent } from 'firebase-functions/v2/firestore';
 
-import { sendAdminChangeRequestNotification } from '../services/sendgrid';
 import { ChangeRequest, sendgridApiKey } from '../common';
+import { sendAdminChangeRequestNotification } from '../services/sendgrid';
+
+// TODO: CONSOLIDATE TO ONE POLICY CHANGE REQUEST LISTENER
 
 export default async (
   event: FirestoreEvent<
@@ -37,8 +39,7 @@ export default async (
 
   const link = `${process.env.HOSTING_BASE_URL}/policies/${policyId}`; // TODO: update url once client change request url is set
 
-  // sendUserInvite(sgKey, link, to, firstName ?? displayName, data.invitedBy?.name || '');
-  sendAdminChangeRequestNotification(
+  await sendAdminChangeRequestNotification(
     sgKey,
     to,
     link,

@@ -3,7 +3,9 @@ import { CloudEvent } from 'firebase-functions/lib/v2/core';
 import { error, info, warn } from 'firebase-functions/logger';
 import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 
+import { isValid } from 'date-fns';
 import { PremiumTransaction, Transaction, transactionsCollection } from '../common';
+import { reportErrorSentry } from '../services/sentry';
 import {
   constructTrxId,
   fetchPolicyData,
@@ -13,8 +15,6 @@ import {
   getOffsetTrx,
   trxExists,
 } from '../utils/transactions';
-import { reportErrorSentry } from '../services/sentry';
-import { isValid } from 'date-fns';
 
 // How is removed location handled ??
 // assume deleted if location not found in policy ??
@@ -33,13 +33,13 @@ export const premEndorsementPrevTypes: PremiumTransaction['trxType'][] = [
   'endorsement',
 ];
 
-interface PolicyPremEndorsementPayload {
+export interface EndorsementPayload {
   policyId: string;
   locationId: string;
   effDateMS: number;
 }
 
-export default async (event: CloudEvent<MessagePublishedData<PolicyPremEndorsementPayload>>) => {
+export default async (event: CloudEvent<MessagePublishedData<EndorsementPayload>>) => {
   info('PREM ENDORSEMENT EVENT - MSG JSON: ', { ...(event.data?.message?.json || {}) });
   const eventId = event.id;
   let policyId = null;

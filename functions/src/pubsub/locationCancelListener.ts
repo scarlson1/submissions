@@ -1,10 +1,11 @@
-import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
+import { isValid } from 'date-fns';
+import { Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { CloudEvent } from 'firebase-functions/lib/v2/core';
 import { error, info, warn } from 'firebase-functions/logger';
-import { Timestamp, getFirestore } from 'firebase-admin/firestore';
-import { isValid } from 'date-fns';
+import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 
 import { CancellationReason, PremiumTransaction, transactionsCollection } from '../common';
+import { reportErrorSentry } from '../services/sentry';
 import {
   constructTrxId,
   fetchPolicyData,
@@ -13,16 +14,15 @@ import {
   trxExists,
 } from '../utils/transactions';
 import { premEndorsementPrevTypes } from './endorsementListener';
-import { reportErrorSentry } from '../services/sentry';
 
-export interface PolicyCancelPayload {
+export interface LocationCancelPayload {
   policyId: string;
   locationId: string;
   cancelReason: CancellationReason;
   cancelEffDateMS: number;
 }
 
-export default async (event: CloudEvent<MessagePublishedData<PolicyCancelPayload>>) => {
+export default async (event: CloudEvent<MessagePublishedData<LocationCancelPayload>>) => {
   info('LOCATION CANCEL EVENT - MSG JSON: ', { ...(event.data?.message?.json || {}) });
 
   const eventId = event.id;

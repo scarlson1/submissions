@@ -1,7 +1,7 @@
+import { getFirestore } from 'firebase-admin/firestore';
 import { CloudEvent } from 'firebase-functions/lib/v2/core';
 import { error, info } from 'firebase-functions/logger';
 import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
-import { getFirestore } from 'firebase-admin/firestore';
 
 import { OffsetTransaction, getReportErrorFn, transactionsCollection } from '../common';
 
@@ -20,7 +20,7 @@ import {
 
 const reportError = getReportErrorFn('reinstatementListener');
 
-interface ReinstatementPayload {
+export interface ReinstatementPayload {
   policyId: string;
 }
 

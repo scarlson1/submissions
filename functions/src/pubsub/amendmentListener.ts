@@ -1,9 +1,10 @@
-import { CloudEvent } from 'firebase-functions/lib/v2/core';
-import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
-import { error, info, warn } from 'firebase-functions/logger';
 import { getFirestore } from 'firebase-admin/firestore';
+import { CloudEvent } from 'firebase-functions/lib/v2/core';
+import { error, info, warn } from 'firebase-functions/logger';
+import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 
 import { transactionsCollection } from '../common';
+import { reportErrorSentry } from '../services/sentry';
 import {
   constructTrxId,
   fetchPolicyData,
@@ -11,15 +12,15 @@ import {
   getPolicyAmendmentTrx,
   trxExists,
 } from '../utils/transactions';
-import { reportErrorSentry } from '../services/sentry';
 
 // Trx. eff date (policy amendment): determined by insured (form submission --> pubsub payload)
 // Trx. eff date (location amendment): no clue? insured ?? can mortgagee be backdated by insured ??
 
-interface AmendmentPayload {
+export interface AmendmentPayload {
   policyId: string;
   locationId: string | null;
   amendmentScope: 'policy' | 'location';
+  effDateMS: number;
 }
 
 export default async (event: CloudEvent<MessagePublishedData<AmendmentPayload>>) => {

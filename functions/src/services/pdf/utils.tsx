@@ -1,9 +1,10 @@
 import { flatten } from 'lodash';
+import { convert } from 'html-to-text';
+import { generateHTML } from '@tiptap/html';
+
 import { JSONContent, Policy, PolicyLocation, dollarFormat, dollarFormat2 } from '../../common';
 import { getFormattedAddress } from '../../routes/generatePDF';
 import { AdditionalInterestsItem, PolicyDecPDFLocations, PremiumTableItem } from './components';
-import { convert } from 'html-to-text';
-import { generateHTML } from '@tiptap/html';
 import { EDITOR_EXTENSION_DEFAULTS } from '../../utils';
 
 export function formatLocationData(locations: Policy['locations']) {
