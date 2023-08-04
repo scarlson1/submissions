@@ -37,7 +37,7 @@ export const CyberPage = () => {
           noParens
           content='and any Time Element Loss directly resulting therefrom where such physical damage is directly occasioned by any of the following perils: theft, fire, lightning, explosion, aircraft or vehicle impact, falling objects, windstorm, hail, tornado, cyclone, hurricane, earthquake, volcano, tsunami, flood, freeze or weight of snow'
         />
-        <Text style={[styles.paragraph, styles.padV]}>Definitions</Text>
+        <Text style={[styles.paragraph, styles.padV, styles.robotoBold]}>Definitions</Text>
         <OrderedListItem
           number='4'
           noParens
@@ -53,12 +53,20 @@ export const CyberPage = () => {
           noParens
           content='Time Element Loss means business interruption, contingent business interruption or any other consequential losses.'
         />
+        {/* <Text style={[styles.paragraph, styles.textPrimary]}>
+          All other terms shall remain unchanged.
+        </Text> */}
       </View>
       <View style={[styles.section]}>
         <Text style={[styles.paragraph, styles.textPrimary]}>
           All other terms shall remain unchanged.
         </Text>
       </View>
+      <Text
+        style={[styles.pageNumbers, styles.textSecondary]}
+        render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`}
+        fixed
+      />
     </Page>
   );
 };

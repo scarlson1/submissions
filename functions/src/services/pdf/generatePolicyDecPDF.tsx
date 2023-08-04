@@ -10,7 +10,7 @@ import {
 } from './components';
 import { styles } from './styles';
 import { MinEarnedPremiumPage } from './pages/MinEarnedPremium';
-import { CyberPage, StateDisclosurePage } from './pages';
+import { CommunicableDiseasePage, CyberPage, SinkholePage, StateDisclosurePage } from './pages';
 
 export const IDEMAND_LOGO_URL = 'https://scarlson1.github.io/iDemand_SPI_720x240.png';
 
@@ -650,7 +650,9 @@ const DecPagePDF = ({ data }: PDFProps) => {
       </Page>
       {data.disclosure ? <StateDisclosurePage data={data} /> : null}
       <MinEarnedPremiumPage />
+      <SinkholePage />
       <CyberPage />
+      <CommunicableDiseasePage />
     </Document>
   );
 };

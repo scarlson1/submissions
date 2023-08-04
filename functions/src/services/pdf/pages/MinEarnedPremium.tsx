@@ -21,16 +21,16 @@ export const MinEarnedPremiumPage = () => {
           follows:
         </Text>
       </View>
-      <View style={{ marginHorizontal: 10, paddingHorizontal: 10 }}>
+      <View style={{ paddingHorizontal: 10 }}>
         <OrderedListItem number='1' content='Early Termination or Change in Coverage By' />
         <InsetWrapper>
-          <OrderedListItem number='a' content='“You”' styles={[styles.bold]} />
+          <OrderedListItem number='a' content='“You”' styles={[styles.robotoBold]} />
         </InsetWrapper>
         <InsetWrapper insetLevel={2}>
           <OrderedListItem
             number='i'
             content='Minimum earned premium from early termination of the policy shall earn based on the maximum of the following:'
-            styles={[styles.bold]}
+            styles={[styles.robotoBold]}
           ></OrderedListItem>
         </InsetWrapper>
         <InsetWrapper insetLevel={3}>
@@ -56,7 +56,7 @@ export const MinEarnedPremiumPage = () => {
           />
         </InsetWrapper>
         <InsetWrapper>
-          <OrderedListItem number='b' content='“Us”' styles={styles.bold} />
+          <OrderedListItem number='b' content='“Us”' styles={styles.robotoBold} />
         </InsetWrapper>
         <InsetWrapper insetLevel={2}>
           <OrderedListItem

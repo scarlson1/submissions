@@ -133,7 +133,8 @@ export const styles = StyleSheet.create({
     fontStyle: 'italic',
     fontWeight: 400,
   },
-  bold: {
+  robotoBold: {
+    fontFamily: 'Roboto',
     fontWeight: 600,
   },
   divider: {
@@ -242,17 +243,20 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'flex-start',
     alignItems: 'flex-start',
-    width: '100%',
+    maxWidth: '100%',
     fontSize: 10,
     fontFamily: 'Roboto',
     marginBottom: 6,
+    // marginRight: 40, // HACK - overflows container on the right
+    paddingRight: 40,
   },
   listItemBullet: {
-    marginHorizontal: 12,
+    // marginHorizontal: 12,
+    paddingHorizontal: 12,
     // flex: '0 0 auto',
     // fontSize: 11,
     fontFamily: 'Source Sans Pro',
-    minWidth: 16,
+    minWidth: 12,
   },
   // insetListItem: {
   //   marginLeft: 20,
