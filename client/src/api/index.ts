@@ -18,6 +18,7 @@ export { deliverAgencyAgreement } from './deliverAgencyAgreement';
 export { moveUserToTenant } from './moveUserToTenant';
 export { generateSearchKey } from './generateSearchKey';
 export { sendEmail } from './sendEmail';
+export { approveChangeRequest } from './approveChangeRequest';
 // export { sendContactEmail } from './sendContactEmail';
 // export type { SendContactEmailRequest, SendContactEmailResponse } from './sendContactEmail';
 // export { sendPolicyDoc } from './sendPolicyDoc';

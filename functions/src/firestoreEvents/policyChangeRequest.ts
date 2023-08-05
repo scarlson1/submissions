@@ -13,23 +13,19 @@ import { publishAmendment, publishEndorsement, publishLocationCancel } from '../
 import { sendAdminChangeRequestNotification, sendMessage } from '../services/sendgrid';
 
 export default async (
-  // event: FirestoreEvent<QueryDocumentSnapshot | undefined, { policyId: string; requestId: string }>
   event: FirestoreEvent<
     Change<DocumentSnapshot> | undefined,
     { policyId: string; requestId: string }
   >
 ) => {
   const { policyId, requestId } = event.params;
-  // const beforeData = event?.data?.before.data();
   const data = event?.data?.after.data() as ChangeRequest | undefined;
-  // const snap = event.data;
   if (!data) {
     info('document deleted. returning.');
     return;
   }
-  // const data = snap.data() as ChangeRequest;
 
-  const { status } = data; //trxType, changes,
+  const { status } = data;
   info(`New change request doc change detected. (status: ${status})`, { ...data });
 
   switch (status) {
@@ -92,7 +88,7 @@ async function handleNewRequest(
       const { email, displayName } = data.submittedBy;
       const insuredTo = [email];
 
-      // TODO: send email notification to insured / agent
+      // send email notification to insured / agent
       const msgBody = `We've received your change request for policy ${policyId} (request ID: ${requestId}). Our team has been notified and you'll receive a confirmation email once the request is approved.`;
       const subject = 'Policy change request received';
       const toName = displayName ? displayName.split(' ')[0] : undefined;
@@ -157,12 +153,15 @@ async function handleAcceptedRequest(data: ChangeRequest, policyId: string) {
     if (data.scope === 'policy') {
       switch (data.trxType) {
         case 'endorsement':
+          console.log('TODO: handle publish policy endorsement pubsub message');
           // TODO
           break;
         case 'amendment':
+          console.log('TODO: handle publish policy amendment pubsub message');
           // TODO
           break;
         case 'cancellation':
+          console.log('TODO: handle publish policy cancellation pubsub message');
           // TODO
           // for (const l of data.locations) {
           //   await publishLocationCancel({

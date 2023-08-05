@@ -86,7 +86,6 @@ export const ChangeRequestsGrid = ({
               id: false,
               'metadata.updated': false,
               userId: false,
-              'approvedBy.userId': false,
             },
           },
           ...(initialState || {}),

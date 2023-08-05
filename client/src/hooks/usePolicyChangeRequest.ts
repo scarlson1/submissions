@@ -36,7 +36,6 @@ export const usePolicyChangeRequest = (
         const changeColRef = changeReqestsCollection(firestore, policyId);
         toast.loading('submitting request...');
 
-        // @ts-ignore
         const docRef = await addDoc(changeColRef, {
           trxType,
           scope: 'policy',
@@ -45,7 +44,6 @@ export const usePolicyChangeRequest = (
           },
           requestEffDate: Timestamp.fromDate(effDate),
           policyId,
-          // locationId: locationId || null,
           userId: signInResult.user.uid,
           agent: {
             userId: agentId || null,
@@ -57,11 +55,13 @@ export const usePolicyChangeRequest = (
           submittedBy: {
             userId: signInResult.user.uid || null,
             displayName: signInResult.user?.displayName || '',
+            email: signInResult.user?.email || null,
           },
           metadata: {
             created: Timestamp.now(),
             updated: Timestamp.now(),
-          },
+          }, // @ts-ignore
+          formValues: {},
         });
 
         toast.success('request submitted!');

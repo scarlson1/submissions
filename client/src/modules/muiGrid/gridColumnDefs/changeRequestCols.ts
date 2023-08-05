@@ -26,15 +26,10 @@ const changes: GridColDef = {
   },
 };
 
-const approvedByCol: GridColDef = {
-  field: 'approvedBy.name',
-  headerName: 'Approved By',
-  minWidth: 140,
-  flex: 1,
-  editable: false,
-  filterable: false,
-  sortable: false,
-  valueGetter: (params) => params.row.approvedBy?.name || null,
+const approvedByUserIdCol: GridColDef = {
+  ...idCol,
+  field: 'approvedByUserId',
+  headerName: 'Approved By UID',
 };
 
 export const changeRequestCols: GridColDef[] = [
@@ -56,13 +51,7 @@ export const changeRequestCols: GridColDef[] = [
   locationIdCol,
   changes,
   userIdCol,
-  approvedByCol,
-  {
-    ...userIdCol,
-    field: 'approvedBy.userId',
-    headerName: 'Approved By UID',
-    valueGetter: (params) => params.row?.approvedBy?.userId || null,
-  },
+  approvedByUserIdCol,
   createdCol,
   updatedCol,
 ];

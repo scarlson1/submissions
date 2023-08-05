@@ -756,10 +756,11 @@ interface BaseChangeRequest extends BaseDoc {
   };
   status: ChangeRequestStatus;
   processedTimestamp?: Timestamp;
-  approvedBy?: {
-    name: string;
-    userId: string;
-  };
+  approvedByUserId?: string;
+  // approvedBy?: {
+  //   name: string;
+  //   userId: string;
+  // };
   submittedBy: {
     userId: string | null;
     displayName: string;

@@ -37,6 +37,7 @@ export {
   setUidByEmailOnCreate,
 } from './authEvents';
 export {
+  approvechangerequest,
   assignquote,
   calcquote,
   createpolicy,

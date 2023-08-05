@@ -10,15 +10,17 @@ import {
   IconButton,
   Tooltip,
 } from '@mui/material';
-import { ChangeCircleRounded, DataObjectRounded } from '@mui/icons-material';
+import { ChangeCircleRounded, DataObjectRounded, ThumbUpAltRounded } from '@mui/icons-material';
 import { where } from 'firebase/firestore';
 
 import { ChangeRequestsGrid } from './ChangeRequestsGrid';
-import { useDocCount, useShowJson } from 'hooks';
+import { useAsyncToast, useDocCount, useShowJson } from 'hooks';
 import { CHANGE_REQUEST_STATUS, COLLECTIONS } from 'common';
 import { useAuth } from 'context';
 import { LoadingComponent } from 'components/Layout';
 import { GridActionsCellItem, GridRowParams } from '@mui/x-data-grid';
+import { approveChangeRequest } from 'api';
+import { useFunctions } from 'reactfire';
 
 export const useViewChangeRequestsDialogProps = (policyId?: string) => {
   const { claims, user, orgId } = useAuth();
@@ -72,6 +74,27 @@ export function ChangeRequestsDialog({ policyId, open, handleClose }: ChangeRequ
     [showJson]
   );
 
+  // TODO: move to hook (policy and location approve functions)
+  const toast = useAsyncToast();
+  const functions = useFunctions();
+  const approveRequest = useCallback(
+    (params: GridRowParams) => async () => {
+      try {
+        toast.loading('updating...');
+        const res = await approveChangeRequest(functions, {
+          policyId: params.row.policyId,
+          requestId: params.id.toString(),
+        });
+        toast.success('request approved!');
+        console.log('RES: ', res);
+      } catch (err: any) {
+        console.log('err: ', err);
+        toast.error('an error occurred');
+      }
+    },
+    [functions, toast]
+  );
+
   const adminProps = useMemo(() => {
     if (!claims?.iDemandAdmin) return {};
     return {
@@ -86,9 +109,19 @@ export function ChangeRequestsDialog({ policyId, open, handleClose }: ChangeRequ
           label='Show JSON'
           disabled={!claims?.iDemandAdmin}
         />,
+        <GridActionsCellItem
+          icon={
+            <Tooltip title='approve' placement='top'>
+              <ThumbUpAltRounded />
+            </Tooltip>
+          }
+          onClick={approveRequest(params)}
+          label='approve'
+          disabled={!claims?.iDemandAdmin}
+        />,
       ],
     };
-  }, [claims, handleShowJson]);
+  }, [claims, handleShowJson, approveRequest]);
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth='xl' fullWidth>
