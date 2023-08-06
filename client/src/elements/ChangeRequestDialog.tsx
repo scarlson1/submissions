@@ -10,17 +10,23 @@ import {
   IconButton,
   Tooltip,
 } from '@mui/material';
-import { ChangeCircleRounded, DataObjectRounded, ThumbUpAltRounded } from '@mui/icons-material';
+import {
+  CancelRounded,
+  ChangeCircleRounded,
+  DataObjectRounded,
+  ThumbDownAltRounded,
+  ThumbUpAltRounded,
+} from '@mui/icons-material';
 import { where } from 'firebase/firestore';
+import { GridActionsCellItem, GridRowParams } from '@mui/x-data-grid';
+import { useFunctions } from 'reactfire';
 
 import { ChangeRequestsGrid } from './ChangeRequestsGrid';
-import { useAsyncToast, useDocCount, useShowJson } from 'hooks';
+import { useAsyncToast, useDocCount, useShowJson, useWidth } from 'hooks';
 import { CHANGE_REQUEST_STATUS, COLLECTIONS } from 'common';
 import { useAuth } from 'context';
 import { LoadingComponent } from 'components/Layout';
-import { GridActionsCellItem, GridRowParams } from '@mui/x-data-grid';
-import { approveChangeRequest } from 'api';
-import { useFunctions } from 'reactfire';
+import { approveChangeRequest, ApproveChangeResponse } from 'api';
 
 export const useViewChangeRequestsDialogProps = (policyId?: string) => {
   const { claims, user, orgId } = useAuth();
@@ -58,6 +64,45 @@ export const useViewChangeRequestsDialogProps = (policyId?: string) => {
   );
 };
 
+const useMangageChangeRequest = (
+  onSuccess?: (res: ApproveChangeResponse) => void,
+  onError?: () => void
+) => {
+  const toast = useAsyncToast();
+  const functions = useFunctions();
+
+  const approveRequest = useCallback(
+    async (policyId: string, requestId: string) => {
+      try {
+        toast.loading('updating...');
+        const res = await approveChangeRequest(functions, {
+          policyId,
+          requestId,
+        });
+
+        toast.success('request approved!');
+        console.log('RES: ', res);
+        if (onSuccess) onSuccess(res.data);
+      } catch (err: any) {
+        console.log('err: ', err);
+        toast.error('an error occurred');
+        if (onError) onError();
+      }
+    },
+    [functions, toast, onSuccess, onError]
+  );
+
+  const denyRequest = useCallback((policyId: string, requestId: string) => {
+    alert('no implemented yet');
+  }, []);
+
+  const cancelRequest = useCallback((policyId: string, requestId: string) => {
+    alert('no implemented yet');
+  }, []);
+
+  return { approveRequest, denyRequest, cancelRequest };
+};
+
 interface ChangeRequestsDialogProps {
   open: boolean;
   handleClose: () => void;
@@ -66,6 +111,7 @@ interface ChangeRequestsDialogProps {
 
 export function ChangeRequestsDialog({ policyId, open, handleClose }: ChangeRequestsDialogProps) {
   const { claims } = useAuth();
+  const { isSmall } = useWidth();
   const showJson = useShowJson<any>(COLLECTIONS.POLICIES);
 
   const handleShowJson = useCallback(
@@ -73,26 +119,22 @@ export function ChangeRequestsDialog({ policyId, open, handleClose }: ChangeRequ
       showJson(params.id.toString(), `${params.row.policyId}/${COLLECTIONS.CHANGE_REQUESTS}`),
     [showJson]
   );
+  const { approveRequest, denyRequest, cancelRequest } = useMangageChangeRequest();
 
-  // TODO: move to hook (policy and location approve functions)
-  const toast = useAsyncToast();
-  const functions = useFunctions();
-  const approveRequest = useCallback(
-    (params: GridRowParams) => async () => {
-      try {
-        toast.loading('updating...');
-        const res = await approveChangeRequest(functions, {
-          policyId: params.row.policyId,
-          requestId: params.id.toString(),
-        });
-        toast.success('request approved!');
-        console.log('RES: ', res);
-      } catch (err: any) {
-        console.log('err: ', err);
-        toast.error('an error occurred');
-      }
-    },
-    [functions, toast]
+  const handleApprove = useCallback(
+    (params: GridRowParams) => async () =>
+      await approveRequest(params.row.policyId, params.id.toString()),
+    [approveRequest]
+  );
+  const handleDeny = useCallback(
+    (params: GridRowParams) => async () =>
+      await denyRequest(params.row.policyId, params.id.toString()),
+    [denyRequest]
+  );
+  const handleCancel = useCallback(
+    (params: GridRowParams) => async () =>
+      await cancelRequest(params.row.policyId, params.id.toString()),
+    [cancelRequest]
   );
 
   const adminProps = useMemo(() => {
@@ -115,13 +157,51 @@ export function ChangeRequestsDialog({ policyId, open, handleClose }: ChangeRequ
               <ThumbUpAltRounded />
             </Tooltip>
           }
-          onClick={approveRequest(params)}
+          onClick={handleApprove(params)}
           label='approve'
-          disabled={!claims?.iDemandAdmin}
+          disabled={
+            !claims?.iDemandAdmin ||
+            ![CHANGE_REQUEST_STATUS.SUBMITTED, CHANGE_REQUEST_STATUS.UNDER_REVIEW].includes(
+              params.row.status
+            )
+          }
+          showInMenu={isSmall}
+        />,
+        <GridActionsCellItem
+          icon={
+            <Tooltip title='deny' placement='top'>
+              <ThumbDownAltRounded />
+            </Tooltip>
+          }
+          onClick={handleDeny(params)}
+          label='deny'
+          disabled={
+            !claims?.iDemandAdmin ||
+            ![CHANGE_REQUEST_STATUS.SUBMITTED, CHANGE_REQUEST_STATUS.UNDER_REVIEW].includes(
+              params.row.status
+            )
+          }
+          showInMenu
+        />,
+        <GridActionsCellItem
+          icon={
+            <Tooltip title='cancel' placement='top'>
+              <CancelRounded />
+            </Tooltip>
+          }
+          onClick={handleCancel(params)}
+          label='cancel'
+          disabled={
+            !claims?.iDemandAdmin ||
+            ![CHANGE_REQUEST_STATUS.SUBMITTED, CHANGE_REQUEST_STATUS.UNDER_REVIEW].includes(
+              params.row.status
+            )
+          }
+          showInMenu
         />,
       ],
     };
-  }, [claims, handleShowJson, approveRequest]);
+  }, [claims, isSmall, handleShowJson, handleApprove, handleDeny, handleCancel]);
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth='xl' fullWidth>

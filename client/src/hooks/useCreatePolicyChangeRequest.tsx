@@ -22,7 +22,7 @@ import { useDialogForm } from './useDialogForm';
 // TODO: maybe add some sort of config to the Policy interface
 //    - trxType value associated with changes to a field ??
 
-export const useCreateChangeRequest = () => {
+export const useCreatePolicyChangeRequest = () => {
   const firestore = useFirestore();
   const { user } = useAuth();
   const toast = useAsyncToast();

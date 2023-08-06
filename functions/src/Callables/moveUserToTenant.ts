@@ -7,7 +7,7 @@ import {
   getAuth,
   TenantAwareAuth,
 } from 'firebase-admin/auth';
-import { Firestore, getFirestore } from 'firebase-admin/firestore';
+import { Firestore, Timestamp, getFirestore } from 'firebase-admin/firestore';
 
 import { CLAIMS, usersCollection, firebaseHashConfig } from '../common';
 import { onCallWrapper } from '../services/sentry';
@@ -65,7 +65,11 @@ export async function updateUserDoc(
 ): Promise<boolean> {
   try {
     const userDocRef = usersCollection(firestore).doc(userId);
-    await userDocRef.update({ orgId: newTenantId, tenantId: newTenantId });
+    await userDocRef.update({
+      orgId: newTenantId,
+      tenantId: newTenantId,
+      'metadata.updated': Timestamp.now(),
+    });
 
     info(`UPDATED USER RECORD (${userId}) tenantId to (${newTenantId})`);
 

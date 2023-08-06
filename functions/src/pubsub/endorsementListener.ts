@@ -67,9 +67,9 @@ export default async (event: CloudEvent<MessagePublishedData<EndorsementPayload>
   const db = getFirestore();
   const trxCol = transactionsCollection(db);
 
-  const policy = await fetchPolicyData(db, policyId);
+  const policy = await fetchPolicyData(db, policyId); // TODO: use fetchDocData instead
   if (!policy) {
-    reportEndorsementError(`Policy not found. Returning early.`, {
+    reportEndorsementError(`Policy not found or error occurred fetching data. Returning early.`, {
       policyId,
       locationId,
     });

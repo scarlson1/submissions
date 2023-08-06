@@ -1,10 +1,16 @@
 import { error, info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
+import { Timestamp, getFirestore } from 'firebase-admin/firestore';
+import { deepmerge } from 'deepmerge-ts';
 
 import { onCallWrapper } from '../services/sentry';
-import { requireIDemandAdminClaims } from './utils';
-import { DocumentReference, Timestamp, getFirestore } from 'firebase-admin/firestore';
-import { CHANGE_REQUEST_STATUS, changeReqestsCollection, policiesCollection } from '../common';
+import { getDoc, requireIDemandAdminClaims } from './utils';
+import {
+  CHANGE_REQUEST_STATUS,
+  PolicyLocation,
+  changeReqestsCollection,
+  policiesCollection,
+} from '../common';
 
 // const POLICY_UPDATEABLE_FIELDS = [
 //   'limits.limitA',
@@ -38,17 +44,44 @@ const approveChangeRequest = async ({ data, auth }: CallableRequest<ApproveReque
   const request = await getDoc(requestRef);
 
   // TODO: validation ??
+  if (!request.scope)
+    throw new HttpsError('failed-precondition', 'missing "scope" field on request doc');
 
   // TODO: requires deep merge if using diff (or converting keys to dot notation strings)
   try {
+    info(`Updating policy with changes (requestId: ${requestId})`, { ...request });
     const batch = db.batch();
 
-    // use update ?? update will throw if doc not found
-    batch.set(
-      policyRef, // @ts-ignore
-      { ...request.changes, 'metadata.updated': Timestamp.now() },
-      { merge: true } // mergeFields: POLICY_UPDATEABLE_FIELDS
-    ); // does mergeFields keep value from original record if no new value is included in update ??
+    if (request.scope === 'policy') {
+      // use update ?? update will throw if doc not found
+      batch.set(
+        policyRef, // @ts-ignore
+        { ...request.changes, metadata: { updated: Timestamp.now() } },
+        { merge: true } // mergeFields: POLICY_UPDATEABLE_FIELDS
+      ); // does mergeFields keep value from original record if no new value is included in update ??
+    }
+    // TODO: make sure location exists on policy ??
+    if (request.scope === 'location') {
+      const { locationId, changes } = request;
+      const policy = await getDoc(policyRef);
+      const location = policy.locations[locationId];
+
+      const mergedLocation = deepmerge(location, changes);
+
+      // If using batch.update --> use dot notation
+      // const updates = {
+      //   [`locations.${locationId}`]: mergedLocation,
+      // };
+
+      // If using batch.set --> do not use dot notation
+      const updates = {
+        locations: { [locationId]: mergedLocation as PolicyLocation },
+      };
+
+      console.log('UPDATES: ', updates);
+      batch.set(policyRef, updates, { merge: true });
+      // batch.update(policyRef, updates);
+    }
 
     batch.update(requestRef, {
       status: CHANGE_REQUEST_STATUS.ACCEPTED,
@@ -86,10 +119,3 @@ const approveChangeRequest = async ({ data, auth }: CallableRequest<ApproveReque
 };
 
 export default onCallWrapper<ApproveRequestProps>('approvechangerequest', approveChangeRequest);
-
-async function getDoc<T>(docRef: DocumentReference<T>) {
-  const snap = await docRef.get();
-  const data = snap.data();
-  if (!snap.exists || !data) throw new HttpsError('not-found', 'record not found');
-  return data;
-}

@@ -1,5 +1,5 @@
 import { ScheduledEvent } from 'firebase-functions/v2/scheduler';
-import { getFirestore } from 'firebase-admin/firestore';
+import { Timestamp, getFirestore } from 'firebase-admin/firestore';
 
 import { getEPayInstance } from '../services';
 import {
@@ -52,7 +52,10 @@ export default async (event: ScheduledEvent) => {
         const settleEvt = events.find((e) => e.eventType === 'Settle');
         if (settleEvt) {
           console.log(`ACH TRANSACTION SETTLED - ID ${charge.id}`, events);
-          await transactionsCol.doc(charge.id).update({ status: FIN_TRANSACTION_STATUS.SUCCEEDED });
+          await transactionsCol.doc(charge.id).update({
+            status: FIN_TRANSACTION_STATUS.SUCCEEDED,
+            'metadata.updated': Timestamp.now(),
+          });
 
           await publishMessage(PUB_SUB_TOPICS.PAYMENT_COMPLETE, {
             policyId: charge.policyId,

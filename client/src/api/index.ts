@@ -40,6 +40,7 @@ export type { CreateTenantRequest, CreateTenantResponse } from './createTenantFr
 export type { InviteUsersRequest, InviteUsersResponse, NewUser } from './inviteUsers';
 export type { GetAnnualPremiumRequest, GetAnnualPremiumResponse } from './getAnnualPremium';
 export type { MoveUserToTenantRequest, MoveUserToTenantResponse } from './moveUserToTenant';
+export type { ApproveChangeRequest, ApproveChangeResponse } from './approveChangeRequest';
 // export { sendAgencyApprovedNotification } from './sendAgencyApprovedNotification';
 // export type {
 //   SendAgencyApprovedRequest,

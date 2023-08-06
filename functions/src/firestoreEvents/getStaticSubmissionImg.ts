@@ -1,5 +1,5 @@
 import { FirestoreEvent } from 'firebase-functions/v2/firestore';
-import type { QueryDocumentSnapshot } from 'firebase-admin/firestore';
+import { Timestamp, type QueryDocumentSnapshot } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
 import { storageBucket } from 'firebase-functions/params';
 import { error, info } from 'firebase-functions/logger';
@@ -156,7 +156,7 @@ export default async (
     }
 
     info('Updating policy doc with static images... ', { ...policyDocUpdates });
-    await snap.ref.update({ ...policyDocUpdates });
+    await snap.ref.update({ ...policyDocUpdates, 'metadata.updated': Timestamp.now() });
 
     if (cleanUpTempPaths.length > 0) {
       await clearTempFiles(cleanUpTempPaths);

@@ -47,9 +47,11 @@ export interface DialogOptions {
 
 interface DialogCtx extends DialogOptions {
   isOpen: boolean;
+  submitDisabled: boolean;
   prompt: (options: DialogOptions) => Promise<any>;
   handleAccept: (values?: any) => void;
   handleClose: () => void;
+  setDisabled: (val: boolean) => void;
 }
 
 const DialogContext = createContext<DialogCtx | null>(null); // {open: false, handleAccept: noop, handleClose: noop}
@@ -63,6 +65,7 @@ export const useDialog = () => {
 
 export const DialogProvider = ({ children }: { children: ReactNode }) => {
   const [dialogOptions, setDialogOptions] = useState<DialogOptions | null>(null);
+  const [submitDisabled, setSubmitDisabled] = useState(false);
 
   const awaitingPromiseRef = useRef<{
     resolve: (values?: any) => void;
@@ -87,17 +90,21 @@ export const DialogProvider = ({ children }: { children: ReactNode }) => {
 
   const openDialog = useCallback(
     (options: DialogOptions) => {
-      // if (options && !options.component)
-      //   options.component = (
-      //     <ConfirmationDialog open={false} onAccept={handleAccept} onClose={handleClose} />
-      //   );
-      setDialogOptions({ ...options }); // open: true
+      setDialogOptions({ ...options });
 
       return new Promise<any>((resolve, reject) => {
         awaitingPromiseRef.current = { resolve, reject };
       });
     },
-    [awaitingPromiseRef] // , handleAccept, handleClose
+    [awaitingPromiseRef]
+  );
+
+  const handleSubmitDisabled = useCallback(
+    (val: boolean) => {
+      if (!dialogOptions) return;
+      setSubmitDisabled(val);
+    },
+    [dialogOptions]
   );
 
   const memoed = useMemo(
@@ -107,9 +114,11 @@ export const DialogProvider = ({ children }: { children: ReactNode }) => {
       handleClose,
       isOpen: Boolean(dialogOptions) || false,
       variant: 'info' as DialogVariant,
+      submitDisabled,
+      setDisabled: handleSubmitDisabled,
       ...(dialogOptions || {}),
     }),
-    [openDialog, handleAccept, handleClose, dialogOptions]
+    [openDialog, handleAccept, handleClose, dialogOptions, submitDisabled, handleSubmitDisabled]
   );
 
   return (

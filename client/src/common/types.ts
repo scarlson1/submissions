@@ -766,7 +766,7 @@ interface BaseChangeRequest extends BaseDoc {
     displayName: string;
     email: string | null;
   };
-  underWriterNotes?: string;
+  underwriterNotes?: string | null;
 }
 
 export interface LocationChangeRequest extends BaseChangeRequest {

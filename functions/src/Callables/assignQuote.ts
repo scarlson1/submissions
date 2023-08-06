@@ -1,6 +1,6 @@
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import { error, info } from 'firebase-functions/logger';
-import { getFirestore } from 'firebase-admin/firestore';
+import { Timestamp, getFirestore } from 'firebase-admin/firestore';
 
 import { CLAIMS, Quote, orgsCollection, quotesCollection, usersCollection } from '../common';
 import { onCallWrapper } from '../services/sentry';
@@ -83,7 +83,7 @@ const assignQuote = async ({ data, auth }: CallableRequest<AssignQuoteProps>) =>
       };
     }
 
-    quoteSnap.ref.update({ ...updates });
+    quoteSnap.ref.update({ ...updates, 'metadata.updated': Timestamp.now() });
 
     const message = `Quote ${quoteId} ${isAgent ? 'agentId' : 'userId'} updated to ${uid}`;
     info(message);

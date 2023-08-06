@@ -132,7 +132,10 @@ const createPolicy = async ({ data, auth }: CallableRequest<CreatePolicyProps>) 
     // TODO: emit policy created event ?? or use onCreate doc trigger ??
 
     try {
-      await quoteSnap.ref.update({ status: QUOTE_STATUS.BOUND });
+      await quoteSnap.ref.update({
+        status: QUOTE_STATUS.BOUND,
+        'metadata.updated': Timestamp.now(),
+      });
     } catch (err) {
       // TODO: report error in sentry
       error('Error updating quote status to bound', {

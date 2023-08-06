@@ -1,7 +1,7 @@
 import type { CloudEvent } from 'firebase-functions/lib/v2/core';
 import type { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 import { info } from 'firebase-functions/logger';
-import { getFirestore } from 'firebase-admin/firestore';
+import { Timestamp, getFirestore } from 'firebase-admin/firestore';
 
 import {
   POLICY_STATUS,
@@ -39,7 +39,7 @@ export default async (event: CloudEvent<MessagePublishedData>) => {
   // TODO: Need to ask to get full list of required checks
 
   // update status to paid
-  await policyRef.update({ status: POLICY_STATUS.PAID });
+  await policyRef.update({ status: POLICY_STATUS.PAID, 'metadata.updated': Timestamp.now() });
   console.log(`POLICY ${policyId} STATUS UPDATED TO PAID - TRX ID: ${transactionId}`);
 
   const to = ['spencer.carlson@idemandinsurance.com'];

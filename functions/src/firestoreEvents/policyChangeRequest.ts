@@ -1,4 +1,4 @@
-import { DocumentSnapshot } from 'firebase-admin/firestore';
+import { DocumentSnapshot, getFirestore } from 'firebase-admin/firestore';
 import { error, info, warn } from 'firebase-functions/logger';
 import type { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 
@@ -7,10 +7,12 @@ import {
   CancellationReason,
   ChangeRequest,
   isValidEmail,
+  policiesCollection,
   sendgridApiKey,
 } from '../common';
 import { publishAmendment, publishEndorsement, publishLocationCancel } from '../services/pubsub';
 import { sendAdminChangeRequestNotification, sendMessage } from '../services/sendgrid';
+import { getDoc } from '../routes/utils';
 
 export default async (
   event: FirestoreEvent<
@@ -162,18 +164,23 @@ async function handleAcceptedRequest(data: ChangeRequest, policyId: string) {
           break;
         case 'cancellation':
           console.log('TODO: handle publish policy cancellation pubsub message');
-          // TODO
-          // for (const l of data.locations) {
-          //   await publishLocationCancel({
-          //     policyId,
-          //     locationId: data.locationId, // TODO: fix discriminating union types
-          //     cancelReason: data.cancelReason || ('' as CancellationReason),
-          //     cancelEffDateMS: data.requestEffDate.toMillis(),
-          //   });
-          // }
+          // TODO is policy cancellation different than aggregate location cancels ??
+          const db = getFirestore();
+          const policyRef = policiesCollection(db).doc(policyId);
+          const policy = await getDoc(policyRef);
+
+          let locationIds = Object.keys(policy.locations);
+          for (const id of locationIds) {
+            await publishLocationCancel({
+              policyId,
+              locationId: id, // TODO: fix discriminating union types
+              cancelReason: data.cancelReason || ('' as CancellationReason),
+              cancelEffDateMS: data.requestEffDate.toMillis(),
+            });
+          }
           break;
         case 'flat_cancel':
-          // TODO:
+          // TODO: different transactions than regular cancel ?? can a location be flat_cancelled or just policy ??
           break;
         default:
           error(`failed to match transaction type. no message published`);
