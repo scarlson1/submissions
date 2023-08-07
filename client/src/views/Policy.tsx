@@ -31,7 +31,7 @@ import { useParams, useSearchParams } from 'react-router-dom';
 import { PickingInfo } from 'deck.gl/typed';
 
 import {
-  useCreateChangeRequest,
+  useCreatePolicyChangeRequest,
   useCreateLocationChangeRequest,
   useDocData,
   useGeneratePDF,
@@ -95,11 +95,12 @@ export const Policy = () => {
     [downloadPolicy, policyId]
   );
 
-  const handleChangeRequest = useCallback(() => {
-    alert('TODO: implement change request');
-    // could be called by card or grid
-    // pass button to renderActions in locations grid
-  }, []); // policyId
+  // TODO: uncomment once handler set up ??
+  // const handleChangeRequest = useCallback(() => {
+  //   alert('TODO: implement change request');
+  //   // could be called by card or grid
+  //   // pass button to renderActions in locations grid
+  // }, []); // policyId
 
   const handleLocationChangeRequest = useCallback(
     (params: GridRowParams) => () => {
@@ -109,6 +110,9 @@ export const Policy = () => {
   );
 
   const handleCancelPolicy = useCallback(() => {
+    // prompt cancel form
+    // collect cancel eff date
+    // collect cancellation reason
     alert('cancel not implemented yet');
   }, []);
 
@@ -351,10 +355,11 @@ export const Policy = () => {
           <Link component='button' variant='body2' onClick={handleDownloadPolicy}>
             download a copy of your policy
           </Link>
-          {', '}
+          {/* TODO: uncomment once handler set up */}
+          {/* {', '}
           <Link component='button' variant='body2' onClick={handleChangeRequest}>
             request a change
-          </Link>
+          </Link> */}
           {', or '}
           <Link component='button' variant='body2' underline='hover' onClick={handleCancelPolicy}>
             cancel
@@ -386,7 +391,7 @@ function StatBox({ title, value }: StatBoxProps) {
 }
 
 function PolicyIconMenu({ policyId }: { policyId: string }) {
-  const policyChangeRequest = useCreateChangeRequest();
+  const policyChangeRequest = useCreatePolicyChangeRequest();
   const { open, handleOpen, handleClose, count } = useViewChangeRequestsDialogProps(policyId);
 
   const handleNewRequest = useCallback(() => {

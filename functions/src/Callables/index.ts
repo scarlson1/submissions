@@ -22,6 +22,10 @@ import {
 import { GetPropertyDetailsAttomRequest } from './getPropertyDetailsAttom.js';
 // import { wrapHttpsOnCallHandler } from '../services/sentryFirebase.js';
 
+export const approvechangerequest = onCall(async (request) => {
+  return (await import('./approveChangeRequest.js')).default(request);
+});
+
 export const assignquote = onCall(
   { minInstances: minInstances, memory: '128MiB' },
   async (request) => {

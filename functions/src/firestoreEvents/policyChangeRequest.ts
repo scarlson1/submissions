@@ -1,4 +1,4 @@
-import { DocumentSnapshot } from 'firebase-admin/firestore';
+import { DocumentSnapshot, getFirestore } from 'firebase-admin/firestore';
 import { error, info, warn } from 'firebase-functions/logger';
 import type { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 
@@ -7,29 +7,27 @@ import {
   CancellationReason,
   ChangeRequest,
   isValidEmail,
+  policiesCollection,
   sendgridApiKey,
 } from '../common';
 import { publishAmendment, publishEndorsement, publishLocationCancel } from '../services/pubsub';
 import { sendAdminChangeRequestNotification, sendMessage } from '../services/sendgrid';
+import { getDoc } from '../routes/utils';
 
 export default async (
-  // event: FirestoreEvent<QueryDocumentSnapshot | undefined, { policyId: string; requestId: string }>
   event: FirestoreEvent<
     Change<DocumentSnapshot> | undefined,
     { policyId: string; requestId: string }
   >
 ) => {
   const { policyId, requestId } = event.params;
-  // const beforeData = event?.data?.before.data();
   const data = event?.data?.after.data() as ChangeRequest | undefined;
-  // const snap = event.data;
   if (!data) {
     info('document deleted. returning.');
     return;
   }
-  // const data = snap.data() as ChangeRequest;
 
-  const { status } = data; //trxType, changes,
+  const { status } = data;
   info(`New change request doc change detected. (status: ${status})`, { ...data });
 
   switch (status) {
@@ -92,7 +90,7 @@ async function handleNewRequest(
       const { email, displayName } = data.submittedBy;
       const insuredTo = [email];
 
-      // TODO: send email notification to insured / agent
+      // send email notification to insured / agent
       const msgBody = `We've received your change request for policy ${policyId} (request ID: ${requestId}). Our team has been notified and you'll receive a confirmation email once the request is approved.`;
       const subject = 'Policy change request received';
       const toName = displayName ? displayName.split(' ')[0] : undefined;
@@ -157,24 +155,32 @@ async function handleAcceptedRequest(data: ChangeRequest, policyId: string) {
     if (data.scope === 'policy') {
       switch (data.trxType) {
         case 'endorsement':
+          console.log('TODO: handle publish policy endorsement pubsub message');
           // TODO
           break;
         case 'amendment':
+          console.log('TODO: handle publish policy amendment pubsub message');
           // TODO
           break;
         case 'cancellation':
-          // TODO
-          // for (const l of data.locations) {
-          //   await publishLocationCancel({
-          //     policyId,
-          //     locationId: data.locationId, // TODO: fix discriminating union types
-          //     cancelReason: data.cancelReason || ('' as CancellationReason),
-          //     cancelEffDateMS: data.requestEffDate.toMillis(),
-          //   });
-          // }
+          console.log('TODO: handle publish policy cancellation pubsub message');
+          // TODO is policy cancellation different than aggregate location cancels ??
+          const db = getFirestore();
+          const policyRef = policiesCollection(db).doc(policyId);
+          const policy = await getDoc(policyRef);
+
+          let locationIds = Object.keys(policy.locations);
+          for (const id of locationIds) {
+            await publishLocationCancel({
+              policyId,
+              locationId: id, // TODO: fix discriminating union types
+              cancelReason: data.cancelReason || ('' as CancellationReason),
+              cancelEffDateMS: data.requestEffDate.toMillis(),
+            });
+          }
           break;
         case 'flat_cancel':
-          // TODO:
+          // TODO: different transactions than regular cancel ?? can a location be flat_cancelled or just policy ??
           break;
         default:
           error(`failed to match transaction type. no message published`);

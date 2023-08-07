@@ -1,5 +1,9 @@
 import type { FirestoreEvent } from 'firebase-functions/v2/firestore';
-import type { DocumentReference, QueryDocumentSnapshot } from 'firebase-admin/firestore';
+import {
+  Timestamp,
+  type DocumentReference,
+  type QueryDocumentSnapshot,
+} from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 
 import { sendUserInvite } from '../services/sendgrid';
@@ -73,5 +77,5 @@ export default async (
 };
 
 function markSent(inviteRef: DocumentReference<Invite>) {
-  return inviteRef.update({ sent: true });
+  return inviteRef.update({ sent: true, 'metadata.updated': Timestamp.now() });
 }

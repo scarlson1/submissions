@@ -1,6 +1,6 @@
 import { EventContext } from 'firebase-functions/v1';
 import { error, info } from 'firebase-functions/logger';
-import { getFirestore } from 'firebase-admin/firestore';
+import { Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { UserRecord } from 'firebase-admin/auth';
 
 import { iDemandOrgId, invitesCollection, userClaimsCollection } from '../common';
@@ -26,7 +26,7 @@ export default async (user: UserRecord, context: EventContext<Record<string, str
         .set({ ...claims }, { merge: true });
 
       info(`Setting invite status to accepted ${inviteRef.id}`);
-      await inviteRef.update({ status: 'accepted' });
+      await inviteRef.update({ status: 'accepted', 'metadata.updated': Timestamp.now() });
     } catch (err) {
       error(`Error setting claims for user ${user.email}`, { err });
     }
@@ -48,7 +48,7 @@ export default async (user: UserRecord, context: EventContext<Record<string, str
         .set({ ...claims }, { merge: true });
 
       info(`Setting invite status to accepted ${inviteRef.id}`);
-      await inviteRef.update({ status: 'accepted' });
+      await inviteRef.update({ status: 'accepted', 'metadata.updated': Timestamp.now() });
     } catch (err: any) {
       error('Error updating iDemand users claims from invite', { err });
     }

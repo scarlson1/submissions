@@ -118,7 +118,8 @@ export default async (
         inland: AALsRes.AAL?.inland ?? null,
         surge: AALsRes.AAL?.surge ?? null,
         tsunami: AALsRes.AAL?.tsunami ?? null,
-      },
+      }, // @ts-ignore
+      'metadata.updated': Timestamp.now(),
     };
     await snap.ref.update(updates);
   } catch (err: any) {
@@ -215,6 +216,7 @@ export default async (
       annualPremium: premiumData.directWrittenPremium,
       subproducerCommission: commissionPct,
       ratingDocId: ratingDocRef.id,
+      'metadata.updated': Timestamp.now(),
     });
 
     info(`UPDATED SUBMISSION ${snap.id} - PREMIUM: ${premiumData.directWrittenPremium}`, {

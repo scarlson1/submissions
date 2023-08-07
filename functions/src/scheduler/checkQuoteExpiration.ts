@@ -98,7 +98,10 @@ export default async (event: ScheduledEvent) => {
       // TODO: update status for each doc
       for (const quote of expired) {
         let quoteRef = quotesCollRef.doc(quote.id);
-        await quoteRef.update({ status: QUOTE_STATUS.EXPIRED });
+        await quoteRef.update({
+          status: QUOTE_STATUS.EXPIRED,
+          'metadata.updated': Timestamp.now(),
+        });
         console.log(`QUOTE ${quote.id} STATUS UPDATED TO "${QUOTE_STATUS.EXPIRED}"`);
       }
     }

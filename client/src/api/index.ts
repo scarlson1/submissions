@@ -18,6 +18,7 @@ export { deliverAgencyAgreement } from './deliverAgencyAgreement';
 export { moveUserToTenant } from './moveUserToTenant';
 export { generateSearchKey } from './generateSearchKey';
 export { sendEmail } from './sendEmail';
+export { approveChangeRequest } from './approveChangeRequest';
 // export { sendContactEmail } from './sendContactEmail';
 // export type { SendContactEmailRequest, SendContactEmailResponse } from './sendContactEmail';
 // export { sendPolicyDoc } from './sendPolicyDoc';
@@ -39,6 +40,7 @@ export type { CreateTenantRequest, CreateTenantResponse } from './createTenantFr
 export type { InviteUsersRequest, InviteUsersResponse, NewUser } from './inviteUsers';
 export type { GetAnnualPremiumRequest, GetAnnualPremiumResponse } from './getAnnualPremium';
 export type { MoveUserToTenantRequest, MoveUserToTenantResponse } from './moveUserToTenant';
+export type { ApproveChangeRequest, ApproveChangeResponse } from './approveChangeRequest';
 // export { sendAgencyApprovedNotification } from './sendAgencyApprovedNotification';
 // export type {
 //   SendAgencyApprovedRequest,

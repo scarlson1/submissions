@@ -95,7 +95,7 @@ const Actions = ({ confirmButtonProps, confirmButtonText = 'submit' }: ActionsPr
           <Button
             color='primary'
             onClick={handleSubmit}
-            // disabled={submitDisabled}
+            disabled={dialog.submitDisabled ?? false}
             {...(confirmButtonProps || {})}
             {...(dialog?.slotProps?.acceptButton || {})}
           >
@@ -107,7 +107,7 @@ const Actions = ({ confirmButtonProps, confirmButtonText = 'submit' }: ActionsPr
         <Button
           color='primary'
           onClick={handleSubmit}
-          // disabled={submitDisabled}
+          disabled={dialog.submitDisabled ?? false}
           {...(confirmButtonProps || {})}
           {...(dialog?.slotProps?.acceptButton || {})}
         >

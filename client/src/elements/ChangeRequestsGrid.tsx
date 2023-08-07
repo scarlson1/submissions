@@ -8,6 +8,7 @@ import { ServerDataGrid, ServerDataGridProps } from 'components';
 import { changeRequestCols } from 'modules/muiGrid/gridColumnDefs';
 import { COLLECTIONS } from 'common';
 import { useAuth } from 'context';
+import { useWidth } from 'hooks';
 
 interface ChangeRequestsGridProps extends ServerDataGridCollectionProps {
   policyId?: string;
@@ -21,6 +22,7 @@ export const ChangeRequestsGrid = ({
   ...rest
 }: ChangeRequestsGridProps) => {
   const { user, claims, orgId } = useAuth();
+  const { isSmall } = useWidth();
 
   const columns = useMemo(() => {
     let cols = [...changeRequestCols, ...(additionalColumns || [])];
@@ -29,13 +31,13 @@ export const ChangeRequestsGrid = ({
         field: 'actions',
         headerName: 'Actions',
         type: 'actions',
-        width: 80, //  isSmall ? 60 : 140,
+        width: isSmall ? 60 : 120,
         getActions: (params: GridRowParams) => [...renderActions(params)],
       };
       cols.unshift(actionCol);
     }
     return cols;
-  }, [additionalColumns, renderActions]);
+  }, [additionalColumns, renderActions, isSmall]);
 
   const props: Omit<ServerDataGridProps, 'columns'> = useMemo(() => {
     if (policyId) {
@@ -86,8 +88,10 @@ export const ChangeRequestsGrid = ({
               id: false,
               'metadata.updated': false,
               userId: false,
-              'approvedBy.userId': false,
             },
+          },
+          sorting: {
+            sortModel: [{ field: 'metadata.created', sort: 'desc' }],
           },
           ...(initialState || {}),
         }}

@@ -1,6 +1,6 @@
 import type { FirestoreEvent } from 'firebase-functions/v2/firestore';
 import { error, info, warn } from 'firebase-functions/logger';
-import type { QueryDocumentSnapshot } from 'firebase-admin/firestore';
+import { Timestamp, type QueryDocumentSnapshot } from 'firebase-admin/firestore';
 import {
   booleanPointInPolygon,
   FeatureCollection,
@@ -67,6 +67,7 @@ export default async (
         countyName: newCountyName,
         'address.countyFIPS': fips,
         'address.countyName': newCountyName || '',
+        'metadata.updated': Timestamp.now(),
       });
       console.log(`UPDATED SUBMISSION ${snap.id} FIPS TO ${fips}`);
     }

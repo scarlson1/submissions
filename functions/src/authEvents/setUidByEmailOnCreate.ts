@@ -1,7 +1,8 @@
 // import * as functions from 'firebase-functions';
-import { getFirestore } from 'firebase-admin/firestore';
+import { Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { UserRecord } from 'firebase-admin/auth';
 import { EventContext } from 'firebase-functions/v1';
+import { error, info } from 'firebase-functions/logger';
 
 import { submissionsCollection } from '../common';
 
@@ -11,11 +12,11 @@ import { submissionsCollection } from '../common';
 // does converting anonymous account into regular account trigger the beforeCreate blocking function ?? force email verification?
 
 export default async (user: UserRecord, context: EventContext<Record<string, string>>) => {
-  console.log(`New user detected: ${user.email} (${user.uid})`);
+  info(`New user detected: ${user.email} (${user.uid})`);
   const db = getFirestore();
 
   if (!user.email) {
-    console.log('Returning early. User does not have email');
+    info('Returning early. User does not have email');
     return;
   }
 
@@ -29,12 +30,12 @@ export default async (user: UserRecord, context: EventContext<Record<string, str
       await Promise.all(
         subDocs.map(async (snap) => {
           console.log(`Updating userId on submission doc ${snap.id} to ${user.email}.`);
-          await snap.ref.update({ userId: user.uid });
+          await snap.ref.update({ userId: user.uid, 'metadata.updated': Timestamp.now() });
         })
       );
     }
   } catch (err) {
-    console.log(`Error updating submission docs with matching email ${user.email}`, err);
+    error(`Error updating submission docs with matching email ${user.email}`, { err });
   }
 
   // what about other interests? additional insured? Agent? etc.

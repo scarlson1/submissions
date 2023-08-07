@@ -20,6 +20,7 @@ import {
   License,
   Moratorium,
   Disclosure,
+  ChangeRequest,
 } from '../common'; // AgencyApplication, Invite, Notification, Organization,
 import { ClaimsDocData } from '../firestoreEvents/index.js';
 
@@ -90,4 +91,10 @@ export const paymentMethodsCollection = (db: Firestore, userId: string) =>
   createCollection<PaymentMethod>(
     db,
     `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.PAYMENT_METHODS}`
+  );
+
+export const changeReqestsCollection = (db: Firestore, policyId: string) =>
+  createCollection<ChangeRequest>(
+    db,
+    `${COLLECTIONS.POLICIES}/${policyId}/${COLLECTIONS.CHANGE_REQUESTS}`
   );

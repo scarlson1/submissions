@@ -33,6 +33,7 @@ export { TooltipToggleButton } from './TooltipToggleButton';
 export { RequiredFieldsIndicator } from './RequiredFieldsIndicator';
 export { Diff } from './Diff';
 export { FormikCoordsMarker } from './FormikCoordsMarker';
+export { UpdateDialogSubmitDisabled } from './UpdateDialogSubmitDisabled';
 
 export type {
   AddressAutocompleteProps,

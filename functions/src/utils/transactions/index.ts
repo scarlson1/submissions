@@ -1,4 +1,4 @@
-import { DocumentReference, Firestore, Timestamp } from 'firebase-admin/firestore';
+import { DocumentData, DocumentReference, Firestore, Timestamp } from 'firebase-admin/firestore';
 import { error } from 'firebase-functions/logger';
 import { round } from 'lodash';
 import { add } from 'date-fns';
@@ -369,10 +369,27 @@ export const fetchPolicyData = async (db: Firestore, policyId: string) => {
 
     const policySnap = await policyRef.get();
     const data = policySnap.data(); //  as unknown as Policy;
-    if (policySnap.exists || !data) throw new Error('Policy not found');
+    if (!policySnap.exists || !data) throw new Error('Policy not found');
     return { ...data, id: policyId };
   } catch (err: any) {
     error(`Error fetching policy (ID: ${policyId})`, { err });
+    return null;
+  }
+};
+
+/**
+ * Fetch doc data in circumstance where you don't want to throw for idempotency reasons (no retry)
+ * @param docRef firestore document reference
+ * @returns {Promise<object | null>} returns document data with id, or null if theres an error or not found
+ */
+export const fetchDocData = async <T = DocumentData>(docRef: DocumentReference<T>) => {
+  try {
+    const snap = await docRef.get();
+    const data = snap.data();
+    if (!snap.exists || !data) throw new Error('Policy not found');
+    return { ...data, id: docRef.id };
+  } catch (err: any) {
+    error(`Error fetching policy (ID: ${docRef.id})`, { err });
     return null;
   }
 };

@@ -756,16 +756,17 @@ interface BaseChangeRequest extends BaseDoc {
   };
   status: ChangeRequestStatus;
   processedTimestamp?: Timestamp;
-  approvedBy?: {
-    name: string;
-    userId: string;
-  };
+  approvedByUserId?: string;
+  // approvedBy?: {
+  //   name: string;
+  //   userId: string;
+  // };
   submittedBy: {
     userId: string | null;
     displayName: string;
     email: string | null;
   };
-  underWriterNotes?: string;
+  underwriterNotes?: string | null;
 }
 
 export interface LocationChangeRequest extends BaseChangeRequest {

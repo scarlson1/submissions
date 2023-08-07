@@ -690,6 +690,7 @@ export interface IPolicyClass extends Policy {
   calcCardFeeAllLocations: () => number;
 }
 
+// TODO: use js module instead of class ??
 export class PolicyClass implements IPolicyClass {
   readonly id: string;
   readonly isExpired: boolean;
@@ -958,16 +959,17 @@ interface BaseChangeRequest extends BaseDoc {
   };
   status: ChangeRequestStatus;
   processedTimestamp?: Timestamp;
-  approvedBy?: {
-    name: string;
-    userId: string;
-  };
+  approvedByUserId?: string;
+  // approvedBy?: {
+  //   name: string;
+  //   userId: string;
+  // };
   submittedBy: {
     userId: string | null;
     displayName: string;
     email: string | null;
   };
-  underWriterNotes?: string;
+  underwriterNotes?: string | null;
 }
 
 export interface LocationChangeRequest extends BaseChangeRequest {
@@ -988,14 +990,21 @@ export interface PolicyChangeRequest extends BaseChangeRequest {
   scope: 'policy';
   changes: Partial<Policy>;
   formValues: PolicyChangeValues;
+  cancelReason?: CancellationReason;
   // externalId: never;
   // locationId: never;
 }
-// TODO: uncomment
+
+export interface PolicyCancellationRequest extends PolicyChangeRequest {
+  trxType: 'cancellation' | 'flat_cancel';
+  cancelReason?: CancellationReason;
+}
+
 export type ChangeRequest =
   | LocationChangeRequest
   | LocationCancellationRequest
-  | PolicyChangeRequest;
+  | PolicyChangeRequest
+  | PolicyCancellationRequest;
 
 export interface PremiumCalcData {
   techPremium: ValueByRiskType;

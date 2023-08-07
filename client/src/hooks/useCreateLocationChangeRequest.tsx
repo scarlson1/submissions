@@ -19,7 +19,7 @@ import {
 import { useAuth } from 'context';
 import { LocationChangeForm, LocationChangeValues } from 'elements/forms';
 import { useAsyncToast } from './useAsyncToast';
-import { formatChanges } from './useCreateChangeRequest';
+import { formatChanges } from './useCreatePolicyChangeRequest';
 import { useDialogForm } from './useDialogForm';
 
 export const useCreateLocationChangeRequest = (policyId: string) => {
@@ -67,9 +67,11 @@ export const useCreateLocationChangeRequest = (policyId: string) => {
           endorsementChanges['effectiveDate'] = Timestamp.fromDate(values.effectiveDate);
         if (diff.expirationDate && values.expirationDate)
           endorsementChanges['expirationDate'] = Timestamp.fromDate(values.expirationDate);
-        console.log('endorsement changes: ', endorsementChanges); // @ts-ignore
-        if (diff.limits && values.limits) endorsementChanges['limits'] = values.limits;
+        // @ts-ignore
+        if (diff.limits && values.limits) endorsementChanges['limits'] = diff.limits; // values.limits;
         if (diff.deductible) endorsementChanges['deductible'] = values.deductible;
+
+        console.log('endorsement changes: ', endorsementChanges);
 
         const changeRequestData: LocationChangeRequest = {
           ...common,
@@ -77,7 +79,7 @@ export const useCreateLocationChangeRequest = (policyId: string) => {
           changes: endorsementChanges,
         };
 
-        let endorsementDocRef = await addDoc(colRef, { ...changeRequestData });
+        const endorsementDocRef = await addDoc(colRef, { ...changeRequestData });
         docIds.push(endorsementDocRef.id);
       }
 
@@ -101,7 +103,7 @@ export const useCreateLocationChangeRequest = (policyId: string) => {
           changes: amendmentChanges,
         };
 
-        let amendmentDocRef = await addDoc(colRef, { ...changeRequestData });
+        const amendmentDocRef = await addDoc(colRef, { ...changeRequestData });
         docIds.push(amendmentDocRef.id);
       }
 

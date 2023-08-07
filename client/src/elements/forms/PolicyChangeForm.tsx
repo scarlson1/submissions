@@ -10,6 +10,7 @@ import {
   FormikMaskField,
   FormikTextField,
   IMask,
+  UpdateDialogSubmitDisabled,
   phoneMaskProps,
 } from 'components/forms';
 
@@ -142,24 +143,9 @@ export const PolicyChangeForm = ({
               />
             </Grid>
           </Grid>
+          <UpdateDialogSubmitDisabled />
         </Form>
       )}
     </Formik>
   );
 };
-
-// const DEFAULT_VALUES: PolicyChangeValues = {
-//   namedInsured: {
-//     displayName: '',
-//     email: '',
-//     phone: '',
-//   },
-//   mailingAddress: {
-//     addressLine1: '',
-//     addressLine2: '',
-//     city: '',
-//     state: '',
-//     postal: '',
-//   },
-//   homeState: '',
-// };

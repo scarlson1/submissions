@@ -192,6 +192,7 @@ const createTenantFromSubmission = async ({
 
     docRef.update({
       status: AGENCY_SUBMISSION_STATUS.ACCEPTED,
+      'metadata.updated': Timestamp.now(),
     });
 
     return { ...createdTenant.toJSON() };
