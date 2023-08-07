@@ -1,5 +1,5 @@
-import { useCallback } from 'react';
 import { Timestamp, addDoc } from 'firebase/firestore';
+import { useCallback } from 'react';
 import { useFirestore, useSigninCheck } from 'reactfire';
 
 import { ChangeRequest, Policy, changeReqestsCollection } from 'common';
@@ -57,6 +57,7 @@ export const usePolicyChangeRequest = (
           submittedBy: {
             userId: signInResult.user.uid || null,
             displayName: signInResult.user?.displayName || '',
+            email: signInResult.user?.email || null,
           },
           metadata: {
             created: Timestamp.now(),

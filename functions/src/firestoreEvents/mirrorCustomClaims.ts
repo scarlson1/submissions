@@ -1,15 +1,13 @@
-import type { FirestoreEvent } from 'firebase-functions/v2/firestore';
+import { Auth, TenantAwareAuth, getAuth } from 'firebase-admin/auth';
+import { DocumentData, DocumentSnapshot, Timestamp, getFirestore } from 'firebase-admin/firestore';
 import type { Change } from 'firebase-functions';
 import { info } from 'firebase-functions/logger';
-import { DocumentData, DocumentSnapshot, Timestamp, getFirestore } from 'firebase-admin/firestore';
-import { getAuth, TenantAwareAuth, Auth } from 'firebase-admin/auth';
+import type { FirestoreEvent } from 'firebase-functions/v2/firestore';
 
 import { CLAIMS, isJSON, orgsCollection } from '../common';
 
-// TODO: cloud functions for updating user claims docs
-
 export interface ClaimsDocData extends DocumentData {
-  _lastCommitted?: Timestamp; // WithFieldValue<Timestamp>;
+  _lastCommitted?: Timestamp;
 }
 
 export default async (
