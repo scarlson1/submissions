@@ -1,4 +1,3 @@
-import { ReactNode, useCallback } from 'react';
 import {
   Button,
   ButtonProps,
@@ -8,6 +7,7 @@ import {
   DialogContentText,
   DialogTitle,
 } from '@mui/material';
+import { ReactNode, useCallback } from 'react';
 
 import { useDialog } from 'context';
 
@@ -19,7 +19,6 @@ import { useDialog } from 'context';
 // TODO: use selector
 // mui grid createSelector: https://github.com/mui/mui-x/blob/master/packages/grid/x-data-grid/src/utils/createSelector.ts
 
-// export function CtxDialog({ children }: { children: ReactNode }) {
 function CtxDialog({ children }: { children: ReactNode }) {
   const dialog = useDialog();
 
@@ -49,7 +48,6 @@ CtxDialog.Title = Title;
 const Description = () => {
   const dialog = useDialog();
 
-  // {...(dialog?.slotProps?.description || {})}
   return dialog?.description ? (
     <DialogContentText>{dialog?.description ? dialog?.description : null}</DialogContentText>
   ) : null;
@@ -107,7 +105,7 @@ const Actions = ({ confirmButtonProps, confirmButtonText = 'submit' }: ActionsPr
         <Button
           color='primary'
           onClick={handleSubmit}
-          disabled={dialog.submitDisabled ?? false}
+          // disabled={dialog.submitDisabled || false}
           {...(confirmButtonProps || {})}
           {...(dialog?.slotProps?.acceptButton || {})}
         >
@@ -120,7 +118,6 @@ const Actions = ({ confirmButtonProps, confirmButtonText = 'submit' }: ActionsPr
 
 CtxDialog.Actions = Actions;
 
-// function Usage({ children }: { children: ReactNode }) {
 function ContextDialog() {
   return (
     <CtxDialog>
@@ -132,7 +129,7 @@ function ContextDialog() {
   );
 }
 
-export { CtxDialog, ContextDialog }; // ContextDialog as default
+export { ContextDialog, CtxDialog }; // ContextDialog as default
 
 // export function computeSlots<SlotComponents extends object>({
 //   defaultSlots,

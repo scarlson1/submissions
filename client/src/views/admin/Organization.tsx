@@ -1,19 +1,19 @@
-import { Box, Tab, Typography } from '@mui/material';
-import { TabContext, TabList, TabPanel } from '@mui/lab';
-import { PersonAddRounded } from '@mui/icons-material';
-import { useParams, useSearchParams } from 'react-router-dom';
-import { collection, doc, query, where } from 'firebase/firestore';
-import { useFirestore } from 'reactfire';
-import { ErrorBoundary } from 'react-error-boundary';
 import ReactJson from '@microlink/react-json-view';
+import { PersonAddRounded } from '@mui/icons-material';
+import { TabContext, TabList, TabPanel } from '@mui/lab';
+import { Box, Tab, Typography } from '@mui/material';
+import { collection, doc, query, where } from 'firebase/firestore';
+import { ErrorBoundary } from 'react-error-boundary';
+import { useParams, useSearchParams } from 'react-router-dom';
+import { useFirestore } from 'reactfire';
 
-import { InvitesGrid, PoliciesGrid, QuotesGrid, SubmissionsGrid, UsersGrid } from 'elements';
+import { ClaimsGuard } from 'components';
 import { AddUsersDialog } from 'elements/forms';
+import { InvitesGrid, PoliciesGrid, QuotesGrid, SubmissionsGrid, UsersGrid } from 'elements/grids';
+import { AdminManageUsersGrid } from 'elements/grids/UsersGrid';
+import { useJsonTheme } from 'hooks';
 import { useAgencyInsureds } from 'hooks/useAgencyInsureds';
 import { useCollectionDataInnerJoin, useRx, useRxDocJoin } from 'hooks/useRx';
-import { ClaimsGuard } from 'components';
-import { AdminManageUsersGrid } from 'elements/UsersGrid';
-import { useJsonTheme } from 'hooks';
 
 const MIN_TAB_HEIGHT = 40;
 

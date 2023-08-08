@@ -1,70 +1,71 @@
+import { wrapCreateBrowserRouter } from '@sentry/react';
 import {
   createBrowserRouter,
   createSearchParams,
   Params,
   URLSearchParamsInit,
 } from 'react-router-dom';
-import { wrapCreateBrowserRouter } from '@sentry/react';
 
-import App from './App';
+import { CUSTOM_CLAIMS, Product } from 'common';
 import { ConfigLayout, Layout, RequireAuth, RouterErrorBoundary } from 'components';
+import { RouterLink as BreadCrumbLink } from 'components/Breadcrumbs';
+import { RequireAuthReactFire } from 'components/RequireAuthReactFire';
+import { TempWrappedSearch } from 'components/search/Search';
+import { AuthActionsProvider } from 'context';
+import { ActionHandler } from 'elements';
+import { SuccessStep } from 'elements/forms';
+import { BindSuccess } from 'elements/forms/SuccessStep';
+import { EmailsGrid } from 'elements/grids';
+import { ImportsSummaryGrid } from 'elements/grids/ImportsSummaryGrid';
+import { TestPoliciesMapWithFilters } from 'elements/PoliciesMap';
 import {
-  SubmissionNew,
-  ContactUs,
-  Quotes,
-  ViewQuote,
-  Login,
-  CreateAccount,
-  Policy,
-  Policies,
-  Submissions,
-  Home,
-  AgencyNew,
   // Protosure, // TODO: move protosureLoader to useEffect
   Account,
-  QuoteBind,
   AccountDetails,
+  AgencyNew,
+  ContactUs,
+  CreateAccount,
+  Home,
+  Login,
+  Policies,
+  Policy,
   PolicyOld,
+  QuoteBind,
+  Quotes,
+  SubmissionNew,
+  Submissions,
+  ViewQuote,
 } from 'views';
 import {
-  SubmissionView,
-  QuoteNew,
-  QuoteNewFromSub,
-  SLTaxes,
-  SLTaxNew,
-  EditActiveStates,
-  Moratoriums,
-  MoratoriumNew,
-  LicenseNew,
-  Licenses,
+  Home as AdminHome,
   AgencyApp,
   AgencyApps,
-  PolicyDelivery,
-  DisclosureNew,
-  DisclosureEdit,
-  Home as AdminHome,
   CreateTenant,
-  Organizations,
-  Organization,
-  Users,
-  SLTaxEdit,
+  DisclosureEdit,
+  DisclosureNew,
+  EditActiveStates,
   LicenseEdit,
+  LicenseNew,
+  Licenses,
+  MoratoriumNew,
+  Moratoriums,
+  Organization,
+  Organizations,
+  PolicyDelivery,
   QuoteEdit,
+  QuoteNew,
+  QuoteNewFromSub,
+  SLTaxEdit,
+  SLTaxes,
+  SLTaxNew,
+  SubmissionView,
+  Users,
 } from 'views/admin';
-import { ActionHandler, EmailsGrid } from 'elements';
-import { SuccessStep } from 'elements/forms';
-import { RouterLink as BreadCrumbLink } from 'components/Breadcrumbs';
-import { CUSTOM_CLAIMS, Product } from 'common';
-import { BindSuccess } from 'elements/forms/SuccessStep';
-import { RequireAuthReactFire } from 'components/RequireAuthReactFire';
 import { Disclosures } from 'views/admin/Disclosures';
-import { TestPoliciesMapWithFilters } from 'elements/PoliciesMap';
-import { AuthActionsProvider } from 'context';
-import { TempWrappedSearch } from 'components/search/Search';
 import { AgencyAppSuccessStep } from 'views/AgencyNew';
-import { ImportsSummaryGrid } from 'elements/ImportsSummaryGrid';
 import { EmailVerified } from 'views/EmailVerified';
 import { WizardFormTest } from 'views/WizardFormTest';
+import App from './App';
 
 export interface CrumbMatch {
   id: string;

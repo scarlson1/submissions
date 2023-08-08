@@ -1,9 +1,10 @@
-import { useCallback } from 'react';
 import { Box, useTheme } from '@mui/material';
+import { useCallback } from 'react';
 
 import { useAuth } from 'context';
 
 // USER POLICIES COMPONENT IMPORTS
+import { DataObjectRounded } from '@mui/icons-material';
 import {
   Avatar,
   AvatarGroup,
@@ -12,24 +13,23 @@ import {
   CardMedia,
   Container,
   Divider,
+  Unstable_Grid2 as Grid,
   Tooltip,
   Typography,
-  Unstable_Grid2 as Grid,
 } from '@mui/material';
 import { GridActionsCellItem, GridRowParams } from '@mui/x-data-grid';
-import { DataObjectRounded } from '@mui/icons-material';
+import { where } from 'firebase/firestore';
 import { isEmpty } from 'lodash';
 import { useNavigate } from 'react-router-dom';
-import { where } from 'firebase/firestore';
 
-import { useCollectionData, useShowJson } from 'hooks';
-import { FlexCard, FlexCardContent } from 'components';
-import { createPath, ROUTES } from 'router';
-import { Item } from './UserSubmissions';
-import { PoliciesGrid } from 'elements';
-import { formatFirestoreTimestamp } from 'modules/utils';
 import { AdditionalInsured, COLLECTIONS, Policy, fallbackImages } from 'common';
+import { FlexCard, FlexCardContent } from 'components';
 import { ControlledChangeRequestDialog } from 'elements/ChangeRequestDialog';
+import { PoliciesGrid } from 'elements/grids';
+import { useCollectionData, useShowJson } from 'hooks';
+import { formatFirestoreTimestamp } from 'modules/utils';
+import { ROUTES, createPath } from 'router';
+import { Item } from './UserSubmissions';
 
 // TODO: change policies view to allow switching between card and grid view (and map ??)
 // TODO: include change requests in grid ?? (could use rxjs and aggregation query)

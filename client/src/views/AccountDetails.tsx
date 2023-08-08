@@ -1,33 +1,38 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { MoreVertRounded } from '@mui/icons-material';
+import { LoadingButton, TabContext, TabList, TabPanel } from '@mui/lab';
 import {
   Box,
+  Button,
+  Card,
+  CardContent,
+  Container,
+  Unstable_Grid2 as Grid,
+  IconButton,
   Paper,
+  Tab,
   Typography,
   alpha,
   useTheme,
-  Container,
-  Button,
-  Unstable_Grid2 as Grid,
-  Tab,
-  Card,
-  CardContent,
-  IconButton,
 } from '@mui/material';
-import { LoadingButton, TabContext, TabList, TabPanel } from '@mui/lab';
-import { MoreVertRounded } from '@mui/icons-material';
-import { useFirestore, useUser } from 'reactfire';
-import { Firestore, doc, setDoc } from 'firebase/firestore';
-import { toast } from 'react-hot-toast';
 import axios from 'axios';
-import { useForm, SubmitHandler, useFormState } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
+import { Firestore, doc, setDoc } from 'firebase/firestore';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { SubmitHandler, useForm, useFormState } from 'react-hook-form';
+import { toast } from 'react-hot-toast';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { useFirestore, useUser } from 'reactfire';
 import * as yup from 'yup';
 // import Slider from 'react-slick';
 
-import { UpdateProfileImg } from 'elements';
 import { COLLECTIONS, User, usersCollection } from 'common';
 import { Carousel, ClaimsGuard, Copy } from 'components';
+import { RHFTextField } from 'components/forms';
+import { useAuthActions } from 'context';
+import { UpdateProfileImg } from 'elements';
+import { AddUsersDialog } from 'elements/forms';
+import { RHFPassword } from 'elements/forms/FormikPassword';
+import { AdminManageUsersGrid } from 'elements/grids/UsersGrid';
 import {
   UpdateProfileRes,
   useAsyncToast,
@@ -35,14 +40,9 @@ import {
   useDocData,
   useUpdateProfile,
 } from 'hooks';
-import { useAuthActions } from 'context';
-import { RHFTextField } from 'components/forms';
-import { AdminManageUsersGrid } from 'elements/UsersGrid';
-import { passwordValidation } from './CreateAccount';
-import { RHFPassword } from 'elements/forms/FormikPassword';
 import { useDBUser } from 'hooks/useDBUser';
 import { AUTH_ROUTES, createPath } from 'router';
-import { AddUsersDialog } from 'elements/forms';
+import { passwordValidation } from './CreateAccount';
 
 // react spring animated gradient: https://codesandbox.io/s/xg8jhi
 

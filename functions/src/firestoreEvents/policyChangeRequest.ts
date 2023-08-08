@@ -20,6 +20,7 @@ import {
   swissReClientId,
   swissReClientSecret,
   swissReSubscriptionKey,
+  verify,
 } from '../common';
 import { getDoc } from '../routes/utils';
 import { publishAmendment, publishEndorsement, publishLocationCancel } from '../services/pubsub';
@@ -32,7 +33,6 @@ import {
   validateAALs,
   validateLimits,
   validateRCVs,
-  verify,
 } from '../utils/rating';
 
 export default async (
@@ -49,16 +49,18 @@ export default async (
     return;
   }
 
+  // MUST UPDATE _lastCommitted if updating Change Request doc in this function in order to prevent loop
   // TODO: use its own field cloudFnUpdated: Timestamp (might want this to run if there's an update)
+
   // This way would require updating _lastCommitted to acknowlege everytime ??
-  // const skipUpdate =
-  //   prevData?._lastCommitted &&
-  //   data?._lastCommitted &&
-  //   !prevData?._lastCommitted.isEqual(data._lastCommitted);
-  // if (skipUpdate) {
-  //   info('Change request status unchanged. returning early');
-  //   return;
-  // }
+  const skipUpdate =
+    prevData?._lastCommitted &&
+    data?._lastCommitted &&
+    !prevData?._lastCommitted.isEqual(data._lastCommitted);
+  if (skipUpdate) {
+    info('Change request status unchanged. returning early');
+    return;
+  }
   if (prevData && data && prevData.status === data.status) {
     info('Change request status unchanged. returning early.');
     return;
@@ -70,8 +72,10 @@ export default async (
   switch (status) {
     case CHANGE_REQUEST_STATUS.SUBMITTED:
       await handleNewRequest(data, policyId, requestId, event.id);
-      await handleRatingForEndorsement(data, policyId, requestId);
-      // TODO: need to handle rating when type === "endorsement"
+      // TODO: handle reinstatement & renewal
+      if (data.trxType === 'endorsement') {
+        await handleRatingForEndorsement(data, policyId, requestId);
+      }
       return;
     case CHANGE_REQUEST_STATUS.ACCEPTED:
       await handleAcceptedRequest(data, policyId);
@@ -164,8 +168,12 @@ async function handleRatingForEndorsement(
 
   try {
     const db = getFirestore();
+    const ratingCol = ratingDataCollection(db);
+
     const policyRef = policiesCollection(db).doc(policyId);
     const policy = await getDoc(policyRef);
+
+    const changeRequestRef = changeReqestsCollection(db, policyId).doc(requestId);
 
     const location = policy.locations[data.locationId];
     verify(location, `location not found on policy (Location ID: ${data.locationId})`);
@@ -182,16 +190,47 @@ async function handleRatingForEndorsement(
     info(`Previous rating data`, { prevRatingData });
 
     const changesKeys = Object.keys(data.changes);
+    const expDateOnly = changesKeys.every((k) => k === 'expirationDate');
     const requiresRerate = hasAny(changesKeys, SR_CALL_REQUIRED_KEYS);
     console.log('REQUIRES RERATE: ', requiresRerate);
 
-    const { coordinates, deductible, limits: locLimits, ratingPropertyData } = location;
+    const {
+      coordinates,
+      deductible,
+      limits: locLimits,
+      ratingPropertyData,
+      annualPremium,
+    } = location;
+
+    const effDateTS = data.changes?.effectiveDate || location.effectiveDate;
+    const expDateTS = data.changes?.expirationDate || location.expirationDate;
+
+    if (expDateOnly) {
+      const { termPremium, termDays } = calcTerm(
+        annualPremium,
+        effDateTS.toDate(),
+        expDateTS.toDate()
+      );
+
+      const changesWithRating: Partial<PolicyLocation> = {
+        termPremium,
+        termDays,
+      };
+      console.log('CHANGES WITH RATING: ', changesWithRating);
+
+      await changeRequestRef.set(
+        { changes: changesWithRating, _lastCommitted: Timestamp.now() },
+        { merge: true }
+      );
+      return;
+    }
 
     let AALsRes: GetAALRes | undefined;
     let getPremiumInputs: GetPremiumProps;
 
     // If rerate required, get new AALs & set getPremiumInputs from result
     // Otherwise use AALs from prevRatingData (exp date change)
+    // TODO: change in exp date doesnt require prem recalc
     if (requiresRerate) {
       const { RCVs } = prevRatingData;
       const limits = { ...locLimits, ...(data.changes?.limits || {}) };
@@ -244,10 +283,7 @@ async function handleRatingForEndorsement(
 
     const result = getPremium(getPremiumInputs);
 
-    // update change request doc
-
     // save rating data to rating collection
-    const ratingCol = ratingDataCollection(db);
     const ratingDocRef = await ratingCol.add({
       ...prevRatingData,
       deductible: data?.changes?.deductible || deductible,
@@ -276,9 +312,6 @@ async function handleRatingForEndorsement(
     const { premiumData } = result;
     // TODO: validate results (premium, etc.)
 
-    const effDateTS = data.changes?.effectiveDate || location.effectiveDate;
-    const expDateTS = data.changes?.expirationDate || location.expirationDate;
-
     const { termPremium, termDays } = calcTerm(
       premiumData.directWrittenPremium,
       effDateTS.toDate(),
@@ -294,8 +327,10 @@ async function handleRatingForEndorsement(
     };
     console.log('CHANGES WITH RATING: ', changesWithRating);
 
-    const changeRequestRef = changeReqestsCollection(db, policyId).doc(requestId);
-    await changeRequestRef.set({ changes: changesWithRating }, { merge: true });
+    await changeRequestRef.set(
+      { changes: changesWithRating, _lastCommitted: Timestamp.now() },
+      { merge: true }
+    );
   } catch (err: any) {
     error('Error calculating new rating values for endorsement', { err, data }); // TODO: report error
 

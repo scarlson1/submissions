@@ -1,10 +1,9 @@
-import { ReactNode, useEffect } from 'react';
+import { getAnalytics } from 'firebase/analytics';
 import { connectAuthEmulator, getAuth } from 'firebase/auth';
-import { connectFirestoreEmulator, Firestore, getFirestore } from 'firebase/firestore';
+import { Firestore, connectFirestoreEmulator, getFirestore } from 'firebase/firestore';
 import { connectFunctionsEmulator, getFunctions } from 'firebase/functions';
 import { connectStorageEmulator, getStorage } from 'firebase/storage';
-import { getAnalytics } from 'firebase/analytics';
-// import { fetchAndActivate, getRemoteConfig } from 'firebase/remote-config';
+import { ReactNode, useEffect } from 'react';
 import {
   AnalyticsProvider,
   AuthProvider,

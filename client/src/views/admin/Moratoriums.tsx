@@ -1,15 +1,15 @@
-import { useCallback } from 'react';
 import { Box, Button, Typography, useMediaQuery, useTheme } from '@mui/material';
-import { doc, getDoc, getFirestore, Timestamp, updateDoc } from 'firebase/firestore';
-import { useNavigate } from 'react-router-dom';
 import { GridRowModel } from '@mui/x-data-grid';
+import { Timestamp, doc, getDoc, getFirestore, updateDoc } from 'firebase/firestore';
+import { useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-import { ADMIN_ROUTES, createPath } from 'router';
-import { formatFirestoreTimestamp } from 'modules/utils';
-import { Moratorium, moratoriumsCollection, WithId } from 'common';
+import { Moratorium, WithId, moratoriumsCollection } from 'common';
 import { useConfirmation } from 'context/ConfirmationService';
-import { MoratoriumsGrid } from 'elements';
+import { MoratoriumsGrid } from 'elements/grids';
 import { useAsyncToast } from 'hooks';
+import { formatFirestoreTimestamp } from 'modules/utils';
+import { ADMIN_ROUTES, createPath } from 'router';
 
 // TODO: lazy load map component in modal
 

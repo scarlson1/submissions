@@ -1,23 +1,3 @@
-import { useCallback, useMemo, useState } from 'react';
-import {
-  Box,
-  Typography,
-  Unstable_Grid2 as Grid,
-  ToggleButton,
-  ToggleButtonGroup,
-  Link,
-  Card,
-  Button,
-  Divider,
-  CardContent,
-  CardHeader,
-  Avatar,
-  Stack,
-  Paper,
-  MenuItem,
-  Badge,
-  Tooltip,
-} from '@mui/material';
 import {
   AccountBalanceRounded,
   EditRounded,
@@ -27,25 +7,46 @@ import {
   PhoneRounded,
   TableRowsRounded,
 } from '@mui/icons-material';
-import { useParams, useSearchParams } from 'react-router-dom';
-import { PickingInfo } from 'deck.gl/typed';
-
 import {
-  useCreatePolicyChangeRequest,
-  useCreateLocationChangeRequest,
-  useDocData,
-  useGeneratePDF,
-} from 'hooks';
+  Avatar,
+  Badge,
+  Box,
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  Divider,
+  Unstable_Grid2 as Grid,
+  Link,
+  MenuItem,
+  Paper,
+  Stack,
+  ToggleButton,
+  ToggleButtonGroup,
+  Tooltip,
+  Typography,
+} from '@mui/material';
+import { GridActionsCellItem, GridRowParams } from '@mui/x-data-grid';
+import { PickingInfo } from 'deck.gl/typed';
+import { useCallback, useMemo, useState } from 'react';
+import { useParams, useSearchParams } from 'react-router-dom';
+
 import { Policy as IPolicy, POLICY_STATUS, PolicyLocation, WithId } from 'common';
-import { LocationCard, LocationsGrid, LocationsMap } from 'elements';
-import { formatFirestoreTimestamp, formatPhoneNumber, stringAvatar } from 'modules/utils';
-import { ContactList } from 'elements/forms';
+import { IconMenu } from 'components/IconButtonMenu';
+import { LocationCard, LocationsMap } from 'elements';
 import {
   ChangeRequestsDialog,
   useViewChangeRequestsDialogProps,
 } from 'elements/ChangeRequestDialog';
-import { IconMenu } from 'components/IconButtonMenu';
-import { GridActionsCellItem, GridRowParams } from '@mui/x-data-grid';
+import { ContactList } from 'elements/forms';
+import { LocationsGrid } from 'elements/grids';
+import {
+  useCreateLocationChangeRequest,
+  useCreatePolicyChangeRequest,
+  useDocData,
+  useGeneratePDF,
+} from 'hooks';
+import { formatFirestoreTimestamp, formatPhoneNumber, stringAvatar } from 'modules/utils';
 
 // TODO: make location card flip on hover to show additoinal details ??
 

@@ -1,4 +1,3 @@
-import { useCallback, useMemo, useState } from 'react';
 import { ClearRounded, EditRounded, SaveRounded } from '@mui/icons-material';
 import { Box, Checkbox, ListItemText, MenuItem } from '@mui/material';
 import {
@@ -15,14 +14,15 @@ import {
   GridRowParams,
 } from '@mui/x-data-grid';
 import { DocumentData, QueryConstraint, query, where } from 'firebase/firestore';
-import { useFirestore, useSigninCheck } from 'reactfire';
 import { isEqual } from 'lodash';
+import { useCallback, useMemo, useState } from 'react';
+import { useFirestore, useSigninCheck } from 'reactfire';
 
-import { COLLECTIONS, User, WithId, usersCollection, CUSTOM_CLAIMS } from 'common';
+import { COLLECTIONS, CUSTOM_CLAIMS, User, WithId, usersCollection } from 'common';
 import { BasicDataGrid, GridEditMultiSelectCell, ServerDataGrid } from 'components';
+import { hasAdminClaimsValidator } from 'components/RequireAuthReactFire';
 import { useAsyncToast, useUpdateClaims } from 'hooks';
 import { useCollectionDataPopulateById } from 'hooks/useRx';
-import { hasAdminClaimsValidator } from 'components/RequireAuthReactFire';
 import { idCol, userClaimsCol, userCols, userSummaryCol } from 'modules/muiGrid/gridColumnDefs';
 import { ServerDataGridCollectionProps } from './QuotesGrid';
 

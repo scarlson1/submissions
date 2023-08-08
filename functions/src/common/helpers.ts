@@ -7,6 +7,7 @@ import numeral from 'numeral';
 import { inspect } from 'util';
 import { v4 as uuid } from 'uuid';
 
+import invariant from 'tiny-invariant';
 import { reportErrorSentry } from '../services/sentry';
 import { cardFeePct } from './environmentVars';
 import { FeeItem, TaxItem } from './types';
@@ -400,3 +401,16 @@ export const getReportErrorFn =
 export const hasAny = (values: string[], checkValues: string[]) => {
   return values.some((v) => checkValues.indexOf(v) !== -1);
 };
+
+export function verify(condition: any, msg: string | (() => string)): asserts condition {
+  try {
+    invariant(condition, msg);
+  } catch (err: any) {
+    let errMsg = 'validation failed';
+    // invariant removes "Invariant failed: " in production
+    const invariantErrMsg = err?.message?.replace('Invariant failed: ', '').trim();
+    if (invariantErrMsg) errMsg = invariantErrMsg;
+
+    throw new Error(errMsg);
+  }
+}

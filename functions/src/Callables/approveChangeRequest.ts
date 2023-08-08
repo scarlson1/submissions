@@ -9,9 +9,13 @@ import {
   PolicyLocation,
   changeReqestsCollection,
   policiesCollection,
+  verify,
 } from '../common';
 import { onCallWrapper } from '../services/sentry';
 import { getDoc, requireIDemandAdminClaims } from './utils';
+
+// TODO: validation
+//    - if endorsement, make sure endorsement calculation executed successfully, etc.
 
 interface ApproveRequestProps {
   policyId: string;
@@ -33,12 +37,25 @@ const approveChangeRequest = async ({ data, auth }: CallableRequest<ApproveReque
   const policyRef = policiesCollection(db).doc(policyId);
   const requestRef = changeReqestsCollection(db, policyId).doc(requestId);
 
-  // await getDoc(policyRef);
+  await getDoc(policyRef); // will throw if doc doesnt exist
   const request = await getDoc(requestRef);
 
-  // TODO: validation ?? (policy scope doesnt include locations key ??, etc.)
-  if (!request.scope)
-    throw new HttpsError('failed-precondition', 'missing "scope" field on request doc');
+  // TODO: validation
+  try {
+    verify(request.scope, 'missing "scope" field on request doc');
+    if (request.trxType === 'endorsement') {
+      const keys = Object.keys(request.changes);
+      verify(keys.includes('termPremium'), 'endorsement change must have new "termPremium" value');
+    }
+  } catch (err: any) {
+    error('Error - change request approval validation failed', {
+      err,
+      policyId,
+      requestId,
+    });
+    let msg = err?.message || 'change validation failed';
+    throw new HttpsError('failed-precondition', msg);
+  }
 
   try {
     info(`Updating policy with changes (requestId: ${requestId})`, { ...request });
@@ -52,21 +69,19 @@ const approveChangeRequest = async ({ data, auth }: CallableRequest<ApproveReque
         { merge: true }
       );
     }
-    // TODO: make sure location exists on policy ??
+
     if (request.scope === 'location') {
       const { locationId, changes } = request;
       const policy = await getDoc(policyRef);
       const location = policy.locations[locationId];
+      if (!location) throw new Error(`Location not found on policy`);
+
       // TODO: should location changes be stored as diff from policy root ??
       // Then policy changes would look the same as location changes
       // and deepmerge could be used in both scenarios
       const mergedLocation = deepmerge(location, changes);
 
-      // If using batch.update --> use dot notation
-      // const updates = {
-      //   [`locations.${locationId}`]: mergedLocation,
-      // };
-
+      // If using batch.update --> use dot notation ([`locations.${locationId}`]: mergedLocation)
       // If using batch.set --> do not use dot notation
       const updates = {
         locations: { [locationId]: mergedLocation as PolicyLocation },

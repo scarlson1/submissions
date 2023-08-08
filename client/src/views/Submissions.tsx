@@ -1,12 +1,12 @@
-import { where } from 'firebase/firestore';
 import { Box, Button, Typography } from '@mui/material';
+import { where } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 
+import { useAuth } from 'context';
+import { SubmissionsGrid } from 'elements/grids';
+import { ROUTES, createPath } from 'router';
 import { Submissions as AdminSubmissions } from './admin/Submissions';
 import { Submissions as UserSubmissions } from './user/Submissions';
-import { SubmissionsGrid } from 'elements';
-import { ROUTES, createPath } from 'router';
-import { useAuth } from 'context';
 
 // TODO: create wrapper for common stuff (title, new submission button, etc.)
 // use useUserClaims to get claims or grab from context ? does reactFire get val from cache if using useUserClaims ??

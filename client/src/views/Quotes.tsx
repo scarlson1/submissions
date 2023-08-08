@@ -1,14 +1,14 @@
-import { useCallback } from 'react';
-import { Box, Button, Tooltip, Typography } from '@mui/material';
-import { where } from 'firebase/firestore';
-import { GridActionsCellItem, GridRowParams } from '@mui/x-data-grid';
 import { VisibilityRounded } from '@mui/icons-material';
+import { Box, Button, Tooltip, Typography } from '@mui/material';
+import { GridActionsCellItem, GridRowParams } from '@mui/x-data-grid';
+import { where } from 'firebase/firestore';
+import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { useAuth } from 'context';
-import { Quotes as AdminQuotes } from './admin/Quotes';
-import { QuotesGrid } from 'elements';
+import { QuotesGrid } from 'elements/grids';
 import { AUTH_ROUTES, ROUTES, createPath } from 'router';
+import { Quotes as AdminQuotes } from './admin/Quotes';
 
 // TODO: UPDATE NON-ADMIN VIEW TO USE BREADCRUMBS
 

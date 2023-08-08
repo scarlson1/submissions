@@ -1,20 +1,20 @@
-import { useCallback, useMemo } from 'react';
-import { alpha, Box, Container, IconButton, Skeleton, Tooltip, Typography } from '@mui/material';
 import { ArrowBackIosNewRounded, EditRounded } from '@mui/icons-material';
+import { Box, Container, IconButton, Skeleton, Tooltip, Typography, alpha } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
+import { useCallback, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import { FlexCard, FlexCardContent, InputDialog } from 'components';
-import { dollarFormat } from 'modules/utils/helpers';
-import { useConfirmation } from 'context/ConfirmationService';
-import { createPath, ROUTES } from 'router';
 import {
-  SweetHomeSVG,
+  ApartmentRentSVG,
   BreakingBarriersSVG,
   RelaxingAtHomeSVG,
-  ApartmentRentSVG,
+  SweetHomeSVG,
 } from 'assets/images';
+import { FlexCard, FlexCardContent, InputDialog } from 'components';
+import { useConfirmation } from 'context/ConfirmationService';
 import { useDocData } from 'hooks';
+import { dollarFormat } from 'modules/utils/helpers';
+import { ROUTES, createPath } from 'router';
 
 export const PolicyOld = () => {
   const navigate = useNavigate();
@@ -22,8 +22,6 @@ export const PolicyOld = () => {
   const { policyId } = useParams();
   if (!policyId) throw new Error('policyId missing in url params');
   const { data } = useDocData('POLICIES', policyId);
-
-  // const { requestChange } = usePolicyChangeRequest();
 
   const limits = useMemo(
     () => [

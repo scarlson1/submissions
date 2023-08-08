@@ -1,5 +1,3 @@
-import invariant from 'tiny-invariant';
-
 import {
   BASEMENT_OPTIONS,
   FLOOD_ZONES,
@@ -11,20 +9,8 @@ import {
   maxA,
   maxBCD,
   minA,
+  verify,
 } from '../../common';
-
-export function verify(condition: any, msg: string | (() => string)): asserts condition {
-  try {
-    invariant(condition, msg);
-  } catch (err: any) {
-    let errMsg = 'validation failed';
-    // invariant removes "Invariant failed: " in production
-    const invariantErrMsg = err?.message?.replace('Invariant failed: ', '').trim();
-    if (invariantErrMsg) errMsg = invariantErrMsg;
-
-    throw new Error(errMsg);
-  }
-}
 
 export function validateLimits(limits: Limits): asserts limits is Limits {
   const MAX_A = maxA.value();

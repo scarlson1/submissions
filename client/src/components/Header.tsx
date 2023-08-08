@@ -1,53 +1,50 @@
 import { Suspense, useEffect, useMemo, useState } from 'react';
 
 import {
+  Brightness4,
+  Brightness7,
+  ContactSupportRounded,
+  CorporateFareRounded,
+  FiberNewRounded,
+  InboxRounded,
+  KeyboardArrowDownRounded,
+  ManageAccountsRounded,
+  PageviewRounded,
+  PasswordRounded,
+  PersonRounded,
+  PolicyRounded,
+  RequestQuoteRounded,
+  TuneRounded,
+  WaterRounded,
+} from '@mui/icons-material';
+import {
   AppBar,
   Avatar,
   Box,
-  Toolbar,
-  IconButton,
-  Typography,
-  Menu,
-  Container,
   Button,
-  MenuItem,
-  Tooltip,
-  ListItemButton,
-  ListItemText,
+  Container,
   Divider,
+  IconButton,
+  ListItemButton,
   ListItemIcon,
+  ListItemText,
+  Menu,
+  MenuItem,
   Skeleton,
+  Toolbar,
+  Tooltip,
+  Typography,
 } from '@mui/material';
-import {
-  Brightness4,
-  Brightness7,
-  WaterRounded,
-  KeyboardArrowDownRounded,
-  FiberNewRounded,
-  PageviewRounded,
-  RequestQuoteRounded,
-  PolicyRounded,
-  InboxRounded,
-  CorporateFareRounded,
-  ContactSupportRounded,
-  PersonRounded,
-  ManageAccountsRounded,
-  PasswordRounded,
-  TuneRounded,
-} from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
-import { matchPath, useLocation, useNavigate } from 'react-router-dom';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, matchPath, useLocation, useNavigate } from 'react-router-dom';
 import { useSigninCheck } from 'reactfire';
 
-import { useChangeTheme } from 'context/ThemeContext';
-import { useAuth } from 'context/AuthContext';
-import { ROUTES, ADMIN_ROUTES, createPath, AUTH_ROUTES, ACCOUNT_ROUTES } from 'router';
+import { AuthActionsProvider, useAuth, useAuthActions, useChangeTheme } from 'context';
+import { stringAvatar } from 'modules/utils';
+import { ACCOUNT_ROUTES, ADMIN_ROUTES, AUTH_ROUTES, ROUTES, createPath } from 'router';
+import { NavDrawer } from './NavDrawer';
 import { NavListItem } from './NavListItem';
 import { NavMenu as PopperNavMenu } from './NavMenu';
-import { NavDrawer } from './NavDrawer';
-import { AuthActionsProvider, useAuthActions } from 'context';
-import { stringAvatar } from 'modules/utils';
 
 // TODO: GENERALIZE MENU COMPONENT - allow for button or user avatar as button. nested items. icons.
 // could have optional render function to render button??
