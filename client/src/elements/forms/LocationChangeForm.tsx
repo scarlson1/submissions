@@ -6,6 +6,7 @@ import * as yup from 'yup';
 
 import { AdditionalInterest, Limits, deductibleVal, limitsValidation } from 'common';
 import {
+  FormikDatePicker,
   FormikFieldArray,
   FormikIncrementor,
   FormikTextField,
@@ -34,13 +35,14 @@ export interface LocationChangeValues {
   requestEffDate: Date;
 }
 
-interface LocationChangeFormProps extends Partial<FormikProps<LocationChangeValues>> {
+export interface LocationChangeFormProps extends Partial<FormikProps<LocationChangeValues>> {
   onSubmit: (
     values: LocationChangeValues,
     bag: FormikHelpers<LocationChangeValues>
   ) => Promise<void | any>;
   initialValues: LocationChangeValues;
   formRef: RefObject<FormikProps<LocationChangeValues>>;
+  policyExpirationDate?: Date;
   replacementCost?: number | undefined;
 }
 
@@ -49,8 +51,10 @@ export const LocationChangeForm = ({
   formRef,
   onSubmit,
   replacementCost,
+  policyExpirationDate,
   ...props
 }: LocationChangeFormProps) => {
+  console.log(policyExpirationDate);
   return (
     <Formik
       initialValues={initialValues}
@@ -95,6 +99,31 @@ export const LocationChangeForm = ({
                   if (!val) return;
                   return dollarFormat(val);
                 }}
+              />
+            </Grid>
+            <Grid xs={12}>
+              <Divider sx={{ my: 1 }} />
+            </Grid>
+            <Grid xs={12} sm={6}>
+              <FormikDatePicker
+                name='effectiveDate'
+                label='Effective Date'
+                // disable if already enforce
+                disabled={
+                  initialValues.effectiveDate
+                    ? initialValues.effectiveDate?.getTime() < new Date().getTime()
+                    : false
+                }
+                minDate={undefined}
+                maxDate={undefined}
+              />
+            </Grid>
+            <Grid xs={12} sm={6}>
+              <FormikDatePicker
+                name='expirationDate'
+                label='Expiration Date'
+                minDate={new Date()}
+                maxDate={policyExpirationDate}
               />
             </Grid>
             <Grid xs={12}>

@@ -38,4 +38,4 @@ export type { FormikAddressLiteProps } from './FormikAddressLite';
 export type { LicenseValues } from './LicenseForm';
 export type { PriorFloodLossStepProps } from './PriorFloodLossStep';
 export type { QuoteValues } from './QuoteForm';
-export type { LocationChangeValues } from './LocationChangeForm';
+export type { LocationChangeValues, LocationChangeFormProps } from './LocationChangeForm';
