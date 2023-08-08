@@ -14,7 +14,11 @@ import {
   policiesCollection,
 } from 'common';
 import { useAuth } from 'context';
-import { PolicyChangeForm, PolicyChangeValues } from 'elements/forms/PolicyChangeForm';
+import {
+  PolicyChangeForm,
+  PolicyChangeFormProps,
+  PolicyChangeValues,
+} from 'elements/forms/PolicyChangeForm';
 import { getDifference } from 'modules/utils';
 import { useAsyncToast } from './useAsyncToast';
 import { useDialogForm } from './useDialogForm';
@@ -95,7 +99,7 @@ export const useCreatePolicyChangeRequest = () => {
     [firestore, initialVals, policy, policyId, toast, user]
   );
 
-  const dialogForm = useDialogForm<PolicyChangeValues>({
+  const dialogForm = useDialogForm<PolicyChangeValues, PolicyChangeFormProps>({
     formComponent: (
       <PolicyChangeForm
         initialValues={{} as PolicyChangeValues}

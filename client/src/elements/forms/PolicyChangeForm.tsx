@@ -44,7 +44,7 @@ const validation = yup.object().shape({
   expirationDate: yup.date().required(),
 });
 
-interface PolicyChangeFormProps extends Partial<FormikProps<PolicyChangeValues>> {
+export interface PolicyChangeFormProps extends Partial<FormikProps<PolicyChangeValues>> {
   onSubmit: (
     values: PolicyChangeValues,
     bag: FormikHelpers<PolicyChangeValues>

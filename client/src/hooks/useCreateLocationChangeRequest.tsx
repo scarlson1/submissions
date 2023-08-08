@@ -17,7 +17,7 @@ import {
   changeReqestsCollection,
 } from 'common';
 import { useAuth } from 'context';
-import { LocationChangeForm, LocationChangeValues } from 'elements/forms';
+import { LocationChangeForm, LocationChangeValues, LocationChangeFormProps } from 'elements/forms';
 import { useAsyncToast } from './useAsyncToast';
 import { formatChanges } from './useCreatePolicyChangeRequest';
 import { useDialogForm } from './useDialogForm';
@@ -112,15 +112,17 @@ export const useCreateLocationChangeRequest = (policyId: string) => {
     [firestore, policyId, user]
   );
 
-  const dialogForm = useDialogForm<LocationChangeValues>({
+  const dialogForm = useDialogForm<LocationChangeValues, LocationChangeFormProps>({
     formComponent: (
       <LocationChangeForm
         initialValues={{} as LocationChangeValues}
         formRef={formRef}
         onSubmit={handleSubmit}
+        policyExpirationDate={policy.current?.expirationDate.toDate() || undefined}
       />
     ),
     formRef,
+    formProps: { policyExpirationDate: policy.current?.expirationDate.toDate() },
     onSubmit: handleSubmit,
     onSuccess: () => {},
     onError: (msg: string, err: any) => {
@@ -146,7 +148,6 @@ export const useCreateLocationChangeRequest = (policyId: string) => {
         deductible: loc.deductible,
         effectiveDate: loc.effectiveDate.toDate(),
         expirationDate: loc.expirationDate.toDate(),
-
         additionalInterests: [...ai, ...m],
         externalId: loc.externalId || '',
       };

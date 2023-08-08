@@ -18,8 +18,8 @@ import {
 } from '../common';
 
 const MAPBOX_STYLES: { name: locationImageTypes; style: string; zoom: number }[] = [
-  { name: 'light', style: 'mapbox/light-v8', zoom: 13 },
-  { name: 'dark', style: 'spencer-carlson/cl8dxgtum000w14qix5ft9gw5', zoom: 13 },
+  { name: 'light', style: 'mapbox/light-v11', zoom: 13 },
+  { name: 'dark', style: 'spencer-carlson/clkrsmyib01wz01qwdbujb4da', zoom: 13 }, // 'spencer-carlson/cl8dxgtum000w14qix5ft9gw5'
   { name: 'satellite', style: 'mapbox/satellite-v9', zoom: 17 },
   {
     name: 'satelliteStreets',

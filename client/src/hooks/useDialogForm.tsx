@@ -1,13 +1,17 @@
 import { ReactElement, RefObject, cloneElement, useCallback, useRef } from 'react';
 import { FormikHelpers, FormikProps } from 'formik';
+import { Button } from '@mui/material';
 
 import { useDialog, DialogOptions } from 'context';
-import { Button } from '@mui/material';
-import { PolicyChangeForm, PolicyChangeValues } from 'elements/forms/PolicyChangeForm';
+import {
+  PolicyChangeForm,
+  PolicyChangeFormProps,
+  PolicyChangeValues,
+} from 'elements/forms/PolicyChangeForm';
 
-interface UseDialogFormProps<T> {
+interface UseDialogFormProps<T, C> {
   formComponent: ReactElement;
-  formProps?: Partial<FormikProps<T>>;
+  formProps?: Partial<FormikProps<T>> & Partial<C>; // Record<string, any>; // HACK: allow other props
   formRef: RefObject<FormikProps<T>>;
   dialogOptions?: Omit<DialogOptions, 'content' | 'onSubmit' | 'variant'>;
   onSubmit: (values: T, bag: FormikHelpers<T>) => Promise<any>;
@@ -18,7 +22,7 @@ interface UseDialogFormProps<T> {
   onCancel?: () => void;
 }
 
-export function useDialogForm<T extends Record<string, any>>({
+export function useDialogForm<T extends Record<string, any>, C = {}>({
   formComponent,
   formProps,
   formRef,
@@ -27,7 +31,7 @@ export function useDialogForm<T extends Record<string, any>>({
   onSuccess,
   onError,
   onCancel,
-}: UseDialogFormProps<T>) {
+}: UseDialogFormProps<T, C>) {
   const dialog = useDialog();
 
   const triggerSubmit = useCallback(async () => {
@@ -115,10 +119,10 @@ let initialVals = {
 export function Usage() {
   const formRef = useRef<FormikProps<PolicyChangeValues>>(null);
   const handleSubmit = useCallback(async (values: PolicyChangeValues) => {
-    return { ...values, iam: 'groot' };
+    return { ...values, test: 'additional val' };
   }, []);
 
-  const promptForm = useDialogForm<PolicyChangeValues>({
+  const promptForm = useDialogForm<PolicyChangeValues, PolicyChangeFormProps>({
     formComponent: (
       <PolicyChangeForm initialValues={initialVals} formRef={formRef} onSubmit={handleSubmit} />
     ),

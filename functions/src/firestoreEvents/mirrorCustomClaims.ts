@@ -1,7 +1,7 @@
 import { Auth, TenantAwareAuth, getAuth } from 'firebase-admin/auth';
 import { DocumentData, DocumentSnapshot, Timestamp, getFirestore } from 'firebase-admin/firestore';
 import type { Change } from 'firebase-functions';
-import { info } from 'firebase-functions/logger';
+import { error, info } from 'firebase-functions/logger';
 import type { FirestoreEvent } from 'firebase-functions/v2/firestore';
 
 import { CLAIMS, isJSON, orgsCollection } from '../common';
@@ -36,7 +36,7 @@ export default async (
       !beforeData._lastCommitted.isEqual(afterData._lastCommitted);
 
     if (skipUpdate) {
-      console.log('No changes');
+      info('No changes');
       return;
     }
 
@@ -50,7 +50,7 @@ export default async (
     const isValid = isJSON(stringifiedClaims);
 
     if (!isValid) {
-      console.log('Invalid JSON. returning early');
+      info('Invalid JSON. returning early');
       await event?.data?.after.ref.set({
         ...beforeData,
       });
@@ -61,20 +61,15 @@ export default async (
         Object.keys(newClaims).includes(CLAIMS.IDEMAND_USER)) &&
       orgId !== 'idemand'
     ) {
-      console.log(
-        'New custom claims contained reserved custom claim (iDemandAdmin). Removing claim.'
-      );
-      // delete newClaims.iDemandAdmin;
+      info('New custom claims contained reserved custom claim (iDemandAdmin). Removing claim.');
       delete newClaims[CLAIMS.IDEMAND_ADMIN];
       delete newClaims[CLAIMS.IDEMAND_USER];
+
       await event?.data?.after.ref.set({
         ...newClaims,
         _lastCommitted,
       });
-      // await change.after.ref.set({
-      //   ...newClaims,
-      //   _lastCommitted,
-      // });
+
       return;
     }
     // could limit the allow claims ['iDemandAdmin', 'admin', 'agent'] etc
@@ -91,14 +86,14 @@ export default async (
     if (orgData?.tenantId) {
       const tenant = await auth.tenantManager().getTenant(orgId);
       if (!tenant || !tenant.tenantId) {
-        console.log(`No tenant found with ID ${orgId}`);
+        info(`No tenant found with ID ${orgId}`);
         return;
       }
-      console.log(`Using tenant aware auth for tenant ${tenant.tenantId}`);
+      info(`Using tenant aware auth for tenant ${tenant.tenantId}`);
       auth = auth.tenantManager().authForTenant(tenant.tenantId);
     }
 
-    console.log(`Setting custom claims for ${userId}`, newClaims);
+    info(`Setting custom claims for ${userId}`, { newClaims });
     await auth.setCustomUserClaims(userId, { ...newClaims });
 
     await event?.data?.after.ref.update({
@@ -106,7 +101,7 @@ export default async (
       ...newClaims,
     });
   } catch (err) {
-    console.log('ERROR => ', err);
+    error('Error mirroring custom claims', { err });
     return;
   }
 };

@@ -42,8 +42,18 @@ export default async (
     return;
   }
 
+  // TODO: use its own field cloudFnUpdated: Timestamp (might want this to run if there's an update)
+  // This way would require updating _lastCommitted to acknowlege everytime ??
+  // const skipUpdate =
+  //   prevData?._lastCommitted &&
+  //   data?._lastCommitted &&
+  //   !prevData?._lastCommitted.isEqual(data._lastCommitted);
+  // if (skipUpdate) {
+  //   info('Change request status unchanged. returning early');
+  //   return;
+  // }
   if (prevData && data && prevData.status === data.status) {
-    info('Change request status unchanged. returning early');
+    info('Change request status unchanged. returning early.');
     return;
   }
 

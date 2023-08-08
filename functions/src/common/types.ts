@@ -970,6 +970,7 @@ interface BaseChangeRequest extends BaseDoc {
     email: string | null;
   };
   underwriterNotes?: string | null;
+  _lastCommitted?: Timestamp;
 }
 
 export interface LocationChangeRequest extends BaseChangeRequest {
