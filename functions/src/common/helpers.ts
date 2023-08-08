@@ -398,5 +398,5 @@ export const getReportErrorFn =
  * @returns returns true if values array does not contain any values in the checkValues array
  */
 export const hasAny = (values: string[], checkValues: string[]) => {
-  return values.every((v) => checkValues.indexOf(v) === -1);
+  return values.some((v) => checkValues.indexOf(v) !== -1);
 };
