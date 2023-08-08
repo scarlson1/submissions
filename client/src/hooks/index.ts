@@ -64,6 +64,7 @@ export { useGeneratePDF } from './useGeneratePDF';
 export { useDocCount } from './useDocCount';
 export { useCreatePolicyChangeRequest } from './useCreatePolicyChangeRequest';
 export { useCreateLocationChangeRequest } from './useCreateLocationChangeRequest';
+export { useWizard } from './useWizard';
 
 export type { UseFileUploadProps } from './useFileUpload';
 export type { UpdateProfileArgs, UpdateProfileRes } from './useUpdateProfile';

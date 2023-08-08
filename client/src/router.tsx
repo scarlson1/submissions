@@ -64,6 +64,7 @@ import { TempWrappedSearch } from 'components/search/Search';
 import { AgencyAppSuccessStep } from 'views/AgencyNew';
 import { ImportsSummaryGrid } from 'elements/ImportsSummaryGrid';
 import { EmailVerified } from 'views/EmailVerified';
+import { WizardFormTest } from 'views/WizardFormTest';
 
 export interface CrumbMatch {
   id: string;
@@ -675,6 +676,10 @@ export const router = sentryCreateBrowserRouter([
               </RequireAuthReactFire>
             ),
             // element: (() => <div>TODO: Admin Index Page</div>)(),
+          },
+          {
+            path: 'test',
+            element: <WizardFormTest />,
           },
           {
             path: ADMIN_ROUTES.SUBMISSIONS,
