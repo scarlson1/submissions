@@ -1,10 +1,8 @@
 import { GeoPoint, Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
-import invariant from 'tiny-invariant';
 
 import {
-  CLAIMS,
   Coordinates,
   Limits,
   Optional,
@@ -15,9 +13,20 @@ import {
   swissReClientSecret,
   swissReSubscriptionKey,
 } from '../common';
-import { getAALs, getPremium, validateGetAALsProps } from '../utils/rating';
+import { onCallWrapper } from '../services/sentry';
+import {
+  getAALs,
+  getPremium,
+  validateAALs,
+  validateBasement,
+  validateCommission,
+  validateFloodZone,
+  validateGetAALsProps,
+  validatePriorLossCount,
+} from '../utils/rating';
 import { GetAALRes } from '../utils/rating/getAALs';
 import { GetPremiumCalcResult } from '../utils/rating/getPremium';
+import { requireIDemandAdminClaims } from './utils';
 
 interface GetAnnualPremiumRequest {
   coordinates: Coordinates;
@@ -37,17 +46,16 @@ interface GetAnnualPremiumRequest {
 
 export interface GetAnnualPremiumResponse {
   annualPremium: number;
-  AAL: ValueByRiskType;
+  AALs: ValueByRiskType;
   ratingDocId?: string;
 }
 
-export default async ({ data, auth }: CallableRequest<GetAnnualPremiumRequest>) => {
+// export default async ({ data, auth }: CallableRequest<GetAnnualPremiumRequest>) => {
+const getAnnualPremium = async ({ data, auth }: CallableRequest<GetAnnualPremiumRequest>) => {
   const db = getFirestore();
   info('GET ANNUAL PREMIUM CALLED', data);
 
-  if (!(auth && auth.uid && auth?.token[CLAIMS['IDEMAND_ADMIN']])) {
-    throw new HttpsError('permission-denied', `${CLAIMS['IDEMAND_ADMIN']} permissions required`);
-  }
+  requireIDemandAdminClaims(auth?.token);
 
   const {
     coordinates,
@@ -69,23 +77,14 @@ export default async ({ data, auth }: CallableRequest<GetAnnualPremiumRequest>) 
     // VALIDATE SWISS RE PROPS
     validateGetAALsProps(data);
 
-    // VALIDATE NON-SWISS RE PROPS
-    invariant(
-      priorLossCount && typeof priorLossCount === 'string',
-      'prior loss count must be "0", "1", or "2"'
-    );
-    invariant(floodZone && typeof floodZone === 'string', 'floodZone is required');
-    invariant(basement && typeof basement === 'string', 'basement must be a string');
-    invariant(
-      commissionPct, // && typeof commissionPct === 'number',
-      'commissionPct must be a number'
-    );
-    // TODO: DECIDE WHETHER TO HAVE A HARD LIMIT (can't override) ??
-    invariant(commissionPct <= 0.2, 'commissionPct must be <= 20% (provided as decimal)');
+    // VALIDATE NON-SWISS RE PROPS (premium calc)
+    validatePriorLossCount(priorLossCount);
+    validateFloodZone(floodZone);
+    validateBasement(basement);
+    validateCommission(commissionPct);
   } catch (err: any) {
     error('INVALID PROPS: ', { err });
-    let msg = 'request body validation failed';
-    if (err?.message) msg = err.message.replace('Invariant failed: ', '');
+    const msg = err?.message || 'request body validation failed';
 
     throw new HttpsError('failed-precondition', msg);
   }
@@ -104,23 +103,16 @@ export default async ({ data, auth }: CallableRequest<GetAnnualPremiumRequest>) 
     });
     // TODO: save to SR collection (see getSubmissionAAL)
   } catch (err: any) {
-    console.log('ERROR GETTING AALs: ', err);
+    error('ERROR GETTING AALs: ', { err });
 
     throw new HttpsError('internal', 'Error fetching Average Anuual Loss');
   }
-
-  invariant(typeof AALsRes?.AAL?.inland === 'number', 'Missing inland AAL');
-  invariant(typeof AALsRes?.AAL?.surge === 'number', 'Missing surge AAL');
-  invariant(typeof AALsRes?.AAL?.tsunami === 'number', 'Missing tsunami AAL');
+  validateAALs(AALsRes.AALs);
 
   let result: GetPremiumCalcResult | undefined;
   try {
     result = getPremium({
-      AAL: {
-        inland: AALsRes.AAL.inland,
-        surge: AALsRes.AAL.surge,
-        tsunami: AALsRes.AAL.tsunami,
-      },
+      AALs: AALsRes.AALs,
       limits,
       floodZone,
       state,
@@ -130,9 +122,7 @@ export default async ({ data, auth }: CallableRequest<GetAnnualPremiumRequest>) 
     });
 
     const { premiumData } = result;
-
     // TODO: update original submission ??
-
     info(`PREMIUM: ${premiumData.directWrittenPremium}`);
 
     if (
@@ -156,7 +146,7 @@ export default async ({ data, auth }: CallableRequest<GetAnnualPremiumRequest>) 
 
   let res: Optional<GetAnnualPremiumResponse> = {
     annualPremium: result.premiumData.directWrittenPremium,
-    AAL: AALsRes.AAL as ValueByRiskType,
+    AALs: AALsRes.AALs as ValueByRiskType,
   };
 
   try {
@@ -169,11 +159,11 @@ export default async ({ data, auth }: CallableRequest<GetAnnualPremiumRequest>) 
       limits,
       TIV: result.tiv,
       RCVs: {
-        building: AALsRes.rcvs.building,
-        otherStructures: AALsRes.rcvs.otherStructures,
-        contents: AALsRes.rcvs.contents,
-        BI: AALsRes.rcvs.BI,
-        total: AALsRes.rcvs.total,
+        building: AALsRes.RCVs.building,
+        otherStructures: AALsRes.RCVs.otherStructures,
+        contents: AALsRes.RCVs.contents,
+        BI: AALsRes.RCVs.BI,
+        total: AALsRes.RCVs.total,
       },
       ratingPropertyData: {
         replacementCost,
@@ -188,7 +178,7 @@ export default async ({ data, auth }: CallableRequest<GetAnnualPremiumRequest>) 
         FFH: null,
         priorLossCount: priorLossCount ?? null,
       },
-      AAL: AALsRes.AAL,
+      AALs: AALsRes.AALs,
       premiumCalcData: result.premiumData,
       PM: result.pm,
       riskScore: result.riskScore,
@@ -204,8 +194,10 @@ export default async ({ data, auth }: CallableRequest<GetAnnualPremiumRequest>) 
 
     res.ratingDocId = ratingDocRef.id;
   } catch (err) {
-    console.log('ERROR SAVING RATING DOC: ', err);
+    error('ERROR SAVING RATING DOC ', { err });
   }
 
   return res;
 };
+
+export default onCallWrapper<GetAnnualPremiumRequest>('getAnnualPremium', getAnnualPremium);

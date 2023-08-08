@@ -12,7 +12,7 @@ import { multipliersByState } from './multipliersByState.js';
 import { getInlandRiskScore, getSurgeRiskScore } from './riskScore.js';
 
 export interface GetPremiumProps {
-  AAL: ValueByRiskType;
+  AALs: ValueByRiskType;
   limits: Limits;
   priorLossCount: string;
   state: string;
@@ -34,7 +34,7 @@ export interface GetPremiumCalcResult {
 
 export const getPremium = (props: GetPremiumProps): GetPremiumCalcResult => {
   const {
-    AAL, // : { inland, surge, tsunami },
+    AALs, // : { inland, surge, tsunami },
     limits, // : { limitA, limitB, limitC, limitD },
     floodZone,
     state,
@@ -49,9 +49,9 @@ export const getPremium = (props: GetPremiumProps): GetPremiumCalcResult => {
   const minPremium = getMinPremium(floodZone || defaultFloodZone.value(), tiv, isPortfolio);
 
   const pm = {
-    inland: getPM(AAL.inland, tiv),
-    surge: getPM(AAL.surge, tiv),
-    tsunami: getPM(AAL.tsunami, tiv),
+    inland: getPM(AALs.inland, tiv),
+    surge: getPM(AALs.surge, tiv),
+    tsunami: getPM(AALs.tsunami, tiv),
   };
   const riskScore = {
     inland: getInlandRiskScore(pm.inland),
@@ -75,7 +75,7 @@ export const getPremium = (props: GetPremiumProps): GetPremiumCalcResult => {
   });
 
   const premResult = getPremiumData({
-    AAL: props.AAL,
+    AALs: props.AALs,
     secondaryFactorMults,
     stateMultipliers: {
       inland: inlandStateMult,

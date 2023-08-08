@@ -4,7 +4,7 @@ import { Limits, ValueByRiskType } from 'common';
 
 export interface CalcQuoteRequest {
   limits: Limits;
-  AAL: ValueByRiskType;
+  AALs: ValueByRiskType;
   replacementCost: number;
   deductible: number;
   state: string;

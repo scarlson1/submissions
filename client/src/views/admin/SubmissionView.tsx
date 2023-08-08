@@ -1,5 +1,4 @@
-import { ReactNode, useCallback } from 'react';
-import { doc, getDoc, orderBy, where } from 'firebase/firestore';
+import { ArrowBackIosRounded, OpenInNewRounded } from '@mui/icons-material';
 import {
   Box,
   Button,
@@ -10,17 +9,18 @@ import {
   Typography,
 } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
-import { ArrowBackIosRounded, OpenInNewRounded } from '@mui/icons-material';
-import { useNavigate, useParams } from 'react-router-dom';
+import { doc, getDoc, orderBy, where } from 'firebase/firestore';
+import { ReactNode, useCallback } from 'react';
 import { toast } from 'react-hot-toast';
-import invariant from 'tiny-invariant';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useFirestore } from 'reactfire';
+import invariant from 'tiny-invariant';
 
+import { COLLECTIONS, RatingData } from 'common';
 import { Submission } from 'common/types';
+import { useDocData, useFetchFirestore, useJsonDialog } from 'hooks';
 import { dollarFormat, formatFirestoreTimestamp, numberFormat } from 'modules/utils/helpers';
 import { ADMIN_ROUTES, createPath } from 'router';
-import { useDocData, useFetchFirestore, useJsonDialog } from 'hooks';
-import { COLLECTIONS, RatingData } from 'common';
 
 // TODO: use observable to lazy load rating data collection
 // https://firebase.blog/posts/2018/09/introducing-rxfire-easy-async-firebase
@@ -243,11 +243,11 @@ export const SubmissionView = () => {
         </Box>
         <Box sx={{ pb: 3 }}>
           <Typography variant='overline' color='text.secondary'>
-            AAL & Premium
+            AALs & Premium
           </Typography>
-          <RowItem title='Inland AAL' value={data.AAL?.inland} />
-          <RowItem title='Surge AAL' value={data.AAL?.surge} />
-          <RowItem title='Tsunami AAL' value={data.AAL?.tsunami} />
+          <RowItem title='Inland AALs' value={data.AALs?.inland} />
+          <RowItem title='Surge AALs' value={data.AALs?.surge} />
+          <RowItem title='Tsunami AALs' value={data.AALs?.tsunami} />
           <RowItem
             title='Annual Premium'
             value={data.annualPremium ? dollarFormat(data.annualPremium) : null}

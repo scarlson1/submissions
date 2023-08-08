@@ -1,21 +1,21 @@
-import type { FirestoreEvent } from 'firebase-functions/v2/firestore';
 import type { QueryDocumentSnapshot } from 'firebase-admin/firestore';
+import { Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { error, info, warn } from 'firebase-functions/logger';
-import { getFirestore, Timestamp } from 'firebase-admin/firestore';
+import type { FirestoreEvent } from 'firebase-functions/v2/firestore';
 import invariant from 'tiny-invariant';
 
 import {
-  swissReResCollection,
   Submission,
-  usersCollection,
+  defaultCommissionAsInt,
+  defaultFloodZone,
+  ratingDataCollection,
   swissReClientId,
   swissReClientSecret,
+  swissReResCollection,
   swissReSubscriptionKey,
-  defaultFloodZone,
-  defaultCommissionAsInt,
-  ratingDataCollection,
+  usersCollection,
 } from '../common';
-import { getAALs, GetAALsProps, getPremium, validateGetAALsProps } from '../utils/rating';
+import { GetAALsProps, getAALs, getPremium, validateGetAALsProps } from '../utils/rating';
 import type { GetAALRes } from '../utils/rating/getAALs';
 
 // TODO: get commission if submitted by agent
@@ -106,7 +106,7 @@ export default async (
       },
     });
     info(
-      `SWISS RE DOC SAVED: ${swissReRef.id} - AALs =>  inland: ${AALsRes.AAL.inland}; surge: ${AALsRes.AAL.surge}; tsunami: ${AALsRes.AAL.tsunami}`,
+      `SWISS RE DOC SAVED: ${swissReRef.id} - AALs =>  inland: ${AALsRes.AALs.inland}; surge: ${AALsRes.AALs.surge}; tsunami: ${AALsRes.AALs.tsunami}`,
       {
         ...AALsRes,
       }
@@ -114,29 +114,29 @@ export default async (
 
     // update submission doc with AALs
     const updates: Partial<Submission> = {
-      AAL: {
-        inland: AALsRes.AAL?.inland ?? null,
-        surge: AALsRes.AAL?.surge ?? null,
-        tsunami: AALsRes.AAL?.tsunami ?? null,
+      AALs: {
+        inland: AALsRes.AALs?.inland ?? null,
+        surge: AALsRes.AALs?.surge ?? null,
+        tsunami: AALsRes.AALs?.tsunami ?? null,
       }, // @ts-ignore
       'metadata.updated': Timestamp.now(),
     };
     await snap.ref.update(updates);
   } catch (err: any) {
-    warn('ERROR FETCHING SR AAL DATA', { err });
+    warn('ERROR FETCHING SR AALs DATA', { err });
     return;
   }
 
   try {
-    invariant(typeof AALsRes?.AAL?.inland === 'number', 'Missing inland AAL');
-    invariant(typeof AALsRes?.AAL?.surge === 'number', 'Missing surge AAL');
-    invariant(typeof AALsRes?.AAL?.tsunami === 'number', 'Missing tsunami AAL');
+    invariant(typeof AALsRes?.AALs?.inland === 'number', 'Missing inland AALs');
+    invariant(typeof AALsRes?.AALs?.surge === 'number', 'Missing surge AALs');
+    invariant(typeof AALsRes?.AALs?.tsunami === 'number', 'Missing tsunami AALs');
 
     const result = getPremium({
-      AAL: {
-        inland: AALsRes?.AAL?.inland,
-        surge: AALsRes?.AAL?.surge,
-        tsunami: AALsRes?.AAL?.tsunami,
+      AALs: {
+        inland: AALsRes?.AALs?.inland,
+        surge: AALsRes?.AALs?.surge,
+        tsunami: AALsRes?.AALs?.tsunami,
       },
       limits: {
         limitA: sub.limits?.limitA,
@@ -167,11 +167,11 @@ export default async (
       TIV: result.tiv,
       // replacementCost: sub.replacementCost,
       RCVs: {
-        building: AALsRes.rcvs.building,
-        otherStructures: AALsRes.rcvs.otherStructures,
-        contents: AALsRes.rcvs.contents,
-        BI: AALsRes.rcvs.BI,
-        total: AALsRes.rcvs.total,
+        building: AALsRes.RCVs.building,
+        otherStructures: AALsRes.RCVs.otherStructures,
+        contents: AALsRes.RCVs.contents,
+        BI: AALsRes.RCVs.BI,
+        total: AALsRes.RCVs.total,
       },
       ratingPropertyData: {
         replacementCost: sub.ratingPropertyData?.replacementCost || null,
@@ -186,10 +186,10 @@ export default async (
         FFH: null,
         priorLossCount: sub.priorLossCount ?? null,
       },
-      AAL: {
-        inland: AALsRes.AAL.inland,
-        surge: AALsRes.AAL.surge,
-        tsunami: AALsRes.AAL.tsunami,
+      AALs: {
+        inland: AALsRes.AALs.inland,
+        surge: AALsRes.AALs.surge,
+        tsunami: AALsRes.AALs.tsunami,
       },
       premiumCalcData: result.premiumData,
       PM: result.pm,

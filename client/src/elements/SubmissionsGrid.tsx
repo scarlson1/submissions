@@ -1,13 +1,12 @@
-import { useCallback, useMemo } from 'react';
-import { Box, Tooltip } from '@mui/material';
 import { DataObjectRounded } from '@mui/icons-material';
+import { Box, Tooltip } from '@mui/material';
 import { GridActionsCellItem, GridColDef, GridRowParams } from '@mui/x-data-grid';
+import { useCallback, useMemo } from 'react';
 import { useSigninCheck } from 'reactfire';
 
+import { COLLECTIONS, CUSTOM_CLAIMS, SUBMISSION_STATUS, Submission } from 'common';
 import { ServerDataGrid, ServerDataGridProps } from 'components';
 import { useAsyncToast, useGridActions, useShowJson, useWidth } from 'hooks';
-import { CUSTOM_CLAIMS } from 'common';
-import { SUBMISSION_STATUS, Submission, COLLECTIONS } from 'common';
 import { statusCol, submissionCols } from 'modules/muiGrid/gridColumnDefs';
 
 export interface SubmissionsGridProps
@@ -117,9 +116,9 @@ export const SubmissionsGrid = ({
               'limits.limitD': false,
               latitude: false,
               longitude: false,
-              'AAL.inland': false,
-              'AAL.surge': false,
-              'AAL.tsunami': false,
+              'AALs.inland': false,
+              'AALs.surge': false,
+              'AALs.tsunami': false,
               'metadata.updated': false,
               'ratingPropertyData.replacementCost': false,
               'ratingPropertyData.propertyCode': false,

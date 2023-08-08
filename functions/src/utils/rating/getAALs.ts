@@ -1,14 +1,14 @@
-import invariant from 'tiny-invariant';
 import { AxiosInstance } from 'axios';
 import { info } from 'firebase-functions/logger';
+import invariant from 'tiny-invariant';
 
 import {
-  ValueByRiskType,
   GetAALRequest,
   Nullable,
   RCVs,
   SRPerilAAL,
   SRRes,
+  ValueByRiskType,
   isLatLng,
   maxA,
   maxBCD,
@@ -27,9 +27,9 @@ export interface GetAALsProps extends GetAALRequest {
 }
 
 export interface GetAALRes {
-  AAL: Nullable<ValueByRiskType>;
+  AALs: Nullable<ValueByRiskType>;
   srRes: SRRes;
-  rcvs: RCVs;
+  RCVs: RCVs;
 }
 
 export const getAALs = async (props: GetAALsProps): Promise<GetAALRes> => {
@@ -62,7 +62,7 @@ export const getAALs = async (props: GetAALsProps): Promise<GetAALRes> => {
     limitAB,
     rcvTotal: RCVs.total,
   };
-  info('Swiss Re AAL XML Variables', { ...xmlBodyVars });
+  info('Swiss Re AALs XML Variables', { ...xmlBodyVars });
   const body = swissReBody(xmlBodyVars);
 
   const { data: srRes } = await swissReInstance.post('/rate/sync/srxplus/losses', body, {
@@ -72,16 +72,16 @@ export const getAALs = async (props: GetAALsProps): Promise<GetAALRes> => {
   });
 
   info('SWISS RE RES: ', { ...srRes });
-  const AAL = extractSRAALs(srRes?.expectedLosses);
+  const AALs = extractSRAALs(srRes?.expectedLosses);
 
-  info(`AAL: ${JSON.stringify(AAL)}`);
+  info(`AALs: ${JSON.stringify(AALs)}`);
 
-  return { srRes, AAL, rcvs: RCVs };
+  return { srRes, AALs, RCVs: RCVs };
 };
 
 // TODO REPLACE ABOVE WITH THIS FUNC
 export function extractSRAALs(expectedLosses?: SRPerilAAL[]) {
-  const AAL: ValueByRiskType = { surge: 0, inland: 0, tsunami: 0 };
+  const AALs: ValueByRiskType = { surge: 0, inland: 0, tsunami: 0 };
 
   if (!expectedLosses) return { surge: -1, inland: -1, tsunami: -1 };
 
@@ -96,17 +96,17 @@ export function extractSRAALs(expectedLosses?: SRPerilAAL[]) {
   );
 
   if (code200Index !== -1) {
-    AAL.surge = expectedLosses[code200Index]?.preCatLoss ?? 0;
+    AALs.surge = expectedLosses[code200Index]?.preCatLoss ?? 0;
   }
   if (code300Index !== -1) {
-    AAL.inland = expectedLosses[code300Index]?.preCatLoss ?? 0;
+    AALs.inland = expectedLosses[code300Index]?.preCatLoss ?? 0;
   }
   // TODO: tsunami
   if (code104Index !== -1) {
-    AAL.tsunami = expectedLosses[code104Index]?.preCatLoss ?? 0;
+    AALs.tsunami = expectedLosses[code104Index]?.preCatLoss ?? 0;
   }
 
-  return AAL;
+  return AALs;
 }
 
 export const validateGetAALsProps = (props: Partial<GetAALsProps>) => {

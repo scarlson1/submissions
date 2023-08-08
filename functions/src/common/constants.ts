@@ -59,3 +59,8 @@ export const statesList: Record<string, string> = {
   WI: 'Wisconsin',
   WY: 'Wyoming',
 };
+
+export const FLOOD_ZONES = ['A', 'B', 'C', 'D', 'V', 'X', 'AE', 'AO', 'AH', 'AR', 'VE'];
+export const CBRS_OPTIONS = ['IN', 'OUT'];
+export const PRIOR_LOSS_COUNT_OPTIONS = ['0', '1', '2', '3'];
+export const BASEMENT_OPTIONS = ['no', 'finished', 'unfinished', 'unknown'];

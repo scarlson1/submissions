@@ -1,4 +1,3 @@
-import { Box, Chip, ChipProps, Typography } from '@mui/material';
 import {
   AccountBalanceRounded,
   CachedRounded,
@@ -25,22 +24,45 @@ import {
   StormRounded,
   ThumbDownRounded,
 } from '@mui/icons-material';
+import { Box, Chip, ChipProps, Typography } from '@mui/material';
 import {
-  GridRenderCellParams,
-  GridValueGetterParams,
   GridAlignment,
-  GridColDef,
-  GridValueFormatterParams,
   GridCellParams,
-  GridTreeNode,
+  GridColDef,
+  GridRenderCellParams,
   GridSingleSelectColDef,
+  GridTreeNode,
+  GridValueFormatterParams,
+  GridValueGetterParams,
 } from '@mui/x-data-grid';
 import { GeoPoint, Timestamp } from 'firebase/firestore';
 import { isDate } from 'lodash';
 import { toast } from 'react-hot-toast';
 
-import { FileLink, renderGridEmail, renderGridPhone } from 'components';
-import { GridCellCopy } from 'components';
+import {
+  AGENCY_SUBMISSION_STATUS,
+  AdditionalInsured,
+  Address,
+  CHANGE_REQUEST_STATUS,
+  INVITE_STATUS,
+  Mortgagee,
+  Nullable,
+  POLICY_STATUS,
+  PolicyLocation,
+  QUOTE_STATUS,
+  SUBMISSION_STATUS,
+} from 'common';
+import { FileLink, GridCellCopy, renderGridEmail, renderGridPhone } from 'components';
+import { renderChip, renderChips, renderSplitSnakeCase } from 'components/RenderGridCellHelpers';
+import { TRANSACTION_OPTIONS } from 'elements/forms/TaxForm';
+import { multiSelectExtendsSingle } from 'modules/muiGrid/gridMultiSelectColDef';
+import {
+  getGridFirestoreBooleanOperators,
+  getGridFirestoreDateOperators,
+  getGridFirestoreNumericOperators,
+  getGridFirestoreSelectOperators,
+  getGridFirestoreStringOperators,
+} from 'modules/muiGrid/operators';
 import {
   calcSum,
   formatFirestoreTimestamp,
@@ -53,37 +75,13 @@ import {
   popUpWasBlocked,
 } from 'modules/utils';
 import {
-  AGENCY_SUBMISSION_STATUS,
-  INVITE_STATUS,
-  POLICY_STATUS,
-  QUOTE_STATUS,
-  SUBMISSION_STATUS,
-  AdditionalInsured,
-  Address,
-  Mortgagee,
-  Nullable,
-  PolicyLocation,
-  CHANGE_REQUEST_STATUS,
-} from 'common';
-import { renderChip, renderChips, renderSplitSnakeCase } from 'components/RenderGridCellHelpers';
-import { STATES_ABV_ARR } from '../../../common/statesList';
-import {
-  getGridFirestoreNumericOperators,
-  getGridFirestoreDateOperators,
-  getGridFirestoreStringOperators,
-  getGridFirestoreSelectOperators,
-  getGridFirestoreBooleanOperators,
-  // GRID_MULTI_SELECT_COL_DEF,
-} from 'modules/muiGrid/operators';
-import {
   CBRS_OPTIONS,
   FLOOD_ZONE_OPTIONS,
   LOB_OPTIONS,
   PRIOR_LOSS_COUNT_OPTIONS,
   PRODUCT_OPTIONS,
 } from '../../../common/constants';
-import { multiSelectExtendsSingle } from 'modules/muiGrid/gridMultiSelectColDef';
-import { TRANSACTION_OPTIONS } from 'elements/forms/TaxForm';
+import { STATES_ABV_ARR } from '../../../common/statesList';
 
 export const copyBaseProps: Partial<GridColDef> = {
   flex: 1.2,
@@ -1101,42 +1099,42 @@ export const nestedAgencyOrgIdCol: GridColDef = {
 };
 
 export const inlandAALCol: GridColDef = {
-  field: 'AAL.inland',
-  headerName: 'Inland AAL',
+  field: 'AALs.inland',
+  headerName: 'Inland AALs',
   description: 'Inland Peril Average Annual Loss from Swiss Re',
   type: 'number',
   minWidth: 150,
   flex: 0.8,
   filterOperators: getGridFirestoreNumericOperators(),
-  valueGetter: (params) => params.row.AAL?.inland ?? null,
+  valueGetter: (params) => params.row.AALs?.inland ?? null,
   renderCell: (params) => {
     return <GridCellCopy value={params.value} />;
   },
 };
 
 export const surgeAALCol: GridColDef = {
-  field: 'AAL.surge',
-  headerName: 'Surge AAL',
+  field: 'AALs.surge',
+  headerName: 'Surge AALs',
   description: 'Surge Peril Average Annual Loss from Swiss Re',
   type: 'number',
   minWidth: 150,
   flex: 0.8,
   filterOperators: getGridFirestoreNumericOperators(),
-  valueGetter: (params) => params.row.AAL?.surge ?? null,
+  valueGetter: (params) => params.row.AALs?.surge ?? null,
   renderCell: (params) => {
     return <GridCellCopy value={params.value} />;
   },
 };
 
 export const tsunamiAALCol: GridColDef = {
-  field: 'AAL.tsunami',
-  headerName: 'Tsunami AAL',
+  field: 'AALs.tsunami',
+  headerName: 'Tsunami AALs',
   description: 'Tsunami Peril Average Annual Loss from Swiss Re',
   type: 'number',
   minWidth: 150,
   flex: 0.8,
   filterOperators: getGridFirestoreNumericOperators(),
-  valueGetter: (params) => params.row.AAL?.tsunami ?? null,
+  valueGetter: (params) => params.row.AALs?.tsunami ?? null,
   renderCell: (params) => <GridCellCopy value={params.value} />,
 };
 

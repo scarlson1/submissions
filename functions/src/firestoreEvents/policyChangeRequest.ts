@@ -1,7 +1,6 @@
 import { DocumentSnapshot, Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { error, info, warn } from 'firebase-functions/logger';
 import type { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
-import invariant from 'tiny-invariant';
 
 import {
   CHANGE_REQUEST_STATUS,
@@ -21,12 +20,20 @@ import {
   swissReClientId,
   swissReClientSecret,
   swissReSubscriptionKey,
-  truthyOrZero,
 } from '../common';
 import { getDoc } from '../routes/utils';
 import { publishAmendment, publishEndorsement, publishLocationCancel } from '../services/pubsub';
 import { sendAdminChangeRequestNotification, sendMessage } from '../services/sendgrid';
-import { GetAALRes, GetPremiumProps, getAALs, getPremium } from '../utils/rating';
+import {
+  GetAALRes,
+  GetPremiumProps,
+  getAALs,
+  getPremium,
+  validateAALs,
+  validateLimits,
+  validateRCVs,
+  verify,
+} from '../utils/rating';
 
 export default async (
   event: FirestoreEvent<
@@ -151,21 +158,20 @@ async function handleRatingForEndorsement(
     const policy = await getDoc(policyRef);
 
     const location = policy.locations[data.locationId];
-    if (!location) throw new Error(`location not found on policy (${data.locationId})`);
-    invariant(location.ratingDocId, 'missing location ratingDocId');
+    verify(location, `location not found on policy (Location ID: ${data.locationId})`);
+    verify(location.ratingDocId, 'missing location ratingDocId');
 
     let prevRatingData: RatingData | undefined;
-    if (location.ratingDocId) {
-      const prevRatingSnap = await ratingDataCollection(db).doc(location.ratingDocId).get();
-      prevRatingData = prevRatingSnap.data();
-    }
-    if (!prevRatingData)
-      throw new Error(
-        `no previous rating doc found for location ${data.locationId}. returning early.`
-      );
-    info(`Previous rating doc: `, { prevRatingData });
+    const prevRatingSnap = await ratingDataCollection(db).doc(location.ratingDocId).get();
+    prevRatingData = prevRatingSnap.data();
 
-    const changesKeys = Object.keys(data.changes); // TODO: make reuseable requiresRerate function
+    verify(
+      prevRatingData,
+      `no previous rating doc found for location ${data.locationId}. returning early.`
+    );
+    info(`Previous rating data`, { prevRatingData });
+
+    const changesKeys = Object.keys(data.changes);
     const requiresRerate = hasAny(changesKeys, SR_CALL_REQUIRED_KEYS);
     console.log('REQUIRES RERATE: ', requiresRerate);
 
@@ -174,16 +180,15 @@ async function handleRatingForEndorsement(
     let AALsRes: GetAALRes | undefined;
     let getPremiumInputs: GetPremiumProps;
 
+    // If rerate required, get new AALs & set getPremiumInputs from result
+    // Otherwise use AALs from prevRatingData (exp date change)
     if (requiresRerate) {
-      // TODO: do rerate stuff
-      // TODO: use RCVS from location or get old rating doc ??
-
       const { RCVs } = prevRatingData;
-
       const limits = { ...locLimits, ...(data.changes?.limits || {}) };
 
       // TODO: validate inputs (replacementCost, limits, etc.)
-      invariant(RCVs, 'missing RCVs in previous rating data');
+      validateRCVs(RCVs);
+      validateLimits(limits);
 
       try {
         AALsRes = await getAALs({
@@ -201,17 +206,10 @@ async function handleRatingForEndorsement(
         throw new Error('Error getting AALs from SR');
       }
 
-      invariant(typeof AALsRes?.AAL?.inland === 'number', 'Missing inland AAL');
-      invariant(typeof AALsRes?.AAL?.surge === 'number', 'Missing surge AAL');
-      invariant(typeof AALsRes?.AAL?.tsunami === 'number', 'Missing tsunami AAL');
-      // SR call
+      validateAALs(AALsRes?.AALs);
 
       getPremiumInputs = {
-        AAL: {
-          inland: AALsRes.AAL.inland,
-          surge: AALsRes.AAL.surge,
-          tsunami: AALsRes.AAL.tsunami,
-        },
+        AALs: AALsRes.AALs,
         limits,
         state: location.address.state,
         basement: ratingPropertyData.basement,
@@ -220,15 +218,11 @@ async function handleRatingForEndorsement(
         commissionPct: prevRatingData?.premiumCalcData?.subproducerCommissionPct || 0.15, // TODO: throw error if no rating doc or default to 15% commission ??
       };
     } else {
-      const { AAL } = prevRatingData;
-      invariant(truthyOrZero(AAL.inland), 'inland AAL missing');
-      invariant(truthyOrZero(AAL.surge), 'surge AAL missing');
-      invariant(truthyOrZero(AAL.tsunami), 'tsunami AAL missing');
-
-      // TODO: does this section ever run ?? only changes could be limits & deductible ??
+      const { AALs } = prevRatingData; // TODO: change key to AALs
+      validateAALs(AALs);
 
       getPremiumInputs = {
-        AAL: AAL as ValueByRiskType,
+        AALs: AALs as ValueByRiskType,
         limits: location.limits,
         state: location.address.state,
         basement: ratingPropertyData.basement,
@@ -253,10 +247,10 @@ async function handleRatingForEndorsement(
         // RCVs could change if limitD changes
         ...location.RCVs,
         ...(prevRatingData?.RCVs || {}),
-        ...(AALsRes?.rcvs || {}),
+        ...(AALsRes?.RCVs || {}),
       },
       ratingPropertyData: location.ratingPropertyData,
-      AAL: getPremiumInputs.AAL,
+      AALs: getPremiumInputs.AALs,
       premiumCalcData: result.premiumData,
       PM: result.pm,
       riskScore: result.riskScore,
@@ -270,11 +264,11 @@ async function handleRatingForEndorsement(
     });
 
     const { premiumData } = result;
+    // TODO: validate results (premium, etc.)
 
     const effDateTS = data.changes?.effectiveDate || location.effectiveDate;
     const expDateTS = data.changes?.expirationDate || location.expirationDate;
 
-    // TODO: validate results (premium, etc.)
     const { termPremium, termDays } = calcTerm(
       premiumData.directWrittenPremium,
       effDateTS.toDate(),

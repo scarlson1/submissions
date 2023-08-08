@@ -371,6 +371,7 @@ export interface RatingPropertyData {
   priorLossCount?: string | null;
 }
 
+// TODO: determine which fields are required for rerating & only make those required. Add Rating doc when importing policies / quotes
 // TODO: use discriminating union type: 'rating' | 'premium-recalc' ??
 export interface RatingData extends BaseDoc {
   submissionId: string | null;
@@ -382,7 +383,7 @@ export interface RatingData extends BaseDoc {
   RCVs: RCVs | null;
   ratingPropertyData: Nullable<RatingPropertyData>;
   premiumCalcData: PremiumCalcData;
-  AAL: Nullable<ValueByRiskType>;
+  AALs: Nullable<ValueByRiskType>;
   PM: ValueByRiskType;
   riskScore: ValueByRiskType;
   stateMultipliers: ValueByRiskType;
@@ -434,7 +435,7 @@ export interface Submission extends FloodFormValues {
   // satelliteStreetsMapImageFilePath?: string;
   imageURLs?: Record<locationImageTypes, string> | null;
   imagePaths?: Record<locationImageTypes, string> | null;
-  AAL?: Nullable<ValueByRiskType>;
+  AALs?: Nullable<ValueByRiskType>;
   annualPremium?: number;
   subproducerCommission?: number; // TODO: delete ?? look up by agent / agency if present
   metadata: BaseMetadata;
@@ -1353,7 +1354,7 @@ export interface SRRes {
   expectedLosses: SRPerilAAL[];
 }
 
-// TODO: use AAL interface
+// TODO: use AALs interface
 export interface SRResWithAAL extends SRRes {
   inlandAAL?: number | null;
   surgeAAL?: number | null;

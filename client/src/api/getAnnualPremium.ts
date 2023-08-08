@@ -39,7 +39,7 @@ export interface GetAnnualPremiumRequest {
 
 export interface GetAnnualPremiumResponse {
   annualPremium: number;
-  AAL: ValueByRiskType;
+  AALs: ValueByRiskType;
   ratingDocId?: string;
 }
 

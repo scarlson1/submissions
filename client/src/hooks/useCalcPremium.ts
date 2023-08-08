@@ -5,8 +5,8 @@ import invariant from 'tiny-invariant';
 import { CalcQuoteRequest, calcQuote } from 'api';
 import { RatingInputs } from 'api/getAnnualPremium';
 import { Optional } from 'common';
-import { truthyOrZero } from 'modules/utils';
 import { QuoteValues } from 'elements/forms';
+import { truthyOrZero } from 'modules/utils';
 
 export function validateCommonInputs(values: QuoteValues) {
   const { ratingPropertyData, deductible, subproducerCommission, address, limits } = values;
@@ -42,7 +42,7 @@ export function validateCommonInputs(values: QuoteValues) {
 function getValidatedCalcInputs(values: QuoteValues) {
   let comValues = validateCommonInputs(values);
   const {
-    AAL,
+    AALs,
     ratingPropertyData: { replacementCost, floodZone, basement, priorLossCount },
     deductible,
     address,
@@ -50,13 +50,13 @@ function getValidatedCalcInputs(values: QuoteValues) {
     limits,
   } = comValues;
 
-  invariant(truthyOrZero(AAL?.inland), 'inland aal required');
-  invariant(truthyOrZero(AAL?.surge), 'surge aal required');
-  invariant(truthyOrZero(AAL?.tsunami), 'tsunami aal required');
+  invariant(truthyOrZero(AALs?.inland), 'inland aal required');
+  invariant(truthyOrZero(AALs?.surge), 'surge aal required');
+  invariant(truthyOrZero(AALs?.tsunami), 'tsunami aal required');
 
   return {
     limits,
-    AAL,
+    AALs,
     replacementCost,
     deductible,
     state: address.state,
@@ -106,9 +106,9 @@ export const useCalcPremium = (
 
         const flattenedRatingInputs = {
           ...validatedReqBody.limits,
-          inlandAAL: validatedReqBody.AAL.inland,
-          surgeAAL: validatedReqBody.AAL.surge,
-          tsunamiAAL: validatedReqBody.AAL.tsunami,
+          inlandAAL: validatedReqBody.AALs.inland,
+          surgeAAL: validatedReqBody.AALs.surge,
+          tsunamiAAL: validatedReqBody.AALs.tsunami,
           state: validatedReqBody.state,
           floodZone: validatedReqBody.floodZone,
           basement: validatedReqBody.basement,

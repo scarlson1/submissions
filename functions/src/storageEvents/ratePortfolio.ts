@@ -1,39 +1,39 @@
-import { StorageEvent } from 'firebase-functions/v2/storage';
-import { error, info } from 'firebase-functions/logger';
-import { defineInt, projectID, storageBucket } from 'firebase-functions/params';
-import { getStorage } from 'firebase-admin/storage';
 import { File, GetSignedUrlResponse } from '@google-cloud/storage';
-import path from 'path';
-import os from 'os';
-import fs from 'fs';
 import { AxiosInstance, AxiosResponse } from 'axios';
 import { addDays } from 'date-fns';
+import { getStorage } from 'firebase-admin/storage';
+import { error, info } from 'firebase-functions/logger';
+import { defineInt, projectID, storageBucket } from 'firebase-functions/params';
+import { StorageEvent } from 'firebase-functions/v2/storage';
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
 
 import {
+  Nullable,
+  SRRes,
+  ValueByRiskType,
+  audience,
   getNumber,
+  sendgridApiKey,
   splitChunks,
   swissReClientId,
   swissReClientSecret,
   swissReSubscriptionKey,
-  sendgridApiKey,
-  audience,
   unlinkFile,
-  Nullable,
-  SRRes,
-  ValueByRiskType,
 } from '../common';
 import { generateSRAccessToken, getSwissReInstance } from '../services';
-import { swissReBody } from '../utils/rating/swissReBody.js';
-import { getPremium } from '../utils/rating';
 import { sendMessage } from '../services/sendgrid';
-import { extractSRAALs } from '../utils/rating/getAALs';
 import {
   parseStreamToArray,
   shouldReturnEarly,
   transformHeadersSnakeCase,
   writeArrayToStorage as writeToStorage,
 } from '../utils';
+import { getPremium } from '../utils/rating';
+import { extractSRAALs } from '../utils/rating/getAALs';
 import { GetPremiumCalcResult } from '../utils/rating/getPremium';
+import { swissReBody } from '../utils/rating/swissReBody.js';
 
 let swissReInstance: AxiosInstance;
 let swissReInstanceTimestamp: number; // TODO: regenerate if > 10 mins
@@ -126,7 +126,7 @@ export function validateRow(data: any) {
 }
 
 // TODO: transform basement, FFE, etc.
-// TODO: calc rcvs from rcvA
+// TODO: calc RCVs from rcvA
 function transformRow(data: IRow): Nullable<TRow> {
   const limitA = data.cov_a_limit ? parseInt(getNumber(data.cov_a_limit)) : 0;
   const limitB = data.cov_b_limit ? parseInt(getNumber(data.cov_b_limit)) : 0;
@@ -140,15 +140,15 @@ function transformRow(data: IRow): Nullable<TRow> {
   const rcvD = data.cov_d_rcv ? parseInt(getNumber(data.cov_d_rcv)) : 0; // null;
   const total_rcv = rcvA + rcvB + rcvC + rcvD;
 
-  // const rcvs = getRCVs(rcvA || 0, { limitA, limitB, limitC, limitD });
+  // const RCVs = getRCVs(rcvA || 0, { limitA, limitB, limitC, limitD });
 
   return {
     ...data,
-    // cov_a_rcv: rcvs.building || null,
-    // cov_b_rcv: rcvs.otherStructures,
-    // cov_c_rcv: rcvs.contents,
-    // cov_d_rcv: rcvs.BI,
-    // total_rcv: rcvs.total,
+    // cov_a_rcv: RCVs.building || null,
+    // cov_b_rcv: RCVs.otherStructures,
+    // cov_c_rcv: RCVs.contents,
+    // cov_d_rcv: RCVs.BI,
+    // total_rcv: RCVs.total,
     cov_a_rcv: rcvA || null,
     cov_b_rcv: rcvB,
     cov_c_rcv: rcvC,
@@ -184,7 +184,7 @@ function transformRow(data: IRow): Nullable<TRow> {
 
 function getPremCalcVars(row: any) {
   return {
-    AAL: {
+    AALs: {
       inland: row.inland,
       surge: row.surge,
       tsunami: row.tsunami,
@@ -442,7 +442,7 @@ async function getAALs(parsedData: TRow[]): Promise<GetAALsRes[]> {
         if (err?.message && typeof err.message === 'string') errMsg = err.message;
         if (err?.response?.data) errMsg += ` ${[JSON.stringify(err.response.data)]}`;
 
-        error(`Error fetching AAL for row index ${i}`, {
+        error(`Error fetching AALs for row index ${i}`, {
           errMsg,
           errRes: err?.response || null,
           errResData: err?.response?.data || null,
@@ -475,18 +475,18 @@ async function getAALs(parsedData: TRow[]): Promise<GetAALsRes[]> {
     // Append AALs and errMsg to each row
     return parsedData.map((r, i) => ({ ...r, ...aals[i] }));
   } catch (err: any) {
-    error('AAL ERR: ', { ...err });
+    error('AALs ERR: ', { ...err });
     throw err;
   }
 }
 
 /** fetch AALs for array of rows, then calc premium on rows without errors
- * @param {TRow[]} chunk array of rows containing data required for Swiss Re AAL api call
+ * @param {TRow[]} chunk array of rows containing data required for Swiss Re AALs api call
  * @returns {object} ratedChunk and errorRows
  */
 async function getPremiumForChunk(chunk: TRow[]) {
   const chunkWithAAL = await getAALs(chunk);
-  // info(`FINISHED FETCHING AAL FOR CHUNK (COUNT: ${currChunk})`, { ...chunkWithAAL });
+  // info(`FINISHED FETCHING AALs FOR CHUNK (COUNT: ${currChunk})`, { ...chunkWithAAL });
 
   const filtered = chunkWithAAL.filter((row) => row.inland !== -1);
   const errorRows = chunkWithAAL.filter((row) => row.inland === -1);
@@ -497,7 +497,7 @@ async function getPremiumForChunk(chunk: TRow[]) {
 }
 
 /** split rows into chunks of X size, then fetch AALs and calculate premium for each chunk
- * @param {TRow[]} data array of data to be split into array of X size (X = env var "chunkCount"), then loop through each chunk to get AAL and calc premium
+ * @param {TRow[]} data array of data to be split into array of X size (X = env var "chunkCount"), then loop through each chunk to get AALs and calc premium
  * @returns {(CalcPremResult | GetAALsRes)[]} 1 dimensional array rows with orgininal data, aals, and premium calc details
  */
 async function splitAndRate(data: TRow[]) {

@@ -1,19 +1,29 @@
-import { CallableRequest } from 'firebase-functions/v2/https';
-import { HttpsError } from 'firebase-functions/v1/https';
+import { Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
-import { getFirestore, Timestamp } from 'firebase-admin/firestore';
-import invariant from 'tiny-invariant';
+import { HttpsError } from 'firebase-functions/v1/https';
+import { CallableRequest } from 'firebase-functions/v2/https';
 
 import { Limits, ValueByRiskType, defaultFloodZone, ratingDataCollection } from '../common';
-import { getPremium, getRCVs } from '../utils/rating';
-import { maxA, maxBCD, minA } from '../common';
 import { onCallWrapper } from '../services/sentry';
+import {
+  getPremium,
+  getRCVs,
+  validateAALs,
+  validateBasement,
+  validateCommission,
+  validateDeductible,
+  validateFloodZone,
+  validateLimits,
+  validateReplacementCost,
+  validateState,
+} from '../utils/rating';
+import { requireIDemandAdminClaims } from './utils';
 
 // TODO: create rating inputs interface (used in multiple funcs), extend where needed
 
 export interface CalcQuoteRequest {
   limits: Limits;
-  AAL: ValueByRiskType;
+  AALs: ValueByRiskType;
   replacementCost: number;
   deductible: number;
   state: string;
@@ -29,13 +39,15 @@ export interface CalcQuoteResponse {
   ratingDocId?: string;
 }
 
-// export default async ({ data, auth }: CallableRequest<CalcQuoteRequest>) => {
 const calcQuote = async ({ data, auth }: CallableRequest<CalcQuoteRequest>) => {
   info('CALC QUOTE DATA: ', data);
+
+  requireIDemandAdminClaims(auth?.token);
+
   const db = getFirestore();
   const {
     limits,
-    AAL,
+    AALs,
     replacementCost,
     deductible,
     priorLossCount,
@@ -45,74 +57,23 @@ const calcQuote = async ({ data, auth }: CallableRequest<CalcQuoteRequest>) => {
     commissionPct = 0.15,
     submissionId,
   } = data;
-  const userId = auth?.uid;
-
-  if (!userId) throw new HttpsError('unauthenticated', 'must be authenticated');
-  if (!auth?.token.iDemandAdmin)
-    throw new HttpsError('permission-denied', 'must have admin permissions');
 
   try {
-    // TODO: reuse existing validation function
-    const MAX_A = maxA.value();
-    const MIN_A = minA.value();
-    const MAX_BCD = maxBCD.value();
-
-    invariant(limits, 'Limits required');
-    invariant(AAL, 'AAL required');
-
-    const { limitA, limitB, limitC, limitD } = limits;
-
-    invariant(
-      limitA && typeof limitA === 'number' && limitA > MIN_A,
-      `LimitA must be a number > ${MIN_A}`
-    );
-    invariant(limitA >= MIN_A && limitA <= MAX_A, `limitA must be between ${MIN_A} and ${MAX_A}`);
-    invariant((limitB || limitB === 0) && typeof limitB === 'number', 'LimitB must be a number');
-    invariant((limitC || limitC === 0) && typeof limitC === 'number', 'LimitC must be a number');
-    invariant((limitD || limitD === 0) && typeof limitD === 'number', 'LimitD must be a number');
-    const totalBCD = limitB + limitC + limitD;
-    invariant(totalBCD <= MAX_BCD, `sum of limits B, C, D must be less than ${MAX_BCD}`);
-
-    invariant(
-      deductible && typeof deductible === 'number' && deductible > 1000,
-      'invalid deductible. must be number > 1000'
-    );
-
-    invariant(replacementCost, 'replacementCost required');
-    invariant(typeof replacementCost === 'number', 'replacementCost must be a number');
-    invariant(replacementCost > 100000, 'replacementCost must be > 100k');
-
-    invariant(floodZone && typeof floodZone === 'string', 'floodZone is required');
-    invariant(basement && typeof basement === 'string', 'basement must be a string');
-
-    invariant(commissionPct && typeof commissionPct === 'number', 'commissionPct');
-    invariant(
-      commissionPct >= 0.05 && commissionPct <= 0.2,
-      'commissionPct must be between 0.05 and 0.2'
-    );
-    invariant(
-      (AAL.inland || AAL.inland === 0) && typeof AAL.inland === 'number',
-      'inland AAL must be a number'
-    );
-    invariant(
-      (AAL.surge || AAL.surge === 0) && typeof AAL.surge === 'number',
-      'surgeAAL must be a number'
-    );
-    invariant(
-      (AAL.tsunami || AAL.tsunami === 0) && typeof AAL.tsunami === 'number',
-      'tsunamiAAL must be a number'
-    );
-    invariant(
-      state && typeof state === 'string' && state.length === 2,
-      'state must be a two letter abbreviation'
-    );
+    validateLimits(limits);
+    validateDeductible(deductible);
+    validateReplacementCost(replacementCost);
+    validateFloodZone(floodZone);
+    validateBasement(basement);
+    validateCommission(commissionPct);
+    validateAALs(AALs);
+    validateState(state);
   } catch (err: any) {
     // console.log('INVALID PROPS: ', err);
     let msg = err?.message || 'Provided params failed validation';
     msg = msg.replace(/(Invariant failed: )/g, '');
     error('Invalid props', {
       props: data,
-      userId,
+      userId: auth?.uid,
       function: 'calcQuote',
     });
 
@@ -121,7 +82,7 @@ const calcQuote = async ({ data, auth }: CallableRequest<CalcQuoteRequest>) => {
 
   try {
     const result = getPremium({
-      AAL: AAL,
+      AALs: AALs,
       limits,
       floodZone,
       state,
@@ -141,7 +102,7 @@ const calcQuote = async ({ data, auth }: CallableRequest<CalcQuoteRequest>) => {
       limits,
       TIV: result.tiv,
       RCVs,
-      // TODO: Decide whether to require all rating property data and rcvs in request
+      // TODO: Decide whether to require all rating property data and RCVs in request
       // OR use a discriminating union type
       ratingPropertyData: {
         floodZone,
@@ -156,7 +117,7 @@ const calcQuote = async ({ data, auth }: CallableRequest<CalcQuoteRequest>) => {
         yearBuilt: null,
         priorLossCount: priorLossCount ?? null,
       },
-      AAL,
+      AALs,
       PM: result.pm,
       riskScore: result.riskScore,
       stateMultipliers: result.stateMultipliers,
@@ -176,7 +137,7 @@ const calcQuote = async ({ data, auth }: CallableRequest<CalcQuoteRequest>) => {
     console.log('ERROR: ', err);
     error('Error calculating quote', {
       props: data,
-      userId,
+      userId: auth?.uid,
       function: 'calcQuote',
       message: err?.message || null,
       stack: err?.stack || null,

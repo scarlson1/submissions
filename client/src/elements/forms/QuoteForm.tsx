@@ -1,16 +1,3 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
-import {
-  Box,
-  Stack,
-  Typography,
-  Unstable_Grid2 as Grid,
-  Divider,
-  Badge,
-  InputAdornment,
-  Tooltip,
-  IconButton,
-} from '@mui/material';
-import { LoadingButton } from '@mui/lab';
 import {
   CalculateOutlined,
   CalculateRounded,
@@ -18,12 +5,25 @@ import {
   DownloadRounded,
   PolicyRounded,
 } from '@mui/icons-material';
+import { LoadingButton } from '@mui/lab';
+import {
+  Badge,
+  Box,
+  Divider,
+  Unstable_Grid2 as Grid,
+  IconButton,
+  InputAdornment,
+  Stack,
+  Tooltip,
+  Typography,
+} from '@mui/material';
+import { add, endOfToday, startOfToday } from 'date-fns';
 import { Firestore, doc, getDoc } from 'firebase/firestore';
-import { useFirestore } from 'reactfire';
-import { useNavigate } from 'react-router-dom';
 import { Formik, FormikErrors, FormikHelpers, FormikProps, setNestedObjectValues } from 'formik';
-import { add, startOfToday, endOfToday } from 'date-fns';
 import { isEmpty, isEqual, merge, omit } from 'lodash';
+import { useCallback, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useFirestore } from 'reactfire';
 import * as yup from 'yup';
 
 import {
@@ -54,27 +54,8 @@ import {
   namedInsuredValidationNotRequired,
   orgsCollection,
 } from 'common';
-import {
-  Obj,
-  addToDate,
-  dollarFormat,
-  getDateShortcuts,
-  getRoundingFunc,
-  sumByTypes,
-  sumfeesTaxesPremium,
-  truthyOrZero,
-} from 'modules/utils';
-import {
-  RatingInputsWithAAL,
-  SubjectBaseKeyVal,
-  extractRatingInputsFromValues,
-  useActiveStates,
-  useAsyncToast,
-  useCalcPremium,
-  useFetchTaxes,
-  useRateQuote,
-} from 'hooks';
-import { LimitsStep } from './LimitsStep';
+import { STATES_ABV_ARR } from 'common/statesList';
+import { IconButtonMenu } from 'components';
 import {
   Diff,
   FormikCheckbox,
@@ -90,12 +71,31 @@ import {
   percentMaskProps,
   phoneMaskProps,
 } from 'components/forms';
-import FormikAddressLite from './FormikAddressLite';
-import { ROUTES, createPath } from 'router';
-import { IconButtonMenu } from 'components';
-import { STATES_ABV_ARR } from 'common/statesList';
 import { TempAgentSearch } from 'components/search/Search';
+import {
+  RatingInputsWithAAL,
+  SubjectBaseKeyVal,
+  extractRatingInputsFromValues,
+  useActiveStates,
+  useAsyncToast,
+  useCalcPremium,
+  useFetchTaxes,
+  useRateQuote,
+} from 'hooks';
+import {
+  Obj,
+  addToDate,
+  dollarFormat,
+  getDateShortcuts,
+  getRoundingFunc,
+  sumByTypes,
+  sumfeesTaxesPremium,
+  truthyOrZero,
+} from 'modules/utils';
+import { ROUTES, createPath } from 'router';
 import { AddressStepQuote } from './AddressStepQuote';
+import FormikAddressLite from './FormikAddressLite';
+import { LimitsStep } from './LimitsStep';
 
 // TODO: move quote type to field (new, renewal, etc.) ??
 
@@ -339,7 +339,7 @@ const DEFAULT_VALUES: QuoteValues = {
     priorLossCount: '',
   },
   ratingDocId: '',
-  AAL: {
+  AALs: {
     inland: null,
     surge: null,
     tsunami: null,
@@ -366,7 +366,7 @@ export interface QuoteValues {
   agent: AgentDetails;
   agency: AgencyDetails;
   ratingPropertyData: Nullable<RatingPropertyData>;
-  AAL: Nullable<ValueByRiskType>;
+  AALs: Nullable<ValueByRiskType>;
   ratingDocId: string;
   notes: { [key: string]: string }[];
 }
@@ -405,8 +405,8 @@ export const QuoteForm = ({
   const [ratingState, setRatingState] = useState({
     rerateRequired: !(
       initialValues?.annualPremium &&
-      truthyOrZero(initialValues?.AAL?.inland) &&
-      truthyOrZero(initialValues?.AAL?.surge)
+      truthyOrZero(initialValues?.AALs?.inland) &&
+      truthyOrZero(initialValues?.AALs?.surge)
     ),
     recalcRequired: !initialValues?.annualPremium,
   });
@@ -447,9 +447,9 @@ export const QuoteForm = ({
     (newPrem: number, ratingInputs: RatingInputsWithAAL, newRatingDocId?: Optional<string>) => {
       const setVal = formikRef.current?.setFieldValue;
       setVal && setVal('annualPremium', newPrem);
-      setVal && setVal('AAL.inland', ratingInputs.inlandAAL);
-      setVal && setVal('AAL.surge', ratingInputs.surgeAAL);
-      setVal && setVal('AAL.tsunami', ratingInputs.tsunamiAAL);
+      setVal && setVal('AALs.inland', ratingInputs.inlandAAL);
+      setVal && setVal('AALs.surge', ratingInputs.surgeAAL);
+      setVal && setVal('AALs.tsunami', ratingInputs.tsunamiAAL);
       setVal && setVal('ratingDocId', newRatingDocId || '');
 
       setRatingInputsSnap({ ...ratingInputs });
@@ -624,7 +624,7 @@ export const QuoteForm = ({
       return diff[key];
     });
     // Directly setting rerate misses checking for AALs
-    const aals = formikRef.current?.values.AAL;
+    const aals = formikRef.current?.values.AALs;
     const missingAAL = !(aals?.inland || aals?.surge);
     setRatingState({ rerateRequired: shouldRerate || missingAAL, recalcRequired: isDiff });
   }, []);
@@ -709,7 +709,7 @@ export const QuoteForm = ({
                         'limits',
                         'agent',
                         'agency',
-                        'AAL',
+                        'AALs',
                         'address',
                       ]),
                       errors.ratingPropertyData || {},
@@ -718,7 +718,7 @@ export const QuoteForm = ({
                       errors.agent || {},
                       omit(errors.agency, 'address') || {},
                       errors.agency?.address ? { 'agency.address': errors.agency?.address } : {},
-                      errors.AAL || {}
+                      errors.AALs || {}
                     )
                   )
                 }
@@ -736,7 +736,7 @@ export const QuoteForm = ({
                 extractInputsFromValues={extractRatingInputsFromValues}
               >
                 <Typography variant='body2' fontWeight={500}>
-                  {`Rerate (AAL) required: ${
+                  {`Rerate (AALs) required: ${
                     ratingState.rerateRequired === null ? 'no changes' : ratingState.rerateRequired
                   }`}
                 </Typography>
@@ -1008,13 +1008,13 @@ export const QuoteForm = ({
               />
             </Grid>
             <Grid xs={6} sm={4} md={3} lg={2}>
-              <AALHelper title='Inland AAL' value={values?.AAL?.inland} />
+              <AALHelper title='Inland AALs' value={values?.AALs?.inland} />
             </Grid>
             <Grid xs={6} sm={4} md={3} lg={2}>
-              <AALHelper title='Surge AAL' value={values?.AAL?.surge} />
+              <AALHelper title='Surge AALs' value={values?.AALs?.surge} />
             </Grid>
             <Grid xs={6} sm={4} md={3} lg={2}>
-              <AALHelper title='Tsunami AAL' value={values?.AAL?.tsunami} />
+              <AALHelper title='Tsunami AALs' value={values?.AALs?.tsunami} />
             </Grid>
             <Grid xs={12}>
               <Divider sx={{ my: 3 }} />

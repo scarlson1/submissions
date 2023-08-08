@@ -1,7 +1,7 @@
-import { useMemo } from 'react';
-import { Box, Tooltip, Typography, Unstable_Grid2 as Grid, tooltipClasses } from '@mui/material';
 import { WarningAmberRounded } from '@mui/icons-material';
+import { Box, Unstable_Grid2 as Grid, Tooltip, Typography, tooltipClasses } from '@mui/material';
 import { FormikErrors } from 'formik';
+import { useMemo } from 'react';
 
 export function RequiredFieldsIndicator({
   errors,
@@ -19,14 +19,14 @@ export function RequiredFieldsIndicator({
     // TODO: pass func as prop and uncomment above
     // return Object.entries(
     //   merge(
-    //     omit(errors, ['ratingPropertyData', 'limits', 'agent', 'agency', 'AAL', 'address']),
+    //     omit(errors, ['ratingPropertyData', 'limits', 'agent', 'agency', 'AALs', 'address']),
     //     errors.ratingPropertyData || {},
     //     errors.address || {},
     //     errors.limits || {},
     //     errors.agent || {},
     //     omit(errors.agency, 'address') || {},
     //     errors.agency?.address ? { 'agency.address': errors.agency?.address } : {},
-    //     errors.AAL || {}
+    //     errors.AALs || {}
     //   )
     // );
   }, [errors, getErrorEntries]);

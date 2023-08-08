@@ -12,19 +12,19 @@ export const getRCVs = (replacementCost: number, limits: Limits): RCVs => {
   const defaultB = Math.max(buildingRef * 0.05, limits.limitB);
   const defaultC = Math.max(buildingRef * 0.25, limits.limitC);
 
-  const rcvs: Omit<RCVs, 'total'> = {
+  const RCVs: Omit<RCVs, 'total'> = {
     building: Math.max(replacementCost, limits.limitA),
     otherStructures: limits.limitB ? defaultB : 0,
     contents: limits.limitC ? defaultC : 0,
     BI: limits.limitD,
   };
 
-  const total = Object.values(rcvs).reduce((total, current) => {
+  const total = Object.values(RCVs).reduce((total, current) => {
     return total + current;
   }, 0);
 
   return {
-    ...rcvs,
+    ...RCVs,
     total,
   };
 };

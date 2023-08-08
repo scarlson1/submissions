@@ -1,19 +1,19 @@
-import { useCallback, useMemo } from 'react';
 import { Box } from '@mui/material';
-import { useNavigate, useParams } from 'react-router-dom';
-import invariant from 'tiny-invariant';
-import { useFirestore, useSigninCheck } from 'reactfire';
+import { endOfToday, isValid, startOfDay } from 'date-fns';
 import { GeoPoint, Timestamp, doc, setDoc } from 'firebase/firestore';
 import { FormikHelpers } from 'formik';
-import { endOfToday, isValid, startOfDay } from 'date-fns';
 import { round } from 'lodash';
+import { useCallback, useMemo } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useFirestore, useSigninCheck } from 'reactfire';
+import invariant from 'tiny-invariant';
 
-import { useAsyncToast, useDocDataOnce } from 'hooks';
-import { QUOTE_STATUS, Quote, quotesCollection, CUSTOM_CLAIMS } from 'common';
+import { CUSTOM_CLAIMS, QUOTE_STATUS, Quote, quotesCollection } from 'common';
 import { QuoteForm, QuoteValues } from 'elements/forms';
-import { ADMIN_ROUTES, createPath } from 'router';
-import { addToDate, extractNumber } from 'modules/utils';
+import { useAsyncToast, useDocDataOnce } from 'hooks';
 import { CARD_FEE_RATE } from 'hooks/useCreateQuote';
+import { addToDate, extractNumber } from 'modules/utils';
+import { ADMIN_ROUTES, createPath } from 'router';
 
 const useEditQuote = (
   quoteId: string,
@@ -226,7 +226,7 @@ export const QuoteEdit = () => {
         priorLossCount: quoteData?.ratingPropertyData?.priorLossCount ?? '',
       },
       ratingDocId: quoteData?.ratingDocId || '',
-      AAL: {
+      AALs: {
         inland: null,
         surge: null,
         tsunami: null,
@@ -286,8 +286,8 @@ function getRatingInputsFromQuote(data: Partial<Quote> | null) {
     // ratingDocId: data?.ratingDocId || '',
     priorLossCount: data?.ratingPropertyData?.priorLossCount,
     // @ts-ignore
-    inlandAAL: data?.AAL?.inland, // @ts-ignore
-    surgeAAL: data?.AAL?.surge, // @ts-ignore
-    tsunamiAAL: data?.AAL?.tsunami,
+    inlandAAL: data?.AALs?.inland, // @ts-ignore
+    surgeAAL: data?.AALs?.surge, // @ts-ignore
+    tsunamiAAL: data?.AALs?.tsunami,
   };
 }

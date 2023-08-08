@@ -3,10 +3,10 @@ import { useFunctions } from 'reactfire';
 
 import { getAnnualPremium } from 'api';
 import { GetAnnualPremiumRequest, RatingInputs } from 'api/getAnnualPremium';
-import invariant from 'tiny-invariant';
-import { validateCommonInputs } from './useCalcPremium';
 import { Optional } from 'common';
 import { QuoteValues } from 'elements/forms';
+import invariant from 'tiny-invariant';
+import { validateCommonInputs } from './useCalcPremium';
 
 export interface RatingInputsWithAAL extends RatingInputs {
   inlandAAL: number | null;
@@ -113,15 +113,15 @@ export const useRateQuote = (
           throw new Error('Error calculating premium');
         }
 
-        const { AAL } = data;
+        const { AALs } = data;
         if (onSuccess)
           onSuccess(
             data.annualPremium,
             {
               ...ratingInputs,
-              inlandAAL: AAL.inland,
-              surgeAAL: AAL.surge,
-              tsunamiAAL: AAL.tsunami,
+              inlandAAL: AALs.inland,
+              surgeAAL: AALs.surge,
+              tsunamiAAL: AALs.tsunami,
             },
             data.ratingDocId
           );

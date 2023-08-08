@@ -110,7 +110,7 @@ export interface Submission extends Omit<FloodValues, 'ratingPropertyData'> {
   // satelliteStreetsMapImageFilePath?: string;
   imageURLs?: Record<locationImageTypes, string> | null;
   imagePaths?: Record<locationImageTypes, string> | null;
-  AAL?: Nullable<ValueByRiskType>;
+  AALs?: Nullable<ValueByRiskType>;
   // inlandAAL?: number;
   // surgeAAL?: number;
   annualPremium?: number;
@@ -303,7 +303,7 @@ export interface RatingPropertyData {
 }
 
 interface RatingCalcData {
-  AAL: ValueByRiskType;
+  AALs: ValueByRiskType;
   PM: ValueByRiskType;
   riskScore: ValueByRiskType;
   stateMultipliers: ValueByRiskType;
@@ -514,7 +514,7 @@ export interface RatingData extends BaseDoc {
   RCVs: RCVs | null;
   ratingPropertyData: Nullable<RatingPropertyData>;
   premiumCalcData: PremiumCalcData;
-  AAL: Nullable<ValueByRiskType>;
+  AALs: Nullable<ValueByRiskType>;
   PM: ValueByRiskType;
   riskScore: ValueByRiskType;
   stateMultipliers: ValueByRiskType;
@@ -716,7 +716,7 @@ export interface Transaction extends BaseDoc {
   deductible: number;
   limits: Limits;
   tiv: number;
-  rcvs: RCVs;
+  RCVs: RCVs;
   premiumCalcData: PremiumCalcData; // TODO
   externalId: string | null;
   policyAnnualDWP: number;

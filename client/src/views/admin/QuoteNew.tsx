@@ -1,15 +1,15 @@
-import { useCallback, useMemo } from 'react';
+import { Box } from '@mui/material';
+import { add } from 'date-fns';
 import { doc, updateDoc } from 'firebase/firestore';
+import { FormikHelpers } from 'formik';
+import { useCallback, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useFirestore } from 'reactfire';
-import { Box } from '@mui/material';
-import { FormikHelpers } from 'formik';
 import invariant from 'tiny-invariant';
-import { add } from 'date-fns';
 
-import { RatingInputsWithAAL, useAsyncToast, useCreateQuote, useDocDataOnce } from 'hooks';
 import { Optional, SUBMISSION_STATUS, Submission, submissionsCollection } from 'common';
 import { QuoteForm, QuoteValues, getRatingInputsFromSubmission } from 'elements/forms/QuoteForm';
+import { RatingInputsWithAAL, useAsyncToast, useCreateQuote, useDocDataOnce } from 'hooks';
 import { ADMIN_ROUTES, createPath } from 'router';
 
 // TODO: decide whether to pass along submission data ??
@@ -134,10 +134,10 @@ export const QuoteNewFromSub = () => {
         priorLossCount: submissionData?.ratingPropertyData?.priorLossCount || '',
       },
       ratingDocId: submissionData.ratingDocId || '',
-      AAL: {
-        inland: submissionData?.AAL?.inland ?? null,
-        surge: submissionData?.AAL?.surge ?? null,
-        tsunami: submissionData?.AAL?.tsunami ?? null,
+      AALs: {
+        inland: submissionData?.AALs?.inland ?? null,
+        surge: submissionData?.AALs?.surge ?? null,
+        tsunami: submissionData?.AALs?.tsunami ?? null,
       },
       notes: [],
     }),
@@ -149,9 +149,9 @@ export const QuoteNewFromSub = () => {
     let partial = getRatingInputsFromSubmission(submissionData);
     return {
       ...partial,
-      inlandAAL: submissionData?.AAL?.inland,
-      surgeAAL: submissionData?.AAL?.surge,
-      tsunamiAAL: submissionData?.AAL?.tsunami,
+      inlandAAL: submissionData?.AALs?.inland,
+      surgeAAL: submissionData?.AALs?.surge,
+      tsunamiAAL: submissionData?.AALs?.tsunami,
     };
   }, [submissionData]);
 

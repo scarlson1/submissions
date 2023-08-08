@@ -1,4 +1,4 @@
-import { round, ceil } from 'lodash';
+import { ceil, round } from 'lodash';
 import { PremiumCalcData, ValueByRiskType } from '../../common';
 import { getCommRates } from './commRates';
 
@@ -13,9 +13,9 @@ export const DISTRIBUTION_EXPENSE = 0.3735;
 // TODO: min premium missing from response so using ? as workaroud for now
 // add min premium calc to flow ? pass as required prop?
 
-export const getTechPremium = (AAL: number | null, secModMult: number, LAE: number) => {
-  if (!AAL) return 0;
-  return AAL * secModMult * (1 + LAE);
+export const getTechPremium = (AALs: number | null, secModMult: number, LAE: number) => {
+  if (!AALs) return 0;
+  return AALs * secModMult * (1 + LAE);
 };
 
 export const getPremium = (techPremium: number, multiplier: number, com: number) => {
@@ -29,7 +29,7 @@ export const getPremium = (techPremium: number, multiplier: number, com: number)
 // };
 
 interface GetPremiumDataProps {
-  AAL: ValueByRiskType; // Nullable<ValueByRiskType>;
+  AALs: ValueByRiskType; // Nullable<ValueByRiskType>;
   secondaryFactorMults: ValueByRiskType;
   stateMultipliers: ValueByRiskType;
   minPremium: number;
@@ -37,7 +37,7 @@ interface GetPremiumDataProps {
 }
 
 export const getPremiumData = ({
-  AAL,
+  AALs,
   secondaryFactorMults,
   stateMultipliers,
   minPremium,
@@ -45,18 +45,18 @@ export const getPremiumData = ({
 }: GetPremiumDataProps): PremiumCalcData => {
   const inlandTechPremium = round(
     getTechPremium(
-      AAL.inland, // inlandAAL,
+      AALs.inland, // inlandAAL,
       secondaryFactorMults.inland,
       INLAND_LAE_FACTOR
     ),
     2
   );
   const surgeTechPremium = round(
-    getTechPremium(AAL.surge, secondaryFactorMults.surge, SURGE_LAE_FACTOR),
+    getTechPremium(AALs.surge, secondaryFactorMults.surge, SURGE_LAE_FACTOR),
     2
   );
   const tsunamiTechPremium = round(
-    getTechPremium(AAL.tsunami, secondaryFactorMults.tsunami, TSUNAMI_LAE_FACTOR)
+    getTechPremium(AALs.tsunami, secondaryFactorMults.tsunami, TSUNAMI_LAE_FACTOR)
   );
 
   const inlandPremium = getPremium(

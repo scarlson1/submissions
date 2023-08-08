@@ -21,6 +21,7 @@ export {
   inlandPMRiskArray,
   surgePMRiskArray,
 } from './riskScore.js';
+export * from './validation.js';
 
 export type { GetAALRes, GetAALsProps } from './getAALs.js';
 export type { GetPremiumProps } from './getPremium.js';
