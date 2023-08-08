@@ -1,15 +1,15 @@
-import { inspect } from 'util';
-import fs from 'fs';
 import { add, differenceInCalendarDays, Duration } from 'date-fns';
+import { DocumentReference } from 'firebase-admin/firestore';
+import { error, info } from 'firebase-functions/logger';
+import fs from 'fs';
 import { isEqual, remove } from 'lodash';
 import numeral from 'numeral';
-import { error, info } from 'firebase-functions/logger';
-import { DocumentReference } from 'firebase-admin/firestore';
+import { inspect } from 'util';
 import { v4 as uuid } from 'uuid';
 
-import { FeeItem, TaxItem } from './types';
-import { cardFeePct } from './environmentVars';
 import { reportErrorSentry } from '../services/sentry';
+import { cardFeePct } from './environmentVars';
+import { FeeItem, TaxItem } from './types';
 
 /**
  * Sums an array of numbers
@@ -390,3 +390,13 @@ export const getReportErrorFn =
     error(msg, { ...ctx, err });
     reportErrorSentry(err || msg, { func: fnName, msg, ...ctx });
   };
+
+/**
+ * Check if any string in the values array exists in the checkValues array
+ * @param values array to validate
+ * @param checkValues array to validate against
+ * @returns returns true if values array does not contain any values in the checkValues array
+ */
+export const hasAny = (values: string[], checkValues: string[]) => {
+  return values.every((v) => checkValues.indexOf(v) === -1);
+};

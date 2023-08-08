@@ -11,7 +11,7 @@ import { getMinPremium } from './minPremium.js';
 import { multipliersByState } from './multipliersByState.js';
 import { getInlandRiskScore, getSurgeRiskScore } from './riskScore.js';
 
-interface GetPremiumProps {
+export interface GetPremiumProps {
   AAL: ValueByRiskType;
   limits: Limits;
   priorLossCount: string;

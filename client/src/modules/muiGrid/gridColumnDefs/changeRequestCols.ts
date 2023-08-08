@@ -1,17 +1,17 @@
 import { GridColDef } from '@mui/x-data-grid';
 
+import { CHANGE_REQUEST_STATUS } from 'common';
 import {
-  idCol,
   createdCol,
-  updatedCol,
-  trxTypeCol,
-  requestEffDateCol,
+  idCol,
   locationIdCol,
   policyIdCol,
-  userIdCol,
+  requestEffDateCol,
   statusCol,
+  trxTypeCol,
+  updatedCol,
+  userIdCol,
 } from './gridColumns';
-import { CHANGE_REQUEST_STATUS } from 'common';
 
 const changes: GridColDef = {
   field: 'changes',
@@ -26,10 +26,10 @@ const changes: GridColDef = {
   },
 };
 
-const approvedByUserIdCol: GridColDef = {
+const processedByUserIdCol: GridColDef = {
   ...idCol,
-  field: 'approvedByUserId',
-  headerName: 'Approved By UID',
+  field: 'processedByUserId',
+  headerName: 'Processed By UID',
 };
 
 export const changeRequestCols: GridColDef[] = [
@@ -51,7 +51,7 @@ export const changeRequestCols: GridColDef[] = [
   locationIdCol,
   changes,
   userIdCol,
-  approvedByUserIdCol,
+  processedByUserIdCol,
   createdCol,
   updatedCol,
 ];

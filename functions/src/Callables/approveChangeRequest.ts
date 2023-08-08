@@ -1,29 +1,22 @@
+import { deepmerge } from 'deepmerge-ts';
+import { Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
-import { Timestamp, getFirestore } from 'firebase-admin/firestore';
-import { deepmerge } from 'deepmerge-ts';
 
-import { onCallWrapper } from '../services/sentry';
-import { getDoc, requireIDemandAdminClaims } from './utils';
 import {
   CHANGE_REQUEST_STATUS,
+  Policy,
   PolicyLocation,
   changeReqestsCollection,
   policiesCollection,
 } from '../common';
-
-// const POLICY_UPDATEABLE_FIELDS = [
-//   'limits.limitA',
-//   'limits.limitB',
-//   'limits.limitC',
-//   'limits.limitD',
-//   'metadata.updated',
-// ]; // TODO: complete fields list if using this check
+import { onCallWrapper } from '../services/sentry';
+import { getDoc, requireIDemandAdminClaims } from './utils';
 
 interface ApproveRequestProps {
   policyId: string;
   requestId: string;
-  underWriterNotes?: string;
+  underwriterNotes?: string;
 }
 
 const approveChangeRequest = async ({ data, auth }: CallableRequest<ApproveRequestProps>) => {
@@ -31,7 +24,7 @@ const approveChangeRequest = async ({ data, auth }: CallableRequest<ApproveReque
 
   requireIDemandAdminClaims(auth?.token);
 
-  const { policyId, requestId, underWriterNotes } = data;
+  const { policyId, requestId, underwriterNotes } = data;
   if (!(policyId && requestId))
     throw new HttpsError('failed-precondition', 'policyId and requestId required');
 
@@ -43,29 +36,30 @@ const approveChangeRequest = async ({ data, auth }: CallableRequest<ApproveReque
   // await getDoc(policyRef);
   const request = await getDoc(requestRef);
 
-  // TODO: validation ??
+  // TODO: validation ?? (policy scope doesnt include locations key ??, etc.)
   if (!request.scope)
     throw new HttpsError('failed-precondition', 'missing "scope" field on request doc');
 
-  // TODO: requires deep merge if using diff (or converting keys to dot notation strings)
   try {
     info(`Updating policy with changes (requestId: ${requestId})`, { ...request });
     const batch = db.batch();
 
     if (request.scope === 'policy') {
-      // use update ?? update will throw if doc not found
+      // use update ?? update will throw if doc not found (requires dot notation)
       batch.set(
-        policyRef, // @ts-ignore
-        { ...request.changes, metadata: { updated: Timestamp.now() } },
-        { merge: true } // mergeFields: POLICY_UPDATEABLE_FIELDS
-      ); // does mergeFields keep value from original record if no new value is included in update ??
+        policyRef,
+        { ...request.changes, metadata: { updated: Timestamp.now() } } as Policy,
+        { merge: true }
+      );
     }
     // TODO: make sure location exists on policy ??
     if (request.scope === 'location') {
       const { locationId, changes } = request;
       const policy = await getDoc(policyRef);
       const location = policy.locations[locationId];
-
+      // TODO: should location changes be stored as diff from policy root ??
+      // Then policy changes would look the same as location changes
+      // and deepmerge could be used in both scenarios
       const mergedLocation = deepmerge(location, changes);
 
       // If using batch.update --> use dot notation
@@ -78,16 +72,14 @@ const approveChangeRequest = async ({ data, auth }: CallableRequest<ApproveReque
         locations: { [locationId]: mergedLocation as PolicyLocation },
       };
 
-      console.log('UPDATES: ', updates);
       batch.set(policyRef, updates, { merge: true });
-      // batch.update(policyRef, updates);
     }
 
     batch.update(requestRef, {
       status: CHANGE_REQUEST_STATUS.ACCEPTED,
-      approvedByUserId: auth?.uid || '',
+      processedByUserId: auth?.uid || '',
       processedTimestamp: Timestamp.now(),
-      underWriterNotes: underWriterNotes || null,
+      underwriterNotes: underwriterNotes || null,
       'metadata.updated': Timestamp.now(),
     });
 
@@ -105,14 +97,6 @@ const approveChangeRequest = async ({ data, auth }: CallableRequest<ApproveReque
       requestId,
     });
     throw new HttpsError('internal', 'Error upating policy record');
-  }
-
-  try {
-  } catch (err: any) {
-    throw new HttpsError(
-      'internal',
-      'policy changes merged, but emitting event for transactions failed.'
-    );
   }
 
   return { status: 'ok' };

@@ -69,7 +69,6 @@ export {
   mirrorcustomclaims,
   newagencyappnotification,
   newsubmissionnotifications,
-  // notifypolicychangerequest,
   policychangerequest,
   sendinviteemail,
 } from './firestoreEvents';

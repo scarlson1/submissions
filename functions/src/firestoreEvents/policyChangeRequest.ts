@@ -2,17 +2,25 @@ import { DocumentSnapshot, getFirestore } from 'firebase-admin/firestore';
 import { error, info, warn } from 'firebase-functions/logger';
 import type { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 
+import invariant from 'tiny-invariant';
 import {
   CHANGE_REQUEST_STATUS,
   CancellationReason,
   ChangeRequest,
+  RatingData,
+  hasAny,
   isValidEmail,
   policiesCollection,
+  ratingDataCollection,
   sendgridApiKey,
+  swissReClientId,
+  swissReClientSecret,
+  swissReSubscriptionKey,
 } from '../common';
+import { getDoc } from '../routes/utils';
 import { publishAmendment, publishEndorsement, publishLocationCancel } from '../services/pubsub';
 import { sendAdminChangeRequestNotification, sendMessage } from '../services/sendgrid';
-import { getDoc } from '../routes/utils';
+import { GetAALRes, GetPremiumProps, getAALs, getPremium } from '../utils/rating';
 
 export default async (
   event: FirestoreEvent<
@@ -33,6 +41,8 @@ export default async (
   switch (status) {
     case CHANGE_REQUEST_STATUS.SUBMITTED:
       await handleNewRequest(data, policyId, requestId, event.id);
+      await handleRatingForEndorsement(data, policyId, requestId);
+      // TODO: need to handle rating when type === "endorsement"
       return;
     case CHANGE_REQUEST_STATUS.ACCEPTED:
       await handleAcceptedRequest(data, policyId);
@@ -108,6 +118,106 @@ async function handleNewRequest(
   }
 
   return;
+}
+
+const SR_CALL_REQUIRED_KEYS = ['limits', 'deductible'];
+async function handleRatingForEndorsement(
+  data: ChangeRequest,
+  policyId: string,
+  requestId: string
+) {
+  // TODO: need to recalc rating for all locations that have expiration data later than new expiration date (policy endorsement)
+  if (data.scope !== 'location') {
+    error('endorsement rating not yet set up at policy level (expiration date change)');
+    return;
+  }
+
+  try {
+    const db = getFirestore();
+    const policyRef = policiesCollection(db).doc(policyId);
+    const policy = await getDoc(policyRef);
+
+    const location = policy.locations[data.locationId];
+    if (!location) throw new Error(`location not found on policy (${data.locationId})`);
+
+    let prevRatingData: RatingData | undefined;
+    if (location.ratingDocId) {
+      const prevRatingSnap = await ratingDataCollection(db).doc(location.ratingDocId).get();
+      prevRatingData = prevRatingSnap.data();
+    }
+    if (!prevRatingData)
+      throw new Error(
+        `no previous rating doc found for location ${data.locationId}. returning early.`
+      );
+    info(`Previous rating doc: `, { prevRatingData });
+
+    const changesKeys = Object.keys(data.changes); // TODO: make reuseable requiresRerate function
+    const requiresRerate = hasAny(changesKeys, SR_CALL_REQUIRED_KEYS);
+    console.log('REQUIRES RERATE: ', requiresRerate);
+
+    let getPremiumInputs: GetPremiumProps;
+
+    if (requiresRerate) {
+      // TODO: do rerate stuff
+      // TODO: use RCVS from location or get old rating doc ??
+      const { coordinates, deductible, limits: locLimits, ratingPropertyData } = location;
+      const { RCVs } = prevRatingData;
+
+      const limits = { ...locLimits, ...(data.changes?.limits || {}) };
+
+      // TODO: validate inputs (replacementCost, limits, etc.)
+      invariant(RCVs, 'missing RCVs in previous rating data');
+
+      let AALsRes: GetAALRes | undefined;
+      try {
+        AALsRes = await getAALs({
+          srClientId: swissReClientId.value(),
+          srClientSecret: swissReClientSecret.value(),
+          srSubKey: swissReSubscriptionKey.value(),
+          replacementCost: RCVs.building,
+          limits,
+          deductible: data?.changes?.deductible || deductible,
+          coordinates: { latitude: coordinates.latitude, longitude: coordinates.longitude },
+          numStories: location.ratingPropertyData?.numStories,
+        });
+      } catch (err: any) {
+        error('Error getting AALs from SR', { err });
+        throw new Error('Error getting AALs from SR');
+      }
+
+      invariant(typeof AALsRes?.AAL?.inland === 'number', 'Missing inland AAL');
+      invariant(typeof AALsRes?.AAL?.surge === 'number', 'Missing surge AAL');
+      invariant(typeof AALsRes?.AAL?.tsunami === 'number', 'Missing tsunami AAL');
+      // SR call
+
+      getPremiumInputs = {
+        AAL: {
+          inland: AALsRes.AAL.inland,
+          surge: AALsRes.AAL.surge,
+          tsunami: AALsRes.AAL.tsunami,
+        },
+        limits,
+        state: location.address.state,
+        basement: ratingPropertyData.basement,
+        floodZone: ratingPropertyData.floodZone,
+        priorLossCount: ratingPropertyData.priorLossCount || '0',
+        commissionPct: prevRatingData?.premiumCalcData?.subproducerCommissionPct || 0.15, // TODO: throw error if no rating doc or default to 15% commission ??
+      };
+    } else {
+      // TODO: set getPrem inputs from existing data
+    }
+    // commmon: getPremium
+    const result = getPremium(getPremiumInputs);
+
+    // save rating data to rating collection
+    // const ratingDataCol = ratingDataCollection(db);
+
+    // update change request doc
+  } catch (err: any) {
+    error('Error calculating new rating values for endorsement', { err, data }); // TODO: report error
+
+    return;
+  }
 }
 
 // Emit pubsub event
@@ -199,4 +309,8 @@ async function handleAcceptedRequest(data: ChangeRequest, policyId: string) {
 // }
 
 // Notify policy holder / agent
-async function handleDeniedRequest(data: ChangeRequest, policyId: string, requestId: string) {}
+async function handleDeniedRequest(data: ChangeRequest, policyId: string, requestId: string) {
+  console.log('TODO: handle denied email notification');
+
+  return;
+}

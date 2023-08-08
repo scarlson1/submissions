@@ -1,5 +1,11 @@
 // TODO: delete component. display as collapse or tab
-import { Suspense, useCallback, useMemo, useState } from 'react';
+import {
+  CancelRounded,
+  ChangeCircleRounded,
+  DataObjectRounded,
+  ThumbDownAltRounded,
+  ThumbUpAltRounded,
+} from '@mui/icons-material';
 import {
   Badge,
   Button,
@@ -10,23 +16,23 @@ import {
   IconButton,
   Tooltip,
 } from '@mui/material';
-import {
-  CancelRounded,
-  ChangeCircleRounded,
-  DataObjectRounded,
-  ThumbDownAltRounded,
-  ThumbUpAltRounded,
-} from '@mui/icons-material';
-import { where } from 'firebase/firestore';
 import { GridActionsCellItem, GridRowParams } from '@mui/x-data-grid';
-import { useFunctions } from 'reactfire';
+import { Timestamp, doc, updateDoc, where } from 'firebase/firestore';
+import { Suspense, useCallback, useMemo, useState } from 'react';
+import { useFirestore, useFunctions, useUser } from 'reactfire';
 
-import { ChangeRequestsGrid } from './ChangeRequestsGrid';
-import { useAsyncToast, useDocCount, useShowJson, useWidth } from 'hooks';
-import { CHANGE_REQUEST_STATUS, COLLECTIONS } from 'common';
-import { useAuth } from 'context';
+import { ApproveChangeResponse, approveChangeRequest } from 'api';
+import {
+  CHANGE_REQUEST_STATUS,
+  COLLECTIONS,
+  ChangeRequest,
+  ChangeRequestStatus,
+  changeReqestsCollection,
+} from 'common';
 import { LoadingComponent } from 'components/Layout';
-import { approveChangeRequest, ApproveChangeResponse } from 'api';
+import { useAuth } from 'context';
+import { useAsyncToast, useDocCount, useShowJson, useWidth } from 'hooks';
+import { ChangeRequestsGrid } from './ChangeRequestsGrid';
 
 export const useViewChangeRequestsDialogProps = (policyId?: string) => {
   const { claims, user, orgId } = useAuth();
@@ -65,11 +71,13 @@ export const useViewChangeRequestsDialogProps = (policyId?: string) => {
 };
 
 const useMangageChangeRequest = (
-  onSuccess?: (res: ApproveChangeResponse) => void,
+  onSuccess?: (res?: ApproveChangeResponse | undefined) => void,
   onError?: () => void
 ) => {
+  const { data: user } = useUser();
   const toast = useAsyncToast();
   const functions = useFunctions();
+  const firestore = useFirestore();
 
   const approveRequest = useCallback(
     async (policyId: string, requestId: string) => {
@@ -92,13 +100,43 @@ const useMangageChangeRequest = (
     [functions, toast, onSuccess, onError]
   );
 
-  const denyRequest = useCallback((policyId: string, requestId: string) => {
-    alert('no implemented yet');
-  }, []);
+  const updateChangeRequest = useCallback(
+    async (policyId: string, requestId: string, status: ChangeRequestStatus) => {
+      try {
+        // TODO: prompt for uw notes
+        const docRef = doc(changeReqestsCollection(firestore, policyId), requestId);
 
-  const cancelRequest = useCallback((policyId: string, requestId: string) => {
-    alert('no implemented yet');
-  }, []);
+        toast.loading('updating...');
+        await updateDoc(docRef, {
+          status,
+          processedByUserId: user?.uid || null,
+          processedTimestamp: Timestamp.now(),
+          underwriterNotes: null, // @ts-ignore
+          'metadata.updated': Timestamp.now(),
+        } as Partial<ChangeRequest>);
+
+        toast.success('request updated!');
+        if (onSuccess) onSuccess();
+      } catch (err: any) {
+        console.log('error updating status: ', err);
+        toast.error('an error occurred');
+        if (onError) onError();
+      }
+    },
+    [firestore, user, toast, onSuccess, onError]
+  );
+
+  const denyRequest = useCallback(
+    (policyId: string, requestId: string) =>
+      updateChangeRequest(policyId, requestId, CHANGE_REQUEST_STATUS.DENIED),
+    [updateChangeRequest]
+  );
+
+  const cancelRequest = useCallback(
+    (policyId: string, requestId: string) =>
+      updateChangeRequest(policyId, requestId, CHANGE_REQUEST_STATUS.CANCELLED),
+    [updateChangeRequest]
+  );
 
   return { approveRequest, denyRequest, cancelRequest };
 };

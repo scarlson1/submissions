@@ -959,7 +959,7 @@ interface BaseChangeRequest extends BaseDoc {
   };
   status: ChangeRequestStatus;
   processedTimestamp?: Timestamp;
-  approvedByUserId?: string;
+  processedByUserId?: string | null;
   // approvedBy?: {
   //   name: string;
   //   userId: string;

@@ -70,21 +70,10 @@ export const sendinviteemail = onDocumentCreated(
   }
 );
 
-// REPLACED BY policychangerequest listener
-// export const notifypolicychangerequest = onDocumentCreated(
-//   {
-//     document: `${COLLECTIONS.POLICIES}/{policyId}/${COLLECTIONS.CHANGE_REQUESTS}/{requestId}`,
-//     secrets: [sendgridApiKey],
-//   },
-//   async (event) => {
-//     await (await import('./notifyPolicyChangeRequest.js')).default(event);
-//   }
-// );
-
 export const policychangerequest = onDocumentWritten(
   {
     document: `${COLLECTIONS.POLICIES}/{policyId}/${COLLECTIONS.CHANGE_REQUESTS}/{requestId}`,
-    secrets: [sendgridApiKey],
+    secrets: [sendgridApiKey, swissReClientId, swissReClientSecret, swissReSubscriptionKey],
   },
   async (event) => {
     await (await import('./policyChangeRequest.js')).default(event);

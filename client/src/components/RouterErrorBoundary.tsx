@@ -1,9 +1,9 @@
+import { Alert, AlertTitle, Box, Button, Container, Stack, Typography } from '@mui/material';
 import { FirestoreError } from 'firebase/firestore';
-import { Box, Alert, AlertTitle, Container, Typography, Button, Stack } from '@mui/material';
-import { useRouteError, isRouteErrorResponse, useNavigate } from 'react-router-dom';
+import { isRouteErrorResponse, useNavigate, useRouteError } from 'react-router-dom';
 // import * as Sentry from '@sentry/react';
 
-import { ServerDownSVG, PageNotFoundSVG, SecureLoginSVG, SearchingSVG } from 'assets/images';
+import { PageNotFoundSVG, SearchingSVG, SecureLoginSVG, ServerDownSVG } from 'assets/images';
 
 // FOR HANDLING ERRORS THROWN IN REACT ROUTER LOADERS
 
@@ -277,6 +277,7 @@ export const RouterErrorBoundary = ({ actionButtons }: RouterErrorBoundaryProps)
     msg =
       'Permission denied error. Your account does not have the required permissions to access the requested resource.';
   }
+  // TODO: if auth/network-request-failed --> try refreshing token
 
   return (
     <Container maxWidth='xs' sx={{ p: 8 }}>

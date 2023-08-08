@@ -1,6 +1,6 @@
-import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
-import { error, info } from 'firebase-functions/logger';
 import { GeoPoint, Timestamp, getFirestore } from 'firebase-admin/firestore';
+import { error, info } from 'firebase-functions/logger';
+import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import invariant from 'tiny-invariant';
 
 import {
@@ -11,12 +11,13 @@ import {
   ValueByRiskType,
   defaultFloodZone,
   ratingDataCollection,
+  swissReClientId,
+  swissReClientSecret,
+  swissReSubscriptionKey,
 } from '../common';
-import { getAALs, validateGetAALsProps } from '../utils/rating';
-import { getPremium } from '../utils/rating';
-import { swissReClientId, swissReClientSecret, swissReSubscriptionKey } from '../common';
-import { GetPremiumCalcResult } from '../utils/rating/getPremium';
+import { getAALs, getPremium, validateGetAALsProps } from '../utils/rating';
 import { GetAALRes } from '../utils/rating/getAALs';
+import { GetPremiumCalcResult } from '../utils/rating/getPremium';
 
 interface GetAnnualPremiumRequest {
   coordinates: Coordinates;
@@ -91,14 +92,10 @@ export default async ({ data, auth }: CallableRequest<GetAnnualPremiumRequest>) 
 
   let AALsRes: GetAALRes | undefined;
   try {
-    const srClientId = swissReClientId.value();
-    const srClientSecret = swissReClientSecret.value();
-    const srSubKey = swissReSubscriptionKey.value();
-
     AALsRes = await getAALs({
-      srClientId,
-      srClientSecret,
-      srSubKey,
+      srClientId: swissReClientId.value(),
+      srClientSecret: swissReClientSecret.value(),
+      srSubKey: swissReSubscriptionKey.value(),
       replacementCost,
       limits,
       deductible,
