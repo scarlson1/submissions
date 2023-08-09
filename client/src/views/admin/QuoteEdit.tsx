@@ -13,7 +13,7 @@ import { QuoteForm, QuoteValues } from 'elements/forms';
 import { useAsyncToast, useDocDataOnce } from 'hooks';
 import { CARD_FEE_RATE } from 'hooks/useCreateQuote';
 import { addToDate, extractNumber } from 'modules/utils';
-import { ADMIN_ROUTES, createPath } from 'router';
+import { ROUTES, createPath } from 'router';
 
 const useEditQuote = (
   quoteId: string,
@@ -140,7 +140,7 @@ export const QuoteEdit = () => {
     quoteId,
     () => {
       toast.success('quote saved!');
-      navigate(createPath({ path: ADMIN_ROUTES.QUOTES }));
+      navigate(createPath({ path: ROUTES.QUOTES }));
     },
     (msg: string, err: any) => toast.error(msg)
   );

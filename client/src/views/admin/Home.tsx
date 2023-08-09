@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { KeyboardArrowRightRounded } from '@mui/icons-material';
 import {
   Box,
   Button,
@@ -6,26 +6,26 @@ import {
   CardActions,
   CardContentProps,
   CardProps,
-  Typography,
   Unstable_Grid2 as Grid,
+  Typography,
 } from '@mui/material';
-import { KeyboardArrowRightRounded } from '@mui/icons-material';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from 'reactfire';
 
+import { COLLECTIONS, Moratorium } from 'common';
 import { ClaimsGuard, FlexCard, FlexCardContent, IconButtonMenu } from 'components';
-import { ADMIN_ROUTES, createPath, ROUTES } from 'router';
-import { useFetchDocCount } from 'hooks';
 import {
+  Query,
+  Timestamp,
   collection,
   getDocs,
   getFirestore,
-  Query,
   query,
-  Timestamp,
   where,
 } from 'firebase/firestore';
-import { COLLECTIONS, Moratorium } from 'common';
+import { useFetchDocCount } from 'hooks';
+import { ADMIN_ROUTES, ROUTES, createPath } from 'router';
 
 export const Home = () => {
   // const navigate = useNavigate();
@@ -149,7 +149,7 @@ function NewSubmissionsCard() {
 
   return (
     <StatCard
-      cardClick={() => navigate(createPath({ path: ADMIN_ROUTES.SUBMISSIONS }))}
+      cardClick={() => navigate(createPath({ path: ROUTES.SUBMISSIONS }))}
       title='Submissions'
       content={`${count || '--'} new`}
       cardProps={{ sx: { maxWidth: 340 } }}

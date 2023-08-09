@@ -1,7 +1,7 @@
-import { projectID } from 'firebase-functions/params';
-import sgMail, { MailDataRequired } from '@sendgrid/mail';
-import { MailData } from '@sendgrid/helpers/classes/mail';
 import { EmailData } from '@sendgrid/helpers/classes/email-address';
+import { MailData } from '@sendgrid/helpers/classes/mail';
+import sgMail, { MailDataRequired } from '@sendgrid/mail';
+import { projectID } from 'firebase-functions/params';
 
 // TODO: https://docs.sendgrid.com/for-developers/sending-email/personalizations
 // TODO: switch to dynamic templates
@@ -19,23 +19,23 @@ import { EmailData } from '@sendgrid/helpers/classes/email-address';
 
 // TODO: add msgType to customArgs (ex: msgType: 'deliver policy')
 
+import { env, onlyUniqueObj } from '../../common';
 import {
-  submissionReceived,
-  adminNewSubmission,
-  emailConfirmation,
-  userInvite,
-  adminNewAgencySubmission,
-  newQuote,
-  adminPaymentReceived,
-  policyDelivery,
-  agencyAppApproved,
-  adminImportNotification,
-  quoteExpiringSoon,
-  blankHTML,
   adminChangeRequest,
+  adminImportNotification,
+  adminNewAgencySubmission,
+  adminNewSubmission,
+  adminPaymentReceived,
+  agencyAppApproved,
+  blankHTML,
+  emailConfirmation,
   moveToTenantConfirmation,
+  newQuote,
+  policyDelivery,
+  quoteExpiringSoon,
+  submissionReceived,
+  userInvite,
 } from './templates';
-import { env } from '../../common';
 
 export interface AttachmentJSON {
   content: string;
@@ -55,17 +55,20 @@ export interface CreateMsgContentProps extends Omit<MailData, 'from'> {
   attachments?: AttachmentJSON[];
 }
 
-// pathToAttachment = `${__dirname}/attachment.pdf`;
-// attachment = fs.readFileSync(pathToAttachment).toString('base64');
+function uniqueEmails(to: EmailData | EmailData[]) {
+  let uniqueTo = to;
+  if (Array.isArray(to)) {
+    const objs: EmailJSON[] = [];
 
-// attachments: [
-//   {
-//     content: attachment,
-//     filename: 'attachment.pdf',
-//     type: 'application/pdf',
-//     disposition: 'attachment',
-//   },
-// ];
+    for (let e of to) {
+      if (typeof e === 'string') objs.push({ email: e });
+      objs.push(e as EmailJSON);
+    }
+
+    uniqueTo = objs.filter(onlyUniqueObj<EmailJSON>('email'));
+  }
+  return uniqueTo;
+}
 
 const createMsgContent = ({
   to,
@@ -75,8 +78,10 @@ const createMsgContent = ({
   attachments,
   ...rest
 }: CreateMsgContentProps): MailDataRequired => {
+  const uniqueTo = uniqueEmails(to);
+
   return {
-    to,
+    to: uniqueTo,
     from,
     subject,
     html,

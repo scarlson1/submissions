@@ -1,16 +1,17 @@
-import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
-import { info } from 'firebase-functions/logger';
 import algoliasearch from 'algoliasearch';
+import { info } from 'firebase-functions/logger';
+import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 
 import {
   algoliaAdminKey,
-  algoliaUserBaseKey,
-  algoliaIDemandAdminSearchKey,
   algoliaAppId,
+  algoliaIDemandAdminSearchKey,
   algoliaIndex,
+  algoliaUserBaseKey,
 } from '../common';
-import { visibleType } from '../utils';
 import { onCallWrapper } from '../services/sentry';
+import { visibleType } from '../utils';
+import { validate } from './utils';
 
 // VISIBLE BY: https://www.algolia.com/doc/guides/security/api-keys/how-to/user-restricted-access-to-data/#generating-a-secured-api-key
 
@@ -39,9 +40,13 @@ const generateSearchKey = async ({ auth }: CallableRequest) => {
   const appId = algoliaAppId.value();
   const adminKey = algoliaAdminKey.value();
   const searchBaseKey = algoliaUserBaseKey.value();
-  if (!(appId && adminKey && searchBaseKey)) {
-    throw new HttpsError('failed-precondition', 'Missing Algolia credentials in env vars');
-  }
+
+  validate(
+    appId && adminKey && searchBaseKey,
+    'failed-precondition',
+    'missing algolia credentials'
+  );
+
   const client = algoliasearch(appId, adminKey);
 
   const userId = auth?.uid;
@@ -54,8 +59,11 @@ const generateSearchKey = async ({ auth }: CallableRequest) => {
   // return admin search key if user is iDemand Admin
   if (isIDemandAdmin) {
     const iDemandAdminSearchKey = algoliaIDemandAdminSearchKey.value();
-    if (!iDemandAdminSearchKey)
-      throw new HttpsError('internal', 'Missing iDemand Admin search key in Secret Manager');
+    validate(
+      iDemandAdminSearchKey,
+      'internal',
+      'missing iDemand Admin search key in Secret Manager'
+    );
 
     info(`RETURNING ADMIN ALGOLIA SEARCH KEY FOR USER ${auth?.token.email || ''} (UID: ${userId})`);
     return {

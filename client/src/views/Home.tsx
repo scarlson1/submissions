@@ -1,16 +1,20 @@
-import { Navigate } from 'react-router-dom';
 import { Box, Container, Unstable_Grid2 as Grid, Typography } from '@mui/material';
+import { Navigate } from 'react-router-dom';
 
 import { useAuth } from 'context/AuthContext';
-import { ADMIN_ROUTES, createPath, ROUTES } from 'router';
+import { createPath, ROUTES } from 'router';
 
 // TODO: add UI state to authContext (admin, user, authedUser)
 
 export const Home = () => {
-  const { claims, isSignedIn, isAnonymous } = useAuth();
+  const {
+    // claims,
+    isSignedIn,
+    isAnonymous,
+  } = useAuth();
 
-  if (!!claims?.iDemandAdmin)
-    return <Navigate to={createPath({ path: ADMIN_ROUTES.SUBMISSIONS })} replace={true} />;
+  // if (!!claims?.iDemandAdmin)
+  //   return <Navigate to={createPath({ path: ADMIN_ROUTES.SUBMISSIONS })} replace={true} />;
 
   if (isSignedIn && !isAnonymous)
     return <Navigate to={createPath({ path: ROUTES.SUBMISSIONS })} replace={true} />;

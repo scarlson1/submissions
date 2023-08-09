@@ -77,18 +77,17 @@ export const Header = (props: HeaderProps) => {
       },
       {
         title: 'Submissions',
-        route: createPath({ path: ADMIN_ROUTES.SUBMISSIONS }),
+        route: createPath({ path: ROUTES.SUBMISSIONS }),
         icon: <PageviewRounded color='primary' fontSize='small' />,
       },
       {
         title: 'Quotes',
-        route: createPath({ path: ADMIN_ROUTES.QUOTES }),
+        route: createPath({ path: ROUTES.QUOTES }),
         icon: <RequestQuoteRounded color='primary' fontSize='small' />,
       },
       {
         title: 'Policies',
         route: createPath({ path: ROUTES.POLICIES }),
-        // route: createPath({ path: ADMIN_ROUTES.POLICIES }),
         icon: <PolicyRounded color='primary' fontSize='small' />,
       },
       {

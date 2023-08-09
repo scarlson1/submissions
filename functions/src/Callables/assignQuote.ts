@@ -1,9 +1,10 @@
-import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
-import { error, info } from 'firebase-functions/logger';
 import { Timestamp, getFirestore } from 'firebase-admin/firestore';
+import { error, info } from 'firebase-functions/logger';
+import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 
 import { CLAIMS, Quote, orgsCollection, quotesCollection, usersCollection } from '../common';
 import { onCallWrapper } from '../services/sentry';
+import { validate } from './utils';
 
 interface AssignQuoteProps {
   quoteId: string;
@@ -16,13 +17,9 @@ const assignQuote = async ({ data, auth }: CallableRequest<AssignQuoteProps>) =>
   const token = auth?.token;
   const isAgent = token ? token[CLAIMS.AGENT] || false : false;
 
-  if (!quoteId) throw new HttpsError('invalid-argument', `Missing quoteId`);
-
-  if (!uid)
-    throw new HttpsError(
-      'unauthenticated',
-      `Must be authenticated to associate quote with your account`
-    );
+  validate(uid, 'unauthenticated', 'must be signed in');
+  validate(token, 'unauthenticated', 'must be signed in');
+  validate(quoteId, 'failed-precondition', 'quoteId required');
 
   try {
     const db = getFirestore();
@@ -37,7 +34,7 @@ const assignQuote = async ({ data, auth }: CallableRequest<AssignQuoteProps>) =>
     // TODO: check to see if quote is already claimed ??
     let updates: Partial<Quote> = {};
     if (isAgent) {
-      let orgId = auth.token.email?.endsWith('@idemandinsurance.com')
+      let orgId = token.email?.endsWith('@idemandinsurance.com')
         ? 'idemand'
         : token?.firebase.tenant;
       if (!orgId) {

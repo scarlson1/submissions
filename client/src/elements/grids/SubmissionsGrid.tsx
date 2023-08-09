@@ -57,7 +57,7 @@ export const SubmissionsGrid = ({
             onClick={handleShowJson(params)}
             label='Show JSON'
             disabled={!iDAdminResult.hasRequiredClaims}
-            showInMenu={isSmall}
+            showInMenu // showInMenu={isSmall}
           />,
         ],
       },

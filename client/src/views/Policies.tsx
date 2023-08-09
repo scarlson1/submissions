@@ -38,6 +38,7 @@ import { Item } from './UserSubmissions';
 // TODO: add a tab to view change requests
 
 export const Policies = () => {
+  const navigate = useNavigate();
   const { claims, user } = useAuth();
   const showJson = useShowJson<Policy>(COLLECTIONS.POLICIES);
 
@@ -65,7 +66,12 @@ export const Policies = () => {
 
   const header = (
     <>
-      <Typography variant='h5' gutterBottom sx={{ ml: { xs: 0, sm: 3, md: 4 } }}>
+      <Typography
+        variant='h5'
+        gutterBottom
+        sx={{ ml: { xs: 0, sm: 3, md: 4 }, '&:hover': { cursor: 'pointer' } }}
+        onClick={() => navigate(createPath({ path: ROUTES.POLICIES }))}
+      >
         Policies
       </Typography>
       {/* <Divider sx={{ my: 3 }} /> */}
@@ -74,7 +80,7 @@ export const Policies = () => {
 
   if (claims?.iDemandAdmin)
     return (
-      <Container maxWidth='lg' sx={{ py: { xs: 4, md: 6 } }}>
+      <Container maxWidth='xl' sx={{ py: { xs: 4, md: 6 } }}>
         <Box>
           <Box
             sx={{ display: 'flex', justifyContent: 'space-between', pb: 2, pr: { xs: 0, sm: 3 } }}
@@ -89,7 +95,7 @@ export const Policies = () => {
 
   if (claims?.orgAdmin && user?.tenantId)
     return (
-      <Container maxWidth='lg' sx={{ py: { xs: 4, md: 6 } }}>
+      <Container maxWidth='xl' sx={{ py: { xs: 4, md: 6 } }}>
         <Box>
           {header}
           <ControlledChangeRequestDialog />
@@ -100,7 +106,7 @@ export const Policies = () => {
 
   if (claims?.agent && user?.uid)
     return (
-      <Container maxWidth='lg' sx={{ py: { xs: 4, md: 6 } }}>
+      <Container maxWidth='xl' sx={{ py: { xs: 4, md: 6 } }}>
         <Box>
           {header}
           <ControlledChangeRequestDialog />

@@ -1,23 +1,24 @@
-import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
+import { DocumentSnapshot, Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
-import { getFirestore, Timestamp, DocumentSnapshot } from 'firebase-admin/firestore';
+import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 
 import {
-  PaymentMethod,
-  paymentMethodsCollection,
-  POLICY_STATUS,
-  round,
-  finTrxCollection,
   FIN_TRANSACTION_STATUS,
-  cardFeePct,
-  policiesCollection,
-  Policy,
+  POLICY_STATUS,
   PUB_SUB_TOPICS,
+  PaymentMethod,
+  Policy,
+  cardFeePct,
+  ePayCreds as ePayCredsSecret,
+  finTrxCollection,
+  paymentMethodsCollection,
+  policiesCollection,
+  round,
 } from '../common';
 import { getEPayInstance } from '../services';
 import { publishMessage } from '../services/pubsub/publishMessage.js';
-import { ePayCreds as ePayCredsSecret } from '../common';
 import { onCallWrapper } from '../services/sentry';
+import { validate } from './utils';
 
 // const CARD_FEE = 0.035; // TODO: use env var
 
@@ -30,10 +31,9 @@ const executePayment = async ({ data, auth }: CallableRequest<ExecutePaymentProp
   const { policyId, paymentMethodId } = data;
   const uid = auth?.uid;
 
-  if (!uid) throw new HttpsError('unauthenticated', 'Must be signed in');
-
-  if (!policyId) throw new HttpsError('failed-precondition', 'Missing policy ID');
-  if (!paymentMethodId) throw new HttpsError('failed-precondition', 'Missing paymentMethodId');
+  validate(uid, 'unauthenticated', 'must be signed in');
+  validate(policyId, 'failed-precondition', 'missing policy ID');
+  validate(paymentMethodId, 'failed-precondition', 'missing paymentMethodId');
 
   const feePct = Number.parseFloat(cardFeePct.value()) || 0.035;
 
@@ -42,26 +42,31 @@ const executePayment = async ({ data, auth }: CallableRequest<ExecutePaymentProp
 
   const policySnap: DocumentSnapshot<Policy> = await policiesCol.doc(policyId).get();
   const policy = policySnap.data();
-  console.log('POLICY: ', policy);
-  if (!policySnap.exists || !policy)
-    throw new HttpsError('not-found', `Could not find policy with ID: ${policyId}`);
+  info('POLICY: ', { policy });
+
+  validate(policySnap.exists && policy, 'not-found', `Could not find policy with ID: ${policyId}`);
 
   let { price, effectiveDate, status } = policy;
-  if (!price || !effectiveDate)
-    throw new HttpsError('failed-precondition', 'Quote is missing required fields');
-
-  if (status !== POLICY_STATUS.AWAITING_PAYMENT)
-    throw new HttpsError('failed-precondition', 'Policy status must be "awaiting payment"');
+  validate(price && effectiveDate, 'failed-precondition', 'Quote is missing required fields');
+  validate(
+    status === POLICY_STATUS.AWAITING_PAYMENT,
+    'failed-precondition',
+    `Policy status must be "${POLICY_STATUS.AWAITING_PAYMENT}"`
+  );
 
   const paymentMethodSnap: DocumentSnapshot<PaymentMethod> = await paymentMethodsCollection(db, uid)
     .doc(paymentMethodId)
     .get();
 
   let paymentMethodDetails = paymentMethodSnap.data();
-  if (!paymentMethodSnap.exists || !paymentMethodDetails)
-    throw new HttpsError('not-found', 'Payment method not found');
+  validate(
+    paymentMethodSnap.exists && paymentMethodDetails,
+    'not-found',
+    'Payment method not found'
+  );
 
   const ePayCreds = ePayCredsSecret.value();
+  validate(ePayCreds, 'internal', 'missing required env vars');
   if (!ePayCreds) throw new HttpsError('internal', 'Missing required env vars');
 
   try {
@@ -72,7 +77,7 @@ const executePayment = async ({ data, auth }: CallableRequest<ExecutePaymentProp
     const total = price + ePayFees;
     info(`PRICE (${price}) + EPAY_FEES (${ePayFees}) = TOTAL (${total})`);
 
-    if (total < 100) throw new HttpsError('failed-precondition', 'Total less than minimum premium');
+    validate(total >= 100, 'failed-precondition', 'total less than minimum premium');
 
     let {
       headers: { location },
@@ -98,7 +103,7 @@ const executePayment = async ({ data, auth }: CallableRequest<ExecutePaymentProp
     let transactionId = location?.split('/')[2];
     info(`EPay transactionId: ${transactionId}`, { transactionId });
 
-    if (!transactionId) throw new HttpsError('internal', 'Missing transactionId');
+    validate(transactionId, 'internal', 'payment request failed - missing transactionId');
 
     // TODO: move handling status to payment:complete event listener
     // TODO: emit event "payment:complete" data: { policyId, transactionId }
@@ -152,7 +157,6 @@ const executePayment = async ({ data, auth }: CallableRequest<ExecutePaymentProp
     };
   } catch (err: any) {
     // TODO: save failed transaction in db so it matches ePay ??
-    console.log('ERROR: ', err);
     // TODO: extract error message from ePay error if code is 400: https://docs.epaypolicy.com/knowledgebase/faqs/
     let msg = err?.response?.data?.message || 'Payment could not be processed.';
     error(msg, {

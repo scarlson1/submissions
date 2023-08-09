@@ -1,26 +1,26 @@
+import { IdTokenResult, User, UserCredential } from '@firebase/auth';
+import { setUser as setSentryUser } from '@sentry/react';
+import { differenceInSeconds } from 'date-fns';
+import { setUserId, setUserProperties } from 'firebase/analytics';
+import { isEqual } from 'lodash';
 import {
-  useState,
-  useEffect,
-  useMemo,
+  ReactNode,
+  createContext,
   useCallback,
   useContext,
-  createContext,
+  useEffect,
+  useMemo,
   useRef,
-  ReactNode,
+  useState,
 } from 'react';
-import { User, IdTokenResult, UserCredential } from '@firebase/auth';
-import { setUserId, setUserProperties } from 'firebase/analytics';
-import { useAnalytics, useAuth as useFireAuth, useFunctions } from 'reactfire';
-import { differenceInSeconds } from 'date-fns';
-import { setUser as setSentryUser } from '@sentry/react';
-import { isEqual } from 'lodash';
 import { matchPath, useLocation } from 'react-router-dom';
+import { useAnalytics, useAuth as useFireAuth, useFunctions } from 'reactfire';
 
+import { CUSTOM_CLAIMS } from 'common';
 import { ReauthDialog } from 'components';
 import { useAlgoliaStore, usePrevious, useUserClaims } from 'hooks';
 import { UserWithClaimsResult } from 'hooks/useUserClaims';
 import { AUTH_ROUTES, createPath } from 'router';
-import { CUSTOM_CLAIMS } from 'common';
 
 // TODO: refactor to use rxFire observables ?? https://firebase.blog/posts/2018/09/introducing-rxfire-easy-async-firebase
 
@@ -60,9 +60,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.log('USER OBS CHANGE: ', userData);
   }, [userData]);
 
-  // const [loading, setLoading] = useState(false);
-  // const [loadingInitial, setLoadingInitial] = useState(true);
-  // const lastCommittedRef = useRef(null);
   const [generateKey, resetKey] = useAlgoliaStore((state) => [state.generateKey, state.resetKey]);
 
   // get user in analytics & sentry on change

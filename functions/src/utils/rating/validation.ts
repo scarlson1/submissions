@@ -70,7 +70,7 @@ export function validateRCVs(RCVs?: RCVs | null | undefined): asserts RCVs is No
 }
 
 export function validateAALs(
-  AALs: Nullable<ValueByRiskType>
+  AALs?: Nullable<ValueByRiskType> | undefined
 ): asserts AALs is NonNullable<ValueByRiskType> {
   verify(AALs, 'AALs required');
   verify(

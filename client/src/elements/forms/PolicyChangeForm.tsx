@@ -1,10 +1,9 @@
-import { RefObject } from 'react';
-import { Form, Formik, FormikHelpers, FormikProps } from 'formik';
 import { Divider, Unstable_Grid2 as Grid, Typography } from '@mui/material';
+import { Form, Formik, FormikHelpers, FormikProps } from 'formik';
+import { RefObject } from 'react';
 import * as yup from 'yup';
 
 import { Address, EntityNamedInsured, addressValidation, emailVal, phoneVal } from 'common';
-import FormikAddress from './FormikAddress';
 import {
   FormikDatePicker,
   FormikMaskField,
@@ -13,6 +12,7 @@ import {
   UpdateDialogSubmitDisabled,
   phoneMaskProps,
 } from 'components/forms';
+import FormikAddress from './FormikAddress';
 
 // TODO: cancel policy button
 // or branching form (what would you like to change? (add/remove location, edit location, change policy details, etc.)) --> direct to correct form (set trx type)
@@ -20,8 +20,8 @@ import {
 export interface PolicyChangeValues {
   namedInsured: Omit<EntityNamedInsured, 'userId' | 'orgId'>;
   mailingAddress: Address;
-  effectiveDate: Date | null;
-  expirationDate: Date | null; // TODO: ability to request date changes ??
+  // effectiveDate: Date | null;
+  // expirationDate: Date | null; // TODO: ability to request date changes ??
   requestEffDate: Date;
 }
 
@@ -40,8 +40,9 @@ const validation = yup.object().shape({
     phone: phoneVal.required('phone required'),
   }),
   mailingAddress: addressValidation,
-  effectiveDate: yup.date().required(),
-  expirationDate: yup.date().required(),
+  requestEffDate: yup.date().required(),
+  // effectiveDate: yup.date().required(),
+  // expirationDate: yup.date().required(),
 });
 
 export interface PolicyChangeFormProps extends Partial<FormikProps<PolicyChangeValues>> {
@@ -75,7 +76,12 @@ export const PolicyChangeForm = ({
               <Typography variant='h5'>Named Insured</Typography>
             </Grid>
             <Grid xs={6} md={4}>
-              <FormikTextField name='namedInsured.displayName' label='Name' fullWidth />
+              <FormikTextField
+                name='namedInsured.displayName'
+                label='Name'
+                fullWidth
+                helperText={`cannot be transferred to a different person`}
+              />
             </Grid>
             <Grid xs={6} md={4}>
               <FormikTextField name='namedInsured.email' label='Email' fullWidth />
@@ -103,7 +109,7 @@ export const PolicyChangeForm = ({
                 }}
               />
             </Grid>
-            <Grid xs={12}>
+            {/* <Grid xs={12}>
               <Typography variant='h5' gutterBottom>
                 Policy Term
               </Typography>
@@ -129,7 +135,7 @@ export const PolicyChangeForm = ({
                 minDate={new Date()}
                 maxDate={undefined}
               />
-            </Grid>
+            </Grid> */}
             <Grid xs={12}>
               <Divider />
             </Grid>

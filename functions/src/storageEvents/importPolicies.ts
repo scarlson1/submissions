@@ -1,21 +1,18 @@
-import { StorageEvent } from 'firebase-functions/v2/storage';
-import { error, info, warn } from 'firebase-functions/logger';
-import { projectID } from 'firebase-functions/params';
 import { Firestore, GeoPoint, Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
-import { geohashForLocation } from 'geofire-common';
+import { error, info, warn } from 'firebase-functions/logger';
+import { projectID } from 'firebase-functions/params';
+import { StorageEvent } from 'firebase-functions/v2/storage';
 import fs from 'fs';
+import { geohashForLocation } from 'geofire-common';
 import os from 'os';
 import path from 'path';
 
-import invariant from 'tiny-invariant';
 import { isDate } from 'date-fns';
+import invariant from 'tiny-invariant';
 
-import {
-  ParseStreamToArrayRes,
-  parseStreamToArray,
-  transformHeadersCamelCase,
-} from '../utils/parseStreamToArray';
+import { sumBy } from 'lodash';
+import { getCarrierByState } from '../callables/createPolicy';
 import {
   AdditionalInsured,
   Address,
@@ -56,10 +53,13 @@ import {
   unlinkFile,
 } from '../common';
 import { sendAdminPolicyImportNotification } from '../services/sendgrid';
-import { getRCVs } from '../utils/rating';
-import { getCarrierByState } from '../callables/createPolicy';
 import { eventOlderThan, shouldReturnEarly } from '../utils';
-import { sumBy } from 'lodash';
+import {
+  ParseStreamToArrayRes,
+  parseStreamToArray,
+  transformHeadersCamelCase,
+} from '../utils/parseStreamToArray';
+import { getRCVs } from '../utils/rating';
 import { CSVQuoteRow } from './importQuotes';
 
 const IMPORT_POLICIES_FOLDER = 'importPolicies';
@@ -651,7 +651,7 @@ function formatPolicyLocation(
     deductible: data.deductible,
     effectiveDate: effDateTs,
     expirationDate: expDateTs,
-    active: true,
+    exists: true,
     additionalInsureds: data.additionalInsured || [],
     mortgageeInterest: data.mortgageeInterest || [],
     ratingDocId: data.ratingDocId || '',

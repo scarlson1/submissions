@@ -10,7 +10,7 @@ import { v4 as uuid } from 'uuid';
 import invariant from 'tiny-invariant';
 import { reportErrorSentry } from '../services/sentry';
 import { cardFeePct } from './environmentVars';
-import { FeeItem, TaxItem } from './types';
+import { FeeItem, Primitive, TaxItem } from './types';
 
 /**
  * Sums an array of numbers
@@ -215,7 +215,10 @@ export const dollarFormat2 = (amt: number) => {
   return numeral(amt).format('$0,0.00');
 };
 
-export const truthyOrZero = (val: any) => val || val === 0;
+export const truthyOrZero = <T = Primitive>(val: T) => Boolean(val) || val === 0;
+
+// export const truthyOrZero = <T = Primitive>(val: T): asserts val is NonNullable<T> =>
+//   val || val === 0;
 
 export async function unlinkFile(filePath: string) {
   try {
@@ -240,6 +243,12 @@ export async function throwIfExists<T>(docRef: DocumentReference<T>) {
 export function onlyUnique(value: string | number, index: number, array: (string | number)[]) {
   return array.indexOf(value) === index;
 }
+
+export const onlyUniqueObj =
+  <T extends Record<string, any>>(key: keyof T) =>
+  (value: T, index: number, array: T[]) => {
+    return array.findIndex((val, idx, arr) => val[key] === value[key]) === index;
+  };
 
 export function sumByTypes<T>(
   arr: T[],
@@ -402,7 +411,7 @@ export const hasAny = (values: string[], checkValues: string[]) => {
   return values.some((v) => checkValues.indexOf(v) !== -1);
 };
 
-export function verify(condition: any, msg: string | (() => string)): asserts condition {
+export function verify(condition: any, msg?: string | (() => string)): asserts condition {
   try {
     invariant(condition, msg);
   } catch (err: any) {

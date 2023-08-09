@@ -10,7 +10,7 @@ import invariant from 'tiny-invariant';
 import { Optional, SUBMISSION_STATUS, Submission, submissionsCollection } from 'common';
 import { QuoteForm, QuoteValues, getRatingInputsFromSubmission } from 'elements/forms/QuoteForm';
 import { RatingInputsWithAAL, useAsyncToast, useCreateQuote, useDocDataOnce } from 'hooks';
-import { ADMIN_ROUTES, createPath } from 'router';
+import { ROUTES, createPath } from 'router';
 
 // TODO: decide whether to pass along submission data ??
 
@@ -38,7 +38,7 @@ export const QuoteNew = ({
           status: SUBMISSION_STATUS.QUOTED,
         });
       }
-      navigate(createPath({ path: ADMIN_ROUTES.QUOTES }), { replace: true });
+      navigate(createPath({ path: ROUTES.QUOTES }), { replace: true });
     },
     (msg: string) => toast.success(msg, { duration: 3000 }),
     (msg: string, err: any) => toast.error(msg)

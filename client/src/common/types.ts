@@ -19,8 +19,8 @@ import {
 } from './enums';
 
 export interface BaseMetadata {
-  created: FirestoreTimestamp;
-  updated: FirestoreTimestamp;
+  created: Timestamp; // FirestoreTimestamp;
+  updated: Timestamp; // FirestoreTimestamp;
 }
 
 export interface BaseDoc {
@@ -87,34 +87,22 @@ export interface Submission extends Omit<FloodValues, 'ratingPropertyData'> {
   product: Product;
   coordinates: GeoPoint;
   geoHash?: Geohash | null;
-  // countyFIPS?: string | null;
   userId?: string | null;
   submittedById?: string | null;
-  // agentId?: string | null;
   agent?: Nullable<AgentDetails>;
   agency?: Nullable<AgencyDetails>;
   status: SUBMISSION_STATUS;
   rcvSourceUser?: boolean;
-  // propertyDataRes: FetchPropertyDataResponse;
-  ratingPropertyData: Nullable<RatingPropertyData>; // FetchPropertyDataResponse;
-  propertyDataDocId: string | null; // attom response
+  ratingPropertyData: Nullable<RatingPropertyData>;
+  propertyDataDocId: string | null;
   ratingDocId?: string | null;
   initValues: InitRatingValues;
-  // darkMapImageURL?: string;
-  // lightMapImageURL?: string;
-  // darkMapImageFilePath?: string;
-  // lightMapImageFilePath?: string;
-  // satelliteMapImageURL?: string;
-  // satelliteStreetsMapImageURL?: string;
-  // satelliteMapImageFilePath?: string;
-  // satelliteStreetsMapImageFilePath?: string;
-  imageURLs?: Record<locationImageTypes, string> | null;
-  imagePaths?: Record<locationImageTypes, string> | null;
+  imageURLs?: LocationImages | null;
+  imagePaths?: LocationImages | null;
   AALs?: Nullable<ValueByRiskType>;
-  // inlandAAL?: number;
-  // surgeAAL?: number;
   annualPremium?: number;
   subproducerCommission?: number; // TODO: delete ?? look up by agent / agency if present
+  notes?: Note[];
   metadata: BaseMetadata;
 }
 
@@ -122,27 +110,20 @@ export type LimitKeys = 'limitA' | 'limitB' | 'limitC' | 'limitD';
 export type Product = 'flood' | 'wind';
 export type CovTypeNames = 'building' | 'otherStructures' | 'contents' | 'BI';
 
-// export interface Limits {
-//   limitA: number;
-//   limitB: number;
-//   limitC: number;
-//   limitD: number;
-// }
 export type LimitTypes = 'limitA' | 'limitB' | 'limitC' | 'limitD';
 export type Limits = Record<LimitTypes, number>;
 
 export type FloodPerilCategories = 'inland' | 'surge' | 'tsunami';
-// TODO: finish adding tsunami
-export type ValueByRiskType = Record<FloodPerilCategories, number>; //  & { tsunami?: number };
+export type ValueByRiskType = Record<FloodPerilCategories, number>;
 
-export interface FirestoreTimestamp {
-  readonly nanoseconds: number;
-  readonly seconds: number;
-}
+// export interface FirestoreTimestamp {
+//   readonly nanoseconds: number;
+//   readonly seconds: number;
+// }
 
 export interface BaseMetadata {
-  created: FirestoreTimestamp;
-  updated: FirestoreTimestamp;
+  created: Timestamp; // FirestoreTimestamp;
+  updated: Timestamp; // FirestoreTimestamp;
 }
 
 export interface Address {
@@ -356,8 +337,8 @@ export interface Quote {
   agency: Nullable<AgencyDetails>; // TODO: REMOVE NULLABLE ??
   status: QUOTE_STATUS; // SUBMISSION_STATUS;
   submissionId?: string | null;
-  imageURLs?: Record<locationImageTypes, string> | null;
-  imagePaths?: Record<locationImageTypes, string> | null;
+  imageURLs?: LocationImages | null;
+  imagePaths?: LocationImages | null;
   ratingPropertyData: Nullable<RatingPropertyData>;
   // priorLossCount?: string | null; // moved to ratingPropertyData
   ratingDocId: string;
@@ -365,77 +346,12 @@ export interface Quote {
   notes?: Note[]; // { [key: string]: string }[];
   // quoteIds?: WithFieldValue<string[]>;
   statusTransitions: {
-    published: FirestoreTimestamp;
-    accepted: FirestoreTimestamp | null;
-    cancelled: FirestoreTimestamp | null;
-    finalized: FirestoreTimestamp | null;
+    published: Timestamp; // FirestoreTimestamp;
+    accepted: Timestamp | null; // FirestoreTimestamp | null;
+    cancelled: Timestamp | null; // FirestoreTimestamp | null;
+    finalized: Timestamp | null; // FirestoreTimestamp | null;
   };
 }
-
-// TODO: delete ??
-// export interface QuoteData {
-//   product: Product; // keyof typeof Product;
-//   deductible: Deductible;
-//   limits: Limits;
-//   tiv: number;
-//   replacementCostValues: {
-//     a: number;
-//     b: number;
-//     c: number;
-//     d: number;
-//   };
-//   locations: {
-//     [key: string]: QuoteLocation;
-//   };
-//   ratingDocRefs: {
-//     [key: string]: string;
-//   };
-//   quote: number;
-//   reviewRequired: boolean;
-//   underwritingNotes: {
-//     propertyNotes: UWNote[];
-//     ratingNotes: UWNote[];
-//   };
-//   // TODO: create array of required review locations
-//   // check if blocking quote and update if location data changes
-//   ratable: boolean;
-//   underwriterApproved: boolean;
-//   quoteExpiration: {
-//     seconds: number;
-//     nanoseconds: number;
-//   };
-//   effectiveDate?: FirestoreTimestamp;
-//   effectiveExceptionRequested?: boolean;
-//   effectiveExceptionReason?: string;
-//   exclusions?: string[];
-//   ePayFees?: {
-//     achPayerFee: number;
-//     creditCardPayerFee: number;
-//   };
-//   additionalInsureds?: AdditionalInsured[];
-//   mortgageeInterest?: Mortgagee[];
-//   metadata: {
-//     created: FirestoreTimestamp;
-//     updated: FirestoreTimestamp;
-//     version: WithFieldValue<number>;
-//   };
-//   insuredName?: string;
-//   insuredEmail?: string | null;
-//   insuredPhone?: string | null;
-//   insuredUserId?: string | null;
-//   agencyId: string | null;
-//   agencyName: string | null;
-//   agentId: string | null;
-//   agentName: string | null;
-//   agentEmail: string | null;
-//   userId: string | null;
-//   status: SUBMISSION_STATUS; // QuoteStatus;
-//   statusTransitions: {
-//     accepted: FirestoreTimestamp | null;
-//     canceled: FirestoreTimestamp | null;
-//     finalized: FirestoreTimestamp | null;
-//   };
-// }
 
 export type FloodZones = 'A' | 'B' | 'C' | 'D' | 'V' | 'X' | 'AE' | 'AO' | 'AH' | 'AR' | 'VE';
 
@@ -601,22 +517,7 @@ export type RCVs = Record<RCVKeys, number>;
 
 export type locationImageTypes = 'light' | 'dark' | 'satellite' | 'satelliteStreets';
 
-// export interface PolicyLocationNew {
-//   address: Address;
-//   coordinates: GeoPoint;
-//   geoHash: Geohash;
-//   locationId: string;
-//   fips: string;
-//   propData: Nullable<RatingPropertyData>;
-//   deductible: number;
-//   limits: Limits;
-//   tiv: number;
-//   RCVs: RCVs;
-//   RCVXSLimit?: number;
-//   annualDWP: number;
-//   termDWP: number;
-//   policyDays: number;
-// }
+export type LocationImages = Record<locationImageTypes, string>;
 
 export interface PolicyLocation {
   address: Address;
@@ -629,16 +530,15 @@ export interface PolicyLocation {
   TIV: number;
   RCVs: RCVs;
   deductible: number;
-  active: true; // https://stackoverflow.com/a/62626994/10887890
+  exists: true; // https://stackoverflow.com/a/62626994/10887890
   additionalInsureds: AdditionalInsured[];
   mortgageeInterest: Mortgagee[];
   ratingDocId: string; // TODO: include rating info ?? make PublicRatingData and PrivateRatingData (extends)
-  // propertyData: RatingPropertyData;
   ratingPropertyData: RatingPropertyData;
   effectiveDate: Timestamp;
   expirationDate: Timestamp;
-  imageURLs?: Record<locationImageTypes, string> | null;
-  imagePaths?: Record<locationImageTypes, string> | null;
+  imageURLs?: LocationImages | null;
+  imagePaths?: LocationImages | null;
   locationId: string;
   externalId?: string | null;
   metadata: {
@@ -831,7 +731,7 @@ export interface User extends BaseDoc {
 }
 
 export interface UserClaims {
-  lastCommitted?: FirestoreTimestamp;
+  lastCommitted?: Timestamp; // FirestoreTimestamp;
   [key: string]: any;
 }
 

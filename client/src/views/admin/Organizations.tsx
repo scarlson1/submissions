@@ -1,24 +1,18 @@
-import { useMemo } from 'react';
+import { AddBusinessRounded } from '@mui/icons-material';
 import { Box, Button, Typography } from '@mui/material';
 import { GridColDef } from '@mui/x-data-grid';
-import { AddBusinessRounded } from '@mui/icons-material';
+import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSigninCheck } from 'reactfire';
 
-import { createPath, ADMIN_ROUTES } from 'router';
-import { ServerDataGrid } from 'components';
 import { CUSTOM_CLAIMS } from 'common';
+import { ServerDataGrid } from 'components';
 import { orgCols } from 'modules/muiGrid/gridColumnDefs';
+import { ADMIN_ROUTES, createPath } from 'router';
 
 export const Organizations = () => {
   const navigate = useNavigate();
   const { data } = useSigninCheck({ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } });
-
-  // const { data, status } = useCollectionData<Organization>(
-  //   'ORGANIZATIONS',
-  //   [orderBy('metadata.created', 'desc'), limit(100)],
-  //   { suspense: false }
-  // );
 
   const orgColumns: GridColDef[] = useMemo(
     () => [
@@ -63,7 +57,10 @@ export const Organizations = () => {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', pb: 2 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', pb: 2 }}>
+        <Typography variant='h5' sx={{ ml: { xs: 0, sm: 3, md: 4 } }}>
+          Organizations
+        </Typography>
         <Button
           variant='contained'
           size='small'

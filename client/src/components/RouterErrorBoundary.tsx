@@ -1,7 +1,8 @@
 import { Alert, AlertTitle, Box, Button, Container, Stack, Typography } from '@mui/material';
+import * as Sentry from '@sentry/react';
 import { FirestoreError } from 'firebase/firestore';
 import { isRouteErrorResponse, useNavigate, useRouteError } from 'react-router-dom';
-// import * as Sentry from '@sentry/react';
+import { useUser } from 'reactfire';
 
 import { PageNotFoundSVG, SearchingSVG, SecureLoginSVG, ServerDownSVG } from 'assets/images';
 
@@ -75,11 +76,18 @@ export interface RouterErrorBoundaryProps {
 }
 
 export const RouterErrorBoundary = ({ actionButtons }: RouterErrorBoundaryProps) => {
+  const { data: user } = useUser();
   let error = useRouteError();
   const navigate = useNavigate();
 
   console.log('ERROR (RouterErrorBoundary): ', error, typeof error);
-  console.log('STRINGIFIED ERROR: ', JSON.stringify(error));
+  // console.log('STRINGIFIED ERROR: ', JSON.stringify(error));
+
+  let reportedSentry = false;
+  if (!reportedSentry) {
+    reportedSentry = true;
+    Sentry.captureException(error);
+  }
 
   // causes infinite loop ??
   // useEffect(() => {
@@ -277,7 +285,15 @@ export const RouterErrorBoundary = ({ actionButtons }: RouterErrorBoundaryProps)
     msg =
       'Permission denied error. Your account does not have the required permissions to access the requested resource.';
   }
-  // TODO: if auth/network-request-failed --> try refreshing token
+
+  let lastRefreshMS = 0;
+  const mins = 1000 * 60 * 15; // 15 mins
+  const shouldRefresh = new Date().getTime() - lastRefreshMS > mins;
+  if (err?.code === 'auth/network-request-failed' && shouldRefresh) {
+    console.log('auth/network-request-failed err --> refreshing token...');
+    lastRefreshMS = new Date().getTime();
+    user?.getIdToken();
+  }
 
   return (
     <Container maxWidth='xs' sx={{ p: 8 }}>

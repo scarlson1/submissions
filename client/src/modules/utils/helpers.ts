@@ -1,25 +1,18 @@
-import { formatDistance, format, add, Duration, isPast, isFuture, endOfToday } from 'date-fns';
+import { FirebaseError } from '@firebase/util';
+import { GridValueFormatterParams, GridValueGetterParams } from '@mui/x-data-grid';
+import { Duration, add, endOfToday, format, formatDistance, isFuture, isPast } from 'date-fns';
+import type { AuthError } from 'firebase/auth';
+import { FirestoreError, GeoPoint, Timestamp, WhereFilterOp } from 'firebase/firestore';
+import { geohashForLocation } from 'geofire-common';
+import { ceil, filter, find, floor, includes, isArray, isEqual, isObject, transform } from 'lodash';
 import numeral from 'numeral';
 import { Location } from 'react-router-dom';
-import { GridValueFormatterParams, GridValueGetterParams } from '@mui/x-data-grid';
-import { FirestoreError, GeoPoint, Timestamp, WhereFilterOp } from 'firebase/firestore';
-import type { AuthError } from 'firebase/auth';
-import { geohashForLocation } from 'geofire-common';
-import { FirebaseError } from '@firebase/util';
-import { transform, isEqual, isArray, isObject, find, ceil, floor, filter, includes } from 'lodash';
 
-import { AddressComponent, AddressComponentType } from 'components/forms';
-import {
-  Address,
-  FeeItem,
-  FirestoreTimestamp,
-  FlattenObjectKeys,
-  RoundingType,
-  TaxItem,
-} from 'common/types';
-import { toast } from 'react-hot-toast';
 import { alpha } from '@mui/material';
+import { Address, FeeItem, FlattenObjectKeys, RoundingType, TaxItem } from 'common/types';
+import { AddressComponent, AddressComponentType } from 'components/forms';
 import { Color } from 'deck.gl/typed';
+import { toast } from 'react-hot-toast';
 
 /**
  * extracts address string from Google address_components object.
@@ -145,11 +138,11 @@ export const formatDate = (date: Date, options: string = 'MMM dd, yyyy') => {
 
 /**
  * converts firestore timestamp to formatted date (MMM dd, yyyy) or relative distance formatted date (3 days ago)
- * @param {FirestoreTimestamp} ts - firestore timestamp to be converted
+ * @param {Timestamp} ts - firestore timestamp to be converted
  * @return {string} date string (5 hours ago or Oct. 6, 1995)
  */
 export const formatFirestoreTimestamp = (
-  ts?: FirestoreTimestamp | null | undefined,
+  ts?: Timestamp | null | undefined,
   formatType: 'date' | 'relative' = 'relative'
 ) => {
   if (!ts) return '';

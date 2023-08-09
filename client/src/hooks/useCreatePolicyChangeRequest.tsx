@@ -1,4 +1,4 @@
-import { Firestore, Timestamp, addDoc, doc, getDoc } from 'firebase/firestore';
+import { Timestamp, addDoc, doc } from 'firebase/firestore';
 import { FormikHelpers, FormikProps } from 'formik';
 import { pick } from 'lodash';
 import { useCallback, useRef } from 'react';
@@ -19,7 +19,7 @@ import {
   PolicyChangeFormProps,
   PolicyChangeValues,
 } from 'elements/forms/PolicyChangeForm';
-import { getDifference } from 'modules/utils';
+import { getData, getDifference } from 'modules/utils';
 import { useAsyncToast } from './useAsyncToast';
 import { useDialogForm } from './useDialogForm';
 
@@ -47,9 +47,8 @@ export const useCreatePolicyChangeRequest = () => {
 
       const changes = formatChanges<PolicyChangeValues, PolicyChangeRequest>(newVals, initVals);
 
-      const requiresEndorsement = !missingEndorsementKeys(changes);
       const requiresAmendment = !missingAmendmentKeys(changes);
-      if (!(requiresEndorsement || requiresAmendment)) throw new Error('no changes detected');
+      if (!requiresAmendment) throw new Error('no changes detected');
 
       const common = getCommonTrxJson(
         values.requestEffDate,
@@ -62,37 +61,17 @@ export const useCreatePolicyChangeRequest = () => {
       const colRef = changeReqestsCollection(firestore, policyId.current);
       const docIds = [];
 
-      if (requiresEndorsement) {
-        let endorsementChanges: PolicyChangeRequest['changes'] = {};
-        if (changes.effectiveDate && values.effectiveDate)
-          endorsementChanges['effectiveDate'] = Timestamp.fromDate(values.effectiveDate);
-        if (changes.expirationDate && values.expirationDate)
-          endorsementChanges['expirationDate'] = Timestamp.fromDate(values.expirationDate);
-        console.log('endorsement changes: ', endorsementChanges);
+      let amendmentChanges = pick(changes, ['namedInsured', 'mailingAddress']);
+      console.log('amendment changes: ', amendmentChanges);
 
-        const changeRequestJson: PolicyChangeRequest = {
-          ...common,
-          trxType: 'endorsement',
-          changes: endorsementChanges,
-        };
+      const changeRequestJson: ChangeRequest = {
+        ...common,
+        trxType: 'amendment',
+        changes: amendmentChanges,
+      };
 
-        let endorsementDocRef = await addDoc(colRef, { ...changeRequestJson });
-        docIds.push(endorsementDocRef.id);
-      }
-
-      if (requiresAmendment) {
-        let amendmentChanges = pick(changes, ['namedInsured', 'mailingAddress', 'homeState']);
-        console.log('amendment changes: ', amendmentChanges);
-
-        const changeRequestJson: ChangeRequest = {
-          ...common,
-          trxType: 'amendment',
-          changes: amendmentChanges,
-        };
-
-        let amendmentDocRef = await addDoc(colRef, { ...changeRequestJson });
-        docIds.push(amendmentDocRef.id);
-      }
+      let amendmentDocRef = await addDoc(colRef, { ...changeRequestJson });
+      docIds.push(amendmentDocRef.id);
 
       return { docIds };
     },
@@ -128,7 +107,9 @@ export const useCreatePolicyChangeRequest = () => {
     async (polId: string) => {
       policyId.current = polId;
 
-      const p = await fetchPolicy(firestore, polId);
+      const ref = doc(policiesCollection(firestore), polId);
+      const p = await getData(ref, 'policy not found');
+
       let initialValues: PolicyChangeValues = {
         namedInsured: {
           displayName: p.namedInsured?.displayName || '',
@@ -142,8 +123,6 @@ export const useCreatePolicyChangeRequest = () => {
           state: p.mailingAddress?.state || '',
           postal: p.mailingAddress?.postal || '',
         },
-        effectiveDate: p.effectiveDate?.toDate() || null,
-        expirationDate: p.expirationDate?.toDate() || null,
         requestEffDate: new Date(),
       };
 
@@ -156,33 +135,11 @@ export const useCreatePolicyChangeRequest = () => {
   );
 };
 
-// TODO: generalize function (pass in doc ref) (id doc(policiesCollection(db), policyId))
-async function fetchPolicy(db: Firestore, policyId: string) {
-  const snap = await getDoc(doc(policiesCollection(db), policyId));
-  const data = snap.data();
-  if (!(snap.exists() && data)) throw new Error(`policy not found`);
-  return data;
-}
-
 export function formatChanges<T, S extends ChangeRequest>(
   newValues: Omit<T, 'requestEffDate'>,
   initialValues: Omit<T, 'requestEffDate'>
 ): S['changes'] {
   return getDifference(initialValues, newValues);
-}
-
-// function formatChanges(
-//   newValues: Omit<PolicyChangeValues, 'requestEffDate'>,
-//   initialValues: Omit<PolicyChangeValues, 'requestEffDate'>
-// ): ChangeRequest['changes'] {
-//   return getDifference(initialValues, newValues);
-// }
-
-const endorsementFields = ['effectiveDate', 'expirationDate'];
-
-// if one key matches, "every" returns false
-function missingEndorsementKeys(changes: ChangeRequest['changes']) {
-  return Object.keys(changes).every((k) => endorsementFields.indexOf(k) === -1);
 }
 
 const amendmentKeys = ['namedInsured', 'mailingAddress', 'homeState'];

@@ -171,9 +171,9 @@ type TArgs =
   | { path: ROUTES.CONTACT }
   | { path: ROUTES.PROTOSURE; params: { productId: Product; quoteId?: string } }
   // | { path: ROUTES.ACCOUNT }
-  | { path: ADMIN_ROUTES.SUBMISSIONS }
+  // | { path: ADMIN_ROUTES.SUBMISSIONS }
   | { path: ADMIN_ROUTES.SUBMISSION_VIEW; params: { submissionId: string } }
-  | { path: ADMIN_ROUTES.QUOTES }
+  // | { path: ADMIN_ROUTES.QUOTES }
   | { path: ADMIN_ROUTES.QUOTE_NEW_BLANK; params: { productId: Product } }
   | { path: ADMIN_ROUTES.QUOTE_NEW; params: { productId: Product; submissionId: string } }
   | { path: ADMIN_ROUTES.QUOTE_EDIT; params: { productId: Product; quoteId: string } }
@@ -269,7 +269,7 @@ export const router = sentryCreateBrowserRouter([
     children: [
       {
         path: '/',
-        element: <Layout containerProps={{ maxWidth: 'lg' }} />,
+        element: <Layout containerProps={{ maxWidth: 'xl' }} />,
         errorElement: <RouterErrorBoundary />,
         children: [
           {
@@ -547,7 +547,7 @@ export const router = sentryCreateBrowserRouter([
         path: '/auth',
         element: (
           <AuthActionsProvider>
-            <Layout containerProps={{ maxWidth: 'lg' }} />
+            <Layout containerProps={{ maxWidth: 'xl' }} />
           </AuthActionsProvider>
         ),
         errorElement: <RouterErrorBoundary />,
@@ -682,27 +682,27 @@ export const router = sentryCreateBrowserRouter([
             path: 'test',
             element: <WizardFormTest />,
           },
-          {
-            path: ADMIN_ROUTES.SUBMISSIONS,
-            element: (
-              <RequireAuthReactFire
-                signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}
-              >
-                <Submissions />
-              </RequireAuthReactFire>
-            ),
-            errorElement: <RouterErrorBoundary />,
-            handle: {
-              crumb: (match: CrumbMatch) => [
-                {
-                  label: 'Submissions',
-                  link: createPath({
-                    path: ADMIN_ROUTES.SUBMISSIONS,
-                  }),
-                },
-              ],
-            },
-          },
+          // {
+          //   path: ADMIN_ROUTES.SUBMISSIONS,
+          //   element: (
+          //     <RequireAuthReactFire
+          //       signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}
+          //     >
+          //       <Submissions />
+          //     </RequireAuthReactFire>
+          //   ),
+          //   errorElement: <RouterErrorBoundary />,
+          //   handle: {
+          //     crumb: (match: CrumbMatch) => [
+          //       {
+          //         label: 'Submissions',
+          //         link: createPath({
+          //           path: ROUTES.SUBMISSIONS,
+          //         }),
+          //       },
+          //     ],
+          //   },
+          // },
           {
             path: ADMIN_ROUTES.SUBMISSION_VIEW,
             element: (
@@ -718,7 +718,7 @@ export const router = sentryCreateBrowserRouter([
                 {
                   label: 'Submissions',
                   link: createPath({
-                    path: ADMIN_ROUTES.SUBMISSIONS,
+                    path: ROUTES.SUBMISSIONS,
                   }),
                 },
                 {
@@ -741,7 +741,7 @@ export const router = sentryCreateBrowserRouter([
                 {
                   label: 'Quote',
                   link: createPath({
-                    path: ADMIN_ROUTES.QUOTES,
+                    path: ROUTES.QUOTES,
                   }),
                 },
                 {
@@ -764,7 +764,7 @@ export const router = sentryCreateBrowserRouter([
                 {
                   label: 'Quotes',
                   link: createPath({
-                    path: ADMIN_ROUTES.QUOTES,
+                    path: ROUTES.QUOTES,
                   }),
                 },
                 {
@@ -797,7 +797,7 @@ export const router = sentryCreateBrowserRouter([
                 {
                   label: 'Quotes',
                   link: createPath({
-                    path: ADMIN_ROUTES.QUOTES,
+                    path: ROUTES.QUOTES,
                   }),
                 },
                 {
@@ -816,27 +816,27 @@ export const router = sentryCreateBrowserRouter([
               ],
             },
           },
-          {
-            path: ADMIN_ROUTES.QUOTES,
-            element: (
-              <RequireAuthReactFire
-                signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}
-              >
-                {/* <AdminQuotes /> */}
-                <Quotes />
-              </RequireAuthReactFire>
-            ),
-            handle: {
-              crumb: (match: CrumbMatch) => [
-                {
-                  label: 'Quotes',
-                  link: createPath({
-                    path: ADMIN_ROUTES.QUOTES,
-                  }),
-                },
-              ],
-            },
-          },
+          // {
+          //   path: ADMIN_ROUTES.QUOTES,
+          //   element: (
+          //     <RequireAuthReactFire
+          //       signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}
+          //     >
+          //       {/* <AdminQuotes /> */}
+          //       <Quotes />
+          //     </RequireAuthReactFire>
+          //   ),
+          //   handle: {
+          //     crumb: (match: CrumbMatch) => [
+          //       {
+          //         label: 'Quotes',
+          //         link: createPath({
+          //           path: ADMIN_ROUTES.QUOTES,
+          //         }),
+          //       },
+          //     ],
+          //   },
+          // },
           {
             path: ADMIN_ROUTES.POLICY_DELIVERY,
             element: (
@@ -1132,7 +1132,7 @@ export const router = sentryCreateBrowserRouter([
                 {
                   label: 'Submissions',
                   link: createPath({
-                    path: ADMIN_ROUTES.SUBMISSIONS,
+                    path: ROUTES.SUBMISSIONS,
                   }),
                 },
                 {

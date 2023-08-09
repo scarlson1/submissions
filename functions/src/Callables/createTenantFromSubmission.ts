@@ -1,19 +1,21 @@
-import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
-import { error, info } from 'firebase-functions/logger';
 import { Tenant, getAuth } from 'firebase-admin/auth';
-import { Firestore, getFirestore, Timestamp } from 'firebase-admin/firestore';
+import { Firestore, Timestamp, getFirestore } from 'firebase-admin/firestore';
+import { error, info } from 'firebase-functions/logger';
+import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import { kebabCase, random } from 'lodash';
 
-import { AGENCY_STATUS, AGENCY_SUBMISSION_STATUS, CLAIMS } from '../common/enums';
+import { hostingBaseURL, isSingleLetter } from '../common';
 import {
   agencyApplicationCollection,
-  orgsCollection,
   invitesCollection,
+  orgsCollection,
 } from '../common/dbCollections';
+import { AGENCY_STATUS, AGENCY_SUBMISSION_STATUS, CLAIMS } from '../common/enums';
 import { Invite } from '../common/types';
-import { isSingleLetter } from '../common';
-import { hostingBaseURL } from '../common';
 import { onCallWrapper } from '../services/sentry';
+import { validate } from './utils';
+
+// TODO: tenant ID ?? not reusable for idemand ??
 
 export const createInvite = async (
   db: Firestore,
@@ -21,10 +23,12 @@ export const createInvite = async (
   inviteInfo: Omit<Invite, 'status' | 'link' | 'orgId' | 'id' | 'metadata'>
 ) => {
   const invitesColRef = invitesCollection(db, tenantId);
-  // const { firstName, lastName, email, customClaims, orgName, invitedBy } = inviteInfo
   let { firstName, lastName, email } = inviteInfo;
   email = email.toLowerCase().trim();
 
+  validate(email, 'failed-precondition', 'email required');
+  validate(firstName, 'failed-precondition', 'firstName required');
+  validate(lastName, 'failed-precondition', 'lastName required');
   // TODO: use invite class ??
 
   await invitesColRef.doc(email).set({

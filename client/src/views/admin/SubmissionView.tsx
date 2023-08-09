@@ -20,7 +20,7 @@ import { COLLECTIONS, RatingData } from 'common';
 import { Submission } from 'common/types';
 import { useDocData, useFetchFirestore, useJsonDialog } from 'hooks';
 import { dollarFormat, formatFirestoreTimestamp, numberFormat } from 'modules/utils/helpers';
-import { ADMIN_ROUTES, createPath } from 'router';
+import { ADMIN_ROUTES, ROUTES, createPath } from 'router';
 
 // TODO: use observable to lazy load rating data collection
 // https://firebase.blog/posts/2018/09/introducing-rxfire-easy-async-firebase
@@ -159,7 +159,7 @@ export const SubmissionView = () => {
           <Box sx={{ flex: '1 1 auto', display: 'flex', alignItems: 'center' }}>
             <IconButton
               size='small'
-              onClick={() => navigate(createPath({ path: ADMIN_ROUTES.SUBMISSIONS }))}
+              onClick={() => navigate(createPath({ path: ROUTES.SUBMISSIONS }))}
               sx={{ mr: 3 }}
               color='primary'
             >

@@ -16,7 +16,6 @@ import {
   policiesCollection,
   ratingDataCollection,
   sendgridApiKey,
-  sumArr,
   swissReClientId,
   swissReClientSecret,
   swissReSubscriptionKey,
@@ -160,11 +159,9 @@ async function handleRatingForEndorsement(
   policyId: string,
   requestId: string
 ) {
-  // TODO: need to recalc rating for all locations that have expiration data later than new expiration date (policy endorsement)
   if (data.scope !== 'location') {
-    error('endorsement rating not yet set up at policy level (expiration date change)');
+    error('endorsement should always be at the location level');
     return;
-    // TODO: fetch policy and recalc term premium for all locations (if new exp date is prior to location exp date)
   }
 
   try {
@@ -184,16 +181,11 @@ async function handleRatingForEndorsement(
     const prevRatingSnap = await ratingDataCollection(db).doc(location.ratingDocId).get();
     prevRatingData = prevRatingSnap.data();
 
-    verify(
-      prevRatingData,
-      `no previous rating doc found for location ${data.locationId}. returning early.`
-    );
     info(`Previous rating data`, { prevRatingData });
 
     const changesKeys = Object.keys(data.changes);
     const expDateOnly = changesKeys.every((k) => k === 'expirationDate');
     const requiresRerate = hasAny(changesKeys, SR_CALL_REQUIRED_KEYS);
-    console.log('REQUIRES RERATE: ', requiresRerate);
 
     const {
       coordinates,
@@ -217,7 +209,7 @@ async function handleRatingForEndorsement(
         termPremium,
         termDays,
       };
-      console.log('CHANGES WITH RATING: ', changesWithRating);
+      info('CHANGES WITH RATING: ', changesWithRating);
 
       await changeRequestRef.set(
         { changes: changesWithRating, _lastCommitted: Timestamp.now() },
@@ -232,8 +224,17 @@ async function handleRatingForEndorsement(
     // If rerate required, get new AALs & set getPremiumInputs from result
     // Otherwise use AALs from prevRatingData (exp date change)
     // TODO: change in exp date doesnt require prem recalc
+
+    // only need to throw if rerate not required (need previous AALs)
+    // verify(
+    //   prevRatingData,
+    //   `no previous rating doc found for location ${data.locationId}. returning early.`
+    // );
+
+    let RCVs = prevRatingData?.RCVs || location.RCVs;
+
     if (requiresRerate) {
-      const { RCVs } = prevRatingData;
+      // const { RCVs } = prevRatingData;
       const limits = { ...locLimits, ...(data.changes?.limits || {}) };
 
       // TODO: validate inputs (replacementCost, limits, etc.)
@@ -268,7 +269,7 @@ async function handleRatingForEndorsement(
         commissionPct: prevRatingData?.premiumCalcData?.subproducerCommissionPct || 0.15, // TODO: throw error if no rating doc or default to 15% commission ??
       };
     } else {
-      const { AALs } = prevRatingData; // TODO: change key to AALs
+      const AALs = prevRatingData?.AALs;
       validateAALs(AALs);
 
       getPremiumInputs = {
@@ -284,18 +285,21 @@ async function handleRatingForEndorsement(
 
     const result = getPremium(getPremiumInputs);
 
-    // save rating data to rating collection
+    RCVs = {
+      // RCVs could change if limitD changes
+      ...location.RCVs,
+      ...(prevRatingData?.RCVs || {}),
+      ...(AALsRes?.RCVs || {}),
+    };
+
     const ratingDocRef = await ratingCol.add({
-      ...prevRatingData,
+      // ...(prevRatingData || {}),
+      submissionId: prevRatingData?.submissionId || null,
+      locationId: data.locationId,
       deductible: data?.changes?.deductible || deductible,
       limits: getPremiumInputs.limits,
       TIV: result.tiv,
-      RCVs: {
-        // RCVs could change if limitD changes
-        ...location.RCVs,
-        ...(prevRatingData?.RCVs || {}),
-        ...(AALsRes?.RCVs || {}),
-      },
+      RCVs,
       ratingPropertyData: location.ratingPropertyData,
       AALs: getPremiumInputs.AALs,
       premiumCalcData: result.premiumData,
@@ -311,6 +315,10 @@ async function handleRatingForEndorsement(
     });
 
     const { premiumData } = result;
+    verify(
+      premiumData?.directWrittenPremium && premiumData?.directWrittenPremium > 100,
+      'premium < 100'
+    );
     // TODO: validate results (premium, etc.)
 
     const { termPremium, termDays } = calcTerm(
@@ -322,11 +330,12 @@ async function handleRatingForEndorsement(
     const changesWithRating: Partial<PolicyLocation> = {
       annualPremium: premiumData.directWrittenPremium,
       ratingDocId: ratingDocRef.id || location.ratingDocId,
-      TIV: sumArr(Object.values(getPremiumInputs.limits)),
+      TIV: result.tiv,
       termPremium,
       termDays,
+      RCVs,
     };
-    console.log('CHANGES WITH RATING: ', changesWithRating);
+    info('CHANGES WITH RATING: ', { changesWithRating });
 
     await changeRequestRef.set(
       { changes: changesWithRating, _lastCommitted: Timestamp.now() },

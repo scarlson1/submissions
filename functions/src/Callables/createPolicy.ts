@@ -1,30 +1,31 @@
-import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
-import { error, info } from 'firebase-functions/logger';
-import { getFirestore, Timestamp } from 'firebase-admin/firestore';
-import { geohashForLocation } from 'geofire-common';
-import { v4 as uuidv4 } from 'uuid';
-import invariant from 'tiny-invariant';
 import { add } from 'date-fns';
+import { Timestamp, getFirestore } from 'firebase-admin/firestore';
+import { error, info } from 'firebase-functions/logger';
+import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
+import { geohashForLocation } from 'geofire-common';
+import invariant from 'tiny-invariant';
+import { v4 as uuidv4 } from 'uuid';
 
+import { sumBy } from 'lodash';
 import {
-  QUOTE_STATUS,
-  quotesCollection,
-  policiesCollection,
-  Quote,
+  AdditionalInsured,
+  License,
+  Mortgagee,
   POLICY_STATUS,
   Policy,
   PolicyLocation,
+  QUOTE_STATUS,
+  Quote,
   calcSum,
-  License,
-  AdditionalInsured,
-  Mortgagee,
   calcTerm,
+  policiesCollection,
+  quotesCollection,
 } from '../common';
-import { getRCVs } from '../utils/rating';
 import { checkMoratoriums } from '../services';
-import { getSLLicenseByState } from '../utils';
 import { onCallWrapper } from '../services/sentry';
-import { sumBy } from 'lodash';
+import { getSLLicenseByState } from '../utils';
+import { getRCVs } from '../utils/rating';
+import { validate } from './utils';
 
 // import { getSubmissionsInstance } from '../services';
 
@@ -48,8 +49,8 @@ const createPolicy = async ({ data, auth }: CallableRequest<CreatePolicyProps>) 
   const { quoteId } = data;
   const uid = auth?.uid;
 
-  if (!uid) throw new HttpsError('unauthenticated', 'Must be signed in');
-  if (!quoteId) throw new HttpsError('failed-precondition', 'Missing quote ID');
+  validate(uid, 'unauthenticated', 'must be signed in');
+  validate(quoteId, 'failed-precondition', 'quoteId required');
 
   const quotesCol = quotesCollection(db);
   const policiesCol = policiesCollection(db);
@@ -250,7 +251,7 @@ function convertQuoteToPolicy(data: Quote, license: License, quoteId: string | n
       limits: data.limits,
       TIV: calcSum(Object.values(data.limits)),
       RCVs,
-      active: true,
+      exists: true,
       additionalInsureds,
       mortgageeInterest,
       ratingDocId: data.ratingDocId || '', // TODO: validate & force ratingDocId ??

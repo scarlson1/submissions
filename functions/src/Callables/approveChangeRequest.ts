@@ -12,7 +12,7 @@ import {
   verify,
 } from '../common';
 import { onCallWrapper } from '../services/sentry';
-import { getDoc, requireIDemandAdminClaims } from './utils';
+import { getDoc, requireIDemandAdminClaims, validate } from './utils';
 
 // TODO: validation
 //    - if endorsement, make sure endorsement calculation executed successfully, etc.
@@ -29,8 +29,8 @@ const approveChangeRequest = async ({ data, auth }: CallableRequest<ApproveReque
   requireIDemandAdminClaims(auth?.token);
 
   const { policyId, requestId, underwriterNotes } = data;
-  if (!(policyId && requestId))
-    throw new HttpsError('failed-precondition', 'policyId and requestId required');
+  validate(policyId, 'failed-precondition', 'policyId required');
+  validate(requestId, 'failed-precondition', 'requestId required');
 
   const db = getFirestore();
 

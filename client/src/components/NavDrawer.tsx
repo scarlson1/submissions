@@ -1,10 +1,10 @@
-import { useState, useCallback } from 'react';
-
+import { CloseRounded, DragHandleRounded, HomeRounded } from '@mui/icons-material';
 import { Box, Drawer, IconButton, List, Typography } from '@mui/material';
-import { CloseRounded, HomeRounded, MenuRounded } from '@mui/icons-material';
-import { NavItem } from './Header';
+import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+
 import { ROUTES, createPath } from 'router';
+import { NavItem } from './Header';
 
 interface RenderItemProps extends NavItem {
   // toggleDrawer: () => void;
@@ -21,7 +21,6 @@ export const NavDrawer = ({ items, renderItem }: NavDrawerProps) => {
   const [open, setOpen] = useState(false);
 
   const toggleDrawer = useCallback(() => {
-    // console.log('TOGGLE DRAWER CALLED');
     setOpen((o) => !o);
   }, [setOpen]);
   // const openDrawer = () => {
@@ -39,8 +38,8 @@ export const NavDrawer = ({ items, renderItem }: NavDrawerProps) => {
 
   return (
     <>
-      <IconButton onClick={toggleDrawer} aria-label='menu'>
-        <MenuRounded />
+      <IconButton onClick={toggleDrawer} aria-label='menu' color='primary'>
+        <DragHandleRounded />
       </IconButton>
       <Drawer
         anchor='left'

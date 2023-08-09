@@ -3,7 +3,10 @@ import { Request } from 'express';
 import { DecodedIdToken } from 'firebase-admin/auth';
 import { GeoPoint, Timestamp } from 'firebase-admin/firestore';
 import { Geohash } from 'geofire-common';
+import { round } from 'lodash';
 
+import { CreateMsgContentProps } from '../services/sendgrid/index.js';
+import { SecondaryFactorMults } from '../utils/rating/factors.js';
 import {
   AGENCY_STATUS,
   AGENCY_SUBMISSION_STATUS,
@@ -13,10 +16,6 @@ import {
   QUOTE_STATUS,
   SUBMISSION_STATUS,
 } from './enums.js';
-
-import { round } from 'lodash';
-import { CreateMsgContentProps } from '../services/sendgrid/index.js';
-import { SecondaryFactorMults } from '../utils/rating/factors.js';
 import { cardFeePct, iDemandOrgId } from './environmentVars.js';
 import { filterUniqueArr, getNewLocationId, removeFromArr } from './helpers.js';
 
@@ -43,6 +42,10 @@ export type DeepNullable<T> = {
 export type Optional<T> = { [K in keyof T]?: T[K] | undefined | null };
 
 export type Maybe<T> = T | null | undefined;
+
+export type Concrete<Type> = {
+  [Property in keyof Type]-?: NonNullable<Type[Property]>;
+};
 
 export type FlattenObjectKeys<T extends Record<string, any>, Key = keyof T> = Key extends string
   ? T[Key] extends Record<string, any>
@@ -433,8 +436,8 @@ export interface Submission extends FloodFormValues {
   // satelliteStreetsMapImageURL?: string;
   // satelliteMapImageFilePath?: string;
   // satelliteStreetsMapImageFilePath?: string;
-  imageURLs?: Record<locationImageTypes, string> | null;
-  imagePaths?: Record<locationImageTypes, string> | null;
+  imageURLs?: LocationImages | null;
+  imagePaths?: LocationImages | null;
   AALs?: Nullable<ValueByRiskType>;
   annualPremium?: number;
   subproducerCommission?: number; // TODO: delete ?? look up by agent / agency if present
@@ -557,8 +560,8 @@ export interface Quote {
   agency: Nullable<AgencyDetails>;
   status: QUOTE_STATUS;
   submissionId?: string | null;
-  imageURLs?: Record<locationImageTypes, string> | null;
-  imagePaths?: Record<locationImageTypes, string> | null;
+  imageURLs?: LocationImages | null;
+  imagePaths?: LocationImages | null;
   ratingPropertyData: RatingPropertyData;
   ratingDocId: string;
   geoHash?: Geohash | null;
@@ -579,39 +582,13 @@ export interface SLProdOfRecordDetails {
   phone: string;
 }
 
-// export interface PolicyOld {
-//   status: POLICY_STATUS;
-//   limits: Limits;
-//   deductible: number;
-//   address: Address;
-//   coordinates: GeoPoint | null; // TODO: get rid of null in Quote
-//   geoHash?: Geohash | null;
-//   namedInsured: NamedInsuredDetails;
-//   additionalInsureds?: AdditionalInsured[];
-//   mortgageeInterest?: Mortgagee[];
-//   effectiveDate: Timestamp;
-//   expirationDate: Timestamp;
-//   userId: string | null;
-//   agent: AgentDetails;
-//   agency: {
-//     orgId: string | null; // TODO: remove null ??
-//     name: string | null;
-//   };
-//   documents: { displayName: string; downloadUrl: string; storagePath: string }[];
-//   imageURLs?: Record<locationImageTypes, string> | null;
-//   imagePaths?: Record<locationImageTypes, string> | null;
-//   transactions: string[]; // TODO: figure out how to associate policies and transactions
-//   price: number;
-//   cardFee: number;
-//   metadata: BaseMetadata;
-// }
+export type LocationImages = Record<locationImageTypes, string>;
 
 export interface PolicyLocation {
   address: Address;
   coordinates: GeoPoint;
   geoHash: Geohash;
-  // premium: number;
-  annualPremium: number; // need term
+  annualPremium: number;
   termPremium: number;
   termDays: number;
   limits: Limits;
@@ -619,7 +596,7 @@ export interface PolicyLocation {
   TIV: number;
   RCVs: RCVs;
   deductible: number;
-  active: true; // TODO: rename "active" // https://stackoverflow.com/a/62626994/10887890
+  exists: true; // https://stackoverflow.com/a/62626994/10887890
   additionalInsureds: AdditionalInsured[];
   mortgageeInterest: Mortgagee[];
   ratingDocId: string; // TODO: include rating info ?? make PublicRatingData and PrivateRatingData (extends)
@@ -629,8 +606,8 @@ export interface PolicyLocation {
   expirationDate: Timestamp;
   locationId: string;
   externalId?: string | null;
-  imageURLs?: Record<locationImageTypes, string> | null;
-  imagePaths?: Record<locationImageTypes, string> | null;
+  imageURLs?: LocationImages | null;
+  imagePaths?: LocationImages | null;
   metadata: {
     created: Timestamp;
     updated: Timestamp;
