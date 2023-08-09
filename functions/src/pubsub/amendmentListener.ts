@@ -4,14 +4,14 @@ import { error, info, warn } from 'firebase-functions/logger';
 import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 
 import { transactionsCollection } from '../common';
-import { reportErrorSentry } from '../services/sentry';
 import {
   constructTrxId,
   fetchPolicyData,
   getLocationAmendmentTrx,
   getPolicyAmendmentTrx,
   trxExists,
-} from '../utils/transactions';
+} from '../modules/transactions';
+import { reportErrorSentry } from '../services/sentry';
 
 // Trx. eff date (policy amendment): determined by insured (form submission --> pubsub payload)
 // Trx. eff date (location amendment): no clue? insured ?? can mortgagee be backdated by insured ??

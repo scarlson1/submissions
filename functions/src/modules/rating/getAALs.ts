@@ -14,7 +14,7 @@ import {
   maxBCD,
   minA,
 } from '../../common/index.js';
-import { getSwissReInstance } from '../../services';
+import { getSwissReInstance } from '../../services/index.js';
 import { getRCVs } from './getRCVs.js';
 import { swissReBody } from './swissReBody.js';
 

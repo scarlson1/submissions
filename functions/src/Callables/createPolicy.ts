@@ -21,10 +21,10 @@ import {
   policiesCollection,
   quotesCollection,
 } from '../common';
+import { getRCVs } from '../modules/rating';
 import { checkMoratoriums } from '../services';
 import { onCallWrapper } from '../services/sentry';
 import { getSLLicenseByState } from '../utils';
-import { getRCVs } from '../utils/rating';
 import { validate } from './utils';
 
 // import { getSubmissionsInstance } from '../services';

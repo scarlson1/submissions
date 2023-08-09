@@ -11,7 +11,7 @@ import {
   fetchPreviousTrx,
   getReinstatementTrx,
   trxExists,
-} from '../utils/transactions';
+} from '../modules/transactions';
 
 // reinstatement trxEffDate = cancellation date (from cancellation trx)
 // booking date ??

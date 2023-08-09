@@ -52,14 +52,14 @@ import {
   truthyOrZero,
   unlinkFile,
 } from '../common';
-import { sendAdminPolicyImportNotification } from '../services/sendgrid';
-import { eventOlderThan, shouldReturnEarly } from '../utils';
+import { getRCVs } from '../modules/rating';
 import {
   ParseStreamToArrayRes,
   parseStreamToArray,
   transformHeadersCamelCase,
-} from '../utils/parseStreamToArray';
-import { getRCVs } from '../utils/rating';
+} from '../modules/storage/parseStreamToArray';
+import { sendAdminPolicyImportNotification } from '../services/sendgrid';
+import { eventOlderThan, shouldReturnEarly } from '../utils';
 import { CSVQuoteRow } from './importQuotes';
 
 const IMPORT_POLICIES_FOLDER = 'importPolicies';

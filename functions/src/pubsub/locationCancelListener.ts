@@ -5,14 +5,14 @@ import { error, info, warn } from 'firebase-functions/logger';
 import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 
 import { CancellationReason, PremiumTransaction, transactionsCollection } from '../common';
-import { reportErrorSentry } from '../services/sentry';
 import {
   constructTrxId,
   fetchPolicyData,
   fetchPreviousTrx,
   getOffsetTrx,
   trxExists,
-} from '../utils/transactions';
+} from '../modules/transactions';
+import { reportErrorSentry } from '../services/sentry';
 import { premEndorsementPrevTypes } from './endorsementListener';
 
 export interface LocationCancelPayload {

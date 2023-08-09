@@ -22,6 +22,10 @@ import {
   swissReSubscriptionKey,
   unlinkFile,
 } from '../common';
+import { getPremium } from '../modules/rating';
+import { extractSRAALs } from '../modules/rating/getAALs';
+import { GetPremiumCalcResult } from '../modules/rating/getPremium';
+import { swissReBody } from '../modules/rating/swissReBody.js';
 import { generateSRAccessToken, getSwissReInstance } from '../services';
 import { sendMessage } from '../services/sendgrid';
 import {
@@ -30,10 +34,6 @@ import {
   transformHeadersSnakeCase,
   writeArrayToStorage as writeToStorage,
 } from '../utils';
-import { getPremium } from '../utils/rating';
-import { extractSRAALs } from '../utils/rating/getAALs';
-import { GetPremiumCalcResult } from '../utils/rating/getPremium';
-import { swissReBody } from '../utils/rating/swissReBody.js';
 
 let swissReInstance: AxiosInstance;
 let swissReInstanceTimestamp: number; // TODO: regenerate if > 10 mins

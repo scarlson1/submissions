@@ -10,7 +10,7 @@ import {
   fetchRatingData,
   formatPremiumTrx,
   trxExists,
-} from '../utils/transactions';
+} from '../modules/transactions';
 
 // TODO: shared logic with new policy event (abstract into module)
 

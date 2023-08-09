@@ -13,7 +13,6 @@ import {
   swissReClientSecret,
   swissReSubscriptionKey,
 } from '../common';
-import { onCallWrapper } from '../services/sentry';
 import {
   getAALs,
   getPremium,
@@ -23,9 +22,10 @@ import {
   validateFloodZone,
   validateGetAALsProps,
   validatePriorLossCount,
-} from '../utils/rating';
-import { GetAALRes } from '../utils/rating/getAALs';
-import { GetPremiumCalcResult } from '../utils/rating/getPremium';
+} from '../modules/rating';
+import { GetAALRes } from '../modules/rating/getAALs';
+import { GetPremiumCalcResult } from '../modules/rating/getPremium';
+import { onCallWrapper } from '../services/sentry';
 import { requireIDemandAdminClaims } from './utils';
 
 interface GetAnnualPremiumRequest {

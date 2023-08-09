@@ -5,8 +5,8 @@ import { GeoPoint, Timestamp } from 'firebase-admin/firestore';
 import { Geohash } from 'geofire-common';
 import { round } from 'lodash';
 
+import { SecondaryFactorMults } from '../modules/rating/factors.js';
 import { CreateMsgContentProps } from '../services/sendgrid/index.js';
-import { SecondaryFactorMults } from '../utils/rating/factors.js';
 import {
   AGENCY_STATUS,
   AGENCY_SUBMISSION_STATUS,

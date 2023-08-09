@@ -21,9 +21,6 @@ import {
   swissReSubscriptionKey,
   verify,
 } from '../common';
-import { getDoc } from '../routes/utils';
-import { publishAmendment, publishEndorsement, publishLocationCancel } from '../services/pubsub';
-import { sendAdminChangeRequestNotification, sendMessage } from '../services/sendgrid';
 import {
   GetAALRes,
   GetPremiumProps,
@@ -32,7 +29,10 @@ import {
   validateAALs,
   validateLimits,
   validateRCVs,
-} from '../utils/rating';
+} from '../modules/rating';
+import { getDoc } from '../routes/utils';
+import { publishAmendment, publishEndorsement, publishLocationCancel } from '../services/pubsub';
+import { sendAdminChangeRequestNotification, sendMessage } from '../services/sendgrid';
 
 export default async (
   event: FirestoreEvent<

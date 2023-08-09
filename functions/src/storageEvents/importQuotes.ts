@@ -1,21 +1,15 @@
-import { StorageEvent } from 'firebase-functions/v2/storage';
-import { error, info } from 'firebase-functions/logger';
+import { add, isDate, startOfDay } from 'date-fns';
 import { GeoPoint, Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
-import { geohashForLocation } from 'geofire-common';
+import { error, info } from 'firebase-functions/logger';
 import { projectID } from 'firebase-functions/params';
+import { StorageEvent } from 'firebase-functions/v2/storage';
 import fs from 'fs';
+import { geohashForLocation } from 'geofire-common';
 import os from 'os';
 import path from 'path';
 import invariant from 'tiny-invariant';
-import { add, isDate, startOfDay } from 'date-fns';
 
-import {
-  ParseStreamToArrayRes,
-  parseStreamToArray,
-  transformHeadersCamelCase,
-} from '../utils/parseStreamToArray';
-import { eventOlderThan, fetchTaxes, shouldReturnEarly } from '../utils';
 import {
   COLLECTIONS,
   DeepNullable,
@@ -37,7 +31,13 @@ import {
   truthyOrZero,
   unlinkFile,
 } from '../common';
+import {
+  ParseStreamToArrayRes,
+  parseStreamToArray,
+  transformHeadersCamelCase,
+} from '../modules/storage/parseStreamToArray';
 import { sendAdminPolicyImportNotification } from '../services/sendgrid';
+import { eventOlderThan, fetchTaxes, shouldReturnEarly } from '../utils';
 import { getFormattedFees } from './importPolicies';
 
 // import { sendAdminPolicyImportNotification } from '../services/sendgrid';

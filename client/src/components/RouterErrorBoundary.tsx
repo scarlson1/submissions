@@ -15,7 +15,6 @@ import { PageNotFoundSVG, SearchingSVG, SecureLoginSVG, ServerDownSVG } from 'as
 
 // @ts-ignore
 export const firestoreRulesErrorRegex = /([A-Za-z0-9]+( [A-Za-z0-9]+)+)\. for '[A-Za-z]+' @ L\d*/i;
-// /([A-Za-z0-9]+( [A-Za-z0-9]+)+)\.\s[A-Za-z]+\s'(?:[^\\']|\\\\|\\')*'\s@\s?L\d*\s([A-Za-z]+( [A-Za-z]+)+)/i;
 
 export function checkRulesRegex(str: string) {
   return firestoreRulesErrorRegex.test(str);

@@ -5,7 +5,6 @@ import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 
 import { isValid } from 'date-fns';
 import { PremiumTransaction, Transaction, transactionsCollection } from '../common';
-import { reportErrorSentry } from '../services/sentry';
 import {
   constructTrxId,
   fetchPolicyData,
@@ -14,7 +13,8 @@ import {
   formatPremiumTrx,
   getOffsetTrx,
   trxExists,
-} from '../utils/transactions';
+} from '../modules/transactions';
+import { reportErrorSentry } from '../services/sentry';
 
 // How is removed location handled ??
 // assume deleted if location not found in policy ??
