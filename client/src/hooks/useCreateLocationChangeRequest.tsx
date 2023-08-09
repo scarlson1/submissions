@@ -122,7 +122,7 @@ export const useCreateLocationChangeRequest = (policyId: string) => {
       />
     ),
     formRef,
-    formProps: { policyExpirationDate: policy.current?.expirationDate.toDate() },
+    getFormProps: () => ({ policyExpirationDate: policy.current?.expirationDate.toDate() }),
     onSubmit: handleSubmit,
     onSuccess: () => {},
     onError: (msg: string, err: any) => {

@@ -9,27 +9,20 @@ import {
 } from '@mui/icons-material';
 import {
   Badge,
-  Box,
   Button,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
-  GlobalStyles,
   IconButton,
   Tooltip,
-  Typography,
-  alpha,
 } from '@mui/material';
 import { GridActionsCellItem, GridRowParams } from '@mui/x-data-grid';
 import { Timestamp, doc, getDoc, updateDoc, where } from 'firebase/firestore';
 import { merge } from 'lodash';
 import { Suspense, useCallback, useMemo, useState } from 'react';
-import { Diff, Hunk, parseDiff } from 'react-diff-view';
-import 'react-diff-view/style/index.css';
 import { useFirestore, useFunctions, useUser } from 'reactfire';
-// @ts-ignore
-import { diffJson, formatLines } from 'unidiff';
+import invariant from 'tiny-invariant';
 
 import { ApproveChangeResponse, approveChangeRequest } from 'api';
 import {
@@ -41,9 +34,8 @@ import {
   policiesCollection,
 } from 'common';
 import { LoadingComponent } from 'components/Layout';
-import { useAuth, useDialog } from 'context';
-import { useAsyncToast, useDocCount, useShowJson, useWidth } from 'hooks';
-import invariant from 'tiny-invariant';
+import { useAuth } from 'context';
+import { useAsyncToast, useCompareJson, useDocCount, useShowJson, useWidth } from 'hooks';
 import { ChangeRequestsGrid } from './grids/ChangeRequestsGrid';
 
 export const useViewChangeRequestsDialogProps = (policyId?: string) => {
@@ -82,100 +74,6 @@ export const useViewChangeRequestsDialogProps = (policyId?: string) => {
   );
 };
 
-const useCompareJson = () => {
-  const dialog = useDialog();
-  const { isMobile } = useWidth();
-
-  const compare = useCallback(
-    async (before: Record<string, any>, after: Record<string, any>) => {
-      // const diffText = formatLines(diffLines(JSON.stringify(before), JSON.stringify(after)), {
-      //   context: 3,
-      // });
-      const difftest = diffJson(before, after);
-      console.log('diff json: ', difftest);
-      const diffText = formatLines(difftest, {
-        context: 3,
-      });
-      console.log('diff txt: ', diffText);
-      const [diff] = parseDiff(diffText, { nearbySequences: 'zip' });
-      console.log('diff: ', diff);
-
-      await dialog?.prompt({
-        catchOnCancel: false,
-        variant: 'info',
-        title: 'Compare',
-        content: (
-          <>
-            <GlobalStyles
-              styles={(theme) => ({
-                html: {
-                  ':root': {
-                    '.diff': {
-                      fontSize: 12,
-                    },
-                    '--diff-background-color':
-                      theme.palette.mode === 'dark'
-                        ? theme.palette.primaryDark[800]
-                        : theme.palette.background.paper, // theme.palette.background.paper, // initial;
-                    '--diff-text-color': theme.palette.text.secondary, // initial;
-                    '--diff-font-family': 'Roboto, Courier, monospace',
-                    '--diff-selection-background-color': '#b3d7ff',
-                    '--diff-selection-text-color': theme.palette.text.secondary, // theme.palette.text.primary, // var(--diff-text-color);
-                    '--diff-gutter-insert-background-color': alpha(theme.palette.success[400], 0.5), // '#d6fedb',
-                    '--diff-gutter-insert-text-color': theme.palette.text.secondary,
-                    '--diff-gutter-delete-background-color': alpha(theme.palette.error[400], 0.5), // '#fadde0',
-                    '--diff-gutter-delete-text-color': theme.palette.text.secondary,
-                    '--diff-gutter-selected-background-color': '#fffce0',
-                    '--diff-gutter-selected-text-color': theme.palette.text.secondary,
-                    '--diff-code-insert-background-color': alpha(theme.palette.success[400], 0.25), // '#eaffee',
-                    '--diff-code-insert-text-color': theme.palette.text.secondary,
-                    '--diff-code-delete-background-color': alpha(theme.palette.error[400], 0.25), // '#fdeff0',
-                    '--diff-code-delete-text-color': theme.palette.text.secondary,
-                    '--diff-code-insert-edit-background-color': alpha(
-                      theme.palette.success[400],
-                      0.25
-                    ), //  '#c0dc91',
-                    '--diff-code-insert-edit-text-color': theme.palette.text.secondary,
-                    '--diff-code-delete-edit-background-color': alpha(
-                      theme.palette.error[400],
-                      0.25
-                    ), // '#f39ea2',
-                    '--diff-code-delete-edit-text-color': theme.palette.text.secondary,
-                    '--diff-code-selected-background-color': '#fffce0',
-                    '--diff-code-selected-text-color': theme.palette.text.secondary,
-                    '--diff-omit-gutter-line-color': '#cb2a1d',
-                  },
-                },
-              })}
-            />
-            {!isMobile && (
-              <Box sx={{ display: 'flex', justifyContent: 'space-evenly' }}>
-                <Typography variant='subtitle1' gutterBottom sx={{ flex: '1 0 auto', px: 8 }}>
-                  Old
-                </Typography>
-                <Typography variant='subtitle1' gutterBottom sx={{ flex: '1 0 auto', px: 8 }}>
-                  New
-                </Typography>
-              </Box>
-            )}
-            <Diff
-              viewType={isMobile ? 'unified' : 'split'}
-              diffType='modify'
-              hunks={diff.hunks || []}
-            >
-              {(hunks) => hunks.map((hunk) => <Hunk key={hunk.content} hunk={hunk} />)}
-            </Diff>
-          </>
-        ),
-        slotProps: { dialog: { maxWidth: 'md' } },
-      });
-    },
-    [dialog, isMobile]
-  );
-
-  return compare;
-};
-
 const useMangageChangeRequest = (
   onSuccess?: (res?: ApproveChangeResponse | undefined) => void,
   onError?: () => void
@@ -184,7 +82,7 @@ const useMangageChangeRequest = (
   const toast = useAsyncToast();
   const functions = useFunctions();
   const firestore = useFirestore();
-  const compareJson = useCompareJson();
+  const compareJson = useCompareJson(() => toast.error('Unable to display comparison'));
 
   const getPolicy = useCallback(
     async (policyId: string) => {
@@ -215,13 +113,11 @@ const useMangageChangeRequest = (
       try {
         const policy = await getPolicy(policyId);
         const request = await getRequest(policyId, requestId);
-        const merged = merge(policy, request);
-        console.log('merged: ', merged);
+        const merged = merge({ '@': 'ignore me' }, policy, request.changes || {});
 
-        compareJson(policy, merged);
-        // TODO: show preview
+        compareJson(policy, merged, 'Change Request Diff');
       } catch (err: any) {
-        console.log('Error previewing policy diff');
+        console.log('Error previewing policy diff', err);
         if (onError) onError();
       }
     },
@@ -232,23 +128,19 @@ const useMangageChangeRequest = (
     async (policyId: string, requestId: string) => {
       try {
         const policy = await getPolicy(policyId);
-        console.log('policy: ', policy);
         const request = await getRequest(policyId, requestId);
         invariant(request.scope === 'location');
 
         const location = policy.locations[request.locationId];
 
-        const mergedLocation = merge({}, location, request.changes);
+        const mergedLocation = merge({}, location, request.changes || {});
         const mergedPolicy = merge({}, policy, {
           locations: { [request.locationId]: mergedLocation },
         });
 
-        console.log('policy2: ', policy);
-        console.log('merged policy: ', mergedPolicy);
-
-        compareJson(policy, mergedPolicy);
+        compareJson(policy, mergedPolicy, 'Change Request Diff');
       } catch (err: any) {
-        console.log('Error previewing policy diff');
+        console.log('Error previewing policy diff', err);
         if (onError) onError();
       }
     },

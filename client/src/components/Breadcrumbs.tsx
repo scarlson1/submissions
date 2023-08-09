@@ -16,7 +16,7 @@ import {
 // DOCS - use routes & useMatches
 // https://reactrouter.com/en/6.13.0/hooks/use-matches#breadcrumbs
 
-interface RouterLinkProps extends Omit<LinkProps, 'component'> {
+export interface RouterLinkProps extends Omit<LinkProps, 'component'> {
   to: string;
   replace?: boolean;
 }

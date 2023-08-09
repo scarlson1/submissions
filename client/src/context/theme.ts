@@ -20,6 +20,19 @@ import type {} from '@mui/x-date-pickers/themeAugmentation';
 // dark paper: #212B36
 // dark feature color; #8D9DAB (grey)
 
+// mui drawer nav selected: bgcolor: #1f262e, color: #66b2ff
+// https://github.com/mui/material-ui/blob/master/docs/src/modules/components/AppNavDrawerItem.js
+// lines 98 & 164: '&.app-drawer-active'
+// content: "";
+// display: block;
+// position: absolute;
+// z-index: 1;
+// left: 9.5px;
+// height: 100%;
+// width: 1px;
+// opacity: 1;
+// background: rgba(31, 38, 46, 0.6); // rgb(229, 234, 242);
+
 declare module '@mui/material/styles/createPalette' {
   interface ColorRange {
     50: string;
@@ -38,6 +51,10 @@ declare module '@mui/material/styles/createPalette' {
 
   interface Palette {
     primaryDark: PaletteColor;
+  }
+
+  interface TypeText {
+    tertiary: string;
   }
 }
 
@@ -101,7 +118,7 @@ export const blueDark = {
   600: '#2F3A46',
   700: '#1F262E',
   800: '#141A1F',
-  900: '#101418',
+  900: '#101418', // #171D24 // #111418
 };
 const grey = {
   50: '#F3F6F9',

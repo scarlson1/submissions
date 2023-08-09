@@ -11,7 +11,8 @@ import {
 
 interface UseDialogFormProps<T, C> {
   formComponent: ReactElement;
-  formProps?: Partial<FormikProps<T>> & Partial<C>; // Record<string, any>; // HACK: allow other props
+  getFormProps?: () => Partial<FormikProps<T>> & Partial<C>;
+  // formProps?: Partial<FormikProps<T>> & Partial<C>;
   formRef: RefObject<FormikProps<T>>;
   dialogOptions?: Omit<DialogOptions, 'content' | 'onSubmit' | 'variant'>;
   onSubmit: (values: T, bag: FormikHelpers<T>) => Promise<any>;
@@ -24,7 +25,7 @@ interface UseDialogFormProps<T, C> {
 
 export function useDialogForm<T extends Record<string, any>, C = {}>({
   formComponent,
-  formProps,
+  getFormProps = () => ({}),
   formRef,
   dialogOptions,
   onSubmit,
@@ -62,7 +63,7 @@ export function useDialogForm<T extends Record<string, any>, C = {}>({
     async (initialValues: T) => {
       try {
         const cloned = cloneElement(formComponent, {
-          ...formProps,
+          ...getFormProps(),
           initialValues,
           onSubmit: handleSubmit,
         });
@@ -89,7 +90,7 @@ export function useDialogForm<T extends Record<string, any>, C = {}>({
       onError,
       triggerSubmit,
       formComponent,
-      formProps,
+      getFormProps,
       handleSubmit,
     ]
   );
@@ -126,9 +127,7 @@ export function Usage() {
     formComponent: (
       <PolicyChangeForm initialValues={initialVals} formRef={formRef} onSubmit={handleSubmit} />
     ),
-    formProps: {
-      initialValues: initialVals,
-    },
+    getFormProps: () => ({ initialValues: initialVals }),
     formRef,
     dialogOptions: {
       title: 'Usage example form',

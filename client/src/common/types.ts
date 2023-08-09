@@ -2,7 +2,7 @@ import { JSONContent } from '@tiptap/react';
 import { GeoPoint, Timestamp, WithFieldValue } from 'firebase/firestore';
 import { Geohash } from 'geofire-common';
 
-import { LocationChangeValues } from 'elements/forms';
+import { CancelValues, LocationChangeValues } from 'elements/forms';
 import { PolicyChangeValues } from 'elements/forms/PolicyChangeForm';
 import { InitRatingValues } from 'hooks/usePropertyDetails';
 import { FloodValues } from 'views/SubmissionNew';
@@ -780,9 +780,12 @@ export type CancellationReason =
   | 'exposure_change'
   | 'insured_choice';
 
-export interface LocationCancellationRequest extends LocationChangeRequest {
+export interface LocationCancellationRequest
+  extends Omit<LocationChangeRequest, 'formValues' | 'changes'> {
   trxType: 'cancellation' | 'flat_cancel';
-  cancelReason?: CancellationReason;
+  cancelReason: CancellationReason;
+  formValues: CancelValues;
+  changes: {};
 }
 
 export interface PolicyChangeRequest extends BaseChangeRequest {
@@ -792,8 +795,20 @@ export interface PolicyChangeRequest extends BaseChangeRequest {
   // externalId: never;
   // locationId: never;
 }
+
+export interface PolicyCancellationRequest extends Omit<PolicyChangeRequest, 'formValues'> {
+  trxType: 'cancellation' | 'flat_cancel';
+  cancelReason: CancellationReason;
+  formValues: CancelValues;
+  changes: {};
+}
+
 // TODO: uncomment
-export type ChangeRequest = LocationChangeRequest | PolicyChangeRequest;
+export type ChangeRequest =
+  | LocationChangeRequest
+  | PolicyChangeRequest
+  | LocationCancellationRequest
+  | PolicyCancellationRequest;
 
 export type DefaultCommission = {
   [key in PRODUCT]?: number;

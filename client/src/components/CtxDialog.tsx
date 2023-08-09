@@ -45,21 +45,26 @@ const Title = () => {
 
 CtxDialog.Title = Title;
 
-const Description = () => {
-  const dialog = useDialog();
+// const Description = () => {
+//   const dialog = useDialog();
 
-  return dialog?.description ? (
-    <DialogContentText>{dialog?.description ? dialog?.description : null}</DialogContentText>
-  ) : null;
-};
+//   return dialog?.description ? (
+//     <DialogContentText>{dialog?.description ? dialog?.description : null}</DialogContentText>
+//   ) : null;
+// };
 
-CtxDialog.Description = Description;
+// CtxDialog.Description = Description;
 
 const Content = () => {
   const dialog = useDialog();
 
   return (
     <DialogContent dividers {...(dialog?.slotProps?.content || {})}>
+      {dialog?.description ? (
+        <DialogContentText component='div' sx={{ pb: 4 }}>
+          {dialog.description}
+        </DialogContentText>
+      ) : null}
       {dialog?.content ? dialog?.content : null}
     </DialogContent>
   );
@@ -122,7 +127,7 @@ function ContextDialog() {
   return (
     <CtxDialog>
       <CtxDialog.Title />
-      <CtxDialog.Description />
+      {/* <CtxDialog.Description /> */}
       <CtxDialog.Content />
       <CtxDialog.Actions />
     </CtxDialog>

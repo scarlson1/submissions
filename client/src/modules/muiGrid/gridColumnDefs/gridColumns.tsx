@@ -14,11 +14,13 @@ import {
   FiberNewRounded,
   FindInPageRounded,
   FloodRounded,
+  HistoryEduRounded,
   HourglassBottomRounded,
   HourglassEmptyRounded,
   HourglassTopRounded,
   OpenInNewRounded,
   PendingRounded,
+  PlaceRounded,
   QueryBuilderRounded,
   RequestQuoteRounded,
   StormRounded,
@@ -1497,6 +1499,24 @@ export const requestEffDateCol: GridColDef = {
   headerName: 'Eff. Date',
   description: 'Requested effective date for changes',
   valueGetter: (params) => params.row.requestEffDate || null,
+};
+
+export const scopeCol: GridSingleSelectColDef = {
+  field: 'scope',
+  headerName: 'Scope',
+  description: 'changes affecting a single location or a policy level field',
+  type: 'singleSelect',
+  valueOptions: ['location', 'policy'],
+  minWidth: 140,
+  flex: 1,
+  renderCell: (params) =>
+    renderChip(params, { variant: 'outlined' }, () => {
+      if (params.value === 'location')
+        return { color: 'info', size: 'small', icon: <PlaceRounded fontSize='inherit' /> };
+      if (params.value === 'policy')
+        return { color: 'success', size: 'small', icon: <HistoryEduRounded fontSize='inherit' /> };
+      return {};
+    }),
 };
 
 export const LOBCol: GridSingleSelectColDef = {

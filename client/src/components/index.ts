@@ -25,7 +25,7 @@ export { IconButtonMenu } from './IconButtonMenu';
 export { LineItem } from './LineItem';
 export { ServerDataGrid } from './ServerDataGrid';
 export { ErrorFallback } from './ErrorFallback';
-export { Breadcrumbs } from './Breadcrumbs';
+export { Breadcrumbs, RouterLink } from './Breadcrumbs';
 export { ClaimsGuard } from './ClaimsGuard';
 export { Carousel } from './Carousel';
 export { Copy } from './Copy';
@@ -43,8 +43,6 @@ export {
   MAPBOX_STREETS,
   MAPBOX_SATELLITE,
 } from './MapStyleControl';
-// import ContextDialog from './CtxDialog';
-// export { ContextDialog };
 export { CtxDialog, ContextDialog } from './CtxDialog';
 export { Toaster } from './Toaster';
 

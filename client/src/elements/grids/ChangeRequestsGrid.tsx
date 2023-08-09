@@ -86,6 +86,7 @@ export const ChangeRequestsGrid = ({
           columns: {
             columnVisibilityModel: {
               id: false,
+              scope: false,
               'metadata.updated': false,
               userId: false,
             },
