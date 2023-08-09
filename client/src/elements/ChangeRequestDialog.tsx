@@ -84,6 +84,7 @@ export const useViewChangeRequestsDialogProps = (policyId?: string) => {
 
 const useCompareJson = () => {
   const dialog = useDialog();
+  const { isMobile } = useWidth();
 
   const compare = useCallback(
     async (before: Record<string, any>, after: Record<string, any>) => {
@@ -147,15 +148,21 @@ const useCompareJson = () => {
                 },
               })}
             />
-            <Box sx={{ display: 'flex', justifyContent: 'stretch' }}>
-              <Typography variant='subtitle1' gutterBottom sx={{ px: 3 }}>
-                Old
-              </Typography>
-              <Typography variant='subtitle1' gutterBottom sx={{ px: 3 }}>
-                New
-              </Typography>
-            </Box>
-            <Diff viewType='split' diffType='modify' hunks={diff.hunks || []}>
+            {!isMobile && (
+              <Box sx={{ display: 'flex', justifyContent: 'space-evenly' }}>
+                <Typography variant='subtitle1' gutterBottom sx={{ flex: '1 0 auto', px: 8 }}>
+                  Old
+                </Typography>
+                <Typography variant='subtitle1' gutterBottom sx={{ flex: '1 0 auto', px: 8 }}>
+                  New
+                </Typography>
+              </Box>
+            )}
+            <Diff
+              viewType={isMobile ? 'unified' : 'split'}
+              diffType='modify'
+              hunks={diff.hunks || []}
+            >
               {(hunks) => hunks.map((hunk) => <Hunk key={hunk.content} hunk={hunk} />)}
             </Diff>
           </>
@@ -163,7 +170,7 @@ const useCompareJson = () => {
         slotProps: { dialog: { maxWidth: 'md' } },
       });
     },
-    [dialog]
+    [dialog, isMobile]
   );
 
   return compare;
