@@ -15,10 +15,8 @@ export function UpdateDialogSubmitDisabled() {
 
   useEffect(() => {
     const disable = !isValid || isSubmitting || isValidating;
-
-    console.log('DISABLE: ', disable);
-    console.log('valid, sub, valing: ', isValid, isSubmitting, isValidating);
-    // if disable !== prev ...
+    // console.log('DISABLE: ', disable);
+    // console.log('valid, sub, valing: ', isValid, isSubmitting, isValidating);
     if (disable !== dialog.submitDisabled) dialog?.setDisabled(disable);
   }, [isValid, isSubmitting, isValidating, dialog]);
   return null;

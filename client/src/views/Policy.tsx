@@ -41,6 +41,7 @@ import {
 import { ContactList } from 'elements/forms';
 import { LocationsGrid } from 'elements/grids';
 import {
+  useCreateCancelRequest,
   useCreateLocationChangeRequest,
   useCreatePolicyChangeRequest,
   useDocData,
@@ -69,6 +70,7 @@ export const Policy = () => {
   const downloadPolicy = useGeneratePDF('generateDecPDF');
 
   const locationChangeDialog = useCreateLocationChangeRequest(policyId);
+  const cancelDialog = useCreateCancelRequest(); // TODO: onsuccess => "you'll receive a confirmation email once our team has processed the request. expect to see a refund, if due, in X days"
 
   const locations = useMemo<WithId<PolicyLocation>[]>(() => {
     let pLocs = Object.entries(data?.locations || {});
@@ -96,13 +98,6 @@ export const Policy = () => {
     [downloadPolicy, policyId]
   );
 
-  // TODO: uncomment once handler set up ??
-  // const handleChangeRequest = useCallback(() => {
-  //   alert('TODO: implement change request');
-  //   // could be called by card or grid
-  //   // pass button to renderActions in locations grid
-  // }, []); // policyId
-
   const handleLocationChangeRequest = useCallback(
     (params: GridRowParams) => () => {
       locationChangeDialog(params.row, data);
@@ -110,12 +105,9 @@ export const Policy = () => {
     [data, locationChangeDialog]
   );
 
-  const handleCancelPolicy = useCallback(() => {
-    // prompt cancel form
-    // collect cancel eff date
-    // collect cancellation reason
-    alert('cancel not implemented yet');
-  }, []);
+  const handleCancelPolicy = useCallback(async () => {
+    await cancelDialog(policyId);
+  }, [cancelDialog, policyId]);
 
   const renderLocationGridActions = useCallback(
     (params: GridRowParams) => {

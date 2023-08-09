@@ -164,6 +164,7 @@ async function handleRatingForEndorsement(
   if (data.scope !== 'location') {
     error('endorsement rating not yet set up at policy level (expiration date change)');
     return;
+    // TODO: fetch policy and recalc term premium for all locations (if new exp date is prior to location exp date)
   }
 
   try {

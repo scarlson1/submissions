@@ -25,6 +25,7 @@ export { ReviewStep } from './ReviewStep';
 export { SuccessStep } from './SuccessStep';
 export { TaxForm } from './TaxForm';
 export { LocationChangeForm } from './LocationChangeForm';
+export { CancelForm } from './CancelForm';
 
 export type { AddPaymentMethodValues } from './AddPaymentDialog';
 export type { AddUserValues } from './AddUsersDialog';
@@ -39,3 +40,4 @@ export type { LicenseValues } from './LicenseForm';
 export type { PriorFloodLossStepProps } from './PriorFloodLossStep';
 export type { QuoteValues } from './QuoteForm';
 export type { LocationChangeValues, LocationChangeFormProps } from './LocationChangeForm';
+export type { CancelValues, CancelFormProps } from './CancelForm';

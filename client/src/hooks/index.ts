@@ -64,6 +64,8 @@ export { useShowJson } from './useShowJson';
 export { useUpdateClaims } from './useUpdateClaims';
 export { useUserClaims } from './useUserClaims';
 export { useWizard } from './useWizard';
+export { useCompareJson } from './useCompareJson';
+export { useCreateCancelRequest } from './useCreateCancelRequest';
 
 export type { SubjectBaseKeyVal } from './useFetchTaxes';
 export type { UseFileUploadProps } from './useFileUpload';
