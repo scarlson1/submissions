@@ -1382,6 +1382,24 @@ export interface EmailRecord extends CreateMsgContentProps {
   };
 }
 
+export type EmailTemplates =
+  | 'contact'
+  | 'policy_doc_delivery'
+  | 'new_quote'
+  | 'agency_approved'
+  | 'invite'
+  | 'policy_change_request'
+  | 'move_to_tenant_verification'
+  | 'email_verification'
+  | 'resend_invite'
+  | 'agency_submission_received'
+  | 'new_submission'
+  | 'payment_complete'
+  | 'quote_expiring'
+  | 'policy_import'
+  | 'quote_import'
+  | 'portfolio_rating_complete';
+
 export interface SpatialKeyResponse {
   us_hh_mls_rm_room11_features: string; // '',
   us_hh_fema_firm_date_cur_eff_date_map: string; // '5/16/2012',

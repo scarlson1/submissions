@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import { NextFunction, Request, Response } from 'express';
 // import { FirebaseError } from '@firebase/util';
 
 import { CustomError } from '../errors/customError.js';
@@ -7,6 +7,7 @@ import { CustomError } from '../errors/customError.js';
 
 export const errorHandler = (err: Error, req: Request, res: Response, next: NextFunction) => {
   if (err instanceof CustomError) {
+    console.log('returning custom errors: ', err.serializeErrors());
     return res.status(err.statusCode).send({ errors: err.serializeErrors() });
   }
 

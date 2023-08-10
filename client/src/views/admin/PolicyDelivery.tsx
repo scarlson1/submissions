@@ -1,20 +1,26 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Box, Button, Stack, Typography, useTheme } from '@mui/material';
-import { LoadingButton } from '@mui/lab';
-import { OpenInNewRounded, SaveRounded } from '@mui/icons-material';
-import { getDownloadURL } from 'firebase/storage';
-import { doc, updateDoc } from 'firebase/firestore';
-import { useFirestore } from 'reactfire';
-import { useNavigate, useParams } from 'react-router-dom';
 import ReactJson from '@microlink/react-json-view';
+import { OpenInNewRounded, SaveRounded } from '@mui/icons-material';
+import { LoadingButton } from '@mui/lab';
+import { Badge, Box, Button, Stack, Typography, useTheme } from '@mui/material';
+import { doc, updateDoc } from 'firebase/firestore';
+import { getDownloadURL } from 'firebase/storage';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useFirestore } from 'reactfire';
 
-import { FilesDragDrop } from 'components/forms';
-import { useAsyncToast, useCreateStorageFiles, useDocData, useSendEmail } from 'hooks';
-import { policiesCollection, Policy, withIdConverter } from 'common';
 import { ePayInstance } from 'api';
+import { Policy, policiesCollection, withIdConverter } from 'common';
+import { FilesDragDrop } from 'components/forms';
+import {
+  useAsyncToast,
+  useCreateStorageFiles,
+  useDocData,
+  useGeneratePDF,
+  useSendEmail,
+} from 'hooks';
 import { usePromptForEmails } from 'hooks/usePromptForEmails';
-import { ROUTES, createPath } from 'router';
 import { onlyUnique } from 'modules/utils';
+import { ROUTES, createPath } from 'router';
 
 // TODO: how should document delivery be tracked?? see history / check if doc was delivered ?? NEED TO USE SENDGRID WEBHOOK & STORE IN COLLECTION
 // TODO: create custom tags for email delivery ('policy_delivery') https://docs.sendgrid.com/for-developers/sending-email/getting-started-email-activity-api#query-reference
@@ -90,7 +96,6 @@ export const PolicyDelivery = () => {
   const navigate = useNavigate();
   const toast = useAsyncToast();
   const promptForEmails = usePromptForEmails();
-  // const deliverDocs = useDeliverPolicyDoc();
   const { send } = useSendEmail({
     onSuccess: () => {
       toast.success('policy documents sent!');
@@ -102,6 +107,7 @@ export const PolicyDelivery = () => {
   if (!policyId) throw new Error('Missing policy ID in url');
   const { data } = useDocData('POLICIES', policyId, [], { idField: 'policyId' });
 
+  const { downloadPDF: downloadPolicy, loading: genDecLoading } = useGeneratePDF('generateDecPDF');
   const { updatePolicy } = useUpdatePolicy(console.log, console.error);
 
   const {
@@ -182,6 +188,11 @@ export const PolicyDelivery = () => {
     }
   }, [promptForEmails, send, toast, data, policyId]);
 
+  const handleDownloadPolicy = useCallback(
+    () => downloadPolicy(policyId),
+    [downloadPolicy, policyId]
+  );
+
   return (
     <Box>
       <Box sx={{ display: 'flex' }}>
@@ -189,19 +200,28 @@ export const PolicyDelivery = () => {
           Admin Policy Delivery
         </Typography>
         <Stack direction='row' spacing={2}>
-          <Button onClick={handleCancel} disabled={uploadLoading}>
+          <Button
+            onClick={handleCancel}
+            variant='outlined'
+            color='secondary'
+            disabled={uploadLoading}
+            size='small'
+          >
             Cancel
           </Button>
-          <LoadingButton
-            onClick={handleSubmit}
-            loading={uploadLoading}
-            variant='contained'
-            loadingPosition='start'
-            startIcon={<SaveRounded />}
-            disabled={uploadFiles.length < 1}
-          >
-            Upload
-          </LoadingButton>
+          <Badge badgeContent='3' color='secondary'>
+            <LoadingButton
+              onClick={handleSubmit}
+              loading={uploadLoading}
+              variant='contained'
+              loadingPosition='start'
+              startIcon={<SaveRounded />}
+              disabled={uploadFiles.length < 1}
+              size='small'
+            >
+              Upload
+            </LoadingButton>
+          </Badge>
         </Stack>
       </Box>
 
@@ -214,23 +234,45 @@ export const PolicyDelivery = () => {
       />
 
       <Box sx={{ py: 5 }}>
-        <Button onClick={showPolicyDoc} endIcon={<OpenInNewRounded />}>
-          Show current policy doc
-        </Button>
-        <Button
-          onClick={handleDeliverDocs}
-          variant='contained'
-          sx={{ ml: 2 }}
-          disabled={!data || data.documents.length < 1}
-        >
-          Deliver Docs
-        </Button>
+        <Stack direction='row' spacing={2}>
+          <Badge badgeContent='2' color='secondary'>
+            <LoadingButton
+              onClick={handleDownloadPolicy}
+              loading={genDecLoading}
+              variant='contained'
+              size='small'
+            >
+              Generate Dec PDF
+            </LoadingButton>
+          </Badge>
+          <Badge badgeContent='5' color='secondary'>
+            <Button
+              onClick={handleDeliverDocs}
+              variant='contained'
+              // sx={{ ml: 2 }}
+              disabled={!data || data.documents.length < 1}
+              size='small'
+            >
+              Deliver Docs
+            </Button>
+          </Badge>
+          <Badge badgeContent='4' color='secondary'>
+            <Button onClick={showPolicyDoc} endIcon={<OpenInNewRounded />} size='small'>
+              Show current policy doc
+            </Button>
+          </Badge>
+        </Stack>
       </Box>
-      <Typography color='text.secondary' sx={{ pt: 5, pb: 2 }}>
-        What to do:
+      <Box sx={{ pt: 5, pb: 2 }}>
+        <Badge badgeContent='1' color='secondary'>
+          <Typography color='text.secondary'>What to do:</Typography>
+        </Badge>
+      </Box>
+      <Typography variant='body2' color='text.secondary' sx={{ textDecoration: 'line-through' }}>
+        - maunally generate the policy document(s)
       </Typography>
       <Typography variant='body2' color='text.secondary'>
-        - maunally generate the policy document(s)
+        - Click the button to generate the policy dec and download to your computer
       </Typography>
       <Typography variant='body2' color='text.secondary'>
         - select them above, then click 'upload' in the top right corner to add them to cloud

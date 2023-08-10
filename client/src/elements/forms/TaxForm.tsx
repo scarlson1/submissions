@@ -1,5 +1,4 @@
-import { useCallback, useRef } from 'react';
-import { Formik, FormikHelpers, FormikProps } from 'formik';
+import { PercentRounded } from '@mui/icons-material';
 import {
   Box,
   Button,
@@ -10,9 +9,10 @@ import {
   Stack,
   Typography,
 } from '@mui/material';
-import { PercentRounded } from '@mui/icons-material';
+import { lastDayOfYear, startOfYear } from 'date-fns';
+import { Formik, FormikHelpers, FormikProps } from 'formik';
+import { useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { startOfYear, lastDayOfYear } from 'date-fns';
 import * as yup from 'yup';
 
 import {
@@ -416,7 +416,9 @@ export const TaxForm = ({ onSubmit, initialValues = DEFAULT_INIT_VALUES }: TaxFo
                 Submit
               </Button>
               <Button
-                variant='greyOutlined'
+                variant='outlined'
+                color='secondary'
+                // variant='greyOutlined'
                 onClick={handleCancel}
                 disabled={isValidating || isSubmitting}
               >

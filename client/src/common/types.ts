@@ -1404,14 +1404,33 @@ export type StoredDocSearchHit = Omit<DocSearchHit, '_highlightResult' | '_snipp
 
 export type EmailData = string | { name?: string; email: string };
 
-export type emailTemplateNames =
+// export type EmailTemplates =
+//   | 'contact'
+//   | 'policy_doc_delivery'
+//   | 'new_quote'
+//   | 'agency_approved'
+//   | 'invite'
+//   | 'policy_change_request'
+//   | 'move_to_tenant_verification'
+//   | 'email_verification'
+//   | 'resend_invite'
+//   | 'agency_submission_received'
+//   | 'new_submission'
+//   | 'payment_complete'
+//   | 'quote_expiring'
+//   | 'policy_import'
+//   | 'quote_import'
+//   | 'portfolio_rating_complete';
+
+// TODO: replace with above (using in backend)
+export type EmailTemplateNames =
   | 'policy_delivery'
   | 'agency_approved'
   | 'contact_us'
   | 'quote_notification'; // 'email_confirmation' | 'user_invite' |
 
 export interface SendEmailBase {
-  templateName: emailTemplateNames;
+  templateName: EmailTemplateNames;
   templateVars?: Record<string, any>;
   to?: EmailData | EmailData[];
   // cc?: EmailData | EmailData[]; // TODO

@@ -1,11 +1,11 @@
-import { Response } from 'firebase-functions/v1';
-import { error, info } from 'firebase-functions/logger';
-import { CollectionReference, getFirestore } from 'firebase-admin/firestore';
-import express from 'express';
-import cors from 'cors';
 import * as bodyParser from 'body-parser';
+import cors from 'cors';
 import { format } from 'date-fns';
+import express from 'express';
 import 'express-async-errors';
+import { CollectionReference, getFirestore } from 'firebase-admin/firestore';
+import { error, info } from 'firebase-functions/logger';
+import { Response } from 'firebase-functions/v1';
 
 import {
   Address,
@@ -19,10 +19,21 @@ import {
   policiesCollection,
   statesList,
 } from '../common';
-import { currentUser, requireAuth, validateRequest } from './middlewares';
-import { generatePolicyDecPDF, getPremiumTable, tiptapJsonToText } from '../services/pdf';
-import { formatLocationData, getLocationInterests } from '../services/pdf';
+import {
+  formatLocationData,
+  generatePolicyDecPDF,
+  getLocationInterests,
+  getPremiumTable,
+  tiptapJsonToText,
+} from '../services/pdf';
 import { AdditionalInterestsItem, PolicyDecPDFLocations } from '../services/pdf/components';
+import {
+  currentUser,
+  errorHandler,
+  generatePDFSchema,
+  requireAuth,
+  validateRequest,
+} from './middlewares';
 
 // https://github.com/firebase/functions-samples/blob/main/Node-1st-gen/authorized-https-endpoint/functions/index.js
 
@@ -47,7 +58,6 @@ app.use(bodyParser.urlencoded({ extended: false }));
 // app.use(validateFirebaseIdToken);
 app.use(currentUser);
 app.use(requireAuth);
-app.use(validateRequest);
 
 export interface DecPageTemplateData extends Record<string, unknown> {
   policyId: string;
@@ -92,137 +102,144 @@ export interface DecPageTemplateData extends Record<string, unknown> {
   disclosure?: string;
 }
 
-app.post('/generateDecPDF', async (req: RequestUserAuth, res: Response) => {
-  const { policyId } = req.body;
-  info('new generate policy request received', { ...req.body });
+app.post(
+  '/generateDecPDF',
+  generatePDFSchema,
+  validateRequest,
+  async (req: RequestUserAuth, res: Response) => {
+    const { policyId } = req.body;
+    info('new generate policy request received', { ...req.body });
 
-  const userToken = req.user;
+    const userToken = req.user;
 
-  if (!userToken?.uid) {
-    res.status(403).send('must be signed in');
-    return;
-  }
-
-  if (!policyId) {
-    res.status(400).send('policyId required');
-    return;
-  }
-
-  const db = getFirestore();
-
-  let policy: Policy;
-  try {
-    const policySnap = await policiesCollection(db).doc(policyId).get();
-
-    const policyData = policySnap.data();
-
-    if (!policySnap.exists || !policyData) {
-      res.status(404).send(`policy not found (ID: ${policyId})`);
+    if (!userToken?.uid) {
+      res.status(403).send('must be signed in');
       return;
     }
 
-    policy = policyData;
-  } catch (err: any) {
-    error('Error fetching policy', { err });
-    res.status(500).send(`error fetching policy (${policyId})`);
+    if (!policyId) {
+      res.status(400).send('policyId required');
+      return;
+    }
+
+    const db = getFirestore();
+
+    let policy: Policy;
+    try {
+      const policySnap = await policiesCollection(db).doc(policyId).get();
+
+      const policyData = policySnap.data();
+
+      if (!policySnap.exists || !policyData) {
+        res.status(404).send(`policy not found (ID: ${policyId})`);
+        return;
+      }
+
+      policy = policyData;
+    } catch (err: any) {
+      error('Error fetching policy', { err });
+      res.status(500).send(`error fetching policy (${policyId})`);
+      return;
+    }
+
+    const locations = policy.locations && Object.values(policy.locations);
+    if (!locations || !locations.length) {
+      res.status(400).send('missing locations in policy');
+      return;
+    }
+
+    const locationData = formatLocationData(policy.locations);
+    const locationInterests = getLocationInterests(locations);
+    const premiumTable = getPremiumTable(policy);
+
+    const policyEffectiveDate = format(policy.effectiveDate.toDate(), 'MMM dd, yyyy');
+    const policyExpirationDate = format(policy.expirationDate.toDate(), 'MMM dd, yyyy');
+
+    const {
+      namedInsured,
+      agent,
+      agency,
+      issuingCarrier,
+      mailingAddress,
+      surplusLinesProducerOfRecord: slLicense,
+    } = policy;
+
+    const templateData: DecPageTemplateData = {
+      policyId,
+      mailingAddressName: mailingAddress.name || namedInsured.displayName, // TODO: add name to mailing address // mailingAddress.name,
+      mailingAddressLine1: mailingAddress?.addressLine1 || '',
+      mailingAddressLine2: mailingAddress?.addressLine2 || '',
+      mailingCity: mailingAddress?.city || '',
+      mailingState: mailingAddress?.state || '',
+      mailingPostal: mailingAddress?.postal || '',
+      insuredEmail: namedInsured.email,
+      insuredName: namedInsured.displayName,
+      policyEffectiveDate,
+      policyExpirationDate,
+      homeState: policy?.homeState || '',
+      homeStateFullName: statesList[policy?.homeState || ''] || '',
+      agencyName: agency.name,
+      agencyAddressLine1: agency?.address?.addressLine1,
+      agencyAddressLine2: agency?.address?.addressLine2,
+      agencyCity: agency?.address?.city,
+      agencyState: agency?.address?.state,
+      agencyPostal: agency?.address?.postal,
+      agentEmail: agent?.email,
+      agentName: agent?.name,
+      agentphone: formatPhoneNumber(policy?.agent?.phone || '') || '',
+      issuingCarrier: issuingCarrier,
+      surplusLinesLicenseNum: slLicense.licenseNum,
+      surplusLinesName: slLicense.name,
+      surplusLinesLicenseState: slLicense.licenseState,
+      surplusLinesLicensePhone: formatPhoneNumber(slLicense.phone || '') || '',
+      // locationCoverages, // : [...locationCoverages, ...test],
+      locationData,
+      locationInterests,
+      premiumTable,
+      // ...mortgagee,
+      docsAttached: [
+        // {
+        //   docTitle: 'Example Doc Attachment One',
+        // },
+        // {
+        //   docTitle: 'Example Doc Attachment Two',
+        // },
+        // {
+        //   docTitle: 'Example Doc Attachment Three',
+        // },
+        // {
+        //   docTitle: 'Example Doc Attachment Four',
+        // },
+      ],
+    };
+
+    try {
+      const disclosureCol = disclosuresCollection(db);
+      const disclosure = await getStateDisclosure(disclosureCol, policy.homeState, policy.product);
+      if (disclosure && disclosure.content) {
+        templateData['disclosure'] = tiptapJsonToText(disclosure.content);
+      } else info(`No state disclosure found for ${policy.homeState}`);
+    } catch (err: any) {
+      console.log('error fetching disclosure / converting to HTML', err);
+    }
+
+    try {
+      const result = await generatePolicyDecPDF(templateData);
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename=export.pdf`);
+
+      result.pipe(res);
+    } catch (err: any) {
+      error('Error generating PDF from react-pdf template', { err });
+      res.status(500).send('Error generating pdf');
+    }
+
     return;
   }
+);
 
-  const locations = policy.locations && Object.values(policy.locations);
-  if (!locations || !locations.length) {
-    res.status(400).send('missing locations in policy');
-    return;
-  }
-
-  const locationData = formatLocationData(policy.locations);
-  const locationInterests = getLocationInterests(locations);
-  const premiumTable = getPremiumTable(policy);
-
-  const policyEffectiveDate = format(policy.effectiveDate.toDate(), 'MMM dd, yyyy');
-  const policyExpirationDate = format(policy.expirationDate.toDate(), 'MMM dd, yyyy');
-
-  const {
-    namedInsured,
-    agent,
-    agency,
-    issuingCarrier,
-    mailingAddress,
-    surplusLinesProducerOfRecord: slLicense,
-  } = policy;
-
-  const templateData: DecPageTemplateData = {
-    policyId,
-    mailingAddressName: mailingAddress.name || namedInsured.displayName, // TODO: add name to mailing address // mailingAddress.name,
-    mailingAddressLine1: mailingAddress?.addressLine1 || '',
-    mailingAddressLine2: mailingAddress?.addressLine2 || '',
-    mailingCity: mailingAddress?.city || '',
-    mailingState: mailingAddress?.state || '',
-    mailingPostal: mailingAddress?.postal || '',
-    insuredEmail: namedInsured.email,
-    insuredName: namedInsured.displayName,
-    policyEffectiveDate,
-    policyExpirationDate,
-    homeState: policy?.homeState || '',
-    homeStateFullName: statesList[policy?.homeState || ''] || '',
-    agencyName: agency.name,
-    agencyAddressLine1: agency?.address?.addressLine1,
-    agencyAddressLine2: agency?.address?.addressLine2,
-    agencyCity: agency?.address?.city,
-    agencyState: agency?.address?.state,
-    agencyPostal: agency?.address?.postal,
-    agentEmail: agent?.email,
-    agentName: agent?.name,
-    agentphone: formatPhoneNumber(policy?.agent?.phone || '') || '',
-    issuingCarrier: issuingCarrier,
-    surplusLinesLicenseNum: slLicense.licenseNum,
-    surplusLinesName: slLicense.name,
-    surplusLinesLicenseState: slLicense.licenseState,
-    surplusLinesLicensePhone: formatPhoneNumber(slLicense.phone || '') || '',
-    // locationCoverages, // : [...locationCoverages, ...test],
-    locationData,
-    locationInterests,
-    premiumTable,
-    // ...mortgagee,
-    docsAttached: [
-      // {
-      //   docTitle: 'Example Doc Attachment One',
-      // },
-      // {
-      //   docTitle: 'Example Doc Attachment Two',
-      // },
-      // {
-      //   docTitle: 'Example Doc Attachment Three',
-      // },
-      // {
-      //   docTitle: 'Example Doc Attachment Four',
-      // },
-    ],
-  };
-
-  try {
-    const disclosureCol = disclosuresCollection(db);
-    const disclosure = await getStateDisclosure(disclosureCol, policy.homeState, policy.product);
-    if (disclosure && disclosure.content) {
-      templateData['disclosure'] = tiptapJsonToText(disclosure.content);
-    } else info(`No state disclosure found for ${policy.homeState}`);
-  } catch (err: any) {
-    console.log('error fetching disclosure / converting to HTML', err);
-  }
-
-  try {
-    const result = await generatePolicyDecPDF(templateData);
-
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename=export.pdf`);
-
-    result.pipe(res);
-  } catch (err: any) {
-    error('Error generating PDF from react-pdf template', { err });
-    res.status(500).send('Error generating pdf');
-  }
-
-  return;
-});
+app.use(errorHandler);
 
 // app.use('/pdf-api', router);
 

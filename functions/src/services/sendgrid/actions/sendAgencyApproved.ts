@@ -1,0 +1,23 @@
+import { HttpsError } from 'firebase-functions/v1/auth';
+
+import { getReportErrorFn } from '../../../common';
+import { BaseTemplateProps } from './sendContact';
+
+export interface SendAgencyApprovedProps extends BaseTemplateProps {
+  templateId: 'agency_approved';
+  docId: string;
+  tenantId: string;
+  message?: string | null;
+}
+
+const reportErr = getReportErrorFn('sendEmail');
+
+export async function sendAgencyApproved(sgKey: string, args: SendAgencyApprovedProps) {
+  try {
+    throw new Error('no set up yet');
+  } catch (err: any) {
+    reportErr('error sending agency approved notification', {}, err);
+
+    throw new HttpsError('internal', 'error sending agency approved notification');
+  }
+}

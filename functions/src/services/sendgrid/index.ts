@@ -19,7 +19,7 @@ import { projectID } from 'firebase-functions/params';
 
 // TODO: add msgType to customArgs (ex: msgType: 'deliver policy')
 
-import { env, onlyUniqueObj } from '../../common';
+import { EmailTemplates, env, onlyUniqueObj } from '../../common';
 import {
   adminChangeRequest,
   adminImportNotification,
@@ -90,8 +90,11 @@ const createMsgContent = ({
   };
 };
 
+type CustomArgs = { emailType: EmailTemplates } & Record<string, any>;
 export interface ExtraSendGridArgs
-  extends Omit<CreateMsgContentProps, 'to' | 'from' | 'subject' | 'html' | 'attachements'> {}
+  extends Omit<CreateMsgContentProps, 'to' | 'from' | 'subject' | 'html' | 'attachements'> {
+  customArgs: CustomArgs;
+}
 
 function getCustomArgs(args?: Record<string, any> | undefined) {
   return {

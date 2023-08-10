@@ -1,12 +1,12 @@
-import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import { getFirestore } from 'firebase-admin/firestore';
-
-import { sendAgencyAppApprovedNotification } from '../services/sendgrid';
-import { getFunctionsErrorCode, getErrorMessage } from '../utils/errorHelpers';
-import { agencyApplicationCollection, invitesCollection } from '../common/dbCollections';
-import { audience, sendgridApiKey } from '../common';
-import { onCallWrapper } from '../services/sentry';
 import { error, info } from 'firebase-functions/logger';
+import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
+
+import { audience, sendgridApiKey } from '../common';
+import { agencyApplicationCollection, invitesCollection } from '../common/dbCollections';
+import { sendAgencyAppApprovedNotification } from '../services/sendgrid';
+import { onCallWrapper } from '../services/sentry';
+import { getErrorMessage, getFunctionsErrorCode } from '../utils/errorHelpers';
 
 interface SendAgencyApprovedNotificationProps {
   docId: string;

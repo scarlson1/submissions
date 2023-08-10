@@ -106,7 +106,7 @@ export enum ROUTES {
 }
 
 export enum ADMIN_ROUTES {
-  SUBMISSIONS = '/admin/submissions',
+  // SUBMISSIONS = '/admin/submissions',
   SUBMISSION_VIEW = '/admin/submissions/:submissionId',
   QUOTES = '/admin/quotes',
   QUOTE_NEW_BLANK = '/admin/quotes/:productId/new',

@@ -57,6 +57,7 @@ export {
   resendinvite,
   sendagencyapprovednotification,
   sendcontactemail,
+  sendemail,
   sendnewquotenotifications,
   sendpolicydoc,
   verifyepaytoken,

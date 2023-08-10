@@ -154,6 +154,15 @@ export const sendcontactemail = onCall(
   }
 );
 
+export const sendemail = onCall(
+  {
+    secrets: [sendgridApiKey],
+  },
+  async (request) => {
+    return (await import('./sendEmail.js')).default(request);
+  }
+);
+
 export const sendnewquotenotifications = onCall(
   {
     secrets: [sendgridApiKey],

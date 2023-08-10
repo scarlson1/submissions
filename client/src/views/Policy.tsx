@@ -67,7 +67,7 @@ export const Policy = () => {
   if (!policyId) throw new Error('policyId missing in url params');
 
   const { data } = useDocData<IPolicy>('POLICIES', policyId);
-  const downloadPolicy = useGeneratePDF('generateDecPDF');
+  const { downloadPDF: downloadPolicy } = useGeneratePDF('generateDecPDF');
 
   const locationChangeDialog = useCreateLocationChangeRequest(policyId);
   const cancelDialog = useCreateCancelRequest(); // TODO: onsuccess => "you'll receive a confirmation email once our team has processed the request. expect to see a refund, if due, in X days"

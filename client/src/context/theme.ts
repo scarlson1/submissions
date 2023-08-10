@@ -1,6 +1,6 @@
-import { createTheme, ThemeOptions, Theme, alpha } from '@mui/material/styles';
-import { deepmerge } from '@mui/utils';
 import { ArrowDropDownRounded } from '@mui/icons-material';
+import { Theme, ThemeOptions, alpha, createTheme } from '@mui/material/styles';
+import { deepmerge } from '@mui/utils';
 import type {} from '@mui/x-date-pickers/themeAugmentation';
 
 // TODO: switch to using CSS vars
@@ -323,45 +323,6 @@ export const getDesignTokens = (mode: 'light' | 'dark') =>
         fontSize: defaultTheme.typography.pxToRem(20),
         lineHeight: 30 / 20,
       },
-      // h1: {
-      //   fontFamily: ['"PlusJakartaSans-ExtraBold"', ...systemFont].join(','),
-      //   fontSize: 'clamp(2.625rem, 1.2857rem + 3.5714vw, 4rem)',
-      //   fontWeight: 800,
-      //   lineHeight: 78 / 70,
-      //   ...(mode === 'light' && {
-      //     color: blueDark[900],
-      //   }),
-      // },
-      // h2: {
-      //   fontFamily: ['"PlusJakartaSans-ExtraBold"', ...systemFont].join(','),
-      //   fontSize: 'clamp(1.5rem, 0.9643rem + 1.4286vw, 2.25rem)',
-      //   fontWeight: 800,
-      //   lineHeight: 44 / 36,
-      //   color: mode === 'dark' ? grey[100] : blueDark[700],
-      // },
-      // h3: {
-      //   fontFamily: ['"PlusJakartaSans-Bold"', ...systemFont].join(','),
-      //   fontSize: defaultTheme.typography.pxToRem(36),
-      //   lineHeight: 44 / 36,
-      //   letterSpacing: 0.2,
-      // },
-      // h4: {
-      //   fontFamily: ['"PlusJakartaSans-Bold"', ...systemFont].join(','),
-      //   fontSize: defaultTheme.typography.pxToRem(28),
-      //   lineHeight: 42 / 28,
-      //   letterSpacing: 0.2,
-      // },
-      // h5: {
-      //   fontFamily: ['"PlusJakartaSans-Bold"', ...systemFont].join(','),
-      //   fontSize: defaultTheme.typography.pxToRem(24),
-      //   lineHeight: 36 / 24,
-      //   letterSpacing: 0.1,
-      //   color: mode === 'dark' ? blue[300] : blue.main,
-      // },
-      // h6: {
-      //   fontSize: defaultTheme.typography.pxToRem(20),
-      //   lineHeight: 30 / 20,
-      // },
       button: {
         textTransform: 'initial',
         fontWeight: 700,
@@ -586,35 +547,11 @@ export function getThemedComponents(theme: Theme): {
             },
           },
           {
-            props: { variant: 'greyOutlined' },
-            style: {
-              color:
-                theme.palette.mode === 'dark' ? theme.palette.grey[300] : theme.palette.grey[600],
-
-              border:
-                theme.palette.mode === 'dark'
-                  ? `1px solid ${alpha(theme.palette.grey[400], 0.5)}`
-                  : `1px solid ${alpha(theme.palette.grey[700], 0.5)}`,
-              '&:hover, &.Mui-focusVisible': {
-                color:
-                  theme.palette.mode === 'dark' ? theme.palette.grey[100] : theme.palette.grey[700],
-                border:
-                  theme.palette.mode === 'dark'
-                    ? `1px solid ${theme.palette.grey[400]}`
-                    : `1px solid ${theme.palette.grey[700]}`,
-              },
-            },
-          },
-          {
             props: { variant: 'greyText' },
             style: {
               color:
                 theme.palette.mode === 'dark' ? theme.palette.grey[300] : theme.palette.grey[600],
-
               border: 0,
-              // theme.palette.mode === 'dark'
-              //   ? `1px solid ${alpha(theme.palette.grey[400], 0.5)}`
-              //   : `1px solid ${alpha(theme.palette.grey[700], 0.5)}`,
               '&:hover, &.Mui-focusVisible': {
                 color:
                   theme.palette.mode === 'dark' ? theme.palette.grey[100] : theme.palette.grey[700],

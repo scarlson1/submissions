@@ -1,9 +1,9 @@
-import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
-import { info } from 'firebase-functions/logger';
 import sgMail from '@sendgrid/mail';
+import { error, info } from 'firebase-functions/logger';
+import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 
-import { newContactMessage } from '../services/sendgrid/templates';
 import { audience, sendgridApiKey } from '../common';
+import { newContactMessage } from '../services/sendgrid/templates';
 import { onCallWrapper } from '../services/sentry';
 
 interface SendContactEmailProps {
@@ -41,7 +41,7 @@ const sendContactEmail = async ({ data, auth }: CallableRequest<SendContactEmail
       emails: [userEmail],
     };
   } catch (err) {
-    console.log('ERROR SENDING "CONTACT US" EMAIL: ', err);
+    error('ERROR SENDING "CONTACT US" EMAIL: ', { err });
     throw new HttpsError('internal', 'Failed to deliver email.');
   }
 };

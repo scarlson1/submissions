@@ -1,12 +1,10 @@
-import { Response, NextFunction } from 'express';
+import { NextFunction, Response } from 'express';
 
-import { NotAuthorizedError } from '../errors/notAuthorizedError';
 import { RequestUserAuth } from '../../common';
+import { NotAuthorizedError } from '../errors/notAuthorizedError';
 
 export const requireAuth = (req: RequestUserAuth, res: Response, next: NextFunction) => {
-  if (!req.user) {
-    throw new NotAuthorizedError();
-  }
+  if (!req.user) throw new NotAuthorizedError();
 
   next();
 };

@@ -1,8 +1,8 @@
-import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import { error, info } from 'firebase-functions/logger';
+import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 
-import { sendNewQuoteEmail } from '../services/sendgrid';
 import { CLAIMS, hostingBaseURL, onlyUnique, sendgridApiKey } from '../common';
+import { sendNewQuoteEmail } from '../services/sendgrid';
 import { onCallWrapper } from '../services/sentry';
 
 interface SendNewQuoteNotificationsProps {
@@ -51,7 +51,7 @@ const sendNewQuoteNotifications = async ({
 
     await sendNewQuoteEmail(sgKey, link, uniqueTo, undefined, undefined, {
       customArgs: {
-        emailType: 'new_quote_notification',
+        emailType: 'new_quote',
       },
     });
 
