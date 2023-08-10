@@ -20,7 +20,7 @@ export const useGeneratePDF = (
         toast.loading('generating policy pdf...');
         const res = await functionsInstance.post(
           `generatepdf/${route}`,
-          { policyId: '' },
+          { policyId },
           { responseType: 'blob' }
         );
 
