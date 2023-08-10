@@ -176,16 +176,6 @@ export const sendpolicydoc = onCall(
   }
 );
 
-export const updateandratequote = onCall(
-  {
-    minInstances,
-    memory: '128MiB',
-  },
-  async (request) => {
-    return (await import('./updateAndRateQuote.js')).default(request);
-  }
-);
-
 export const verifyepaytoken = onCall(
   {
     secrets: [ePayCreds],

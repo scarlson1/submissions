@@ -63,7 +63,7 @@ export const Footer = () => {
       }}
     >
       <Container
-        maxWidth='lg'
+        maxWidth='xl'
         sx={{
           display: 'flex',
           justifyContent: 'space-between',

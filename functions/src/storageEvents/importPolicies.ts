@@ -59,8 +59,8 @@ import {
   transformHeadersCamelCase,
 } from '../modules/storage/parseStreamToArray';
 import { sendAdminPolicyImportNotification } from '../services/sendgrid';
-import { eventOlderThan, shouldReturnEarly } from '../utils';
 import { CSVQuoteRow } from './importQuotes';
+import { eventOlderThan, shouldReturnEarly } from '../modules/storage';
 
 const IMPORT_POLICIES_FOLDER = 'importPolicies';
 

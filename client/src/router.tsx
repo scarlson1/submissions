@@ -19,7 +19,6 @@ import { EmailsGrid } from 'elements/grids';
 import { ImportsSummaryGrid } from 'elements/grids/ImportsSummaryGrid';
 import { TestPoliciesMapWithFilters } from 'elements/PoliciesMap';
 import {
-  // Protosure, // TODO: move protosureLoader to useEffect
   Account,
   AccountDetails,
   AgencyNew,
@@ -103,7 +102,6 @@ export enum ROUTES {
   CLAIM_NEW = '/policies/:policyId/claim/new',
   AGENCY_NEW = '/agency/new',
   AGENCY_NEW_SUBMITTED = '/agency/new/:submissionId/success',
-  PROTOSURE = '/protosure/new/:productId/:quoteId?',
   ACCOUNT = '/account',
 }
 
@@ -169,7 +167,6 @@ type TArgs =
   | { path: ROUTES.AGENCY_NEW }
   | { path: ROUTES.AGENCY_NEW_SUBMITTED; params: { submissionId: string } }
   | { path: ROUTES.CONTACT }
-  | { path: ROUTES.PROTOSURE; params: { productId: Product; quoteId?: string } }
   // | { path: ROUTES.ACCOUNT }
   // | { path: ADMIN_ROUTES.SUBMISSIONS }
   | { path: ADMIN_ROUTES.SUBMISSION_VIEW; params: { submissionId: string } }
@@ -275,14 +272,6 @@ export const router = sentryCreateBrowserRouter([
           {
             index: true,
             element: <Home />,
-            // handle: {
-            //   crumb: (match: CrumbMatch) => [
-            //     {
-            //       label: 'Home',
-            //       link: '/',
-            //     },
-            //   ],
-            // },
           },
           {
             path: ROUTES.SUBMISSION_NEW,
@@ -318,31 +307,8 @@ export const router = sentryCreateBrowserRouter([
               ],
             },
           },
-          // {
-          //   path: ROUTES.PROTOSURE,
-          //   loader: protosureLoader,
-          //   element: (
-          //     <RequireAuth shouldSignInAnonymously={true}>
-          //       <Protosure />
-          //     </RequireAuth>
-          //   ),
-          //   errorElement: (
-          //     <RouterErrorBoundary
-          //       actionButtons={[
-          //         {
-          //           path: createPath({
-          //             path: ROUTES.PROTOSURE,
-          //             params: { productId: 'flood', quoteId: '' },
-          //           }),
-          //           label: 'Start new quote',
-          //         },
-          //       ]}
-          //     />
-          //   ),
-          // },
           {
             path: ROUTES.SUBMISSIONS,
-            // element: <Submissions />,
             element: (
               <RequireAuthReactFire>
                 <Submissions />
@@ -362,7 +328,7 @@ export const router = sentryCreateBrowserRouter([
           },
           {
             path: ROUTES.QUOTES,
-            // element: <Quotes />,
+
             element: (
               <RequireAuthReactFire>
                 <Quotes />
@@ -662,7 +628,7 @@ export const router = sentryCreateBrowserRouter([
         path: 'admin',
         element: (
           // <RequireAuthReactFire signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}>
-          <Layout withBreadcrumbs={true} />
+          <Layout withBreadcrumbs={true} containerProps={{ maxWidth: 'xl' }} />
           // </RequireAuthReactFire>
         ),
         errorElement: <RouterErrorBoundary />,

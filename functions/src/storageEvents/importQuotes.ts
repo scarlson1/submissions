@@ -37,8 +37,10 @@ import {
   transformHeadersCamelCase,
 } from '../modules/storage/parseStreamToArray';
 import { sendAdminPolicyImportNotification } from '../services/sendgrid';
-import { eventOlderThan, fetchTaxes, shouldReturnEarly } from '../utils';
+// import { eventOlderThan, fetchTaxes, shouldReturnEarly } from '../utils';
 import { getFormattedFees } from './importPolicies';
+import { eventOlderThan, shouldReturnEarly } from '../modules/storage';
+import { fetchTaxes } from '../modules/db';
 
 // import { sendAdminPolicyImportNotification } from '../services/sendgrid';
 
@@ -116,7 +118,6 @@ export default async (event: StorageEvent) => {
   const fileName = path.basename(filePath || '');
 
   if (shouldReturnEarly(event, QUOTE_IMPORT_FOLDER, 'text/csv', 'processed')) return;
-
   if (eventOlderThan(event)) return; // return if event older than 1 min
 
   const db = getFirestore();

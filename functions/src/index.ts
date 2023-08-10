@@ -13,7 +13,7 @@ initializeApp();
 
 // firebase deploy --only functions:executepayment,functions:getpropertydetails,functions:generatesearchkey,functions:getannualpremium,functions:getpropertydetailsattom,functions:getriskfactorid
 
-// firebase deploy --only functions:gettenantidfromemail,functions:getvaluationestimate,functions:initializequote,functions:inviteusers,functions:moveusertotenant,functions:resendinvite,functions:sendagencyapprovednotification,functions:sendcontactemail,functions:sendnewquotenotifications,functions:sendpolicydoc,functions:updateandratequote,functions:verifyepaytoken
+// firebase deploy --only functions:gettenantidfromemail,functions:getvaluationestimate,functions:initializequote,functions:inviteusers,functions:moveusertotenant,functions:resendinvite,functions:sendagencyapprovednotification,functions:sendcontactemail,functions:sendnewquotenotifications,functions:sendpolicydoc,functions:verifyepaytoken
 
 // FIRESTORE EVENTS
 // firebase deploy --only functions:newsubmissionnotifications,functions:getstaticsubmissionimg,functions:getsubmissionaal,functions:mirrorcustomclaims,functions:newagencyappnotification,functions:getsubmissionfips,functions:notifypolicychangerequest,functions:sendinviteemail
@@ -59,7 +59,6 @@ export {
   sendcontactemail,
   sendnewquotenotifications,
   sendpolicydoc,
-  updateandratequote,
   verifyepaytoken,
 } from './callables';
 export {

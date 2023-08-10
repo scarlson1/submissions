@@ -18,7 +18,7 @@ import {
   shouldReturnEarly,
   transformHeadersSnakeCase,
   writeArrayToStorage as writeToStorage,
-} from '../utils';
+} from '../modules/storage';
 
 type CSVInput = Record<string, string>;
 type TCSVInput = Record<string, string> & { latitude: string; longitude: string };

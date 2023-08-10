@@ -1,13 +1,7 @@
-import { ReactElement, RefObject, cloneElement, useCallback, useRef } from 'react';
+import { ReactElement, RefObject, cloneElement, useCallback } from 'react';
 import { FormikHelpers, FormikProps } from 'formik';
-import { Button } from '@mui/material';
 
 import { useDialog, DialogOptions } from 'context';
-import {
-  PolicyChangeForm,
-  PolicyChangeFormProps,
-  PolicyChangeValues,
-} from 'elements/forms/PolicyChangeForm';
 
 interface UseDialogFormProps<T, C> {
   formComponent: ReactElement;
@@ -98,61 +92,42 @@ export function useDialogForm<T extends Record<string, any>, C = {}>({
   return promptForm;
 }
 
-let initialVals = {
-  namedInsured: {
-    displayName: 'John Doe',
-    email: 'asdf@aslkfj.com',
-    phone: '+12342342345',
-  },
-  mailingAddress: {
-    addressLine1: '123 Main st.',
-    addressLine2: '',
-    city: 'nash',
-    state: 'TN',
-    postal: '12345',
-  },
-  homeState: 'TN',
-  effectiveDate: new Date(),
-  expirationDate: new Date(),
-  requestEffDate: new Date(),
-};
+// export function Usage() {
+//   const formRef = useRef<FormikProps<PolicyChangeValues>>(null);
+//   const handleSubmit = useCallback(async (values: PolicyChangeValues) => {
+//     return { ...values, test: 'additional val' };
+//   }, []);
 
-export function Usage() {
-  const formRef = useRef<FormikProps<PolicyChangeValues>>(null);
-  const handleSubmit = useCallback(async (values: PolicyChangeValues) => {
-    return { ...values, test: 'additional val' };
-  }, []);
+//   const promptForm = useDialogForm<PolicyChangeValues, PolicyChangeFormProps>({
+//     formComponent: (
+//       <PolicyChangeForm initialValues={initialVals} formRef={formRef} onSubmit={handleSubmit} />
+//     ),
+//     getFormProps: () => ({ initialValues: initialVals }),
+//     formRef,
+//     dialogOptions: {
+//       title: 'Usage example form',
+//       slotProps: { dialog: { maxWidth: 'md' } },
+//     },
+//     onSubmit: handleSubmit,
+//     onSuccess: (vals) => {
+//       console.log('on success: ', vals);
+//     },
+//     onError: (msg: string) => {
+//       console.log('on err: ', msg);
+//     },
+//     onCancel: () => {
+//       console.log('on cancel');
+//     },
+//   });
 
-  const promptForm = useDialogForm<PolicyChangeValues, PolicyChangeFormProps>({
-    formComponent: (
-      <PolicyChangeForm initialValues={initialVals} formRef={formRef} onSubmit={handleSubmit} />
-    ),
-    getFormProps: () => ({ initialValues: initialVals }),
-    formRef,
-    dialogOptions: {
-      title: 'Usage example form',
-      slotProps: { dialog: { maxWidth: 'md' } },
-    },
-    onSubmit: handleSubmit,
-    onSuccess: (vals) => {
-      console.log('on success: ', vals);
-    },
-    onError: (msg: string) => {
-      console.log('on err: ', msg);
-    },
-    onCancel: () => {
-      console.log('on cancel');
-    },
-  });
+//   const startTest = useCallback(async () => {
+//     try {
+//       let res = await promptForm(initialVals);
+//       console.log('promp form result: ', res);
+//     } catch (err: any) {
+//       console.log('prompt err: ', err);
+//     }
+//   }, [promptForm]);
 
-  const startTest = useCallback(async () => {
-    try {
-      let res = await promptForm(initialVals);
-      console.log('promp form result: ', res);
-    } catch (err: any) {
-      console.log('prompt err: ', err);
-    }
-  }, [promptForm]);
-
-  return <Button onClick={startTest}>Dialog Test</Button>;
-}
+//   return <Button onClick={startTest}>Dialog Test</Button>;
+// }

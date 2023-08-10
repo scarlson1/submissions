@@ -29,7 +29,6 @@ import { useConfirmation } from 'context';
 import { CSVUploadDialog } from 'elements';
 import { QuotesGrid } from 'elements/grids';
 import { useAsyncToast, useShowJson } from 'hooks';
-import { Usage } from 'hooks/useDialogForm';
 import { subproducerCommissionCol } from 'modules/muiGrid/gridColumnDefs';
 import { getDuplicates } from 'modules/utils';
 import { ADMIN_ROUTES, createPath } from 'router';
@@ -198,7 +197,6 @@ export const Quotes = () => {
         processRowUpdate={confirmAndUpdate}
         onProcessRowUpdateError={handleProcessRowUpdateError}
       />
-      <Usage />
     </Box>
   );
 };

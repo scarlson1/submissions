@@ -1,6 +1,5 @@
 export { fetchPropertyDetails } from './fetchPropertyDetails';
 export { getPropertyDetailsAttom } from './getPropertyDetailsAttom';
-export { updateAndRateQuote } from './updateAndRateQuote';
 export { ePayInstance } from './ePayInstance';
 export { verifyEPayToken } from './verifyEPayToken';
 export { functionsInstance } from './functionsOnRequest';
@@ -25,7 +24,6 @@ export { approveChangeRequest } from './approveChangeRequest';
 
 export type { FetchPropertyDataRequest, FetchPropertyDataResponse } from './fetchPropertyDetails';
 
-export type { UpdateAndReateRequest, UpdateAndReateResponse } from './updateAndRateQuote';
 export type { VerifyEPayTokenRequest, VerifyEPayTokenResponse } from './verifyEPayToken';
 export type { AssignQuoteRequest, AssignQuoteResponse } from './assignQuote';
 export type { ExecutePmtRequest, ExecutePmtResponse } from './executePayment';

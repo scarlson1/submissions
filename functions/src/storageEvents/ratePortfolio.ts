@@ -33,7 +33,7 @@ import {
   shouldReturnEarly,
   transformHeadersSnakeCase,
   writeArrayToStorage as writeToStorage,
-} from '../utils';
+} from '../modules/storage';
 
 let swissReInstance: AxiosInstance;
 let swissReInstanceTimestamp: number; // TODO: regenerate if > 10 mins

@@ -24,8 +24,8 @@ import {
 import { getRCVs } from '../modules/rating';
 import { checkMoratoriums } from '../services';
 import { onCallWrapper } from '../services/sentry';
-import { getSLLicenseByState } from '../utils';
 import { validate } from './utils';
+import { getSLLicenseByState } from '../modules/db';
 
 // import { getSubmissionsInstance } from '../services';
 
