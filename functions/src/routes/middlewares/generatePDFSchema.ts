@@ -5,9 +5,6 @@ import { checkSchema } from 'express-validator';
 export const generatePDFSchema = checkSchema({
   policyId: {
     in: ['body'],
-    // optional: {
-    //   options: { nullable: true },
-    // },
     notEmpty: true,
     errorMessage: 'policyId required in body of request.',
   },
