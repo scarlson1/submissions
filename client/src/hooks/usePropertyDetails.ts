@@ -2,32 +2,10 @@ import { useState, useCallback } from 'react';
 import { useFunctions } from 'reactfire';
 import { round } from 'lodash';
 
-import { fetchPropertyDetails, getPropertyDetailsAttom, GetPropertyDetailsAttomRequest } from 'api';
-import { Coordinates, LimitKeys, Limits, Nullable, RatingPropertyData } from 'common/types';
-
+import { getPropertyDetailsAttom, GetPropertyDetailsAttomRequest } from 'api';
+import { LimitKeys, Limits, Nullable, RatingPropertyData } from 'common/types';
 import { usePromptRCV } from './usePromptRCV';
 import { calcSum } from 'modules/utils';
-
-export const usePropertyDetails = () => {
-  const functions = useFunctions();
-  const [propertyDetails, setPropertyDetails] = useState<any>();
-
-  const fetchPropertyData = useCallback(
-    async (args: Coordinates) => {
-      // const fetchPropertyDetails = httpsCallable<any, any>(getFunctions(), 'getPropertyDetails');
-      const fetchDetails = fetchPropertyDetails(functions);
-      const { data } = await fetchDetails(args);
-      // const { data } = await fetchPropertyDetails(args);
-
-      setPropertyDetails({ ...data });
-
-      return data;
-    },
-    [functions]
-  );
-
-  return { fetchPropertyData, propertyDetails };
-};
 
 let MAX_A = parseInt(process.env.REACT_APP_FLOOD_MAX_LIMIT_A || '1000000');
 let MIN_A = parseInt(process.env.REACT_APP_FLOOD_MIN_LIMIT_A || '100000');

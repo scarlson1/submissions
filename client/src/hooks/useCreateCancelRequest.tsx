@@ -26,7 +26,6 @@ export const useCreateCancelRequest = (
   onError?: (msg: string, err: any) => void
 ) => {
   const firestore = useFirestore();
-  // const { data: user } = useSigninCheck()
   const { user } = useAuth();
   const toast = useAsyncToast();
   const formRef = useRef<FormikProps<CancelValues>>(null);

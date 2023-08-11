@@ -1,8 +1,6 @@
-export { getSpatialKeyInstance } from './spatialKey.js';
 export { getEPayInstance } from './ePay.js';
 export { getSwissReInstance, generateSRAccessToken } from './swissRe.js';
 export { getAttomInstance } from './attom.js';
-export { getVeriskInstance } from './verisk.js';
 export { getSignNowInstance } from './signNow.js';
 export * from './sentryFirebase.js';
 export { getFirebaseAdmin } from './getFirebaseAdmin.js';

@@ -33,7 +33,7 @@ export { useKeyPress } from './useKeyPress';
 export { useLocalStorage } from './useLocalStorage';
 export { useMoveUserToTenant } from './useMoveUserToTenant';
 export { useOpenStorageFile } from './useOpenStorageFile';
-export { usePropertyDetails, usePropertyDetailsAttom } from './usePropertyDetails';
+export { usePropertyDetailsAttom } from './usePropertyDetails';
 export { extractRatingInputsFromValues, useRateQuote } from './useRateQuote';
 export { useRegisterEmailNotification } from './useRegisterEmailNotification';
 export { useRequireAuth } from './useRequireAuth';

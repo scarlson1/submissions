@@ -11,13 +11,10 @@ import {
   sendgridApiKey,
   signNowCreds,
   signNowUserCreds,
-  spatialKeyOrgKey,
-  spatialKeySecretKey,
-  spatialKeyUserKey,
   swissReClientId,
   swissReClientSecret,
   swissReSubscriptionKey,
-  veriskCredsDemo,
+  // veriskCredsDemo,
 } from '../common';
 import { GetPropertyDetailsAttomRequest } from './getPropertyDetailsAttom.js';
 // import { wrapHttpsOnCallHandler } from '../services/sentryFirebase.js';
@@ -72,17 +69,6 @@ export const getannualpremium = onCall(
   }
 );
 
-export const getpropertydetails = onCall(
-  {
-    secrets: [spatialKeyUserKey, spatialKeyOrgKey, spatialKeySecretKey],
-    minInstances,
-    memory: '128MiB',
-  },
-  async (request) => {
-    return (await import('./getPropertyDetails.js')).default(request);
-  }
-);
-
 export const getpropertydetailsattom = onCall(
   {
     secrets: [attomKey],
@@ -105,16 +91,16 @@ export const gettenantidfromemail = onCall(async (request) => {
   return (await import('./getTenantIdFromEmail.js')).default(request);
 });
 
-export const getvaluationestimate = onCall(
-  {
-    secrets: [veriskCredsDemo],
-    // minInstances: 1,
-    // memory: '128MiB',
-  },
-  async (request) => {
-    return (await import('./getValuationEstimate.js')).default(request);
-  }
-);
+// export const getvaluationestimate = onCall(
+//   {
+//     secrets: [veriskCredsDemo],
+//     // minInstances: 1,
+//     // memory: '128MiB',
+//   },
+//   async (request) => {
+//     return (await import('./getValuationEstimate.js')).default(request);
+//   }
+// );
 
 export const initializequote = onCall(
   {

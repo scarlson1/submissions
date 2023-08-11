@@ -33,6 +33,7 @@ import {
 import { getDoc } from '../routes/utils';
 import { publishAmendment, publishEndorsement, publishLocationCancel } from '../services/pubsub';
 import { sendAdminChangeRequestNotification, sendMessage } from '../services/sendgrid';
+import { validate } from './utils';
 
 export default async (
   event: FirestoreEvent<
@@ -40,57 +41,63 @@ export default async (
     { policyId: string; requestId: string }
   >
 ) => {
-  const { policyId, requestId } = event.params;
-  const prevData = event?.data?.before?.data() as ChangeRequest | undefined;
-  const data = event?.data?.after.data() as ChangeRequest | undefined;
-  if (!data) {
-    info('document deleted. returning.');
+  try {
+    const { policyId, requestId } = event.params;
+    const prevData = event?.data?.before?.data() as ChangeRequest | undefined;
+    const data = event?.data?.after.data() as ChangeRequest | undefined;
+    // TODO: wrap all firestoreEvent listeners in try/catch so "validate" can throw errors
+    validate(data, 'document deleted. returning.', 'warn');
+    // if (!data) {
+    //   info('document deleted. returning.');
+    //   return;
+    // }
+
+    // MUST UPDATE _lastCommitted if updating Change Request doc in this function in order to prevent loop
+    // TODO: use its own field cloudFnUpdated: Timestamp (might want this to run if there's an update)
+
+    // This way would require updating _lastCommitted to acknowlege everytime ??
+    const skipUpdate =
+      prevData?._lastCommitted &&
+      data?._lastCommitted &&
+      !prevData?._lastCommitted.isEqual(data._lastCommitted);
+    if (skipUpdate) {
+      info('Change request status unchanged. returning early');
+      return;
+    }
+    if (prevData && data && prevData.status === data.status) {
+      info('Change request status unchanged. returning early.');
+      return;
+    }
+
+    const { status } = data;
+    info(`New change request doc change detected. (status: ${status})`, { ...data });
+
+    switch (status) {
+      case CHANGE_REQUEST_STATUS.SUBMITTED:
+        await handleNewRequest(data, policyId, requestId, event.id);
+        // TODO: handle reinstatement & renewal
+        if (data.trxType === 'endorsement') {
+          await handleRatingForEndorsement(data, policyId, requestId);
+        }
+        return;
+      case CHANGE_REQUEST_STATUS.ACCEPTED:
+        await handleAcceptedRequest(data, policyId);
+        return;
+      case CHANGE_REQUEST_STATUS.CANCELLED:
+        warn('no event triggers set up for change requests with status = "cancelled"');
+        // await handleCancelledRequest(data, policyId, requestId);
+        return;
+      case CHANGE_REQUEST_STATUS.DENIED:
+        await handleDeniedRequest(data, policyId, requestId);
+        return;
+      case CHANGE_REQUEST_STATUS.UNDER_REVIEW:
+        return;
+      default:
+        error(`Change request status not recognized (status: ${status})`, { ...data });
+        return;
+    }
+  } catch (err: any) {
     return;
-  }
-
-  // MUST UPDATE _lastCommitted if updating Change Request doc in this function in order to prevent loop
-  // TODO: use its own field cloudFnUpdated: Timestamp (might want this to run if there's an update)
-
-  // This way would require updating _lastCommitted to acknowlege everytime ??
-  const skipUpdate =
-    prevData?._lastCommitted &&
-    data?._lastCommitted &&
-    !prevData?._lastCommitted.isEqual(data._lastCommitted);
-  if (skipUpdate) {
-    info('Change request status unchanged. returning early');
-    return;
-  }
-  if (prevData && data && prevData.status === data.status) {
-    info('Change request status unchanged. returning early.');
-    return;
-  }
-
-  const { status } = data;
-  info(`New change request doc change detected. (status: ${status})`, { ...data });
-
-  switch (status) {
-    case CHANGE_REQUEST_STATUS.SUBMITTED:
-      await handleNewRequest(data, policyId, requestId, event.id);
-      // TODO: handle reinstatement & renewal
-      if (data.trxType === 'endorsement') {
-        await handleRatingForEndorsement(data, policyId, requestId);
-      }
-      return;
-    case CHANGE_REQUEST_STATUS.ACCEPTED:
-      await handleAcceptedRequest(data, policyId);
-      return;
-    case CHANGE_REQUEST_STATUS.CANCELLED:
-      warn('no event triggers set up for change requests with status = "cancelled"');
-      // await handleCancelledRequest(data, policyId, requestId);
-      return;
-    case CHANGE_REQUEST_STATUS.DENIED:
-      await handleDeniedRequest(data, policyId, requestId);
-      return;
-    case CHANGE_REQUEST_STATUS.UNDER_REVIEW:
-      return;
-    default:
-      error(`Change request status not recognized (status: ${status})`, { ...data });
-      return;
   }
 };
 

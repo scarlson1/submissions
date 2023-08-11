@@ -124,7 +124,7 @@ Cloud Functions are kind of like an API or server. They serve as the backend in 
 - `createTenantFromSubmission`
 - `executePayment`
 - `getAnnualPremium` - runs swiss re to get AALs and recalculates quote
-- `getPropertyDetails` - called after address step in the new submission form
+- `getPropertyDetailsAttom` - called after address step in the new submission form. Fetch property data from Attom
 - `getTenantIdFromEmail` - called when "user not found" error code is returned from sign in attempt. Searches across all users in _users_ collection (all tenants). If user is found, returns the tenantId and retries signing the user in. This would happen is user was a tenant auth user (agent) and tried to sign into the non tenant-aware login page (_`/auth/login`_ instead of _`/auth/login/:tenantId`_)
 - `initializeQuote`
 - `inviteUsers` - takes an array (list) of users (email, name, userClaims/permissions/role) and creates a new invite doc under _`organizations/:orgId/invitations`_ collection. Another Firestore triggered Cloud Function executes when a new document is created in this sub collection, which will send an email to the invited user(s)

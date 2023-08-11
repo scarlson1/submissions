@@ -1,4 +1,3 @@
-export { fetchPropertyDetails } from './fetchPropertyDetails';
 export { getPropertyDetailsAttom } from './getPropertyDetailsAttom';
 export { ePayInstance } from './ePayInstance';
 export { verifyEPayToken } from './verifyEPayToken';
@@ -11,7 +10,7 @@ export { getTenantIdFromEmail } from './getTenantIdFromEmail';
 export { createTenantFromSubmission } from './createTenantFromSubmission';
 export { inviteUsers } from './inviteUsers';
 export { getAnnualPremium } from './getAnnualPremium';
-export { getValuationEstimate } from './getValuationEstimate';
+// export { getValuationEstimate } from './getValuationEstimate';
 export { getRiskFactorId } from './getRiskFactorId';
 export { deliverAgencyAgreement } from './deliverAgencyAgreement';
 export { moveUserToTenant } from './moveUserToTenant';
@@ -21,8 +20,6 @@ export { approveChangeRequest } from './approveChangeRequest';
 // export { sendContactEmail } from './sendContactEmail';
 // export type { SendContactEmailRequest, SendContactEmailResponse } from './sendContactEmail';
 // export { sendPolicyDoc } from './sendPolicyDoc';
-
-export type { FetchPropertyDataRequest, FetchPropertyDataResponse } from './fetchPropertyDetails';
 
 export type { VerifyEPayTokenRequest, VerifyEPayTokenResponse } from './verifyEPayToken';
 export type { AssignQuoteRequest, AssignQuoteResponse } from './assignQuote';
