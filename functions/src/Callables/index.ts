@@ -14,7 +14,6 @@ import {
   swissReClientId,
   swissReClientSecret,
   swissReSubscriptionKey,
-  // veriskCredsDemo,
 } from '../common';
 import { GetPropertyDetailsAttomRequest } from './getPropertyDetailsAttom.js';
 // import { wrapHttpsOnCallHandler } from '../services/sentryFirebase.js';
@@ -79,10 +78,6 @@ export const getpropertydetailsattom = onCall(
   }
 );
 
-// export const getriskfactorid = onCall(async (request) => {
-//   return (await import('./getRiskFactorId.js')).default(request);
-// });
-
 export const getriskfactorid = onCall(async (request) => {
   return (await import('./getRiskFactorId.js')).default(request);
 });
@@ -90,27 +85,6 @@ export const getriskfactorid = onCall(async (request) => {
 export const gettenantidfromemail = onCall(async (request) => {
   return (await import('./getTenantIdFromEmail.js')).default(request);
 });
-
-// export const getvaluationestimate = onCall(
-//   {
-//     secrets: [veriskCredsDemo],
-//     // minInstances: 1,
-//     // memory: '128MiB',
-//   },
-//   async (request) => {
-//     return (await import('./getValuationEstimate.js')).default(request);
-//   }
-// );
-
-export const initializequote = onCall(
-  {
-    minInstances,
-    memory: '128MiB',
-  },
-  async (request) => {
-    return (await import('./initializeQuote.js')).default(request);
-  }
-);
 
 export const inviteusers = onCall(async (request) => {
   return (await import('./inviteUsers.js')).default(request);

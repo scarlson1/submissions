@@ -10,16 +10,12 @@ export { getTenantIdFromEmail } from './getTenantIdFromEmail';
 export { createTenantFromSubmission } from './createTenantFromSubmission';
 export { inviteUsers } from './inviteUsers';
 export { getAnnualPremium } from './getAnnualPremium';
-// export { getValuationEstimate } from './getValuationEstimate';
 export { getRiskFactorId } from './getRiskFactorId';
 export { deliverAgencyAgreement } from './deliverAgencyAgreement';
 export { moveUserToTenant } from './moveUserToTenant';
 export { generateSearchKey } from './generateSearchKey';
 export { sendEmail } from './sendEmail';
 export { approveChangeRequest } from './approveChangeRequest';
-// export { sendContactEmail } from './sendContactEmail';
-// export type { SendContactEmailRequest, SendContactEmailResponse } from './sendContactEmail';
-// export { sendPolicyDoc } from './sendPolicyDoc';
 
 export type { VerifyEPayTokenRequest, VerifyEPayTokenResponse } from './verifyEPayToken';
 export type { AssignQuoteRequest, AssignQuoteResponse } from './assignQuote';
@@ -36,9 +32,3 @@ export type { InviteUsersRequest, InviteUsersResponse, NewUser } from './inviteU
 export type { GetAnnualPremiumRequest, GetAnnualPremiumResponse } from './getAnnualPremium';
 export type { MoveUserToTenantRequest, MoveUserToTenantResponse } from './moveUserToTenant';
 export type { ApproveChangeRequest, ApproveChangeResponse } from './approveChangeRequest';
-// export { sendAgencyApprovedNotification } from './sendAgencyApprovedNotification';
-// export type {
-//   SendAgencyApprovedRequest,
-//   SendAgencyApprovedResponse,
-// } from './sendAgencyApprovedNotification';
-// export type { SendPolicyDocRequest, SendPolicyDocResponse } from './sendPolicyDoc';

@@ -23,8 +23,6 @@ export {
   getpropertydetailsattom,
   getriskfactorid,
   gettenantidfromemail,
-  // getvaluationestimate, (verisk)
-  initializequote,
   inviteusers,
   moveusertotenant,
   resendinvite,
@@ -74,7 +72,7 @@ export { getfips, importpolicies, importquotes, rateportfolio } from './storageE
 
 // firebase deploy --only functions:executepayment,functions:generatesearchkey,functions:getannualpremium,functions:getpropertydetailsattom,functions:getriskfactorid
 
-// firebase deploy --only functions:gettenantidfromemail,functions:getvaluationestimate,functions:initializequote,functions:inviteusers,functions:moveusertotenant,functions:resendinvite,functions:sendagencyapprovednotification,functions:sendcontactemail,functions:sendnewquotenotifications,functions:sendpolicydoc,functions:verifyepaytoken
+// firebase deploy --only functions:gettenantidfromemail,functions:getvaluationestimate,functions:inviteusers,functions:moveusertotenant,functions:resendinvite,functions:sendagencyapprovednotification,functions:sendcontactemail,functions:sendnewquotenotifications,functions:sendpolicydoc,functions:verifyepaytoken
 
 // FIRESTORE EVENTS
 // firebase deploy --only functions:newsubmissionnotifications,functions:getstaticsubmissionimg,functions:getsubmissionaal,functions:mirrorcustomclaims,functions:newagencyappnotification,functions:getsubmissionfips,functions:notifypolicychangerequest,functions:sendinviteemail
