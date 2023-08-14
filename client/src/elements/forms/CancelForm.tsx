@@ -1,12 +1,12 @@
-import { RefObject } from 'react';
 import { Unstable_Grid2 as Grid } from '@mui/material';
 import { Form, Formik, FormikHelpers, FormikProps } from 'formik';
+import { RefObject } from 'react';
 import * as yup from 'yup';
 
-import { FormikDatePicker, FormikNativeSelect, UpdateDialogSubmitDisabled } from 'components/forms';
 import { CancellationReason } from 'common';
+import { FormikDatePicker, FormikNativeSelect, UpdateDialogSubmitDisabled } from 'components/forms';
 
-const REASON_OPTIONS: { value: CancellationReason; label: string }[] = [
+export const CANCEL_REASON_OPTIONS: { value: CancellationReason; label: string }[] = [
   { value: 'sold', label: 'Sold' },
   { value: 'insured_choice', label: 'I no longer want flood insurance' },
   { value: 'premium_pmt_failure', label: 'Unable to meet premium payments' },
@@ -73,7 +73,7 @@ export const CancelForm = ({
                 name='reason'
                 label='Reason'
                 required
-                selectOptions={REASON_OPTIONS}
+                selectOptions={CANCEL_REASON_OPTIONS}
               />
             </Grid>
           </Grid>

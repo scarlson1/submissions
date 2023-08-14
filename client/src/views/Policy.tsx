@@ -99,9 +99,12 @@ export const Policy = () => {
   );
 
   const handleLocationChangeRequest = useCallback(
-    (params: GridRowParams) => () => {
-      locationChangeDialog(params.row, data);
-    },
+    (location: PolicyLocation) => locationChangeDialog(location, data),
+    [locationChangeDialog, data]
+  );
+
+  const handleLocationChangeRequestGrid = useCallback(
+    (params: GridRowParams) => () => locationChangeDialog(params.row, data),
     [data, locationChangeDialog]
   );
 
@@ -118,13 +121,13 @@ export const Policy = () => {
               <EditRounded />
             </Tooltip>
           }
-          onClick={handleLocationChangeRequest(params)}
+          onClick={handleLocationChangeRequestGrid(params)}
           label='Request change'
           // showInMenu={isSmall}
         />,
       ];
     },
-    [handleLocationChangeRequest]
+    [handleLocationChangeRequestGrid]
   );
 
   // TODO: display not found component (or throw & handle in error boundary ??)
@@ -156,20 +159,12 @@ export const Policy = () => {
             Submit Claim
           </Button>
           <PolicyIconMenu policyId={policyId} />
-          {/* <IconButtonMenu
-            menuItems={[
-              { label: 'Requst policy change', action: () => policyChangeRequest(policyId) },
-            ]}
-            iconButtonProps={{ sx: { ml: 2, borderRadius: 1 } }}
-          /> */}
         </Box>
       </Box>
       <Divider />
       <Box sx={{ pb: { xs: 6, sm: 8, md: 10 }, pt: { xs: 3, sm: 4, md: 5 } }}>
         <Grid container spacing={5}>
           <Grid
-            // xs={12}
-            // sm='auto'
             sx={{
               flexGrow: 1,
               display: 'flex',
@@ -300,7 +295,7 @@ export const Policy = () => {
                 <LocationCard
                   location={location}
                   namedInsured={data.namedInsured}
-                  policyId={policyId}
+                  onEdit={handleLocationChangeRequest}
                   // agent={data.agent}
                   // agency={data.agency}
                 />

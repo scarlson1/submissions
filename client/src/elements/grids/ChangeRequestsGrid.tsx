@@ -3,12 +3,11 @@ import { GridActionsColDef, GridRowParams } from '@mui/x-data-grid';
 import { where } from 'firebase/firestore';
 import { useMemo } from 'react';
 
-import { COLLECTIONS } from 'common';
+import { COLLECTIONS, ServerDataGridCollectionProps } from 'common';
 import { ServerDataGrid, ServerDataGridProps } from 'components';
 import { useAuth } from 'context';
 import { useWidth } from 'hooks';
 import { changeRequestCols } from 'modules/muiGrid/gridColumnDefs';
-import { ServerDataGridCollectionProps } from './QuotesGrid';
 
 interface ChangeRequestsGridProps extends ServerDataGridCollectionProps {
   policyId?: string;

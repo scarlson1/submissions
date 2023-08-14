@@ -19,6 +19,9 @@ import { useDialog } from 'context';
 // TODO: use selector
 // mui grid createSelector: https://github.com/mui/mui-x/blob/master/packages/grid/x-data-grid/src/utils/createSelector.ts
 
+// TODO: optional success screen displayed after submission
+// should be displayed before returning promise so dialog isn't closed ??
+
 function CtxDialog({ children }: { children: ReactNode }) {
   const dialog = useDialog();
 
@@ -80,6 +83,7 @@ const Actions = ({ confirmButtonProps, confirmButtonText = 'submit' }: ActionsPr
   const dialog = useDialog();
 
   const handleSubmit = useCallback(() => {
+    // if adding success screen --> need to check state and skip submit
     let fn = dialog?.onSubmit ?? dialog?.handleAccept;
     fn && fn();
   }, [dialog]);

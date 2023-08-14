@@ -30,7 +30,7 @@ export const useCreatePolicyChangeRequest = () => {
   const firestore = useFirestore();
   const { user } = useAuth();
   const toast = useAsyncToast();
-  const formikRef = useRef<FormikProps<PolicyChangeValues>>(null);
+  let formikRef = useRef<FormikProps<PolicyChangeValues>>(null);
   let policyId = useRef<string>();
   let policy = useRef<Policy>();
   let initialVals = useRef<PolicyChangeValues>();

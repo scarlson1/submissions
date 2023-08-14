@@ -58,6 +58,7 @@ import {
   SLTaxes,
   SLTaxNew,
   SubmissionView,
+  Transactions,
   Users,
 } from 'views/admin';
 import { Disclosures } from 'views/admin/Disclosures';
@@ -136,6 +137,7 @@ export enum ADMIN_ROUTES {
   DISCLOSURE_EDIT = '/admin/config/disclosures/:disclosureId/edit',
   DATA_IMPORTS = '/admin/config/imports',
   EMAIL_ACTIVITY = '/admin/config/email-activity',
+  TRANSACTIONS = '/admin/config/transactions',
 }
 
 export enum AUTH_ROUTES {
@@ -198,6 +200,7 @@ type TArgs =
   | { path: ADMIN_ROUTES.PORTFOLIO_RATING }
   | { path: ADMIN_ROUTES.DATA_IMPORTS }
   | { path: ADMIN_ROUTES.EMAIL_ACTIVITY }
+  | { path: ADMIN_ROUTES.TRANSACTIONS }
   | {
       path: AUTH_ROUTES.CREATE_ACCOUNT;
       params?: { tenantId?: string };
@@ -774,10 +777,6 @@ export const router = sentryCreateBrowserRouter([
                 },
                 {
                   label: `${match?.params?.quoteId || ''}`,
-                  // link: createPath({
-                  //   path: ADMIN_ROUTES.QUOTE,
-                  //   params: { submissionId: `${match?.params?.quoteId}` },
-                  // }),
                 },
               ],
             },
@@ -1206,17 +1205,6 @@ export const router = sentryCreateBrowserRouter([
                     },
                   ],
                 },
-                // handle: {
-                //   crumb: (match: CrumbMatch) => (
-                //     <BreadCrumbLink
-                //       to={createPath({
-                //         path: ADMIN_ROUTES.SL_TAXES_NEW,
-                //       })}
-                //     >
-                //       New
-                //     </BreadCrumbLink>
-                //   ),
-                // },
               },
               {
                 // path: ADMIN_ROUTES.SL_TAXES_EDIT,
@@ -1441,7 +1429,6 @@ export const router = sentryCreateBrowserRouter([
                 },
               },
               {
-                // path: ADMIN_ROUTES.EDIT_ACTIVE_STATES,
                 path: 'active-states/:productId/edit',
                 element: (
                   <RequireAuthReactFire
@@ -1469,7 +1456,6 @@ export const router = sentryCreateBrowserRouter([
                 },
               },
               {
-                // path: ADMIN_ROUTES.SL_LICENSES,
                 path: 'imports',
                 element: (
                   <RequireAuthReactFire
@@ -1487,7 +1473,6 @@ export const router = sentryCreateBrowserRouter([
                 },
               },
               {
-                // path: ADMIN_ROUTES.SL_LICENSES,
                 path: 'email-activity',
                 element: (
                   <RequireAuthReactFire
@@ -1500,6 +1485,23 @@ export const router = sentryCreateBrowserRouter([
                   crumb: (match: CrumbMatch) => [
                     {
                       label: 'Email Activity',
+                    },
+                  ],
+                },
+              },
+              {
+                path: 'transactions',
+                element: (
+                  <RequireAuthReactFire
+                    signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}
+                  >
+                    <Transactions />
+                  </RequireAuthReactFire>
+                ),
+                handle: {
+                  crumb: (match: CrumbMatch) => [
+                    {
+                      label: 'Transactions',
                     },
                   ],
                 },

@@ -1,27 +1,17 @@
-import { useCallback, useMemo } from 'react';
-import { Box, Tooltip } from '@mui/material';
-import { DataGridProps, GridActionsCellItem, GridColDef, GridRowParams } from '@mui/x-data-grid';
 import { SendRounded } from '@mui/icons-material';
+import { Box, Tooltip } from '@mui/material';
+import { GridActionsCellItem, GridColDef, GridRowParams } from '@mui/x-data-grid';
+import { useCallback, useMemo } from 'react';
 import { useSigninCheck } from 'reactfire';
 
-import { QUOTE_STATUS } from 'common';
-import { ServerDataGrid, ServerDataGridProps } from 'components';
-import { useAsyncToast, useGridActions, useSendQuoteNotification, useWidth } from 'hooks';
+import { QUOTE_STATUS, ServerDataGridCollectionProps } from 'common';
+import { ServerDataGrid } from 'components';
 import { hasAdminClaimsValidator } from 'components/RequireAuthReactFire';
 import { useAuth } from 'context';
+import { useAsyncToast, useGridActions, useSendQuoteNotification, useWidth } from 'hooks';
 import { quoteCols, statusCol } from 'modules/muiGrid/gridColumnDefs';
 
 // TODO: need to use custom merge function for additionalColumns to prevent duplication "field" values
-
-export interface ServerDataGridCollectionProps
-  extends Omit<
-    ServerDataGridProps,
-    'columns' | 'collName' | 'isCollectionGroup' | 'columns' | 'pathSegments' | 'initialState'
-  > {
-  renderActions?: (params: GridRowParams) => JSX.Element[];
-  additionalColumns?: GridColDef<any, any, any>[];
-  initialState?: Omit<DataGridProps['initialState'], 'pagination'>;
-}
 
 export type QuotesGridProps = ServerDataGridCollectionProps;
 

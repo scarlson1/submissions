@@ -1,6 +1,6 @@
-import { Suspense, useEffect, useMemo, useState } from 'react';
 import { Box, Tab, TabProps, Tabs } from '@mui/material';
-import { Outlet, Link as RouterLink, useLocation, matchPath } from 'react-router-dom';
+import { Suspense, useEffect, useMemo, useState } from 'react';
+import { Outlet, Link as RouterLink, matchPath, useLocation } from 'react-router-dom';
 
 import { ADMIN_ROUTES, createPath } from 'router';
 import { LoadingComponent } from './Layout';
@@ -54,6 +54,7 @@ export const ConfigLayout = () => {
       createPath({ path: ADMIN_ROUTES.DISCLOSURES }),
       createPath({ path: ADMIN_ROUTES.DATA_IMPORTS }),
       createPath({ path: ADMIN_ROUTES.EMAIL_ACTIVITY }),
+      createPath({ path: ADMIN_ROUTES.TRANSACTIONS }),
     ],
     []
   );
@@ -101,6 +102,7 @@ export const ConfigLayout = () => {
           <LinkTab label='Disclosures' to={createPath({ path: ADMIN_ROUTES.DISCLOSURES })} />
           <LinkTab label='Imports' to={createPath({ path: ADMIN_ROUTES.DATA_IMPORTS })} />
           <LinkTab label='Emails' to={createPath({ path: ADMIN_ROUTES.EMAIL_ACTIVITY })} />
+          <LinkTab label='Transactions' to={createPath({ path: ADMIN_ROUTES.TRANSACTIONS })} />
         </Tabs>
       </Box>
       <Box sx={{ py: { xs: 2, md: 3 } }}>

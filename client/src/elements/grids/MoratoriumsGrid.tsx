@@ -6,14 +6,19 @@ import { Suspense, useCallback, useMemo } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { useFirestore } from 'reactfire';
 
-import { COLLECTIONS, FIPSDetails, Moratorium, moratoriumsCollection } from 'common';
+import {
+  COLLECTIONS,
+  FIPSDetails,
+  Moratorium,
+  ServerDataGridCollectionProps,
+  moratoriumsCollection,
+} from 'common';
 import { ConfirmationDialog, ServerDataGrid } from 'components';
 import { useConfirmation } from 'context';
 import { useShowJson } from 'hooks';
 import { moratoriumCols } from 'modules/muiGrid/gridColumnDefs';
 import { formatFirestoreTimestamp } from 'modules/utils';
 import { CountiesMap } from '../CountiesMap';
-import { ServerDataGridCollectionProps } from './QuotesGrid';
 
 export type MoratoriumGridProps = ServerDataGridCollectionProps;
 

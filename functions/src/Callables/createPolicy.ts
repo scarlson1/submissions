@@ -21,11 +21,11 @@ import {
   policiesCollection,
   quotesCollection,
 } from '../common';
+import { getSLLicenseByState } from '../modules/db';
 import { getRCVs } from '../modules/rating';
 import { checkMoratoriums } from '../services';
 import { onCallWrapper } from '../services/sentry';
 import { validate } from './utils';
-import { getSLLicenseByState } from '../modules/db';
 
 // import { getSubmissionsInstance } from '../services';
 
@@ -146,7 +146,6 @@ const createPolicy = async ({ data, auth }: CallableRequest<CreatePolicyProps>) 
       });
     }
 
-    // 5) return policyId
     return { policyId: policyRef.id };
   } catch (err: any) {
     console.log('ERROR => ', err);
@@ -326,6 +325,7 @@ function convertQuoteToPolicy(data: Quote, license: License, quoteId: string | n
   return policy;
 }
 
+// TODO: move to JS Module
 export function getCarrierByState(state: string) {
   switch (state) {
     case 'CA':

@@ -230,7 +230,7 @@ async function handleRatingForEndorsement(
 
     // If rerate required, get new AALs & set getPremiumInputs from result
     // Otherwise use AALs from prevRatingData (exp date change)
-    // TODO: change in exp date doesnt require prem recalc
+    // TODO: change in exp date doesn't require prem recalc
 
     // only need to throw if rerate not required (need previous AALs)
     // verify(
@@ -241,7 +241,6 @@ async function handleRatingForEndorsement(
     let RCVs = prevRatingData?.RCVs || location.RCVs;
 
     if (requiresRerate) {
-      // const { RCVs } = prevRatingData;
       const limits = { ...locLimits, ...(data.changes?.limits || {}) };
 
       // TODO: validate inputs (replacementCost, limits, etc.)

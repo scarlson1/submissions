@@ -1,4 +1,11 @@
 import {
+  ButtonProps,
+  DialogActionsProps,
+  DialogContentProps,
+  DialogProps,
+  DialogTitleProps,
+} from '@mui/material';
+import {
   ReactNode,
   createContext,
   useCallback,
@@ -7,13 +14,6 @@ import {
   useRef,
   useState,
 } from 'react';
-import {
-  ButtonProps,
-  DialogActionsProps,
-  DialogContentProps,
-  DialogProps,
-  DialogTitleProps,
-} from '@mui/material';
 
 import { ContextDialog } from 'components';
 
@@ -23,6 +23,8 @@ import { ContextDialog } from 'components';
 
 // TODO: slots:
 // https://github.com/mui/mui-x/blob/master/packages/grid/x-data-grid/src/DataGrid/useDataGridProps.ts
+
+// TODO: confirmation screen ??
 
 interface SlotProps {
   dialog: Omit<DialogProps, 'open' | 'onClose'>;

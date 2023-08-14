@@ -2,6 +2,8 @@ import { JSONContent } from '@tiptap/react';
 import { GeoPoint, Timestamp, WithFieldValue } from 'firebase/firestore';
 import { Geohash } from 'geofire-common';
 
+import { DataGridProps, GridColDef, GridRowParams } from '@mui/x-data-grid';
+import { ServerDataGridProps } from 'components';
 import { CancelValues, LocationChangeValues } from 'elements/forms';
 import { PolicyChangeValues } from 'elements/forms/PolicyChangeForm';
 import { InitRatingValues } from 'hooks/usePropertyDetails';
@@ -365,14 +367,8 @@ export interface VersionAwareMetadata extends BaseMetadata {
 // TODO: add UW adjustment?? or is that applied after DWP
 interface PremiumCalcData {
   minPremium: number;
-  techPremium: {
-    inland: number;
-    surge: number;
-  };
-  floodCategoryPremium: {
-    inland: number;
-    surge: number;
-  };
+  techPremium: ValueByRiskType;
+  floodCategoryPremium: ValueByRiskType;
   premiumSubtotal: number;
   provisionalPremium: number;
   subproducerAdj: number;
@@ -592,47 +588,123 @@ export interface TrxRatingData extends Nullable<RatingPropertyData> {
   // priorLossCount: string | null; // number
 }
 
-export interface Transaction extends BaseDoc {
+interface BaseTransaction extends BaseDoc {
   trxType: TransactionType;
-  policyNumber: string;
+  product: Product;
+  policyId: string;
+  locationId: string;
+  externalId: string | null;
   term: number;
-  reportDate: Timestamp;
-  trxTimestamp: Timestamp;
-  bookingDate: Timestamp;
+  // reportDate: Timestamp; // calc in report query
+  // trxTimestamp: Timestamp; // TODO: delete ?? same at metadata.created ??
+  bookingDate: Timestamp; // later of trx timestamp (now/created) or trx eff date
   issuingCarrier: string;
-  policyType: Product;
   namedInsured: string;
   mailingAddress: Address;
-  locationId: string;
-  insuredLocation: PolicyLocation;
-  // insuredCoords: GeoPoint;
-  // locationHash: Geohash;
+  // insuredLocation: PolicyLocation;
+  homeState: string;
   policyEffDate: Timestamp;
   policyExpDate: Timestamp;
-  trxEffDate: Timestamp;
-  trxExpDate: Timestamp; // what's this ?? need example
-  cancelEffDate: Timestamp;
+  trxEffDate: Timestamp; // for when premium is earned (where is this retreived from ??)
+  trxExpDate: Timestamp;
+  trxDays: number; // trxExpDate - trxEffDate
+  eventId: string;
+}
+
+export type CancellationReason =
+  | 'sold'
+  | 'premium_pmt_failure'
+  | 'exposure_change'
+  | 'insured_choice';
+
+export interface OffsetTransaction extends BaseTransaction {
+  trxType: 'endorsement' | 'cancellation' | 'flat_cancel';
+  insuredLocation: PolicyLocation;
+  termPremium: number;
+  MGACommission: number; // idemand & subproducer
+  MGACommissionPct: number;
+  netDWP: number;
+  dailyPremium: number;
+  netErrorAdj?: number;
+  // cancelEffDate: Timestamp; // same as trxEffDate ??
+  cancelReason: CancellationReason | null;
+  // require premiumCalcData ??
+}
+
+export type PremTrxTypes = 'new' | 'renewal' | 'endorsement' | 'reinstatement';
+// TODO: missing AALs, multipliers, LAE,  ??
+export interface PremiumTransaction extends BaseTransaction {
+  trxType: PremTrxTypes;
+  insuredLocation: PolicyLocation;
   ratingPropertyData: TrxRatingData;
   deductible: number;
   limits: Limits;
-  tiv: number;
+  TIV: number;
   RCVs: RCVs;
-  premiumCalcData: PremiumCalcData; // TODO
-  externalId: string | null;
-  policyAnnualDWP: number;
-  termProratedPct: number;
-  policyTermDWP: number;
-  MGACommission: number;
+  premiumCalcData: PremiumCalcData; // necessary ?? optional ??
+  locationAnnualPremium: number;
+  termPremium: number;
+  MGACommission: number; // idemand & subproducer
+  MGACommissionPct: number;
   netDWP: number;
-  netErrorAdj?: number | null;
-  trxPolicyDays: number;
-  dailyPremium: number; // calcualted in SQL query ?? or in converter ??
-  submission?: string;
+  dailyPremium: number;
+  termProratedPct: number;
+  netErrorAdj?: number;
   otherInterestedParties: string[];
   additionalNamedInsured: string[];
-  mgaCommRate: number;
-  homeState: string;
 }
+
+export interface AmendmentTransaction extends BaseTransaction {
+  trxType: 'amendment'; // 'non_prem_endorsement';
+  insuredLocation?: PolicyLocation;
+  otherInterestedParties?: string[];
+  additionalNamedInsured?: string[];
+}
+
+export type Transaction = PremiumTransaction | OffsetTransaction | AmendmentTransaction;
+
+// export interface Transaction extends BaseDoc {
+//   trxType: TransactionType;
+//   // policyNumber: string;
+//   policyId: string;
+//   term: number;
+//   reportDate: Timestamp;
+//   trxTimestamp: Timestamp;
+//   bookingDate: Timestamp;
+//   issuingCarrier: string;
+//   policyType: Product;
+//   namedInsured: string;
+//   mailingAddress: Address;
+//   locationId: string;
+//   insuredLocation: PolicyLocation;
+//   // insuredCoords: GeoPoint;
+//   // locationHash: Geohash;
+//   policyEffDate: Timestamp;
+//   policyExpDate: Timestamp;
+//   trxEffDate: Timestamp;
+//   trxExpDate: Timestamp; // what's this ?? need example
+//   cancelEffDate: Timestamp;
+//   ratingPropertyData: TrxRatingData;
+//   deductible: number;
+//   limits: Limits;
+//   tiv: number;
+//   RCVs: RCVs;
+//   premiumCalcData: PremiumCalcData; // TODO
+//   externalId: string | null;
+//   policyAnnualDWP: number;
+//   termProratedPct: number;
+//   policyTermDWP: number;
+//   MGACommission: number;
+//   netDWP: number;
+//   netErrorAdj?: number | null;
+//   trxPolicyDays: number;
+//   dailyPremium: number; // calcualted in SQL query ?? or in converter ??
+//   submission?: string;
+//   otherInterestedParties: string[];
+//   additionalNamedInsured: string[];
+//   mgaCommRate: number;
+//   homeState: string;
+// }
 
 export type ChangeRequestStatus =
   | 'submitted'
@@ -669,16 +741,12 @@ interface BaseChangeRequest extends BaseDoc {
 export interface LocationChangeRequest extends BaseChangeRequest {
   scope: 'location';
   changes: Partial<PolicyLocation>;
+  // changes: Partial<Policy>;
   formValues: LocationChangeValues;
   locationId: string;
   externalId?: string | null;
+  cancelReason?: CancellationReason;
 }
-
-export type CancellationReason =
-  | 'sold'
-  | 'premium_pmt_failure'
-  | 'exposure_change'
-  | 'insured_choice';
 
 export interface LocationCancellationRequest
   extends Omit<LocationChangeRequest, 'formValues' | 'changes'> {
@@ -692,8 +760,7 @@ export interface PolicyChangeRequest extends BaseChangeRequest {
   scope: 'policy';
   changes: Partial<Policy>;
   formValues: PolicyChangeValues;
-  // externalId: never;
-  // locationId: never;
+  cancelReason?: CancellationReason;
 }
 
 export interface PolicyCancellationRequest extends Omit<PolicyChangeRequest, 'formValues'> {
@@ -1486,4 +1553,14 @@ export type EmailsRes = {
 };
 export interface BaseSendEmailResponse {
   emails: string[] | EmailsRes[];
+}
+
+export interface ServerDataGridCollectionProps
+  extends Omit<
+    ServerDataGridProps,
+    'columns' | 'collName' | 'isCollectionGroup' | 'columns' | 'pathSegments' | 'initialState'
+  > {
+  renderActions?: (params: GridRowParams) => JSX.Element[];
+  additionalColumns?: GridColDef<any, any, any>[];
+  initialState?: Omit<DataGridProps['initialState'], 'pagination'>;
 }

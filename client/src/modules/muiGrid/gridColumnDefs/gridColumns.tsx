@@ -36,6 +36,7 @@ import {
   GridTreeNode,
   GridValueFormatterParams,
   GridValueGetterParams,
+  ValueOptions,
 } from '@mui/x-data-grid';
 import { GeoPoint, Timestamp } from 'firebase/firestore';
 import { isDate } from 'lodash';
@@ -54,8 +55,21 @@ import {
   QUOTE_STATUS,
   SUBMISSION_STATUS,
 } from 'common';
-import { FileLink, GridCellCopy, renderGridEmail, renderGridPhone } from 'components';
-import { renderChip, renderChips, renderSplitSnakeCase } from 'components/RenderGridCellHelpers';
+import {
+  FileLink,
+  GridCellCopy,
+  // renderChip,
+  // renderChips,
+  renderGridEmail,
+  renderGridPhone,
+} from 'components';
+import {
+  renderChip,
+  renderChips,
+  renderJoinArray,
+  renderSplitSnakeCase,
+} from 'components/RenderGridCellHelpers';
+import { CANCEL_REASON_OPTIONS } from 'elements/forms/CancelForm';
 import { TRANSACTION_OPTIONS } from 'elements/forms/TaxForm';
 import { multiSelectExtendsSingle } from 'modules/muiGrid/gridMultiSelectColDef';
 import {
@@ -78,6 +92,7 @@ import {
 } from 'modules/utils';
 import {
   CBRS_OPTIONS,
+  CONSRUCTION_TYPE,
   FLOOD_ZONE_OPTIONS,
   LOB_OPTIONS,
   PRIOR_LOSS_COUNT_OPTIONS,
@@ -93,6 +108,32 @@ export const copyBaseProps: Partial<GridColDef> = {
     if (!params.value) return null;
     return <GridCellCopy value={params.value} />;
   },
+};
+
+export const numericColBaseProps: Partial<GridColDef> = {
+  type: 'number',
+  align: 'right',
+  headerAlign: 'center',
+  filterOperators: getGridFirestoreNumericOperators(),
+};
+
+export const percentColBaseProps: Partial<GridColDef> = {
+  type: 'number',
+  minWidth: 120,
+  flex: 0.8,
+  editable: false,
+  headerAlign: 'center',
+  align: 'right',
+  filterOperators: getGridFirestoreNumericOperators(),
+  valueFormatter: (params) => formatGridPercent(params, 0),
+};
+
+export const dateColBaseProps: Partial<GridColDef> = {
+  type: 'date',
+  minWidth: 180,
+  flex: 1,
+  valueFormatter: formatGridFirestoreTimestampAsDate,
+  filterOperators: getGridFirestoreDateOperators(),
 };
 
 export const idCol: GridColDef = {
@@ -339,6 +380,14 @@ export const agencyAddressCol: GridColDef = {
   filterable: false,
   sortable: false,
   valueGetter: (params) => formatAddrSummary(params.row.agency?.address),
+};
+
+export const mailingAddressCol: GridColDef = {
+  ...addressSummaryCol,
+  field: 'mailingAddress',
+  headerName: 'Mailing Address',
+  valueGetter: (params: GridValueGetterParams<any, any>) =>
+    formatAddrSummary(params.row.mailingAddress),
 };
 
 export const address1Col: GridColDef = {
@@ -658,16 +707,12 @@ export const expirationDateCol: GridColDef = {
   filterOperators: getGridFirestoreDateOperators(),
 };
 
-export const currencyCol: GridColDef = {
-  field: 'currency',
-  headerName: 'Currency',
-  type: 'number',
+export const currencyCol: Partial<GridColDef> = {
+  ...numericColBaseProps,
   minWidth: 120,
   flex: 0.8,
-  editable: false,
-  headerAlign: 'center',
-  align: 'right',
-  filterOperators: getGridFirestoreNumericOperators(),
+  // editable: false,
+
   valueFormatter: (params) => formatGridCurrency(params, '$0,0.00'),
   renderCell: (params) => (
     <Typography variant='body2' fontWeight='medium'>
@@ -737,7 +782,7 @@ export const limitDCol: GridColDef = {
 };
 
 export const tivCol: GridColDef = {
-  field: 'tiv',
+  field: 'TIV',
   headerName: 'TIV',
   description: 'Total Insured Value - sum of coverage limits',
   type: 'number',
@@ -749,8 +794,8 @@ export const tivCol: GridColDef = {
   filterable: false, // could be calculated value
   sortable: false,
   valueGetter: (params) => {
-    if (params.row.tiv) return params.row.tiv;
-    if (params.row.limits?.tiv) return params.row.limits.tiv;
+    if (params.row.TIV) return params.row.TIV;
+    if (params.row.limits?.TIV) return params.row.limits.TIV;
 
     const limits = params.row.limits;
     if (!limits) return null;
@@ -883,7 +928,7 @@ export const yearBuiltCol: GridColDef = {
   headerAlign: 'center',
   align: 'right',
   filterOperators: getGridFirestoreNumericOperators(),
-  valueFormatter: (params: GridValueFormatterParams<number>) => params.value ?? 0,
+  valueFormatter: (params: GridValueFormatterParams<number>) => params.value ?? null,
 };
 
 export const ratingDataYearBuiltCol: GridColDef = {
@@ -1021,6 +1066,46 @@ export const ratingDataPriorLossCountCol: GridColDef = {
   ...priorLossCountCol,
   field: 'ratingPropertyData.priorLossCount',
   valueGetter: (params) => params.row.ratingPropertyData?.priorLossCount ?? null,
+};
+
+export const unitsCol: GridColDef = {
+  ...numericColBaseProps,
+  field: 'units',
+  headerName: 'Units',
+};
+
+export const ratingDataUnitsCol: GridColDef = {
+  ...unitsCol,
+  field: 'ratingPropertyData.units',
+  valueGetter: (params) => params.row.ratingPropertyData?.units ?? null,
+};
+
+export const tier1Col: GridColDef = {
+  field: 'tier1',
+  headerName: 'Tier 1',
+  type: 'boolean',
+};
+
+export const ratingDataTier1Col: GridColDef = {
+  ...tier1Col,
+  field: 'ratingPropertyData.tier1',
+  valueGetter: (params) => params.row.ratingPropertyData?.tier1 ?? null,
+};
+
+// TODO: make construction type: 'singleSelect'
+export const constructionCol: GridColDef = {
+  field: 'construction',
+  headerName: 'Construction',
+  type: 'singleSelect',
+  minWidth: 120,
+  flex: 0.4,
+  valueOptions: CONSRUCTION_TYPE,
+};
+
+export const ratingDataConstructionCol: GridColDef = {
+  ...constructionCol,
+  field: 'ratingPropertyData.construction',
+  valueGetter: (params) => params.row.ratingPropertyData?.construction ?? null,
 };
 
 export const rcvSourceUserCol: GridColDef = {
@@ -1489,7 +1574,7 @@ export const trxTypeCol: GridSingleSelectColDef = {
   minWidth: 160,
   flex: 1,
   editable: false,
-  sortable: false,
+  filterOperators: getGridFirestoreStringOperators(),
   renderCell: renderChip,
 };
 
@@ -1664,4 +1749,401 @@ export const emailTypeCol: GridColDef = {
   editable: false,
   renderCell: (params) => renderSplitSnakeCase(params),
   filterOperators: getGridFirestoreStringOperators(),
+};
+
+export const dailyPremiumCol: GridColDef = {
+  ...numericColBaseProps,
+  field: 'dailyPremium',
+  headerName: 'Daily Premium',
+  editable: false,
+};
+
+export const cancelEffDateCol: GridColDef = {
+  ...effectiveDateCol,
+  field: 'cancelEffDate',
+  headerName: 'Cancel Eff. Date',
+  valueGetter: (params) => params.row.cancelEffDate || null,
+};
+
+export const minPremiumCol: GridColDef = {
+  ...numericColBaseProps,
+  field: 'minPremiumCol',
+  headerName: 'Min. Premium',
+  width: 140,
+  flex: 0.5,
+  editable: false,
+};
+
+export const techInlandPremiumCol: GridColDef = {
+  ...numericColBaseProps,
+  field: 'techPremium.inland',
+  headerName: 'Inland Tech. Premium',
+  width: 140,
+  flex: 0.5,
+  editable: false,
+  valueGetter: (params) => params.row.techPremium?.inland || null,
+};
+
+export const techSurgePremiumCol: GridColDef = {
+  ...numericColBaseProps,
+  field: 'techPremium.surge',
+  headerName: 'Surge Tech. Premium',
+  width: 140,
+  flex: 0.5,
+  editable: false,
+  valueGetter: (params) => params.row.techPremium?.surge || null,
+};
+
+export const techTsunamiPremiumCol: GridColDef = {
+  ...numericColBaseProps,
+  field: 'techPremium.tsunami',
+  headerName: 'Tsunami Tech. Premium',
+  width: 140,
+  flex: 0.5,
+  editable: false,
+  valueGetter: (params) => params.row.techPremium?.tsunami || null,
+};
+
+export const inlandCategoryPremiumCol: GridColDef = {
+  ...numericColBaseProps,
+  field: 'floodCategoryPremium.inland',
+  headerName: 'Inland Category Premium',
+  width: 140,
+  flex: 0.5,
+  editable: false,
+  valueGetter: (params) => params.row.floodCategoryPremium?.inland || null,
+};
+export const surgeCategoryPremiumCol: GridColDef = {
+  ...numericColBaseProps,
+  field: 'floodCategoryPremium.surge',
+  headerName: 'Surge Category Premium',
+  width: 140,
+  flex: 0.5,
+  editable: false,
+  valueGetter: (params) => params.row.floodCategoryPremium?.surge || null,
+};
+
+export const tsunamiCategoryPremiumCol: GridColDef = {
+  ...numericColBaseProps,
+  field: 'floodCategoryPremium.tsunami',
+  headerName: 'Tsunami Category Premium',
+  width: 140,
+  flex: 0.5,
+  editable: false,
+  valueGetter: (params) => params.row.floodCategoryPremium?.tsunami || null,
+};
+
+export const premiumSubtotalCol: GridColDef = {
+  ...numericColBaseProps,
+  field: 'premiumSubtotal',
+  headerName: 'Premium Subtotal',
+  width: 140,
+  flex: 0.5,
+  editable: false,
+  valueGetter: (params) => params.row.premiumSubtotal || null,
+};
+
+export const provisionalPremiumCol: GridColDef = {
+  ...numericColBaseProps,
+  field: 'provisionalPremium',
+  headerName: 'Provisional Premium',
+  width: 140,
+  flex: 0.5,
+  editable: false,
+  valueGetter: (params) => params.row.provisionalPremium || null,
+};
+
+export const subproducerAdjCol: GridColDef = {
+  ...numericColBaseProps,
+  field: 'subproducerAdj',
+  headerName: 'Subproducer Adj.',
+  width: 140,
+  flex: 0.5,
+  editable: false,
+  valueGetter: (params) => params.row.subproducerAdj || null,
+};
+
+export const dwpCol: GridColDef = {
+  ...annualPremiumCol,
+  field: 'directWrittenPremium',
+  headerName: 'DWP',
+  valueGetter: (params) => params.row.directWrittenPremium || null,
+};
+
+export const termCol: GridColDef = {
+  ...numericColBaseProps,
+  field: 'term',
+  headerName: 'Term',
+  minWidth: 100,
+  flex: 0.2,
+};
+
+export const bookingDateCol: GridColDef = {
+  ...dateColBaseProps,
+  field: 'bookingDate',
+  headerName: 'Booking Date',
+  description: 'later of transaction timestamp or transaction effective date',
+};
+
+export const namedInsuredTrxCol: GridColDef = {
+  field: 'namedInsured',
+  headerName: 'Named Insured',
+  editable: false,
+  minWidth: 140,
+  flex: 0.6,
+  filterOperators: getGridFirestoreStringOperators(),
+};
+
+export const eventId: GridColDef = {
+  ...idCol,
+  field: 'eventId',
+  headerName: 'Event Id',
+  filterable: false,
+  sortable: false,
+  editable: false,
+};
+
+export const trxMGACommissionCol: GridColDef = {
+  ...currencyCol,
+  field: 'MGACommission',
+  headerName: 'MGA Commission',
+  editable: false,
+};
+
+export const trxMGACommissionPctCol: GridColDef = {
+  ...subproducerCommissionCol,
+  field: 'MGACommissionPct',
+  headerName: 'MGA Comm. Pct',
+  editable: false,
+};
+
+export const netDWPCol: GridColDef = {
+  ...currencyCol,
+  field: 'netDWP',
+  headerName: 'Net DWP',
+  description: 'term premium - MGA commission',
+  editable: false,
+};
+
+export const termProratedPctCol: GridColDef = {
+  ...percentColBaseProps,
+  field: 'termProratedPct',
+  headerName: 'Term Prorated Pct.',
+  editable: false,
+};
+
+export const netErrAdjCol: GridColDef = {
+  ...currencyCol,
+  field: 'netErrorAdj',
+  headerName: 'Net Error Adj.',
+  editable: false,
+};
+
+export const trxOtherInterestedPartiesCol: GridColDef = {
+  field: 'otherInterestedParties',
+  headerName: 'Other Interested Parties',
+  minWidth: 200,
+  flex: 1,
+  editable: false,
+  filterable: false,
+  sortable: false,
+  valueGetter: (params) => params.row.otherInterestedParties || null,
+  renderCell: renderJoinArray,
+  valueFormatter: (params) => {
+    if (!params.value || !Array.isArray(params.value)) return null;
+    return params.value.join('');
+  },
+};
+
+export const trxAdditionalNamedInsuredCol: GridColDef = {
+  field: 'additionalNamedInsured',
+  headerName: 'Additional Named Insured',
+  minWidth: 200,
+  flex: 1,
+  editable: false,
+  filterable: false,
+  sortable: false,
+  valueGetter: (params) => params.row.otherInterestedParties || null,
+  renderCell: renderJoinArray,
+  valueFormatter: (params) => {
+    if (!params.value || !Array.isArray(params.value)) return null;
+    return params.value.join('');
+  },
+};
+
+export const cancelReasonCol: GridSingleSelectColDef = {
+  field: 'cancelReason',
+  headerName: 'Cancel Reason',
+  type: 'singleSelect',
+  description: 'user selected reason for cancallation request (applicable to cancellation trx)',
+  minWidth: 80,
+  flex: 1,
+  editable: false,
+  valueOptions: CANCEL_REASON_OPTIONS,
+  getOptionValue: (value: ValueOptions) => {
+    const t = typeof value;
+    if (t === 'string' || t === 'number') return t;
+    // @ts-ignore
+    if (t === 'object' && value.hasOwnProperty('value')) return value.value;
+
+    return t;
+  }, // @ts-ignore
+  getOptionLabel: (value: ValueOptions) => value.label,
+  filterOperators: getGridFirestoreSelectOperators(),
+  valueFormatter: (params) => params.value,
+};
+
+export const trxTimestamp: GridColDef = {
+  ...dateColBaseProps,
+  type: 'datetime',
+  field: 'trxDatetime',
+  headerName: 'Trx Timestamp',
+  editable: false,
+  valueGetter: (params) => params.row.metadata?.created,
+};
+
+export const trxLocationAddressSummaryCol: GridColDef = {
+  ...addressSummaryCol,
+  field: 'insuredLocation.address',
+  headerName: 'Insured Address',
+  valueGetter: (params: GridValueGetterParams<any, any>) =>
+    formatAddrSummary(params.row.insuredLocation?.address, true),
+  sortable: false,
+  filterable: false,
+  editable: false,
+};
+
+export const trxLocationAddressLine1Col: GridColDef = {
+  ...address1Col,
+  field: 'insuredLocation.address.addressLine1',
+  headerName: 'Insured Location Address 1',
+  valueGetter: (params: GridValueGetterParams<any, any>) =>
+    params.row.insuredLocation?.address?.addressLine1 || null,
+};
+
+export const trxLocationAddressLine2Col: GridColDef = {
+  ...address2Col,
+  field: 'insuredLocation.address.addressLine2',
+  headerName: 'Insured Location Address 2',
+  valueGetter: (params: GridValueGetterParams<any, any>) =>
+    params.row.insuredLocation?.address?.addressLine2 || null,
+};
+
+export const trxLocationCityCol: GridColDef = {
+  ...cityCol,
+  field: 'insuredLocation.address.city',
+  headerName: 'Insured Location City',
+  valueGetter: (params: GridValueGetterParams<any, any>) =>
+    params.row.insuredLocation?.address?.city || null,
+};
+
+export const trxLocationStateCol: GridColDef = {
+  ...stateCol,
+  field: 'insuredLocation.address.state',
+  headerName: 'Insured Location State',
+  valueGetter: (params: GridValueGetterParams<any, any>) =>
+    params.row.insuredLocation?.address?.state || null,
+};
+
+export const trxLocationPostalCol: GridColDef = {
+  ...postalCol,
+  field: 'insuredLocation.address.postal',
+  headerName: 'Insured Location Postal',
+  valueGetter: (params: GridValueGetterParams<any, any>) =>
+    params.row.insuredLocation?.address?.postal || null,
+};
+
+export const trxLocationCountyCol: GridColDef = {
+  ...countyCol,
+  field: 'insuredLocation.address.countyName',
+  valueGetter: (params: GridValueGetterParams<any, any>) =>
+    params.row.insuredLocation?.address?.countyName || null,
+};
+
+export const trxLocationFIPSCol: GridColDef = {
+  ...fipsCol,
+  field: 'insuredLocation.address.countyFIPS',
+  valueGetter: (params: GridValueGetterParams<any, any>) =>
+    params.row.insuredLocation?.address?.countyFIPS || null,
+};
+
+export const trxLatitudeCol: GridColDef = {
+  ...latitudeCol,
+  field: 'insuredLocation.coordinates.latitude',
+  valueGetter: (params: GridValueGetterParams<any, any>) =>
+    params.row.insuredLocation?.coordinates?.latitude || null,
+};
+
+export const trxLongitudeCol: GridColDef = {
+  ...longitudeCol,
+  field: 'insuredLocation.coordinates.longitude',
+  valueGetter: (params: GridValueGetterParams<any, any>) =>
+    params.row.insuredLocation?.coordinates?.longitude || null,
+};
+
+export const mailingAddress1Col: GridColDef = {
+  ...address1Col,
+  field: 'mailingAddress.addressLine1',
+  headerName: 'Mailing Address 1',
+  valueGetter: (params: GridValueGetterParams<any, any>) =>
+    params.row.mailingAddress?.addressLine1 || null,
+};
+
+export const mailingAddress2Col: GridColDef = {
+  ...address2Col,
+  field: 'mailingAddress.addressLine2',
+  headerName: 'Mailing Address 2',
+  valueGetter: (params: GridValueGetterParams<any, any>) =>
+    params.row.mailingAddress?.addressLine2 || null,
+};
+
+export const mailingCityCol: GridColDef = {
+  ...cityCol,
+  field: 'mailingAddress.city',
+  headerName: 'Mailing City',
+  valueGetter: (params: GridValueGetterParams<any, any>) => params.row.mailingAddress?.city || null,
+};
+
+export const mailingStateCol: GridColDef = {
+  ...stateCol,
+  field: 'mailingAddress.state',
+  headerName: 'Mailing State',
+  valueGetter: (params: GridValueGetterParams<any, any>) =>
+    params.row.mailingAddress?.state || null,
+};
+
+export const mailingPostalCol: GridColDef = {
+  ...postalCol,
+  field: 'mailingAddress.postal',
+  headerName: 'Mailing Postal',
+  valueGetter: (params: GridValueGetterParams<any, any>) =>
+    params.row.mailingAddress?.postal || null,
+};
+
+export const buildingRCVCol: GridColDef = {
+  ...currencyCol,
+  field: 'RCVs.building',
+  headerName: 'Building RCV',
+  valueGetter: (params) => params.row.RCVs?.building || null,
+};
+
+export const otherStructuresRCVCol: GridColDef = {
+  ...currencyCol,
+  field: 'RCVs.otherStructures',
+  headerName: 'Other Structures RCV',
+  valueGetter: (params) => params.row.RCVs?.otherStructures || null,
+};
+
+export const contentsRCVCol: GridColDef = {
+  ...currencyCol,
+  field: 'RCVs.contents',
+  headerName: 'Contents RCV',
+  valueGetter: (params) => params.row.RCVs?.contents || null,
+};
+
+export const BIRCVCol: GridColDef = {
+  ...currencyCol,
+  field: 'RCVs.BI',
+  headerName: 'BI RCV',
+  valueGetter: (params) => params.row.RCVs?.BI || null,
 };

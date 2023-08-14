@@ -1,23 +1,23 @@
-import { memo, useRef, useState, useEffect, MouseEvent, useCallback } from 'react';
+import { CopyAllRounded } from '@mui/icons-material';
 import {
   Box,
   Chip,
   ChipProps,
+  IconButton,
   Link,
-  Stack,
-  Typography,
   Paper,
   Popper,
-  IconButton,
+  Stack,
   Tooltip,
+  Typography,
   TypographyProps,
 } from '@mui/material';
 import { GridRenderCellParams } from '@mui/x-data-grid';
-import { CopyAllRounded } from '@mui/icons-material';
+import { MouseEvent, memo, useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
 
-import { formatPhoneNumber } from 'modules/utils/helpers';
 import { useCopyToClipboard } from 'hooks/useCopyToClipboard';
+import { formatPhoneNumber } from 'modules/utils/helpers';
 
 export const renderGridPhone = (params: GridRenderCellParams<any, any, any>) => {
   if (params.value == null) return '';
@@ -28,6 +28,7 @@ export const renderGridPhone = (params: GridRenderCellParams<any, any, any>) => 
     </Link>
   );
 };
+
 export const renderGridEmail = (params: GridRenderCellParams<any, any, any>) => {
   if (!params.value) return null; // ''
 
@@ -232,3 +233,20 @@ export function renderSplitSnakeCase(
     </Typography>
   );
 }
+
+export const renderJoinArray = (
+  params: GridRenderCellParams<any, any, any>,
+  typographyProps?: Partial<TypographyProps>
+) => {
+  if (!params.value || !Array.isArray(params.value)) return null;
+
+  return (
+    <Box>
+      {params.value.map((v) => (
+        <Typography variant='body2' {...(typographyProps || {})}>
+          {v}
+        </Typography>
+      ))}
+    </Box>
+  );
+};

@@ -938,10 +938,6 @@ interface BaseChangeRequest extends BaseDoc {
   status: ChangeRequestStatus;
   processedTimestamp?: Timestamp;
   processedByUserId?: string | null;
-  // approvedBy?: {
-  //   name: string;
-  //   userId: string;
-  // };
   submittedBy: {
     userId: string | null;
     displayName: string;
@@ -954,6 +950,7 @@ interface BaseChangeRequest extends BaseDoc {
 export interface LocationChangeRequest extends BaseChangeRequest {
   scope: 'location';
   changes: Partial<PolicyLocation>;
+  // changes: Partial<Policy>;
   formValues: LocationChangeValues;
   locationId: string;
   externalId?: string | null;
@@ -970,13 +967,18 @@ export interface PolicyChangeRequest extends BaseChangeRequest {
   changes: Partial<Policy>;
   formValues: PolicyChangeValues;
   cancelReason?: CancellationReason;
-  // externalId: never;
-  // locationId: never;
 }
 
-export interface PolicyCancellationRequest extends PolicyChangeRequest {
+export interface CancelValues {
+  requestEffDate: Date; // | null;
+  reason: CancellationReason; // string;
+}
+
+export interface PolicyCancellationRequest extends Omit<PolicyChangeRequest, 'formValues'> {
   trxType: 'cancellation' | 'flat_cancel';
   cancelReason?: CancellationReason;
+  formValues: CancelValues;
+  changes: {};
 }
 
 export type ChangeRequest =

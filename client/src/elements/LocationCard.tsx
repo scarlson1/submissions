@@ -5,37 +5,43 @@ import {
   CardActionArea,
   CardMedia,
   Divider,
+  IconButton,
   Tooltip,
   Typography,
   useTheme,
 } from '@mui/material';
 import { noop } from 'lodash';
 
-import { FlexCard, FlexCardContent } from 'components';
-import { dollarFormat, formatFirestoreTimestamp } from 'modules/utils';
-import { Item } from 'views';
+import { EditRounded } from '@mui/icons-material';
 import { Policy, PolicyLocation, fallbackImages } from 'common';
+import { FlexCard, FlexCardContent } from 'components';
 import { FlexCardContentWrapper } from 'components/FlexCard';
+import { dollarFormat, formatFirestoreTimestamp } from 'modules/utils';
+import { useCallback } from 'react';
+import { Item } from 'views';
+
+// TODO: use <CardActions disableSpacing> for avatar
 
 export interface LocationCardProps {
   location: PolicyLocation;
   namedInsured: Policy['namedInsured'];
-  // agent: Policy['agent'];
-  // agency: Policy['agency'];
   handleClick?: (id: string) => void;
-  policyId: string;
+  // policyId: string;
+  onEdit?: (locaiton: PolicyLocation) => void;
 }
 
 export const LocationCard = ({
   location,
   namedInsured,
-  // agent,
-  // agency,
   handleClick = noop,
-
-  policyId,
+  // policyId,
+  onEdit,
 }: LocationCardProps) => {
   const theme = useTheme();
+
+  const handleEdit = useCallback(() => {
+    onEdit && onEdit(location);
+  }, [onEdit, location]);
 
   return (
     <FlexCard
@@ -50,19 +56,31 @@ export const LocationCard = ({
       variant='elevation'
       raised
     >
-      <CardActionArea onClick={() => handleClick(location.locationId)} sx={{ height: '100%' }}>
-        <FlexCardContentWrapper>
-          <CardMedia
-            sx={{ height: 140, flex: '0 0 auto' }}
-            // TODO: get random fallback img
-            image={
-              (theme.palette.mode === 'dark'
-                ? location.imageURLs?.dark
-                : location.imageURLs?.light) || fallbackImages[0]
-            }
-            // @ts-ignore
-            title={`${location?.address?.addressLine1} map`}
-          />
+      {/* <CardActionArea onClick={() => handleClick(location.locationId)} sx={{ height: '100%' }}> */}
+      <FlexCardContentWrapper>
+        <CardMedia
+          sx={{ height: 140, flex: '0 0 auto', position: 'relative' }}
+          // TODO: get random fallback img
+          image={
+            (theme.palette.mode === 'dark'
+              ? location.imageURLs?.dark
+              : location.imageURLs?.light) || fallbackImages[0]
+          }
+          title={`${location?.address?.addressLine1} map`}
+        >
+          <Tooltip title='location change request'>
+            <IconButton
+              size='small'
+              edge='end'
+              aria-label='location change request'
+              sx={{ position: 'absolute', top: 10, right: 10 }}
+              onClick={handleEdit}
+            >
+              <EditRounded fontSize='inherit' />
+            </IconButton>
+          </Tooltip>
+        </CardMedia>
+        <CardActionArea onClick={() => handleClick(location.locationId)} sx={{ height: '100%' }}>
           <FlexCardContent sx={{ p: 5 }}>
             <Box
               sx={{
@@ -74,18 +92,8 @@ export const LocationCard = ({
             >
               <Box>
                 <Typography fontWeight={900} fontSize={24}>
-                  {/* @ts-ignore */}
                   {location?.address?.addressLine1}
                 </Typography>
-                {/* <Item
-            label='Named Insured'
-            value={`${namedInsured?.displayName}`}
-            // value={`${p.namedInsured?.firstName || 'John'} ${
-            //   p.namedInsured?.lastName || 'Doe'
-            // }`}
-          />
-           <Item label='Agent' value={agent.name ?? 'iDemand'} />
-          <Item label='Agency' value={agency.name ?? 'iDemand Insurance Agency, Inc.'} /> */}
                 <Item label='Building' value={`${dollarFormat(location.limits.limitA || 0)}`} />
                 <Item
                   label="Add'l Structures"
@@ -103,35 +111,65 @@ export const LocationCard = ({
               </Box>
               <Box>
                 <Divider light sx={{ my: { xs: 3, md: 4 } }} />
+                {/* <Box
+                  sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}
+                > */}
                 <AvatarGroup max={4} sx={{ justifyContent: 'flex-end' }}>
                   {namedInsured ? (
-                    <Tooltip
-                      // title={`${p.namedInsured.firstName} ${p.namedInsured.lastName}`}
-                      title={`${namedInsured.displayName}`}
-                      key={namedInsured.email}
-                    >
+                    <Tooltip title={`${namedInsured.displayName}`} key={namedInsured.email}>
                       {/* <Avatar src={f.img} alt={p.namedInsured.firstName} /> */}
                       <Avatar alt={namedInsured.displayName || 'i d'} />
                     </Tooltip>
                   ) : null}
                   {location?.additionalInsureds?.length
                     ? location.additionalInsureds.map((f, i) => (
-                        <Tooltip
-                          // title={`${f?.firstName} ${f.lastName}`}
-                          title={`${f?.name}`}
-                          key={`${f.email}-${i}`}
-                        >
-                          {/* <Avatar src={f.img} alt={f.name} /> */}
+                        <Tooltip title={`${f?.name}`} key={`${f.email}-${i}`}>
+                          {/* <Avatar src={f.img} alt={f.name} />  */}
                           <Avatar alt={`${f.email}-${i}`} />
                         </Tooltip>
                       ))
                     : null}
                 </AvatarGroup>
+                {/* <IconButton
+                    size='small'
+                    edge='end'
+                    aria-label='location change request'
+                    // sx={{ position: 'absolute', top: 10, right: 10 }}
+                    onClick={handleEdit}
+                  >
+                    <EditRounded fontSize='inherit' />
+                  </IconButton>
+                </Box> */}
               </Box>
             </Box>
           </FlexCardContent>
-        </FlexCardContentWrapper>
-      </CardActionArea>
+        </CardActionArea>
+      </FlexCardContentWrapper>
+      {/* </CardActionArea> */}
+      {/* <CardActions disableSpacing sx={{ flexWrap: 'wrap' }}>
+        
+        <Box sx={{ flex: '1 0 100%' }}>
+          <Divider light sx={{ my: { xs: 3, md: 4 } }} flexItem />
+        </Box>
+        <AvatarGroup max={4} sx={{ justifyContent: 'flex-end' }}>
+          {namedInsured ? (
+            <Tooltip title={`${namedInsured.displayName}`} key={namedInsured.email}>
+              
+              <Avatar alt={namedInsured.displayName || 'i d'} />
+            </Tooltip>
+          ) : null}
+          {location?.additionalInsureds?.length
+            ? location.additionalInsureds.map((f, i) => (
+                <Tooltip title={`${f?.name}`} key={`${f.email}-${i}`}>
+                  
+                  <Avatar alt={`${f.email}-${i}`} />
+                </Tooltip>
+              ))
+            : null}
+        </AvatarGroup>
+        
+      </CardActions> */}
+      {/* </CardActionArea> */}
     </FlexCard>
   );
 };

@@ -41,6 +41,7 @@ export {
   newagencyappnotification,
   newsubmissionnotifications,
   policychangerequest,
+  policycreated,
   sendinviteemail,
 } from './firestoreEvents';
 export {

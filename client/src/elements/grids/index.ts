@@ -8,4 +8,5 @@ export { MoratoriumsGrid } from './MoratoriumsGrid';
 export { PoliciesGrid } from './PoliciesGrid';
 export { QuotesGrid } from './QuotesGrid';
 export { SubmissionsGrid } from './SubmissionsGrid';
+export { TransactionsGrid } from './TransactionsGrid';
 export { UsersGrid } from './UsersGrid';

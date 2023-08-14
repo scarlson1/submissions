@@ -70,6 +70,15 @@ export const sendinviteemail = onDocumentCreated(
   }
 );
 
+export const policycreated = onDocumentCreated(
+  {
+    document: `${COLLECTIONS.POLICIES}/{policyId}`,
+  },
+  async (event) => {
+    await (await import('./policyCreated.js')).default(event);
+  }
+);
+
 export const policychangerequest = onDocumentWritten(
   {
     document: `${COLLECTIONS.POLICIES}/{policyId}/${COLLECTIONS.CHANGE_REQUESTS}/{requestId}`,

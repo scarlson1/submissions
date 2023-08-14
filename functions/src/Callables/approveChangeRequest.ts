@@ -37,10 +37,10 @@ const approveChangeRequest = async ({ data, auth }: CallableRequest<ApproveReque
   const policyRef = policiesCollection(db).doc(policyId);
   const requestRef = changeReqestsCollection(db, policyId).doc(requestId);
 
-  await getDoc(policyRef); // will throw if doc doesnt exist
+  await getDoc(policyRef); // will throw if doc doesn't exist
   const request = await getDoc(requestRef);
 
-  // TODO: validation
+  // TODO: validation (& firestore rules for required fields)
   try {
     verify(request.scope, 'missing "scope" field on request doc');
     if (request.trxType === 'endorsement') {
