@@ -1,42 +1,44 @@
 import { WarningAmberRounded } from '@mui/icons-material';
-import { Box, Unstable_Grid2 as Grid, Tooltip, Typography, tooltipClasses } from '@mui/material';
-import { FormikErrors } from 'formik';
-import { useMemo } from 'react';
+import {
+  Box,
+  Button,
+  // Unstable_Grid2 as Grid,
+  Tooltip,
+  Typography,
+  tooltipClasses,
+} from '@mui/material';
+import { FormikErrors, setNestedObjectValues, useFormikContext } from 'formik';
+import { useCallback, useMemo } from 'react';
+
+import { flattenObj } from 'modules/utils';
 
 export function RequiredFieldsIndicator({
-  errors,
-  displayErrors,
   getErrorEntries,
 }: {
-  errors: FormikErrors<any>; // FormikErrors<NewQuoteValues>;
-  displayErrors?: () => void;
   getErrorEntries?: (errors: FormikErrors<any>) => [string, unknown][];
 }) {
-  // TODO: need to extract all nested fields
+  const { values, errors, setTouched } = useFormikContext();
+
+  // TODO: need to extract all nested fields (or use flatten)
   const errorEntries = useMemo(() => {
     if (getErrorEntries) return getErrorEntries(errors);
-    return Object.entries(errors);
-    // TODO: pass func as prop and uncomment above
-    // return Object.entries(
-    //   merge(
-    //     omit(errors, ['ratingPropertyData', 'limits', 'agent', 'agency', 'AALs', 'address']),
-    //     errors.ratingPropertyData || {},
-    //     errors.address || {},
-    //     errors.limits || {},
-    //     errors.agent || {},
-    //     omit(errors.agency, 'address') || {},
-    //     errors.agency?.address ? { 'agency.address': errors.agency?.address } : {},
-    //     errors.AALs || {}
-    //   )
-    // );
+
+    const flattened = flattenObj(errors);
+    return Object.entries(flattened);
   }, [errors, getErrorEntries]);
+
+  const handleRevealErrors = useCallback(() => {
+    setTouched({
+      ...setNestedObjectValues(values, true),
+    });
+  }, [setTouched, values]);
 
   const stateIcon = errorEntries.length ? (
     <WarningAmberRounded
       fontSize='small'
       color='warning'
-      sx={{ mx: 2 }}
-      onClick={() => displayErrors && displayErrors()}
+      sx={{ mx: 2, '&:hover': { cursor: 'pointer' } }}
+      onClick={handleRevealErrors}
     />
   ) : null;
 
@@ -46,12 +48,25 @@ export function RequiredFieldsIndicator({
         <Box>
           {errorEntries.length > 0 ? (
             <>
-              <Typography variant='body1' fontWeight={500} gutterBottom>
-                Errors
-              </Typography>
-              {errorEntries.map(([fieldname, errMsg]) => (
+              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                <Typography variant='body1' fontWeight={500} gutterBottom>
+                  Errors
+                </Typography>
+                <Button onClick={handleRevealErrors} size='small' sx={{ ml: 2 }}>
+                  reveal
+                </Button>
+              </Box>
+
+              {errorEntries.map(([_, errMsg]) => (
+                <Typography variant='body2' sx={{ py: 0.5 }}>{`${errMsg}`}</Typography>
+              ))}
+
+              {/* {errorEntries.map(([fieldname, errMsg]) => (
                 <Grid container spacing={2} key={fieldname}>
-                  <Grid xs='auto'>
+                  <Grid 
+                    xs={5}
+                    // xs='auto'
+                  >
                     <Typography
                       variant='body2'
                       component='span'
@@ -71,7 +86,7 @@ export function RequiredFieldsIndicator({
                     </Grid>
                   )}
                 </Grid>
-              ))}
+              ))} */}
             </>
           ) : (
             <Typography variant='body2' fontWeight={500}>
@@ -82,7 +97,6 @@ export function RequiredFieldsIndicator({
       }
       placement='bottom'
       sx={{
-        // maxWidth: 400,
         [`& .${tooltipClasses.tooltip}`]: {
           maxWidth: 460,
         },

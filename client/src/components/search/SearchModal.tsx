@@ -210,7 +210,7 @@ export function SearchModal({
               onSelect(props) {
                 const { item, event } = props;
                 saveRecentSearch(item);
-                console.log('ON SELECT ITEM: ', item);
+                // console.log('ON SELECT ITEM: ', item);
                 if (onSelect) {
                   event.stopPropagation();
                   onSelect(item);

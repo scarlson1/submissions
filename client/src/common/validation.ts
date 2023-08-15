@@ -30,19 +30,23 @@ export const emailVal = yup.string().test('valid-email', 'Invalid email', async 
 });
 
 export const postalRegEx = /^[0-9]{5}(?:-[0-9]{4})?/;
-export const postalVal = yup.string().matches(postalRegEx, 'postal code invalid');
+export const postalVal = yup
+  .string()
+  .typeError('postal required (string)')
+  .matches(postalRegEx, 'postal code invalid');
 
 export const stateVal = yup
   .string()
+  .typeError('state required')
   .required('state is required')
   .oneOf(STATES_ABV_ARR, 'state required');
 
 // export const isAvailableState = yup.string().oneOf(ACTIVE_STATES_ABRV);
 
 export const addressValidation = yup.object().shape({
-  addressLine1: yup.string().required('address is required'),
+  addressLine1: yup.string().typeError('address required').required('address is required'),
   addressLine2: yup.string().notRequired(),
-  city: yup.string().required('city is required'),
+  city: yup.string().typeError('city required').required('city is required'),
   state: stateVal,
   postal: postalVal.required('postal code is required'),
 });
@@ -62,21 +66,22 @@ export const addressValidationNotRequired = yup.object().shape({
 export const validateActiveState = (activeStates: { [key: string]: boolean }) =>
   yup
     .string()
+    .typeError('state required')
     .required('State is required')
     .test('activeState', 'Ineligible state', (val) => Boolean(val) && activeStates[`${val}`]);
 
 export const addressValidationActiveStates = (activeStates: Record<string, boolean>) =>
   yup.object().shape({
-    addressLine1: yup.string().required('Address is required'),
-    addressLine2: yup.string().notRequired(),
-    city: yup.string().required('City is required'),
+    addressLine1: yup.string().typeError('addressLine1 required').required('Address is required'),
+    addressLine2: yup.string().typeError('addressLine2 (string)').notRequired(),
+    city: yup.string().typeError('city required').required('City is required'),
     state: validateActiveState(activeStates),
     // state: yup
     //   .string()
     //   .required('State is required')
     //   .test('activeState', 'Ineligible state', (val) => Boolean(val) && activeStates[`${val}`]),
     // state: yup.string().required('State is required').oneOf(ACTIVE_STATES_ABRV, 'Ineligible state'),
-    postal: yup.string().required('Postal code is required'),
+    postal: yup.string().typeError('postal required').required('Postal code is required'),
   });
 
 export const addressValidationActiveStatesNested = (activeStates: { [key: string]: boolean }) =>
@@ -111,6 +116,7 @@ export const checkBCDSumValid = (
 
 export const limitAVal = yup
   .string()
+  .typeError('limitA required')
   .required()
   .test('limitA', 'Building limit required. Please enter a number.', (value) => {
     if (value === undefined) return false;
@@ -127,6 +133,7 @@ export const limitAVal = yup
 
 export const limitBVal = yup
   .string()
+  .typeError('limitB required')
   .required()
   .test('limitB', 'Building limit required. Please enter a number.', (value) => {
     if (value === undefined) return false;
@@ -139,6 +146,7 @@ export const limitBVal = yup
 
 export const limitCVal = yup
   .string()
+  .typeError('limitC required')
   .test('limitC', 'Building limit required. Please enter a number.', (value) => {
     if (value === undefined) return false;
     if (!isNaN(parseInt(value))) return true;
@@ -150,6 +158,7 @@ export const limitCVal = yup
 
 export const limitDVal = yup
   .string()
+  .typeError('limitD required')
   .test('limitD', 'Please enter a number.', (value) => {
     if (value === undefined) return false;
     if (!isNaN(parseInt(value))) return true;
@@ -259,22 +268,22 @@ export const namedInsuredValidation = yup.object().shape({
 });
 
 export const namedInsuredValidationNotRequired = yup.object().shape({
-  firstName: yup.string().notRequired(),
-  lastName: yup.string().notRequired(),
+  firstName: yup.string().typeError('Named Insured name must be a string').notRequired(),
+  lastName: yup.string().typeError('Named Insured name must be a string').notRequired(),
   email: emailVal.notRequired(),
   phone: phoneVal.notRequired(),
   userId: yup.string().notRequired(),
 });
 
 export const agentValidation = yup.object().shape({
-  name: yup.string().required(),
-  email: emailVal.required(),
-  phone: phoneVal.required(),
+  name: yup.string().typeError('agent name required').required(),
+  email: emailVal.typeError('agent email required').required(),
+  phone: phoneVal.typeError('agent phone required').required(),
   userId: yup.string().notRequired(),
 });
 
 export const agencyValidation = yup.object().shape({
-  orgId: yup.string().required(),
-  name: yup.string().required(),
+  orgId: yup.string().typeError('agency orgId required').required(),
+  name: yup.string().typeError('agency name required').required(),
   address: addressValidation,
 });

@@ -282,7 +282,7 @@ export interface RatingPropertyData {
   sqFootage: number;
   yearBuilt: number;
   FFH?: number;
-  priorLossCount?: string | null; // | number
+  priorLossCount?: string | null;
 }
 
 interface RatingCalcData {

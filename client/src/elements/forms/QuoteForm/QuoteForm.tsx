@@ -17,21 +17,18 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import { add, endOfToday, startOfToday } from 'date-fns';
-import { Firestore, doc, getDoc } from 'firebase/firestore';
+import { doc } from 'firebase/firestore';
 import { Formik, FormikErrors, FormikHelpers, FormikProps, setNestedObjectValues } from 'formik';
-import { isEmpty, isEqual, merge, omit } from 'lodash';
+import { isEmpty, pick } from 'lodash'; // merge, omit,
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFirestore } from 'reactfire';
-import * as yup from 'yup';
 
 import {
   Address,
   AgencyDetails,
   AgentDetails,
   CBRS_OPTIONS,
-  COMMISSION_OPTIONS,
   Coordinates,
   FLOOD_ZONE_OPTIONS,
   FeeItem,
@@ -47,11 +44,6 @@ import {
   TaxItem,
   User,
   ValueByRiskType,
-  addressValidationActiveStates,
-  agencyValidation,
-  agentValidation,
-  limitsValidation,
-  namedInsuredValidationNotRequired,
   orgsCollection,
 } from 'common';
 import { STATES_ABV_ARR } from 'common/statesList';
@@ -74,7 +66,6 @@ import {
 import { TempAgentSearch } from 'components/search/Search';
 import {
   RatingInputsWithAAL,
-  SubjectBaseKeyVal,
   extractRatingInputsFromValues,
   useActiveStates,
   useAsyncToast,
@@ -82,270 +73,21 @@ import {
   useFetchTaxes,
   useRateQuote,
 } from 'hooks';
-import {
-  Obj,
-  addToDate,
-  dollarFormat,
-  getDateShortcuts,
-  getRoundingFunc,
-  sumByTypes,
-  sumfeesTaxesPremium,
-  truthyOrZero,
-} from 'modules/utils';
+import { Obj, dollarFormat, getData, sumfeesTaxesPremium, truthyOrZero } from 'modules/utils';
 import { ROUTES, createPath } from 'router';
-import { AddressStepQuote } from './AddressStepQuote';
-import FormikAddressLite from './FormikAddressLite';
-import { LimitsStep } from './LimitsStep';
+import { AddressStepQuote } from '../AddressStepQuote';
+import FormikAddressLite from '../FormikAddressLite';
+import { LimitsStep } from '../LimitsStep';
+import { getQuoteValidation } from './validation';
+import {
+  DEFAULT_VALUES,
+  RATING_FIELDS,
+  commOptions,
+  gridProps,
+  policyEffShortcuts,
+} from './constants';
 
 // TODO: move quote type to field (new, renewal, etc.) ??
-
-async function getOrg(firestore: Firestore, orgId: string) {
-  const orgRef = doc(orgsCollection(firestore), orgId);
-  const orgSnap = await getDoc(orgRef);
-  const org = orgSnap.data();
-  if (!org) throw new Error(`Org not found (ID: ${orgId})`);
-  return org;
-}
-
-const minDate = addToDate({ days: 15 }, startOfToday());
-const maxDate = addToDate({ days: 60 }, endOfToday());
-
-// const quoteValidation = yup.object().shape({
-const getQuoteValidation = (activeStates: Record<string, boolean>) =>
-  yup.object().shape({
-    address: addressValidationActiveStates(activeStates), // addressValidation,
-    homeState: yup.string().required('home state required'),
-    limits: limitsValidation,
-    effectiveExceptionRequested: yup.boolean(),
-    effectiveDate: yup.date().when('effectiveExceptionRequested', {
-      is: true,
-      then: yup.date().required(), // .min(minDate, 'Effective must be 15+ days'),
-      otherwise: yup
-        .date()
-        .min(minDate, 'effective date must be at least 15 days from now')
-        .max(maxDate, 'effective date must be within 60 days'),
-    }),
-    expirationDate: yup
-      .date()
-      .test('exp-greater-than-eff', 'must be > eff. date', (value, context) => {
-        if (!(context.parent.effectiveDate && value)) return false;
-        return value > context.parent.effectiveDate;
-      }), // TODO: compare - must be > eff date
-    deductible: yup.number().min(1000).required(),
-    fees: yup.array().of(
-      yup.object().shape({
-        feeName: yup.string().required('fee name is required'),
-        feeValue: yup.string().required('fee value is required'),
-      })
-    ),
-    taxes: yup.array().of(
-      yup.object().shape({
-        displayName: yup.string().required('display name is required'),
-        rate: yup.number(),
-        value: yup
-          .number()
-          .test(
-            'fee-val-current',
-            'value does not match expected value from current fees',
-            // (val, ctx) => {
-            function (val, ctx) {
-              if (!val) return true; // pass to required error
-              // TODO: get subject base
-              const tax = ctx.parent as TaxItem;
-              const baseKeys = tax?.subjectBase?.filter(
-                (b: string) => b !== 'fixedFee' && b !== 'noFee'
-              );
-              if (!baseKeys || !baseKeys.length || !tax.rate) return true;
-
-              // @ts-ignore (formik TS bug - doesn't recognize from)
-              const from = ctx.options.from;
-              if (!(from && from.length > 1)) return true;
-              const values = from[1].value;
-
-              const fees = values.fees;
-              if (!(fees && fees.length)) return true;
-
-              // mirror fetch taxes request body
-              const body = {
-                premium: values.annualPremium || 0,
-                homeStatePremium: values.annualPremium || 0,
-                outStatePremium: 0,
-                inspectionFees: sumByTypes<FeeItem>(fees, 'feeName', 'Inspection Fee', 'feeValue'),
-                mgaFees: sumByTypes<FeeItem>(fees, 'feeName', 'MGA Fee', 'feeValue'),
-              };
-
-              let taxBase = baseKeys.reduce((acc, curr) => {
-                const num = typeof curr === 'string' ? body[curr as keyof SubjectBaseKeyVal] : 0;
-                return acc + (num ?? 0);
-              }, 0);
-              const baseRoundingFunc = getRoundingFunc(tax.baseRoundType);
-              taxBase = baseRoundingFunc(taxBase, tax.baseDigits ?? 2);
-
-              const resultRoundFunc = getRoundingFunc(tax.resultRoundType);
-              const validationValue = resultRoundFunc(taxBase * tax.rate, tax.resultDigits ?? 2);
-
-              if (!isEqual(val, validationValue)) {
-                return this.createError({
-                  message: `Expected ${dollarFormat(validationValue)} (base: ${taxBase})`,
-                });
-              }
-
-              return true;
-            }
-          )
-          .required('tax value is required'),
-        subjectBase: yup.array().of(yup.string()),
-      })
-    ),
-    annualPremium: yup.number().min(100).required('term premium is required'),
-    subproducerCommission: yup.number().required('commission is required'),
-    quoteTotal: yup
-      .number()
-      .min(100, 'total must be above 100')
-      .test('correct-total', 'total ≠ premium + fees + taxes', (val, ctx) => {
-        const { fees, taxes, annualPremium } = ctx.parent;
-
-        const total = sumfeesTaxesPremium(fees, taxes, annualPremium || 0);
-
-        if (total !== val) return false;
-
-        return true;
-      }),
-    // TODO: named insured, agent, agency validation
-    namedInsured: namedInsuredValidationNotRequired,
-    agent: agentValidation,
-    agency: agencyValidation,
-    // TODO: reusable rating data validation
-    ratingPropertyData: yup.object().shape({
-      CBRSDesignation: yup.string().required(`CBRS designation is required`),
-      basement: yup.string().required(`basement is required`),
-      distToCoastFeet: yup.number().min(1), // .required(`distance to coast is required`),
-      floodZone: yup.string().required(`flood zone is required`),
-      numStories: yup
-        .number()
-        .required(`# of stories is required`)
-        .min(1, 'min of 1 story')
-        .max(10, 'max 10 stories'),
-      propertyCode: yup.string().required(`property code is required`),
-      replacementCost: yup
-        .number()
-        .required(`replacement cost is required`)
-        .min(80000, `RCV must be at least $80,000`),
-      sqFootage: yup.number().required(`square footage is required`),
-      yearBuilt: yup
-        .number()
-        .required(`year built is required`)
-        .min(1900, 'Must be after 1900')
-        .max(new Date().getFullYear(), `Year cannot exceed ${new Date().getFullYear()}`),
-      priorLossCount: yup.string(),
-    }),
-    notes: yup.array().of(
-      yup.object().shape({
-        note: yup.string(),
-      })
-    ),
-  });
-
-const policyEffShortcuts = getDateShortcuts([15, 30, 60]);
-
-const commOptions = COMMISSION_OPTIONS.map((o: number) => ({
-  label: `${(o * 100).toFixed(0)}%`,
-  value: o,
-}));
-
-const gridProps = {
-  columnSpacing: { xs: 3, sm: 4, md: 6 },
-  rowSpacing: 6,
-};
-
-const RATING_FIELDS = [
-  'latitude',
-  'longitude',
-  'limitA',
-  'limitB',
-  'limitC',
-  'limitD',
-  'deductible',
-  'priorLossCount',
-  'numStories',
-  'replacementCost',
-];
-
-const DEFAULT_VALUES: QuoteValues = {
-  address: {
-    addressLine1: '',
-    addressLine2: '',
-    city: '',
-    state: '',
-    postal: '',
-    countyName: '',
-    countyFIPS: '',
-  },
-  coordinates: {
-    latitude: null,
-    longitude: null,
-  },
-  homeState: '',
-  limits: {
-    limitA: 250000,
-    limitB: 12500,
-    limitC: 67500,
-    limitD: 25000,
-  },
-
-  deductible: 1000,
-  effectiveExceptionRequested: false,
-  effectiveDate: add(new Date(), { days: 15 }),
-  // expirationDate: add(new Date(), { days: 15, years: 1 }),
-  fees: [],
-  taxes: [],
-  annualPremium: null,
-  subproducerCommission: 0.15,
-  quoteTotal: null,
-  namedInsured: {
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    userId: '',
-  },
-  agent: {
-    userId: '',
-    name: '',
-    email: '',
-    phone: '',
-  },
-  agency: {
-    name: '',
-    orgId: '',
-    address: {
-      addressLine1: '',
-      addressLine2: '',
-      city: '',
-      state: '',
-      postal: '',
-    },
-  },
-  ratingPropertyData: {
-    CBRSDesignation: '',
-    basement: '',
-    distToCoastFeet: null,
-    floodZone: '',
-    numStories: 0,
-    propertyCode: '',
-    replacementCost: null,
-    sqFootage: null,
-    yearBuilt: null,
-    priorLossCount: '',
-  },
-  ratingDocId: '',
-  AALs: {
-    inland: null,
-    surge: null,
-    tsunami: null,
-  },
-  notes: [],
-};
 
 export interface QuoteValues {
   address: Address;
@@ -442,6 +184,15 @@ export const QuoteForm = ({
     [fetchTaxes, toast]
   );
 
+  const setValues = useCallback(
+    (values: Partial<QuoteValues>) =>
+      formikRef.current?.setValues({
+        ...(formikRef.current?.values || {}),
+        ...values,
+      }),
+    []
+  );
+
   const { rerate, loading: rerateLoading } = useRateQuote(
     submissionId,
     (newPrem: number, ratingInputs: RatingInputsWithAAL, newRatingDocId?: Optional<string>) => {
@@ -511,59 +262,41 @@ export const QuoteForm = ({
     }
   }, [toast]);
 
-  const setTouched = useCallback(async (key?: keyof FormikErrors<QuoteValues>) => {
-    const validationErrors = await formikRef.current?.validateForm();
+  // const setTouched = useCallback(
+  //   async (keys?: keyof FormikErrors<QuoteValues> | (keyof FormikErrors<QuoteValues>)[]) => {
+  //     const validationErrors = await formikRef.current?.validateForm();
 
-    if (validationErrors && Object.keys(validationErrors).length > 0) {
-      const keys = key ? validationErrors[key] : validationErrors;
+  //     if (validationErrors && Object.keys(validationErrors).length > 0) {
+  //       const pickedErrors = keys ? pick(validationErrors, keys) : validationErrors;
 
-      setTimeout(() => formikRef.current?.setTouched(setNestedObjectValues(keys, true)), 50);
-      return;
-    }
+  //       setTimeout(
+  //         () =>
+  //           formikRef.current?.setTouched({
+  //             ...formikRef.current?.touched,
+  //             ...setNestedObjectValues(pickedErrors, true),
+  //           }),
+  //         0
+  //       );
+  //       return;
+  //     }
+  //   },
+  //   []
+  // );
+
+  const setTouched = useCallback(async (keys?: keyof QuoteValues | (keyof QuoteValues)[]) => {
+    const vals = formikRef.current?.values;
+    const picked = keys ? pick(vals, keys) : vals;
+
+    setTimeout(
+      () =>
+        formikRef.current?.setTouched({
+          ...formikRef.current?.touched,
+          ...setNestedObjectValues(picked, true),
+        }),
+      0
+    );
+    return;
   }, []);
-
-  const setAgent = useCallback(
-    (userId: string | null, name: string | null, email: string | null, phone: string | null) => {
-      const setFieldValue = formikRef.current?.setFieldValue;
-      if (!setFieldValue) return toast.error('Missing formik ref');
-
-      setFieldValue('agent.name', name || '');
-      setFieldValue('agent.email', email || '');
-      setFieldValue('agent.phone', phone || '');
-      setFieldValue('agent.userId', userId || '');
-
-      return setTouched('agent');
-    },
-    [toast, setTouched]
-  );
-
-  const setAgency = useCallback(
-    (orgId: string | null, orgName: string | null, address?: Nullable<Address> | null) => {
-      const setFieldValue = formikRef.current?.setFieldValue;
-      if (!setFieldValue) return toast.error('Missing formik ref');
-
-      // TODO: try:
-      // form.setValues(setIn(form.values, field.name, value));
-      // OR try:
-      // setValues({
-      //   ...formik.values,
-      //   [`is${props.name}Valid`]: e.target.validity.valid,
-      //   [props.name]: e.target.value,
-      // });
-      // could move to one call --> handle in "handleAgentSelected"
-
-      setFieldValue('agency.name', orgName || '');
-      setFieldValue('agency.orgId', orgId || '');
-      setFieldValue('agency.address.addressLine1', address?.addressLine1 || '');
-      setFieldValue('agency.address.addressLine2', address?.addressLine2 || '');
-      setFieldValue('agency.address.city', address?.city || '');
-      setFieldValue('agency.address.state', address?.state || '');
-      setFieldValue('agency.address.postal', address?.postal || '');
-
-      return setTouched('agency');
-    },
-    [toast, setTouched]
-  );
 
   const setSubComm = useCallback(
     (agent?: User, org?: Organization) => {
@@ -585,30 +318,56 @@ export const QuoteForm = ({
 
   const handleAgentSelected = useCallback(
     async (agentUser: User & { objectID: string }) => {
-      setAgent(
-        agentUser.objectID,
-        agentUser.displayName || null,
-        agentUser.email || null,
-        agentUser.phone || null
-      );
+      await setValues({
+        agent: {
+          name: agentUser.displayName || '',
+          email: agentUser.email || '',
+          phone: agentUser.phone || '',
+          userId: agentUser.objectID || '',
+        },
+      });
 
       let org;
       try {
         const orgId = agentUser.orgId;
         if (!orgId) throw new Error('warning: user missing orgId');
 
-        org = await getOrg(firestore, orgId);
-        setAgency(orgId, org.orgName, org.address);
+        const orgRef = doc(orgsCollection(firestore), orgId);
+        org = await getData<Organization>(orgRef, `Org not found (ID: ${orgId})`);
+
+        await setValues({
+          agency: {
+            name: org.orgName || '',
+            orgId: orgId || '',
+            address: {
+              addressLine1: org.address?.addressLine1 || '',
+              addressLine2: org.address?.addressLine2 || '',
+              city: org.address?.city || '',
+              state: org.address?.state || '',
+              postal: org.address?.postal || '',
+            },
+          },
+        });
       } catch (err: any) {
         let msg = `Error fetching org`;
         if (err?.message) msg += ` (${err.message})`;
         toast.error(msg);
 
-        setAgency(null, null, null);
+        const clearedAgency = {
+          name: '',
+          orgId: '',
+          address: setNestedObjectValues<Address>(DEFAULT_VALUES.agency.address, ''),
+        };
+        await setValues({
+          agency: clearedAgency,
+        });
       }
       setSubComm(agentUser, org);
+
+      const keys = ['agent', 'agency'] as (keyof FormikErrors<QuoteValues>)[];
+      setTouched(keys);
     },
-    [firestore, toast, setAgent, setAgency, setSubComm]
+    [firestore, toast, setValues, setTouched, setSubComm]
   );
 
   const handleCancel = useCallback(() => {
@@ -662,6 +421,7 @@ export const QuoteForm = ({
       onSubmit={onSubmit}
       innerRef={formikRef}
       validateOnMount={true}
+      enableReinitialize
     >
       {({
         dirty,
@@ -699,29 +459,27 @@ export const QuoteForm = ({
             </Typography>
             <Stack direction='row' spacing={2} sx={{ alignItems: 'center' }}>
               <RequiredFieldsIndicator
-                errors={errors}
-                displayErrors={setTouched}
-                getErrorEntries={(errors: FormikErrors<QuoteValues>) =>
-                  Object.entries(
-                    merge(
-                      omit(errors, [
-                        'ratingPropertyData',
-                        'limits',
-                        'agent',
-                        'agency',
-                        'AALs',
-                        'address',
-                      ]),
-                      errors.ratingPropertyData || {},
-                      errors.address || {},
-                      errors.limits || {},
-                      errors.agent || {},
-                      omit(errors.agency, 'address') || {},
-                      errors.agency?.address ? { 'agency.address': errors.agency?.address } : {},
-                      errors.AALs || {}
-                    )
-                  )
-                }
+              // getErrorEntries={(errors: FormikErrors<QuoteValues>) =>
+              //   Object.entries(
+              //     merge(
+              //       omit(errors, [
+              //         'ratingPropertyData',
+              //         'limits',
+              //         'agent',
+              //         'agency',
+              //         'AALs',
+              //         'address',
+              //       ]),
+              //       errors.ratingPropertyData || {},
+              //       errors.address || {},
+              //       errors.limits || {},
+              //       errors.agent || {},
+              //       omit(errors.agency, 'address') || {},
+              //       errors.agency?.address ? { 'agency.address': errors.agency?.address } : {},
+              //       errors.AALs || {}
+              //     )
+              //   )
+              // }
               />
               <Typography variant='subtitle2' fontWeight='fontWeightMedium' color='text.secondary'>
                 Quote:{' '}

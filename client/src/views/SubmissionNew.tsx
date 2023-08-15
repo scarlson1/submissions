@@ -102,7 +102,11 @@ function useCreateSubmission(
             address: null, // TODO: agency address
           },
           submittedById: user?.uid ?? null,
-          ratingPropertyData: { ...propertyDetails, ...values.ratingPropertyData },
+          ratingPropertyData: {
+            ...propertyDetails,
+            ...values.ratingPropertyData,
+            priorLossCount: values.priorLossCount,
+          },
           initValues: initRatingValues,
           propertyDataDocId,
           rcvSourceUser,

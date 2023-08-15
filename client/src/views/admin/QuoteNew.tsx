@@ -8,7 +8,7 @@ import { useFirestore } from 'reactfire';
 import invariant from 'tiny-invariant';
 
 import { Optional, SUBMISSION_STATUS, Submission, submissionsCollection } from 'common';
-import { QuoteForm, QuoteValues, getRatingInputsFromSubmission } from 'elements/forms/QuoteForm';
+import { QuoteForm, QuoteValues, getRatingInputsFromSubmission } from 'elements/forms';
 import { RatingInputsWithAAL, useAsyncToast, useCreateQuote, useDocDataOnce } from 'hooks';
 import { ROUTES, createPath } from 'router';
 
@@ -131,7 +131,8 @@ export const QuoteNewFromSub = () => {
         replacementCost: submissionData?.ratingPropertyData?.replacementCost ?? null, // @ts-ignore
         sqFootage: `${submissionData?.ratingPropertyData?.sqFootage ?? ''}`, // @ts-ignore submissionData?.sqFootage ?? null,
         yearBuilt: `${submissionData?.ratingPropertyData?.yearBuilt ?? ''}`, // submissionData?.yearBuilt ?? null,
-        priorLossCount: submissionData?.ratingPropertyData?.priorLossCount || '',
+        priorLossCount:
+          submissionData?.ratingPropertyData?.priorLossCount || submissionData.priorLossCount || '',
       },
       ratingDocId: submissionData.ratingDocId || '',
       AALs: {
