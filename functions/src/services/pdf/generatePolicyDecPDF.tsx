@@ -48,7 +48,6 @@ interface DecPageTemplateData extends Record<string, unknown> {
   mortgageeState?: string;
   mortgageePostal?: string;
   mortgageeLoanNum?: string;
-  // locationCoverages: LocationCoveragesItem[];
   locationData: PolicyDecPDFLocations[];
   locationInterests: AdditionalInterestsItem[];
   premiumTable: PremiumTableItem[];
@@ -88,7 +87,6 @@ const DecPagePDF = ({ data }: PDFProps) => {
         <View
           style={{
             ...styles.flexSection,
-
             paddingVertical: 30,
           }}
         >
@@ -243,7 +241,6 @@ const DecPagePDF = ({ data }: PDFProps) => {
       >
         <View style={{ paddingBottom: 20 }}>
           <Text style={[styles.heading2, styles.textCenter]}>Insured Locations</Text>
-          {/* <LocationsTable data={[...data.locationData, ...LOCATIONS_DATA]} /> */}
           <LocationsTable data={data.locationData} />
         </View>
         {data.locationInterests?.length > 0 ? (

@@ -16,18 +16,6 @@ const locationColumns: ColumnDef[] = [
     alignContent: 'left',
   },
   {
-    field: 'annualPremium',
-    headerName: 'Annual Premium',
-    alignHeader: 'center',
-    alignContent: 'right',
-  },
-  {
-    field: 'termPremium',
-    headerName: 'Term Premium',
-    alignHeader: 'center',
-    alignContent: 'right',
-  },
-  {
     field: 'deductible',
     headerName: 'Deductible',
     alignHeader: 'center',
@@ -54,6 +42,18 @@ const locationColumns: ColumnDef[] = [
   {
     field: 'limitD',
     headerName: 'BI Cov.',
+    alignHeader: 'center',
+    alignContent: 'right',
+  },
+  {
+    field: 'annualPremium',
+    headerName: 'Annual Premium',
+    alignHeader: 'center',
+    alignContent: 'right',
+  },
+  {
+    field: 'termPremium',
+    headerName: 'Term Premium',
     alignHeader: 'center',
     alignContent: 'right',
   },

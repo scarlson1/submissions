@@ -57,8 +57,8 @@ export function RequiredFieldsIndicator({
                 </Button>
               </Box>
 
-              {errorEntries.map(([_, errMsg]) => (
-                <Typography variant='body2' sx={{ py: 0.5 }}>{`${errMsg}`}</Typography>
+              {errorEntries.map(([field, errMsg]) => (
+                <Typography variant='body2' sx={{ py: 0.5 }} key={field}>{`${errMsg}`}</Typography>
               ))}
 
               {/* {errorEntries.map(([fieldname, errMsg]) => (

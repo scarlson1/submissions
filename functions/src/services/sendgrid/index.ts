@@ -61,8 +61,11 @@ function uniqueEmails(to: EmailData | EmailData[]) {
     const objs: EmailJSON[] = [];
 
     for (let e of to) {
-      if (typeof e === 'string') objs.push({ email: e });
-      objs.push(e as EmailJSON);
+      if (typeof e === 'string') {
+        objs.push({ email: e });
+      } else {
+        objs.push(e as EmailJSON);
+      }
     }
 
     uniqueTo = objs.filter(onlyUniqueObj<EmailJSON>('email'));
@@ -79,6 +82,8 @@ const createMsgContent = ({
   ...rest
 }: CreateMsgContentProps): MailDataRequired => {
   const uniqueTo = uniqueEmails(to);
+  console.log('TO: ', to);
+  console.log('UNIQUE TO: ', uniqueTo);
 
   return {
     to: uniqueTo,
