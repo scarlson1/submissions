@@ -1,16 +1,17 @@
-import { useState, useCallback, Suspense } from 'react';
-import { ErrorBoundary } from 'react-error-boundary';
+import { FlyToInterpolator, MapViewState } from '@deck.gl/core/typed';
+import { PlaceRounded } from '@mui/icons-material';
 import { Card, CircularProgress, Grid2Props, Typography } from '@mui/material';
 import { useFormikContext } from 'formik';
-import { FlyToInterpolator, MapViewState } from '@deck.gl/core/typed';
-import { Marker } from 'react-map-gl';
-import { toast } from 'react-hot-toast';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import { Suspense, useCallback, useState } from 'react';
+import { ErrorBoundary } from 'react-error-boundary';
+import { toast } from 'react-hot-toast';
+import { Marker } from 'react-map-gl';
 
-import { FormikAddress, FormikAddressProps } from './FormikAddress';
+import { Address, Coordinates, Nullable } from 'common';
 import { useRegisterEmailNotification } from 'hooks';
 import { ActiveStateMap } from '../ActiveStateMap';
-import { Address, Coordinates, Nullable } from 'common';
+import { FormikAddress, FormikAddressProps } from './FormikAddress';
 
 export interface AddressStepValues {
   address: Address;
@@ -99,16 +100,6 @@ export const AddressStep = ({
     <FormikAddress
       setFieldValue={setFieldValue}
       cb={addressChangeCb}
-      // replaced with 'autocompleteProps.textFieldProps'
-      // autocompleteTextFieldProps={{
-      //   helperText: values.address?.addressLine1 ? (
-      //     <Typography
-      //       variant='subtitle2'
-      //       color='text.primary'
-      //       component='span'
-      //     >{`Current value: ${values.address?.addressLine1}`}</Typography>
-      //   ) : undefined,
-      // }}
       gridProps={gridProps}
       {...props}
     >
@@ -123,14 +114,18 @@ export const AddressStep = ({
                   handleClick={(i, e) => {}}
                   statesValues={activeStates}
                   mapViewState={mapViewState}
-                  controller={{ scrollZoom: false, touchZoom: true }}
+                  // controller={{ scrollZoom: false, touchZoom: true }}
                 >
                   {showMarker && values.coordinates?.latitude && values.coordinates?.longitude && (
                     <Marker
                       longitude={values.coordinates?.longitude}
                       latitude={values.coordinates?.latitude}
-                      anchor='bottom'
-                    ></Marker>
+                      anchor='center'
+                      style={{ height: '35px', width: '35px' }}
+                      offset={[-1, -15]}
+                    >
+                      <PlaceRounded color='primary' fontSize='large' />
+                    </Marker>
                   )}
                 </ActiveStateMap>
               </Suspense>

@@ -1,14 +1,14 @@
-import { ReactElement, useCallback, useMemo } from 'react';
 import { ToggleButton, ToggleButtonGroup, ToggleButtonGroupProps, Tooltip } from '@mui/material';
+import { ReactElement, useCallback, useMemo } from 'react';
 import { useMap } from 'react-map-gl';
 
-import { useLocalStorage } from 'hooks';
 import {
   AddRoadRounded,
   DarkModeRounded,
   LightModeRounded,
   SatelliteAltRounded,
 } from '@mui/icons-material';
+import { useLocalStorage } from 'hooks';
 
 export const MAPBOX_LIGHT = 'mapbox://styles/mapbox/light-v11';
 export const MAPBOX_DARK = 'mapbox://styles/spencer-carlson/clkrsmyib01wz01qwdbujb4da';
@@ -18,13 +18,7 @@ export const MAPBOX_SATELLITE = 'mapbox://styles/mapbox/satellite-v9';
 export const usePreferredMapStyle = (initVal: string = MAPBOX_STREETS) => {
   const [mapStyle, setStyle] = useLocalStorage<string>('preferred-map-style', initVal);
 
-  const setMapStyle = useCallback(
-    (newStyle: string) => {
-      console.log('SETTING STYLE: ', newStyle);
-      setStyle(newStyle);
-    },
-    [setStyle]
-  );
+  const setMapStyle = useCallback((newStyle: string) => setStyle(newStyle), [setStyle]);
 
   return [mapStyle, setMapStyle] as const;
 };

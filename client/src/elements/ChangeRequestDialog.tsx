@@ -43,6 +43,7 @@ export const useViewChangeRequestsDialogProps = (policyId?: string) => {
 
   const countConstraints = useMemo(() => {
     let constraints = [where('status', '==', CHANGE_REQUEST_STATUS.SUBMITTED)];
+
     if (policyId) {
       constraints.push(where('policyId', '==', policyId));
       return constraints;
@@ -62,7 +63,23 @@ export const useViewChangeRequestsDialogProps = (policyId?: string) => {
     return constraints;
   }, [claims, user, orgId, policyId]);
 
-  const { data: count } = useDocCount(COLLECTIONS.CHANGE_REQUESTS, countConstraints, true);
+  // BUG: firestore rules error
+  const colBase = policyId ? COLLECTIONS.POLICIES : COLLECTIONS.CHANGE_REQUESTS;
+  const isCollectionGroupQuery = !policyId;
+  const pathSegments = policyId ? [policyId, COLLECTIONS.CHANGE_REQUESTS] : [];
+  const { data: count } = useDocCount(
+    colBase,
+    countConstraints,
+    isCollectionGroupQuery,
+    pathSegments
+  );
+
+  // const { data: count } = useDocCount(
+  //   COLLECTIONS.CHANGE_REQUESTS,
+  //   countConstraints,
+  //   true,
+  // );
+
   const [open, setOpen] = useState(false);
 
   const handleOpen = useCallback(() => setOpen(true), []);

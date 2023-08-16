@@ -128,4 +128,11 @@ export const fallbackImages = [
   'https://firebasestorage.googleapis.com/v0/b/idemand-submissions.appspot.com/o/common%2Fneighborhood-aerial-1.jpg?alt=media&token=9f80797b-2449-4229-bb2d-b5eb224d86af',
 ];
 
-export const CONSRUCTION_TYPE = ['stucco', 'TODO'];
+export const CONSRUCTION_TYPE = [
+  'frame',
+  'masonry',
+  'pre-engineered metal',
+  'steel frame',
+  'protected steel frame',
+  'reinforced concrete frame',
+];

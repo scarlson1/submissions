@@ -1,7 +1,6 @@
-import { useEffect } from 'react';
+import { CancelRounded, CheckCircleRounded } from '@mui/icons-material';
 import {
   Alert,
-  alpha,
   Badge,
   Box,
   BoxProps,
@@ -9,29 +8,30 @@ import {
   CardContentProps,
   CardProps,
   Divider,
+  Unstable_Grid2 as Grid,
   Stack,
   Tooltip,
   Typography,
-  Unstable_Grid2 as Grid,
+  alpha,
 } from '@mui/material';
-import { CancelRounded, CheckCircleRounded } from '@mui/icons-material';
+import { doc } from 'firebase/firestore';
+import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useFirestore, useFirestoreDocData } from 'reactfire';
-import { doc } from 'firebase/firestore';
 
-import { ANALYTICS_EVENTS, QUOTE_STATUS, quotesCollection } from 'common';
-import { dollarFormat } from 'modules/utils/helpers';
-import { FlexCard, FlexCardContent, IconButtonMenu, LineItem } from 'components';
 import {
   ApartmentRentSVG,
-  UnderConstructionSVG,
-  SecureLoginSVG,
+  AtHomeSVG,
   ChillingSVG,
   CoffeeSVG,
-  AtHomeSVG,
+  SecureLoginSVG,
+  UnderConstructionSVG,
 } from 'assets/images';
-import { createPath, ROUTES } from 'router';
+import { ANALYTICS_EVENTS, QUOTE_STATUS, quotesCollection } from 'common';
+import { FlexCard, FlexCardContent, IconButtonMenu, LineItem } from 'components';
 import { useAnalyticsEvent } from 'hooks';
+import { dollarFormat } from 'modules/utils/helpers';
+import { ROUTES, createPath } from 'router';
 
 export const ViewQuote = () => {
   const navigate = useNavigate();
@@ -352,19 +352,19 @@ export function HighlightCard({
         opacity: !!active ? 1 : 0.5,
         borderRadius: 1,
         height: '100%',
+        maxWidth: 400,
+        mx: 'auto',
         background: (theme) =>
           !!active
             ? 'transparent'
             : theme.palette.mode === 'dark'
             ? alpha(theme.palette.grey[800], 0.5)
-            : theme.palette.grey[200], // alpha(theme.palette.grey[200], 0.5),
+            : theme.palette.grey[200],
       }}
     >
       <FlexCard
         {...cardProps}
         sx={{
-          maxWidth: 400,
-          mx: 'auto',
           ...cardProps?.sx,
         }}
       >

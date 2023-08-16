@@ -73,7 +73,7 @@ service cloud.firestore {
       allow delete: if false
     }
 
-    // required for collection group queries
+    // required for collection group queries (https://firebase.google.com/docs/firestore/security/rules-query#collection_group_queries_and_security_rules)
     match /{path=**}/changeRequests/{requestId} {
       allow read: if isSignedIn() && (
         isUser(existingData().userId)

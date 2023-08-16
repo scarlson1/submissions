@@ -22,7 +22,7 @@ import { where } from 'firebase/firestore';
 import { isEmpty } from 'lodash';
 import { useNavigate } from 'react-router-dom';
 
-import { AdditionalInsured, COLLECTIONS, Policy, fallbackImages } from 'common';
+import { AdditionalInsured, COLLECTIONS, Policy, PolicyLocation, fallbackImages } from 'common';
 import { FlexCard, FlexCardContent } from 'components';
 import { ControlledChangeRequestDialog } from 'elements/ChangeRequestDialog';
 import { PoliciesGrid } from 'elements/grids';
@@ -65,7 +65,7 @@ export const Policies = () => {
   );
 
   const header = (
-    <>
+    <Box sx={{ display: 'flex', justifyContent: 'space-between', pb: 2, pr: { xs: 0, sm: 3 } }}>
       <Typography
         variant='h5'
         gutterBottom
@@ -74,20 +74,15 @@ export const Policies = () => {
       >
         Policies
       </Typography>
-      {/* <Divider sx={{ my: 3 }} /> */}
-    </>
+      <ControlledChangeRequestDialog />
+    </Box>
   );
 
   if (claims?.iDemandAdmin)
     return (
       <Container maxWidth='xl' sx={{ py: { xs: 4, md: 6 } }}>
         <Box>
-          <Box
-            sx={{ display: 'flex', justifyContent: 'space-between', pb: 2, pr: { xs: 0, sm: 3 } }}
-          >
-            {header}
-            <ControlledChangeRequestDialog />
-          </Box>
+          {header}
           <PoliciesGrid renderActions={adminActions} checkboxSelection />
         </Box>
       </Container>
@@ -98,7 +93,6 @@ export const Policies = () => {
       <Container maxWidth='xl' sx={{ py: { xs: 4, md: 6 } }}>
         <Box>
           {header}
-          <ControlledChangeRequestDialog />
           <PoliciesGrid constraints={[where('agency.orgId', '==', `${user.tenantId}`)]} />
         </Box>
       </Container>
@@ -109,7 +103,6 @@ export const Policies = () => {
       <Container maxWidth='xl' sx={{ py: { xs: 4, md: 6 } }}>
         <Box>
           {header}
-          <ControlledChangeRequestDialog />
           <PoliciesGrid constraints={[where('agent.userId', '==', user.uid)]} />
         </Box>
       </Container>
@@ -120,7 +113,12 @@ export const Policies = () => {
   return (
     <Container maxWidth='xl' sx={{ py: { xs: 4, md: 6 } }}>
       <Box>
-        <Typography variant='h4' gutterBottom>
+        <Typography
+          variant='h5'
+          gutterBottom
+          sx={{ ml: { xs: 0, sm: 3, md: 4 }, '&:hover': { cursor: 'pointer' } }}
+          onClick={() => navigate(createPath({ path: ROUTES.POLICIES }))}
+        >
           Policies
         </Typography>
       </Box>
@@ -138,6 +136,9 @@ export const Policies = () => {
 
 // TODO: fix converting component to new schema
 
+const getLocationImg = (location: PolicyLocation, theme: 'light' | 'dark', i: number) =>
+  location?.imageURLs ? location?.imageURLs[theme] : fallbackImages[i] || fallbackImages[0];
+
 export const UserPolicies = ({ userId }: { userId: string }) => {
   const navigate = useNavigate();
   const theme = useTheme();
@@ -152,8 +153,9 @@ export const UserPolicies = ({ userId }: { userId: string }) => {
 
   return (
     <>
-      <Grid container spacing={8}>
+      <Grid container spacing={8} sx={{ my: 4 }}>
         {policies?.map((p, i) => {
+          // TODO: only use new Policy schema ??
           const location =
             p.locations && typeof p.locations === 'object' && !isEmpty(p.locations)
               ? Object.values(p.locations)[0]
@@ -176,15 +178,7 @@ export const UserPolicies = ({ userId }: { userId: string }) => {
                 <CardActionArea onClick={() => handleClick(p.id)}>
                   <CardMedia
                     sx={{ height: 140 }}
-                    image={
-                      // @ts-ignore
-                      (theme.palette.mode === 'dark' && location.imageURLs // @ts-ignore
-                        ? location.imageURLs?.darkMapImageURL // @ts-ignore
-                        : p.imageURLs?.lightMapImageURL) ||
-                      fallbackImages[i] ||
-                      fallbackImages[0]
-                    }
-                    // image={fallbackImages[i]}
+                    image={getLocationImg(location as PolicyLocation, theme.palette.mode, i)}
                     // @ts-ignore
                     title={`${location?.address?.addressLine1} map`}
                   />

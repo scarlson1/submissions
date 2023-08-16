@@ -1,13 +1,13 @@
-import { useState } from 'react';
-import { Box } from '@mui/material';
-import { CancelRounded, CheckCircleRounded } from '@mui/icons-material';
-import { useTheme } from '@mui/material/styles';
 import { GeoJsonLayer } from '@deck.gl/layers/typed';
+import { CancelRounded, CheckCircleRounded } from '@mui/icons-material';
+import { Box } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import { PickingInfo } from 'deck.gl/typed';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import { useState } from 'react';
 
-import { DeckMap, DeckMapProps, defaultGeoJsonLayerProps } from 'elements';
 import { STATES_URL } from 'common';
+import { DeckMap, DeckMapProps, defaultGeoJsonLayerProps } from 'elements';
 
 // TODO: create generalized component (use with counties)
 // TODO: use zustand ? or recoil or kotai for shared state between switch and map without rerendering all components?

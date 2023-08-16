@@ -1,17 +1,17 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useFormikContext } from 'formik';
-import { toast } from 'react-hot-toast';
-import { MapProps, Marker, MarkerDragEvent, NavigationControl, Map, useMap } from 'react-map-gl';
 import { GpsFixedRounded } from '@mui/icons-material';
+import { useFormikContext } from 'formik';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { toast } from 'react-hot-toast';
+import { Map, MapProps, Marker, MarkerDragEvent, NavigationControl, useMap } from 'react-map-gl';
 
-import { AddressStepValues } from 'elements/forms/AddressStep';
 import {
   DEFAULT_MAP_STYLE_OPTIONS,
   MAPBOX_STREETS,
   MOBILE_DEFAULT_MAP_STYLE_OPTIONS,
   MapStyleControl,
 } from 'components/MapStyleControl';
+import { AddressStepValues } from 'elements/forms/AddressStep';
 import { useWidth } from 'hooks';
 // popup example https://github.com/visgl/react-map-gl/blob/7.1-release/examples/controls/src/app.tsx
 
@@ -61,7 +61,7 @@ export const FormikCoordsMarker = ({ cb }: FormikCoordsMarkerProps) => {
       onDrag={onMarkerDrag}
       onDragEnd={onMarkerDragEnd}
       anchor='center'
-      style={{ height: '26px', width: '26px' }} // default marker: height of 41px and a width of 27px
+      style={{ height: '24px', width: '24px' }} // default marker: height of 41px and a width of 27px
     >
       <GpsFixedRounded color='primary' />
     </Marker>

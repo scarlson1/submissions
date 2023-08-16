@@ -39,6 +39,7 @@ export const ChangeRequestsGrid = ({
   }, [additionalColumns, renderActions, isSmall]);
 
   const props: Omit<ServerDataGridProps, 'columns'> = useMemo(() => {
+    console.log('POLICY ID: ', policyId);
     if (policyId) {
       return {
         collName: 'POLICIES',

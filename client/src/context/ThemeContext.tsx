@@ -1,13 +1,14 @@
-import { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import { PaletteMode as PaletteModeType, useMediaQuery } from '@mui/material';
+import CssBaseline from '@mui/material/CssBaseline';
 import {
   ThemeProvider as MuiThemeProvider,
   createTheme,
   responsiveFontSizes,
 } from '@mui/material/styles';
-import { PaletteMode as PaletteModeType, useMediaQuery } from '@mui/material';
-import CssBaseline from '@mui/material/CssBaseline';
 import { deepmerge } from '@mui/utils';
+import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 
+import { MAPBOX_DARK, MAPBOX_LIGHT, usePreferredMapStyle } from 'components';
 import { getDesignTokens, getThemedComponents } from 'context/theme';
 import { useLocalStorage } from 'hooks';
 
@@ -31,6 +32,8 @@ export function ThemeProvider(props: any) {
     storageMode ?? (prefersDarkMode ? 'dark' : 'light')
   );
 
+  const [, setMapTheme] = usePreferredMapStyle();
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
       if (storageMode) return;
@@ -43,10 +46,18 @@ export function ThemeProvider(props: any) {
     () => ({
       toggleColorMode: () => {
         setStorageMode((prevMode) => (prevMode === 'light' ? 'dark' : 'light'));
-        setMode((prevMode: PaletteModeType) => (prevMode === 'light' ? 'dark' : 'light'));
+
+        setMode((prevMode: PaletteModeType) => {
+          const newMode = prevMode === 'light' ? 'dark' : 'light';
+
+          const newMapTheme = newMode === 'dark' ? MAPBOX_DARK : MAPBOX_LIGHT;
+          setMapTheme(newMapTheme);
+
+          return newMode;
+        });
       },
     }),
-    [setStorageMode]
+    [setStorageMode, setMapTheme]
   );
 
   const theme = useMemo(() => {

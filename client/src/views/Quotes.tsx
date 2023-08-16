@@ -68,7 +68,7 @@ export const Quotes = () => {
       </Box>
     );
 
-  // should always be true (wrapped in RequireAuth in router)
+  // should always be true (wrapped in RequireAuth in router & delete ??)
   if (!user || !user.uid) {
     return (
       <Box

@@ -1,12 +1,12 @@
-import { RefObject, useCallback, useRef } from 'react';
 import { Box, Stack } from '@mui/material';
 import { Form, Formik, FormikHelpers, FormikProps } from 'formik';
+import { RefObject, useCallback, useRef } from 'react';
 import * as yup from 'yup';
 
-import { ConfirmationOptions } from 'context/ConfirmationService';
-import { FormikSwitch, FormikMultiTextInput } from 'components/forms';
-import { isValidEmail } from 'modules/utils';
+import { FormikMultiTextInput, FormikSwitch } from 'components/forms';
 import { useDialog } from 'context';
+import { ConfirmationOptions } from 'context/ConfirmationService';
+import { isValidEmail } from 'modules/utils';
 
 export interface NotificationEmailValues {
   notifyInsured: boolean;
@@ -36,7 +36,6 @@ export const usePromptForEmails = () => {
       values: NotificationEmailValues,
       { setSubmitting }: FormikHelpers<NotificationEmailValues>
     ) => {
-      console.log('form submit. values: ', values);
       setSubmitting(false);
       dialog?.handleAccept(values);
       return values;
@@ -121,7 +120,6 @@ const notifyValidation = yup.object().shape({
       'alt required when insured and agent are false',
       'At lease one email required. Press tab, enter or space to included alternative email.',
       (value, ctx) => {
-        console.log('parent', ctx.parent);
         if (!!ctx.parent.notifyInsured || !!ctx.parent.notifyAgent) return true;
         if (!Boolean(value && value.length > 0)) return false;
 

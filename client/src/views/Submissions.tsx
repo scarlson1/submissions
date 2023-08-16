@@ -8,23 +8,12 @@ import { ROUTES, createPath } from 'router';
 import { Submissions as AdminSubmissions } from './admin/Submissions';
 import { Submissions as UserSubmissions } from './user/Submissions';
 
-// TODO: create wrapper for common stuff (title, new submission button, etc.)
-// use useUserClaims to get claims or grab from context ? does reactFire get val from cache if using useUserClaims ??
-
 export const Submissions = () => {
   const navigate = useNavigate();
-  // const { data: checkIdAdmin } = useSigninCheck({
-  //   requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true },
-  // });
-  // const { data: checkOrgAdmin } = useSigninCheck({
-  //   validateCustomClaims: getRequiredClaimValidator(['ORG_ADMIN', 'AGENT']),
-  // });
   const { claims, user } = useAuth();
 
-  // if (checkIdAdmin.hasRequiredClaims) return <AdminSubmissions />;
   if (claims?.iDemandAdmin) return <AdminSubmissions />;
 
-  // if (checkOrgAdmin.hasRequiredClaims && checkOrgAdmin.user?.uid)
   if ((claims?.orgAdmin || claims?.agent) && user?.uid)
     return (
       <Box>
