@@ -7,10 +7,10 @@ import { OffsetTransaction, getReportErrorFn, transactionsCollection } from '../
 
 import {
   constructTrxId,
+  docExists,
   fetchPolicyData,
   fetchPreviousTrx,
   getReinstatementTrx,
-  trxExists,
 } from '../modules/transactions';
 
 // reinstatement trxEffDate = cancellation date (from cancellation trx)
@@ -61,7 +61,8 @@ export default async (event: CloudEvent<MessagePublishedData<ReinstatementPayloa
       const trxId = constructTrxId(policyId, locationId, eventId);
       const trxRef = trxCol.doc(trxId);
 
-      if (!trxExists(trxRef)) {
+      const exists = await docExists(trxRef);
+      if (!exists) {
         // Not neccessary b/c values stored in prev trx
         // const ratingData = await fetchRatingData(db, location.ratingDocId);
 

@@ -106,7 +106,7 @@ service cloud.firestore {
 
     // POLICY TRANSACTIONS (NOT FINANCIAL/CHARGES)
     match /transactions/{trxId} {
-      allow read: if isUser(existingData().userId) || isIDemandAdmin() 
+      allow read: if isDocUser() || isIDemandAdmin() 
       // TODO: agentId not stored on trx ?? || isAgent(existingData().agentId)  or isOrgAdmin ??
       allow create, update: if isIDemandAdmin() && emailVerified()
       allow delete: if false;
@@ -126,7 +126,7 @@ service cloud.firestore {
     }
 
     match /financialTransactions/{transactionId} {
-      allow read: if isUser(existingData().userId) || isIDemandAdmin()
+      allow read: if isDocUser() || isIDemandAdmin()
       allow create, update, delete: if isIDemandAdmin() && emailVerified()
     }
 
@@ -181,9 +181,9 @@ service cloud.firestore {
     }
 
      match /notifyRegistration/{notifyId} {
-      allow read: if isIDemandAdmin() || isUser(existingData().userId)
+      allow read: if isIDemandAdmin() || isDocUser()
       allow create: if true
-      allow update: if isSignedIn() && (isUser(existingData().userId) || isIDemandAdmin())
+      allow update: if isSignedIn() && (isDocUser() || isIDemandAdmin())
       allow delete: if isIDemandAdmin() && emailVerified()
     }
 
@@ -203,10 +203,10 @@ service cloud.firestore {
 
     // TODO: fix rules
     match /agencySubmissions/{subId} {
-      allow read, write: if true
-      // allow create: if true
-      // allow update: if isIDemandAdmin() && emailVerified()
-      // allow delete: if false
+      allow create: if true // TODO: required fields validation
+      allow get: if true
+      allow list, update: if isIDemandAdmin() && emailVerified()
+      allow delete: if isIDemandAdmin() && emailVerified()
     }
 
     match /moratoriums/{moratoriumId} {

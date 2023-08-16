@@ -78,7 +78,6 @@ import { ROUTES, createPath } from 'router';
 import { AddressStepQuote } from '../AddressStepQuote';
 import FormikAddressLite from '../FormikAddressLite';
 import { LimitsStep } from '../LimitsStep';
-import { getQuoteValidation } from './validation';
 import {
   DEFAULT_VALUES,
   RATING_FIELDS,
@@ -86,6 +85,7 @@ import {
   gridProps,
   policyEffShortcuts,
 } from './constants';
+import { getQuoteValidation } from './validation';
 
 // TODO: move quote type to field (new, renewal, etc.) ??
 
@@ -134,7 +134,6 @@ export const QuoteForm = ({
   title = 'Quote',
   product = 'flood',
   submissionId = null,
-  // submissionData,
   initialRatingSnap,
 }: QuoteFormProps) => {
   const navigate = useNavigate();
@@ -255,33 +254,12 @@ export const QuoteForm = ({
 
       formikRef.current?.setFieldValue('quoteTotal', total);
       formikRef.current?.setFieldTouched('quoteTotal');
-      setTimeout(() => formikRef.current?.validateField('quoteTotal'), 50);
+      setTimeout(() => formikRef.current?.validateField('quoteTotal'), 0);
     } catch (err) {
       console.log(err);
       toast.error('Error calculating total. See console for details');
     }
   }, [toast]);
-
-  // const setTouched = useCallback(
-  //   async (keys?: keyof FormikErrors<QuoteValues> | (keyof FormikErrors<QuoteValues>)[]) => {
-  //     const validationErrors = await formikRef.current?.validateForm();
-
-  //     if (validationErrors && Object.keys(validationErrors).length > 0) {
-  //       const pickedErrors = keys ? pick(validationErrors, keys) : validationErrors;
-
-  //       setTimeout(
-  //         () =>
-  //           formikRef.current?.setTouched({
-  //             ...formikRef.current?.touched,
-  //             ...setNestedObjectValues(pickedErrors, true),
-  //           }),
-  //         0
-  //       );
-  //       return;
-  //     }
-  //   },
-  //   []
-  // );
 
   const setTouched = useCallback(async (keys?: keyof QuoteValues | (keyof QuoteValues)[]) => {
     const vals = formikRef.current?.values;
@@ -411,7 +389,7 @@ export const QuoteForm = ({
       { label: 'Cancel', action: handleCancel },
       // { label: 'View submission data', action: showSubmissionDialog },
     ],
-    [handleCancel] // [showSubmissionDialog]
+    [handleCancel]
   );
 
   return (
@@ -821,8 +799,7 @@ export const QuoteForm = ({
                           values.deductible &&
                           values.ratingPropertyData.basement &&
                           values.ratingPropertyData.numStories &&
-                          values.ratingPropertyData.replacementCost &&
-                          values.quoteTotal
+                          values.ratingPropertyData.replacementCost
                         )
                       }
                       startIcon={<CalculateRounded />}

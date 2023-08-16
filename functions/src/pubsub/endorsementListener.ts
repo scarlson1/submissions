@@ -7,12 +7,12 @@ import { isValid } from 'date-fns';
 import { PremiumTransaction, Transaction, transactionsCollection } from '../common';
 import {
   constructTrxId,
+  docExists,
   fetchPolicyData,
   fetchPreviousTrx,
   fetchRatingData,
   formatPremiumTrx,
   getOffsetTrx,
-  trxExists,
 } from '../modules/transactions';
 import { reportErrorSentry } from '../services/sentry';
 
@@ -102,7 +102,8 @@ export default async (event: CloudEvent<MessagePublishedData<EndorsementPayload>
     const trxId = constructTrxId(policyId, locationId, eventId);
     const trxRef = trxCol.doc(trxId);
 
-    if (!trxExists(trxRef)) {
+    const exists = await docExists(trxRef);
+    if (!exists) {
       const ratingData = await fetchRatingData(db, location.ratingDocId);
 
       const batch = db.batch();

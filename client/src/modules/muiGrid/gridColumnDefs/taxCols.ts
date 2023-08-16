@@ -1,5 +1,7 @@
 import { GridColDef, GridValueFormatterParams } from '@mui/x-data-grid';
 
+import { renderFormattedValue } from 'components/RenderGridCellHelpers';
+import { dollarFormat2, percentFormat } from 'modules/utils';
 import {
   LOBCol,
   booleanCalcActiveCol,
@@ -7,14 +9,13 @@ import {
   effectiveDateCol,
   expirationDateCol,
   idCol,
+  percentColBaseProps,
   policyTrxTypesCol,
   productsCol,
   stateCol,
   subjectBaseCol,
   updatedCol,
 } from './gridColumns';
-import { formatGridCurrency, formatGridPercent } from 'modules/utils';
-import { renderFormattedValue } from 'components/RenderGridCellHelpers';
 
 export const taxCols: GridColDef[] = [
   idCol,
@@ -31,19 +32,20 @@ export const taxCols: GridColDef[] = [
   effectiveDateCol,
   expirationDateCol,
   {
+    ...percentColBaseProps,
     field: 'rate',
     headerName: 'Rate',
     description:
       'Percentage rate (0.01 = 1%) applied to the sum of the fields in subject base, or a fixed rate for fixed dollar taxes',
     minWidth: 80,
     flex: 0.6,
-    headerAlign: 'center',
-    align: 'right',
     editable: false,
     valueGetter: (params) => params.row.rate || null,
-    valueFormatter: (params: GridValueFormatterParams<number>) => {
-      if (params.value > 0.15) return formatGridCurrency(params);
-      return formatGridPercent(params, 2);
+    valueFormatter: ({ value }: GridValueFormatterParams<number>) => {
+      if (!value && value !== 0) return null;
+
+      if (value > 0.15) return dollarFormat2(value);
+      return percentFormat(value, 2);
     },
     renderCell: renderFormattedValue,
   },

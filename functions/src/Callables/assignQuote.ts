@@ -67,17 +67,17 @@ const assignQuote = async ({ data, auth }: CallableRequest<AssignQuoteProps>) =>
           email: token?.email || null,
           phone: token?.phone_number || null,
         },
-        mailingAddress: {
+      };
+      if (userDoc?.address?.addressLine1) {
+        updates['mailingAddress'] = {
           name: `${userDoc?.firstName || ''} ${userDoc?.lastName || ''}`.trim(),
           addressLine1: userDoc?.address?.addressLine1 || '',
           addressLine2: userDoc?.address?.addressLine2 || '',
           city: userDoc?.address?.city || '',
           state: userDoc?.address?.state || '',
           postal: userDoc?.address?.postal || '',
-          countyName: userDoc?.address?.countyName || '',
-          countyFIPS: userDoc?.address?.countyFIPS || '',
-        },
-      };
+        };
+      }
     }
 
     quoteSnap.ref.update({ ...updates, 'metadata.updated': Timestamp.now() });

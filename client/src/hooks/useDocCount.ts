@@ -53,10 +53,7 @@ export const useDocCount = (
   const q = query(colRef, ...constraints);
 
   // refetch every 30 seconds, until 60 fetches (~ 30 mins)
-  const observable$ = collectionCount(q).pipe(
-    // tap(() => console.log('fetching aggregate count')),
-    repeat({ count: 60, delay: 30 * 1000 })
-  );
+  const observable$ = collectionCount(q).pipe(repeat({ count: 60, delay: 30 * 1000 }));
 
   const observableId = `firestore:count:${path}:${JSON.stringify(constraints)}:aggregate-count`;
 

@@ -89,6 +89,15 @@ export const addressValidationActiveStatesNested = (activeStates: { [key: string
     address: addressValidationActiveStates(activeStates),
   });
 
+export const addressWithNameValidation = addressValidation.shape({
+  name: yup.string().typeError('name is required').required(),
+});
+
+// extend / concat yup obj.:  https://stackoverflow.com/a/68411022
+export const mailingAddressValidation = yup.object().shape({
+  mailingAddress: addressWithNameValidation,
+});
+
 // export const addressValidationActiveStates = yup.object().shape({
 //   addressLine1: yup.string().required('Address is required'),
 //   addressLine2: yup.string().notRequired(),

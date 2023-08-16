@@ -1,11 +1,9 @@
-import { ErrorBoundary } from 'react-error-boundary';
 import { Card, Grid2Props, Typography, useTheme } from '@mui/material';
-import { useFormikContext } from 'formik';
+import { ErrorBoundary } from 'react-error-boundary';
 
-import { FormikAddress, FormikAddressProps } from 'elements/forms';
 import { MAPBOX_DARK, MAPBOX_LIGHT, usePreferredMapStyle } from 'components';
 import { FormikCoordsMap } from 'components/forms/FormikCoordsMarker';
-import { AddressStepValues } from './AddressStep';
+import { FormikAddress, FormikAddressProps } from 'elements/forms';
 
 export interface AddressStepTestProps extends Omit<FormikAddressProps, 'setFieldValue'> {
   gridProps?: Grid2Props;
@@ -16,10 +14,9 @@ export const AddressStepQuote = ({ gridProps, ...props }: AddressStepTestProps) 
   const [mapStyle] = usePreferredMapStyle(
     theme.palette.mode === 'dark' ? MAPBOX_DARK : MAPBOX_LIGHT
   );
-  const { setFieldValue } = useFormikContext<AddressStepValues>();
 
   return (
-    <FormikAddress setFieldValue={setFieldValue} gridProps={gridProps} {...props}>
+    <FormikAddress gridProps={gridProps} {...props}>
       <Card sx={{ height: 280, width: '100%', mt: 5 }}>
         <ErrorBoundary
           FallbackComponent={() => (

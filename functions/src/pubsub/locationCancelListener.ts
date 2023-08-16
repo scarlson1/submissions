@@ -7,10 +7,10 @@ import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 import { CancellationReason, PremiumTransaction, transactionsCollection } from '../common';
 import {
   constructTrxId,
+  docExists,
   fetchPolicyData,
   fetchPreviousTrx,
   getOffsetTrx,
-  trxExists,
 } from '../modules/transactions';
 import { reportErrorSentry } from '../services/sentry';
 import { premEndorsementPrevTypes } from './endorsementListener';
@@ -80,7 +80,8 @@ export default async (event: CloudEvent<MessagePublishedData<LocationCancelPaylo
     const trxId = constructTrxId(policyId, locationId, eventId);
     const trxRef = trxCol.doc(trxId);
 
-    if (!trxExists(trxRef)) {
+    const exists = await docExists(trxRef);
+    if (!exists) {
       const trxEffDate = Timestamp.fromMillis(cancelEffDateMS);
 
       const offsetTrx = getOffsetTrx(

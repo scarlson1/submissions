@@ -1,4 +1,5 @@
 import { DocumentData, DocumentReference, Firestore, Timestamp } from 'firebase-admin/firestore';
+import { error } from 'firebase-functions/logger';
 import { round } from 'lodash';
 import {
   AmendmentTransaction,
@@ -11,15 +12,14 @@ import {
   ratingDataCollection,
   transactionsCollection,
 } from '../../common';
-import { error } from 'firebase-functions/logger';
 
 /**
  * Check if a transation already exists in database
- * @param {DocumentReference} trxRef doc ref of transaction
+ * @param {DocumentReference} docRef doc ref of transaction
  * @returns {boolean} returns boolean indicated if transaction exists for provided ref
  */
-export const trxExists = (trxRef: DocumentReference) => {
-  return trxRef.get().then((snap) => snap.exists);
+export const docExists = (docRef: DocumentReference) => {
+  return docRef.get().then((snap) => snap.exists);
 };
 
 /**
