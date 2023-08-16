@@ -60,6 +60,7 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyCreatedPayloa
     try {
       const trxId = constructTrxId(policyId, locationId, eventId);
       const trxRef = trxCol.doc(trxId);
+      info(`Checking for trx already exists (${trxId})`);
 
       if (!trxExists(trxRef)) {
         const ratingData = await fetchRatingData(db, location.ratingDocId);
@@ -69,6 +70,7 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyCreatedPayloa
 
         const locationTrx = formatPremiumTrx('new', policy, location, ratingData, eventId);
 
+        info(`saving new policy transaction...`, { transaction: locationTrx });
         await trxRef.set({ ...locationTrx });
 
         info(`New transaction saved for location ${locationId}`, { locationTrx });

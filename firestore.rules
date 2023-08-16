@@ -24,6 +24,8 @@ rules_version = '2';
 // MATCHES: https://firebase.google.com/docs/reference/rules/rules.String#matches
 // https://github.com/google/re2/wiki/Syntax
 
+// TIME BASED RULES: https://blog.canopas.com/firebase-firestore-list-of-essential-security-rules-a0e872c724d3#c896
+
 // TODO: quote field rules (don't allow changing quote amt)
 // TODO: status rules (don't allow changing of quote is status = bound, etc.)
 // TODO: check email verified on all client side queries if required in rules
@@ -46,28 +48,25 @@ service cloud.firestore {
     
     // TODO: read specificity if claimed or not (might need to add a field b/c of anonymous auth)
     // need to update assign quote (only allow sign in if claimed)
-    // TODO: separate out read permissions (list should mirror user/agent/admin/idemandAdmin queries)
+    // add 'userId' to restricted fields ?? is claimQuote setting userId server-side or on the client ??
     match /quotes/{quoteId} {
-      allow read: if true
+      allow get: if true
+      allow list: if isDocUserOrAgentOrOrgAdminOrIDemandAdmin()
       allow create: if isIDemandAdmin()
       // user or agent, excluding restricted fields. Or idemand admin
       allow update: if (
         (
-          isUser(existingData().userId) // user
-          || (isAgent() && isUser(existingData().get(['agent', 'userId'], null))) // agent
+          isDocUser() 
+          || isDocAgent()
         ) 
           && !(containsRestrictedFields(['quoteExpiration', 'subproducerCommission', 'quoteTotal', 'termPremium', 'taxes', 'fees', 'ratingPropertyData.replacementCost', 'product', 'status', 'statusTransitions']))
         ) 
-        || (isIDemandAdmin() && emailVerified()) // idemand admin
+        || (isIDemandAdmin() && emailVerified())
       allow delete: if false
     }
 
     match /policies/{policyId} {
-      allow read: if isSignedIn() 
-        && (isUser(existingData().userId) 
-        || isAgent() && isUser(existingData().get(['agent', 'userId'], null))
-        || (isOrgAdmin() && isTenantUser(existingData().agency.orgId)) 
-        || isIDemandAdmin())
+      allow read: if isDocUserOrAgentOrOrgAdminOrIDemandAdmin()
       allow create: if isIDemandAdmin() && emailVerified()
       allow update: if isIDemandAdmin() && emailVerified()
       allow delete: if false
@@ -75,26 +74,32 @@ service cloud.firestore {
 
     // required for collection group queries (https://firebase.google.com/docs/firestore/security/rules-query#collection_group_queries_and_security_rules)
     match /{path=**}/changeRequests/{requestId} {
-      allow read: if isSignedIn() && (
-        isUser(existingData().userId)
-        || (isAgent() && isUser(existingData().agent.userId))
-        || (isOrgAdmin() && isTenantUser(existingData().agency.orgId))
-        || isIDemandAdmin()
-      );
+      allow read: if isDocUserOrAgentOrOrgAdminOrIDemandAdmin()
     }
-    // isUser(get(/databases/$(database)/documents/policies/$(existingData().policyId)).data.userId)
-    // || (isAgent() && isUser(get(/databases/$(database)/documents/policies/$(existingData().policyId)).data.agent.userId)) 
-    // || (isOrgAdmin() && isTenantUser(get(/databases/$(database)/documents/policies/$(existingData().policyId)).data.agency.orgId))
+
+    function getPolicy(policyId) {
+      return get(/databases/$(database)/documents/policies/$(policyId))
+    }
+    function getPolicyData(policyId) {
+      return getPolicy(policyId).data
+    }
 
     // TODO: decide whether to allow org admins to create 
     match /policies/{policyId}/changeRequests/{requestId} {
       allow create: if isSignedIn() && (
-          isUser(get(/databases/$(database)/documents/policies/$(policyId)).data.userId)
-          || isAgent() && isUser(get(/databases/$(database)/documents/policies/$(policyId)).data.agent.userId)
+          isUser(getPolicyData(policyId).get('userId', null))
+          || (isAgent() && isUser(getPolicyData(policyId).get(['agent', 'userId'], null)))
           || isIDemandAdmin()
         ) 
         && incomingData().keys().hasAll(['policyId', 'requestEffDate', 'trxType', 'userId', 'agent', 'agency', 'status'])
         && incomingData().status == 'submitted'
+      // allow create: if isSignedIn() && (
+      //     isUser(get(/databases/$(database)/documents/policies/$(policyId)).data.userId)
+      //     || isAgent() && isUser(get(/databases/$(database)/documents/policies/$(policyId)).data.agent.userId)
+      //     || isIDemandAdmin()
+      //   ) 
+      //   && incomingData().keys().hasAll(['policyId', 'requestEffDate', 'trxType', 'userId', 'agent', 'agency', 'status'])
+      //   && incomingData().status == 'submitted'
       allow update: if isSignedIn() && isIDemandAdmin(); // TODO: allow user to update if status === 'submitted' ??
       allow delete: if isSignedIn() && isIDemandAdmin();
     }
@@ -249,9 +254,10 @@ service cloud.firestore {
       allow delete: if isIDemandAdmin() && emailVerified()
     }
 
+    // TODO: remove isSignedIn from all isXXX functions
     function isIDemandAdmin() {
-      return isSignedIn() && request.auth.token.iDemandAdmin && request.auth.token.iDemandAdmin == true
-    }
+      return isSignedIn() && request.auth.token.get('iDemandAdmin', null) == true
+    } 
 
     function isIDemandUser() {
       return isSignedIn() && request.auth.token.email.matches('.*@idemandinsurance[.]com')
@@ -260,19 +266,35 @@ service cloud.firestore {
     // Does the logged-in user match the requested userId?
     function isUser(userId) {
       return isSignedIn() && request.auth.uid == userId;
-    } // && request.auth.uid
+    }
 
     function isTenantUser(tenantId) {
-      return isSignedIn() && request.auth.token.firebase.tenant == tenantId
+      return isSignedIn() && tenantId != null && request.auth.token.firebase.tenant == tenantId
     } // && request.auth.token.firebase.tenant
 
     function isOrgAdmin() {
-      return isSignedIn() && request.auth.token.orgAdmin && request.auth.token.orgAdmin == true
-    }
+      return isSignedIn() && request.auth.token.get('orgAdmin', null) == true
+    } // && request.auth.token.orgAdmin
 
     function isAgent() { // agentId
-      return isSignedIn() && request.auth.token.agent && request.auth.token.agent == true
-    } //&& request.auth.uid == agentId;
+      return isSignedIn() && request.auth.token.get('agent', null) == true
+    }
+
+    function isDocUser() {
+      return isUser(existingData().get('userId', null))
+    }
+
+    function isDocAgent() {
+      return isAgent() && isUser(existingData().get(['agent', 'userId'], null))
+    }
+
+    function isDocOrgAdmin() {
+      return isOrgAdmin() && isTenantUser(existingData().get(['agency','orgId'], null))
+    }
+
+    function isDocUserOrAgentOrOrgAdminOrIDemandAdmin() {
+      return isSignedIn() && (isDocUser() || isDocAgent() || isDocOrgAdmin() || isIDemandAdmin())
+    }
 
     // // Fetch a user from Firestore
     // function getUserData() {

@@ -821,7 +821,8 @@ export const QuoteForm = ({
                           values.deductible &&
                           values.ratingPropertyData.basement &&
                           values.ratingPropertyData.numStories &&
-                          values.ratingPropertyData.replacementCost
+                          values.ratingPropertyData.replacementCost &&
+                          values.quoteTotal
                         )
                       }
                       startIcon={<CalculateRounded />}

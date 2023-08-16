@@ -82,8 +82,6 @@ const createMsgContent = ({
   ...rest
 }: CreateMsgContentProps): MailDataRequired => {
   const uniqueTo = uniqueEmails(to);
-  console.log('TO: ', to);
-  console.log('UNIQUE TO: ', uniqueTo);
 
   return {
     to: uniqueTo,

@@ -32,6 +32,6 @@ export const authrequeststest = onRequest(
   }
 );
 
-export const pubsubHelper = functions.https.onRequest(async (request, response) => {
+export const pubsubhelper = functions.https.onRequest(async (request, response) => {
   await (await import('./pubSubHelper.js')).default(request, response);
 });

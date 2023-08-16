@@ -46,7 +46,7 @@ export const useViewChangeRequestsDialogProps = (policyId?: string) => {
 
     if (policyId) {
       constraints.push(where('policyId', '==', policyId));
-      return constraints;
+      // return constraints;
     }
     if (claims?.iDemandAdmin) return constraints;
     if (claims?.orgAdmin && orgId) {
@@ -63,22 +63,17 @@ export const useViewChangeRequestsDialogProps = (policyId?: string) => {
     return constraints;
   }, [claims, user, orgId, policyId]);
 
-  // BUG: firestore rules error
-  const colBase = policyId ? COLLECTIONS.POLICIES : COLLECTIONS.CHANGE_REQUESTS;
-  const isCollectionGroupQuery = !policyId;
-  const pathSegments = policyId ? [policyId, COLLECTIONS.CHANGE_REQUESTS] : [];
-  const { data: count } = useDocCount(
-    colBase,
-    countConstraints,
-    isCollectionGroupQuery,
-    pathSegments
-  );
-
+  // const colBase = policyId ? COLLECTIONS.POLICIES : COLLECTIONS.CHANGE_REQUESTS;
+  // const isCollectionGroupQuery = !policyId;
+  // const pathSegments = policyId ? [policyId, COLLECTIONS.CHANGE_REQUESTS] : [];
   // const { data: count } = useDocCount(
-  //   COLLECTIONS.CHANGE_REQUESTS,
+  //   colBase,
   //   countConstraints,
-  //   true,
+  //   isCollectionGroupQuery,
+  //   pathSegments
   // );
+
+  const { data: count } = useDocCount(COLLECTIONS.CHANGE_REQUESTS, countConstraints, true);
 
   const [open, setOpen] = useState(false);
 

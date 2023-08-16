@@ -64,6 +64,7 @@ export { authRequests, authrequeststest, generatepdf, sendgrid } from './routes'
 export { checkachstatus } from './scheduler';
 export { getfips, importpolicies, importquotes, rateportfolio } from './storageEvents';
 
+export { pubsubhelper } from './routes';
 // export { pubsubHelper } from './routes/pubSubHelper.js';
 // export { testEmulatorsCheckAchStatus } from './pubsub/checkAchStatus';
 

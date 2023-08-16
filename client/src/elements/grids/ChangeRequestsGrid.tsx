@@ -23,6 +23,8 @@ export const ChangeRequestsGrid = ({
   const { user, claims, orgId } = useAuth();
   const { isSmall } = useWidth();
 
+  if (!user?.uid) throw new Error('must be signed in'); // TODO: wrap in RequireAuth ??
+
   const columns = useMemo(() => {
     let cols = [...changeRequestCols, ...(additionalColumns || [])];
     if (renderActions) {
@@ -39,41 +41,67 @@ export const ChangeRequestsGrid = ({
   }, [additionalColumns, renderActions, isSmall]);
 
   const props: Omit<ServerDataGridProps, 'columns'> = useMemo(() => {
-    console.log('POLICY ID: ', policyId);
+    let queryProps: Omit<ServerDataGridProps, 'columns'>;
+    let constraints: ServerDataGridProps['constraints'] = [];
+
     if (policyId) {
-      return {
+      queryProps = {
         collName: 'POLICIES',
         pathSegments: [policyId, COLLECTIONS.CHANGE_REQUESTS],
         isCollectionGroup: false,
       };
-    }
-    if (claims?.iDemandAdmin) {
-      return {
+    } else {
+      queryProps = {
         collName: 'CHANGE_REQUESTS',
         isCollectionGroup: true,
-      };
-    }
-    if (claims?.orgAdmin) {
-      return {
-        collName: 'CHANGE_REQUESTS',
-        isCollectionGroup: true,
-        constraints: [where('agency.orgId', '==', orgId)],
-      };
-    }
-    if (claims?.agent) {
-      return {
-        collName: 'CHANGE_REQUESTS',
-        isCollectionGroup: true,
-        constraints: [where('agent.userId', '==', user?.uid)],
       };
     }
 
-    if (!user?.uid) throw new Error('must be signed in');
-    return {
-      collName: 'CHANGE_REQUESTS',
-      isCollectionGroup: true,
-      constraints: [where('userId', '==', user?.uid)],
-    };
+    if (claims?.orgAdmin) {
+      constraints.push(where('agency.orgId', '==', orgId));
+    } else if (claims?.agent) {
+      constraints.push(where('agent.userId', '==', user?.uid));
+    } else {
+      constraints.push(where('userId', '==', user?.uid));
+    }
+
+    return { ...queryProps, constraints };
+
+    // if (policyId) {
+    //   return {
+    //     collName: 'POLICIES',
+    //     pathSegments: [policyId, COLLECTIONS.CHANGE_REQUESTS],
+    //     isCollectionGroup: false,
+    //     constraints
+    //   };
+    // }
+    // if (claims?.iDemandAdmin) {
+    //   return {
+    //     collName: 'CHANGE_REQUESTS',
+    //     isCollectionGroup: true,
+    //   };
+    // }
+    // if (claims?.orgAdmin) {
+    //   return {
+    //     collName: 'CHANGE_REQUESTS',
+    //     isCollectionGroup: true,
+    //     constraints: [where('agency.orgId', '==', orgId)],
+    //   };
+    // }
+    // if (claims?.agent) {
+    //   return {
+    //     collName: 'CHANGE_REQUESTS',
+    //     isCollectionGroup: true,
+    //     constraints: [where('agent.userId', '==', user?.uid)],
+    //   };
+    // }
+
+    // if (!user?.uid) throw new Error('must be signed in');
+    // return {
+    //   collName: 'CHANGE_REQUESTS',
+    //   isCollectionGroup: true,
+    //   constraints: [where('userId', '==', user?.uid)],
+    // };
   }, [policyId, claims, user, orgId]);
 
   return (

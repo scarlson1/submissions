@@ -57,15 +57,12 @@ const createPolicy = async ({ data, auth }: CallableRequest<CreatePolicyProps>) 
 
   const quoteSnap = await quotesCol.doc(quoteId).get();
   const quoteData = quoteSnap.data();
-  if (!quoteSnap.exists || !quoteData)
-    throw new HttpsError('not-found', `Quote not found (${quoteId})`);
+  validate(quoteSnap.exists && quoteData, 'not-found', `Quote not found (${quoteId})`);
 
-  if (!quoteData.homeState)
-    throw new HttpsError('failed-precondition', 'quote is missing home state');
+  validate(quoteData.homeState, 'failed-precondition', 'quote is missing home state');
 
   const isExpired = quoteData.quoteExpirationDate?.toMillis() < new Date().getTime();
-  if (isExpired)
-    throw new HttpsError('failed-precondition', 'Quote expired. Please create a new one.');
+  validate(!isExpired, 'failed-precondition', 'Quote expired. Please create a new one.');
 
   // TODO: check effective date within 15-30 day window ?? handle admin approval process if not
   // TODO: validate quote (expired, exp./eff. dates, amount, taxes, fees, all values exist, etc.)
@@ -81,19 +78,19 @@ const createPolicy = async ({ data, auth }: CallableRequest<CreatePolicyProps>) 
 
       isMoratorium = mortRes;
     } catch (err: any) {
+      // TODO: report to sentry (getErrorReporter)
       error(
         `Error fetching moratoriums for FIPS ${quoteData.address.countyFIPS}. Continuing policy creation.`,
         { err }
       );
     }
   }
-  if (isMoratorium)
-    throw new HttpsError('failed-precondition', 'Quote expired. Please create a new one.');
+  validate(!isMoratorium, 'failed-precondition', `Moratorium in place for FIPS ${fips}`);
 
   // Fetch surplus lines license
   let licenseData;
   try {
-    licenseData = await getSLLicenseByState(db, quoteData.homeState, quoteData.effectiveDate); // quoteData.expirationDate
+    licenseData = await getSLLicenseByState(db, quoteData.homeState, quoteData.effectiveDate);
   } catch (err: any) {
     let msg = `Error retrieving SL license`;
     if (err?.message) msg += ` (${err.message})`;
