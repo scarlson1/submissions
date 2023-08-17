@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { GeoPoint } from 'firebase/firestore';
 import {
   FlyToInterpolator,
   IconLayer,
@@ -8,23 +7,10 @@ import {
   PickingInfo,
   WebMercatorViewport,
 } from 'deck.gl/typed';
-import { max, min, zip } from 'lodash';
+import { useTheme } from '@mui/material';
 
 import { DeckMap, DeckMapProps } from './DeckMap';
-
-const ICON_MAPPING = {
-  marker: { x: 0, y: 0, width: 128, height: 128, anchorY: 128, mask: true },
-};
-
-export function getBoundingBox(points: number[][]) {
-  const [xCoords, yCoords] = zip(...points);
-  // format: [minLng, minLat, maxLng, maxLat]
-  return [min(yCoords) || -180, min(xCoords) || -90, max(yCoords) || 180, max(xCoords) || 90];
-}
-
-type CoordObj = Record<string, any> & {
-  coordinates: GeoPoint | { latitude: number; longitude: number };
-};
+import { svgToDataURL, getPlaceMarker, getBoundingBox, CoordObj } from 'modules/utils';
 
 export interface LocationsMapProps extends Omit<DeckMapProps, 'layers' | 'hoverInfo'> {
   data: CoordObj[];
@@ -32,6 +18,7 @@ export interface LocationsMapProps extends Omit<DeckMapProps, 'layers' | 'hoverI
 }
 
 export const LocationsMap = ({ data, layerProps, ...props }: LocationsMapProps) => {
+  const theme = useTheme();
   const [hoverInfo, setHoverInfo] = useState<PickingInfo>();
   const [mapViewState, setMapViewState] = useState<MapViewState>({
     longitude: -94.25,
@@ -56,14 +43,14 @@ export const LocationsMap = ({ data, layerProps, ...props }: LocationsMapProps) 
       typeof maxLat === 'number'
     ) {
       // https://stackoverflow.com/a/63577542
-      const viewport = new WebMercatorViewport({ height: 500, width: window.innerWidth }); // mapStateView
+      const viewport = new WebMercatorViewport({ height: 500, width: window.innerWidth });
       const { longitude, latitude, zoom } = viewport.fitBounds(
         [
           [minLat, minLng],
           [maxLat, maxLng],
         ],
         {
-          padding: 40,
+          padding: 80,
         }
       );
 
@@ -86,14 +73,23 @@ export const LocationsMap = ({ data, layerProps, ...props }: LocationsMapProps) 
         new IconLayer({
           id: 'locations-layer',
           data: data || [],
-          iconAtlas:
-            'https://raw.githubusercontent.com/visgl/deck.gl-data/master/website/icon-atlas.png',
-          iconMapping: ICON_MAPPING,
-          getPosition: (d: CoordObj) => [d.coordinates.longitude, d.coordinates.latitude],
-          getIcon: (d) => 'marker',
-          sizeScale: 5,
-          getSize: (d) => 5,
+          getIcon: () => ({
+            url: svgToDataURL(`${getPlaceMarker(theme.palette.primary.main)}`),
+            width: 36,
+            height: 36,
+            anchorX: 18,
+            anchorY: 36,
+          }),
+          getPosition: (d: CoordObj) => [
+            d?.coordinates?.longitude || 0,
+            d?.coordinates?.latitude || 0,
+          ],
+          sizeScale: 1,
+          getSize: (d) => 36,
           onHover: (info) => setHoverInfo(info),
+          updateTriggers: {
+            getIcon: [theme.palette.mode],
+          },
           ...(layerProps || {}),
         }),
       ]}

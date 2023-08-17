@@ -11,7 +11,7 @@ import TextAlign from '@tiptap/extension-text-align';
 import Underline from '@tiptap/extension-underline';
 import Highlight from '@tiptap/extension-highlight';
 
-import FontSize from 'modules/utils/FontSize';
+import FontSize from 'modules/textEditor/FontSize';
 
 export const EDITOR_EXTENSION_DEFAULTS = [
   Color.configure({ types: [TextStyle.name, ListItem.name] }), // @ts-ignore

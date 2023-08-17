@@ -3,7 +3,7 @@ import { useCallback } from 'react';
 import { Editor } from '@tiptap/react';
 import { alpha, MenuItem, Select, SelectChangeEvent, Typography } from '@mui/material';
 
-import { FONT_SIZES } from 'modules/utils/FontSize';
+import { FONT_SIZES } from 'modules/textEditor/FontSize';
 
 export interface FontSizeToolbarProps {
   editor?: Editor;

@@ -13,39 +13,24 @@ import {
 } from '@mui/material';
 import { QueryConstraint, where } from 'firebase/firestore';
 import { IconLayer, IconLayerProps, PickingInfo } from 'deck.gl/typed';
+// import { DataFilterExtension } from '@deck.gl/extensions';
 
 import { DeckMap, HoverInfo } from './DeckMap';
 import { useCollectionData } from 'hooks';
-// import { deliverAgencyAgreement, getValuationEstimate } from 'modules/api';
-import { MAP_ICON_URL, Submission, WithId } from 'common';
-import { getRGBAArray } from 'modules/utils';
+import { Submission, WithId } from 'common';
+import { MAP_ICON_URL, ICON_MAPPING, getRGBAArray, TypedPickingInfo } from 'modules/utils';
 
 // TODO: study how MUI 'slots' works to create component that can add filters, etc.
-// TODO: use useReducer to create actions for map ??
-
-// @ts-ignore
-// import { DataFilterExtension } from '@deck.gl/extensions';
-// import { Policy } from 'common';
-
-interface TypedPickingInfo<T = any> extends PickingInfo {
-  object?: T;
-}
+// TODO: use useReducer to create actions for map ?? (and context ??)
 
 const stateOptions = ['MN', 'FL', 'TN'];
-
-// INTERACT WITH PICKING METHODS DIRECTLY: https://deck.gl/docs/developer-guide/interactivity#calling-the-picking-engine-directly
 
 //  TODO: checkout data filter extension: https://deck.gl/docs/api-reference/extensions/data-filter-extension
 
 // TODO: draw layers using nebula: https://github.com/uber/nebula.gl/blob/master/modules/edit-modes/src/lib/draw-circle-from-center-mode.ts
 
 // TODO: SWITCH TO POLICIES
-
 // TODO: pull filters, etc. up to parent component and pass as prop ??
-
-const ICON_MAPPING = {
-  marker: { x: 0, y: 0, width: 128, height: 128, anchorY: 128, mask: true },
-};
 
 interface PoliciesMapProps {
   constraints?: QueryConstraint[];
@@ -224,54 +209,3 @@ export const TestPoliciesMapWithFilters = ({
     </Box>
   );
 };
-
-// const testValuation = useCallback(async () => {
-//   try {
-//     // let { data } = await getValuationEstimate(getFunctions(), {
-//     //   addressLine1: '1382 Hunter Drive',
-//     //   city: 'Wayzata',
-//     //   state: 'MN',
-//     //   postal: '55391',
-//     // });
-//     let { data } = await getValuationEstimate(getFunctions(), {
-//       addressLine1: '208 Aiken Hunt Circle',
-//       city: 'Columbia',
-//       state: 'SC',
-//       postal: '29229',
-//     });
-
-//     console.log('RES: ', data);
-//   } catch (err) {
-//     console.log('ERROR: ', err);
-//   }
-// }, []);
-
-// function TestSignNow() {
-//   const functions = useFunctions();
-
-//   const handleClick = useCallback(async () => {
-//     try {
-//       const { data } = await deliverAgencyAgreement(functions, {
-//         recipientName: 'John Doe',
-//         email: 'spencercarlson@mac.com',
-//         companyName: 'Engulfed Insurance',
-//         companyAddress: {
-//           addressLine1: '123 main st.',
-//           addressLine2: '',
-//           city: 'Nashville',
-//           state: 'TN',
-//           postal: '37203',
-//         },
-//       });
-//       console.log('RES: ', data);
-//     } catch (err) {
-//       console.log('ERROR: ', err);
-//     }
-//   }, [functions]);
-
-//   return (
-//     <Button onClick={handleClick} sx={{ m: 2 }}>
-//       Test Sign Now
-//     </Button>
-//   );
-// }

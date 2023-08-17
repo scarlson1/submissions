@@ -1,10 +1,9 @@
 import { useState } from 'react';
-
+import { GeoJsonLayer, PickingInfo } from 'deck.gl/typed';
 import { useTheme } from '@mui/material';
 
 import { DeckMap, defaultGeoJsonLayerProps } from './DeckMap';
 import { COUNTIES_URL, FIPSDetails } from 'common';
-import { GeoJsonLayer, PickingInfo } from 'deck.gl/typed';
 
 export interface CountiesMapProps {
   selectedCounties?: FIPSDetails[];
@@ -13,10 +12,7 @@ export interface CountiesMapProps {
 
 export const CountiesMap = ({ selectedCounties, layerProps }: CountiesMapProps) => {
   const theme = useTheme();
-  // const storage = useStorage();
   const [hoverInfo, setHoverInfo] = useState<PickingInfo>();
-
-  // const { data: countiesURL } = useStorageDownloadURL(ref(storage, COUNTIES_JSON_STORAGE_PATH));
 
   return (
     <DeckMap
@@ -27,8 +23,7 @@ export const CountiesMap = ({ selectedCounties, layerProps }: CountiesMapProps) 
       layers={[
         new GeoJsonLayer({
           ...defaultGeoJsonLayerProps,
-          id: `geojson-layer-counties`, // @ts-ignore
-          // data: countiesData,
+          id: `geojson-layer-counties`,
           data: COUNTIES_URL,
           highlightColor: theme.palette.mode === 'dark' ? [255, 255, 255, 25] : [80, 144, 211, 20],
           getLineColor: theme.palette.mode === 'dark' ? [255, 255, 255, 200] : [178, 186, 194, 200],

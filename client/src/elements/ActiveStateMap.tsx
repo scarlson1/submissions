@@ -25,8 +25,6 @@ export const INITIAL_VIEW_STATE = {
 export interface ActiveStateMapProps extends DeckMapProps {
   handleClick?: (pickingInfo: PickingInfo, event: any) => void;
   statesValues: { [key: string]: boolean } | undefined;
-  // mapViewState?: MapViewState;
-  // children?: React.ReactNode;
 }
 
 export const ActiveStateMap = ({
