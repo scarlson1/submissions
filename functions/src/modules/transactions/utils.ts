@@ -67,7 +67,13 @@ export const getTermProratedPct = (policyTermDays: number, locationTermDays: num
  * @returns {number} term premium for cancellation or prem endorsement offset (will usually be negative)
  */
 export const getOffsetTermPremium = (prevTrx: PremiumTransaction, trxEffDate: Timestamp) => {
-  const earnedDays = getTermDays(prevTrx.trxEffDate.toDate(), trxEffDate.toDate());
+  // later of requested eff date & policy eff date
+  const startDate =
+    trxEffDate.toMillis() < prevTrx.trxEffDate.toMillis()
+      ? prevTrx.trxEffDate.toDate()
+      : trxEffDate.toDate();
+
+  const earnedDays = getTermDays(prevTrx.trxEffDate.toDate(), startDate);
   const earnedPremium = earnedDays * prevTrx.dailyPremium;
 
   return -round(prevTrx.termPremium - earnedPremium, 2);
@@ -151,7 +157,7 @@ export async function fetchPreviousTrx(
     .where('policyId', '==', policyId)
     .where('locationId', '==', locationId)
     .where('trxType', 'in', types)
-    .orderBy('metadata.created')
+    .orderBy('metadata.created', 'desc')
     .limit(1);
 
   const qSnap = await q.get();

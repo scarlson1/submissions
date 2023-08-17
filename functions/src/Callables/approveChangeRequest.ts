@@ -76,9 +76,6 @@ const approveChangeRequest = async ({ data, auth }: CallableRequest<ApproveReque
       const location = policy.locations[locationId];
       if (!location) throw new Error(`Location not found on policy`);
 
-      // TODO: should location changes be stored as diff from policy root ??
-      // Then policy changes would look the same as location changes
-      // and deepmerge could be used in both scenarios
       const mergedLocation = deepmerge(location, changes);
 
       // If using batch.update --> use dot notation ([`locations.${locationId}`]: mergedLocation)

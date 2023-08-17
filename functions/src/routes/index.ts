@@ -9,13 +9,20 @@ import {
   sendgridApiKey,
 } from '../common';
 
-// TODO: upgrade to v2 onRequest
+// TODO: upgrade to v2 onRequest (need to get hosting rewrite to work b/c v2 uses cloud run & creates new url every deploy)
 
 export const authRequests = functions
   .runWith({ secrets: [emailVerificationKey, firebaseHashConfig] })
   .https.onRequest(async (request, response) => {
     await (await import('./authRequests.js')).default(request, response);
   });
+
+export const authrequeststest = onRequest(
+  { secrets: [sendgridApiKey] },
+  async (request, response) => {
+    await (await import('./authRequestsv2Test.js')).default(request, response);
+  }
+);
 
 export const generatepdf = onRequest({ secrets: [exportSDKKey] }, async (request, response) => {
   await (await import('./generatePDF.js')).default(request, response);
@@ -24,13 +31,6 @@ export const generatepdf = onRequest({ secrets: [exportSDKKey] }, async (request
 export const sendgrid = onRequest({ secrets: [sendgridApiKey] }, async (request, response) => {
   await (await import('./sendgrid.js')).default(request, response);
 });
-
-export const authrequeststest = onRequest(
-  { secrets: [sendgridApiKey] },
-  async (request, response) => {
-    await (await import('./authRequestsv2Test.js')).default(request, response);
-  }
-);
 
 export const pubsubhelper = functions.https.onRequest(async (request, response) => {
   await (await import('./pubSubHelper.js')).default(request, response);

@@ -472,12 +472,6 @@ export function NamedInsuredStep({ logAnalyticsStep }: LogAnalyticsProp) {
 }
 
 export function MailingAddressStep() {
-  const { errors } = useFormikContext();
-
-  useEffect(() => {
-    console.log('ERRS: ', errors);
-  }, [errors]);
-
   return (
     <Grid container spacing={5}>
       <Grid xs={12}>

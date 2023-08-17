@@ -17,7 +17,7 @@ import {
   changeReqestsCollection,
 } from 'common';
 import { useAuth } from 'context';
-import { LocationChangeForm, LocationChangeValues, LocationChangeFormProps } from 'elements/forms';
+import { LocationChangeForm, LocationChangeFormProps, LocationChangeValues } from 'elements/forms';
 import { useAsyncToast } from './useAsyncToast';
 import { formatChanges } from './useCreatePolicyChangeRequest';
 import { useDialogForm } from './useDialogForm';
@@ -44,7 +44,6 @@ export const useCreateLocationChangeRequest = (policyId: string) => {
         newVals,
         initialVals.current
       );
-      console.log('DIFF: ', diff);
 
       const requiresEndorsement = hasEndorsementKeys(diff);
       const requiresAmendment = hasAmendmentKeys(diff);

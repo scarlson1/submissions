@@ -234,7 +234,7 @@ export function renderNumber(
 
 export function renderCurrency(
   { value }: GridRenderCellParams<any, any, any>,
-  withDecimals: boolean = false,
+  withDecimals: boolean = true,
   typographyProps?: TypographyProps
 ) {
   if (!value && value !== 0) return null;
@@ -271,7 +271,7 @@ export function renderChip(
   propsGetterFunc: (props: any) => Partial<ChipProps> | void = () => {}
 ) {
   if (!value) return null;
-  return <Chip label={value} size='small' {...chipProps} {...propsGetterFunc(value)} />;
+  return <Chip label={value} size='small' {...chipProps} {...propsGetterFunc({ value })} />;
 }
 
 export function renderSplitSnakeCase(

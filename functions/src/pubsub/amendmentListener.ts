@@ -43,8 +43,11 @@ export default async (event: CloudEvent<MessagePublishedData<AmendmentPayload>>)
   const locationVerified = locationRequired
     ? Boolean(locationId) && typeof locationId === 'string'
     : true;
-  if (!policyId || typeof policyId !== 'string' || locationVerified) {
-    reportError(`Missing policy and/or location ID`, { policyId });
+  if (!policyId || typeof policyId !== 'string' || !locationVerified) {
+    reportError(`Missing policy and/or location ID`, {
+      policyId,
+      locationId: locationId ?? 'not provided',
+    });
     return;
   }
 

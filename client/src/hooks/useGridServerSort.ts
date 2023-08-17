@@ -1,6 +1,6 @@
-import { startTransition, useCallback, useEffect, useRef, useState } from 'react';
-import { QueryOrderByConstraint, orderBy } from 'firebase/firestore';
 import { GridInitialState, GridSortModel } from '@mui/x-data-grid';
+import { QueryOrderByConstraint, orderBy } from 'firebase/firestore';
+import { startTransition, useCallback, useEffect, useRef, useState } from 'react';
 
 import { getFirestoreSortOps } from 'modules/muiGrid';
 
@@ -21,7 +21,7 @@ export const useGridServerSort = (initialState?: GridInitialState | undefined) =
       if (f.sort) newOptions.push(orderBy(f.field, f.sort));
     });
 
-    // console.log('SETTING SORT OPTIONS', newOptions);
+    console.log('SETTING SORT OPTIONS', newOptions);
     sortOps.current = [...newOptions];
     startTransition(() => {
       setSortModel([...sortModel]);

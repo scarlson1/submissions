@@ -41,6 +41,7 @@ export interface EndorsementPayload {
 
 export default async (event: CloudEvent<MessagePublishedData<EndorsementPayload>>) => {
   info('PREM ENDORSEMENT EVENT - MSG JSON: ', { ...(event.data?.message?.json || {}) });
+
   const eventId = event.id;
   let policyId = null;
   let locationId = null;

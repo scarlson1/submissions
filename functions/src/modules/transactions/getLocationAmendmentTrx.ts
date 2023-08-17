@@ -7,6 +7,13 @@ export const getLocationAmendmentTrx = (
   location: PolicyLocation,
   eventId: string
 ): AmendmentTransaction => {
+  // TODO: share logic with ohter trx types
+  const currentDateMS = new Date().getTime();
+  const locationEffDate = location.effectiveDate.toMillis();
+  const trxEffDateMS = currentDateMS < locationEffDate ? locationEffDate : currentDateMS;
+
+  const trxEffDate = Timestamp.fromMillis(trxEffDateMS);
+
   return {
     trxType: 'amendment',
     product: policy.product,
@@ -22,9 +29,9 @@ export const getLocationAmendmentTrx = (
     homeState: policy.homeState,
     policyEffDate: policy.effectiveDate,
     policyExpDate: policy.expirationDate,
-    trxEffDate: Timestamp.now(),
+    trxEffDate, // Timestamp.now(),
     trxExpDate: location.expirationDate,
-    trxDays: getTermDays(new Date(), location.expirationDate.toDate()),
+    trxDays: getTermDays(trxEffDate.toDate(), location.expirationDate.toDate()),
     otherInterestedParties: location.mortgageeInterest.map((m) => m.name),
     additionalNamedInsured: location.additionalInsureds.map((ai) => ai.name),
     eventId,

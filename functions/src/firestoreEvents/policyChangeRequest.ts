@@ -360,6 +360,8 @@ async function handleAcceptedRequest(data: ChangeRequest, policyId: string) {
     // TODO: check if event already emitted
     // if (data.trxPubSubEmitted === true) return
 
+    console.log('HANDLE ACCEPTED DATA: ', data);
+
     if (data.scope === 'location') {
       switch (data.trxType) {
         case 'endorsement':

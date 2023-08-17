@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import {
   collection,
   collectionGroup,
@@ -9,6 +8,7 @@ import {
   QueryConstraint,
   startAfter,
 } from 'firebase/firestore';
+import { useMemo } from 'react';
 import { ReactFireOptions, useFirestore, useFirestoreCollection } from 'reactfire';
 
 import { COLLECTIONS } from 'common';
@@ -45,6 +45,9 @@ export function useFetchDocsWithCursor<T = any>(
   }
 
   let q = query(collectionRef, ...qConstraints);
+
+  console.log('constraints: ', constraints);
+  console.log('QUERY: ', q);
 
   return useFirestoreCollection<T>(q, { idField: 'id', ...options });
 }

@@ -1,4 +1,4 @@
-import { Typography, GlobalStyles, alpha, Box } from '@mui/material';
+import { Box, GlobalStyles, Typography, alpha } from '@mui/material';
 import { useCallback } from 'react';
 import { Diff, Hunk, parseDiff } from 'react-diff-view';
 import 'react-diff-view/style/index.css';

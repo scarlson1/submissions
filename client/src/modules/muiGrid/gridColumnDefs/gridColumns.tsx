@@ -51,18 +51,12 @@ import {
   Mortgagee,
   Nullable,
   POLICY_STATUS,
+  PRODUCT,
   PolicyLocation,
   QUOTE_STATUS,
   SUBMISSION_STATUS,
 } from 'common';
-import {
-  FileLink,
-  GridCellCopy,
-  // renderChip,
-  // renderChips,
-  renderGridEmail,
-  renderGridPhone,
-} from 'components';
+import { FileLink, GridCellCopy, renderGridEmail, renderGridPhone } from 'components';
 import {
   renderCellExpand,
   renderChip,
@@ -718,8 +712,8 @@ export const limitACol: GridColDef = {
 export const limitBCol: GridColDef = {
   ...currencyCol,
   field: 'limits.limitB',
-  headerName: 'Appurtenant Structures Limit',
-  description: 'Coverage B limit (Additional structures)',
+  headerName: 'Other Structures Limit',
+  description: 'Coverage B limit (appurtenant structures)',
   minWidth: 120,
   flex: 0.8,
   editable: false,
@@ -843,6 +837,7 @@ export const replacementCostCol: GridColDef = {
   type: 'number',
   minWidth: 140,
   flex: 0.8,
+  renderCell: (params) => renderCurrency(params, false),
 };
 
 export const ratingDataReplacementCostCol: GridColDef = {
@@ -1202,7 +1197,6 @@ export const termPremiumCol: GridColDef = {
   minWidth: 120,
   flex: 0.8,
   editable: false,
-  renderCell: (params) => renderCurrency(params, true),
 };
 
 export const termDaysCol: GridColDef = {
@@ -1318,13 +1312,17 @@ export const productCol: GridSingleSelectColDef = {
   type: 'singleSelect',
   valueOptions: PRODUCT_OPTIONS,
   filterOperators: getGridFirestoreSelectOperators(),
+  renderCell: (params) =>
+    renderChip(params, { variant: 'outlined', size: 'small' }, ({ value }: any) =>
+      getProductChipProps(value)
+    ),
 };
 
 function getProductChipProps(value: string): Partial<ChipProps> {
   switch (value) {
-    case 'flood':
+    case PRODUCT.FLOOD:
       return { icon: <FloodRounded />, color: 'primary' };
-    case 'wind':
+    case PRODUCT.WIND:
       return { icon: <StormRounded />, color: 'secondary' };
     default:
       return { color: 'default' };
@@ -1705,7 +1703,6 @@ export const emailTypeCol: GridColDef = {
 };
 
 export const dailyPremiumCol: GridColDef = {
-  // ...numericColBaseProps,
   ...currencyCol,
   field: 'dailyPremium',
   headerName: 'Daily Premium',
@@ -1726,6 +1723,7 @@ export const minPremiumCol: GridColDef = {
   width: 140,
   flex: 0.5,
   editable: false,
+  renderCell: (params) => renderCurrency(params, true),
 };
 
 export const techInlandPremiumCol: GridColDef = {
@@ -1735,10 +1733,7 @@ export const techInlandPremiumCol: GridColDef = {
   minWidth: 140,
   flex: 0.5,
   editable: false,
-  valueGetter: (params) => {
-    const val = params.row.techPremium?.inland;
-    return val || val === 0 ? val : null;
-  },
+  valueGetter: ({ row }) => row.techPremium?.inland ?? null,
 };
 
 export const techSurgePremiumCol: GridColDef = {
@@ -1748,10 +1743,7 @@ export const techSurgePremiumCol: GridColDef = {
   minWidth: 140,
   flex: 0.5,
   editable: false,
-  valueGetter: (params) => {
-    const val = params.row.techPremium?.surge;
-    return val || val === 0 ? val : null;
-  },
+  valueGetter: ({ row }) => row.techPremium?.surge ?? null,
 };
 
 export const techTsunamiPremiumCol: GridColDef = {
@@ -1761,10 +1753,7 @@ export const techTsunamiPremiumCol: GridColDef = {
   minWidth: 140,
   flex: 0.5,
   editable: false,
-  valueGetter: (params) => {
-    const val = params.row.techPremium?.tsunami;
-    return val || val === 0 ? val : null;
-  },
+  valueGetter: ({ row }) => row.techPremium?.tsunami ?? null,
 };
 
 export const inlandCategoryPremiumCol: GridColDef = {
@@ -1774,10 +1763,7 @@ export const inlandCategoryPremiumCol: GridColDef = {
   minWidth: 140,
   flex: 0.5,
   editable: false,
-  valueGetter: (params) => {
-    const val = params.row.floodCategoryPremium?.inland;
-    return val || val === 0 ? val : null;
-  },
+  valueGetter: ({ row }) => row.floodCategoryPremium?.inland ?? null,
 };
 
 export const surgeCategoryPremiumCol: GridColDef = {
@@ -1787,10 +1773,7 @@ export const surgeCategoryPremiumCol: GridColDef = {
   minWidth: 140,
   flex: 0.5,
   editable: false,
-  valueGetter: (params) => {
-    const val = params.row.floodCategoryPremium?.surge;
-    return val || val === 0 ? val : null;
-  },
+  valueGetter: ({ row }) => row.floodCategoryPremium?.surge ?? null,
 };
 
 export const tsunamiCategoryPremiumCol: GridColDef = {
@@ -1800,10 +1783,7 @@ export const tsunamiCategoryPremiumCol: GridColDef = {
   minWidth: 140,
   flex: 0.5,
   editable: false,
-  valueGetter: (params) => {
-    const val = params.row.floodCategoryPremium?.tsunami;
-    return val || val === 0 ? val : null;
-  },
+  valueGetter: ({ row }) => row.floodCategoryPremium?.tsunami ?? null,
 };
 
 export const premiumSubtotalCol: GridColDef = {
@@ -1813,7 +1793,7 @@ export const premiumSubtotalCol: GridColDef = {
   minWidth: 140,
   flex: 0.5,
   editable: false,
-  valueGetter: (params) => params.row.premiumSubtotal || null,
+  valueGetter: ({ row }) => row.premiumSubtotal ?? null,
 };
 
 export const provisionalPremiumCol: GridColDef = {
@@ -1823,7 +1803,7 @@ export const provisionalPremiumCol: GridColDef = {
   minWidth: 140,
   flex: 0.5,
   editable: false,
-  valueGetter: (params) => params.row.provisionalPremium || null,
+  valueGetter: ({ row }) => row.provisionalPremium ?? null,
 };
 
 export const subproducerAdjCol: GridColDef = {
@@ -1833,14 +1813,14 @@ export const subproducerAdjCol: GridColDef = {
   minWidth: 140,
   flex: 0.5,
   editable: false,
-  valueGetter: (params) => params.row.subproducerAdj || null,
+  valueGetter: ({ row }) => row.subproducerAdj ?? null,
 };
 
 export const dwpCol: GridColDef = {
   ...annualPremiumCol,
   field: 'directWrittenPremium',
   headerName: 'DWP',
-  valueGetter: (params) => params.row.directWrittenPremium || null,
+  valueGetter: ({ row }) => row.directWrittenPremium ?? null,
 };
 
 export const termCol: GridColDef = {
@@ -2054,6 +2034,12 @@ export const trxLongitudeCol: GridColDef = {
     params.row.insuredLocation?.coordinates?.longitude || null,
 };
 
+export const trxCoordinatesCol: GridColDef = {
+  ...coordinatesCol,
+  field: 'insuredLocation.coordinates',
+  valueGetter: (params) => params.row.insuredLocation?.coordinates || null,
+};
+
 export const mailingAddress1Col: GridColDef = {
   ...address1Col,
   field: 'mailingAddress.addressLine1',
@@ -2098,6 +2084,7 @@ export const buildingRCVCol: GridColDef = {
   field: 'RCVs.building',
   headerName: 'Building RCV',
   valueGetter: (params) => params.row.RCVs?.building || null,
+  renderCell: (params) => renderCurrency(params, false),
 };
 
 export const otherStructuresRCVCol: GridColDef = {
@@ -2105,6 +2092,7 @@ export const otherStructuresRCVCol: GridColDef = {
   field: 'RCVs.otherStructures',
   headerName: 'Other Structures RCV',
   valueGetter: (params) => params.row.RCVs?.otherStructures || null,
+  renderCell: (params) => renderCurrency(params, false),
 };
 
 export const contentsRCVCol: GridColDef = {
@@ -2112,6 +2100,7 @@ export const contentsRCVCol: GridColDef = {
   field: 'RCVs.contents',
   headerName: 'Contents RCV',
   valueGetter: (params) => params.row.RCVs?.contents || null,
+  renderCell: (params) => renderCurrency(params, false),
 };
 
 export const BIRCVCol: GridColDef = {
@@ -2119,4 +2108,5 @@ export const BIRCVCol: GridColDef = {
   field: 'RCVs.BI',
   headerName: 'BI RCV',
   valueGetter: (params) => params.row.RCVs?.BI || null,
+  renderCell: (params) => renderCurrency(params, false),
 };

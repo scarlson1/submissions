@@ -1,4 +1,3 @@
-import { useCallback, useEffect, useMemo, useRef, useState, startTransition } from 'react';
 import { Box } from '@mui/material';
 import {
   DataGrid,
@@ -11,17 +10,18 @@ import {
 } from '@mui/x-data-grid';
 import { DocumentSnapshot, QueryFieldFilterConstraint } from 'firebase/firestore';
 import { lowerCase } from 'lodash';
+import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import { COLLECTIONS } from 'common';
 import {
   useFetchDocCount,
   useFetchDocsWithCursor,
-  useWidth,
-  useGridServerSort,
   useGridServerFilter,
+  useGridServerSort,
+  useWidth,
 } from 'hooks';
-import { COLLECTIONS } from 'common';
-import { GridMobileToolbar } from './GridMobileToolbar';
 import { getOrderByIfNecessary } from 'modules/muiGrid/utils';
+import { GridMobileToolbar } from './GridMobileToolbar';
 
 // FIREBASE PAGINATION ARTICLE: https://makerkit.dev/blog/tutorials/pagination-react-firebase-firestore
 // TODO: handle row selection for server-side pagination: https://mui.com/x/react-data-grid/row-selection/#usage-with-server-side-pagination
@@ -60,14 +60,20 @@ export const ServerDataGrid = ({
   const { filters, handleFilterChange } = useGridServerFilter(props?.initialState);
   const [rowSelectionModel, setRowSelectionModel] = useState<GridRowSelectionModel>([]);
 
+  useEffect(() => {
+    console.log('sortModel: ', sortModel);
+    console.log('sortOps: ', sortOps.current);
+  }, [sortModel, sortOps]);
+
   // Firestore: if constraints inculdes <, <=, !=, not-in, >, or >= operator, must have orderBy
   const queryOptions = useMemo(
     () => {
       const orderByConstraint = getOrderByIfNecessary(constraints);
+      console.log('sortOps.current: ', sortOps.current);
 
       return [...filters, ...constraints, ...orderByConstraint, ...sortOps.current];
     },
-    [filters, constraints] // eslint-disable-line react-hooks/exhaustive-deps
+    [filters, constraints, sortModel] // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   const fetchCount = useFetchDocCount(

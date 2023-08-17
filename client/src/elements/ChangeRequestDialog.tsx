@@ -351,7 +351,9 @@ export function ChangeRequestsDialog({ policyId, open, handleClose }: ChangeRequ
             slots={{
               toolbar: null,
             }}
-            initialState={{ pagination: { paginationModel: { pageSize: 5 } } }}
+            initialState={{
+              pagination: { paginationModel: { pageSize: 5 } },
+            }}
             {...adminProps}
           />
         </Suspense>

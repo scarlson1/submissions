@@ -57,6 +57,8 @@ export const ChangeRequestsGrid = ({
       };
     }
 
+    if (claims?.iDemandAdmin) return { ...queryProps, constraints };
+
     if (claims?.orgAdmin) {
       constraints.push(where('agency.orgId', '==', orgId));
     } else if (claims?.agent) {
@@ -66,42 +68,6 @@ export const ChangeRequestsGrid = ({
     }
 
     return { ...queryProps, constraints };
-
-    // if (policyId) {
-    //   return {
-    //     collName: 'POLICIES',
-    //     pathSegments: [policyId, COLLECTIONS.CHANGE_REQUESTS],
-    //     isCollectionGroup: false,
-    //     constraints
-    //   };
-    // }
-    // if (claims?.iDemandAdmin) {
-    //   return {
-    //     collName: 'CHANGE_REQUESTS',
-    //     isCollectionGroup: true,
-    //   };
-    // }
-    // if (claims?.orgAdmin) {
-    //   return {
-    //     collName: 'CHANGE_REQUESTS',
-    //     isCollectionGroup: true,
-    //     constraints: [where('agency.orgId', '==', orgId)],
-    //   };
-    // }
-    // if (claims?.agent) {
-    //   return {
-    //     collName: 'CHANGE_REQUESTS',
-    //     isCollectionGroup: true,
-    //     constraints: [where('agent.userId', '==', user?.uid)],
-    //   };
-    // }
-
-    // if (!user?.uid) throw new Error('must be signed in');
-    // return {
-    //   collName: 'CHANGE_REQUESTS',
-    //   isCollectionGroup: true,
-    //   constraints: [where('userId', '==', user?.uid)],
-    // };
   }, [policyId, claims, user, orgId]);
 
   return (
@@ -120,7 +86,7 @@ export const ChangeRequestsGrid = ({
             },
           },
           sorting: {
-            sortModel: [{ field: 'metadata.created', sort: 'desc' }],
+            sortModel: [{ field: 'metadata.created', sort: 'asc' }],
           },
           ...(initialState || {}),
         }}

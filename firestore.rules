@@ -257,7 +257,7 @@ service cloud.firestore {
     // TODO: remove isSignedIn from all isXXX functions
     function isIDemandAdmin() {
       return isSignedIn() && request.auth.token.get('iDemandAdmin', null) == true
-    } 
+    }
 
     function isIDemandUser() {
       return isSignedIn() && request.auth.token.email.matches('.*@idemandinsurance[.]com')

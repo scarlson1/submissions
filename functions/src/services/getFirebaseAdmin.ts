@@ -1,13 +1,16 @@
-let isFirebaseAdminInitialized = false;
+// let isFirebaseAdminInitialized = false;
 
-// export default async function () {
-export async function getFirebaseAdmin() {
-  const admin = await import('firebase-admin');
+// // export default async function () {
+// export async function getFirebaseAdmin() {
+//   const admin = await import('firebase-admin');
 
-  if (!isFirebaseAdminInitialized) {
-    admin.initializeApp();
-    isFirebaseAdminInitialized = true;
-  }
+//   if (!isFirebaseAdminInitialized) {
+//     admin.initializeApp();
+//     isFirebaseAdminInitialized = true;
+//   }
 
-  return admin;
-}
+//   return admin;
+// }
+
+export {};
+// commented out to troubleshoot shutdown "requested via /__/quitquitquit" terminal message (and not being used rn)
