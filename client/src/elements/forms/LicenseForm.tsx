@@ -1,13 +1,14 @@
-import { useCallback, useRef } from 'react';
-import { Box, Stack, Unstable_Grid2 as Grid, IconButton, Tooltip } from '@mui/material';
 import { CloseRounded, SaveRounded } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
+import { Box, Unstable_Grid2 as Grid, IconButton, Stack, Tooltip } from '@mui/material';
+import { lastDayOfYear, startOfYear } from 'date-fns';
 import { Formik, FormikHelpers, FormikProps } from 'formik';
+import { useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as yup from 'yup';
-import { startOfYear, lastDayOfYear } from 'date-fns';
 
 import { License, addressValidationNotRequired, phoneVal } from 'common';
+import { statesAbrvSelectOptions } from 'common/statesList';
 import {
   FormikDatePicker,
   FormikMaskField,
@@ -17,9 +18,9 @@ import {
   IMask,
   phoneMaskProps,
 } from 'components/forms';
-import { statesAbrvSelectOptions } from 'common/statesList';
-import { FormikAddressLite } from './FormikAddressLite';
 import { ADMIN_ROUTES, createPath } from 'router';
+import { BASE_NESTED_ADDRESS_FIELD_NAMES } from './FormikAddress';
+import { FormikAddressLite } from './FormikAddressLite';
 
 const licenseValidation = yup.object().shape({
   state: yup.string().required('state is required'),
@@ -194,13 +195,7 @@ export const LicenseForm = ({
               </Grid>
               <Grid xs={12} sm={6} md={6} lg={4}>
                 <FormikAddressLite
-                  names={{
-                    addressLine1: 'address.addressLine1',
-                    addressLine2: 'address.addressLine2',
-                    city: 'address.city',
-                    state: 'address.state',
-                    postal: 'address.postal',
-                  }}
+                  names={BASE_NESTED_ADDRESS_FIELD_NAMES}
                   autocompleteProps={{
                     name: 'address.addressLine1',
                     textFieldProps: {

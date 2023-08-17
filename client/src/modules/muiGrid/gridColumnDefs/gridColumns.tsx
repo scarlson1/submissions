@@ -64,9 +64,13 @@ import {
   renderGridPhone,
 } from 'components';
 import {
+  renderCellExpand,
   renderChip,
   renderChips,
+  renderCurrency,
   renderJoinArray,
+  renderNumber,
+  renderPercent,
   renderSplitSnakeCase,
 } from 'components/RenderGridCellHelpers';
 import { CANCEL_REASON_OPTIONS } from 'elements/forms/CancelForm';
@@ -82,9 +86,7 @@ import {
 import {
   calcSum,
   formatFirestoreTimestamp,
-  formatGridCurrency,
   formatGridFirestoreTimestampAsDate,
-  formatGridPercent,
   getGridAddressComponent,
   isCurrentDateBetween,
   numberFormat,
@@ -115,17 +117,14 @@ export const numericColBaseProps: Partial<GridColDef> = {
   align: 'right',
   headerAlign: 'center',
   filterOperators: getGridFirestoreNumericOperators(),
+  renderCell: renderNumber,
 };
 
 export const percentColBaseProps: Partial<GridColDef> = {
-  type: 'number',
+  ...numericColBaseProps,
   minWidth: 120,
   flex: 0.8,
-  editable: false,
-  headerAlign: 'center',
-  align: 'right',
-  filterOperators: getGridFirestoreNumericOperators(),
-  valueFormatter: (params) => formatGridPercent(params, 0),
+  renderCell: renderPercent,
 };
 
 export const dateColBaseProps: Partial<GridColDef> = {
@@ -214,7 +213,6 @@ export const createdCol: GridColDef = {
   minWidth: 160,
   flex: 0.6,
   editable: false,
-  // disableExport: true,
   filterOperators: getGridFirestoreDateOperators(),
   valueGetter: (params: GridValueGetterParams<any, any>) => params.row.metadata?.created || null,
   valueParser: (value: any, params?: GridCellParams<any, any, any, GridTreeNode> | undefined) => {
@@ -329,14 +327,15 @@ export const fileLinkCol: GridColDef = {
   },
 };
 
-const addressSummaryBase = {
+const addressSummaryBase: GridColDef = {
   field: 'address',
   headerName: 'Address',
-  minWidth: 260,
+  minWidth: 280,
   flex: 1,
   editable: false,
   filterable: false,
   sortable: false,
+  renderCell: renderCellExpand,
 };
 
 const formatAddrSummary = (address?: Nullable<Address> | null | undefined, withLine2?: boolean) => {
@@ -361,16 +360,6 @@ export const addressSummaryCol: GridColDef = {
     if (value) return formatAddrSummary(value, true);
     return '';
   },
-  // const { addressLine1, city, state } = params.row.address;
-  // if (!(addressLine1 || city || state)) return null;
-
-  // let formatted = '';
-  // if (addressLine1) formatted += `${addressLine1}`;
-  // if (city) formatted += `, ${city}`;
-  // if (state) formatted += `, ${state}`;
-
-  // return formatted;
-  // },
 };
 
 export const agencyAddressCol: GridColDef = {
@@ -711,86 +700,67 @@ export const currencyCol: Partial<GridColDef> = {
   ...numericColBaseProps,
   minWidth: 120,
   flex: 0.8,
-  // editable: false,
-
-  valueFormatter: (params) => formatGridCurrency(params, '$0,0.00'),
-  renderCell: (params) => (
-    <Typography variant='body2' fontWeight='medium'>
-      {params.formattedValue}
-    </Typography>
-  ),
+  renderCell: renderCurrency,
 };
 
 export const limitACol: GridColDef = {
+  ...currencyCol,
   field: 'limits.limitA',
-  headerName: 'Limit A',
+  headerName: 'Building Limit',
   description: 'Coverage A limit (building)',
-  type: 'number',
   minWidth: 120,
   flex: 0.8,
   editable: false,
-  headerAlign: 'center',
-  align: 'right',
-  filterOperators: getGridFirestoreNumericOperators(),
   valueGetter: (params) => params.row.limits?.limitA ?? null,
-  valueFormatter: formatGridCurrency,
+  renderCell: (params) => renderCurrency(params, false, { fontWeight: 'medium' }),
 };
 
 export const limitBCol: GridColDef = {
+  ...currencyCol,
   field: 'limits.limitB',
-  headerName: 'Limit B',
+  headerName: 'Appurtenant Structures Limit',
   description: 'Coverage B limit (Additional structures)',
-  type: 'number',
   minWidth: 120,
   flex: 0.8,
   editable: false,
-  headerAlign: 'center',
-  align: 'right',
-  filterOperators: getGridFirestoreNumericOperators(),
   valueGetter: (params) => params.row.limits?.limitB ?? null,
-  valueFormatter: formatGridCurrency,
+  renderCell: (params) => renderCurrency(params, false, { fontWeight: 'medium' }),
 };
 
 export const limitCCol: GridColDef = {
+  ...currencyCol,
   field: 'limits.limitC',
-  headerName: 'Limit C',
+  headerName: 'Contents Limit',
   description: 'Coverage C limit (contents)',
   type: 'number',
   minWidth: 120,
   flex: 0.8,
   editable: false,
-  headerAlign: 'center',
-  align: 'right',
-  filterOperators: getGridFirestoreNumericOperators(),
   valueGetter: (params) => params.row.limits?.limitC ?? null,
-  valueFormatter: formatGridCurrency,
+  renderCell: (params) => renderCurrency(params, false, { fontWeight: 'medium' }),
 };
 
 export const limitDCol: GridColDef = {
+  ...currencyCol,
   field: 'limits.limitD',
-  headerName: 'Limit D',
-  description: 'Coverage D limit (living expenses)',
-  type: 'number',
+  headerName: 'BI Limit',
+  description: 'Coverage D limit (living expenses / business interruption)',
   minWidth: 120,
   flex: 0.8,
   editable: false,
-  headerAlign: 'center',
-  align: 'right',
-  filterOperators: getGridFirestoreNumericOperators(),
   valueGetter: (params) => params.row.limits?.limitD ?? null,
-  valueFormatter: formatGridCurrency,
+  renderCell: (params) => renderCurrency(params, false, { fontWeight: 'medium' }),
 };
 
 export const tivCol: GridColDef = {
+  ...currencyCol,
   field: 'TIV',
   headerName: 'TIV',
-  description: 'Total Insured Value - sum of coverage limits',
+  description: 'Total Insured Value (sum of coverage limits)',
   type: 'number',
   minWidth: 120,
   flex: 0.8,
   editable: false,
-  headerAlign: 'center',
-  align: 'right',
   filterable: false, // could be calculated value
   sortable: false,
   valueGetter: (params) => {
@@ -806,22 +776,18 @@ export const tivCol: GridColDef = {
       return null;
     }
   },
-  valueFormatter: formatGridCurrency,
+  renderCell: (params) => renderCurrency(params, false, { fontWeight: 'medium' }),
 };
 
-// TODO: TIV COLUMN
-
 export const deductibleCol: GridColDef = {
+  ...currencyCol,
   field: 'deductible',
   headerName: 'Deductible',
   type: 'number',
   minWidth: 100,
   flex: 0.5,
   editable: false,
-  headerAlign: 'center',
-  align: 'right',
-  filterOperators: getGridFirestoreNumericOperators(),
-  valueFormatter: formatGridCurrency,
+  renderCell: (params) => renderCurrency(params, false, { fontWeight: 'medium' }),
 };
 
 export const namedInsuredDisplayNameCol: GridColDef = {
@@ -870,16 +836,13 @@ export const namedInsuredPhoneCol: GridColDef = {
 };
 
 export const replacementCostCol: GridColDef = {
+  ...currencyCol,
   field: 'replacementCost',
   headerName: 'Replacement Cost',
   description: 'Building replacement cost',
   type: 'number',
   minWidth: 140,
   flex: 0.8,
-  headerAlign: 'center',
-  align: 'right',
-  valueFormatter: formatGridCurrency,
-  filterOperators: getGridFirestoreNumericOperators(),
 };
 
 export const ratingDataReplacementCostCol: GridColDef = {
@@ -889,16 +852,12 @@ export const ratingDataReplacementCostCol: GridColDef = {
 };
 
 export const subproducerCommissionCol: GridColDef = {
+  ...percentColBaseProps,
   field: 'subproducerCommission',
   headerName: 'Commission',
-  type: 'number',
   minWidth: 120,
   flex: 0.8,
   editable: false,
-  headerAlign: 'center',
-  align: 'right',
-  filterOperators: getGridFirestoreNumericOperators(),
-  valueFormatter: (params) => formatGridPercent(params, 0),
 };
 
 export const propertyCodeCol: GridColDef = {
@@ -1226,6 +1185,7 @@ export const tsunamiAALCol: GridColDef = {
 };
 
 export const annualPremiumCol: GridColDef = {
+  ...currencyCol,
   field: 'annualPremium',
   headerName: 'Annual Premium',
   description: 'Annual premium before taxes and fees',
@@ -1233,23 +1193,16 @@ export const annualPremiumCol: GridColDef = {
   minWidth: 140,
   flex: 0.8,
   editable: false,
-  headerAlign: 'center',
-  align: 'right',
-  filterOperators: getGridFirestoreNumericOperators(),
-  valueFormatter: formatGridCurrency,
 };
 
 export const termPremiumCol: GridColDef = {
+  ...currencyCol,
   field: 'termPremium',
   headerName: 'Term Premium',
-  type: 'number',
   minWidth: 120,
   flex: 0.8,
   editable: false,
-  headerAlign: 'center',
-  align: 'right',
-  filterOperators: getGridFirestoreNumericOperators(),
-  valueFormatter: (params) => formatGridCurrency(params, '$0,0.00'),
+  renderCell: (params) => renderCurrency(params, true),
 };
 
 export const termDaysCol: GridColDef = {
@@ -1447,7 +1400,7 @@ export const SLProducerOfRecordLicenseAddress: GridColDef = {
 export const issuingCarrierCol: GridColDef = {
   field: 'issuingCarrier',
   headerName: 'Carrier',
-  minWidth: 180,
+  minWidth: 260,
   flex: 0.6,
   editable: false,
   filterOperators: getGridFirestoreStringOperators(),
@@ -1571,7 +1524,7 @@ export const trxTypeCol: GridSingleSelectColDef = {
   description: 'Type of transaction (endorsement, amendment, cancellation, etc.)',
   type: 'singleSelect',
   valueOptions: TRANSACTION_OPTIONS,
-  minWidth: 160,
+  minWidth: 120,
   flex: 1,
   editable: false,
   filterOperators: getGridFirestoreStringOperators(),
@@ -1752,7 +1705,8 @@ export const emailTypeCol: GridColDef = {
 };
 
 export const dailyPremiumCol: GridColDef = {
-  ...numericColBaseProps,
+  // ...numericColBaseProps,
+  ...currencyCol,
   field: 'dailyPremium',
   headerName: 'Daily Premium',
   editable: false,
@@ -1766,7 +1720,7 @@ export const cancelEffDateCol: GridColDef = {
 };
 
 export const minPremiumCol: GridColDef = {
-  ...numericColBaseProps,
+  ...currencyCol,
   field: 'minPremiumCol',
   headerName: 'Min. Premium',
   width: 140,
@@ -1775,89 +1729,108 @@ export const minPremiumCol: GridColDef = {
 };
 
 export const techInlandPremiumCol: GridColDef = {
-  ...numericColBaseProps,
+  ...currencyCol,
   field: 'techPremium.inland',
   headerName: 'Inland Tech. Premium',
-  width: 140,
+  minWidth: 140,
   flex: 0.5,
   editable: false,
-  valueGetter: (params) => params.row.techPremium?.inland || null,
+  valueGetter: (params) => {
+    const val = params.row.techPremium?.inland;
+    return val || val === 0 ? val : null;
+  },
 };
 
 export const techSurgePremiumCol: GridColDef = {
-  ...numericColBaseProps,
+  ...currencyCol,
   field: 'techPremium.surge',
   headerName: 'Surge Tech. Premium',
-  width: 140,
+  minWidth: 140,
   flex: 0.5,
   editable: false,
-  valueGetter: (params) => params.row.techPremium?.surge || null,
+  valueGetter: (params) => {
+    const val = params.row.techPremium?.surge;
+    return val || val === 0 ? val : null;
+  },
 };
 
 export const techTsunamiPremiumCol: GridColDef = {
-  ...numericColBaseProps,
+  ...currencyCol,
   field: 'techPremium.tsunami',
   headerName: 'Tsunami Tech. Premium',
-  width: 140,
+  minWidth: 140,
   flex: 0.5,
   editable: false,
-  valueGetter: (params) => params.row.techPremium?.tsunami || null,
+  valueGetter: (params) => {
+    const val = params.row.techPremium?.tsunami;
+    return val || val === 0 ? val : null;
+  },
 };
 
 export const inlandCategoryPremiumCol: GridColDef = {
-  ...numericColBaseProps,
+  ...currencyCol,
   field: 'floodCategoryPremium.inland',
   headerName: 'Inland Category Premium',
-  width: 140,
+  minWidth: 140,
   flex: 0.5,
   editable: false,
-  valueGetter: (params) => params.row.floodCategoryPremium?.inland || null,
+  valueGetter: (params) => {
+    const val = params.row.floodCategoryPremium?.inland;
+    return val || val === 0 ? val : null;
+  },
 };
+
 export const surgeCategoryPremiumCol: GridColDef = {
-  ...numericColBaseProps,
+  ...currencyCol,
   field: 'floodCategoryPremium.surge',
   headerName: 'Surge Category Premium',
-  width: 140,
+  minWidth: 140,
   flex: 0.5,
   editable: false,
-  valueGetter: (params) => params.row.floodCategoryPremium?.surge || null,
+  valueGetter: (params) => {
+    const val = params.row.floodCategoryPremium?.surge;
+    return val || val === 0 ? val : null;
+  },
 };
 
 export const tsunamiCategoryPremiumCol: GridColDef = {
-  ...numericColBaseProps,
+  ...currencyCol,
   field: 'floodCategoryPremium.tsunami',
   headerName: 'Tsunami Category Premium',
-  width: 140,
+  minWidth: 140,
   flex: 0.5,
   editable: false,
-  valueGetter: (params) => params.row.floodCategoryPremium?.tsunami || null,
+  valueGetter: (params) => {
+    const val = params.row.floodCategoryPremium?.tsunami;
+    return val || val === 0 ? val : null;
+  },
 };
 
 export const premiumSubtotalCol: GridColDef = {
-  ...numericColBaseProps,
+  ...currencyCol,
   field: 'premiumSubtotal',
   headerName: 'Premium Subtotal',
-  width: 140,
+  minWidth: 140,
   flex: 0.5,
   editable: false,
   valueGetter: (params) => params.row.premiumSubtotal || null,
 };
 
 export const provisionalPremiumCol: GridColDef = {
-  ...numericColBaseProps,
+  ...currencyCol,
   field: 'provisionalPremium',
   headerName: 'Provisional Premium',
-  width: 140,
+  minWidth: 140,
   flex: 0.5,
   editable: false,
   valueGetter: (params) => params.row.provisionalPremium || null,
 };
 
 export const subproducerAdjCol: GridColDef = {
-  ...numericColBaseProps,
+  ...currencyCol,
   field: 'subproducerAdj',
   headerName: 'Subproducer Adj.',
-  width: 140,
+  minWidth: 140,
   flex: 0.5,
   editable: false,
   valueGetter: (params) => params.row.subproducerAdj || null,
@@ -1889,7 +1862,7 @@ export const namedInsuredTrxCol: GridColDef = {
   field: 'namedInsured',
   headerName: 'Named Insured',
   editable: false,
-  minWidth: 140,
+  minWidth: 180,
   flex: 0.6,
   filterOperators: getGridFirestoreStringOperators(),
 };
@@ -1976,7 +1949,7 @@ export const cancelReasonCol: GridSingleSelectColDef = {
   headerName: 'Cancel Reason',
   type: 'singleSelect',
   description: 'user selected reason for cancallation request (applicable to cancellation trx)',
-  minWidth: 80,
+  minWidth: 160,
   flex: 1,
   editable: false,
   valueOptions: CANCEL_REASON_OPTIONS,

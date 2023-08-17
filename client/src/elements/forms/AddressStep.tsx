@@ -38,7 +38,7 @@ export const AddressStep = ({
   gridProps,
   ...props
 }: AddressStepProps) => {
-  const { values, setFieldValue, validateForm } = useFormikContext<AddressStepValues>();
+  const { values, validateForm } = useFormikContext<AddressStepValues>();
   const [showMarker, setShowMarker] = useState(
     Boolean(values.coordinates?.latitude && values.coordinates?.longitude)
   );
@@ -97,12 +97,7 @@ export const AddressStep = ({
   }, [registerEmailDialog]);
 
   return (
-    <FormikAddress
-      setFieldValue={setFieldValue}
-      cb={addressChangeCb}
-      gridProps={gridProps}
-      {...props}
-    >
+    <FormikAddress cb={addressChangeCb} gridProps={gridProps} {...props}>
       {!!withMap && (
         <>
           <Card sx={{ height: 280, width: '100%', mt: 5 }}>

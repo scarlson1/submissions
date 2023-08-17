@@ -17,21 +17,21 @@ import {
 import Grid from '@mui/material/Unstable_Grid2/Grid2';
 import { useFormikContext } from 'formik';
 
+import { EditRounded } from '@mui/icons-material';
+import { statesAbrvSelectOptions } from 'common/statesList';
 import {
   AddressAutocomplete,
   AddressAutocompleteProps,
   FormikMaskField,
   FormikNativeSelect,
   FormikTextField,
-  NewAddress,
   IMask,
+  NewAddress,
   postalMaskProps,
 } from 'components/forms';
 import { findAddressValueByType } from 'modules/utils/helpers';
-import { AddressFieldNames } from './FormikAddress';
-import { EditRounded } from '@mui/icons-material';
-import { statesAbrvSelectOptions } from 'common/statesList';
 import { Transition } from './AddPaymentDialog';
+import { AddressFieldNames } from './FormikAddress';
 
 const DEFAULT_FIELD_NAMES = {
   addressLine1: 'addressLine1',
@@ -49,7 +49,6 @@ const DEFAULT_FIELD_NAMES = {
 export interface FormikAddressLiteProps {
   cb?: (coords: { lat: number | null; lng: number | null }, state?: string) => void;
   textFieldProps?: TextFieldProps;
-  // autocompleteTextFieldProps?: TextFieldProps;
   autocompleteProps?: Omit<AddressAutocompleteProps, 'resetFields' | 'handleSelection'>;
   names?: Partial<AddressFieldNames>;
   title?: string;
@@ -59,7 +58,6 @@ export const FormikAddressLite = ({
   cb,
   textFieldProps,
   autocompleteProps,
-  // autocompleteTextFieldProps,
   names = DEFAULT_FIELD_NAMES,
   title = 'Address Details',
 }: FormikAddressLiteProps) => {

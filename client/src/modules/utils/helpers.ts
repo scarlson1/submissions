@@ -1,18 +1,18 @@
 import { FirebaseError } from '@firebase/util';
 import { GridValueFormatterParams, GridValueGetterParams } from '@mui/x-data-grid';
 import { Duration, add, endOfToday, format, formatDistance, isFuture, isPast } from 'date-fns';
+import { Color } from 'deck.gl/typed';
 import type { AuthError } from 'firebase/auth';
 import { FirestoreError, GeoPoint, Timestamp, WhereFilterOp } from 'firebase/firestore';
 import { geohashForLocation } from 'geofire-common';
 import { ceil, filter, find, floor, includes, isArray, isEqual, isObject, transform } from 'lodash';
 import numeral from 'numeral';
+import { toast } from 'react-hot-toast';
 import { Location } from 'react-router-dom';
 
 import { alpha } from '@mui/material';
 import { Address, FeeItem, FlattenObjectKeys, RoundingType, TaxItem } from 'common/types';
 import { AddressComponent, AddressComponentType } from 'components/forms';
-import { Color } from 'deck.gl/typed';
-import { toast } from 'react-hot-toast';
 
 /**
  * extracts address string from Google address_components object.
@@ -93,6 +93,15 @@ export const dollarFormat2 = (val: string | number) => numeral(val).format('$0,0
  * @return {string} string value with comma formatting
  */
 export const numberFormat = (val: string | number) => numeral(val).format('0,0');
+
+/**
+ * format a string or number as a percent
+ * @param val value to display
+ * @param round digits to round to (defaults to 1 decimal place)
+ * @returns string formatted as a percent
+ */
+export const percentFormat = (val: string | number, round: number = 1) =>
+  numeral(val).format(`0.${'0'.repeat(round)}%`);
 
 /**
  * extracts redirect location from location.state.redirectPath or defaults to base url
@@ -187,22 +196,6 @@ export const isCurrentDateBetween = (
 
   return p && f;
 };
-
-/**
- *
- * @param {GridValueFormatterParams<number>} params - Grid value formatter params
- * @returns {string} returns empty string if value is null, else passed to numeral
- */
-export const formatGridCurrency = (
-  params: GridValueFormatterParams<number>,
-  mask: string = '$0,0[.]00'
-) => (params.value == null ? '' : numeral(params.value).format(mask));
-// TODO: use regex to get rid of everything except digits and decimals ??
-
-export const formatGridPercent = (
-  params: GridValueFormatterParams<number | null>,
-  round: number = 1
-) => (params.value == null ? '' : numeral(params.value).format(`0.${'0'.repeat(round)}%`)); // '0'.repeat(magnitude)
 
 /**
  * checks validity of routing number by summing 3, 7, 1 multiples checking whether the sumproduct is divisible by 10

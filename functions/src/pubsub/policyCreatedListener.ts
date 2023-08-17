@@ -1,15 +1,15 @@
 import { getFirestore } from 'firebase-admin/firestore';
 import type { CloudEvent } from 'firebase-functions/lib/v2/core';
-import { error, info } from 'firebase-functions/logger';
+import { error, info, warn } from 'firebase-functions/logger';
 import type { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 
 import { transactionsCollection } from '../common';
 import {
   constructTrxId,
+  docExists,
   fetchPolicyData,
   fetchRatingData,
   formatPremiumTrx,
-  trxExists,
 } from '../modules/transactions';
 import { reportErrorSentry } from '../services/sentry';
 
@@ -60,9 +60,10 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyCreatedPayloa
     try {
       const trxId = constructTrxId(policyId, locationId, eventId);
       const trxRef = trxCol.doc(trxId);
-      info(`Checking for trx already exists (${trxId})`);
+      info(`Checking for existing trx (${trxId})`);
 
-      if (!trxExists(trxRef)) {
+      const exists = await docExists(trxRef);
+      if (!exists) {
         const ratingData = await fetchRatingData(db, location.ratingDocId);
 
         // TODO: handle validation
@@ -74,6 +75,8 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyCreatedPayloa
         await trxRef.set({ ...locationTrx });
 
         info(`New transaction saved for location ${locationId}`, { locationTrx });
+      } else {
+        warn(`skipping trx - transaction already exists (${trxId})`);
       }
     } catch (err: any) {
       reportError(

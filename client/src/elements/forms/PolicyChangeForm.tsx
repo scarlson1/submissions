@@ -69,7 +69,7 @@ export const PolicyChangeForm = ({
       enableReinitialize
       {...props}
     >
-      {({ handleSubmit, setFieldValue }) => (
+      {({ handleSubmit }) => (
         <Form onSubmit={handleSubmit}>
           <Grid container spacing={5} columnSpacing={3}>
             <Grid xs={12}>
@@ -102,7 +102,6 @@ export const PolicyChangeForm = ({
                 Mailing Address
               </Typography>
               <FormikAddress
-                setFieldValue={setFieldValue}
                 names={mailingAddressFieldNames}
                 autocompleteProps={{
                   name: 'mailingAddress.addressLine1',

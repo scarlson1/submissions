@@ -1,4 +1,4 @@
-import { GridColDef, GridValueFormatterParams } from '@mui/x-data-grid';
+import { GridColDef } from '@mui/x-data-grid';
 
 import {
   addrCityCol,
@@ -16,11 +16,11 @@ import {
   longitudeCol,
   orgIdCol,
   orgNameCol,
+  percentColBaseProps,
   phoneCol,
   statusCol,
   updatedCol,
 } from './gridColumns';
-import { formatGridPercent } from 'modules/utils';
 
 export const orgCols: GridColDef[] = [
   orgNameCol,
@@ -36,9 +36,7 @@ export const orgCols: GridColDef[] = [
     minWidth: 180,
     flex: 1,
     editable: false,
-    valueGetter: (params) => params.row.primaryContact?.displayName,
-    // valueGetter: (params) =>
-    //   `${params.row.primaryContact.firstName} ${params.row.primaryContact.lastName}`,
+    valueGetter: (params) => params.row.primaryContact?.displayName || null,
   },
   firstNameCol,
   lastNameCol,
@@ -89,15 +87,13 @@ export const orgCols: GridColDef[] = [
     valueGetter: (params) => params.row.enforceDomainRestriction || false,
   },
   {
+    ...percentColBaseProps,
     field: 'defaultCommission.flood',
     headerName: 'Default Flood Comm.',
     minWidth: 160,
     flex: 1,
     editable: false,
-    align: 'center',
     valueGetter: (params) => params.row.defaultCommission?.flood || null,
-    valueFormatter: (params: GridValueFormatterParams<number | null>) =>
-      formatGridPercent(params, 0),
   },
   createdCol,
   updatedCol,

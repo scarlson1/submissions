@@ -6,10 +6,10 @@ import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 import { getReportErrorFn, transactionsCollection } from '../common';
 import {
   constructTrxId,
+  docExists,
   fetchPolicyData,
   fetchRatingData,
   formatPremiumTrx,
-  trxExists,
 } from '../modules/transactions';
 
 // TODO: shared logic with new policy event (abstract into module)
@@ -57,7 +57,8 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyRenewalPayloa
       const trxId = constructTrxId(policyId, locationId, eventId);
       const trxRef = trxCol.doc(trxId);
 
-      if (!trxExists(trxRef)) {
+      const exists = await docExists(trxRef);
+      if (!exists) {
         const ratingData = await fetchRatingData(db, location.ratingDocId);
 
         const locationTrx = formatPremiumTrx('renewal', policy, location, ratingData, eventId);

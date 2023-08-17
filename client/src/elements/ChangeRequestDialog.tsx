@@ -40,6 +40,7 @@ import { ChangeRequestsGrid } from './grids/ChangeRequestsGrid';
 
 export const useViewChangeRequestsDialogProps = (policyId?: string) => {
   const { claims, user, orgId } = useAuth();
+  if (!user?.uid) throw new Error('must be signed in');
 
   const countConstraints = useMemo(() => {
     let constraints = [where('status', '==', CHANGE_REQUEST_STATUS.SUBMITTED)];
@@ -57,7 +58,6 @@ export const useViewChangeRequestsDialogProps = (policyId?: string) => {
       constraints.push(where('agent.userId', '==', user.uid));
       return constraints;
     }
-    if (!user?.uid) throw new Error('must be signed in');
 
     constraints.push(where('userId', '==', user.uid));
     return constraints;

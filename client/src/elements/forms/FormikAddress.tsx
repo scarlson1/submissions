@@ -1,17 +1,19 @@
 import { Box, Grid, Grid2Props, NativeSelectProps, TextFieldProps } from '@mui/material';
 
+import { statesAbrvSelectOptions } from 'common/statesList';
 import {
-  FormikTextField,
   AddressAutocomplete,
-  NewAddress,
-  FormikNativeSelect,
   AddressAutocompleteProps,
   FormikMaskField,
+  FormikNativeSelect,
+  FormikTextField,
   IMask,
+  NewAddress,
   postalMaskProps,
 } from 'components/forms';
+import { setNestedObjectValues, useFormikContext } from 'formik';
 import { findAddressValueByType } from 'modules/utils/helpers';
-import { statesAbrvSelectOptions } from 'common/statesList';
+import { useCallback } from 'react';
 
 // TODO: filter textFieldProps for overlap with InputProps and pass to postal field
 
@@ -39,9 +41,31 @@ const DEFAULT_FIELD_NAMES = {
   longitude: 'longitude',
 };
 
+export const BASE_NESTED_ADDRESS_FIELD_NAMES = {
+  addressLine1: 'address.addressLine1',
+  addressLine2: 'address.addressLine2',
+  city: 'address.city',
+  state: 'address.state',
+  postal: 'address.postal',
+};
+
+export const NESTED_ADDRESS_FIELD_NAMES = {
+  ...BASE_NESTED_ADDRESS_FIELD_NAMES,
+  county: 'address.countyName',
+  latitude: `coordinates.latitude`,
+  longitude: `coordinates.longitude`,
+};
+
+export const MAILING_FIELD_NAMES = {
+  addressLine1: 'mailingAddress.addressLine1',
+  addressLine2: 'mailingAddress.addressLine2',
+  city: 'mailingAddress.city',
+  state: 'mailingAddress.state',
+  postal: 'mailingAddress.postal',
+};
+
 export interface FormikAddressProps {
   cb?: (coords: { lat: number | null; lng: number | null }, state?: string) => void;
-  setFieldValue: (field: string, value: any, shouldValidate?: boolean) => void;
   selectFieldProps?: Omit<NativeSelectProps, 'name' | 'label'>;
   gridProps?: Grid2Props;
   names?: AddressFieldNames; // TODO: make partial
@@ -51,41 +75,59 @@ export interface FormikAddressProps {
 }
 
 export const FormikAddress = ({
-  setFieldValue,
   cb,
   textFieldProps,
-  // autocompleteTextFieldProps,
   gridProps,
   names = DEFAULT_FIELD_NAMES,
   selectFieldProps = {},
   children,
-  autocompleteProps, // = {},
+  autocompleteProps,
 }: FormikAddressProps) => {
-  const handleAddressSelection = ({ address_components, geometry }: NewAddress) => {
-    const newStreetNumber = findAddressValueByType(address_components, 'street_number');
-    const newStreetName = findAddressValueByType(address_components, 'route');
-    const newCity = findAddressValueByType(address_components, 'locality');
-    const newCounty = findAddressValueByType(address_components, 'administrative_area_level_2');
-    const newState = findAddressValueByType(address_components, 'administrative_area_level_1');
-    const newPostal = findAddressValueByType(address_components, 'postal_code');
+  const { setFieldValue, touched, setTouched } = useFormikContext();
 
-    setFieldValue(
-      names.addressLine1,
-      `${newStreetNumber?.long_name || ''} ${newStreetName?.long_name || ''}`.trim()
-    );
-    setFieldValue(names.city, `${newCity?.long_name || ''}`);
-    setFieldValue(names.state, `${newState?.short_name || ''}`);
-    setFieldValue(names.postal, `${newPostal?.long_name || ''}`);
-    names.county && setFieldValue(names.county, `${newCounty?.long_name || ''}`);
-    names.latitude && setFieldValue(names.latitude, geometry?.location.lat() ?? null);
-    names.longitude && setFieldValue(names.longitude, geometry?.location.lng() ?? null);
+  const touchAll = useCallback(
+    async () =>
+      setTimeout(
+        () =>
+          setTouched({
+            ...touched,
+            ...setNestedObjectValues(Object.keys(names), true),
+          }),
+        0
+      ),
+    [names, touched, setTouched]
+  );
 
-    if (cb) {
-      cb({ lat: geometry?.location.lat(), lng: geometry?.location.lng() }, newState?.short_name);
-    }
+  const handleAddressSelection = useCallback(
+    ({ address_components, geometry }: NewAddress) => {
+      const newStreetNumber = findAddressValueByType(address_components, 'street_number');
+      const newStreetName = findAddressValueByType(address_components, 'route');
+      const newCity = findAddressValueByType(address_components, 'locality');
+      const newCounty = findAddressValueByType(address_components, 'administrative_area_level_2');
+      const newState = findAddressValueByType(address_components, 'administrative_area_level_1');
+      const newPostal = findAddressValueByType(address_components, 'postal_code');
 
-    names.addressLine2 && document.getElementById(names.addressLine2)?.focus();
-  };
+      setFieldValue(
+        names.addressLine1,
+        `${newStreetNumber?.long_name || ''} ${newStreetName?.long_name || ''}`.trim()
+      );
+      setFieldValue(names.city, `${newCity?.long_name || ''}`);
+      setFieldValue(names.state, `${newState?.short_name || ''}`);
+      setFieldValue(names.postal, `${newPostal?.long_name || ''}`);
+      names.county && setFieldValue(names.county, `${newCounty?.long_name || ''}`);
+      names.latitude && setFieldValue(names.latitude, geometry?.location.lat() ?? null);
+      names.longitude && setFieldValue(names.longitude, geometry?.location.lng() ?? null);
+
+      if (cb) {
+        cb({ lat: geometry?.location.lat(), lng: geometry?.location.lng() }, newState?.short_name);
+      }
+
+      names.addressLine2 && document.getElementById(names.addressLine2)?.focus();
+
+      touchAll();
+    },
+    [setFieldValue, touchAll, cb, names]
+  );
 
   const handleClearAutocomplete = () => {
     setFieldValue(names.addressLine2, '');

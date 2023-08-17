@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { endOfToday, isValid, startOfDay } from 'date-fns';
 import { FirebaseError } from 'firebase/app';
 import {
   addDoc,
@@ -9,16 +9,22 @@ import {
   Timestamp,
   where,
 } from 'firebase/firestore';
+import { isEmpty, round } from 'lodash';
+import { useCallback } from 'react';
 import { useFirestore, useSigninCheck } from 'reactfire';
 import invariant from 'tiny-invariant';
-import { isEmpty, round } from 'lodash';
-import { endOfToday, startOfDay, isValid } from 'date-fns';
 
-import { addToDate, extractNumber, getGeoHash, readableFirebaseCode } from 'modules/utils/helpers';
-import { QUOTE_STATUS, Submission, Quote, quotesCollection, licensesCollection } from 'common';
-import { useSendQuoteNotification } from './useSendQuoteNotification';
-import { CUSTOM_CLAIMS } from 'common';
+import {
+  CUSTOM_CLAIMS,
+  licensesCollection,
+  Quote,
+  QUOTE_STATUS,
+  quotesCollection,
+  Submission,
+} from 'common';
 import type { QuoteValues } from 'elements/forms';
+import { addToDate, extractNumber, getGeoHash, readableFirebaseCode } from 'modules/utils/helpers';
+import { useSendQuoteNotification } from './useSendQuoteNotification';
 
 export const CARD_FEE_RATE = 0.035;
 
@@ -68,6 +74,7 @@ export const useCreateQuote = (
 
       try {
         const quoteData = getFormattedQuote(values, signInCheckResult.user?.uid);
+
         const geoHash = getGeoHash(submissionData?.coordinates);
 
         const quoteRef = await addDoc(quotesCollection(firestore), {
@@ -135,7 +142,6 @@ function getFormattedQuote(values: QuoteValues, uid?: string | null): Quote {
   invariant(isValid(effectiveDate), 'Invalid effective date');
 
   let effDateStartOfDay = startOfDay(effectiveDate);
-  // let expDateStartOfDay = addToDate({ years: 1 }, effDateStartOfDay)
 
   let numTaxes = taxes.map((t) => ({
     ...t,
@@ -159,17 +165,17 @@ function getFormattedQuote(values: QuoteValues, uid?: string | null): Quote {
         : null,
     homeState: address.state,
     mailingAddress: {
-      // TODO: add mailing address and name fields
       name: '',
-      ...address,
+      addressLine1: address?.addressLine1 || '',
+      addressLine2: address?.addressLine2 || '',
+      city: address?.city || '',
+      state: address?.state || '',
+      postal: address?.postal || '',
     },
     quotePublishedDate: Timestamp.now(),
     quoteExpirationDate: Timestamp.fromDate(addToDate({ days: 30 }, endOfToday())),
     effectiveDate: Timestamp.fromDate(effDateStartOfDay),
-    // expirationDate: Timestamp.fromDate(expDateStartOfDay),
     exclusions: [],
-    // additionalInsureds: [],
-    // mortgageeInterest: [],
     additionalInterests: [],
     annualPremium,
     fees,

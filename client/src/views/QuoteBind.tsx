@@ -1,4 +1,13 @@
-import { useRef, useCallback, useState, useEffect, useMemo } from 'react';
+import {
+  AccountBalanceRounded,
+  BedRounded,
+  FenceRounded,
+  HouseRounded,
+  MoreVertRounded,
+  PasswordRounded,
+  PersonAddAltRounded,
+  WeekendRounded,
+} from '@mui/icons-material';
 import {
   Avatar,
   Box,
@@ -16,56 +25,58 @@ import {
   useTheme,
 } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2/Grid2';
-import {
-  AccountBalanceRounded,
-  BedRounded,
-  FenceRounded,
-  HouseRounded,
-  MoreVertRounded,
-  PasswordRounded,
-  PersonAddAltRounded,
-  WeekendRounded,
-} from '@mui/icons-material';
+import { endOfDay, startOfDay } from 'date-fns';
+import { Timestamp, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { FormikHelpers, FormikProps, useFormikContext } from 'formik';
-import { useNavigate, useParams } from 'react-router-dom';
-import { doc, getDoc, Timestamp, updateDoc } from 'firebase/firestore';
-import { RiMastercardFill, RiVisaLine } from 'react-icons/ri';
-import { MdPayments } from 'react-icons/md';
 import { isEqual } from 'lodash';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
+import { MdPayments } from 'react-icons/md';
+import { RiMastercardFill, RiVisaLine } from 'react-icons/ri';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useFirestore, useFirestoreDocData, useSigninCheck, useUser } from 'reactfire';
-import { startOfDay, endOfDay } from 'date-fns';
 import * as yup from 'yup';
 
+import { TimeManagementSVG } from 'assets/images';
+import {
+  ANALYTICS_EVENTS,
+  AdditionalInterest,
+  AgentDetails,
+  MailingAddress,
+  NamedInsuredDetails,
+  PaymentMethod,
+  Product,
+  Quote,
+  WithId,
+  fallbackImages,
+  mailingAddressValidation,
+  namedInsuredValidationNested,
+  paymentMethodsCollection,
+  phoneRequiredVal,
+  quotesCollection,
+} from 'common';
+import { IconButtonMenu, LineItem } from 'components';
 import {
   FormikCheckbox,
   FormikDatePicker,
   FormikFieldArray,
   FormikMaskField,
   FormikNativeSelect,
+  FormikTextField,
   FormikWizard,
-  Step,
   IMask,
+  Step,
   phoneMaskProps,
 } from 'components/forms';
-import { IconButtonMenu, LineItem } from 'components';
+import { useAuth } from 'context/AuthContext';
 import {
-  namedInsuredValidationNested,
-  phoneRequiredVal,
-  PaymentMethod,
-  Quote,
-  WithId,
-  AdditionalInterest,
-  quotesCollection,
-  paymentMethodsCollection,
-  ANALYTICS_EVENTS,
-  NamedInsuredDetails,
-  AgentDetails,
-  fallbackImages,
-  Product,
-} from 'common';
+  ContactStep,
+  FormikAddress,
+  MAILING_FIELD_NAMES,
+  PaymentStep,
+  billingValidation,
+} from 'elements/forms';
 import { useAnalyticsEvent, useBindQuote, useUserPaymentMethods } from 'hooks';
-import { billingValidation, PaymentStep, ContactStep } from 'elements/forms';
 import {
   addToDate,
   dollarFormat,
@@ -73,9 +84,7 @@ import {
   getDateShortcuts,
   stringAvatar,
 } from 'modules/utils/helpers';
-import { useAuth } from 'context/AuthContext';
 import { AUTH_ROUTES, ROUTES, createPath } from 'router';
-import { TimeManagementSVG } from 'assets/images';
 
 // TODO: error boundary & reset: https://blog.logrocket.com/react-error-handling-react-error-boundary/
 
@@ -95,6 +104,7 @@ export interface BindQuoteValues {
   effectiveExceptionRequested: boolean;
   effectiveExceptionReason: string | null;
   additionalInterests: AdditionalInterest[];
+  mailingAddress: MailingAddress;
 }
 
 export const QuoteBind = () => {
@@ -203,8 +213,14 @@ export const QuoteBind = () => {
             email: data?.namedInsured?.email ?? '',
             phone: data?.namedInsured?.phone ?? '',
           },
-          // additionalInsureds: data?.additionalInsureds ? [...data?.additionalInsureds] : [],
-          // mortgageeInterest: data?.mortgageeInterest ? [...data?.mortgageeInterest] : [],
+          mailingAddress: {
+            name: data?.mailingAddress.name || '',
+            addressLine1: data?.mailingAddress?.addressLine1 || '',
+            addressLine2: data?.mailingAddress?.addressLine2 || '',
+            city: data?.mailingAddress?.city || '',
+            state: data?.mailingAddress?.state || '',
+            postal: data?.mailingAddress?.postal || '',
+          },
           additionalInterests: data?.additionalInterests ? [...data?.additionalInterests] : [],
           effectiveDate: data?.effectiveDate?.toDate() ?? new Date(),
           effectiveExceptionRequested: data?.effectiveExceptionRequested ?? false,
@@ -225,6 +241,14 @@ export const QuoteBind = () => {
           mutateOnSubmit={saveValues}
         >
           <NamedInsuredStep logAnalyticsStep={logAnalyticsStep} />
+        </Step>
+        <Step
+          label='Mailing Address'
+          stepperNavLabel='Mail'
+          validationSchema={mailingAddressValidation}
+          mutateOnSubmit={saveValues}
+        >
+          <MailingAddressStep />
         </Step>
         <Step label='Additional Interests' stepperNavLabel='+1s' mutateOnSubmit={saveValues}>
           <AdditionalInterestsStep logAnalyticsStep={logAnalyticsStep} />
@@ -444,6 +468,40 @@ export function NamedInsuredStep({ logAnalyticsStep }: LogAnalyticsProp) {
         </Grid>
       </ContactStep>
     </Box>
+  );
+}
+
+export function MailingAddressStep() {
+  const { errors } = useFormikContext();
+
+  useEffect(() => {
+    console.log('ERRS: ', errors);
+  }, [errors]);
+
+  return (
+    <Grid container spacing={5}>
+      <Grid xs={12}>
+        <FormikTextField
+          name='mailingAddress.name'
+          label='Addressed To: (name)'
+          required
+          fullWidth
+        />
+      </Grid>
+      <Grid xs={12}>
+        <FormikAddress
+          names={MAILING_FIELD_NAMES}
+          textFieldProps={{ required: true }}
+          selectFieldProps={{ required: true }}
+          autocompleteProps={{
+            name: 'mailingAddress.addressLine1',
+            textFieldProps: {
+              label: 'Mailing Address',
+            },
+          }}
+        />
+      </Grid>
+    </Grid>
   );
 }
 
@@ -976,19 +1034,3 @@ function useLogCheckoutProgress(quoteId: string, stepCount: number) {
 
   return logStep;
 }
-// useEffect(() => {
-//   let eventLogged = false;
-//   if (eventLogged || !quoteId) return;
-
-//   logEvent(ANALYTICS_EVENTS.CHECKOUT_PROGRESS, {
-//     checkout_step: 1,
-//     quoteId: quoteId,
-//     page_location: window.location.href,
-//     page_path: window.location.pathname,
-//   });
-//   eventLogged = true;
-
-//   return () => {
-//     eventLogged = false;
-//   };
-// }, [quoteId]);

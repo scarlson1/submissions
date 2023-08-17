@@ -17,7 +17,12 @@ import { MouseEvent, memo, useCallback, useEffect, useRef, useState } from 'reac
 import { toast } from 'react-hot-toast';
 
 import { useCopyToClipboard } from 'hooks/useCopyToClipboard';
-import { formatPhoneNumber } from 'modules/utils/helpers';
+import {
+  dollarFormat,
+  dollarFormat2,
+  formatPhoneNumber,
+  percentFormat,
+} from 'modules/utils/helpers';
 
 export const renderGridPhone = (params: GridRenderCellParams<any, any, any>) => {
   if (params.value == null) return '';
@@ -202,10 +207,54 @@ export function renderCellExpand(params: GridRenderCellParams<any>) {
 }
 
 export function renderFormattedValue(params: GridRenderCellParams<any, any, any>) {
-  if (!params.formattedValue) return null;
+  if (!params.formattedValue && params.formattedValue !== 0) return null;
   return (
     <Tooltip title={`${params.value}`} placement='left'>
       <Typography variant='body2'>{params.formattedValue}</Typography>
+    </Tooltip>
+  );
+}
+
+export function renderNumber(
+  params: GridRenderCellParams<any, any, any>,
+  typographyProps?: TypographyProps
+) {
+  if (!params.value && params.value !== 0) return null;
+
+  return (
+    <Typography variant='body2' {...typographyProps}>
+      {params.value}
+    </Typography>
+  );
+}
+
+export function renderCurrency(
+  params: GridRenderCellParams<any, any, any>,
+  withDecimals: boolean = false,
+  typographyProps?: TypographyProps
+) {
+  if (!params.value && params.value !== 0) return null;
+
+  const maskFn = withDecimals ? dollarFormat2 : dollarFormat;
+  return (
+    <Typography variant='body2' {...typographyProps}>
+      {maskFn(params.value)}
+    </Typography>
+  );
+}
+
+export function renderPercent(
+  { value }: GridRenderCellParams<any, any, any>,
+  round?: number,
+  typographyProps?: TypographyProps
+) {
+  if (!value && value !== 0) return null;
+
+  return (
+    <Tooltip title={`${value}`} placement='right'>
+      <Typography variant='body2' {...typographyProps}>
+        {percentFormat(value, round)}
+      </Typography>
     </Tooltip>
   );
 }

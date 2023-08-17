@@ -1,34 +1,34 @@
-import { useCallback } from 'react';
 import {
+  Alert,
+  AlertTitle,
   Box,
   Button,
   Card,
   CardContent,
-  Stack,
-  Typography,
   Divider,
   Unstable_Grid2 as Grid,
-  AlertTitle,
-  Alert,
+  Stack,
+  Typography,
 } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
-import { Formik, FormikHelpers, Form } from 'formik';
 import { FirebaseError } from 'firebase/app';
+import { Form, Formik, FormikHelpers } from 'formik';
+import { useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import * as yup from 'yup';
 
+import { addressValidation, contactValidation } from 'common';
 import {
-  FormikTextField,
-  FormikMaskField,
   FormikDragDrop,
+  FormikMaskField,
+  FormikTextField,
   IMask,
-  phoneMaskProps,
   feinMaskProps,
+  phoneMaskProps,
 } from 'components/forms';
 import FormikAddress from 'elements/forms/FormikAddress';
-import { useCreateAgencySubmission, useCreateTenant, useAsyncToast } from 'hooks';
+import { useAsyncToast, useCreateAgencySubmission, useCreateTenant } from 'hooks';
 import { ADMIN_ROUTES, createPath } from 'router';
 import { AgencyAppValues, EandOVal, FEINVal, INITIAL_VALUES } from 'views/AgencyNew';
-import { addressValidation, contactValidation } from 'common';
 
 // DIRECTLY CREATES TENANT - INSTEAD OF APPROVAL PROCESS
 
@@ -112,10 +112,10 @@ export const CreateTenant = () => {
           validationSchema={validation}
           enableReinitialize
         >
-          {({ values, isSubmitting, isValid, dirty, handleSubmit, setFieldValue, setValues }) => (
+          {({ isSubmitting, isValid, dirty, handleSubmit, setValues }) => (
             <Form onSubmit={handleSubmit}>
               <Box
-                sx={(theme) => ({
+                sx={{
                   display: 'flex',
                   justifyContent: 'flex-end',
                   alignItems: 'center',
@@ -126,7 +126,7 @@ export const CreateTenant = () => {
                   borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
                   zIndex: 10,
                   py: 2,
-                })}
+                }}
               >
                 <Stack direction='row' spacing={2}>
                   <Button
@@ -182,7 +182,6 @@ export const CreateTenant = () => {
                       />
                       <Box sx={{ py: 4 }}>
                         <FormikAddress
-                          setFieldValue={setFieldValue}
                           textFieldProps={{ variant: 'standard' }}
                           selectFieldProps={{ variant: 'standard' }}
                           names={{

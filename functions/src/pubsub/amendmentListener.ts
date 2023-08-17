@@ -6,10 +6,10 @@ import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 import { transactionsCollection } from '../common';
 import {
   constructTrxId,
+  docExists,
   fetchPolicyData,
   getLocationAmendmentTrx,
   getPolicyAmendmentTrx,
-  trxExists,
 } from '../modules/transactions';
 import { reportErrorSentry } from '../services/sentry';
 
@@ -61,7 +61,8 @@ export default async (event: CloudEvent<MessagePublishedData<AmendmentPayload>>)
     const trxId = constructTrxId(policyId, locationId || '', eventId);
     const trxRef = trxCol.doc(trxId);
 
-    if (!trxExists(trxRef)) {
+    const exists = await docExists(trxRef);
+    if (!exists) {
       let trx;
       if (locationRequired && locationId) {
         const location = policy.locations[locationId];

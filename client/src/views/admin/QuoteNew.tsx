@@ -57,7 +57,6 @@ export const QuoteNew = ({
     <Box>
       <QuoteForm
         initialValues={initialValues}
-        // submissionData={submissionData}
         initialRatingSnap={initialRatingSnap}
         onSubmit={handleSubmit}
         title='New Quote'
