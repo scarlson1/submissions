@@ -10,7 +10,7 @@ import { Marker } from 'react-map-gl';
 
 import { Address, Coordinates, Nullable } from 'common';
 import { useRegisterEmailNotification } from 'hooks';
-import { ActiveStateMap } from '../ActiveStateMap';
+import { ActiveStateMap } from '../maps/ActiveStateMap';
 import { FormikAddress, FormikAddressProps } from './FormikAddress';
 
 export interface AddressStepValues {

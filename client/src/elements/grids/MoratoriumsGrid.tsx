@@ -18,7 +18,7 @@ import { useConfirmation } from 'context';
 import { useShowJson } from 'hooks';
 import { moratoriumCols } from 'modules/muiGrid/gridColumnDefs';
 import { formatFirestoreTimestamp } from 'modules/utils';
-import { CountiesMap } from '../CountiesMap';
+import { CountiesMap } from '../maps/CountiesMap';
 
 export type MoratoriumGridProps = ServerDataGridCollectionProps;
 

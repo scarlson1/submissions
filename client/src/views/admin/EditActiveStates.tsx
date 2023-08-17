@@ -18,7 +18,7 @@ import { ErrorBoundary } from 'react-error-boundary';
 import { statesDetailsArr } from 'common/statesList';
 import { FormikSwitch } from 'components/forms';
 import { statesCollection } from 'common';
-import { ActiveStateMap } from 'elements/ActiveStateMap';
+import { ActiveStateMap } from 'elements/maps/ActiveStateMap';
 import { useDocData, useSafeParams } from 'hooks';
 import { ErrorFallback } from 'components';
 

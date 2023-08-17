@@ -17,7 +17,7 @@ import { SuccessStep } from 'elements/forms';
 import { BindSuccess } from 'elements/forms/SuccessStep';
 import { EmailsGrid } from 'elements/grids';
 import { ImportsSummaryGrid } from 'elements/grids/ImportsSummaryGrid';
-import { TestPoliciesMapWithFilters } from 'elements/PoliciesMap';
+import { TestPoliciesMapWithFilters } from 'elements/maps/PoliciesMap';
 import {
   Account,
   AccountDetails,

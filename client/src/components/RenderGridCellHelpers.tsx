@@ -24,25 +24,25 @@ import {
   percentFormat,
 } from 'modules/utils/helpers';
 
-export const renderGridPhone = (params: GridRenderCellParams<any, any, any>) => {
-  if (params.value == null) return '';
+export const renderGridPhone = ({ value }: GridRenderCellParams<any, any, any>) => {
+  if (value == null) return '';
 
   return (
-    <Link href={`tel:${params.value}`} underline='hover'>
-      {formatPhoneNumber(params.value)}
+    <Link href={`tel:${value}`} underline='hover'>
+      {formatPhoneNumber(value)}
     </Link>
   );
 };
 
-export const renderGridEmail = (params: GridRenderCellParams<any, any, any>) => {
-  if (!params.value) return null; // ''
+export const renderGridEmail = ({ value }: GridRenderCellParams<any, any, any>) => {
+  if (!value) return null; // ''
 
   return (
     <Box
       sx={{ overflow: 'auto', whiteSpace: 'nowrap', '&::-webkit-scrollbar': { display: 'none' } }}
     >
-      <Link href={`mailto:${params.value}`} underline='hover' onClick={(e) => e.stopPropagation()}>
-        {params.value}
+      <Link href={`mailto:${value}`} underline='hover' onClick={(e) => e.stopPropagation()}>
+        {value}
       </Link>
     </Box>
   );
@@ -57,6 +57,7 @@ export const renderChips = (
   ) => Partial<ChipProps> | void = () => {}
 ) => {
   if (!params.value || params.value.length < 1) return null;
+
   return (
     <Stack
       spacing={1}
@@ -202,43 +203,46 @@ const GridCellExpand = memo(function GridCellExpand(props: GridCellExpandProps) 
   );
 });
 
-export function renderCellExpand(params: GridRenderCellParams<any>) {
-  return <GridCellExpand value={params.value || ''} width={params.colDef.computedWidth} />;
+export function renderCellExpand({ value, colDef }: GridRenderCellParams<any>) {
+  return <GridCellExpand value={value || ''} width={colDef.computedWidth} />;
 }
 
-export function renderFormattedValue(params: GridRenderCellParams<any, any, any>) {
-  if (!params.formattedValue && params.formattedValue !== 0) return null;
+export function renderFormattedValue({
+  value,
+  formattedValue,
+}: GridRenderCellParams<any, any, any>) {
+  if (!formattedValue && formattedValue !== 0) return null;
   return (
-    <Tooltip title={`${params.value}`} placement='left'>
-      <Typography variant='body2'>{params.formattedValue}</Typography>
+    <Tooltip title={`${value}`} placement='left'>
+      <Typography variant='body2'>{formattedValue}</Typography>
     </Tooltip>
   );
 }
 
 export function renderNumber(
-  params: GridRenderCellParams<any, any, any>,
+  { value }: GridRenderCellParams<any, any, any>,
   typographyProps?: TypographyProps
 ) {
-  if (!params.value && params.value !== 0) return null;
+  if (!value && value !== 0) return null;
 
   return (
     <Typography variant='body2' {...typographyProps}>
-      {params.value}
+      {value}
     </Typography>
   );
 }
 
 export function renderCurrency(
-  params: GridRenderCellParams<any, any, any>,
+  { value }: GridRenderCellParams<any, any, any>,
   withDecimals: boolean = false,
   typographyProps?: TypographyProps
 ) {
-  if (!params.value && params.value !== 0) return null;
+  if (!value && value !== 0) return null;
 
   const maskFn = withDecimals ? dollarFormat2 : dollarFormat;
   return (
     <Typography variant='body2' {...typographyProps}>
-      {maskFn(params.value)}
+      {maskFn(value)}
     </Typography>
   );
 }
@@ -250,8 +254,10 @@ export function renderPercent(
 ) {
   if (!value && value !== 0) return null;
 
+  const actual = typeof value === 'number' ? `${value * 100}%` : 'NaN';
+
   return (
-    <Tooltip title={`${value}`} placement='right'>
+    <Tooltip title={actual} placement='right'>
       <Typography variant='body2' {...typographyProps}>
         {percentFormat(value, round)}
       </Typography>
@@ -260,38 +266,36 @@ export function renderPercent(
 }
 
 export function renderChip(
-  params: GridRenderCellParams<any, any, any>,
+  { value }: GridRenderCellParams<any, any, any>,
   chipProps: ChipProps = {},
   propsGetterFunc: (props: any) => Partial<ChipProps> | void = () => {}
 ) {
-  if (!params.value) return null;
-  return (
-    <Chip label={params.value} size='small' {...chipProps} {...propsGetterFunc(params.value)} />
-  );
+  if (!value) return null;
+  return <Chip label={value} size='small' {...chipProps} {...propsGetterFunc(value)} />;
 }
 
 export function renderSplitSnakeCase(
-  params: GridRenderCellParams<any, any, any>,
+  { value }: GridRenderCellParams<any, any, any>,
   props?: TypographyProps
 ) {
-  if (!params.value || typeof params.value !== 'string') return null;
+  if (!value || typeof value !== 'string') return null;
 
   return (
     <Typography variant='body2' {...(props || {})}>
-      {params.value.split('_').join(' ')}
+      {value.split('_').join(' ')}
     </Typography>
   );
 }
 
 export const renderJoinArray = (
-  params: GridRenderCellParams<any, any, any>,
+  { value }: GridRenderCellParams<any, any, any>,
   typographyProps?: Partial<TypographyProps>
 ) => {
-  if (!params.value || !Array.isArray(params.value)) return null;
+  if (!value || !Array.isArray(value)) return null;
 
   return (
     <Box>
-      {params.value.map((v) => (
+      {value.map((v) => (
         <Typography variant='body2' {...(typographyProps || {})}>
           {v}
         </Typography>
