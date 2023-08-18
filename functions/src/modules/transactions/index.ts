@@ -4,6 +4,8 @@ export { getOffsetTrx } from './getOffsetTrx';
 export { getReinstatementTrx } from './getReinstatementTrx';
 export { getLocationAmendmentTrx } from './getLocationAmendmentTrx';
 export { getPolicyAmendmentTrx } from './getPolicyAmendmentTrx';
+export { handleRatingForEndorsement } from './handleEndorsementRating';
+export * from './taxes';
 
 // trxEffDates:
 //    - policy amendment: user

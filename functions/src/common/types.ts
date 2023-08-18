@@ -41,6 +41,8 @@ export type DeepNullable<T> = {
 
 export type Optional<T> = { [K in keyof T]?: T[K] | undefined | null };
 
+export type WithRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] };
+
 export type Maybe<T> = T | null | undefined;
 
 export type Concrete<Type> = {
@@ -52,6 +54,30 @@ export type FlattenObjectKeys<T extends Record<string, any>, Key = keyof T> = Ke
     ? `${Key}.${FlattenObjectKeys<T[Key]>}`
     : `${Key}`
   : never;
+
+type PathImpl<T, K extends keyof T> = K extends string
+  ? T[K] extends Record<string, any>
+    ? T[K] extends ArrayLike<any>
+      ? K | `${K}.${PathImpl<T[K], Exclude<keyof T[K], keyof any[]>>}`
+      : K | `${K}.${PathImpl<T[K], keyof T[K]>}`
+    : K
+  : never;
+
+export type Path<T> = PathImpl<T, keyof T> | keyof T;
+
+export type PathValue<T, P extends Path<T>> = P extends `${infer K}.${infer Rest}`
+  ? K extends keyof T
+    ? Rest extends Path<T[K]>
+      ? PathValue<T[K], Rest>
+      : never
+    : never
+  : P extends keyof T
+  ? T[P]
+  : never;
+
+// USAGE:
+// declare function get<T, P extends Path<T>>(obj: T, path: P): PathValue<T, P>;
+// get(object, "firstName"); // works
 
 export type StrictExclude<T, U> = T extends U ? (U extends T ? never : T) : T;
 
@@ -592,7 +618,6 @@ export interface PolicyLocation {
   termPremium: number;
   termDays: number;
   limits: Limits;
-  // TODO: add tiv sum in Policy class
   TIV: number;
   RCVs: RCVs;
   deductible: number;
@@ -600,55 +625,48 @@ export interface PolicyLocation {
   additionalInsureds: AdditionalInsured[];
   mortgageeInterest: Mortgagee[];
   ratingDocId: string; // TODO: include rating info ?? make PublicRatingData and PrivateRatingData (extends)
-  // propertyData: RatingPropertyData; // TODO: use same key in Quote interface
   ratingPropertyData: RatingPropertyData;
   effectiveDate: Timestamp;
   expirationDate: Timestamp;
-  locationId: string;
-  externalId?: string | null;
+  cancelEffDate?: Timestamp | null;
+  cancelReason?: CancellationReason;
   imageURLs?: LocationImages | null;
   imagePaths?: LocationImages | null;
+  locationId: string;
+  externalId?: string | null;
   metadata: {
     created: Timestamp;
     updated: Timestamp;
   };
 }
 
-// taxes & fees at policy level
-export interface Policy {
+export interface Policy extends BaseDoc {
   product: Product;
-  status: POLICY_STATUS;
+  status: POLICY_STATUS; // TODO: figure out how to do policy status (active, etc.)
   term: number;
   mailingAddress: MailingAddress;
   namedInsured: NamedInsured;
   locations: Record<string, PolicyLocation>;
   homeState: string;
-  // TODO: break up total premium, taxes, fees, etc. ?? how are taxes and fees stored ? how are they recalculated ?
-  // taxes & fees calced at policy level
-  // annual & term premium stored at location level
-  termPremium: number; // sum of location term premium
-  termDays: number; // diff in policy eff & exp dates
+  termPremium: number; // sum of location(s) term premium
+  inStatePremium?: number;
+  outStatePremium?: number;
+  termDays: number;
   fees: FeeItem[];
   taxes: TaxItem[];
-  // cardFee?: number;
   price: number; // sum of term premium, taxes, fees
   effectiveDate: Timestamp;
   expirationDate: Timestamp;
-  // TODO: add cancellation date
-  cancellationDate?: Timestamp | null;
+  cancelEffDate?: Timestamp | null;
+  cancelReason?: CancellationReason;
   userId: string | null;
-  agent: AgentDetails; // Nullable<AgentDetails>; // TODO: remove nullable (defaults to idemand)
+  agent: AgentDetails;
   agency: AgencyDetails;
   surplusLinesProducerOfRecord: SLProdOfRecordDetails;
   // TODO: add address to carrier CarrierDetails: name, address
-  issuingCarrier: string; // INSURER NAME ONLY OR NAME AND ID?
+  issuingCarrier: string; // INSURER NAME ONLY OR NAME AND ID ??
   documents: { displayName: string; downloadUrl: string; storagePath: string }[];
   quoteId?: string | null;
-  // imageURLs?: Record<string, string> | null; // { [key: string]: string | null } | null;
-  // imagePaths?: Record<string, string> | null; // { [key: string]: string | null } | null;
-  // transactions: string[]; // TODO: delete or decide how to associate policies and transactions (just query transactions by policyId ??)
-  // cardFee: number;
-  metadata: BaseMetadata;
 }
 
 export interface IPolicyClass extends Policy {
@@ -762,7 +780,8 @@ export class PolicyClass implements IPolicyClass {
   async removeLocation(id: string) {
     this.getLocation(id); // will throw if not found
 
-    delete this.locations[id];
+    // TODO: set cancelledDate instead of removing
+    // delete this.locations[id];
     try {
       let newTotal = await this.sumLocationPremium();
       this.price = newTotal;

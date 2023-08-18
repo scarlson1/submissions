@@ -86,7 +86,7 @@ export const ChangeRequestsGrid = ({
             },
           },
           sorting: {
-            sortModel: [{ field: 'metadata.created', sort: 'asc' }],
+            sortModel: [{ field: 'metadata.created', sort: 'desc' }],
           },
           ...(initialState || {}),
         }}

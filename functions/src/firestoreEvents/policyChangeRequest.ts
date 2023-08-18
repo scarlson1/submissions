@@ -1,4 +1,4 @@
-import { DocumentSnapshot, Timestamp, getFirestore } from 'firebase-admin/firestore';
+import { DocumentSnapshot, getFirestore } from 'firebase-admin/firestore';
 import { error, info, warn } from 'firebase-functions/logger';
 import type { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 
@@ -6,34 +6,15 @@ import {
   CHANGE_REQUEST_STATUS,
   CancellationReason,
   ChangeRequest,
-  PolicyLocation,
-  RatingData,
-  ValueByRiskType,
-  calcTerm,
-  changeReqestsCollection,
-  hasAny,
   isValidEmail,
   policiesCollection,
-  ratingDataCollection,
   sendgridApiKey,
-  swissReClientId,
-  swissReClientSecret,
-  swissReSubscriptionKey,
-  verify,
 } from '../common';
-import {
-  GetAALRes,
-  GetPremiumProps,
-  getAALs,
-  getPremium,
-  validateAALs,
-  validateLimits,
-  validateRCVs,
-} from '../modules/rating';
 import { getDoc } from '../routes/utils';
 import { publishAmendment, publishEndorsement, publishLocationCancel } from '../services/pubsub';
 import { sendAdminChangeRequestNotification, sendMessage } from '../services/sendgrid';
 import { validate } from './utils';
+import { handleRatingForEndorsement } from '../modules/transactions';
 
 export default async (
   event: FirestoreEvent<
@@ -45,12 +26,8 @@ export default async (
     const { policyId, requestId } = event.params;
     const prevData = event?.data?.before?.data() as ChangeRequest | undefined;
     const data = event?.data?.after.data() as ChangeRequest | undefined;
-    // TODO: wrap all firestoreEvent listeners in try/catch so "validate" can throw errors
+
     validate(data, 'document deleted. returning.', 'warn');
-    // if (!data) {
-    //   info('document deleted. returning.');
-    //   return;
-    // }
 
     // MUST UPDATE _lastCommitted if updating Change Request doc in this function in order to prevent loop
     // TODO: use its own field cloudFnUpdated: Timestamp (might want this to run if there's an update)
@@ -70,15 +47,16 @@ export default async (
     }
 
     const { status } = data;
+    validate(status, 'policy change request missing status', 'error');
     info(`New change request doc change detected. (status: ${status})`, { ...data });
 
     switch (status) {
       case CHANGE_REQUEST_STATUS.SUBMITTED:
         await handleNewRequest(data, policyId, requestId, event.id);
         // TODO: handle reinstatement & renewal
-        if (data.trxType === 'endorsement') {
+        if (data.trxType === 'endorsement')
           await handleRatingForEndorsement(data, policyId, requestId);
-        }
+
         return;
       case CHANGE_REQUEST_STATUS.ACCEPTED:
         await handleAcceptedRequest(data, policyId);
@@ -159,208 +137,11 @@ async function handleNewRequest(
   return;
 }
 
-const SR_CALL_REQUIRED_KEYS = ['limits', 'deductible'];
-
-async function handleRatingForEndorsement(
-  data: ChangeRequest,
-  policyId: string,
-  requestId: string
-) {
-  if (data.scope !== 'location') {
-    error('endorsement should always be at the location level');
-    return;
-  }
-
-  try {
-    const db = getFirestore();
-    const ratingCol = ratingDataCollection(db);
-
-    const policyRef = policiesCollection(db).doc(policyId);
-    const policy = await getDoc(policyRef);
-
-    const changeRequestRef = changeReqestsCollection(db, policyId).doc(requestId);
-
-    const location = policy.locations[data.locationId];
-    verify(location, `location not found on policy (Location ID: ${data.locationId})`);
-    verify(location.ratingDocId, 'missing location ratingDocId');
-
-    let prevRatingData: RatingData | undefined;
-    const prevRatingSnap = await ratingDataCollection(db).doc(location.ratingDocId).get();
-    prevRatingData = prevRatingSnap.data();
-
-    info(`Previous rating data`, { prevRatingData });
-
-    const changesKeys = Object.keys(data.changes);
-    const expDateOnly = changesKeys.every((k) => k === 'expirationDate');
-    const requiresRerate = hasAny(changesKeys, SR_CALL_REQUIRED_KEYS);
-
-    const {
-      coordinates,
-      deductible,
-      limits: locLimits,
-      ratingPropertyData,
-      annualPremium,
-    } = location;
-
-    const effDateTS = data.changes?.effectiveDate || location.effectiveDate;
-    const expDateTS = data.changes?.expirationDate || location.expirationDate;
-
-    if (expDateOnly) {
-      const { termPremium, termDays } = calcTerm(
-        annualPremium,
-        effDateTS.toDate(),
-        expDateTS.toDate()
-      );
-
-      const changesWithRating: Partial<PolicyLocation> = {
-        termPremium,
-        termDays,
-      };
-      info('CHANGES WITH RATING: ', changesWithRating);
-
-      await changeRequestRef.set(
-        { changes: changesWithRating, _lastCommitted: Timestamp.now() },
-        { merge: true }
-      );
-      return;
-    }
-
-    let AALsRes: GetAALRes | undefined;
-    let getPremiumInputs: GetPremiumProps;
-
-    // If rerate required, get new AALs & set getPremiumInputs from result
-    // Otherwise use AALs from prevRatingData (exp date change)
-    // TODO: change in exp date doesn't require prem recalc
-
-    // only need to throw if rerate not required (need previous AALs)
-    // verify(
-    //   prevRatingData,
-    //   `no previous rating doc found for location ${data.locationId}. returning early.`
-    // );
-
-    let RCVs = prevRatingData?.RCVs || location.RCVs;
-
-    if (requiresRerate) {
-      const limits = { ...locLimits, ...(data.changes?.limits || {}) };
-
-      // TODO: validate inputs (replacementCost, limits, etc.)
-      validateRCVs(RCVs);
-      validateLimits(limits);
-
-      try {
-        AALsRes = await getAALs({
-          srClientId: swissReClientId.value(),
-          srClientSecret: swissReClientSecret.value(),
-          srSubKey: swissReSubscriptionKey.value(),
-          replacementCost: RCVs.building,
-          limits,
-          deductible: data?.changes?.deductible || deductible,
-          coordinates: { latitude: coordinates.latitude, longitude: coordinates.longitude },
-          numStories: location.ratingPropertyData?.numStories,
-        });
-      } catch (err: any) {
-        error('Error getting AALs from SR', { err });
-        throw new Error('Error getting AALs from SR');
-      }
-
-      validateAALs(AALsRes?.AALs);
-
-      getPremiumInputs = {
-        AALs: AALsRes.AALs,
-        limits,
-        state: location.address.state,
-        basement: ratingPropertyData.basement,
-        floodZone: ratingPropertyData.floodZone,
-        priorLossCount: ratingPropertyData.priorLossCount || '0',
-        commissionPct: prevRatingData?.premiumCalcData?.subproducerCommissionPct || 0.15, // TODO: throw error if no rating doc or default to 15% commission ??
-      };
-    } else {
-      const AALs = prevRatingData?.AALs;
-      validateAALs(AALs);
-
-      getPremiumInputs = {
-        AALs: AALs as ValueByRiskType,
-        limits: location.limits,
-        state: location.address.state,
-        basement: ratingPropertyData.basement,
-        floodZone: ratingPropertyData.floodZone,
-        priorLossCount: ratingPropertyData.priorLossCount || '0',
-        commissionPct: prevRatingData?.premiumCalcData?.subproducerCommissionPct || 0.15, // TODO: throw error if no rating doc or default to 15% commission ??
-      };
-    }
-
-    const result = getPremium(getPremiumInputs);
-
-    RCVs = {
-      // RCVs could change if limitD changes
-      ...location.RCVs,
-      ...(prevRatingData?.RCVs || {}),
-      ...(AALsRes?.RCVs || {}),
-    };
-
-    const ratingDocRef = await ratingCol.add({
-      // ...(prevRatingData || {}),
-      submissionId: prevRatingData?.submissionId || null,
-      locationId: data.locationId,
-      deductible: data?.changes?.deductible || deductible,
-      limits: getPremiumInputs.limits,
-      TIV: result.tiv,
-      RCVs,
-      ratingPropertyData: location.ratingPropertyData,
-      AALs: getPremiumInputs.AALs,
-      premiumCalcData: result.premiumData,
-      PM: result.pm,
-      riskScore: result.riskScore,
-      stateMultipliers: result.stateMultipliers,
-      secondaryFactorMults: result.secondaryFactorMults,
-      coordinates: location.coordinates,
-      metadata: {
-        created: Timestamp.now(),
-        updated: Timestamp.now(),
-      },
-    });
-
-    const { premiumData } = result;
-    verify(
-      premiumData?.directWrittenPremium && premiumData?.directWrittenPremium > 100,
-      'premium < 100'
-    );
-    // TODO: validate results (premium, etc.)
-
-    const { termPremium, termDays } = calcTerm(
-      premiumData.directWrittenPremium,
-      effDateTS.toDate(),
-      expDateTS.toDate()
-    );
-
-    const changesWithRating: Partial<PolicyLocation> = {
-      annualPremium: premiumData.directWrittenPremium,
-      ratingDocId: ratingDocRef.id || location.ratingDocId,
-      TIV: result.tiv,
-      termPremium,
-      termDays,
-      RCVs,
-    };
-    info('CHANGES WITH RATING: ', { changesWithRating });
-
-    await changeRequestRef.set(
-      { changes: changesWithRating, _lastCommitted: Timestamp.now() },
-      { merge: true }
-    );
-  } catch (err: any) {
-    error('Error calculating new rating values for endorsement', { err, data }); // TODO: report error
-
-    return;
-  }
-}
-
 // Emit pubsub event
 async function handleAcceptedRequest(data: ChangeRequest, policyId: string) {
   try {
-    // TODO: check if event already emitted
-    // if (data.trxPubSubEmitted === true) return
-
-    console.log('HANDLE ACCEPTED DATA: ', data);
+    // TODO: check if event already emitted ?? (prevent duplicates) and prevent changes to request once status === approved (firestore rule)
+    // verify(data.trxPubSubEmitted !== true, 'trx pubsub event has already been emitted for change request.)
 
     if (data.scope === 'location') {
       switch (data.trxType) {

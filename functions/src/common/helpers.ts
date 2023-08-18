@@ -2,7 +2,7 @@ import { add, differenceInCalendarDays, Duration } from 'date-fns';
 import { DocumentReference } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 import fs from 'fs';
-import { isEqual, remove } from 'lodash';
+import { isEqual, remove, get } from 'lodash';
 import numeral from 'numeral';
 import { inspect } from 'util';
 import { v4 as uuid } from 'uuid';
@@ -10,7 +10,7 @@ import { v4 as uuid } from 'uuid';
 import invariant from 'tiny-invariant';
 import { reportErrorSentry } from '../services/sentry';
 import { cardFeePct } from './environmentVars';
-import { FeeItem, Primitive, TaxItem } from './types';
+import { Path, Primitive } from './types';
 
 /**
  * Sums an array of numbers
@@ -252,14 +252,17 @@ export const onlyUniqueObj =
 
 export function sumByTypes<T>(
   arr: T[],
-  searchKey: keyof T,
+  searchKey: Path<T>,
   searchValues: any | any[],
-  valKey: keyof T
+  valKey: Path<T>
 ) {
   searchValues = Array.isArray(searchValues) ? searchValues : ([searchValues] as any[]);
   return arr.reduce((acc, f) => {
-    if (searchValues.some((searchVal: any) => isEqual(f[searchKey], searchVal))) {
-      let num = typeof f[valKey] === 'string' ? extractNumber(f[valKey] as string) : f[valKey];
+    if (searchValues.some((searchVal: any) => isEqual(get(f, searchKey), searchVal))) {
+      let num =
+        typeof get(f, valKey) === 'string'
+          ? extractNumber(get(f, valKey) as string)
+          : get(f, valKey);
 
       if (typeof num === 'number') return acc + num;
     }
@@ -287,19 +290,19 @@ export const sumArr = (arr: (number | string)[]) => {
   }, 0);
 };
 
-/**
- * sum taxes, fees, premium
- * @param {FeeItem[]} fees array of fees objects
- * @param {TaxItem[]} taxes array of tax objects
- * @param {number} premium annual premium
- * @returns {number} quote total = sum of fees, taxes, premium, rounded to 2 decimals
- */
-export function sumfeesTaxesPremium(fees: FeeItem[], taxes: TaxItem[], premium: number) {
-  const feeTotal = sumArr(fees.map((f) => f.feeValue));
-  const taxTotal = sumArr(taxes.map((t) => t.value));
+// /**
+//  * sum taxes, fees, premium
+//  * @param {FeeItem[]} fees array of fees objects
+//  * @param {TaxItem[]} taxes array of tax objects
+//  * @param {number} premium annual premium
+//  * @returns {number} quote total = sum of fees, taxes, premium, rounded to 2 decimals
+//  */
+// export function sumfeesTaxesPremium(fees: FeeItem[], taxes: TaxItem[], premium: number) {
+//   const feeTotal = sumArr(fees.map((f) => f.feeValue));
+//   const taxTotal = sumArr(taxes.map((t) => t.value));
 
-  return round(premium + feeTotal + taxTotal, 2);
-}
+//   return round(premium + feeTotal + taxTotal, 2);
+// }
 
 export function getCardFee(quoteTotal: number) {
   const feePct = Number.parseFloat(cardFeePct.value()) || 0.035;

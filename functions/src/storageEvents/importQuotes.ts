@@ -27,7 +27,6 @@ import {
   minDeductibleFlood,
   quotesCollection,
   sendgridApiKey,
-  sumfeesTaxesPremium,
   truthyOrZero,
   unlinkFile,
 } from '../common';
@@ -41,6 +40,7 @@ import { sendAdminPolicyImportNotification } from '../services/sendgrid';
 import { getFormattedFees } from './importPolicies';
 import { eventOlderThan, shouldReturnEarly } from '../modules/storage';
 import { fetchTaxes } from '../modules/db';
+import { sumFeesTaxesPremium } from '../modules/rating';
 
 // import { sendAdminPolicyImportNotification } from '../services/sendgrid';
 
@@ -166,7 +166,7 @@ export default async (event: StorageEvent) => {
     try {
       let taxes = await fetchTaxes(q, 'new');
 
-      const quoteTotal = sumfeesTaxesPremium(q.fees, taxes, q.annualPremium);
+      const quoteTotal = sumFeesTaxesPremium(q.fees, taxes, q.annualPremium);
 
       const cardFee = getCardFee(quoteTotal);
 

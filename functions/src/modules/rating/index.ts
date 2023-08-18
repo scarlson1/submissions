@@ -22,6 +22,7 @@ export {
   surgePMRiskArray,
 } from './riskScore.js';
 export * from './validation.js';
+export * from './sumPremium.js';
 
 export type { GetAALRes, GetAALsProps } from './getAALs.js';
 export type { GetPremiumProps } from './getPremium.js';

@@ -287,7 +287,6 @@ function convertQuoteToPolicy(data: Quote, license: License, quoteId: string | n
     termDays,
     fees: data.fees,
     taxes: data.taxes,
-    // cardFee, need to save card fee or should card fee or should it be added to fees if card is used ??
     price: data.quoteTotal,
     effectiveDate: data.effectiveDate,
     expirationDate: Timestamp.fromDate(expirationDate),

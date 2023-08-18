@@ -83,6 +83,30 @@ export type FlattenObjectKeys<T extends Record<string, any>, Key = keyof T> = Ke
 // type FlatKeys = FlattenObjectKeys<typeof example>;
 // type FlatKeys = "g" | "a.b" | "a.c" | "d.e" | "d.f" | "h.i.j.k" | "h.i.j.l"
 
+type PathImpl<T, K extends keyof T> = K extends string
+  ? T[K] extends Record<string, any>
+    ? T[K] extends ArrayLike<any>
+      ? K | `${K}.${PathImpl<T[K], Exclude<keyof T[K], keyof any[]>>}`
+      : K | `${K}.${PathImpl<T[K], keyof T[K]>}`
+    : K
+  : never;
+
+export type Path<T> = PathImpl<T, keyof T> | keyof T;
+
+export type PathValue<T, P extends Path<T>> = P extends `${infer K}.${infer Rest}`
+  ? K extends keyof T
+    ? Rest extends Path<T[K]>
+      ? PathValue<T[K], Rest>
+      : never
+    : never
+  : P extends keyof T
+  ? T[P]
+  : never;
+
+// USAGE:
+// declare function get<T, P extends Path<T>>(obj: T, path: P): PathValue<T, P>;
+// get(object, "firstName"); // works
+
 export type Primitive = string | number | bigint | boolean | symbol | null | undefined;
 
 export interface Submission extends Omit<FloodValues, 'ratingPropertyData'> {
@@ -507,6 +531,13 @@ export interface BaseContact {
   phone: string;
 }
 
+export interface SLProdOfRecordDetails {
+  name: string;
+  licenseNum: string;
+  licenseState: string;
+  phone: string;
+}
+
 export type RCVKeys = 'building' | 'otherStructures' | 'contents' | 'BI' | 'total';
 
 export type RCVs = Record<RCVKeys, number>;
@@ -519,10 +550,10 @@ export interface PolicyLocation {
   address: Address;
   coordinates: GeoPoint;
   geoHash: Geohash;
-  // premium: number;
   annualPremium: number;
+  termPremium: number;
+  termDays: number;
   limits: Limits;
-  // TODO: add tiv sum in Policy class
   TIV: number;
   RCVs: RCVs;
   deductible: number;
@@ -533,6 +564,8 @@ export interface PolicyLocation {
   ratingPropertyData: RatingPropertyData;
   effectiveDate: Timestamp;
   expirationDate: Timestamp;
+  cancelEffDate?: Timestamp | null;
+  cancelReason?: CancellationReason;
   imageURLs?: LocationImages | null;
   imagePaths?: LocationImages | null;
   locationId: string;
@@ -542,43 +575,31 @@ export interface PolicyLocation {
     updated: Timestamp;
   };
 }
-// address (mailingAddress)
-// namedInsured (could be entity)
-//
+
 export interface Policy extends BaseDoc {
   product: Product;
   status: POLICY_STATUS;
   term: number;
   mailingAddress: Address;
   namedInsured: NamedInsured; // TODO: clerify typing NamedInsuredDetails;
-  // address: Address;
-  // limits: Limits;
   locations: Record<string, PolicyLocation>;
-  price: number; // TODO: taxes, fees, etc. (line items)
-  // deductible: number;
   homeState: string;
+  termPremium: number; // sum of location(s) term premium
+  termDays: number;
+  fees: FeeItem[];
+  taxes: TaxItem[];
+  price: number; // sum of termPrem, taxes, fees
   effectiveDate: Timestamp;
   expirationDate: Timestamp;
-  // additionalInsureds?: { firstName: string; lastName: string; email: string }[];
-  // otherInterestedParties?: Record<string, any>[]; // TODO: delete
-  // mortgageeInterest?: Mortgagee[];
-  // lastTransactionDate: FirestoreTimestamp;
-  // cancelDate: FirestoreTimestamp;
+  cancelEffDate?: Timestamp | null;
+  cancelReason?: CancellationReason;
   userId: string;
-  agent: Nullable<AgentDetails>; // TODO: remove nullable (defaults to idemand)
+  agent: AgentDetails; // Nullable<AgentDetails>; // TODO: remove nullable (defaults to idemand)
   agency: AgencyDetails;
-  surplusLinesProducerOfRecord: {
-    name: string;
-    licenseNum: string;
-    licenseState: string;
-    phone: string;
-  };
+  surplusLinesProducerOfRecord: SLProdOfRecordDetails;
   issuingCarrier: string;
-  // TODO: GENERATE DOCS INSTEAD OF STORING
-  documents: [{ displayName: string; downloadUrl: string; storagePath: string }];
+  documents: { displayName: string; downloadUrl: string; storagePath: string }[];
   quoteId?: string | null;
-  // imageURLs?: Record<string, string> | null;
-  // imagePaths?: Record<string, string> | null;
 }
 
 export interface TrxRatingData extends Nullable<RatingPropertyData> {

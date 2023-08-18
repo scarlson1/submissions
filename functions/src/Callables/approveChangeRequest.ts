@@ -70,6 +70,7 @@ const approveChangeRequest = async ({ data, auth }: CallableRequest<ApproveReque
       );
     }
 
+    // TODO: need to store location scope changes with policy depth b/c premium recalc will require recalcing premium, taxes & fees at policy level
     if (request.scope === 'location') {
       const { locationId, changes } = request;
       const policy = await getDoc(policyRef);

@@ -3,7 +3,6 @@ import invariant from 'tiny-invariant';
 import axios, { AxiosResponse } from 'axios';
 import { info } from 'firebase-functions/logger';
 import {
-  FeeItem,
   LineOfBusiness,
   Quote,
   SubjectBaseItems,
@@ -12,8 +11,8 @@ import {
   TransactionType,
   WithId,
   submissionsApiBaseURL,
-  sumByTypes,
 } from '../../common';
+import { sumInspectionFees, sumMGAFees } from '../transactions';
 
 export type SubjectBaseKeyVal = Record<Exclude<SubjectBaseItems, 'fixedFee' | 'noFee'>, number>;
 
@@ -48,8 +47,8 @@ export async function fetchTaxes(quote: Quote, transactionType: TransactionType)
   invariant(state, 'missing state (fetch taxes)');
   invariant(annualPremium, 'missing annualPremium (fetch taxes)');
 
-  const mgaFees = sumByTypes<FeeItem>(fees, 'feeName', 'MGA Fee', 'feeValue');
-  const inspectionFees = sumByTypes<FeeItem>(fees, 'feeName', 'Inspection Fee', 'feeValue');
+  const mgaFees = sumMGAFees(fees);
+  const inspectionFees = sumInspectionFees(fees);
 
   const body: StateTaxRequest = {
     state,

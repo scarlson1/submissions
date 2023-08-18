@@ -19,7 +19,7 @@ import {
 } from '@mui/material';
 import { doc } from 'firebase/firestore';
 import { Formik, FormikErrors, FormikHelpers, FormikProps, setNestedObjectValues } from 'formik';
-import { isEmpty, pick } from 'lodash'; // merge, omit,
+import { isEmpty, pick } from 'lodash';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFirestore } from 'reactfire';
@@ -97,8 +97,6 @@ export interface QuoteValues {
   deductible: number;
   effectiveExceptionRequested: boolean;
   effectiveDate: Date;
-  // expirationDate: Date | null; // Date;
-  // quoteExpirationDate: Date; // always quoteDate + 30
   fees: FeeItem[];
   taxes: TaxItem[];
   annualPremium: number | null;

@@ -60,11 +60,15 @@ export function validateRCVs(RCVs?: RCVs | null | undefined): asserts RCVs is No
   validateReplacementCost(RCVs?.building);
 
   verify(
-    RCVs?.otherStructures && typeof RCVs?.otherStructures === 'number',
+    RCVs?.otherStructures ||
+      (RCVs?.otherStructures === 0 && typeof RCVs?.otherStructures === 'number'),
     `RCVs.otherStructures must be a number`
   );
 
-  verify(RCVs?.contents && typeof RCVs?.contents === 'number', `RCVs.contents must be a number`);
+  verify(
+    (RCVs?.contents || RCVs?.contents === 0) && typeof RCVs?.contents === 'number',
+    `RCVs.contents must be a number`
+  );
 
   verify((RCVs?.BI || RCVs.BI === 0) && typeof RCVs?.BI === 'number', `RCVs.BI must be a number`);
 }

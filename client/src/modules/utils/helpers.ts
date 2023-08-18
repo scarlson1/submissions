@@ -5,13 +5,24 @@ import { Color } from 'deck.gl/typed';
 import type { AuthError } from 'firebase/auth';
 import { FirestoreError, GeoPoint, Timestamp, WhereFilterOp } from 'firebase/firestore';
 import { geohashForLocation } from 'geofire-common';
-import { ceil, filter, find, floor, includes, isArray, isEqual, isObject, transform } from 'lodash';
+import {
+  ceil,
+  filter,
+  find,
+  floor,
+  get,
+  includes,
+  isArray,
+  isEqual,
+  isObject,
+  transform,
+} from 'lodash';
 import numeral from 'numeral';
 import { toast } from 'react-hot-toast';
 import { Location } from 'react-router-dom';
 
 import { alpha } from '@mui/material';
-import { Address, FeeItem, FlattenObjectKeys, RoundingType, TaxItem } from 'common/types';
+import { Address, FeeItem, FlattenObjectKeys, Path, RoundingType, TaxItem } from 'common/types';
 import { AddressComponent, AddressComponentType } from 'components/forms';
 
 /**
@@ -695,16 +706,36 @@ export function sumfeesTaxesPremium(fees: FeeItem[], taxes: TaxItem[], premium: 
 //   }, 0);
 // }
 
+// export function sumByTypes<T>(
+//   arr: T[],
+//   searchKey: keyof T,
+//   searchValues: any | any[],
+//   valKey: keyof T
+// ) {
+//   searchValues = Array.isArray(searchValues) ? searchValues : ([searchValues] as any[]);
+//   return arr.reduce((acc, f) => {
+//     if (searchValues.some((searchVal: any) => isEqual(f[searchKey], searchVal))) {
+//       let num = typeof f[valKey] === 'string' ? extractNumber(f[valKey] as string) : f[valKey];
+
+//       if (typeof num === 'number') return acc + num;
+//     }
+
+//     return acc;
+//   }, 0);
+// }
 export function sumByTypes<T>(
   arr: T[],
-  searchKey: keyof T,
+  searchKey: Path<T>, //  keyof T,
   searchValues: any | any[],
-  valKey: keyof T
+  valKey: Path<T>
 ) {
   searchValues = Array.isArray(searchValues) ? searchValues : ([searchValues] as any[]);
   return arr.reduce((acc, f) => {
-    if (searchValues.some((searchVal: any) => isEqual(f[searchKey], searchVal))) {
-      let num = typeof f[valKey] === 'string' ? extractNumber(f[valKey] as string) : f[valKey];
+    if (searchValues.some((searchVal: any) => isEqual(get(f, searchKey), searchVal))) {
+      let num =
+        typeof get(f, valKey) === 'string'
+          ? extractNumber(get(f, valKey) as string)
+          : get(f, valKey);
 
       if (typeof num === 'number') return acc + num;
     }
