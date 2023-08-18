@@ -1,10 +1,9 @@
-import { Timestamp, getFirestore } from 'firebase-admin/firestore';
+import { DocumentReference, Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 
 import {
   ChangeRequest,
   PolicyLocation,
-  RatingData,
   ValueByRiskType,
   calcTerm,
   changeReqestsCollection,
@@ -17,6 +16,7 @@ import {
   swissReSubscriptionKey,
   verify,
 } from '../../common';
+import { getDoc } from '../../routes/utils';
 import {
   GetAALRes,
   GetPremiumProps,
@@ -28,7 +28,6 @@ import {
   validateLimits,
   validateRCVs,
 } from '../rating';
-import { getDoc } from '../../routes/utils';
 import { getInStatePremium, getOutStatePremium, recalcTaxes } from './taxes';
 
 const SR_CALL_REQUIRED_KEYS = ['limits', 'deductible'];
@@ -40,33 +39,39 @@ export async function handleRatingForEndorsement(
   policyId: string,
   requestId: string
 ) {
-  if (data.scope !== 'location') {
-    reportErr('endorsement should always be at the location level', { data, policyId, requestId });
-    return;
-  }
+  let changeRequestRef;
 
   try {
+    verify(data.scope === 'location', 'endorsement should always be at the location level');
+
+    const locationsUpdates = data?.changes?.locations;
+    verify(
+      locationsUpdates && locationsUpdates[data.locationId],
+      `no changes found on "changes" property for ${data.locationId}`
+    );
+
     const db = getFirestore();
     const ratingCol = ratingDataCollection(db);
 
     const policyRef = policiesCollection(db).doc(policyId);
     const policy = await getDoc(policyRef);
 
-    const changeRequestRef = changeReqestsCollection(db, policyId).doc(requestId);
+    changeRequestRef = changeReqestsCollection(db, policyId).doc(requestId);
 
-    // const location = policy.locations[data.locationId];
     const { [data.locationId]: location, ...otherLocations } = policy.locations;
 
     verify(location, `location not found on policy (Location ID: ${data.locationId})`);
     verify(location.ratingDocId, 'missing location ratingDocId');
 
-    let prevRatingData: RatingData | undefined;
-    const prevRatingSnap = await ratingDataCollection(db).doc(location.ratingDocId).get();
-    prevRatingData = prevRatingSnap.data();
+    const prevRatingSnap = await ratingCol.doc(location.ratingDocId).get();
+    const prevRatingData = prevRatingSnap.data();
 
     info(`Previous rating data`, { prevRatingData });
 
-    const changesKeys = Object.keys(data.changes);
+    const locationChanges = locationsUpdates[data.locationId];
+    verify(locationChanges);
+    // const changesKeys = Object.keys(data.changes);
+    const changesKeys = Object.keys(locationChanges);
     const expDateOnly = changesKeys.every((k) => k === 'expirationDate');
     const requiresRerate = hasAny(changesKeys, SR_CALL_REQUIRED_KEYS);
 
@@ -78,8 +83,10 @@ export async function handleRatingForEndorsement(
       annualPremium,
     } = location;
 
-    const effDateTS = data.changes?.effectiveDate || location.effectiveDate;
-    const expDateTS = data.changes?.expirationDate || location.expirationDate;
+    // @ts-ignore
+    const effDateTS: Timestamp = locationChanges.effectiveDate || location.effectiveDate;
+    // @ts-ignore
+    const expDateTS: Timestamp = locationChanges.expirationDate || location.expirationDate;
 
     if (expDateOnly) {
       const { termPremium, termDays } = calcTerm(
@@ -107,7 +114,6 @@ export async function handleRatingForEndorsement(
     // If rerate required, get new AALs & set getPremiumInputs from result
     // Otherwise use AALs from prevRatingData (exp date change)
     // TODO: change in exp date doesn't require prem recalc
-
     // only need to throw if rerate not required (need previous AALs)
     // verify(
     //   prevRatingData,
@@ -117,7 +123,7 @@ export async function handleRatingForEndorsement(
     let RCVs = prevRatingData?.RCVs || location.RCVs;
 
     if (requiresRerate) {
-      const limits = { ...locLimits, ...(data.changes?.limits || {}) };
+      const limits = { ...locLimits, ...(locationChanges.limits || {}) };
 
       // TODO: validate inputs (replacementCost, limits, etc.)
       validateRCVs(RCVs);
@@ -130,7 +136,7 @@ export async function handleRatingForEndorsement(
           srSubKey: swissReSubscriptionKey.value(),
           replacementCost: RCVs.building,
           limits,
-          deductible: data?.changes?.deductible || deductible,
+          deductible: locationChanges.deductible || deductible,
           coordinates: { latitude: coordinates.latitude, longitude: coordinates.longitude },
           numStories: location.ratingPropertyData?.numStories,
         });
@@ -179,7 +185,7 @@ export async function handleRatingForEndorsement(
       // ...(prevRatingData || {}),
       submissionId: prevRatingData?.submissionId || null,
       locationId: data.locationId,
-      deductible: data?.changes?.deductible || deductible,
+      deductible: locationChanges.deductible || deductible,
       limits: getPremiumInputs.limits,
       TIV: result.tiv,
       RCVs,
@@ -221,41 +227,37 @@ export async function handleRatingForEndorsement(
     info('CHANGES WITH RATING: ', { changesWithRating });
 
     let otherChangesOnceStoringAtPolicyLevel: any = {};
-    try {
-      // TODO: recalculate policy-level term premium and taxes
-      // TODO: need to do term days if only one location ??
-      const newLocations = [
-        ...Object.values(otherLocations),
-        { ...location, ...changesWithRating },
-      ];
+    // try {
+    // TODO: need to do term days if only one location ??
+    const newLocations = [...Object.values(otherLocations), { ...location, ...changesWithRating }];
 
-      const newPolicyTermPremium = sumPolicyTermPremium(newLocations);
-      const inStatePremium = getInStatePremium(policy.homeState, newLocations);
-      const outStatePremium = getOutStatePremium(policy.homeState, newLocations);
+    const newPolicyTermPremium = sumPolicyTermPremium(newLocations);
+    const inStatePremium = getInStatePremium(policy.homeState, newLocations);
+    const outStatePremium = getOutStatePremium(policy.homeState, newLocations);
 
-      // recalc taxes based on new term premium
-      const newTaxes = recalcTaxes({
-        premium: newPolicyTermPremium,
-        homeStatePremium: inStatePremium,
-        outStatePremium,
-        taxes: policy.taxes,
-        fees: policy.fees,
-      });
-      console.log('NEW TAXES: ', newTaxes);
+    // recalc taxes based on new term premium
+    const newTaxes = recalcTaxes({
+      premium: newPolicyTermPremium,
+      homeStatePremium: inStatePremium,
+      outStatePremium,
+      taxes: policy.taxes,
+      fees: policy.fees,
+    });
 
-      const newPrice = sumFeesTaxesPremium(policy.fees, newTaxes, newPolicyTermPremium);
+    const newPrice = sumFeesTaxesPremium(policy.fees, newTaxes, newPolicyTermPremium);
 
-      otherChangesOnceStoringAtPolicyLevel = {
-        termPremium: newPolicyTermPremium,
-        inStatePremium,
-        outStatePremium,
-        taxes: newTaxes,
-        price: newPrice,
-      };
-    } catch (err: any) {
-      console.log('ERROR CALCING POLICY LEVEL VALS: ', err);
-      otherChangesOnceStoringAtPolicyLevel['msg'] = 'an error occurred';
-    }
+    // TODO: set values in regular changes once schema updated
+    otherChangesOnceStoringAtPolicyLevel = {
+      termPremium: newPolicyTermPremium,
+      inStatePremium,
+      outStatePremium,
+      taxes: newTaxes,
+      price: newPrice,
+    };
+    // } catch (err: any) {
+    //   console.log('ERROR CALCING POLICY LEVEL VALS: ', err);
+    //   otherChangesOnceStoringAtPolicyLevel['msg'] = 'an error occurred';
+    // }
 
     await changeRequestRef.set(
       {
@@ -272,8 +274,18 @@ export async function handleRatingForEndorsement(
       { data, policyId, requestId },
       err
     );
-    // TODO: add error to change request doc
+
+    let errMsg = err?.message || 'Error calculating endorsement premium';
+    if (changeRequestRef) await setChangeRequestErr(changeRequestRef, errMsg);
 
     return;
+  }
+}
+
+async function setChangeRequestErr(ref: DocumentReference, errMsg: string) {
+  try {
+    await ref.update({ error: errMsg });
+  } catch (err) {
+    error('Error setting error message on change request');
   }
 }

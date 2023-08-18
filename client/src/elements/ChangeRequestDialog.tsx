@@ -28,7 +28,6 @@ import { ApproveChangeResponse, approveChangeRequest } from 'api';
 import {
   CHANGE_REQUEST_STATUS,
   COLLECTIONS,
-  ChangeRequest,
   ChangeRequestStatus,
   changeReqestsCollection,
   policiesCollection,
@@ -183,17 +182,18 @@ const useMangageChangeRequest = (
   const updateChangeRequest = useCallback(
     async (policyId: string, requestId: string, status: ChangeRequestStatus) => {
       try {
+        if (!user?.uid) throw new Error('must be signed in');
         // TODO: prompt for uw notes
         const docRef = doc(changeReqestsCollection(firestore, policyId), requestId);
 
         toast.loading('updating...');
         await updateDoc(docRef, {
           status,
-          processedByUserId: user?.uid || null,
+          processedByUserId: user.uid,
           processedTimestamp: Timestamp.now(),
           underwriterNotes: null, // @ts-ignore
           'metadata.updated': Timestamp.now(),
-        } as Partial<ChangeRequest>);
+        });
 
         toast.success('request updated!');
         if (onSuccess) onSuccess();

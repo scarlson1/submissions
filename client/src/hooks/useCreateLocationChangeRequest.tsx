@@ -35,15 +35,20 @@ export const useCreateLocationChangeRequest = (policyId: string) => {
     async (values: LocationChangeValues, bag: FormikHelpers<LocationChangeValues>) => {
       console.log('on submit: ', values);
 
+      // TODO: better validation (locationId, etc.)
       if (!locationData.current || !initialVals.current || !policy.current)
         throw new Error('missing values. please reload.');
 
+      const locationId = locationData.current.locationId;
+      if (!locationId) throw new Error('missing locationId');
+
       const { requestEffDate: reqEffDateNew, ...newVals } = values;
 
-      const diff = formatChanges<LocationChangeValues, LocationChangeRequest>(
-        newVals,
-        initialVals.current
-      );
+      // const diff = formatChanges<LocationChangeValues, LocationChangeRequest>(
+      //   newVals,
+      //   initialVals.current
+      // );
+      const diff = formatChanges<LocationChangeValues>(newVals, initialVals.current);
 
       const requiresEndorsement = hasEndorsementKeys(diff);
       const requiresAmendment = hasAmendmentKeys(diff);
@@ -60,14 +65,18 @@ export const useCreateLocationChangeRequest = (policyId: string) => {
       const docIds = [];
 
       if (requiresEndorsement) {
-        let endorsementChanges: LocationChangeRequest['changes'] = {};
+        // let endorsementChanges: LocationChangeRequest['changes'] = {};
+        // TODO: create ProtectLocation type (omit termPremium, etc.)
+        let endorsementChanges: Partial<Omit<PolicyLocation, 'termPremium' | 'annualPremium'>> = {};
 
         if (diff.effectiveDate && values.effectiveDate)
           endorsementChanges['effectiveDate'] = Timestamp.fromDate(values.effectiveDate);
+
         if (diff.expirationDate && values.expirationDate)
           endorsementChanges['expirationDate'] = Timestamp.fromDate(values.expirationDate);
-        // @ts-ignore
-        if (diff.limits && values.limits) endorsementChanges['limits'] = diff.limits; // values.limits;
+
+        if (diff.limits && values.limits) endorsementChanges['limits'] = diff.limits;
+
         if (diff.deductible) endorsementChanges['deductible'] = values.deductible;
 
         console.log('endorsement changes: ', endorsementChanges);
@@ -75,7 +84,13 @@ export const useCreateLocationChangeRequest = (policyId: string) => {
         const changeRequestData: LocationChangeRequest = {
           ...common,
           trxType: 'endorsement',
-          changes: endorsementChanges,
+          changes: {
+            locations: {
+              [locationId]: {
+                ...endorsementChanges,
+              },
+            },
+          },
         };
 
         const endorsementDocRef = await addDoc(colRef, { ...changeRequestData });
@@ -83,9 +98,9 @@ export const useCreateLocationChangeRequest = (policyId: string) => {
       }
 
       if (requiresAmendment) {
-        let amendmentChanges: LocationChangeRequest['changes'] = {};
+        // let amendmentChanges: LocationChangeRequest['changes'] = {};
+        let amendmentChanges: Partial<Omit<PolicyLocation, 'termPremium' | 'annualPremium'>> = {};
 
-        // @ts-ignore
         if (diff.additionalInterests) {
           amendmentChanges['additionalInsureds'] = additionalInterestsToAdditionalInsured(
             values.additionalInterests

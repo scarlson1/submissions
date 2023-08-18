@@ -45,7 +45,8 @@ export const useCreatePolicyChangeRequest = () => {
       let { requestEffDate: reqEffDate2, ...newVals } = values;
       let { requestEffDate: reqEffDate, ...initVals } = initialVals.current;
 
-      const changes = formatChanges<PolicyChangeValues, PolicyChangeRequest>(newVals, initVals);
+      // const changes = formatChanges<PolicyChangeValues, PolicyChangeRequest>(newVals, initVals);
+      const changes = formatChanges<PolicyChangeValues>(newVals, initVals);
 
       const requiresAmendment = !missingAmendmentKeys(changes);
       if (!requiresAmendment) throw new Error('no changes detected');
@@ -135,10 +136,16 @@ export const useCreatePolicyChangeRequest = () => {
   );
 };
 
-export function formatChanges<T, S extends ChangeRequest>(
+// export function formatChanges<T, S extends ChangeRequest>(
+//   newValues: Omit<T, 'requestEffDate'>,
+//   initialValues: Omit<T, 'requestEffDate'>
+// ): S['changes'] {
+//   return getDifference(initialValues, newValues);
+// }
+export function formatChanges<T>(
   newValues: Omit<T, 'requestEffDate'>,
   initialValues: Omit<T, 'requestEffDate'>
-): S['changes'] {
+) {
   return getDifference(initialValues, newValues);
 }
 

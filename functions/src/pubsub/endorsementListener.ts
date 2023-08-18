@@ -1,9 +1,9 @@
+import { isValid } from 'date-fns';
 import { Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { CloudEvent } from 'firebase-functions/lib/v2/core';
 import { error, info, warn } from 'firebase-functions/logger';
 import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 
-import { isValid } from 'date-fns';
 import { PremiumTransaction, Transaction, transactionsCollection } from '../common';
 import {
   constructTrxId,

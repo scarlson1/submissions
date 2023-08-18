@@ -39,6 +39,18 @@ export type DeepNullable<T> = {
   [K in keyof T]: DeepNullable<T[K]> | null;
 };
 
+// export type DeepPartial<T> = {
+//   [K in keyof T]?: DeepPartial<Partial<T[K]>>;
+// };
+
+export type DeepPartial<T> = {
+  [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]> : T[K];
+};
+
+// export type DeepPartial<T> = {
+//   [K in keyof T]?: T[K] extends object ? DeepPartial<Partial<T[K]>> : T[K];
+// };
+
 export type Optional<T> = { [K in keyof T]?: T[K] | undefined | null };
 
 export type WithRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] };
@@ -942,11 +954,9 @@ export type ChangeRequestStatus =
 
 // TODO: create ChangeRequestTrxType, then TransactionType  = ChangeRequestTrxType & 'renewal' | 'new'
 interface BaseChangeRequest extends BaseDoc {
-  trxType: ChangeRequestTrxType; // TransactionType;
-  // scope: 'policy' | 'location';
+  trxType: ChangeRequestTrxType;
   requestEffDate: Timestamp;
   policyId: string;
-  // locationId?: string | null;
   userId: string;
   agent: {
     userId: string | null;
@@ -963,13 +973,14 @@ interface BaseChangeRequest extends BaseDoc {
     email: string | null;
   };
   underwriterNotes?: string | null;
+  error?: string;
   _lastCommitted?: Timestamp;
 }
 
 export interface LocationChangeRequest extends BaseChangeRequest {
   scope: 'location';
-  changes: Partial<PolicyLocation>;
-  // changes: Partial<Policy>;
+  // changes: Partial<PolicyLocation>;
+  changes: DeepPartial<Policy>;
   formValues: LocationChangeValues;
   locationId: string;
   externalId?: string | null;
@@ -989,8 +1000,8 @@ export interface PolicyChangeRequest extends BaseChangeRequest {
 }
 
 export interface CancelValues {
-  requestEffDate: Date; // | null;
-  reason: CancellationReason; // string;
+  requestEffDate: Date;
+  reason: CancellationReason;
 }
 
 export interface PolicyCancellationRequest extends Omit<PolicyChangeRequest, 'formValues'> {

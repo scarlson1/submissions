@@ -43,6 +43,24 @@ export type DeepNonNullable<T> = {
 
 export type Optional<T> = { [K in keyof T]?: T[K] | undefined | null };
 
+export type DeepPartial<T> = {
+  [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]> : T[K];
+};
+
+// export type DeepPartial<T> = {
+//   [K in keyof T]?: T[K] extends object ? DeepPartial<Partial<T[K]>> : T[K];
+// };
+
+// type DeepPartial<K> = {
+//   [attr in keyof K]?: K[attr] extends object
+//     ? DeepPartial<K[attr]>
+//     : K[attr] extends object | null
+//     ? DeepPartial<K[attr]> | null
+//     : K[attr] extends object | null | undefined
+//     ? DeepPartial<K[attr]> | null | undefined
+//     : K[attr];
+// };
+
 export type Maybe<T> = T | null | undefined;
 
 export type Mutable<T> = {
@@ -735,11 +753,9 @@ export type ChangeRequestStatus =
   | 'cancelled';
 
 interface BaseChangeRequest extends BaseDoc {
-  trxType: ChangeRequestTrxType; // TransactionType;
-  // scope: 'policy' | 'location';
+  trxType: ChangeRequestTrxType;
   requestEffDate: Timestamp;
   policyId: string;
-  // locationId?: string | null;
   userId: string;
   agent: {
     userId: string | null;
@@ -756,13 +772,15 @@ interface BaseChangeRequest extends BaseDoc {
     email: string | null;
   };
   underwriterNotes?: string | null;
+  error?: string;
   _lastCommitted?: Timestamp;
 }
 
 export interface LocationChangeRequest extends BaseChangeRequest {
+  trxType: ChangeRequestTrxType;
   scope: 'location';
-  changes: Partial<PolicyLocation>;
-  // changes: Partial<Policy>;
+  // changes: Partial<PolicyLocation>;
+  changes: DeepPartial<Policy>; // Partial<Policy>;
   formValues: LocationChangeValues;
   locationId: string;
   externalId?: string | null;
