@@ -22,7 +22,6 @@ import { Timestamp, doc, getDoc, updateDoc, where } from 'firebase/firestore';
 import { merge } from 'lodash';
 import { Suspense, useCallback, useMemo, useState } from 'react';
 import { useFirestore, useFunctions, useUser } from 'reactfire';
-import invariant from 'tiny-invariant';
 
 import { ApproveChangeResponse, approveChangeRequest } from 'api';
 import {
@@ -119,11 +118,13 @@ const useMangageChangeRequest = (
     [firestore]
   );
 
-  const previewPolicyChange = useCallback(
+  const previewChange = useCallback(
     async (policyId: string, requestId: string) => {
       try {
-        const policy = await getPolicy(policyId);
-        const request = await getRequest(policyId, requestId);
+        const policyReq = await getPolicy(policyId);
+        const requestReq = await getRequest(policyId, requestId);
+        const [policy, request] = await Promise.all([policyReq, requestReq]);
+
         const merged = merge({ '@': 'ignore me' }, policy, request.changes || {});
 
         compareJson(policy, merged, 'Change Request Diff');
@@ -135,28 +136,44 @@ const useMangageChangeRequest = (
     [getRequest, getPolicy, onError, compareJson]
   );
 
-  const previewLocationChange = useCallback(
-    async (policyId: string, requestId: string) => {
-      try {
-        const policy = await getPolicy(policyId);
-        const request = await getRequest(policyId, requestId);
-        invariant(request.scope === 'location');
+  // const previewPolicyChange = useCallback(
+  //   async (policyId: string, requestId: string) => {
+  //     try {
+  //       const policy = await getPolicy(policyId);
+  //       const request = await getRequest(policyId, requestId);
+  //       const merged = merge({ '@': 'ignore me' }, policy, request.changes || {});
 
-        const location = policy.locations[request.locationId];
+  //       compareJson(policy, merged, 'Change Request Diff');
+  //     } catch (err: any) {
+  //       console.log('Error previewing policy diff', err);
+  //       if (onError) onError();
+  //     }
+  //   },
+  //   [getRequest, getPolicy, onError, compareJson]
+  // );
 
-        const mergedLocation = merge({}, location, request.changes || {});
-        const mergedPolicy = merge({}, policy, {
-          locations: { [request.locationId]: mergedLocation },
-        });
+  // const previewLocationChange = useCallback(
+  //   async (policyId: string, requestId: string) => {
+  //     try {
+  //       const policy = await getPolicy(policyId);
+  //       const request = await getRequest(policyId, requestId);
+  //       invariant(request.scope === 'location');
 
-        compareJson(policy, mergedPolicy, 'Change Request Diff');
-      } catch (err: any) {
-        console.log('Error previewing policy diff', err);
-        if (onError) onError();
-      }
-    },
-    [getRequest, getPolicy, onError, compareJson]
-  );
+  //       const location = policy.locations[request.locationId];
+
+  //       const mergedLocation = merge({}, location, request.changes || {});
+  //       const mergedPolicy = merge({}, policy, {
+  //         locations: { [request.locationId]: mergedLocation },
+  //       });
+
+  //       compareJson(policy, mergedPolicy, 'Change Request Diff');
+  //     } catch (err: any) {
+  //       console.log('Error previewing policy diff', err);
+  //       if (onError) onError();
+  //     }
+  //   },
+  //   [getRequest, getPolicy, onError, compareJson]
+  // );
 
   const approveRequest = useCallback(
     async (policyId: string, requestId: string) => {
@@ -218,7 +235,14 @@ const useMangageChangeRequest = (
     [updateChangeRequest]
   );
 
-  return { approveRequest, denyRequest, cancelRequest, previewPolicyChange, previewLocationChange };
+  return {
+    approveRequest,
+    denyRequest,
+    cancelRequest,
+    previewChange,
+    // previewPolicyChange,
+    // previewLocationChange,
+  };
 };
 
 interface ChangeRequestsDialogProps {
@@ -237,31 +261,43 @@ export function ChangeRequestsDialog({ policyId, open, handleClose }: ChangeRequ
       showJson(params.id.toString(), `${params.row.policyId}/${COLLECTIONS.CHANGE_REQUESTS}`),
     [showJson]
   );
-  const { approveRequest, denyRequest, cancelRequest, previewPolicyChange, previewLocationChange } =
-    useMangageChangeRequest();
+  const {
+    approveRequest,
+    denyRequest,
+    cancelRequest,
+    previewChange: previewChangeFn,
+  } = useMangageChangeRequest(); //previewPolicyChange, previewLocationChange
 
   const handleApprove = useCallback(
     (params: GridRowParams) => async () =>
       await approveRequest(params.row.policyId, params.id.toString()),
     [approveRequest]
   );
+
   const handleDeny = useCallback(
     (params: GridRowParams) => async () =>
       await denyRequest(params.row.policyId, params.id.toString()),
     [denyRequest]
   );
+
   const handleCancel = useCallback(
     (params: GridRowParams) => async () =>
       await cancelRequest(params.row.policyId, params.id.toString()),
     [cancelRequest]
   );
+
+  // const previewChange = useCallback(
+  //   (params: GridRowParams) => async () => {
+  //     if (params.row?.scope === 'location')
+  //       return previewLocationChange(params.row?.policyId, params.id.toString());
+  //     return previewPolicyChange(params.row?.policyId, params.id.toString());
+  //   },
+  //   [previewPolicyChange, previewLocationChange]
+  // );
   const previewChange = useCallback(
-    (params: GridRowParams) => async () => {
-      if (params.row?.scope === 'location')
-        return previewLocationChange(params.row?.policyId, params.id.toString());
-      return previewPolicyChange(params.row?.policyId, params.id.toString());
-    },
-    [previewPolicyChange, previewLocationChange]
+    (params: GridRowParams) => async () =>
+      previewChangeFn(params.row?.policyId, params.id.toString()),
+    [previewChangeFn]
   );
 
   const adminProps = useMemo(() => {

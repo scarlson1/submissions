@@ -163,6 +163,7 @@ export const FormikAddress = ({
             name={names.addressLine2}
             label='Unit/Suite'
             {...textFieldProps}
+            required={false}
           />
         </Grid>
         <Grid item xs={12} sm={4} lg={4}>

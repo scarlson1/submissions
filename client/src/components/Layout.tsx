@@ -65,6 +65,7 @@ export const Layout = ({
               flex: '1 0 auto',
               display: 'flex',
               flexDirection: 'column',
+              height: '100%',
               ...bodyWrapperSX,
             }}
           >

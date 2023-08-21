@@ -3,6 +3,7 @@ import { error, info } from 'firebase-functions/logger';
 
 import {
   ChangeRequest,
+  Policy,
   PolicyLocation,
   ValueByRiskType,
   calcTerm,
@@ -44,10 +45,11 @@ export async function handleRatingForEndorsement(
   try {
     verify(data.scope === 'location', 'endorsement should always be at the location level');
 
-    const locationsUpdates = data?.changes?.locations;
+    const { changes, locationId } = data;
+    const locationsUpdates = changes?.locations;
     verify(
-      locationsUpdates && locationsUpdates[data.locationId],
-      `no changes found on "changes" property for ${data.locationId}`
+      locationsUpdates && locationsUpdates[locationId],
+      `no changes found on "changes" property for ${locationId}`
     );
 
     const db = getFirestore();
@@ -58,9 +60,9 @@ export async function handleRatingForEndorsement(
 
     changeRequestRef = changeReqestsCollection(db, policyId).doc(requestId);
 
-    const { [data.locationId]: location, ...otherLocations } = policy.locations;
+    const { [locationId]: location, ...otherLocations } = policy.locations;
 
-    verify(location, `location not found on policy (Location ID: ${data.locationId})`);
+    verify(location, `location not found on policy (Location ID: ${locationId})`);
     verify(location.ratingDocId, 'missing location ratingDocId');
 
     const prevRatingSnap = await ratingCol.doc(location.ratingDocId).get();
@@ -68,7 +70,7 @@ export async function handleRatingForEndorsement(
 
     info(`Previous rating data`, { prevRatingData });
 
-    const locationChanges = locationsUpdates[data.locationId];
+    const locationChanges = locationsUpdates[locationId];
     verify(locationChanges);
     // const changesKeys = Object.keys(data.changes);
     const changesKeys = Object.keys(locationChanges);
@@ -102,7 +104,14 @@ export async function handleRatingForEndorsement(
       info('CHANGES WITH RATING: ', changesWithRating);
 
       await changeRequestRef.set(
-        { changes: changesWithRating, _lastCommitted: Timestamp.now() },
+        {
+          changes: {
+            locations: {
+              [locationId]: changesWithRating,
+            },
+          },
+          _lastCommitted: Timestamp.now(),
+        },
         { merge: true }
       );
       return;
@@ -182,9 +191,8 @@ export async function handleRatingForEndorsement(
     };
 
     const ratingDocRef = await ratingCol.add({
-      // ...(prevRatingData || {}),
       submissionId: prevRatingData?.submissionId || null,
-      locationId: data.locationId,
+      locationId,
       deductible: locationChanges.deductible || deductible,
       limits: getPremiumInputs.limits,
       TIV: result.tiv,
@@ -226,8 +234,6 @@ export async function handleRatingForEndorsement(
     };
     info('CHANGES WITH RATING: ', { changesWithRating });
 
-    let otherChangesOnceStoringAtPolicyLevel: any = {};
-    // try {
     // TODO: need to do term days if only one location ??
     const newLocations = [...Object.values(otherLocations), { ...location, ...changesWithRating }];
 
@@ -247,28 +253,30 @@ export async function handleRatingForEndorsement(
     const newPrice = sumFeesTaxesPremium(policy.fees, newTaxes, newPolicyTermPremium);
 
     // TODO: set values in regular changes once schema updated
-    otherChangesOnceStoringAtPolicyLevel = {
+    const otherChangesOnceStoringAtPolicyLevel: Partial<Policy> = {
       termPremium: newPolicyTermPremium,
       inStatePremium,
       outStatePremium,
       taxes: newTaxes,
       price: newPrice,
     };
-    // } catch (err: any) {
-    //   console.log('ERROR CALCING POLICY LEVEL VALS: ', err);
-    //   otherChangesOnceStoringAtPolicyLevel['msg'] = 'an error occurred';
-    // }
 
+    console.log('POLICY LEVEL CHANGES: ', otherChangesOnceStoringAtPolicyLevel);
     await changeRequestRef.set(
       {
-        changes: changesWithRating, // @ts-ignore
-        otherChangesOnceStoringAtPolicyLevel,
+        changes: {
+          locations: {
+            [locationId]: changesWithRating,
+          },
+          ...otherChangesOnceStoringAtPolicyLevel,
+        },
+        // changes: changesWithRating, // @ts-ignore
+
         _lastCommitted: Timestamp.now(),
       },
       { merge: true }
     );
   } catch (err: any) {
-    console.log('ERROR: ', err);
     reportErr(
       'Error calculating new rating values for endorsement',
       { data, policyId, requestId },

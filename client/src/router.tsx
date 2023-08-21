@@ -269,7 +269,7 @@ export const router = sentryCreateBrowserRouter([
     children: [
       {
         path: '/',
-        element: <Layout containerProps={{ maxWidth: 'xl' }} />,
+        element: <Layout containerProps={{ maxWidth: 'xl', sx: { flex: '1 0 auto' } }} />,
         errorElement: <RouterErrorBoundary />,
         children: [
           {
@@ -577,7 +577,7 @@ export const router = sentryCreateBrowserRouter([
             <Layout
               noPadding={true}
               bodyWrapperSX={{ px: 0 }}
-              containerProps={{ maxWidth: false, sx: { px: '0 !important' } }}
+              containerProps={{ maxWidth: false, sx: { px: '0 !important', flex: '1 0 auto' } }}
             />
           </RequireAuth>
         ),

@@ -60,16 +60,10 @@ export const ServerDataGrid = ({
   const { filters, handleFilterChange } = useGridServerFilter(props?.initialState);
   const [rowSelectionModel, setRowSelectionModel] = useState<GridRowSelectionModel>([]);
 
-  useEffect(() => {
-    console.log('sortModel: ', sortModel);
-    console.log('sortOps: ', sortOps.current);
-  }, [sortModel, sortOps]);
-
   // Firestore: if constraints inculdes <, <=, !=, not-in, >, or >= operator, must have orderBy
   const queryOptions = useMemo(
     () => {
       const orderByConstraint = getOrderByIfNecessary(constraints);
-      console.log('sortOps.current: ', sortOps.current);
 
       return [...filters, ...constraints, ...orderByConstraint, ...sortOps.current];
     },

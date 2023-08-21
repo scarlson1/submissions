@@ -48,6 +48,7 @@ import {
   useGeneratePDF,
 } from 'hooks';
 import { formatFirestoreTimestamp, formatPhoneNumber, stringAvatar } from 'modules/utils';
+import { NotFound } from 'components';
 
 // TODO: make location card flip on hover to show additoinal details ??
 
@@ -130,18 +131,8 @@ export const Policy = () => {
     [handleLocationChangeRequestGrid]
   );
 
-  // TODO: display not found component (or throw & handle in error boundary ??)
-  if (!data)
-    return (
-      <Box sx={{ p: 10, display: 'flex', justifyContent: 'center' }}>
-        <Typography
-          variant='h5'
-          color='warning.main'
-          align='center'
-          gutterBottom
-        >{`Policy not found`}</Typography>
-      </Box>
-    );
+  // TODO: throw & handle in error boundary ??
+  if (!data) return <NotFound title='Policy not found' />;
 
   return (
     // TODO: container ?? layout ??

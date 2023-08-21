@@ -46,6 +46,7 @@ export {
   usePreferredMapStyle,
 } from './MapStyleControl';
 export { Toaster } from './Toaster';
+export { NotFound } from './NotFound';
 
 export type { ConfirmationDialogProps } from './ConfirmationDialog';
 export type { FileLinkProps } from './FileLink';
