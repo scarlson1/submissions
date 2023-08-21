@@ -8,6 +8,7 @@ export const getPolicyAmendmentTrx = (
 ): AmendmentTransaction => {
   return {
     trxType: 'amendment',
+    trxInterfaceType: 'amendment',
     product: policy.product,
     policyId: policy.id,
     locationId: '',

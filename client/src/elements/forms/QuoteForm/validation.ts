@@ -1,6 +1,6 @@
-import * as yup from 'yup';
+import { endOfToday, startOfToday } from 'date-fns';
 import { isEqual } from 'lodash';
-import { startOfToday, endOfToday } from 'date-fns';
+import * as yup from 'yup';
 
 import {
   FeeItem,
@@ -42,7 +42,7 @@ export const getQuoteValidation = (activeStates: Record<string, boolean>) =>
     fees: yup.array().of(
       yup.object().shape({
         feeName: yup.string().typeError('fee name required').required('fee name is required'),
-        feeValue: yup
+        value: yup
           .string()
           .typeError('fee value required (string)')
           .required('fee value is required'),
@@ -84,8 +84,8 @@ export const getQuoteValidation = (activeStates: Record<string, boolean>) =>
                 premium: values.annualPremium || 0,
                 homeStatePremium: values.annualPremium || 0,
                 outStatePremium: 0,
-                inspectionFees: sumByTypes<FeeItem>(fees, 'feeName', 'Inspection Fee', 'feeValue'),
-                mgaFees: sumByTypes<FeeItem>(fees, 'feeName', 'MGA Fee', 'feeValue'),
+                inspectionFees: sumByTypes<FeeItem>(fees, 'feeName', 'Inspection Fee', 'value'),
+                mgaFees: sumByTypes<FeeItem>(fees, 'feeName', 'MGA Fee', 'value'),
               };
 
               let taxBase = baseKeys.reduce((acc, curr) => {

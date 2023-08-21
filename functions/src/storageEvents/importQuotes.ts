@@ -30,17 +30,16 @@ import {
   truthyOrZero,
   unlinkFile,
 } from '../common';
+import { fetchTaxes } from '../modules/db';
+import { sumFeesTaxesPremium } from '../modules/rating';
+import { eventOlderThan, shouldReturnEarly } from '../modules/storage';
 import {
   ParseStreamToArrayRes,
   parseStreamToArray,
   transformHeadersCamelCase,
 } from '../modules/storage/parseStreamToArray';
 import { sendAdminPolicyImportNotification } from '../services/sendgrid';
-// import { eventOlderThan, fetchTaxes, shouldReturnEarly } from '../utils';
 import { getFormattedFees } from './importPolicies';
-import { eventOlderThan, shouldReturnEarly } from '../modules/storage';
-import { fetchTaxes } from '../modules/db';
-import { sumFeesTaxesPremium } from '../modules/rating';
 
 // import { sendAdminPolicyImportNotification } from '../services/sendgrid';
 
@@ -164,6 +163,7 @@ export default async (event: StorageEvent) => {
 
   for (const q of dataArr) {
     try {
+      // TODO: force homeState instead of address.state
       let taxes = await fetchTaxes(q, 'new');
 
       const quoteTotal = sumFeesTaxesPremium(q.fees, taxes, q.annualPremium);
@@ -321,18 +321,6 @@ function transformQuoteRow(row: CSVQuoteRow): DeepNullable<Quote> {
     },
     orgId: row.orgId,
   };
-
-  // const fees: Quote['fees'] = [];
-  // const fee1: FeeItem = {
-  //   feeName: row.fee1Name || '',
-  //   feeValue: row.fee1Value ? extractNumber(row.fee1Value) : 0,
-  // };
-  // const fee2: FeeItem = {
-  //   feeName: row.fee2Name || '',
-  //   feeValue: row.fee2Value ? extractNumber(row.fee2Value) : 0,
-  // };
-  // if (fee1.feeValue) fees.push(fee1);
-  // if (fee2.feeValue) fees.push(fee2);
 
   const fees = getFormattedFees(row);
 

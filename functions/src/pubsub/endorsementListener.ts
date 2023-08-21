@@ -4,7 +4,13 @@ import { CloudEvent } from 'firebase-functions/lib/v2/core';
 import { error, info, warn } from 'firebase-functions/logger';
 import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 
-import { PremiumTransaction, Transaction, transactionsCollection } from '../common';
+import {
+  OffsetTransaction,
+  PremiumTransaction,
+  Transaction,
+  WithId,
+  transactionsCollection,
+} from '../common';
 import {
   constructTrxId,
   docExists,
@@ -114,7 +120,7 @@ export default async (event: CloudEvent<MessagePublishedData<EndorsementPayload>
 
       const offsetTrxRef = trxCol.doc(`${trxId}-offset`);
       const offsetTrx = getOffsetTrx(
-        prevTrx as PremiumTransaction,
+        prevTrx as WithId<PremiumTransaction | OffsetTransaction>,
         trxEffDate,
         eventId,
         'endorsement'

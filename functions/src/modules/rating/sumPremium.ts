@@ -28,7 +28,7 @@ export const sumTaxes = (taxes: TaxItem[]) => sumArr(taxes.map((t) => t.value));
  * @param {FeeItem[]} fees taxes array - sums tax.value
  * @returns {number} sum of all fee values
  */
-export const sumFees = (fees: FeeItem[]) => sumArr(fees.map((f) => f.feeValue));
+export const sumFees = (fees: FeeItem[]) => sumArr(fees.map((f) => f.value));
 
 /**
  * Compute sum of taxes, fees and premium for a policy

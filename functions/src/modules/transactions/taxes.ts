@@ -81,7 +81,7 @@ export function getRoundingFunc(type?: RoundingType | null | undefined) {
  * @returns {number} sum of all fees matching "MGA Fee"
  */
 export function sumMGAFees(fees: FeeItem[]) {
-  return sumByTypes<FeeItem>(fees, 'feeName', 'MGA Fee', 'feeValue');
+  return sumByTypes<FeeItem>(fees, 'feeName', 'MGA Fee', 'value');
 }
 
 /**
@@ -90,7 +90,7 @@ export function sumMGAFees(fees: FeeItem[]) {
  * @returns {number} sum of all fees matching "Inspection Fee"
  */
 export function sumInspectionFees(fees: FeeItem[]) {
-  return sumByTypes<FeeItem>(fees, 'feeName', 'Inspection Fee', 'feeValue');
+  return sumByTypes<FeeItem>(fees, 'feeName', 'Inspection Fee', 'value');
 }
 
 export function getInStatePremium(homeState: string, locations: PolicyLocation[]) {

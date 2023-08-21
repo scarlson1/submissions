@@ -1,7 +1,7 @@
-import { Timestamp } from 'firebase-admin/firestore';
 import { add } from 'date-fns';
+import { Timestamp } from 'firebase-admin/firestore';
 
-import { CancellationReason, OffsetTransaction, PremiumTransaction } from '../../common';
+import { CancellationReason, OffsetTransaction, PremiumTransaction, WithId } from '../../common';
 import { getBookingDate, getMGAComm, getNetDWP, getOffsetTermPremium } from './utils';
 
 /**
@@ -11,7 +11,7 @@ import { getBookingDate, getMGAComm, getNetDWP, getOffsetTermPremium } from './u
  * @returns {OffsetTransaction} offsetting transaction for cancellation or premium endorsement transactions
  */
 export const getOffsetTrx = (
-  prevTrx: PremiumTransaction,
+  prevTrx: WithId<PremiumTransaction | OffsetTransaction>,
   trxEffDate: Timestamp,
   eventId: string,
   trxType: OffsetTransaction['trxType'],
@@ -31,6 +31,7 @@ export const getOffsetTrx = (
 
   return {
     trxType,
+    trxInterfaceType: 'offset',
     product: prevTrx.product,
     term: prevTrx.term,
     policyId: prevTrx.policyId,
@@ -54,6 +55,7 @@ export const getOffsetTrx = (
     dailyPremium,
     cancelReason,
     eventId,
+    previousPremiumTrxId: prevTrx.id,
     metadata: {
       created: Timestamp.now(),
       updated: Timestamp.now(),

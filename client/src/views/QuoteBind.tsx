@@ -958,9 +958,9 @@ export function BindReviewStep({ data, logAnalyticsStep }: BindReviewStepProps) 
         <LineItem label='Premium' value={data.annualPremium} />
         {data.fees.map((fee) => (
           <LineItem
-            key={`${fee.feeName}-${fee.feeValue}`}
+            key={`${fee.feeName}-${fee.value}`}
             label={fee.feeName}
-            value={fee.feeValue}
+            value={fee.value}
             labelTypographyProps={{ sx: { ml: 4 }, fontSize: '0.8rem' }}
             valueTypographyProps={{ fontWeight: 'regular', fontSize: '0.8rem' }}
           />

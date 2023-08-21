@@ -1,6 +1,5 @@
 import { Timestamp } from 'firebase-admin/firestore';
 
-import { getBookingDate, getDailyPremium, getNetDWP, getTermProratedPct } from './index.js';
 import {
   Policy,
   PolicyLocation,
@@ -9,6 +8,7 @@ import {
   WithId,
   getTermDays,
 } from '../../common';
+import { getBookingDate, getDailyPremium, getNetDWP, getTermProratedPct } from './index.js';
 
 export function formatPremiumTrx(
   trxType: PremiumTransaction['trxType'],
@@ -37,6 +37,7 @@ export function formatPremiumTrx(
 
   return {
     trxType,
+    trxInterfaceType: 'premium',
     product: policy.product || '',
     policyId: policy.id,
     term: policy.term,

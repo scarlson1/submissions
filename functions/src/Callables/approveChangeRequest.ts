@@ -7,14 +7,18 @@ import {
   CHANGE_REQUEST_STATUS,
   Policy,
   changeReqestsCollection,
+  getReportErrorFn,
   policiesCollection,
   verify,
 } from '../common';
+import { setChangeRequestErr } from '../modules/transactions';
 import { onCallWrapper } from '../services/sentry';
 import { getDoc, requireIDemandAdminClaims, validate } from './utils';
 
 // TODO: validation
 //    - if endorsement, make sure endorsement calculation executed successfully, etc.
+
+const reportErr = getReportErrorFn('approveChangeRequest');
 
 interface ApproveRequestProps {
   policyId: string;
@@ -64,32 +68,6 @@ const approveChangeRequest = async ({ data, auth }: CallableRequest<ApproveReque
       merge: true,
     });
 
-    // if (request.scope === 'policy') {
-    //   // use update ?? update will throw if doc not found (requires dot notation)
-    //   batch.set(
-    //     policyRef,
-    //     { ...request.changes, metadata: { updated: Timestamp.now() } } as Policy,
-    //     { merge: true }
-    //   );
-    // }
-
-    // if (request.scope === 'location') {
-    //   const { locationId, changes } = request;
-    //   const policy = await getDoc(policyRef);
-    //   const location = policy.locations[locationId];
-    //   if (!location) throw new Error(`Location not found on policy`);
-
-    //   const mergedLocation = deepmerge(location, changes);
-
-    //   // If using batch.update --> use dot notation ([`locations.${locationId}`]: mergedLocation)
-    //   // If using batch.set --> do not use dot notation
-    //   const updates = {
-    //     locations: { [locationId]: mergedLocation as PolicyLocation },
-    //   };
-
-    //   batch.set(policyRef, updates, { merge: true });
-    // }
-
     batch.update(requestRef, {
       status: CHANGE_REQUEST_STATUS.ACCEPTED,
       processedByUserId: auth?.uid || '',
@@ -106,11 +84,12 @@ const approveChangeRequest = async ({ data, auth }: CallableRequest<ApproveReque
       requestId,
     });
   } catch (err: any) {
-    error('Error saving batch transaction to merge policy change request', {
-      ...err,
-      policyId,
-      requestId,
-    });
+    const errMsg = `Error saving batch transaction to merge policy changes (${
+      err?.message ?? 'unknown'
+    })`;
+    setChangeRequestErr(requestRef, errMsg);
+
+    reportErr(errMsg, { policyId, requestId }, err);
     throw new HttpsError('internal', 'Error upating policy record');
   }
 

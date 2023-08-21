@@ -41,6 +41,8 @@ export type DeepNonNullable<T> = {
   [K in keyof T]: DeepNonNullable<NonNullable<T[K]>>;
 };
 
+export type WithRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] };
+
 export type Optional<T> = { [K in keyof T]?: T[K] | undefined | null };
 
 export type DeepPartial<T> = {
@@ -339,7 +341,7 @@ type PropWithRatingCalcData = Nullable<RatingPropertyData> & RatingCalcData;
 
 export interface FeeItem {
   feeName: string;
-  feeValue: number;
+  value: number;
 }
 
 // TODO: need reference to ratingDocId to get AALs for editing
@@ -352,7 +354,7 @@ export interface Quote {
   coordinates: GeoPoint | null;
   homeState: string;
   fees: FeeItem[];
-  taxes: TaxItem[]; // { taxName: string; taxValue: number; taxRate?: number }[];
+  taxes: TaxItem[]; // { taxName: string; value: number; taxRate?: number }[];
   annualPremium: number;
   subproducerCommission: number; // TODO: remove ??
   quoteTotal?: number;
@@ -406,16 +408,18 @@ export interface VersionAwareMetadata extends BaseMetadata {
   archivedAtVersion: WithFieldValue<number | null>;
 }
 
-// TODO: add UW adjustment?? or is that applied after DWP
-interface PremiumCalcData {
-  minPremium: number;
+export interface PremiumCalcData {
   techPremium: ValueByRiskType;
   floodCategoryPremium: ValueByRiskType;
   premiumSubtotal: number;
   provisionalPremium: number;
   subproducerAdj: number;
-  directWrittenPremium: number;
   subproducerCommissionPct: number;
+  minPremium: number;
+  minPremiumAdj: number;
+  directWrittenPremium: number;
+  MGACommission: number;
+  MGACommissionPct: number;
 }
 
 // TODO: standardize this interface with the "Trx" interface
@@ -457,6 +461,11 @@ export interface SecondaryFactorMults {
     tier1Mult: number;
   };
 }
+
+export type RatingPremCalcData = WithRequired<
+  DeepPartial<PremiumCalcData>,
+  'MGACommission' | 'MGACommissionPct' | 'directWrittenPremium'
+>;
 
 export interface RatingData extends BaseDoc {
   submissionId: string | null;
@@ -667,6 +676,7 @@ export interface OffsetTransaction extends BaseTransaction {
   netErrorAdj?: number;
   // cancelEffDate: Timestamp; // same as trxEffDate ??
   cancelReason: CancellationReason | null;
+  previousPremiumTrxId: string;
   // require premiumCalcData ??
 }
 

@@ -40,8 +40,8 @@ export interface StateTaxResponse {
 
 export async function fetchTaxes(quote: Quote, transactionType: TransactionType) {
   const fees = quote?.fees;
-  const state = quote?.address?.state;
-  const annualPremium = quote?.annualPremium;
+  const state = quote?.homeState;
+  const annualPremium = quote?.annualPremium; // TODO: switch to termPremium
 
   invariant(Array.isArray(fees), 'fees must be an array (fetch taxes)');
   invariant(state, 'missing state (fetch taxes)');
@@ -49,6 +49,13 @@ export async function fetchTaxes(quote: Quote, transactionType: TransactionType)
 
   const mgaFees = sumMGAFees(fees);
   const inspectionFees = sumInspectionFees(fees);
+
+  // TODO: switch to multi-location schema
+  // TODO: calc in-state & out-state premium
+
+  // const newPolicyTermPremium = sumPolicyTermPremium(newLocations);
+  // const inStatePremium = getInStatePremium(policy.homeState, newLocations);
+  // const outStatePremium = getOutStatePremium(policy.homeState, newLocations);
 
   const body: StateTaxRequest = {
     state,

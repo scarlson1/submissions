@@ -1,11 +1,12 @@
-export * from './utils';
 export { formatPremiumTrx } from './formatPremiumTrx';
-export { getOffsetTrx } from './getOffsetTrx';
-export { getReinstatementTrx } from './getReinstatementTrx';
 export { getLocationAmendmentTrx } from './getLocationAmendmentTrx';
+export { getOffsetTrx } from './getOffsetTrx';
 export { getPolicyAmendmentTrx } from './getPolicyAmendmentTrx';
-export { handleRatingForEndorsement } from './handleEndorsementRating';
+export { getReinstatementTrx } from './getReinstatementTrx';
+export { handleCancelRating } from './handleCancelRating';
+export { handleRatingForEndorsement, setChangeRequestErr } from './handleEndorsementRating';
 export * from './taxes';
+export * from './utils';
 
 // trxEffDates:
 //    - policy amendment: user

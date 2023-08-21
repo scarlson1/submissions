@@ -3,6 +3,7 @@ import { GridColDef } from '@mui/x-data-grid';
 import { CHANGE_REQUEST_STATUS } from 'common';
 import {
   createdCol,
+  errMsgCol,
   idCol,
   locationIdCol,
   policyIdCol,
@@ -54,6 +55,7 @@ export const changeRequestCols: GridColDef[] = [
   changes,
   userIdCol,
   processedByUserIdCol,
+  errMsgCol,
   createdCol,
   updatedCol,
 ];

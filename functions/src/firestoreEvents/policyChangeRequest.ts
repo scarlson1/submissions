@@ -1,20 +1,24 @@
 import { DocumentSnapshot, getFirestore } from 'firebase-admin/firestore';
-import { error, info, warn } from 'firebase-functions/logger';
+import { error, info } from 'firebase-functions/logger';
 import type { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 
 import {
   CHANGE_REQUEST_STATUS,
   CancellationReason,
   ChangeRequest,
+  getReportErrorFn,
   isValidEmail,
   policiesCollection,
   sendgridApiKey,
+  verify,
 } from '../common';
+import { handleCancelRating, handleRatingForEndorsement } from '../modules/transactions';
 import { getDoc } from '../routes/utils';
 import { publishAmendment, publishEndorsement, publishLocationCancel } from '../services/pubsub';
 import { sendAdminChangeRequestNotification, sendMessage } from '../services/sendgrid';
 import { validate } from './utils';
-import { handleRatingForEndorsement } from '../modules/transactions';
+
+const reportErr = getReportErrorFn('policyChangeRequest');
 
 export default async (
   event: FirestoreEvent<
@@ -52,7 +56,8 @@ export default async (
 
     switch (status) {
       case CHANGE_REQUEST_STATUS.SUBMITTED:
-        await handleNewRequest(data, policyId, requestId, event.id);
+        await handleRequestNotifications(data, policyId, requestId, event.id);
+
         // TODO: handle reinstatement & renewal
         if (data.trxType === 'endorsement')
           await handleRatingForEndorsement(data, policyId, requestId);
@@ -60,13 +65,17 @@ export default async (
         return;
       case CHANGE_REQUEST_STATUS.ACCEPTED:
         await handleAcceptedRequest(data, policyId);
+
         return;
       case CHANGE_REQUEST_STATUS.CANCELLED:
-        warn('no event triggers set up for change requests with status = "cancelled"');
-        // await handleCancelledRequest(data, policyId, requestId);
+        await handleRequestNotifications(data, policyId, requestId, event.id);
+
+        await handleCancelRating(data, policyId, requestId);
+
         return;
       case CHANGE_REQUEST_STATUS.DENIED:
         await handleDeniedRequest(data, policyId, requestId);
+
         return;
       case CHANGE_REQUEST_STATUS.UNDER_REVIEW:
         return;
@@ -75,12 +84,16 @@ export default async (
         return;
     }
   } catch (err: any) {
+    const errMsg = `error handling policy change request status change (${
+      err?.message || 'unknown'
+    })`;
+    reportErr(errMsg, { ...(event.params || {}) }, err);
     return;
   }
 };
 
 // Send admin notification & notification to policy holder / agent
-async function handleNewRequest(
+async function handleRequestNotifications(
   data: ChangeRequest,
   policyId: string,
   requestId: string,
@@ -140,8 +153,24 @@ async function handleNewRequest(
 // Emit pubsub event
 async function handleAcceptedRequest(data: ChangeRequest, policyId: string) {
   try {
-    // TODO: check if event already emitted ?? (prevent duplicates) and prevent changes to request once status === approved (firestore rule)
+    // TODO: status check sufficient ?? what if there was an error and requeires re-emitting ??
     // verify(data.trxPubSubEmitted !== true, 'trx pubsub event has already been emitted for change request.)
+    // TODO: matching firestore rule
+    const UNPROCESSED_CHANGE_REQUEST_STATUSES = [
+      CHANGE_REQUEST_STATUS.SUBMITTED,
+      CHANGE_REQUEST_STATUS.ERROR,
+      CHANGE_REQUEST_STATUS.UNDER_REVIEW,
+    ];
+    const alreadyProcessed = !UNPROCESSED_CHANGE_REQUEST_STATUSES.includes(
+      data.status as CHANGE_REQUEST_STATUS
+    );
+
+    verify(
+      !alreadyProcessed,
+      `Change request was already processed (status did not match: ${UNPROCESSED_CHANGE_REQUEST_STATUSES.join(
+        ', '
+      )})`
+    );
 
     if (data.scope === 'location') {
       switch (data.trxType) {
@@ -171,6 +200,7 @@ async function handleAcceptedRequest(data: ChangeRequest, policyId: string) {
         case 'flat_cancel':
           // TODO
           // flat_cancel handled differently that cancel ??
+          // or publishLocationCancel for each location ??
           break;
         case 'reinstatement':
           // TODO: location reinstatement listener not built yet ?? create on its own or build into policy reinstatement ??
@@ -214,20 +244,22 @@ async function handleAcceptedRequest(data: ChangeRequest, policyId: string) {
       }
     }
   } catch (err: any) {
-    error(`Error publishing change request accepted pubsub event`, { ...err });
+    const errMsg = `Error publishing change request accepted pubsub event`;
+    // TODO: set error message
+    // setChangeRequestErr(requestRef, errMsg);
+    error(errMsg, { ...err });
   }
 
   return;
 }
 
-// // Notify policy holder / agent
-// async function handleCancelledRequest(data: ChangeRequest, policyId: string, requestId: string) {
-
-// }
-
 // Notify policy holder / agent
 async function handleDeniedRequest(data: ChangeRequest, policyId: string, requestId: string) {
-  console.log('TODO: handle denied email notification');
-
-  return;
+  try {
+    // TODO: handle denied request
+    throw new Error();
+  } catch (err: any) {
+    const errMsg = 'denied request notification function not set up yet';
+    reportErr(errMsg, { policyId, requestId }, err);
+  }
 }

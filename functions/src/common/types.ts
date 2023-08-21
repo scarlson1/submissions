@@ -414,21 +414,29 @@ export interface RatingPropertyData {
 
 // TODO: determine which fields are required for rerating & only make those required. Add Rating doc when importing policies / quotes
 // TODO: use discriminating union type: 'rating' | 'premium-recalc' ??
+
+// TODO: required: limits, RCVs, TIV, deductible, AALs, address, coordinates, ratingPropertyData, premiumCalcData.MGACommission, premiumCalcData.MGACommissionPct, premiumCalcData.directWrittenPremium
+
+export type RatingPremCalcData = WithRequired<
+  DeepPartial<PremiumCalcData>,
+  'MGACommission' | 'MGACommissionPct' | 'directWrittenPremium'
+>;
+
 export interface RatingData extends BaseDoc {
   submissionId: string | null;
-  locationId?: string | null; // any point to locationId at this stage ? pre policy ??
+  locationId?: string | null;
   externalId?: string | null;
   limits: Limits;
   TIV: number;
   deductible: number;
   RCVs: RCVs | null;
   ratingPropertyData: Nullable<RatingPropertyData>;
-  premiumCalcData: PremiumCalcData;
+  premiumCalcData: RatingPremCalcData; // PremiumCalcData;
   AALs: Nullable<ValueByRiskType>;
-  PM: ValueByRiskType;
-  riskScore: ValueByRiskType;
-  stateMultipliers: ValueByRiskType;
-  secondaryFactorMults: SecondaryFactorMults;
+  PM?: ValueByRiskType;
+  riskScore?: ValueByRiskType;
+  stateMultipliers?: ValueByRiskType;
+  secondaryFactorMults?: SecondaryFactorMults;
   address?: Address | null;
   coordinates: GeoPoint | null;
 }
@@ -563,7 +571,7 @@ export interface TaxItem {
 
 export interface FeeItem {
   feeName: string;
-  feeValue: number;
+  value: number;
 }
 
 export interface Quote {
@@ -574,7 +582,7 @@ export interface Quote {
   homeState: string;
   coordinates: GeoPoint | null;
   fees: FeeItem[];
-  taxes: TaxItem[]; // { taxName: string; taxValue: string }[];
+  taxes: TaxItem[]; // { taxName: string; value: string }[];
   annualPremium: number;
   subproducerCommission: number;
   cardFee: number;
@@ -1119,6 +1127,7 @@ export type CancellationReason =
 
 export interface OffsetTransaction extends BaseTransaction {
   trxType: 'endorsement' | 'cancellation' | 'flat_cancel';
+  trxInterfaceType: 'offset';
   insuredLocation: PolicyLocation;
   termPremium: number;
   MGACommission: number; // idemand & subproducer
@@ -1128,19 +1137,21 @@ export interface OffsetTransaction extends BaseTransaction {
   netErrorAdj?: number;
   // cancelEffDate: Timestamp; // same as trxEffDate ??
   cancelReason: CancellationReason | null;
+  previousPremiumTrxId: string;
   // require premiumCalcData ??
 }
 
 export type PremTrxTypes = 'new' | 'renewal' | 'endorsement' | 'reinstatement';
 export interface PremiumTransaction extends BaseTransaction {
   trxType: PremTrxTypes;
+  trxInterfaceType: 'premium';
   insuredLocation: PolicyLocation;
   ratingPropertyData: TrxRatingData;
   deductible: number;
   limits: Limits;
   TIV: number;
   RCVs: RCVs;
-  premiumCalcData: PremiumCalcData; // necessary ?? optional ??
+  premiumCalcData: RatingPremCalcData; // PremiumCalcData; // necessary ?? optional ??
   locationAnnualPremium: number;
   termPremium: number;
   MGACommission: number; // idemand & subproducer
@@ -1155,6 +1166,7 @@ export interface PremiumTransaction extends BaseTransaction {
 
 export interface AmendmentTransaction extends BaseTransaction {
   trxType: 'amendment'; // 'non_prem_endorsement';
+  trxInterfaceType: 'amendment';
   insuredLocation?: PolicyLocation;
   otherInterestedParties?: string[];
   additionalNamedInsured?: string[];

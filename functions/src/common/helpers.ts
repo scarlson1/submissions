@@ -2,7 +2,7 @@ import { add, differenceInCalendarDays, Duration } from 'date-fns';
 import { DocumentReference } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 import fs from 'fs';
-import { isEqual, remove, get } from 'lodash';
+import { get, isEqual, remove } from 'lodash';
 import numeral from 'numeral';
 import { inspect } from 'util';
 import { v4 as uuid } from 'uuid';
@@ -298,7 +298,7 @@ export const sumArr = (arr: (number | string)[]) => {
 //  * @returns {number} quote total = sum of fees, taxes, premium, rounded to 2 decimals
 //  */
 // export function sumfeesTaxesPremium(fees: FeeItem[], taxes: TaxItem[], premium: number) {
-//   const feeTotal = sumArr(fees.map((f) => f.feeValue));
+//   const feeTotal = sumArr(fees.map((f) => f.value));
 //   const taxTotal = sumArr(taxes.map((t) => t.value));
 
 //   return round(premium + feeTotal + taxTotal, 2);

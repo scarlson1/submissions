@@ -928,7 +928,7 @@ export const QuoteForm = ({
                         },
                       },
                       {
-                        name: 'feeValue',
+                        name: 'value',
                         label: 'Value',
                         required: false,
                         inputType: 'dollar',

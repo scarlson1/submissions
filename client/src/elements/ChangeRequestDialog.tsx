@@ -136,45 +136,6 @@ const useMangageChangeRequest = (
     [getRequest, getPolicy, onError, compareJson]
   );
 
-  // const previewPolicyChange = useCallback(
-  //   async (policyId: string, requestId: string) => {
-  //     try {
-  //       const policy = await getPolicy(policyId);
-  //       const request = await getRequest(policyId, requestId);
-  //       const merged = merge({ '@': 'ignore me' }, policy, request.changes || {});
-
-  //       compareJson(policy, merged, 'Change Request Diff');
-  //     } catch (err: any) {
-  //       console.log('Error previewing policy diff', err);
-  //       if (onError) onError();
-  //     }
-  //   },
-  //   [getRequest, getPolicy, onError, compareJson]
-  // );
-
-  // const previewLocationChange = useCallback(
-  //   async (policyId: string, requestId: string) => {
-  //     try {
-  //       const policy = await getPolicy(policyId);
-  //       const request = await getRequest(policyId, requestId);
-  //       invariant(request.scope === 'location');
-
-  //       const location = policy.locations[request.locationId];
-
-  //       const mergedLocation = merge({}, location, request.changes || {});
-  //       const mergedPolicy = merge({}, policy, {
-  //         locations: { [request.locationId]: mergedLocation },
-  //       });
-
-  //       compareJson(policy, mergedPolicy, 'Change Request Diff');
-  //     } catch (err: any) {
-  //       console.log('Error previewing policy diff', err);
-  //       if (onError) onError();
-  //     }
-  //   },
-  //   [getRequest, getPolicy, onError, compareJson]
-  // );
-
   const approveRequest = useCallback(
     async (policyId: string, requestId: string) => {
       try {
@@ -266,7 +227,7 @@ export function ChangeRequestsDialog({ policyId, open, handleClose }: ChangeRequ
     denyRequest,
     cancelRequest,
     previewChange: previewChangeFn,
-  } = useMangageChangeRequest(); //previewPolicyChange, previewLocationChange
+  } = useMangageChangeRequest();
 
   const handleApprove = useCallback(
     (params: GridRowParams) => async () =>
@@ -286,14 +247,6 @@ export function ChangeRequestsDialog({ policyId, open, handleClose }: ChangeRequ
     [cancelRequest]
   );
 
-  // const previewChange = useCallback(
-  //   (params: GridRowParams) => async () => {
-  //     if (params.row?.scope === 'location')
-  //       return previewLocationChange(params.row?.policyId, params.id.toString());
-  //     return previewPolicyChange(params.row?.policyId, params.id.toString());
-  //   },
-  //   [previewPolicyChange, previewLocationChange]
-  // );
   const previewChange = useCallback(
     (params: GridRowParams) => async () =>
       previewChangeFn(params.row?.policyId, params.id.toString()),
@@ -335,9 +288,11 @@ export function ChangeRequestsDialog({ policyId, open, handleClose }: ChangeRequ
           label='approve'
           disabled={
             !claims?.iDemandAdmin ||
-            ![CHANGE_REQUEST_STATUS.SUBMITTED, CHANGE_REQUEST_STATUS.UNDER_REVIEW].includes(
-              params.row.status
-            )
+            ![
+              CHANGE_REQUEST_STATUS.SUBMITTED,
+              CHANGE_REQUEST_STATUS.UNDER_REVIEW,
+              CHANGE_REQUEST_STATUS.ERROR,
+            ].includes(params.row.status)
           }
           showInMenu={isSmall}
         />,
@@ -351,9 +306,11 @@ export function ChangeRequestsDialog({ policyId, open, handleClose }: ChangeRequ
           label='deny'
           disabled={
             !claims?.iDemandAdmin ||
-            ![CHANGE_REQUEST_STATUS.SUBMITTED, CHANGE_REQUEST_STATUS.UNDER_REVIEW].includes(
-              params.row.status
-            )
+            ![
+              CHANGE_REQUEST_STATUS.SUBMITTED,
+              CHANGE_REQUEST_STATUS.UNDER_REVIEW,
+              CHANGE_REQUEST_STATUS.ERROR,
+            ].includes(params.row.status)
           }
           showInMenu
         />,

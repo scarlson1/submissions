@@ -1,3 +1,4 @@
+import { isDate } from 'date-fns';
 import { Firestore, GeoPoint, Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
 import { error, info, warn } from 'firebase-functions/logger';
@@ -5,13 +6,12 @@ import { projectID } from 'firebase-functions/params';
 import { StorageEvent } from 'firebase-functions/v2/storage';
 import fs from 'fs';
 import { geohashForLocation } from 'geofire-common';
+import { round, sumBy } from 'lodash';
 import os from 'os';
 import path from 'path';
-
-import { isDate } from 'date-fns';
 import invariant from 'tiny-invariant';
+import { v4 as uuid } from 'uuid';
 
-import { sumBy } from 'lodash';
 import { getCarrierByState } from '../callables/createPolicy';
 import {
   AdditionalInsured,
@@ -31,15 +31,18 @@ import {
   PolicyLocation,
   Product,
   RCVs,
+  RatingData,
   RatingPropertyData,
   SLProdOfRecordDetails,
   SubjectBaseItems,
   TaxItem,
+  ValueByRiskType,
   audience,
   calcTerm,
   extractNumber,
   extractNumberNeg,
   getNewLocationId,
+  getReportErrorFn,
   getTermDays,
   licensesCollection,
   maxA,
@@ -47,20 +50,22 @@ import {
   minA,
   minDeductibleFlood,
   policiesCollection,
+  ratingDataCollection,
   sendgridApiKey,
   throwIfExists,
   truthyOrZero,
   unlinkFile,
 } from '../common';
-import { getRCVs } from '../modules/rating';
+import { getRCVs, sumFeesTaxesPremium } from '../modules/rating';
+import { eventOlderThan, shouldReturnEarly } from '../modules/storage';
 import {
   ParseStreamToArrayRes,
   parseStreamToArray,
   transformHeadersCamelCase,
 } from '../modules/storage/parseStreamToArray';
+import { getInStatePremium, getOutStatePremium, recalcTaxes } from '../modules/transactions';
 import { sendAdminPolicyImportNotification } from '../services/sendgrid';
 import { CSVQuoteRow } from './importQuotes';
-import { eventOlderThan, shouldReturnEarly } from '../modules/storage';
 
 const IMPORT_POLICIES_FOLDER = 'importPolicies';
 
@@ -133,7 +138,11 @@ type CSVPolicyCamelCaseHeaders =
   | 'tax2Name'
   | 'tax2Value'
   | 'tax2Rate'
-  | 'tax2SubjectBase';
+  | 'tax2SubjectBase'
+  | 'mgaCommissionPct'
+  | 'aalInland'
+  | 'aalSurge'
+  | 'aalTsunami';
 
 type CSVPolicyRow = Record<CSVPolicyCamelCaseHeaders, string>;
 
@@ -168,37 +177,24 @@ interface ParsedPolicyRow {
   ratingPropertyData: RatingPropertyData;
   ratingDocId?: string;
   product: string;
+  mgaCommissionPct: number | null;
+  AALs: Nullable<ValueByRiskType>;
 }
+
+const reportErr = getReportErrorFn('importPolicies');
 
 export default async (event: StorageEvent) => {
   const fileBucket = event.bucket;
   const filePath = event.data.name; // File path in the bucket.
   const fileName = path.basename(filePath || '');
-  const contentType = event.data.contentType;
-  const metageneration = event.data.metageneration as unknown;
 
   if (shouldReturnEarly(event, IMPORT_POLICIES_FOLDER, 'text/csv', 'processed')) return;
-
-  if (!event.data.name?.startsWith(`${IMPORT_POLICIES_FOLDER}/`)) {
-    info(
-      `Ignoring upload "${event.data.name}" because is not in the "/${IMPORT_POLICIES_FOLDER}/*" folder.`
-    );
-    return null;
-  }
-
-  // return early if file is not new (metadata change) or not csv
-  if (metageneration !== '1' || contentType !== 'text/csv' || !filePath) {
-    info(
-      `validation failed. contentType: ${contentType}. metageneration: ${metageneration}. filepath: ${filePath}`
-    );
-    return null;
-  }
-
-  // idempotency / loop guard - Ignore events that are too old (1 min)
+  // idempotency - Ignore events that are too old (1 min)
   if (eventOlderThan(event)) return;
 
   const db = getFirestore();
-  const policiesCollRef = policiesCollection(db);
+  const policiesColRef = policiesCollection(db);
+  const ratingColRef = ratingDataCollection(db);
 
   const storage = getStorage();
   const bucket = storage.bucket(fileBucket);
@@ -228,39 +224,49 @@ export default async (event: StorageEvent) => {
 
     fs.unlinkSync(tempFilePath);
   } catch (err: any) {
-    error(`ERROR PARSING CSV. RETURNING EARLY`, { err });
+    reportErr(`ERROR PARSING CSV. RETURNING EARLY`, {}, err);
 
     await unlinkFile(tempFilePath);
     // TODO: report error to sentry or send email to admin
     return;
   }
 
-  let formattedPolicies: Record<string, Policy>;
+  let policyRecords: Record<string, Policy>;
+  let ratingRecords: Record<string, RatingData>;
   try {
-    formattedPolicies = await groupByPolicyId(dataArr, db);
+    const { formattedPolicies, ratingDocData } = await groupByPolicyId(dataArr, db);
 
-    if (!formattedPolicies) throw new Error('Error formatting rows into policies');
+    policyRecords = formattedPolicies;
+    ratingRecords = ratingDocData;
+
+    if (!policyRecords) throw new Error('Error formatting rows into policies');
   } catch (err: any) {
-    // TODO: report error to admin
-    error('Errror grouping & formatting locations into policies', { err });
+    // TODO: report error to admin (email?)
+    reportErr('Errror grouping & formatting locations into policies', {}, err);
     return;
   }
 
+  for (const [ratingDocId, ratingRecord] of Object.entries(ratingRecords)) {
+    try {
+      const ratingDocRef = ratingColRef.doc(ratingDocId);
+      await ratingDocRef.set(ratingRecord);
+    } catch (err: any) {
+      error('Error saving rating doc', { err });
+    }
+  }
+
   // upload using provided policy ID ?? use set & update locations arr ??
-  // const policies = Object.values(formattedPolicies);
-  // TODO: batch transaction
+  // TODO: batch all policy imports?
 
   let importedIds: string[] = [];
   let createErrors: any[] = [];
 
-  // for (const policyId in formattedPolicies) {
-  //   const policyData = formattedPolicies[policyId];
-  for (const [policyId, policyData] of Object.entries(formattedPolicies)) {
-    // const policyData = formattedPolicies[policyId];
+  // Loop through policies and create new record for each
+  for (const [policyId, policyData] of Object.entries(policyRecords)) {
     try {
       info(`creating policy ${policyId}...`, { ...policyData });
 
-      const policyRef = policiesCollRef.doc(policyId);
+      const policyRef = policiesColRef.doc(policyId);
       await throwIfExists(policyRef);
 
       await policyRef.set({ ...policyData });
@@ -271,11 +277,12 @@ export default async (event: StorageEvent) => {
     }
   }
 
+  // Save import summary & send admin notification
   try {
     const importSummaryColRef = db.collection(COLLECTIONS.DATA_IMPORTS);
     const summaryRef = await importSummaryColRef.add({
       importCollection: COLLECTIONS.POLICIES,
-      importDocIds: importedIds, // Object.keys(formattedPolicies),
+      importDocIds: importedIds,
       docCreationErrors: createErrors,
       invalidRows,
       metadata: {
@@ -299,7 +306,7 @@ export default async (event: StorageEvent) => {
     await sendAdminPolicyImportNotification(
       sgKey,
       to,
-      importedIds.length, //Object.keys(formattedPolicies).length - createErrors.length,
+      importedIds.length,
       createErrors.length,
       invalidRows.length,
       fileName,
@@ -391,6 +398,22 @@ function transformPolicyRow(row: CSVPolicyRow): ParsedPolicyRow {
   const fees = getFormattedFees(row);
   const taxes = getFormattedTaxes(row);
 
+  const mgaCommissionPct = row.mgaCommissionPct ? extractNumber(row.mgaCommissionPct) : null;
+
+  const AALs = {
+    inland: row.aalInland
+      ? extractNumber(row.aalInland)
+      : row.aalInland === 'null'
+      ? null
+      : undefined,
+    surge: row.aalSurge ? extractNumber(row.aalSurge) : row.aalSurge === 'null' ? null : undefined,
+    tsunami: row.aalTsunami
+      ? extractNumber(row.aalTsunami)
+      : row.aalTsunami === 'null'
+      ? null
+      : undefined,
+  } as Nullable<ValueByRiskType>;
+
   const transformed: ParsedPolicyRow = {
     policyId: row.policyId || null,
     address: {
@@ -426,6 +449,8 @@ function transformPolicyRow(row: CSVPolicyRow): ParsedPolicyRow {
     agency,
     ratingPropertyData,
     product: row.product || 'flood',
+    mgaCommissionPct,
+    AALs: AALs,
   };
   return transformed;
 }
@@ -566,6 +591,38 @@ function validatePolicyRow(data: ParsedPolicyRow) {
       `product must be "${PRODUCT.Flood}" or "${PRODUCT.Wind}"`
     );
 
+    invariant(Array.isArray(data.fees), 'fees must be an array');
+
+    const allFeeValuesTypeNum = data.fees.every((f) => typeof f.value === 'number');
+    invariant(allFeeValuesTypeNum, 'All fee values must be a number');
+    const allFeeDisplayNamesString = data.fees.every(
+      (f) => f.feeName && typeof f.feeName === 'string'
+    );
+    invariant(allFeeDisplayNamesString, 'feeName required');
+
+    invariant(Array.isArray(data.taxes), 'taxes must be an array');
+    const allTaxValuesTypeNum = data.taxes.every((t) => typeof t.value === 'number');
+    invariant(allTaxValuesTypeNum, 'All tax values must be a number');
+    const allTaxRatesTypeNum = data.taxes.every((t) => typeof t.rate === 'number');
+    invariant(allTaxRatesTypeNum, 'All tax rates must be a number');
+    const allTaxDisplayNameTypeString = data.taxes.every(
+      (t) => t.displayName && typeof t.displayName === 'string'
+    );
+    invariant(allTaxDisplayNameTypeString, 'tax displayName required');
+
+    invariant(
+      data.mgaCommissionPct && typeof data.mgaCommissionPct === 'number',
+      'mgaCommissionPct required'
+    );
+    invariant(
+      data.mgaCommissionPct >= 0.05 && data.mgaCommissionPct <= 0.2,
+      'mgaCommissionPct must be between 0.05 and 0.2'
+    );
+
+    invariant(data.AALs?.inland !== undefined, 'aalsInland required');
+    invariant(data.AALs?.surge !== undefined, 'aalsSurge required');
+    invariant(data.AALs?.tsunami !== undefined, 'aalsTsunami required');
+
     return true;
   } catch (err: any) {
     warn(`ROW VALIDATION FAILED (${err.message})`, { err, row: data });
@@ -581,11 +638,26 @@ function validatePolicyRow(data: ParsedPolicyRow) {
  */
 async function groupByPolicyId(data: ParsedPolicyRow[], firestore: Firestore) {
   let policies: Record<string, Omit<Policy, 'termPremium'>> = {};
+  let ratingDocData: Record<string, RatingData> = {};
   const ts = Timestamp.now();
 
   for (const row of data) {
     let locId = getNewLocationId();
     const formattedLocation = formatPolicyLocation(row, locId, ts);
+
+    const ratingDocId = uuid();
+    const AALs = {
+      inland: row.AALs?.inland,
+      surge: row.AALs?.surge,
+      tsunami: row.AALs?.tsunami,
+    };
+    const ratingData = getRatingData(formattedLocation, row.mgaCommissionPct as number, AALs);
+    ratingDocData[ratingDocId] = ratingData;
+
+    const locationWithRatingId = { ...formattedLocation, ratingDocId };
+
+    const fees = row.fees;
+    const taxes = row.taxes;
 
     const policyId = row.policyId as string;
     const existingPolicy = policies[policyId] || null;
@@ -593,7 +665,9 @@ async function groupByPolicyId(data: ParsedPolicyRow[], firestore: Firestore) {
     if (existingPolicy) {
       const updatedPolicy = {
         ...existingPolicy,
-        locations: { ...existingPolicy.locations, [locId]: formattedLocation },
+        fees,
+        taxes,
+        locations: { ...existingPolicy.locations, [locId]: locationWithRatingId },
       };
 
       policies[policyId] = updatedPolicy;
@@ -602,25 +676,50 @@ async function groupByPolicyId(data: ParsedPolicyRow[], firestore: Firestore) {
 
       policies[policyId] = {
         ...policyWithoutLocation,
+        fees,
+        taxes,
         locations: {
-          [locId]: formattedLocation,
+          [locId]: locationWithRatingId,
         },
       };
     }
   }
 
   // Calc policy level term premium
-  const resultPolicies: Record<string, Policy> = {};
+  // const resultPolicies: Record<string, Policy> = {};
+  const formattedPolicies: Record<string, Policy> = {};
   for (const [policyId, policy] of Object.entries(policies)) {
-    const policyTermPremium = sumBy(Object.values(policy.locations), (l) => l.termPremium);
+    const policyTermPremium = round(
+      sumBy(Object.values(policy.locations), (l) => l.termPremium),
+      2
+    );
 
-    resultPolicies[policyId] = {
+    const locations = Object.values(policy.locations);
+    const inStatePremium = getInStatePremium(policy.homeState, locations);
+    const outStatePremium = getOutStatePremium(policy.homeState, locations);
+
+    const policyTaxes = recalcTaxes({
+      premium: policyTermPremium,
+      homeStatePremium: inStatePremium,
+      outStatePremium: outStatePremium,
+      taxes: policy.taxes,
+      fees: policy.fees,
+    });
+
+    const price = sumFeesTaxesPremium(policy.fees, policyTaxes, policyTermPremium);
+
+    formattedPolicies[policyId] = {
       ...policy,
       termPremium: policyTermPremium,
+      inStatePremium,
+      outStatePremium,
+      taxes: policyTaxes,
+      price,
     };
   }
 
-  return resultPolicies;
+  // return resultPolicies;
+  return { formattedPolicies, ratingDocData };
 }
 
 function formatPolicyLocation(
@@ -745,14 +844,14 @@ export function getFormattedFees(row: CSVPolicyRow | CSVQuoteRow) {
   const fees: FeeItem[] = [];
   const fee1: FeeItem = {
     feeName: row.fee1Name || '',
-    feeValue: row.fee1Value ? extractNumber(row.fee1Value) : 0,
+    value: row.fee1Value ? extractNumber(row.fee1Value) : 0,
   };
   const fee2: FeeItem = {
     feeName: row.fee2Name || '',
-    feeValue: row.fee2Value ? extractNumber(row.fee2Value) : 0,
+    value: row.fee2Value ? extractNumber(row.fee2Value) : 0,
   };
-  if (fee1.feeValue) fees.push(fee1);
-  if (fee2.feeValue) fees.push(fee2);
+  if (fee1.value) fees.push(fee1);
+  if (fee2.value) fees.push(fee2);
 
   return fees;
 }
@@ -783,4 +882,86 @@ function getFormattedTaxes(row: CSVPolicyRow) {
   if (tax2.value) taxes.push(tax2);
 
   return taxes;
+}
+
+function getRatingData(data: PolicyLocation, mgaCommissionPct: number, AALs: any): RatingData {
+  return {
+    submissionId: null,
+    locationId: data.locationId,
+    externalId: data.externalId || null,
+    limits: data.limits,
+    TIV: data.TIV,
+    deductible: data.deductible,
+    RCVs: getRCVs(data.ratingPropertyData?.replacementCost, data.limits),
+    AALs: {
+      inland: AALs.inland,
+      surge: AALs.surge,
+      tsunami: AALs.tsunami,
+    },
+    // PM: {
+    //   inland: 0,
+    //   surge: 0,
+    //   tsunami: 0,
+    // },
+    // riskScore: {
+    //   inland: 0,
+    //   surge: 0,
+    //   tsunami: 0,
+    // },
+    // stateMultipliers: {
+    //   inland: 0,
+    //   surge: 0,
+    //   tsunami: 0,
+    // },
+    // secondaryFactorMults: {
+    //   inland: 0,
+    //   surge: 0,
+    //   tsunami: 0,
+    //   secondaryFactorMultsByFactor: {
+    //     ffeMult: {
+    //       inland: 0,
+    //       surge: 0,
+    //       tsunami: 0,
+    //     },
+    //     basementMult: 0,
+    //     historyMult: {
+    //       inland: null,
+    //       surge: null,
+    //       tsunami: null,
+    //     },
+    //     contentsMult: 0,
+    //     ordinanceMult: 0,
+    //     distanceToCoastMult: 0,
+    //     tier1Mult: 0,
+    //   },
+    // },
+    address: data.address,
+    coordinates: data.coordinates,
+    ratingPropertyData: data.ratingPropertyData,
+    premiumCalcData: {
+      // techPremium: {
+      //   inland: 0,
+      //   surge: 0,
+      //   tsunami: 0,
+      // },
+      // floodCategoryPremium: {
+      //   inland: 0,
+      //   surge: 0,
+      //   tsunami: 0,
+      // },
+      // premiumSubtotal: 0,
+      // provisionalPremium: 0,
+      // subproducerAdj: 0,
+      // subproducerCommissionPct: 0,
+      // minPremium: 0,
+      // minPremiumAdj: 0,
+      directWrittenPremium: data.annualPremium,
+      MGACommission: round(data.termPremium * mgaCommissionPct, 2),
+      MGACommissionPct: mgaCommissionPct,
+    },
+    metadata: {
+      created: Timestamp.now(),
+      updated: Timestamp.now(),
+    },
+  };
 }

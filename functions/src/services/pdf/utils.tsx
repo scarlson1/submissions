@@ -1,11 +1,11 @@
-import { flatten } from 'lodash';
-import { convert } from 'html-to-text';
 import { generateHTML } from '@tiptap/html';
+import { convert } from 'html-to-text';
+import { flatten } from 'lodash';
 
 import { JSONContent, Policy, PolicyLocation, dollarFormat, dollarFormat2 } from '../../common';
 import { getFormattedAddress } from '../../routes/generatePDF';
-import { AdditionalInterestsItem, PolicyDecPDFLocations, PremiumTableItem } from './components';
 import { EDITOR_EXTENSION_DEFAULTS } from '../../utils';
+import { AdditionalInterestsItem, PolicyDecPDFLocations, PremiumTableItem } from './components';
 
 export function formatLocationData(locations: Policy['locations']) {
   let formatted: PolicyDecPDFLocations[] = [];
@@ -71,7 +71,7 @@ export function getPremiumTable(policy: Policy): PremiumTableItem[] {
         itemTitle: fee.feeName,
         subjectAmount: '',
         rate: '',
-        value: dollarFormat2(fee.feeValue),
+        value: dollarFormat2(fee.value),
       });
     }
   }

@@ -16,6 +16,7 @@ export const getLocationAmendmentTrx = (
 
   return {
     trxType: 'amendment',
+    trxInterfaceType: 'amendment',
     product: policy.product,
     policyId: policy.id,
     locationId: location.locationId,

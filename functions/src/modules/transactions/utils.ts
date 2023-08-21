@@ -3,10 +3,12 @@ import { error } from 'firebase-functions/logger';
 import { round } from 'lodash';
 import {
   AmendmentTransaction,
+  OffsetTransaction,
   PremiumTransaction,
   StrictExclude,
   Transaction,
   TransactionType,
+  WithId,
   getTermDays,
   policiesCollection,
   ratingDataCollection,
@@ -66,7 +68,10 @@ export const getTermProratedPct = (policyTermDays: number, locationTermDays: num
  * @param {Timestamp} trxEffDate new transaction effective date
  * @returns {number} term premium for cancellation or prem endorsement offset (will usually be negative)
  */
-export const getOffsetTermPremium = (prevTrx: PremiumTransaction, trxEffDate: Timestamp) => {
+export const getOffsetTermPremium = (
+  prevTrx: WithId<PremiumTransaction | OffsetTransaction>,
+  trxEffDate: Timestamp
+) => {
   // later of requested eff date & policy eff date
   const startDate =
     trxEffDate.toMillis() < prevTrx.trxEffDate.toMillis()
@@ -164,5 +169,13 @@ export async function fetchPreviousTrx(
 
   if (qSnap.empty) throw new Error('previous transaction not found');
 
-  return qSnap.docs[0].data();
+  const data = { ...qSnap.docs[0].data(), id: qSnap.docs[0].id };
+
+  if (data.trxInterfaceType === 'premium') {
+    return data as WithId<PremiumTransaction>;
+  }
+  if (data.trxInterfaceType === 'offset') return data as WithId<OffsetTransaction>;
+  if (data.trxInterfaceType === 'amendment') return data as WithId<AmendmentTransaction>;
+
+  return data as WithId<Transaction>;
 }

@@ -81,6 +81,7 @@ export enum CHANGE_REQUEST_STATUS {
   DENIED = 'denied',
   UNDER_REVIEW = 'under_review',
   CANCELLED = 'cancelled',
+  ERROR = 'error',
 }
 
 // 'pending' | 'accepted' | 'revoked' | 'replaced' | 'rejected' | 'error';

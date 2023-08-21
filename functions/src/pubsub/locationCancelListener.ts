@@ -4,7 +4,13 @@ import { CloudEvent } from 'firebase-functions/lib/v2/core';
 import { error, info, warn } from 'firebase-functions/logger';
 import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 
-import { CancellationReason, PremiumTransaction, transactionsCollection } from '../common';
+import {
+  CancellationReason,
+  OffsetTransaction,
+  PremiumTransaction,
+  WithId,
+  transactionsCollection,
+} from '../common';
 import {
   constructTrxId,
   docExists,
@@ -85,7 +91,7 @@ export default async (event: CloudEvent<MessagePublishedData<LocationCancelPaylo
       const trxEffDate = Timestamp.fromMillis(cancelEffDateMS);
 
       const offsetTrx = getOffsetTrx(
-        prevTrx as PremiumTransaction,
+        prevTrx as WithId<PremiumTransaction | OffsetTransaction>,
         trxEffDate,
         eventId,
         'cancellation',

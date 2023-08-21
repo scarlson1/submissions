@@ -643,6 +643,19 @@ export function getChipProps(status: ChipStatus): Partial<ChipProps> {
   }
 }
 
+export const errMsgCol: GridColDef = {
+  field: 'errMsg',
+  headerName: 'Error',
+  minWidth: 200,
+  flex: 1,
+  editable: false,
+  filterable: false,
+  sortable: false,
+  filterOperators: getGridFirestoreStringOperators(),
+  valueGetter: (params) => params.row.error || null,
+  renderCell: renderCellExpand,
+};
+
 export const booleanCalcActiveCol: GridColDef = {
   field: 'active',
   headerName: 'Active',
@@ -655,7 +668,7 @@ export const booleanCalcActiveCol: GridColDef = {
   editable: false,
   filterable: false,
   sortable: false,
-  filterOperators: getGridFirestoreBooleanOperators(), //  getGridFirebaseBooleanOperators(),
+  filterOperators: getGridFirestoreBooleanOperators(),
   valueGetter: (params: GridValueGetterParams<any, any>) =>
     isCurrentDateBetween(params.row.effectiveDate?.toDate(), params.row.expirationDate?.toDate()),
   renderCell: (params: GridRenderCellParams<any, any, any>) => {
@@ -1038,6 +1051,7 @@ export const tier1Col: GridColDef = {
   field: 'tier1',
   headerName: 'Tier 1',
   type: 'boolean',
+  filterOperators: getGridFirestoreBooleanOperators(),
 };
 
 export const ratingDataTier1Col: GridColDef = {

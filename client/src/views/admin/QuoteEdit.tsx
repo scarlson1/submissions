@@ -177,7 +177,7 @@ export const QuoteEdit = () => {
       fees:
         quoteData?.fees?.map((f) => ({
           ...f,
-          value: `${f.feeValue ?? ''}`,
+          value: `${f.value ?? ''}`,
         })) || [],
       // taxes: [],
       taxes:

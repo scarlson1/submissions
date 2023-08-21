@@ -1,8 +1,7 @@
-import { useCallback, useMemo, useState } from 'react';
 import axios, { AxiosResponse } from 'axios';
+import { useCallback, useMemo, useState } from 'react';
 import invariant from 'tiny-invariant';
 
-import { useAsyncToast } from './useAsyncToast';
 import {
   FeeItem,
   LineOfBusiness,
@@ -12,8 +11,9 @@ import {
   TransactionType,
   WithId,
 } from 'common';
-import { sumByTypes } from 'modules/utils';
 import { QuoteValues } from 'elements/forms';
+import { sumByTypes } from 'modules/utils';
+import { useAsyncToast } from './useAsyncToast';
 
 export type SubjectBaseKeyVal = Record<Exclude<SubjectBaseItems, 'fixedFee' | 'noFee'>, number>;
 interface StateTaxRequest extends SubjectBaseKeyVal {
@@ -56,8 +56,8 @@ export const useFetchTaxes = (
       invariant(annualPremium, 'annual premium required');
       invariant(address?.state, 'state required');
 
-      const mgaFees = sumByTypes<FeeItem>(fees, 'feeName', 'MGA Fee', 'feeValue');
-      const inspectionFees = sumByTypes<FeeItem>(fees, 'feeName', 'Inspection Fee', 'feeValue');
+      const mgaFees = sumByTypes<FeeItem>(fees, 'feeName', 'MGA Fee', 'value');
+      const inspectionFees = sumByTypes<FeeItem>(fees, 'feeName', 'Inspection Fee', 'value');
 
       const body: StateTaxRequest = {
         state: address.state,
