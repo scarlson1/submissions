@@ -6,7 +6,7 @@ import { projectID } from 'firebase-functions/params';
 import { StorageEvent } from 'firebase-functions/v2/storage';
 import fs from 'fs';
 import { geohashForLocation } from 'geofire-common';
-import os from 'os';
+import { tmpdir } from 'os';
 import path from 'path';
 import invariant from 'tiny-invariant';
 
@@ -124,7 +124,7 @@ export default async (event: StorageEvent) => {
 
   const storage = getStorage();
   const bucket = storage.bucket(fileBucket);
-  const tempFilePath = path.join(os.tmpdir(), `temp_portfolio_import_${fileName}`);
+  const tempFilePath = path.join(tmpdir(), `temp_portfolio_import_${fileName}`);
 
   await bucket.file(filePath).download({ destination: tempFilePath });
   info(`File downloaded locally to ${tempFilePath}`);

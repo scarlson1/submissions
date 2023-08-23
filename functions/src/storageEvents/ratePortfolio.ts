@@ -6,7 +6,7 @@ import { error, info } from 'firebase-functions/logger';
 import { defineInt, projectID, storageBucket } from 'firebase-functions/params';
 import { StorageEvent } from 'firebase-functions/v2/storage';
 import fs from 'fs';
-import os from 'os';
+import { tmpdir } from 'os';
 import path from 'path';
 
 import {
@@ -26,14 +26,14 @@ import { getPremium } from '../modules/rating';
 import { extractSRAALs } from '../modules/rating/getAALs';
 import { GetPremiumCalcResult } from '../modules/rating/getPremium';
 import { swissReBody } from '../modules/rating/swissReBody.js';
-import { generateSRAccessToken, getSwissReInstance } from '../services';
-import { sendMessage } from '../services/sendgrid';
 import {
   parseStreamToArray,
   shouldReturnEarly,
   transformHeadersSnakeCase,
   writeArrayToStorage as writeToStorage,
 } from '../modules/storage';
+import { generateSRAccessToken, getSwissReInstance } from '../services';
+import { sendMessage } from '../services/sendgrid';
 
 let swissReInstance: AxiosInstance;
 let swissReInstanceTimestamp: number; // TODO: regenerate if > 10 mins
@@ -586,7 +586,7 @@ export default async (event: StorageEvent) => {
 
   const storage = getStorage();
   const bucket = storage.bucket(fileBucket);
-  const tempFilePath = path.join(os.tmpdir(), `temp_SR_${fileName}`);
+  const tempFilePath = path.join(tmpdir(), `temp_SR_${fileName}`);
 
   await bucket.file(filePath).download({ destination: tempFilePath });
   info(`File downloaded locally: ${tempFilePath}`);

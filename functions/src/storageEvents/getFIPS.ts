@@ -1,11 +1,11 @@
-import type { StorageEvent } from 'firebase-functions/v2/storage';
-import { error, info, warn } from 'firebase-functions/logger';
-import { getStorage } from 'firebase-admin/storage';
 import { File } from '@google-cloud/storage';
-import path from 'path';
-import os from 'os';
+import { getStorage } from 'firebase-admin/storage';
+import { error, info, warn } from 'firebase-functions/logger';
+import type { StorageEvent } from 'firebase-functions/v2/storage';
 import fs from 'fs';
 import { find } from 'lodash';
+import { tmpdir } from 'os';
+import path from 'path';
 
 import { counties20mURL, unlinkFile } from '../common';
 import {
@@ -44,7 +44,7 @@ export default async (event: StorageEvent) => {
 
   const storage = getStorage();
   const bucket = storage.bucket(fileBucket);
-  const tempFilePath = path.join(os.tmpdir(), `temp_FIPS_${fileName}`);
+  const tempFilePath = path.join(tmpdir(), `temp_FIPS_${fileName}`);
 
   await bucket.file(filePath).download({ destination: tempFilePath });
   info(`File downloaded locally to ${tempFilePath}`);
