@@ -7,7 +7,7 @@ import {
   Policy,
   PolicyLocation,
   calcTerm,
-  changeReqestsCollection,
+  changeRequestsCollection,
   getReportErrorFn,
   policiesCollection,
   verify,
@@ -31,7 +31,7 @@ export async function handleCancelRating(data: ChangeRequest, policyId: string, 
     verify(requestEffDate && isValid(cancelEffDate), 'requestEffDate must be a valid Timestamp');
 
     const db = getFirestore();
-    changeRequestRef = changeReqestsCollection(db, policyId).doc(requestId);
+    changeRequestRef = changeRequestsCollection(db, policyId).doc(requestId);
     const policyRef = policiesCollection(db).doc(policyId);
 
     const policy = await getDoc(policyRef);

@@ -50,7 +50,7 @@ import {
 import { formatFirestoreTimestamp, formatPhoneNumber, stringAvatar } from 'modules/utils';
 import { NotFound } from 'components';
 
-// TODO: make location card flip on hover to show additoinal details ??
+// TODO: make location card flip on hover to show additional details ??
 
 // TODO:
 //    - policy overview details

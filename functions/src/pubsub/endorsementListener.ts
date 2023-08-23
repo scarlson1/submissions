@@ -28,7 +28,7 @@ import { reportErrorSentry } from '../services/sentry';
 
 // TODO: How is policy level endorsement handled ?? change in mailing address, etc.
 
-// Handles creating tranactions whenever a LOCATION premium change event is published (per location)
+// Handles creating transactions whenever a LOCATION premium change event is published (per location)
 //    - trx1: offsets the remaining period for the original trx
 //    - trx2: new premium for the term
 

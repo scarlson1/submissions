@@ -10,7 +10,7 @@ import {
   Policy,
   PolicyChangeRequest,
   WithId,
-  changeReqestsCollection,
+  changeRequestsCollection,
   policiesCollection,
 } from 'common';
 import { useAuth } from 'context';
@@ -59,7 +59,7 @@ export const useCreatePolicyChangeRequest = () => {
       );
 
       toast.loading('saving...');
-      const colRef = changeReqestsCollection(firestore, policyId.current);
+      const colRef = changeRequestsCollection(firestore, policyId.current);
       const docIds = [];
 
       let amendmentChanges = pick(changes, ['namedInsured', 'mailingAddress']);

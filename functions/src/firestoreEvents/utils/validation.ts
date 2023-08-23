@@ -10,7 +10,7 @@ const reportError = getReportErrorFn('firestoreEvent');
 /**
  * Evaluate condition (true/false), and log to Google & Sentry if condition fails
  * @param {any} condition condition to evaluate
- * @param {string | (() => string)} msg error message to log in Google and Sentry if condition fails
+ * @param {string | function(): string} msg error message to log in Google and Sentry if condition fails
  * @param {string} severity Google log severity
  * @returns {boolean} true if condition passes, otherwise false
  */

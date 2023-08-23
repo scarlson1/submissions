@@ -1002,7 +1002,7 @@ export interface LocationCancellationRequest extends LocationChangeRequest {
 
 export interface PolicyChangeRequest extends BaseChangeRequest {
   scope: 'policy';
-  changes: Partial<Policy>;
+  changes: DeepPartial<Policy>; // Partial<Policy>;
   formValues: PolicyChangeValues;
   cancelReason?: CancellationReason;
 }
@@ -1016,7 +1016,7 @@ export interface PolicyCancellationRequest extends Omit<PolicyChangeRequest, 'fo
   trxType: 'cancellation' | 'flat_cancel';
   cancelReason?: CancellationReason;
   formValues: CancelValues;
-  changes: {};
+  changes: DeepPartial<Policy>;
 }
 
 export type ChangeRequest =

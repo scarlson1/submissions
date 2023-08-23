@@ -687,6 +687,13 @@ export const effectiveDateCol: GridColDef = {
   flex: 1,
   editable: false,
   valueGetter: (params) => params.row.effectiveDate || null,
+  valueSetter: (params) => {
+    const effDateTS =
+      params.value && isDate(params.value)
+        ? Timestamp.fromDate(params.value)
+        : params.value || null;
+    return { ...params.row, effectiveDate: effDateTS };
+  },
   valueFormatter: formatGridFirestoreTimestampAsDate,
   filterOperators: getGridFirestoreDateOperators(),
 };
@@ -699,6 +706,10 @@ export const expirationDateCol: GridColDef = {
   flex: 1,
   editable: false,
   valueGetter: (params) => params.row.expirationDate || null,
+  valueSetter: (params) => {
+    const effDateTS = params.value ? Timestamp.fromDate(params.value) : null;
+    return { ...params.row, expirationDate: effDateTS };
+  },
   valueFormatter: formatGridFirestoreTimestampAsDate,
   filterOperators: getGridFirestoreDateOperators(),
 };
@@ -1548,7 +1559,32 @@ export const requestEffDateCol: GridColDef = {
   field: 'requestEffDate',
   headerName: 'Eff. Date',
   description: 'Requested effective date for changes',
+  editable: true,
   valueGetter: (params) => params.row.requestEffDate || null,
+  valueSetter: (params) => {
+    const effDateTS =
+      params.value && isDate(params.value)
+        ? Timestamp.fromDate(params.value)
+        : params.value || null;
+    return { ...params.row, requestEffDate: effDateTS };
+  },
+  // renderCell: ({ value }) => {
+  //   if (!value) return null;
+  //   const formattedVal = formatDate(value);
+
+  //   return <Typography variant='body2'>{formattedVal}</Typography>;
+  // },
+  // valueGetter: (params) => {
+  //   if (!params.row.requestEffDate) return null;
+
+  //   return params.row.requestEffDate.toDate();
+  // },
+  // valueSetter: (params) => {
+  //   // console.log('VALUE SETTER PARAMS: ', params);
+  //   if (!params.value) return null;
+  //   if (isDate(params.value)) return Timestamp.fromDate(params.value);
+  //   return params.value;
+  // },
 };
 
 export const scopeCol: GridSingleSelectColDef = {
@@ -1841,7 +1877,7 @@ export const termCol: GridColDef = {
   ...numericColBaseProps,
   field: 'term',
   headerName: 'Term',
-  minWidth: 100,
+  minWidth: 64,
   flex: 0.2,
 };
 

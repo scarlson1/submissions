@@ -36,9 +36,9 @@ export const constructTrxId = (policyId: string, locationId: string, eventId: st
 
 /**
  * Get the book date in milliseconds (later of location eff. date or trx. eff. date)
- * @param locationEffDateSeconds location effective date in milliseconds
- * @param trxEffDateSeconds transaction effective date in milliseconds
- * @returns greater of the two numbers
+ * @param {number} locationEffDateSeconds location effective date in milliseconds
+ * @param {number} trxEffDateSeconds transaction effective date in milliseconds
+ * @returns {number} greater of the two numbers
  */
 export const getBookingDate = (locationEffDateSeconds: number, trxEffDateSeconds: number) => {
   return locationEffDateSeconds > trxEffDateSeconds ? locationEffDateSeconds : trxEffDateSeconds;
@@ -121,7 +121,7 @@ export const fetchPolicyData = async (db: Firestore, policyId: string) => {
 
 /**
  * Fetch doc data in circumstance where you don't want to throw for idempotency reasons (no retry)
- * @param docRef firestore document reference
+ * @param {DocumentReference} docRef firestore document reference
  * @returns {Promise<object | null>} returns document data with id, or null if theres an error or not found
  */
 export const fetchDocData = async <T = DocumentData>(docRef: DocumentReference<T>) => {

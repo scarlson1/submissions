@@ -32,7 +32,7 @@ export const ChangeRequestsGrid = ({
         field: 'actions',
         headerName: 'Actions',
         type: 'actions',
-        width: isSmall ? 60 : 140,
+        width: isSmall ? 60 : 160,
         getActions: (params: GridRowParams) => [...renderActions(params)],
       };
       cols.unshift(actionCol);

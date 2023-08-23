@@ -200,7 +200,7 @@ export const AdminManageUsersGrid = ({
   );
 
   const userColumns: GridColDef[] = useMemo(() => {
-    // if combineing with regular user grid which does not have any actions:
+    // if combining with regular user grid which does not have any actions:
     const actions =
       testEditRowModeActions || renderActions
         ? [

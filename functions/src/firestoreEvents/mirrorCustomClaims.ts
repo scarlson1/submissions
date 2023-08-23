@@ -86,7 +86,7 @@ export default async (
     if (orgData?.tenantId) {
       const tenant = await auth.tenantManager().getTenant(orgId);
       if (!tenant || !tenant.tenantId) {
-        info(`No tenant found with ID ${orgId}`);
+        info(`No tenant found with ID ${orgId}. Exiting.`);
         return;
       }
       info(`Using tenant aware auth for tenant ${tenant.tenantId}`);

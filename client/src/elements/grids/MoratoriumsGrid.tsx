@@ -1,7 +1,7 @@
 import { DataObjectRounded, MapRounded } from '@mui/icons-material';
 import { Box, Card, Tooltip, Typography } from '@mui/material';
 import { GridActionsCellItem, GridColDef, GridRowId, GridRowParams } from '@mui/x-data-grid';
-import { Firestore, doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import { Suspense, useCallback, useMemo } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { useFirestore } from 'reactfire';
@@ -22,15 +22,6 @@ import { CountiesMap } from '../maps/CountiesMap';
 
 export type MoratoriumGridProps = ServerDataGridCollectionProps;
 
-async function getMoratoriumData(firestore: Firestore, id: string) {
-  const colRef = moratoriumsCollection(firestore);
-  const snap = await getDoc(doc(colRef, id));
-
-  const data = snap.data();
-  if (!snap.exists || !data) throw new Error('record not found');
-  return data;
-}
-
 export const MoratoriumsGrid = ({
   renderActions = () => [],
   additionalColumns = [],
@@ -49,9 +40,12 @@ export const MoratoriumsGrid = ({
   // TODO: move to hook
   const showMap = useCallback(
     (id: GridRowId) => async () => {
-      let d: Moratorium;
+      let d: Moratorium | undefined;
       try {
-        d = await getMoratoriumData(firestore, id.toString());
+        const docRef = doc(moratoriumsCollection(firestore), id.toString());
+        const snap = await getDoc(docRef);
+        d = snap.data();
+        if (!snap.exists || !d) throw new Error('Record not found');
       } catch (err: any) {
         console.log('Error fetching moratorium: ', err);
         return;

@@ -14,7 +14,7 @@ import {
   Policy,
   PolicyLocation,
   WithId,
-  changeReqestsCollection,
+  changeRequestsCollection,
 } from 'common';
 import { useAuth } from 'context';
 import { LocationChangeForm, LocationChangeFormProps, LocationChangeValues } from 'elements/forms';
@@ -61,7 +61,7 @@ export const useCreateLocationChangeRequest = (policyId: string) => {
         user
       );
 
-      const colRef = changeReqestsCollection(firestore, policyId);
+      const colRef = changeRequestsCollection(firestore, policyId);
       const docIds = [];
 
       if (requiresEndorsement) {

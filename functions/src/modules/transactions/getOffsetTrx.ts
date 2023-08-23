@@ -8,6 +8,9 @@ import { getBookingDate, getMGAComm, getNetDWP, getOffsetTermPremium } from './u
  * get formatted offset transaction for cancellation or premium endorsement transactions
  * @param {PremiumTransaction} prevTrx most recent premium transaction for location
  * @param {Timestamp} trxEffDate new transaction effective date
+ * @param {string} eventId cloud event id
+ * @param {string} trxType transaction type
+ * @param {string | null} cancelReason cancel reason, if cancellation transaction
  * @returns {OffsetTransaction} offsetting transaction for cancellation or premium endorsement transactions
  */
 export const getOffsetTrx = (

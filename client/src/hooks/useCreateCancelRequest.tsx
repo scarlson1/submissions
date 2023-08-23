@@ -16,7 +16,7 @@ import {
   Policy,
   PolicyCancellationRequest,
   WithId,
-  changeReqestsCollection,
+  changeRequestsCollection,
   policiesCollection,
 } from 'common';
 import { getData } from 'modules/utils';
@@ -68,7 +68,7 @@ export const useCreateCancelRequest = (
         },
       };
 
-      const changeReqCol = changeReqestsCollection(firestore, p.id);
+      const changeReqCol = changeRequestsCollection(firestore, p.id);
       await addDoc(changeReqCol, changeRequestData);
 
       toast.success('saved!');
