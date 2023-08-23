@@ -57,7 +57,7 @@ import {
   unlinkFile,
 } from '../common';
 import { getRCVs, sumFeesTaxesPremium } from '../modules/rating';
-import { eventOlderThan, shouldReturnEarly } from '../modules/storage';
+import { eventOlderThan, shouldReturnEarly, dateWithTimeZone } from '../modules/storage';
 import {
   ParseStreamToArrayRes,
   parseStreamToArray,
@@ -435,10 +435,10 @@ function transformPolicyRow(row: CSVPolicyRow): ParsedPolicyRow {
     taxes,
     annualPremium: row.annualPremium ? extractNumber(row.annualPremium) : 0,
     price,
-    effectiveDate: row.locationEffectiveDate ? new Date(row.locationEffectiveDate) : null,
-    expirationDate: row.locationExpirationDate ? new Date(row.locationExpirationDate) : null,
-    policyEffectiveDate: row.policyEffectiveDate ? new Date(row.policyEffectiveDate) : null,
-    policyExpirationDate: row.policyExpirationDate ? new Date(row.policyExpirationDate) : null,
+    effectiveDate: dateWithTimeZone(row.locationEffectiveDate),
+    expirationDate: dateWithTimeZone(row.locationExpirationDate), // row.locationExpirationDate ? new Date(row.locationExpirationDate) : null,
+    policyEffectiveDate: dateWithTimeZone(row.policyEffectiveDate),
+    policyExpirationDate: dateWithTimeZone(row.policyExpirationDate), // row.policyExpirationDate ? new Date(row.policyExpirationDate) : null,
     externalId: row.locationId,
     additionalInsured: [],
     mortgageeInterest: [],

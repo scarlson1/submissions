@@ -8,7 +8,7 @@ import {
   PolicyLocation,
   ValueByRiskType,
   calcTerm,
-  changeReqestsCollection,
+  changeRequestsCollection,
   getReportErrorFn,
   hasAny,
   policiesCollection,
@@ -62,7 +62,7 @@ export async function handleRatingForEndorsement(
     const policyRef = policiesCollection(db).doc(policyId);
     const policy = await getDoc(policyRef);
 
-    changeRequestRef = changeReqestsCollection(db, policyId).doc(requestId);
+    changeRequestRef = changeRequestsCollection(db, policyId).doc(requestId);
 
     const { [locationId]: location, ...otherLocations } = policy.locations;
 

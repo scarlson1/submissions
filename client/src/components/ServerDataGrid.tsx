@@ -60,7 +60,7 @@ export const ServerDataGrid = ({
   const { filters, handleFilterChange } = useGridServerFilter(props?.initialState);
   const [rowSelectionModel, setRowSelectionModel] = useState<GridRowSelectionModel>([]);
 
-  // Firestore: if constraints inculdes <, <=, !=, not-in, >, or >= operator, must have orderBy
+  // Firestore: if constraints includes <, <=, !=, not-in, >, or >= operator, must have orderBy
   const queryOptions = useMemo(
     () => {
       const orderByConstraint = getOrderByIfNecessary(constraints);
@@ -78,7 +78,7 @@ export const ServerDataGrid = ({
   );
   // fetch count whenever query changes
   useEffect(() => {
-    // TODO: improve dependencies chekcing (currently called 3 times)
+    // TODO: improve dependencies checking (currently called 3 times)
     fetchCount().then((result) => {
       setRowCount(result.data().count);
     });
@@ -86,6 +86,10 @@ export const ServerDataGrid = ({
 
   // keep cursors in memory
   const cursors = useRef<Map<number, DocumentSnapshot>>(new Map());
+
+  useEffect(() => {
+    console.log('TEST: ', cursors.current);
+  }, [paginationModel.page]);
 
   // subscribe to collection, update when page, filters, sort change
   const { data, status } = useFetchDocsWithCursor(
@@ -107,10 +111,15 @@ export const ServerDataGrid = ({
     (model: GridPaginationModel, details: GridCallbackDetails<any>) => {
       startTransition(() => {
         setPaginationModel((currModel) => {
+          console.log('MODEL: ', model);
+          console.log('CURRENT MODEL: ', currModel);
           // save the last document as page's cursor (query uses "startAfter(snap)")
-          if (model.page !== currModel.page)
+          if (model.page !== currModel.page) {
+            console.log(
+              `Setting cursor ${currModel.page + 1}: ${data.docs[data.docs.length - 1].id}`
+            );
             cursors.current.set(currModel.page + 1, data.docs[data.docs.length - 1]);
-
+          }
           // update state to the next page's number
           return model;
         });

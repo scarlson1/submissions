@@ -1,7 +1,5 @@
 import { AddBusinessRounded } from '@mui/icons-material';
 import { Box, Button, Typography } from '@mui/material';
-import { GridColDef } from '@mui/x-data-grid';
-import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSigninCheck } from 'reactfire';
 
@@ -14,38 +12,12 @@ export const Organizations = () => {
   const navigate = useNavigate();
   const { data } = useSigninCheck({ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } });
 
-  const orgColumns: GridColDef[] = useMemo(
-    () => [
-      // {
-      //   field: 'actions',
-      //   headerName: 'Actions',
-      //   type: 'actions',
-      //   width: 80,
-      //   getActions: (params: GridRowParams) => [
-      //     <GridActionsCellItem
-      //       icon={
-      //         <Tooltip title='Create Quote' placement='top'>
-      //           <RequestQuoteRounded />
-      //         </Tooltip>
-      //       }
-      //       onClick={handleCreateQuote(params.id)}
-      //       label='View Counties'
-      //     />,
-      //     <GridActionsCellItem
-      //       icon={
-      //         <Tooltip title='Google Maps' placement='top'>
-      //           <MapRounded />
-      //         </Tooltip>
-      //       }
-      //       onClick={openGoogleMaps(params)}
-      //       label='View Counties'
-      //     />,
-      //   ],
-      // },
-      ...orgCols,
-    ],
-    []
-  );
+  // const orgColumns: GridColDef[] = useMemo(
+  //   () => [
+  //     ...orgCols,
+  //   ],
+  //   []
+  // );
 
   if (!data.hasRequiredClaims) {
     return (
@@ -74,7 +46,7 @@ export const Organizations = () => {
       <Box sx={{ height: { xs: 400, md: 460, lg: 500 }, width: '100%' }}>
         <ServerDataGrid
           collName='ORGANIZATIONS'
-          columns={orgColumns}
+          columns={orgCols}
           density='compact'
           // autoHeight
           onCellDoubleClick={(params, event) => {
@@ -104,7 +76,6 @@ export const Organizations = () => {
             sorting: {
               sortModel: [{ field: 'metadata.created', sort: 'desc' }],
             },
-            // pagination: { pageSize: 10 },
             pagination: { paginationModel: { pageSize: 10 } },
           }}
         />

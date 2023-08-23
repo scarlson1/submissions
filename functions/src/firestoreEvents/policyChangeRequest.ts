@@ -36,7 +36,7 @@ export default async (
     // MUST UPDATE _lastCommitted if updating Change Request doc in this function in order to prevent loop
     // TODO: use its own field cloudFnUpdated: Timestamp (might want this to run if there's an update)
 
-    // This way would require updating _lastCommitted to acknowlege everytime ??
+    // This way would require updating _lastCommitted to acknowledge every time ??
     const skipUpdate =
       prevData?._lastCommitted &&
       data?._lastCommitted &&
@@ -153,7 +153,7 @@ async function handleRequestNotifications(
 // Emit pubsub event
 async function handleAcceptedRequest(data: ChangeRequest, policyId: string) {
   try {
-    // TODO: status check sufficient ?? what if there was an error and requeires re-emitting ??
+    // TODO: status check sufficient ?? what if there was an error and requires re-emitting ??
     // verify(data.trxPubSubEmitted !== true, 'trx pubsub event has already been emitted for change request.)
     // TODO: matching firestore rule
     const UNPROCESSED_CHANGE_REQUEST_STATUSES = [
@@ -219,7 +219,7 @@ async function handleAcceptedRequest(data: ChangeRequest, policyId: string) {
           console.log('TODO: handle publish policy amendment pubsub message');
           // TODO
           break;
-        case 'cancellation':
+        case 'cancellation': {
           console.log('TODO: handle publish policy cancellation pubsub message');
           // TODO is policy cancellation different than aggregate location cancels ??
           const db = getFirestore();
@@ -236,6 +236,7 @@ async function handleAcceptedRequest(data: ChangeRequest, policyId: string) {
             });
           }
           break;
+        }
         case 'flat_cancel':
           // TODO: different transactions than regular cancel ?? can a location be flat_cancelled or just policy ??
           break;

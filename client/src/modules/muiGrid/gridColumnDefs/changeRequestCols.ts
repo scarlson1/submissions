@@ -40,6 +40,7 @@ export const changeRequestCols: GridColDef[] = [
   {
     ...statusCol,
     filterable: true,
+    editable: true,
     valueOptions: [
       CHANGE_REQUEST_STATUS.SUBMITTED,
       CHANGE_REQUEST_STATUS.ACCEPTED,

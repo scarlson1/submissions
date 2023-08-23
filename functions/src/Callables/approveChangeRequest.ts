@@ -6,7 +6,7 @@ import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import {
   CHANGE_REQUEST_STATUS,
   Policy,
-  changeReqestsCollection,
+  changeRequestsCollection,
   getReportErrorFn,
   policiesCollection,
   verify,
@@ -38,7 +38,7 @@ const approveChangeRequest = async ({ data, auth }: CallableRequest<ApproveReque
   const db = getFirestore();
 
   const policyRef = policiesCollection(db).doc(policyId);
-  const requestRef = changeReqestsCollection(db, policyId).doc(requestId);
+  const requestRef = changeRequestsCollection(db, policyId).doc(requestId);
 
   await getDoc(policyRef); // will throw if doc doesn't exist
   const request = await getDoc(requestRef);
@@ -90,7 +90,7 @@ const approveChangeRequest = async ({ data, auth }: CallableRequest<ApproveReque
     setChangeRequestErr(requestRef, errMsg);
 
     reportErr(errMsg, { policyId, requestId }, err);
-    throw new HttpsError('internal', 'Error upating policy record');
+    throw new HttpsError('internal', 'Error updating policy record');
   }
 
   return { status: 'ok' };

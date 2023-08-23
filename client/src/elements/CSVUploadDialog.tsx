@@ -186,7 +186,7 @@ export const CSVUploadDialog = ({
     <Box>
       <UploadFilesDialogComponent
         acceptedTypes='text/csv,.csv'
-        title='Rate Portfolio'
+        // title='Rate Portfolio'
         filesDragDropProps={{ maxFileSizeInBytes: 4194304 }} // 4MB
         loading={uploadLoading}
         files={uploadFiles}

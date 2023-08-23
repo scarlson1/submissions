@@ -13,6 +13,7 @@ import {
   submissionsApiBaseURL,
 } from '../../common';
 import { sumInspectionFees, sumMGAFees } from '../transactions';
+import { isDate } from 'date-fns';
 
 export type SubjectBaseKeyVal = Record<Exclude<SubjectBaseItems, 'fixedFee' | 'noFee'>, number>;
 
@@ -38,7 +39,7 @@ export interface StateTaxResponse {
   lineItems: TaxResLineItem[];
 }
 
-export async function fetchTaxes(quote: Quote, transactionType: TransactionType) {
+export async function fetchTaxes(quote: Quote, transactionType: TransactionType, effDate?: Date) {
   const fees = quote?.fees;
   const state = quote?.homeState;
   const annualPremium = quote?.annualPremium; // TODO: switch to termPremium
@@ -46,6 +47,7 @@ export async function fetchTaxes(quote: Quote, transactionType: TransactionType)
   invariant(Array.isArray(fees), 'fees must be an array (fetch taxes)');
   invariant(state, 'missing state (fetch taxes)');
   invariant(annualPremium, 'missing annualPremium (fetch taxes)');
+  if (effDate) invariant(isDate(new Date(effDate)), 'invalid effective Date');
 
   const mgaFees = sumMGAFees(fees);
   const inspectionFees = sumInspectionFees(fees);
@@ -66,6 +68,7 @@ export async function fetchTaxes(quote: Quote, transactionType: TransactionType)
     inspectionFees,
     transactionType,
   };
+  if (effDate) body['effectiveDate'] = effDate;
 
   const { data } = await axios.post<StateTaxRequest, AxiosResponse<StateTaxResponse>>(
     `${submissionsApiBaseURL.value()}/state-tax`,

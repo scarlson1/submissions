@@ -17,9 +17,9 @@ import {
   IconButton,
   Tooltip,
 } from '@mui/material';
-import { GridActionsCellItem, GridRowParams } from '@mui/x-data-grid';
+import { GridActionsCellItem, GridCellParams, GridRowModel, GridRowParams } from '@mui/x-data-grid';
 import { Timestamp, doc, getDoc, updateDoc, where } from 'firebase/firestore';
-import { merge } from 'lodash';
+import { isEqual, merge } from 'lodash';
 import { Suspense, useCallback, useMemo, useState } from 'react';
 import { useFirestore, useFunctions, useUser } from 'reactfire';
 
@@ -27,13 +27,21 @@ import { ApproveChangeResponse, approveChangeRequest } from 'api';
 import {
   CHANGE_REQUEST_STATUS,
   COLLECTIONS,
-  ChangeRequestStatus,
-  changeReqestsCollection,
+  ChangeRequest,
+  WithId,
+  changeRequestsCollection,
   policiesCollection,
 } from 'common';
 import { LoadingComponent } from 'components/Layout';
 import { useAuth } from 'context';
-import { useAsyncToast, useCompareJson, useDocCount, useShowJson, useWidth } from 'hooks';
+import {
+  useAsyncToast,
+  useCompareJson,
+  useDocCount,
+  useGridEditMode,
+  useShowJson,
+  useWidth,
+} from 'hooks';
 import { ChangeRequestsGrid } from './grids/ChangeRequestsGrid';
 
 export const useViewChangeRequestsDialogProps = (policyId?: string) => {
@@ -84,7 +92,7 @@ export const useViewChangeRequestsDialogProps = (policyId?: string) => {
   );
 };
 
-const useMangageChangeRequest = (
+const useManageChangeRequest = (
   onSuccess?: (res?: ApproveChangeResponse | undefined) => void,
   onError?: () => void
 ) => {
@@ -108,7 +116,7 @@ const useMangageChangeRequest = (
 
   const getRequest = useCallback(
     async (policyId: string, requestId: string) => {
-      const ref = doc(changeReqestsCollection(firestore, policyId), requestId);
+      const ref = doc(changeRequestsCollection(firestore, policyId), requestId);
 
       const snap = await getDoc(ref);
       const data = snap.data();
@@ -121,8 +129,8 @@ const useMangageChangeRequest = (
   const previewChange = useCallback(
     async (policyId: string, requestId: string) => {
       try {
-        const policyReq = await getPolicy(policyId);
-        const requestReq = await getRequest(policyId, requestId);
+        const policyReq = getPolicy(policyId);
+        const requestReq = getRequest(policyId, requestId);
         const [policy, request] = await Promise.all([policyReq, requestReq]);
 
         const merged = merge({ '@': 'ignore me' }, policy, request.changes || {});
@@ -158,18 +166,21 @@ const useMangageChangeRequest = (
   );
 
   const updateChangeRequest = useCallback(
-    async (policyId: string, requestId: string, status: ChangeRequestStatus) => {
+    async (
+      policyId: string,
+      requestId: string,
+      values: Partial<Pick<ChangeRequest, 'status' | 'requestEffDate' | 'underwriterNotes'>>
+    ) => {
       try {
         if (!user?.uid) throw new Error('must be signed in');
         // TODO: prompt for uw notes
-        const docRef = doc(changeReqestsCollection(firestore, policyId), requestId);
+        const docRef = doc(changeRequestsCollection(firestore, policyId), requestId);
 
         toast.loading('updating...');
         await updateDoc(docRef, {
-          status,
+          ...values,
           processedByUserId: user.uid,
-          processedTimestamp: Timestamp.now(),
-          underwriterNotes: null, // @ts-ignore
+          processedTimestamp: Timestamp.now(), // @ts-ignore
           'metadata.updated': Timestamp.now(),
         });
 
@@ -184,15 +195,42 @@ const useMangageChangeRequest = (
     [firestore, user, toast, onSuccess, onError]
   );
 
+  // const updateChangeRequest = useCallback(
+  //   async (policyId: string, requestId: string, status: ChangeRequestStatus) => {
+  //     try {
+  //       if (!user?.uid) throw new Error('must be signed in');
+  //       // TODO: prompt for uw notes
+  //       const docRef = doc(changeRequestsCollection(firestore, policyId), requestId);
+
+  //       toast.loading('updating...');
+  //       await updateDoc(docRef, {
+  //         status,
+  //         processedByUserId: user.uid,
+  //         processedTimestamp: Timestamp.now(),
+  //         underwriterNotes: null, // @ts-ignore
+  //         'metadata.updated': Timestamp.now(),
+  //       });
+
+  //       toast.success('request updated!');
+  //       if (onSuccess) onSuccess();
+  //     } catch (err: any) {
+  //       console.log('error updating status: ', err);
+  //       toast.error('an error occurred');
+  //       if (onError) onError();
+  //     }
+  //   },
+  //   [firestore, user, toast, onSuccess, onError]
+  // );
+
   const denyRequest = useCallback(
     (policyId: string, requestId: string) =>
-      updateChangeRequest(policyId, requestId, CHANGE_REQUEST_STATUS.DENIED),
+      updateChangeRequest(policyId, requestId, { status: CHANGE_REQUEST_STATUS.DENIED }),
     [updateChangeRequest]
   );
 
   const cancelRequest = useCallback(
     (policyId: string, requestId: string) =>
-      updateChangeRequest(policyId, requestId, CHANGE_REQUEST_STATUS.CANCELLED),
+      updateChangeRequest(policyId, requestId, { status: CHANGE_REQUEST_STATUS.CANCELLED }),
     [updateChangeRequest]
   );
 
@@ -201,8 +239,7 @@ const useMangageChangeRequest = (
     denyRequest,
     cancelRequest,
     previewChange,
-    // previewPolicyChange,
-    // previewLocationChange,
+    updateChangeRequest,
   };
 };
 
@@ -226,8 +263,12 @@ export function ChangeRequestsDialog({ policyId, open, handleClose }: ChangeRequ
     approveRequest,
     denyRequest,
     cancelRequest,
+    updateChangeRequest,
     previewChange: previewChangeFn,
-  } = useMangageChangeRequest();
+  } = useManageChangeRequest();
+  const { getEditRowModeActions, getEditModeProps } = useGridEditMode<ChangeRequest>({
+    editableCells: ['status', 'requestEffDate', 'underwriterNotes'],
+  });
 
   const handleApprove = useCallback(
     (params: GridRowParams) => async () =>
@@ -253,21 +294,44 @@ export function ChangeRequestsDialog({ policyId, open, handleClose }: ChangeRequ
     [previewChangeFn]
   );
 
+  const processRowUpdate = useCallback(
+    async (
+      newRow: GridRowModel<WithId<ChangeRequest>>,
+      oldRow: GridRowModel<WithId<ChangeRequest>>
+    ) => {
+      if (isEqual(newRow, oldRow)) return;
+
+      console.log('NEW ROW: ', newRow);
+      console.log('OLD ROW: ', oldRow);
+
+      // toast.loading('saving...');
+      const newVals = {
+        // ...newRow,
+        status: newRow.status,
+        requestEffDate: newRow.requestEffDate,
+        underwriterNotes: newRow.underwriterNotes || null,
+      };
+      await updateChangeRequest(newRow.policyId, newRow.id, newVals);
+
+      // toast.success('saved!');
+      return newRow;
+    },
+    [updateChangeRequest]
+  );
+
+  const handleProcessRowUpdateError = useCallback((err: Error) => {
+    console.log('ERROR: ', err);
+    // let msg = 'Error updating values';
+    // if (err.message) msg = err.message;
+    // toast.error(msg);
+  }, []);
+
   const adminProps = useMemo(() => {
     if (!claims?.iDemandAdmin) return {};
+
     return {
       renderActions: (params: GridRowParams) => [
-        <GridActionsCellItem
-          icon={
-            <Tooltip title='show JSON' placement='top'>
-              <DataObjectRounded />
-            </Tooltip>
-          }
-          onClick={handleShowJson(params)}
-          label='Show JSON'
-          disabled={!claims?.iDemandAdmin}
-          showInMenu={isSmall}
-        />,
+        ...getEditRowModeActions(params.id),
         <GridActionsCellItem
           icon={
             <Tooltip title='preview changes' placement='top'>
@@ -330,9 +394,33 @@ export function ChangeRequestsDialog({ policyId, open, handleClose }: ChangeRequ
           }
           showInMenu
         />,
+        <GridActionsCellItem
+          icon={
+            <Tooltip title='show JSON' placement='top'>
+              <DataObjectRounded />
+            </Tooltip>
+          }
+          onClick={handleShowJson(params)}
+          label='Show JSON'
+          disabled={!claims?.iDemandAdmin}
+          showInMenu
+        />,
       ],
+      isCellEditable: (params: GridCellParams) =>
+        ['status', 'requestEffDate', 'underwriterNotes'].includes(params.field),
+      ...getEditModeProps(),
     };
-  }, [claims, isSmall, handleShowJson, previewChange, handleApprove, handleDeny, handleCancel]);
+  }, [
+    claims,
+    isSmall,
+    handleShowJson,
+    previewChange,
+    handleApprove,
+    handleDeny,
+    handleCancel,
+    getEditModeProps,
+    getEditRowModeActions,
+  ]);
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth='xl' fullWidth>
@@ -347,6 +435,9 @@ export function ChangeRequestsDialog({ policyId, open, handleClose }: ChangeRequ
             initialState={{
               pagination: { paginationModel: { pageSize: 5 } },
             }}
+            processRowUpdate={processRowUpdate}
+            onProcessRowUpdateError={handleProcessRowUpdateError}
+            isCellEditable={() => false}
             {...adminProps}
           />
         </Suspense>

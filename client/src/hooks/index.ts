@@ -66,6 +66,7 @@ export { useUserClaims } from './useUserClaims';
 export { useWizard } from './useWizard';
 export { useCompareJson } from './useCompareJson';
 export { useCreateCancelRequest } from './useCreateCancelRequest';
+export { useGridEditMode } from './useGridEditMode';
 
 export type { SubjectBaseKeyVal } from './useFetchTaxes';
 export type { UseFileUploadProps } from './useFileUpload';

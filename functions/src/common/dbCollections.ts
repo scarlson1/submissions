@@ -93,7 +93,7 @@ export const paymentMethodsCollection = (db: Firestore, userId: string) =>
     `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.PAYMENT_METHODS}`
   );
 
-export const changeReqestsCollection = (db: Firestore, policyId: string) =>
+export const changeRequestsCollection = (db: Firestore, policyId: string) =>
   createCollection<ChangeRequest>(
     db,
     `${COLLECTIONS.POLICIES}/${policyId}/${COLLECTIONS.CHANGE_REQUESTS}`

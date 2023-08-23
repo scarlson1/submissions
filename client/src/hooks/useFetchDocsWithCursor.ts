@@ -46,5 +46,10 @@ export function useFetchDocsWithCursor<T = any>(
 
   let q = query(collectionRef, ...qConstraints);
 
+  // useEffect(() => {
+  //   console.log('params: ', params);
+  //   console.log('QUERY:', q);
+  // }, [params, q]);
+
   return useFirestoreCollection<T>(q, { idField: 'id', ...options });
 }

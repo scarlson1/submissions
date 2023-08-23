@@ -60,7 +60,7 @@ export function getTaxBase(tax: TaxItem, policyVals: SubjectBaseKeyVal) {
 /**
  * returns a lodash rounding function, given the provided string
  * @param {string | null | undefined} type nearest, up, or down
- * @returns {(val: number) => number}
+ * @returns {function(): number} rounding function
  */
 export function getRoundingFunc(type?: RoundingType | null | undefined) {
   switch (type) {

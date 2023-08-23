@@ -354,8 +354,8 @@ export function getTermDays(effDate: Date, expDate: Date) {
 /**
  * calc term premium and term days
  * @param {number} annualPremium annual premium for location
- * @param {Date} effDate location eff date
- * @param {Date} expDate location exp date
+ * @param {Date} trxEffDate location eff date
+ * @param {Date} trxExpDate location exp date
  * @returns {object} returns termPremium and termDays as numbers
  */
 export function calcTerm(annualPremium: number, trxEffDate: Date, trxExpDate: Date) {
@@ -406,9 +406,9 @@ export const getReportErrorFn =
 
 /**
  * Check if any string in the values array exists in the checkValues array
- * @param values array to validate
- * @param checkValues array to validate against
- * @returns returns true if values array does not contain any values in the checkValues array
+ * @param {string[]} values array to validate
+ * @param {string[]} checkValues array to validate against
+ * @returns {boolean} returns true if values array does not contain any values in the checkValues array
  */
 export const hasAny = (values: string[], checkValues: string[]) => {
   return values.some((v) => checkValues.indexOf(v) !== -1);

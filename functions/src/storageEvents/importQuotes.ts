@@ -41,12 +41,9 @@ import {
 import { sendAdminPolicyImportNotification } from '../services/sendgrid';
 import { getFormattedFees } from './importPolicies';
 
-// import { sendAdminPolicyImportNotification } from '../services/sendgrid';
-
 const QUOTE_IMPORT_FOLDER = 'importQuotes';
 
 export interface CSVQuoteRow {
-  // extends Record<string, string>
   product: string;
   deductible: string;
   limitA: string;
@@ -431,7 +428,7 @@ function validateQuoteRow(row: DeepNullable<Quote>): boolean {
     invariant(typeof row.annualPremium === 'number', 'annualPremium must be a number');
     invariant(row.annualPremium >= 100, 'annualPremium must be > 100');
 
-    // quoteTotal calced after taxes fetched
+    // quoteTotal calc after taxes fetched
     // invariant(typeof row.quoteTotal === 'number', 'quoteTotal must be a number');
     // invariant(row.quoteTotal >= 100, 'quoteTotal must be > 100');
     const comm = row.subproducerCommission;
@@ -442,16 +439,6 @@ function validateQuoteRow(row: DeepNullable<Quote>): boolean {
     //  invariant(data.namedInsured?.displayName, 'named insured displayName required');
     //  invariant(data.namedInsured?.email, 'named insured email required');
     //  invariant(data.namedInsured?.phone, 'named insured phone required');
-
-    //  invariant(data.agent?.name, 'agentName required');
-    //  invariant(data.agent?.email, 'agentEmail required');
-
-    //  invariant(data.agency?.name, 'agencyName required');
-    //  invariant(data.agency?.orgId, 'agencyId required');
-    //  invariant(data.agency?.address?.addressLine1, 'agencyAddressLine1 required');
-    //  invariant(data.agency?.address?.city, 'agencyCity required');
-    //  invariant(data.agency?.address?.state, 'agencyState required');
-    //  invariant(data.agency?.address?.postal, 'agencyPostal required');
 
     invariant(row.agent?.name, 'missing agentName');
     invariant(row.agent?.email && isValidEmail(row.agent?.email), 'invalid agent email');

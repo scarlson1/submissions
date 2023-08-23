@@ -323,6 +323,7 @@ function QuotesActionMenu() {
         destinationFolder='ratePortfolio'
         getHeaderStatus={handleHeaderStatus(PORTFOLIO_RATING_REQUIRED_HEADERS, snakeCase)}
         onSuccess={onSuccess}
+        title='Rate Portfolio'
       >
         <Typography variant='body2' color='text.secondary' component='div'>
           Headers will be transformed to{' '}
@@ -344,6 +345,7 @@ function QuotesActionMenu() {
         destinationFolder='importQuotes'
         getHeaderStatus={handleHeaderStatus(QUOTE_IMPORT_REQUIRED_HEADERS, camelCase)}
         onSuccess={onSuccess}
+        title='Import Quotes'
       >
         <Typography variant='body2' color='text.secondary' component='div'>
           Headers will be transformed to{' '}
