@@ -1,11 +1,11 @@
-import { FormikHelpers, FormikProps } from 'formik';
+import { FormikConfig, FormikHelpers, FormikProps } from 'formik';
 import { ReactElement, RefObject, cloneElement, useCallback } from 'react';
 
 import { DialogOptions, useDialog } from 'context';
 
 interface UseDialogFormProps<T, C> {
   formComponent: ReactElement;
-  getFormProps?: () => Partial<FormikProps<T>> & Partial<C>;
+  getFormProps?: () => Partial<FormikConfig<T>> & Partial<C>;
   formRef: RefObject<FormikProps<T>>;
   dialogOptions?: Omit<DialogOptions, 'content' | 'onSubmit' | 'variant'>;
   onSubmit: (values: T, bag: FormikHelpers<T>) => Promise<any>;

@@ -1,37 +1,33 @@
-import { useCallback, useRef, useState } from 'react';
-import { FormikHelpers, FormikProps, FormikValues } from 'formik';
 import { Box, Container, Tooltip, Typography } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
-import { addDoc, GeoPoint, serverTimestamp } from 'firebase/firestore';
-import { useFirestore } from 'reactfire';
+import { GeoPoint, addDoc, serverTimestamp } from 'firebase/firestore';
+import { FormikHelpers, FormikProps } from 'formik';
+import { useCallback, useRef, useState } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
+import { useNavigate } from 'react-router-dom';
+import { useFirestore } from 'reactfire';
 
+import {
+  addressValidationActiveStatesNested,
+  buildingDetailsValidation,
+  contactValidationNested,
+  deductibleValidation,
+  exclusionsValidation,
+  limitsValidationNested,
+  priorLossValidation,
+  reviewValidation,
+} from 'common/validation';
 import { FormikNativeSelect, FormikWizard, Step } from 'components/forms';
 import {
   AddressStep,
-  LimitsStep,
-  DeductibleStep,
-  ReviewStep,
-  ExclusionsStep,
   ContactStep,
+  DeductibleStep,
+  ExclusionsStep,
+  LimitsStep,
   PriorFloodLossStep,
+  ReviewStep,
 } from 'elements/forms';
-import {
-  deductibleValidation,
-  reviewValidation,
-  exclusionsValidation,
-  priorLossValidation,
-  addressValidationActiveStatesNested,
-  limitsValidationNested,
-  contactValidationNested,
-  buildingDetailsValidation,
-} from 'common/validation';
 import { ROUTES, createPath } from 'router';
 // import { statesCollection, submissionsCollection } from 'common/firestoreCollections';
-import { SUBMISSION_STATUS } from 'common/enums';
-import { useActiveStates, useAsyncToast, usePropertyDetailsAttom } from 'hooks';
-import { roundUpToNearest, sumArr } from 'modules/utils/helpers';
-import { useAuth } from 'context/AuthContext';
 import {
   Address,
   Coordinates,
@@ -41,8 +37,14 @@ import {
   RatingPropertyData,
   submissionsCollection,
 } from 'common';
+import { SUBMISSION_STATUS } from 'common/enums';
 import { ErrorFallbackWithReset } from 'components/ErrorFallback';
+import { useAuth } from 'context/AuthContext';
+import { useActiveStates, useAsyncToast, usePropertyDetailsAttom } from 'hooks';
 import { InitRatingValues } from 'hooks/usePropertyDetails';
+import { roundUpToNearest, sumArr } from 'modules/utils/helpers';
+
+// TODO: abstract some state so same form can be used to edit submission
 
 // TODO: error boundary & reset: https://blog.logrocket.com/react-error-handling-react-error-boundary/
 
@@ -187,7 +189,7 @@ export const SubmissionNew = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const toast = useAsyncToast({ position: 'top-right' });
-  const formikRef = useRef<FormikProps<FormikValues>>(null);
+  const formikRef = useRef<FormikProps<FloodValues>>(null);
   const activeStates = useActiveStates('flood');
   const { propertyDetails, rcvSourceUser, propertyDataDocId, initRatingValues, fetchPropertyData } =
     usePropertyDetailsAttom({
@@ -243,28 +245,30 @@ export const SubmissionNew = () => {
     [fetchPropertyData]
   );
 
-  const handleOnToDeductible = useCallback((values: any, helpers: FormikHelpers<any>) => {
-    const initValues = formikRef.current?.initialValues;
-    if (!initValues) return values;
-    const initSum = sumArr([
-      parseInt(initValues.limits.limitA),
-      parseInt(initValues.limits.limitB),
-      parseInt(initValues.limits.limitC),
-      parseInt(initValues.limits.limitD),
-    ]);
+  const handleOnToDeductible = useCallback(
+    (values: FloodValues, helpers: FormikHelpers<FloodValues>) => {
+      const initValues = formikRef.current?.initialValues;
+      if (!initValues) return values;
 
-    const defaultDeductible = roundUpToNearest(initSum * parseFloat(DEFAULT_FLOOD_DEDUCTIBLE), 3);
+      const initLimitNums = Object.values(initValues.limits).map((l) =>
+        typeof l === 'string' ? parseInt(l) : l
+      );
+      const initSum = sumArr([...initLimitNums]);
 
-    const userChangedDeductible = defaultDeductible !== values.deductible;
-    if (userChangedDeductible) return values;
+      const defaultDeductible = roundUpToNearest(initSum * parseFloat(DEFAULT_FLOOD_DEDUCTIBLE), 3);
 
-    const { limits } = values;
-    const sumLimits = sumArr(Object.values(limits));
+      const userChangedDeductible = defaultDeductible !== values.deductible;
+      if (userChangedDeductible) return values;
 
-    const newDeductible = roundUpToNearest(sumLimits * parseFloat(DEFAULT_FLOOD_DEDUCTIBLE), 3);
+      const { limits } = values;
+      const sumLimits = sumArr(Object.values(limits));
 
-    return { ...values, deductible: newDeductible };
-  }, []);
+      const newDeductible = roundUpToNearest(sumLimits * parseFloat(DEFAULT_FLOOD_DEDUCTIBLE), 3);
+
+      return { ...values, deductible: newDeductible };
+    },
+    []
+  );
 
   const handleSubmit = useCallback(
     async (values: FloodValues, { setSubmitting }: FormikHelpers<FloodValues>) => {
@@ -293,7 +297,7 @@ export const SubmissionNew = () => {
           onReset={handleErrorReset}
           // resetKeys={[activeStates]}
         >
-          <FormikWizard
+          <FormikWizard<FloodValues>
             initialValues={{
               ...initialValues,
               contact: {

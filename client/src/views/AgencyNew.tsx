@@ -1,31 +1,21 @@
-import { useCallback } from 'react';
 import {
   Box,
+  Button,
   Card,
+  CardActions,
   CardContent,
   Container,
-  Typography,
   Unstable_Grid2 as Grid,
-  CardActions,
-  Button,
+  Typography,
 } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-hot-toast';
 import { FormikHelpers } from 'formik';
-import * as yup from 'yup';
 import Lottie from 'lottie-react';
+import { useCallback } from 'react';
+import { toast } from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
+import * as yup from 'yup';
 
-import {
-  FormikDragDrop,
-  FormikMaskField,
-  FormikTextField,
-  FormikWizard,
-  Step,
-  IMask,
-  phoneMaskProps,
-  feinMaskProps,
-} from 'components/forms';
-import { AgencyReviewStep, ContactStep } from 'elements/forms';
+import * as CheckmarkLottie from 'assets/checkmark.json';
 import {
   Address,
   Coordinates,
@@ -35,10 +25,25 @@ import {
   emailVal,
   phoneVal,
 } from 'common';
+import {
+  FormikDragDrop,
+  FormikMaskField,
+  FormikTextField,
+  FormikWizard,
+  IMask,
+  Step,
+  feinMaskProps,
+  phoneMaskProps,
+} from 'components/forms';
+import {
+  AddAgents,
+  AddressStep,
+  AgencyReviewStep,
+  ContactStep,
+  agentsValidation,
+} from 'elements/forms';
 import { useCreateAgencySubmission } from 'hooks';
-import * as CheckmarkLottie from 'assets/checkmark.json';
 import { ROUTES, createPath } from 'router';
-import { AddAgents, AddressStep, agentsValidation } from 'elements/forms';
 
 export const orgNameValidation = yup.object().shape({
   orgName: yup.string().required(),
@@ -151,7 +156,11 @@ export const AgencyNew = () => {
 
   return (
     <Container maxWidth='sm'>
-      <FormikWizard initialValues={INITIAL_VALUES} onSubmit={handleSubmit} enableReinitialize>
+      <FormikWizard<AgencyAppValues>
+        initialValues={INITIAL_VALUES}
+        onSubmit={handleSubmit}
+        enableReinitialize
+      >
         <Step
           label="What's your company's name?"
           validationSchema={orgNameValidation}

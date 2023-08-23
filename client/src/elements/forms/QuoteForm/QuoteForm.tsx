@@ -18,7 +18,7 @@ import {
   Typography,
 } from '@mui/material';
 import { doc } from 'firebase/firestore';
-import { Formik, FormikErrors, FormikHelpers, FormikProps, setNestedObjectValues } from 'formik';
+import { Formik, FormikConfig, FormikErrors, FormikProps, setNestedObjectValues } from 'formik';
 import { isEmpty, pick } from 'lodash';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -112,13 +112,11 @@ export interface QuoteValues {
 }
 
 // TODO: pass ratingDocId to onSubmit ?? or store ratingDocId with values
-interface QuoteFormProps {
+interface QuoteFormProps extends Omit<FormikConfig<QuoteValues>, 'initialValues'> {
   initialValues?: QuoteValues | undefined;
-  onSubmit: (values: QuoteValues, helpers: FormikHelpers<QuoteValues>) => void;
   title: string;
   product?: Product;
   submissionId?: string | null;
-  // submissionData?: Submission | null | undefined;
   initialRatingSnap?: Optional<RatingInputsWithAAL> | null | undefined;
 }
 

@@ -1,5 +1,5 @@
 import { Unstable_Grid2 as Grid } from '@mui/material';
-import { Form, Formik, FormikHelpers, FormikProps } from 'formik';
+import { Form, Formik, FormikConfig, FormikHelpers, FormikProps } from 'formik';
 import { RefObject } from 'react';
 import * as yup from 'yup';
 
@@ -23,7 +23,7 @@ export interface CancelValues {
   reason: CancellationReason; // string;
 }
 
-export interface CancelFormProps extends Partial<FormikProps<CancelValues>> {
+export interface CancelFormProps extends Partial<FormikConfig<CancelValues>> {
   initialValues: CancelValues;
   onSubmit:
     | ((values: CancelValues, bag: FormikHelpers<CancelValues>) => Promise<void>)

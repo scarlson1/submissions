@@ -62,6 +62,7 @@ export enum POLICY_STATUS {
 }
 
 export enum CHANGE_REQUEST_STATUS {
+  DRAFT = 'draft',
   SUBMITTED = 'submitted',
   ACCEPTED = 'accepted',
   DENIED = 'denied',

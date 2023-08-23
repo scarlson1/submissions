@@ -1,9 +1,16 @@
-import { Children, cloneElement, isValidElement, useMemo, useState } from 'react';
-
 import { KeyboardArrowLeft, KeyboardArrowRight, NavigateNextRounded } from '@mui/icons-material';
 import LoadingButton from '@mui/lab/LoadingButton';
 import { Box, Breakpoint, Button, Container, MobileStepper, Stack } from '@mui/material';
-import { Form, Formik, FormikErrors, FormikHelpers, FormikProps } from 'formik';
+import {
+  Form,
+  Formik,
+  FormikConfig,
+  FormikErrors,
+  FormikHelpers,
+  FormikProps,
+  FormikValues,
+} from 'formik';
+import { Children, RefObject, cloneElement, isValidElement, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
 
 import { StepProps, StepperNav } from 'components/forms';
@@ -20,25 +27,24 @@ import { useScroll, useWidth } from 'hooks';
 
 // TODO: use react string transitions: https://www.react-spring.dev/docs/components/use-transition
 // https://codesandbox.io/embed/physics-animation-in-react-router-5hn85?fontsize=14&hidenavigation=1&theme=dark
-export interface FormikWizardProps extends Partial<FormikProps<any>> {
+
+export interface FormikWizardProps<T = any> extends FormikConfig<T> {
   children: React.ReactElement<StepProps> | React.ReactElement<StepProps>[]; // JSX.Element | JSX.Element[];
-  initialValues: { [key: string]: any };
-  onSubmit: (values: any, helpers: FormikHelpers<any>) => void;
   onCancel?: () => void;
-  mutateOnSubmit?: (values: any, helpers: FormikHelpers<any>, initVals: any) => any;
+  mutateOnSubmit?: (values: T, helpers: FormikHelpers<T>, initVals: T) => any;
   onMutateError?: (err: unknown) => void;
-  enableReinitialize?: boolean;
-  initialErrors?: FormikErrors<any>;
+  // enableReinitialize?: boolean;
+  // initialErrors?: FormikErrors<any>;
   loading?: boolean;
   submitButtonText?: string;
   disableNext?: boolean;
   initialIndex?: number;
   withStepper?: boolean;
-  maxWidth?: Breakpoint | false; // 'xs' | 'sm' | 'md' | 'lg' | 'xl' | false | string;
-  formRef?: React.RefObject<FormikProps<any>>;
+  maxWidth?: Breakpoint | false;
+  formRef?: RefObject<FormikProps<T>>;
 }
 
-export const FormikWizard = ({
+export const FormikWizard = <T extends FormikValues>({
   children,
   initialValues,
   initialErrors = {},
@@ -54,7 +60,7 @@ export const FormikWizard = ({
   maxWidth = 'sm',
   formRef,
   ...rest
-}: FormikWizardProps) => {
+}: FormikWizardProps<T>) => {
   const [stepIndex, setStepIndex] = useState<number>(initialIndex);
   const [snapshot, setSnapshot] = useState(initialValues);
   const { isMobile } = useWidth();
@@ -124,12 +130,7 @@ export const FormikWizard = ({
 
   const handleCancel = (
     handleReset: (e?: React.SyntheticEvent<any, Event> | undefined) => void,
-    setValues: (
-      values: React.SetStateAction<{
-        [key: string]: any;
-      }>,
-      shouldValidate?: boolean | undefined
-    ) => void
+    setValues: FormikHelpers<T>['setValues']
   ) => {
     handleReset();
     console.log('RESETING TO INITIAL VALUES: ', initialValues);
@@ -139,7 +140,7 @@ export const FormikWizard = ({
   };
 
   return (
-    <Formik
+    <Formik<T>
       initialValues={snapshot}
       initialErrors={currentStep?.props?.initialErrors || {}}
       validationSchema={currentStep.props.validationSchema}

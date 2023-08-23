@@ -43,7 +43,14 @@ export type DeepNonNullable<T> = {
 
 export type WithRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] };
 
+// TODO: redo Optional type / rename (MaybeKeys)
+// make optional accept keys that are optional (partial)
 export type Optional<T> = { [K in keyof T]?: T[K] | undefined | null };
+
+export type OptionalKeys<T, K extends keyof T> = Pick<Partial<T>, K> & Omit<T, K>;
+
+// TODO: need DeepPick & DeepOmit ??
+// export type DeepOptionalKeys <T, P extends Path<T>> = Pick<DeepPartial<T>, > &
 
 export type DeepPartial<T> = {
   [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]> : T[K];

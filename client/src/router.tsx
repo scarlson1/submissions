@@ -21,6 +21,7 @@ import { TestPoliciesMapWithFilters } from 'elements/maps/PoliciesMap';
 import {
   Account,
   AccountDetails,
+  AddLocation,
   AgencyNew,
   ContactUs,
   CreateAccount,
@@ -100,6 +101,7 @@ export enum ROUTES {
   USER_QUOTES = '/quotes/list/:userId',
   POLICIES = '/policies', // '/policies/:productId?'
   POLICY = '/policies/:policyId',
+  ADD_LOCATION_NEW = '/policies/:policyId/location/new',
   CLAIM_NEW = '/policies/:policyId/claim/new',
   AGENCY_NEW = '/agency/new',
   AGENCY_NEW_SUBMITTED = '/agency/new/:submissionId/success',
@@ -165,6 +167,7 @@ type TArgs =
   | { path: ROUTES.QUOTE_BIND_SUCCESS; params: { quoteId: string; transactionId?: string } }
   | { path: ROUTES.POLICIES; search?: { productId?: Product } }
   | { path: ROUTES.POLICY; params: { policyId: string }; search?: { l_view: string } }
+  | { path: ROUTES.ADD_LOCATION_NEW; params: { policyId: string } }
   | { path: ROUTES.CLAIM_NEW; params: { policyId: string } }
   | { path: ROUTES.AGENCY_NEW }
   | { path: ROUTES.AGENCY_NEW_SUBMITTED; params: { submissionId: string } }
@@ -607,7 +610,7 @@ export const router = sentryCreateBrowserRouter([
                 {
                   label: 'Policies',
                   link: createPath({
-                    path: ROUTES.QUOTES,
+                    path: ROUTES.POLICIES,
                   }),
                 },
                 {
@@ -616,6 +619,31 @@ export const router = sentryCreateBrowserRouter([
                     path: ROUTES.POLICY,
                     params: { policyId: `${match?.params?.policyId || ''}` },
                   }),
+                },
+              ],
+            },
+          },
+          {
+            path: ROUTES.ADD_LOCATION_NEW,
+            element: <AddLocation />,
+            errorElement: <RouterErrorBoundary />,
+            handle: {
+              crumb: (match: CrumbMatch) => [
+                {
+                  label: 'Policies',
+                  link: createPath({
+                    path: ROUTES.POLICIES,
+                  }),
+                },
+                {
+                  label: `${match?.params?.policyId || ''}`,
+                  link: createPath({
+                    path: ROUTES.POLICY,
+                    params: { policyId: `${match?.params?.policyId || ''}` },
+                  }),
+                },
+                {
+                  label: 'Add Location',
                 },
               ],
             },

@@ -954,11 +954,13 @@ export interface LocationChangeValues {
 }
 
 export type ChangeRequestStatus =
+  | 'draft'
   | 'submitted'
   | 'accepted'
   | 'denied'
   | 'under_review'
-  | 'cancelled';
+  | 'cancelled'
+  | 'error';
 
 // TODO: create ChangeRequestTrxType, then TransactionType  = ChangeRequestTrxType & 'renewal' | 'new'
 interface BaseChangeRequest extends BaseDoc {
@@ -984,6 +986,8 @@ interface BaseChangeRequest extends BaseDoc {
   error?: string;
   _lastCommitted?: Timestamp;
 }
+
+// TODO: DraftChangeRequest ??
 
 export interface LocationChangeRequest extends BaseChangeRequest {
   scope: 'location';

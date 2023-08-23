@@ -1,5 +1,5 @@
 import { Box, Stack } from '@mui/material';
-import { Form, Formik, FormikHelpers, FormikProps } from 'formik';
+import { Form, Formik, FormikConfig, FormikHelpers, FormikProps } from 'formik';
 import { RefObject, useCallback, useRef } from 'react';
 import * as yup from 'yup';
 
@@ -137,8 +137,7 @@ const defaultInitialValues = {
   notifyInsured: false,
   alternative: [],
 };
-interface SelectEmailsFormProps extends Partial<FormikProps<NotificationEmailValues>> {
-  onSubmit: (values: NotificationEmailValues, bag: FormikHelpers<NotificationEmailValues>) => void;
+interface SelectEmailsFormProps extends FormikConfig<NotificationEmailValues> {
   formRef: RefObject<FormikProps<NotificationEmailValues>>;
   insuredEmail: string | null;
   agentEmail: string | null;
@@ -159,7 +158,7 @@ function SelectEmailsForm({
       onSubmit={onSubmit}
       enableReinitialize
       innerRef={formRef}
-      {...(props || {})}
+      {...props}
     >
       {({ handleSubmit }: FormikProps<NotificationEmailValues>) => (
         <Box>

@@ -1,27 +1,27 @@
-import { Suspense, useCallback, useMemo, useRef } from 'react';
 import {
   Box,
   Button,
   Card,
   Chip,
   Divider,
-  Typography,
   Unstable_Grid2 as Grid,
+  Typography,
 } from '@mui/material';
-import { Formik, FormikHelpers, FormikProps } from 'formik';
+import { addWeeks } from 'date-fns';
 import { PickingInfo } from 'deck.gl/typed';
+import { DocumentReference, doc } from 'firebase/firestore';
+import { Formik, FormikHelpers, FormikProps } from 'formik';
+import { Suspense, useCallback, useMemo, useRef } from 'react';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
-import * as yup from 'yup';
-import { addWeeks } from 'date-fns';
 import { useFirestore, useFirestoreDocDataOnce } from 'reactfire';
-import { doc, DocumentReference } from 'firebase/firestore';
+import * as yup from 'yup';
 
+import { COLLECTIONS, FIPSDetails } from 'common';
 import { FormikDatePicker, FormikSelect, VirtualizedAutocomplete } from 'components/forms';
+import { CountiesMap } from 'elements';
 import { useCreateMoratorium } from 'hooks';
 import { ADMIN_ROUTES, createPath } from 'router';
-import { COLLECTIONS, FIPSDetails } from 'common';
-import { CountiesMap } from 'elements';
 
 // TODO: suspense and error boundary around virtual autocomplete
 
@@ -59,10 +59,10 @@ export const MoratoriumNew = () => {
   const fipsDocRef = doc(firestore, COLLECTIONS.PUBLIC, 'fips') as DocumentReference<{
     counties: FIPSDetails[];
   }>;
-  const {
-    data, // : { counties },
-    status,
-  } = useFirestoreDocDataOnce(fipsDocRef, { initialData: { counties: [] }, suspense: false });
+  const { data, status } = useFirestoreDocDataOnce(fipsDocRef, {
+    initialData: { counties: [] },
+    suspense: false,
+  });
   // TODO: handle doc doesnt exist ? does suspense catch does not exist ?
 
   const counties = useMemo(() => data?.counties || [], [data]);

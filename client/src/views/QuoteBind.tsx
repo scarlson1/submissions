@@ -41,7 +41,6 @@ import { TimeManagementSVG } from 'assets/images';
 import {
   ANALYTICS_EVENTS,
   AdditionalInterest,
-  AgentDetails,
   MailingAddress,
   NamedInsuredDetails,
   PaymentMethod,
@@ -98,7 +97,7 @@ const policyEffShortcuts = getDateShortcuts([15, 30, 60]);
 
 export interface BindQuoteValues {
   namedInsured: Omit<NamedInsuredDetails, 'userId'>;
-  agent: AgentDetails;
+  // agent: AgentDetails;
   paymentMethodId: string;
   effectiveDate: Date;
   effectiveExceptionRequested: boolean;
@@ -205,7 +204,7 @@ export const QuoteBind = () => {
       <Typography variant='h5' sx={{ pl: 4 }} align='center'>
         Bind Quote
       </Typography>
-      <FormikWizard
+      <FormikWizard<BindQuoteValues>
         initialValues={{
           namedInsured: {
             firstName: data?.namedInsured?.firstName ?? '',

@@ -1,8 +1,8 @@
 import { add } from 'date-fns';
 
-import { QuoteValues } from './QuoteForm';
 import { COMMISSION_OPTIONS } from 'common';
 import { getDateShortcuts } from 'modules/utils';
+import { QuoteValues } from './QuoteForm';
 
 export const policyEffShortcuts = getDateShortcuts([15, 30, 60]);
 
@@ -50,7 +50,6 @@ export const DEFAULT_VALUES: QuoteValues = {
     limitC: 67500,
     limitD: 25000,
   },
-
   deductible: 1000,
   effectiveExceptionRequested: false,
   effectiveDate: add(new Date(), { days: 15 }),

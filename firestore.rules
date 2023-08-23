@@ -86,16 +86,11 @@ service cloud.firestore {
 
     // TODO: decide whether to allow org admins to create 
     match /policies/{policyId}/changeRequests/{requestId} {
-      allow create: if isSignedIn() && (
-          isUser(getPolicyData(policyId).get('userId', null))
-          || (isAgent() && isUser(getPolicyData(policyId).get(['agent', 'userId'], null)))
-          || isIDemandAdmin()
-        ) 
-        && incomingData().keys().hasAll(['policyId', 'requestEffDate', 'trxType', 'userId', 'agent', 'agency', 'status'])
-        && incomingData().status == 'submitted'
+      allow create: if true;
+      // TODO: uncomment (update to allow 'draft' status)
       // allow create: if isSignedIn() && (
-      //     isUser(get(/databases/$(database)/documents/policies/$(policyId)).data.userId)
-      //     || isAgent() && isUser(get(/databases/$(database)/documents/policies/$(policyId)).data.agent.userId)
+      //     isUser(getPolicyData(policyId).get('userId', null))
+      //     || (isAgent() && isUser(getPolicyData(policyId).get(['agent', 'userId'], null)))
       //     || isIDemandAdmin()
       //   ) 
       //   && incomingData().keys().hasAll(['policyId', 'requestEffDate', 'trxType', 'userId', 'agent', 'agency', 'status'])

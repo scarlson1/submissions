@@ -55,6 +55,8 @@ export default async (
     info(`New change request doc change detected. (status: ${status})`, { ...data });
 
     switch (status) {
+      case CHANGE_REQUEST_STATUS.DRAFT:
+        return;
       case CHANGE_REQUEST_STATUS.SUBMITTED:
         await handleRequestNotifications(data, policyId, requestId, event.id);
 
@@ -79,6 +81,9 @@ export default async (
         return;
       case CHANGE_REQUEST_STATUS.UNDER_REVIEW:
         return;
+      case CHANGE_REQUEST_STATUS.ERROR:
+        // TODO: notify admin
+        throw new Error(`Change request status updated to "error" (${data.error || 'unknown'})`);
       default:
         error(`Change request status not recognized (status: ${status})`, { ...data });
         return;

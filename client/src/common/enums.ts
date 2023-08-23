@@ -76,6 +76,7 @@ export enum AGENCY_SUBMISSION_STATUS {
 }
 
 export enum CHANGE_REQUEST_STATUS {
+  DRAFT = 'draft',
   SUBMITTED = 'submitted',
   ACCEPTED = 'accepted',
   DENIED = 'denied',

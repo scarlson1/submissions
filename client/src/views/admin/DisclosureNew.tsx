@@ -1,21 +1,20 @@
-import { useCallback } from 'react';
 import { Box, Typography } from '@mui/material';
-import { addDoc, collection, CollectionReference, Timestamp } from 'firebase/firestore';
-import { useFirestore } from 'reactfire';
+import { CollectionReference, Timestamp, addDoc, collection } from 'firebase/firestore';
 import { FormikHelpers } from 'formik';
+import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useFirestore } from 'reactfire';
 
 import { COLLECTIONS, Disclosure, Product } from 'common';
-import { useAsyncToast } from 'hooks';
-import { ADMIN_ROUTES, createPath } from 'router';
 import 'components/textEditor/TextEditor.css';
 import { DisclosureForm, DisclosureValues } from 'elements/forms';
+import { useAsyncToast } from 'hooks';
+import { ADMIN_ROUTES, createPath } from 'router';
 
 export const DisclosureNew = () => {
   const navigate = useNavigate();
   const firestore = useFirestore();
   const toast = useAsyncToast();
-  // const formikRef = useRef<FormikProps<DisclosureValues>>(null);
 
   const handleSubmit = useCallback(
     async (

@@ -1,5 +1,5 @@
 import { Divider, Unstable_Grid2 as Grid, Typography } from '@mui/material';
-import { Form, Formik, FormikHelpers, FormikProps } from 'formik';
+import { Form, Formik, FormikConfig, FormikProps } from 'formik';
 import { RefObject } from 'react';
 import * as yup from 'yup';
 
@@ -45,12 +45,7 @@ const validation = yup.object().shape({
   // expirationDate: yup.date().required(),
 });
 
-export interface PolicyChangeFormProps extends Partial<FormikProps<PolicyChangeValues>> {
-  onSubmit: (
-    values: PolicyChangeValues,
-    bag: FormikHelpers<PolicyChangeValues>
-  ) => Promise<void | any>;
-  initialValues: PolicyChangeValues;
+export interface PolicyChangeFormProps extends FormikConfig<PolicyChangeValues> {
   formRef: RefObject<FormikProps<PolicyChangeValues>>;
 }
 

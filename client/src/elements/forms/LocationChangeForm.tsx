@@ -1,7 +1,7 @@
-import { RefObject } from 'react';
-import { Form, Formik, FormikHelpers, FormikProps } from 'formik';
-import { Box, Divider, Unstable_Grid2 as Grid, Typography } from '@mui/material';
 import { PersonAddAltRounded } from '@mui/icons-material';
+import { Box, Divider, Unstable_Grid2 as Grid, Typography } from '@mui/material';
+import { Form, Formik, FormikConfig, FormikProps } from 'formik';
+import { RefObject } from 'react';
 import * as yup from 'yup';
 
 import { AdditionalInterest, Limits, deductibleVal, limitsValidation } from 'common';
@@ -12,8 +12,8 @@ import {
   FormikTextField,
   UpdateDialogSubmitDisabled,
 } from 'components/forms';
-import { LimitsStep } from './LimitsStep';
 import { dollarFormat } from 'modules/utils';
+import { LimitsStep } from './LimitsStep';
 
 const validation = yup.object().shape({
   limits: limitsValidation,
@@ -28,19 +28,12 @@ export interface LocationChangeValues {
   deductible: number;
   effectiveDate: Date;
   expirationDate: Date;
-  // additionalInsureds: PolicyLocation['additionalInsureds'];
-  // mortgageeInterest: PolicyLocation['mortgageeInterest'];
   additionalInterests: AdditionalInterest[];
   externalId: string;
   requestEffDate: Date;
 }
 
-export interface LocationChangeFormProps extends Partial<FormikProps<LocationChangeValues>> {
-  onSubmit: (
-    values: LocationChangeValues,
-    bag: FormikHelpers<LocationChangeValues>
-  ) => Promise<void | any>;
-  initialValues: LocationChangeValues;
+export interface LocationChangeFormProps extends FormikConfig<LocationChangeValues> {
   formRef: RefObject<FormikProps<LocationChangeValues>>;
   policyExpirationDate?: Date;
   replacementCost?: number | undefined;
@@ -54,7 +47,7 @@ export const LocationChangeForm = ({
   policyExpirationDate,
   ...props
 }: LocationChangeFormProps) => {
-  console.log(policyExpirationDate);
+  console.log('policy exp date: ', policyExpirationDate);
   return (
     <Formik
       initialValues={initialValues}

@@ -1,4 +1,5 @@
 export { AddAgents, agentsValidation } from './AddAgents';
+export { AddLocationForm } from './AddLocationForm';
 export { AddPaymentDialog, Transition } from './AddPaymentDialog';
 export { AddUsersDialog } from './AddUsersDialog';
 export { AddressStep } from './AddressStep';
