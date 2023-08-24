@@ -76,11 +76,6 @@ export const addressValidationActiveStates = (activeStates: Record<string, boole
     addressLine2: yup.string().typeError('addressLine2 (string)').notRequired(),
     city: yup.string().typeError('city required').required('City is required'),
     state: validateActiveState(activeStates),
-    // state: yup
-    //   .string()
-    //   .required('State is required')
-    //   .test('activeState', 'Ineligible state', (val) => Boolean(val) && activeStates[`${val}`]),
-    // state: yup.string().required('State is required').oneOf(ACTIVE_STATES_ABRV, 'Ineligible state'),
     postal: yup.string().typeError('postal required').required('Postal code is required'),
   });
 
@@ -96,6 +91,11 @@ export const addressWithNameValidation = addressValidation.shape({
 // extend / concat yup obj.:  https://stackoverflow.com/a/68411022
 export const mailingAddressValidation = yup.object().shape({
   mailingAddress: addressWithNameValidation,
+});
+
+export const coordinatesValidation = yup.object().shape({
+  latitude: yup.number().required('latitude required'),
+  longitude: yup.number().required('longitude'),
 });
 
 // export const addressValidationActiveStates = yup.object().shape({

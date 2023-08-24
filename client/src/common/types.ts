@@ -320,7 +320,7 @@ export interface TaxItem {
   resultRoundType: RoundingType;
 }
 
-// TODO: temparary (quote data interface for interim submissions period) REPLACE
+// TODO: temporary (quote data interface for interim submissions period) REPLACE
 
 export interface RatingPropertyData {
   CBRSDesignation: string;
@@ -615,7 +615,7 @@ export interface Policy extends BaseDoc {
   status: POLICY_STATUS;
   term: number;
   mailingAddress: Address;
-  namedInsured: NamedInsured; // TODO: clerify typing NamedInsuredDetails;
+  namedInsured: NamedInsured; // TODO: clarify typing NamedInsuredDetails;
   locations: Record<string, PolicyLocation>;
   homeState: string;
   termPremium: number; // sum of location(s) term premium
@@ -660,7 +660,7 @@ interface BaseTransaction extends BaseDoc {
   homeState: string;
   policyEffDate: Timestamp;
   policyExpDate: Timestamp;
-  trxEffDate: Timestamp; // for when premium is earned (where is this retreived from ??)
+  trxEffDate: Timestamp; // for when premium is earned (where is this retrieved from ??)
   trxExpDate: Timestamp;
   trxDays: number; // trxExpDate - trxEffDate
   eventId: string;
@@ -754,7 +754,7 @@ export type Transaction = PremiumTransaction | OffsetTransaction | AmendmentTran
 //   netDWP: number;
 //   netErrorAdj?: number | null;
 //   trxPolicyDays: number;
-//   dailyPremium: number; // calcualted in SQL query ?? or in converter ??
+//   dailyPremium: number; // calculated in SQL query ?? or in converter ??
 //   submission?: string;
 //   otherInterestedParties: string[];
 //   additionalNamedInsured: string[];

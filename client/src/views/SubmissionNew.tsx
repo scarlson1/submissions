@@ -40,7 +40,7 @@ import {
 import { SUBMISSION_STATUS } from 'common/enums';
 import { ErrorFallbackWithReset } from 'components/ErrorFallback';
 import { useAuth } from 'context/AuthContext';
-import { useActiveStates, useAsyncToast, usePropertyDetailsAttom } from 'hooks';
+import { useAsyncToast, useDocData, usePropertyDetailsAttom } from 'hooks';
 import { InitRatingValues } from 'hooks/usePropertyDetails';
 import { roundUpToNearest, sumArr } from 'modules/utils/helpers';
 
@@ -48,8 +48,8 @@ import { roundUpToNearest, sumArr } from 'modules/utils/helpers';
 
 // TODO: error boundary & reset: https://blog.logrocket.com/react-error-handling-react-error-boundary/
 
-// TODO: fix bug - need to separate geocodeing from address
-// if address manually changed (not google autocomple), need to update lat lng
+// TODO: fix bug - need to separate geocoding from address
+// if address manually changed (not google autocomplete), need to update lat lng
 
 const DEFAULT_FLOOD_DEDUCTIBLE = '0.01';
 
@@ -190,7 +190,7 @@ export const SubmissionNew = () => {
   const { user } = useAuth();
   const toast = useAsyncToast({ position: 'top-right' });
   const formikRef = useRef<FormikProps<FloodValues>>(null);
-  const activeStates = useActiveStates('flood');
+  const { data: activeStates } = useDocData('ACTIVE_STATES', 'flood');
   const { propertyDetails, rcvSourceUser, propertyDataDocId, initRatingValues, fetchPropertyData } =
     usePropertyDetailsAttom({
       promptForValuation: true,

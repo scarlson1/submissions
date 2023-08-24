@@ -297,7 +297,7 @@ export const sumArr = (arr: (number | string)[]) => {
 //  * @param {number} premium annual premium
 //  * @returns {number} quote total = sum of fees, taxes, premium, rounded to 2 decimals
 //  */
-// export function sumfeesTaxesPremium(fees: FeeItem[], taxes: TaxItem[], premium: number) {
+// export function sumFeesTaxesPremium(fees: FeeItem[], taxes: TaxItem[], premium: number) {
 //   const feeTotal = sumArr(fees.map((f) => f.value));
 //   const taxTotal = sumArr(taxes.map((t) => t.value));
 

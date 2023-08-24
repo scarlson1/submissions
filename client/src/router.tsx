@@ -101,7 +101,7 @@ export enum ROUTES {
   USER_QUOTES = '/quotes/list/:userId',
   POLICIES = '/policies', // '/policies/:productId?'
   POLICY = '/policies/:policyId',
-  ADD_LOCATION_NEW = '/policies/:policyId/location/new',
+  ADD_LOCATION_NEW = '/policies/:policyId/locations/new',
   CLAIM_NEW = '/policies/:policyId/claim/new',
   AGENCY_NEW = '/agency/new',
   AGENCY_NEW_SUBMITTED = '/agency/new/:submissionId/success',

@@ -37,6 +37,10 @@ function AddLocationComponent({ changeRequestDocResource, policyId }: AddLocatio
     alert(JSON.stringify(values, null, 2));
   }, []);
 
+  useEffect(() => {
+    console.log('change request ID: ', changeRequestSnap.id);
+  }, [changeRequestSnap]);
+
   return (
     <Container maxWidth='md' sx={{ py: { xs: 8, sm: 10, md: 12, lg: 16 } }}>
       <AddLocationForm
@@ -61,7 +65,7 @@ export function AddLocation() {
       console.log('calling change request resource function');
       setChangeRequestResource(createChangeRequest(policyId));
     }
-  }, [policyId, prev]);
+  }, [policyId, prev, changeRequestResource]);
 
   if (!changeRequestResource) return null;
 

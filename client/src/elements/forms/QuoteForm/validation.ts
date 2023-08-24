@@ -17,7 +17,7 @@ import {
   dollarFormat,
   getRoundingFunc,
   sumByTypes,
-  sumfeesTaxesPremium,
+  sumFeesTaxesPremium,
 } from 'modules/utils';
 
 const minDate = addToDate({ days: 15 }, startOfToday());
@@ -127,7 +127,7 @@ export const getQuoteValidation = (activeStates: Record<string, boolean>) =>
       .test('correct-total', 'total ≠ premium + fees + taxes', (val, ctx) => {
         const { fees, taxes, annualPremium } = ctx.parent;
 
-        const total = sumfeesTaxesPremium(fees, taxes, annualPremium || 0);
+        const total = sumFeesTaxesPremium(fees, taxes, annualPremium || 0);
 
         if (total !== val) return false;
 

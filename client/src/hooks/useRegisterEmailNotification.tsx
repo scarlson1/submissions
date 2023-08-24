@@ -10,9 +10,8 @@ import { FormikSelect, FormikTextField } from 'components/forms';
 import { emailVal } from 'common/validation';
 import { notifyRegistration } from 'common/firestoreCollections';
 import { statesAbrvSelectOptions } from 'common/statesList';
-import { useActiveStates } from './useActiveStates';
 import { ActiveStates } from 'common';
-// import { ACTIVE_STATES_ABRV } from 'common/constants';
+import { useDocData } from './useDocData';
 
 export interface RegisterValues {
   email: string;
@@ -35,7 +34,7 @@ export const useRegisterEmailNotification = ({
 }: UseRegisterEmailNotificationProps) => {
   const confirm = useConfirmation();
   const formRef = useRef<FormikProps<RegisterValues>>(null);
-  const activeStates = useActiveStates('flood');
+  const { data: activeStates } = useDocData('ACTIVE_STATES', 'flood');
 
   const formSub = useCallback(
     (values: RegisterValues, { setSubmitting }: FormikHelpers<RegisterValues>) => {
@@ -158,7 +157,7 @@ export const useRegisterEmailNotification = ({
     (state?: string) => {
       return promptForNotification(
         'State Unavailable',
-        `We're not available there quite yet. Please let us know if you would like to recieve a notifcation when we reach your state.`,
+        `We're not available there quite yet. Please let us know if you would like to receive a notification when we reach your state.`,
         state
       );
     },

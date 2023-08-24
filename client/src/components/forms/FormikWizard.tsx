@@ -66,10 +66,6 @@ export const FormikWizard = <T extends FormikValues>({
   const { isMobile } = useWidth();
   const { scrollToTop } = useScroll();
 
-  // useEffect(() => {
-  //   formRef?.current?.validateForm().then(console.log);
-  // }, [formRef, stepIndex]);
-
   const steps = useMemo(() => Children.toArray(children), [children]);
 
   const stepperNavProps = useMemo(
@@ -133,7 +129,7 @@ export const FormikWizard = <T extends FormikValues>({
     setValues: FormikHelpers<T>['setValues']
   ) => {
     handleReset();
-    console.log('RESETING TO INITIAL VALUES: ', initialValues);
+    console.log('RESETTING TO INITIAL VALUES: ', initialValues);
     setValues(initialValues, false);
     setStepIndex(0);
     if (onCancel) onCancel();

@@ -67,13 +67,13 @@ import { TempAgentSearch } from 'components/search/Search';
 import {
   RatingInputsWithAAL,
   extractRatingInputsFromValues,
-  useActiveStates,
   useAsyncToast,
   useCalcPremium,
+  useDocData,
   useFetchTaxes,
   useRateQuote,
 } from 'hooks';
-import { Obj, dollarFormat, getData, sumfeesTaxesPremium, truthyOrZero } from 'modules/utils';
+import { Obj, dollarFormat, getData, sumFeesTaxesPremium, truthyOrZero } from 'modules/utils';
 import { ROUTES, createPath } from 'router';
 import { AddressStepQuote } from '../AddressStepQuote';
 import FormikAddressLite from '../FormikAddressLite';
@@ -136,7 +136,7 @@ export const QuoteForm = ({
   const firestore = useFirestore();
   const formikRef = useRef<FormikProps<QuoteValues>>(null);
   const toast = useAsyncToast({ position: 'top-right' });
-  const activeStates = useActiveStates(product);
+  const { data: activeStates } = useDocData('ACTIVE_STATES', product);
 
   // BUG: rerateRequired is true for edit quote because aals are not included
   const [ratingState, setRatingState] = useState({
@@ -246,7 +246,7 @@ export const QuoteForm = ({
       if (!annualPremium || typeof annualPremium !== 'number')
         return toast.error('Term premium required');
 
-      const total = sumfeesTaxesPremium(fees, taxes, annualPremium);
+      const total = sumFeesTaxesPremium(fees, taxes, annualPremium);
 
       formikRef.current?.setFieldValue('quoteTotal', total);
       formikRef.current?.setFieldTouched('quoteTotal');

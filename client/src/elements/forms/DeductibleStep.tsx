@@ -12,12 +12,11 @@ export interface DeductibleStepProps {
 // TODO: delete component (just description text and FormikIncrementor)
 
 // TODO: Tell me more accordion
-//    - more detailed explaination
+//    - more detailed explanation
 //    - deductible faq
 //    - link to "Deductibles explained" article once written
 
 export const DeductibleStep = ({ gridProps, maxDeductible }: DeductibleStepProps) => {
-  // TODO: calc max as 20% of limits
   return (
     <Grid
       container
@@ -54,7 +53,7 @@ export const DeductibleStep = ({ gridProps, maxDeductible }: DeductibleStepProps
 export function DeductibleDetails() {
   <Box>
     <Typography variant='subtitle2' color='warning.main'>
-      TODO: detailed deductible explaination
+      TODO: detailed deductible explanation
     </Typography>
     <Typography variant='subtitle2' color='warning.main'>
       TODO: deductible FAQs
