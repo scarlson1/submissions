@@ -1,8 +1,10 @@
-import { error } from 'firebase-functions/logger';
+import { info } from 'firebase-functions/logger';
 import { FirestoreEvent, QueryDocumentSnapshot } from 'firebase-functions/v2/firestore';
 
-import { publishPolicyCreated } from '../services/pubsub';
-import { reportErrorSentry } from '../services/sentry';
+import { COLLECTIONS, Policy, getReportErrorFn, verify } from '../common';
+import { publishGetLocationImages, publishPolicyCreated } from '../services/pubsub';
+
+const reportErr = getReportErrorFn('policyCreated');
 
 export default async (
   event: FirestoreEvent<
@@ -19,11 +21,34 @@ export default async (
       policyId,
     });
   } catch (err: any) {
-    reportError(`Error publishing policy.created pubsub event`, { policyId }, err);
+    reportErr(`Error publishing policy.created pubsub event`, { policyId }, err);
+  }
+
+  // loop through locations --> image get image if no value
+  try {
+    const snap = event.data;
+    verify(snap, 'no data associated with event');
+    const data = event.data?.data() as Policy;
+    verify(data, 'new policy missing data');
+
+    const locations = data.locations;
+    verify(locations, 'policy missing locations');
+
+    for (let [id, location] of Object.entries(locations)) {
+      let imgObj = location.imageURLs;
+      if (!imgObj || !imgObj.light) {
+        await publishGetLocationImages({
+          collection: COLLECTIONS.POLICIES,
+          docPath: policyId,
+          locationPath: ['locations', id],
+        });
+      } else {
+        info(`Satellite images already exist for location ${id}`, { ...imgObj });
+      }
+    }
+  } catch (err: any) {
+    let msg = 'Error emitting location satellite image pubsub msg';
+    if (err?.message) msg += ` (${err.message})`;
+    reportErr(msg, { ...event }, err);
   }
 };
-
-export function reportError(msg: string, ctx: Record<string, any> = {}, err: any = null) {
-  error(msg, { ...ctx, err });
-  reportErrorSentry(err || msg, { func: 'policyCreated', msg, ...ctx });
-}

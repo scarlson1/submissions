@@ -8,11 +8,12 @@ import {
   PremiumTransaction,
   WithId,
 } from '../../common';
-import { getBookingDate, getMGAComm, getNetDWP, getOffsetTermPremium } from './utils';
 import { getTrxTaxesAndFees } from './taxes';
+import { getBookingDate, getMGAComm, getNetDWP, getOffsetTermPremium } from './utils';
 
 /**
  * get formatted offset transaction for cancellation or premium endorsement transactions
+ * @param {Policy} policy policy document
  * @param {PremiumTransaction} prevTrx most recent premium transaction for location
  * @param {Timestamp} trxEffDate new transaction effective date
  * @param {string} eventId cloud event id

@@ -587,9 +587,9 @@ export type RCVKeys = 'building' | 'otherStructures' | 'contents' | 'BI' | 'tota
 
 export type RCVs = Record<RCVKeys, number>;
 
-export type locationImageTypes = 'light' | 'dark' | 'satellite' | 'satelliteStreets';
+export type LocationImageTypes = 'light' | 'dark' | 'satellite' | 'satelliteStreets';
 
-export type LocationImages = Record<locationImageTypes, string>;
+export type LocationImages = Record<LocationImageTypes, string>;
 
 export interface PolicyLocation {
   address: Address;

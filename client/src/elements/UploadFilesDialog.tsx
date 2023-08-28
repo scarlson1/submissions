@@ -19,7 +19,7 @@ export interface UploadFilesDialogComponentProps {
   submitButtonProps?: ButtonProps;
   cancelButtonText?: string;
   cancelButtonProps?: ButtonProps;
-  title?: string;
+  title?: ReactNode;
   children?: ReactNode;
   filesDragDropProps?: Partial<FilesDragDropProps>;
   loading?: boolean;
@@ -51,7 +51,7 @@ export const UploadFilesDialogComponent = ({
 }: UploadFilesDialogComponentProps) => {
   return (
     <Dialog open={open} onClose={onCancel} fullWidth={true} maxWidth='sm'>
-      <DialogTitle>
+      <DialogTitle component='div'>
         {title ||
           `Upload ${filesDragDropProps && !!filesDragDropProps.multiple ? 'files' : 'file'}`}
       </DialogTitle>

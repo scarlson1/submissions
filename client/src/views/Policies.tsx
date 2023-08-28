@@ -1,10 +1,11 @@
-import { Box, useTheme } from '@mui/material';
-import { useCallback } from 'react';
+import { Alert, AlertTitle, Box, Collapse, Link, MenuItem, Stack, useTheme } from '@mui/material';
+import { UploadResult, ref } from 'firebase/storage';
+import { useCallback, useState } from 'react';
 
 import { useAuth } from 'context';
 
 // USER POLICIES COMPONENT IMPORTS
-import { DataObjectRounded } from '@mui/icons-material';
+import { DataObjectRounded, InfoRounded, OpenInNewRounded } from '@mui/icons-material';
 import {
   Avatar,
   AvatarGroup,
@@ -19,17 +20,28 @@ import {
 } from '@mui/material';
 import { GridActionsCellItem, GridRowParams } from '@mui/x-data-grid';
 import { where } from 'firebase/firestore';
-import { isEmpty } from 'lodash';
+import { camelCase, isEmpty } from 'lodash';
 import { useNavigate } from 'react-router-dom';
 
-import { AdditionalInsured, COLLECTIONS, Policy, PolicyLocation, fallbackImages } from 'common';
+import {
+  AdditionalInsured,
+  COLLECTIONS,
+  POLICY_IMPORT_REQUIRED_HEADERS,
+  Policy,
+  PolicyLocation,
+  fallbackImages,
+} from 'common';
 import { FlexCard, FlexCardContent } from 'components';
+import { IconMenu } from 'components/IconButtonMenu';
+import { CSVUploadDialog } from 'elements';
 import { ControlledChangeRequestDialog } from 'elements/ChangeRequestDialog';
 import { PoliciesGrid } from 'elements/grids';
-import { useCollectionData, useShowJson } from 'hooks';
-import { formatFirestoreTimestamp } from 'modules/utils';
+import { useAsyncToast, useCollectionData, useShowJson } from 'hooks';
+import { formatFirestoreTimestamp, getDuplicates } from 'modules/utils';
+import { useStorage, useStorageDownloadURL } from 'reactfire';
 import { ROUTES, createPath } from 'router';
 import { Item } from './UserSubmissions';
+import { getHeaderStatus } from './admin/Quotes';
 
 // TODO: change policies view to allow switching between card and grid view (and map ??)
 // TODO: include change requests in grid ?? (could use rxjs and aggregation query)
@@ -65,7 +77,7 @@ export const Policies = () => {
   );
 
   const header = (
-    <Box sx={{ display: 'flex', justifyContent: 'space-between', pb: 2, pr: { xs: 0, sm: 3 } }}>
+    <Box sx={{ display: 'flex', justifyContent: 'space-between', pb: 2, pr: { xs: 0, sm: 1 } }}>
       <Typography
         variant='h5'
         gutterBottom
@@ -74,7 +86,10 @@ export const Policies = () => {
       >
         Policies
       </Typography>
-      <ControlledChangeRequestDialog />
+      <Stack direction='row' spacing={2}>
+        <ControlledChangeRequestDialog />
+        {claims?.iDemandAdmin && <AdminPoliciesActionMenu />}
+      </Stack>
     </Box>
   );
 
@@ -126,6 +141,91 @@ export const Policies = () => {
     </Container>
   );
 };
+
+// TODO: duplicated code with quotes menu --> create reusable component ??
+// make composible (separate out required headers component from CSV upload)
+// see portfolio quote form as example
+function AdminPoliciesActionMenu() {
+  const toast = useAsyncToast({ position: 'top-right', duration: 2400 });
+  const [open, setOpen] = useState<string | null>(null);
+  const [dupHeaders, setDupHeaders] = useState<string[]>([]);
+
+  // TODO: host on github and download .xlsx version ??
+  const storage = useStorage();
+  const templateRef = ref(storage, `public/policyImportTemplate.csv`);
+  const { data: templateURL } = useStorageDownloadURL(templateRef);
+
+  const handleOpen = useCallback((val: string) => () => setOpen(val), []);
+  const handleClose = useCallback(() => {
+    setOpen(null);
+  }, []);
+
+  const checkForDuplicates = useCallback((headers: string[], formatFn: (str: string) => string) => {
+    let formatted = headers.map((h) => formatFn(h));
+    setDupHeaders(getDuplicates(formatted));
+  }, []);
+
+  const handleHeaderStatus = useCallback(
+    (requiredHeaders: string[], formatFn: (str: string) => string) => (headers: string[]) => {
+      checkForDuplicates(headers, formatFn);
+      return getHeaderStatus(headers, requiredHeaders, formatFn);
+    },
+    [checkForDuplicates]
+  );
+
+  const onSuccess = useCallback(
+    (uploadResult: UploadResult[]) => {
+      console.log('upload result: ', uploadResult);
+      toast.success("you'll receive an email once complete", {
+        duration: 2000,
+        position: 'top-right',
+        icon: <InfoRounded />,
+      });
+    },
+    [toast]
+  );
+
+  return (
+    <>
+      <IconMenu>
+        <MenuItem onClick={handleOpen('importPolicies')}>Import Policies</MenuItem>
+      </IconMenu>
+      <CSVUploadDialog
+        open={open === 'importPolicies'}
+        onClose={handleClose}
+        destinationFolder='importPolicies'
+        getHeaderStatus={handleHeaderStatus(POLICY_IMPORT_REQUIRED_HEADERS, camelCase)}
+        onSuccess={onSuccess}
+        title={
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant='h6'>Import Policies</Typography>
+            {templateURL && (
+              <Typography variant='button'>
+                <Link href={templateURL} download>
+                  Download template
+                </Link>
+              </Typography>
+            )}
+          </Box>
+        }
+      >
+        <Typography variant='body2' color='text.secondary' component='div'>
+          Headers will be transformed to{' '}
+          <Link href='https://lodash.com/docs/4.17.15#camelCase' target='_blank' rel='noopener'>
+            camel case <OpenInNewRounded sx={{ fontSize: 16 }} />
+          </Link>
+          {`. (ex: "CovA limit" → "cov_a_limit")`}
+        </Typography>
+        <Collapse in={dupHeaders.length > 0}>
+          <Alert severity='warning'>
+            <AlertTitle>Duplicate headers detected</AlertTitle>
+            {dupHeaders.join(', ')}
+          </Alert>
+        </Collapse>
+      </CSVUploadDialog>
+    </>
+  );
+}
 
 // TODO: use rxjs to get user profile for avatars
 // const additionalInsureds = [

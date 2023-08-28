@@ -1,7 +1,7 @@
-import { ReactNode, useCallback, useMemo, useState } from 'react';
-import { Box, Unstable_Grid2 as Grid, Stack, Typography } from '@mui/material';
 import { CheckCircleRounded } from '@mui/icons-material';
+import { Box, Unstable_Grid2 as Grid, Stack, Typography } from '@mui/material';
 import { UploadResult } from 'firebase/storage';
+import { ReactNode, useCallback, useMemo, useState } from 'react';
 
 import {
   UploadFilesDialogComponent,
@@ -57,36 +57,6 @@ export const CSVUploadDialog = ({
     (err, msg) => console.log('upload failed: ', msg, err)
   );
 
-  // const handleParse = useCallback((file: File) => {
-  //   return new Promise((resolve, reject) => {
-  //     if (!file) reject(new Error('missing file'));
-  //     // Initialize a reader which allows user to read any file or blob.
-  //     const reader = new FileReader();
-
-  //     // Event listener on reader when the file loads, we parse it and set the data.
-  //     reader.onload = async ({ target }) => {
-  //       if (!target?.result) {
-  //         console.log('TARGET IS NULL');
-  //         reject(new Error('Error reading file'));
-  //       } // @ts-ignore
-  //       const csv = parse<any>(target.result, {
-  //         header: true,
-  //         preview: 1,
-  //       }) as unknown as ParseResult<any>;
-
-  //       const errors = csv?.errors;
-  //       const headers = [...(csv?.meta?.fields || [])];
-
-  //       resolve({ headers, errors, parseResult: csv });
-  //     };
-  //     // TODO: handle error
-  //     // reader.onerror((e) => {
-  //     //   reject('error reading file')
-  //     // })
-  //     reader.readAsText(file);
-  //   });
-  // }, []);
-
   // react-papaparse: https://github.com/Bunlong/react-papaparse/blob/master/src/useCSVReader.tsx
 
   // https://stackoverflow.com/a/56567324
@@ -96,9 +66,11 @@ export const CSVUploadDialog = ({
         try {
           const { headers, errors, parseResult } = (await handleParse(file)) as any;
 
-          console.log('HEADERS: ', headers);
-          console.log('ERRORS: ', errors);
-          console.log('PARSE RESULT: ', parseResult);
+          if (process.env.REACT_APP_FB_PROJECT_ID !== 'idemand-submissions') {
+            console.log('HEADERS: ', headers);
+            console.log('ERRORS: ', errors);
+            console.log('PARSE RESULT: ', parseResult);
+          }
 
           // setHeaders(headers);
           setHeaderStatus(getHeaderStatus(headers));
@@ -111,16 +83,6 @@ export const CSVUploadDialog = ({
     },
     [handleNewFiles, handleParse, getHeaderStatus]
   );
-
-  // causes infinite loop b/c sets duplicate headers value --> triggers rerender
-  // and useEffect calls getHeaderStatus with empty array when not intended
-  // useEffect(() => {
-  //   setHeaderStatus(getHeaderStatus(headers));
-  // }, [headers, getHeaderStatus]);
-
-  // useEffect(() => {
-  //   if (!uploadFiles || !uploadFiles.length) setHeaderStatus({ ...getHeaderStatus([]) });
-  // }, [uploadFiles, getHeaderStatus]);
 
   const onSubmit = useCallback(async () => {
     try {
@@ -169,7 +131,9 @@ export const CSVUploadDialog = ({
             {children}
           </Box>
 
-          <RequiredHeaders headerStatus={headerStatus} />
+          <Box sx={{ maxHeight: 180, overflowY: 'auto' }}>
+            <RequiredHeaders headerStatus={headerStatus} />
+          </Box>
         </Box>
       </UploadFilesDialogComponent>
     </Box>

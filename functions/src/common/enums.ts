@@ -118,6 +118,10 @@ export enum TRANSACTION_TYPE {
   REFUND = 'refund',
 }
 
+export enum MISC_PUB_SUB_TOPICS {
+  LOCATION_IMG = 'location.image',
+}
+
 export enum PMT_PUB_SUB_TOPICS {
   PAYMENT_COMPLETE = 'payment.complete',
 }
@@ -133,7 +137,11 @@ export enum TRX_PUB_SUB_TOPICS {
   LOCATION_CANCELLATION = 'location.cancellation',
 }
 
-export const PUB_SUB_TOPICS = { ...PMT_PUB_SUB_TOPICS, ...TRX_PUB_SUB_TOPICS };
+export const PUB_SUB_TOPICS = {
+  ...MISC_PUB_SUB_TOPICS,
+  ...PMT_PUB_SUB_TOPICS,
+  ...TRX_PUB_SUB_TOPICS,
+};
 
 // export enum PUB_SUB_TOPICS {
 //   PAYMENT_COMPLETE = 'payment.complete',

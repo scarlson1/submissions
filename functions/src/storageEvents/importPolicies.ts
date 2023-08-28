@@ -61,7 +61,7 @@ import {
   unlinkFile,
 } from '../common';
 import { getRCVs, sumFeesTaxesPremium } from '../modules/rating';
-import { eventOlderThan, shouldReturnEarly, dateWithTimeZone } from '../modules/storage';
+import { dateWithTimeZone, eventOlderThan, shouldReturnEarly } from '../modules/storage';
 import {
   ParseStreamToArrayRes,
   parseStreamToArray,
@@ -338,6 +338,7 @@ export default async (event: StorageEvent) => {
  * @returns {ParsedPolicyRow} formatted types, depth, etc.
  */
 function transformPolicyRow(row: CSVPolicyRow): ParsedPolicyRow {
+  console.log('ROW: ', row);
   const limits = {
     limitA: row.limitA ? extractNumber(row.limitA) : 0,
     limitB: row.limitB ? extractNumber(row.limitB) : 0,
@@ -464,6 +465,7 @@ function transformPolicyRow(row: CSVPolicyRow): ParsedPolicyRow {
  * @returns {boolean} returns false if validation fails, otherwise true
  */
 function validatePolicyRow(data: ParsedPolicyRow) {
+  console.log('VALIDATION ROW: ', data);
   try {
     invariant(
       truthyOrZero(data.limits?.limitA) && typeof data.limits?.limitA === 'number',

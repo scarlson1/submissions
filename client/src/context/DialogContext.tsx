@@ -5,6 +5,7 @@ import {
   DialogProps,
   DialogTitleProps,
 } from '@mui/material';
+import { merge } from 'lodash';
 import {
   JSXElementConstructor,
   ReactNode,
@@ -14,10 +15,9 @@ import {
   useRef,
   useState,
 } from 'react';
-import { merge } from 'lodash';
 
-import { ContextDialog } from 'components';
 import { CONTEXT_DIALOG_DEFAULT_SLOTS_COMPONENTS, CONTEXT_DIALOG_DEFAULT_SLOT_PROPS } from 'common';
+import { ContextDialog } from 'components';
 
 // Option: accept onSubmit prop
 // pass formikRef.current.submitForm()
@@ -135,9 +135,6 @@ export const DialogProvider = ({ children }: { children: ReactNode }) => {
     () => merge(CONTEXT_DIALOG_DEFAULT_SLOT_PROPS, dialogOptions?.slotProps || {}),
     [dialogOptions]
   );
-
-  console.log(dialogOptions?.slotProps);
-  console.log(merge(CONTEXT_DIALOG_DEFAULT_SLOT_PROPS, dialogOptions?.slotProps || {}));
 
   const memoed = useMemo<DialogCtx>(
     () => ({

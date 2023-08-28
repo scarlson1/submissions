@@ -456,7 +456,7 @@ export interface InitRatingValues extends Limits {
   maxDeductible: number;
 }
 
-export type locationImageTypes = 'light' | 'dark' | 'satellite' | 'satelliteStreets';
+export type LocationImageTypes = 'light' | 'dark' | 'satellite' | 'satelliteStreets';
 
 export interface Submission extends FloodFormValues {
   product: Product;
@@ -640,7 +640,7 @@ export interface SLProdOfRecordDetails {
   phone: string;
 }
 
-export type LocationImages = Record<locationImageTypes, string>;
+export type LocationImages = Record<LocationImageTypes, string>;
 
 export interface PolicyLocation {
   address: Address;

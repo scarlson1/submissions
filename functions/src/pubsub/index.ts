@@ -18,6 +18,13 @@ export const policycreatedlistener = onMessagePublished(
   }
 );
 
+export const getstaticmapimages = onMessagePublished(
+  { topic: PUB_SUB_TOPICS.LOCATION_IMG },
+  async (event) => {
+    await (await import('./getStaticMapImages.js')).default(event);
+  }
+);
+
 export const policyrenewallistener = onMessagePublished(
   { topic: PUB_SUB_TOPICS.POLICY_RENEWAL },
   async (event) => {

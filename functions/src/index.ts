@@ -55,6 +55,7 @@ export {
 export {
   amendmentlistener,
   endorsementlistener,
+  getstaticmapimages,
   locationcancellistener,
   markpaidonpaymentcomplete,
   policycreatedlistener,
@@ -65,6 +66,7 @@ export { checkachstatus } from './scheduler';
 export { getfips, importpolicies, importquotes, rateportfolio } from './storageEvents';
 
 export { pubsubhelper } from './routes';
+
 // export { pubsubHelper } from './routes/pubSubHelper.js';
 // export { testEmulatorsCheckAchStatus } from './pubsub/checkAchStatus';
 

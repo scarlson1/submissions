@@ -22,7 +22,15 @@ import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { useFirestore } from 'reactfire';
 
-import { COLLECTIONS, QUOTE_STATUS, Quote, WithId, quotesCollection } from 'common';
+import {
+  COLLECTIONS,
+  PORTFOLIO_RATING_REQUIRED_HEADERS,
+  QUOTE_IMPORT_REQUIRED_HEADERS,
+  QUOTE_STATUS,
+  Quote,
+  WithId,
+  quotesCollection,
+} from 'common';
 import { quoteConverter } from 'common/firestoreConverters';
 import { IconMenu } from 'components/IconButtonMenu';
 import { useConfirmation } from 'context';
@@ -200,58 +208,6 @@ export const Quotes = () => {
     </Box>
   );
 };
-
-const PORTFOLIO_RATING_REQUIRED_HEADERS = [
-  'cov_a_limit',
-  'cov_b_limit',
-  'cov_c_limit',
-  'cov_d_limit',
-  'cov_a_rcv',
-  'cov_b_rcv',
-  'cov_c_rcv',
-  'cov_d_rcv',
-  'deductible',
-  'state',
-  'commission_pct',
-];
-
-const QUOTE_IMPORT_REQUIRED_HEADERS = [
-  'product',
-  'limitA',
-  'limitB',
-  'limitC',
-  'limitD',
-  'addressLine1',
-  'addressLine2',
-  'city',
-  'state',
-  'postal',
-  'latitude',
-  'longitude',
-  'homeState',
-  'annualPremium',
-  'subproducerCommission',
-  'agentName',
-  'agentEmail',
-  'agentPhone',
-  'agentId',
-  'agencyName',
-  'agencyAddressLine1',
-  'agencyAddressLine2',
-  'agencyCity',
-  'agencyState',
-  'agencyPostal',
-  'orgId',
-  'cbrsDesignation',
-  'basement',
-  'distToCoastFeet',
-  'floodZone',
-  'numStories',
-  'propertyCode',
-  'replacementCost',
-  'sqFootage',
-  'yearBuilt',
-];
 
 export function getHeaderStatus(
   headers: string[],
