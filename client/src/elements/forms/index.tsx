@@ -30,9 +30,10 @@ export { PaymentStep, billingValidation } from './PaymentStep';
 export { PriorFloodLossStep } from './PriorFloodLossStep';
 export * from './QuoteForm';
 export { default as QuoteForm } from './QuoteForm';
-export { ReviewStep } from './ReviewStep';
 export { SuccessStep } from './SuccessStep';
 export { TaxForm } from './TaxForm';
+export { PortfolioSubmissionForm } from './PortfolioSubmissionForm';
+export { ReviewStep } from './ReviewStep';
 
 export type { AddPaymentMethodValues } from './AddPaymentDialog';
 export type { AddUserValues } from './AddUsersDialog';
@@ -47,3 +48,4 @@ export type { FormikAddressLiteProps } from './FormikAddressLite';
 export type { LicenseValues } from './LicenseForm';
 export type { LocationChangeFormProps, LocationChangeValues } from './LocationChangeForm';
 export type { PriorFloodLossStepProps } from './PriorFloodLossStep';
+export type { PortfolioSubmissionValues } from './PortfolioSubmissionForm';

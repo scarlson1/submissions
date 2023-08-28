@@ -120,6 +120,7 @@ export default async (event: CloudEvent<MessagePublishedData<EndorsementPayload>
 
       const offsetTrxRef = trxCol.doc(`${trxId}-offset`);
       const offsetTrx = getOffsetTrx(
+        policy,
         prevTrx as WithId<PremiumTransaction | OffsetTransaction>,
         trxEffDate,
         eventId,

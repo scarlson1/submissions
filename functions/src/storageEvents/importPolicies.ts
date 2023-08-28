@@ -19,7 +19,9 @@ import {
   AgencyDetails,
   AgentDetails,
   COLLECTIONS,
+  FEE_ITEM_NAMES,
   FeeItem,
+  FeeItemName,
   Limits,
   MailingAddress,
   Mortgagee,
@@ -35,7 +37,9 @@ import {
   RatingPropertyData,
   SLProdOfRecordDetails,
   SubjectBaseItems,
+  TAX_ITEM_NAMES,
   TaxItem,
+  TaxItemName,
   ValueByRiskType,
   audience,
   calcTerm,
@@ -595,6 +599,11 @@ function validatePolicyRow(data: ParsedPolicyRow) {
 
     const allFeeValuesTypeNum = data.fees.every((f) => typeof f.value === 'number');
     invariant(allFeeValuesTypeNum, 'All fee values must be a number');
+    const allDisplayNamesAreFeeNames = data.fees.every(
+      (f) => f.feeName && FEE_ITEM_NAMES.includes(f.feeName)
+    );
+    invariant(allDisplayNamesAreFeeNames, 'invalid fee name');
+
     const allFeeDisplayNamesString = data.fees.every(
       (f) => f.feeName && typeof f.feeName === 'string'
     );
@@ -605,10 +614,10 @@ function validatePolicyRow(data: ParsedPolicyRow) {
     invariant(allTaxValuesTypeNum, 'All tax values must be a number');
     const allTaxRatesTypeNum = data.taxes.every((t) => typeof t.rate === 'number');
     invariant(allTaxRatesTypeNum, 'All tax rates must be a number');
-    const allTaxDisplayNameTypeString = data.taxes.every(
-      (t) => t.displayName && typeof t.displayName === 'string'
+    const allDisplayNamesAreTaxNames = data.taxes.every(
+      (t) => t?.displayName && TAX_ITEM_NAMES.includes(t.displayName)
     );
-    invariant(allTaxDisplayNameTypeString, 'tax displayName required');
+    invariant(allDisplayNamesAreTaxNames, 'invalid tax name');
 
     invariant(
       data.mgaCommissionPct && typeof data.mgaCommissionPct === 'number',
@@ -843,11 +852,11 @@ async function getSPLPofR(firestore: Firestore, state: string) {
 export function getFormattedFees(row: CSVPolicyRow | CSVQuoteRow) {
   const fees: FeeItem[] = [];
   const fee1: FeeItem = {
-    feeName: row.fee1Name || '',
+    feeName: (row.fee1Name || '') as FeeItemName,
     value: row.fee1Value ? extractNumber(row.fee1Value) : 0,
   };
   const fee2: FeeItem = {
-    feeName: row.fee2Name || '',
+    feeName: (row.fee2Name || '') as FeeItemName,
     value: row.fee2Value ? extractNumber(row.fee2Value) : 0,
   };
   if (fee1.value) fees.push(fee1);
@@ -859,7 +868,7 @@ export function getFormattedFees(row: CSVPolicyRow | CSVQuoteRow) {
 function getFormattedTaxes(row: CSVPolicyRow) {
   const taxes: Policy['taxes'] = [];
   const tax1: TaxItem = {
-    displayName: row.tax1Name || '',
+    displayName: (row.tax1Name || '') as TaxItemName,
     value: row.tax1Value ? extractNumber(row.tax1Value) : 0,
     rate: row.tax1Rate
       ? extractNumber(row.tax1Rate)
@@ -869,7 +878,7 @@ function getFormattedTaxes(row: CSVPolicyRow) {
     subjectBase: row.tax1SubjectBase ? (row.tax1SubjectBase.split(',') as SubjectBaseItems[]) : [],
   };
   const tax2: TaxItem = {
-    displayName: row.tax2Name || '',
+    displayName: (row.tax2Name || '') as TaxItemName,
     value: row.tax2Value ? extractNumber(row.tax2Value) : 0,
     rate: row.tax2Rate
       ? extractNumber(row.tax2Rate)

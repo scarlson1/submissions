@@ -1,14 +1,12 @@
 import { useState, useCallback, useMemo, useRef } from 'react';
-import { alpha, Box, Typography } from '@mui/material';
-import Grid from '@mui/material/Unstable_Grid2';
+import { alpha, Box, Typography, Unstable_Grid2 as Grid } from '@mui/material';
 import { AddPhotoAlternateOutlined } from '@mui/icons-material';
-// import { toast } from 'react-toastify';
 import toast from 'react-hot-toast';
 
 import { ImgPreview } from 'components';
 import { formatBytes } from 'modules/utils/helpers';
 
-// TODO: move to stand alone component ?? posible with formik?
+// TODO: move to stand alone component ?? possible with formik?
 // actions & file state in parent component / hooks ??
 
 const DEFAULT_MAX_FILE_SIZE_IN_BYTES = 1048576;
@@ -48,12 +46,11 @@ export const FilesDragDrop = ({
       let filtered: File[] = [];
       if (newArr.length + files.length > maxFileCount) {
         newArr = newArr.slice(0, maxFileCount - files.length);
-        toast.error(`Maxium of ${maxFileCount} ${maxFileCount > 1 ? 'files' : 'file'}`, {
+        toast.error(`Maximum of ${maxFileCount} ${maxFileCount > 1 ? 'files' : 'file'}`, {
           duration: 5000,
         });
       }
       for (let newFile of newArr) {
-        console.log('new file: ', newFile);
         if (newFile.size > maxFileSizeInBytes) {
           toast.error(
             `File exceeds max file size of ${formatBytes(maxFileSizeInBytes)} (${newFile.name})`

@@ -271,7 +271,7 @@ export const reviewValidation = yup.object({
 export const namedInsuredValidation = yup.object().shape({
   firstName: yup.string().required(),
   lastName: yup.string().required(),
-  email: emailVal,
+  email: emailVal.required(),
   phone: phoneVal,
   userId: yup.string().notRequired(),
 });
@@ -279,7 +279,7 @@ export const namedInsuredValidation = yup.object().shape({
 export const namedInsuredValidationNotRequired = yup.object().shape({
   firstName: yup.string().typeError('Named Insured name must be a string').notRequired(),
   lastName: yup.string().typeError('Named Insured name must be a string').notRequired(),
-  email: emailVal.notRequired(),
+  email: emailVal,
   phone: phoneVal.notRequired(),
   userId: yup.string().notRequired(),
 });

@@ -5,8 +5,7 @@ import 'react-diff-view/style/index.css';
 // @ts-ignore
 import { diffJson, formatLines } from 'unidiff';
 
-import { useDialog } from 'context';
-import { useWidth } from 'hooks';
+import { useWidth, useDialog } from 'hooks';
 
 export const useCompareJson = (onError?: () => void) => {
   const dialog = useDialog();

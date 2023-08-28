@@ -7,7 +7,7 @@ import { useConfirmation } from 'context';
 import { ConfirmationDialog } from 'components';
 import { FormikDollarMaskField } from 'components/forms';
 
-// TODO: abstract hook. also used in useRegisterEamilNotification & other places ??
+// TODO: abstract hook. also used in useRegisterEmailNotification & other places ??
 
 const DEFAULT_RCV = 250000;
 // const DEFAULT_INITIAL_VALUES = { rcvEst: '' }

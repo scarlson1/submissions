@@ -1,7 +1,8 @@
-// import { GridColDef } from '@mui/x-data-grid';
 import { ProviderId } from 'firebase/auth';
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
+
 import { Product } from './types';
-// import { renderGridEmail } from 'components/RenderGridCellHelpers';
+import { DialogSlotProps, DialogSlotsComponents } from 'context';
 
 export const SUPPORTED_AUTH_PROVIDER_IDS = [
   ProviderId.PASSWORD,
@@ -21,42 +22,6 @@ export const LOB_OPTIONS: string[] = ['residential', 'commercial'];
 export const FLOOD_ZONE_OPTIONS = ['A', 'B', 'C', 'D', 'V', 'X', 'AE', 'AO', 'AH', 'AR', 'VE'];
 export const CBRS_OPTIONS = ['IN', 'OUT'];
 export const PRIOR_LOSS_COUNT_OPTIONS = ['0', '1', '2', '3'];
-
-// export const ACTIVE_STATES = [
-//   'Arizona',
-//   'Connecticut',
-//   'Florida',
-//   'Idaho',
-//   'Louisiana',
-//   'Maryland',
-//   'Michigan',
-//   'Minnesota',
-//   'Montana',
-//   'Oklahoma',
-//   'Pennsylvania',
-//   'Texas',
-//   'Virginia',
-//   'Wisconsin',
-//   'West Virginia',
-// ];
-
-// export const ACTIVE_STATES_ABRV = [
-//   'AZ',
-//   'CT',
-//   'FL',
-//   'ID',
-//   'LA',
-//   'MD',
-//   'MI',
-//   'MN',
-//   'MT',
-//   'OK',
-//   'PA',
-//   'TX',
-//   'VA',
-//   'WI',
-//   'WV',
-// ];
 
 export const stateFIPS = {
   ALABAMA: '01',
@@ -112,7 +77,6 @@ export const stateFIPS = {
   WYOMING: '56',
 };
 
-// 0, 0.01, 0.02, 0.03, 0.04,
 export const COMMISSION_OPTIONS = [
   0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.11, 0.12, 0.13, 0.14, 0.15, 0.16, 0.17, 0.18, 0.19, 0.2,
 ];
@@ -126,7 +90,7 @@ export const fallbackImages = [
   'https://firebasestorage.googleapis.com/v0/b/idemand-submissions.appspot.com/o/common%2Fneighborhood-aerial-1.jpg?alt=media&token=9f80797b-2449-4229-bb2d-b5eb224d86af',
 ];
 
-export const CONSRUCTION_TYPE = [
+export const CONSTRUCTION_TYPE = [
   'frame',
   'masonry',
   'pre-engineered metal',
@@ -134,3 +98,31 @@ export const CONSRUCTION_TYPE = [
   'protected steel frame',
   'reinforced concrete frame',
 ];
+
+export const CONTEXT_DIALOG_DEFAULT_SLOTS_COMPONENTS: DialogSlotsComponents = {
+  dialog: Dialog,
+  title: DialogTitle,
+  content: DialogContent,
+  actions: DialogActions,
+  acceptButton: Button,
+  cancelButton: Button,
+};
+
+export const CONTEXT_DIALOG_DEFAULT_SLOT_PROPS: DialogSlotProps = {
+  dialog: {
+    maxWidth: 'xs',
+    fullWidth: true,
+  },
+  title: {},
+  content: {
+    dividers: true,
+  },
+  actions: {},
+  acceptButton: {
+    color: 'primary',
+  },
+  cancelButton: {
+    color: 'secondary',
+    variant: 'outlined',
+  },
+};

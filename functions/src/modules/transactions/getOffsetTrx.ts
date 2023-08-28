@@ -1,8 +1,15 @@
 import { add } from 'date-fns';
 import { Timestamp } from 'firebase-admin/firestore';
 
-import { CancellationReason, OffsetTransaction, PremiumTransaction, WithId } from '../../common';
+import {
+  CancellationReason,
+  OffsetTransaction,
+  Policy,
+  PremiumTransaction,
+  WithId,
+} from '../../common';
 import { getBookingDate, getMGAComm, getNetDWP, getOffsetTermPremium } from './utils';
+import { getTrxTaxesAndFees } from './taxes';
 
 /**
  * get formatted offset transaction for cancellation or premium endorsement transactions
@@ -14,6 +21,7 @@ import { getBookingDate, getMGAComm, getNetDWP, getOffsetTermPremium } from './u
  * @returns {OffsetTransaction} offsetting transaction for cancellation or premium endorsement transactions
  */
 export const getOffsetTrx = (
+  policy: Policy,
   prevTrx: WithId<PremiumTransaction | OffsetTransaction>,
   trxEffDate: Timestamp,
   eventId: string,
@@ -31,6 +39,9 @@ export const getOffsetTrx = (
   const netDWP = getNetDWP(termPremium, MGACommission); // negative
 
   const dailyPremium = termPremium / trxDays;
+
+  const { surplusLinesTax, surplusLinesRegulatoryFee, MGAFee, inspectionFee } =
+    getTrxTaxesAndFees(policy);
 
   return {
     trxType,
@@ -56,6 +67,10 @@ export const getOffsetTrx = (
     MGACommissionPct: prevTrx.MGACommissionPct,
     netDWP,
     dailyPremium,
+    surplusLinesTax,
+    surplusLinesRegulatoryFee,
+    MGAFee,
+    inspectionFee,
     cancelReason,
     eventId,
     previousPremiumTrxId: prevTrx.id,

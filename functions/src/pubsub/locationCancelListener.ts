@@ -91,6 +91,7 @@ export default async (event: CloudEvent<MessagePublishedData<LocationCancelPaylo
       const trxEffDate = Timestamp.fromMillis(cancelEffDateMS);
 
       const offsetTrx = getOffsetTrx(
+        policy,
         prevTrx as WithId<PremiumTransaction | OffsetTransaction>,
         trxEffDate,
         eventId,

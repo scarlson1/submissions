@@ -4,7 +4,7 @@ import { RefObject, useCallback, useRef } from 'react';
 import * as yup from 'yup';
 
 import { FormikMultiTextInput, FormikSwitch } from 'components/forms';
-import { useDialog } from 'context';
+import { useDialog } from 'hooks';
 import { ConfirmationOptions } from 'context/ConfirmationService';
 import { isValidEmail } from 'modules/utils';
 

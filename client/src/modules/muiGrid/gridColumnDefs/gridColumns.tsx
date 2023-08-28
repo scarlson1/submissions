@@ -88,7 +88,7 @@ import {
 } from 'modules/utils';
 import {
   CBRS_OPTIONS,
-  CONSRUCTION_TYPE,
+  CONSTRUCTION_TYPE,
   FLOOD_ZONE_OPTIONS,
   LOB_OPTIONS,
   PRIOR_LOSS_COUNT_OPTIONS,
@@ -1078,7 +1078,7 @@ export const constructionCol: GridColDef = {
   type: 'singleSelect',
   minWidth: 120,
   flex: 0.4,
-  valueOptions: CONSRUCTION_TYPE,
+  valueOptions: CONSTRUCTION_TYPE,
 };
 
 export const ratingDataConstructionCol: GridColDef = {
@@ -1366,7 +1366,7 @@ export const productsCol: GridSingleSelectColDef = {
   flex: 1,
   editable: false,
   valueFormatter: (params) => `${params.value?.join(', ')}`,
-  // filterable: false, // TODO: implement array-contains search (multiselectoperators)
+  // filterable: false, // TODO: implement array-contains search (multi-select operators)
   // filterOperators: getGridFirestoreMultiSelectOperators(),
   renderCell: (params) =>
     renderChips(params, { variant: 'outlined', color: 'success' }, getProductChipProps),
@@ -1447,20 +1447,6 @@ export const additionalInsuredsCol: GridColDef = {
   },
   renderCell: (params) =>
     renderChips(params, { variant: 'outlined', color: 'success', icon: <FaceRounded /> }),
-  // renderCell: (params) => {
-  //   if (!params.value || !params.value.length) return null;
-
-  //   return (
-  //     <Stack direction='row' spacing={1} sx={{ minWidth: 0 }}>
-  //       {params.value.map((ai: AdditionalInsured) => {
-  //         let icon = <FaceRounded fontSize='small' />; // ai.type === 'x" ? <icon1 /> : <othericon />
-  //         const color = 'primary'; // TODO: check AI type
-
-  //         return <Chip label={ai.name} icon={icon} size='small' color={color} variant='outlined' />;
-  //       })}
-  //     </Stack>
-  //   );
-  // },
 };
 
 export const mortgageeCol: GridColDef = {
@@ -1482,20 +1468,6 @@ export const mortgageeCol: GridColDef = {
   },
   renderCell: (params) =>
     renderChips(params, { variant: 'outlined', color: 'info', icon: <AccountBalanceRounded /> }),
-  // renderCell: (params) => {
-  //   if (!params.value || !params.value.length) return null;
-
-  //   return (
-  //     <Stack direction='row' spacing={1} sx={{ minWidth: 0 }}>
-  //       {params.value.map((ai: AdditionalInsured) => {
-  //         let icon = <FaceRounded fontSize='small' />; // ai.type === 'x" ? <icon1 /> : <othericon />
-  //         const color = 'primary'; // TODO: check AI type
-
-  //         return <Chip label={ai.name} icon={icon} size='small' color={color} variant='outlined' />;
-  //       })}
-  //     </Stack>
-  //   );
-  // },
 };
 
 export const externalIdCol: GridColDef = {
@@ -1978,7 +1950,7 @@ export const cancelReasonCol: GridSingleSelectColDef = {
   field: 'cancelReason',
   headerName: 'Cancel Reason',
   type: 'singleSelect',
-  description: 'user selected reason for cancallation request (applicable to cancellation trx)',
+  description: 'user selected reason for cancellation request (applicable to cancellation trx)',
   minWidth: 160,
   flex: 1,
   editable: false,

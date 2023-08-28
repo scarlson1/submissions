@@ -45,6 +45,12 @@ service cloud.firestore {
       allow update: if isIDemandAdmin() // isUser(existingData().userId) || 
       allow delete: if isIDemandAdmin()
     }
+
+    match /portfolioSubmissions/{submissionId} {
+      allow read: if isIDemandAdmin(); // TODO: warp submission in require auth with anonymous auth
+      allow create: if true;
+      allow update, delete: if isIDemandAdmin();
+    }
     
     // TODO: read specificity if claimed or not (might need to add a field b/c of anonymous auth)
     // need to update assign quote (only allow sign in if claimed)

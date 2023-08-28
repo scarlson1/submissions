@@ -8,11 +8,12 @@ import {
   SubjectBaseItems,
   Tax,
   TaxItem,
+  TaxItemName,
   TransactionType,
   WithId,
   submissionsApiBaseURL,
 } from '../../common';
-import { sumInspectionFees, sumMGAFees } from '../transactions';
+import { sumFeesByType, sumMGAFees } from '../transactions';
 import { isDate } from 'date-fns';
 
 export type SubjectBaseKeyVal = Record<Exclude<SubjectBaseItems, 'fixedFee' | 'noFee'>, number>;
@@ -27,7 +28,7 @@ interface StateTaxRequest extends SubjectBaseKeyVal {
 
 interface TaxResLineItem
   extends Omit<WithId<Tax>, 'metadata' | 'effectiveDate' | 'expirationDate' | 'rate'> {
-  displayName: string;
+  displayName: TaxItemName;
   calculatedTaxBase: number | null; // null if fixed rate ($10)
   rate: number | null; // null if fixed rate ($10)
   value: number;
@@ -50,7 +51,7 @@ export async function fetchTaxes(quote: Quote, transactionType: TransactionType,
   if (effDate) invariant(isDate(new Date(effDate)), 'invalid effective Date');
 
   const mgaFees = sumMGAFees(fees);
-  const inspectionFees = sumInspectionFees(fees);
+  const inspectionFees = sumFeesByType(fees, 'Inspection Fee');
 
   // TODO: switch to multi-location schema
   // TODO: calc in-state & out-state premium

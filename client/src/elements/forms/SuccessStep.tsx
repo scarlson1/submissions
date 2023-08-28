@@ -16,8 +16,10 @@ import {
 import { ExpandMore } from '@mui/icons-material';
 import Lottie from 'lottie-react';
 import { createSearchParams, useNavigate, useParams } from 'react-router-dom';
+import { useFirestore, useFirestoreDocData } from 'reactfire';
+import { doc, getFirestore, onSnapshot } from 'firebase/firestore';
 
-import * as CheckmarkLottie from 'assets/checkmark.json';
+// import * as CheckmarkLottie from 'assets/checkmark.json';
 import { ROUTES, createPath, AUTH_ROUTES } from 'router';
 import { Submission } from 'common/types';
 import { useAuth } from 'context/AuthContext';
@@ -30,10 +32,9 @@ import {
   withIdConverter,
   fallbackImages,
 } from 'common';
-import { doc, getFirestore, onSnapshot } from 'firebase/firestore';
 import { dollarFormat2 } from 'modules/utils/helpers';
-import { useFirestore, useFirestoreDocData } from 'reactfire';
 import { useAnalyticsEvent } from 'hooks';
+import { CheckmarkLottie } from 'assets';
 
 interface FAQ {
   title: React.ReactNode;
@@ -56,20 +57,6 @@ const generalFaqs: FAQ[] = [
     description: `There are two ways to reduce your premium. You can review the data we found on your property, such as a finished vs unfinished basement. If it's incorrect, correcting the input can improve your quote. Another way to reduce your premium is by changing the deductible. The deductible is defaulted to about 1% of the total coverage. If you choose to increase the deductible, the premium will usually go down.`,
     id: 'panel1',
   },
-  // {
-  //   title: `What if the Replacement Cost Value (RCV) is wrong?`,
-  //   // secondary: 'Contact us to get set up in the system',
-  //   description:
-  //     'Lorem ipsum dolor sit amet consectetur adipisicing elit. Architecto ipsa labore accusantium dolores ratione doloremque veniam delectus officia! Ea est nihil tenetur, quod laborum et recusandae commodi consectetur modi alias!',
-  //   id: 'panel2',
-  // },
-  // {
-  //   title: `Does the policy cover replacement costs if replacement costs more than my policy limit?`,
-  //   // secondary: 'Contact us to get set up in the system',
-  //   description:
-  //     'Lorem ipsum dolor sit amet consectetur adipisicing elit. Architecto ipsa labore accusantium dolores ratione doloremque veniam delectus officia! Ea est nihil tenetur, quod laborum et recusandae commodi consectetur modi alias!',
-  //   id: 'panel3',
-  // },
 ];
 
 interface FaqAccordionProps {
@@ -216,14 +203,6 @@ export const SuccessStep = () => {
                 Create An Account
               </Button>
             )}
-            {/* <Button
-            onClick={() =>
-              navigate(createPath({ path: AUTH_ROUTES.CREATE_ACCOUNT }), { replace: true })
-            }
-            sx={{ ml: 2 }}
-          >
-            Contact Us
-          </Button> */}
             <Button
               onClick={() =>
                 navigate(

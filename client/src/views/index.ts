@@ -15,5 +15,6 @@ export { SubmissionNew } from './SubmissionNew';
 export { Submissions } from './Submissions';
 export { Item, UserSubmissions } from './UserSubmissions';
 export { ViewQuote } from './ViewQuote';
+export { SubmissionNewPortfolio } from './SubmissionNewPortfolio';
 
 export type { BindQuoteValues } from './QuoteBind';

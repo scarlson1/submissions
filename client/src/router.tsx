@@ -7,8 +7,9 @@ import {
 } from 'react-router-dom';
 
 import { CUSTOM_CLAIMS, Product } from 'common';
-import { ConfigLayout, Layout, RequireAuth, RouterErrorBoundary } from 'components';
-import { RouterLink as BreadCrumbLink } from 'components/Breadcrumbs';
+import { RequireAuth, RouterErrorBoundary } from 'components';
+import { ConfigLayout, Layout } from 'components/layout';
+import { RouterLink as BreadCrumbLink } from 'components/layout/Breadcrumbs';
 import { RequireAuthReactFire } from 'components/RequireAuthReactFire';
 import { TempWrappedSearch } from 'components/search/Search';
 import { AuthActionsProvider } from 'context';
@@ -33,6 +34,7 @@ import {
   QuoteBind,
   Quotes,
   SubmissionNew,
+  SubmissionNewPortfolio,
   Submissions,
   ViewQuote,
 } from 'views';
@@ -90,16 +92,17 @@ export interface CrumbMatch {
 
 export enum ROUTES {
   HOME = '/',
-  SUBMISSION_NEW = '/new/:productId',
-  SUBMISSION_SUBMITTED = '/quotes/:submissionId/submitted',
+  SUBMISSION_NEW = '/new/:productId', // TODO: update hard coded link on website and change this route to /submissions/new/:productId
+  SUBMISSION_SUBMITTED = '/submissions/:submissionId/submitted',
   SUBMISSIONS = '/submissions',
+  SUBMISSIONS_NEW_PORTFOLIO = '/submissions/new/:productId/portfolio',
   QUOTES = '/quotes',
   QUOTE_VIEW = '/quotes/:quoteId',
   QUOTE_BIND = '/quotes/:quoteId/bind',
   QUOTE_BIND_SUCCESS = '/quotes/:quoteId/bind/success/:transactionId?',
   CONTACT = '/contact',
   USER_QUOTES = '/quotes/list/:userId',
-  POLICIES = '/policies', // '/policies/:productId?'
+  POLICIES = '/policies',
   POLICY = '/policies/:policyId',
   ADD_LOCATION_NEW = '/policies/:policyId/locations/new',
   CLAIM_NEW = '/policies/:policyId/claim/new',
@@ -160,6 +163,7 @@ type TArgs =
   | { path: ROUTES.HOME }
   | { path: ROUTES.SUBMISSION_NEW; params: { productId: Product } }
   | { path: ROUTES.SUBMISSION_SUBMITTED; params: { submissionId: string } }
+  | { path: ROUTES.SUBMISSIONS_NEW_PORTFOLIO }
   | { path: ROUTES.SUBMISSIONS }
   | { path: ROUTES.QUOTES }
   | { path: ROUTES.QUOTE_VIEW; params: { quoteId: string } }
@@ -309,6 +313,31 @@ export const router = sentryCreateBrowserRouter([
                 },
                 {
                   label: 'New',
+                },
+              ],
+            },
+          },
+          {
+            path: ROUTES.SUBMISSIONS_NEW_PORTFOLIO,
+            element: <SubmissionNewPortfolio />,
+            errorElement: <RouterErrorBoundary />,
+            handle: {
+              crumb: (match: CrumbMatch) => [
+                {
+                  label: 'Submissions',
+                  link: createPath({
+                    path: ROUTES.SUBMISSIONS,
+                  }),
+                },
+                {
+                  label: 'New',
+                  link: createPath({
+                    path: ROUTES.SUBMISSION_NEW,
+                    params: { productId: 'flood' },
+                  }),
+                },
+                {
+                  label: 'Portfolio',
                 },
               ],
             },
@@ -1555,27 +1584,6 @@ export const router = sentryCreateBrowserRouter([
           },
         ],
       },
-      // {
-      //   path: '*',
-      //   element: <Layout containerProps={{ maxWidth: 'lg' }} />,
-      //   children: [
-      //     {
-      //       index: true,
-      //       element: (() => (
-      //         <div
-      //           style={{
-      //             display: 'flex',
-      //             justifyContent: 'center',
-      //             alignItems: 'center',
-      //             minHeight: 400,
-      //           }}
-      //         >
-      //           test
-      //         </div>
-      //       ))(), // <NotFound />,
-      //     },
-      //   ],
-      // },
     ],
   },
 ]);

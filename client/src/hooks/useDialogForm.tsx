@@ -1,7 +1,8 @@
 import { FormikConfig, FormikHelpers, FormikProps } from 'formik';
 import { ReactElement, RefObject, cloneElement, useCallback } from 'react';
 
-import { DialogOptions, useDialog } from 'context';
+import { DialogOptions } from 'context';
+import { useDialog } from 'hooks';
 
 interface UseDialogFormProps<T, C> {
   formComponent: ReactElement;

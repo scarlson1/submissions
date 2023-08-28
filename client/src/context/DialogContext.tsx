@@ -6,16 +6,18 @@ import {
   DialogTitleProps,
 } from '@mui/material';
 import {
+  JSXElementConstructor,
   ReactNode,
   createContext,
   useCallback,
-  useContext,
   useMemo,
   useRef,
   useState,
 } from 'react';
+import { merge } from 'lodash';
 
 import { ContextDialog } from 'components';
+import { CONTEXT_DIALOG_DEFAULT_SLOTS_COMPONENTS, CONTEXT_DIALOG_DEFAULT_SLOT_PROPS } from 'common';
 
 // Option: accept onSubmit prop
 // pass formikRef.current.submitForm()
@@ -23,18 +25,35 @@ import { ContextDialog } from 'components';
 
 // TODO: slots:
 // https://github.com/mui/mui-x/blob/master/packages/grid/x-data-grid/src/DataGrid/useDataGridProps.ts
+//  - pass props passed into component to "useDataGridProps" hook
+//    - returns default slots, and overwrites with any provided slots (spread operator)
+//  - passes the result to Root Props Context Provider
 
 // TODO: confirmation screen ??
 
-interface SlotProps {
-  dialog: Omit<DialogProps, 'open' | 'onClose'>;
-  title: DialogTitleProps;
-  content: DialogContentProps;
-  actions: DialogActionsProps;
-  acceptButton: Omit<ButtonProps, 'onClick'>;
-  cancelButton: Omit<ButtonProps, 'onClick'>;
+export interface DialogSlotsComponents {
+  dialog: JSXElementConstructor<any>;
+  title: JSXElementConstructor<any>;
+  content: JSXElementConstructor<any>;
+  actions: JSXElementConstructor<any>;
+  acceptButton: JSXElementConstructor<any>;
+  cancelButton: JSXElementConstructor<any>;
 }
-type DialogVariant = 'danger' | 'info';
+
+// interface TitlePropsOverrides {}
+// type SlotProps<Props, Overrides> = Partial<Props & Overrides>;
+type SlotPropsWithOverrides<T> = Partial<T & Record<string, any>>;
+
+export interface DialogSlotProps {
+  dialog?: SlotPropsWithOverrides<Omit<DialogProps, 'open' | 'onClose'>>;
+  title?: SlotPropsWithOverrides<DialogTitleProps>;
+  content?: SlotPropsWithOverrides<DialogContentProps>;
+  actions?: SlotPropsWithOverrides<DialogActionsProps>;
+  acceptButton?: SlotPropsWithOverrides<Omit<ButtonProps, 'onClick'>>;
+  cancelButton?: SlotPropsWithOverrides<Omit<ButtonProps, 'onClick'>>;
+}
+
+export type DialogVariant = 'danger' | 'info';
 export interface DialogOptions {
   onSubmit?: (values?: any, helpers?: any) => void;
   catchOnCancel?: boolean;
@@ -42,28 +61,23 @@ export interface DialogOptions {
   title?: ReactNode; // TODO: add description (might want text above form)
   description?: ReactNode;
   content?: ReactNode;
-  // component?: ReactElement;
-  slotProps?: Partial<SlotProps>;
+  slots?: Partial<DialogSlotsComponents>;
+  slotProps?: DialogSlotProps;
   // TODO: slots & slotsProps --> allow replacing header & actions area
 }
 
-interface DialogCtx extends DialogOptions {
+export interface DialogCtx extends DialogOptions {
   isOpen: boolean;
   submitDisabled: boolean;
   prompt: (options: DialogOptions) => Promise<any>;
   handleAccept: (values?: any) => void;
   handleClose: () => void;
   setDisabled: (val: boolean) => void;
+  slots: DialogSlotsComponents;
+  slotProps: DialogSlotProps;
 }
 
-const DialogContext = createContext<DialogCtx | null>(null); // {open: false, handleAccept: noop, handleClose: noop}
-
-export const useDialog = () => {
-  const context = useContext(DialogContext);
-  if (context === undefined) throw new Error('useDialog must be within a DialogProvider');
-
-  return context;
-};
+export const DialogContext = createContext<DialogCtx | null>(null);
 
 export const DialogProvider = ({ children }: { children: ReactNode }) => {
   const [dialogOptions, setDialogOptions] = useState<DialogOptions | null>(null);
@@ -109,7 +123,23 @@ export const DialogProvider = ({ children }: { children: ReactNode }) => {
     [dialogOptions]
   );
 
-  const memoed = useMemo(
+  const slots = useMemo(
+    () => ({
+      ...CONTEXT_DIALOG_DEFAULT_SLOTS_COMPONENTS,
+      ...(dialogOptions?.slots || {}),
+    }),
+    [dialogOptions]
+  );
+
+  const slotProps = useMemo(
+    () => merge(CONTEXT_DIALOG_DEFAULT_SLOT_PROPS, dialogOptions?.slotProps || {}),
+    [dialogOptions]
+  );
+
+  console.log(dialogOptions?.slotProps);
+  console.log(merge(CONTEXT_DIALOG_DEFAULT_SLOT_PROPS, dialogOptions?.slotProps || {}));
+
+  const memoed = useMemo<DialogCtx>(
     () => ({
       prompt: openDialog,
       handleAccept,
@@ -119,18 +149,45 @@ export const DialogProvider = ({ children }: { children: ReactNode }) => {
       submitDisabled,
       setDisabled: handleSubmitDisabled,
       ...(dialogOptions || {}),
+      slots,
+      slotProps,
     }),
-    [openDialog, handleAccept, handleClose, dialogOptions, submitDisabled, handleSubmitDisabled]
+    [
+      openDialog,
+      handleAccept,
+      handleClose,
+      dialogOptions,
+      submitDisabled,
+      slots,
+      slotProps,
+      handleSubmitDisabled,
+    ]
   );
 
   return (
     <DialogContext.Provider value={memoed}>
       {children}
       <ContextDialog />
-      {/* <CtxDialog>{dialogOptions?.component ? dialogOptions.component : null}</CtxDialog> */}
     </DialogContext.Provider>
   );
 };
+
+// function useSlots<T, P>(inProps: DialogOptions | null, defaultSlots: T, defaultSlotProps: P) {
+//   const slots = useMemo(
+//     () => ({
+//       ...defaultSlots,
+//       ...(inProps?.slots || {}),
+//     }),
+//     [inProps, defaultSlots]
+//   );
+
+//   const slotProps = useMemo(
+//     () => merge(defaultSlotProps, inProps?.slotProps || {}),
+//     [inProps, defaultSlotProps]
+//   );
+
+//   return useMemo(() => ({ slots, slotProps }), [slots, slotProps]) as { slots: T; slotProps: P };
+// }
 
 // export function Usage() {
 //   const dialog = useDialog();

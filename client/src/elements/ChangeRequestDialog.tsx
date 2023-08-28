@@ -32,7 +32,6 @@ import {
   changeRequestsCollection,
   policiesCollection,
 } from 'common';
-import { LoadingComponent } from 'components/Layout';
 import { useAuth } from 'context';
 import {
   useAsyncToast,
@@ -42,7 +41,8 @@ import {
   useShowJson,
   useWidth,
 } from 'hooks';
-import { ChangeRequestsGrid } from './grids/ChangeRequestsGrid';
+import { ChangeRequestsGrid } from './grids';
+import { LoadingComponent } from 'components/layout';
 
 export const useViewChangeRequestsDialogProps = (policyId?: string) => {
   const { claims, user, orgId } = useAuth();
@@ -433,7 +433,7 @@ export function ChangeRequestsDialog({ policyId, open, handleClose }: ChangeRequ
               toolbar: null,
             }}
             initialState={{
-              pagination: { paginationModel: { pageSize: 5 } },
+              pagination: { paginationModel: { pageSize: 5, page: 0 } },
             }}
             processRowUpdate={processRowUpdate}
             onProcessRowUpdateError={handleProcessRowUpdateError}

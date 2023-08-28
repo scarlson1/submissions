@@ -47,6 +47,7 @@ export const changeRequestCols: GridColDef[] = [
       CHANGE_REQUEST_STATUS.DENIED,
       CHANGE_REQUEST_STATUS.UNDER_REVIEW,
       CHANGE_REQUEST_STATUS.CANCELLED,
+      CHANGE_REQUEST_STATUS.DRAFT,
     ],
   },
   scopeCol,

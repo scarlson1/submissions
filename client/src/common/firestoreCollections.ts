@@ -21,6 +21,7 @@ import {
   Charge,
   ChangeRequest,
   PropertyDataRes,
+  PortfolioSubmission,
 } from './types';
 
 // REACT FIRE
@@ -34,6 +35,9 @@ export const createCollection = <T = DocumentData>(
 
 export const submissionsCollection = (db: Firestore) =>
   createCollection<Submission>(db, COLLECTIONS.SUBMISSIONS);
+
+export const portfolioSubmissionsCollection = (db: Firestore) =>
+  createCollection<PortfolioSubmission>(db, COLLECTIONS.PORTFOLIO_SUBMISSIONS);
 
 // export const quotesCollection = (db: Firestore) =>
 //   createCollection<QuoteData>(db, COLLECTIONS.QUOTES);

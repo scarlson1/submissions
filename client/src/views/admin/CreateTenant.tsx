@@ -46,7 +46,7 @@ export const CreateTenant = () => {
   const navigate = useNavigate();
   const toast = useAsyncToast();
 
-  const { handleSubmission, error: createAgencyError } = useCreateAgencySubmission({});
+  const { handleSubmission, error: createAgencyError } = useCreateAgencySubmission();
 
   const { createTenant, error: createTenantError } = useCreateTenant(
     ({ tenantId }) => tenantId && navigate(createPath({ path: ADMIN_ROUTES.ORGANIZATIONS }))

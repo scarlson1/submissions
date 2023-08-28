@@ -48,6 +48,7 @@ import { ROUTES, createPath } from 'router';
 export const orgNameValidation = yup.object().shape({
   orgName: yup.string().required(),
 });
+
 export const contactValidation = yup.object().shape({
   contact: yup.object().shape({
     firstName: yup.string().required('First name is required'),
@@ -56,13 +57,16 @@ export const contactValidation = yup.object().shape({
     phone: phoneVal.required('Phone is required'),
   }),
 });
+
 export const FEINVal = yup
   .string()
   .matches(/^[1-9]\d?-\d{7}$/, 'FEIN must be valid format')
   .required();
+
 export const feinValidation = yup.object().shape({
   FEIN: FEINVal,
 });
+
 export const EandOVal = yup
   .mixed()
   .test('required', 'E and O is required', (value) => {
@@ -77,6 +81,7 @@ export const EandOVal = yup
     if (!value || !value.length) return false;
     return value[0].type.includes('pdf');
   });
+
 export const EandOValidation = yup.object().shape({
   EandO: EandOVal,
 });
@@ -114,28 +119,24 @@ export const INITIAL_VALUES: AgencyAppValues = {
     phone: '',
   },
   agents: [{ firstName: '', lastName: '', email: '', phone: '' }],
-  // accountNumber: '',
-  // routingNumber: '',
   FEIN: '',
   EandO: '',
 };
 
 export const AgencyNew = () => {
   const navigate = useNavigate();
-  const { handleSubmission, error } = useCreateAgencySubmission({
-    onSuccess: (submissionId: string) => {
+  const { handleSubmission, error } = useCreateAgencySubmission(
+    (submissionId) => {
       toast.success('Submission received');
 
       navigate(createPath({ path: ROUTES.AGENCY_NEW_SUBMITTED, params: { submissionId } }));
     },
-    onError: (_: any, msg: string) => toast.error(msg),
-  });
+    (msg) => toast.error(msg)
+  );
 
   const handleSubmit = useCallback(
-    async (values: AgencyAppValues, { setSubmitting }: FormikHelpers<AgencyAppValues>) => {
-      await handleSubmission(values);
-      setSubmitting(false);
-    },
+    async (values: AgencyAppValues, bag: FormikHelpers<AgencyAppValues>) =>
+      await handleSubmission(values, true),
     [handleSubmission]
   );
 
@@ -299,6 +300,7 @@ export const AgencyNew = () => {
   );
 };
 
+// TODO: create wrapper "Success" component
 export function AgencyAppSuccessStep() {
   const navigate = useNavigate();
 
@@ -315,7 +317,7 @@ export function AgencyAppSuccessStep() {
           </Box>
 
           <Typography variant='h5' align='center' sx={{ pb: { xs: 4, sm: 5, lg: 6 } }}>
-            Submission recieved!
+            Submission received!
           </Typography>
           <Typography variant='body2' color='text.secondary'>
             Once your org has been set up, you'll receive an email to finish setting up your

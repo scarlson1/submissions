@@ -23,17 +23,13 @@ export function useFetchDocsWithCursor<T = any>(
 ) {
   const db = useFirestore();
 
-  const qConstraints: QueryConstraint[] = useMemo(
-    () => [...constraints, limit(params.itemsPerPage)],
-    [constraints, params?.itemsPerPage]
-  );
-
-  if (params.cursor) {
-    qConstraints.push(startAfter(params.cursor));
-  }
+  const qConstraints: QueryConstraint[] = useMemo(() => {
+    let c = [...constraints, limit(params.itemsPerPage)];
+    if (params.cursor) c.push(startAfter(params.cursor));
+    return c;
+  }, [constraints, params]);
 
   let collectionRef;
-  // allow for collection group queries
   if (!!isCollectionGroup) {
     collectionRef = collectionGroup(db, COLLECTIONS[collName]) as CollectionReference<T>;
   } else {
@@ -46,10 +42,10 @@ export function useFetchDocsWithCursor<T = any>(
 
   let q = query(collectionRef, ...qConstraints);
 
-  // useEffect(() => {
-  //   console.log('params: ', params);
-  //   console.log('QUERY:', q);
-  // }, [params, q]);
+  // if (apiRef) {
+  //   const test = gridFilterModelSelector(apiRef);
+  //   console.log('test: ', test);
+  // }
 
   return useFirestoreCollection<T>(q, { idField: 'id', ...options });
 }

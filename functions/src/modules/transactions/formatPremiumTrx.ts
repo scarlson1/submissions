@@ -8,7 +8,13 @@ import {
   WithId,
   getTermDays,
 } from '../../common';
-import { getBookingDate, getDailyPremium, getNetDWP, getTermProratedPct } from './index.js';
+import {
+  getBookingDate,
+  getDailyPremium,
+  getNetDWP,
+  getTermProratedPct,
+  getTrxTaxesAndFees,
+} from './index.js';
 
 export function formatPremiumTrx(
   trxType: PremiumTransaction['trxType'],
@@ -34,6 +40,9 @@ export function formatPremiumTrx(
 
   const termProratedPct = getTermProratedPct(policyTermDays, location.termDays);
   const dailyPremium = getDailyPremium(location.termPremium, location.termDays);
+
+  const { surplusLinesTax, surplusLinesRegulatoryFee, MGAFee, inspectionFee } =
+    getTrxTaxesAndFees(policy);
 
   return {
     trxType,
@@ -73,6 +82,10 @@ export function formatPremiumTrx(
     netDWP: getNetDWP(location.termPremium, ratingData?.premiumCalcData?.MGACommission || 0),
     netErrorAdj: 0, // TODO: where is this coming from ??
     dailyPremium,
+    surplusLinesTax,
+    surplusLinesRegulatoryFee,
+    MGAFee,
+    inspectionFee,
     otherInterestedParties: location.mortgageeInterest?.map((m) => m.name) || [],
     additionalNamedInsured: location.additionalInsureds?.map((ai) => ai.name) || [],
     homeState: policy.homeState || '',

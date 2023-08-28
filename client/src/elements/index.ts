@@ -1,5 +1,5 @@
 export { ActionHandler } from './ActionHandler';
-export { CSVUploadDialog } from './CSVUploadDialog';
+export { CSVUploadDialog, RequiredHeaders } from './CSVUploadDialog';
 export { CountiesMap } from './maps/CountiesMap';
 export { DeckMap, defaultGeoJsonLayerProps } from './maps/DeckMap';
 export { LocationCard } from './LocationCard';

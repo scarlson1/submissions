@@ -29,6 +29,8 @@ import { dollarFormat } from 'modules/utils';
 // save in ChangeRequest collection with status === 'draft' ??
 // save values after each step ?? calc policy vals before review step
 // form state in sync with change request state ??
+// require local state to be stored separate from doc subscription ??
+// use optimistic updates and overwrite local state when doc subscription updates ??
 
 // TODO: locations as field array ??
 // save each location in array
@@ -39,6 +41,11 @@ import { dollarFormat } from 'modules/utils';
 
 // TODO: verify policy exists & active ?? (promise all)
 // OR handle when add location is submitted ??
+
+// useStateWithCallback - https://github.com/the-road-to-learn-react/use-state-with-callback/blob/master/src/index.js
+
+// FEATURE: first stage: allow csv import (columns match flattened schema)
+
 interface AddressValues {
   address: Address;
   coordinates: Nullable<Coordinates>;

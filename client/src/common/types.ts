@@ -309,10 +309,20 @@ export interface Deductible {
   value: number;
 }
 
+export type TaxItemName =
+  | 'Premium Tax'
+  | 'Service Fee'
+  | 'Stamping Fee'
+  | 'Regulatory Fee'
+  | 'Windpool Fee'
+  | 'Surcharge'
+  | 'EMPA Surcharge'
+  | 'Bureau of Insurance Assessment';
+
 export interface TaxItem {
-  displayName: string;
-  rate: number; //| string;
-  value: number; //| string;
+  displayName: TaxItemName;
+  rate: number;
+  value: number;
   subjectBase: SubjectBaseItems[];
   baseDigits?: number;
   resultDigits?: number;
@@ -346,8 +356,9 @@ interface RatingCalcData {
 
 type PropWithRatingCalcData = Nullable<RatingPropertyData> & RatingCalcData;
 
+export type FeeItemName = 'Inspection Fee' | 'MGA Fee' | 'UW Adjustment';
 export interface FeeItem {
-  feeName: string;
+  feeName: FeeItemName;
   value: number;
 }
 
@@ -681,6 +692,10 @@ export interface OffsetTransaction extends BaseTransaction {
   netDWP: number;
   dailyPremium: number;
   netErrorAdj?: number;
+  surplusLinesTax: number;
+  surplusLinesRegulatoryFee: number;
+  MGAFee: number;
+  inspectionFee: number;
   // cancelEffDate: Timestamp; // same as trxEffDate ??
   cancelReason: CancellationReason | null;
   previousPremiumTrxId: string;
@@ -1619,4 +1634,12 @@ export interface ServerDataGridCollectionProps
   renderActions?: (params: GridRowParams) => JSX.Element[];
   additionalColumns?: GridColDef<any, any, any>[];
   initialState?: Omit<DataGridProps['initialState'], 'pagination'>;
+}
+
+export interface PortfolioSubmission extends BaseDoc {
+  orgName: string;
+  contact: Omit<BaseContact, 'phone'>;
+  fileURL: string;
+  filePath: string;
+  userId?: string | null;
 }

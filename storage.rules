@@ -9,9 +9,6 @@ rules_version = '2';
 
 service firebase.storage {
   match /b/{bucket}/o {
-    // match /{allPaths=**} {
-    //   allow read, write: if true;
-    // }
 
     match /newAgencySubmissions/{filePath=**} {
       allow get: if isAuthenticated()
@@ -19,11 +16,20 @@ service firebase.storage {
       allow delete: if isIDemandAdmin()
     }
 
+    match /portfolioSubmissions/{fileId} { // portfolioSubmissions
+      allow read: if true; // TODO: security rules (needed for getdownloadurl after upload)
+      // allow read: if false;
+      allow create: if request.resource.contentType.matches('text/csv');
+      allow update: if isIDemandAdmin() 
+    }
+
+    // TODO: delete
     match /portfolio-aal/{fileId} {
       allow read: if isIDemandAdmin();
       allow write: if isIDemandAdmin() && request.resource.contentType.matches('text/csv')
     }
 
+    // TODO: delete
     match /portfolio-aal-processed/{fileId} {
       allow read: if isIDemandAdmin();
       allow write: if isIDemandAdmin() && request.resource.contentType.matches('text/csv')

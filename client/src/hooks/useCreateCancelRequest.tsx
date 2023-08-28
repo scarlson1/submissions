@@ -9,7 +9,7 @@ import { useAsyncToast } from './useAsyncToast';
 import { useAuth } from 'context';
 import { CancelForm, CancelFormProps, CancelValues } from 'elements/forms';
 import { useDialogForm } from './useDialogForm';
-import { RouterLink } from 'components';
+import { RouterLink } from 'components/layout';
 import { ROUTES, createPath } from 'router';
 import {
   CHANGE_REQUEST_STATUS,

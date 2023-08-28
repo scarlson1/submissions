@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useFormikContext } from 'formik';
 import invariant from 'tiny-invariant';
 
-import { useDialog } from 'context';
+import { useDialog } from 'hooks';
 
 export function UpdateDialogSubmitDisabled() {
   const formikContext = useFormikContext();

@@ -7,13 +7,12 @@ import {
   UploadMetadata,
   UploadResult,
 } from 'firebase/storage';
-
-// import { storage } from 'firebaseConfig';
-import { useAuth } from 'context/AuthContext';
 import { FirebaseError } from 'firebase/app';
 
+import { useAuth } from 'context/AuthContext';
+
 // used to upload files to storage
-// state ignostic (can use useCreateStorageFiles or formik for state)
+// state agnostic (can use useCreateStorageFiles or formik for state)
 
 export const useUploadStorageFiles = (
   destinationFolder: string,

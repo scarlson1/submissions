@@ -1,4 +1,3 @@
-import { useCallback } from 'react';
 import {
   Box,
   Card,
@@ -15,8 +14,7 @@ import { FloodValues } from 'views/SubmissionNew';
 import { LimitKeys } from 'common';
 import { dollarFormat } from 'modules/utils/helpers';
 import { FormikCheckbox } from 'components/forms';
-import { useConfirmation } from 'context/ConfirmationService';
-import { useDisclosure } from 'hooks';
+import { useDisclosure, useGeneralQuoteDisclosure } from 'hooks';
 
 // TODO: generalize component
 
@@ -54,24 +52,8 @@ export const policyDetails: Detail[] = [
 
 export const ReviewStep = () => {
   const { values } = useFormikContext<FloodValues>();
-  const confirm = useConfirmation();
-  const { disclosureHTML, status } = useDisclosure(values.address?.state);
-
-  const showDisclosure = useCallback(
-    async (e: React.MouseEvent<HTMLSpanElement, MouseEvent>) => {
-      e.stopPropagation();
-      e.preventDefault();
-
-      await confirm({
-        variant: 'info',
-        catchOnCancel: false,
-        title: 'Disclosure',
-        description: `A request for quote is subject to all state regulations, including, but not limited to, license and due diligence requirements regarding non-admitted insurance. This website is not intended for business in any state not licensed. Any initial premium indication is not a quote until full submission information has been provided and approved including all state disclosure, taxes, and fees.`,
-        dialogContentProps: { dividers: true },
-      });
-    },
-    [confirm]
-  );
+  const { disclosureHTML, status } = useDisclosure([['state', '==', values.address?.state || '']]);
+  const showDisclosure = useGeneralQuoteDisclosure();
 
   return (
     <Card>

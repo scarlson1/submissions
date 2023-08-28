@@ -2,8 +2,9 @@ import { useCallback, useState } from 'react';
 
 import { functionsInstance } from 'api';
 import { useAsyncToast } from './useAsyncToast';
+import { saveDownload } from 'modules/utils';
 
-type PDFRoutes = 'generateDecPDF'; // 'generatePolicy'
+type PDFRoutes = 'generateDecPDF';
 
 export const useGeneratePDF = (
   route: PDFRoutes,
@@ -24,17 +25,7 @@ export const useGeneratePDF = (
           { responseType: 'blob' }
         );
 
-        const objectUrl = window.URL.createObjectURL(new Blob([res.data]));
-
-        const link = document.createElement('a');
-        link.href = objectUrl;
-        link.setAttribute('download', `iDemand Flood Policy ${policyId}.pdf`);
-
-        document.body.appendChild(link);
-        link.click();
-        // TODO: clean up "a" element & remove ObjectURL
-        document.body.removeChild(link);
-        // URL.revokeObjectURL(href);
+        saveDownload([res.data], `iDemand Flood Policy ${policyId}.pdf`);
 
         toast.success('policy downloaded', { duration: 1000 });
         if (onSuccess) onSuccess();

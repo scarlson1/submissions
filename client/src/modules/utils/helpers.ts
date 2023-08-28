@@ -20,8 +20,8 @@ import {
 import numeral from 'numeral';
 import { toast } from 'react-hot-toast';
 import { Location } from 'react-router-dom';
-
 import { alpha } from '@mui/material';
+
 import { Address, FeeItem, FlattenObjectKeys, Path, RoundingType, TaxItem } from 'common/types';
 import { AddressComponent, AddressComponentType } from 'components/forms';
 
@@ -59,7 +59,7 @@ export const formatBytes = (bytes: number, decimals = 2) => {
 };
 
 /**
- * converts string to formatted number. If str, after all non diget characters are removed, does not match optional 1 followed by 9 digits, null is returned.
+ * converts string to formatted number. If str, after all non digit characters are removed, does not match optional 1 followed by 9 digits, null is returned.
  * @param {string} str - string with numbers. other characters will be removed by regex: /\D/g
  * @return {string | null} returns formatted string +1 (optional) (123) 456-7890 or null
  */
@@ -86,21 +86,21 @@ export const formatPhoneNumber = (str: string) => {
 
 /**
  * formats value as dollar, with decimals if needed
- * @param {string | numnber} val - value to format
+ * @param {string | number} val - value to format
  * @return {string} string value with dollar formatting
  */
 export const dollarFormat = (val: string | number) => numeral(val).format('$0,0[.]00');
 
 /**
  * formats value as dollar, with 2 decimal places
- * @param {string | numnber} val - value to format
+ * @param {string | number} val - value to format
  * @return {string} string value with dollar formatting
  */
 export const dollarFormat2 = (val: string | number) => numeral(val).format('$0,0.00');
 
 /**
  * formats value as string with commas
- * @param {string | numnber} val - value to format
+ * @param {string | number} val - value to format
  * @return {string} string value with comma formatting
  */
 export const numberFormat = (val: string | number) => numeral(val).format('0,0');
@@ -209,7 +209,7 @@ export const isCurrentDateBetween = (
 };
 
 /**
- * checks validity of routing number by summing 3, 7, 1 multiples checking whether the sumproduct is divisible by 10
+ * checks validity of routing number by summing 3, 7, 1 multiples checking whether the sum product is divisible by 10
  * @param {string} val - routing number (string - must be 9 digits to be valid)
  * @return {boolean} boolean indicating validity of routing number
  */
@@ -347,7 +347,7 @@ export const isErrorWithCode = (err: unknown): err is ErrorWithCode => {
 export const getErrorCode = (maybeError: unknown, defaultVal: string = 'unknown'): string => {
   if (isErrorWithCode(maybeError)) return maybeError.code;
 
-  return defaultVal; // 'auth/auth-error-occured';
+  return defaultVal; // 'auth/auth-error-occurred';
 };
 
 const isErrorWithMessage = (error: unknown): error is ErrorWithMessage => {
@@ -367,7 +367,7 @@ const toErrorWithMessage = (maybeError: unknown): ErrorWithMessage => {
   // try {
   //   return new Error(JSON.stringify(maybeError));
   // } catch {
-  //   // fallback in case there's an error stringifying the maybeError
+  //   // fallback in case there's an error stringify-ing the maybeError
   //   // like with circular references for example.
   //   return new Error(String(maybeError));
   // }
@@ -448,87 +448,10 @@ export function isWhereFilterOp(value: string): value is WhereFilterOp {
   ].includes(value as WhereFilterOp);
 }
 
-export const isRangeComparison = (op: string) => {
-  return ['<', '<=', '>', '>='].includes(op);
-};
-
 const inEqualityOps = ['<', '<=', '!=', 'not-in', '>', '>='];
 
+// requires first orderBy
 export const isInequalityOp = (op: string) => inEqualityOps.includes(op);
-
-// TODO: delete once filterOperators are built to match firestore query operators
-export const muiOperatorToFirestoreOperator = (op: string): WhereFilterOp | null => {
-  switch (op) {
-    // TYPE = NUMBER
-    case '=':
-      return '==';
-    case '==':
-      return '==';
-    case '!=':
-      return '!=';
-    case '>':
-      return '>';
-    case '<':
-      return '<';
-    case '>=':
-      return '>=';
-    case '<=':
-      return '<=';
-    // case 'isEmpty':
-    //   return ''; // TODO does this work? where('field', '==', null) ??
-    // case 'isNotEmpty':
-    //   return '!='; // TODO: where("capital", "!=", false)
-    case 'isAnyOf':
-      return 'in';
-    // TYPE = DATE
-    case 'is':
-      return '==';
-    case 'isNot':
-      return '!=';
-    case 'onOrAfter':
-      return '>=';
-    case 'onOrBefore':
-      return '<=';
-    case 'after':
-      return '>';
-    case 'before':
-      return '<';
-    // TYPE = STRING (default)
-    // case 'contains':
-    //   return ''; // no equivalent in Firestore
-    case 'equals':
-      return '==';
-    // case '':
-    //   return '';
-    // case '':
-    //   return '';
-    default:
-      return null;
-  }
-};
-
-/**
- * Calculate RCVs for each limit from building RCV & limits
- * @param  {number} replacementCost - Source object to compare newObj against
- * @param  {object} limits - New object with potential changes
- * @return {object} object containing rcv for each coverage
- */
-
-export const getRCVs = (
-  replacementCost: number,
-  limits: { limitA: number; limitB: number; limitC: number; limitD: number }
-) => {
-  const buildingRef = Math.min(replacementCost, 1000000);
-  const defaultB = Math.max(buildingRef * 0.05, limits.limitB);
-  const defaultC = Math.max(buildingRef * 0.25, limits.limitC);
-
-  return {
-    rvcA: Math.max(replacementCost, limits.limitA),
-    rcvB: limits.limitB ? defaultB : 0,
-    rcvC: limits.limitC ? defaultC : 0,
-    rcvD: limits.limitD,
-  };
-};
 
 export function isObjEmpty(obj: any) {
   return Object.keys(obj).length === 0;
@@ -594,7 +517,7 @@ export function getDifference(origObj: any, newObj: any) {
 //   cool: false, // <-- diff
 //   what: {
 //     one: 'one',
-//     two: 'twox', // <-- diff
+//     two: '', // <-- diff
 //   },
 //   wow: {
 //     deep: {
@@ -612,7 +535,7 @@ export function getDifference(origObj: any, newObj: any) {
 // /* result:
 // {
 //   cool: false,
-//   what: { two: 'twox' },
+//   what: { two: 'two' },
 //   wow: { deep: { key: [ 'x', 'y' ], values: '098' } },
 //   array: [ 'difference' ]
 // }
@@ -687,8 +610,6 @@ export const flattenObj = <T extends Record<string, any>>(obj: T) => {
 
   return result as Record<FlattenObjectKeys<T>, any>;
 };
-
-export const truthyOrZero = (val: any) => val || val === 0;
 
 export function sumFeesTaxesPremium(fees: FeeItem[], taxes: TaxItem[], premium: number) {
   const feeTotal = sumArr(fees.map((f) => f.value));
@@ -868,4 +789,22 @@ export function getRGBAArray(
  */
 export function getDuplicates(arr: string[]) {
   return filter(arr, (val, i, iteratee) => includes(iteratee, val, i + 1));
+}
+
+export function saveDownload(
+  blobParts: BlobPart[],
+  filename: string,
+  options?: BlobPropertyBag | undefined
+) {
+  const objectUrl = window.URL.createObjectURL(new Blob(blobParts, options));
+
+  const link = document.createElement('a');
+  link.href = objectUrl;
+  link.setAttribute('download', filename);
+
+  document.body.appendChild(link);
+  link.click();
+
+  document.body.removeChild(link);
+  // URL.revokeObjectURL(href);
 }

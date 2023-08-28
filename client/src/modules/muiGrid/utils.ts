@@ -7,7 +7,8 @@ import {
   orderBy,
   where,
 } from 'firebase/firestore';
-import { isInequalityOp, isWhereFilterOp, hasValue } from 'modules/utils';
+
+import { isWhereFilterOp, hasValue, isInequalityOp } from 'modules/utils';
 
 export function getFirestoreSortOps(sortModel: GridSortModel | undefined = []) {
   let sortOps: QueryOrderByConstraint[] = [];

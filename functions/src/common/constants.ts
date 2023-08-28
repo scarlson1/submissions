@@ -1,3 +1,5 @@
+import { FeeItemName, TaxItemName } from './types';
+
 export const statesList: Record<string, string> = {
   AL: 'Alabama',
   AK: 'Alaska',
@@ -64,3 +66,15 @@ export const FLOOD_ZONES = ['A', 'B', 'C', 'D', 'V', 'X', 'AE', 'AO', 'AH', 'AR'
 export const CBRS_OPTIONS = ['IN', 'OUT'];
 export const PRIOR_LOSS_COUNT_OPTIONS = ['0', '1', '2', '3'];
 export const BASEMENT_OPTIONS = ['no', 'finished', 'unfinished', 'unknown'];
+
+export const FEE_ITEM_NAMES: FeeItemName[] = ['Inspection Fee', 'MGA Fee', 'UW Adjustment'];
+export const TAX_ITEM_NAMES: TaxItemName[] = [
+  'Bureau of Insurance Assessment',
+  'EMPA Surcharge',
+  'Premium Tax',
+  'Regulatory Fee',
+  'Service Fee',
+  'Stamping Fee',
+  'Surcharge',
+  'Windpool Fee',
+];

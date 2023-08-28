@@ -3,11 +3,12 @@ import { GridActionsColDef, GridRowParams } from '@mui/x-data-grid';
 import { where } from 'firebase/firestore';
 import { useMemo } from 'react';
 
-import { COLLECTIONS, ServerDataGridCollectionProps } from 'common';
+import { CHANGE_REQUEST_STATUS, COLLECTIONS, ServerDataGridCollectionProps } from 'common';
 import { ServerDataGrid, ServerDataGridProps } from 'components';
 import { useAuth } from 'context';
 import { useWidth } from 'hooks';
 import { changeRequestCols } from 'modules/muiGrid/gridColumnDefs';
+import { verify } from 'modules/utils';
 
 interface ChangeRequestsGridProps extends ServerDataGridCollectionProps {
   policyId?: string;
@@ -18,12 +19,13 @@ export const ChangeRequestsGrid = ({
   additionalColumns,
   initialState,
   policyId,
+  constraints: propConstraints = [],
   ...rest
 }: ChangeRequestsGridProps) => {
   const { user, claims, orgId } = useAuth();
   const { isSmall } = useWidth();
 
-  if (!user?.uid) throw new Error('must be signed in'); // TODO: wrap in RequireAuth ??
+  verify(user?.uid, 'must be signed in'); // TODO: wrap in RequireAuth ??
 
   const columns = useMemo(() => {
     let cols = [...changeRequestCols, ...(additionalColumns || [])];
@@ -42,7 +44,7 @@ export const ChangeRequestsGrid = ({
 
   const props: Omit<ServerDataGridProps, 'columns'> = useMemo(() => {
     let queryProps: Omit<ServerDataGridProps, 'columns'>;
-    let constraints: ServerDataGridProps['constraints'] = [];
+    let constraints: ServerDataGridProps['constraints'] = [...propConstraints];
 
     if (policyId) {
       queryProps = {
@@ -68,7 +70,7 @@ export const ChangeRequestsGrid = ({
     }
 
     return { ...queryProps, constraints };
-  }, [policyId, claims, user, orgId]);
+  }, [policyId, propConstraints, claims, user, orgId]);
 
   return (
     <Box>
@@ -87,6 +89,11 @@ export const ChangeRequestsGrid = ({
           },
           sorting: {
             sortModel: [{ field: 'metadata.created', sort: 'desc' }],
+          },
+          filter: {
+            filterModel: {
+              items: [{ field: 'status', operator: '!=', value: CHANGE_REQUEST_STATUS.DRAFT }],
+            },
           },
           ...(initialState || {}),
         }}

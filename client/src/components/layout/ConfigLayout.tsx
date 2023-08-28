@@ -3,7 +3,7 @@ import { Suspense, useEffect, useMemo, useState } from 'react';
 import { Outlet, Link as RouterLink, matchPath, useLocation } from 'react-router-dom';
 
 import { ADMIN_ROUTES, createPath } from 'router';
-import { LoadingComponent } from './Layout';
+import { LoadingComponent } from '.';
 
 // https://mui.com/material-ui/react-tabs/#nav-tabs
 

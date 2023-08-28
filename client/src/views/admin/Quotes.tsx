@@ -242,7 +242,6 @@ const QUOTE_IMPORT_REQUIRED_HEADERS = [
   'agencyState',
   'agencyPostal',
   'orgId',
-  // 'CBRSDesignation',
   'cbrsDesignation',
   'basement',
   'distToCoastFeet',
@@ -254,7 +253,7 @@ const QUOTE_IMPORT_REQUIRED_HEADERS = [
   'yearBuilt',
 ];
 
-function getHeaderStatus(
+export function getHeaderStatus(
   headers: string[],
   requiredHeaders: string[],
   formatFn: (str: string) => string = snakeCase
@@ -286,9 +285,7 @@ function QuotesActionMenu() {
 
   const checkForDuplicates = useCallback((headers: string[], formatFn: (str: string) => string) => {
     let formatted = headers.map((h) => formatFn(h));
-    let dups = getDuplicates(formatted);
-
-    setDupHeaders(dups);
+    setDupHeaders(getDuplicates(formatted));
   }, []);
 
   const handleHeaderStatus = useCallback(

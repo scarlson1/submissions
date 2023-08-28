@@ -79,7 +79,7 @@ module.exports = {
       { ignoreParameters: true, ignoreProperties: true },
     ],
     'import/order': [
-      'off', // 'warn',
+      'warn', // 'off', //
       {
         groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index', 'object'],
       },

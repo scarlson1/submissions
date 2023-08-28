@@ -3,7 +3,8 @@ import { Suspense } from 'react';
 import { Box, Container, ContainerProps, SxProps } from '@mui/material';
 import { Outlet } from 'react-router-dom';
 
-import { Header, Footer, Breadcrumbs, LoadingSpinner } from 'components';
+import { LoadingSpinner } from 'components';
+import { Header, Footer, Breadcrumbs } from './';
 // import { useConcurrentLocation } from 'hooks';
 // import ProgressBar from './ProgressBar';
 

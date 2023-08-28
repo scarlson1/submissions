@@ -7,15 +7,10 @@ import { AgencyAppValues } from 'views/AgencyNew';
 import { useUploadStorageFiles } from 'hooks';
 import { agencyAppCollection, AGENCY_SUBMISSION_STATUS, AgencyApplication } from 'common';
 
-export interface useCreateAgencySubmissionProps {
-  onSuccess?: (subId: string) => void;
-  onError?: (err: unknown, msg: string) => void;
-}
-
-export const useCreateAgencySubmission = ({
-  onSuccess,
-  onError,
-}: useCreateAgencySubmissionProps) => {
+export const useCreateAgencySubmission = (
+  onSuccess?: (subId: string) => void,
+  onError?: (msg: string, err: unknown) => void
+) => {
   const { data: user } = useUser();
   const firestore = useFirestore();
   const [error, setError] = useState<string | null>(null);
@@ -47,10 +42,6 @@ export const useCreateAgencySubmission = ({
             phone: values.contact?.phone.trim(),
           },
           agents: values.agents,
-          // bankDetails: {
-          //   accountNumber: values.accountNumber.trim(),
-          //   routingNumber: values.routingNumber.trim(),
-          // },
           FEIN: values.FEIN.trim(),
           EandO: uploadResult[0].metadata.fullPath,
           status: AGENCY_SUBMISSION_STATUS.SUBMITTED,
@@ -78,7 +69,7 @@ export const useCreateAgencySubmission = ({
           msg = err.message;
         }
         setError(msg);
-        if (onError) onError(err, msg);
+        if (onError) onError(msg, err);
       }
     },
     [uploadFiles, onSuccess, onError, firestore, user]

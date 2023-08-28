@@ -2,51 +2,16 @@ import { ReactNode, useCallback, useMemo, useState } from 'react';
 import { Box, Unstable_Grid2 as Grid, Stack, Typography } from '@mui/material';
 import { CheckCircleRounded } from '@mui/icons-material';
 import { UploadResult } from 'firebase/storage';
-import { ParseResult, parse } from 'papaparse';
 
 import {
   UploadFilesDialogComponent,
   UploadFilesDialogComponentProps,
 } from 'elements/UploadFilesDialog';
-import { useCreateStorageFiles } from 'hooks';
+import { useCreateStorageFiles, useParseCSV } from 'hooks';
 
 // TODO: use web worker ??
 // https://www.newline.co/fullstack-react/articles/introduction-to-web-workers-with-react/
 // https://medium.com/@ashifa454/offloading-render-using-web-workers-e0f2f463ad0
-
-// const REQUIRED_HEADERS = [
-//   'cov_a_limit',
-//   'cov_b_limit',
-//   'cov_c_limit',
-//   'cov_d_limit',
-//   'cov_a_rcv',
-//   'cov_b_rcv',
-//   'cov_c_rcv',
-//   'cov_d_rcv',
-//   'deductible',
-//   'state',
-//   'commission_pct',
-// ];
-
-// function getHeaderStatus(headers: string[], formatFn: (str: string) => string = snakeCase) {
-//   const formatted = headers.map((h) => formatFn(h));
-
-//   let result: Record<string, boolean | null> = {};
-
-//   for (let h of REQUIRED_HEADERS) {
-//     result[h] = formatted.includes(h);
-//   }
-
-//   return result;
-// }
-
-// interface PortfolioRatingDialogProps
-//   extends Omit<
-//     UploadFilesDialogComponentProps,
-//     'acceptedTypes' | 'files' | 'onNewFiles' | 'onRemove' | 'onSubmit' | 'onCancel' | 'handleSubmit'
-//   > {
-//   onClose: () => void;
-// }
 
 interface CSVUploadDialogProps
   extends Omit<
@@ -72,7 +37,7 @@ export const CSVUploadDialog = ({
   const [headerStatus, setHeaderStatus] = useState<Record<string, boolean | null>>(
     {} // getHeaderStatus([])
   );
-  // const [headers, setHeaders] = useState<string[]>([]);
+  const { handleParse } = useParseCSV((state) => setHeaderStatus(getHeaderStatus(state.headers)));
 
   const isValid = useMemo(() => Object.values(headerStatus).every((v) => v), [headerStatus]);
 
@@ -92,37 +57,35 @@ export const CSVUploadDialog = ({
     (err, msg) => console.log('upload failed: ', msg, err)
   );
 
-  // TODO: slice blob before reader so reader doesn't read entire file - only enough for headers + 1 row
-  // SOURCE: https://www.geeksforgeeks.org/how-to-read-csv-files-in-react-js/
-  const handleParse = useCallback((file: File) => {
-    return new Promise((resolve, reject) => {
-      if (!file) reject(new Error('missing file'));
-      // Initialize a reader which allows user to read any file or blob.
-      const reader = new FileReader();
+  // const handleParse = useCallback((file: File) => {
+  //   return new Promise((resolve, reject) => {
+  //     if (!file) reject(new Error('missing file'));
+  //     // Initialize a reader which allows user to read any file or blob.
+  //     const reader = new FileReader();
 
-      // Event listener on reader when the file loads, we parse it and set the data.
-      reader.onload = async ({ target }) => {
-        if (!target?.result) {
-          console.log('TARGET IS NULL');
-          reject(new Error('Error reading file'));
-        } // @ts-ignore
-        const csv = parse<any>(target.result, {
-          header: true,
-          preview: 1,
-        }) as unknown as ParseResult<any>;
+  //     // Event listener on reader when the file loads, we parse it and set the data.
+  //     reader.onload = async ({ target }) => {
+  //       if (!target?.result) {
+  //         console.log('TARGET IS NULL');
+  //         reject(new Error('Error reading file'));
+  //       } // @ts-ignore
+  //       const csv = parse<any>(target.result, {
+  //         header: true,
+  //         preview: 1,
+  //       }) as unknown as ParseResult<any>;
 
-        const errors = csv?.errors;
-        const headers = [...(csv?.meta?.fields || [])];
+  //       const errors = csv?.errors;
+  //       const headers = [...(csv?.meta?.fields || [])];
 
-        resolve({ headers, errors, parseResult: csv });
-      };
-      // TODO: handle error
-      // reader.onerror((e) => {
-      //   reject('error reading file')
-      // })
-      reader.readAsText(file);
-    });
-  }, []);
+  //       resolve({ headers, errors, parseResult: csv });
+  //     };
+  //     // TODO: handle error
+  //     // reader.onerror((e) => {
+  //     //   reject('error reading file')
+  //     // })
+  //     reader.readAsText(file);
+  //   });
+  // }, []);
 
   // react-papaparse: https://github.com/Bunlong/react-papaparse/blob/master/src/useCSVReader.tsx
 
@@ -217,7 +180,7 @@ interface RequiredHeadersProps {
   headerStatus: Record<string, boolean | null>;
 }
 
-function RequiredHeaders(props: RequiredHeadersProps) {
+export function RequiredHeaders(props: RequiredHeadersProps) {
   const keys = Object.keys(props.headerStatus);
 
   return (
@@ -229,7 +192,11 @@ function RequiredHeaders(props: RequiredHeadersProps) {
               fontSize='small'
               color={props.headerStatus[h] ? 'success' : 'disabled'}
             />
-            <Typography variant='body2' color='text.secondary'>
+            <Typography
+              variant='body2'
+              color='text.secondary'
+              sx={{ textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden' }}
+            >
               {h}
             </Typography>
           </Stack>

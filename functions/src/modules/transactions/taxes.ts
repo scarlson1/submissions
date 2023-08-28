@@ -1,5 +1,14 @@
 import { ceil, floor, round } from 'lodash';
-import { FeeItem, PolicyLocation, RoundingType, TaxItem, sumByTypes } from '../../common';
+import {
+  FeeItem,
+  FeeItemName,
+  Policy,
+  PolicyLocation,
+  RoundingType,
+  TaxItem,
+  TaxItemName,
+  sumByTypes,
+} from '../../common';
 import { SubjectBaseKeyVal } from '../db';
 
 interface TaxCalcProps {
@@ -19,7 +28,7 @@ export const recalcTaxes = (props: TaxCalcProps) => {
   const { premium, homeStatePremium, outStatePremium, taxes, fees } = props;
 
   const mgaFees = sumMGAFees(fees);
-  const inspectionFees = sumInspectionFees(fees);
+  const inspectionFees = sumFeesByType(fees, 'Inspection Fee');
   const policyVals: SubjectBaseKeyVal = {
     premium,
     homeStatePremium,
@@ -85,12 +94,32 @@ export function sumMGAFees(fees: FeeItem[]) {
 }
 
 /**
- * Sum the values of all fees matching type "Inspection Fee"
+ * Sum the value of all fees matching type
  * @param {FeeItem[]} fees array of fee items
- * @returns {number} sum of all fees matching "Inspection Fee"
+ * @param {FeeItemName | FeeItemName[]} type type of fee to include in type
+ * @returns {number} sum of all fees matching type
  */
-export function sumInspectionFees(fees: FeeItem[]) {
-  return sumByTypes<FeeItem>(fees, 'feeName', 'Inspection Fee', 'value');
+export function sumFeesByType(fees: FeeItem[], type: FeeItemName | FeeItemName[]) {
+  return sumByTypes<FeeItem>(fees, 'feeName', type, 'value');
+}
+
+/**
+ * Sum the value of all taxes matching type
+ * @param {TaxItem[]} taxes array of tax items
+ * @param {TaxItemName | TaxItemName[]} type type of taxes to include in type
+ * @returns {number} sum of all taxes matching type
+ */
+export function sumTaxesByType(taxes: TaxItem[], type: TaxItemName | TaxItemName[]) {
+  return sumByTypes<TaxItem>(taxes, 'displayName', type, 'value');
+}
+
+export function getTrxTaxesAndFees({ taxes, fees }: Policy) {
+  const surplusLinesTax = sumTaxesByType(taxes, 'Premium Tax');
+  const surplusLinesRegulatoryFee = sumTaxesByType(taxes, 'Regulatory Fee');
+  const MGAFee = sumFeesByType(fees, 'MGA Fee');
+  const inspectionFee = sumFeesByType(fees, 'Inspection Fee');
+
+  return { surplusLinesTax, surplusLinesRegulatoryFee, MGAFee, inspectionFee };
 }
 
 export function getInStatePremium(homeState: string, locations: PolicyLocation[]) {

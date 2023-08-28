@@ -39,6 +39,7 @@ const sendNewQuoteNotifications = async ({
   const sgKey = sendgridApiKey.value();
   if (!sgKey) throw new HttpsError('failed-precondition', 'missing Sendgrid api key');
 
+  // TODO: delete ?? handled in sendgrid/index.ts ??
   const uniqueTo = Array.isArray(to) ? to.filter(onlyUnique) : to;
 
   try {

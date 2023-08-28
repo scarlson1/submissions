@@ -257,7 +257,7 @@ export interface EPayGetTransactionRes {
   originalTransactionId: string | null;
   events: EPayEvent[];
   attributeValues: { name: string | null; parameterName: string | null; value: string | null }[];
-  attachements: { name: string | null; downloadUri: string | null }[];
+  attachments: { name: string | null; downloadUri: string | null }[];
   paidInvoices: {
     id: string;
     paidAmount: number;
@@ -468,7 +468,7 @@ export interface Submission extends FloodFormValues {
   agent?: Nullable<AgentDetails>;
   agency?: Nullable<AgencyDetails>;
   status: SUBMISSION_STATUS;
-  rcvSouceUser?: boolean;
+  rcvSourceUser?: boolean;
   // propertyDataRes: FetchPropertyDataResponse;
   ratingPropertyData: Nullable<RatingPropertyData>; // FetchPropertyDataResponse;
   propertyDataDocId: string | null;
@@ -558,10 +558,20 @@ export type SubjectBaseItems =
 
 export type RoundingType = 'nearest' | 'up' | 'down';
 
+export type TaxItemName =
+  | 'Premium Tax'
+  | 'Service Fee'
+  | 'Stamping Fee'
+  | 'Regulatory Fee'
+  | 'Windpool Fee'
+  | 'Surcharge'
+  | 'EMPA Surcharge'
+  | 'Bureau of Insurance Assessment';
+
 export interface TaxItem {
-  displayName: string;
-  rate: number; //| string;
-  value: number; //| string;
+  displayName: TaxItemName;
+  rate: number;
+  value: number;
   subjectBase: SubjectBaseItems[];
   baseDigits?: number;
   resultDigits?: number;
@@ -569,8 +579,10 @@ export interface TaxItem {
   resultRoundType?: RoundingType;
 }
 
+export type FeeItemName = 'Inspection Fee' | 'MGA Fee' | 'UW Adjustment';
+
 export interface FeeItem {
-  feeName: string;
+  feeName: FeeItemName;
   value: number;
 }
 
@@ -755,11 +767,11 @@ export class PolicyClass implements IPolicyClass {
     this.expirationDate = policyInfo.expirationDate;
     this.fees = policyInfo.fees;
     this.taxes = policyInfo.taxes;
-    // TODO: term preium & term days should be calculated in policy class
+    // TODO: term premium & term days should be calculated in policy class
     this.termPremium = policyInfo.termPremium;
     this.termDays = policyInfo.termDays;
     this.price = policyInfo.price;
-    // this.cardFee = policyInfo.cardFee; // remove ?? changes not always based on all locations (add / remove location) --> store at locaiton level or not at all / calc in billing ??
+    // this.cardFee = policyInfo.cardFee; // remove ?? changes not always based on all locations (add / remove location) --> store at location level or not at all / calc in billing ??
     this.documents = policyInfo.documents || [];
     this.userId = policyInfo.userId;
     this.agency = policyInfo.agency;
@@ -806,7 +818,7 @@ export class PolicyClass implements IPolicyClass {
       let newTotal = await this.sumLocationPremium();
       this.price = newTotal;
     } catch (err) {
-      console.log('ERROR RECALULATING QUOTE: ', err);
+      console.log('ERROR RECALCULATING QUOTE: ', err);
       throw err;
     }
   }
@@ -1117,7 +1129,7 @@ interface BaseTransaction extends BaseDoc {
   homeState: string;
   policyEffDate: Timestamp;
   policyExpDate: Timestamp;
-  trxEffDate: Timestamp; // for when premium is earned (where is this retreived from ??)
+  trxEffDate: Timestamp; // for when premium is earned (where is this retrieved from ??)
   trxExpDate: Timestamp;
   trxDays: number; // trxExpDate - trxEffDate
   eventId: string;
@@ -1139,6 +1151,10 @@ export interface OffsetTransaction extends BaseTransaction {
   netDWP: number;
   dailyPremium: number;
   netErrorAdj?: number;
+  surplusLinesTax: number;
+  surplusLinesRegulatoryFee: number;
+  MGAFee: number;
+  inspectionFee: number;
   // cancelEffDate: Timestamp; // same as trxEffDate ??
   cancelReason: CancellationReason | null;
   previousPremiumTrxId: string;
@@ -1164,6 +1180,10 @@ export interface PremiumTransaction extends BaseTransaction {
   dailyPremium: number;
   termProratedPct: number;
   netErrorAdj?: number;
+  surplusLinesTax: number;
+  surplusLinesRegulatoryFee: number;
+  MGAFee: number;
+  inspectionFee: number;
   otherInterestedParties: string[];
   additionalNamedInsured: string[];
 }

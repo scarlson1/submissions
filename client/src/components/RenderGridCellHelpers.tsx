@@ -13,16 +13,16 @@ import {
   TypographyProps,
 } from '@mui/material';
 import { GridRenderCellParams } from '@mui/x-data-grid';
-import { MouseEvent, memo, useCallback, useEffect, useRef, useState } from 'react';
+import { MouseEvent, memo, useCallback, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
 
-import { useCopyToClipboard } from 'hooks/useCopyToClipboard';
 import {
   dollarFormat,
   dollarFormat2,
   formatPhoneNumber,
   percentFormat,
 } from 'modules/utils/helpers';
+import { useKeyPress, useCopyToClipboard } from 'hooks';
 
 export const renderGridPhone = ({ value }: GridRenderCellParams<any, any, any>) => {
   if (value == null) return '';
@@ -117,8 +117,8 @@ function isOverflown(element: Element): boolean {
   return element.scrollHeight > element.clientHeight || element.scrollWidth > element.clientWidth;
 }
 
-const GridCellExpand = memo(function GridCellExpand(props: GridCellExpandProps) {
-  const { width, value } = props;
+// TODO: use for formatted address
+const GridCellExpand = memo(function GridCellExpand({ width, value }: GridCellExpandProps) {
   const wrapper = useRef<HTMLDivElement | null>(null);
   const cellDiv = useRef(null);
   const cellValue = useRef(null);
@@ -137,24 +137,25 @@ const GridCellExpand = memo(function GridCellExpand(props: GridCellExpandProps) 
     setShowFullCell(false);
   };
 
-  useEffect(() => {
-    if (!showFullCell) {
-      return undefined;
-    }
+  useKeyPress('Escape', () => setShowFullCell(false));
 
-    function handleKeyDown(nativeEvent: KeyboardEvent) {
-      // IE11, Edge (prior to using Bink?) use 'Esc'
-      if (nativeEvent.key === 'Escape' || nativeEvent.key === 'Esc') {
-        setShowFullCell(false);
-      }
-    }
+  // useEffect(() => {
+  //   if (!showFullCell) {
+  //     return undefined;
+  //   }
 
-    document.addEventListener('keydown', handleKeyDown);
+  //   function handleKeyDown(nativeEvent: KeyboardEvent) {
+  //     if (nativeEvent.key === 'Escape' || nativeEvent.key === 'Esc') {
+  //       setShowFullCell(false);
+  //     }
+  //   }
 
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [setShowFullCell, showFullCell]);
+  //   document.addEventListener('keydown', handleKeyDown);
+
+  //   return () => {
+  //     document.removeEventListener('keydown', handleKeyDown);
+  //   };
+  // }, [setShowFullCell, showFullCell]);
 
   if (!value) return null;
 

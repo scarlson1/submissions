@@ -1,12 +1,10 @@
 import { useCallback } from 'react';
-
 import { Container, Box, Typography, Link } from '@mui/material';
 import { generateHTML } from '@tiptap/react';
-
-import { useConfirmation } from 'context/ConfirmationService';
-import { EDITOR_EXTENSION_DEFAULTS, useCollectionData } from 'hooks';
-import { Disclosure } from 'common';
 import { where } from 'firebase/firestore';
+
+import { EDITOR_EXTENSION_DEFAULTS, useCollectionData, useDialog } from 'hooks';
+import { Disclosure } from 'common';
 
 const Copyright = () => {
   return (
@@ -25,7 +23,7 @@ export const Footer = () => {
   const { data } = useCollectionData<Disclosure>('DISCLOSURES', [
     where('type', '==', 'general disclosure'),
   ]);
-  const confirm = useConfirmation();
+  const dialog = useDialog();
 
   const showDisclosure = useCallback(async () => {
     if (!data || data.length < 1) return;
@@ -33,21 +31,24 @@ export const Footer = () => {
 
     data.forEach((d) => content.push(generateHTML(d.content, EDITOR_EXTENSION_DEFAULTS)));
 
-    await confirm({
+    dialog.prompt({
       variant: 'info',
       catchOnCancel: false,
       title: 'Disclosure',
-      description: (
+      content: (
         <div>
           {content.map((c, i) => (
             <div dangerouslySetInnerHTML={{ __html: c }} key={`disclosure-content-${i}`} />
           ))}
         </div>
       ),
-      // description: `A request for quote is subject to all state regulations, including, but not limited to, license and due diligence requirements regarding non-admitted insurance. This website is not intended for business in any state not licensed. Any initial premium indication is not a quote until full submission information has been provided and approved including all state disclosure, taxes, and fees.`,
-      dialogContentProps: { dividers: true },
+      slotProps: {
+        dialog: {
+          maxWidth: 'sm',
+        },
+      },
     });
-  }, [confirm, data]);
+  }, [dialog, data]);
 
   return (
     <Box

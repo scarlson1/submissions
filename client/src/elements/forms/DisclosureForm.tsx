@@ -1,7 +1,5 @@
 import { useCallback, useRef } from 'react';
-
-import { Box, Chip, Divider, Paper } from '@mui/material';
-import Grid from '@mui/material/Unstable_Grid2/Grid2';
+import { Box, Chip, Divider, Paper, Unstable_Grid2 as Grid } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 import { Content, EditorContent, JSONContent } from '@tiptap/react';
 import { Formik, FormikConfig, FormikHelpers, FormikProps } from 'formik';
@@ -16,7 +14,7 @@ import 'components/textEditor/TextEditor.css';
 const disclosureValidation = yup.object().shape({
   products: yup.array().of(yup.string()).min(1),
   state: yup.string().when('type', {
-    is: (type: string | null) => type !== 'general disclosure',
+    is: (type: string | null) => type !== 'general disclosure' && type !== 'other',
     then: (schema) => schema.required(),
     otherwise: (schema) => schema.notRequired().nullable(),
   }),
@@ -115,7 +113,12 @@ export const DisclosureForm = ({
               <FormikNativeSelect
                 name='type'
                 label='Type'
-                selectOptions={['state disclosure', 'general disclosure', 'terms & conditions']}
+                selectOptions={[
+                  'state disclosure',
+                  'general disclosure',
+                  'terms & conditions',
+                  'other',
+                ]}
               />
             </Grid>
             <Grid xs={6} sm={4} md={3}>
