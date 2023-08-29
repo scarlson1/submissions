@@ -6,6 +6,7 @@ import { generateHTML } from '@tiptap/react';
 import { COLLECTIONS, Disclosure } from 'common';
 import { EDITOR_EXTENSION_DEFAULTS, useDialog } from 'hooks';
 import { QueryArgs, mapWhereConstraints } from 'modules/utils';
+import { DialogOptions } from 'context';
 
 // TODO: pass query constraints as array instead of state & product props
 
@@ -51,25 +52,34 @@ export const useDisclosure = (props: DisclosureConstraints = []) => {
   );
 };
 
-// TODO: text to disclosures collection ?? with fallback ??
 export function useGeneralQuoteDisclosure() {
   const dialog = useDialog();
+  const { disclosureHTML } = useDisclosure([['type', '==', 'general disclosure']]);
 
   return useCallback(
     async (e: React.MouseEvent<HTMLSpanElement, MouseEvent>) => {
       e.stopPropagation();
       e.preventDefault();
 
-      await dialog.prompt({
+      let dialogArgs: DialogOptions = {
         variant: 'info',
         catchOnCancel: false,
         title: 'Disclosure',
-        description: `A request for quote is subject to all state regulations, including, but not limited to, license and due diligence requirements regarding non-admitted insurance. This website is not intended for business in any state not licensed. Any initial premium indication is not a quote until full submission information has been provided and approved including all state disclosure, taxes, and fees.`,
         slotProps: {
           dialog: { maxWidth: 'sm' },
         },
-      });
+      };
+
+      if (disclosureHTML) {
+        dialogArgs['content'] = <div dangerouslySetInnerHTML={{ __html: disclosureHTML }} />;
+      } else {
+        dialogArgs[
+          'description'
+        ] = `A request for quote is subject to all state regulations, including, but not limited to, license and due diligence requirements regarding non-admitted insurance. This website is not intended for business in any state not licensed. Any initial premium indication is not a quote until full submission information has been provided and approved including all state disclosure, taxes, and fees.`;
+      }
+
+      await dialog.prompt(dialogArgs);
     },
-    [dialog]
+    [dialog, disclosureHTML]
   );
 }

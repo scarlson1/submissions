@@ -5,7 +5,7 @@ import { useFirestore, useFirestoreDocDataOnce } from 'reactfire';
 import { FormikHelpers } from 'formik';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import { COLLECTIONS, Disclosure, Product } from 'common';
+import { COLLECTIONS, Disclosure, DisclosureType, Product } from 'common';
 import { useAsyncToast } from 'hooks';
 import { ADMIN_ROUTES, createPath } from 'router';
 import 'components/textEditor/TextEditor.css';
@@ -69,7 +69,7 @@ export const DisclosureEdit = () => {
           products: data.products,
           state: data.state || '',
           displayName: data.displayName || '',
-          type: data.type || '',
+          type: data.type || ('' as DisclosureType),
           content: data.content,
         }}
         onSubmit={handleSubmit}

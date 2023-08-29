@@ -1,8 +1,7 @@
-import { isDate } from 'date-fns';
+import { isDate, isValid } from 'date-fns';
 import { Firestore, GeoPoint, Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
 import { error, info, warn } from 'firebase-functions/logger';
-import { projectID } from 'firebase-functions/params';
 import { StorageEvent } from 'firebase-functions/v2/storage';
 import fs from 'fs';
 import { geohashForLocation } from 'geofire-common';
@@ -48,6 +47,7 @@ import {
   getNewLocationId,
   getReportErrorFn,
   getTermDays,
+  hostingBaseURL,
   licensesCollection,
   maxA,
   maxBCD,
@@ -71,9 +71,16 @@ import { getInStatePremium, getOutStatePremium, recalcTaxes } from '../modules/t
 import { sendAdminPolicyImportNotification } from '../services/sendgrid';
 import { CSVQuoteRow } from './importQuotes';
 
+// TODO:
+//  - add rating fields (used for ratios)
+//  - cancel date (and filter out cancelled dates from any policy totals)
+//  - refactor policy created firestore listener (trigger policy.created explicitly)
+//  - transactions import from CSV
+//  - move transform, validation, types/model, etc. to separate file
+
 const IMPORT_POLICIES_FOLDER = 'importPolicies';
 
-// store surplus lines producer of record info so it doesn't need to be refetched
+// store surplus lines producer of record info in global scope so it doesn't need to be refetched
 let surplusLinesLicenseByState: Record<string, any> = {};
 
 // TODO: type input row
@@ -101,6 +108,7 @@ type CSVPolicyCamelCaseHeaders =
   | 'locationExpirationDate'
   | 'policyEffectiveDate'
   | 'policyExpirationDate'
+  | 'cancelEffectiveDate' // 'cancelEffDate'
   | 'term'
   | 'displayName'
   | 'firstName'
@@ -174,6 +182,7 @@ interface ParsedPolicyRow {
   expirationDate: Date | null;
   policyEffectiveDate: Date | null;
   policyExpirationDate: Date | null;
+  cancelEffDate: Date | null;
   externalId: string;
   additionalInsured: AdditionalInsured[];
   mortgageeInterest: Mortgagee[];
@@ -183,13 +192,14 @@ interface ParsedPolicyRow {
   product: string;
   mgaCommissionPct: number | null;
   AALs: Nullable<ValueByRiskType>;
+  // TODO: other required rating data (from Ron)
 }
 
 const reportErr = getReportErrorFn('importPolicies');
 
 export default async (event: StorageEvent) => {
   const fileBucket = event.bucket;
-  const filePath = event.data.name; // File path in the bucket.
+  const filePath = event.data.name;
   const fileName = path.basename(filePath || '');
 
   if (shouldReturnEarly(event, IMPORT_POLICIES_FOLDER, 'text/csv', 'processed')) return;
@@ -302,9 +312,7 @@ export default async (event: StorageEvent) => {
     if (audience.value() !== 'LOCAL HUMANS') {
       to.push('ron.carlson@idemandinsurance.com');
 
-      link = `https://console.firebase.google.com/project/${projectID.value()}/firestore/data/~2F${
-        COLLECTIONS.DATA_IMPORTS
-      }~2F${summaryRef.id}`;
+      link = `${hostingBaseURL.value}/admin/config/imports`;
     }
 
     await sendAdminPolicyImportNotification(
@@ -329,9 +337,6 @@ export default async (event: StorageEvent) => {
 
   return;
 };
-
-// (row: CSVPolicyRow):  ParsedPolicyRow {
-// function transformPolicyRow(row: ParserSyncRowTransform<CSVPolicyRow, ParsedPolicyRow>) {
 
 /** Converts to correct type and unflattens
  * @param {CSVPolicyRow} row raw input from csv
@@ -444,6 +449,7 @@ function transformPolicyRow(row: CSVPolicyRow): ParsedPolicyRow {
     expirationDate: dateWithTimeZone(row.locationExpirationDate), // row.locationExpirationDate ? new Date(row.locationExpirationDate) : null,
     policyEffectiveDate: dateWithTimeZone(row.policyEffectiveDate),
     policyExpirationDate: dateWithTimeZone(row.policyExpirationDate), // row.policyExpirationDate ? new Date(row.policyExpirationDate) : null,
+    cancelEffDate: dateWithTimeZone(row.cancelEffectiveDate),
     externalId: row.locationId,
     additionalInsured: [],
     mortgageeInterest: [],
@@ -465,7 +471,8 @@ function transformPolicyRow(row: CSVPolicyRow): ParsedPolicyRow {
  * @returns {boolean} returns false if validation fails, otherwise true
  */
 function validatePolicyRow(data: ParsedPolicyRow) {
-  console.log('VALIDATION ROW: ', data);
+  // console.log('VALIDATION ROW: ', data);
+  // TODO: use verify instead of invariant
   try {
     invariant(
       truthyOrZero(data.limits?.limitA) && typeof data.limits?.limitA === 'number',
@@ -579,6 +586,11 @@ function validatePolicyRow(data: ParsedPolicyRow) {
     invariant(
       locationExpAfterPolicyExp,
       'location expiration date cannot be after policy expiration date'
+    );
+
+    invariant(
+      data.cancelEffDate === null || isValid(new Date(data.cancelEffDate)),
+      'cancelEffectiveDate must be blank or a valid date'
     );
 
     invariant(data.policyId, 'policyId required');
@@ -827,6 +839,7 @@ async function getPolicyWithoutLocation(
   return p;
 }
 
+// TODO: move to modules/db
 async function getSPLPofR(firestore: Firestore, state: string) {
   const colRef = licensesCollection(firestore);
   const q = colRef.where('state', '==', state).where('surplusLinesProducerOfRecord', '==', true);

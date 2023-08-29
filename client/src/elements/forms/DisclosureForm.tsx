@@ -10,6 +10,7 @@ import { useTextEditor } from 'hooks';
 import { EditorToolbar } from 'components/textEditor/EditorToolbar';
 import { FormikNativeSelect, FormikSelect, FormikTextField } from 'components/forms';
 import 'components/textEditor/TextEditor.css';
+import { DisclosureType } from 'common';
 
 const disclosureValidation = yup.object().shape({
   products: yup.array().of(yup.string()).min(1),
@@ -26,7 +27,7 @@ export interface DisclosureValues {
   products: string[];
   state: string;
   displayName: string;
-  type?: string | null;
+  type?: DisclosureType | null; // string | null;
   content?: JSONContent | null;
 }
 
@@ -39,7 +40,12 @@ export interface DisclosureFormProps extends Partial<FormikConfig<DisclosureValu
 export const DisclosureForm = ({
   onSubmit,
   editorContent = '',
-  initialValues = { products: ['flood', 'wind'], state: '', displayName: '', type: '' },
+  initialValues = {
+    products: ['flood', 'wind'],
+    state: '',
+    displayName: '',
+    type: '' as DisclosureType,
+  },
   title,
   ...rest
 }: DisclosureFormProps) => {

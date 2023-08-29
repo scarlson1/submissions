@@ -1153,11 +1153,16 @@ export interface License extends BaseDoc {
   phone?: string | null;
 }
 
+export type DisclosureType =
+  | 'state disclosure'
+  | 'general disclosure'
+  | 'terms & conditions'
+  | 'other';
 export interface Disclosure extends BaseDoc {
   products: Product[];
   state: string | null;
   displayName?: string | null;
-  type?: string | null;
+  type?: DisclosureType | null;
   content: JSONContent;
 }
 
