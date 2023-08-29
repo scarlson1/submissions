@@ -1,12 +1,11 @@
 import { add } from 'date-fns';
 import { Timestamp, getFirestore } from 'firebase-admin/firestore';
-import { error, info } from 'firebase-functions/logger';
+import { info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import { geohashForLocation } from 'geofire-common';
-import invariant from 'tiny-invariant';
+import { sumBy } from 'lodash';
 import { v4 as uuidv4 } from 'uuid';
 
-import { sumBy } from 'lodash';
 import {
   AdditionalInsured,
   License,
@@ -18,12 +17,15 @@ import {
   Quote,
   calcSum,
   calcTerm,
+  getReportErrorFn,
   policiesCollection,
   quotesCollection,
+  verify,
 } from '../common';
 import { getSLLicenseByState } from '../modules/db';
-import { getRCVs } from '../modules/rating';
+import { getCarrierByState, getRCVs } from '../modules/rating';
 import { checkMoratoriums } from '../services';
+import { publishPolicyCreated } from '../services/pubsub';
 import { onCallWrapper } from '../services/sentry';
 import { validate } from './utils';
 
@@ -38,11 +40,12 @@ import { validate } from './utils';
 
 // firestore getAll: https://stackoverflow.com/a/53508963
 
+const reportErr = getReportErrorFn('createPolicy');
+
 interface CreatePolicyProps {
   quoteId: string;
 }
 
-// export default async ({ data, auth }: CallableRequest<{ quoteId: string }>) => {
 const createPolicy = async ({ data, auth }: CallableRequest<CreatePolicyProps>) => {
   const db = getFirestore();
 
@@ -78,10 +81,10 @@ const createPolicy = async ({ data, auth }: CallableRequest<CreatePolicyProps>) 
 
       isMoratorium = mortRes;
     } catch (err: any) {
-      // TODO: report to sentry (getErrorReporter)
-      error(
+      reportErr(
         `Error fetching moratoriums for FIPS ${quoteData.address.countyFIPS}. Continuing policy creation.`,
-        { err }
+        {},
+        err
       );
     }
   }
@@ -94,7 +97,8 @@ const createPolicy = async ({ data, auth }: CallableRequest<CreatePolicyProps>) 
   } catch (err: any) {
     let msg = `Error retrieving SL license`;
     if (err?.message) msg += ` (${err.message})`;
-    error(msg, { err });
+
+    reportErr(msg, {}, err);
     throw new HttpsError('internal', msg);
   }
 
@@ -103,7 +107,7 @@ const createPolicy = async ({ data, auth }: CallableRequest<CreatePolicyProps>) 
     policyData = convertQuoteToPolicy(quoteData, licenseData, quoteId);
   } catch (err: any) {
     let msg = 'invalid or missing data';
-    if (err?.message) msg = err.message.replace('Invariant failed: ', '');
+    if (err?.message) msg = err.message;
     throw new HttpsError('invalid-argument', msg);
   }
 
@@ -111,6 +115,8 @@ const createPolicy = async ({ data, auth }: CallableRequest<CreatePolicyProps>) 
     // TODO: use set ?? or get policy to see if it exists. If it does, need to check status
 
     // TODO: error if already paid. could be scenario where policy was created but payment failed
+
+    // TODO: batch updates ??
 
     // How should ^ scenario be handled on the front end ??
     // OPTION 1:
@@ -135,22 +141,40 @@ const createPolicy = async ({ data, auth }: CallableRequest<CreatePolicyProps>) 
         'metadata.updated': Timestamp.now(),
       });
     } catch (err) {
-      // TODO: report error in sentry
-      error('Error updating quote status to bound', {
-        quoteId: quoteSnap.id,
+      reportErr(
+        'Error updating quote status to bound',
+        {
+          quoteId: quoteSnap?.id || null,
+          policyId: policyRef?.id || null,
+          userId: uid || null,
+        },
+        err
+      );
+    }
+
+    try {
+      await publishPolicyCreated({
         policyId: policyRef.id,
-        userId: uid || null,
       });
+    } catch (err: any) {
+      reportErr(
+        `Error publishing policy.created pubsub event (${policyRef?.id})`,
+        { policyId: policyRef?.id || null },
+        err
+      );
     }
 
     return { policyId: policyRef.id };
   } catch (err: any) {
-    console.log('ERROR => ', err);
-    error('Error creating policy', {
-      data,
-      quoteId,
-      userId: uid,
-    });
+    reportErr(
+      'Error creating policy',
+      {
+        data,
+        quoteId,
+        userId: uid,
+      },
+      err
+    );
     if (err instanceof HttpsError) {
       throw new HttpsError(err.code, err.message, err.details);
     } else {
@@ -164,23 +188,23 @@ export default onCallWrapper<CreatePolicyProps>('createpolicy', createPolicy);
 // TODO: update to handle multiple locations once Quote interface / process is updated
 // TODO: move validation outside function and wrap Quote in NonNullable<Quote>
 function convertQuoteToPolicy(data: Quote, license: License, quoteId: string | null): Policy {
-  invariant(data.coordinates, 'missing coordinates');
-  invariant(data.effectiveDate, 'missing effective date');
-  // invariant(data.expirationDate, 'missing expiration date');
-  invariant(data.namedInsured?.firstName, 'missing named insured first name');
-  invariant(data.namedInsured?.lastName, 'missing named insured last name');
+  verify(data.coordinates, 'missing coordinates');
+  verify(data.effectiveDate, 'missing effective date');
+  // verify(data.expirationDate, 'missing expiration date');
+  verify(data.namedInsured?.firstName, 'missing named insured first name');
+  verify(data.namedInsured?.lastName, 'missing named insured last name');
   // TODO: validate email/phone are valid
-  invariant(data.namedInsured?.email, 'missing named insured email');
-  invariant(data.namedInsured?.phone, 'missing named insured phone');
+  verify(data.namedInsured?.email, 'missing named insured email');
+  verify(data.namedInsured?.phone, 'missing named insured phone');
 
-  invariant(data.agent?.name, 'missing agent name');
-  invariant(data.agent?.email, 'missing agent email');
-  // invariant(data.agent?.phone, 'missing agent phone'); // TODO: dont validate if no field on front end
-  invariant(data.agency?.name, 'missing agency name');
-  invariant(data.agency?.address, 'missing agency address');
-  invariant(data.agency?.orgId, 'missing agency orgId');
-  invariant(data.quoteTotal, 'missing quote total');
-  invariant(typeof data.quoteTotal === 'number', ' quote total must be a number');
+  verify(data.agent?.name, 'missing agent name');
+  verify(data.agent?.email, 'missing agent email');
+  // verify(data.agent?.phone, 'missing agent phone'); // TODO: dont validate if no field on front end
+  verify(data.agency?.name, 'missing agency name');
+  verify(data.agency?.address, 'missing agency address');
+  verify(data.agency?.orgId, 'missing agency orgId');
+  verify(data.quoteTotal, 'missing quote total');
+  verify(typeof data.quoteTotal === 'number', ' quote total must be a number');
   // TODO: more rigid quote total validation
 
   const geoHash = geohashForLocation([data.coordinates.latitude, data.coordinates.longitude]);
@@ -319,15 +343,4 @@ function convertQuoteToPolicy(data: Quote, license: License, quoteId: string | n
   };
 
   return policy;
-}
-
-// TODO: move to JS Module
-export function getCarrierByState(state: string) {
-  switch (state) {
-    case 'CA':
-    case 'NY':
-      return 'Rockingham Insurance Company';
-    default:
-      return 'Rockingham Specialty Insurance, Inc.';
-  }
 }

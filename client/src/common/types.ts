@@ -702,10 +702,10 @@ export interface OffsetTransaction extends BaseTransaction {
   // require premiumCalcData ??
 }
 
-export type PremTrxTypes = 'new' | 'renewal' | 'endorsement' | 'reinstatement';
+export type PremTrxType = 'new' | 'renewal' | 'endorsement' | 'reinstatement';
 // TODO: missing AALs, multipliers, LAE,  ??
 export interface PremiumTransaction extends BaseTransaction {
-  trxType: PremTrxTypes;
+  trxType: PremTrxType;
   insuredLocation: PolicyLocation;
   ratingPropertyData: TrxRatingData;
   deductible: number;

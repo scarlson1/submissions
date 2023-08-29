@@ -1,26 +1,25 @@
-import { Box, Container, Divider, Unstable_Grid2 as Grid, Link, Typography } from '@mui/material';
-import { Form, Formik, FormikConfig, useFormikContext } from 'formik';
 import { LoadingButton } from '@mui/lab';
-import { string, object, mixed } from 'yup';
-import { useCallback, useEffect, useState } from 'react';
-import { ref } from 'firebase/storage';
-import { useStorage, useStorageDownloadURL } from 'reactfire';
+import { Box, Container, Divider, Unstable_Grid2 as Grid, Typography } from '@mui/material';
+import { Form, Formik, FormikConfig, useFormikContext } from 'formik';
 import { camelCase, isEqual } from 'lodash';
+import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
+import { mixed, object, string } from 'yup';
 
 import { BaseContact, OptionalKeys, emailVal } from 'common';
+import { DownloadStorageFileButton } from 'components';
 import { FormikCheckbox, FormikDragDrop, FormikTextField } from 'components/forms';
 import { RouterLink } from 'components/layout';
-import { ROUTES, createPath } from 'router';
-import { getHeaderStatus } from 'views/admin/Quotes';
 import { RequiredHeaders } from 'elements';
 import {
+  useDialog,
+  useDisclosure,
+  useGeneralQuoteDisclosure,
   useParseCSV,
   usePrevious,
-  useGeneralQuoteDisclosure,
-  useDisclosure,
-  useDialog,
 } from 'hooks';
+import { ROUTES, createPath } from 'router';
+import { getHeaderStatus } from 'views/admin/Quotes';
 
 // const PORTFOLIO_QUOTE_TEMPLATE_URL = '';
 
@@ -93,11 +92,6 @@ export function PortfolioSubmissionForm({
   initialValues = DEFAULT_INITIAL_VALUES,
   ...props
 }: PortfolioSubmissionFormProps) {
-  // USE GITHUB INSTEAD ??
-  const storage = useStorage();
-  const templateRef = ref(storage, `public/floodQuoteTemplate.csv`);
-  const { data: templateURL } = useStorageDownloadURL(templateRef);
-
   const showDisclosure = useGeneralQuoteDisclosure();
   const { disclosureHTML } = useDisclosure([['displayName', '==', 'Exempt Commercial Purchaser']]);
   const dialog = useDialog();
@@ -127,11 +121,13 @@ export function PortfolioSubmissionForm({
               <Grid xs={12}>
                 <Typography variant='body1' component='div' sx={{ pb: 2 }}>
                   Please upload a CSV containing the locations you would like quoted.{' '}
-                  {templateURL && (
-                    <Link href={templateURL} download>
-                      Download template
-                    </Link>
-                  )}
+                  <DownloadStorageFileButton
+                    filePath='public/floodQuoteTemplate.csv'
+                    variant='body1'
+                    sx={{ pb: 2 }}
+                  >
+                    Download template
+                  </DownloadStorageFileButton>
                 </Typography>
                 <PortfolioDragDrop requiredHeaders={REQUIRED_HEADERS} formatFn={camelCase} />
               </Grid>

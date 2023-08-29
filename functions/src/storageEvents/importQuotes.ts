@@ -2,12 +2,11 @@ import { add, isDate, startOfDay } from 'date-fns';
 import { GeoPoint, Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
 import { error, info } from 'firebase-functions/logger';
-import { projectID } from 'firebase-functions/params';
 import { StorageEvent } from 'firebase-functions/v2/storage';
 import fs from 'fs';
 import { geohashForLocation } from 'geofire-common';
 import { tmpdir } from 'os';
-import path from 'path';
+import { basename, join } from 'path';
 import invariant from 'tiny-invariant';
 
 import {
@@ -22,6 +21,7 @@ import {
   extractNumber,
   extractNumberNeg,
   getCardFee,
+  hostingBaseURL,
   isValidEmail,
   maxBCD,
   minDeductibleFlood,
@@ -111,7 +111,7 @@ export interface CSVQuoteRow {
 export default async (event: StorageEvent) => {
   const fileBucket = event.bucket;
   const filePath = event.data.name; // File path in the bucket.
-  const fileName = path.basename(filePath || '');
+  const fileName = basename(filePath || '');
 
   if (shouldReturnEarly(event, QUOTE_IMPORT_FOLDER, 'text/csv', 'processed')) return;
   if (eventOlderThan(event)) return; // return if event older than 1 min
@@ -121,7 +121,7 @@ export default async (event: StorageEvent) => {
 
   const storage = getStorage();
   const bucket = storage.bucket(fileBucket);
-  const tempFilePath = path.join(tmpdir(), `temp_portfolio_import_${fileName}`);
+  const tempFilePath = join(tmpdir(), `temp_portfolio_import_${fileName}`);
 
   await bucket.file(filePath).download({ destination: tempFilePath });
   info(`File downloaded locally to ${tempFilePath}`);
@@ -147,6 +147,8 @@ export default async (event: StorageEvent) => {
       dataArr,
     });
     if (!dataArr.length) throw new Error('No valid rows');
+
+    await unlinkFile(tempFilePath);
   } catch (err: any) {
     error(`ERROR PARSING CSV. RETURNING EARLY`, { err });
 
@@ -206,13 +208,10 @@ export default async (event: StorageEvent) => {
 
     if (audience.value() !== 'LOCAL HUMANS') {
       to.push('ron.carlson@idemandinsurance.com');
-
-      link = `https://console.firebase.google.com/project/${projectID.value()}/firestore/data/~2F${
-        COLLECTIONS.DATA_IMPORTS
-      }~2F${summaryRef.id}`;
+      link = `${hostingBaseURL.value}/admin/config/imports`;
     }
 
-    sendAdminPolicyImportNotification(
+    await sendAdminPolicyImportNotification(
       sendgridApiKey.value(),
       to,
       quoteIds.length,

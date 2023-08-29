@@ -20,6 +20,13 @@ export const getfips = onObjectFinalized({ secrets: [googleGeoKey] }, async (eve
   await (await import('./getFIPS.js')).default(event);
 });
 
+export const importtransactions = onObjectFinalized(
+  { secrets: [sendgridApiKey] },
+  async (event) => {
+    await (await import('./importTransactions.js')).default(event);
+  }
+);
+
 export const rateportfolio = onObjectFinalized(
   {
     secrets: [swissReClientId, swissReClientSecret, swissReSubscriptionKey, sendgridApiKey],

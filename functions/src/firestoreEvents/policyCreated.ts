@@ -2,7 +2,7 @@ import { info } from 'firebase-functions/logger';
 import { FirestoreEvent, QueryDocumentSnapshot } from 'firebase-functions/v2/firestore';
 
 import { COLLECTIONS, Policy, getReportErrorFn, verify } from '../common';
-import { publishGetLocationImages, publishPolicyCreated } from '../services/pubsub';
+import { publishGetLocationImages } from '../services/pubsub';
 
 const reportErr = getReportErrorFn('policyCreated');
 
@@ -16,13 +16,14 @@ export default async (
 ) => {
   const policyId = event.params.policyId;
 
-  try {
-    await publishPolicyCreated({
-      policyId,
-    });
-  } catch (err: any) {
-    reportErr(`Error publishing policy.created pubsub event`, { policyId }, err);
-  }
+  // MOVED TO createPolicy callable function
+  // try {
+  //   await publishPolicyCreated({
+  //     policyId,
+  //   });
+  // } catch (err: any) {
+  //   reportErr(`Error publishing policy.created pubsub event`, { policyId }, err);
+  // }
 
   // loop through locations --> image get image if no value
   try {

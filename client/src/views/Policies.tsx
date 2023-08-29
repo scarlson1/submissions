@@ -1,5 +1,5 @@
 import { Alert, AlertTitle, Box, Collapse, Link, MenuItem, Stack, useTheme } from '@mui/material';
-import { UploadResult, ref } from 'firebase/storage';
+import { UploadResult } from 'firebase/storage';
 import { useCallback, useState } from 'react';
 
 import { useAuth } from 'context';
@@ -31,14 +31,13 @@ import {
   PolicyLocation,
   fallbackImages,
 } from 'common';
-import { FlexCard, FlexCardContent } from 'components';
+import { DownloadStorageFileButton, FlexCard, FlexCardContent } from 'components';
 import { IconMenu } from 'components/IconButtonMenu';
 import { CSVUploadDialog } from 'elements';
 import { ControlledChangeRequestDialog } from 'elements/ChangeRequestDialog';
 import { PoliciesGrid } from 'elements/grids';
 import { useAsyncToast, useCollectionData, useShowJson } from 'hooks';
 import { formatFirestoreTimestamp, getDuplicates } from 'modules/utils';
-import { useStorage, useStorageDownloadURL } from 'reactfire';
 import { ROUTES, createPath } from 'router';
 import { Item } from './UserSubmissions';
 import { getHeaderStatus } from './admin/Quotes';
@@ -150,11 +149,6 @@ function AdminPoliciesActionMenu() {
   const [open, setOpen] = useState<string | null>(null);
   const [dupHeaders, setDupHeaders] = useState<string[]>([]);
 
-  // TODO: host on github and download .xlsx version ??
-  const storage = useStorage();
-  const templateRef = ref(storage, `public/policyImportTemplate.csv`);
-  const { data: templateURL } = useStorageDownloadURL(templateRef);
-
   const handleOpen = useCallback((val: string) => () => setOpen(val), []);
   const handleClose = useCallback(() => {
     setOpen(null);
@@ -184,7 +178,7 @@ function AdminPoliciesActionMenu() {
     },
     [toast]
   );
-
+  // `public/policyImportTemplate.csv`
   return (
     <>
       <IconMenu>
@@ -199,13 +193,9 @@ function AdminPoliciesActionMenu() {
         title={
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Typography variant='h6'>Import Policies</Typography>
-            {templateURL && (
-              <Typography variant='button'>
-                <Link href={templateURL} download>
-                  Download template
-                </Link>
-              </Typography>
-            )}
+            <DownloadStorageFileButton filePath='public/policyImportTemplate.csv'>
+              Download template
+            </DownloadStorageFileButton>
           </Box>
         }
       >

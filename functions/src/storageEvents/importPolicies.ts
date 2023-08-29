@@ -11,7 +11,6 @@ import path from 'path';
 import invariant from 'tiny-invariant';
 import { v4 as uuid } from 'uuid';
 
-import { getCarrierByState } from '../callables/createPolicy';
 import {
   AdditionalInsured,
   Address,
@@ -60,7 +59,7 @@ import {
   truthyOrZero,
   unlinkFile,
 } from '../common';
-import { getRCVs, sumFeesTaxesPremium } from '../modules/rating';
+import { getCarrierByState, getRCVs, sumFeesTaxesPremium } from '../modules/rating';
 import { dateWithTimeZone, eventOlderThan, shouldReturnEarly } from '../modules/storage';
 import {
   ParseStreamToArrayRes,
@@ -236,7 +235,8 @@ export default async (event: StorageEvent) => {
     info(`${parsed.dataArr.length} valid rows and ${parsed.invalidRows.length} invalid rows`);
     if (!dataArr.length) throw new Error('No valid rows');
 
-    fs.unlinkSync(tempFilePath);
+    // fs.unlinkSync(tempFilePath);
+    await unlinkFile(tempFilePath);
   } catch (err: any) {
     reportErr(`ERROR PARSING CSV. RETURNING EARLY`, {}, err);
 

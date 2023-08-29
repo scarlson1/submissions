@@ -14,11 +14,12 @@ export function ErrorFallback({ error, resetErrorBoundary }: ErrorFallbackProps)
         variant='outlined'
         severity='error'
         sx={{ maxWidth: '500px' }}
-        action={
-          <Button color='inherit' size='small' onClick={resetErrorBoundary}>
-            Try Again
-          </Button>
-        }
+        // TODO: fix try again reset (not working for auth error (auth/network-request-failed))
+        // action={
+        //   <Button color='inherit' size='small' onClick={resetErrorBoundary}>
+        //     Try Again
+        //   </Button>
+        // }
       >
         <AlertTitle>Something went wrong</AlertTitle>
         <Box>

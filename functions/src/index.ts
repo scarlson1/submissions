@@ -63,7 +63,13 @@ export {
 } from './pubsub';
 export { authRequests, authrequeststest, generatepdf, sendgrid } from './routes';
 export { checkachstatus } from './scheduler';
-export { getfips, importpolicies, importquotes, rateportfolio } from './storageEvents';
+export {
+  getfips,
+  importpolicies,
+  importquotes,
+  importtransactions,
+  rateportfolio,
+} from './storageEvents';
 
 export { pubsubhelper } from './routes';
 

@@ -13,6 +13,7 @@ export { getAALs, validateGetAALsProps } from './getAALs.js';
 export { getPremium } from './getPremium.js';
 export { getRCVs } from './getRCVs.js';
 export { getMinPremium, minPremiumTable } from './minPremium.js';
+export * from './misc';
 export { multipliersByState } from './multipliersByState.js';
 export {
   getInlandRiskScore,
@@ -21,8 +22,8 @@ export {
   inlandPMRiskArray,
   surgePMRiskArray,
 } from './riskScore.js';
-export * from './validation.js';
 export * from './sumPremium.js';
+export * from './validation.js';
 
 export type { GetAALRes, GetAALsProps } from './getAALs.js';
 export type { GetPremiumProps } from './getPremium.js';

@@ -23,8 +23,8 @@ import { filterUniqueArr, getNewLocationId, removeFromArr } from './helpers.js';
 
 // TODO: FIX TIMESTAMP TYPINGS
 export interface BaseMetadata {
-  created: any; // WithFieldValue<Timestamp>;
-  updated: any; // WithFieldValue<Timestamp>;
+  created: Timestamp; // any; // WithFieldValue<Timestamp>;
+  updated: Timestamp; // any; // WithFieldValue<Timestamp>;
 }
 
 export interface BaseDoc {
@@ -59,6 +59,11 @@ export type Maybe<T> = T | null | undefined;
 
 export type Concrete<Type> = {
   [Property in keyof Type]-?: NonNullable<Type[Property]>;
+};
+
+// meant to override DeepPartial, but not working
+export type DeepConcrete<T> = {
+  [K in keyof T]-?: T[K] extends object ? DeepConcrete<T[K]> : NonNullable<T[K]>;
 };
 
 export type FlattenObjectKeys<T extends Record<string, any>, Key = keyof T> = Key extends string
@@ -1129,10 +1134,10 @@ interface BaseTransaction extends BaseDoc {
   homeState: string;
   policyEffDate: Timestamp;
   policyExpDate: Timestamp;
-  trxEffDate: Timestamp; // for when premium is earned (where is this retrieved from ??)
+  trxEffDate: Timestamp;
   trxExpDate: Timestamp;
   trxDays: number; // trxExpDate - trxEffDate
-  eventId: string;
+  eventId: string | null;
 }
 
 export type CancellationReason =
@@ -1141,8 +1146,10 @@ export type CancellationReason =
   | 'exposure_change'
   | 'insured_choice';
 
+export type OffsetTrxType = 'endorsement' | 'cancellation' | 'flat_cancel';
+
 export interface OffsetTransaction extends BaseTransaction {
-  trxType: 'endorsement' | 'cancellation' | 'flat_cancel';
+  trxType: OffsetTrxType;
   trxInterfaceType: 'offset';
   insuredLocation: PolicyLocation;
   termPremium: number;
@@ -1161,9 +1168,12 @@ export interface OffsetTransaction extends BaseTransaction {
   // require premiumCalcData ??
 }
 
-export type PremTrxTypes = 'new' | 'renewal' | 'endorsement' | 'reinstatement';
+export type PremTrxType = 'new' | 'renewal' | 'endorsement' | 'reinstatement';
+
+// TODO: need to add policy level data (policy price, taxes, fees, etc.)
+
 export interface PremiumTransaction extends BaseTransaction {
-  trxType: PremTrxTypes;
+  trxType: PremTrxType;
   trxInterfaceType: 'premium';
   insuredLocation: PolicyLocation;
   ratingPropertyData: TrxRatingData;
@@ -1466,6 +1476,7 @@ export type EmailTemplates =
   | 'quote_expiring'
   | 'policy_import'
   | 'quote_import'
+  | 'trx_import'
   | 'portfolio_rating_complete';
 
 export interface SpatialKeyResponse {
