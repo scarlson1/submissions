@@ -632,12 +632,16 @@ export function getChipProps(status: ChipStatus): Partial<ChipProps> {
       return { icon: <QueryBuilderRounded />, color: 'warning' };
     case INVITE_STATUS.ACCEPTED:
       return { icon: <CheckRounded />, color: 'success' };
+    case 'declined':
+      return { icon: <ThumbDownRounded />, color: 'default' };
     case CHANGE_REQUEST_STATUS.DENIED:
       return { icon: <CloseRounded />, color: 'error' };
     case 'active':
       return { icon: <CheckRounded />, color: 'success' };
     case 'inactive':
       return { icon: <DisabledByDefaultRounded />, color: 'default' };
+    case 'new':
+      return { icon: <FiberNewRounded />, color: 'primary' };
     default:
       return { color: 'default' };
   }
@@ -1938,7 +1942,7 @@ export const trxAdditionalNamedInsuredCol: GridColDef = {
   editable: false,
   filterable: false,
   sortable: false,
-  valueGetter: (params) => params.row.otherInterestedParties || null,
+  valueGetter: (params) => params.row.additionalNamedInsured || null,
   renderCell: renderJoinArray,
   valueFormatter: (params) => {
     if (!params.value || !Array.isArray(params.value)) return null;
@@ -2105,7 +2109,7 @@ export const buildingRCVCol: GridColDef = {
   ...currencyCol,
   field: 'RCVs.building',
   headerName: 'Building RCV',
-  valueGetter: (params) => params.row.RCVs?.building || null,
+  valueGetter: (params) => params.row.RCVs?.building ?? null,
   renderCell: (params) => renderCurrency(params, false),
 };
 
@@ -2113,7 +2117,7 @@ export const otherStructuresRCVCol: GridColDef = {
   ...currencyCol,
   field: 'RCVs.otherStructures',
   headerName: 'Other Structures RCV',
-  valueGetter: (params) => params.row.RCVs?.otherStructures || null,
+  valueGetter: (params) => params.row.RCVs?.otherStructures ?? null,
   renderCell: (params) => renderCurrency(params, false),
 };
 
@@ -2121,7 +2125,7 @@ export const contentsRCVCol: GridColDef = {
   ...currencyCol,
   field: 'RCVs.contents',
   headerName: 'Contents RCV',
-  valueGetter: (params) => params.row.RCVs?.contents || null,
+  valueGetter: (params) => params.row.RCVs?.contents ?? null,
   renderCell: (params) => renderCurrency(params, false),
 };
 
@@ -2129,6 +2133,6 @@ export const BIRCVCol: GridColDef = {
   ...currencyCol,
   field: 'RCVs.BI',
   headerName: 'BI RCV',
-  valueGetter: (params) => params.row.RCVs?.BI || null,
+  valueGetter: (params) => params.row.RCVs?.BI ?? null,
   renderCell: (params) => renderCurrency(params, false),
 };

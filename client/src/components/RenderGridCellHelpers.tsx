@@ -298,8 +298,14 @@ export const renderJoinArray = (
 
   return (
     <Box>
-      {value.map((v) => (
-        <Typography variant='body2' {...(typographyProps || {})}>
+      {value.map((v, i) => (
+        <Typography
+          variant='body2'
+          component='span'
+          sx={{ mr: 1.5 }}
+          {...typographyProps}
+          key={`${v}-${i}`}
+        >
           {v}
         </Typography>
       ))}

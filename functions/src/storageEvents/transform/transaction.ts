@@ -107,27 +107,28 @@ function csvRowToPremiumTrx(row: TrxRow): DeepNullable<Omit<PremiumTransaction, 
     premiumCalcData: {
       MGACommission: row.mgaCommission ? extractNumberNeg(row.mgaCommission) : null,
       MGACommissionPct: row.mgaCommissionPct ? extractNumber(row.mgaCommissionPct) : null,
-      directWrittenPremium: row.netDirectWrittenPremium
-        ? extractNumberNeg(row.netDirectWrittenPremium)
+      // TODO: rename directWrittenPremium --> annualPremium
+      directWrittenPremium: row.locationAnnualPremium
+        ? extractNumberNeg(row.locationAnnualPremium)
         : null,
       // TODO: other reporting dependant fields
     },
     locationAnnualPremium: row.locationAnnualPremium
       ? extractNumberNeg(row.locationAnnualPremium)
       : null,
-    termPremium: row.termProratedPct ? extractNumberNeg(row.locationTermPremium) : null,
+    termPremium: row.locationTermPremium ? extractNumberNeg(row.locationTermPremium) : null,
     MGACommission: row.mgaCommission ? extractNumberNeg(row.mgaCommission) : null,
     MGACommissionPct: row.mgaCommissionPct ? extractNumber(row.mgaCommissionPct) : null,
     netDWP: row.netDirectWrittenPremium ? extractNumberNeg(row.netDirectWrittenPremium) : null,
     dailyPremium: row.dailyPremium ? extractNumberNeg(row.dailyPremium) : null,
     termProratedPct: row.termProratedPct ? extractNumber(row.termProratedPct) : null,
     netErrorAdj: row.netErrorAdj ? extractNumberNeg(row.netErrorAdj) : 0,
-    surplusLinesTax: row.surplusLinesTax ? extractNumberNeg(row.surplusLinesTax) : null,
+    surplusLinesTax: row.surplusLinesTax ? extractNumberNeg(row.surplusLinesTax) : 0,
     surplusLinesRegulatoryFee: row.surplusLinesRegulatoryFee
       ? extractNumberNeg(row.surplusLinesRegulatoryFee)
-      : null,
-    MGAFee: row.mgaFee ? extractNumberNeg(row.mgaFee) : null,
-    inspectionFee: row.inspectionFee ? extractNumberNeg(row.inspectionFee) : null,
+      : 0,
+    MGAFee: row.mgaFee ? extractNumberNeg(row.mgaFee) : 0,
+    inspectionFee: row.inspectionFee ? extractNumberNeg(row.inspectionFee) : 0,
     otherInterestedParties: row.otherInterestedParties ? row.otherInterestedParties.split(',') : [],
     additionalNamedInsured: row.additionalNamedInsured ? row.additionalNamedInsured.split(',') : [],
   };
@@ -169,6 +170,8 @@ function csvRowToInsuredLocation(row: TrxRow): DeepNullable<Omit<PolicyLocation,
       city: row.insuredCity || null,
       state: row.insuredCity || null,
       postal: row.insuredPostal || null,
+      countyFIPS: row.insuredCountyFips || null,
+      countyName: row.insuredCountyName || null,
     },
     coordinates,
     geoHash: null,

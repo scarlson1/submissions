@@ -21,6 +21,8 @@ export interface TrxRow {
   insuredCity: string;
   insuredState: string;
   insuredPostal: string;
+  insuredCountyFips?: string;
+  insuredCountyName?: string;
   latitude: string;
   longitude: string;
   otherInterestedParties: string;
@@ -42,7 +44,7 @@ export interface TrxRow {
   mgaCommissionPct: string;
   netDirectWrittenPremium: string;
   dailyPremium: string;
-  termProratedPct: number;
+  termProratedPct: string;
   netErrorAdj: string;
   surplusLinesTax: string;
   surplusLinesRegulatoryFee: string;
@@ -54,9 +56,9 @@ export interface TrxRow {
   limitC: string;
   limitD: string;
   deductible: string;
-  ratingDocId: string; // TODO: required ?? created from policy import
+  ratingDocId: string; // TODO: required ?? created from policy import (review endorsement flow)
   replacementCost: string;
-  CBRSDesignation: string;
+  cbrsDesignation: string;
   basement: string;
   distToCoastFeet: string;
   floodZone: string;

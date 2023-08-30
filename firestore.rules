@@ -242,6 +242,11 @@ service cloud.firestore {
     
     match /dataImports/{docId} {
       allow read, create, update, delete: if isIDemandAdmin() && emailVerified()
+
+      match /stagedDocs/{stagedDocId} {
+        allow read, update, delete: if isIDemandAdmin();
+        allow create: if false;
+      }
     }
 
     match /emailActivity/{docId} {

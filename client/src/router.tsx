@@ -46,6 +46,7 @@ import {
   DisclosureEdit,
   DisclosureNew,
   EditActiveStates,
+  ImportReview,
   LicenseEdit,
   LicenseNew,
   Licenses,
@@ -141,6 +142,7 @@ export enum ADMIN_ROUTES {
   DISCLOSURE_NEW = '/admin/config/disclosures/new',
   DISCLOSURE_EDIT = '/admin/config/disclosures/:disclosureId/edit',
   DATA_IMPORTS = '/admin/config/imports',
+  IMPORT_REVIEW = '/admin/config/imports/:importId',
   EMAIL_ACTIVITY = '/admin/config/email-activity',
   TRANSACTIONS = '/admin/config/transactions',
 }
@@ -206,6 +208,7 @@ type TArgs =
   | { path: ADMIN_ROUTES.USERS }
   | { path: ADMIN_ROUTES.PORTFOLIO_RATING }
   | { path: ADMIN_ROUTES.DATA_IMPORTS }
+  | { path: ADMIN_ROUTES.IMPORT_REVIEW; params: { importId: string } }
   | { path: ADMIN_ROUTES.EMAIL_ACTIVITY }
   | { path: ADMIN_ROUTES.TRANSACTIONS }
   | {
@@ -889,101 +892,6 @@ export const router = sentryCreateBrowserRouter([
               ],
             },
           },
-          // {
-          //   path: ADMIN_ROUTES.POLICIES,
-          //   element: (
-          //     <RequireAuthReactFire signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}>
-          //       <PoliciesAdmin />
-          //     </RequireAuthReactFire>
-          //   ),
-          // },
-          // {
-          //   path: ADMIN_ROUTES.SL_TAXES,
-          //   element: (
-          //     // <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
-          //     <RequireAuthReactFire signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}>
-          //       <SLTaxes />
-          //     </RequireAuthReactFire>
-
-          //     // </RequireAuth>
-          //   ),
-          //   // loader: adminTaxLoader,
-          //   errorElement: <RouterErrorBoundary />,
-          // },
-          // {
-          //   path: ADMIN_ROUTES.SL_TAXES_NEW,
-          //   element: (
-          //     // <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
-          //     <RequireAuthReactFire signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}>
-          //       <SLTaxNew />
-          //     </RequireAuthReactFire>
-
-          //     // </RequireAuth>
-          //   ),
-          // },
-          // {
-          //   path: ADMIN_ROUTES.SL_TAXES_EDIT,
-          //   element: (
-          //     <RequireAuthReactFire signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}>
-          //       <SLTaxEdit />
-          //     </RequireAuthReactFire>
-          //   ),
-          // },
-          // {
-          //   path: ADMIN_ROUTES.EDIT_ACTIVE_STATES,
-          //   element: (
-          //     <RequireAuthReactFire signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}>
-          //       <EditActiveStates />
-          //     </RequireAuthReactFire>
-          //   ),
-          // },
-          // {
-          //   path: ADMIN_ROUTES.MORATORIUMS,
-          //   element: (
-          //     // <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
-          //     <RequireAuthReactFire signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}>
-          //       <Moratoriums />
-          //     </RequireAuthReactFire>
-
-          //     // </RequireAuth>
-          //   ),
-          //   // loader: moratoriumsLoader,
-          // },
-          // {
-          //   path: ADMIN_ROUTES.MORATORIUM_NEW,
-          //   element: (
-          //     // <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
-          //     <RequireAuthReactFire signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}>
-          //       <MoratoriumNew />
-          //     </RequireAuthReactFire>
-
-          //     // </RequireAuth>
-          //   ),
-          // },
-          // {
-          //   path: ADMIN_ROUTES.SL_LICENSES,
-          //   // loader: licensesLoader,
-          //   element: (
-          //     <RequireAuthReactFire
-          //       signInCheckProps={{
-          //         validateCustomClaims: getRequiredClaimValidator(['IDEMAND_ADMIN']),
-          //       }}
-          //     >
-          //       <Licenses />
-          //     </RequireAuthReactFire>
-          //   ),
-          // },
-          // {
-          //   path: ADMIN_ROUTES.SL_LICENSE_NEW,
-          //   element: (
-          //     // <RequireAuth requiredClaims={['IDEMAND_ADMIN']}>
-          //     <RequireAuthReactFire signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}>
-          //       <LicenseNew />
-          //     </RequireAuthReactFire>
-
-          //     // </RequireAuth>
-          //   ),
-          // },
           {
             path: ADMIN_ROUTES.AGENCY_APPS,
             // loader: agencyAppsLoader,
@@ -1028,30 +936,6 @@ export const router = sentryCreateBrowserRouter([
               ],
             },
           },
-          // {
-          //   path: ADMIN_ROUTES.DISCLOSURES,
-          //   element: (
-          //     <RequireAuthReactFire signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}>
-          //       <Disclosures />
-          //     </RequireAuthReactFire>
-          //   ),
-          // },
-          // {
-          //   path: ADMIN_ROUTES.DISCLOSURE_NEW,
-          //   element: (
-          //     <RequireAuthReactFire signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}>
-          //       <DisclosureNew />
-          //     </RequireAuthReactFire>
-          //   ),
-          // },
-          // {
-          //   path: ADMIN_ROUTES.DISCLOSURE_EDIT,
-          //   element: (
-          //     <RequireAuthReactFire signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}>
-          //       <DisclosureEdit />
-          //     </RequireAuthReactFire>
-          //   ),
-          // },
           {
             path: ADMIN_ROUTES.CREATE_TENANT,
             element: (
@@ -1525,6 +1409,29 @@ export const router = sentryCreateBrowserRouter([
                   crumb: (match: CrumbMatch) => [
                     {
                       label: 'Import Summaries',
+                      link: createPath({
+                        path: ADMIN_ROUTES.DATA_IMPORTS,
+                      }),
+                    },
+                  ],
+                },
+              },
+              {
+                path: 'imports/:importId',
+                element: (
+                  <RequireAuthReactFire
+                    signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}
+                  >
+                    <ImportReview />
+                  </RequireAuthReactFire>
+                ),
+                handle: {
+                  crumb: (match: CrumbMatch) => [
+                    {
+                      label: 'Import Summaries',
+                    },
+                    {
+                      label: `${match.params.importId}`,
                     },
                   ],
                 },

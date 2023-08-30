@@ -417,15 +417,15 @@ export interface RatingPropertyData {
   priorLossCount?: string | null;
 }
 
-// TODO: determine which fields are required for rerating & only make those required. Add Rating doc when importing policies / quotes
-// TODO: use discriminating union type: 'rating' | 'premium-recalc' ??
+// determine which fields are required for rerating & only make those required. Add Rating doc when importing policies / quotes
+// use discriminating union type: 'rating' | 'premium-recalc' ??
 
-// TODO: required: limits, RCVs, TIV, deductible, AALs, address, coordinates, ratingPropertyData, premiumCalcData.MGACommission, premiumCalcData.MGACommissionPct, premiumCalcData.directWrittenPremium
+// required: limits, RCVs, TIV, deductible, AALs, address, coordinates, ratingPropertyData, premiumCalcData.MGACommission, premiumCalcData.MGACommissionPct, premiumCalcData.directWrittenPremium
 
 export type RatingPremCalcData = WithRequired<
   DeepPartial<PremiumCalcData>,
   'MGACommission' | 'MGACommissionPct' | 'directWrittenPremium'
->;
+>; // reporting --> require:  floodCategoryPremium | techPremium ??
 
 export interface RatingData extends BaseDoc {
   submissionId: string | null;
@@ -1117,7 +1117,7 @@ export interface Tax extends BaseDoc {
 // one transaction per location
 // TODO: create transaction class ?? like mongoose constructor ??
 
-interface BaseTransaction extends BaseDoc {
+export interface BaseTransaction extends BaseDoc {
   trxType: TransactionType;
   product: Product;
   policyId: string;
@@ -1181,7 +1181,7 @@ export interface PremiumTransaction extends BaseTransaction {
   limits: Limits;
   TIV: number;
   RCVs: RCVs;
-  premiumCalcData: RatingPremCalcData; // PremiumCalcData; // necessary ?? optional ??
+  premiumCalcData: RatingPremCalcData;
   locationAnnualPremium: number;
   termPremium: number;
   MGACommission: number; // idemand & subproducer
@@ -1453,6 +1453,65 @@ export interface License extends BaseDoc {
 
 // TODO: swiss re property data res type
 export type PropertyDataRes = Record<string, any>;
+
+export interface ImportSummary {
+  importCollection: string;
+  importDocIds: string[];
+  docCreationErrors: any[];
+  invalidRows: { rowNum: string | number; rowData: Record<string, any> }[];
+  metadata: {
+    created: Timestamp;
+  };
+}
+
+// export interface StagedPolicyImport extends BaseDoc {
+//   importData: Policy[];
+//   collection: COLLECTIONS.POLICIES;
+//   reviewedBy?: {
+//     userId: string | null;
+//     name: string | null;
+//   };
+// }
+
+// export interface StagedTransactionImport extends BaseDoc {
+//   importData: Transaction[];
+//   collection: COLLECTIONS.TRANSACTIONS;
+//   reviewedBy?: {
+//     userId: string | null;
+//     name: string | null;
+//   };
+// }
+
+// export interface StagedQuoteImport extends BaseDoc {
+//   importData: Quote[];
+//   collection: COLLECTIONS.QUOTES;
+//   reviewedBy?: {
+//     userId: string | null;
+//     name: string | null;
+//   };
+// }
+
+interface ImportMeta {
+  reviewBy?: {
+    userId: string | null;
+    name: string | null;
+  };
+  status: 'imported' | 'new' | 'declined';
+}
+
+export type StagedPolicyImport = Policy & {
+  importMeta: ImportMeta;
+};
+
+export type StagedTransactionImport = Transaction & {
+  importMeta: ImportMeta;
+};
+
+export type StagedQuoteImport = Quote & {
+  importMeta: ImportMeta;
+};
+
+export type StageImportRecord = StagedPolicyImport | StagedTransactionImport | StagedQuoteImport;
 
 export interface EmailRecord extends CreateMsgContentProps {
   metadata: {
