@@ -18,7 +18,7 @@ interface ApproveImportProps {
   importId: string;
 }
 
-const approveChangeRequest = async ({ data, auth }: CallableRequest<ApproveImportProps>) => {
+const approveImport = async ({ data, auth }: CallableRequest<ApproveImportProps>) => {
   info(`Approve import called`, { ...data });
 
   requireIDemandAdminClaims(auth?.token);
@@ -111,4 +111,4 @@ const approveChangeRequest = async ({ data, auth }: CallableRequest<ApproveImpor
   }
 };
 
-export default onCallWrapper<ApproveImportProps>('approveimportrequest', approveChangeRequest);
+export default onCallWrapper<ApproveImportProps>('approveimportrequest', approveImport);

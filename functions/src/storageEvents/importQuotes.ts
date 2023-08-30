@@ -1,33 +1,21 @@
-import { add, isDate, startOfDay } from 'date-fns';
-import { GeoPoint, Timestamp, getFirestore } from 'firebase-admin/firestore';
+import { Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
 import { error, info } from 'firebase-functions/logger';
 import { StorageEvent } from 'firebase-functions/v2/storage';
-import fs from 'fs';
-import { geohashForLocation } from 'geofire-common';
+import { createReadStream } from 'fs';
 import { tmpdir } from 'os';
 import { basename, join } from 'path';
-import invariant from 'tiny-invariant';
 
 import {
   COLLECTIONS,
-  DeepNullable,
-  Nullable,
-  Product,
-  QUOTE_STATUS,
   Quote,
-  RatingPropertyData,
+  StagedQuoteImport,
   audience,
-  extractNumber,
-  extractNumberNeg,
   getCardFee,
   hostingBaseURL,
-  isValidEmail,
-  maxBCD,
-  minDeductibleFlood,
-  quotesCollection,
+  importSummaryCollection,
   sendgridApiKey,
-  truthyOrZero,
+  stagedImportsCollection,
   unlinkFile,
 } from '../common';
 import { fetchTaxes } from '../modules/db';
@@ -39,7 +27,8 @@ import {
   transformHeadersCamelCase,
 } from '../modules/storage/parseStreamToArray';
 import { sendAdminPolicyImportNotification } from '../services/sendgrid';
-import { getFormattedFees } from './importPolicies';
+import { transformQuoteRow } from './transform';
+import { validateQuoteRow } from './validation';
 
 const QUOTE_IMPORT_FOLDER = 'importQuotes';
 
@@ -117,7 +106,9 @@ export default async (event: StorageEvent) => {
   if (eventOlderThan(event)) return; // return if event older than 1 min
 
   const db = getFirestore();
-  const quoteColRef = quotesCollection(db);
+  // const quoteColRef = quotesCollection(db);
+  const importSummaryRef = importSummaryCollection(db).doc(event.id);
+  const importStagingCol = stagedImportsCollection(db, importSummaryRef.id);
 
   const storage = getStorage();
   const bucket = storage.bucket(fileBucket);
@@ -129,7 +120,7 @@ export default async (event: StorageEvent) => {
   let dataArr: ParseStreamToArrayRes<Quote>['dataArr'] = [];
   let invalidRows: ParseStreamToArrayRes<Quote>['invalidRows'] = [];
 
-  const stream = fs.createReadStream(tempFilePath);
+  const stream = createReadStream(tempFilePath);
 
   try {
     const parsed = await parseStreamToArray<CSVQuoteRow, Quote>(
@@ -163,7 +154,7 @@ export default async (event: StorageEvent) => {
   for (const q of dataArr) {
     try {
       // TODO: force homeState instead of address.state
-      let taxes = await fetchTaxes(q, 'new');
+      const taxes = await fetchTaxes(q, 'new');
 
       const quoteTotal = sumFeesTaxesPremium(q.fees, taxes, q.annualPremium);
 
@@ -177,7 +168,16 @@ export default async (event: StorageEvent) => {
       };
       info(`Saving new quote`, quote);
 
-      const quoteRef = await quoteColRef.add(quote);
+      // const quoteRef = await quoteColRef.add(quote);
+
+      const data: StagedQuoteImport = {
+        ...quote,
+        importMeta: {
+          status: 'new',
+          eventId: event.id,
+        },
+      };
+      const quoteRef = await importStagingCol.add(data);
 
       quoteIds.push(quoteRef.id);
     } catch (err: any) {
@@ -191,8 +191,7 @@ export default async (event: StorageEvent) => {
   });
 
   try {
-    const importSummaryColRef = db.collection(COLLECTIONS.DATA_IMPORTS);
-    const summaryRef = await importSummaryColRef.add({
+    await importSummaryRef.set({
       importCollection: COLLECTIONS.POLICIES,
       importDocIds: quoteIds,
       docCreationErrors: importErrors,
@@ -201,7 +200,7 @@ export default async (event: StorageEvent) => {
         created: Timestamp.now(),
       },
     });
-    info(`SAVED IMPORT SUMMARY TO DOC ${summaryRef.id}`);
+    info(`SAVED IMPORT SUMMARY TO DOC ${importSummaryRef.id}`);
 
     const to = ['spencer.carlson@idemandinsurance.com'];
     let link;
@@ -233,242 +232,3 @@ export default async (event: StorageEvent) => {
 
   return;
 };
-
-/**
- * Transform csv row to Quote shape
- * @param {CSVQuoteRow} row csv row after headers converted (if header transform provided)
- * @returns {DeepNullable<Quote>} values shaped as quote, null if not provided
- */
-function transformQuoteRow(row: CSVQuoteRow): DeepNullable<Quote> {
-  const limits: Quote['limits'] = {
-    limitA: row.limitA ? extractNumber(row.limitA) : 0,
-    limitB: row.limitB ? extractNumber(row.limitB) : 0,
-    limitC: row.limitC ? extractNumber(row.limitC) : 0,
-    limitD: row.limitD ? extractNumber(row.limitD) : 0,
-  };
-
-  const address: Nullable<Quote['address']> = {
-    addressLine1: row.addressLine1 || null,
-    addressLine2: row.addressLine2 || null,
-    city: row.city || null,
-    state: row.state || null,
-    postal: row.postal || null,
-    countyName: row.countyName || null,
-    countyFIPS: row.fips || null,
-  };
-
-  const mailingAddress: Nullable<Quote['mailingAddress']> = {
-    name: row.mailingAddressName || '',
-    addressLine1: row.mailingAddressLine1 || address.addressLine1,
-    addressLine2: row.mailingAddressLine2 || address.addressLine2,
-    city: row.mailingCity || address.city,
-    state: row.mailingState || address.state,
-    postal: row.mailingPostal || address.postal,
-  };
-
-  const latitude = row.latitude ? extractNumberNeg(row.latitude) : null;
-  const longitude = row.longitude ? extractNumberNeg(row.longitude) : null;
-  const coordinates = latitude && longitude ? new GeoPoint(latitude, longitude) : null;
-
-  const geoHash = latitude && longitude ? geohashForLocation([latitude, longitude]) : null;
-
-  const ratingPropertyData: Nullable<RatingPropertyData> = {
-    CBRSDesignation: row.cbrsDesignation || null,
-    basement: row.basement || null,
-    distToCoastFeet: row.distToCoastFeet ? extractNumber(row.distToCoastFeet) : null,
-    floodZone: row.floodZone || null,
-    numStories: row.numStories ? extractNumber(row.numStories) : null,
-    propertyCode: row.propertyCode || null,
-    replacementCost: row.replacementCost ? extractNumber(row.replacementCost) : null,
-    sqFootage: row.sqFootage ? extractNumber(row.sqFootage) : null,
-    yearBuilt: row.yearBuilt ? extractNumber(row.yearBuilt) : null,
-    FFH: row.ffh ? extractNumber(row.ffh) : null,
-    priorLossCount: row.priorLossCount ?? null,
-  };
-
-  const namedInsured: Quote['namedInsured'] = {
-    firstName: row.firstName || '',
-    lastName: row.lastName || '',
-    email: row.email || '',
-    phone: row.phone || '',
-    userId: row.userId || '',
-  };
-
-  const agent: Quote['agent'] = {
-    name: row.agentName || null,
-    email: row.agentEmail || null,
-    phone: row.agentPhone || null,
-    // phone: row.agentPhone
-    //   ? row.agentPhone.length === 9
-    //     ? `+1${row.agentPhone}`
-    //     : row.agentPhone
-    //   : null,
-    userId: row.agentId || null,
-  };
-
-  const agency: Quote['agency'] = {
-    name: row.agencyName || null,
-    address: {
-      addressLine1: row.agencyAddressLine1,
-      addressLine2: row.agencyAddressLine2,
-      city: row.agencyCity,
-      state: row.agencyState,
-      postal: row.agencyPostal,
-    },
-    orgId: row.orgId,
-  };
-
-  const fees = getFormattedFees(row);
-
-  const effDate = row.effectiveDate
-    ? new Date(row.effectiveDate)
-    : add(startOfDay(new Date()), { days: 16 });
-
-  const quoteExpDate = row.quoteExpirationDate
-    ? new Date(row.quoteExpirationDate)
-    : add(startOfDay(new Date()), { days: 30 });
-
-  const quoteTotal = row.quoteTotal ? extractNumber(row.quoteTotal) : null;
-
-  const cardFee = quoteTotal ? getCardFee(quoteTotal) : 0;
-
-  return {
-    product: (row.product as Product) || null,
-    limits,
-    deductible: row.deductible ? extractNumber(row.deductible) : 0,
-    address,
-    homeState: row.homeState || row.state,
-    coordinates,
-    geoHash,
-    mailingAddress,
-    fees,
-    taxes: [],
-    annualPremium: row.annualPremium ? extractNumber(row.annualPremium) : null,
-    subproducerCommission: row.subproducerCommission
-      ? extractNumber(row.subproducerCommission)
-      : null,
-    cardFee: cardFee, // TODO: delete card fee ??
-    quoteTotal,
-    effectiveDate: Timestamp.fromDate(effDate),
-    quotePublishedDate: Timestamp.fromDate(startOfDay(new Date())),
-    quoteExpirationDate: Timestamp.fromDate(quoteExpDate),
-    externalId: row.locationId || null,
-    ratingPropertyData,
-    userId: row.userId || null,
-    namedInsured,
-    agent,
-    agency,
-    additionalInterests: [],
-    status: QUOTE_STATUS.AWAITING_USER,
-    ratingDocId: row.ratingDocId || '',
-    imageURLs: null,
-    imagePaths: null,
-    submissionId: row.submissionId || null,
-    metadata: {
-      created: Timestamp.now(),
-      updated: Timestamp.now(),
-      version: 1,
-    },
-    statusTransitions: {
-      published: Timestamp.now(),
-      accepted: null,
-      cancelled: null,
-      finalized: null,
-    },
-  };
-}
-
-// TODO: reusable quote validator ??
-/**
- * Validate formatted Quote, after transform function
- * @param {DeepNullable<Quote>} row formatted row
- * @returns {boolean} returns false if validation fails, otherwise true
- */
-function validateQuoteRow(row: DeepNullable<Quote>): boolean {
-  try {
-    invariant(
-      row.limits?.limitA && typeof row.limits?.limitA === 'number',
-      'limitA must be a number'
-    );
-    invariant(
-      truthyOrZero(row.limits?.limitB) && typeof row.limits?.limitB === 'number',
-      'limitB must be a number'
-    );
-    invariant(
-      truthyOrZero(row.limits?.limitC) && typeof row.limits?.limitC === 'number',
-      'limitC must be a number'
-    );
-    invariant(
-      truthyOrZero(row.limits?.limitD) && typeof row.limits?.limitD === 'number',
-      'limitD must be a number'
-    );
-
-    const sumBCD = row.limits?.limitB + row.limits?.limitC + row.limits?.limitD;
-    invariant(
-      sumBCD < maxBCD.value(),
-      `sum limits B, C, D must be < ${maxBCD.value()} (total: ${sumBCD})`
-    );
-
-    invariant(typeof row.deductible === 'number', 'Deductible must be a number');
-    invariant(
-      row.deductible >= minDeductibleFlood.value(),
-      `Deductible must be > ${minDeductibleFlood.value()}`
-    );
-
-    invariant(row.address?.addressLine1, 'addressLine1 required');
-    invariant(row.address?.city, 'city required');
-    invariant(row.address?.state, 'state required');
-    invariant(row.address?.postal, 'postal required');
-
-    invariant(row.coordinates, 'latitude & longitude required');
-
-    invariant(row.homeState, 'homeState required');
-
-    invariant(typeof row.annualPremium === 'number', 'annualPremium must be a number');
-    invariant(row.annualPremium >= 100, 'annualPremium must be > 100');
-
-    // quoteTotal calc after taxes fetched
-    // invariant(typeof row.quoteTotal === 'number', 'quoteTotal must be a number');
-    // invariant(row.quoteTotal >= 100, 'quoteTotal must be > 100');
-    const comm = row.subproducerCommission;
-    invariant(comm && typeof comm === 'number', 'subproducerCommission must be a number');
-    invariant(comm > 0.05 && comm < 0.2, 'subproducerCommission must be between 0.05 and 0.2');
-
-    // namedInsured email ??
-    //  invariant(data.namedInsured?.displayName, 'named insured displayName required');
-    //  invariant(data.namedInsured?.email, 'named insured email required');
-    //  invariant(data.namedInsured?.phone, 'named insured phone required');
-
-    invariant(row.agent?.name, 'missing agentName');
-    invariant(row.agent?.email && isValidEmail(row.agent?.email), 'invalid agent email');
-    invariant(row.agent?.phone, 'missing agent phone');
-    invariant(row.agent?.userId, 'missing agentId');
-
-    invariant(row.agency?.name, 'missing agencyName');
-    invariant(row.agency?.address?.addressLine1, 'missing agency addressLine1');
-    invariant(row.agency?.address?.city, 'missing agency city');
-    invariant(row.agency?.address?.state, 'missing agency state');
-    invariant(row.agency?.address?.postal, 'missing agency postal');
-    invariant(row.agency?.orgId, 'missing agency orgId');
-
-    invariant(
-      // @ts-ignore
-      row.quoteExpirationDate && isDate(row.quoteExpirationDate?.toDate()),
-      'policyEffectiveDate required'
-    );
-    invariant(
-      // @ts-ignore
-      row.quotePublishedDate && isDate(row.quotePublishedDate?.toDate()),
-      'policyExpirationDate required'
-    );
-    invariant(row.status, 'missing status');
-    invariant(row?.ratingPropertyData?.priorLossCount, 'missing priorLossCount');
-    invariant(row.product, 'missing product');
-
-    invariant(Array.isArray(row.fees), 'fees must be an array');
-
-    return true;
-  } catch (err: any) {
-    return false;
-  }
-}

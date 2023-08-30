@@ -1464,39 +1464,13 @@ export interface ImportSummary {
   };
 }
 
-// export interface StagedPolicyImport extends BaseDoc {
-//   importData: Policy[];
-//   collection: COLLECTIONS.POLICIES;
-//   reviewedBy?: {
-//     userId: string | null;
-//     name: string | null;
-//   };
-// }
-
-// export interface StagedTransactionImport extends BaseDoc {
-//   importData: Transaction[];
-//   collection: COLLECTIONS.TRANSACTIONS;
-//   reviewedBy?: {
-//     userId: string | null;
-//     name: string | null;
-//   };
-// }
-
-// export interface StagedQuoteImport extends BaseDoc {
-//   importData: Quote[];
-//   collection: COLLECTIONS.QUOTES;
-//   reviewedBy?: {
-//     userId: string | null;
-//     name: string | null;
-//   };
-// }
-
 interface ImportMeta {
   reviewBy?: {
     userId: string | null;
     name: string | null;
   };
   status: 'imported' | 'new' | 'declined';
+  eventId?: string;
 }
 
 export type StagedPolicyImport = Policy & {

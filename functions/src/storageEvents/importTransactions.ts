@@ -13,6 +13,7 @@ import {
   audience,
   getReportErrorFn,
   hostingBaseURL,
+  importSummaryCollection,
   sendgridApiKey,
   stagedImportsCollection,
   unlinkFile,
@@ -45,7 +46,7 @@ export default async (event: StorageEvent) => {
 
   const db = getFirestore();
   // const trxCol = transactionsCollection(db);
-  const importSummaryRef = db.collection(COLLECTIONS.DATA_IMPORTS).doc(event.id);
+  const importSummaryRef = importSummaryCollection(db).doc(event.id);
   const importStagingCol = stagedImportsCollection(db, importSummaryRef.id);
 
   const storage = getStorage();
@@ -97,6 +98,7 @@ export default async (event: StorageEvent) => {
         },
         importMeta: {
           status: 'new',
+          eventId: event.id,
         },
       } as StagedTransactionImport;
 
