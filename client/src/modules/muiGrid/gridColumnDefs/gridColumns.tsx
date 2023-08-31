@@ -23,6 +23,7 @@ import {
   PlaceRounded,
   QueryBuilderRounded,
   RequestQuoteRounded,
+  SaveAltRounded,
   StormRounded,
   ThumbDownRounded,
 } from '@mui/icons-material';
@@ -632,6 +633,8 @@ export function getChipProps(status: ChipStatus): Partial<ChipProps> {
       return { icon: <QueryBuilderRounded />, color: 'warning' };
     case INVITE_STATUS.ACCEPTED:
       return { icon: <CheckRounded />, color: 'success' };
+    case 'imported':
+      return { icon: <SaveAltRounded />, color: 'success' };
     case 'declined':
       return { icon: <ThumbDownRounded />, color: 'default' };
     case CHANGE_REQUEST_STATUS.DENIED:
@@ -1624,7 +1627,7 @@ export const importDocIdsCountCol: GridColDef = {
   description: 'Count of successfully created records',
   type: 'number',
   minWidth: 120,
-  flex: 1,
+  flex: 0.2,
   filterable: false,
   sortable: false,
   valueGetter: (params) => (params.row.importDocIds ? params.row.importDocIds.length : null),
@@ -1646,8 +1649,8 @@ export const importCreationErrorsCountCol: GridColDef = {
   type: 'number',
   headerAlign: 'center',
   align: 'right',
-  minWidth: 140,
-  flex: 1,
+  minWidth: 100,
+  flex: 0.2,
   filterable: false,
   sortable: false,
   valueGetter: (params) => (params.row.docCreateErrors ? params.row.docCreateErrors.length : null),
@@ -1659,11 +1662,11 @@ export const invalidRowsCol: GridColDef = {
   description: 'Count of rows that failed validation and were NOT imported',
   type: 'number',
   minWidth: 100,
-  flex: 1,
-  // filterOperators: getGridFirestoreStringOperators(),
+  flex: 0.2,
   editable: false,
   filterable: false,
   sortable: false,
+  valueGetter: (params) => (params.row.invalidRows ? params.row.invalidRows.length : null),
   // TODO: set array filters
 };
 

@@ -175,6 +175,7 @@ export default async (event: StorageEvent) => {
         importMeta: {
           status: 'new',
           eventId: event.id,
+          targetCollection: COLLECTIONS.QUOTES,
         },
       };
       const quoteRef = await importStagingCol.add(data);

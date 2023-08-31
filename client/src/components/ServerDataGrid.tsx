@@ -54,7 +54,7 @@ export const ServerDataGrid = ({
   const apiRef = useGridApiRef();
   const { isMobile } = useWidth();
   const toolbar = useMemo(() => (isMobile ? GridMobileToolbar : GridToolbar), [isMobile]);
-  console.log('grid state: ', apiRef.current.state);
+  // console.log('grid state: ', apiRef.current.state);
 
   const [rowCount, setRowCount] = useState<number>(0);
   const [paginationModel, setPaginationModel] = useState({

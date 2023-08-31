@@ -1429,6 +1429,9 @@ export const router = sentryCreateBrowserRouter([
                   crumb: (match: CrumbMatch) => [
                     {
                       label: 'Import Summaries',
+                      link: createPath({
+                        path: ADMIN_ROUTES.DATA_IMPORTS,
+                      }),
                     },
                     {
                       label: `${match.params.importId}`,

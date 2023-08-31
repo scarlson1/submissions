@@ -1,9 +1,11 @@
 import { GridColDef } from '@mui/x-data-grid';
 
 import { policyCols } from './policyCols';
-import { idCol, statusCol } from './gridColumns';
+import { firstNameCol, idCol, statusCol } from './gridColumns';
 import { transactionCols } from './transactionCols';
 import { quoteCols } from './quoteCols';
+import { COLLECTIONS } from 'common';
+import { getGridFirestoreSelectOperators } from '../operators';
 
 export const importStagingMetaCols: GridColDef[] = [
   {
@@ -14,7 +16,17 @@ export const importStagingMetaCols: GridColDef[] = [
     valueGetter: (params) => params.row.importMeta?.status || null,
   },
   {
-    ...idCol,
+    field: 'importMeta.targetCollection',
+    headerName: 'Collection',
+    minWidth: 140,
+    flex: 0.5,
+    type: 'singleSelect',
+    valueOptions: [COLLECTIONS.POLICIES, COLLECTIONS.QUOTES, COLLECTIONS.TRANSACTIONS],
+    valueGetter: (params) => params.row.importMeta?.targetCollection || null,
+    filterOperators: getGridFirestoreSelectOperators(),
+  },
+  {
+    ...firstNameCol,
     field: 'importMeta.reviewBy.name',
     headerName: 'Import Reviewed By',
     valueGetter: (params) => params.row.importMeta?.reviewBy?.name || null,

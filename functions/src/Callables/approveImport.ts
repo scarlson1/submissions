@@ -16,6 +16,8 @@ const reportErr = getReportErrorFn('approveImport');
 
 interface ApproveImportProps {
   importId: string;
+  records: string[] | null; // if only specific records (null --> import all)
+  approvedByName?: string;
 }
 
 const approveImport = async ({ data, auth }: CallableRequest<ApproveImportProps>) => {
@@ -23,12 +25,18 @@ const approveImport = async ({ data, auth }: CallableRequest<ApproveImportProps>
 
   requireIDemandAdminClaims(auth?.token);
 
-  const { importId } = data;
+  const { importId, records, approvedByName } = data;
   validate(importId, 'failed-precondition', 'importId required');
+  validate(
+    records === null || Array.isArray(records),
+    'failed-precondition',
+    'records must be null (import all) or an array of docIds'
+  );
+
+  let importDocIds = records;
 
   const db = getFirestore();
 
-  // TODO: import summary collection type
   const importSummaryRef = importSummaryCollection(db).doc(importId);
   const importSummarySnap = await importSummaryRef.get();
   const importSummary = importSummarySnap.data();
@@ -38,7 +46,9 @@ const approveImport = async ({ data, auth }: CallableRequest<ApproveImportProps>
     'not-found',
     `import summary not found (${importId})`
   );
-  const { importDocIds } = importSummary;
+  // const { importDocIds } = importSummary;
+  if (!records) importDocIds = importSummary.importDocIds;
+
   validate(
     importDocIds && importDocIds.length,
     'failed-precondition',
@@ -47,8 +57,8 @@ const approveImport = async ({ data, auth }: CallableRequest<ApproveImportProps>
   // TODO: remove after breaking into batches
   validate(importDocIds.length < 500, 'failed-precondition', 'import must be < 500 items');
 
-  // const successIds = [];
-  // const errorIds = [];
+  const successIds = [];
+  const errorIds = [];
 
   try {
     // TODO: break into batches of 100
@@ -68,39 +78,60 @@ const approveImport = async ({ data, auth }: CallableRequest<ApproveImportProps>
     for (const doc of stagedDocs) {
       let { id, importMeta, ...data } = doc;
 
-      const importRef = targetCollectionRef.doc(id);
-      batch.set(importRef, {
-        ...data,
-        metadata: {
-          created: Timestamp.now(),
-          updated: Timestamp.now(),
-        },
-      });
+      if (importMeta.status !== 'new') {
+        errorIds.push(id);
+      } else {
+        successIds.push(id);
 
-      const stageDocRef = stagedImportsCol.doc(id);
-      batch.set(
-        stageDocRef,
-        {
-          importMeta: {
-            reviewBy: {
-              userId: auth.uid,
-              name: null,
-            },
-            status: 'imported',
+        const importRef = targetCollectionRef.doc(id);
+        batch.set(importRef, {
+          ...data,
+          metadata: {
+            created: Timestamp.now(),
+            updated: Timestamp.now(),
           },
-        },
-        { merge: true }
-      );
+        });
+
+        const stageDocRef = stagedImportsCol.doc(id);
+        batch.set(
+          stageDocRef,
+          {
+            // @ts-ignore
+            importMeta: {
+              reviewBy: {
+                userId: auth.uid,
+                name: approvedByName || null,
+              },
+              status: 'imported',
+            },
+          },
+          { merge: true }
+        );
+      }
     }
 
-    info(`saving batch document import to ${importSummary.importCollection}...`);
+    if (!successIds.length)
+      throw new HttpsError('failed-precondition', 'no imports matched "new" status');
+
+    info(`saving batch document import to ${importSummary.importCollection}...`, { importId });
     await batch.commit();
     info`created ${stagedDocs.length} documents in ${importSummary.importCollection}`;
 
+    try {
+      await importSummaryRef.update({
+        status: 'approved',
+      });
+    } catch (err: any) {
+      reportErr(
+        `Successfully imported records, but failed to update import summary status`,
+        {},
+        err
+      );
+    }
+
     return {
-      successCount: stagedDocs.length,
-      // successCount: successIds.length,
-      // errorCount: errorIds.length,
+      successCount: successIds.length,
+      errorCount: errorIds.length,
     };
   } catch (err: any) {
     let errMsg = `Error importing documents`;

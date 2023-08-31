@@ -10,6 +10,7 @@ import { CreateMsgContentProps } from '../services/sendgrid/index.js';
 import {
   AGENCY_STATUS,
   AGENCY_SUBMISSION_STATUS,
+  COLLECTIONS,
   FIN_TRANSACTION_STATUS,
   POLICY_STATUS,
   PRODUCT,
@@ -1464,7 +1465,7 @@ export interface ImportSummary {
   };
 }
 
-interface ImportMeta {
+export interface ImportMeta {
   reviewBy?: {
     userId: string | null;
     name: string | null;
@@ -1473,16 +1474,28 @@ interface ImportMeta {
   eventId?: string;
 }
 
+export interface PolicyImportMeta extends ImportMeta {
+  targetCollection: COLLECTIONS.POLICIES;
+}
+
 export type StagedPolicyImport = Policy & {
-  importMeta: ImportMeta;
+  importMeta: PolicyImportMeta;
 };
+
+export interface TransactionsImportMeta extends ImportMeta {
+  targetCollection: COLLECTIONS.TRANSACTIONS;
+}
 
 export type StagedTransactionImport = Transaction & {
-  importMeta: ImportMeta;
+  importMeta: TransactionsImportMeta;
 };
 
+export interface QuoteImportMeta extends ImportMeta {
+  targetCollection: COLLECTIONS.QUOTES;
+}
+
 export type StagedQuoteImport = Quote & {
-  importMeta: ImportMeta;
+  importMeta: QuoteImportMeta;
 };
 
 export type StageImportRecord = StagedPolicyImport | StagedTransactionImport | StagedQuoteImport;

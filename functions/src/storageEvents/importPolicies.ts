@@ -157,6 +157,7 @@ export default async (event: StorageEvent) => {
         importMeta: {
           status: 'new',
           eventId: event.id,
+          targetCollection: COLLECTIONS.POLICIES,
         },
       };
       importStagingCol.doc(policyId).set(data);

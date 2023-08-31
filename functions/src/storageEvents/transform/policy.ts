@@ -1,4 +1,5 @@
 import { GeoPoint } from 'firebase-admin/firestore';
+
 import {
   AgencyDetails,
   AgentDetails,
@@ -109,7 +110,7 @@ export function transformPolicyRow(row: CSVPolicyRow): ParsedPolicyRow {
     policyId: row.policyId || null,
     address: {
       addressLine1: row.addressLine1 || null,
-      addressLine2: row.addressLine2 || null,
+      addressLine2: row.addressLine2 || '',
       city: row.city || null,
       state: row.state || null,
       postal: row.postal || null,

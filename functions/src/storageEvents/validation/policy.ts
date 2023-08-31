@@ -2,7 +2,6 @@ import invariant from 'tiny-invariant';
 import { warn } from 'firebase-functions/logger';
 import { isDate, isValid } from 'date-fns';
 
-import { ParsedPolicyRow } from '../importPolicies';
 import {
   validateAddress,
   validateDeductible,
@@ -10,6 +9,7 @@ import {
   validateRCVs,
 } from '../../modules/rating';
 import { FEE_ITEM_NAMES, PRODUCT, TAX_ITEM_NAMES } from '../../common';
+import { ParsedPolicyRow } from '../models';
 
 /** Validates row values - will skip row if any validation fails
  * @param {ParsedPolicyRow} data formatted row

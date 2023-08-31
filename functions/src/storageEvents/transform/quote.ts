@@ -12,8 +12,9 @@ import {
 } from '../../common';
 import { CSVQuoteRow } from '../importQuotes';
 import { geohashForLocation } from 'geofire-common';
-import { getFormattedFees } from '../importPolicies';
+
 import { add, startOfDay } from 'date-fns';
+import { getFormattedFees } from './policy';
 
 /**
  * Transform csv row to Quote shape

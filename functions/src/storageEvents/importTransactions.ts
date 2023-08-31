@@ -99,6 +99,7 @@ export default async (event: StorageEvent) => {
         importMeta: {
           status: 'new',
           eventId: event.id,
+          targetCollection: COLLECTIONS.TRANSACTIONS,
         },
       } as StagedTransactionImport;
 
