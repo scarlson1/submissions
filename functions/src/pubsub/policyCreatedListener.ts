@@ -3,7 +3,7 @@ import type { CloudEvent } from 'firebase-functions/lib/v2/core';
 import { error, info, warn } from 'firebase-functions/logger';
 import type { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 
-import { transactionsCollection } from '../common';
+import { getReportErrorFn, transactionsCollection } from '../common';
 import {
   constructTrxId,
   docExists,
@@ -11,13 +11,14 @@ import {
   fetchRatingData,
   formatPremiumTrx,
 } from '../modules/transactions';
-import { reportErrorSentry } from '../services/sentry';
 
 // using JS Module over classes: https://dev.to/giantmachines/stop-using-javascript-classes-33ij
 
 // Idempotent functions: https://cloud.google.com/blog/products/serverless/cloud-functions-pro-tips-building-idempotent-functions
 
 // Only return error if transient error (can't write to db, etc.)
+
+const reportErr = getReportErrorFn('policyCreatedListener');
 
 // CREATES TRANSACTION FOR EACH LOCATION IN NEW POLICY
 
@@ -37,7 +38,7 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyCreatedPayloa
   }
 
   if (!policyId || typeof policyId !== 'string') {
-    reportError(`Missing policy ID`, { policyId });
+    reportErr(`Missing policy ID`, { policyId });
     return;
   }
 
@@ -46,13 +47,13 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyCreatedPayloa
 
   const policy = await fetchPolicyData(db, policyId);
   if (!policy) {
-    reportError(`Policy not found. Returning early.`, { policyId });
+    reportErr(`Policy not found. Returning early.`, { policyId });
     return;
   }
 
   const locationEntries = policy?.locations && Object.entries(policy.locations);
   if (!locationEntries || !locationEntries.length) {
-    reportError('No policy locations found in policy', { policyId });
+    reportErr('No policy locations found in policy', { policyId });
     return;
   }
 
@@ -79,7 +80,7 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyCreatedPayloa
         warn(`skipping trx - transaction already exists (${trxId})`);
       }
     } catch (err: any) {
-      reportError(
+      reportErr(
         `Error creating transaction for location ID ${locationId}`,
         { policyId, locationId },
         err
@@ -89,8 +90,3 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyCreatedPayloa
 
   return;
 };
-
-export function reportError(msg: string, ctx: Record<string, any> = {}, err: any = null) {
-  error(msg, { ...ctx, err });
-  reportErrorSentry(err || msg, { func: 'policyCreatedListener', msg, ...ctx });
-}

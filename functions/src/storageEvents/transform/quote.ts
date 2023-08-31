@@ -1,4 +1,7 @@
+import { add, startOfDay } from 'date-fns';
 import { GeoPoint, Timestamp } from 'firebase-admin/firestore';
+import { geohashForLocation } from 'geofire-common';
+
 import {
   DeepNullable,
   Nullable,
@@ -10,18 +13,15 @@ import {
   extractNumberNeg,
   getCardFee,
 } from '../../common';
-import { CSVQuoteRow } from '../importQuotes';
-import { geohashForLocation } from 'geofire-common';
-
-import { add, startOfDay } from 'date-fns';
+import { CSVQuoteRow, CSVTransformedQuote } from '../models';
 import { getFormattedFees } from './policy';
 
 /**
  * Transform csv row to Quote shape
  * @param {CSVQuoteRow} row csv row after headers converted (if header transform provided)
- * @returns {DeepNullable<Quote>} values shaped as quote, null if not provided
+ * @returns {CSVTransformedQuote} values shaped as quote, null if not provided
  */
-export function transformQuoteRow(row: CSVQuoteRow): DeepNullable<Quote> {
+export function transformQuoteRow(row: CSVQuoteRow): DeepNullable<CSVTransformedQuote> {
   const limits: Quote['limits'] = {
     limitA: row.limitA ? extractNumber(row.limitA) : 0,
     limitB: row.limitB ? extractNumber(row.limitB) : 0,
@@ -66,6 +66,23 @@ export function transformQuoteRow(row: CSVQuoteRow): DeepNullable<Quote> {
     yearBuilt: row.yearBuilt ? extractNumber(row.yearBuilt) : null,
     FFH: row.ffh ? extractNumber(row.ffh) : null,
     priorLossCount: row.priorLossCount ?? null,
+  };
+
+  const AALs = {
+    inland: row.aalInland ? extractNumber(row.aalInland) : null,
+    surge: row.aalInland ? extractNumber(row.aalSurge) : null,
+    tsunami: row.aalInland ? extractNumber(row.aalTsunami) : null,
+  };
+
+  const premCalcData = {
+    techPremium: {
+      inland: row.techPremiumInland ? extractNumber(row.techPremiumInland) : null,
+      surge: row.techPremiumSurge ? extractNumber(row.techPremiumSurge) : null,
+      tsunami: row.techPremiumTsunami ? extractNumber(row.techPremiumTsunami) : null,
+    },
+    MGACommission: row.mgaCommission ? extractNumber(row.mgaCommission) : null,
+    MGACommissionPct: row.mgaCommissionPct ? extractNumber(row.mgaCommissionPct) : null,
+    directWrittenPremium: row.annualPremium ? extractNumber(row.annualPremium) : null,
   };
 
   const namedInsured: Quote['namedInsured'] = {
@@ -126,9 +143,11 @@ export function transformQuoteRow(row: CSVQuoteRow): DeepNullable<Quote> {
     fees,
     taxes: [],
     annualPremium: row.annualPremium ? extractNumber(row.annualPremium) : null,
+    premCalcData,
     subproducerCommission: row.subproducerCommission
       ? extractNumber(row.subproducerCommission)
       : null,
+    AALs,
     cardFee: cardFee, // TODO: delete card fee ??
     quoteTotal,
     effectiveDate: Timestamp.fromDate(effDate),

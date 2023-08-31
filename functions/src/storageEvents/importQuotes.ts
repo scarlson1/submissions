@@ -18,8 +18,8 @@ import {
   stagedImportsCollection,
   unlinkFile,
 } from '../common';
-import { fetchTaxes } from '../modules/db';
-import { sumFeesTaxesPremium } from '../modules/rating';
+import { createRatingDoc, fetchTaxes } from '../modules/db';
+import { getRCVs, sumFeesTaxesPremium } from '../modules/rating';
 import { eventOlderThan, shouldReturnEarly } from '../modules/storage';
 import {
   ParseStreamToArrayRes,
@@ -27,75 +27,11 @@ import {
   transformHeadersCamelCase,
 } from '../modules/storage/parseStreamToArray';
 import { sendAdminPolicyImportNotification } from '../services/sendgrid';
+import { CSVQuoteRow, CSVTransformedQuote } from './models';
 import { transformQuoteRow } from './transform';
 import { validateQuoteRow } from './validation';
 
 const QUOTE_IMPORT_FOLDER = 'importQuotes';
-
-export interface CSVQuoteRow {
-  product: string;
-  deductible: string;
-  limitA: string;
-  limitB: string;
-  limitC: string;
-  limitD: string;
-  addressLine1: string;
-  addressLine2: string;
-  city: string;
-  state: string;
-  postal: string;
-  latitude: string;
-  longitude: string;
-  countyName?: string;
-  fips?: string;
-  homeState: string;
-  annualPremium: string;
-  subproducerCommission: string;
-  quoteTotal: string;
-  effectiveDate?: string;
-  quoteExpirationDate?: string;
-  quotePublishDate?: string;
-  userId: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  mailingAddressName: string;
-  mailingAddressLine1: string;
-  mailingAddressLine2: string;
-  mailingCity: string;
-  mailingState: string;
-  mailingPostal: string;
-  agentName: string;
-  agentEmail: string;
-  agentPhone: string;
-  agentId: string;
-  agencyName: string;
-  orgId: string;
-  agencyAddressLine1: string;
-  agencyAddressLine2: string;
-  agencyCity: string;
-  agencyState: string;
-  agencyPostal: string;
-  cbrsDesignation: string;
-  basement: string;
-  distToCoastFeet: string;
-  floodZone: string;
-  numStories: string;
-  propertyCode: string;
-  replacementCost: string;
-  sqFootage: string;
-  yearBuilt: string;
-  ffh: string;
-  priorLossCount: string;
-  ratingDocId?: string;
-  locationId?: string;
-  submissionId?: string;
-  fee1Name?: string;
-  fee1Value?: string;
-  fee2Name?: string;
-  fee2Value?: string;
-}
 
 export default async (event: StorageEvent) => {
   const fileBucket = event.bucket;
@@ -117,13 +53,13 @@ export default async (event: StorageEvent) => {
   await bucket.file(filePath).download({ destination: tempFilePath });
   info(`File downloaded locally to ${tempFilePath}`);
 
-  let dataArr: ParseStreamToArrayRes<Quote>['dataArr'] = [];
-  let invalidRows: ParseStreamToArrayRes<Quote>['invalidRows'] = [];
+  let dataArr: ParseStreamToArrayRes<CSVTransformedQuote>['dataArr'] = [];
+  let invalidRows: ParseStreamToArrayRes<CSVTransformedQuote>['invalidRows'] = [];
 
   const stream = createReadStream(tempFilePath);
 
   try {
-    const parsed = await parseStreamToArray<CSVQuoteRow, Quote>(
+    const parsed = await parseStreamToArray<CSVQuoteRow, CSVTransformedQuote>(
       stream,
       { headers: transformHeadersCamelCase },
       transformQuoteRow,
@@ -153,7 +89,26 @@ export default async (event: StorageEvent) => {
 
   for (const q of dataArr) {
     try {
-      // TODO: force homeState instead of address.state
+      // TODO: create rating doc (and reusable function between quotes and policies)
+      const { premCalcData, AALs, ...quoteValues } = q;
+      const ratingData = {
+        submissionId: q.submissionId || null,
+        locationId: null, // TODO: locationId for quotes (once multi-location)
+        limits: q.limits,
+        TIV: Object.values(q.limits).reduce((acc, curr) => acc + curr, 0), // TODO: move to quote interface & validate
+        deductible: q.deductible,
+        RCVs: getRCVs(q.ratingPropertyData?.replacementCost as number, q.limits),
+        ratingPropertyData: q.ratingPropertyData,
+        premiumCalcData: premCalcData,
+        AALs,
+        coordinates: q.coordinates,
+        metadata: {
+          created: Timestamp.now(),
+          updated: Timestamp.now(),
+        },
+      };
+      const ratingDocRef = await createRatingDoc(db, ratingData);
+
       const taxes = await fetchTaxes(q, 'new');
 
       const quoteTotal = sumFeesTaxesPremium(q.fees, taxes, q.annualPremium);
@@ -161,7 +116,8 @@ export default async (event: StorageEvent) => {
       const cardFee = getCardFee(quoteTotal);
 
       const quote: Quote = {
-        ...q,
+        ...quoteValues,
+        ratingDocId: ratingDocRef.id,
         taxes,
         quoteTotal,
         cardFee,

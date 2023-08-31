@@ -16,9 +16,8 @@ import {
   extractNumberNeg,
 } from '../../common';
 import { getRCVs } from '../../modules/rating';
-import { CSVPolicyRow, ParsedPolicyRow } from '../models';
 import { dateWithTimeZone } from '../../modules/storage';
-import { CSVQuoteRow } from '../importQuotes';
+import { CSVPolicyRow, CSVQuoteRow, ParsedPolicyRow } from '../models';
 
 /** Converts to correct type and unflattens
  * @param {CSVPolicyRow} row raw input from csv
@@ -106,6 +105,12 @@ export function transformPolicyRow(row: CSVPolicyRow): ParsedPolicyRow {
       : undefined,
   } as Nullable<ValueByRiskType>;
 
+  const techPremium = {
+    inland: row.techPremiumInland ? extractNumber(row.techPremiumInland) : null,
+    surge: row.techPremiumSurge ? extractNumber(row.techPremiumSurge) : null,
+    tsunami: row.techPremiumTsunami ? extractNumber(row.techPremiumTsunami) : null,
+  };
+
   const transformed: ParsedPolicyRow = {
     policyId: row.policyId || null,
     address: {
@@ -144,6 +149,7 @@ export function transformPolicyRow(row: CSVPolicyRow): ParsedPolicyRow {
     product: row.product || 'flood',
     mgaCommissionPct,
     AALs: AALs,
+    techPremium,
   };
   return transformed;
 }

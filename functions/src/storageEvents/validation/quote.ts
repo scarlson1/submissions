@@ -1,7 +1,6 @@
-// TODO: reusable quote validator ??
-
 import invariant from 'tiny-invariant';
-import { DeepNullable, Limits, Quote } from '../../common';
+
+import { DeepNullable, Limits } from '../../common';
 import {
   validateAddress,
   validateAgentDetails,
@@ -9,50 +8,20 @@ import {
   validateLimits,
   validateSubproducerCommission,
 } from '../../modules/rating';
+import { CSVTransformedQuote } from '../models';
 
 /**
  * Validate formatted Quote, after transform function
  * @param {DeepNullable<Quote>} row formatted row
  * @returns {boolean} returns false if validation fails, otherwise true
  */
-export function validateQuoteRow(row: DeepNullable<Quote>): boolean {
+export function validateQuoteRow(row: DeepNullable<CSVTransformedQuote>): boolean {
   try {
     validateLimits(row.limits as Limits);
-    // invariant(
-    //   row.limits?.limitA && typeof row.limits?.limitA === 'number',
-    //   'limitA must be a number'
-    // );
-    // invariant(
-    //   truthyOrZero(row.limits?.limitB) && typeof row.limits?.limitB === 'number',
-    //   'limitB must be a number'
-    // );
-    // invariant(
-    //   truthyOrZero(row.limits?.limitC) && typeof row.limits?.limitC === 'number',
-    //   'limitC must be a number'
-    // );
-    // invariant(
-    //   truthyOrZero(row.limits?.limitD) && typeof row.limits?.limitD === 'number',
-    //   'limitD must be a number'
-    // );
-
-    // const sumBCD = row.limits?.limitB + row.limits?.limitC + row.limits?.limitD;
-    // invariant(
-    //   sumBCD < maxBCD.value(),
-    //   `sum limits B, C, D must be < ${maxBCD.value()} (total: ${sumBCD})`
-    // );
-
     validateDeductible(row.deductible as number);
 
-    // invariant(typeof row.deductible === 'number', 'Deductible must be a number');
-    // invariant(
-    //   row.deductible >= minDeductibleFlood.value(),
-    //   `Deductible must be > ${minDeductibleFlood.value()}`
-    // );
-
     validateAddress(row.address);
-
     invariant(row.coordinates, 'latitude & longitude required');
-
     invariant(row.homeState, 'homeState required');
 
     invariant(typeof row.annualPremium === 'number', 'annualPremium must be a number');
@@ -73,10 +42,6 @@ export function validateQuoteRow(row: DeepNullable<Quote>): boolean {
     invariant(row.agency?.name, 'missing agencyName');
     invariant(row.agency?.orgId, 'missing agency orgId');
     validateAddress(row.agency?.address, 'agency');
-    // invariant(row.agency?.address?.addressLine1, 'missing agency addressLine1');
-    // invariant(row.agency?.address?.city, 'missing agency city');
-    // invariant(row.agency?.address?.state, 'missing agency state');
-    // invariant(row.agency?.address?.postal, 'missing agency postal');
 
     invariant(
       // @ts-ignore
@@ -94,6 +59,29 @@ export function validateQuoteRow(row: DeepNullable<Quote>): boolean {
 
     invariant(Array.isArray(row.fees), 'fees must be an array');
     // TODO: validate fee names
+
+    // TODO: validate prem calc data (techPrem, mgaCommission, AALs)
+
+    invariant(
+      row.premCalcData?.MGACommission && typeof row.premCalcData.MGACommission === 'number',
+      'invalid mgaCommission'
+    );
+    invariant(
+      row.premCalcData?.MGACommissionPct && typeof row.premCalcData.MGACommissionPct === 'number',
+      'invalid mgaCommissionPct'
+    );
+    invariant(
+      row.premCalcData?.directWrittenPremium &&
+        typeof row.premCalcData.directWrittenPremium === 'number',
+      'invalid directWrittenPremium'
+    );
+    invariant(
+      row.premCalcData?.techPremium &&
+        Object.values(row.premCalcData.techPremium).every((tp) => typeof tp === 'number'),
+      'invalid tech premium'
+    );
+
+    invariant(row.AALs && Object.values(row.AALs).every((aal) => typeof aal === 'number'));
 
     return true;
   } catch (err: any) {

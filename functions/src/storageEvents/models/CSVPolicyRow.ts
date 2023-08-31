@@ -68,6 +68,9 @@ type CSVPolicyCamelCaseHeaders =
   | 'mgaCommissionPct'
   | 'aalInland'
   | 'aalSurge'
-  | 'aalTsunami';
+  | 'aalTsunami'
+  | 'techPremiumInland'
+  | 'techPremiumSurge'
+  | 'techPremiumTsunami';
 
 export type CSVPolicyRow = Record<CSVPolicyCamelCaseHeaders, string>;

@@ -425,7 +425,7 @@ export interface RatingPropertyData {
 
 export type RatingPremCalcData = WithRequired<
   DeepPartial<PremiumCalcData>,
-  'MGACommission' | 'MGACommissionPct' | 'directWrittenPremium'
+  'MGACommission' | 'MGACommissionPct' | 'directWrittenPremium' | 'techPremium'
 >; // reporting --> require:  floodCategoryPremium | techPremium ??
 
 export interface RatingData extends BaseDoc {
@@ -437,7 +437,7 @@ export interface RatingData extends BaseDoc {
   deductible: number;
   RCVs: RCVs | null;
   ratingPropertyData: Nullable<RatingPropertyData>;
-  premiumCalcData: RatingPremCalcData; // PremiumCalcData;
+  premiumCalcData: RatingPremCalcData;
   AALs: Nullable<ValueByRiskType>;
   PM?: ValueByRiskType;
   riskScore?: ValueByRiskType;

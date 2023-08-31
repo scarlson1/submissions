@@ -1,7 +1,7 @@
 import { isValid } from 'date-fns';
 import { Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { CloudEvent } from 'firebase-functions/lib/v2/core';
-import { error, info, warn } from 'firebase-functions/logger';
+import { info, warn } from 'firebase-functions/logger';
 import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 
 import {
@@ -9,6 +9,7 @@ import {
   OffsetTransaction,
   PremiumTransaction,
   WithId,
+  getReportErrorFn,
   transactionsCollection,
 } from '../common';
 import {
@@ -18,8 +19,9 @@ import {
   fetchPreviousTrx,
   getOffsetTrx,
 } from '../modules/transactions';
-import { reportErrorSentry } from '../services/sentry';
 import { premEndorsementPrevTypes } from './endorsementListener';
+
+const reportErr = getReportErrorFn('locationCancelListener');
 
 export interface LocationCancelPayload {
   policyId: string;
@@ -43,7 +45,7 @@ export default async (event: CloudEvent<MessagePublishedData<LocationCancelPaylo
     cancelReason = event.data?.message?.json?.cancelReason || null;
     cancelEffDateMS = event.data?.message?.json?.cancelEffDateMS || null;
   } catch (e) {
-    reportError('PubSub message was not JSON', {}, e);
+    reportErr('PubSub message was not JSON', {}, e);
   }
 
   if (
@@ -54,7 +56,7 @@ export default async (event: CloudEvent<MessagePublishedData<LocationCancelPaylo
     !cancelEffDateMS ||
     !isValid(cancelEffDateMS)
   ) {
-    reportError(`Missing policy and/or location ID and/or cancel effective date`, {
+    reportErr(`Missing policy and/or location ID and/or cancel effective date`, {
       policyId,
       locationId,
     });
@@ -66,7 +68,7 @@ export default async (event: CloudEvent<MessagePublishedData<LocationCancelPaylo
 
   const policy = await fetchPolicyData(db, policyId);
   if (!policy) {
-    reportError(`Policy not found. Returning early.`, { policyId, locationId });
+    reportErr(`Policy not found. Returning early.`, { policyId, locationId });
     return;
   }
 
@@ -74,7 +76,7 @@ export default async (event: CloudEvent<MessagePublishedData<LocationCancelPaylo
   try {
     prevTrx = await fetchPreviousTrx(db, policyId, locationId, premEndorsementPrevTypes);
   } catch (err: any) {
-    reportError(
+    reportErr(
       `No previous transactions found matching query. returning early`,
       { policyId, locationId },
       err
@@ -104,11 +106,6 @@ export default async (event: CloudEvent<MessagePublishedData<LocationCancelPaylo
       warn(`Ignoring event. Transaction already processed ${trxId}`);
     }
   } catch (err: any) {
-    reportError(`Error saving cancel transaction`, { policyId, locationId }, err);
+    reportErr(`Error saving cancel transaction`, { policyId, locationId }, err);
   }
 };
-
-export function reportError(msg: string, ctx: Record<string, any> = {}, err: any = null) {
-  error(msg, { ...ctx, err });
-  reportErrorSentry(err || msg, { func: 'locationCancelListener', msg, ...ctx });
-}

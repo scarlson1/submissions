@@ -19,6 +19,7 @@ import {
   Product,
   RatingData,
   StagedPolicyImport,
+  ValueByRiskType,
   audience,
   calcTerm,
   getNewLocationId,
@@ -43,9 +44,9 @@ import {
 } from '../modules/storage/parseStreamToArray';
 import { getInStatePremium, getOutStatePremium, recalcTaxes } from '../modules/transactions';
 import { sendAdminPolicyImportNotification } from '../services/sendgrid';
-import { validatePolicyRow } from './validation';
 import { CSVPolicyRow, ParsedPolicyRow } from './models';
 import { transformPolicyRow } from './transform';
+import { validatePolicyRow } from './validation';
 
 // TODO:
 //  - add rating fields (used for ratios)
@@ -237,7 +238,17 @@ async function groupByPolicyId(data: ParsedPolicyRow[], firestore: Firestore) {
       surge: row.AALs?.surge,
       tsunami: row.AALs?.tsunami,
     };
-    const ratingData = getRatingData(formattedLocation, row.mgaCommissionPct as number, AALs);
+    const techPremium = {
+      inland: row.techPremium?.inland || 0,
+      surge: row.techPremium?.surge || 0,
+      tsunami: row.techPremium?.tsunami || 0,
+    };
+    const ratingData = getRatingData(
+      formattedLocation,
+      row.mgaCommissionPct as number,
+      AALs,
+      techPremium
+    );
     ratingDocData[ratingDocId] = ratingData;
 
     const locationWithRatingId = { ...formattedLocation, ratingDocId };
@@ -427,7 +438,13 @@ async function getSPLPofR(firestore: Firestore, state: string) {
   };
 }
 
-function getRatingData(data: PolicyLocation, mgaCommissionPct: number, AALs: any): RatingData {
+// TODO: need tech premium
+function getRatingData(
+  data: PolicyLocation,
+  mgaCommissionPct: number,
+  AALs: any,
+  techPremium: ValueByRiskType
+): RatingData {
   return {
     submissionId: null,
     locationId: data.locationId,
@@ -482,11 +499,11 @@ function getRatingData(data: PolicyLocation, mgaCommissionPct: number, AALs: any
     coordinates: data.coordinates,
     ratingPropertyData: data.ratingPropertyData,
     premiumCalcData: {
-      // techPremium: {
-      //   inland: 0,
-      //   surge: 0,
-      //   tsunami: 0,
-      // },
+      techPremium: {
+        inland: techPremium?.inland,
+        surge: techPremium?.inland,
+        tsunami: techPremium?.inland,
+      },
       // floodCategoryPremium: {
       //   inland: 0,
       //   surge: 0,

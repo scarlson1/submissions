@@ -143,6 +143,10 @@ export const QUOTE_IMPORT_REQUIRED_HEADERS = [
   'homeState',
   'annualPremium',
   'subproducerCommission',
+  'fee1Name',
+  'fee1Value',
+  'fee2Name',
+  'fee2Value',
   'agentName',
   'agentEmail',
   'agentPhone',
@@ -163,6 +167,13 @@ export const QUOTE_IMPORT_REQUIRED_HEADERS = [
   'replacementCost',
   'sqFootage',
   'yearBuilt',
+  'aalInland',
+  'aalSurge',
+  'aalTsunami',
+  'techPremiumInland',
+  'techPremiumSurge',
+  'techPremiumTsunami',
+  // TODO: fees
 ];
 
 export const PORTFOLIO_RATING_REQUIRED_HEADERS = [
@@ -249,4 +260,7 @@ export const POLICY_IMPORT_REQUIRED_HEADERS = [
   'aalInland',
   'aalSurge',
   'aalTsunami',
+  'techPremiumInland',
+  'techPremiumSurge',
+  'techPremiumTsunami',
 ];

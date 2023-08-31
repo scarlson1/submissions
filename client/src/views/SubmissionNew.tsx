@@ -1,5 +1,5 @@
 import { Box, Container, Tooltip, Typography } from '@mui/material';
-import { GeoPoint, addDoc, serverTimestamp } from 'firebase/firestore';
+import { GeoPoint, Timestamp, addDoc } from 'firebase/firestore';
 import { FormikHelpers, FormikProps } from 'formik';
 import { useCallback, useRef, useState } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
@@ -91,7 +91,6 @@ function useCreateSubmission(
           coordinates: new GeoPoint(values.coordinates.latitude, values.coordinates.longitude),
           status: SUBMISSION_STATUS.SUBMITTED,
           userId: user?.uid ?? null,
-          // agentId: !!claims.agent ? user?.uid || null : null,
           agent: {
             userId: !!claims?.agent ? user?.uid || null : null,
             name: !!claims?.agent ? user?.displayName || null : null,
@@ -113,8 +112,8 @@ function useCreateSubmission(
           propertyDataDocId,
           rcvSourceUser,
           metadata: {
-            created: serverTimestamp(),
-            updated: serverTimestamp(),
+            created: Timestamp.now(), // serverTimestamp(),
+            updated: Timestamp.now(), // serverTimestamp(),
           },
         });
         setLoading(false);

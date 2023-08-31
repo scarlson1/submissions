@@ -50,5 +50,6 @@ export interface ParsedPolicyRow {
   product: string;
   mgaCommissionPct: number | null;
   AALs: Nullable<ValueByRiskType>;
+  techPremium: Nullable<ValueByRiskType>;
   // TODO: other required rating data (from Ron)
 }
