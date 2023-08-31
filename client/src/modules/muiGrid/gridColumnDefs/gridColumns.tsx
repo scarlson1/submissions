@@ -48,6 +48,7 @@ import {
   AdditionalInsured,
   Address,
   CHANGE_REQUEST_STATUS,
+  COLLECTIONS,
   INVITE_STATUS,
   Mortgagee,
   Nullable,
@@ -1529,8 +1530,20 @@ export const trxTypeCol: GridSingleSelectColDef = {
   minWidth: 120,
   flex: 1,
   editable: false,
-  filterOperators: getGridFirestoreStringOperators(),
+  filterOperators: getGridFirestoreSelectOperators(),
   renderCell: renderChip,
+};
+
+export const trxInterfaceTypeCol: GridSingleSelectColDef = {
+  field: 'trxInterfaceType',
+  headerName: 'Interface Type',
+  description: 'transaction structure (required fields, etc.)',
+  type: 'singleSelect',
+  valueOptions: ['offset', 'premium', 'amendment'],
+  filterOperators: getGridFirestoreSelectOperators(),
+  editable: false,
+  minWidth: 120,
+  flex: 1,
 };
 
 export const requestEffDateCol: GridColDef = {
@@ -1599,13 +1612,15 @@ export const LOBCol: GridSingleSelectColDef = {
   valueFormatter: (params) => `${params.value?.join(', ')}`,
 };
 
-export const importCollectionCol: GridColDef = {
-  field: 'importCollection',
+export const targetCollectionCol: GridSingleSelectColDef = {
+  field: 'targetCollection',
   headerName: 'Collection',
   description: 'target database collection for import',
   minWidth: 160,
-  flex: 0.8,
-  filterOperators: getGridFirestoreStringOperators(),
+  flex: 0.4,
+  type: 'singleSelect',
+  valueOptions: [COLLECTIONS.POLICIES, COLLECTIONS.QUOTES, COLLECTIONS.TRANSACTIONS],
+  filterOperators: getGridFirestoreSelectOperators(),
 };
 
 export const importDocIdsCol: GridColDef = {
@@ -1649,7 +1664,7 @@ export const importCreationErrorsCountCol: GridColDef = {
   type: 'number',
   headerAlign: 'center',
   align: 'right',
-  minWidth: 100,
+  minWidth: 140,
   flex: 0.2,
   filterable: false,
   sortable: false,

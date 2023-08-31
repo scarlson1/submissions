@@ -705,33 +705,11 @@ export const router = sentryCreateBrowserRouter([
                 <AdminHome />
               </RequireAuthReactFire>
             ),
-            // element: (() => <div>TODO: Admin Index Page</div>)(),
           },
           {
             path: 'test',
             element: <WizardFormTest />,
           },
-          // {
-          //   path: ADMIN_ROUTES.SUBMISSIONS,
-          //   element: (
-          //     <RequireAuthReactFire
-          //       signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}
-          //     >
-          //       <Submissions />
-          //     </RequireAuthReactFire>
-          //   ),
-          //   errorElement: <RouterErrorBoundary />,
-          //   handle: {
-          //     crumb: (match: CrumbMatch) => [
-          //       {
-          //         label: 'Submissions',
-          //         link: createPath({
-          //           path: ROUTES.SUBMISSIONS,
-          //         }),
-          //       },
-          //     ],
-          //   },
-          // },
           {
             path: ADMIN_ROUTES.SUBMISSION_VIEW,
             element: (
@@ -841,27 +819,6 @@ export const router = sentryCreateBrowserRouter([
               ],
             },
           },
-          // {
-          //   path: ADMIN_ROUTES.QUOTES,
-          //   element: (
-          //     <RequireAuthReactFire
-          //       signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}
-          //     >
-          //       {/* <AdminQuotes /> */}
-          //       <Quotes />
-          //     </RequireAuthReactFire>
-          //   ),
-          //   handle: {
-          //     crumb: (match: CrumbMatch) => [
-          //       {
-          //         label: 'Quotes',
-          //         link: createPath({
-          //           path: ADMIN_ROUTES.QUOTES,
-          //         }),
-          //       },
-          //     ],
-          //   },
-          // },
           {
             path: ADMIN_ROUTES.POLICY_DELIVERY,
             element: (
@@ -894,7 +851,6 @@ export const router = sentryCreateBrowserRouter([
           },
           {
             path: ADMIN_ROUTES.AGENCY_APPS,
-            // loader: agencyAppsLoader,
             element: (
               <RequireAuthReactFire
                 signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}
@@ -1060,7 +1016,6 @@ export const router = sentryCreateBrowserRouter([
               // />
             ),
           },
-          // TODO: set up config routs
           {
             path: 'config',
             element: (

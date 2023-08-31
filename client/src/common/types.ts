@@ -1167,7 +1167,7 @@ export interface Disclosure extends BaseDoc {
 }
 
 export interface ImportSummary {
-  importCollection: string;
+  targetCollection: string;
   importDocIds: string[];
   docCreationErrors: any[];
   invalidRows: { rowNum: string | number; rowData: Record<string, any> }[];

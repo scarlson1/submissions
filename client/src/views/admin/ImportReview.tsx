@@ -214,5 +214,5 @@ export const ImportReview = () => {
   const { importId } = useSafeParams(['importId']);
   const { data } = useDocData<ImportSummary>('DATA_IMPORTS', importId);
 
-  return <ImportReviewComponent importId={importId} importType={data.importCollection} />;
+  return <ImportReviewComponent importId={importId} importType={data.targetCollection} />;
 };

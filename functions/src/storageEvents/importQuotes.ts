@@ -193,7 +193,7 @@ export default async (event: StorageEvent) => {
 
   try {
     await importSummaryRef.set({
-      importCollection: COLLECTIONS.POLICIES,
+      targetCollection: COLLECTIONS.POLICIES,
       importDocIds: quoteIds,
       docCreationErrors: importErrors,
       invalidRows,

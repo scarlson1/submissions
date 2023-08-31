@@ -72,7 +72,7 @@ const approveImport = async ({ data, auth }: CallableRequest<ApproveImportProps>
       id: s.id,
     })) as WithId<StageImportRecord>[]; // TODO: handle promise all errors
 
-    const targetCollectionRef = db.collection(`${importSummary.importCollection}`);
+    const targetCollectionRef = db.collection(`${importSummary.targetCollection}`);
     const batch = db.batch();
 
     for (const doc of stagedDocs) {
@@ -113,9 +113,9 @@ const approveImport = async ({ data, auth }: CallableRequest<ApproveImportProps>
     if (!successIds.length)
       throw new HttpsError('failed-precondition', 'no imports matched "new" status');
 
-    info(`saving batch document import to ${importSummary.importCollection}...`, { importId });
+    info(`saving batch document import to ${importSummary.targetCollection}...`, { importId });
     await batch.commit();
-    info`created ${stagedDocs.length} documents in ${importSummary.importCollection}`;
+    info`created ${stagedDocs.length} documents in ${importSummary.targetCollection}`;
 
     try {
       await importSummaryRef.update({

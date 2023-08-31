@@ -130,7 +130,7 @@ export default async (event: StorageEvent) => {
 
   try {
     await importSummaryRef.set({
-      importCollection: COLLECTIONS.TRANSACTIONS,
+      targetCollection: COLLECTIONS.TRANSACTIONS,
       importDocIds: trxIds,
       docCreationErrors: importErrors,
       invalidRows,

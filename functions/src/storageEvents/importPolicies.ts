@@ -173,7 +173,7 @@ export default async (event: StorageEvent) => {
   // Save import summary & send admin notification
   try {
     await importSummaryRef.set({
-      importCollection: COLLECTIONS.POLICIES,
+      targetCollection: COLLECTIONS.POLICIES,
       importDocIds: importedIds,
       docCreationErrors: createErrors,
       invalidRows,

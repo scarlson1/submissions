@@ -3,7 +3,7 @@ import { GridColDef } from '@mui/x-data-grid';
 import {
   createdCol,
   idCol,
-  importCollectionCol,
+  targetCollectionCol,
   importCreationErrorsCountCol,
   importDocIdsCol,
   importDocIdsCountCol,
@@ -11,7 +11,7 @@ import {
 } from './gridColumns';
 
 export const importSummaryCols: GridColDef[] = [
-  importCollectionCol,
+  targetCollectionCol,
   importDocIdsCol,
   importDocIdsCountCol,
   importCreationErrorsCountCol,

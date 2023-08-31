@@ -90,7 +90,7 @@ export const ImportsSummaryGrid = ({
 };
 
 function getImportSummaryTitle(data: WithId<ImportSummary>) {
-  return `${capitalize(data.importCollection)} import ${
+  return `${capitalize(data.targetCollection)} import ${
     data.metadata?.created ? formatFirestoreTimestamp(data.metadata?.created, 'date') : ''
   }`.trim();
 }
