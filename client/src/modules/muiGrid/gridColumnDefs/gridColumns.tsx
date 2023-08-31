@@ -54,7 +54,6 @@ import {
   Nullable,
   POLICY_STATUS,
   PRODUCT,
-  PolicyLocation,
   QUOTE_STATUS,
   SUBMISSION_STATUS,
 } from 'common';
@@ -1261,57 +1260,58 @@ export const locationsCount: GridColDef = {
   },
 };
 
-export const locationAddresses: GridColDef = {
-  field: 'addressesSummary',
-  headerName: 'Locations',
-  minWidth: 300,
-  flex: 1.5,
-  editable: false,
-  filterable: false,
-  sortable: false,
-  // disableExport: true,
-  valueFormatter: ({ value }) => {
-    if (Array.isArray(value))
-      return value.map((addr) => formatAddrSummary(addr, true)).join('  |  ');
+// TODO: delete (if not storing address in locations obj) or refactor
+// export const locationAddresses: GridColDef = {
+//   field: 'addressesSummary',
+//   headerName: 'Locations',
+//   minWidth: 300,
+//   flex: 1.5,
+//   editable: false,
+//   filterable: false,
+//   sortable: false,
+//   // disableExport: true,
+//   valueFormatter: ({ value }) => {
+//     if (Array.isArray(value))
+//       return value.map((addr) => formatAddrSummary(addr, true)).join('  |  ');
 
-    return value || '';
-  },
-  valueGetter: (params) => {
-    if (!params.row.locations) return null;
+//     return value || '';
+//   },
+//   valueGetter: (params) => {
+//     if (!params.row.locations) return null;
 
-    const locations = Object.values(params.row.locations) as PolicyLocation[];
-    return locations.map((l) => l.address || null).filter((x) => x);
-  },
-  renderCell: (params) => {
-    if (!params.value || !params.value.length) return null;
-    let addr1 = params.value[0] as Address;
-    let addrSummary = `${addr1.addressLine1}, ${addr1.city}, ${addr1.state}`;
-    let additionalCount = params.value.length - 1;
+//     const locations = Object.values(params.row.locations) as PolicyLocation[];
+//     return locations.map((l) => l.address || null).filter((x) => x);
+//   },
+//   renderCell: (params) => {
+//     if (!params.value || !params.value.length) return null;
+//     let addr1 = params.value[0] as Address;
+//     let addrSummary = `${addr1.addressLine1}, ${addr1.city}, ${addr1.state}`;
+//     let additionalCount = params.value.length - 1;
 
-    return (
-      <Box sx={{ display: 'flex', alignItems: 'center', maxWidth: '100%' }}>
-        <Typography
-          variant='body2'
-          sx={{
-            mr: 1,
-            flex: '0 1 auto',
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            minWidth: 0,
-          }}
-        >{`${addrSummary}`}</Typography>
-        {additionalCount ? (
-          <Typography
-            variant='body2'
-            fontSize='0.775rem'
-            fontWeight={500}
-          >{`+ ${additionalCount} more`}</Typography>
-        ) : null}
-      </Box>
-    );
-  },
-};
+//     return (
+//       <Box sx={{ display: 'flex', alignItems: 'center', maxWidth: '100%' }}>
+//         <Typography
+//           variant='body2'
+//           sx={{
+//             mr: 1,
+//             flex: '0 1 auto',
+//             whiteSpace: 'nowrap',
+//             overflow: 'hidden',
+//             textOverflow: 'ellipsis',
+//             minWidth: 0,
+//           }}
+//         >{`${addrSummary}`}</Typography>
+//         {additionalCount ? (
+//           <Typography
+//             variant='body2'
+//             fontSize='0.775rem'
+//             fontWeight={500}
+//           >{`+ ${additionalCount} more`}</Typography>
+//         ) : null}
+//       </Box>
+//     );
+//   },
+// };
 
 export const locationIdCol: GridColDef = {
   ...idCol,

@@ -1,16 +1,16 @@
-import { useCallback } from 'react';
-import { Box, Button, Typography } from '@mui/material';
-import { addDoc, collection, CollectionReference, Timestamp, where } from 'firebase/firestore';
-import { useFirestore, useUser } from 'reactfire';
-import { getGridDateOperators } from '@mui/x-data-grid';
 import { faker } from '@faker-js/faker';
-import { toast } from 'react-hot-toast';
+import { Box, Button, Typography } from '@mui/material';
+import { getGridDateOperators } from '@mui/x-data-grid';
 import { JSONContent } from '@tiptap/react';
+import { CollectionReference, Timestamp, addDoc, collection, where } from 'firebase/firestore';
+import { useCallback } from 'react';
+import { toast } from 'react-hot-toast';
+import { useFirestore, useUser } from 'reactfire';
 
+import { COLLECTIONS, Disclosure } from 'common';
 import { ServerDataGrid } from 'components';
 import { TextEditor } from 'components/textEditor/TextEditor';
 import { formatGridFirestoreTimestamp, formatGridFirestoreTimestampAsDate } from 'modules/utils';
-import { COLLECTIONS, Disclosure } from 'common';
 
 export const columns = [
   {
@@ -126,7 +126,7 @@ export const TasksPagination = () => {
         <GenerateTasksButton />
       </Box>
       <ServerDataGrid
-        collName='TASKS'
+        colName='TASKS'
         columns={columns}
         constraints={[where('userId', '==', user?.uid)]}
       />

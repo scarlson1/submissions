@@ -1,4 +1,4 @@
-import { Firestore, query, where, limit, collection } from 'firebase/firestore';
+import { Firestore, collection, limit, query, where } from 'firebase/firestore';
 import { collectionData as rxCollectionData } from 'rxfire/firestore';
 import { combineLatest, defer, map, of, switchMap, tap } from 'rxjs';
 
@@ -12,7 +12,7 @@ import { combineLatest, defer, map, of, switchMap, tap } from 'rxjs';
  * Joins docs from another collection with saved field:value
  * @param {Firestore} firestore - firestore instance
  * @param {string} field - field present on doc and used to match on populate collection
- * @param {string} collName - name of the collection to search
+ * @param {string} colName - name of the collection to search
  * @param {number} joinlimit - max # of object to join with parent doc
  * @returns {Observable<unknown>} - combined observable of parent documents with a field using the collection name as the key and an array of any documents in the collection matching the field:value from the parent
  */
@@ -46,7 +46,7 @@ export const innerJoin = (
             // Only get docs where shared key:value pair in both collections
             if (doc[field]) {
               // Perform query to join key, with optional limit
-              // const collectionRef = collection(firestore, collName, ...pathSements);
+              // const collectionRef = collection(firestore, colName, ...pathSements);
               const collectionRef = collection(firestore, coll.root, ...(coll.pathSegments || []));
               const q = query(collectionRef, where(field, '==', doc[field]), limit(joinlimit));
 

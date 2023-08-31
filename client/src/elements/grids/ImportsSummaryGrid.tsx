@@ -1,21 +1,21 @@
-import { useCallback, useMemo } from 'react';
-import { Box, Tooltip } from '@mui/material';
 import { DataObjectRounded } from '@mui/icons-material';
+import { Box, Tooltip } from '@mui/material';
 import { GridActionsCellItem, GridRowParams } from '@mui/x-data-grid';
 import { capitalize } from 'lodash';
+import { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { COLLECTIONS, ImportSummary, WithId } from 'common';
 import { ServerDataGrid, ServerDataGridProps } from 'components';
 import { useShowJson } from 'hooks';
-import { formatFirestoreTimestamp } from 'modules/utils';
 import { importSummaryCols } from 'modules/muiGrid/gridColumnDefs';
+import { formatFirestoreTimestamp } from 'modules/utils';
 import { ADMIN_ROUTES, createPath } from 'router';
 
 export interface ImportSummaryGridProps
   extends Omit<
     ServerDataGridProps,
-    'columns' | 'collName' | 'isCollectionGroup' | 'columns' | 'pathSegments'
+    'columns' | 'colName' | 'isCollectionGroup' | 'columns' | 'pathSegments'
   > {
   renderActions?: (params: GridRowParams) => JSX.Element[];
   // additionalColumns?: GridColDef<any, any, any>[];
@@ -61,7 +61,7 @@ export const ImportsSummaryGrid = ({
   return (
     <Box sx={{ height: { xs: 400, sm: 460, md: 500 }, width: '100%' }}>
       <ServerDataGrid
-        collName='DATA_IMPORTS'
+        colName='DATA_IMPORTS'
         columns={importColumns}
         density='compact'
         autoHeight

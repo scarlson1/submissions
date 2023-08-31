@@ -104,7 +104,7 @@ export default async (event: CloudEvent<MessagePublishedData<GetStaticMapImagesP
         const fileId = uuid();
         const initialMetadata = {
           metadata: {
-            // submissionId: snap.id,
+            // submissionId: snap.id, // TODO: include locationId once using "locations" collection
             firebaseStorageDownloadTokens: fileId,
             fileId,
           },

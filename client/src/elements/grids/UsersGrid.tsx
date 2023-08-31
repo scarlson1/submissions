@@ -59,7 +59,7 @@ export const UsersGrid = ({
   return (
     <Box sx={{ height: { xs: 400, sm: 460, md: 500 }, width: '100%' }}>
       <ServerDataGrid
-        collName='USERS'
+        colName='USERS'
         columns={columns}
         density='compact'
         autoHeight

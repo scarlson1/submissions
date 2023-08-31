@@ -1,25 +1,17 @@
-import { useCallback, useMemo } from 'react';
-import { Box, Tooltip } from '@mui/material';
 import { DescriptionRounded } from '@mui/icons-material';
+import { Box, Tooltip } from '@mui/material';
 import { GridActionsCellItem, GridColDef, GridRowParams, GridToolbar } from '@mui/x-data-grid';
-import { useSigninCheck } from 'reactfire';
-import { useNavigate } from 'react-router-dom';
+import { useCallback, useMemo } from 'react';
 import { toast } from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
+import { useSigninCheck } from 'reactfire';
 
-import { ServerDataGrid, ServerDataGridProps } from 'components';
-import { Policy, POLICY_STATUS } from 'common';
-import { CUSTOM_CLAIMS } from 'common';
-import { ROUTES, createPath } from 'router';
+import { CUSTOM_CLAIMS, Policy, POLICY_STATUS, ServerDataGridCollectionProps } from 'common';
+import { ServerDataGrid } from 'components';
 import { policyCols, statusCol } from 'modules/muiGrid/gridColumnDefs';
+import { createPath, ROUTES } from 'router';
 
-export interface PoliciesGridProps
-  extends Omit<
-    ServerDataGridProps,
-    'columns' | 'collName' | 'isCollectionGroup' | 'columns' | 'pathSegments'
-  > {
-  renderActions?: (params: GridRowParams) => JSX.Element[];
-  additionalColumns?: GridColDef<any, any, any>[];
-}
+export type PoliciesGridProps = ServerDataGridCollectionProps;
 
 export const PoliciesGrid = ({ renderActions = () => [], ...props }: PoliciesGridProps) => {
   const navigate = useNavigate();
@@ -97,7 +89,7 @@ export const PoliciesGrid = ({ renderActions = () => [], ...props }: PoliciesGri
   return (
     <Box>
       <ServerDataGrid
-        collName='POLICIES'
+        colName='POLICIES'
         columns={policyColumns}
         density='compact'
         autoHeight

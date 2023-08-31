@@ -14,7 +14,7 @@ import { ReactFireOptions, useFirestore, useFirestoreCollection } from 'reactfir
 import { COLLECTIONS } from 'common';
 
 export function useFetchDocsWithCursor<T = any>(
-  collName: keyof typeof COLLECTIONS,
+  colName: keyof typeof COLLECTIONS,
   constraints: QueryConstraint[],
   params: { cursor?: DocumentSnapshot; itemsPerPage: number },
   isCollectionGroup: boolean = false,
@@ -31,13 +31,9 @@ export function useFetchDocsWithCursor<T = any>(
 
   let collectionRef;
   if (!!isCollectionGroup) {
-    collectionRef = collectionGroup(db, COLLECTIONS[collName]) as CollectionReference<T>;
+    collectionRef = collectionGroup(db, COLLECTIONS[colName]) as CollectionReference<T>;
   } else {
-    collectionRef = collection(
-      db,
-      COLLECTIONS[collName],
-      ...pathSegments
-    ) as CollectionReference<T>;
+    collectionRef = collection(db, COLLECTIONS[colName], ...pathSegments) as CollectionReference<T>;
   }
 
   let q = query(collectionRef, ...qConstraints);

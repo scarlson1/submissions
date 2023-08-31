@@ -707,6 +707,36 @@ export interface Policy extends BaseDoc {
   quoteId?: string | null;
 }
 
+export interface PolicyNew extends BaseDoc {
+  product: Product;
+  status: POLICY_STATUS; // TODO: figure out how to do policy status (active, etc.)
+  term: number;
+  mailingAddress: MailingAddress;
+  namedInsured: NamedInsured;
+  // locations: Record<string, PolicyLocation>;
+  locations: Record<string, { termPremium: number }>;
+  homeState: string;
+  termPremium: number; // sum of location(s) term premium
+  inStatePremium?: number;
+  outStatePremium?: number;
+  termDays: number;
+  fees: FeeItem[];
+  taxes: TaxItem[];
+  price: number; // sum of term premium, taxes, fees
+  effectiveDate: Timestamp;
+  expirationDate: Timestamp;
+  cancelEffDate?: Timestamp | null;
+  cancelReason?: CancellationReason;
+  userId: string | null;
+  agent: AgentDetails;
+  agency: AgencyDetails;
+  surplusLinesProducerOfRecord: SLProdOfRecordDetails;
+  // TODO: add address to carrier CarrierDetails: name, address
+  issuingCarrier: string; // INSURER NAME ONLY OR NAME AND ID ??
+  documents: { displayName: string; downloadUrl: string; storagePath: string }[];
+  quoteId?: string | null;
+}
+
 export interface IPolicyClass extends Policy {
   getLocation: (id: string) => any; // TODO LOCATION INTERFACE
   initIsExpired: () => boolean; // TODO: figure out how to make private (#)

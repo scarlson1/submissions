@@ -1,7 +1,7 @@
-import { GridActionsCellItem, GridColDef, GridRowParams } from '@mui/x-data-grid';
-import { useCallback, useMemo } from 'react';
 import { DataObjectRounded } from '@mui/icons-material';
 import { Tooltip } from '@mui/material';
+import { GridActionsCellItem, GridColDef, GridRowParams } from '@mui/x-data-grid';
+import { useCallback, useMemo } from 'react';
 
 import { COLLECTIONS, ServerDataGridCollectionProps, Transaction } from 'common';
 import { ServerDataGrid } from 'components';
@@ -52,7 +52,7 @@ export const TransactionsGrid = ({
 
   return (
     <ServerDataGrid
-      collName='TRANSACTIONS'
+      colName='TRANSACTIONS'
       columns={columns}
       density='compact'
       autoHeight

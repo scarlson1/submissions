@@ -3,7 +3,8 @@ import type { CloudEvent } from 'firebase-functions/lib/v2/core';
 import { error, info, warn } from 'firebase-functions/logger';
 import type { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 
-import { getReportErrorFn, transactionsCollection } from '../common';
+import { getReportErrorFn, locationsCollection, transactionsCollection } from '../common';
+import { getAllById } from '../modules/db';
 import {
   constructTrxId,
   docExists,
@@ -44,20 +45,39 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyCreatedPayloa
 
   const db = getFirestore();
   const trxCol = transactionsCollection(db);
+  const locationsCol = locationsCollection(db);
 
   const policy = await fetchPolicyData(db, policyId);
   if (!policy) {
     reportErr(`Policy not found. Returning early.`, { policyId });
     return;
   }
+  const policyLocations = policy.locations;
+  if (!policyLocations || !Object.keys(policyLocations).length) {
+    reportErr('Policy missing locations', { policyId });
+    return;
+  }
 
-  const locationEntries = policy?.locations && Object.entries(policy.locations);
-  if (!locationEntries || !locationEntries.length) {
+  const locationSnaps = await getAllById(locationsCol, Object.keys(policyLocations));
+
+  let locations = locationSnaps.docs
+    .filter((snap) => snap.exists)
+    .map((snap) => ({ ...snap.data(), id: snap.id }));
+
+  if (!locations || !locations.length) {
     reportErr('No policy locations found in policy', { policyId });
     return;
   }
 
-  for (let [locationId, location] of locationEntries) {
+  // const locationEntries = policy?.locations && Object.entries(policy.locations);
+  // if (!locationEntries || !locationEntries.length) {
+  //   reportErr('No policy locations found in policy', { policyId });
+  //   return;
+  // }
+
+  // for (let [locationId, location] of locationEntries) {
+  for (const l of locations) {
+    const { id: locationId, ...location } = l;
     try {
       const trxId = constructTrxId(policyId, locationId, eventId);
       const trxRef = trxCol.doc(trxId);

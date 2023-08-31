@@ -10,12 +10,12 @@ import { ReactFireOptions, useFirestore, useFirestoreCollectionData } from 'reac
 import { COLLECTIONS, WithId } from 'common';
 
 export const useCollectionGroupData = <T = DocumentData>(
-  collName: keyof typeof COLLECTIONS,
+  colName: keyof typeof COLLECTIONS,
   constraints: QueryConstraint[] = [],
   options: ReactFireOptions<T> | undefined = {}
 ) => {
   const firestore = useFirestore();
-  const collGroupRef = collectionGroup(firestore, COLLECTIONS[collName]) as CollectionReference<
+  const collGroupRef = collectionGroup(firestore, COLLECTIONS[colName]) as CollectionReference<
     WithId<T>
   >;
   const q = query(collGroupRef, ...constraints);

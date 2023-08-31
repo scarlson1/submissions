@@ -1,14 +1,14 @@
+import { EditRounded } from '@mui/icons-material';
+import { Box, Button, Tooltip, Typography } from '@mui/material';
+import { GridActionsCellItem, GridColDef, GridRowParams } from '@mui/x-data-grid';
 import { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Button, Tooltip, Typography } from '@mui/material';
-import { EditRounded } from '@mui/icons-material';
-import { GridActionsCellItem, GridColDef, GridRowParams } from '@mui/x-data-grid';
 import { useSigninCheck } from 'reactfire';
 
-import { ADMIN_ROUTES, createPath } from 'router';
-import { ServerDataGrid } from 'components';
 import { CUSTOM_CLAIMS } from 'common';
+import { ServerDataGrid } from 'components';
 import { licenseCols } from 'modules/muiGrid/gridColumnDefs';
+import { ADMIN_ROUTES, createPath } from 'router';
 
 export const Licenses = () => {
   const navigate = useNavigate();
@@ -62,7 +62,7 @@ export const Licenses = () => {
       </Box>
       <Box sx={{ height: 500, width: '100%' }}>
         <ServerDataGrid
-          collName='LICENSES'
+          colName='LICENSES'
           columns={licenseColumns}
           density='compact'
           autoHeight

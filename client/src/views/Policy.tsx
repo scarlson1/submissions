@@ -32,6 +32,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 
 import { Policy as IPolicy, POLICY_STATUS, PolicyLocation, WithId } from 'common';
+import { NotFound } from 'components';
 import { IconMenu } from 'components/IconButtonMenu';
 import { LocationCard, LocationsMap } from 'elements';
 import {
@@ -39,7 +40,7 @@ import {
   useViewChangeRequestsDialogProps,
 } from 'elements/ChangeRequestDialog';
 import { ContactList } from 'elements/forms';
-import { LocationsGrid } from 'elements/grids';
+import { LocationsGridOld } from 'elements/grids';
 import {
   useCreateCancelRequest,
   useCreateLocationChangeRequest,
@@ -48,7 +49,6 @@ import {
   useGeneratePDF,
 } from 'hooks';
 import { formatFirestoreTimestamp, formatPhoneNumber, stringAvatar } from 'modules/utils';
-import { NotFound } from 'components';
 
 // TODO: make location card flip on hover to show additional details ??
 
@@ -295,7 +295,7 @@ export const Policy = () => {
           </Grid>
         ) : null}
         {locationsView === 'grid' ? (
-          <LocationsGrid locations={locations} renderActions={renderLocationGridActions} />
+          <LocationsGridOld locations={locations} renderActions={renderLocationGridActions} />
         ) : null}
         {locationsView === 'map' ? (
           <Card sx={{ height: 500, width: '100% ' }}>

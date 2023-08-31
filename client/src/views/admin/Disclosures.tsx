@@ -1,22 +1,22 @@
 import { useCallback, useMemo } from 'react';
 
+import { ArticleRounded, DeleteRounded, EditRounded } from '@mui/icons-material';
 import { Box, Button, Tooltip, Typography } from '@mui/material';
-import { ArticleRounded, EditRounded, DeleteRounded } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
 import { GridActionsCellItem, GridColDef, GridRowParams } from '@mui/x-data-grid';
-import { useFirestore } from 'reactfire';
-import { JSONContent } from '@tiptap/react';
 import { generateHTML } from '@tiptap/html';
+import { JSONContent } from '@tiptap/react';
 import { toast } from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
+import { useFirestore } from 'reactfire';
 
+import { COLLECTIONS } from 'common';
 import { ServerDataGrid } from 'components';
-import { ADMIN_ROUTES, createPath } from 'router';
-import { formatGridFirestoreTimestamp } from 'modules/utils';
 import { GridCellCopy, renderChips } from 'components/RenderGridCellHelpers';
 import { useConfirmation } from 'context';
 import { deleteDoc, doc } from 'firebase/firestore';
-import { COLLECTIONS } from 'common';
 import { EDITOR_EXTENSION_DEFAULTS } from 'hooks';
+import { formatGridFirestoreTimestamp } from 'modules/utils';
+import { ADMIN_ROUTES, createPath } from 'router';
 
 const ContentSnippet = ({ json }: { json: JSONContent }) => {
   const content = useMemo(() => {
@@ -220,7 +220,7 @@ export const Disclosures = () => {
       </Box>
 
       {/* <Box sx={{ height: 500, width: '100%' }}> */}
-      <ServerDataGrid collName='DISCLOSURES' columns={columns} autoHeight />
+      <ServerDataGrid colName='DISCLOSURES' columns={columns} autoHeight />
       {/* </Box> */}
     </Box>
   );

@@ -1,5 +1,5 @@
+import { LoadingButton } from '@mui/lab';
 import { Badge, Box, ListItemIcon, ListItemText, MenuItem, Tooltip } from '@mui/material';
-import { useCallback, useMemo } from 'react';
 import {
   GridActionsCellItem,
   GridActionsColDef,
@@ -9,18 +9,18 @@ import {
   gridRowSelectionStateSelector,
   useGridApiContext,
 } from '@mui/x-data-grid';
-import { LoadingButton } from '@mui/lab';
+import { useCallback, useMemo } from 'react';
 
+import { ThumbDownRounded, ThumbUpRounded } from '@mui/icons-material';
 import { COLLECTIONS, ImportSummary } from 'common';
-import { useAsyncToast, useDocData, useManageImports, useSafeParams } from 'hooks';
 import { IconMenu, ServerDataGrid } from 'components';
+import { useAuth } from 'context';
+import { useAsyncToast, useDocData, useManageImports, useSafeParams } from 'hooks';
 import {
   policyStagingRecordCols,
   quoteStagingRecordCols,
   transactionStagingRecordCols,
 } from 'modules/muiGrid/gridColumnDefs';
-import { useAuth } from 'context';
-import { ThumbDownRounded, ThumbUpRounded } from '@mui/icons-material';
 
 // TODO: admin grid actions (approve selected, etc.)
 // TODO: action button top right of grid (custom toolbar) to approve/decline all
@@ -182,7 +182,7 @@ export const ImportReviewComponent = ({ importId, importType }: ImportReviewComp
   return (
     <Box>
       <ServerDataGrid
-        collName='DATA_IMPORTS'
+        colName='DATA_IMPORTS'
         pathSegments={[importId, COLLECTIONS.STAGED_RECORDS]}
         checkboxSelection
         slots={{

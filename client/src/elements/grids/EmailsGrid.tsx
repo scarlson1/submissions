@@ -7,7 +7,7 @@ import { emailCols } from 'modules/muiGrid/gridColumnDefs';
 export interface EmailGridProps
   extends Omit<
     ServerDataGridProps,
-    'columns' | 'collName' | 'isCollectionGroup' | 'columns' | 'pathSegments'
+    'columns' | 'colName' | 'isCollectionGroup' | 'columns' | 'pathSegments'
   > {
   renderActions?: (params: GridRowParams) => JSX.Element[];
   additionalColumns?: GridColDef<any, any, any>[];
@@ -17,7 +17,7 @@ export const EmailsGrid = ({ renderActions, additionalColumns, ...props }: Email
   return (
     <Box>
       <ServerDataGrid
-        collName='EMAIL_ACTIVITY'
+        colName='EMAIL_ACTIVITY'
         columns={emailCols}
         density='compact'
         autoHeight

@@ -1,7 +1,7 @@
+import { DataGridProps, GridColDef, GridRowParams } from '@mui/x-data-grid';
 import { JSONContent } from '@tiptap/react';
 import { GeoPoint, Timestamp, WithFieldValue } from 'firebase/firestore';
 import { Geohash } from 'geofire-common';
-import { DataGridProps, GridColDef, GridRowParams } from '@mui/x-data-grid';
 
 import { ServerDataGridProps } from 'components';
 import { CancelValues, LocationChangeValues } from 'elements/forms';
@@ -591,7 +591,7 @@ export type LocationImageTypes = 'light' | 'dark' | 'satellite' | 'satelliteStre
 
 export type LocationImages = Record<LocationImageTypes, string>;
 
-export interface PolicyLocation {
+export interface PolicyLocation extends BaseDoc {
   address: Address;
   coordinates: GeoPoint;
   geoHash: Geohash;
@@ -615,10 +615,6 @@ export interface PolicyLocation {
   imagePaths?: LocationImages | null;
   locationId: string;
   externalId?: string | null;
-  metadata: {
-    created: Timestamp;
-    updated: Timestamp;
-  };
 }
 
 export interface Policy extends BaseDoc {
@@ -1656,7 +1652,7 @@ export interface BaseSendEmailResponse {
 export interface ServerDataGridCollectionProps
   extends Omit<
     ServerDataGridProps,
-    'columns' | 'collName' | 'isCollectionGroup' | 'columns' | 'pathSegments' | 'initialState'
+    'columns' | 'colName' | 'isCollectionGroup' | 'columns' | 'pathSegments' | 'initialState'
   > {
   renderActions?: (params: GridRowParams) => JSX.Element[];
   additionalColumns?: GridColDef<any, any, any>[];

@@ -149,7 +149,7 @@ export const MoratoriumsGrid = ({
 
   return (
     <ServerDataGrid
-      collName='MORATORIUMS'
+      colName='MORATORIUMS'
       columns={columns}
       density='compact'
       autoHeight

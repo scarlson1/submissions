@@ -93,7 +93,7 @@ export const QuotesGrid = ({
   return (
     <Box sx={{ height: { xs: 400, sm: 460, md: 500 }, width: '100%' }}>
       <ServerDataGrid
-        collName='QUOTES'
+        colName='QUOTES'
         columns={quoteColumns}
         density='compact'
         autoHeight

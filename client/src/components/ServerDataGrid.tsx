@@ -33,7 +33,7 @@ import { GridMobileToolbar } from './GridMobileToolbar';
 // TODO: add firestore converter prop (default to withId ?? how would ID column be handled if converter didn't add id to doc data ??)
 
 export interface ServerDataGridProps extends Partial<Omit<DataGridProps, 'rows'>> {
-  collName: keyof typeof COLLECTIONS;
+  colName: keyof typeof COLLECTIONS;
   pathSegments?: string[];
   constraints?: QueryFieldFilterConstraint[];
   isCollectionGroup?: boolean;
@@ -41,7 +41,7 @@ export interface ServerDataGridProps extends Partial<Omit<DataGridProps, 'rows'>
 }
 
 export const ServerDataGrid = ({
-  collName,
+  colName,
   pathSegments = [],
   constraints = [],
   isCollectionGroup = false,
@@ -86,7 +86,7 @@ export const ServerDataGrid = ({
   );
 
   const fetchCount = useFetchDocCount(
-    collName,
+    colName,
     [...filters, ...constraints],
     isCollectionGroup,
     pathSegments
@@ -98,7 +98,7 @@ export const ServerDataGrid = ({
 
   // subscribe to collection, update when page, filters, sort change
   const { data, status } = useFetchDocsWithCursor(
-    collName,
+    colName,
     queryOptions,
     {
       cursor: cursors.current.get(paginationModel.page),
@@ -188,7 +188,7 @@ export const ServerDataGrid = ({
           toolbar: {
             csvOptions: {
               // allColumns: true,
-              fileName: `iDemand ${lowerCase(collName)} export`,
+              fileName: `iDemand ${lowerCase(colName)} export`,
             },
             printOptions: { disableToolbarButton: true },
             ...(slotProps?.toolbar || {}),

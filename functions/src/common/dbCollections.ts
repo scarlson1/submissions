@@ -1,28 +1,29 @@
-import { DocumentData, CollectionReference, Firestore } from 'firebase-admin/firestore';
+import { CollectionReference, DocumentData, Firestore } from 'firebase-admin/firestore';
 
 import {
   AgencyApplication,
-  Charge,
   COLLECTIONS,
-  // PolicyOld,
-  RatingData,
-  Quote,
-  Transaction,
-  PropertyDataRes,
-  Submission,
-  User,
-  SRRes,
-  SRResWithAAL,
-  Organization,
+  ChangeRequest,
+  Charge,
+  Disclosure,
+  ImportSummary,
   Invite,
-  PaymentMethod,
-  Policy,
   License,
   Moratorium,
-  Disclosure,
-  ChangeRequest,
+  Organization,
+  PaymentMethod,
+  Policy,
+  PolicyLocation,
+  PropertyDataRes,
+  Quote,
+  // PolicyOld,
+  RatingData,
+  SRRes,
+  SRResWithAAL,
   StageImportRecord,
-  ImportSummary,
+  Submission,
+  Transaction,
+  User,
 } from '../common'; // AgencyApplication, Invite, Notification, Organization,
 import { ClaimsDocData } from '../firestoreEvents/index.js';
 
@@ -37,6 +38,9 @@ export const orgsCollection = (db: Firestore) =>
 
 export const submissionsCollection = (db: Firestore) =>
   createCollection<Submission>(db, COLLECTIONS.SUBMISSIONS);
+
+export const locationsCollection = (db: Firestore) =>
+  createCollection<PolicyLocation>(db, COLLECTIONS.LOCATIONS);
 
 export const ratingDataCollection = (db: Firestore) =>
   createCollection<RatingData>(db, COLLECTIONS.RATING_DATA);

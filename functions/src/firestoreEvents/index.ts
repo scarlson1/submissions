@@ -33,6 +33,15 @@ export const getsubmissionfips = onDocumentCreated(
   }
 );
 
+export const locationcreated = onDocumentCreated(
+  {
+    document: `${COLLECTIONS.LOCATIONS}/{locationId}`,
+  },
+  async (event) => {
+    await (await import('./locationCreated.js')).default(event);
+  }
+);
+
 export const mirrorcustomclaims = onDocumentWritten(
   `${COLLECTIONS.ORGANIZATIONS}/{orgId}/${COLLECTIONS.USER_CLAIMS}/{userId}`,
   async (event) => {
@@ -70,14 +79,15 @@ export const sendinviteemail = onDocumentCreated(
   }
 );
 
-export const policycreated = onDocumentCreated(
-  {
-    document: `${COLLECTIONS.POLICIES}/{policyId}`,
-  },
-  async (event) => {
-    await (await import('./policyCreated.js')).default(event);
-  }
-);
+// GET LOCATION IMAGES --> MOVED TO LOCATION LISTENER
+// export const policycreated = onDocumentCreated(
+//   {
+//     document: `${COLLECTIONS.POLICIES}/{policyId}`,
+//   },
+//   async (event) => {
+//     await (await import('./policyCreated.js')).default(event);
+//   }
+// );
 
 export const policychangerequest = onDocumentWritten(
   {

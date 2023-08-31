@@ -1,13 +1,13 @@
-import { useCallback, useMemo } from 'react';
+import { CancelRounded, SendRounded } from '@mui/icons-material';
 import { Tooltip } from '@mui/material';
 import { GridActionsCellItem, GridColDef, GridRowParams } from '@mui/x-data-grid';
-import { CancelRounded, SendRounded } from '@mui/icons-material';
 import { QueryConstraint } from 'firebase/firestore';
 import { Functions, httpsCallable } from 'firebase/functions';
+import { useCallback, useMemo } from 'react';
 import { useFunctions, useSigninCheck } from 'reactfire';
 
-import { ServerDataGrid, ServerDataGridProps } from 'components';
 import { COLLECTIONS, CUSTOM_CLAIMS, INVITE_STATUS, Invite } from 'common';
+import { ServerDataGrid, ServerDataGridProps } from 'components';
 import { useAsyncToast } from 'hooks';
 import { inviteCols } from 'modules/muiGrid';
 
@@ -35,14 +35,14 @@ export const InvitesGrid = ({ orgId, queryConstraints }: InvitesGridProps) => {
   const props: Omit<ServerDataGridProps, 'columns'> = useMemo(() => {
     if (orgId) {
       return {
-        collName: 'ORGANIZATIONS',
+        colName: 'ORGANIZATIONS',
         pathSegments: [orgId, COLLECTIONS.INVITES],
         isCollectionGroup: false,
       };
     } else {
       if (!signInRes.hasRequiredClaims) throw new Error('missing orgId or required claims');
       return {
-        collName: 'INVITES',
+        colName: 'INVITES',
         isCollectionGroup: true,
       };
     }

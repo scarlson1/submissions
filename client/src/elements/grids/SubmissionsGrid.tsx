@@ -12,7 +12,7 @@ import { statusCol, submissionCols } from 'modules/muiGrid/gridColumnDefs';
 export interface SubmissionsGridProps
   extends Omit<
     ServerDataGridProps,
-    'columns' | 'collName' | 'isCollectionGroup' | 'columns' | 'pathSegments'
+    'columns' | 'colName' | 'isCollectionGroup' | 'columns' | 'pathSegments'
   > {
   renderActions?: (params: GridRowParams) => JSX.Element[];
   additionalColumns?: GridColDef<any, any, any>[];
@@ -92,7 +92,7 @@ export const SubmissionsGrid = ({
   return (
     <Box sx={{ height: { xs: 400, sm: 460, md: 500 }, width: '100%' }}>
       <ServerDataGrid
-        collName='SUBMISSIONS'
+        colName='SUBMISSIONS'
         columns={submissionColumns}
         density='compact'
         autoHeight

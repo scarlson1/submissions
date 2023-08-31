@@ -32,8 +32,17 @@ export default async (
     const data = event.data?.data() as Policy;
     verify(data, 'new policy missing data');
 
+    // TODO: REFACTOR TO LOCATION CREATED
     const locations = data.locations;
     verify(locations, 'policy missing locations');
+    // const db = getFirestore()
+    // const locationsCol = locationsCollection(db)
+
+    // const locationSnaps = await getAllById(locationsCol, Object.keys(policyLocations));
+
+    // const locations = locationSnaps.docs
+    //   .filter((snap) => snap.exists)
+    //   .map((snap) => ({ ...snap.data(), id: snap.id }));
 
     for (let [id, location] of Object.entries(locations)) {
       let imgObj = location.imageURLs;

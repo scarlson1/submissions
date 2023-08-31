@@ -1,8 +1,8 @@
 export enum COLLECTIONS {
   SUBMISSIONS = 'submissions',
   PROPERTY_DATA_RES = 'propertyDataRes',
-  // QUOTES = 'submissionsQuotes',
   QUOTES = 'quotes',
+  LOCATIONS = 'locations',
   RATING_DATA = 'ratingData',
   USERS = 'users',
   POLICIES = 'policies',

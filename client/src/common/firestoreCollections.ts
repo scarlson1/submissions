@@ -2,28 +2,29 @@ import { collection, CollectionReference, DocumentData, Firestore } from 'fireba
 
 import { COLLECTIONS } from './enums';
 import {
-  RatingData,
-  SpatialKeyResponse,
-  Organization,
-  Policy,
-  User,
-  UserClaims,
+  ActiveStates,
+  AgencyApplication,
+  ChangeRequest,
+  Charge,
+  ImportSummary,
   Invite,
   License,
-  Submission,
-  NotifyRegistration,
-  Tax,
   Moratorium,
-  AgencyApplication,
-  ActiveStates,
-  Quote,
+  NotifyRegistration,
+  Organization,
   PaymentMethod,
-  Charge,
-  ChangeRequest,
-  PropertyDataRes,
+  Policy,
+  PolicyLocation,
   PortfolioSubmission,
+  PropertyDataRes,
+  Quote,
+  RatingData,
+  SpatialKeyResponse,
   StageImportRecord,
-  ImportSummary,
+  Submission,
+  Tax,
+  User,
+  UserClaims,
 } from './types';
 
 // REACT FIRE
@@ -41,8 +42,8 @@ export const submissionsCollection = (db: Firestore) =>
 export const portfolioSubmissionsCollection = (db: Firestore) =>
   createCollection<PortfolioSubmission>(db, COLLECTIONS.PORTFOLIO_SUBMISSIONS);
 
-// export const quotesCollection = (db: Firestore) =>
-//   createCollection<QuoteData>(db, COLLECTIONS.QUOTES);
+export const locationsCollection = (db: Firestore) =>
+  createCollection<PolicyLocation>(db, COLLECTIONS.LOCATIONS);
 
 // TODO: change to quotes instead of submission quotes
 export const quotesCollection = (db: Firestore) => createCollection<Quote>(db, COLLECTIONS.QUOTES);

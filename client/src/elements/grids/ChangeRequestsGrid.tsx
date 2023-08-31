@@ -48,13 +48,13 @@ export const ChangeRequestsGrid = ({
 
     if (policyId) {
       queryProps = {
-        collName: 'POLICIES',
+        colName: 'POLICIES',
         pathSegments: [policyId, COLLECTIONS.CHANGE_REQUESTS],
         isCollectionGroup: false,
       };
     } else {
       queryProps = {
-        collName: 'CHANGE_REQUESTS',
+        colName: 'CHANGE_REQUESTS',
         isCollectionGroup: true,
       };
     }
