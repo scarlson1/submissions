@@ -11,7 +11,7 @@ import { PageNotFoundSVG, SearchingSVG, SecureLoginSVG, ServerDownSVG } from 'as
 // TODO: tailor error responses using isRouteErrorResponse
 // https://reactrouter.com/en/main/route/error-element
 
-// TODO: wrap in layout ?? includes nav? What about if caughts at lower levels of router ??
+// TODO: wrap in layout ?? includes nav? What about if caught at lower levels of router ??
 
 // @ts-ignore
 export const firestoreRulesErrorRegex = /([A-Za-z0-9]+( [A-Za-z0-9]+)+)\. for '[A-Za-z]+' @ L\d*/i;
@@ -262,7 +262,7 @@ export const RouterErrorBoundary = ({ actionButtons }: RouterErrorBoundaryProps)
     msg = (
       <p>
         Indexing error. Our team has been notified and the issue should be resolved within the hour.
-        Appologies for the inconvenience. Please also try a hard refresh of the page (ctrl/cmd +
+        Apologies for the inconvenience. Please also try a hard refresh of the page (ctrl/cmd +
         shift + R).
       </p>
     );

@@ -69,6 +69,7 @@ export { useGridEditMode } from './useGridEditMode';
 export { useCopyToClipboard } from './useCopyToClipboard';
 export { useParseCSV } from './useParseCSV';
 export { useDialog } from './useDialog';
+export { useManageImports } from './useManageImports';
 
 export type { SubjectBaseKeyVal } from './useFetchTaxes';
 export type { UseFileUploadProps } from './useFileUpload';

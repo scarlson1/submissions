@@ -21,6 +21,8 @@ import {
   Moratorium,
   Disclosure,
   ChangeRequest,
+  StageImportRecord,
+  ImportSummary,
 } from '../common'; // AgencyApplication, Invite, Notification, Organization,
 import { ClaimsDocData } from '../firestoreEvents/index.js';
 
@@ -74,7 +76,10 @@ export const moratoriumsCollection = (db: Firestore) =>
 export const disclosuresCollection = (db: Firestore) =>
   createCollection<Disclosure>(db, COLLECTIONS.DISCLOSURES);
 
-// // SUBCOLLECTIONS
+export const importSummaryCollection = (db: Firestore) =>
+  createCollection<ImportSummary>(db, COLLECTIONS.DATA_IMPORTS);
+
+// // SUB-COLLECTIONS
 // export const notificationsCollection = (db: Firestore, userId: string) =>
 //   createCollection<Notification>(db, `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.NOTIFICATIONS}`);
 
@@ -97,4 +102,10 @@ export const changeRequestsCollection = (db: Firestore, policyId: string) =>
   createCollection<ChangeRequest>(
     db,
     `${COLLECTIONS.POLICIES}/${policyId}/${COLLECTIONS.CHANGE_REQUESTS}`
+  );
+
+export const stagedImportsCollection = (db: Firestore, importId: string) =>
+  createCollection<StageImportRecord>(
+    db,
+    `${COLLECTIONS.DATA_IMPORTS}/${importId}/${COLLECTIONS.STAGED_RECORDS}`
   );

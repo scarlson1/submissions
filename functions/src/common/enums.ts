@@ -24,6 +24,7 @@ export enum COLLECTIONS {
   DATA_IMPORTS = 'dataImports',
   EMAIL_ACTIVITY = 'emailActivity',
   MORATORIUMS = 'moratoriums',
+  STAGED_RECORDS = 'stagedDocs',
 }
 
 export enum SUBMISSION_STATUS {
@@ -113,7 +114,7 @@ export enum CLAIMS {
 
 // }
 
-export enum TRANSACTION_TYPE {
+export enum FIN_TRANSACTION_TYPE {
   CHARGE = 'charge',
   REFUND = 'refund',
 }
@@ -131,7 +132,7 @@ export enum TRX_PUB_SUB_TOPICS {
   POLICY_CREATED = 'policy.created',
   POLICY_RENEWAL = 'policy.renewal',
   ENDORSEMENT = 'location.endorsement',
-  AMENDMENT = 'policy.admendment',
+  AMENDMENT = 'policy.amendment',
   POLICY_REINSTATEMENT = 'policy.reinstatement',
   // POLICY_CANCELLATION = 'policy.cancellation',
   LOCATION_CANCELLATION = 'location.cancellation',

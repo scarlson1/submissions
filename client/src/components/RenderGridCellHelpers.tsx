@@ -58,15 +58,27 @@ export const renderChips = (
 ) => {
   if (!params.value || params.value.length < 1) return null;
 
+  let vals;
+  let andMoreCount = 0;
+  if (params.value.length < 10) {
+    vals = params.value;
+  } else {
+    vals = params.value.slice(0, 10);
+    andMoreCount = params.value.length - 10;
+  }
+
   return (
     <Stack
       spacing={1}
       direction='row'
       sx={{ overflow: 'auto', whiteSpace: 'nowrap', '&::-webkit-scrollbar': { display: 'none' } }}
     >
-      {params.value.map((i: string) => (
+      {vals.map((i: string) => (
         <Chip key={i} label={i} size='small' {...chipProps} {...propsGetterFunc(i, params)} />
       ))}
+      {andMoreCount > 0 ? (
+        <Chip label={`+ ${andMoreCount} more`} size='small' {...chipProps} color='primary' />
+      ) : null}
     </Stack>
   );
 };
@@ -298,8 +310,14 @@ export const renderJoinArray = (
 
   return (
     <Box>
-      {value.map((v) => (
-        <Typography variant='body2' {...(typographyProps || {})}>
+      {value.map((v, i) => (
+        <Typography
+          variant='body2'
+          component='span'
+          sx={{ mr: 1.5 }}
+          {...typographyProps}
+          key={`${v}-${i}`}
+        >
           {v}
         </Typography>
       ))}

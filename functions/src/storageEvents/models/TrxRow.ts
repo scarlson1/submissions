@@ -21,6 +21,8 @@ export interface TrxRow {
   insuredCity: string;
   insuredState: string;
   insuredPostal: string;
+  insuredCountyFips?: string;
+  insuredCountyName?: string;
   latitude: string;
   longitude: string;
   otherInterestedParties: string;
@@ -54,7 +56,7 @@ export interface TrxRow {
   limitC: string;
   limitD: string;
   deductible: string;
-  ratingDocId: string; // TODO: required ?? created from policy import
+  ratingDocId: string; // TODO: required ?? created from policy import (review endorsement flow)
   replacementCost: string;
   cbrsDesignation: string;
   basement: string;

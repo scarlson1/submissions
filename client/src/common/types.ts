@@ -1,8 +1,8 @@
 import { JSONContent } from '@tiptap/react';
 import { GeoPoint, Timestamp, WithFieldValue } from 'firebase/firestore';
 import { Geohash } from 'geofire-common';
-
 import { DataGridProps, GridColDef, GridRowParams } from '@mui/x-data-grid';
+
 import { ServerDataGridProps } from 'components';
 import { CancelValues, LocationChangeValues } from 'elements/forms';
 import { PolicyChangeValues } from 'elements/forms/PolicyChangeForm';
@@ -21,8 +21,8 @@ import {
 } from './enums';
 
 export interface BaseMetadata {
-  created: Timestamp; // FirestoreTimestamp;
-  updated: Timestamp; // FirestoreTimestamp;
+  created: Timestamp;
+  updated: Timestamp;
 }
 
 export interface BaseDoc {
@@ -1167,7 +1167,7 @@ export interface Disclosure extends BaseDoc {
 }
 
 export interface ImportSummary {
-  importCollection: string;
+  targetCollection: string;
   importDocIds: string[];
   docCreationErrors: any[];
   invalidRows: { rowNum: string | number; rowData: Record<string, any> }[];
@@ -1175,6 +1175,28 @@ export interface ImportSummary {
     created: Timestamp;
   };
 }
+
+interface ImportMeta {
+  reviewBy?: {
+    userId: string | null;
+    name: string | null;
+  };
+  status: 'imported' | 'new' | 'declined';
+}
+
+export type StagedPolicyImport = Policy & {
+  importMeta: ImportMeta;
+};
+
+export type StagedTransactionImport = Transaction & {
+  importMeta: ImportMeta;
+};
+
+export type StagedQuoteImport = Quote & {
+  importMeta: ImportMeta;
+};
+
+export type StageImportRecord = StagedPolicyImport | StagedTransactionImport;
 
 // TODO: swiss re property data res type
 export type PropertyDataRes = Record<string, any>;

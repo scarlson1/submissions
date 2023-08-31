@@ -23,6 +23,7 @@ import {
   PlaceRounded,
   QueryBuilderRounded,
   RequestQuoteRounded,
+  SaveAltRounded,
   StormRounded,
   ThumbDownRounded,
 } from '@mui/icons-material';
@@ -47,6 +48,7 @@ import {
   AdditionalInsured,
   Address,
   CHANGE_REQUEST_STATUS,
+  COLLECTIONS,
   INVITE_STATUS,
   Mortgagee,
   Nullable,
@@ -632,12 +634,18 @@ export function getChipProps(status: ChipStatus): Partial<ChipProps> {
       return { icon: <QueryBuilderRounded />, color: 'warning' };
     case INVITE_STATUS.ACCEPTED:
       return { icon: <CheckRounded />, color: 'success' };
+    case 'imported':
+      return { icon: <SaveAltRounded />, color: 'success' };
+    case 'declined':
+      return { icon: <ThumbDownRounded />, color: 'default' };
     case CHANGE_REQUEST_STATUS.DENIED:
       return { icon: <CloseRounded />, color: 'error' };
     case 'active':
       return { icon: <CheckRounded />, color: 'success' };
     case 'inactive':
       return { icon: <DisabledByDefaultRounded />, color: 'default' };
+    case 'new':
+      return { icon: <FiberNewRounded />, color: 'primary' };
     default:
       return { color: 'default' };
   }
@@ -1522,8 +1530,20 @@ export const trxTypeCol: GridSingleSelectColDef = {
   minWidth: 120,
   flex: 1,
   editable: false,
-  filterOperators: getGridFirestoreStringOperators(),
+  filterOperators: getGridFirestoreSelectOperators(),
   renderCell: renderChip,
+};
+
+export const trxInterfaceTypeCol: GridSingleSelectColDef = {
+  field: 'trxInterfaceType',
+  headerName: 'Interface Type',
+  description: 'transaction structure (required fields, etc.)',
+  type: 'singleSelect',
+  valueOptions: ['offset', 'premium', 'amendment'],
+  filterOperators: getGridFirestoreSelectOperators(),
+  editable: false,
+  minWidth: 120,
+  flex: 1,
 };
 
 export const requestEffDateCol: GridColDef = {
@@ -1592,13 +1612,15 @@ export const LOBCol: GridSingleSelectColDef = {
   valueFormatter: (params) => `${params.value?.join(', ')}`,
 };
 
-export const importCollectionCol: GridColDef = {
-  field: 'importCollection',
+export const targetCollectionCol: GridSingleSelectColDef = {
+  field: 'targetCollection',
   headerName: 'Collection',
   description: 'target database collection for import',
   minWidth: 160,
-  flex: 0.8,
-  filterOperators: getGridFirestoreStringOperators(),
+  flex: 0.4,
+  type: 'singleSelect',
+  valueOptions: [COLLECTIONS.POLICIES, COLLECTIONS.QUOTES, COLLECTIONS.TRANSACTIONS],
+  filterOperators: getGridFirestoreSelectOperators(),
 };
 
 export const importDocIdsCol: GridColDef = {
@@ -1620,7 +1642,7 @@ export const importDocIdsCountCol: GridColDef = {
   description: 'Count of successfully created records',
   type: 'number',
   minWidth: 120,
-  flex: 1,
+  flex: 0.2,
   filterable: false,
   sortable: false,
   valueGetter: (params) => (params.row.importDocIds ? params.row.importDocIds.length : null),
@@ -1643,7 +1665,7 @@ export const importCreationErrorsCountCol: GridColDef = {
   headerAlign: 'center',
   align: 'right',
   minWidth: 140,
-  flex: 1,
+  flex: 0.2,
   filterable: false,
   sortable: false,
   valueGetter: (params) => (params.row.docCreateErrors ? params.row.docCreateErrors.length : null),
@@ -1655,11 +1677,11 @@ export const invalidRowsCol: GridColDef = {
   description: 'Count of rows that failed validation and were NOT imported',
   type: 'number',
   minWidth: 100,
-  flex: 1,
-  // filterOperators: getGridFirestoreStringOperators(),
+  flex: 0.2,
   editable: false,
   filterable: false,
   sortable: false,
+  valueGetter: (params) => (params.row.invalidRows ? params.row.invalidRows.length : null),
   // TODO: set array filters
 };
 
@@ -1938,7 +1960,7 @@ export const trxAdditionalNamedInsuredCol: GridColDef = {
   editable: false,
   filterable: false,
   sortable: false,
-  valueGetter: (params) => params.row.otherInterestedParties || null,
+  valueGetter: (params) => params.row.additionalNamedInsured || null,
   renderCell: renderJoinArray,
   valueFormatter: (params) => {
     if (!params.value || !Array.isArray(params.value)) return null;
@@ -2105,7 +2127,7 @@ export const buildingRCVCol: GridColDef = {
   ...currencyCol,
   field: 'RCVs.building',
   headerName: 'Building RCV',
-  valueGetter: (params) => params.row.RCVs?.building || null,
+  valueGetter: (params) => params.row.RCVs?.building ?? null,
   renderCell: (params) => renderCurrency(params, false),
 };
 
@@ -2113,7 +2135,7 @@ export const otherStructuresRCVCol: GridColDef = {
   ...currencyCol,
   field: 'RCVs.otherStructures',
   headerName: 'Other Structures RCV',
-  valueGetter: (params) => params.row.RCVs?.otherStructures || null,
+  valueGetter: (params) => params.row.RCVs?.otherStructures ?? null,
   renderCell: (params) => renderCurrency(params, false),
 };
 
@@ -2121,7 +2143,7 @@ export const contentsRCVCol: GridColDef = {
   ...currencyCol,
   field: 'RCVs.contents',
   headerName: 'Contents RCV',
-  valueGetter: (params) => params.row.RCVs?.contents || null,
+  valueGetter: (params) => params.row.RCVs?.contents ?? null,
   renderCell: (params) => renderCurrency(params, false),
 };
 
@@ -2129,6 +2151,6 @@ export const BIRCVCol: GridColDef = {
   ...currencyCol,
   field: 'RCVs.BI',
   headerName: 'BI RCV',
-  valueGetter: (params) => params.row.RCVs?.BI || null,
+  valueGetter: (params) => params.row.RCVs?.BI ?? null,
   renderCell: (params) => renderCurrency(params, false),
 };

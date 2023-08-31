@@ -100,6 +100,7 @@ export const quoteCols: GridColDef[] = [
     ...idCol,
     headerName: 'Quote ID',
   },
+  // TODO: use regular ID column ??
   {
     field: 'submissionId',
     headerName: 'Submission ID',

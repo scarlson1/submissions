@@ -8,13 +8,14 @@ import { basename, join } from 'path';
 
 import {
   COLLECTIONS,
-  DeepNullable,
+  StagedTransactionImport,
   Transaction,
   audience,
   getReportErrorFn,
   hostingBaseURL,
+  importSummaryCollection,
   sendgridApiKey,
-  transactionsCollection,
+  stagedImportsCollection,
   unlinkFile,
 } from '../common';
 import {
@@ -27,14 +28,9 @@ import {
 import { sendAdminPolicyImportNotification } from '../services/sendgrid';
 import { TrxRow } from './models';
 import { transformTrxRow } from './transform';
+import { validateTrxRow } from './validation';
 
 const reportErr = getReportErrorFn('importTransactions ');
-
-function validateTrxRow(row: DeepNullable<Transaction>): boolean {
-  // first validation should be transaction type
-  //
-  return true;
-}
 
 // TODO: make enum for folder names ??
 const TRX_IMPORT_FOLDER = 'importTransactions';
@@ -49,7 +45,9 @@ export default async (event: StorageEvent) => {
   if (eventOlderThan(event)) return; // return if event older than 1 min
 
   const db = getFirestore();
-  const trxCol = transactionsCollection(db);
+  // const trxCol = transactionsCollection(db);
+  const importSummaryRef = importSummaryCollection(db).doc(event.id);
+  const importStagingCol = stagedImportsCollection(db, importSummaryRef.id);
 
   const storage = getStorage();
   const bucket = storage.bucket(fileBucket);
@@ -93,12 +91,30 @@ export default async (event: StorageEvent) => {
     try {
       const data = {
         ...t,
+        eventId: event.id,
         metadata: {
           created: Timestamp.now(),
           updated: Timestamp.now(),
         },
-      } as Transaction;
-      const trxRef = await trxCol.add(data);
+        importMeta: {
+          status: 'new',
+          eventId: event.id,
+          targetCollection: COLLECTIONS.TRANSACTIONS,
+        },
+      } as StagedTransactionImport;
+
+      const trxRef = await importStagingCol.add(data);
+
+      // const data = {
+      //   ...t,
+      //   eventId: event.id,
+      //   metadata: {
+      //     created: Timestamp.now(),
+      //     updated: Timestamp.now(),
+      //   },
+      // } as Transaction;
+
+      // const trxRef = await trxCol.add(data);
 
       trxIds.push(trxRef.id);
     } catch (err: any) {
@@ -112,11 +128,9 @@ export default async (event: StorageEvent) => {
     importErrors,
   });
 
-  let summaryRef;
   try {
-    const importSummaryColRef = db.collection(COLLECTIONS.DATA_IMPORTS);
-    summaryRef = await importSummaryColRef.add({
-      importCollection: COLLECTIONS.TRANSACTIONS,
+    await importSummaryRef.set({
+      targetCollection: COLLECTIONS.TRANSACTIONS,
       importDocIds: trxIds,
       docCreationErrors: importErrors,
       invalidRows,
@@ -124,7 +138,7 @@ export default async (event: StorageEvent) => {
         created: Timestamp.now(),
       },
     });
-    info(`Saved import summary to doc ${summaryRef.id}`);
+    info(`Saved import summary to doc ${importSummaryRef.id}`);
   } catch (err: any) {
     reportErr(`Error saving import summary`, { filename }, err);
   }
@@ -135,7 +149,7 @@ export default async (event: StorageEvent) => {
 
     if (audience.value() !== 'LOCAL HUMANS') {
       to.push('ron.carlson@idemandinsurance.com');
-      link = `${hostingBaseURL.value}/admin/config/imports`;
+      link = `${hostingBaseURL.value}/admin/config/imports/${importSummaryRef.id}`;
     }
 
     await sendAdminPolicyImportNotification(

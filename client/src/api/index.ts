@@ -16,6 +16,7 @@ export { moveUserToTenant } from './moveUserToTenant';
 export { generateSearchKey } from './generateSearchKey';
 export { sendEmail } from './sendEmail';
 export { approveChangeRequest } from './approveChangeRequest';
+export { approveImport } from './approveImport';
 
 export type { VerifyEPayTokenRequest, VerifyEPayTokenResponse } from './verifyEPayToken';
 export type { AssignQuoteRequest, AssignQuoteResponse } from './assignQuote';
@@ -32,3 +33,4 @@ export type { InviteUsersRequest, InviteUsersResponse, NewUser } from './inviteU
 export type { GetAnnualPremiumRequest, GetAnnualPremiumResponse } from './getAnnualPremium';
 export type { MoveUserToTenantRequest, MoveUserToTenantResponse } from './moveUserToTenant';
 export type { ApproveChangeRequest, ApproveChangeResponse } from './approveChangeRequest';
+export type { ApproveImportRequest, ApproveImportResponse } from './approveImport';

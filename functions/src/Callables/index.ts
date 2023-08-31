@@ -22,6 +22,10 @@ export const approvechangerequest = onCall(async (request) => {
   return (await import('./approveChangeRequest.js')).default(request);
 });
 
+export const approveimport = onCall(async (request) => {
+  return (await import('./approveImport.js')).default(request);
+});
+
 export const assignquote = onCall(
   { minInstances: minInstances, memory: '128MiB' },
   async (request) => {
@@ -100,8 +104,8 @@ export const resendinvite = onCall({ secrets: [sendgridApiKey] }, async (request
 
 export const sendagencyapprovednotification = onCall(
   { secrets: [sendgridApiKey] },
-  async (requst) => {
-    return (await import('./sendAgencyApprovedNotification.js')).default(requst);
+  async (request) => {
+    return (await import('./sendAgencyApprovedNotification.js')).default(request);
   }
 );
 
@@ -109,8 +113,8 @@ export const sendcontactemail = onCall(
   {
     secrets: [sendgridApiKey],
   },
-  async (requst) => {
-    return (await import('./sendContactEmail.js')).default(requst);
+  async (request) => {
+    return (await import('./sendContactEmail.js')).default(request);
   }
 );
 

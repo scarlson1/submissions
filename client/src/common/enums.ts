@@ -31,6 +31,7 @@ export enum COLLECTIONS {
   DISCLOSURES = 'disclosures',
   EMAIL_ACTIVITY = 'emailActivity',
   DATA_IMPORTS = 'dataImports',
+  STAGED_RECORDS = 'stagedDocs',
   TASKS = 'tasks', // TODO: DELETE
 }
 
@@ -97,7 +98,7 @@ export enum INVITE_STATUS {
   ERROR = 'error',
 }
 
-export enum TRANSACTION_TYPE {
+export enum FIN_TRANSACTION_TYPE {
   CHARGE = 'charge',
   REFUND = 'refund',
 }
@@ -212,5 +213,5 @@ export enum ANALYTICS_EVENTS {
   EXCEPTION = 'exception',
   SCREEN_VIEW = 'screen_view',
   PAGE_VIEW = 'page_view',
-  GENTERATE_LEAD = 'generate_lead',
+  GENERATE_LEAD = 'generate_lead',
 }

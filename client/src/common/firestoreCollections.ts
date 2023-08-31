@@ -22,6 +22,8 @@ import {
   ChangeRequest,
   PropertyDataRes,
   PortfolioSubmission,
+  StageImportRecord,
+  ImportSummary,
 } from './types';
 
 // REACT FIRE
@@ -82,6 +84,9 @@ export const agencyAppCollection = (db: Firestore) =>
 export const finTrxCollection = (db: Firestore) =>
   createCollection<Charge>(db, COLLECTIONS.FIN_TRANSACTIONS);
 
+export const importSummaryCollection = (db: Firestore) =>
+  createCollection<ImportSummary>(db, COLLECTIONS.DATA_IMPORTS);
+
 // SUB COLLECTIONS
 export const userClaimsCollection = (db: Firestore, orgId: string, ...rest: string[]) =>
   createCollection<UserClaims>(
@@ -115,6 +120,15 @@ export const changeRequestsCollection = (db: Firestore, policyId: string, ...res
 
 export const policyClaimsCollection = (db: Firestore, policyId: string, ...rest: string[]) =>
   createCollection<any>(db, COLLECTIONS.POLICIES, policyId, COLLECTIONS.CLAIMS, ...rest);
+
+export const stagedImportsCollection = (db: Firestore, importId: string, ...rest: string[]) =>
+  createCollection<StageImportRecord>(
+    db,
+    COLLECTIONS.DATA_IMPORTS,
+    importId,
+    COLLECTIONS.STAGED_RECORDS,
+    ...rest
+  );
 
 // export const notificationsCollection = (userId: string) =>
 //   createCollection<Notification>(COLLECTIONS.USERS, userId, COLLECTIONS.NOTIFICATIONS);

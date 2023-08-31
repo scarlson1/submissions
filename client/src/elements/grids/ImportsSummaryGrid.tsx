@@ -3,12 +3,14 @@ import { Box, Tooltip } from '@mui/material';
 import { DataObjectRounded } from '@mui/icons-material';
 import { GridActionsCellItem, GridRowParams } from '@mui/x-data-grid';
 import { capitalize } from 'lodash';
+import { useNavigate } from 'react-router-dom';
 
 import { COLLECTIONS, ImportSummary, WithId } from 'common';
 import { ServerDataGrid, ServerDataGridProps } from 'components';
 import { useShowJson } from 'hooks';
 import { formatFirestoreTimestamp } from 'modules/utils';
 import { importSummaryCols } from 'modules/muiGrid/gridColumnDefs';
+import { ADMIN_ROUTES, createPath } from 'router';
 
 export interface ImportSummaryGridProps
   extends Omit<
@@ -23,6 +25,7 @@ export const ImportsSummaryGrid = ({
   renderActions = () => [],
   ...props
 }: ImportSummaryGridProps) => {
+  const navigate = useNavigate();
   const showJson = useShowJson<ImportSummary>(COLLECTIONS.DATA_IMPORTS, [], getImportSummaryTitle);
 
   const handleShowJson = useCallback(
@@ -71,6 +74,15 @@ export const ImportsSummaryGrid = ({
           },
           pagination: { paginationModel: { page: 0, pageSize: 10 } },
         }}
+        // onRowDoubleClick={(params) => navigate(params.id.toString())}
+        onRowDoubleClick={(params) =>
+          navigate(
+            createPath({
+              path: ADMIN_ROUTES.IMPORT_REVIEW,
+              params: { importId: params.id.toString() },
+            })
+          )
+        }
         {...props}
       />
     </Box>
@@ -78,7 +90,7 @@ export const ImportsSummaryGrid = ({
 };
 
 function getImportSummaryTitle(data: WithId<ImportSummary>) {
-  return `${capitalize(data.importCollection)} import ${
+  return `${capitalize(data.targetCollection)} import ${
     data.metadata?.created ? formatFirestoreTimestamp(data.metadata?.created, 'date') : ''
   }`.trim();
 }

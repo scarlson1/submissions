@@ -10,6 +10,7 @@ import { CreateMsgContentProps } from '../services/sendgrid/index.js';
 import {
   AGENCY_STATUS,
   AGENCY_SUBMISSION_STATUS,
+  COLLECTIONS,
   FIN_TRANSACTION_STATUS,
   POLICY_STATUS,
   PRODUCT,
@@ -417,15 +418,15 @@ export interface RatingPropertyData {
   priorLossCount?: string | null;
 }
 
-// TODO: determine which fields are required for rerating & only make those required. Add Rating doc when importing policies / quotes
-// TODO: use discriminating union type: 'rating' | 'premium-recalc' ??
+// determine which fields are required for rerating & only make those required. Add Rating doc when importing policies / quotes
+// use discriminating union type: 'rating' | 'premium-recalc' ??
 
-// TODO: required: limits, RCVs, TIV, deductible, AALs, address, coordinates, ratingPropertyData, premiumCalcData.MGACommission, premiumCalcData.MGACommissionPct, premiumCalcData.directWrittenPremium
+// required: limits, RCVs, TIV, deductible, AALs, address, coordinates, ratingPropertyData, premiumCalcData.MGACommission, premiumCalcData.MGACommissionPct, premiumCalcData.directWrittenPremium
 
 export type RatingPremCalcData = WithRequired<
   DeepPartial<PremiumCalcData>,
   'MGACommission' | 'MGACommissionPct' | 'directWrittenPremium'
->;
+>; // reporting --> require:  floodCategoryPremium | techPremium ??
 
 export interface RatingData extends BaseDoc {
   submissionId: string | null;
@@ -1181,7 +1182,7 @@ export interface PremiumTransaction extends BaseTransaction {
   limits: Limits;
   TIV: number;
   RCVs: RCVs;
-  premiumCalcData: RatingPremCalcData; // PremiumCalcData; // necessary ?? optional ??
+  premiumCalcData: RatingPremCalcData;
   locationAnnualPremium: number;
   termPremium: number;
   MGACommission: number; // idemand & subproducer
@@ -1453,6 +1454,51 @@ export interface License extends BaseDoc {
 
 // TODO: swiss re property data res type
 export type PropertyDataRes = Record<string, any>;
+
+export interface ImportSummary {
+  targetCollection: string;
+  importDocIds: string[];
+  docCreationErrors: any[];
+  invalidRows: { rowNum: string | number; rowData: Record<string, any> }[];
+  metadata: {
+    created: Timestamp;
+  };
+}
+
+export interface ImportMeta {
+  reviewBy?: {
+    userId: string | null;
+    name: string | null;
+  };
+  status: 'imported' | 'new' | 'declined';
+  eventId?: string;
+}
+
+export interface PolicyImportMeta extends ImportMeta {
+  targetCollection: COLLECTIONS.POLICIES;
+}
+
+export type StagedPolicyImport = Policy & {
+  importMeta: PolicyImportMeta;
+};
+
+export interface TransactionsImportMeta extends ImportMeta {
+  targetCollection: COLLECTIONS.TRANSACTIONS;
+}
+
+export type StagedTransactionImport = Transaction & {
+  importMeta: TransactionsImportMeta;
+};
+
+export interface QuoteImportMeta extends ImportMeta {
+  targetCollection: COLLECTIONS.QUOTES;
+}
+
+export type StagedQuoteImport = Quote & {
+  importMeta: QuoteImportMeta;
+};
+
+export type StageImportRecord = StagedPolicyImport | StagedTransactionImport | StagedQuoteImport;
 
 export interface EmailRecord extends CreateMsgContentProps {
   metadata: {

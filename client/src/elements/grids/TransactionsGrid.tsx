@@ -1,8 +1,8 @@
 import { GridActionsCellItem, GridColDef, GridRowParams } from '@mui/x-data-grid';
 import { useCallback, useMemo } from 'react';
-
 import { DataObjectRounded } from '@mui/icons-material';
 import { Tooltip } from '@mui/material';
+
 import { COLLECTIONS, ServerDataGridCollectionProps, Transaction } from 'common';
 import { ServerDataGrid } from 'components';
 import { useShowJson, useWidth } from 'hooks';
@@ -60,6 +60,7 @@ export const TransactionsGrid = ({
         columns: {
           columnVisibilityModel: {
             id: false,
+            trxInterfaceType: false,
             product: false,
             externalId: false,
             tiv: false,

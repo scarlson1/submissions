@@ -1,11 +1,15 @@
 import {
+  Address,
+  AgentDetails,
   BASEMENT_OPTIONS,
+  DeepNullable,
   FLOOD_ZONES,
   Limits,
   Nullable,
   PRIOR_LOSS_COUNT_OPTIONS,
   RCVs,
   ValueByRiskType,
+  isValidEmail,
   maxA,
   maxBCD,
   minA,
@@ -138,4 +142,29 @@ export function validatePriorLossCount(
     PRIOR_LOSS_COUNT_OPTIONS.includes(priorLossCount),
     'prior loss count must be "0", "1", or "2"'
   );
+}
+
+export function validateAddress(
+  address: DeepNullable<Address> | null | undefined,
+  errPrefix?: string
+): asserts address is Address {
+  verify(address?.addressLine1, `${errPrefix}addressLine1 required`);
+  verify(typeof address.addressLine2 === 'string', `${errPrefix}addressLine2 must be a string`);
+  verify(address?.city, `${errPrefix}city required`);
+  verify(address?.state, `${errPrefix}state required`);
+  verify(address?.postal, `${errPrefix}postal required`);
+}
+
+export function validateSubproducerCommission(comm: unknown): asserts comm is number {
+  verify(comm && typeof comm === 'number', 'subproducerCommission must be a number');
+  verify(comm > 0.05 && comm < 0.2, 'subproducerCommission must be between 0.05 and 0.2');
+}
+
+export function validateAgentDetails(
+  agent: DeepNullable<AgentDetails> | null | undefined
+): asserts agent is AgentDetails {
+  verify(agent?.name, 'missing agentName');
+  verify(agent?.email && isValidEmail(agent?.email), 'invalid agent email');
+  verify(agent?.phone, 'missing agent phone');
+  verify(agent?.userId, 'missing agentId');
 }
