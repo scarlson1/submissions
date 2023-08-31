@@ -666,7 +666,7 @@ export interface PolicyLocation {
   effectiveDate: Timestamp;
   expirationDate: Timestamp;
   cancelEffDate?: Timestamp | null;
-  cancelReason?: CancellationReason;
+  cancelReason?: CancellationReason | null;
   imageURLs?: LocationImages | null;
   imagePaths?: LocationImages | null;
   locationId: string;
@@ -1117,7 +1117,7 @@ export interface Tax extends BaseDoc {
 // one transaction per location
 // TODO: create transaction class ?? like mongoose constructor ??
 
-interface BaseTransaction extends BaseDoc {
+export interface BaseTransaction extends BaseDoc {
   trxType: TransactionType;
   product: Product;
   policyId: string;

@@ -29,8 +29,8 @@ export interface TrxRow {
   // mortgageeInterest: string;
   policyEffDate: string;
   policyExpDate: string;
-  locationEffDate: string; // include ?? (not in trx ??)
-  locationExpDate: string; // include ??
+  // locationEffDate: string; // include ?? (not in trx ??)
+  // locationExpDate: string; // include ??
   trxEffDate: string;
   trxExpDate: string;
   trxDays: string;
@@ -42,7 +42,7 @@ export interface TrxRow {
   mgaCommissionPct: string;
   netDirectWrittenPremium: string;
   dailyPremium: string;
-  termProratedPct: number;
+  termProratedPct: string;
   netErrorAdj: string;
   surplusLinesTax: string;
   surplusLinesRegulatoryFee: string;
@@ -56,7 +56,7 @@ export interface TrxRow {
   deductible: string;
   ratingDocId: string; // TODO: required ?? created from policy import
   replacementCost: string;
-  CBRSDesignation: string;
+  cbrsDesignation: string;
   basement: string;
   distToCoastFeet: string;
   floodZone: string;
