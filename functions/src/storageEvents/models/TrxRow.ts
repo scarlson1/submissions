@@ -71,4 +71,7 @@ export interface TrxRow {
   tier1: string;
   construction: string;
   priorLossCount: string;
+  techPremiumInland: string;
+  techPremiumSurge: string;
+  techPremiumTsunami: string;
 }

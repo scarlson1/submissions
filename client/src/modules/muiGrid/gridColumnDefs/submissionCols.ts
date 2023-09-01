@@ -43,8 +43,9 @@ import {
   tsunamiAALCol,
   addressSummaryCol,
 } from './gridColumns';
+import { Submission } from 'common';
 
-export const submissionCols: GridColDef[] = [
+export const submissionCols: GridColDef<Submission>[] = [
   addressSummaryCol,
   {
     ...addrLine1Col,
@@ -69,8 +70,8 @@ export const submissionCols: GridColDef[] = [
     filterable: false,
     valueGetter: (params) => {
       if (params.value) return params.value;
-      if (params.row.firstName || params.row.lastName)
-        return `${params.row.firstName} ${params.row.lastName}`.trim();
+      // if (params.row.firstName || params.row.lastName)
+      // return `${params.row.firstName} ${params.row.lastName}`.trim();
       if (params.row.contact?.firstName || params.row.contact?.lastName)
         return `${params.row.contact?.firstName} ${params.row.contact?.lastName}`.trim();
       return null;

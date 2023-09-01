@@ -68,9 +68,8 @@ const calcQuote = async ({ data, auth }: CallableRequest<CalcQuoteRequest>) => {
     validateAALs(AALs);
     validateState(state);
   } catch (err: any) {
-    // console.log('INVALID PROPS: ', err);
     let msg = err?.message || 'Provided params failed validation';
-    msg = msg.replace(/(Invariant failed: )/g, '');
+    msg = msg.replace(/(Invariant failed: )/g, 'Validation failed ');
     error('Invalid props', {
       props: data,
       userId: auth?.uid,
@@ -102,8 +101,6 @@ const calcQuote = async ({ data, auth }: CallableRequest<CalcQuoteRequest>) => {
       limits,
       TIV: result.tiv,
       RCVs,
-      // TODO: Decide whether to require all rating property data and RCVs in request
-      // OR use a discriminating union type
       ratingPropertyData: {
         floodZone,
         basement,

@@ -510,7 +510,7 @@ export function AdditionalInterestsStep({ logAnalyticsStep }: LogAnalyticsProp) 
     useFormikContext<BindQuoteValues>();
 
   useEffect(() => {
-    logAnalyticsStep(1, 'addititional named insureds step');
+    logAnalyticsStep(1, 'additional named insureds step');
   }, [logAnalyticsStep]);
 
   return (
@@ -606,7 +606,7 @@ export function AdditionalInterestsStep({ logAnalyticsStep }: LogAnalyticsProp) 
   );
 }
 
-// BUG: load form when eff excp req = true, then turn it off and select valid date ==> validation fails
+// BUG: load form when eff exception req = true, then turn it off and select valid date ==> validation fails
 
 const getEffectiveDateValidation = (minEffDate: Date, maxEffDate: Date) =>
   yup.object().shape({
@@ -988,7 +988,7 @@ export function BindReviewStep({ data, logAnalyticsStep }: BindReviewStepProps) 
           <Divider sx={{ my: 3 }} />
           <Typography sx={{ py: 2 }}>Underwriter Notes</Typography>
           {data.notes.map(({ note }) => (
-            <Typography variant='body2' color='text.secondary' sx={{ py: 1 }}>
+            <Typography variant='body2' color='text.secondary' sx={{ py: 1 }} key={`${note}`}>
               {note}
             </Typography>
           ))}

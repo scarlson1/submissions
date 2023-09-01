@@ -41,9 +41,17 @@ import {
   tivCol,
   updatedCol,
 } from './gridColumns';
+import { PolicyLocation } from 'common';
 
-export const locationCols: GridColDef[] = [
+export const locationCols: GridColDef<PolicyLocation>[] = [
   idCol,
+  {
+    ...idCol,
+    field: 'policyId',
+    headerName: 'Policy ID',
+    valueGetter: (params) => params.row.policyId || null,
+    // TODO: use link component to display --> route to policy
+  },
   externalIdCol,
   addressSummaryCol,
   addrLine1Col,

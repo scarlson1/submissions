@@ -63,10 +63,10 @@ export function formatPremiumTrx(
     trxExpDate: location.expirationDate || null,
     trxDays: location.termDays,
     ratingPropertyData: {
-      ...location.ratingPropertyData,
-      units: null,
-      tier1: null,
-      construction: '',
+      ...location.ratingPropertyData, // @ts-ignore
+      units: location.ratingPropertyData?.units ?? null, // @ts-ignore
+      tier1: location.ratingPropertyData?.tier1 ?? null, // @ts-ignore
+      construction: location.ratingPropertyData?.construction ?? null,
       priorLossCount: location.ratingPropertyData?.priorLossCount ?? null,
     }, // TODO: needs units, tier1, construction from property res
     deductible: location.deductible,
@@ -78,7 +78,7 @@ export function formatPremiumTrx(
     termProratedPct,
     termPremium: location.termPremium,
     MGACommission: ratingData?.premiumCalcData?.MGACommission,
-    MGACommissionPct: ratingData.premiumCalcData?.MGACommissionPct,
+    MGACommissionPct: ratingData.premiumCalcData?.MGACommissionPct ?? null,
     netDWP: getNetDWP(location.termPremium, ratingData?.premiumCalcData?.MGACommission || 0),
     netErrorAdj: 0, // TODO: where is this coming from ??
     dailyPremium,

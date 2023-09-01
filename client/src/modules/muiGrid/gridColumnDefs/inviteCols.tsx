@@ -1,7 +1,7 @@
 import { Box, Chip } from '@mui/material';
 import { GridColDef } from '@mui/x-data-grid';
 
-import { INVITE_STATUS } from 'common';
+import { INVITE_STATUS, Invite } from 'common';
 import {
   createdCol,
   displayNameCol,
@@ -12,7 +12,7 @@ import {
   updatedCol,
 } from './gridColumns';
 
-export const inviteCols: GridColDef[] = [
+export const inviteCols: GridColDef<Invite>[] = [
   { ...idCol, headerName: 'Invite ID' },
   emailCol,
   displayNameCol,

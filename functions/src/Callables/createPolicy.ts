@@ -8,7 +8,7 @@ import {
   QUOTE_STATUS,
   getReportErrorFn,
   locationsCollection,
-  policiesCollection,
+  policiesCollectionNew,
   quotesCollection,
 } from '../common';
 import { getSLLicenseByState } from '../modules/db';
@@ -39,7 +39,7 @@ const createPolicy = async ({ data, auth }: CallableRequest<CreatePolicyProps>) 
 
   const db = getFirestore();
   const quotesCol = quotesCollection(db);
-  const policiesCol = policiesCollection(db);
+  const policiesCol = policiesCollectionNew(db);
 
   const quoteSnap = await quotesCol.doc(quoteId).get();
   const qData = quoteSnap.data();
@@ -86,11 +86,12 @@ const createPolicy = async ({ data, auth }: CallableRequest<CreatePolicyProps>) 
     reportErr(msg, {}, err);
     throw new HttpsError('internal', msg);
   }
-
+  const policyRef = policiesCol.doc();
   let policyData: PolicyNew;
   let locationData: Record<string, PolicyLocation>;
+
   try {
-    locationData = getPolicyLocationsFromQuote(quoteData);
+    locationData = getPolicyLocationsFromQuote(quoteData, policyRef.id);
     policyData = getPolicyFromQuote(quoteData, locationData, licenseData);
     // policyData = convertQuoteToPolicyOld(quoteData, licenseData, quoteId);
   } catch (err: any) {
@@ -115,14 +116,14 @@ const createPolicy = async ({ data, auth }: CallableRequest<CreatePolicyProps>) 
     info(`CREATING POLICY (quoteId: ${quoteId})`, { quoteData, policyData, locationData });
 
     const locationsCol = locationsCollection(db);
+
     const batch = db.batch();
 
     for (const [id, location] of Object.entries(locationData)) {
       const locationRef = locationsCol.doc(id);
-      batch.set(locationRef, location);
+      batch.set(locationRef, { ...location, policyId: policyRef.id });
     }
 
-    const policyRef = policiesCol.doc();
     batch.set(policyRef, policyData);
 
     batch.update(quoteSnap.ref, {
@@ -130,28 +131,9 @@ const createPolicy = async ({ data, auth }: CallableRequest<CreatePolicyProps>) 
       'metadata.updated': Timestamp.now(),
     });
 
+    await batch.commit();
+
     info(`POLICY CREATED => policy ID: ${policyRef.id}`, { ...policyData, uid });
-
-    // const policyRef = await policiesCol.add({
-    //   ...policyData,
-    // });
-
-    // try {
-    //   await quoteSnap.ref.update({
-    //     status: QUOTE_STATUS.BOUND,
-    //     'metadata.updated': Timestamp.now(),
-    //   });
-    // } catch (err) {
-    //   reportErr(
-    //     'Error updating quote status to bound',
-    //     {
-    //       quoteId: quoteSnap?.id || null,
-    //       policyId: policyRef?.id || null,
-    //       userId: uid || null,
-    //     },
-    //     err
-    //   );
-    // }
 
     try {
       await publishPolicyCreated({

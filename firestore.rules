@@ -78,6 +78,14 @@ service cloud.firestore {
       allow delete: if false
     }
 
+    // TODO: LOCATION RULES
+    match /locations/{locationId} {
+      allow read: if true;
+      allow create: if false;
+      allow update: if isIDemandAdmin();
+      allow delete: if isIDemandAdmin() && !existingData().policyId
+    }
+
     // required for collection group queries (https://firebase.google.com/docs/firestore/security/rules-query#collection_group_queries_and_security_rules)
     match /{path=**}/changeRequests/{requestId} {
       allow read: if isDocUserOrAgentOrOrgAdminOrIDemandAdmin()

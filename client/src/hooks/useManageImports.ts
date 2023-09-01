@@ -4,7 +4,12 @@ import { Timestamp, doc, getDoc, setDoc } from 'firebase/firestore';
 
 import { approveImport } from 'api';
 import { useAuth } from 'context';
-import { StageImportRecord, importSummaryCollection, stagedImportsCollection } from 'common';
+import {
+  DeepPartial,
+  StageImportRecord,
+  importSummaryCollection,
+  stagedImportsCollection,
+} from 'common';
 
 export const useManageImports = (
   importId: string,
@@ -48,14 +53,14 @@ export const useManageImports = (
 
   const setDeclined = useCallback(
     async (docId: string) => {
-      const updates: Partial<StageImportRecord> = {
+      const updates: DeepPartial<StageImportRecord> = {
         importMeta: {
           status: 'declined',
           reviewBy: {
             userId: user?.uid || '',
             name: user?.displayName || null,
           },
-        }, // @ts-ignore
+        },
         metadata: {
           updated: Timestamp.now(),
         },

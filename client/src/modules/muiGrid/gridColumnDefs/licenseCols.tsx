@@ -18,8 +18,9 @@ import {
   getGridFirestoreSelectOperators,
   getGridFirestoreStringOperators,
 } from 'modules/muiGrid/operators';
+import { License } from 'common';
 
-export const licenseCols: GridColDef[] = [
+export const licenseCols: GridColDef<License>[] = [
   {
     ...idCol,
     headerName: 'Doc ID',

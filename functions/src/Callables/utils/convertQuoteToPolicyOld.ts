@@ -86,6 +86,7 @@ export function convertQuoteToPolicyOld(
       ratingPropertyData: data.ratingPropertyData,
       effectiveDate: data.effectiveDate,
       expirationDate: Timestamp.fromDate(expirationDate),
+      policyId: '',
       locationId,
       externalId: null,
       imageURLs: data.imageURLs || null,

@@ -21,8 +21,9 @@ import {
   statusCol,
   updatedCol,
 } from './gridColumns';
+import { Organization } from 'common';
 
-export const orgCols: GridColDef[] = [
+export const orgCols: GridColDef<Organization>[] = [
   orgNameCol,
   {
     ...statusCol,

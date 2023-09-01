@@ -3,8 +3,7 @@ import { convert } from 'html-to-text';
 import { flatten } from 'lodash';
 
 import { JSONContent, Policy, PolicyLocation, dollarFormat, dollarFormat2 } from '../../common';
-import { getFormattedAddress } from '../../routes/generatePDF';
-import { EDITOR_EXTENSION_DEFAULTS } from '../../utils';
+import { EDITOR_EXTENSION_DEFAULTS, getFormattedAddress } from '../../utils';
 import { AdditionalInterestsItem, PolicyDecPDFLocations, PremiumTableItem } from './components';
 
 export function formatLocationData(locations: Policy['locations']) {

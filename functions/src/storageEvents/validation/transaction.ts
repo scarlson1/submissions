@@ -134,6 +134,19 @@ function premiumTrxValidation(
 
   arrayOfStringsVal(data.otherInterestedParties, 'other parties must be an array');
   arrayOfStringsVal(data.additionalNamedInsured, 'additional insureds must be an array');
+
+  verify(
+    typeof data.premiumCalcData?.techPremium?.inland === 'number',
+    'invalid inland tech premium'
+  );
+  verify(
+    typeof data.premiumCalcData?.techPremium?.surge === 'number',
+    'invalid surge tech premium'
+  );
+  verify(
+    typeof data.premiumCalcData?.techPremium?.tsunami === 'number',
+    'invalid tsunami tech premium'
+  );
 }
 
 function arrayOfStringsVal(val: any, errMsg?: string) {

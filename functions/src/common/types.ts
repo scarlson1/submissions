@@ -18,7 +18,7 @@ import {
   SUBMISSION_STATUS,
 } from './enums.js';
 import { cardFeePct, iDemandOrgId } from './environmentVars.js';
-import { filterUniqueArr, getNewLocationId, removeFromArr } from './helpers.js';
+import { filterUniqueArr, removeFromArr } from './helpers.js';
 
 // TODO: fix typescript error app.use(thisMiddleware) is users.ts
 
@@ -648,6 +648,8 @@ export interface SLProdOfRecordDetails {
 
 export type LocationImages = Record<LocationImageTypes, string>;
 
+// TODO: discriminating union (SubmissionLocation, QuoteLocation, PolicyLocation, etc.)
+// require policy id, parentType: 'policy', etc.
 export interface PolicyLocation {
   address: Address;
   coordinates: GeoPoint;
@@ -671,6 +673,7 @@ export interface PolicyLocation {
   imageURLs?: LocationImages | null;
   imagePaths?: LocationImages | null;
   locationId: string;
+  policyId?: string;
   externalId?: string | null;
   metadata: {
     created: Timestamp;
@@ -707,6 +710,12 @@ export interface Policy extends BaseDoc {
   quoteId?: string | null;
 }
 
+export interface PolicyLocationSummary {
+  termPremium: number;
+  formattedAddress: string;
+  coordinates: GeoPoint;
+}
+
 export interface PolicyNew extends BaseDoc {
   product: Product;
   status: POLICY_STATUS; // TODO: figure out how to do policy status (active, etc.)
@@ -714,7 +723,7 @@ export interface PolicyNew extends BaseDoc {
   mailingAddress: MailingAddress;
   namedInsured: NamedInsured;
   // locations: Record<string, PolicyLocation>;
-  locations: Record<string, { termPremium: number }>;
+  locations: Record<string, PolicyLocationSummary>;
   homeState: string;
   termPremium: number; // sum of location(s) term premium
   inStatePremium?: number;
@@ -755,6 +764,7 @@ export interface IPolicyClass extends Policy {
 }
 
 // TODO: use js module instead of class ??
+// @ts-ignore
 export class PolicyClass implements IPolicyClass {
   readonly id: string;
   readonly isExpired: boolean;
@@ -830,20 +840,20 @@ export class PolicyClass implements IPolicyClass {
     return location;
   }
 
-  async addLocation(locationData: PolicyLocation, id?: string) {
-    // TODO: validation
-    const locationId = id || getNewLocationId();
-    try {
-      this.locations[locationId] = { ...locationData, locationId };
-      let newTotal = await this.sumLocationPremium();
-      this.price = newTotal;
+  // async addLocation(locationData: PolicyLocation, id?: string) {
+  //   // TODO: validation
+  //   const locationId = id || getNewLocationId();
+  //   try {
+  //     this.locations[locationId] = { ...locationData, locationId };
+  //     let newTotal = await this.sumLocationPremium();
+  //     this.price = newTotal;
 
-      return { locationId, newTotal };
-    } catch (err) {
-      if (this.locations[locationId]) delete this.locations[locationId];
-      throw err;
-    }
-  }
+  //     return { locationId, newTotal };
+  //   } catch (err) {
+  //     if (this.locations[locationId]) delete this.locations[locationId];
+  //     throw err;
+  //   }
+  // }
 
   async removeLocation(id: string) {
     this.getLocation(id); // will throw if not found
@@ -923,7 +933,7 @@ export class PolicyClass implements IPolicyClass {
     const totalPremium = locations.reduce((acc, location) => {
       if (!location.annualPremium)
         throw new Error(
-          `Missing premium for ${location.address.addressLine1} (${location.locationId})`
+          `Missing premium for ${location.address.addressLine1} ` // (${location.locationId})
         );
       return acc + location.annualPremium;
     }, 0);

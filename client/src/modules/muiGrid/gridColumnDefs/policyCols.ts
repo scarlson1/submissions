@@ -30,8 +30,9 @@ import {
   updatedCol,
   userIdCol,
 } from './gridColumns';
+import { Policy } from 'common';
 
-export const policyCols: GridColDef[] = [
+export const policyCols: GridColDef<Policy>[] = [
   productCol,
   // locationAddresses,
   namedInsuredDisplayNameCol,

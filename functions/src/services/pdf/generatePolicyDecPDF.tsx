@@ -36,7 +36,7 @@ interface DecPageTemplateData extends Record<string, unknown> {
   agencyPostal: string;
   agentName: string;
   agentEmail: string;
-  agentphone: string;
+  agentPhone: string;
   surplusLinesLicenseNum: string;
   surplusLinesLicensePhone: string;
   surplusLinesLicenseState: string;

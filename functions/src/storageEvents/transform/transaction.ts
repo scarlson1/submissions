@@ -111,7 +111,11 @@ function csvRowToPremiumTrx(row: TrxRow): DeepNullable<Omit<PremiumTransaction, 
       directWrittenPremium: row.locationAnnualPremium
         ? extractNumberNeg(row.locationAnnualPremium)
         : null,
-      // TODO: other reporting dependant fields
+      techPremium: {
+        inland: row.techPremiumInland ? extractNumber(row.techPremiumInland) : null,
+        surge: row.techPremiumSurge ? extractNumber(row.techPremiumSurge) : null,
+        tsunami: row.techPremiumTsunami ? extractNumber(row.techPremiumTsunami) : null,
+      },
     },
     locationAnnualPremium: row.locationAnnualPremium
       ? extractNumberNeg(row.locationAnnualPremium)
@@ -192,6 +196,7 @@ function csvRowToInsuredLocation(row: TrxRow): DeepNullable<Omit<PolicyLocation,
     cancelEffDate: null,
     cancelReason: (row.cancelReason as CancellationReason) || null,
     locationId: row.locationId || null,
+    policyId: row.policyId || null,
     externalId: row.externalId || null,
   };
 }

@@ -10,6 +10,7 @@ import { InitRatingValues } from 'hooks/usePropertyDetails';
 import { FloodValues } from 'views/SubmissionNew';
 import {
   AGENCY_SUBMISSION_STATUS,
+  COLLECTIONS,
   DEDUCTIBLE_OPTIONS,
   INVITE_STATUS,
   POLICY_STATUS,
@@ -613,6 +614,7 @@ export interface PolicyLocation extends BaseDoc {
   cancelReason?: CancellationReason;
   imageURLs?: LocationImages | null;
   imagePaths?: LocationImages | null;
+  policyId?: string;
   locationId: string;
   externalId?: string | null;
 }
@@ -702,6 +704,7 @@ export type PremTrxType = 'new' | 'renewal' | 'endorsement' | 'reinstatement';
 // TODO: missing AALs, multipliers, LAE,  ??
 export interface PremiumTransaction extends BaseTransaction {
   trxType: PremTrxType;
+  trxInterfaceType: 'premium';
   insuredLocation: PolicyLocation;
   ratingPropertyData: TrxRatingData;
   deductible: number;
@@ -1172,24 +1175,57 @@ export interface ImportSummary {
   };
 }
 
-interface ImportMeta {
+// interface ImportMeta {
+//   reviewBy?: {
+//     userId: string | null;
+//     name: string | null;
+//   };
+//   status: 'imported' | 'new' | 'declined';
+// }
+
+// export type StagedPolicyImport = Policy & {
+//   importMeta: ImportMeta;
+// };
+
+// export type StagedTransactionImport = Transaction & {
+//   importMeta: ImportMeta;
+// };
+
+// export type StagedQuoteImport = Quote & {
+//   importMeta: ImportMeta;
+// };
+
+export interface ImportMeta {
   reviewBy?: {
     userId: string | null;
     name: string | null;
   };
   status: 'imported' | 'new' | 'declined';
+  eventId?: string;
+}
+
+export interface PolicyImportMeta extends ImportMeta {
+  targetCollection: COLLECTIONS.POLICIES;
 }
 
 export type StagedPolicyImport = Policy & {
-  importMeta: ImportMeta;
+  importMeta: PolicyImportMeta;
 };
+
+export interface TransactionsImportMeta extends ImportMeta {
+  targetCollection: COLLECTIONS.TRANSACTIONS;
+}
 
 export type StagedTransactionImport = Transaction & {
-  importMeta: ImportMeta;
+  importMeta: TransactionsImportMeta;
 };
 
+export interface QuoteImportMeta extends ImportMeta {
+  targetCollection: COLLECTIONS.QUOTES;
+}
+
 export type StagedQuoteImport = Quote & {
-  importMeta: ImportMeta;
+  importMeta: QuoteImportMeta;
 };
 
 export type StageImportRecord = StagedPolicyImport | StagedTransactionImport;

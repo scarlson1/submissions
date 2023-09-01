@@ -17,8 +17,9 @@ import {
   verify,
 } from '../../common';
 import { getCarrierByState, getRCVs, validateLimits } from '../../modules/rating';
+import { getFormattedAddress } from '../../utils';
 
-export const getPolicyLocationsFromQuote = (data: Quote) => {
+export const getPolicyLocationsFromQuote = (data: Quote, policyId: string) => {
   validateLimits(data.limits);
   verify(data.coordinates, 'missing coordinates');
   verify(data.effectiveDate, 'missing effective date');
@@ -59,6 +60,7 @@ export const getPolicyLocationsFromQuote = (data: Quote) => {
       effectiveDate: data.effectiveDate,
       expirationDate: Timestamp.fromDate(expirationDate),
       locationId,
+      policyId,
       externalId: null,
       imageURLs: data.imageURLs || null,
       imagePaths: data.imagePaths || null,
@@ -138,7 +140,7 @@ export function getPolicyFromQuote(
   verify(typeof data.quoteTotal === 'number', ' quote total must be a number');
 
   const locationData = Object.values(locations);
-  verify(locationData && locationData.length > 0, 'missing lcoation data');
+  verify(locationData && locationData.length > 0, 'missing location data');
   const singleLocation = locationData[0];
 
   const policyLocations: PolicyNew['locations'] = {};
@@ -146,11 +148,12 @@ export function getPolicyFromQuote(
     verify(typeof location.termPremium === 'number', 'location termPremium invalid');
     policyLocations[id] = {
       termPremium: location.termPremium,
+      formattedAddress: getFormattedAddress(location.address),
+      coordinates: location.coordinates,
     };
   }
 
-  // TODO: move to function
-  const policyTermPremium = getPolicyTermPremium(locations);
+  const policyTermPremium = getPolicyTermPremium(policyLocations);
 
   const issuingCarrier = getCarrierByState(data.homeState);
   verify(issuingCarrier, 'error determining issuingCarrier');
@@ -168,17 +171,16 @@ export function getPolicyFromQuote(
       phone: data.namedInsured?.phone,
       userId: data.namedInsured?.userId || null,
     },
-    locations,
+    locations: policyLocations,
     homeState: data.homeState,
     termPremium: policyTermPremium,
     termDays: singleLocation.termDays,
     fees: data.fees,
     taxes: data.taxes,
     price: data.quoteTotal,
-    effectiveDate: singleLocation.effectiveDate, // data.effectiveDate,
-    expirationDate: singleLocation.expirationDate, // Timestamp.fromDate(expirationDate),
+    effectiveDate: singleLocation.effectiveDate,
+    expirationDate: singleLocation.expirationDate,
     userId: data.userId,
-    // data.agent,
     agent: {
       userId: data.agent?.userId || null,
       name: data.agent?.name,

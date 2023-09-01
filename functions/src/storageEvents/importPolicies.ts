@@ -352,6 +352,7 @@ function formatPolicyLocation(
     mortgageeInterest: data.mortgageeInterest || [],
     ratingDocId: data.ratingDocId || '',
     ratingPropertyData: data.ratingPropertyData,
+    policyId: data.policyId || '',
     locationId,
     externalId: data.externalId || null,
     imageURLs: null,

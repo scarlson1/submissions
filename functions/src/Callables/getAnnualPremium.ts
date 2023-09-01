@@ -105,7 +105,7 @@ const getAnnualPremium = async ({ data, auth }: CallableRequest<GetAnnualPremium
   } catch (err: any) {
     error('ERROR GETTING AALs: ', { err });
 
-    throw new HttpsError('internal', 'Error fetching Average Anuual Loss');
+    throw new HttpsError('internal', 'Error fetching Average Annual Loss');
   }
   validateAALs(AALsRes.AALs);
 

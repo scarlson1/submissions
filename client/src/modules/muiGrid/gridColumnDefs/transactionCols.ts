@@ -84,8 +84,10 @@ import {
   tsunamiCategoryPremiumCol,
   updatedCol,
 } from './gridColumns';
+import { Transaction } from 'common';
+import { isPremTrx } from 'modules/rating';
 
-export const transactionCols: GridColDef[] = [
+export const transactionCols: GridColDef<Transaction>[] = [
   { ...idCol, headerName: 'Trx ID' },
   productCol,
   trxTypeCol,
@@ -186,58 +188,91 @@ export const transactionCols: GridColDef[] = [
   {
     ...techInlandPremiumCol,
     field: 'premiumCalcData.techPremium.inland',
-    valueGetter: ({ row }) => row.premiumCalcData?.techPremium?.inland ?? null,
+    valueGetter: ({ row }) => {
+      if (isPremTrx(row)) return row.premiumCalcData?.techPremium?.inland ?? null;
+      return null;
+    },
   },
   {
     ...techSurgePremiumCol,
     field: 'premiumCalcData.techPremium.surge',
-    valueGetter: ({ row }) => row.premiumCalcData?.techPremium?.surge ?? null,
+    valueGetter: ({ row }) => {
+      if (isPremTrx(row)) return row.premiumCalcData?.techPremium?.surge ?? null;
+      return null;
+    },
   },
   {
     ...techTsunamiPremiumCol,
     field: 'premiumCalcData.techPremium.tsunami',
-    valueGetter: ({ row }) => row.premiumCalcData?.techPremium?.tsunami ?? null,
+    valueGetter: ({ row }) => {
+      if (isPremTrx(row)) return row.premiumCalcData?.techPremium?.tsunami ?? null;
+      return null;
+    },
   },
   {
     ...inlandCategoryPremiumCol,
     field: 'premiumCalcData.floodCategoryPremium.inland',
-    valueGetter: ({ row }) => row.premiumCalcData?.floodCategoryPremium?.inland ?? null,
+    valueGetter: ({ row }) => {
+      if (isPremTrx(row)) return row.premiumCalcData?.floodCategoryPremium?.inland ?? null;
+      return null;
+    },
   },
   {
     ...surgeCategoryPremiumCol,
     field: 'premiumCalcData.floodCategoryPremium.surge',
-    valueGetter: ({ row }) => row.premiumCalcData?.floodCategoryPremium?.surge ?? null,
+    valueGetter: ({ row }) => {
+      if (isPremTrx(row)) return row.premiumCalcData?.floodCategoryPremium?.surge ?? null;
+      return null;
+    },
   },
   {
     ...tsunamiCategoryPremiumCol,
     field: 'premiumCalcData.floodCategoryPremium.tsunami',
-    valueGetter: ({ row }) => row.premiumCalcData?.floodCategoryPremium?.tsunami ?? null,
+    valueGetter: ({ row }) => {
+      if (isPremTrx(row)) return row.premiumCalcData?.floodCategoryPremium?.tsunami ?? null;
+      return null;
+    },
   },
   {
     ...premiumSubtotalCol,
     field: 'premiumCalcData.premiumSubtotal',
-    valueGetter: ({ row }) => row.premiumCalcData?.premiumSubtotal ?? null,
+    valueGetter: ({ row }) => {
+      if (isPremTrx(row)) return row.premiumCalcData?.premiumSubtotal ?? null;
+      return null;
+    },
   },
   {
     ...provisionalPremiumCol,
     field: 'premiumCalcData.provisionalPremium',
-    valueGetter: ({ row }) => row.premiumCalcData?.provisionalPremium ?? null,
+    valueGetter: ({ row }) => {
+      if (isPremTrx(row)) return row.premiumCalcData?.provisionalPremium ?? null;
+      return null;
+    },
   },
   {
     ...subproducerAdjCol,
     field: 'premiumCalcData.subproducerAdj',
-    valueGetter: ({ row }) => row.premiumCalcData?.subproducerAdj ?? null,
+    valueGetter: ({ row }) => {
+      if (isPremTrx(row)) return row.premiumCalcData?.subproducerAdj ?? null;
+      return null;
+    },
   },
   {
     ...dwpCol,
     field: 'premiumCalcData.directWrittenPremium',
-    valueGetter: ({ row }) => row.premiumCalcData?.directWrittenPremium ?? null,
+    valueGetter: ({ row }) => {
+      if (isPremTrx(row)) return row.premiumCalcData?.directWrittenPremium ?? null;
+      return null;
+    },
   },
   {
     ...subproducerCommissionCol,
     field: 'premiumCalcData.subproducerCommissionPct',
     headerName: 'Subproducer Comm. Pct.',
-    valueGetter: ({ row }) => row.premiumCalcData?.subproducerCommissionPct ?? null,
+    valueGetter: ({ row }) => {
+      if (isPremTrx(row)) return row.premiumCalcData?.subproducerCommissionPct ?? null;
+      return null;
+    },
   },
   trxOtherInterestedPartiesCol,
   trxAdditionalNamedInsuredCol,

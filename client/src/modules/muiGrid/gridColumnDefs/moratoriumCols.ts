@@ -11,8 +11,9 @@ import {
 import { renderChips } from 'components/RenderGridCellHelpers';
 import { Timestamp } from 'firebase/firestore';
 import { formatGridFirestoreTimestampAsDate } from 'modules/utils';
+import { Moratorium } from 'common';
 
-export const moratoriumCols: GridColDef[] = [
+export const moratoriumCols: GridColDef<Moratorium>[] = [
   booleanCalcActiveCol,
   {
     field: 'locations',

@@ -30,17 +30,18 @@ import { GridActionsCellItem, GridRowParams } from '@mui/x-data-grid';
 import { PickingInfo } from 'deck.gl/typed';
 import { useCallback, useMemo, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
+import { where } from 'firebase/firestore';
 
 import { Policy as IPolicy, POLICY_STATUS, PolicyLocation, WithId } from 'common';
 import { NotFound } from 'components';
 import { IconMenu } from 'components/IconButtonMenu';
-import { LocationCard, LocationsMap } from 'elements';
+import { LocationsMap } from 'elements';
 import {
   ChangeRequestsDialog,
   useViewChangeRequestsDialogProps,
 } from 'elements/ChangeRequestDialog';
 import { ContactList } from 'elements/forms';
-import { LocationsGridOld } from 'elements/grids';
+import { LocationsGrid } from 'elements/grids';
 import {
   useCreateCancelRequest,
   useCreateLocationChangeRequest,
@@ -73,14 +74,16 @@ export const Policy = () => {
   const locationChangeDialog = useCreateLocationChangeRequest(policyId);
   const cancelDialog = useCreateCancelRequest(); // TODO: onsuccess => "you'll receive a confirmation email once our team has processed the request. expect to see a refund, if due, in X days"
 
-  const locations = useMemo<WithId<PolicyLocation>[]>(() => {
-    let pLocs = Object.entries(data?.locations || {});
-    if (!pLocs || !pLocs.length) return [];
+  // const locations = useMemo<WithId<PolicyLocation>[]>(() => {
+  //   let pLocs = Object.entries(data?.locations || {});
+  //   if (!pLocs || !pLocs.length) return [];
 
-    return pLocs.map((loc) => ({ ...(loc[1] || {}), locationId: loc[0], id: loc[0] }));
-  }, [data]);
+  //   return pLocs.map((loc) => ({ ...(loc[1] || {}), locationId: loc[0], id: loc[0] }));
+  // }, [data]);
 
   const [locationsView, setLocationsView] = useState(getInitTabView(searchParams.get('l_view')));
+
+  const locationConstraints = useMemo(() => [where('policyId', '==', policyId)], [policyId]);
 
   const handleViewChange = useCallback(
     (event: React.MouseEvent<HTMLElement>, newView: string | null) => {
@@ -130,6 +133,9 @@ export const Policy = () => {
     },
     [handleLocationChangeRequestGrid]
   );
+
+  const locations = useMemo(() => Object.values(data.locations || {}), [data]);
+  const locationsCount = locations.length; // useMemo(() => Object.keys(data?.locations || {}).length, [data]);
 
   // TODO: throw & handle in error boundary ??
   if (!data) return <NotFound title='Policy not found' />;
@@ -194,7 +200,7 @@ export const Policy = () => {
                   value={`${data?.status === POLICY_STATUS.PAID ? 'active' : 'inactive'}`}
                 />
                 <StatBox title='Term' value={`${data?.term || ''}`} />
-                <StatBox title='Locations' value={`${locations?.length || '--'}`} />
+                <StatBox title='Locations' value={`${locationsCount || '--'}`} />
               </Stack>
             </Paper>
           </Grid>
@@ -280,23 +286,27 @@ export const Policy = () => {
           </Box>
         </Box>
         {locationsView === 'cards' ? (
-          <Grid container columnSpacing={4} rowSpacing={8}>
-            {locations?.map((location) => (
-              <Grid xs={12} sm={6} md={4} xl={3} key={location.id}>
-                <LocationCard
-                  location={location}
-                  namedInsured={data.namedInsured}
-                  onEdit={handleLocationChangeRequest}
-                  // agent={data.agent}
-                  // agency={data.agency}
-                />
-              </Grid>
-            ))}
-          </Grid>
-        ) : null}
+          <Typography variant='h5' align='center' color='warning.main'>
+            Location Cards under Construction
+          </Typography>
+        ) : // <Grid container columnSpacing={4} rowSpacing={8}>
+        //   {locations?.map((location) => (
+        //     <Grid xs={12} sm={6} md={4} xl={3} key={location.id}>
+        //       <LocationCard
+        //         location={location}
+        //         namedInsured={data.namedInsured}
+        //         onEdit={handleLocationChangeRequest}
+        //         // agent={data.agent}
+        //         // agency={data.agency}
+        //       />
+        //     </Grid>
+        //   ))}
+        // </Grid>
+        null}
         {locationsView === 'grid' ? (
-          <LocationsGridOld locations={locations} renderActions={renderLocationGridActions} />
-        ) : null}
+          <LocationsGrid constraints={locationConstraints} />
+        ) : // <LocationsGridOld locations={locations} renderActions={renderLocationGridActions} />
+        null}
         {locationsView === 'map' ? (
           <Card sx={{ height: 500, width: '100% ' }}>
             <LocationsMap

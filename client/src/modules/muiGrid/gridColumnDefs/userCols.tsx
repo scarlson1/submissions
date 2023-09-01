@@ -16,7 +16,7 @@ import {
 import { GridEditMultiSelectCell, GridMultiSelectColDef } from 'components/GridEditMultiSelectCell';
 import { renderChips } from 'components/RenderGridCellHelpers';
 import { getRandomItem, stringAvatar } from 'modules/utils';
-import { CUSTOM_CLAIMS } from 'common';
+import { CUSTOM_CLAIMS, User } from 'common';
 
 export const userClaimsCol: GridMultiSelectColDef = {
   field: 'userClaims',
@@ -39,7 +39,7 @@ export const userClaimsCol: GridMultiSelectColDef = {
   renderCell: renderChips,
   renderEditCell: (params: GridRenderEditCellParams) => <GridEditMultiSelectCell {...params} />,
   // usually necessary if valueGetter is used
-  // called when value changes and when "stopEditing" is triggerd (click away, enter, esc, etc.)
+  // called when value changes and when "stopEditing" is triggered (click away, enter, esc, etc.)
   valueSetter: (params) => {
     const newUserClaims: Record<string, boolean> = {};
 
@@ -59,7 +59,7 @@ export const userClaimsCol: GridMultiSelectColDef = {
 
 const AVATAR_BACKGROUNDS = [purple[200], blue[200], red[200], lightBlue[200], lightGreen[200]];
 
-export const userSummaryCol: GridColDef = {
+export const userSummaryCol: GridColDef<User> = {
   field: 'user',
   headerName: 'User',
   flex: 1,

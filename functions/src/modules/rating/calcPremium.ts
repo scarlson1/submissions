@@ -10,7 +10,7 @@ export const TSUNAMI_LAE_FACTOR = 0.15; // TODO: get actual value (copied surge 
 export const DISTRIBUTION_EXPENSE = 0.3735;
 // export const SUBPRODUCER_COMMISSION_DEFAULT = 0.15;
 
-// TODO: min premium missing from response so using ? as workaroud for now
+// TODO: min premium missing from response so using ? as workaround for now
 // add min premium calc to flow ? pass as required prop?
 
 export const getTechPremium = (AALs: number | null, secModMult: number, LAE: number) => {

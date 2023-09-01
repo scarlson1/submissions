@@ -8,9 +8,7 @@ import { error, info } from 'firebase-functions/logger';
 import { Response } from 'firebase-functions/v1';
 
 import {
-  Address,
   Disclosure,
-  Nullable,
   Policy,
   Product,
   RequestUserAuth,
@@ -80,7 +78,7 @@ export interface DecPageTemplateData extends Record<string, unknown> {
   agencyPostal: string;
   agentName: string;
   agentEmail: string;
-  agentphone: string;
+  agentPhone: string;
   surplusLinesLicenseNum: string;
   surplusLinesLicensePhone: string;
   surplusLinesLicenseState: string;
@@ -186,7 +184,7 @@ app.post(
       agencyPostal: agency?.address?.postal,
       agentEmail: agent?.email,
       agentName: agent?.name,
-      agentphone: formatPhoneNumber(policy?.agent?.phone || '') || '',
+      agentPhone: formatPhoneNumber(policy?.agent?.phone || '') || '',
       issuingCarrier: issuingCarrier,
       surplusLinesLicenseNum: slLicense.licenseNum,
       surplusLinesName: slLicense.name,
@@ -245,16 +243,6 @@ app.use(errorHandler);
 
 export default app;
 
-export function getFormattedAddress(addr: Nullable<Address>) {
-  let formatted = `${addr?.addressLine1 || ''}`;
-  if (addr?.addressLine2) formatted += `, ${addr.addressLine2}`;
-  if (addr?.city) formatted += `, ${addr.city}`;
-  if (addr?.state) formatted += `, ${addr.state}`;
-  if (addr?.postal) formatted += `, ${addr.postal}`;
-
-  return formatted;
-}
-
 export async function getStateDisclosure(
   colRef: CollectionReference<Disclosure>,
   state: string,
@@ -308,7 +296,7 @@ export async function getStateDisclosure(
 //   agencyState: string;
 //   agentEmail: string;
 //   agentName: string;
-//   agentphone: string;
+//   agentPhone: string;
 //   policyEffectiveDate: string;
 //   policyExpirationDate: string;
 //   policyId: string;
@@ -370,7 +358,7 @@ export async function getStateDisclosure(
 //     agencyState: 'TN',
 //     agentEmail: 'test@gmail.com',
 //     agentName: 'John Doe',
-//     agentphone: '(123) 234-2983',
+//     agentPhone: '(123) 234-2983',
 //     policyEffectiveDate: 'August 31, 2023',
 //     policyExpirationDate: 'August 31, 2024',
 //     policyId: '123LSKDJF2L3K4LKJ',
@@ -396,7 +384,7 @@ export async function getStateDisclosure(
 
 //   // TODO: fetch static files
 //   try {
-//     // use binary to merge pdfs?? or stream to temp file then stream attachements to temp ??
+//     // use binary to merge pdfs?? or stream to temp file then stream attachments to temp ??
 //     // const binary = await client.renderPdf<DecPageTemplateData>(templateId, templateData);
 
 //     const stream = await client.renderPdfToStream<DecPageTemplateData>(templateId, templateData);

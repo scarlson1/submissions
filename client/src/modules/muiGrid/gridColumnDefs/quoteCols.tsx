@@ -48,8 +48,9 @@ import {
 } from './gridColumns';
 import { ADMIN_ROUTES, createPath } from 'router';
 import { GridCellCopy } from 'components';
+import { Quote } from 'common';
 
-export const quoteCols: GridColDef[] = [
+export const quoteCols: GridColDef<Quote>[] = [
   addressSummaryCol,
   addrLine1Col,
   addrLine2Col,

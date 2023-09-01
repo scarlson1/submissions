@@ -64,6 +64,11 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyCreatedPayloa
     .filter((snap) => snap.exists)
     .map((snap) => ({ ...snap.data(), id: snap.id }));
 
+  console.log('POLICY CREATED LISTENER GET ALL BY ID: ', locations);
+
+  // const testGetAll = await getAll(db, COLLECTIONS.LOCATIONS, [...Object.keys(policyLocations)]);
+  // console.log('TEST GET ALL: ', testGetAll);
+
   if (!locations || !locations.length) {
     reportErr('No policy locations found in policy', { policyId });
     return;
@@ -86,6 +91,7 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyCreatedPayloa
       const exists = await docExists(trxRef);
       if (!exists) {
         const ratingData = await fetchRatingData(db, location.ratingDocId);
+        console.log('RATING DATA: ', ratingData);
 
         // TODO: handle validation
         // TODO: handle scenarios where rating doc not available (imported policies)

@@ -16,8 +16,9 @@ import {
   subjectBaseCol,
   updatedCol,
 } from './gridColumns';
+import { Tax } from 'common';
 
-export const taxCols: GridColDef[] = [
+export const taxCols: GridColDef<Tax>[] = [
   idCol,
   productsCol,
   stateCol,

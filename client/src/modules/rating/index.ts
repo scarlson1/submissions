@@ -1,5 +1,7 @@
 // TODO: move rating functions over from utils/helpers
 
+import { PremTrxType, PremiumTransaction } from 'common';
+
 /**
  * Calculate RCVs for each limit from building RCV & limits
  * @param  {number} replacementCost - Source object to compare newObj against
@@ -22,3 +24,9 @@ export const getRCVs = (
     rcvD: limits.limitD,
   };
 };
+
+export const premTrxTypes: PremTrxType[] = ['endorsement', 'new', 'reinstatement', 'renewal'];
+
+export function isPremTrx(data: any): data is PremiumTransaction {
+  return data && (data as PremiumTransaction).trxInterfaceType === 'premium';
+}

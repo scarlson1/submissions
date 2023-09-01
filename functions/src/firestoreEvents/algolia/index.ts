@@ -44,15 +44,15 @@ export const algoliasyncquotes = onDocumentWritten(
   }
 );
 
-export const algoliasyncpolicies = onDocumentWritten(
-  {
-    document: `${COLLECTIONS.POLICIES}/{policyId}`,
-    secrets: [algoliaAdminKey],
-  },
-  async (event) => {
-    await (await import('./syncPolicies.js')).default(event);
-  }
-);
+// export const algoliasyncpolicies = onDocumentWritten(
+//   {
+//     document: `${COLLECTIONS.POLICIES}/{policyId}`,
+//     secrets: [algoliaAdminKey],
+//   },
+//   async (event) => {
+//     await (await import('./syncPolicies.js')).default(event);
+//   }
+// );
 
 export const algoliasynctransactions = onDocumentWritten(
   {

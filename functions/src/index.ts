@@ -48,7 +48,7 @@ export {
 } from './firestoreEvents';
 export {
   algoliasyncorgs,
-  algoliasyncpolicies,
+  // algoliasyncpolicies, // TEMP WHEN CHANGING POLICY-LOCATION STRUCTURE
   algoliasyncquotes,
   algoliasyncsubmissions,
   algoliasynctransactions,
@@ -74,8 +74,6 @@ export {
 } from './storageEvents';
 
 export { pubsubhelper } from './routes';
-
-// export { pubsubHelper } from './routes/pubSubHelper.js';
 // export { testEmulatorsCheckAchStatus } from './pubsub/checkAchStatus';
 
 // CALLABLES

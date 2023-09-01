@@ -1,6 +1,6 @@
-import { GridColDef } from '@mui/x-data-grid';
+import { GridColDef, GridValueGetterParams } from '@mui/x-data-grid';
 
-import { CHANGE_REQUEST_STATUS } from 'common';
+import { CHANGE_REQUEST_STATUS, ChangeRequest } from 'common';
 import {
   createdCol,
   errMsgCol,
@@ -15,7 +15,7 @@ import {
   userIdCol,
 } from './gridColumns';
 
-const changes: GridColDef = {
+const changes: GridColDef<ChangeRequest> = {
   field: 'changes',
   headerName: 'Requested Changes',
   minWidth: 200,
@@ -23,7 +23,7 @@ const changes: GridColDef = {
   editable: false,
   filterable: false,
   sortable: false,
-  valueGetter: (params) => {
+  valueGetter: (params: GridValueGetterParams<ChangeRequest>) => {
     return params.value ? JSON.stringify(params.value) : null;
   },
 };
@@ -34,7 +34,7 @@ const processedByUserIdCol: GridColDef = {
   headerName: 'Processed By UID',
 };
 
-export const changeRequestCols: GridColDef[] = [
+export const changeRequestCols: GridColDef<ChangeRequest>[] = [
   idCol,
   trxTypeCol,
   {

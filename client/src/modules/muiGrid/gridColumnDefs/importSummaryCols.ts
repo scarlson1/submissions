@@ -9,8 +9,9 @@ import {
   importDocIdsCountCol,
   invalidRowsCol,
 } from './gridColumns';
+import { ImportSummary } from 'common';
 
-export const importSummaryCols: GridColDef[] = [
+export const importSummaryCols: GridColDef<ImportSummary>[] = [
   targetCollectionCol,
   importDocIdsCol,
   importDocIdsCountCol,
