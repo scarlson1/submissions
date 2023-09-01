@@ -1,3 +1,4 @@
+import { EditRounded } from '@mui/icons-material';
 import {
   Avatar,
   AvatarGroup,
@@ -11,23 +12,22 @@ import {
   useTheme,
 } from '@mui/material';
 import { noop } from 'lodash';
+import { useCallback } from 'react';
 
-import { EditRounded } from '@mui/icons-material';
-import { Policy, PolicyLocation, fallbackImages } from 'common';
+import { ILocation, Policy, fallbackImages } from 'common';
 import { FlexCard, FlexCardContent } from 'components';
 import { FlexCardContentWrapper } from 'components/FlexCard';
 import { dollarFormat, formatFirestoreTimestamp } from 'modules/utils';
-import { useCallback } from 'react';
 import { Item } from 'views';
 
 // TODO: use <CardActions disableSpacing> for avatar
 
 export interface LocationCardProps {
-  location: PolicyLocation;
+  location: ILocation;
   namedInsured: Policy['namedInsured'];
   handleClick?: (id: string) => void;
   // policyId: string;
-  onEdit?: (locaiton: PolicyLocation) => void;
+  onEdit?: (location: ILocation) => void;
 }
 
 export const LocationCard = ({
@@ -68,17 +68,19 @@ export const LocationCard = ({
           }
           title={`${location?.address?.addressLine1} map`}
         >
-          <Tooltip title='location change request'>
-            <IconButton
-              size='small'
-              edge='end'
-              aria-label='location change request'
-              sx={{ position: 'absolute', top: 10, right: 10 }}
-              onClick={handleEdit}
-            >
-              <EditRounded fontSize='inherit' />
-            </IconButton>
-          </Tooltip>
+          {onEdit ? (
+            <Tooltip title='location change request'>
+              <IconButton
+                size='small'
+                edge='end'
+                aria-label='location change request'
+                sx={{ position: 'absolute', top: 10, right: 10 }}
+                onClick={handleEdit}
+              >
+                <EditRounded fontSize='inherit' />
+              </IconButton>
+            </Tooltip>
+          ) : null}
         </CardMedia>
         <CardActionArea onClick={() => handleClick(location.locationId)} sx={{ height: '100%' }}>
           <FlexCardContent sx={{ p: 5 }}>

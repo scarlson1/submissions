@@ -1,4 +1,5 @@
 import { FirebaseError } from '@firebase/util';
+import { alpha } from '@mui/material';
 import { GridValueFormatterParams, GridValueGetterParams } from '@mui/x-data-grid';
 import { Duration, add, endOfToday, format, formatDistance, isFuture, isPast } from 'date-fns';
 import { Color } from 'deck.gl/typed';
@@ -20,9 +21,16 @@ import {
 import numeral from 'numeral';
 import { toast } from 'react-hot-toast';
 import { Location } from 'react-router-dom';
-import { alpha } from '@mui/material';
 
-import { Address, FeeItem, FlattenObjectKeys, Path, RoundingType, TaxItem } from 'common/types';
+import {
+  Address,
+  CompressedAddress,
+  FeeItem,
+  FlattenObjectKeys,
+  Path,
+  RoundingType,
+  TaxItem,
+} from 'common/types';
 import { AddressComponent, AddressComponentType } from 'components/forms';
 
 /**
@@ -807,4 +815,25 @@ export function saveDownload(
 
   document.body.removeChild(link);
   // URL.revokeObjectURL(href);
+}
+
+export function compressedToAddress(addr: CompressedAddress): Address {
+  return {
+    addressLine1: addr.s1,
+    addressLine2: addr.s2,
+    city: addr.c,
+    state: addr.st,
+    postal: addr.p,
+  };
+}
+
+export function compressedToFormattedAddr(addr: CompressedAddress): string {
+  let result = '';
+  if (addr.s1) result += addr.s1;
+  if (addr.s1) result += `, ${addr.s1}`;
+  if (addr.c) result += `, ${addr.c}`;
+  if (addr.st) result += `, ${addr.st}`;
+  if (addr.p) result += addr.p;
+
+  return result;
 }

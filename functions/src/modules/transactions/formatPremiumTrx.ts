@@ -1,8 +1,8 @@
 import { Timestamp } from 'firebase-admin/firestore';
 
 import {
+  ILocation,
   Policy,
-  PolicyLocation,
   PremiumTransaction,
   RatingData,
   WithId,
@@ -19,7 +19,7 @@ import {
 export function formatPremiumTrx(
   trxType: PremiumTransaction['trxType'],
   policy: WithId<Policy>,
-  location: PolicyLocation,
+  location: ILocation,
   ratingData: RatingData,
   // policyId: string,
   eventId: string

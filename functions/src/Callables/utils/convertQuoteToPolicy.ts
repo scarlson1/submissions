@@ -1,13 +1,13 @@
 import { add } from 'date-fns';
 import { Timestamp } from 'firebase-admin/firestore';
 import { geohashForLocation } from 'geofire-common';
-import { sumBy } from 'lodash';
+import { round, sumBy } from 'lodash';
 import {
   AdditionalInsured,
+  ILocation,
   License,
   Mortgagee,
   POLICY_STATUS,
-  PolicyLocation,
   PolicyNew,
   Quote,
   WithId,
@@ -17,7 +17,7 @@ import {
   verify,
 } from '../../common';
 import { getCarrierByState, getRCVs, validateLimits } from '../../modules/rating';
-import { getFormattedAddress } from '../../utils';
+import { compressAddress } from '../../utils';
 
 export const getPolicyLocationsFromQuote = (data: Quote, policyId: string) => {
   validateLimits(data.limits);
@@ -40,7 +40,7 @@ export const getPolicyLocationsFromQuote = (data: Quote, policyId: string) => {
   const { termDays, termPremium } = calcTerm(data.annualPremium, effDate, expirationDate);
 
   const locationId = getNewLocationId();
-  const locations: Record<string, PolicyLocation> = {
+  const locations: Record<string, ILocation> = {
     [locationId]: {
       address: data.address,
       coordinates: data.coordinates,
@@ -115,13 +115,18 @@ export function getMortgageeInterestFromQuote(data: Quote): Mortgagee[] {
   );
 }
 
-export function getPolicyTermPremium(locations: PolicyNew['locations']) {
-  return sumBy(Object.values(locations), (l) => l.termPremium);
+export function getPolicyTermPremium(
+  locations: PolicyNew['locations'] | Record<string, ILocation>
+) {
+  return round(
+    sumBy(Object.values(locations), (l) => l.termPremium),
+    2
+  );
 }
 
 export function getPolicyFromQuote(
   data: WithId<Quote>,
-  locations: Record<string, PolicyLocation>,
+  locations: Record<string, ILocation>,
   license: License
 ) {
   verify(data.namedInsured?.firstName, 'missing named insured first name');
@@ -148,8 +153,8 @@ export function getPolicyFromQuote(
     verify(typeof location.termPremium === 'number', 'location termPremium invalid');
     policyLocations[id] = {
       termPremium: location.termPremium,
-      formattedAddress: getFormattedAddress(location.address),
-      coordinates: location.coordinates,
+      address: compressAddress(location.address),
+      coords: location.coordinates,
     };
   }
 

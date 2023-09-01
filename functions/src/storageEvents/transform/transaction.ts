@@ -5,9 +5,9 @@ import {
   BaseTransaction,
   CancellationReason,
   DeepNullable,
+  ILocation,
   OffsetTransaction,
   OffsetTrxType,
-  PolicyLocation,
   PremTrxType,
   PremiumTransaction,
   Product,
@@ -64,7 +64,7 @@ function csvRowToOffsetTrx(row: TrxRow): DeepNullable<Omit<OffsetTransaction, 'm
     ...csvRowCommon(row),
     trxType: row.trxType as OffsetTrxType,
     trxInterfaceType: 'offset',
-    insuredLocation: csvRowToInsuredLocation(row) as PolicyLocation,
+    insuredLocation: csvRowToInsuredLocation(row) as ILocation,
     termPremium: row.locationTermPremium ? extractNumberNeg(row.locationTermPremium) : null,
     MGACommission: row.mgaCommission ? extractNumberNeg(row.mgaCommission) : null,
     MGACommissionPct: row.mgaCommissionPct ? extractNumberNeg(row.mgaCommissionPct) : null,
@@ -98,7 +98,7 @@ function csvRowToPremiumTrx(row: TrxRow): DeepNullable<Omit<PremiumTransaction, 
     ...csvRowCommon(row),
     trxType: (row.trxType as PremTrxType) || null,
     trxInterfaceType: 'premium',
-    insuredLocation: csvRowToInsuredLocation(row) as PolicyLocation,
+    insuredLocation: csvRowToInsuredLocation(row) as ILocation,
     ratingPropertyData: csvRatingPropertyData(row),
     deductible: row.deductible ? extractNumber(row.deductible) : null,
     limits,
@@ -148,11 +148,11 @@ function csvRowToAmendmentTrx(row: TrxRow): DeepNullable<Omit<AmendmentTransacti
     trxEffDate: csvCellToTimestamp(row.trxEffDate),
     trxExpDate: csvCellToTimestamp(row.trxExpDate),
     trxDays: row.trxDays ? extractNumber(row.trxDays) : null,
-    insuredLocation: csvRowToInsuredLocation(row) as PolicyLocation,
+    insuredLocation: csvRowToInsuredLocation(row) as ILocation,
   };
 }
 
-function csvRowToInsuredLocation(row: TrxRow): DeepNullable<Omit<PolicyLocation, 'metadata'>> {
+function csvRowToInsuredLocation(row: TrxRow): DeepNullable<Omit<ILocation, 'metadata'>> {
   const lat = row.latitude ? extractNumberNeg(row.latitude) : null;
   const lng = row.longitude ? extractNumberNeg(row.longitude) : null;
   const coordinates = lat && lng ? new GeoPoint(lat, lng) : null;

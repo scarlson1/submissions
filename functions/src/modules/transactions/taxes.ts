@@ -123,12 +123,12 @@ export function getTrxTaxesAndFees({ taxes, fees }: Policy) {
 }
 
 export function getInStatePremium(homeState: string, locations: PolicyLocation[]) {
-  return sumByTypes<PolicyLocation>(locations, 'address.state', homeState, 'termPremium');
+  return sumByTypes<PolicyLocation>(locations, 'address.st', homeState, 'termPremium');
 }
 
 export function getOutStatePremium(homeState: string, locations: PolicyLocation[]) {
   return locations.reduce((acc, l) => {
-    if (l.address?.state && l.address?.state !== homeState && typeof l.termPremium === 'number')
+    if (l.address?.st && l.address?.st !== homeState && typeof l.termPremium === 'number')
       return acc + l.termPremium;
 
     return acc;

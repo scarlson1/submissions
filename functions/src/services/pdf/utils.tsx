@@ -2,11 +2,12 @@ import { generateHTML } from '@tiptap/html';
 import { convert } from 'html-to-text';
 import { flatten } from 'lodash';
 
-import { JSONContent, Policy, PolicyLocation, dollarFormat, dollarFormat2 } from '../../common';
+import { ILocation, JSONContent, Policy, dollarFormat, dollarFormat2 } from '../../common';
 import { EDITOR_EXTENSION_DEFAULTS, getFormattedAddress } from '../../utils';
 import { AdditionalInterestsItem, PolicyDecPDFLocations, PremiumTableItem } from './components';
 
-export function formatLocationData(locations: Policy['locations']) {
+// export function formatLocationData(locations: Policy['locations']) {
+export function formatLocationData(locations: Record<string, ILocation>) {
   let formatted: PolicyDecPDFLocations[] = [];
 
   for (const [_, location] of Object.entries(locations)) {
@@ -29,7 +30,7 @@ export function formatLocationData(locations: Policy['locations']) {
 }
 
 // TODO: refactor - use for loops instead of map and remove flatten
-export function getLocationInterests(locations: PolicyLocation[]): AdditionalInterestsItem[] {
+export function getLocationInterests(locations: ILocation[]): AdditionalInterestsItem[] {
   let interests = locations.map((l) => {
     const addr = getFormattedAddress(l.address);
     const additionalInsureds: AdditionalInterestsItem[] = l.additionalInsureds?.map((ai) => ({

@@ -209,11 +209,11 @@ export interface Coordinates {
   longitude: number;
 }
 
-export interface Location extends Address {
-  coordinates: GeoPoint; // Coordinates;
+export interface AddressWithGeo extends Address {
+  coordinates: GeoPoint;
 }
 
-export interface QuoteLocation extends Location {
+export interface QuoteLocation extends AddressWithGeo {
   ratingDocId: string;
   locationId: string;
   directWrittenPremium: number;
@@ -592,7 +592,10 @@ export type LocationImageTypes = 'light' | 'dark' | 'satellite' | 'satelliteStre
 
 export type LocationImages = Record<LocationImageTypes, string>;
 
-export interface PolicyLocation extends BaseDoc {
+export type LocationParent = 'submission' | 'quote' | 'policy';
+
+export interface ILocation extends BaseDoc {
+  parentType?: LocationParent | null; // TODO: remove ? once moved to new policy - location interface
   address: Address;
   coordinates: GeoPoint;
   geoHash: Geohash;
@@ -617,6 +620,20 @@ export interface PolicyLocation extends BaseDoc {
   policyId?: string;
   locationId: string;
   externalId?: string | null;
+}
+
+export interface CompressedAddress {
+  s1: string;
+  s2: string;
+  c: string;
+  st: string;
+  p: string;
+}
+
+export interface PolicyLocation {
+  termPremium: number;
+  address: CompressedAddress;
+  coords: GeoPoint;
 }
 
 export interface Policy extends BaseDoc {
@@ -665,7 +682,7 @@ interface BaseTransaction extends BaseDoc {
   issuingCarrier: string;
   namedInsured: string;
   mailingAddress: Address;
-  // insuredLocation: PolicyLocation;
+  // insuredLocation: ILocation;
   homeState: string;
   policyEffDate: Timestamp;
   policyExpDate: Timestamp;
@@ -683,7 +700,7 @@ export type CancellationReason =
 
 export interface OffsetTransaction extends BaseTransaction {
   trxType: 'endorsement' | 'cancellation' | 'flat_cancel';
-  insuredLocation: PolicyLocation;
+  insuredLocation: ILocation;
   termPremium: number;
   MGACommission: number; // idemand & subproducer
   MGACommissionPct: number;
@@ -705,7 +722,7 @@ export type PremTrxType = 'new' | 'renewal' | 'endorsement' | 'reinstatement';
 export interface PremiumTransaction extends BaseTransaction {
   trxType: PremTrxType;
   trxInterfaceType: 'premium';
-  insuredLocation: PolicyLocation;
+  insuredLocation: ILocation;
   ratingPropertyData: TrxRatingData;
   deductible: number;
   limits: Limits;
@@ -726,7 +743,7 @@ export interface PremiumTransaction extends BaseTransaction {
 
 export interface AmendmentTransaction extends BaseTransaction {
   trxType: 'amendment'; // 'non_prem_endorsement';
-  insuredLocation?: PolicyLocation;
+  insuredLocation?: ILocation;
   otherInterestedParties?: string[];
   additionalNamedInsured?: string[];
 }
@@ -746,7 +763,7 @@ export type Transaction = PremiumTransaction | OffsetTransaction | AmendmentTran
 //   namedInsured: string;
 //   mailingAddress: Address;
 //   locationId: string;
-//   insuredLocation: PolicyLocation;
+//   insuredLocation: ILocation;
 //   // insuredCoords: GeoPoint;
 //   // locationHash: Geohash;
 //   policyEffDate: Timestamp;
@@ -810,7 +827,7 @@ interface BaseChangeRequest extends BaseDoc {
 export interface LocationChangeRequest extends BaseChangeRequest {
   trxType: ChangeRequestTrxType;
   scope: 'location';
-  // changes: Partial<PolicyLocation>;
+  // changes: Partial<ILocation>;
   changes: DeepPartial<Policy>; // Partial<Policy>;
   formValues: LocationChangeValues;
   locationId: string;

@@ -2,7 +2,7 @@ import { Box } from '@mui/material';
 import { DataGridProps, GridColDef, GridRowParams, useGridApiRef } from '@mui/x-data-grid';
 import { useMemo } from 'react';
 
-import { PolicyLocation } from 'common';
+import { ILocation } from 'common';
 import { BasicDataGrid } from 'components';
 import { useAsyncToast, useGridActions, useWidth } from 'hooks';
 import { locationCols } from 'modules/muiGrid/gridColumnDefs';
@@ -12,7 +12,7 @@ import { locationCols } from 'modules/muiGrid/gridColumnDefs';
 // TODO: limit viewable columns depending on permissions
 
 interface LocationsGridProps extends Omit<DataGridProps, 'rows' | 'columns' | 'initialState'> {
-  locations: PolicyLocation[];
+  locations: ILocation[];
   renderActions?: (params: GridRowParams) => JSX.Element[];
   additionalColumns?: GridColDef<any, any, any>[];
   initialState?: Omit<DataGridProps['initialState'], 'pagination'>;

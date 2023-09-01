@@ -1279,7 +1279,7 @@ export const locationsCount: GridColDef = {
 //   valueGetter: (params) => {
 //     if (!params.row.locations) return null;
 
-//     const locations = Object.values(params.row.locations) as PolicyLocation[];
+//     const locations = Object.values(params.row.locations) as ILocation[];
 //     return locations.map((l) => l.address || null).filter((x) => x);
 //   },
 //   renderCell: (params) => {

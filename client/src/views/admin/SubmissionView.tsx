@@ -103,7 +103,7 @@ export const SubmissionView = () => {
 
   const navigate = useNavigate();
   const firestore = useFirestore();
-  const dialog = useJsonDialog();
+  const dialog = useJsonDialog({ slotProps: { dialog: { maxWidth: 'md' } } });
   const { data } = useDocData<Submission>('SUBMISSIONS', submissionId!);
 
   const showDialog = useCallback(
@@ -207,7 +207,7 @@ export const SubmissionView = () => {
         </Box>
         <Box>
           <Typography variant='overline' color='text.secondary'>
-            Additional Detailsaddress?.
+            Additional Details
           </Typography>
           <RowItem title='Prior Loss Count' value={data.priorLossCount} />
           <RowItem title='Exclusions' value={data.exclusions} />

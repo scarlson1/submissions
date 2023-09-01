@@ -1,5 +1,6 @@
 import { GridColDef } from '@mui/x-data-grid';
 
+import { ILocation } from 'common';
 import {
   additionalInsuredsCol,
   addrCityCol,
@@ -41,9 +42,8 @@ import {
   tivCol,
   updatedCol,
 } from './gridColumns';
-import { PolicyLocation } from 'common';
 
-export const locationCols: GridColDef<PolicyLocation>[] = [
+export const locationCols: GridColDef<ILocation>[] = [
   idCol,
   {
     ...idCol,

@@ -6,6 +6,7 @@ import {
   AgencyApplication,
   ChangeRequest,
   Charge,
+  ILocation,
   ImportSummary,
   Invite,
   License,
@@ -14,7 +15,6 @@ import {
   Organization,
   PaymentMethod,
   Policy,
-  PolicyLocation,
   PortfolioSubmission,
   PropertyDataRes,
   Quote,
@@ -43,7 +43,7 @@ export const portfolioSubmissionsCollection = (db: Firestore) =>
   createCollection<PortfolioSubmission>(db, COLLECTIONS.PORTFOLIO_SUBMISSIONS);
 
 export const locationsCollection = (db: Firestore) =>
-  createCollection<PolicyLocation>(db, COLLECTIONS.LOCATIONS);
+  createCollection<ILocation>(db, COLLECTIONS.LOCATIONS);
 
 // TODO: change to quotes instead of submission quotes
 export const quotesCollection = (db: Firestore) => createCollection<Quote>(db, COLLECTIONS.QUOTES);

@@ -26,9 +26,9 @@ import { useNavigate } from 'react-router-dom';
 import {
   AdditionalInsured,
   COLLECTIONS,
+  ILocation,
   POLICY_IMPORT_REQUIRED_HEADERS,
   Policy,
-  PolicyLocation,
   fallbackImages,
 } from 'common';
 import { DownloadStorageFileButton, FlexCard, FlexCardContent } from 'components';
@@ -142,7 +142,7 @@ export const Policies = () => {
 };
 
 // TODO: duplicated code with quotes menu --> create reusable component ??
-// make composible (separate out required headers component from CSV upload)
+// make composable (separate out required headers component from CSV upload)
 // see portfolio quote form as example
 function AdminPoliciesActionMenu() {
   const toast = useAsyncToast({ position: 'top-right', duration: 2400 });
@@ -226,7 +226,7 @@ function AdminPoliciesActionMenu() {
 
 // TODO: fix converting component to new schema
 
-const getLocationImg = (location: PolicyLocation, theme: 'light' | 'dark', i: number) =>
+const getLocationImg = (location: ILocation, theme: 'light' | 'dark', i: number) =>
   location?.imageURLs ? location?.imageURLs[theme] : fallbackImages[i] || fallbackImages[0];
 
 export const UserPolicies = ({ userId }: { userId: string }) => {
@@ -268,7 +268,7 @@ export const UserPolicies = ({ userId }: { userId: string }) => {
                 <CardActionArea onClick={() => handleClick(p.id)}>
                   <CardMedia
                     sx={{ height: 140 }}
-                    image={getLocationImg(location as PolicyLocation, theme.palette.mode, i)}
+                    image={getLocationImg(location as ILocation, theme.palette.mode, i)}
                     // @ts-ignore
                     title={`${location?.address?.addressLine1} map`}
                   />

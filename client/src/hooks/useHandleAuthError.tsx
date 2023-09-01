@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { FirebaseError } from 'firebase/app';
 import {
   AuthError,
   AuthErrorCodes,
@@ -8,11 +8,11 @@ import {
   sendEmailVerification,
   signInWithEmailAndPassword,
 } from 'firebase/auth';
-import { FirebaseError } from 'firebase/app';
+import { useCallback } from 'react';
 import { useFunctions } from 'reactfire';
 
-import { LoginValues } from 'views/Login';
 import { getTenantIdFromEmail } from 'api';
+import { LoginValues } from 'views/Login';
 import { useAsyncToast } from './useAsyncToast';
 // import { useMultiFactorAuth } from 'hooks/auth';
 
@@ -26,7 +26,7 @@ export const useHandleAuthError = () => {
   const toast = useAsyncToast();
 
   const toastGenericError = useCallback(() => {
-    toast.error('An error occured. See console for details.');
+    toast.error('An error occurred. See console for details.');
   }, [toast]);
 
   /**
@@ -47,7 +47,7 @@ export const useHandleAuthError = () => {
 
         // Set tenant ID and retry sign in
         if (!!tenantId) {
-          console.log(`Setting tenantId (${tenantId}) and reauthenticating...`);
+          console.log(`Setting tenantId (${tenantId}) and authenticating...`);
           auth.tenantId = tenantId;
           const userRes = await signInWithEmailAndPassword(
             auth,
@@ -61,7 +61,7 @@ export const useHandleAuthError = () => {
           return Promise.reject({ ...err });
         }
       } catch (error) {
-        console.log('error getting tenantId and reauthenticating: ', error);
+        console.log('error getting tenantId and authenticating: ', error);
         let msg = 'Account not found';
         if (error instanceof FirebaseError) msg = error.message;
         // const errCode = error instanceof FirebaseError ? error.code : 'unknown';

@@ -3,7 +3,7 @@ import { info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 
 import {
-  PolicyLocation,
+  ILocation,
   PolicyNew,
   QUOTE_STATUS,
   getReportErrorFn,
@@ -88,7 +88,7 @@ const createPolicy = async ({ data, auth }: CallableRequest<CreatePolicyProps>) 
   }
   const policyRef = policiesCol.doc();
   let policyData: PolicyNew;
-  let locationData: Record<string, PolicyLocation>;
+  let locationData: Record<string, ILocation>;
 
   try {
     locationData = getPolicyLocationsFromQuote(quoteData, policyRef.id);

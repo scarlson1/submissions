@@ -1,6 +1,3 @@
-import { useCallback, useMemo } from 'react';
-import { useFirestore } from 'reactfire';
-import { DocumentData } from 'rxfire/firestore/interfaces';
 import {
   CollectionReference,
   FirestoreDataConverter,
@@ -9,10 +6,13 @@ import {
   getDoc,
 } from 'firebase/firestore';
 import { capitalize } from 'lodash';
+import { useCallback, useMemo } from 'react';
 import { toast } from 'react-hot-toast';
+import { useFirestore } from 'reactfire';
+import { DocumentData } from 'rxfire/firestore/interfaces';
 
-import { useJsonDialog } from './useJsonDialog';
 import { WithId } from 'common';
+import { useJsonDialog } from './useJsonDialog';
 
 // could add another func for querying collection
 // showJsonWhere
@@ -24,7 +24,7 @@ export const useShowJson = <T extends DocumentData>(
   converter?: FirestoreDataConverter<T>
 ) => {
   const firestore = useFirestore();
-  const dialog = useJsonDialog();
+  const dialog = useJsonDialog({ slotProps: { dialog: { maxWidth: 'md' } } });
 
   const colRef = useMemo(() => {
     let cr = collection(firestore, colName, ...paths) as CollectionReference<T>;

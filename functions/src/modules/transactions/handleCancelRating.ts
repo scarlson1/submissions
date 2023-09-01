@@ -4,8 +4,8 @@ import { info } from 'firebase-functions/logger';
 
 import {
   ChangeRequest,
+  ILocation,
   Policy,
-  PolicyLocation,
   calcTerm,
   changeRequestsCollection,
   getReportErrorFn,
@@ -50,7 +50,7 @@ export async function handleCancelRating(data: ChangeRequest, policyId: string, 
       requestEffDate.toDate()
     );
 
-    const locationRatingChanges: Partial<PolicyLocation> = {
+    const locationRatingChanges: Partial<ILocation> = {
       termPremium,
       termDays,
       cancelEffDate: requestEffDate,

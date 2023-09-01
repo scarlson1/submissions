@@ -648,9 +648,12 @@ export interface SLProdOfRecordDetails {
 
 export type LocationImages = Record<LocationImageTypes, string>;
 
-// TODO: discriminating union (SubmissionLocation, QuoteLocation, PolicyLocation, etc.)
+export type LocationParent = 'submission' | 'quote' | 'policy';
+
+// TODO: discriminating union (SubmissionLocation, QuoteLocation, ILocation, etc.)
 // require policy id, parentType: 'policy', etc.
-export interface PolicyLocation {
+export interface ILocation {
+  parentType?: LocationParent | null; // TODO: remove ? once moved to new policy - location interface
   address: Address;
   coordinates: GeoPoint;
   geoHash: Geohash;
@@ -687,7 +690,7 @@ export interface Policy extends BaseDoc {
   term: number;
   mailingAddress: MailingAddress;
   namedInsured: NamedInsured;
-  locations: Record<string, PolicyLocation>;
+  locations: Record<string, ILocation>;
   homeState: string;
   termPremium: number; // sum of location(s) term premium
   inStatePremium?: number;
@@ -710,10 +713,18 @@ export interface Policy extends BaseDoc {
   quoteId?: string | null;
 }
 
-export interface PolicyLocationSummary {
+export interface CompressedAddress {
+  s1: string;
+  s2: string;
+  c: string;
+  st: string;
+  p: string;
+}
+
+export interface PolicyLocation {
   termPremium: number;
-  formattedAddress: string;
-  coordinates: GeoPoint;
+  address: CompressedAddress;
+  coords: GeoPoint;
 }
 
 export interface PolicyNew extends BaseDoc {
@@ -722,8 +733,7 @@ export interface PolicyNew extends BaseDoc {
   term: number;
   mailingAddress: MailingAddress;
   namedInsured: NamedInsured;
-  // locations: Record<string, PolicyLocation>;
-  locations: Record<string, PolicyLocationSummary>;
+  locations: Record<string, PolicyLocation>;
   homeState: string;
   termPremium: number; // sum of location(s) term premium
   inStatePremium?: number;
@@ -750,12 +760,12 @@ export interface IPolicyClass extends Policy {
   getLocation: (id: string) => any; // TODO LOCATION INTERFACE
   initIsExpired: () => boolean; // TODO: figure out how to make private (#)
   addLocation: (
-    locationData: PolicyLocation,
+    locationData: ILocation,
     id?: string
   ) => Promise<{ locationId: string; newTotal: number }>;
   removeLocation: (id: string) => Promise<void>;
   getLocationCount: () => number;
-  updateLocation: (id: string, newLocationValues: Partial<PolicyLocation>) => Promise<any>; // TODO: type response
+  updateLocation: (id: string, newLocationValues: Partial<ILocation>) => Promise<any>; // TODO: type response
   sumLocationPremium: () => number; // Promise<number>;
   cancelPolicy: (cancelDate: Timestamp) => Promise<void>;
   calcCardFee: (amt: number) => number;
@@ -772,7 +782,7 @@ export class PolicyClass implements IPolicyClass {
   term: number;
   // protected status: POLICY_STATUS;
   status: POLICY_STATUS;
-  locations: Record<string, PolicyLocation>;
+  locations: Record<string, ILocation>;
   // public limits: Limits;
   // public deductible: number;
   public mailingAddress: MailingAddress;
@@ -840,7 +850,7 @@ export class PolicyClass implements IPolicyClass {
     return location;
   }
 
-  // async addLocation(locationData: PolicyLocation, id?: string) {
+  // async addLocation(locationData: ILocation, id?: string) {
   //   // TODO: validation
   //   const locationId = id || getNewLocationId();
   //   try {
@@ -870,7 +880,7 @@ export class PolicyClass implements IPolicyClass {
   }
 
   // TODO: DECIDE WHETHER TO ALLOW ADDING LOCATIONS ??
-  async updateLocation(id: string, newLocationValues: Partial<Omit<PolicyLocation, 'locationId'>>) {
+  async updateLocation(id: string, newLocationValues: Partial<Omit<ILocation, 'locationId'>>) {
     let location = this.getLocation(id); // throws if not found
 
     // TODO: recalc premium if required (limits change)
@@ -879,7 +889,7 @@ export class PolicyClass implements IPolicyClass {
     try {
       this.locations = {
         ...this.locations,
-        [id]: deepmerge(location, newLocationValues) as PolicyLocation,
+        [id]: deepmerge(location, newLocationValues) as ILocation,
       };
     } catch (err) {
       this.locations = {
@@ -891,9 +901,9 @@ export class PolicyClass implements IPolicyClass {
   }
 
   // TODO: DECIDE WHETHER TO ALLOW ADDING LOCATIONS ??
-  updateLocations(id: string, updates: Record<string, Partial<PolicyLocation>>) {
+  updateLocations(id: string, updates: Record<string, Partial<ILocation>>) {
     // TODO: RECALC TOTAL PRICE
-    this.locations = deepmerge(this.locations, updates) as Record<string, PolicyLocation>;
+    this.locations = deepmerge(this.locations, updates) as Record<string, ILocation>;
   }
 
   addAdditionalInsureds(locationId: string, newInsureds: AdditionalInsured[]) {
@@ -1049,7 +1059,7 @@ interface BaseChangeRequest extends BaseDoc {
 
 export interface LocationChangeRequest extends BaseChangeRequest {
   scope: 'location';
-  // changes: Partial<PolicyLocation>;
+  // changes: Partial<ILocation>;
   changes: DeepPartial<Policy>;
   formValues: LocationChangeValues;
   locationId: string;
@@ -1171,7 +1181,7 @@ export interface BaseTransaction extends BaseDoc {
   issuingCarrier: string;
   namedInsured: string;
   mailingAddress: Address;
-  // insuredLocation: PolicyLocation;
+  // insuredLocation: ILocation;
   homeState: string;
   policyEffDate: Timestamp;
   policyExpDate: Timestamp;
@@ -1192,7 +1202,7 @@ export type OffsetTrxType = 'endorsement' | 'cancellation' | 'flat_cancel';
 export interface OffsetTransaction extends BaseTransaction {
   trxType: OffsetTrxType;
   trxInterfaceType: 'offset';
-  insuredLocation: PolicyLocation;
+  insuredLocation: ILocation;
   termPremium: number;
   MGACommission: number; // idemand & subproducer
   MGACommissionPct: number;
@@ -1216,7 +1226,7 @@ export type PremTrxType = 'new' | 'renewal' | 'endorsement' | 'reinstatement';
 export interface PremiumTransaction extends BaseTransaction {
   trxType: PremTrxType;
   trxInterfaceType: 'premium';
-  insuredLocation: PolicyLocation;
+  insuredLocation: ILocation;
   ratingPropertyData: TrxRatingData;
   deductible: number;
   limits: Limits;
@@ -1242,7 +1252,7 @@ export interface PremiumTransaction extends BaseTransaction {
 export interface AmendmentTransaction extends BaseTransaction {
   trxType: 'amendment'; // 'non_prem_endorsement';
   trxInterfaceType: 'amendment';
-  insuredLocation?: PolicyLocation;
+  insuredLocation?: ILocation;
   otherInterestedParties?: string[];
   additionalNamedInsured?: string[];
 }
@@ -1264,7 +1274,7 @@ export type Transaction = PremiumTransaction | OffsetTransaction | AmendmentTran
 //   mailingAddress: Address;
 //   locationId: string;
 //   externalId: string | null;
-//   insuredLocation: PolicyLocation;
+//   insuredLocation: ILocation;
 //   policyEffDate: Timestamp;
 //   policyExpDate: Timestamp;
 //   trxEffDate: Timestamp; //
@@ -1287,7 +1297,7 @@ export type Transaction = PremiumTransaction | OffsetTransaction | AmendmentTran
 //   netErrorAdj?: number;
 //   dailyPremium: number; // term premium / trxPolicyDays rounded to 2
 //   // submission?: string;
-//   otherInterestedParties: string[]; // TODO: how is this different from additional named insured ? is it stored in PolicyLocation ?
+//   otherInterestedParties: string[]; // TODO: how is this different from additional named insured ? is it stored in ILocation ?
 //   additionalNamedInsured: string[];
 //   homeState: string;
 //   eventId: string;
@@ -1518,7 +1528,7 @@ export interface PolicyImportMeta extends ImportMeta {
   targetCollection: COLLECTIONS.POLICIES;
 }
 
-export type StagedPolicyImport = Policy & {
+export type StagedPolicyImport = PolicyNew & {
   importMeta: PolicyImportMeta;
 };
 

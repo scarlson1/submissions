@@ -63,7 +63,6 @@ export interface DialogOptions {
   content?: ReactNode;
   slots?: Partial<DialogSlotsComponents>;
   slotProps?: DialogSlotProps;
-  // TODO: slots & slotsProps --> allow replacing header & actions area
 }
 
 export interface DialogCtx extends DialogOptions {

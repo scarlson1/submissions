@@ -1,10 +1,10 @@
 import { Timestamp } from 'firebase-admin/firestore';
 
-import { AmendmentTransaction, Policy, PolicyLocation, WithId, getTermDays } from '../../common';
+import { AmendmentTransaction, ILocation, Policy, WithId, getTermDays } from '../../common';
 
 export const getLocationAmendmentTrx = (
   policy: WithId<Policy>,
-  location: PolicyLocation,
+  location: ILocation,
   eventId: string
 ): AmendmentTransaction => {
   // TODO: share logic with ohter trx types

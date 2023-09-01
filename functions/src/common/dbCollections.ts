@@ -6,6 +6,7 @@ import {
   ChangeRequest,
   Charge,
   Disclosure,
+  ILocation,
   ImportSummary,
   Invite,
   License,
@@ -13,7 +14,6 @@ import {
   Organization,
   PaymentMethod,
   Policy,
-  PolicyLocation,
   PolicyNew,
   PropertyDataRes,
   Quote,
@@ -41,7 +41,7 @@ export const submissionsCollection = (db: Firestore) =>
   createCollection<Submission>(db, COLLECTIONS.SUBMISSIONS);
 
 export const locationsCollection = (db: Firestore) =>
-  createCollection<PolicyLocation>(db, COLLECTIONS.LOCATIONS);
+  createCollection<ILocation>(db, COLLECTIONS.LOCATIONS);
 
 export const ratingDataCollection = (db: Firestore) =>
   createCollection<RatingData>(db, COLLECTIONS.RATING_DATA);

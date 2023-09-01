@@ -47,6 +47,7 @@ export const LocationsGrid = ({
           columnVisibilityModel: {
             id: false,
             product: false,
+            policyId: false,
             'address.addressLine1': false,
             'address.addressLine2': false,
             'address.city': false,

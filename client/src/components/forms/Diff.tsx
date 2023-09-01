@@ -1,6 +1,6 @@
-import { ReactElement, ReactNode, useCallback, useEffect, useMemo } from 'react';
-import { useFormikContext } from 'formik';
 import { Box, Divider, Tooltip, Typography } from '@mui/material';
+import { useFormikContext } from 'formik';
+import { ReactElement, ReactNode, useCallback, useEffect, useMemo } from 'react';
 
 import { useGetDiff, useJsonDialog } from 'hooks';
 import { Obj } from 'modules/utils';
@@ -25,7 +25,7 @@ export const Diff = ({
   children,
 }: DiffProps) => {
   const { values } = useFormikContext<any>();
-  const dialog = useJsonDialog();
+  const dialog = useJsonDialog({ slotProps: { dialog: { maxWidth: 'md' } } });
   const [getDiff, diff, isDiff] = useGetDiff(checkFields);
 
   const inputsCurr: Record<string, any> = useMemo(

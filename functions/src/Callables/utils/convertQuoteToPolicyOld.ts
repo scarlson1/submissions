@@ -5,10 +5,10 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { geohashForLocation } from 'geofire-common';
 import {
+  ILocation,
   License,
   POLICY_STATUS,
   Policy,
-  PolicyLocation,
   Quote,
   calcSum,
   calcTerm,
@@ -67,7 +67,7 @@ export function convertQuoteToPolicyOld(
 
   // TODO: use location ID from quote once using updated Quote interface
   const locationId = uuidv4();
-  const locations: Record<string, PolicyLocation> = {
+  const locations: Record<string, ILocation> = {
     [locationId]: {
       address: data.address,
       coordinates: data.coordinates,

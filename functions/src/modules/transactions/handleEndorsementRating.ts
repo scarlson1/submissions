@@ -4,8 +4,8 @@ import { error, info } from 'firebase-functions/logger';
 import {
   CHANGE_REQUEST_STATUS,
   ChangeRequest,
+  ILocation,
   Policy,
-  PolicyLocation,
   ValueByRiskType,
   calcTerm,
   changeRequestsCollection,
@@ -97,7 +97,7 @@ export async function handleRatingForEndorsement(
         expDateTS.toDate()
       );
 
-      const changesWithRating: Partial<PolicyLocation> = {
+      const changesWithRating: Partial<ILocation> = {
         termPremium,
         termDays,
       };
@@ -222,7 +222,7 @@ export async function handleRatingForEndorsement(
       expDateTS.toDate()
     );
 
-    const locationChangesWithRating: Partial<PolicyLocation> = {
+    const locationChangesWithRating: Partial<ILocation> = {
       annualPremium: premiumData.directWrittenPremium,
       ratingDocId: ratingDocRef.id || location.ratingDocId,
       TIV: result.tiv,

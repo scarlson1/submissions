@@ -1,7 +1,7 @@
 import { info } from 'firebase-functions/logger';
 import { FirestoreEvent, QueryDocumentSnapshot } from 'firebase-functions/v2/firestore';
 
-import { COLLECTIONS, PolicyLocation, getReportErrorFn, verify } from '../common';
+import { COLLECTIONS, ILocation, getReportErrorFn, verify } from '../common';
 import { publishGetLocationImages } from '../services/pubsub';
 
 const reportErr = getReportErrorFn('locationCreated');
@@ -18,7 +18,7 @@ export default async (
   try {
     const snap = event.data;
     verify(snap, 'no data associated with event');
-    const location = event.data?.data() as PolicyLocation;
+    const location = event.data?.data() as ILocation;
     verify(location, 'new location missing data');
 
     let imgObj = location.imageURLs;

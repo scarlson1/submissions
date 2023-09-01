@@ -1,15 +1,15 @@
-import { useFirestore, useFunctions } from 'reactfire';
-import { useCallback, useMemo, useState } from 'react';
 import { Timestamp, doc, getDoc, setDoc } from 'firebase/firestore';
+import { useCallback, useMemo, useState } from 'react';
+import { useFirestore, useFunctions } from 'reactfire';
 
 import { approveImport } from 'api';
-import { useAuth } from 'context';
 import {
   DeepPartial,
   StageImportRecord,
   importSummaryCollection,
   stagedImportsCollection,
 } from 'common';
+import { useAuth } from 'context';
 
 export const useManageImports = (
   importId: string,

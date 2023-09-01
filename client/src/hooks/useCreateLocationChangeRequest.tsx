@@ -1,4 +1,3 @@
-import { Timestamp, addDoc } from 'firebase/firestore';
 import { FormikHelpers, FormikProps } from 'formik';
 import { useCallback, useRef } from 'react';
 import { useFirestore } from 'reactfire';
@@ -7,19 +6,13 @@ import {
   AdditionalInsured,
   AdditionalInterest,
   AddressWithCoords,
-  CHANGE_REQUEST_STATUS,
-  ChangeRequest,
-  LocationChangeRequest,
+  ILocation,
   Mortgagee,
   Policy,
-  PolicyLocation,
-  WithId,
-  changeRequestsCollection,
 } from 'common';
 import { useAuth } from 'context';
 import { LocationChangeForm, LocationChangeFormProps, LocationChangeValues } from 'elements/forms';
 import { useAsyncToast } from './useAsyncToast';
-import { formatChanges } from './useCreatePolicyChangeRequest';
 import { useDialogForm } from './useDialogForm';
 
 export const useCreateLocationChangeRequest = (policyId: string) => {
@@ -27,7 +20,7 @@ export const useCreateLocationChangeRequest = (policyId: string) => {
   const { user } = useAuth();
   const toast = useAsyncToast();
   const formRef = useRef<FormikProps<LocationChangeValues>>(null);
-  const locationData = useRef<PolicyLocation>();
+  const locationData = useRef<ILocation>();
   const policy = useRef<Policy>();
   const initialVals = useRef<Omit<LocationChangeValues, 'requestEffDate'>>();
 
@@ -35,95 +28,99 @@ export const useCreateLocationChangeRequest = (policyId: string) => {
     async (values: LocationChangeValues, bag: FormikHelpers<LocationChangeValues>) => {
       console.log('on submit: ', values);
 
-      // TODO: better validation (locationId, etc.)
-      if (!locationData.current || !initialVals.current || !policy.current)
-        throw new Error('missing values. please reload.');
-
-      const locationId = locationData.current.locationId;
-      if (!locationId) throw new Error('missing locationId');
-
-      const { requestEffDate: reqEffDateNew, ...newVals } = values;
-
-      // const diff = formatChanges<LocationChangeValues, LocationChangeRequest>(
-      //   newVals,
-      //   initialVals.current
-      // );
-      const diff = formatChanges<LocationChangeValues>(newVals, initialVals.current);
-
-      const requiresEndorsement = hasEndorsementKeys(diff);
-      const requiresAmendment = hasAmendmentKeys(diff);
-
-      const common = getCommonTrxJson(
-        reqEffDateNew,
-        { ...policy.current, id: policyId },
-        locationData.current.locationId,
-        values,
-        user
+      throw new Error(
+        'Need to update useCreateLocationChangeRequest hook to match new policy / location interface'
       );
 
-      const colRef = changeRequestsCollection(firestore, policyId);
-      const docIds = [];
+      // // TODO: better validation (locationId, etc.)
+      // if (!locationData.current || !initialVals.current || !policy.current)
+      //   throw new Error('missing values. please reload.');
 
-      if (requiresEndorsement) {
-        // let endorsementChanges: LocationChangeRequest['changes'] = {};
-        // TODO: create ProtectLocation type (omit termPremium, etc.)
-        let endorsementChanges: Partial<Omit<PolicyLocation, 'termPremium' | 'annualPremium'>> = {};
+      // const locationId = locationData.current.locationId;
+      // if (!locationId) throw new Error('missing locationId');
 
-        if (diff.effectiveDate && values.effectiveDate)
-          endorsementChanges['effectiveDate'] = Timestamp.fromDate(values.effectiveDate);
+      // const { requestEffDate: reqEffDateNew, ...newVals } = values;
 
-        if (diff.expirationDate && values.expirationDate)
-          endorsementChanges['expirationDate'] = Timestamp.fromDate(values.expirationDate);
+      // // const diff = formatChanges<LocationChangeValues, LocationChangeRequest>(
+      // //   newVals,
+      // //   initialVals.current
+      // // );
+      // const diff = formatChanges<LocationChangeValues>(newVals, initialVals.current);
 
-        if (diff.limits && values.limits) endorsementChanges['limits'] = diff.limits;
+      // const requiresEndorsement = hasEndorsementKeys(diff);
+      // const requiresAmendment = hasAmendmentKeys(diff);
 
-        if (diff.deductible) endorsementChanges['deductible'] = values.deductible;
+      // const common = getCommonTrxJson(
+      //   reqEffDateNew,
+      //   { ...policy.current, id: policyId },
+      //   locationData.current.locationId,
+      //   values,
+      //   user
+      // );
 
-        console.log('endorsement changes: ', endorsementChanges);
+      // const colRef = changeRequestsCollection(firestore, policyId);
+      // const docIds = [];
 
-        const changeRequestData: LocationChangeRequest = {
-          ...common,
-          trxType: 'endorsement',
-          changes: {
-            locations: {
-              [locationId]: {
-                ...endorsementChanges,
-              },
-            },
-          },
-        };
+      // if (requiresEndorsement) {
+      //   // let endorsementChanges: LocationChangeRequest['changes'] = {};
+      //   // TODO: create ProtectLocation type (omit termPremium, etc.)
+      //   let endorsementChanges: Partial<Omit<ILocation, 'termPremium' | 'annualPremium'>> = {};
 
-        const endorsementDocRef = await addDoc(colRef, { ...changeRequestData });
-        docIds.push(endorsementDocRef.id);
-      }
+      //   if (diff.effectiveDate && values.effectiveDate)
+      //     endorsementChanges['effectiveDate'] = Timestamp.fromDate(values.effectiveDate);
 
-      if (requiresAmendment) {
-        // let amendmentChanges: LocationChangeRequest['changes'] = {};
-        let amendmentChanges: Partial<Omit<PolicyLocation, 'termPremium' | 'annualPremium'>> = {};
+      //   if (diff.expirationDate && values.expirationDate)
+      //     endorsementChanges['expirationDate'] = Timestamp.fromDate(values.expirationDate);
 
-        if (diff.additionalInterests) {
-          amendmentChanges['additionalInsureds'] = additionalInterestsToAdditionalInsured(
-            values.additionalInterests
-          );
-          amendmentChanges['mortgageeInterest'] = additionalInterestsToMortgagee(
-            values.additionalInterests
-          );
-        }
-        if (diff.externalId) amendmentChanges['externalId'] = values.externalId;
+      //   if (diff.limits && values.limits) endorsementChanges['limits'] = diff.limits;
 
-        const changeRequestData: LocationChangeRequest = {
-          ...common,
-          trxType: 'amendment',
-          changes: amendmentChanges,
-        };
+      //   if (diff.deductible) endorsementChanges['deductible'] = values.deductible;
 
-        const amendmentDocRef = await addDoc(colRef, { ...changeRequestData });
-        docIds.push(amendmentDocRef.id);
-      }
+      //   console.log('endorsement changes: ', endorsementChanges);
 
-      return docIds;
+      //   const changeRequestData: LocationChangeRequest = {
+      //     ...common,
+      //     trxType: 'endorsement',
+      //     changes: {
+      //       locations: {
+      //         [locationId]: {
+      //           ...endorsementChanges,
+      //         },
+      //       },
+      //     },
+      //   };
+
+      //   const endorsementDocRef = await addDoc(colRef, { ...changeRequestData });
+      //   docIds.push(endorsementDocRef.id);
+      // }
+
+      // if (requiresAmendment) {
+      //   // let amendmentChanges: LocationChangeRequest['changes'] = {};
+      //   let amendmentChanges: Partial<Omit<ILocation, 'termPremium' | 'annualPremium'>> = {};
+
+      //   if (diff.additionalInterests) {
+      //     amendmentChanges['additionalInsureds'] = additionalInterestsToAdditionalInsured(
+      //       values.additionalInterests
+      //     );
+      //     amendmentChanges['mortgageeInterest'] = additionalInterestsToMortgagee(
+      //       values.additionalInterests
+      //     );
+      //   }
+      //   if (diff.externalId) amendmentChanges['externalId'] = values.externalId;
+
+      //   const changeRequestData: LocationChangeRequest = {
+      //     ...common,
+      //     trxType: 'amendment',
+      //     changes: amendmentChanges,
+      //   };
+
+      //   const amendmentDocRef = await addDoc(colRef, { ...changeRequestData });
+      //   docIds.push(amendmentDocRef.id);
+      // }
+
+      // return docIds;
     },
-    [firestore, policyId, user]
+    [] // [firestore, policyId, user]
   );
 
   const dialogForm = useDialogForm<LocationChangeValues, LocationChangeFormProps>({
@@ -150,7 +147,7 @@ export const useCreateLocationChangeRequest = (policyId: string) => {
   });
 
   return useCallback(
-    async (loc: PolicyLocation, p: Policy) => {
+    async (loc: ILocation, p: Policy) => {
       locationData.current = loc;
       policy.current = p;
 
@@ -206,89 +203,90 @@ function convertMortgageesToAdditionalInterests(mortgagees: Mortgagee[]): Additi
   }));
 }
 
-const ENDORSEMENT_KEYS = ['limits', 'deductible', 'effectiveDate', 'expirationDate'];
+// TODO: uncomment once changed to new policy-locations interface
+// const ENDORSEMENT_KEYS = ['limits', 'deductible', 'effectiveDate', 'expirationDate'];
 
-function hasEndorsementKeys(diff: ChangeRequest['changes']) {
-  return !Object.keys(diff).every((k) => ENDORSEMENT_KEYS.indexOf(k) === -1);
-}
+// function hasEndorsementKeys(diff: ChangeRequest['changes']) {
+//   return !Object.keys(diff).every((k) => ENDORSEMENT_KEYS.indexOf(k) === -1);
+// }
 
-const AMENDMENT_KEYS = ['additionalInterests', 'externalId'];
+// const AMENDMENT_KEYS = ['additionalInterests', 'externalId'];
 
-function hasAmendmentKeys(diff: ChangeRequest['changes']) {
-  return !Object.keys(diff).every((k) => AMENDMENT_KEYS.indexOf(k) === -1);
-}
+// function hasAmendmentKeys(diff: ChangeRequest['changes']) {
+//   return !Object.keys(diff).every((k) => AMENDMENT_KEYS.indexOf(k) === -1);
+// }
 
-function getCommonTrxJson(
-  reqEffDate: Date,
-  policy: WithId<Policy>,
-  locationId: string,
-  formValues: LocationChangeValues,
-  user?: any
-): Omit<LocationChangeRequest, 'changes' | 'trxType'> {
-  return {
-    scope: 'location',
-    requestEffDate: Timestamp.fromDate(reqEffDate),
-    policyId: policy.id,
-    locationId,
-    formValues,
-    userId: policy.userId || '',
-    agent: {
-      userId: policy.agent.userId || null,
-    },
-    agency: {
-      orgId: policy.agency.orgId || null,
-    },
-    status: CHANGE_REQUEST_STATUS.SUBMITTED,
-    submittedBy: {
-      userId: user?.uid || null,
-      displayName: user?.displayName || '',
-      email: user?.email || null,
-    },
-    metadata: {
-      created: Timestamp.now(),
-      updated: Timestamp.now(),
-    },
-  };
-}
+// function getCommonTrxJson(
+//   reqEffDate: Date,
+//   policy: WithId<Policy>,
+//   locationId: string,
+//   formValues: LocationChangeValues,
+//   user?: any
+// ): Omit<LocationChangeRequest, 'changes' | 'trxType'> {
+//   return {
+//     scope: 'location',
+//     requestEffDate: Timestamp.fromDate(reqEffDate),
+//     policyId: policy.id,
+//     locationId,
+//     formValues,
+//     userId: policy.userId || '',
+//     agent: {
+//       userId: policy.agent.userId || null,
+//     },
+//     agency: {
+//       orgId: policy.agency.orgId || null,
+//     },
+//     status: CHANGE_REQUEST_STATUS.SUBMITTED,
+//     submittedBy: {
+//       userId: user?.uid || null,
+//       displayName: user?.displayName || '',
+//       email: user?.email || null,
+//     },
+//     metadata: {
+//       created: Timestamp.now(),
+//       updated: Timestamp.now(),
+//     },
+//   };
+// }
 
-function additionalInterestsToAdditionalInsured(additionalInterests: AdditionalInterest[]) {
-  return (
-    additionalInterests
-      ?.filter((ai) => ai.type === 'additional_insured')
-      .map((additionalNI) => ({
-        name: additionalNI.name,
-        email: '',
-        address: additionalNI.address
-          ? {
-              addressLine1: additionalNI.address.addressLine1,
-              addressLine2: additionalNI.address.addressLine2,
-              city: additionalNI.address.city,
-              state: additionalNI.address.state,
-              postal: additionalNI.address.postal,
-            }
-          : null,
-      })) || []
-  );
-}
+// function additionalInterestsToAdditionalInsured(additionalInterests: AdditionalInterest[]) {
+//   return (
+//     additionalInterests
+//       ?.filter((ai) => ai.type === 'additional_insured')
+//       .map((additionalNI) => ({
+//         name: additionalNI.name,
+//         email: '',
+//         address: additionalNI.address
+//           ? {
+//               addressLine1: additionalNI.address.addressLine1,
+//               addressLine2: additionalNI.address.addressLine2,
+//               city: additionalNI.address.city,
+//               state: additionalNI.address.state,
+//               postal: additionalNI.address.postal,
+//             }
+//           : null,
+//       })) || []
+//   );
+// }
 
-function additionalInterestsToMortgagee(additionalInterests: AdditionalInterest[]) {
-  return (
-    additionalInterests
-      ?.filter((ai) => ai.type === 'mortgagee')
-      .map((m) => ({
-        name: m.name,
-        contactName: '',
-        contactEmail: '', // m.email,
-        loanNumber: m.accountNumber,
-        address: m.address
-          ? {
-              addressLine1: m.address.addressLine1,
-              addressLine2: m.address.addressLine2,
-              city: m.address.city,
-              state: m.address.state,
-              postal: m.address.postal,
-            }
-          : null,
-      })) || []
-  );
-}
+// function additionalInterestsToMortgagee(additionalInterests: AdditionalInterest[]) {
+//   return (
+//     additionalInterests
+//       ?.filter((ai) => ai.type === 'mortgagee')
+//       .map((m) => ({
+//         name: m.name,
+//         contactName: '',
+//         contactEmail: '', // m.email,
+//         loanNumber: m.accountNumber,
+//         address: m.address
+//           ? {
+//               addressLine1: m.address.addressLine1,
+//               addressLine2: m.address.addressLine2,
+//               city: m.address.city,
+//               state: m.address.state,
+//               postal: m.address.postal,
+//             }
+//           : null,
+//       })) || []
+//   );
+// }

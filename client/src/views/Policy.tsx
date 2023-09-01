@@ -1,6 +1,5 @@
 import {
   AccountBalanceRounded,
-  EditRounded,
   EmailRounded,
   GridViewRounded,
   MapRounded,
@@ -23,19 +22,17 @@ import {
   Stack,
   ToggleButton,
   ToggleButtonGroup,
-  Tooltip,
   Typography,
 } from '@mui/material';
-import { GridActionsCellItem, GridRowParams } from '@mui/x-data-grid';
 import { PickingInfo } from 'deck.gl/typed';
+import { where } from 'firebase/firestore';
 import { useCallback, useMemo, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
-import { where } from 'firebase/firestore';
 
-import { Policy as IPolicy, POLICY_STATUS, PolicyLocation, WithId } from 'common';
+import { Policy as IPolicy, POLICY_STATUS } from 'common';
 import { NotFound } from 'components';
 import { IconMenu } from 'components/IconButtonMenu';
-import { LocationsMap } from 'elements';
+import { LocationsMap, PolicyLocationCards } from 'elements';
 import {
   ChangeRequestsDialog,
   useViewChangeRequestsDialogProps,
@@ -44,12 +41,17 @@ import { ContactList } from 'elements/forms';
 import { LocationsGrid } from 'elements/grids';
 import {
   useCreateCancelRequest,
-  useCreateLocationChangeRequest,
   useCreatePolicyChangeRequest,
   useDocData,
   useGeneratePDF,
 } from 'hooks';
-import { formatFirestoreTimestamp, formatPhoneNumber, stringAvatar } from 'modules/utils';
+import { isEmpty } from 'lodash';
+import {
+  compressedToFormattedAddr,
+  formatFirestoreTimestamp,
+  formatPhoneNumber,
+  stringAvatar,
+} from 'modules/utils';
 
 // TODO: make location card flip on hover to show additional details ??
 
@@ -57,6 +59,10 @@ import { formatFirestoreTimestamp, formatPhoneNumber, stringAvatar } from 'modul
 //    - policy overview details
 //    - submit edit request
 //    - submit claim
+
+// TODO: policy cards requires location details
+//  - create separate policy cards component
+//  - requires paginated query (limit 8 ??) with "load more" button
 
 const LOCATION_TABS = ['cards', 'grid', 'map'];
 const getInitTabView = (searchParam: string | null) =>
@@ -71,15 +77,9 @@ export const Policy = () => {
   const { data } = useDocData<IPolicy>('POLICIES', policyId);
   const { downloadPDF: downloadPolicy } = useGeneratePDF('generateDecPDF');
 
-  const locationChangeDialog = useCreateLocationChangeRequest(policyId);
+  // TODO: UNCOMMENT ONCE CARDS UPDATED
+  // const locationChangeDialog = useCreateLocationChangeRequest(policyId);
   const cancelDialog = useCreateCancelRequest(); // TODO: onsuccess => "you'll receive a confirmation email once our team has processed the request. expect to see a refund, if due, in X days"
-
-  // const locations = useMemo<WithId<PolicyLocation>[]>(() => {
-  //   let pLocs = Object.entries(data?.locations || {});
-  //   if (!pLocs || !pLocs.length) return [];
-
-  //   return pLocs.map((loc) => ({ ...(loc[1] || {}), locationId: loc[0], id: loc[0] }));
-  // }, [data]);
 
   const [locationsView, setLocationsView] = useState(getInitTabView(searchParams.get('l_view')));
 
@@ -102,40 +102,55 @@ export const Policy = () => {
     [downloadPolicy, policyId]
   );
 
-  const handleLocationChangeRequest = useCallback(
-    (location: PolicyLocation) => locationChangeDialog(location, data),
-    [locationChangeDialog, data]
-  );
+  // TODO: UNCOMMENT ONCE CARDS UPDATED
+  // const handleLocationChangeRequest = useCallback(
+  //   (location: ILocation) => locationChangeDialog(location, data),
+  //   [locationChangeDialog, data]
+  // );
 
-  const handleLocationChangeRequestGrid = useCallback(
-    (params: GridRowParams) => () => locationChangeDialog(params.row, data),
-    [data, locationChangeDialog]
-  );
+  // TODO: UNCOMMENT ONCE CARDS UPDATED
+  // const handleLocationChangeRequestGrid = useCallback(
+  //   (params: GridRowParams) => () => locationChangeDialog(params.row, data),
+  //   [data, locationChangeDialog]
+  // );
 
   const handleCancelPolicy = useCallback(async () => {
     await cancelDialog(policyId);
   }, [cancelDialog, policyId]);
 
-  const renderLocationGridActions = useCallback(
-    (params: GridRowParams) => {
-      return [
-        <GridActionsCellItem
-          icon={
-            <Tooltip title='request change' placement='top'>
-              <EditRounded />
-            </Tooltip>
-          }
-          onClick={handleLocationChangeRequestGrid(params)}
-          label='Request change'
-          // showInMenu={isSmall}
-        />,
-      ];
-    },
-    [handleLocationChangeRequestGrid]
-  );
+  // TODO: UNCOMMENT ONCE CARDS UPDATED
+  // const renderLocationGridActions = useCallback(
+  //   (params: GridRowParams) => {
+  //     return [
+  //       <GridActionsCellItem
+  //         icon={
+  //           <Tooltip title='request change' placement='top'>
+  //             <EditRounded />
+  //           </Tooltip>
+  //         }
+  //         onClick={handleLocationChangeRequestGrid(params)}
+  //         label='Request change'
+  //         // showInMenu={isSmall}
+  //       />,
+  //     ];
+  //   },
+  //   [handleLocationChangeRequestGrid]
+  // );
 
-  const locations = useMemo(() => Object.values(data.locations || {}), [data]);
-  const locationsCount = locations.length; // useMemo(() => Object.keys(data?.locations || {}).length, [data]);
+  const [locations, locationsCount] = useMemo(() => {
+    const locs = Object.entries(data.locations || {})
+      .filter(([id, l]) => !isEmpty(l))
+      .map(([id, l]) => ({
+        ...l,
+        coordinates: l.coords,
+        formattedAddress: compressedToFormattedAddr(l.address),
+        id,
+      }));
+
+    const count = locs.length;
+
+    return [locs, count];
+  }, [data]);
 
   // TODO: throw & handle in error boundary ??
   if (!data) return <NotFound title='Policy not found' />;
@@ -286,23 +301,26 @@ export const Policy = () => {
           </Box>
         </Box>
         {locationsView === 'cards' ? (
-          <Typography variant='h5' align='center' color='warning.main'>
-            Location Cards under Construction
-          </Typography>
-        ) : // <Grid container columnSpacing={4} rowSpacing={8}>
-        //   {locations?.map((location) => (
-        //     <Grid xs={12} sm={6} md={4} xl={3} key={location.id}>
-        //       <LocationCard
-        //         location={location}
-        //         namedInsured={data.namedInsured}
-        //         onEdit={handleLocationChangeRequest}
-        //         // agent={data.agent}
-        //         // agency={data.agency}
-        //       />
-        //     </Grid>
-        //   ))}
-        // </Grid>
-        null}
+          <>
+            {/* <Typography variant='h5' align='center' color='warning.main'>
+              Location Cards under Construction
+            </Typography> */}
+            <PolicyLocationCards policyId={policyId} />
+            {/* <Grid container columnSpacing={4} rowSpacing={8}>
+              {locations?.map((location) => (
+                <Grid xs={12} sm={6} md={4} xl={3} key={location.id}>
+                  <LocationCard
+                    location={location}
+                    namedInsured={data.namedInsured}
+                    onEdit={handleLocationChangeRequest}
+                    // agent={data.agent}
+                    // agency={data.agency}
+                  />
+                </Grid>
+              ))}
+            </Grid> */}
+          </>
+        ) : null}
         {locationsView === 'grid' ? (
           <LocationsGrid constraints={locationConstraints} />
         ) : // <LocationsGridOld locations={locations} renderActions={renderLocationGridActions} />

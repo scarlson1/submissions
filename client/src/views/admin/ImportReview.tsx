@@ -9,13 +9,20 @@ import {
   gridRowSelectionStateSelector,
   useGridApiContext,
 } from '@mui/x-data-grid';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 
-import { ThumbDownRounded, ThumbUpRounded } from '@mui/icons-material';
+import { DataObjectRounded, ThumbDownRounded, ThumbUpRounded } from '@mui/icons-material';
 import { COLLECTIONS, ImportSummary } from 'common';
 import { IconMenu, ServerDataGrid } from 'components';
 import { useAuth } from 'context';
-import { useAsyncToast, useDocData, useManageImports, useSafeParams } from 'hooks';
+import {
+  useAsyncToast,
+  useDocData,
+  useManageImports,
+  useSafeParams,
+  useShowJson,
+  useWidth,
+} from 'hooks';
 import {
   policyStagingRecordCols,
   quoteStagingRecordCols,
@@ -122,20 +129,33 @@ interface ImportReviewComponentProps {
 }
 
 export const ImportReviewComponent = ({ importId, importType }: ImportReviewComponentProps) => {
+  const { isMobile } = useWidth();
   const { claims } = useAuth();
-  const toast = useAsyncToast();
+  const toast = useAsyncToast({ id: 'import-toast', position: 'top-right' });
   const { handleApproveImport, handleDeclineImport, loading } = useManageImports(
     importId,
     (msg) => toast.success(msg),
     (msg) => toast.error(msg)
   );
 
+  useEffect(() => {
+    console.log('LOADING: ', loading);
+    if (Object.values(loading).some((l) => !!l)) {
+      console.log('setting toast loading');
+      toast.loading('importing records...');
+    }
+  }, [loading, toast]);
+
+  const showJson = useShowJson(COLLECTIONS.DATA_IMPORTS, [importId, COLLECTIONS.STAGED_RECORDS]);
+
+  const handleShowJson = useCallback((id: string) => () => showJson(id), [showJson]);
+
   const props = useMemo(() => {
     const actionsCol: GridActionsColDef = {
       field: 'actions',
       headerName: 'Actions',
       type: 'actions',
-      width: 80,
+      width: isMobile ? 80 : 120,
       getActions: (params) => [
         <GridActionsCellItem
           icon={
@@ -146,6 +166,7 @@ export const ImportReviewComponent = ({ importId, importType }: ImportReviewComp
           onClick={() => handleApproveImport([params.id.toString()])}
           label='Approve import'
           disabled={!claims?.iDemandAdmin || params.row.importMeta?.status !== 'new'}
+          showInMenu={isMobile}
         />,
         <GridActionsCellItem
           icon={
@@ -156,6 +177,18 @@ export const ImportReviewComponent = ({ importId, importType }: ImportReviewComp
           onClick={() => handleDeclineImport([params.id.toString()])}
           label='Decline import'
           disabled={!claims?.iDemandAdmin || params.row.importMeta?.status !== 'new'}
+          showInMenu={isMobile}
+        />,
+        <GridActionsCellItem
+          icon={
+            <Tooltip placement='top' title='view JSON'>
+              <DataObjectRounded />
+            </Tooltip>
+          }
+          onClick={handleShowJson(params.id.toString())}
+          label='Details'
+          disabled={!Boolean(claims?.iDemandAdmin)}
+          showInMenu={isMobile}
         />,
       ],
     };
@@ -175,7 +208,7 @@ export const ImportReviewComponent = ({ importId, importType }: ImportReviewComp
       default:
         return {};
     }
-  }, [importType, claims, handleApproveImport, handleDeclineImport]);
+  }, [importType, claims, isMobile, handleApproveImport, handleDeclineImport, handleShowJson]);
 
   if (!props.columns) throw new Error('importType not matched');
 

@@ -1,12 +1,12 @@
-import { useCallback, useMemo } from 'react';
 import ReactJson from '@microlink/react-json-view';
-import { Box, DialogProps, useTheme } from '@mui/material';
+import { Box, useTheme } from '@mui/material';
+import { useCallback, useMemo } from 'react';
 import { toast } from 'react-hot-toast';
 
-import { useConfirmation } from 'context/ConfirmationService';
-import { ConfirmationDialog } from 'components';
+import { DialogOptions } from 'context';
 import { isJSON } from 'modules/utils/helpers';
 import { useCopyToClipboard } from './useCopyToClipboard';
+import { useDialog } from './useDialog';
 
 export const useJsonTheme = () => {
   const theme = useTheme();
@@ -16,7 +16,7 @@ export const useJsonTheme = () => {
       base00: theme.palette.background.default, // "white", Default Background
       base01: theme.palette.grey[500], // "#ddd", Lighter Background (Used for status bars, line number and folding marks)
       base02: theme.palette.divider, // Selection Background
-      base03: theme.palette.mode === 'light' ? theme.palette.grey[300] : theme.palette.grey[700], // "#444", Comments, Invisibles, Line Highlighting
+      base03: theme.palette.mode === 'light' ? theme.palette.grey[300] : theme.palette.grey[700], // "#444", Comments, Invisible, Line Highlighting
       base04: theme.palette.mode === 'light' ? theme.palette.grey[400] : theme.palette.grey[700], // "purple", (Used for item count)
 
       base05:
@@ -39,8 +39,8 @@ export const useJsonTheme = () => {
   );
 };
 
-export const useJsonDialog = (dialogProps?: Partial<DialogProps>) => {
-  const dialog = useConfirmation();
+export const useJsonDialog = (props?: Partial<Omit<DialogOptions, 'onSubmit' | 'content'>>) => {
+  const dialog = useDialog();
   const [, copy] = useCopyToClipboard();
   const theme = useJsonTheme();
 
@@ -48,38 +48,54 @@ export const useJsonDialog = (dialogProps?: Partial<DialogProps>) => {
     async (data: any, title: string) => {
       if (isJSON(data)) return toast.error('Provided data is not valid JSON');
 
-      await dialog({
+      await dialog.prompt({
         variant: 'info',
         title,
         catchOnCancel: false,
-        component: (
-          <ConfirmationDialog
-            onAccept={() => {}}
-            onClose={() => {}}
-            open={false}
-            dialogProps={{ maxWidth: 'md', ...dialogProps }}
-            dialogContentProps={{ dividers: true }}
+        ...props,
+        content: (
+          <Box
+            sx={{
+              typography: 'body2',
+            }}
           >
-            <Box
-              sx={{
-                typography: 'body2',
-              }}
-            >
-              <ReactJson
-                src={data}
-                style={{ backgroundColor: 'inherit' }}
-                theme={theme}
-                // theme={theme.palette.mode === 'dark' ? 'tomorrow' : 'rjv-default'}
-                iconStyle='circle'
-                enableClipboard={(data) => copy(data.src, true)}
-                collapseStringsAfterLength={30}
-              />
-            </Box>
-          </ConfirmationDialog>
+            <ReactJson
+              src={data}
+              style={{ backgroundColor: 'inherit' }}
+              theme={theme}
+              // theme={theme.palette.mode === 'dark' ? 'tomorrow' : 'rjv-default'}
+              iconStyle='circle'
+              enableClipboard={(data) => copy(data.src, true)}
+              collapseStringsAfterLength={30}
+            />
+          </Box>
+          // <ConfirmationDialog
+          //   onAccept={() => {}}
+          //   onClose={() => {}}
+          //   open={false}
+          //   dialogProps={{ maxWidth: 'md', ...dialogProps }}
+          //   dialogContentProps={{ dividers: true }}
+          // >
+          //   <Box
+          //     sx={{
+          //       typography: 'body2',
+          //     }}
+          //   >
+          //     <ReactJson
+          //       src={data}
+          //       style={{ backgroundColor: 'inherit' }}
+          //       theme={theme}
+          //       // theme={theme.palette.mode === 'dark' ? 'tomorrow' : 'rjv-default'}
+          //       iconStyle='circle'
+          //       enableClipboard={(data) => copy(data.src, true)}
+          //       collapseStringsAfterLength={30}
+          //     />
+          //   </Box>
+          // </ConfirmationDialog>
         ),
       });
     },
-    [dialog, theme, copy, dialogProps]
+    [dialog, theme, copy, props]
   );
 
   return showJson;

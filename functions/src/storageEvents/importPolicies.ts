@@ -4,18 +4,20 @@ import { error, info } from 'firebase-functions/logger';
 import { StorageEvent } from 'firebase-functions/v2/storage';
 import fs from 'fs';
 import { geohashForLocation } from 'geofire-common';
-import { round, sumBy } from 'lodash';
+import { round } from 'lodash';
 import { tmpdir } from 'os';
 import path from 'path';
 import { v4 as uuid } from 'uuid';
 
+import { getPolicyTermPremium } from '../callables/utils';
 import {
   Address,
   COLLECTIONS,
+  ILocation,
+  LocationParent,
   MailingAddress,
   POLICY_STATUS,
-  Policy,
-  PolicyLocation,
+  PolicyNew,
   Product,
   RatingData,
   StagedPolicyImport,
@@ -28,13 +30,16 @@ import {
   hostingBaseURL,
   importSummaryCollection,
   licensesCollection,
+  locationsCollection,
   policiesCollection,
   ratingDataCollection,
   sendgridApiKey,
   stagedImportsCollection,
   throwIfExists,
   unlinkFile,
+  verify,
 } from '../common';
+import { locationToPolicyLocation } from '../modules/db';
 import { getCarrierByState, getRCVs, sumFeesTaxesPremium } from '../modules/rating';
 import { eventOlderThan, shouldReturnEarly } from '../modules/storage';
 import {
@@ -75,6 +80,7 @@ export default async (event: StorageEvent) => {
 
   const db = getFirestore();
   const policiesColRef = policiesCollection(db);
+  const locationsColRef = locationsCollection(db);
   const ratingColRef = ratingDataCollection(db);
   const importSummaryRef = importSummaryCollection(db).doc(event.id);
   const importStagingCol = stagedImportsCollection(db, importSummaryRef.id);
@@ -115,12 +121,15 @@ export default async (event: StorageEvent) => {
     return;
   }
 
-  let policyRecords: Record<string, Policy>;
+  let policyRecords: Record<string, PolicyNew>;
+  let locationRecords: Record<string, ILocation>;
   let ratingRecords: Record<string, RatingData>;
+
   try {
-    const { formattedPolicies, ratingDocData } = await groupByPolicyId(dataArr, db);
+    const { formattedPolicies, locations, ratingDocData } = await groupByPolicyId(dataArr, db);
 
     policyRecords = formattedPolicies;
+    locationRecords = locations;
     ratingRecords = ratingDocData;
 
     if (!policyRecords) throw new Error('Error formatting rows into policies');
@@ -130,17 +139,17 @@ export default async (event: StorageEvent) => {
     return;
   }
 
-  for (const [ratingDocId, ratingRecord] of Object.entries(ratingRecords)) {
-    try {
-      const ratingDocRef = ratingColRef.doc(ratingDocId);
-      await ratingDocRef.set(ratingRecord);
-    } catch (err: any) {
-      error('Error saving rating doc', { err });
-    }
-  }
+  // MOVED TO BATCH
+  // for (const [ratingDocId, ratingRecord] of Object.entries(ratingRecords)) {
+  //   try {
+  //     const ratingDocRef = ratingColRef.doc(ratingDocId);
+  //     await ratingDocRef.set(ratingRecord);
+  //   } catch (err: any) {
+  //     error('Error saving rating doc', { err });
+  //   }
+  // }
 
-  // upload using provided policy ID ?? use set & update locations arr ??
-  // TODO: batch all policy imports?
+  const ratingEntries = Object.entries(ratingRecords);
 
   let importedIds: string[] = [];
   let createErrors: any[] = [];
@@ -153,6 +162,24 @@ export default async (event: StorageEvent) => {
       const policyRef = policiesColRef.doc(policyId);
       await throwIfExists(policyRef);
 
+      const batch = db.batch();
+
+      const locationKeys = Object.keys(policyData.locations);
+      for (const key of locationKeys) {
+        const locationRecord = locationRecords[key];
+        verify(locationRecord, `location record not found with ID ${key}`);
+
+        const locationRef = locationsColRef.doc(key);
+        await throwIfExists(locationRef);
+        batch.set(locationRef, locationRecord);
+
+        const ratingEntMatch = ratingEntries.find((ratingEnt) => ratingEnt[1].locationId === key);
+        verify(ratingEntMatch, `Could not find incoming rating doc with location ID ${key}`);
+
+        const ratingDocRef = ratingColRef.doc(ratingEntMatch[0]);
+        batch.set(ratingDocRef, ratingEntMatch[1]);
+      }
+
       const data: StagedPolicyImport = {
         ...policyData,
         importMeta: {
@@ -161,10 +188,13 @@ export default async (event: StorageEvent) => {
           targetCollection: COLLECTIONS.POLICIES,
         },
       };
-      importStagingCol.doc(policyId).set(data);
+      // importStagingCol.doc(policyId).set(data);
+      const policyImportRef = importStagingCol.doc(policyId);
+      batch.set(policyImportRef, data);
 
-      // await policyRef.set({ ...policyData });
       importedIds.push(policyId);
+
+      await batch.commit();
     } catch (err: any) {
       error(`Error created policy record in DB ${policyId}`, { err });
       createErrors.push(policyData);
@@ -217,31 +247,34 @@ export default async (event: StorageEvent) => {
   return;
 };
 
+// TODO: break into smaller functions
 /**
  * Proup each row by policy ID, and set each row as location inside the policy. Policy level data will use the value in the last location row
  * @param {ParsedPolicyRow[]} data all rows from csv
  * @param {Firestore} firestore Firestore DB ref
- * @returns {Record<string, Policy>} object of policies, with policy ID as object key
+ * @returns {object} object of policies, locations and ratingData
  */
 async function groupByPolicyId(data: ParsedPolicyRow[], firestore: Firestore) {
-  let policies: Record<string, Omit<Policy, 'termPremium'>> = {};
+  // let policies: Record<string, Omit<Policy, 'termPremium'>> = {};
+  let policies: Record<string, Omit<PolicyNew, 'termPremium'>> = {};
+  let locations: Record<string, ILocation> = {};
   let ratingDocData: Record<string, RatingData> = {};
   const ts = Timestamp.now();
 
   for (const row of data) {
     let locId = getNewLocationId();
-    const formattedLocation = formatPolicyLocation(row, locId, ts);
+    const formattedLocation = formatPolicyLocation(row, locId, ts, 'policy');
 
     const ratingDocId = uuid();
     const AALs = {
-      inland: row.AALs?.inland,
-      surge: row.AALs?.surge,
-      tsunami: row.AALs?.tsunami,
+      inland: row.AALs.inland,
+      surge: row.AALs.surge,
+      tsunami: row.AALs.tsunami,
     };
     const techPremium = {
-      inland: row.techPremium?.inland || 0,
-      surge: row.techPremium?.surge || 0,
-      tsunami: row.techPremium?.tsunami || 0,
+      inland: row.techPremium.inland as number,
+      surge: row.techPremium.surge as number,
+      tsunami: row.techPremium.tsunami as number,
     };
     const ratingData = getRatingData(
       formattedLocation,
@@ -252,6 +285,7 @@ async function groupByPolicyId(data: ParsedPolicyRow[], firestore: Firestore) {
     ratingDocData[ratingDocId] = ratingData;
 
     const locationWithRatingId = { ...formattedLocation, ratingDocId };
+    locations[locId] = { ...locationWithRatingId, policyId: row.policyId as string };
 
     const fees = row.fees;
     const taxes = row.taxes;
@@ -259,12 +293,14 @@ async function groupByPolicyId(data: ParsedPolicyRow[], firestore: Firestore) {
     const policyId = row.policyId as string;
     const existingPolicy = policies[policyId] || null;
 
+    const policyLocation = locationToPolicyLocation(formattedLocation);
+
     if (existingPolicy) {
       const updatedPolicy = {
         ...existingPolicy,
         fees,
         taxes,
-        locations: { ...existingPolicy.locations, [locId]: locationWithRatingId },
+        locations: { ...existingPolicy.locations, [locId]: policyLocation },
       };
 
       policies[policyId] = updatedPolicy;
@@ -276,7 +312,7 @@ async function groupByPolicyId(data: ParsedPolicyRow[], firestore: Firestore) {
         fees,
         taxes,
         locations: {
-          [locId]: locationWithRatingId,
+          [locId]: policyLocation,
         },
       };
     }
@@ -284,12 +320,9 @@ async function groupByPolicyId(data: ParsedPolicyRow[], firestore: Firestore) {
 
   // Calc policy level term premium
   // const resultPolicies: Record<string, Policy> = {};
-  const formattedPolicies: Record<string, Policy> = {};
+  const formattedPolicies: Record<string, PolicyNew> = {};
   for (const [policyId, policy] of Object.entries(policies)) {
-    const policyTermPremium = round(
-      sumBy(Object.values(policy.locations), (l) => l.termPremium),
-      2
-    );
+    const policyTermPremium = getPolicyTermPremium(policy.locations);
 
     const locations = Object.values(policy.locations);
     const inStatePremium = getInStatePremium(policy.homeState, locations);
@@ -315,15 +348,15 @@ async function groupByPolicyId(data: ParsedPolicyRow[], firestore: Firestore) {
     };
   }
 
-  // return resultPolicies;
-  return { formattedPolicies, ratingDocData };
+  return { formattedPolicies, locations, ratingDocData };
 }
 
 function formatPolicyLocation(
   data: ParsedPolicyRow,
   locationId: string,
-  ts: Timestamp
-): PolicyLocation {
+  ts: Timestamp,
+  parentType?: LocationParent
+): ILocation {
   const geoHash = geohashForLocation([data.coordinates!.latitude, data.coordinates!.longitude]);
 
   const effDate = data.effectiveDate || (data.policyEffectiveDate as Date);
@@ -334,7 +367,8 @@ function formatPolicyLocation(
 
   const { termDays, termPremium } = calcTerm(data.annualPremium, effDate, expDate);
 
-  const location: PolicyLocation = {
+  const location: ILocation = {
+    parentType: parentType || null,
     address: data.address as Address,
     coordinates: data.coordinates as GeoPoint,
     geoHash,
@@ -385,7 +419,7 @@ async function getPolicyWithoutLocation(
   // TODO: need to accomidate taxes and fee imports.
   // See importQuotes for reference
 
-  const p: Omit<Policy, 'locations' | 'termPremium'> = {
+  const p: Omit<PolicyNew, 'locations' | 'termPremium'> = {
     product: data.product as Product,
     status: POLICY_STATUS.PAID, // TODO: get status from csv
     term: data.term as number,
@@ -441,7 +475,7 @@ async function getSPLPofR(firestore: Firestore, state: string) {
 
 // TODO: need tech premium
 function getRatingData(
-  data: PolicyLocation,
+  data: ILocation,
   mgaCommissionPct: number,
   AALs: any,
   techPremium: ValueByRiskType

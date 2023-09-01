@@ -10,7 +10,7 @@ export {};
 // import {
 //   COLLECTIONS,
 //   Policy,
-//   PolicyLocation,
+//   ILocation,
 //   algoliaIndex,
 //   algoliaAppId,
 //   algoliaAdminKey,
@@ -131,7 +131,7 @@ export {};
 //       ];
 
 //       // create a record for each location
-//       locations.forEach((l: PolicyLocation) => {
+//       locations.forEach((l: ILocation) => {
 //         const locationRecord = {
 //           objectId: l.locationId,
 //           docType: 'location',

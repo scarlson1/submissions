@@ -93,6 +93,7 @@ export const ServerDataGrid = ({
   );
 
   useEffect(() => {
+    // TODO: usePrevious queryOptions ??
     fetchCount().then((result) => setRowCount(result.data().count));
   }, [fetchCount, queryOptions]);
 
