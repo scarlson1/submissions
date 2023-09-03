@@ -1,7 +1,5 @@
-// import invariant from 'tiny-invariant';
-
-import { Nullable, ValueByRiskType } from '../../common/types.js';
-import { getFirstFloorDiffFactors } from './firstFloorDiff.js';
+import { Nullable, ValueByRiskType } from '../../common';
+import { getFirstFloorDiffFactors } from './firstFloorDiff';
 
 const CONTENTS_RCV_MULT = 1;
 const ORDINANCE_MULT = 1.05;

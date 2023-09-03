@@ -1,9 +1,9 @@
 import { NextFunction, Request, Response } from 'express';
 // import { FirebaseError } from '@firebase/util';
 
-import { CustomError } from '../errors/customError.js';
-// import { IDemandError } from '../errors/idemand-error.js';
-// import { IDemandAuthError } from '../errors/idemand-auth-error.js';
+import { CustomError } from '../errors';
+// import { IDemandError } from '../errors';
+// import { IDemandAuthError } from '../errors';
 
 export const errorHandler = (err: Error, req: Request, res: Response, next: NextFunction) => {
   if (err instanceof CustomError) {

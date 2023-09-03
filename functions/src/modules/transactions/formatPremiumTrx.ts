@@ -14,7 +14,7 @@ import {
   getNetDWP,
   getTermProratedPct,
   getTrxTaxesAndFees,
-} from './index.js';
+} from './index';
 
 export function formatPremiumTrx(
   trxType: PremiumTransaction['trxType'],

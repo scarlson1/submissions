@@ -70,6 +70,7 @@ import { AgencyAppSuccessStep } from 'views/AgencyNew';
 import { EmailVerified } from 'views/EmailVerified';
 import { WizardFormTest } from 'views/WizardFormTest';
 import App from './App';
+import { TestGovEventsMap } from 'elements/maps';
 
 export interface CrumbMatch {
   id: string;
@@ -986,7 +987,10 @@ export const router = sentryCreateBrowserRouter([
               <RequireAuthReactFire
                 signInCheckProps={{ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } }}
               >
-                <TestPoliciesMapWithFilters />
+                <>
+                  <TestPoliciesMapWithFilters />
+                  <TestGovEventsMap />
+                </>
               </RequireAuthReactFire>
             ),
             handle: {

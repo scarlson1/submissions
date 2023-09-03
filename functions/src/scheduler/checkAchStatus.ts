@@ -9,7 +9,7 @@ import {
   ePayCreds as ePayCredsSecret,
   PUB_SUB_TOPICS,
 } from '../common';
-import { publishMessage } from '../services/pubsub/publishMessage.js';
+import { publishMessage } from '../services/pubsub';
 
 // const ePayCreds = defineSecret('ENCODED_EPAY_AUTH');
 

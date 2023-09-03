@@ -3,7 +3,7 @@ import { info } from 'firebase-functions/logger';
 import { QueryDocumentSnapshot } from 'firebase-admin/firestore';
 
 import { sendNewAgencySubmissionAdminNotification } from '../services/sendgrid';
-import { AgencyApplication, audience, hostingBaseURL, sendgridApiKey } from '../common/index.js';
+import { AgencyApplication, audience, hostingBaseURL, sendgridApiKey } from '../common';
 
 export default async (
   event: FirestoreEvent<

@@ -2,7 +2,7 @@ import { error, info } from 'firebase-functions/logger';
 import { Response, NextFunction } from 'express';
 import { getAuth } from 'firebase-admin/auth';
 
-import { RequestUserAuth } from '../../common/index.js';
+import { RequestUserAuth } from '../../common';
 
 // https://github.com/firebase/functions-samples/blob/main/authorized-https-endpoint/functions/index.js
 

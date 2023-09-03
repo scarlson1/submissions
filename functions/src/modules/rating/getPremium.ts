@@ -1,15 +1,9 @@
-import {
-  Limits,
-  PremiumCalcData,
-  ValueByRiskType,
-  calcSum,
-  defaultFloodZone,
-} from '../../common/index.js';
-import { getPremiumData } from './calcPremium.js';
-import { SecondaryFactorMults, getPM, getSecondaryFactorMults } from './factors.js';
-import { getMinPremium } from './minPremium.js';
-import { multipliersByState } from './multipliersByState.js';
-import { getInlandRiskScore, getSurgeRiskScore } from './riskScore.js';
+import { Limits, PremiumCalcData, ValueByRiskType, calcSum, defaultFloodZone } from '../../common';
+import { getPremiumData } from './calcPremium';
+import { SecondaryFactorMults, getPM, getSecondaryFactorMults } from './factors';
+import { getMinPremium } from './minPremium';
+import { multipliersByState } from './multipliersByState';
+import { getInlandRiskScore, getSurgeRiskScore } from './riskScore';
 
 export interface GetPremiumProps {
   AALs: ValueByRiskType;

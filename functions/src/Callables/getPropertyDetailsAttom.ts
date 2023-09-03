@@ -203,7 +203,7 @@ async function validateAttomRes(attomData: AttomBasicProfile, fz?: string) {
   let numStories = summary?.levels || 1; // (should default to 1 at later stage ??);
   let replacementCost = tempCalcRCV(assessment);
   let propertyCode = summary?.propType || null;
-  let yearBuilt = summary?.yearBuilt || null; // TODO: worth calling details endpoint for effectiveyearbuilt ??
+  let yearBuilt = summary?.yearBuilt || null; // TODO: worth calling details endpoint for effective year built ??
   let floodZone = fz || ''; // attomData.us_hh_fema_all_params_zone;
   let CBRSDesignation = ''; // attomData.us_hh_fema_cbrs_params_designation;
   let basement = building?.interior?.bsmtType ? building?.interior?.bsmtType.toLowerCase() : 'no';

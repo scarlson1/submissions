@@ -15,8 +15,7 @@ import {
   swissReClientSecret,
   swissReSubscriptionKey,
 } from '../common';
-import { GetPropertyDetailsAttomRequest } from './getPropertyDetailsAttom.js';
-// import { wrapHttpsOnCallHandler } from '../services/sentryFirebase.js';
+import { GetPropertyDetailsAttomRequest } from './getPropertyDetailsAttom';
 
 export const approvechangerequest = onCall(async (request) => {
   return (await import('./approveChangeRequest.js')).default(request);

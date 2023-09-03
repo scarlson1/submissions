@@ -82,6 +82,7 @@ export const DeckMap = ({
   );
 };
 
+// TODO: if component is being used --> move to file
 interface HoverInfoProps {
   pickingInfo?: PickingInfo | null | undefined;
   renderTooltipContent?: (info: PickingInfo) => ReactNode;

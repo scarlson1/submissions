@@ -44,7 +44,9 @@ export interface GetStaticMapImagesPayload {
 // TODO: check if images already exist in doc before fetching new ones ??
 
 export default async (event: CloudEvent<MessagePublishedData<GetStaticMapImagesPayload>>) => {
-  info('LOCATION CANCEL EVENT - MSG JSON: ', { ...(event.data?.message?.json || {}) });
+  info('GET LOCATION STATIC MAP IMAGE EVENT - MSG JSON: ', {
+    ...(event.data?.message?.json || {}),
+  });
 
   let collection = null;
   let docPath = null;

@@ -5,8 +5,8 @@ import { GeoPoint, Timestamp } from 'firebase-admin/firestore';
 import { Geohash } from 'geofire-common';
 import { round } from 'lodash';
 
-import { SecondaryFactorMults } from '../modules/rating/factors.js';
-import { CreateMsgContentProps } from '../services/sendgrid/index.js';
+import { SecondaryFactorMults } from '../modules/rating/factors';
+import { CreateMsgContentProps } from '../services/sendgrid';
 import {
   AGENCY_STATUS,
   AGENCY_SUBMISSION_STATUS,
@@ -16,9 +16,9 @@ import {
   PRODUCT,
   QUOTE_STATUS,
   SUBMISSION_STATUS,
-} from './enums.js';
-import { cardFeePct, iDemandOrgId } from './environmentVars.js';
-import { filterUniqueArr, removeFromArr } from './helpers.js';
+} from './enums';
+import { cardFeePct, iDemandOrgId } from './environmentVars';
+import { filterUniqueArr, removeFromArr } from './helpers';
 
 // TODO: fix typescript error app.use(thisMiddleware) is users.ts
 
