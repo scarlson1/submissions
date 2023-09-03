@@ -1,8 +1,11 @@
 import { round } from 'lodash';
 
-import { FeeItem, ILocation, TaxItem, WithRequired, sumArr } from '../../common';
+import { FeeItem, ILocation, PolicyLocation, TaxItem, WithRequired, sumArr } from '../../common';
 
-type PolicyWithTermPrem = WithRequired<Partial<ILocation>, 'termPremium'>;
+export type PolicyWithTermPrem = WithRequired<
+  Partial<ILocation> | Partial<PolicyLocation>,
+  'termPremium'
+>;
 
 /**
  * Sum term premium for array of policy locations (cancelEffDate will be filtered)

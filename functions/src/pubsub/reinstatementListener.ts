@@ -3,7 +3,13 @@ import { CloudEvent } from 'firebase-functions/lib/v2/core';
 import { error, info } from 'firebase-functions/logger';
 import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 
-import { OffsetTransaction, getReportErrorFn, transactionsCollection } from '../common';
+import {
+  OffsetTransaction,
+  getReportErrorFn,
+  locationsCollection,
+  transactionsCollection,
+  verify,
+} from '../common';
 
 import {
   constructTrxId,
@@ -18,7 +24,7 @@ import {
 
 // TODO: need to handle location reinstatement
 
-const reportError = getReportErrorFn('reinstatementListener');
+const reportErr = getReportErrorFn('reinstatementListener');
 
 export interface ReinstatementPayload {
   policyId: string;
@@ -36,40 +42,54 @@ export default async (event: CloudEvent<MessagePublishedData<ReinstatementPayloa
   }
 
   if (!policyId || typeof policyId !== 'string') {
-    reportError(`Missing policy ID. Returning early.`, { policyId });
+    reportErr(`Missing policy ID. Returning early.`, { policyId });
     return;
   }
 
   const db = getFirestore();
   const trxCol = transactionsCollection(db);
+  const locationsCol = locationsCollection(db);
 
   const policy = await fetchPolicyData(db, policyId);
   if (!policy) {
-    reportError(`Policy not found. Returning early.`, { policyId });
+    reportErr(`Policy not found. Returning early.`, { policyId });
     return;
   }
 
-  const locationEntries = policy?.locations && Object.entries(policy.locations);
-  if (!locationEntries || !locationEntries.length) {
-    reportError('No policy locations found in policy', { policyId });
+  // const locationEntries = policy?.locations && Object.entries(policy.locations);
+  const locationIds = Object.keys(policy?.locations || {});
+  if (!locationIds.length) {
+    // !locationEntries || !locationEntries.length
+    reportErr('No policy locations found in policy', { policyId });
     return;
   }
   // TODO: decide whether to add all transactions to batch ??
   // would need to move try/catch outside for loop
-  for (const [locationId, location] of locationEntries) {
+  // for (const [locationId, location] of locationEntries) {
+  for (const locationId of locationIds) {
     try {
       const trxId = constructTrxId(policyId, locationId, eventId);
       const trxRef = trxCol.doc(trxId);
 
       const exists = await docExists(trxRef);
       if (!exists) {
-        // Not neccessary b/c values stored in prev trx
+        // Not necessary b/c values stored in prev trx
         // const ratingData = await fetchRatingData(db, location.ratingDocId);
 
-        const prevTrx = (await fetchPreviousTrx(db, policyId, locationId, [
+        const locationRequest = locationsCol.doc(locationId).get();
+        const prevTrxRequest = fetchPreviousTrx(db, policyId, locationId, [
           'cancellation',
           'flat_cancel',
-        ])) as OffsetTransaction;
+        ]) as Promise<OffsetTransaction>;
+
+        const [locationSnap, prevTrx] = await Promise.all([locationRequest, prevTrxRequest]);
+        const location = locationSnap.exists ? locationSnap.data() : null;
+        verify(location, 'location doc not found');
+
+        // const prevTrx = (await fetchPreviousTrx(db, policyId, locationId, [
+        //   'cancellation',
+        //   'flat_cancel',
+        // ])) as OffsetTransaction;
 
         const trx = getReinstatementTrx(policy, location, prevTrx, eventId);
 
@@ -78,7 +98,7 @@ export default async (event: CloudEvent<MessagePublishedData<ReinstatementPayloa
         info(`New transaction saved for location ${locationId}`, { trx });
       }
     } catch (err: any) {
-      reportError(`Error creating reinstatement`, { policyId, locationId }, err);
+      reportErr(`Error creating reinstatement`, { policyId, locationId }, err);
     }
   }
 };

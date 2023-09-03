@@ -9,7 +9,7 @@ import {
   gridRowSelectionStateSelector,
   useGridApiContext,
 } from '@mui/x-data-grid';
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 
 import { DataObjectRounded, ThumbDownRounded, ThumbUpRounded } from '@mui/icons-material';
 import { COLLECTIONS, ImportSummary } from 'common';
@@ -138,14 +138,6 @@ export const ImportReviewComponent = ({ importId, importType }: ImportReviewComp
     (msg) => toast.error(msg)
   );
 
-  useEffect(() => {
-    console.log('LOADING: ', loading);
-    if (Object.values(loading).some((l) => !!l)) {
-      console.log('setting toast loading');
-      toast.loading('importing records...');
-    }
-  }, [loading, toast]);
-
   const showJson = useShowJson(COLLECTIONS.DATA_IMPORTS, [importId, COLLECTIONS.STAGED_RECORDS]);
 
   const handleShowJson = useCallback((id: string) => () => showJson(id), [showJson]);
@@ -163,7 +155,10 @@ export const ImportReviewComponent = ({ importId, importType }: ImportReviewComp
               <ThumbUpRounded />
             </Tooltip>
           }
-          onClick={() => handleApproveImport([params.id.toString()])}
+          onClick={() => {
+            toast.loading('importing records...');
+            handleApproveImport([params.id.toString()]);
+          }}
           label='Approve import'
           disabled={!claims?.iDemandAdmin || params.row.importMeta?.status !== 'new'}
           showInMenu={isMobile}
@@ -174,7 +169,10 @@ export const ImportReviewComponent = ({ importId, importType }: ImportReviewComp
               <ThumbDownRounded />
             </Tooltip>
           }
-          onClick={() => handleDeclineImport([params.id.toString()])}
+          onClick={() => {
+            toast.loading('updating status...');
+            handleDeclineImport([params.id.toString()]);
+          }}
           label='Decline import'
           disabled={!claims?.iDemandAdmin || params.row.importMeta?.status !== 'new'}
           showInMenu={isMobile}
@@ -208,7 +206,15 @@ export const ImportReviewComponent = ({ importId, importType }: ImportReviewComp
       default:
         return {};
     }
-  }, [importType, claims, isMobile, handleApproveImport, handleDeclineImport, handleShowJson]);
+  }, [
+    importType,
+    claims,
+    isMobile,
+    handleApproveImport,
+    handleDeclineImport,
+    handleShowJson,
+    toast,
+  ]);
 
   if (!props.columns) throw new Error('importType not matched');
 

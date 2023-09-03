@@ -59,6 +59,7 @@ export const finTrxCollection = (db: Firestore) =>
 
 export const policiesCollection = (db: Firestore) =>
   createCollection<Policy>(db, COLLECTIONS.POLICIES);
+
 export const policiesCollectionNew = (db: Firestore) =>
   createCollection<PolicyNew>(db, COLLECTIONS.POLICIES);
 

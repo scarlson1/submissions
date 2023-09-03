@@ -11,6 +11,7 @@ import {
   WithId,
   getReportErrorFn,
   transactionsCollection,
+  verify,
 } from '../common';
 import {
   constructTrxId,
@@ -48,39 +49,42 @@ export default async (event: CloudEvent<MessagePublishedData<LocationCancelPaylo
     reportErr('PubSub message was not JSON', {}, e);
   }
 
-  if (
-    !policyId ||
-    !locationId ||
-    typeof policyId !== 'string' ||
-    typeof locationId !== 'string' ||
-    !cancelEffDateMS ||
-    !isValid(cancelEffDateMS)
-  ) {
-    reportErr(`Missing policy and/or location ID and/or cancel effective date`, {
+  try {
+    verify(policyId && typeof policyId === 'string', 'missing policy ID');
+    verify(locationId && typeof locationId === 'string', 'missing location ID');
+    verify(cancelEffDateMS && isValid(new Date(cancelEffDateMS)));
+  } catch (err: any) {
+    const errMsg = err?.message || 'params error. returning early';
+    reportErr(errMsg, {
       policyId,
       locationId,
+      cancelEffDateMS,
     });
     return;
   }
 
   const db = getFirestore();
   const trxCol = transactionsCollection(db);
-
-  const policy = await fetchPolicyData(db, policyId);
-  if (!policy) {
-    reportErr(`Policy not found. Returning early.`, { policyId, locationId });
-    return;
-  }
-
+  let policy;
   let prevTrx;
+
   try {
-    prevTrx = await fetchPreviousTrx(db, policyId, locationId, premEndorsementPrevTypes);
+    const policyRequest = fetchPolicyData(db, policyId);
+    const prevTrxRequest = fetchPreviousTrx(db, policyId, locationId, premEndorsementPrevTypes);
+
+    const [policyRes, prevTrxRes] = await Promise.all([policyRequest, prevTrxRequest]);
+
+    verify(policyRes, 'policy doc not found');
+    verify(prevTrxRes, 'previous transaction not found');
+    policy = policyRes;
+    prevTrx = prevTrxRes;
   } catch (err: any) {
-    reportErr(
-      `No previous transactions found matching query. returning early`,
-      { policyId, locationId },
-      err
-    );
+    const errMsg = err?.message || 'error fetching docs. returning early';
+    reportErr(errMsg, {
+      policyId,
+      locationId,
+      cancelEffDateMS,
+    });
     return;
   }
 

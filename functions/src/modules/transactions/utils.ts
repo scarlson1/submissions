@@ -10,13 +10,13 @@ import {
   TransactionType,
   WithId,
   getTermDays,
-  policiesCollection,
+  policiesCollectionNew,
   ratingDataCollection,
   transactionsCollection,
 } from '../../common';
 
 /**
- * Check if a transation already exists in database
+ * Check if a transaction already exists in database
  * @param {DocumentReference} docRef doc ref of transaction
  * @returns {boolean} returns boolean indicated if transaction exists for provided ref
  */
@@ -87,7 +87,7 @@ export const getOffsetTermPremium = (
 /**
  * Calc the MGA portion of term premium
  * @param {number} termPremium portion of term premium after the new transaction effective date
- * @param {PremiumTransaction} prevTrx most recent premium tranaction for location
+ * @param {PremiumTransaction} prevTrx most recent premium transaction for location
  * @returns {number} mga portion of premium after the new trx eff. date (negative)
  */
 export const getMGAComm = (
@@ -106,7 +106,7 @@ export const getNetDWP = (termPremium: number, MGAComm: number) => termPremium -
 // TODO: reuse function from modules/db ?? (throws instead of returning null)
 export const fetchPolicyData = async (db: Firestore, policyId: string) => {
   try {
-    const policyCol = policiesCollection(db);
+    const policyCol = policiesCollectionNew(db);
     const policyRef = policyCol.doc(policyId);
 
     const policySnap = await policyRef.get();

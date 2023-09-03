@@ -253,7 +253,7 @@ service cloud.firestore {
 
       match /stagedDocs/{stagedDocId} {
         allow read, delete: if isIDemandAdmin();
-        allow update: if isIDemandAdmin() && existingData().status != 'imported'
+        allow update: if isIDemandAdmin() && existingData().get(['importMeta','status'], null) != 'imported'
         allow create: if false;
       }
     }

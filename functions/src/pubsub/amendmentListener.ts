@@ -3,7 +3,7 @@ import { CloudEvent } from 'firebase-functions/lib/v2/core';
 import { error, info, warn } from 'firebase-functions/logger';
 import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 
-import { transactionsCollection } from '../common';
+import { locationsCollection, transactionsCollection, verify } from '../common';
 import {
   constructTrxId,
   docExists,
@@ -36,27 +36,35 @@ export default async (event: CloudEvent<MessagePublishedData<AmendmentPayload>>)
     locationId = event.data?.message?.json?.locationId;
     amendmentScope = event.data?.message?.json?.amendmentScope;
   } catch (err: any) {
-    reportError('PubSub message was not JSON', {}, err);
+    reportErr('PubSub message was not JSON', {}, err);
   }
 
   const locationRequired = amendmentScope === 'location';
-  const locationVerified = locationRequired
-    ? Boolean(locationId) && typeof locationId === 'string'
-    : true;
-  if (!policyId || typeof policyId !== 'string' || !locationVerified) {
-    reportError(`Missing policy and/or location ID`, {
-      policyId,
-      locationId: locationId ?? 'not provided',
-    });
+  try {
+    const locationVerified = locationRequired
+      ? Boolean(locationId) && typeof locationId === 'string'
+      : true;
+
+    verify(policyId && typeof policyId === 'string', 'missing policyId');
+    verify(locationVerified, 'missing locationId');
+  } catch (err: any) {
+    let msg = err?.message || 'invalid event.params';
+    reportErr(msg, { policyId }, err);
     return;
   }
 
   const db = getFirestore();
+  const locationsCol = locationsCollection(db);
   const trxCol = transactionsCollection(db);
+  let policy;
 
-  const policy = await fetchPolicyData(db, policyId);
-  if (!policy) {
-    reportError(`Policy not found. Returning early.`, { policyId });
+  try {
+    const policyRes = await fetchPolicyData(db, policyId);
+    verify(policyRes, 'error fetching policy. returning early.');
+    policy = policyRes;
+  } catch (err: any) {
+    let msg = err?.message || 'error fetching docs';
+    reportErr(msg, { policyId }, err);
     return;
   }
 
@@ -68,7 +76,10 @@ export default async (event: CloudEvent<MessagePublishedData<AmendmentPayload>>)
     if (!exists) {
       let trx;
       if (locationRequired && locationId) {
-        const location = policy.locations[locationId];
+        const locationSnap = await locationsCol.doc(locationId).get();
+        const location = locationSnap.data();
+        verify(location, `location doc not found (ID: ${locationId})`);
+        // const location = policy.locations[locationId];
 
         trx = getLocationAmendmentTrx(policy, location, eventId);
       } else {
@@ -80,13 +91,13 @@ export default async (event: CloudEvent<MessagePublishedData<AmendmentPayload>>)
       warn(`Ignoring event. Transaction already processed ${trxId}`);
     }
   } catch (err: any) {
-    reportError(`Error saving transaction to database (policyId: ${policyId})`, { policyId }, err);
+    reportErr(`Error saving transaction to database (policyId: ${policyId})`, { policyId }, err);
   }
 
   return;
 };
 
-export function reportError(msg: string, ctx: Record<string, any> = {}, err: any = null) {
+export function reportErr(msg: string, ctx: Record<string, any> = {}, err: any = null) {
   error(msg, { ...ctx, err });
   reportErrorSentry(err || msg, { func: 'amendmentListener', msg, ...ctx });
 }

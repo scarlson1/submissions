@@ -1,9 +1,10 @@
 import { GridColDef } from '@mui/x-data-grid';
+import { useMemo } from 'react';
+
 import { ServerDataGridCollectionProps } from 'common';
 import { ServerDataGrid } from 'components';
 import { useAsyncToast, useGridActions, useWidth } from 'hooks';
 import { locationCols } from 'modules/muiGrid';
-import { useMemo } from 'react';
 
 export type LocationGridProps = ServerDataGridCollectionProps;
 

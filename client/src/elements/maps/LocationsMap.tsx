@@ -73,8 +73,12 @@ export const LocationsMap = ({ data, layerProps, ...props }: LocationsMapProps) 
         new IconLayer({
           id: 'locations-layer',
           data: data || [],
-          getIcon: () => ({
-            url: svgToDataURL(`${getPlaceMarker(theme.palette.primary.main)}`),
+          getIcon: (d: CoordObj) => ({
+            url: svgToDataURL(
+              `${getPlaceMarker(
+                d.cancelEffDate ? theme.palette.primaryDark.main : theme.palette.primary.main
+              )}`
+            ),
             width: 36,
             height: 36,
             anchorX: 18,

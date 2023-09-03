@@ -4,7 +4,7 @@ import { round } from 'lodash';
 import {
   ILocation,
   OffsetTransaction,
-  Policy,
+  PolicyNew,
   PremiumTransaction,
   WithId,
   getTermDays,
@@ -12,7 +12,7 @@ import {
 import { getBookingDate, getMGAComm } from './utils';
 
 export const getReinstatementTrx = (
-  policy: WithId<Policy>,
+  policy: WithId<PolicyNew>,
   location: ILocation,
   prevTrx: OffsetTransaction,
   eventId: string

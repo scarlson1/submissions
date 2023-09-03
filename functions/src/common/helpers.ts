@@ -5,9 +5,8 @@ import fs from 'fs';
 import { get, isEqual, remove } from 'lodash';
 import numeral from 'numeral';
 import { inspect } from 'util';
-import { v4 as uuid } from 'uuid';
-
 import invariant from 'tiny-invariant';
+
 import { reportErrorSentry } from '../services/sentry';
 import { cardFeePct } from './environmentVars';
 import { Path, Primitive } from './types';
@@ -138,7 +137,7 @@ export function isSingleLetter(str: string) {
 
 /**
  * Validate an object to check if it is valid JSON
- * @param {string} obj - strinified json object to validate
+ * @param {string} obj - stringified json object to validate
  * @returns {boolean} boolean value, true if valid JSON
  */
 
@@ -310,7 +309,7 @@ export function getCardFee(quoteTotal: number) {
 }
 
 /**
- * converts string to formatted number. If str, after all non diget characters are removed, does not match optional 1 followed by 9 digits, null is returned.
+ * converts string to formatted number. If str, after all non digit characters are removed, does not match optional 1 followed by 9 digits, null is returned.
  * @param {string} str - string with numbers. other characters will be removed by regex: /\D/g
  * @returns {string | null} returns formatted string +1 (optional) (123) 456-7890 or null
  */
@@ -382,15 +381,6 @@ export function calcTerm(annualPremium: number, trxEffDate: Date, trxExpDate: Da
 
 //   return { termDays, termPremium };
 // }
-
-/** generates a unique ID using uuid, removes hyphens
- * @returns {string} new unique ID
- */
-export function getNewLocationId() {
-  let id = uuid().replace(/-/g, '');
-
-  return id.substring(0, id.length / 2);
-}
 
 /**
  * Function to report errors to Google Logs and Sentry

@@ -3,7 +3,15 @@ import { CloudEvent } from 'firebase-functions/lib/v2/core';
 import { error, info } from 'firebase-functions/logger';
 import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 
-import { getReportErrorFn, transactionsCollection } from '../common';
+import {
+  ILocation,
+  PolicyNew,
+  WithId,
+  getReportErrorFn,
+  locationsCollection,
+  transactionsCollection,
+  verify,
+} from '../common';
 import {
   constructTrxId,
   docExists,
@@ -11,10 +19,11 @@ import {
   fetchRatingData,
   formatPremiumTrx,
 } from '../modules/transactions';
+import { getAllById } from '../modules/db';
 
 // TODO: shared logic with new policy event (abstract into module)
 
-const reportError = getReportErrorFn('policyRenewalListener');
+const reportErr = getReportErrorFn('policyRenewalListener');
 
 export interface PolicyRenewalPayload {
   policyId: string;
@@ -31,30 +40,71 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyRenewalPayloa
     error('PubSub message was not JSON', e);
   }
 
-  if (!policyId || typeof policyId !== 'string') {
-    reportError(`Missing policy ID. Returning early.`, { policyId });
-    return;
-  }
-
   const db = getFirestore();
   // const policyCol = policiesCollection(db); // .withConverter(policyConverter)
+  const locationsCol = locationsCollection(db);
   const trxCol = transactionsCollection(db);
+  let policy: WithId<PolicyNew> | null;
+  let locationEntries;
 
-  const policy = await fetchPolicyData(db, policyId);
-  if (!policy) {
-    reportError(`Policy not found. Returning early.`, { policyId });
+  try {
+    verify(policyId && typeof policyId === 'string', 'invalid/missing policyId');
+
+    const policyRes = await fetchPolicyData(db, policyId);
+    verify(policyRes, `Policy not found. Returning early.`);
+    policy = { ...policyRes, id: policyId };
+
+    locationEntries = Object.entries(policy?.locations || {});
+    verify(locationEntries.length, 'missing locations IDs');
+  } catch (err: any) {
+    let errMsg = 'error with params or getting docs';
+    if (err?.message) errMsg = err.message;
+    reportErr(errMsg, { policyId }, err);
     return;
   }
 
-  const locationEntries = policy?.locations && Object.entries(policy.locations);
-  if (!locationEntries || !locationEntries.length) {
-    reportError('No policy locations found in policy', { policyId });
-    return;
+  let locations: WithId<ILocation>[] = [];
+
+  try {
+    // filter out cancelled locations
+    const filteredIds = locationEntries
+      .filter(([id, lcn]) => !lcn.cancelEffDate)
+      .map(([id, lcn]) => id);
+    const locationSnaps = await getAllById(locationsCol, filteredIds);
+
+    locationSnaps.forEach((snap) => {
+      if (snap.exists) locations.push({ ...snap.data(), id: snap.id });
+    });
+  } catch (err: any) {
+    reportErr(`Error fetching location docs`, { policyId }, err);
   }
 
-  for (let [locationId, location] of locationEntries) {
+  // if (!policyId || typeof policyId !== 'string') {
+  //   reportErr(`Missing policy ID. Returning early.`, { policyId });
+  //   return;
+  // }
+
+  // const db = getFirestore();
+  // // const policyCol = policiesCollection(db); // .withConverter(policyConverter)
+  // const trxCol = transactionsCollection(db);
+
+  // const policy = await fetchPolicyData(db, policyId);
+  // if (!policy) {
+  //   reportErr(`Policy not found. Returning early.`, { policyId });
+  //   return;
+  // }
+
+  // const locationEntries = policy?.locations && Object.entries(policy.locations);
+  // if (!locationEntries || !locationEntries.length) {
+  //   reportErr('No policy locations found in policy', { policyId });
+  //   return;
+  // }
+
+  // for (let [locationId, location] of locationEntries) {
+  // TODO: batch
+  for (let location of locations) {
     try {
-      const trxId = constructTrxId(policyId, locationId, eventId);
+      const trxId = constructTrxId(policyId, location.id, eventId);
       const trxRef = trxCol.doc(trxId);
 
       const exists = await docExists(trxRef);
@@ -64,15 +114,11 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyRenewalPayloa
         const locationTrx = formatPremiumTrx('renewal', policy, location, ratingData, eventId);
 
         await trxRef.set({ ...locationTrx });
-        info(`New transaction saved for location ${locationId}`, { locationTrx });
+        info(`New transaction saved for location ${location.id}`, { locationTrx });
       }
     } catch (err: any) {
-      // error(`Error creating transaction for location ${locationId} (Policy ID: ${policyId})`, {
-      //   ...location,
-      // });
-      // reportErrorSentry(err, { func: 'policyRenewalListener', policyId, locationId });
-      reportError(
-        `Error creating transaction for location ${locationId} (Policy ID: ${policyId})`,
+      reportErr(
+        `Error creating transaction for location ${location.id} (Policy ID: ${policyId})`,
         { ...location, policyId },
         err
       );
@@ -82,7 +128,7 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyRenewalPayloa
   return;
 };
 
-// export function reportError(msg: string, ctx: Record<string, any> = {}, err: any = null) {
+// export function reportErr(msg: string, ctx: Record<string, any> = {}, err: any = null) {
 //   error(msg, { ...ctx, err });
-//   reportErrorSentry(err || msg, { func: 'policyRenewalListener', msg, ...ctx });
+//   reportErrSentry(err || msg, { func: 'policyRenewalListener', msg, ...ctx });
 // }

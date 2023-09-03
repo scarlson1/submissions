@@ -675,6 +675,7 @@ export interface ILocation {
   cancelReason?: CancellationReason | null;
   imageURLs?: LocationImages | null;
   imagePaths?: LocationImages | null;
+  imageHash?: LocationImages | null;
   locationId: string;
   policyId?: string;
   externalId?: string | null;
@@ -725,6 +726,7 @@ export interface PolicyLocation {
   termPremium: number;
   address: CompressedAddress;
   coords: GeoPoint;
+  cancelEffDate?: Timestamp | null;
 }
 
 export interface PolicyNew extends BaseDoc {
@@ -852,7 +854,7 @@ export class PolicyClass implements IPolicyClass {
 
   // async addLocation(locationData: ILocation, id?: string) {
   //   // TODO: validation
-  //   const locationId = id || getNewLocationId();
+  //   const locationId = id || createDocId();
   //   try {
   //     this.locations[locationId] = { ...locationData, locationId };
   //     let newTotal = await this.sumLocationPremium();
@@ -1059,8 +1061,8 @@ interface BaseChangeRequest extends BaseDoc {
 
 export interface LocationChangeRequest extends BaseChangeRequest {
   scope: 'location';
-  // changes: Partial<ILocation>;
-  changes: DeepPartial<Policy>;
+  changes: DeepPartial<PolicyNew>; // TODO: rename policyChanges
+  locationChanges: DeepPartial<ILocation>;
   formValues: LocationChangeValues;
   locationId: string;
   externalId?: string | null;

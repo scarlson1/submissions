@@ -7,7 +7,6 @@ import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 import { get, set } from 'lodash';
 import { tmpdir } from 'os';
 import path from 'path';
-import { v4 as uuid } from 'uuid';
 
 import {
   LocationImageTypes,
@@ -18,6 +17,8 @@ import {
   verify,
 } from '../common';
 import { downloadFromUrl } from '../modules/storage';
+import { createDocId } from '../modules/db';
+import { randomFileName } from '../utils';
 
 // TODO: add marker overlay ?? https://docs.mapbox.com/api/maps/static-images/#example-request-retrieve-a-static-map-with-a-marker-overlay
 
@@ -92,7 +93,7 @@ export default async (event: CloudEvent<MessagePublishedData<GetStaticMapImagesP
         styleType.zoom
       },0,40/1200x720@2x?access_token=${mapboxPublicToken.value()}&logo=false`;
 
-      const tempFilePath = path.join(tmpdir(), `temp_mapbox_${styleType.name}.jpeg`);
+      const tempFilePath = path.join(tmpdir(), randomFileName('file.jpeg'));
       cleanUpTempPaths.push(tempFilePath);
 
       // Try catch needed ? throw will break out of loop
@@ -101,14 +102,34 @@ export default async (event: CloudEvent<MessagePublishedData<GetStaticMapImagesP
           responseType: 'stream',
         });
 
-        const fileId = uuid();
+        const fileId = createDocId();
         const initialMetadata = {
           metadata: {
-            // submissionId: snap.id, // TODO: include locationId once using "locations" collection
+            docId: docRef.id,
             firebaseStorageDownloadTokens: fileId,
             fileId,
           },
         };
+
+        // TODO: hash image
+        // https://stackoverflow.com/a/66812663
+        // https://github.com/woltapp/react-blurhash
+
+        // const { Canvas } = require('canvas');
+        // const { loadImage } = require('canvas');
+        // const blurH = require('blurhash');
+
+        // const imageWidth = 1000;
+        // const imageHeight = 1000;
+
+        // const canvas = new Canvas(imageWidth, imageHeight);
+        // const context = canvas.getContext('2d');
+        // const myImg = await loadImage(tempLocalFile);
+        // context.drawImage(myImg, 0, 0);
+        // const imageData = context.getImageData(0, 0, imageWidth, imageHeight);
+        // const hash = blurH.encode(imageData.data, imageWidth, imageHeight, 5, 5);
+
+        // getting height width: https://gist.github.com/rijkerd/80b77145ca3f7c8f256d5835c7f282b5
 
         const destinationPath = `locationMapImages/map_${styleType.name}_${fileId}.jpeg`;
         await bucket.upload(tempFilePath, {

@@ -1,5 +1,6 @@
 import {
   AccountBalanceRounded,
+  EditRounded,
   EmailRounded,
   GridViewRounded,
   MapRounded,
@@ -22,14 +23,17 @@ import {
   Stack,
   ToggleButton,
   ToggleButtonGroup,
+  Tooltip,
   Typography,
 } from '@mui/material';
 import { PickingInfo } from 'deck.gl/typed';
 import { where } from 'firebase/firestore';
 import { useCallback, useMemo, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
+import { GridActionsCellItem, GridRowParams } from '@mui/x-data-grid';
+import { isEmpty } from 'lodash';
 
-import { Policy as IPolicy, POLICY_STATUS } from 'common';
+import { ILocation, Policy as IPolicy, POLICY_STATUS } from 'common';
 import { NotFound } from 'components';
 import { IconMenu } from 'components/IconButtonMenu';
 import { LocationsMap, PolicyLocationCards } from 'elements';
@@ -41,11 +45,11 @@ import { ContactList } from 'elements/forms';
 import { LocationsGrid } from 'elements/grids';
 import {
   useCreateCancelRequest,
+  useCreateLocationChangeRequest,
   useCreatePolicyChangeRequest,
   useDocData,
   useGeneratePDF,
 } from 'hooks';
-import { isEmpty } from 'lodash';
 import {
   compressedToFormattedAddr,
   formatFirestoreTimestamp,
@@ -77,8 +81,7 @@ export const Policy = () => {
   const { data } = useDocData<IPolicy>('POLICIES', policyId);
   const { downloadPDF: downloadPolicy } = useGeneratePDF('generateDecPDF');
 
-  // TODO: UNCOMMENT ONCE CARDS UPDATED
-  // const locationChangeDialog = useCreateLocationChangeRequest(policyId);
+  const locationChangeDialog = useCreateLocationChangeRequest(policyId);
   const cancelDialog = useCreateCancelRequest(); // TODO: onsuccess => "you'll receive a confirmation email once our team has processed the request. expect to see a refund, if due, in X days"
 
   const [locationsView, setLocationsView] = useState(getInitTabView(searchParams.get('l_view')));
@@ -102,40 +105,37 @@ export const Policy = () => {
     [downloadPolicy, policyId]
   );
 
-  // TODO: UNCOMMENT ONCE CARDS UPDATED
-  // const handleLocationChangeRequest = useCallback(
-  //   (location: ILocation) => locationChangeDialog(location, data),
-  //   [locationChangeDialog, data]
-  // );
+  const handleLocationChangeRequest = useCallback(
+    (location: ILocation) => locationChangeDialog(location, data),
+    [locationChangeDialog, data]
+  );
 
-  // TODO: UNCOMMENT ONCE CARDS UPDATED
-  // const handleLocationChangeRequestGrid = useCallback(
-  //   (params: GridRowParams) => () => locationChangeDialog(params.row, data),
-  //   [data, locationChangeDialog]
-  // );
+  const handleLocationChangeRequestGrid = useCallback(
+    (params: GridRowParams) => () => locationChangeDialog(params.row, data),
+    [data, locationChangeDialog]
+  );
 
   const handleCancelPolicy = useCallback(async () => {
     await cancelDialog(policyId);
   }, [cancelDialog, policyId]);
 
-  // TODO: UNCOMMENT ONCE CARDS UPDATED
-  // const renderLocationGridActions = useCallback(
-  //   (params: GridRowParams) => {
-  //     return [
-  //       <GridActionsCellItem
-  //         icon={
-  //           <Tooltip title='request change' placement='top'>
-  //             <EditRounded />
-  //           </Tooltip>
-  //         }
-  //         onClick={handleLocationChangeRequestGrid(params)}
-  //         label='Request change'
-  //         // showInMenu={isSmall}
-  //       />,
-  //     ];
-  //   },
-  //   [handleLocationChangeRequestGrid]
-  // );
+  const renderLocationGridActions = useCallback(
+    (params: GridRowParams) => {
+      return [
+        <GridActionsCellItem
+          icon={
+            <Tooltip title='request change' placement='top'>
+              <EditRounded />
+            </Tooltip>
+          }
+          onClick={handleLocationChangeRequestGrid(params)}
+          label='Request change'
+          // showInMenu={isSmall}
+        />,
+      ];
+    },
+    [handleLocationChangeRequestGrid]
+  );
 
   const [locations, locationsCount] = useMemo(() => {
     const locs = Object.entries(data.locations || {})
@@ -302,29 +302,15 @@ export const Policy = () => {
         </Box>
         {locationsView === 'cards' ? (
           <>
-            {/* <Typography variant='h5' align='center' color='warning.main'>
-              Location Cards under Construction
-            </Typography> */}
-            <PolicyLocationCards policyId={policyId} />
-            {/* <Grid container columnSpacing={4} rowSpacing={8}>
-              {locations?.map((location) => (
-                <Grid xs={12} sm={6} md={4} xl={3} key={location.id}>
-                  <LocationCard
-                    location={location}
-                    namedInsured={data.namedInsured}
-                    onEdit={handleLocationChangeRequest}
-                    // agent={data.agent}
-                    // agency={data.agency}
-                  />
-                </Grid>
-              ))}
-            </Grid> */}
+            <PolicyLocationCards policyId={policyId} onEdit={handleLocationChangeRequest} />
           </>
         ) : null}
         {locationsView === 'grid' ? (
-          <LocationsGrid constraints={locationConstraints} />
-        ) : // <LocationsGridOld locations={locations} renderActions={renderLocationGridActions} />
-        null}
+          <LocationsGrid
+            constraints={locationConstraints}
+            renderActions={renderLocationGridActions}
+          />
+        ) : null}
         {locationsView === 'map' ? (
           <Card sx={{ height: 500, width: '100% ' }}>
             <LocationsMap
@@ -333,15 +319,25 @@ export const Policy = () => {
               renderTooltipContent={(info: PickingInfo) => (
                 <Box sx={{ px: 2, borderRadius: 0.5 }}>
                   <Typography variant='body2' fontWeight='fontWeightMedium'>
-                    {`${info.object?.address?.addressLine1}, ${info.object?.address?.city}, ${info.object?.address?.state}`}
+                    {`${info.object?.address?.s1}, ${info.object?.address?.c}, ${info.object?.address?.st}`}
                   </Typography>
-                  <Typography variant='body2' color='text.secondary'>{`${formatFirestoreTimestamp(
+                  {info.object?.cancelEffDate ? (
+                    <Typography
+                      variant='body2'
+                      color='text.secondary'
+                    >{`Cancelled: ${formatFirestoreTimestamp(
+                      info.object?.cancelEffDate,
+                      'date'
+                    )}`}</Typography>
+                  ) : null}
+
+                  {/* <Typography variant='body2' color='text.secondary'>{`${formatFirestoreTimestamp(
                     info.object?.effectiveDate,
                     'date'
                   )} - ${formatFirestoreTimestamp(
                     info.object?.expirationDate,
                     'date'
-                  )}`}</Typography>
+                  )}`}</Typography> */}
                 </Box>
               )}
             />

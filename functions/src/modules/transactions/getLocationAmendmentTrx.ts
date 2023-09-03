@@ -1,13 +1,13 @@
 import { Timestamp } from 'firebase-admin/firestore';
 
-import { AmendmentTransaction, ILocation, Policy, WithId, getTermDays } from '../../common';
+import { AmendmentTransaction, ILocation, PolicyNew, WithId, getTermDays } from '../../common';
 
 export const getLocationAmendmentTrx = (
-  policy: WithId<Policy>,
+  policy: WithId<PolicyNew>,
   location: ILocation,
   eventId: string
 ): AmendmentTransaction => {
-  // TODO: share logic with ohter trx types
+  // TODO: share logic with other trx types
   const currentDateMS = new Date().getTime();
   const locationEffDate = location.effectiveDate.toMillis();
   const trxEffDateMS = currentDateMS < locationEffDate ? locationEffDate : currentDateMS;
@@ -30,7 +30,7 @@ export const getLocationAmendmentTrx = (
     homeState: policy.homeState,
     policyEffDate: policy.effectiveDate,
     policyExpDate: policy.expirationDate,
-    trxEffDate, // Timestamp.now(),
+    trxEffDate,
     trxExpDate: location.expirationDate,
     trxDays: getTermDays(trxEffDate.toDate(), location.expirationDate.toDate()),
     otherInterestedParties: location.mortgageeInterest.map((m) => m.name),

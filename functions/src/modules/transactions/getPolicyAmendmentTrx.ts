@@ -1,9 +1,9 @@
 import { Timestamp } from 'firebase-admin/firestore';
 
-import { AmendmentTransaction, Policy, WithId, getTermDays } from '../../common';
+import { AmendmentTransaction, PolicyNew, WithId, getTermDays } from '../../common';
 
 export const getPolicyAmendmentTrx = (
-  policy: WithId<Policy>,
+  policy: WithId<PolicyNew>,
   eventId: string
 ): AmendmentTransaction => {
   return {

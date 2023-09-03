@@ -13,11 +13,11 @@ import {
   WithId,
   calcSum,
   calcTerm,
-  getNewLocationId,
   verify,
 } from '../../common';
 import { getCarrierByState, getRCVs, validateLimits } from '../../modules/rating';
 import { compressAddress } from '../../utils';
+import { createDocId } from '../../modules/db';
 
 export const getPolicyLocationsFromQuote = (data: Quote, policyId: string) => {
   validateLimits(data.limits);
@@ -39,7 +39,7 @@ export const getPolicyLocationsFromQuote = (data: Quote, policyId: string) => {
 
   const { termDays, termPremium } = calcTerm(data.annualPremium, effDate, expirationDate);
 
-  const locationId = getNewLocationId();
+  const locationId = createDocId();
   const locations: Record<string, ILocation> = {
     [locationId]: {
       address: data.address,

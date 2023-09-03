@@ -29,6 +29,7 @@ import { sendAdminPolicyImportNotification } from '../services/sendgrid';
 import { TrxRow } from './models';
 import { transformTrxRow } from './transform';
 import { validateTrxRow } from './validation';
+import { randomFileName } from '../utils';
 
 const reportErr = getReportErrorFn('importTransactions ');
 
@@ -45,13 +46,12 @@ export default async (event: StorageEvent) => {
   if (eventOlderThan(event)) return; // return if event older than 1 min
 
   const db = getFirestore();
-  // const trxCol = transactionsCollection(db);
   const importSummaryRef = importSummaryCollection(db).doc(event.id);
   const importStagingCol = stagedImportsCollection(db, importSummaryRef.id);
 
   const storage = getStorage();
   const bucket = storage.bucket(fileBucket);
-  const tempFilePath = join(tmpdir(), `temp_trx_import_${filename}`);
+  const tempFilePath = join(tmpdir(), randomFileName(filePath));
 
   await bucket.file(filePath).download({ destination: tempFilePath });
 

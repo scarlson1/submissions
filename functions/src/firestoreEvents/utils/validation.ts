@@ -3,7 +3,7 @@ import { info, warn } from 'firebase-functions/logger';
 
 import { getReportErrorFn } from '../../common';
 
-const reportError = getReportErrorFn('firestoreEvent');
+const reportErr = getReportErrorFn('firestoreEvent');
 
 // TODO: wrap firestore events in try/catch so validate can throw errors (need : assert condition)
 // Don't want to throw for idempotency reasons
@@ -27,7 +27,7 @@ export function validate(
     const invariantErrMsg = err?.message?.replace('Invariant failed: ', '').trim();
     if (invariantErrMsg) errMsg = invariantErrMsg;
 
-    if (!severity || severity === 'error') reportError(errMsg, {}, err);
+    if (!severity || severity === 'error') reportErr(errMsg, {}, err);
     if (severity === 'warn') warn(errMsg);
     if (severity === 'info') info(errMsg);
 

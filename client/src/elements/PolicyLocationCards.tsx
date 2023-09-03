@@ -17,11 +17,11 @@ import { useFirestore } from 'reactfire';
 
 import { COLLECTIONS, ILocation, WithId } from 'common';
 import { useDocData, useFetchDocCount } from 'hooks';
-import { LocationCard } from './LocationCard';
+import { LocationCard, LocationCardProps } from './LocationCard';
 
 const useInfiniteDocs = <T,>(
   colName: keyof typeof COLLECTIONS,
-  constraints: QueryConstraint[], // QueryFieldFilterConstraint
+  constraints: QueryConstraint[],
   pageSize: number = 4,
   pathSegments: string[] = []
 ): any => {
@@ -65,14 +65,15 @@ const useInfiniteDocs = <T,>(
       console.log('Error: ', err);
       setLoading(false);
     }
-  }, [colRef, constraints, pageSize]);
+  }, [colRef, constraints, pageSize, data, docCount]);
 
   useEffect(() => {
     console.log('initial getRecords');
     if (initialFetched.current) return;
     initialFetched.current = true;
+    console.log('useEffect --> calling getRecords');
     getRecords();
-  }, []);
+  }, [getRecords]);
 
   return useMemo(
     () => ({ data, docCount, loadMore: getRecords, loading }),
@@ -80,7 +81,7 @@ const useInfiniteDocs = <T,>(
   );
 };
 
-interface PolicyLocationCardsProps {
+interface PolicyLocationCardsProps extends Omit<LocationCardProps, 'location' | 'namedInsured'> {
   policyId: string;
   startingCursor?: DocumentReference;
   pageSize?: number;
@@ -89,7 +90,7 @@ interface PolicyLocationCardsProps {
 // TODO: add sort / filter capabilities
 // passed as props so same filters can be shared across cards/map ??
 
-export const PolicyLocationCards = ({ policyId, pageSize }: PolicyLocationCardsProps) => {
+export const PolicyLocationCards = ({ policyId, pageSize, ...props }: PolicyLocationCardsProps) => {
   const { data: policy } = useDocData('POLICIES', policyId);
   const {
     data: locations,
@@ -101,11 +102,7 @@ export const PolicyLocationCards = ({ policyId, pageSize }: PolicyLocationCardsP
     <Grid container rowSpacing={4} columnSpacing={6}>
       {locations.map((l: WithId<ILocation>) => (
         <Grid xs={12} sm={6} md={4} xl={3} key={l.id}>
-          <LocationCard
-            location={l}
-            namedInsured={policy.namedInsured}
-            // onEdit={handleLocationChangeRequest}
-          />
+          <LocationCard location={l} namedInsured={policy.namedInsured} {...props} />
         </Grid>
       ))}
       <Grid xs={12}>
