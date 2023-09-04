@@ -9,7 +9,7 @@ import {
 import { IdTokenResult } from 'firebase/auth';
 
 import { CustomClaimKeys, getRequiredClaimValidator } from './RequireAuthReactFire';
-import { CUSTOM_CLAIMS } from 'common';
+import { CLAIMS } from 'common';
 
 export type SignInCheckProps =
   | SignInCheckOptionsBasic
@@ -44,12 +44,12 @@ export const ClaimsGuard = ({
         };
       }
       // const claims = requiredClaims.reduce(
-      //   (acc, curr) => ({ ...acc, [CUSTOM_CLAIMS[curr]]: true }),
+      //   (acc, curr) => ({ ...acc, [CLAIMS[curr]]: true }),
       //   {}
       // );
       const claims: IdTokenResult['claims'] = {};
       requiredClaims.forEach((key) => {
-        claims[CUSTOM_CLAIMS[key]] = true;
+        claims[CLAIMS[key]] = true;
       });
 
       return { requiredClaims: claims, suspense: false, ...signInCheckProps };

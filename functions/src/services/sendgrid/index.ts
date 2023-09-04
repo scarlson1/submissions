@@ -95,7 +95,7 @@ const createMsgContent = ({
 
 type CustomArgs = { emailType: EmailTemplates } & Record<string, any>;
 export interface ExtraSendGridArgs
-  extends Omit<CreateMsgContentProps, 'to' | 'from' | 'subject' | 'html' | 'attachements'> {
+  extends Omit<CreateMsgContentProps, 'to' | 'from' | 'subject' | 'html' | 'attachments'> {
   customArgs: CustomArgs;
 }
 
@@ -107,7 +107,7 @@ function getCustomArgs(args?: Record<string, any> | undefined) {
   };
 }
 
-export const sendSubmissionRecievedConfirmation = async (
+export const sendSubmissionReceivedConfirmation = async (
   key: string,
   createAccountLink: string,
   to: string | string[],

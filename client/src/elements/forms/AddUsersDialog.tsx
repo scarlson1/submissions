@@ -15,7 +15,7 @@ import * as yup from 'yup';
 import { FormikFieldArray } from 'components/forms';
 import { useInviteUsers } from 'hooks';
 import { InviteUsersResponse, NewUser } from 'api';
-import { CUSTOM_CLAIMS } from 'common';
+import { CLAIMS } from 'common';
 
 export interface AddUserValues {
   users: NewUser[];
@@ -143,11 +143,11 @@ export const AddUsersDialog = ({
                       selectOptions: [
                         {
                           label: 'Agent',
-                          value: CUSTOM_CLAIMS.AGENT,
+                          value: CLAIMS.AGENT,
                         },
                         {
                           label: 'Admin',
-                          value: CUSTOM_CLAIMS.ORG_ADMIN,
+                          value: CLAIMS.ORG_ADMIN,
                         },
                       ],
                     },

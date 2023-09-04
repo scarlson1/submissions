@@ -10,11 +10,10 @@ import { tmpdir } from 'os';
 import path from 'path';
 
 import {
-  Nullable,
   SRRes,
   ValueByRiskType,
   audience,
-  getNumber,
+  getReportErrorFn,
   sendgridApiKey,
   splitChunks,
   swissReClientId,
@@ -24,8 +23,7 @@ import {
 } from '../common';
 import { getPremium } from '../modules/rating';
 import { extractSRAALs } from '../modules/rating/getAALs';
-import { GetPremiumCalcResult } from '../modules/rating/getPremium';
-import { swissReBody } from '../modules/rating/swissReBody.js';
+import { swissReBody } from '../modules/rating/swissReBody';
 import {
   parseStreamToArray,
   shouldReturnEarly,
@@ -34,6 +32,18 @@ import {
 } from '../modules/storage';
 import { generateSRAccessToken, getSwissReInstance } from '../services';
 import { sendMessage } from '../services/sendgrid';
+import { IRow, TRow } from './models';
+import {
+  FlattenedPremData,
+  flattenPremData,
+  getPremCalcVars,
+  getSRVars,
+  transformRatePortfolioRow,
+} from './transform';
+import { validateRatePortfolioRow } from './validation/ratePortfolio';
+import { randomFileName, waitMilliSeconds } from '../utils';
+
+const reportErr = getReportErrorFn('ratePortfolio');
 
 let swissReInstance: AxiosInstance;
 let swissReInstanceTimestamp: number; // TODO: regenerate if > 10 mins
@@ -42,273 +52,6 @@ const tenMins = 60 * 1000 * 10;
 const chunkCount = defineInt('SR_CHUNK_COUNT');
 const PORTFOLIO_UPLOAD_FOLDER = 'ratePortfolio';
 const SR_WAIT_MS = 30000;
-
-interface IRow extends Record<string, string> {
-  cov_a_rcv: string;
-  cov_b_rcv: string;
-  cov_c_rcv: string;
-  cov_d_rcv: string;
-  total_rcv: string;
-  cov_a_limit: string;
-  cov_b_limit: string;
-  cov_c_limit: string;
-  cov_d_limit: string;
-  total_limits: string;
-  deductible: string;
-  state: string;
-}
-interface TRow extends Record<string, any> {
-  cov_a_rcv: number;
-  cov_b_rcv: number;
-  cov_c_rcv: number;
-  cov_d_rcv: number;
-  total_rcv: number;
-  cov_a_limit: number;
-  cov_b_limit: number;
-  cov_c_limit: number;
-  cov_d_limit: number;
-  total_limits: number;
-  deductible: number;
-  state: string;
-}
-
-export function validateRow(data: any) {
-  if (!data.cov_a_rcv) {
-    info(`INVALID - "cov_a_rcv" - VALUE: ${data.cov_a_rcv}`);
-    return false;
-  }
-  if (!data.cov_b_rcv && data.cov_b_rcv !== 0) {
-    info(`INVALID - "cov_b_rcv" - VALUE: ${data.cov_b_rcv} - TYPE: ${typeof data.cov_b_rcv}`);
-    return false;
-  }
-  if (!data.cov_c_rcv && data.cov_c_rcv !== 0) {
-    info(`INVALID - "cov_c_rcv" - VALUE: ${data.cov_c_rcv}`);
-    return false;
-  }
-  if (!data.cov_d_rcv && data.cov_d_rcv !== 0) {
-    info(`INVALID - "cov_d_rcv" - VALUE: ${data.cov_d_rcv}`);
-    return false;
-  }
-  if (!data.cov_a_limit) {
-    info(`INVALID - "cov_a_limit" - VALUE: ${data.cov_a_limit}`);
-    return false;
-  }
-  if (!data.cov_b_limit && data.cov_b_limit !== 0) {
-    info(`INVALID - "cov_b_limit" - VALUE: ${data.cov_b_limit}`);
-    return false;
-  }
-  if (!data.cov_c_limit && data.cov_c_limit !== 0) {
-    info(`INVALID - "cov_c_limit" - VALUE: ${data.cov_c_limit}`);
-    return false;
-  }
-  if (!data.cov_d_limit && data.cov_d_limit !== 0) {
-    info(`INVALID - "cov_d_limit" - VALUE: ${data.cov_d_limit}`);
-    return false;
-  }
-  if (!data.deductible) {
-    info(`INVALID - "deductible" - VALUE ${data.deductible}`);
-    return false;
-  }
-  if (!data.latitude) {
-    info(`INVALID - "latitude" - VALUE ${data.latitude}`);
-    return false;
-  }
-  if (!data.longitude) {
-    info(`INVALID - "longitude" - VALUE ${data.longitude}`);
-    return false;
-  }
-  if (!data.state) {
-    info(`INVALID - "state" - VALUE ${data.state}`);
-    return false;
-  }
-
-  return true;
-}
-
-// TODO: transform basement, FFE, etc.
-// TODO: calc RCVs from rcvA
-function transformRow(data: IRow): Nullable<TRow> {
-  const limitA = data.cov_a_limit ? parseInt(getNumber(data.cov_a_limit)) : 0;
-  const limitB = data.cov_b_limit ? parseInt(getNumber(data.cov_b_limit)) : 0;
-  const limitC = data.cov_c_limit ? parseInt(getNumber(data.cov_c_limit)) : 0;
-  const limitD = data.cov_d_limit ? parseInt(getNumber(data.cov_d_limit)) : 0;
-  const total_limits = limitA + limitB + limitC + limitD;
-
-  const rcvA = data.cov_a_rcv ? parseInt(getNumber(data.cov_a_rcv)) : 0; // null;
-  const rcvB = data.cov_b_rcv ? parseInt(getNumber(data.cov_b_rcv)) : 0; // null;
-  const rcvC = data.cov_c_rcv ? parseInt(getNumber(data.cov_c_rcv)) : 0; // null;
-  const rcvD = data.cov_d_rcv ? parseInt(getNumber(data.cov_d_rcv)) : 0; // null;
-  const total_rcv = rcvA + rcvB + rcvC + rcvD;
-
-  // const RCVs = getRCVs(rcvA || 0, { limitA, limitB, limitC, limitD });
-
-  return {
-    ...data,
-    // cov_a_rcv: RCVs.building || null,
-    // cov_b_rcv: RCVs.otherStructures,
-    // cov_c_rcv: RCVs.contents,
-    // cov_d_rcv: RCVs.BI,
-    // total_rcv: RCVs.total,
-    cov_a_rcv: rcvA || null,
-    cov_b_rcv: rcvB,
-    cov_c_rcv: rcvC,
-    cov_d_rcv: rcvD,
-    total_rcv,
-    cov_a_limit: limitA || null,
-    cov_b_limit: limitB,
-    cov_c_limit: limitC,
-    cov_d_limit: limitD,
-    total_limits,
-    deductible: data.deductible ? parseInt(getNumber(data.deductible)) : null,
-    skip: data?.skip && data?.skip?.toLowerCase().trim() === 'true',
-    google_maps_link: getGoogleMapsUrl(data.latitude, data.longitude),
-  };
-
-  // return {
-  //   ...data,
-  //   cov_a_rcv: data.cov_a_rcv ? parseInt(getNumber(data.cov_a_rcv)) : null, // '',
-  //   cov_b_rcv: data.cov_b_rcv ? parseInt(getNumber(data.cov_b_rcv)) : 0,
-  //   cov_c_rcv: data.cov_c_rcv ? parseInt(getNumber(data.cov_c_rcv)) : 0,
-  //   cov_d_rcv: data.cov_d_rcv ? parseInt(getNumber(data.cov_d_rcv)) : 0,
-  //   total_rcv: data.total_rcv ? parseInt(getNumber(data.total_rcv)) : null,
-  //   cov_a_limit: data.cov_a_limit ? parseInt(getNumber(data.cov_a_limit)) : null, // '',
-  //   cov_b_limit: data.cov_b_limit ? parseInt(getNumber(data.cov_b_limit)) : 0,
-  //   cov_c_limit: data.cov_c_limit ? parseInt(getNumber(data.cov_c_limit)) : 0,
-  //   cov_d_limit: data.cov_d_limit ? parseInt(getNumber(data.cov_d_limit)) : 0,
-  //   total_limits: data.total_limits ? parseInt(getNumber(data.total_limits)) : null, // '',
-  //   deductible: data.deductible ? parseInt(getNumber(data.deductible)) : null, // '',
-  //   skip: data?.skip && data?.skip?.toLowerCase().trim() === 'true',
-  //   google_maps_link: getGoogleMapsUrl(data.latitude, data.longitude),
-  // };
-}
-
-function getPremCalcVars(row: any) {
-  return {
-    AALs: {
-      inland: row.inland,
-      surge: row.surge,
-      tsunami: row.tsunami,
-    },
-    limits: {
-      limitA: row.cov_a_limit,
-      limitB: row.cov_b_limit,
-      limitC: row.cov_c_limit,
-      limitD: row.cov_d_limit,
-    },
-    floodZone: row.flood_zone,
-    state: row.state,
-    basement: row.basement,
-    priorLossCount: row.prior_loss_count || '0',
-    commissionPct: row.commission_pct || 0.15,
-  };
-}
-
-interface FlattenedPremData {
-  basementMult: string | number;
-  inlandHistoryMult: string | number;
-  surgeHistoryMult: string | number;
-  tsunamiHistoryMult: string | number;
-  inlandFFEMult: string | number;
-  surgeFFEMult: string | number;
-  tsunamiFFEMult: string | number;
-  inlandMult: string | number;
-  surgeMult: string | number;
-  tsunamiMult: string | number;
-  inlandStateMult: string | number;
-  surgeStateMult: string | number;
-  tsunamiStateMult: string | number;
-  inlandPM: string | number;
-  surgePM: string | number;
-  tsunamiPM: string | number;
-  inlandRiskScore: string | number;
-  surgeRiskScore: string | number;
-  tsunamiRiskScore: string | number;
-  inlandTechPrem: string | number;
-  surgeTechPrem: string | number;
-  tsunamiTechPrem: string | number;
-  premiumSubtotal: string | number;
-  minPrem: string | number;
-  minPremiumAdj: string | number;
-  provisionalPremium: string | number;
-  subproducerAdj: string | number;
-  premium: string | number;
-  notes: string;
-}
-
-/** fatten premium calc data to depth of 1 for CSV export
- * @param {GetPremiumCalcResult} rowPremData response from "getPremium" function
- * @returns {FlattenedPremData} 1 dimension object
- */
-export function flattenPremData(rowPremData: GetPremiumCalcResult): FlattenedPremData {
-  const premium = rowPremData?.premiumData?.directWrittenPremium ?? '';
-  const minPrem = rowPremData?.minPremium ?? '';
-  const inlandMult = rowPremData?.secondaryFactorMults?.inland ?? '';
-  const surgeMult = rowPremData?.secondaryFactorMults?.surge ?? '';
-  const tsunamiMult = rowPremData?.secondaryFactorMults?.tsunami ?? '';
-  const basementMult =
-    rowPremData?.secondaryFactorMults?.secondaryFactorMultsByFactor?.basementMult ?? '';
-  const inlandHistoryMult =
-    rowPremData?.secondaryFactorMults?.secondaryFactorMultsByFactor?.historyMult?.inland ?? '';
-  const surgeHistoryMult =
-    rowPremData?.secondaryFactorMults?.secondaryFactorMultsByFactor?.historyMult?.surge ?? '';
-  const tsunamiHistoryMult =
-    rowPremData?.secondaryFactorMults?.secondaryFactorMultsByFactor?.historyMult?.tsunami ?? '';
-  const inlandFFEMult =
-    rowPremData?.secondaryFactorMults?.secondaryFactorMultsByFactor?.ffeMult.inland ?? '';
-  const surgeFFEMult =
-    rowPremData?.secondaryFactorMults?.secondaryFactorMultsByFactor?.ffeMult.surge ?? '';
-  const tsunamiFFEMult =
-    rowPremData?.secondaryFactorMults?.secondaryFactorMultsByFactor?.ffeMult.tsunami ?? '';
-  const inlandStateMult = rowPremData?.stateMultipliers?.inland ?? '';
-  const surgeStateMult = rowPremData?.stateMultipliers?.surge ?? '';
-  const tsunamiStateMult = rowPremData?.stateMultipliers?.tsunami ?? '';
-  const inlandPM = rowPremData?.pm?.inland ?? '';
-  const surgePM = rowPremData?.pm?.surge ?? '';
-  const tsunamiPM = rowPremData?.pm?.tsunami ?? '';
-  const inlandRiskScore = rowPremData?.riskScore?.inland ?? '';
-  const surgeRiskScore = rowPremData?.riskScore?.surge ?? '';
-  const tsunamiRiskScore = rowPremData?.riskScore?.tsunami ?? '';
-  const inlandTechPrem = rowPremData?.premiumData?.techPremium.inland ?? '';
-  const surgeTechPrem = rowPremData?.premiumData?.techPremium.surge ?? '';
-  const tsunamiTechPrem = rowPremData?.premiumData?.techPremium.tsunami ?? '';
-  const subproducerAdj = rowPremData?.premiumData?.subproducerAdj ?? '';
-
-  const provisionalPremium = rowPremData?.premiumData?.provisionalPremium ?? '';
-  const premiumSubtotal = rowPremData?.premiumData?.premiumSubtotal;
-  const minPremiumAdj = rowPremData?.premiumData?.minPremiumAdj;
-
-  return {
-    basementMult,
-    inlandHistoryMult,
-    surgeHistoryMult,
-    tsunamiHistoryMult,
-    inlandFFEMult,
-    surgeFFEMult,
-    tsunamiFFEMult,
-    inlandMult,
-    surgeMult,
-    tsunamiMult,
-    inlandStateMult,
-    surgeStateMult,
-    tsunamiStateMult,
-    inlandPM,
-    surgePM,
-    tsunamiPM,
-    inlandRiskScore,
-    surgeRiskScore,
-    tsunamiRiskScore,
-    inlandTechPrem,
-    surgeTechPrem,
-    tsunamiTechPrem,
-    premiumSubtotal,
-    minPrem,
-    minPremiumAdj,
-    provisionalPremium,
-    subproducerAdj,
-    premium,
-    notes: '',
-  };
-}
 
 interface TRowWithAAL extends TRow, AALsWithErrMsg {}
 
@@ -335,11 +78,10 @@ const calcPrem = (data: TRowWithAAL[]) => {
       });
     } catch (err: any) {
       const errMsg = err?.message || null;
-      if (errMsg !== 'skip row') {
+      if (errMsg !== 'skip row')
         error(`ERROR (location: ${r.location_id || r.address_1 || '"no address_1"'}): `, {
           errMsg,
         });
-      }
 
       result.push({
         ...r,
@@ -379,30 +121,6 @@ const calcPrem = (data: TRowWithAAL[]) => {
 
   return result;
 };
-
-/** convert snake case column headers to camel case params used in SR XML template
- * @param {any} row row data (TODO: type)
- * @returns {object} variables for Swiss Re xml template
- */
-export function getSRVars(row: any) {
-  let rcvB = row.cov_b_rcv || 0;
-  let limitB = row.cov_b_limit || 0;
-
-  return {
-    lat: row.latitude,
-    lng: row.longitude,
-    rcvTotal: row.total_rcv,
-    rcvAB: row.cov_a_rcv + rcvB,
-    rcvC: row.cov_c_rcv,
-    rcvD: row.cov_d_rcv,
-    limitAB: row.cov_a_limit + limitB,
-    limitC: row.cov_c_limit,
-    limitD: row.cov_d_limit,
-    deductible: row.deductible,
-    numStories: row.num_stories || '1',
-    externalRef: row.location_id || 'idemand',
-  };
-}
 
 function getSRPromise(data: TRow): Promise<AxiosResponse<SRRes, any>> {
   if (data.skip) {
@@ -463,7 +181,7 @@ async function getAALs(parsedData: TRow[]): Promise<GetAALsRes[]> {
         }
     >[];
 
-    let results = await Promise.all(promises);
+    const results = await Promise.all(promises);
 
     // Map results -> get errMsg, inland, surge, tsunami AALs (-1 if error)
     const aals: AALsWithErrMsg[] = results.map((r) => ({
@@ -498,7 +216,7 @@ async function getPremiumForChunk(chunk: TRow[]) {
 
 /** split rows into chunks of X size, then fetch AALs and calculate premium for each chunk
  * @param {TRow[]} data array of data to be split into array of X size (X = env var "chunkCount"), then loop through each chunk to get AALs and calc premium
- * @returns {(CalcPremResult | GetAALsRes)[]} 1 dimensional array rows with orgininal data, aals, and premium calc details
+ * @returns {(CalcPremResult | GetAALsRes)[]} 1 dimensional array rows with original data, aals, and premium calc details
  */
 async function splitAndRate(data: TRow[]) {
   let ratedArray: (CalcPremResult | GetAALsRes)[] = [];
@@ -531,23 +249,6 @@ async function splitAndRate(data: TRow[]) {
   }
 
   return ratedArray;
-}
-
-function waitMilliSeconds(ms: number, reason?: string) {
-  return new Promise<void>((resolve, reject) => {
-    info(`Waiting ${ms} ms ${reason || ''}`, { reason });
-    setTimeout(() => {
-      resolve();
-    }, ms);
-  });
-}
-
-function getGoogleMapsUrl(
-  latitude: number | string | undefined,
-  longitude: number | string | undefined
-) {
-  if (!(latitude && longitude)) return '';
-  return `https://www.google.com/maps/search/?api=1&query=${latitude}%2C${longitude}`;
 }
 
 export default async (event: StorageEvent) => {
@@ -586,7 +287,7 @@ export default async (event: StorageEvent) => {
 
   const storage = getStorage();
   const bucket = storage.bucket(fileBucket);
-  const tempFilePath = path.join(tmpdir(), `temp_SR_${fileName}`);
+  const tempFilePath = path.join(tmpdir(), randomFileName(filePath)); // `temp_SR_${fileName}`);
 
   await bucket.file(filePath).download({ destination: tempFilePath });
   info(`File downloaded locally: ${tempFilePath}`);
@@ -600,13 +301,11 @@ export default async (event: StorageEvent) => {
     const parsed = await parseStreamToArray<IRow, TRow>(
       stream,
       { headers: transformHeadersSnakeCase },
-      transformRow,
-      validateRow
+      transformRatePortfolioRow,
+      validateRatePortfolioRow
     );
     const dataArray = parsed.dataArr;
     const invalidRows = parsed.invalidRows;
-    // parse downloaded file into array
-    // const { dataArray, invalidRows } = await parseStreamToArray(fs.createReadStream(tempFilePath));
 
     await unlinkFile(tempFilePath);
     info(
@@ -631,7 +330,7 @@ export default async (event: StorageEvent) => {
   } catch (err: any) {
     error('ERROR: ', { err });
     await unlinkFile(tempFilePath);
-    // TODO: send error email to admin
+    reportErr(`Error handling portfolio rating (${fileName})`, { fileName }, err);
     return;
   }
 };

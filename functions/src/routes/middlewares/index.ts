@@ -1,6 +1,6 @@
-export { currentUser } from './currentUser.js';
-export { errorHandler } from './errorHandler.js';
-export { generatePDFSchema } from './generatePDFSchema.js';
-export { requireAuth } from './requireAuth.js';
-export { validateFirebaseIdToken } from './validateFirebaseIdToken.js';
-export { validateRequest } from './validateRequest.js';
+export { currentUser } from './currentUser';
+export { errorHandler } from './errorHandler';
+export { generatePDFSchema } from './generatePDFSchema';
+export { requireAuth } from './requireAuth';
+export { validateFirebaseIdToken } from './validateFirebaseIdToken';
+export { validateRequest } from './validateRequest';

@@ -1,15 +1,20 @@
 import { isValid } from 'date-fns';
 import { Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { CloudEvent } from 'firebase-functions/lib/v2/core';
-import { error, info, warn } from 'firebase-functions/logger';
+import { info, warn } from 'firebase-functions/logger';
 import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 
 import {
+  ILocation,
   OffsetTransaction,
+  PolicyNew,
   PremiumTransaction,
   Transaction,
   WithId,
+  getReportErrorFn,
+  locationsCollection,
   transactionsCollection,
+  verify,
 } from '../common';
 import {
   constructTrxId,
@@ -20,7 +25,6 @@ import {
   formatPremiumTrx,
   getOffsetTrx,
 } from '../modules/transactions';
-import { reportErrorSentry } from '../services/sentry';
 
 // How is removed location handled ??
 // assume deleted if location not found in policy ??
@@ -31,6 +35,8 @@ import { reportErrorSentry } from '../services/sentry';
 // Handles creating transactions whenever a LOCATION premium change event is published (per location)
 //    - trx1: offsets the remaining period for the original trx
 //    - trx2: new premium for the term
+
+const reportErr = getReportErrorFn('endorsementListener');
 
 export const premEndorsementPrevTypes: PremiumTransaction['trxType'][] = [
   'new',
@@ -58,50 +64,43 @@ export default async (event: CloudEvent<MessagePublishedData<EndorsementPayload>
     locationId = event.data?.message?.json?.locationId;
     effDateMS = event.data?.message?.json?.effDateMS;
   } catch (e) {
-    reportEndorsementError('PubSub message was not JSON', {}, e);
-  }
-
-  // TODO: validate eff date or default to now ??
-  if (!policyId || !locationId || typeof policyId !== 'string' || typeof locationId !== 'string') {
-    reportEndorsementError(`Missing policy and/or location ID`, {
-      policyId,
-      locationId,
-      effDateMS,
-    });
-    return;
+    reportErr('PubSub message was not JSON', {}, e);
   }
 
   const db = getFirestore();
+  const locationsCol = locationsCollection(db);
   const trxCol = transactionsCollection(db);
-
-  const policy = await fetchPolicyData(db, policyId); // TODO: use fetchDocData instead
-  if (!policy) {
-    reportEndorsementError(`Policy not found or error occurred fetching data. Returning early.`, {
-      policyId,
-      locationId,
-    });
-    return;
-  }
-
-  const location = policy.locations[locationId];
-  if (!location) {
-    error(`location (${locationId}) not found on policy (${policyId})`);
-    reportEndorsementError(`location (${locationId}) not found on policy (${policyId})`, {
-      policyId,
-      locationId,
-    });
-    return;
-  }
-
+  let policy: WithId<PolicyNew>;
+  let location: ILocation;
   let prevTrx: Transaction;
+
   try {
-    prevTrx = await fetchPreviousTrx(db, policyId, locationId, premEndorsementPrevTypes);
+    verify(policyId && typeof policyId === 'string', 'missing policyId');
+    verify(locationId && typeof locationId === 'string', 'missing locationId');
+    // TODO: validate/require eff date or default to now ??
+
+    const locationReq = locationsCol.doc(locationId).get();
+    const policyReq = fetchPolicyData(db, policyId);
+    const prevTrxReq = fetchPreviousTrx(db, policyId, locationId, premEndorsementPrevTypes);
+
+    const [locationSnap, policyRes, trxRes] = await Promise.all([
+      locationReq,
+      policyReq,
+      prevTrxReq,
+    ]);
+
+    const lcnData = locationSnap.exists ? locationSnap.data() : null;
+    verify(lcnData, 'location record not found');
+
+    // policy = await fetchPolicyData(db, policyId); // TODO: use fetchDocData instead
+    verify(policyRes, `Policy not found or error occurred fetching data. Returning early.`);
+    policy = policyRes;
+    location = lcnData;
+    prevTrx = trxRes;
   } catch (err: any) {
-    reportEndorsementError(
-      `No previous transactions found matching query. returning early.`,
-      { policyId, locationId },
-      err
-    );
+    let errMsg = 'validation failed';
+    if (err?.message) errMsg = err.message;
+    reportErr(errMsg, { policyId, locationId, effDateMS });
     return;
   }
 
@@ -148,13 +147,8 @@ export default async (event: CloudEvent<MessagePublishedData<EndorsementPayload>
       warn(`Ignoring event. Transaction already exists ${trxId}`);
     }
   } catch (err: any) {
-    reportEndorsementError(`Error saving batched transactions`, { policyId, locationId }, err);
+    reportErr(`Error saving endorsement batch transactions`, { policyId, locationId }, err);
   }
 
   return;
 };
-
-function reportEndorsementError(msg: string, ctx: Record<string, any> = {}, err: any = null) {
-  error(msg, { ...ctx, err });
-  reportErrorSentry(err || msg, { func: 'endorsementListener', msg, ...ctx });
-}

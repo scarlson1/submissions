@@ -3,14 +3,14 @@ import { Box, Button, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useSigninCheck } from 'reactfire';
 
-import { CUSTOM_CLAIMS } from 'common';
+import { CLAIMS } from 'common';
 import { ServerDataGrid } from 'components';
 import { orgCols } from 'modules/muiGrid/gridColumnDefs';
 import { ADMIN_ROUTES, createPath } from 'router';
 
 export const Organizations = () => {
   const navigate = useNavigate();
-  const { data } = useSigninCheck({ requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true } });
+  const { data } = useSigninCheck({ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } });
 
   // const orgColumns: GridColDef[] = useMemo(
   //   () => [

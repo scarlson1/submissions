@@ -43,8 +43,7 @@ export const importStagingMetaCols: GridColDef<{
 ];
 
 export const policyStagingRecordCols: GridColDef<StagedPolicyImport>[] = [
-  ...importStagingMetaCols, // as unknown as GridColDef<{importMeta: PolicyImportMeta }>[],
-  // ...policyImportMetaCols,
+  ...importStagingMetaCols,
   ...policyCols,
 ] as GridColDef<StagedPolicyImport>[];
 

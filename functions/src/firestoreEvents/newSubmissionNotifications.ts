@@ -5,7 +5,7 @@ import querystring from 'querystring';
 
 import {
   sendNewSubmissionAdminNotification,
-  sendSubmissionRecievedConfirmation,
+  sendSubmissionReceivedConfirmation,
 } from '../services/sendgrid';
 import { Submission, audience, hostingBaseURL, sendgridApiKey } from '../common';
 
@@ -39,7 +39,7 @@ export default async (
     )}`;
 
     info(`Sending submission received notification to ${submission.contact.email}`);
-    await sendSubmissionRecievedConfirmation(
+    await sendSubmissionReceivedConfirmation(
       sendgridApiKey.value(),
       createAccountURL,
       submission.contact.email,

@@ -1,4 +1,4 @@
-import { DataGridProps, GridColDef, GridRowParams } from '@mui/x-data-grid';
+import { DataGridProps, GridActionsColDef, GridColDef, GridValidRowModel } from '@mui/x-data-grid';
 import { JSONContent } from '@tiptap/react';
 import { GeoPoint, Timestamp, WithFieldValue } from 'firebase/firestore';
 import { Geohash } from 'geofire-common';
@@ -1702,12 +1702,12 @@ export interface BaseSendEmailResponse {
   emails: string[] | EmailsRes[];
 }
 
-export interface ServerDataGridCollectionProps
+export interface ServerDataGridCollectionProps<T extends GridValidRowModel = any>
   extends Omit<
     ServerDataGridProps,
     'columns' | 'colName' | 'isCollectionGroup' | 'columns' | 'pathSegments' | 'initialState'
   > {
-  renderActions?: (params: GridRowParams) => JSX.Element[];
+  renderActions?: GridActionsColDef<T>['getActions']; //  (params: GridRowParams) => ReactElement<GridActionsCellItemProps>[]; // JSX.Element[];
   additionalColumns?: GridColDef<any, any, any>[];
   initialState?: Omit<DataGridProps['initialState'], 'pagination'>;
 }

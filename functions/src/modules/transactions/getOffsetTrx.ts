@@ -4,7 +4,7 @@ import { Timestamp } from 'firebase-admin/firestore';
 import {
   CancellationReason,
   OffsetTransaction,
-  Policy,
+  PolicyNew,
   PremiumTransaction,
   WithId,
 } from '../../common';
@@ -13,7 +13,7 @@ import { getBookingDate, getMGAComm, getNetDWP, getOffsetTermPremium } from './u
 
 /**
  * get formatted offset transaction for cancellation or premium endorsement transactions
- * @param {Policy} policy policy document
+ * @param {PolicyNew} policy policy document
  * @param {PremiumTransaction} prevTrx most recent premium transaction for location
  * @param {Timestamp} trxEffDate new transaction effective date
  * @param {string} eventId cloud event id
@@ -22,7 +22,7 @@ import { getBookingDate, getMGAComm, getNetDWP, getOffsetTermPremium } from './u
  * @returns {OffsetTransaction} offsetting transaction for cancellation or premium endorsement transactions
  */
 export const getOffsetTrx = (
-  policy: Policy,
+  policy: PolicyNew,
   prevTrx: WithId<PremiumTransaction | OffsetTransaction>,
   trxEffDate: Timestamp,
   eventId: string,

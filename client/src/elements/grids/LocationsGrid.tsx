@@ -1,9 +1,10 @@
 import { GridColDef } from '@mui/x-data-grid';
-import { ServerDataGridCollectionProps } from 'common';
-import { ServerDataGrid } from 'components';
-import { useAsyncToast, useGridActions, useWidth } from 'hooks';
-import { locationCols } from 'modules/muiGrid';
 import { useMemo } from 'react';
+
+import { COLLECTIONS, CLAIMS, ServerDataGridCollectionProps } from 'common';
+import { ServerDataGrid } from 'components';
+import { useAsyncToast, useGridActions, useGridShowJson, useWidth } from 'hooks';
+import { locationCols } from 'modules/muiGrid';
 
 export type LocationGridProps = ServerDataGridCollectionProps;
 
@@ -16,6 +17,11 @@ export const LocationsGrid = ({
   const toast = useAsyncToast({ position: 'top-right' });
   const { isSmall } = useWidth();
   const { googleMapsAction, floodFactorAction } = useGridActions(toast.error);
+  const renderShowJson = useGridShowJson(
+    COLLECTIONS.LOCATIONS,
+    { showInMenu: isSmall },
+    { requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }
+  );
 
   const columns = useMemo<GridColDef[]>(
     () => [
@@ -24,17 +30,18 @@ export const LocationsGrid = ({
         field: 'actions',
         headerName: 'Actions',
         type: 'actions',
-        width: isSmall ? 60 : 100,
+        width: isSmall ? 60 : 120,
         getActions: (params) => [
           ...renderActions(params),
-          googleMapsAction(params, { showInMenu: isSmall }),
-          floodFactorAction(params, { showInMenu: isSmall }),
+          ...renderShowJson(params),
+          googleMapsAction(params, { showInMenu: true }),
+          floodFactorAction(params, { showInMenu: true }),
         ],
       },
       ...locationCols,
       ...additionalColumns,
     ],
-    [renderActions, googleMapsAction, floodFactorAction, isSmall, additionalColumns]
+    [renderActions, renderShowJson, googleMapsAction, floodFactorAction, isSmall, additionalColumns]
   );
 
   return (

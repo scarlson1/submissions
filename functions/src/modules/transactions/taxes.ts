@@ -2,8 +2,8 @@ import { ceil, floor, round } from 'lodash';
 import {
   FeeItem,
   FeeItemName,
-  Policy,
   PolicyLocation,
+  PolicyNew,
   RoundingType,
   TaxItem,
   TaxItemName,
@@ -113,7 +113,7 @@ export function sumTaxesByType(taxes: TaxItem[], type: TaxItemName | TaxItemName
   return sumByTypes<TaxItem>(taxes, 'displayName', type, 'value');
 }
 
-export function getTrxTaxesAndFees({ taxes, fees }: Policy) {
+export function getTrxTaxesAndFees({ taxes, fees }: PolicyNew) {
   const surplusLinesTax = sumTaxesByType(taxes, 'Premium Tax');
   const surplusLinesRegulatoryFee = sumTaxesByType(taxes, 'Regulatory Fee');
   const MGAFee = sumFeesByType(fees, 'MGA Fee');

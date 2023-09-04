@@ -4,7 +4,7 @@ import { GridActionsCellItem, GridColDef, GridRowParams } from '@mui/x-data-grid
 import { useCallback, useMemo } from 'react';
 import { useSigninCheck } from 'reactfire';
 
-import { COLLECTIONS, CUSTOM_CLAIMS, SUBMISSION_STATUS, Submission } from 'common';
+import { COLLECTIONS, CLAIMS, SUBMISSION_STATUS, Submission } from 'common';
 import { ServerDataGrid, ServerDataGridProps } from 'components';
 import { useAsyncToast, useGridActions, useShowJson, useWidth } from 'hooks';
 import { statusCol, submissionCols } from 'modules/muiGrid/gridColumnDefs';
@@ -29,7 +29,7 @@ export const SubmissionsGrid = ({
   const { googleMapsAction, floodFactorAction } = useGridActions(toast.error);
 
   const { data: iDAdminResult } = useSigninCheck({
-    requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true },
+    requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
   });
 
   const handleShowJson = useCallback(

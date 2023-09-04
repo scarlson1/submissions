@@ -8,7 +8,7 @@ const splitHyphen = (word: string) => word.split(SOFT_HYPHEN);
 const cache: Record<string, string[]> = {};
 
 const getParts = (word: string) => {
-  // BUG: spliting on hard hyphen removes hyphen from IDs
+  // BUG: splitting on hard hyphen removes hyphen from IDs
   if (word.includes('-')) return word.split('-');
 
   const base = hyphenateSync(word);

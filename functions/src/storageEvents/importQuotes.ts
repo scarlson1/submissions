@@ -30,6 +30,7 @@ import { sendAdminPolicyImportNotification } from '../services/sendgrid';
 import { CSVQuoteRow, CSVTransformedQuote } from './models';
 import { transformQuoteRow } from './transform';
 import { validateQuoteRow } from './validation';
+import { randomFileName } from '../utils';
 
 const QUOTE_IMPORT_FOLDER = 'importQuotes';
 
@@ -48,7 +49,7 @@ export default async (event: StorageEvent) => {
 
   const storage = getStorage();
   const bucket = storage.bucket(fileBucket);
-  const tempFilePath = join(tmpdir(), `temp_portfolio_import_${fileName}`);
+  const tempFilePath = join(tmpdir(), randomFileName(filePath));
 
   await bucket.file(filePath).download({ destination: tempFilePath });
   info(`File downloaded locally to ${tempFilePath}`);

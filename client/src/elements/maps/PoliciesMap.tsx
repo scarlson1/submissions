@@ -76,7 +76,7 @@ export const PoliciesMap = ({ constraints = [], layerProps }: PoliciesMapProps) 
           return (
             <Box sx={{ px: 2, borderRadius: 0.5 }}>
               <Typography variant='body2' fontWeight='fontWeightMedium'>
-                {info.object?.address.addressLine1 || ''}
+                {info.object?.address?.addressLine1 || ''}
               </Typography>
               <Typography
                 variant='body2'

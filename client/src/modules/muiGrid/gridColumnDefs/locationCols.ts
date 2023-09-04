@@ -44,7 +44,7 @@ import {
 } from './gridColumns';
 
 export const locationCols: GridColDef<ILocation>[] = [
-  idCol,
+  { ...idCol, headerName: 'Location ID' },
   {
     ...idCol,
     field: 'policyId',

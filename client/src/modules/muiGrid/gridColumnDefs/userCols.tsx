@@ -16,7 +16,7 @@ import {
 import { GridEditMultiSelectCell, GridMultiSelectColDef } from 'components/GridEditMultiSelectCell';
 import { renderChips } from 'components/RenderGridCellHelpers';
 import { getRandomItem, stringAvatar } from 'modules/utils';
-import { CUSTOM_CLAIMS, User } from 'common';
+import { CLAIMS, User } from 'common';
 
 export const userClaimsCol: GridMultiSelectColDef = {
   field: 'userClaims',
@@ -30,7 +30,7 @@ export const userClaimsCol: GridMultiSelectColDef = {
   editable: false,
   filterable: false,
   sortable: false,
-  valueOptions: [CUSTOM_CLAIMS.AGENT, CUSTOM_CLAIMS.ORG_ADMIN],
+  valueOptions: [CLAIMS.AGENT, CLAIMS.ORG_ADMIN],
   valueGetter: (params) => {
     if (!params.value) return [];
     return Object.keys(params.value).filter((k) => params.value[k] && k !== '_lastCommitted');

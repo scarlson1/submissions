@@ -62,6 +62,7 @@ const approveImport = async ({ data, auth }: CallableRequest<ApproveImportProps>
 
   try {
     // TODO: break into batches of 100
+    // let chunks: TRow[][] = data.length > chunkCountVal ? splitChunks(data, chunkCountVal) : [data];
     // promise all to get sub collection docs
     const stagedImportsCol = stagedImportsCollection(db, importId);
     const reads = importDocIds.map((id) => stagedImportsCol.doc(id).get());
@@ -70,7 +71,7 @@ const approveImport = async ({ data, auth }: CallableRequest<ApproveImportProps>
     const stagedDocs = stagedSnaps.map((s) => ({
       ...s.data(),
       id: s.id,
-    })) as WithId<StageImportRecord>[]; // TODO: handle promise all errors
+    })) as WithId<StageImportRecord>[]; // TODO: handle promise all errors or let the whole thing fail ??
 
     const targetCollectionRef = db.collection(`${importSummary.targetCollection}`);
     const batch = db.batch();

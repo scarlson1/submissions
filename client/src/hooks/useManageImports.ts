@@ -37,7 +37,7 @@ export const useManageImports = (
         });
 
         setLoading((prev) => ({ ...prev, approve: false }));
-        onSuccess && onSuccess(`imported ${data.successCount} records`);
+        onSuccess && onSuccess(`imported ${data.successCount} record(s)`);
       } catch (err: any) {
         console.log('Error: ', err);
         setLoading((prev) => ({ ...prev, approve: false }));
@@ -52,7 +52,7 @@ export const useManageImports = (
   const stagedDocsCol = stagedImportsCollection(firestore, importId);
 
   const setDeclined = useCallback(
-    async (docId: string) => {
+    (docId: string) => {
       const updates: DeepPartial<StageImportRecord> = {
         importMeta: {
           status: 'declined',
@@ -66,7 +66,7 @@ export const useManageImports = (
         },
       };
 
-      await setDoc(doc(stagedDocsCol, docId), updates, { merge: true });
+      return setDoc(doc(stagedDocsCol, docId), updates, { merge: true });
     },
     [stagedDocsCol, user]
   );
@@ -86,18 +86,27 @@ export const useManageImports = (
         }
 
         if (!declineIds || !declineIds.length) throw new Error(`missing doc IDs`);
+        if (declineIds.length > 100) throw new Error('max of 100 at a time');
 
         // TODO: split into array of n --> promise all
         const errIds = [];
+        const promises = [];
         for (const id of declineIds) {
-          try {
-            await setDeclined(id);
-          } catch (err: any) {
-            console.error(`Error updating status to declined (${id})`, err);
-          }
+          promises.push(
+            setDeclined(id).catch((err) => {
+              console.error(`Error updating status to declined (${id})`, err);
+              errIds.push(id);
+            })
+          );
         }
+        await Promise.all(promises);
 
         setLoading((prev) => ({ ...prev, decline: false }));
+
+        if (errIds.length) {
+          onError && onError(`Failed to update ${errIds.length} doc(s)`, null);
+          if (errIds.length === declineIds.length) return;
+        }
 
         let successMsg = `update complete`;
         if (errIds.length) successMsg += ` (${errIds.length} errors)`;

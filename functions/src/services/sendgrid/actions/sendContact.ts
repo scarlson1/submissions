@@ -1,10 +1,10 @@
 import sgMail from '@sendgrid/mail';
 import { HttpsError } from 'firebase-functions/v1/auth';
 
-import { audience } from '../../../common/environmentVars.js';
-import { getReportErrorFn } from '../../../common/helpers.js';
-import { CreateMsgContentProps } from '../index.js';
-import { newContactMessage } from '../templates/newContactMessage.js';
+import { audience } from '../../../common/environmentVars';
+import { getReportErrorFn } from '../../../common/helpers';
+import { CreateMsgContentProps } from '../index';
+import { newContactMessage } from '../templates/newContactMessage';
 
 export type BaseTemplateProps = Omit<CreateMsgContentProps, 'html' | 'subject'>;
 

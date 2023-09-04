@@ -7,7 +7,6 @@ import { geohashForLocation } from 'geofire-common';
 import { round } from 'lodash';
 import { tmpdir } from 'os';
 import path from 'path';
-import { v4 as uuid } from 'uuid';
 
 import { getPolicyTermPremium } from '../callables/utils';
 import {
@@ -24,7 +23,6 @@ import {
   ValueByRiskType,
   audience,
   calcTerm,
-  getNewLocationId,
   getReportErrorFn,
   getTermDays,
   hostingBaseURL,
@@ -39,7 +37,7 @@ import {
   unlinkFile,
   verify,
 } from '../common';
-import { locationToPolicyLocation } from '../modules/db';
+import { createDocId, locationToPolicyLocation } from '../modules/db';
 import { getCarrierByState, getRCVs, sumFeesTaxesPremium } from '../modules/rating';
 import { eventOlderThan, shouldReturnEarly } from '../modules/storage';
 import {
@@ -52,6 +50,7 @@ import { sendAdminPolicyImportNotification } from '../services/sendgrid';
 import { CSVPolicyRow, ParsedPolicyRow } from './models';
 import { transformPolicyRow } from './transform';
 import { validatePolicyRow } from './validation';
+import { randomFileName } from '../utils';
 
 // TODO:
 //  - add rating fields (used for ratios)
@@ -64,8 +63,6 @@ const IMPORT_POLICIES_FOLDER = 'importPolicies';
 
 // store surplus lines producer of record info in global scope so it doesn't need to be refetched
 let surplusLinesLicenseByState: Record<string, any> = {};
-
-// TODO: type input row
 
 const reportErr = getReportErrorFn('importPolicies');
 
@@ -87,7 +84,7 @@ export default async (event: StorageEvent) => {
 
   const storage = getStorage();
   const bucket = storage.bucket(fileBucket);
-  const tempFilePath = path.join(tmpdir(), `temp_portfolio_import_${fileName}`);
+  const tempFilePath = path.join(tmpdir(), randomFileName(filePath));
 
   await bucket.file(filePath).download({ destination: tempFilePath });
   info(`File downloaded locally to ${tempFilePath}`);
@@ -262,10 +259,10 @@ async function groupByPolicyId(data: ParsedPolicyRow[], firestore: Firestore) {
   const ts = Timestamp.now();
 
   for (const row of data) {
-    let locId = getNewLocationId();
+    let locId = createDocId();
     const formattedLocation = formatPolicyLocation(row, locId, ts, 'policy');
 
-    const ratingDocId = uuid();
+    const ratingDocId = createDocId();
     const AALs = {
       inland: row.AALs.inland,
       surge: row.AALs.surge,

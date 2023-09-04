@@ -5,8 +5,8 @@ import { GeoPoint, Timestamp } from 'firebase-admin/firestore';
 import { Geohash } from 'geofire-common';
 import { round } from 'lodash';
 
-import { SecondaryFactorMults } from '../modules/rating/factors.js';
-import { CreateMsgContentProps } from '../services/sendgrid/index.js';
+import { SecondaryFactorMults } from '../modules/rating/factors';
+import { CreateMsgContentProps } from '../services/sendgrid';
 import {
   AGENCY_STATUS,
   AGENCY_SUBMISSION_STATUS,
@@ -16,9 +16,9 @@ import {
   PRODUCT,
   QUOTE_STATUS,
   SUBMISSION_STATUS,
-} from './enums.js';
-import { cardFeePct, iDemandOrgId } from './environmentVars.js';
-import { filterUniqueArr, removeFromArr } from './helpers.js';
+} from './enums';
+import { cardFeePct, iDemandOrgId } from './environmentVars';
+import { filterUniqueArr, removeFromArr } from './helpers';
 
 // TODO: fix typescript error app.use(thisMiddleware) is users.ts
 
@@ -675,6 +675,7 @@ export interface ILocation {
   cancelReason?: CancellationReason | null;
   imageURLs?: LocationImages | null;
   imagePaths?: LocationImages | null;
+  blurHash?: LocationImages | null;
   locationId: string;
   policyId?: string;
   externalId?: string | null;
@@ -725,6 +726,7 @@ export interface PolicyLocation {
   termPremium: number;
   address: CompressedAddress;
   coords: GeoPoint;
+  cancelEffDate?: Timestamp | null;
 }
 
 export interface PolicyNew extends BaseDoc {
@@ -852,7 +854,7 @@ export class PolicyClass implements IPolicyClass {
 
   // async addLocation(locationData: ILocation, id?: string) {
   //   // TODO: validation
-  //   const locationId = id || getNewLocationId();
+  //   const locationId = id || createDocId();
   //   try {
   //     this.locations[locationId] = { ...locationData, locationId };
   //     let newTotal = await this.sumLocationPremium();
@@ -1059,8 +1061,8 @@ interface BaseChangeRequest extends BaseDoc {
 
 export interface LocationChangeRequest extends BaseChangeRequest {
   scope: 'location';
-  // changes: Partial<ILocation>;
-  changes: DeepPartial<Policy>;
+  changes: DeepPartial<PolicyNew>; // TODO: rename policyChanges
+  locationChanges: DeepPartial<ILocation>;
   formValues: LocationChangeValues;
   locationId: string;
   externalId?: string | null;

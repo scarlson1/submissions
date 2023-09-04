@@ -7,14 +7,14 @@ import { signInAnonymously, UserCredential, getAuth } from 'firebase/auth';
 
 // import { auth } from 'firebaseConfig';
 import { useAuth } from 'context/AuthContext';
-import { CUSTOM_CLAIMS } from 'common';
+import { CLAIMS } from 'common';
 import { useAsyncToast } from './useAsyncToast';
 import { AUTH_ROUTES, createPath } from 'router';
 
 // TODO: adapt return values to match reactfire
 // { signedIn: true, hasRequiredClaims: true, errors: {}, user: user }
 
-export type CustomClaimKeys = keyof typeof CUSTOM_CLAIMS;
+export type CustomClaimKeys = keyof typeof CLAIMS;
 
 export interface UseRequireAuthProps {
   redirectPath?: string;
@@ -86,9 +86,7 @@ export const useRequireAuth = ({
 
     if (requiredClaims && requiredClaims.length > 0) {
       // checks if all claims are falsy (user does not have any of the roles in required)
-      let notAuthorized = claims
-        ? requiredClaims.every((key) => !claims[CUSTOM_CLAIMS[key]])
-        : true;
+      let notAuthorized = claims ? requiredClaims.every((key) => !claims[CLAIMS[key]]) : true;
 
       if (!!notAuthorized) {
         if (unauthorizedCallback) unauthorizedCallback();

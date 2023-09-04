@@ -171,7 +171,7 @@ function AdminPoliciesActionMenu() {
     (uploadResult: UploadResult[]) => {
       console.log('upload result: ', uploadResult);
       toast.success("you'll receive an email once complete", {
-        duration: 2000,
+        duration: 3500,
         position: 'top-right',
         icon: <InfoRounded />,
       });

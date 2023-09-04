@@ -1,17 +1,21 @@
 import { DocumentReference, Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
+import { deepmerge } from 'deepmerge-ts';
 
 import {
   CHANGE_REQUEST_STATUS,
   ChangeRequest,
+  DeepPartial,
   ILocation,
   Policy,
+  PolicyNew,
   ValueByRiskType,
   calcTerm,
   changeRequestsCollection,
   getReportErrorFn,
   hasAny,
-  policiesCollection,
+  locationsCollection,
+  policiesCollectionNew,
   ratingDataCollection,
   swissReClientId,
   swissReClientSecret,
@@ -22,6 +26,7 @@ import { getDoc } from '../../routes/utils';
 import {
   GetAALRes,
   GetPremiumProps,
+  PolicyWithTermPrem,
   getAALs,
   getPremium,
   sumFeesTaxesPremium,
@@ -31,6 +36,7 @@ import {
   validateRCVs,
 } from '../rating';
 import { getInStatePremium, getOutStatePremium, recalcTaxes } from './taxes';
+import { isObject } from 'lodash';
 
 const SR_CALL_REQUIRED_KEYS = ['limits', 'deductible'];
 
@@ -49,28 +55,31 @@ export async function handleRatingForEndorsement(
       'endorsement change request event should always be at the location scope'
     );
 
-    const { changes, locationId } = data;
-    const locationsUpdates = changes?.locations;
-    verify(
-      locationsUpdates && locationsUpdates[locationId],
-      `no changes found on "changes" property for ${locationId}`
-    );
+    const { locationChanges, locationId } = data; //  changes,
+    // const locationsUpdates = changes?.locations; // TODO: remove check once updating to new locations col
+    // verify(
+    //   locationsUpdates && locationsUpdates[locationId],
+    //   `no changes found on "changes" property for ${locationId}`
+    // );
 
     const db = getFirestore();
+    const locationsCol = locationsCollection(db);
     const ratingCol = ratingDataCollection(db);
-
-    const policyRef = policiesCollection(db).doc(policyId);
+    const policyRef = policiesCollectionNew(db).doc(policyId);
     const policy = await getDoc(policyRef);
-
     changeRequestRef = changeRequestsCollection(db, policyId).doc(requestId);
 
-    const { [locationId]: location, ...otherLocations } = policy.locations;
+    const { [locationId]: locationSummary, ...otherLocations } = policy.locations;
 
-    verify(location, `location not found on policy (Location ID: ${locationId})`);
-    verify(location.ratingDocId, 'missing location ratingDocId');
+    verify(locationSummary, `location not found on policy (Location ID: ${locationId})`);
+    // verify(location.ratingDocId, 'missing location ratingDocId'); // old policy interface
 
-    const locationChanges = locationsUpdates[locationId];
-    verify(locationChanges);
+    const locationSnap = await locationsCol.doc(locationId).get();
+    const location = locationSnap.exists ? locationSnap.data() : null;
+    verify(location, `location document not found (${locationId})`);
+
+    // const locationChanges = locationsUpdates[locationId];
+    verify(locationChanges && isObject(locationChanges));
     const changesKeys = Object.keys(locationChanges);
 
     const expDateOnly = changesKeys.every((k) => k === 'expirationDate');
@@ -91,29 +100,63 @@ export async function handleRatingForEndorsement(
 
     if (expDateOnly) {
       // TODO: need to recalc taxes (below)
-      const { termPremium, termDays } = calcTerm(
+      const { termPremium: locationTermPremium, termDays } = calcTerm(
         annualPremium,
         effDateTS.toDate(),
         expDateTS.toDate()
       );
 
       const changesWithRating: Partial<ILocation> = {
-        termPremium,
+        termPremium: locationTermPremium,
         termDays,
       };
       info('CHANGES WITH RATING: ', changesWithRating);
 
+      let newPolicyChanges: DeepPartial<PolicyNew> = {
+        locations: {
+          [locationId]: {
+            termPremium: locationTermPremium,
+          },
+        },
+      };
+      const newLocations = deepmerge(policy.locations, {
+        [locationId]: { termPremium: locationTermPremium },
+      });
+      const policyTermPremium = sumPolicyTermPremium(
+        Object.values(newLocations) as PolicyWithTermPrem[]
+      );
+      console.log('NEW POLICY TERM PREMIUM: ', policyTermPremium);
+
+      newPolicyChanges['termPremium'] = policyTermPremium;
+
+      if (Object.keys(policy.locations).length === 1) {
+        newPolicyChanges['expirationDate'] = expDateTS;
+        newPolicyChanges['termDays'] = termDays;
+      }
+      console.log('POLICY CHANGES: ', newPolicyChanges);
+
       await changeRequestRef.set(
         {
-          changes: {
-            locations: {
-              [locationId]: changesWithRating,
-            },
+          locationChanges: {
+            ...changesWithRating,
           },
+          changes: newPolicyChanges, // TODO: rename changes --> policyChanges
           _lastCommitted: Timestamp.now(),
         },
         { merge: true }
       );
+
+      // await changeRequestRef.set(
+      //   {
+      //     changes: {
+      //       locations: {
+      //         [locationId]: changesWithRating,
+      //       },
+      //     },
+      //     _lastCommitted: Timestamp.now(),
+      //   },
+      //   { merge: true }
+      // );
       return;
     }
 
@@ -233,14 +276,14 @@ export async function handleRatingForEndorsement(
     info('LOCATION CHANGES WITH RATING: ', { locationChangesWithRating });
 
     // TODO: need to do term days (policy level) if only one location ??
-    const newLocations = [
+    const newLocationsSummaryArr = [
       ...Object.values(otherLocations),
-      { ...location, ...locationChangesWithRating },
+      { ...locationSummary, termPremium }, // { ...location, ...locationChangesWithRating },
     ];
 
-    const newPolicyTermPremium = sumPolicyTermPremium(newLocations);
-    const inStatePremium = getInStatePremium(policy.homeState, newLocations);
-    const outStatePremium = getOutStatePremium(policy.homeState, newLocations);
+    const newPolicyTermPremium = sumPolicyTermPremium(newLocationsSummaryArr);
+    const inStatePremium = getInStatePremium(policy.homeState, newLocationsSummaryArr);
+    const outStatePremium = getOutStatePremium(policy.homeState, newLocationsSummaryArr);
 
     // recalc taxes based on new term premium
     const newTaxes = recalcTaxes({

@@ -16,7 +16,7 @@ import {
 import { matchPath, useLocation } from 'react-router-dom';
 import { useAnalytics, useAuth as useFireAuth, useFunctions } from 'reactfire';
 
-import { CUSTOM_CLAIMS } from 'common';
+import { CLAIMS } from 'common';
 import { ReauthDialog } from 'components';
 import { useAlgoliaStore, usePrevious, useUserClaims } from 'hooks';
 import { UserWithClaimsResult } from 'hooks/useUserClaims';
@@ -27,12 +27,12 @@ import { AUTH_ROUTES, createPath } from 'router';
 // TODO: set up reducer & actions
 // https://www.youtube.com/watch?v=YmHEzjglRMk
 
-// export enum CUSTOM_CLAIMS {
+// export enum CLAIMS {
 //   ORG_ADMIN = 'orgAdmin',
 //   IDEMAND_ADMIN = 'iDemandAdmin',
 //   AGENT = 'agent',
 // }
-export type CustomClaimsInterface = Record<CUSTOM_CLAIMS, boolean> & IdTokenResult['claims'];
+export type CustomClaimsInterface = Record<CLAIMS, boolean> & IdTokenResult['claims'];
 
 interface AuthContextValue extends UserWithClaimsResult {
   getSecondsFromLastAuth: () => number | null;

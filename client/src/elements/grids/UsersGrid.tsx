@@ -20,7 +20,7 @@ import { useFirestore, useSigninCheck } from 'reactfire';
 
 import {
   COLLECTIONS,
-  CUSTOM_CLAIMS,
+  CLAIMS,
   ServerDataGridCollectionProps,
   User,
   WithId,
@@ -108,7 +108,7 @@ export const AdminManageUsersGrid = ({
     validateCustomClaims: hasAdminClaimsValidator,
   });
   const { data: iDAdminResult } = useSigninCheck({
-    requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true },
+    requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
   });
   const toast = useAsyncToast();
   const updateClaims = useUpdateClaims();
@@ -224,13 +224,8 @@ export const AdminManageUsersGrid = ({
         ...userClaimsCol,
         editable: signInResult.hasRequiredClaims,
         valueOptions: iDAdminResult.hasRequiredClaims
-          ? [
-              CUSTOM_CLAIMS.AGENT,
-              CUSTOM_CLAIMS.ORG_ADMIN,
-              CUSTOM_CLAIMS.IDEMAND_ADMIN,
-              'iDemandUser',
-            ]
-          : [CUSTOM_CLAIMS.AGENT, CUSTOM_CLAIMS.ORG_ADMIN],
+          ? [CLAIMS.AGENT, CLAIMS.ORG_ADMIN, CLAIMS.IDEMAND_ADMIN, 'iDemandUser']
+          : [CLAIMS.AGENT, CLAIMS.ORG_ADMIN],
         closeOnChange: true,
         renderEditCell: (params: GridRenderEditCellParams) => (
           <GridEditMultiSelectCell {...params} />

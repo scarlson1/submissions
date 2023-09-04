@@ -6,7 +6,7 @@ import { Functions, httpsCallable } from 'firebase/functions';
 import { useCallback, useMemo } from 'react';
 import { useFunctions, useSigninCheck } from 'reactfire';
 
-import { COLLECTIONS, CUSTOM_CLAIMS, INVITE_STATUS, Invite } from 'common';
+import { COLLECTIONS, CLAIMS, INVITE_STATUS, Invite } from 'common';
 import { ServerDataGrid, ServerDataGridProps } from 'components';
 import { useAsyncToast } from 'hooks';
 import { inviteCols } from 'modules/muiGrid';
@@ -29,7 +29,7 @@ export const InvitesGrid = ({ orgId, queryConstraints }: InvitesGridProps) => {
   const functions = useFunctions();
   const toast = useAsyncToast();
   const { data: signInRes } = useSigninCheck({
-    requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true },
+    requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
   });
 
   const props: Omit<ServerDataGridProps, 'columns'> = useMemo(() => {

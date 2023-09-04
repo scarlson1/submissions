@@ -9,7 +9,8 @@ import {
   calcTerm,
   changeRequestsCollection,
   getReportErrorFn,
-  policiesCollection,
+  locationsCollection,
+  policiesCollectionNew,
   verify,
 } from '../../common';
 import { getDoc } from '../../routes/utils';
@@ -32,14 +33,19 @@ export async function handleCancelRating(data: ChangeRequest, policyId: string, 
 
     const db = getFirestore();
     changeRequestRef = changeRequestsCollection(db, policyId).doc(requestId);
-    const policyRef = policiesCollection(db).doc(policyId);
+    const policyRef = policiesCollectionNew(db).doc(policyId);
 
     const policy = await getDoc(policyRef);
 
-    const { [locationId]: location, ...otherLocations } = policy.locations;
+    const { [locationId]: locationSummary, ...otherLocations } = policy.locations;
 
-    verify(location, `location not found on policy (Location ID: ${locationId})`);
-    verify(location.ratingDocId, 'missing location ratingDocId');
+    verify(locationSummary, `location not found on policy (Location ID: ${locationId})`);
+    // verify(location.ratingDocId, 'missing location ratingDocId');
+
+    const locationsColRef = locationsCollection(db);
+    const locationSnap = await locationsColRef.doc(locationId).get();
+    const location = locationSnap.exists ? locationSnap.data() : null;
+    verify(location, 'location doc not found');
 
     // Recalc location termPremium & termDays
     const { annualPremium, effectiveDate } = location;
@@ -58,7 +64,7 @@ export async function handleCancelRating(data: ChangeRequest, policyId: string, 
 
     const newLocations = [
       ...Object.values(otherLocations),
-      { ...location, ...locationRatingChanges },
+      { ...locationSummary, termPremium }, // { ...location, ...locationRatingChanges },
     ];
 
     // Recalc policy termPremium, taxes & price

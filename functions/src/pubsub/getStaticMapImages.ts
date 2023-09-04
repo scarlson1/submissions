@@ -7,7 +7,8 @@ import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 import { get, set } from 'lodash';
 import { tmpdir } from 'os';
 import path from 'path';
-import { v4 as uuid } from 'uuid';
+import sharp from 'sharp';
+import { encode } from 'blurhash';
 
 import {
   LocationImageTypes,
@@ -18,6 +19,8 @@ import {
   verify,
 } from '../common';
 import { downloadFromUrl } from '../modules/storage';
+import { createDocId } from '../modules/db';
+import { randomFileName } from '../utils';
 
 // TODO: add marker overlay ?? https://docs.mapbox.com/api/maps/static-images/#example-request-retrieve-a-static-map-with-a-marker-overlay
 
@@ -34,6 +37,18 @@ const MAPBOX_STYLES: { name: LocationImageTypes; style: string; zoom: number }[]
 
 const reportErr = getReportErrorFn('getStaticMapImages');
 
+const encodeImageToBlurhash = (path: string) =>
+  new Promise<string>((resolve, reject) => {
+    sharp(path)
+      .raw()
+      .ensureAlpha()
+      // .resize(32, 32, { fit: 'inside' })
+      .toBuffer((err, buffer, { width, height }) => {
+        if (err) return reject(err);
+        resolve(encode(new Uint8ClampedArray(buffer), width, height, 4, 4));
+      });
+  });
+
 export interface GetStaticMapImagesPayload {
   collection: string;
   docPath: string;
@@ -43,7 +58,9 @@ export interface GetStaticMapImagesPayload {
 // TODO: check if images already exist in doc before fetching new ones ??
 
 export default async (event: CloudEvent<MessagePublishedData<GetStaticMapImagesPayload>>) => {
-  info('LOCATION CANCEL EVENT - MSG JSON: ', { ...(event.data?.message?.json || {}) });
+  info('GET LOCATION STATIC MAP IMAGE EVENT - MSG JSON: ', {
+    ...(event.data?.message?.json || {}),
+  });
 
   let collection = null;
   let docPath = null;
@@ -92,7 +109,7 @@ export default async (event: CloudEvent<MessagePublishedData<GetStaticMapImagesP
         styleType.zoom
       },0,40/1200x720@2x?access_token=${mapboxPublicToken.value()}&logo=false`;
 
-      const tempFilePath = path.join(tmpdir(), `temp_mapbox_${styleType.name}.jpeg`);
+      const tempFilePath = path.join(tmpdir(), randomFileName('file.jpeg'));
       cleanUpTempPaths.push(tempFilePath);
 
       // Try catch needed ? throw will break out of loop
@@ -101,14 +118,43 @@ export default async (event: CloudEvent<MessagePublishedData<GetStaticMapImagesP
           responseType: 'stream',
         });
 
-        const fileId = uuid();
+        const fileId = createDocId();
         const initialMetadata = {
           metadata: {
-            // submissionId: snap.id, // TODO: include locationId once using "locations" collection
+            docId: docRef.id,
             firebaseStorageDownloadTokens: fileId,
             fileId,
           },
         };
+
+        let blurhash: string | null = null;
+        try {
+          blurhash = await encodeImageToBlurhash(tempFilePath);
+          console.log('BLUR HASH: ', blurhash);
+        } catch (err: any) {
+          console.log('Blurhash err: ', err);
+        }
+
+        // TODO: hash image
+        // https://stackoverflow.com/a/66812663
+        // https://github.com/woltapp/react-blurhash
+        // https://github.com/woltapp/blurhash/issues/43#issuecomment-597674435 (sharp --> resize)
+
+        // const { Canvas } = require('canvas');
+        // const { loadImage } = require('canvas');
+        // const blurH = require('blurhash');
+
+        // const imageWidth = 1000;
+        // const imageHeight = 1000;
+
+        // const canvas = new Canvas(imageWidth, imageHeight);
+        // const context = canvas.getContext('2d');
+        // const myImg = await loadImage(tempLocalFile);
+        // context.drawImage(myImg, 0, 0);
+        // const imageData = context.getImageData(0, 0, imageWidth, imageHeight);
+        // const hash = blurH.encode(imageData.data, imageWidth, imageHeight, 5, 5);
+
+        // getting height width: https://gist.github.com/rijkerd/80b77145ca3f7c8f256d5835c7f282b5
 
         const destinationPath = `locationMapImages/map_${styleType.name}_${fileId}.jpeg`;
         await bucket.upload(tempFilePath, {
@@ -125,6 +171,7 @@ export default async (event: CloudEvent<MessagePublishedData<GetStaticMapImagesP
 
         set(docUpdates, ['imagePaths', styleType.name], destinationPath);
         set(docUpdates, ['imageURLs', styleType.name], downloadURL);
+        if (blurhash) set(docUpdates, ['blurHash', styleType.name], blurhash);
       } catch (err: any) {
         if (cleanUpTempPaths.length > 0) {
           await clearTempFiles(cleanUpTempPaths);

@@ -5,12 +5,12 @@ import { toast } from 'react-hot-toast';
 
 // import { auth } from 'firebaseConfig';
 import { useAuth } from 'context/AuthContext';
-import { CUSTOM_CLAIMS } from 'common';
+import { CLAIMS } from 'common';
 import { AUTH_ROUTES, createPath } from 'router';
 
 // TODO: read for reference: https://adarshaacharya.com.np/blog/role-based-auth-with-react-router-v6
 
-type CustomClaimKeys = keyof typeof CUSTOM_CLAIMS;
+type CustomClaimKeys = keyof typeof CLAIMS;
 
 export interface RequireAuthProps {
   children: JSX.Element;
@@ -39,9 +39,9 @@ export const RequireAuth = ({
   useEffect(() => {
     if (requiredClaims && requiredClaims.length > 0) {
       // && !loadingInitial
-      // let notAuthorized = requiredClaims.every((key) => !claims[CUSTOM_CLAIMS[key]]);
+      // let notAuthorized = requiredClaims.every((key) => !claims[CLAIMS[key]]);
       let notAuthorized =
-        claims !== null ? requiredClaims.every((key) => !claims![CUSTOM_CLAIMS[key]]) : true;
+        claims !== null ? requiredClaims.every((key) => !claims![CLAIMS[key]]) : true;
 
       if (!!notAuthorized) {
         if (user && user.uid) {

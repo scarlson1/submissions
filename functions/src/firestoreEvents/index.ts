@@ -7,7 +7,7 @@ import {
   swissReClientSecret,
   swissReSubscriptionKey,
 } from '../common';
-export type { ClaimsDocData } from './mirrorCustomClaims.js';
+export type { ClaimsDocData } from './mirrorCustomClaims';
 
 export const getstaticsubmissionimg = onDocumentCreated(
   `${COLLECTIONS.SUBMISSIONS}/{submissionId}`,

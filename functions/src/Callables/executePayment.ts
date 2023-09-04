@@ -16,7 +16,7 @@ import {
   round,
 } from '../common';
 import { getEPayInstance } from '../services';
-import { publishMessage } from '../services/pubsub/publishMessage.js';
+import { publishMessage } from '../services/pubsub';
 import { onCallWrapper } from '../services/sentry';
 import { validate } from './utils';
 

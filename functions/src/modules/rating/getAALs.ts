@@ -13,10 +13,10 @@ import {
   maxA,
   maxBCD,
   minA,
-} from '../../common/index.js';
-import { getSwissReInstance } from '../../services/index.js';
-import { getRCVs } from './getRCVs.js';
-import { swissReBody } from './swissReBody.js';
+} from '../../common';
+import { getSwissReInstance } from '../../services';
+import { getRCVs } from './getRCVs';
+import { swissReBody } from './swissReBody';
 
 let swissReInstance: AxiosInstance | undefined;
 
