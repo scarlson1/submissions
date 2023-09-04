@@ -26,15 +26,15 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
+import { GridActionsCellItem, GridRowParams } from '@mui/x-data-grid';
 import { PickingInfo } from 'deck.gl/typed';
 import { where } from 'firebase/firestore';
-import { useCallback, useMemo, useState } from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
-import { GridActionsCellItem, GridRowParams } from '@mui/x-data-grid';
 import { isEmpty } from 'lodash';
+import { Suspense, useCallback, useMemo, useState } from 'react';
+import { useParams, useSearchParams } from 'react-router-dom';
 
 import { ILocation, Policy as IPolicy, POLICY_STATUS } from 'common';
-import { NotFound } from 'components';
+import { ErrorFallback, LoadingSpinner, NotFound } from 'components';
 import { IconMenu } from 'components/IconButtonMenu';
 import { LocationsMap, PolicyLocationCards } from 'elements';
 import {
@@ -56,6 +56,7 @@ import {
   formatPhoneNumber,
   stringAvatar,
 } from 'modules/utils';
+import { ErrorBoundary } from 'react-error-boundary';
 
 // TODO: make location card flip on hover to show additional details ??
 
@@ -300,49 +301,53 @@ export const Policy = () => {
             </ToggleButtonGroup>
           </Box>
         </Box>
-        {locationsView === 'cards' ? (
-          <>
-            <PolicyLocationCards policyId={policyId} onEdit={handleLocationChangeRequest} />
-          </>
-        ) : null}
-        {locationsView === 'grid' ? (
-          <LocationsGrid
-            constraints={locationConstraints}
-            renderActions={renderLocationGridActions}
-          />
-        ) : null}
-        {locationsView === 'map' ? (
-          <Card sx={{ height: 500, width: '100% ' }}>
-            <LocationsMap
-              data={locations}
-              layerProps={{ pickable: true }}
-              renderTooltipContent={(info: PickingInfo) => (
-                <Box sx={{ px: 2, borderRadius: 0.5 }}>
-                  <Typography variant='body2' fontWeight='fontWeightMedium'>
-                    {`${info.object?.address?.s1}, ${info.object?.address?.c}, ${info.object?.address?.st}`}
-                  </Typography>
-                  {info.object?.cancelEffDate ? (
-                    <Typography
-                      variant='body2'
-                      color='text.secondary'
-                    >{`Cancelled: ${formatFirestoreTimestamp(
-                      info.object?.cancelEffDate,
-                      'date'
-                    )}`}</Typography>
-                  ) : null}
+        <ErrorBoundary FallbackComponent={ErrorFallback}>
+          <Suspense fallback={<LoadingSpinner loading={true} />}>
+            {locationsView === 'cards' ? (
+              <>
+                <PolicyLocationCards policyId={policyId} onEdit={handleLocationChangeRequest} />
+              </>
+            ) : null}
+            {locationsView === 'grid' ? (
+              <LocationsGrid
+                constraints={locationConstraints}
+                renderActions={renderLocationGridActions}
+              />
+            ) : null}
+            {locationsView === 'map' ? (
+              <Card sx={{ height: 500, width: '100% ' }}>
+                <LocationsMap
+                  data={locations}
+                  layerProps={{ pickable: true }}
+                  renderTooltipContent={(info: PickingInfo) => (
+                    <Box sx={{ px: 2, borderRadius: 0.5 }}>
+                      <Typography variant='body2' fontWeight='fontWeightMedium'>
+                        {`${info.object?.address?.s1}, ${info.object?.address?.c}, ${info.object?.address?.st}`}
+                      </Typography>
+                      {info.object?.cancelEffDate ? (
+                        <Typography
+                          variant='body2'
+                          color='text.secondary'
+                        >{`Cancelled: ${formatFirestoreTimestamp(
+                          info.object?.cancelEffDate,
+                          'date'
+                        )}`}</Typography>
+                      ) : null}
 
-                  {/* <Typography variant='body2' color='text.secondary'>{`${formatFirestoreTimestamp(
+                      {/* <Typography variant='body2' color='text.secondary'>{`${formatFirestoreTimestamp(
                     info.object?.effectiveDate,
                     'date'
                   )} - ${formatFirestoreTimestamp(
                     info.object?.expirationDate,
                     'date'
                   )}`}</Typography> */}
-                </Box>
-              )}
-            />
-          </Card>
-        ) : null}
+                    </Box>
+                  )}
+                />
+              </Card>
+            ) : null}
+          </Suspense>
+        </ErrorBoundary>
       </Box>
       <Box sx={{ py: { xs: 3, md: 5, lg: 8 } }}>
         <Typography variant='body2' component='div' color='text.secondary'>

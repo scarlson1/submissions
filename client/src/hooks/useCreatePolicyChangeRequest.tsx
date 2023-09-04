@@ -68,7 +68,7 @@ export const useCreatePolicyChangeRequest = () => {
       const changeRequestJson: ChangeRequest = {
         ...common,
         trxType: 'amendment',
-        changes: amendmentChanges,
+        policyChanges: amendmentChanges,
       };
 
       let amendmentDocRef = await addDoc(colRef, { ...changeRequestJson });
@@ -150,8 +150,8 @@ export function formatChanges<T>(
 }
 
 const amendmentKeys = ['namedInsured', 'mailingAddress', 'homeState'];
-function missingAmendmentKeys(changes: ChangeRequest['changes']) {
-  return Object.keys(changes).every((k) => amendmentKeys.indexOf(k) === -1);
+function missingAmendmentKeys(changes: PolicyChangeRequest['policyChanges']) {
+  return Object.keys(changes || {}).every((k) => amendmentKeys.indexOf(k) === -1);
 }
 
 function getCommonTrxJson(

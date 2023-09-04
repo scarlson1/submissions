@@ -67,6 +67,12 @@ export const LocationCard = ({
               : location.imageURLs?.light) || fallbackImages[0]
           }
           title={`${location?.address?.addressLine1} map`}
+          // component={
+          //   <BlurrableImg
+          //     img={location.imageURLs?.light || fallbackImages[0]}
+          //     blurDataUrl={`LEHV6nWB2yk8pyo0adR*.7kCMdnj`}
+          //   />
+          // }
         >
           {onEdit ? (
             <Tooltip title='location change request'>

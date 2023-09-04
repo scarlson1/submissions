@@ -81,7 +81,7 @@ const Actions = ({ confirmButtonProps, confirmButtonText = 'submit' }: ActionsPr
             <slots.acceptButton
               onClick={handleSubmit}
               disabled={submitDisabled ?? false}
-              {...(confirmButtonProps || {})}
+              {...(confirmButtonProps || {})} // TODO: remove confirmButtonProps (action can be handled with onSubmit ??)
               {...(slotProps.acceptButton || {})}
             >
               {confirmButtonText}

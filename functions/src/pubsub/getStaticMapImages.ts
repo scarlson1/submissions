@@ -1,3 +1,4 @@
+import { encode } from 'blurhash';
 import { Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
 import { info } from 'firebase-functions/logger';
@@ -8,7 +9,6 @@ import { get, set } from 'lodash';
 import { tmpdir } from 'os';
 import path from 'path';
 import sharp from 'sharp';
-import { encode } from 'blurhash';
 
 import {
   LocationImageTypes,
@@ -18,15 +18,15 @@ import {
   storageBaseUrl,
   verify,
 } from '../common';
-import { downloadFromUrl } from '../modules/storage';
 import { createDocId } from '../modules/db';
+import { downloadFromUrl } from '../modules/storage';
 import { randomFileName } from '../utils';
 
 // TODO: add marker overlay ?? https://docs.mapbox.com/api/maps/static-images/#example-request-retrieve-a-static-map-with-a-marker-overlay
 
 const MAPBOX_STYLES: { name: LocationImageTypes; style: string; zoom: number }[] = [
   { name: 'light', style: 'mapbox/light-v11', zoom: 13 },
-  { name: 'dark', style: 'spencer-carlson/clkrsmyib01wz01qwdbujb4da', zoom: 13 }, // 'spencer-carlson/cl8dxgtum000w14qix5ft9gw5'
+  { name: 'dark', style: 'spencer-carlson/clkrsmyib01wz01qwdbujb4da', zoom: 13 },
   { name: 'satellite', style: 'mapbox/satellite-v9', zoom: 17 },
   {
     name: 'satelliteStreets',

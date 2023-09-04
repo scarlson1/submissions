@@ -30,8 +30,10 @@ import {
   ChangeRequest,
   WithId,
   changeRequestsCollection,
+  locationsCollection,
   policiesCollection,
 } from 'common';
+import { LoadingComponent } from 'components/layout';
 import { useAuth } from 'context';
 import {
   useAsyncToast,
@@ -42,7 +44,6 @@ import {
   useWidth,
 } from 'hooks';
 import { ChangeRequestsGrid } from './grids';
-import { LoadingComponent } from 'components/layout';
 
 export const useViewChangeRequestsDialogProps = (policyId?: string) => {
   const { claims, user, orgId } = useAuth();
@@ -53,7 +54,6 @@ export const useViewChangeRequestsDialogProps = (policyId?: string) => {
 
     if (policyId) {
       constraints.push(where('policyId', '==', policyId));
-      // return constraints;
     }
     if (claims?.iDemandAdmin) return constraints;
     if (claims?.orgAdmin && orgId) {
@@ -114,6 +114,18 @@ const useManageChangeRequest = (
     [firestore]
   );
 
+  const getLocation = useCallback(
+    async (locationId: string) => {
+      const ref = doc(locationsCollection(firestore), locationId);
+
+      const snap = await getDoc(ref);
+      const data = snap.data();
+      if (!snap.exists || !data) throw new Error('location not found');
+      return data;
+    },
+    [firestore]
+  );
+
   const getRequest = useCallback(
     async (policyId: string, requestId: string) => {
       const ref = doc(changeRequestsCollection(firestore, policyId), requestId);
@@ -133,15 +145,31 @@ const useManageChangeRequest = (
         const requestReq = getRequest(policyId, requestId);
         const [policy, request] = await Promise.all([policyReq, requestReq]);
 
-        const merged = merge({ '@': 'ignore me' }, policy, request.changes || {});
+        let before: Record<string, any> = {
+          policy,
+        };
+        let after: Record<string, any> = {};
 
-        compareJson(policy, merged, 'Change Request Diff');
+        const policyMerged = merge({ '@': 'ignore me' }, policy, request.policyChanges || {});
+
+        after['policy'] = policyMerged;
+
+        if (request.scope === 'location') {
+          let location = await getLocation(request.locationId);
+          let locationMerged = merge({ '@': 'ignore me' }, location, request.locationChanges || {});
+
+          before['location'] = location;
+          after['location'] = locationMerged;
+        }
+
+        // compareJson(policy, policyMerged, 'Change Request Diff');
+        compareJson(before, after, 'Change Request Diff');
       } catch (err: any) {
         console.log('Error previewing policy diff', err);
         if (onError) onError();
       }
     },
-    [getRequest, getPolicy, onError, compareJson]
+    [getRequest, getPolicy, getLocation, onError, compareJson]
   );
 
   const approveRequest = useCallback(
@@ -194,33 +222,6 @@ const useManageChangeRequest = (
     },
     [firestore, user, toast, onSuccess, onError]
   );
-
-  // const updateChangeRequest = useCallback(
-  //   async (policyId: string, requestId: string, status: ChangeRequestStatus) => {
-  //     try {
-  //       if (!user?.uid) throw new Error('must be signed in');
-  //       // TODO: prompt for uw notes
-  //       const docRef = doc(changeRequestsCollection(firestore, policyId), requestId);
-
-  //       toast.loading('updating...');
-  //       await updateDoc(docRef, {
-  //         status,
-  //         processedByUserId: user.uid,
-  //         processedTimestamp: Timestamp.now(),
-  //         underwriterNotes: null, // @ts-ignore
-  //         'metadata.updated': Timestamp.now(),
-  //       });
-
-  //       toast.success('request updated!');
-  //       if (onSuccess) onSuccess();
-  //     } catch (err: any) {
-  //       console.log('error updating status: ', err);
-  //       toast.error('an error occurred');
-  //       if (onError) onError();
-  //     }
-  //   },
-  //   [firestore, user, toast, onSuccess, onError]
-  // );
 
   const denyRequest = useCallback(
     (policyId: string, requestId: string) =>

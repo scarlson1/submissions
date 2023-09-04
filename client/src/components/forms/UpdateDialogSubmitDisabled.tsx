@@ -1,8 +1,10 @@
-import { useEffect } from 'react';
 import { useFormikContext } from 'formik';
+import { useEffect } from 'react';
 import invariant from 'tiny-invariant';
 
 import { useDialog } from 'hooks';
+
+// CAUSES BUG:
 
 export function UpdateDialogSubmitDisabled() {
   const formikContext = useFormikContext();
@@ -16,8 +18,10 @@ export function UpdateDialogSubmitDisabled() {
   useEffect(() => {
     const disable = !isValid || isSubmitting || isValidating;
     // console.log('DISABLE: ', disable);
-    // console.log('valid, sub, valing: ', isValid, isSubmitting, isValidating);
+    // console.log('valid, sub, validating: ', isValid, isSubmitting, isValidating);
     if (disable !== dialog.submitDisabled) dialog?.setDisabled(disable);
+
+    return () => dialog?.setDisabled(false);
   }, [isValid, isSubmitting, isValidating, dialog]);
   return null;
 }

@@ -5,7 +5,7 @@ import 'react-diff-view/style/index.css';
 // @ts-ignore
 import { diffJson, formatLines } from 'unidiff';
 
-import { useWidth, useDialog } from 'hooks';
+import { useDialog, useWidth } from 'hooks';
 
 export const useCompareJson = (onError?: () => void) => {
   const dialog = useDialog();
@@ -14,8 +14,8 @@ export const useCompareJson = (onError?: () => void) => {
   const compare = useCallback(
     async (before: Record<string, any>, after: Record<string, any>, title: string = 'Compare') => {
       try {
-        const difftest = diffJson(before, after);
-        const diffText = formatLines(difftest, { context: 200 });
+        const diffTest = diffJson(before, after);
+        const diffText = formatLines(diffTest, { context: 200 });
         const [diff] = parseDiff(diffText, { nearbySequences: 'zip' });
 
         await dialog?.prompt({

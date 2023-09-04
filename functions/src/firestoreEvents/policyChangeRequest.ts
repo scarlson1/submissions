@@ -89,6 +89,7 @@ export default async (
         return;
     }
   } catch (err: any) {
+    console.log('ERROR: ', err);
     const errMsg = `error handling policy change request status change (${
       err?.message || 'unknown'
     })`;
@@ -110,7 +111,13 @@ async function handleRequestNotifications(
       to.push('ron.carlson@idemandinsurance.com');
     const sgKey = sendgridApiKey.value();
 
-    const link = `${process.env.HOSTING_BASE_URL}/policies/${policyId}`; // TODO: update url once client change request url is set
+    const link = `${process.env.HOSTING_BASE_URL}/policies/${policyId}`; // TODO: update url once client change request url is set (instead of dialog)
+
+    let changes = {};
+    if (data.scope === 'location') {
+      changes = { ...(data.locationChanges || {}) };
+    }
+    if (data.policyChanges) changes = { ...changes, ...(data.policyChanges || {}) };
 
     await sendAdminChangeRequestNotification(
       sgKey,
@@ -118,9 +125,7 @@ async function handleRequestNotifications(
       link,
       `policy change (${data.trxType})`,
       requestId,
-      {
-        ...(data.changes || {}),
-      },
+      changes,
       {
         customArgs: {
           firebaseEventId: eventId,
@@ -253,7 +258,8 @@ async function handleAcceptedRequest(data: ChangeRequest, policyId: string) {
     const errMsg = `Error publishing change request accepted pubsub event`;
     // TODO: set error message
     // setChangeRequestErr(requestRef, errMsg);
-    error(errMsg, { ...err });
+    reportErr(errMsg, {}, err);
+    // error(errMsg, { ...err });
   }
 
   return;

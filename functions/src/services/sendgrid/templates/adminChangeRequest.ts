@@ -1,3 +1,5 @@
+import { isObject } from 'lodash';
+
 interface AdminChangeRequestProps {
   link: string;
   toName?: string | null;
@@ -26,7 +28,12 @@ export const adminChangeRequest = ({
             <p>RecordId: ${entityId}</p>
             <p>Changes:</p>
             <ul>
-              ${Object.keys(changes).map((key) => `<li>${key} --> ${changes[key]}</li>`)}
+              ${Object.keys(changes).map(
+                (key) =>
+                  `<li key={${key}}>${key} --> ${
+                    isObject(changes[key]) ? JSON.stringify(changes[key], null, 2) : changes[key]
+                  }</li>`
+              )}
             </ul>
             <div>
               <a href='${link}'>

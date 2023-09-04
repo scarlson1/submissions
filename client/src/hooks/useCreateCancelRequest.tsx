@@ -1,16 +1,10 @@
-import { useCallback, useRef } from 'react';
 import { Typography } from '@mui/material';
 import { Timestamp, addDoc, doc } from 'firebase/firestore';
-import { useFirestore } from 'reactfire';
 import { FormikHelpers, FormikProps } from 'formik';
+import { useCallback, useRef } from 'react';
+import { useFirestore } from 'reactfire';
 import invariant from 'tiny-invariant';
 
-import { useAsyncToast } from './useAsyncToast';
-import { useAuth } from 'context';
-import { CancelForm, CancelFormProps, CancelValues } from 'elements/forms';
-import { useDialogForm } from './useDialogForm';
-import { RouterLink } from 'components/layout';
-import { ROUTES, createPath } from 'router';
 import {
   CHANGE_REQUEST_STATUS,
   Policy,
@@ -19,7 +13,13 @@ import {
   changeRequestsCollection,
   policiesCollection,
 } from 'common';
+import { RouterLink } from 'components/layout';
+import { useAuth } from 'context';
+import { CancelForm, CancelFormProps, CancelValues } from 'elements/forms';
 import { getData } from 'modules/utils';
+import { ROUTES, createPath } from 'router';
+import { useAsyncToast } from './useAsyncToast';
+import { useDialogForm } from './useDialogForm';
 
 export const useCreateCancelRequest = (
   onSuccess?: () => void,
@@ -31,11 +31,11 @@ export const useCreateCancelRequest = (
   const formRef = useRef<FormikProps<CancelValues>>(null);
   const policy = useRef<WithId<Policy> | null>(null);
 
-  // allow errors to propogate to onError in dialog context ??
+  // allow errors to propagate to onError in dialog context ??
   const handleSubmit = useCallback(
     async (values: CancelValues, bag: FormikHelpers<CancelValues>) => {
       toast.loading('saving cancellation request...');
-      console.log('values: ', values);
+
       invariant(policy.current, 'form error - missing policy data');
       let p = policy.current;
       const userId = user?.uid;
@@ -47,7 +47,6 @@ export const useCreateCancelRequest = (
         requestEffDate: Timestamp.fromDate(values.requestEffDate),
         cancelReason: values.reason,
         formValues: values,
-        changes: {},
         policyId: p.id,
         userId,
         agent: {

@@ -1,13 +1,13 @@
+import { deepmerge } from 'deepmerge-ts';
 import { DocumentReference, Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
-import { deepmerge } from 'deepmerge-ts';
 
+import { isObject } from 'lodash';
 import {
   CHANGE_REQUEST_STATUS,
   ChangeRequest,
   DeepPartial,
   ILocation,
-  Policy,
   PolicyNew,
   ValueByRiskType,
   calcTerm,
@@ -23,6 +23,7 @@ import {
   verify,
 } from '../../common';
 import { getDoc } from '../../routes/utils';
+import { createDocId } from '../db';
 import {
   GetAALRes,
   GetPremiumProps,
@@ -36,7 +37,6 @@ import {
   validateRCVs,
 } from '../rating';
 import { getInStatePremium, getOutStatePremium, recalcTaxes } from './taxes';
-import { isObject } from 'lodash';
 
 const SR_CALL_REQUIRED_KEYS = ['limits', 'deductible'];
 
@@ -56,11 +56,6 @@ export async function handleRatingForEndorsement(
     );
 
     const { locationChanges, locationId } = data; //  changes,
-    // const locationsUpdates = changes?.locations; // TODO: remove check once updating to new locations col
-    // verify(
-    //   locationsUpdates && locationsUpdates[locationId],
-    //   `no changes found on "changes" property for ${locationId}`
-    // );
 
     const db = getFirestore();
     const locationsCol = locationsCollection(db);
@@ -72,13 +67,11 @@ export async function handleRatingForEndorsement(
     const { [locationId]: locationSummary, ...otherLocations } = policy.locations;
 
     verify(locationSummary, `location not found on policy (Location ID: ${locationId})`);
-    // verify(location.ratingDocId, 'missing location ratingDocId'); // old policy interface
 
     const locationSnap = await locationsCol.doc(locationId).get();
     const location = locationSnap.exists ? locationSnap.data() : null;
     verify(location, `location document not found (${locationId})`);
 
-    // const locationChanges = locationsUpdates[locationId];
     verify(locationChanges && isObject(locationChanges));
     const changesKeys = Object.keys(locationChanges);
 
@@ -140,23 +133,12 @@ export async function handleRatingForEndorsement(
           locationChanges: {
             ...changesWithRating,
           },
-          changes: newPolicyChanges, // TODO: rename changes --> policyChanges
+          policyChanges: newPolicyChanges,
           _lastCommitted: Timestamp.now(),
         },
         { merge: true }
       );
 
-      // await changeRequestRef.set(
-      //   {
-      //     changes: {
-      //       locations: {
-      //         [locationId]: changesWithRating,
-      //       },
-      //     },
-      //     _lastCommitted: Timestamp.now(),
-      //   },
-      //   { merge: true }
-      // );
       return;
     }
 
@@ -231,7 +213,9 @@ export async function handleRatingForEndorsement(
       ...(AALsRes?.RCVs || {}),
     };
 
-    const ratingDocRef = await ratingCol.add({
+    const ratingDocRef = ratingCol.doc(createDocId());
+
+    await ratingDocRef.set({
       submissionId: prevRatingData?.submissionId || null,
       locationId,
       deductible: locationChanges.deductible || deductible,
@@ -278,7 +262,7 @@ export async function handleRatingForEndorsement(
     // TODO: need to do term days (policy level) if only one location ??
     const newLocationsSummaryArr = [
       ...Object.values(otherLocations),
-      { ...locationSummary, termPremium }, // { ...location, ...locationChangesWithRating },
+      { ...locationSummary, termPremium },
     ];
 
     const newPolicyTermPremium = sumPolicyTermPremium(newLocationsSummaryArr);
@@ -297,21 +281,22 @@ export async function handleRatingForEndorsement(
     const newPrice = sumFeesTaxesPremium(policy.fees, newTaxes, newPolicyTermPremium);
 
     // TODO: set values in regular changes once schema updated
-    const otherChangesOnceStoringAtPolicyLevel: Partial<Policy> = {
+    const policyChanges: DeepPartial<PolicyNew> = {
       termPremium: newPolicyTermPremium,
       inStatePremium,
       outStatePremium,
       taxes: newTaxes,
       price: newPrice,
+      locations: {
+        [locationId]: {
+          termPremium,
+        },
+      },
     };
 
     const updates: Partial<ChangeRequest> = {
-      changes: {
-        locations: {
-          [locationId]: locationChangesWithRating,
-        },
-        ...otherChangesOnceStoringAtPolicyLevel,
-      },
+      locationChanges: locationChangesWithRating,
+      policyChanges,
       _lastCommitted: Timestamp.now(),
       // @ts-ignore
       metadata: {

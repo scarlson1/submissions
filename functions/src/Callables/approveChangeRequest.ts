@@ -1,13 +1,15 @@
 // import { deepmerge } from 'deepmerge-ts';
 import { Timestamp, getFirestore } from 'firebase-admin/firestore';
-import { error, info } from 'firebase-functions/logger';
+import { info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 
 import {
   CHANGE_REQUEST_STATUS,
+  ILocation,
   Policy,
   changeRequestsCollection,
   getReportErrorFn,
+  locationsCollection,
   policiesCollection,
   verify,
 } from '../common';
@@ -47,26 +49,74 @@ const approveChangeRequest = async ({ data, auth }: CallableRequest<ApproveReque
   try {
     verify(request.scope, 'missing "scope" field on request doc');
     if (request.trxType === 'endorsement') {
-      const keys = Object.keys(request.changes);
-      verify(keys.includes('termPremium'), 'endorsement change must have new "termPremium" value');
+      if (request.scope === 'location') {
+        const keys = Object.keys(request.locationChanges);
+        verify(
+          keys.includes('termPremium'),
+          'endorsement change must have new "termPremium" value'
+        );
+      }
+      const policyKeys = Object.keys(request?.policyChanges || {});
+      verify(
+        policyKeys.includes('termPremium'),
+        'endorsement change missing policy "termPremium"  recalc'
+      );
     }
   } catch (err: any) {
-    error('Error - change request approval validation failed', {
-      err,
-      policyId,
-      requestId,
-    });
+    reportErr(
+      'Error - change request approval validation failed',
+      {
+        err,
+        policyId,
+        requestId,
+      },
+      err
+    );
     let msg = err?.message || 'change validation failed';
     throw new HttpsError('failed-precondition', msg);
   }
 
+  let locationRef;
+  if (request.scope === 'location') {
+    try {
+      locationRef = locationsCollection(db).doc(request.locationId);
+      let locationSnap = await locationRef.get();
+      verify(locationSnap.exists);
+    } catch (err: any) {
+      let msg = `location record not found`;
+      reportErr(
+        msg,
+        {
+          err,
+          policyId,
+          requestId,
+        },
+        err
+      );
+      throw new HttpsError('not-found', msg);
+    }
+  }
+
   try {
-    info(`Updating policy with changes (requestId: ${requestId})`, { ...request });
+    info(`Updating policy (${policyId}) with changes (requestId: ${requestId})`, { ...request });
     const batch = db.batch();
 
-    batch.set(policyRef, { ...request.changes, metadata: { updated: Timestamp.now() } } as Policy, {
-      merge: true,
-    });
+    if (request.scope === 'location') {
+      verify(locationRef);
+      batch.set(
+        locationRef,
+        { ...request.locationChanges, metadata: { updated: Timestamp.now() } } as ILocation,
+        { merge: true }
+      );
+    }
+
+    batch.set(
+      policyRef,
+      { ...request.policyChanges, metadata: { updated: Timestamp.now() } } as Policy,
+      {
+        merge: true,
+      }
+    );
 
     batch.update(requestRef, {
       status: CHANGE_REQUEST_STATUS.ACCEPTED,
@@ -79,7 +129,7 @@ const approveChangeRequest = async ({ data, auth }: CallableRequest<ApproveReque
     await batch.commit();
 
     info(`Policy changes merged (policy: ${policyId}; request: ${requestId})`, {
-      changes: request.changes,
+      policyChanges: request.policyChanges || null,
       policyId,
       requestId,
     });

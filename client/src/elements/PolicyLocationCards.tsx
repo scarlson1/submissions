@@ -99,6 +99,11 @@ export const PolicyLocationCards = ({ policyId, pageSize, ...props }: PolicyLoca
     loadMore,
   } = useInfiniteDocs<ILocation>('LOCATIONS', [where('policyId', '==', policyId)], pageSize);
 
+  // const blurLocation = useMemo(() => {
+  //   if (!locations[0]) return null;
+  //   return { ...(locations[0] || {}), imageUrls: locations[0].blurHash || {} };
+  // }, [locations]);
+
   return (
     <Grid container rowSpacing={4} columnSpacing={6}>
       {locations.map((l: WithId<ILocation>) => (
@@ -108,9 +113,17 @@ export const PolicyLocationCards = ({ policyId, pageSize, ...props }: PolicyLoca
       ))}
       <Grid xs={12}>
         {locations.length < docCount ? <Button onClick={loadMore}>Load more</Button> : null}
-
-        {/* <Typography variant='subtitle2'>{`status: ${status}`}</Typography> */}
       </Grid>
+      {/* {blurLocation && (
+        <Blurhash
+          hash='LEHV6nWB2yk8pyo0adR*.7kCMdnj'
+          width={400}
+          height={300}
+          resolutionX={32}
+          resolutionY={32}
+          punch={1}
+        />
+      )} */}
     </Grid>
   );
 };

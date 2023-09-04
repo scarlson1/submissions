@@ -827,8 +827,8 @@ interface BaseChangeRequest extends BaseDoc {
 export interface LocationChangeRequest extends BaseChangeRequest {
   trxType: ChangeRequestTrxType;
   scope: 'location';
-  // changes: Partial<ILocation>;
-  changes: DeepPartial<Policy>; // Partial<Policy>;
+  policyChanges?: DeepPartial<Policy>; // TODO: rename policyChanges
+  locationChanges: DeepPartial<ILocation>;
   formValues: LocationChangeValues;
   locationId: string;
   externalId?: string | null;
@@ -836,16 +836,17 @@ export interface LocationChangeRequest extends BaseChangeRequest {
 }
 
 export interface LocationCancellationRequest
-  extends Omit<LocationChangeRequest, 'formValues' | 'changes'> {
+  extends Omit<LocationChangeRequest, 'formValues' | 'locationChanges'> {
   trxType: 'cancellation' | 'flat_cancel';
   cancelReason: CancellationReason;
   formValues: CancelValues;
-  changes: {};
+  policyChanges?: DeepPartial<Policy>;
+  locationChanges?: DeepPartial<ILocation>; // cancelEffDate ?? (or only in policy ??)
 }
 
 export interface PolicyChangeRequest extends BaseChangeRequest {
   scope: 'policy';
-  changes: Partial<Policy>;
+  policyChanges?: DeepPartial<Policy>;
   formValues: PolicyChangeValues;
   cancelReason?: CancellationReason;
 }
@@ -854,7 +855,6 @@ export interface PolicyCancellationRequest extends Omit<PolicyChangeRequest, 'fo
   trxType: 'cancellation' | 'flat_cancel';
   cancelReason: CancellationReason;
   formValues: CancelValues;
-  changes: {};
 }
 
 // TODO: uncomment
