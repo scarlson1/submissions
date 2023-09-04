@@ -21,7 +21,7 @@ import { LocationCard } from './LocationCard';
 
 const useInfiniteDocs = <T,>(
   colName: keyof typeof COLLECTIONS,
-  constraints: QueryConstraint[], // QueryFieldFilterConstraint
+  constraints: QueryConstraint[],
   pageSize: number = 4,
   pathSegments: string[] = []
 ): any => {
@@ -46,6 +46,7 @@ const useInfiniteDocs = <T,>(
 
   const getRecords = useCallback(async () => {
     try {
+      console.log('get records called');
       if (docCount && data.length >= docCount) {
         toast('no more data');
         return;
