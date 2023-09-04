@@ -15,7 +15,7 @@ import { useFirestore, useSigninCheck } from 'reactfire';
 import invariant from 'tiny-invariant';
 
 import {
-  CUSTOM_CLAIMS,
+  CLAIMS,
   licensesCollection,
   Quote,
   QUOTE_STATUS,
@@ -35,7 +35,7 @@ export const useCreateQuote = (
 ) => {
   const firestore = useFirestore();
   const { data: signInCheckResult } = useSigninCheck({
-    requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true },
+    requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
   });
   const sendEmailNotifications = useSendQuoteNotification();
 

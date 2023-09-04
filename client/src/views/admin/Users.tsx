@@ -5,7 +5,7 @@ import { where } from 'firebase/firestore';
 import { useCallback } from 'react';
 import { useSigninCheck } from 'reactfire';
 
-import { COLLECTIONS, CUSTOM_CLAIMS, User } from 'common';
+import { COLLECTIONS, CLAIMS, User } from 'common';
 import InputDialog from 'components/InputDialog';
 import { useConfirmation } from 'context';
 import { UsersGrid } from 'elements/grids';
@@ -13,7 +13,7 @@ import { useAsyncToast, useMoveUserToTenant, useShowJson } from 'hooks';
 
 export const Users = () => {
   const { status, data: signInCheckResult } = useSigninCheck({
-    requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true },
+    requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
     suspense: false,
   });
   const confirm = useConfirmation();

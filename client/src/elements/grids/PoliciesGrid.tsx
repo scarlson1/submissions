@@ -6,7 +6,7 @@ import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { useSigninCheck } from 'reactfire';
 
-import { CUSTOM_CLAIMS, Policy, POLICY_STATUS, ServerDataGridCollectionProps } from 'common';
+import { CLAIMS, Policy, POLICY_STATUS, ServerDataGridCollectionProps } from 'common';
 import { ServerDataGrid } from 'components';
 import { policyCols, statusCol } from 'modules/muiGrid/gridColumnDefs';
 import { createPath, ROUTES } from 'router';
@@ -17,7 +17,7 @@ export const PoliciesGrid = ({ renderActions = () => [], ...props }: PoliciesGri
   const navigate = useNavigate();
 
   const { status: claimsCheckStatus, data: iDAdminResult } = useSigninCheck({
-    requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true },
+    requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
   });
 
   const viewPolicyDoc = useCallback(

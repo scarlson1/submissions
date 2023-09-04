@@ -1,10 +1,10 @@
 import { Functions, httpsCallable } from 'firebase/functions';
-import { CUSTOM_CLAIMS } from 'common';
+import { CLAIMS } from 'common';
 
 export interface NewUser {
   email: string;
   name: string;
-  access: CUSTOM_CLAIMS | '';
+  access: CLAIMS | '';
 }
 
 export interface InviteUsersRequest {

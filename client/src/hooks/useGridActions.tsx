@@ -1,12 +1,20 @@
-import { useCallback } from 'react';
+import { ReactElement, useCallback } from 'react';
 import { GridActionsCellItem, GridActionsCellItemProps, GridRowParams } from '@mui/x-data-grid';
 import { Tooltip } from '@mui/material';
-import { FloodRounded, MapRounded } from '@mui/icons-material';
+import { DataObject, FloodRounded, MapRounded } from '@mui/icons-material';
+import { DocumentData } from 'firebase/firestore';
 
 import { Submission } from 'common';
 import { useFloodFactor } from './useFloodFactor';
 import { useWidth } from './useWidth';
 import { openGoogleMaps } from 'modules/utils';
+import { useShowJson } from './useShowJson';
+import {
+  SignInCheckOptionsBasic,
+  SignInCheckOptionsClaimsObject,
+  SignInCheckOptionsClaimsValidator,
+  useSigninCheck,
+} from 'reactfire';
 
 type ActionOptions = Omit<Partial<GridActionsCellItemProps>, 'onClick' | 'label' | 'icon'>;
 
@@ -72,4 +80,45 @@ export const useGridActions = (onError?: (msg: string) => void) => {
   );
 
   return { googleMapsAction, floodFactorAction };
+};
+
+export const useGridShowJson = <T extends DocumentData>(
+  colName: string,
+  options?: ActionOptions,
+  signInCheckOptions?:
+    | SignInCheckOptionsBasic
+    | SignInCheckOptionsClaimsObject
+    | SignInCheckOptionsClaimsValidator
+    | undefined
+): ((params: GridRowParams) => ReactElement<GridActionsCellItemProps>[]) => {
+  const { data } = useSigninCheck(signInCheckOptions);
+  const showJson = useShowJson<T>(colName);
+
+  const handleShowJson = useCallback(
+    (params: GridRowParams) => () => {
+      showJson(params.id.toString()); // , `${params.row.policyId}/${COLLECTIONS.CHANGE_REQUESTS}`
+    },
+    [showJson]
+  );
+
+  const renderActions = useCallback(
+    (params: GridRowParams) => [
+      // @ts-ignore
+      <GridActionsCellItem
+        onClick={handleShowJson(params)}
+        icon={
+          <Tooltip title='Show JSON' placement='top'>
+            <DataObject />
+          </Tooltip>
+        }
+        label='Show JSON'
+        {...(options || {})}
+      />,
+    ],
+    [handleShowJson, options]
+  );
+
+  if (!data.hasRequiredClaims) return () => [];
+
+  return renderActions;
 };

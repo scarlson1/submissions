@@ -7,7 +7,7 @@ import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFirestore, useSigninCheck } from 'reactfire';
 
-import { AGENCY_SUBMISSION_STATUS, COLLECTIONS, CUSTOM_CLAIMS } from 'common';
+import { AGENCY_SUBMISSION_STATUS, COLLECTIONS, CLAIMS } from 'common';
 import { IconButtonMenu } from 'components';
 import { useConfirmation } from 'context';
 import { AgencyAppsGrid } from 'elements/grids';
@@ -21,7 +21,7 @@ export const AgencyApps = () => {
   const toast = useAsyncToast();
   const confirm = useConfirmation();
   const { data: authCheck } = useSigninCheck({
-    requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true },
+    requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
   });
 
   const { confirmAndSend } = useSendAgencyAppNotification(null, (errMsg: string) =>

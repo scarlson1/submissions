@@ -14,10 +14,10 @@ import { IdTokenResult, signInAnonymously } from 'firebase/auth';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 
-import { CUSTOM_CLAIMS } from 'common';
+import { CLAIMS } from 'common';
 import { AUTH_ROUTES, createPath } from 'router';
 
-export type CustomClaimKeys = keyof typeof CUSTOM_CLAIMS;
+export type CustomClaimKeys = keyof typeof CLAIMS;
 
 export interface RequireAuthReactFireProps {
   children: JSX.Element;
@@ -111,7 +111,7 @@ export const getRequiredClaimValidator =
 
     // If user has any of the requiredClaims, they're authorized
     requiredClaims.forEach((key) => {
-      const claim = CUSTOM_CLAIMS[key];
+      const claim = CLAIMS[key];
       if (!!userClaims[claim]) notAuthorized = false;
     });
 

@@ -7,6 +7,8 @@ import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 import { get, set } from 'lodash';
 import { tmpdir } from 'os';
 import path from 'path';
+import sharp from 'sharp';
+import { encode } from 'blurhash';
 
 import {
   LocationImageTypes,
@@ -34,6 +36,18 @@ const MAPBOX_STYLES: { name: LocationImageTypes; style: string; zoom: number }[]
 ];
 
 const reportErr = getReportErrorFn('getStaticMapImages');
+
+const encodeImageToBlurhash = (path: string) =>
+  new Promise<string>((resolve, reject) => {
+    sharp(path)
+      .raw()
+      .ensureAlpha()
+      // .resize(32, 32, { fit: 'inside' })
+      .toBuffer((err, buffer, { width, height }) => {
+        if (err) return reject(err);
+        resolve(encode(new Uint8ClampedArray(buffer), width, height, 4, 4));
+      });
+  });
 
 export interface GetStaticMapImagesPayload {
   collection: string;
@@ -113,9 +127,18 @@ export default async (event: CloudEvent<MessagePublishedData<GetStaticMapImagesP
           },
         };
 
+        let blurhash: string | null = null;
+        try {
+          blurhash = await encodeImageToBlurhash(tempFilePath);
+          console.log('BLUR HASH: ', blurhash);
+        } catch (err: any) {
+          console.log('Blurhash err: ', err);
+        }
+
         // TODO: hash image
         // https://stackoverflow.com/a/66812663
         // https://github.com/woltapp/react-blurhash
+        // https://github.com/woltapp/blurhash/issues/43#issuecomment-597674435 (sharp --> resize)
 
         // const { Canvas } = require('canvas');
         // const { loadImage } = require('canvas');
@@ -148,6 +171,7 @@ export default async (event: CloudEvent<MessagePublishedData<GetStaticMapImagesP
 
         set(docUpdates, ['imagePaths', styleType.name], destinationPath);
         set(docUpdates, ['imageURLs', styleType.name], downloadURL);
+        if (blurhash) set(docUpdates, ['blurHash', styleType.name], blurhash);
       } catch (err: any) {
         if (cleanUpTempPaths.length > 0) {
           await clearTempFiles(cleanUpTempPaths);

@@ -150,7 +150,8 @@ const useActiveEvents = () => {
   const getData = useCallback(async (params: Record<string, any> = {}) => {
     // eventTypes?: string[]
     try {
-      const { data: res } = await axios.get(`https://api.weather.gov/alerts/active?area=FL`, {
+      const { data: res } = await axios.get(`https://api.weather.gov/alerts/active`, {
+        // ?area=FL
         params,
       });
       console.log('DATA: ', res);

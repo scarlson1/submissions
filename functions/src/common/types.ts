@@ -675,7 +675,7 @@ export interface ILocation {
   cancelReason?: CancellationReason | null;
   imageURLs?: LocationImages | null;
   imagePaths?: LocationImages | null;
-  imageHash?: LocationImages | null;
+  blurHash?: LocationImages | null;
   locationId: string;
   policyId?: string;
   externalId?: string | null;

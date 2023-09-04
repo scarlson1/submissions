@@ -37,7 +37,7 @@ export const useManageImports = (
         });
 
         setLoading((prev) => ({ ...prev, approve: false }));
-        onSuccess && onSuccess(`imported ${data.successCount} records`);
+        onSuccess && onSuccess(`imported ${data.successCount} record(s)`);
       } catch (err: any) {
         console.log('Error: ', err);
         setLoading((prev) => ({ ...prev, approve: false }));

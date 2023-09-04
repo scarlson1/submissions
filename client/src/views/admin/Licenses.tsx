@@ -5,7 +5,7 @@ import { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSigninCheck } from 'reactfire';
 
-import { CUSTOM_CLAIMS } from 'common';
+import { CLAIMS } from 'common';
 import { ServerDataGrid } from 'components';
 import { licenseCols } from 'modules/muiGrid/gridColumnDefs';
 import { ADMIN_ROUTES, createPath } from 'router';
@@ -13,7 +13,7 @@ import { ADMIN_ROUTES, createPath } from 'router';
 export const Licenses = () => {
   const navigate = useNavigate();
   const { data: isAdminResult } = useSigninCheck({
-    requiredClaims: { [CUSTOM_CLAIMS.IDEMAND_ADMIN]: true },
+    requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
   });
 
   const handleEdit = useCallback(

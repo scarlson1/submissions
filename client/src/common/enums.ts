@@ -118,7 +118,7 @@ export enum DEDUCTIBLE_OPTIONS {
   abs = 'absolute',
 }
 
-export enum CUSTOM_CLAIMS {
+export enum CLAIMS {
   ORG_ADMIN = 'orgAdmin',
   IDEMAND_ADMIN = 'iDemandAdmin',
   AGENT = 'agent',
