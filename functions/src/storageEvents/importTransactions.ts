@@ -105,17 +105,6 @@ export default async (event: StorageEvent) => {
 
       const trxRef = await importStagingCol.add(data);
 
-      // const data = {
-      //   ...t,
-      //   eventId: event.id,
-      //   metadata: {
-      //     created: Timestamp.now(),
-      //     updated: Timestamp.now(),
-      //   },
-      // } as Transaction;
-
-      // const trxRef = await trxCol.add(data);
-
       trxIds.push(trxRef.id);
     } catch (err: any) {
       error('Error saving transaction doc', { err: err || null });

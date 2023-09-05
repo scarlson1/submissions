@@ -10,6 +10,6 @@ export const locationToPolicyLocation = (location: ILocation): PolicyLocation =>
 });
 
 const ALPHABET = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-export const nanoId = customAlphabet(ALPHABET, 8);
+export const nanoId = customAlphabet(ALPHABET, 9);
 
 export const createDocId = nanoId;

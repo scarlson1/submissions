@@ -1,18 +1,36 @@
 import { info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
-import { Timestamp, getFirestore } from 'firebase-admin/firestore';
+import {
+  CollectionGroup,
+  DocumentReference,
+  Timestamp,
+  getFirestore,
+} from 'firebase-admin/firestore';
 
 import {
+  COLLECTIONS,
   StageImportRecord,
+  StagedPolicyImport,
+  StagedTransactionImport,
   WithId,
   getReportErrorFn,
   importSummaryCollection,
   stagedImportsCollection,
+  transactionsCollection,
+  verify,
 } from '../common';
 import { onCallWrapper } from '../services/sentry';
 import { requireIDemandAdminClaims, validate } from './utils';
 
 const reportErr = getReportErrorFn('approveImport');
+
+const isPolicyImports = (
+  importDocs: WithId<StageImportRecord>[]
+): importDocs is WithId<StagedPolicyImport>[] => {
+  return (
+    importDocs.length > 0 && importDocs[0].importMeta?.targetCollection === COLLECTIONS.POLICIES
+  );
+};
 
 interface ApproveImportProps {
   importId: string;
@@ -73,6 +91,62 @@ const approveImport = async ({ data, auth }: CallableRequest<ApproveImportProps>
       id: s.id,
     })) as WithId<StageImportRecord>[]; // TODO: handle promise all errors or let the whole thing fail ??
 
+    const trxCol = transactionsCollection(db);
+    let correspondingTrxImports: [
+      DocumentReference<StagedTransactionImport>,
+      StagedTransactionImport
+    ][] = [];
+    // if policy import, must check for staged or existing transaction
+    // TODO: execute everything in a firestore transaction ??
+    if (isPolicyImports(stagedDocs)) {
+      // importSummary.targetCollection === COLLECTIONS.POLICIES
+      const stagedCollectionGroup = db.collectionGroup(
+        COLLECTIONS.STAGED_RECORDS
+      ) as CollectionGroup<StageImportRecord>;
+
+      try {
+        for (let stagedPolicy of stagedDocs) {
+          const policy = stagedPolicy as WithId<StagedPolicyImport>;
+
+          let locationIds = Object.keys(policy.locations || {});
+
+          // check for existing or staged transaction
+          for (let lcnId of locationIds) {
+            const stagedTrxQuery = stagedCollectionGroup
+              .where('importMeta.targetCollection', '==', COLLECTIONS.TRANSACTIONS)
+              .where('locationId', '==', lcnId)
+              .where('importMeta.status', '==', 'new')
+              .get();
+
+            const existingTrxQuery = trxCol.where('locationId', '==', lcnId).get();
+
+            const [stagedTrxQuerySnap, existingTrxQuerySnap] = await Promise.all([
+              stagedTrxQuery,
+              existingTrxQuery,
+            ]);
+
+            verify(
+              !(stagedTrxQuerySnap.empty && existingTrxQuerySnap.empty),
+              `Could not find staged transaction or existing transaction for policy ${stagedPolicy.id}`
+            );
+
+            // if staged, add to array to get imported with policy
+            if (stagedTrxQuerySnap.docs.length) {
+              stagedTrxQuerySnap.forEach((snap) => {
+                correspondingTrxImports.push([
+                  snap.ref as DocumentReference<StagedTransactionImport>,
+                  snap.data() as StagedTransactionImport,
+                ]);
+              });
+            }
+          }
+        }
+      } catch (err: any) {
+        let msg = err?.message ?? 'error locating corresponding transaction for location import';
+        throw new HttpsError('not-found', msg);
+      }
+    }
+
     const targetCollectionRef = db.collection(`${importSummary.targetCollection}`);
     const batch = db.batch();
 
@@ -110,6 +184,36 @@ const approveImport = async ({ data, auth }: CallableRequest<ApproveImportProps>
         );
       }
     }
+
+    // TODO: do everything in a firestore transaction ??
+    // import staged transaction for each location
+    info(`Importing ${correspondingTrxImports.length} transactions that matched policy locations`);
+    correspondingTrxImports.forEach(([trxImportRef, stagedTrx]) => {
+      const { importMeta, ...trx } = stagedTrx;
+      const trxRef = trxCol.doc(trxImportRef.id);
+      batch.set(trxRef, {
+        ...trx,
+        metadata: {
+          created: Timestamp.now(),
+          updated: Timestamp.now(),
+        },
+      });
+
+      batch.set(
+        trxImportRef,
+        {
+          // @ts-ignore
+          importMeta: {
+            reviewBy: {
+              userId: auth.uid,
+              name: approvedByName || null,
+            },
+            status: 'imported',
+          },
+        },
+        { merge: true }
+      );
+    });
 
     if (!successIds.length)
       throw new HttpsError('failed-precondition', 'no imports matched "new" status');
