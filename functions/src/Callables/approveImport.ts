@@ -118,6 +118,8 @@ const approveImport = async ({ data, auth }: CallableRequest<ApproveImportProps>
               .where('importMeta.status', '==', 'new')
               .get();
 
+            // TODO: check for at least one of type "new" ??
+
             const existingTrxQuery = trxCol.where('locationId', '==', lcnId).get();
 
             const [stagedTrxQuerySnap, existingTrxQuerySnap] = await Promise.all([
