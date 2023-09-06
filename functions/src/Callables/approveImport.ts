@@ -1,11 +1,11 @@
-import { info } from 'firebase-functions/logger';
-import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import {
   CollectionGroup,
   DocumentReference,
   Timestamp,
   getFirestore,
 } from 'firebase-admin/firestore';
+import { info } from 'firebase-functions/logger';
+import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 
 import {
   COLLECTIONS,
@@ -114,11 +114,12 @@ const approveImport = async ({ data, auth }: CallableRequest<ApproveImportProps>
           for (let lcnId of locationIds) {
             const stagedTrxQuery = stagedCollectionGroup
               .where('importMeta.targetCollection', '==', COLLECTIONS.TRANSACTIONS)
-              .where('locationId', '==', lcnId)
+              .where('locationId', '==', lcnId) // Use external ID ??
               .where('importMeta.status', '==', 'new')
               .get();
 
             // TODO: check for at least one of type "new" ??
+            // check for offset trx if cancelled location ??
 
             const existingTrxQuery = trxCol.where('locationId', '==', lcnId).get();
 
@@ -129,7 +130,7 @@ const approveImport = async ({ data, auth }: CallableRequest<ApproveImportProps>
 
             verify(
               !(stagedTrxQuerySnap.empty && existingTrxQuerySnap.empty),
-              `Could not find staged transaction or existing transaction for policy ${stagedPolicy.id}`
+              `Could not find staged transaction or existing transaction for location ${lcnId}`
             );
 
             // if staged, add to array to get imported with policy
@@ -249,4 +250,4 @@ const approveImport = async ({ data, auth }: CallableRequest<ApproveImportProps>
   }
 };
 
-export default onCallWrapper<ApproveImportProps>('approveimportrequest', approveImport);
+export default onCallWrapper<ApproveImportProps>('approveimport', approveImport);

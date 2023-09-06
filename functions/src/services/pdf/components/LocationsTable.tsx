@@ -1,3 +1,6 @@
+import { Text, View } from '@react-pdf/renderer';
+
+import { tableStyles as styles } from '../styles';
 import { ColumnDef, Table } from './Table';
 
 const locationColumns: ColumnDef[] = [
@@ -14,6 +17,14 @@ const locationColumns: ColumnDef[] = [
     minWidth: 140,
     alignHeader: 'left',
     alignContent: 'left',
+    renderCell: ({ value, cellStyles }) => {
+      return (
+        <View style={[cellStyles, styles.cell]}>
+          <Text>{value[0]}</Text>
+          <Text>{value[1]}</Text>
+        </View>
+      );
+    },
   },
   {
     field: 'deductible',
@@ -60,7 +71,7 @@ const locationColumns: ColumnDef[] = [
 ];
 
 export interface PolicyDecPDFLocations {
-  address: string;
+  address: [string, string]; // string;
   locationId: string;
   limitA: string;
   limitB: string;

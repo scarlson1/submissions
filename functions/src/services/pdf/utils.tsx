@@ -2,18 +2,28 @@ import { generateHTML } from '@tiptap/html';
 import { convert } from 'html-to-text';
 import { flatten } from 'lodash';
 
-import { ILocation, JSONContent, Policy, dollarFormat, dollarFormat2 } from '../../common';
-import { EDITOR_EXTENSION_DEFAULTS, getFormattedAddress } from '../../utils';
+import {
+  ILocation,
+  JSONContent,
+  PolicyNew,
+  WithId,
+  dollarFormat,
+  dollarFormat2,
+} from '../../common';
+import {
+  EDITOR_EXTENSION_DEFAULTS,
+  getFormattedAddress,
+  getFormattedAddressArray,
+} from '../../utils';
 import { AdditionalInterestsItem, PolicyDecPDFLocations, PremiumTableItem } from './components';
 
-// export function formatLocationData(locations: Policy['locations']) {
-export function formatLocationData(locations: Record<string, ILocation>) {
+export function formatLocationData(locations: WithId<ILocation>[]) {
   let formatted: PolicyDecPDFLocations[] = [];
 
-  for (const [_, location] of Object.entries(locations)) {
+  for (const location of locations) {
     const test = {
-      address: getFormattedAddress(location.address),
-      locationId: location.externalId || location.locationId || '',
+      address: getFormattedAddressArray(location.address),
+      locationId: location.externalId || location.id || '',
       limitA: location.limits?.limitA ? dollarFormat(location.limits?.limitA) : '',
       limitB: location.limits?.limitA ? dollarFormat(location.limits?.limitB) : '',
       limitC: location.limits?.limitA ? dollarFormat(location.limits?.limitC) : '',
@@ -55,7 +65,7 @@ export function getLocationInterests(locations: ILocation[]): AdditionalInterest
   return flatten(interests);
 }
 
-export function getPremiumTable(policy: Policy): PremiumTableItem[] {
+export function getPremiumTable(policy: PolicyNew): PremiumTableItem[] {
   let result = [
     {
       itemTitle: 'Term Premium',

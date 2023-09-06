@@ -8,7 +8,7 @@ import {
   where,
 } from 'firebase/firestore';
 
-import { isWhereFilterOp, hasValue, isInequalityOp } from 'modules/utils';
+import { hasValue, isInequalityOp, isWhereFilterOp } from 'modules/utils';
 
 export function getFirestoreSortOps(sortModel: GridSortModel | undefined = []) {
   let sortOps: QueryOrderByConstraint[] = [];
@@ -48,6 +48,11 @@ export function getFirestoreFilters(filterModel: GridFilterModel | undefined) {
 
 export const ORDER_BY_OPS = ['<', '<=', '!=', 'not-in', '>', '>='];
 
+/**
+ * if constraints includes <, <=, !=, not-in, >, or >= operator, must have orderBy
+ * @param {QueryFieldFilterConstraint[]} constraints Firestore query constraints
+ * @returns {QueryOrderByConstraint[]} firestore orderBy constraints, if necessary
+ */
 export function getOrderByIfNecessary(
   constraints: QueryFieldFilterConstraint[]
 ): QueryOrderByConstraint[] {

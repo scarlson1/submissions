@@ -1,7 +1,7 @@
-import { startTransition, useCallback, useEffect, useState } from 'react';
 import { GridCallbackDetails, GridFilterModel, GridInitialState } from '@mui/x-data-grid';
 import { QueryFieldFilterConstraint, QueryOrderByConstraint } from 'firebase/firestore';
 import { isEqual } from 'lodash';
+import { startTransition, useCallback, useEffect, useState } from 'react';
 
 import { getFirestoreFilters } from 'modules/muiGrid';
 import { usePrevious } from './usePrevious';
@@ -31,18 +31,6 @@ export const useGridServerFilter = (
       }),
     []
   );
-
-  // const handleFilterChange = useCallback(
-  //   (filterModel: GridFilterModel, details: GridCallbackDetails) => {
-  //     const newFilters = getFirestoreFilters(filterModel);
-
-  //     // console.log('NEW FILTERS: ', newFilters);
-  //     startTransition(() => {
-  //       setFilters([...newFilters]);
-  //     });
-  //   },
-  //   []
-  // );
 
   return { filters, handleFilterChange };
 };

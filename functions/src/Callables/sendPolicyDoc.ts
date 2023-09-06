@@ -1,26 +1,27 @@
-import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
-import { error, info } from 'firebase-functions/logger';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
+import { error, info } from 'firebase-functions/logger';
+import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 
-import { sendPolicyDocDelivery } from '../services/sendgrid';
 import { CLAIMS, policiesCollection, sendgridApiKey } from '../common';
+import { sendPolicyDocDelivery } from '../services/sendgrid';
 import { onCallWrapper } from '../services/sentry';
+import { requireIDemandAdminClaims, validate } from './utils';
 
 // TODO: add policy docs as param
 // on front end: allow user to select which documents to deliver
 
 const sendPolicyDoc = async ({ data, auth }: CallableRequest) => {
-  info('data: ', data);
+  info('sendPolicyDoc called', { data });
   const { policyId, to } = data;
-  info('AUTH.TOKEN: ', auth?.token);
   const token = auth?.token;
 
+  requireIDemandAdminClaims(token, 'must be an admin');
   if (!token || !token[CLAIMS.IDEMAND_ADMIN])
     throw new HttpsError('permission-denied', `Must be an admin`);
 
-  if (!policyId || !to)
-    throw new HttpsError('invalid-argument', `policyId or emails (recipients) required`);
+  validate(policyId, 'invalid-argument', 'policyId required');
+  validate(to, 'failed-precondition', 'emails (recipients) required');
   // TODO: email validation (array.length > 0, valid emails, etc.)
 
   // if (emails.every(isValidEmail))
@@ -30,15 +31,12 @@ const sendPolicyDoc = async ({ data, auth }: CallableRequest) => {
   //   );
 
   const sgKey = sendgridApiKey.value();
-  if (!sgKey) throw new HttpsError('failed-precondition', 'Missing Sendgrid api key');
 
   const db = getFirestore();
   const bucket = getStorage().bucket();
   const policyRef = policiesCollection(db).doc(policyId);
 
   try {
-    // pathToAttachment = `${__dirname}/attachment.pdf`;
-    // attachment = fs.readFileSync(pathToAttachment).toString('base64');
     let snap = await policyRef.get();
     let data = snap.data();
     if (!snap.exists || !data)
@@ -46,7 +44,6 @@ const sendPolicyDoc = async ({ data, auth }: CallableRequest) => {
 
     let filePath =
       data.documents && data.documents.length > 0 ? data.documents[0].storagePath : null;
-    console.log('FILE PATH: ', filePath);
 
     if (!filePath) throw new HttpsError('failed-precondition', `Missing policy document file path`);
 

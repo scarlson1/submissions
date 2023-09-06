@@ -18,6 +18,7 @@ import { SuccessStep } from 'elements/forms';
 import { BindSuccess } from 'elements/forms/SuccessStep';
 import { EmailsGrid } from 'elements/grids';
 import { ImportsSummaryGrid } from 'elements/grids/ImportsSummaryGrid';
+import { TestGovEventsMap } from 'elements/maps';
 import { TestPoliciesMapWithFilters } from 'elements/maps/PoliciesMap';
 import {
   Account,
@@ -40,6 +41,7 @@ import {
 } from 'views';
 import {
   Home as AdminHome,
+  AdminLocations,
   AgencyApp,
   AgencyApps,
   CreateTenant,
@@ -70,7 +72,6 @@ import { AgencyAppSuccessStep } from 'views/AgencyNew';
 import { EmailVerified } from 'views/EmailVerified';
 import { WizardFormTest } from 'views/WizardFormTest';
 import App from './App';
-import { TestGovEventsMap } from 'elements/maps';
 
 export interface CrumbMatch {
   id: string;
@@ -146,6 +147,7 @@ export enum ADMIN_ROUTES {
   IMPORT_REVIEW = '/admin/config/imports/:importId',
   EMAIL_ACTIVITY = '/admin/config/email-activity',
   TRANSACTIONS = '/admin/config/transactions',
+  LOCATIONS = '/admin/locations',
 }
 
 export enum AUTH_ROUTES {
@@ -212,6 +214,7 @@ type TArgs =
   | { path: ADMIN_ROUTES.IMPORT_REVIEW; params: { importId: string } }
   | { path: ADMIN_ROUTES.EMAIL_ACTIVITY }
   | { path: ADMIN_ROUTES.TRANSACTIONS }
+  | { path: ADMIN_ROUTES.LOCATIONS }
   | {
       path: AUTH_ROUTES.CREATE_ACCOUNT;
       params?: { tenantId?: string };
@@ -819,6 +822,16 @@ export const router = sentryCreateBrowserRouter([
                 },
               ],
             },
+          },
+          {
+            path: ADMIN_ROUTES.LOCATIONS,
+            element: (
+              <RequireAuthReactFire
+                signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
+              >
+                <AdminLocations />
+              </RequireAuthReactFire>
+            ),
           },
           {
             path: ADMIN_ROUTES.POLICY_DELIVERY,

@@ -678,6 +678,8 @@ export interface ILocation {
   blurHash?: LocationImages | null;
   locationId: string;
   policyId?: string;
+  quoteId?: string;
+  submissionId?: string;
   externalId?: string | null;
   metadata: {
     created: Timestamp;

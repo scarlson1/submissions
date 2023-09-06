@@ -1,7 +1,7 @@
 import { GridColDef } from '@mui/x-data-grid';
 import { useMemo } from 'react';
 
-import { COLLECTIONS, CLAIMS, ServerDataGridCollectionProps } from 'common';
+import { CLAIMS, COLLECTIONS, ServerDataGridCollectionProps } from 'common';
 import { ServerDataGrid } from 'components';
 import { useAsyncToast, useGridActions, useGridShowJson, useWidth } from 'hooks';
 import { locationCols } from 'modules/muiGrid';
@@ -49,6 +49,7 @@ export const LocationsGrid = ({
       colName='LOCATIONS'
       columns={columns}
       pageSizeOptions={[5, 10, 25, 100]}
+      {...props}
       initialState={{
         columns: {
           columnVisibilityModel: {
@@ -86,8 +87,8 @@ export const LocationsGrid = ({
           sortModel: [{ field: 'metadata.created', sort: 'desc' }],
         },
         pagination: { paginationModel: { page: 0, pageSize: 5 } },
+        ...(initialState || {}),
       }}
-      {...props}
     />
   );
 };

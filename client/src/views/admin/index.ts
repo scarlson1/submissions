@@ -1,3 +1,4 @@
+export { AdminLocations } from './AdminLocations';
 export { AgencyApp } from './AgencyApp';
 export { AgencyApps } from './AgencyApps';
 export { CreateTenant } from './CreateTenant';
@@ -6,6 +7,7 @@ export { DisclosureNew } from './DisclosureNew';
 export { Disclosures } from './Disclosures';
 export { EditActiveStates } from './EditActiveStates';
 export { Home } from './Home';
+export { ImportReview } from './ImportReview';
 export { LicenseEdit } from './LicenseEdit';
 export { LicenseNew } from './LicenseNew';
 export { Licenses } from './Licenses';
@@ -24,4 +26,3 @@ export { SubmissionView } from './SubmissionView';
 export { Submissions } from './Submissions';
 export { Transactions } from './Transactions';
 export { Users } from './Users';
-export { ImportReview } from './ImportReview';

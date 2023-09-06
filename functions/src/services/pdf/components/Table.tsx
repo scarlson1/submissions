@@ -1,7 +1,7 @@
 // @ts-nocheck
-// import * as React from 'react';
-import ReactPDF, { Text, View, StyleSheet, Page } from '@react-pdf/renderer';
+import { Text, View } from '@react-pdf/renderer';
 
+import { ReactNode } from 'react';
 import { tableStyles as styles } from '../styles';
 
 // https://stackoverflow.com/a/63299486/10887890
@@ -13,6 +13,7 @@ export interface ColumnDef {
   minWidth?: number;
   alignHeader?: 'left' | 'right' | 'center';
   alignContent?: 'left' | 'right' | 'center';
+  renderCell?: ({ value, cellStyles }: any) => ReactNode; // TODO: renderCell prop type
 }
 
 interface TableProps {
@@ -60,6 +61,8 @@ export const Table = ({ columns, data, id }: TableProps) => {
             }
             if (colDef?.minWidth) cellStyle['minWidth'] = `${colDef.minWidth ?? 100}px`;
             if (colDef?.alignContent) cellStyle['textAlign'] = colDef.alignContent;
+
+            if (colDef?.renderCell) return colDef.renderCell({ value: val, cellStyles });
 
             // TODO: calculate break point
             return (

@@ -55,7 +55,7 @@ export async function handleRatingForEndorsement(
       'endorsement change request event should always be at the location scope'
     );
 
-    const { locationChanges, locationId } = data; //  changes,
+    const { locationChanges, locationId } = data;
 
     const db = getFirestore();
     const locationsCol = locationsCollection(db);
@@ -118,7 +118,7 @@ export async function handleRatingForEndorsement(
       const policyTermPremium = sumPolicyTermPremium(
         Object.values(newLocations) as PolicyWithTermPrem[]
       );
-      console.log('NEW POLICY TERM PREMIUM: ', policyTermPremium);
+      // console.log('NEW POLICY TERM PREMIUM: ', policyTermPremium);
 
       newPolicyChanges['termPremium'] = policyTermPremium;
 
@@ -280,7 +280,6 @@ export async function handleRatingForEndorsement(
 
     const newPrice = sumFeesTaxesPremium(policy.fees, newTaxes, newPolicyTermPremium);
 
-    // TODO: set values in regular changes once schema updated
     const policyChanges: DeepPartial<PolicyNew> = {
       termPremium: newPolicyTermPremium,
       inStatePremium,

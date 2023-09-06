@@ -1493,6 +1493,17 @@ export const ratingDocIdCol: GridColDef = {
   filterOperators: getGridFirestoreStringOperators(),
 };
 
+export const parentTypeCol: GridSingleSelectColDef = {
+  type: 'singleSelect',
+  field: 'parentType',
+  headerName: 'Parent Type',
+  valueOptions: ['policy', 'quote', 'submission'],
+  minWidth: 120,
+  flex: 0.4,
+  valueGetter: (params) => params.row.parentType || null,
+  filterOperators: getGridFirestoreSelectOperators(),
+};
+
 // TODO: make multi-select
 export const subjectBaseCol: GridColDef = {
   // ...multiSelectExtendsSingle,

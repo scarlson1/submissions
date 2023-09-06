@@ -27,6 +27,7 @@ import {
   limitDCol,
   longitudeCol,
   mortgageeCol,
+  parentTypeCol,
   ratingDataBasementCol,
   ratingDataCBRSCol,
   ratingDataDistToCoastFeetCol,
@@ -53,6 +54,7 @@ export const locationCols: GridColDef<ILocation>[] = [
     // TODO: use link component to display --> route to policy
   },
   externalIdCol,
+  parentTypeCol,
   addressSummaryCol,
   addrLine1Col,
   addrLine2Col,

@@ -47,8 +47,9 @@ export {
   sendinviteemail,
 } from './firestoreEvents';
 export {
+  algoliasynclocations,
   algoliasyncorgs,
-  // algoliasyncpolicies, // TEMP WHEN CHANGING POLICY-LOCATION STRUCTURE
+  algoliasyncpolicies,
   algoliasyncquotes,
   algoliasyncsubmissions,
   algoliasynctransactions,

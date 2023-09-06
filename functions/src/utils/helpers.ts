@@ -1,5 +1,5 @@
-import { info } from 'firebase-functions/logger';
 import { randomBytes } from 'crypto';
+import { info } from 'firebase-functions/logger';
 import { extname } from 'path';
 
 import { Address, CompressedAddress, Nullable } from '../common';
@@ -12,6 +12,16 @@ export function getFormattedAddress(addr: Nullable<Address>) {
   if (addr?.postal) formatted += `, ${addr.postal}`;
 
   return formatted;
+}
+
+export function getFormattedAddressArray(addr: Nullable<Address>): [string, string] {
+  let line1 = `${addr?.addressLine1 || ''}`;
+  if (addr?.addressLine2) line1 += `, ${addr.addressLine2}`;
+  let line2 = `${addr?.city || ''}`;
+  if (addr?.state) line2 += `, ${addr.state}`;
+  if (addr?.postal) line2 += ` ${addr.postal}`;
+
+  return [line1, line2];
 }
 
 export function compressAddress(addr: Address): CompressedAddress {

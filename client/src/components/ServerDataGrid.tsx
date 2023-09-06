@@ -1,4 +1,4 @@
-import { Box } from '@mui/material';
+import { Box, Button } from '@mui/material';
 import {
   DataGrid,
   DataGridProps,
@@ -7,21 +7,41 @@ import {
   GridPaginationModel,
   GridRowSelectionModel,
   GridToolbar,
+  GridToolbarContainer,
+  gridFilterModelSelector,
+  gridSortModelSelector,
+  useGridApiContext,
   useGridApiRef,
 } from '@mui/x-data-grid';
-import { DocumentSnapshot, QueryFieldFilterConstraint } from 'firebase/firestore';
+import { DocumentSnapshot, QueryFieldFilterConstraint, getDocs, query } from 'firebase/firestore';
 import { lowerCase } from 'lodash';
-import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-
-import { COLLECTIONS } from 'common';
 import {
+  MutableRefObject,
+  startTransition,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+
+import { ImportExportRounded } from '@mui/icons-material';
+import { GridApiCommunity } from '@mui/x-data-grid/internals';
+import { COLLECTIONS, policiesCollection } from 'common';
+import {
+  useAsyncToast,
   useFetchDocCount,
   useFetchDocsWithCursor,
   useGridServerFilter,
   useGridServerSort,
   useWidth,
 } from 'hooks';
-import { getOrderByIfNecessary } from 'modules/muiGrid/utils';
+import {
+  getFirestoreFilters,
+  getFirestoreSortOps,
+  getOrderByIfNecessary,
+} from 'modules/muiGrid/utils';
+import { useFirestore } from 'reactfire';
 import { GridMobileToolbar } from './GridMobileToolbar';
 
 // FIREBASE PAGINATION ARTICLE: https://makerkit.dev/blog/tutorials/pagination-react-firebase-firestore
@@ -31,6 +51,79 @@ import { GridMobileToolbar } from './GridMobileToolbar';
 // mui useGridFilter hook: https://github.com/mui/mui-x/blob/master/packages/grid/x-data-grid/src/hooks/features/filter/useGridFilter.tsx
 
 // TODO: add firestore converter prop (default to withId ?? how would ID column be handled if converter didn't add id to doc data ??)
+
+// EXPORT: need to create custom toolbar with export button
+// use grid api context to get filters/sort --> create firebase query
+// export selected, if selected, otherwise export all
+// cannot use getRowsToExport b/c it only returns a list of row IDs
+const getSortModel = (apiRef: MutableRefObject<GridApiCommunity>) => gridSortModelSelector(apiRef);
+const getFilterModel = (apiRef: MutableRefObject<GridApiCommunity>) =>
+  gridFilterModelSelector(apiRef);
+
+const getExportQueryConstraints = (
+  apiRef: MutableRefObject<GridApiCommunity>,
+  constraints: QueryFieldFilterConstraint[] = []
+) => {
+  // TODO: reuse functions in filter and sort
+  // convert filters to firestore query
+  // convert sort to firestore query
+  const filterModel = getFilterModel(apiRef);
+  const sortModel = getSortModel(apiRef);
+  const filters = getFirestoreFilters(filterModel);
+  const sortOps = getFirestoreSortOps(sortModel);
+
+  const orderByConstraint = getOrderByIfNecessary(constraints);
+
+  return [...filters, ...constraints, ...orderByConstraint, ...sortOps];
+};
+
+// TODO: need to pass in "constraints" passed as prop to server grid (or create additional custom grid context component to store server-side filters & sort) ??
+// TODO: isCollectionGroup, pathSegments
+// TODO: selected
+// TODO: process using web worker
+const TestCustomExportToolbar = () => {
+  const firestore = useFirestore();
+  const apiRef = useGridApiContext();
+  const toast = useAsyncToast({ position: 'top-right' });
+
+  const handleExport = useCallback(async () => {
+    try {
+      // TODO: DYNAMIC COLLECTION REF
+      let collectionRef = policiesCollection(firestore);
+
+      // TODO: process constraints passed as prop
+      // const orderByConstraint = getOrderByIfNecessary(constraints);
+      const constraints = getExportQueryConstraints(apiRef);
+
+      let q = query(collectionRef, ...constraints);
+      let querySnap = await getDocs(q);
+      if (querySnap.empty) {
+        toast.info('no records found');
+        return;
+      }
+
+      let docs = querySnap.docs.map((snap) => ({ ...snap.data(), id: snap.id }));
+      // TODO: use grid column defs to convert to formatted export
+      console.log('DOCS: ', docs);
+    } catch (err: any) {
+      console.log('Export error: ', err);
+      toast.error('an error occurred');
+    }
+  }, [apiRef, firestore, toast]);
+
+  return (
+    <GridToolbarContainer>
+      <Button
+        color='primary'
+        size='small'
+        startIcon={<ImportExportRounded />}
+        onClick={handleExport}
+      >
+        Export
+      </Button>
+    </GridToolbarContainer>
+  );
+};
 
 export interface ServerDataGridProps extends Partial<Omit<DataGridProps, 'rows'>> {
   colName: keyof typeof COLLECTIONS;
@@ -75,15 +168,11 @@ export const ServerDataGrid = ({
   const { filters, handleFilterChange } = useGridServerFilter(props?.initialState, resetCursors);
   const [rowSelectionModel, setRowSelectionModel] = useState<GridRowSelectionModel>([]);
 
-  const queryOptions = useMemo(
-    () => {
-      // if constraints includes <, <=, !=, not-in, >, or >= operator, must have orderBy
-      const orderByConstraint = getOrderByIfNecessary(constraints);
+  const queryOptions = useMemo(() => {
+    const orderByConstraint = getOrderByIfNecessary(constraints);
 
-      return [...filters, ...constraints, ...orderByConstraint, ...sortOps.current];
-    },
-    [filters, constraints, sortModel] // eslint-disable-line react-hooks/exhaustive-deps
-  );
+    return [...filters, ...constraints, ...orderByConstraint, ...sortOps.current];
+  }, [filters, constraints, sortModel, sortOps]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchCount = useFetchDocCount(
     colName,
@@ -141,6 +230,11 @@ export const ServerDataGrid = ({
     },
     [data, resetCursors]
   );
+
+  // const handleExport = useCallback(
+  //   (options: GridCsvExportOptions) => apiRef.current.exportDataAsCsv(options),
+  //   [apiRef]
+  // );
 
   return (
     <Box sx={{ height: 500, width: '100%' }}>
