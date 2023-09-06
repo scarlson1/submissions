@@ -1,13 +1,13 @@
 import { DescriptionRounded } from '@mui/icons-material';
 import { Box, Tooltip } from '@mui/material';
-import { GridActionsCellItem, GridColDef, GridRowParams, GridToolbar } from '@mui/x-data-grid';
+import { GridActionsCellItem, GridColDef, GridRowParams } from '@mui/x-data-grid';
 import { useCallback, useMemo } from 'react';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { useSigninCheck } from 'reactfire';
 
 import { CLAIMS, Policy, POLICY_STATUS, ServerDataGridCollectionProps } from 'common';
-import { ServerDataGrid } from 'components';
+import { GridToolbar, ServerDataGrid } from 'components';
 import { policyCols, statusCol } from 'modules/muiGrid/gridColumnDefs';
 import { createPath, ROUTES } from 'router';
 

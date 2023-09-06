@@ -6,6 +6,8 @@ import { GridToolbarFilterIconButton } from './GridToolbarFilterIconButton';
 import { GridToolbarDensityIconButton } from './GridToolbarDensityIconButton';
 import { GridToolbarExportMobile } from './GridToolbarExportMobile';
 
+// TODO: use server export (useGridCsvExport)
+
 export const GridMobileToolbar = forwardRef<HTMLDivElement, GridToolbarProps>(
   function GridMobileToolbar(props, ref) {
     const {

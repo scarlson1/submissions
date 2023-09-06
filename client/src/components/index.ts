@@ -39,6 +39,7 @@ export { RequireAuth } from './RequireAuth';
 export { RouterErrorBoundary } from './RouterErrorBoundary';
 export { ServerDataGrid } from './ServerDataGrid';
 export { Toaster } from './Toaster';
+export { GridToolbar } from './GridToolbar';
 
 export type { CarouselProps } from './Carousel';
 export type { ConfirmationDialogProps } from './ConfirmationDialog';

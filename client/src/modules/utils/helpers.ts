@@ -804,17 +804,23 @@ export function saveDownload(
   filename: string,
   options?: BlobPropertyBag | undefined
 ) {
-  const objectUrl = window.URL.createObjectURL(new Blob(blobParts, options));
+  if ('download' in HTMLAnchorElement.prototype) {
+    const objectUrl = window.URL.createObjectURL(new Blob(blobParts, options));
 
-  const link = document.createElement('a');
-  link.href = objectUrl;
-  link.setAttribute('download', filename);
+    const link = document.createElement('a');
+    link.href = objectUrl;
+    link.setAttribute('download', filename);
 
-  document.body.appendChild(link);
-  link.click();
+    document.body.appendChild(link);
+    link.click();
 
-  document.body.removeChild(link);
-  // URL.revokeObjectURL(href);
+    setTimeout(() => {
+      URL.revokeObjectURL(objectUrl);
+    });
+    document.body.removeChild(link);
+    return;
+  }
+  throw new Error('saveDownload not supported');
 }
 
 export function compressedToAddress(addr: CompressedAddress): Address {

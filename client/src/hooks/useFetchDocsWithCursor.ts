@@ -38,10 +38,5 @@ export function useFetchDocsWithCursor<T = any>(
 
   let q = query(collectionRef, ...qConstraints);
 
-  // if (apiRef) {
-  //   const test = gridFilterModelSelector(apiRef);
-  //   console.log('test: ', test);
-  // }
-
   return useFirestoreCollection<T>(q, { idField: 'id', ...options });
 }

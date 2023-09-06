@@ -10,6 +10,8 @@ import { IconButtonProps } from '@mui/material';
 
 import { GridToolbarExportIconButton } from './GridToolbarExportIconButton';
 
+// https://mui.com/x/react-data-grid/export/#custom-export-format
+
 export interface GridToolbarExportMobileProps extends IconButtonProps {
   csvOptions?: GridCsvExportOptions & GridExportDisplayOptions;
   printOptions?: GridPrintExportOptions & GridExportDisplayOptions;
@@ -29,6 +31,7 @@ const GridToolbarExportMobile = forwardRef<HTMLButtonElement, GridToolbarExportM
     if (preProcessedButtons.length === 0) {
       return null;
     }
+    console.log(preProcessedButtons[0]);
 
     return (
       <GridToolbarExportIconButton {...other} ref={ref}>

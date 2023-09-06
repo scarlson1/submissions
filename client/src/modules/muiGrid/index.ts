@@ -1,5 +1,6 @@
 export { GRID_MULTI_SELECT_COL_DEF } from './gridMultiSelectColDef';
 export * from './utils';
+export * from './csvSerializer';
 
 export { getGridFirestoreSelectOperators } from './operators/gridSelectOperators';
 export { getGridFirestoreDateOperators } from './operators/gridDateOperators';
