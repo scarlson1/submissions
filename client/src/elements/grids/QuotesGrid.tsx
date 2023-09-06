@@ -46,7 +46,7 @@ export const QuotesGrid = ({
         field: 'actions',
         headerName: 'Actions',
         type: 'actions',
-        width: isSmall ? 60 : 140,
+        width: isSmall ? 80 : 140,
         getActions: (params: GridRowParams) => [
           ...renderActions(params),
           googleMapsAction(params, { showInMenu: true }),

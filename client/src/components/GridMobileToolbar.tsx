@@ -4,7 +4,7 @@ import { GridToolbarContainer, GridToolbarProps, useGridRootProps } from '@mui/x
 import { GridToolbarColumnsIconButton } from './GridToolbarColumnsIconButton';
 import { GridToolbarFilterIconButton } from './GridToolbarFilterIconButton';
 import { GridToolbarDensityIconButton } from './GridToolbarDensityIconButton';
-import { GridToolbarExportMobile } from './GridToolbarExportMobile';
+import { GridToolbarExportButton } from './GridToolbarExportButton';
 
 // TODO: use server export (useGridCsvExport)
 
@@ -35,11 +35,12 @@ export const GridMobileToolbar = forwardRef<HTMLDivElement, GridToolbarProps>(
         <GridToolbarColumnsIconButton />
         <GridToolbarFilterIconButton />
         <GridToolbarDensityIconButton />
-        <GridToolbarExportMobile
+        <GridToolbarExportButton />
+        {/* <GridToolbarExportMobile
           csvOptions={csvOptions}
           printOptions={printOptions}
           excelOptions={excelOptions}
-        />
+        /> */}
       </GridToolbarContainer>
     );
   }

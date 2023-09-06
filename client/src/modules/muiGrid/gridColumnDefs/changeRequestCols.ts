@@ -15,9 +15,21 @@ import {
   userIdCol,
 } from './gridColumns';
 
-const changes: GridColDef<ChangeRequest> = {
-  field: 'changes',
-  headerName: 'Requested Changes',
+const locationChangesCol: GridColDef<ChangeRequest> = {
+  field: 'locationChanges',
+  headerName: 'Requested Location Changes',
+  minWidth: 200,
+  flex: 1.2,
+  editable: false,
+  filterable: false,
+  sortable: false,
+  valueGetter: (params: GridValueGetterParams<ChangeRequest>) => {
+    return params.value ? JSON.stringify(params.value) : null;
+  },
+};
+const policyChangesCol: GridColDef<ChangeRequest> = {
+  field: 'policyChanges',
+  headerName: 'Requested Policy Changes',
   minWidth: 200,
   flex: 1.2,
   editable: false,
@@ -54,7 +66,8 @@ export const changeRequestCols: GridColDef<ChangeRequest>[] = [
   requestEffDateCol,
   policyIdCol,
   locationIdCol,
-  changes,
+  locationChangesCol,
+  policyChangesCol,
   userIdCol,
   processedByUserIdCol,
   errMsgCol,

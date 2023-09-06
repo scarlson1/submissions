@@ -25,6 +25,7 @@ export enum COLLECTIONS {
   EMAIL_ACTIVITY = 'emailActivity',
   MORATORIUMS = 'moratoriums',
   STAGED_RECORDS = 'stagedDocs',
+  VERSIONS = 'versions', // HISTORY = 'history',
 }
 
 export enum SUBMISSION_STATUS {

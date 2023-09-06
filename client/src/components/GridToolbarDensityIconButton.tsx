@@ -127,7 +127,7 @@ export const GridToolbarDensityIconButton = forwardRef<HTMLButtonElement, IconBu
         <IconButton
           ref={handleRef}
           size='small'
-          color='info'
+          color='primary'
           // startIcon={startIcon}
           aria-label={apiRef.current.getLocaleText('toolbarDensityLabel')}
           aria-haspopup='menu'
@@ -136,7 +136,7 @@ export const GridToolbarDensityIconButton = forwardRef<HTMLButtonElement, IconBu
           id={densityButtonId}
           {...other}
           onClick={handleDensitySelectorOpen}
-          {...rootProps.slotProps?.baseButton}
+          {...rootProps.slotProps?.baseIconButton}
         >
           {startIcon}
           {/* {apiRef.current.getLocaleText('toolbarDensity')} */}

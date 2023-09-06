@@ -26,6 +26,7 @@ import { filterUniqueArr, removeFromArr } from './helpers';
 export interface BaseMetadata {
   created: Timestamp; // any; // WithFieldValue<Timestamp>;
   updated: Timestamp; // any; // WithFieldValue<Timestamp>;
+  version?: number;
 }
 
 export interface BaseDoc {
@@ -758,6 +759,7 @@ export interface PolicyNew extends BaseDoc {
   issuingCarrier: string; // INSURER NAME ONLY OR NAME AND ID ??
   documents: { displayName: string; downloadUrl: string; storagePath: string }[];
   quoteId?: string | null;
+  _lastCommitted?: Timestamp;
 }
 
 export interface IPolicyClass extends Policy {

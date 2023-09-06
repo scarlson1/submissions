@@ -49,7 +49,7 @@ export const GridToolbarColumnsIconButton = forwardRef<HTMLButtonElement, IconBu
         ref={ref}
         id={columnButtonId}
         size='small'
-        color='info'
+        color='primary'
         aria-label={apiRef.current.getLocaleText('toolbarColumnsLabel')}
         aria-haspopup='menu'
         aria-expanded={isOpen}
@@ -57,7 +57,7 @@ export const GridToolbarColumnsIconButton = forwardRef<HTMLButtonElement, IconBu
         // startIcon={<rootProps.slots.columnSelectorIcon />}
         {...other}
         onClick={showColumns}
-        {...rootProps.slotProps?.baseButton}
+        {...rootProps.slotProps?.baseIconButton}
       >
         {/* {apiRef.current.getLocaleText('toolbarColumns')} */}
         <rootProps.slots.columnSelectorIcon fontSize='inherit' />

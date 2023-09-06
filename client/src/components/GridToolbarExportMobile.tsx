@@ -10,6 +10,8 @@ import { IconButtonProps } from '@mui/material';
 
 import { GridToolbarExportIconButton } from './GridToolbarExportIconButton';
 
+// TODO: delete - exporting from server data, not grid
+
 // https://mui.com/x/react-data-grid/export/#custom-export-format
 
 export interface GridToolbarExportMobileProps extends IconButtonProps {

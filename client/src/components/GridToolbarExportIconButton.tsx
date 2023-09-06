@@ -11,6 +11,8 @@ import {
 import { isHideMenuKey, isTabKey } from '@mui/x-data-grid/utils/keyboardUtils';
 import { SaveAltRounded } from '@mui/icons-material';
 
+// TODO: delete - exporting from server data, not grid
+
 export const GridToolbarExportIconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
   function GridToolbarExportContainer(props, ref) {
     const { children, onClick, ...other } = props;
@@ -60,7 +62,7 @@ export const GridToolbarExportIconButton = forwardRef<HTMLButtonElement, IconBut
         <IconButton
           ref={handleRef}
           size='small'
-          color='info'
+          color='primary'
           aria-expanded={open}
           aria-label={apiRef.current.getLocaleText('toolbarExportLabel')}
           aria-haspopup='menu'
@@ -68,7 +70,7 @@ export const GridToolbarExportIconButton = forwardRef<HTMLButtonElement, IconBut
           id={exportButtonId}
           {...other}
           onClick={handleMenuOpen}
-          {...rootProps.slotProps?.baseButton}
+          {...rootProps.slotProps?.baseIconButton}
         >
           <SaveAltRounded fontSize='inherit' />
         </IconButton>

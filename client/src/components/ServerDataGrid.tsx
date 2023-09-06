@@ -206,6 +206,14 @@ export const ServerDataGrid = ({
             colname: COLLECTIONS[colName],
             constraints,
           },
+          baseIconButton: {
+            sx: {
+              border: 'none',
+              '&:hover': {
+                border: 'none',
+              },
+            },
+          },
         }}
         // slots={{
         //   loadingOverlay: LinearProgress, // displayed when loading = true

@@ -117,3 +117,10 @@ export const stagedImportsCollection = (db: Firestore, importId: string) =>
     db,
     `${COLLECTIONS.DATA_IMPORTS}/${importId}/${COLLECTIONS.STAGED_RECORDS}`
   );
+
+export const versionsCollection = <T extends DocumentData>(
+  db: Firestore,
+  parentCollection: keyof typeof COLLECTIONS,
+  parentId: string
+) =>
+  createCollection<T>(db, `${COLLECTIONS[parentCollection]}/${parentId}/${COLLECTIONS.VERSIONS}`);

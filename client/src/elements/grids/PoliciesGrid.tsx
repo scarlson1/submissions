@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { useSigninCheck } from 'reactfire';
 
 import { CLAIMS, Policy, POLICY_STATUS, ServerDataGridCollectionProps } from 'common';
-import { GridToolbar, ServerDataGrid } from 'components';
+import { ServerDataGrid } from 'components';
 import { policyCols, statusCol } from 'modules/muiGrid/gridColumnDefs';
 import { createPath, ROUTES } from 'router';
 
@@ -96,9 +96,6 @@ export const PoliciesGrid = ({ renderActions = () => [], ...props }: PoliciesGri
         onRowDoubleClick={(params) =>
           navigate(createPath({ path: ROUTES.POLICY, params: { policyId: params.id.toString() } }))
         }
-        slots={{
-          toolbar: GridToolbar,
-        }}
         slotProps={{
           toolbar: { csvOptions: { allColumns: false } },
         }}

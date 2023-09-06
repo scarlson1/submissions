@@ -18,6 +18,7 @@ import { useFirestore } from 'reactfire';
 import { COLLECTIONS, ILocation, WithId } from 'common';
 import { useDocData, useFetchDocCount } from 'hooks';
 import { LocationCard, LocationCardProps } from './LocationCard';
+import { useFirstRender } from 'hooks/utils';
 
 const useInfiniteDocs = <T,>(
   colName: keyof typeof COLLECTIONS,
@@ -30,7 +31,6 @@ const useInfiniteDocs = <T,>(
   const [data, setData] = useState<WithId<T>[]>([]);
   const [loading, setLoading] = useState(false);
   const lastSnap = useRef<DocumentSnapshot<T>>();
-  const initialFetched = useRef(false);
 
   const colRef = collection(
     firestore,
@@ -68,13 +68,7 @@ const useInfiniteDocs = <T,>(
     }
   }, [colRef, constraints, pageSize, data, docCount]);
 
-  useEffect(() => {
-    console.log('initial getRecords');
-    if (initialFetched.current) return;
-    initialFetched.current = true;
-    console.log('useEffect --> calling getRecords');
-    getRecords();
-  }, [getRecords]);
+  useFirstRender(() => getRecords());
 
   return useMemo(
     () => ({ data, docCount, loadMore: getRecords, loading }),

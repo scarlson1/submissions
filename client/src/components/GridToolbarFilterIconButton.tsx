@@ -144,7 +144,7 @@ const GridToolbarFilterIconButton = forwardRef<HTMLButtonElement, GridToolbarFil
           ref={ref}
           id={filterButtonId}
           size='small'
-          color='info'
+          color='primary'
           aria-label={apiRef.current.getLocaleText('toolbarFiltersLabel')}
           aria-controls={isOpen ? filterPanelId : undefined}
           aria-expanded={isOpen}
@@ -156,7 +156,7 @@ const GridToolbarFilterIconButton = forwardRef<HTMLButtonElement, GridToolbarFil
           // }
           {...buttonProps}
           onClick={toggleFilter}
-          {...rootProps.slotProps?.baseButton}
+          {...rootProps.slotProps?.baseIconButton}
         >
           {/* {apiRef.current.getLocaleText('toolbarFilters')} */}
           <Badge badgeContent={activeFilters.length} color='primary'>
