@@ -12,3 +12,8 @@ export type QueryArgs = [string | FieldPath, WhereFilterOp, any];
 export function mapWhereConstraints(constraints: QueryArgs[]) {
   return constraints.map((c) => where(c[0], c[1], c[2]));
 }
+
+// // TODO: use once using location versioning
+// export function getLocationDocIds(locations: Policy['locations']) {
+//   return Object.values(locations).map((lcnSum) => lcnSum.lcnDocId);
+// }

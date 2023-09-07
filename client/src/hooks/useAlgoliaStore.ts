@@ -1,9 +1,11 @@
-import { create } from 'zustand';
 import { Functions } from 'firebase/functions';
+import { create } from 'zustand';
 
 import { generateSearchKey } from 'api';
 
 // TODO: SAVE KEY IN USER CLAIMS ??
+
+// use useSyncExternalStore ??
 
 interface AlgoliaStore {
   apiKey: string | undefined;

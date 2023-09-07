@@ -1,16 +1,19 @@
 import algoliasearch from 'algoliasearch';
 import { DocumentSnapshot, getFirestore } from 'firebase-admin/firestore';
-import { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
-
 import { info } from 'firebase-functions/logger';
+import { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 import { capitalize } from 'lodash';
+
 import {
   COLLECTIONS,
   ILocation,
+  PolicyNew,
+  StagedPolicyImport,
   algoliaAdminKey,
   algoliaAppId,
   algoliaIndex,
   getReportErrorFn,
+  importSummaryCollection,
   policiesCollectionNew,
   quotesCollection,
   submissionsCollection,
@@ -52,18 +55,22 @@ export default async (
       const db = getFirestore();
       let parentCol;
       let parentKey: keyof ILocation | undefined;
+      let parentColName;
       switch (newData.parentType) {
         case 'policy':
           parentCol = policiesCollectionNew(db);
           parentKey = 'policyId';
+          parentColName = COLLECTIONS.POLICIES;
           break;
         case 'quote':
           parentCol = quotesCollection(db);
           parentKey = 'quoteId';
+          parentColName = COLLECTIONS.QUOTES;
           break;
         case 'submission':
           parentCol = submissionsCollection(db);
           parentKey = 'submissionId';
+          parentColName = COLLECTIONS.SUBMISSIONS;
           break;
       }
 
@@ -73,7 +80,35 @@ export default async (
 
       const parentSnap = await parentCol.doc(parentDocId).get();
       const parent = parentSnap.exists ? parentSnap.data() : null;
-      verify(parent, 'parent record not found');
+
+      const importSummaryCol = importSummaryCollection(db);
+      const stagedSummarySnap = await importSummaryCol
+        .where('targetCollection', '==', parentColName)
+        .where('importDocIds', 'array-contains', parentDocId)
+        .get();
+
+      verify(parent || !stagedSummarySnap.empty, 'parent record (or staged import) not found');
+
+      let parentData = parent;
+      if (!parentData) {
+        const stagedPolicySnap = (await db
+          .doc(
+            `${COLLECTIONS.DATA_IMPORTS}/${stagedSummarySnap.docs[0].id}/${COLLECTIONS.STAGED_RECORDS}/${parentDocId}`
+          )
+          .get()) as DocumentSnapshot<StagedPolicyImport>;
+
+        verify(stagedPolicySnap.exists, 'staged policy doc does not exist');
+        parentData = stagedPolicySnap.data() as StagedPolicyImport;
+      }
+
+      // delete if not current location or set tag ??
+      let hidden = false;
+      if (newData.parentType === 'policy') {
+        const locationSummary = (parentData as PolicyNew).locations[newData.locationId];
+        if (!locationSummary) hidden = true;
+      }
+
+      // TODO: make sure collection query is set to not return results when hidden is true
 
       // TODO: is null secure ??
       const ids = {
@@ -103,6 +138,7 @@ export default async (
           searchSubtitle,
           _geoloc,
           visibleBy,
+          hidden,
           metadata: {
             ...(newData.metadata || {}),
             created: newData.metadata?.created?.toDate() || null,

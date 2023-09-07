@@ -2,6 +2,13 @@ import { onDocumentWritten } from 'firebase-functions/v2/firestore';
 
 import { COLLECTIONS } from '../../common';
 
+export const versionlocation = onDocumentWritten(
+  `${COLLECTIONS.LOCATIONS}/{locationId}`,
+  async (event) => {
+    await (await import('./versionLocation.js')).default(event);
+  }
+);
+
 export const versionpolicy = onDocumentWritten(
   `${COLLECTIONS.POLICIES}/{policyId}`,
   async (event) => {

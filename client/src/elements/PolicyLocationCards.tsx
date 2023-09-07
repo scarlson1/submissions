@@ -17,8 +17,10 @@ import { useFirestore } from 'reactfire';
 
 import { COLLECTIONS, ILocation, WithId } from 'common';
 import { useDocData, useFetchDocCount } from 'hooks';
-import { LocationCard, LocationCardProps } from './LocationCard';
 import { useFirstRender } from 'hooks/utils';
+import { LocationCard, LocationCardProps } from './LocationCard';
+
+// TODO: use react-query ??
 
 const useInfiniteDocs = <T,>(
   colName: keyof typeof COLLECTIONS,

@@ -47,10 +47,10 @@ import {
 } from '../modules/storage/parseStreamToArray';
 import { getInStatePremium, getOutStatePremium, recalcTaxes } from '../modules/transactions';
 import { sendAdminPolicyImportNotification } from '../services/sendgrid';
+import { randomFileName } from '../utils';
 import { CSVPolicyRow, ParsedPolicyRow } from './models';
 import { transformPolicyRow } from './transform';
 import { validatePolicyRow } from './validation';
-import { randomFileName } from '../utils';
 
 // TODO:
 //  - add rating fields (used for ratios)
@@ -245,6 +245,7 @@ export default async (event: StorageEvent) => {
 };
 
 // TODO: break into smaller functions
+
 /**
  * Proup each row by policy ID, and set each row as location inside the policy. Policy level data will use the value in the last location row
  * @param {ParsedPolicyRow[]} data all rows from csv

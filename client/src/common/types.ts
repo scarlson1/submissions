@@ -24,6 +24,7 @@ import {
 export interface BaseMetadata {
   created: Timestamp;
   updated: Timestamp;
+  version?: number;
 }
 
 export interface BaseDoc {
@@ -634,6 +635,8 @@ export interface PolicyLocation {
   termPremium: number;
   address: CompressedAddress;
   coords: GeoPoint;
+  cancelEffDate?: Timestamp | null;
+  lcnDocId: string;
 }
 
 export interface Policy extends BaseDoc {

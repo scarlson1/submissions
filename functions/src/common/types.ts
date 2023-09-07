@@ -640,7 +640,7 @@ export type LocationParent = 'submission' | 'quote' | 'policy';
 
 // TODO: discriminating union (SubmissionLocation, QuoteLocation, ILocation, etc.)
 // require policy id, parentType: 'policy', etc.
-export interface ILocation {
+export interface ILocation extends BaseDoc {
   parentType?: LocationParent | null; // TODO: remove ? once moved to new policy - location interface
   address: Address;
   coordinates: GeoPoint;
@@ -669,10 +669,6 @@ export interface ILocation {
   quoteId?: string;
   submissionId?: string;
   externalId?: string | null;
-  metadata: {
-    created: Timestamp;
-    updated: Timestamp;
-  };
 }
 
 export interface Policy extends BaseDoc {
@@ -717,6 +713,7 @@ export interface PolicyLocation {
   address: CompressedAddress;
   coords: GeoPoint;
   cancelEffDate?: Timestamp | null;
+  lcnDocId: string;
 }
 
 export interface PolicyNew extends BaseDoc {

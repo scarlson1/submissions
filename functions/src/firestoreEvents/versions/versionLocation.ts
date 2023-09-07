@@ -3,44 +3,39 @@ import { info } from 'firebase-functions/logger';
 import { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 import { merge } from 'lodash';
 
-import { PolicyNew, getReportErrorFn, versionsCollection } from '../../common';
+import { ILocation, getReportErrorFn, versionsCollection } from '../../common';
 import { getDifference } from '../../modules/utils';
 import { hasOne } from '../../utils';
 
-const VERSION_POLICY_DIFF_KEYS = [
-  'locations',
+const VERSION_LOCATION_DIFF_KEYS = [
+  'parentType',
+  'address',
+  'coordinates',
+  'annualPremium',
+  'termPremium',
+  'limits',
+  'RCVs',
+  'ratingData',
   'effectiveDate',
   'expirationDate',
-  'termPremium',
-  'namedInsured',
-  'mailingAddress',
-  'term',
-  'homeState',
-  'fees',
-  'taxes',
-  'price',
-  'agent',
-  'agency',
-  'surplusLinesProducerOfRecord',
-  'issuingCarrier',
 ];
 
-const reportErr = getReportErrorFn('versionPolicy');
+const reportErr = getReportErrorFn('versionLocation');
 
 export default async (
-  event: FirestoreEvent<Change<DocumentSnapshot> | undefined, { policyId: string }>
+  event: FirestoreEvent<Change<DocumentSnapshot> | undefined, { locationId: string }>
 ) => {
   try {
-    const { policyId } = event.params;
+    const { locationId } = event.params;
 
-    const beforeData = event?.data?.before?.data() as PolicyNew | undefined;
-    const afterData = event?.data?.after?.data() as PolicyNew | undefined;
+    const beforeData = event?.data?.before?.data() as ILocation | undefined;
+    const afterData = event?.data?.after?.data() as ILocation | undefined;
 
     const currentVersion = afterData?.metadata?.version;
 
     const diff = getDifference(beforeData || {}, afterData || {});
-    const shouldVersion = hasOne(VERSION_POLICY_DIFF_KEYS, Object.keys(diff));
-    info('Policy version diff', { diff, shouldVersion });
+    const shouldVersion = hasOne(VERSION_LOCATION_DIFF_KEYS, Object.keys(diff));
+    info('Location version diff', { diff, shouldVersion });
 
     const returnEarly = currentVersion && !shouldVersion;
     if (returnEarly || !Boolean(afterData)) {
@@ -48,14 +43,14 @@ export default async (
       return;
     }
 
-    info(`Policy change detected (${policyId})`, {
-      policyId,
+    info(`Location change detected (${locationId})`, {
+      locationId,
       prevData: beforeData || null,
       newData: afterData || 'deleted',
     });
 
     const db = getFirestore();
-    const versionsCol = versionsCollection(db, 'POLICIES', policyId);
+    const versionsCol = versionsCollection(db, 'LOCATIONS', locationId);
 
     const batch = db.batch();
 
@@ -80,7 +75,7 @@ export default async (
     }
     await batch.commit();
   } catch (err: any) {
-    let errMsg = 'error saving policy version';
+    let errMsg = 'error saving location version';
     if (err?.message) errMsg += ` ${err.message}`;
     reportErr(errMsg, { ...event }, err);
   }
