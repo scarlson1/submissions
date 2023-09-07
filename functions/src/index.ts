@@ -55,7 +55,7 @@ export {
   algoliasynctransactions,
   algoliasyncusers,
 } from './firestoreEvents/algolia';
-export { versionpolicy } from './firestoreEvents/versions';
+export { versionpolicy, versionquote, versionsubmission } from './firestoreEvents/versions';
 export {
   amendmentlistener,
   endorsementlistener,

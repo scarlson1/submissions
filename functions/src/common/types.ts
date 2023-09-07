@@ -465,39 +465,31 @@ export interface InitRatingValues extends Limits {
 
 export type LocationImageTypes = 'light' | 'dark' | 'satellite' | 'satelliteStreets';
 
-export interface Submission extends FloodFormValues {
+export interface Submission extends FloodFormValues, BaseDoc {
   product: Product;
   coordinates: GeoPoint;
   geoHash?: Geohash | null;
-  // countyFIPS?: string | null;
   userId?: string | null;
   submittedById?: string | null;
   agent?: Nullable<AgentDetails>;
   agency?: Nullable<AgencyDetails>;
   status: SUBMISSION_STATUS;
   rcvSourceUser?: boolean;
-  // propertyDataRes: FetchPropertyDataResponse;
-  ratingPropertyData: Nullable<RatingPropertyData>; // FetchPropertyDataResponse;
+  ratingPropertyData: Nullable<RatingPropertyData>;
   propertyDataDocId: string | null;
   ratingDocId?: string | null;
   initValues: InitRatingValues;
-  // darkMapImageURL?: string;
-  // lightMapImageURL?: string;
-  // darkMapImageFilePath?: string;
-  // lightMapImageFilePath?: string;
-  // satelliteMapImageURL?: string;
-  // satelliteStreetsMapImageURL?: string;
-  // satelliteMapImageFilePath?: string;
-  // satelliteStreetsMapImageFilePath?: string;
   imageURLs?: LocationImages | null;
   imagePaths?: LocationImages | null;
+  blurHash?: LocationImages | null;
   AALs?: Nullable<ValueByRiskType>;
   annualPremium?: number;
   subproducerCommission?: number; // TODO: delete ?? look up by agent / agency if present
-  metadata: BaseMetadata;
+  // metadata: BaseMetadata;
 }
 
 // TODO: either store as coordinates: lat,lng or remove
+// is this being used ?? use address and coords separate objects for consistency ??
 export interface AddressWithCoords extends Address {
   latitude: number;
   longitude: number;
@@ -593,7 +585,7 @@ export interface FeeItem {
   value: number;
 }
 
-export interface Quote {
+export interface Quote extends BaseDoc {
   product: Product;
   deductible: number;
   limits: Limits;
@@ -613,11 +605,6 @@ export interface Quote {
   quoteExpirationDate: Timestamp;
   exclusions?: string[];
   additionalInterests?: AdditionalInterest[];
-  metadata: {
-    created: Timestamp;
-    updated: Timestamp;
-    version: number; // WithFieldValue<number>;
-  };
   userId: string | null;
   namedInsured: Nullable<NamedInsuredDetails>;
   mailingAddress: MailingAddress;
@@ -759,7 +746,6 @@ export interface PolicyNew extends BaseDoc {
   issuingCarrier: string; // INSURER NAME ONLY OR NAME AND ID ??
   documents: { displayName: string; downloadUrl: string; storagePath: string }[];
   quoteId?: string | null;
-  _lastCommitted?: Timestamp;
 }
 
 export interface IPolicyClass extends Policy {

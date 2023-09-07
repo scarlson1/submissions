@@ -8,3 +8,14 @@ export const versionpolicy = onDocumentWritten(
     await (await import('./versionPolicy.js')).default(event);
   }
 );
+
+export const versionquote = onDocumentWritten(`${COLLECTIONS.QUOTES}/{quoteId}`, async (event) => {
+  await (await import('./versionQuote.js')).default(event);
+});
+
+export const versionsubmission = onDocumentWritten(
+  `${COLLECTIONS.SUBMISSIONS}/{submissionId}`,
+  async (event) => {
+    await (await import('./versionSubmission.js')).default(event);
+  }
+);

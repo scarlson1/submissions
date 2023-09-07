@@ -3,44 +3,43 @@ import { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 import { info } from 'firebase-functions/logger';
 import { merge } from 'lodash';
 
-import { PolicyNew, getReportErrorFn, versionsCollection } from '../../common';
+import { Quote, getReportErrorFn, versionsCollection } from '../../common';
 import { getDifference } from '../../modules/utils';
 import { hasOne } from '../../utils';
 
-const VERSION_POLICY_DIFF_KEYS = [
-  'locations',
-  'effectiveData',
-  'expirationDate',
-  'termPremium',
-  'namedInsured',
-  'mailingAddress',
-  'term',
+const VERSION_QUOTE_DIFF_KEYS = [
+  'deductible',
+  'limits',
+  'address',
   'homeState',
   'fees',
   'taxes',
-  'price',
+  'annualPremium',
+  'quoteTotal',
+  'namedInsured',
   'agent',
   'agency',
-  'surplusLinesProducerOfRecord',
-  'issuingCarrier',
+  'mailingAddress',
 ];
 
 const reportErr = getReportErrorFn('versionPolicy');
 
 export default async (
-  event: FirestoreEvent<Change<DocumentSnapshot> | undefined, { policyId: string }>
+  event: FirestoreEvent<Change<DocumentSnapshot> | undefined, { quoteId: string }>
 ) => {
   try {
-    const { policyId } = event.params;
+    const { quoteId } = event.params;
 
-    const beforeData = event?.data?.before?.data() as PolicyNew | undefined;
-    const afterData = event?.data?.after?.data() as PolicyNew | undefined;
+    // const quoteSnap =
+    //   event?.data?.before ?? (event?.data?.after as DocumentSnapshot<Quote> | undefined);
+    const beforeData = event?.data?.before?.data() as Quote | undefined;
+    const afterData = event?.data?.after?.data() as Quote | undefined;
 
     const currentVersion = afterData?.metadata?.version;
 
     const diff = getDifference(beforeData || {}, afterData || {});
-    const shouldVersion = hasOne(VERSION_POLICY_DIFF_KEYS, Object.keys(diff));
-    info('Policy version diff', { diff, shouldVersion });
+    const shouldVersion = hasOne(VERSION_QUOTE_DIFF_KEYS, Object.keys(diff));
+    info('Quote version diff', { diff, shouldVersion });
 
     const returnEarly = currentVersion && !shouldVersion;
     if (returnEarly || !Boolean(afterData)) {
@@ -48,19 +47,19 @@ export default async (
       return;
     }
 
-    info(`Policy change detected (${policyId})`, {
-      policyId,
+    info(`Quote change detected (${quoteId})`, {
+      quoteId,
       prevData: beforeData || null,
       newData: afterData || 'deleted',
     });
 
     const db = getFirestore();
-    const versionsCol = versionsCollection(db, 'POLICIES', policyId);
+    const versionsCol = versionsCollection(db, 'QUOTES', quoteId);
 
     const batch = db.batch();
 
     batch.set(
-      event.data!.after.ref,
+      event!.data!.after.ref,
       {
         metadata: {
           version: FieldValue.increment(1),

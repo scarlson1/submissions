@@ -3,44 +3,46 @@ import { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 import { info } from 'firebase-functions/logger';
 import { merge } from 'lodash';
 
-import { PolicyNew, getReportErrorFn, versionsCollection } from '../../common';
+import { Submission, getReportErrorFn, versionsCollection } from '../../common';
 import { getDifference } from '../../modules/utils';
 import { hasOne } from '../../utils';
 
-const VERSION_POLICY_DIFF_KEYS = [
-  'locations',
-  'effectiveData',
-  'expirationDate',
-  'termPremium',
-  'namedInsured',
-  'mailingAddress',
-  'term',
+const VERSION_SUBMISSION_DIFF_KEYS = [
+  'deductible',
+  'limits',
+  'address',
   'homeState',
-  'fees',
-  'taxes',
-  'price',
+  'namedInsured',
+  'contact',
+  'coordinates',
+  'ratingPropertyData',
+  'propertyDataDocId',
+  'ratingDocId',
   'agent',
   'agency',
-  'surplusLinesProducerOfRecord',
-  'issuingCarrier',
+  'subproducerCommission',
+  'mailingAddress',
+  'AALs',
+  'annualPremium',
+  'subproducerCommission',
 ];
 
-const reportErr = getReportErrorFn('versionPolicy');
+const reportErr = getReportErrorFn('versionSubmission');
 
 export default async (
-  event: FirestoreEvent<Change<DocumentSnapshot> | undefined, { policyId: string }>
+  event: FirestoreEvent<Change<DocumentSnapshot> | undefined, { submissionId: string }>
 ) => {
   try {
-    const { policyId } = event.params;
+    const { submissionId } = event.params;
 
-    const beforeData = event?.data?.before?.data() as PolicyNew | undefined;
-    const afterData = event?.data?.after?.data() as PolicyNew | undefined;
+    const beforeData = event?.data?.before?.data() as Submission | undefined;
+    const afterData = event?.data?.after?.data() as Submission | undefined;
 
     const currentVersion = afterData?.metadata?.version;
 
     const diff = getDifference(beforeData || {}, afterData || {});
-    const shouldVersion = hasOne(VERSION_POLICY_DIFF_KEYS, Object.keys(diff));
-    info('Policy version diff', { diff, shouldVersion });
+    const shouldVersion = hasOne(VERSION_SUBMISSION_DIFF_KEYS, Object.keys(diff));
+    info('Submission version diff', { diff, shouldVersion });
 
     const returnEarly = currentVersion && !shouldVersion;
     if (returnEarly || !Boolean(afterData)) {
@@ -48,19 +50,19 @@ export default async (
       return;
     }
 
-    info(`Policy change detected (${policyId})`, {
-      policyId,
+    info(`Submission change detected (${submissionId})`, {
+      submissionId,
       prevData: beforeData || null,
       newData: afterData || 'deleted',
     });
 
     const db = getFirestore();
-    const versionsCol = versionsCollection(db, 'POLICIES', policyId);
+    const versionsCol = versionsCollection(db, 'SUBMISSIONS', submissionId);
 
     const batch = db.batch();
 
     batch.set(
-      event.data!.after.ref,
+      event!.data!.after.ref,
       {
         metadata: {
           version: FieldValue.increment(1),

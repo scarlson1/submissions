@@ -46,3 +46,7 @@ export function waitMilliSeconds(ms: number, reason?: string) {
 export function randomFileName(filePath: string) {
   return randomBytes(20).toString('hex') + extname(filePath);
 }
+
+export function hasOne(arr1: string[], arr2: string[]) {
+  return arr1.some((r) => arr2.indexOf(r) >= 0);
+}
