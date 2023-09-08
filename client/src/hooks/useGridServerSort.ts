@@ -1,10 +1,10 @@
 import { GridInitialState, GridSortModel } from '@mui/x-data-grid';
 import { QueryOrderByConstraint, orderBy } from 'firebase/firestore';
-import { startTransition, useCallback, useEffect, useRef, useState } from 'react';
 import { isEqual } from 'lodash';
+import { startTransition, useCallback, useEffect, useRef, useState } from 'react';
 
+import { usePrevious } from 'hooks/utils';
 import { getFirestoreSortOps } from 'modules/muiGrid';
-import { usePrevious } from './usePrevious';
 
 export const useGridServerSort = (
   initialState?: GridInitialState | undefined,

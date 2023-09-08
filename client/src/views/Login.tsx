@@ -1,20 +1,21 @@
-import { useEffect, useRef, useCallback } from 'react';
-import { Button, Typography, Container, Unstable_Grid2 as Grid } from '@mui/material';
-import { LoadingButton } from '@mui/lab';
-import { FormikHelpers, Formik, FormikProps } from 'formik';
-import * as yup from 'yup';
-import { useNavigate, useLocation, useParams, useSearchParams } from 'react-router-dom';
-import { toast } from 'react-hot-toast';
 import { FirebaseError } from '@firebase/util';
+import { LoadingButton } from '@mui/lab';
+import { Button, Container, Unstable_Grid2 as Grid, Typography } from '@mui/material';
 import { AuthError, getAuth } from 'firebase/auth'; // , ProviderId
+import { Formik, FormikHelpers, FormikProps } from 'formik';
+import { useCallback, useEffect, useRef } from 'react';
+import { toast } from 'react-hot-toast';
+import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import * as yup from 'yup';
 
 import FormikTextField from 'components/forms/FormikTextField';
 // import { GoogleAuth, MicrosoftAuth } from 'components';
-import { getRedirectPath } from 'modules/utils/helpers';
-import { FormikPassword } from 'elements/forms';
-import { useHandleAuthError } from 'hooks/useHandleAuthError';
-import { useKeyPress, useSendPasswordReset } from 'hooks';
 import { useAuthActions } from 'context';
+import { FormikPassword } from 'elements/forms';
+import { useSendPasswordReset } from 'hooks';
+import { useHandleAuthError } from 'hooks/useHandleAuthError';
+import { useKeyPress } from 'hooks/utils';
+import { getRedirectPath } from 'modules/utils/helpers';
 
 // const providersList = [
 //   {
@@ -89,7 +90,7 @@ export const Login = () => {
         }
       } else {
         console.log(err);
-        toast.error('An error occured. See console for details.');
+        toast.error('An error occurred. See console for details.');
       }
       actions.setSubmitting(false);
     }

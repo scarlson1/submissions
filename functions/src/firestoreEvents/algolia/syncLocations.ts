@@ -101,6 +101,7 @@ export default async (
         parentData = stagedPolicySnap.data() as StagedPolicyImport;
       }
 
+      // TODO: remove after location versioning refactor
       // delete if not current location or set tag ??
       let hidden = false;
       if (newData.parentType === 'policy') {

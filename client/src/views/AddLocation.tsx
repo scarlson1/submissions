@@ -1,10 +1,11 @@
+import { Container } from '@mui/material';
 import { Timestamp, addDoc, collection, getFirestore } from 'firebase/firestore';
 import { useCallback, useEffect, useState } from 'react';
-import { Container } from '@mui/material';
 
 import { COLLECTIONS } from 'common';
 import { AddLocationForm } from 'elements/forms';
-import { usePrevious, useSafeParams } from 'hooks';
+import { useSafeParams } from 'hooks';
+import { usePrevious } from 'hooks/utils';
 import { createResource } from 'modules/utils';
 
 function createDraftChangeRequest(policyId: string) {

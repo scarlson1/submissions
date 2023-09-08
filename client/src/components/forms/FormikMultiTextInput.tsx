@@ -1,9 +1,9 @@
-import { useCallback, useState } from 'react';
 import { Box, Chip, ChipProps, Stack, StackProps, TextField, TextFieldProps } from '@mui/material';
 import { FieldHookConfig, useField } from 'formik';
+import { useCallback, useState } from 'react';
 import { toast } from 'react-hot-toast';
 
-import { useKeyPress } from 'hooks';
+import { useKeyPress } from 'hooks/utils';
 import { isValidEmail } from 'modules/utils/helpers';
 
 export type FormikMultiTextInputProps = TextFieldProps & {

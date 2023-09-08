@@ -3,7 +3,12 @@ import { info } from 'firebase-functions/logger';
 import { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 import { merge } from 'lodash';
 
-import { ILocation, getReportErrorFn, versionsCollection } from '../../common';
+import {
+  ILocation,
+  getReportErrorFn,
+  policiesCollectionNew,
+  versionsCollection,
+} from '../../common';
 import { getDifference } from '../../modules/utils';
 import { hasOne } from '../../utils';
 
@@ -21,6 +26,15 @@ const VERSION_LOCATION_DIFF_KEYS = [
 ];
 
 const reportErr = getReportErrorFn('versionLocation');
+
+// TODO: location refactor:
+//    - if creates new location version -->
+//    - save previous data in subcollection
+//    - update the policy doc with new version number for location
+//    - need to use transaction / batch ??
+//    - issues:
+//    - will create new policy version for every location changes
+//    - if that's an issue, need to use transaction to process all updates at once
 
 export default async (
   event: FirestoreEvent<Change<DocumentSnapshot> | undefined, { locationId: string }>
@@ -51,6 +65,7 @@ export default async (
 
     const db = getFirestore();
     const versionsCol = versionsCollection(db, 'LOCATIONS', locationId);
+    const policiesCol = policiesCollectionNew(db);
 
     const batch = db.batch();
 
@@ -64,6 +79,19 @@ export default async (
       { merge: true }
     );
 
+    // TODO: need to use transaction to ensure same version ??
+    if (afterData?.policyId) {
+      const oldVersion = afterData?.metadata?.version ?? 0;
+      let policySnap = await policiesCol.doc(afterData.policyId).get();
+      // might now exist if policy import from CSV
+      if (policySnap.exists) {
+        const policyUpdates = {
+          [`locations.${locationId}.version`]: oldVersion + 1,
+        };
+        batch.update(policySnap.ref, policyUpdates);
+      }
+    }
+
     if (shouldVersion) {
       const versionDocId = beforeData?.metadata?.version || 0;
       const versionRef = versionsCol.doc(`${versionDocId}`);
@@ -73,6 +101,7 @@ export default async (
       });
       batch.set(versionRef, versionData);
     }
+
     await batch.commit();
   } catch (err: any) {
     let errMsg = 'error saving location version';

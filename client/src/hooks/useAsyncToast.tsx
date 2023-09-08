@@ -1,7 +1,7 @@
-import { useRef, useCallback, useMemo } from 'react';
 import { CloseRounded, InfoRounded, WarningAmberRounded } from '@mui/icons-material';
-import { Box, IconButton, Typography } from '@mui/material';
-import { Toast, toast, ToastOptions } from 'react-hot-toast';
+import { Box, IconButton, Paper, Typography } from '@mui/material';
+import { useCallback, useMemo, useRef } from 'react';
+import { Toast, ToastOptions, toast } from 'react-hot-toast';
 
 // TODO: add dismiss button: https://react-hot-toast.com/docs/toast (bottom of page)
 
@@ -109,6 +109,31 @@ export const useAsyncToast = (defOptions?: ToastOptions) => {
     toast.dismiss(toastRef.current || undefined);
   }, []);
 
+  const custom = useCallback((msg: string, options?: ToastOptions) => {
+    toast.custom(
+      (t) => {
+        console.log('TOAST PROPS: ', t);
+        // TODO: create toast container accepts content and actions
+        // with progress indicator option
+        // useCountdown hook
+        // https://usehooks-ts.com/react-hook/use-countdown
+        // https://usehooks.com/usecountdown
+        // useGeolocate --> add to new submission form
+        // https://usehooks.com/usegeolocation
+        return (
+          <Paper>
+            <Typography variant='body2' sx={{ py: 3, px: 4 }}>
+              {msg}
+            </Typography>
+          </Paper>
+        );
+      },
+      {
+        ...options,
+      }
+    );
+  }, []);
+
   const memoed = useMemo(
     () => ({
       loading,
@@ -118,8 +143,9 @@ export const useAsyncToast = (defOptions?: ToastOptions) => {
       error,
       warn,
       dismiss,
+      custom,
     }),
-    [loading, updateLoadingMsg, success, info, error, warn, dismiss]
+    [loading, updateLoadingMsg, success, info, error, warn, dismiss, custom]
   );
 
   return memoed;

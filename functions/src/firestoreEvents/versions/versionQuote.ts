@@ -1,6 +1,6 @@
 import { DocumentSnapshot, FieldValue, Timestamp, getFirestore } from 'firebase-admin/firestore';
-import { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 import { info } from 'firebase-functions/logger';
+import { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 import { merge } from 'lodash';
 
 import { Quote, getReportErrorFn, versionsCollection } from '../../common';
@@ -68,8 +68,8 @@ export default async (
       { merge: true }
     );
 
-    if (shouldVersion) {
-      const versionDocId = beforeData?.metadata?.version || 0;
+    if (shouldVersion && beforeData) {
+      const versionDocId = beforeData.metadata?.version || 0;
       const versionRef = versionsCol.doc(`${versionDocId}`);
 
       const versionData = merge(beforeData, {

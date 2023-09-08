@@ -3,8 +3,8 @@ import { QueryFieldFilterConstraint, QueryOrderByConstraint } from 'firebase/fir
 import { isEqual } from 'lodash';
 import { startTransition, useCallback, useEffect, useState } from 'react';
 
+import { usePrevious } from 'hooks/utils';
 import { getFirestoreFilters } from 'modules/muiGrid';
-import { usePrevious } from './usePrevious';
 
 // https://github.com/mui/mui-x/blob/master/packages/grid/x-data-grid/src/hooks/features/filter/useGridFilter.tsx
 

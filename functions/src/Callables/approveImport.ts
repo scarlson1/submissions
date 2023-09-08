@@ -130,7 +130,7 @@ const approveImport = async ({ data, auth }: CallableRequest<ApproveImportProps>
 
             verify(
               !(stagedTrxQuerySnap.empty && existingTrxQuerySnap.empty),
-              `Could not find staged transaction or existing transaction for location ${lcnId}`
+              `could not find staged transaction or existing transaction for location ${lcnId}`
             );
 
             // if staged, add to array to get imported with policy
@@ -245,6 +245,7 @@ const approveImport = async ({ data, auth }: CallableRequest<ApproveImportProps>
     let errMsg = `Error importing documents`;
     if (err?.message) errMsg += ` - ${err.message}`;
     reportErr(errMsg, {}, err);
+    if (err instanceof HttpsError) throw err;
 
     throw new HttpsError('internal', `import failed`);
   }

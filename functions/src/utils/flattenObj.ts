@@ -1,0 +1,24 @@
+import { FlattenObjectKeys } from '../common';
+
+export const flattenObj = <T extends Record<string, any>>(obj: T) => {
+  let result: Record<string, any> = {};
+
+  for (const key in obj) {
+    if (!obj.hasOwnProperty(key)) {
+      continue;
+    }
+
+    if (typeof obj[key] === 'object' && !Array.isArray(obj[key])) {
+      const temp = flattenObj(obj[key]);
+
+      for (const j in temp) {
+        // @ts-ignore
+        result[key + '.' + j] = temp[j];
+      }
+    } else {
+      result[key] = obj[key];
+    }
+  }
+
+  return result as Record<FlattenObjectKeys<T>, any>;
+};

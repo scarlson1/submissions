@@ -3,9 +3,9 @@ import { info } from 'firebase-functions/logger';
 import { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 import { merge } from 'lodash';
 
-import { PolicyNew, getReportErrorFn, versionsCollection } from '../../common';
+import { DeepPartial, PolicyNew, getReportErrorFn, versionsCollection } from '../../common';
 import { getDifference } from '../../modules/utils';
-import { hasOne } from '../../utils';
+import { flattenObj, hasOne } from '../../utils';
 
 const VERSION_POLICY_DIFF_KEYS = [
   'locations',
@@ -25,6 +25,8 @@ const VERSION_POLICY_DIFF_KEYS = [
   'issuingCarrier',
 ];
 
+const LCN_VERSION_PATTERN = /locations\.[\w*-]+\.version/g;
+
 const reportErr = getReportErrorFn('versionPolicy');
 
 export default async (
@@ -38,8 +40,26 @@ export default async (
 
     const currentVersion = afterData?.metadata?.version;
 
-    const diff = getDifference(beforeData || {}, afterData || {});
-    const shouldVersion = hasOne(VERSION_POLICY_DIFF_KEYS, Object.keys(diff));
+    const diff = getDifference(beforeData || {}, afterData || {}) as DeepPartial<PolicyNew>;
+    const diffKeys = Object.keys(diff);
+    let shouldVersion = diffKeys.length ? hasOne(VERSION_POLICY_DIFF_KEYS, diffKeys) : false;
+
+    // if only change to location['locationId'].version
+    // then change was triggered by location version update,
+    // should not create new policy version
+    if (shouldVersion && diffKeys.every((k) => k === 'locations')) {
+      const flattenedDiff = flattenObj(diff);
+
+      const onlyLcnVersionChange = Object.keys(flattenedDiff).every((key) =>
+        LCN_VERSION_PATTERN.test(key)
+      );
+
+      info(`Location version change only: ${onlyLcnVersionChange}`, {
+        flattenedDiff,
+      });
+      if (onlyLcnVersionChange) return;
+    }
+
     info('Policy version diff', { diff, shouldVersion });
 
     const returnEarly = currentVersion && !shouldVersion;
@@ -69,8 +89,8 @@ export default async (
       { merge: true }
     );
 
-    if (shouldVersion) {
-      const versionDocId = beforeData?.metadata?.version || 0;
+    if (shouldVersion && beforeData) {
+      const versionDocId = beforeData.metadata?.version || 0;
       const versionRef = versionsCol.doc(`${versionDocId}`);
 
       const versionData = merge(beforeData, {

@@ -11,25 +11,13 @@ import {
   policiesCollectionNew,
   verify,
 } from '../../common';
-import { createDocId } from './helpers';
-
-// interface PolicyLocationTrxProps {
-//   policyId: string;
-//   locationId: string;
-//   changeRequestId: string;
-//   policyChanges: DeepPartial<PolicyNew>;
-//   locationChanges: DeepPartial<ILocation>;
-// }
-
-// TODO: rename (mergePolicyLocationChanges ??)
-// TODO: move request reads & validation from approveChangeRequest into trx
+// import { createDocId } from './helpers';
 
 export const mergePolicyLocationChanges = async (
   db: Firestore,
   policyId: string,
   requestId: string,
   reqUpdates: { processedByUserId: string; underwriterNotes?: string | null }
-  // { policyId, locationId, policyChanges, locationChanges }: PolicyLocationTrxProps
 ) => {
   const requestRef = changeRequestsCollection(db, policyId).doc(requestId);
   const policyRef = policiesCollectionNew(db).doc(policyId);
@@ -43,10 +31,13 @@ export const mergePolicyLocationChanges = async (
 
     const isLcnScope = scope === 'location';
 
-    const locationId = isLcnScope ? request.locationId : undefined;
+    // const locationId = isLcnScope ? request.locationId : undefined;
     const locationChanges = isLcnScope ? request.locationChanges : {};
-    const locationRef = isLcnScope ? locationsCollection(db).doc(request.locationId) : undefined;
-    const newLocationRef = isLcnScope ? locationsCollection(db).doc(createDocId()) : undefined;
+    const locationRef =
+      isLcnScope && request.locationId
+        ? locationsCollection(db).doc(request.locationId)
+        : undefined;
+    // const newLocationRef = isLcnScope ? locationsCollection(db).doc(createDocId()) : undefined;
 
     if (trxType === 'endorsement') {
       if (isLcnScope)
@@ -64,7 +55,7 @@ export const mergePolicyLocationChanges = async (
     const policySnap = await transaction.get(policyRef);
     const locationSnap = locationRef ? await transaction.get(locationRef) : null;
     verify(policySnap.exists, 'Policy document does not exist');
-    verify(locationSnap === null || locationSnap?.exists, 'Location document does not exist');
+    verify(!isLcnScope || locationSnap?.exists, 'Location document does not exist');
 
     info(`Updating policy (${policyId}) with changes (requestId: ${requestId})`, { ...request });
 
@@ -72,7 +63,8 @@ export const mergePolicyLocationChanges = async (
     let res: { locationData?: ILocation } = {};
 
     // if location change request, create a new location doc
-    if (locationSnap && newLocationRef) {
+    if (locationSnap) {
+      // && newLocationRef
       const newLocationData = deepmerge(locationSnap.data(), {
         ...locationChanges,
         ...meta,
@@ -82,24 +74,28 @@ export const mergePolicyLocationChanges = async (
       res['locationData'] = newLocationData;
     }
 
-    const policyMergeArr = [
-      policySnap.data(),
-      {
-        ...policyChanges,
-        ...meta,
-      },
-    ] as Partial<PolicyNew>[];
-    // if location change, update location doc ref
-    if (locationId && newLocationRef) {
-      policyMergeArr.push({
-        locations: {
-          [locationId]: {
-            lcnDocId: newLocationRef.id,
-          },
-        },
-      } as Partial<PolicyNew>);
-    }
-    const newPolicyData = deepmerge(...policyMergeArr) as PolicyNew;
+    // const policyMergeArr = [
+    //   policySnap.data(),
+    //   {
+    //     ...policyChanges,
+    //     ...meta,
+    //   },
+    // ] as Partial<PolicyNew>[];
+
+    // // if location change, update location doc ref
+    // if (locationId && newLocationRef) {
+    //   policyMergeArr.push({
+    //     locations: {
+    //       [locationId]: {
+    //         lcnDocId: newLocationRef.id,
+    //       },
+    //     },
+    //   } as Partial<PolicyNew>);
+    // }
+    const newPolicyData = deepmerge(policySnap.data(), {
+      ...policyChanges,
+      ...meta,
+    }) as PolicyNew;
 
     const requestUpdates = {
       ...reqUpdates,
@@ -108,7 +104,7 @@ export const mergePolicyLocationChanges = async (
       'metadata.updated': Timestamp.now(),
     };
 
-    if (newLocationRef && res.locationData) transaction.set(newLocationRef, res.locationData);
+    // if (newLocationRef && res.locationData) transaction.set(newLocationRef, res.locationData);
     transaction.set(policyRef, newPolicyData, { merge: true });
     transaction.set(requestRef, requestUpdates, { merge: true });
 

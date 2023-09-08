@@ -1,11 +1,10 @@
-import { useMemo, useState, useCallback, useEffect } from 'react';
-import algoliasearch from 'algoliasearch/lite';
-import { InstantSearch, SearchBox, useSearchBox } from 'react-instantsearch-hooks-web';
-import { GeoHit } from 'instantsearch.js/es/connectors/geo-search/connectGeoSearch';
 import { ViewStateChangeParameters } from '@deck.gl/core/typed/controllers/controller';
+import algoliasearch from 'algoliasearch/lite';
+import { GeoHit } from 'instantsearch.js/es/connectors/geo-search/connectGeoSearch';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { InstantSearch, SearchBox, useSearchBox } from 'react-instantsearch-hooks-web';
 
-import { useDebounce, useGeoSearch } from 'hooks';
-import { DeckMap } from 'elements';
+import { Box } from '@mui/material';
 import {
   FlyToInterpolator,
   IconLayer,
@@ -13,7 +12,9 @@ import {
   PickingInfo,
   WebMercatorViewport,
 } from 'deck.gl/typed';
-import { Box } from '@mui/material';
+import { DeckMap } from 'elements';
+import { useGeoSearch } from 'hooks';
+import { useDebounce } from 'hooks/utils';
 
 type Airport = {
   name: string;

@@ -48,6 +48,12 @@ import { getHeaderStatus } from './admin/Quotes';
 
 // TODO: add a tab to view change requests
 
+const TestToast = () => {
+  const toast = useAsyncToast();
+
+  return <Button onClick={() => toast.custom('Test custom toast')}>Test toast</Button>;
+};
+
 export const Policies = () => {
   const navigate = useNavigate();
   const { claims, user } = useAuth();
@@ -98,6 +104,7 @@ export const Policies = () => {
         <Box>
           {header}
           <PoliciesGrid renderActions={adminActions} checkboxSelection />
+          <TestToast />
         </Box>
       </Container>
     );

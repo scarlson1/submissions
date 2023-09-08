@@ -18,8 +18,9 @@ import { useAnalytics, useAuth as useFireAuth, useFunctions } from 'reactfire';
 
 import { CLAIMS } from 'common';
 import { ReauthDialog } from 'components';
-import { useAlgoliaStore, usePrevious, useUserClaims } from 'hooks';
+import { useAlgoliaStore, useUserClaims } from 'hooks';
 import { UserWithClaimsResult } from 'hooks/useUserClaims';
+import { usePrevious } from 'hooks/utils';
 import { AUTH_ROUTES, createPath } from 'router';
 
 // TODO: refactor to use rxFire observables ?? https://firebase.blog/posts/2018/09/introducing-rxfire-easy-async-firebase

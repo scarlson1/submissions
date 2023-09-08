@@ -1,19 +1,20 @@
-import { useCallback, useEffect, useRef } from 'react';
-import { Container, Button, Typography } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
+import { Button, Container, Typography } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
-import { FormikHelpers, Formik, FormikProps } from 'formik';
-import * as yup from 'yup';
-import { useNavigate, useLocation, useParams, useSearchParams } from 'react-router-dom';
+import { Formik, FormikHelpers, FormikProps } from 'formik';
+import { useCallback, useEffect, useRef } from 'react';
 import { toast } from 'react-hot-toast';
+import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useAuth } from 'reactfire';
+import * as yup from 'yup';
 
 import { FormikTextField } from 'components/forms';
 // import { auth } from 'firebaseConfig';
 // import { GoogleAuth, MicrosoftAuth } from 'components';
-import { getRedirectPath } from 'modules/utils/helpers';
 import { FormikPassword } from 'elements/forms';
-import { useCreateAccount, useKeyPress } from 'hooks';
+import { useCreateAccount } from 'hooks';
+import { useKeyPress } from 'hooks/utils';
+import { getRedirectPath } from 'modules/utils/helpers';
 
 export const passwordValidation = yup
   .string()
@@ -39,7 +40,7 @@ interface SignUpValues {
 }
 
 // TODO: handle existing accounts
-// and linkinng anonymous accounts
+// and linking anonymous accounts
 // https://firebase.google.com/docs/auth/web/anonymous-auth#email-password-sign-in
 
 export const CreateAccount = () => {
