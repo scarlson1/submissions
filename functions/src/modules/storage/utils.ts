@@ -35,8 +35,6 @@ export function dateWithTimeZone(val: string, zone: string = 'America/Los_Angele
 
   const offsetMS = getTimezoneOffset(zone);
   const date = addMS(valDate, -offsetMS);
-  console.log('DATE VAL: ', valDate);
-  console.log('OFFSET: ', date);
   logDates(date);
 
   return date;

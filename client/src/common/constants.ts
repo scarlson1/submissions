@@ -192,7 +192,7 @@ export const PORTFOLIO_RATING_REQUIRED_HEADERS = [
 
 export const POLICY_IMPORT_REQUIRED_HEADERS = [
   'policyId',
-  'locationId',
+  // 'locationId',
   'addressLine1',
   'addressLine2',
   'city',

@@ -2,6 +2,7 @@ import { add } from 'date-fns';
 import { Timestamp } from 'firebase-admin/firestore';
 import { geohashForLocation } from 'geofire-common';
 import { round, sumBy } from 'lodash';
+
 import {
   AdditionalInsured,
   ILocation,
@@ -155,6 +156,7 @@ export function getPolicyFromQuote(
       termPremium: location.termPremium,
       address: compressAddress(location.address),
       coords: location.coordinates,
+      lcnDocId: id,
     };
   }
 

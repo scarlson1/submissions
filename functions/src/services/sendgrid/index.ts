@@ -345,7 +345,7 @@ export const sendAdminPolicyImportNotification = async (
     createMsgContent({
       to,
       html,
-      subject: 'Policy import complete',
+      subject: 'Policy import staged',
       ...getCustomArgs(sgArgs),
     })
   );

@@ -24,10 +24,11 @@ export const adminImportNotification = ({
         <body>
           <div>
             <p style="padding-bottom: 8px">Hi${toName ? ` ${toName},` : ','}</p>
-            <p>Import complete from ${fileName}.</p>
+            <p>Import staging complete from ${fileName}.</p>
             <p>Imported ${successCount} record${
     successCount > 2 ? 's' : ''
   } with ${errorCount} record creation errors and ${invalidDataCount} rows skipped due to invalid data.</p>
+            <p>The records are now in "staged" collection. To complete the import, you must review and approve.</p>
 
             ${
               link

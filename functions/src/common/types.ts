@@ -1062,7 +1062,7 @@ export interface LocationCancellationRequest
   cancelReason?: CancellationReason;
   formValues: CancelValues;
   // policyChanges?: DeepPartial<Policy>;
-  locationChanges?: DeepPartial<ILocation>; // cancelEffDate ?? (or only in policy ??)
+  locationChanges?: DeepPartial<ILocation>; // cancelEffDate ?? (or only in policy ??) (would scope become 'policy' if only updated fields are policy ?? or are we recalculating the term premium for the location doc ??)
 }
 
 export interface PolicyChangeRequest extends BaseChangeRequest {

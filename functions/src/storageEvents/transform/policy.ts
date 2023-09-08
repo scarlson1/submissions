@@ -137,7 +137,7 @@ export function transformPolicyRow(row: CSVPolicyRow): ParsedPolicyRow {
     policyEffectiveDate: dateWithTimeZone(row.policyEffectiveDate),
     policyExpirationDate: dateWithTimeZone(row.policyExpirationDate), // row.policyExpirationDate ? new Date(row.policyExpirationDate) : null,
     cancelEffDate: dateWithTimeZone(row.cancelEffectiveDate),
-    externalId: row.locationId,
+    externalId: row.locationId, // row.externalId || // TODO: use locationId as header name or externalId ??
     additionalInsured: [],
     mortgageeInterest: [],
     term: row.term ? extractNumber(row.term) : 1,

@@ -1,5 +1,3 @@
-// TEMPORARY DISABLE WHEN CHANGING TO NEW POLICY-LOCATION STRUCTURE
-
 import algoliasearch, { SearchIndex } from 'algoliasearch';
 import { DocumentSnapshot, Timestamp } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
@@ -46,15 +44,15 @@ export default async (
   const newData = event?.data?.after.data() as PolicyNew | undefined;
 
   // Remove locations from index if location Id not in new locations
-  const prevData = event?.data?.before.data();
-  const newLocationIds = Object.keys(newData?.locations || {});
-  const prevLocationIds = Object.keys(prevData?.locations || {});
+  // const prevData = event?.data?.before.data();
+  // const newLocationIds = Object.keys(newData?.locations || {});
+  // const prevLocationIds = Object.keys(prevData?.locations || {});
 
-  const removedLocationIds = prevLocationIds.filter((locId) => newLocationIds.includes(locId));
+  // const removedLocationIds = prevLocationIds.filter((locId) => newLocationIds.includes(locId));
 
-  for (let locId of removedLocationIds) {
-    await removeAlgoliaRecord(index, locId);
-  }
+  // for (let locId of removedLocationIds) {
+  //   await removeAlgoliaRecord(index, locId);
+  // }
 
   if (!newData) {
     // Delete policy record

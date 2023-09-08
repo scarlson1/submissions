@@ -243,7 +243,7 @@ const approveImport = async ({ data, auth }: CallableRequest<ApproveImportProps>
     };
   } catch (err: any) {
     let errMsg = `Error importing documents`;
-    if (err?.message) errMsg += err.message;
+    if (err?.message) errMsg += ` - ${err.message}`;
     reportErr(errMsg, {}, err);
 
     throw new HttpsError('internal', `import failed`);

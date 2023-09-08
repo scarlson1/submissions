@@ -322,7 +322,10 @@ export const Policy = () => {
                   renderTooltipContent={(info: PickingInfo) => (
                     <Box sx={{ px: 2, borderRadius: 0.5 }}>
                       <Typography variant='body2' fontWeight='fontWeightMedium'>
-                        {`${info.object?.address?.s1}, ${info.object?.address?.c}, ${info.object?.address?.st}`}
+                        {`${info.object?.address?.s1 || ''}`}
+                      </Typography>
+                      <Typography variant='body2' sx={{ fontSize: '0.8rem' }}>
+                        {`${info.object?.address?.c || ''}, ${info.object?.address?.st || ''}`}
                       </Typography>
                       {info.object?.cancelEffDate ? (
                         <Typography

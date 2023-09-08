@@ -34,7 +34,7 @@ export default async (
     const currentVersion = afterData?.metadata?.version;
 
     const diff = getDifference(beforeData || {}, afterData || {});
-    const shouldVersion = hasOne(VERSION_LOCATION_DIFF_KEYS, Object.keys(diff));
+    const shouldVersion = beforeData && hasOne(VERSION_LOCATION_DIFF_KEYS, Object.keys(diff));
     info('Location version diff', { diff, shouldVersion });
 
     const returnEarly = currentVersion && !shouldVersion;
