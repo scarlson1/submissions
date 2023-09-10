@@ -49,19 +49,6 @@ import { useCallback } from 'react';
 
 import { useBoolean, useCounter, useInterval } from '.';
 
-// Old interface IN & OUT
-// interface UseCountdownType {
-//   seconds: number;
-//   interval: number;
-//   isIncrement?: boolean;
-// }
-// interface CountdownHelpers {
-//   start: () => void;
-//   stop: () => void;
-//   reset: () => void;
-// }
-
-// New interface IN & OUT
 interface CountdownOption {
   countStart: number;
   intervalMs?: number;

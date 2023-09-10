@@ -51,7 +51,15 @@ import { getHeaderStatus } from './admin/Quotes';
 const TestToast = () => {
   const toast = useAsyncToast();
 
-  return <Button onClick={() => toast.custom('Test custom toast')}>Test toast</Button>;
+  return (
+    <Stack spacing={2} direction='row'>
+      <Button onClick={() => toast.custom('Test custom toast')}>custom toast</Button>
+      <Button onClick={() => toast.customSpring('Test spring toast')}>spring toast</Button>
+      <Button onClick={() => toast.success('Test success toast')}>success toast</Button>
+      <Button onClick={() => toast.warn('Test warn toast')}>warn toast</Button>
+      <Button onClick={() => toast.info('Test info toast')}>info toast</Button>
+    </Stack>
+  );
 };
 
 export const Policies = () => {
