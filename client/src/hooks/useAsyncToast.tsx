@@ -112,6 +112,8 @@ export const useAsyncToast = (defOptions?: ToastOptions) => {
   const custom = useCallback((msg: string, options?: ToastOptions) => {
     toast.custom(
       (t) => {
+        // TODO: move to custom Toast component
+        // const [] = useCountdown()
         console.log('TOAST PROPS: ', t);
         // TODO: create toast container accepts content and actions
         // with progress indicator option
