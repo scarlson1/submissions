@@ -1,7 +1,11 @@
 import { CloseRounded, InfoRounded, WarningAmberRounded } from '@mui/icons-material';
-import { Box, IconButton, Paper, Typography } from '@mui/material';
-import { useCallback, useMemo, useRef } from 'react';
-import { Toast, ToastOptions, toast } from 'react-hot-toast';
+import { Box, CircularProgress, IconButton, Typography } from '@mui/material';
+import { styled } from '@mui/system';
+import { animated, useSpring, useTransition } from '@react-spring/web';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { Toast, ToastOptions, toast, useToasterStore } from 'react-hot-toast';
+
+import { useCountdown } from './utils';
 
 // TODO: add dismiss button: https://react-hot-toast.com/docs/toast (bottom of page)
 
@@ -72,23 +76,23 @@ export const useAsyncToast = (defOptions?: ToastOptions) => {
               sx={{
                 pr: 2,
                 flex: '1 1 auto',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
+                alignSelf: 'center',
+                // display: 'flex',
+                // flexDirection: 'column',
+                // justifyContent: 'center',
               }}
             >
-              <Typography variant='body2'>{`${msg}`}</Typography>
+              {/* <Typography variant='body2'>{`${msg}`}</Typography> */}
+              <Typography color='text.secondary'>{`${msg}`}</Typography>
             </Box>
-
             <Box sx={{ flex: '0 0 auto' }}>
               <IconButton
                 aria-label='close'
                 onClick={() => toast.dismiss(t.id)}
                 size='small'
-                // edge='end'
                 sx={{ mt: -1, mr: -2 }}
               >
-                <CloseRounded />
+                <CloseRounded fontSize='inherit' />
               </IconButton>
             </Box>
           </Box>
@@ -110,30 +114,15 @@ export const useAsyncToast = (defOptions?: ToastOptions) => {
   }, []);
 
   const custom = useCallback((msg: string, options?: ToastOptions) => {
-    toast.custom(
-      (t) => {
-        // TODO: move to custom Toast component
-        // const [] = useCountdown()
-        console.log('TOAST PROPS: ', t);
-        // TODO: create toast container accepts content and actions
-        // with progress indicator option
-        // useCountdown hook
-        // https://usehooks-ts.com/react-hook/use-countdown
-        // https://usehooks.com/usecountdown
-        // useGeolocate --> add to new submission form
-        // https://usehooks.com/usegeolocation
-        return (
-          <Paper>
-            <Typography variant='body2' sx={{ py: 3, px: 4 }}>
-              {msg}
-            </Typography>
-          </Paper>
-        );
-      },
-      {
-        ...options,
-      }
-    );
+    toast.custom((t) => <CustomToast msg={msg} {...t} />, {
+      ...options,
+    });
+  }, []);
+
+  const customSpring = useCallback((msg: string, options?: ToastOptions) => {
+    toast.custom((t) => <SpringToast msg={msg} {...t} />, {
+      ...options,
+    });
   }, []);
 
   const memoed = useMemo(
@@ -146,9 +135,207 @@ export const useAsyncToast = (defOptions?: ToastOptions) => {
       warn,
       dismiss,
       custom,
+      customSpring,
     }),
-    [loading, updateLoadingMsg, success, info, error, warn, dismiss, custom]
+    [loading, updateLoadingMsg, success, info, error, warn, dismiss, custom, customSpring]
   );
 
   return memoed;
 };
+
+// TODO: create toast container accepts content and actions
+// useCountdown hook
+// https://usehooks-ts.com/react-hook/use-countdown
+// https://usehooks.com/usecountdown
+// useGeolocate --> add to new submission form
+// https://usehooks.com/usegeolocation
+
+// https://codesandbox.io/s/v1i1t?file=/src/styles.ts:39-83
+const AnimatedContainer = styled(animated.div)(({ theme }) => ({
+  color: theme.palette.text.secondary,
+  backgroundColor:
+    theme.palette.mode === 'dark'
+      ? theme.palette.primaryDark[700]
+      : theme.palette.background.default,
+  padding: 8,
+  borderRadius: 8, // theme.palette.shape.borderRadius,
+  width: '40ch',
+  // @media (max-width: 680px) {
+  //   width: 100%;
+  // }
+}));
+const Life = styled(animated.div)({
+  position: 'absolute',
+  bottom: 0,
+  left: '0px',
+  width: 'auto',
+  backgroundImage: 'linear-gradient(130deg, #00b4e6, #00f0e0)',
+  height: 4,
+});
+// export const Life = styled(animated.div)`
+//   position: absolute;
+//   bottom: 0;
+//   left: 0px;
+//   width: auto;
+//   background-image: linear-gradient(130deg, #00b4e6, #00f0e0);
+//   height: 5px;
+// `;
+
+interface CustomToastProps extends Toast {
+  msg: string;
+}
+
+function CustomToast({ msg, ...t }: CustomToastProps) {
+  // console.log('TOAST PROPS: ', t);
+  const { pausedAt } = useToasterStore({ id: t.id });
+  const countStart = (t.duration || 4000) / 100;
+  const [count, { startCountdown, stopCountdown }] = useCountdown({
+    countStart,
+    intervalMs: 100,
+  });
+  // const transition = useTransition(t.visible, {
+  //   from: { opacity: 0.3, life: '100%', ...getSpringFromProps(t) },
+  //   enter: { x: 0, y: 0, opacity: 1 },
+  //   leave: { opacity: 0, ...getSpringLeaveProps(t) },
+  // });
+  const [springProps] = useSpring(
+    () => ({
+      from: { opacity: 0.1, height: 0 }, // y: -400
+      enter: { opacity: 1, y: 0, height: t.height },
+      leave: { opacity: 0, height: 0 }, // y: -800
+    }),
+    []
+  );
+
+  useEffect(() => {
+    const fn = pausedAt ? stopCountdown : startCountdown;
+    t.visible && fn(); // BUG can leave other toasts stuck on stopCountdown
+  }, [pausedAt, stopCountdown, startCountdown, t.visible]);
+
+  const handleClose = useCallback(() => {
+    stopCountdown();
+    toast.remove(t.id); // TODO: use toast.dismiss with custom animation (lib bug custom stays open)
+  }, [stopCountdown, t?.id]);
+
+  return (
+    <animated.div style={{ ...springProps }}>
+      <Box
+        sx={{
+          px: 3,
+          py: 2,
+          borderRadius: 1,
+          backgroundColor: (theme) =>
+            theme.palette.mode === 'dark'
+              ? theme.palette.primaryDark[700]
+              : theme.palette.background.default,
+        }}
+      >
+        <Box sx={{ display: 'flex' }}>
+          <Box sx={{ flex: '1 1 auto', alignSelf: 'center' }}>
+            <Typography color='text.secondary'>{msg}</Typography>
+          </Box>
+          <Box sx={{ flex: '0 0 auto', ml: 3, my: -0.5, mr: -2 }}>
+            <Box sx={{ position: 'relative' }}>
+              <IconButton size='small' aria-label='close' onClick={handleClose} sx={{ zIndex: 2 }}>
+                <CloseRounded fontSize='inherit' />
+              </IconButton>
+              <CircularProgress
+                variant='determinate'
+                value={(count / countStart) * 100}
+                size={28}
+                color='inherit'
+                sx={{
+                  scale: '-1 1',
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  zIndex: 1,
+                }}
+              />
+            </Box>
+          </Box>
+        </Box>
+      </Box>
+    </animated.div>
+  );
+}
+// declare type ToastPosition = 'top-left' | 'top-center' | 'top-right' | 'bottom-left' | 'bottom-center' | 'bottom-right';
+const getSpringFromProps = (t: Toast) => {
+  switch (t.position) {
+    case 'top-left':
+    case 'top-center':
+    case 'top-right':
+      return { y: -100 };
+    case 'bottom-left':
+    case 'bottom-center':
+    case 'bottom-right':
+      return { y: window.innerHeight + 100 };
+    default:
+      return {};
+  }
+};
+const getSpringLeaveProps = (t: Toast) => {
+  switch (t.position) {
+    case 'top-left':
+    case 'top-center':
+    case 'top-right':
+      return { y: -100 };
+    case 'bottom-left':
+    case 'bottom-center':
+    case 'bottom-right':
+      return { y: window.innerHeight + 100 };
+    default:
+      return {};
+  }
+};
+
+function SpringToast({ msg, ...t }: CustomToastProps) {
+  const { pausedAt } = useToasterStore({ id: t.id });
+  const countStart = (t.duration || 4000) / 100;
+  const [count, { startCountdown, stopCountdown }] = useCountdown({
+    countStart,
+    intervalMs: 100,
+  });
+  const transition = useTransition(t.visible, {
+    from: { opacity: 0.3, life: '100%', ...getSpringFromProps(t) },
+    enter: { x: 0, y: 0, opacity: 1 },
+    leave: { opacity: 0, ...getSpringLeaveProps(t) },
+  });
+
+  useEffect(() => {
+    const fn = pausedAt ? stopCountdown : startCountdown;
+    t.visible && fn(); // BUG can leave other toasts stuck on stopCountdown
+  }, [pausedAt, stopCountdown, startCountdown, t.visible]);
+
+  // const handleClose = useCallback(() => {
+  //   stopCountdown();
+  //   toast.remove(t.id); // TODO: use toast.dismiss with custom animation (lib bug custom stays open)
+  // }, [stopCountdown, t?.id]);
+
+  return (
+    <div>
+      {transition(({ ...style }, item) => (
+        <AnimatedContainer style={{ ...style, width: '200px', height: '80px' }}>
+          <Typography color='text.secondary'>{msg}</Typography>
+          {/* <ProgressIndicator progress={(count / countStart) * 100} /> */}
+        </AnimatedContainer>
+      ))}
+    </div>
+  );
+}
+
+// https://codesandbox.io/s/v1i1t?file=/src/styles.ts:1442-1580
+// https://codesandbox.io/s/progress-bar-with-react-spring-forked-b6ulf?file=/src/VerticalProgress.jsx
+// function ProgressIndicator({ progress }: { progress: number }) {
+//   const [props, api] = useSpring(
+//     () => ({
+//       from: { percent: 100 },
+//       to: { percent: progress },
+//     }),
+//     []
+//   );
+
+//   return <Life style={{ width: `${props.percent}` }} />;
+// }
+
+// TODO: use customer renderer api ?? https://react-hot-toast.com/docs/version-2#custom-renderer-api
