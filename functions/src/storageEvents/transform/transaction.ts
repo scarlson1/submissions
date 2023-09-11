@@ -186,7 +186,7 @@ function csvRowToInsuredLocation(row: TrxRow): DeepNullable<Omit<ILocation, 'met
     TIV,
     RCVs,
     deductible: row.deductible ? extractNumber(row.deductible) : null,
-    exists: true,
+    // exists: true,
     additionalInsureds: [], // TODO
     mortgageeInterest: [],
     ratingDocId: row.ratingDocId || null,

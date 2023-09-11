@@ -16,9 +16,9 @@ import {
   calcTerm,
   verify,
 } from '../../common';
+import { createDocId } from '../../modules/db';
 import { getCarrierByState, getRCVs, validateLimits } from '../../modules/rating';
 import { compressAddress } from '../../utils';
-import { createDocId } from '../../modules/db';
 
 export const getPolicyLocationsFromQuote = (data: Quote, policyId: string) => {
   validateLimits(data.limits);
@@ -53,7 +53,6 @@ export const getPolicyLocationsFromQuote = (data: Quote, policyId: string) => {
       limits: data.limits,
       TIV: calcSum(Object.values(data.limits)),
       RCVs,
-      exists: true,
       additionalInsureds,
       mortgageeInterest,
       ratingDocId: data.ratingDocId || '', // TODO: validate & force ratingDocId ??
@@ -156,7 +155,7 @@ export function getPolicyFromQuote(
       termPremium: location.termPremium,
       address: compressAddress(location.address),
       coords: location.coordinates,
-      lcnDocId: id,
+      // lcnDocId: id,
     };
   }
 

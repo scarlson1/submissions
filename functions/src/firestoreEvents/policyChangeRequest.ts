@@ -1,4 +1,4 @@
-import { DocumentSnapshot, getFirestore } from 'firebase-admin/firestore';
+import { DocumentReference, DocumentSnapshot, getFirestore } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 import type { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 
@@ -28,7 +28,8 @@ export default async (
   try {
     const { policyId, requestId } = event.params;
     const prevData = event?.data?.before?.data() as ChangeRequest | undefined;
-    const data = event?.data?.after.data() as ChangeRequest | undefined;
+    const afterSnap = event.data?.after as DocumentSnapshot<ChangeRequest> | undefined;
+    const data = afterSnap?.data() as ChangeRequest | undefined;
 
     validate(data, 'document deleted. returning.', 'warn');
 
@@ -63,6 +64,10 @@ export default async (
         if (data.trxType === 'endorsement')
           await handleRatingForEndorsement(data, policyId, requestId);
 
+        // TODO: update status to "under review" once rating is complete ??
+
+        if (afterSnap) await updateChangeRequestStatus(afterSnap.ref, 'UNDER_REVIEW');
+
         return;
       case CHANGE_REQUEST_STATUS.ACCEPTED:
         await handleAcceptedRequest(data, policyId);
@@ -96,6 +101,13 @@ export default async (
     return;
   }
 };
+
+async function updateChangeRequestStatus(
+  docRef: DocumentReference,
+  statusKey: keyof typeof CHANGE_REQUEST_STATUS
+) {
+  await docRef.update({ status: CHANGE_REQUEST_STATUS[statusKey] });
+}
 
 // Send admin notification & notification to policy holder / agent
 async function handleRequestNotifications(

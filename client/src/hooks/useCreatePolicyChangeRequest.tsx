@@ -59,7 +59,7 @@ export const useCreatePolicyChangeRequest = () => {
       );
 
       toast.loading('saving...');
-      const colRef = changeRequestsCollection(firestore, policyId.current);
+      const changeRequestCol = changeRequestsCollection(firestore, policyId.current);
       const docIds = [];
 
       let amendmentChanges = pick(changes, ['namedInsured', 'mailingAddress']);
@@ -71,7 +71,7 @@ export const useCreatePolicyChangeRequest = () => {
         policyChanges: amendmentChanges,
       };
 
-      let amendmentDocRef = await addDoc(colRef, { ...changeRequestJson });
+      let amendmentDocRef = await addDoc(changeRequestCol, { ...changeRequestJson });
       docIds.push(amendmentDocRef.id);
 
       return { docIds };

@@ -93,12 +93,7 @@ export const mergePolicyLocationChanges = async (
     //     },
     //   } as Partial<PolicyNew>);
     // }
-    // TODO: custom merge function so arrays are not combined
-    // https://github.com/RebeccaStevens/deepmerge-ts/blob/HEAD/docs/deepmergeCustom.md
-    // let newPolicyData = deepmerge(policySnap.data(), {
-    //   ...policyChanges,
-    //   ...meta,
-    // }) as PolicyNew;
+
     let newPolicyData = deepMergeOverwriteArrays(policySnap.data(), {
       ...policyChanges,
       ...meta,

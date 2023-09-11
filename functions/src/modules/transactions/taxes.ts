@@ -27,7 +27,7 @@ interface TaxCalcProps {
 export const recalcTaxes = (props: TaxCalcProps) => {
   const { premium, homeStatePremium, outStatePremium, taxes, fees } = props;
 
-  const mgaFees = sumMGAFees(fees);
+  const mgaFees = sumFeesByType(fees, 'MGA Fee');
   const inspectionFees = sumFeesByType(fees, 'Inspection Fee');
   const policyVals: SubjectBaseKeyVal = {
     premium,
@@ -58,6 +58,7 @@ export const recalcTaxes = (props: TaxCalcProps) => {
  * @returns {number} subject base as a number
  */
 export function getTaxBase(tax: TaxItem, policyVals: SubjectBaseKeyVal) {
+  if (tax.subjectBase.includes('fixedFee')) return 1; // fixedFee = 1 * rate
   const baseKeys = tax.subjectBase?.filter((b) => b !== 'fixedFee' && b !== 'noFee');
 
   return baseKeys.reduce((acc, curr) => {
@@ -82,15 +83,6 @@ export function getRoundingFunc(type?: RoundingType | null | undefined) {
     default:
       return round;
   }
-}
-
-/**
- * Sum the value of all fees matching type "MGA Fee"
- * @param {FeeItem[]} fees array of fee items
- * @returns {number} sum of all fees matching "MGA Fee"
- */
-export function sumMGAFees(fees: FeeItem[]) {
-  return sumByTypes<FeeItem>(fees, 'feeName', 'MGA Fee', 'value');
 }
 
 /**

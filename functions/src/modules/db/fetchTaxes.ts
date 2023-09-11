@@ -1,6 +1,7 @@
 import invariant from 'tiny-invariant';
 
 import axios, { AxiosResponse } from 'axios';
+import { isDate } from 'date-fns';
 import { info } from 'firebase-functions/logger';
 import {
   LineOfBusiness,
@@ -13,8 +14,7 @@ import {
   WithId,
   submissionsApiBaseURL,
 } from '../../common';
-import { sumFeesByType, sumMGAFees } from '../transactions';
-import { isDate } from 'date-fns';
+import { sumFeesByType } from '../transactions';
 
 export type SubjectBaseKeyVal = Record<Exclude<SubjectBaseItems, 'fixedFee' | 'noFee'>, number>;
 
@@ -50,7 +50,8 @@ export async function fetchTaxes(quote: Quote, transactionType: TransactionType,
   invariant(annualPremium, 'missing annualPremium (fetch taxes)');
   if (effDate) invariant(isDate(new Date(effDate)), 'invalid effective Date');
 
-  const mgaFees = sumMGAFees(fees);
+  // const mgaFees = sumMGAFees(fees);
+  const mgaFees = sumFeesByType(fees, 'MGA Fee');
   const inspectionFees = sumFeesByType(fees, 'Inspection Fee');
 
   // TODO: switch to multi-location schema

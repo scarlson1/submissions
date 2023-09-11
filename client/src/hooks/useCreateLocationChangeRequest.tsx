@@ -24,7 +24,7 @@ import { useDialogForm } from './useDialogForm';
 export const useCreateLocationChangeRequest = (policyId: string) => {
   const firestore = useFirestore();
   const { user } = useAuth();
-  const toast = useAsyncToast();
+  const toast = useAsyncToast({ position: 'top-right' });
   const formRef = useRef<FormikProps<LocationChangeValues>>(null);
   const locationData = useRef<ILocation>();
   const policy = useRef<Policy>();
@@ -32,6 +32,7 @@ export const useCreateLocationChangeRequest = (policyId: string) => {
 
   const handleSubmit = useCallback(
     async (values: LocationChangeValues, bag: FormikHelpers<LocationChangeValues>) => {
+      console.log('handleSubmit called');
       // TODO: better validation (locationId, etc.)
       if (!locationData.current || !initialVals.current || !policy.current)
         throw new Error('missing values. please reload.');
@@ -58,11 +59,10 @@ export const useCreateLocationChangeRequest = (policyId: string) => {
         user
       );
 
-      const colRef = changeRequestsCollection(firestore, policyId);
+      const changeRequestCol = changeRequestsCollection(firestore, policyId);
       const docIds = [];
 
       if (requiresEndorsement) {
-        // let endorsementChanges: LocationChangeRequest['changes'] = {};
         // TODO: create ProtectLocation type (omit termPremium, etc.)
         let endorsementChanges: Partial<Omit<ILocation, 'termPremium' | 'annualPremium'>> = {};
 
@@ -76,7 +76,7 @@ export const useCreateLocationChangeRequest = (policyId: string) => {
 
         if (diff.deductible) endorsementChanges['deductible'] = values.deductible;
 
-        console.log('endorsement changes: ', endorsementChanges);
+        // console.log('endorsement changes: ', endorsementChanges);
 
         const changeRequestData: LocationChangeRequest = {
           ...common,
@@ -84,7 +84,7 @@ export const useCreateLocationChangeRequest = (policyId: string) => {
           locationChanges: { ...endorsementChanges },
         };
 
-        const endorsementDocRef = await addDoc(colRef, { ...changeRequestData });
+        const endorsementDocRef = await addDoc(changeRequestCol, { ...changeRequestData });
         docIds.push(endorsementDocRef.id);
       }
 
@@ -107,7 +107,7 @@ export const useCreateLocationChangeRequest = (policyId: string) => {
           locationChanges: amendmentChanges,
         };
 
-        const amendmentDocRef = await addDoc(colRef, { ...changeRequestData });
+        const amendmentDocRef = await addDoc(changeRequestCol, { ...changeRequestData });
         docIds.push(amendmentDocRef.id);
       }
 
@@ -128,7 +128,10 @@ export const useCreateLocationChangeRequest = (policyId: string) => {
     formRef,
     getFormProps: () => ({ policyExpirationDate: policy.current?.expirationDate.toDate() }),
     onSubmit: handleSubmit,
-    onSuccess: () => {},
+    onSuccess: () => {
+      toast.success('change request submitted');
+      // TODO: pass onSuccessComponent to display in dialog --> timeout close dialog after x ms
+    },
     onError: (msg: string, err: any) => {
       console.log('error: ', err);
       toast.error(msg);

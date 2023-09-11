@@ -652,7 +652,7 @@ export interface ILocation extends BaseDoc {
   TIV: number;
   RCVs: RCVs;
   deductible: number;
-  exists: true; // https://stackoverflow.com/a/62626994/10887890
+  // exists: true; // https://stackoverflow.com/a/62626994/10887890
   additionalInsureds: AdditionalInsured[];
   mortgageeInterest: Mortgagee[];
   ratingDocId: string; // TODO: include rating info ?? make PublicRatingData and PrivateRatingData (extends)
@@ -713,7 +713,7 @@ export interface PolicyLocation {
   address: CompressedAddress;
   coords: GeoPoint;
   cancelEffDate?: Timestamp | null;
-  lcnDocId: string;
+  // lcnDocId: string;
 }
 
 export interface PolicyNew extends BaseDoc {

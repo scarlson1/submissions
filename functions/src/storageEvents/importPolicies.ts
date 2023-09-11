@@ -379,7 +379,7 @@ function formatPolicyLocation(
     deductible: data.deductible,
     effectiveDate: effDateTs,
     expirationDate: expDateTs,
-    exists: true,
+    // exists: true,
     additionalInsureds: data.additionalInsured || [],
     mortgageeInterest: data.mortgageeInterest || [],
     ratingDocId: data.ratingDocId || '',

@@ -51,8 +51,6 @@ export function useDialogForm<T extends Record<string, any>, C = {}>({
     [dialog, onSubmit, onSuccess, onError]
   );
 
-  // const cloned = cloneElement(formComponent, { ...formProps, onSubmit: handleSubmit });
-
   const promptForm = useCallback(
     async (initialValues: T) => {
       try {
@@ -123,7 +121,7 @@ export function useDialogForm<T extends Record<string, any>, C = {}>({
 //   const startTest = useCallback(async () => {
 //     try {
 //       let res = await promptForm(initialVals);
-//       console.log('promp form result: ', res);
+//       console.log('prompt form result: ', res);
 //     } catch (err: any) {
 //       console.log('prompt err: ', err);
 //     }
