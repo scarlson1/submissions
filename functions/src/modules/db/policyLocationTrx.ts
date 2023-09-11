@@ -1,16 +1,18 @@
-import { deepmerge } from 'deepmerge-ts';
 import { Firestore, Timestamp } from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
 
 import {
   CHANGE_REQUEST_STATUS,
+  FeeItem,
   ILocation,
   PolicyNew,
+  TaxItem,
   changeRequestsCollection,
   locationsCollection,
   policiesCollectionNew,
   verify,
 } from '../../common';
+import { deepMergeOverwriteArrays } from '../utils';
 // import { createDocId } from './helpers';
 
 export const mergePolicyLocationChanges = async (
@@ -64,8 +66,7 @@ export const mergePolicyLocationChanges = async (
 
     // if location change request, create a new location doc
     if (locationSnap) {
-      // && newLocationRef
-      const newLocationData = deepmerge(locationSnap.data(), {
+      const newLocationData = deepMergeOverwriteArrays(locationSnap.data(), {
         ...locationChanges,
         ...meta,
       }) as ILocation;
@@ -92,10 +93,24 @@ export const mergePolicyLocationChanges = async (
     //     },
     //   } as Partial<PolicyNew>);
     // }
-    const newPolicyData = deepmerge(policySnap.data(), {
+    // TODO: custom merge function so arrays are not combined
+    // https://github.com/RebeccaStevens/deepmerge-ts/blob/HEAD/docs/deepmergeCustom.md
+    // let newPolicyData = deepmerge(policySnap.data(), {
+    //   ...policyChanges,
+    //   ...meta,
+    // }) as PolicyNew;
+    let newPolicyData = deepMergeOverwriteArrays(policySnap.data(), {
       ...policyChanges,
       ...meta,
     }) as PolicyNew;
+
+    const newTaxes = policyChanges?.taxes;
+    if (newTaxes && Array.isArray(newTaxes)) newPolicyData.taxes = newTaxes as TaxItem[];
+
+    const newFees = policyChanges?.fees;
+    if (newFees && Array.isArray(newFees)) newPolicyData.fees = newFees as FeeItem[];
+
+    console.log('NEW MERGED POLICY: ', newPolicyData);
 
     const requestUpdates = {
       ...reqUpdates,
@@ -105,6 +120,9 @@ export const mergePolicyLocationChanges = async (
     };
 
     // if (newLocationRef && res.locationData) transaction.set(newLocationRef, res.locationData);
+
+    if (locationRef) transaction.set(locationRef, { ...(res.locationData || {}) }, { merge: true });
+
     transaction.set(policyRef, newPolicyData, { merge: true });
     transaction.set(requestRef, requestUpdates, { merge: true });
 

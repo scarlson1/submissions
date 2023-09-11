@@ -1,7 +1,7 @@
 import { CloseRounded, InfoRounded, WarningAmberRounded } from '@mui/icons-material';
 import { Box, CircularProgress, IconButton, Typography } from '@mui/material';
 import { styled } from '@mui/system';
-import { animated, useSpring, useTransition } from '@react-spring/web';
+import { animated, useTransition } from '@react-spring/web';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Toast, ToastOptions, toast, useToasterStore } from 'react-hot-toast';
 
@@ -164,7 +164,7 @@ const AnimatedContainer = styled(animated.div)(({ theme }) => ({
   //   width: 100%;
   // }
 }));
-const Life = styled(animated.div)({
+export const Life = styled(animated.div)({
   position: 'absolute',
   bottom: 0,
   left: '0px',

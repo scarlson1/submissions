@@ -10,7 +10,6 @@ import {
   isValidEmail,
   policiesCollection,
   sendgridApiKey,
-  verify,
 } from '../common';
 import { handleCancelRating, handleRatingForEndorsement } from '../modules/transactions';
 import { getDoc } from '../routes/utils';
@@ -166,21 +165,23 @@ async function handleAcceptedRequest(data: ChangeRequest, policyId: string) {
     // TODO: status check sufficient ?? what if there was an error and requires re-emitting ??
     // verify(data.trxPubSubEmitted !== true, 'trx pubsub event has already been emitted for change request.)
     // TODO: matching firestore rule
-    const UNPROCESSED_CHANGE_REQUEST_STATUSES = [
-      CHANGE_REQUEST_STATUS.SUBMITTED,
-      CHANGE_REQUEST_STATUS.ERROR,
-      CHANGE_REQUEST_STATUS.UNDER_REVIEW,
-    ];
-    const alreadyProcessed = !UNPROCESSED_CHANGE_REQUEST_STATUSES.includes(
-      data.status as CHANGE_REQUEST_STATUS
-    );
 
-    verify(
-      !alreadyProcessed,
-      `Change request was already processed (status did not match: ${UNPROCESSED_CHANGE_REQUEST_STATUSES.join(
-        ', '
-      )})`
-    );
+    // redundant ?? calling function if status matches accepted
+    // const UNPROCESSED_CHANGE_REQUEST_STATUSES = [
+    //   CHANGE_REQUEST_STATUS.SUBMITTED,
+    //   CHANGE_REQUEST_STATUS.ERROR,
+    //   CHANGE_REQUEST_STATUS.UNDER_REVIEW,
+    // ];
+    // const notProcessed = UNPROCESSED_CHANGE_REQUEST_STATUSES.includes(
+    //   data.status as CHANGE_REQUEST_STATUS
+    // );
+
+    // verify(
+    //   !notProcessed,
+    //   `Change request was already processed (status did not match: ${UNPROCESSED_CHANGE_REQUEST_STATUSES.join(
+    //     ', '
+    //   )})`
+    // );
 
     if (data.scope === 'location') {
       switch (data.trxType) {
@@ -255,6 +256,7 @@ async function handleAcceptedRequest(data: ChangeRequest, policyId: string) {
       }
     }
   } catch (err: any) {
+    console.log('Error: ', err);
     const errMsg = `Error publishing change request accepted pubsub event`;
     // TODO: set error message
     // setChangeRequestErr(requestRef, errMsg);

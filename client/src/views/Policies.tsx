@@ -48,7 +48,7 @@ import { getHeaderStatus } from './admin/Quotes';
 
 // TODO: add a tab to view change requests
 
-const TestToast = () => {
+export const TestToast = () => {
   const toast = useAsyncToast();
 
   return (
@@ -112,7 +112,7 @@ export const Policies = () => {
         <Box>
           {header}
           <PoliciesGrid renderActions={adminActions} checkboxSelection />
-          <TestToast />
+          {/* <TestToast /> */}
         </Box>
       </Container>
     );
