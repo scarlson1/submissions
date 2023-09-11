@@ -172,14 +172,6 @@ const Life = styled(animated.div)({
   backgroundImage: 'linear-gradient(130deg, #00b4e6, #00f0e0)',
   height: 4,
 });
-// export const Life = styled(animated.div)`
-//   position: absolute;
-//   bottom: 0;
-//   left: 0px;
-//   width: auto;
-//   background-image: linear-gradient(130deg, #00b4e6, #00f0e0);
-//   height: 5px;
-// `;
 
 interface CustomToastProps extends Toast {
   msg: string;
@@ -193,19 +185,19 @@ function CustomToast({ msg, ...t }: CustomToastProps) {
     countStart,
     intervalMs: 100,
   });
-  // const transition = useTransition(t.visible, {
-  //   from: { opacity: 0.3, life: '100%', ...getSpringFromProps(t) },
-  //   enter: { x: 0, y: 0, opacity: 1 },
-  //   leave: { opacity: 0, ...getSpringLeaveProps(t) },
-  // });
-  const [springProps] = useSpring(
-    () => ({
-      from: { opacity: 0.1, height: 0 }, // y: -400
-      enter: { opacity: 1, y: 0, height: t.height },
-      leave: { opacity: 0, height: 0 }, // y: -800
-    }),
-    []
-  );
+  const transition = useTransition(t.visible, {
+    from: { opacity: 0.3, life: '100%', ...getSpringFromProps(t) },
+    enter: { x: 0, y: 0, opacity: 1 },
+    leave: { opacity: 0, height: 0, ...getSpringLeaveProps(t) },
+  });
+  // const [springStyles, api] = useSpring(
+  //   () => ({
+  //     from: { opacity: 0.1, height: 0 }, // y: -400
+  //     enter: { opacity: 1, y: 0, height: t.height },
+  //     leave: { opacity: 0, height: 0 }, // y: -800
+  //   }),
+  //   []
+  // );
 
   useEffect(() => {
     const fn = pausedAt ? stopCountdown : startCountdown;
@@ -218,45 +210,55 @@ function CustomToast({ msg, ...t }: CustomToastProps) {
   }, [stopCountdown, t?.id]);
 
   return (
-    <animated.div style={{ ...springProps }}>
-      <Box
-        sx={{
-          px: 3,
-          py: 2,
-          borderRadius: 1,
-          backgroundColor: (theme) =>
-            theme.palette.mode === 'dark'
-              ? theme.palette.primaryDark[700]
-              : theme.palette.background.default,
-        }}
-      >
-        <Box sx={{ display: 'flex' }}>
-          <Box sx={{ flex: '1 1 auto', alignSelf: 'center' }}>
-            <Typography color='text.secondary'>{msg}</Typography>
-          </Box>
-          <Box sx={{ flex: '0 0 auto', ml: 3, my: -0.5, mr: -2 }}>
-            <Box sx={{ position: 'relative' }}>
-              <IconButton size='small' aria-label='close' onClick={handleClose} sx={{ zIndex: 2 }}>
-                <CloseRounded fontSize='inherit' />
-              </IconButton>
-              <CircularProgress
-                variant='determinate'
-                value={(count / countStart) * 100}
-                size={28}
-                color='inherit'
-                sx={{
-                  scale: '-1 1',
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  zIndex: 1,
-                }}
-              />
+    <>
+      {transition((style, item) => (
+        // <animated.div style={{ ...springStyles }}>
+        <animated.div style={style}>
+          <Box
+            sx={{
+              px: 3,
+              py: 2,
+              borderRadius: 1,
+              backgroundColor: (theme) =>
+                theme.palette.mode === 'dark'
+                  ? theme.palette.primaryDark[700]
+                  : theme.palette.background.default,
+            }}
+          >
+            <Box sx={{ display: 'flex' }}>
+              <Box sx={{ flex: '1 1 auto', alignSelf: 'center' }}>
+                <Typography color='text.secondary'>{msg}</Typography>
+              </Box>
+              <Box sx={{ flex: '0 0 auto', ml: 3, my: -0.5, mr: -2 }}>
+                <Box sx={{ position: 'relative' }}>
+                  <IconButton
+                    size='small'
+                    aria-label='close'
+                    onClick={handleClose}
+                    sx={{ zIndex: 2 }}
+                  >
+                    <CloseRounded fontSize='inherit' />
+                  </IconButton>
+                  <CircularProgress
+                    variant='determinate'
+                    value={(count / countStart) * 100}
+                    size={28}
+                    color='inherit'
+                    sx={{
+                      scale: '-1 1',
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      zIndex: 1,
+                    }}
+                  />
+                </Box>
+              </Box>
             </Box>
           </Box>
-        </Box>
-      </Box>
-    </animated.div>
+        </animated.div>
+      ))}
+    </>
   );
 }
 // declare type ToastPosition = 'top-left' | 'top-center' | 'top-right' | 'bottom-left' | 'bottom-center' | 'bottom-right';
@@ -269,7 +271,7 @@ const getSpringFromProps = (t: Toast) => {
     case 'bottom-left':
     case 'bottom-center':
     case 'bottom-right':
-      return { y: window.innerHeight + 100 };
+      return { y: window.innerHeight + 200 };
     default:
       return {};
   }
@@ -283,7 +285,7 @@ const getSpringLeaveProps = (t: Toast) => {
     case 'bottom-left':
     case 'bottom-center':
     case 'bottom-right':
-      return { y: window.innerHeight + 100 };
+      return { y: window.innerHeight + 200 };
     default:
       return {};
   }
