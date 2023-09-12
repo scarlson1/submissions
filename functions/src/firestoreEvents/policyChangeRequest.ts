@@ -64,7 +64,12 @@ export default async (
         if (data.trxType === 'endorsement')
           await handleRatingForEndorsement(data, policyId, requestId);
 
-        // TODO: update status to "under review" once rating is complete ??
+        // TODO: is cancellation handled differently than flat cancel
+        if (data.trxType === 'cancellation' || data.trxType === 'flat_cancel') {
+          // TODO: handle cancellation
+          await handleCancelRating(data, policyId, requestId);
+          throw new Error('');
+        }
 
         if (afterSnap) await updateChangeRequestStatus(afterSnap.ref, 'UNDER_REVIEW');
 
@@ -76,7 +81,8 @@ export default async (
       case CHANGE_REQUEST_STATUS.CANCELLED:
         await handleRequestNotifications(data, policyId, requestId, event.id);
 
-        await handleCancelRating(data, policyId, requestId);
+        // moved to "submitted status"
+        // await handleCancelRating(data, policyId, requestId);
 
         return;
       case CHANGE_REQUEST_STATUS.DENIED:
