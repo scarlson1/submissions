@@ -7,6 +7,7 @@ export const lightToastOptions: DefaultToastOptions = {
   style: {
     color: '#3E5060',
     borderRadius: '8px',
+    overflowX: 'hidden',
   },
   success: {
     iconTheme: {
@@ -27,6 +28,7 @@ export const darkToastOptions: DefaultToastOptions = {
     color: '#B2BAC2',
     backgroundColor: '#1F262E', // '#132F4C',
     borderRadius: '8px',
+    overflowX: 'hidden',
   },
   success: {
     iconTheme: {

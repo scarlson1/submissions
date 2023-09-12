@@ -112,7 +112,7 @@ export const Policies = () => {
         <Box>
           {header}
           <PoliciesGrid renderActions={adminActions} checkboxSelection />
-          {/* <TestToast /> */}
+          <TestToast />
         </Box>
       </Container>
     );

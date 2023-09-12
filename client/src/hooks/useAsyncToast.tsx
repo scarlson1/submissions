@@ -1,5 +1,13 @@
 import { CloseRounded, InfoRounded, WarningAmberRounded } from '@mui/icons-material';
-import { Box, CircularProgress, IconButton, Typography } from '@mui/material';
+import {
+  Box,
+  CircularProgress,
+  IconButton,
+  LinearProgress,
+  LinearProgressProps,
+  Typography,
+  linearProgressClasses,
+} from '@mui/material';
 import { styled } from '@mui/system';
 import { animated, useTransition } from '@react-spring/web';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
@@ -114,7 +122,7 @@ export const useAsyncToast = (defOptions?: ToastOptions) => {
   }, []);
 
   const custom = useCallback((msg: string, options?: ToastOptions) => {
-    toast.custom((t) => <CustomToast msg={msg} {...t} />, {
+    toast((t) => <CustomToast msg={msg} {...t} />, {
       ...options,
     });
   }, []);
@@ -142,6 +150,25 @@ export const useAsyncToast = (defOptions?: ToastOptions) => {
 
   return memoed;
 };
+
+const ToastLinearProgress = styled(LinearProgress)(({ theme }) => ({
+  position: 'absolute',
+  bottom: 0,
+  left: 0,
+  right: 0,
+  height: 2,
+  borderRadius: 1,
+  [`& .${linearProgressClasses.bar}`]: {
+    borderRadius: 1,
+  },
+  // [`&.${linearProgressClasses.colorPrimary}`]: {
+  //   backgroundColor: theme.palette.grey[theme.palette.mode === 'light' ? 200 : 800],
+  // },
+  // [`& .${linearProgressClasses.bar}`]: {
+  //   borderRadius: 5,
+  //   // backgroundColor: theme.palette.mode === 'light' ? '#1a90ff' : '#308fe8',
+  // },
+}));
 
 // TODO: create toast container accepts content and actions
 // useCountdown hook
@@ -173,23 +200,35 @@ export const Life = styled(animated.div)({
   height: 4,
 });
 
-interface CustomToastProps extends Toast {
-  msg: string;
-}
-
-function CustomToast({ msg, ...t }: CustomToastProps) {
-  // console.log('TOAST PROPS: ', t);
+function useToastCountdown(t: Toast) {
   const { pausedAt } = useToasterStore({ id: t.id });
   const countStart = (t.duration || 4000) / 100;
   const [count, { startCountdown, stopCountdown }] = useCountdown({
     countStart,
     intervalMs: 100,
   });
-  const transition = useTransition(t.visible, {
-    from: { opacity: 0.3, life: '100%', ...getSpringFromProps(t) },
-    enter: { x: 0, y: 0, opacity: 1 },
-    leave: { opacity: 0, height: 0, ...getSpringLeaveProps(t) },
-  });
+
+  useEffect(() => {
+    const fn = pausedAt ? stopCountdown : startCountdown;
+    t.visible && fn(); // BUG can leave other toasts stuck on stopCountdown
+  }, [pausedAt, stopCountdown, startCountdown, t.visible]);
+
+  const timeRemaining = (count / countStart) * 100;
+
+  return [timeRemaining, { startCountdown, stopCountdown }] as const;
+}
+
+interface CustomToastProps extends Toast {
+  msg: string;
+}
+
+function CustomToast({ msg, ...t }: CustomToastProps) {
+  const [timeRemaining, { stopCountdown }] = useToastCountdown(t);
+  // const transition = useTransition(t.visible, {
+  //   from: { opacity: 0.3, life: '100%', ...getSpringFromProps(t) },
+  //   enter: { x: 0, y: 0, opacity: 1 },
+  //   leave: { opacity: 0, height: 0, ...getSpringLeaveProps(t) },
+  // });
   // const [springStyles, api] = useSpring(
   //   () => ({
   //     from: { opacity: 0.1, height: 0 }, // y: -400
@@ -199,68 +238,91 @@ function CustomToast({ msg, ...t }: CustomToastProps) {
   //   []
   // );
 
-  useEffect(() => {
-    const fn = pausedAt ? stopCountdown : startCountdown;
-    t.visible && fn(); // BUG can leave other toasts stuck on stopCountdown
-  }, [pausedAt, stopCountdown, startCountdown, t.visible]);
-
   const handleClose = useCallback(() => {
     stopCountdown();
-    toast.remove(t.id); // TODO: use toast.dismiss with custom animation (lib bug custom stays open)
-  }, [stopCountdown, t?.id]);
+    toast.dismiss(t.id);
+    // toast.remove(t.id); // TODO: use toast.dismiss with custom animation (lib bug custom stays open)
+  }, [stopCountdown, t.id]);
 
   return (
     <>
-      {transition((style, item) => (
+      {/* {transition((style, item) => (
         // <animated.div style={{ ...springStyles }}>
-        <animated.div style={style}>
-          <Box
-            sx={{
-              px: 3,
-              py: 2,
-              borderRadius: 1,
-              backgroundColor: (theme) =>
-                theme.palette.mode === 'dark'
-                  ? theme.palette.primaryDark[700]
-                  : theme.palette.background.default,
-            }}
-          >
-            <Box sx={{ display: 'flex' }}>
-              <Box sx={{ flex: '1 1 auto', alignSelf: 'center' }}>
-                <Typography color='text.secondary'>{msg}</Typography>
-              </Box>
-              <Box sx={{ flex: '0 0 auto', ml: 3, my: -0.5, mr: -2 }}>
-                <Box sx={{ position: 'relative' }}>
-                  <IconButton
-                    size='small'
-                    aria-label='close'
-                    onClick={handleClose}
-                    sx={{ zIndex: 2 }}
-                  >
-                    <CloseRounded fontSize='inherit' />
-                  </IconButton>
-                  <CircularProgress
-                    variant='determinate'
-                    value={(count / countStart) * 100}
-                    size={28}
-                    color='inherit'
-                    sx={{
-                      scale: '-1 1',
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      zIndex: 1,
-                    }}
-                  />
-                </Box>
-              </Box>
+        <animated.div style={style}> */}
+      <Box
+        sx={{
+          // px: 3,
+          // py: 2,
+          borderRadius: 1,
+          backgroundColor: (theme) =>
+            theme.palette.mode === 'dark'
+              ? theme.palette.primaryDark[700]
+              : theme.palette.background.default,
+        }}
+      >
+        <Box sx={{ display: 'flex' }}>
+          <Box sx={{ flex: '1 1 auto', alignSelf: 'center' }}>
+            <Typography color='text.secondary'>{msg}</Typography>
+          </Box>
+          <Box sx={{ flex: '0 0 auto', ml: 3, my: -0.5, mr: -2 }}>
+            <Box sx={{ position: 'relative' }}>
+              <IconButton size='small' aria-label='close' onClick={handleClose} sx={{ zIndex: 2 }}>
+                <CloseRounded fontSize='inherit' />
+              </IconButton>
+              <CircularProgress
+                variant='determinate'
+                value={timeRemaining}
+                size={28}
+                color='inherit'
+                sx={{
+                  scale: '-1 1',
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  zIndex: 1,
+                }}
+              />
             </Box>
           </Box>
-        </animated.div>
-      ))}
+        </Box>
+      </Box>
+      <ToastLinearProgress
+        variant='determinate'
+        {...getProgressProps(t)}
+        value={timeRemaining}
+        sx={{
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: 2,
+          borderRadius: 1,
+          [`& .${linearProgressClasses.bar}`]: {
+            borderRadius: 1,
+          },
+        }}
+      />
+      {/* </animated.div>
+      ))} */}
     </>
   );
 }
+
+function getProgressProps(t: Toast): Partial<LinearProgressProps> {
+  switch (t.type) {
+    case 'success':
+      return { color: 'success' };
+    case 'error':
+      return { color: 'error' };
+    case 'loading':
+      return { variant: 'indeterminate' };
+    case 'custom':
+      return { color: 'primary' };
+    case 'blank':
+      return { color: 'primary' };
+  }
+}
+
 // declare type ToastPosition = 'top-left' | 'top-center' | 'top-right' | 'bottom-left' | 'bottom-center' | 'bottom-right';
 const getSpringFromProps = (t: Toast) => {
   switch (t.position) {
@@ -292,22 +354,12 @@ const getSpringLeaveProps = (t: Toast) => {
 };
 
 function SpringToast({ msg, ...t }: CustomToastProps) {
-  const { pausedAt } = useToasterStore({ id: t.id });
-  const countStart = (t.duration || 4000) / 100;
-  const [count, { startCountdown, stopCountdown }] = useCountdown({
-    countStart,
-    intervalMs: 100,
-  });
+  // const [timeRemaining, { stopCountdown }] = useToastCountdown(t);
   const transition = useTransition(t.visible, {
     from: { opacity: 0.3, life: '100%', ...getSpringFromProps(t) },
     enter: { x: 0, y: 0, opacity: 1 },
     leave: { opacity: 0, ...getSpringLeaveProps(t) },
   });
-
-  useEffect(() => {
-    const fn = pausedAt ? stopCountdown : startCountdown;
-    t.visible && fn(); // BUG can leave other toasts stuck on stopCountdown
-  }, [pausedAt, stopCountdown, startCountdown, t.visible]);
 
   // const handleClose = useCallback(() => {
   //   stopCountdown();
