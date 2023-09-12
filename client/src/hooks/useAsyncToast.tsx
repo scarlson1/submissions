@@ -161,13 +161,6 @@ const ToastLinearProgress = styled(LinearProgress)(({ theme }) => ({
   [`& .${linearProgressClasses.bar}`]: {
     borderRadius: 1,
   },
-  // [`&.${linearProgressClasses.colorPrimary}`]: {
-  //   backgroundColor: theme.palette.grey[theme.palette.mode === 'light' ? 200 : 800],
-  // },
-  // [`& .${linearProgressClasses.bar}`]: {
-  //   borderRadius: 5,
-  //   // backgroundColor: theme.palette.mode === 'light' ? '#1a90ff' : '#308fe8',
-  // },
 }));
 
 // TODO: create toast container accepts content and actions
@@ -224,35 +217,16 @@ interface CustomToastProps extends Toast {
 
 function CustomToast({ msg, ...t }: CustomToastProps) {
   const [timeRemaining, { stopCountdown }] = useToastCountdown(t);
-  // const transition = useTransition(t.visible, {
-  //   from: { opacity: 0.3, life: '100%', ...getSpringFromProps(t) },
-  //   enter: { x: 0, y: 0, opacity: 1 },
-  //   leave: { opacity: 0, height: 0, ...getSpringLeaveProps(t) },
-  // });
-  // const [springStyles, api] = useSpring(
-  //   () => ({
-  //     from: { opacity: 0.1, height: 0 }, // y: -400
-  //     enter: { opacity: 1, y: 0, height: t.height },
-  //     leave: { opacity: 0, height: 0 }, // y: -800
-  //   }),
-  //   []
-  // );
 
   const handleClose = useCallback(() => {
     stopCountdown();
     toast.dismiss(t.id);
-    // toast.remove(t.id); // TODO: use toast.dismiss with custom animation (lib bug custom stays open)
   }, [stopCountdown, t.id]);
 
   return (
     <>
-      {/* {transition((style, item) => (
-        // <animated.div style={{ ...springStyles }}>
-        <animated.div style={style}> */}
       <Box
         sx={{
-          // px: 3,
-          // py: 2,
           borderRadius: 1,
           backgroundColor: (theme) =>
             theme.palette.mode === 'dark'
@@ -302,8 +276,6 @@ function CustomToast({ msg, ...t }: CustomToastProps) {
           },
         }}
       />
-      {/* </animated.div>
-      ))} */}
     </>
   );
 }
@@ -323,7 +295,6 @@ function getProgressProps(t: Toast): Partial<LinearProgressProps> {
   }
 }
 
-// declare type ToastPosition = 'top-left' | 'top-center' | 'top-right' | 'bottom-left' | 'bottom-center' | 'bottom-right';
 const getSpringFromProps = (t: Toast) => {
   switch (t.position) {
     case 'top-left':
