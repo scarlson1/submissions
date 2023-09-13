@@ -1,7 +1,7 @@
 import { Box, Typography } from '@mui/material';
+import { doc, updateDoc } from 'firebase/firestore';
 import { Form, Formik, FormikConfig } from 'formik';
 import { useCallback, useEffect, useMemo } from 'react';
-import { doc, updateDoc } from 'firebase/firestore';
 import { useFirestore } from 'reactfire';
 import * as yup from 'yup';
 
@@ -9,21 +9,23 @@ import {
   Address,
   COLLECTIONS,
   Coordinates,
+  DraftAddLocationRequest,
   Limits,
   Nullable,
   OptionalKeys,
   Product,
   addressValidationActiveStates,
+  changeRequestsCollection,
   coordinatesValidation,
   deductibleValidation,
   limitsValidation,
 } from 'common';
 import { FormikIncrementor, Wizard, WizardNavButtons } from 'components/forms';
 import { useDocData, useWizard } from 'hooks';
+import { dollarFormat } from 'modules/utils';
 import { AddressStep as AddrStep } from './AddressStep';
 import { NESTED_ADDRESS_FIELD_NAMES } from './FormikAddress';
 import { LimitsStep as LimStep } from './LimitsStep';
-import { dollarFormat } from 'modules/utils';
 
 // store state server side ??
 // save in ChangeRequest collection with status === 'draft' ??
@@ -62,7 +64,7 @@ interface LimitValues {
 interface DeductibleValues {
   deductible: number;
 }
-type AddLocationValues = AddressValues & LimitValues & DeductibleValues;
+export type AddLocationValues = AddressValues & LimitValues & DeductibleValues;
 
 // const DEFAULT_INITIAL_VALUES: AddLocationValues = {
 //   address: {
@@ -93,6 +95,13 @@ interface AddLocationFormProps
   changeRequestId: string;
 }
 
+// TODO: use react-query & optimistic updates / mutation
+// TODO: add multiple locations
+// would need to change formValues to an array ?? (and add locationId as optional field)
+// locationId would need to be removed from top level field
+// location changes would need to be Map or Array
+// policy change requests stay the same
+
 export const AddLocationForm = ({
   policyId,
   product,
@@ -108,10 +117,7 @@ export const AddLocationForm = ({
   // or react-query style mutation ??
   // context ?? zustand ??
 
-  // TODO: need to move WizardNavButtons into each step to get access to formik context
-  // and wrap each step as it's own formik form
   const firestore = useFirestore();
-
   const { data } = useDocData(
     'POLICIES',
     changeRequestId,
@@ -124,16 +130,32 @@ export const AddLocationForm = ({
   const serverValues = useMemo(() => data?.formValues || null, [data]);
 
   const saveChangeRequest = useCallback(
-    async (values: any) => {
-      console.log('SAVING...');
-      const changeRequestRef = doc(
-        firestore,
-        `${COLLECTIONS.POLICIES}/${policyId}/${COLLECTIONS.CHANGE_REQUESTS}/${changeRequestId}`
-      );
+    async (values: AddressValues | LimitValues | DeductibleValues) => {
+      console.log('SAVING...', values);
+      // move changeRequestRef to useRef or useMemo ??
+      const reqCol = changeRequestsCollection(firestore, policyId);
+      const changeRequestRef = doc(reqCol, changeRequestId);
+      // const changeRequestRef = doc(
+      //   firestore,
+      //   `${COLLECTIONS.POLICIES}/${policyId}/${COLLECTIONS.CHANGE_REQUESTS}/${changeRequestId}`
+      // ) as DocumentReference<DraftAddLocationRequest>;
       await updateDoc(changeRequestRef, { formValues: values });
     },
     [firestore, policyId, changeRequestId]
   );
+
+  // // After deductible step --> calc rating, location values, policy changes, etc. (complete change request interface) --> onSubmit --> change status to submitted
+  // const handleCalcChanges = useCallback(() => {
+  //   // handle rating
+  //   // create location document (if no locationId, otherwise, update)
+  //   // calc all location prem values
+  //   // calc changes to policy values (taxes, premium, etc.)
+  // }, []);
+
+  // const handleSubmit = useCallback(async () => {
+  //   // update status to submitted
+  //   // redirect / show dialog & reset form
+  // }, []);
 
   useEffect(() => console.log('Server Values: ', serverValues), [serverValues]);
 
@@ -178,6 +200,7 @@ export const AddLocationForm = ({
           saveChangeRequest={saveChangeRequest}
           initialValues={{ deductible: serverValues?.deductible }}
         />
+        <ReviewStep data={data} />
       </Wizard>
     </Box>
   );
@@ -361,5 +384,22 @@ function DeductibleStep({ saveChangeRequest, ...props }: DeductibleStepProps) {
         </Form>
       )}
     </Formik>
+  );
+}
+
+interface ReviewStepProps {
+  data: DraftAddLocationRequest;
+}
+
+function ReviewStep({ data }: ReviewStepProps) {
+  return (
+    <>
+      <Typography variant='h5' color='warn.main'>
+        TODO: review step
+      </Typography>
+      <Typography component='div' sx={{ p: 5 }}>
+        {JSON.stringify(data, null, 2)}
+      </Typography>
+    </>
   );
 }

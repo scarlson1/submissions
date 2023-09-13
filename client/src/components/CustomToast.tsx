@@ -12,7 +12,7 @@ import {
 } from '@mui/material';
 import { useCallback, useEffect } from 'react';
 import { Toast, toast, useToasterStore } from 'react-hot-toast';
-import { useSwipeable } from 'react-swipeable';
+import { SwipeEventData, useSwipeable } from 'react-swipeable';
 
 import { useCountdown } from 'hooks/utils';
 
@@ -127,7 +127,7 @@ export function CustomToast({ icon, message, t }: any) {
 
   // TODO: swipe direction based on toast position ??
   const handlers = useSwipeable({
-    onSwiped: (eventData) => handleClose(),
+    onSwiped: (eventData: SwipeEventData) => handleClose(),
     swipeDuration: 500,
     preventScrollOnSwipe: true,
     trackMouse: true,

@@ -1054,6 +1054,7 @@ export interface LocationChangeRequest extends BaseChangeRequest {
   locationId: string;
   externalId?: string | null;
   cancelReason?: CancellationReason;
+  isAddLocationRequest?: false;
 }
 
 export interface LocationCancellationRequest
@@ -1063,6 +1064,7 @@ export interface LocationCancellationRequest
   formValues: CancelValues;
   // policyChanges?: DeepPartial<Policy>;
   locationChanges?: DeepPartial<ILocation>; // cancelEffDate ?? (or only in policy ??) (would scope become 'policy' if only updated fields are policy ?? or are we recalculating the term premium for the location doc ??)
+  isAddLocationRequest?: false;
 }
 
 export interface PolicyChangeRequest extends BaseChangeRequest {
@@ -1070,6 +1072,7 @@ export interface PolicyChangeRequest extends BaseChangeRequest {
   policyChanges: DeepPartial<PolicyNew>;
   formValues: PolicyChangeValues;
   cancelReason?: CancellationReason;
+  isAddLocationRequest?: false;
 }
 
 export interface CancelValues {
@@ -1081,13 +1084,37 @@ export interface PolicyCancellationRequest extends Omit<PolicyChangeRequest, 'fo
   trxType: 'cancellation' | 'flat_cancel';
   cancelReason?: CancellationReason;
   formValues: CancelValues;
+  isAddLocationRequest?: false;
+}
+export interface AddLocationValues {
+  address: Address;
+  coordinates: Nullable<Coordinates>;
+  limits: Limits;
+  deductible: number;
+}
+
+export interface AddLocationRequest extends BaseChangeRequest {
+  trxType: 'endorsement';
+  scope: 'add_location'; // TODO: use scope instead of isAddLocationRequest ??
+  status: 'submitted' | 'accepted' | 'denied' | 'under_review' | 'cancelled' | 'error';
+  formValues: AddLocationValues;
+  policyChanges?: DeepPartial<Policy>;
+  locationChanges?: DeepPartial<ILocation>;
+  isAddLocationRequest: true;
+}
+
+export interface DraftAddLocationRequest extends Omit<AddLocationRequest, 'formValues' | 'status'> {
+  status: 'draft';
+  formValues: Partial<AddLocationValues>;
 }
 
 export type ChangeRequest =
   | LocationChangeRequest
   | LocationCancellationRequest
   | PolicyChangeRequest
-  | PolicyCancellationRequest;
+  | PolicyCancellationRequest
+  | AddLocationRequest
+  | DraftAddLocationRequest;
 
 export interface PremiumCalcData {
   techPremium: ValueByRiskType;

@@ -3,8 +3,11 @@ import { info } from 'firebase-functions/logger';
 
 import {
   CHANGE_REQUEST_STATUS,
+  ChangeRequest,
   FeeItem,
   ILocation,
+  LocationCancellationRequest,
+  LocationChangeRequest,
   PolicyNew,
   TaxItem,
   changeRequestsCollection,
@@ -13,7 +16,13 @@ import {
   verify,
 } from '../../common';
 import { deepMergeOverwriteArrays } from '../utils';
-// import { createDocId } from './helpers';
+
+function isLcnChangeReq(
+  changeReq: ChangeRequest
+): changeReq is LocationChangeRequest | LocationCancellationRequest {
+  if (changeReq.scope === 'location') return true;
+  return false;
+}
 
 export const mergePolicyLocationChanges = async (
   db: Firestore,
@@ -29,17 +38,15 @@ export const mergePolicyLocationChanges = async (
     const request = requestSnap.data();
     verify(requestSnap.exists && request, 'change request not found');
 
-    const { scope, policyChanges, trxType } = request;
+    const { policyChanges, trxType } = request;
 
-    const isLcnScope = scope === 'location';
+    const isLcnScope = isLcnChangeReq(request); // scope === 'location';
 
-    // const locationId = isLcnScope ? request.locationId : undefined;
     const locationChanges = isLcnScope ? request.locationChanges : {};
     const locationRef =
       isLcnScope && request.locationId
         ? locationsCollection(db).doc(request.locationId)
         : undefined;
-    // const newLocationRef = isLcnScope ? locationsCollection(db).doc(createDocId()) : undefined;
 
     if (trxType === 'endorsement') {
       if (isLcnScope)
@@ -71,28 +78,8 @@ export const mergePolicyLocationChanges = async (
         ...meta,
       }) as ILocation;
 
-      // transaction.set(newLocationRef, newLocationData);
       res['locationData'] = newLocationData;
     }
-
-    // const policyMergeArr = [
-    //   policySnap.data(),
-    //   {
-    //     ...policyChanges,
-    //     ...meta,
-    //   },
-    // ] as Partial<PolicyNew>[];
-
-    // // if location change, update location doc ref
-    // if (locationId && newLocationRef) {
-    //   policyMergeArr.push({
-    //     locations: {
-    //       [locationId]: {
-    //         lcnDocId: newLocationRef.id,
-    //       },
-    //     },
-    //   } as Partial<PolicyNew>);
-    // }
 
     let newPolicyData = deepMergeOverwriteArrays(policySnap.data(), {
       ...policyChanges,
@@ -114,53 +101,10 @@ export const mergePolicyLocationChanges = async (
       'metadata.updated': Timestamp.now(),
     };
 
-    // if (newLocationRef && res.locationData) transaction.set(newLocationRef, res.locationData);
-
     if (locationRef) transaction.set(locationRef, { ...(res.locationData || {}) }, { merge: true });
-
     transaction.set(policyRef, newPolicyData, { merge: true });
     transaction.set(requestRef, requestUpdates, { merge: true });
 
     return { ...res, policyData: newPolicyData };
   });
-
-  // const policyRef = policiesCollectionNew(db).doc(policyId);
-  // const locationRef = locationsCollection(db).doc(locationId);
-  // const newLocationRef = locationsCollection(db).doc(createDocId());
-
-  // return db.runTransaction(async (transaction) => {
-  //   const [policySnap, locationSnap] = await Promise.all([
-  //     transaction.get(policyRef),
-  //     transaction.get(locationRef),
-  //   ]);
-  //   verify(policySnap.exists, 'Policy document does not exist');
-  //   verify(locationSnap, 'Location document does not exist');
-
-  //   const meta = { metadata: { updated: Timestamp.now() } };
-
-  //   const newLocationData = deepmerge(locationSnap.data(), {
-  //     ...locationChanges,
-  //     ...meta,
-  //   }) as Partial<ILocation>;
-
-  //   const newPolicyData = deepmerge(
-  //     policySnap.data(),
-  //     {
-  //       ...policyChanges,
-  //       ...meta,
-  //     },
-  //     {
-  //       locations: {
-  //         [locationId]: {
-  //           lcnDocId: newLocationRef.id,
-  //         },
-  //       },
-  //     }
-  //   ) as Partial<PolicyNew>;
-
-  //   await transaction.set(newLocationRef, newLocationData);
-  //   await transaction.set(policyRef, newPolicyData, { merge: true });
-
-  //   return { newLocationData, newPolicyData };
-  // });
 };

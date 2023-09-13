@@ -4,7 +4,7 @@ import { GeoPoint, Timestamp, WithFieldValue } from 'firebase/firestore';
 import { Geohash } from 'geofire-common';
 
 import { ServerDataGridProps } from 'components';
-import { CancelValues, LocationChangeValues } from 'elements/forms';
+import { AddLocationValues, CancelValues, LocationChangeValues } from 'elements/forms';
 import { PolicyChangeValues } from 'elements/forms/PolicyChangeForm';
 import { InitRatingValues } from 'hooks/usePropertyDetails';
 import { FloodValues } from 'views/SubmissionNew';
@@ -792,11 +792,13 @@ export type Transaction = PremiumTransaction | OffsetTransaction | AmendmentTran
 // }
 
 export type ChangeRequestStatus =
+  | 'draft'
   | 'submitted'
   | 'accepted'
   | 'denied'
   | 'under_review'
-  | 'cancelled';
+  | 'cancelled'
+  | 'error';
 
 interface BaseChangeRequest extends BaseDoc {
   trxType: ChangeRequestTrxType;
@@ -831,6 +833,7 @@ export interface LocationChangeRequest extends BaseChangeRequest {
   locationId: string;
   externalId?: string | null;
   cancelReason?: CancellationReason;
+  isAddLocationRequest?: false;
 }
 
 export interface LocationCancellationRequest
@@ -840,6 +843,7 @@ export interface LocationCancellationRequest
   formValues: CancelValues;
   policyChanges?: DeepPartial<Policy>;
   locationChanges?: DeepPartial<ILocation>; // cancelEffDate ?? (or only in policy ??)
+  isAddLocationRequest?: false;
 }
 
 export interface PolicyChangeRequest extends BaseChangeRequest {
@@ -847,20 +851,38 @@ export interface PolicyChangeRequest extends BaseChangeRequest {
   policyChanges?: DeepPartial<Policy>;
   formValues: PolicyChangeValues;
   cancelReason?: CancellationReason;
+  isAddLocationRequest?: false;
 }
 
 export interface PolicyCancellationRequest extends Omit<PolicyChangeRequest, 'formValues'> {
   trxType: 'cancellation' | 'flat_cancel';
   cancelReason: CancellationReason;
   formValues: CancelValues;
+  isAddLocationRequest?: false;
 }
 
-// TODO: uncomment
+export interface AddLocationRequest extends BaseChangeRequest {
+  trxType: 'endorsement';
+  scope: 'add_location';
+  status: 'submitted' | 'accepted' | 'denied' | 'under_review' | 'cancelled' | 'error';
+  formValues: AddLocationValues;
+  policyChanges?: DeepPartial<Policy>;
+  locationChanges?: DeepPartial<ILocation>;
+  isAddLocationRequest: true;
+}
+
+export interface DraftAddLocationRequest extends Omit<AddLocationRequest, 'formValues' | 'status'> {
+  status: 'draft';
+  formValues: Partial<AddLocationValues>;
+}
+
 export type ChangeRequest =
   | LocationChangeRequest
   | PolicyChangeRequest
   | LocationCancellationRequest
-  | PolicyCancellationRequest;
+  | PolicyCancellationRequest
+  | AddLocationRequest
+  | DraftAddLocationRequest;
 
 export type DefaultCommission = {
   [key in PRODUCT]?: number;

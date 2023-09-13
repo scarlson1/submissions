@@ -1,3 +1,4 @@
+import { Breakpoint } from '@mui/material';
 import {
   Children,
   ReactElement,
@@ -8,7 +9,6 @@ import {
   useRef,
   useState,
 } from 'react';
-import { Breakpoint } from '@mui/material';
 
 import { Handler, WizardContext } from 'context';
 

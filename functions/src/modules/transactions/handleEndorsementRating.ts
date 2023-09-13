@@ -1,4 +1,3 @@
-import { deepmerge } from 'deepmerge-ts';
 import { DocumentReference, Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 
@@ -27,7 +26,6 @@ import { createDocId } from '../db';
 import {
   GetAALRes,
   GetPremiumProps,
-  PolicyWithTermPrem,
   getAALs,
   getPremium,
   sumFeesTaxesPremium,
@@ -99,45 +97,94 @@ export async function handleRatingForEndorsement(
         expDateTS.toDate()
       );
 
-      const changesWithRating: Partial<ILocation> = {
+      const locationChangesWithRating: Partial<ILocation> = {
         termPremium: locationTermPremium,
         termDays,
       };
-      info('CHANGES WITH RATING: ', changesWithRating);
+      info('LCN CHANGES WITH RATING: ', locationChangesWithRating);
 
-      let newPolicyChanges: DeepPartial<PolicyNew> = {
+      // TODO: refactor (redundant - code matches process below)
+      // create helper fn --> recalcTaxesAndPrice
+      const newLocationsSummaryArr = [
+        ...Object.values(otherLocations),
+        { ...locationSummary, termPremium: locationTermPremium },
+      ];
+
+      const newPolicyTermPremium = sumPolicyTermPremium(newLocationsSummaryArr);
+      const inStatePremium = getInStatePremium(policy.homeState, newLocationsSummaryArr);
+      const outStatePremium = getOutStatePremium(policy.homeState, newLocationsSummaryArr);
+
+      // recalc taxes based on new term premium
+      const newTaxes = recalcTaxes({
+        premium: newPolicyTermPremium,
+        homeStatePremium: inStatePremium,
+        outStatePremium,
+        taxes: policy.taxes,
+        fees: policy.fees,
+      });
+
+      const newPrice = sumFeesTaxesPremium(policy.fees, newTaxes, newPolicyTermPremium);
+
+      const policyChanges: DeepPartial<PolicyNew> = {
+        termPremium: newPolicyTermPremium,
+        inStatePremium,
+        outStatePremium,
+        taxes: newTaxes,
+        price: newPrice,
         locations: {
           [locationId]: {
             termPremium: locationTermPremium,
           },
         },
       };
-      const newLocations = deepmerge(policy.locations, {
-        [locationId]: { termPremium: locationTermPremium },
-      });
-      const policyTermPremium = sumPolicyTermPremium(
-        Object.values(newLocations) as PolicyWithTermPrem[]
-      );
-      // console.log('NEW POLICY TERM PREMIUM: ', policyTermPremium);
 
-      newPolicyChanges['termPremium'] = policyTermPremium;
+      // TODO: ask ron if policy exp date should change to match location exp date if only one active location
+      // need to filter out cancelled policies (create helper function)
+      // if (Object.keys(policy.locations).length === 1) {
+      //   newPolicyChanges['expirationDate'] = expDateTS;
+      //   newPolicyChanges['termDays'] = termDays;
+      // }
 
-      if (Object.keys(policy.locations).length === 1) {
-        newPolicyChanges['expirationDate'] = expDateTS;
-        newPolicyChanges['termDays'] = termDays;
-      }
-      console.log('POLICY CHANGES: ', newPolicyChanges);
-
-      await changeRequestRef.set(
-        {
-          locationChanges: {
-            ...changesWithRating,
-          },
-          policyChanges: newPolicyChanges,
-          _lastCommitted: Timestamp.now(),
+      const updates: Partial<ChangeRequest> = {
+        locationChanges: locationChangesWithRating,
+        policyChanges,
+        _lastCommitted: Timestamp.now(),
+        // @ts-ignore
+        metadata: {
+          updated: Timestamp.now(),
         },
-        { merge: true }
-      );
+      };
+
+      info(`Saving change request rating calc data...`, updates);
+
+      await changeRequestRef.set(updates, { merge: true });
+
+      // let newPolicyChanges: DeepPartial<PolicyNew> = {
+      //   locations: {
+      //     [locationId]: {
+      //       termPremium: locationTermPremium,
+      //     },
+      //   },
+      // };
+      // const newLocations = deepmerge(policy.locations, {
+      //   [locationId]: { termPremium: locationTermPremium },
+      // });
+      // const policyTermPremium = sumPolicyTermPremium(
+      //   Object.values(newLocations) as PolicyWithTermPrem[]
+      // );
+
+      // newPolicyChanges['termPremium'] = policyTermPremium;
+
+      // await changeRequestRef.set(
+      //   {
+      //     locationChanges: {
+      //       ...locationChangesWithRating,
+      //     },
+      //     policyChanges: newPolicyChanges,
+      //     _lastCommitted: Timestamp.now(),
+      //   },
+      //   { merge: true }
+      // );
 
       return;
     }

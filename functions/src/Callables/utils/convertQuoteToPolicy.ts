@@ -1,7 +1,6 @@
 import { add } from 'date-fns';
 import { Timestamp } from 'firebase-admin/firestore';
 import { geohashForLocation } from 'geofire-common';
-import { round, sumBy } from 'lodash';
 
 import {
   AdditionalInsured,
@@ -16,7 +15,7 @@ import {
   calcTerm,
   verify,
 } from '../../common';
-import { createDocId } from '../../modules/db';
+import { createDocId, getPolicyTermPremium } from '../../modules/db';
 import { getCarrierByState, getRCVs, validateLimits } from '../../modules/rating';
 import { compressAddress } from '../../utils';
 
@@ -72,7 +71,7 @@ export const getPolicyLocationsFromQuote = (data: Quote, policyId: string) => {
   };
   return locations;
 };
-
+// TODO: move to common helpers function
 export function getAdditionalInsuredFromQuote(data: Quote): AdditionalInsured[] {
   return (
     data.additionalInterests
@@ -112,15 +111,6 @@ export function getMortgageeInterestFromQuote(data: Quote): Mortgagee[] {
             }
           : null,
       })) || []
-  );
-}
-
-export function getPolicyTermPremium(
-  locations: PolicyNew['locations'] | Record<string, ILocation>
-) {
-  return round(
-    sumBy(Object.values(locations), (l) => l.termPremium),
-    2
   );
 }
 

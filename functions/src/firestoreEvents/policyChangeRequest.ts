@@ -61,15 +61,17 @@ export default async (
         await handleRequestNotifications(data, policyId, requestId, event.id);
 
         // TODO: handle reinstatement & renewal
-        if (data.trxType === 'endorsement')
+        if (data.trxType === 'endorsement' && !data.isAddLocationRequest)
           await handleRatingForEndorsement(data, policyId, requestId);
 
         // TODO: is cancellation handled differently than flat cancel
         if (data.trxType === 'cancellation' || data.trxType === 'flat_cancel') {
           // TODO: handle cancellation
           await handleCancelRating(data, policyId, requestId);
-          throw new Error('');
+          throw new Error('cancellation trx handler not set up yet');
         }
+
+        // TODO: add location - processing already handled ??
 
         if (afterSnap) await updateChangeRequestStatus(afterSnap.ref, 'UNDER_REVIEW');
 
@@ -200,6 +202,13 @@ async function handleAcceptedRequest(data: ChangeRequest, policyId: string) {
     //     ', '
     //   )})`
     // );
+
+    // TODO: handle new location
+    // different from publishEndorsement ??
+    // should be same as location ??
+    if (data.scope === 'add_location') {
+      throw new Error('add location publisher not set up yet');
+    }
 
     if (data.scope === 'location') {
       switch (data.trxType) {

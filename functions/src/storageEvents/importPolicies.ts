@@ -8,7 +8,6 @@ import { round } from 'lodash';
 import { tmpdir } from 'os';
 import path from 'path';
 
-import { getPolicyTermPremium } from '../callables/utils';
 import {
   Address,
   COLLECTIONS,
@@ -37,7 +36,7 @@ import {
   unlinkFile,
   verify,
 } from '../common';
-import { createDocId, locationToPolicyLocation } from '../modules/db';
+import { createDocId, getPolicyTermPremium, locationToPolicyLocation } from '../modules/db';
 import { getCarrierByState, getRCVs, sumFeesTaxesPremium } from '../modules/rating';
 import { eventOlderThan, shouldReturnEarly } from '../modules/storage';
 import {
