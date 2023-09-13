@@ -40,6 +40,7 @@ export { RouterErrorBoundary } from './RouterErrorBoundary';
 export { ServerDataGrid } from './ServerDataGrid';
 export { Toaster } from './Toaster';
 export { GridToolbar } from './GridToolbar';
+export { CustomToast } from './CustomToast';
 
 export type { CarouselProps } from './Carousel';
 export type { ConfirmationDialogProps } from './ConfirmationDialog';

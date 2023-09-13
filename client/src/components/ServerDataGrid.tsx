@@ -120,6 +120,7 @@ export const ServerDataGrid = ({
   );
 
   // apiRef.current?.subscribeEvent('paginationModelChange', () => console.log('pagination event'));
+  // TODO: disable next button until the next cursor snapshot is known
   const handlePaginationModelChange = useCallback(
     (model: GridPaginationModel, details: GridCallbackDetails<any>) => {
       startTransition(() => {

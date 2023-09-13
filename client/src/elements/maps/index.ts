@@ -1,4 +1,4 @@
-export { TestGovEventsMap } from './TestGovEventsMap';
+export { ActiveEventsMap } from './ActiveEventsMap';
 export { DeckMap } from './DeckMap';
 export { ActiveStateMap } from './ActiveStateMap';
 export { PoliciesMap } from './PoliciesMap';

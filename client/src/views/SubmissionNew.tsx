@@ -44,6 +44,9 @@ import { useAsyncToast, useDocData, usePropertyDetailsAttom } from 'hooks';
 import { InitRatingValues } from 'hooks/usePropertyDetails';
 import { roundUpToNearest, sumArr } from 'modules/utils/helpers';
 
+// TODO: useGeolocate --> add to new submission form
+// https://usehooks.com/usegeolocation
+
 // TODO: abstract some state so same form can be used to edit submission
 
 // TODO: error boundary & reset: https://blog.logrocket.com/react-error-handling-react-error-boundary/

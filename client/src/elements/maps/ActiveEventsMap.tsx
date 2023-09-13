@@ -1,10 +1,19 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import axios from 'axios';
-import { Box, Button, Typography, useTheme } from '@mui/material';
+import {
+  Box,
+  Button,
+  Card,
+  Link,
+  Typography,
+  useTheme,
+  Unstable_Grid2 as Grid,
+} from '@mui/material';
 import { GeoJsonLayer, PickingInfo } from 'deck.gl/typed';
 import { format } from 'date-fns';
+import { OpenInNewRounded } from '@mui/icons-material';
 
-import { DeckMap, HoverInfo } from './DeckMap';
+import { DeckMap } from './DeckMap';
 import { getRGBAArray } from 'modules/utils';
 
 // available filters: https://www.weather.gov/documentation/services-web-api#/default/alerts_active
@@ -140,8 +149,12 @@ const floodEventTypes = [
   //   'Winter Weather Advisory',
 ];
 
+// TODO: query controls - event type, status, area (state), etc.
+// use react-query to fetch data (mutation)
+
 const useActiveEvents = () => {
   const [data, setData] = useState();
+  const [loading, setLoading] = useState(false);
 
   // TODO: pass params to getData --> add to query
   // can only pass one of the following: area, point, region, region_type, zone (forecast or county)
@@ -150,6 +163,7 @@ const useActiveEvents = () => {
   const getData = useCallback(async (params: Record<string, any> = {}) => {
     // eventTypes?: string[]
     try {
+      setLoading(true);
       const { data: res } = await axios.get(`https://api.weather.gov/alerts/active`, {
         // ?area=FL
         params,
@@ -160,20 +174,28 @@ const useActiveEvents = () => {
     } catch (err: any) {
       console.log('Error: ', err);
     }
+    setLoading(false);
   }, []);
 
-  return { getData, data };
+  return useMemo(() => ({ data, loading, getData }), [data, loading, getData]);
 };
 // TODO: dynamic queries (type of event, location (state, county, policy locations, etc.))
 // zoom to bounds once data loaded ?? or query ??
-export const TestGovEventsMap = () => {
+export const ActiveEventsMap = () => {
   const theme = useTheme();
   const { getData, data } = useActiveEvents();
   const [hoverInfo, setHoverInfo] = useState<PickingInfo>(); // TODO: type properties
+  // TODO: use useReducer instead ??
+  // Use deck.gl filter extension ??
+  const [params] = useState({
+    // , setParams
+    event: floodEventTypes,
+    status: ['actual', 'exercise', 'system', 'test'],
+  });
 
   const getEventColor = useCallback(
     (e: any) => {
-      console.log('event: ', e);
+      console.log('event: ', e); // TODO: color by type of event
 
       return getRGBAArray(theme.palette.primary.main, 180);
     },
@@ -183,8 +205,9 @@ export const TestGovEventsMap = () => {
   if (!data)
     return (
       <Button
-        onClick={() =>
-          getData({ event: floodEventTypes, status: ['actual', 'exercise', 'system', 'test'] })
+        onClick={
+          () => getData(params)
+          // getData({ event: floodEventTypes, status: ['actual', 'exercise', 'system', 'test'] })
         }
       >
         Get Data
@@ -192,80 +215,116 @@ export const TestGovEventsMap = () => {
     );
 
   return (
-    <Box sx={{ minHeight: 500 }}>
-      <Button
-        onClick={() =>
-          getData({ event: floodEventTypes, status: ['actual', 'exercise', 'system', 'test'] })
-        }
-      >
-        Get Data
-      </Button>
+    <Box>
+      <Grid container spacing={3}>
+        {/* TODO: query select (useReducer ?? react-query ?? useInfiniteQuery ??) requires telling layer when to update - dependency prop ?? */}
+        <Grid>
+          <Typography>TODO: query filters</Typography>
+        </Grid>
+        <Grid>
+          <Button
+            onClick={() =>
+              getData({ event: floodEventTypes, status: ['actual', 'exercise', 'system', 'test'] })
+            }
+          >
+            Get Data
+          </Button>
+        </Grid>
+      </Grid>
+
       {/* <Card> */}
-      <DeckMap
-        layers={[
-          new GeoJsonLayer({
-            id: 'geojson-layer',
-            data: data,
-            // data: 'https://api.weather.gov/alerts/active', // ?area=FL
-            pickable: true,
-            stroked: false,
-            filled: true,
-            extruded: true,
-            pointType: 'circle',
-            lineWidthScale: 20,
-            lineWidthMinPixels: 2,
-            getFillColor: getEventColor,
-            // getFillColor: [0, 125, 255, 50], // [160, 160, 180, 200],
-            // getLineColor: d => colorToRGBArray(d.properties.color),
-            getPointRadius: 100,
-            getLineWidth: 1,
-            getElevation: 30,
-            onHover: (info) => setHoverInfo(info),
-          }),
-        ]}
-        renderTooltipContent={(info: PickingInfo) => (
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            {info?.object && <Typography>{JSON.stringify(info.object, null, 2)}</Typography>}
-            {/* {info.object.properties?.NAME || ''}
-            {statesValues && !!statesValues[info.object.properties.SHORT_NAME] ? (
-              <CheckCircleRounded color='success' fontSize='small' sx={{ ml: 1.5 }} />
-            ) : (
-              <CancelRounded color='error' fontSize='small' sx={{ ml: 1.5 }} />
-            )} */}
-          </Box>
-        )}
-      >
-        <HoverInfo
-          pickingInfo={hoverInfo}
-          renderTooltipContent={(info: PickingInfo) => {
-            // console.log('pick: ', info);
-            return (
-              <Box sx={{ px: 2, borderRadius: 0.5 }}>
-                <Typography variant='body2' fontWeight='fontWeightMedium'>
-                  {info.object?.properties?.event || ''}
-                </Typography>
+      <Card sx={{ height: { xs: 360, sm: 400, lg: 500 }, width: '100%' }}>
+        <DeckMap
+          layers={[
+            new GeoJsonLayer({
+              id: 'geojson-layer',
+              data: data,
+              // data: 'https://api.weather.gov/alerts/active', // ?area=FL
+              pickable: true,
+              stroked: false,
+              filled: true,
+              extruded: true,
+              pointType: 'circle',
+              lineWidthScale: 20,
+              lineWidthMinPixels: 2,
+              getFillColor: getEventColor,
+              // getFillColor: [0, 125, 255, 50], // [160, 160, 180, 200],
+              // getLineColor: d => colorToRGBArray(d.properties.color),
+              getPointRadius: 100,
+              getLineWidth: 1,
+              getElevation: 30,
+              onHover: (info) => setHoverInfo(info),
+            }),
+          ]}
+          hoverInfo={hoverInfo}
+          renderTooltipContent={(info: PickingInfo) => (
+            <Box sx={{ px: 2, borderRadius: 0.5, zIndex: 2000 }}>
+              <Typography variant='body2' fontWeight='fontWeightMedium'>
+                {info.object?.properties?.event || ''}
+              </Typography>
+              <Typography variant='body2' color='text.secondary'>
+                {info.object?.properties?.areaDesc || ''}
+              </Typography>
+              {info.object?.properties?.effective ? (
                 <Typography variant='body2' color='text.secondary'>
-                  {info.object?.properties?.areaDesc || ''}
+                  Effective:{' '}
+                  {format(new Date(info.object?.properties?.effective), 'MM/dd/yyyy h a')}
                 </Typography>
-                {info.object?.properties?.effective ? (
-                  <Typography variant='body2' color='text.secondary'>
-                    Effective:{' '}
-                    {format(new Date(info.object?.properties?.effective), 'MM/dd/yyyy h a')}
+              ) : null}
+              {info.object && info.object?.properties?.status !== 'Actual' ? (
+                <Typography
+                  variant='body2'
+                  color='warning.main'
+                  fontWeight='fontWeightMedium'
+                >{`Status: ${info.object?.properties?.status}`}</Typography>
+              ) : null}
+            </Box>
+          )}
+        >
+          {/* BUG: tooltip renders under layers when passed as child to "Map" (vs. child of DeckGL) - cause = mapRef issue ?? */}
+          {/* <HoverInfo
+            pickingInfo={hoverInfo}
+            renderTooltipContent={(info: PickingInfo) => {
+              // console.log('pick: ', info);
+              return (
+                <Box sx={{ px: 2, borderRadius: 0.5, zIndex: 2000 }}>
+                  <Typography variant='body2' fontWeight='fontWeightMedium'>
+                    {info.object?.properties?.event || ''}
                   </Typography>
-                ) : null}
-                {info.object && info.object?.properties?.status !== 'Actual' ? (
-                  <Typography
-                    variant='body2'
-                    color='warning.main'
-                    fontWeight='fontWeightMedium'
-                  >{`Status: ${info.object?.properties?.status}`}</Typography>
-                ) : null}
-              </Box>
-            );
-          }}
-        />
-      </DeckMap>
+                  <Typography variant='body2' color='text.secondary'>
+                    {info.object?.properties?.areaDesc || ''}
+                  </Typography>
+                  {info.object?.properties?.effective ? (
+                    <Typography variant='body2' color='text.secondary'>
+                      Effective:{' '}
+                      {format(new Date(info.object?.properties?.effective), 'MM/dd/yyyy h a')}
+                    </Typography>
+                  ) : null}
+                  {info.object && info.object?.properties?.status !== 'Actual' ? (
+                    <Typography
+                      variant='body2'
+                      color='warning.main'
+                      fontWeight='fontWeightMedium'
+                    >{`Status: ${info.object?.properties?.status}`}</Typography>
+                  ) : null}
+                </Box>
+              );
+            }}
+          /> */}
+        </DeckMap>
+      </Card>
       {/* </Card> */}
+      <Typography variant='subtitle2' color='text.secondary' sx={{ py: 1.5, px: 2 }}>
+        Live events from{' '}
+        <Link
+          href='https://www.weather.gov/documentation/services-web-api#/'
+          underline='hover'
+          target='_blank'
+          rel='noopener'
+        >
+          weather.gov <OpenInNewRounded fontSize='small' color='inherit' />
+        </Link>
+      </Typography>
     </Box>
   );
 };

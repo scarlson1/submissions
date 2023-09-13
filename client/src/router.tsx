@@ -18,7 +18,7 @@ import { SuccessStep } from 'elements/forms';
 import { BindSuccess } from 'elements/forms/SuccessStep';
 import { EmailsGrid } from 'elements/grids';
 import { ImportsSummaryGrid } from 'elements/grids/ImportsSummaryGrid';
-import { TestGovEventsMap } from 'elements/maps';
+import { ActiveEventsMap } from 'elements/maps';
 import { TestPoliciesMapWithFilters } from 'elements/maps/PoliciesMap';
 import {
   Account,
@@ -1000,22 +1000,39 @@ export const router = sentryCreateBrowserRouter([
               <RequireAuthReactFire
                 signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
               >
-                <>
-                  <TestPoliciesMapWithFilters />
-                  <TestGovEventsMap />
-                </>
+                <TestPoliciesMapWithFilters />
               </RequireAuthReactFire>
             ),
             handle: {
               crumb: (match: CrumbMatch) => [
+                {
+                  label: 'Map',
+                },
                 {
                   label: 'Submissions',
                   link: createPath({
                     path: ROUTES.SUBMISSIONS,
                   }),
                 },
+              ],
+            },
+          },
+          {
+            path: '/admin/map/active-events',
+            element: (
+              <RequireAuthReactFire
+                signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
+              >
+                <ActiveEventsMap />
+              </RequireAuthReactFire>
+            ),
+            handle: {
+              crumb: (match: CrumbMatch) => [
                 {
                   label: 'Map',
+                },
+                {
+                  label: 'Active Events',
                 },
               ],
             },

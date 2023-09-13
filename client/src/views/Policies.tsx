@@ -48,19 +48,25 @@ import { getHeaderStatus } from './admin/Quotes';
 
 // TODO: add a tab to view change requests
 
-export const TestToast = () => {
-  const toast = useAsyncToast();
+// export const TestToast = () => {
+//   const toast = useAsyncToast();
 
-  return (
-    <Stack spacing={2} direction='row'>
-      {/* <Button onClick={() => toast.custom('Test custom toast')}>custom toast</Button> */}
-      {/* <Button onClick={() => toast.customSpring('Test spring toast')}>spring toast</Button> */}
-      <Button onClick={() => toast.success('Test success toast')}>success toast</Button>
-      <Button onClick={() => toast.warn('Test warn toast')}>warn toast</Button>
-      <Button onClick={() => toast.info('Test info toast')}>info toast</Button>
-    </Stack>
-  );
-};
+//   return (
+//     <Stack spacing={2} direction='row'>
+//       {/* <Button onClick={() => toast.custom('Test custom toast')}>custom toast</Button> */}
+//       {/* <Button onClick={() => toast.customSpring('Test spring toast')}>spring toast</Button> */}
+//       <Button
+//         onClick={() => toast.success('Test success toast. lorem ipsum success text blah blah.')}
+//       >
+//         success toast
+//       </Button>
+//       <Button onClick={() => toast.warn('Test warn toast')}>warn toast</Button>
+//       <Button onClick={() => toast.info('Test info toast. lorem ipsum info text blah blah.')}>
+//         info toast
+//       </Button>
+//     </Stack>
+//   );
+// };
 
 export const Policies = () => {
   const navigate = useNavigate();
@@ -112,7 +118,6 @@ export const Policies = () => {
         <Box>
           {header}
           <PoliciesGrid renderActions={adminActions} checkboxSelection />
-          <TestToast />
         </Box>
       </Container>
     );
