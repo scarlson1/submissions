@@ -432,29 +432,7 @@ export const QuoteForm = ({
               {title}
             </Typography>
             <Stack direction='row' spacing={2} sx={{ alignItems: 'center' }}>
-              <RequiredFieldsIndicator
-              // getErrorEntries={(errors: FormikErrors<QuoteValues>) =>
-              //   Object.entries(
-              //     merge(
-              //       omit(errors, [
-              //         'ratingPropertyData',
-              //         'limits',
-              //         'agent',
-              //         'agency',
-              //         'AALs',
-              //         'address',
-              //       ]),
-              //       errors.ratingPropertyData || {},
-              //       errors.address || {},
-              //       errors.limits || {},
-              //       errors.agent || {},
-              //       omit(errors.agency, 'address') || {},
-              //       errors.agency?.address ? { 'agency.address': errors.agency?.address } : {},
-              //       errors.AALs || {}
-              //     )
-              //   )
-              // }
-              />
+              <RequiredFieldsIndicator />
               <Typography variant='subtitle2' fontWeight='fontWeightMedium' color='text.secondary'>
                 Quote:{' '}
               </Typography>

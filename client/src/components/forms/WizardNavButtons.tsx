@@ -3,7 +3,6 @@ import { Box, Button, Container } from '@mui/material';
 import { useFormikContext } from 'formik';
 
 import { useWizard } from 'hooks';
-import { useEffect } from 'react';
 
 export type WizardNavButtonProps = LoadingButtonProps;
 
@@ -12,9 +11,9 @@ export const WizardNavButtons = (props: WizardNavButtonProps) => {
   const formikCtx = useFormikContext();
   const isValid = formikCtx ? formikCtx.isValid : true;
 
-  useEffect(() => {
-    console.log('FORMIK CTX: ', formikCtx);
-  }, [formikCtx]);
+  // useEffect(() => {
+  //   console.log('FORMIK CTX: ', formikCtx);
+  // }, [formikCtx]);
 
   return (
     <Container maxWidth={maxWidth}>

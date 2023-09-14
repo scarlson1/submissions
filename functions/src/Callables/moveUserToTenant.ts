@@ -9,8 +9,9 @@ import {
 } from 'firebase-admin/auth';
 import { Firestore, Timestamp, getFirestore } from 'firebase-admin/firestore';
 
-import { CLAIMS, usersCollection, firebaseHashConfig } from '../common';
+import { usersCollection, firebaseHashConfig } from '../common';
 import { onCallWrapper } from '../services/sentry';
+import { requireIDemandAdminClaims, validate } from './utils';
 
 // TODO: remove customClaims ??
 // TODO: include customClaims in props ?? ** yes
@@ -46,7 +47,7 @@ export async function migrateUser(
     // Delete tenantId - will be set automatically.
     delete modifiedUser.tenantId;
 
-    info('MODIFIED USER', modifiedUser);
+    // info('MODIFIED USER', modifiedUser);
 
     await authTo.importUsers([modifiedUser], userImportOptions);
   } catch (err: any) {
@@ -93,18 +94,14 @@ const moveUserToTenant = async ({ data, auth }: CallableRequest<MoveUserToTenant
   // TODO: or allow call from regular user --> joining tenant with outstanding invite
   // scenario: user creates account before creating agency
 
-  const isIDemandAdmin = auth && auth.token && auth.token[CLAIMS.IDEMAND_ADMIN];
+  requireIDemandAdminClaims(auth?.token);
 
-  if (!isIDemandAdmin) {
-    throw new HttpsError('permission-denied', `iDemandAdmin permissions required`);
-  }
-
-  if (!(toTenantId || fromTenantId) || !userId) {
-    throw new HttpsError(
-      'failed-precondition',
-      `atleast one tenantId (to/from) and userId are required`
-    );
-  }
+  validate(
+    toTenantId || fromTenantId,
+    'failed-precondition',
+    `at least one tenantId (to/from) is are required`
+  );
+  validate(userId, 'failed-precondition', 'userId is required');
 
   const hashConfigStr = firebaseHashConfig.value();
   if (!hashConfigStr) throw new HttpsError('internal', 'Missing required environment variables');
@@ -113,23 +110,19 @@ const moveUserToTenant = async ({ data, auth }: CallableRequest<MoveUserToTenant
   const { algorithm, base64_signer_key, base64_salt_separator, rounds, mem_cost } =
     parsedHashConfig;
 
-  if (!(algorithm && base64_signer_key && base64_salt_separator && rounds && mem_cost)) {
-    throw new HttpsError(
-      'internal',
-      'Missing required environment variables (password hash config)'
-    );
-  }
+  validate(
+    algorithm && base64_signer_key && base64_salt_separator && rounds && mem_cost,
+    'internal',
+    'Missing required environment variables (password hash config)'
+  );
 
   const firestore = getFirestore();
   let authFrom: Auth | TenantAwareAuth = getAuth();
   let authTo: Auth | TenantAwareAuth = getAuth();
 
-  if (fromTenantId) {
-    authFrom = authFrom.tenantManager().authForTenant(fromTenantId);
-  }
-  if (toTenantId) {
-    authTo = authTo.tenantManager().authForTenant(toTenantId);
-  }
+  if (fromTenantId) authFrom = authFrom.tenantManager().authForTenant(fromTenantId);
+
+  if (toTenantId) authTo = authTo.tenantManager().authForTenant(toTenantId);
 
   try {
     const userImportOptions = {

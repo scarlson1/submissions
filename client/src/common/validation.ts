@@ -1,11 +1,12 @@
-import * as yup from 'yup';
+// import * as yup from 'yup';
+import { object, string, number, array, boolean } from 'yup';
 
 import { isValidEmail } from 'modules/utils/helpers';
 import { STATES_ABV_ARR } from './statesList';
 
 export const phoneRegEx = /^\+1[1-9]{1}[0-9]{9}$/;
 
-export const phoneVal = yup.string().matches(phoneRegEx, 'phone number invalid');
+export const phoneVal = string().matches(phoneRegEx, 'phone number invalid');
 
 export function phoneRequiredVal(val: any) {
   let error;
@@ -24,86 +25,83 @@ export function phoneRequiredVal(val: any) {
 //   );
 // };
 
-export const emailVal = yup.string().test('valid-email', 'Invalid email', async (val) => {
+export const emailVal = string().test('valid-email', 'Invalid email', async (val) => {
   if (val && !isValidEmail(val)) return false;
   return true;
 });
 
 export const postalRegEx = /^[0-9]{5}(?:-[0-9]{4})?/;
-export const postalVal = yup
-  .string()
+export const postalVal = string()
   .typeError('postal required (string)')
   .matches(postalRegEx, 'postal code invalid');
 
-export const stateVal = yup
-  .string()
+export const stateVal = string()
   .typeError('state required')
   .required('state is required')
   .oneOf(STATES_ABV_ARR, 'state required');
 
-// export const isAvailableState = yup.string().oneOf(ACTIVE_STATES_ABRV);
+// export const isAvailableState = string().oneOf(ACTIVE_STATES_ABRV);
 
-export const addressValidation = yup.object().shape({
-  addressLine1: yup.string().typeError('address required').required('address is required'),
-  addressLine2: yup.string().notRequired(),
-  city: yup.string().typeError('city required').required('city is required'),
+export const addressValidation = object().shape({
+  addressLine1: string().typeError('address required').required('address is required'),
+  addressLine2: string().notRequired(),
+  city: string().typeError('city required').required('city is required'),
   state: stateVal,
   postal: postalVal.required('postal code is required'),
 });
 
-export const addressValidationNested = yup.object().shape({
+export const addressValidationNested = object().shape({
   address: addressValidation,
 });
 
-export const addressValidationNotRequired = yup.object().shape({
-  addressLine1: yup.string().required('address is required'),
-  addressLine2: yup.string().notRequired(),
-  city: yup.string().required('city is required'),
+export const addressValidationNotRequired = object().shape({
+  addressLine1: string().required('address is required'),
+  addressLine2: string().notRequired(),
+  city: string().required('city is required'),
   state: stateVal,
   postal: postalVal.required('postal code is required'),
 });
 
 export const validateActiveState = (activeStates: { [key: string]: boolean }) =>
-  yup
-    .string()
+  string()
     .typeError('state required')
     .required('State is required')
     .test('activeState', 'Ineligible state', (val) => Boolean(val) && activeStates[`${val}`]);
 
 export const addressValidationActiveStates = (activeStates: Record<string, boolean>) =>
-  yup.object().shape({
-    addressLine1: yup.string().typeError('addressLine1 required').required('Address is required'),
-    addressLine2: yup.string().typeError('addressLine2 (string)').notRequired(),
-    city: yup.string().typeError('city required').required('City is required'),
+  object().shape({
+    addressLine1: string().typeError('addressLine1 required').required('Address is required'),
+    addressLine2: string().typeError('addressLine2 (string)').notRequired(),
+    city: string().typeError('city required').required('City is required'),
     state: validateActiveState(activeStates),
-    postal: yup.string().typeError('postal required').required('Postal code is required'),
+    postal: string().typeError('postal required').required('Postal code is required'),
   });
 
 export const addressValidationActiveStatesNested = (activeStates: { [key: string]: boolean }) =>
-  yup.object().shape({
+  object().shape({
     address: addressValidationActiveStates(activeStates),
   });
 
 export const addressWithNameValidation = addressValidation.shape({
-  name: yup.string().typeError('name is required').required(),
+  name: string().typeError('name is required').required(),
 });
 
 // extend / concat yup obj.:  https://stackoverflow.com/a/68411022
-export const mailingAddressValidation = yup.object().shape({
+export const mailingAddressValidation = object().shape({
   mailingAddress: addressWithNameValidation,
 });
 
-export const coordinatesValidation = yup.object().shape({
-  latitude: yup.number().required('latitude required'),
-  longitude: yup.number().required('longitude'),
+export const coordinatesValidation = object().shape({
+  latitude: number().required('latitude required'),
+  longitude: number().required('longitude'),
 });
 
-// export const addressValidationActiveStates = yup.object().shape({
-//   addressLine1: yup.string().required('Address is required'),
-//   addressLine2: yup.string().notRequired(),
-//   city: yup.string().required('City is required'),
-//   state: yup.string().required('State is required').oneOf(ACTIVE_STATES_ABRV, 'Ineligible state'),
-//   postal: yup.string().required('Postal code is required'),
+// export const addressValidationActiveStates = object().shape({
+//   addressLine1: string().required('Address is required'),
+//   addressLine2: string().notRequired(),
+//   city: string().required('City is required'),
+//   state: string().required('State is required').oneOf(ACTIVE_STATES_ABRV, 'Ineligible state'),
+//   postal: string().required('Postal code is required'),
 // });
 
 const getNumValue = (val: any): number =>
@@ -123,8 +121,7 @@ export const checkBCDSumValid = (
   );
 };
 
-export const limitAVal = yup
-  .string()
+export const limitAVal = string()
   .typeError('limitA required')
   .required()
   .test('limitA', 'Building limit required. Please enter a number.', (value) => {
@@ -140,8 +137,7 @@ export const limitAVal = yup
     return num >= min && num <= max;
   });
 
-export const limitBVal = yup
-  .string()
+export const limitBVal = string()
   .typeError('limitB required')
   .required()
   .test('limitB', 'Building limit required. Please enter a number.', (value) => {
@@ -153,8 +149,7 @@ export const limitBVal = yup
     return checkBCDSumValid(value || 0, context.parent.limitC, context.parent.limitD);
   });
 
-export const limitCVal = yup
-  .string()
+export const limitCVal = string()
   .typeError('limitC required')
   .test('limitC', 'Building limit required. Please enter a number.', (value) => {
     if (value === undefined) return false;
@@ -165,8 +160,7 @@ export const limitCVal = yup
     return checkBCDSumValid(context.parent.limitB, value || 0, context.parent.limitD);
   });
 
-export const limitDVal = yup
-  .string()
+export const limitDVal = string()
   .typeError('limitD required')
   .test('limitD', 'Please enter a number.', (value) => {
     if (value === undefined) return false;
@@ -177,122 +171,120 @@ export const limitDVal = yup
     return checkBCDSumValid(context.parent.limitB, context.parent.limitC, value || 0);
   });
 
-export const limitsValidation = yup.object({
+export const limitsValidation = object({
   limitA: limitAVal,
   limitB: limitBVal,
   limitC: limitCVal,
   limitD: limitDVal,
 });
 
-export const limitsValidationNested = yup.object({
+export const limitsValidationNested = object({
   limits: limitsValidation,
 });
 
-// export const limitsValidation = yup.object({
-//   coverageActive: yup.object({
-//     building: yup.bool(),
-//     structures: yup.bool(),
-//     contents: yup.bool(),
-//     additional: yup.bool(),
+// export const limitsValidation = object({
+//   coverageActive: object({
+//     building: bool(),
+//     structures: bool(),
+//     contents: bool(),
+//     additional: bool(),
 //   }),
-//   coverageActiveBuilding: yup.boolean(),
-//   coverageActiveStructures: yup.boolean(),
-//   coverageActiveContents: yup.boolean(),
-//   coverageActiveAdditional: yup.boolean(),
-//   limitA: yup.string().when('coverageActiveBuilding', {
+//   coverageActiveBuilding: boolean(),
+//   coverageActiveStructures: boolean(),
+//   coverageActiveContents: boolean(),
+//   coverageActiveAdditional: boolean(),
+//   limitA: string().when('coverageActiveBuilding', {
 //     is: true,
 //     then: limitAVal,
 //   }),
-//   limitB: yup.string().when('coverageActiveStructures', {
+//   limitB: string().when('coverageActiveStructures', {
 //     is: true,
 //     then: limitBVal,
 //   }),
-//   limitC: yup.string().when('coverageActiveStructures', {
+//   limitC: string().when('coverageActiveStructures', {
 //     is: true,
 //     then: limitCVal,
 //   }),
-//   limitD: yup.string().when('coverageActiveStructures', {
+//   limitD: string().when('coverageActiveStructures', {
 //     is: true,
 //     then: limitDVal,
 //   }),
 // });
 
-export const deductibleVal = yup.number().min(1000).required();
+export const deductibleVal = number().min(1000).required();
 
 // TODO: max validation
-export const deductibleValidation = yup.object().shape({
+export const deductibleValidation = object().shape({
   deductible: deductibleVal,
 });
 
-export const buildingDetailsValidation = yup.object().shape({
-  ratingPropertyData: yup.object().shape({
-    numStories: yup.number().required('# stories is required'),
-    basement: yup.string().required('basement is required'),
+export const buildingDetailsValidation = object().shape({
+  ratingPropertyData: object().shape({
+    numStories: number().required('# stories is required'),
+    basement: string().required('basement is required'),
   }),
 });
 
-export const exclusionsValidation = yup.object({
-  exclusionsExist: yup.boolean().oneOf([true, false], 'Please select an option').nullable(),
-  exclusions: yup.array().when(['exclusionsExist'], {
+export const exclusionsValidation = object({
+  exclusionsExist: boolean().oneOf([true, false], 'Please select an option').nullable(),
+  exclusions: array().when(['exclusionsExist'], {
     is: (existsVal: boolean | null) => !!existsVal,
-    then: yup.array().min(1, 'Please select at least one option from dropdown'),
-    otherwise: yup.array(),
+    then: array().min(1, 'Please select at least one option from dropdown'),
+    otherwise: array(),
   }),
 });
 
-export const priorLossValidation = yup.object({
-  priorLossCount: yup
-    .string()
-    .oneOf(['0', '1', '2', '3+'])
-    .required('Prior loss history is required'),
-  // priorLossCount: yup.number().oneOf([0, 1, 2, 3]).required('Prior loss history is required'),
+export const priorLossVal = string().oneOf(['0', '1', '2', '3+']);
+
+export const priorLossValidation = object({
+  priorLossCount: priorLossVal.required('Prior loss history is required'),
 });
 
-export const contactValidation = yup.object().shape({
-  firstName: yup.string().required('First name is required'),
-  lastName: yup.string().required('Last name is required'),
-  email: emailVal, // .required('Email required'), // yup.string().email().required(),
+export const contactValidation = object().shape({
+  firstName: string().required('First name is required'),
+  lastName: string().required('Last name is required'),
+  email: emailVal, // .required('Email required'), // string().email().required(),
   phone: phoneVal.notRequired(),
 });
 
-export const contactValidationNested = yup.object().shape({
+export const contactValidationNested = object().shape({
   contact: contactValidation,
 });
 
 // TODO: clean up variations of named insured validations
-export const namedInsuredValidationNested = yup.object().shape({
+export const namedInsuredValidationNested = object().shape({
   namedInsured: contactValidation,
 });
 
-export const reviewValidation = yup.object({
-  userAcceptance: yup.boolean().oneOf([true], 'Required'),
+export const reviewValidation = object({
+  userAcceptance: boolean().oneOf([true], 'Required'),
 }); // Must accept Terms
 
-export const namedInsuredValidation = yup.object().shape({
-  firstName: yup.string().required(),
-  lastName: yup.string().required(),
+export const namedInsuredValidation = object().shape({
+  firstName: string().required(),
+  lastName: string().required(),
   email: emailVal.required(),
   phone: phoneVal,
-  userId: yup.string().notRequired(),
+  userId: string().notRequired(),
 });
 
-export const namedInsuredValidationNotRequired = yup.object().shape({
-  firstName: yup.string().typeError('Named Insured name must be a string').notRequired(),
-  lastName: yup.string().typeError('Named Insured name must be a string').notRequired(),
+export const namedInsuredValidationNotRequired = object().shape({
+  firstName: string().typeError('Named Insured name must be a string').notRequired(),
+  lastName: string().typeError('Named Insured name must be a string').notRequired(),
   email: emailVal,
   phone: phoneVal.notRequired(),
-  userId: yup.string().notRequired(),
+  userId: string().notRequired(),
 });
 
-export const agentValidation = yup.object().shape({
-  name: yup.string().typeError('agent name required').required(),
+export const agentValidation = object().shape({
+  name: string().typeError('agent name required').required(),
   email: emailVal.typeError('agent email required').required(),
   phone: phoneVal.typeError('agent phone required').required(),
-  userId: yup.string().notRequired(),
+  userId: string().notRequired(),
 });
 
-export const agencyValidation = yup.object().shape({
-  orgId: yup.string().typeError('agency orgId required').required(),
-  name: yup.string().typeError('agency name required').required(),
+export const agencyValidation = object().shape({
+  orgId: string().typeError('agency orgId required').required(),
+  name: string().typeError('agency name required').required(),
   address: addressValidation,
 });

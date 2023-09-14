@@ -1101,11 +1101,14 @@ export interface AddLocationRequest extends BaseChangeRequest {
   policyChanges?: DeepPartial<Policy>;
   locationChanges?: DeepPartial<ILocation>;
   isAddLocationRequest: true;
+  locationId: string;
 }
 
-export interface DraftAddLocationRequest extends Omit<AddLocationRequest, 'formValues' | 'status'> {
+export interface DraftAddLocationRequest
+  extends Omit<AddLocationRequest, 'formValues' | 'status' | 'locationId'> {
   status: 'draft';
   formValues: Partial<AddLocationValues>;
+  locationId?: string;
 }
 
 export type ChangeRequest =

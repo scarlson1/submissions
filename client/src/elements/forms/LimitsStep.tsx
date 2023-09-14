@@ -13,12 +13,6 @@ import { LimitKeys } from 'common/types';
 // TODO: use increment cards & text field or slider ??
 // TODO: round value to nearest 1,000
 
-// enum FieldNames {
-//   A = 'limitA',
-//   B = 'limitB',
-//   C = 'limitC',
-//   D = 'limitD',
-// }
 enum FieldNames {
   A = 'limits.limitA',
   B = 'limits.limitB',
@@ -32,28 +26,28 @@ const limitFields = [
     // limitField: 'building',
     name: FieldNames.A, // 'limitA', // 'coverages.building',
     inputLabel: 'Building Limit',
-    description: 'TODO: add description here',
+    description: '', // 'TODO: add description here',
     coverageActiveField: 'coverageActiveBuilding',
   },
   {
     title: 'Additional Structures Coverage',
     name: FieldNames.B, // 'limitB',
     inputLabel: 'Additional Structures Limit',
-    description: 'TODO: add description here',
+    description: '', // 'TODO: add description here',
     coverageActiveField: 'coverageActiveStructures',
   },
   {
     title: 'Contents Coverage',
     name: FieldNames.C, // 'limitC', // 'coverages.contents',
     inputLabel: 'Contents Limit',
-    description: 'TODO: add description here',
+    description: '', // 'TODO: add description here',
     coverageActiveField: 'coverageActiveContents',
   },
   {
     title: 'Living Expenses Coverage',
     name: FieldNames.D, // 'limitD', // 'coverages.additional',
     inputLabel: 'Additional Expenses Limit',
-    description: 'TODO: add description here',
+    description: '', // 'TODO: add description here',
     coverageActiveField: 'coverageActiveAdditional',
   },
 ];
@@ -75,37 +69,7 @@ export const LimitsStep = ({
   replacementCost,
   description,
 }: LimitsStepProps) => {
-  const { values, setFieldValue, setFieldTouched } = useFormikContext<FloodValues>(); // setFieldValue, setFieldTouched, setStatus
-
-  // const handleCoverageActive = useCallback(
-  //   async (
-  //     event: React.ChangeEvent<HTMLInputElement>,
-  //     coverageActiveField: CovActiveTypes,
-  //     limitField: LimitKeys,
-  //     dbField: LimitKeys
-  //   ) => {
-  //     event.stopPropagation();
-  //     if (coverageActiveField === 'coverageActiveBuilding') {
-  //       toast.info(
-  //         'Building coverage cannot be exclued. Click the edit icon on the right to change the limit amount.',
-  //         { autoClose: 8000 }
-  //       );
-  //       return;
-  //     }
-  //     setFieldValue(coverageActiveField, event.target.checked);
-
-  //     let coverageActive = event.target.checked; // values[coverageActiveField];
-  //     let newValue = coverageActive ? values[limitField] : 0;
-  //     console.log(`Updating ${dbField} to ${newValue}`);
-
-  //     if (event.target.checked && dollarFormatToNumber(values[limitField]) === 0) return;
-
-  //     await updateQuote({
-  //       limits: { [dbField]: newValue },
-  //     });
-  //   },
-  //   [updateQuote, setFieldValue, values]
-  // );
+  const { values, setFieldValue, setFieldTouched } = useFormikContext<FloodValues>();
 
   const helperText = useMemo(() => {
     let result: { [key: string]: string | undefined } = {
@@ -162,7 +126,7 @@ export const LimitsStep = ({
               setFieldValue(field.name, newVal);
               setTimeout(() => {
                 setFieldTouched(field.name, true);
-              }, 100);
+              }, 50);
             }}
             {...inputProps}
           />

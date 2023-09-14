@@ -53,7 +53,7 @@ export interface InitRatingValues extends Limits {
 
 // TODO: match response from cloud function to mirror how data is stored below
 
-const DEFAULT_INIT_VALUES = {
+export const DEFAULT_INIT_VALUES = {
   deductible: 4000,
   limitA: 250000,
   limitB: 25000,

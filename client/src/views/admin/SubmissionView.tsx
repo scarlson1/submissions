@@ -259,21 +259,6 @@ export const SubmissionView = () => {
         <Typography variant='overline' color='text.secondary'>
           Additional Details
         </Typography>
-        {/* {data.ratingPropertyData?.spatialKeyDocId && (
-          <Button
-            size='small'
-            sx={{ m: 1, ml: 0 }}
-            onClick={() =>
-              showDialog(
-                COLLECTIONS.SK_RES,
-                data.ratingPropertyData?.spatialKeyDocId!,
-                'Spatial Key Property Data'
-              )
-            }
-          >
-            Show Spatial Key Data
-          </Button>
-        )} */}
         {data.propertyDataDocId && (
           <Button
             size='small'

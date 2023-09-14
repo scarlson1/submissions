@@ -1,9 +1,9 @@
-import { Box, Typography } from '@mui/material';
-import { doc, updateDoc } from 'firebase/firestore';
+import { Box, Typography, Unstable_Grid2 as Grid } from '@mui/material';
+import { Timestamp, doc, setDoc } from 'firebase/firestore';
 import { Form, Formik, FormikConfig } from 'formik';
 import { useCallback, useEffect, useMemo } from 'react';
-import { useFirestore } from 'reactfire';
-import * as yup from 'yup';
+import { useFirestore, useFunctions } from 'reactfire';
+import { object, string, number } from 'yup';
 
 import {
   Address,
@@ -13,19 +13,33 @@ import {
   Limits,
   Nullable,
   OptionalKeys,
+  PRIOR_LOSS_COUNT_OPTIONS,
   Product,
+  RatingPropertyData,
   addressValidationActiveStates,
   changeRequestsCollection,
   coordinatesValidation,
   deductibleValidation,
-  limitsValidation,
+  limitsValidationNested,
+  priorLossVal,
+  priorLossValidation,
 } from 'common';
-import { FormikIncrementor, Wizard, WizardNavButtons } from 'components/forms';
+import {
+  FormikDollarMaskField,
+  FormikIncrementor,
+  FormikNativeSelect,
+  Wizard,
+  WizardNavButtons,
+  IMask,
+  FormikMaskField,
+} from 'components/forms';
 import { useDocData, useWizard } from 'hooks';
 import { dollarFormat } from 'modules/utils';
 import { AddressStep as AddrStep } from './AddressStep';
 import { NESTED_ADDRESS_FIELD_NAMES } from './FormikAddress';
 import { LimitsStep as LimStep } from './LimitsStep';
+import { getPropertyDetailsAttom } from 'api';
+import { DEFAULT_INIT_VALUES } from 'hooks/usePropertyDetails';
 
 // store state server side ??
 // save in ChangeRequest collection with status === 'draft' ??
@@ -53,7 +67,7 @@ interface AddressValues {
   coordinates: Nullable<Coordinates>;
 }
 const getAddressVal = (activeStates: Record<string, boolean>) =>
-  yup.object().shape({
+  object().shape({
     address: addressValidationActiveStates(activeStates),
     coordinates: coordinatesValidation,
   });
@@ -64,7 +78,14 @@ interface LimitValues {
 interface DeductibleValues {
   deductible: number;
 }
-export type AddLocationValues = AddressValues & LimitValues & DeductibleValues;
+interface RatingDataValues {
+  ratingPropertyData: Pick<
+    Nullable<RatingPropertyData>,
+    'basement' | 'replacementCost' | 'sqFootage' | 'yearBuilt' | 'priorLossCount' | 'numStories'
+  >;
+}
+
+export type AddLocationValues = AddressValues & LimitValues & DeductibleValues & RatingDataValues;
 
 // const DEFAULT_INITIAL_VALUES: AddLocationValues = {
 //   address: {
@@ -111,8 +132,9 @@ export const AddLocationForm = ({
   ...props
 }: AddLocationFormProps) => {
   // TODO: how should other property data be stored ?? (property rating data, AALs, annual/termPremium, etc.)
+  //    - location property data stored in location changes
+  //    - rating & premium calculated in last step and set from backend
   // subscribe to change request ?? (need new 'draft' ChangeRequest type)
-  // would need to generate change request doc ahead of time
   // extract location values from change request ??
   // or react-query style mutation ??
   // context ?? zustand ??
@@ -124,6 +146,7 @@ export const AddLocationForm = ({
     [policyId, COLLECTIONS.CHANGE_REQUESTS],
     { idField: 'id' }
   );
+  // TODO: validate status === draft
 
   useEffect(() => console.log(data), [data]);
 
@@ -139,23 +162,28 @@ export const AddLocationForm = ({
       //   firestore,
       //   `${COLLECTIONS.POLICIES}/${policyId}/${COLLECTIONS.CHANGE_REQUESTS}/${changeRequestId}`
       // ) as DocumentReference<DraftAddLocationRequest>;
-      await updateDoc(changeRequestRef, { formValues: values });
+      await setDoc(
+        changeRequestRef,
+        { formValues: values, metadata: { updated: Timestamp.now() } },
+        { merge: true }
+      );
     },
     [firestore, policyId, changeRequestId]
   );
 
-  // // After deductible step --> calc rating, location values, policy changes, etc. (complete change request interface) --> onSubmit --> change status to submitted
-  // const handleCalcChanges = useCallback(() => {
-  //   // handle rating
-  //   // create location document (if no locationId, otherwise, update)
-  //   // calc all location prem values
-  //   // calc changes to policy values (taxes, premium, etc.)
-  // }, []);
+  // After deductible step --> calc rating, location values, policy changes, etc. (complete change request interface) --> onSubmit --> change status to submitted
+  const handleCalcChanges = useCallback(async () => {
+    // call backend cloud fn:
+    //  - handle rating
+    //  - create location document (if no locationId, otherwise, update)
+    //  - calc all location prem values
+    //  - calc changes to policy values (taxes, premium, etc.)
+  }, []);
 
-  // const handleSubmit = useCallback(async () => {
-  //   // update status to submitted
-  //   // redirect / show dialog & reset form
-  // }, []);
+  const handleSubmit = useCallback(async () => {
+    // update status to submitted
+    // redirect / show dialog & reset form
+  }, []);
 
   useEffect(() => console.log('Server Values: ', serverValues), [serverValues]);
 
@@ -168,8 +196,9 @@ export const AddLocationForm = ({
       >
         <AddressStep
           product={product}
-          saveChangeRequest={saveChangeRequest}
+          saveChangeRequest={saveChangeRequest} // TODO: get property data
           // onSubmit={handleStepSubmit}
+          changeRequest={data}
           initialValues={{
             address: {
               addressLine1: serverValues?.address?.addressLine1 || '',
@@ -185,7 +214,7 @@ export const AddLocationForm = ({
           }}
         />
         <LimitsStep
-          replacementCost={1000000}
+          replacementCost={serverValues?.ratingPropertyData?.replacementCost || undefined}
           saveChangeRequest={saveChangeRequest}
           initialValues={{
             limits: {
@@ -199,6 +228,28 @@ export const AddLocationForm = ({
         <DeductibleStep
           saveChangeRequest={saveChangeRequest}
           initialValues={{ deductible: serverValues?.deductible }}
+        />
+        <PropertyRatingDataStep
+          saveChangeRequest={saveChangeRequest}
+          initialValues={{
+            ratingPropertyData: {
+              // CBRSDesignation: serverValues?.ratingPropertyData?.CBRSDesignation ?? null,
+              basement: serverValues?.ratingPropertyData?.basement || '',
+              // distToCoastFeet: serverValues?.ratingPropertyData?.distToCoastFeet ?? null,
+              // floodZone: serverValues?.ratingPropertyData?.floodZone || null,
+              numStories: serverValues?.ratingPropertyData?.numStories || '',
+              // propertyCode: serverValues?.ratingPropertyData?.propertyCode || null,
+              replacementCost: serverValues?.ratingPropertyData?.replacementCost || '',
+              sqFootage: `${
+                serverValues?.ratingPropertyData?.sqFootage || ''
+              }` as unknown as number,
+              yearBuilt: `${
+                serverValues?.ratingPropertyData?.yearBuilt || ''
+              }` as unknown as number,
+              // FFH: serverValues?.ratingPropertyData?.FFH || null,
+              priorLossCount: serverValues?.ratingPropertyData?.priorLossCount || '',
+            },
+          }}
         />
         <ReviewStep data={data} />
       </Wizard>
@@ -220,14 +271,17 @@ interface BaseStepProps<T> extends Omit<FormikConfig<T>, 'onSubmit'> {
 
 interface AddressStepProps extends BaseStepProps<AddressValues> {
   product: Product;
+  changeRequest: DraftAddLocationRequest;
 }
 
 // TODO: error boundary around each step (& Suspense)
-function AddressStep({ product, saveChangeRequest, ...props }: AddressStepProps) {
+function AddressStep({ product, saveChangeRequest, changeRequest, ...props }: AddressStepProps) {
+  const functions = useFunctions();
   const { data: activeStates } = useDocData('ACTIVE_STATES', product);
   // const { data: activeStates } = useDocData('ACTIVE_STATES', product);;
   const { nextStep } = useWizard();
   // const { values } = useFormikContext<AddressValues>();
+  const fetchDetails = getPropertyDetailsAttom(functions);
 
   // handleStep(async () => {
   //   // TODO: validation ?? throw if validation doesn't pass
@@ -243,16 +297,58 @@ function AddressStep({ product, saveChangeRequest, ...props }: AddressStepProps)
   const handleStepSubmit = useCallback(
     async (values: AddressValues) => {
       try {
+        // TODO: pass in current change request data --> only call fetch details if address / coordinates change or don't exist
+        // TODO: better diff comparison
+        const { coordinates, address } = values;
+        const coordsSame =
+          values.coordinates?.latitude &&
+          changeRequest.formValues?.coordinates?.latitude === values.coordinates?.latitude;
+
+        let updates: Partial<DraftAddLocationRequest['formValues']> = {
+          ...values,
+        };
+
+        if (!coordsSame) {
+          const { data } = await fetchDetails({
+            ...address,
+            coordinates,
+          });
+          console.log('ATTOM RES: ', data);
+          const newRatingPropertyData = {
+            CBRSDesignation: data.CBRSDesignation || null,
+            basement: data.basement || null,
+            distToCoastFeet: data.distToCoastFeet || null,
+            floodZone: data.floodZone || null,
+            numStories: data.numStories || null,
+            propertyCode: data.propertyCode || null,
+            replacementCost: data.replacementCost || null,
+            sqFootage: data.sqFootage || null,
+            yearBuilt: data.yearBuilt || null,
+            FFH: data.FFH || null,
+          };
+          const newLimits = {
+            limitA: data.initLimitA || DEFAULT_INIT_VALUES.limitA,
+            limitB: data.initLimitB || DEFAULT_INIT_VALUES.limitB,
+            limitC: data.initLimitC || DEFAULT_INIT_VALUES.limitC,
+            limitD: data.initLimitD || DEFAULT_INIT_VALUES.limitD,
+          };
+          updates['ratingPropertyData'] = newRatingPropertyData;
+          updates['limits'] = newLimits;
+          updates['deductible'] = data.initDeductible ?? 3000;
+        }
+
+        console.log('SAVING UPDATES: ', updates);
+        // @ts-ignore
         await saveChangeRequest({
-          address: values.address,
-          coordinates: values.coordinates,
+          ...updates,
         });
+
         await nextStep();
       } catch (err: any) {
         console.log('submit step error: ', err);
       }
     },
-    [nextStep, saveChangeRequest]
+    [nextStep, saveChangeRequest, fetchDetails, changeRequest]
   );
 
   // example: https://github.com/devrnt/react-use-wizard/issues/33#issuecomment-822064093
@@ -313,22 +409,27 @@ function LimitsStep({ replacementCost, saveChangeRequest, ...props }: LimitsStep
     <Formik
       {...props}
       onSubmit={handleStepSubmit}
-      validationSchema={limitsValidation}
+      validationSchema={limitsValidationNested}
       validateOnMount
       enableReinitialize
     >
-      {({ handleSubmit, submitForm, isValid, isSubmitting, isValidating }) => (
-        <Form onSubmit={handleSubmit}>
-          <Box sx={{ py: 5 }}>
-            <LimStep replacementCost={replacementCost} />
-            <WizardNavButtons
-              disabled={!isValid}
-              loading={isSubmitting || isValidating}
-              onClick={submitForm}
-            />
-          </Box>
-        </Form>
-      )}
+      {({ handleSubmit, submitForm, isValid, isSubmitting, isValidating, values, errors }) => {
+        console.log('values: ', values);
+        console.log('errors: ', errors);
+
+        return (
+          <Form onSubmit={handleSubmit}>
+            <Box sx={{ py: 5 }}>
+              <LimStep replacementCost={replacementCost} />
+              <WizardNavButtons
+                disabled={!isValid}
+                loading={isSubmitting || isValidating}
+                onClick={submitForm}
+              />
+            </Box>
+          </Form>
+        );
+      }}
     </Formik>
   );
 }
@@ -364,22 +465,173 @@ function DeductibleStep({ saveChangeRequest, ...props }: DeductibleStepProps) {
     >
       {({ handleSubmit, submitForm, isValid, isSubmitting, isValidating }) => (
         <Form onSubmit={handleSubmit}>
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 5 }}>
-            <FormikIncrementor
-              name='deductible'
-              incrementBy={500}
-              min={1000}
-              // max={maxDeductible}
-              valueFormatter={(val: number | undefined) => {
-                if (!val) return;
-                return dollarFormat(val);
-              }}
-            />
+          <Box sx={{ display: 'flex', justifyContent: 'center', flexDirection: 'column', py: 5 }}>
+            <Typography align='center' sx={{ py: 2 }}>
+              Choose your deductible
+            </Typography>
+            <Box sx={{ p: 3 }}>
+              <FormikIncrementor
+                name='deductible'
+                incrementBy={500}
+                min={1000}
+                // max={maxDeductible}
+                valueFormatter={(val: number | undefined) => {
+                  if (!val) return;
+                  return dollarFormat(val);
+                }}
+              />
+            </Box>
+            {/* TODO: add education text */}
+
             <WizardNavButtons
               disabled={!isValid}
               loading={isSubmitting || isValidating}
               onClick={submitForm}
             />
+          </Box>
+        </Form>
+      )}
+    </Formik>
+  );
+}
+const currentYear = new Date().getFullYear();
+const addLocationRatingPropertyVal = object().shape({
+  ratingPropertyData: object().shape({
+    basement: string().typeError('basement required').required(),
+    priorLossCount: priorLossVal.typeError('prior loss count required').required(),
+    numStories: number().typeError('# stories required').required('# stories is required'),
+    replacementCost: number().min(100000).typeError('replacement cost est. required').required(),
+    sqFootage: number().min(500).typeError('sq. footage required').required(),
+    yearBuilt: number().min(1900).max(currentYear).typeError('year built required').required(),
+  }),
+});
+
+interface PropertyRatingDataStepProps extends BaseStepProps<RatingDataValues> {
+  saveChangeRequest: (values: any) => Promise<void>;
+}
+
+function PropertyRatingDataStep({ saveChangeRequest, ...props }: PropertyRatingDataStepProps) {
+  const { nextStep } = useWizard();
+
+  const handleStepSubmit = useCallback(
+    async (values: RatingDataValues) => {
+      try {
+        // save rating inputs
+        // TODO: calc default limits & deductible based on replacement cost (if values not already set ??)
+        await saveChangeRequest({ ...values });
+
+        await nextStep();
+      } catch (err: any) {
+        console.log('err: ', err);
+      }
+    },
+    [saveChangeRequest, nextStep]
+  );
+
+  console.log('INIT VALUES: ', props?.initialValues);
+
+  return (
+    <Formik
+      {...props}
+      onSubmit={handleStepSubmit}
+      validationSchema={addLocationRatingPropertyVal}
+      validateOnMount
+      enableReinitialize
+    >
+      {({ handleSubmit, submitForm, isValid, isSubmitting, isValidating }) => (
+        <Form onSubmit={handleSubmit}>
+          <Box sx={{ py: 5 }}>
+            <Grid container rowSpacing={{ xs: 3, sm: 4 }} columnSpacing={{ xs: 4, sm: 6, md: 7 }}>
+              <Grid xs={6} sm={4} md={3}>
+                <FormikNativeSelect
+                  fullWidth
+                  id='ratingPropertyData.basement'
+                  label='Basement'
+                  name='ratingPropertyData.basement'
+                  selectOptions={[
+                    { label: 'No', value: 'no' },
+                    { label: 'Unknown', value: 'unknown' },
+                    { label: 'Finished', value: 'finished' },
+                    { label: 'Unfinished', value: 'unfinished' },
+                  ]}
+                  required
+                />
+              </Grid>
+              <Grid xs={6} sm={4} md={3}>
+                {/* TODO: helper text explaining prior loss count */}
+                <FormikNativeSelect
+                  fullWidth
+                  id='ratingPropertyData.priorLossCount'
+                  label='Prior Loss Count'
+                  name='ratingPropertyData.priorLossCount'
+                  selectOptions={PRIOR_LOSS_COUNT_OPTIONS}
+                  required
+                />
+              </Grid>
+              <Grid xs={6} sm={4} md={3}>
+                <FormikNativeSelect
+                  fullWidth
+                  id='ratingPropertyData.numStories'
+                  label='# Stories'
+                  name='ratingPropertyData.numStories'
+                  required
+                  selectOptions={[
+                    { label: '1', value: 1 },
+                    { label: '2', value: 2 },
+                    { label: '3', value: 3 },
+                    { label: '4', value: 4 },
+                    { label: '5', value: 5 },
+                  ]}
+                  convertToNumber={true}
+                />
+              </Grid>
+              <Grid xs={6} sm={4} md={3}>
+                <FormikDollarMaskField
+                  fullWidth
+                  id='ratingPropertyData.replacementCost'
+                  label='Replacement Cost'
+                  name='ratingPropertyData.replacementCost'
+                  required
+                />
+              </Grid>
+              <Grid xs={6} sm={4} md={3}>
+                <FormikMaskField
+                  fullWidth
+                  id='ratingPropertyData.sqFootage'
+                  label='Square Footage'
+                  name='ratingPropertyData.sqFootage'
+                  required
+                  maskComponent={IMask}
+                  inputProps={{
+                    maskProps: { mask: Number, max: 9999, thousandsSeparator: ',', unmask: true },
+                  }}
+                />
+              </Grid>
+              <Grid xs={6} sm={4} md={3}>
+                <FormikMaskField
+                  fullWidth
+                  id='ratingPropertyData.yearBuilt'
+                  label='Year Built'
+                  name='ratingPropertyData.yearBuilt'
+                  maskComponent={IMask}
+                  required
+                  inputProps={{
+                    maskProps: {
+                      mask: '#!00',
+                      definitions: { '#': /[1-2]/, '!': /[0,9]/ },
+                      unmask: true,
+                    },
+                  }}
+                />
+              </Grid>
+              <Grid xs={12}>
+                <WizardNavButtons
+                  disabled={!isValid}
+                  loading={isSubmitting || isValidating}
+                  onClick={submitForm}
+                />
+              </Grid>
+            </Grid>
           </Box>
         </Form>
       )}
