@@ -174,10 +174,11 @@ export const AddLocationForm = ({
 
   // After deductible step --> calc rating, location values, policy changes, etc. (complete change request interface) --> onSubmit --> change status to submitted
   const handleCalcChanges = useCallback(async () => {
-    await addLocationCalc(functions, {
+    const { data } = await addLocationCalc(functions, {
       policyId,
       changeRequestId,
     });
+    console.log('calc changes res: ', data);
   }, [functions, policyId, changeRequestId]);
 
   const handleSubmit = useCallback(async () => {
