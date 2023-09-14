@@ -212,7 +212,7 @@ export interface AddressWithGeo extends Address {
 export interface QuoteLocation extends AddressWithGeo {
   ratingDocId: string;
   locationId: string;
-  directWrittenPremium: number;
+  annualPremium: number;
   tiv: number;
   externalId: string | null;
   // spatialKeyResDocId: string;
@@ -432,7 +432,7 @@ export interface PremiumCalcData {
   subproducerCommissionPct: number;
   minPremium: number;
   minPremiumAdj: number;
-  directWrittenPremium: number;
+  annualPremium: number;
   MGACommission: number;
   MGACommissionPct: number;
 }
@@ -479,7 +479,7 @@ export interface SecondaryFactorMults {
 
 export type RatingPremCalcData = WithRequired<
   DeepPartial<PremiumCalcData>,
-  'MGACommission' | 'MGACommissionPct' | 'directWrittenPremium'
+  'MGACommission' | 'MGACommissionPct' | 'annualPremium'
 >;
 
 export interface RatingData extends BaseDoc {
@@ -631,6 +631,7 @@ export interface PolicyLocation {
   address: CompressedAddress;
   coords: GeoPoint;
   cancelEffDate?: Timestamp | null;
+  version?: number; // TODO: remove optional
   // lcnDocId: string;
 }
 
@@ -869,11 +870,14 @@ export interface AddLocationRequest extends BaseChangeRequest {
   policyChanges?: DeepPartial<Policy>;
   locationChanges?: DeepPartial<ILocation>;
   isAddLocationRequest: true;
+  locationId: string;
 }
 
-export interface DraftAddLocationRequest extends Omit<AddLocationRequest, 'formValues' | 'status'> {
+export interface DraftAddLocationRequest
+  extends Omit<AddLocationRequest, 'formValues' | 'status' | 'locationId'> {
   status: 'draft';
   formValues: Partial<AddLocationValues>;
+  locationId?: string;
 }
 
 export type ChangeRequest =

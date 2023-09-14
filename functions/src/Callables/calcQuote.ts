@@ -129,7 +129,7 @@ const calcQuote = async ({ data, auth }: CallableRequest<CalcQuoteRequest>) => {
 
     // TODO: update the submission ?? quote data not stored on submission
 
-    return { annualPremium: result.premiumData.directWrittenPremium, ratingDocId: ratingDocRef.id };
+    return { annualPremium: result.premiumData.annualPremium, ratingDocId: ratingDocRef.id };
   } catch (err: any) {
     console.log('ERROR: ', err);
     error('Error calculating quote', {

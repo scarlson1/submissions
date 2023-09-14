@@ -422,11 +422,11 @@ export interface RatingPropertyData {
 // determine which fields are required for rerating & only make those required. Add Rating doc when importing policies / quotes
 // use discriminating union type: 'rating' | 'premium-recalc' ??
 
-// required: limits, RCVs, TIV, deductible, AALs, address, coordinates, ratingPropertyData, premiumCalcData.MGACommission, premiumCalcData.MGACommissionPct, premiumCalcData.directWrittenPremium
+// required: limits, RCVs, TIV, deductible, AALs, address, coordinates, ratingPropertyData, premiumCalcData.MGACommission, premiumCalcData.MGACommissionPct, premiumCalcData.annualPremium
 
 export type RatingPremCalcData = WithRequired<
   DeepPartial<PremiumCalcData>,
-  'MGACommission' | 'MGACommissionPct' | 'directWrittenPremium' | 'techPremium'
+  'MGACommission' | 'MGACommissionPct' | 'annualPremium' | 'techPremium'
 >; // reporting --> require:  floodCategoryPremium | techPremium ??
 
 export interface RatingData extends BaseDoc {
@@ -641,7 +641,7 @@ export type LocationParent = 'submission' | 'quote' | 'policy';
 // TODO: discriminating union (SubmissionLocation, QuoteLocation, ILocation, etc.)
 // require policy id, parentType: 'policy', etc.
 export interface ILocation extends BaseDoc {
-  parentType?: LocationParent | null; // TODO: remove ? once moved to new policy - location interface
+  parentType?: LocationParent | null; // TODO: make required ?? add security rules
   address: Address;
   coordinates: GeoPoint;
   geoHash: Geohash;
@@ -713,6 +713,7 @@ export interface PolicyLocation {
   address: CompressedAddress;
   coords: GeoPoint;
   cancelEffDate?: Timestamp | null;
+  version?: number; // TODO: remove optional
   // lcnDocId: string;
 }
 
@@ -1048,7 +1049,7 @@ interface BaseChangeRequest extends BaseDoc {
 
 export interface LocationChangeRequest extends BaseChangeRequest {
   scope: 'location';
-  policyChanges?: DeepPartial<PolicyNew>; // TODO: rename policyChanges
+  policyChanges?: DeepPartial<PolicyNew>;
   locationChanges: DeepPartial<ILocation>;
   formValues: LocationChangeValues;
   locationId: string;
@@ -1062,7 +1063,7 @@ export interface LocationCancellationRequest
   trxType: 'cancellation' | 'flat_cancel';
   cancelReason?: CancellationReason;
   formValues: CancelValues;
-  // policyChanges?: DeepPartial<Policy>;
+  // policyChanges?: DeepPartial<PolicyNew>;
   locationChanges?: DeepPartial<ILocation>; // cancelEffDate ?? (or only in policy ??) (would scope become 'policy' if only updated fields are policy ?? or are we recalculating the term premium for the location doc ??)
   isAddLocationRequest?: false;
 }
@@ -1086,11 +1087,18 @@ export interface PolicyCancellationRequest extends Omit<PolicyChangeRequest, 'fo
   formValues: CancelValues;
   isAddLocationRequest?: false;
 }
+
 export interface AddLocationValues {
+  externalId?: string;
   address: Address;
   coordinates: Nullable<Coordinates>;
   limits: Limits;
   deductible: number;
+  effectiveDate: Timestamp;
+  ratingPropertyData: Pick<
+    Nullable<RatingPropertyData>,
+    'basement' | 'replacementCost' | 'sqFootage' | 'yearBuilt' | 'priorLossCount' | 'numStories'
+  >;
 }
 
 export interface AddLocationRequest extends BaseChangeRequest {
@@ -1098,9 +1106,9 @@ export interface AddLocationRequest extends BaseChangeRequest {
   scope: 'add_location'; // TODO: use scope instead of isAddLocationRequest ??
   status: 'submitted' | 'accepted' | 'denied' | 'under_review' | 'cancelled' | 'error';
   formValues: AddLocationValues;
-  policyChanges?: DeepPartial<Policy>;
+  policyChanges?: DeepPartial<PolicyNew>;
   locationChanges?: DeepPartial<ILocation>;
-  isAddLocationRequest: true;
+  isAddLocationRequest: true; // TODO: remove ?? use scope = 'add_location' instead ??
   locationId: string;
 }
 
@@ -1128,7 +1136,7 @@ export interface PremiumCalcData {
   subproducerCommissionPct: number;
   minPremium: number;
   minPremiumAdj: number;
-  directWrittenPremium: number;
+  annualPremium: number;
   MGACommission: number;
   MGACommissionPct: number;
 }

@@ -1,6 +1,14 @@
 import { round } from 'lodash';
 
-import { FeeItem, ILocation, PolicyLocation, TaxItem, WithRequired, sumArr } from '../../common';
+import {
+  FeeItem,
+  ILocation,
+  PolicyLocation,
+  TaxItem,
+  WithRequired,
+  sumArr,
+  sumByTypes,
+} from '../../common';
 
 export type PolicyWithTermPrem = WithRequired<
   Partial<ILocation> | Partial<PolicyLocation>,
@@ -46,3 +54,24 @@ export function sumFeesTaxesPremium(fees: FeeItem[], taxes: TaxItem[], premium: 
 
   return round(premium + feeTotal + taxTotal, 2);
 }
+
+export function getInStatePremium(homeState: string, locations: PolicyLocation[]) {
+  return sumByTypes<PolicyLocation>(locations, 'address.st', homeState, 'termPremium');
+}
+
+export function getOutStatePremium(homeState: string, locations: PolicyLocation[]) {
+  return locations.reduce((acc, l) => {
+    if (l.address?.st && l.address?.st !== homeState && typeof l.termPremium === 'number')
+      return acc + l.termPremium;
+
+    return acc;
+  }, 0);
+}
+
+export const calcPolicyPremium = (homeState: string, newLocationsArr: PolicyLocation[]) => {
+  const termPremium = sumPolicyTermPremium(newLocationsArr);
+  const inStatePremium = getInStatePremium(homeState, newLocationsArr);
+  const outStatePremium = getOutStatePremium(homeState, newLocationsArr);
+
+  return { termPremium, inStatePremium, outStatePremium };
+};

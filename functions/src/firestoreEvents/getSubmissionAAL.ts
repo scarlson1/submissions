@@ -213,13 +213,13 @@ export default async (
     });
 
     await snap.ref.update({
-      annualPremium: premiumData.directWrittenPremium,
+      annualPremium: premiumData.annualPremium,
       subproducerCommission: commissionPct,
       ratingDocId: ratingDocRef.id,
       'metadata.updated': Timestamp.now(),
     });
 
-    info(`UPDATED SUBMISSION ${snap.id} - PREMIUM: ${premiumData.directWrittenPremium}`, {
+    info(`UPDATED SUBMISSION ${snap.id} - PREMIUM: ${premiumData.annualPremium}`, {
       ...result,
     });
   } catch (err: any) {

@@ -78,8 +78,8 @@ export const getPremiumData = ({
   const { subprodAdjRate, totalCommRate } = getCommRates(subproducerComPct);
   const subproducerAdj = provisionalPremium * subprodAdjRate;
 
-  const directWrittenPremium = ceil(provisionalPremium + subproducerAdj);
-  const MGACommission = round(directWrittenPremium * totalCommRate, 2);
+  const annualPremium = ceil(provisionalPremium + subproducerAdj);
+  const MGACommission = round(annualPremium * totalCommRate, 2);
 
   return {
     techPremium: {
@@ -97,7 +97,7 @@ export const getPremiumData = ({
     minPremium,
     minPremiumAdj,
     subproducerAdj,
-    directWrittenPremium,
+    annualPremium,
     subproducerCommissionPct: subproducerComPct,
     MGACommission,
     MGACommissionPct: totalCommRate,

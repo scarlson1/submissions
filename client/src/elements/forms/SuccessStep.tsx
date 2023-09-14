@@ -1,40 +1,41 @@
-import { useEffect, useMemo, useState } from 'react';
+import { ExpandMore } from '@mui/icons-material';
 import {
-  Box,
-  Button,
-  Card,
-  CardContent,
-  CardActions,
-  Typography,
-  Divider,
-  Container,
   Accordion,
   AccordionDetails,
   AccordionSummary,
+  Box,
+  Button,
+  Card,
+  CardActions,
+  CardContent,
   CardMedia,
+  Container,
+  Divider,
+  Typography,
 } from '@mui/material';
-import { ExpandMore } from '@mui/icons-material';
+import { doc, getFirestore, onSnapshot } from 'firebase/firestore';
 import Lottie from 'lottie-react';
+import { useEffect, useMemo, useState } from 'react';
 import { createSearchParams, useNavigate, useParams } from 'react-router-dom';
 import { useFirestore, useFirestoreDocData } from 'reactfire';
-import { doc, getFirestore, onSnapshot } from 'firebase/firestore';
 
 // import * as CheckmarkLottie from 'assets/checkmark.json';
-import { ROUTES, createPath, AUTH_ROUTES } from 'router';
-import { Submission } from 'common/types';
-import { useAuth } from 'context/AuthContext';
+import { CheckmarkLottie } from 'assets';
 import {
   ANALYTICS_EVENTS,
   Charge,
-  submissionsCollection,
-  quotesCollection,
-  finTrxCollection,
-  withIdConverter,
   fallbackImages,
+  finTrxCollection,
+  quotesCollection,
+  submissionsCollection,
+  withIdConverter,
 } from 'common';
-import { dollarFormat2 } from 'modules/utils/helpers';
+import { Submission } from 'common/types';
+import { useAuth } from 'context/AuthContext';
+import { FormattedAddress } from 'elements/FormattedAddress';
 import { useAnalyticsEvent } from 'hooks';
-import { CheckmarkLottie } from 'assets';
+import { dollarFormat2 } from 'modules/utils/helpers';
+import { AUTH_ROUTES, ROUTES, createPath } from 'router';
 
 interface FAQ {
   title: React.ReactNode;
@@ -153,14 +154,7 @@ export const SuccessStep = () => {
                 >
                   Address
                 </Typography>
-                <Typography variant='subtitle2' textAlign='right'>
-                  {`${data?.address.addressLine1}${
-                    data.address.addressLine2 ? ' ' + data.address.addressLine2 + ' ' : ''
-                  }`}
-                </Typography>
-                <Typography variant='subtitle2' textAlign='right'>
-                  {`${data.address.city}, ${data.address.state} ${data.address.postal}`}
-                </Typography>
+                <FormattedAddress address={data?.address} variant='subtitle2' textAlign='right' />
               </Box>
             </Box>
             <Divider flexItem sx={{ my: 3 }} />

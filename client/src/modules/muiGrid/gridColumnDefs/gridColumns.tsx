@@ -1873,9 +1873,9 @@ export const subproducerAdjCol: GridColDef = {
 
 export const dwpCol: GridColDef = {
   ...annualPremiumCol,
-  field: 'directWrittenPremium',
+  field: 'annualPremium',
   headerName: 'DWP',
-  valueGetter: ({ row }) => row.directWrittenPremium ?? null,
+  valueGetter: ({ row }) => row.annualPremium ?? null,
 };
 
 export const termCol: GridColDef = {

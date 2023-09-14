@@ -107,10 +107,8 @@ function csvRowToPremiumTrx(row: TrxRow): DeepNullable<Omit<PremiumTransaction, 
     premiumCalcData: {
       MGACommission: row.mgaCommission ? extractNumberNeg(row.mgaCommission) : null,
       MGACommissionPct: row.mgaCommissionPct ? extractNumber(row.mgaCommissionPct) : null,
-      // TODO: rename directWrittenPremium --> annualPremium
-      directWrittenPremium: row.locationAnnualPremium
-        ? extractNumberNeg(row.locationAnnualPremium)
-        : null,
+      // TODO: rename annualPremium --> annualPremium
+      annualPremium: row.locationAnnualPremium ? extractNumberNeg(row.locationAnnualPremium) : null,
       techPremium: {
         inland: row.techPremiumInland ? extractNumber(row.techPremiumInland) : null,
         surge: row.techPremiumSurge ? extractNumber(row.techPremiumSurge) : null,

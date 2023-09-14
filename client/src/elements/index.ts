@@ -1,5 +1,6 @@
 export { ActionHandler } from './ActionHandler';
 export { CSVUploadDialog, RequiredHeaders } from './CSVUploadDialog';
+export { FormattedAddress } from './FormattedAddress';
 export { LocationCard } from './LocationCard';
 export { PolicyLocationCards } from './PolicyLocationCards';
 export { UpdateProfileImg } from './UpdateProfileImg';

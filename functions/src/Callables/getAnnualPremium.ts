@@ -123,12 +123,12 @@ const getAnnualPremium = async ({ data, auth }: CallableRequest<GetAnnualPremium
 
     const { premiumData } = result;
     // TODO: update original submission ??
-    info(`PREMIUM: ${premiumData.directWrittenPremium}`);
+    info(`PREMIUM: ${premiumData.annualPremium}`);
 
     if (
-      !premiumData.directWrittenPremium ||
-      typeof premiumData.directWrittenPremium !== 'number' ||
-      premiumData.directWrittenPremium < 100
+      !premiumData.annualPremium ||
+      typeof premiumData.annualPremium !== 'number' ||
+      premiumData.annualPremium < 100
     )
       throw new Error('Error calculating premium');
   } catch (err: any) {
@@ -145,7 +145,7 @@ const getAnnualPremium = async ({ data, auth }: CallableRequest<GetAnnualPremium
   }
 
   let res: Optional<GetAnnualPremiumResponse> = {
-    annualPremium: result.premiumData.directWrittenPremium,
+    annualPremium: result.premiumData.annualPremium,
     AALs: AALsRes.AALs as ValueByRiskType,
   };
 

@@ -56,6 +56,7 @@ export default async (
 
     switch (status) {
       case CHANGE_REQUEST_STATUS.DRAFT:
+        info('status = "draft" exiting...');
         return;
       case CHANGE_REQUEST_STATUS.SUBMITTED:
         await handleRequestNotifications(data, policyId, requestId, event.id);

@@ -1,5 +1,7 @@
 import { GridColDef } from '@mui/x-data-grid';
 
+import { Transaction } from 'common';
+import { isPremTrx } from 'modules/rating';
 import {
   BIRCVCol,
   annualPremiumCol,
@@ -84,8 +86,6 @@ import {
   tsunamiCategoryPremiumCol,
   updatedCol,
 } from './gridColumns';
-import { Transaction } from 'common';
-import { isPremTrx } from 'modules/rating';
 
 export const transactionCols: GridColDef<Transaction>[] = [
   { ...idCol, headerName: 'Trx ID' },
@@ -259,9 +259,9 @@ export const transactionCols: GridColDef<Transaction>[] = [
   },
   {
     ...dwpCol,
-    field: 'premiumCalcData.directWrittenPremium',
+    field: 'premiumCalcData.annualPremium',
     valueGetter: ({ row }) => {
-      if (isPremTrx(row)) return row.premiumCalcData?.directWrittenPremium ?? null;
+      if (isPremTrx(row)) return row.premiumCalcData?.annualPremium ?? null;
       return null;
     },
   },

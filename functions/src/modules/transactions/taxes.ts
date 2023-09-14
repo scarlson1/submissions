@@ -2,7 +2,6 @@ import { ceil, floor, round } from 'lodash';
 import {
   FeeItem,
   FeeItemName,
-  PolicyLocation,
   PolicyNew,
   RoundingType,
   TaxItem,
@@ -112,17 +111,4 @@ export function getTrxTaxesAndFees({ taxes, fees }: PolicyNew) {
   const inspectionFee = sumFeesByType(fees, 'Inspection Fee');
 
   return { surplusLinesTax, surplusLinesRegulatoryFee, MGAFee, inspectionFee };
-}
-
-export function getInStatePremium(homeState: string, locations: PolicyLocation[]) {
-  return sumByTypes<PolicyLocation>(locations, 'address.st', homeState, 'termPremium');
-}
-
-export function getOutStatePremium(homeState: string, locations: PolicyLocation[]) {
-  return locations.reduce((acc, l) => {
-    if (l.address?.st && l.address?.st !== homeState && typeof l.termPremium === 'number')
-      return acc + l.termPremium;
-
-    return acc;
-  }, 0);
 }

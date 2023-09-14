@@ -82,7 +82,7 @@ export function transformQuoteRow(row: CSVQuoteRow): DeepNullable<CSVTransformed
     },
     MGACommission: row.mgaCommission ? extractNumber(row.mgaCommission) : null,
     MGACommissionPct: row.mgaCommissionPct ? extractNumber(row.mgaCommissionPct) : null,
-    directWrittenPremium: row.annualPremium ? extractNumber(row.annualPremium) : null,
+    annualPremium: row.annualPremium ? extractNumber(row.annualPremium) : null,
   };
 
   const namedInsured: Quote['namedInsured'] = {

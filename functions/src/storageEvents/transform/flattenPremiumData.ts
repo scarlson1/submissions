@@ -37,7 +37,7 @@ export interface FlattenedPremData {
  * @returns {FlattenedPremData} 1 dimension object
  */
 export function flattenPremData(rowPremData: GetPremiumCalcResult): FlattenedPremData {
-  const premium = rowPremData?.premiumData?.directWrittenPremium ?? '';
+  const premium = rowPremData?.premiumData?.annualPremium ?? '';
   const minPrem = rowPremData?.minPremium ?? '';
   const inlandMult = rowPremData?.secondaryFactorMults?.inland ?? '';
   const surgeMult = rowPremData?.secondaryFactorMults?.surge ?? '';

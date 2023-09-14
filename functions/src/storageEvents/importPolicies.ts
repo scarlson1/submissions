@@ -547,7 +547,7 @@ function getRatingData(
       // subproducerCommissionPct: 0,
       // minPremium: 0,
       // minPremiumAdj: 0,
-      directWrittenPremium: data.annualPremium,
+      annualPremium: data.annualPremium,
       MGACommission: round(data.termPremium * mgaCommissionPct, 2),
       MGACommissionPct: mgaCommissionPct,
     },

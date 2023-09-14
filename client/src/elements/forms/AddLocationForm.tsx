@@ -1,11 +1,27 @@
-import { Box, Typography, Unstable_Grid2 as Grid } from '@mui/material';
+import {
+  Box,
+  Button,
+  Card,
+  CardActions,
+  CardContent,
+  Container,
+  Divider,
+  Unstable_Grid2 as Grid,
+  Stack,
+  Typography,
+} from '@mui/material';
+import { startOfDay } from 'date-fns';
 import { Timestamp, doc, setDoc } from 'firebase/firestore';
 import { Form, Formik, FormikConfig } from 'formik';
 import { useCallback, useEffect, useMemo } from 'react';
 import { useFirestore, useFunctions } from 'reactfire';
-import { object, string, number } from 'yup';
+import { number, object, string } from 'yup';
 
+import { AddRounded, DoneRounded } from '@mui/icons-material';
+import { addLocationCalc, getPropertyDetailsAttom } from 'api';
+import { CheckmarkLottie } from 'assets';
 import {
+  AddLocationRequest,
   Address,
   COLLECTIONS,
   Coordinates,
@@ -22,24 +38,29 @@ import {
   deductibleValidation,
   limitsValidationNested,
   priorLossVal,
-  priorLossValidation,
 } from 'common';
 import {
+  FormikDatePicker,
   FormikDollarMaskField,
   FormikIncrementor,
+  FormikMaskField,
   FormikNativeSelect,
+  IMask,
   Wizard,
   WizardNavButtons,
-  IMask,
-  FormikMaskField,
 } from 'components/forms';
-import { useDocData, useWizard } from 'hooks';
+import { useAuth } from 'context';
+import { FormattedAddress } from 'elements/FormattedAddress';
+import { useAsyncToast, useDocData, useWizard } from 'hooks';
+import { DEFAULT_INIT_VALUES } from 'hooks/usePropertyDetails';
+import Lottie from 'lottie-react';
 import { dollarFormat } from 'modules/utils';
+import { useNavigate } from 'react-router-dom';
+import { ROUTES, createPath } from 'router';
 import { AddressStep as AddrStep } from './AddressStep';
 import { NESTED_ADDRESS_FIELD_NAMES } from './FormikAddress';
 import { LimitsStep as LimStep } from './LimitsStep';
-import { getPropertyDetailsAttom } from 'api';
-import { DEFAULT_INIT_VALUES } from 'hooks/usePropertyDetails';
+import { policyEffShortcuts } from './QuoteForm/constants';
 
 // store state server side ??
 // save in ChangeRequest collection with status === 'draft' ??
@@ -79,6 +100,7 @@ interface DeductibleValues {
   deductible: number;
 }
 interface RatingDataValues {
+  effectiveDate: Date | null;
   ratingPropertyData: Pick<
     Nullable<RatingPropertyData>,
     'basement' | 'replacementCost' | 'sqFootage' | 'yearBuilt' | 'priorLossCount' | 'numStories'
@@ -87,35 +109,13 @@ interface RatingDataValues {
 
 export type AddLocationValues = AddressValues & LimitValues & DeductibleValues & RatingDataValues;
 
-// const DEFAULT_INITIAL_VALUES: AddLocationValues = {
-//   address: {
-//     addressLine1: '',
-//     addressLine2: '',
-//     city: '',
-//     state: '',
-//     postal: '',
-//     countyName: '',
-//   },
-//   coordinates: {
-//     latitude: null,
-//     longitude: null,
-//   },
-//   limits: {
-//     limitA: 250000,
-//     limitB: 12500,
-//     limitC: 67500,
-//     limitD: 25000,
-//   },
-//   deductible: 3000,
-// };
-
 interface AddLocationFormProps
   extends OptionalKeys<FormikConfig<AddLocationValues>, 'initialValues'> {
   product: Product;
   policyId: string;
   changeRequestId: string;
 }
-
+// TODO: create AddLocationForm folder (separate out steps, types, etc.)
 // TODO: use react-query & optimistic updates / mutation
 // TODO: add multiple locations
 // would need to change formValues to an array ?? (and add locationId as optional field)
@@ -137,8 +137,7 @@ export const AddLocationForm = ({
   // subscribe to change request ?? (need new 'draft' ChangeRequest type)
   // extract location values from change request ??
   // or react-query style mutation ??
-  // context ?? zustand ??
-
+  const functions = useFunctions();
   const firestore = useFirestore();
   const { data } = useDocData(
     'POLICIES',
@@ -146,14 +145,16 @@ export const AddLocationForm = ({
     [policyId, COLLECTIONS.CHANGE_REQUESTS],
     { idField: 'id' }
   );
+  const toast = useAsyncToast({ position: 'top-right' });
   // TODO: validate status === draft
 
   useEffect(() => console.log(data), [data]);
+  useEffect(() => console.log('CHANGE REQ ID: ', changeRequestId), [changeRequestId]);
 
   const serverValues = useMemo(() => data?.formValues || null, [data]);
 
   const saveChangeRequest = useCallback(
-    async (values: AddressValues | LimitValues | DeductibleValues) => {
+    async (values: AddressValues | LimitValues | DeductibleValues | RatingDataValues) => {
       console.log('SAVING...', values);
       // move changeRequestRef to useRef or useMemo ??
       const reqCol = changeRequestsCollection(firestore, policyId);
@@ -173,17 +174,25 @@ export const AddLocationForm = ({
 
   // After deductible step --> calc rating, location values, policy changes, etc. (complete change request interface) --> onSubmit --> change status to submitted
   const handleCalcChanges = useCallback(async () => {
-    // call backend cloud fn:
-    //  - handle rating
-    //  - create location document (if no locationId, otherwise, update)
-    //  - calc all location prem values
-    //  - calc changes to policy values (taxes, premium, etc.)
-  }, []);
+    await addLocationCalc(functions, {
+      policyId,
+      changeRequestId,
+    });
+  }, [functions, policyId, changeRequestId]);
 
   const handleSubmit = useCallback(async () => {
+    toast.blank('TODO: handle submit');
+    console.log('SUBMITTED - TODO: handle submit');
     // update status to submitted
     // redirect / show dialog & reset form
-  }, []);
+  }, [toast]);
+
+  const handleError = useCallback(
+    (msg: string) => {
+      toast.error(msg);
+    },
+    [toast]
+  );
 
   useEffect(() => console.log('Server Values: ', serverValues), [serverValues]);
 
@@ -212,6 +221,7 @@ export const AddLocationForm = ({
               longitude: serverValues?.coordinates?.longitude || null,
             },
           }}
+          onError={handleError}
         />
         <LimitsStep
           replacementCost={serverValues?.ratingPropertyData?.replacementCost || undefined}
@@ -224,14 +234,18 @@ export const AddLocationForm = ({
               limitD: serverValues?.limits?.limitD || '',
             },
           }}
+          onError={handleError}
         />
         <DeductibleStep
           saveChangeRequest={saveChangeRequest}
           initialValues={{ deductible: serverValues?.deductible }}
+          onError={handleError}
         />
         <PropertyRatingDataStep
           saveChangeRequest={saveChangeRequest}
+          calcChanges={handleCalcChanges}
           initialValues={{
+            effectiveDate: null,
             ratingPropertyData: {
               // CBRSDesignation: serverValues?.ratingPropertyData?.CBRSDesignation ?? null,
               basement: serverValues?.ratingPropertyData?.basement || '',
@@ -250,8 +264,10 @@ export const AddLocationForm = ({
               priorLossCount: serverValues?.ratingPropertyData?.priorLossCount || '',
             },
           }}
+          onError={handleError}
         />
-        <ReviewStep data={data} />
+        <ReviewStep data={data} onSubmit={handleSubmit} onError={handleError} />
+        <SubmittedStep data={data} />
       </Wizard>
     </Box>
   );
@@ -267,6 +283,7 @@ function Header() {
 
 interface BaseStepProps<T> extends Omit<FormikConfig<T>, 'onSubmit'> {
   saveChangeRequest: (values: T) => Promise<void>;
+  onError?: (msg: string) => void;
 }
 
 interface AddressStepProps extends BaseStepProps<AddressValues> {
@@ -278,9 +295,8 @@ interface AddressStepProps extends BaseStepProps<AddressValues> {
 function AddressStep({ product, saveChangeRequest, changeRequest, ...props }: AddressStepProps) {
   const functions = useFunctions();
   const { data: activeStates } = useDocData('ACTIVE_STATES', product);
-  // const { data: activeStates } = useDocData('ACTIVE_STATES', product);;
+  const toast = useAsyncToast({ position: 'top-right' });
   const { nextStep } = useWizard();
-  // const { values } = useFormikContext<AddressValues>();
   const fetchDetails = getPropertyDetailsAttom(functions);
 
   // handleStep(async () => {
@@ -298,7 +314,7 @@ function AddressStep({ product, saveChangeRequest, changeRequest, ...props }: Ad
     async (values: AddressValues) => {
       try {
         // TODO: pass in current change request data --> only call fetch details if address / coordinates change or don't exist
-        // TODO: better diff comparison
+
         const { coordinates, address } = values;
         const coordsSame =
           values.coordinates?.latitude &&
@@ -308,6 +324,7 @@ function AddressStep({ product, saveChangeRequest, changeRequest, ...props }: Ad
           ...values,
         };
 
+        // TODO: better diff comparison
         if (!coordsSame) {
           const { data } = await fetchDetails({
             ...address,
@@ -346,9 +363,10 @@ function AddressStep({ product, saveChangeRequest, changeRequest, ...props }: Ad
         await nextStep();
       } catch (err: any) {
         console.log('submit step error: ', err);
+        toast.error('Error saving values');
       }
     },
-    [nextStep, saveChangeRequest, fetchDetails, changeRequest]
+    [nextStep, saveChangeRequest, fetchDetails, toast, changeRequest]
   );
 
   // example: https://github.com/devrnt/react-use-wizard/issues/33#issuecomment-822064093
@@ -390,6 +408,7 @@ interface LimitsStepProps extends BaseStepProps<LimitValues> {
 
 function LimitsStep({ replacementCost, saveChangeRequest, ...props }: LimitsStepProps) {
   const { nextStep } = useWizard();
+  const toast = useAsyncToast({ position: 'top-right' });
 
   const handleStepSubmit = useCallback(
     async (values: LimitValues) => {
@@ -400,9 +419,10 @@ function LimitsStep({ replacementCost, saveChangeRequest, ...props }: LimitsStep
         await nextStep();
       } catch (err: any) {
         console.log('submit step error: ', err);
+        toast.error('Error saving values');
       }
     },
-    [nextStep, saveChangeRequest]
+    [nextStep, saveChangeRequest, toast]
   );
 
   return (
@@ -508,27 +528,38 @@ const addLocationRatingPropertyVal = object().shape({
 
 interface PropertyRatingDataStepProps extends BaseStepProps<RatingDataValues> {
   saveChangeRequest: (values: any) => Promise<void>;
+  calcChanges: () => Promise<void>;
 }
 
-function PropertyRatingDataStep({ saveChangeRequest, ...props }: PropertyRatingDataStepProps) {
+function PropertyRatingDataStep({
+  saveChangeRequest,
+  calcChanges,
+  onError,
+  ...props
+}: PropertyRatingDataStepProps) {
+  const { claims } = useAuth();
   const { nextStep } = useWizard();
 
   const handleStepSubmit = useCallback(
     async (values: RatingDataValues) => {
       try {
-        // save rating inputs
-        // TODO: calc default limits & deductible based on replacement cost (if values not already set ??)
         await saveChangeRequest({ ...values });
+        await calcChanges();
 
         await nextStep();
       } catch (err: any) {
         console.log('err: ', err);
+        let msg = err?.message || 'error calculating premium';
+        onError && onError(msg);
       }
     },
-    [saveChangeRequest, nextStep]
+    [saveChangeRequest, calcChanges, onError, nextStep]
   );
 
-  console.log('INIT VALUES: ', props?.initialValues);
+  const minEffDate = useMemo(
+    () => (claims?.iDemandAdmin ? undefined : startOfDay(new Date())),
+    [claims]
+  );
 
   return (
     <Formik
@@ -542,6 +573,17 @@ function PropertyRatingDataStep({ saveChangeRequest, ...props }: PropertyRatingD
         <Form onSubmit={handleSubmit}>
           <Box sx={{ py: 5 }}>
             <Grid container rowSpacing={{ xs: 3, sm: 4 }} columnSpacing={{ xs: 4, sm: 6, md: 7 }}>
+              <Grid xs={6} sm={4} md={3}>
+                <FormikDatePicker
+                  name='effectiveDate'
+                  label='Location Effective Date'
+                  minDate={minEffDate}
+                  maxDate={null}
+                  slotProps={{
+                    shortcuts: { items: policyEffShortcuts },
+                  }}
+                />
+              </Grid>
               <Grid xs={6} sm={4} md={3}>
                 <FormikNativeSelect
                   fullWidth
@@ -641,17 +683,115 @@ function PropertyRatingDataStep({ saveChangeRequest, ...props }: PropertyRatingD
 
 interface ReviewStepProps {
   data: DraftAddLocationRequest;
+  onSubmit: () => Promise<void>;
+  onError?: (msg: string) => void;
 }
 
-function ReviewStep({ data }: ReviewStepProps) {
+function ReviewStep({ data, onSubmit, onError }: ReviewStepProps) {
+  const { handleStep } = useWizard();
+
+  handleStep(async () => {
+    try {
+      await onSubmit();
+    } catch (err: any) {
+      console.log('Error: ', err);
+      onError && onError('error submitting change request');
+    }
+  });
+
   return (
     <>
       <Typography variant='h5' color='warn.main'>
         TODO: review step
       </Typography>
       <Typography component='div' sx={{ p: 5 }}>
-        {JSON.stringify(data, null, 2)}
+        <pre>{JSON.stringify(data, null, 2)}</pre>
       </Typography>
+      <WizardNavButtons
+      // disabled={!isValid}
+      // loading={isSubmitting || isValidating}
+      // onClick={submitForm}
+      />
     </>
+  );
+}
+
+interface SubmittedStepProps {
+  data: DraftAddLocationRequest | AddLocationRequest;
+}
+
+function SubmittedStep({ data }: SubmittedStepProps) {
+  const navigate = useNavigate();
+  const { locationChanges, policyId } = data;
+
+  const handleNav = useCallback((path: string) => () => navigate(path), [navigate]);
+
+  return (
+    <Container maxWidth='sm' disableGutters>
+      <Card>
+        <CardContent>
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <Box sx={{ display: 'flex', width: '100%', justifyContent: 'space-between' }}>
+              <Box>
+                <Typography variant='overline' color='text.secondary' sx={{ lineHeight: 1.4 }}>
+                  Status
+                </Typography>
+                <Typography variant='subtitle2'>{data.status}</Typography>
+              </Box>
+              <Box sx={{ textAlign: 'right' }}>
+                {locationChanges?.address ? (
+                  <>
+                    <Typography
+                      variant='overline'
+                      color='text.secondary'
+                      textAlign='right'
+                      sx={{ lineHeight: 1.4 }}
+                    >
+                      Address
+                    </Typography>
+                    <FormattedAddress
+                      address={locationChanges.address}
+                      variant='subtitle2'
+                      textAlign='right'
+                    />
+                  </>
+                ) : null}
+              </Box>
+            </Box>
+            <Divider flexItem sx={{ my: 3 }} />
+            <Lottie
+              animationData={CheckmarkLottie}
+              loop={false}
+              style={{ height: 100, width: 100, marginTop: -12 }}
+            />
+            <Typography variant='h5' gutterBottom>
+              All Location Request Submitted
+            </Typography>
+            <Typography variant='body2' color='text.secondary' sx={{ p: 4 }} gutterBottom>
+              Your request to add a location has been submitted. Our team will review and notify you
+              once approved.
+            </Typography>
+          </Box>
+        </CardContent>
+        <CardActions>
+          <Stack direction='row' spacing={2}>
+            <Button
+              onClick={handleNav(
+                createPath({ path: ROUTES.ADD_LOCATION_NEW, params: { policyId } })
+              )}
+              startIcon={<AddRounded />}
+            >
+              Add another
+            </Button>
+            <Button
+              onClick={handleNav(createPath({ path: ROUTES.POLICY, params: { policyId } }))}
+              startIcon={<DoneRounded />}
+            >
+              Done
+            </Button>
+          </Stack>
+        </CardActions>
+      </Card>
+    </Container>
   );
 }

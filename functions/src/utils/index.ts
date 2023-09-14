@@ -3,3 +3,4 @@ export { EDITOR_EXTENSION_DEFAULTS } from './editorExtensions';
 export * from './errorHelpers';
 export * from './flattenObj';
 export * from './helpers';
+export * from './validateCoords';

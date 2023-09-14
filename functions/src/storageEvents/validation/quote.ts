@@ -71,9 +71,8 @@ export function validateQuoteRow(row: DeepNullable<CSVTransformedQuote>): boolea
       'invalid mgaCommissionPct'
     );
     invariant(
-      row.premCalcData?.directWrittenPremium &&
-        typeof row.premCalcData.directWrittenPremium === 'number',
-      'invalid directWrittenPremium'
+      row.premCalcData?.annualPremium && typeof row.premCalcData.annualPremium === 'number',
+      'invalid annualPremium'
     );
     invariant(
       row.premCalcData?.techPremium &&

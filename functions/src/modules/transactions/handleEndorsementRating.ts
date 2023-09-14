@@ -26,7 +26,10 @@ import { createDocId } from '../db';
 import {
   GetAALRes,
   GetPremiumProps,
+  calcPolicyPremium,
   getAALs,
+  getInStatePremium,
+  getOutStatePremium,
   getPremium,
   sumFeesTaxesPremium,
   sumPolicyTermPremium,
@@ -34,7 +37,7 @@ import {
   validateLimits,
   validateRCVs,
 } from '../rating';
-import { getInStatePremium, getOutStatePremium, recalcTaxes } from './taxes';
+import { recalcTaxes } from './taxes';
 
 const SR_CALL_REQUIRED_KEYS = ['limits', 'deductible'];
 
@@ -90,7 +93,6 @@ export async function handleRatingForEndorsement(
     const expDateTS: Timestamp = locationChanges.expirationDate || location.expirationDate;
 
     if (expDateOnly) {
-      // TODO: need to recalc taxes (below)
       const { termPremium: locationTermPremium, termDays } = calcTerm(
         annualPremium,
         effDateTS.toDate(),
@@ -110,9 +112,11 @@ export async function handleRatingForEndorsement(
         { ...locationSummary, termPremium: locationTermPremium },
       ];
 
-      const newPolicyTermPremium = sumPolicyTermPremium(newLocationsSummaryArr);
-      const inStatePremium = getInStatePremium(policy.homeState, newLocationsSummaryArr);
-      const outStatePremium = getOutStatePremium(policy.homeState, newLocationsSummaryArr);
+      const {
+        termPremium: newPolicyTermPremium,
+        inStatePremium,
+        outStatePremium,
+      } = calcPolicyPremium(policy.homeState, newLocationsSummaryArr);
 
       // recalc taxes based on new term premium
       const newTaxes = recalcTaxes({
@@ -284,20 +288,17 @@ export async function handleRatingForEndorsement(
     });
 
     const { premiumData } = result;
-    verify(
-      premiumData?.directWrittenPremium && premiumData?.directWrittenPremium > 100,
-      'premium < 100'
-    );
+    verify(premiumData?.annualPremium && premiumData?.annualPremium > 100, 'premium < 100');
     // TODO: validate results (premium, etc.)
 
     const { termPremium, termDays } = calcTerm(
-      premiumData.directWrittenPremium,
+      premiumData.annualPremium,
       effDateTS.toDate(),
       expDateTS.toDate()
     );
 
     const locationChangesWithRating: Partial<ILocation> = {
-      annualPremium: premiumData.directWrittenPremium,
+      annualPremium: premiumData.annualPremium,
       ratingDocId: ratingDocRef.id || location.ratingDocId,
       TIV: result.tiv,
       termPremium,

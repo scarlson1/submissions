@@ -50,3 +50,7 @@ export function randomFileName(filePath: string) {
 export function hasOne(arr1: string[], arr2: string[]) {
   return arr1.some((r) => arr2.indexOf(r) >= 0);
 }
+
+export function betweenRange(value: number, n1: number, n2: number) {
+  return n1 <= value && n2 >= value;
+}

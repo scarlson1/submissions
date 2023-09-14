@@ -11,6 +11,7 @@ export {
   setUidByEmailOnCreate,
 } from './authEvents';
 export {
+  addlocationcalc,
   approvechangerequest,
   approveimport,
   assignquote,
