@@ -1,10 +1,16 @@
-import { CallableRequest } from 'firebase-functions/v2/https';
+import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import { info } from 'firebase-functions/logger';
+import { getFirestore } from 'firebase-admin/firestore';
 
 import { onCallWrapper } from '../services/sentry';
 import { validate } from './utils';
-import { changeRequestsCollection } from '../common';
-import { getFirestore } from 'firebase-admin/firestore';
+import {
+  DraftAddLocationRequest,
+  changeRequestsCollection,
+  locationsCollection,
+  policiesCollection,
+} from '../common';
+import { createDocId } from '../modules/db';
 
 interface AddLocationCalcProps {
   policyId: string;
@@ -25,13 +31,40 @@ const addLocationCalc = async ({ data, auth }: CallableRequest<AddLocationCalcPr
   const changeRequest = changeRequestSnap.data();
 
   validate(changeRequest, 'not-found', `change request does not exist (ID: ${changeRequestId})`);
+  validate(
+    changeRequest.status === 'draft',
+    'failed-precondition',
+    'change request already submitted. please create a new one.'
+  );
+
+  const policyCol = policiesCollection(db);
+  const policySnap = await policyCol.doc(policyId).get();
+  const policy = policySnap.data();
+
+  validate(policy, 'not-found', `policy not found (ID: ${policyId})`);
 
   try {
-    // handle rating
     // get location doc if exists, otherwise --> create location document
+    const { locationId, locationChanges } = changeRequest as DraftAddLocationRequest;
+    const lcnId = locationId || createDocId();
+    const locationRef = locationsCollection(db).doc(lcnId);
+
+    // TODO: get location property values after address step ?? store data in locationChanges ??
+    // add step before review step to ensure all location property data filled out ??
+
+    // handle rating
+
     // calculate location premium values
+
     // calculate policy premium values
-  } catch (err: any) {}
+
+    // update change request
+
+    // return new values
+  } catch (err: any) {
+    if (err instanceof HttpsError) throw err;
+    throw new HttpsError('internal', 'Error rating/calculating premium');
+  }
 };
 
 export default onCallWrapper<AddLocationCalcProps>('approveimport', addLocationCalc);
