@@ -17,9 +17,12 @@ import {
 } from '../common';
 import { GetPropertyDetailsAttomRequest } from './getPropertyDetailsAttom';
 
-export const addlocationcalc = onCall(async (request) => {
-  return (await import('./addLocationCalc.js')).default(request);
-});
+export const addlocationcalc = onCall(
+  { secrets: [swissReClientId, swissReClientSecret, swissReSubscriptionKey] },
+  async (request) => {
+    return (await import('./addLocationCalc.js')).default(request);
+  }
+);
 
 export const approvechangerequest = onCall(async (request) => {
   return (await import('./approveChangeRequest.js')).default(request);

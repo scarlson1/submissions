@@ -12,12 +12,14 @@ import {
 } from '@mui/material';
 import { startOfDay } from 'date-fns';
 import { Timestamp, doc, setDoc } from 'firebase/firestore';
-import { Form, Formik, FormikConfig } from 'formik';
+import { Form, Formik, FormikConfig, FormikHelpers } from 'formik';
 import { useCallback, useEffect, useMemo } from 'react';
 import { useFirestore, useFunctions } from 'reactfire';
-import { number, object, string } from 'yup';
+import { date, number, object, string } from 'yup';
+import { DoneRounded } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
+import Lottie from 'lottie-react';
 
-import { AddRounded, DoneRounded } from '@mui/icons-material';
 import { addLocationCalc, getPropertyDetailsAttom } from 'api';
 import { CheckmarkLottie } from 'assets';
 import {
@@ -45,6 +47,7 @@ import {
   FormikIncrementor,
   FormikMaskField,
   FormikNativeSelect,
+  FormikWizardNavButtons,
   IMask,
   Wizard,
   WizardNavButtons,
@@ -53,9 +56,7 @@ import { useAuth } from 'context';
 import { FormattedAddress } from 'elements/FormattedAddress';
 import { useAsyncToast, useDocData, useWizard } from 'hooks';
 import { DEFAULT_INIT_VALUES } from 'hooks/usePropertyDetails';
-import Lottie from 'lottie-react';
 import { dollarFormat } from 'modules/utils';
-import { useNavigate } from 'react-router-dom';
 import { ROUTES, createPath } from 'router';
 import { AddressStep as AddrStep } from './AddressStep';
 import { NESTED_ADDRESS_FIELD_NAMES } from './FormikAddress';
@@ -146,6 +147,9 @@ export const AddLocationForm = ({
     { idField: 'id' }
   );
   const toast = useAsyncToast({ position: 'top-right' });
+  const reqCol = changeRequestsCollection(firestore, policyId);
+  const changeRequestRef = doc(reqCol, changeRequestId);
+
   // TODO: validate status === draft
 
   useEffect(() => console.log(data), [data]);
@@ -154,22 +158,13 @@ export const AddLocationForm = ({
   const serverValues = useMemo(() => data?.formValues || null, [data]);
 
   const saveChangeRequest = useCallback(
-    async (values: AddressValues | LimitValues | DeductibleValues | RatingDataValues) => {
-      console.log('SAVING...', values);
-      // move changeRequestRef to useRef or useMemo ??
-      const reqCol = changeRequestsCollection(firestore, policyId);
-      const changeRequestRef = doc(reqCol, changeRequestId);
-      // const changeRequestRef = doc(
-      //   firestore,
-      //   `${COLLECTIONS.POLICIES}/${policyId}/${COLLECTIONS.CHANGE_REQUESTS}/${changeRequestId}`
-      // ) as DocumentReference<DraftAddLocationRequest>;
+    async (values: AddressValues | LimitValues | DeductibleValues | RatingDataValues) =>
       await setDoc(
         changeRequestRef,
         { formValues: values, metadata: { updated: Timestamp.now() } },
         { merge: true }
-      );
-    },
-    [firestore, policyId, changeRequestId]
+      ),
+    [changeRequestRef]
   );
 
   // After deductible step --> calc rating, location values, policy changes, etc. (complete change request interface) --> onSubmit --> change status to submitted
@@ -181,12 +176,15 @@ export const AddLocationForm = ({
     console.log('calc changes res: ', data);
   }, [functions, policyId, changeRequestId]);
 
-  const handleSubmit = useCallback(async () => {
-    toast.blank('TODO: handle submit');
-    console.log('SUBMITTED - TODO: handle submit');
-    // update status to submitted
-    // redirect / show dialog & reset form
-  }, [toast]);
+  const handleSubmit = useCallback(
+    async () =>
+      await setDoc(
+        changeRequestRef,
+        { status: 'submitted', metadata: { updated: Timestamp.now() } },
+        { merge: true }
+      ),
+    [reqCol]
+  );
 
   const handleError = useCallback(
     (msg: string) => {
@@ -194,8 +192,6 @@ export const AddLocationForm = ({
     },
     [toast]
   );
-
-  useEffect(() => console.log('Server Values: ', serverValues), [serverValues]);
 
   return (
     <Box>
@@ -246,7 +242,7 @@ export const AddLocationForm = ({
           saveChangeRequest={saveChangeRequest}
           calcChanges={handleCalcChanges}
           initialValues={{
-            effectiveDate: null,
+            effectiveDate: serverValues?.effectiveDate ? serverValues.effectiveDate.toDate() : null,
             ratingPropertyData: {
               // CBRSDesignation: serverValues?.ratingPropertyData?.CBRSDesignation ?? null,
               basement: serverValues?.ratingPropertyData?.basement || '',
@@ -379,7 +375,7 @@ function AddressStep({ product, saveChangeRequest, changeRequest, ...props }: Ad
       // validateOnMount
       enableReinitialize
     >
-      {({ handleSubmit, isValid, isSubmitting, isValidating, submitForm }) => (
+      {({ handleSubmit, submitForm }) => (
         <Form onSubmit={handleSubmit}>
           <Box>
             <AddrStep
@@ -390,11 +386,7 @@ function AddressStep({ product, saveChangeRequest, changeRequest, ...props }: Ad
                 name: 'address.addressLine1',
               }}
             />
-            <WizardNavButtons
-              disabled={!isValid}
-              loading={isSubmitting || isValidating}
-              onClick={submitForm}
-            />
+            <FormikWizardNavButtons onClick={submitForm} />
           </Box>
         </Form>
       )}
@@ -434,7 +426,7 @@ function LimitsStep({ replacementCost, saveChangeRequest, ...props }: LimitsStep
       validateOnMount
       enableReinitialize
     >
-      {({ handleSubmit, submitForm, isValid, isSubmitting, isValidating, values, errors }) => {
+      {({ handleSubmit, submitForm, values, errors }) => {
         console.log('values: ', values);
         console.log('errors: ', errors);
 
@@ -442,11 +434,7 @@ function LimitsStep({ replacementCost, saveChangeRequest, ...props }: LimitsStep
           <Form onSubmit={handleSubmit}>
             <Box sx={{ py: 5 }}>
               <LimStep replacementCost={replacementCost} />
-              <WizardNavButtons
-                disabled={!isValid}
-                loading={isSubmitting || isValidating}
-                onClick={submitForm}
-              />
+              <FormikWizardNavButtons onClick={submitForm} />
             </Box>
           </Form>
         );
@@ -484,7 +472,7 @@ function DeductibleStep({ saveChangeRequest, ...props }: DeductibleStepProps) {
       validateOnMount
       enableReinitialize
     >
-      {({ handleSubmit, submitForm, isValid, isSubmitting, isValidating }) => (
+      {({ handleSubmit, submitForm }) => (
         <Form onSubmit={handleSubmit}>
           <Box sx={{ display: 'flex', justifyContent: 'center', flexDirection: 'column', py: 5 }}>
             <Typography align='center' sx={{ py: 2 }}>
@@ -503,12 +491,7 @@ function DeductibleStep({ saveChangeRequest, ...props }: DeductibleStepProps) {
               />
             </Box>
             {/* TODO: add education text */}
-
-            <WizardNavButtons
-              disabled={!isValid}
-              loading={isSubmitting || isValidating}
-              onClick={submitForm}
-            />
+            <FormikWizardNavButtons onClick={submitForm} />
           </Box>
         </Form>
       )}
@@ -517,6 +500,7 @@ function DeductibleStep({ saveChangeRequest, ...props }: DeductibleStepProps) {
 }
 const currentYear = new Date().getFullYear();
 const addLocationRatingPropertyVal = object().shape({
+  effectiveDate: date().required(),
   ratingPropertyData: object().shape({
     basement: string().typeError('basement required').required(),
     priorLossCount: priorLossVal.typeError('prior loss count required').required(),
@@ -542,20 +526,49 @@ function PropertyRatingDataStep({
   const { nextStep } = useWizard();
 
   const handleStepSubmit = useCallback(
-    async (values: RatingDataValues) => {
+    async (values: RatingDataValues, { setSubmitting }: FormikHelpers<RatingDataValues>) => {
       try {
+        setSubmitting(true);
         await saveChangeRequest({ ...values });
+        // formik incorrectly setting submitting false
+        // could be because of firestore subscription ?? could be b/c of two awaits ??
+        // https://github.com/jaredpalmer/formik/issues/1730
+        setSubmitting(true);
         await calcChanges();
 
+        setSubmitting(false);
         await nextStep();
       } catch (err: any) {
         console.log('err: ', err);
         let msg = err?.message || 'error calculating premium';
         onError && onError(msg);
+        setSubmitting(false);
       }
     },
     [saveChangeRequest, calcChanges, onError, nextStep]
   );
+
+  // const handleStepSubmit = useCallback(
+  //   (values: RatingDataValues, { setSubmitting }: FormikHelpers<RatingDataValues>) => {
+  //     saveChangeRequest({ ...values })
+  //       .then(() => {
+  //         setSubmitting(true);
+  //         return calcChanges();
+  //       })
+  //       .then(() => {
+  //         setSubmitting(false);
+  //         return nextStep();
+  //       })
+  //       .catch((err) => {
+  //         setSubmitting(false);
+  //         console.log('err: ', err);
+
+  //         let msg = err?.message || 'error calculating premium';
+  //         onError && onError(msg);
+  //       });
+  //   },
+  //   [saveChangeRequest, calcChanges, onError, nextStep]
+  // );
 
   const minEffDate = useMemo(
     () => (claims?.iDemandAdmin ? undefined : startOfDay(new Date())),
@@ -570,7 +583,7 @@ function PropertyRatingDataStep({
       validateOnMount
       enableReinitialize
     >
-      {({ handleSubmit, submitForm, isValid, isSubmitting, isValidating }) => (
+      {({ handleSubmit, submitForm }) => (
         <Form onSubmit={handleSubmit}>
           <Box sx={{ py: 5 }}>
             <Grid container rowSpacing={{ xs: 3, sm: 4 }} columnSpacing={{ xs: 4, sm: 6, md: 7 }}>
@@ -582,6 +595,7 @@ function PropertyRatingDataStep({
                   maxDate={null}
                   slotProps={{
                     shortcuts: { items: policyEffShortcuts },
+                    textField: { required: true },
                   }}
                 />
               </Grid>
@@ -668,11 +682,7 @@ function PropertyRatingDataStep({
                 />
               </Grid>
               <Grid xs={12}>
-                <WizardNavButtons
-                  disabled={!isValid}
-                  loading={isSubmitting || isValidating}
-                  onClick={submitForm}
-                />
+                <FormikWizardNavButtons onClick={submitForm} />
               </Grid>
             </Grid>
           </Box>
@@ -702,17 +712,13 @@ function ReviewStep({ data, onSubmit, onError }: ReviewStepProps) {
 
   return (
     <>
-      <Typography variant='h5' color='warn.main'>
+      <Typography variant='h5' color='warning.main' gutterBottom>
         TODO: review step
       </Typography>
-      <Typography component='div' sx={{ p: 5 }}>
+      <Typography component='div' variant='body2' color='text.secondary' sx={{ p: 5 }}>
         <pre>{JSON.stringify(data, null, 2)}</pre>
       </Typography>
-      <WizardNavButtons
-      // disabled={!isValid}
-      // loading={isSubmitting || isValidating}
-      // onClick={submitForm}
-      />
+      <WizardNavButtons buttonText='submit' />
     </>
   );
 }
@@ -766,24 +772,26 @@ function SubmittedStep({ data }: SubmittedStepProps) {
               style={{ height: 100, width: 100, marginTop: -12 }}
             />
             <Typography variant='h5' gutterBottom>
-              All Location Request Submitted
+              Add Location Request Submitted
             </Typography>
             <Typography variant='body2' color='text.secondary' sx={{ p: 4 }} gutterBottom>
               Your request to add a location has been submitted. Our team will review and notify you
               once approved.
             </Typography>
           </Box>
+          <Divider sx={{ mt: 3, mb: -3 }} />
         </CardContent>
-        <CardActions>
-          <Stack direction='row' spacing={2}>
-            <Button
+        <CardActions disableSpacing>
+          <Stack direction='row' spacing={2} sx={{ ml: 'auto' }}>
+            {/* doesn't work - need to force refresh new doc id */}
+            {/* <Button
               onClick={handleNav(
                 createPath({ path: ROUTES.ADD_LOCATION_NEW, params: { policyId } })
               )}
               startIcon={<AddRounded />}
             >
               Add another
-            </Button>
+            </Button> */}
             <Button
               onClick={handleNav(createPath({ path: ROUTES.POLICY, params: { policyId } }))}
               startIcon={<DoneRounded />}

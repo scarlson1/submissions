@@ -14,9 +14,9 @@ import {
   verify,
 } from '../../common';
 import { getDoc } from '../../routes/utils';
-import { sumFeesTaxesPremium, sumPolicyTermPremium } from '../rating';
+import { calcPolicyPremium, sumFeesTaxesPremium } from '../rating';
 import { setChangeRequestErr } from './handleEndorsementRating';
-import { getInStatePremium, getOutStatePremium, recalcTaxes } from './taxes';
+import { recalcTaxes } from './taxes';
 
 const reportErr = getReportErrorFn('policyChangeRequest.handleCancelRating');
 
@@ -68,9 +68,14 @@ export async function handleCancelRating(data: ChangeRequest, policyId: string, 
     ];
 
     // Recalc policy termPremium, taxes & price
-    const newPolicyTermPremium = sumPolicyTermPremium(newLocations);
-    const inStatePremium = getInStatePremium(policy.homeState, newLocations);
-    const outStatePremium = getOutStatePremium(policy.homeState, newLocations);
+    // const newPolicyTermPremium = sumPolicyTermPremium(newLocations);
+    // const inStatePremium = getInStatePremium(policy.homeState, newLocations);
+    // const outStatePremium = getOutStatePremium(policy.homeState, newLocations);
+    const {
+      termPremium: newPolicyTermPremium,
+      inStatePremium,
+      outStatePremium,
+    } = calcPolicyPremium(policy.homeState, newLocations);
 
     const taxes = recalcTaxes({
       premium: newPolicyTermPremium,

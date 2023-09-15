@@ -36,15 +36,20 @@ import {
   unlinkFile,
   verify,
 } from '../common';
-import { createDocId, getPolicyTermPremium, locationToPolicyLocation } from '../modules/db';
-import { getCarrierByState, getRCVs, sumFeesTaxesPremium } from '../modules/rating';
+import { createDocId, locationToPolicyLocation } from '../modules/db';
+import {
+  calcPolicyPremium,
+  getCarrierByState,
+  getRCVs,
+  sumFeesTaxesPremium,
+} from '../modules/rating';
 import { eventOlderThan, shouldReturnEarly } from '../modules/storage';
 import {
   ParseStreamToArrayRes,
   parseStreamToArray,
   transformHeadersCamelCase,
 } from '../modules/storage/parseStreamToArray';
-import { getInStatePremium, getOutStatePremium, recalcTaxes } from '../modules/transactions';
+import { recalcTaxes } from '../modules/transactions';
 import { sendAdminPolicyImportNotification } from '../services/sendgrid';
 import { randomFileName } from '../utils';
 import { CSVPolicyRow, ParsedPolicyRow } from './models';
@@ -319,11 +324,16 @@ async function groupByPolicyId(data: ParsedPolicyRow[], firestore: Firestore) {
   // const resultPolicies: Record<string, Policy> = {};
   const formattedPolicies: Record<string, PolicyNew> = {};
   for (const [policyId, policy] of Object.entries(policies)) {
-    const policyTermPremium = getPolicyTermPremium(policy.locations);
+    // const policyTermPremium = getPolicyTermPremium(policy.locations);
 
-    const locations = Object.values(policy.locations);
-    const inStatePremium = getInStatePremium(policy.homeState, locations);
-    const outStatePremium = getOutStatePremium(policy.homeState, locations);
+    // const locations = Object.values(policy.locations);
+    // const inStatePremium = getInStatePremium(policy.homeState, locations);
+    // const outStatePremium = getOutStatePremium(policy.homeState, locations);
+    const {
+      termPremium: policyTermPremium,
+      inStatePremium,
+      outStatePremium,
+    } = calcPolicyPremium(policy.homeState, Object.values(policy.locations));
 
     const policyTaxes = recalcTaxes({
       premium: policyTermPremium,

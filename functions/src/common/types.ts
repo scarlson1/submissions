@@ -1097,7 +1097,13 @@ export interface AddLocationValues {
   effectiveDate: Timestamp;
   ratingPropertyData: Pick<
     Nullable<RatingPropertyData>,
-    'basement' | 'replacementCost' | 'sqFootage' | 'yearBuilt' | 'priorLossCount' | 'numStories'
+    | 'basement'
+    | 'replacementCost'
+    | 'sqFootage'
+    | 'yearBuilt'
+    | 'priorLossCount'
+    | 'numStories'
+    | 'floodZone'
   >;
 }
 

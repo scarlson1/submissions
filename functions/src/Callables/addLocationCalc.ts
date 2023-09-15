@@ -11,6 +11,7 @@ import {
   PolicyLocation,
   calcTerm,
   changeRequestsCollection,
+  defaultFloodZone,
   policiesCollectionNew,
   ratingDataCollection,
   swissReClientId,
@@ -32,6 +33,7 @@ import { recalcTaxes } from '../modules/transactions';
 import { onCallWrapper } from '../services/sentry';
 import { compressAddress, isValidCoords } from '../utils';
 import { validate } from './utils';
+import { getFEMAFloodZone } from '../services';
 
 interface AddLocationCalcProps {
   policyId: string;
@@ -129,11 +131,20 @@ const addLocationCalc = async ({ data, auth }: CallableRequest<AddLocationCalcPr
       });
       // TODO: save to SR collection (see getSubmissionAAL)
     } catch (err: any) {
+      console.log('ERR: ', err);
       error('ERROR GETTING AALs: ', { err });
 
       throw new HttpsError('internal', 'Error fetching Average Annual Loss');
     }
     validateAALs(AALsRes.AALs);
+
+    let floodZone = ratingPropertyData.floodZone;
+    if (!floodZone)
+      floodZone =
+        (await getFEMAFloodZone(coordinates.latitude, coordinates.longitude)) ||
+        defaultFloodZone.value();
+
+    validate(floodZone, 'failed-precondition', 'missing flood zone');
 
     // calculate location premium values
     let lcnPremResult: GetPremiumCalcResult;
@@ -142,7 +153,7 @@ const addLocationCalc = async ({ data, auth }: CallableRequest<AddLocationCalcPr
       lcnPremResult = getPremium({
         AALs: AALsRes.AALs,
         limits,
-        floodZone: 'X', // TODO: use default or add to form
+        floodZone, // TODO: use default or add to form
         state: address.state,
         basement: ratingPropertyData.basement,
         priorLossCount: ratingPropertyData.priorLossCount,
@@ -176,7 +187,7 @@ const addLocationCalc = async ({ data, auth }: CallableRequest<AddLocationCalcPr
     const fullRatingPropertyData = {
       replacementCost,
       basement: ratingPropertyData.basement,
-      floodZone: 'X', // ratingPropertyData.floodZone,
+      floodZone, // ratingPropertyData.floodZone,
       numStories,
       propertyCode: null,
       CBRSDesignation: null,
@@ -193,7 +204,7 @@ const addLocationCalc = async ({ data, auth }: CallableRequest<AddLocationCalcPr
     const ratingDocRef = ratingDataCollection(db).doc(createDocId());
     await ratingDocRef.set({
       submissionId: null,
-      locationId,
+      locationId: lcnId,
       externalId: externalId || null,
       deductible,
       limits,

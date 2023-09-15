@@ -62,7 +62,11 @@ export default async (
         await handleRequestNotifications(data, policyId, requestId, event.id);
 
         // TODO: handle reinstatement & renewal
-        if (data.trxType === 'endorsement' && !data.isAddLocationRequest)
+        if (
+          data.trxType === 'endorsement' &&
+          data.scope !== 'add_location' &&
+          !data.isAddLocationRequest
+        )
           await handleRatingForEndorsement(data, policyId, requestId);
 
         // TODO: is cancellation handled differently than flat cancel
@@ -73,6 +77,9 @@ export default async (
         }
 
         // TODO: add location - processing already handled ??
+        if (data.scope === 'add_location') {
+          throw new Error('TODO: handle add location');
+        }
 
         if (afterSnap) await updateChangeRequestStatus(afterSnap.ref, 'UNDER_REVIEW');
 

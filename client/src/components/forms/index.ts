@@ -35,7 +35,7 @@ export { TooltipToggleButton } from './TooltipToggleButton';
 export { UpdateDialogSubmitDisabled } from './UpdateDialogSubmitDisabled';
 export { VirtualizedAutocomplete } from './VirtualizedAutocomplete';
 export { Wizard } from './Wizard';
-export { WizardNavButtons } from './WizardNavButtons';
+export { WizardNavButtons, FormikWizardNavButtons } from './WizardNavButtons';
 
 export type {
   AddressAutocompleteProps,

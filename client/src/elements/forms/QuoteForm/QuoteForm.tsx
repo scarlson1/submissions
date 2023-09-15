@@ -1155,7 +1155,7 @@ function AALHelper({ title, value }: AALHelperProps) {
   );
 }
 
-// TODO: use useReateQuote extraction func since submissions schema matches quote schema ??
+// TODO: use useRerateQuote extraction func since submissions schema matches quote schema ??
 export function getRatingInputsFromSubmission(subData?: Partial<Submission> | null) {
   // TODO: decide whether to flatten or keep in obj ??c create diff function to compare nested values ??
 

@@ -4,33 +4,40 @@ import { useFormikContext } from 'formik';
 
 import { useWizard } from 'hooks';
 
-export type WizardNavButtonProps = LoadingButtonProps;
+export type WizardNavButtonProps = LoadingButtonProps & {
+  buttonText?: string;
+  prevButtonText?: string;
+};
 
-// TODO: create wrapper with formik context ??
-
-export const WizardNavButtons = (props: WizardNavButtonProps) => {
-  const { nextStep, previousStep, isLoading, isFirstStep, maxWidth } = useWizard();
-  const formikCtx = useFormikContext();
-  const isValid = formikCtx ? formikCtx.isValid : true;
-
-  // useEffect(() => {
-  //   console.log('FORMIK CTX: ', formikCtx);
-  // }, [formikCtx]);
+export const WizardNavButtons = ({
+  buttonText,
+  prevButtonText = 'previous',
+  ...props
+}: WizardNavButtonProps) => {
+  const { nextStep, previousStep, isLoading, isFirstStep, isLastStep, maxWidth } = useWizard();
+  const defaultBtnTxt = isLastStep ? 'submit' : 'next';
 
   return (
     <Container maxWidth={maxWidth}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 2 }}>
-        {isFirstStep ? null : <Button onClick={() => previousStep()}>Previous</Button>}
+        {isFirstStep ? null : <Button onClick={() => previousStep()}>{prevButtonText}</Button>}
         <LoadingButton
           onClick={() => nextStep()}
-          disabled={!isValid}
           {...props}
           sx={{ ml: 'auto', ...(props?.sx || {}) }}
           loading={isLoading || props?.loading}
         >
-          Next
+          {buttonText || defaultBtnTxt}
         </LoadingButton>
       </Box>
     </Container>
   );
+};
+
+type FormikWizardNavButtonsProps = WizardNavButtonProps;
+
+export const FormikWizardNavButtons = (props: FormikWizardNavButtonsProps) => {
+  const { isValid, isSubmitting, isValidating } = useFormikContext();
+
+  return <WizardNavButtons disabled={!isValid} loading={isSubmitting || isValidating} {...props} />;
 };

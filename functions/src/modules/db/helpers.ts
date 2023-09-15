@@ -16,6 +16,7 @@ export const nanoId = customAlphabet(ALPHABET, 9);
 
 export const createDocId = nanoId;
 
+// TODO: combine/delete this or sumPolicyTermPremium
 export function getPolicyTermPremium(
   locations: PolicyNew['locations'] | Record<string, ILocation>
 ) {
