@@ -63,13 +63,6 @@ import { NESTED_ADDRESS_FIELD_NAMES } from './FormikAddress';
 import { LimitsStep as LimStep } from './LimitsStep';
 import { policyEffShortcuts } from './QuoteForm/constants';
 
-// store state server side ??
-// save in ChangeRequest collection with status === 'draft' ??
-// save values after each step ?? calc policy vals before review step
-// form state in sync with change request state ??
-// require local state to be stored separate from doc subscription ??
-// use optimistic updates and overwrite local state when doc subscription updates ??
-
 // TODO: locations as field array ??
 // save each location in array
 // in review step allow "add another location"
@@ -183,7 +176,7 @@ export const AddLocationForm = ({
         { status: 'submitted', metadata: { updated: Timestamp.now() } },
         { merge: true }
       ),
-    [reqCol]
+    [changeRequestRef]
   );
 
   const handleError = useCallback(
@@ -533,6 +526,7 @@ function PropertyRatingDataStep({
         // formik incorrectly setting submitting false
         // could be because of firestore subscription ?? could be b/c of two awaits ??
         // https://github.com/jaredpalmer/formik/issues/1730
+        // enableReinitialize --> resets form when firestore values change ?? !!
         setSubmitting(true);
         await calcChanges();
 
@@ -547,28 +541,6 @@ function PropertyRatingDataStep({
     },
     [saveChangeRequest, calcChanges, onError, nextStep]
   );
-
-  // const handleStepSubmit = useCallback(
-  //   (values: RatingDataValues, { setSubmitting }: FormikHelpers<RatingDataValues>) => {
-  //     saveChangeRequest({ ...values })
-  //       .then(() => {
-  //         setSubmitting(true);
-  //         return calcChanges();
-  //       })
-  //       .then(() => {
-  //         setSubmitting(false);
-  //         return nextStep();
-  //       })
-  //       .catch((err) => {
-  //         setSubmitting(false);
-  //         console.log('err: ', err);
-
-  //         let msg = err?.message || 'error calculating premium';
-  //         onError && onError(msg);
-  //       });
-  //   },
-  //   [saveChangeRequest, calcChanges, onError, nextStep]
-  // );
 
   const minEffDate = useMemo(
     () => (claims?.iDemandAdmin ? undefined : startOfDay(new Date())),
