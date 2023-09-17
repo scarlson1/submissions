@@ -1,7 +1,6 @@
 import { DatePicker, DatePickerProps } from '@mui/x-date-pickers';
 import { useField } from 'formik';
 import { format, add } from 'date-fns';
-import { TextFieldProps } from '@mui/material';
 
 // TODO: read - https://reacthustle.com/blog/mui-react-datepicker-with-formik-typescript
 // https://next.material-ui-pickers.dev/guides/typescript
@@ -12,7 +11,7 @@ export interface FormikDatePickerProps extends DatePickerProps<any> {
   minDate: Date | undefined;
   maxDate: Date | undefined | null;
   disablePast?: boolean;
-  textFieldProps?: TextFieldProps;
+  // textFieldProps?: TextFieldProps;
 }
 
 export const FormikDatePicker = ({
@@ -20,7 +19,7 @@ export const FormikDatePicker = ({
   minDate,
   maxDate,
   disablePast = false,
-  textFieldProps,
+  // textFieldProps,
   slotProps,
   ...props
 }: FormikDatePickerProps) => {
@@ -39,7 +38,8 @@ export const FormikDatePicker = ({
         textField: {
           helperText: getHelperText,
           fullWidth: true,
-          ...textFieldProps,
+          ...(slotProps?.textField || {}),
+          // ...textFieldProps,
         },
       }}
       onError={(reason, value) => {

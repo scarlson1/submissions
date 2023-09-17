@@ -1,6 +1,7 @@
 import { randomBytes } from 'crypto';
 import { info } from 'firebase-functions/logger';
 import { extname } from 'path';
+import { capitalize } from 'lodash';
 
 import { Address, CompressedAddress, Nullable } from '../common';
 
@@ -54,3 +55,9 @@ export function hasOne(arr1: string[], arr2: string[]) {
 export function betweenRange(value: number, n1: number, n2: number) {
   return n1 <= value && n2 >= value;
 }
+
+export const capitalizeFirst = (str: string) =>
+  str
+    .split(' ')
+    .map((w) => capitalize(w))
+    .join(' ');

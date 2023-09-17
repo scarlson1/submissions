@@ -56,16 +56,20 @@ export function sumFeesTaxesPremium(fees: FeeItem[], taxes: TaxItem[], premium: 
 }
 
 export function getInStatePremium(homeState: string, locations: PolicyLocation[]) {
-  return sumByTypes<PolicyLocation>(locations, 'address.st', homeState, 'termPremium');
+  const total = sumByTypes<PolicyLocation>(locations, 'address.st', homeState, 'termPremium');
+
+  return round(total, 2);
 }
 
 export function getOutStatePremium(homeState: string, locations: PolicyLocation[]) {
-  return locations.reduce((acc, l) => {
+  const total = locations.reduce((acc, l) => {
     if (l.address?.st && l.address?.st !== homeState && typeof l.termPremium === 'number')
       return acc + l.termPremium;
 
     return acc;
   }, 0);
+
+  return round(total, 2);
 }
 
 export const calcPolicyPremium = (homeState: string, newLocationsArr: PolicyLocation[]) => {

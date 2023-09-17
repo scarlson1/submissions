@@ -238,7 +238,6 @@ export const TaxForm = ({ onSubmit, initialValues = DEFAULT_INIT_VALUES }: TaxFo
               minDate={undefined}
               maxDate={undefined}
               disablePast={false}
-              textFieldProps={{ fullWidth: true }}
               slotProps={{
                 shortcuts: {
                   items: [
@@ -256,6 +255,9 @@ export const TaxForm = ({ onSubmit, initialValues = DEFAULT_INIT_VALUES }: TaxFo
                     },
                   ],
                 },
+                textField: {
+                  fullWidth: true,
+                },
               }}
             />
           </Grid>
@@ -266,7 +268,7 @@ export const TaxForm = ({ onSubmit, initialValues = DEFAULT_INIT_VALUES }: TaxFo
               minDate={undefined}
               maxDate={undefined}
               disablePast={false}
-              textFieldProps={{ fullWidth: true }}
+              // textFieldProps={{ fullWidth: true }}
               slotProps={{
                 shortcuts: {
                   items: [
@@ -277,6 +279,9 @@ export const TaxForm = ({ onSubmit, initialValues = DEFAULT_INIT_VALUES }: TaxFo
                       },
                     },
                   ],
+                },
+                textField: {
+                  fullWidth: true,
                 },
               }}
             />

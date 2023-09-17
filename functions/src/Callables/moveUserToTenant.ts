@@ -142,6 +142,9 @@ const moveUserToTenant = async ({ data, auth }: CallableRequest<MoveUserToTenant
       toTenantId,
     });
 
+    // const deleteResult = await authFrom.deleteUser(userId)
+    // console.log(`userDeleted (user migration) ${userId} `, deleteResult)
+
     const userDocUpdated = await updateUserDoc(firestore, userId, toTenantId);
 
     return {

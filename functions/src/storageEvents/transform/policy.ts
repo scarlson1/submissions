@@ -18,6 +18,8 @@ import {
 import { getRCVs } from '../../modules/rating';
 import { dateWithTimeZone } from '../../modules/storage';
 import { CSVPolicyRow, CSVQuoteRow, ParsedPolicyRow } from '../models';
+import { capitalizeFirst } from '../../utils';
+import { lowerCase, upperCase } from 'lodash';
 
 /** Converts to correct type and unflattens
  * @param {CSVPolicyRow} row raw input from csv
@@ -68,10 +70,10 @@ export function transformPolicyRow(row: CSVPolicyRow): ParsedPolicyRow {
   };
 
   const ratingPropertyData: RatingPropertyData = {
-    CBRSDesignation: row.cbrsDesignation || '',
-    basement: row.basement || '',
+    CBRSDesignation: row.cbrsDesignation ? upperCase(row.cbrsDesignation) : '',
+    basement: row.basement ? lowerCase(row.basement) : '',
     distToCoastFeet: row.distToCoastFeet ? extractNumber(row.distToCoastFeet) : 0,
-    floodZone: row.floodZone || '',
+    floodZone: row.floodZone ? upperCase(row.floodZone) : '',
     numStories: row.numStories ? extractNumber(row.numStories) : 0,
     propertyCode: row.propertyCode || '',
     replacementCost: row.replacementCost ? extractNumber(row.replacementCost) : 0,
@@ -114,10 +116,10 @@ export function transformPolicyRow(row: CSVPolicyRow): ParsedPolicyRow {
   const transformed: ParsedPolicyRow = {
     policyId: row.policyId || null,
     address: {
-      addressLine1: row.addressLine1 || null,
+      addressLine1: row.addressLine1 ? capitalizeFirst(row.addressLine1) : null,
       addressLine2: row.addressLine2 || '',
-      city: row.city || null,
-      state: row.state || null,
+      city: row.city ? capitalizeFirst(row.city) : null,
+      state: row.state ? upperCase(row.state) : null,
       postal: row.postal || null,
       countyName: row.countyName || '',
       countyFIPS: row.fips || '',
@@ -146,9 +148,9 @@ export function transformPolicyRow(row: CSVPolicyRow): ParsedPolicyRow {
     agent,
     agency,
     ratingPropertyData,
-    product: row.product || 'flood',
+    product: row.product ? row.product.toLowerCase() : 'flood',
     mgaCommissionPct,
-    AALs: AALs,
+    AALs,
     techPremium,
   };
   return transformed;

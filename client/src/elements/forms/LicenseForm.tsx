@@ -212,7 +212,6 @@ export const LicenseForm = ({
                     minDate={undefined}
                     maxDate={undefined}
                     disablePast={false}
-                    textFieldProps={{ fullWidth: true, required: true }}
                     slotProps={{
                       shortcuts: {
                         items: [
@@ -230,6 +229,10 @@ export const LicenseForm = ({
                           },
                         ],
                       },
+                      textField: {
+                        fullWidth: true,
+                        required: true,
+                      },
                     }}
                   />
                   <FormikDatePicker
@@ -238,7 +241,6 @@ export const LicenseForm = ({
                     minDate={undefined}
                     maxDate={undefined}
                     disablePast={false}
-                    textFieldProps={{ fullWidth: true }}
                     slotProps={{
                       shortcuts: {
                         items: [
@@ -255,6 +257,9 @@ export const LicenseForm = ({
                             },
                           },
                         ],
+                      },
+                      textField: {
+                        fullWidth: true,
                       },
                     }}
                   />

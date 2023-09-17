@@ -531,7 +531,7 @@ function PropertyRatingDataStep({
         await calcChanges();
 
         setSubmitting(false);
-        await nextStep();
+        return await nextStep();
       } catch (err: any) {
         console.log('err: ', err);
         let msg = err?.message || 'error calculating premium';
@@ -553,7 +553,7 @@ function PropertyRatingDataStep({
       onSubmit={handleStepSubmit}
       validationSchema={addLocationRatingPropertyVal}
       validateOnMount
-      enableReinitialize
+      enableReinitialize={false} // checking if false fixes formik isSubmitting state bug
     >
       {({ handleSubmit, submitForm }) => (
         <Form onSubmit={handleSubmit}>
