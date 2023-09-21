@@ -62,7 +62,7 @@ export const Table = ({ columns, data, id }: TableProps) => {
             if (colDef?.minWidth) cellStyle['minWidth'] = `${colDef.minWidth ?? 100}px`;
             if (colDef?.alignContent) cellStyle['textAlign'] = colDef.alignContent;
 
-            if (colDef?.renderCell) return colDef.renderCell({ value: val, cellStyles });
+            if (colDef?.renderCell) return colDef.renderCell({ value: val, cellStyle });
 
             // TODO: calculate break point
             return (

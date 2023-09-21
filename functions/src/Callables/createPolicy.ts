@@ -149,6 +149,7 @@ const createPolicy = async ({ data, auth }: CallableRequest<CreatePolicyProps>) 
 
     return { policyId: policyRef.id };
   } catch (err: any) {
+    console.log('ERROR: ', err);
     reportErr(
       'Error creating policy',
       {
