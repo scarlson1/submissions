@@ -1,21 +1,22 @@
-export { getPremiumData } from './calcPremium';
-export { getPM, getSecondaryFactorMults } from './factors';
-export { getFirstFloorDiffFactors } from './firstFloorDiff';
-export { getAALs, validateGetAALsProps } from './getAALs';
-export { getPremium } from './getPremium';
-export { getRCVs } from './getRCVs';
-export { getMinPremium, minPremiumTable } from './minPremium';
+export { getPremiumData } from './calcPremium.js';
+export * from './factors.js';
+export { getPM, getSecondaryFactorMults } from './factors.js';
+export { getFirstFloorDiffFactors } from './firstFloorDiff.js';
+export { getAALs, validateGetAALsProps } from './getAALs.js';
+export { getPremium } from './getPremium.js';
+export { getRCVs } from './getRCVs.js';
+export { getMinPremium, minPremiumTable } from './minPremium.js';
 export * from './misc';
-export { multipliersByState } from './multipliersByState';
+export { multipliersByState } from './multipliersByState.js';
 export {
   getInlandRiskScore,
   getRiskScore,
   getSurgeRiskScore,
   inlandPMRiskArray,
   surgePMRiskArray,
-} from './riskScore';
-export * from './sumPremium';
-export * from './validation';
+} from './riskScore.js';
+export * from './sumPremium.js';
+export * from './validation.js';
 
-export type { GetAALRes, GetAALsProps } from './getAALs';
-export type { GetPremiumProps } from './getPremium';
+export type { GetAALRes, GetAALsProps } from './getAALs.js';
+export type { GetPremiumCalcResult, GetPremiumProps } from './getPremium.js';

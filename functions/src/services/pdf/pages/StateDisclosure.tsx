@@ -1,7 +1,7 @@
 import { Page, Text, View } from '@react-pdf/renderer';
 
-import { styles } from '../styles';
-import { PDFProps } from '../generatePolicyDecPDF';
+import { PDFProps } from '../generatePolicyDecPDF.js';
+import { styles } from '../styles.js';
 
 interface StateDisclosurePageProps {
   data: PDFProps['data'];

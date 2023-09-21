@@ -1,13 +1,13 @@
-import type { FirestoreEvent } from 'firebase-functions/v2/firestore';
 import {
   Timestamp,
   type DocumentReference,
   type QueryDocumentSnapshot,
 } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
+import type { FirestoreEvent } from 'firebase-functions/v2/firestore';
 
-import { sendUserInvite } from '../services/sendgrid';
-import { Invite, audience, sendgridApiKey } from '../common';
+import { Invite, audience, sendgridApiKey } from '../common/index.js';
+import { sendUserInvite } from '../services/sendgrid/index.js';
 
 export default async (
   event: FirestoreEvent<

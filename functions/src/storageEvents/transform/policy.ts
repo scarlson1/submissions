@@ -1,4 +1,5 @@
 import { GeoPoint } from 'firebase-admin/firestore';
+import { lowerCase, upperCase } from 'lodash-es';
 
 import {
   AgencyDetails,
@@ -14,12 +15,11 @@ import {
   ValueByRiskType,
   extractNumber,
   extractNumberNeg,
-} from '../../common';
-import { getRCVs } from '../../modules/rating';
-import { dateWithTimeZone } from '../../modules/storage';
-import { CSVPolicyRow, CSVQuoteRow, ParsedPolicyRow } from '../models';
-import { capitalizeFirst } from '../../utils';
-import { lowerCase, upperCase } from 'lodash';
+} from '../../common/index.js';
+import { getRCVs } from '../../modules/rating/index.js';
+import { dateWithTimeZone } from '../../modules/storage/index.js';
+import { capitalizeFirst } from '../../utils/index.js';
+import { CSVPolicyRow, CSVQuoteRow, ParsedPolicyRow } from '../models/index.js';
 
 /** Converts to correct type and unflattens
  * @param {CSVPolicyRow} row raw input from csv

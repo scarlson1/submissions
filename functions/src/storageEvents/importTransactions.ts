@@ -5,7 +5,6 @@ import { StorageEvent } from 'firebase-functions/v2/storage';
 import { createReadStream } from 'fs';
 import { tmpdir } from 'os';
 import { basename, join } from 'path';
-
 import {
   COLLECTIONS,
   StagedTransactionImport,
@@ -17,19 +16,19 @@ import {
   sendgridApiKey,
   stagedImportsCollection,
   unlinkFile,
-} from '../common';
+} from '../common/index.js';
 import {
   ParseStreamToArrayRes,
   eventOlderThan,
   parseStreamToArray,
   shouldReturnEarly,
   transformHeadersCamelCase,
-} from '../modules/storage';
-import { sendAdminPolicyImportNotification } from '../services/sendgrid';
-import { TrxRow } from './models';
-import { transformTrxRow } from './transform';
-import { validateTrxRow } from './validation';
-import { randomFileName } from '../utils';
+} from '../modules/storage/index.js';
+import { sendAdminPolicyImportNotification } from '../services/sendgrid/index.js';
+import { randomFileName } from '../utils/index.js';
+import { TrxRow } from './models/index.js';
+import { transformTrxRow } from './transform/index.js';
+import { validateTrxRow } from './validation/index.js';
 
 const reportErr = getReportErrorFn('importTransactions ');
 

@@ -1,4 +1,4 @@
-import { isArray, isEqual, isObject, transform } from 'lodash';
+import { isArray, isEqual, isObject, transform } from 'lodash-es';
 
 export interface Obj {
   [key: string | number | symbol]: any;

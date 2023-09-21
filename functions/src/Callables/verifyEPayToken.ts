@@ -1,15 +1,15 @@
-import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
+import { Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
-import { getFirestore, Timestamp } from 'firebase-admin/firestore';
+import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 
-import { getEPayInstance } from '../services';
 import {
   EPayVerifiedResponse,
   PaymentMethod,
-  paymentMethodsCollection,
   ePayCreds as ePayCredsSecret,
-} from '../common';
-import { onCallWrapper } from '../services/sentry';
+  paymentMethodsCollection,
+} from '../common/index.js';
+import { getEPayInstance } from '../services/index.js';
+import { onCallWrapper } from '../services/sentry/index.js';
 
 const verifyEPayToken = async ({ data, auth }: CallableRequest) => {
   info('data: ', data);
@@ -75,7 +75,7 @@ const verifyEPayToken = async ({ data, auth }: CallableRequest) => {
 
     return { ...paymentMethodDetails, paymentMethodDocId };
   } catch (err: any) {
-    error('ERROR VERFIYING EPAY TOKEN ', { err });
+    error('ERROR VERIFYING EPAY TOKEN ', { err });
     throw new HttpsError('internal', 'Error verifying token');
   }
 };

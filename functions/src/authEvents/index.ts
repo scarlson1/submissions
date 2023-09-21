@@ -2,7 +2,7 @@ import * as functions from 'firebase-functions';
 import { projectID } from 'firebase-functions/params';
 import { beforeUserCreated, beforeUserSignedIn } from 'firebase-functions/v2/identity';
 
-import { emailVerificationKey, sendgridApiKey } from '../common';
+import { emailVerificationKey, sendgridApiKey } from '../common/index.js';
 
 const minInstancesAuth = projectID.equals('PRODUCTION').thenElse(1, 0);
 

@@ -1,7 +1,7 @@
 import { DecodedIdToken } from 'firebase-admin/auth';
 import { HttpsError } from 'firebase-functions/v1/auth';
 
-import { CLAIMS } from '../../common';
+import { CLAIMS } from '../../common/index.js';
 
 export function requireIDemandAdminClaims(
   token: DecodedIdToken | undefined,

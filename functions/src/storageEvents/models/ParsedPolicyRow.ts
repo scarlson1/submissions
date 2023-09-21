@@ -14,7 +14,7 @@ import {
   SLProdOfRecordDetails,
   TaxItem,
   ValueByRiskType,
-} from '../../common';
+} from '../../common/index.js';
 
 export interface ParsedPolicyRow {
   policyId: string | null;

@@ -1,9 +1,9 @@
 import { randomBytes } from 'crypto';
 import { info } from 'firebase-functions/logger';
+import { capitalize } from 'lodash-es';
 import { extname } from 'path';
-import { capitalize } from 'lodash';
 
-import { Address, CompressedAddress, Nullable } from '../common';
+import { Address, CompressedAddress, Nullable } from '../common/index.js';
 
 export function getFormattedAddress(addr: Nullable<Address>) {
   let formatted = `${addr?.addressLine1 || ''}`;

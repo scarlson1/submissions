@@ -2,7 +2,7 @@ import algoliasearch from 'algoliasearch';
 import { DocumentSnapshot, getFirestore } from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
 import { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
-import { capitalize } from 'lodash';
+import { capitalize } from 'lodash-es';
 
 import {
   COLLECTIONS,
@@ -18,9 +18,9 @@ import {
   quotesCollection,
   submissionsCollection,
   verify,
-} from '../../common';
-import { getFormattedAddress, getVisibleBy } from '../../utils';
-import { removeAlgoliaRecord } from './syncPolicies';
+} from '../../common/index.js';
+import { getFormattedAddress, getVisibleBy } from '../../utils/index.js';
+import { removeAlgoliaRecord } from './syncPolicies.js';
 
 const reportErr = getReportErrorFn('syncLocations');
 

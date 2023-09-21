@@ -1,17 +1,17 @@
-import type { CloudEvent } from 'firebase-functions/lib/v2/core';
-import type { MessagePublishedData } from 'firebase-functions/v2/pubsub';
-import { info } from 'firebase-functions/logger';
 import { Timestamp, getFirestore } from 'firebase-admin/firestore';
+import type { CloudEvent } from 'firebase-functions/lib/v2/core';
+import { info } from 'firebase-functions/logger';
+import type { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 
 import {
   POLICY_STATUS,
   audience,
   ePayBaseURL,
   hostingBaseURL,
-  sendgridApiKey,
   policiesCollection,
-} from '../common';
-import { sendAdminPaidNotification } from '../services/sendgrid';
+  sendgridApiKey,
+} from '../common/index.js';
+import { sendAdminPaidNotification } from '../services/sendgrid/index.js';
 
 export default async (event: CloudEvent<MessagePublishedData>) => {
   info('MSG JSON: ', event.data.message.json);

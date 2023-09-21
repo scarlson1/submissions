@@ -14,11 +14,11 @@ import {
   paymentMethodsCollection,
   policiesCollection,
   round,
-} from '../common';
-import { getEPayInstance } from '../services';
-import { publishMessage } from '../services/pubsub';
-import { onCallWrapper } from '../services/sentry';
-import { validate } from './utils';
+} from '../common/index.js';
+import { getEPayInstance } from '../services/index.js';
+import { publishMessage } from '../services/pubsub/index.js';
+import { onCallWrapper } from '../services/sentry/index.js';
+import { validate } from './utils/index.js';
 
 // const CARD_FEE = 0.035; // TODO: use env var
 

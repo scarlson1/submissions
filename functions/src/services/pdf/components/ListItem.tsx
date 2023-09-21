@@ -1,7 +1,7 @@
 import { Text, View } from '@react-pdf/renderer';
 import { Style } from '@react-pdf/types';
 
-import { styles as rootStyles } from '../styles';
+import { styles as rootStyles } from '../styles.js';
 
 interface ListItemProps {
   content: string;

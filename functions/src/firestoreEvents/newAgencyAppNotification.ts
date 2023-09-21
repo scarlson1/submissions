@@ -1,9 +1,9 @@
-import type { FirestoreEvent } from 'firebase-functions/v2/firestore';
-import { info } from 'firebase-functions/logger';
 import { QueryDocumentSnapshot } from 'firebase-admin/firestore';
+import { info } from 'firebase-functions/logger';
+import type { FirestoreEvent } from 'firebase-functions/v2/firestore';
 
-import { sendNewAgencySubmissionAdminNotification } from '../services/sendgrid';
-import { AgencyApplication, audience, hostingBaseURL, sendgridApiKey } from '../common';
+import { AgencyApplication, audience, hostingBaseURL, sendgridApiKey } from '../common/index.js';
+import { sendNewAgencySubmissionAdminNotification } from '../services/sendgrid/index.js';
 
 export default async (
   event: FirestoreEvent<

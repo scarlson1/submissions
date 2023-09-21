@@ -1,7 +1,7 @@
 import { Page, Text, View } from '@react-pdf/renderer';
 
-import { styles } from '../styles';
-import { InsetWrapper, OrderedListItem } from '../components';
+import { InsetWrapper, OrderedListItem } from '../components/index.js';
+import { styles } from '../styles.js';
 
 export const CommunicableDiseasePage = () => {
   return (

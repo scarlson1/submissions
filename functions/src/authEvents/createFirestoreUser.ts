@@ -1,13 +1,13 @@
 // import * as functions from 'firebase-functions';
-import { getFirestore, Timestamp } from 'firebase-admin/firestore';
-import { isEmpty } from 'lodash';
 import { UserRecord } from 'firebase-admin/auth';
-import { EventContext } from 'firebase-functions/v1';
-
-import { iDemandOrgId, User, usersCollection } from '../common';
+import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
+import { EventContext } from 'firebase-functions/v1';
+import { isEmpty } from 'lodash-es';
 
-// TODO: change to onWrite ?? (will pass change when oncreate or onupdate trigger)
+import { iDemandOrgId, User, usersCollection } from '../common/index.js';
+
+// TODO: change to onWrite ?? (will pass change when onCreate or onUpdate trigger)
 
 // export const createFirestoreUser = functions.auth.user().onCreate(
 export default async (user: UserRecord, context: EventContext<Record<string, string>>) => {

@@ -1,8 +1,7 @@
-import invariant from 'tiny-invariant';
-
 import axios, { AxiosResponse } from 'axios';
 import { isDate } from 'date-fns';
 import { info } from 'firebase-functions/logger';
+import invariant from 'tiny-invariant';
 import {
   LineOfBusiness,
   Quote,
@@ -13,8 +12,8 @@ import {
   TransactionType,
   WithId,
   submissionsApiBaseURL,
-} from '../../common';
-import { sumFeesByType } from '../transactions';
+} from '../../common/index.js';
+import { sumFeesByType } from '../transactions/index.js';
 
 export type SubjectBaseKeyVal = Record<Exclude<SubjectBaseItems, 'fixedFee' | 'noFee'>, number>;
 

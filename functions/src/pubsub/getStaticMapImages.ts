@@ -5,7 +5,7 @@ import { info } from 'firebase-functions/logger';
 import { storageBucket } from 'firebase-functions/params';
 import { CloudEvent } from 'firebase-functions/v2';
 import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
-import { get, set } from 'lodash';
+import { get, set } from 'lodash-es';
 import { tmpdir } from 'os';
 import path from 'path';
 import sharp from 'sharp';
@@ -17,10 +17,10 @@ import {
   mapboxPublicToken,
   storageBaseUrl,
   verify,
-} from '../common';
-import { createDocId } from '../modules/db';
-import { downloadFromUrl } from '../modules/storage';
-import { randomFileName } from '../utils';
+} from '../common/index.js';
+import { createDocId } from '../modules/db/index.js';
+import { downloadFromUrl } from '../modules/storage/index.js';
+import { randomFileName } from '../utils/index.js';
 
 // TODO: add marker overlay ?? https://docs.mapbox.com/api/maps/static-images/#example-request-retrieve-a-static-map-with-a-marker-overlay
 

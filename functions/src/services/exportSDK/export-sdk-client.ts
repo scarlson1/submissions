@@ -2,8 +2,8 @@
 // cannot deploy using @exportsdk/client lib b/c error:
 // Module '"axios"' has no exported member 'ResponseEncoding'
 import axios, { AxiosInstance } from 'axios';
-import { ResponseError } from './response-error';
-import { RenderPdfOptions, RenderPdfToStreamOptions, Response } from './types';
+import { ResponseError } from './response-error.js';
+import { RenderPdfOptions, RenderPdfToStreamOptions, Response } from './types/index.js';
 
 const CONSTANTS = {
   API_URL: 'https://api.exportsdk.com',

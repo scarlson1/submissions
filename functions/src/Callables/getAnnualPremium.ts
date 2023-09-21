@@ -12,8 +12,10 @@ import {
   swissReClientId,
   swissReClientSecret,
   swissReSubscriptionKey,
-} from '../common';
+} from '../common/index.js';
 import {
+  GetAALRes,
+  GetPremiumCalcResult,
   getAALs,
   getPremium,
   validateAALs,
@@ -22,11 +24,11 @@ import {
   validateFloodZone,
   validateGetAALsProps,
   validatePriorLossCount,
-} from '../modules/rating';
-import { GetAALRes } from '../modules/rating/getAALs';
-import { GetPremiumCalcResult } from '../modules/rating/getPremium';
-import { onCallWrapper } from '../services/sentry';
-import { requireIDemandAdminClaims } from './utils';
+} from '../modules/rating/index.js';
+// import { GetAALRes } from '../modules/rating/getAALs';
+// import { GetPremiumCalcResult } from '../modules/rating/getPremium';
+import { onCallWrapper } from '../services/sentry/index.js';
+import { requireIDemandAdminClaims } from './utils/index.js';
 
 interface GetAnnualPremiumRequest {
   coordinates: Coordinates;

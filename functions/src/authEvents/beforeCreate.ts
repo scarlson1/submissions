@@ -1,8 +1,8 @@
+import { getAuth } from 'firebase-admin/auth';
+import { getFirestore } from 'firebase-admin/firestore';
+import { error, info, warn } from 'firebase-functions/logger';
 import type { AuthBlockingEvent } from 'firebase-functions/v2/identity';
 import { HttpsError } from 'firebase-functions/v2/identity';
-import { error, info, warn } from 'firebase-functions/logger';
-import { getFirestore } from 'firebase-admin/firestore';
-import { getAuth } from 'firebase-admin/auth';
 import jwt from 'jsonwebtoken';
 
 import {
@@ -17,9 +17,13 @@ import {
   userClaimsCollection,
   usersCollection,
 } from '../common';
-import { inviteConverter } from '../common/converters';
-import { ExtraSendGridArgs, moveTenantVerification, sendUserInvite } from '../services/sendgrid';
-import { MoveTenantJwtPayload } from '../routes/authRequests';
+import { inviteConverter } from '../common/converters/index.js';
+import { MoveTenantJwtPayload } from '../routes/authRequests.js';
+import {
+  ExtraSendGridArgs,
+  moveTenantVerification,
+  sendUserInvite,
+} from '../services/sendgrid/index.js';
 
 export default async (event: AuthBlockingEvent) => {
   // await getFirebaseAdmin()

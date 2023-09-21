@@ -1,6 +1,6 @@
-import { ceil, round } from 'lodash';
-import { PremiumCalcData, ValueByRiskType } from '../../common';
-import { getCommRates } from './commRates';
+import { ceil, round } from 'lodash-es';
+import { PremiumCalcData, ValueByRiskType } from '../../common/index.js';
+import { getCommRates } from './commRates.js';
 
 // TODO: use firebase params / env vars ??
 

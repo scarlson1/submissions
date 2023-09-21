@@ -1,11 +1,16 @@
 import { DocumentSnapshot, FieldValue, Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
 import { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
-import { merge } from 'lodash';
+import { merge } from 'lodash-es';
 
-import { DeepPartial, PolicyNew, getReportErrorFn, versionsCollection } from '../../common';
-import { getDifference } from '../../modules/utils';
-import { flattenObj, hasOne } from '../../utils';
+import {
+  DeepPartial,
+  PolicyNew,
+  getReportErrorFn,
+  versionsCollection,
+} from '../../common/index.js';
+import { getDifference } from '../../modules/utils/index.js';
+import { flattenObj, hasOne } from '../../utils/index.js';
 
 const VERSION_POLICY_DIFF_KEYS = [
   'locations',

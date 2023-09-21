@@ -1,10 +1,10 @@
-import { AuthBlockingEvent, HttpsError } from 'firebase-functions/v2/identity';
 import { error, info } from 'firebase-functions/logger';
 import { projectID } from 'firebase-functions/params';
+import { AuthBlockingEvent, HttpsError } from 'firebase-functions/v2/identity';
 import jwt from 'jsonwebtoken';
 
-import { ExtraSendGridArgs, sendEmailConfirmation } from '../services/sendgrid';
-import { emailVerificationKey, env, functionsBaseURL, sendgridApiKey } from '../common';
+import { emailVerificationKey, env, functionsBaseURL, sendgridApiKey } from '../common/index.js';
+import { ExtraSendGridArgs, sendEmailConfirmation } from '../services/sendgrid/index.js';
 
 export default async (event: AuthBlockingEvent) => {
   const user = event.data;

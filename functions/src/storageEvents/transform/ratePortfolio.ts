@@ -1,5 +1,5 @@
-import { Nullable, getNumber } from '../../common';
-import { IRow, TRow } from '../models';
+import { Nullable, getNumber } from '../../common/index.js';
+import { IRow, TRow } from '../models/index.js';
 
 // TODO: transform basement, FFE, etc.
 // TODO: calc RCVs from rcvA ?? check with ron. I think we said use provided ??

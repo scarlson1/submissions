@@ -1,5 +1,5 @@
-import { Nullable, ValueByRiskType } from '../../common';
-import { getFirstFloorDiffFactors } from './firstFloorDiff';
+import { Nullable, ValueByRiskType } from '../../common/index.js';
+import { getFirstFloorDiffFactors } from './firstFloorDiff.js';
 
 const CONTENTS_RCV_MULT = 1;
 const ORDINANCE_MULT = 1.05;
@@ -154,7 +154,7 @@ export function getSecondaryFactorMults(props: SecondaryModifiersProps) {
   const { ffeMult, basementMult, history } = getSecondaryModifiers(props);
 
   if (!history.inland || !history.surge || !history.tsunami) {
-    // console.log('FAILED HISTORY TEST. ALLOWING BYPASS WITH MULTPLE = 1.5');
+    // console.log('FAILED HISTORY TEST. ALLOWING BYPASS WITH MULTIPLE = 1.5');
     // history.inland = 1.5;
     // history.surge = 1.5;
     throw new Error('Underwriting violation - prior loss count');

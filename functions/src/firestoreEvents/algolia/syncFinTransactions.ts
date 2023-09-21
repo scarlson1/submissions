@@ -1,17 +1,17 @@
-import type { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
-import { error, info } from 'firebase-functions/logger';
-import type { DocumentSnapshot } from 'firebase-admin/firestore';
 import algoliasearch from 'algoliasearch';
+import type { DocumentSnapshot } from 'firebase-admin/firestore';
+import { error, info } from 'firebase-functions/logger';
+import type { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 
 import {
   COLLECTIONS,
   Charge,
+  algoliaAdminKey,
   algoliaAppId,
   algoliaIndex,
-  algoliaAdminKey,
   dollarFormat,
-} from '../../common';
-import { VisibleByTypes, getVisibleBy } from '../../utils';
+} from '../../common/index.js';
+import { VisibleByTypes, getVisibleBy } from '../../utils/index.js';
 
 export default async (
   event: FirestoreEvent<

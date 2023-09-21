@@ -7,14 +7,14 @@ import {
   RatingData,
   WithId,
   getTermDays,
-} from '../../common';
+} from '../../common/index.js';
 import {
   getBookingDate,
   getDailyPremium,
   getNetDWP,
   getTermProratedPct,
   getTrxTaxesAndFees,
-} from './index';
+} from './index.js';
 
 export function formatPremiumTrx(
   trxType: PremiumTransaction['trxType'],

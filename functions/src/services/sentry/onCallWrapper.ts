@@ -1,6 +1,6 @@
-import { CallableRequest } from 'firebase-functions/v2/https';
 import * as Sentry from '@sentry/node';
-import { Primitive } from '../../common';
+import { CallableRequest } from 'firebase-functions/v2/https';
+import { Primitive } from '../../common/index.js';
 
 // https://medium.com/qualdesk/how-to-capture-typescript-firebase-functions-errors-in-sentry-d6984951ed9
 

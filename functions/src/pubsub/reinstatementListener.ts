@@ -9,15 +9,14 @@ import {
   locationsCollection,
   transactionsCollection,
   verify,
-} from '../common';
-
+} from '../common/index.js';
 import {
   constructTrxId,
   docExists,
   fetchPolicyData,
   fetchPreviousTrx,
   getReinstatementTrx,
-} from '../modules/transactions';
+} from '../modules/transactions/index.js';
 
 // reinstatement trxEffDate = cancellation date (from cancellation trx)
 // booking date ??

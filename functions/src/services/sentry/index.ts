@@ -1,1 +1,1 @@
-export { onCallWrapper, reportErrorSentry } from './onCallWrapper';
+export { onCallWrapper, reportErrorSentry } from './onCallWrapper.js';

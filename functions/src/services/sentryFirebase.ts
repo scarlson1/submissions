@@ -1,6 +1,6 @@
 // SOURCE: https://gist.github.com/zanona/0f3d42093eaa8ac5c33286cc7eca1166
 
-// SENTRY SERVERLIST LIB: https://github.com/getsentry/sentry-javascript/blob/develop/packages/serverless/src/google-cloud-grpc.ts
+// SENTRY SERVER LIST LIB: https://github.com/getsentry/sentry-javascript/blob/develop/packages/serverless/src/google-cloud-grpc.ts
 
 // TODO: build v2 sentry wrappers
 
@@ -112,7 +112,7 @@ function wrap<A, B, C>(
 
         ev.transaction = transaction.name;
 
-        // force catpuring uncaughtError as not handled
+        // force capturing uncaughtError as not handled
         const mechanism = ev.exception?.values?.[0].mechanism;
         if (mechanism && ev.tags?.handled === false) {
           mechanism.handled = false;

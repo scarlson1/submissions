@@ -1,6 +1,6 @@
 import { generateHTML } from '@tiptap/html';
 import { convert } from 'html-to-text';
-import { flatten } from 'lodash';
+import { flatten } from 'lodash-es';
 
 import {
   ILocation,
@@ -9,13 +9,17 @@ import {
   WithId,
   dollarFormat,
   dollarFormat2,
-} from '../../common';
+} from '../../common/index.js';
 import {
   EDITOR_EXTENSION_DEFAULTS,
   getFormattedAddress,
   getFormattedAddressArray,
-} from '../../utils';
-import { AdditionalInterestsItem, PolicyDecPDFLocations, PremiumTableItem } from './components';
+} from '../../utils/index.js';
+import {
+  AdditionalInterestsItem,
+  PolicyDecPDFLocations,
+  PremiumTableItem,
+} from './components/index.js';
 
 export function formatLocationData(locations: WithId<ILocation>[]) {
   let formatted: PolicyDecPDFLocations[] = [];

@@ -1,7 +1,7 @@
 import { Firestore, Timestamp } from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
 
-import { licensesCollection } from '../../common';
+import { licensesCollection } from '../../common/index.js';
 
 export async function getSLLicenseByState(
   firestore: Firestore,

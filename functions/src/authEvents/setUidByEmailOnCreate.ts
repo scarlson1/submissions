@@ -1,10 +1,10 @@
 // import * as functions from 'firebase-functions';
-import { Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { UserRecord } from 'firebase-admin/auth';
-import { EventContext } from 'firebase-functions/v1';
+import { Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
+import { EventContext } from 'firebase-functions/v1';
 
-import { submissionsCollection } from '../common';
+import { submissionsCollection } from '../common/index.js';
 
 // anonymous auth triggers onCreate
 // anonymous auth does NOT trigger blocking functions - https://firebase.google.com/docs/auth/extend-with-blocking-functions#understanding_blocking_functions

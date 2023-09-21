@@ -1,8 +1,8 @@
-import { error, info } from 'firebase-functions/logger';
-import { Response, NextFunction } from 'express';
+import { NextFunction, Response } from 'express';
 import { getAuth } from 'firebase-admin/auth';
+import { error, info } from 'firebase-functions/logger';
 
-import { RequestUserAuth } from '../../common';
+import { RequestUserAuth } from '../../common/index.js';
 
 // https://github.com/firebase/functions-samples/blob/main/authorized-https-endpoint/functions/index.js
 

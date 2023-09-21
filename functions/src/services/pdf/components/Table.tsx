@@ -1,8 +1,7 @@
 // @ts-nocheck
 import { Text, View } from '@react-pdf/renderer';
-
 import { ReactNode } from 'react';
-import { tableStyles as styles } from '../styles';
+import { tableStyles as styles } from '../styles.js';
 
 // https://stackoverflow.com/a/63299486/10887890
 

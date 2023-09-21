@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-import { attomBaseURL } from '../common';
+import { attomBaseURL } from '../common/index.js';
 
 export const getAttomInstance = (apiKey?: string) => {
   if (!apiKey) throw new Error('Missing Attom api key');

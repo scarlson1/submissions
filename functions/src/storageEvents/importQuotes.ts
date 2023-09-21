@@ -5,7 +5,6 @@ import { StorageEvent } from 'firebase-functions/v2/storage';
 import { createReadStream } from 'fs';
 import { tmpdir } from 'os';
 import { basename, join } from 'path';
-
 import {
   COLLECTIONS,
   Quote,
@@ -17,20 +16,20 @@ import {
   sendgridApiKey,
   stagedImportsCollection,
   unlinkFile,
-} from '../common';
-import { createRatingDoc, fetchTaxes } from '../modules/db';
-import { getRCVs, sumFeesTaxesPremium } from '../modules/rating';
-import { eventOlderThan, shouldReturnEarly } from '../modules/storage';
+} from '../common/index.js';
+import { createRatingDoc, fetchTaxes } from '../modules/db/index.js';
+import { getRCVs, sumFeesTaxesPremium } from '../modules/rating/index.js';
+import { eventOlderThan, shouldReturnEarly } from '../modules/storage/index.js';
 import {
   ParseStreamToArrayRes,
   parseStreamToArray,
   transformHeadersCamelCase,
-} from '../modules/storage/parseStreamToArray';
-import { sendAdminPolicyImportNotification } from '../services/sendgrid';
-import { CSVQuoteRow, CSVTransformedQuote } from './models';
-import { transformQuoteRow } from './transform';
-import { validateQuoteRow } from './validation';
-import { randomFileName } from '../utils';
+} from '../modules/storage/parseStreamToArray.js';
+import { sendAdminPolicyImportNotification } from '../services/sendgrid/index.js';
+import { randomFileName } from '../utils/index.js';
+import { CSVQuoteRow, CSVTransformedQuote } from './models/index.js';
+import { transformQuoteRow } from './transform/index.js';
+import { validateQuoteRow } from './validation/index.js';
 
 const QUOTE_IMPORT_FOLDER = 'importQuotes';
 

@@ -1,17 +1,17 @@
-import { Request } from 'firebase-functions/v2/https';
-import { Response } from 'firebase-functions/v1';
-import { error, info, warn } from 'firebase-functions/logger';
 import { CollectionReference, Timestamp, getFirestore } from 'firebase-admin/firestore';
+import { error, info, warn } from 'firebase-functions/logger';
+import { Response } from 'firebase-functions/v1';
+import { Request } from 'firebase-functions/v2/https';
 import { v4 as uuid } from 'uuid';
 
-import { emailActivityCollection } from '../common';
+import { emailActivityCollection } from '../common/index.js';
 
 // local webhook url: https://5d548ca8c480-3444825649922910484.ngrok-free.app/idemand-submissions-dev/us-central1/sendgrid/event
 // dev url ??: ${hosingURL}/sendgrid/event
 // prod (still v1): https://us-central1-idemand-submissions.cloudfunctions.net/sendgrid/event
 
-// TODO: need to change sendgrid webhook URL to production once deplooyed (requires upgrading to $20/mo. subscription)
-// or hacky option: create one webook and pass the environment as a variable in sendgrid metadata ??
+// TODO: need to change sendgrid webhook URL to production once deployed (requires upgrading to $20/mo. subscription)
+// or hacky option: create one webhook and pass the environment as a variable in sendgrid metadata ??
 
 // TODO: signed event verification key:
 // https://docs.sendgrid.com/for-developers/tracking-events/getting-started-event-webhook-security-features
@@ -49,7 +49,7 @@ export default async (req: Request, res: Response) => {
   // app.post('/event', async (req: Request, res: Response) => {
   // TODO: enable signature verification
   var events = req.body as SGWebhookBody;
-  info('New sendgrid event recieved', { events });
+  info('New sendgrid event received', { events });
 
   const db = getFirestore();
   const eventColRef = emailActivityCollection(db);
@@ -92,10 +92,10 @@ export default async (req: Request, res: Response) => {
 // // dev url ??: ${hosingURL}/sendgrid/event
 // // prod (still v1): https://us-central1-idemand-submissions.cloudfunctions.net/sendgrid/event
 
-// // TODO: set up as normal function ?? doesnt need to use express b/c only need one route
+// // TODO: set up as normal function ?? doesn't need to use express b/c only need one route
 
-// // TODO: need to change sendgrid webhook URL to production once deplooyed (requires upgrading to $20/mo. subscription)
-// // or hacky option: create one webook and pass the environment as a variable in sendgrid metadata ??
+// // TODO: need to change sendgrid webhook URL to production once deployed (requires upgrading to $20/mo. subscription)
+// // or hacky option: create one webhook and pass the environment as a variable in sendgrid metadata ??
 
 // import {
 //   emailActivityCollection,
@@ -146,7 +146,7 @@ export default async (req: Request, res: Response) => {
 
 // //     return res.body || null;
 // //   } catch (err: any) {
-// //     error(`Error fetching email datails ${msgId}`);
+// //     error(`Error fetching email details ${msgId}`);
 // //     return null;
 // //   }
 // // };
@@ -197,7 +197,7 @@ export default async (req: Request, res: Response) => {
 //   // }
 
 //   var events = req.body as SGWebhookBody;
-//   info('New sendgrid event recieved', { events });
+//   info('New sendgrid event received', { events });
 
 //   // const client = require('@sendgrid/client');
 //   // client.setApiKey(sendgridApiKey.value());

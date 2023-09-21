@@ -6,7 +6,7 @@ import {
   Timestamp,
 } from 'firebase-admin/firestore';
 
-import { Policy as IPolicy, PolicyClass } from '../types';
+import { Policy as IPolicy, PolicyClass } from '../types.js';
 
 // https://firebase.google.com/docs/reference/node/firebase.firestore.FirestoreDataConverter
 
@@ -30,7 +30,7 @@ export const policyConverter: FirestoreDataConverter<IPolicy> = {
       // limits: policy.limits,
       // deductible: policy.deductible,
       mailingAddress: policy.mailingAddress,
-      homestate: policy.homeState,
+      homeState: policy.homeState,
       namedInsured: policy.namedInsured,
       locations: policy.locations,
       effectiveDate: policy.effectiveDate,

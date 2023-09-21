@@ -1,10 +1,9 @@
+import { isValid } from 'date-fns';
 import { GeoPoint, Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
-
-import { isValid } from 'date-fns';
 import { geohashForLocation } from 'geofire-common';
-import { isFinite } from 'lodash';
+import { isFinite } from 'lodash-es';
 import {
   DraftAddLocationRequest,
   Limits,
@@ -17,8 +16,9 @@ import {
   swissReClientId,
   swissReClientSecret,
   swissReSubscriptionKey,
-} from '../common';
-import { createDocId } from '../modules/db';
+} from '../common/index.js';
+import { createDocId } from '../modules/db/index.js';
+import { GetPremiumCalcResult } from '../modules/rating/getPremium.js';
 import {
   GetAALRes,
   calcPolicyPremium,
@@ -27,13 +27,12 @@ import {
   sumFeesTaxesPremium,
   validateAALs,
   validateLimits,
-} from '../modules/rating';
-import { GetPremiumCalcResult } from '../modules/rating/getPremium';
-import { recalcTaxes } from '../modules/transactions';
-import { onCallWrapper } from '../services/sentry';
-import { compressAddress, isValidCoords } from '../utils';
-import { validate } from './utils';
-import { getFEMAFloodZone } from '../services';
+} from '../modules/rating/index.js';
+import { recalcTaxes } from '../modules/transactions/index.js';
+import { getFEMAFloodZone } from '../services/index.js';
+import { onCallWrapper } from '../services/sentry/index.js';
+import { compressAddress, isValidCoords } from '../utils/index.js';
+import { validate } from './utils/index.js';
 
 interface AddLocationCalcProps {
   policyId: string;

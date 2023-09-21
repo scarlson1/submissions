@@ -1,7 +1,7 @@
 import { HttpsError } from 'firebase-functions/v1/auth';
 
-import { getReportErrorFn } from '../../../common';
-import { BaseTemplateProps } from './sendContact';
+import { getReportErrorFn } from '../../../common/index.js';
+import { BaseTemplateProps } from './sendContact.js';
 
 export interface SendAgencyApprovedProps extends BaseTemplateProps {
   templateId: 'agency_approved';

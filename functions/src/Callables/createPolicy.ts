@@ -10,13 +10,12 @@ import {
   locationsCollection,
   policiesCollectionNew,
   quotesCollection,
-} from '../common';
-import { getSLLicenseByState } from '../modules/db';
-
-import { checkMoratoriums } from '../services';
-import { publishPolicyCreated } from '../services/pubsub';
-import { onCallWrapper } from '../services/sentry';
-import { getPolicyFromQuote, getPolicyLocationsFromQuote, validate } from './utils';
+} from '../common/index.js';
+import { getSLLicenseByState } from '../modules/db/index.js';
+import { checkMoratoriums } from '../services/index.js';
+import { publishPolicyCreated } from '../services/pubsub/index.js';
+import { onCallWrapper } from '../services/sentry/index.js';
+import { getPolicyFromQuote, getPolicyLocationsFromQuote, validate } from './utils/index.js';
 
 // TODO: use Policy converter ??
 // TODO: calc mustBePaidByDate (or in converter) OR use created date ??

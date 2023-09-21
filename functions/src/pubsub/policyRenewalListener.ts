@@ -11,15 +11,15 @@ import {
   locationsCollection,
   transactionsCollection,
   verify,
-} from '../common';
+} from '../common/index.js';
+import { getAllById } from '../modules/db/index.js';
 import {
   constructTrxId,
   docExists,
   fetchPolicyData,
   fetchRatingData,
   formatPremiumTrx,
-} from '../modules/transactions';
-import { getAllById } from '../modules/db';
+} from '../modules/transactions/index.js';
 
 // TODO: shared logic with new policy event (abstract into module)
 

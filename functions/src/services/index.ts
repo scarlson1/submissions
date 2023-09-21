@@ -1,9 +1,9 @@
-export { getAttomInstance } from './attom';
-export { getEPayInstance } from './ePay';
-export * from './sentryFirebase';
-export { getSignNowInstance } from './signNow';
-export { generateSRAccessToken, getSwissReInstance } from './swissRe';
+export { getAttomInstance } from './attom.js';
+export { getEPayInstance } from './ePay.js';
+export * from './sentryFirebase.js';
+export { getSignNowInstance } from './signNow.js';
+export { generateSRAccessToken, getSwissReInstance } from './swissRe.js';
 // export { getFirebaseAdmin } from './getFirebaseAdmin.js';
-export { checkMoratoriums } from './checkMoratoriums';
-export { getFEMAFloodZone } from './getFloodZone';
-export { getSubmissionsInstance } from './submissionsApi';
+export { checkMoratoriums } from './checkMoratoriums.js';
+export { getFEMAFloodZone } from './getFloodZone.js';
+export { getSubmissionsInstance } from './submissionsApi.js';

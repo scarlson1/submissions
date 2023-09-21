@@ -1,4 +1,4 @@
-import { Quote, RatingPremCalcData, ValueByRiskType } from '../../common';
+import { Quote, RatingPremCalcData, ValueByRiskType } from '../../common/index.js';
 
 export interface CSVQuoteRow {
   product: string;

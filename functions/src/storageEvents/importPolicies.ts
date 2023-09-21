@@ -4,7 +4,7 @@ import { error, info } from 'firebase-functions/logger';
 import { StorageEvent } from 'firebase-functions/v2/storage';
 import fs from 'fs';
 import { geohashForLocation } from 'geofire-common';
-import { round } from 'lodash';
+import { round } from 'lodash-es';
 import { tmpdir } from 'os';
 import path from 'path';
 
@@ -35,26 +35,27 @@ import {
   throwIfExists,
   unlinkFile,
   verify,
-} from '../common';
-import { createDocId, locationToPolicyLocation } from '../modules/db';
+} from '../common/index.js';
+import { createDocId, locationToPolicyLocation } from '../modules/db/index.js';
 import {
   calcPolicyPremium,
   getCarrierByState,
   getRCVs,
   sumFeesTaxesPremium,
-} from '../modules/rating';
-import { eventOlderThan, shouldReturnEarly } from '../modules/storage';
+} from '../modules/rating/index.js';
 import {
   ParseStreamToArrayRes,
+  eventOlderThan,
   parseStreamToArray,
+  shouldReturnEarly,
   transformHeadersCamelCase,
-} from '../modules/storage/parseStreamToArray';
-import { recalcTaxes } from '../modules/transactions';
-import { sendAdminPolicyImportNotification } from '../services/sendgrid';
-import { randomFileName } from '../utils';
-import { CSVPolicyRow, ParsedPolicyRow } from './models';
-import { transformPolicyRow } from './transform';
-import { validatePolicyRow } from './validation';
+} from '../modules/storage/index.js';
+import { recalcTaxes } from '../modules/transactions/index.js';
+import { sendAdminPolicyImportNotification } from '../services/sendgrid/index.js';
+import { randomFileName } from '../utils/index.js';
+import { CSVPolicyRow, ParsedPolicyRow } from './models/index.js';
+import { transformPolicyRow } from './transform/index.js';
+import { validatePolicyRow } from './validation/index.js';
 
 // TODO:
 //  - add rating fields (used for ratios)

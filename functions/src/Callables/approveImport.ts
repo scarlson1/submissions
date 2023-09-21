@@ -18,9 +18,9 @@ import {
   stagedImportsCollection,
   transactionsCollection,
   verify,
-} from '../common';
-import { onCallWrapper } from '../services/sentry';
-import { requireIDemandAdminClaims, validate } from './utils';
+} from '../common/index.js';
+import { onCallWrapper } from '../services/sentry/index.js';
+import { requireIDemandAdminClaims, validate } from './utils/index.js';
 
 const reportErr = getReportErrorFn('approveImport');
 

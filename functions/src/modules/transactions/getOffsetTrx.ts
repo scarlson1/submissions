@@ -7,9 +7,9 @@ import {
   PolicyNew,
   PremiumTransaction,
   WithId,
-} from '../../common';
-import { getTrxTaxesAndFees } from './taxes';
-import { getBookingDate, getMGAComm, getNetDWP, getOffsetTermPremium } from './utils';
+} from '../../common/index.js';
+import { getTrxTaxesAndFees } from './taxes.js';
+import { getBookingDate, getMGAComm, getNetDWP, getOffsetTermPremium } from './utils.js';
 
 /**
  * get formatted offset transaction for cancellation or premium endorsement transactions

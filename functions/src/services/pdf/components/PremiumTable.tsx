@@ -1,4 +1,4 @@
-import { ColumnDef, Table } from './Table';
+import { ColumnDef, Table } from './Table.js';
 
 const premiumTableColumns: ColumnDef[] = [
   {

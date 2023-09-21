@@ -1,18 +1,18 @@
-import { ScheduledEvent } from 'firebase-functions/v2/scheduler';
+import { addDays, startOfToday, subDays } from 'date-fns';
 import { Timestamp, getFirestore } from 'firebase-admin/firestore';
-import { addDays, subDays, startOfToday } from 'date-fns';
+import { error, info } from 'firebase-functions/logger';
+import { ScheduledEvent } from 'firebase-functions/v2/scheduler';
 
 import {
   QUOTE_STATUS,
   Quote,
   WithId,
-  quotesCollection,
   audience,
   hostingBaseURL,
+  quotesCollection,
   sendgridApiKey,
-} from '../common';
-import { sendQuoteExpiringSoonNotification } from '../services/sendgrid';
-import { error, info } from 'firebase-functions/logger';
+} from '../common/index.js';
+import { sendQuoteExpiringSoonNotification } from '../services/sendgrid/index.js';
 
 // TODO: test and finish function before deploy
 

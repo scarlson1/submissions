@@ -1,10 +1,9 @@
 /* eslint-disable */
-import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
-
 import { error, info } from 'firebase-functions/logger';
-import { Address, signNowCreds, signNowUserCreds } from '../common';
-import { getSignNowInstance } from '../services';
-import { validate } from './utils';
+import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
+import { Address, signNowCreds, signNowUserCreds } from '../common/index.js';
+import { getSignNowInstance } from '../services/index.js';
+import { validate } from './utils/index.js';
 
 const DEFAULT_TEMPLATE_ID = '6f59b30e2005428998518ade9f325f6c405391d6';
 

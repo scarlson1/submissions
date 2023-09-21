@@ -1,6 +1,6 @@
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 
-import { ePayCreds, sendgridApiKey } from '../common';
+import { ePayCreds, sendgridApiKey } from '../common/index.js';
 
 export const checkachstatus = onSchedule(
   { schedule: '35 10 1-31 1-12 1-5', secrets: [ePayCreds] },

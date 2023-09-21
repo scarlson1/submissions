@@ -1,6 +1,6 @@
 import { onDocumentWritten } from 'firebase-functions/v2/firestore';
 
-import { COLLECTIONS } from '../../common';
+import { COLLECTIONS } from '../../common/index.js';
 
 export const versionlocation = onDocumentWritten(
   `${COLLECTIONS.LOCATIONS}/{locationId}`,

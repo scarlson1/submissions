@@ -1,8 +1,8 @@
 import { info } from 'firebase-functions/logger';
 import { FirestoreEvent, QueryDocumentSnapshot } from 'firebase-functions/v2/firestore';
 
-import { COLLECTIONS, ILocation, getReportErrorFn, verify } from '../common';
-import { publishGetLocationImages } from '../services/pubsub';
+import { COLLECTIONS, ILocation, getReportErrorFn, verify } from '../common/index.js';
+import { publishGetLocationImages } from '../services/pubsub/index.js';
 
 const reportErr = getReportErrorFn('locationCreated');
 

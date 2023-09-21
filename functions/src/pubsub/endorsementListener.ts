@@ -15,7 +15,7 @@ import {
   locationsCollection,
   transactionsCollection,
   verify,
-} from '../common';
+} from '../common/index.js';
 import {
   constructTrxId,
   docExists,
@@ -24,7 +24,7 @@ import {
   fetchRatingData,
   formatPremiumTrx,
   getOffsetTrx,
-} from '../modules/transactions';
+} from '../modules/transactions/index.js';
 
 // How is removed location handled ??
 // assume deleted if location not found in policy ??

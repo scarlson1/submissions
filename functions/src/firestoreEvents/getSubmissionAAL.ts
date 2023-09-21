@@ -14,12 +14,18 @@ import {
   swissReResCollection,
   swissReSubscriptionKey,
   usersCollection,
-} from '../common';
-import { GetAALsProps, getAALs, getPremium, validateGetAALsProps } from '../modules/rating';
-import type { GetAALRes } from '../modules/rating/getAALs';
+} from '../common/index.js';
+import {
+  GetAALRes,
+  GetAALsProps,
+  getAALs,
+  getPremium,
+  validateGetAALsProps,
+} from '../modules/rating/index.js';
+// import type { GetAALRes } from '../modules/rating';
 
 // TODO: get commission if submitted by agent
-// TODO: HOW IS COMM HANDLED BETWEEN SUB AND QUOTE ?? how does quote form know what to pre-fill with if agent's commission is different than 15% ?? include commission in subission doc ??
+// TODO: HOW IS COMM HANDLED BETWEEN SUB AND QUOTE ?? how does quote form know what to pre-fill with if agent's commission is different than 15% ?? include commission in submission doc ??
 
 // const DEFAULT_COMMISSION = 0.15;
 

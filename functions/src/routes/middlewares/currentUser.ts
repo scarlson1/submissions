@@ -2,13 +2,13 @@ import { NextFunction, Response } from 'express';
 import { getAuth } from 'firebase-admin/auth';
 import { error, info } from 'firebase-functions/logger';
 
-import { RequestUserAuth } from '../../common';
-import { TokenRevokedError } from '../errors';
+import { RequestUserAuth } from '../../common/index.js';
+import { TokenRevokedError } from '../errors/index.js';
 
 // sets the current users decoded id token on req.user, if included in Authorization header
 
 export const currentUser = async (req: RequestUserAuth, res: Response, next: NextFunction) => {
-  info('Setting current users Firebase ID token on reqest, if present');
+  info('Setting current users Firebase ID token on request, if present');
 
   const auth = getAuth();
   let idToken;

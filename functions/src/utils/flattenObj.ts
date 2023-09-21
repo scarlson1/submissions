@@ -1,4 +1,4 @@
-import { FlattenObjectKeys } from '../common';
+import { FlattenObjectKeys } from '../common/index.js';
 
 export const flattenObj = <T extends Record<string, any>>(obj: T) => {
   let result: Record<string, any> = {};

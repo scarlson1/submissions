@@ -3,22 +3,21 @@ import { getStorage } from 'firebase-admin/storage';
 import { error, info, warn } from 'firebase-functions/logger';
 import type { StorageEvent } from 'firebase-functions/v2/storage';
 import fs from 'fs';
-import { find } from 'lodash';
+import { find } from 'lodash-es';
 import { tmpdir } from 'os';
 import path from 'path';
-
-import { counties20mURL, unlinkFile } from '../common';
+import { counties20mURL, unlinkFile } from '../common/index.js';
 import {
   countiesJson,
   getCountyFromGeoJson,
   loadCountiesGeoJson,
-} from '../firestoreEvents/getSubmissionFIPS';
+} from '../firestoreEvents/getSubmissionFIPS.js';
 import {
   parseStreamToArray,
   shouldReturnEarly,
   transformHeadersSnakeCase,
   writeArrayToStorage as writeToStorage,
-} from '../modules/storage';
+} from '../modules/storage/index.js';
 
 type CSVInput = Record<string, string>;
 type TCSVInput = Record<string, string> & { latitude: string; longitude: string };

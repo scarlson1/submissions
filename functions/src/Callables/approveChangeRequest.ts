@@ -2,11 +2,11 @@ import { getFirestore } from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 
-import { changeRequestsCollection, getReportErrorFn } from '../common';
-import { mergePolicyLocationChanges } from '../modules/db';
-import { setChangeRequestErr } from '../modules/transactions';
-import { onCallWrapper } from '../services/sentry';
-import { requireIDemandAdminClaims, validate } from './utils';
+import { changeRequestsCollection, getReportErrorFn } from '../common/index.js';
+import { mergePolicyLocationChanges } from '../modules/db/index.js';
+import { setChangeRequestErr } from '../modules/transactions/index.js';
+import { onCallWrapper } from '../services/sentry/index.js';
+import { requireIDemandAdminClaims, validate } from './utils/index.js';
 
 // TODO: validation
 //    - if endorsement, make sure endorsement calculation executed successfully, etc.

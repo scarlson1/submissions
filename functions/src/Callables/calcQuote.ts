@@ -3,7 +3,12 @@ import { error, info } from 'firebase-functions/logger';
 import { HttpsError } from 'firebase-functions/v1/https';
 import { CallableRequest } from 'firebase-functions/v2/https';
 
-import { Limits, ValueByRiskType, defaultFloodZone, ratingDataCollection } from '../common';
+import {
+  Limits,
+  ValueByRiskType,
+  defaultFloodZone,
+  ratingDataCollection,
+} from '../common/index.js';
 import {
   getPremium,
   getRCVs,
@@ -15,9 +20,9 @@ import {
   validateLimits,
   validateReplacementCost,
   validateState,
-} from '../modules/rating';
-import { onCallWrapper } from '../services/sentry';
-import { requireIDemandAdminClaims } from './utils';
+} from '../modules/rating/index.js';
+import { onCallWrapper } from '../services/sentry/index.js';
+import { requireIDemandAdminClaims } from './utils/index.js';
 
 // TODO: create rating inputs interface (used in multiple funcs), extend where needed
 

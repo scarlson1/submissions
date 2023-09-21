@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "module": "NodeNext",
+    "module": "ES2022",
     "noImplicitReturns": true,
     "noUnusedLocals": true,
     "outDir": "dist",

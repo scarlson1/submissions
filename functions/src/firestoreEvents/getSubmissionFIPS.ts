@@ -1,18 +1,18 @@
-import type { FirestoreEvent } from 'firebase-functions/v2/firestore';
-import { error, info, warn } from 'firebase-functions/logger';
-import { Timestamp, type QueryDocumentSnapshot } from 'firebase-admin/firestore';
 import {
-  booleanPointInPolygon,
   FeatureCollection,
+  Position,
+  Properties,
+  booleanPointInPolygon,
   featureEach,
   point,
   polygon,
-  Position,
-  Properties,
 } from '@turf/turf';
 import axios from 'axios';
+import { Timestamp, type QueryDocumentSnapshot } from 'firebase-admin/firestore';
+import { error, info, warn } from 'firebase-functions/logger';
+import type { FirestoreEvent } from 'firebase-functions/v2/firestore';
 
-import { Submission, FIPS, counties20mURL } from '../common';
+import { FIPS, Submission, counties20mURL } from '../common/index.js';
 
 export let countiesJson: FeatureCollection | undefined;
 

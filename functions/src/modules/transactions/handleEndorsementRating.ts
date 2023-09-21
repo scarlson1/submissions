@@ -1,7 +1,6 @@
 import { DocumentReference, Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
-
-import { isObject } from 'lodash';
+import { isObject } from 'lodash-es';
 import {
   CHANGE_REQUEST_STATUS,
   ChangeRequest,
@@ -20,9 +19,9 @@ import {
   swissReClientSecret,
   swissReSubscriptionKey,
   verify,
-} from '../../common';
-import { getDoc } from '../../routes/utils';
-import { createDocId } from '../db';
+} from '../../common/index.js';
+import { getDoc } from '../../routes/utils/index.js';
+import { createDocId } from '../db/index.js';
 import {
   GetAALRes,
   GetPremiumProps,
@@ -36,8 +35,8 @@ import {
   validateAALs,
   validateLimits,
   validateRCVs,
-} from '../rating';
-import { recalcTaxes } from './taxes';
+} from '../rating/index.js';
+import { recalcTaxes } from './taxes.js';
 
 const SR_CALL_REQUIRED_KEYS = ['limits', 'deductible'];
 

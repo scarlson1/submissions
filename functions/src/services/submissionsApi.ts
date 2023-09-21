@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-import { submissionsApiBaseURL } from '../common';
+import { submissionsApiBaseURL } from '../common/index.js';
 
 export const getSubmissionsInstance = () => {
   const submissionsInstance = axios.create({

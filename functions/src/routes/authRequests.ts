@@ -1,18 +1,18 @@
-import { error, info } from 'firebase-functions/logger';
-import express, { Request, Response } from 'express';
-import cors from 'cors';
 import * as bodyParser from 'body-parser';
-import { Firestore, getFirestore } from 'firebase-admin/firestore';
+import cors from 'cors';
+import express, { Request, Response } from 'express';
 import { Auth, TenantAwareAuth, UserImportOptions, getAuth } from 'firebase-admin/auth';
+import { Firestore, getFirestore } from 'firebase-admin/firestore';
+import { error, info } from 'firebase-functions/logger';
 import jwt from 'jsonwebtoken';
 
+import { migrateUser, updateUserDoc } from '../callables/moveUserToTenant.js';
 import {
   emailVerificationKey,
   firebaseHashConfig,
   hostingBaseURL,
   invitesCollection,
-} from '../common';
-import { migrateUser, updateUserDoc } from '../callables/moveUserToTenant';
+} from '../common/index.js';
 
 const app = express();
 
@@ -169,7 +169,7 @@ async function verifyInviteValid(firestore: Firestore, email: string, toTenantId
 
   if (inviteSnap.data()?.status === 'revoked')
     throw new Error(
-      `Invite has been revolked. If you believe this was by mistake, please contact the org admin.`
+      `Invite has been revoked. If you believe this was by mistake, please contact the org admin.`
     );
 }
 
@@ -182,7 +182,7 @@ export default app;
 
 // https://github.com/firebase/functions-samples/blob/main/authorized-https-endpoint/functions/index.js
 
-// TODO: set up redirct
+// TODO: set up redirect
 // https://firebase.google.com/docs/hosting/full-config#rewrite-functions
 
 // app.get(
