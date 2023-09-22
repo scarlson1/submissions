@@ -9,7 +9,11 @@ import { ServerDataGrid } from 'components';
 import { hasAdminClaimsValidator } from 'components/RequireAuthReactFire';
 import { useAuth } from 'context';
 import { useAsyncToast, useGridActions, useSendQuoteNotification, useWidth } from 'hooks';
-import { quoteCols, statusCol } from 'modules/muiGrid/gridColumnDefs';
+import {
+  INITIAL_QUOTE_COLUMN_VISIBILITY,
+  quoteCols,
+  statusCol,
+} from 'modules/muiGrid/gridColumnDefs';
 
 // TODO: need to use custom merge function for additionalColumns to prevent duplication "field" values
 
@@ -59,7 +63,10 @@ export const QuotesGrid = ({
             }
             onClick={handleSendNotifications(params)}
             label='Send Notifications'
-            disabled={!authCheckResult.hasRequiredClaims}
+            disabled={
+              !authCheckResult.hasRequiredClaims ||
+              params.row?.status !== QUOTE_STATUS.AWAITING_USER
+            }
             showInMenu={isSmall}
           />,
         ],
@@ -99,33 +106,34 @@ export const QuotesGrid = ({
         autoHeight
         initialState={{
           columns: {
-            columnVisibilityModel: {
-              annualPremium: false,
-              'namedInsured.firstName': false,
-              'namedInsured.lastName': false,
-              'namedInsured.email': false,
-              'namedInsured.phone': false,
-              'address.addressLine1': false,
-              'address.addressLine2': false,
-              'address.city': false,
-              'address.state': false,
-              'address.postal': false,
-              'address.countyName': false,
-              'address.countyFIPS': false,
-              'metadata.updated': false,
-              'agent.phone': false,
-              'agent.userId': false,
-              'ratingPropertyData.replacementCost': false,
-              'ratingPropertyData.CBRSDesignation': false,
-              'ratingPropertyData.basement': false,
-              'ratingPropertyData.distToCoastFeet': false,
-              'ratingPropertyData.floodZone': false,
-              'ratingPropertyData.numStories': false,
-              'ratingPropertyData.propertyCode': false,
-              'ratingPropertyData.sqFootage': false,
-              'ratingPropertyData.yearBuilt': false,
-              'agency.address': false,
-            },
+            columnVisibilityModel: INITIAL_QUOTE_COLUMN_VISIBILITY,
+            // {
+            //   annualPremium: false,
+            //   'namedInsured.firstName': false,
+            //   'namedInsured.lastName': false,
+            //   'namedInsured.email': false,
+            //   'namedInsured.phone': false,
+            //   'address.addressLine1': false,
+            //   'address.addressLine2': false,
+            //   'address.city': false,
+            //   'address.state': false,
+            //   'address.postal': false,
+            //   'address.countyName': false,
+            //   'address.countyFIPS': false,
+            //   'metadata.updated': false,
+            //   'agent.phone': false,
+            //   'agent.userId': false,
+            //   'ratingPropertyData.replacementCost': false,
+            //   'ratingPropertyData.CBRSDesignation': false,
+            //   'ratingPropertyData.basement': false,
+            //   'ratingPropertyData.distToCoastFeet': false,
+            //   'ratingPropertyData.floodZone': false,
+            //   'ratingPropertyData.numStories': false,
+            //   'ratingPropertyData.propertyCode': false,
+            //   'ratingPropertyData.sqFootage': false,
+            //   'ratingPropertyData.yearBuilt': false,
+            //   'agency.address': false,
+            // },
           },
           sorting: {
             sortModel: [{ field: 'metadata.created', sort: 'desc' }],

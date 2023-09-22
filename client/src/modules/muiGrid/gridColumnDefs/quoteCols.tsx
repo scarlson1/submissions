@@ -1,4 +1,4 @@
-import { GridColDef } from '@mui/x-data-grid';
+import { GridColDef, GridColumnVisibilityModel } from '@mui/x-data-grid';
 import { Link } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 
@@ -124,3 +124,31 @@ export const quoteCols: GridColDef<Quote>[] = [
     },
   },
 ];
+
+export const INITIAL_QUOTE_COLUMN_VISIBILITY: GridColumnVisibilityModel = {
+  annualPremium: false,
+  'namedInsured.firstName': false,
+  'namedInsured.lastName': false,
+  'namedInsured.email': false,
+  'namedInsured.phone': false,
+  'address.addressLine1': false,
+  'address.addressLine2': false,
+  'address.city': false,
+  'address.state': false,
+  'address.postal': false,
+  'address.countyName': false,
+  'address.countyFIPS': false,
+  'metadata.updated': false,
+  'agent.phone': false,
+  'agent.userId': false,
+  'ratingPropertyData.replacementCost': false,
+  'ratingPropertyData.CBRSDesignation': false,
+  'ratingPropertyData.basement': false,
+  'ratingPropertyData.distToCoastFeet': false,
+  'ratingPropertyData.floodZone': false,
+  'ratingPropertyData.numStories': false,
+  'ratingPropertyData.propertyCode': false,
+  'ratingPropertyData.sqFootage': false,
+  'ratingPropertyData.yearBuilt': false,
+  'agency.address': false,
+};

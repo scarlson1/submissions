@@ -12,8 +12,6 @@ import {
   idCol,
   priorLossCountCol,
   ratingDataCBRSCol,
-  inlandAALCol,
-  surgeAALCol,
   annualPremiumCol,
   displayNameCol,
   firstNameCol,
@@ -40,7 +38,6 @@ import {
   limitDCol,
   tivCol,
   copyBaseProps,
-  tsunamiAALCol,
   addressSummaryCol,
 } from './gridColumns';
 import { Submission } from 'common';
@@ -114,9 +111,10 @@ export const submissionCols: GridColDef<Submission>[] = [
   ratingDataYearBuiltCol,
   ratingDataFloodZoneCol,
   ratingDataCBRSCol,
-  inlandAALCol,
-  surgeAALCol,
-  tsunamiAALCol,
+  // TODO: only show for admin accounts
+  // inlandAALCol,
+  // surgeAALCol,
+  // tsunamiAALCol,
   coordinatesCol,
   latitudeCol,
   longitudeCol,

@@ -8,7 +8,7 @@ export { locationCols } from './locationCols';
 export { moratoriumCols } from './moratoriumCols';
 export { orgCols } from './orgCols';
 export { policyCols } from './policyCols';
-export { quoteCols } from './quoteCols';
+export { quoteCols, INITIAL_QUOTE_COLUMN_VISIBILITY } from './quoteCols';
 export { submissionCols } from './submissionCols';
 export { taxCols } from './taxCols';
 export { transactionCols } from './transactionCols';
