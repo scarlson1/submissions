@@ -6,19 +6,24 @@ import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { useSigninCheck } from 'reactfire';
 
-import { CLAIMS, Policy, POLICY_STATUS, ServerDataGridCollectionProps } from 'common';
+import { CLAIMS, COLLECTIONS, Policy, POLICY_STATUS, ServerDataGridCollectionProps } from 'common';
 import { ServerDataGrid } from 'components';
-import { policyCols, statusCol } from 'modules/muiGrid/gridColumnDefs';
+import { useGridShowJson } from 'hooks';
+import { POLICY_COLUMN_VISIBILITY, policyCols, statusCol } from 'modules/muiGrid/gridColumnDefs';
 import { createPath, ROUTES } from 'router';
 
 export type PoliciesGridProps = ServerDataGridCollectionProps;
 
 export const PoliciesGrid = ({ renderActions = () => [], ...props }: PoliciesGridProps) => {
   const navigate = useNavigate();
-
   const { status: claimsCheckStatus, data: iDAdminResult } = useSigninCheck({
     requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
   });
+  const renderShowJson = useGridShowJson(
+    COLLECTIONS.POLICIES,
+    { showInMenu: true },
+    { requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }
+  );
 
   const viewPolicyDoc = useCallback(
     (params: GridRowParams) => () => {
@@ -49,24 +54,7 @@ export const PoliciesGrid = ({ renderActions = () => [], ...props }: PoliciesGri
             label='View Policy'
             disabled={!(params.row.documents && params.row.documents[0]?.downloadUrl)}
           />,
-          // <GridActionsCellItem
-          //   icon={
-          //     <Tooltip placement='top' title='Edit'>
-          //       <EditRounded />
-          //     </Tooltip>
-          //   }
-          //   onClick={editQuote(params)}
-          //   label='Send Notifications'
-          // />,
-          // <GridActionsCellItem
-          //   icon={
-          //     <Tooltip placement='top' title='Send Notifications'>
-          //       <SendRounded />
-          //     </Tooltip>
-          //   }
-          //   onClick={handleSendNotifications(params)}
-          //   label='Send Notifications'
-          // />,
+          ...renderShowJson(params),
         ],
       },
       {
@@ -83,7 +71,7 @@ export const PoliciesGrid = ({ renderActions = () => [], ...props }: PoliciesGri
       },
       ...policyCols,
     ],
-    [viewPolicyDoc, renderActions, claimsCheckStatus, iDAdminResult]
+    [viewPolicyDoc, renderActions, renderShowJson, claimsCheckStatus, iDAdminResult]
   );
 
   return (
@@ -101,30 +89,7 @@ export const PoliciesGrid = ({ renderActions = () => [], ...props }: PoliciesGri
         }}
         initialState={{
           columns: {
-            columnVisibilityModel: {
-              product: false,
-              'namedInsured.firstName': false,
-              'namedInsured.lastName': false,
-              'namedInsured.email': false,
-              'namedInsured.phone': false,
-              'mailingAddress.addressLine1': false,
-              'mailingAddress.addressLine2': false,
-              'mailingAddress.city': false,
-              'mailingAddress.state': false,
-              'mailingAddress.postal': false,
-              'mailingAddress.countyName': false,
-              'mailingAddress.countyFIPS': false,
-              'agent.email': false,
-              'agent.phone': false,
-              'agent.userId': false,
-              'agency.address': false,
-              annualPremium: false,
-              'SLProducerOfRecord.licenseState': false,
-              'SLProducerOfRecord.phone': false,
-              'SLProducerOfRecord.address': false,
-              'metadata.created': false,
-              'metadata.updated': false,
-            },
+            columnVisibilityModel: POLICY_COLUMN_VISIBILITY,
           },
           sorting: {
             sortModel: [{ field: 'metadata.created', sort: 'desc' }],

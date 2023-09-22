@@ -1,5 +1,6 @@
-import { GridColDef } from '@mui/x-data-grid';
+import { GridColDef, GridColumnVisibilityModel } from '@mui/x-data-grid';
 
+import { Policy } from 'common';
 import {
   SLProducerOfRecordLicenseAddress,
   SLProducerOfRecordLicenseNum,
@@ -30,7 +31,6 @@ import {
   updatedCol,
   userIdCol,
 } from './gridColumns';
-import { Policy } from 'common';
 
 export const policyCols: GridColDef<Policy>[] = [
   productCol,
@@ -70,6 +70,31 @@ export const policyCols: GridColDef<Policy>[] = [
   createdCol,
   updatedCol,
 ];
+
+export const POLICY_COLUMN_VISIBILITY: GridColumnVisibilityModel = {
+  product: false,
+  'namedInsured.firstName': false,
+  'namedInsured.lastName': false,
+  'namedInsured.email': false,
+  'namedInsured.phone': false,
+  'mailingAddress.addressLine1': false,
+  'mailingAddress.addressLine2': false,
+  'mailingAddress.city': false,
+  'mailingAddress.state': false,
+  'mailingAddress.postal': false,
+  'mailingAddress.countyName': false,
+  'mailingAddress.countyFIPS': false,
+  'agent.email': false,
+  'agent.phone': false,
+  'agent.userId': false,
+  'agency.address': false,
+  annualPremium: false,
+  'SLProducerOfRecord.licenseState': false,
+  'SLProducerOfRecord.phone': false,
+  'SLProducerOfRecord.address': false,
+  'metadata.created': false,
+  'metadata.updated': false,
+};
 
 // OPTION 1: "disableExport" property in the column definition
 // OPTION 2: provide "fields" property to the csvOptions prop

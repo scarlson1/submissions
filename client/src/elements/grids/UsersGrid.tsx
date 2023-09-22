@@ -19,8 +19,8 @@ import { useCallback, useMemo, useState } from 'react';
 import { useFirestore, useSigninCheck } from 'reactfire';
 
 import {
-  COLLECTIONS,
   CLAIMS,
+  COLLECTIONS,
   ServerDataGridCollectionProps,
   User,
   WithId,
@@ -32,6 +32,9 @@ import { useAsyncToast, useUpdateClaims } from 'hooks';
 import { useCollectionDataPopulateById } from 'hooks/useRx';
 import { idCol, userClaimsCol, userCols, userSummaryCol } from 'modules/muiGrid/gridColumnDefs';
 
+// TODO: finish admin users grid component
+// with updates, merge claims, etc.
+
 type UsersGridProps = ServerDataGridCollectionProps;
 
 export const UsersGrid = ({
@@ -40,6 +43,7 @@ export const UsersGrid = ({
   initialState,
   ...props
 }: UsersGridProps) => {
+  // TODO: convert to same renderActions format as other grids
   const columns: GridColDef[] = useMemo(() => {
     const actions = renderActions
       ? [

@@ -28,7 +28,7 @@ export const Table = ({ columns, data, id }: TableProps) => {
   return (
     <View style={[styles.table]}>
       <View style={[styles.row, styles.header]} fixed>
-        {columns.map((c) => {
+        {columns.map((c, i) => {
           const cellStyle = { width };
 
           if (c.flex) {
@@ -40,15 +40,15 @@ export const Table = ({ columns, data, id }: TableProps) => {
           if (c.alignHeader) cellStyle['textAlign'] = c.alignHeader;
 
           return (
-            <Text style={[styles.cell, styles.headerText, cellStyle]} key={c.field}>
+            <Text style={[styles.cell, styles.headerText, cellStyle]} key={`${c.field}-${i}`}>
               {c.headerName}
             </Text>
           );
         })}
       </View>
       {data.map((r, i) => (
-        <View style={[styles.row]} key={`table-row-${i}`}>
-          {columns.map((colDef) => {
+        <View style={[styles.row]} key={`table-row-${i}-${id}`}>
+          {columns.map((colDef, ic) => {
             const cellStyle = { width };
 
             const val = r[`${colDef.field}`] || '';
@@ -68,7 +68,7 @@ export const Table = ({ columns, data, id }: TableProps) => {
               <Text
                 style={[styles.cell, cellStyle, styles.breakLongWords]}
                 break={i % 12 === 0}
-                key={`${id}-${colDef.field}-${i}`}
+                key={`${id}-${colDef.field}-${i}-${ic}`}
               >
                 {val}
               </Text>

@@ -1,14 +1,13 @@
-import { DataObjectRounded } from '@mui/icons-material';
-import { Box, Tooltip } from '@mui/material';
-import { GridActionsCellItem, GridRowParams } from '@mui/x-data-grid';
+import { Box } from '@mui/material';
+import { GridRowParams } from '@mui/x-data-grid';
 import { capitalize } from 'lodash';
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { COLLECTIONS, ImportSummary, WithId } from 'common';
+import { CLAIMS, COLLECTIONS, ImportSummary, WithId } from 'common';
 import { ServerDataGrid, ServerDataGridProps } from 'components';
-import { useShowJson } from 'hooks';
-import { importSummaryCols } from 'modules/muiGrid/gridColumnDefs';
+import { useGridShowJson } from 'hooks';
+import { importSummaryCols } from 'modules/muiGrid';
 import { formatFirestoreTimestamp } from 'modules/utils';
 import { ADMIN_ROUTES, createPath } from 'router';
 
@@ -26,11 +25,11 @@ export const ImportsSummaryGrid = ({
   ...props
 }: ImportSummaryGridProps) => {
   const navigate = useNavigate();
-  const showJson = useShowJson<ImportSummary>(COLLECTIONS.DATA_IMPORTS, [], getImportSummaryTitle);
-
-  const handleShowJson = useCallback(
-    (params: GridRowParams) => () => showJson(params.id.toString()),
-    [showJson]
+  const renderShowJson = useGridShowJson(
+    COLLECTIONS.DATA_IMPORTS,
+    { showInMenu: false },
+    { requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } },
+    getImportSummaryTitle
   );
 
   const importColumns = useMemo(
@@ -42,20 +41,12 @@ export const ImportsSummaryGrid = ({
         width: 80,
         getActions: (params: GridRowParams) => [
           ...renderActions(params),
-          <GridActionsCellItem
-            icon={
-              <Tooltip placement='top' title='view JSON'>
-                <DataObjectRounded />
-              </Tooltip>
-            }
-            onClick={handleShowJson(params)}
-            label='View JSON'
-          />,
+          ...renderShowJson(params),
         ],
       },
       ...importSummaryCols,
     ],
-    [renderActions, handleShowJson]
+    [renderActions, renderShowJson]
   );
 
   return (

@@ -1,4 +1,4 @@
-import { GridColDef } from '@mui/x-data-grid';
+import { GridColDef, GridColumnVisibilityModel } from '@mui/x-data-grid';
 
 import { Transaction } from 'common';
 import { isPremTrx } from 'modules/rating';
@@ -280,3 +280,28 @@ export const transactionCols: GridColDef<Transaction>[] = [
   createdCol,
   updatedCol,
 ];
+
+export const TRANSACTION_COLUMN_VISIBILITY: GridColumnVisibilityModel = {
+  id: false,
+  trxInterfaceType: false,
+  product: false,
+  externalId: false,
+  tiv: false,
+  homeState: false,
+  dailyPremium: false,
+  'metadata.updated': false,
+  'insuredLocation.address.addressLine1': false,
+  'insuredLocation.address.addressLine2': false,
+  'insuredLocation.address.city': false,
+  'insuredLocation.address.state': false,
+  'insuredLocation.address.postal': false,
+  'insuredLocation.address.countyName': false,
+  'insuredLocation.address.countyFIPS': false,
+  'insuredLocation.coordinates.latitude': false,
+  'insuredLocation.coordinates.longitude': false,
+  'mailingAddress.addressLine1': false,
+  'mailingAddress.addressLine2': false,
+  'mailingAddress.city': false,
+  'mailingAddress.state': false,
+  'mailingAddress.postal': false,
+};

@@ -70,5 +70,6 @@ export { useWizard } from './useWizard';
 
 export type { SubjectBaseKeyVal } from './useFetchTaxes';
 export type { UseFileUploadProps } from './useFileUpload';
+export type { ActionOptions } from './useGridActions';
 export type { RatingInputsWithAAL } from './useRateQuote';
 export type { UpdateProfileArgs, UpdateProfileRes } from './useUpdateProfile';

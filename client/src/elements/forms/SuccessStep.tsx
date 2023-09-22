@@ -19,7 +19,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { createSearchParams, useNavigate, useParams } from 'react-router-dom';
 import { useFirestore, useFirestoreDocData } from 'reactfire';
 
-// import * as CheckmarkLottie from 'assets/checkmark.json';
 import { CheckmarkLottie } from 'assets';
 import {
   ANALYTICS_EVENTS,

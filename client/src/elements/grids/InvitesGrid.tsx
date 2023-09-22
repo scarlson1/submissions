@@ -6,10 +6,10 @@ import { Functions, httpsCallable } from 'firebase/functions';
 import { useCallback, useMemo } from 'react';
 import { useFunctions, useSigninCheck } from 'reactfire';
 
-import { COLLECTIONS, CLAIMS, INVITE_STATUS, Invite } from 'common';
+import { CLAIMS, COLLECTIONS, INVITE_STATUS, Invite } from 'common';
 import { ServerDataGrid, ServerDataGridProps } from 'components';
 import { useAsyncToast } from 'hooks';
-import { inviteCols } from 'modules/muiGrid';
+import { INVITE_COLUMN_VISIBILITY, inviteCols } from 'modules/muiGrid';
 
 // TODO: need to use collection group hook if iDemand Admin
 // wrap in parent component and check for claims. if idemandAdmin and orgId not provided, return collection group
@@ -40,7 +40,7 @@ export const InvitesGrid = ({ orgId, queryConstraints }: InvitesGridProps) => {
         isCollectionGroup: false,
       };
     } else {
-      if (!signInRes.hasRequiredClaims) throw new Error('missing orgId or required claims');
+      if (!signInRes.hasRequiredClaims) throw new Error('missing required permissions (or orgId)');
       return {
         colName: 'INVITES',
         isCollectionGroup: true,
@@ -111,8 +111,16 @@ export const InvitesGrid = ({ orgId, queryConstraints }: InvitesGridProps) => {
   return (
     <ServerDataGrid
       {...props}
-      // constraints={queryConstraints} // TODO: must be filter constrainsts
+      // constraints={queryConstraints} // TODO: must be filter constraints
       columns={inviteColumns}
+      initialState={{
+        columns: {
+          columnVisibilityModel: INVITE_COLUMN_VISIBILITY,
+        },
+        sorting: {
+          sortModel: [{ field: 'metadata.created', sort: 'desc' }],
+        },
+      }}
     />
   );
 };

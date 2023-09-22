@@ -1,5 +1,5 @@
 import { Box, Chip } from '@mui/material';
-import { GridColDef } from '@mui/x-data-grid';
+import { GridColDef, GridColumnVisibilityModel } from '@mui/x-data-grid';
 
 import { INVITE_STATUS, Invite } from 'common';
 import {
@@ -92,3 +92,9 @@ export const inviteCols: GridColDef<Invite>[] = [
   createdCol,
   updatedCol,
 ];
+
+export const INVITE_COLUMN_VISIBILITY: GridColumnVisibilityModel = {
+  id: false,
+  firstName: false,
+  lastName: false,
+};

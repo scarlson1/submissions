@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import { CLAIMS, COLLECTIONS, ServerDataGridCollectionProps } from 'common';
 import { ServerDataGrid } from 'components';
 import { useAsyncToast, useGridActions, useGridShowJson, useWidth } from 'hooks';
-import { locationCols } from 'modules/muiGrid';
+import { LOCATION_COLUMN_VISIBILITY, locationCols } from 'modules/muiGrid';
 
 export type LocationGridProps = ServerDataGridCollectionProps;
 
@@ -52,36 +52,7 @@ export const LocationsGrid = ({
       {...props}
       initialState={{
         columns: {
-          columnVisibilityModel: {
-            id: false,
-            product: false,
-            policyId: false,
-            'address.addressLine1': false,
-            'address.addressLine2': false,
-            'address.city': false,
-            'address.state': false,
-            'address.postal': false,
-            'address.countyName': false,
-            'address.countyFIPS': false,
-            coordinates: false,
-            latitude: false,
-            longitude: false,
-            annualPremium: false,
-            'ratingPropertyData.CBRSDesignation': false,
-            'ratingPropertyData.basement': false,
-            'ratingPropertyData.distToCoastFeet': false,
-            'ratingPropertyData.floodZone': false,
-            'ratingPropertyData.numStories': false,
-            'ratingPropertyData.propertyCode': false,
-            'ratingPropertyData.sqFootage': false,
-            'ratingPropertyData.yearBuilt': false,
-            'ratingPropertyData.replacementCost': false,
-            'ratingPropertyData.ratingDocId': false,
-            ratingDocId: false,
-            externalId: false,
-            'metadata.created': false,
-            'metadata.updated': false,
-          },
+          columnVisibilityModel: LOCATION_COLUMN_VISIBILITY,
         },
         sorting: {
           sortModel: [{ field: 'metadata.created', sort: 'desc' }],

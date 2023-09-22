@@ -1,9 +1,24 @@
-import { GridColDef, GridColumnVisibilityModel } from '@mui/x-data-grid';
 import { Link } from '@mui/material';
+import { GridColDef, GridColumnVisibilityModel } from '@mui/x-data-grid';
 import { Link as RouterLink } from 'react-router-dom';
 
+import { Quote } from 'common';
+import { GridCellCopy } from 'components';
+import { ADMIN_ROUTES, createPath } from 'router';
 import {
-  nestedAgentUserIdCol,
+  addrCityCol,
+  addrCountyCol,
+  addrFIPSCol,
+  addrLine1Col,
+  addrLine2Col,
+  addrPostalCol,
+  addrStateCol,
+  addressSummaryCol,
+  agencyAddressCol,
+  agencyNameCol,
+  agentEmailCol,
+  agentPhoneCol,
+  annualPremiumCol,
   createdCol,
   currencyCol,
   deductibleCol,
@@ -12,43 +27,28 @@ import {
   limitBCol,
   limitCCol,
   limitDCol,
+  namedInsuredDisplayNameCol,
+  namedInsuredEmailCol,
+  namedInsuredFirstNameCol,
+  namedInsuredLastNameCol,
+  namedInsuredPhoneCol,
+  nestedAgencyOrgIdCol,
+  nestedAgentNameCol,
+  nestedAgentUserIdCol,
   ratingDataBasementCol,
   ratingDataCBRSCol,
   ratingDataDistToCoastFeetCol,
   ratingDataFloodZoneCol,
   ratingDataNumStoriesCol,
+  ratingDataPriorLossCountCol,
   ratingDataPropertyCodeCol,
   ratingDataReplacementCostCol,
   ratingDataSqFootageCol,
   ratingDataYearBuiltCol,
-  ratingDataPriorLossCountCol,
+  tivCol,
   updatedCol,
   userIdCol,
-  addrLine1Col,
-  addrLine2Col,
-  addrCityCol,
-  addrStateCol,
-  addrPostalCol,
-  namedInsuredFirstNameCol,
-  namedInsuredLastNameCol,
-  namedInsuredEmailCol,
-  namedInsuredPhoneCol,
-  namedInsuredDisplayNameCol,
-  tivCol,
-  agentEmailCol,
-  agentPhoneCol,
-  nestedAgencyOrgIdCol,
-  agencyNameCol,
-  agencyAddressCol,
-  addressSummaryCol,
-  addrCountyCol,
-  addrFIPSCol,
-  annualPremiumCol,
-  nestedAgentNameCol,
 } from './gridColumns';
-import { ADMIN_ROUTES, createPath } from 'router';
-import { GridCellCopy } from 'components';
-import { Quote } from 'common';
 
 export const quoteCols: GridColDef<Quote>[] = [
   addressSummaryCol,
@@ -125,7 +125,7 @@ export const quoteCols: GridColDef<Quote>[] = [
   },
 ];
 
-export const INITIAL_QUOTE_COLUMN_VISIBILITY: GridColumnVisibilityModel = {
+export const QUOTE_COLUMN_VISIBILITY: GridColumnVisibilityModel = {
   annualPremium: false,
   'namedInsured.firstName': false,
   'namedInsured.lastName': false,

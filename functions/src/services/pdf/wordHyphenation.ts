@@ -1,4 +1,7 @@
-import { hyphenateSync } from 'hyphen/en';
+// import { hyphenateSync } from 'hyphen/en';
+// @ts-ignore
+import hyphen from 'hyphen/en/index.js';
+const { hyphenateSync } = hyphen;
 
 // https://github.com/diegomura/react-pdf/blob/master/packages/textkit/src/engines/wordHyphenation/index.js
 

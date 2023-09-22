@@ -1,14 +1,8 @@
-import { ReactElement, useCallback } from 'react';
-import { GridActionsCellItem, GridActionsCellItemProps, GridRowParams } from '@mui/x-data-grid';
-import { Tooltip } from '@mui/material';
 import { DataObject, FloodRounded, MapRounded } from '@mui/icons-material';
-import { DocumentData } from 'firebase/firestore';
-
-import { Submission } from 'common';
-import { useFloodFactor } from './useFloodFactor';
-import { useWidth } from './useWidth';
-import { openGoogleMaps } from 'modules/utils';
-import { useShowJson } from './useShowJson';
+import { Tooltip } from '@mui/material';
+import { GridActionsCellItem, GridActionsCellItemProps, GridRowParams } from '@mui/x-data-grid';
+import { DocumentData, FirestoreDataConverter } from 'firebase/firestore';
+import { ReactElement, useCallback } from 'react';
 import {
   SignInCheckOptionsBasic,
   SignInCheckOptionsClaimsObject,
@@ -16,7 +10,13 @@ import {
   useSigninCheck,
 } from 'reactfire';
 
-type ActionOptions = Omit<Partial<GridActionsCellItemProps>, 'onClick' | 'label' | 'icon'>;
+import { Submission, WithId } from 'common';
+import { openGoogleMaps } from 'modules/utils';
+import { useFloodFactor } from './useFloodFactor';
+import { useShowJson } from './useShowJson';
+import { useWidth } from './useWidth';
+
+export type ActionOptions = Omit<Partial<GridActionsCellItemProps>, 'onClick' | 'label' | 'icon'>;
 
 export const useGridActions = (onError?: (msg: string) => void) => {
   const openFF = useFloodFactor(onError);
@@ -89,10 +89,12 @@ export const useGridShowJson = <T extends DocumentData>(
     | SignInCheckOptionsBasic
     | SignInCheckOptionsClaimsObject
     | SignInCheckOptionsClaimsValidator
-    | undefined
+    | undefined,
+  getTitle?: null | ((data: WithId<T>) => string),
+  converter?: FirestoreDataConverter<T>
 ): ((params: GridRowParams) => ReactElement<GridActionsCellItemProps>[]) => {
   const { data } = useSigninCheck(signInCheckOptions);
-  const showJson = useShowJson<T>(colName);
+  const showJson = useShowJson<T>(colName, [], getTitle, converter);
 
   const handleShowJson = useCallback(
     (params: GridRowParams) => () => {

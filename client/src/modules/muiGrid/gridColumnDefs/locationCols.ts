@@ -1,4 +1,4 @@
-import { GridColDef } from '@mui/x-data-grid';
+import { GridColDef, GridColumnVisibilityModel } from '@mui/x-data-grid';
 
 import { ILocation } from 'common';
 import {
@@ -27,7 +27,6 @@ import {
   limitDCol,
   longitudeCol,
   mortgageeCol,
-  parentTypeCol,
   ratingDataBasementCol,
   ratingDataCBRSCol,
   ratingDataDistToCoastFeetCol,
@@ -54,7 +53,7 @@ export const locationCols: GridColDef<ILocation>[] = [
     // TODO: use link component to display --> route to policy
   },
   externalIdCol,
-  parentTypeCol,
+  // parentTypeCol,
   addressSummaryCol,
   addrLine1Col,
   addrLine2Col,
@@ -93,3 +92,34 @@ export const locationCols: GridColDef<ILocation>[] = [
   createdCol,
   updatedCol,
 ];
+
+export const LOCATION_COLUMN_VISIBILITY: GridColumnVisibilityModel = {
+  id: false,
+  product: false,
+  policyId: false,
+  'address.addressLine1': false,
+  'address.addressLine2': false,
+  'address.city': false,
+  'address.state': false,
+  'address.postal': false,
+  'address.countyName': false,
+  'address.countyFIPS': false,
+  coordinates: false,
+  latitude: false,
+  longitude: false,
+  annualPremium: false,
+  'ratingPropertyData.CBRSDesignation': false,
+  'ratingPropertyData.basement': false,
+  'ratingPropertyData.distToCoastFeet': false,
+  'ratingPropertyData.floodZone': false,
+  'ratingPropertyData.numStories': false,
+  'ratingPropertyData.propertyCode': false,
+  'ratingPropertyData.sqFootage': false,
+  'ratingPropertyData.yearBuilt': false,
+  'ratingPropertyData.replacementCost': false,
+  'ratingPropertyData.ratingDocId': false,
+  ratingDocId: false,
+  externalId: false,
+  'metadata.created': false,
+  'metadata.updated': false,
+};

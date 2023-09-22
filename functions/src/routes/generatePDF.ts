@@ -1,7 +1,7 @@
-import * as bodyParser from 'body-parser';
+// import * as bodyParser from 'body-parser';
 import cors from 'cors';
 import { format } from 'date-fns';
-import express from 'express';
+import express, { json, urlencoded } from 'express';
 import 'express-async-errors';
 import { CollectionReference, getFirestore } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
@@ -56,10 +56,12 @@ interface PremiumTableItem {
 
 const app = express();
 // const router = express.Router();
-
-app.use(cors()); // { origin: true }
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
+// TODO: accepted origins
+app.use(cors({ origin: true })); // { origin: true }
+// app.use(bodyParser.json());
+// app.use(bodyParser.urlencoded({ extended: false }));
+app.use(json());
+app.use(urlencoded({ extended: false }));
 // app.use(validateFirebaseIdToken);
 app.use(currentUser);
 app.use(requireAuth);

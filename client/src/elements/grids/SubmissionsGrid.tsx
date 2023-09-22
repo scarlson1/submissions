@@ -1,13 +1,12 @@
-import { DataObjectRounded } from '@mui/icons-material';
-import { Box, Tooltip } from '@mui/material';
-import { GridActionsCellItem, GridColDef, GridRowParams } from '@mui/x-data-grid';
-import { useCallback, useMemo } from 'react';
+import { Box } from '@mui/material';
+import { GridColDef, GridRowParams } from '@mui/x-data-grid';
+import { useMemo } from 'react';
 import { useSigninCheck } from 'reactfire';
 
-import { COLLECTIONS, CLAIMS, SUBMISSION_STATUS, Submission } from 'common';
+import { CLAIMS, COLLECTIONS, SUBMISSION_STATUS, Submission } from 'common';
 import { ServerDataGrid, ServerDataGridProps } from 'components';
-import { useAsyncToast, useGridActions, useShowJson, useWidth } from 'hooks';
-import { statusCol, submissionCols } from 'modules/muiGrid/gridColumnDefs';
+import { useAsyncToast, useGridActions, useGridShowJson, useWidth } from 'hooks';
+import { SUBMISSION_COLUMN_VISIBILITY, statusCol, submissionCols } from 'modules/muiGrid';
 
 export interface SubmissionsGridProps
   extends Omit<
@@ -25,17 +24,44 @@ export const SubmissionsGrid = ({
 }: SubmissionsGridProps) => {
   const toast = useAsyncToast({ position: 'top-right' });
   const { isSmall } = useWidth();
-  const showJson = useShowJson<Submission>(COLLECTIONS.SUBMISSIONS);
+  // const showJson = useShowJson<Submission>(COLLECTIONS.SUBMISSIONS);
   const { googleMapsAction, floodFactorAction } = useGridActions(toast.error);
+  const renderShowJson = useGridShowJson(
+    COLLECTIONS.SUBMISSIONS,
+    { showInMenu: true },
+    { requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }
+  );
 
   const { data: iDAdminResult } = useSigninCheck({
     requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
   });
 
-  const handleShowJson = useCallback(
-    (params: GridRowParams) => () => showJson(params.id.toString()),
-    [showJson]
-  );
+  // const handleShowJson = useCallback(
+  //   (params: GridRowParams) => () => showJson(params.id.toString()),
+  //   [showJson]
+  // );
+
+  // const renderAdminActions = useCallback(
+  //   (params: GridRowParams<Submission>, options?: ActionOptions) => {
+  //     if (!iDAdminResult.hasRequiredClaims) return [];
+  //     return [
+  //       // @ts-ignore
+  //       <GridActionsCellItem
+  //         icon={
+  //           <Tooltip title='show JSON' placement='top'>
+  //             <DataObjectRounded />
+  //           </Tooltip>
+  //         }
+  //         onClick={handleShowJson(params)}
+  //         label='Show JSON'
+  //         disabled={!iDAdminResult.hasRequiredClaims}
+  //         showInMenu
+  //         {...(options || {})}
+  //       />,
+  //     ];
+  //   },
+  //   [iDAdminResult, handleShowJson]
+  // );
 
   const submissionColumns: GridColDef[] = useMemo(
     () => [
@@ -44,21 +70,22 @@ export const SubmissionsGrid = ({
         headerName: 'Actions',
         type: 'actions',
         width: isSmall ? 80 : 160,
-        getActions: (params: GridRowParams) => [
+        getActions: (params: GridRowParams<Submission>) => [
           ...renderActions(params),
+          ...renderShowJson(params),
           googleMapsAction(params, { showInMenu: isSmall }),
           floodFactorAction(params, { showInMenu: isSmall }),
-          <GridActionsCellItem
-            icon={
-              <Tooltip title='show JSON' placement='top'>
-                <DataObjectRounded />
-              </Tooltip>
-            }
-            onClick={handleShowJson(params)}
-            label='Show JSON'
-            disabled={!iDAdminResult.hasRequiredClaims}
-            showInMenu // showInMenu={isSmall}
-          />,
+          // <GridActionsCellItem
+          //   icon={
+          //     <Tooltip title='show JSON' placement='top'>
+          //       <DataObjectRounded />
+          //     </Tooltip>
+          //   }
+          //   onClick={handleShowJson(params)}
+          //   label='Show JSON'
+          //   disabled={!iDAdminResult.hasRequiredClaims}
+          //   showInMenu // showInMenu={isSmall}
+          // />,
         ],
       },
       {
@@ -81,8 +108,8 @@ export const SubmissionsGrid = ({
     [
       googleMapsAction,
       floodFactorAction,
-      handleShowJson,
       renderActions,
+      renderShowJson,
       additionalColumns,
       iDAdminResult,
       isSmall,
@@ -96,42 +123,11 @@ export const SubmissionsGrid = ({
         columns={submissionColumns}
         density='compact'
         autoHeight
-        // TODO: make "view submission" route exists for all user claim types
+        // TODO: verify "view submission" route exists for all user claim types
         // onCellDoubleClick={}
         initialState={{
           columns: {
-            columnVisibilityModel: {
-              firstName: false,
-              lastName: false,
-              'address.addressLine1': false,
-              'address.addressLine2': false,
-              'address.city': false,
-              'address.state': false,
-              'address.postal': false,
-              'address.countyName': false,
-              'address.countyFIPS': false,
-              'limits.limitA': false,
-              'limits.limitB': false,
-              'limits.limitC': false,
-              'limits.limitD': false,
-              latitude: false,
-              longitude: false,
-              'AALs.inland': false,
-              'AALs.surge': false,
-              'AALs.tsunami': false,
-              'metadata.updated': false,
-              'ratingPropertyData.replacementCost': false,
-              'ratingPropertyData.propertyCode': false,
-              'ratingPropertyData.yearBuilt': false,
-              'ratingPropertyData.sqFootage': false,
-              'ratingPropertyData.numStories': false,
-              'ratingPropertyData.basement': false,
-              'ratingPropertyData.distToCoastFeet': false,
-              'ratingPropertyData.CBRSDesignation': false,
-              'ratingPropertyData.floodZone': false,
-              'ratingPropertyData.priorLossCount': false,
-              propertyDataDocId: false,
-            },
+            columnVisibilityModel: SUBMISSION_COLUMN_VISIBILITY,
           },
           sorting: {
             sortModel: [{ field: 'metadata.created', sort: 'desc' }],

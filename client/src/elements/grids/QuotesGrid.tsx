@@ -1,6 +1,11 @@
 import { SendRounded } from '@mui/icons-material';
 import { Box, Tooltip } from '@mui/material';
-import { GridActionsCellItem, GridColDef, GridRowParams } from '@mui/x-data-grid';
+import {
+  GridActionsCellItem,
+  GridActionsCellItemProps,
+  GridColDef,
+  GridRowParams,
+} from '@mui/x-data-grid';
 import { useCallback, useMemo } from 'react';
 import { useSigninCheck } from 'reactfire';
 
@@ -9,11 +14,7 @@ import { ServerDataGrid } from 'components';
 import { hasAdminClaimsValidator } from 'components/RequireAuthReactFire';
 import { useAuth } from 'context';
 import { useAsyncToast, useGridActions, useSendQuoteNotification, useWidth } from 'hooks';
-import {
-  INITIAL_QUOTE_COLUMN_VISIBILITY,
-  quoteCols,
-  statusCol,
-} from 'modules/muiGrid/gridColumnDefs';
+import { QUOTE_COLUMN_VISIBILITY, quoteCols, statusCol } from 'modules/muiGrid';
 
 // TODO: need to use custom merge function for additionalColumns to prevent duplication "field" values
 
@@ -42,7 +43,27 @@ export const QuotesGrid = ({
     [sendNotifications]
   );
 
-  // TODO: create getActions() helper func to get actions depending on permissions (instead of disabling)
+  // pass in renderActions ??
+  const getAdminActions = useCallback(
+    (params: GridRowParams, adminActionProps?: Partial<GridActionsCellItemProps>) => {
+      if (!authCheckResult.hasRequiredClaims) return [];
+      return [
+        // @ts-ignore // TODO: type props
+        <GridActionsCellItem
+          icon={
+            <Tooltip placement='top' title='Send Notifications'>
+              <SendRounded />
+            </Tooltip>
+          }
+          onClick={handleSendNotifications(params)}
+          label='Send Notifications'
+          disabled={params.row?.status !== QUOTE_STATUS.AWAITING_USER}
+          {...adminActionProps}
+        />,
+      ];
+    },
+    [authCheckResult, handleSendNotifications]
+  );
 
   const quoteColumns: GridColDef[] = useMemo(
     () => [
@@ -55,20 +76,7 @@ export const QuotesGrid = ({
           ...renderActions(params),
           googleMapsAction(params, { showInMenu: true }),
           floodFactorAction(params, { showInMenu: true }),
-          <GridActionsCellItem
-            icon={
-              <Tooltip placement='top' title='Send Notifications'>
-                <SendRounded />
-              </Tooltip>
-            }
-            onClick={handleSendNotifications(params)}
-            label='Send Notifications'
-            disabled={
-              !authCheckResult.hasRequiredClaims ||
-              params.row?.status !== QUOTE_STATUS.AWAITING_USER
-            }
-            showInMenu={isSmall}
-          />,
+          ...getAdminActions(params, { showInMenu: isSmall }),
         ],
       },
       {
@@ -86,14 +94,13 @@ export const QuotesGrid = ({
       ...additionalColumns,
     ],
     [
-      handleSendNotifications,
-      additionalColumns,
       renderActions,
-      isSmall,
-      authCheckResult,
-      claims,
+      getAdminActions,
       googleMapsAction,
       floodFactorAction,
+      additionalColumns,
+      isSmall,
+      claims,
     ]
   );
 
@@ -106,34 +113,7 @@ export const QuotesGrid = ({
         autoHeight
         initialState={{
           columns: {
-            columnVisibilityModel: INITIAL_QUOTE_COLUMN_VISIBILITY,
-            // {
-            //   annualPremium: false,
-            //   'namedInsured.firstName': false,
-            //   'namedInsured.lastName': false,
-            //   'namedInsured.email': false,
-            //   'namedInsured.phone': false,
-            //   'address.addressLine1': false,
-            //   'address.addressLine2': false,
-            //   'address.city': false,
-            //   'address.state': false,
-            //   'address.postal': false,
-            //   'address.countyName': false,
-            //   'address.countyFIPS': false,
-            //   'metadata.updated': false,
-            //   'agent.phone': false,
-            //   'agent.userId': false,
-            //   'ratingPropertyData.replacementCost': false,
-            //   'ratingPropertyData.CBRSDesignation': false,
-            //   'ratingPropertyData.basement': false,
-            //   'ratingPropertyData.distToCoastFeet': false,
-            //   'ratingPropertyData.floodZone': false,
-            //   'ratingPropertyData.numStories': false,
-            //   'ratingPropertyData.propertyCode': false,
-            //   'ratingPropertyData.sqFootage': false,
-            //   'ratingPropertyData.yearBuilt': false,
-            //   'agency.address': false,
-            // },
+            columnVisibilityModel: QUOTE_COLUMN_VISIBILITY,
           },
           sorting: {
             sortModel: [{ field: 'metadata.created', sort: 'desc' }],
