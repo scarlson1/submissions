@@ -1,13 +1,13 @@
-import type { FirestoreEvent } from 'firebase-functions/v2/firestore';
-import { error, info } from 'firebase-functions/logger';
 import { QueryDocumentSnapshot } from 'firebase-admin/firestore';
+import { error, info } from 'firebase-functions/logger';
+import type { FirestoreEvent } from 'firebase-functions/v2/firestore';
 import querystring from 'querystring';
 
+import { Submission, audience, hostingBaseURL, sendgridApiKey } from '../common/index.js';
 import {
   sendNewSubmissionAdminNotification,
   sendSubmissionReceivedConfirmation,
-} from '../services/sendgrid';
-import { Submission, audience, hostingBaseURL, sendgridApiKey } from '../common';
+} from '../services/sendgrid/index.js';
 
 export default async (
   event: FirestoreEvent<
@@ -31,7 +31,7 @@ export default async (
   try {
     const params = {
       firstName: submission.contact.firstName || '',
-      lastname: submission.contact.lastName || '',
+      lastName: submission.contact.lastName || '',
       email: submission.contact.email || '',
     };
     const createAccountURL = `${hostingBaseURL.value()}/auth/create-account?${querystring.encode(

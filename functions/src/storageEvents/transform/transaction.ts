@@ -1,5 +1,4 @@
 import { GeoPoint } from 'firebase-admin/firestore';
-
 import {
   AmendmentTransaction,
   BaseTransaction,
@@ -14,11 +13,11 @@ import {
   Transaction,
   extractNumber,
   extractNumberNeg,
-} from '../../common';
-import { getRCVs } from '../../modules/rating';
-import { premEndorsementPrevTypes } from '../../pubsub/endorsementListener';
-import { TrxRow } from '../models';
-import { csvCellToTimestamp } from './utils';
+} from '../../common/index.js';
+import { getRCVs } from '../../modules/rating/index.js';
+import { premEndorsementPrevTypes } from '../../pubsub/endorsementListener.js';
+import { TrxRow } from '../models/index.js';
+import { csvCellToTimestamp } from './utils.js';
 
 const offsetTrxTypes: OffsetTrxType[] = ['cancellation', 'endorsement', 'flat_cancel'];
 function isOffsetTrx(row: TrxRow) {

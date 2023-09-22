@@ -10,7 +10,7 @@ export const getSurgeRiskScore = (pm: number) => {
   return surgePMRiskArray.findIndex((i) => pm < i);
 };
 
-// TODO: tsunami array
+// TODO: tsunami array - verify correct values are being used (copy/pasted surge ??)
 export const getTsunamiRiskScore = (pm: number) => {
   return tsunamiPMRiskArray.findIndex((i) => pm < i);
 };

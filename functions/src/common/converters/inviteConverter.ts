@@ -1,6 +1,6 @@
 import { DocumentData, QueryDocumentSnapshot } from 'firebase-admin/firestore';
 
-import { Invite, InviteClass } from '../types';
+import { Invite, InviteClass } from '../types.js';
 
 export const inviteConverter = {
   toFirestore(invite: InviteClass): DocumentData {

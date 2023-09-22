@@ -1,9 +1,9 @@
 import { error, info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 
-import { CLAIMS, hostingBaseURL, onlyUnique, sendgridApiKey } from '../common';
-import { sendNewQuoteEmail } from '../services/sendgrid';
-import { onCallWrapper } from '../services/sentry';
+import { CLAIMS, hostingBaseURL, onlyUnique, sendgridApiKey } from '../common/index.js';
+import { sendNewQuoteEmail } from '../services/sendgrid/index.js';
+import { onCallWrapper } from '../services/sentry/index.js';
 
 interface SendNewQuoteNotificationsProps {
   to: string | string[];

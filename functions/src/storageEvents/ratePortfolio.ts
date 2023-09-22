@@ -8,7 +8,6 @@ import { StorageEvent } from 'firebase-functions/v2/storage';
 import fs from 'fs';
 import { tmpdir } from 'os';
 import path from 'path';
-
 import {
   SRRes,
   ValueByRiskType,
@@ -20,28 +19,28 @@ import {
   swissReClientSecret,
   swissReSubscriptionKey,
   unlinkFile,
-} from '../common';
-import { getPremium } from '../modules/rating';
-import { extractSRAALs } from '../modules/rating/getAALs';
-import { swissReBody } from '../modules/rating/swissReBody';
+} from '../common/index.js';
+import { extractSRAALs } from '../modules/rating/getAALs.js';
+import { getPremium } from '../modules/rating/index.js';
+import { swissReBody } from '../modules/rating/swissReBody.js';
 import {
   parseStreamToArray,
   shouldReturnEarly,
   transformHeadersSnakeCase,
   writeArrayToStorage as writeToStorage,
-} from '../modules/storage';
-import { generateSRAccessToken, getSwissReInstance } from '../services';
-import { sendMessage } from '../services/sendgrid';
-import { IRow, TRow } from './models';
+} from '../modules/storage/index.js';
+import { generateSRAccessToken, getSwissReInstance } from '../services/index.js';
+import { sendMessage } from '../services/sendgrid/index.js';
+import { randomFileName, waitMilliSeconds } from '../utils/index.js';
+import { IRow, TRow } from './models/index.js';
 import {
   FlattenedPremData,
   flattenPremData,
   getPremCalcVars,
   getSRVars,
   transformRatePortfolioRow,
-} from './transform';
-import { validateRatePortfolioRow } from './validation/ratePortfolio';
-import { randomFileName, waitMilliSeconds } from '../utils';
+} from './transform/index.js';
+import { validateRatePortfolioRow } from './validation/ratePortfolio.js';
 
 const reportErr = getReportErrorFn('ratePortfolio');
 

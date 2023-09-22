@@ -1,4 +1,4 @@
-import { TRX_PUB_SUB_TOPICS } from '../../common';
+import { TRX_PUB_SUB_TOPICS } from '../../common/index.js';
 import {
   AmendmentPayload,
   EndorsementPayload,
@@ -6,8 +6,8 @@ import {
   PolicyCreatedPayload,
   PolicyRenewalPayload,
   ReinstatementPayload,
-} from '../../pubsub';
-import { publishMessage } from './publishMessage';
+} from '../../pubsub/index.js';
+import { publishMessage } from './publishMessage.js';
 
 export function publishEndorsement(payload: EndorsementPayload) {
   return publishMessage(TRX_PUB_SUB_TOPICS.ENDORSEMENT, payload);

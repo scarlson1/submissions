@@ -1,4 +1,4 @@
-import { Product, TransactionType } from '../../common';
+import { Product, TransactionType } from '../../common/index.js';
 
 export interface TrxRow {
   trxType: TransactionType;

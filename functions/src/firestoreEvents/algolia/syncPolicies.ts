@@ -2,10 +2,16 @@ import algoliasearch, { SearchIndex } from 'algoliasearch';
 import { DocumentSnapshot, Timestamp } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 import type { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
-import { capitalize } from 'lodash';
+import { capitalize } from 'lodash-es';
 
-import { COLLECTIONS, PolicyNew, algoliaAdminKey, algoliaAppId, algoliaIndex } from '../../common';
-import { getVisibleBy } from '../../utils';
+import {
+  COLLECTIONS,
+  PolicyNew,
+  algoliaAdminKey,
+  algoliaAppId,
+  algoliaIndex,
+} from '../../common/index.js';
+import { getVisibleBy } from '../../utils/index.js';
 
 export async function removeAlgoliaRecord(index: SearchIndex, id: string) {
   try {

@@ -14,8 +14,8 @@ import {
   swissReClientId,
   swissReClientSecret,
   swissReSubscriptionKey,
-} from '../common';
-import { GetPropertyDetailsAttomRequest } from './getPropertyDetailsAttom';
+} from '../common/index.js';
+import { GetPropertyDetailsAttomRequest } from './getPropertyDetailsAttom.js';
 
 export const addlocationcalc = onCall(
   { secrets: [swissReClientId, swissReClientSecret, swissReSubscriptionKey] },

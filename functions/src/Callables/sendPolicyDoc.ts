@@ -3,10 +3,10 @@ import { getStorage } from 'firebase-admin/storage';
 import { error, info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 
-import { CLAIMS, policiesCollection, sendgridApiKey } from '../common';
-import { sendPolicyDocDelivery } from '../services/sendgrid';
-import { onCallWrapper } from '../services/sentry';
-import { requireIDemandAdminClaims, validate } from './utils';
+import { CLAIMS, policiesCollection, sendgridApiKey } from '../common/index.js';
+import { sendPolicyDocDelivery } from '../services/sendgrid/index.js';
+import { onCallWrapper } from '../services/sentry/index.js';
+import { requireIDemandAdminClaims, validate } from './utils/index.js';
 
 // TODO: add policy docs as param
 // on front end: allow user to select which documents to deliver

@@ -1,17 +1,17 @@
-import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
-import { info, error } from 'firebase-functions/logger';
 import {
   Auth,
+  TenantAwareAuth,
   UserImportOptions,
   UserImportRecord,
   getAuth,
-  TenantAwareAuth,
 } from 'firebase-admin/auth';
 import { Firestore, Timestamp, getFirestore } from 'firebase-admin/firestore';
+import { error, info } from 'firebase-functions/logger';
+import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 
-import { usersCollection, firebaseHashConfig } from '../common';
-import { onCallWrapper } from '../services/sentry';
-import { requireIDemandAdminClaims, validate } from './utils';
+import { firebaseHashConfig, usersCollection } from '../common/index.js';
+import { onCallWrapper } from '../services/sentry/index.js';
+import { requireIDemandAdminClaims, validate } from './utils/index.js';
 
 // TODO: remove customClaims ??
 // TODO: include customClaims in props ?? ** yes

@@ -1,9 +1,9 @@
 import { add } from 'date-fns';
 import { Timestamp } from 'firebase-admin/firestore';
-import { sumBy } from 'lodash';
+import { geohashForLocation } from 'geofire-common';
+import { sumBy } from 'lodash-es';
 import { v4 as uuidv4 } from 'uuid';
 
-import { geohashForLocation } from 'geofire-common';
 import {
   ILocation,
   License,
@@ -13,12 +13,12 @@ import {
   calcSum,
   calcTerm,
   verify,
-} from '../../common';
-import { getCarrierByState, getRCVs, validateLimits } from '../../modules/rating';
+} from '../../common/index.js';
+import { getCarrierByState, getRCVs, validateLimits } from '../../modules/rating/index.js';
 import {
   getAdditionalInsuredFromQuote,
   getMortgageeInterestFromQuote,
-} from './convertQuoteToPolicy';
+} from './convertQuoteToPolicy.js';
 
 // TODO: update to handle multiple locations once Quote interface / process is updated
 // TODO: move validation outside function and wrap Quote in NonNullable<Quote>

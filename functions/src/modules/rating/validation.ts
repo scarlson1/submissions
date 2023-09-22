@@ -14,7 +14,7 @@ import {
   maxBCD,
   minA,
   verify,
-} from '../../common';
+} from '../../common/index.js';
 
 export function validateLimits(limits: Limits): asserts limits is Limits {
   const MAX_A = maxA.value();

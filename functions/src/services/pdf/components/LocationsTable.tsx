@@ -1,7 +1,7 @@
 import { Text, View } from '@react-pdf/renderer';
 
-import { tableStyles as styles } from '../styles';
-import { ColumnDef, Table } from './Table';
+import { tableStyles as styles } from '../styles.js';
+import { ColumnDef, Table } from './Table.js';
 
 const locationColumns: ColumnDef[] = [
   {

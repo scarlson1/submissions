@@ -1,14 +1,13 @@
 import invariant from 'tiny-invariant';
-
-import { DeepNullable, Limits } from '../../common';
+import { DeepNullable, Limits } from '../../common/index.js';
 import {
   validateAddress,
   validateAgentDetails,
   validateDeductible,
   validateLimits,
   validateSubproducerCommission,
-} from '../../modules/rating';
-import { CSVTransformedQuote } from '../models';
+} from '../../modules/rating/index.js';
+import { CSVTransformedQuote } from '../models/index.js';
 
 /**
  * Validate formatted Quote, after transform function

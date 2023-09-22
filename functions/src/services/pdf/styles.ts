@@ -1,5 +1,5 @@
-import { StyleSheet, Font } from '@react-pdf/renderer';
-import { wordHyphenation } from './wordHyphenation';
+import { Font, StyleSheet } from '@react-pdf/renderer';
+import { wordHyphenation } from './wordHyphenation.js';
 
 Font.register({
   family: 'Roboto',

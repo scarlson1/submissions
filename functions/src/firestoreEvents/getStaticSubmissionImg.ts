@@ -2,8 +2,8 @@ import { type QueryDocumentSnapshot } from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
 import { FirestoreEvent } from 'firebase-functions/v2/firestore';
 
-import { COLLECTIONS, getReportErrorFn } from '../common';
-import { publishGetLocationImages } from '../services/pubsub';
+import { COLLECTIONS, getReportErrorFn } from '../common/index.js';
+import { publishGetLocationImages } from '../services/pubsub/index.js';
 
 // TODO: rename
 const reportErr = getReportErrorFn('getStaticSubmissionImg');
@@ -68,7 +68,7 @@ export default async (
 //   const { coordinates: coords } = snap.data() as Submission;
 
 //   if (!coords || !coords.latitude || !coords.longitude) {
-//     console.log('Policy missing coordinates. falling back on defaut static map images...');
+//     console.log('Policy missing coordinates. falling back on default static map images...');
 //     return 'ok';
 //     // TODO: get default static map images ??
 //   }

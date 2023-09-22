@@ -1,4 +1,4 @@
-import { GetPremiumCalcResult } from '../../modules/rating/getPremium';
+import { GetPremiumCalcResult } from '../../modules/rating/index.js';
 
 export interface FlattenedPremData {
   basementMult: string | number;

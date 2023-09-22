@@ -12,9 +12,9 @@ import {
   extractNumber,
   extractNumberNeg,
   getCardFee,
-} from '../../common';
-import { CSVQuoteRow, CSVTransformedQuote } from '../models';
-import { getFormattedFees } from './policy';
+} from '../../common/index.js';
+import { CSVQuoteRow, CSVTransformedQuote } from '../models/index.js';
+import { getFormattedFees } from './policy.js';
 
 /**
  * Transform csv row to Quote shape

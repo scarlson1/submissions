@@ -1,2 +1,2 @@
-export { generatePolicyDecPDF } from './generatePolicyDecPDF';
-export * from './utils';
+export { generatePolicyDecPDF } from './generatePolicyDecPDF.js';
+export * from './utils.js';

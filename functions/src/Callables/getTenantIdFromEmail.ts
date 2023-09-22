@@ -1,8 +1,8 @@
-import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import { getFirestore } from 'firebase-admin/firestore';
+import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 
-import { usersCollection } from '../common/dbCollections';
-import { onCallWrapper } from '../services/sentry';
+import { usersCollection } from '../common/index.js';
+import { onCallWrapper } from '../services/sentry/index.js';
 
 interface GetTenantIdFromEmailProps {
   email: string;

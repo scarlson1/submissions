@@ -13,10 +13,10 @@ import {
   maxA,
   maxBCD,
   minA,
-} from '../../common';
-import { getSwissReInstance } from '../../services';
-import { getRCVs } from './getRCVs';
-import { swissReBody } from './swissReBody';
+} from '../../common/index.js';
+import { getSwissReInstance } from '../../services/index.js';
+import { getRCVs } from './getRCVs.js';
+import { swissReBody } from './swissReBody.js';
 
 let swissReInstance: AxiosInstance | undefined;
 
@@ -132,7 +132,7 @@ export const validateGetAALsProps = (props: Partial<GetAALsProps>) => {
   invariant(typeof replacementCost === 'number', 'replacementCost must be a number');
   invariant(replacementCost >= 100000, 'replacementCost must be > 100k');
 
-  invariant(limits, 'misssing limits');
+  invariant(limits, 'missing limits');
   const { limitA, limitB, limitC, limitD } = limits;
 
   invariant(

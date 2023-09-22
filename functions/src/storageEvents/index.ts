@@ -6,7 +6,7 @@ import {
   swissReClientId,
   swissReClientSecret,
   swissReSubscriptionKey,
-} from '../common';
+} from '../common/index.js';
 
 export const importpolicies = onObjectFinalized({ secrets: [sendgridApiKey] }, async (event) => {
   await (await import('./importPolicies.js')).default(event);

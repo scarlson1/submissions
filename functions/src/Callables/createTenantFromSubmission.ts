@@ -2,18 +2,23 @@ import { Tenant, getAuth } from 'firebase-admin/auth';
 import { Firestore, Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
-import { kebabCase, random } from 'lodash';
+import { kebabCase, random } from 'lodash-es';
 
-import { hostingBaseURL, isSingleLetter } from '../common';
 import {
+  AGENCY_STATUS,
+  AGENCY_SUBMISSION_STATUS,
+  CLAIMS,
+  Invite,
   agencyApplicationCollection,
+  hostingBaseURL,
   invitesCollection,
+  isSingleLetter,
   orgsCollection,
-} from '../common/dbCollections';
-import { AGENCY_STATUS, AGENCY_SUBMISSION_STATUS, CLAIMS } from '../common/enums';
-import { Invite } from '../common/types';
-import { onCallWrapper } from '../services/sentry';
-import { validate } from './utils';
+} from '../common/index.js';
+// import { AGENCY_STATUS, AGENCY_SUBMISSION_STATUS, CLAIMS, Invite } from '../common';
+// import { Invite } from '../common';
+import { onCallWrapper } from '../services/sentry/index.js';
+import { validate } from './utils/index.js';
 
 // TODO: tenant ID ?? not reusable for idemand ??
 
@@ -102,7 +107,7 @@ const createTenantFromSubmission = async ({
       throw new HttpsError('already-exists', `Org already exists with name ${org?.orgName}`);
     }
   } catch (err) {
-    throw new HttpsError('internal', `error checking for exisiting orgs with same name`);
+    throw new HttpsError('internal', `error checking for existing orgs with same name`);
   }
 
   let newTenantId;

@@ -25,8 +25,8 @@ import {
   Submission,
   Transaction,
   User,
-} from '../common'; // AgencyApplication, Invite, Notification, Organization,
-import { ClaimsDocData } from '../firestoreEvents';
+} from '../common/index.js'; // AgencyApplication, Invite, Notification, Organization,
+import { ClaimsDocData } from '../firestoreEvents/index.js';
 
 export const createCollection = <T = DocumentData>(db: Firestore, collectionName: string) => {
   return db.collection(collectionName) as CollectionReference<T>;

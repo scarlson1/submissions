@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 // import { FirebaseError } from '@firebase/util';
 
-import { CustomError } from '../errors';
+import { CustomError } from '../errors/index.js';
 // import { IDemandError } from '../errors';
 // import { IDemandAuthError } from '../errors';
 

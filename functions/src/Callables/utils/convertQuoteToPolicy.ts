@@ -14,10 +14,10 @@ import {
   calcSum,
   calcTerm,
   verify,
-} from '../../common';
-import { createDocId, getPolicyTermPremium } from '../../modules/db';
-import { getCarrierByState, getRCVs, validateLimits } from '../../modules/rating';
-import { compressAddress } from '../../utils';
+} from '../../common/index.js';
+import { createDocId, getPolicyTermPremium } from '../../modules/db/index.js';
+import { getCarrierByState, getRCVs, validateLimits } from '../../modules/rating/index.js';
+import { compressAddress } from '../../utils/index.js';
 
 export const getPolicyLocationsFromQuote = (data: Quote, policyId: string) => {
   validateLimits(data.limits);

@@ -6,9 +6,9 @@ import {
 } from 'fast-csv';
 import { error, info, warn } from 'firebase-functions/logger';
 import fs from 'fs';
-import { camelCase, snakeCase } from 'lodash';
+import { camelCase, snakeCase } from 'lodash-es';
 
-import { DeepNullable } from '../../common';
+import { DeepNullable } from '../../common/index.js';
 
 export interface InvalidRow {
   rowNum: number;

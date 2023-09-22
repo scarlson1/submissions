@@ -1,11 +1,11 @@
-import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import { getFirestore } from 'firebase-admin/firestore';
+import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 
-import { invitesCollection } from '../common/dbCollections';
-import { inviteConverter } from '../common/converters';
-import { CLAIMS, audience, sendgridApiKey } from '../common';
-import { sendUserInvite } from '../services/sendgrid';
-import { onCallWrapper } from '../services/sentry';
+// import { invitesCollection } from '../common/dbCollections';
+import { inviteConverter } from '../common/converters/index.js';
+import { CLAIMS, audience, invitesCollection, sendgridApiKey } from '../common/index.js';
+import { sendUserInvite } from '../services/sendgrid/index.js';
+import { onCallWrapper } from '../services/sentry/index.js';
 
 interface ResendInviteProps {
   orgId: string;

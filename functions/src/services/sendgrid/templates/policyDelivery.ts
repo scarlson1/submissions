@@ -1,9 +1,9 @@
-interface PoliicyDeliveryProps {
+interface PolicyDeliveryProps {
   toName?: string;
   addressName?: string;
 }
 
-export const policyDelivery = ({ toName, addressName }: PoliicyDeliveryProps) => {
+export const policyDelivery = ({ toName, addressName }: PolicyDeliveryProps) => {
   return `<!doctype html>
       <html>
         <head>

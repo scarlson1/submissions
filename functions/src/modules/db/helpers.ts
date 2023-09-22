@@ -1,8 +1,8 @@
-import { round, sumBy } from 'lodash';
+import { round, sumBy } from 'lodash-es';
 import { customAlphabet } from 'nanoid';
 
-import { ILocation, PolicyLocation, PolicyNew } from '../../common';
-import { compressAddress } from '../../utils';
+import { ILocation, PolicyLocation, PolicyNew } from '../../common/index.js';
+import { compressAddress } from '../../utils/index.js';
 
 export const locationToPolicyLocation = (location: ILocation): PolicyLocation => ({
   coords: location.coordinates,

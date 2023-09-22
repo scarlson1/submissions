@@ -1,7 +1,7 @@
-import invariant from 'tiny-invariant';
 import { info, warn } from 'firebase-functions/logger';
+import invariant from 'tiny-invariant';
 
-import { getReportErrorFn } from '../../common';
+import { getReportErrorFn } from '../../common/index.js';
 
 const reportErr = getReportErrorFn('firestoreEvent');
 

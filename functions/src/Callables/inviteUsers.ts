@@ -1,12 +1,19 @@
-import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
-import { error, info } from 'firebase-functions/logger';
-import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
+import { Timestamp, getFirestore } from 'firebase-admin/firestore';
+import { error, info } from 'firebase-functions/logger';
+import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 
-import { invitesCollection, orgsCollection } from '../common/dbCollections';
-import { inviteConverter } from '../common/converters';
-import { CLAIMS, INVITE_STATUS, InviteClass, iDemandOrgId } from '../common';
-import { onCallWrapper } from '../services/sentry';
+// import { invitesCollection, orgsCollection } from '../common/dbCollections';
+import { inviteConverter } from '../common/converters/index.js';
+import {
+  CLAIMS,
+  INVITE_STATUS,
+  InviteClass,
+  iDemandOrgId,
+  invitesCollection,
+  orgsCollection,
+} from '../common/index.js';
+import { onCallWrapper } from '../services/sentry/index.js';
 
 // TODO: allow invites without tenant association ??
 // TODO: rename to inviteOrgUsers

@@ -1,4 +1,4 @@
-import { ceil, floor, round } from 'lodash';
+import { ceil, floor, round } from 'lodash-es';
 import {
   FeeItem,
   FeeItemName,
@@ -7,8 +7,8 @@ import {
   TaxItem,
   TaxItemName,
   sumByTypes,
-} from '../../common';
-import { SubjectBaseKeyVal } from '../db';
+} from '../../common/index.js';
+import { SubjectBaseKeyVal } from '../db/index.js';
 
 interface TaxCalcProps {
   premium: number;

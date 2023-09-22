@@ -1,3 +1,4 @@
+import { isValid } from 'date-fns';
 import { warn } from 'firebase-functions/logger';
 import {
   AmendmentTransaction,
@@ -10,9 +11,8 @@ import {
   Transaction,
   TransactionType,
   verify,
-} from '../../common';
-import { validateDeductible, validateLimits, validateRCVs } from '../../modules/rating';
-import { isValid } from 'date-fns';
+} from '../../common/index.js';
+import { validateDeductible, validateLimits, validateRCVs } from '../../modules/rating/index.js';
 
 const trxTypes: TransactionType[] = [
   'amendment',

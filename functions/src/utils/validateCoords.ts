@@ -1,8 +1,7 @@
 import { GeoPoint } from 'firebase-admin/firestore';
-import { isFinite } from 'lodash';
-
-import { Coordinates, Nullable } from '../common';
-import { betweenRange } from './helpers';
+import { isFinite } from 'lodash-es';
+import { Coordinates, Nullable } from '../common/index.js';
+import { betweenRange } from './helpers.js';
 
 export const isValidCoords = (
   val: GeoPoint | Nullable<Coordinates> | null | undefined

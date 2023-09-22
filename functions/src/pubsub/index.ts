@@ -1,6 +1,6 @@
 import { onMessagePublished } from 'firebase-functions/v2/pubsub';
 
-import { PUB_SUB_TOPICS, sendgridApiKey } from '../common';
+import { PUB_SUB_TOPICS, sendgridApiKey } from '../common/index.js';
 
 // TODO: failureRetry policy
 
@@ -53,9 +53,9 @@ export const locationcancellistener = onMessagePublished(
   }
 );
 
-export type { AmendmentPayload } from './amendmentListener';
-export type { EndorsementPayload } from './endorsementListener';
-export type { LocationCancelPayload } from './locationCancelListener';
-export { PolicyCreatedPayload } from './policyCreatedListener';
-export { PolicyRenewalPayload } from './policyRenewalListener';
-export { ReinstatementPayload } from './reinstatementListener';
+export type { AmendmentPayload } from './amendmentListener.js';
+export type { EndorsementPayload } from './endorsementListener.js';
+export type { LocationCancelPayload } from './locationCancelListener.js';
+export { PolicyCreatedPayload } from './policyCreatedListener.js';
+export { PolicyRenewalPayload } from './policyRenewalListener.js';
+export { ReinstatementPayload } from './reinstatementListener.js';

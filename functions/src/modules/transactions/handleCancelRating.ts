@@ -12,11 +12,11 @@ import {
   locationsCollection,
   policiesCollectionNew,
   verify,
-} from '../../common';
-import { getDoc } from '../../routes/utils';
-import { calcPolicyPremium, sumFeesTaxesPremium } from '../rating';
-import { setChangeRequestErr } from './handleEndorsementRating';
-import { recalcTaxes } from './taxes';
+} from '../../common/index.js';
+import { getDoc } from '../../routes/utils/index.js';
+import { calcPolicyPremium, sumFeesTaxesPremium } from '../rating/index.js';
+import { setChangeRequestErr } from './handleEndorsementRating.js';
+import { recalcTaxes } from './taxes.js';
 
 const reportErr = getReportErrorFn('policyChangeRequest.handleCancelRating');
 

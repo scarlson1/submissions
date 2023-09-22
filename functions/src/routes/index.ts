@@ -7,7 +7,7 @@ import {
   firebaseHashConfig,
   // sendGridWebhookVerificationKey,
   sendgridApiKey,
-} from '../common';
+} from '../common/index.js';
 
 // TODO: upgrade to v2 onRequest (need to get hosting rewrite to work b/c v2 uses cloud run & creates new url every deploy)
 

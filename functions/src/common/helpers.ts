@@ -2,14 +2,14 @@ import { add, differenceInCalendarDays, Duration } from 'date-fns';
 import { DocumentReference } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 import fs from 'fs';
-import { get, isEqual, remove } from 'lodash';
+import { get, isEqual, remove } from 'lodash-es';
 import numeral from 'numeral';
-import { inspect } from 'util';
 import invariant from 'tiny-invariant';
+import { inspect } from 'util';
 
-import { reportErrorSentry } from '../services/sentry';
-import { cardFeePct } from './environmentVars';
-import { Path, Primitive } from './types';
+import { reportErrorSentry } from '../services/sentry/index.js';
+import { cardFeePct } from './environmentVars.js';
+import { Path, Primitive } from './types.js';
 
 /**
  * Sums an array of numbers

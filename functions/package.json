@@ -1,5 +1,6 @@
 {
   "name": "functions",
+  "type": "module",
   "scripts": {
     "lint": "eslint --ext .js,.ts .",
     "build": "rm -rf ./dist/ && tsc",
@@ -25,7 +26,7 @@
     ]
   },
   "engines": {
-    "node": "20"
+    "node": "16"
   },
   "main": "dist/index.js",
   "dependencies": {
@@ -80,7 +81,7 @@
     "@types/html-to-text": "^9.0.1",
     "@types/hyphen": "^1.6.5",
     "@types/jest": "^29.5.3",
-    "@types/lodash-es": "^4.17.6",
+    "@types/lodash-es": "^4.17.9",
     "@types/numeral": "^2.0.2",
     "@types/react": "^18.2.16",
     "@types/supertest": "^2.0.12",

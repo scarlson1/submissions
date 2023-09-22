@@ -1,5 +1,5 @@
 import { Timestamp } from 'firebase-admin/firestore';
-import { round } from 'lodash';
+import { round } from 'lodash-es';
 
 import {
   ILocation,
@@ -8,8 +8,8 @@ import {
   PremiumTransaction,
   WithId,
   getTermDays,
-} from '../../common';
-import { getBookingDate, getMGAComm } from './utils';
+} from '../../common/index.js';
+import { getBookingDate, getMGAComm } from './utils.js';
 
 export const getReinstatementTrx = (
   policy: WithId<PolicyNew>,

@@ -1,8 +1,8 @@
+import axios from 'axios';
 import { error, info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
-import axios from 'axios';
 
-import { onCallWrapper } from '../services/sentry';
+import { onCallWrapper } from '../services/sentry/index.js';
 
 interface GetRiskFactorIdProps {
   addressLine1: string;

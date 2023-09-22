@@ -19,23 +19,26 @@ import {
   locationsCollection,
   policiesCollectionNew,
   statesList,
-} from '../common';
-import { getAllById } from '../modules/db';
+} from '../common/index.js';
+import { getAllById } from '../modules/db/index.js';
+import {
+  AdditionalInterestsItem,
+  PolicyDecPDFLocations,
+} from '../services/pdf/components/index.js';
 import {
   formatLocationData,
   generatePolicyDecPDF,
   getLocationInterests,
   getPremiumTable,
   tiptapJsonToText,
-} from '../services/pdf';
-import { AdditionalInterestsItem, PolicyDecPDFLocations } from '../services/pdf/components';
+} from '../services/pdf/index.js';
 import {
   currentUser,
   errorHandler,
   generatePDFSchema,
   requireAuth,
   validateRequest,
-} from './middlewares';
+} from './middlewares/index.js';
 
 // https://github.com/firebase/functions-samples/blob/main/Node-1st-gen/authorized-https-endpoint/functions/index.js
 
@@ -54,7 +57,7 @@ interface PremiumTableItem {
 const app = express();
 // const router = express.Router();
 
-app.use(cors({ origin: true }));
+app.use(cors()); // { origin: true }
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 // app.use(validateFirebaseIdToken);

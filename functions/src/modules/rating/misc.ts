@@ -1,3 +1,4 @@
+// TODO: move to module
 export function getCarrierByState(state: string) {
   switch (state) {
     case 'CA':

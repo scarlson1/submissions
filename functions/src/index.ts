@@ -9,7 +9,7 @@ export {
   createFirestoreUser,
   setClaimsFromInvite,
   setUidByEmailOnCreate,
-} from './authEvents';
+} from './authEvents/index.js';
 export {
   addlocationcalc,
   approvechangerequest,
@@ -34,7 +34,16 @@ export {
   sendnewquotenotifications,
   sendpolicydoc,
   verifyepaytoken,
-} from './callables';
+} from './callables/index.js';
+export {
+  algoliasynclocations,
+  algoliasyncorgs,
+  algoliasyncpolicies,
+  algoliasyncquotes,
+  algoliasyncsubmissions,
+  algoliasynctransactions,
+  algoliasyncusers,
+} from './firestoreEvents/algolia/index.js';
 export {
   getstaticsubmissionimg,
   getsubmissionaal,
@@ -46,22 +55,13 @@ export {
   policychangerequest,
   // policycreated,
   sendinviteemail,
-} from './firestoreEvents';
-export {
-  algoliasynclocations,
-  algoliasyncorgs,
-  algoliasyncpolicies,
-  algoliasyncquotes,
-  algoliasyncsubmissions,
-  algoliasynctransactions,
-  algoliasyncusers,
-} from './firestoreEvents/algolia';
+} from './firestoreEvents/index.js';
 export {
   versionlocation,
   versionpolicy,
   versionquote,
   versionsubmission,
-} from './firestoreEvents/versions';
+} from './firestoreEvents/versions/index.js';
 export {
   amendmentlistener,
   endorsementlistener,
@@ -70,18 +70,18 @@ export {
   markpaidonpaymentcomplete,
   policycreatedlistener,
   policyrenewallistener,
-} from './pubsub';
-export { authRequests, authrequeststest, generatepdf, sendgrid } from './routes';
-export { checkachstatus } from './scheduler';
+} from './pubsub/index.js';
+export { authRequests, authrequeststest, generatepdf, sendgrid } from './routes/index.js';
+export { checkachstatus } from './scheduler/index.js';
 export {
   getfips,
   importpolicies,
   importquotes,
   importtransactions,
   rateportfolio,
-} from './storageEvents';
+} from './storageEvents/index.js';
 
-export { pubsubhelper } from './routes';
+export { pubsubhelper } from './routes/index.js';
 // export { testEmulatorsCheckAchStatus } from './pubsub/checkAchStatus';
 
 // CALLABLES

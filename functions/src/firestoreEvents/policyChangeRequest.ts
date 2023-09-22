@@ -10,12 +10,16 @@ import {
   isValidEmail,
   policiesCollection,
   sendgridApiKey,
-} from '../common';
-import { handleCancelRating, handleRatingForEndorsement } from '../modules/transactions';
-import { getDoc } from '../routes/utils';
-import { publishAmendment, publishEndorsement, publishLocationCancel } from '../services/pubsub';
-import { sendAdminChangeRequestNotification, sendMessage } from '../services/sendgrid';
-import { validate } from './utils';
+} from '../common/index.js';
+import { handleCancelRating, handleRatingForEndorsement } from '../modules/transactions/index.js';
+import { getDoc } from '../routes/utils/index.js';
+import {
+  publishAmendment,
+  publishEndorsement,
+  publishLocationCancel,
+} from '../services/pubsub/index.js';
+import { sendAdminChangeRequestNotification, sendMessage } from '../services/sendgrid/index.js';
+import { validate } from './utils/index.js';
 
 const reportErr = getReportErrorFn('policyChangeRequest');
 

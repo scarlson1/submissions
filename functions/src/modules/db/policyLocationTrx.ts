@@ -14,8 +14,8 @@ import {
   locationsCollection,
   policiesCollectionNew,
   verify,
-} from '../../common';
-import { deepMergeOverwriteArrays } from '../utils';
+} from '../../common/index.js';
+import { deepMergeOverwriteArrays } from '../utils/index.js';
 
 function isLcnChangeReq(
   changeReq: ChangeRequest

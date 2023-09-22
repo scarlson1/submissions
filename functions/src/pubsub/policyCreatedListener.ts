@@ -9,15 +9,15 @@ import {
   splitChunks,
   transactionsCollection,
   verify,
-} from '../common';
-import { getAllById } from '../modules/db';
+} from '../common/index.js';
+import { getAllById } from '../modules/db/index.js';
 import {
   constructTrxId,
   docExists,
   fetchPolicyData,
   fetchRatingData,
   formatPremiumTrx,
-} from '../modules/transactions';
+} from '../modules/transactions/index.js';
 
 // using JS Module over classes: https://dev.to/giantmachines/stop-using-javascript-classes-33ij
 

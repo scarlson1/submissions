@@ -19,7 +19,7 @@ import { projectID } from 'firebase-functions/params';
 
 // TODO: add msgType to customArgs (ex: msgType: 'deliver policy')
 
-import { EmailTemplates, env, onlyUniqueObj } from '../../common';
+import { EmailTemplates, env, onlyUniqueObj } from '../../common/index.js';
 import {
   adminChangeRequest,
   adminImportNotification,
@@ -35,7 +35,7 @@ import {
   quoteExpiringSoon,
   submissionReceived,
   userInvite,
-} from './templates';
+} from './templates/index.js';
 
 export interface AttachmentJSON {
   content: string;
@@ -55,6 +55,7 @@ export interface CreateMsgContentProps extends Omit<MailData, 'from'> {
   attachments?: AttachmentJSON[];
 }
 
+// TODO: move to ./utils ??
 function uniqueEmails(to: EmailData | EmailData[]) {
   let uniqueTo = to;
   if (Array.isArray(to)) {

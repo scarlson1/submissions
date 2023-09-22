@@ -1,1 +1,1 @@
-export { inviteConverter } from './inviteConverter';
+export { inviteConverter } from './inviteConverter.js';

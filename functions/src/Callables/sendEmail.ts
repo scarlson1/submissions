@@ -2,7 +2,7 @@
 import { info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 
-import { sendgridApiKey } from '../common';
+import { sendgridApiKey } from '../common/index.js';
 import {
   SendAgencyApprovedProps,
   SendContactProps,
@@ -14,9 +14,9 @@ import {
   sendInvite,
   sendNewQuote,
   sendPolicyDelivery,
-} from '../services/sendgrid/actions';
-import { onCallWrapper } from '../services/sentry';
-import { requireIDemandAdminClaims, validate } from './utils';
+} from '../services/sendgrid/actions/index.js';
+import { onCallWrapper } from '../services/sentry/index.js';
+import { requireIDemandAdminClaims, validate } from './utils/index.js';
 
 // TODO: discriminating union for template props
 // type BaseProps = { templateId:  }
@@ -32,7 +32,7 @@ const sendEmail = async ({ data, auth }: CallableRequest<SendEmailProps>) => {
   const { to, templateId } = data;
 
   validate(to, 'failed-precondition', 'missing "to" (recipients)');
-  validate(templateId, 'failed-precondition', 'missing tempalteId');
+  validate(templateId, 'failed-precondition', 'missing templateId');
 
   const sgKey = sendgridApiKey.value();
 
@@ -57,7 +57,7 @@ const sendEmail = async ({ data, auth }: CallableRequest<SendEmailProps>) => {
       });
 
     case 'invite':
-      // TODO: finsih handleSendInvite
+      // TODO: finish handleSendInvite
       return sendInvite(sgKey, {
         ...data,
         // templateId: 'invite',

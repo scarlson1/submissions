@@ -12,15 +12,15 @@ import {
   getReportErrorFn,
   transactionsCollection,
   verify,
-} from '../common';
+} from '../common/index.js';
 import {
   constructTrxId,
   docExists,
   fetchPolicyData,
   fetchPreviousTrx,
   getOffsetTrx,
-} from '../modules/transactions';
-import { premEndorsementPrevTypes } from './endorsementListener';
+} from '../modules/transactions/index.js';
+import { premEndorsementPrevTypes } from './endorsementListener.js';
 
 const reportErr = getReportErrorFn('locationCancelListener');
 

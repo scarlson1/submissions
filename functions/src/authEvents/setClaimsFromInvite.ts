@@ -1,9 +1,9 @@
-import { EventContext } from 'firebase-functions/v1';
-import { error, info } from 'firebase-functions/logger';
-import { Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { UserRecord } from 'firebase-admin/auth';
+import { Timestamp, getFirestore } from 'firebase-admin/firestore';
+import { error, info } from 'firebase-functions/logger';
+import { EventContext } from 'firebase-functions/v1';
 
-import { iDemandOrgId, invitesCollection, userClaimsCollection } from '../common';
+import { iDemandOrgId, invitesCollection, userClaimsCollection } from '../common/index.js';
 
 // BUG - are claims set when user is move to tenant ?? (and status stays pending)
 

@@ -1,6 +1,6 @@
 import { PubSub } from '@google-cloud/pubsub';
-import { Request, Response } from 'firebase-functions/v1';
 import { error } from 'firebase-functions/logger';
+import { Request, Response } from 'firebase-functions/v1';
 
 // work-around to publish in emulator environment (can trigger from postman)
 
@@ -51,7 +51,7 @@ export default async (request: Request, response: Response) => {
   //     .status(201)
   //     .send({ success: `Published to pubsub ${t} -- message ID: ${messageId}`, messageId });
   // } catch (err) {
-  //   console.log('ERROR PUBLIHING MESSAGE: ', err);
+  //   console.log('ERROR PUBLISHING MESSAGE: ', err);
   //   response.status(200).send({});
   // }
 };

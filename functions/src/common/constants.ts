@@ -1,4 +1,4 @@
-import { FeeItemName, TaxItemName } from './types';
+import { FeeItemName, TaxItemName } from './types.js';
 
 export const statesList: Record<string, string> = {
   AL: 'Alabama',

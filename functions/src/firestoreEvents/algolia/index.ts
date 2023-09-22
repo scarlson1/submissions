@@ -1,6 +1,6 @@
 import { onDocumentWritten } from 'firebase-functions/v2/firestore';
 
-import { COLLECTIONS, algoliaAdminKey } from '../../common';
+import { COLLECTIONS, algoliaAdminKey } from '../../common/index.js';
 
 // DOCS REF: https://firebase.google.com/docs/reference/functions/2nd-gen/node/firebase-functions.firestore.md#firestoreondocumentwritten
 

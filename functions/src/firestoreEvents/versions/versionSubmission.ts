@@ -1,11 +1,11 @@
 import { DocumentSnapshot, FieldValue, Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
 import { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
-import { merge } from 'lodash';
+import { merge } from 'lodash-es';
 
-import { Submission, getReportErrorFn, versionsCollection } from '../../common';
-import { getDifference } from '../../modules/utils';
-import { hasOne } from '../../utils';
+import { Submission, getReportErrorFn, versionsCollection } from '../../common/index.js';
+import { getDifference } from '../../modules/utils/index.js';
+import { hasOne } from '../../utils/index.js';
 
 const VERSION_SUBMISSION_DIFF_KEYS = [
   'deductible',

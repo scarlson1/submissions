@@ -1,8 +1,7 @@
 // @ts-nocheck
 import { Text, View } from '@react-pdf/renderer';
-
 import { ReactNode } from 'react';
-import { tableStyles as styles } from '../styles';
+import { tableStyles as styles } from '../styles.js';
 
 // https://stackoverflow.com/a/63299486/10887890
 
@@ -62,7 +61,7 @@ export const Table = ({ columns, data, id }: TableProps) => {
             if (colDef?.minWidth) cellStyle['minWidth'] = `${colDef.minWidth ?? 100}px`;
             if (colDef?.alignContent) cellStyle['textAlign'] = colDef.alignContent;
 
-            if (colDef?.renderCell) return colDef.renderCell({ value: val, cellStyles });
+            if (colDef?.renderCell) return colDef.renderCell({ value: val, cellStyle });
 
             // TODO: calculate break point
             return (

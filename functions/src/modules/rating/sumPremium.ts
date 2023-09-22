@@ -1,4 +1,4 @@
-import { round } from 'lodash';
+import { round } from 'lodash-es';
 
 import {
   FeeItem,
@@ -8,7 +8,7 @@ import {
   WithRequired,
   sumArr,
   sumByTypes,
-} from '../../common';
+} from '../../common/index.js';
 
 export type PolicyWithTermPrem = WithRequired<
   Partial<ILocation> | Partial<PolicyLocation>,

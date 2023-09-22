@@ -1,4 +1,4 @@
-import type { Limits, RCVs } from '../../common';
+import type { Limits, RCVs } from '../../common/index.js';
 
 /**
  * Calculate RCVs for each limit from building RCV & limits

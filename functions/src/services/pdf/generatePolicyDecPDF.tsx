@@ -1,16 +1,21 @@
-import ReactPDF, { Page, Text, View, Document, Image } from '@react-pdf/renderer';
+import ReactPDF, { Document, Image, Page, Text, View } from '@react-pdf/renderer';
 
 import {
-  LocationsTable,
-  PolicyDecPDFLocations,
   AdditionalInterestsItem,
   AdditionalInterestsTable,
+  LocationsTable,
+  PolicyDecPDFLocations,
   PremiumTable,
   PremiumTableItem,
-} from './components';
-import { styles } from './styles';
-import { MinEarnedPremiumPage } from './pages/MinEarnedPremium';
-import { CommunicableDiseasePage, CyberPage, SinkholePage, StateDisclosurePage } from './pages';
+} from './components/index.js';
+import {
+  CommunicableDiseasePage,
+  CyberPage,
+  MinEarnedPremiumPage,
+  SinkholePage,
+  StateDisclosurePage,
+} from './pages/index.js';
+import { styles } from './styles.js';
 
 export const IDEMAND_LOGO_URL = 'https://scarlson1.github.io/iDemand_SPI_720x240.png';
 
@@ -67,7 +72,7 @@ const DecPagePDF = ({ data }: PDFProps) => {
 
   return (
     <Document
-      creator='iDemand Insurace Agency, Inc.'
+      creator='iDemand Insurance Agency, Inc.'
       title={`Policy declarations - ${data.policyId}`}
       subject='Policy declarations'
       author='iDemand'
@@ -219,7 +224,7 @@ const DecPagePDF = ({ data }: PDFProps) => {
                 <KeyValItem title='License #:' value={data.surplusLinesLicenseNum} />
               )}
               {data.surplusLinesLicenseState && (
-                <KeyValItem title='Issusing St.:' value={data.surplusLinesLicenseState} />
+                <KeyValItem title='Issuing St.:' value={data.surplusLinesLicenseState} />
               )}
               {data.surplusLinesLicensePhone ? (
                 <KeyValItem title='Phone:' value={data.surplusLinesLicensePhone} />

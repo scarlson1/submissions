@@ -157,6 +157,6 @@ export const getFirebaseAuthErrorMessage = (error: unknown) => {
 //     case 'auth/invalid-phone-number':
 
 //     default:
-//       errorMessage = 'An error occured'
+//       errorMessage = 'An error occurred'
 
 // }

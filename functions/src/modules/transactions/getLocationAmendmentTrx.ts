@@ -1,6 +1,12 @@
 import { Timestamp } from 'firebase-admin/firestore';
 
-import { AmendmentTransaction, ILocation, PolicyNew, WithId, getTermDays } from '../../common';
+import {
+  AmendmentTransaction,
+  ILocation,
+  PolicyNew,
+  WithId,
+  getTermDays,
+} from '../../common/index.js';
 
 export const getLocationAmendmentTrx = (
   policy: WithId<PolicyNew>,

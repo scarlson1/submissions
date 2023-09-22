@@ -2,9 +2,9 @@ import sgMail from '@sendgrid/mail';
 import { error, info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 
-import { audience, sendgridApiKey } from '../common';
-import { newContactMessage } from '../services/sendgrid/templates';
-import { onCallWrapper } from '../services/sentry';
+import { audience, sendgridApiKey } from '../common/index.js';
+import { newContactMessage } from '../services/sendgrid/templates/index.js';
+import { onCallWrapper } from '../services/sentry/index.js';
 
 interface SendContactEmailProps {
   userEmail: string;

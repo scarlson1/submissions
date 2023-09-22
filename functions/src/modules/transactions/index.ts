@@ -1,12 +1,12 @@
-export { formatPremiumTrx } from './formatPremiumTrx';
-export { getLocationAmendmentTrx } from './getLocationAmendmentTrx';
-export { getOffsetTrx } from './getOffsetTrx';
-export { getPolicyAmendmentTrx } from './getPolicyAmendmentTrx';
-export { getReinstatementTrx } from './getReinstatementTrx';
-export { handleCancelRating } from './handleCancelRating';
-export { handleRatingForEndorsement, setChangeRequestErr } from './handleEndorsementRating';
-export * from './taxes';
-export * from './utils';
+export { formatPremiumTrx } from './formatPremiumTrx.js';
+export { getLocationAmendmentTrx } from './getLocationAmendmentTrx.js';
+export { getOffsetTrx } from './getOffsetTrx.js';
+export { getPolicyAmendmentTrx } from './getPolicyAmendmentTrx.js';
+export { getReinstatementTrx } from './getReinstatementTrx.js';
+export { handleCancelRating } from './handleCancelRating.js';
+export { handleRatingForEndorsement, setChangeRequestErr } from './handleEndorsementRating.js';
+export * from './taxes.js';
+export * from './utils.js';
 
 // trxEffDates:
 //    - policy amendment: user

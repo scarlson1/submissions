@@ -1,6 +1,6 @@
 import { DocumentData, DocumentReference, Firestore, Timestamp } from 'firebase-admin/firestore';
 import { error } from 'firebase-functions/logger';
-import { round } from 'lodash';
+import { round } from 'lodash-es';
 import {
   AmendmentTransaction,
   OffsetTransaction,
@@ -13,7 +13,7 @@ import {
   policiesCollectionNew,
   ratingDataCollection,
   transactionsCollection,
-} from '../../common';
+} from '../../common/index.js';
 
 /**
  * Check if a transaction already exists in database

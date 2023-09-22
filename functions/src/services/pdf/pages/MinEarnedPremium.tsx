@@ -1,7 +1,7 @@
 import { Page, Text, View } from '@react-pdf/renderer';
 
-import { styles } from '../styles';
-import { EndorsementReadCarefully, InsetWrapper, OrderedListItem } from '../components';
+import { EndorsementReadCarefully, InsetWrapper, OrderedListItem } from '../components/index.js';
+import { styles } from '../styles.js';
 
 export const MinEarnedPremiumPage = () => {
   return (

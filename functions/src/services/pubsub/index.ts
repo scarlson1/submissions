@@ -1,3 +1,3 @@
-export { publishMessage } from './publishMessage';
-export * from './publishers';
-export * from './trxPublishers';
+export { publishMessage } from './publishMessage.js';
+export * from './publishers.js';
+export * from './trxPublishers.js';

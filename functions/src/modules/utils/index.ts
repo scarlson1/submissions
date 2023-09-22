@@ -1,2 +1,2 @@
-export * from './customDeepMerge';
-export * from './getDifference';
+export * from './customDeepMerge.js';
+export * from './getDifference.js';
