@@ -52,6 +52,7 @@ import {
 } from 'hooks';
 import {
   compressedToFormattedAddr,
+  formatDate,
   formatFirestoreTimestamp,
   formatPhoneNumber,
   stringAvatar,
@@ -210,7 +211,9 @@ export const Policy = () => {
                 divider={<Divider orientation='vertical' flexItem />}
                 justifyContent='space-between'
               >
-                <StatBox title='Insured Value' value='$1.2M' />
+                {/* TODO: uncomment once insured value is available */}
+                {/* <StatBox title='Insured Value' value='$1.2M' /> */}
+                <StatBox title='Effective' value={formatDate(data?.effectiveDate?.toDate())} />
                 <StatBox
                   title='Status'
                   value={`${data?.status === POLICY_STATUS.PAID ? 'active' : 'inactive'}`}

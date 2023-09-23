@@ -13,9 +13,11 @@ import {
   NewAddress,
   postalMaskProps,
 } from 'components/forms';
-import { findAddressValueByType } from 'modules/utils/helpers';
+import { extractAddressFromGeoCode } from './FormikAddressLite';
 
 // TODO: filter textFieldProps for overlap with InputProps and pass to postal field
+// TODO: refactor - pass children within grid ??
+//
 
 export interface AddressFieldNames {
   addressLine1: string;
@@ -68,7 +70,7 @@ export interface FormikAddressProps {
   cb?: (coords: { lat: number | null; lng: number | null }, state?: string) => void;
   selectFieldProps?: Omit<NativeSelectProps, 'name' | 'label'>;
   gridProps?: Grid2Props;
-  names?: AddressFieldNames; // TODO: make partial
+  names?: Partial<AddressFieldNames>; // TODO: make partial
   children?: React.ReactNode;
   textFieldProps?: TextFieldProps;
   autocompleteProps?: Omit<AddressAutocompleteProps, 'resetFields' | 'handleSelection'>;
@@ -99,27 +101,20 @@ export const FormikAddress = ({
   );
 
   const handleAddressSelection = useCallback(
-    ({ address_components, geometry }: NewAddress) => {
-      const newStreetNumber = findAddressValueByType(address_components, 'street_number');
-      const newStreetName = findAddressValueByType(address_components, 'route');
-      const newCity = findAddressValueByType(address_components, 'locality');
-      const newCounty = findAddressValueByType(address_components, 'administrative_area_level_2');
-      const newState = findAddressValueByType(address_components, 'administrative_area_level_1');
-      const newPostal = findAddressValueByType(address_components, 'postal_code');
+    (geocodeResult: NewAddress) => {
+      const { addressLine1, city, state, postal, county, latitude, longitude } =
+        extractAddressFromGeoCode(geocodeResult);
 
-      setFieldValue(
-        names.addressLine1,
-        `${newStreetNumber?.long_name || ''} ${newStreetName?.long_name || ''}`.trim()
-      );
-      setFieldValue(names.city, `${newCity?.long_name || ''}`);
-      setFieldValue(names.state, `${newState?.short_name || ''}`);
-      setFieldValue(names.postal, `${newPostal?.long_name || ''}`);
-      names.county && setFieldValue(names.county, `${newCounty?.long_name || ''}`);
-      names.latitude && setFieldValue(names.latitude, geometry?.location.lat() ?? null);
-      names.longitude && setFieldValue(names.longitude, geometry?.location.lng() ?? null);
+      names.addressLine1 && setFieldValue(names.addressLine1, addressLine1);
+      names.city && setFieldValue(names.city, city || '');
+      names.state && setFieldValue(names.state, state || '');
+      names.postal && setFieldValue(names.postal, postal || '');
+      names.county && setFieldValue(names.county, county || '');
+      names.latitude && setFieldValue(names.latitude, latitude ?? null);
+      names.longitude && setFieldValue(names.longitude, longitude ?? null);
 
       if (cb) {
-        cb({ lat: geometry?.location.lat(), lng: geometry?.location.lng() }, newState?.short_name);
+        cb({ lat: latitude, lng: longitude }, `${state || ''}`);
       }
 
       names.addressLine2 && document.getElementById(names.addressLine2)?.focus();
@@ -130,10 +125,10 @@ export const FormikAddress = ({
   );
 
   const handleClearAutocomplete = () => {
-    setFieldValue(names.addressLine2, '');
-    setFieldValue(names.city, '');
-    setFieldValue(names.state, '');
-    setFieldValue(names.postal, '');
+    names.addressLine2 && setFieldValue(names.addressLine2, '');
+    names.city && setFieldValue(names.city, '');
+    names.state && setFieldValue(names.state, '');
+    names.postal && setFieldValue(names.postal, '');
     names.county && setFieldValue(names.county, '');
     names.latitude && setFieldValue(names.latitude, '');
     names.longitude && setFieldValue(names.longitude, '');
@@ -156,58 +151,58 @@ export const FormikAddress = ({
             textFieldProps={{ ...textFieldProps, ...(autocompleteProps?.textFieldProps || {}) }}
           />
         </Grid>
-        <Grid item xs={12} sm={4}>
-          <FormikTextField
-            fullWidth
-            id='addressLine2'
-            name={names.addressLine2}
-            label='Unit/Suite'
-            {...textFieldProps}
-            required={false}
-          />
-        </Grid>
-        <Grid item xs={12} sm={4} lg={4}>
-          <FormikTextField
-            fullWidth
-            id='city'
-            name={names.city}
-            label='City'
-            required
-            {...textFieldProps}
-          />
-        </Grid>
-        <Grid item xs={6} sm={4} lg={4}>
-          <FormikNativeSelect
-            name={names.state}
-            label='State'
-            selectOptions={statesAbrvSelectOptions}
-            required
-            sx={{ minWidth: 80 }}
-            {...selectFieldProps}
-          />
-        </Grid>
-        <Grid item xs={6} sm={4} lg={4}>
-          <FormikMaskField
-            id={names.postal}
-            name={names.postal}
-            label='Postal'
-            fullWidth
-            maskComponent={IMask}
-            inputProps={{
-              maskProps: postalMaskProps,
-            }}
-            variant={textFieldProps?.variant === 'standard' ? 'standard' : 'outlined'}
-            size={textFieldProps?.size || 'medium'}
-          />
-          {/* <FormikTextField
-            fullWidth
-            id='postal'
-            name={names.postal}
-            label='Postal'
-            required
-            {...textFieldProps}
-          /> */}
-        </Grid>
+        {names.addressLine2 && (
+          <Grid item xs={12} sm={4}>
+            <FormikTextField
+              fullWidth
+              id='addressLine2'
+              name={names.addressLine2}
+              label='Unit/Suite'
+              {...textFieldProps}
+              required={false}
+            />
+          </Grid>
+        )}
+        {names.city ? (
+          <Grid item xs={12} sm={4} lg={4}>
+            <FormikTextField
+              fullWidth
+              id='city'
+              name={names.city}
+              label='City'
+              required
+              {...textFieldProps}
+            />
+          </Grid>
+        ) : null}
+        {names.state ? (
+          <Grid item xs={6} sm={4} lg={4}>
+            <FormikNativeSelect
+              name={names.state}
+              label='State'
+              selectOptions={statesAbrvSelectOptions}
+              required
+              sx={{ minWidth: 80 }}
+              {...selectFieldProps}
+            />
+          </Grid>
+        ) : null}
+        {names.postal ? (
+          <Grid item xs={6} sm={4} lg={4}>
+            <FormikMaskField
+              id={names.postal}
+              name={names.postal}
+              label='Postal'
+              fullWidth
+              maskComponent={IMask}
+              inputProps={{
+                maskProps: postalMaskProps,
+              }}
+              variant={textFieldProps?.variant === 'standard' ? 'standard' : 'outlined'}
+              size={textFieldProps?.size || 'medium'}
+            />
+          </Grid>
+        ) : null}
       </Grid>
       {children}
     </Box>

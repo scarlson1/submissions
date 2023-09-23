@@ -5,7 +5,7 @@ import { useCallback, useState } from 'react';
 import { useAuth } from 'context';
 
 // USER POLICIES COMPONENT IMPORTS
-import { DataObjectRounded, InfoRounded, OpenInNewRounded } from '@mui/icons-material';
+import { InfoRounded, OpenInNewRounded } from '@mui/icons-material';
 import {
   Avatar,
   AvatarGroup,
@@ -18,17 +18,14 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import { GridActionsCellItem, GridRowParams } from '@mui/x-data-grid';
 import { where } from 'firebase/firestore';
 import { camelCase, isEmpty } from 'lodash';
 import { useNavigate } from 'react-router-dom';
 
 import {
   AdditionalInsured,
-  COLLECTIONS,
   ILocation,
   POLICY_IMPORT_REQUIRED_HEADERS,
-  Policy,
   fallbackImages,
 } from 'common';
 import { DownloadStorageFileButton, FlexCard, FlexCardContent } from 'components';
@@ -36,7 +33,7 @@ import { IconMenu } from 'components/IconButtonMenu';
 import { CSVUploadDialog } from 'elements';
 import { ControlledChangeRequestDialog } from 'elements/ChangeRequestDialog';
 import { PoliciesGrid } from 'elements/grids';
-import { useAsyncToast, useCollectionData, useShowJson } from 'hooks';
+import { useAsyncToast, useCollectionData } from 'hooks';
 import { formatFirestoreTimestamp, getDuplicates } from 'modules/utils';
 import { ROUTES, createPath } from 'router';
 import { Item } from './UserSubmissions';
@@ -71,29 +68,8 @@ import { getHeaderStatus } from './admin/Quotes';
 export const Policies = () => {
   const navigate = useNavigate();
   const { claims, user } = useAuth();
-  const showJson = useShowJson<Policy>(COLLECTIONS.POLICIES);
-
-  const handleShowJson = useCallback(
-    (params: GridRowParams) => () => showJson(params.id.toString()),
-    [showJson]
-  );
 
   // TODO: admin upload new policy documents
-  const adminActions = useCallback(
-    (params: GridRowParams) => [
-      <GridActionsCellItem
-        icon={
-          <Tooltip placement='top' title='view JSON'>
-            <DataObjectRounded />
-          </Tooltip>
-        }
-        onClick={handleShowJson(params)}
-        label='Details'
-        disabled={!Boolean(claims?.iDemandAdmin)}
-      />,
-    ],
-    [handleShowJson, claims]
-  );
 
   const header = (
     <Box sx={{ display: 'flex', justifyContent: 'space-between', pb: 2, pr: { xs: 0, sm: 1 } }}>
@@ -117,7 +93,7 @@ export const Policies = () => {
       <Container maxWidth='xl' sx={{ py: { xs: 4, md: 6 } }}>
         <Box>
           {header}
-          <PoliciesGrid renderActions={adminActions} checkboxSelection />
+          <PoliciesGrid checkboxSelection />
         </Box>
       </Container>
     );
@@ -142,6 +118,7 @@ export const Policies = () => {
       </Container>
     );
 
+  // BUG: flashes before observable updates ??
   if (!user?.uid) return <Typography align='center'>Must be signed in</Typography>;
 
   return (
