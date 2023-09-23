@@ -2,7 +2,9 @@ import { PubSub } from '@google-cloud/pubsub';
 import { error } from 'firebase-functions/logger';
 import { Request, Response } from 'firebase-functions/v1';
 
-// work-around to publish in emulator environment (can trigger from postman)
+// work-around to publish in emulator environment (trigger from postman)
+
+const pubsub = new PubSub();
 
 export default async (request: Request, response: Response) => {
   // 1. make sure the function can't be used in production
@@ -16,7 +18,9 @@ export default async (request: Request, response: Response) => {
   if (!payload || !t) response.status(400).send({ message: 'Missing payload or topic' });
 
   try {
-    const pubsub = new PubSub();
+    // Memory leak bug:
+    // https://github.com/googleapis/nodejs-pubsub/issues/1069 ??
+    // const pubsub = new PubSub();
 
     // 2. make sure the test topic exists and
     // if it doesn't then create it.

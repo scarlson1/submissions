@@ -466,7 +466,8 @@ export interface SecondaryFactorMults {
   inland: number;
   surge: number;
   tsunami: number;
-  secondaryFactorMultsByFactor: {
+  // secondaryFactorMultsByFactor: {
+  factors: {
     ffeMult: ValueByRiskType;
     basementMult: number;
     historyMult: Nullable<ValueByRiskType>;

@@ -68,7 +68,7 @@ export const useSendQuoteNotification = (
       } catch (err) {
         console.log('ERROR: ', err);
         let msg = 'Notifications not delivered';
-        toast.error(msg);
+        toast.warn(msg);
         if (onError) onError(err, msg);
       }
     },

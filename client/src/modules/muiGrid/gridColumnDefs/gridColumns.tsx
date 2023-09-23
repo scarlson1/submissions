@@ -351,10 +351,11 @@ const formatAddrSummary = (address?: Nullable<Address> | null | undefined, withL
 export const addressSummaryCol: GridColDef = {
   ...addressSummaryBase,
   valueGetter: (params: GridValueGetterParams<any, any>) => formatAddrSummary(params.row.address),
-  valueFormatter: ({ value }) => {
-    if (value) return formatAddrSummary(value, true);
-    return '';
-  },
+  // valueFormatter uses value returned from valueGetter
+  // valueFormatter: ({ value }) => {
+  //   if (value) return formatAddrSummary(value, true);
+  //   return '';
+  // },
 };
 
 export const agencyAddressCol: GridColDef = {

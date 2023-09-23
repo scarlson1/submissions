@@ -81,7 +81,7 @@ export {
   rateportfolio,
 } from './storageEvents/index.js';
 
-export { pubsubhelper } from './routes/index.js';
+// export { pubsubhelper } from './routes/index.js';
 // export { testEmulatorsCheckAchStatus } from './pubsub/checkAchStatus';
 
 // CALLABLES

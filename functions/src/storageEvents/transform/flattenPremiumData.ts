@@ -42,20 +42,13 @@ export function flattenPremData(rowPremData: GetPremiumCalcResult): FlattenedPre
   const inlandMult = rowPremData?.secondaryFactorMults?.inland ?? '';
   const surgeMult = rowPremData?.secondaryFactorMults?.surge ?? '';
   const tsunamiMult = rowPremData?.secondaryFactorMults?.tsunami ?? '';
-  const basementMult =
-    rowPremData?.secondaryFactorMults?.secondaryFactorMultsByFactor?.basementMult ?? '';
-  const inlandHistoryMult =
-    rowPremData?.secondaryFactorMults?.secondaryFactorMultsByFactor?.historyMult?.inland ?? '';
-  const surgeHistoryMult =
-    rowPremData?.secondaryFactorMults?.secondaryFactorMultsByFactor?.historyMult?.surge ?? '';
-  const tsunamiHistoryMult =
-    rowPremData?.secondaryFactorMults?.secondaryFactorMultsByFactor?.historyMult?.tsunami ?? '';
-  const inlandFFEMult =
-    rowPremData?.secondaryFactorMults?.secondaryFactorMultsByFactor?.ffeMult.inland ?? '';
-  const surgeFFEMult =
-    rowPremData?.secondaryFactorMults?.secondaryFactorMultsByFactor?.ffeMult.surge ?? '';
-  const tsunamiFFEMult =
-    rowPremData?.secondaryFactorMults?.secondaryFactorMultsByFactor?.ffeMult.tsunami ?? '';
+  const basementMult = rowPremData?.secondaryFactorMults?.factors?.basementMult ?? '';
+  const inlandHistoryMult = rowPremData?.secondaryFactorMults?.factors?.historyMult?.inland ?? '';
+  const surgeHistoryMult = rowPremData?.secondaryFactorMults?.factors?.historyMult?.surge ?? '';
+  const tsunamiHistoryMult = rowPremData?.secondaryFactorMults?.factors?.historyMult?.tsunami ?? '';
+  const inlandFFEMult = rowPremData?.secondaryFactorMults?.factors?.ffeMult.inland ?? '';
+  const surgeFFEMult = rowPremData?.secondaryFactorMults?.factors?.ffeMult.surge ?? '';
+  const tsunamiFFEMult = rowPremData?.secondaryFactorMults?.factors?.ffeMult.tsunami ?? '';
   const inlandStateMult = rowPremData?.stateMultipliers?.inland ?? '';
   const surgeStateMult = rowPremData?.stateMultipliers?.surge ?? '';
   const tsunamiStateMult = rowPremData?.stateMultipliers?.tsunami ?? '';

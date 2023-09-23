@@ -76,7 +76,7 @@ import {
 import { Obj, dollarFormat, getData, sumFeesTaxesPremium, truthyOrZero } from 'modules/utils';
 import { ROUTES, createPath } from 'router';
 import { AddressStepQuote } from '../AddressStepQuote';
-import FormikAddressLite from '../FormikAddressLite';
+import { FormikAddressLite } from '../FormikAddressLite';
 import { LimitsStep } from '../LimitsStep';
 import {
   DEFAULT_VALUES,

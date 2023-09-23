@@ -15,7 +15,7 @@ import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import * as yup from 'yup';
 
-import * as CheckmarkLottie from 'assets/checkmark.json';
+import { CheckmarkLottie } from 'assets';
 import {
   Address,
   Coordinates,
@@ -91,9 +91,7 @@ export interface AgencyAppValues {
   address: Address;
   coordinates: Nullable<Coordinates>;
   contact: NamedInsuredDetails;
-  agents: Omit<NamedInsuredDetails, 'userId'>[]; // { firstName: string; lastName: string; email: string; phone: string }
-  // accountNumber: string;
-  // routingNumber: string;
+  agents: Omit<NamedInsuredDetails, 'userId'>[];
   FEIN: string;
   EandO: File[] | string | null;
 }

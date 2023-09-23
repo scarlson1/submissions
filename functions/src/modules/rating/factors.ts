@@ -139,7 +139,8 @@ export interface SecondaryFactorMults {
   inland: number;
   surge: number;
   tsunami: number;
-  secondaryFactorMultsByFactor: {
+  // secondaryFactorMultsByFactor: {
+  factors: {
     ffeMult: ValueByRiskType;
     basementMult: number;
     historyMult: Nullable<ValueByRiskType>;
@@ -168,7 +169,8 @@ export function getSecondaryFactorMults(props: SecondaryModifiersProps) {
     inland: inlandSecondaryMult,
     surge: surgeSecondaryMult,
     tsunami: tsunamiSecondaryMult,
-    secondaryFactorMultsByFactor: {
+    // secondaryFactorMultsByFactor: {
+    factors: {
       ffeMult,
       basementMult,
       historyMult: history,

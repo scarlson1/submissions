@@ -1,5 +1,4 @@
 import { useCallback, useState } from 'react';
-
 import {
   Button,
   Dialog,
@@ -13,10 +12,9 @@ import {
   Typography,
   useMediaQuery,
   useTheme,
+  Unstable_Grid2 as Grid,
 } from '@mui/material';
-import Grid from '@mui/material/Unstable_Grid2/Grid2';
 import { useFormikContext } from 'formik';
-
 import { EditRounded } from '@mui/icons-material';
 import { statesAbrvSelectOptions } from 'common/statesList';
 import {
@@ -31,20 +29,25 @@ import {
 } from 'components/forms';
 import { findAddressValueByType } from 'modules/utils/helpers';
 import { Transition } from './AddPaymentDialog';
-import { AddressFieldNames } from './FormikAddress';
-
-const DEFAULT_FIELD_NAMES = {
-  addressLine1: 'addressLine1',
-  addressLine2: 'addressLine2',
-  city: 'city',
-  state: 'state',
-  postal: 'postal',
-  county: 'countyName',
-  latitude: 'latitude',
-  longitude: 'longitude',
-};
+import { AddressFieldNames, DEFAULT_FIELD_NAMES } from './FormikAddress';
 
 // TODO: try using useField() hook to set up Autocomplete
+
+export function extractAddressFromGeoCode({ address_components, geometry }: NewAddress) {
+  const newStreetNumber = findAddressValueByType(address_components, 'street_number');
+  const newStreetName = findAddressValueByType(address_components, 'route');
+
+  return {
+    addressLine1: `${newStreetNumber?.long_name || ''} ${newStreetName?.long_name || ''}`.trim(),
+    addressLine2: '', // TODO: any scenario where google includes addr2 ??
+    city: findAddressValueByType(address_components, 'locality'),
+    state: findAddressValueByType(address_components, 'administrative_area_level_1'),
+    postal: findAddressValueByType(address_components, 'postal_code'),
+    county: findAddressValueByType(address_components, 'administrative_area_level_2'),
+    latitude: geometry?.location.lat() ?? null,
+    longitude: geometry?.location.lng() ?? null,
+  };
+}
 
 export interface FormikAddressLiteProps {
   cb?: (coords: { lat: number | null; lng: number | null }, state?: string) => void;
@@ -66,30 +69,43 @@ export const FormikAddressLite = ({
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
-  const handleAddressSelection = ({ address_components, geometry }: NewAddress) => {
-    const newStreetNumber = findAddressValueByType(address_components, 'street_number');
-    const newStreetName = findAddressValueByType(address_components, 'route');
-    const newCity = findAddressValueByType(address_components, 'locality');
-    const newCounty = findAddressValueByType(address_components, 'administrative_area_level_2');
-    const newState = findAddressValueByType(address_components, 'administrative_area_level_1');
-    const newPostal = findAddressValueByType(address_components, 'postal_code');
+  const handleAddressSelection = (geocodeResult: NewAddress) => {
+    const { geometry } = geocodeResult;
 
-    names.addressLine1 &&
-      setFieldValue(
-        names.addressLine1,
-        `${newStreetNumber?.long_name || ''} ${newStreetName?.long_name || ''}`.trim()
-      );
+    const { addressLine1, city, state, postal, county, latitude, longitude } =
+      extractAddressFromGeoCode(geocodeResult);
+
+    names.addressLine1 && setFieldValue(names.addressLine1, addressLine1);
     names.addressLine2 && setFieldValue(names.addressLine2, '');
-    names.city && setFieldValue(names.city, `${newCity?.long_name || ''}`);
-    names.county && setFieldValue(names.county, `${newCounty?.long_name || ''}`);
-    names.state && setFieldValue(names.state, `${newState?.short_name || ''}`);
-    names.postal && setFieldValue(names.postal, `${newPostal?.long_name || ''}`);
-    names.county && setFieldValue(names.county, `${newPostal?.long_name || ''}`);
-    names.latitude && setFieldValue(names.latitude, geometry?.location.lat() ?? null);
-    names.longitude && setFieldValue(names.longitude, geometry?.location.lng() ?? null);
+    names.city && setFieldValue(names.city, city || '');
+    names.county && setFieldValue(names.county, county);
+    names.state && setFieldValue(names.state, state);
+    names.postal && setFieldValue(names.postal, postal);
+    names.latitude && setFieldValue(names.latitude, latitude);
+    names.longitude && setFieldValue(names.longitude, longitude);
+
+    // const newStreetNumber = findAddressValueByType(address_components, 'street_number');
+    // const newStreetName = findAddressValueByType(address_components, 'route');
+    // const newCity = findAddressValueByType(address_components, 'locality');
+    // const newCounty = findAddressValueByType(address_components, 'administrative_area_level_2');
+    // const newState = findAddressValueByType(address_components, 'administrative_area_level_1');
+    // const newPostal = findAddressValueByType(address_components, 'postal_code');
+
+    // names.addressLine1 &&
+    //   setFieldValue(
+    //     names.addressLine1,
+    //     `${newStreetNumber?.long_name || ''} ${newStreetName?.long_name || ''}`.trim()
+    //   );
+    // names.addressLine2 && setFieldValue(names.addressLine2, '');
+    // names.city && setFieldValue(names.city, `${newCity?.long_name || ''}`);
+    // names.county && setFieldValue(names.county, `${newCounty?.long_name || ''}`);
+    // names.state && setFieldValue(names.state, `${newState?.short_name || ''}`);
+    // names.postal && setFieldValue(names.postal, `${newPostal?.long_name || ''}`);
+    // names.latitude && setFieldValue(names.latitude, geometry?.location.lat() ?? null);
+    // names.longitude && setFieldValue(names.longitude, geometry?.location.lng() ?? null);
 
     if (cb) {
-      cb({ lat: geometry?.location.lat(), lng: geometry?.location.lng() }, newState?.short_name);
+      cb({ lat: geometry?.location.lat(), lng: geometry?.location.lng() }, `${state || ''}`);
     }
 
     names?.addressLine2 && document.getElementById(names.addressLine2)?.focus();
@@ -228,36 +244,3 @@ export const FormikAddressLite = ({
     </>
   );
 };
-
-export default FormikAddressLite;
-
-/* <Field name={names.addressLine1}>
-  {({ field, form, meta }: FieldProps) => {
-    return (
-      <AddressAutocomplete
-        handleSelection={handleAddressSelection}
-        inputValue={field.value}
-        setInputValue={(newValue) => setFieldValue(names.addressLine1, newValue)}
-        resetFields={handleClearAutocomplete}
-        field={field}
-        form={form}
-        meta={meta}
-        textFieldProps={{
-          ...textFieldProps,
-          ...autocompleteTextFieldProps,
-          InputProps: {
-            endAdornment: (
-              <InputAdornment position='end'>
-                <Tooltip title='Edit & verify full address'>
-                  <IconButton size='small' onClick={handleEdit}>
-                    <EditRounded fontSize='inherit' />
-                  </IconButton>
-                </Tooltip>
-              </InputAdornment>
-            ),
-          },
-        }}
-      />
-    );
-  }}
-</Field>;  */

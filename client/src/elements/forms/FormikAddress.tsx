@@ -1,4 +1,6 @@
 import { Box, Grid, Grid2Props, NativeSelectProps, TextFieldProps } from '@mui/material';
+import { setNestedObjectValues, useFormikContext } from 'formik';
+import { useCallback } from 'react';
 
 import { statesAbrvSelectOptions } from 'common/statesList';
 import {
@@ -11,9 +13,7 @@ import {
   NewAddress,
   postalMaskProps,
 } from 'components/forms';
-import { setNestedObjectValues, useFormikContext } from 'formik';
 import { findAddressValueByType } from 'modules/utils/helpers';
-import { useCallback } from 'react';
 
 // TODO: filter textFieldProps for overlap with InputProps and pass to postal field
 
@@ -30,7 +30,7 @@ export interface AddressFieldNames {
 }
 
 // TODO: change default to be nested under address
-const DEFAULT_FIELD_NAMES = {
+export const DEFAULT_FIELD_NAMES = {
   addressLine1: 'addressLine1',
   addressLine2: 'addressLine2',
   city: 'city',

@@ -27,7 +27,7 @@ export interface AddressStepProps extends Omit<FormikAddressProps, 'setFieldValu
 
 // TODO: state and postal validation
 // TODO: load by product /flood/new - get active states from /state/:productId in db
-// TODO: emial lists in email service (sendgrid)
+// TODO: email lists in email service (sendgrid)
 
 // TODO: pass map as child ??
 

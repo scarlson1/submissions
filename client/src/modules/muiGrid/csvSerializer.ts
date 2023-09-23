@@ -14,6 +14,8 @@ import { MutableRefObject } from 'react';
 
 import { WithId } from 'common';
 
+// https://github.com/mui/mui-x/blob/master/packages/grid/x-data-grid/src/hooks/features/export/serializers/csvSerializer.ts
+
 function sanitizeCellValue(value: any, delimiterCharacter: string) {
   if (typeof value === 'string') {
     // Make sure value containing delimiter or line break won't be split into multiple rows

@@ -582,8 +582,8 @@ export function AdditionalInterestsStep({ logAnalyticsStep }: LogAnalyticsProp) 
                     state: `${parentField}[${index}].address.state`,
                     postal: `${parentField}[${index}].address.postal`,
                     county: `${parentField}[${index}].address.countyName`,
-                    latitude: `${parentField}[${index}].address.latitude`,
-                    longitude: `${parentField}[${index}].address.longitude`,
+                    // latitude: `${parentField}[${index}].address.latitude`,
+                    // longitude: `${parentField}[${index}].address.longitude`,
                   },
                 };
               },
