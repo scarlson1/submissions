@@ -14,7 +14,7 @@ import { Submission, WithId } from 'common';
 import { openGoogleMaps } from 'modules/utils';
 import { useFloodFactor } from './useFloodFactor';
 import { useShowJson } from './useShowJson';
-import { useWidth } from './useWidth';
+import { useWidth } from './utils/useWidth';
 
 export type ActionOptions = Omit<Partial<GridActionsCellItemProps>, 'onClick' | 'label' | 'icon'>;
 

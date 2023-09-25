@@ -644,7 +644,10 @@ export interface Policy extends BaseDoc {
   namedInsured: NamedInsured; // TODO: clarify typing NamedInsuredDetails;
   locations: Record<string, PolicyLocation>;
   homeState: string;
-  termPremium: number; // sum of location(s) term premium
+  termPremium: number; // sum of active location(s) term premium
+  termPremiumWithCancels: number;
+  inStatePremium?: number;
+  outStatePremium?: number;
   termDays: number;
   fees: FeeItem[];
   taxes: TaxItem[];

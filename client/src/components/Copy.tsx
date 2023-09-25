@@ -1,10 +1,10 @@
 import { useCallback } from 'react';
 
-import { toast } from 'react-hot-toast';
-import { Box, BoxProps, IconButton, Typography, TypographyProps } from '@mui/material';
 import { CopyAllRounded } from '@mui/icons-material';
+import { Box, BoxProps, IconButton, Typography, TypographyProps } from '@mui/material';
+import { toast } from 'react-hot-toast';
 
-import { useCopyToClipboard } from 'hooks/useCopyToClipboard';
+import { useCopyToClipboard } from 'hooks/utils/useCopyToClipboard';
 
 export interface CopyProps extends BoxProps {
   children: React.ReactNode;

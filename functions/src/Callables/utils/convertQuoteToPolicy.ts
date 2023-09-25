@@ -170,6 +170,7 @@ export function getPolicyFromQuote(
     locations: policyLocations,
     homeState: data.homeState,
     termPremium: policyTermPremium,
+    termPremiumWithCancels: 0,
     termDays: singleLocation.termDays,
     fees: data.fees,
     taxes: data.taxes,

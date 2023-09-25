@@ -28,6 +28,18 @@ export const sumPolicyTermPremium = (locations: PolicyWithTermPrem[]) => {
 };
 
 /**
+ * Sum term premium for array of policy locations (including cancelled locations)
+ * @param {PolicyWithTermPrem[]} locations array of all policy locations
+ * @returns {number} total of term premium for each location
+ */
+export const sumPolicyTermPremiumIncludeCancels = (locations: PolicyWithTermPrem[]) => {
+  const activeTermPremium = locations.map((l) => l.termPremium);
+  const total = sumArr(activeTermPremium);
+
+  return round(total, 2);
+};
+
+/**
  * Compute total value of taxes in an array of TaxItems
  * @param {TaxItem[]} taxes taxes array - sums tax.value
  * @returns {number} sum of all tax values

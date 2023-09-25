@@ -42,6 +42,7 @@ import {
   getCarrierByState,
   getRCVs,
   sumFeesTaxesPremium,
+  sumPolicyTermPremiumIncludeCancels,
 } from '../modules/rating/index.js';
 import {
   ParseStreamToArrayRes,
@@ -259,7 +260,7 @@ export default async (event: StorageEvent) => {
  */
 async function groupByPolicyId(data: ParsedPolicyRow[], firestore: Firestore) {
   // let policies: Record<string, Omit<Policy, 'termPremium'>> = {};
-  let policies: Record<string, Omit<PolicyNew, 'termPremium'>> = {};
+  let policies: Record<string, Omit<PolicyNew, 'termPremium' | 'termPremiumWithCancels'>> = {};
   let locations: Record<string, ILocation> = {};
   let ratingDocData: Record<string, RatingData> = {};
   const ts = Timestamp.now();
@@ -344,11 +345,16 @@ async function groupByPolicyId(data: ParsedPolicyRow[], firestore: Firestore) {
       fees: policy.fees,
     });
 
+    const termPremiumWithCancels = sumPolicyTermPremiumIncludeCancels(
+      Object.values(policy.locations)
+    );
+
     const price = sumFeesTaxesPremium(policy.fees, policyTaxes, policyTermPremium);
 
     formattedPolicies[policyId] = {
       ...policy,
       termPremium: policyTermPremium,
+      termPremiumWithCancels,
       inStatePremium,
       outStatePremium,
       taxes: policyTaxes,
@@ -427,7 +433,7 @@ async function getPolicyWithoutLocation(
   // TODO: need to accomidate taxes and fee imports.
   // See importQuotes for reference
 
-  const p: Omit<PolicyNew, 'locations' | 'termPremium'> = {
+  const p: Omit<PolicyNew, 'locations' | 'termPremium' | 'termPremiumWithCancels'> = {
     product: data.product as Product,
     status: POLICY_STATUS.PAID, // TODO: get status from csv
     term: data.term as number,

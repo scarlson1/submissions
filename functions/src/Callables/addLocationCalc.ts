@@ -25,6 +25,7 @@ import {
   getAALs,
   getPremium,
   sumFeesTaxesPremium,
+  sumPolicyTermPremiumIncludeCancels,
   validateAALs,
   validateLimits,
 } from '../modules/rating/index.js';
@@ -250,6 +251,8 @@ const addLocationCalc = async ({ data, auth }: CallableRequest<AddLocationCalcPr
       outStatePremium,
     } = calcPolicyPremium(policy.homeState, newLocationsSummaryArr);
 
+    const termPremiumWithCancels = sumPolicyTermPremiumIncludeCancels(newLocationsSummaryArr);
+
     const newTaxes = recalcTaxes({
       premium: policyTermPremium,
       homeStatePremium: inStatePremium,
@@ -290,6 +293,7 @@ const addLocationCalc = async ({ data, auth }: CallableRequest<AddLocationCalcPr
       },
       policyChanges: {
         termPremium: policyTermPremium,
+        termPremiumWithCancels,
         inStatePremium,
         outStatePremium,
         taxes: newTaxes,

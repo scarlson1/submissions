@@ -40,7 +40,7 @@ import {
   ValueOptions,
 } from '@mui/x-data-grid';
 import { GeoPoint, Timestamp } from 'firebase/firestore';
-import { isDate } from 'lodash';
+import { isDate, round, sumBy } from 'lodash';
 import { toast } from 'react-hot-toast';
 
 import {
@@ -49,13 +49,17 @@ import {
   Address,
   CHANGE_REQUEST_STATUS,
   COLLECTIONS,
+  CompressedAddress,
+  FeeItem,
   INVITE_STATUS,
   Mortgagee,
   Nullable,
   POLICY_STATUS,
   PRODUCT,
+  PolicyLocation,
   QUOTE_STATUS,
   SUBMISSION_STATUS,
+  TaxItem,
 } from 'common';
 import { FileLink, GridCellCopy, renderGridEmail, renderGridPhone } from 'components';
 import {
@@ -80,6 +84,7 @@ import {
 } from 'modules/muiGrid/operators';
 import {
   calcSum,
+  compressedToFormattedAddr,
   formatFirestoreTimestamp,
   formatGridFirestoreTimestampAsDate,
   getGridAddressComponent,
@@ -722,6 +727,17 @@ export const expirationDateCol: GridColDef = {
   filterOperators: getGridFirestoreDateOperators(),
 };
 
+export const cancelEffDateCol: GridColDef = {
+  ...dateColBaseProps,
+  field: 'cancelEffDate',
+  headerName: 'Cancel Date',
+  valueGetter: ({ row }) => row.cancelEffDate || null,
+  valueSetter: (params) => {
+    const effDateTS = params.value ? Timestamp.fromDate(params.value) : null;
+    return { ...params.row, expirationDate: effDateTS };
+  },
+};
+
 export const currencyCol: Partial<GridColDef> = {
   ...numericColBaseProps,
   minWidth: 120,
@@ -1232,6 +1248,30 @@ export const termPremiumCol: GridColDef = {
   editable: false,
 };
 
+export const termPremiumWithCancelsCol: GridColDef = {
+  ...termPremiumCol,
+  field: 'termPremiumWithCancels',
+  headerName: 'Term Premium (incl. cancellations)',
+  description: 'sum of location term premium including cancelled locations',
+  valueGetter: ({ row }) => row.termPremiumWithCancels ?? null,
+};
+
+export const inStatePremiumCol: GridColDef = {
+  ...currencyCol,
+  field: 'inStatePremium',
+  headerName: 'In State Premium',
+  description: 'sum of term premium for locations within policy "home state"',
+  valueGetter: ({ row }) => row.inStatePremium ?? null,
+};
+
+export const outStatePremiumCol: GridColDef = {
+  ...currencyCol,
+  field: 'outStatePremium',
+  headerName: 'Out State Premium',
+  description: 'sum of term premium for locations outside of policy "home state"',
+  valueGetter: ({ row }) => row.outStatePremium ?? null,
+};
+
 export const termDaysCol: GridColDef = {
   field: 'termDays',
   headerName: 'Term Days',
@@ -1244,9 +1284,34 @@ export const termDaysCol: GridColDef = {
   filterOperators: getGridFirestoreNumericOperators(),
 };
 
+export const taxesSumCol: GridColDef = {
+  ...currencyCol,
+  field: 'taxes',
+  headerName: 'Taxes',
+  type: 'number',
+  valueGetter: ({ row }) => {
+    let taxesArr = row.taxes;
+    if (!taxesArr || !Array.isArray(taxesArr)) return null;
+    return round(sumBy<TaxItem>(taxesArr, 'value'), 2);
+  },
+};
+
+export const feesSumCol: GridColDef = {
+  ...currencyCol,
+  field: 'fees',
+  headerName: 'Fees',
+  type: 'number',
+  valueGetter: ({ row }) => {
+    let feesArr = row.fees;
+    if (!feesArr || !Array.isArray(feesArr)) return null;
+    return round(sumBy<FeeItem>(feesArr, 'value'), 2);
+  },
+};
+
 export const locationsCount: GridColDef = {
   field: 'locationsCount',
   headerName: '# locations',
+  description: 'active location count',
   type: 'number',
   minWidth: 100,
   flex: 0.5,
@@ -1257,62 +1322,75 @@ export const locationsCount: GridColDef = {
   align: 'right',
   valueGetter: (params) => {
     if (!params.row.locations) return null;
-    return Object.keys(params.row.locations).length;
+    let locations = Object.values(params.row.locations) as PolicyLocation[];
+    const active = locations.filter((l) => !l.cancelEffDate);
+    return active.length;
   },
 };
 
 // TODO: delete (if not storing address in locations obj) or refactor
-// export const locationAddresses: GridColDef = {
-//   field: 'addressesSummary',
-//   headerName: 'Locations',
-//   minWidth: 300,
-//   flex: 1.5,
-//   editable: false,
-//   filterable: false,
-//   sortable: false,
-//   // disableExport: true,
-//   valueFormatter: ({ value }) => {
-//     if (Array.isArray(value))
-//       return value.map((addr) => formatAddrSummary(addr, true)).join('  |  ');
+export const locationAddresses: GridColDef = {
+  field: 'addressesSummary',
+  headerName: 'Locations',
+  description: 'active location addresses',
+  minWidth: 300,
+  flex: 1.5,
+  editable: false,
+  filterable: false,
+  sortable: false,
+  // disableExport: true,
+  valueFormatter: ({ value }) => {
+    if (Array.isArray(value)) {
+      let first10 = value.length > 10 ? value.slice(0, 9) : value;
 
-//     return value || '';
-//   },
-//   valueGetter: (params) => {
-//     if (!params.row.locations) return null;
+      let result = first10.map((addr) => compressedToFormattedAddr(addr)).join('  |  ');
 
-//     const locations = Object.values(params.row.locations) as ILocation[];
-//     return locations.map((l) => l.address || null).filter((x) => x);
-//   },
-//   renderCell: (params) => {
-//     if (!params.value || !params.value.length) return null;
-//     let addr1 = params.value[0] as Address;
-//     let addrSummary = `${addr1.addressLine1}, ${addr1.city}, ${addr1.state}`;
-//     let additionalCount = params.value.length - 1;
+      if (value.length > 10) result += ` | + ${value.length - 10} more locations`;
 
-//     return (
-//       <Box sx={{ display: 'flex', alignItems: 'center', maxWidth: '100%' }}>
-//         <Typography
-//           variant='body2'
-//           sx={{
-//             mr: 1,
-//             flex: '0 1 auto',
-//             whiteSpace: 'nowrap',
-//             overflow: 'hidden',
-//             textOverflow: 'ellipsis',
-//             minWidth: 0,
-//           }}
-//         >{`${addrSummary}`}</Typography>
-//         {additionalCount ? (
-//           <Typography
-//             variant='body2'
-//             fontSize='0.775rem'
-//             fontWeight={500}
-//           >{`+ ${additionalCount} more`}</Typography>
-//         ) : null}
-//       </Box>
-//     );
-//   },
-// };
+      return result;
+    }
+
+    return value || '';
+  },
+  valueGetter: (params) => {
+    if (!params.row.locations) return null;
+
+    const locations = Object.values(params.row.locations) as PolicyLocation[];
+    return locations
+      .filter((l) => !l.cancelEffDate)
+      .map((l) => l.address || null)
+      .filter((x) => x);
+  },
+  renderCell: (params) => {
+    if (!params.value || !params.value.length) return null;
+    let addr1 = params.value[0] as CompressedAddress;
+    let addrSummary = compressedToFormattedAddr(addr1, { s2: false, p: false });
+    let additionalCount = params.value.length - 1;
+
+    return (
+      <Box sx={{ display: 'flex', alignItems: 'center', maxWidth: '100%' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            mr: 1,
+            flex: '0 1 auto',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            minWidth: 0,
+          }}
+        >{`${addrSummary}`}</Typography>
+        {additionalCount ? (
+          <Typography
+            variant='body2'
+            fontSize='0.775rem'
+            fontWeight={500}
+          >{`+ ${additionalCount} more`}</Typography>
+        ) : null}
+      </Box>
+    );
+  },
+};
 
 export const locationIdCol: GridColDef = {
   ...idCol,
@@ -1765,13 +1843,6 @@ export const dailyPremiumCol: GridColDef = {
   field: 'dailyPremium',
   headerName: 'Daily Premium',
   editable: false,
-};
-
-export const cancelEffDateCol: GridColDef = {
-  ...effectiveDateCol,
-  field: 'cancelEffDate',
-  headerName: 'Cancel Eff. Date',
-  valueGetter: (params) => params.row.cancelEffDate || null,
 };
 
 export const minPremiumCol: GridColDef = {

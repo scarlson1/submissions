@@ -5,16 +5,24 @@ import { info } from 'firebase-functions/logger';
 import {
   ChangeRequest,
   ILocation,
+  LocationCancellationRequest,
+  PolicyCancellationRequest,
+  PolicyLocation,
   PolicyNew,
   calcTerm,
   changeRequestsCollection,
   getReportErrorFn,
+  getTermDays,
   locationsCollection,
   policiesCollectionNew,
   verify,
 } from '../../common/index.js';
 import { getDoc } from '../../routes/utils/index.js';
-import { calcPolicyPremium, sumFeesTaxesPremium } from '../rating/index.js';
+import {
+  calcPolicyPremium,
+  sumFeesTaxesPremium,
+  sumPolicyTermPremiumIncludeCancels,
+} from '../rating/index.js';
 import { setChangeRequestErr } from './handleEndorsementRating.js';
 import { recalcTaxes } from './taxes.js';
 
@@ -22,13 +30,17 @@ const reportErr = getReportErrorFn('policyChangeRequest.handleCancelRating');
 
 // Calculates location and policy changes for a cancelled location
 
-export async function handleCancelRating(data: ChangeRequest, policyId: string, requestId: string) {
+export async function handleCancelRatingOld(
+  data: ChangeRequest,
+  policyId: string,
+  requestId: string
+) {
   let changeRequestRef;
 
   // TODO: handle policy cancel
 
   try {
-    verify(data.scope === 'location', 'cancel request rating should be at location scope');
+    verify(data.scope === 'location', 'cancel request rating should be location or policy scope');
     const { requestEffDate, locationId } = data;
 
     const cancelEffDate = requestEffDate.toDate();
@@ -42,7 +54,6 @@ export async function handleCancelRating(data: ChangeRequest, policyId: string, 
 
     const { [locationId]: locationSummary, ...otherLocations } = policy.locations;
     verify(locationSummary, `location not found on policy (Location ID: ${locationId})`);
-    // verify(location.ratingDocId, 'missing location ratingDocId');
 
     const locationsColRef = locationsCollection(db);
     const locationSnap = await locationsColRef.doc(locationId).get();
@@ -95,14 +106,11 @@ export async function handleCancelRating(data: ChangeRequest, policyId: string, 
       price,
     };
 
-    // TODO: verify setting "termDays" doesn't result in incorrect transaction calculations
-    // is termDays earlier of cancelEffDate and expirationDate ??
     if (!Object.values(otherLocations).filter((l) => !l.cancelEffDate).length) {
       policyLevelUpdates['cancelEffDate'] = requestEffDate;
       policyLevelUpdates['termDays'] = termDays;
     }
 
-    // TODO: need location doc changes too ??
     const updates: Partial<ChangeRequest> = {
       locationChanges: locationRatingChanges,
       policyChanges: {
@@ -120,28 +128,141 @@ export async function handleCancelRating(data: ChangeRequest, policyId: string, 
       },
     };
 
-    // let policyLevelUpdates: Partial<Policy> = {
-    //   termPremium: newPolicyTermPremium,
-    //   inStatePremium,
-    //   outStatePremium,
-    //   taxes,
-    //   price,
-    // };
+    info(`Saving change request rating calc changes...`, updates);
 
-    // // TODO: need location doc changes too ??
-    // const updates: Partial<ChangeRequest> = {
-    //   changes: {
-    //     locations: {
-    //       [locationId]: locationRatingChanges,
-    //     },
-    //     ...policyLevelUpdates,
-    //   },
-    //   _lastCommitted: Timestamp.now(),
-    //   // @ts-ignore
-    //   metadata: {
-    //     updated: Timestamp.now(),
-    //   },
-    // };
+    await changeRequestRef.set(updates, { merge: true });
+  } catch (err: any) {
+    const errMsg = `Error calcing new location values for change request (${
+      err?.message || 'unknown'
+    })`;
+    reportErr(errMsg, {}, err);
+    if (changeRequestRef) await setChangeRequestErr(changeRequestRef, errMsg);
+  }
+  return;
+}
+
+export async function handleCancelRating(data: ChangeRequest, policyId: string, requestId: string) {
+  let changeRequestRef;
+
+  try {
+    const { requestEffDate, scope } = data;
+    verify(
+      scope === 'location' || scope === 'policy',
+      'cancel request rating should be location or policy scope'
+    );
+
+    const cancelEffDate = requestEffDate.toDate();
+    verify(requestEffDate && isValid(cancelEffDate), 'requestEffDate must be a valid Timestamp');
+
+    const db = getFirestore();
+    changeRequestRef = changeRequestsCollection(db, policyId).doc(requestId);
+    const policyRef = policiesCollectionNew(db).doc(policyId);
+
+    const policy = await getDoc(policyRef, 'policy not found');
+
+    let lcnIds = scope === 'location' ? [data.locationId] : Object.keys(policy.locations);
+
+    const locationsColRef = locationsCollection(db);
+
+    let locationDocChanges:
+      | PolicyCancellationRequest['locationChanges']
+      | LocationCancellationRequest['locationChanges'] = {};
+    let newLcnSummary: Record<string, PolicyLocation> = {};
+
+    for (let lcnId of lcnIds) {
+      const lcnSummary = policy.locations[lcnId];
+      verify(lcnSummary, `location not found on policy (Location ID: ${lcnId})`);
+
+      const locationSnap = await locationsColRef.doc(lcnId).get();
+      const location = locationSnap.exists ? locationSnap.data() : null;
+      verify(location, 'location doc not found');
+
+      const { annualPremium, effectiveDate } = location;
+      const { termPremium, termDays } = calcTerm(
+        annualPremium,
+        effectiveDate.toDate(),
+        requestEffDate.toDate()
+      );
+
+      const locationRatingChanges: Partial<ILocation> = {
+        termPremium,
+        termDays,
+        cancelEffDate: requestEffDate,
+      };
+
+      if (scope === 'location') {
+        locationDocChanges = locationRatingChanges;
+      } else {
+        // TODO: fix typing
+        // @ts-ignore
+        locationDocChanges[lcnId] = { ...locationRatingChanges };
+      }
+
+      newLcnSummary[lcnId] = {
+        ...lcnSummary,
+        termPremium,
+        cancelEffDate: requestEffDate,
+      };
+    }
+
+    let newLocationsArr: PolicyLocation[];
+    if (scope === 'location') {
+      const { [data.locationId]: locationSummary, ...otherLocations } = policy.locations;
+      newLocationsArr = [...Object.values(otherLocations), ...Object.values(newLcnSummary)];
+    } else {
+      newLocationsArr = Object.values(newLcnSummary);
+    }
+
+    // TODO: reusable function (same in handleEndorsementRating)
+    // Recalc policy termPremium, taxes & price
+    const {
+      termPremium: newPolicyTermPremium,
+      inStatePremium,
+      outStatePremium,
+    } = calcPolicyPremium(policy.homeState, newLocationsArr);
+
+    const termPremiumWithCancels = sumPolicyTermPremiumIncludeCancels(newLocationsArr);
+
+    const taxes = recalcTaxes({
+      premium: newPolicyTermPremium,
+      homeStatePremium: inStatePremium,
+      outStatePremium,
+      taxes: policy.taxes,
+      fees: policy.fees,
+    });
+
+    const price = sumFeesTaxesPremium(policy.fees, taxes, newPolicyTermPremium);
+
+    let policyLevelUpdates: Partial<PolicyNew> = {
+      termPremium: newPolicyTermPremium,
+      termPremiumWithCancels,
+      inStatePremium,
+      outStatePremium,
+      taxes,
+      price,
+    };
+
+    if (!newLocationsArr.filter((l) => !l.cancelEffDate).length) {
+      policyLevelUpdates['cancelEffDate'] = requestEffDate;
+      policyLevelUpdates['termDays'] = getTermDays(
+        policy.effectiveDate.toDate(),
+        requestEffDate.toDate()
+      );
+    }
+
+    const updates: Partial<ChangeRequest> = {
+      locationChanges: locationDocChanges,
+      policyChanges: {
+        locations: newLcnSummary,
+        ...policyLevelUpdates,
+      },
+      _lastCommitted: Timestamp.now(),
+      // @ts-ignore
+      metadata: {
+        updated: Timestamp.now(),
+      },
+    };
+
     info(`Saving change request rating calc changes...`, updates);
 
     await changeRequestRef.set(updates, { merge: true });

@@ -42,10 +42,6 @@ export const useCreateLocationChangeRequest = (policyId: string) => {
 
       const { requestEffDate: reqEffDateNew, ...newVals } = values;
 
-      // const diff = formatChanges<LocationChangeValues, LocationChangeRequest>(
-      //   newVals,
-      //   initialVals.current
-      // );
       const diff = formatChanges<LocationChangeValues>(newVals, initialVals.current);
 
       const requiresEndorsement = hasEndorsementKeys(diff);

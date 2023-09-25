@@ -1,9 +1,12 @@
 export { useBoolean } from './useBoolean';
+export { useCopyToClipboard } from './useCopyToClipboard';
 export { useCountdown } from './useCountdown';
 export { useCounter } from './useCounter';
 export { useDebounce } from './useDebounce';
+export { useDiff, useGetDiff } from './useDiff';
 export { useFirstRender } from './useFirstRender';
 export { useInterval } from './useInterval';
 export { useIsomorphicLayoutEffect } from './useIsomorphicLayoutEffect';
 export { useKeyPress } from './useKeyPress';
 export { usePrevious } from './usePrevious';
+export { useWidth } from './useWidth';

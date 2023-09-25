@@ -76,9 +76,8 @@ export default async (
         // TODO: is cancellation handled differently than flat cancel
         if (data.trxType === 'cancellation' || data.trxType === 'flat_cancel') {
           // TODO: handle cancellation
-          // if only one active location --> only set cancelEffDate ?? change to policy scope ??
           await handleCancelRating(data, policyId, requestId);
-          throw new Error('cancellation trx handler not set up yet');
+          // throw new Error('cancellation trx handler not set up yet');
         }
 
         // TODO: add location - processing already handled ??

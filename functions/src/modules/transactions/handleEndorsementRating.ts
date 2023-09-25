@@ -32,6 +32,7 @@ import {
   getPremium,
   sumFeesTaxesPremium,
   sumPolicyTermPremium,
+  sumPolicyTermPremiumIncludeCancels,
   validateAALs,
   validateLimits,
   validateRCVs,
@@ -118,6 +119,8 @@ export async function handleRatingForEndorsement(
         outStatePremium,
       } = calcPolicyPremium(policy.homeState, newLocationsSummaryArr);
 
+      const termPremiumWithCancels = sumPolicyTermPremiumIncludeCancels(newLocationsSummaryArr);
+
       // recalc taxes based on new term premium
       const newTaxes = recalcTaxes({
         premium: newPolicyTermPremium,
@@ -131,6 +134,7 @@ export async function handleRatingForEndorsement(
 
       const policyChanges: DeepPartial<PolicyNew> = {
         termPremium: newPolicyTermPremium,
+        termPremiumWithCancels,
         inStatePremium,
         outStatePremium,
         taxes: newTaxes,

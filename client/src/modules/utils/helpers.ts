@@ -849,13 +849,27 @@ export function compressedToAddress(addr: CompressedAddress): Address {
   };
 }
 
-export function compressedToFormattedAddr(addr: CompressedAddress): string {
+type BoolRecord<Type> = {
+  [Property in keyof Type]: boolean;
+};
+const DEFAULT_OPTIONS = {
+  s1: true,
+  s2: true,
+  c: true,
+  st: true,
+  p: true,
+};
+export function compressedToFormattedAddr(
+  addr: CompressedAddress,
+  options?: Partial<BoolRecord<CompressedAddress>>
+): string {
+  options = { ...DEFAULT_OPTIONS, ...options };
   let result = '';
-  if (addr.s1) result += addr.s1;
-  if (addr.s1) result += `, ${addr.s1}`;
-  if (addr.c) result += `, ${addr.c}`;
-  if (addr.st) result += `, ${addr.st}`;
-  if (addr.p) result += addr.p;
+  if (addr.s1 && !!options?.s1) result += addr.s1;
+  if (addr.s2 && !!options?.s2) result += `, ${addr.s2}`;
+  if (addr.c && !!options?.c) result += `, ${addr.c}`;
+  if (addr.st && !!options?.st) result += `, ${addr.st}`;
+  if (addr.p && !!options?.p) result += ` ${addr.p}`;
 
   return result;
 }

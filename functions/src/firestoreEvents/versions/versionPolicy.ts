@@ -51,7 +51,7 @@ export default async (
 
     // if only change to location['locationId'].version
     // then change was triggered by location version update,
-    // should not create new policy version
+    // should not create new policy version (policy version incremented in location versioning function)
     if (shouldVersion && diffKeys.every((k) => k === 'locations')) {
       const flattenedDiff = flattenObj(diff);
 

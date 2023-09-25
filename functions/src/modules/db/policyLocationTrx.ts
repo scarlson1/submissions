@@ -40,7 +40,7 @@ export const mergePolicyLocationChanges = async (
 
     const { policyChanges, trxType } = request;
 
-    const isLcnScope = isLcnChangeReq(request); // scope === 'location';
+    const isLcnScope = isLcnChangeReq(request);
 
     const locationChanges = isLcnScope ? request.locationChanges : {};
     const locationRef =
@@ -71,6 +71,12 @@ export const mergePolicyLocationChanges = async (
     const meta = { metadata: { updated: Timestamp.now() } };
     let res: { locationData?: ILocation } = {};
 
+    // TODO: if policy cancellation --> loop through location changes or handle in different transaction ??
+    if (!isLcnScope && trxType === 'cancellation')
+      throw new Error(
+        'mergePolicyLocationChanges not set up to merge policy cancellation doc changes'
+      );
+
     // if location change request, create a new location doc
     if (locationSnap) {
       const newLocationData = deepMergeOverwriteArrays(locationSnap.data(), {
@@ -86,6 +92,7 @@ export const mergePolicyLocationChanges = async (
       ...meta,
     }) as PolicyNew;
 
+    // necessary ?? or was this before using custom deep merge (overwrite arrays) ??
     const newTaxes = policyChanges?.taxes;
     if (newTaxes && Array.isArray(newTaxes)) newPolicyData.taxes = newTaxes as TaxItem[];
 
@@ -103,7 +110,8 @@ export const mergePolicyLocationChanges = async (
 
     if (locationRef) transaction.set(locationRef, { ...(res.locationData || {}) }, { merge: true });
     transaction.set(policyRef, newPolicyData, { merge: true });
-    transaction.set(requestRef, requestUpdates, { merge: true });
+    transaction.update(requestRef, requestUpdates);
+    // transaction.set(requestRef, requestUpdates, { merge: true });
 
     return { ...res, policyData: newPolicyData };
   });

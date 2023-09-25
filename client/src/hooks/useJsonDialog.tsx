@@ -5,8 +5,8 @@ import { toast } from 'react-hot-toast';
 
 import { DialogOptions } from 'context';
 import { isJSON } from 'modules/utils/helpers';
-import { useCopyToClipboard } from './useCopyToClipboard';
 import { useDialog } from './useDialog';
+import { useCopyToClipboard } from './utils/useCopyToClipboard';
 
 export const useJsonTheme = () => {
   const theme = useTheme();

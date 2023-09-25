@@ -10,6 +10,8 @@ import { requireIDemandAdminClaims, validate } from './utils/index.js';
 
 // TODO: validation
 //    - if endorsement, make sure endorsement calculation executed successfully, etc.
+// TODO: handle policy cancellation (multiple locations)
+// mergePolicyLocationChanges only set up to handle single location
 
 const reportErr = getReportErrorFn('approveChangeRequest');
 

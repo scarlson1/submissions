@@ -679,7 +679,7 @@ export interface Policy extends BaseDoc {
   namedInsured: NamedInsured;
   locations: Record<string, ILocation>;
   homeState: string;
-  termPremium: number; // sum of location(s) term premium
+  termPremium: number; // sum of active location(s) term premium
   inStatePremium?: number;
   outStatePremium?: number;
   termDays: number;
@@ -725,7 +725,8 @@ export interface PolicyNew extends BaseDoc {
   namedInsured: NamedInsured;
   locations: Record<string, PolicyLocation>;
   homeState: string;
-  termPremium: number; // sum of location(s) term premium
+  termPremium: number; // sum of active location(s) term premium
+  termPremiumWithCancels: number; // TODO: rename termPremium ?? termPremiumActive??
   inStatePremium?: number;
   outStatePremium?: number;
   termDays: number;
@@ -1063,14 +1064,16 @@ export interface LocationCancellationRequest
   trxType: 'cancellation' | 'flat_cancel';
   cancelReason?: CancellationReason;
   formValues: CancelValues;
-  // policyChanges?: DeepPartial<PolicyNew>;
-  locationChanges?: DeepPartial<ILocation>; // cancelEffDate ?? (or only in policy ??) (would scope become 'policy' if only updated fields are policy ?? or are we recalculating the term premium for the location doc ??)
+  locationChanges?: DeepPartial<ILocation>;
   isAddLocationRequest?: false;
 }
 
+// TODO: policy cancel request includes location changes
+// should be object for each location
 export interface PolicyChangeRequest extends BaseChangeRequest {
   scope: 'policy';
   policyChanges: DeepPartial<PolicyNew>;
+  locationChanges: Record<string, Partial<ILocation>>;
   formValues: PolicyChangeValues;
   cancelReason?: CancellationReason;
   isAddLocationRequest?: false;
@@ -1201,7 +1204,6 @@ export interface Tax extends BaseDoc {
   refundable?: boolean;
 }
 
-// one transaction per location
 // TODO: create transaction class ?? like mongoose constructor ??
 
 export interface BaseTransaction extends BaseDoc {
@@ -1212,12 +1214,10 @@ export interface BaseTransaction extends BaseDoc {
   externalId: string | null;
   term: number;
   // reportDate: Timestamp; // calc in report query
-  // trxTimestamp: Timestamp; // TODO: delete ?? same at metadata.created ??
   bookingDate: Timestamp; // later of trx timestamp (now/created) or trx eff date
   issuingCarrier: string;
   namedInsured: string;
   mailingAddress: Address;
-  // insuredLocation: ILocation;
   homeState: string;
   policyEffDate: Timestamp;
   policyExpDate: Timestamp;

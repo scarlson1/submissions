@@ -79,11 +79,13 @@ export default async (
       { merge: true }
     );
 
-    // TODO: need to use transaction to ensure same version ??
+    // TODO: need to use transaction to ensure same version (could have multiple location changes at the same time - batched) ??
+    // policy snap race condition ??
+
     if (afterData?.policyId) {
       const oldVersion = afterData?.metadata?.version ?? 0;
       let policySnap = await policiesCol.doc(afterData.policyId).get();
-      // might now exist if policy import from CSV
+      // might not exist if policy import from CSV
       if (policySnap.exists) {
         const policyUpdates = {
           [`locations.${locationId}.version`]: oldVersion + 1,
