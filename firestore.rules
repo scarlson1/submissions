@@ -78,7 +78,7 @@ service cloud.firestore {
       allow delete: if false
     }
 
-    // TODO: LOCATION RULES
+    // TODO: LOCATION RULES (different rules for submission, quote, policy ??)
     match /locations/{locationId} {
       allow read: if true;
       allow create: if false;

@@ -41,6 +41,11 @@ const useEditQuote = (
         let effDateStartOfDay = startOfDay(newValues.effectiveDate);
         // let expDateStartOfDay = addToDate({ years: 1 }, effDateStartOfDay);
 
+        let numFees = newValues?.fees?.map((f) => ({
+          ...f,
+          value: extractNumber(`${f.value}`) ?? 0,
+        }));
+
         let numTaxes = newValues?.taxes?.map((t) => ({
           ...t,
           value: extractNumber(`${t.value}`) ?? null,
@@ -53,7 +58,7 @@ const useEditQuote = (
           // @ts-ignore
           product: newValues?.product || 'flood',
           address: newValues?.address,
-          // TODO: add homestate to the form
+          // TODO: add homeState to the form
           homeState: newValues?.homeState,
           coordinates:
             newValues.coordinates?.longitude && newValues.coordinates?.latitude
@@ -75,7 +80,6 @@ const useEditQuote = (
           quotePublishedDate: Timestamp.now(),
           quoteExpirationDate: Timestamp.fromDate(addToDate({ days: 60 }, endOfToday())),
           effectiveDate: Timestamp.fromDate(effDateStartOfDay),
-          // expirationDate: Timestamp.fromDate(expDateStartOfDay),
           namedInsured: newValues?.namedInsured,
           agent: newValues?.agent,
           agency: {
@@ -179,13 +183,12 @@ export const QuoteEdit = () => {
           ...f,
           value: `${f.value ?? ''}`,
         })) || [],
-      // taxes: [],
       taxes:
         quoteData?.taxes?.map((t) => ({
           ...t,
           value: `${t.value ?? ''}`,
           rate: `${t.rate ?? ''}`,
-        })) || [], // ([] as TaxItem[]),
+        })) || [],
       annualPremium: quoteData?.annualPremium ?? null,
       subproducerCommission: quoteData?.subproducerCommission ?? 0.15,
       quoteTotal: quoteData?.quoteTotal ?? null,
@@ -212,7 +215,6 @@ export const QuoteEdit = () => {
           postal: '',
         },
       },
-
       ratingPropertyData: {
         CBRSDesignation: quoteData?.ratingPropertyData?.CBRSDesignation ?? '',
         basement: `${quoteData?.ratingPropertyData?.basement ?? ''}`.toLowerCase(),
@@ -282,7 +284,7 @@ function getRatingInputsFromQuote(data: Partial<Quote> | null) {
     state: data?.address?.state,
     floodZone: data?.ratingPropertyData?.floodZone,
     basement: data?.ratingPropertyData?.basement?.toLowerCase(),
-    commissionPct: data?.subproducerCommission || 0.15, // TODO: delete - must look up subproducer comm from agent ID or org ID from server, or producer from clinet if idemand admin
+    commissionPct: data?.subproducerCommission || 0.15, // TODO: delete - must look up subproducer comm from agent ID or org ID from server, or producer from client if idemand admin
     // ratingDocId: data?.ratingDocId || '',
     priorLossCount: data?.ratingPropertyData?.priorLossCount,
     // @ts-ignore

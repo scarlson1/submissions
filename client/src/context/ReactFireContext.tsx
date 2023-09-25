@@ -1,6 +1,6 @@
 import { getAnalytics } from 'firebase/analytics';
 import { connectAuthEmulator, getAuth } from 'firebase/auth';
-import { Firestore, connectFirestoreEmulator, getFirestore } from 'firebase/firestore';
+import { connectFirestoreEmulator, getFirestore } from 'firebase/firestore';
 import { connectFunctionsEmulator, getFunctions } from 'firebase/functions';
 import { connectStorageEmulator, getStorage } from 'firebase/storage';
 import { ReactNode, useEffect } from 'react';
@@ -21,18 +21,17 @@ import { firebaseConfig } from 'firebaseConfig';
 // experimentalAutoDetectLongPolling: true,
 //     experimentalForceLongPolling: true
 
+// requires preloading ?? https://github.com/FirebaseExtended/reactfire/pull/205
+
 // TODO: set up remote config: https://github.com/FirebaseExtended/reactfire/blob/main/example/withSuspense/RemoteConfig.tsx
 
 // TODO: ONLY WRAP REMOTE CONFIG PROVIDER AROUND COMPONENTS THAT USE IT
-
-export let db: Firestore;
 
 export function ReactFireServicesContext({ children }: { children: ReactNode }) {
   const app = useFirebaseApp();
 
   const auth = getAuth(app);
   const firestore = getFirestore(app);
-  db = firestore;
   const functions = getFunctions(app);
   const storage = getStorage(app);
   const analytics = getAnalytics(app);
@@ -65,14 +64,6 @@ export function ReactFireServicesContext({ children }: { children: ReactNode }) 
       connectStorageEmulator(storage, 'localhost', 9199);
     }
   }, [auth, firestore, functions, storage]);
-
-  // if (process.env.REACT_APP_EMULATORS === 'true') {
-  //   console.log('USING FIREBASE AUTH, FIRESTORE, FUNCTIONS, STORAGE EMULATORS');
-  //   connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
-  //   connectFirestoreEmulator(firestore, 'localhost', 8082);
-  //   connectFunctionsEmulator(functions, 'localhost', 5001);
-  //   connectStorageEmulator(storage, 'localhost', 9199);
-  // }
 
   return (
     <AuthProvider sdk={auth}>

@@ -31,7 +31,7 @@ import {
   RoundingType,
   TaxItem,
 } from 'common/types';
-import { AddressComponent, AddressComponentType } from 'components/forms';
+import { AddressComponent, AddressComponentType, NewAddress } from 'components/forms';
 
 /**
  * extracts address string from Google address_components object.
@@ -47,6 +47,22 @@ export const findAddressValueByType = (
     return o.types[0] === addressType;
   });
 };
+
+export function extractAddressFromGeoCode({ address_components, geometry }: NewAddress) {
+  const newStreetNumber = findAddressValueByType(address_components, 'street_number');
+  const newStreetName = findAddressValueByType(address_components, 'route');
+
+  return {
+    addressLine1: `${newStreetNumber?.long_name || ''} ${newStreetName?.long_name || ''}`.trim(),
+    addressLine2: '', // TODO: any scenario where google includes addr2 ??
+    city: findAddressValueByType(address_components, 'locality')?.long_name,
+    state: findAddressValueByType(address_components, 'administrative_area_level_1')?.short_name,
+    postal: findAddressValueByType(address_components, 'postal_code')?.long_name,
+    county: findAddressValueByType(address_components, 'administrative_area_level_2')?.long_name,
+    latitude: geometry?.location.lat(),
+    longitude: geometry?.location.lng(),
+  };
+}
 
 /**
  * converts bytes to a formatted string

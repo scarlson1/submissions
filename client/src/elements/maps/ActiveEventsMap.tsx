@@ -151,6 +151,27 @@ const floodEventTypes = [
 
 // TODO: query controls - event type, status, area (state), etc.
 // use react-query to fetch data (mutation)
+// https://tkdodo.eu/blog/leveraging-the-query-function-context#how-to-type-the-queryfunctioncontext
+
+// export const useActiveEventsRQ = () => {
+//   const [params] = useState({
+//     // , setParams
+//     event: floodEventTypes,
+//     status: ['actual', 'exercise', 'system', 'test'],
+//   });
+
+//   return useQuery({
+//     queryKey: ['activeEvents', params.status, params.event],
+//     queryFn: async ({queryKey}) => {
+//       // const response = await fetch('')
+//       const response = await axios.get(`https://api.weather.gov/alerts/active`, {params: {
+//         status: queryKey[1],
+//         event: queryKey[2]
+//       }});
+//       return response.data
+//     }
+//   })
+// }
 
 const useActiveEvents = () => {
   const [data, setData] = useState();

@@ -1318,12 +1318,14 @@ export const locationIdCol: GridColDef = {
   ...idCol,
   field: 'locationId',
   headerName: 'Location ID',
+  filterable: true,
 };
 
 export const policyIdCol: GridColDef = {
   ...idCol,
   field: 'policyId',
   headerName: 'Policy ID',
+  filterable: true,
 };
 
 export const homeStateCol: GridSingleSelectColDef = {

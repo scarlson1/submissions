@@ -5,7 +5,7 @@ import { info } from 'firebase-functions/logger';
 import {
   ChangeRequest,
   ILocation,
-  Policy,
+  PolicyNew,
   calcTerm,
   changeRequestsCollection,
   getReportErrorFn,
@@ -20,12 +20,15 @@ import { recalcTaxes } from './taxes.js';
 
 const reportErr = getReportErrorFn('policyChangeRequest.handleCancelRating');
 
+// Calculates location and policy changes for a cancelled location
+
 export async function handleCancelRating(data: ChangeRequest, policyId: string, requestId: string) {
   let changeRequestRef;
 
+  // TODO: handle policy cancel
+
   try {
     verify(data.scope === 'location', 'cancel request rating should be at location scope');
-
     const { requestEffDate, locationId } = data;
 
     const cancelEffDate = requestEffDate.toDate();
@@ -38,7 +41,6 @@ export async function handleCancelRating(data: ChangeRequest, policyId: string, 
     const policy = await getDoc(policyRef);
 
     const { [locationId]: locationSummary, ...otherLocations } = policy.locations;
-
     verify(locationSummary, `location not found on policy (Location ID: ${locationId})`);
     // verify(location.ratingDocId, 'missing location ratingDocId');
 
@@ -49,7 +51,6 @@ export async function handleCancelRating(data: ChangeRequest, policyId: string, 
 
     // Recalc location termPremium & termDays
     const { annualPremium, effectiveDate } = location;
-
     const { termPremium, termDays } = calcTerm(
       annualPremium,
       effectiveDate.toDate(),
@@ -62,15 +63,14 @@ export async function handleCancelRating(data: ChangeRequest, policyId: string, 
       cancelEffDate: requestEffDate,
     };
 
-    const newLocations = [
-      ...Object.values(otherLocations),
-      { ...locationSummary, termPremium }, // { ...location, ...locationRatingChanges },
-    ];
+    const newLocations = [...Object.values(otherLocations), { ...locationSummary, termPremium }];
 
+    // TODO: if single location --> cancel policy
+    // change to policy scope ??
+    // don't recalc price, taxes, etc. ??
+
+    // TODO: reusable function (same in handleEndorsementRating)
     // Recalc policy termPremium, taxes & price
-    // const newPolicyTermPremium = sumPolicyTermPremium(newLocations);
-    // const inStatePremium = getInStatePremium(policy.homeState, newLocations);
-    // const outStatePremium = getOutStatePremium(policy.homeState, newLocations);
     const {
       termPremium: newPolicyTermPremium,
       inStatePremium,
@@ -87,7 +87,7 @@ export async function handleCancelRating(data: ChangeRequest, policyId: string, 
 
     const price = sumFeesTaxesPremium(policy.fees, taxes, newPolicyTermPremium);
 
-    const policyLevelUpdates: Partial<Policy> = {
+    let policyLevelUpdates: Partial<PolicyNew> = {
       termPremium: newPolicyTermPremium,
       inStatePremium,
       outStatePremium,
@@ -95,10 +95,21 @@ export async function handleCancelRating(data: ChangeRequest, policyId: string, 
       price,
     };
 
+    // TODO: verify setting "termDays" doesn't result in incorrect transaction calculations
+    // is termDays earlier of cancelEffDate and expirationDate ??
+    if (!Object.values(otherLocations).filter((l) => !l.cancelEffDate).length) {
+      policyLevelUpdates['cancelEffDate'] = requestEffDate;
+      policyLevelUpdates['termDays'] = termDays;
+    }
+
+    // TODO: need location doc changes too ??
     const updates: Partial<ChangeRequest> = {
-      changes: {
+      locationChanges: locationRatingChanges,
+      policyChanges: {
         locations: {
-          [locationId]: locationRatingChanges,
+          [locationId]: {
+            cancelEffDate: requestEffDate,
+          },
         },
         ...policyLevelUpdates,
       },
@@ -108,6 +119,29 @@ export async function handleCancelRating(data: ChangeRequest, policyId: string, 
         updated: Timestamp.now(),
       },
     };
+
+    // let policyLevelUpdates: Partial<Policy> = {
+    //   termPremium: newPolicyTermPremium,
+    //   inStatePremium,
+    //   outStatePremium,
+    //   taxes,
+    //   price,
+    // };
+
+    // // TODO: need location doc changes too ??
+    // const updates: Partial<ChangeRequest> = {
+    //   changes: {
+    //     locations: {
+    //       [locationId]: locationRatingChanges,
+    //     },
+    //     ...policyLevelUpdates,
+    //   },
+    //   _lastCommitted: Timestamp.now(),
+    //   // @ts-ignore
+    //   metadata: {
+    //     updated: Timestamp.now(),
+    //   },
+    // };
     info(`Saving change request rating calc changes...`, updates);
 
     await changeRequestRef.set(updates, { merge: true });

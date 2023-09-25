@@ -6,16 +6,6 @@ import { ErrorBoundary } from 'react-error-boundary';
 import { useNavigate } from 'react-router-dom';
 import { useFirestore } from 'reactfire';
 
-import {
-  addressValidationActiveStatesNested,
-  buildingDetailsValidation,
-  contactValidationNested,
-  deductibleValidation,
-  exclusionsValidation,
-  limitsValidationNested,
-  priorLossValidation,
-  reviewValidation,
-} from 'common/validation';
 import { FormikNativeSelect, FormikWizard, Step } from 'components/forms';
 import {
   AddressStep,
@@ -36,9 +26,17 @@ import {
   Nullable,
   RatingPropertyData,
   submissionsCollection,
+  SUBMISSION_STATUS,
+  addressValidationActiveStatesNested,
+  buildingDetailsValidation,
+  contactValidationNested,
+  deductibleValidation,
+  exclusionsValidation,
+  limitsValidationNested,
+  priorLossValidation,
+  reviewValidation,
 } from 'common';
-import { SUBMISSION_STATUS } from 'common/enums';
-import { ErrorFallbackWithReset } from 'components/ErrorFallback';
+import { ErrorFallback } from 'components';
 import { useAuth } from 'context/AuthContext';
 import { useAsyncToast, useDocData, usePropertyDetailsAttom } from 'hooks';
 import { InitRatingValues } from 'hooks/usePropertyDetails';
@@ -286,17 +284,18 @@ export const SubmissionNew = () => {
     [createSubmission, propertyDetails, initRatingValues, propertyDataDocId, rcvSourceUser]
   );
 
-  const handleErrorReset = useCallback((...details: unknown[]) => {
-    // TODO: reload page ? reset form? reset formik wizard to index 0 ??
-    alert('Reset not implemented yet. Please reload the page.');
-  }, []);
+  // const handleErrorReset = useCallback((...details: unknown[]) => {
+  //   // TODO: reload page ? reset form? reset formik wizard to index 0 ??
+  //   alert('Reset not implemented yet. Please reload the page.');
+  // }, []);
 
   return (
     <Container maxWidth='sm'>
       <Box>
         <ErrorBoundary
-          FallbackComponent={ErrorFallbackWithReset}
-          onReset={handleErrorReset}
+          FallbackComponent={ErrorFallback}
+          // FallbackComponent={ErrorFallbackWithReset}
+          // onReset={handleErrorReset}
           // resetKeys={[activeStates]}
         >
           <FormikWizard<FloodValues>

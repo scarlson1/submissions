@@ -1,14 +1,8 @@
 import { WarningAmberRounded } from '@mui/icons-material';
-import {
-  Box,
-  Button,
-  // Unstable_Grid2 as Grid,
-  Tooltip,
-  Typography,
-  tooltipClasses,
-} from '@mui/material';
+import { Box, Button, Tooltip, Typography, tooltipClasses } from '@mui/material';
 import { FormikErrors, setNestedObjectValues, useFormikContext } from 'formik';
 import { useCallback, useMemo } from 'react';
+import { isArray } from 'lodash';
 
 import { flattenObj } from 'modules/utils';
 
@@ -23,7 +17,14 @@ export function RequiredFieldsIndicator({
   const errorEntries = useMemo(() => {
     if (getErrorEntries) return getErrorEntries(errors);
 
-    const flattened = flattenObj(errors);
+    let flattened = flattenObj(errors);
+    for (let key in flattened) {
+      // @ts-ignore
+      if (isArray(flattened[key]))
+        // @ts-ignore
+        flattened[key] = `${key}: ${flattened[key].map((e) => JSON.stringify(e)).join(', ')}`;
+    }
+    // TODO: loop and check for arrays
     return Object.entries(flattened);
   }, [errors, getErrorEntries]);
 
@@ -58,35 +59,14 @@ export function RequiredFieldsIndicator({
               </Box>
 
               {errorEntries.map(([field, errMsg]) => (
-                <Typography variant='body2' sx={{ py: 0.5 }} key={field}>{`${errMsg}`}</Typography>
-              ))}
-
-              {/* {errorEntries.map(([fieldname, errMsg]) => (
-                <Grid container spacing={2} key={fieldname}>
-                  <Grid 
-                    xs={5}
-                    // xs='auto'
-                  >
-                    <Typography
-                      variant='body2'
-                      component='span'
-                      sx={{ pr: 2, fontWeight: 500 }}
-                    >{`${fieldname}`}</Typography>
-                  </Grid>
-
-                  {typeof errMsg === 'string' ? (
-                    <Grid xs>
-                      <Typography variant='body2' component='span'>{`${errMsg}`}</Typography>
-                    </Grid>
+                <Typography variant='body2' component='div' sx={{ py: 0.5 }} key={field}>
+                  {String(errMsg).includes('[object Object]') ? (
+                    <pre>{JSON.stringify(errMsg, null, 2)}</pre>
                   ) : (
-                    <Grid xs={12}>
-                      <Typography variant='body2' component='span'>
-                        <pre>{JSON.stringify(errMsg, null, 2)}</pre>
-                      </Typography>
-                    </Grid>
+                    `${errMsg}`
                   )}
-                </Grid>
-              ))} */}
+                </Typography>
+              ))}
             </>
           ) : (
             <Typography variant='body2' fontWeight={500}>

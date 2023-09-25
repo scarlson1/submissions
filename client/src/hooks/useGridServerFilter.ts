@@ -18,10 +18,7 @@ export const useGridServerFilter = (
   const prevFilters = usePrevious(filters);
 
   useEffect(() => {
-    if (resetCursors && prevFilters && !isEqual(filters, prevFilters)) {
-      console.log('RESET CURSORS (FILTER DIFF)');
-      resetCursors();
-    }
+    if (resetCursors && prevFilters && !isEqual(filters, prevFilters)) resetCursors();
   }, [resetCursors, filters, prevFilters]);
 
   const handleFilterChange = useCallback(

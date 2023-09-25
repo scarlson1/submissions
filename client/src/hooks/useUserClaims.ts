@@ -11,12 +11,6 @@ import { isEmpty } from 'lodash';
 import { userClaimsCollection } from 'common';
 import type { CustomClaimsInterface } from 'context';
 
-// const DEFAULT_CLAIMS = {
-//   iDemandAdmin: false,
-//   orgAdmin: false,
-//   agent: false,
-// };
-
 function getResult(
   user: User,
   orgId: string | null,
@@ -106,7 +100,7 @@ export const useUserClaims = (): ObservableStatus<UserWithClaimsResult> => {
           );
         } else {
           let result: UserWithClaimsResult = {
-            claims: null, // DEFAULT_CLAIMS,
+            claims: null,
             user: user,
             orgId: null,
             isSignedIn: true,
@@ -115,7 +109,7 @@ export const useUserClaims = (): ObservableStatus<UserWithClaimsResult> => {
         }
       } else {
         let result: UserWithClaimsResult = {
-          claims: null, // DEFAULT_CLAIMS,
+          claims: null,
           user: null,
           orgId: null,
           isSignedIn: false,
@@ -128,7 +122,7 @@ export const useUserClaims = (): ObservableStatus<UserWithClaimsResult> => {
   return useObservable(observableId, observable$, { suspense: true });
 };
 
-// USESIGNINCHECK:
+// USE SIGN IN CHECK:
 
 // const observable = user(auth).pipe(
 //   switchMap((user) => {

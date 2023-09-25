@@ -96,43 +96,7 @@ export const RouterErrorBoundary = ({ actionButtons }: RouterErrorBoundaryProps)
   if (isRouteErrorResponse(error)) {
     let msg = typeof error.data === 'string' ? error.data : undefined;
 
-    if (error.status === 404) {
-      return <NotFound msg={msg} actionButtons={actionButtons} />;
-      // return (
-      //   <Container maxWidth='xs' sx={{ py: 8 }}>
-      //     <Box
-      //       sx={{
-      //         textAlign: 'center',
-      //         height: { xs: '100px', sm: '140px', md: '160px' },
-      //         m: 8,
-      //       }}
-      //     >
-      //       <PageNotFoundSVG style={{ width: 'inherit', height: 'inherit', margin: 'auto' }} />
-      //     </Box>
-      //     <Box>
-      //       <Typography variant='h5' gutterBottom sx={{ py: 2 }}>
-      //         The requested resource could not be found
-      //       </Typography>
-      //       <Typography variant='body2' color='text.secondary' sx={{ py: 2 }}>
-      //         {msg ?? 'Something went wrong...'}
-      //       </Typography>
-      //     </Box>
-      //     <Box>
-      //       <Stack spacing={3} direction={{ xs: 'column', sm: 'row' }}>
-      //         <Button onClick={() => navigate('/')}>Home</Button>
-      //         <Button onClick={() => navigate(-1)}>Back</Button>
-      //         {actionButtons &&
-      //           actionButtons?.map((button) => (
-      //             <Button onClick={() => navigate(button.path)} key={button.path}>
-      //               {button.label}
-      //             </Button>
-      //           ))}
-      //       </Stack>
-      //     </Box>
-      //   </Container>
-      // );
-    }
-    // EXAMPLE: <p>Go ahead and email {error.data.hrEmail} if you feel like this is a mistake.</p>;
+    if (error.status === 404) return <NotFound msg={msg} actionButtons={actionButtons} />;
 
     if (error.status === 401) {
       return (
@@ -176,6 +140,13 @@ export const RouterErrorBoundary = ({ actionButtons }: RouterErrorBoundaryProps)
         </Container>
       );
     }
+
+    // TODO: handle 403 (note: 403 when computer sleeps & subscribed to docs)
+    // if (error.status === 403) {
+    //   return <Container maxWidth='xs' sx={{ py: 8 }}>
+
+    //   </Container>;
+    // }
 
     if (error.status === 503) {
       return (

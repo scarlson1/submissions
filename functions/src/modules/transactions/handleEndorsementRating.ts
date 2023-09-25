@@ -91,6 +91,7 @@ export async function handleRatingForEndorsement(
     // @ts-ignore
     const expDateTS: Timestamp = locationChanges.expirationDate || location.expirationDate;
 
+    // if only exp date --> recalc termPremium, taxes, etc. (no need to rerate)
     if (expDateOnly) {
       const { termPremium: locationTermPremium, termDays } = calcTerm(
         annualPremium,
@@ -141,12 +142,10 @@ export async function handleRatingForEndorsement(
         },
       };
 
-      // TODO: ask ron if policy exp date should change to match location exp date if only one active location
-      // need to filter out cancelled policies (create helper function)
-      // if (Object.keys(policy.locations).length === 1) {
-      //   newPolicyChanges['expirationDate'] = expDateTS;
-      //   newPolicyChanges['termDays'] = termDays;
-      // }
+      if (newLocationsSummaryArr.filter((l) => !l.cancelEffDate).length === 1) {
+        policyChanges['expirationDate'] = expDateTS;
+        policyChanges['termDays'] = termDays;
+      }
 
       const updates: Partial<ChangeRequest> = {
         locationChanges: locationChangesWithRating,
@@ -188,7 +187,6 @@ export async function handleRatingForEndorsement(
       //   },
       //   { merge: true }
       // );
-
       return;
     }
 
@@ -264,7 +262,6 @@ export async function handleRatingForEndorsement(
     };
 
     const ratingDocRef = ratingCol.doc(createDocId());
-
     await ratingDocRef.set({
       submissionId: prevRatingData?.submissionId || null,
       locationId,
@@ -339,6 +336,11 @@ export async function handleRatingForEndorsement(
         },
       },
     };
+
+    if (newLocationsSummaryArr.filter((l) => !l.cancelEffDate).length === 1) {
+      policyChanges['expirationDate'] = expDateTS;
+      policyChanges['termDays'] = termDays;
+    }
 
     const updates: Partial<ChangeRequest> = {
       locationChanges: locationChangesWithRating,

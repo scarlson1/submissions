@@ -57,6 +57,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const claimsPrev = usePrevious(userData?.claims);
 
   useEffect(() => {
+    console.log('CLAIMS OBS STATUS: ', status);
+  }, [status]);
+
+  useEffect(() => {
     process.env.REACT_APP_FB_PROJECT_ID !== 'idemand-submissions' &&
       console.log('USER OBS CHANGE: ', userData);
   }, [userData]);

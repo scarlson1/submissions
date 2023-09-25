@@ -34,6 +34,7 @@ export { default as QuoteForm } from './QuoteForm';
 export { ReviewStep } from './ReviewStep';
 export { SuccessStep } from './SuccessStep';
 export { TaxForm } from './TaxForm';
+export { FormikAddressAutocomplete } from './FormikAddressAutocomplete';
 
 export type { AddLocationValues } from './AddLocationForm';
 export type { AddPaymentMethodValues } from './AddPaymentDialog';

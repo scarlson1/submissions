@@ -1,5 +1,7 @@
 import { Alert, AlertTitle, Box, Button, Typography } from '@mui/material';
+import { AuthErrorCodes } from 'firebase/auth';
 import { FallbackProps } from 'react-error-boundary';
+import { useUser } from 'reactfire';
 
 export interface ErrorFallbackProps {
   error?: any;
@@ -7,7 +9,19 @@ export interface ErrorFallbackProps {
 }
 
 export function ErrorFallback({ error, resetErrorBoundary }: ErrorFallbackProps) {
-  console.log('Error fallback component: ErrorFallback.tsx');
+  console.log('Error fallback component: ErrorFallback.tsx', error);
+  const { data: user } = useUser();
+
+  let lastRefreshMS = 0;
+  const mins = 1000 * 60 * 15; // 15 mins
+  const shouldRefresh = new Date().getTime() - lastRefreshMS > mins || !lastRefreshMS;
+  if (error?.code === AuthErrorCodes.NETWORK_REQUEST_FAILED && shouldRefresh) {
+    // 'auth/network-request-failed'
+    console.log('auth/network-request-failed err --> refreshing token...');
+    lastRefreshMS = new Date().getTime();
+    user?.getIdToken();
+  }
+
   return (
     <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 8 }}>
       <Alert
@@ -37,11 +51,11 @@ export function ErrorFallback({ error, resetErrorBoundary }: ErrorFallbackProps)
   );
 }
 
-export default ErrorFallback;
-
 export function ErrorFallbackWithReset({ error, resetErrorBoundary }: FallbackProps) {
   console.log('ErrorFallbackWithReset');
   let err = error as any;
+  let msg = err?.message ?? err?.code;
+
   return (
     <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 8 }}>
       <Alert
@@ -56,14 +70,20 @@ export function ErrorFallbackWithReset({ error, resetErrorBoundary }: FallbackPr
       >
         <AlertTitle>Something went wrong</AlertTitle>
         <Box>
-          {err && (err.code || error.message) ? (
-            <Typography>{`${err.code + ' - ' || ''}${error.message + ''}`}</Typography>
+          {msg ? (
+            <Typography>{`${msg}`}</Typography>
           ) : (
             <Box typography='body2' sx={{ color: 'text.secondary' }}>
               <pre>{err}</pre>
             </Box>
           )}
-          {/* <Button onClick={resetErrorBoundary}>Try Again</Button> */}
+          {/* {err && (err.code || error.message) ? (
+            <Typography>{`${err.code + ' - ' || ''}${error.message + ''}`}</Typography>
+          ) : (
+            <Box typography='body2' sx={{ color: 'text.secondary' }}>
+              <pre>{err}</pre>
+            </Box>
+          )} */}
         </Box>
       </Alert>
     </Box>

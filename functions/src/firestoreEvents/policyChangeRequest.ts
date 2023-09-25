@@ -76,6 +76,7 @@ export default async (
         // TODO: is cancellation handled differently than flat cancel
         if (data.trxType === 'cancellation' || data.trxType === 'flat_cancel') {
           // TODO: handle cancellation
+          // if only one active location --> only set cancelEffDate ?? change to policy scope ??
           await handleCancelRating(data, policyId, requestId);
           throw new Error('cancellation trx handler not set up yet');
         }
@@ -93,13 +94,11 @@ export default async (
 
         return;
       case CHANGE_REQUEST_STATUS.CANCELLED:
-        await handleRequestNotifications(data, policyId, requestId, event.id);
-
-        // moved to "submitted status"
-        // await handleCancelRating(data, policyId, requestId);
+        // await handleRequestNotifications(data, policyId, requestId, event.id);
+        // TODO: send notifications ??
 
         return;
-      case CHANGE_REQUEST_STATUS.DENIED:
+      case CHANGE_REQUEST_STATUS.DENIED: // TODO: send notifications (create template for all status updates)
         await handleDeniedRequest(data, policyId, requestId);
 
         return;
@@ -113,7 +112,6 @@ export default async (
         return;
     }
   } catch (err: any) {
-    console.log('ERROR: ', err);
     const errMsg = `error handling policy change request status change (${
       err?.message || 'unknown'
     })`;
@@ -263,7 +261,8 @@ async function handleAcceptedRequest(data: ChangeRequest, policyId: string) {
       switch (data.trxType) {
         case 'endorsement':
           console.log('TODO: handle publish policy endorsement pubsub message');
-          // TODO
+          // TODO: does policy endorsement scenario exist ?? (exp date ??)
+          // would effDate request change actually be a cancel ?? can eff date be move later ??
           break;
         case 'amendment':
           console.log('TODO: handle publish policy amendment pubsub message');
@@ -271,13 +270,13 @@ async function handleAcceptedRequest(data: ChangeRequest, policyId: string) {
           break;
         case 'cancellation': {
           console.log('TODO: handle publish policy cancellation pubsub message');
-          // TODO is policy cancellation different than aggregate location cancels ??
           const db = getFirestore();
           const policyRef = policiesCollection(db).doc(policyId);
           const policy = await getDoc(policyRef);
 
-          let locationIds = Object.keys(policy.locations);
-          for (const id of locationIds) {
+          // TODO: handle in batch instead of pubsub for each location ??
+          let lcnEntries = Object.entries(policy.locations).filter(([id, l]) => !l.cancelEffDate);
+          for (const [id] of lcnEntries) {
             await publishLocationCancel({
               policyId,
               locationId: id, // TODO: fix discriminating union types
@@ -285,6 +284,15 @@ async function handleAcceptedRequest(data: ChangeRequest, policyId: string) {
               cancelEffDateMS: data.requestEffDate.toMillis(),
             });
           }
+          // let locationIds = Object.keys(policy.locations);
+          // for (const id of locationIds) {
+          //   await publishLocationCancel({
+          //     policyId,
+          //     locationId: id, // TODO: fix discriminating union types
+          //     cancelReason: data.cancelReason || ('' as CancellationReason),
+          //     cancelEffDateMS: data.requestEffDate.toMillis(),
+          //   });
+          // }
           break;
         }
         case 'flat_cancel':
