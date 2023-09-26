@@ -1027,6 +1027,7 @@ interface BaseChangeRequest extends BaseDoc {
   requestEffDate: Timestamp;
   policyId: string;
   policyVersion: number | null;
+  mergedWithPolicyVersion?: number | null;
   userId: string;
   agent: {
     userId: string | null;

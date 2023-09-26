@@ -71,6 +71,7 @@ export const mergePolicyLocationChanges = async (
     let res: { locationData?: ILocation } = {};
 
     // TODO: if policy cancellation --> loop through location changes or handle in different transaction ??
+    // policy cancel: location changes stored as { [lcnId]: changes }
     if (!isLcnScope && trxType === 'cancellation')
       throw new Error(
         'mergePolicyLocationChanges not set up to merge policy cancellation doc changes'
@@ -105,6 +106,7 @@ export const mergePolicyLocationChanges = async (
       status: CHANGE_REQUEST_STATUS.ACCEPTED,
       processedTimestamp: Timestamp.now(),
       'metadata.updated': Timestamp.now(),
+      mergedWithPolicyVersion: policyChanges?.metadata?.version || null,
     };
 
     if (locationRef) transaction.set(locationRef, { ...(res.locationData || {}) }, { merge: true });
