@@ -16,10 +16,11 @@ import {
   DialogTitle,
   IconButton,
   Tooltip,
+  Typography,
 } from '@mui/material';
 import { GridActionsCellItem, GridCellParams, GridRowModel, GridRowParams } from '@mui/x-data-grid';
 import { Timestamp, doc, getDoc, updateDoc, where } from 'firebase/firestore';
-import { isEqual, merge } from 'lodash';
+import { isEqual, isNumber, merge } from 'lodash';
 import { Suspense, useCallback, useMemo, useState } from 'react';
 import { useFirestore, useFunctions, useUser } from 'reactfire';
 
@@ -94,7 +95,7 @@ export const useViewChangeRequestsDialogProps = (policyId?: string) => {
 
 const useManageChangeRequest = (
   onSuccess?: (res?: ApproveChangeResponse | undefined) => void,
-  onError?: () => void
+  onError?: (msg: string, err: any) => void
 ) => {
   const { data: user } = useUser();
   const toast = useAsyncToast();
@@ -103,8 +104,8 @@ const useManageChangeRequest = (
   const compareJson = useCompareJson(() => toast.error('Unable to display comparison'));
 
   const getPolicy = useCallback(
-    async (policyId: string) => {
-      const ref = doc(policiesCollection(firestore), policyId);
+    async (policyId: string, ...pathSegments: string[]) => {
+      const ref = doc(policiesCollection(firestore), policyId, ...pathSegments);
 
       const snap = await getDoc(ref);
       const data = snap.data();
@@ -115,8 +116,8 @@ const useManageChangeRequest = (
   );
 
   const getLocation = useCallback(
-    async (locationId: string) => {
-      const ref = doc(locationsCollection(firestore), locationId);
+    async (locationId: string, ...pathSegments: string[]) => {
+      const ref = doc(locationsCollection(firestore), locationId, ...pathSegments);
 
       const snap = await getDoc(ref);
       const data = snap.data();
@@ -141,32 +142,71 @@ const useManageChangeRequest = (
   const previewChange = useCallback(
     async (policyId: string, requestId: string) => {
       try {
-        const policyReq = getPolicy(policyId);
-        const requestReq = getRequest(policyId, requestId);
-        const [policy, request] = await Promise.all([policyReq, requestReq]);
+        // const policyReq = getPolicy(policyId);
+        // const requestReq = getRequest(policyId, requestId);
+        // const [policy, request] = await Promise.all([policyReq, requestReq]);
+
+        const request = await getRequest(policyId, requestId);
+        const { status, scope, policyVersion } = request;
+
+        const policyVersionPath =
+          status === 'accepted' && isNumber(policyVersion)
+            ? [COLLECTIONS.VERSIONS, `${request.policyVersion}`]
+            : [];
+
+        const policyBefore = await getPolicy(policyId, ...policyVersionPath);
 
         let before: Record<string, any> = {
-          policy,
+          policy: policyBefore,
         };
         let after: Record<string, any> = {};
 
-        const policyMerged = merge({ '@': 'ignore me' }, policy, request.policyChanges || {});
+        // if (status === 'accepted') {
+        //   // TODO: get policy at version created after merge ?? created by cloud function so could be wrong if set in merging cloud function
+        //   after['policy'] = await getPolicy(policyId)
+        // }
 
-        after['policy'] = policyMerged;
+        const policyAfter = merge(
+          { '@': 'ignore me' },
+          policyBefore,
+          request.policyChanges || {},
+          (a: any, b: any) => (Array.isArray(b) ? b : undefined)
+        );
 
-        if (request.scope === 'location') {
-          let location = await getLocation(request.locationId);
-          let locationMerged = merge({ '@': 'ignore me' }, location, request.locationChanges || {});
+        after['policy'] = policyAfter;
+
+        if (scope === 'location') {
+          // TODO: get location at version X if accepted
+          let lcnVersion = policyBefore.locations[request.locationId]?.version;
+          let versionPath = lcnVersion ? [COLLECTIONS.VERSIONS, `${lcnVersion}`] : [];
+
+          let location = await getLocation(request.locationId, ...versionPath);
+          let locationMerged = merge(
+            { '@': 'ignore me' },
+            location,
+            request.locationChanges || {},
+            (a: any, b: any) => (Array.isArray(b) ? b : undefined)
+          );
 
           before['location'] = location;
           after['location'] = locationMerged;
         }
 
-        // compareJson(policy, policyMerged, 'Change Request Diff');
-        compareJson(before, after, 'Change Request Diff');
+        compareJson(
+          before,
+          after,
+          'Change Request Diff',
+          <Typography variant='body2' color='text.secondary' sx={{ pb: 2 }}>
+            Note: comparison may not be exact. If the request status is "accepted," the base record
+            is the policy/location version at which the request was created, otherwise, the current
+            policy / location is used. The "old" side displays the base doc and the "new" side
+            displays the base doc merged with the changes.
+          </Typography>
+        );
       } catch (err: any) {
         console.log('Error previewing policy diff', err);
-        if (onError) onError();
+        let errMsg = err?.message || 'Error previewing policy diff';
+        if (onError) onError(errMsg, err);
       }
     },
     [getRequest, getPolicy, getLocation, onError, compareJson]
@@ -176,18 +216,18 @@ const useManageChangeRequest = (
     async (policyId: string, requestId: string) => {
       try {
         toast.loading('updating...');
-        const res = await approveChangeRequest(functions, {
+        const { data } = await approveChangeRequest(functions, {
           policyId,
           requestId,
         });
 
         toast.success('request approved!');
-        console.log('RES: ', res);
-        if (onSuccess) onSuccess(res.data);
+        console.log('RES: ', data);
+        if (onSuccess) onSuccess(data);
       } catch (err: any) {
         console.log('err: ', err);
         toast.error('an error occurred');
-        if (onError) onError();
+        if (onError) onError('an error occurred', err);
       }
     },
     [functions, toast, onSuccess, onError]
@@ -217,7 +257,7 @@ const useManageChangeRequest = (
       } catch (err: any) {
         console.log('error updating status: ', err);
         toast.error('an error occurred');
-        if (onError) onError();
+        if (onError) onError('an error occurred', err);
       }
     },
     [firestore, user, toast, onSuccess, onError]

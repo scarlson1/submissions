@@ -15,13 +15,13 @@ export const getReinstatementTrx = (
   policy: WithId<PolicyNew>,
   location: ILocation,
   prevTrx: OffsetTransaction,
+  trxEffDate: Timestamp,
   eventId: string
 ): PremiumTransaction => {
-  const trxEffDate = prevTrx.trxEffDate;
   const trxExpDate = location.expirationDate; // TODO: verify correct date being used
   const trxDays = getTermDays(trxEffDate.toDate(), trxExpDate.toDate());
 
-  const bookingDate = getBookingDate(location.effectiveDate.toMillis(), trxEffDate.toMillis());
+  const bookingDate = getBookingDate(trxEffDate.toMillis(), location.effectiveDate.toMillis());
 
   // TODO: decide whether to calculate or use the term premium from location ?? need to recalc in reinstatement handler before emitting policy.reinstated event
   const termPremium = round(trxDays * prevTrx.dailyPremium, 2);
@@ -59,7 +59,7 @@ export const getReinstatementTrx = (
     trxEffDate,
     trxExpDate,
     trxDays,
-    bookingDate: Timestamp.fromMillis(bookingDate),
+    bookingDate,
     otherInterestedParties: location.mortgageeInterest.map((m) => m.name),
     additionalNamedInsured: location.additionalInsureds.map((ai) => ai.name),
     eventId,

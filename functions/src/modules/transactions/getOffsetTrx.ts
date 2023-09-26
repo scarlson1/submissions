@@ -29,7 +29,7 @@ export const getOffsetTrx = (
   trxType: OffsetTransaction['trxType'],
   cancelReason: CancellationReason | null = null
 ): OffsetTransaction => {
-  const bookingDateMillis = getBookingDate(prevTrx.trxEffDate.toMillis(), trxEffDate.toMillis());
+  const bookingDate = getBookingDate(trxEffDate.toMillis(), policy.effectiveDate.toMillis());
 
   const trxExpDate = add(trxEffDate.toDate(), { days: 1 });
   const trxDays = 1;
@@ -62,7 +62,7 @@ export const getOffsetTrx = (
     trxEffDate,
     trxExpDate: Timestamp.fromDate(trxExpDate),
     trxDays,
-    bookingDate: Timestamp.fromMillis(bookingDateMillis),
+    bookingDate,
     termPremium,
     MGACommission,
     MGACommissionPct: prevTrx.MGACommissionPct,

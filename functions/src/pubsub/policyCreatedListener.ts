@@ -9,7 +9,6 @@ import {
   splitChunks,
   transactionsCollection,
 } from '../common/index.js';
-import { verify } from '../utils/index.js';
 import { getAllById } from '../modules/db/index.js';
 import {
   constructTrxId,
@@ -18,6 +17,7 @@ import {
   fetchRatingData,
   formatPremiumTrx,
 } from '../modules/transactions/index.js';
+import { verify } from '../utils/index.js';
 
 // using JS Module over classes: https://dev.to/giantmachines/stop-using-javascript-classes-33ij
 
@@ -103,7 +103,14 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyCreatedPayloa
 
           // TODO: handle validation
 
-          const locationTrx = formatPremiumTrx('new', policy, location, ratingData, eventId);
+          const locationTrx = formatPremiumTrx(
+            'new',
+            policy,
+            location,
+            ratingData,
+            location.effectiveDate,
+            eventId
+          );
 
           info(`setting batch - new policy transaction...`, { transaction: locationTrx });
           // await trxRef.set({ ...locationTrx });

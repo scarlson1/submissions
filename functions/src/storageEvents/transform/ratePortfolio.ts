@@ -30,6 +30,7 @@ export function transformRatePortfolioRow(data: IRow): Nullable<TRow> {
     cov_d_limit: limitD,
     total_limits,
     deductible: data.deductible ? parseInt(getNumber(data.deductible)) : null,
+    ffh: data.ffh ? parseFloat(getNumber(data.ffh)) : 0,
     skip: data?.skip && data?.skip?.toLowerCase().trim() === 'true',
     google_maps_link: getGoogleMapsUrl(data.latitude, data.longitude),
   };

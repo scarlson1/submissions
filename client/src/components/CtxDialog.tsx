@@ -53,6 +53,15 @@ const Content = () => {
 
 CtxDialog.Content = Content;
 
+// const SuccessView = () => {
+//   const { slots, slotProps, successView, showSuccessView } = useDialog();
+//   if (!showSuccessView) return null;
+
+//   return <slots.content {...slotProps.content}>{successView}</slots.content>;
+// };
+
+// CtxDialog.SuccessView = SuccessView;
+
 interface ActionsProps {
   confirmButtonProps?: Omit<ButtonProps, 'onClick'>;
   confirmButtonText?: string;
@@ -110,6 +119,7 @@ function ContextDialog() {
     <CtxDialog>
       <CtxDialog.Title />
       <CtxDialog.Content />
+      {/* <CtxDialog.SuccessView /> */}
       <CtxDialog.Actions />
     </CtxDialog>
   );

@@ -7,7 +7,7 @@ import { CHANGE_REQUEST_STATUS, COLLECTIONS, ServerDataGridCollectionProps } fro
 import { ServerDataGrid, ServerDataGridProps } from 'components';
 import { useAuth } from 'context';
 import { useWidth } from 'hooks';
-import { changeRequestCols } from 'modules/muiGrid/gridColumnDefs';
+import { changeRequestCols } from 'modules/muiGrid';
 import { verify } from 'modules/utils';
 
 interface ChangeRequestsGridProps extends ServerDataGridCollectionProps {

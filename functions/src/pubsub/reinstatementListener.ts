@@ -1,15 +1,15 @@
-import { getFirestore } from 'firebase-admin/firestore';
+import { Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { CloudEvent } from 'firebase-functions/lib/v2/core';
 import { error, info } from 'firebase-functions/logger';
 import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 
+import { isValid } from 'date-fns';
 import {
   OffsetTransaction,
   getReportErrorFn,
   locationsCollection,
   transactionsCollection,
 } from '../common/index.js';
-import { verify } from '../utils/index.js';
 import {
   constructTrxId,
   docExists,
@@ -17,6 +17,7 @@ import {
   fetchPreviousTrx,
   getReinstatementTrx,
 } from '../modules/transactions/index.js';
+import { verify } from '../utils/index.js';
 
 // reinstatement trxEffDate = cancellation date (from cancellation trx)
 // booking date ??
@@ -25,8 +26,10 @@ import {
 
 const reportErr = getReportErrorFn('reinstatementListener');
 
+// TODO: need to pass reinstatement effective date
 export interface ReinstatementPayload {
   policyId: string;
+  effDateMS: number;
 }
 
 export default async (event: CloudEvent<MessagePublishedData<ReinstatementPayload>>) => {
@@ -34,8 +37,11 @@ export default async (event: CloudEvent<MessagePublishedData<ReinstatementPayloa
 
   const eventId = event.id;
   let policyId = null;
+  let effDateMS = null;
+
   try {
     policyId = event.data?.message?.json?.policyId;
+    effDateMS = event.data?.message?.json?.effDateMS;
   } catch (e) {
     error('PubSub message was not JSON', e);
   }
@@ -85,12 +91,10 @@ export default async (event: CloudEvent<MessagePublishedData<ReinstatementPayloa
         const location = locationSnap.exists ? locationSnap.data() : null;
         verify(location, 'location doc not found');
 
-        // const prevTrx = (await fetchPreviousTrx(db, policyId, locationId, [
-        //   'cancellation',
-        //   'flat_cancel',
-        // ])) as OffsetTransaction;
+        const trxEffDate =
+          effDateMS && isValid(effDateMS) ? Timestamp.fromMillis(effDateMS) : Timestamp.now();
 
-        const trx = getReinstatementTrx(policy, location, prevTrx, eventId);
+        const trx = getReinstatementTrx(policy, location, prevTrx, trxEffDate, eventId);
 
         await trxRef.set({ ...trx });
 

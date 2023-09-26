@@ -21,17 +21,10 @@ export function formatPremiumTrx(
   policy: WithId<PolicyNew>,
   location: ILocation,
   ratingData: RatingData,
-  // policyId: string,
+  trxEffDate: Timestamp, // = Timestamp.now(),
   eventId: string
-  // trxEffDate: Timestamp = Timestamp.now()
 ): PremiumTransaction {
-  // const trxEffDate = policy?.effectiveDate; // or is trxEffDate the later of location Eff date, policy Eff date and now ??
-  const trxEffDate = location.effectiveDate;
-
-  const bookingDateMillis = getBookingDate(
-    location.effectiveDate.toMillis(),
-    trxEffDate.toMillis()
-  );
+  const bookingDate = getBookingDate(trxEffDate.toMillis(), location.effectiveDate.toMillis());
 
   const policyTermDays = getTermDays(
     policy.effectiveDate?.toDate(),
@@ -50,7 +43,7 @@ export function formatPremiumTrx(
     product: policy.product || '',
     policyId: policy.id,
     term: policy.term,
-    bookingDate: Timestamp.fromMillis(bookingDateMillis),
+    bookingDate,
     issuingCarrier: policy?.issuingCarrier || '',
     namedInsured: policy?.namedInsured?.displayName || '',
     mailingAddress: policy.mailingAddress,

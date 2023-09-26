@@ -76,6 +76,19 @@ service cloud.firestore {
       allow create: if isIDemandAdmin() && emailVerified()
       allow update: if isIDemandAdmin() && emailVerified()
       allow delete: if false
+
+      match /versions/{versionId} {
+        allow read: if isDocUserOrAgentOrOrgAdminOrIDemandAdmin()
+        allow update: if isIDemandAdmin() && emailVerified()
+        allow create, delete: if false
+      }
+    }
+
+// TODO: temp - might want diff rules for policy/location vs submission
+    match /{path=**}/versions/{song} {
+      allow read: if isDocUserOrAgentOrOrgAdminOrIDemandAdmin()
+        allow update: if isIDemandAdmin() && emailVerified()
+        allow create, delete: if false
     }
 
     // TODO: LOCATION RULES (different rules for submission, quote, policy ??)
@@ -84,6 +97,12 @@ service cloud.firestore {
       allow create: if false;
       allow update: if isIDemandAdmin();
       allow delete: if isIDemandAdmin() && !existingData().policyId
+
+      match /versions/{versionId} {
+        allow read: if isDocUserOrAgentOrOrgAdminOrIDemandAdmin()
+        allow update: if isIDemandAdmin() && emailVerified()
+        allow create, delete: if false
+      }
     }
 
     // required for collection group queries (https://firebase.google.com/docs/firestore/security/rules-query#collection_group_queries_and_security_rules)

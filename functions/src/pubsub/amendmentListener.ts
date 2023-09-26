@@ -1,10 +1,9 @@
-import { getFirestore } from 'firebase-admin/firestore';
+import { Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { CloudEvent } from 'firebase-functions/lib/v2/core';
 import { error, info, warn } from 'firebase-functions/logger';
 import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 
 import { locationsCollection, transactionsCollection } from '../common/index.js';
-import { verify } from '../utils/index.js';
 import {
   constructTrxId,
   docExists,
@@ -13,6 +12,7 @@ import {
   getPolicyAmendmentTrx,
 } from '../modules/transactions/index.js';
 import { reportErrorSentry } from '../services/sentry/index.js';
+import { verify } from '../utils/index.js';
 
 // Trx. eff date (policy amendment): determined by insured (form submission --> pubsub payload)
 // Trx. eff date (location amendment): no clue? insured ?? can mortgagee be backdated by insured ??
@@ -31,11 +31,14 @@ export default async (event: CloudEvent<MessagePublishedData<AmendmentPayload>>)
   let policyId = null;
   let locationId = null;
   let amendmentScope = null;
+  let effDateTS = null;
 
   try {
     policyId = event.data?.message?.json?.policyId;
     locationId = event.data?.message?.json?.locationId;
     amendmentScope = event.data?.message?.json?.amendmentScope;
+    const effDateMS = event.data?.message?.json?.effDateMS;
+    effDateTS = effDateMS ? Timestamp.fromMillis(effDateMS) : Timestamp.fromDate(new Date());
   } catch (err: any) {
     reportErr('PubSub message was not JSON', {}, err);
   }
@@ -48,6 +51,7 @@ export default async (event: CloudEvent<MessagePublishedData<AmendmentPayload>>)
 
     verify(policyId && typeof policyId === 'string', 'missing policyId');
     verify(locationVerified, 'missing locationId');
+    verify(effDateTS, 'missing trx eff date');
   } catch (err: any) {
     let msg = err?.message || 'invalid event.params';
     reportErr(msg, { policyId }, err);
@@ -82,9 +86,9 @@ export default async (event: CloudEvent<MessagePublishedData<AmendmentPayload>>)
         verify(location, `location doc not found (ID: ${locationId})`);
         // const location = policy.locations[locationId];
 
-        trx = getLocationAmendmentTrx(policy, location, eventId);
+        trx = getLocationAmendmentTrx(policy, location, effDateTS, eventId);
       } else {
-        trx = getPolicyAmendmentTrx(policy, eventId);
+        trx = getPolicyAmendmentTrx(policy, effDateTS, eventId);
       }
 
       await trxRef.set({ ...trx });

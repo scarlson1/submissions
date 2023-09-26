@@ -1,6 +1,6 @@
 import { DocumentData, DocumentReference, Firestore, Timestamp } from 'firebase-admin/firestore';
 import { error } from 'firebase-functions/logger';
-import { round } from 'lodash-es';
+import { max, round } from 'lodash-es';
 import {
   AmendmentTransaction,
   OffsetTransaction,
@@ -35,14 +35,23 @@ export const constructTrxId = (policyId: string, locationId: string, eventId: st
   `${policyId}-${locationId}-${eventId}`;
 
 /**
- * Get the book date in milliseconds (later of location eff. date or trx. eff. date)
- * @param {number} locationEffDateSeconds location effective date in milliseconds
- * @param {number} trxEffDateSeconds transaction effective date in milliseconds
- * @returns {number} greater of the two numbers
+ * Get the book date in milliseconds (later of trx timestamp (created) or trx eff date)
+ * @param {number} trxEffDateMS transaction effective date in milliseconds
+ * @param {number} locationEffDateMS location or policy eff date in milliseconds
+ * * @param {number} trxTimestampMS transaction timestamp (created) in milliseconds
+ * @returns {Timestamp} timestamp of the latest date
  */
-export const getBookingDate = (locationEffDateSeconds: number, trxEffDateSeconds: number) => {
-  return locationEffDateSeconds > trxEffDateSeconds ? locationEffDateSeconds : trxEffDateSeconds;
+export const getBookingDate = (
+  trxEffDateMS: number,
+  locationEffDateMS: number,
+  trxTimestampMS: number = new Date().getTime()
+) => {
+  let latest = max([trxEffDateMS, locationEffDateMS, trxTimestampMS]);
+
+  return Timestamp.fromMillis(latest!);
+  // return trxTimestampMS > trxEffDateMS ? trxTimestampMS : trxEffDateMS;
 };
+// TODO: return as timestamp ??
 
 /**
  * Calc daily premium, rounded

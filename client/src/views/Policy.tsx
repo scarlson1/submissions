@@ -1,5 +1,6 @@
 import {
   AccountBalanceRounded,
+  CancelRounded,
   EditRounded,
   EmailRounded,
   GridViewRounded,
@@ -31,6 +32,7 @@ import { PickingInfo } from 'deck.gl/typed';
 import { where } from 'firebase/firestore';
 import { isEmpty } from 'lodash';
 import { Suspense, useCallback, useMemo, useState } from 'react';
+import { ErrorBoundary } from 'react-error-boundary';
 import { useParams, useSearchParams } from 'react-router-dom';
 
 import { ILocation, Policy as IPolicy, POLICY_STATUS } from 'common';
@@ -57,7 +59,6 @@ import {
   formatPhoneNumber,
   stringAvatar,
 } from 'modules/utils';
-import { ErrorBoundary } from 'react-error-boundary';
 
 // TODO: make location card flip on hover to show additional details ??
 
@@ -85,6 +86,11 @@ export const Policy = () => {
 
   const locationChangeDialog = useCreateLocationChangeRequest(policyId);
   const cancelDialog = useCreateCancelRequest(); // TODO: onsuccess => "you'll receive a confirmation email once our team has processed the request. expect to see a refund, if due, in X days"
+  // const cancelLocationDialog = useCreateCancelRequest(
+  //   // () =>
+  //   //   toast.success(`Cancel request submitted. You'll receive a confirmation email once approved.`),
+  //   // (msg) => toast.error(msg)
+  // );
 
   const [locationsView, setLocationsView] = useState(getInitTabView(searchParams.get('l_view')));
 
@@ -113,13 +119,23 @@ export const Policy = () => {
   );
 
   const handleLocationChangeRequestGrid = useCallback(
-    (params: GridRowParams) => () => locationChangeDialog(params.row, data),
+    ({ row }: GridRowParams) =>
+      () =>
+        locationChangeDialog(row, data),
     [data, locationChangeDialog]
   );
 
   const handleCancelPolicy = useCallback(async () => {
     await cancelDialog(policyId);
   }, [cancelDialog, policyId]);
+
+  const handleCancelLocation = useCallback(
+    ({ id }: GridRowParams<ILocation>) =>
+      async () => {
+        cancelDialog(policyId, id.toString());
+      },
+    [cancelDialog, policyId]
+  );
 
   const renderLocationGridActions = useCallback(
     (params: GridRowParams) => {
@@ -132,11 +148,20 @@ export const Policy = () => {
           }
           onClick={handleLocationChangeRequestGrid(params)}
           label='Request change'
-          // showInMenu={isSmall}
+        />,
+        <GridActionsCellItem
+          icon={
+            <Tooltip title='cancel location' placement='top'>
+              <CancelRounded />
+            </Tooltip>
+          }
+          onClick={handleCancelLocation(params)}
+          label='Cancel location'
+          showInMenu={true}
         />,
       ];
     },
-    [handleLocationChangeRequestGrid]
+    [handleLocationChangeRequestGrid, handleCancelLocation]
   );
 
   const [locations, locationsCount] = useMemo(() => {

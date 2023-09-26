@@ -1,5 +1,5 @@
 import { Box, GlobalStyles, Typography, alpha } from '@mui/material';
-import { useCallback } from 'react';
+import { ReactNode, useCallback } from 'react';
 import { Diff, Hunk, parseDiff } from 'react-diff-view';
 import 'react-diff-view/style/index.css';
 // @ts-ignore
@@ -7,12 +7,22 @@ import { diffJson, formatLines } from 'unidiff';
 
 import { useDialog, useWidth } from 'hooks';
 
-export const useCompareJson = (onError?: () => void) => {
+interface UseCompareJsonOptions {
+  leftTitle?: string;
+  rightTitle?: string;
+}
+
+export const useCompareJson = (onError?: () => void, options?: UseCompareJsonOptions) => {
   const dialog = useDialog();
   const { isMobile } = useWidth();
 
   const compare = useCallback(
-    async (before: Record<string, any>, after: Record<string, any>, title: string = 'Compare') => {
+    async (
+      before: Record<string, any>,
+      after: Record<string, any>,
+      title: string = 'Compare',
+      content?: ReactNode
+    ) => {
       try {
         const diffTest = diffJson(before, after);
         const diffText = formatLines(diffTest, { context: 200 });
@@ -83,6 +93,7 @@ export const useCompareJson = (onError?: () => void) => {
                   },
                 })}
               />
+              {content ?? null}
               {!isMobile && (
                 <Box
                   sx={{
@@ -96,10 +107,10 @@ export const useCompareJson = (onError?: () => void) => {
                   }}
                 >
                   <Typography variant='subtitle1' gutterBottom sx={{ flex: '1 0 auto', px: 8 }}>
-                    Old
+                    {options?.leftTitle || 'Old'}
                   </Typography>
                   <Typography variant='subtitle1' gutterBottom sx={{ flex: '1 0 auto', px: 8 }}>
-                    New
+                    {options?.rightTitle || 'New'}
                   </Typography>
                 </Box>
               )}
@@ -119,7 +130,7 @@ export const useCompareJson = (onError?: () => void) => {
         if (onError) onError();
       }
     },
-    [dialog, isMobile, onError]
+    [dialog, isMobile, onError, options]
   );
 
   return compare;

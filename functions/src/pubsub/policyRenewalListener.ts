@@ -11,7 +11,6 @@ import {
   locationsCollection,
   transactionsCollection,
 } from '../common/index.js';
-import { verify } from '../utils/index.js';
 import { getAllById } from '../modules/db/index.js';
 import {
   constructTrxId,
@@ -20,6 +19,7 @@ import {
   fetchRatingData,
   formatPremiumTrx,
 } from '../modules/transactions/index.js';
+import { verify } from '../utils/index.js';
 
 // TODO: shared logic with new policy event (abstract into module)
 
@@ -111,7 +111,14 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyRenewalPayloa
       if (!exists) {
         const ratingData = await fetchRatingData(db, location.ratingDocId);
 
-        const locationTrx = formatPremiumTrx('renewal', policy, location, ratingData, eventId);
+        const locationTrx = formatPremiumTrx(
+          'renewal',
+          policy,
+          location,
+          ratingData,
+          location.effectiveDate,
+          eventId
+        );
 
         await trxRef.set({ ...locationTrx });
         info(`New transaction saved for location ${location.id}`, { locationTrx });

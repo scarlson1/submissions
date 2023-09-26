@@ -15,7 +15,6 @@ import {
   locationsCollection,
   transactionsCollection,
 } from '../common/index.js';
-import { verify } from '../utils/index.js';
 import {
   constructTrxId,
   docExists,
@@ -25,6 +24,7 @@ import {
   formatPremiumTrx,
   getOffsetTrx,
 } from '../modules/transactions/index.js';
+import { verify } from '../utils/index.js';
 
 // How is removed location handled ??
 // assume deleted if location not found in policy ??
@@ -114,7 +114,7 @@ export default async (event: CloudEvent<MessagePublishedData<EndorsementPayload>
 
       const batch = db.batch();
 
-      let trxEffDate =
+      const trxEffDate =
         effDateMS && isValid(effDateMS) ? Timestamp.fromMillis(effDateMS) : Timestamp.now();
 
       const offsetTrxRef = trxCol.doc(`${trxId}-offset`);
@@ -132,7 +132,7 @@ export default async (event: CloudEvent<MessagePublishedData<EndorsementPayload>
         policy,
         location,
         ratingData,
-        // policyId,
+        trxEffDate,
         eventId
       );
       batch.set(trxRef, { ...locationTrx });

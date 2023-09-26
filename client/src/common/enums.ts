@@ -32,6 +32,7 @@ export enum COLLECTIONS {
   DATA_IMPORTS = 'dataImports',
   STAGED_RECORDS = 'stagedDocs',
   TASKS = 'tasks', // TODO: DELETE
+  VERSIONS = 'versions',
 }
 
 // TODO: separate out submission status and quote status

@@ -7,18 +7,24 @@ import {
   WithId,
   getTermDays,
 } from '../../common/index.js';
+import { getBookingDate } from './utils.js';
 
 export const getLocationAmendmentTrx = (
   policy: WithId<PolicyNew>,
   location: ILocation,
+  trxEffDate: Timestamp,
   eventId: string
 ): AmendmentTransaction => {
   // TODO: share logic with other trx types
-  const currentDateMS = new Date().getTime();
-  const locationEffDate = location.effectiveDate.toMillis();
-  const trxEffDateMS = currentDateMS < locationEffDate ? locationEffDate : currentDateMS;
+  // const currentDateMS = new Date().getTime();
+  // const locationEffDate = location.effectiveDate.toMillis();
+  // const trxEffDateMS = currentDateMS < locationEffDate ? locationEffDate : currentDateMS;
 
-  const trxEffDate = Timestamp.fromMillis(trxEffDateMS);
+  // const trxEffDate = Timestamp.fromMillis(trxEffDateMS);
+
+  const bookingDate = getBookingDate(trxEffDate.toMillis(), location.effectiveDate.toMillis());
+
+  const trxDays = getTermDays(trxEffDate.toDate(), location.expirationDate.toDate());
 
   return {
     trxType: 'amendment',
@@ -28,7 +34,7 @@ export const getLocationAmendmentTrx = (
     locationId: location.locationId,
     externalId: location.externalId || null,
     term: policy.term,
-    bookingDate: Timestamp.now(),
+    bookingDate,
     issuingCarrier: policy.issuingCarrier,
     namedInsured: policy.namedInsured.displayName,
     mailingAddress: policy.mailingAddress,
@@ -38,7 +44,7 @@ export const getLocationAmendmentTrx = (
     policyExpDate: policy.expirationDate,
     trxEffDate,
     trxExpDate: location.expirationDate,
-    trxDays: getTermDays(trxEffDate.toDate(), location.expirationDate.toDate()),
+    trxDays,
     otherInterestedParties: location.mortgageeInterest.map((m) => m.name),
     additionalNamedInsured: location.additionalInsureds.map((ai) => ai.name),
     eventId,

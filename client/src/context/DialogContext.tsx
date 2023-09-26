@@ -61,6 +61,7 @@ export interface DialogOptions {
   title?: ReactNode; // TODO: add description (might want text above form)
   description?: ReactNode;
   content?: ReactNode;
+  // successView?: ReactNode;
   slots?: Partial<DialogSlotsComponents>;
   slotProps?: DialogSlotProps;
 }
@@ -74,6 +75,7 @@ export interface DialogCtx extends DialogOptions {
   setDisabled: (val: boolean) => void;
   slots: DialogSlotsComponents;
   slotProps: DialogSlotProps;
+  // showSuccessView: boolean;
 }
 
 export const DialogContext = createContext<DialogCtx | null>(null);
@@ -91,6 +93,14 @@ export const DialogProvider = ({ children }: { children: ReactNode }) => {
     (values: any) => {
       if (awaitingPromiseRef.current) awaitingPromiseRef.current.resolve(values);
 
+      // TODO: accept optional onSuccessComponent to display after dialog is complete
+      // if (awaitingPromiseRef.current) {
+      //   awaitingPromiseRef.current.resolve(values);
+      //   // show success view instead of closing dialog if provided
+      //   console.log(`show success view: `, dialogOptions?.successView);
+      //   if (dialogOptions?.successView) return;
+      // }
+
       setDialogOptions(null);
     },
     [awaitingPromiseRef]
@@ -105,6 +115,7 @@ export const DialogProvider = ({ children }: { children: ReactNode }) => {
 
   const openDialog = useCallback(
     (options: DialogOptions) => {
+      console.log('OPTIONS: ', options);
       setDialogOptions({ ...options });
 
       return new Promise<any>((resolve, reject) => {
@@ -141,6 +152,7 @@ export const DialogProvider = ({ children }: { children: ReactNode }) => {
       handleAccept,
       handleClose,
       isOpen: Boolean(dialogOptions) || false,
+      // showSuccessView: Boolean(dialogOptions) && !awaitingPromiseRef.current, // useRef won't trigger rerender ??
       variant: 'info' as DialogVariant,
       submitDisabled,
       setDisabled: handleSubmitDisabled,
@@ -167,68 +179,3 @@ export const DialogProvider = ({ children }: { children: ReactNode }) => {
     </DialogContext.Provider>
   );
 };
-
-// function useSlots<T, P>(inProps: DialogOptions | null, defaultSlots: T, defaultSlotProps: P) {
-//   const slots = useMemo(
-//     () => ({
-//       ...defaultSlots,
-//       ...(inProps?.slots || {}),
-//     }),
-//     [inProps, defaultSlots]
-//   );
-
-//   const slotProps = useMemo(
-//     () => merge(defaultSlotProps, inProps?.slotProps || {}),
-//     [inProps, defaultSlotProps]
-//   );
-
-//   return useMemo(() => ({ slots, slotProps }), [slots, slotProps]) as { slots: T; slotProps: P };
-// }
-
-// export function Usage() {
-//   const dialog = useDialog();
-//   const formikRef = useRef<FormikProps<any>>(null);
-
-//   const handleSubmit = useCallback(async () => {
-//     const submitResult = await formikRef.current?.submitForm();
-//     console.log('submitResult: ', submitResult); // dont call handleAccept here
-//   }, []);
-
-//   const formOnSubmit = useCallback(
-//     async (vals: any, { setSubmitting }: FormikHelpers<any>) => {
-//       try {
-//         console.log('form on submit: ', vals);
-//         setSubmitting(false);
-//         dialog?.handleAccept(vals); // call here b/c this only runs if validation succeeds
-//         return vals;
-//       } catch (err: any) {
-//         console.log('err: ', err);
-//         setSubmitting(false);
-//       }
-//     },
-//     [dialog]
-//   );
-
-//   const runTest = useCallback(async () => {
-//     const result = await dialog?.prompt({
-//       onSubmit: handleSubmit,
-//       catchOnCancel: false,
-//       variant: 'danger',
-//       title: 'Are you sure?',
-//       // content: 'test description content',
-//       // component: <SomeForm innerRef={formikRef} />
-//       content: <DialogTestForm onSubmit={formOnSubmit} formRef={formikRef} />,
-//       slotProps: {
-//         content: { dividers: true },
-//         // acceptButton: { disabled: !formikRef.current?.isValid },
-//       },
-//     });
-//     console.log('DIALOG RESULT: ', result);
-//   }, [dialog, handleSubmit, formOnSubmit]);
-
-//   return (
-//     <Button variant='outlined' color='secondary' onClick={runTest}>
-//       Dialog
-//     </Button>
-//   );
-// }

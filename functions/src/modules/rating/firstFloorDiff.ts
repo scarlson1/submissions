@@ -1,13 +1,15 @@
-/* eslint-disable */
-// Ignore camelCase warning
+import { floor } from 'lodash-es';
 
 export const getFirstFloorDiffFactors = (FFH: number = 0) => {
-  if (FFH > 8) {
-    return firstFloorDiff[8];
-  }
-  return firstFloorDiff[FFH];
+  let roundedFFH = floor(FFH);
+
+  if (roundedFFH > 8) return firstFloorDiff[8];
+
+  return firstFloorDiff[roundedFFH];
 };
 
+/* eslint-disable */
+// Ignore camelCase warning
 export const firstFloorDiff = [
   {
     ffe_meters: 0,
