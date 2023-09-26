@@ -23,6 +23,8 @@ import { validate } from './utils/index.js';
 
 const reportErr = getReportErrorFn('policyChangeRequest');
 
+// TODO: rename function (remove "policy")
+
 export default async (
   event: FirestoreEvent<
     Change<DocumentSnapshot> | undefined,
@@ -64,6 +66,8 @@ export default async (
         return;
       case CHANGE_REQUEST_STATUS.SUBMITTED:
         await handleRequestNotifications(data, policyId, requestId, event.id);
+
+        // TODO: add policy and location version numbers
 
         // TODO: handle reinstatement & renewal
         if (

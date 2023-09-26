@@ -22,6 +22,7 @@ import {
 import { getData, getDifference } from 'modules/utils';
 import { useAsyncToast } from './useAsyncToast';
 import { useDialogForm } from './useDialogForm';
+import { User } from 'firebase/auth';
 
 // TODO: maybe add some sort of config to the Policy interface
 //    - trxType value associated with changes to a field ??
@@ -54,6 +55,7 @@ export const useCreatePolicyChangeRequest = () => {
       const common = getCommonTrxJson(
         values.requestEffDate,
         { ...policy.current, id: policyId.current },
+        null,
         values,
         user
       );
@@ -157,12 +159,14 @@ function missingAmendmentKeys(changes: PolicyChangeRequest['policyChanges']) {
 function getCommonTrxJson(
   reqEffDate: Date,
   policy: WithId<Policy>,
+  locationId: string | null, // not used - match location get common trx function (TODO: combine into one function)
   formValues: PolicyChangeValues,
-  user?: any
-): Omit<PolicyChangeRequest, 'changes' | 'trxType'> {
+  user: User | null
+): Omit<PolicyChangeRequest, 'policyChanges' | 'trxType'> {
   return {
     scope: 'policy',
     requestEffDate: Timestamp.fromDate(reqEffDate),
+    policyVersion: policy?.metadata?.version || null,
     policyId: policy.id,
     userId: policy.userId || '',
     formValues,

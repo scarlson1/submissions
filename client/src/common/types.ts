@@ -805,11 +805,12 @@ export type ChangeRequestStatus =
   | 'cancelled'
   | 'error';
 
-interface BaseChangeRequest extends BaseDoc {
+export interface BaseChangeRequest extends BaseDoc {
   trxType: ChangeRequestTrxType;
   requestEffDate: Timestamp;
   policyId: string;
   userId: string;
+  policyVersion: number | null;
   agent: {
     userId: string | null;
   };
@@ -830,7 +831,6 @@ interface BaseChangeRequest extends BaseDoc {
 }
 
 export interface LocationChangeRequest extends BaseChangeRequest {
-  trxType: ChangeRequestTrxType;
   scope: 'location';
   policyChanges?: DeepPartial<Policy>; // TODO: rename policyChanges
   locationChanges: DeepPartial<ILocation>;
@@ -864,6 +864,7 @@ export interface PolicyCancellationRequest extends Omit<PolicyChangeRequest, 'fo
   cancelReason: CancellationReason;
   formValues: CancelValues;
   isAddLocationRequest?: false;
+  locationId?: null;
 }
 
 export interface AddLocationRequest extends BaseChangeRequest {

@@ -1026,6 +1026,7 @@ interface BaseChangeRequest extends BaseDoc {
   trxType: ChangeRequestTrxType;
   requestEffDate: Timestamp;
   policyId: string;
+  policyVersion: number | null;
   userId: string;
   agent: {
     userId: string | null;

@@ -2,6 +2,7 @@ import { Unstable_Grid2 as Grid } from '@mui/material';
 import { Form, Formik, FormikConfig, FormikHelpers, FormikProps } from 'formik';
 import { RefObject } from 'react';
 import * as yup from 'yup';
+import { add } from 'date-fns';
 
 import { CancellationReason } from 'common';
 import { FormikDatePicker, FormikNativeSelect, UpdateDialogSubmitDisabled } from 'components/forms';
@@ -56,7 +57,7 @@ export const CancelForm = ({
               <FormikDatePicker
                 name='requestEffDate'
                 label='Requested cancellation date'
-                minDate={minDate}
+                minDate={minDate || add(new Date(), { days: 1 })}
                 maxDate={maxDate}
                 slotProps={{
                   actionBar: {

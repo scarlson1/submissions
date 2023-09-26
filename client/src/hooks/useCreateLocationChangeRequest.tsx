@@ -2,6 +2,7 @@ import { Timestamp, addDoc } from 'firebase/firestore';
 import { FormikHelpers, FormikProps } from 'formik';
 import { useCallback, useRef } from 'react';
 import { useFirestore } from 'reactfire';
+import { User } from 'firebase/auth';
 
 import {
   AdditionalInsured,
@@ -182,7 +183,7 @@ function convertAdditionalInsuredsToAdditionalInterests(
 
 function convertMortgageesToAdditionalInterests(mortgagees: Mortgagee[]): AdditionalInterest[] {
   return mortgagees.map((m) => ({
-    type: 'additional_insured',
+    type: 'mortgagee',
     name: m.name,
     accountNumber: m.loanNumber,
     address: {
@@ -208,16 +209,18 @@ function hasAmendmentKeys(diff: LocationChangeRequest['locationChanges']) {
   return !Object.keys(diff).every((k) => AMENDMENT_KEYS.indexOf(k) === -1);
 }
 
+// TODO: generic type to be reused for common trx data for policy and location
 function getCommonTrxJson(
   reqEffDate: Date,
   policy: WithId<Policy>,
   locationId: string,
   formValues: LocationChangeValues,
-  user?: any
+  user: User | null
 ): Omit<LocationChangeRequest, 'locationChanges' | 'policyChanges' | 'trxType'> {
   return {
     scope: 'location',
     requestEffDate: Timestamp.fromDate(reqEffDate),
+    policyVersion: policy.metadata?.version || null,
     policyId: policy.id,
     locationId,
     formValues,

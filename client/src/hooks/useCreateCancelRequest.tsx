@@ -4,9 +4,12 @@ import { FormikHelpers, FormikProps } from 'formik';
 import { useCallback, useRef } from 'react';
 import { useFirestore } from 'reactfire';
 import invariant from 'tiny-invariant';
+import { add } from 'date-fns';
 
 import {
+  BaseChangeRequest,
   CHANGE_REQUEST_STATUS,
+  LocationCancellationRequest,
   Policy,
   PolicyCancellationRequest,
   WithId,
@@ -30,6 +33,7 @@ export const useCreateCancelRequest = (
   const toast = useAsyncToast();
   const formRef = useRef<FormikProps<CancelValues>>(null);
   const policy = useRef<WithId<Policy> | null>(null);
+  const locationId = useRef<string | null>(null);
 
   // allow errors to propagate to onError in dialog context ??
   const handleSubmit = useCallback(
@@ -41,12 +45,17 @@ export const useCreateCancelRequest = (
       const userId = user?.uid;
       invariant(userId, 'must be signed in');
 
-      const changeRequestData: PolicyCancellationRequest = {
-        trxType: 'cancellation',
-        scope: 'policy',
+      let trxType: PolicyCancellationRequest['trxType'] =
+        values.requestEffDate.getTime() < p.effectiveDate.toMillis()
+          ? 'flat_cancel'
+          : 'cancellation';
+
+      const scope = locationId.current ? 'location' : 'policy';
+
+      let changeRequestData: BaseChangeRequest = {
+        trxType,
         requestEffDate: Timestamp.fromDate(values.requestEffDate),
-        cancelReason: values.reason,
-        formValues: values,
+        policyVersion: p.metadata.version || null,
         policyId: p.id,
         userId,
         agent: {
@@ -67,6 +76,23 @@ export const useCreateCancelRequest = (
         },
       };
 
+      if (scope === 'location') {
+        changeRequestData = {
+          ...changeRequestData,
+          scope: 'location',
+          locationId: locationId.current,
+          cancelReason: values.reason,
+          formValues: values,
+        } as LocationCancellationRequest;
+      } else {
+        changeRequestData = {
+          ...changeRequestData,
+          scope: 'policy',
+          cancelReason: values.reason,
+          formValues: values,
+        } as PolicyCancellationRequest;
+      }
+
       const changeReqCol = changeRequestsCollection(firestore, p.id);
       await addDoc(changeReqCol, changeRequestData);
 
@@ -81,7 +107,7 @@ export const useCreateCancelRequest = (
     ),
     formRef,
     getFormProps: () => ({
-      minDate: new Date(),
+      minDate: add(new Date(), { days: 1 }),
       maxDate: policy.current?.expirationDate?.toDate() || undefined,
     }),
     onSubmit: handleSubmit,
@@ -91,12 +117,12 @@ export const useCreateCancelRequest = (
       onError && onError(msg, err);
     },
     dialogOptions: {
-      title: 'Policy cancellation request',
+      title: `${locationId.current ? 'Location' : 'Policy'} cancellation request`,
       description: (
         <Typography variant='body2' component='div' color='text.secondary'>
           {"We're sorry to see you go. If there's something we can do, please "}
           <RouterLink to={createPath({ path: ROUTES.CONTACT })} sx={{ fontSize: 'inherit' }}>
-            get in touch
+            let us know
           </RouterLink>
           {'.'}
         </Typography>
@@ -106,7 +132,7 @@ export const useCreateCancelRequest = (
   });
 
   return useCallback(
-    async (policyId: string) => {
+    async (policyId: string, lcnId: string | null = null) => {
       try {
         const ref = doc(policiesCollection(firestore), policyId);
         policy.current = await getData<Policy>(ref);
@@ -114,6 +140,9 @@ export const useCreateCancelRequest = (
         toast.error('error fetching policy');
         return;
       }
+
+      // location cancel request if lcnId is provided, otherwise, policy cancellation request
+      locationId.current = lcnId;
 
       const initialValues: CancelValues = {
         requestEffDate: null as unknown as CancelValues['requestEffDate'],
