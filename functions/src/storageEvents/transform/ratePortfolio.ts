@@ -61,6 +61,7 @@ export function getPremCalcVars(row: any) {
     basement: row.basement,
     priorLossCount: row.prior_loss_count || '0',
     commissionPct: row.commission_pct || 0.15,
+    FFH: row.ffh || 0,
   };
 }
 

@@ -16,6 +16,7 @@ export interface GetPremiumProps {
   limits: Limits;
   priorLossCount: string;
   state: string;
+  FFH?: number;
   basement?: string;
   floodZone?: string;
   commissionPct?: number;
@@ -38,6 +39,7 @@ export const getPremium = (props: GetPremiumProps): GetPremiumCalcResult => {
     limits, // : { limitA, limitB, limitC, limitD },
     floodZone,
     state,
+    FFH = 0,
     basement = 'unknown',
     priorLossCount,
     commissionPct = 0.15,
@@ -66,8 +68,8 @@ export const getPremium = (props: GetPremiumProps): GetPremiumCalcResult => {
   } = multipliersByState[state];
 
   const secondaryFactorMults = getSecondaryFactorMults({
-    FFH: 0,
-    basement: basement,
+    FFH,
+    basement,
     priorLossCount,
     inlandRiskScore: riskScore.inland,
     surgeRiskScore: riskScore.surge,
