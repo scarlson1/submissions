@@ -12,8 +12,8 @@ import {
   Quote,
   calcSum,
   calcTerm,
-  verify,
 } from '../../common/index.js';
+import { verify } from '../../utils/index.js';
 import { getCarrierByState, getRCVs, validateLimits } from '../../modules/rating/index.js';
 import {
   getAdditionalInsuredFromQuote,

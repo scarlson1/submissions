@@ -13,10 +13,15 @@ import {
   WithId,
   calcSum,
   calcTerm,
-  verify,
 } from '../../common/index.js';
-import { createDocId, getPolicyTermPremium } from '../../modules/db/index.js';
-import { getCarrierByState, getRCVs, validateLimits } from '../../modules/rating/index.js';
+import { verify } from '../../utils/index.js';
+import { createDocId } from '../../modules/db/index.js';
+import {
+  calcPolicyPremium,
+  getCarrierByState,
+  getRCVs,
+  validateLimits,
+} from '../../modules/rating/index.js';
 import { compressAddress } from '../../utils/index.js';
 
 export const getPolicyLocationsFromQuote = (data: Quote, policyId: string) => {
@@ -149,7 +154,12 @@ export function getPolicyFromQuote(
     };
   }
 
-  const policyTermPremium = getPolicyTermPremium(policyLocations);
+  // const policyTermPremium = getPolicyTermPremium(policyLocations);
+  const {
+    termPremium: policyTermPremium,
+    inStatePremium,
+    outStatePremium,
+  } = calcPolicyPremium(data.homeState, Object.values(policyLocations));
 
   const issuingCarrier = getCarrierByState(data.homeState);
   verify(issuingCarrier, 'error determining issuingCarrier');
@@ -169,6 +179,8 @@ export function getPolicyFromQuote(
     },
     locations: policyLocations,
     homeState: data.homeState,
+    inStatePremium,
+    outStatePremium,
     termPremium: policyTermPremium,
     termPremiumWithCancels: 0,
     termDays: singleLocation.termDays,

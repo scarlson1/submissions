@@ -10,8 +10,8 @@ import {
   RCVs,
   Transaction,
   TransactionType,
-  verify,
 } from '../../common/index.js';
+import { verify } from '../../utils/index.js';
 import { validateDeductible, validateLimits, validateRCVs } from '../../modules/rating/index.js';
 
 const trxTypes: TransactionType[] = [

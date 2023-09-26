@@ -11,8 +11,8 @@ import {
   WithId,
   getReportErrorFn,
   transactionsCollection,
-  verify,
 } from '../common/index.js';
+import { verify } from '../utils/index.js';
 import {
   constructTrxId,
   docExists,

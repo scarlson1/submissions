@@ -9,7 +9,6 @@ import {
   SRPerilAAL,
   SRRes,
   ValueByRiskType,
-  isLatLng,
   maxA,
   maxBCD,
   minA,
@@ -17,6 +16,7 @@ import {
 import { getSwissReInstance } from '../../services/index.js';
 import { getRCVs } from './getRCVs.js';
 import { swissReBody } from './swissReBody.js';
+import { isValidCoords } from '../../utils/index.js';
 
 let swissReInstance: AxiosInstance | undefined;
 
@@ -119,7 +119,7 @@ export const validateGetAALsProps = (props: Partial<GetAALsProps>) => {
   invariant(coordinates, 'coordinates required');
   const { latitude, longitude } = coordinates;
   invariant(
-    latitude && longitude && isLatLng(latitude, longitude),
+    latitude && longitude && isValidCoords(coordinates),
     'latitude or longitude is missing or invalid'
   );
   invariant(

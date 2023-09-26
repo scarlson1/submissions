@@ -11,15 +11,14 @@ import {
   calcTerm,
   changeRequestsCollection,
   getReportErrorFn,
-  hasAny,
   locationsCollection,
   policiesCollectionNew,
   ratingDataCollection,
   swissReClientId,
   swissReClientSecret,
   swissReSubscriptionKey,
-  verify,
 } from '../../common/index.js';
+import { verify, hasAny } from '../../utils/index.js';
 import { getDoc } from '../../routes/utils/index.js';
 import { createDocId } from '../db/index.js';
 import {

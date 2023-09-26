@@ -9,7 +9,7 @@ import {
   getReportErrorFn,
   versionsCollection,
 } from '../../common/index.js';
-import { getDifference } from '../../modules/utils/index.js';
+import { getDifference } from '../../utils/index.js';
 import { flattenObj, hasOne } from '../../utils/index.js';
 
 const VERSION_POLICY_DIFF_KEYS = [

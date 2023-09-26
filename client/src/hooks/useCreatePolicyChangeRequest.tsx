@@ -3,6 +3,7 @@ import { FormikHelpers, FormikProps } from 'formik';
 import { pick } from 'lodash';
 import { useCallback, useRef } from 'react';
 import { useFirestore } from 'reactfire';
+import { User } from 'firebase/auth';
 
 import {
   CHANGE_REQUEST_STATUS,
@@ -22,7 +23,6 @@ import {
 import { getData, getDifference } from 'modules/utils';
 import { useAsyncToast } from './useAsyncToast';
 import { useDialogForm } from './useDialogForm';
-import { User } from 'firebase/auth';
 
 // TODO: maybe add some sort of config to the Policy interface
 //    - trxType value associated with changes to a field ??

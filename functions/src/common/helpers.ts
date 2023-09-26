@@ -4,12 +4,12 @@ import { error, info } from 'firebase-functions/logger';
 import fs from 'fs';
 import { get, isEqual, remove } from 'lodash-es';
 import numeral from 'numeral';
-import invariant from 'tiny-invariant';
 import { inspect } from 'util';
-
 import { reportErrorSentry } from '../services/sentry/index.js';
 import { cardFeePct } from './environmentVars.js';
 import { Path, Primitive } from './types.js';
+
+// TODO: move functions to /utils folder
 
 /**
  * Sums an array of numbers
@@ -85,26 +85,6 @@ function createRound(methodName: 'round') {
 }
 
 export const round = createRound('round');
-
-export const isLongitude = (num: number) => isFinite(num) && Math.abs(num) <= 180;
-export const isLatitude = (num: number) => isFinite(num) && Math.abs(num) <= 90;
-
-/**
- * The latitude must be a number between -90 and 90 and the longitude between -180 and 180.
- * @param {number} lat - latitude
- * @param {number} lng - longitude
- * @returns {boolean} boolean value, true if coords are valid
- */
-export const isLatLng = (lat: number, lng: number) => {
-  return isLatitude(lat) && isLongitude(lng);
-};
-
-export const isValidEmail = (str: string) => {
-  // eslint-disable-next-line
-  return /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(
-    str
-  );
-};
 
 export const getNumber = (str: string) => str.replace(/[^0-9\.]+/g, ''); // eslint-disable-line
 
@@ -219,6 +199,7 @@ export const truthyOrZero = <T = Primitive>(val: T) => Boolean(val) || val === 0
 // export const truthyOrZero = <T = Primitive>(val: T): asserts val is NonNullable<T> =>
 //   val || val === 0;
 
+// TODO: move to utils/storage.ts
 export async function unlinkFile(filePath: string) {
   try {
     info(`Unlinking file: ${filePath}`, { filePath });
@@ -394,25 +375,25 @@ export const getReportErrorFn =
     reportErrorSentry(err || msg, { func: fnName, msg, ...ctx });
   };
 
-/**
- * Check if any string in the values array exists in the checkValues array
- * @param {string[]} values array to validate
- * @param {string[]} checkValues array to validate against
- * @returns {boolean} returns true if values array does not contain any values in the checkValues array
- */
-export const hasAny = (values: string[], checkValues: string[]) => {
-  return values.some((v) => checkValues.indexOf(v) !== -1);
-};
+// /**
+//  * Check if any string in the values array exists in the checkValues array
+//  * @param {string[]} values array to validate
+//  * @param {string[]} checkValues array to validate against
+//  * @returns {boolean} returns true if values array does not contain any values in the checkValues array
+//  */
+// export const hasAny = (values: string[], checkValues: string[]) => {
+//   return values.some((v) => checkValues.indexOf(v) !== -1);
+// };
 
-export function verify(condition: any, msg?: string | (() => string)): asserts condition {
-  try {
-    invariant(condition, msg);
-  } catch (err: any) {
-    let errMsg = 'validation failed';
-    // invariant removes "Invariant failed: " in production
-    const invariantErrMsg = err?.message?.replace('Invariant failed: ', '').trim();
-    if (invariantErrMsg) errMsg = invariantErrMsg;
+// export function verify(condition: any, msg?: string | (() => string)): asserts condition {
+//   try {
+//     invariant(condition, msg);
+//   } catch (err: any) {
+//     let errMsg = 'validation failed';
+//     // invariant removes "Invariant failed: " in production
+//     const invariantErrMsg = err?.message?.replace('Invariant failed: ', '').trim();
+//     if (invariantErrMsg) errMsg = invariantErrMsg;
 
-    throw new Error(errMsg);
-  }
-}
+//     throw new Error(errMsg);
+//   }
+// }

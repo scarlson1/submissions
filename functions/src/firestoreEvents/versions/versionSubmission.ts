@@ -4,7 +4,7 @@ import { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 import { merge } from 'lodash-es';
 
 import { Submission, getReportErrorFn, versionsCollection } from '../../common/index.js';
-import { getDifference } from '../../modules/utils/index.js';
+import { getDifference } from '../../utils/index.js';
 import { hasOne } from '../../utils/index.js';
 
 const VERSION_SUBMISSION_DIFF_KEYS = [

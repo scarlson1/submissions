@@ -7,7 +7,6 @@ import {
   CancellationReason,
   ChangeRequest,
   getReportErrorFn,
-  isValidEmail,
   policiesCollection,
   sendgridApiKey,
 } from '../common/index.js';
@@ -20,6 +19,7 @@ import {
 } from '../services/pubsub/index.js';
 import { sendAdminChangeRequestNotification, sendMessage } from '../services/sendgrid/index.js';
 import { validate } from './utils/index.js';
+import { isValidEmail } from '../utils/index.js';
 
 const reportErr = getReportErrorFn('policyChangeRequest');
 
@@ -66,8 +66,6 @@ export default async (
         return;
       case CHANGE_REQUEST_STATUS.SUBMITTED:
         await handleRequestNotifications(data, policyId, requestId, event.id);
-
-        // TODO: add policy and location version numbers
 
         // TODO: handle reinstatement & renewal
         if (

@@ -9,12 +9,11 @@ import {
   PRIOR_LOSS_COUNT_OPTIONS,
   RCVs,
   ValueByRiskType,
-  isValidEmail,
   maxA,
   maxBCD,
   minA,
-  verify,
 } from '../../common/index.js';
+import { verify, isValidEmail } from '../../utils/index.js';
 
 export function validateLimits(limits: Limits): asserts limits is Limits {
   const MAX_A = maxA.value();

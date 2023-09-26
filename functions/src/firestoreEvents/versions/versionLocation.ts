@@ -9,7 +9,7 @@ import {
   policiesCollectionNew,
   versionsCollection,
 } from '../../common/index.js';
-import { getDifference } from '../../modules/utils/index.js';
+import { getDifference } from '../../utils/index.js';
 import { hasOne } from '../../utils/index.js';
 
 const VERSION_LOCATION_DIFF_KEYS = [

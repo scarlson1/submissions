@@ -10,8 +10,8 @@ import {
   getReportErrorFn,
   locationsCollection,
   transactionsCollection,
-  verify,
 } from '../common/index.js';
+import { verify } from '../utils/index.js';
 import { getAllById } from '../modules/db/index.js';
 import {
   constructTrxId,

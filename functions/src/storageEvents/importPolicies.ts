@@ -34,8 +34,8 @@ import {
   stagedImportsCollection,
   throwIfExists,
   unlinkFile,
-  verify,
 } from '../common/index.js';
+import { verify } from '../utils/index.js';
 import { createDocId, locationToPolicyLocation } from '../modules/db/index.js';
 import {
   calcPolicyPremium,

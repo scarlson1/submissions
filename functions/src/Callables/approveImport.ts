@@ -17,8 +17,8 @@ import {
   importSummaryCollection,
   stagedImportsCollection,
   transactionsCollection,
-  verify,
 } from '../common/index.js';
+import { verify } from '../utils/index.js';
 import { onCallWrapper } from '../services/sentry/index.js';
 import { requireIDemandAdminClaims, validate } from './utils/index.js';
 

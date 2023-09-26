@@ -15,8 +15,8 @@ import {
   getTermDays,
   locationsCollection,
   policiesCollectionNew,
-  verify,
 } from '../../common/index.js';
+import { verify } from '../../utils/index.js';
 import { getDoc } from '../../routes/utils/index.js';
 import {
   calcPolicyPremium,

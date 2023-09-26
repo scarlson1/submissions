@@ -1,4 +1,4 @@
-import { round } from 'lodash-es';
+import { round, sumBy } from 'lodash-es';
 
 import {
   FeeItem,
@@ -21,10 +21,10 @@ export type PolicyWithTermPrem = WithRequired<
  * @returns {number} total of term premium for each location ()
  */
 export const sumPolicyTermPremium = (locations: PolicyWithTermPrem[]) => {
-  const activeTermPremium = locations.filter((l) => !l.cancelEffDate).map((l) => l.termPremium);
-  const total = sumArr(activeTermPremium);
+  const activeLocations = locations.filter((l) => !l.cancelEffDate); // .map((l) => l.termPremium);
+  // const total = sumArr(activeTermPremium); // sumArr converts strings --> numbers
 
-  return round(total, 2);
+  return round(sumBy(activeLocations, 'termPremium'), 2);
 };
 
 /**

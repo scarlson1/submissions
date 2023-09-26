@@ -1,27 +1,22 @@
-import { round, sumBy } from 'lodash-es';
 import { customAlphabet } from 'nanoid';
 
-import { ILocation, PolicyLocation, PolicyNew } from '../../common/index.js';
+import { ILocation, PolicyLocation } from '../../common/index.js';
 import { compressAddress } from '../../utils/index.js';
 
-export const locationToPolicyLocation = (location: ILocation): PolicyLocation => ({
-  coords: location.coordinates,
-  address: compressAddress(location.address),
-  termPremium: location.termPremium,
-  // lcnDocId: location.locationId,
-});
+export const locationToPolicyLocation = (location: ILocation): PolicyLocation => {
+  let lcn: PolicyLocation = {
+    coords: location.coordinates,
+    address: compressAddress(location.address),
+    termPremium: location.termPremium,
+  };
+
+  if (location?.cancelEffDate) lcn['cancelEffDate'] = location.cancelEffDate;
+  if (location?.metadata?.version) lcn['version'] = location.metadata.version;
+
+  return lcn;
+};
 
 const ALPHABET = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 export const nanoId = customAlphabet(ALPHABET, 9);
 
 export const createDocId = nanoId;
-
-// TODO: combine/delete this or sumPolicyTermPremium
-export function getPolicyTermPremium(
-  locations: PolicyNew['locations'] | Record<string, ILocation>
-) {
-  return round(
-    sumBy(Object.values(locations), (l) => l.termPremium),
-    2
-  );
-}

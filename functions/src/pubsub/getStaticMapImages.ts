@@ -16,8 +16,8 @@ import {
   getReportErrorFn,
   mapboxPublicToken,
   storageBaseUrl,
-  verify,
 } from '../common/index.js';
+import { verify } from '../utils/index.js';
 import { createDocId } from '../modules/db/index.js';
 import { downloadFromUrl } from '../modules/storage/index.js';
 import { randomFileName } from '../utils/index.js';
