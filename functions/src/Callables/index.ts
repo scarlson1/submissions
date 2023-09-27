@@ -39,6 +39,10 @@ export const assignquote = onCall(
   }
 );
 
+export const calcpolicychanges = onCall(async (request) => {
+  return (await import('./calcPolicyChanges.js')).default(request);
+});
+
 export const calcquote = onCall(async (request) => {
   return (await import('./calcQuote.js')).default(request);
 });

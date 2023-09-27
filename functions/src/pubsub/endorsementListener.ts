@@ -92,7 +92,6 @@ export default async (event: CloudEvent<MessagePublishedData<EndorsementPayload>
     const lcnData = locationSnap.exists ? locationSnap.data() : null;
     verify(lcnData, 'location record not found');
 
-    // policy = await fetchPolicyData(db, policyId); // TODO: use fetchDocData instead
     verify(policyRes, `Policy not found or error occurred fetching data. Returning early.`);
     policy = policyRes;
     location = lcnData;

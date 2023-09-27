@@ -15,6 +15,7 @@ export {
   approvechangerequest,
   approveimport,
   assignquote,
+  calcpolicychanges,
   calcquote,
   createpolicy,
   createtenantfromsubmission,

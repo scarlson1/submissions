@@ -1070,7 +1070,7 @@ export interface LocationCancellationRequest
   isAddLocationRequest?: false;
 }
 
-// TODO: policy cancel request includes location changes
+// TODO: policy cancel request includes location changes (term premium, cancelEffDate, cancelReason, etc.)
 // should be object for each location
 export interface PolicyChangeRequest extends BaseChangeRequest {
   scope: 'policy';
@@ -1114,7 +1114,7 @@ export interface AddLocationValues {
 
 export interface AddLocationRequest extends BaseChangeRequest {
   trxType: 'endorsement';
-  scope: 'add_location'; // TODO: use scope instead of isAddLocationRequest ??
+  scope: 'add_location'; // TODO: use scope instead of isAddLocationRequest ?? once submitted, should scope change to endorsement ??
   status: 'submitted' | 'accepted' | 'denied' | 'under_review' | 'cancelled' | 'error';
   formValues: AddLocationValues;
   policyChanges?: DeepPartial<PolicyNew>;

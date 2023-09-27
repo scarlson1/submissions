@@ -30,7 +30,9 @@ export const importtransactions = onObjectFinalized(
 export const rateportfolio = onObjectFinalized(
   {
     secrets: [swissReClientId, swissReClientSecret, swissReSubscriptionKey, sendgridApiKey],
-    timeoutSeconds: 900,
+    timeoutSeconds: 540, // 9 mins (max)
+    memory: '1GiB',
+    concurrency: 1,
   },
   async (event) => {
     await (await import('./ratePortfolio.js')).default(event);

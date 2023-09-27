@@ -35,6 +35,8 @@ import { onCallWrapper } from '../services/sentry/index.js';
 import { compressAddress, isValidCoords } from '../utils/index.js';
 import { validate } from './utils/index.js';
 
+// TODO: modify function so it can be used for endorsements
+
 interface AddLocationCalcProps {
   policyId: string;
   changeRequestId: string;
@@ -330,4 +332,4 @@ const addLocationCalc = async ({ data, auth }: CallableRequest<AddLocationCalcPr
   }
 };
 
-export default onCallWrapper<AddLocationCalcProps>('approveimport', addLocationCalc);
+export default onCallWrapper<AddLocationCalcProps>('addlocationcalc', addLocationCalc);

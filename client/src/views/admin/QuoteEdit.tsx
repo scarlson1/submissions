@@ -66,7 +66,7 @@ const useEditQuote = (
               : null,
           limits: newValues?.limits,
           deductible: newValues?.deductible,
-          fees: newValues?.fees || [],
+          fees: numFees || [], // newValues?.fees || [],
           taxes: numTaxes || [], //  newValues?.taxes || [],
           annualPremium: newValues.annualPremium,
           subproducerCommission: newValues?.subproducerCommission,
