@@ -11,10 +11,13 @@ import { RouterProvider } from 'react-router-dom';
 import { Box, CircularProgress } from '@mui/material';
 import { ErrorBoundary, FallbackProps } from 'react-error-boundary';
 import * as Sentry from '@sentry/react';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 // import { getAnalytics, logEvent } from 'firebase/analytics';
 
 import { router } from './router';
 import { ReactFireAppContext, ReactFireServicesContext } from 'context/ReactFireContext';
+import { queryClient } from 'modules/queryClient';
 
 // TODO: set up google analytics
 // https://github.com/FirebaseExtended/reactfire/blob/main/docs/use.md#log-page-views-to-google-analytics-for-firebase-with-react-router
@@ -37,7 +40,10 @@ root.render(
     <ReactFireAppContext>
       <ReactFireServicesContext>
         <Suspense fallback={<LoadingSpinner />}>
-          <RouterProvider router={router} />
+          <QueryClientProvider client={queryClient}>
+            <RouterProvider router={router} />
+            <ReactQueryDevtools initialIsOpen={false} />
+          </QueryClientProvider>
         </Suspense>
       </ReactFireServicesContext>
     </ReactFireAppContext>
@@ -82,7 +88,7 @@ function LastResortErrorBoundary({ error, resetErrorBoundary }: FallbackProps) {
     msg = (
       <p>
         Indexing error. Our team has been notified and the issue should be resolved within the hour.
-        Appologies for the inconvenience. Please also try a hard refresh of the page (ctrl/cmd +
+        Apologies for the inconvenience. Please also try a hard refresh of the page (ctrl/cmd +
         shift + R).
       </p>
     );

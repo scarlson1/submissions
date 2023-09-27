@@ -1,24 +1,38 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import axios from 'axios';
 import {
   Box,
-  Button,
   Card,
   Link,
   Typography,
   useTheme,
-  Unstable_Grid2 as Grid,
+  // Unstable_Grid2 as Grid,
+  SelectChangeEvent,
+  FormControl,
+  InputLabel,
+  Select,
+  OutlinedInput,
+  MenuItem,
+  Checkbox,
+  ListItemText,
+  Stack,
+  SelectProps,
+  CircularProgress,
 } from '@mui/material';
-import { GeoJsonLayer, PickingInfo } from 'deck.gl/typed';
+import { GeoJsonLayer, IconLayer, PickingInfo } from 'deck.gl/typed';
 import { format } from 'date-fns';
 import { OpenInNewRounded } from '@mui/icons-material';
+import { useQuery } from '@tanstack/react-query';
 
 import { DeckMap } from './DeckMap';
-import { getRGBAArray } from 'modules/utils';
+import { CoordObj, getPlaceMarker, getRGBAArray, svgToDataURL } from 'modules/utils';
+import { queryClient } from 'modules/queryClient';
+import { STATES_ABV_ARR } from 'common/statesList';
+import { useCollectionData } from 'hooks';
 
 // available filters: https://www.weather.gov/documentation/services-web-api#/default/alerts_active
 
-const floodEventTypes = [
+const FEMA_EVENT_TYPE_OPTIONS = [
   //   '911 Telephone Outage Emergency',
   //   'Administrative Message',
   //   'Air Quality Alert',
@@ -149,117 +163,141 @@ const floodEventTypes = [
   //   'Winter Weather Advisory',
 ];
 
+const EVENT_STATUS_OPTIONS = ['actual', 'exercise', 'system', 'test'];
+
 // TODO: query controls - event type, status, area (state), etc.
-// use react-query to fetch data (mutation)
 // https://tkdodo.eu/blog/leveraging-the-query-function-context#how-to-type-the-queryfunctioncontext
 
-// export const useActiveEventsRQ = () => {
-//   const [params] = useState({
-//     // , setParams
-//     event: floodEventTypes,
-//     status: ['actual', 'exercise', 'system', 'test'],
-//   });
+interface ActiveEventsParams {
+  event: string[];
+  status: string[];
+  area?: string[];
+}
 
-//   return useQuery({
-//     queryKey: ['activeEvents', params.status, params.event],
-//     queryFn: async ({queryKey}) => {
-//       // const response = await fetch('')
-//       const response = await axios.get(`https://api.weather.gov/alerts/active`, {params: {
-//         status: queryKey[1],
-//         event: queryKey[2]
-//       }});
-//       return response.data
-//     }
-//   })
-// }
-
-const useActiveEvents = () => {
-  const [data, setData] = useState();
-  const [loading, setLoading] = useState(false);
-
-  // TODO: pass params to getData --> add to query
-  // can only pass one of the following: area, point, region, region_type, zone (forecast or county)
-  // area: State/territory code
-  // severity: Extreme, Severe, Moderate, Minor, Unknown
-  const getData = useCallback(async (params: Record<string, any> = {}) => {
-    // eventTypes?: string[]
-    try {
-      setLoading(true);
-      const { data: res } = await axios.get(`https://api.weather.gov/alerts/active`, {
-        // ?area=FL
-        params,
+// query options: https://www.weather.gov/documentation/services-web-api#/default/alerts_query
+export const useActiveEvents = (params: ActiveEventsParams) =>
+  useQuery({
+    // ...(options || {}),
+    queryKey: ['activeEvents', params.status, params.event, params.area],
+    queryFn: async ({ queryKey }) => {
+      // let params: Record<string, any> = {};
+      // if (queryKey[1]) params['status'] = queryKey[1];
+      // if (queryKey[2]) params['event'] = queryKey[2];
+      // if (queryKey[3] && queryKey[3] !== 'all') params['area'] = queryKey[3];
+      const response = await axios.get(`https://api.weather.gov/alerts/active`, {
+        // params,
+        params: {
+          status: queryKey[1],
+          event: queryKey[2],
+          area: queryKey[3],
+        },
       });
-      console.log('DATA: ', res);
+      return response.data;
+    },
+    initialData: () => {
+      const allEvents = queryClient.getQueryData<any>(['activeEvents', FEMA_EVENT_TYPE_OPTIONS]);
+      // const filteredData = allTodos?.filter((todo) => todo.state === state) ?? [];
+      // TODO: handle filter initialData by event type
+      const filteredData = allEvents ?? []; // ?.filter((todo) => todo.state === state) ?? [];
 
-      setData(res);
-    } catch (err: any) {
-      console.log('Error: ', err);
-    }
-    setLoading(false);
-  }, []);
+      return filteredData.length > 0 ? filteredData : undefined;
+    },
+    suspense: false,
+  });
 
-  return useMemo(() => ({ data, loading, getData }), [data, loading, getData]);
-};
 // TODO: dynamic queries (type of event, location (state, county, policy locations, etc.))
 // zoom to bounds once data loaded ?? or query ??
 export const ActiveEventsMap = () => {
   const theme = useTheme();
-  const { getData, data } = useActiveEvents();
   const [hoverInfo, setHoverInfo] = useState<PickingInfo>(); // TODO: type properties
-  // TODO: use useReducer instead ??
   // Use deck.gl filter extension ??
-  const [params] = useState({
-    // , setParams
-    event: floodEventTypes,
-    status: ['actual', 'exercise', 'system', 'test'],
+  const [params, setParams] = useState<ActiveEventsParams>({
+    event: FEMA_EVENT_TYPE_OPTIONS,
+    status: ['actual'], // EVENT_STATUS_OPTIONS,
+    area: [],
+    // severity: ['Extreme', 'Severe', 'Moderate', 'Minor', 'Unknown']
+    // urgency: ['Immediate', 'Expected', 'Future', 'Past', 'Unknown']
   });
+  const { data, isFetching, isError, error } = useActiveEvents(params);
+
+  const { data: locationData } = useCollectionData('LOCATIONS', [], {
+    idField: 'id',
+    suspense: false,
+    initialData: [],
+  });
+
+  useEffect(() => {
+    console.log('RQ Data: ', data);
+  }, [data]);
 
   const getEventColor = useCallback(
     (e: any) => {
-      console.log('event: ', e); // TODO: color by type of event
-
+      // console.log('event: ', e); // TODO: color by type of event
       return getRGBAArray(theme.palette.primary.main, 180);
     },
     [theme]
   );
 
-  if (!data)
+  const handleFilterChange = useCallback(
+    (key: keyof ActiveEventsParams) => (event: SelectChangeEvent<string[] | string>) => {
+      const {
+        target: { value },
+      } = event;
+
+      const valArr = typeof value === 'string' ? value.split(',') : value;
+
+      setParams((prev) => ({
+        ...prev,
+        [key]: valArr,
+      }));
+    },
+    []
+  );
+
+  if (isError)
     return (
-      <Button
-        onClick={
-          () => getData(params)
-          // getData({ event: floodEventTypes, status: ['actual', 'exercise', 'system', 'test'] })
-        }
-      >
-        Get Data
-      </Button>
+      <Typography align='center' component='div' color='text.secondary'>
+        <pre>{JSON.stringify(error, null, 2)}</pre>
+      </Typography>
     );
 
   return (
     <Box>
-      <Grid container spacing={3}>
-        {/* TODO: query select (useReducer ?? react-query ?? useInfiniteQuery ??) requires telling layer when to update - dependency prop ?? */}
-        <Grid>
-          <Typography>TODO: query filters</Typography>
-        </Grid>
-        <Grid>
-          <Button
-            onClick={() =>
-              getData({ event: floodEventTypes, status: ['actual', 'exercise', 'system', 'test'] })
-            }
-          >
-            Get Data
-          </Button>
-        </Grid>
-      </Grid>
+      <Stack spacing={3} direction={{ sm: 'column', md: 'row' }}>
+        <MultipleSelect
+          label='Event Type'
+          value={params.event}
+          handleChange={handleFilterChange('event')}
+          id='event'
+          options={FEMA_EVENT_TYPE_OPTIONS}
+        />
+        <MultipleSelect
+          label='State'
+          value={params.area || []}
+          handleChange={handleFilterChange('area')}
+          id='area'
+          options={STATES_ABV_ARR}
+        />
+        <MultipleSelect
+          label='Mode'
+          value={params.status}
+          handleChange={handleFilterChange('status')}
+          id='status'
+          options={EVENT_STATUS_OPTIONS}
+        />
+      </Stack>
 
-      {/* <Card> */}
-      <Card sx={{ height: { xs: 360, sm: 400, lg: 500 }, width: '100%' }}>
+      <Card sx={{ height: { xs: 360, sm: 400, lg: 500 }, width: '100%', position: 'relative' }}>
+        {isFetching && (
+          <Box sx={{ position: 'absolute', top: 8, right: 8, zIndex: 100 }}>
+            <CircularProgress size={20} />
+          </Box>
+        )}
         <DeckMap
           layers={[
             new GeoJsonLayer({
               id: 'geojson-layer',
-              data: data,
+              data: data || {},
               // data: 'https://api.weather.gov/alerts/active', // ?area=FL
               pickable: true,
               stroked: false,
@@ -275,6 +313,32 @@ export const ActiveEventsMap = () => {
               getLineWidth: 1,
               getElevation: 30,
               onHover: (info) => setHoverInfo(info),
+            }),
+            new IconLayer({
+              id: 'locations-layer',
+              data: locationData,
+              getIcon: (d: CoordObj) => ({
+                url: svgToDataURL(
+                  `${getPlaceMarker(
+                    d.cancelEffDate ? theme.palette.primaryDark.main : theme.palette.primary.main
+                  )}`
+                ),
+                width: 36,
+                height: 36,
+                anchorX: 18,
+                anchorY: 36,
+              }),
+              getPosition: (d: CoordObj) => [
+                d?.coordinates?.longitude || 0,
+                d?.coordinates?.latitude || 0,
+              ],
+              sizeScale: 1,
+              getSize: (d) => 36,
+              onHover: (info) => setHoverInfo(info),
+              updateTriggers: {
+                getIcon: [theme.palette.mode],
+              },
+              // ...(layerProps || {}),
             }),
           ]}
           hoverInfo={hoverInfo}
@@ -334,7 +398,6 @@ export const ActiveEventsMap = () => {
           /> */}
         </DeckMap>
       </Card>
-      {/* </Card> */}
       <Typography variant='subtitle2' color='text.secondary' sx={{ py: 1.5, px: 2 }}>
         Live events from{' '}
         <Link
@@ -349,3 +412,49 @@ export const ActiveEventsMap = () => {
     </Box>
   );
 };
+
+const ITEM_HEIGHT = 48;
+const ITEM_PADDING_TOP = 8;
+const MenuProps = {
+  PaperProps: {
+    style: {
+      maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
+      width: 250,
+    },
+  },
+};
+
+interface MultipleSelectProps {
+  options: string[];
+  handleChange: SelectProps<string[]>['onChange'];
+  value: string[];
+  id: string;
+  label: string;
+}
+
+export function MultipleSelect({ handleChange, value, id, label, options }: MultipleSelectProps) {
+  return (
+    <div>
+      <FormControl sx={{ m: 1, width: 300 }}>
+        <InputLabel id={`multiple-checkbox-label-${id}`}>{label}</InputLabel>
+        <Select
+          labelId={`multiple-checkbox-label-${id}`}
+          id={id}
+          multiple
+          value={value}
+          onChange={handleChange}
+          input={<OutlinedInput label={label} />}
+          renderValue={(selected) => value.join(', ')}
+          MenuProps={MenuProps}
+        >
+          {options.map((o) => (
+            <MenuItem key={o} value={o}>
+              <Checkbox checked={value.indexOf(o) > -1} />
+              <ListItemText primary={o} />
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+    </div>
+  );
+}

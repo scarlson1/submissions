@@ -6,7 +6,7 @@ export { getAALs, validateGetAALsProps } from './getAALs.js';
 export { getPremium } from './getPremium.js';
 export { getRCVs } from './getRCVs.js';
 export { getMinPremium, minPremiumTable } from './minPremium.js';
-export * from './misc.js';
+export * from './getCarrierByState.js';
 export { multipliersByState } from './multipliersByState.js';
 export {
   getInlandRiskScore,
