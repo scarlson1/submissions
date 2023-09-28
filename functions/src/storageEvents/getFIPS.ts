@@ -6,7 +6,7 @@ import fs from 'fs';
 import { find } from 'lodash-es';
 import { tmpdir } from 'os';
 import path from 'path';
-import { counties20mURL, unlinkFile } from '../common/index.js';
+import { counties20mURL } from '../common/index.js';
 import {
   countiesJson,
   getCountyFromGeoJson,
@@ -18,6 +18,7 @@ import {
   transformHeadersSnakeCase,
   writeArrayToStorage as writeToStorage,
 } from '../modules/storage/index.js';
+import { unlinkFile } from '../utils/storage.js';
 
 type CSVInput = Record<string, string>;
 type TCSVInput = Record<string, string> & { latitude: string; longitude: string };

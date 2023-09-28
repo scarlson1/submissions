@@ -2,7 +2,7 @@ import axios, { AxiosResponse } from 'axios';
 import { Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
-import { round } from 'lodash-es';
+import { ceil, round, sum } from 'lodash-es';
 
 import {
   Address,
@@ -11,11 +11,9 @@ import {
   Nullable,
   attomKey as attomKeySecret,
   audience,
-  calcSum,
   maxA,
   minA,
   propertyDataResCollection,
-  roundUpToNearest,
 } from '../common/index.js';
 import { getAttomInstance, getFEMAFloodZone } from '../services/index.js';
 import { onCallWrapper } from '../services/sentry/index.js';
@@ -137,33 +135,28 @@ const getPropertyDetailsAttom = async ({
         let MAX_A = maxA.value();
         let MIN_A = minA.value();
 
-        let limitARef = roundUpToNearest(Math.min(Math.max(replacementCost, MIN_A), MAX_A), 3);
+        let limitARef = ceil(Math.min(Math.max(replacementCost, MIN_A), MAX_A), -3);
 
         let defaults: InitLimits = {
           initLimitA: limitARef,
-          initLimitB: roundUpToNearest(limitARef * defaultLimitPercents['limitB'], 3),
-          initLimitC: roundUpToNearest(limitARef * defaultLimitPercents['limitC'], 3),
-          initLimitD: roundUpToNearest(limitARef * defaultLimitPercents['limitD'], 3),
+          initLimitB: ceil(limitARef * defaultLimitPercents['limitB'], -3),
+          initLimitC: ceil(limitARef * defaultLimitPercents['limitC'], -3),
+          initLimitD: ceil(limitARef * defaultLimitPercents['limitD'], -3),
         };
 
-        // DONT NEED TO VALIDATE SUM B,C,D - CALC BASED ON MAX OF 1M
-        // let totalBCDRequested = defaults.initLimitB + defaults.initLimitC + defaults.initLimitD;
-        // if (totalBCDRequested > MAX_BCD) {
-        //   console.log('Recalculating limits. Total B, C, D: ', totalBCDRequested);
-        //   // Pro rated B, C, D coverages (rounded down to 100)
-        //   for (const [key, val] of Object.entries(defaults)) {
-        //     if (key !== 'limitA') {
-        //       defaults[key as keyof InitLimits] = roundDownToNearest(
-        //         (val / totalBCDRequested) * MAX_BCD
-        //       );
-        //     }
-        //   }
-        // }
+        // let limitARef = roundUpToNearest(Math.min(Math.max(replacementCost, MIN_A), MAX_A), 3);
+
+        // let defaults: InitLimits = {
+        //   initLimitA: limitARef,
+        //   initLimitB: roundUpToNearest(limitARef * defaultLimitPercents['limitB'], 3),
+        //   initLimitC: roundUpToNearest(limitARef * defaultLimitPercents['limitC'], 3),
+        //   initLimitD: roundUpToNearest(limitARef * defaultLimitPercents['limitD'], 3),
+        // };
 
         res = { ...defaults, attomDocId: attomDocRef?.id ?? null };
-        const sumCoverage = calcSum(Object.values(defaults));
-        res.initDeductible = roundUpToNearest(sumCoverage * 0.01, 3);
-        res.maxDeductible = roundUpToNearest(sumCoverage * 0.2, 3);
+        const sumCoverage = sum(Object.values(defaults));
+        res.initDeductible = ceil(sumCoverage * 0.01, -3);
+        res.maxDeductible = ceil(sumCoverage * 0.2, -3);
 
         info('GET PROPERTY DETAILS ATTOM RES: ', { ...res });
 

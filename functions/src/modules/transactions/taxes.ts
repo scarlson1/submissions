@@ -6,8 +6,8 @@ import {
   RoundingType,
   TaxItem,
   TaxItemName,
-  sumByTypes,
 } from '../../common/index.js';
+import { sumByTypes } from '../../utils/arrays.js';
 import { SubjectBaseKeyVal } from '../db/index.js';
 
 interface TaxCalcProps {

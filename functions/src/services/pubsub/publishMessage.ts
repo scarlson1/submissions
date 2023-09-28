@@ -13,7 +13,7 @@ export async function publishMessage(topicNameOrId: string, data: { [key: string
 
     info(`Message ${messageId} published to ${topicNameOrId}.`);
 
-    return messageId;
+    return { messageId, topicNameOrId };
   } catch (err: any) {
     error(`Error while publishing pubsub event (${err?.message})`, { err });
     process.exitCode = 1;

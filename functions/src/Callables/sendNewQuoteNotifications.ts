@@ -1,9 +1,10 @@
 import { error, info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 
-import { CLAIMS, hostingBaseURL, onlyUnique, sendgridApiKey } from '../common/index.js';
+import { CLAIMS, hostingBaseURL, sendgridApiKey } from '../common/index.js';
 import { sendNewQuoteEmail } from '../services/sendgrid/index.js';
 import { onCallWrapper } from '../services/sentry/index.js';
+import { onlyUnique } from '../utils/arrays.js';
 
 interface SendNewQuoteNotificationsProps {
   to: string | string[];

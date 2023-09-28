@@ -2,42 +2,38 @@ import { round, sumBy } from 'lodash-es';
 
 import {
   FeeItem,
-  ILocation,
+  LcnWithTermPrem,
+  PolicyLcnWithPrem,
   PolicyLocation,
   TaxItem,
-  WithRequired,
-  sumArr,
-  sumByTypes,
 } from '../../common/index.js';
+import { sumArr, sumByTypes } from '../../utils/arrays.js';
 
-export type PolicyWithTermPrem = WithRequired<
-  Partial<ILocation> | Partial<PolicyLocation>,
-  'termPremium'
->;
+// export type PartialLcnWithTermPrem = WithRequired<
+//   Partial<ILocation> | Partial<PolicyLocation>,
+//   'termPremium'
+// >;
+
+export type PartialLcnWithTermPrem = LcnWithTermPrem | PolicyLcnWithPrem;
 
 /**
  * Sum term premium for array of policy locations (cancelEffDate will be filtered)
- * @param {PolicyWithTermPrem[]} locations array of all policy locations
+ * @param {PartialLcnWithTermPrem[]} locations array of all policy locations
  * @returns {number} total of term premium for each location ()
  */
-export const sumPolicyTermPremium = (locations: PolicyWithTermPrem[]) => {
-  const activeLocations = locations.filter((l) => !l.cancelEffDate); // .map((l) => l.termPremium);
-  // const total = sumArr(activeTermPremium); // sumArr converts strings --> numbers
+export const sumPolicyTermPremium = (locations: PartialLcnWithTermPrem[]) => {
+  const activeLocations = locations.filter((l) => !l.cancelEffDate);
 
   return round(sumBy(activeLocations, 'termPremium'), 2);
 };
 
 /**
  * Sum term premium for array of policy locations (including cancelled locations)
- * @param {PolicyWithTermPrem[]} locations array of all policy locations
+ * @param {PartialLcnWithTermPrem[]} locations array of all policy locations
  * @returns {number} total of term premium for each location
  */
-export const sumPolicyTermPremiumIncludeCancels = (locations: PolicyWithTermPrem[]) => {
-  const activeTermPremium = locations.map((l) => l.termPremium);
-  const total = sumArr(activeTermPremium);
-
-  return round(total, 2);
-};
+export const sumPolicyTermPremiumIncludeCancels = (locations: PartialLcnWithTermPrem[]) =>
+  round(sumBy(locations, 'termPremium'), 2);
 
 /**
  * Compute total value of taxes in an array of TaxItems

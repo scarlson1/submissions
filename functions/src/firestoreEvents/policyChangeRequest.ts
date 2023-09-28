@@ -8,6 +8,7 @@ import {
   ChangeRequest,
   getReportErrorFn,
   policiesCollection,
+  printObj,
   sendgridApiKey,
 } from '../common/index.js';
 import { handleCancelRating, handleRatingForEndorsement } from '../modules/transactions/index.js';
@@ -18,12 +19,17 @@ import {
   publishLocationCancel,
 } from '../services/pubsub/index.js';
 import { sendAdminChangeRequestNotification, sendMessage } from '../services/sendgrid/index.js';
-import { validate } from './utils/index.js';
 import { isValidEmail } from '../utils/index.js';
+import { validate } from './utils/index.js';
 
 const reportErr = getReportErrorFn('policyChangeRequest');
 
 // TODO: rename function (remove "policy")
+
+// TODO: better idempotency
+//    - lock down / archive change request once processed ?? (cannot change to status "approved" more than once)
+//    - must prevent emitting pub/sub twice, or need to have same trx ID every time (requires requestID ??)
+//    - save pub/sub data to field on request ?? (eventId, msgTopic, timestamp, etc.)
 
 export default async (
   event: FirestoreEvent<
@@ -221,14 +227,19 @@ async function handleAcceptedRequest(data: ChangeRequest, policyId: string) {
       throw new Error('add location publisher not set up yet');
     }
 
+    // TODO: save pub/sub data to change request
+
     if (data.scope === 'location') {
       switch (data.trxType) {
         case 'endorsement':
-          await publishEndorsement({
+          const msgDetails = await publishEndorsement({
             policyId,
             locationId: data.locationId,
             effDateMS: data.requestEffDate.toMillis(),
           });
+          // TODO: save msgDetails to change request (can event ID be returned from publisher ?? if yes, could construct transaction ID from policyId + locationId + eventId)
+          printObj(msgDetails);
+
           break;
         case 'amendment':
           await publishAmendment({
@@ -261,14 +272,15 @@ async function handleAcceptedRequest(data: ChangeRequest, policyId: string) {
     if (data.scope === 'policy') {
       switch (data.trxType) {
         case 'endorsement':
-          console.log('TODO: handle publish policy endorsement pubsub message');
-          // TODO: does policy endorsement scenario exist ?? (exp date ??)
-          // would effDate request change actually be a cancel ?? can eff date be move later ??
-          break;
+          throw new Error('TODO: handle publish policy endorsement pubsub message');
+        // TODO: does policy endorsement scenario exist ?? (exp date ??)
+        // would effDate request change actually be a cancel ?? can eff date be move later ??
+
+        // break;
         case 'amendment':
-          console.log('TODO: handle publish policy amendment pubsub message');
-          // TODO
-          break;
+          throw new Error('TODO: handle publish policy amendment pubsub message');
+
+        // break;
         case 'cancellation': {
           console.log('TODO: handle publish policy cancellation pubsub message');
           const db = getFirestore();
@@ -297,8 +309,11 @@ async function handleAcceptedRequest(data: ChangeRequest, policyId: string) {
           break;
         }
         case 'flat_cancel':
-          // TODO: different transactions than regular cancel ?? can a location be flat_cancelled or just policy ??
-          break;
+          // TODO: flat cancel should look up prev trx --> use as base to offset instead of calculation using "getOffsetTrx"
+          throw new Error('TODO: handle publish policy cancellation pubsub message');
+        // TODO: different transactions than regular cancel ?? can a location be flat_cancelled or just policy ?? location can b/c all trx is location
+
+        // break;
         default:
           error(`failed to match transaction type. no message published`);
       }

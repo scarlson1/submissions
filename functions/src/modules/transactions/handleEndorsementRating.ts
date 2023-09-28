@@ -8,7 +8,6 @@ import {
   ILocation,
   PolicyNew,
   ValueByRiskType,
-  calcTerm,
   changeRequestsCollection,
   getReportErrorFn,
   locationsCollection,
@@ -18,8 +17,8 @@ import {
   swissReClientSecret,
   swissReSubscriptionKey,
 } from '../../common/index.js';
-import { verify, hasAny } from '../../utils/index.js';
 import { getDoc } from '../../routes/utils/index.js';
+import { hasAny, verify } from '../../utils/index.js';
 import { createDocId } from '../db/index.js';
 import {
   GetAALRes,
@@ -37,6 +36,7 @@ import {
   validateRCVs,
 } from '../rating/index.js';
 import { recalcTaxes } from './taxes.js';
+import { calcTerm } from './utils.js';
 
 const SR_CALL_REQUIRED_KEYS = ['limits', 'deductible'];
 
@@ -175,7 +175,7 @@ export async function handleRatingForEndorsement(
       //   [locationId]: { termPremium: locationTermPremium },
       // });
       // const policyTermPremium = sumPolicyTermPremium(
-      //   Object.values(newLocations) as PolicyWithTermPrem[]
+      //   Object.values(newLocations) as PartialLcnWithTermPrem[]
       // );
 
       // newPolicyChanges['termPremium'] = policyTermPremium;

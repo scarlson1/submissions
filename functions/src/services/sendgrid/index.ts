@@ -19,7 +19,8 @@ import { projectID } from 'firebase-functions/params';
 
 // TODO: add msgType to customArgs (ex: msgType: 'deliver policy')
 
-import { EmailTemplates, env, onlyUniqueObj } from '../../common/index.js';
+import { EmailTemplates, env } from '../../common/index.js';
+import { onlyUniqueObj } from '../../utils/arrays.js';
 import {
   adminChangeRequest,
   adminImportNotification,

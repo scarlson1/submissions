@@ -1,48 +1,54 @@
-// props: location changes, effDate,
-// returns: policy changes (DeepPartial<PolicyNew>)
-
-import { DeepPartial, ILocation, PolicyLocation, PolicyNew } from '../../common';
-import { recalcTaxes } from '../transactions';
+import { deepmerge } from 'deepmerge-ts';
+import { Timestamp } from 'firebase-admin/firestore';
+import {
+  DeepPartial,
+  ILocation,
+  LcnWithTermPrem,
+  POLICY_STATUS,
+  PolicyNew,
+} from '../../common/index.js';
+import { partialLcnToPolicyLcn } from '../db/index.js';
+import { getTermDays, recalcTaxes } from '../transactions/index.js';
 import {
   calcPolicyPremium,
   sumFeesTaxesPremium,
   sumPolicyTermPremiumIncludeCancels,
-} from './sumPremium';
+} from './sumPremium.js';
+
+// TODO: are the any scenarios where policy values could change, without affecting locations ?
+// or can all policy level updates be derived from location changes ??
+// can same function be used for cancellation ??
 
 // TODO: need effective date ??
 export const calcPolicyEndorsementChanges = (
   policy: PolicyNew,
-  locationChanges: Record<string, DeepPartial<ILocation>>
-  // effDate: Timestamp
+  locationChanges: Record<string, DeepPartial<ILocation>>,
+  reqEffDate: Timestamp
 ) => {
+  const lcnSummaryChanges: DeepPartial<PolicyNew['locations']> = {};
+
   // convert location changes from ILocation to PolicyLocation
-  // combine prev location values (in policy.locations) with location changes
-  // recalculate premium and fees
-
-  const lcnSummChanges: DeepPartial<PolicyNew['locations']> = {};
-
   for (let [lcnId, lcnChanges] of Object.entries(locationChanges)) {
-    let summChanges: Partial<PolicyLocation> = {};
-    if (lcnChanges.termPremium !== undefined) summChanges.termPremium = lcnChanges.termPremium;
-    lcnSummChanges[lcnId] = {
-      ...summChanges,
-    };
+    if (lcnChanges.termPremium === undefined)
+      throw new Error(`rating required for location ${lcnId} (missing term premium)`);
+
+    // TODO: create assertion function to check if type LcnWithTermPrem (& replace error above)
+    lcnSummaryChanges[lcnId] = partialLcnToPolicyLcn(lcnChanges as LcnWithTermPrem);
   }
-  // const lcnSummChanges: PolicyNew['locations'] = Object.entries(locationChanges).map(([lcnId, lcnChanges]) => ({
 
-  // }))
-
-  // TODO: throw if lcnSummChanges is empty ??
-
-  const newLcnArr = [...Object.values(lcnSummChanges)];
+  // combine prev location values (in policy.locations) with location changes
+  const lcnSummaryWithChanges = deepmerge(
+    policy.locations,
+    lcnSummaryChanges
+  ) as PolicyNew['locations'];
+  const newLcnArr = Object.values(lcnSummaryWithChanges);
 
   const {
     termPremium: newPolicyTermPremium,
     inStatePremium,
-    outStatePremium, // @ts-ignore TODO: fix typing
+    outStatePremium,
   } = calcPolicyPremium(policy.homeState, newLcnArr);
 
-  // @ts-ignore TODO: fix typing
   const termPremiumWithCancels = sumPolicyTermPremiumIncludeCancels(newLcnArr);
 
   const newTaxes = recalcTaxes({
@@ -62,7 +68,7 @@ export const calcPolicyEndorsementChanges = (
     outStatePremium,
     taxes: newTaxes,
     price: newPrice,
-    locations: lcnSummChanges,
+    locations: lcnSummaryChanges,
     // locations: {
     //   [locationId]: {
     //     termPremium: locationTermPremium,
@@ -70,12 +76,15 @@ export const calcPolicyEndorsementChanges = (
     // },
   };
 
-  // if (newLcnArr.filter((l) => !l.cancelEffDate).length === 1) {
-  //   policyChanges['expirationDate'] = expDateTS;
-  //   policyChanges['termDays'] = termDays;
-  // }
+  // if all locations have cancel eff date --> add cancelEffDate to policy
+  if (!newLcnArr.filter((l) => !l.cancelEffDate).length) {
+    // policyChanges['expirationDate'] = expDateTS;
+    policyChanges['status'] = POLICY_STATUS.CANCELLED;
+    policyChanges['cancelEffDate'] = reqEffDate;
+    policyChanges['termDays'] = getTermDays(policy.effectiveDate.toDate(), reqEffDate.toDate());
+  }
 
-  // once billing entity set up --> recalc prem/taxes/fees per billing entity
+  // TODO: once billing entity set up --> recalc prem/taxes/fees per billing entity
 
   return policyChanges;
 };

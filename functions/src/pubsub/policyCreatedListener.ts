@@ -3,21 +3,15 @@ import type { CloudEvent } from 'firebase-functions/lib/v2/core';
 import { error, info, warn } from 'firebase-functions/logger';
 import type { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 
-import {
-  getReportErrorFn,
-  locationsCollection,
-  splitChunks,
-  transactionsCollection,
-} from '../common/index.js';
-import { getAllById } from '../modules/db/index.js';
+import { getReportErrorFn, locationsCollection, transactionsCollection } from '../common/index.js';
+import { docExists, getAllById } from '../modules/db/index.js';
 import {
   constructTrxId,
-  docExists,
   fetchPolicyData,
   fetchRatingData,
   formatPremiumTrx,
 } from '../modules/transactions/index.js';
-import { verify } from '../utils/index.js';
+import { splitChunks, verify } from '../utils/index.js';
 
 // using JS Module over classes: https://dev.to/giantmachines/stop-using-javascript-classes-33ij
 

@@ -19,13 +19,13 @@ import {
   SelectProps,
   CircularProgress,
 } from '@mui/material';
-import { GeoJsonLayer, IconLayer, PickingInfo } from 'deck.gl/typed';
+import { Color, GeoJsonLayer, IconLayer, PickingInfo } from 'deck.gl/typed';
 import { format } from 'date-fns';
 import { OpenInNewRounded } from '@mui/icons-material';
 import { useQuery } from '@tanstack/react-query';
 
 import { DeckMap } from './DeckMap';
-import { CoordObj, getPlaceMarker, getRGBAArray, svgToDataURL } from 'modules/utils';
+import { CoordObj, getPlaceMarker, getRGBAArray, stringToColor, svgToDataURL } from 'modules/utils';
 import { queryClient } from 'modules/queryClient';
 import { STATES_ABV_ARR } from 'common/statesList';
 import { useCollectionData } from 'hooks';
@@ -163,7 +163,11 @@ const FEMA_EVENT_TYPE_OPTIONS = [
   //   'Winter Weather Advisory',
 ];
 
-const EVENT_STATUS_OPTIONS = ['actual', 'exercise', 'system', 'test'];
+const EVENT_STATUS_OPTIONS = ['actual', 'exercise', 'system', 'test', 'draft'];
+const FEMA_SEVERITY_OPTIONS = ['Extreme', 'Severe', 'Moderate', 'Minor', 'Unknown'];
+const FEMA_URGENCY_OPTIONS = ['Immediate', 'Expected', 'Future', 'Past', 'Unknown'];
+
+const colorCache: Record<string, Color> = {};
 
 // TODO: query controls - event type, status, area (state), etc.
 // https://tkdodo.eu/blog/leveraging-the-query-function-context#how-to-type-the-queryfunctioncontext
@@ -172,6 +176,8 @@ interface ActiveEventsParams {
   event: string[];
   status: string[];
   area?: string[];
+  severity?: string[];
+  urgency?: string[];
 }
 
 // query options: https://www.weather.gov/documentation/services-web-api#/default/alerts_query
@@ -207,16 +213,17 @@ export const useActiveEvents = (params: ActiveEventsParams) =>
 
 // TODO: dynamic queries (type of event, location (state, county, policy locations, etc.))
 // zoom to bounds once data loaded ?? or query ??
+// TODO: compute # locations count / list overlapping with each type of storm event type
 export const ActiveEventsMap = () => {
   const theme = useTheme();
-  const [hoverInfo, setHoverInfo] = useState<PickingInfo>(); // TODO: type properties
-  // Use deck.gl filter extension ??
+  const [hoverInfo, setHoverInfo] = useState<PickingInfo>(); // TODO: type FeatureCollection properties
+  // TODO: use deck.gl filter extension ??
   const [params, setParams] = useState<ActiveEventsParams>({
     event: FEMA_EVENT_TYPE_OPTIONS,
-    status: ['actual'], // EVENT_STATUS_OPTIONS,
+    status: ['actual'],
     area: [],
-    // severity: ['Extreme', 'Severe', 'Moderate', 'Minor', 'Unknown']
-    // urgency: ['Immediate', 'Expected', 'Future', 'Past', 'Unknown']
+    severity: [],
+    urgency: [],
   });
   const { data, isFetching, isError, error } = useActiveEvents(params);
 
@@ -232,8 +239,15 @@ export const ActiveEventsMap = () => {
 
   const getEventColor = useCallback(
     (e: any) => {
-      // console.log('event: ', e); // TODO: color by type of event
-      return getRGBAArray(theme.palette.primary.main, 180);
+      const eventType = e?.properties?.event || 'primary';
+      let colorArr = colorCache[eventType];
+      if (!colorArr) {
+        let colorStr = stringToColor(e?.properties?.event || theme.palette.primary.main);
+        colorArr = getRGBAArray(colorStr, 180);
+        colorCache[eventType] = colorArr;
+      }
+
+      return colorArr; // getRGBAArray(color, 180);
     },
     [theme]
   );
@@ -284,6 +298,20 @@ export const ActiveEventsMap = () => {
           handleChange={handleFilterChange('status')}
           id='status'
           options={EVENT_STATUS_OPTIONS}
+        />
+        <MultipleSelect
+          label='Severity'
+          value={params.severity || []}
+          handleChange={handleFilterChange('severity')}
+          id='severity'
+          options={FEMA_SEVERITY_OPTIONS}
+        />
+        <MultipleSelect
+          label='Urgency'
+          value={params.urgency || []}
+          handleChange={handleFilterChange('urgency')}
+          id='urgency'
+          options={FEMA_URGENCY_OPTIONS}
         />
       </Stack>
 
@@ -413,13 +441,13 @@ export const ActiveEventsMap = () => {
   );
 };
 
-const ITEM_HEIGHT = 48;
+const ITEM_HEIGHT = 40;
 const ITEM_PADDING_TOP = 8;
 const MenuProps = {
   PaperProps: {
     style: {
       maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
-      width: 250,
+      width: 200,
     },
   },
 };
@@ -435,7 +463,7 @@ interface MultipleSelectProps {
 export function MultipleSelect({ handleChange, value, id, label, options }: MultipleSelectProps) {
   return (
     <div>
-      <FormControl sx={{ m: 1, width: 300 }}>
+      <FormControl sx={{ m: 1, width: 220 }}>
         <InputLabel id={`multiple-checkbox-label-${id}`}>{label}</InputLabel>
         <Select
           labelId={`multiple-checkbox-label-${id}`}

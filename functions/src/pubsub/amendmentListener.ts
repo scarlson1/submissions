@@ -4,9 +4,9 @@ import { error, info, warn } from 'firebase-functions/logger';
 import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 
 import { locationsCollection, transactionsCollection } from '../common/index.js';
+import { docExists } from '../modules/db/index.js';
 import {
   constructTrxId,
-  docExists,
   fetchPolicyData,
   getLocationAmendmentTrx,
   getPolicyAmendmentTrx,

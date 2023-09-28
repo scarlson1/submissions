@@ -10,9 +10,9 @@ import {
   locationsCollection,
   transactionsCollection,
 } from '../common/index.js';
+import { docExists } from '../modules/db/index.js';
 import {
   constructTrxId,
-  docExists,
   fetchPolicyData,
   fetchPreviousTrx,
   getReinstatementTrx,

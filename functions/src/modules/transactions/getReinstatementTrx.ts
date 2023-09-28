@@ -7,9 +7,8 @@ import {
   PolicyNew,
   PremiumTransaction,
   WithId,
-  getTermDays,
 } from '../../common/index.js';
-import { getBookingDate, getMGAComm } from './utils.js';
+import { getBookingDate, getMGAComm, getTermDays } from './utils.js';
 
 export const getReinstatementTrx = (
   policy: WithId<PolicyNew>,

@@ -2,6 +2,7 @@ import { add } from 'date-fns';
 import { Timestamp } from 'firebase-admin/firestore';
 import { geohashForLocation } from 'geofire-common';
 
+import { sum } from 'lodash-es';
 import {
   AdditionalInsured,
   ILocation,
@@ -11,10 +12,7 @@ import {
   PolicyNew,
   Quote,
   WithId,
-  calcSum,
-  calcTerm,
 } from '../../common/index.js';
-import { verify } from '../../utils/index.js';
 import { createDocId } from '../../modules/db/index.js';
 import {
   calcPolicyPremium,
@@ -22,7 +20,8 @@ import {
   getRCVs,
   validateLimits,
 } from '../../modules/rating/index.js';
-import { compressAddress } from '../../utils/index.js';
+import { calcTerm } from '../../modules/transactions/utils.js';
+import { compressAddress, verify } from '../../utils/index.js';
 
 export const getPolicyLocationsFromQuote = (data: Quote, policyId: string) => {
   validateLimits(data.limits);
@@ -55,7 +54,7 @@ export const getPolicyLocationsFromQuote = (data: Quote, policyId: string) => {
       termDays: termDays,
       deductible: data.deductible,
       limits: data.limits,
-      TIV: calcSum(Object.values(data.limits)),
+      TIV: sum(Object.values(data.limits)),
       RCVs,
       additionalInsureds,
       mortgageeInterest,

@@ -2,6 +2,7 @@ import { DocumentSnapshot, Timestamp, getFirestore } from 'firebase-admin/firest
 import { error, info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 
+import { round } from 'lodash-es';
 import {
   FIN_TRANSACTION_STATUS,
   POLICY_STATUS,
@@ -13,7 +14,6 @@ import {
   finTrxCollection,
   paymentMethodsCollection,
   policiesCollection,
-  round,
 } from '../common/index.js';
 import { getEPayInstance } from '../services/index.js';
 import { publishMessage } from '../services/pubsub/index.js';

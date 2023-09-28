@@ -12,15 +12,13 @@ import sharp from 'sharp';
 
 import {
   LocationImageTypes,
-  clearTempFiles,
   getReportErrorFn,
   mapboxPublicToken,
   storageBaseUrl,
 } from '../common/index.js';
-import { verify } from '../utils/index.js';
 import { createDocId } from '../modules/db/index.js';
 import { downloadFromUrl } from '../modules/storage/index.js';
-import { randomFileName } from '../utils/index.js';
+import { clearTempFiles, randomFileName, verify } from '../utils/index.js';
 
 // TODO: add marker overlay ?? https://docs.mapbox.com/api/maps/static-images/#example-request-retrieve-a-static-map-with-a-marker-overlay
 

@@ -4,7 +4,8 @@ import type { Change } from 'firebase-functions';
 import { error, info } from 'firebase-functions/logger';
 import type { FirestoreEvent } from 'firebase-functions/v2/firestore';
 
-import { CLAIMS, isJSON, orgsCollection } from '../common/index.js';
+import { CLAIMS, orgsCollection } from '../common/index.js';
+import { isJSON } from '../utils/validation.js';
 
 export interface ClaimsDocData extends DocumentData {
   _lastCommitted?: Timestamp;

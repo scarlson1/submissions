@@ -1,4 +1,5 @@
-import { FloodZones, defaultFloodZone, roundUpToNearest } from '../../common/index.js';
+import { ceil } from 'lodash-es';
+import { FloodZones, defaultFloodZone } from '../../common/index.js';
 
 export const getMinPremium = (
   floodZone: string = defaultFloodZone.value(),
@@ -9,7 +10,8 @@ export const getMinPremium = (
   const tableRef = isPortfolio ? minPremiumTablePortfolio : minPremiumTable;
   const lookup = tableRef[fz] || { minPrem: 300, minRate: 0.0004 };
 
-  const minRatePrem = roundUpToNearest(lookup.minRate * tiv, 0);
+  // const minRatePrem = roundUpToNearest(lookup.minRate * tiv, 0);
+  const minRatePrem = ceil(lookup.minRate * tiv);
 
   return Math.max(minRatePrem, lookup.minPrem);
 };

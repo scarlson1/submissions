@@ -14,11 +14,9 @@ import {
   audience,
   getReportErrorFn,
   sendgridApiKey,
-  splitChunks,
   swissReClientId,
   swissReClientSecret,
   swissReSubscriptionKey,
-  unlinkFile,
 } from '../common/index.js';
 import { extractSRAALs } from '../modules/rating/getAALs.js';
 import { getPremium } from '../modules/rating/index.js';
@@ -31,7 +29,7 @@ import {
 } from '../modules/storage/index.js';
 import { generateSRAccessToken, getSwissReInstance } from '../services/index.js';
 import { sendMessage } from '../services/sendgrid/index.js';
-import { randomFileName, waitMilliSeconds } from '../utils/index.js';
+import { randomFileName, splitChunks, unlinkFile, waitMilliSeconds } from '../utils/index.js';
 import { IRow, TRow } from './models/index.js';
 import {
   FlattenedPremData,

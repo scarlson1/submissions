@@ -38,11 +38,12 @@ import { useParams, useSearchParams } from 'react-router-dom';
 import { ILocation, Policy as IPolicy, POLICY_STATUS } from 'common';
 import { ErrorFallback, LoadingSpinner, NotFound } from 'components';
 import { IconMenu } from 'components/IconButtonMenu';
-import { LocationsMap, PolicyLocationCards } from 'elements';
+import { LocationsMap } from 'elements';
 import {
   ChangeRequestsDialog,
   useViewChangeRequestsDialogProps,
 } from 'elements/ChangeRequestDialog';
+import { PolicyLocationCardsRQ } from 'elements/PolicyLocationCards';
 import { ContactList } from 'elements/forms';
 import { LocationsGrid } from 'elements/grids';
 import {
@@ -333,7 +334,8 @@ export const Policy = () => {
           <Suspense fallback={<LoadingSpinner loading={true} />}>
             {locationsView === 'cards' ? (
               <>
-                <PolicyLocationCards policyId={policyId} onEdit={handleLocationChangeRequest} />
+                <PolicyLocationCardsRQ policyId={policyId} onEdit={handleLocationChangeRequest} />
+                {/* <PolicyLocationCards policyId={policyId} onEdit={handleLocationChangeRequest} /> */}
               </>
             ) : null}
             {locationsView === 'grid' ? (

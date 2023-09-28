@@ -9,15 +9,13 @@ import {
   PolicyCancellationRequest,
   PolicyLocation,
   PolicyNew,
-  calcTerm,
   changeRequestsCollection,
   getReportErrorFn,
-  getTermDays,
   locationsCollection,
   policiesCollectionNew,
 } from '../../common/index.js';
-import { verify } from '../../utils/index.js';
 import { getDoc } from '../../routes/utils/index.js';
+import { verify } from '../../utils/index.js';
 import {
   calcPolicyPremium,
   sumFeesTaxesPremium,
@@ -25,6 +23,7 @@ import {
 } from '../rating/index.js';
 import { setChangeRequestErr } from './handleEndorsementRating.js';
 import { recalcTaxes } from './taxes.js';
+import { calcTerm, getTermDays } from './utils.js';
 
 const reportErr = getReportErrorFn('policyChangeRequest.handleCancelRating');
 

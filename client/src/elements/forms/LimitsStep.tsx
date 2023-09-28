@@ -5,10 +5,10 @@ import Grid, { Grid2Props } from '@mui/material/Unstable_Grid2';
 import { useFormikContext } from 'formik';
 import { round } from 'lodash';
 
-import { FormikDollarMaskField, FormikDollarMaskFieldProps } from 'components/forms';
-import { FloodValues } from 'views/SubmissionNew';
-import { extractNumber } from 'modules/utils/helpers'; // round, roundToNearest
 import { LimitKeys } from 'common/types';
+import { FormikDollarMaskField, FormikDollarMaskFieldProps } from 'components/forms';
+import { extractNumber } from 'modules/utils/helpers';
+import { FloodValues } from 'views/SubmissionNew';
 
 // TODO: use increment cards & text field or slider ??
 // TODO: round value to nearest 1,000
@@ -119,8 +119,6 @@ export const LimitsStep = ({
             disabled={false}
             fullWidth
             onBlur={(e) => {
-              // const digits = ('' + e.target.value).replace(/\D/g, '');
-              // const newVal = roundToNearest(parseInt(digits), 3);
               const num = extractNumber(e.target.value || '');
               const newVal = round(num);
               setFieldValue(field.name, newVal);

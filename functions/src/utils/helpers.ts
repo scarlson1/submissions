@@ -61,3 +61,5 @@ export const capitalizeFirst = (str: string) =>
     .split(' ')
     .map((w) => capitalize(w))
     .join(' ');
+
+export const getNumber = (str: string) => str.replace(/[^0-9\.]+/g, ''); // eslint-disable-line

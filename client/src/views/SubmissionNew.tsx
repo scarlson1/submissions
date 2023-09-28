@@ -25,7 +25,6 @@ import {
   NamedInsuredDetails,
   Nullable,
   RatingPropertyData,
-  submissionsCollection,
   SUBMISSION_STATUS,
   addressValidationActiveStatesNested,
   buildingDetailsValidation,
@@ -35,12 +34,14 @@ import {
   limitsValidationNested,
   priorLossValidation,
   reviewValidation,
+  submissionsCollection,
 } from 'common';
 import { ErrorFallback } from 'components';
 import { useAuth } from 'context/AuthContext';
 import { useAsyncToast, useDocData, usePropertyDetailsAttom } from 'hooks';
 import { InitRatingValues } from 'hooks/usePropertyDetails';
-import { roundUpToNearest, sumArr } from 'modules/utils/helpers';
+import { ceil } from 'lodash';
+import { sumArr } from 'modules/utils/helpers';
 
 // TODO: useGeolocate --> add to new submission form
 // https://usehooks.com/usegeolocation
@@ -255,7 +256,7 @@ export const SubmissionNew = () => {
       );
       const initSum = sumArr([...initLimitNums]);
 
-      const defaultDeductible = roundUpToNearest(initSum * parseFloat(DEFAULT_FLOOD_DEDUCTIBLE), 3);
+      const defaultDeductible = ceil(initSum * parseFloat(DEFAULT_FLOOD_DEDUCTIBLE), -3);
 
       const userChangedDeductible = defaultDeductible !== values.deductible;
       if (userChangedDeductible) return values;
@@ -263,7 +264,7 @@ export const SubmissionNew = () => {
       const { limits } = values;
       const sumLimits = sumArr(Object.values(limits));
 
-      const newDeductible = roundUpToNearest(sumLimits * parseFloat(DEFAULT_FLOOD_DEDUCTIBLE), 3);
+      const newDeductible = ceil(sumLimits * parseFloat(DEFAULT_FLOOD_DEDUCTIBLE), -3);
 
       return { ...values, deductible: newDeductible };
     },

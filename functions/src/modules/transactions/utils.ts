@@ -1,3 +1,4 @@
+import { add, differenceInCalendarDays } from 'date-fns';
 import { DocumentData, DocumentReference, Firestore, Timestamp } from 'firebase-admin/firestore';
 import { error } from 'firebase-functions/logger';
 import { max, round } from 'lodash-es';
@@ -9,20 +10,10 @@ import {
   Transaction,
   TransactionType,
   WithId,
-  getTermDays,
   policiesCollectionNew,
   ratingDataCollection,
   transactionsCollection,
 } from '../../common/index.js';
-
-/**
- * Check if a transaction already exists in database
- * @param {DocumentReference} docRef doc ref of transaction
- * @returns {boolean} returns boolean indicated if transaction exists for provided ref
- */
-export const docExists = (docRef: DocumentReference) => {
-  return docRef.get().then((snap) => snap.exists);
-};
 
 /**
  * Transaction ID generator for idempotency
@@ -188,3 +179,49 @@ export async function fetchPreviousTrx(
 
   return data as WithId<Transaction>;
 }
+
+/**
+ * number of days between the two days (time is removed from dates). Will return negative value if effDate is larger than expDate
+ * @param {Date} effDate effective date
+ * @param {Date} expDate expiration date
+ * @returns {number} number of days between the days (time removed)
+ */
+export function getTermDays(effDate: Date, expDate: Date) {
+  return differenceInCalendarDays(expDate, effDate);
+}
+
+// (trxExpDate - trxEffDate)/(trxExpDate - Year(1))*Annual Premium = Term Premium
+
+// Daily premium = roundup(Term Premium/ (trxExpDate-trxEffDate),2)
+
+/**
+ * calc term premium and term days
+ * @param {number} annualPremium annual premium for location
+ * @param {Date} trxEffDate location eff date
+ * @param {Date} trxExpDate location exp date
+ * @returns {object} returns termPremium and termDays as numbers
+ */
+export function calcTerm(annualPremium: number, trxEffDate: Date, trxExpDate: Date) {
+  const termDays = getTermDays(trxEffDate, trxExpDate);
+  const yearDays = getTermDays(add(trxExpDate, { years: -1 }), trxExpDate);
+
+  const termPremium = round((termDays / yearDays) * annualPremium, 2);
+
+  return { termDays, termPremium };
+}
+
+// /**
+//  * calc term premium and term days
+//  * @param {number} annualPremium annual premium for location
+//  * @param {Date} effDate location eff date
+//  * @param {Date} expDate location exp date
+//  * @returns {object} returns termPremium and termDays as numbers
+//  */
+// export function calcTermPremium(annualPremium: number, effDate: Date, expDate: Date) {
+//   const termDays = getTermDays(effDate, expDate);
+
+//   const dailyAnnualPremium = annualPremium / 365;
+//   const termPremium = ceil(dailyAnnualPremium * termDays);
+
+//   return { termDays, termPremium };
+// }

@@ -21,9 +21,7 @@ import {
   StagedPolicyImport,
   ValueByRiskType,
   audience,
-  calcTerm,
   getReportErrorFn,
-  getTermDays,
   hostingBaseURL,
   importSummaryCollection,
   licensesCollection,
@@ -33,9 +31,7 @@ import {
   sendgridApiKey,
   stagedImportsCollection,
   throwIfExists,
-  unlinkFile,
 } from '../common/index.js';
-import { verify } from '../utils/index.js';
 import { createDocId, locationToPolicyLocation } from '../modules/db/index.js';
 import {
   calcPolicyPremium,
@@ -51,9 +47,9 @@ import {
   shouldReturnEarly,
   transformHeadersCamelCase,
 } from '../modules/storage/index.js';
-import { recalcTaxes } from '../modules/transactions/index.js';
+import { calcTerm, getTermDays, recalcTaxes } from '../modules/transactions/index.js';
 import { sendAdminPolicyImportNotification } from '../services/sendgrid/index.js';
-import { randomFileName } from '../utils/index.js';
+import { randomFileName, unlinkFile, verify } from '../utils/index.js';
 import { CSVPolicyRow, ParsedPolicyRow } from './models/index.js';
 import { transformPolicyRow } from './transform/index.js';
 import { validatePolicyRow } from './validation/index.js';
@@ -114,7 +110,6 @@ export default async (event: StorageEvent) => {
     info(`${parsed.dataArr.length} valid rows and ${parsed.invalidRows.length} invalid rows`);
     if (!dataArr.length) throw new Error('No valid rows');
 
-    // fs.unlinkSync(tempFilePath);
     await unlinkFile(tempFilePath);
   } catch (err: any) {
     reportErr(`ERROR PARSING CSV. RETURNING EARLY`, {}, err);

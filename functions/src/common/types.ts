@@ -7,6 +7,7 @@ import { round } from 'lodash-es';
 
 import { SecondaryFactorMults } from '../modules/rating/index.js';
 import { CreateMsgContentProps } from '../services/sendgrid/index.js';
+import { filterUniqueArr, removeFromArr } from '../utils/index.js';
 import {
   AGENCY_STATUS,
   AGENCY_SUBMISSION_STATUS,
@@ -18,7 +19,6 @@ import {
   SUBMISSION_STATUS,
 } from './enums.js';
 import { cardFeePct, iDemandOrgId } from './environmentVars.js';
-import { filterUniqueArr, removeFromArr } from './helpers.js';
 
 // TODO: fix typescript error app.use(thisMiddleware) is users.ts
 
@@ -41,21 +41,15 @@ export type DeepNullable<T> = {
   [K in keyof T]: DeepNullable<T[K]> | null;
 };
 
-// export type DeepPartial<T> = {
-//   [K in keyof T]?: DeepPartial<Partial<T[K]>>;
-// };
-
 export type DeepPartial<T> = {
   [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]> : T[K];
 };
 
-// export type DeepPartial<T> = {
-//   [K in keyof T]?: T[K] extends object ? DeepPartial<Partial<T[K]>> : T[K];
-// };
-
 export type Optional<T> = { [K in keyof T]?: T[K] | undefined | null };
 
 export type WithRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] };
+
+export type PartialRequired<T, K extends keyof T> = Partial<T> & { [P in K]-?: NonNullable<T[P]> };
 
 export type Maybe<T> = T | null | undefined;
 
@@ -63,7 +57,7 @@ export type Concrete<Type> = {
   [Property in keyof Type]-?: NonNullable<Type[Property]>;
 };
 
-// meant to override DeepPartial, but not working
+// meant to override DeepPartial, but not working (Timestamp issue)
 export type DeepConcrete<T> = {
   [K in keyof T]-?: T[K] extends object ? DeepConcrete<T[K]> : NonNullable<T[K]>;
 };
@@ -716,6 +710,10 @@ export interface PolicyLocation {
   version?: number; // TODO: remove optional
   // lcnDocId: string;
 }
+export type LcnWithTermPrem = PartialRequired<ILocation, 'termPremium'>;
+export type PolicyLcnWithPrem = PartialRequired<PolicyLocation, 'termPremium'>;
+
+// TODO: create discriminating unions (status: "cancelled" -- require cancelEffDate & cancelReason, etc.)
 
 export interface PolicyNew extends BaseDoc {
   product: Product;

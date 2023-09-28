@@ -1,20 +1,13 @@
 import { add } from 'date-fns';
 import { Timestamp } from 'firebase-admin/firestore';
 import { geohashForLocation } from 'geofire-common';
-import { sumBy } from 'lodash-es';
+import { sum, sumBy } from 'lodash-es';
 import { v4 as uuidv4 } from 'uuid';
 
-import {
-  ILocation,
-  License,
-  POLICY_STATUS,
-  Policy,
-  Quote,
-  calcSum,
-  calcTerm,
-} from '../../common/index.js';
-import { verify } from '../../utils/index.js';
+import { ILocation, License, POLICY_STATUS, Policy, Quote } from '../../common/index.js';
 import { getCarrierByState, getRCVs, validateLimits } from '../../modules/rating/index.js';
+import { calcTerm } from '../../modules/transactions/utils.js';
+import { verify } from '../../utils/index.js';
 import {
   getAdditionalInsuredFromQuote,
   getMortgageeInterestFromQuote,
@@ -77,7 +70,7 @@ export function convertQuoteToPolicyOld(
       termDays: termDays,
       deductible: data.deductible,
       limits: data.limits,
-      TIV: calcSum(Object.values(data.limits)),
+      TIV: sum(Object.values(data.limits)),
       RCVs,
       // exists: true,
       additionalInsureds,

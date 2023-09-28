@@ -1,11 +1,10 @@
-import { useState, useCallback } from 'react';
+import { round, sum } from 'lodash';
+import { useCallback, useState } from 'react';
 import { useFunctions } from 'reactfire';
-import { round } from 'lodash';
 
 import { getPropertyDetailsAttom, GetPropertyDetailsAttomRequest } from 'api';
 import { LimitKeys, Limits, Nullable, RatingPropertyData } from 'common/types';
 import { usePromptRCV } from './usePromptRCV';
-import { calcSum } from 'modules/utils';
 
 let MAX_A = parseInt(process.env.REACT_APP_FLOOD_MAX_LIMIT_A || '1000000');
 let MIN_A = parseInt(process.env.REACT_APP_FLOOD_MIN_LIMIT_A || '100000');
@@ -39,7 +38,7 @@ function getDefaultsFromRCV(rcv: number) {
     limitD: round(limitARef * defaultLimitPercents['limitD'], -3),
   };
 
-  const sumCoverage = calcSum(Object.values(defaults));
+  const sumCoverage = sum(Object.values(defaults));
   const deductible = round(sumCoverage * 0.01, -3);
   const maxDeductible = round(sumCoverage * 0.2, -3);
 

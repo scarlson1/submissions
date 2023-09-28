@@ -11,10 +11,9 @@ import {
   locationsCollection,
   transactionsCollection,
 } from '../common/index.js';
-import { getAllById } from '../modules/db/index.js';
+import { docExists, getAllById } from '../modules/db/index.js';
 import {
   constructTrxId,
-  docExists,
   fetchPolicyData,
   fetchRatingData,
   formatPremiumTrx,

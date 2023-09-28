@@ -6,12 +6,12 @@ import {
   PremiumTransaction,
   RatingData,
   WithId,
-  getTermDays,
 } from '../../common/index.js';
 import {
   getBookingDate,
   getDailyPremium,
   getNetDWP,
+  getTermDays,
   getTermProratedPct,
   getTrxTaxesAndFees,
 } from './index.js';

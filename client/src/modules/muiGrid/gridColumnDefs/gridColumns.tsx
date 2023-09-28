@@ -40,7 +40,7 @@ import {
   ValueOptions,
 } from '@mui/x-data-grid';
 import { GeoPoint, Timestamp } from 'firebase/firestore';
-import { isDate, round, sumBy } from 'lodash';
+import { isDate, round, sum, sumBy } from 'lodash';
 import { toast } from 'react-hot-toast';
 
 import {
@@ -83,7 +83,6 @@ import {
   getGridFirestoreStringOperators,
 } from 'modules/muiGrid/operators';
 import {
-  calcSum,
   compressedToFormattedAddr,
   formatFirestoreTimestamp,
   formatGridFirestoreTimestampAsDate,
@@ -812,7 +811,7 @@ export const tivCol: GridColDef = {
     const limits = params.row.limits;
     if (!limits) return null;
     try {
-      const tiv = calcSum(Object.values(limits));
+      const tiv = sum(Object.values(limits));
       return tiv;
     } catch (err) {
       return null;

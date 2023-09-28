@@ -1,10 +1,5 @@
-import {
-  Limits,
-  PremiumCalcData,
-  ValueByRiskType,
-  calcSum,
-  defaultFloodZone,
-} from '../../common/index.js';
+import { sum } from 'lodash-es';
+import { Limits, PremiumCalcData, ValueByRiskType, defaultFloodZone } from '../../common/index.js';
 import { getPremiumData } from './calcPremium.js';
 import { SecondaryFactorMults, getPM, getSecondaryFactorMults } from './factors.js';
 import { getMinPremium } from './minPremium.js';
@@ -46,7 +41,7 @@ export const getPremium = (props: GetPremiumProps): GetPremiumCalcResult => {
     isPortfolio = false,
   } = props;
   // TODO: redundant ?? also summed in getPremiumData (pass as prop ??)
-  const tiv = calcSum(Object.values(limits));
+  const tiv = sum(Object.values(limits));
 
   const minPremium = getMinPremium(floodZone || defaultFloodZone.value(), tiv, isPortfolio);
 

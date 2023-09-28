@@ -8,7 +8,6 @@ import {
   DraftAddLocationRequest,
   Limits,
   PolicyLocation,
-  calcTerm,
   changeRequestsCollection,
   defaultFloodZone,
   policiesCollectionNew,
@@ -29,7 +28,7 @@ import {
   validateAALs,
   validateLimits,
 } from '../modules/rating/index.js';
-import { recalcTaxes } from '../modules/transactions/index.js';
+import { calcTerm, recalcTaxes } from '../modules/transactions/index.js';
 import { getFEMAFloodZone } from '../services/index.js';
 import { onCallWrapper } from '../services/sentry/index.js';
 import { compressAddress, isValidCoords } from '../utils/index.js';
