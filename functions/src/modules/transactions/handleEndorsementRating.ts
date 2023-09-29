@@ -18,7 +18,7 @@ import {
   swissReSubscriptionKey,
 } from '../../common/index.js';
 import { getDoc } from '../../routes/utils/index.js';
-import { hasAny, verify } from '../../utils/index.js';
+import { verify } from '../../utils/index.js';
 import { createDocId } from '../db/index.js';
 import {
   GetAALRes,
@@ -28,6 +28,7 @@ import {
   getInStatePremium,
   getOutStatePremium,
   getPremium,
+  requiresRerate,
   sumFeesTaxesPremium,
   sumPolicyTermPremium,
   sumPolicyTermPremiumIncludeCancels,
@@ -37,8 +38,6 @@ import {
 } from '../rating/index.js';
 import { recalcTaxes } from './taxes.js';
 import { calcTerm } from './utils.js';
-
-const SR_CALL_REQUIRED_KEYS = ['limits', 'deductible'];
 
 const reportErr = getReportErrorFn('policyChangeRequest.handleEndorsementRating');
 
@@ -76,7 +75,6 @@ export async function handleRatingForEndorsement(
     const changesKeys = Object.keys(locationChanges);
 
     const expDateOnly = changesKeys.every((k) => k === 'expirationDate');
-    const requiresRerate = hasAny(changesKeys, SR_CALL_REQUIRED_KEYS);
 
     const {
       coordinates,
@@ -164,32 +162,6 @@ export async function handleRatingForEndorsement(
 
       await changeRequestRef.set(updates, { merge: true });
 
-      // let newPolicyChanges: DeepPartial<PolicyNew> = {
-      //   locations: {
-      //     [locationId]: {
-      //       termPremium: locationTermPremium,
-      //     },
-      //   },
-      // };
-      // const newLocations = deepmerge(policy.locations, {
-      //   [locationId]: { termPremium: locationTermPremium },
-      // });
-      // const policyTermPremium = sumPolicyTermPremium(
-      //   Object.values(newLocations) as PartialLcnWithTermPrem[]
-      // );
-
-      // newPolicyChanges['termPremium'] = policyTermPremium;
-
-      // await changeRequestRef.set(
-      //   {
-      //     locationChanges: {
-      //       ...locationChangesWithRating,
-      //     },
-      //     policyChanges: newPolicyChanges,
-      //     _lastCommitted: Timestamp.now(),
-      //   },
-      //   { merge: true }
-      // );
       return;
     }
 
@@ -206,10 +178,10 @@ export async function handleRatingForEndorsement(
 
     let RCVs = prevRatingData?.RCVs || location.RCVs;
 
-    if (requiresRerate) {
+    if (requiresRerate(changesKeys)) {
       const limits = { ...locLimits, ...(locationChanges.limits || {}) };
 
-      // TODO: validate inputs (replacementCost, limits, etc.)
+      // TODO: validate inputs (replacementCost, limits, etc.) need to recalc RCVs if limits changed ??
       validateRCVs(RCVs);
       validateLimits(limits);
 

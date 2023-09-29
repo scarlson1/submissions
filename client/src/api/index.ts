@@ -2,6 +2,7 @@ export { addLocationCalc } from './addLocationCalc';
 export { approveChangeRequest } from './approveChangeRequest';
 export { approveImport } from './approveImport';
 export { assignQuote } from './assignQuote';
+export { calcLocationChanges } from './calcLocationChanges';
 export { calcQuote } from './calcQuote';
 export { createPolicy } from './createPolicy';
 export { createTenantFromSubmission } from './createTenantFromSubmission';
@@ -23,6 +24,10 @@ export type { AddLocationCalcRequest, AddLocationCalcResponse } from './addLocat
 export type { ApproveChangeRequest, ApproveChangeResponse } from './approveChangeRequest';
 export type { ApproveImportRequest, ApproveImportResponse } from './approveImport';
 export type { AssignQuoteRequest, AssignQuoteResponse } from './assignQuote';
+export type {
+  CalcLocationChangesRequest,
+  CalcLocationChangesResponse,
+} from './calcLocationChanges';
 export type { CalcQuoteRequest, CalcQuoteResponse } from './calcQuote';
 export type { CreatePolicyRequest, CreatePolicyResponse } from './createPolicy';
 export type { CreateTenantRequest, CreateTenantResponse } from './createTenantFromSubmission';

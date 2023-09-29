@@ -130,6 +130,7 @@ service cloud.firestore {
       //   && incomingData().status == 'submitted'
       allow update: if isSignedIn() && isIDemandAdmin(); // TODO: allow user to update if status === 'submitted' ??
       allow delete: if isSignedIn() && isIDemandAdmin();
+      allow read: if isDocUserOrAgentOrOrgAdminOrIDemandAdmin()
     }
 
     // POLICY TRANSACTIONS (NOT FINANCIAL/CHARGES)

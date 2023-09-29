@@ -431,7 +431,7 @@ async function updateDBEmail(
     const userRef = doc(usersCollection(firestore));
     await setDoc(userRef, { email }, { merge: true });
   } catch (err: any) {
-    let msg = `Error updating email in databse`;
+    let msg = `Error updating email in database`;
     if (err.message) msg += ` (${err.message})`;
     console.log(msg);
     if (onError) onError(msg, err);
@@ -795,9 +795,9 @@ function SavedPaymentMethods() {
 
       {data.length ? (
         <>
-          {data.map((pmtmthd, i) => (
-            <Typography variant='body2' color='text.secondary' component='div' key={`mthd-${i}`}>
-              <pre>{JSON.stringify(pmtmthd, null, 2)}</pre>
+          {data.map((pmtMethod, i) => (
+            <Typography variant='body2' color='text.secondary' component='div' key={`method-${i}`}>
+              <pre>{JSON.stringify(pmtMethod, null, 2)}</pre>
             </Typography>
           ))}
         </>

@@ -5,7 +5,7 @@ export { getPM, getSecondaryFactorMults } from './factors.js';
 export { getFirstFloorDiffFactors } from './firstFloorDiff.js';
 export { getAALs, validateGetAALsProps } from './getAALs.js';
 export * from './getCarrierByState.js';
-export { getPremium } from './getPremium.js';
+export { getGetPremProps, getPremium } from './getPremium.js';
 export { getRCVs } from './getRCVs.js';
 export { getMinPremium, minPremiumTable } from './minPremium.js';
 export { multipliersByState } from './multipliersByState.js';
@@ -17,6 +17,7 @@ export {
   surgePMRiskArray,
 } from './riskScore.js';
 export * from './sumPremium.js';
+export * from './utils.js';
 export * from './validation.js';
 
 export type { GetAALRes, GetAALsProps } from './getAALs.js';

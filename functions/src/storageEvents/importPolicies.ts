@@ -32,7 +32,7 @@ import {
   stagedImportsCollection,
   throwIfExists,
 } from '../common/index.js';
-import { createDocId, locationToPolicyLocation } from '../modules/db/index.js';
+import { createDocId } from '../modules/db/index.js';
 import {
   calcPolicyPremium,
   getCarrierByState,
@@ -49,7 +49,7 @@ import {
 } from '../modules/storage/index.js';
 import { calcTerm, getTermDays, recalcTaxes } from '../modules/transactions/index.js';
 import { sendAdminPolicyImportNotification } from '../services/sendgrid/index.js';
-import { randomFileName, unlinkFile, verify } from '../utils/index.js';
+import { locationToPolicyLocation, randomFileName, unlinkFile, verify } from '../utils/index.js';
 import { CSVPolicyRow, ParsedPolicyRow } from './models/index.js';
 import { transformPolicyRow } from './transform/index.js';
 import { validatePolicyRow } from './validation/index.js';

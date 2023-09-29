@@ -2,16 +2,12 @@ import { add } from 'date-fns';
 import { Timestamp } from 'firebase-admin/firestore';
 import { geohashForLocation } from 'geofire-common';
 import { sum, sumBy } from 'lodash-es';
-import { v4 as uuidv4 } from 'uuid';
 
 import { ILocation, License, POLICY_STATUS, Policy, Quote } from '../../common/index.js';
+import { createDocId } from '../../modules/db/utils.js';
 import { getCarrierByState, getRCVs, validateLimits } from '../../modules/rating/index.js';
 import { calcTerm } from '../../modules/transactions/utils.js';
-import { verify } from '../../utils/index.js';
-import {
-  getAdditionalInsuredFromQuote,
-  getMortgageeInterestFromQuote,
-} from './convertQuoteToPolicy.js';
+import { separateAdditionalInterests, verify } from '../../utils/index.js';
 
 // TODO: update to handle multiple locations once Quote interface / process is updated
 // TODO: move validation outside function and wrap Quote in NonNullable<Quote>
@@ -42,9 +38,9 @@ export function convertQuoteToPolicyOld(
 
   const geoHash = geohashForLocation([data.coordinates.latitude, data.coordinates.longitude]);
 
-  const additionalInsureds = getAdditionalInsuredFromQuote(data);
-
-  const mortgageeInterest = getMortgageeInterestFromQuote(data);
+  const { additionalInsureds, mortgageeInterest } = separateAdditionalInterests(
+    data.additionalInterests || []
+  );
 
   // TODO: need to get rating doc to store RCVs ?? why store ?? not needed on front end ?? does it save rating doc db read on transactions ??
   let RCVs = getRCVs(data.ratingPropertyData.replacementCost, data.limits);
@@ -59,7 +55,7 @@ export function convertQuoteToPolicyOld(
   const { termDays, termPremium } = calcTerm(data.annualPremium, effDate, expirationDate);
 
   // TODO: use location ID from quote once using updated Quote interface
-  const locationId = uuidv4();
+  const locationId = createDocId();
   const locations: Record<string, ILocation> = {
     [locationId]: {
       address: data.address,

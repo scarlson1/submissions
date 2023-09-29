@@ -39,6 +39,13 @@ export const assignquote = onCall(
   }
 );
 
+export const calclocationchanges = onCall(
+  { secrets: [swissReClientId, swissReClientSecret, swissReSubscriptionKey] },
+  async (request) => {
+    return (await import('./calcLocationChanges.js')).default(request);
+  }
+);
+
 export const calcpolicychanges = onCall(async (request) => {
   return (await import('./calcPolicyChanges.js')).default(request);
 });

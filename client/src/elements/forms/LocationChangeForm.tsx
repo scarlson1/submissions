@@ -6,7 +6,6 @@ import * as yup from 'yup';
 
 import { AdditionalInterest, Limits, deductibleVal, limitsValidation } from 'common';
 import {
-  FormikDatePicker,
   FormikFieldArray,
   FormikIncrementor,
   FormikTextField,
@@ -26,8 +25,8 @@ const validation = yup.object().shape({
 export interface LocationChangeValues {
   limits: Limits;
   deductible: number;
-  effectiveDate: Date;
-  expirationDate: Date;
+  // effectiveDate: Date;
+  // expirationDate: Date;
   additionalInterests: AdditionalInterest[];
   externalId: string;
   requestEffDate: Date;
@@ -35,7 +34,7 @@ export interface LocationChangeValues {
 
 export interface LocationChangeFormProps extends FormikConfig<LocationChangeValues> {
   formRef: RefObject<FormikProps<LocationChangeValues>>;
-  policyExpirationDate?: Date;
+  // policyExpirationDate?: Date;
   replacementCost?: number | undefined;
 }
 
@@ -44,10 +43,10 @@ export const LocationChangeForm = ({
   formRef,
   onSubmit,
   replacementCost,
-  policyExpirationDate,
+  // policyExpirationDate,
   ...props
 }: LocationChangeFormProps) => {
-  console.log('policy exp date: ', policyExpirationDate);
+  // console.log('policy exp date: ', policyExpirationDate);
   return (
     <Formik
       initialValues={initialValues}
@@ -94,7 +93,7 @@ export const LocationChangeForm = ({
                 }}
               />
             </Grid>
-            <Grid xs={12}>
+            {/* <Grid xs={12}>
               <Divider sx={{ my: 1 }} />
             </Grid>
             <Grid xs={12} sm={6}>
@@ -118,7 +117,7 @@ export const LocationChangeForm = ({
                 minDate={new Date()}
                 maxDate={policyExpirationDate}
               />
-            </Grid>
+            </Grid> */}
             <Grid xs={12}>
               <Divider sx={{ my: 3 }} />
               <Typography variant='h5' gutterBottom>

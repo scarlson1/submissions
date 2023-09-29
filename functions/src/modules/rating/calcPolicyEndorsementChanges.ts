@@ -7,7 +7,7 @@ import {
   POLICY_STATUS,
   PolicyNew,
 } from '../../common/index.js';
-import { partialLcnToPolicyLcn } from '../db/index.js';
+import { partialLcnToPolicyLcn } from '../../utils/transform.js';
 import { getTermDays, recalcTaxes } from '../transactions/index.js';
 import {
   calcPolicyPremium,

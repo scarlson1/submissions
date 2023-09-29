@@ -6,10 +6,10 @@ import {
   changeRequestsCollection,
   getReportErrorFn,
   policiesCollectionNew,
-} from '../common';
-import { calcPolicyEndorsementChanges } from '../modules/rating';
-import { onCallWrapper } from '../services/sentry';
-import { validate } from './utils';
+} from '../common/index.js';
+import { calcPolicyEndorsementChanges } from '../modules/rating/index.js';
+import { onCallWrapper } from '../services/sentry/index.js';
+import { validate } from './utils/index.js';
 
 interface CalcPolicyChangesProps {
   policyId: string;
@@ -33,7 +33,7 @@ const reportErr = getReportErrorFn('calcpolicychanges');
 //    - policy endorsement calc - needs to be called at change request creation, at review step, at approval (reusable function, recalculate in approval merge function ??)
 //        - should values be stored in change request ?? add "calc date" field, and lock down document once status is approved
 
-const PROCESSED_STATUS: ChangeRequestStatus[] = ['accepted', 'cancelled', 'denied'];
+export const PROCESSED_STATUS: ChangeRequestStatus[] = ['accepted', 'cancelled', 'denied'];
 
 const calcPolicyChanges = async ({ data, auth }: CallableRequest<CalcPolicyChangesProps>) => {
   info(`Calc Policy Changes called`, { ...data });

@@ -242,7 +242,7 @@ export interface AdditionalInsured {
 export interface Mortgagee {
   name: string;
   contactName: string;
-  contactEmail: string;
+  email: string;
   loanNumber: string;
   address?: Nullable<Address> | null;
 }
@@ -253,6 +253,7 @@ export type AdditionalInterestType = 'additional_insured' | 'mortgagee';
 export interface AdditionalInterest {
   type: AdditionalInterestType; // string;
   name: string;
+  email?: string;
   accountNumber: string;
   address: AddressWithCoords;
 }

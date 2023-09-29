@@ -3,16 +3,7 @@ import { Timestamp } from 'firebase-admin/firestore';
 import { geohashForLocation } from 'geofire-common';
 
 import { sum } from 'lodash-es';
-import {
-  AdditionalInsured,
-  ILocation,
-  License,
-  Mortgagee,
-  POLICY_STATUS,
-  PolicyNew,
-  Quote,
-  WithId,
-} from '../../common/index.js';
+import { ILocation, License, POLICY_STATUS, PolicyNew, Quote, WithId } from '../../common/index.js';
 import { createDocId } from '../../modules/db/index.js';
 import {
   calcPolicyPremium,
@@ -21,7 +12,7 @@ import {
   validateLimits,
 } from '../../modules/rating/index.js';
 import { calcTerm } from '../../modules/transactions/utils.js';
-import { compressAddress, verify } from '../../utils/index.js';
+import { compressAddress, separateAdditionalInterests, verify } from '../../utils/index.js';
 
 export const getPolicyLocationsFromQuote = (data: Quote, policyId: string) => {
   validateLimits(data.limits);
@@ -31,8 +22,9 @@ export const getPolicyLocationsFromQuote = (data: Quote, policyId: string) => {
 
   const geoHash = geohashForLocation([data.coordinates.latitude, data.coordinates.longitude]);
 
-  const additionalInsureds = getAdditionalInsuredFromQuote(data);
-  const mortgageeInterest = getMortgageeInterestFromQuote(data);
+  const { additionalInsureds, mortgageeInterest } = separateAdditionalInterests(
+    data.additionalInterests || []
+  );
 
   const RCVs = getRCVs(data.ratingPropertyData.replacementCost, data.limits);
 
@@ -75,48 +67,6 @@ export const getPolicyLocationsFromQuote = (data: Quote, policyId: string) => {
   };
   return locations;
 };
-// TODO: move to common helpers function
-export function getAdditionalInsuredFromQuote(data: Quote): AdditionalInsured[] {
-  return (
-    data.additionalInterests
-      ?.filter((ai) => ai.type === 'additional_named_insured' || ai.type === 'additional_insured')
-      .map((additionalNI) => ({
-        name: additionalNI.name,
-        email: '', // additionalNI.email
-        address: additionalNI.address
-          ? {
-              addressLine1: additionalNI.address.addressLine1,
-              addressLine2: additionalNI.address.addressLine2,
-              city: additionalNI.address.city,
-              state: additionalNI.address.state,
-              postal: additionalNI.address.postal,
-            }
-          : null,
-      })) || []
-  );
-}
-
-export function getMortgageeInterestFromQuote(data: Quote): Mortgagee[] {
-  return (
-    data.additionalInterests
-      ?.filter((ai) => ai.type === 'mortgagee')
-      .map((m) => ({
-        name: m.name,
-        contactName: '',
-        contactEmail: '', // m.email,
-        loanNumber: m.accountNumber,
-        address: m.address
-          ? {
-              addressLine1: m.address.addressLine1,
-              addressLine2: m.address.addressLine2,
-              city: m.address.city,
-              state: m.address.state,
-              postal: m.address.postal,
-            }
-          : null,
-      })) || []
-  );
-}
 
 export function getPolicyFromQuote(
   data: WithId<Quote>,

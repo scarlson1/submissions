@@ -7,5 +7,6 @@ export * from './flattenObj.js';
 export * from './getDifference.js';
 export * from './helpers.js';
 export * from './storage.js';
+export * from './transform.js';
 export * from './validateCoords.js';
 export * from './validation.js';

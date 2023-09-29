@@ -1,23 +1,25 @@
+import { User } from 'firebase/auth';
 import { Timestamp, addDoc } from 'firebase/firestore';
 import { FormikHelpers, FormikProps } from 'formik';
 import { useCallback, useRef } from 'react';
-import { useFirestore } from 'reactfire';
-import { User } from 'firebase/auth';
+import { useFirestore, useFunctions } from 'reactfire';
 
+import { calcLocationChanges } from 'api';
 import {
-  AdditionalInsured,
-  AdditionalInterest,
-  AddressWithCoords,
   CHANGE_REQUEST_STATUS,
   ILocation,
   LocationChangeRequest,
-  Mortgagee,
   Policy,
   WithId,
   changeRequestsCollection,
 } from 'common';
 import { useAuth } from 'context';
 import { LocationChangeForm, LocationChangeFormProps, LocationChangeValues } from 'elements/forms';
+import {
+  additionalInterestsToAdditionalInsured,
+  additionalInterestsToMortgagee,
+  combineToAdditionalInterests,
+} from 'modules/utils';
 import { useAsyncToast } from './useAsyncToast';
 import { formatChanges } from './useCreatePolicyChangeRequest';
 import { useDialogForm } from './useDialogForm';
@@ -32,6 +34,9 @@ export const useCreateLocationChangeRequest = (policyId: string) => {
   const locationData = useRef<ILocation>();
   const policy = useRef<Policy>();
   const initialVals = useRef<Omit<LocationChangeValues, 'requestEffDate'>>();
+
+  // for testing calcLocationChanges
+  const functions = useFunctions();
 
   const handleSubmit = useCallback(
     async (values: LocationChangeValues, bag: FormikHelpers<LocationChangeValues>) => {
@@ -65,11 +70,11 @@ export const useCreateLocationChangeRequest = (policyId: string) => {
         // TODO: create ProtectLocation type (omit termPremium, etc.)
         let endorsementChanges: Partial<Omit<ILocation, 'termPremium' | 'annualPremium'>> = {};
 
-        if (diff.effectiveDate && values.effectiveDate)
-          endorsementChanges['effectiveDate'] = Timestamp.fromDate(values.effectiveDate);
+        // if (diff.effectiveDate && values.effectiveDate)
+        //   endorsementChanges['effectiveDate'] = Timestamp.fromDate(values.effectiveDate);
 
-        if (diff.expirationDate && values.expirationDate)
-          endorsementChanges['expirationDate'] = Timestamp.fromDate(values.expirationDate);
+        // if (diff.expirationDate && values.expirationDate)
+        //   endorsementChanges['expirationDate'] = Timestamp.fromDate(values.expirationDate);
 
         if (diff.limits && values.limits) endorsementChanges['limits'] = diff.limits;
 
@@ -110,9 +115,18 @@ export const useCreateLocationChangeRequest = (policyId: string) => {
         docIds.push(amendmentDocRef.id);
       }
 
+      // FOR TESTING LOCATION CALC API ONLY
+      if (requiresEndorsement) {
+        const { data } = await calcLocationChanges(functions, {
+          policyId,
+          changeRequestId: docIds[0],
+        });
+        console.log('calc location changes res: ', data);
+      }
+
       return docIds;
     },
-    [firestore, policyId, user]
+    [firestore, functions, policyId, user]
   );
 
   const dialogForm = useDialogForm<LocationChangeValues, LocationChangeFormProps>({
@@ -121,11 +135,11 @@ export const useCreateLocationChangeRequest = (policyId: string) => {
         initialValues={{} as LocationChangeValues}
         formRef={formRef}
         onSubmit={handleSubmit}
-        policyExpirationDate={policy.current?.expirationDate.toDate() || undefined}
+        // policyExpirationDate={policy.current?.expirationDate.toDate() || undefined}
       />
     ),
     formRef,
-    getFormProps: () => ({ policyExpirationDate: policy.current?.expirationDate.toDate() }),
+    // getFormProps: () => ({ policyExpirationDate: policy.current?.expirationDate.toDate() }),
     onSubmit: handleSubmit,
     onSuccess: () => {
       toast.success('change request submitted');
@@ -146,15 +160,17 @@ export const useCreateLocationChangeRequest = (policyId: string) => {
       locationData.current = loc;
       policy.current = p;
 
-      const ai = convertAdditionalInsuredsToAdditionalInterests(loc.additionalInsureds);
-      const m = convertMortgageesToAdditionalInterests(loc.mortgageeInterest);
+      const additionalInterests = combineToAdditionalInterests(
+        loc.additionalInsureds,
+        loc.mortgageeInterest
+      );
 
       let initialValues: Omit<LocationChangeValues, 'requestEffDate'> = {
         limits: loc.limits,
         deductible: loc.deductible,
-        effectiveDate: loc.effectiveDate.toDate(),
-        expirationDate: loc.expirationDate.toDate(),
-        additionalInterests: [...ai, ...m],
+        // effectiveDate: loc.effectiveDate.toDate(),
+        // expirationDate: loc.expirationDate.toDate(),
+        additionalInterests,
         externalId: loc.externalId || '',
       };
 
@@ -165,38 +181,6 @@ export const useCreateLocationChangeRequest = (policyId: string) => {
     [dialogForm]
   );
 };
-
-function convertAdditionalInsuredsToAdditionalInterests(
-  additionalInsureds: AdditionalInsured[]
-): AdditionalInterest[] {
-  return additionalInsureds.map((ai) => ({
-    type: 'additional_insured',
-    name: ai.name,
-    accountNumber: '',
-    address: {
-      addressLine1: ai.address?.addressLine1 || '',
-      addressLine2: ai.address?.addressLine2 || '',
-      city: ai.address?.city || '',
-      state: ai.address?.state || '',
-      postal: ai.address?.postal || '',
-    } as AddressWithCoords,
-  }));
-}
-
-function convertMortgageesToAdditionalInterests(mortgagees: Mortgagee[]): AdditionalInterest[] {
-  return mortgagees.map((m) => ({
-    type: 'mortgagee',
-    name: m.name,
-    accountNumber: m.loanNumber,
-    address: {
-      addressLine1: m.address?.addressLine1 || '',
-      addressLine2: m.address?.addressLine2 || '',
-      city: m.address?.city || '',
-      state: m.address?.state || '',
-      postal: m.address?.postal || '',
-    } as AddressWithCoords,
-  }));
-}
 
 // TODO: uncomment once changed to new policy-locations interface
 const ENDORSEMENT_KEYS = ['limits', 'deductible', 'effectiveDate', 'expirationDate'];
@@ -244,46 +228,4 @@ function getCommonTrxJson(
       updated: Timestamp.now(),
     },
   };
-}
-
-function additionalInterestsToAdditionalInsured(additionalInterests: AdditionalInterest[]) {
-  return (
-    additionalInterests
-      ?.filter((ai) => ai.type === 'additional_insured')
-      .map((additionalNI) => ({
-        name: additionalNI.name,
-        email: '',
-        address: additionalNI.address
-          ? {
-              addressLine1: additionalNI.address.addressLine1,
-              addressLine2: additionalNI.address.addressLine2,
-              city: additionalNI.address.city,
-              state: additionalNI.address.state,
-              postal: additionalNI.address.postal,
-            }
-          : null,
-      })) || []
-  );
-}
-
-function additionalInterestsToMortgagee(additionalInterests: AdditionalInterest[]) {
-  return (
-    additionalInterests
-      ?.filter((ai) => ai.type === 'mortgagee')
-      .map((m) => ({
-        name: m.name,
-        contactName: '',
-        contactEmail: '', // m.email,
-        loanNumber: m.accountNumber,
-        address: m.address
-          ? {
-              addressLine1: m.address.addressLine1,
-              addressLine2: m.address.addressLine2,
-              city: m.address.city,
-              state: m.address.state,
-              postal: m.address.postal,
-            }
-          : null,
-      })) || []
-  );
 }

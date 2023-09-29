@@ -14,9 +14,9 @@ import {
   minA,
 } from '../../common/index.js';
 import { getSwissReInstance } from '../../services/index.js';
+import { isValidCoords } from '../../utils/index.js';
 import { getRCVs } from './getRCVs.js';
 import { swissReBody } from './swissReBody.js';
-import { isValidCoords } from '../../utils/index.js';
 
 let swissReInstance: AxiosInstance | undefined;
 
@@ -33,14 +33,12 @@ export interface GetAALRes {
 }
 
 export const getAALs = async (props: GetAALsProps): Promise<GetAALRes> => {
+  const { srClientId, srClientSecret, srSubKey, ...rest } = props;
   const {
-    srClientId,
-    srClientSecret,
-    srSubKey,
     replacementCost,
     limits: { limitA, limitB, limitC, limitD },
     coordinates,
-  } = props;
+  } = rest;
 
   swissReInstance = swissReInstance || getSwissReInstance(srClientId, srClientSecret, srSubKey);
 
@@ -49,7 +47,7 @@ export const getAALs = async (props: GetAALsProps): Promise<GetAALRes> => {
   const limitAB = limitA + limitB;
 
   const xmlBodyVars = {
-    ...props,
+    ...rest,
     limitA,
     limitB,
     limitC,

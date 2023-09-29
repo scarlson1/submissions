@@ -1,5 +1,11 @@
 import { sum } from 'lodash-es';
-import { Limits, PremiumCalcData, ValueByRiskType, defaultFloodZone } from '../../common/index.js';
+import {
+  ILocation,
+  Limits,
+  PremiumCalcData,
+  ValueByRiskType,
+  defaultFloodZone,
+} from '../../common/index.js';
 import { getPremiumData } from './calcPremium.js';
 import { SecondaryFactorMults, getPM, getSecondaryFactorMults } from './factors.js';
 import { getMinPremium } from './minPremium.js';
@@ -94,3 +100,20 @@ export const getPremium = (props: GetPremiumProps): GetPremiumCalcResult => {
     minPremium,
   };
 };
+
+export function getGetPremProps(
+  location: ILocation,
+  limits: Limits,
+  AALs: ValueByRiskType,
+  commissionPct: number
+): GetPremiumProps {
+  return {
+    AALs,
+    limits,
+    state: location.address.state,
+    basement: location.ratingPropertyData.basement,
+    floodZone: location.ratingPropertyData.floodZone,
+    priorLossCount: location.ratingPropertyData.priorLossCount || '0',
+    commissionPct, // TODO: throw error if no rating doc or default to 15% commission ??
+  };
+}

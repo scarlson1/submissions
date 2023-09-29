@@ -15,6 +15,7 @@ import { TempWrappedSearch } from 'components/search/Search';
 import { AuthActionsProvider } from 'context';
 import { ActionHandler } from 'elements';
 import { SuccessStep } from 'elements/forms';
+import { LocationChange } from 'elements/forms/LocationChangeForm2';
 import { BindSuccess } from 'elements/forms/SuccessStep';
 import { EmailsGrid } from 'elements/grids';
 import { ImportsSummaryGrid } from 'elements/grids/ImportsSummaryGrid';
@@ -655,6 +656,39 @@ export const router = sentryCreateBrowserRouter([
                     path: ROUTES.POLICY,
                     params: { policyId: `${match?.params?.policyId || ''}` },
                   }),
+                },
+              ],
+            },
+          },
+          {
+            path: `/policies/:policyId/locations/:locationId/change-request`,
+            element: <LocationChange />,
+            errorElement: <RouterErrorBoundary />,
+            handle: {
+              crumb: (match: CrumbMatch) => [
+                {
+                  label: 'Policies',
+                  link: createPath({
+                    path: ROUTES.POLICIES,
+                  }),
+                },
+                {
+                  label: `${match?.params?.policyId || ''}`,
+                  link: createPath({
+                    path: ROUTES.POLICY,
+                    params: { policyId: `${match?.params?.policyId || ''}` },
+                  }),
+                },
+                {
+                  label: `${match?.params?.locationId || ''}`,
+                  // TODO: location details view
+                  // link: createPath({
+                  //   path: ROUTES.POLICY,
+                  //   params: { policyId: `${match?.params?.locationId || ''}` },
+                  // }),
+                },
+                {
+                  label: 'Change Request',
                 },
               ],
             },

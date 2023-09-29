@@ -519,7 +519,7 @@ export interface AdditionalInsured {
 export interface Mortgagee {
   name: string;
   contactName: string;
-  contactEmail: string;
+  email: string;
   loanNumber: string;
   address?: Nullable<Address> | null;
 }
@@ -530,6 +530,7 @@ export interface Mortgagee {
 export interface AdditionalInterest {
   type: string;
   name: string;
+  email?: string;
   accountNumber: string;
   address: AddressWithCoords;
 }
@@ -997,14 +998,14 @@ export interface PolicyChangeValues {
   mailingAddress: Address;
   effectiveDate: Date | null;
   expirationDate: Date | null; // TODO: ability to request date changes ??
-  requestEffDate: Date;
+  requestEffDate: Date; // change to timestamp ??
 }
 
 export interface LocationChangeValues {
   limits: Limits;
   deductible: number;
   effectiveDate: Date;
-  expirationDate: Date;
+  // expirationDate: Date;
   additionalInterests: AdditionalInterest[];
   externalId: string;
   requestEffDate: Date;
@@ -1020,6 +1021,11 @@ export type ChangeRequestStatus =
   | 'error';
 
 // TODO: create ChangeRequestTrxType, then TransactionType  = ChangeRequestTrxType & 'renewal' | 'new'
+
+// TODO:  should add key for each trx type ?? change request doesn't need to mirror transaction type 1:1
+// ex: { endorsementChanges: { [lcnId]: { ...endorsementChanges}, amendmentChanges: { [lcnId]: { ...amendmentChanges}  }
+// then have approval function split into different transactions ??
+
 interface BaseChangeRequest extends BaseDoc {
   trxType: ChangeRequestTrxType;
   requestEffDate: Timestamp;
@@ -1047,6 +1053,14 @@ interface BaseChangeRequest extends BaseDoc {
 }
 
 // TODO: DraftChangeRequest ??
+
+// TODO: { endorsementChanges: { [lcnId]: { ...endorsementChanges}, amendmentChanges: { [lcnId]: { ...amendmentChanges}  }
+// separate out form values in calcLocationChange
+
+// TODO: restructure ChangeRequests
+//  - PolicyChangeRequest (multi-location, includes endorsements and amendments)
+//  - CancellationRequest (both location level and policy level, use same interface but add isPolicyCancellation boolean. includes flat_cancel ?? same form - becomes flat_cancel if submitted date is before policy/location eff date)
+//  - ReinstatementRequest
 
 export interface LocationChangeRequest extends BaseChangeRequest {
   scope: 'location';

@@ -22,7 +22,7 @@ function createDraftChangeRequest(policyId: string) {
   );
 }
 
-function createChangeRequest(policyId: string) {
+export function createChangeRequest(policyId: string) {
   return createResource(createDraftChangeRequest(policyId));
 }
 

@@ -1530,7 +1530,9 @@ export const additionalInsuredsCol: GridColDef = {
     params.row.additionalInsureds?.map((ai: AdditionalInsured) => ai.name) || null,
   valueFormatter: ({ value }) => {
     if (Array.isArray(value) && value.length)
-      return value.map((ai: AdditionalInsured) => `${ai.name} (${ai.email})`).join('  |  ');
+      return value
+        .map((ai: AdditionalInsured) => `${ai.name}${ai.email ? ` (${ai.email})` : ''}`)
+        .join('  |  ');
     return value;
   },
   renderCell: (params) =>
@@ -1550,7 +1552,7 @@ export const mortgageeCol: GridColDef = {
   valueFormatter: ({ value }) => {
     if (Array.isArray(value) && value.length)
       return value
-        .map((m: Mortgagee) => `${m.name} (${m.contactName} - ${m.contactEmail})`)
+        .map((m: Mortgagee) => `${m.name} (${m.contactName}${m.email ? ' - ' + m.email : ''})`)
         .join('  |  ');
     return value;
   },

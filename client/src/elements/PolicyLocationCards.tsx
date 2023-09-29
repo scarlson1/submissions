@@ -211,10 +211,7 @@ const usePaginatedLocations = <T,>(
   const rq = useInfiniteQuery({
     queryKey: ['locations', policyId],
     queryFn: fetchLocations,
-    getNextPageParam: (lastPage, pages) => {
-      console.log(`getNextPageParam: `, lastPage, pages);
-      return lastPage.nextCursor;
-    },
+    getNextPageParam: (lastPage, pages) => lastPage.nextCursor,
   });
 
   // const { isLoading, isError, error, data, isFetching, isPreviousData } = useQuery({
@@ -289,8 +286,6 @@ export const PolicyLocationCardsRQ = ({ policyId, ...props }: PolicyLocationCard
             ? 'Load More'
             : 'Nothing more to load'}
         </button>
-
-        {/* <pre>{JSON.stringify(locations, null, 2)}</pre> */}
       </div>
       {Boolean(error) && (
         <div>
