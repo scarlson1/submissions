@@ -24,8 +24,6 @@ import { validate } from './utils/index.js';
 
 const reportErr = getReportErrorFn('policyChangeRequest');
 
-// TODO: rename function (remove "policy")
-
 // TODO: better idempotency
 //    - lock down / archive change request once processed ?? (cannot change to status "approved" more than once)
 //    - must prevent emitting pub/sub twice, or need to have same trx ID every time (requires requestID ??)

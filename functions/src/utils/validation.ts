@@ -1,5 +1,5 @@
 import invariant from 'tiny-invariant';
-import { Primitive } from '../common';
+import { LcnWithTermPrem, Primitive } from '../common';
 
 /**
  * Check if any string in the values array exists in the checkValues array
@@ -51,3 +51,12 @@ export const isJSON = (obj: string) => {
 };
 
 export const truthyOrZero = <T = Primitive>(val: T) => Boolean(val) || val === 0;
+
+export const hasPremium = (val: any): val is LcnWithTermPrem => {
+  return truthyOrZero(val?.termPremium);
+};
+
+export function validateHasPrem(val: any): asserts val is LcnWithTermPrem {
+  if (!hasPremium(val)) throw new Error('missing term premium');
+  return;
+}

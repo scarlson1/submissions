@@ -8,7 +8,14 @@ import { useFunctions, useUser } from 'reactfire';
 import { object } from 'yup';
 
 import { calcLocationChanges } from 'api';
-import { COLLECTIONS, ChangeRequest, ILocation, deductibleVal, limitsValidation } from 'common';
+import {
+  COLLECTIONS,
+  ChangeRequest,
+  ILocation,
+  LocationChangeRequest,
+  deductibleVal,
+  limitsValidation,
+} from 'common';
 import {
   FormikFieldArray,
   FormikIncrementor,
@@ -204,7 +211,11 @@ interface ReviewStepProps {
 }
 const ReviewStep = ({ policyId, requestId, onSubmit }: ReviewStepProps) => {
   if (!requestId) throw new Error('missing change request ID prop'); // TODO: better method for ensuring req ID
-  const { data } = useDocData('POLICIES', requestId, [policyId, COLLECTIONS.CHANGE_REQUESTS]);
+  // does this throw if doc not found ?? need to wrap in error boundary (with reset to reset form)
+  const { data } = useDocData<LocationChangeRequest>('POLICIES', requestId, [
+    policyId,
+    COLLECTIONS.CHANGE_REQUESTS,
+  ]);
   const toast = useAsyncToast({ position: 'top-right' });
 
   const { handleStep } = useWizard();
@@ -222,7 +233,61 @@ const ReviewStep = ({ policyId, requestId, onSubmit }: ReviewStepProps) => {
   });
 
   return (
-    <Box>
+    <Grid container spacing={5}>
+      <Grid xs={12}>
+        <Typography variant='h6' align='center'>
+          Review
+        </Typography>
+      </Grid>
+      {/* TODO: map endorsement changes */}
+      <Grid xs={6} md={3}>
+        {/* TODO: always show ?? fallback on current value of only saving diff in location changes ?? */}
+        <Typography variant='overline' color='text.secondary'>
+          Building Limit
+        </Typography>
+        <Typography>
+          {data?.locationChanges?.limits?.limitA
+            ? dollarFormat(data?.locationChanges?.limits?.limitA)
+            : ''}
+        </Typography>
+      </Grid>
+      <Grid xs={6} md={3}>
+        {/* TODO: always show ?? fallback on current value of only saving diff in location changes ?? */}
+        {/* TODO: show old value  */}
+        <Typography variant='overline' color='text.secondary'>
+          Add'l. Structures Limit
+        </Typography>
+        <Typography>
+          {data?.locationChanges?.limits?.limitB
+            ? dollarFormat(data?.locationChanges?.limits?.limitB)
+            : ''}
+        </Typography>
+      </Grid>
+      <Grid xs={6} md={3}>
+        {/* TODO: always show ?? fallback on current value of only saving diff in location changes ?? */}
+        {/* TODO: show old value  */}
+        <Typography variant='overline' color='text.secondary'>
+          Contents Limit
+        </Typography>
+        <Typography>
+          {data?.locationChanges?.limits?.limitC
+            ? dollarFormat(data?.locationChanges?.limits?.limitC)
+            : ''}
+        </Typography>
+      </Grid>
+      <Grid xs={6} md={3}>
+        {/* TODO: always show ?? fallback on current value of only saving diff in location changes ?? */}
+        <Typography variant='overline' color='text.secondary'>
+          BI Limit
+        </Typography>
+        <Typography>
+          {data?.locationChanges?.limits?.limitD
+            ? dollarFormat(data?.locationChanges?.limits?.limitD)
+            : ''}
+        </Typography>
+      </Grid>
+      {/* TODO: map amendment changes */}
+
       <Typography component='div' variant='body2' color='text.secondary'>
         <ReactJson
           src={data}
@@ -235,7 +300,7 @@ const ReviewStep = ({ policyId, requestId, onSubmit }: ReviewStepProps) => {
         />
       </Typography>
       <WizardNavButtons />
-    </Box>
+    </Grid>
   );
 };
 

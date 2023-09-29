@@ -8,6 +8,7 @@ import {
   TaxItem,
 } from '../../common/index.js';
 import { sumArr, sumByTypes } from '../../utils/arrays.js';
+import { recalcTaxes } from '../transactions/taxes.js';
 
 // export type PartialLcnWithTermPrem = WithRequired<
 //   Partial<ILocation> | Partial<PolicyLocation>,
@@ -86,4 +87,34 @@ export const calcPolicyPremium = (homeState: string, newLocationsArr: PolicyLoca
   const outStatePremium = getOutStatePremium(homeState, newLocationsArr);
 
   return { termPremium, inStatePremium, outStatePremium };
+};
+
+export const calcPolicyPremiumAndTaxes = (
+  lcnArr: PolicyLocation[],
+  homeState: string,
+  taxes: TaxItem[],
+  fees: FeeItem[]
+) => {
+  const { termPremium, inStatePremium, outStatePremium } = calcPolicyPremium(homeState, lcnArr);
+
+  const termPremiumWithCancels = sumPolicyTermPremiumIncludeCancels(lcnArr);
+
+  const newTaxes = recalcTaxes({
+    premium: termPremium,
+    homeStatePremium: inStatePremium,
+    outStatePremium,
+    taxes,
+    fees,
+  });
+
+  const price = sumFeesTaxesPremium(fees, newTaxes, termPremium);
+
+  return {
+    termPremium,
+    inStatePremium,
+    outStatePremium,
+    termPremiumWithCancels,
+    price,
+    taxes: newTaxes,
+  };
 };

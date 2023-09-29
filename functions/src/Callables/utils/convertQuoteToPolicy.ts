@@ -95,11 +95,11 @@ export function getPolicyFromQuote(
   const policyLocations: PolicyNew['locations'] = {};
   for (const [id, location] of Object.entries(locations)) {
     verify(typeof location.termPremium === 'number', 'location termPremium invalid');
+
     policyLocations[id] = {
       termPremium: location.termPremium,
       address: compressAddress(location.address),
       coords: location.coordinates,
-      // lcnDocId: id,
     };
   }
 

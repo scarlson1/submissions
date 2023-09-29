@@ -33,13 +33,7 @@ import {
   throwIfExists,
 } from '../common/index.js';
 import { createDocId } from '../modules/db/index.js';
-import {
-  calcPolicyPremium,
-  getCarrierByState,
-  getRCVs,
-  sumFeesTaxesPremium,
-  sumPolicyTermPremiumIncludeCancels,
-} from '../modules/rating/index.js';
+import { calcPolicyPremiumAndTaxes, getCarrierByState, getRCVs } from '../modules/rating/index.js';
 import {
   ParseStreamToArrayRes,
   eventOlderThan,
@@ -47,7 +41,7 @@ import {
   shouldReturnEarly,
   transformHeadersCamelCase,
 } from '../modules/storage/index.js';
-import { calcTerm, getTermDays, recalcTaxes } from '../modules/transactions/index.js';
+import { calcTerm, getTermDays } from '../modules/transactions/index.js';
 import { sendAdminPolicyImportNotification } from '../services/sendgrid/index.js';
 import { locationToPolicyLocation, randomFileName, unlinkFile, verify } from '../utils/index.js';
 import { CSVPolicyRow, ParsedPolicyRow } from './models/index.js';
@@ -321,39 +315,17 @@ async function groupByPolicyId(data: ParsedPolicyRow[], firestore: Firestore) {
   // const resultPolicies: Record<string, Policy> = {};
   const formattedPolicies: Record<string, PolicyNew> = {};
   for (const [policyId, policy] of Object.entries(policies)) {
-    // const policyTermPremium = getPolicyTermPremium(policy.locations);
-
-    // const locations = Object.values(policy.locations);
-    // const inStatePremium = getInStatePremium(policy.homeState, locations);
-    // const outStatePremium = getOutStatePremium(policy.homeState, locations);
-    const {
-      termPremium: policyTermPremium,
-      inStatePremium,
-      outStatePremium,
-    } = calcPolicyPremium(policy.homeState, Object.values(policy.locations));
-
-    const policyTaxes = recalcTaxes({
-      premium: policyTermPremium,
-      homeStatePremium: inStatePremium,
-      outStatePremium: outStatePremium,
-      taxes: policy.taxes,
-      fees: policy.fees,
-    });
-
-    const termPremiumWithCancels = sumPolicyTermPremiumIncludeCancels(
-      Object.values(policy.locations)
+    // recalc premium, taxes, price
+    const policyPremRecalc = calcPolicyPremiumAndTaxes(
+      Object.values(policy.locations),
+      policy.homeState,
+      policy.taxes,
+      policy.fees
     );
-
-    const price = sumFeesTaxesPremium(policy.fees, policyTaxes, policyTermPremium);
 
     formattedPolicies[policyId] = {
       ...policy,
-      termPremium: policyTermPremium,
-      termPremiumWithCancels,
-      inStatePremium,
-      outStatePremium,
-      taxes: policyTaxes,
-      price,
+      ...policyPremRecalc,
     };
   }
 

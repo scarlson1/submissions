@@ -18,6 +18,7 @@ import { getDoc } from '../../routes/utils/index.js';
 import { verify } from '../../utils/index.js';
 import {
   calcPolicyPremium,
+  calcPolicyPremiumAndTaxes,
   sumFeesTaxesPremium,
   sumPolicyTermPremiumIncludeCancels,
 } from '../rating/index.js';
@@ -73,36 +74,22 @@ export async function handleCancelRatingOld(
       cancelEffDate: requestEffDate,
     };
 
-    const newLocations = [...Object.values(otherLocations), { ...locationSummary, termPremium }];
+    const newLcnArr = [...Object.values(otherLocations), { ...locationSummary, termPremium }];
 
     // TODO: if single location --> cancel policy
     // change to policy scope ??
     // don't recalc price, taxes, etc. ??
 
-    // TODO: reusable function (same in handleEndorsementRating)
     // Recalc policy termPremium, taxes & price
-    const {
-      termPremium: newPolicyTermPremium,
-      inStatePremium,
-      outStatePremium,
-    } = calcPolicyPremium(policy.homeState, newLocations);
-
-    const taxes = recalcTaxes({
-      premium: newPolicyTermPremium,
-      homeStatePremium: inStatePremium,
-      outStatePremium,
-      taxes: policy.taxes,
-      fees: policy.fees,
-    });
-
-    const price = sumFeesTaxesPremium(policy.fees, taxes, newPolicyTermPremium);
+    const policyPremRecalc = calcPolicyPremiumAndTaxes(
+      newLcnArr,
+      policy.homeState,
+      policy.taxes,
+      policy.fees
+    );
 
     let policyLevelUpdates: Partial<PolicyNew> = {
-      termPremium: newPolicyTermPremium,
-      inStatePremium,
-      outStatePremium,
-      taxes,
-      price,
+      ...policyPremRecalc,
     };
 
     if (!Object.values(otherLocations).filter((l) => !l.cancelEffDate).length) {

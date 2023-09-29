@@ -1,19 +1,10 @@
 import { deepmerge } from 'deepmerge-ts';
 import { Timestamp } from 'firebase-admin/firestore';
-import {
-  DeepPartial,
-  ILocation,
-  LcnWithTermPrem,
-  POLICY_STATUS,
-  PolicyNew,
-} from '../../common/index.js';
+import { DeepPartial, ILocation, POLICY_STATUS, PolicyNew } from '../../common/index.js';
 import { partialLcnToPolicyLcn } from '../../utils/transform.js';
-import { getTermDays, recalcTaxes } from '../transactions/index.js';
-import {
-  calcPolicyPremium,
-  sumFeesTaxesPremium,
-  sumPolicyTermPremiumIncludeCancels,
-} from './sumPremium.js';
+import { validateHasPrem } from '../../utils/validation.js';
+import { getTermDays } from '../transactions/index.js';
+import { calcPolicyPremiumAndTaxes } from './sumPremium.js';
 
 // TODO: are the any scenarios where policy values could change, without affecting locations ?
 // or can all policy level updates be derived from location changes ??
@@ -29,11 +20,9 @@ export const calcPolicyEndorsementChanges = (
 
   // convert location changes from ILocation to PolicyLocation
   for (let [lcnId, lcnChanges] of Object.entries(locationChanges)) {
-    if (lcnChanges.termPremium === undefined)
-      throw new Error(`rating required for location ${lcnId} (missing term premium)`);
+    validateHasPrem(lcnChanges);
 
-    // TODO: create assertion function to check if type LcnWithTermPrem (& replace error above)
-    lcnSummaryChanges[lcnId] = partialLcnToPolicyLcn(lcnChanges as LcnWithTermPrem);
+    lcnSummaryChanges[lcnId] = partialLcnToPolicyLcn(lcnChanges);
   }
 
   // combine prev location values (in policy.locations) with location changes
@@ -47,27 +36,18 @@ export const calcPolicyEndorsementChanges = (
     termPremium: newPolicyTermPremium,
     inStatePremium,
     outStatePremium,
-  } = calcPolicyPremium(policy.homeState, newLcnArr);
-
-  const termPremiumWithCancels = sumPolicyTermPremiumIncludeCancels(newLcnArr);
-
-  const newTaxes = recalcTaxes({
-    premium: newPolicyTermPremium,
-    homeStatePremium: inStatePremium,
-    outStatePremium,
-    taxes: policy.taxes,
-    fees: policy.fees,
-  });
-
-  const newPrice = sumFeesTaxesPremium(policy.fees, newTaxes, newPolicyTermPremium);
+    termPremiumWithCancels,
+    taxes,
+    price,
+  } = calcPolicyPremiumAndTaxes(newLcnArr, policy.homeState, policy.taxes, policy.fees);
 
   let policyChanges: DeepPartial<PolicyNew> = {
     termPremium: newPolicyTermPremium,
     termPremiumWithCancels,
     inStatePremium,
     outStatePremium,
-    taxes: newTaxes,
-    price: newPrice,
+    taxes,
+    price,
     locations: lcnSummaryChanges,
     // locations: {
     //   [locationId]: {

@@ -20,21 +20,19 @@ import { createDocId } from '../modules/db/index.js';
 import { GetPremiumCalcResult } from '../modules/rating/getPremium.js';
 import {
   GetAALRes,
-  calcPolicyPremium,
+  calcPolicyPremiumAndTaxes,
   getAALs,
   getPremium,
-  sumFeesTaxesPremium,
-  sumPolicyTermPremiumIncludeCancels,
   validateAALs,
   validateLimits,
 } from '../modules/rating/index.js';
-import { calcTerm, recalcTaxes } from '../modules/transactions/index.js';
+import { calcTerm } from '../modules/transactions/index.js';
 import { getFEMAFloodZone } from '../services/index.js';
 import { onCallWrapper } from '../services/sentry/index.js';
 import { compressAddress, isValidCoords } from '../utils/index.js';
 import { validate } from './utils/index.js';
 
-// TODO: modify function so it can be used for endorsements
+// TODO: modify function so it can be used for endorsements (use calcLocationChanges or keep separate ??)
 
 interface AddLocationCalcProps {
   policyId: string;
@@ -236,6 +234,8 @@ const addLocationCalc = async ({ data, auth }: CallableRequest<AddLocationCalcPr
 
     validate(termPremium && termDays, 'internal', 'error calculating location term premium');
 
+    // TODO: break here (policy level calc handled in separate function)
+
     // calculate policy premium values
     const newLcnSummary: PolicyLocation = {
       address: compressAddress(address),
@@ -243,26 +243,15 @@ const addLocationCalc = async ({ data, auth }: CallableRequest<AddLocationCalcPr
       termPremium,
       version: 0,
     };
-    // TODO: create function for all policy functions below (always need to recalc all below for endorsements - used in handleEndorsementRating too)
-    const newLocationsSummaryArr = [...Object.values(policy.locations), newLcnSummary];
 
-    const {
-      termPremium: policyTermPremium,
-      inStatePremium,
-      outStatePremium,
-    } = calcPolicyPremium(policy.homeState, newLocationsSummaryArr);
+    const newLcnArr = [...Object.values(policy.locations), newLcnSummary];
 
-    const termPremiumWithCancels = sumPolicyTermPremiumIncludeCancels(newLocationsSummaryArr);
-
-    const newTaxes = recalcTaxes({
-      premium: policyTermPremium,
-      homeStatePremium: inStatePremium,
-      outStatePremium,
-      taxes: policy.taxes,
-      fees: policy.fees,
-    });
-
-    const newPrice = sumFeesTaxesPremium(policy.fees, newTaxes, policyTermPremium);
+    const policyPremRecalc = calcPolicyPremiumAndTaxes(
+      newLcnArr,
+      policy.homeState,
+      policy.taxes,
+      policy.fees
+    );
 
     // TODO: create location record ?? or create once approved ??
     // lcn / policy versioning issue ??
@@ -293,12 +282,7 @@ const addLocationCalc = async ({ data, auth }: CallableRequest<AddLocationCalcPr
         externalId: externalId || null,
       },
       policyChanges: {
-        termPremium: policyTermPremium,
-        termPremiumWithCancels,
-        inStatePremium,
-        outStatePremium,
-        taxes: newTaxes,
-        price: newPrice,
+        ...policyPremRecalc,
         locations: {
           [lcnId]: newLcnSummary,
         },

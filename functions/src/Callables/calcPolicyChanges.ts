@@ -18,13 +18,6 @@ interface CalcPolicyChangesProps {
 
 const reportErr = getReportErrorFn('calcpolicychanges');
 
-// TODO: need corresponding function for calculating location changes (calcLocationChanges ??)
-//  - called before review step
-//  - accepts values from form (or should it pass the change request ID ??)
-//      - if using values from change request, need to save form values before calling fn
-//  - will look similar to add location fn (should be used by both ??)
-//  - separate request types into different functions (or set up as express onRequest api)
-
 // calculation scenarios:
 //    - add location or endorsement (requires SR api call )
 //        - separate out to another route (calc location changes - fine if location changes gets overwritten by another change request)
@@ -81,6 +74,12 @@ const calcPolicyChanges = async ({ data, auth }: CallableRequest<CalcPolicyChang
         },
       };
       policyChanges = calcPolicyEndorsementChanges(policy, tempLocationsObj, requestEffDate);
+    } else {
+      // TODO: handle add location, reinstatement, amendment, etc.
+      throw new HttpsError(
+        'unimplemented',
+        'function not set up to handle trx other than endorsement'
+      );
     }
 
     // if location cancellation (or policy cancellation) --> calcCancellation

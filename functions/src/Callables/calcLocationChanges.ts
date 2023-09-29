@@ -36,6 +36,8 @@ import { requireAuth, validate } from './utils/index.js';
 // if cancel or endorsement --> call different "mergeLocation/formValues" functions, then rest of rating is the same (aside from setting exp date on location)
 
 // TODO:  should add key for each trx type ??
+// have approval function split into transactions (both by location and transaction type)
+
 // ex: { endorsementChanges: { [lcnId]: { ...endorsementChanges}, amendmentChanges: { [lcnId]: { ...amendmentChanges}  }
 // then have approval function split into different transactions ??
 
@@ -56,7 +58,6 @@ const calcLocationChanges = async ({ data, auth }: CallableRequest<CalcLocationC
   validate(policyId, 'failed-precondition', 'policyId required');
 
   const db = getFirestore();
-  // const policyCol = policiesCollectionNew(db);
   const changeRequestCol = changeRequestsCollection(db, policyId);
   const locationsCol = locationsCollection(db);
   const ratingCol = ratingDataCollection(db);
@@ -90,15 +91,8 @@ const calcLocationChanges = async ({ data, auth }: CallableRequest<CalcLocationC
     const locationSnaps = await getAllById(locationsCol, [lcnId]);
     let locationsObj: Record<string, ILocation> = {};
     locationSnaps.forEach((l) => (locationsObj[l.id] = l.data()));
-    // let locations = locationSnaps.docs.map((snap) => ({ ...snap.data, id: snap.id }));
-    info(`Location docs retrieved - calculating location rating`, { locationsObj });
 
-    // merge changes with each location
-    // will depend on change request type (need to change scope to change request type ??)
-    // how should form with multiple types be handled ?? (limits and additional interests, etc.)
-    // TODO:  should add key for each trx type ??
-    // ex: { endorsementChanges: { [lcnId]: { ...endorsementChanges}, amendmentChanges: { [lcnId]: { ...amendmentChanges}  }
-    // then have approval function split into different transactions ??
+    info(`Location docs retrieved - calculating location rating`, { locationsObj });
 
     let endorsementChanges: Record<string, DeepPartial<ILocation>> = {};
     let amendmentChanges: Record<string, AmendmentChangesProvided> = {};
@@ -106,6 +100,7 @@ const calcLocationChanges = async ({ data, auth }: CallableRequest<CalcLocationC
     // TODO: need to call this fn for each location
     const { providedEndorsementChanges, providedAmendmentChanges } =
       changeReqFormValuesToLocationChanges(changeRequest.formValues);
+
     if (!isEmpty(providedEndorsementChanges))
       endorsementChanges[lcnId] = providedEndorsementChanges;
     if (!isEmpty(providedAmendmentChanges)) amendmentChanges[lcnId] = providedAmendmentChanges;
@@ -141,16 +136,6 @@ const calcLocationChanges = async ({ data, auth }: CallableRequest<CalcLocationC
       validateLimits(limits);
 
       try {
-        console.log('getAAL props: ', {
-          srClientId: swissReClientId.value(),
-          srClientSecret: swissReClientSecret.value(),
-          srSubKey: swissReSubscriptionKey.value(),
-          replacementCost: RCVs.building,
-          limits,
-          deductible: lcnChanges.deductible || lcn.deductible,
-          coordinates: { latitude: lcn.coordinates.latitude, longitude: lcn.coordinates.longitude },
-          numStories: lcn.ratingPropertyData?.numStories,
-        });
         AALsRes = await getAALs({
           srClientId: swissReClientId.value(),
           srClientSecret: swissReClientSecret.value(),
@@ -274,7 +259,7 @@ const lcnChangeKeys = [
   'effectiveDate',
   // 'additionalInterests',
 ] as unknown as keyof EndorsementChangesProvided;
-function isLcnKey(k: string): k is keyof EndorsementChangesProvided {
+function isLcnEndKey(k: string): k is keyof EndorsementChangesProvided {
   return lcnChangeKeys.includes(k);
 }
 
@@ -296,7 +281,7 @@ function changeReqFormValuesToLocationChanges(values: LocationChangeValues) {
       providedAmendmentChanges['mortgageeInterest'] = mortgageeInterest;
     }
 
-    if (isLcnKey(key)) {
+    if (isLcnEndKey(key)) {
       providedEndorsementChanges[key] = val;
     }
   }

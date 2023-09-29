@@ -23,7 +23,7 @@ import { createDocId } from '../db/index.js';
 import {
   GetAALRes,
   GetPremiumProps,
-  calcPolicyPremium,
+  calcPolicyPremiumAndTaxes,
   getAALs,
   getInStatePremium,
   getOutStatePremium,
@@ -31,7 +31,6 @@ import {
   requiresRerate,
   sumFeesTaxesPremium,
   sumPolicyTermPremium,
-  sumPolicyTermPremiumIncludeCancels,
   validateAALs,
   validateLimits,
   validateRCVs,
@@ -110,32 +109,16 @@ export async function handleRatingForEndorsement(
         { ...locationSummary, termPremium: locationTermPremium },
       ];
 
-      const {
-        termPremium: newPolicyTermPremium,
-        inStatePremium,
-        outStatePremium,
-      } = calcPolicyPremium(policy.homeState, newLocationsSummaryArr);
-
-      const termPremiumWithCancels = sumPolicyTermPremiumIncludeCancels(newLocationsSummaryArr);
-
-      // recalc taxes based on new term premium
-      const newTaxes = recalcTaxes({
-        premium: newPolicyTermPremium,
-        homeStatePremium: inStatePremium,
-        outStatePremium,
-        taxes: policy.taxes,
-        fees: policy.fees,
-      });
-
-      const newPrice = sumFeesTaxesPremium(policy.fees, newTaxes, newPolicyTermPremium);
+      // recalc premium, taxes, price
+      const policyPremRecalc = calcPolicyPremiumAndTaxes(
+        newLocationsSummaryArr,
+        policy.homeState,
+        policy.taxes,
+        policy.fees
+      );
 
       const policyChanges: DeepPartial<PolicyNew> = {
-        termPremium: newPolicyTermPremium,
-        termPremiumWithCancels,
-        inStatePremium,
-        outStatePremium,
-        taxes: newTaxes,
-        price: newPrice,
+        ...policyPremRecalc,
         locations: {
           [locationId]: {
             termPremium: locationTermPremium,
