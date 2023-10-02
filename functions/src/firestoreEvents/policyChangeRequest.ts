@@ -6,12 +6,13 @@ import {
   CHANGE_REQUEST_STATUS,
   CancellationReason,
   ChangeRequest,
+  PolicyChangeRequest,
   getReportErrorFn,
   policiesCollection,
   printObj,
   sendgridApiKey,
 } from '../common/index.js';
-import { handleCancelRating, handleRatingForEndorsement } from '../modules/transactions/index.js';
+import { handleCancelRating } from '../modules/transactions/index.js';
 import { getDoc } from '../routes/utils/index.js';
 import {
   publishAmendment,
@@ -72,12 +73,13 @@ export default async (
         await handleRequestNotifications(data, policyId, requestId, event.id);
 
         // TODO: handle reinstatement & renewal
-        if (
-          data.trxType === 'endorsement' &&
-          data.scope !== 'add_location' &&
-          !data.isAddLocationRequest
-        )
-          await handleRatingForEndorsement(data, policyId, requestId);
+        // REPLACED BY calcLocationChanges (called in change request form)
+        // if (
+        //   data.trxType === 'endorsement' &&
+        //   data.scope !== 'add_location' &&
+        //   !data.isAddLocationRequest
+        // )
+        //   await handleRatingForEndorsement(data, policyId, requestId);
 
         // TODO: is cancellation handled differently than flat cancel
         if (data.trxType === 'cancellation' || data.trxType === 'flat_cancel') {
@@ -194,6 +196,11 @@ async function handleRequestNotifications(
   return;
 }
 
+function isPolicyChangeRequest(data: any): data is PolicyChangeRequest {
+  const keys = Object.keys(data);
+  return keys.includes('endorsementChanges') || keys.includes('amendmentChanges');
+}
+
 // Emit pubsub event
 async function handleAcceptedRequest(data: ChangeRequest, policyId: string) {
   try {
@@ -226,6 +233,34 @@ async function handleAcceptedRequest(data: ChangeRequest, policyId: string) {
     }
 
     // TODO: save pub/sub data to change request
+
+    // TEMP (transition to new interface) - if new endorsement/amendment interface --> intercept
+    if (isPolicyChangeRequest(data)) {
+      const endorsementsLcnIds = Object.keys(data.endorsementChanges);
+      for (let lcnId of endorsementsLcnIds) {
+        const msgDetails = await publishEndorsement({
+          policyId,
+          locationId: lcnId,
+          effDateMS: data.requestEffDate.toMillis(),
+        });
+        // TODO: save msgDetails to change request (can event ID be returned from publisher ?? if yes, could construct transaction ID from policyId + locationId + eventId)
+        printObj(msgDetails);
+      }
+
+      const amendmentLcnIds = Object.keys(data.amendmentChanges);
+      for (let lcnId of amendmentLcnIds) {
+        const msgDetails = await publishAmendment({
+          policyId,
+          locationId: lcnId,
+          amendmentScope: 'location',
+          effDateMS: data.requestEffDate.toMillis(),
+        });
+
+        printObj(msgDetails);
+      }
+
+      return;
+    }
 
     if (data.scope === 'location') {
       switch (data.trxType) {

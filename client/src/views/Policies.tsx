@@ -95,6 +95,9 @@ export const Policies = () => {
           {header}
           <PoliciesGrid checkboxSelection />
         </Box>
+        {/* <Box>
+          <Search filters='collectionName:users' />
+        </Box> */}
       </Container>
     );
 

@@ -831,6 +831,33 @@ export interface BaseChangeRequest extends BaseDoc {
   _lastCommitted?: Timestamp;
 }
 
+// TODO: update to "endorsementChanges" and "amendmentChanges"
+// TODO: same as policy change request --> use policy change request instead (locationID moved inside changes objects)
+export interface PolicyChangeRequest extends BaseChangeRequest {
+  formValues: LocationChangeValues; // TODO: support multi-location. remove req eff date from form values
+  endorsementChanges: Record<
+    string,
+    Pick<
+      ILocation,
+      | 'limits'
+      | 'deductible'
+      | 'annualPremium'
+      | 'ratingDocId'
+      | 'TIV'
+      | 'RCVs'
+      | 'termPremium'
+      | 'termDays'
+    >
+  >;
+  locationId: string; // TODO: delete once using multi-location (store ID in form values)
+  scope: 'location'; // TODO: delete (only to pass validation in calcLocationChanges)
+  amendmentChanges: Record<
+    string,
+    Partial<Pick<ILocation, 'additionalInsureds' | 'mortgageeInterest'>>
+  >;
+  policyChanges: DeepPartial<Policy>;
+}
+
 export interface LocationChangeRequest extends BaseChangeRequest {
   scope: 'location';
   policyChanges?: DeepPartial<Policy>; // TODO: rename policyChanges
@@ -852,7 +879,7 @@ export interface LocationCancellationRequest
   isAddLocationRequest?: false;
 }
 
-export interface PolicyChangeRequest extends BaseChangeRequest {
+export interface PolicyChangeRequestOld extends BaseChangeRequest {
   scope: 'policy';
   policyChanges?: DeepPartial<Policy>;
   formValues: PolicyChangeValues;
@@ -860,7 +887,7 @@ export interface PolicyChangeRequest extends BaseChangeRequest {
   isAddLocationRequest?: false;
 }
 
-export interface PolicyCancellationRequest extends Omit<PolicyChangeRequest, 'formValues'> {
+export interface PolicyCancellationRequest extends Omit<PolicyChangeRequestOld, 'formValues'> {
   trxType: 'cancellation' | 'flat_cancel';
   cancelReason: CancellationReason;
   formValues: CancelValues;
@@ -888,7 +915,7 @@ export interface DraftAddLocationRequest
 
 export type ChangeRequest =
   | LocationChangeRequest
-  | PolicyChangeRequest
+  | PolicyChangeRequestOld
   | LocationCancellationRequest
   | PolicyCancellationRequest
   | AddLocationRequest

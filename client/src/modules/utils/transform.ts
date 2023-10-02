@@ -1,4 +1,5 @@
 import { AdditionalInsured, AdditionalInterest, AddressWithCoords, Mortgagee } from 'common';
+import { deepmergeCustom } from 'deepmerge-ts';
 
 export function convertAdditionalInsuredsToAdditionalInterests(
   additionalInsureds: AdditionalInsured[]
@@ -83,3 +84,9 @@ export function additionalInterestsToMortgagee(additionalInterests: AdditionalIn
       })) || []
   );
 }
+
+// Docs: https://github.com/RebeccaStevens/deepmerge-ts/blob/HEAD/docs/deepmergeCustom.md
+
+export const deepMergeOverwriteArrays = deepmergeCustom({
+  mergeArrays: false,
+});

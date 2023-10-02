@@ -119,7 +119,7 @@ service cloud.firestore {
 
     // TODO: decide whether to allow org admins to create 
     match /policies/{policyId}/changeRequests/{requestId} {
-      allow create: if true;
+      allow create: if true; // TODO: ONLY ALLOW CREATE IF STATUS === 'draft' ?? 
       // TODO: uncomment (update to allow 'draft' status)
       // allow create: if isSignedIn() && (
       //     isUser(getPolicyData(policyId).get('userId', null))
@@ -128,6 +128,7 @@ service cloud.firestore {
       //   ) 
       //   && incomingData().keys().hasAll(['policyId', 'requestEffDate', 'trxType', 'userId', 'agent', 'agency', 'status'])
       //   && incomingData().status == 'submitted'
+      // TODO: block if keys includes endorsementChanges, amendmentChanges, policyChanges, etc. (only set from backend)
       allow update: if isSignedIn() && isIDemandAdmin(); // TODO: allow user to update if status === 'submitted' ??
       allow delete: if isSignedIn() && isIDemandAdmin();
       allow read: if isDocUserOrAgentOrOrgAdminOrIDemandAdmin()

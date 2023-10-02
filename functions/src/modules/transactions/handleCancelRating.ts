@@ -16,14 +16,8 @@ import {
 } from '../../common/index.js';
 import { getDoc } from '../../routes/utils/index.js';
 import { verify } from '../../utils/index.js';
-import {
-  calcPolicyPremium,
-  calcPolicyPremiumAndTaxes,
-  sumFeesTaxesPremium,
-  sumPolicyTermPremiumIncludeCancels,
-} from '../rating/index.js';
+import { calcPolicyPremiumAndTaxes } from '../rating/index.js';
 import { setChangeRequestErr } from './handleEndorsementRating.js';
-import { recalcTaxes } from './taxes.js';
 import { calcTerm, getTermDays } from './utils.js';
 
 const reportErr = getReportErrorFn('policyChangeRequest.handleCancelRating');
@@ -191,44 +185,27 @@ export async function handleCancelRating(data: ChangeRequest, policyId: string, 
       };
     }
 
-    let newLocationsArr: PolicyLocation[];
+    let newLcnArr: PolicyLocation[];
     if (scope === 'location') {
       const { [data.locationId]: locationSummary, ...otherLocations } = policy.locations;
-      newLocationsArr = [...Object.values(otherLocations), ...Object.values(newLcnSummary)];
+      newLcnArr = [...Object.values(otherLocations), ...Object.values(newLcnSummary)];
     } else {
-      newLocationsArr = Object.values(newLcnSummary);
+      newLcnArr = Object.values(newLcnSummary);
     }
 
-    // TODO: reusable function (same in handleEndorsementRating)
     // Recalc policy termPremium, taxes & price
-    const {
-      termPremium: newPolicyTermPremium,
-      inStatePremium,
-      outStatePremium,
-    } = calcPolicyPremium(policy.homeState, newLocationsArr);
-
-    const termPremiumWithCancels = sumPolicyTermPremiumIncludeCancels(newLocationsArr);
-
-    const taxes = recalcTaxes({
-      premium: newPolicyTermPremium,
-      homeStatePremium: inStatePremium,
-      outStatePremium,
-      taxes: policy.taxes,
-      fees: policy.fees,
-    });
-
-    const price = sumFeesTaxesPremium(policy.fees, taxes, newPolicyTermPremium);
+    const policyPremRecalc = calcPolicyPremiumAndTaxes(
+      newLcnArr,
+      policy.homeState,
+      policy.taxes,
+      policy.fees
+    );
 
     let policyLevelUpdates: Partial<PolicyNew> = {
-      termPremium: newPolicyTermPremium,
-      termPremiumWithCancels,
-      inStatePremium,
-      outStatePremium,
-      taxes,
-      price,
+      ...policyPremRecalc,
     };
 
-    if (!newLocationsArr.filter((l) => !l.cancelEffDate).length) {
+    if (!newLcnArr.filter((l) => !l.cancelEffDate).length) {
       policyLevelUpdates['cancelEffDate'] = requestEffDate;
       policyLevelUpdates['termDays'] = getTermDays(
         policy.effectiveDate.toDate(),

@@ -49,11 +49,6 @@ export const calcPolicyEndorsementChanges = (
     taxes,
     price,
     locations: lcnSummaryChanges,
-    // locations: {
-    //   [locationId]: {
-    //     termPremium: locationTermPremium,
-    //   },
-    // },
   };
 
   // if all locations have cancel eff date --> add cancelEffDate to policy

@@ -38,6 +38,8 @@ import {
 import { recalcTaxes } from './taxes.js';
 import { calcTerm } from './utils.js';
 
+// TODO: delete ?? (replace by calcLocationChanges)
+
 const reportErr = getReportErrorFn('policyChangeRequest.handleEndorsementRating');
 
 export async function handleRatingForEndorsement(

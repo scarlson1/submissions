@@ -1,15 +1,15 @@
+import { User } from 'firebase/auth';
 import { Timestamp, addDoc, doc } from 'firebase/firestore';
 import { FormikHelpers, FormikProps } from 'formik';
 import { pick } from 'lodash';
 import { useCallback, useRef } from 'react';
 import { useFirestore } from 'reactfire';
-import { User } from 'firebase/auth';
 
 import {
   CHANGE_REQUEST_STATUS,
   ChangeRequest,
   Policy,
-  PolicyChangeRequest,
+  PolicyChangeRequestOld,
   WithId,
   changeRequestsCollection,
   policiesCollection,
@@ -46,7 +46,7 @@ export const useCreatePolicyChangeRequest = () => {
       let { requestEffDate: reqEffDate2, ...newVals } = values;
       let { requestEffDate: reqEffDate, ...initVals } = initialVals.current;
 
-      // const changes = formatChanges<PolicyChangeValues, PolicyChangeRequest>(newVals, initVals);
+      // const changes = formatChanges<PolicyChangeValues, PolicyChangeRequestOld>(newVals, initVals);
       const changes = formatChanges<PolicyChangeValues>(newVals, initVals);
 
       const requiresAmendment = !missingAmendmentKeys(changes);
@@ -152,7 +152,7 @@ export function formatChanges<T>(
 }
 
 const amendmentKeys = ['namedInsured', 'mailingAddress', 'homeState'];
-function missingAmendmentKeys(changes: PolicyChangeRequest['policyChanges']) {
+function missingAmendmentKeys(changes: PolicyChangeRequestOld['policyChanges']) {
   return Object.keys(changes || {}).every((k) => amendmentKeys.indexOf(k) === -1);
 }
 
@@ -162,7 +162,7 @@ function getCommonTrxJson(
   locationId: string | null, // not used - match location get common trx function (TODO: combine into one function)
   formValues: PolicyChangeValues,
   user: User | null
-): Omit<PolicyChangeRequest, 'policyChanges' | 'trxType'> {
+): Omit<PolicyChangeRequestOld, 'policyChanges' | 'trxType'> {
   return {
     scope: 'policy',
     requestEffDate: Timestamp.fromDate(reqEffDate),

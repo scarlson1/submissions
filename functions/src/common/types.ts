@@ -1027,7 +1027,7 @@ export type ChangeRequestStatus =
 // then have approval function split into different transactions ??
 
 interface BaseChangeRequest extends BaseDoc {
-  trxType: ChangeRequestTrxType;
+  trxType: ChangeRequestTrxType; // TODO: delete - handle trx by looping through endorsement and amendment changes
   requestEffDate: Timestamp;
   policyId: string;
   policyVersion: number | null;
@@ -1055,10 +1055,58 @@ interface BaseChangeRequest extends BaseDoc {
 // TODO: DraftChangeRequest ??
 
 // TODO: { endorsementChanges: { [lcnId]: { ...endorsementChanges}, amendmentChanges: { [lcnId]: { ...amendmentChanges}  }
-// separate out form values in calcLocationChange
+// separate out form values in calcLocationChange to produce ^^
+
+export interface PolicyChangeRequest extends BaseChangeRequest {
+  formValues: LocationChangeValues; // TODO: support multi-location. remove req eff date from form values
+  endorsementChanges: Record<
+    string,
+    Pick<
+      ILocation,
+      | 'limits'
+      | 'deductible'
+      | 'annualPremium'
+      | 'ratingDocId'
+      | 'TIV'
+      | 'RCVs'
+      | 'termPremium'
+      | 'termDays'
+    >
+  >;
+  locationId: string; // TODO: delete once using multi-location (store ID in form values)
+  scope: 'location'; // TODO: delete (only to pass validation in calcLocationChanges)
+  amendmentChanges: Record<
+    string,
+    Partial<Pick<ILocation, 'additionalInsureds' | 'mortgageeInterest'>>
+  >;
+  policyChanges: DeepPartial<PolicyNew>;
+}
+
+// new cancel request interface - not in use yet
+export interface CancellationRequest extends BaseChangeRequest {
+  formValues: {
+    requestEffDate: Timestamp;
+    cancelReason: string;
+  };
+  locationChanges: Record<string, Pick<ILocation, 'termPremium'>>;
+  policyChanges?: Pick<
+    PolicyNew,
+    | 'termPremium'
+    | 'termDays'
+    | 'price'
+    | 'inStatePremium'
+    | 'outStatePremium'
+    | 'locations'
+    | 'termPremiumWithCancels'
+    | 'taxes'
+  > &
+    Partial<Pick<PolicyNew, 'cancelEffDate' | 'cancelReason'>>;
+}
+
+// TODO: AddLocationChangeRequest, CancelChangeRequest (location and all, difference will be in the processing step in the cancellation form)
 
 // TODO: restructure ChangeRequests
-//  - PolicyChangeRequest (multi-location, includes endorsements and amendments)
+//  - PolicyChangeRequestOld (multi-location, includes endorsements and amendments)
 //  - CancellationRequest (both location level and policy level, use same interface but add isPolicyCancellation boolean. includes flat_cancel ?? same form - becomes flat_cancel if submitted date is before policy/location eff date)
 //  - ReinstatementRequest
 
@@ -1084,7 +1132,7 @@ export interface LocationCancellationRequest
 
 // TODO: policy cancel request includes location changes (term premium, cancelEffDate, cancelReason, etc.)
 // should be object for each location
-export interface PolicyChangeRequest extends BaseChangeRequest {
+export interface PolicyChangeRequestOld extends BaseChangeRequest {
   scope: 'policy';
   policyChanges: DeepPartial<PolicyNew>;
   locationChanges: Record<string, Partial<ILocation>>;
@@ -1098,7 +1146,7 @@ export interface CancelValues {
   reason: CancellationReason;
 }
 
-export interface PolicyCancellationRequest extends Omit<PolicyChangeRequest, 'formValues'> {
+export interface PolicyCancellationRequest extends Omit<PolicyChangeRequestOld, 'formValues'> {
   trxType: 'cancellation' | 'flat_cancel';
   cancelReason?: CancellationReason;
   formValues: CancelValues;
@@ -1145,7 +1193,7 @@ export interface DraftAddLocationRequest
 export type ChangeRequest =
   | LocationChangeRequest
   | LocationCancellationRequest
-  | PolicyChangeRequest
+  | PolicyChangeRequestOld
   | PolicyCancellationRequest
   | AddLocationRequest
   | DraftAddLocationRequest;

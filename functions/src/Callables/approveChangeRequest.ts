@@ -34,6 +34,8 @@ const approveChangeRequest = async ({ data, auth }: CallableRequest<ApproveReque
   const requestRef = changeRequestsCollection(db, policyId).doc(requestId);
 
   try {
+    // TODO: decide whether better to handle all scenarios in one transaction
+    // or create different transaction handlers for add location, etc.
     const { locationData, policyData } = await mergePolicyLocationChanges(db, policyId, requestId, {
       processedByUserId: auth?.uid || '',
       underwriterNotes: underwriterNotes || null,

@@ -839,8 +839,6 @@ export function BindReviewStep({ data, logAnalyticsStep }: BindReviewStepProps) 
   const { values } = useFormikContext<BindQuoteValues>();
   const { cardDetails, loading, error } = useCardDetails(values.paymentMethodId);
 
-  // console.log('quote data: ', data);
-
   useEffect(() => {
     logAnalyticsStep(3, 'bind quote review step');
   }, [logAnalyticsStep]);
@@ -857,6 +855,7 @@ export function BindReviewStep({ data, logAnalyticsStep }: BindReviewStepProps) 
   // TODO: handle quoteTotal undefined
 
   // TODO: ePay fees. Fetch payment method details in this component & pass to card component (need "type" to show epay fees)
+  // TODO: handle error vs loading state (move calculations to backend ??)
   if (!total) return <div>Loading...</div>;
 
   return (
@@ -886,7 +885,7 @@ export function BindReviewStep({ data, logAnalyticsStep }: BindReviewStepProps) 
         <CardMedia
           component='img'
           sx={{
-            width: { xs: 120, sm: 130, md: 140 }, // 140,
+            width: { xs: 120, sm: 130, md: 140 },
             minHeight: { xs: 100, sm: 120, md: 140 },
           }}
           alt={`${data?.address?.addressLine1} map`}

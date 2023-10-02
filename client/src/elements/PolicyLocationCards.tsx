@@ -1,4 +1,5 @@
 import { Button, Unstable_Grid2 as Grid } from '@mui/material';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import {
   CollectionReference,
   DocumentReference,
@@ -13,9 +14,10 @@ import {
 } from 'firebase/firestore';
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
+import { useInView } from 'react-intersection-observer';
 import { useFirestore } from 'reactfire';
 
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { LoadingButton } from '@mui/lab';
 import { COLLECTIONS, ILocation, WithId } from 'common';
 import { useDocData, useFetchDocCount } from 'hooks';
 import { useFirstRender } from 'hooks/utils';
@@ -164,7 +166,7 @@ const usePaginatedLocations = <T,>(
   const firestore = useFirestore();
   // const lastSnap = useRef<DocumentSnapshot<T>>();
   // const [lastSnap, setLastSnap] = useState<DocumentSnapshot<T>>();
-  const [docCount, setDocCount] = useState(0);
+  // const [docCount, setDocCount] = useState(0);
   // TODO: need to map page to last snap ??
 
   const colRef = collection(
@@ -174,25 +176,12 @@ const usePaginatedLocations = <T,>(
     ...pathSegments
   ) as CollectionReference<T>;
 
-  const fetchCount = useFetchDocCount('LOCATIONS', constraints, false, pathSegments);
+  // doc count not necessary b/c infinite query will eventually get undefined for next cursor
+  // const fetchCount = useFetchDocCount('LOCATIONS', constraints, false, pathSegments);
 
-  useEffect(() => {
-    fetchCount().then((result) => setDocCount(result.data().count));
-  }, [fetchCount, constraints]);
-
-  // const fetchLocations = useCallback(
-  //   async (lastSnap: any) => {
-  // const cursorConstraint = lastSnap ? [startAfter(lastSnap)] : [];
-  // const q = query<T>(colRef, ...constraints, ...cursorConstraint, limit(pageSize));
-
-  // let snaps = await getDocs(q);
-  // setLastSnap(snaps.docs[snaps.docs.length - 1]);
-
-  // const newData = snaps.docs.map((snap) => ({ ...snap.data(), id: snap.id }));
-  // return newData;
-  //   },
-  //   [colRef, constraints, pageSize]
-  // );
+  // useEffect(() => {
+  //   fetchCount().then((result) => setDocCount(result.data().count));
+  // }, [fetchCount, constraints]);
 
   const fetchLocations = async ({ pageParam: cursor = null }) => {
     const cursorConstraint = cursor ? [startAfter(cursor)] : [];
@@ -202,91 +191,80 @@ const usePaginatedLocations = <T,>(
     // setLastSnap(snaps.docs[snaps.docs.length - 1]);
 
     const newData = snaps.docs.map((snap) => ({ ...snap.data(), id: snap.id }));
-    const nextCursor = snaps.docs[snaps.docs.length - 1]; // TODO: next cursor undefined if doc count === total doc count
+    const nextCursor = snaps.docs[snaps.docs.length - 1]; // TODO: next cursor undefined if doc count === total doc count ?? or wait for next call to return undefined
     return { data: newData, nextCursor };
-    // const res = await fetch('/api/projects?cursor=' + pageParam)
   };
 
-  // { data, error, fetchNextPage, hasNextPage, isFetching, isFetchingNextPage, status }
-  const rq = useInfiniteQuery({
+  return useInfiniteQuery({
     queryKey: ['locations', policyId],
     queryFn: fetchLocations,
     getNextPageParam: (lastPage, pages) => lastPage.nextCursor,
   });
-
-  // const { isLoading, isError, error, data, isFetching, isPreviousData } = useQuery({
-  //   queryKey: ['locations', policyId, lastSnap],
-  //   queryFn: () => fetchLocations(lastSnap),
-  //   keepPreviousData: true,
-  //   initialData: [],
-  //   suspense: false,
-  // });
-
-  return {
-    ...rq,
-    // data,
-    // error,
-    // isLoading,
-    // isError,
-    // isFetching,
-    // isPreviousData,
-    docCount,
-    // hasMore: data.length < docCount,
-  };
 };
 
+// TODO: virtualize ?? need to with 100 + locations
+// tanstack virtual: https://tanstack.com/virtual/v3/docs/examples/react/infinite-scroll
+// TODO: animate entrance (fade ??)
 export const PolicyLocationCardsRQ = ({ policyId, ...props }: PolicyLocationCardsProps) => {
+  const { ref, inView } = useInView();
   const { data: policy } = useDocData('POLICIES', policyId);
   const {
     data,
     error,
     // isLoading,
     // isError,
-    isFetching,
+    // isFetching,
     // isPreviousData,
-    docCount,
+    // docCount,
     // hasMore,
     fetchNextPage,
-    hasNextPage,
+    hasNextPage, // determined by whether next cursor is returned / getNextPageParams ??
     isFetchingNextPage,
   } = usePaginatedLocations<ILocation>(policyId, [where('policyId', '==', policyId)]);
 
+  useEffect(() => {
+    if (!hasNextPage) return;
+    if (inView) {
+      console.log('fetchNextPage...');
+      fetchNextPage();
+    } // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inView, hasNextPage]);
+
   return (
     <>
-      <div>
-        {/* <div>{`isLoading: ${isLoading}`}</div> */}
-        <div>{`isFetching: ${isFetching}`}</div>
-        {/* <div>{`isError: ${isError}`}</div> */}
-        {/* <div>{`isPreviousData: ${isPreviousData}`}</div> */}
-        <div>{`docCount: ${docCount}`}</div>
-        {/* <div>{`hasMore: ${hasMore}`}</div> */}
-      </div>
-      <div>
-        <Grid container rowSpacing={4} columnSpacing={6}>
-          {data?.pages.map((group, i) => (
-            <Fragment key={i}>
-              {group.data.map((l) => (
-                <Grid xs={12} sm={6} md={4} xl={3} key={l.id}>
-                  <LocationCard location={l} namedInsured={policy.namedInsured} {...props} />
-                </Grid>
-                // <p key={location.id}>{location?.policyId}</p>
-              ))}
-            </Fragment>
-          ))}
-          {/* {locations.map((l) => (
-            <Grid xs={12} sm={6} md={4} xl={3} key={l.id}>
-              <LocationCard location={l} namedInsured={policy.namedInsured} {...props} />
-            </Grid>
-          ))} */}
+      {/* <div>{`isLoading: ${isLoading}`}</div> */}
+      {/* <div>{`isFetching: ${isFetching}`}</div> */}
+      {/* <div>{`isError: ${isError}`}</div> */}
+      {/* <div>{`isPreviousData: ${isPreviousData}`}</div> */}
+      {/* <div>{`docCount: ${docCount}`}</div> */}
+      {/* <div>{`hasMore: ${hasMore}`}</div> */}
+
+      <Grid container rowSpacing={6} columnSpacing={8}>
+        {data?.pages.map((group, i) => (
+          <Fragment key={i}>
+            {group.data.map((l) => (
+              <Grid xs={12} sm={6} md={4} xl={3} key={l.id}>
+                <LocationCard location={l} namedInsured={policy.namedInsured} {...props} />
+              </Grid>
+            ))}
+          </Fragment>
+        ))}
+        <Grid xs={12} sx={{ display: 'flex', justifyContent: 'center' }}>
+          <LoadingButton
+            ref={ref}
+            onClick={() => fetchNextPage()}
+            disabled={!hasNextPage || isFetchingNextPage}
+            loading={isFetchingNextPage}
+          >
+            {isFetchingNextPage
+              ? 'Loading more...'
+              : hasNextPage
+              ? 'Load more'
+              : 'All items loaded'}
+          </LoadingButton>
         </Grid>
-        <button onClick={() => fetchNextPage()} disabled={!hasNextPage || isFetchingNextPage}>
-          {isFetchingNextPage
-            ? 'Loading more...'
-            : hasNextPage
-            ? 'Load More'
-            : 'Nothing more to load'}
-        </button>
-      </div>
+      </Grid>
+
       {Boolean(error) && (
         <div>
           <pre>{JSON.stringify(error, null, 2)}</pre>

@@ -1,7 +1,7 @@
 import { encode } from 'blurhash';
 import { Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
-import { info } from 'firebase-functions/logger';
+import { error, info } from 'firebase-functions/logger';
 import { storageBucket } from 'firebase-functions/params';
 import { CloudEvent } from 'firebase-functions/v2';
 import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
@@ -174,6 +174,7 @@ export default async (event: CloudEvent<MessagePublishedData<GetStaticMapImagesP
         if (cleanUpTempPaths.length > 0) {
           await clearTempFiles(cleanUpTempPaths);
         }
+        error(`Error downloading map images`, { errMsg: err?.message || null });
         return;
       }
     }
@@ -199,4 +200,6 @@ export default async (event: CloudEvent<MessagePublishedData<GetStaticMapImagesP
     if (err?.message) msg += ` (${err.message})`;
     reportErr(msg, { ...event }, err);
   }
+
+  return;
 };

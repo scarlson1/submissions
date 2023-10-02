@@ -9,6 +9,7 @@ import {
   changeRequestsCollection,
   getReportErrorFn,
   locationsCollection,
+  policiesCollectionNew,
   ratingDataCollection,
   swissReClientId,
   swissReClientSecret,
@@ -17,6 +18,7 @@ import {
 import { createDocId, getAllById } from '../modules/db/index.js';
 import {
   GetPremiumProps,
+  calcPolicyEndorsementChanges,
   getAALs,
   getGetPremProps,
   getPremium,
@@ -27,7 +29,13 @@ import {
 } from '../modules/rating/index.js';
 import { calcTerm } from '../modules/transactions/index.js';
 import { onCallWrapper } from '../services/sentry/index.js';
-import { separateAdditionalInterests, verify } from '../utils/index.js';
+import {
+  combineToAdditionalInterests,
+  getDifference,
+  hasAny,
+  separateAdditionalInterests,
+  verify,
+} from '../utils/index.js';
 import { PROCESSED_STATUS } from './calcPolicyChanges.js';
 import { requireAuth, validate } from './utils/index.js';
 
@@ -58,12 +66,20 @@ const calcLocationChanges = async ({ data, auth }: CallableRequest<CalcLocationC
   validate(policyId, 'failed-precondition', 'policyId required');
 
   const db = getFirestore();
+  const policiesCol = policiesCollectionNew(db);
   const changeRequestCol = changeRequestsCollection(db, policyId);
   const locationsCol = locationsCollection(db);
   const ratingCol = ratingDataCollection(db);
 
-  const changeRequestSnap = await changeRequestCol.doc(changeRequestId).get();
-  const changeRequest = changeRequestSnap.data();
+  const policyRef = policiesCol.doc(policyId);
+  const changeReqRef = changeRequestCol.doc(changeRequestId);
+
+  const [policySnap, changeReqSnap] = await Promise.all([policyRef.get(), changeReqRef.get()]);
+
+  // const changeRequestSnap = await changeRequestCol.doc(changeRequestId).get();
+  const policy = policySnap.data();
+  const changeRequest = changeReqSnap.data();
+  validate(policy, 'not-found', `policy not found (ID: ${policyId})`);
   validate(changeRequest, 'not-found', `change request does not exist (ID: ${changeRequestId})`);
   validate(
     !PROCESSED_STATUS.includes(changeRequest?.status),
@@ -94,30 +110,51 @@ const calcLocationChanges = async ({ data, auth }: CallableRequest<CalcLocationC
 
     info(`Location docs retrieved - calculating location rating`, { locationsObj });
 
+    // once using multi-location schema
     let endorsementChanges: Record<string, DeepPartial<ILocation>> = {};
     let amendmentChanges: Record<string, AmendmentChangesProvided> = {};
 
-    // TODO: need to call this fn for each location
-    const { providedEndorsementChanges, providedAmendmentChanges } =
-      changeReqFormValuesToLocationChanges(changeRequest.formValues);
+    let lcn = locationsObj[lcnId];
+    validate(lcn, 'not-found', `location doc not found (${lcnId})`);
+    let lcnChanges: DeepPartial<ILocation> = {}; // TODO: update type Pick<ILocation, 'limits' | 'deductible' etc.>
 
+    // TODO: need to call this fn for each location once using multi-location
+    // separate out endorsement and amendment changes from form values
+    const { providedEndorsementChanges, providedAmendmentChanges } =
+      changeReqFormValuesToLocationChanges(changeRequest.formValues, lcn);
+
+    // add to "endorsementChanges" and "amendmentChanges" object (for multi-location purposes)
     if (!isEmpty(providedEndorsementChanges))
       endorsementChanges[lcnId] = providedEndorsementChanges;
     if (!isEmpty(providedAmendmentChanges)) amendmentChanges[lcnId] = providedAmendmentChanges;
 
+    // check for limit or deductible change
     const requireReratingEntries = Object.entries(endorsementChanges).filter(([lcnId, l]) =>
       requiresRerate(Object.keys(l))
     );
 
-    // endorsement values for term prem calc:
+    // return early if only amendment changes (no rerating required)
+    if (!requireReratingEntries.length) {
+      await changeReqRef.set(
+        {
+          // @ts-ignore
+          endorsementChanges,
+          amendmentChanges,
+        },
+        { merge: true }
+      );
+      return amendmentChanges;
+    }
+
+    // TODO: refactor to organize rerating into smaller functions & clean up flow
+    lcnChanges = endorsementChanges[lcnId];
+
+    // endorsement values for premium calc:
     let AALsRes;
     let getPremiumInputs: GetPremiumProps;
 
     // if SR api call required --> group AAL call
     // TODO: handle multiple locations (promise all) loop through endorsementChanges & check requiresRerate
-    let lcn = locationsObj[lcnId];
-    validate(lcn, 'not-found', `location doc not found (${lcnId})`);
-    let lcnChanges = endorsementChanges[lcnId];
 
     const prevRatingSnap = await ratingCol.doc(lcn.ratingDocId).get();
     const prevRatingData = prevRatingSnap.data();
@@ -128,7 +165,8 @@ const calcLocationChanges = async ({ data, auth }: CallableRequest<CalcLocationC
     };
 
     if (requireReratingEntries.length) {
-      const limits = { ...lcn.limits, ...(lcnChanges?.limits || {}) };
+      const limits = { ...lcn.limits, ...(lcnChanges?.limits || {}) }; // TODO: ensure saving all limits instead of diff so combining is not necessary
+      // TODO: update type so limits is not deep partial or undefined ^^
       const RCVs = lcn.RCVs;
 
       // TODO: validate inputs (replacementCost, limits, deductible, etc.)
@@ -216,7 +254,9 @@ const calcLocationChanges = async ({ data, auth }: CallableRequest<CalcLocationC
       lcn.expirationDate.toDate()
     );
 
-    const locationChangesWithRating: Partial<ILocation> = {
+    const locationChangesWithRating = {
+      // : PolicyChangeRequest['endorsementChanges']
+      ...(lcnChanges as ILocation),
       annualPremium: premiumData.annualPremium,
       ratingDocId: ratingDocRef.id || lcn.ratingDocId,
       TIV: result.tiv,
@@ -225,21 +265,40 @@ const calcLocationChanges = async ({ data, auth }: CallableRequest<CalcLocationC
       RCVs,
     };
 
-    // TODO: switch to multi-location interface
+    // TODO: switch to multi-location interface (or remove ??)
     // const locationChanges: Record<string, DeepPartial<ILocation>> = {
     //   [lcnId]: locationChangesWithRating,
     // };
-    const locationChanges: DeepPartial<ILocation> = locationChangesWithRating;
+    const locationChanges: DeepPartial<ILocation> = {
+      ...locationChangesWithRating,
+      ...(amendmentChanges[lcnId] || {}),
+    };
     info('LOCATION CHANGES: ', { locationChanges });
 
-    // save to locationChanges
-    await changeRequestSnap.ref.set(
-      {
-        locationChanges, // @ts-ignore
-        locationChangesTest: locationChanges,
+    // calc policy changes
+    let policyChanges = {};
+    if (!isEmpty(endorsementChanges)) {
+      policyChanges = calcPolicyEndorsementChanges(
+        policy,
+        {
+          [lcnId]: locationChanges,
+        },
+        requestEffDate
+      );
+    }
+    info(`policy changes (policy ID: ${policyId})`, policyChanges);
+
+    const updates = {
+      // TODO: remove ts-ignore once changed to new type
+      locationChanges,
+      endorsementChanges: {
+        [lcnId]: locationChangesWithRating,
       },
-      { merge: true }
-    );
+      amendmentChanges,
+      policyChanges,
+    };
+
+    await changeReqRef.set(updates, { merge: true });
 
     // return location changes
     return locationChanges;
@@ -253,14 +312,14 @@ const calcLocationChanges = async ({ data, auth }: CallableRequest<CalcLocationC
 
 export default onCallWrapper<CalcLocationChangesProps>('calclocationchanges', calcLocationChanges);
 
-const lcnChangeKeys = [
+const lcnEndKeys = [
   'limits',
   'deductible',
   'effectiveDate',
   // 'additionalInterests',
-] as unknown as keyof EndorsementChangesProvided;
+]; // as unknown as keyof EndorsementChangesProvided;
 function isLcnEndKey(k: string): k is keyof EndorsementChangesProvided {
-  return lcnChangeKeys.includes(k);
+  return lcnEndKeys.includes(k);
 }
 
 export type EndorsementChangesProvided = DeepPartial<
@@ -270,9 +329,13 @@ export type AmendmentChangesProvided = Partial<
   Pick<ILocation, 'additionalInsureds' | 'mortgageeInterest'>
 >;
 
-function changeReqFormValuesToLocationChanges(values: LocationChangeValues) {
+function changeReqFormValuesToLocationChanges(values: LocationChangeValues, location: ILocation) {
   let providedEndorsementChanges: EndorsementChangesProvided = {};
   let providedAmendmentChanges: AmendmentChangesProvided = {};
+
+  const { requestEffDate, ...newValues } = values;
+  const diff = getDifference(getFormValuesFromLocation(location), newValues);
+  const hasEndorsements = hasAny(Object.keys(diff), lcnEndKeys);
 
   for (let [key, val] of Object.entries(values)) {
     if (key === 'additionalInterests') {
@@ -281,10 +344,24 @@ function changeReqFormValuesToLocationChanges(values: LocationChangeValues) {
       providedAmendmentChanges['mortgageeInterest'] = mortgageeInterest;
     }
 
-    if (isLcnEndKey(key)) {
+    if (isLcnEndKey(key) && hasEndorsements) {
       providedEndorsementChanges[key] = val;
     }
   }
 
   return { providedEndorsementChanges, providedAmendmentChanges };
+}
+
+function getFormValuesFromLocation(
+  lcn: ILocation
+): Omit<LocationChangeValues, 'requestEffDate' | 'externalId'> {
+  return {
+    limits: lcn.limits,
+    deductible: lcn.deductible,
+    effectiveDate: lcn.effectiveDate.toDate(),
+    additionalInterests: combineToAdditionalInterests(
+      lcn.additionalInsureds,
+      lcn.mortgageeInterest
+    ),
+  };
 }

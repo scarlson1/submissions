@@ -95,11 +95,11 @@ export function additionalInterestToMortgagee(
         loanNumber: m.accountNumber,
         address: m.address
           ? {
-              addressLine1: m.address.addressLine1,
-              addressLine2: m.address.addressLine2,
-              city: m.address.city,
-              state: m.address.state,
-              postal: m.address.postal,
+              addressLine1: m.address?.addressLine1 ?? '',
+              addressLine2: m.address?.addressLine2 ?? '',
+              city: m.address?.city ?? '',
+              state: m.address?.state ?? '',
+              postal: m.address?.postal ?? '',
             }
           : null,
       })) || []
@@ -117,11 +117,11 @@ export function additionalInterestToAdditionalInsured(
         email: additionalNI.email || '',
         address: additionalNI.address
           ? {
-              addressLine1: additionalNI.address.addressLine1,
-              addressLine2: additionalNI.address.addressLine2,
-              city: additionalNI.address.city,
-              state: additionalNI.address.state,
-              postal: additionalNI.address.postal,
+              addressLine1: additionalNI.address?.addressLine1 ?? '',
+              addressLine2: additionalNI.address?.addressLine2 ?? '',
+              city: additionalNI.address?.city ?? '',
+              state: additionalNI.address?.state ?? '',
+              postal: additionalNI.address?.postal ?? '',
             }
           : null,
       })) || []
