@@ -12,7 +12,10 @@ interface UseCompareJsonOptions {
   rightTitle?: string;
 }
 
-export const useCompareJson = (onError?: () => void, options?: UseCompareJsonOptions) => {
+export const useCompareJson = (
+  onError?: (msg: string, err: any) => void,
+  options?: UseCompareJsonOptions
+) => {
   const dialog = useDialog();
   const { isMobile } = useWidth();
 
@@ -127,7 +130,7 @@ export const useCompareJson = (onError?: () => void, options?: UseCompareJsonOpt
         });
       } catch (err: any) {
         console.log('Error display diff: ', err);
-        if (onError) onError();
+        if (onError) onError('Error displaying comparison', err);
       }
     },
     [dialog, isMobile, onError, options]

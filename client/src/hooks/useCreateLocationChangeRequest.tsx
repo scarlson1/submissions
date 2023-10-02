@@ -119,7 +119,7 @@ export const useCreateLocationChangeRequest = (policyId: string) => {
       if (requiresEndorsement) {
         const { data } = await calcLocationChanges(functions, {
           policyId,
-          changeRequestId: docIds[0],
+          requestId: docIds[0],
         });
         console.log('calc location changes res: ', data);
       }

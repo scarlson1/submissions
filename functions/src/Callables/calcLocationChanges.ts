@@ -52,7 +52,7 @@ import { requireAuth, validate } from './utils/index.js';
 const reportErr = getReportErrorFn('calclocationchanges');
 
 interface CalcLocationChangesProps {
-  changeRequestId: string;
+  requestId: string;
   policyId: string;
 }
 
@@ -61,8 +61,8 @@ const calcLocationChanges = async ({ data, auth }: CallableRequest<CalcLocationC
 
   requireAuth(auth);
 
-  const { changeRequestId, policyId } = data;
-  validate(changeRequestId, 'failed-precondition', 'changeRequestId required');
+  const { requestId, policyId } = data;
+  validate(requestId, 'failed-precondition', 'changeRequestId required');
   validate(policyId, 'failed-precondition', 'policyId required');
 
   const db = getFirestore();
@@ -72,7 +72,7 @@ const calcLocationChanges = async ({ data, auth }: CallableRequest<CalcLocationC
   const ratingCol = ratingDataCollection(db);
 
   const policyRef = policiesCol.doc(policyId);
-  const changeReqRef = changeRequestCol.doc(changeRequestId);
+  const changeReqRef = changeRequestCol.doc(requestId);
 
   const [policySnap, changeReqSnap] = await Promise.all([policyRef.get(), changeReqRef.get()]);
 
@@ -80,7 +80,7 @@ const calcLocationChanges = async ({ data, auth }: CallableRequest<CalcLocationC
   const policy = policySnap.data();
   const changeRequest = changeReqSnap.data();
   validate(policy, 'not-found', `policy not found (ID: ${policyId})`);
-  validate(changeRequest, 'not-found', `change request does not exist (ID: ${changeRequestId})`);
+  validate(changeRequest, 'not-found', `change request does not exist (ID: ${requestId})`);
   validate(
     !PROCESSED_STATUS.includes(changeRequest?.status),
     'failed-precondition',
@@ -358,7 +358,7 @@ function getFormValuesFromLocation(
   return {
     limits: lcn.limits,
     deductible: lcn.deductible,
-    effectiveDate: lcn.effectiveDate.toDate(),
+    // effectiveDate: lcn.effectiveDate.toDate(),
     additionalInterests: combineToAdditionalInterests(
       lcn.additionalInsureds,
       lcn.mortgageeInterest

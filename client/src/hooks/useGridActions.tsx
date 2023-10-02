@@ -82,6 +82,8 @@ export const useGridActions = (onError?: (msg: string) => void) => {
   return { googleMapsAction, floodFactorAction };
 };
 
+// TODO: add support for pathSegments / subcollection
+// need to pass function b/c might be dynamic (from row data)
 export const useGridShowJson = <T extends DocumentData>(
   colName: string,
   options?: ActionOptions,
@@ -91,14 +93,16 @@ export const useGridShowJson = <T extends DocumentData>(
     | SignInCheckOptionsClaimsValidator
     | undefined,
   getTitle?: null | ((data: WithId<T>) => string),
-  converter?: FirestoreDataConverter<T>
+  converter?: FirestoreDataConverter<T>,
+  getPath?: (params: GridRowParams) => string
 ): ((params: GridRowParams) => ReactElement<GridActionsCellItemProps>[]) => {
   const { data } = useSigninCheck(signInCheckOptions);
   const showJson = useShowJson<T>(colName, [], getTitle, converter);
 
   const handleShowJson = useCallback(
     (params: GridRowParams) => () => {
-      showJson(params.id.toString()); // , `${params.row.policyId}/${COLLECTIONS.CHANGE_REQUESTS}`
+      let docPath = getPath ? getPath(params) : params.id.toString();
+      showJson(docPath);
     },
     [showJson]
   );

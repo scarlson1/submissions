@@ -53,12 +53,17 @@ export interface GetStaticMapImagesPayload {
   locationPath: string | string[];
 }
 
+function getMS(startMS: number) {
+  return new Date().getTime() - startMS;
+}
+
 // TODO: check if images already exist in doc before fetching new ones ??
 
 export default async (event: CloudEvent<MessagePublishedData<GetStaticMapImagesPayload>>) => {
   info('GET LOCATION STATIC MAP IMAGE EVENT - MSG JSON: ', {
     ...(event.data?.message?.json || {}),
   });
+  const startMS = new Date().getTime();
 
   let collection = null;
   let docPath = null;
@@ -112,9 +117,14 @@ export default async (event: CloudEvent<MessagePublishedData<GetStaticMapImagesP
 
       // Try catch needed ? throw will break out of loop
       try {
+        console.log(
+          `DOWNLOADING MAPBOX - ${styleType.name} for ${docRef.id} [${getMS(startMS)}ms]`
+        );
+        const downloadStart = new Date().getTime();
         await downloadFromUrl(url, tempFilePath, {
           responseType: 'stream',
         });
+        console.log(`DOWNLOAD MS: ${getMS(downloadStart)} - [${docRef.id}]`);
 
         const fileId = createDocId();
         const initialMetadata = {
@@ -127,8 +137,14 @@ export default async (event: CloudEvent<MessagePublishedData<GetStaticMapImagesP
 
         let blurhash: string | null = null;
         try {
+          console.log(
+            `Encoding blurhash - ${styleType.name} for ${docRef.id} [${getMS(startMS)}ms]`
+          );
+          const blurStart = new Date().getTime();
+          // Timeout / memory issue - takes ~20s per image
           blurhash = await encodeImageToBlurhash(tempFilePath);
           console.log('BLUR HASH: ', blurhash);
+          console.log(`BLURHASH MS: ${getMS(blurStart)} - [${docRef.id}]`);
         } catch (err: any) {
           console.log('Blurhash err: ', err);
         }
@@ -155,11 +171,13 @@ export default async (event: CloudEvent<MessagePublishedData<GetStaticMapImagesP
         // getting height width: https://gist.github.com/rijkerd/80b77145ca3f7c8f256d5835c7f282b5
 
         const destinationPath = `locationMapImages/map_${styleType.name}_${fileId}.jpeg`;
+        const saveStart = new Date().getTime();
         await bucket.upload(tempFilePath, {
           destination: destinationPath,
           metadata: initialMetadata,
         });
         info(`uploaded file to: ${destinationPath}`);
+        console.log(`STORAGE UPLOAD MS: ${getMS(saveStart)} - [${docRef.id}]`);
 
         const downloadURL = `${storageBaseUrl.value()}/v0/b/${storageBucket.value()}/o/${encodeURIComponent(
           destinationPath
@@ -187,7 +205,7 @@ export default async (event: CloudEvent<MessagePublishedData<GetStaticMapImagesP
     }
 
     info(`updating doc with static images (Doc ID: ${docRef.id})`, { updates });
-
+    console.log(`Saving images to doc - ${docRef.id} [${getMS(startMS)}ms]`);
     await docRef.set(
       {
         ...updates,
@@ -195,10 +213,15 @@ export default async (event: CloudEvent<MessagePublishedData<GetStaticMapImagesP
       },
       { merge: true }
     );
+    console.log(`Images saved - ${docRef.id} [${getMS(startMS)}ms]`);
   } catch (err: any) {
     let msg = `Error getting static images`;
     if (err?.message) msg += ` (${err.message})`;
     reportErr(msg, { ...event }, err);
+  }
+
+  if (cleanUpTempPaths.length > 0) {
+    await clearTempFiles(cleanUpTempPaths);
   }
 
   return;

@@ -41,6 +41,7 @@ export { useImgOnLoad } from './useImgOnLoad';
 export { useInviteUsers } from './useInviteUsers';
 export { useJsonDialog, useJsonTheme } from './useJsonDialog';
 export { useLocalStorage } from './useLocalStorage';
+export { useManageChangeRequest } from './useManageChangeRequest';
 export { useManageImports } from './useManageImports';
 export { useMoveUserToTenant } from './useMoveUserToTenant';
 export { useOpenStorageFile } from './useOpenStorageFile';

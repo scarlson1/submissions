@@ -20,7 +20,9 @@ import {
 } from '@mui/material';
 import { DocumentReference, Timestamp, setDoc } from 'firebase/firestore';
 import { Form, Formik, FormikConfig, FormikHelpers, FormikProps } from 'formik';
+import { merge } from 'lodash';
 import { RefObject, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import toast from 'react-hot-toast';
 import { useFirestore, useFirestoreDocData, useFunctions, useUser } from 'reactfire';
 import { date, object } from 'yup';
 
@@ -46,14 +48,12 @@ import {
 } from 'components/forms';
 import { useAsyncToast, useDocData, useSafeParams, useWizard } from 'hooks';
 import { useFirstRender, usePrevious } from 'hooks/utils';
-import { merge } from 'lodash';
 import { getAll } from 'modules/db';
 import {
   combineToAdditionalInterests,
   deepMergeOverwriteArrays,
   dollarFormat,
 } from 'modules/utils';
-import toast from 'react-hot-toast';
 import { createChangeRequest } from 'views/AddLocation';
 import { LimitsStep } from './LimitsStep';
 import { LocationChangeValues } from './LocationChangeForm';
@@ -482,7 +482,7 @@ export const LocationChangeComponent = ({
       console.log('calcing location changes...');
       const { data: res } = await calcLocationChanges(functions, {
         policyId,
-        changeRequestId: reqId,
+        requestId: reqId,
       });
       console.log('CALC LOCATION CHANGES RES: ', res);
     },

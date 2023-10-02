@@ -18,8 +18,9 @@ export const policycreatedlistener = onMessagePublished(
   }
 );
 
+// blurhash takes ~20s / image to hash
 export const getstaticmapimages = onMessagePublished(
-  { topic: PUB_SUB_TOPICS.LOCATION_IMG },
+  { topic: PUB_SUB_TOPICS.LOCATION_IMG, concurrency: 10, timeoutSeconds: 300, memory: '1GiB' },
   async (event) => {
     await (await import('./getStaticMapImages.js')).default(event);
   }

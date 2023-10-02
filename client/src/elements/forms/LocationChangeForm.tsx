@@ -25,8 +25,6 @@ const validation = yup.object().shape({
 export interface LocationChangeValues {
   limits: Limits;
   deductible: number;
-  // effectiveDate: Date;
-  // expirationDate: Date;
   additionalInterests: AdditionalInterest[];
   externalId: string;
   requestEffDate: Date;

@@ -3,7 +3,7 @@ import {
   CancelRounded,
   ChangeCircleRounded,
   CompareRounded,
-  DataObjectRounded,
+  RefreshRounded,
   ThumbDownAltRounded,
   ThumbUpAltRounded,
 } from '@mui/icons-material';
@@ -16,34 +16,24 @@ import {
   DialogTitle,
   IconButton,
   Tooltip,
-  Typography,
 } from '@mui/material';
 import { GridActionsCellItem, GridCellParams, GridRowModel, GridRowParams } from '@mui/x-data-grid';
-import { Timestamp, doc, getDoc, updateDoc, where } from 'firebase/firestore';
-import { isEqual, isNumber, merge } from 'lodash';
+import { where } from 'firebase/firestore';
+import { isEqual } from 'lodash';
 import { Suspense, useCallback, useMemo, useState } from 'react';
-import { useFirestore, useFunctions, useUser } from 'reactfire';
 
-import { ApproveChangeResponse, approveChangeRequest } from 'api';
-import {
-  CHANGE_REQUEST_STATUS,
-  COLLECTIONS,
-  ChangeRequest,
-  WithId,
-  changeRequestsCollection,
-  locationsCollection,
-  policiesCollection,
-} from 'common';
+import { CHANGE_REQUEST_STATUS, CLAIMS, COLLECTIONS, ChangeRequest, WithId } from 'common';
 import { LoadingComponent } from 'components/layout';
 import { useAuth } from 'context';
 import {
   useAsyncToast,
-  useCompareJson,
   useDocCount,
   useGridEditMode,
-  useShowJson,
+  useGridShowJson,
+  useManageChangeRequest,
   useWidth,
 } from 'hooks';
+import { usePreviewChangeRequest } from 'hooks/useManageChangeRequest';
 import { ChangeRequestsGrid } from './grids';
 
 export const useViewChangeRequestsDialogProps = (policyId?: string) => {
@@ -93,197 +83,6 @@ export const useViewChangeRequestsDialogProps = (policyId?: string) => {
   );
 };
 
-const useManageChangeRequest = (
-  onSuccess?: (res?: ApproveChangeResponse | undefined) => void,
-  onError?: (msg: string, err: any) => void
-) => {
-  const { data: user } = useUser();
-  const toast = useAsyncToast();
-  const functions = useFunctions();
-  const firestore = useFirestore();
-  const compareJson = useCompareJson(() => toast.error('Unable to display comparison'));
-
-  const getPolicy = useCallback(
-    async (policyId: string, ...pathSegments: string[]) => {
-      const ref = doc(policiesCollection(firestore), policyId, ...pathSegments);
-
-      const snap = await getDoc(ref);
-      const data = snap.data();
-      if (!data) throw new Error('policy not found');
-      return data;
-    },
-    [firestore]
-  );
-
-  const getLocation = useCallback(
-    async (locationId: string, ...pathSegments: string[]) => {
-      const ref = doc(locationsCollection(firestore), locationId, ...pathSegments);
-
-      const snap = await getDoc(ref);
-      const data = snap.data();
-      if (!snap.exists || !data) throw new Error('location not found');
-      return data;
-    },
-    [firestore]
-  );
-
-  const getRequest = useCallback(
-    async (policyId: string, requestId: string) => {
-      const ref = doc(changeRequestsCollection(firestore, policyId), requestId);
-
-      const snap = await getDoc(ref);
-      const data = snap.data();
-      if (!data) throw new Error('request not found');
-      return data;
-    },
-    [firestore]
-  );
-
-  const previewChange = useCallback(
-    async (policyId: string, requestId: string) => {
-      try {
-        // const policyReq = getPolicy(policyId);
-        // const requestReq = getRequest(policyId, requestId);
-        // const [policy, request] = await Promise.all([policyReq, requestReq]);
-
-        const request = await getRequest(policyId, requestId);
-        const { status, scope, policyVersion } = request;
-
-        const policyVersionPath =
-          status === 'accepted' && isNumber(policyVersion)
-            ? [COLLECTIONS.VERSIONS, `${request.policyVersion}`]
-            : [];
-
-        const policyBefore = await getPolicy(policyId, ...policyVersionPath);
-
-        let before: Record<string, any> = {
-          policy: policyBefore,
-        };
-        let after: Record<string, any> = {};
-
-        // if (status === 'accepted') {
-        //   // TODO: get policy at version created after merge ?? created by cloud function so could be wrong if set in merging cloud function
-        //   after['policy'] = await getPolicy(policyId)
-        // }
-
-        const policyAfter = merge(
-          { '@': 'ignore me' },
-          policyBefore,
-          request.policyChanges || {},
-          (a: any, b: any) => (Array.isArray(b) ? b : undefined)
-        );
-
-        after['policy'] = policyAfter;
-
-        if (scope === 'location') {
-          // TODO: get location at version X if accepted
-          let lcnVersion = policyBefore.locations[request.locationId]?.version;
-          let versionPath = lcnVersion ? [COLLECTIONS.VERSIONS, `${lcnVersion}`] : [];
-
-          let location = await getLocation(request.locationId, ...versionPath);
-          let locationMerged = merge(
-            { '@': 'ignore me' },
-            location,
-            request.locationChanges || {},
-            (a: any, b: any) => (Array.isArray(b) ? b : undefined)
-          );
-
-          before['location'] = location;
-          after['location'] = locationMerged;
-        }
-
-        compareJson(
-          before,
-          after,
-          'Change Request Diff',
-          <Typography variant='body2' color='text.secondary' sx={{ pb: 2 }}>
-            Note: comparison may not be exact. If the request status is "accepted," the base record
-            is the policy/location version at which the request was created, otherwise, the current
-            policy / location is used. The "old" side displays the base doc and the "new" side
-            displays the base doc merged with the changes.
-          </Typography>
-        );
-      } catch (err: any) {
-        console.log('Error previewing policy diff', err);
-        let errMsg = err?.message || 'Error previewing policy diff';
-        if (onError) onError(errMsg, err);
-      }
-    },
-    [getRequest, getPolicy, getLocation, onError, compareJson]
-  );
-
-  const approveRequest = useCallback(
-    async (policyId: string, requestId: string) => {
-      try {
-        toast.loading('updating...');
-        const { data } = await approveChangeRequest(functions, {
-          policyId,
-          requestId,
-        });
-
-        toast.success('request approved!');
-        console.log('RES: ', data);
-        if (onSuccess) onSuccess(data);
-      } catch (err: any) {
-        console.log('err: ', err);
-        toast.error('an error occurred');
-        if (onError) onError('an error occurred', err);
-      }
-    },
-    [functions, toast, onSuccess, onError]
-  );
-
-  const updateChangeRequest = useCallback(
-    async (
-      policyId: string,
-      requestId: string,
-      values: Partial<Pick<ChangeRequest, 'status' | 'requestEffDate' | 'underwriterNotes'>>
-    ) => {
-      try {
-        if (!user?.uid) throw new Error('must be signed in');
-        // TODO: prompt for uw notes
-        const docRef = doc(changeRequestsCollection(firestore, policyId), requestId);
-
-        toast.loading('updating...');
-        await updateDoc(docRef, {
-          ...values,
-          processedByUserId: user.uid,
-          processedTimestamp: Timestamp.now(), // @ts-ignore
-          'metadata.updated': Timestamp.now(),
-        });
-
-        toast.success('request updated!');
-        if (onSuccess) onSuccess();
-      } catch (err: any) {
-        console.log('error updating status: ', err);
-        toast.error('an error occurred');
-        if (onError) onError('an error occurred', err);
-      }
-    },
-    [firestore, user, toast, onSuccess, onError]
-  );
-
-  const denyRequest = useCallback(
-    (policyId: string, requestId: string) =>
-      updateChangeRequest(policyId, requestId, { status: CHANGE_REQUEST_STATUS.DENIED }),
-    [updateChangeRequest]
-  );
-
-  const cancelRequest = useCallback(
-    (policyId: string, requestId: string) =>
-      updateChangeRequest(policyId, requestId, { status: CHANGE_REQUEST_STATUS.CANCELLED }),
-    [updateChangeRequest]
-  );
-
-  return {
-    approveRequest,
-    denyRequest,
-    cancelRequest,
-    previewChange,
-    updateChangeRequest,
-  };
-};
-
 interface ChangeRequestsDialogProps {
   open: boolean;
   handleClose: () => void;
@@ -293,20 +92,22 @@ interface ChangeRequestsDialogProps {
 export function ChangeRequestsDialog({ policyId, open, handleClose }: ChangeRequestsDialogProps) {
   const { claims } = useAuth();
   const { isSmall } = useWidth();
-  const showJson = useShowJson<any>(COLLECTIONS.POLICIES);
+  const toast = useAsyncToast({ position: 'top-right' });
 
-  const handleShowJson = useCallback(
-    (params: GridRowParams) => () =>
-      showJson(params.id.toString(), `${params.row.policyId}/${COLLECTIONS.CHANGE_REQUESTS}`),
-    [showJson]
+  const renderShowJson = useGridShowJson<ChangeRequest>(
+    COLLECTIONS.POLICIES,
+    { showInMenu: true },
+    { requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } },
+    (data) => `Change Request ${data.id}`,
+    undefined,
+    (params) => `${params.row?.policyId}/${COLLECTIONS.CHANGE_REQUESTS}/${params.id.toString()}`
   );
-  const {
-    approveRequest,
-    denyRequest,
-    cancelRequest,
-    updateChangeRequest,
-    previewChange: previewChangeFn,
-  } = useManageChangeRequest();
+
+  const { approveRequest, denyRequest, cancelRequest, updateChangeRequest, refreshPolicyChanges } =
+    useManageChangeRequest();
+
+  const { previewChange: previewChangeFn } = usePreviewChangeRequest((msg) => toast.error(msg));
+
   const { getEditRowModeActions, getEditModeProps } = useGridEditMode<ChangeRequest>({
     editableCells: ['status', 'requestEffDate', 'underwriterNotes'],
   });
@@ -329,6 +130,13 @@ export function ChangeRequestsDialog({ policyId, open, handleClose }: ChangeRequ
     [cancelRequest]
   );
 
+  const handleRefreshPolicyChanges = useCallback(
+    (params: GridRowParams) => async () => {
+      await refreshPolicyChanges(params.row.policyId, params.id.toString());
+    },
+    [refreshPolicyChanges]
+  );
+
   const previewChange = useCallback(
     (params: GridRowParams) => async () =>
       previewChangeFn(params.row?.policyId, params.id.toString()),
@@ -345,7 +153,6 @@ export function ChangeRequestsDialog({ policyId, open, handleClose }: ChangeRequ
       console.log('NEW ROW: ', newRow);
       console.log('OLD ROW: ', oldRow);
 
-      // toast.loading('saving...');
       const newVals = {
         // ...newRow,
         status: newRow.status,
@@ -354,7 +161,6 @@ export function ChangeRequestsDialog({ policyId, open, handleClose }: ChangeRequ
       };
       await updateChangeRequest(newRow.policyId, newRow.id, newVals);
 
-      // toast.success('saved!');
       return newRow;
     },
     [updateChangeRequest]
@@ -362,9 +168,6 @@ export function ChangeRequestsDialog({ policyId, open, handleClose }: ChangeRequ
 
   const handleProcessRowUpdateError = useCallback((err: Error) => {
     console.log('ERROR: ', err);
-    // let msg = 'Error updating values';
-    // if (err.message) msg = err.message;
-    // toast.error(msg);
   }, []);
 
   const adminProps = useMemo(() => {
@@ -437,15 +240,20 @@ export function ChangeRequestsDialog({ policyId, open, handleClose }: ChangeRequ
         />,
         <GridActionsCellItem
           icon={
-            <Tooltip title='show JSON' placement='top'>
-              <DataObjectRounded />
+            <Tooltip title='recalc policy changes' placement='top'>
+              <RefreshRounded />
             </Tooltip>
           }
-          onClick={handleShowJson(params)}
-          label='Show JSON'
-          disabled={!claims?.iDemandAdmin}
+          onClick={handleRefreshPolicyChanges(params)}
+          label='Recalc policy changes'
+          disabled={
+            ![CHANGE_REQUEST_STATUS.SUBMITTED, CHANGE_REQUEST_STATUS.UNDER_REVIEW].includes(
+              params.row.status
+            )
+          }
           showInMenu
         />,
+        ...renderShowJson(params),
       ],
       isCellEditable: (params: GridCellParams) =>
         ['status', 'requestEffDate', 'underwriterNotes'].includes(params.field),
@@ -454,15 +262,16 @@ export function ChangeRequestsDialog({ policyId, open, handleClose }: ChangeRequ
   }, [
     claims,
     isSmall,
-    handleShowJson,
     previewChange,
     handleApprove,
     handleDeny,
     handleCancel,
+    handleRefreshPolicyChanges,
     getEditModeProps,
     getEditRowModeActions,
   ]);
 
+  // TODO: need to add error boundary around suspense
   return (
     <Dialog open={open} onClose={handleClose} maxWidth='xl' fullWidth>
       <DialogTitle>Policy Change Requests</DialogTitle>

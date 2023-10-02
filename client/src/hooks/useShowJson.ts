@@ -37,7 +37,7 @@ export const useShowJson = <T extends DocumentData>(
     async (docId: string, subPath?: string) => {
       try {
         let docPath = subPath ? `${subPath}/${docId}` : docId;
-        const snap = await getDoc(doc(colRef, docPath)); // docId
+        const snap = await getDoc(doc(colRef, docPath));
         const data = snap.data();
         if (!snap.exists || !data) throw new Error(`doc not found (${colName}/${docId})`);
 

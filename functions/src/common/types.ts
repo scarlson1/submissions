@@ -1004,7 +1004,7 @@ export interface PolicyChangeValues {
 export interface LocationChangeValues {
   limits: Limits;
   deductible: number;
-  effectiveDate: Date;
+  // effectiveDate: Date;
   // expirationDate: Date;
   additionalInterests: AdditionalInterest[];
   externalId: string;

@@ -180,7 +180,7 @@ export default async (event: StorageEvent) => {
           targetCollection: COLLECTIONS.POLICIES,
         },
       };
-      // importStagingCol.doc(policyId).set(data);
+
       const policyImportRef = importStagingCol.doc(policyId);
       batch.set(policyImportRef, data);
 
