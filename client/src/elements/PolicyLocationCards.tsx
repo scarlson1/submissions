@@ -232,14 +232,13 @@ export const PolicyLocationCardsRQ = ({ policyId, ...props }: PolicyLocationCard
 
   return (
     <>
-      {/* <div>{`isLoading: ${isLoading}`}</div> */}
-      {/* <div>{`isFetching: ${isFetching}`}</div> */}
-      {/* <div>{`isError: ${isError}`}</div> */}
-      {/* <div>{`isPreviousData: ${isPreviousData}`}</div> */}
-      {/* <div>{`docCount: ${docCount}`}</div> */}
-      {/* <div>{`hasMore: ${hasMore}`}</div> */}
-
-      <Grid container rowSpacing={6} columnSpacing={8}>
+      <Grid
+        container
+        rowSpacing={6}
+        columnSpacing={8}
+        maxHeight={{ xs: 400, sm: 500, md: 800 }}
+        sx={{ overflowY: 'auto', pt: 3 }}
+      >
         {data?.pages.map((group, i) => (
           <Fragment key={i}>
             {group.data.map((l) => (

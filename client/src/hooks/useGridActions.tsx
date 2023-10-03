@@ -82,8 +82,6 @@ export const useGridActions = (onError?: (msg: string) => void) => {
   return { googleMapsAction, floodFactorAction };
 };
 
-// TODO: add support for pathSegments / subcollection
-// need to pass function b/c might be dynamic (from row data)
 export const useGridShowJson = <T extends DocumentData>(
   colName: string,
   options?: ActionOptions,
@@ -104,7 +102,7 @@ export const useGridShowJson = <T extends DocumentData>(
       let docPath = getPath ? getPath(params) : params.id.toString();
       showJson(docPath);
     },
-    [showJson]
+    [showJson, getPath]
   );
 
   const renderActions = useCallback(

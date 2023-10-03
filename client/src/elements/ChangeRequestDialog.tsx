@@ -267,6 +267,7 @@ export function ChangeRequestsDialog({ policyId, open, handleClose }: ChangeRequ
     handleDeny,
     handleCancel,
     handleRefreshPolicyChanges,
+    renderShowJson,
     getEditModeProps,
     getEditRowModeActions,
   ]);

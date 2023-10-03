@@ -10,7 +10,7 @@ export { useConcurrentLocation } from './useConcurrentLocation';
 export { useCreateAccount } from './useCreateAccount';
 export { useCreateAgencySubmission } from './useCreateAgencySubmission';
 export { useCreateCancelRequest } from './useCreateCancelRequest';
-export { useCreateLocationChangeRequest } from './useCreateLocationChangeRequest';
+export { useCreateLocationChangeRequestOld } from './useCreateLocationChangeRequestOld';
 export { useCreateMoratorium } from './useCreateMoratorium';
 export { useCreatePolicyChangeRequest } from './useCreatePolicyChangeRequest';
 export { useCreateQuote } from './useCreateQuote';

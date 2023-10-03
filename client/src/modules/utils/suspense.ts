@@ -22,7 +22,7 @@ export function createResource<T>(promise: Promise<T>) {
 
 // USAGE:
 
-// let pokemonResource = createResource(fetchPokemon('pikachu'));
+// let pokemonResource = createResource(fetchPokemon('pokemonName'));
 
 // function PokemonInfo() {
 //   const pokemon = pokemonResource.read();

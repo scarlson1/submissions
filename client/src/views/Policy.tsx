@@ -48,11 +48,12 @@ import { ContactList } from 'elements/forms';
 import { LocationsGrid } from 'elements/grids';
 import {
   useCreateCancelRequest,
-  useCreateLocationChangeRequest,
+  useCreateLocationChangeRequestOld,
   useCreatePolicyChangeRequest,
   useDocData,
   useGeneratePDF,
 } from 'hooks';
+import { useCreateLocationChangeRequest } from 'hooks/useCreateLocationChangeRequest';
 import {
   compressedToFormattedAddr,
   formatDate,
@@ -72,6 +73,8 @@ import {
 //  - create separate policy cards component
 //  - requires paginated query (limit 8 ??) with "load more" button
 
+// TODO: locations cards container needs max height w/ scroll so if there's a lot of policies the user can still reach the bottom
+
 const LOCATION_TABS = ['cards', 'grid', 'map'];
 const getInitTabView = (searchParam: string | null) =>
   LOCATION_TABS.includes(searchParam || '') ? searchParam : 'cards';
@@ -85,7 +88,8 @@ export const Policy = () => {
   const { data } = useDocData<IPolicy>('POLICIES', policyId);
   const { downloadPDF: downloadPolicy } = useGeneratePDF('generateDecPDF');
 
-  const locationChangeDialog = useCreateLocationChangeRequest(policyId);
+  const locationChangeDialog = useCreateLocationChangeRequestOld(policyId);
+  const testLocationChangeDialog = useCreateLocationChangeRequest();
   const cancelDialog = useCreateCancelRequest(); // TODO: onsuccess => "you'll receive a confirmation email once our team has processed the request. expect to see a refund, if due, in X days"
   // const cancelLocationDialog = useCreateCancelRequest(
   //   // () =>
@@ -126,6 +130,13 @@ export const Policy = () => {
     [data, locationChangeDialog]
   );
 
+  const handleTestLocationChangeDialog = useCallback(
+    (params: GridRowParams) => () => {
+      testLocationChangeDialog(params.row.policyId, params.id.toString());
+    },
+    [testLocationChangeDialog]
+  );
+
   const handleCancelPolicy = useCallback(async () => {
     await cancelDialog(policyId);
   }, [cancelDialog, policyId]);
@@ -147,7 +158,8 @@ export const Policy = () => {
               <EditRounded />
             </Tooltip>
           }
-          onClick={handleLocationChangeRequestGrid(params)}
+          // onClick={handleLocationChangeRequestGrid(params)}
+          onClick={handleTestLocationChangeDialog(params)}
           label='Request change'
         />,
         <GridActionsCellItem
@@ -162,7 +174,7 @@ export const Policy = () => {
         />,
       ];
     },
-    [handleLocationChangeRequestGrid, handleCancelLocation]
+    [handleLocationChangeRequestGrid, handleCancelLocation, handleTestLocationChangeDialog]
   );
 
   const [locations, locationsCount] = useMemo(() => {
@@ -333,10 +345,10 @@ export const Policy = () => {
         <ErrorBoundary FallbackComponent={ErrorFallback}>
           <Suspense fallback={<LoadingSpinner loading={true} />}>
             {locationsView === 'cards' ? (
-              <>
+              <Box sx={{ py: 2 }}>
                 <PolicyLocationCardsRQ policyId={policyId} onEdit={handleLocationChangeRequest} />
                 {/* <PolicyLocationCards policyId={policyId} onEdit={handleLocationChangeRequest} /> */}
-              </>
+              </Box>
             ) : null}
             {locationsView === 'grid' ? (
               <LocationsGrid

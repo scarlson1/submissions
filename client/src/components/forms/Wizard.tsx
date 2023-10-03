@@ -18,6 +18,8 @@ import { Handler, WizardContext } from 'context';
 // https://github.com/jcmcneal/react-step-wizard/blob/master/src/index.js
 // react router hash: https://stackoverflow.com/a/74573358
 
+// TODO: add container around header and footer to allow for sticky header/footer & scroll content ??
+
 export interface WizardProps {
   /** Optional header that is shown above the active step */
   header?: ReactNode;

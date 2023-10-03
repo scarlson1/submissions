@@ -1,5 +1,5 @@
 // import * as yup from 'yup';
-import { object, string, number, array, boolean } from 'yup';
+import { array, boolean, number, object, string } from 'yup';
 
 import { isValidEmail } from 'modules/utils/helpers';
 import { STATES_ABV_ARR } from './statesList';
@@ -55,11 +55,11 @@ export const addressValidationNested = object().shape({
 });
 
 export const addressValidationNotRequired = object().shape({
-  addressLine1: string().required('address is required'),
-  addressLine2: string().notRequired(),
-  city: string().required('city is required'),
-  state: stateVal,
-  postal: postalVal.required('postal code is required'),
+  addressLine1: string().label('address line 1').notRequired(),
+  addressLine2: string().label('address line 2').notRequired(),
+  city: string().label('city').notRequired(),
+  state: stateVal.label('state').notRequired(),
+  postal: postalVal.label('postal').notRequired(),
 });
 
 export const validateActiveState = (activeStates: { [key: string]: boolean }) =>
@@ -103,6 +103,35 @@ export const coordinatesValidation = object().shape({
 //   state: string().required('State is required').oneOf(ACTIVE_STATES_ABRV, 'Ineligible state'),
 //   postal: string().required('Postal code is required'),
 // });
+
+export const additionalInterestsVal = array().of(
+  object().shape({
+    type: string().label('type').required(),
+    name: string().label('name').min(3, 'please enter full name').required('Required'),
+    accountNumber: string().label('account number'), // TODO: if type === mortgagee --> required
+    address: object().when('type', {
+      is: (val: string) => val === 'mortgagee',
+      then: (schema) =>
+        schema.shape({
+          addressLine1: string()
+            .typeError('address required')
+            .required('address is required (mortgagee)'),
+          addressLine2: string().notRequired(),
+          city: string().typeError('city required').required('city is required'),
+          state: stateVal,
+          postal: postalVal.required('postal code is required'),
+        }),
+      otherwise: (schema) =>
+        schema.shape({
+          addressLine1: string().label('address line 1').notRequired(),
+          addressLine2: string().label('address line 2').notRequired(),
+          city: string().label('city').notRequired(),
+          state: stateVal.label('state').notRequired(),
+          postal: postalVal.label('postal').notRequired(),
+        }),
+    }),
+  })
+);
 
 const getNumValue = (val: any): number =>
   typeof val === 'string' ? parseInt(val || '0') : typeof val === 'number' ? val : 0;

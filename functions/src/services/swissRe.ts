@@ -1,7 +1,9 @@
-// import axios, { AxiosRequestConfig } from 'axios';
 import axios from 'axios';
 import { error } from 'firebase-functions/logger';
 import querystring from 'querystring';
+import { getReportErrorFn } from '../common/index.js';
+
+const reportErr = getReportErrorFn('swissRe');
 
 export const getSwissReInstance = (
   clientId: string,
@@ -22,7 +24,7 @@ export const getSwissReInstance = (
   swissReInstance.interceptors.request.use(
     // @ts-ignore
     async (config: any) => {
-      if (!config.headers) config.headers = {};
+      if (!config.headers) config.headers = {}; // TODO: check expiration time
       if (!config.headers || !config.headers['Authorization']) {
         console.log('GENERATING ACCESS TOKEN');
         try {
@@ -48,7 +50,9 @@ export const getSwissReInstance = (
       return res;
     },
     async (err: any) => {
-      error('SR REQUEST ERROR => ', { ...err });
+      // error('SR REQUEST ERROR => ', { ...err });
+      reportErr(`SwissRe request error`, {}, err);
+
       const originalConfig = err.config;
       if (err.response) {
         if (err.response.status === 401 && !originalConfig._retry) {
@@ -94,7 +98,7 @@ export const getSwissReInstance = (
 
 export function generateSRAccessToken(clientId: string, clientSecret: string) {
   return new Promise<string>(async (resolve, reject) => {
-    const authScope = process.env.SWISS_RE_AUTH_SCOPE;
+    const authScope = process.env.SWISS_RE_AUTH_SCOPE; // TODO: use firebase env vars
     const srAuthURL = process.env.SWISS_RE_ACCESS_TOKEN_URL;
 
     if (!(clientId && clientSecret && authScope && srAuthURL)) {
@@ -109,7 +113,9 @@ export function generateSRAccessToken(clientId: string, clientSecret: string) {
       grant_type: 'client_credentials',
     };
 
+    console.log('GENERATING SR ACCESS TOKEN...');
     const { data } = await axios.post(srAuthURL, querystring.stringify(reqBody));
+    console.log('GENERATED NEW SR ACCESS TOKEN');
 
     resolve(data.access_token);
   });

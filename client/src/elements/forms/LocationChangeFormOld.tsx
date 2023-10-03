@@ -36,7 +36,7 @@ export interface LocationChangeFormProps extends FormikConfig<LocationChangeValu
   replacementCost?: number | undefined;
 }
 
-export const LocationChangeForm = ({
+export const LocationChangeFormOld = ({
   initialValues,
   formRef,
   onSubmit,

@@ -15,7 +15,7 @@ import { TempWrappedSearch } from 'components/search/Search';
 import { AuthActionsProvider } from 'context';
 import { ActionHandler } from 'elements';
 import { SuccessStep } from 'elements/forms';
-import { LocationChange } from 'elements/forms/LocationChangeForm2';
+import { LocationChange } from 'elements/forms/LocationChangeForm';
 import { BindSuccess } from 'elements/forms/SuccessStep';
 import { EmailsGrid } from 'elements/grids';
 import { ImportsSummaryGrid } from 'elements/grids/ImportsSummaryGrid';

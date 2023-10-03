@@ -19,13 +19,14 @@ export {
   MAILING_FIELD_NAMES,
   NESTED_ADDRESS_FIELD_NAMES,
 } from './FormikAddress';
+export { FormikAddressAutocomplete } from './FormikAddressAutocomplete';
 export { FormikAddressLite } from './FormikAddressLite';
 export { FormikBankFields } from './FormikBankFields';
 export { FormikCardDetails } from './FormikCardDetails';
 export { FormikPassword } from './FormikPassword';
 export { LicenseForm } from './LicenseForm';
 export { LimitsStep } from './LimitsStep';
-export { LocationChangeForm } from './LocationChangeForm';
+export { LocationChangeFormOld } from './LocationChangeFormOld';
 export { PaymentStep, billingValidation } from './PaymentStep';
 export { PortfolioSubmissionForm } from './PortfolioSubmissionForm';
 export { PriorFloodLossStep } from './PriorFloodLossStep';
@@ -34,7 +35,6 @@ export { default as QuoteForm } from './QuoteForm';
 export { ReviewStep } from './ReviewStep';
 export { SuccessStep } from './SuccessStep';
 export { TaxForm } from './TaxForm';
-export { FormikAddressAutocomplete } from './FormikAddressAutocomplete';
 
 export type { AddLocationValues } from './AddLocationForm';
 export type { AddPaymentMethodValues } from './AddPaymentDialog';
@@ -48,6 +48,6 @@ export type { DisclosureFormProps, DisclosureValues } from './DisclosureForm';
 export type { FormikAddressProps } from './FormikAddress';
 export type { FormikAddressLiteProps } from './FormikAddressLite';
 export type { LicenseValues } from './LicenseForm';
-export type { LocationChangeFormProps, LocationChangeValues } from './LocationChangeForm';
+export type { LocationChangeFormProps, LocationChangeValues } from './LocationChangeFormOld';
 export type { PortfolioSubmissionValues } from './PortfolioSubmissionForm';
 export type { PriorFloodLossStepProps } from './PriorFloodLossStep';
