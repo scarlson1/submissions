@@ -16,7 +16,7 @@ export type PoliciesGridProps = ServerDataGridCollectionProps;
 
 export const PoliciesGrid = ({ renderActions = () => [], ...props }: PoliciesGridProps) => {
   const navigate = useNavigate();
-  const { status: claimsCheckStatus, data: iDAdminResult } = useSigninCheck({
+  const { data: iDAdminResult } = useSigninCheck({
     requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
   });
   const renderShowJson = useGridShowJson(
@@ -66,12 +66,12 @@ export const PoliciesGrid = ({ renderActions = () => [], ...props }: PoliciesGri
           POLICY_STATUS.PAYMENT_PROCESSING,
           POLICY_STATUS.CANCELLED,
         ],
-        editable: claimsCheckStatus === 'success' && iDAdminResult.hasRequiredClaims,
+        editable: iDAdminResult.hasRequiredClaims,
         filterable: true,
       },
       ...policyCols,
     ],
-    [viewPolicyDoc, renderActions, renderShowJson, claimsCheckStatus, iDAdminResult]
+    [viewPolicyDoc, renderActions, renderShowJson, iDAdminResult]
   );
 
   return (

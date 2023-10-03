@@ -1,11 +1,11 @@
+import { UserCredential, getAuth, signInAnonymously } from 'firebase/auth';
 import { useEffect } from 'react';
-import { Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { getAuth, signInAnonymously, UserCredential } from 'firebase/auth';
 import { toast } from 'react-hot-toast';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 
 // import { auth } from 'firebaseConfig';
-import { useAuth } from 'context/AuthContext';
 import { CLAIMS } from 'common';
+import { useClaims } from 'hooks';
 import { AUTH_ROUTES, createPath } from 'router';
 
 // TODO: read for reference: https://adarshaacharya.com.np/blog/role-based-auth-with-react-router-v6
@@ -28,7 +28,8 @@ export const RequireAuth = ({
   shouldSignInAnonymously = false,
 }: RequireAuthProps) => {
   const auth = getAuth();
-  let { claims } = useAuth(); // loadingInitial, //error,
+  // let { claims } = useAuth(); // loadingInitial, //error,
+  const { claims } = useClaims();
   let location = useLocation();
   const navigate = useNavigate();
 

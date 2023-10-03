@@ -5,8 +5,7 @@ import { useMemo } from 'react';
 
 import { CHANGE_REQUEST_STATUS, COLLECTIONS, ServerDataGridCollectionProps } from 'common';
 import { ServerDataGrid, ServerDataGridProps } from 'components';
-import { useAuth } from 'context';
-import { useWidth } from 'hooks';
+import { useClaims, useWidth } from 'hooks';
 import { changeRequestCols } from 'modules/muiGrid';
 import { verify } from 'modules/utils';
 
@@ -22,7 +21,8 @@ export const ChangeRequestsGrid = ({
   constraints: propConstraints = [],
   ...rest
 }: ChangeRequestsGridProps) => {
-  const { user, claims, orgId } = useAuth();
+  // const { user, claims, orgId } = useAuth();
+  const { user, claims, orgId } = useClaims();
   const { isSmall } = useWidth();
 
   verify(user?.uid, 'must be signed in'); // TODO: wrap in RequireAuth ??

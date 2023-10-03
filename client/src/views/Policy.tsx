@@ -130,7 +130,7 @@ export const Policy = () => {
     [data, locationChangeDialog]
   );
 
-  const handleTestLocationChangeDialog = useCallback(
+  const handleLocationChangeDialog = useCallback(
     (params: GridRowParams) => () => {
       testLocationChangeDialog(params.row.policyId, params.id.toString());
     },
@@ -159,7 +159,7 @@ export const Policy = () => {
             </Tooltip>
           }
           // onClick={handleLocationChangeRequestGrid(params)}
-          onClick={handleTestLocationChangeDialog(params)}
+          onClick={handleLocationChangeDialog(params)}
           label='Request change'
         />,
         <GridActionsCellItem
@@ -174,7 +174,7 @@ export const Policy = () => {
         />,
       ];
     },
-    [handleLocationChangeRequestGrid, handleCancelLocation, handleTestLocationChangeDialog]
+    [handleLocationChangeRequestGrid, handleCancelLocation, handleLocationChangeDialog]
   );
 
   const [locations, locationsCount] = useMemo(() => {

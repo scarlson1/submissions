@@ -1,21 +1,24 @@
 import { useEffect } from 'react';
 
 import { Box, Button, CircularProgress, Typography } from '@mui/material';
+import { IdTokenResult, signInAnonymously } from 'firebase/auth';
+import { toast } from 'react-hot-toast';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import {
-  useSigninCheck,
+  ClaimCheckErrors,
+  ClaimsValidator,
   SignInCheckOptionsBasic,
   SignInCheckOptionsClaimsObject,
   SignInCheckOptionsClaimsValidator,
   useAuth,
-  ClaimsValidator,
-  ClaimCheckErrors,
+  useSigninCheck,
 } from 'reactfire';
-import { IdTokenResult, signInAnonymously } from 'firebase/auth';
-import { Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { toast } from 'react-hot-toast';
 
 import { CLAIMS } from 'common';
 import { AUTH_ROUTES, createPath } from 'router';
+
+// TODO: needs to use the same auth status source as used in components
+// using useAuth from AuthContext in components is behind useSignInCheck
 
 export type CustomClaimKeys = keyof typeof CLAIMS;
 
@@ -101,7 +104,7 @@ type Claims = IdTokenResult['claims'];
 
 /**
  * @param {number} requiredClaims - array of required claims
- * @return {{ hasRequiredClaims: boolean }} returns validation function that returns true if user has atlease one of the required claims
+ * @return {{ hasRequiredClaims: boolean }} returns validation function that returns true if user has at lease one of the required claims
  */
 export const getRequiredClaimValidator =
   (requiredClaims: CustomClaimKeys[]): ClaimsValidator =>

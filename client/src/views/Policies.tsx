@@ -2,8 +2,6 @@ import { Alert, AlertTitle, Box, Collapse, Link, MenuItem, Stack, useTheme } fro
 import { UploadResult } from 'firebase/storage';
 import { useCallback, useState } from 'react';
 
-import { useAuth } from 'context';
-
 // USER POLICIES COMPONENT IMPORTS
 import { InfoRounded, OpenInNewRounded } from '@mui/icons-material';
 import {
@@ -33,7 +31,7 @@ import { IconMenu } from 'components/IconButtonMenu';
 import { CSVUploadDialog } from 'elements';
 import { ControlledChangeRequestDialog } from 'elements/ChangeRequestDialog';
 import { PoliciesGrid } from 'elements/grids';
-import { useAsyncToast, useCollectionData } from 'hooks';
+import { useAsyncToast, useClaims, useCollectionData } from 'hooks';
 import { formatFirestoreTimestamp, getDuplicates } from 'modules/utils';
 import { ROUTES, createPath } from 'router';
 import { Item } from './UserSubmissions';
@@ -45,29 +43,9 @@ import { getHeaderStatus } from './admin/Quotes';
 
 // TODO: add a tab to view change requests
 
-// export const TestToast = () => {
-//   const toast = useAsyncToast();
-
-//   return (
-//     <Stack spacing={2} direction='row'>
-//       {/* <Button onClick={() => toast.custom('Test custom toast')}>custom toast</Button> */}
-//       {/* <Button onClick={() => toast.customSpring('Test spring toast')}>spring toast</Button> */}
-//       <Button
-//         onClick={() => toast.success('Test success toast. lorem ipsum success text blah blah.')}
-//       >
-//         success toast
-//       </Button>
-//       <Button onClick={() => toast.warn('Test warn toast')}>warn toast</Button>
-//       <Button onClick={() => toast.info('Test info toast. lorem ipsum info text blah blah.')}>
-//         info toast
-//       </Button>
-//     </Stack>
-//   );
-// };
-
 export const Policies = () => {
   const navigate = useNavigate();
-  const { claims, user } = useAuth();
+  const { claims, user } = useClaims();
 
   // TODO: admin upload new policy documents
 
@@ -83,7 +61,7 @@ export const Policies = () => {
       </Typography>
       <Stack direction='row' spacing={2}>
         <ControlledChangeRequestDialog />
-        {claims?.iDemandAdmin && <AdminPoliciesActionMenu />}
+        {claims?.iDemandAdmin ? <AdminPoliciesActionMenu /> : null}
       </Stack>
     </Box>
   );
@@ -122,6 +100,7 @@ export const Policies = () => {
     );
 
   // BUG: flashes before observable updates ??
+  console.log('returning must be signed in', claims);
   if (!user?.uid) return <Typography align='center'>Must be signed in</Typography>;
 
   return (

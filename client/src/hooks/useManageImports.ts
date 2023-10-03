@@ -9,7 +9,7 @@ import {
   importSummaryCollection,
   stagedImportsCollection,
 } from 'common';
-import { useAuth } from 'context';
+import { useClaims } from './useClaims';
 
 export const useManageImports = (
   importId: string,
@@ -18,7 +18,8 @@ export const useManageImports = (
 ) => {
   const firestore = useFirestore();
   const functions = useFunctions();
-  const { user, claims } = useAuth();
+  // const { user, claims } = useAuth();
+  const { user, claims } = useClaims();
   const [loading, setLoading] = useState({
     decline: false,
     approve: false,

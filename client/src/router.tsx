@@ -15,7 +15,7 @@ import { TempWrappedSearch } from 'components/search/Search';
 import { AuthActionsProvider } from 'context';
 import { ActionHandler } from 'elements';
 import { SuccessStep } from 'elements/forms';
-import { LocationChange } from 'elements/forms/LocationChangeForm';
+import { LocationChangeWrapper } from 'elements/forms/LocationChangeForm';
 import { BindSuccess } from 'elements/forms/SuccessStep';
 import { EmailsGrid } from 'elements/grids';
 import { ImportsSummaryGrid } from 'elements/grids/ImportsSummaryGrid';
@@ -662,7 +662,7 @@ export const router = sentryCreateBrowserRouter([
           },
           {
             path: `/policies/:policyId/locations/:locationId/change-request`,
-            element: <LocationChange />,
+            element: <LocationChangeWrapper />,
             errorElement: <RouterErrorBoundary />,
             handle: {
               crumb: (match: CrumbMatch) => [

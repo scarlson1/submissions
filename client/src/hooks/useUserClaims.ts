@@ -1,36 +1,17 @@
-import { useRef } from 'react';
 import type { ParsedToken, User } from 'firebase/auth';
 import { doc } from 'firebase/firestore';
+import { isEmpty } from 'lodash';
+import { useRef } from 'react';
 import { ObservableStatus, useAuth, useFirestore, useObservable } from 'reactfire';
 import { authState } from 'rxfire/auth';
 import { doc as rxDoc } from 'rxfire/firestore';
-import { switchMap } from 'rxjs/operators';
 import { from, of } from 'rxjs';
-import { isEmpty } from 'lodash';
+import { switchMap } from 'rxjs/operators';
 
 import { userClaimsCollection } from 'common';
 import type { CustomClaimsInterface } from 'context';
 
-function getResult(
-  user: User,
-  orgId: string | null,
-  claims: ParsedToken | null | undefined
-): UserWithClaimsResult {
-  let customClaims = !claims
-    ? null
-    : {
-        iDemandAdmin: !!claims?.iDemandAdmin,
-        orgAdmin: !!claims?.orgAdmin,
-        agent: !!claims?.agent,
-      };
-
-  return {
-    claims: customClaims,
-    user: user,
-    orgId: orgId,
-    isSignedIn: !!user,
-  };
-}
+// guided by useSignInCheck observable: https://github.com/FirebaseExtended/reactfire/blob/main/src/auth.tsx
 
 export interface UserWithClaimsResult {
   claims: CustomClaimsInterface | null;
@@ -56,120 +37,61 @@ export const useUserClaims = (): ObservableStatus<UserWithClaimsResult> => {
 
   const observable$ = authState(auth).pipe(
     switchMap((user) => {
-      if (user) {
-        let orgId = user.tenantId ?? null;
-        if (!orgId && user.email?.endsWith('@idemandinsurance.com')) orgId = 'idemand';
+      if (!user) return of(getResult(null, null, null));
 
-        if (orgId) {
-          // subscribe to claims document
-          const claimsDocRef = doc(userClaimsCollection(firestore, orgId), user.uid);
+      let orgId = user.tenantId ?? null;
+      if (!orgId && user.email?.endsWith('@idemandinsurance.com')) orgId = 'idemand';
 
-          // return from(rxDoc(claimsDocRef)).pipe(
-          //   map((claimsDoc) => {
-          return from(rxDoc(claimsDocRef)).pipe(
-            switchMap((claimsDoc) => {
-              const claimsData = claimsDoc.data();
+      // if no org, return user without orgId or claims
+      if (!orgId) return of(getResult(user, null, null));
 
-              if (!claimsData || isEmpty(claimsData)) {
-                let result: UserWithClaimsResult = {
-                  claims: null, // DEFAULT_CLAIMS,
-                  user: user,
-                  orgId: orgId,
-                  isSignedIn: true,
-                };
-                return of(result);
-              }
+      // subscribe to claims document
+      const claimsDocRef = doc(userClaimsCollection(firestore, orgId), user.uid);
 
-              // only refresh when doc updated
-              // if (claimsData?._lastCommitted) {
-              let requiresRefresh =
-                claimsData?._lastCommitted &&
-                lastCommittedRef.current &&
-                !claimsData._lastCommitted.isEqual(lastCommittedRef.current);
+      return from(rxDoc(claimsDocRef)).pipe(
+        switchMap((claimsDoc) => {
+          const claimsData = claimsDoc.data();
 
-              if (claimsData?._lastCommitted) lastCommittedRef.current = claimsData._lastCommitted;
+          if (!claimsData || isEmpty(claimsData)) return of(getResult(user, orgId, {}));
 
-              return from(user.getIdTokenResult(requiresRefresh)).pipe(
-                switchMap((idTokenResult) => {
-                  const { claims } = idTokenResult;
+          // only refresh when doc updated
+          let requiresRefresh =
+            claimsData?._lastCommitted &&
+            lastCommittedRef.current &&
+            !claimsData._lastCommitted.isEqual(lastCommittedRef.current);
 
-                  return of(getResult(user, orgId, claims));
-                })
-              );
-            })
+          if (claimsData?._lastCommitted) lastCommittedRef.current = claimsData._lastCommitted;
+
+          // get iD token (refresh new token from server if claims doc changed)
+          return from(user.getIdTokenResult(requiresRefresh)).pipe(
+            // map((idTokenResult) => getResult(user, orgId, idTokenResult.claims))
+            switchMap((idTokenResult) => of(getResult(user, orgId, idTokenResult.claims)))
           );
-        } else {
-          let result: UserWithClaimsResult = {
-            claims: null,
-            user: user,
-            orgId: null,
-            isSignedIn: true,
-          };
-          return of(result);
-        }
-      } else {
-        let result: UserWithClaimsResult = {
-          claims: null,
-          user: null,
-          orgId: null,
-          isSignedIn: false,
-        };
-        return of(result);
-      }
+        })
+      );
     })
   );
 
   return useObservable(observableId, observable$, { suspense: true });
 };
 
-// USE SIGN IN CHECK:
+function getResult(
+  user: User | null,
+  orgId: string | null,
+  claims: ParsedToken | null | undefined
+): UserWithClaimsResult {
+  let customClaims = !claims
+    ? null
+    : {
+        iDemandAdmin: !!claims?.iDemandAdmin,
+        orgAdmin: !!claims?.orgAdmin,
+        agent: !!claims?.agent,
+      };
 
-// const observable = user(auth).pipe(
-//   switchMap((user) => {
-//     if (!user) {
-//       const result: SigninCheckResult = {
-//         signedIn: false,
-//         hasRequiredClaims: false,
-//         errors: {},
-//         user: null,
-//       };
-//       return of(result);
-//     } else if (
-//       options &&
-//       (options.hasOwnProperty('requiredClaims') || options.hasOwnProperty('validateCustomClaims'))
-//     ) {
-// return from(user.getIdTokenResult(options?.forceRefresh ?? false)).pipe(
-//   map((idTokenResult) => {
-//           let validator: ClaimsValidator;
-
-//           if (options.hasOwnProperty('requiredClaims')) {
-//             validator = getClaimsObjectValidator(
-//               (options as SignInCheckOptionsClaimsObject).requiredClaims
-//             );
-//           } else {
-//             validator = (options as SignInCheckOptionsClaimsValidator).validateCustomClaims;
-//           }
-
-//           const { hasRequiredClaims, errors } = validator(idTokenResult.claims);
-
-//           const result: SigninCheckResult = {
-//             signedIn: true,
-//             hasRequiredClaims,
-//             errors,
-//             user: user,
-//           };
-//           return result;
-//         })
-//       );
-//     } else {
-//       // If no claims are provided to be checked, `hasRequiredClaims` is true
-//       const result: SigninCheckResult = {
-//         signedIn: true,
-//         hasRequiredClaims: true,
-//         errors: {},
-//         user: user,
-//       };
-//       return of(result);
-//     }
-//   })
-// );
+  return {
+    claims: customClaims,
+    user: user,
+    orgId: orgId,
+    isSignedIn: !!user,
+  };
+}

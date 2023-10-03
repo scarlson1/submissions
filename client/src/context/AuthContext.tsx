@@ -46,19 +46,19 @@ interface AuthContextValue extends UserWithClaimsResult {
 
 export const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
+// TODO: fix useUserClaims hook not running fast enough (observable already loads, so doesn't suspended on future renders)
+// using useAuth from AuthContext in components is behind useSignInCheck
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const auth = useFireAuth();
   const functions = useFunctions();
   const analytics = useAnalytics();
   const location = useLocation();
-  const { data: userData, status } = useUserClaims();
+  // TODO: rename useClaimsSubscription()
+  const { data: userData } = useUserClaims();
 
   const userPrev = usePrevious(userData?.user);
   const claimsPrev = usePrevious(userData?.claims);
-
-  useEffect(() => {
-    console.log('CLAIMS OBS STATUS: ', status);
-  }, [status]);
 
   useEffect(() => {
     process.env.REACT_APP_FB_PROJECT_ID !== 'idemand-submissions' &&
@@ -175,12 +175,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const memoedValue = useMemo(
     () => ({
       ...userData,
-      status,
+
       getSecondsFromLastAuth,
       reauthenticateUser,
       reauthIfRequired,
     }),
-    [userData, status, getSecondsFromLastAuth, reauthenticateUser, reauthIfRequired]
+    [userData, getSecondsFromLastAuth, reauthenticateUser, reauthIfRequired]
   );
 
   return (

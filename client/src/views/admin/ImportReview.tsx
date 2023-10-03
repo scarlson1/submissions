@@ -17,6 +17,7 @@ import { IconMenu, ServerDataGrid } from 'components';
 import { useAuth } from 'context';
 import {
   useAsyncToast,
+  useClaims,
   useDocData,
   useManageImports,
   useSafeParams,
@@ -38,7 +39,8 @@ const ImportToolBar = ({
   updateLoading,
   declineLoading,
 }: any) => {
-  const { claims } = useAuth();
+  // const { claims } = useAuth();
+  const { claims } = useClaims();
   const apiRef = useGridApiContext();
   const selected = gridRowSelectionStateSelector(apiRef.current.state);
 

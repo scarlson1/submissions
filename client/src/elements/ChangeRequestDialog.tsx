@@ -27,6 +27,7 @@ import { LoadingComponent } from 'components/layout';
 import { useAuth } from 'context';
 import {
   useAsyncToast,
+  useClaims,
   useDocCount,
   useGridEditMode,
   useGridShowJson,
@@ -37,7 +38,8 @@ import { usePreviewChangeRequest } from 'hooks/useManageChangeRequest';
 import { ChangeRequestsGrid } from './grids';
 
 export const useViewChangeRequestsDialogProps = (policyId?: string) => {
-  const { claims, user, orgId } = useAuth();
+  // const { claims, user, orgId } = useAuth();
+  const { claims, user, orgId } = useClaims();
   if (!user?.uid) throw new Error('must be signed in');
 
   const countConstraints = useMemo(() => {

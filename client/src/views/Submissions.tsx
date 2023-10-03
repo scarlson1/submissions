@@ -2,15 +2,16 @@ import { Box, Button, Typography } from '@mui/material';
 import { where } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 
-import { useAuth } from 'context';
 import { SubmissionsGrid } from 'elements/grids';
+import { useClaims } from 'hooks';
 import { ROUTES, createPath } from 'router';
 import { Submissions as AdminSubmissions } from './admin/Submissions';
 import { Submissions as UserSubmissions } from './user/Submissions';
 
 export const Submissions = () => {
   const navigate = useNavigate();
-  const { claims, user } = useAuth();
+  // const { claims, user } = useAuth();
+  const { claims, user } = useClaims();
 
   if (claims?.iDemandAdmin) return <AdminSubmissions />;
 

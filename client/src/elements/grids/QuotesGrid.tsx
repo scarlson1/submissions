@@ -12,8 +12,13 @@ import { useSigninCheck } from 'reactfire';
 import { QUOTE_STATUS, ServerDataGridCollectionProps } from 'common';
 import { ServerDataGrid } from 'components';
 import { hasAdminClaimsValidator } from 'components/RequireAuthReactFire';
-import { useAuth } from 'context';
-import { useAsyncToast, useGridActions, useSendQuoteNotification, useWidth } from 'hooks';
+import {
+  useAsyncToast,
+  useClaims,
+  useGridActions,
+  useSendQuoteNotification,
+  useWidth,
+} from 'hooks';
 import { QUOTE_COLUMN_VISIBILITY, quoteCols, statusCol } from 'modules/muiGrid';
 
 // TODO: need to use custom merge function for additionalColumns to prevent duplication "field" values
@@ -26,7 +31,8 @@ export const QuotesGrid = ({
   initialState,
   ...props
 }: QuotesGridProps) => {
-  const { claims } = useAuth();
+  // const { claims } = useAuth();
+  const { user, claims, orgId } = useClaims();
   const { isSmall } = useWidth();
   const sendNotifications = useSendQuoteNotification();
   const toast = useAsyncToast({ position: 'top-right' });

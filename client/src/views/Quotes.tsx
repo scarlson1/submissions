@@ -5,15 +5,16 @@ import { where } from 'firebase/firestore';
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { useAuth } from 'context';
 import { QuotesGrid } from 'elements/grids';
+import { useClaims } from 'hooks';
 import { AUTH_ROUTES, ROUTES, createPath } from 'router';
 import { Quotes as AdminQuotes } from './admin/Quotes';
 
 // TODO: UPDATE NON-ADMIN VIEW TO USE BREADCRUMBS
 
 export const Quotes = () => {
-  const { claims, user } = useAuth(); // TODO: can wrap in <RequireAuth> to ensure claims has loaded ??
+  // const { claims, user } = useAuth(); // TODO: can wrap in <RequireAuth> to ensure claims has loaded ??
+  const { claims, user } = useClaims();
   const navigate = useNavigate();
   // const { data: user } = useUser();
 

@@ -1,7 +1,16 @@
 import axios from 'axios';
 import { error } from 'firebase-functions/logger';
 import querystring from 'querystring';
-import { getReportErrorFn } from '../common/index.js';
+import {
+  getReportErrorFn,
+  swissReAccessTokenURL,
+  swissReAuthScope,
+  swissReProductCode,
+  swissReToolCode,
+} from '../common/index.js';
+
+// TODO: use redis to store api token ??
+// https://www.thedutchlab.com/insights/using-axios-interceptors-for-refreshing-your-api-token
 
 const reportErr = getReportErrorFn('swissRe');
 
@@ -15,8 +24,8 @@ export const getSwissReInstance = (
     headers: {
       'Content-Type': 'application/json',
       Accept: 'application/json',
-      'SR-RNG-ProductCode': process.env.SWISS_RE_PRODUCT_CODE,
-      'SR-RNG-LossModelToolCode': process.env.SWISS_RE_TOOL_CODE,
+      'SR-RNG-ProductCode': swissReProductCode.value(),
+      'SR-RNG-LossModelToolCode': swissReToolCode.value(),
       'Ocp-Apim-Subscription-Key': subscriptionKey,
     },
   });
@@ -24,9 +33,11 @@ export const getSwissReInstance = (
   swissReInstance.interceptors.request.use(
     // @ts-ignore
     async (config: any) => {
+      // swissReInstance.defaults.headers.common.Authorization
       if (!config.headers) config.headers = {}; // TODO: check expiration time
+      console.log('CONFIG: ', config); // TODO: delete (dont log key)
       if (!config.headers || !config.headers['Authorization']) {
-        console.log('GENERATING ACCESS TOKEN');
+        // console.log('GENERATING ACCESS TOKEN');
         try {
           const accessToken = await generateSRAccessToken(clientId, clientSecret);
 
@@ -49,7 +60,7 @@ export const getSwissReInstance = (
     (res) => {
       return res;
     },
-    async (err: any) => {
+    async function (err: any) {
       // error('SR REQUEST ERROR => ', { ...err });
       reportErr(`SwissRe request error`, {}, err);
 
@@ -58,7 +69,7 @@ export const getSwissReInstance = (
         if (err.response.status === 401 && !originalConfig._retry) {
           console.log('401 ERROR... GENERATING NEW ACCESS TOKEN');
           originalConfig._retry = true;
-          let config = err.config;
+          // let config = err.config;
 
           try {
             let accessToken = await generateSRAccessToken(clientId, clientSecret);
@@ -66,7 +77,9 @@ export const getSwissReInstance = (
             if (accessToken)
               swissReInstance.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
 
-            return swissReInstance(config);
+            // Does new token also need to be set on config (originalConfig.headers.Authorization = token) ??
+            // return swissReInstance(config);
+            return swissReInstance(originalConfig);
           } catch (err) {
             return Promise.reject(err);
           }
@@ -74,7 +87,7 @@ export const getSwissReInstance = (
         if (err.response.status === 403 && !originalConfig._retry) {
           console.log('403 ERROR... GENERATING NEW ACCESS TOKEN');
           originalConfig._retry = true;
-          let config = err.config;
+          // let config = err.config;
 
           try {
             let accessToken = await generateSRAccessToken(clientId, clientSecret);
@@ -82,7 +95,7 @@ export const getSwissReInstance = (
             if (accessToken)
               swissReInstance.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
 
-            return swissReInstance(config);
+            return swissReInstance(originalConfig);
           } catch (err) {
             return Promise.reject(err);
           }
@@ -98,8 +111,8 @@ export const getSwissReInstance = (
 
 export function generateSRAccessToken(clientId: string, clientSecret: string) {
   return new Promise<string>(async (resolve, reject) => {
-    const authScope = process.env.SWISS_RE_AUTH_SCOPE; // TODO: use firebase env vars
-    const srAuthURL = process.env.SWISS_RE_ACCESS_TOKEN_URL;
+    const authScope = swissReAuthScope.value();
+    const srAuthURL = swissReAccessTokenURL.value();
 
     if (!(clientId && clientSecret && authScope && srAuthURL)) {
       reject(new Error('Missing api credentials in Google Secret Manager or env vars.'));

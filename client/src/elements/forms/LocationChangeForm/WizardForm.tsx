@@ -9,7 +9,7 @@ import { useFirestoreDocData, useFunctions, useUser } from 'reactfire';
 import { calcLocationChanges } from 'api';
 import { ILocation, LocationChangeRequest } from 'common';
 import { Wizard } from 'components/forms';
-import { useDocData } from 'hooks';
+import { useDialog, useDocData } from 'hooks';
 import { createChangeRequest } from 'modules/db';
 import { combineToAdditionalInterests } from 'modules/utils';
 import { ROUTES, createPath } from 'router';
@@ -37,6 +37,7 @@ export const LocationChangeWizard = ({
   const { data: changeRequest } = useFirestoreDocData<LocationChangeRequest>(changeRequestSnap);
   const { data: location } = useDocData<ILocation>('LOCATIONS', locationId);
   const { data: user } = useUser();
+  const dialog = useDialog();
 
   const formRef = useRef<FormikProps<LocationChangeValues>>(null);
 
@@ -108,6 +109,11 @@ export const LocationChangeWizard = ({
     });
   }, [saveChangeRequest, user]);
 
+  const handleDone = useCallback(() => {
+    dialog?.handleAccept();
+    navigate(createPath({ path: ROUTES.POLICY, params: { policyId } }));
+  }, [navigate, dialog, policyId]);
+
   return (
     // <Container maxWidth='md' sx={{ py: 8 }} disableGutters>
     <Wizard maxWidth='md'>
@@ -140,16 +146,18 @@ export const LocationChangeWizard = ({
         onSubmit={handleSubmitChangeRequest}
       />
       <Box>
-        <Typography variant='h4' align='center' sx={{ p: 10 }}>
+        <Typography variant='h4' align='center' sx={{ py: 10 }}>
           Submitted!
         </Typography>
-        <Typography variant='body2' color='text.secondary'>
+        <Typography variant='body2' color='text.secondary' sx={{ py: 5 }}>
           Your change request has been received. You'll receive a confirmation email once it has
           been review and processed by our underwriters.
         </Typography>
-        <Button onClick={() => navigate(createPath({ path: ROUTES.POLICY, params: { policyId } }))}>
-          Done
-        </Button>
+        <Box sx={{ width: '100%', pt: 2 }}>
+          <Button onClick={handleDone} sx={{ ml: 'auto' }}>
+            Done
+          </Button>
+        </Box>
       </Box>
     </Wizard>
     // </Container>

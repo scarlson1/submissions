@@ -39,7 +39,8 @@ import { useTheme } from '@mui/material/styles';
 import { Link as RouterLink, matchPath, useLocation, useNavigate } from 'react-router-dom';
 import { useSigninCheck } from 'reactfire';
 
-import { AuthActionsProvider, useAuth, useAuthActions, useChangeTheme } from 'context';
+import { AuthActionsProvider, useAuthActions, useChangeTheme } from 'context';
+import { useClaims } from 'hooks';
 import { stringAvatar } from 'modules/utils';
 import { ACCOUNT_ROUTES, ADMIN_ROUTES, AUTH_ROUTES, ROUTES, createPath } from 'router';
 import { NavDrawer } from './NavDrawer';
@@ -66,7 +67,8 @@ export const Header = (props: HeaderProps) => {
   const { toggleColorMode: changeTheme } = useChangeTheme();
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, claims } = useAuth();
+  // const { user, claims } = useAuth();
+  const { user, claims } = useClaims();
 
   const adminNavPages = useMemo(
     () => [

@@ -2,14 +2,15 @@
 
 import { useEffect } from 'react';
 
+import { UserCredential, getAuth, signInAnonymously } from 'firebase/auth';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { signInAnonymously, UserCredential, getAuth } from 'firebase/auth';
 
 // import { auth } from 'firebaseConfig';
-import { useAuth } from 'context/AuthContext';
 import { CLAIMS } from 'common';
-import { useAsyncToast } from './useAsyncToast';
+import { useAuth } from 'context/AuthContext';
 import { AUTH_ROUTES, createPath } from 'router';
+import { useAsyncToast } from './useAsyncToast';
+import { useClaims } from './useClaims';
 
 // TODO: adapt return values to match reactfire
 // { signedIn: true, hasRequiredClaims: true, errors: {}, user: user }
@@ -25,8 +26,6 @@ export interface UseRequireAuthProps {
   unauthorizedCallback?: () => void;
 }
 
-// TODO: REPLACE WITH USE CLAIMS CHECK
-
 export const useRequireAuth = ({
   redirectPath,
   returnToPath,
@@ -35,7 +34,8 @@ export const useRequireAuth = ({
   shouldSignInAnonymously = false,
   unauthorizedCallback,
 }: UseRequireAuthProps) => {
-  const { isSignedIn, isAnonymous, claims } = useAuth(); // error,
+  const { isAnonymous } = useAuth(); // claims
+  const { claims, isSignedIn } = useClaims(); // TODO: add isAnonymous ?? could be out of sync with useAuth
   const toast = useAsyncToast();
   let location = useLocation();
   const navigate = useNavigate();

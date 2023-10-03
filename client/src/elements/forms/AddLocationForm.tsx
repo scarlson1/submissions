@@ -1,3 +1,4 @@
+import { DoneRounded } from '@mui/icons-material';
 import {
   Box,
   Button,
@@ -13,12 +14,11 @@ import {
 import { startOfDay } from 'date-fns';
 import { Timestamp, doc, setDoc } from 'firebase/firestore';
 import { Form, Formik, FormikConfig, FormikHelpers } from 'formik';
+import Lottie from 'lottie-react';
 import { useCallback, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useFirestore, useFunctions } from 'reactfire';
 import { date, number, object, string } from 'yup';
-import { DoneRounded } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
-import Lottie from 'lottie-react';
 
 import { addLocationCalc, getPropertyDetailsAttom } from 'api';
 import { CheckmarkLottie } from 'assets';
@@ -52,9 +52,8 @@ import {
   Wizard,
   WizardNavButtons,
 } from 'components/forms';
-import { useAuth } from 'context';
 import { FormattedAddress } from 'elements/FormattedAddress';
-import { useAsyncToast, useDocData, useWizard } from 'hooks';
+import { useAsyncToast, useClaims, useDocData, useWizard } from 'hooks';
 import { DEFAULT_INIT_VALUES } from 'hooks/usePropertyDetails';
 import { dollarFormat } from 'modules/utils';
 import { ROUTES, createPath } from 'router';
@@ -515,7 +514,8 @@ function PropertyRatingDataStep({
   onError,
   ...props
 }: PropertyRatingDataStepProps) {
-  const { claims } = useAuth();
+  // const { claims } = useAuth();
+  const { claims } = useClaims();
   const { nextStep } = useWizard();
 
   const handleStepSubmit = useCallback(

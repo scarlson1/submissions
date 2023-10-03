@@ -3,6 +3,7 @@ export { useAnalyticsEvent } from './useAnalyticsEvent';
 export { useAsyncToast } from './useAsyncToast';
 export { useBindQuote } from './useBindQuote';
 export { useCalcPremium } from './useCalcPremium';
+export { useClaims } from './useClaims';
 export { useCollectionData } from './useCollectionData';
 export { useCollectionGroupData } from './useCollectionGroupData';
 export { useCompareJson } from './useCompareJson';

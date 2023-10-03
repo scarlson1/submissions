@@ -45,6 +45,10 @@ export const storageBaseUrl = defineString('STORAGE_BASE_URL');
 export const submissionsApiBaseURL = defineString('SUBMISSIONS_API_BASE_URL');
 export const env = defineString('ENV');
 export const decPageTemplateId = defineString('DEC_PAGE_TEMPLATE_ID');
+export const swissReProductCode = defineString('SWISS_RE_PRODUCT_CODE');
+export const swissReToolCode = defineString('SWISS_RE_TOOL_CODE');
+export const swissReAuthScope = defineString('SWISS_RE_AUTH_SCOPE');
+export const swissReAccessTokenURL = defineString('SWISS_RE_ACCESS_TOKEN_URL');
 
 export const maxA = defineInt('FLOOD_MAX_LIMIT_A', { default: 1000000 });
 export const minA = defineInt('FLOOD_MIN_LIMIT_A', { default: 100000 });

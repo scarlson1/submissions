@@ -2,7 +2,7 @@ import { CloseRounded } from '@mui/icons-material';
 import { Box, DialogTitle, IconButton } from '@mui/material';
 import { useCallback } from 'react';
 
-import { TestLocationChange } from 'elements/forms/LocationChangeForm';
+import { LocationChange } from 'elements/forms/LocationChangeForm';
 import { useDialog } from './useDialog';
 
 export const useCreateLocationChangeRequest = () => {
@@ -15,7 +15,7 @@ export const useCreateLocationChangeRequest = () => {
           catchOnCancel: true,
           variant: 'danger',
           title: `Location Change`,
-          content: <TestLocationChange policyId={policyId} locationId={lcnId} />,
+          content: <LocationChange policyId={policyId} locationId={lcnId} />,
           slots: {
             title: TitleWithCloseBtn,
             actions: undefined, //  <Test />, // as JSXElementConstructor<any>,

@@ -38,7 +38,7 @@ import {
 } from 'common';
 import { ErrorFallback } from 'components';
 import { useAuth } from 'context/AuthContext';
-import { useAsyncToast, useDocData, usePropertyDetailsAttom } from 'hooks';
+import { useAsyncToast, useClaims, useDocData, usePropertyDetailsAttom } from 'hooks';
 import { InitRatingValues } from 'hooks/usePropertyDetails';
 import { ceil } from 'lodash';
 import { sumArr } from 'modules/utils/helpers';
@@ -65,7 +65,8 @@ function useCreateSubmission(
   onError?: (msg: string, err: any) => void
 ) {
   const firestore = useFirestore();
-  const { user, claims, orgId } = useAuth();
+  // const { user, claims, orgId } = useAuth();
+  const { user, claims, orgId } = useClaims();
   const [loading, setLoading] = useState(false);
 
   const createSubmission = useCallback(
