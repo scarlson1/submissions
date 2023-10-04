@@ -17,7 +17,9 @@ import { splitChunks, verify } from '../utils/index.js';
 
 // Idempotent functions: https://cloud.google.com/blog/products/serverless/cloud-functions-pro-tips-building-idempotent-functions
 
-// Only return error if transient error (can't write to db, etc.)
+// TODO: verify only return error if transient error (can't write to db, etc.)
+
+// TODO: need to verify works with multiple locations
 
 const reportErr = getReportErrorFn('policyCreatedListener');
 

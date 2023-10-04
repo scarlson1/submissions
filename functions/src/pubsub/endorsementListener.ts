@@ -26,13 +26,7 @@ import {
 } from '../modules/transactions/index.js';
 import { verify } from '../utils/index.js';
 
-// How is removed location handled ??
-// assume deleted if location not found in policy ??
-// pass sub type in json (remove_location, add_location, edit_location, etc.) ??
-
-// TODO: How is policy level endorsement handled ?? change in mailing address, etc.
-
-// Handles creating transactions whenever a LOCATION premium change event is published (per location)
+// Handles creating transactions whenever a location endorsement event is published
 //    - trx1: offsets the remaining period for the original trx
 //    - trx2: new premium for the term
 

@@ -1,24 +1,17 @@
-import { DocumentReference, DocumentSnapshot, getFirestore } from 'firebase-admin/firestore';
+import { DocumentReference, DocumentSnapshot } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 import type { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 
 import {
   CHANGE_REQUEST_STATUS,
-  CancellationReason,
   ChangeRequest,
-  PolicyChangeRequest,
   getReportErrorFn,
-  policiesCollection,
-  printObj,
   sendgridApiKey,
 } from '../common/index.js';
-import { handleCancelRating } from '../modules/transactions/index.js';
-import { getDoc } from '../routes/utils/index.js';
 import {
-  publishAmendment,
-  publishEndorsement,
-  publishLocationCancel,
-} from '../services/pubsub/index.js';
+  handleCancelRating,
+  publishChangeRequestTransactions,
+} from '../modules/transactions/index.js';
 import { sendAdminChangeRequestNotification, sendMessage } from '../services/sendgrid/index.js';
 import { isValidEmail } from '../utils/index.js';
 import { validate } from './utils/index.js';
@@ -97,7 +90,7 @@ export default async (
 
         return;
       case CHANGE_REQUEST_STATUS.ACCEPTED:
-        await handleAcceptedRequest(data, policyId);
+        await publishChangeRequestTransactions(data, policyId);
 
         return;
       case CHANGE_REQUEST_STATUS.CANCELLED:
@@ -191,173 +184,6 @@ async function handleRequestNotifications(
     }
   } catch (err: any) {
     error(`Error sending new change request email notifications`, { ...err });
-  }
-
-  return;
-}
-
-function isPolicyChangeRequest(data: any): data is PolicyChangeRequest {
-  const keys = Object.keys(data);
-  return keys.includes('endorsementChanges') || keys.includes('amendmentChanges');
-}
-
-// Emit pubsub event
-async function handleAcceptedRequest(data: ChangeRequest, policyId: string) {
-  try {
-    // TODO: status check sufficient ?? what if there was an error and requires re-emitting ??
-    // verify(data.trxPubSubEmitted !== true, 'trx pubsub event has already been emitted for change request.)
-    // TODO: matching firestore rule
-
-    // redundant ?? calling function if status matches accepted
-    // const UNPROCESSED_CHANGE_REQUEST_STATUSES = [
-    //   CHANGE_REQUEST_STATUS.SUBMITTED,
-    //   CHANGE_REQUEST_STATUS.ERROR,
-    //   CHANGE_REQUEST_STATUS.UNDER_REVIEW,
-    // ];
-    // const notProcessed = UNPROCESSED_CHANGE_REQUEST_STATUSES.includes(
-    //   data.status as CHANGE_REQUEST_STATUS
-    // );
-
-    // verify(
-    //   !notProcessed,
-    //   `Change request was already processed (status did not match: ${UNPROCESSED_CHANGE_REQUEST_STATUSES.join(
-    //     ', '
-    //   )})`
-    // );
-
-    // TODO: handle new location
-    // different from publishEndorsement ??
-    // should be same as location ??
-    if (data.scope === 'add_location') {
-      throw new Error('add location publisher not set up yet');
-    }
-
-    // TODO: save pub/sub data to change request
-
-    // TEMP (transition to new interface) - if new endorsement/amendment interface --> intercept
-    if (isPolicyChangeRequest(data)) {
-      const endorsementsLcnIds = Object.keys(data.endorsementChanges);
-      for (let lcnId of endorsementsLcnIds) {
-        const msgDetails = await publishEndorsement({
-          policyId,
-          locationId: lcnId,
-          effDateMS: data.requestEffDate.toMillis(),
-        });
-        // TODO: save msgDetails to change request (can event ID be returned from publisher ?? if yes, could construct transaction ID from policyId + locationId + eventId)
-        printObj(msgDetails);
-      }
-
-      const amendmentLcnIds = Object.keys(data.amendmentChanges);
-      for (let lcnId of amendmentLcnIds) {
-        const msgDetails = await publishAmendment({
-          policyId,
-          locationId: lcnId,
-          amendmentScope: 'location',
-          effDateMS: data.requestEffDate.toMillis(),
-        });
-
-        printObj(msgDetails);
-      }
-
-      return;
-    }
-
-    if (data.scope === 'location') {
-      switch (data.trxType) {
-        case 'endorsement':
-          const msgDetails = await publishEndorsement({
-            policyId,
-            locationId: data.locationId,
-            effDateMS: data.requestEffDate.toMillis(),
-          });
-          // TODO: save msgDetails to change request (can event ID be returned from publisher ?? if yes, could construct transaction ID from policyId + locationId + eventId)
-          printObj(msgDetails);
-
-          break;
-        case 'amendment':
-          await publishAmendment({
-            policyId,
-            locationId: data.locationId,
-            amendmentScope: 'location',
-            effDateMS: data.requestEffDate.toMillis(),
-          });
-          break;
-        case 'cancellation':
-          await publishLocationCancel({
-            policyId,
-            locationId: data.locationId, // TODO: fix discriminating union types
-            cancelReason: data.cancelReason || ('' as CancellationReason),
-            cancelEffDateMS: data.requestEffDate.toMillis(),
-          });
-          break;
-        case 'flat_cancel':
-          // TODO
-          // flat_cancel handled differently that cancel ??
-          // or publishLocationCancel for each location ??
-          break;
-        case 'reinstatement':
-          // TODO: location reinstatement listener not built yet ?? create on its own or build into policy reinstatement ??
-          break;
-        default:
-          error('location trxType not matched in switch statement. no pub/sub event emitted.');
-      }
-    }
-    if (data.scope === 'policy') {
-      switch (data.trxType) {
-        case 'endorsement':
-          throw new Error('TODO: handle publish policy endorsement pubsub message');
-        // TODO: does policy endorsement scenario exist ?? (exp date ??)
-        // would effDate request change actually be a cancel ?? can eff date be move later ??
-
-        // break;
-        case 'amendment':
-          throw new Error('TODO: handle publish policy amendment pubsub message');
-
-        // break;
-        case 'cancellation': {
-          console.log('TODO: handle publish policy cancellation pubsub message');
-          const db = getFirestore();
-          const policyRef = policiesCollection(db).doc(policyId);
-          const policy = await getDoc(policyRef);
-
-          // TODO: handle in batch instead of pubsub for each location ??
-          let lcnEntries = Object.entries(policy.locations).filter(([id, l]) => !l.cancelEffDate);
-          for (const [id] of lcnEntries) {
-            await publishLocationCancel({
-              policyId,
-              locationId: id, // TODO: fix discriminating union types
-              cancelReason: data.cancelReason || ('' as CancellationReason),
-              cancelEffDateMS: data.requestEffDate.toMillis(),
-            });
-          }
-          // let locationIds = Object.keys(policy.locations);
-          // for (const id of locationIds) {
-          //   await publishLocationCancel({
-          //     policyId,
-          //     locationId: id, // TODO: fix discriminating union types
-          //     cancelReason: data.cancelReason || ('' as CancellationReason),
-          //     cancelEffDateMS: data.requestEffDate.toMillis(),
-          //   });
-          // }
-          break;
-        }
-        case 'flat_cancel':
-          // TODO: flat cancel should look up prev trx --> use as base to offset instead of calculation using "getOffsetTrx"
-          throw new Error('TODO: handle publish policy cancellation pubsub message');
-        // TODO: different transactions than regular cancel ?? can a location be flat_cancelled or just policy ?? location can b/c all trx is location
-
-        // break;
-        default:
-          error(`failed to match transaction type. no message published`);
-      }
-    }
-  } catch (err: any) {
-    console.log('Error: ', err);
-    const errMsg = `Error publishing change request accepted pubsub event`;
-    // TODO: set error message
-    // setChangeRequestErr(requestRef, errMsg);
-    reportErr(errMsg, {}, err);
-    // error(errMsg, { ...err });
   }
 
   return;

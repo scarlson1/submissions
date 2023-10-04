@@ -21,8 +21,10 @@ import { GridActionsCellItem, GridCellParams, GridRowModel, GridRowParams } from
 import { where } from 'firebase/firestore';
 import { isEqual } from 'lodash';
 import { Suspense, useCallback, useMemo, useState } from 'react';
+import { ErrorBoundary } from 'react-error-boundary';
 
 import { CHANGE_REQUEST_STATUS, CLAIMS, COLLECTIONS, ChangeRequest, WithId } from 'common';
+import { ErrorFallback } from 'components';
 import { LoadingComponent } from 'components/layout';
 import { useAuth } from 'context';
 import {
@@ -278,21 +280,23 @@ export function ChangeRequestsDialog({ policyId, open, handleClose }: ChangeRequ
     <Dialog open={open} onClose={handleClose} maxWidth='xl' fullWidth>
       <DialogTitle>Policy Change Requests</DialogTitle>
       <DialogContent dividers>
-        <Suspense fallback={<LoadingComponent />}>
-          <ChangeRequestsGrid
-            policyId={policyId}
-            slots={{
-              toolbar: null,
-            }}
-            initialState={{
-              pagination: { paginationModel: { pageSize: 5, page: 0 } },
-            }}
-            processRowUpdate={processRowUpdate}
-            onProcessRowUpdateError={handleProcessRowUpdateError}
-            isCellEditable={() => false}
-            {...adminProps}
-          />
-        </Suspense>
+        <ErrorBoundary FallbackComponent={ErrorFallback}>
+          <Suspense fallback={<LoadingComponent />}>
+            <ChangeRequestsGrid
+              policyId={policyId}
+              slots={{
+                toolbar: null,
+              }}
+              initialState={{
+                pagination: { paginationModel: { pageSize: 5, page: 0 } },
+              }}
+              processRowUpdate={processRowUpdate}
+              onProcessRowUpdateError={handleProcessRowUpdateError}
+              isCellEditable={() => false}
+              {...adminProps}
+            />
+          </Suspense>
+        </ErrorBoundary>
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose}>Close</Button>
@@ -301,6 +305,7 @@ export function ChangeRequestsDialog({ policyId, open, handleClose }: ChangeRequ
   );
 }
 
+// For viewing only one policy (collection query instead of collection group)
 export function ControlledChangeRequestDialog({ policyId }: { policyId?: string }) {
   const { open, handleOpen, handleClose, count } = useViewChangeRequestsDialogProps(policyId);
 

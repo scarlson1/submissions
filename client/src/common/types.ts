@@ -811,7 +811,10 @@ export interface BaseChangeRequest extends BaseDoc {
   requestEffDate: Timestamp;
   policyId: string;
   userId: string;
-  policyVersion: number | null;
+  createdAtPolicyVersion?: number | null;
+  policyChangesCalcVersion?: number | null;
+  mergedWithPolicyVersion?: number | null; // remove in favor of object
+  mergedWithVersions?: Record<string, number>; // TODO: make required once extending with ProcessedPolicyChangeRequest
   agent: {
     userId: string | null;
   };
@@ -833,6 +836,7 @@ export interface BaseChangeRequest extends BaseDoc {
 
 // TODO: update to "endorsementChanges" and "amendmentChanges"
 // TODO: same as policy change request --> use policy change request instead (locationID moved inside changes objects)
+// TODO: create extend to create ProcessedPolicyChangeRequest (mergedPolicyVersion, status: 'accepted' 'cancelled', etc., or mergedVersions: { [id]: number })
 export interface PolicyChangeRequest extends BaseChangeRequest {
   formValues: LocationChangeValues; // TODO: support multi-location. remove req eff date from form values
   endorsementChanges: Record<
@@ -849,13 +853,17 @@ export interface PolicyChangeRequest extends BaseChangeRequest {
       | 'termDays'
     >
   >;
-  locationId: string; // TODO: delete once using multi-location (store ID in form values)
-  scope: 'location'; // TODO: delete (only to pass validation in calcLocationChanges)
   amendmentChanges: Record<
     string,
     Partial<Pick<ILocation, 'additionalInsureds' | 'mortgageeInterest'>>
   >;
+  locationChanges: PolicyChangeRequest['endorsementChanges'] &
+    PolicyChangeRequest['amendmentChanges'];
   policyChanges: DeepPartial<Policy>;
+  policyChangesCalcVersion?: number;
+  locationId: string; // TODO: delete once using multi-location (store ID in form values)
+  scope: 'location'; // TODO: delete (only to pass validation in calcLocationChanges)
+  mergedVersions?: Record<string, number | null>;
 }
 
 export interface LocationChangeRequest extends BaseChangeRequest {

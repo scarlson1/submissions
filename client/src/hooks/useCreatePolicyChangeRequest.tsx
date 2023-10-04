@@ -166,7 +166,7 @@ function getCommonTrxJson(
   return {
     scope: 'policy',
     requestEffDate: Timestamp.fromDate(reqEffDate),
-    policyVersion: policy?.metadata?.version || null,
+    createdAtPolicyVersion: policy?.metadata?.version || null,
     policyId: policy.id,
     userId: policy.userId || '',
     formValues,

@@ -1,3 +1,4 @@
+import { GeoPoint } from 'firebase-admin/firestore';
 import {
   Address,
   AgentDetails,
@@ -13,9 +14,9 @@ import {
   maxBCD,
   minA,
 } from '../../common/index.js';
-import { verify, isValidEmail } from '../../utils/index.js';
+import { isValidCoords, isValidEmail, verify } from '../../utils/index.js';
 
-export function validateLimits(limits: Limits): asserts limits is Limits {
+export function validateLimits(limits?: Partial<Limits>): asserts limits is Limits {
   const MAX_A = maxA.value();
   const MIN_A = minA.value();
   const MAX_BCD = maxBCD.value();
@@ -42,7 +43,7 @@ export function validateLimits(limits: Limits): asserts limits is Limits {
   verify(totalBCD <= MAX_BCD, `sum of limits B, C, D must be less than ${MAX_BCD}`);
 }
 
-export function validateDeductible(deductible: number): asserts deductible is number {
+export function validateDeductible(deductible?: number): asserts deductible is number {
   verify(
     deductible && typeof deductible === 'number' && deductible > 1000,
     'invalid deductible. must be number > 1000'
@@ -94,6 +95,12 @@ export function validateAALs(
     (AALs?.tsunami || AALs?.tsunami === 0) && typeof AALs.tsunami === 'number',
     'tsunami AALs must be a number'
   );
+}
+
+export function validateCoords(coords?: any): asserts coords is GeoPoint {
+  verify(coords, 'coordinates required');
+  const { latitude, longitude } = coords;
+  verify(latitude && longitude && isValidCoords(coords), 'coordinates required');
 }
 
 export function validateCommission(commissionPct: number): asserts commissionPct is number {

@@ -1,7 +1,7 @@
 import { Firestore, Timestamp } from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
+import { merge, set } from 'lodash-es';
 
-import { merge } from 'lodash-es';
 import {
   CHANGE_REQUEST_STATUS,
   ILocation,
@@ -13,6 +13,16 @@ import {
 } from '../../common/index.js';
 import { deepMergeOverwriteArrays, verify } from '../../utils/index.js';
 
+// TODO: handle cancel, reinstatement, etc.
+
+/**
+ * Firebase transaction to merge locationChanges and policyChanges from a change request (& sets change request status to accepted)
+ * @param {Firestore} db  firestore reference
+ * @param {string} policyId policy doc ID
+ * @param {string} requestId request doc ID
+ * @param {object} reqUpdates data to set in the request record
+ * @returns {object} object with updated locationData and policyData
+ */
 export const mergePolicyLocationChanges = async (
   db: Firestore,
   policyId: string,
@@ -54,19 +64,18 @@ export const mergePolicyLocationChanges = async (
     //   );
     // }
 
-    const locationChanges = merge(endorsementChanges || {}, amendmentChanges || {}); // TODO: add cancelChanges ?? (add location should store values under endorsementChanges ??)
-    // what about reinstatement
-    const locationIds = Object.keys(locationChanges);
-    const locationRefs = locationIds.map((lcnId) => locationsCol.doc(lcnId));
-
     const policySnap = await transaction.get(policyRef);
     const policy = policySnap.data();
     // const locationSnap = locationRef ? await transaction.get(locationRef) : null;
     verify(policySnap.exists && policy, 'Policy document does not exist');
     // verify(!isLcnScope || locationSnap?.exists, 'Location document does not exist');
+    const locationChanges = merge(endorsementChanges || {}, amendmentChanges || {}); // TODO: add cancelChanges ?? (add location should store values under endorsementChanges ??)
+    // what about reinstatement
+    const locationIds = Object.keys(locationChanges);
+    const locationRefs = locationIds.map((lcnId) => locationsCol.doc(lcnId));
     // TODO: need to check if location docs exist ?? or assume they do? don't want to flatten and use update doc b/c of additional interest arrays
-    const locationSnaps = await transaction.getAll(...locationRefs);
     const locations: Record<string, ILocation> = {};
+    const locationSnaps = await transaction.getAll(...locationRefs);
     locationSnaps.forEach((snap) => {
       const lcnData = snap.data();
       if (!snap.exists || !lcnData) throw new Error(`location doc does not exist (${snap.id})`);
@@ -76,7 +85,7 @@ export const mergePolicyLocationChanges = async (
     info(`Updating policy (${policyId}) with changes (requestId: ${requestId})`, { ...request });
 
     const meta = { metadata: { updated: Timestamp.now() } };
-    let res: { locationData?: ILocation } = {};
+    let res: { locationData?: Record<string, ILocation> } = {};
 
     for (let [lcnId, lcnChanges] of Object.entries(locationChanges)) {
       // TODO: need to deep merge ?? instead of update ??
@@ -85,6 +94,7 @@ export const mergePolicyLocationChanges = async (
       info(`merging location data ${lcnId}`, { lcnData, lcnChanges });
 
       transaction.set(locationsCol.doc(lcnId), mergedLcn, { merge: true });
+      set(res, `locationData.${lcnId}`, mergedLcn);
     }
 
     let newPolicyData = deepMergeOverwriteArrays(policySnap.data(), {

@@ -14,9 +14,9 @@ import {
   minA,
 } from '../../common/index.js';
 import { getSwissReInstance } from '../../services/index.js';
-import { isValidCoords } from '../../utils/index.js';
 import { getRCVs } from './getRCVs.js';
 import { swissReBody } from './swissReBody.js';
+import { validateCoords } from './validation.js';
 
 let swissReInstance: AxiosInstance | undefined;
 
@@ -114,12 +114,13 @@ export const validateGetAALsProps = (props: Partial<GetAALsProps>) => {
   const MIN_A = minA.value() || 100000;
   const MAX_BCD = maxBCD.value() || 1000000;
 
-  invariant(coordinates, 'coordinates required');
-  const { latitude, longitude } = coordinates;
-  invariant(
-    latitude && longitude && isValidCoords(coordinates),
-    'latitude or longitude is missing or invalid'
-  );
+  validateCoords(coordinates);
+  // invariant(coordinates, 'coordinates required');
+  // const { latitude, longitude } = coordinates;
+  // invariant(
+  //   latitude && longitude && isValidCoords(coordinates),
+  //   'latitude or longitude is missing or invalid'
+  // );
   invariant(
     deductible && typeof deductible === 'number' && deductible >= 1000,
     'invalid deductible. must be number > 1000'

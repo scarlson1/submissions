@@ -1,10 +1,10 @@
 import { Typography } from '@mui/material';
+import { add } from 'date-fns';
 import { Timestamp, addDoc, doc } from 'firebase/firestore';
 import { FormikHelpers, FormikProps } from 'formik';
 import { useCallback, useRef } from 'react';
 import { useFirestore } from 'reactfire';
 import invariant from 'tiny-invariant';
-import { add } from 'date-fns';
 
 import {
   BaseChangeRequest,
@@ -55,7 +55,7 @@ export const useCreateCancelRequest = (
       let changeRequestData: BaseChangeRequest = {
         trxType,
         requestEffDate: Timestamp.fromDate(values.requestEffDate),
-        policyVersion: p.metadata.version || null,
+        createdAtPolicyVersion: p.metadata.version || null,
         policyId: p.id,
         userId,
         agent: {

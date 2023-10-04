@@ -1030,8 +1030,11 @@ interface BaseChangeRequest extends BaseDoc {
   trxType: ChangeRequestTrxType; // TODO: delete - handle trx by looping through endorsement and amendment changes
   requestEffDate: Timestamp;
   policyId: string;
-  policyVersion: number | null;
-  mergedWithPolicyVersion?: number | null;
+  // policyVersion: number | null;
+  createdAtPolicyVersion?: number | null;
+  policyChangesCalcVersion?: number | null;
+  mergedWithPolicyVersion?: number | null; // remove in favor of object
+  mergedWithVersions?: Record<string, number>; // TODO: make required once extending with ProcessedPolicyChangeRequest
   userId: string;
   agent: {
     userId: string | null;
@@ -1073,13 +1076,16 @@ export interface PolicyChangeRequest extends BaseChangeRequest {
       | 'termDays'
     >
   >;
-  locationId: string; // TODO: delete once using multi-location (store ID in form values)
-  scope: 'location'; // TODO: delete (only to pass validation in calcLocationChanges)
   amendmentChanges: Record<
     string,
     Partial<Pick<ILocation, 'additionalInsureds' | 'mortgageeInterest'>>
   >;
+  locationChanges: PolicyChangeRequest['endorsementChanges'] &
+    PolicyChangeRequest['amendmentChanges'];
   policyChanges: DeepPartial<PolicyNew>;
+  policyChangesCalcVersion?: number | null;
+  locationId: string; // TODO: delete once using multi-location (store ID in form values)
+  scope: 'location'; // TODO: delete (only to pass validation in calcLocationChanges)
 }
 
 // new cancel request interface - not in use yet
@@ -1088,6 +1094,7 @@ export interface CancellationRequest extends BaseChangeRequest {
     requestEffDate: Timestamp;
     cancelReason: string;
   };
+  // need to add cancelChanges ?? or something to indicate trx type
   locationChanges: Record<string, Pick<ILocation, 'termPremium'>>;
   policyChanges?: Pick<
     PolicyNew,
@@ -1170,6 +1177,7 @@ export interface AddLocationValues {
     | 'numStories'
     | 'floodZone'
   >;
+  additionalInterests: AdditionalInterest[];
 }
 
 export interface AddLocationRequest extends BaseChangeRequest {
@@ -1179,6 +1187,7 @@ export interface AddLocationRequest extends BaseChangeRequest {
   formValues: AddLocationValues;
   policyChanges?: DeepPartial<PolicyNew>;
   locationChanges?: DeepPartial<ILocation>;
+  endorsementChanges?: PolicyChangeRequest['endorsementChanges'];
   isAddLocationRequest: true; // TODO: remove ?? use scope = 'add_location' instead ??
   locationId: string;
 }

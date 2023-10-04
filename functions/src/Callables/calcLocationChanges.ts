@@ -6,6 +6,7 @@ import {
   DeepPartial,
   ILocation,
   LocationChangeValues,
+  PolicyChangeRequest,
   changeRequestsCollection,
   getReportErrorFn,
   locationsCollection,
@@ -24,8 +25,11 @@ import {
   getPremium,
   requiresRerate,
   validateAALs,
+  validateCoords,
+  validateDeductible,
   validateLimits,
   validateRCVs,
+  validateReplacementCost,
 } from '../modules/rating/index.js';
 import { calcTerm } from '../modules/transactions/index.js';
 import { onCallWrapper } from '../services/sentry/index.js';
@@ -36,7 +40,6 @@ import {
   separateAdditionalInterests,
   verify,
 } from '../utils/index.js';
-import { PROCESSED_STATUS } from './calcPolicyChanges.js';
 import { requireAuth, validate } from './utils/index.js';
 
 // called before review step --> runs for all change types or just  ??
@@ -62,7 +65,7 @@ const calcLocationChanges = async ({ data, auth }: CallableRequest<CalcLocationC
   requireAuth(auth);
 
   const { requestId, policyId } = data;
-  validate(requestId, 'failed-precondition', 'changeRequestId required');
+  validate(requestId, 'failed-precondition', 'requestId required');
   validate(policyId, 'failed-precondition', 'policyId required');
 
   const db = getFirestore();
@@ -73,23 +76,23 @@ const calcLocationChanges = async ({ data, auth }: CallableRequest<CalcLocationC
 
   const policyRef = policiesCol.doc(policyId);
   const changeReqRef = changeRequestCol.doc(requestId);
-
   const [policySnap, changeReqSnap] = await Promise.all([policyRef.get(), changeReqRef.get()]);
 
-  // const changeRequestSnap = await changeRequestCol.doc(changeRequestId).get();
   const policy = policySnap.data();
   const changeRequest = changeReqSnap.data();
+
   validate(policy, 'not-found', `policy not found (ID: ${policyId})`);
   validate(changeRequest, 'not-found', `change request does not exist (ID: ${requestId})`);
   validate(
-    !PROCESSED_STATUS.includes(changeRequest?.status),
+    changeRequest.status === 'draft',
     'failed-precondition',
-    `change request already processed`
+    'change request already submitted. please create a new one.'
   );
   const { trxType, scope, requestEffDate } = changeRequest;
 
   // TODO: finish validate fields (location(s), etc.)
   // might need different validation functions depending on trxType, scope, etc. ??
+  // remove once using new schema ??
   validate(trxType, 'failed-precondition', 'transaction type required');
   validate(scope, 'failed-precondition', 'scope required');
   validate(requestEffDate, 'failed-precondition', 'request effective date required');
@@ -138,7 +141,7 @@ const calcLocationChanges = async ({ data, auth }: CallableRequest<CalcLocationC
       await changeReqRef.set(
         {
           // @ts-ignore
-          endorsementChanges,
+          endorsementChanges, // does endorsement changes overwrite existing object when merges = true ??
           amendmentChanges,
         },
         { merge: true }
@@ -146,7 +149,7 @@ const calcLocationChanges = async ({ data, auth }: CallableRequest<CalcLocationC
       return amendmentChanges;
     }
 
-    // TODO: refactor to organize rerating into smaller functions & clean up flow
+    // temp variable while not using multi-location
     lcnChanges = endorsementChanges[lcnId];
 
     // endorsement values for premium calc:
@@ -165,13 +168,16 @@ const calcLocationChanges = async ({ data, auth }: CallableRequest<CalcLocationC
     };
 
     if (requireReratingEntries.length) {
-      const limits = { ...lcn.limits, ...(lcnChanges?.limits || {}) }; // TODO: ensure saving all limits instead of diff so combining is not necessary
-      // TODO: update type so limits is not deep partial or undefined ^^
+      const limits = lcnChanges?.limits || {};
+      // const limits = { ...lcn.limits, ...(lcnChanges?.limits || {}) };
+      // TODO: ensure saving all limits instead of diff so combining is not necessary
       const RCVs = lcn.RCVs;
 
-      // TODO: validate inputs (replacementCost, limits, deductible, etc.)
       validateRCVs(RCVs);
       validateLimits(limits);
+      validateDeductible(lcnChanges?.deductible);
+      validateReplacementCost(RCVs.building);
+      validateCoords(lcn.coordinates);
 
       try {
         AALsRes = await getAALs({
@@ -180,7 +186,7 @@ const calcLocationChanges = async ({ data, auth }: CallableRequest<CalcLocationC
           srSubKey: swissReSubscriptionKey.value(),
           replacementCost: RCVs.building,
           limits,
-          deductible: lcnChanges.deductible || lcn.deductible,
+          deductible: lcnChanges.deductible, // || lcn.deductible,
           coordinates: { latitude: lcn.coordinates.latitude, longitude: lcn.coordinates.longitude },
           numStories: lcn.ratingPropertyData?.numStories,
         });
@@ -199,6 +205,7 @@ const calcLocationChanges = async ({ data, auth }: CallableRequest<CalcLocationC
         prevRatingData?.premiumCalcData?.subproducerCommissionPct || 0.15
       );
     } else {
+      // TODO: unreachable ?? eff/exp dates removed from change request
       const AALs = prevRatingData?.AALs;
       validateAALs(AALs);
 
@@ -219,10 +226,20 @@ const calcLocationChanges = async ({ data, auth }: CallableRequest<CalcLocationC
       ...(AALsRes?.RCVs || {}),
     };
 
+    const { premiumData } = result;
+    verify(premiumData?.annualPremium && premiumData?.annualPremium > 100, 'premium < 100');
+    // TODO: validate results (premium, etc.)
+
+    // new location term premium
+    const { termPremium, termDays } = calcTerm(
+      premiumData.annualPremium,
+      requestEffDate.toDate(),
+      lcn.expirationDate.toDate()
+    );
+
     // TODO: reusable function createRatingDoc(location, premResult, ...rest) rest = optional overrides for stuff like deductible, etc.
-    info(`saving rating data...`);
     const ratingDocRef = ratingCol.doc(createDocId());
-    await ratingDocRef.set({
+    const ratingDocData = {
       submissionId: prevRatingData?.submissionId || null,
       locationId: lcnId,
       deductible: lcnChanges.deductible || lcn.deductible,
@@ -241,18 +258,7 @@ const calcLocationChanges = async ({ data, auth }: CallableRequest<CalcLocationC
         created: Timestamp.now(),
         updated: Timestamp.now(),
       },
-    });
-
-    const { premiumData } = result;
-    verify(premiumData?.annualPremium && premiumData?.annualPremium > 100, 'premium < 100');
-    // TODO: validate results (premium, etc.)
-
-    // new location term premium
-    const { termPremium, termDays } = calcTerm(
-      premiumData.annualPremium,
-      requestEffDate.toDate(),
-      lcn.expirationDate.toDate()
-    );
+    };
 
     const locationChangesWithRating = {
       // : PolicyChangeRequest['endorsementChanges']
@@ -288,17 +294,28 @@ const calcLocationChanges = async ({ data, auth }: CallableRequest<CalcLocationC
     }
     info(`policy changes (policy ID: ${policyId})`, policyChanges);
 
-    const updates = {
-      // TODO: remove ts-ignore once changed to new type
+    const updates: Partial<PolicyChangeRequest> = {
+      // TODO: TEMP FIX WHILE CONVERTING TO NEW TYPE
+      // NEED TO CHANGE locationChanges FROM SINGLE LOCATION TO OBJECT OF LOCATIONS
+      // @ts-ignore
       locationChanges,
       endorsementChanges: {
         [lcnId]: locationChangesWithRating,
       },
       amendmentChanges,
       policyChanges,
+      policyChangesCalcVersion: policy?.metadata?.version ?? null,
     };
 
-    await changeReqRef.set(updates, { merge: true });
+    const batch = db.batch();
+    batch.set(ratingDocRef, ratingDocData);
+    batch.set(changeReqRef, updates, { merge: true });
+    // await changeReqRef.set(updates, { merge: true });
+    info('batching rating data and change request updates...', {
+      ratingDocData,
+      changeRequestUpdates: updates,
+    });
+    await batch.commit();
 
     // return location changes
     return locationChanges;

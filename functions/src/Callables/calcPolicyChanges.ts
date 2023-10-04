@@ -105,7 +105,8 @@ const calcPolicyChanges = async ({ data, auth }: CallableRequest<CalcPolicyChang
     // separate returning value from saving to file (outside try/catch) ??
     await changeRequestSnap.ref.set(
       {
-        policyChanges,
+        policyChanges, // @ts-ignore TODO: remove ignore once using new type
+        policyChangesCalcVersion: policy?.metadata?.version ?? null,
       },
       { merge: true }
     );

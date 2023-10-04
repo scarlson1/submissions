@@ -3,7 +3,7 @@ import { Functions, httpsCallable } from 'firebase/functions';
 
 export interface AddLocationCalcRequest {
   policyId: string;
-  changeRequestId: string;
+  requestId: string;
 }
 
 export type AddLocationCalcResponse = Pick<

@@ -4,12 +4,14 @@ import { HttpsError } from 'firebase-functions/v1/auth';
 
 import { CLAIMS } from '../../common/index.js';
 
+export const isIDemandAdmin = (token?: DecodedIdToken | undefined) =>
+  token ? token[CLAIMS.IDEMAND_ADMIN] || false : false;
+
 export function requireIDemandAdminClaims(
   token: DecodedIdToken | undefined,
   errMsg?: string
 ): asserts token is DecodedIdToken {
-  const isIDemandAdmin = token ? token[CLAIMS.IDEMAND_ADMIN] || false : false;
-  if (!isIDemandAdmin) {
+  if (!isIDemandAdmin(token)) {
     let msg = errMsg || 'Admin permissions required';
 
     throw new HttpsError('permission-denied', msg);

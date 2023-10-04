@@ -210,7 +210,7 @@ function getCommonTrxJson(
   return {
     scope: 'location',
     requestEffDate: Timestamp.fromDate(reqEffDate),
-    policyVersion: policy.metadata?.version || null,
+    createdAtPolicyVersion: policy.metadata?.version || null,
     policyId: policy.id,
     locationId,
     formValues,

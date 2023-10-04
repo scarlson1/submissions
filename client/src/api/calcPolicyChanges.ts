@@ -1,12 +1,12 @@
 import { Functions, httpsCallable } from 'firebase/functions';
 
-import { LocationChangeRequest } from 'common';
+import { PolicyChangeRequest } from 'common';
 
 export interface CalcPolicyChangesRequest {
   requestId: string;
   policyId: string;
 }
-export type CalcPolicyChangesResponse = Pick<LocationChangeRequest, 'policyChanges'>;
+export type CalcPolicyChangesResponse = Pick<PolicyChangeRequest, 'policyChanges'>;
 
 export const calcPolicyChanges = (functions: Functions, args: CalcPolicyChangesRequest) =>
   httpsCallable<CalcPolicyChangesRequest, CalcPolicyChangesResponse>(

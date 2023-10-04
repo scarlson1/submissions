@@ -6,10 +6,13 @@ import { geohashForLocation } from 'geofire-common';
 import { isFinite } from 'lodash-es';
 import {
   DraftAddLocationRequest,
-  Limits,
+  ILocation,
   PolicyLocation,
+  RatingData,
   changeRequestsCollection,
   defaultFloodZone,
+  getReportErrorFn,
+  locationsCollection,
   policiesCollectionNew,
   ratingDataCollection,
   swissReClientId,
@@ -29,14 +32,23 @@ import {
 import { calcTerm } from '../modules/transactions/index.js';
 import { getFEMAFloodZone } from '../services/index.js';
 import { onCallWrapper } from '../services/sentry/index.js';
-import { compressAddress, isValidCoords } from '../utils/index.js';
-import { validate } from './utils/index.js';
+import { compressAddress, isValidCoords, separateAdditionalInterests } from '../utils/index.js';
+import { requireAuth, validate } from './utils/index.js';
 
 // TODO: modify function so it can be used for endorsements (use calcLocationChanges or keep separate ??)
 
+// TODO: should create/update location doc ??
+// set location.parentType == quote, but set to 'policy' in locationChanges ??
+
+// TODO: need to get commission from somewhere
+
+// TODO: if creating location, use ratingPropertyData from location doc instead of form values ??
+
+const reportErr = getReportErrorFn('addLocationCalc');
+
 interface AddLocationCalcProps {
   policyId: string;
-  changeRequestId: string;
+  requestId: string;
 }
 
 type AddLocationCalcResponse = Pick<
@@ -47,31 +59,33 @@ type AddLocationCalcResponse = Pick<
 const addLocationCalc = async ({ data, auth }: CallableRequest<AddLocationCalcProps>) => {
   info(`Approve import called`, { ...data });
 
-  const { changeRequestId, policyId } = data;
-  validate(auth?.uid, 'unauthenticated', 'must be signed in');
+  const { requestId, policyId } = data;
+  // TODO: verify auth.uid matches policy userId or agentId or iDemandAdmin
+  requireAuth(auth);
   validate(policyId, 'failed-precondition', 'policyId required');
-  validate(changeRequestId, 'failed-precondition', 'changeRequestId required');
+  validate(requestId, 'failed-precondition', 'requestId required');
 
   const db = getFirestore();
+  const policyCol = policiesCollectionNew(db);
   const changeRequestCol = changeRequestsCollection(db, policyId);
-  const changeRequestSnap = await changeRequestCol.doc(changeRequestId).get();
-  const changeRequest = changeRequestSnap.data();
+  const locationsCol = locationsCollection(db);
 
-  validate(changeRequest, 'not-found', `change request does not exist (ID: ${changeRequestId})`);
+  const policyRef = policyCol.doc(policyId);
+  const changeReqRef = changeRequestCol.doc(requestId);
+  const [policySnap, changeReqSnap] = await Promise.all([policyRef.get(), changeReqRef.get()]);
+
+  const policy = policySnap.data();
+  const changeRequest = changeReqSnap.data();
+
+  validate(policy, 'not-found', `policy not found (ID: ${policyId})`);
+  validate(changeRequest, 'not-found', `change request does not exist (ID: ${requestId})`);
   validate(
     changeRequest.status === 'draft',
     'failed-precondition',
     'change request already submitted. please create a new one.'
   );
 
-  const policyCol = policiesCollectionNew(db);
-  const policySnap = await policyCol.doc(policyId).get();
-  const policy = policySnap.data();
-
-  validate(policy, 'not-found', `policy not found (ID: ${policyId})`);
-
   try {
-    // get location doc if exists, otherwise --> create location document
     const { locationId, formValues } = changeRequest as DraftAddLocationRequest;
     const lcnId = locationId || createDocId();
     // const locationRef = locationsCollection(db).doc(lcnId);
@@ -84,6 +98,7 @@ const addLocationCalc = async ({ data, auth }: CallableRequest<AddLocationCalcPr
       ratingPropertyData,
       externalId,
       effectiveDate,
+      additionalInterests,
     } = formValues;
     const replacementCost = ratingPropertyData?.replacementCost;
     const numStories = ratingPropertyData?.numStories;
@@ -96,10 +111,9 @@ const addLocationCalc = async ({ data, auth }: CallableRequest<AddLocationCalcPr
     validate(limits, 'failed-precondition', 'limits required');
     validate(deductible, 'failed-precondition', 'deductible required');
     validate(isValidCoords(coordinates), 'failed-precondition', 'coordinates required');
-    validateLimits(limits as Limits);
+    validateLimits(limits);
 
     // prem calc input validation
-    // validate(ratingPropertyData.floodZone)
     validate(address?.state, 'failed-precondition', 'state required');
     validate(ratingPropertyData.basement, 'failed-precondition', 'basement required');
     validate(ratingPropertyData.priorLossCount, 'failed-precondition', 'prior loss count required');
@@ -111,8 +125,9 @@ const addLocationCalc = async ({ data, auth }: CallableRequest<AddLocationCalcPr
 
     // TODO: get commission from policy rating doc ??
     // create "protected" or "admin" or "sensitive" subcollection to store policy level private/admin data like subproducer commission ??
+    // need to get location and then fetch rating doc ?? maybe set up commission as private subcollection of policy ??
+    // when is location created ??
 
-    // handle rating
     let AALsRes: GetAALRes | undefined;
     try {
       AALsRes = await getAALs({
@@ -130,8 +145,7 @@ const addLocationCalc = async ({ data, auth }: CallableRequest<AddLocationCalcPr
       });
       // TODO: save to SR collection (see getSubmissionAAL)
     } catch (err: any) {
-      console.log('ERR: ', err);
-      error('ERROR GETTING AALs: ', { err });
+      error('ERROR GETTING AALs', { errData: err?.response?.data || null });
 
       throw new HttpsError('internal', 'Error fetching Average Annual Loss');
     }
@@ -186,7 +200,7 @@ const addLocationCalc = async ({ data, auth }: CallableRequest<AddLocationCalcPr
     const fullRatingPropertyData = {
       replacementCost,
       basement: ratingPropertyData.basement,
-      floodZone, // ratingPropertyData.floodZone,
+      floodZone,
       numStories,
       propertyCode: null,
       CBRSDesignation: null,
@@ -196,33 +210,6 @@ const addLocationCalc = async ({ data, auth }: CallableRequest<AddLocationCalcPr
       FFH: null,
       priorLossCount: ratingPropertyData.priorLossCount,
     };
-
-    // save rating doc
-    // TODO: create helper function for getting rating data
-    // pass to saveRatingData fn ??
-    const ratingDocRef = ratingDataCollection(db).doc(createDocId());
-    await ratingDocRef.set({
-      submissionId: null,
-      locationId: lcnId,
-      externalId: externalId || null,
-      deductible,
-      limits,
-      TIV: lcnPremResult.tiv, // TODO: change to .TIV
-      RCVs,
-      ratingPropertyData: fullRatingPropertyData,
-      AALs: AALsRes.AALs,
-      premiumCalcData: lcnPremResult.premiumData,
-      PM: lcnPremResult.pm,
-      riskScore: lcnPremResult.riskScore,
-      stateMultipliers: lcnPremResult.stateMultipliers,
-      secondaryFactorMults: lcnPremResult.secondaryFactorMults,
-      coordinates: new GeoPoint(coordinates.latitude, coordinates.longitude),
-      address: null,
-      metadata: {
-        created: Timestamp.now(),
-        updated: Timestamp.now(),
-      },
-    });
 
     const { premiumData: lcnPremData } = lcnPremResult;
 
@@ -257,43 +244,91 @@ const addLocationCalc = async ({ data, auth }: CallableRequest<AddLocationCalcPr
     // lcn / policy versioning issue ??
     // different endorsement approval flow ??
 
+    const ratingDocRef = ratingDataCollection(db).doc(createDocId());
+    const ratingDocData: RatingData = {
+      submissionId: null,
+      locationId: lcnId,
+      externalId: externalId || null,
+      deductible,
+      limits,
+      TIV: lcnPremResult.tiv, // TODO: change to .TIV
+      RCVs,
+      ratingPropertyData: fullRatingPropertyData,
+      AALs: AALsRes.AALs,
+      premiumCalcData: lcnPremResult.premiumData,
+      PM: lcnPremResult.pm,
+      riskScore: lcnPremResult.riskScore,
+      stateMultipliers: lcnPremResult.stateMultipliers,
+      secondaryFactorMults: lcnPremResult.secondaryFactorMults,
+      coordinates: new GeoPoint(coordinates.latitude, coordinates.longitude),
+      address: null,
+      metadata: {
+        created: Timestamp.now(),
+        updated: Timestamp.now(),
+      },
+    };
+
+    const { additionalInsureds, mortgageeInterest } = separateAdditionalInterests(
+      additionalInterests || []
+    );
+
+    const locationData: ILocation = {
+      parentType: 'quote',
+      ratingDocId: ratingDocRef.id,
+      address,
+      coordinates: new GeoPoint(coordinates.latitude, coordinates.longitude),
+      geoHash: geohashForLocation([coordinates.latitude, coordinates.longitude]),
+      annualPremium: lcnPremData.annualPremium,
+      termPremium,
+      termDays,
+      limits,
+      RCVs,
+      deductible,
+      additionalInsureds,
+      mortgageeInterest,
+      // @ts-ignore // TODO: fix property data error
+      ratingPropertyData: fullRatingPropertyData,
+      effectiveDate,
+      expirationDate: policy.expirationDate,
+      locationId: lcnId,
+      policyId,
+      externalId: externalId || null,
+    };
+
+    const locationChanges: AddLocationCalcResponse['locationChanges'] = {
+      ...locationData,
+      parentType: 'policy',
+    };
+
     // update change request w/ locationChanges & policyChanges
     const changeRequestUpdates: AddLocationCalcResponse = {
       locationId: lcnId,
-      locationChanges: {
-        parentType: 'policy',
-        ratingDocId: ratingDocRef.id,
-        address,
-        coordinates: new GeoPoint(coordinates.latitude, coordinates.longitude),
-        geoHash: geohashForLocation([coordinates.latitude, coordinates.longitude]),
-        annualPremium: lcnPremData.annualPremium,
-        termPremium,
-        termDays,
-        limits,
-        RCVs,
-        deductible,
-        additionalInsureds: [], // TODO: add to form
-        mortgageeInterest: [], // @ts-ignore // TODO: fix property data error
-        ratingPropertyData: fullRatingPropertyData,
-        effectiveDate,
-        expirationDate: policy.expirationDate,
-        locationId: lcnId,
-        policyId,
-        externalId: externalId || null,
-      },
+      locationChanges,
       policyChanges: {
         ...policyPremRecalc,
         locations: {
           [lcnId]: newLcnSummary,
         },
       },
+      formValues,
     };
     info(`saving change request location/policy changes...`, { ...changeRequestUpdates });
 
-    await changeRequestSnap.ref.set(
+    const batch = db.batch();
+
+    batch.set(locationsCol.doc(lcnId), locationData, { merge: true });
+
+    batch.set(ratingDocRef, ratingDocData);
+
+    batch.set(
+      changeReqRef,
       {
         ...changeRequestUpdates,
-        userId: policy.userId || auth.uid, // use policy userId or request ??
+        // @ts-ignore (delete ?? need to decide how endorsement trx is emitted)
+        endorsementChanges: {
+          [lcnId]: locationChanges,
+        },
+        userId: policy.userId || auth.uid, // TODO: use policy userId or request ?? (verify in permissions check above ??)
         agent: {
           userId: policy.agent.userId || null,
         },
@@ -305,12 +340,16 @@ const addLocationCalc = async ({ data, auth }: CallableRequest<AddLocationCalcPr
       { merge: true }
     );
 
+    await batch.commit();
+
     return { ...changeRequestUpdates, formValues };
   } catch (err: any) {
-    if (err instanceof HttpsError) throw err;
-
     let msg = 'Error rating/calculating premium';
     if (err?.message) msg += ` (${err.message})`;
+
+    reportErr(msg, { auth, data }, err);
+
+    if (err instanceof HttpsError) throw err;
     throw new HttpsError('internal', msg);
   }
 };

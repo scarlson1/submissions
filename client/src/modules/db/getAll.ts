@@ -12,6 +12,8 @@ import {
 
 import { COLLECTIONS } from 'common';
 
+// TODO: support sub collections
+
 export async function getAll<T extends DocumentData>(
   db: Firestore,
   colName: keyof typeof COLLECTIONS,
