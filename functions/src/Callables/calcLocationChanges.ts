@@ -1,5 +1,5 @@
 import { Timestamp, getFirestore } from 'firebase-admin/firestore';
-import { error, info } from 'firebase-functions/logger';
+import { info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import { isEmpty } from 'lodash-es';
 import {
@@ -185,8 +185,8 @@ const calcLocationChanges = async ({ data, auth }: CallableRequest<CalcLocationC
           numStories: lcn.ratingPropertyData?.numStories,
         });
       } catch (err: any) {
-        console.log('ERROR: ', err);
-        error('Error getting AALs from SR', { err });
+        if (err?.response) console.log('ERROR: ', err.response.data);
+        // error('Error getting AALs from SR', { err });
         throw new Error('Error getting AALs from SR');
       }
 

@@ -1,34 +1,35 @@
-import { useCallback, useEffect, useState } from 'react';
-import axios from 'axios';
+import { CloseRounded, OpenInNewRounded } from '@mui/icons-material';
 import {
   Box,
   Card,
+  Checkbox,
+  CircularProgress,
+  FormControl,
+  IconButton,
+  InputLabel,
   Link,
-  Typography,
-  useTheme,
+  ListItemText,
+  MenuItem,
+  OutlinedInput,
+  Select,
   // Unstable_Grid2 as Grid,
   SelectChangeEvent,
-  FormControl,
-  InputLabel,
-  Select,
-  OutlinedInput,
-  MenuItem,
-  Checkbox,
-  ListItemText,
-  Stack,
   SelectProps,
-  CircularProgress,
+  Stack,
+  Typography,
+  useTheme,
 } from '@mui/material';
-import { Color, GeoJsonLayer, IconLayer, PickingInfo } from 'deck.gl/typed';
-import { format } from 'date-fns';
-import { OpenInNewRounded } from '@mui/icons-material';
 import { useQuery } from '@tanstack/react-query';
+import axios from 'axios';
+import { format } from 'date-fns';
+import { Color, GeoJsonLayer, IconLayer, PickingInfo } from 'deck.gl/typed';
+import { useCallback, useEffect, useState } from 'react';
 
-import { DeckMap } from './DeckMap';
-import { CoordObj, getPlaceMarker, getRGBAArray, stringToColor, svgToDataURL } from 'modules/utils';
-import { queryClient } from 'modules/queryClient';
 import { STATES_ABV_ARR } from 'common/statesList';
 import { useCollectionData } from 'hooks';
+import { queryClient } from 'modules/queryClient';
+import { CoordObj, getPlaceMarker, getRGBAArray, stringToColor, svgToDataURL } from 'modules/utils';
+import { DeckMap } from './DeckMap';
 
 // available filters: https://www.weather.gov/documentation/services-web-api#/default/alerts_active
 
@@ -181,22 +182,19 @@ interface ActiveEventsParams {
 }
 
 // query options: https://www.weather.gov/documentation/services-web-api#/default/alerts_query
-export const useActiveEvents = (params: ActiveEventsParams) =>
+export const useActiveEvents = (filters: ActiveEventsParams) =>
   useQuery({
     // ...(options || {}),
-    queryKey: ['activeEvents', params.status, params.event, params.area],
+    // queryKey: ['activeEvents', status, event, area],
+    queryKey: ['activeEvents', { ...filters }],
     queryFn: async ({ queryKey }) => {
-      // let params: Record<string, any> = {};
-      // if (queryKey[1]) params['status'] = queryKey[1];
-      // if (queryKey[2]) params['event'] = queryKey[2];
-      // if (queryKey[3] && queryKey[3] !== 'all') params['area'] = queryKey[3];
       const response = await axios.get(`https://api.weather.gov/alerts/active`, {
-        // params,
-        params: {
-          status: queryKey[1],
-          event: queryKey[2],
-          area: queryKey[3],
-        },
+        params: queryKey[1],
+        // params: {
+        //   status: queryKey[1],
+        //   event: queryKey[2],
+        //   area: queryKey[3],
+        // },
       });
       return response.data;
     },
@@ -268,6 +266,15 @@ export const ActiveEventsMap = () => {
     []
   );
 
+  const handleClearClick = useCallback(
+    (key: keyof ActiveEventsParams) => () =>
+      setParams((prev) => ({
+        ...prev,
+        [key]: [],
+      })),
+    []
+  );
+
   if (isError)
     return (
       <Typography align='center' component='div' color='text.secondary'>
@@ -290,7 +297,23 @@ export const ActiveEventsMap = () => {
           value={params.area || []}
           handleChange={handleFilterChange('area')}
           id='area'
-          options={STATES_ABV_ARR}
+          options={STATES_ABV_ARR} // @ts-ignore
+          endAdornment={
+            <IconButton
+              sx={{ display: params.area?.length ? '' : 'none' }}
+              onClick={handleClearClick('area')}
+              size='small'
+            >
+              <CloseRounded />
+            </IconButton>
+          }
+          // not working
+          // sx={{
+          //   '&.Mui-focused .MuiIconButton-root': {
+          //     color: 'primary.main',
+          //     display: params.area?.length ? '' : 'none',
+          //   },
+          // }}
         />
         <MultipleSelect
           label='Mode'
@@ -452,18 +475,23 @@ const MenuProps = {
   },
 };
 
-interface MultipleSelectProps {
+interface MultipleSelectProps extends SelectProps<string[]> {
   options: string[];
   handleChange: SelectProps<string[]>['onChange'];
   value: string[];
-  id: string;
-  label: string;
 }
 
-export function MultipleSelect({ handleChange, value, id, label, options }: MultipleSelectProps) {
+export function MultipleSelect({
+  handleChange,
+  value,
+  id,
+  label,
+  options,
+  ...props
+}: MultipleSelectProps) {
   return (
     <div>
-      <FormControl sx={{ m: 1, width: 220 }}>
+      <FormControl sx={{ m: 1, width: 240 }}>
         <InputLabel id={`multiple-checkbox-label-${id}`}>{label}</InputLabel>
         <Select
           labelId={`multiple-checkbox-label-${id}`}
@@ -474,6 +502,7 @@ export function MultipleSelect({ handleChange, value, id, label, options }: Mult
           input={<OutlinedInput label={label} />}
           renderValue={(selected) => value.join(', ')}
           MenuProps={MenuProps}
+          {...props}
         >
           {options.map((o) => (
             <MenuItem key={o} value={o}>

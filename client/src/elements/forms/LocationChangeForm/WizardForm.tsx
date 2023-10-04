@@ -7,9 +7,11 @@ import { useNavigate } from 'react-router-dom';
 import { useFirestoreDocData, useFunctions, useUser } from 'reactfire';
 
 import { calcLocationChanges } from 'api';
+import { CheckmarkLottie } from 'assets';
 import { ILocation, LocationChangeRequest } from 'common';
 import { Wizard } from 'components/forms';
 import { useDialog, useDocData } from 'hooks';
+import Lottie from 'lottie-react';
 import { createChangeRequest } from 'modules/db';
 import { combineToAdditionalInterests } from 'modules/utils';
 import { ROUTES, createPath } from 'router';
@@ -146,14 +148,25 @@ export const LocationChangeWizard = ({
         onSubmit={handleSubmitChangeRequest}
       />
       <Box>
-        <Typography variant='h4' align='center' sx={{ py: 10 }}>
-          Submitted!
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          <Lottie
+            animationData={CheckmarkLottie}
+            loop={false}
+            style={{ height: 100, width: 100, marginTop: -12 }}
+          />
+        </Box>
+        <Typography variant='h4' align='center' sx={{ pb: { xs: 3, sm: 4 } }}>
+          Request submitted!
         </Typography>
-        <Typography variant='body2' color='text.secondary' sx={{ py: 5 }}>
+        <Typography
+          variant='body2'
+          color='text.secondary'
+          sx={{ py: 5, mx: 'auto', maxWidth: 500 }}
+        >
           Your change request has been received. You'll receive a confirmation email once it has
           been review and processed by our underwriters.
         </Typography>
-        <Box sx={{ width: '100%', pt: 2 }}>
+        <Box sx={{ width: '100%', pt: 2, display: 'flex', justifyContent: 'flex-end' }}>
           <Button onClick={handleDone} sx={{ ml: 'auto' }}>
             Done
           </Button>

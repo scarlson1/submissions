@@ -39,6 +39,7 @@ export { useGridServerFilter } from './useGridServerFilter';
 export { useGridServerSort } from './useGridServerSort';
 export { useHandleAuthError } from './useHandleAuthError';
 export { useImgOnLoad } from './useImgOnLoad';
+export { useInfiniteDocs } from './useInfiniteDocs';
 export { useInviteUsers } from './useInviteUsers';
 export { useJsonDialog, useJsonTheme } from './useJsonDialog';
 export { useLocalStorage } from './useLocalStorage';

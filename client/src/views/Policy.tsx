@@ -33,25 +33,24 @@ import { where } from 'firebase/firestore';
 import { isEmpty } from 'lodash';
 import { Suspense, useCallback, useMemo, useState } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 
-import { ILocation, Policy as IPolicy, POLICY_STATUS } from 'common';
+import { ILocation, Policy as IPolicy, POLICY_STATUS, WithId } from 'common';
 import { ErrorFallback, LoadingSpinner, NotFound } from 'components';
 import { IconMenu } from 'components/IconButtonMenu';
-import { LocationsMap } from 'elements';
+import { LocationsMap, PolicyLocationCards } from 'elements';
 import {
   ChangeRequestsDialog,
   useViewChangeRequestsDialogProps,
 } from 'elements/ChangeRequestDialog';
-import { PolicyLocationCardsRQ } from 'elements/PolicyLocationCards';
 import { ContactList } from 'elements/forms';
 import { LocationsGrid } from 'elements/grids';
 import {
   useCreateCancelRequest,
-  useCreateLocationChangeRequestOld,
   useCreatePolicyChangeRequest,
   useDocData,
   useGeneratePDF,
+  useSafeParams,
 } from 'hooks';
 import { useCreateLocationChangeRequest } from 'hooks/useCreateLocationChangeRequest';
 import {
@@ -80,24 +79,21 @@ const getInitTabView = (searchParam: string | null) =>
   LOCATION_TABS.includes(searchParam || '') ? searchParam : 'cards';
 
 export const Policy = () => {
-  const { policyId } = useParams();
+  const { policyId } = useSafeParams(['policyId']); // useParams();
   let [searchParams, setSearchParams] = useSearchParams();
-
-  if (!policyId) throw new Error('policyId missing in url params');
+  const [locationsView, setLocationsView] = useState(getInitTabView(searchParams.get('l_view')));
 
   const { data } = useDocData<IPolicy>('POLICIES', policyId);
   const { downloadPDF: downloadPolicy } = useGeneratePDF('generateDecPDF');
 
-  const locationChangeDialog = useCreateLocationChangeRequestOld(policyId);
-  const testLocationChangeDialog = useCreateLocationChangeRequest();
+  // const locationChangeDialogOld = useCreateLocationChangeRequestOld(policyId);
+  const locationChangeDialog = useCreateLocationChangeRequest();
   const cancelDialog = useCreateCancelRequest(); // TODO: onsuccess => "you'll receive a confirmation email once our team has processed the request. expect to see a refund, if due, in X days"
   // const cancelLocationDialog = useCreateCancelRequest(
   //   // () =>
   //   //   toast.success(`Cancel request submitted. You'll receive a confirmation email once approved.`),
   //   // (msg) => toast.error(msg)
   // );
-
-  const [locationsView, setLocationsView] = useState(getInitTabView(searchParams.get('l_view')));
 
   const locationConstraints = useMemo(() => [where('policyId', '==', policyId)], [policyId]);
 
@@ -119,22 +115,22 @@ export const Policy = () => {
   );
 
   const handleLocationChangeRequest = useCallback(
-    (location: ILocation) => locationChangeDialog(location, data),
-    [locationChangeDialog, data]
+    (location: WithId<ILocation>) => locationChangeDialog(policyId, location.id),
+    [locationChangeDialog, policyId]
   );
 
-  const handleLocationChangeRequestGrid = useCallback(
-    ({ row }: GridRowParams) =>
-      () =>
-        locationChangeDialog(row, data),
-    [data, locationChangeDialog]
-  );
+  // const handleLocationChangeRequestGrid = useCallback(
+  //   ({ row }: GridRowParams) =>
+  //     () =>
+  //       locationChangeDialogOld(row, data),
+  //   [data, locationChangeDialogOld]
+  // );
 
   const handleLocationChangeDialog = useCallback(
     (params: GridRowParams) => () => {
-      testLocationChangeDialog(params.row.policyId, params.id.toString());
+      locationChangeDialog(params.row.policyId, params.id.toString());
     },
-    [testLocationChangeDialog]
+    [locationChangeDialog]
   );
 
   const handleCancelPolicy = useCallback(async () => {
@@ -174,11 +170,11 @@ export const Policy = () => {
         />,
       ];
     },
-    [handleLocationChangeRequestGrid, handleCancelLocation, handleLocationChangeDialog]
+    [handleCancelLocation, handleLocationChangeDialog]
   );
 
   const [locations, locationsCount] = useMemo(() => {
-    const locs = Object.entries(data.locations || {})
+    const lcns = Object.entries(data.locations || {})
       .filter(([id, l]) => !isEmpty(l))
       .map(([id, l]) => ({
         ...l,
@@ -187,9 +183,9 @@ export const Policy = () => {
         id,
       }));
 
-    const count = locs.length;
+    const count = lcns.length;
 
-    return [locs, count];
+    return [lcns, count];
   }, [data]);
 
   // TODO: throw & handle in error boundary ??
@@ -346,8 +342,7 @@ export const Policy = () => {
           <Suspense fallback={<LoadingSpinner loading={true} />}>
             {locationsView === 'cards' ? (
               <Box sx={{ py: 2 }}>
-                <PolicyLocationCardsRQ policyId={policyId} onEdit={handleLocationChangeRequest} />
-                {/* <PolicyLocationCards policyId={policyId} onEdit={handleLocationChangeRequest} /> */}
+                <PolicyLocationCards policyId={policyId} onEdit={handleLocationChangeRequest} />
               </Box>
             ) : null}
             {locationsView === 'grid' ? (
@@ -378,14 +373,6 @@ export const Policy = () => {
                           'date'
                         )}`}</Typography>
                       ) : null}
-
-                      {/* <Typography variant='body2' color='text.secondary'>{`${formatFirestoreTimestamp(
-                    info.object?.effectiveDate,
-                    'date'
-                  )} - ${formatFirestoreTimestamp(
-                    info.object?.expirationDate,
-                    'date'
-                  )}`}</Typography> */}
                     </Box>
                   )}
                 />

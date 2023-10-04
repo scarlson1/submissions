@@ -92,7 +92,11 @@ export const LocationChangesStep = ({
                 <Typography variant='h5' gutterBottom>
                   Limits
                 </Typography>
-                <LimitsStep replacementCost={replacementCost} />
+                <LimitsStep
+                  gridProps={{ columnSpacing: 3, rowSpacing: 5 }}
+                  gridItemProps={{ xs: 12, sm: 6, md: 3 }}
+                  replacementCost={replacementCost}
+                />
               </Grid>
               <Grid xs={12}>
                 <Divider sx={{ my: 3 }} />

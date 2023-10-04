@@ -14,7 +14,7 @@ import {
 import { noop } from 'lodash';
 import { useCallback } from 'react';
 
-import { ILocation, Policy, fallbackImages } from 'common';
+import { ILocation, Policy, WithId, fallbackImages } from 'common';
 import { FlexCard, FlexCardContent } from 'components';
 import { FlexCardContentWrapper } from 'components/FlexCard';
 import { dollarFormat, formatFirestoreTimestamp } from 'modules/utils';
@@ -23,11 +23,11 @@ import { Item } from 'views';
 // TODO: use <CardActions disableSpacing> for avatar
 
 export interface LocationCardProps {
-  location: ILocation;
+  location: WithId<ILocation>;
   namedInsured: Policy['namedInsured'];
   handleClick?: (id: string) => void;
   // policyId: string;
-  onEdit?: (location: ILocation) => void;
+  onEdit?: (location: WithId<ILocation>) => void;
 }
 
 export const LocationCard = ({

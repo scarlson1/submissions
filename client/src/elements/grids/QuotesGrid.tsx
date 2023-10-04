@@ -31,8 +31,7 @@ export const QuotesGrid = ({
   initialState,
   ...props
 }: QuotesGridProps) => {
-  // const { claims } = useAuth();
-  const { user, claims, orgId } = useClaims();
+  const { claims } = useClaims();
   const { isSmall } = useWidth();
   const sendNotifications = useSendQuoteNotification();
   const toast = useAsyncToast({ position: 'top-right' });

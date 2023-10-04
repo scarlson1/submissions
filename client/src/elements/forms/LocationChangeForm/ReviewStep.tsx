@@ -1,4 +1,3 @@
-import ReactJson from '@microlink/react-json-view';
 import { BedRounded, FenceRounded, HouseRounded, WeekendRounded } from '@mui/icons-material';
 import {
   Box,
@@ -6,19 +5,23 @@ import {
   CardContent,
   CardMedia,
   Chip,
+  Container,
+  Divider,
   Unstable_Grid2 as Grid,
   Tooltip,
   Typography,
 } from '@mui/material';
+import { merge } from 'lodash';
+import { Fragment, useCallback, useMemo, useState } from 'react';
+import { useFirestore } from 'reactfire';
+// import ReactJson from '@microlink/react-json-view';
+
 import { COLLECTIONS, ILocation, PolicyChangeRequest, WithId, fallbackImages } from 'common';
 import { WizardNavButtons } from 'components/forms';
 import { useAsyncToast, useDocData, useWizard } from 'hooks';
 import { useFirstRender } from 'hooks/utils';
-import { merge } from 'lodash';
 import { getAll } from 'modules/db';
-import { deepMergeOverwriteArrays, dollarFormat } from 'modules/utils';
-import { useCallback, useMemo, useState } from 'react';
-import { useFirestore } from 'reactfire';
+import { deepMergeOverwriteArrays, dollarFormat, dollarFormat2 } from 'modules/utils';
 
 interface ReviewStepProps {
   policyId: string;
@@ -76,7 +79,6 @@ export const ReviewStep = ({ policyId, requestId, onSubmit }: ReviewStepProps) =
   }, [locationData, data]);
 
   return (
-    // TODO: no point of grid if all xs={12}
     <Box
       sx={{
         display: 'flex',
@@ -84,18 +86,15 @@ export const ReviewStep = ({ policyId, requestId, onSubmit }: ReviewStepProps) =
         height: { xs: 300, sm: 400, md: 500, lg: 600 },
       }}
     >
-      <Grid container spacing={5} disableEqualOverflow sx={{ flex: '1 1 auto', overflowY: 'auto' }}>
-        <Grid xs={12}>
-          <Typography variant='h6' align='center'>
-            Review
-          </Typography>
-        </Grid>
-        {/* TODO: combine endorsement changes and amendments by location and present as location card w/ premium, limits, additional interests, deductible (requires either storing that info in the change request data or fetching each location. create component that fetching location and accepts value overrides ?? or fetch all locations above & combine data and then map result ??)*/}
+      <Container maxWidth='sm' disableGutters sx={{ flex: '1 1 auto', overflowY: 'auto' }}>
+        <Typography variant='h6' align='center'>
+          Review
+        </Typography>
 
-        {/* TODO: horizontal Location card - also used in bind quote */}
-        {locations.map((l) => (
-          <Grid xs={12} md={8} key={l.id}>
-            <Card sx={{ display: 'flex' }}>
+        {/* TODO: horizontal Location card - also used in bind quote (separate out to stand along component) */}
+        <Box sx={{ py: 3, maxHeight: 400, overflowY: 'auto' }}>
+          {locations.map((l) => (
+            <Card sx={{ display: 'flex', my: 3 }} key={l.id}>
               <CardMedia
                 component='img'
                 sx={{
@@ -108,7 +107,23 @@ export const ReviewStep = ({ policyId, requestId, onSubmit }: ReviewStepProps) =
               />
               <Box sx={{ display: 'flex', flexDirection: 'column', flex: '1 1 auto' }}>
                 <CardContent sx={{ flex: '1 0 auto' }}>
-                  <Typography variant='h6'>{l.address.addressLine1}</Typography>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Typography variant='h6'>{l.address.addressLine1}</Typography>
+                    <Box sx={{ flex: '0 0 auto', mt: -2 }}>
+                      <Typography
+                        variant='overline'
+                        align='right'
+                        color='text.secondary'
+                        sx={{ lineHeight: 1, fontSize: '0.675rem' }}
+                      >
+                        Annual Premium
+                      </Typography>
+                      <Typography variant='subtitle1' align='right' sx={{ lineHeight: 1.2 }}>
+                        {dollarFormat(l.annualPremium)}
+                      </Typography>
+                    </Box>
+                  </Box>
+
                   {/* <Typography variant='body2' color='text.secondary' fontSize='0.775rem'>
                     {`Effective: ${formatDate(values.effectiveDate, `MMM dd, yy`) || '--'} - ${
                       formatDate(addToDate({ years: 1 }, values.effectiveDate), `MMM dd, yy`) ||
@@ -165,22 +180,80 @@ export const ReviewStep = ({ policyId, requestId, onSubmit }: ReviewStepProps) =
                 </Grid>
               </Box>
             </Card>
-          </Grid>
-        ))}
-        <Grid xs={12}>
-          <Typography component='div' variant='body2' color='text.secondary'>
-            <ReactJson
-              src={data}
-              style={{ backgroundColor: 'inherit' }}
-              // theme={theme}
-              // theme={theme.palette.mode === 'dark' ? 'tomorrow' : 'rjv-default'}
-              iconStyle='circle'
-              // enableClipboard={(data) => copy(data.src, true)}
-              collapseStringsAfterLength={30}
-            />
-          </Typography>
+          ))}
+        </Box>
+        <Divider sx={{ my: 3 }} variant='middle' />
+        <Typography variant='h6'>New Policy Totals</Typography>
+        <Grid container spacing={2} sx={{ py: 4 }}>
+          {data.policyChanges?.termPremium ? (
+            <>
+              <Grid xs={8}>
+                <Typography variant='body1' sx={{ pr: 2, display: 'inline-block' }}>
+                  Policy Term Premium
+                </Typography>
+                <Typography
+                  variant='body2'
+                  color='text.secondary'
+                  component='span'
+                  sx={{ display: 'inline-block' }}
+                >
+                  {' '}
+                  (sum of location term premiums)
+                </Typography>
+              </Grid>
+              <Grid xs={4}>
+                <Typography variant='body1' fontWeight='fontWeightMedium' align='right'>
+                  {dollarFormat2(data.policyChanges.termPremium)}
+                </Typography>
+              </Grid>
+            </>
+          ) : null}
+          {data.policyChanges?.taxes?.length
+            ? data.policyChanges.taxes.map((t, i) => (
+                <Fragment key={`tax-${i}`}>
+                  <Grid xs={8}>
+                    <Typography variant='body1'>{t?.displayName}</Typography>
+                  </Grid>
+                  <Grid xs={4}>
+                    <Typography align='right'>{t?.value ? dollarFormat2(t?.value) : ''}</Typography>
+                  </Grid>
+                </Fragment>
+              ))
+            : null}
+          {data.policyChanges?.fees?.length
+            ? data.policyChanges.fees.map((f, i) => (
+                <Fragment key={`fee-${i}`}>
+                  <Grid xs={8}>
+                    <Typography variant='body1'>{f?.feeName}</Typography>
+                  </Grid>
+                  <Grid xs={4}>
+                    <Typography align='right'>{f?.value ? dollarFormat2(f?.value) : ''}</Typography>
+                  </Grid>
+                </Fragment>
+              ))
+            : null}
+          {data.policyChanges?.price ? (
+            <>
+              <Grid xs={8}>
+                <Typography variant='body1'>Policy Term Total</Typography>
+              </Grid>
+              <Grid xs={4}>
+                <Typography variant='body1' fontWeight='fontWeightMedium' align='right'>
+                  {dollarFormat2(data.policyChanges.price)}
+                </Typography>
+              </Grid>
+            </>
+          ) : null}
         </Grid>
-      </Grid>
+        {/* <Typography component='div' variant='body2' color='text.secondary' sx={{ my: 4 }}>
+          <ReactJson
+            src={data}
+            style={{ backgroundColor: 'inherit' }}
+            iconStyle='circle'
+            collapseStringsAfterLength={30}
+          />
+        </Typography> */}
+      </Container>
       <Box
         sx={{
           flex: '0 0 auto',
