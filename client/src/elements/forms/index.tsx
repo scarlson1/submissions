@@ -1,5 +1,4 @@
 export { AddAgents, agentsValidation } from './AddAgents';
-export { AddLocationForm } from './AddLocationForm';
 export { AddPaymentDialog, Transition } from './AddPaymentDialog';
 export { AddUsersDialog } from './AddUsersDialog';
 export { AddressStep } from './AddressStep';
@@ -36,7 +35,7 @@ export { ReviewStep } from './ReviewStep';
 export { SuccessStep } from './SuccessStep';
 export { TaxForm } from './TaxForm';
 
-export type { AddLocationValues } from './AddLocationForm';
+export type { AddLocationValues } from './AddLocation/AddLocationWizard';
 export type { AddPaymentMethodValues } from './AddPaymentDialog';
 export type { AddUserValues } from './AddUsersDialog';
 export type { AgencyReviewStepProps, ContactCardProps, ContactItem } from './AgencyReviewStep';

@@ -11,10 +11,10 @@ export {
   setUidByEmailOnCreate,
 } from './authEvents/index.js';
 export {
-  addlocationcalc,
   approvechangerequest,
   approveimport,
   assignquote,
+  calcaddlocation,
   calclocationchanges,
   calcpolicychanges,
   calcquote,

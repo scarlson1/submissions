@@ -44,19 +44,20 @@ import { requireAuth, validate } from './utils/index.js';
 
 // TODO: if creating location, use ratingPropertyData from location doc instead of form values ??
 
-const reportErr = getReportErrorFn('addLocationCalc');
+// TODO: rename calcAddLocation ??
+const reportErr = getReportErrorFn('calcAddLocation');
 
-interface AddLocationCalcProps {
+interface CalcAddLocationProps {
   policyId: string;
   requestId: string;
 }
 
-type AddLocationCalcResponse = Pick<
+type CalcAddLocationResponse = Pick<
   DraftAddLocationRequest,
   'locationId' | 'locationChanges' | 'policyChanges' | 'formValues'
 >;
 
-const addLocationCalc = async ({ data, auth }: CallableRequest<AddLocationCalcProps>) => {
+const calcAddLocation = async ({ data, auth }: CallableRequest<CalcAddLocationProps>) => {
   info(`Approve import called`, { ...data });
 
   const { requestId, policyId } = data;
@@ -295,13 +296,13 @@ const addLocationCalc = async ({ data, auth }: CallableRequest<AddLocationCalcPr
       externalId: externalId || null,
     };
 
-    const locationChanges: AddLocationCalcResponse['locationChanges'] = {
+    const locationChanges: CalcAddLocationResponse['locationChanges'] = {
       ...locationData,
       parentType: 'policy',
     };
 
     // update change request w/ locationChanges & policyChanges
-    const changeRequestUpdates: AddLocationCalcResponse = {
+    const changeRequestUpdates: CalcAddLocationResponse = {
       locationId: lcnId,
       locationChanges,
       policyChanges: {
@@ -354,4 +355,4 @@ const addLocationCalc = async ({ data, auth }: CallableRequest<AddLocationCalcPr
   }
 };
 
-export default onCallWrapper<AddLocationCalcProps>('addlocationcalc', addLocationCalc);
+export default onCallWrapper<CalcAddLocationProps>('calcaddlocation', calcAddLocation);

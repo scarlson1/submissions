@@ -61,6 +61,9 @@ import {
   stringAvatar,
 } from 'modules/utils';
 
+// TODO: should locations grid be passed location IDs explicitly ??
+// BUG: locations being added to policy before add location change request is processed (added by location versioning)
+
 // TODO: make location card flip on hover to show additional details ??
 
 // TODO:

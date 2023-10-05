@@ -17,13 +17,6 @@ import {
 } from '../common/index.js';
 import { GetPropertyDetailsAttomRequest } from './getPropertyDetailsAttom.js';
 
-export const addlocationcalc = onCall(
-  { secrets: [swissReClientId, swissReClientSecret, swissReSubscriptionKey] },
-  async (request) => {
-    return (await import('./addLocationCalc.js')).default(request);
-  }
-);
-
 export const approvechangerequest = onCall(async (request) => {
   return (await import('./approveChangeRequest.js')).default(request);
 });
@@ -36,6 +29,13 @@ export const assignquote = onCall(
   { minInstances: minInstances, memory: '128MiB' },
   async (request) => {
     return (await import('./assignQuote.js')).default(request);
+  }
+);
+
+export const calcaddlocation = onCall(
+  { secrets: [swissReClientId, swissReClientSecret, swissReSubscriptionKey] },
+  async (request) => {
+    return (await import('./calcAddLocation.js')).default(request);
   }
 );
 

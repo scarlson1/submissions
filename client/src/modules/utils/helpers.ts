@@ -798,11 +798,11 @@ export function compressedToFormattedAddr(
 ): string {
   options = { ...DEFAULT_OPTIONS, ...options };
   let result = '';
-  if (addr.s1 && !!options?.s1) result += addr.s1;
-  if (addr.s2 && !!options?.s2) result += `, ${addr.s2}`;
-  if (addr.c && !!options?.c) result += `, ${addr.c}`;
-  if (addr.st && !!options?.st) result += `, ${addr.st}`;
-  if (addr.p && !!options?.p) result += ` ${addr.p}`;
+  if (addr?.s1 && !!options?.s1) result += addr.s1;
+  if (addr?.s2 && !!options?.s2) result += `, ${addr.s2}`;
+  if (addr?.c && !!options?.c) result += `, ${addr.c}`;
+  if (addr?.st && !!options?.st) result += `, ${addr.st}`;
+  if (addr?.p && !!options?.p) result += ` ${addr.p}`;
 
   return result;
 }

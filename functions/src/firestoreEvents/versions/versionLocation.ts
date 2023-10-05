@@ -9,8 +9,7 @@ import {
   policiesCollectionNew,
   versionsCollection,
 } from '../../common/index.js';
-import { getDifference } from '../../utils/index.js';
-import { hasOne } from '../../utils/index.js';
+import { getDifference, hasOne } from '../../utils/index.js';
 
 const VERSION_LOCATION_DIFF_KEYS = [
   'parentType',
@@ -105,6 +104,10 @@ export default async (
     }
 
     await batch.commit();
+    info(`saved location version - location ID: ${locationId}`, {
+      beforeData: beforeData || null,
+      afterData: afterData || null,
+    });
   } catch (err: any) {
     let errMsg = 'error saving location version';
     if (err?.message) errMsg += ` ${err.message}`;

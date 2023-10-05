@@ -263,7 +263,7 @@ export const exclusionsValidation = object({
   }),
 });
 
-export const priorLossVal = string().oneOf(['0', '1', '2', '3+']);
+export const priorLossVal = string().label('priorLossCount').oneOf(['0', '1', '2', '3+']);
 
 export const priorLossValidation = object({
   priorLossCount: priorLossVal.required('Prior loss history is required'),

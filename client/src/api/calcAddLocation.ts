@@ -1,18 +1,18 @@
 import { DraftAddLocationRequest } from 'common';
 import { Functions, httpsCallable } from 'firebase/functions';
 
-export interface AddLocationCalcRequest {
+export interface CalcAddLocationRequest {
   policyId: string;
   requestId: string;
 }
 
-export type AddLocationCalcResponse = Pick<
+export type CalcAddLocationResponse = Pick<
   DraftAddLocationRequest,
   'locationId' | 'locationChanges' | 'policyChanges' | 'formValues'
 >;
 
-export const addLocationCalc = (functions: Functions, args: AddLocationCalcRequest) =>
-  httpsCallable<AddLocationCalcRequest, AddLocationCalcResponse>(
+export const calcAddLocation = (functions: Functions, args: CalcAddLocationRequest) =>
+  httpsCallable<CalcAddLocationRequest, CalcAddLocationResponse>(
     functions,
-    'addlocationcalc'
+    'calcaddlocation'
   )(args);

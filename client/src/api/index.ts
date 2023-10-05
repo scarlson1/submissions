@@ -1,7 +1,7 @@
-export { addLocationCalc } from './addLocationCalc';
 export { approveChangeRequest } from './approveChangeRequest';
 export { approveImport } from './approveImport';
 export { assignQuote } from './assignQuote';
+export { calcAddLocation } from './calcAddLocation';
 export { calcLocationChanges } from './calcLocationChanges';
 export { calcPolicyChanges } from './calcPolicyChanges';
 export { calcQuote } from './calcQuote';
@@ -21,10 +21,10 @@ export { moveUserToTenant } from './moveUserToTenant';
 export { sendEmail } from './sendEmail';
 export { verifyEPayToken } from './verifyEPayToken';
 
-export type { AddLocationCalcRequest, AddLocationCalcResponse } from './addLocationCalc';
 export type { ApproveChangeRequest, ApproveChangeResponse } from './approveChangeRequest';
 export type { ApproveImportRequest, ApproveImportResponse } from './approveImport';
 export type { AssignQuoteRequest, AssignQuoteResponse } from './assignQuote';
+export type { CalcAddLocationRequest, CalcAddLocationResponse } from './calcAddLocation';
 export type {
   CalcLocationChangesRequest,
   CalcLocationChangesResponse,

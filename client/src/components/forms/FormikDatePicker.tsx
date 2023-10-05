@@ -1,9 +1,11 @@
 import { DatePicker, DatePickerProps } from '@mui/x-date-pickers';
+import { add, format } from 'date-fns';
 import { useField } from 'formik';
-import { format, add } from 'date-fns';
 
 // TODO: read - https://reacthustle.com/blog/mui-react-datepicker-with-formik-typescript
 // https://next.material-ui-pickers.dev/guides/typescript
+
+// TODO: pass timezone prop for effective dates
 
 export interface FormikDatePickerProps extends DatePickerProps<any> {
   name: string;
@@ -11,7 +13,6 @@ export interface FormikDatePickerProps extends DatePickerProps<any> {
   minDate: Date | undefined;
   maxDate: Date | undefined | null;
   disablePast?: boolean;
-  // textFieldProps?: TextFieldProps;
 }
 
 export const FormikDatePicker = ({
@@ -19,27 +20,30 @@ export const FormikDatePicker = ({
   minDate,
   maxDate,
   disablePast = false,
-  // textFieldProps,
   slotProps,
   ...props
 }: FormikDatePickerProps) => {
-  const [field, meta, { setValue, setError }] = useField(name);
+  const [field, meta, { setValue, setError, setTouched }] = useField(name);
 
-  const getHelperText = meta.touched && Boolean(meta.error) ? meta.error : undefined;
+  const getHelperText = // @ts-ignore
+    meta.touched && Boolean(meta.error) ? meta.error : slotProps?.textField?.helperText;
 
   return (
     <DatePicker
       value={field.value}
       minDate={minDate}
       maxDate={maxDate}
-      onChange={(value: any) => setValue(value, false)}
+      onChange={(value: any) => {
+        console.log('onChange: ', value);
+        setValue(value); // false
+        setTouched(true);
+      }}
       slotProps={{
         ...slotProps,
         textField: {
           helperText: getHelperText,
           fullWidth: true,
           ...(slotProps?.textField || {}),
-          // ...textFieldProps,
         },
       }}
       onError={(reason, value) => {
@@ -47,25 +51,30 @@ export const FormikDatePicker = ({
         switch (reason) {
           case 'invalidDate':
             setError('Invalid date format');
-            break;
 
+            break;
           case 'disablePast':
             setError('Values in the past are not allowed');
-            break;
 
+            break;
           case 'maxDate':
             setError(
               `Date should not be after ${format(maxDate || add(new Date(), { days: 60 }), 'P')}`
             );
-            break;
 
+            break;
           case 'minDate':
             setError(`Date should not be before ${format(minDate!, 'P')}`);
-            break;
 
+            break;
           default:
             setError(undefined);
         }
+      }}
+      onAccept={(value) => {
+        console.log('onAccept: ', value);
+        setValue(value, true);
+        setTouched(true);
       }}
       views={['year', 'month', 'day']}
       format='MM/dd/yyyy'

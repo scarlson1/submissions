@@ -6,7 +6,7 @@ import { LoadingComponent } from 'components/layout';
 import { useSafeParams } from 'hooks';
 import { usePrevious } from 'hooks/utils';
 import { createChangeRequest } from 'modules/db';
-import { LocationChangeWizard } from './WizardForm';
+import { LocationChangeWizard } from './LocationChangeWizard';
 
 // TODO: delete (was used when change location had dedicated route)
 export const LocationChangeWrapper = () => {

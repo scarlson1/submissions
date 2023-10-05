@@ -12,7 +12,6 @@ import {
   MenuItem,
   OutlinedInput,
   Select,
-  // Unstable_Grid2 as Grid,
   SelectChangeEvent,
   SelectProps,
   Stack,
@@ -20,17 +19,18 @@ import {
   useTheme,
 } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
-import axios from 'axios';
-import { format } from 'date-fns';
+import axios, { AxiosRequestConfig } from 'axios';
 import { Color, GeoJsonLayer, IconLayer, PickingInfo } from 'deck.gl/typed';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 
 import { STATES_ABV_ARR } from 'common/statesList';
 import { useCollectionData } from 'hooks';
-import { queryClient } from 'modules/queryClient';
 import { CoordObj, getPlaceMarker, getRGBAArray, stringToColor, svgToDataURL } from 'modules/utils';
 import { DeckMap } from './DeckMap';
+import { renderEventTooltip, renderLocationTooltip } from './renderTooltips';
 
+// TODO: use example below to add "click" icon --> show details
+// hover info deck.gl example: https://github.com/visgl/deck.gl/blob/8.9-release/examples/website/icon/app.jsx
 // available filters: https://www.weather.gov/documentation/services-web-api#/default/alerts_active
 
 const FEMA_EVENT_TYPE_OPTIONS = [
@@ -168,10 +168,16 @@ const EVENT_STATUS_OPTIONS = ['actual', 'exercise', 'system', 'test', 'draft'];
 const FEMA_SEVERITY_OPTIONS = ['Extreme', 'Severe', 'Moderate', 'Minor', 'Unknown'];
 const FEMA_URGENCY_OPTIONS = ['Immediate', 'Expected', 'Future', 'Past', 'Unknown'];
 
+const LAYER_IDS = {
+  events: 'events-layer',
+  locations: 'locations-layer',
+};
+
 const colorCache: Record<string, Color> = {};
 
-// TODO: query controls - event type, status, area (state), etc.
+// TODO: use deck.gl filter extension ??
 // https://tkdodo.eu/blog/leveraging-the-query-function-context#how-to-type-the-queryfunctioncontext
+// query options: https://www.weather.gov/documentation/services-web-api#/default/alerts_query
 
 interface ActiveEventsParams {
   event: string[];
@@ -181,41 +187,26 @@ interface ActiveEventsParams {
   urgency?: string[];
 }
 
-// query options: https://www.weather.gov/documentation/services-web-api#/default/alerts_query
+async function fetchActiveEvents(params: AxiosRequestConfig<ActiveEventsParams>['params']) {
+  const { data } = await axios.get(`https://api.weather.gov/alerts/active`, {
+    params,
+  });
+  return data;
+}
+
 export const useActiveEvents = (filters: ActiveEventsParams) =>
   useQuery({
-    // ...(options || {}),
-    // queryKey: ['activeEvents', status, event, area],
     queryKey: ['activeEvents', { ...filters }],
-    queryFn: async ({ queryKey }) => {
-      const response = await axios.get(`https://api.weather.gov/alerts/active`, {
-        params: queryKey[1],
-        // params: {
-        //   status: queryKey[1],
-        //   event: queryKey[2],
-        //   area: queryKey[3],
-        // },
-      });
-      return response.data;
-    },
-    initialData: () => {
-      const allEvents = queryClient.getQueryData<any>(['activeEvents', FEMA_EVENT_TYPE_OPTIONS]);
-      // const filteredData = allTodos?.filter((todo) => todo.state === state) ?? [];
-      // TODO: handle filter initialData by event type
-      const filteredData = allEvents ?? []; // ?.filter((todo) => todo.state === state) ?? [];
-
-      return filteredData.length > 0 ? filteredData : undefined;
-    },
+    queryFn: async ({ queryKey }) => fetchActiveEvents(queryKey[1]),
+    // initialData: { type: 'FeatureCollection', features: [] },
     suspense: false,
   });
 
-// TODO: dynamic queries (type of event, location (state, county, policy locations, etc.))
 // zoom to bounds once data loaded ?? or query ??
-// TODO: compute # locations count / list overlapping with each type of storm event type
+// TODO: compute # locations count / list overlapping with each type of storm event type (render different color marker ??)
 export const ActiveEventsMap = () => {
   const theme = useTheme();
   const [hoverInfo, setHoverInfo] = useState<PickingInfo>(); // TODO: type FeatureCollection properties
-  // TODO: use deck.gl filter extension ??
   const [params, setParams] = useState<ActiveEventsParams>({
     event: FEMA_EVENT_TYPE_OPTIONS,
     status: ['actual'],
@@ -223,17 +214,14 @@ export const ActiveEventsMap = () => {
     severity: [],
     urgency: [],
   });
-  const { data, isFetching, isError, error } = useActiveEvents(params);
+  const { data: eventData, isFetching, isError, error } = useActiveEvents(params);
 
+  // TODO: add filter for parentType: 'policy' and expiration date > now
   const { data: locationData } = useCollectionData('LOCATIONS', [], {
     idField: 'id',
     suspense: false,
     initialData: [],
   });
-
-  useEffect(() => {
-    console.log('RQ Data: ', data);
-  }, [data]);
 
   const getEventColor = useCallback(
     (e: any) => {
@@ -266,7 +254,7 @@ export const ActiveEventsMap = () => {
     []
   );
 
-  const handleClearClick = useCallback(
+  const handleClear = useCallback(
     (key: keyof ActiveEventsParams) => () =>
       setParams((prev) => ({
         ...prev,
@@ -282,62 +270,17 @@ export const ActiveEventsMap = () => {
       </Typography>
     );
 
+  // TODO: mobile filter component (drawer or popover ?? or individual icon buttons like grid)
+  // TODO: switch to autocomplete instead of select for event filter dropdown
+  // TODO: location filters (filter by policy, named insured, etc.)
+  // might require rxjs observable to merge policy with locations ??
+  // TODO: use deck.gl filter instead of refetching for performance ??
+
   return (
     <Box>
-      <Stack spacing={3} direction={{ sm: 'column', md: 'row' }}>
-        <MultipleSelect
-          label='Event Type'
-          value={params.event}
-          handleChange={handleFilterChange('event')}
-          id='event'
-          options={FEMA_EVENT_TYPE_OPTIONS}
-        />
-        <MultipleSelect
-          label='State'
-          value={params.area || []}
-          handleChange={handleFilterChange('area')}
-          id='area'
-          options={STATES_ABV_ARR} // @ts-ignore
-          endAdornment={
-            <IconButton
-              sx={{ display: params.area?.length ? '' : 'none' }}
-              onClick={handleClearClick('area')}
-              size='small'
-            >
-              <CloseRounded />
-            </IconButton>
-          }
-          // not working
-          // sx={{
-          //   '&.Mui-focused .MuiIconButton-root': {
-          //     color: 'primary.main',
-          //     display: params.area?.length ? '' : 'none',
-          //   },
-          // }}
-        />
-        <MultipleSelect
-          label='Mode'
-          value={params.status}
-          handleChange={handleFilterChange('status')}
-          id='status'
-          options={EVENT_STATUS_OPTIONS}
-        />
-        <MultipleSelect
-          label='Severity'
-          value={params.severity || []}
-          handleChange={handleFilterChange('severity')}
-          id='severity'
-          options={FEMA_SEVERITY_OPTIONS}
-        />
-        <MultipleSelect
-          label='Urgency'
-          value={params.urgency || []}
-          handleChange={handleFilterChange('urgency')}
-          id='urgency'
-          options={FEMA_URGENCY_OPTIONS}
-        />
-      </Stack>
-
+      <Box sx={{ py: 2 }}>
+        <ActiveEventsFilters filters={params} onChange={handleFilterChange} onClear={handleClear} />
+      </Box>
       <Card sx={{ height: { xs: 360, sm: 400, lg: 500 }, width: '100%', position: 'relative' }}>
         {isFetching && (
           <Box sx={{ position: 'absolute', top: 8, right: 8, zIndex: 100 }}>
@@ -347,8 +290,8 @@ export const ActiveEventsMap = () => {
         <DeckMap
           layers={[
             new GeoJsonLayer({
-              id: 'geojson-layer',
-              data: data || {},
+              id: LAYER_IDS.events,
+              data: eventData || { type: 'FeatureCollection', features: [] },
               // data: 'https://api.weather.gov/alerts/active', // ?area=FL
               pickable: true,
               stroked: false,
@@ -364,9 +307,10 @@ export const ActiveEventsMap = () => {
               getLineWidth: 1,
               getElevation: 30,
               onHover: (info) => setHoverInfo(info),
+              onError: (err) => console.log('Layer error: ', err),
             }),
             new IconLayer({
-              id: 'locations-layer',
+              id: LAYER_IDS.locations,
               data: locationData,
               getIcon: (d: CoordObj) => ({
                 url: svgToDataURL(
@@ -386,36 +330,46 @@ export const ActiveEventsMap = () => {
               sizeScale: 1,
               getSize: (d) => 36,
               onHover: (info) => setHoverInfo(info),
+              pickable: true,
               updateTriggers: {
                 getIcon: [theme.palette.mode],
               },
-              // ...(layerProps || {}),
             }),
           ]}
           hoverInfo={hoverInfo}
-          renderTooltipContent={(info: PickingInfo) => (
-            <Box sx={{ px: 2, borderRadius: 0.5, zIndex: 2000 }}>
-              <Typography variant='body2' fontWeight='fontWeightMedium'>
-                {info.object?.properties?.event || ''}
-              </Typography>
-              <Typography variant='body2' color='text.secondary'>
-                {info.object?.properties?.areaDesc || ''}
-              </Typography>
-              {info.object?.properties?.effective ? (
-                <Typography variant='body2' color='text.secondary'>
-                  Effective:{' '}
-                  {format(new Date(info.object?.properties?.effective), 'MM/dd/yyyy h a')}
-                </Typography>
-              ) : null}
-              {info.object && info.object?.properties?.status !== 'Actual' ? (
-                <Typography
-                  variant='body2'
-                  color='warning.main'
-                  fontWeight='fontWeightMedium'
-                >{`Status: ${info.object?.properties?.status}`}</Typography>
-              ) : null}
-            </Box>
-          )}
+          renderTooltipContent={renderTooltip}
+          // renderTooltipContent={(info: PickingInfo) => (
+          //   <Box sx={{ px: 2, borderRadius: 0.5, zIndex: 2000 }}>
+          //     <Typography variant='body2' fontWeight='fontWeightMedium'>
+          //       {info.object?.properties?.event || ''}
+          //     </Typography>
+          //     <Typography
+          //       variant='body2'
+          //       color='text.secondary'
+          //       sx={{
+          //         maxWidth: 300,
+          //         overflowX: 'hidden',
+          //         textOverflow: 'ellipsis',
+          //         whiteSpace: 'nowrap',
+          //       }}
+          //     >
+          //       {info.object?.properties?.areaDesc || ''}
+          //     </Typography>
+          //     {info.object?.properties?.effective ? (
+          //       <Typography variant='body2' color='text.secondary'>
+          //         Effective:{' '}
+          //         {format(new Date(info.object?.properties?.effective), 'MM/dd/yyyy h a')}
+          //       </Typography>
+          //     ) : null}
+          //     {info.object && info.object?.properties?.status !== 'Actual' ? (
+          //       <Typography
+          //         variant='body2'
+          //         color='warning.main'
+          //         fontWeight='fontWeightMedium'
+          //       >{`Status: ${info.object?.properties?.status}`}</Typography>
+          //     ) : null}
+          //   </Box>
+          // )}
         >
           {/* BUG: tooltip renders under layers when passed as child to "Map" (vs. child of DeckGL) - cause = mapRef issue ?? */}
           {/* <HoverInfo
@@ -463,6 +417,18 @@ export const ActiveEventsMap = () => {
     </Box>
   );
 };
+
+// break into smaller re-usable functions (renderLocationTooltip, etc.)
+function renderTooltip(info?: PickingInfo) {
+  if (!info) return null;
+  let layerId = info?.layer?.id;
+
+  if (layerId === LAYER_IDS.events) return renderEventTooltip(info);
+
+  if (layerId === LAYER_IDS.locations) return renderLocationTooltip(info);
+
+  return null;
+}
 
 const ITEM_HEIGHT = 40;
 const ITEM_PADDING_TOP = 8;
@@ -513,5 +479,80 @@ export function MultipleSelect({
         </Select>
       </FormControl>
     </div>
+  );
+}
+
+interface ActiveEventsFiltersProps {
+  filters: ActiveEventsParams;
+  onChange: (
+    key: keyof ActiveEventsParams
+  ) => (event: SelectChangeEvent<string[] | string>) => void;
+  onClear: (key: keyof ActiveEventsParams) => () => void;
+}
+
+function ActiveEventsFilters({ filters, onChange, onClear }: ActiveEventsFiltersProps) {
+  return (
+    <Stack spacing={3} direction={{ sm: 'column', md: 'row' }}>
+      <MultipleSelect
+        label='Event Type'
+        value={filters.event}
+        handleChange={onChange('event')}
+        id='event'
+        options={FEMA_EVENT_TYPE_OPTIONS}
+        endAdornment={
+          <IconButton
+            sx={{ display: filters.event?.length ? '' : 'none' }}
+            onClick={onClear('event')}
+            size='small'
+          >
+            <CloseRounded />
+          </IconButton>
+        }
+      />
+      <MultipleSelect
+        label='State'
+        value={filters.area || []}
+        handleChange={onChange('area')}
+        id='area'
+        options={STATES_ABV_ARR} // @ts-ignore
+        endAdornment={
+          <IconButton
+            sx={{ display: filters.area?.length ? '' : 'none' }}
+            onClick={onClear('area')}
+            size='small'
+          >
+            <CloseRounded />
+          </IconButton>
+        }
+        // not working
+        // sx={{
+        //   '&.Mui-focused .MuiIconButton-root': {
+        //     color: 'primary.main',
+        //     display: params.area?.length ? '' : 'none',
+        //   },
+        // }}
+      />
+      <MultipleSelect
+        label='Mode'
+        value={filters.status}
+        handleChange={onChange('status')}
+        id='status'
+        options={EVENT_STATUS_OPTIONS}
+      />
+      <MultipleSelect
+        label='Severity'
+        value={filters.severity || []}
+        handleChange={onChange('severity')}
+        id='severity'
+        options={FEMA_SEVERITY_OPTIONS}
+      />
+      <MultipleSelect
+        label='Urgency'
+        value={filters.urgency || []}
+        handleChange={onChange('urgency')}
+        id='urgency'
+        options={FEMA_URGENCY_OPTIONS}
+      />
+    </Stack>
   );
 }

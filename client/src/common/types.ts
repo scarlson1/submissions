@@ -133,6 +133,10 @@ export type PathValue<T, P extends Path<T>> = P extends `${infer K}.${infer Rest
 
 export type Primitive = string | number | bigint | boolean | symbol | null | undefined;
 
+export type AllowString<Type> = {
+  [Property in keyof Type]: Type[Property] | string;
+};
+
 export interface Submission extends Omit<FloodValues, 'ratingPropertyData'> {
   product: Product;
   coordinates: GeoPoint;
