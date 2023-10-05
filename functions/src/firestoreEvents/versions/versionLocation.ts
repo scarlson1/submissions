@@ -86,10 +86,15 @@ export default async (
       let policySnap = await policiesCol.doc(afterData.policyId).get();
       // might not exist if policy import from CSV
       if (policySnap.exists) {
-        const policyUpdates = {
-          [`locations.${locationId}.version`]: oldVersion + 1,
-        };
-        batch.update(policySnap.ref, policyUpdates);
+        // don't add to policy locations if it's not already in policy
+        let policyLcns = policySnap.data()?.locations;
+        let policyLcn = policyLcns ? policyLcns[locationId] : null;
+        if (policyLcn) {
+          const policyUpdates = {
+            [`locations.${locationId}.version`]: oldVersion + 1,
+          };
+          batch.update(policySnap.ref, policyUpdates);
+        }
       }
     }
 
