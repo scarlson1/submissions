@@ -46,7 +46,7 @@ export function getFirestoreFilters(filterModel: GridFilterModel | undefined) {
   return newFilters;
 }
 
-export const ORDER_BY_OPS = ['<', '<=', '!=', 'not-in', '>', '>='];
+export const ORDER_BY_OPS = ['<', '<=', '!=', 'in', 'not-in', '>', '>='];
 
 /**
  * if constraints includes <, <=, !=, not-in, >, or >= operator, must have orderBy

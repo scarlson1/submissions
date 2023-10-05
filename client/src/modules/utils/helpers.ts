@@ -806,3 +806,7 @@ export function compressedToFormattedAddr(
 
   return result;
 }
+
+export const logDev = (...props: any[]) => {
+  if (process.env.REACT_APP_FB_PROJECT_ID === 'idemand-submissions-dev') console.log(props);
+};

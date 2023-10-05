@@ -16,6 +16,9 @@ import { PropertyRatingDataStep, RatingDataValues } from './PropertyRatingDataSt
 import { ReviewStep } from './ReviewStep';
 import { SubmittedStep } from './SubmittedStep';
 
+// TODO: need to set userId, agent, org at some point
+// TODO: wrap each step in error boundary that resets current step values to initial values
+
 export interface BaseStepProps<T> extends Omit<FormikConfig<T>, 'onSubmit'> {
   saveChangeRequest: (values: T) => Promise<void>;
   onError?: (msg: string) => void;
@@ -34,32 +37,20 @@ interface AddLocationFormProps
 export const AddLocationWizard = ({
   changeRequestDocResource,
   policyId,
-  // product,
   onSubmit,
-  // changeRequestId,
   ...props // TODO: pass to each step ?? (then to <Formik>)
 }: AddLocationFormProps) => {
   const functions = useFunctions();
-  // const firestore = useFirestore();
-  // const { data } = useDocData(
-  //   'POLICIES',
-  //   changeRequestId,
-  //   [policyId, COLLECTIONS.CHANGE_REQUESTS],
-  //   { idField: 'id' }
-  // );
   const changeRequestRef =
-    changeRequestDocResource.read() as DocumentReference<DraftAddLocationRequest>; // <LocationChangeRequest>;
+    changeRequestDocResource.read() as DocumentReference<DraftAddLocationRequest>;
 
   const { data } = useFirestoreDocData<DraftAddLocationRequest>(changeRequestRef);
   const toast = useAsyncToast({ position: 'top-right' });
-  // const reqCol = changeRequestsCollection(firestore, policyId);
-  // const changeRequestRef = doc(reqCol, changeRequestId);
 
   // TODO: validate status === draft (throw and handle in Error Boundary)
 
   const serverValues = useMemo(() => data?.formValues || null, [data]);
 
-  // TODO: use ref from suspense change request.read() ??
   const saveChangeRequest = useCallback(
     async (values: AddressValues | LimitValues | DeductibleValues | RatingDataValues) =>
       await setDoc(
@@ -142,6 +133,7 @@ export const AddLocationWizard = ({
         onError={handleError}
       />
       <PropertyRatingDataStep
+        policyId={policyId}
         saveChangeRequest={saveChangeRequest}
         calcChanges={handleCalcChanges}
         initialValues={{
@@ -164,7 +156,7 @@ export const AddLocationWizard = ({
         }}
         onError={handleError}
       />
-      <ReviewStep data={data} onSubmit={handleSubmit} onError={handleError} />
+      <ReviewStep changeRequest={data} onSubmit={handleSubmit} />
       <SubmittedStep data={data} />
     </Wizard>
   );

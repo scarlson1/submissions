@@ -98,7 +98,16 @@ export const Policy = () => {
   //   // (msg) => toast.error(msg)
   // );
 
-  const locationConstraints = useMemo(() => [where('policyId', '==', policyId)], [policyId]);
+  const locationConstraints = useMemo(
+    () => [where('policyId', '==', policyId), where('parentType', '==', 'policy')],
+    [policyId]
+  );
+  // BUG: won't work - can only have 50 values in "in" query
+  // https://firebase.google.com/docs/firestore/query-data/queries#limits_on_or_queries
+  // const locationConstraints = useMemo(
+  //   () => [where(documentId(), 'in', Object.keys(data?.locations || {}))],
+  //   [data]
+  // );
 
   const handleViewChange = useCallback(
     (event: React.MouseEvent<HTMLElement>, newView: string | null) => {

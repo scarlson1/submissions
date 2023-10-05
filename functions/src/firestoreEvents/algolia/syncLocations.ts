@@ -18,8 +18,7 @@ import {
   quotesCollection,
   submissionsCollection,
 } from '../../common/index.js';
-import { verify } from '../../utils/index.js';
-import { getFormattedAddress, getVisibleBy } from '../../utils/index.js';
+import { getFormattedAddress, getVisibleBy, verify } from '../../utils/index.js';
 import { removeAlgoliaRecord } from './syncPolicies.js';
 
 const reportErr = getReportErrorFn('syncLocations');

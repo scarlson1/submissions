@@ -41,6 +41,10 @@ declare module '@mui/x-data-grid' {
 
 // TODO: need to pass in "constraints" passed as prop to server grid (or create additional custom grid context component to store server-side filters & sort) ??
 
+// TODO: need to disable certain types of filters when query limits are met
+// https://firebase.google.com/docs/firestore/query-data/queries#query_limitations
+// ex: can't combine not-in with in, array-contains-any, or or
+
 export interface ServerDataGridProps extends Partial<Omit<DataGridProps, 'rows'>> {
   colName: keyof typeof COLLECTIONS;
   pathSegments?: string[];
@@ -48,6 +52,8 @@ export interface ServerDataGridProps extends Partial<Omit<DataGridProps, 'rows'>
   isCollectionGroup?: boolean;
   columns: GridColDef[];
 }
+
+//  inequality filter property and first sort order must be the same
 
 export const ServerDataGrid = ({
   colName,
@@ -92,7 +98,7 @@ export const ServerDataGrid = ({
 
   const fetchCount = useFetchDocCount(
     colName,
-    [...filters, ...constraints],
+    [...filters, ...constraints], // TODO: does aggregation query need order by if inequality operator ?? ... getOrderByIfNecessary(constraints)
     isCollectionGroup,
     pathSegments
   );

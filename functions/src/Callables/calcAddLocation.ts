@@ -58,7 +58,7 @@ type CalcAddLocationResponse = Pick<
 >;
 
 const calcAddLocation = async ({ data, auth }: CallableRequest<CalcAddLocationProps>) => {
-  info(`Approve import called`, { ...data });
+  info(`Calc add location called`, { ...data });
 
   const { requestId, policyId } = data;
   // TODO: verify auth.uid matches policy userId or agentId or iDemandAdmin
@@ -274,7 +274,7 @@ const calcAddLocation = async ({ data, auth }: CallableRequest<CalcAddLocationPr
     );
 
     const locationData: ILocation = {
-      parentType: 'quote',
+      parentType: null, // 'quote',
       ratingDocId: ratingDocRef.id,
       address,
       coordinates: new GeoPoint(coordinates.latitude, coordinates.longitude),
