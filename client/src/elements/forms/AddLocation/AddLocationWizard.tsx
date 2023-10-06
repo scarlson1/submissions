@@ -2,7 +2,7 @@ import { Typography } from '@mui/material';
 import { DocumentReference, Timestamp, setDoc } from 'firebase/firestore';
 import { FormikConfig } from 'formik';
 import { useCallback, useMemo } from 'react';
-import { useFirestoreDocData, useFunctions } from 'reactfire';
+import { useFirestoreDocData, useFunctions, useUser } from 'reactfire';
 
 import { calcAddLocation } from 'api';
 import { AddLocationRequest, DraftAddLocationRequest, OptionalKeys } from 'common';
@@ -41,6 +41,7 @@ export const AddLocationWizard = ({
   ...props // TODO: pass to each step ?? (then to <Formik>)
 }: AddLocationFormProps) => {
   const functions = useFunctions();
+  const { data: user } = useUser();
   const changeRequestRef =
     changeRequestDocResource.read() as DocumentReference<DraftAddLocationRequest>;
 
@@ -74,10 +75,18 @@ export const AddLocationWizard = ({
     async () =>
       await setDoc(
         changeRequestRef as DocumentReference<AddLocationRequest>,
-        { status: 'submitted', metadata: { updated: Timestamp.now() } },
+        {
+          status: 'submitted',
+          submittedBy: {
+            userId: user?.uid || null,
+            displayName: user?.displayName || '',
+            email: user?.email || null,
+          },
+          metadata: { updated: Timestamp.now() },
+        },
         { merge: true }
       ),
-    [changeRequestRef]
+    [changeRequestRef, user]
   );
 
   const handleError = useCallback(

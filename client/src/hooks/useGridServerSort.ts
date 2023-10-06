@@ -9,7 +9,6 @@ import { logDev } from 'modules/utils';
 
 export const useGridServerSort = (
   initialState?: GridInitialState | undefined,
-  // constraints?: QueryFieldFilterConstraint[],
   resetCursors?: () => void
 ) => {
   const [sortModel, setSortModel] = useState<GridSortModel>(initialState?.sorting?.sortModel || []);

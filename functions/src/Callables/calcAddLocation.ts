@@ -83,7 +83,7 @@ const calcAddLocation = async ({ data, auth }: CallableRequest<CalcAddLocationPr
   validate(
     changeRequest.status === 'draft',
     'failed-precondition',
-    'change request already submitted. please create a new one.'
+    'Change request already submitted. Please create a new one.'
   );
 
   try {
@@ -144,7 +144,7 @@ const calcAddLocation = async ({ data, auth }: CallableRequest<CalcAddLocationPr
         },
         numStories,
       });
-      // TODO: save to SR collection (see getSubmissionAAL)
+      // TODO: save to SR collection (see getSubmissionAAL) (save in batch ??)
     } catch (err: any) {
       error('ERROR GETTING AALs', { errData: err?.response?.data || null });
 
@@ -203,7 +203,7 @@ const calcAddLocation = async ({ data, auth }: CallableRequest<CalcAddLocationPr
       basement: ratingPropertyData.basement,
       floodZone,
       numStories,
-      propertyCode: null,
+      propertyCode: null, // TODO: get from property api
       CBRSDesignation: null,
       distToCoastFeet: null,
       sqFootage: ratingPropertyData.sqFootage || null,
@@ -224,6 +224,7 @@ const calcAddLocation = async ({ data, auth }: CallableRequest<CalcAddLocationPr
 
     // TODO: break here (policy level calc handled in separate function)
 
+    const { [lcnId]: prevPolicyLocation, ...otherLocations } = policy.locations;
     // calculate policy premium values
     const newLcnSummary: PolicyLocation = {
       address: compressAddress(address),
@@ -232,7 +233,8 @@ const calcAddLocation = async ({ data, auth }: CallableRequest<CalcAddLocationPr
       version: 0,
     };
 
-    const newLcnArr = [...Object.values(policy.locations), newLcnSummary];
+    // const newLcnArr = [...Object.values(policy.locations), newLcnSummary];
+    const newLcnArr = [...Object.values(otherLocations), newLcnSummary];
 
     const policyPremRecalc = calcPolicyPremiumAndTaxes(
       newLcnArr,
@@ -240,10 +242,6 @@ const calcAddLocation = async ({ data, auth }: CallableRequest<CalcAddLocationPr
       policy.taxes,
       policy.fees
     );
-
-    // TODO: create location record ?? or create once approved ??
-    // lcn / policy versioning issue ??
-    // different endorsement approval flow ??
 
     const ratingDocRef = ratingDataCollection(db).doc(createDocId());
     const ratingDocData: RatingData = {
@@ -274,7 +272,7 @@ const calcAddLocation = async ({ data, auth }: CallableRequest<CalcAddLocationPr
     );
 
     const locationData: ILocation = {
-      parentType: null, // 'quote',
+      parentType: null,
       ratingDocId: ratingDocRef.id,
       address,
       coordinates: new GeoPoint(coordinates.latitude, coordinates.longitude),
@@ -296,13 +294,14 @@ const calcAddLocation = async ({ data, auth }: CallableRequest<CalcAddLocationPr
       externalId: externalId || null,
     };
 
+    // set location doc's parentType to policy once request is approved
     const locationChanges: CalcAddLocationResponse['locationChanges'] = {
       ...locationData,
       parentType: 'policy',
     };
 
     // update change request w/ locationChanges & policyChanges
-    const changeRequestUpdates: CalcAddLocationResponse = {
+    const calcChangeRequestRes: CalcAddLocationResponse = {
       locationId: lcnId,
       locationChanges,
       policyChanges: {
@@ -313,33 +312,29 @@ const calcAddLocation = async ({ data, auth }: CallableRequest<CalcAddLocationPr
       },
       formValues,
     };
-    info(`saving change request location/policy changes...`, { ...changeRequestUpdates });
+    info(`saving change request location/policy changes...`, { ...calcChangeRequestRes });
+
+    const changeRequestUpdates: Partial<DraftAddLocationRequest> = {
+      ...calcChangeRequestRes,
+      endorsementChanges: {
+        [lcnId]: locationChanges as ILocation, // TODO: fix typing
+      },
+      trxType: 'endorsement' as 'endorsement',
+      userId: policy.userId || auth.uid, // TODO: use policy userId or request ?? (verify in permissions check above ??)
+      agent: {
+        userId: policy.agent.userId || null,
+      },
+      agency: {
+        orgId: policy.agency.orgId || null,
+      },
+      _lastCommitted: Timestamp.now(), // Delete ??
+    };
 
     const batch = db.batch();
 
     batch.set(locationsCol.doc(lcnId), locationData, { merge: true });
-
     batch.set(ratingDocRef, ratingDocData);
-
-    batch.set(
-      changeReqRef,
-      {
-        ...changeRequestUpdates,
-        // @ts-ignore (delete ?? need to decide how endorsement trx is emitted)
-        endorsementChanges: {
-          [lcnId]: locationChanges,
-        },
-        userId: policy.userId || auth.uid, // TODO: use policy userId or request ?? (verify in permissions check above ??)
-        agent: {
-          userId: policy.agent.userId || null,
-        },
-        agency: {
-          orgId: policy.agency.orgId || null,
-        },
-        _lastCommitted: Timestamp.now(), // Delete ??
-      },
-      { merge: true }
-    );
+    batch.set(changeReqRef, changeRequestUpdates, { merge: true });
 
     await batch.commit();
 

@@ -37,26 +37,12 @@ export const getSwissReInstance = (
 
   swissReInstance.interceptors.request.use(
     async (config: any) => {
-      if (!config.headers) config.headers = {}; // TODO: check expiration time
-      console.log('CONFIG HEADERS: ', config.headers); // TODO: delete (dont log key)
-
-      // TODO: DELETE - FOR DEBUGGING KEY REFRESH
-      if (!config._retry && config.headers['Authorization']) {
-        delete config.headers['Authorization'];
-      }
+      if (!config.headers) config.headers = {};
 
       if (!config.headers || !config.headers['Authorization']) {
         try {
-          console.log('REQUEST INTERCEPTOR - FETCHING TOKEN...');
           const accessToken = await generateSRAccessToken(clientId, clientSecret);
 
-          // TODO: DELETE - FOR DEBUGGING KEY REFRESH
-          // if (!config.retry) {
-          //   console.log('SETTING AUTHORIZATION TOKEN');
-          //   config.headers['Authorization'] = `Bearer ${accessToken}`;
-          //   swissReInstance.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
-          // }
-          // TODO: uncomment and delete above
           config.headers['Authorization'] = `Bearer ${accessToken}`;
           swissReInstance.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
         } catch (err) {

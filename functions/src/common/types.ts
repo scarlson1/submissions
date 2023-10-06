@@ -1090,9 +1090,10 @@ export interface PolicyChangeRequest extends BaseChangeRequest {
 
 // new cancel request interface - not in use yet
 export interface CancellationRequest extends BaseChangeRequest {
+  trxType: 'cancellation' | 'flat_cancel';
   formValues: {
     requestEffDate: Timestamp;
-    cancelReason: string;
+    cancelReason: CancellationReason;
   };
   // need to add cancelChanges ?? or something to indicate trx type
   locationChanges: Record<string, Pick<ILocation, 'termPremium'>>;
@@ -1108,6 +1109,7 @@ export interface CancellationRequest extends BaseChangeRequest {
     | 'taxes'
   > &
     Partial<Pick<PolicyNew, 'cancelEffDate' | 'cancelReason'>>;
+  locationId: string; // TODO: delete once using multi-location (store ID in form values)
 }
 
 // TODO: AddLocationChangeRequest, CancelChangeRequest (location and all, difference will be in the processing step in the cancellation form)
@@ -1128,6 +1130,7 @@ export interface LocationChangeRequest extends BaseChangeRequest {
   isAddLocationRequest?: false;
 }
 
+// TODO: separate out flat cancel ??
 export interface LocationCancellationRequest
   extends Omit<LocationChangeRequest, 'formValues' | 'locationChanges'> {
   trxType: 'cancellation' | 'flat_cancel';

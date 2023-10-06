@@ -80,7 +80,7 @@ export async function publishChangeRequestTransactions(data: ChangeRequest, poli
         const msgDetails = await publishAmendment({
           policyId,
           locationId: lcnId,
-          amendmentScope: 'location',
+          // amendmentScope: 'location',
           effDateMS,
         });
 
@@ -107,7 +107,7 @@ export async function publishChangeRequestTransactions(data: ChangeRequest, poli
           await publishAmendment({
             policyId,
             locationId: data.locationId,
-            amendmentScope: 'location',
+            // amendmentScope: 'location',
             effDateMS: data.requestEffDate.toMillis(),
           });
           break;

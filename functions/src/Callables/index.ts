@@ -39,6 +39,10 @@ export const calcaddlocation = onCall(
   }
 );
 
+export const calccancelchange = onCall(async (request) => {
+  return (await import('./calcCancelChange.js')).default(request);
+});
+
 export const calclocationchanges = onCall(
   { secrets: [swissReClientId, swissReClientSecret, swissReSubscriptionKey] },
   async (request) => {

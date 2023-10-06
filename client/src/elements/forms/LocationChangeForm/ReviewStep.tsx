@@ -281,6 +281,7 @@ function LocationCard({ location }: { location: WithId<ILocation> }) {
                 icon={<HouseRounded />}
                 label={dollarFormat(location.limits?.limitA)}
                 size='small'
+                sx={{ cursor: 'default' }}
               />
             </Tooltip>
           </Grid>
@@ -291,6 +292,7 @@ function LocationCard({ location }: { location: WithId<ILocation> }) {
                 icon={<FenceRounded />}
                 label={dollarFormat(location.limits?.limitB)}
                 size='small'
+                sx={{ cursor: 'default' }}
               />
             </Tooltip>
           </Grid>
@@ -301,6 +303,7 @@ function LocationCard({ location }: { location: WithId<ILocation> }) {
                 icon={<WeekendRounded />}
                 label={dollarFormat(location.limits?.limitC)}
                 size='small'
+                sx={{ cursor: 'default' }}
               />
             </Tooltip>
           </Grid>
@@ -311,6 +314,7 @@ function LocationCard({ location }: { location: WithId<ILocation> }) {
                 icon={<BedRounded />}
                 label={dollarFormat(location.limits.limitD)}
                 size='small'
+                sx={{ cursor: 'default' }}
               />
             </Tooltip>
           </Grid>
