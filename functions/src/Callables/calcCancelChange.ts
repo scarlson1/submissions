@@ -22,6 +22,11 @@ interface CalcCancelChangesProps {
   requestId: string;
 }
 
+type CalcCancelChangesResponse = Pick<
+  CancellationRequest,
+  'locationChanges' | 'policyChanges' | 'formValues'
+>;
+
 const calcCancelChange = async ({ data, auth }: CallableRequest<CalcCancelChangesProps>) => {
   const { policyId, requestId } = data;
 
@@ -102,7 +107,11 @@ const calcCancelChange = async ({ data, auth }: CallableRequest<CalcCancelChange
     info(`saving cancel request changes...`, { changeRequestUpdates });
     await changeRequestRef.set(changeRequestUpdates, { merge: true });
 
-    return { formValues, locationChanges, policyChanges };
+    // TODO: fix typing
+    // @ts-ignore
+    const res: CalcCancelChangesResponse = { formValues, locationChanges, policyChanges };
+
+    return res;
   } catch (err: any) {
     let errMsg = `Error calculating cancellation changes`;
     if (err?.message) errMsg += ` (${err?.message})`;

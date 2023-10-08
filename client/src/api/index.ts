@@ -2,6 +2,7 @@ export { approveChangeRequest } from './approveChangeRequest';
 export { approveImport } from './approveImport';
 export { assignQuote } from './assignQuote';
 export { calcAddLocation } from './calcAddLocation';
+export { calcCancelChange } from './calcCancelChange';
 export { calcLocationChanges } from './calcLocationChanges';
 export { calcPolicyChanges } from './calcPolicyChanges';
 export { calcQuote } from './calcQuote';
