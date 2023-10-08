@@ -1,6 +1,6 @@
 import algoliasearch from 'algoliasearch';
 import { DocumentSnapshot, getFirestore } from 'firebase-admin/firestore';
-import { info } from 'firebase-functions/logger';
+import { info, warn } from 'firebase-functions/logger';
 import { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 import { capitalize } from 'lodash-es';
 
@@ -18,8 +18,7 @@ import {
   quotesCollection,
   submissionsCollection,
 } from '../../common/index.js';
-import { verify } from '../../utils/index.js';
-import { getFormattedAddress, getVisibleBy } from '../../utils/index.js';
+import { getFormattedAddress, getVisibleBy, verify } from '../../utils/index.js';
 import { removeAlgoliaRecord } from './syncPolicies.js';
 
 const reportErr = getReportErrorFn('syncLocations');
@@ -74,7 +73,11 @@ export default async (
           break;
       }
 
-      verify(parentCol && parentKey, 'location record missing parent or parent ID');
+      // verify(parentCol && parentKey, 'location record missing parent or parent ID');
+      if (!(parentCol && parentKey)) {
+        warn(`No parentType for location - skipping Algolia sync ${docId}`);
+        return;
+      }
       const parentDocId = newData[parentKey] as string | undefined;
       verify(parentDocId, 'missing parent doc ID');
 

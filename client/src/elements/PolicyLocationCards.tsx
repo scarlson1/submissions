@@ -4,15 +4,9 @@ import { DocumentReference, where } from 'firebase/firestore';
 import { Fragment, useEffect } from 'react';
 import { useInView } from 'react-intersection-observer';
 
-import { COLLECTIONS, ILocation } from 'common';
+import { COLLECTIONS, ILocation, Policy } from 'common';
 import { useDocData, useInfiniteDocs } from 'hooks';
 import { LocationCard, LocationCardProps } from './LocationCard';
-
-interface PolicyLocationCardsProps extends Omit<LocationCardProps, 'location' | 'namedInsured'> {
-  policyId: string;
-  startingCursor?: DocumentReference;
-  pageSize?: number;
-}
 
 // TODO: virtualize ?? need to with 100 + locations
 // tanstack virtual: https://tanstack.com/virtual/v3/docs/examples/react/infinite-scroll
@@ -20,11 +14,22 @@ interface PolicyLocationCardsProps extends Omit<LocationCardProps, 'location' | 
 // TODO: add sort / filter capabilities
 // passed as props so same filters can be shared across cards/map ??
 
+interface PolicyLocationCardsProps extends Omit<LocationCardProps, 'location' | 'namedInsured'> {
+  policyId: string;
+  startingCursor?: DocumentReference;
+  pageSize?: number;
+}
+
 export const PolicyLocationCards = ({ policyId, ...props }: PolicyLocationCardsProps) => {
   const { ref, inView } = useInView();
-  const { data: policy } = useDocData('POLICIES', policyId);
+  const { data: policy } = useDocData<Policy>('POLICIES', policyId);
   const { data, error, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    useInfiniteDocs<ILocation>(COLLECTIONS.LOCATIONS, [where('policyId', '==', policyId)]);
+    useInfiniteDocs<ILocation>(COLLECTIONS.LOCATIONS, [
+      where('policyId', '==', policyId),
+      where('parentType', '==', 'policy'),
+    ]);
+  // limited to 50 IDs:
+  // where(documentId(), 'in', Object.keys(policy.locations)),
 
   useEffect(() => {
     if (!hasNextPage) return;

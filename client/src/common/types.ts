@@ -914,6 +914,7 @@ export interface AddLocationRequest extends BaseChangeRequest {
   formValues: AddLocationValues;
   policyChanges?: DeepPartial<Policy>;
   locationChanges?: DeepPartial<ILocation>;
+  endorsementChanges?: Record<string, ILocation>; // PolicyChangeRequest['endorsementChanges'];
   isAddLocationRequest: true;
   locationId: string;
 }

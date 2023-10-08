@@ -1,6 +1,12 @@
 import { deepmerge } from 'deepmerge-ts';
 import { Timestamp } from 'firebase-admin/firestore';
-import { DeepPartial, ILocation, POLICY_STATUS, PolicyNew } from '../../common/index.js';
+import {
+  CancellationReason,
+  DeepPartial,
+  ILocation,
+  POLICY_STATUS,
+  PolicyNew,
+} from '../../common/index.js';
 import { partialLcnToPolicyLcn } from '../../utils/transform.js';
 import { validateHasPrem } from '../../utils/validation.js';
 import { getTermDays } from '../transactions/index.js';
@@ -14,7 +20,8 @@ import { calcPolicyPremiumAndTaxes } from './sumPremium.js';
 export const calcPolicyEndorsementChanges = (
   policy: PolicyNew,
   locationChanges: Record<string, DeepPartial<ILocation>>,
-  reqEffDate: Timestamp
+  reqEffDate: Timestamp,
+  cancelReason?: CancellationReason
 ) => {
   const lcnSummaryChanges: DeepPartial<PolicyNew['locations']> = {};
 
@@ -57,6 +64,7 @@ export const calcPolicyEndorsementChanges = (
     policyChanges['status'] = POLICY_STATUS.CANCELLED;
     policyChanges['cancelEffDate'] = reqEffDate;
     policyChanges['termDays'] = getTermDays(policy.effectiveDate.toDate(), reqEffDate.toDate());
+    if (cancelReason) policyChanges['cancelReason'] = cancelReason;
   }
 
   // TODO: once billing entity set up --> recalc prem/taxes/fees per billing entity

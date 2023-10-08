@@ -5,6 +5,7 @@ import { startTransition, useCallback, useEffect, useRef, useState } from 'react
 
 import { usePrevious } from 'hooks/utils';
 import { getFirestoreSortOps } from 'modules/muiGrid';
+import { logDev } from 'modules/utils';
 
 export const useGridServerSort = (
   initialState?: GridInitialState | undefined,
@@ -20,7 +21,7 @@ export const useGridServerSort = (
 
   useEffect(() => {
     if (resetCursors && prevModel && !isEqual(sortModel, prevModel)) {
-      console.log('RESET CURSORS (SORT DIFF)');
+      logDev('RESET CURSORS (SORT DIFF)');
       resetCursors();
     }
   }, [resetCursors, sortModel, prevModel]);
@@ -32,7 +33,7 @@ export const useGridServerSort = (
       if (f.sort) newOptions.push(orderBy(f.field, f.sort));
     });
 
-    console.log('SETTING SORT OPTIONS', newOptions);
+    logDev('SETTING SORT OPTIONS', newOptions);
     sortOps.current = [...newOptions];
     startTransition(() => {
       setSortModel([...sortModel]);

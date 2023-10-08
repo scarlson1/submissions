@@ -15,6 +15,7 @@ export {
   approveimport,
   assignquote,
   calcaddlocation,
+  calccancelchange,
   calclocationchanges,
   calcpolicychanges,
   calcquote,

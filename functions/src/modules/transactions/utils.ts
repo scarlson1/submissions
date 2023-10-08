@@ -5,6 +5,7 @@ import { max, round } from 'lodash-es';
 import {
   AmendmentTransaction,
   OffsetTransaction,
+  PolicyNew,
   PremiumTransaction,
   StrictExclude,
   Transaction,
@@ -105,18 +106,23 @@ export const getNetDWP = (termPremium: number, MGAComm: number) => termPremium -
 
 // TODO: reuse function from modules/db ?? (throws instead of returning null)
 export const fetchPolicyData = async (db: Firestore, policyId: string) => {
-  try {
-    const policyCol = policiesCollectionNew(db);
-    const policyRef = policyCol.doc(policyId);
+  const policyCol = policiesCollectionNew(db);
+  const policyRef = policyCol.doc(policyId);
 
-    const policySnap = await policyRef.get();
-    const data = policySnap.data(); //  as unknown as Policy;
-    if (!policySnap.exists || !data) throw new Error('Policy not found');
-    return { ...data, id: policyId };
-  } catch (err: any) {
-    error(`Error fetching policy (ID: ${policyId})`, { err });
-    return null;
-  }
+  return fetchDocData<PolicyNew>(policyRef);
+
+  // try {
+  //   const policyCol = policiesCollectionNew(db);
+  //   const policyRef = policyCol.doc(policyId);
+
+  //   const policySnap = await policyRef.get();
+  //   const data = policySnap.data(); //  as unknown as Policy;
+  //   if (!policySnap.exists || !data) throw new Error('Policy not found');
+  //   return { ...data, id: policyId };
+  // } catch (err: any) {
+  //   error(`Error fetching policy (ID: ${policyId})`, { err });
+  //   return null;
+  // }
 };
 
 /**
@@ -128,7 +134,7 @@ export const fetchDocData = async <T = DocumentData>(docRef: DocumentReference<T
   try {
     const snap = await docRef.get();
     const data = snap.data();
-    if (!snap.exists || !data) throw new Error('Policy not found');
+    if (!snap.exists || !data) throw new Error('Record not found');
     return { ...data, id: docRef.id };
   } catch (err: any) {
     error(`Error fetching policy (ID: ${docRef.id})`, { err });

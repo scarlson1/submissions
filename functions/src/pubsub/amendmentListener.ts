@@ -20,7 +20,7 @@ import { verify } from '../utils/index.js';
 export interface AmendmentPayload {
   policyId: string;
   locationId: string | null;
-  amendmentScope: 'policy' | 'location';
+  // amendmentScope: 'policy' | 'location';
   effDateMS: number;
 }
 
@@ -30,20 +30,20 @@ export default async (event: CloudEvent<MessagePublishedData<AmendmentPayload>>)
   const eventId = event.id;
   let policyId = null;
   let locationId = null;
-  let amendmentScope = null;
+  // let amendmentScope = null;
   let effDateTS = null;
 
   try {
     policyId = event.data?.message?.json?.policyId;
     locationId = event.data?.message?.json?.locationId;
-    amendmentScope = event.data?.message?.json?.amendmentScope;
+    // amendmentScope = event.data?.message?.json?.amendmentScope;
     const effDateMS = event.data?.message?.json?.effDateMS;
     effDateTS = effDateMS ? Timestamp.fromMillis(effDateMS) : Timestamp.fromDate(new Date());
   } catch (err: any) {
     reportErr('PubSub message was not JSON', {}, err);
   }
 
-  const locationRequired = amendmentScope === 'location';
+  const locationRequired = Boolean(locationId); // amendmentScope === 'location';
   try {
     const locationVerified = locationRequired
       ? Boolean(locationId) && typeof locationId === 'string'
@@ -64,6 +64,7 @@ export default async (event: CloudEvent<MessagePublishedData<AmendmentPayload>>)
   let policy;
 
   try {
+    // TODO: use generic fetchDocData that throws if not found
     const policyRes = await fetchPolicyData(db, policyId);
     verify(policyRes, 'error fetching policy. returning early.');
     policy = policyRes;
@@ -80,11 +81,10 @@ export default async (event: CloudEvent<MessagePublishedData<AmendmentPayload>>)
     const exists = await docExists(trxRef);
     if (!exists) {
       let trx;
-      if (locationRequired && locationId) {
+      if (locationId) {
         const locationSnap = await locationsCol.doc(locationId).get();
         const location = locationSnap.data();
         verify(location, `location doc not found (ID: ${locationId})`);
-        // const location = policy.locations[locationId];
 
         trx = getLocationAmendmentTrx(policy, location, effDateTS, eventId);
       } else {

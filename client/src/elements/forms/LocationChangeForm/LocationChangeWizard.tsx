@@ -19,6 +19,8 @@ import { LocationChangeValues } from '../LocationChangeFormOld';
 import { LocationChangesStep } from './LocationChangesStep';
 import { ReviewStep } from './ReviewStep';
 
+// TODO: need to set userId, agent, org at some point
+
 interface ChangeLocationComponentProps {
   changeRequestDocResource: ReturnType<typeof createChangeRequest>;
   policyId: string;
