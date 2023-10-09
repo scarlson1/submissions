@@ -1,4 +1,3 @@
-import { Typography } from '@mui/material';
 import { DocumentReference, Timestamp, setDoc } from 'firebase/firestore';
 import { FormikConfig } from 'formik';
 import { useCallback, useMemo } from 'react';
@@ -11,6 +10,7 @@ import { useAsyncToast } from 'hooks';
 import { createChangeRequest } from 'modules/db';
 import { AddressStep, AddressValues } from './AddressStep';
 import { DeductibleStep, DeductibleValues } from './DeductibleStep';
+import { Header } from './Header';
 import { LimitValues, LimitsStep } from './LimitsStep';
 import { PropertyRatingDataStep, RatingDataValues } from './PropertyRatingDataStep';
 import { ReviewStep } from './ReviewStep';
@@ -98,7 +98,7 @@ export const AddLocationWizard = ({
 
   return (
     <Wizard
-      header={<Header />}
+      header={<Header title='Add Location' />}
       // footer={<WizardNavButtons />}
       maxWidth='lg'
     >
@@ -170,11 +170,3 @@ export const AddLocationWizard = ({
     </Wizard>
   );
 };
-
-function Header() {
-  return (
-    <Typography variant='h5' gutterBottom align='center'>
-      Add Location
-    </Typography>
-  );
-}

@@ -15,6 +15,10 @@ import { calcTerm } from '../modules/transactions';
 import { onCallWrapper } from '../services/sentry';
 import { requireAuth, validate } from './utils';
 
+// TODO: handle flat_cancel
+// set trxType to flat_cancel if req eff date before location eff date
+// or handle after approved ?? risk of mismatch in calculations ??
+
 const reportErr = getReportErrorFn('calcAddLocation');
 
 interface CalcCancelChangesProps {

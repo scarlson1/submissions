@@ -284,7 +284,7 @@ export default async (event: StorageEvent) => {
 
   const storage = getStorage();
   const bucket = storage.bucket(fileBucket);
-  const tempFilePath = path.join(tmpdir(), randomFileName(filePath)); // `temp_SR_${fileName}`);
+  const tempFilePath = path.join(tmpdir(), randomFileName(filePath));
 
   await bucket.file(filePath).download({ destination: tempFilePath });
   info(`File downloaded locally: ${tempFilePath}`);

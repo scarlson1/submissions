@@ -870,6 +870,30 @@ export interface PolicyChangeRequest extends BaseChangeRequest {
   mergedVersions?: Record<string, number | null>;
 }
 
+// new cancel request interface - not in use yet
+export interface CancellationRequest extends BaseChangeRequest {
+  trxType: 'cancellation' | 'flat_cancel';
+  formValues: {
+    requestEffDate: Timestamp;
+    cancelReason: CancellationReason;
+  };
+  // need to add cancelChanges ?? or something to indicate trx type
+  locationChanges: Record<string, Pick<ILocation, 'termPremium'>>;
+  policyChanges?: Pick<
+    Policy,
+    | 'termPremium'
+    | 'termDays'
+    | 'price'
+    | 'inStatePremium'
+    | 'outStatePremium'
+    | 'locations'
+    | 'termPremiumWithCancels'
+    | 'taxes'
+  > &
+    Partial<Pick<Policy, 'cancelEffDate' | 'cancelReason'>>;
+  locationId: string; // TODO: delete once using multi-location (store ID in form values)
+}
+
 export interface LocationChangeRequest extends BaseChangeRequest {
   scope: 'location';
   policyChanges?: DeepPartial<Policy>; // TODO: rename policyChanges

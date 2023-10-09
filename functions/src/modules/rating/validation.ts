@@ -150,6 +150,17 @@ export function validatePriorLossCount(
   );
 }
 
+export function validateFFH(
+  FFH: string | number | null | undefined
+): asserts FFH is string | number {
+  const isString = typeof FFH === 'string';
+  const isNum = typeof FFH === 'number';
+  verify(FFH && (isString || isNum), 'First flood height must be string or number');
+
+  // const ffhNum = isNum ? FFH : extractNumber(FFH);
+  // verify(ffhNum >= 0 && ffhNum <= 10, 'ffh must be between 0 and 10');
+}
+
 export function validateAddress(
   address: DeepNullable<Address> | null | undefined,
   errPrefix?: string

@@ -69,7 +69,7 @@ export function AddressStep({
         const coordsSame =
           values.coordinates?.latitude &&
           changeRequest.formValues?.coordinates?.latitude === values.coordinates?.latitude;
-        // TODO: better diff comparison. if allowing user to manually enter, need to geocode in backend but above would skip
+        // TODO: better diff comparison. if allowing user to manually enter, need to geo code in backend but above would skip
 
         let updates: Partial<DraftAddLocationRequest['formValues']> = {
           ...values,

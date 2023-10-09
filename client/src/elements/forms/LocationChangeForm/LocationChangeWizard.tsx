@@ -1,7 +1,8 @@
 import { Box, Button, Typography } from '@mui/material';
-import { DocumentReference, Timestamp, setDoc } from 'firebase/firestore';
+import { Timestamp, setDoc } from 'firebase/firestore';
 import { FormikHelpers, FormikProps } from 'formik';
 import { isEmpty, isEqual } from 'lodash';
+import Lottie from 'lottie-react';
 import { useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFirestoreDocData, useFunctions, useUser } from 'reactfire';
@@ -11,7 +12,6 @@ import { CheckmarkLottie } from 'assets';
 import { ILocation, LocationChangeRequest } from 'common';
 import { Wizard } from 'components/forms';
 import { useDialog, useDocData } from 'hooks';
-import Lottie from 'lottie-react';
 import { createChangeRequest } from 'modules/db';
 import { combineToAdditionalInterests } from 'modules/utils';
 import { ROUTES, createPath } from 'router';
@@ -22,7 +22,7 @@ import { ReviewStep } from './ReviewStep';
 // TODO: need to set userId, agent, org at some point
 
 interface ChangeLocationComponentProps {
-  changeRequestDocResource: ReturnType<typeof createChangeRequest>;
+  changeRequestDocResource: ReturnType<typeof createChangeRequest<LocationChangeRequest>>;
   policyId: string;
   locationId: string;
 }
@@ -35,10 +35,10 @@ export const LocationChangeWizard = ({
   const navigate = useNavigate();
   const functions = useFunctions();
 
-  const changeRequestSnap =
-    changeRequestDocResource.read() as DocumentReference<LocationChangeRequest>;
+  const changeRequestRef = changeRequestDocResource.read(); // as DocumentReference<LocationChangeRequest>;
 
-  const { data: changeRequest } = useFirestoreDocData<LocationChangeRequest>(changeRequestSnap);
+  const { data: changeRequest } =
+    useFirestoreDocData<Partial<LocationChangeRequest>>(changeRequestRef);
   const { data: location } = useDocData<ILocation>('LOCATIONS', locationId);
   const { data: user } = useUser();
   const dialog = useDialog();
@@ -47,9 +47,9 @@ export const LocationChangeWizard = ({
 
   const saveChangeRequest = useCallback(
     async (values: Partial<LocationChangeRequest>) => {
-      console.log(`Saving change request ${changeRequestSnap.id}...`);
+      console.log(`Saving change request ${changeRequestRef.id}...`);
       await setDoc(
-        changeRequestSnap,
+        changeRequestRef,
         {
           ...values,
           metadata: {
@@ -59,12 +59,12 @@ export const LocationChangeWizard = ({
         { merge: true }
       );
     },
-    [changeRequestSnap]
+    [changeRequestRef]
   );
 
   const handleSubmitStep = useCallback(
     async (values: LocationChangeValues, bag: FormikHelpers<LocationChangeValues>) => {
-      let reqId = changeRequestSnap.id;
+      let reqId = changeRequestRef.id;
 
       let initValues = formRef.current?.initialValues;
       let skipUpdate = isEqual(values, initValues) && !isEmpty(changeRequest.formValues || {});
@@ -97,21 +97,22 @@ export const LocationChangeWizard = ({
       policyId,
       saveChangeRequest,
       changeRequest,
-      changeRequestSnap,
+      changeRequestRef,
     ]
   );
 
-  const handleSubmitChangeRequest = useCallback(async () => {
-    console.log('saving...');
-    await saveChangeRequest({
-      status: 'submitted',
-      submittedBy: {
-        userId: user?.uid || null,
-        displayName: user?.displayName || '',
-        email: user?.email || '',
-      },
-    });
-  }, [saveChangeRequest, user]);
+  const handleSubmitChangeRequest = useCallback(
+    async () =>
+      await saveChangeRequest({
+        status: 'submitted',
+        submittedBy: {
+          userId: user?.uid || null,
+          displayName: user?.displayName || '',
+          email: user?.email || '',
+        },
+      }),
+    [saveChangeRequest, user]
+  );
 
   const handleDone = useCallback(() => {
     dialog?.handleAccept();
@@ -146,7 +147,7 @@ export const LocationChangeWizard = ({
       />
       <ReviewStep
         policyId={policyId}
-        requestId={changeRequestSnap.id}
+        requestId={changeRequestRef.id}
         onSubmit={handleSubmitChangeRequest}
       />
       <Box>

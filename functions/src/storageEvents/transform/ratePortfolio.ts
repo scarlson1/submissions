@@ -1,24 +1,29 @@
-import { Nullable, getNumber } from '../../common/index.js';
+import { toUpper } from 'lodash-es';
+import { Nullable, extractNumber, extractNumberNeg } from '../../common/index.js';
 import { IRow, TRow } from '../models/index.js';
 
-// TODO: transform basement, FFE, etc.
-// TODO: calc RCVs from rcvA ?? check with ron. I think we said use provided ??
 export function transformRatePortfolioRow(data: IRow): Nullable<TRow> {
-  const limitA = data.cov_a_limit ? parseInt(getNumber(data.cov_a_limit)) : 0; // TODO: use extractNumber ??
-  const limitB = data.cov_b_limit ? parseInt(getNumber(data.cov_b_limit)) : 0;
-  const limitC = data.cov_c_limit ? parseInt(getNumber(data.cov_c_limit)) : 0;
-  const limitD = data.cov_d_limit ? parseInt(getNumber(data.cov_d_limit)) : 0;
+  const limitA = data.cov_a_limit ? extractNumber(data.cov_a_limit) : 0;
+  const limitB = data.cov_b_limit ? extractNumber(data.cov_b_limit) : 0;
+  const limitC = data.cov_c_limit ? extractNumber(data.cov_c_limit) : 0;
+  const limitD = data.cov_d_limit ? extractNumber(data.cov_d_limit) : 0;
   const total_limits = limitA + limitB + limitC + limitD;
 
-  const rcvA = data.cov_a_rcv ? parseInt(getNumber(data.cov_a_rcv)) : 0;
-  const rcvB = data.cov_b_rcv ? parseInt(getNumber(data.cov_b_rcv)) : 0;
-  const rcvC = data.cov_c_rcv ? parseInt(getNumber(data.cov_c_rcv)) : 0;
-  const rcvD = data.cov_d_rcv ? parseInt(getNumber(data.cov_d_rcv)) : 0;
+  const rcvA = data.cov_a_rcv ? extractNumber(data.cov_a_rcv) : 0;
+  const rcvB = data.cov_b_rcv ? extractNumber(data.cov_b_rcv) : 0;
+  const rcvC = data.cov_c_rcv ? extractNumber(data.cov_c_rcv) : 0;
+  const rcvD = data.cov_d_rcv ? extractNumber(data.cov_d_rcv) : 0;
   const total_rcv = rcvA + rcvB + rcvC + rcvD;
-  // const RCVs = getRCVs(rcvA || 0, { limitA, limitB, limitC, limitD });
+
+  const latitude = data.latitude ? extractNumberNeg(data.latitude) : null;
+  const longitude = data.longitude ? extractNumberNeg(data.longitude) : null;
+
+  const floodZone = data.flood_zone ? toUpper(data.flood_zone) : data.flood_zone;
 
   return {
     ...data,
+    latitude,
+    longitude,
     cov_a_rcv: rcvA || null,
     cov_b_rcv: rcvB,
     cov_c_rcv: rcvC,
@@ -29,8 +34,10 @@ export function transformRatePortfolioRow(data: IRow): Nullable<TRow> {
     cov_c_limit: limitC,
     cov_d_limit: limitD,
     total_limits,
-    deductible: data.deductible ? parseInt(getNumber(data.deductible)) : null,
-    ffh: data.ffh ? parseFloat(getNumber(data.ffh)) : 0,
+    deductible: data.deductible ? extractNumber(data.deductible) : null,
+    commission_pct: data.commission_pct ? extractNumber(data.commission_pct) : null,
+    ffh: data.ffh ? extractNumberNeg(data.ffh) : 0,
+    flood_zone: floodZone,
     skip: data?.skip && data?.skip?.toLowerCase().trim() === 'true',
     google_maps_link: getGoogleMapsUrl(data.latitude, data.longitude),
   };

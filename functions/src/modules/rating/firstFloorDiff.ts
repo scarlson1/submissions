@@ -4,6 +4,7 @@ export const getFirstFloorDiffFactors = (FFH: number = 0) => {
   let roundedFFH = floor(FFH);
 
   if (roundedFFH > 8) return firstFloorDiff[8];
+  if (roundedFFH < 0) return firstFloorDiff[0];
 
   return firstFloorDiff[roundedFFH];
 };

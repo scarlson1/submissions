@@ -20,7 +20,7 @@ export function validateQuoteRow(row: DeepNullable<CSVTransformedQuote>): boolea
     validateDeductible(row.deductible as number);
 
     validateAddress(row.address);
-    invariant(row.coordinates, 'latitude & longitude required');
+    invariant(row.coordinates, 'latitude & longitude required'); // TODO: use validateCoords() (need to convert to float in transform fn)
     invariant(row.homeState, 'homeState required');
 
     invariant(typeof row.annualPremium === 'number', 'annualPremium must be a number');

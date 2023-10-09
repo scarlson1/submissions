@@ -1,55 +1,52 @@
-import { info } from 'firebase-functions/logger';
+import { RCVs } from '../../common/index.js';
+import {
+  validateBasement,
+  validateCommission,
+  validateCoords,
+  validateDeductible,
+  validateFFH,
+  validateFloodZone,
+  validateLimits,
+  validatePriorLossCount,
+  validateRCVs,
+  validateState,
+} from '../../modules/rating/index.js';
 
-// TODO: refactor to try/catch and use invariant/verify
 export function validateRatePortfolioRow(data: any) {
-  if (!data.cov_a_rcv) {
-    info(`INVALID - "cov_a_rcv" - VALUE: ${data.cov_a_rcv}`);
-    return false;
-  }
-  if (!data.cov_b_rcv && data.cov_b_rcv !== 0) {
-    info(`INVALID - "cov_b_rcv" - VALUE: ${data.cov_b_rcv} - TYPE: ${typeof data.cov_b_rcv}`);
-    return false;
-  }
-  if (!data.cov_c_rcv && data.cov_c_rcv !== 0) {
-    info(`INVALID - "cov_c_rcv" - VALUE: ${data.cov_c_rcv}`);
-    return false;
-  }
-  if (!data.cov_d_rcv && data.cov_d_rcv !== 0) {
-    info(`INVALID - "cov_d_rcv" - VALUE: ${data.cov_d_rcv}`);
-    return false;
-  }
-  if (!data.cov_a_limit) {
-    info(`INVALID - "cov_a_limit" - VALUE: ${data.cov_a_limit}`);
-    return false;
-  }
-  if (!data.cov_b_limit && data.cov_b_limit !== 0) {
-    info(`INVALID - "cov_b_limit" - VALUE: ${data.cov_b_limit}`);
-    return false;
-  }
-  if (!data.cov_c_limit && data.cov_c_limit !== 0) {
-    info(`INVALID - "cov_c_limit" - VALUE: ${data.cov_c_limit}`);
-    return false;
-  }
-  if (!data.cov_d_limit && data.cov_d_limit !== 0) {
-    info(`INVALID - "cov_d_limit" - VALUE: ${data.cov_d_limit}`);
-    return false;
-  }
-  if (!data.deductible) {
-    info(`INVALID - "deductible" - VALUE ${data.deductible}`);
-    return false;
-  }
-  if (!data.latitude) {
-    info(`INVALID - "latitude" - VALUE ${data.latitude}`);
-    return false;
-  }
-  if (!data.longitude) {
-    info(`INVALID - "longitude" - VALUE ${data.longitude}`);
-    return false;
-  }
-  if (!data.state) {
-    info(`INVALID - "state" - VALUE ${data.state}`);
-    return false;
-  }
+  try {
+    const limits = {
+      limitA: data.cov_a_limit,
+      limitB: data.cov_b_limit,
+      limitC: data.cov_c_limit,
+      limitD: data.cov_d_limit,
+    };
+    validateLimits(limits);
 
-  return true;
+    validateDeductible(data.deductible);
+
+    const RCVs: RCVs = {
+      building: data.cov_a_rcv,
+      otherStructures: data.cov_b_rcv,
+      contents: data.cov_c_rcv,
+      BI: data.cov_d_rcv,
+      total: data.total_rcv,
+    };
+    validateRCVs(RCVs);
+
+    const coords = {
+      latitude: data.latitude,
+      longitude: data.longitude,
+    };
+    validateCoords(coords);
+    validateState(data.state);
+    if (data.commission_pct) validateCommission(data.commission_pct);
+    if (data.flood_zone) validateFloodZone(data.flood_zone);
+    if (data.basement) validateBasement(data.basement);
+    if (data.ffh) validateFFH(data.ffh);
+    if (data.prior_loss_count) validatePriorLossCount(data.prior_loss_count);
+
+    return true;
+  } catch (err: any) {
+    return false;
+  }
 }

@@ -54,6 +54,7 @@ export const truthyOrZero = <T = Primitive>(val: T) => Boolean(val) || val === 0
 // export const truthyOrZero = <T = Primitive>(val: T): asserts val is NonNullable<T> =>
 //   val || val === 0;
 
+// TODO: move to modules/db
 export async function throwIfExists<T>(docRef: DocumentReference<T>) {
   const snap = await docRef.get();
   if (snap.exists) throw new Error(`Document already exists with ID ${docRef.id}`);

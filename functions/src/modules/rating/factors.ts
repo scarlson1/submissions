@@ -1,4 +1,4 @@
-import { Nullable, ValueByRiskType } from '../../common/index.js';
+import { Nullable, ValueByRiskType, extractNumberNeg } from '../../common/index.js';
 import { getFirstFloorDiffFactors } from './firstFloorDiff.js';
 
 const CONTENTS_RCV_MULT = 1;
@@ -58,7 +58,7 @@ export const getBasementFactor = (basementValue = 'unknown') => {
 };
 
 interface SecondaryModifiersProps {
-  FFH: number;
+  FFH: number | string;
   basement: string;
   priorLossCount: string;
   inlandRiskScore: number;
@@ -96,7 +96,11 @@ export const getSecondaryModifiers = ({
 }: SecondaryModifiersProps) => {
   const secondaryModifiers = initialValues;
 
-  const { inland_ffe_factor, surge_ffe_factor, tsunami_ffe_factor } = getFirstFloorDiffFactors(FFH); // eslint-disable-line
+  let ffhNum = typeof FFH === 'number' ? FFH : extractNumberNeg(FFH);
+  if (ffhNum < 0) ffhNum = 0;
+
+  const { inland_ffe_factor, surge_ffe_factor, tsunami_ffe_factor } =
+    getFirstFloorDiffFactors(ffhNum); // eslint-disable-line
   secondaryModifiers.ffeMult = {
     inland: inland_ffe_factor, // eslint-disable-line
     surge: surge_ffe_factor, // eslint-disable-line
@@ -112,6 +116,7 @@ export const getSecondaryModifiers = ({
   secondaryModifiers.history.tsunami =
     priorLossCount === '0' ? 1 : getHistoryMultTsunami(tsunamiRiskScore);
 
+  // already throwing in getSecondaryFactorMults
   // TODO: uncomment
   // for (const k in secondaryModifiers.history)
   //   invariant(
@@ -169,7 +174,6 @@ export function getSecondaryFactorMults(props: SecondaryModifiersProps) {
     inland: inlandSecondaryMult,
     surge: surgeSecondaryMult,
     tsunami: tsunamiSecondaryMult,
-    // secondaryFactorMultsByFactor: {
     factors: {
       ffeMult,
       basementMult,

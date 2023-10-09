@@ -21,17 +21,8 @@ export function validatePolicyRow(data: ParsedPolicyRow) {
     invariant(typeof data.TIV === 'number', 'Error calcualting TIV (not a number)');
 
     validateDeductible(data.deductible);
-    // invariant(typeof data.deductible === 'number', 'Deductible must be a number');
-    // invariant(
-    //   data.deductible >= minDeductibleFlood.value(),
-    //   `Deductible must be > ${minDeductibleFlood.value()}`
-    // );
 
     validateAddress(data.address);
-    // invariant(data.address?.addressLine1, 'addressLine1 required');
-    // invariant(data.address?.city, 'city required');
-    // invariant(data.address?.state, 'state required');
-    // invariant(data.address?.postal, 'postal required');
 
     invariant(data.coordinates, 'latitude & longitude required');
 
