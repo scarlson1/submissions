@@ -34,7 +34,6 @@ export const FormikDatePicker = ({
       minDate={minDate}
       maxDate={maxDate}
       onChange={(value: any) => {
-        console.log('onChange: ', value);
         setValue(value);
         setTimeout(() => setTouched(true), 0);
       }}
@@ -43,6 +42,7 @@ export const FormikDatePicker = ({
         textField: {
           helperText: getHelperText,
           fullWidth: true,
+          error: Boolean(meta.error) && meta.touched,
           ...(slotProps?.textField || {}),
         },
       }}
@@ -73,7 +73,7 @@ export const FormikDatePicker = ({
       }}
       onAccept={(value) => {
         setValue(value, true);
-        // validation bug - runs validation
+        // validation bug - runs validation (fix by adding timeout to onChange ??)
         setTimeout(() => setTouched(true), 0);
       }}
       views={['year', 'month', 'day']}
