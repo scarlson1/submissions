@@ -1,3 +1,5 @@
+import { z } from 'zod';
+
 export enum COLLECTIONS {
   SUBMISSIONS = 'submissions',
   PORTFOLIO_SUBMISSIONS = 'portfolioSubmissions',
@@ -35,6 +37,63 @@ export enum COLLECTIONS {
   VERSIONS = 'versions',
 }
 
+const COLLECTIONS_Z = [
+  'submissions',
+  'portfolioSubmissions',
+  'quotes',
+  'locations',
+  'ratingData',
+  'users',
+  'policies',
+  'changeRequests',
+  'claims',
+  'organizations',
+  'userClaims',
+  'invitations',
+  'quoteHistory',
+  'ratingDataHistory',
+  'propertyDataRes',
+  'spatialKey',
+  'swissRe',
+  'paymentMethods',
+  'transactions',
+  'financialTransactions',
+  'agencySubmissions',
+  'licenses',
+  'notifications',
+  'notifyRegistration',
+  'surplusLinesTaxes',
+  'states',
+  'moratoriums',
+  'public',
+  'disclosures',
+  'emailActivity',
+  'dataImports',
+  'stagedDocs',
+  'tasks', // TODO: DELETE
+  'versions',
+] as const;
+
+// TODO: switch Collections enum to zod enum (instead of native enum)
+// better for typing props (can use "Collection" for type, then pass CollectionsEnum.Enum.locations)
+// Option 1: zod enum
+export const CollectionsEnum = z.enum(COLLECTIONS_Z);
+export type Collection = z.infer<typeof CollectionsEnum>;
+// const testFn = (col: Collection) => {
+//   console.log('col: ', col)
+// }
+// testFn(CollectionsEnum.Enum.locations);
+// testFn(CollectionsEnum.enum.locations)
+
+// Option 2: native enum --> zod
+export const CollectionsEnum2 = z.nativeEnum(COLLECTIONS);
+export type Collection2 = z.infer<typeof CollectionsEnum2>;
+// const testFn = (col: Collection2) => {
+//   console.log('col: ', col)
+// }
+// testFn(COLLECTIONS.SUBMISSIONS)
+// testFn(CollectionsEnum.enum.CHANGE_REQUESTS)
+
 // TODO: separate out submission status and quote status
 export enum SUBMISSION_STATUS {
   DRAFT = 'draft',
@@ -46,15 +105,6 @@ export enum SUBMISSION_STATUS {
   NOT_ELIGIBLE = 'ineligible',
 }
 
-// export enum QUOTE_STATUS {
-//   COMPLETE = 'bound',
-//   PAID = 'paid',
-//   AWAITING_USER = 'awaiting:user',
-//   AWAITING_PAYMENT = 'awaiting:payment',
-//   PROCESSING_PAYMENT = 'processing:payment',
-//   CANCELLED = 'cancelled',
-//   EXPIRED = 'expired',
-// }
 export enum QUOTE_STATUS {
   DRAFT = 'draft',
   AWAITING_USER = 'awaiting:user',
@@ -103,6 +153,7 @@ export enum FIN_TRANSACTION_TYPE {
   REFUND = 'refund',
 }
 
+// TODO: replace with zod Product enum
 export enum PRODUCT {
   FLOOD = 'flood',
   WIND = 'wind',

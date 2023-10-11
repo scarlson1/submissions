@@ -45,13 +45,8 @@ import {
 } from 'elements/ChangeRequestDialog';
 import { ContactList } from 'elements/forms';
 import { LocationsGrid } from 'elements/grids';
-import {
-  useCreateCancelRequest,
-  useCreatePolicyChangeRequest,
-  useDocData,
-  useGeneratePDF,
-  useSafeParams,
-} from 'hooks';
+import { useCreatePolicyChangeRequest, useDocData, useGeneratePDF, useSafeParams } from 'hooks';
+import { useCreateCancelRequest } from 'hooks/useCreateCancelRequest';
 import { useCreateLocationChangeRequest } from 'hooks/useCreateLocationChangeRequest';
 import {
   compressedToFormattedAddr,
@@ -91,8 +86,9 @@ export const Policy = () => {
 
   // const locationChangeDialogOld = useCreateLocationChangeRequestOld(policyId);
   const locationChangeDialog = useCreateLocationChangeRequest();
-  const cancelDialog = useCreateCancelRequest(); // TODO: onsuccess => "you'll receive a confirmation email once our team has processed the request. expect to see a refund, if due, in X days"
-  // const cancelLocationDialog = useCreateCancelRequest(
+  const cancelDialog = useCreateCancelRequest();
+  // const cancelDialog = useCreateCancelRequestOld(); // TODO: onsuccess => "you'll receive a confirmation email once our team has processed the request. expect to see a refund, if due, in X days"
+  // const cancelLocationDialog = useCreateCancelRequestOld(
   //   // () =>
   //   //   toast.success(`Cancel request submitted. You'll receive a confirmation email once approved.`),
   //   // (msg) => toast.error(msg)
@@ -146,8 +142,9 @@ export const Policy = () => {
   );
 
   const handleCancelPolicy = useCallback(async () => {
-    await cancelDialog(policyId);
-  }, [cancelDialog, policyId]);
+    alert('Need to add support for policy cancellation');
+    // await cancelDialog(policyId);
+  }, []); // cancelDialog, policyId
 
   const handleCancelLocation = useCallback(
     ({ id }: GridRowParams<ILocation>) =>

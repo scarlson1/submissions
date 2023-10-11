@@ -5,7 +5,7 @@ import { GeoPoint, Timestamp } from 'firebase-admin/firestore';
 import { Geohash } from 'geofire-common';
 import { round } from 'lodash-es';
 
-import { SecondaryFactorMults } from '../modules/rating/index.js';
+import { CalcPolicyChangesResult, SecondaryFactorMults } from '../modules/rating/index.js';
 import { CreateMsgContentProps } from '../services/sendgrid/index.js';
 import { filterUniqueArr, removeFromArr } from '../utils/index.js';
 import {
@@ -1088,6 +1088,7 @@ export interface PolicyChangeRequest extends BaseChangeRequest {
   scope: 'location'; // TODO: delete (only to pass validation in calcLocationChanges)
 }
 
+// TODO: firestore rules not allowing frontend to update locationChanges, endorsementChanges, etc.
 // new cancel request interface - not in use yet
 export interface CancellationRequest extends BaseChangeRequest {
   trxType: 'cancellation' | 'flat_cancel';
@@ -1096,19 +1097,30 @@ export interface CancellationRequest extends BaseChangeRequest {
     cancelReason: CancellationReason;
   };
   // need to add cancelChanges ?? or something to indicate trx type
-  locationChanges: Record<string, Pick<ILocation, 'termPremium'>>;
-  policyChanges?: Pick<
-    PolicyNew,
-    | 'termPremium'
-    | 'termDays'
-    | 'price'
-    | 'inStatePremium'
-    | 'outStatePremium'
-    | 'locations'
-    | 'termPremiumWithCancels'
-    | 'taxes'
-  > &
-    Partial<Pick<PolicyNew, 'cancelEffDate' | 'cancelReason'>>;
+  // locationChanges: Record<string, Pick<ILocation, 'termPremium'>>;
+  // locationChanges: Record<
+  //   string,
+  //   Pick<ILocation, 'termPremium' | 'termDays' | 'cancelEffDate' | 'cancelReason'>
+  // >;
+  locationChanges: Pick<ILocation, 'termPremium' | 'termDays' | 'cancelEffDate' | 'cancelReason'>;
+  cancellationChanges: Record<
+    string,
+    Pick<ILocation, 'termPremium' | 'termDays' | 'cancelEffDate' | 'cancelReason'>
+  >; // Record<string, Partial<ILocation>>;
+  policyChanges?: CalcPolicyChangesResult;
+  // policyChanges?: Pick<
+  //   PolicyNew,
+  //   | 'termPremium'
+  //   | 'termDays'
+  //   | 'price'
+  //   | 'inStatePremium'
+  //   | 'outStatePremium'
+  //   | 'locations'
+  //   | 'termPremiumWithCancels'
+  //   | 'taxes'
+  // > &
+  //   Partial<Pick<PolicyNew, 'cancelEffDate' | 'cancelReason'>>;
+  policyChangesCalcVersion?: number | null;
   locationId: string; // TODO: delete once using multi-location (store ID in form values)
 }
 

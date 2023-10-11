@@ -1,8 +1,12 @@
-import { Typography } from '@mui/material';
+import { Typography, TypographyProps } from '@mui/material';
 
-export function Header({ title }: { title: string }) {
+interface HeaderProps extends TypographyProps {
+  title: string;
+}
+
+export function Header({ title, ...props }: HeaderProps) {
   return (
-    <Typography variant='h5' gutterBottom align='center'>
+    <Typography variant='h5' gutterBottom align='center' {...props}>
       {/* Add Location */}
       {title}
     </Typography>

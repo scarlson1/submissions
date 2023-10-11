@@ -46,7 +46,10 @@ export default async (
   const db = getFirestore();
   let commissionPct = defaultCommissionAsInt.value() / 100;
 
-  if (!sub.ratingPropertyData?.replacementCost) {
+  if (
+    !sub.ratingPropertyData?.replacementCost &&
+    typeof sub.ratingPropertyData.replacementCost === 'number'
+  ) {
     warn('Missing replacement cost --> returning early', { ...sub });
     return;
   }
@@ -75,16 +78,18 @@ export default async (
   // let srRequestId TODO: save swiss re request id with rating data
 
   try {
-    const srVals: Partial<GetAALsProps> = {
+    const rcv = sub.ratingPropertyData.replacementCost;
+    invariant(rcv && typeof rcv === 'number', 'rcv must be a number');
+
+    const srVals: Omit<GetAALsProps, 'srClientId' | 'srClientSecret' | 'srSubKey'> = {
       coordinates: sub.coordinates,
       limits: sub.limits,
       deductible: sub.deductible,
-      replacementCost: sub.ratingPropertyData?.replacementCost,
+      replacementCost: rcv,
       numStories: sub.ratingPropertyData?.numStories || 1,
     };
     validateGetAALsProps(srVals);
 
-    // @ts-ignore
     AALsRes = await getAALs({
       srClientId,
       srClientSecret,

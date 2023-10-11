@@ -35,18 +35,24 @@ export const useCreateLocationChangeRequest = () => {
   );
 };
 
-function TitleWithCloseBtn({ children }: any) {
+export function TitleWithCloseBtn({ children }: any) {
   const dialog = useDialog();
 
   return (
     <DialogTitle {...dialog?.slotProps?.title}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <Box>{children}</Box>
-        <Box>
-          <IconButton onClick={() => dialog.handleClose()} size='small'>
-            <CloseRounded />
-          </IconButton>
-        </Box>
+        {/* <Box> */}
+        <IconButton
+          onClick={() => dialog.handleClose()}
+          size='small'
+          edge='end'
+          aria-label='cancel'
+          sx={{ height: 28 }}
+        >
+          <CloseRounded fontSize='inherit' />
+        </IconButton>
+        {/* </Box> */}
       </Box>
     </DialogTitle>
   );

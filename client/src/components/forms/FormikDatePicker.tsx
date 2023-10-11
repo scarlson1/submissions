@@ -25,8 +25,9 @@ export const FormikDatePicker = ({
 }: FormikDatePickerProps) => {
   const [field, meta, { setValue, setError, setTouched }] = useField(name);
 
-  const getHelperText = // @ts-ignore
-    meta.touched && Boolean(meta.error) ? meta.error : slotProps?.textField?.helperText;
+  // BUG: slotProps.textField.helperText causes error helper text to not display
+  // const getHelperText = // @ts-ignore
+  //   meta.touched && Boolean(meta.error) ? meta.error : slotProps?.textField?.helperText;
 
   return (
     <DatePicker
@@ -40,7 +41,8 @@ export const FormikDatePicker = ({
       slotProps={{
         ...slotProps,
         textField: {
-          helperText: getHelperText,
+          // helperText: getHelperText,
+          helperText: meta.touched && Boolean(meta.error) ? meta.error : null,
           fullWidth: true,
           error: Boolean(meta.error) && meta.touched,
           ...(slotProps?.textField || {}),

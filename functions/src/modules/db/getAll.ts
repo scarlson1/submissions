@@ -18,7 +18,9 @@ export async function getAll<T = DocumentData>(
   const refs = docIds.map((id) => db.doc(`${basePath}${id}`));
 
   const snaps = await db.getAll(...refs);
-  return snaps.filter((snap) => snap.exists).map((snap) => snap.data()) as T[];
+  return snaps
+    .filter((snap) => snap.exists)
+    .map((snap) => ({ ...snap.data(), id: snap.id })) as T[];
 }
 
 export async function getAllById<T = DocumentData>(
