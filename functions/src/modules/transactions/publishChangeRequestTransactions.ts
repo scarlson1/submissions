@@ -3,6 +3,7 @@ import { getFirestore } from 'firebase-admin/firestore';
 import { error } from 'firebase-functions/logger';
 import {
   CancellationReason,
+  CancellationRequest,
   ChangeRequest,
   PolicyChangeRequest,
   getReportErrorFn,
@@ -21,6 +22,11 @@ const reportErr = getReportErrorFn('policyChangeRequest.publishChangeRequestTran
 export function isPolicyChangeRequest(data: any): data is PolicyChangeRequest {
   const keys = Object.keys(data);
   return keys.includes('endorsementChanges') || keys.includes('amendmentChanges');
+}
+
+export function isCancellationRequest(data: any): data is CancellationRequest {
+  const keys = Object.keys(data);
+  return keys.includes('cancellationChanges');
 }
 
 // Emit pubsub event
@@ -90,6 +96,21 @@ export async function publishChangeRequestTransactions(data: ChangeRequest, poli
       return;
     }
 
+    if (isCancellationRequest(data)) {
+      const locationIds = Object.keys(data.cancellationChanges);
+
+      for (let lcnId of locationIds) {
+        await publishLocationCancel({
+          policyId,
+          locationId: lcnId, // TODO: fix discriminating union types
+          cancelReason: data.cancelReason || ('' as CancellationReason),
+          cancelEffDateMS: data.requestEffDate.toMillis(),
+        });
+      }
+
+      return;
+    }
+
     // TODO: delete ?? (old schema)
     if (data.scope === 'location') {
       switch (data.trxType) {
@@ -121,10 +142,9 @@ export async function publishChangeRequestTransactions(data: ChangeRequest, poli
           break;
         case 'flat_cancel':
           throw new Error('flat_cancel handling not set up yet');
-          // TODO
-          // flat_cancel handled differently that cancel ??
-          // or publishLocationCancel for each location ??
-          break;
+        // TODO
+        // flat_cancel handled differently that cancel ??
+        // or publishLocationCancel for each location ??
         case 'reinstatement':
           throw new Error('reinstatement handling not set up yet');
           // TODO: location reinstatement listener not built yet ?? create on its own or build into policy reinstatement ??

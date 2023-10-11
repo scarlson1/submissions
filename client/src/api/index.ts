@@ -4,6 +4,7 @@ export { assignQuote } from './assignQuote';
 export { calcAddLocation } from './calcAddLocation';
 export { calcCancelChange } from './calcCancelChange';
 export { calcLocationChanges } from './calcLocationChanges';
+export { calcPolicyCancelChanges } from './calcPolicyCancelChanges';
 export { calcPolicyChanges } from './calcPolicyChanges';
 export { calcQuote } from './calcQuote';
 export { createPolicy } from './createPolicy';

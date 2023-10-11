@@ -17,6 +17,7 @@ export {
   calcaddlocation,
   calccancelchange,
   calclocationchanges,
+  calcpolicycancelchanges,
   calcpolicychanges,
   calcquote,
   createpolicy,

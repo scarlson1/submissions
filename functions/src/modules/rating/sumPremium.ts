@@ -107,6 +107,8 @@ export const calcPolicyPremiumAndTaxes = (
     fees,
   });
 
+  // BUG: if policy cancel, still adding taxes
+  // BUG: remove fees if policy cancel ??
   const price = sumFeesTaxesPremium(fees, newTaxes, termPremium);
 
   return {

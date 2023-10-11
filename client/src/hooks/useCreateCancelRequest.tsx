@@ -8,13 +8,12 @@ export const useCreateCancelRequest = () => {
   const dialog = useDialog();
 
   return useCallback(
-    async (policyId: string, lcnId: string) => {
-      // try {
+    async (policyId: string, lcnId?: string) => {
       await dialog.prompt({
         catchOnCancel: false,
         variant: 'danger',
-        title: 'Cancel Location',
-        content: <CancelForm policyId={policyId} locationId={lcnId} />,
+        title: `Cancel ${lcnId ? 'Location' : 'Policy'}`,
+        content: <CancelForm policyId={policyId} locationId={lcnId || null} />,
         slots: {
           title: TitleWithCloseBtn,
           actions: undefined,
@@ -26,9 +25,6 @@ export const useCreateCancelRequest = () => {
           },
         },
       });
-      // } catch (err: any) {
-      //   console.log('dialog close error', err);
-      // }
     },
     [dialog]
   );

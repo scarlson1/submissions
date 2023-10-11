@@ -13,7 +13,7 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import { merge } from 'lodash';
+import { isNumber, merge } from 'lodash';
 import { Fragment, useCallback, useMemo, useState } from 'react';
 import { useFirestore } from 'reactfire';
 
@@ -203,7 +203,7 @@ export const ReviewStepComponent = ({
         <Divider sx={{ my: 3 }} variant='middle' />
         <Typography variant='h6'>New Policy Totals</Typography>
         <Grid container spacing={2} sx={{ py: 4 }} disableEqualOverflow>
-          {changeRequest.policyChanges?.termPremium ? (
+          {isNumber(changeRequest.policyChanges?.termPremium) ? (
             <>
               <Grid xs={8}>
                 <Typography variant='body1' sx={{ pr: 2, display: 'inline-block' }}>
@@ -221,7 +221,7 @@ export const ReviewStepComponent = ({
               </Grid>
               <Grid xs={4}>
                 <Typography variant='body1' fontWeight='fontWeightMedium' align='right'>
-                  {dollarFormat2(changeRequest.policyChanges.termPremium)}
+                  {dollarFormat2(changeRequest.policyChanges!.termPremium)}
                 </Typography>
               </Grid>
             </>
@@ -236,7 +236,7 @@ export const ReviewStepComponent = ({
                   </Grid>
                   <Grid xs={4}>
                     <Typography align='right' sx={{ fontSize: '0.875rem' }}>
-                      {t?.value ? dollarFormat2(t?.value) : ''}
+                      {isNumber(t?.value) ? dollarFormat2(t!.value) : ''}
                     </Typography>
                   </Grid>
                 </Fragment>
@@ -252,7 +252,7 @@ export const ReviewStepComponent = ({
                   </Grid>
                   <Grid xs={4}>
                     <Typography align='right' sx={{ fontSize: '0.875rem' }}>
-                      {f?.value ? dollarFormat2(f?.value) : ''}
+                      {isNumber(f?.value) ? dollarFormat2(f!.value) : ''}
                     </Typography>
                   </Grid>
                 </Fragment>

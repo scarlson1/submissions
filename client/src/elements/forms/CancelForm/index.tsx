@@ -10,13 +10,12 @@ import { CancelWizard } from './CancelWizard';
 
 // TODO: optional locationId for policy cancellation ??
 
-export default function CancelForm({
-  policyId,
-  locationId,
-}: {
+interface CancelFormProps {
   policyId: string;
-  locationId: string;
-}) {
+  locationId?: string | null;
+}
+
+export default function CancelForm({ policyId, locationId }: CancelFormProps) {
   const prev = usePrevious(policyId);
   const prevLcnId = usePrevious(locationId);
   const [changeRequestResource, setChangeRequestResource] =
@@ -41,16 +40,14 @@ export default function CancelForm({
   if (!changeRequestResource) return null;
 
   return (
-    // <Container>
     <ErrorBoundary FallbackComponent={ErrorFallback}>
       <Suspense fallback={<LoadingComponent />}>
         <CancelWizard
           policyId={policyId}
-          locationId={locationId}
+          cancelScope={locationId ? 'location' : 'policy'}
           changeRequestDocResource={changeRequestResource}
         />
       </Suspense>
     </ErrorBoundary>
-    // </Container>
   );
 }

@@ -705,6 +705,7 @@ export interface CompressedAddress {
 
 export interface PolicyLocation {
   termPremium: number;
+  // TODO: add annualPremium
   address: CompressedAddress;
   coords: GeoPoint;
   cancelEffDate?: Timestamp | null;
@@ -716,14 +717,18 @@ export type PolicyLcnWithPrem = PartialRequired<PolicyLocation, 'termPremium'>;
 
 // TODO: create discriminating unions (status: "cancelled" -- require cancelEffDate & cancelReason, etc.)
 
+// TODO: replace status with bound,
+// TODO: separate out payment status
 export interface PolicyNew extends BaseDoc {
   product: Product;
   status: POLICY_STATUS; // TODO: figure out how to do policy status (active, etc.)
+  // paymentStatus: string; // TODO: payment enum
   term: number;
   mailingAddress: MailingAddress;
   namedInsured: NamedInsured;
   locations: Record<string, PolicyLocation>;
   homeState: string;
+  // TODO: annualPremiumActiveLocations ??
   termPremium: number; // sum of active location(s) term premium
   termPremiumWithCancels: number; // TODO: rename termPremium ?? termPremiumActive??
   inStatePremium?: number;

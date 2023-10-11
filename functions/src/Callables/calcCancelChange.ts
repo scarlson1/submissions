@@ -21,7 +21,7 @@ import { requireAuth, validate } from './utils/index.js';
 // set trxType to flat_cancel if req eff date before location eff date
 // or handle after approved ?? risk of mismatch in calculations ??
 
-const reportErr = getReportErrorFn('calcAddLocation');
+const reportErr = getReportErrorFn('calcCancelChange');
 
 interface CalcCancelChangesProps {
   policyId: string;

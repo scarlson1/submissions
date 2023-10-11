@@ -5,7 +5,7 @@ import { useCallback, useMemo, useRef } from 'react';
 import toast from 'react-hot-toast';
 import { useFirestoreDocData, useFunctions, useUser } from 'reactfire';
 
-import { calcCancelChange } from 'api';
+import { calcCancelChange, calcPolicyCancelChanges } from 'api';
 import { CancellationReason, CancellationRequest, Policy } from 'common';
 import { Wizard } from 'components/forms';
 import { FormikConfig, FormikProps } from 'formik';
@@ -14,17 +14,11 @@ import { createChangeRequest } from 'modules/db';
 import { ReviewStep } from '../LocationChangeForm/ReviewStep';
 import { CancelValues, CancelValuesStep } from './CancelValuesStep';
 import { SubmittedStep } from './SubmittedStep';
-// import { ReviewStep } from './ReviewStep';
-
-// TODO: optional locationId ?? use same form for location cancel and policy cancel ??
-// just handle differently in backend ??
 
 // TODO: display locations in review step with strike through annual premium
 
 const minEffDate = add(startOfDay(new Date()), { days: 1 });
-// const fallbackEffDate = add(new Date(), { days: 1 });
 
-// onNextStep;
 export interface BaseStepProps<T> extends Omit<FormikConfig<T>, 'onSubmit'> {
   // saveChangeRequest: (values: T) => Promise<void>;
   onNextStep: (values: T) => Promise<void>;
@@ -34,12 +28,13 @@ export interface BaseStepProps<T> extends Omit<FormikConfig<T>, 'onSubmit'> {
 interface CancelWizardProps {
   changeRequestDocResource: ReturnType<typeof createChangeRequest<CancellationRequest>>;
   policyId: string;
-  locationId: string;
+  cancelScope: 'policy' | 'location';
 }
 
 export const CancelWizard = ({
   changeRequestDocResource,
   policyId,
+  cancelScope,
 }: // locationId,
 CancelWizardProps) => {
   const functions = useFunctions();
@@ -73,6 +68,11 @@ CancelWizardProps) => {
     [changeRequestRef]
   );
 
+  const calcChangesFn = useMemo(
+    () => (cancelScope === 'policy' ? calcPolicyCancelChanges : calcCancelChange),
+    [cancelScope]
+  );
+
   const handleNextStep = useCallback(
     async (values: CancelValues) => {
       let initValues = formRef.current?.initialValues;
@@ -92,7 +92,7 @@ CancelWizardProps) => {
         });
 
         console.log('calcing cancel changes...');
-        const { data: res } = await calcCancelChange(functions, {
+        const { data: res } = await calcChangesFn(functions, {
           policyId,
           requestId: changeRequestRef.id,
         });
@@ -100,7 +100,14 @@ CancelWizardProps) => {
         // TODO: use mutation instead of subscription ??
       }
     },
-    [functions, policyId, saveChangeRequest, changeRequestRef.id, changeRequest.formValues]
+    [
+      functions,
+      policyId,
+      saveChangeRequest,
+      calcChangesFn,
+      changeRequestRef.id,
+      changeRequest.formValues,
+    ]
   );
 
   const handleSubmit = useCallback(

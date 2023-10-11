@@ -142,9 +142,8 @@ export const Policy = () => {
   );
 
   const handleCancelPolicy = useCallback(async () => {
-    alert('Need to add support for policy cancellation');
-    // await cancelDialog(policyId);
-  }, []); // cancelDialog, policyId
+    await cancelDialog(policyId);
+  }, [cancelDialog, policyId]); //
 
   const handleCancelLocation = useCallback(
     ({ id }: GridRowParams<ILocation>) =>

@@ -29,7 +29,6 @@ export type CalcPolicyChangesResult = Pick<
 > &
   Partial<Pick<PolicyNew, 'cancelEffDate' | 'cancelReason' | 'termDays' | 'status'>>;
 
-// TODO: need effective date ??
 export const calcPolicyEndorsementChanges = (
   policy: PolicyNew,
   locationChanges: Record<string, DeepPartial<ILocation>>,
@@ -62,7 +61,6 @@ export const calcPolicyEndorsementChanges = (
   } = calcPolicyPremiumAndTaxes(newLcnArr, policy.homeState, policy.taxes, policy.fees);
 
   let policyChanges: CalcPolicyChangesResult = {
-    // : DeepPartial<PolicyNew>
     termPremium: newPolicyTermPremium,
     termPremiumWithCancels,
     inStatePremium,
