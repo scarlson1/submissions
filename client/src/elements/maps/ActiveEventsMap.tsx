@@ -24,6 +24,7 @@ import { Color, GeoJsonLayer, IconLayer, PickingInfo } from 'deck.gl/typed';
 import { useCallback, useState } from 'react';
 
 import { STATES_ABV_ARR } from 'common/statesList';
+import { Timestamp, where } from 'firebase/firestore';
 import { useCollectionData } from 'hooks';
 import { CoordObj, getPlaceMarker, getRGBAArray, stringToColor, svgToDataURL } from 'modules/utils';
 import { DeckMap } from './DeckMap';
@@ -174,6 +175,7 @@ const LAYER_IDS = {
 };
 
 const colorCache: Record<string, Color> = {};
+const currentTS = Timestamp.now();
 
 // TODO: use deck.gl filter extension ??
 // https://tkdodo.eu/blog/leveraging-the-query-function-context#how-to-type-the-queryfunctioncontext
@@ -217,11 +219,15 @@ export const ActiveEventsMap = () => {
   const { data: eventData, isFetching, isError, error } = useActiveEvents(params);
 
   // TODO: add filter for parentType: 'policy' and expiration date > now
-  const { data: locationData } = useCollectionData('LOCATIONS', [], {
-    idField: 'id',
-    suspense: false,
-    initialData: [],
-  });
+  const { data: locationData } = useCollectionData(
+    'LOCATIONS',
+    [where('expirationDate', '>=', currentTS), where('parentType', '==', 'policy')],
+    {
+      idField: 'id',
+      suspense: false,
+      initialData: [],
+    }
+  );
 
   const getEventColor = useCallback(
     (e: any) => {

@@ -4,16 +4,16 @@ import { info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import {
   CancellationRequest,
-  ILocation,
+  ChangeRequest,
   changeRequestsCollection,
   getReportErrorFn,
   locationsCollection,
   policiesCollectionNew,
-} from '../common';
-import { calcPolicyEndorsementChanges } from '../modules/rating';
-import { calcTerm } from '../modules/transactions';
-import { onCallWrapper } from '../services/sentry';
-import { requireAuth, validate } from './utils';
+} from '../common/index.js';
+import { calcPolicyEndorsementChanges } from '../modules/rating/index.js';
+import { calcTerm } from '../modules/transactions/index.js';
+import { onCallWrapper } from '../services/sentry/index.js';
+import { requireAuth, validate } from './utils/index.js';
 
 // TODO: handle flat_cancel
 // TODO: handle policy cancel (see handleCancelRating.ts)
@@ -53,7 +53,7 @@ const calcCancelChange = async ({ data, auth }: CallableRequest<CalcCancelChange
   ]);
 
   const policy = policySnap.data();
-  const changeRequest = changeRequestSnap.data();
+  const changeRequest = changeRequestSnap.data() as unknown as CancellationRequest;
 
   validate(policy, 'not-found', `policy not found (ID: ${policyId})`);
   validate(changeRequest, 'not-found', `change request does not exist (ID: ${requestId})`);
@@ -65,8 +65,7 @@ const calcCancelChange = async ({ data, auth }: CallableRequest<CalcCancelChange
 
   try {
     // TODO: validate type / fix typing
-    const { locationId, requestEffDate, formValues } =
-      changeRequest as unknown as CancellationRequest;
+    const { locationId, requestEffDate, formValues } = changeRequest; //  as unknown as CancellationRequest;
 
     validate(
       isValid(requestEffDate.toMillis()),
@@ -90,7 +89,7 @@ const calcCancelChange = async ({ data, auth }: CallableRequest<CalcCancelChange
     );
     validate(termPremium && termDays, 'internal', 'error calculating location term premium');
 
-    const locationChanges: Partial<ILocation> = {
+    const locationChanges = {
       termPremium,
       termDays,
       cancelEffDate: requestEffDate,
@@ -106,12 +105,17 @@ const calcCancelChange = async ({ data, auth }: CallableRequest<CalcCancelChange
       requestEffDate
     );
 
-    const changeRequestUpdates = {
+    const changeRequestUpdates: Partial<CancellationRequest> = {
       locationChanges,
       policyChanges,
+      cancellationChanges: {
+        [locationId]: locationChanges,
+      },
+      policyChangesCalcVersion: policy?.metadata?.version ?? null,
     };
     info(`saving cancel request changes...`, { changeRequestUpdates });
-    await changeRequestRef.set(changeRequestUpdates, { merge: true });
+    // TODO: fix typing (new schema)
+    await changeRequestRef.set(changeRequestUpdates as unknown as ChangeRequest, { merge: true });
 
     // TODO: fix typing
     // @ts-ignore

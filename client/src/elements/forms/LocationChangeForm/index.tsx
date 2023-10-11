@@ -57,11 +57,3 @@ export const LocationChange = ({
     </ErrorBoundary>
   );
 };
-
-// function Header() {
-//   return (
-// <Typography variant='h6' align='center' sx={{ pb: 4 }}>
-//   Location Change Request
-// </Typography>
-//   );
-// }

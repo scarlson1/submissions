@@ -18,8 +18,12 @@ export const WizardNavButtons = ({
   const defaultBtnTxt = isLastStep ? 'submit' : 'next';
 
   return (
-    <Container maxWidth={maxWidth} disableGutters>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 2 }}>
+    <Container
+      maxWidth={maxWidth}
+      disableGutters
+      sx={{ px: { xs: 0, sm: 0, md: 0, lg: 0, xl: 0 } }}
+    >
+      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
         {isFirstStep ? null : <Button onClick={() => previousStep()}>{prevButtonText}</Button>}
         <LoadingButton
           onClick={() => nextStep()}

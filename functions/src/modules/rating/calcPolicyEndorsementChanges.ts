@@ -16,13 +16,26 @@ import { calcPolicyPremiumAndTaxes } from './sumPremium.js';
 // or can all policy level updates be derived from location changes ??
 // can same function be used for cancellation ??
 
+export type CalcPolicyChangesResult = Pick<
+  PolicyNew,
+  | 'termPremium'
+  // | 'termDays'
+  | 'price'
+  | 'inStatePremium'
+  | 'outStatePremium'
+  | 'locations'
+  | 'termPremiumWithCancels'
+  | 'taxes'
+> &
+  Partial<Pick<PolicyNew, 'cancelEffDate' | 'cancelReason' | 'termDays' | 'status'>>;
+
 // TODO: need effective date ??
 export const calcPolicyEndorsementChanges = (
   policy: PolicyNew,
   locationChanges: Record<string, DeepPartial<ILocation>>,
   reqEffDate: Timestamp,
   cancelReason?: CancellationReason
-) => {
+): CalcPolicyChangesResult => {
   const lcnSummaryChanges: DeepPartial<PolicyNew['locations']> = {};
 
   // convert location changes from ILocation to PolicyLocation
@@ -48,14 +61,15 @@ export const calcPolicyEndorsementChanges = (
     price,
   } = calcPolicyPremiumAndTaxes(newLcnArr, policy.homeState, policy.taxes, policy.fees);
 
-  let policyChanges: DeepPartial<PolicyNew> = {
+  let policyChanges: CalcPolicyChangesResult = {
+    // : DeepPartial<PolicyNew>
     termPremium: newPolicyTermPremium,
     termPremiumWithCancels,
     inStatePremium,
     outStatePremium,
     taxes,
     price,
-    locations: lcnSummaryChanges,
+    locations: lcnSummaryChanges as PolicyNew['locations'], // TODO: fix typing
   };
 
   // if all locations have cancel eff date --> add cancelEffDate to policy

@@ -1,26 +1,47 @@
 import { add, startOfDay } from 'date-fns';
+import { Timestamp, setDoc } from 'firebase/firestore';
+import { isEmpty, isEqual } from 'lodash';
+import { useCallback, useMemo, useRef } from 'react';
+import toast from 'react-hot-toast';
 import { useFirestoreDocData, useFunctions, useUser } from 'reactfire';
 
 import { calcCancelChange } from 'api';
-import { CancellationReason, CancellationRequest } from 'common';
+import { CancellationReason, CancellationRequest, Policy } from 'common';
 import { Wizard } from 'components/forms';
-import { Timestamp, setDoc } from 'firebase/firestore';
-import { FormikProps } from 'formik';
-import { isEmpty, isEqual } from 'lodash';
+import { FormikConfig, FormikProps } from 'formik';
+import { useDocDataOnce } from 'hooks';
 import { createChangeRequest } from 'modules/db';
-import { useCallback, useRef } from 'react';
-import { Header } from '../AddLocation/Header';
+import { ReviewStep } from '../LocationChangeForm/ReviewStep';
 import { CancelValues, CancelValuesStep } from './CancelValuesStep';
-import { ReviewStep } from './ReviewStep';
+import { SubmittedStep } from './SubmittedStep';
+// import { ReviewStep } from './ReviewStep';
+
+// TODO: optional locationId ?? use same form for location cancel and policy cancel ??
+// just handle differently in backend ??
+
+// TODO: display locations in review step with strike through annual premium
 
 const minEffDate = add(startOfDay(new Date()), { days: 1 });
+// const fallbackEffDate = add(new Date(), { days: 1 });
+
+// onNextStep;
+export interface BaseStepProps<T> extends Omit<FormikConfig<T>, 'onSubmit'> {
+  // saveChangeRequest: (values: T) => Promise<void>;
+  onNextStep: (values: T) => Promise<void>;
+  onError?: (msg: string) => void;
+}
 
 interface CancelWizardProps {
   changeRequestDocResource: ReturnType<typeof createChangeRequest<CancellationRequest>>;
   policyId: string;
+  locationId: string;
 }
 
-export const CancelWizard = ({ changeRequestDocResource, policyId }: CancelWizardProps) => {
+export const CancelWizard = ({
+  changeRequestDocResource,
+  policyId,
+}: // locationId,
+CancelWizardProps) => {
   const functions = useFunctions();
   const { data: user } = useUser();
   const changeRequestRef = changeRequestDocResource.read();
@@ -28,7 +49,12 @@ export const CancelWizard = ({ changeRequestDocResource, policyId }: CancelWizar
   const { data: changeRequest } =
     useFirestoreDocData<Partial<CancellationRequest>>(changeRequestRef);
 
+  const { data: policy } = useDocDataOnce<Policy>('POLICIES', policyId);
+
   const formRef = useRef<FormikProps<CancelValues>>(null);
+
+  // TODO: use location exp date instead of policy ??
+  const maxEffDate = useMemo(() => policy.expirationDate?.toDate(), [policy]);
 
   const saveChangeRequest = useCallback(
     async (values: Partial<CancellationRequest>) => {
@@ -74,7 +100,7 @@ export const CancelWizard = ({ changeRequestDocResource, policyId }: CancelWizar
         // TODO: use mutation instead of subscription ??
       }
     },
-    [functions, policyId, saveChangeRequest, changeRequestRef]
+    [functions, policyId, saveChangeRequest, changeRequestRef.id, changeRequest.formValues]
   );
 
   const handleSubmit = useCallback(
@@ -87,25 +113,36 @@ export const CancelWizard = ({ changeRequestDocResource, policyId }: CancelWizar
           email: user?.email || '',
         },
       }),
-    []
+    [saveChangeRequest, user]
   );
 
+  const handleError = useCallback((msg: string) => {
+    toast.error(msg, { position: 'top-right' });
+  }, []);
+
   return (
-    <Wizard header={<Header title='Cancel Location' />}>
+    <Wizard>
       <CancelValuesStep
         initialValues={{
           requestEffDate:
             (changeRequest?.formValues?.requestEffDate as unknown as Timestamp)?.toDate() ||
-            new Date(),
+            (null as unknown as Date), // || fallbackEffDate,
           cancelReason: changeRequest?.formValues?.cancelReason || ('' as CancellationReason),
         }}
         innerRef={formRef}
         minEffDate={minEffDate}
-        // maxEffDate={}
-        saveChangeRequest={handleNextStep}
+        maxEffDate={maxEffDate}
+        onNextStep={handleNextStep}
+        onError={handleError}
         changeRequest={changeRequest}
       />
-      <ReviewStep onSubmit={handleSubmit} />
+      <ReviewStep policyId={policyId} requestId={changeRequestRef.id} onSubmit={handleSubmit} />
+      {/* <ReviewStep onSubmit={handleSubmit} /> */}
+      <SubmittedStep
+        data={changeRequest as CancellationRequest}
+        policy={policy}
+        title='Cancellation Request Submitted'
+      />
     </Wizard>
   );
 };

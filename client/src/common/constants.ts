@@ -2,7 +2,7 @@ import { Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/
 import { ProviderId } from 'firebase/auth';
 
 import { DialogSlotProps, DialogSlotsComponents } from 'context';
-import { Product } from './types';
+import { Product, ProductEnum } from './types'; // Product
 
 export const SUPPORTED_AUTH_PROVIDER_IDS = [
   ProviderId.PASSWORD,
@@ -15,7 +15,7 @@ export const STATES_URL = 'https://scarlson1.github.io/data/states_20m.json';
 
 export const COUNTIES_URL = 'https://scarlson1.github.io/data/counties_20m.json';
 
-export const PRODUCT_OPTIONS: Product[] = ['flood', 'wind'];
+export const PRODUCT_OPTIONS: Product[] = ProductEnum.options; // : Product[] = ['flood', 'wind'];
 
 export const LOB_OPTIONS: string[] = ['residential', 'commercial'];
 

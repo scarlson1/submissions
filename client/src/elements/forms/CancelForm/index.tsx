@@ -1,21 +1,34 @@
-import { Container } from '@mui/material';
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
+import { ErrorBoundary } from 'react-error-boundary';
 
 import { CancellationRequest } from 'common';
+import { ErrorFallback } from 'components';
+import { LoadingComponent } from 'components/layout';
 import { usePrevious } from 'hooks/utils';
 import { createChangeRequest } from 'modules/db';
 import { CancelWizard } from './CancelWizard';
 
-export default function CancelForm({ policyId }: { policyId: string }) {
+// TODO: optional locationId for policy cancellation ??
+
+export default function CancelForm({
+  policyId,
+  locationId,
+}: {
+  policyId: string;
+  locationId: string;
+}) {
   const prev = usePrevious(policyId);
+  const prevLcnId = usePrevious(locationId);
   const [changeRequestResource, setChangeRequestResource] =
     useState<ReturnType<typeof createChangeRequest<CancellationRequest>>>();
 
   useEffect(() => {
-    if (!changeRequestResource && policyId !== prev) {
-      setChangeRequestResource(createChangeRequest(policyId));
+    if (!changeRequestResource && (policyId !== prev || locationId !== prevLcnId)) {
+      setChangeRequestResource(
+        createChangeRequest<CancellationRequest>(policyId, { locationId: locationId || '' })
+      );
     }
-  }, [policyId, prev, changeRequestResource]);
+  }, [policyId, locationId, prev, prevLcnId, changeRequestResource]);
 
   // TODO: uncomment once wrapped in error boundary
   // const handleReset = useCallback(
@@ -28,8 +41,16 @@ export default function CancelForm({ policyId }: { policyId: string }) {
   if (!changeRequestResource) return null;
 
   return (
-    <Container>
-      <CancelWizard policyId={policyId} changeRequestDocResource={changeRequestResource} />
-    </Container>
+    // <Container>
+    <ErrorBoundary FallbackComponent={ErrorFallback}>
+      <Suspense fallback={<LoadingComponent />}>
+        <CancelWizard
+          policyId={policyId}
+          locationId={locationId}
+          changeRequestDocResource={changeRequestResource}
+        />
+      </Suspense>
+    </ErrorBoundary>
+    // </Container>
   );
 }

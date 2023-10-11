@@ -3,20 +3,20 @@ import { info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import { isEmpty } from 'lodash-es';
 import {
-  COLLECTIONS,
   DeepPartial,
   ILocation,
   LocationChangeValues,
   PolicyChangeRequest,
   changeRequestsCollection,
   getReportErrorFn,
+  locationsCollection,
   policiesCollectionNew,
   ratingDataCollection,
   swissReClientId,
   swissReClientSecret,
   swissReSubscriptionKey,
 } from '../common/index.js';
-import { createDocId, getAll } from '../modules/db/index.js';
+import { createDocId } from '../modules/db/index.js';
 import {
   GetPremiumProps,
   calcPolicyEndorsementChanges,
@@ -60,7 +60,7 @@ interface CalcLocationChangesProps {
 }
 
 const calcLocationChanges = async ({ data, auth }: CallableRequest<CalcLocationChangesProps>) => {
-  info(`Calc Policy Changes called`, { ...data });
+  info(`Calc location changes called`, { ...data });
 
   requireAuth(auth);
 
@@ -109,9 +109,21 @@ const calcLocationChanges = async ({ data, auth }: CallableRequest<CalcLocationC
     // get all location docs
     // switch to getAll ?? getAllById limit to 50 IDs
     // const locationSnaps = await getAllById(locationsCol, [lcnId]);
-    const locationSnaps = await getAll(db, COLLECTIONS.LOCATIONS, [lcnId]);
+    // let locationsObj: Record<string, ILocation> = {};
+    // locationSnaps.forEach((l) => {
+    //   locationsObj[l.id] = l.data();
+    // });
+    // const locations = await getAll(db, COLLECTIONS.LOCATIONS, [lcnId]);
+    const locationsCol = locationsCollection(db);
+    const docIds = [lcnId];
+    const locationRefs = docIds.map((id) => locationsCol.doc(id));
+
+    const snaps = await db.getAll(...locationRefs);
+
     let locationsObj: Record<string, ILocation> = {};
-    locationSnaps.forEach((l) => (locationsObj[l.id] = l.data()));
+    snaps.forEach((s) => {
+      if (s.exists) locationsObj[s.id] = s.data() as ILocation;
+    });
 
     info(`Location docs retrieved - calculating location rating`, { locationsObj });
 
@@ -355,9 +367,10 @@ function changeReqFormValuesToLocationChanges(values: LocationChangeValues, loca
   const { requestEffDate, ...newValues } = values;
   const diff = getDifference(getFormValuesFromLocation(location), newValues);
   const hasEndorsements = hasAny(Object.keys(diff), lcnEndKeys);
+  const hasAmendments = Object.keys(diff).includes('additionalInterests');
 
   for (let [key, val] of Object.entries(values)) {
-    if (key === 'additionalInterests') {
+    if (key === 'additionalInterests' && hasAmendments) {
       const { additionalInsureds, mortgageeInterest } = separateAdditionalInterests(val);
       providedAmendmentChanges['additionalInsureds'] = additionalInsureds;
       providedAmendmentChanges['mortgageeInterest'] = mortgageeInterest;

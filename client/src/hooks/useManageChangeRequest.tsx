@@ -151,17 +151,19 @@ export const usePreviewChangeRequest = (onError?: (msg: string, err: any) => voi
         const policyBefore = await getFirebaseDoc(policyRef);
 
         let policyChanges = request.policyChanges || {};
-        // TODO: refresh changes if not current
+
+        //  refresh changes if not current
         if (
           status === 'under_review' &&
           policyChangesCalcVersion !== policyBefore?.metadata?.version
         ) {
           toast.updateLoadingMsg(`policy changes outdated - recalculating...`);
           let res = await refreshPolicyChanges(policyId, requestId);
+          // toast.success('changes updated. please try again.')
           console.log('REFRESH RES: ', res);
           // @ts-ignore
           if (res) policyChanges = res;
-          return;
+          // return;
         }
 
         let before: Record<string, any> = {

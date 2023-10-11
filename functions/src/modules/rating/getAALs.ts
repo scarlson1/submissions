@@ -1,13 +1,11 @@
 import { AxiosInstance } from 'axios';
 import { info } from 'firebase-functions/logger';
 import invariant from 'tiny-invariant';
+import { z } from 'zod';
 
 import {
   GetAALRequest,
-  Nullable,
-  RCVs,
   SRPerilAAL,
-  SRRes,
   ValueByRiskType,
   maxA,
   maxBCD,
@@ -26,11 +24,57 @@ export interface GetAALsProps extends GetAALRequest {
   srSubKey: string;
 }
 
-export interface GetAALRes {
-  AALs: Nullable<ValueByRiskType>;
-  srRes: SRRes;
-  RCVs: RCVs;
-}
+// export interface GetAALRes {
+//   AALs: Nullable<ValueByRiskType>;
+//   srRes: SRRes;
+//   RCVs: RCVs;
+// }
+
+export const AALs = z.object({
+  inland: z.number().nullable(),
+  surge: z.number().nullable(),
+  tsunami: z.number().nullable(),
+});
+export const ValueByRiskTypeZod = AALs.keyof();
+
+export const SRPerilAALZod = z.object({
+  tiv: z.number(),
+  fguLoss: z.number(),
+  preCatLoss: z.number(),
+  perilCode: z.string(),
+});
+
+export const SRResZod = z.object({
+  correlationId: z.string(),
+  bound: z.boolean(),
+  message: z
+    .array(
+      z.object({
+        text: z.string(),
+        type: z.string(),
+        severity: z.string(),
+      })
+    )
+    .optional(),
+  expectedLosses: z.array(SRPerilAALZod),
+});
+
+export const RCVsZod = z.object({
+  building: z.number().nonnegative(),
+  otherStructures: z.number().nonnegative(),
+  contents: z.number().nonnegative(),
+  BI: z.number().nonnegative(),
+  total: z.number().nonnegative(),
+});
+export const RCVKeys = RCVsZod.keyof();
+export type RCVs = z.infer<typeof RCVsZod>;
+
+export const GetAALResZod = z.object({
+  AALs: AALs,
+  srRes: SRResZod,
+  RCVs: RCVsZod,
+});
+export type GetAALRes = z.infer<typeof GetAALResZod>;
 
 export const getAALs = async (props: GetAALsProps): Promise<GetAALRes> => {
   const { srClientId, srClientSecret, srSubKey, ...rest } = props;
@@ -74,10 +118,11 @@ export const getAALs = async (props: GetAALsProps): Promise<GetAALRes> => {
 
   info(`AALs: ${JSON.stringify(AALs)}`);
 
-  return { srRes, AALs, RCVs: RCVs };
+  const parsed = GetAALResZod.parse({ srRes, AALs, RCVs: RCVs });
+
+  return parsed;
 };
 
-// TODO REPLACE ABOVE WITH THIS FUNC
 export function extractSRAALs(expectedLosses?: SRPerilAAL[]) {
   const AALs: ValueByRiskType = { surge: 0, inland: 0, tsunami: 0 };
 

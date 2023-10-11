@@ -2,6 +2,7 @@ import { DataGridProps, GridActionsColDef, GridColDef, GridValidRowModel } from 
 import { JSONContent } from '@tiptap/react';
 import { GeoPoint, Timestamp, WithFieldValue } from 'firebase/firestore';
 import { Geohash } from 'geofire-common';
+import { z } from 'zod';
 
 import { ServerDataGridProps } from 'components';
 import { AddLocationValues, CancelValues, LocationChangeValues } from 'elements/forms';
@@ -160,8 +161,15 @@ export interface Submission extends Omit<FloodValues, 'ratingPropertyData'> {
   metadata: BaseMetadata;
 }
 
+// const FishEnum = z.enum(["Salmon", "Tuna", "Trout"]);
+// type FishEnum = z.infer<typeof FishEnum>;
+// // 'Salmon' | 'Tuna' | 'Trout
+
+export const ProductEnum = z.enum(['flood', 'wind']);
+export type Product = z.infer<typeof ProductEnum>;
+// export type Product = 'flood' | 'wind';
+
 export type LimitKeys = 'limitA' | 'limitB' | 'limitC' | 'limitD';
-export type Product = 'flood' | 'wind';
 export type CovTypeNames = 'building' | 'otherStructures' | 'contents' | 'BI';
 
 export type LimitTypes = 'limitA' | 'limitB' | 'limitC' | 'limitD';
@@ -877,8 +885,14 @@ export interface CancellationRequest extends BaseChangeRequest {
     requestEffDate: Timestamp;
     cancelReason: CancellationReason;
   };
-  // need to add cancelChanges ?? or something to indicate trx type
-  locationChanges: Record<string, Pick<ILocation, 'termPremium'>>;
+  locationChanges: Record<
+    string,
+    Pick<ILocation, 'termPremium' | 'termDays' | 'cancelEffDate' | 'cancelReason'>
+  >;
+  cancellationChanges: Record<
+    string,
+    Pick<ILocation, 'termPremium' | 'termDays' | 'cancelEffDate' | 'cancelReason'>
+  >;
   policyChanges?: Pick<
     Policy,
     | 'termPremium'
@@ -889,6 +903,7 @@ export interface CancellationRequest extends BaseChangeRequest {
     | 'locations'
     | 'termPremiumWithCancels'
     | 'taxes'
+    | 'fees' // keep or delete fees ?? (added to remove typescript error in ReviewStep)
   > &
     Partial<Pick<Policy, 'cancelEffDate' | 'cancelReason'>>;
   locationId: string; // TODO: delete once using multi-location (store ID in form values)

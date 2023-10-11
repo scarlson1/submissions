@@ -1,5 +1,7 @@
 import { BedRounded, FenceRounded, HouseRounded, WeekendRounded } from '@mui/icons-material';
 import {
+  Alert,
+  AlertTitle,
   Box,
   Card,
   CardContent,
@@ -18,6 +20,7 @@ import { useFirestore } from 'reactfire';
 import {
   AddLocationRequest,
   COLLECTIONS,
+  CancellationRequest,
   DraftAddLocationRequest,
   ILocation,
   PolicyChangeRequest,
@@ -47,6 +50,9 @@ import { deepMergeOverwriteArrays, dollarFormat, dollarFormat2 } from 'modules/u
 //   })
 // }
 
+// TODO: add field in location data for change type ?? locationChangeType: ['endorsement', 'amendment']
+// add chip or styling to indicate change type on location card
+
 function useChangeRequestReview(policyId: string, requestId: string) {
   const firestore = useFirestore();
   // does this throw if doc not found ?? need to wrap in error boundary (with reset to reset form)
@@ -54,46 +60,87 @@ function useChangeRequestReview(policyId: string, requestId: string) {
     policyId,
     COLLECTIONS.CHANGE_REQUESTS,
   ]);
+  const [reqState, setReqState] = useState<{ loading: boolean; error: string | null }>({
+    loading: false,
+    error: null,
+  });
 
-  // react-query alternative for fetching locations
+  // react-query alternative for fetching locations (limited to 30 docs)
   // const { data: locations } = useLocations([where(documentId(), 'in', docIds)]);
 
   const [locationData, setLocationData] = useState<WithId<ILocation>[]>([]);
   // TODO: loading state ?? use react query w/ suspense ??
+  // TODO: can't use getAll for more than 30/50 documents
   const getLocations = useCallback(async () => {
     try {
-      const lcnIds = Object.keys(merge(data.endorsementChanges || {}, data.amendmentChanges, {}));
+      setReqState({
+        loading: true,
+        error: null,
+      });
+
+      const lcnIds = Object.keys(
+        merge(
+          data.endorsementChanges || {},
+          data.amendmentChanges || {}, // @ts-ignore
+          data.cancellationChanges || {}
+        )
+      );
       let lcns = await getAll<ILocation>(firestore, 'LOCATIONS', lcnIds);
-      console.log('locations: ', lcns);
 
       let lcnData = lcns.docs.map((l) => ({ id: l.id, ...l.data() }));
       setLocationData([...lcnData]);
+      console.log('locations: ', lcnData);
+      // setLoading(false);
+      setReqState({ ...reqState, loading: false });
     } catch (err: any) {
       console.log('Err fetching locations: ', err);
+      const errMsg = 'Something went wrong. Failed to fetch location data.';
+      setReqState({ error: errMsg, loading: false });
+      // TODO: pass onError prop
     }
-  }, [firestore, data]);
+  }, [firestore, data, reqState]);
 
   useFirstRender(() => getLocations());
 
   const locations = useMemo<WithId<ILocation>[]>(() => {
-    let lcnChangesObj = merge(data.endorsementChanges || {}, data.amendmentChanges, {});
+    let lcnChangesObj = merge(
+      data.endorsementChanges || {},
+      data.amendmentChanges || {}, // @ts-ignore
+      data.cancellationChanges || {}
+    );
 
     return locationData.map((l) =>
       deepMergeOverwriteArrays(l, lcnChangesObj[l.id] || {})
     ) as WithId<ILocation>[];
   }, [locationData, data]);
 
-  return { changeRequest: data, locations };
+  return { changeRequest: data, locations, ...reqState };
 }
 
 interface ReviewStepProps {
   policyId: string;
-  requestId: string; // | undefined;
+  requestId: string;
   onSubmit: () => Promise<void>;
 }
 
 export const ReviewStep = ({ policyId, requestId, onSubmit }: ReviewStepProps) => {
-  const { changeRequest, locations } = useChangeRequestReview(policyId, requestId);
+  const { changeRequest, locations, error } = useChangeRequestReview(policyId, requestId);
+
+  // TODO: better loading state indication
+  // if (loading)
+  //   return (
+  //     <Box sx={{ height: 300 }}>
+  //       <LoadingComponent />
+  //     </Box>
+  //   );
+
+  if (error)
+    return (
+      <Alert severity='error' sx={{ mx: 'auto' }}>
+        <AlertTitle>Error</AlertTitle>
+        {error}
+      </Alert>
+    );
 
   return (
     <ReviewStepComponent changeRequest={changeRequest} locations={locations} onSubmit={onSubmit} />
@@ -101,9 +148,11 @@ export const ReviewStep = ({ policyId, requestId, onSubmit }: ReviewStepProps) =
 };
 
 interface ReviewStepComponentProps {
-  // policyId: string;
-  // requestId: string; // | undefined;
-  changeRequest: AddLocationRequest | DraftAddLocationRequest | PolicyChangeRequest;
+  changeRequest:
+    | AddLocationRequest
+    | DraftAddLocationRequest
+    | PolicyChangeRequest
+    | CancellationRequest;
   locations: WithId<ILocation>[];
   onSubmit: () => Promise<void>;
 }
@@ -113,7 +162,6 @@ export const ReviewStepComponent = ({
   locations,
   onSubmit,
 }: ReviewStepComponentProps) => {
-  // if (!requestId) throw new Error('missing change request ID prop'); // TODO: better method for ensuring req ID
   const toast = useAsyncToast({ position: 'top-right' });
   const { handleStep } = useWizard();
 
@@ -129,8 +177,6 @@ export const ReviewStepComponent = ({
     }
   });
 
-  // const { changeRequest, locations } = useChangeRequestReview(policyId, requestId);
-
   return (
     <Box
       sx={{
@@ -139,7 +185,11 @@ export const ReviewStepComponent = ({
         height: { xs: 300, sm: 400, md: 500, lg: 600 },
       }}
     >
-      <Container maxWidth='sm' disableGutters sx={{ flex: '1 1 auto', overflowY: 'auto' }}>
+      <Container
+        maxWidth='sm'
+        disableGutters
+        sx={{ flex: '1 1 auto', overflowY: 'auto', px: { xs: 0 } }}
+      >
         <Typography variant='h6' align='center'>
           Review
         </Typography>
@@ -152,7 +202,7 @@ export const ReviewStepComponent = ({
         </Box>
         <Divider sx={{ my: 3 }} variant='middle' />
         <Typography variant='h6'>New Policy Totals</Typography>
-        <Grid container spacing={2} sx={{ py: 4 }}>
+        <Grid container spacing={2} sx={{ py: 4 }} disableEqualOverflow>
           {changeRequest.policyChanges?.termPremium ? (
             <>
               <Grid xs={8}>
@@ -180,10 +230,14 @@ export const ReviewStepComponent = ({
             ? changeRequest.policyChanges.taxes.map((t, i) => (
                 <Fragment key={`tax-${i}`}>
                   <Grid xs={8}>
-                    <Typography variant='body1'>{t?.displayName}</Typography>
+                    <Typography variant='body1' sx={{ fontSize: '0.875rem' }}>
+                      {t?.displayName}
+                    </Typography>
                   </Grid>
                   <Grid xs={4}>
-                    <Typography align='right'>{t?.value ? dollarFormat2(t?.value) : ''}</Typography>
+                    <Typography align='right' sx={{ fontSize: '0.875rem' }}>
+                      {t?.value ? dollarFormat2(t?.value) : ''}
+                    </Typography>
                   </Grid>
                 </Fragment>
               ))
@@ -192,10 +246,14 @@ export const ReviewStepComponent = ({
             ? changeRequest.policyChanges.fees.map((f, i) => (
                 <Fragment key={`fee-${i}`}>
                   <Grid xs={8}>
-                    <Typography variant='body1'>{f?.feeName}</Typography>
+                    <Typography variant='body1' sx={{ fontSize: '0.875rem' }}>
+                      {f?.feeName}
+                    </Typography>
                   </Grid>
                   <Grid xs={4}>
-                    <Typography align='right'>{f?.value ? dollarFormat2(f?.value) : ''}</Typography>
+                    <Typography align='right' sx={{ fontSize: '0.875rem' }}>
+                      {f?.value ? dollarFormat2(f?.value) : ''}
+                    </Typography>
                   </Grid>
                 </Fragment>
               ))
