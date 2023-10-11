@@ -8,10 +8,7 @@ import {
   getReportErrorFn,
   sendgridApiKey,
 } from '../common/index.js';
-import {
-  handleCancelRating,
-  publishChangeRequestTransactions,
-} from '../modules/transactions/index.js';
+import { publishChangeRequestTransactions } from '../modules/transactions/index.js';
 import { sendAdminChangeRequestNotification, sendMessage } from '../services/sendgrid/index.js';
 import { isValidEmail } from '../utils/index.js';
 import { validate } from './utils/index.js';
@@ -74,12 +71,12 @@ export default async (
         // )
         //   await handleRatingForEndorsement(data, policyId, requestId);
 
-        // TODO: is cancellation handled differently than flat cancel
-        if (data.trxType === 'cancellation' || data.trxType === 'flat_cancel') {
-          // TODO: handle cancellation
-          await handleCancelRating(data, policyId, requestId);
-          // throw new Error('cancellation trx handler not set up yet');
-        }
+        // NOTE: rating moved to calcChanges
+        // if (data.trxType === 'cancellation' || data.trxType === 'flat_cancel') {
+        //   // TODO: handle cancellation
+        //   await handleCancelRating(data, policyId, requestId);
+        //   // throw new Error('cancellation trx handler not set up yet');
+        // }
 
         // TODO: add location - processing already handled ??
         if (data.scope === 'add_location') {

@@ -16,6 +16,8 @@ import { onCallWrapper } from '../services/sentry';
 import { requireAuth, validate } from './utils';
 
 // TODO: handle flat_cancel
+// TODO: handle policy cancel (see handleCancelRating.ts)
+
 // set trxType to flat_cancel if req eff date before location eff date
 // or handle after approved ?? risk of mismatch in calculations ??
 
