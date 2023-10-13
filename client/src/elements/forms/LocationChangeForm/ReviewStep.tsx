@@ -14,7 +14,7 @@ import {
   Typography,
 } from '@mui/material';
 import { isNumber, merge } from 'lodash';
-import { Fragment, useCallback, useMemo, useState } from 'react';
+import { Fragment, ReactNode, useCallback, useMemo, useState } from 'react';
 import { useFirestore } from 'reactfire';
 
 import {
@@ -30,7 +30,7 @@ import {
 import { WizardNavButtons } from 'components/forms';
 import { useAsyncToast, useDocData, useWizard } from 'hooks';
 import { useFirstRender } from 'hooks/utils';
-import { getAll } from 'modules/db';
+import { getAllById } from 'modules/db';
 import { deepMergeOverwriteArrays, dollarFormat, dollarFormat2 } from 'modules/utils';
 
 // async function getLocations(constraints: QueryConstraint[]) {
@@ -53,7 +53,7 @@ import { deepMergeOverwriteArrays, dollarFormat, dollarFormat2 } from 'modules/u
 // TODO: add field in location data for change type ?? locationChangeType: ['endorsement', 'amendment']
 // add chip or styling to indicate change type on location card
 
-function useChangeRequestReview(policyId: string, requestId: string) {
+export function useChangeRequestReview(policyId: string, requestId: string) {
   const firestore = useFirestore();
   // does this throw if doc not found ?? need to wrap in error boundary (with reset to reset form)
   const { data } = useDocData<PolicyChangeRequest>('POLICIES', requestId, [
@@ -67,8 +67,8 @@ function useChangeRequestReview(policyId: string, requestId: string) {
 
   // react-query alternative for fetching locations (limited to 30 docs)
   // const { data: locations } = useLocations([where(documentId(), 'in', docIds)]);
-
   const [locationData, setLocationData] = useState<WithId<ILocation>[]>([]);
+
   // TODO: loading state ?? use react query w/ suspense ??
   // TODO: can't use getAll for more than 30/50 documents
   const getLocations = useCallback(async () => {
@@ -85,9 +85,15 @@ function useChangeRequestReview(policyId: string, requestId: string) {
           data.cancellationChanges || {}
         )
       );
-      let lcns = await getAll<ILocation>(firestore, 'LOCATIONS', lcnIds);
+      // let lcns = await getAll<ILocation>(firestore, 'LOCATIONS', lcnIds);
+      // let lcnData = lcns.docs.map((l) => ({ id: l.id, ...l.data() }));
+      let lcns = await getAllById<ILocation>(firestore, 'LOCATIONS', lcnIds);
 
-      let lcnData = lcns.docs.map((l) => ({ id: l.id, ...l.data() }));
+      // TODO: fix typing (and/or throw if one of the locations is not found ??)
+      let lcnData = lcns
+        .filter((s) => s.exists())
+        .map((l) => ({ id: l.id, ...l.data() })) as WithId<ILocation>[];
+
       setLocationData([...lcnData]);
       console.log('locations: ', lcnData);
       // setLoading(false);
@@ -271,14 +277,6 @@ export const ReviewStepComponent = ({
             </>
           ) : null}
         </Grid>
-        {/* <Typography component='div' variant='body2' color='text.secondary' sx={{ my: 4 }}>
-          <ReactJson
-            src={data}
-            style={{ backgroundColor: 'inherit' }}
-            iconStyle='circle'
-            collapseStringsAfterLength={30}
-          />
-        </Typography> */}
       </Container>
       <Box
         sx={{
@@ -294,7 +292,13 @@ export const ReviewStepComponent = ({
   );
 };
 
-function LocationCard({ location }: { location: WithId<ILocation> }) {
+export function LocationCard({
+  location,
+  renderTopRight,
+}: {
+  location: WithId<ILocation>;
+  renderTopRight?: (location: WithId<ILocation>) => ReactNode;
+}) {
   return (
     <Card sx={{ display: 'flex', my: 3 }}>
       <CardMedia
@@ -310,19 +314,27 @@ function LocationCard({ location }: { location: WithId<ILocation> }) {
       <Box sx={{ display: 'flex', flexDirection: 'column', flex: '1 1 auto' }}>
         <CardContent sx={{ flex: '1 0 auto' }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-            <Typography variant='h6'>{location.address.addressLine1}</Typography>
+            <Typography variant='h6' align='right'>
+              {location.address.addressLine1}
+            </Typography>
             <Box sx={{ flex: '0 0 auto', mt: -2 }}>
-              <Typography
-                variant='overline'
-                align='right'
-                color='text.secondary'
-                sx={{ lineHeight: 1, fontSize: '0.675rem' }}
-              >
-                Annual Premium
-              </Typography>
-              <Typography variant='subtitle1' align='right' sx={{ lineHeight: 1.2 }}>
-                {dollarFormat(location.annualPremium)}
-              </Typography>
+              {renderTopRight ? (
+                renderTopRight(location)
+              ) : (
+                <>
+                  <Typography
+                    variant='overline'
+                    align='right'
+                    color='text.secondary'
+                    sx={{ lineHeight: 1, fontSize: '0.675rem' }}
+                  >
+                    Annual Premium
+                  </Typography>
+                  <Typography variant='subtitle1' align='right' sx={{ lineHeight: 1.2 }}>
+                    {dollarFormat(location.annualPremium)}
+                  </Typography>
+                </>
+              )}
             </Box>
           </Box>
         </CardContent>

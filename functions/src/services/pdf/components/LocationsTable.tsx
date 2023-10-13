@@ -3,25 +3,33 @@ import { Text, View } from '@react-pdf/renderer';
 import { tableStyles as styles } from '../styles.js';
 import { ColumnDef, Table } from './Table.js';
 
+// TODO: replace "flex" with "flexGrow" and add flexBasis, flexShrink
+
 const locationColumns: ColumnDef[] = [
   {
     field: 'locationId',
     headerName: 'Location ID',
-    minWidth: 120,
+    minWidth: 100,
     alignHeader: 'left',
     alignContent: 'left',
   },
   {
+    // TODO: fix address header extending too far
     field: 'address',
     headerName: 'Address',
-    minWidth: 140,
+    // minWidth: 180,
+    // maxWidth: 180, // @ts-ignore
+    // width: '100%',
+    flexGrow: 0,
+    flexShrink: 0,
+    flexBasis: '180px',
     alignHeader: 'left',
     alignContent: 'left',
     renderCell: ({ value, cellStyles }) => {
       return (
-        <View style={[cellStyles, styles.cell]}>
-          <Text>{value[0]}</Text>
-          <Text>{value[1]}</Text>
+        <View style={[styles.cell, cellStyles, styles.addressContainer]}>
+          <Text style={[styles.addressText]}>{value[0]}</Text>
+          <Text style={[styles.addressText]}>{value[1]}</Text>
         </View>
       );
     },

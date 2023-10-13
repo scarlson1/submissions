@@ -6,7 +6,6 @@ import { useCallback, useRef } from 'react';
 import { useFirestore } from 'reactfire';
 
 import {
-  CHANGE_REQUEST_STATUS,
   ChangeRequest,
   Policy,
   PolicyChangeRequestOld,
@@ -14,6 +13,7 @@ import {
   changeRequestsCollection,
   policiesCollection,
 } from 'common';
+import { ChangeRequestStatus } from 'common/enums';
 import { useAuth } from 'context';
 import {
   PolicyChangeForm,
@@ -176,7 +176,7 @@ function getCommonTrxJson(
     agency: {
       orgId: policy.agency?.orgId || null,
     },
-    status: CHANGE_REQUEST_STATUS.SUBMITTED,
+    status: ChangeRequestStatus.enum.submitted,
     submittedBy: {
       userId: user?.uid || null,
       displayName: user?.displayName || '',

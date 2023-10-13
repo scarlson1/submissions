@@ -12,11 +12,14 @@ import {
   AGENCY_STATUS,
   AGENCY_SUBMISSION_STATUS,
   COLLECTIONS,
+  ChangeRequestStatus,
   FIN_TRANSACTION_STATUS,
   POLICY_STATUS,
   PRODUCT,
+  PaymentStatus,
   QUOTE_STATUS,
   SUBMISSION_STATUS,
+  SubmittedChangeRequestStatus,
 } from './enums.js';
 import { cardFeePct, iDemandOrgId } from './environmentVars.js';
 
@@ -719,10 +722,12 @@ export type PolicyLcnWithPrem = PartialRequired<PolicyLocation, 'termPremium'>;
 
 // TODO: replace status with bound,
 // TODO: separate out payment status
+// TODO: separate out payment/charge/invoice info from policy ?? (only save reference to payment object)
 export interface PolicyNew extends BaseDoc {
   product: Product;
   status: POLICY_STATUS; // TODO: figure out how to do policy status (active, etc.)
   // paymentStatus: string; // TODO: payment enum
+  paymentStatus: PaymentStatus;
   term: number;
   mailingAddress: MailingAddress;
   namedInsured: NamedInsured;
@@ -989,8 +994,6 @@ export class PolicyClass implements IPolicyClass {
   // setExpirationDate
 }
 
-// export type ChangeRequestStatus = 'submitted' | 'accepted' | 'denied' | 'under_review';
-
 // export interface ChangeRequest extends BaseDoc {
 //   field: string;
 //   newValue: string | number;
@@ -1015,15 +1018,6 @@ export interface LocationChangeValues {
   externalId: string;
   requestEffDate: Date;
 }
-
-export type ChangeRequestStatus =
-  | 'draft'
-  | 'submitted'
-  | 'accepted'
-  | 'denied'
-  | 'under_review'
-  | 'cancelled'
-  | 'error';
 
 // TODO: create ChangeRequestTrxType, then TransactionType  = ChangeRequestTrxType & 'renewal' | 'new'
 
@@ -1200,10 +1194,15 @@ export interface AddLocationValues {
   additionalInterests: AdditionalInterest[];
 }
 
-export interface AddLocationRequest extends BaseChangeRequest {
+// type test = z.infer<typeof ChangeRequestStatus.exclude('draft')>
+// type PostDraftStatus = ChangeRequestStatus.exclude(['draft'])
+
+export interface AddLocationRequest extends Omit<BaseChangeRequest, 'status'> {
   trxType: 'endorsement';
   scope: 'add_location'; // TODO: use scope instead of isAddLocationRequest ?? once submitted, should scope change to endorsement ??
-  status: 'submitted' | 'accepted' | 'denied' | 'under_review' | 'cancelled' | 'error';
+  // status: 'submitted' | 'accepted' | 'denied' | 'under_review' | 'cancelled' | 'error';
+  // status:  // z.enum(ChangeRequestStatusEnum.options.filter...) // TODO: remove 'draft'
+  status: SubmittedChangeRequestStatus;
   formValues: AddLocationValues;
   policyChanges?: DeepPartial<PolicyNew>;
   locationChanges?: DeepPartial<ILocation>;

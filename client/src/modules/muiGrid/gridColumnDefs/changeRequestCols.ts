@@ -1,6 +1,7 @@
 import { GridColDef, GridValueGetterParams } from '@mui/x-data-grid';
 
-import { CHANGE_REQUEST_STATUS, ChangeRequest } from 'common';
+import { ChangeRequest } from 'common';
+import { ChangeRequestStatus } from 'common/enums';
 import {
   createdCol,
   errMsgCol,
@@ -53,14 +54,7 @@ export const changeRequestCols: GridColDef<ChangeRequest>[] = [
     ...statusCol,
     filterable: true,
     editable: true,
-    valueOptions: [
-      CHANGE_REQUEST_STATUS.SUBMITTED,
-      CHANGE_REQUEST_STATUS.ACCEPTED,
-      CHANGE_REQUEST_STATUS.DENIED,
-      CHANGE_REQUEST_STATUS.UNDER_REVIEW,
-      CHANGE_REQUEST_STATUS.CANCELLED,
-      CHANGE_REQUEST_STATUS.DRAFT,
-    ],
+    valueOptions: ChangeRequestStatus.options,
   },
   scopeCol,
   requestEffDateCol,

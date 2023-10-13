@@ -4,7 +4,9 @@ import {
   DocumentData,
   Firestore,
   collection,
+  doc,
   documentId,
+  getDoc,
   getDocs,
   query,
   where,
@@ -13,7 +15,7 @@ import {
 import { COLLECTIONS } from 'common';
 
 // TODO: support sub collections
-
+// limited to 10 docs
 export async function getAll<T extends DocumentData>(
   db: Firestore,
   colName: keyof typeof COLLECTIONS,
@@ -30,4 +32,19 @@ export async function getAll<T extends DocumentData>(
   //   console.log(doc.data()); // "doc1", "doc2" and "doc3"
   // });
   return snaps;
+}
+
+export async function getAllById<T extends DocumentData>(
+  db: Firestore,
+  colName: keyof typeof COLLECTIONS,
+  docIds: string[]
+) {
+  const colRef = collection(db, COLLECTIONS[colName]) as CollectionReference<T>;
+  const promises = [];
+  for (let id of docIds) {
+    promises.push(getDoc(doc(colRef, id)));
+  }
+
+  const res = await Promise.all(promises);
+  return res;
 }

@@ -86,9 +86,9 @@ const calcPolicyCancelChanges = async ({
     // need to offset previous cancel trx
     // locations IDs, filtered for cancel locations < policy cancel eff date.
     const policyLcnEntries = Object.entries(policy.locations).filter(
-      ([id, lcnSumm]) =>
-        !lcnSumm.cancelEffDate ||
-        (lcnSumm.cancelEffDate && lcnSumm.cancelEffDate.toMillis() > requestEffDate.toMillis())
+      ([id, lcnSum]) =>
+        !lcnSum.cancelEffDate ||
+        (lcnSum.cancelEffDate && lcnSum.cancelEffDate.toMillis() > requestEffDate.toMillis())
     );
 
     const locationRefs = policyLcnEntries.map(([id]) => locationsCol.doc(id));

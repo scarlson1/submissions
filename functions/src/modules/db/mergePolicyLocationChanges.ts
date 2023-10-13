@@ -3,7 +3,8 @@ import { info } from 'firebase-functions/logger';
 import { merge, set } from 'lodash-es';
 
 import {
-  CHANGE_REQUEST_STATUS,
+  CancellationRequest,
+  ChangeRequestStatus,
   ILocation,
   PolicyChangeRequest,
   PolicyNew,
@@ -38,8 +39,8 @@ export const mergePolicyLocationChanges = async (
     const request = requestSnap.data();
     verify(requestSnap.exists && request, 'change request not found');
 
-    const { endorsementChanges, amendmentChanges, policyChanges } =
-      request as unknown as PolicyChangeRequest;
+    const { endorsementChanges, amendmentChanges, cancellationChanges, policyChanges } =
+      request as unknown as PolicyChangeRequest & CancellationRequest;
 
     // const { policyChanges, trxType } = request;
 
@@ -69,7 +70,11 @@ export const mergePolicyLocationChanges = async (
     // const locationSnap = locationRef ? await transaction.get(locationRef) : null;
     verify(policySnap.exists && policy, 'Policy document does not exist');
     // verify(!isLcnScope || locationSnap?.exists, 'Location document does not exist');
-    const locationChanges = merge(endorsementChanges || {}, amendmentChanges || {}); // TODO: add cancelChanges ?? (add location should store values under endorsementChanges ??)
+    const locationChanges = merge(
+      endorsementChanges || {},
+      amendmentChanges || {},
+      cancellationChanges || {}
+    ); // TODO: add cancelChanges ?? (add location should store values under endorsementChanges ??)
     // what about reinstatement
     const locationIds = Object.keys(locationChanges);
     const locationRefs = locationIds.map((lcnId) => locationsCol.doc(lcnId));
@@ -104,7 +109,7 @@ export const mergePolicyLocationChanges = async (
 
     const requestUpdates = {
       ...reqUpdates,
-      status: CHANGE_REQUEST_STATUS.ACCEPTED,
+      status: ChangeRequestStatus.enum.accepted,
       processedTimestamp: Timestamp.now(),
       'metadata.updated': Timestamp.now(),
       mergedWithPolicyVersion: policy.metadata?.version || null,

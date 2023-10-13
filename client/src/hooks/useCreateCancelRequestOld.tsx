@@ -8,7 +8,6 @@ import invariant from 'tiny-invariant';
 
 import {
   BaseChangeRequest,
-  CHANGE_REQUEST_STATUS,
   LocationCancellationRequest,
   Policy,
   PolicyCancellationRequest,
@@ -16,6 +15,7 @@ import {
   changeRequestsCollection,
   policiesCollection,
 } from 'common';
+import { ChangeRequestStatus } from 'common/enums';
 import { RouterLink } from 'components/layout';
 import { useAuth } from 'context';
 import { CancelForm, CancelFormProps, CancelValues } from 'elements/forms';
@@ -64,7 +64,7 @@ export const useCreateCancelRequestOld = (
         agency: {
           orgId: p.agency.orgId || null,
         },
-        status: CHANGE_REQUEST_STATUS.SUBMITTED,
+        status: ChangeRequestStatus.enum.submitted,
         submittedBy: {
           userId,
           displayName: user.displayName || '',

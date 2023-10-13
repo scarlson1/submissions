@@ -8,8 +8,6 @@ import { usePrevious } from 'hooks/utils';
 import { createChangeRequest } from 'modules/db';
 import { CancelWizard } from './CancelWizard';
 
-// TODO: optional locationId for policy cancellation ??
-
 interface CancelFormProps {
   policyId: string;
   locationId?: string | null;

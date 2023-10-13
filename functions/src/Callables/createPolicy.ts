@@ -11,7 +11,7 @@ import {
   policiesCollectionNew,
   quotesCollection,
 } from '../common/index.js';
-import { getSLLicenseByState } from '../modules/db/index.js';
+import { createDocId, getSLLicenseByState } from '../modules/db/index.js';
 import { checkMoratoriums } from '../services/index.js';
 import { publishPolicyCreated } from '../services/pubsub/index.js';
 import { onCallWrapper } from '../services/sentry/index.js';
@@ -85,14 +85,14 @@ const createPolicy = async ({ data, auth }: CallableRequest<CreatePolicyProps>) 
     reportErr(msg, {}, err);
     throw new HttpsError('internal', msg);
   }
-  const policyRef = policiesCol.doc();
+  // const policyRef = policiesCol.doc();
+  const policyRef = policiesCol.doc(`ID${createDocId(8)}`);
   let policyData: PolicyNew;
   let locationData: Record<string, ILocation>;
 
   try {
     locationData = getPolicyLocationsFromQuote(quoteData, policyRef.id);
     policyData = getPolicyFromQuote(quoteData, locationData, licenseData);
-    // policyData = convertQuoteToPolicyOld(quoteData, licenseData, quoteId);
   } catch (err: any) {
     let msg = 'invalid or missing data';
     if (err?.message) msg = err.message;

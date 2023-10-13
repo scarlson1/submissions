@@ -72,7 +72,6 @@ export const calcPolicyEndorsementChanges = (
 
   // if all locations have cancel eff date --> add cancelEffDate to policy
   if (!newLcnArr.filter((l) => !l.cancelEffDate).length) {
-    // policyChanges['expirationDate'] = expDateTS;
     policyChanges['status'] = POLICY_STATUS.CANCELLED;
     policyChanges['cancelEffDate'] = reqEffDate;
     policyChanges['termDays'] = getTermDays(policy.effectiveDate.toDate(), reqEffDate.toDate());

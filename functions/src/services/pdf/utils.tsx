@@ -34,7 +34,7 @@ export function formatLocationData(locations: WithId<ILocation>[]) {
       limitD: location.limits?.limitA ? dollarFormat(location.limits?.limitD) : '',
       deductible: dollarFormat(location.deductible),
       annualPremium: location.annualPremium ? dollarFormat(location.annualPremium) : '',
-      termPremium: location.termPremium ? dollarFormat(location.termPremium) : '',
+      termPremium: location.termPremium ? dollarFormat2(location.termPremium) : '',
     };
 
     formatted.push(test);

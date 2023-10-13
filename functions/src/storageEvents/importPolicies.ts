@@ -15,6 +15,7 @@ import {
   LocationParent,
   MailingAddress,
   POLICY_STATUS,
+  PaymentStatus,
   PolicyNew,
   Product,
   RatingData,
@@ -403,6 +404,7 @@ async function getPolicyWithoutLocation(
   const p: Omit<PolicyNew, 'locations' | 'termPremium' | 'termPremiumWithCancels'> = {
     product: data.product as Product,
     status: POLICY_STATUS.PAID, // TODO: get status from csv
+    paymentStatus: PaymentStatus.enum.paid,
     term: data.term as number,
     mailingAddress: data.address as MailingAddress,
     namedInsured: data.namedInsured,

@@ -3,8 +3,8 @@ import { error, info } from 'firebase-functions/logger';
 import type { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 
 import {
-  CHANGE_REQUEST_STATUS,
   ChangeRequest,
+  ChangeRequestStatus,
   getReportErrorFn,
   sendgridApiKey,
 } from '../common/index.js';
@@ -53,13 +53,13 @@ export default async (
 
     const { status } = data;
     validate(status, 'policy change request missing status', 'error');
-    info(`New change request doc change detected. (status: ${status})`, { ...data });
+    info(`Change request doc change detected. (status: ${status})`, { ...data });
 
     switch (status) {
-      case CHANGE_REQUEST_STATUS.DRAFT:
+      case ChangeRequestStatus.enum.draft:
         info('status = "draft" exiting...');
         return;
-      case CHANGE_REQUEST_STATUS.SUBMITTED:
+      case ChangeRequestStatus.enum.submitted:
         await handleRequestNotifications(data, policyId, requestId, event.id);
 
         // TODO: handle reinstatement & renewal
@@ -83,29 +83,29 @@ export default async (
           throw new Error('TODO: handle add location');
         }
 
-        if (afterSnap) await updateChangeRequestStatus(afterSnap.ref, 'UNDER_REVIEW');
+        if (afterSnap) await updateChangeRequestStatus(afterSnap.ref, 'under_review');
 
         return;
-      case CHANGE_REQUEST_STATUS.ACCEPTED:
+      case ChangeRequestStatus.enum.accepted:
         await publishChangeRequestTransactions(data, policyId);
 
         return;
-      case CHANGE_REQUEST_STATUS.CANCELLED:
+      case ChangeRequestStatus.enum.cancelled:
         // await handleRequestNotifications(data, policyId, requestId, event.id);
         // TODO: send notifications ??
 
         return;
-      case CHANGE_REQUEST_STATUS.DENIED: // TODO: send notifications (create template for all status updates)
+      case ChangeRequestStatus.enum.denied: // TODO: send notifications (create template for all status updates)
         await handleDeniedRequest(data, policyId, requestId);
 
         return;
-      case CHANGE_REQUEST_STATUS.UNDER_REVIEW:
+      case ChangeRequestStatus.enum.under_review:
         return;
-      case CHANGE_REQUEST_STATUS.ERROR:
+      case ChangeRequestStatus.enum.error:
         // TODO: notify admin
         throw new Error(`Change request status updated to "error" (${data.error || 'unknown'})`);
       default:
-        error(`Change request status not recognized (status: ${status})`, { ...data });
+        error(`Change request status not recognized (status: ${status})`, data || {});
         return;
     }
   } catch (err: any) {
@@ -119,9 +119,9 @@ export default async (
 
 async function updateChangeRequestStatus(
   docRef: DocumentReference,
-  statusKey: keyof typeof CHANGE_REQUEST_STATUS
+  status: ChangeRequestStatus // keyof typeof CHANGE_REQUEST_STATUS
 ) {
-  await docRef.update({ status: CHANGE_REQUEST_STATUS[statusKey] });
+  await docRef.update({ status });
 }
 
 // Send admin notification & notification to policy holder / agent

@@ -1,3 +1,5 @@
+import { z } from 'zod';
+
 export enum COLLECTIONS {
   SUBMISSIONS = 'submissions',
   PROPERTY_DATA_RES = 'propertyDataRes',
@@ -63,15 +65,40 @@ export enum POLICY_STATUS {
   CANCELLED = 'cancelled',
 }
 
-export enum CHANGE_REQUEST_STATUS {
-  DRAFT = 'draft',
-  SUBMITTED = 'submitted',
-  ACCEPTED = 'accepted',
-  DENIED = 'denied',
-  UNDER_REVIEW = 'under_review',
-  CANCELLED = 'cancelled',
-  ERROR = 'error',
-}
+export const PaymentStatus = z.enum([
+  'paid',
+  'processing',
+  'awaiting_payment',
+  'cancelled',
+  'error',
+  'declined',
+  'payment_failed',
+]);
+export type PaymentStatus = z.infer<typeof PaymentStatus>;
+
+// export enum CHANGE_REQUEST_STATUS {
+//   DRAFT = 'draft',
+//   SUBMITTED = 'submitted',
+//   ACCEPTED = 'accepted',
+//   DENIED = 'denied',
+//   UNDER_REVIEW = 'under_review',
+//   CANCELLED = 'cancelled',
+//   ERROR = 'error',
+// }
+
+export const ChangeRequestStatus = z.enum([
+  'draft',
+  'submitted',
+  'accepted',
+  'denied',
+  'under_review',
+  'cancelled',
+  'error',
+]); // z.nativeEnum(CHANGE_REQUEST_STATUS);
+export type ChangeRequestStatus = z.infer<typeof ChangeRequestStatus>;
+
+export const SubmittedChangeRequestStatus = ChangeRequestStatus.exclude(['draft']);
+export type SubmittedChangeRequestStatus = z.infer<typeof SubmittedChangeRequestStatus>;
 
 export enum FIN_TRANSACTION_STATUS {
   PROCESSING = 'processing',

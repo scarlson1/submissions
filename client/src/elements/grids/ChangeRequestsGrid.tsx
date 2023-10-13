@@ -3,7 +3,8 @@ import { GridActionsColDef, GridRowParams } from '@mui/x-data-grid';
 import { where } from 'firebase/firestore';
 import { useMemo } from 'react';
 
-import { CHANGE_REQUEST_STATUS, COLLECTIONS, ServerDataGridCollectionProps } from 'common';
+import { COLLECTIONS, ServerDataGridCollectionProps } from 'common';
+import { ChangeRequestStatus } from 'common/enums';
 import { ServerDataGrid, ServerDataGridProps } from 'components';
 import { useClaims, useWidth } from 'hooks';
 import { changeRequestCols } from 'modules/muiGrid';
@@ -92,7 +93,7 @@ export const ChangeRequestsGrid = ({
           },
           filter: {
             filterModel: {
-              items: [{ field: 'status', operator: '!=', value: CHANGE_REQUEST_STATUS.DRAFT }],
+              items: [{ field: 'status', operator: '!=', value: ChangeRequestStatus.enum.draft }],
             },
           },
           ...(initialState || {}),

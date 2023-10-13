@@ -23,7 +23,8 @@ import { isEqual } from 'lodash';
 import { Suspense, useCallback, useMemo, useState } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 
-import { CHANGE_REQUEST_STATUS, CLAIMS, COLLECTIONS, ChangeRequest, WithId } from 'common';
+import { CLAIMS, COLLECTIONS, ChangeRequest, WithId } from 'common';
+import { ChangeRequestStatus } from 'common/enums';
 import { ErrorFallback } from 'components';
 import { LoadingComponent } from 'components/layout';
 import { useAuth } from 'context';
@@ -44,7 +45,7 @@ export const useViewChangeRequestsDialogProps = (policyId?: string) => {
   if (!user?.uid) throw new Error('must be signed in');
 
   const countConstraints = useMemo(() => {
-    let constraints = [where('status', '==', CHANGE_REQUEST_STATUS.SUBMITTED)];
+    let constraints = [where('status', '==', ChangeRequestStatus.enum.under_review)]; // TODO: different status depending on user ??
 
     if (policyId) {
       constraints.push(where('policyId', '==', policyId));
@@ -200,9 +201,9 @@ export function ChangeRequestsDialog({ policyId, open, handleClose }: ChangeRequ
           disabled={
             !claims?.iDemandAdmin ||
             ![
-              CHANGE_REQUEST_STATUS.SUBMITTED,
-              CHANGE_REQUEST_STATUS.UNDER_REVIEW,
-              CHANGE_REQUEST_STATUS.ERROR,
+              ChangeRequestStatus.enum.submitted,
+              ChangeRequestStatus.enum.under_review,
+              ChangeRequestStatus.enum.error,
             ].includes(params.row.status)
           }
           showInMenu={isSmall}
@@ -218,9 +219,9 @@ export function ChangeRequestsDialog({ policyId, open, handleClose }: ChangeRequ
           disabled={
             !claims?.iDemandAdmin ||
             ![
-              CHANGE_REQUEST_STATUS.SUBMITTED,
-              CHANGE_REQUEST_STATUS.UNDER_REVIEW,
-              CHANGE_REQUEST_STATUS.ERROR,
+              ChangeRequestStatus.enum.submitted,
+              ChangeRequestStatus.enum.under_review,
+              ChangeRequestStatus.enum.error,
             ].includes(params.row.status)
           }
           showInMenu
@@ -235,7 +236,7 @@ export function ChangeRequestsDialog({ policyId, open, handleClose }: ChangeRequ
           label='cancel'
           disabled={
             !claims?.iDemandAdmin ||
-            ![CHANGE_REQUEST_STATUS.SUBMITTED, CHANGE_REQUEST_STATUS.UNDER_REVIEW].includes(
+            ![ChangeRequestStatus.enum.submitted, ChangeRequestStatus.enum.under_review].includes(
               params.row.status
             )
           }
@@ -250,7 +251,7 @@ export function ChangeRequestsDialog({ policyId, open, handleClose }: ChangeRequ
           onClick={handleRefreshPolicyChanges(params)}
           label='Recalc policy changes'
           disabled={
-            ![CHANGE_REQUEST_STATUS.SUBMITTED, CHANGE_REQUEST_STATUS.UNDER_REVIEW].includes(
+            ![ChangeRequestStatus.enum.submitted, ChangeRequestStatus.enum.under_review].includes(
               params.row.status
             )
           }

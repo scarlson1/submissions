@@ -5,14 +5,8 @@ import { useCallback, useRef } from 'react';
 import { useFirestore, useFunctions } from 'reactfire';
 
 import { calcLocationChanges } from 'api';
-import {
-  CHANGE_REQUEST_STATUS,
-  ILocation,
-  LocationChangeRequest,
-  Policy,
-  WithId,
-  changeRequestsCollection,
-} from 'common';
+import { ILocation, LocationChangeRequest, Policy, WithId, changeRequestsCollection } from 'common';
+import { ChangeRequestStatus } from 'common/enums';
 import { useAuth } from 'context';
 import {
   LocationChangeFormOld,
@@ -221,7 +215,7 @@ function getCommonTrxJson(
     agency: {
       orgId: policy.agency.orgId || null,
     },
-    status: CHANGE_REQUEST_STATUS.SUBMITTED,
+    status: ChangeRequestStatus.enum.submitted,
     submittedBy: {
       userId: user?.uid || null,
       displayName: user?.displayName || '',

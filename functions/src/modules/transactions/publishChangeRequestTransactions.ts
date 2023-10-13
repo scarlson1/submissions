@@ -98,6 +98,8 @@ export async function publishChangeRequestTransactions(data: ChangeRequest, poli
 
     if (isCancellationRequest(data)) {
       const locationIds = Object.keys(data.cancellationChanges);
+      console.log('publishing cancelation pub/sub');
+      printObj(data);
 
       for (let lcnId of locationIds) {
         await publishLocationCancel({

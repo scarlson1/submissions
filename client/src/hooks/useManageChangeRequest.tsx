@@ -6,13 +6,13 @@ import { useFirestore, useFunctions, useUser } from 'reactfire';
 
 import { ApproveChangeResponse, approveChangeRequest, calcPolicyChanges } from 'api';
 import {
-  CHANGE_REQUEST_STATUS,
   COLLECTIONS,
   ChangeRequest,
   ILocation,
   changeRequestsCollection,
   policiesCollection,
 } from 'common';
+import { ChangeRequestStatus } from 'common/enums';
 import { getAll, getFirebaseDoc } from 'modules/db';
 import { deepMergeOverwriteArrays } from 'modules/utils';
 import { useAsyncToast } from './useAsyncToast';
@@ -81,13 +81,13 @@ export const useManageChangeRequest = (
 
   const denyRequest = useCallback(
     (policyId: string, requestId: string) =>
-      updateChangeRequest(policyId, requestId, { status: CHANGE_REQUEST_STATUS.DENIED }),
+      updateChangeRequest(policyId, requestId, { status: ChangeRequestStatus.enum.denied }),
     [updateChangeRequest]
   );
 
   const cancelRequest = useCallback(
     (policyId: string, requestId: string) =>
-      updateChangeRequest(policyId, requestId, { status: CHANGE_REQUEST_STATUS.CANCELLED }),
+      updateChangeRequest(policyId, requestId, { status: ChangeRequestStatus.enum.cancelled }),
     [updateChangeRequest]
   );
 

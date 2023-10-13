@@ -2,8 +2,8 @@ import { DocumentReference, Timestamp, getFirestore } from 'firebase-admin/fires
 import { error, info } from 'firebase-functions/logger';
 import { isObject } from 'lodash-es';
 import {
-  CHANGE_REQUEST_STATUS,
   ChangeRequest,
+  ChangeRequestStatus,
   DeepPartial,
   ILocation,
   PolicyNew,
@@ -330,7 +330,7 @@ export async function handleRatingForEndorsement(
 
 export async function setChangeRequestErr(ref: DocumentReference, errMsg: string) {
   try {
-    await ref.update({ status: CHANGE_REQUEST_STATUS.ERROR, error: errMsg });
+    await ref.update({ status: ChangeRequestStatus.enum.error, error: errMsg });
   } catch (err) {
     error('Error setting error message on change request');
   }

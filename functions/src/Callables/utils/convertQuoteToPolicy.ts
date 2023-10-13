@@ -3,7 +3,15 @@ import { Timestamp } from 'firebase-admin/firestore';
 import { geohashForLocation } from 'geofire-common';
 
 import { sum } from 'lodash-es';
-import { ILocation, License, POLICY_STATUS, PolicyNew, Quote, WithId } from '../../common/index.js';
+import {
+  ILocation,
+  License,
+  POLICY_STATUS,
+  PaymentStatus,
+  PolicyNew,
+  Quote,
+  WithId,
+} from '../../common/index.js';
 import { createDocId } from '../../modules/db/index.js';
 import {
   calcPolicyPremium,
@@ -116,6 +124,7 @@ export function getPolicyFromQuote(
   const policy: PolicyNew = {
     product: 'flood',
     status: POLICY_STATUS.AWAITING_PAYMENT,
+    paymentStatus: PaymentStatus.enum.awaiting_payment,
     term: 1,
     mailingAddress: data.mailingAddress,
     namedInsured: {

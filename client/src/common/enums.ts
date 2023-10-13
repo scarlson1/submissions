@@ -127,15 +127,29 @@ export enum AGENCY_SUBMISSION_STATUS {
   REJECTED = 'rejected',
 }
 
-export enum CHANGE_REQUEST_STATUS {
-  DRAFT = 'draft',
-  SUBMITTED = 'submitted',
-  ACCEPTED = 'accepted',
-  DENIED = 'denied',
-  UNDER_REVIEW = 'under_review',
-  CANCELLED = 'cancelled',
-  ERROR = 'error',
-}
+// export enum CHANGE_REQUEST_STATUS {
+//   DRAFT = 'draft',
+//   SUBMITTED = 'submitted',
+//   ACCEPTED = 'accepted',
+//   DENIED = 'denied',
+//   UNDER_REVIEW = 'under_review',
+//   CANCELLED = 'cancelled',
+//   ERROR = 'error',
+// }
+
+export const ChangeRequestStatus = z.enum([
+  'draft',
+  'submitted',
+  'accepted',
+  'denied',
+  'under_review',
+  'cancelled',
+  'error',
+]); // z.nativeEnum(CHANGE_REQUEST_STATUS);
+export type TChangeRequestStatus = z.infer<typeof ChangeRequestStatus>;
+
+export const SubmittedChangeRequestStatus = ChangeRequestStatus.exclude(['draft']);
+export type TSubmittedChangeRequestStatus = z.infer<typeof SubmittedChangeRequestStatus>;
 
 // 'pending' | 'accepted' | 'revoked' | 'replaced' | 'rejected' | 'error';
 export enum INVITE_STATUS {

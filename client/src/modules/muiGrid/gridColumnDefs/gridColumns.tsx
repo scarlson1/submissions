@@ -47,7 +47,6 @@ import {
   AGENCY_SUBMISSION_STATUS,
   AdditionalInsured,
   Address,
-  CHANGE_REQUEST_STATUS,
   COLLECTIONS,
   CompressedAddress,
   FeeItem,
@@ -61,6 +60,16 @@ import {
   SUBMISSION_STATUS,
   TaxItem,
 } from 'common';
+import {
+  CBRS_OPTIONS,
+  CONSTRUCTION_TYPE,
+  FLOOD_ZONE_OPTIONS,
+  LOB_OPTIONS,
+  PRIOR_LOSS_COUNT_OPTIONS,
+  PRODUCT_OPTIONS,
+} from 'common/constants';
+import { ChangeRequestStatus, TChangeRequestStatus } from 'common/enums';
+import { STATES_ABV_ARR } from 'common/statesList';
 import { FileLink, GridCellCopy, renderGridEmail, renderGridPhone } from 'components';
 import {
   renderCellExpand,
@@ -91,15 +100,6 @@ import {
   numberFormat,
   popUpWasBlocked,
 } from 'modules/utils';
-import {
-  CBRS_OPTIONS,
-  CONSTRUCTION_TYPE,
-  FLOOD_ZONE_OPTIONS,
-  LOB_OPTIONS,
-  PRIOR_LOSS_COUNT_OPTIONS,
-  PRODUCT_OPTIONS,
-} from '../../../common/constants';
-import { STATES_ABV_ARR } from '../../../common/statesList';
 
 export const copyBaseProps: Partial<GridColDef> = {
   flex: 1.2,
@@ -599,7 +599,7 @@ export type ChipStatus =
   | POLICY_STATUS
   | AGENCY_SUBMISSION_STATUS
   | INVITE_STATUS
-  | CHANGE_REQUEST_STATUS
+  | TChangeRequestStatus
   | string;
 
 export function getChipProps(status: ChipStatus): Partial<ChipProps> {
@@ -642,8 +642,10 @@ export function getChipProps(status: ChipStatus): Partial<ChipProps> {
       return { icon: <SaveAltRounded />, color: 'success' };
     case 'declined':
       return { icon: <ThumbDownRounded />, color: 'default' };
-    case CHANGE_REQUEST_STATUS.DENIED:
+    case ChangeRequestStatus.enum.denied: // ChangeRequestStatus.enum.denied: // CHANGE_REQUEST_STATUS.DENIED:
       return { icon: <CloseRounded />, color: 'error' };
+    case 'error':
+      return { icon: <ErrorOutlineRounded />, color: 'error' };
     case 'active':
       return { icon: <CheckRounded />, color: 'success' };
     case 'inactive':

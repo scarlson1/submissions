@@ -1,5 +1,6 @@
 import { add, startOfDay } from 'date-fns';
 import { Timestamp, setDoc } from 'firebase/firestore';
+import { FormikConfig, FormikProps } from 'formik';
 import { isEmpty, isEqual } from 'lodash';
 import { useCallback, useMemo, useRef } from 'react';
 import toast from 'react-hot-toast';
@@ -8,11 +9,10 @@ import { useFirestoreDocData, useFunctions, useUser } from 'reactfire';
 import { calcCancelChange, calcPolicyCancelChanges } from 'api';
 import { CancellationReason, CancellationRequest, Policy } from 'common';
 import { Wizard } from 'components/forms';
-import { FormikConfig, FormikProps } from 'formik';
 import { useDocDataOnce } from 'hooks';
 import { createChangeRequest } from 'modules/db';
-import { ReviewStep } from '../LocationChangeForm/ReviewStep';
 import { CancelValues, CancelValuesStep } from './CancelValuesStep';
+import { ReviewStep } from './ReviewStep';
 import { SubmittedStep } from './SubmittedStep';
 
 // TODO: display locations in review step with strike through annual premium
@@ -35,8 +35,7 @@ export const CancelWizard = ({
   changeRequestDocResource,
   policyId,
   cancelScope,
-}: // locationId,
-CancelWizardProps) => {
+}: CancelWizardProps) => {
   const functions = useFunctions();
   const { data: user } = useUser();
   const changeRequestRef = changeRequestDocResource.read();
@@ -143,8 +142,8 @@ CancelWizardProps) => {
         onError={handleError}
         changeRequest={changeRequest}
       />
-      <ReviewStep policyId={policyId} requestId={changeRequestRef.id} onSubmit={handleSubmit} />
-      {/* <ReviewStep onSubmit={handleSubmit} /> */}
+      {/* <ReviewStep policyId={policyId} requestId={changeRequestRef.id} onSubmit={handleSubmit} /> */}
+      <ReviewStep onSubmit={handleSubmit} changeRequest={changeRequest} policy={policy} />
       <SubmittedStep
         data={changeRequest as CancellationRequest}
         policy={policy}

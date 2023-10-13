@@ -19,6 +19,7 @@ import {
   QUOTE_STATUS,
   STATE_ABBREVIATION,
   SUBMISSION_STATUS,
+  TChangeRequestStatus,
   UW_NOTE_CODE,
 } from './enums';
 
@@ -809,15 +810,6 @@ export type Transaction = PremiumTransaction | OffsetTransaction | AmendmentTran
 //   homeState: string;
 // }
 
-export type ChangeRequestStatus =
-  | 'draft'
-  | 'submitted'
-  | 'accepted'
-  | 'denied'
-  | 'under_review'
-  | 'cancelled'
-  | 'error';
-
 export interface BaseChangeRequest extends BaseDoc {
   trxType: ChangeRequestTrxType;
   requestEffDate: Timestamp;
@@ -833,7 +825,7 @@ export interface BaseChangeRequest extends BaseDoc {
   agency: {
     orgId: string | null;
   };
-  status: ChangeRequestStatus;
+  status: TChangeRequestStatus;
   processedTimestamp?: Timestamp;
   processedByUserId?: string;
   submittedBy: {
