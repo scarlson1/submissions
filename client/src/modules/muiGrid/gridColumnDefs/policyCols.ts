@@ -105,6 +105,7 @@ export const policyCols: GridColDef<Policy>[] = [
 
 export const POLICY_COLUMN_VISIBILITY: GridColumnVisibilityModel = {
   product: false,
+  paymentStatus: false,
   'namedInsured.firstName': false,
   'namedInsured.lastName': false,
   'namedInsured.email': false,

@@ -39,6 +39,7 @@ export function parseStreamToArray<InitRowType = any, TRowType = any>(
         return true;
       })
       .on('error', (err: any) => {
+        console.log('ERROR: ', err);
         error('Error parsing csv. unlinking and aborting early.', { err });
 
         return reject(new Error(err));

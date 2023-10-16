@@ -23,12 +23,14 @@ import numeral from 'numeral';
 import { toast } from 'react-hot-toast';
 import { Location } from 'react-router-dom';
 
+import { TPolicyStatus } from 'common';
 import {
   Address,
   CompressedAddress,
   FeeItem,
   FlattenObjectKeys,
   Path,
+  Policy,
   RoundingType,
   TaxItem,
 } from 'common/types';
@@ -809,4 +811,45 @@ export function compressedToFormattedAddr(
 
 export const logDev = (...props: any[]) => {
   if (process.env.REACT_APP_FB_PROJECT_ID === 'idemand-submissions-dev') console.log(props);
+};
+
+/**
+ * Split an array of items into array of provided size
+ * @param {any[]} data - array of data
+ * @param {number} size - number of items in each chunk
+ * @returns {Array} return array of arrays of "size" length
+ */
+export function splitChunks<T = any>(data: T[], size: number) {
+  let chunks = [];
+  // for (let i = 0; i < data.length; i += size) chunks.push(data.slice(i, i + size));
+  if (size < 1) throw new Error('splitChunks array size must be a positive number');
+  for (let i = 0; i < data.length; i += size) {
+    chunks.push(data.slice(i, i + size));
+  }
+
+  return chunks;
+}
+
+// TODO: move to policyConverter ??
+export const calcPolicyStatus = (policy: Policy): TPolicyStatus => {
+  const currentMS = new Date().getTime();
+  if (policy.cancelEffDate) {
+    const isAfterCancelDate = policy.cancelEffDate.toMillis() > currentMS;
+    if (isAfterCancelDate) {
+      return 'cancelled';
+    } else return 'cancel:pending';
+  }
+
+  const isExpired = policy.expirationDate.toMillis() < currentMS;
+  if (isExpired) return 'expired';
+
+  const isBeforeEffDate = policy.effectiveDate.toMillis() > currentMS;
+  if (isBeforeEffDate) return 'pending';
+
+  // const endDate = policy.cancelEffDate ?? policy.expirationDate;
+  // const eff = isCurrentDateBetween(policy.effectiveDate?.toDate(), endDate?.toDate());
+  // const paid = policy.paymentStatus === 'paid';
+  // if (eff && paid) return 'active'
+
+  return 'active';
 };

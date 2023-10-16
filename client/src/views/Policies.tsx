@@ -154,6 +154,7 @@ function AdminPoliciesActionMenu() {
         position: 'top-right',
         icon: <InfoRounded />,
       });
+      setDupHeaders([]);
     },
     [toast]
   );

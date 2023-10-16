@@ -1,6 +1,7 @@
 import { Text, View } from '@react-pdf/renderer';
 
-import { tableStyles as styles } from '../styles.js';
+// TODO: combine styles with table styles ??
+import { tableStyles as styles, styles as todoStyles } from '../styles.js';
 import { ColumnDef, Table } from './Table.js';
 
 // TODO: replace "flex" with "flexGrow" and add flexBasis, flexShrink
@@ -12,6 +13,18 @@ const locationColumns: ColumnDef[] = [
     minWidth: 100,
     alignHeader: 'left',
     alignContent: 'left',
+    flexGrow: 0,
+    flexShrink: 0,
+    flexBasis: '160px', // @ts-ignore
+    width: '100%',
+    renderCell: ({ value, cellStyles }) => {
+      return (
+        <View style={[styles.cell, cellStyles, styles.locationCellContainer]}>
+          <Text>{value[0]}</Text>
+          <Text style={[todoStyles.body2]}>{value[1]}</Text>
+        </View>
+      );
+    },
   },
   {
     // TODO: fix address header extending too far
@@ -80,7 +93,7 @@ const locationColumns: ColumnDef[] = [
 
 export interface PolicyDecPDFLocations {
   address: [string, string]; // string;
-  locationId: string;
+  locationId: [string, string]; // string;
   limitA: string;
   limitB: string;
   limitC: string;

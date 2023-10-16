@@ -126,6 +126,7 @@ export const LimitsStep = ({
                 setFieldTouched(field.name, true);
               }, 50);
             }}
+            inputProps={{ inputMode: 'numeric' }}
             {...inputProps}
           />
         </Grid>

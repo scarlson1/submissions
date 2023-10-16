@@ -79,7 +79,7 @@ export const usePropertyDetailsAttom = (props?: UsePropertyDetailsProps) => {
     yearBuilt: null,
     FFH: null,
   });
-  const [rcvSourceUser, setRcvSourceUser] = useState<boolean>(false);
+  const [rcvSourceUser, setRcvSourceUser] = useState<null | number>(null);
   const [initRatingValues, setInitRatingValues] = useState<InitRatingValues>(DEFAULT_INIT_VALUES);
   const [propertyDataDocId, setPropertyDataDocId] = useState<string | null>(null);
   const promptRCV = usePromptRCV();
@@ -105,12 +105,14 @@ export const usePropertyDetailsAttom = (props?: UsePropertyDetailsProps) => {
       };
 
       setPropertyDataDocId(data.attomDocId || null);
+      // TODO: delete
+      const tempOverride = true;
 
-      if (!data.replacementCost && props?.promptForValuation) {
+      if ((!data.replacementCost && props?.promptForValuation) || tempOverride) {
         const estRCV = await promptRCV();
 
         if (estRCV) {
-          setRcvSourceUser(true);
+          setRcvSourceUser(estRCV);
           const newDefaults = getDefaultsFromRCV(estRCV);
 
           setInitRatingValues({
@@ -127,7 +129,7 @@ export const usePropertyDetailsAttom = (props?: UsePropertyDetailsProps) => {
             },
           };
         } else {
-          setRcvSourceUser(false);
+          setRcvSourceUser(null);
           setPropertyDetails(newPropDetails);
           setInitRatingValues(DEFAULT_INIT_VALUES);
 
@@ -141,7 +143,7 @@ export const usePropertyDetailsAttom = (props?: UsePropertyDetailsProps) => {
           };
         }
       } else {
-        setRcvSourceUser(false);
+        setRcvSourceUser(null);
         setPropertyDetails(newPropDetails);
         const initVals = {
           deductible: data.initDeductible,

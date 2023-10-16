@@ -1,34 +1,38 @@
-import { Suspense, useCallback, useRef } from 'react';
+import { SaveRounded } from '@mui/icons-material';
 import {
   Box,
   Button,
   Card,
   CircularProgress,
-  Typography,
   Unstable_Grid2 as Grid,
+  Typography,
 } from '@mui/material';
-import { Formik, FormikHelpers, FormikProps } from 'formik';
-import { doc, setDoc, getFirestore } from 'firebase/firestore';
 import { PickingInfo } from 'deck.gl/typed';
+import { Timestamp, doc, setDoc, where } from 'firebase/firestore';
+import { Formik, FormikHelpers, FormikProps } from 'formik';
 import { capitalize } from 'lodash';
-import { SaveRounded } from '@mui/icons-material';
-import { toast } from 'react-hot-toast';
+import { Suspense, useCallback, useRef } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
+import { toast } from 'react-hot-toast';
+import { useFirestore } from 'reactfire';
 
-import { statesDetailsArr } from 'common/statesList';
-import { FormikSwitch } from 'components/forms';
 import { statesCollection } from 'common';
-import { ActiveStateMap } from 'elements/maps/ActiveStateMap';
-import { useDocData, useSafeParams } from 'hooks';
+import { statesDetailsArr } from 'common/statesList';
 import { ErrorFallback } from 'components';
+import { FormikSwitch } from 'components/forms';
+import { ActiveStateMap } from 'elements/maps/ActiveStateMap';
+import { useDocData, useFetchLicenses, useSafeParams } from 'hooks';
 
 export interface EditActiveStatesValues {
   [key: string]: boolean;
 }
 
 export const EditActiveStates = () => {
+  const firestore = useFirestore();
   let { productId } = useSafeParams(['productId']);
   const { data } = useDocData<{ [key: string]: boolean }>('ACTIVE_STATES', productId);
+  const fetchLicenses = useFetchLicenses([where('surplusLinesProducerOfRecord', '==', true)]);
+
   const formikRef = useRef<FormikProps<EditActiveStatesValues>>(null);
 
   const handleSave = useCallback(() => {
@@ -37,22 +41,35 @@ export const EditActiveStates = () => {
 
   const handleSubmit = useCallback(
     async (values: any, { setSubmitting }: FormikHelpers<any>) => {
-      console.log('values: ', values);
       try {
         if (!productId) throw new Error('Missing doc Id');
+        delete values.NO_ID_FIELD;
 
-        const docRef = doc(statesCollection(getFirestore()), productId);
+        const enabledStates = Object.entries(values)
+          .filter(([state, val]) => !!val) // state !== 'productId' &&
+          .map(([state]) => state);
+        console.log('Enabled states: ', enabledStates);
+
+        const licenses = await fetchLicenses(enabledStates, Timestamp.now());
+
+        for (let state of enabledStates) {
+          const licenseMatch = licenses.find((l) => l.state === state);
+          if (!licenseMatch) throw new Error(`No Surplus Lines license found for ${state}`);
+        }
+
+        const docRef = doc(statesCollection(firestore), productId);
         await setDoc(docRef, { ...values }, { merge: true });
 
         toast.success('Saved!');
-      } catch (err) {
+      } catch (err: any) {
         console.log('ERROR: ', err);
-        toast.error('Error saving');
+        let msg = err?.message ?? `An error occurred`;
+        toast.error(msg);
       }
 
       setSubmitting(false);
     },
-    [productId]
+    [firestore, productId, fetchLicenses]
   );
 
   const handleStateClicked = useCallback((info: PickingInfo, e: any) => {
@@ -62,6 +79,7 @@ export const EditActiveStates = () => {
     formikRef.current?.setFieldValue(key, !currVal);
   }, []);
 
+  console.log('DATA: ', data);
   return (
     <Box>
       <Box
@@ -99,6 +117,7 @@ export const EditActiveStates = () => {
       </Box>
       <Box sx={{ py: { xs: 4, md: 6, lg: 8 } }}>
         <Formik
+          // TODO: set formik's set helper fn
           initialValues={{
             AL: false,
             AK: false,

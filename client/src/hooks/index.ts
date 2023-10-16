@@ -27,6 +27,7 @@ export { useDocSearchKeyboardEvents } from './useDocSearchKeyboardEvents';
 export { useFetchDocCount } from './useFetchDocCount';
 export { useFetchDocsWithCursor } from './useFetchDocsWithCursor';
 export { useFetchFirestore } from './useFetchFirestore';
+export { useFetchLicenses } from './useFetchLicenses';
 export { useFetchTaxes } from './useFetchTaxes';
 export { useFileUpload } from './useFileUpload';
 export { useFloodFactor } from './useFloodFactor';

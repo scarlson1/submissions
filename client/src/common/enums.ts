@@ -120,6 +120,21 @@ export enum POLICY_STATUS {
   CANCELLED = 'cancelled',
 }
 
+export const PolicyStatus = z.enum(['active', 'cancelled', 'cancel:pending', 'expired', 'pending']);
+
+export type TPolicyStatus = z.infer<typeof PolicyStatus>;
+
+export const PaymentStatus = z.enum([
+  'paid',
+  'processing',
+  'awaiting_payment',
+  'cancelled',
+  'error',
+  'declined',
+  'payment_failed',
+]);
+export type TPaymentStatus = z.infer<typeof PaymentStatus>;
+
 export enum AGENCY_SUBMISSION_STATUS {
   ACCEPTED = 'accepted',
   SUBMITTED = 'submitted',

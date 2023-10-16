@@ -1,15 +1,15 @@
-import { useCallback } from 'react';
 import { Box, Typography } from '@mui/material';
+import { Timestamp, doc, documentId, getDocs, query, setDoc, where } from 'firebase/firestore';
 import { FormikHelpers } from 'formik';
+import { useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Timestamp, doc, getDocs, query, setDoc, where } from 'firebase/firestore';
 import { useFirestore } from 'reactfire';
 
+import { License, LicenseOwner, LicenseType, licensesCollection } from 'common';
+import { LicenseForm, LicenseValues } from 'elements/forms';
 import { useAsyncToast, useDocData } from 'hooks';
 import { checkForSLProducerLicense } from 'hooks/useCreateSLLicense';
 import { ADMIN_ROUTES, createPath } from 'router';
-import { LicenseForm, LicenseValues } from 'elements/forms';
-import { License, LicenseOwner, LicenseType, licensesCollection } from 'common';
 
 export const LicenseEdit = () => {
   const firestore = useFirestore();
@@ -28,12 +28,14 @@ export const LicenseEdit = () => {
           licenseCol,
           values.state,
           values.effectiveDate,
-          values.expirationDate
+          values.expirationDate,
+          [where(documentId(), '!=', licenseId)]
         );
         const q = query(
           licenseCol,
           where('state', '==', values.state),
-          where('surplusLinesProducerOfRecord', '==', true)
+          where('surplusLinesProducerOfRecord', '==', true),
+          where(documentId(), '!=', licenseId)
         );
 
         const querySnap = await getDocs(q);

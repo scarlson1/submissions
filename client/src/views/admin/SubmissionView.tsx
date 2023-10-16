@@ -1,5 +1,6 @@
 import { ArrowBackIosRounded, OpenInNewRounded } from '@mui/icons-material';
 import {
+  Alert,
   Box,
   Button,
   ButtonProps,
@@ -25,7 +26,7 @@ import { ADMIN_ROUTES, ROUTES, createPath } from 'router';
 // TODO: use observable to lazy load rating data collection
 // https://firebase.blog/posts/2018/09/introducing-rxfire-easy-async-firebase
 export const ShowRatingDialog = ({ id, btnProps }: { id: string; btnProps?: ButtonProps }) => {
-  const dialog = useJsonDialog();
+  const dialog = useJsonDialog({ slotProps: { dialog: { maxWidth: 'md', fullWidth: true } } });
   const { fetchData, loading } = useFetchFirestore<RatingData>(COLLECTIONS.RATING_DATA, [
     where('submissionId', '==', id),
     orderBy('metadata.created', 'desc'),
@@ -138,7 +139,10 @@ export const SubmissionView = () => {
   const openGoogleMaps = useCallback(() => {
     let { latitude, longitude } = data.coordinates;
     if (!(latitude && longitude)) return toast.error('Missing coordinates');
-    window.open(`https://www.google.com/maps/search/?api=1&query=${latitude}%2C${longitude}`);
+    window.open(
+      `https://www.google.com/maps/search/?api=1&query=${latitude}%2C${longitude}`,
+      '_blank'
+    );
   }, [data]);
 
   if (!submissionId) throw new Error('Missing submission ID');
@@ -204,6 +208,10 @@ export const SubmissionView = () => {
           <RowItem title='C: Contents Limit' value={dollarFormat(data.limits?.limitC)} />
           <RowItem title='D: Additional Expenses Limit' value={dollarFormat(data.limits?.limitD)} />
           <RowItem title='Deductible' value={dollarFormat(data.deductible)} />
+          <LimitAPctCheck
+            limitA={data.limits?.limitA}
+            rcv={data.ratingPropertyData?.replacementCost}
+          />
         </Box>
         <Box>
           <Typography variant='overline' color='text.secondary'>
@@ -259,32 +267,52 @@ export const SubmissionView = () => {
         <Typography variant='overline' color='text.secondary'>
           Additional Details
         </Typography>
-        {data.propertyDataDocId && (
-          <Button
-            size='small'
-            sx={{ m: 1, ml: 0 }}
-            onClick={() =>
-              showDialog(
-                COLLECTIONS.PROPERTY_DATA_RES,
-                data.propertyDataDocId!,
-                'Property Data Response'
-              )
-            }
-          >
-            Show Property Data
-          </Button>
-        )}
-        <ShowRatingDialog id={submissionId} btnProps={{ size: 'small', sx: { m: 1, ml: 0 } }} />
-        <Button
-          onClick={openGoogleMaps}
-          size='small'
-          sx={{ m: 1, ml: 0 }}
-          endIcon={<OpenInNewRounded />}
-          disabled={!data?.coordinates?.latitude}
-        >
-          Google Maps
-        </Button>
+        <Stack direction='column' spacing={2}>
+          {data.propertyDataDocId && (
+            <Box>
+              <Button
+                size='small'
+                sx={{ m: 1, ml: 0 }}
+                onClick={() =>
+                  showDialog(
+                    COLLECTIONS.PROPERTY_DATA_RES,
+                    data.propertyDataDocId!,
+                    'Property Data Response'
+                  )
+                }
+              >
+                Show Property Data
+              </Button>
+            </Box>
+          )}
+          <Box>
+            <ShowRatingDialog id={submissionId} btnProps={{ size: 'small', sx: { m: 1, ml: 0 } }} />
+          </Box>
+          <Box>
+            <Button
+              onClick={openGoogleMaps}
+              size='small'
+              sx={{ m: 1, ml: 0 }}
+              endIcon={<OpenInNewRounded />}
+              disabled={!data?.coordinates?.latitude}
+            >
+              Google Maps
+            </Button>
+          </Box>
+        </Stack>
       </Grid>
     </Grid>
   );
 };
+
+export function LimitAPctCheck({ limitA, rcv }: { limitA?: number; rcv?: number | null }) {
+  if (!(rcv && limitA)) return null;
+
+  const pctOfRCV = limitA / rcv;
+  const isAbove20Pct = pctOfRCV > 1.2;
+
+  if (isAbove20Pct)
+    return <Alert severity='warning'>Building limit is {'>'} 20% above RCV est.</Alert>;
+
+  return null;
+}

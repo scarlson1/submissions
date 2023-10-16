@@ -168,7 +168,7 @@ export const SuccessStep = () => {
 
             <Typography variant='body2' color='text.secondary' sx={{ p: 4 }} gutterBottom>
               {data.contact.firstName ? `Thanks, ${data.contact.firstName}! ` : 'Thank you!'} We'll
-              send the quote for your review shortly. If you have any question or need to get in
+              send the quote for your review shortly. If you have any questions or need to get in
               touch, please don't hesitate to reach out.
             </Typography>
             <Divider flexItem sx={{ mt: 3, mb: -4 }} />

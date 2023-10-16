@@ -1,7 +1,7 @@
 import { isDate, isValid } from 'date-fns';
 import { warn } from 'firebase-functions/logger';
 import invariant from 'tiny-invariant';
-import { FEE_ITEM_NAMES, PRODUCT, TAX_ITEM_NAMES } from '../../common/index.js';
+import { CancellationReason, FEE_ITEM_NAMES, PRODUCT, TAX_ITEM_NAMES } from '../../common/index.js';
 import {
   validateAddress,
   validateDeductible,
@@ -75,18 +75,24 @@ export function validatePolicyRow(data: ParsedPolicyRow) {
       data.cancelEffDate === null || isValid(new Date(data.cancelEffDate)),
       'cancelEffectiveDate must be blank or a valid date'
     );
+    if (data.cancelEffDate) {
+      invariant(data.cancelReason, 'cancel reason required if cancel effective date provided');
+      CancellationReason.parse(data.cancelReason);
+    }
 
     invariant(data.policyId, 'policyId required');
 
     invariant(data.price, 'policyPrice required');
 
-    // TODO: reusable validateRatingPropertyData
+    // TODO: reusable validateRatingPropertyData (zod)
     invariant(data.ratingPropertyData?.distToCoastFeet, 'distToCoastFeet required');
     invariant(data.ratingPropertyData?.basement, 'basement required');
     invariant(data.ratingPropertyData?.floodZone, 'floodZone required');
     invariant(data.ratingPropertyData?.numStories, 'numStories required');
     invariant(data.ratingPropertyData?.replacementCost, 'replacementCost required');
     invariant(data.ratingPropertyData?.sqFootage, 'sqFootage required');
+    invariant(data.ratingPropertyData?.priorLossCount, 'prior loss count required');
+    // TODO: validate type = 0, 1, 2, 3+
 
     invariant(
       data.product === PRODUCT.Flood || data.product === PRODUCT.Wind,
@@ -116,6 +122,7 @@ export function validatePolicyRow(data: ParsedPolicyRow) {
       (t) => t?.displayName && TAX_ITEM_NAMES.includes(t.displayName)
     );
     invariant(allDisplayNamesAreTaxNames, 'invalid tax name');
+    // TODO: validate subject base (zod)
 
     invariant(
       data.mgaCommissionPct && typeof data.mgaCommissionPct === 'number',

@@ -2,6 +2,7 @@ import { generateHTML } from '@tiptap/html';
 import { convert } from 'html-to-text';
 import { flatten } from 'lodash-es';
 
+import { format } from 'date-fns';
 import {
   ILocation,
   JSONContent,
@@ -25,9 +26,15 @@ export function formatLocationData(locations: WithId<ILocation>[]) {
   let formatted: PolicyDecPDFLocations[] = [];
 
   for (const location of locations) {
-    const test = {
+    const endDateTS = location.cancelEffDate ?? location.expirationDate;
+    const termDates = `${format(location.effectiveDate.toDate(), 'MM/dd/yyyy')} - ${format(
+      endDateTS.toDate(),
+      'MM/dd/yyyy'
+    )}`;
+
+    const rowData = {
       address: getFormattedAddressArray(location.address),
-      locationId: location.externalId || location.id || '',
+      locationId: [location.externalId || location.id || '', termDates] as [string, string],
       limitA: location.limits?.limitA ? dollarFormat(location.limits?.limitA) : '',
       limitB: location.limits?.limitA ? dollarFormat(location.limits?.limitB) : '',
       limitC: location.limits?.limitA ? dollarFormat(location.limits?.limitC) : '',
@@ -37,7 +44,7 @@ export function formatLocationData(locations: WithId<ILocation>[]) {
       termPremium: location.termPremium ? dollarFormat2(location.termPremium) : '',
     };
 
-    formatted.push(test);
+    formatted.push(rowData);
   }
 
   return formatted;

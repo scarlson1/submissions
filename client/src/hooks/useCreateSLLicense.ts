@@ -1,15 +1,16 @@
-import { useCallback } from 'react';
+import { FirebaseError } from 'firebase/app';
 import {
   addDoc,
   CollectionReference,
   FirestoreError,
   getDocs,
   query,
+  QueryConstraint,
   Timestamp,
   where,
 } from 'firebase/firestore';
+import { useCallback } from 'react';
 import { useFirestore } from 'reactfire';
-import { FirebaseError } from 'firebase/app';
 
 import { License, LicenseOwner, licensesCollection, LicenseType } from 'common';
 import { LicenseValues } from 'elements/forms';
@@ -19,12 +20,14 @@ export async function checkForSLProducerLicense(
   licenseColRef: CollectionReference<License>,
   state: string,
   effectiveDate: Date,
-  expirationDate: Date | null
+  expirationDate: Date | null,
+  constraints: QueryConstraint[] = []
 ) {
   const q = query(
     licenseColRef,
     where('state', '==', state),
-    where('surplusLinesProducerOfRecord', '==', true)
+    where('surplusLinesProducerOfRecord', '==', true),
+    ...constraints
   );
 
   const querySnap = await getDocs(q);
@@ -77,7 +80,7 @@ export const useCreateSLLicense = ({ onSuccess, onError }: UseCreateLicenseProps
         if (onSuccess) onSuccess(docRef.id);
       } catch (err: any) {
         console.log('ERROR: ', err);
-        let msg = 'Error creating Surpluse Lines License';
+        let msg = 'Error creating Surplus Lines License';
         if (err instanceof FirebaseError) {
           msg += ` ${readableFirebaseCode(err as FirestoreError)}`;
         } else if (err?.message) msg = err.message;

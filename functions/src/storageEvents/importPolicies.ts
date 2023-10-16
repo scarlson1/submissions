@@ -11,6 +11,7 @@ import path from 'path';
 import {
   Address,
   COLLECTIONS,
+  CancellationReason,
   ILocation,
   LocationParent,
   MailingAddress,
@@ -28,6 +29,7 @@ import {
   licensesCollection,
   locationsCollection,
   policiesCollection,
+  printObj,
   ratingDataCollection,
   sendgridApiKey,
   stagedImportsCollection,
@@ -103,6 +105,10 @@ export default async (event: StorageEvent) => {
     invalidRows = [...parsed.invalidRows];
 
     info(`${parsed.dataArr.length} valid rows and ${parsed.invalidRows.length} invalid rows`);
+    if (parsed.invalidRows.length) {
+      console.log('INVALID ROW 1');
+      printObj(parsed.invalidRows[1]);
+    }
     if (!dataArr.length) throw new Error('No valid rows');
 
     await unlinkFile(tempFilePath);
@@ -131,16 +137,6 @@ export default async (event: StorageEvent) => {
     reportErr('Errror grouping & formatting locations into policies', {}, err);
     return;
   }
-
-  // MOVED TO BATCH
-  // for (const [ratingDocId, ratingRecord] of Object.entries(ratingRecords)) {
-  //   try {
-  //     const ratingDocRef = ratingColRef.doc(ratingDocId);
-  //     await ratingDocRef.set(ratingRecord);
-  //   } catch (err: any) {
-  //     error('Error saving rating doc', { err });
-  //   }
-  // }
 
   const ratingEntries = Object.entries(ratingRecords);
 
@@ -189,7 +185,8 @@ export default async (event: StorageEvent) => {
 
       await batch.commit();
     } catch (err: any) {
-      error(`Error created policy record in DB ${policyId}`, { err });
+      console.log('ERR: ', err);
+      error(`Error creating policy record in DB ${policyId}`, { err });
       createErrors.push(policyData);
     }
   }
@@ -346,6 +343,7 @@ function formatPolicyLocation(
 
   const effDateTs = Timestamp.fromDate(effDate);
   const expDateTs = Timestamp.fromDate(expDate);
+  const cancelEffDate = data.cancelEffDate ? Timestamp.fromDate(data.cancelEffDate) : null;
 
   const { termDays, termPremium } = calcTerm(data.annualPremium, effDate, expDate);
 
@@ -363,6 +361,8 @@ function formatPolicyLocation(
     deductible: data.deductible,
     effectiveDate: effDateTs,
     expirationDate: expDateTs,
+    cancelEffDate,
+    cancelReason: (data.cancelReason as CancellationReason) || null,
     // exists: true,
     additionalInsureds: data.additionalInsured || [],
     mortgageeInterest: data.mortgageeInterest || [],
@@ -390,6 +390,7 @@ async function getPolicyWithoutLocation(
   let SLPofR = surplusLinesLicenseByState[data.homeState as string] || null;
   if (!SLPofR) {
     SLPofR = await getSPLPofR(firestore, data.homeState as string);
+    // TODO: throw if not found ??
 
     surplusLinesLicenseByState[data.homeState as string] = SLPofR;
   }
@@ -438,22 +439,24 @@ async function getSPLPofR(firestore: Firestore, state: string) {
 
   const snap = await q.get();
 
-  if (!snap.empty) {
-    const data = snap.docs[0].data();
-    return {
-      name: data.licensee || '',
-      licenseNum: data.licenseNumber || '',
-      licenseState: state || '',
-      phone: data.phone || '',
-    };
-  }
+  if (snap.empty) throw new Error(`No surplus lines license for ${state}`);
 
+  // if (!snap.empty) {
+  const data = snap.docs[0].data();
   return {
-    name: '',
-    licenseNum: '',
-    licenseState: '',
-    phone: '',
+    name: data.licensee || '',
+    licenseNum: data.licenseNumber || '',
+    licenseState: state || '',
+    phone: data.phone || '',
   };
+  // }
+
+  // return {
+  //   name: '',
+  //   licenseNum: '',
+  //   licenseState: '',
+  //   phone: '',
+  // };
 }
 
 // TODO: need tech premium

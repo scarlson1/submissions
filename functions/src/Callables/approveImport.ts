@@ -18,8 +18,8 @@ import {
   stagedImportsCollection,
   transactionsCollection,
 } from '../common/index.js';
-import { verify } from '../utils/index.js';
 import { onCallWrapper } from '../services/sentry/index.js';
+import { verify } from '../utils/index.js';
 import { requireIDemandAdminClaims, validate } from './utils/index.js';
 
 const reportErr = getReportErrorFn('approveImport');
@@ -83,6 +83,7 @@ const approveImport = async ({ data, auth }: CallableRequest<ApproveImportProps>
     // let chunks: TRow[][] = data.length > chunkCountVal ? splitChunks(data, chunkCountVal) : [data];
     // promise all to get sub collection docs
     const stagedImportsCol = stagedImportsCollection(db, importId);
+    // TODO: use getAll ??
     const reads = importDocIds.map((id) => stagedImportsCol.doc(id).get());
     const stagedSnaps = await Promise.all(reads);
 
@@ -99,7 +100,6 @@ const approveImport = async ({ data, auth }: CallableRequest<ApproveImportProps>
     // if policy import, must check for staged or existing transaction
     // TODO: execute everything in a firestore transaction ??
     if (isPolicyImports(stagedDocs)) {
-      // importSummary.targetCollection === COLLECTIONS.POLICIES
       const stagedCollectionGroup = db.collectionGroup(
         COLLECTIONS.STAGED_RECORDS
       ) as CollectionGroup<StageImportRecord>;
@@ -109,12 +109,14 @@ const approveImport = async ({ data, auth }: CallableRequest<ApproveImportProps>
           const policy = stagedPolicy as WithId<StagedPolicyImport>;
 
           let locationIds = Object.keys(policy.locations || {});
+          // TODO: save list of external IDs ?? or use provided location ID
 
           // check for existing or staged transaction
           for (let lcnId of locationIds) {
             const stagedTrxQuery = stagedCollectionGroup
               .where('importMeta.targetCollection', '==', COLLECTIONS.TRANSACTIONS)
-              .where('locationId', '==', lcnId) // Use external ID ??
+              // .where('externalId', '==', lcnId)
+              .where('locationId', '==', lcnId) // Use external ID ?? (not available in policy)
               .where('importMeta.status', '==', 'new')
               .get();
 

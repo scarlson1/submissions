@@ -6,11 +6,12 @@ import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { useSigninCheck } from 'reactfire';
 
-import { CLAIMS, COLLECTIONS, Policy, POLICY_STATUS, ServerDataGridCollectionProps } from 'common';
+import { CLAIMS, COLLECTIONS, PaymentStatus, Policy, ServerDataGridCollectionProps } from 'common';
 import { ServerDataGrid } from 'components';
 import { useGridShowJson } from 'hooks';
 import { POLICY_COLUMN_VISIBILITY, policyCols, statusCol } from 'modules/muiGrid/gridColumnDefs';
-import { createPath, ROUTES } from 'router';
+import { calcPolicyStatus } from 'modules/utils';
+import { ROUTES, createPath } from 'router';
 
 export type PoliciesGridProps = ServerDataGridCollectionProps;
 
@@ -59,15 +60,27 @@ export const PoliciesGrid = ({ renderActions = () => [], ...props }: PoliciesGri
       },
       {
         ...statusCol,
-        type: 'singleSelect',
-        valueOptions: [
-          POLICY_STATUS.PAID,
-          POLICY_STATUS.AWAITING_PAYMENT,
-          POLICY_STATUS.PAYMENT_PROCESSING,
-          POLICY_STATUS.CANCELLED,
-        ],
+        valueOptions: ['active', 'inactive'], // TODO: other types ??
+        // valueOptions: [
+        //   POLICY_STATUS.PAID,
+        //   POLICY_STATUS.AWAITING_PAYMENT,
+        //   POLICY_STATUS.PAYMENT_PROCESSING,
+        //   POLICY_STATUS.CANCELLED,
+        // ],
+        editable: false, // iDAdminResult.hasRequiredClaims,
+        filterable: false,
+        sortable: false,
+        valueGetter: (params) => calcPolicyStatus(params.row),
+      },
+      {
+        ...statusCol,
+        field: 'paymentStatus',
+        headerName: 'Payment Status',
+        valueOptions: PaymentStatus.options,
         editable: iDAdminResult.hasRequiredClaims,
         filterable: true,
+        sortable: true,
+        valueGetter: (params) => params.row.paymentStatus || null,
       },
       ...policyCols,
     ],

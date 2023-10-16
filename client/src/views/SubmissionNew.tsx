@@ -40,7 +40,7 @@ import { ErrorFallback } from 'components';
 import { useAuth } from 'context/AuthContext';
 import { useAsyncToast, useClaims, useDocData, usePropertyDetailsAttom } from 'hooks';
 import { InitRatingValues } from 'hooks/usePropertyDetails';
-import { ceil } from 'lodash';
+import { ceil, isEqual } from 'lodash';
 import { sumArr } from 'modules/utils/helpers';
 
 // TODO: useGeolocate --> add to new submission form
@@ -80,7 +80,7 @@ function useCreateSubmission(
       }: {
         propertyDetails: Nullable<RatingPropertyData>;
         propertyDataDocId: string | null;
-        rcvSourceUser: boolean;
+        rcvSourceUser: number | null; // boolean;
         initRatingValues: InitRatingValues;
       }
     ) => {
@@ -115,8 +115,8 @@ function useCreateSubmission(
           propertyDataDocId,
           rcvSourceUser,
           metadata: {
-            created: Timestamp.now(), // serverTimestamp(),
-            updated: Timestamp.now(), // serverTimestamp(),
+            created: Timestamp.now(),
+            updated: Timestamp.now(),
           },
         });
         setLoading(false);
@@ -208,9 +208,8 @@ export const SubmissionNew = () => {
 
   const handleFetchProperty = useCallback(
     async (values: FloodValues, helpers: FormikHelpers<FloodValues>) => {
-      if (formikRef.current?.initialValues === values) {
-        return values;
-      }
+      if (isEqual(formikRef.current?.initialValues, values)) return values;
+
       try {
         // formik async dependent fields ref: https://formik.org/docs/examples/dependent-fields-async-api-request
 
@@ -225,7 +224,7 @@ export const SubmissionNew = () => {
             longitude: values.coordinates?.longitude,
           },
         });
-        console.log('PROPERTY DATA RES: ', res);
+        // console.log('PROPERTY DATA RES: ', res);
         return {
           ...values,
           limits: {

@@ -65,6 +65,7 @@ export const FormikDollarMaskField = ({
       InputProps={{
         inputComponent: DollarMask as any,
         inputProps: {
+          inputMode: 'decimal',
           ...inputProps,
           decimalScale,
           allowNegative,

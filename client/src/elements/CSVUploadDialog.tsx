@@ -87,6 +87,7 @@ export const CSVUploadDialog = ({
   const onSubmit = useCallback(async () => {
     try {
       await handleSubmit();
+      setHeaderStatus({}); // TODO: move to useEffect ??
       onClose();
     } catch (err) {
       console.log('ERROR: ', err);

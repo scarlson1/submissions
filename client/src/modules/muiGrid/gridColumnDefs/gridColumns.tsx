@@ -1115,12 +1115,12 @@ export const ratingDataConstructionCol: GridColDef = {
 export const rcvSourceUserCol: GridColDef = {
   field: 'rcvSourceUser',
   headerName: 'RCV Source User',
-  type: 'boolean',
+  type: 'number',
   minWidth: 120,
   flex: 0.4,
   headerAlign: 'center',
   align: 'center',
-  filterOperators: getGridFirestoreBooleanOperators(),
+  filterOperators: getGridFirestoreNumericOperators(),
 };
 
 export const userIdCol: GridColDef = {

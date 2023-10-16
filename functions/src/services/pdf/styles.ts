@@ -1,5 +1,5 @@
 import { Font, StyleSheet } from '@react-pdf/renderer';
-import { wordHyphenation } from './wordHyphenation.js';
+// import { wordHyphenation } from './wordHyphenation.js';
 
 Font.register({
   family: 'Roboto',
@@ -66,7 +66,7 @@ Font.register({
   ],
 });
 
-Font.registerHyphenationCallback(wordHyphenation);
+// Font.registerHyphenationCallback(wordHyphenation);
 
 const TEXT_PRIMARY = '#1A2027';
 const TEXT_SECONDARY = '#3E5060';
@@ -319,6 +319,11 @@ export const tableStyles = StyleSheet.create({
     justifyContent: 'flex-start',
     // border: `1px solid lightblue`,
   },
+  cellContainer: {
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+    marginHorizontal: 4,
+  },
   header: {
     backgroundColor: BG_LIGHT,
     borderTopRightRadius: 10,
@@ -342,12 +347,19 @@ export const tableStyles = StyleSheet.create({
     fontSize: 10,
     color: TEXT_PRIMARY,
   },
+  // TODO: create "cellContainer" that has same padding as cell, but not flex
+  locationCellContainer: {
+    width: '100%',
+    flexGrow: 0,
+    flexShrink: 0,
+    flexBasis: '160px',
+    // width: '140px',
+  },
   addressContainer: {
     width: '100%',
     flexGrow: 0,
     flexShrink: 0,
     flexBasis: '180px',
-    // alignItems: 'stretch',
   },
   addressText: {
     // border: `1px solid lightgrey`,

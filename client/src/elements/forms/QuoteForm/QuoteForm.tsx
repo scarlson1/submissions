@@ -685,6 +685,12 @@ export const QuoteForm = ({
                 label='Replacement Cost'
                 name='ratingPropertyData.replacementCost'
                 required
+                helperText={
+                  values.ratingPropertyData.replacementCost &&
+                  values.limits.limitA / values.ratingPropertyData.replacementCost > 1.2
+                    ? 'Building limit > 20% RCV'
+                    : null
+                }
               />
             </Grid>
             <Grid xs={6} sm={4} md={3} lg={2}>
@@ -726,6 +732,11 @@ export const QuoteForm = ({
             <Grid xs={6} sm={4} md={3} lg={2}>
               <AALHelper title='Tsunami AALs' value={values?.AALs?.tsunami} />
             </Grid>
+            {/* TODO: save rcv source user as number instead of boolean (null | number) */}
+            {/* <Grid xs={6} sm={4} md={3} lg={2}>
+              <Typography>RCV Source</Typography>
+              <Typography>{data.rcvSourceUser}</Typography>
+            </Grid> */}
             <Grid xs={12}>
               <Divider sx={{ my: 3 }} />
               <Box

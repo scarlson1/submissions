@@ -41,6 +41,7 @@ export interface ParsedPolicyRow {
   policyEffectiveDate: Date | null;
   policyExpirationDate: Date | null;
   cancelEffDate: Date | null;
+  cancelReason: string | null;
   externalId: string;
   additionalInsured: AdditionalInsured[];
   mortgageeInterest: Mortgagee[];

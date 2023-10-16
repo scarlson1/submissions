@@ -79,6 +79,7 @@ export function transformPolicyRow(row: CSVPolicyRow): ParsedPolicyRow {
     replacementCost: row.replacementCost ? extractNumber(row.replacementCost) : 0,
     sqFootage: row.sqFootage ? extractNumber(row.sqFootage) : 0,
     yearBuilt: row.yearBuilt ? extractNumber(row.yearBuilt) : 0,
+    priorLossCount: row.priorLossCount ?? '0',
   };
   if (row.ffh) ratingPropertyData.FFH = extractNumber(row.ffh);
 
@@ -139,6 +140,7 @@ export function transformPolicyRow(row: CSVPolicyRow): ParsedPolicyRow {
     policyEffectiveDate: dateWithTimeZone(row.policyEffectiveDate),
     policyExpirationDate: dateWithTimeZone(row.policyExpirationDate), // row.policyExpirationDate ? new Date(row.policyExpirationDate) : null,
     cancelEffDate: dateWithTimeZone(row.cancelEffectiveDate),
+    cancelReason: row.cancelReason || null,
     externalId: row.locationId, // row.externalId || // TODO: use locationId as header name or externalId ??
     additionalInsured: [],
     mortgageeInterest: [],

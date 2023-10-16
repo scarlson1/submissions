@@ -1,11 +1,11 @@
-import { useCallback, useRef } from 'react';
 import { Box, Unstable_Grid2 as Grid, Typography } from '@mui/material';
 import { Form, Formik, FormikHelpers, FormikProps } from 'formik';
+import { useCallback, useRef } from 'react';
 import * as yup from 'yup';
 
-import { useConfirmation } from 'context';
 import { ConfirmationDialog } from 'components';
 import { FormikDollarMaskField } from 'components/forms';
+import { useConfirmation } from 'context';
 
 // TODO: abstract hook. also used in useRegisterEmailNotification & other places ??
 
@@ -51,7 +51,7 @@ export const usePromptRCV = () => {
             // setTouched,
             setSubmitting,
           } = formRef.current;
-          console.log('VALUES: ', values); // @ts-ignore
+          // console.log('VALUES: ', values); // @ts-ignore
           // setTouched({ rcvEst: true });
 
           const valErrors = await validateForm();

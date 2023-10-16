@@ -115,7 +115,6 @@ export const DialogProvider = ({ children }: { children: ReactNode }) => {
 
   const openDialog = useCallback(
     (options: DialogOptions) => {
-      console.log('OPTIONS: ', options);
       setDialogOptions({ ...options });
 
       return new Promise<any>((resolve, reject) => {

@@ -5,6 +5,7 @@ import { GeoPoint, Timestamp } from 'firebase-admin/firestore';
 import { Geohash } from 'geofire-common';
 import { round } from 'lodash-es';
 
+import { z } from 'zod';
 import { CalcPolicyChangesResult, SecondaryFactorMults } from '../modules/rating/index.js';
 import { CreateMsgContentProps } from '../services/sendgrid/index.js';
 import { filterUniqueArr, removeFromArr } from '../utils/index.js';
@@ -471,7 +472,8 @@ export interface Submission extends FloodFormValues, BaseDoc {
   agent?: Nullable<AgentDetails>;
   agency?: Nullable<AgencyDetails>;
   status: SUBMISSION_STATUS;
-  rcvSourceUser?: boolean;
+  // rcvSourceUser?: boolean;
+  rcvSourceUser?: number | null;
   ratingPropertyData: Nullable<RatingPropertyData>;
   propertyDataDocId: string | null;
   ratingDocId?: string | null;
@@ -1317,11 +1319,18 @@ export interface BaseTransaction extends BaseDoc {
   eventId: string | null;
 }
 
-export type CancellationReason =
-  | 'sold'
-  | 'premium_pmt_failure'
-  | 'exposure_change'
-  | 'insured_choice';
+export const CancellationReason = z.enum([
+  'sold',
+  'premium_pmt_failure',
+  'exposure_change',
+  'insured_choice',
+]);
+export type CancellationReason = z.infer<typeof CancellationReason>;
+// export type CancellationReason =
+//   | 'sold'
+//   | 'premium_pmt_failure'
+//   | 'exposure_change'
+//   | 'insured_choice';
 
 export type OffsetTrxType = 'endorsement' | 'cancellation' | 'flat_cancel';
 

@@ -20,6 +20,7 @@ import {
   STATE_ABBREVIATION,
   SUBMISSION_STATUS,
   TChangeRequestStatus,
+  TPaymentStatus,
   UW_NOTE_CODE,
 } from './enums';
 
@@ -148,7 +149,8 @@ export interface Submission extends Omit<FloodValues, 'ratingPropertyData'> {
   agent?: Nullable<AgentDetails>;
   agency?: Nullable<AgencyDetails>;
   status: SUBMISSION_STATUS;
-  rcvSourceUser?: boolean;
+  // rcvSourceUser?: boolean;
+  rcvSourceUser?: number | null;
   ratingPropertyData: Nullable<RatingPropertyData>;
   propertyDataDocId: string | null;
   ratingDocId?: string | null;
@@ -652,7 +654,8 @@ export interface PolicyLocation {
 
 export interface Policy extends BaseDoc {
   product: Product;
-  status: POLICY_STATUS;
+  status: POLICY_STATUS; // TODO: remove
+  paymentStatus: TPaymentStatus;
   term: number;
   mailingAddress: Address;
   namedInsured: NamedInsured; // TODO: clarify typing NamedInsuredDetails;

@@ -1,18 +1,22 @@
-import { useCallback } from 'react';
-
 import {
   FormControl,
-  InputLabel,
   FormHelperText,
+  Input,
+  InputLabel,
   NativeSelect,
   NativeSelectProps,
   OutlinedInput,
-  Input,
 } from '@mui/material';
 import { FieldHookConfig, useField } from 'formik';
+import { useCallback } from 'react';
 
-import { SelectOption } from './FormikSelect';
 import { extractNumber } from 'modules/utils';
+import { SelectOption } from './FormikSelect';
+
+// TODO: pass transform function (with input and output functions) ??
+// react hook form example: https://react-hook-form.com/advanced-usage#TransformandParse
+// onChange={(e) => field.onChange(transform.output(e))}
+// value={transform.input(field.value)}
 
 export interface FormikNativeSelectProps extends NativeSelectProps {
   name: string;
