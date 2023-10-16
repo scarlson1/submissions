@@ -7,6 +7,7 @@ import {
 import { info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 
+import invariant from 'tiny-invariant';
 import {
   COLLECTIONS,
   StageImportRecord,
@@ -64,7 +65,6 @@ const approveImport = async ({ data, auth }: CallableRequest<ApproveImportProps>
     'not-found',
     `import summary not found (${importId})`
   );
-  // const { importDocIds } = importSummary;
   if (!records) importDocIds = importSummary.importDocIds;
 
   validate(
@@ -106,17 +106,19 @@ const approveImport = async ({ data, auth }: CallableRequest<ApproveImportProps>
 
       try {
         for (let stagedPolicy of stagedDocs) {
-          const policy = stagedPolicy as WithId<StagedPolicyImport>;
+          const { lcnIdMap, ...policy } = stagedPolicy;
 
           let locationIds = Object.keys(policy.locations || {});
-          // TODO: save list of external IDs ?? or use provided location ID
 
           // check for existing or staged transaction
           for (let lcnId of locationIds) {
+            const externalId = lcnIdMap[lcnId];
+            invariant(externalId, `failed to map lcn ID to external ID`);
+
             const stagedTrxQuery = stagedCollectionGroup
               .where('importMeta.targetCollection', '==', COLLECTIONS.TRANSACTIONS)
-              // .where('externalId', '==', lcnId)
-              .where('locationId', '==', lcnId) // Use external ID ?? (not available in policy)
+              .where('externalId', '==', externalId)
+              // .where('locationId', '==', lcnId) // Use external ID ?? (not available in policy)
               .where('importMeta.status', '==', 'new')
               .get();
 
@@ -140,7 +142,7 @@ const approveImport = async ({ data, auth }: CallableRequest<ApproveImportProps>
               stagedTrxQuerySnap.forEach((snap) => {
                 correspondingTrxImports.push([
                   snap.ref as DocumentReference<StagedTransactionImport>,
-                  snap.data() as StagedTransactionImport,
+                  { ...snap.data(), locationId: lcnId } as StagedTransactionImport,
                 ]);
               });
             }

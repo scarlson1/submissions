@@ -1665,6 +1665,7 @@ export interface PolicyImportMeta extends ImportMeta {
 
 export type StagedPolicyImport = PolicyNew & {
   importMeta: PolicyImportMeta;
+  lcnIdMap: Record<string, string>;
 };
 
 export interface TransactionsImportMeta extends ImportMeta {

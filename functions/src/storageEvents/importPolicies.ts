@@ -123,13 +123,20 @@ export default async (event: StorageEvent) => {
   let policyRecords: Record<string, PolicyNew>;
   let locationRecords: Record<string, ILocation>;
   let ratingRecords: Record<string, RatingData>;
+  let lcnIdMap: Record<string, string>;
 
   try {
-    const { formattedPolicies, locations, ratingDocData } = await groupByPolicyId(dataArr, db);
+    const {
+      formattedPolicies,
+      locations,
+      ratingDocData,
+      lcnIdMap: idMap,
+    } = await groupByPolicyId(dataArr, db);
 
     policyRecords = formattedPolicies;
     locationRecords = locations;
     ratingRecords = ratingDocData;
+    lcnIdMap = idMap;
 
     if (!policyRecords) throw new Error('Error formatting rows into policies');
   } catch (err: any) {
@@ -171,6 +178,7 @@ export default async (event: StorageEvent) => {
 
       const data: StagedPolicyImport = {
         ...policyData,
+        lcnIdMap,
         importMeta: {
           status: 'new',
           eventId: event.id,
@@ -250,10 +258,12 @@ async function groupByPolicyId(data: ParsedPolicyRow[], firestore: Firestore) {
   let policies: Record<string, Omit<PolicyNew, 'termPremium' | 'termPremiumWithCancels'>> = {};
   let locations: Record<string, ILocation> = {};
   let ratingDocData: Record<string, RatingData> = {};
+  let lcnIdMap: Record<string, string> = {};
   const ts = Timestamp.now();
 
   for (const row of data) {
     let locId = createDocId();
+    lcnIdMap[locId] = row.externalId;
     const formattedLocation = formatPolicyLocation(row, locId, ts, 'policy');
 
     const ratingDocId = createDocId();
@@ -327,7 +337,7 @@ async function groupByPolicyId(data: ParsedPolicyRow[], firestore: Firestore) {
     };
   }
 
-  return { formattedPolicies, locations, ratingDocData };
+  return { formattedPolicies, locations, ratingDocData, lcnIdMap };
 }
 
 function formatPolicyLocation(
