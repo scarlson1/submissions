@@ -46,7 +46,7 @@ export default async (
     }
   } else {
     try {
-      // Allow all users to search submission if no userId or agent (always has userId b/c anon) add isAnon to submisssion doc ??
+      // Allow all users to search submission if no userId or agent (always has userId b/c anon) add isAnon to submission doc ??
       const ids = {
         userId: newValue.userId || null,
         agentId: newValue.agent?.userId || null,
@@ -84,7 +84,7 @@ export default async (
           lng: newValue.coordinates.longitude,
         };
       }
-      info(`SAVING SUBMISSION CHANGE TO ALGILIA INDEX ${docId}...`);
+      info(`SAVING SUBMISSION CHANGE TO ALGOLIA INDEX ${docId}...`);
 
       const { objectIDs } = await index.saveObjects(records, {
         autoGenerateObjectIDIfNotExist: false,
@@ -96,9 +96,6 @@ export default async (
       // TODO: report to sentry ??
     }
   }
-
-  // Get an object with the previous document values
-  // const previousValues = event?.data?.before.data();
 
   return;
 };

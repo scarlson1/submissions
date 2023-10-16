@@ -105,10 +105,8 @@ export const usePropertyDetailsAttom = (props?: UsePropertyDetailsProps) => {
       };
 
       setPropertyDataDocId(data.attomDocId || null);
-      // TODO: delete
-      const tempOverride = true;
 
-      if ((!data.replacementCost && props?.promptForValuation) || tempOverride) {
+      if (!data.replacementCost && props?.promptForValuation) {
         const estRCV = await promptRCV();
 
         if (estRCV) {

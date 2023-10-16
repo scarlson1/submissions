@@ -1,4 +1,4 @@
-import axios, { AxiosResponse } from 'axios';
+import { AxiosResponse } from 'axios';
 import { Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
@@ -10,7 +10,7 @@ import {
   LimitTypes,
   Nullable,
   attomKey as attomKeySecret,
-  audience,
+  // audience,
   maxA,
   minA,
   propertyDataResCollection,
@@ -31,7 +31,7 @@ interface InitLimits {
   initLimitC: number;
   initLimitD: number;
 }
-// Omit<Address, 'addressLine2'>
+
 export interface GetPropertyDetailsAttomRequest extends Address {
   coordinates?: Nullable<Coordinates> | null | undefined;
 }
@@ -54,20 +54,20 @@ const getPropertyDetailsAttom = async ({
   let propertyDetails;
   // TODO: call getFEMAFloodZone and promise.all
   try {
-    if (audience.value() === 'DEV HUMANS' || audience.value() === 'LOCAL HUMANS') {
-      info('USING MOCK RESPONSE FROM GITHUB');
-      const { data: githubMockData } = await axios.get(
-        'https://scarlson1.github.io/data/attom.json'
-      );
-      basicProfileRes = githubMockData;
-    } else {
-      let { data: basicRes }: AxiosResponse<any> = await attomInstance.get(
-        `/propertyapi/v1.0.0/property/basicprofile?address1=${encodeURIComponent(
-          `${addressLine1} ${addressLine2}`.trim()
-        )}&address2=${encodeURIComponent(`${city}, ${state} ${postal}`.trim())}`
-      );
-      basicProfileRes = basicRes;
-    }
+    // if (audience.value() === 'DEV HUMANS' || audience.value() === 'LOCAL HUMANS') {
+    //   info('USING MOCK RESPONSE FROM GITHUB');
+    //   const { data: githubMockData } = await axios.get(
+    //     'https://scarlson1.github.io/data/attom.json'
+    //   );
+    //   basicProfileRes = githubMockData;
+    // } else {
+    let { data: basicRes }: AxiosResponse<any> = await attomInstance.get(
+      `/propertyapi/v1.0.0/property/basicprofile?address1=${encodeURIComponent(
+        `${addressLine1} ${addressLine2}`.trim()
+      )}&address2=${encodeURIComponent(`${city}, ${state} ${postal}`.trim())}`
+    );
+    basicProfileRes = basicRes;
+    // }
     profile =
       basicProfileRes?.property && basicProfileRes.property.length > 0
         ? basicProfileRes.property[0]
@@ -237,7 +237,7 @@ function tempCalcRCV(assessment: any) {
 
   // if no market values, try assessed total value (land & building)
   if (!market) {
-    if (assessed && assessed.assdTtlValue) return assessed.assdTtlValue;
+    if (assessed && assessed.assdTtlValue) return round(assessed.assdTtlValue, -3);
     return null;
   }
 
@@ -245,10 +245,10 @@ function tempCalcRCV(assessment: any) {
 
   if (mktImprValue && mktTtlValue) {
     const improvedToTotalRatio = mktImprValue / mktTtlValue;
-    if (improvedToTotalRatio < 0.4) return round(mktTtlValue * 0.6);
+    if (improvedToTotalRatio < 0.4) return round(mktTtlValue * 0.6, -3);
   }
 
-  if (mktImprValue) return market.mktImprValue;
+  if (mktImprValue) return round(market.mktImprValue, -3);
 
   return null;
 }
