@@ -136,6 +136,7 @@ const approveImport = async ({ data, auth }: CallableRequest<ApproveImportProps>
               !(stagedTrxQuerySnap.empty && existingTrxQuerySnap.empty),
               `could not find staged transaction or existing transaction for location ${lcnId}`
             );
+            // TODO: get location doc and set rating doc ID on transaction ?? required for future offset trx calc ??
 
             // if staged, add to array to get imported with policy
             if (stagedTrxQuerySnap.docs.length) {

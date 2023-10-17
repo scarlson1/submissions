@@ -9,14 +9,15 @@ import { ColumnDef, Table } from './Table.js';
 const locationColumns: ColumnDef[] = [
   {
     field: 'locationId',
-    headerName: 'Location ID',
+    headerName: 'Location ID/Effective',
     minWidth: 100,
     alignHeader: 'left',
     alignContent: 'left',
-    flexGrow: 0,
-    flexShrink: 0,
-    flexBasis: '160px', // @ts-ignore
-    width: '100%',
+    flex: '0 0 140px',
+    // flexGrow: 0,
+    // flexShrink: 0,
+    // flexBasis: '140px', // @ts-ignore
+    // width: '100%',
     renderCell: ({ value, cellStyles }) => {
       return (
         <View style={[styles.cell, cellStyles, styles.locationCellContainer]}>
@@ -33,16 +34,17 @@ const locationColumns: ColumnDef[] = [
     // minWidth: 180,
     // maxWidth: 180, // @ts-ignore
     // width: '100%',
-    flexGrow: 0,
-    flexShrink: 0,
-    flexBasis: '180px',
+    // flexGrow: 0,
+    // flexShrink: 0,
+    // flexBasis: '140px',
+    flex: '0 0 140px',
     alignHeader: 'left',
     alignContent: 'left',
     renderCell: ({ value, cellStyles }) => {
       return (
         <View style={[styles.cell, cellStyles, styles.addressContainer]}>
-          <Text style={[styles.addressText]}>{value[0]}</Text>
-          <Text style={[styles.addressText]}>{value[1]}</Text>
+          <Text>{value[0]}</Text>
+          <Text>{value[1]}</Text>
         </View>
       );
     },
@@ -55,25 +57,25 @@ const locationColumns: ColumnDef[] = [
   },
   {
     field: 'limitA',
-    headerName: 'Building Cov.',
+    headerName: 'Building Limit',
     alignHeader: 'center',
     alignContent: 'right',
   },
   {
     field: 'limitB',
-    headerName: 'Appt. Struct. Cov.',
+    headerName: 'Appt. Struct. Limit',
     alignHeader: 'center',
     alignContent: 'right',
   },
   {
     field: 'limitC',
-    headerName: 'Contents Cov.',
+    headerName: 'Contents Limit',
     alignHeader: 'center',
     alignContent: 'right',
   },
   {
     field: 'limitD',
-    headerName: 'BI Cov.',
+    headerName: 'Expense Limit',
     alignHeader: 'center',
     alignContent: 'right',
   },
@@ -92,8 +94,8 @@ const locationColumns: ColumnDef[] = [
 ];
 
 export interface PolicyDecPDFLocations {
-  address: [string, string]; // string;
-  locationId: [string, string]; // string;
+  address: [string, string];
+  locationId: [string, string];
   limitA: string;
   limitB: string;
   limitC: string;

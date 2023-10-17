@@ -31,6 +31,8 @@ type CSVPolicyCamelCaseHeaders =
   | 'email'
   | 'phone'
   | 'userId'
+  | 'additionalInsureds'
+  | 'mortgageeInterest'
   | 'orgId'
   | 'agentName'
   | 'agentEmail'

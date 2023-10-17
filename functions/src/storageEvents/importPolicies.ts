@@ -150,7 +150,7 @@ export default async (event: StorageEvent) => {
   let importedIds: string[] = [];
   let createErrors: any[] = [];
 
-  // Loop through policies and create new record for each
+  // Loop through policies --> create new record for each
   for (const [policyId, policyData] of Object.entries(policyRecords)) {
     try {
       info(`creating policy ${policyId}...`, { ...policyData });
@@ -374,7 +374,7 @@ function formatPolicyLocation(
     cancelEffDate,
     cancelReason: (data.cancelReason as CancellationReason) || null,
     // exists: true,
-    additionalInsureds: data.additionalInsured || [],
+    additionalInsureds: data.additionalInsureds || [],
     mortgageeInterest: data.mortgageeInterest || [],
     ratingDocId: data.ratingDocId || '',
     ratingPropertyData: data.ratingPropertyData,

@@ -262,7 +262,7 @@ const DecPagePDF = ({ data }: PDFProps) => {
         size='A4'
         orientation='landscape'
         wrap={true}
-        style={{ ...styles.page, backgroundColor: '#ffffff' }}
+        style={{ ...styles.page, paddingHorizontal: 20, backgroundColor: '#ffffff' }}
       >
         <View style={{ paddingBottom: 20 }}>
           <Text style={[styles.heading2, styles.textCenter]}>Insured Locations</Text>
