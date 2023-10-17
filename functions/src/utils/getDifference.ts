@@ -7,7 +7,7 @@ export interface Obj {
  * Find difference between two objects
  * @param  {object} origObj - Source object to compare newObj against
  * @param  {object} newObj  - New object with potential changes
- * @return {object} differences
+ * @returns {object} differences
  */
 export function getDifference(origObj: any, newObj: any) {
   function changes(newObj: any, origObj: any) {

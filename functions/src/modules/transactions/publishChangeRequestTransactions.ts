@@ -117,13 +117,14 @@ export async function publishChangeRequestTransactions(data: ChangeRequest, poli
     if (data.scope === 'location') {
       switch (data.trxType) {
         case 'endorsement':
-          const msgDetails = await publishEndorsement({
+          // const msgDetails = await publishEndorsement({
+          await publishEndorsement({
             policyId,
             locationId: data.locationId,
             effDateMS: data.requestEffDate.toMillis(),
           });
           // TODO: save msgDetails to change request (can event ID be returned from publisher ?? if yes, could construct transaction ID from policyId + locationId + eventId)
-          printObj(msgDetails);
+          // printObj(msgDetails);
 
           break;
         case 'amendment':

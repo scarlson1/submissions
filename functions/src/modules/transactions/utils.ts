@@ -30,7 +30,7 @@ export const constructTrxId = (policyId: string, locationId: string, eventId: st
  * Get the book date in milliseconds (later of trx timestamp (created) or trx eff date)
  * @param {number} trxEffDateMS transaction effective date in milliseconds
  * @param {number} locationEffDateMS location or policy eff date in milliseconds
- * * @param {number} trxTimestampMS transaction timestamp (created) in milliseconds
+ * @param {number} trxTimestampMS transaction timestamp (created) in milliseconds
  * @returns {Timestamp} timestamp of the latest date
  */
 export const getBookingDate = (

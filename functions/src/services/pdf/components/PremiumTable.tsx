@@ -28,7 +28,7 @@ const premiumTableColumns: ColumnDef[] = [
     headerName: 'Amount',
     minWidth: 160,
     flex: 3,
-    alignHeader: 'center',
+    alignHeader: 'right',
     alignContent: 'right',
   },
 ];

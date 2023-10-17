@@ -312,7 +312,7 @@ export const tableStyles = StyleSheet.create({
     // alignSelf: 'stretch',
     // alignSelf: 'center',
     paddingVertical: 6,
-    paddingHorizontal: 8,
+    paddingHorizontal: 2, //8,
     marginHorizontal: 4,
     display: 'flex',
     flexDirection: 'column', // 'row',
@@ -339,7 +339,7 @@ export const tableStyles = StyleSheet.create({
     // margin: 4,
     alignSelf: 'center',
     paddingVertical: 8,
-    paddingHorizontal: 8,
+    paddingHorizontal: 2, // 8,
     // border: `1px solid magenta`,
   },
   tableText: {

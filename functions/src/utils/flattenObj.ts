@@ -4,7 +4,8 @@ export const flattenObj = <T extends Record<string, any>>(obj: T) => {
   let result: Record<string, any> = {};
 
   for (const key in obj) {
-    if (!obj.hasOwnProperty(key)) {
+    if (!obj.prototype.hasOwnProperty.call(key)) {
+      // obj.hasOwnProperty(key)
       continue;
     }
 

@@ -1,5 +1,6 @@
 import ReactPDF, { Document, Image, Page, Text, View } from '@react-pdf/renderer';
 
+import { formatPhoneNumber } from '../../common/helpers.js';
 import {
   AdditionalInterestsItem,
   AdditionalInterestsTable,
@@ -109,7 +110,7 @@ const DecPagePDF = ({ data }: PDFProps) => {
             </View>
           </View>
           <View style={{ flex: '0 0 33.3%', paddingRight: 8 }}>
-            <BlockTitle title='Policy Start Date' />
+            <BlockTitle title='Policy Effective' />
             <View>
               <Text
                 style={{
@@ -178,7 +179,26 @@ const DecPagePDF = ({ data }: PDFProps) => {
               >{`${data.mailingCity}, ${data.mailingState} ${data.mailingPostal}`}</Text>
             </View>
           </View>
-          <View style={{ flex: '0 0 33.3%', paddingRight: 16 }}></View>
+          <View style={{ flex: '0 0 33.3%', paddingRight: 16 }}>
+            <BlockTitle title='Agent' />
+            <View>
+              <Text
+                style={{
+                  ...styles.blockPrimaryText,
+                  ...styles.textPrimary,
+                }}
+              >
+                {data.agentName}
+              </Text>
+              <Text style={{ ...styles.blockSecondaryText }}>{data.agencyName}</Text>
+              <Text style={{ ...styles.blockSecondaryText }}>{data.agentEmail}</Text>
+              {data.agentPhone ? (
+                <Text style={{ ...styles.blockSecondaryText }}>
+                  {formatPhoneNumber(data.agentPhone)}
+                </Text>
+              ) : null}
+            </View>
+          </View>
         </View>
         <View
           style={{

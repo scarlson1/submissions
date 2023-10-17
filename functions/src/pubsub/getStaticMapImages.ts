@@ -1,4 +1,4 @@
-import { encode } from 'blurhash';
+// import { encode } from 'blurhash';
 import { Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
 import { error, info } from 'firebase-functions/logger';
@@ -8,7 +8,7 @@ import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 import { get, set } from 'lodash-es';
 import { tmpdir } from 'os';
 import path from 'path';
-import sharp from 'sharp';
+// import sharp from 'sharp';
 
 import {
   LocationImageTypes,
@@ -35,17 +35,17 @@ const MAPBOX_STYLES: { name: LocationImageTypes; style: string; zoom: number }[]
 
 const reportErr = getReportErrorFn('getStaticMapImages');
 
-const encodeImageToBlurhash = (path: string) =>
-  new Promise<string>((resolve, reject) => {
-    sharp(path)
-      .raw()
-      .ensureAlpha()
-      // .resize(32, 32, { fit: 'inside' })
-      .toBuffer((err, buffer, { width, height }) => {
-        if (err) return reject(err);
-        resolve(encode(new Uint8ClampedArray(buffer), width, height, 4, 4));
-      });
-  });
+// const encodeImageToBlurhash = (path: string) =>
+//   new Promise<string>((resolve, reject) => {
+//     sharp(path)
+//       .raw()
+//       .ensureAlpha()
+//       // .resize(32, 32, { fit: 'inside' })
+//       .toBuffer((err, buffer, { width, height }) => {
+//         if (err) return reject(err);
+//         resolve(encode(new Uint8ClampedArray(buffer), width, height, 4, 4));
+//       });
+//   });
 
 export interface GetStaticMapImagesPayload {
   collection: string;
@@ -135,19 +135,19 @@ export default async (event: CloudEvent<MessagePublishedData<GetStaticMapImagesP
           },
         };
 
-        let blurhash: string | null = null;
-        try {
-          console.log(
-            `Encoding blurhash - ${styleType.name} for ${docRef.id} [${getMS(startMS)}ms]`
-          );
-          const blurStart = new Date().getTime();
-          // Timeout / memory issue - takes ~20s per image
-          blurhash = await encodeImageToBlurhash(tempFilePath);
-          console.log('BLUR HASH: ', blurhash);
-          console.log(`BLURHASH MS: ${getMS(blurStart)} - [${docRef.id}]`);
-        } catch (err: any) {
-          console.log('Blurhash err: ', err);
-        }
+        // let blurhash: string | null = null;
+        // try {
+        //   console.log(
+        //     `Encoding blurhash - ${styleType.name} for ${docRef.id} [${getMS(startMS)}ms]`
+        //   );
+        //   const blurStart = new Date().getTime();
+        //   // Timeout / memory issue - takes ~20s per image
+        //   blurhash = await encodeImageToBlurhash(tempFilePath);
+        //   console.log('BLUR HASH: ', blurhash);
+        //   console.log(`BLURHASH MS: ${getMS(blurStart)} - [${docRef.id}]`);
+        // } catch (err: any) {
+        //   console.log('Blurhash err: ', err);
+        // }
 
         // TODO: hash image
         // https://stackoverflow.com/a/66812663
@@ -187,7 +187,7 @@ export default async (event: CloudEvent<MessagePublishedData<GetStaticMapImagesP
 
         set(docUpdates, ['imagePaths', styleType.name], destinationPath);
         set(docUpdates, ['imageURLs', styleType.name], downloadURL);
-        if (blurhash) set(docUpdates, ['blurHash', styleType.name], blurhash);
+        // if (blurhash) set(docUpdates, ['blurHash', styleType.name], blurhash);
       } catch (err: any) {
         if (cleanUpTempPaths.length > 0) {
           await clearTempFiles(cleanUpTempPaths);

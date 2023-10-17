@@ -119,8 +119,8 @@ export function getPremiumTable(policy: PolicyNew): PremiumTableItem[] {
 
 /**
  * converts tiptap JSONContent to HTML, then to text (replacing tags, etc.)
- * @param content JSONContent saved from tiptap editor
- * @returns string after using html-to-text to remove html tags
+ * @param {JSONContent} content  JSONContent saved from tiptap editor
+ * @returns {string} string after using html-to-text to remove html tags
  */
 export function tiptapJsonToText(content: JSONContent) {
   const html = generateHTML(content, EDITOR_EXTENSION_DEFAULTS);

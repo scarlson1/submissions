@@ -319,7 +319,7 @@ const calcAddLocation = async ({ data, auth }: CallableRequest<CalcAddLocationPr
       endorsementChanges: {
         [lcnId]: locationChanges as ILocation, // TODO: fix typing
       },
-      trxType: 'endorsement' as 'endorsement',
+      trxType: 'endorsement' as const,
       userId: policy.userId || auth.uid, // TODO: use policy userId or request ?? (verify in permissions check above ??)
       agent: {
         userId: policy.agent.userId || null,
