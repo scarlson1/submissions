@@ -1,5 +1,5 @@
-import { useCallback } from 'react';
 import { doc, setDoc } from 'firebase/firestore';
+import { useCallback } from 'react';
 import { useFirestore, useSigninCheck } from 'reactfire';
 
 import { userClaimsCollection } from 'common';
@@ -34,7 +34,7 @@ export const useUpdateClaims = (
         // removing will ensure _lastCommitted is not equal
         if (claims._lastCommitted) delete claims._lastCommitted;
 
-        console.log('SETTING CLAIMS: ', claims);
+        // console.log('SETTING CLAIMS: ', claims);
         await setDoc(userClaimsDocRef, { ...claims });
 
         if (onSuccess) onSuccess(claims);

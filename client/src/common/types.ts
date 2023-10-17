@@ -284,21 +284,23 @@ export interface NamedInsuredDetails {
 
 export interface IndividualNamedInsured {
   displayName: string;
-  firstName?: string;
-  lastName?: string;
+  firstName: string;
+  lastName: string;
   email: string;
   phone: string;
   userId?: string | null;
   orgId?: string | null; // ever used ??
 }
 
+// TODO: add type: 'entity' ??
 export interface EntityNamedInsured {
-  // TODO: add type: 'entity' ??
   displayName: string;
+  firstName: string;
+  lastName: string;
   email: string;
   phone: string;
   userId?: string | null;
-  orgId?: string | null;
+  orgId?: string;
 }
 
 // TODO: decide whether to use discriminating type vs same fields

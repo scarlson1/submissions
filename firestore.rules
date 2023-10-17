@@ -305,8 +305,8 @@ service cloud.firestore {
     }
 
     function isTenantUser(tenantId) {
-      return isSignedIn() && tenantId != null && request.auth.token.firebase.tenant == tenantId
-    } // && request.auth.token.firebase.tenant
+      return isSignedIn() && request.auth.token.firebase.tenant == tenantId
+    } // && request.auth.token.firebase.tenant // && tenantId != null
 
     function isOrgAdmin() {
       return isSignedIn() && request.auth.token.get('orgAdmin', null) == true

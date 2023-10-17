@@ -116,6 +116,8 @@ export const useCreatePolicyChangeRequest = () => {
       let initialValues: PolicyChangeValues = {
         namedInsured: {
           displayName: p.namedInsured?.displayName || '',
+          firstName: p.namedInsured?.firstName || '',
+          lastName: p.namedInsured?.lastName || '',
           email: p.namedInsured?.email || '',
           phone: p.namedInsured?.phone || '',
         },

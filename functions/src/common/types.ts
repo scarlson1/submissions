@@ -166,17 +166,19 @@ export interface User {
 
 export interface IndividualNamedInsured {
   displayName: string;
-  firstName?: string;
-  lastName?: string;
+  firstName: string;
+  lastName: string;
   email: string;
   phone: string;
   userId?: string | null;
   orgId?: string; // ever used ??
 }
 
+// TODO: add type: 'entity' ??
 export interface EntityNamedInsured {
-  // TODO: add type: 'entity' ??
   displayName: string;
+  firstName: string;
+  lastName: string;
   email: string;
   phone: string;
   userId?: string | null;

@@ -786,7 +786,7 @@ export const limitCCol: GridColDef = {
 export const limitDCol: GridColDef = {
   ...currencyCol,
   field: 'limits.limitD',
-  headerName: 'BI Limit',
+  headerName: 'Living Expenses Limit', // 'BI Limit',
   description: 'Coverage D limit (living expenses / business interruption)',
   minWidth: 120,
   flex: 0.8,
@@ -841,10 +841,15 @@ export const namedInsuredDisplayNameCol: GridColDef = {
   editable: false,
   filterable: false,
   sortable: false,
-  valueGetter: (params: GridValueGetterParams) =>
-    `${params.row.namedInsured?.firstName || ''} ${
-      params.row.namedInsured?.lastName || ''
-    }`.trim() || null,
+  valueGetter: (params: GridValueGetterParams) => {
+    if (params.row.namedInsured?.displayName) return params.row.namedInsured?.displayName;
+
+    return (
+      `${params.row.namedInsured?.firstName || ''} ${
+        params.row.namedInsured?.lastName || ''
+      }`.trim() || null
+    );
+  },
 };
 
 export const namedInsuredFirstNameCol: GridColDef = {

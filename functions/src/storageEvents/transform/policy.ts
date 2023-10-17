@@ -114,6 +114,21 @@ export function transformPolicyRow(row: CSVPolicyRow): ParsedPolicyRow {
     tsunami: row.techPremiumTsunami ? extractNumber(row.techPremiumTsunami) : null,
   };
 
+  let additionalInsureds: ParsedPolicyRow['additionalInsureds'] = [];
+  let mortgageeInterest: ParsedPolicyRow['mortgageeInterest'] = [];
+  if (row.additionalInsureds)
+    additionalInsureds = row.additionalInsureds.split(',').map((ai) => ({
+      name: ai,
+      email: '',
+    }));
+  if (row.mortgageeInterest)
+    mortgageeInterest = row.mortgageeInterest.split(',').map((m) => ({
+      name: m,
+      contactName: '',
+      email: '',
+      loanNumber: '',
+    }));
+
   const transformed: ParsedPolicyRow = {
     policyId: row.policyId || null,
     address: {
@@ -142,8 +157,8 @@ export function transformPolicyRow(row: CSVPolicyRow): ParsedPolicyRow {
     cancelEffDate: dateWithTimeZone(row.cancelEffectiveDate),
     cancelReason: row.cancelReason || null,
     externalId: row.locationId, // row.externalId || // TODO: use locationId as header name or externalId ??
-    additionalInsured: [],
-    mortgageeInterest: [],
+    additionalInsureds,
+    mortgageeInterest,
     term: row.term ? extractNumber(row.term) : 1,
     namedInsured,
     userId: row.userId || null,

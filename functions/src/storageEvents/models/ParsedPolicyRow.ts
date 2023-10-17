@@ -43,7 +43,7 @@ export interface ParsedPolicyRow {
   cancelEffDate: Date | null;
   cancelReason: string | null;
   externalId: string;
-  additionalInsured: AdditionalInsured[];
+  additionalInsureds: AdditionalInsured[];
   mortgageeInterest: Mortgagee[];
   term: number | null;
   ratingPropertyData: RatingPropertyData;

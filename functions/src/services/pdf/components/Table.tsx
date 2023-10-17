@@ -1,15 +1,19 @@
 // @ts-nocheck
 import { Text, View } from '@react-pdf/renderer';
 import { ReactNode } from 'react';
-import { printObj, truthyOrZero } from '../../../common/helpers.js';
+import { truthyOrZero } from '../../../common/helpers.js';
 import { tableStyles as styles } from '../styles.js';
 
 // https://stackoverflow.com/a/63299486/10887890
 
+// flex works for word wrap, flexGrow doesn't:
+// ISSUE: https://github.com/diegomura/react-pdf/issues/523
+
 export interface ColumnDef {
   field: string;
   headerName: string;
-  flex?: number; // TODO: replace with flexGrow
+  // flex?: number; // TODO: replace with flexGrow
+  flex?: string;
   flexGrow?: number;
   flexShrink?: number;
   flexBasis?: string;
@@ -36,11 +40,12 @@ export const Table = ({ columns, data, id }: TableProps) => {
         {columns.map((c, i) => {
           const cellStyle = { width };
 
-          if (truthyOrZero(c.flex)) {
-            cellStyle['flexBasis'] = 'auto'; // `${flexBasis}`;
-            cellStyle['flexGrow'] = c.flex ?? 1;
-            cellStyle['flexShrink'] = 1; // 0;
-          }
+          // if (truthyOrZero(c.flex)) {
+          //   cellStyle['flexBasis'] = 'auto'; // `${flexBasis}`;
+          //   cellStyle['flexGrow'] = c.flex ?? 1;
+          //   cellStyle['flexShrink'] = 1; // 0;
+          // }
+          if (c.flex) cellStyle['flex'] = c.flex;
           if (c.minWidth) cellStyle['minWidth'] = `${c.minWidth}px`;
           if (c.maxWidth) cellStyle['maxWidth'] = `${c.maxWidth}px`;
           if (c.alignHeader) cellStyle['textAlign'] = c.alignHeader;
@@ -49,10 +54,6 @@ export const Table = ({ columns, data, id }: TableProps) => {
           if (truthyOrZero(c?.flexGrow)) cellStyle['flexGrow'] = c.flexGrow;
           if (truthyOrZero(c?.flexShrink)) cellStyle['flexShrink'] = c.flexShrink;
           if (c?.width) cellStyle['width'] = c.width;
-
-          if (c.field === 'address') {
-            printObj(cellStyle);
-          }
 
           return (
             <Text style={[styles.cell, styles.headerText, cellStyle]} key={`${c.field}-${i}`}>
@@ -72,11 +73,12 @@ export const Table = ({ columns, data, id }: TableProps) => {
 
             const val = r[`${colDef.field}`] || '';
 
-            if (truthyOrZero(colDef?.flex)) {
-              cellStyle['flexBasis'] = `${flexBasis}`;
-              cellStyle['flexGrow'] = colDef?.flex ?? 1;
-              cellStyle['flexShrink'] = 1; // 0;
-            }
+            // if (truthyOrZero(colDef?.flex)) {
+            //   cellStyle['flexBasis'] = `${flexBasis}`;
+            //   cellStyle['flexGrow'] = colDef?.flex ?? 1;
+            //   cellStyle['flexShrink'] = 1; // 0;
+            // }
+            if (colDef?.flex) cellStyle['flex'] = colDef?.flex;
             if (colDef?.minWidth) cellStyle['minWidth'] = `${colDef.minWidth}px`;
             if (colDef?.maxWidth) cellStyle['maxWidth'] = `${colDef.maxWidth}px`;
             if (colDef?.alignContent) cellStyle['textAlign'] = colDef.alignContent;

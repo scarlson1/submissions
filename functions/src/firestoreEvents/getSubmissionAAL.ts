@@ -22,7 +22,6 @@ import {
   getPremium,
   validateGetAALsProps,
 } from '../modules/rating/index.js';
-// import type { GetAALRes } from '../modules/rating';
 
 // TODO: get commission if submitted by agent
 // TODO: HOW IS COMM HANDLED BETWEEN SUB AND QUOTE ?? how does quote form know what to pre-fill with if agent's commission is different than 15% ?? include commission in submission doc ??
@@ -46,13 +45,6 @@ export default async (
   const db = getFirestore();
   let commissionPct = defaultCommissionAsInt.value() / 100;
 
-  if (
-    !sub.ratingPropertyData?.replacementCost &&
-    typeof sub.ratingPropertyData.replacementCost === 'number'
-  ) {
-    warn('Missing replacement cost --> returning early', { ...sub });
-    return;
-  }
   if (sub.submittedById) {
     // If submitted by userId present, fetch user and check to see if they have a default commission set
     // TODO: refactor to use agent.userId
@@ -88,6 +80,7 @@ export default async (
       replacementCost: rcv,
       numStories: sub.ratingPropertyData?.numStories || 1,
     };
+    // TODO: use zod
     validateGetAALsProps(srVals);
 
     AALsRes = await getAALs({
