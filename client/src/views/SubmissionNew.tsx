@@ -1,5 +1,5 @@
 import { Box, Container, Tooltip, Typography } from '@mui/material';
-import { GeoPoint, Timestamp, addDoc } from 'firebase/firestore';
+import { GeoPoint, Timestamp, addDoc, doc, getDoc } from 'firebase/firestore';
 import { FormikHelpers, FormikProps } from 'formik';
 import { useCallback, useRef, useState } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
@@ -32,6 +32,7 @@ import {
   deductibleValidation,
   exclusionsValidation,
   limitsValidationNested,
+  orgsCollection,
   priorLossValidation,
   reviewValidation,
   submissionsCollection,
@@ -88,6 +89,15 @@ function useCreateSubmission(
         if (!(values.coordinates.latitude && values.coordinates.longitude))
           throw new Error('Missing coords');
         setLoading(true);
+        // TODO: get org data from useClaims hook? or create useOrg hook
+        // or add to use context
+        let org = null;
+        if (orgId) {
+          let snap = await getDoc(doc(orgsCollection(firestore), orgId));
+          org = snap.exists() ? snap.data() : null;
+        }
+        // TODO: get user phone from user doc instead of auth user (and/or sync the two)
+
         const docRef = await addDoc(submissionsCollection(firestore), {
           ...values,
           product: 'flood',
@@ -101,9 +111,9 @@ function useCreateSubmission(
             phone: !!claims?.agent ? user?.phoneNumber || null : null,
           },
           agency: {
-            name: '', // TODO: org name - save on user doc ?? or rxjs obs ??
+            name: org?.orgName || null, // TODO: org name - save on user doc ?? or rxjs obs ??
             orgId: orgId || null,
-            address: null, // TODO: agency address
+            address: org?.address || null, // TODO: agency address
           },
           submittedById: user?.uid ?? null,
           ratingPropertyData: {

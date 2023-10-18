@@ -133,6 +133,10 @@ export const additionalInterestsVal = array().of(
   })
 );
 
+export const additionalInterestsValidation = object().shape({
+  additionalInterests: additionalInterestsVal,
+});
+
 const getNumValue = (val: any): number =>
   typeof val === 'string' ? parseInt(val || '0') : typeof val === 'number' ? val : 0;
 

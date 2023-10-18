@@ -103,11 +103,17 @@ export const QuoteNewFromSub = () => {
       annualPremium: submissionData?.annualPremium ?? null,
       subproducerCommission: submissionData?.subproducerCommission ?? 0.15,
       quoteTotal: null,
+      // namedInsured: {
+      //   firstName: submissionData?.contact?.firstName ?? '',
+      //   lastName: submissionData?.contact?.lastName ?? '',
+      //   email: submissionData?.contact?.email ?? '', // @ts-ignore
+      //   phone: submissionData?.contact?.phone ?? '',
+      // },
       namedInsured: {
-        firstName: submissionData?.contact?.firstName ?? '',
-        lastName: submissionData?.contact?.lastName ?? '',
-        email: submissionData?.contact?.email ?? '', // @ts-ignore
-        phone: submissionData?.contact?.phone ?? '',
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: '',
       },
       agent: {
         userId: submissionData?.agent?.userId || '',

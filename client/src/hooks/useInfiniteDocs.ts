@@ -8,6 +8,7 @@ import {
   query,
   startAfter,
 } from 'firebase/firestore';
+import { logDev } from 'modules/utils';
 import { useFirestore } from 'reactfire';
 
 export const useInfiniteDocs = <T>(
@@ -28,6 +29,7 @@ export const useInfiniteDocs = <T>(
 
     const newData = snaps.docs.map((snap) => ({ ...snap.data(), id: snap.id }));
     const nextCursor = snaps.docs[snaps.docs.length - 1]; // TODO: next cursor undefined if doc count === total doc count ?? or wait for next call to return undefined
+    logDev('locations: ', newData);
     return { data: newData, nextCursor };
   };
 

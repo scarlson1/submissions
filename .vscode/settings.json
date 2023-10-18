@@ -302,5 +302,16 @@
     "Yavapai",
     "Yuba"
   ],
-  "cSpell.ignoreWords": ["SQFT"]
+  "cSpell.ignoreWords": ["SQFT"],
+  "todo-tree.general.tags": ["TODO", "FIXME", "REVIEW", "HACK", "REF", "WARN", "PREDEPLOY"],
+  "todo-tree.highlights.customHighlight": {
+    "PREDEPLOY": {
+      "background": "magenta",
+      "foreground": "white",
+      "opacity": 50,
+      "icon": "alert",
+      "type": "line",
+      "gutterIcon": true
+    }
+  }
 }

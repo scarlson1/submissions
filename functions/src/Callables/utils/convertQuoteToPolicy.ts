@@ -46,6 +46,7 @@ export const getPolicyLocationsFromQuote = (data: Quote, policyId: string) => {
   const locationId = createDocId();
   const locations: Record<string, ILocation> = {
     [locationId]: {
+      parentType: 'policy',
       address: data.address,
       coordinates: data.coordinates,
       geoHash,

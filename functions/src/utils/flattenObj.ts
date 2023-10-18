@@ -1,11 +1,13 @@
+import { isObject } from 'lodash-es';
 import { FlattenObjectKeys } from '../common/index.js';
 
 export const flattenObj = <T extends Record<string, any>>(obj: T) => {
   let result: Record<string, any> = {};
+  if (!isObject(obj)) return {};
 
   for (const key in obj) {
-    if (!obj.prototype.hasOwnProperty.call(key)) {
-      // obj.hasOwnProperty(key)
+    if (!obj?.hasOwnProperty(key)) {
+      // obj?.prototype?.hasOwnProperty.call(key)
       continue;
     }
 

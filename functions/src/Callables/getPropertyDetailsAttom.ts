@@ -1,8 +1,8 @@
-import { AxiosResponse } from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import { Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
-import { ceil, round, sum } from 'lodash-es';
+import { ceil, max, round, sum } from 'lodash-es';
 
 import {
   Address,
@@ -10,7 +10,7 @@ import {
   LimitTypes,
   Nullable,
   attomKey as attomKeySecret,
-  // audience,
+  audience,
   maxA,
   minA,
   propertyDataResCollection,
@@ -54,20 +54,21 @@ const getPropertyDetailsAttom = async ({
   let propertyDetails;
   // TODO: call getFEMAFloodZone and promise.all
   try {
-    // if (audience.value() === 'DEV HUMANS' || audience.value() === 'LOCAL HUMANS') {
-    //   info('USING MOCK RESPONSE FROM GITHUB');
-    //   const { data: githubMockData } = await axios.get(
-    //     'https://scarlson1.github.io/data/attom.json'
-    //   );
-    //   basicProfileRes = githubMockData;
-    // } else {
-    let { data: basicRes }: AxiosResponse<any> = await attomInstance.get(
-      `/propertyapi/v1.0.0/property/basicprofile?address1=${encodeURIComponent(
-        `${addressLine1} ${addressLine2}`.trim()
-      )}&address2=${encodeURIComponent(`${city}, ${state} ${postal}`.trim())}`
-    );
-    basicProfileRes = basicRes;
-    // }
+    if (audience.value() === 'LOCAL HUMANS') {
+      // audience.value() === 'DEV HUMANS' ||
+      info('USING MOCK RESPONSE FROM GITHUB');
+      const { data: githubMockData } = await axios.get(
+        'https://scarlson1.github.io/data/attom.json'
+      );
+      basicProfileRes = githubMockData;
+    } else {
+      let { data: basicRes }: AxiosResponse<any> = await attomInstance.get(
+        `/propertyapi/v1.0.0/property/basicprofile?address1=${encodeURIComponent(
+          `${addressLine1} ${addressLine2}`.trim()
+        )}&address2=${encodeURIComponent(`${city}, ${state} ${postal}`.trim())}`
+      );
+      basicProfileRes = basicRes;
+    }
     profile =
       basicProfileRes?.property && basicProfileRes.property.length > 0
         ? basicProfileRes.property[0]
@@ -123,7 +124,7 @@ const getPropertyDetailsAttom = async ({
     }
 
     try {
-      let validatedRatingData = await validateAttomRes(profile, floodZone);
+      let validatedRatingData = await validateAttomRes(profile, state, floodZone);
       let { replacementCost } = validatedRatingData;
       info('validated data: ', { ...validatedRatingData });
 
@@ -189,7 +190,7 @@ interface AttomBasicProfile {
   [key: string]: any;
 }
 
-async function validateAttomRes(attomData: AttomBasicProfile, fz?: string) {
+async function validateAttomRes(attomData: AttomBasicProfile, state: string, fz?: string) {
   const { summary, building, assessment } = attomData;
 
   let sqFootage = building?.size?.livingSize || null;
@@ -202,6 +203,11 @@ async function validateAttomRes(attomData: AttomBasicProfile, fz?: string) {
   let basement = building?.interior?.bsmtType ? building?.interior?.bsmtType.toLowerCase() : 'no';
   let distToCoastFeet = 1000000;
 
+  const rcvBySqFootage = sqFootage ? calcRCVBySquareFootage(sqFootage, state) : null;
+
+  if (rcvBySqFootage && replacementCost) {
+    replacementCost = max([rcvBySqFootage, replacementCost]) || null;
+  }
   // TODO: BUILDING SQ FOOTAGE. WHICH NUMBER? living size ??
   // "size": {
   //   "bldgSize": 4592,
@@ -231,6 +237,9 @@ async function validateAttomRes(attomData: AttomBasicProfile, fz?: string) {
   };
 }
 
+// TODO: use greater of above and sq ft calc
+// TODO: use livingSize * 150
+
 function tempCalcRCV(assessment: any) {
   if (!assessment) return null;
   const { market, assessed } = assessment;
@@ -251,4 +260,13 @@ function tempCalcRCV(assessment: any) {
   if (mktImprValue) return round(market.mktImprValue, -3);
 
   return null;
+}
+
+const sqFootageFactor: Record<string, number> = {
+  FL: 150,
+};
+
+function calcRCVBySquareFootage(sqFootage: number, state: string) {
+  const factor = sqFootageFactor[state] || 150;
+  return round(factor * sqFootage, -3);
 }

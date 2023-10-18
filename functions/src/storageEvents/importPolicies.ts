@@ -126,6 +126,7 @@ export default async (event: StorageEvent) => {
   let lcnIdMap: Record<string, string>;
 
   try {
+    info('Grouping locations by policy...');
     const {
       formattedPolicies,
       locations,
@@ -153,7 +154,7 @@ export default async (event: StorageEvent) => {
   // Loop through policies --> create new record for each
   for (const [policyId, policyData] of Object.entries(policyRecords)) {
     try {
-      info(`creating policy ${policyId}...`, { ...policyData });
+      info(`creating staged policy ${policyId}...`, { ...policyData });
 
       const policyRef = policiesColRef.doc(policyId);
       await throwIfExists(policyRef);
@@ -264,6 +265,7 @@ async function groupByPolicyId(data: ParsedPolicyRow[], firestore: Firestore) {
   for (const row of data) {
     let locId = createDocId();
     lcnIdMap[locId] = row.externalId;
+    info(`Formatting location ${row.externalId}`);
     const formattedLocation = formatPolicyLocation(row, locId, ts, 'policy');
 
     const ratingDocId = createDocId();
@@ -297,6 +299,7 @@ async function groupByPolicyId(data: ParsedPolicyRow[], firestore: Firestore) {
     const policyLocation = locationToPolicyLocation(formattedLocation);
 
     if (existingPolicy) {
+      info(`adding location to policy ${row.externalId}`);
       const updatedPolicy = {
         ...existingPolicy,
         fees,
@@ -306,6 +309,7 @@ async function groupByPolicyId(data: ParsedPolicyRow[], firestore: Firestore) {
 
       policies[policyId] = updatedPolicy;
     } else {
+      info(`creating policy and adding location ${row.externalId}`);
       const policyWithoutLocation = await getPolicyWithoutLocation(row, ts, firestore);
 
       policies[policyId] = {
@@ -320,7 +324,6 @@ async function groupByPolicyId(data: ParsedPolicyRow[], firestore: Firestore) {
   }
 
   // Calc policy level term premium
-  // const resultPolicies: Record<string, Policy> = {};
   const formattedPolicies: Record<string, PolicyNew> = {};
   for (const [policyId, policy] of Object.entries(policies)) {
     // recalc premium, taxes, price

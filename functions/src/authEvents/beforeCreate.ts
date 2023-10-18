@@ -5,6 +5,7 @@ import type { AuthBlockingEvent } from 'firebase-functions/v2/identity';
 import { HttpsError } from 'firebase-functions/v2/identity';
 import jwt from 'jsonwebtoken';
 
+import { inviteConverter } from '../common/converters/index.js';
 import {
   CLAIMS,
   COLLECTIONS,
@@ -16,8 +17,7 @@ import {
   sendgridApiKey,
   userClaimsCollection,
   usersCollection,
-} from '../common';
-import { inviteConverter } from '../common/converters/index.js';
+} from '../common/index.js';
 import { MoveTenantJwtPayload } from '../routes/authRequests.js';
 import {
   ExtraSendGridArgs,

@@ -3,7 +3,6 @@ import {
   BedRounded,
   FenceRounded,
   HouseRounded,
-  MoreVertRounded,
   PasswordRounded,
   PersonAddAltRounded,
   WeekendRounded,
@@ -47,6 +46,7 @@ import {
   Product,
   Quote,
   WithId,
+  additionalInterestsValidation,
   fallbackImages,
   mailingAddressValidation,
   namedInsuredValidationNested,
@@ -54,7 +54,7 @@ import {
   phoneRequiredVal,
   quotesCollection,
 } from 'common';
-import { IconButtonMenu, LineItem } from 'components';
+import { LineItem } from 'components';
 import {
   FormikCheckbox,
   FormikDatePicker,
@@ -249,7 +249,12 @@ export const QuoteBind = () => {
         >
           <MailingAddressStep />
         </Step>
-        <Step label='Additional Interests' stepperNavLabel='+1s' mutateOnSubmit={saveValues}>
+        <Step
+          label='Additional Interests'
+          stepperNavLabel='+1s'
+          mutateOnSubmit={saveValues}
+          validationSchema={additionalInterestsValidation}
+        >
           <AdditionalInterestsStep logAnalyticsStep={logAnalyticsStep} />
         </Step>
         <Step
@@ -810,7 +815,7 @@ export const PaymentCard = ({ cardDetails, loading, error }: PaymentCardProps) =
           {cardDetails?.expiration ?? cardDetails?.accountHolder}
         </Typography>
       </CardContent>
-      <Box sx={{ p: 2, pl: 1 }}>
+      {/* <Box sx={{ p: 2, pl: 1 }}>
         <IconButtonMenu
           menuItems={[{ label: 'Details', action: () => console.log('button clicked') }]}
           menuProps={{
@@ -824,7 +829,7 @@ export const PaymentCard = ({ cardDetails, loading, error }: PaymentCardProps) =
           }}
           buttonIcon={<MoreVertRounded fontSize='inherit' />}
         />
-      </Box>
+      </Box> */}
     </Card>
   );
 };

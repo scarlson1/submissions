@@ -12,6 +12,9 @@ export const useClaims = () => {
   const { data: orgAdminResult } = useSigninCheck({
     requiredClaims: { [CLAIMS.ORG_ADMIN]: true },
   });
+  const { data: agentResult } = useSigninCheck({
+    requiredClaims: { [CLAIMS.AGENT]: true },
+  });
   // use id token result hook instead ??
 
   let orgId = orgAdminResult.user?.tenantId || null;
@@ -25,9 +28,9 @@ export const useClaims = () => {
       claims: {
         [CLAIMS.IDEMAND_ADMIN]: iDAdminResult.hasRequiredClaims,
         [CLAIMS.ORG_ADMIN]: orgAdminResult.hasRequiredClaims,
-        [CLAIMS.AGENT]: false, // TODO
+        [CLAIMS.AGENT]: agentResult.hasRequiredClaims,
       },
     }),
-    [iDAdminResult, orgAdminResult, orgId]
+    [iDAdminResult, orgAdminResult, agentResult, orgId]
   );
 };

@@ -554,16 +554,6 @@ export const getGeoHash = (
   return geohashForLocation([coordinates.latitude, coordinates.longitude]);
 };
 
-// FLATTEN WITHOUT NESTED STRING KEYS:
-// type Primitive = string | number | boolean;
-
-// type FlattenPairs<T> = {
-//   [K in keyof T]: T[K] extends Primitive ? [K, T[K]] : FlattenPairs<T[K]>;
-// }[keyof T] &
-//   [PropertyKey, Primitive];
-
-// type Flatten<T> = { [P in FlattenPairs<T> as P[0]]: P[1] };
-
 export const flattenObj = <T extends Record<string, any>>(obj: T) => {
   let result: Record<string, any> = {};
 

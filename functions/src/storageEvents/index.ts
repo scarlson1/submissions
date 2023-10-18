@@ -8,9 +8,12 @@ import {
   swissReSubscriptionKey,
 } from '../common/index.js';
 
-export const importpolicies = onObjectFinalized({ secrets: [sendgridApiKey] }, async (event) => {
-  await (await import('./importPolicies.js')).default(event);
-});
+export const importpolicies = onObjectFinalized(
+  { secrets: [sendgridApiKey], memory: '1GiB', timeoutSeconds: 540, concurrency: 1 },
+  async (event) => {
+    await (await import('./importPolicies.js')).default(event);
+  }
+);
 
 export const importquotes = onObjectFinalized({ secrets: [sendgridApiKey] }, async (event) => {
   await (await import('./importQuotes.js')).default(event);
