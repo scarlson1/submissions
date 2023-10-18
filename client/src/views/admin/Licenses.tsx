@@ -53,8 +53,8 @@ export const Licenses = () => {
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 2 }}>
-        <Typography variant='h5' sx={{ ml: { xs: 0, sm: 3, md: 4 } }}>
-          Surplus Lines License
+        <Typography variant='h5' sx={{ ml: { xs: 2, sm: 3, md: 4 } }}>
+          Licenses
         </Typography>
         <Button onClick={() => navigate(createPath({ path: ADMIN_ROUTES.SL_LICENSE_NEW }))}>
           New

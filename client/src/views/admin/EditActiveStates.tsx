@@ -4,6 +4,7 @@ import {
   Button,
   Card,
   CircularProgress,
+  Divider,
   Unstable_Grid2 as Grid,
   Typography,
 } from '@mui/material';
@@ -22,6 +23,8 @@ import { ErrorFallback } from 'components';
 import { FormikSwitch } from 'components/forms';
 import { ActiveStateMap } from 'elements/maps/ActiveStateMap';
 import { useDocData, useFetchLicenses, useSafeParams } from 'hooks';
+
+// TODO: box around map and switches. max height around switches. remove map from grid
 
 export interface EditActiveStatesValues {
   [key: string]: boolean;
@@ -97,7 +100,7 @@ export const EditActiveStates = () => {
             display: 'flex',
             justifyContent: 'space-between',
             pt: 2,
-            pb: 1,
+            pb: 2,
             borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
           }}
         >
@@ -109,7 +112,7 @@ export const EditActiveStates = () => {
             startIcon={<SaveRounded fontSize='small' />}
             onClick={handleSave}
             size='small'
-            sx={{ maxHeight: 36 }}
+            sx={{ maxHeight: 34 }}
           >
             Save
           </Button>
@@ -177,34 +180,42 @@ export const EditActiveStates = () => {
           innerRef={formikRef}
         >
           {({ values }) => (
-            <Grid container rowSpacing={4} columnSpacing={6} sx={{ maxWidth: '100%', mx: 'auto' }}>
-              {statesDetailsArr.map((s) => (
-                <Grid xs={6} sm={4} md={3} lg={2} key={s.name}>
-                  <FormikSwitch
-                    name={s.abbreviation}
-                    label={s.name}
-                    formControlLabelProps={{
-                      componentsProps: { typography: { variant: 'body2', px: 2 } },
-                    }}
-                  />
-                </Grid>
-              ))}
-              <Grid xs={12}>
-                <Box sx={{ py: 10, height: 500, width: '100%', mb: 20 }}>
-                  <ErrorBoundary
-                    FallbackComponent={ErrorFallback}
-                    onReset={() => (productId = 'flood')}
-                    resetKeys={[productId]}
-                  >
-                    <Suspense fallback={<CircularProgress color='secondary' />}>
-                      <Card sx={{ height: 'inherit', width: 'inherit' }}>
-                        <ActiveStateMap handleClick={handleStateClicked} statesValues={values} />
-                      </Card>
-                    </Suspense>
-                  </ErrorBoundary>
-                </Box>
+            <Box>
+              <Grid
+                container
+                rowSpacing={4}
+                columnSpacing={6}
+                sx={{ maxWidth: '100%', mx: 'auto' }}
+              >
+                {statesDetailsArr.map((s) => (
+                  <Grid xs={6} sm={4} md={3} lg={2} key={s.name}>
+                    <FormikSwitch
+                      name={s.abbreviation}
+                      label={s.name}
+                      formControlLabelProps={{
+                        componentsProps: { typography: { variant: 'body2', px: 2 } },
+                      }}
+                    />
+                  </Grid>
+                ))}
               </Grid>
-            </Grid>
+              {/* <Grid xs={12} sx={{ px: { xs: 0 } }}> */}
+              <Divider sx={{ my: 3 }} />
+              <Box sx={{ py: { xs: 4, md: 6 }, height: 500, width: '100%', mb: 20 }}>
+                <ErrorBoundary
+                  FallbackComponent={ErrorFallback}
+                  onReset={() => (productId = 'flood')}
+                  resetKeys={[productId]}
+                >
+                  <Suspense fallback={<CircularProgress color='secondary' />}>
+                    <Card sx={{ height: 'inherit', width: 'inherit' }}>
+                      <ActiveStateMap handleClick={handleStateClicked} statesValues={values} />
+                    </Card>
+                  </Suspense>
+                </ErrorBoundary>
+              </Box>
+              {/* </Grid> */}
+            </Box>
           )}
         </Formik>
       </Box>

@@ -36,7 +36,7 @@ import { IconMenu } from 'components/IconButtonMenu';
 import { useConfirmation } from 'context';
 import { CSVUploadDialog } from 'elements';
 import { QuotesGrid } from 'elements/grids';
-import { useAsyncToast, useShowJson } from 'hooks';
+import { useAsyncToast, useShowJson, useWidth } from 'hooks';
 import { subproducerCommissionCol } from 'modules/muiGrid/gridColumnDefs';
 import { getDuplicates } from 'modules/utils';
 import { ADMIN_ROUTES, createPath } from 'router';
@@ -118,6 +118,7 @@ export const Quotes = () => {
     [],
     (q: WithId<Quote>) => `Quote - ${q.address?.addressLine1 || ''} (ID: ${q.id || ''})`
   );
+  const { isMobile } = useWidth();
 
   const editQuote = useCallback(
     (params: GridRowParams) => () => {
@@ -158,6 +159,7 @@ export const Quotes = () => {
         onClick={editQuote(params)}
         label='Edit'
         disabled={params.row.status !== QUOTE_STATUS.AWAITING_USER}
+        showInMenu={isMobile}
       />,
       <GridActionsCellItem
         icon={
@@ -167,16 +169,17 @@ export const Quotes = () => {
         }
         onClick={handleShowJson(params)}
         label='view JSON'
+        showInMenu={isMobile}
         // disabled={!Boolean(claims?.iDemandAdmin)}
       />,
     ],
-    [editQuote, handleShowJson]
+    [editQuote, handleShowJson, isMobile]
   );
 
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 2 }}>
-        <Typography variant='h5' sx={{ ml: { xs: 0, sm: 3, md: 4 } }}>
+        <Typography variant='h5' sx={{ ml: { xs: 2, sm: 3, md: 4 } }}>
           Quotes
         </Typography>
         <Stack direction='row' spacing={2}>
@@ -260,7 +263,7 @@ function QuotesActionMenu() {
   );
 
   return (
-    <>
+    <Box>
       <IconMenu>
         <MenuItem onClick={handleOpen('ratePortfolio')}>Rate Portfolio</MenuItem>
         <MenuItem onClick={handleOpen('importQuotes')}>Import Quotes</MenuItem>
@@ -309,6 +312,6 @@ function QuotesActionMenu() {
           </Alert>
         </Collapse>
       </CSVUploadDialog>
-    </>
+    </Box>
   );
 }

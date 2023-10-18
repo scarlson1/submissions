@@ -7,11 +7,11 @@ import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFirestore, useSigninCheck } from 'reactfire';
 
-import { AGENCY_SUBMISSION_STATUS, COLLECTIONS, CLAIMS } from 'common';
+import { AGENCY_SUBMISSION_STATUS, CLAIMS, COLLECTIONS } from 'common';
 import { IconButtonMenu } from 'components';
 import { useConfirmation } from 'context';
 import { AgencyAppsGrid } from 'elements/grids';
-import { useAsyncToast, useCreateTenant } from 'hooks';
+import { useAsyncToast, useCreateTenant, useWidth } from 'hooks';
 import { useSendAgencyAppNotification } from 'hooks/useCreateTenant';
 import { ADMIN_ROUTES, ROUTES, createPath } from 'router';
 
@@ -20,6 +20,7 @@ export const AgencyApps = () => {
   const navigate = useNavigate();
   const toast = useAsyncToast();
   const confirm = useConfirmation();
+  const { isMobile } = useWidth();
   const { data: authCheck } = useSigninCheck({
     requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
   });
@@ -168,7 +169,7 @@ export const AgencyApps = () => {
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', pb: 2 }}>
-        <Typography variant='h5' sx={{ ml: { xs: 0, sm: 3, md: 4 } }}>
+        <Typography variant='h5' sx={{ ml: { xs: 2, sm: 3, md: 4 } }}>
           Agency Submissions
         </Typography>
         <Stack direction='row' spacing={2}>
@@ -177,7 +178,7 @@ export const AgencyApps = () => {
             variant='contained'
             sx={{ maxHeight: 34 }}
           >
-            New Agency
+            {isMobile ? 'New' : 'New Agency'}
           </Button>
           <IconButtonMenu
             menuItems={[

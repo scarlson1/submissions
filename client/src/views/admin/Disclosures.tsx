@@ -1,39 +1,26 @@
-import { useCallback, useMemo } from 'react';
-
 import { ArticleRounded, DeleteRounded, EditRounded } from '@mui/icons-material';
 import { Box, Button, Tooltip, Typography } from '@mui/material';
 import { GridActionsCellItem, GridColDef, GridRowParams } from '@mui/x-data-grid';
 import { generateHTML } from '@tiptap/html';
-import { JSONContent } from '@tiptap/react';
+import { deleteDoc, doc } from 'firebase/firestore';
+import { useCallback, useMemo } from 'react';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { useFirestore } from 'reactfire';
 
 import { COLLECTIONS } from 'common';
 import { ServerDataGrid } from 'components';
-import { GridCellCopy, renderChips } from 'components/RenderGridCellHelpers';
 import { useConfirmation } from 'context';
-import { deleteDoc, doc } from 'firebase/firestore';
-import { EDITOR_EXTENSION_DEFAULTS } from 'hooks';
-import { formatGridFirestoreTimestamp } from 'modules/utils';
+import { EDITOR_EXTENSION_DEFAULTS, useWidth } from 'hooks';
+import { disclosureCols } from 'modules/muiGrid/gridColumnDefs';
 import { ADMIN_ROUTES, createPath } from 'router';
 
-const ContentSnippet = ({ json }: { json: JSONContent }) => {
-  const content = useMemo(() => {
-    return generateHTML(json, EDITOR_EXTENSION_DEFAULTS);
-  }, [json]);
-
-  return (
-    <Typography variant='body2' color='text.secondary' component='div'>
-      {content}
-    </Typography>
-  );
-};
-// TODO: move disclosure columns to gridcols folder
+// TODO: move disclosure columns to grid cols folder
 export const Disclosures = () => {
   const navigate = useNavigate();
   const firestore = useFirestore();
   const dialog = useConfirmation();
+  const { isMobile } = useWidth();
 
   const showContent = useCallback(
     (params: GridRowParams) => async () => {
@@ -90,7 +77,7 @@ export const Disclosures = () => {
         field: 'actions',
         headerName: 'Actions',
         type: 'actions',
-        width: 120,
+        width: isMobile ? 80 : 120,
         getActions: (params: GridRowParams) => [
           <GridActionsCellItem
             icon={
@@ -99,7 +86,8 @@ export const Disclosures = () => {
               </Tooltip>
             }
             onClick={showContent(params)}
-            label='Details'
+            label='Preview'
+            showInMenu={isMobile}
           />,
           <GridActionsCellItem
             icon={
@@ -109,6 +97,7 @@ export const Disclosures = () => {
             }
             onClick={editDisclosure(params)}
             label='Edit'
+            showInMenu={isMobile}
           />,
           <GridActionsCellItem
             icon={
@@ -118,107 +107,28 @@ export const Disclosures = () => {
             }
             onClick={deleteDisclosure(params)}
             label='Delete'
+            showInMenu={isMobile}
           />,
         ],
       },
-      {
-        field: 'state',
-        headerName: 'State',
-        type: '',
-        minWidth: 60,
-        flex: 0.2,
-        editable: false,
-      },
-      {
-        field: 'products',
-        headerName: 'Products',
-        minWidth: 160,
-        flex: 0.4,
-        editable: false,
-        renderCell: (params) => renderChips(params, { variant: 'outlined' }),
-      },
-      {
-        field: 'displayName',
-        headerName: 'Name',
-        minWidth: 180,
-        flex: 0.2,
-        editable: false,
-      },
-      {
-        field: 'type',
-        headerName: 'Type',
-        minWidth: 140,
-        flex: 0.2,
-        editable: false,
-      },
-      {
-        field: 'content',
-        headerName: 'Content',
-        minWidth: 360,
-        flex: 1,
-        editable: false,
-        renderCell: (params) => {
-          if (!params.value) return null;
-          return (
-            <Box
-              sx={{
-                overflow: 'auto',
-                whiteSpace: 'nowrap',
-                '&::-webkit-scrollbar': { display: 'none' },
-              }}
-            >
-              <ContentSnippet json={params.value} />
-            </Box>
-          );
-        },
-      },
-      {
-        field: 'metadata.created',
-        headerName: 'Created',
-        minWidth: 160,
-        flex: 0.6,
-        editable: false,
-        valueGetter: (params) => params.row.metadata.created || null,
-        valueFormatter: formatGridFirestoreTimestamp,
-      },
-      {
-        field: 'metadata.updated',
-        headerName: 'Updated',
-        minWidth: 160,
-        flex: 0.6,
-        editable: false,
-        valueGetter: (params) => params.row.metadata.updated || null,
-        valueFormatter: formatGridFirestoreTimestamp,
-      },
-      {
-        field: 'id',
-        headerName: 'Doc ID',
-        minWidth: 240,
-        flex: 0.8,
-        editable: false,
-        renderCell: (params) => {
-          return <GridCellCopy value={params.value} />;
-        },
-      },
+      ...disclosureCols,
     ],
-    [showContent, editDisclosure, deleteDisclosure]
+    [showContent, editDisclosure, deleteDisclosure, isMobile]
   );
 
   return (
     <Box>
       <Box sx={{ display: 'flex', pb: 2 }}>
-        <Typography variant='h5' sx={{ ml: { xs: 0, sm: 3, md: 4 }, flex: '1 1 auto' }}>
+        <Typography variant='h5' sx={{ ml: { xs: 2, sm: 3, md: 4 }, flex: '1 1 auto' }}>
           Disclosures
         </Typography>
         <Button
-          variant='contained'
           onClick={() => navigate(createPath({ path: ADMIN_ROUTES.DISCLOSURE_NEW }))}
           sx={{ maxHeight: 34 }}
         >
           New
         </Button>
       </Box>
-
       {/* <Box sx={{ height: 500, width: '100%' }}> */}
       <ServerDataGrid colName='DISCLOSURES' columns={columns} autoHeight />
       {/* </Box> */}

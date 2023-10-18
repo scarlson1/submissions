@@ -110,7 +110,7 @@ export const QuotesGrid = ({
   );
 
   return (
-    <Box sx={{ height: { xs: 400, sm: 460, md: 500 }, width: '100%' }}>
+    <Box sx={{ height: { xs: 500, sm: 560, md: 600 }, width: '100%' }}>
       <ServerDataGrid
         colName='QUOTES'
         columns={quoteColumns}

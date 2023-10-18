@@ -177,7 +177,7 @@ export const ServerDataGrid = ({
             display: 'none',
           },
           '& .MuiDataGrid-main': {
-            maxHeight: { xs: 300, sm: 360, md: 400, lg: 420 },
+            maxHeight: { xs: 400, sm: 420, md: 460, lg: 500 },
             overflowY: 'auto',
           },
           '.MuiDataGrid-main > div:nth-of-type(2)': { overflowY: 'auto !important' },

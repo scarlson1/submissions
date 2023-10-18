@@ -1,5 +1,5 @@
 import ReactJson from '@microlink/react-json-view';
-import { Box, useTheme } from '@mui/material';
+import { Box, useMediaQuery, useTheme } from '@mui/material';
 import { useCallback, useMemo } from 'react';
 import { toast } from 'react-hot-toast';
 
@@ -42,7 +42,9 @@ export const useJsonTheme = () => {
 export const useJsonDialog = (props?: Partial<Omit<DialogOptions, 'onSubmit' | 'content'>>) => {
   const dialog = useDialog();
   const [, copy] = useCopyToClipboard();
-  const theme = useJsonTheme();
+  const jsonTheme = useJsonTheme();
+  const theme = useTheme();
+  const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
   const showJson = useCallback(
     async (data: any, title: string) => {
@@ -62,40 +64,22 @@ export const useJsonDialog = (props?: Partial<Omit<DialogOptions, 'onSubmit' | '
             <ReactJson
               src={data}
               style={{ backgroundColor: 'inherit' }}
-              theme={theme}
+              theme={jsonTheme}
               // theme={theme.palette.mode === 'dark' ? 'tomorrow' : 'rjv-default'}
               iconStyle='circle'
               enableClipboard={(data) => copy(data.src, true)}
               collapseStringsAfterLength={30}
             />
           </Box>
-          // <ConfirmationDialog
-          //   onAccept={() => {}}
-          //   onClose={() => {}}
-          //   open={false}
-          //   dialogProps={{ maxWidth: 'md', ...dialogProps }}
-          //   dialogContentProps={{ dividers: true }}
-          // >
-          //   <Box
-          //     sx={{
-          //       typography: 'body2',
-          //     }}
-          //   >
-          //     <ReactJson
-          //       src={data}
-          //       style={{ backgroundColor: 'inherit' }}
-          //       theme={theme}
-          //       // theme={theme.palette.mode === 'dark' ? 'tomorrow' : 'rjv-default'}
-          //       iconStyle='circle'
-          //       enableClipboard={(data) => copy(data.src, true)}
-          //       collapseStringsAfterLength={30}
-          //     />
-          //   </Box>
-          // </ConfirmationDialog>
         ),
+        slotProps: {
+          dialog: {
+            fullScreen,
+          },
+        },
       });
     },
-    [dialog, theme, copy, props]
+    [dialog, jsonTheme, fullScreen, copy, props]
   );
 
   return showJson;

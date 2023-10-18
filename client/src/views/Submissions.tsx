@@ -3,15 +3,15 @@ import { where } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 
 import { SubmissionsGrid } from 'elements/grids';
-import { useClaims } from 'hooks';
+import { useClaims, useWidth } from 'hooks';
 import { ROUTES, createPath } from 'router';
 import { Submissions as AdminSubmissions } from './admin/Submissions';
 import { Submissions as UserSubmissions } from './user/Submissions';
 
 export const Submissions = () => {
   const navigate = useNavigate();
-  // const { claims, user } = useAuth();
   const { claims, user } = useClaims();
+  const { isMobile } = useWidth();
 
   if (claims?.iDemandAdmin) return <AdminSubmissions />;
 
@@ -19,7 +19,7 @@ export const Submissions = () => {
     return (
       <Box>
         <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-          <Typography variant='h5' gutterBottom sx={{ ml: { xs: 0, sm: 3, md: 4 } }}>
+          <Typography variant='h5' gutterBottom sx={{ ml: { xs: 2, sm: 3, md: 4 } }}>
             Submissions
           </Typography>
           <Button
@@ -29,7 +29,7 @@ export const Submissions = () => {
             size='small'
             sx={{ maxHeight: 36 }}
           >
-            New Submission
+            {isMobile ? 'New' : 'New Submission'}
           </Button>
         </Box>
         <SubmissionsGrid constraints={[where('agent.userId', '==', user.uid)]} />

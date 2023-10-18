@@ -27,7 +27,7 @@ export const TransactionsGrid = ({
         field: 'actions',
         headerName: 'Actions',
         type: 'actions',
-        width: isSmall ? 60 : 100,
+        width: isSmall ? 80 : 100,
         getActions: (params: GridRowParams) => [
           ...renderActions(params),
           ...renderShowJson(params),

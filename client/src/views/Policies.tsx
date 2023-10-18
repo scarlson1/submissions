@@ -54,7 +54,7 @@ export const Policies = () => {
       <Typography
         variant='h5'
         gutterBottom
-        sx={{ ml: { xs: 0, sm: 3, md: 4 }, '&:hover': { cursor: 'pointer' } }}
+        sx={{ ml: { xs: 2, sm: 3, md: 4 }, '&:hover': { cursor: 'pointer' } }}
         onClick={() => navigate(createPath({ path: ROUTES.POLICIES }))}
       >
         Policies
@@ -109,7 +109,7 @@ export const Policies = () => {
         <Typography
           variant='h5'
           gutterBottom
-          sx={{ ml: { xs: 0, sm: 3, md: 4 }, '&:hover': { cursor: 'pointer' } }}
+          sx={{ ml: { xs: 2, sm: 3, md: 4 }, '&:hover': { cursor: 'pointer' } }}
           onClick={() => navigate(createPath({ path: ROUTES.POLICIES }))}
         >
           Policies
@@ -160,7 +160,7 @@ function AdminPoliciesActionMenu() {
   );
   // `public/policyImportTemplate.csv`
   return (
-    <>
+    <Box>
       <IconMenu>
         <MenuItem onClick={handleOpen('importPolicies')}>Import Policies</MenuItem>
       </IconMenu>
@@ -193,7 +193,7 @@ function AdminPoliciesActionMenu() {
           </Alert>
         </Collapse>
       </CSVUploadDialog>
-    </>
+    </Box>
   );
 }
 

@@ -1,5 +1,6 @@
 export { agencyAppCols } from './agencyAppCols';
 export { changeRequestCols } from './changeRequestCols';
+export { disclosureCols } from './disclosureCols';
 export { emailCols } from './emailCols';
 export * from './importStagingRecords';
 export { importSummaryCols } from './importSummaryCols';

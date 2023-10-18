@@ -5,7 +5,7 @@ import { where } from 'firebase/firestore';
 import { useCallback } from 'react';
 import { useSigninCheck } from 'reactfire';
 
-import { COLLECTIONS, CLAIMS, User } from 'common';
+import { CLAIMS, COLLECTIONS, User } from 'common';
 import InputDialog from 'components/InputDialog';
 import { useConfirmation } from 'context';
 import { UsersGrid } from 'elements/grids';
@@ -71,11 +71,13 @@ export const Users = () => {
 
   return (
     <Box sx={{ minHeight: 400 }}>
-      <Typography variant='h5' gutterBottom sx={{ pl: { sm: 3 } }}>
+      <Typography variant='h5' gutterBottom sx={{ pl: { xs: 2, sm: 3 } }}>
         Users
       </Typography>
+      {/* <Box sx={{ height: { xs: 400, md: 460, lg: 500 }, width: '100%' }}> */}
       <UsersGrid
         constraints={[where('email', '!=', null)]}
+        autoHeight
         renderActions={(params: GridRowParams) => [
           <GridActionsCellItem
             icon={
@@ -99,6 +101,7 @@ export const Users = () => {
           />,
         ]}
       />
+      {/* </Box> */}
     </Box>
   );
 };

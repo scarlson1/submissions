@@ -30,7 +30,7 @@ export const Organizations = () => {
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', pb: 2 }}>
-        <Typography variant='h5' sx={{ ml: { xs: 0, sm: 3, md: 4 } }}>
+        <Typography variant='h5' sx={{ ml: { xs: 2, sm: 3, md: 4 } }}>
           Organizations
         </Typography>
         <Button
@@ -48,7 +48,7 @@ export const Organizations = () => {
           colName='ORGANIZATIONS'
           columns={orgCols}
           density='compact'
-          // autoHeight
+          autoHeight
           onCellDoubleClick={(params, event) => {
             if (!params.isEditable) {
               navigate(

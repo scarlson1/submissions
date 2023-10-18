@@ -50,7 +50,7 @@ export const Quotes = () => {
     return (
       <Box>
         <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-          <Typography variant='h5' gutterBottom sx={{ ml: { xs: 0, sm: 3, md: 4 } }}>
+          <Typography variant='h5' gutterBottom sx={{ ml: { xs: 2, sm: 3, md: 4 } }}>
             Quotes
           </Typography>
         </Box>
@@ -90,6 +90,11 @@ export const Quotes = () => {
 
   return (
     <Box>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+        <Typography variant='h5' gutterBottom sx={{ ml: { xs: 2, sm: 3, md: 4 } }}>
+          Quotes
+        </Typography>
+      </Box>
       <QuotesGrid
         constraints={[where('userId', '==', user.uid)]}
         renderActions={renderActions}
