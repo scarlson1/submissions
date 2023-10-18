@@ -45,7 +45,7 @@ export const PolicyLocationCards = ({ policyId, ...props }: PolicyLocationCardsP
         container
         rowSpacing={6}
         columnSpacing={8}
-        maxHeight={{ xs: 400, sm: 500, md: 800 }}
+        maxHeight={{ xs: 420, sm: 500, md: 800 }}
         sx={{ overflowY: 'auto', pt: 3 }}
       >
         {data?.pages.map((group, i) => (
