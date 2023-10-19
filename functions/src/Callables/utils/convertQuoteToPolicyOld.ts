@@ -115,7 +115,7 @@ export function convertQuoteToPolicyOld(
     userId: data.userId,
     // data.agent,
     agent: {
-      userId: data.agent?.userId || null,
+      userId: (data.agent?.userId || null) as string,
       name: data.agent?.name,
       email: data.agent?.email,
       phone: data.agent?.phone,

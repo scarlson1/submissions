@@ -5,6 +5,7 @@ import type { FirestoreEvent } from 'firebase-functions/v2/firestore';
 import invariant from 'tiny-invariant';
 
 import {
+  PriorLossCount,
   Submission,
   defaultCommissionAsInt,
   defaultFloodZone,
@@ -188,7 +189,7 @@ export default async (
         sqFootage: null,
         yearBuilt: null,
         FFH: null,
-        priorLossCount: sub.priorLossCount ?? null,
+        priorLossCount: (sub.priorLossCount as PriorLossCount) ?? null,
       },
       AALs: {
         inland: AALsRes.AALs.inland,

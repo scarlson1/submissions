@@ -208,7 +208,7 @@ export const Policy = () => {
 
   return (
     // TODO: container ?? layout ??
-    <Box sx={{ px: { xs: 4, sm: 6, lg: 10 }, py: 5 }}>
+    <Box sx={{ px: { xs: 2, sm: 4, lg: 10 }, py: 5 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 2 }}>
         <Typography
           variant='overline'
@@ -262,6 +262,13 @@ export const Policy = () => {
               >
                 {/* TODO: uncomment once insured value is available */}
                 {/* <StatBox title='Insured Value' value='$1.2M' /> */}
+                <StatBox
+                  title='Effective'
+                  value={formatDate(
+                    data?.effectiveDate?.toDate(),
+                    isMobile ? 'MM/dd/yy' : 'MMM dd, yyyy'
+                  )}
+                />
                 <StatBox
                   title='Effective'
                   value={formatDate(
@@ -403,32 +410,34 @@ export const Policy = () => {
         </ErrorBoundary>
       </Box>
       <Box sx={{ py: { xs: 4, md: 5, lg: 8 } }}>
-        <Typography variant='body2' component='div' color='text.secondary'>
-          {data?.effectiveDate && data?.expirationDate ? (
-            <Typography component='span' variant='body2'>
-              {`This policy is effective ${formatFirestoreTimestamp(
-                data.effectiveDate,
-                'date'
-              )} - ${formatFirestoreTimestamp(data.expirationDate, 'date')}. `}
-            </Typography>
-          ) : null}
-          You can{' '}
-          <Link component='button' variant='body2' onClick={handleDownloadPolicy}>
-            download a copy of your policy
-          </Link>
-          {/* TODO: uncomment once handler set up */}
-          {/* {', '}
+        <Box sx={{ py: { xs: 4, md: 5, lg: 8 } }}>
+          <Typography variant='body2' component='div' color='text.secondary'>
+            {data?.effectiveDate && data?.expirationDate ? (
+              <Typography component='span' variant='body2'>
+                {`This policy is effective ${formatFirestoreTimestamp(
+                  data.effectiveDate,
+                  'date'
+                )} - ${formatFirestoreTimestamp(data.expirationDate, 'date')}. `}
+              </Typography>
+            ) : null}
+            You can{' '}
+            <Link component='button' variant='body2' onClick={handleDownloadPolicy}>
+              download a copy of your policy
+            </Link>
+            {/* TODO: uncomment once handler set up */}
+            {/* {', '}
           <Link component='button' variant='body2' onClick={handleChangeRequest}>
             request a change
           </Link> */}
-          {', or '}
-          <Link component='button' variant='body2' underline='hover' onClick={handleCancelPolicy}>
-            cancel
-          </Link>
-          {' anytime.'}
-        </Typography>
+            {', or '}
+            <Link component='button' variant='body2' underline='hover' onClick={handleCancelPolicy}>
+              cancel
+            </Link>
+            {' anytime.'}
+          </Typography>
+        </Box>
+        {/* <Button onClick={handleTest}>Test Policy Dec</Button> */}
       </Box>
-      {/* <Button onClick={handleTest}>Test Policy Dec</Button> */}
     </Box>
   );
 };

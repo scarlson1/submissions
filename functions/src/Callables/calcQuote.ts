@@ -4,7 +4,10 @@ import { HttpsError } from 'firebase-functions/v1/https';
 import { CallableRequest } from 'firebase-functions/v2/https';
 
 import {
+  Basement,
+  FloodZone,
   Limits,
+  PriorLossCount,
   ValueByRiskType,
   defaultFloodZone,
   ratingDataCollection,
@@ -25,6 +28,8 @@ import { onCallWrapper } from '../services/sentry/index.js';
 import { requireIDemandAdminClaims } from './utils/index.js';
 
 // TODO: create rating inputs interface (used in multiple funcs), extend where needed
+
+// TODO: zod validation for rating data (instead of "as" assertion)
 
 export interface CalcQuoteRequest {
   limits: Limits;
@@ -107,8 +112,8 @@ const calcQuote = async ({ data, auth }: CallableRequest<CalcQuoteRequest>) => {
       TIV: result.tiv,
       RCVs,
       ratingPropertyData: {
-        floodZone,
-        basement,
+        floodZone: floodZone as FloodZone,
+        basement: basement as Basement,
         FFH: 0,
         CBRSDesignation: null,
         distToCoastFeet: null,
@@ -117,7 +122,7 @@ const calcQuote = async ({ data, auth }: CallableRequest<CalcQuoteRequest>) => {
         replacementCost: null,
         sqFootage: null,
         yearBuilt: null,
-        priorLossCount: priorLossCount ?? null,
+        priorLossCount: (priorLossCount as PriorLossCount) ?? null,
       },
       AALs,
       PM: result.pm,

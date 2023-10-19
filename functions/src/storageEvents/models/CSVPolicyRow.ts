@@ -75,6 +75,7 @@ type CSVPolicyCamelCaseHeaders =
   | 'aalTsunami'
   | 'techPremiumInland'
   | 'techPremiumSurge'
-  | 'techPremiumTsunami';
+  | 'techPremiumTsunami'
+  | 'ratingDocId';
 
 export type CSVPolicyRow = Record<CSVPolicyCamelCaseHeaders, string>;

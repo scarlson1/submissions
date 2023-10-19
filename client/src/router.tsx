@@ -71,7 +71,6 @@ import {
 import { Disclosures } from 'views/admin/Disclosures';
 import { AgencyAppSuccessStep } from 'views/AgencyNew';
 import { EmailVerified } from 'views/EmailVerified';
-import { WizardFormTest } from 'views/WizardFormTest';
 import App from './App';
 
 export interface CrumbMatch {
@@ -744,10 +743,7 @@ export const router = sentryCreateBrowserRouter([
               </RequireAuthReactFire>
             ),
           },
-          {
-            path: 'test',
-            element: <WizardFormTest />,
-          },
+
           {
             path: ADMIN_ROUTES.SUBMISSION_VIEW,
             element: (

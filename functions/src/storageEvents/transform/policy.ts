@@ -4,10 +4,14 @@ import { lowerCase, upperCase } from 'lodash-es';
 import {
   AgencyDetails,
   AgentDetails,
+  Basement,
+  CBRSDesignation,
   FeeItem,
   FeeItemName,
+  FloodZone,
   Nullable,
   Policy,
+  PriorLossCount,
   RatingPropertyData,
   SubjectBaseItems,
   TaxItem,
@@ -19,15 +23,15 @@ import {
 import { getRCVs } from '../../modules/rating/index.js';
 import { dateWithTimeZone } from '../../modules/storage/index.js';
 import { capitalizeFirst } from '../../utils/index.js';
-import { CBRSDesignation } from '../models/ParsedPolicyRow.js';
+import { NullablePolicyRow } from '../models/ParsedPolicyRow.js';
 import { CSVPolicyRow, CSVQuoteRow, ParsedPolicyRow } from '../models/index.js';
 
 /** Converts to correct type and unflattens
  * @param {CSVPolicyRow} row raw input from csv
  * @returns {ParsedPolicyRow} formatted types, depth, etc.
  */
-export function transformPolicyRow(row: CSVPolicyRow): ParsedPolicyRow {
-  console.log('ROW: ', row);
+export function transformPolicyRow(row: CSVPolicyRow): NullablePolicyRow {
+  // console.log('ROW: ', row);
   const limits = {
     limitA: row.limitA ? extractNumber(row.limitA) : 0,
     limitB: row.limitB ? extractNumber(row.limitB) : 0,
@@ -52,7 +56,7 @@ export function transformPolicyRow(row: CSVPolicyRow): ParsedPolicyRow {
   if (row.orgId) namedInsured.orgId = row.orgId;
 
   const agent: AgentDetails = {
-    userId: row.agentId || null,
+    userId: (row.agentId || null) as string,
     name: row.agentName || '',
     email: row.agentEmail || '',
     phone: row.agentPhone || null,
@@ -71,16 +75,18 @@ export function transformPolicyRow(row: CSVPolicyRow): ParsedPolicyRow {
   };
 
   const ratingPropertyData: RatingPropertyData = {
-    CBRSDesignation: row.cbrsDesignation ? upperCase(row.cbrsDesignation) : ('' as CBRSDesignation),
-    basement: row.basement ? lowerCase(row.basement) : '',
+    CBRSDesignation: row.cbrsDesignation
+      ? (upperCase(row.cbrsDesignation) as CBRSDesignation)
+      : ('' as CBRSDesignation),
+    basement: row.basement ? (lowerCase(row.basement) as Basement) : 'unknown',
     distToCoastFeet: row.distToCoastFeet ? extractNumber(row.distToCoastFeet) : 0,
-    floodZone: row.floodZone ? upperCase(row.floodZone) : '',
+    floodZone: (row.floodZone ? upperCase(row.floodZone) : '') as FloodZone,
     numStories: row.numStories ? extractNumber(row.numStories) : 0,
     propertyCode: row.propertyCode || '',
     replacementCost: row.replacementCost ? extractNumber(row.replacementCost) : 0,
     sqFootage: row.sqFootage ? extractNumber(row.sqFootage) : 0,
     yearBuilt: row.yearBuilt ? extractNumber(row.yearBuilt) : 0,
-    priorLossCount: row.priorLossCount ?? '0',
+    priorLossCount: (row.priorLossCount as PriorLossCount) ?? '0',
   };
   if (row.ffh) ratingPropertyData.FFH = extractNumber(row.ffh);
 
@@ -130,7 +136,8 @@ export function transformPolicyRow(row: CSVPolicyRow): ParsedPolicyRow {
       loanNumber: '',
     }));
 
-  const transformed: ParsedPolicyRow = {
+  const transformed = {
+    // : ParsedPolicyRow
     policyId: row.policyId || null,
     address: {
       addressLine1: row.addressLine1 ? capitalizeFirst(row.addressLine1) : null,
@@ -166,12 +173,14 @@ export function transformPolicyRow(row: CSVPolicyRow): ParsedPolicyRow {
     agent,
     agency, // @ts-ignore (TODO: use z.parse)
     ratingPropertyData,
+    ratingDocId: row.ratingDocId || null,
     product: row.product ? row.product.toLowerCase() : 'flood',
     mgaCommissionPct,
     AALs,
     techPremium,
   };
-  return transformed;
+  // TODO: fix typing & delete as assertion
+  return transformed as NullablePolicyRow;
 }
 
 export function getFormattedFees(row: CSVPolicyRow | CSVQuoteRow) {
@@ -201,6 +210,9 @@ export function getFormattedTaxes(row: CSVPolicyRow) {
       ? extractNumber(row.tax1Value)
       : 0,
     subjectBase: row.tax1SubjectBase ? (row.tax1SubjectBase.split(',') as SubjectBaseItems[]) : [],
+    baseDigits: 2, // TODO: include in csv
+    resultDigits: 2,
+    resultRoundType: 'nearest',
   };
   const tax2: TaxItem = {
     displayName: (row.tax2Name || '') as TaxItemName,
@@ -211,6 +223,9 @@ export function getFormattedTaxes(row: CSVPolicyRow) {
       ? extractNumber(row.tax2Value)
       : 0,
     subjectBase: row.tax2SubjectBase ? (row.tax2SubjectBase.split(',') as SubjectBaseItems[]) : [],
+    baseDigits: 2, // TODO: include in csv
+    resultDigits: 2,
+    resultRoundType: 'nearest',
   };
   if (tax1.value) taxes.push(tax1);
   if (tax2.value) taxes.push(tax2);

@@ -1,12 +1,6 @@
 import { deepmerge } from 'deepmerge-ts';
 import { Timestamp } from 'firebase-admin/firestore';
-import {
-  CancellationReason,
-  DeepPartial,
-  ILocation,
-  POLICY_STATUS,
-  PolicyNew,
-} from '../../common/index.js';
+import { CancellationReason, DeepPartial, ILocation, PolicyNew } from '../../common/index.js';
 import { partialLcnToPolicyLcn } from '../../utils/transform.js';
 import { validateHasPrem } from '../../utils/validation.js';
 import { getTermDays } from '../transactions/index.js';
@@ -27,7 +21,7 @@ export type CalcPolicyChangesResult = Pick<
   | 'termPremiumWithCancels'
   | 'taxes'
 > &
-  Partial<Pick<PolicyNew, 'cancelEffDate' | 'cancelReason' | 'termDays' | 'status'>>;
+  Partial<Pick<PolicyNew, 'cancelEffDate' | 'cancelReason' | 'termDays'>>;
 
 export const calcPolicyEndorsementChanges = (
   policy: PolicyNew,
@@ -72,7 +66,7 @@ export const calcPolicyEndorsementChanges = (
 
   // if all locations have cancel eff date --> add cancelEffDate to policy
   if (!newLcnArr.filter((l) => !l.cancelEffDate).length) {
-    policyChanges['status'] = POLICY_STATUS.CANCELLED;
+    // policyChanges['status'] = POLICY_STATUS.CANCELLED;
     policyChanges['cancelEffDate'] = reqEffDate;
     policyChanges['termDays'] = getTermDays(policy.effectiveDate.toDate(), reqEffDate.toDate());
     if (cancelReason) policyChanges['cancelReason'] = cancelReason;

@@ -6,10 +6,10 @@ import { sum } from 'lodash-es';
 import {
   ILocation,
   License,
-  POLICY_STATUS,
   PaymentStatus,
   PolicyNew,
   Quote,
+  State,
   WithId,
 } from '../../common/index.js';
 import { createDocId } from '../../modules/db/index.js';
@@ -124,7 +124,7 @@ export function getPolicyFromQuote(
 
   const policy: PolicyNew = {
     product: 'flood',
-    status: POLICY_STATUS.AWAITING_PAYMENT,
+    // status: POLICY_STATUS.AWAITING_PAYMENT,
     paymentStatus: PaymentStatus.enum.awaiting_payment,
     term: 1,
     mailingAddress: data.mailingAddress,
@@ -137,7 +137,7 @@ export function getPolicyFromQuote(
       userId: data.namedInsured?.userId || null,
     },
     locations: policyLocations,
-    homeState: data.homeState,
+    homeState: data.homeState as State,
     inStatePremium,
     outStatePremium,
     termPremium: policyTermPremium,
@@ -148,9 +148,9 @@ export function getPolicyFromQuote(
     price: data.quoteTotal,
     effectiveDate: singleLocation.effectiveDate,
     expirationDate: singleLocation.expirationDate,
-    userId: data.userId,
+    userId: data.userId || '',
     agent: {
-      userId: data.agent?.userId || null,
+      userId: (data.agent?.userId || null) as string, // TODO: validate agent user ID included
       name: data.agent?.name,
       email: data.agent?.email,
       phone: data.agent?.phone,
@@ -163,11 +163,11 @@ export function getPolicyFromQuote(
     surplusLinesProducerOfRecord: {
       name: `${license.licensee} ${license.state} Surplus Lines Producer of Record License`.trim(),
       licenseNum: license.licenseNumber,
-      licenseState: license.state,
+      licenseState: license.state as State,
       phone: license.phone ?? '+18889124320',
     },
     issuingCarrier,
-    documents: [],
+    // documents: [],
     quoteId: data.id,
     metadata: {
       created: Timestamp.now(),
