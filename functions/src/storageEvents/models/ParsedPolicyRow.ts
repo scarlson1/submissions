@@ -91,7 +91,7 @@ export type PriorLossCount = z.infer<typeof PriorLossCount>;
 
 const currentYear = new Date().getFullYear();
 export const RatingPropertyData = z.object({
-  CBRSDesignation,
+  CBRSDesignation: z.string().toUpperCase().pipe(CBRSDesignation),
   basement: Basement,
   distToCoastFeet: z.number(),
   floodZone: FloodZones,
@@ -210,7 +210,7 @@ export const TaxItem = z.object({
   baseDigits: z.number().int().optional().default(2),
   resultDigits: z.number().int().optional().default(2),
   baseRoundType: RoundingType.optional(),
-  resultRoundType: RoundingType,
+  resultRoundType: RoundingType.default('nearest'),
 });
 export type TaxItem = z.infer<typeof TaxItem>;
 // TODO: extend to get Tax
