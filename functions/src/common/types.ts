@@ -11,13 +11,13 @@ import { CreateMsgContentProps } from '../services/sendgrid/index.js';
 import { filterUniqueArr, removeFromArr } from '../utils/index.js';
 import {
   AGENCY_STATUS,
-  AGENCY_SUBMISSION_STATUS,
+  AgencySubmissionStatus,
   COLLECTIONS,
   ChangeRequestStatus,
   FIN_TRANSACTION_STATUS,
   POLICY_STATUS,
-  PRODUCT,
   PaymentStatus,
+  Product,
   QUOTE_STATUS,
   SUBMISSION_STATUS,
   SubmittedChangeRequestStatus,
@@ -106,7 +106,7 @@ export interface RequestUserAuth extends Request {
 }
 
 export type DefaultCommission = {
-  [key in PRODUCT]?: number;
+  [key in Product]?: number;
 };
 
 // TODO: use discriminating unions for user type (agent vs user vs id admin)
@@ -306,7 +306,7 @@ export interface AgencyApplication extends BaseDoc {
   // };
   FEIN: string;
   EandO: string;
-  status: AGENCY_SUBMISSION_STATUS;
+  status: AgencySubmissionStatus;
   sendAppReceivedNotification?: boolean;
   coordinates?: GeoPoint | null;
 }
@@ -357,7 +357,7 @@ export interface Organization {
   authProviders: AuthProviders[];
 }
 
-export type Product = 'flood' | 'wind';
+// export type Product = 'flood' | 'wind';
 
 export type LimitTypes = 'limitA' | 'limitB' | 'limitC' | 'limitD';
 export interface Limits {
@@ -378,7 +378,10 @@ export type FloodPerilCategories = 'inland' | 'surge' | 'tsunami';
 // TODO: finish adding tsunami
 export type ValueByRiskType = Record<FloodPerilCategories, number>; // & { tsunami?: number };
 
-export type FloodZones = 'A' | 'B' | 'C' | 'D' | 'V' | 'X' | 'AE' | 'AO' | 'AH' | 'AR' | 'VE';
+// export type FloodZones = 'A' | 'B' | 'C' | 'D' | 'V' | 'X' | 'AE' | 'AO' | 'AH' | 'AR' | 'VE';
+
+export const FloodZones = z.enum(['A', 'B', 'C', 'D', 'V', 'X', 'AE', 'AO', 'AH', 'AR', 'VE']);
+export type FloodZones = z.infer<typeof FloodZones>;
 
 export type UWNoteCode = 'requires-review' | 'not-ratable' | 'info' | 'unknown';
 

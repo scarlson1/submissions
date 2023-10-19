@@ -2,7 +2,7 @@ import { Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/
 import { ProviderId } from 'firebase/auth';
 
 import { DialogSlotProps, DialogSlotsComponents } from 'context';
-import { Product, ProductEnum } from './types'; // Product
+import { Product } from './enums';
 
 export const SUPPORTED_AUTH_PROVIDER_IDS = [
   ProviderId.PASSWORD,
@@ -12,16 +12,12 @@ export const SUPPORTED_AUTH_PROVIDER_IDS = [
 ];
 
 export const STATES_URL = 'https://scarlson1.github.io/data/states_20m.json';
-
 export const COUNTIES_URL = 'https://scarlson1.github.io/data/counties_20m.json';
 
-export const PRODUCT_OPTIONS: Product[] = ProductEnum.options; // : Product[] = ['flood', 'wind'];
-
+export const PRODUCT_OPTIONS = Product.options;
 export const LOB_OPTIONS: string[] = ['residential', 'commercial'];
-
-export const FLOOD_ZONE_OPTIONS = ['A', 'B', 'C', 'D', 'V', 'X', 'AE', 'AO', 'AH', 'AR', 'VE'];
 export const CBRS_OPTIONS = ['IN', 'OUT'];
-export const PRIOR_LOSS_COUNT_OPTIONS = ['0', '1', '2', '3'];
+export const PRIOR_LOSS_COUNT_OPTIONS = ['0', '1', '2', '3']; // is it 3 or 3+ ?? TODO: zod
 
 export const stateFIPS = {
   ALABAMA: '01',

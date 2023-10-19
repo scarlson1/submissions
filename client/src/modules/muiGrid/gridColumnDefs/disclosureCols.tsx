@@ -1,9 +1,10 @@
 import { Box, Typography } from '@mui/material';
 import { GridColDef } from '@mui/x-data-grid';
 import { JSONContent, generateHTML } from '@tiptap/react';
-import { Disclosure } from 'common';
-import { EDITOR_EXTENSION_DEFAULTS } from 'hooks';
 import { useMemo } from 'react';
+
+import { Disclosure, DisclosureTypeEnum } from 'common';
+import { EDITOR_EXTENSION_DEFAULTS } from 'hooks';
 import {
   createdCol,
   displayNameCol,
@@ -35,6 +36,10 @@ export const disclosureCols: GridColDef<Disclosure>[] = [
     minWidth: 140,
     flex: 0.2,
     editable: false,
+    filterable: true,
+    sortable: false,
+    type: 'singleSelect',
+    valueOptions: DisclosureTypeEnum.options,
   },
   {
     field: 'content',
@@ -42,6 +47,8 @@ export const disclosureCols: GridColDef<Disclosure>[] = [
     minWidth: 360,
     flex: 1,
     editable: false,
+    sortable: false,
+    filterable: false,
     renderCell: (params) => {
       if (!params.value) return null;
       return (

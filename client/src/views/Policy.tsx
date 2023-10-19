@@ -45,7 +45,13 @@ import {
 } from 'elements/ChangeRequestDialog';
 import { ContactList } from 'elements/forms';
 import { LocationsGrid } from 'elements/grids';
-import { useCreatePolicyChangeRequest, useDocData, useGeneratePDF, useSafeParams } from 'hooks';
+import {
+  useCreatePolicyChangeRequest,
+  useDocData,
+  useGeneratePDF,
+  useSafeParams,
+  useWidth,
+} from 'hooks';
 import { useCreateCancelRequest } from 'hooks/useCreateCancelRequest';
 import { useCreateLocationChangeRequest } from 'hooks/useCreateLocationChangeRequest';
 import {
@@ -80,6 +86,7 @@ export const Policy = () => {
   const { policyId } = useSafeParams(['policyId']); // useParams();
   let [searchParams, setSearchParams] = useSearchParams();
   const [locationsView, setLocationsView] = useState(getInitTabView(searchParams.get('l_view')));
+  const { isMobile } = useWidth();
 
   const { data } = useDocData<IPolicy>('POLICIES', policyId);
   const { downloadPDF: downloadPolicy } = useGeneratePDF('generateDecPDF');
@@ -201,7 +208,7 @@ export const Policy = () => {
 
   return (
     // TODO: container ?? layout ??
-    <Box sx={{ px: 10, py: 5 }}>
+    <Box sx={{ px: { xs: 4, sm: 6, lg: 10 }, py: 5 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 2 }}>
         <Typography
           variant='overline'
@@ -255,7 +262,13 @@ export const Policy = () => {
               >
                 {/* TODO: uncomment once insured value is available */}
                 {/* <StatBox title='Insured Value' value='$1.2M' /> */}
-                <StatBox title='Effective' value={formatDate(data?.effectiveDate?.toDate())} />
+                <StatBox
+                  title='Effective'
+                  value={formatDate(
+                    data?.effectiveDate?.toDate(),
+                    isMobile ? 'MM/dd/yy' : 'MMM dd, yyyy'
+                  )}
+                />
                 <StatBox
                   title='Status'
                   value={`${data?.status === POLICY_STATUS.PAID ? 'active' : 'inactive'}`}
@@ -389,7 +402,7 @@ export const Policy = () => {
           </Suspense>
         </ErrorBoundary>
       </Box>
-      <Box sx={{ py: { xs: 3, md: 5, lg: 8 } }}>
+      <Box sx={{ py: { xs: 4, md: 5, lg: 8 } }}>
         <Typography variant='body2' component='div' color='text.secondary'>
           {data?.effectiveDate && data?.expirationDate ? (
             <Typography component='span' variant='body2'>

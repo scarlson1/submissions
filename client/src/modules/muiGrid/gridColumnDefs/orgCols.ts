@@ -1,5 +1,6 @@
 import { GridColDef } from '@mui/x-data-grid';
 
+import { Organization } from 'common';
 import {
   addrCityCol,
   addrLine1Col,
@@ -21,14 +22,15 @@ import {
   statusCol,
   updatedCol,
 } from './gridColumns';
-import { Organization } from 'common';
 
 export const orgCols: GridColDef<Organization>[] = [
   orgNameCol,
   {
     ...statusCol,
-    valueOptions: ['active', 'inactive'],
+    valueOptions: ['active', 'inactive'], // TODO org status enum (zod)
     filterable: true,
+    sortable: false,
+    editable: false,
   },
   {
     field: 'contactName',
@@ -37,6 +39,8 @@ export const orgCols: GridColDef<Organization>[] = [
     minWidth: 180,
     flex: 1,
     editable: false,
+    filterable: false,
+    sortable: false,
     valueGetter: (params) => params.row.primaryContact?.displayName || null,
   },
   firstNameCol,
@@ -47,12 +51,17 @@ export const orgCols: GridColDef<Organization>[] = [
     field: 'primaryContact.email',
     headerName: 'Contact Email',
     description: 'Provided primary contact email',
+    filterable: false,
+    sortable: false,
+    editable: false,
   },
   {
     ...phoneCol,
     field: 'primaryContact.phone',
     headerName: 'Contact Phone',
     valueGetter: (params) => params.row.primaryContact?.phone || null,
+    sortable: false,
+    filterable: false,
   },
   {
     ...orgIdCol,
@@ -74,6 +83,8 @@ export const orgCols: GridColDef<Organization>[] = [
     minWidth: 140,
     flex: 1,
     editable: false,
+    sortable: false,
+    filterable: false,
     valueGetter: (params) => params.row.emailDomain || null,
   },
   {
@@ -85,6 +96,8 @@ export const orgCols: GridColDef<Organization>[] = [
     minWidth: 100,
     flex: 0.5,
     editable: false,
+    sortable: false,
+    filterable: false,
     valueGetter: (params) => params.row.enforceDomainRestriction || false,
   },
   {
@@ -94,6 +107,8 @@ export const orgCols: GridColDef<Organization>[] = [
     minWidth: 160,
     flex: 1,
     editable: false,
+    filterable: false,
+    sortable: false,
     valueGetter: (params) => params.row.defaultCommission?.flood || null,
   },
   createdCol,

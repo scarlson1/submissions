@@ -50,6 +50,8 @@ export const locationCols: GridColDef<ILocation>[] = [
     field: 'policyId',
     headerName: 'Policy ID',
     valueGetter: (params) => params.row.policyId || null,
+    sortable: false,
+    filterable: true,
     // TODO: use link component to display --> route to policy
   },
   externalIdCol,

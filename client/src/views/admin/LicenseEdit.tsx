@@ -5,7 +5,7 @@ import { useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useFirestore } from 'reactfire';
 
-import { License, LicenseOwner, LicenseType, licensesCollection } from 'common';
+import { License, TLicenseOwner, TLicenseType, licensesCollection } from 'common';
 import { LicenseForm, LicenseValues } from 'elements/forms';
 import { useAsyncToast, useDocData } from 'hooks';
 import { checkForSLProducerLicense } from 'hooks/useCreateSLLicense';
@@ -55,8 +55,8 @@ export const LicenseEdit = () => {
         docRef,
         {
           ...values,
-          ownerType: values.ownerType as LicenseOwner,
-          licenseType: values.licenseType as LicenseType,
+          ownerType: values.ownerType as TLicenseOwner,
+          licenseType: values.licenseType as TLicenseType,
           effectiveDate: Timestamp.fromDate(values.effectiveDate),
           expirationDate: values.expirationDate ? Timestamp.fromDate(values.expirationDate) : null, // @ts-ignore
           'metadata.updated': Timestamp.now(),

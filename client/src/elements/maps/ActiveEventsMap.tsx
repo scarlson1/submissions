@@ -23,7 +23,7 @@ import axios, { AxiosRequestConfig } from 'axios';
 import { Color, GeoJsonLayer, IconLayer, PickingInfo } from 'deck.gl/typed';
 import { useCallback, useState } from 'react';
 
-import { STATES_ABV_ARR } from 'common/statesList';
+import { State } from 'common/statesList';
 import { Timestamp, where } from 'firebase/firestore';
 import { useCollectionData } from 'hooks';
 import { CoordObj, getPlaceMarker, getRGBAArray, stringToColor, svgToDataURL } from 'modules/utils';
@@ -520,7 +520,7 @@ function ActiveEventsFilters({ filters, onChange, onClear }: ActiveEventsFilters
         value={filters.area || []}
         handleChange={onChange('area')}
         id='area'
-        options={STATES_ABV_ARR} // @ts-ignore
+        options={State.options} // @ts-ignore
         endAdornment={
           <IconButton
             sx={{ display: filters.area?.length ? '' : 'none' }}

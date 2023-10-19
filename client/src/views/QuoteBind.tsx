@@ -43,8 +43,8 @@ import {
   MailingAddress,
   NamedInsuredDetails,
   PaymentMethod,
-  Product,
   Quote,
+  TProduct,
   WithId,
   additionalInterestsValidation,
   fallbackImages,
@@ -289,7 +289,7 @@ export const QuoteBind = () => {
 };
 
 interface QuoteExpiredProps {
-  productId: Product;
+  productId: TProduct;
   expiredDate: Date;
 }
 // TODO: use component or just disable old quote button and put "expired" stamp on it ? prompt to create a new quote

@@ -6,7 +6,7 @@ import {
   URLSearchParamsInit,
 } from 'react-router-dom';
 
-import { CLAIMS, Product } from 'common';
+import { CLAIMS, TProduct } from 'common';
 import { RequireAuth, RouterErrorBoundary } from 'components';
 import { ConfigLayout, Layout } from 'components/layout';
 import { RouterLink as BreadCrumbLink } from 'components/layout/Breadcrumbs';
@@ -167,7 +167,7 @@ export enum ACCOUNT_ROUTES {
 
 type TArgs =
   | { path: ROUTES.HOME }
-  | { path: ROUTES.SUBMISSION_NEW; params: { productId: Product } }
+  | { path: ROUTES.SUBMISSION_NEW; params: { productId: TProduct } }
   | { path: ROUTES.SUBMISSION_SUBMITTED; params: { submissionId: string } }
   | { path: ROUTES.SUBMISSIONS_NEW_PORTFOLIO }
   | { path: ROUTES.SUBMISSIONS }
@@ -175,7 +175,7 @@ type TArgs =
   | { path: ROUTES.QUOTE_VIEW; params: { quoteId: string } }
   | { path: ROUTES.QUOTE_BIND; params: { quoteId: string } } // INCLUDE PRODUCT ID ??
   | { path: ROUTES.QUOTE_BIND_SUCCESS; params: { quoteId: string; transactionId?: string } }
-  | { path: ROUTES.POLICIES; search?: { productId?: Product } }
+  | { path: ROUTES.POLICIES; search?: { productId?: TProduct } }
   | { path: ROUTES.POLICY; params: { policyId: string }; search?: { l_view: string } }
   | { path: ROUTES.ADD_LOCATION_NEW; params: { policyId: string } }
   | { path: ROUTES.CLAIM_NEW; params: { policyId: string } }
@@ -186,16 +186,16 @@ type TArgs =
   // | { path: ADMIN_ROUTES.SUBMISSIONS }
   | { path: ADMIN_ROUTES.SUBMISSION_VIEW; params: { submissionId: string } }
   // | { path: ADMIN_ROUTES.QUOTES }
-  | { path: ADMIN_ROUTES.QUOTE_NEW_BLANK; params: { productId: Product } }
-  | { path: ADMIN_ROUTES.QUOTE_NEW; params: { productId: Product; submissionId: string } }
-  | { path: ADMIN_ROUTES.QUOTE_EDIT; params: { productId: Product; quoteId: string } }
+  | { path: ADMIN_ROUTES.QUOTE_NEW_BLANK; params: { productId: TProduct } }
+  | { path: ADMIN_ROUTES.QUOTE_NEW; params: { productId: TProduct; submissionId: string } }
+  | { path: ADMIN_ROUTES.QUOTE_EDIT; params: { productId: TProduct; quoteId: string } }
   | { path: ADMIN_ROUTES.POLICY_DELIVERY; params: { policyId: string } }
-  // | { path: ADMIN_ROUTES.POLICIES; search?: { productId?: Product } }
+  // | { path: ADMIN_ROUTES.POLICIES; search?: { productId?: TProduct } }
   | { path: ADMIN_ROUTES.CONFIG }
   | { path: ADMIN_ROUTES.SL_TAXES }
   | { path: ADMIN_ROUTES.SL_TAXES_NEW }
   | { path: ADMIN_ROUTES.SL_TAXES_EDIT; params: { taxId: string } }
-  | { path: ADMIN_ROUTES.EDIT_ACTIVE_STATES; params: { productId: Product } }
+  | { path: ADMIN_ROUTES.EDIT_ACTIVE_STATES; params: { productId: TProduct } }
   | { path: ADMIN_ROUTES.MORATORIUMS }
   | { path: ADMIN_ROUTES.MORATORIUM_NEW }
   | { path: ADMIN_ROUTES.SL_LICENSES }
@@ -1403,7 +1403,7 @@ export const router = sentryCreateBrowserRouter([
                 ),
                 handle: {
                   crumb: (match: CrumbMatch) => {
-                    const productId = match.params.productId as Product;
+                    const productId = match.params.productId as TProduct;
                     return [
                       {
                         label: 'Active States',

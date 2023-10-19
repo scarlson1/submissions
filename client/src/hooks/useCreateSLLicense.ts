@@ -12,7 +12,7 @@ import {
 import { useCallback } from 'react';
 import { useFirestore } from 'reactfire';
 
-import { License, LicenseOwner, licensesCollection, LicenseType } from 'common';
+import { License, licensesCollection, TLicenseOwner, TLicenseType } from 'common';
 import { LicenseValues } from 'elements/forms';
 import { readableFirebaseCode } from 'modules/utils/helpers';
 
@@ -66,8 +66,8 @@ export const useCreateSLLicense = ({ onSuccess, onError }: UseCreateLicenseProps
 
         const docRef = await addDoc(licenseColRef, {
           ...values,
-          ownerType: values.ownerType as LicenseOwner,
-          licenseType: values.licenseType as LicenseType,
+          ownerType: values.ownerType as TLicenseOwner,
+          licenseType: values.licenseType as TLicenseType,
           effectiveDate: Timestamp.fromDate(values.effectiveDate),
           expirationDate: values.expirationDate ? Timestamp.fromDate(values.expirationDate) : null,
           metadata: {

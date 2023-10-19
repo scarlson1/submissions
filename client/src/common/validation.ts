@@ -2,7 +2,7 @@
 import { array, boolean, number, object, string } from 'yup';
 
 import { isValidEmail } from 'modules/utils/helpers';
-import { STATES_ABV_ARR } from './statesList';
+import { State } from './statesList';
 
 export const phoneRegEx = /^\+1[1-9]{1}[0-9]{9}$/;
 
@@ -38,7 +38,7 @@ export const postalVal = string()
 export const stateVal = string()
   .typeError('state required')
   .required('state is required')
-  .oneOf(STATES_ABV_ARR, 'state required');
+  .oneOf(State.options, 'state required');
 
 // export const isAvailableState = string().oneOf(ACTIVE_STATES_ABRV);
 

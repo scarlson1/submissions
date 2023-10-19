@@ -30,7 +30,6 @@ import {
   AgentDetails,
   CBRS_OPTIONS,
   Coordinates,
-  FLOOD_ZONE_OPTIONS,
   FeeItem,
   Limits,
   NamedInsuredDetails,
@@ -38,15 +37,16 @@ import {
   Optional,
   Organization,
   PRIOR_LOSS_COUNT_OPTIONS,
-  Product,
   RatingPropertyData,
   Submission,
+  TProduct,
   TaxItem,
   User,
   ValueByRiskType,
   orgsCollection,
 } from 'common';
-import { STATES_ABV_ARR } from 'common/statesList';
+import { FloodZones } from 'common/enums';
+import { State } from 'common/statesList';
 import { IconButtonMenu } from 'components';
 import {
   Diff,
@@ -115,7 +115,7 @@ export interface QuoteValues {
 interface QuoteFormProps extends Omit<FormikConfig<QuoteValues>, 'initialValues'> {
   initialValues?: QuoteValues | undefined;
   title: string;
-  product?: Product;
+  product?: TProduct;
   submissionId?: string | null;
   initialRatingSnap?: Optional<RatingInputsWithAAL> | null | undefined;
 }
@@ -585,7 +585,7 @@ export const QuoteForm = ({
                 id='homeState'
                 label='Home State'
                 name='homeState'
-                selectOptions={STATES_ABV_ARR}
+                selectOptions={State.options}
               />
             </Grid>
             <Grid xs={6} sm={4} md={3} lg={2}>
@@ -629,7 +629,7 @@ export const QuoteForm = ({
                 id='ratingPropertyData.floodZone'
                 label='Flood Zone'
                 name='ratingPropertyData.floodZone'
-                selectOptions={FLOOD_ZONE_OPTIONS}
+                selectOptions={FloodZones.options}
                 required
               />
             </Grid>

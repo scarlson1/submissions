@@ -1,7 +1,7 @@
 import { isDate, isValid } from 'date-fns';
 import { warn } from 'firebase-functions/logger';
 import invariant from 'tiny-invariant';
-import { CancellationReason, FEE_ITEM_NAMES, PRODUCT, TAX_ITEM_NAMES } from '../../common/index.js';
+import { CancellationReason, FEE_ITEM_NAMES, Product, TAX_ITEM_NAMES } from '../../common/index.js';
 import {
   validateAddress,
   validateDeductible,
@@ -94,10 +94,12 @@ export function validatePolicyRow(data: ParsedPolicyRow) {
     invariant(data.ratingPropertyData?.priorLossCount, 'prior loss count required');
     // TODO: validate type = 0, 1, 2, 3+
 
-    invariant(
-      data.product === PRODUCT.Flood || data.product === PRODUCT.Wind,
-      `product must be "${PRODUCT.Flood}" or "${PRODUCT.Wind}"`
-    );
+    // TODO: error message for zod errors
+    Product.parse(data.product);
+    // invariant(
+    //   data.product === Product.enum.flood || data.product === Product.enum.wind,
+    //   `product must be "${PRODUCT.Flood}" or "${PRODUCT.Wind}"`
+    // );
 
     invariant(Array.isArray(data.fees), 'fees must be an array');
 

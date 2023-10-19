@@ -1,5 +1,9 @@
 import { GridColDef } from '@mui/x-data-grid';
 
+import { Moratorium } from 'common';
+import { renderChips } from 'components/RenderGridCellHelpers';
+import { Timestamp } from 'firebase/firestore';
+import { formatGridFirestoreTimestampAsDate } from 'modules/utils';
 import {
   booleanCalcActiveCol,
   createdCol,
@@ -8,10 +12,6 @@ import {
   idCol,
   updatedCol,
 } from './gridColumns';
-import { renderChips } from 'components/RenderGridCellHelpers';
-import { Timestamp } from 'firebase/firestore';
-import { formatGridFirestoreTimestampAsDate } from 'modules/utils';
-import { Moratorium } from 'common';
 
 export const moratoriumCols: GridColDef<Moratorium>[] = [
   booleanCalcActiveCol,
@@ -21,6 +21,8 @@ export const moratoriumCols: GridColDef<Moratorium>[] = [
     minWidth: 200,
     flex: 1,
     editable: false,
+    sortable: false,
+    filterable: false,
   },
   {
     field: 'locationDetails',
@@ -28,6 +30,8 @@ export const moratoriumCols: GridColDef<Moratorium>[] = [
     minWidth: 280,
     flex: 1,
     editable: false,
+    sortable: false,
+    filterable: false,
     valueGetter: (params) => {
       const ld = params.row.locationDetails;
       if (ld) return ld.map((l: any) => l.countyName);
@@ -42,6 +46,8 @@ export const moratoriumCols: GridColDef<Moratorium>[] = [
     minWidth: 100,
     flex: 1,
     editable: false,
+    filterable: false,
+    sortable: false,
     headerAlign: 'center',
     align: 'right',
     valueGetter: (params) => params.row.locations.length || null,

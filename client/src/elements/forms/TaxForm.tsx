@@ -19,9 +19,9 @@ import {
   LOB_OPTIONS,
   LineOfBusiness,
   PRODUCT_OPTIONS,
-  Product,
   RoundingType,
   SubjectBaseItems,
+  TProduct,
   TransactionType,
 } from 'common';
 import { statesAbrvSelectOptions } from 'common/statesList';
@@ -109,7 +109,7 @@ export interface TaxValues {
   effectiveDate: Date;
   expirationDate?: Date | null;
   LOB: LineOfBusiness[];
-  products: Product[];
+  products: TProduct[];
   transactionTypes: TransactionType[];
   subjectBase: SubjectBaseItems[];
   rate: string;
