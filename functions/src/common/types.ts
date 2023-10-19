@@ -24,6 +24,8 @@ import {
   FIN_TRANSACTION_STATUS,
   FeeItemName,
   FloodZone,
+  LicenseOwner,
+  LicenseType,
   LineOfBusiness,
   POLICY_STATUS,
   PaymentStatus,
@@ -1818,9 +1820,6 @@ export interface FIPSDetails {
   countyFP: string;
   classFP?: string;
 }
-
-export type LicenseOwner = 'individual' | 'organization';
-export type LicenseType = 'producer' | 'surplus lines' | 'MGA' | 'Tax ID';
 
 export interface License extends BaseDoc {
   state: State;

@@ -30,6 +30,7 @@ export enum COLLECTIONS {
   VERSIONS = 'versions', // HISTORY = 'history',
 }
 
+// TODO: switch to zod enum
 export const Collection = z.nativeEnum(COLLECTIONS);
 export type Collection = z.infer<typeof Collection>;
 
@@ -79,16 +80,6 @@ export const PaymentStatus = z.enum([
 ]);
 export type PaymentStatus = z.infer<typeof PaymentStatus>;
 
-// export enum CHANGE_REQUEST_STATUS {
-//   DRAFT = 'draft',
-//   SUBMITTED = 'submitted',
-//   ACCEPTED = 'accepted',
-//   DENIED = 'denied',
-//   UNDER_REVIEW = 'under_review',
-//   CANCELLED = 'cancelled',
-//   ERROR = 'error',
-// }
-
 export const ChangeRequestStatus = z.enum([
   'draft',
   'submitted',
@@ -108,11 +99,6 @@ export enum FIN_TRANSACTION_STATUS {
   SUCCEEDED = 'succeeded',
   PAYMENT_FAILED = 'payment_failed',
 }
-
-// export enum PRODUCT {
-//   Flood = 'flood',
-//   Wind = 'wind',
-// }
 
 export const Product = z.enum(['flood', 'wind']);
 export type Product = z.infer<typeof Product>;
@@ -184,12 +170,11 @@ export const CancelReason = z.enum([
 ]);
 export type CancelReason = z.infer<typeof CancelReason>;
 
-// export enum AgencySubmissionStatus {
-//   ACCEPTED = 'accepted',
-//   SUBMITTED = 'submitted',
-//   REVIEW_REQUIRED = 'review:required',
-//   REJECTED = 'rejected',
-// }
+export const LicenseOwner = z.enum(['individual', 'organization']);
+export type LicenseOwner = z.infer<typeof LicenseOwner>;
+
+export const LicenseType = z.enum(['producer', 'surplus lines', 'MGA', 'Tax ID']);
+export type LicenseType = z.infer<typeof LicenseType>;
 
 export const AgencySubmissionStatus = z.enum([
   'accepted',
@@ -219,6 +204,7 @@ export enum CLAIMS {
   AGENT = 'agent',
 }
 
+// TODO: switch to zod enum
 // export const Claims = z.enum(['iDemandAdmin', 'iDemandUser', 'orgAdmin', 'agent']);
 export const Claims = z.nativeEnum(CLAIMS);
 export type Claims = z.infer<typeof Claims>;

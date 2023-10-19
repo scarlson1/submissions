@@ -1,6 +1,5 @@
 import { warn } from 'firebase-functions/logger';
 import { printObj } from '../../common/index.js';
-
 import { ParsedPolicyRow } from '../models/index.js';
 
 export function validatePolicyRowZod(row: unknown) {
