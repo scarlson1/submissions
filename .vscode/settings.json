@@ -310,7 +310,7 @@
       "foreground": "white",
       "opacity": 50,
       "icon": "alert",
-      "type": "line",
+      "type": "text-and-comment",
       "gutterIcon": true
     }
   }

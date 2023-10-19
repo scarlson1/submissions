@@ -647,7 +647,6 @@ export interface PolicyLocation {
   coords: GeoPoint;
   cancelEffDate?: Timestamp | null;
   version?: number; // TODO: remove optional
-  // lcnDocId: string;
 }
 
 export interface Policy extends BaseDoc {
@@ -655,7 +654,7 @@ export interface Policy extends BaseDoc {
   status: POLICY_STATUS; // TODO: remove
   paymentStatus: TPaymentStatus;
   term: number;
-  mailingAddress: Address;
+  mailingAddress: MailingAddress;
   namedInsured: NamedInsured; // TODO: clarify typing NamedInsuredDetails;
   locations: Record<string, PolicyLocation>;
   homeState: string;

@@ -1,14 +1,34 @@
 import { isDate, isValid } from 'date-fns';
 import { warn } from 'firebase-functions/logger';
 import invariant from 'tiny-invariant';
-import { CancellationReason, FEE_ITEM_NAMES, Product, TAX_ITEM_NAMES } from '../../common/index.js';
+import {
+  CancellationReason,
+  FEE_ITEM_NAMES,
+  Product,
+  TAX_ITEM_NAMES,
+  printObj,
+} from '../../common/index.js';
 import {
   validateAddress,
   validateDeductible,
   validateLimits,
   validateRCVs,
 } from '../../modules/rating/index.js';
+import { ParsedPolicyRowZ } from '../models/ParsedPolicyRow.js';
 import { ParsedPolicyRow } from '../models/index.js';
+
+export function validatePolicyRowZod(row: unknown) {
+  // const parsed = ParsedPolicyRowZ.safeParse(row)
+  // return parsed.success
+  try {
+    ParsedPolicyRowZ.parse(row);
+    return true;
+  } catch (err: any) {
+    printObj(err); // PREDEPLOY: delete prinObj
+    warn(`Row validation failed`, { err });
+    return false;
+  }
+}
 
 /** Validates row values - will skip row if any validation fails
  * @param {ParsedPolicyRow} data formatted row

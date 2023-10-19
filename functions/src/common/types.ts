@@ -171,7 +171,7 @@ export interface IndividualNamedInsured {
   email: string;
   phone: string;
   userId?: string | null;
-  orgId?: string; // ever used ??
+  orgId?: string | null; // ever used ??
 }
 
 // TODO: add type: 'entity' ??
@@ -182,7 +182,7 @@ export interface EntityNamedInsured {
   email: string;
   phone: string;
   userId?: string | null;
-  orgId?: string;
+  orgId?: string | null;
 }
 
 // TODO: decide whether to use discriminating type vs same fields
@@ -282,8 +282,8 @@ export interface Address {
   city: string;
   state: string;
   postal: string;
-  countyFIPS?: string;
-  countyName?: string;
+  countyFIPS?: string | null;
+  countyName?: string | null;
 }
 
 export interface MailingAddress extends Address {
