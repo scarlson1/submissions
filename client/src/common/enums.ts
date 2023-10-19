@@ -79,20 +79,10 @@ const COLLECTIONS_Z = [
 // Option 1: zod enum
 export const CollectionsEnum = z.enum(COLLECTIONS_Z);
 export type Collection = z.infer<typeof CollectionsEnum>;
-// const testFn = (col: Collection) => {
-//   console.log('col: ', col)
-// }
-// testFn(CollectionsEnum.Enum.locations);
-// testFn(CollectionsEnum.enum.locations)
 
 // Option 2: native enum --> zod
 export const CollectionsEnum2 = z.nativeEnum(COLLECTIONS);
 export type Collection2 = z.infer<typeof CollectionsEnum2>;
-// const testFn = (col: Collection2) => {
-//   console.log('col: ', col)
-// }
-// testFn(COLLECTIONS.SUBMISSIONS)
-// testFn(CollectionsEnum.enum.CHANGE_REQUESTS)
 
 // TODO: separate out submission status and quote status
 export enum SUBMISSION_STATUS {
@@ -121,7 +111,6 @@ export enum POLICY_STATUS {
 }
 
 export const PolicyStatus = z.enum(['active', 'cancelled', 'cancel:pending', 'expired', 'pending']);
-
 export type TPolicyStatus = z.infer<typeof PolicyStatus>;
 
 export const PaymentStatus = z.enum([
@@ -135,12 +124,20 @@ export const PaymentStatus = z.enum([
 ]);
 export type TPaymentStatus = z.infer<typeof PaymentStatus>;
 
-export enum AGENCY_SUBMISSION_STATUS {
-  ACCEPTED = 'accepted',
-  SUBMITTED = 'submitted',
-  REVIEW_REQUIRED = 'review:required',
-  REJECTED = 'rejected',
-}
+// export enum AgencySubmissionStatus {
+//   ACCEPTED = 'accepted',
+//   SUBMITTED = 'submitted',
+//   REVIEW_REQUIRED = 'review:required',
+//   REJECTED = 'rejected',
+// }
+
+export const AgencySubmissionStatus = z.enum([
+  'accepted',
+  'submitted',
+  'review:required',
+  'rejected',
+]);
+export type TAgencySubmissionStatus = z.infer<typeof AgencySubmissionStatus>;
 
 // export enum CHANGE_REQUEST_STATUS {
 //   DRAFT = 'draft',
@@ -166,7 +163,6 @@ export type TChangeRequestStatus = z.infer<typeof ChangeRequestStatus>;
 export const SubmittedChangeRequestStatus = ChangeRequestStatus.exclude(['draft']);
 export type TSubmittedChangeRequestStatus = z.infer<typeof SubmittedChangeRequestStatus>;
 
-// 'pending' | 'accepted' | 'revoked' | 'replaced' | 'rejected' | 'error';
 export enum INVITE_STATUS {
   ACCEPTED = 'accepted',
   PENDING = 'pending',
@@ -177,16 +173,24 @@ export enum INVITE_STATUS {
   ERROR = 'error',
 }
 
+export const InviteStatus = z.enum([
+  'accepted',
+  'pending',
+  'revoked',
+  'expired',
+  'replaced',
+  'rejected',
+  'error',
+]);
+export type TInviteStatus = z.infer<typeof InviteStatus>;
+
 export enum FIN_TRANSACTION_TYPE {
   CHARGE = 'charge',
   REFUND = 'refund',
 }
 
-// TODO: replace with zod Product enum
-export enum PRODUCT {
-  FLOOD = 'flood',
-  WIND = 'wind',
-}
+export const Product = z.enum(['flood', 'wind']);
+export type TProduct = z.infer<typeof Product>;
 
 export enum UW_NOTE_CODE {
   REQUIRES_REVIEW = 'requires-review',
@@ -194,11 +198,18 @@ export enum UW_NOTE_CODE {
   UNKNOWN = 'unknown',
 }
 
+export const Basement = z.enum(['no', 'finished', 'unfinished', 'unknown']);
+export type TBasement = z.infer<typeof Basement>;
+
+export const FloodZones = z.enum(['A', 'B', 'C', 'D', 'V', 'X', 'AE', 'AO', 'AH', 'AR', 'VE']);
+export type TFloodZones = z.infer<typeof FloodZones>;
+
 export enum DEDUCTIBLE_OPTIONS {
   pct = 'percent',
   abs = 'absolute',
 }
 
+// TODO: zod enum
 export enum CLAIMS {
   ORG_ADMIN = 'orgAdmin',
   IDEMAND_ADMIN = 'iDemandAdmin',
@@ -209,59 +220,59 @@ export enum LOCAL_STORAGE {
   USER_SEARCH_KEY = 'userSearchKey',
 }
 
-export enum STATE_ABBREVIATION {
-  AL = 'AL',
-  AK = 'AK',
-  AZ = 'AZ',
-  AR = 'AR',
-  CA = 'CA',
-  CO = 'CO',
-  CT = 'CT',
-  DE = 'DE',
-  DC = 'DC',
-  FL = 'FL',
-  GA = 'GA',
-  HI = 'HI',
-  ID = 'ID',
-  IL = 'IL',
-  IN = 'IN',
-  IA = 'IA',
-  KS = 'KS',
-  KY = 'KY',
-  LA = 'LA',
-  ME = 'ME',
-  MD = 'MD',
-  MA = 'MA',
-  MI = 'MI',
-  MN = 'MN',
-  MS = 'MS',
-  MO = 'MO',
-  MT = 'MT',
-  NE = 'NE',
-  NV = 'NV',
-  NH = 'NH',
-  NJ = 'NJ',
-  NM = 'NM',
-  NY = 'NY',
-  NC = 'NC',
-  ND = 'ND',
-  OH = 'OH',
-  OK = 'OK',
-  OR = 'OR',
-  PA = 'PA',
-  RI = 'RI',
-  SC = 'SC',
-  SD = 'SD',
-  TN = 'TN',
-  TX = 'TX',
-  UT = 'UT',
-  VT = 'VT',
-  VA = 'VA',
-  WA = 'WA',
-  WV = 'WV',
-  WI = 'WI',
-  WY = 'WY',
-}
+// export enum STATE_ABBREVIATION {
+//   AL = 'AL',
+//   AK = 'AK',
+//   AZ = 'AZ',
+//   AR = 'AR',
+//   CA = 'CA',
+//   CO = 'CO',
+//   CT = 'CT',
+//   DE = 'DE',
+//   DC = 'DC',
+//   FL = 'FL',
+//   GA = 'GA',
+//   HI = 'HI',
+//   ID = 'ID',
+//   IL = 'IL',
+//   IN = 'IN',
+//   IA = 'IA',
+//   KS = 'KS',
+//   KY = 'KY',
+//   LA = 'LA',
+//   ME = 'ME',
+//   MD = 'MD',
+//   MA = 'MA',
+//   MI = 'MI',
+//   MN = 'MN',
+//   MS = 'MS',
+//   MO = 'MO',
+//   MT = 'MT',
+//   NE = 'NE',
+//   NV = 'NV',
+//   NH = 'NH',
+//   NJ = 'NJ',
+//   NM = 'NM',
+//   NY = 'NY',
+//   NC = 'NC',
+//   ND = 'ND',
+//   OH = 'OH',
+//   OK = 'OK',
+//   OR = 'OR',
+//   PA = 'PA',
+//   RI = 'RI',
+//   SC = 'SC',
+//   SD = 'SD',
+//   TN = 'TN',
+//   TX = 'TX',
+//   UT = 'UT',
+//   VT = 'VT',
+//   VA = 'VA',
+//   WA = 'WA',
+//   WV = 'WV',
+//   WI = 'WI',
+//   WY = 'WY',
+// }
 
 export enum REMOTE_CONFIG_KEYS {
   'WELCOME' = 'welcome_message',

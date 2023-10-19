@@ -49,7 +49,7 @@ import { sendAdminPolicyImportNotification } from '../services/sendgrid/index.js
 import { locationToPolicyLocation, randomFileName, unlinkFile, verify } from '../utils/index.js';
 import { CSVPolicyRow, ParsedPolicyRow } from './models/index.js';
 import { transformPolicyRow } from './transform/index.js';
-import { validatePolicyRow } from './validation/index.js';
+import { validatePolicyRowZod } from './validation/index.js';
 
 // TODO:
 //  - add rating fields (used for ratios)
@@ -98,7 +98,8 @@ export default async (event: StorageEvent) => {
       stream,
       { headers: transformHeadersCamelCase },
       transformPolicyRow,
-      validatePolicyRow
+      validatePolicyRowZod
+      // validatePolicyRow
     );
 
     dataArr = [...parsed.dataArr];

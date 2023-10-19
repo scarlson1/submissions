@@ -6,7 +6,7 @@ import { z } from 'zod';
 import {
   GetAALRequest,
   SRPerilAAL,
-  ValueByRiskType,
+  // ValueByRiskType,
   maxA,
   maxBCD,
   minA,
@@ -30,12 +30,21 @@ export interface GetAALsProps extends GetAALRequest {
 //   RCVs: RCVs;
 // }
 
+export const ValueByRiskType = z.object({
+  inland: z.number(),
+  surge: z.number(),
+  tsunami: z.number(),
+});
+export type ValueByRiskType = z.infer<typeof ValueByRiskType>;
+
+// export const AALs = ValueByRiskType.deepPartial()
 export const AALs = z.object({
   inland: z.number().nullable(),
   surge: z.number().nullable(),
   tsunami: z.number().nullable(),
 });
-export const ValueByRiskTypeZod = AALs.keyof();
+export type AALs = z.infer<typeof AALs>;
+export const ValueByRiskTypeZod = ValueByRiskType.keyof();
 
 export const SRPerilAALZod = z.object({
   tiv: z.number(),

@@ -1,6 +1,6 @@
 import { GridColDef, GridValueGetterParams } from '@mui/x-data-grid';
 
-import { AGENCY_SUBMISSION_STATUS, AgencyApplication } from 'common';
+import { AgencyApplication, AgencySubmissionStatus } from 'common';
 import {
   addrCityCol,
   addrLine1Col,
@@ -25,12 +25,7 @@ export const agencyAppCols: GridColDef<AgencyApplication>[] = [
   orgNameCol,
   {
     ...statusCol,
-    valueOptions: [
-      AGENCY_SUBMISSION_STATUS.ACCEPTED,
-      AGENCY_SUBMISSION_STATUS.REJECTED,
-      AGENCY_SUBMISSION_STATUS.REVIEW_REQUIRED,
-      AGENCY_SUBMISSION_STATUS.SUBMITTED,
-    ],
+    valueOptions: AgencySubmissionStatus.options,
     filterable: true,
   },
   {

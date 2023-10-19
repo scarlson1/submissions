@@ -1,7 +1,7 @@
 import { Box, Chip } from '@mui/material';
 import { GridColDef, GridColumnVisibilityModel } from '@mui/x-data-grid';
 
-import { INVITE_STATUS, Invite } from 'common';
+import { Invite, InviteStatus } from 'common';
 import {
   createdCol,
   displayNameCol,
@@ -22,6 +22,8 @@ export const inviteCols: GridColDef<Invite>[] = [
     flex: 0.8,
     minWidth: 120,
     editable: false,
+    sortable: true,
+    filterable: true,
   },
   {
     field: 'lastName',
@@ -29,19 +31,14 @@ export const inviteCols: GridColDef<Invite>[] = [
     flex: 0.8,
     minWidth: 120,
     editable: false,
+    sortable: true,
+    filterable: true,
   },
   {
     ...statusCol,
-    valueOptions: [
-      INVITE_STATUS.ACCEPTED,
-      INVITE_STATUS.PENDING,
-      INVITE_STATUS.EXPIRED,
-      INVITE_STATUS.ERROR,
-      INVITE_STATUS.REJECTED,
-      INVITE_STATUS.REPLACED,
-      INVITE_STATUS.REVOKED,
-    ],
+    valueOptions: InviteStatus.options,
     filterable: true,
+    sortable: false,
   },
   {
     field: 'customClaims',
@@ -49,6 +46,8 @@ export const inviteCols: GridColDef<Invite>[] = [
     flex: 1,
     minWidth: 180,
     editable: false,
+    sortable: false,
+    filterable: false,
     renderCell: (params) => {
       if (params.value == null) return '';
       let keys = Object.keys(params.value);
@@ -77,6 +76,8 @@ export const inviteCols: GridColDef<Invite>[] = [
     flex: 1,
     minWidth: 180,
     editable: false,
+    sortable: false,
+    filterable: false,
     valueGetter: (params) => params.row.invitedBy?.name ?? (params.row.invitedBy?.email || null),
   },
   {
@@ -86,6 +87,8 @@ export const inviteCols: GridColDef<Invite>[] = [
     flex: 1,
     minWidth: 140,
     editable: false,
+    sortable: false,
+    filterable: false,
     valueGetter: (params) => params.row.invitedBy?.name ?? (params.row.invitedBy?.email || null),
   },
   orgIdCol,

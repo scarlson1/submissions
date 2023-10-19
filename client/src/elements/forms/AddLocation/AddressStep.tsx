@@ -10,7 +10,7 @@ import {
   Coordinates,
   DraftAddLocationRequest,
   Nullable,
-  Product,
+  TProduct,
   addressValidationActiveStates,
   coordinatesValidation,
 } from 'common';
@@ -32,7 +32,7 @@ const getAddressVal = (activeStates: Record<string, boolean>) =>
   });
 
 interface AddressStepProps extends BaseStepProps<AddressValues> {
-  product: Product;
+  product: TProduct;
   changeRequest: DraftAddLocationRequest;
 }
 

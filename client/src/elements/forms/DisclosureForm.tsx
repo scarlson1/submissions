@@ -1,16 +1,16 @@
-import { useCallback, useRef } from 'react';
-import { Box, Chip, Divider, Paper, Unstable_Grid2 as Grid } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
+import { Box, Chip, Divider, Unstable_Grid2 as Grid, Paper } from '@mui/material';
 import { Content, EditorContent, JSONContent } from '@tiptap/react';
 import { Formik, FormikConfig, FormikHelpers, FormikProps } from 'formik';
+import { useCallback, useRef } from 'react';
 import * as yup from 'yup';
 
-import { STATES_ABV_ARR } from 'common/statesList';
-import { useTextEditor } from 'hooks';
-import { EditorToolbar } from 'components/textEditor/EditorToolbar';
-import { FormikNativeSelect, FormikSelect, FormikTextField } from 'components/forms';
-import 'components/textEditor/TextEditor.css';
 import { DisclosureType } from 'common';
+import { State } from 'common/statesList';
+import { FormikNativeSelect, FormikSelect, FormikTextField } from 'components/forms';
+import { EditorToolbar } from 'components/textEditor/EditorToolbar';
+import 'components/textEditor/TextEditor.css';
+import { useTextEditor } from 'hooks';
 
 const disclosureValidation = yup.object().shape({
   products: yup.array().of(yup.string()).min(1),
@@ -128,7 +128,7 @@ export const DisclosureForm = ({
               />
             </Grid>
             <Grid xs={6} sm={4} md={3}>
-              <FormikSelect name='state' label='State' selectOptions={STATES_ABV_ARR} fullWidth />
+              <FormikSelect name='state' label='State' selectOptions={State.options} fullWidth />
             </Grid>
             <Grid xs={6} sm={4} md={3}>
               <FormikTextField

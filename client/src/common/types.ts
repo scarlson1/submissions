@@ -10,19 +10,19 @@ import { PolicyChangeValues } from 'elements/forms/PolicyChangeForm';
 import { InitRatingValues } from 'hooks/usePropertyDetails';
 import { FloodValues } from 'views/SubmissionNew';
 import {
-  AGENCY_SUBMISSION_STATUS,
   COLLECTIONS,
   DEDUCTIBLE_OPTIONS,
-  INVITE_STATUS,
   POLICY_STATUS,
-  PRODUCT,
   QUOTE_STATUS,
-  STATE_ABBREVIATION,
   SUBMISSION_STATUS,
+  TAgencySubmissionStatus,
   TChangeRequestStatus,
+  TInviteStatus,
   TPaymentStatus,
+  TProduct,
   UW_NOTE_CODE,
 } from './enums';
+import { TState } from './statesList';
 
 export interface BaseMetadata {
   created: Timestamp;
@@ -141,7 +141,7 @@ export type AllowString<Type> = {
 };
 
 export interface Submission extends Omit<FloodValues, 'ratingPropertyData'> {
-  product: Product;
+  product: TProduct;
   coordinates: GeoPoint;
   geoHash?: Geohash | null;
   userId?: string | null;
@@ -168,8 +168,8 @@ export interface Submission extends Omit<FloodValues, 'ratingPropertyData'> {
 // type FishEnum = z.infer<typeof FishEnum>;
 // // 'Salmon' | 'Tuna' | 'Trout
 
-export const ProductEnum = z.enum(['flood', 'wind']);
-export type Product = z.infer<typeof ProductEnum>;
+// export const ProductEnum = z.enum(['flood', 'wind']);
+// export type Product = z.infer<typeof ProductEnum>;
 // export type Product = 'flood' | 'wind';
 
 export type LimitKeys = 'limitA' | 'limitB' | 'limitC' | 'limitD';
@@ -345,13 +345,11 @@ export interface TaxItem {
   resultRoundType: RoundingType;
 }
 
-// TODO: temporary (quote data interface for interim submissions period) REPLACE
-
 export interface RatingPropertyData {
   CBRSDesignation: string;
   basement: string; // BasementOptions | null;
   distToCoastFeet: number;
-  floodZone: string; // FloodZones | null;
+  floodZone: string; // TFloodZones
   numStories: number;
   propertyCode: string;
   replacementCost: number;
@@ -380,7 +378,7 @@ export interface FeeItem {
 // TODO: need reference to ratingDocId to get AALs for editing
 // TODO: change quote to support multi-location
 export interface Quote {
-  product: Product; // keyof typeof Product;
+  product: TProduct; // keyof typeof Product;
   deductible: number;
   limits: Limits;
   address: Address;
@@ -431,8 +429,6 @@ export interface Quote {
     finalized: Timestamp | null; // FirestoreTimestamp | null;
   };
 }
-
-export type FloodZones = 'A' | 'B' | 'C' | 'D' | 'V' | 'X' | 'AE' | 'AO' | 'AH' | 'AR' | 'VE';
 
 export type BasementOptions = 'yes' | 'no' | 'finished' | 'unfinished';
 
@@ -651,15 +647,14 @@ export interface PolicyLocation {
   coords: GeoPoint;
   cancelEffDate?: Timestamp | null;
   version?: number; // TODO: remove optional
-  // lcnDocId: string;
 }
 
 export interface Policy extends BaseDoc {
-  product: Product;
+  product: TProduct;
   status: POLICY_STATUS; // TODO: remove
   paymentStatus: TPaymentStatus;
   term: number;
-  mailingAddress: Address;
+  mailingAddress: MailingAddress;
   namedInsured: NamedInsured; // TODO: clarify typing NamedInsuredDetails;
   locations: Record<string, PolicyLocation>;
   homeState: string;
@@ -693,7 +688,7 @@ export interface TrxRatingData extends Nullable<RatingPropertyData> {
 
 interface BaseTransaction extends BaseDoc {
   trxType: TransactionType;
-  product: Product;
+  product: TProduct;
   policyId: string;
   locationId: string;
   externalId: string | null;
@@ -971,8 +966,12 @@ export type ChangeRequest =
   | DraftAddLocationRequest;
 
 export type DefaultCommission = {
-  [key in PRODUCT]?: number;
+  [key in TProduct]?: number;
 };
+
+// export type DefaultCommission = {
+//   [key in PRODUCT]?: number;
+// };
 
 export interface User extends BaseDoc {
   displayName?: string;
@@ -1023,7 +1022,7 @@ export interface AgencyApplication extends BaseDoc {
   // };
   FEIN: string;
   EandO: string;
-  status: AGENCY_SUBMISSION_STATUS;
+  status: TAgencySubmissionStatus;
   sendAppReceivedNotification?: boolean;
   submittedByUserId?: string | null;
 }
@@ -1102,7 +1101,7 @@ export interface Invite extends BaseDoc {
   customClaims?: { [key: string]: any };
   orgId: string | null;
   orgName?: string;
-  status: keyof typeof INVITE_STATUS; // InviteStatus;
+  status: TInviteStatus; //keyof typeof INVITE_STATUS
   id: string;
   invitedBy?: {
     userId?: string;
@@ -1148,8 +1147,10 @@ export interface Charge extends BaseDoc {
 }
 
 export type ActiveStates = {
-  [key in STATE_ABBREVIATION]: boolean;
+  [key in TState]: boolean;
 };
+// const ZActiveStates = z.record(State, z.boolean()) // allows undefined
+// export type ActiveStates = z.infer<typeof ZActiveStates>
 
 export type ActiveStatesWithId = ActiveStates & { id: string };
 
@@ -1200,7 +1201,7 @@ export interface Tax extends BaseDoc {
   effectiveDate: Timestamp;
   expirationDate?: Timestamp | null;
   LOB: LineOfBusiness[];
-  products: Product[];
+  products: TProduct[];
   transactionTypes: TransactionType[];
   subjectBase: SubjectBaseItems[];
   baseRoundType?: RoundingType;
@@ -1258,14 +1259,17 @@ export interface Moratorium extends BaseDoc {
 //   metadata: BaseMetadata;
 // }
 
-export type LicenseOwner = 'individual' | 'organization';
-export type LicenseType = 'producer' | 'surplus lines' | 'MGA' | 'Tax ID';
+export const LicenseOwner = z.enum(['individual', 'organization']);
+export type TLicenseOwner = z.infer<typeof LicenseOwner>;
+
+export const LicenseType = z.enum(['producer', 'surplus lines', 'MGA', 'Tax ID']);
+export type TLicenseType = z.infer<typeof LicenseType>;
 
 export interface License extends BaseDoc {
   state: string;
-  ownerType: LicenseOwner;
+  ownerType: TLicenseOwner;
   licensee: string;
-  licenseType: LicenseType;
+  licenseType: TLicenseType;
   surplusLinesProducerOfRecord: boolean;
   licenseNumber: string;
   effectiveDate: Timestamp; // FirestoreTimestamp;
@@ -1275,13 +1279,22 @@ export interface License extends BaseDoc {
   phone?: string | null;
 }
 
-export type DisclosureType =
-  | 'state disclosure'
-  | 'general disclosure'
-  | 'terms & conditions'
-  | 'other';
+// export type DisclosureType =
+//   | 'state disclosure'
+//   | 'general disclosure'
+//   | 'terms & conditions'
+//   | 'other';
+
+export const DisclosureTypeEnum = z.enum([
+  'state disclosure',
+  'general disclosure',
+  'terms & conditions',
+  'other',
+]);
+export type DisclosureType = z.infer<typeof DisclosureTypeEnum>;
+
 export interface Disclosure extends BaseDoc {
-  products: Product[];
+  products: TProduct[];
   state: string | null;
   displayName?: string | null;
   type?: DisclosureType | null;

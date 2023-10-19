@@ -30,6 +30,9 @@ export enum COLLECTIONS {
   VERSIONS = 'versions', // HISTORY = 'history',
 }
 
+export const Collection = z.nativeEnum(COLLECTIONS);
+export type Collection = z.infer<typeof Collection>;
+
 export enum SUBMISSION_STATUS {
   DRAFT = 'draft',
   SUBMITTED = 'submitted',
@@ -106,17 +109,31 @@ export enum FIN_TRANSACTION_STATUS {
   PAYMENT_FAILED = 'payment_failed',
 }
 
-export enum PRODUCT {
-  Flood = 'flood',
-  Wind = 'wind',
-}
+// export enum PRODUCT {
+//   Flood = 'flood',
+//   Wind = 'wind',
+// }
 
-export enum AGENCY_SUBMISSION_STATUS {
-  ACCEPTED = 'accepted',
-  SUBMITTED = 'submitted',
-  REVIEW_REQUIRED = 'review:required',
-  REJECTED = 'rejected',
-}
+export const Product = z.enum(['flood', 'wind']);
+export type Product = z.infer<typeof Product>;
+
+export const Basement = z.enum(['no', 'finished', 'unfinished', 'unknown']);
+export type Basement = z.infer<typeof Basement>;
+
+// export enum AgencySubmissionStatus {
+//   ACCEPTED = 'accepted',
+//   SUBMITTED = 'submitted',
+//   REVIEW_REQUIRED = 'review:required',
+//   REJECTED = 'rejected',
+// }
+
+export const AgencySubmissionStatus = z.enum([
+  'accepted',
+  'submitted',
+  'review:required',
+  'rejected',
+]);
+export type AgencySubmissionStatus = z.infer<typeof AgencySubmissionStatus>;
 
 export enum AGENCY_STATUS {
   SUBMITTED = 'submitted',
@@ -138,9 +155,9 @@ export enum CLAIMS {
   AGENT = 'agent',
 }
 
-// export enum FIN_TRANSACTION_STATUS {
-
-// }
+// export const Claims = z.enum(['iDemandAdmin', 'iDemandUser', 'orgAdmin', 'agent']);
+export const Claims = z.nativeEnum(CLAIMS);
+export type Claims = z.infer<typeof Claims>;
 
 export enum FIN_TRANSACTION_TYPE {
   CHARGE = 'charge',
@@ -150,10 +167,14 @@ export enum FIN_TRANSACTION_TYPE {
 export enum MISC_PUB_SUB_TOPICS {
   LOCATION_IMG = 'location.image',
 }
+export const MiscPubSubTopics = z.nativeEnum(MISC_PUB_SUB_TOPICS);
+export type MiscPubSubTopics = z.infer<typeof MiscPubSubTopics>;
 
 export enum PMT_PUB_SUB_TOPICS {
   PAYMENT_COMPLETE = 'payment.complete',
 }
+export const PmtPubSubTopics = z.nativeEnum(PMT_PUB_SUB_TOPICS);
+export type PmtPubSubTopics = z.infer<typeof PmtPubSubTopics>;
 
 export enum TRX_PUB_SUB_TOPICS {
   // PAYMENT_COMPLETE = 'payment.complete',
@@ -165,6 +186,15 @@ export enum TRX_PUB_SUB_TOPICS {
   // POLICY_CANCELLATION = 'policy.cancellation',
   LOCATION_CANCELLATION = 'location.cancellation',
 }
+
+export const TrxPubSubTopics = z.nativeEnum(TRX_PUB_SUB_TOPICS);
+export type TrxPubSubTopics = z.infer<typeof TrxPubSubTopics>;
+
+// TODO: need to use zod enum to combine
+// export const PubSubTopics = z.enum([...MiscPubSubTopics.options, ...PmtPubSubTopics.options, ...TrxPubSubTopics.options] as const);
+
+// export const PubSubTopics = z.union([TrxPubSubTopics, PmtPubSubTopics, MiscPubSubTopics])
+// export type PubSubTopics = z.infer<typeof PubSubTopics>
 
 export const PUB_SUB_TOPICS = {
   ...MISC_PUB_SUB_TOPICS,
@@ -182,3 +212,58 @@ export const PUB_SUB_TOPICS = {
 //   // POLICY_CANCELLATION = 'policy.cancellation',
 //   LOCATION_CANCELLATION = 'location.cancellation',
 // }
+
+export const State = z.enum([
+  'AL',
+  'AK',
+  'AZ',
+  'AR',
+  'CA',
+  'CO',
+  'CT',
+  'DE',
+  'DC',
+  'FL',
+  'GA',
+  'HI',
+  'ID',
+  'IL',
+  'IN',
+  'IA',
+  'KS',
+  'KY',
+  'LA',
+  'ME',
+  'MD',
+  'MA',
+  'MI',
+  'MN',
+  'MS',
+  'MO',
+  'MT',
+  'NE',
+  'NV',
+  'NH',
+  'NJ',
+  'NM',
+  'NY',
+  'NC',
+  'ND',
+  'OH',
+  'OK',
+  'OR',
+  'PA',
+  'RI',
+  'SC',
+  'SD',
+  'TN',
+  'TX',
+  'UT',
+  'VT',
+  'VA',
+  'WA',
+  'WV',
+  'WI',
+  'WY',
+]);
+export type State = z.infer<typeof State>;

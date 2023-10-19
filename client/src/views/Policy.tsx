@@ -40,17 +40,15 @@ import { ErrorFallback, LoadingSpinner, NotFound } from 'components';
 import { IconMenu } from 'components/IconButtonMenu';
 import { LocationsMap, PolicyLocationCards } from 'elements';
 import {
-  ChangeRequestsDialog,
-  useViewChangeRequestsDialogProps,
+  ChangeRequestsDialog
 } from 'elements/ChangeRequestDialog';
 import { ContactList } from 'elements/forms';
 import { LocationsGrid } from 'elements/grids';
 import {
-  useCreatePolicyChangeRequest,
   useDocData,
   useGeneratePDF,
   useSafeParams,
-  useWidth,
+  useWidth
 } from 'hooks';
 import { useCreateCancelRequest } from 'hooks/useCreateCancelRequest';
 import { useCreateLocationChangeRequest } from 'hooks/useCreateLocationChangeRequest';
@@ -86,6 +84,7 @@ export const Policy = () => {
   const { policyId } = useSafeParams(['policyId']); // useParams();
   let [searchParams, setSearchParams] = useSearchParams();
   const [locationsView, setLocationsView] = useState(getInitTabView(searchParams.get('l_view')));
+  const { isMobile } = useWidth();
   const { isMobile } = useWidth();
 
   const { data } = useDocData<IPolicy>('POLICIES', policyId);
@@ -270,6 +269,13 @@ export const Policy = () => {
                   )}
                 />
                 <StatBox
+                  title='Effective'
+                  value={formatDate(
+                    data?.effectiveDate?.toDate(),
+                    isMobile ? 'MM/dd/yy' : 'MMM dd, yyyy'
+                  )}
+                />
+                <StatBox
                   title='Status'
                   value={`${data?.status === POLICY_STATUS.PAID ? 'active' : 'inactive'}`}
                 />
@@ -402,6 +408,7 @@ export const Policy = () => {
           </Suspense>
         </ErrorBoundary>
       </Box>
+      <Box sx={{ py: { xs: 4, md: 5, lg: 8 } }}>
       <Box sx={{ py: { xs: 4, md: 5, lg: 8 } }}>
         <Typography variant='body2' component='div' color='text.secondary'>
           {data?.effectiveDate && data?.expirationDate ? (

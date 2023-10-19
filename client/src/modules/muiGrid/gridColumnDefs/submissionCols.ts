@@ -78,17 +78,23 @@ export const submissionCols: GridColDef<Submission>[] = [
     ...firstNameCol,
     field: 'contact.firstName',
     valueGetter: (params) => params.row.contact?.firstName || null,
+    filterable: false,
+    sortable: false,
   },
   {
     ...lastNameCol,
     field: 'contact.lastName',
     valueGetter: (params) => params.row.contact?.lastName || null,
+    filterable: false,
+    sortable: false,
   },
   {
     ...emailCol,
     field: 'contact.email',
     valueGetter: (params) => params.row.contact?.email || null,
     description: 'Provided contact email',
+    filterable: false,
+    sortable: false,
   },
   // replacementCostCol,
   ratingDataReplacementCostCol,
@@ -99,6 +105,8 @@ export const submissionCols: GridColDef<Submission>[] = [
     minWidth: 200,
     flex: 1,
     editable: false,
+    filterable: false,
+    sortable: false,
     // TODO: valueFormatter
   },
   priorLossCountCol,
@@ -120,6 +128,7 @@ export const submissionCols: GridColDef<Submission>[] = [
   longitudeCol,
   createdCol,
   updatedCol,
+  // TODO: admin only ??
   {
     field: 'propertyDataDocId',
     headerName: 'Property Data Doc ID',

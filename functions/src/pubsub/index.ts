@@ -1,18 +1,25 @@
 import { onMessagePublished } from 'firebase-functions/v2/pubsub';
 
-import { PUB_SUB_TOPICS, sendgridApiKey } from '../common/index.js';
+import {
+  MiscPubSubTopics,
+  PUB_SUB_TOPICS,
+  PmtPubSubTopics,
+  TrxPubSubTopics,
+  sendgridApiKey,
+} from '../common/index.js';
 
 // TODO: failureRetry policy
 
+// PUB_SUB_TOPICS.PAYMENT_COMPLETE
 export const markpaidonpaymentcomplete = onMessagePublished(
-  { topic: PUB_SUB_TOPICS.PAYMENT_COMPLETE, secrets: [sendgridApiKey] },
+  { topic: PmtPubSubTopics.enum.PAYMENT_COMPLETE, secrets: [sendgridApiKey] },
   async (event) => {
     await (await import('./markPaidOnPaymentComplete.js')).default(event);
   }
 );
 
 export const policycreatedlistener = onMessagePublished(
-  { topic: PUB_SUB_TOPICS.POLICY_CREATED },
+  { topic: TrxPubSubTopics.enum.POLICY_CREATED }, // PUB_SUB_TOPICS.POLICY_CREATED
   async (event) => {
     await (await import('./policyCreatedListener.js')).default(event);
   }
@@ -20,7 +27,12 @@ export const policycreatedlistener = onMessagePublished(
 
 // blurhash takes ~20s / image to hash
 export const getstaticmapimages = onMessagePublished(
-  { topic: PUB_SUB_TOPICS.LOCATION_IMG, concurrency: 10, timeoutSeconds: 300, memory: '1GiB' },
+  {
+    topic: MiscPubSubTopics.enum.LOCATION_IMG,
+    concurrency: 10,
+    timeoutSeconds: 300,
+    memory: '1GiB',
+  }, // PUB_SUB_TOPICS.LOCATION_IMG
   async (event) => {
     await (await import('./getStaticMapImages.js')).default(event);
   }

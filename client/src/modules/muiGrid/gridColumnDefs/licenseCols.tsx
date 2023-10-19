@@ -1,6 +1,13 @@
-import { GridColDef } from '@mui/x-data-grid';
 import { BusinessRounded, PersonRounded } from '@mui/icons-material';
+import { GridColDef } from '@mui/x-data-grid';
 
+import { License, LicenseOwner, LicenseType } from 'common';
+import { renderChip } from 'components/RenderGridCellHelpers';
+import {
+  getGridFirestoreBooleanOperators,
+  getGridFirestoreSelectOperators,
+  getGridFirestoreStringOperators,
+} from 'modules/muiGrid/operators';
 import {
   addressSummaryCol,
   booleanCalcActiveCol,
@@ -12,13 +19,6 @@ import {
   stateCol,
   updatedCol,
 } from './gridColumns';
-import { renderChip } from 'components/RenderGridCellHelpers';
-import {
-  getGridFirestoreBooleanOperators,
-  getGridFirestoreSelectOperators,
-  getGridFirestoreStringOperators,
-} from 'modules/muiGrid/operators';
-import { License } from 'common';
 
 export const licenseCols: GridColDef<License>[] = [
   {
@@ -30,10 +30,12 @@ export const licenseCols: GridColDef<License>[] = [
     field: 'ownerType',
     headerName: 'Owner Type',
     type: 'singleSelect',
-    valueOptions: ['individual', 'organization'],
+    valueOptions: LicenseOwner.options,
     minWidth: 160,
     flex: 0.6,
     editable: false,
+    filterable: true,
+    sortable: false,
     filterOperators: getGridFirestoreSelectOperators(),
     renderCell: (params) =>
       renderChip(params, { size: 'small' }, (val: any) => ({
@@ -47,12 +49,9 @@ export const licenseCols: GridColDef<License>[] = [
     minWidth: 200,
     flex: 1,
     editable: false,
+    filterable: true,
+    sortable: true,
     filterOperators: getGridFirestoreStringOperators(),
-    // renderCell: (params) => (
-    //   <Typography variant='body2' fontWeight='medium'>
-    //     {params.value}
-    //   </Typography>
-    // ),
   },
   {
     field: 'licenseType',
@@ -60,7 +59,11 @@ export const licenseCols: GridColDef<License>[] = [
     minWidth: 120,
     flex: 0.6,
     editable: false,
-    filterOperators: getGridFirestoreStringOperators(),
+    sortable: false,
+    filterable: true,
+    type: 'singleSelect',
+    valueOptions: LicenseType.options,
+    filterOperators: getGridFirestoreSelectOperators(),
   },
   {
     field: 'licenseNumber',
@@ -68,6 +71,8 @@ export const licenseCols: GridColDef<License>[] = [
     minWidth: 160,
     flex: 1,
     editable: false,
+    sortable: false,
+    filterable: false,
     filterOperators: getGridFirestoreStringOperators(),
   },
   booleanCalcActiveCol,
@@ -82,6 +87,8 @@ export const licenseCols: GridColDef<License>[] = [
     minWidth: 180,
     flex: 1,
     editable: false,
+    filterable: true,
+    sortable: false,
     type: 'boolean',
     filterOperators: getGridFirestoreBooleanOperators(),
   },
@@ -92,6 +99,8 @@ export const licenseCols: GridColDef<License>[] = [
     minWidth: 160,
     flex: 0.8,
     editable: false,
+    filterable: true,
+    sortable: false,
     type: 'boolean',
     filterOperators: getGridFirestoreBooleanOperators(),
   },

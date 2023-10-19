@@ -7,7 +7,7 @@ import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFirestore, useSigninCheck } from 'reactfire';
 
-import { AGENCY_SUBMISSION_STATUS, CLAIMS, COLLECTIONS } from 'common';
+import { AgencySubmissionStatus, CLAIMS, COLLECTIONS } from 'common';
 import { IconButtonMenu } from 'components';
 import { useConfirmation } from 'context';
 import { AgencyAppsGrid } from 'elements/grids';
@@ -50,7 +50,7 @@ export const AgencyApps = () => {
 
   const handleApprove = useCallback(
     (params: GridRowParams) => async () => {
-      if (params.row?.status !== AGENCY_SUBMISSION_STATUS.SUBMITTED) {
+      if (params.row?.status !== AgencySubmissionStatus.enum.submitted) {
         try {
           await confirm({
             catchOnCancel: true,
@@ -66,7 +66,7 @@ export const AgencyApps = () => {
                   variant='body2'
                   color='text.secondary'
                   sx={{ pb: 2 }}
-                >{`The status of the agency application does not match the expected status ("${AGENCY_SUBMISSION_STATUS.SUBMITTED}"). The current status is "${params.row?.status}." Have you checked to see if the org was already created?`}</Typography>
+                >{`The status of the agency application does not match the expected status ("${AgencySubmissionStatus.enum.submitted}"). The current status is "${params.row?.status}." Have you checked to see if the org was already created?`}</Typography>
                 <Typography
                   variant='body2'
                   color='text.secondary'

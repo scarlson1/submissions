@@ -1,15 +1,15 @@
-import { useCallback } from 'react';
 import { Box, Typography } from '@mui/material';
-import { setDoc, doc, DocumentReference, Timestamp } from 'firebase/firestore';
-import { useFirestore, useFirestoreDocDataOnce } from 'reactfire';
+import { DocumentReference, Timestamp, doc, setDoc } from 'firebase/firestore';
 import { FormikHelpers } from 'formik';
+import { useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useFirestore, useFirestoreDocDataOnce } from 'reactfire';
 
-import { COLLECTIONS, Disclosure, DisclosureType, Product } from 'common';
-import { useAsyncToast } from 'hooks';
-import { ADMIN_ROUTES, createPath } from 'router';
+import { COLLECTIONS, Disclosure, DisclosureType, TProduct } from 'common';
 import 'components/textEditor/TextEditor.css';
 import { DisclosureForm, DisclosureValues } from 'elements/forms';
+import { useAsyncToast } from 'hooks';
+import { ADMIN_ROUTES, createPath } from 'router';
 
 export const DisclosureEdit = () => {
   const { disclosureId } = useParams();
@@ -37,7 +37,7 @@ export const DisclosureEdit = () => {
         await setDoc(
           docRef,
           {
-            products: [...(products as Product[])],
+            products: [...(products as TProduct[])],
             state: state || null,
             displayName: displayName || null,
             type: type || null,

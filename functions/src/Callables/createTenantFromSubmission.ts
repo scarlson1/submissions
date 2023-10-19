@@ -6,7 +6,7 @@ import { kebabCase, random } from 'lodash-es';
 
 import {
   AGENCY_STATUS,
-  AGENCY_SUBMISSION_STATUS,
+  AgencySubmissionStatus,
   CLAIMS,
   Invite,
   agencyApplicationCollection,
@@ -15,7 +15,7 @@ import {
   isSingleLetter,
   orgsCollection,
 } from '../common/index.js';
-// import { AGENCY_STATUS, AGENCY_SUBMISSION_STATUS, CLAIMS, Invite } from '../common';
+// import { AGENCY_STATUS, AgencySubmissionStatus, CLAIMS, Invite } from '../common';
 // import { Invite } from '../common';
 import { onCallWrapper } from '../services/sentry/index.js';
 import { validate } from './utils/index.js';
@@ -197,10 +197,11 @@ const createTenantFromSubmission = async ({
         email: 'admin@idemandinsurance.com',
       },
     });
+
     // TODO: decide whether to create invite for principal producer ?? allow configuration in new agency form ??
 
     docRef.update({
-      status: AGENCY_SUBMISSION_STATUS.ACCEPTED,
+      status: AgencySubmissionStatus.enum.accepted,
       'metadata.updated': Timestamp.now(),
     });
 

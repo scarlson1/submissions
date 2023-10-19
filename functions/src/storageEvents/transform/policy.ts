@@ -19,6 +19,7 @@ import {
 import { getRCVs } from '../../modules/rating/index.js';
 import { dateWithTimeZone } from '../../modules/storage/index.js';
 import { capitalizeFirst } from '../../utils/index.js';
+import { CBRSDesignation } from '../models/ParsedPolicyRow.js';
 import { CSVPolicyRow, CSVQuoteRow, ParsedPolicyRow } from '../models/index.js';
 
 /** Converts to correct type and unflattens
@@ -70,7 +71,7 @@ export function transformPolicyRow(row: CSVPolicyRow): ParsedPolicyRow {
   };
 
   const ratingPropertyData: RatingPropertyData = {
-    CBRSDesignation: row.cbrsDesignation ? upperCase(row.cbrsDesignation) : '',
+    CBRSDesignation: row.cbrsDesignation ? upperCase(row.cbrsDesignation) : ('' as CBRSDesignation),
     basement: row.basement ? lowerCase(row.basement) : '',
     distToCoastFeet: row.distToCoastFeet ? extractNumber(row.distToCoastFeet) : 0,
     floodZone: row.floodZone ? upperCase(row.floodZone) : '',
@@ -119,13 +120,13 @@ export function transformPolicyRow(row: CSVPolicyRow): ParsedPolicyRow {
   if (row.additionalInsureds)
     additionalInsureds = row.additionalInsureds.split(',').map((ai) => ({
       name: ai,
-      email: '',
+      email: 'spencercarlson@mac.com', // PREDEPLOY: get real email
     }));
   if (row.mortgageeInterest)
     mortgageeInterest = row.mortgageeInterest.split(',').map((m) => ({
       name: m,
       contactName: '',
-      email: '',
+      email: 'spencercarlson@mac.com',
       loanNumber: '',
     }));
 
@@ -146,24 +147,24 @@ export function transformPolicyRow(row: CSVPolicyRow): ParsedPolicyRow {
     limits,
     TIV,
     RCVs,
-    fees,
+    fees, // @ts-ignore
     taxes,
     annualPremium: row.annualPremium ? extractNumber(row.annualPremium) : 0,
     price,
     effectiveDate: dateWithTimeZone(row.locationEffectiveDate),
-    expirationDate: dateWithTimeZone(row.locationExpirationDate), // row.locationExpirationDate ? new Date(row.locationExpirationDate) : null,
+    expirationDate: dateWithTimeZone(row.locationExpirationDate),
     policyEffectiveDate: dateWithTimeZone(row.policyEffectiveDate),
-    policyExpirationDate: dateWithTimeZone(row.policyExpirationDate), // row.policyExpirationDate ? new Date(row.policyExpirationDate) : null,
+    policyExpirationDate: dateWithTimeZone(row.policyExpirationDate),
     cancelEffDate: dateWithTimeZone(row.cancelEffectiveDate),
     cancelReason: row.cancelReason || null,
-    externalId: row.locationId, // row.externalId || // TODO: use locationId as header name or externalId ??
+    externalId: row.locationId,
     additionalInsureds,
     mortgageeInterest,
     term: row.term ? extractNumber(row.term) : 1,
     namedInsured,
-    userId: row.userId || null,
+    userId: row.userId || null, // @ts-ignore
     agent,
-    agency,
+    agency, // @ts-ignore (TODO: use z.parse)
     ratingPropertyData,
     product: row.product ? row.product.toLowerCase() : 'flood',
     mgaCommissionPct,

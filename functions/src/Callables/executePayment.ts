@@ -22,6 +22,9 @@ import { validate } from './utils/index.js';
 
 // const CARD_FEE = 0.035; // TODO: use env var
 
+// TODO: generalize into "charge" object/record instead of only storing in policy ??
+// create when policy created - sync "charge" with epay transaction ??
+
 interface ExecutePaymentProps {
   policyId: string;
   paymentMethodId: string;
