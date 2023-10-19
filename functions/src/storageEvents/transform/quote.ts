@@ -3,8 +3,12 @@ import { GeoPoint, Timestamp } from 'firebase-admin/firestore';
 import { geohashForLocation } from 'geofire-common';
 
 import {
+  Basement,
+  CBRSDesignation,
   DeepNullable,
+  FloodZone,
   Nullable,
+  PriorLossCount,
   Product,
   QUOTE_STATUS,
   Quote,
@@ -55,17 +59,17 @@ export function transformQuoteRow(row: CSVQuoteRow): DeepNullable<CSVTransformed
   const geoHash = latitude && longitude ? geohashForLocation([latitude, longitude]) : null;
 
   const ratingPropertyData: Nullable<RatingPropertyData> = {
-    CBRSDesignation: row.cbrsDesignation || null,
-    basement: row.basement || null,
+    CBRSDesignation: (row.cbrsDesignation as CBRSDesignation) || null,
+    basement: (row.basement as Basement) || null,
     distToCoastFeet: row.distToCoastFeet ? extractNumber(row.distToCoastFeet) : null,
-    floodZone: row.floodZone || null,
+    floodZone: (row.floodZone as FloodZone) || null,
     numStories: row.numStories ? extractNumber(row.numStories) : null,
     propertyCode: row.propertyCode || null,
     replacementCost: row.replacementCost ? extractNumber(row.replacementCost) : null,
     sqFootage: row.sqFootage ? extractNumber(row.sqFootage) : null,
     yearBuilt: row.yearBuilt ? extractNumber(row.yearBuilt) : null,
     FFH: row.ffh ? extractNumber(row.ffh) : null,
-    priorLossCount: row.priorLossCount ?? null,
+    priorLossCount: (row.priorLossCount as PriorLossCount) ?? null,
   };
 
   const AALs = {

@@ -3,9 +3,12 @@ import { error, info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 
 import {
+  Basement,
   Coordinates,
+  FloodZone,
   Limits,
   Optional,
+  PriorLossCount,
   ValueByRiskType,
   defaultFloodZone,
   ratingDataCollection,
@@ -169,8 +172,8 @@ const getAnnualPremium = async ({ data, auth }: CallableRequest<GetAnnualPremium
       },
       ratingPropertyData: {
         replacementCost,
-        basement,
-        floodZone,
+        basement: basement as Basement, // TODO: zod parse
+        floodZone: floodZone as FloodZone,
         numStories,
         propertyCode: null,
         CBRSDesignation: null,
@@ -178,7 +181,7 @@ const getAnnualPremium = async ({ data, auth }: CallableRequest<GetAnnualPremium
         sqFootage: null,
         yearBuilt: null,
         FFH: null,
-        priorLossCount: priorLossCount ?? null,
+        priorLossCount: (priorLossCount as PriorLossCount) ?? null,
       },
       AALs: AALsRes.AALs,
       premiumCalcData: result.premiumData,

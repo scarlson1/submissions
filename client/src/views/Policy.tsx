@@ -40,15 +40,17 @@ import { ErrorFallback, LoadingSpinner, NotFound } from 'components';
 import { IconMenu } from 'components/IconButtonMenu';
 import { LocationsMap, PolicyLocationCards } from 'elements';
 import {
-  ChangeRequestsDialog
+  ChangeRequestsDialog,
+  useViewChangeRequestsDialogProps,
 } from 'elements/ChangeRequestDialog';
 import { ContactList } from 'elements/forms';
 import { LocationsGrid } from 'elements/grids';
 import {
+  useCreatePolicyChangeRequest,
   useDocData,
   useGeneratePDF,
   useSafeParams,
-  useWidth
+  useWidth,
 } from 'hooks';
 import { useCreateCancelRequest } from 'hooks/useCreateCancelRequest';
 import { useCreateLocationChangeRequest } from 'hooks/useCreateLocationChangeRequest';
@@ -84,7 +86,6 @@ export const Policy = () => {
   const { policyId } = useSafeParams(['policyId']); // useParams();
   let [searchParams, setSearchParams] = useSearchParams();
   const [locationsView, setLocationsView] = useState(getInitTabView(searchParams.get('l_view')));
-  const { isMobile } = useWidth();
   const { isMobile } = useWidth();
 
   const { data } = useDocData<IPolicy>('POLICIES', policyId);
@@ -409,33 +410,34 @@ export const Policy = () => {
         </ErrorBoundary>
       </Box>
       <Box sx={{ py: { xs: 4, md: 5, lg: 8 } }}>
-      <Box sx={{ py: { xs: 4, md: 5, lg: 8 } }}>
-        <Typography variant='body2' component='div' color='text.secondary'>
-          {data?.effectiveDate && data?.expirationDate ? (
-            <Typography component='span' variant='body2'>
-              {`This policy is effective ${formatFirestoreTimestamp(
-                data.effectiveDate,
-                'date'
-              )} - ${formatFirestoreTimestamp(data.expirationDate, 'date')}. `}
-            </Typography>
-          ) : null}
-          You can{' '}
-          <Link component='button' variant='body2' onClick={handleDownloadPolicy}>
-            download a copy of your policy
-          </Link>
-          {/* TODO: uncomment once handler set up */}
-          {/* {', '}
+        <Box sx={{ py: { xs: 4, md: 5, lg: 8 } }}>
+          <Typography variant='body2' component='div' color='text.secondary'>
+            {data?.effectiveDate && data?.expirationDate ? (
+              <Typography component='span' variant='body2'>
+                {`This policy is effective ${formatFirestoreTimestamp(
+                  data.effectiveDate,
+                  'date'
+                )} - ${formatFirestoreTimestamp(data.expirationDate, 'date')}. `}
+              </Typography>
+            ) : null}
+            You can{' '}
+            <Link component='button' variant='body2' onClick={handleDownloadPolicy}>
+              download a copy of your policy
+            </Link>
+            {/* TODO: uncomment once handler set up */}
+            {/* {', '}
           <Link component='button' variant='body2' onClick={handleChangeRequest}>
             request a change
           </Link> */}
-          {', or '}
-          <Link component='button' variant='body2' underline='hover' onClick={handleCancelPolicy}>
-            cancel
-          </Link>
-          {' anytime.'}
-        </Typography>
+            {', or '}
+            <Link component='button' variant='body2' underline='hover' onClick={handleCancelPolicy}>
+              cancel
+            </Link>
+            {' anytime.'}
+          </Typography>
+        </Box>
+        {/* <Button onClick={handleTest}>Test Policy Dec</Button> */}
       </Box>
-      {/* <Button onClick={handleTest}>Test Policy Dec</Button> */}
     </Box>
   );
 };

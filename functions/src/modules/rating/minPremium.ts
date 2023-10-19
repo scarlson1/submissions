@@ -1,12 +1,12 @@
 import { ceil } from 'lodash-es';
-import { FloodZones, defaultFloodZone } from '../../common/index.js';
+import { FloodZone, defaultFloodZone } from '../../common/index.js';
 
 export const getMinPremium = (
   floodZone: string = defaultFloodZone.value(),
   tiv: number,
   isPortfolio: boolean = false
 ) => {
-  const fz = floodZone.charAt(0) as FloodZones;
+  const fz = floodZone.charAt(0) as FloodZone;
   const tableRef = isPortfolio ? minPremiumTablePortfolio : minPremiumTable;
   const lookup = tableRef[fz] || { minPrem: 300, minRate: 0.0004 };
 
@@ -17,7 +17,7 @@ export const getMinPremium = (
 };
 
 export const minPremiumTable: {
-  [key in FloodZones]: { [key: string]: number };
+  [key in FloodZone]: { [key: string]: number };
 } = {
   A: {
     minPrem: 500,
@@ -66,7 +66,7 @@ export const minPremiumTable: {
 };
 
 export const minPremiumTablePortfolio: {
-  [key in FloodZones]: { [key: string]: number };
+  [key in FloodZone]: { [key: string]: number };
 } = {
   A: {
     minPrem: 300,

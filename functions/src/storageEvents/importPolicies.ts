@@ -15,12 +15,13 @@ import {
   ILocation,
   LocationParent,
   MailingAddress,
-  POLICY_STATUS,
   PaymentStatus,
   PolicyNew,
   Product,
   RatingData,
+  SLProdOfRecordDetails,
   StagedPolicyImport,
+  State,
   ValueByRiskType,
   audience,
   getReportErrorFn,
@@ -257,7 +258,10 @@ export default async (event: StorageEvent) => {
  */
 async function groupByPolicyId(data: ParsedPolicyRow[], firestore: Firestore) {
   // let policies: Record<string, Omit<Policy, 'termPremium'>> = {};
-  let policies: Record<string, Omit<PolicyNew, 'termPremium' | 'termPremiumWithCancels'>> = {};
+  let policies: Record<
+    string,
+    Omit<PolicyNew, 'termPremium' | 'termPremiumWithCancels' | 'inStatePremium' | 'outStatePremium'>
+  > = {};
   let locations: Record<string, ILocation> = {};
   let ratingDocData: Record<string, RatingData> = {};
   let lcnIdMap: Record<string, string> = {};
@@ -403,8 +407,7 @@ async function getPolicyWithoutLocation(
 ) {
   let SLPofR = surplusLinesLicenseByState[data.homeState as string] || null;
   if (!SLPofR) {
-    SLPofR = await getSPLPofR(firestore, data.homeState as string);
-    // TODO: throw if not found ??
+    SLPofR = await getSPLPofR(firestore, data.homeState);
 
     surplusLinesLicenseByState[data.homeState as string] = SLPofR;
   }
@@ -416,27 +419,31 @@ async function getPolicyWithoutLocation(
   // TODO: need to accomidate taxes and fee imports.
   // See importQuotes for reference
 
-  const p: Omit<PolicyNew, 'locations' | 'termPremium' | 'termPremiumWithCancels'> = {
+  const p: Omit<
+    PolicyNew,
+    'locations' | 'termPremium' | 'termPremiumWithCancels' | 'inStatePremium' | 'outStatePremium'
+  > = {
     product: data.product as Product,
-    status: POLICY_STATUS.PAID, // TODO: get status from csv
+    // status: POLICY_STATUS.PAID,
     paymentStatus: PaymentStatus.enum.paid,
-    term: data.term as number,
+    term: data.term || 1,
     mailingAddress: data.address as MailingAddress,
     namedInsured: data.namedInsured,
-    homeState: data.homeState as string,
+    homeState: data.homeState as State, // TODO: validate
     // termPremium: policyTermPremium,
     termDays,
     fees: data.fees,
     taxes: data.taxes,
-    price: data.price as number,
+    price: data.price,
     effectiveDate: effDateTs,
     expirationDate: expDateTs,
     userId: data.userId,
     agent: data.agent,
     agency: data.agency,
     surplusLinesProducerOfRecord: SLPofR,
-    issuingCarrier: getCarrierByState(data.homeState as string),
-    documents: [],
+    issuingCarrier: getCarrierByState(data.homeState),
+    // documents: [],
+    quoteId: data.quoteId || null,
     metadata: {
       created: ts,
       updated: ts,
@@ -447,7 +454,7 @@ async function getPolicyWithoutLocation(
 }
 
 // TODO: move to modules/db
-async function getSPLPofR(firestore: Firestore, state: string) {
+async function getSPLPofR(firestore: Firestore, state: State): Promise<SLProdOfRecordDetails> {
   const colRef = licensesCollection(firestore);
   const q = colRef.where('state', '==', state).where('surplusLinesProducerOfRecord', '==', true);
 
@@ -455,7 +462,6 @@ async function getSPLPofR(firestore: Firestore, state: string) {
 
   if (snap.empty) throw new Error(`No surplus lines license for ${state}`);
 
-  // if (!snap.empty) {
   const data = snap.docs[0].data();
   return {
     name: data.licensee || '',
@@ -463,14 +469,6 @@ async function getSPLPofR(firestore: Firestore, state: string) {
     licenseState: state || '',
     phone: data.phone || '',
   };
-  // }
-
-  // return {
-  //   name: '',
-  //   licenseNum: '',
-  //   licenseState: '',
-  //   phone: '',
-  // };
 }
 
 // TODO: need tech premium

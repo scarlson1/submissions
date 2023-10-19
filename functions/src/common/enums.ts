@@ -120,6 +120,70 @@ export type Product = z.infer<typeof Product>;
 export const Basement = z.enum(['no', 'finished', 'unfinished', 'unknown']);
 export type Basement = z.infer<typeof Basement>;
 
+export const CBRSDesignation = z.enum(['IN', 'OUT']);
+export type CBRSDesignation = z.infer<typeof CBRSDesignation>;
+
+export const PriorLossCount = z.enum(['0', '1', '2', '3']);
+export type PriorLossCount = z.infer<typeof PriorLossCount>;
+
+export const FloodZone = z.enum(['A', 'B', 'C', 'D', 'V', 'X', 'AE', 'AO', 'AH', 'AR', 'VE']);
+export type FloodZone = z.infer<typeof FloodZone>;
+
+export const FeeItemName = z.enum(['Inspection Fee', 'MGA Fee', 'UW Adjustment']);
+export type FeeItemName = z.infer<typeof FeeItemName>;
+
+export const RoundingType = z.enum(['nearest', 'up', 'down']);
+export type RoundingType = z.infer<typeof RoundingType>;
+
+export const SubjectBaseItems = z.enum([
+  'premium',
+  'inspectionFees',
+  'mgaFees',
+  'outStatePremium',
+  'homeStatePremium',
+  'fixedFee',
+  'noFee',
+]);
+export type SubjectBaseItems = z.infer<typeof SubjectBaseItems>;
+
+export const LineOfBusiness = z.enum(['residential', 'commercial']);
+export type LineOfBusiness = z.infer<typeof LineOfBusiness>;
+
+export const ChangeRequestTrxType = z.enum([
+  'endorsement',
+  'amendment',
+  'cancellation',
+  'flat_cancel',
+  'reinstatement',
+]);
+export type ChangeRequestTrxType = z.infer<typeof ChangeRequestTrxType>;
+
+export const TransactionType = z.enum([...ChangeRequestTrxType.options, 'new', 'renewal'] as const);
+export type TransactionType = z.infer<typeof TransactionType>;
+
+export const TaxItemName = z.enum([
+  'Premium Tax',
+  'Service Fee',
+  'Stamping Fee',
+  'Regulatory Fee',
+  'Windpool Fee',
+  'Surcharge',
+  'EMPA Surcharge',
+  'Bureau of Insurance Assessment',
+]);
+export type TaxItemName = z.infer<typeof TaxItemName>;
+
+export const TaxRateType = z.enum(['fixed', 'percent']);
+export type TaxRateType = z.infer<typeof TaxRateType>;
+
+export const CancelReason = z.enum([
+  'sold',
+  'premium_pmt_failure',
+  'exposure_change',
+  'insured_choice',
+]);
+export type CancelReason = z.infer<typeof CancelReason>;
+
 // export enum AgencySubmissionStatus {
 //   ACCEPTED = 'accepted',
 //   SUBMITTED = 'submitted',

@@ -5,6 +5,7 @@ import { z } from 'zod';
 
 import {
   GetAALRequest,
+  RCVs,
   SRPerilAAL,
   // ValueByRiskType,
   maxA,
@@ -68,20 +69,10 @@ export const SRResZod = z.object({
   expectedLosses: z.array(SRPerilAALZod),
 });
 
-export const RCVsZod = z.object({
-  building: z.number().nonnegative(),
-  otherStructures: z.number().nonnegative(),
-  contents: z.number().nonnegative(),
-  BI: z.number().nonnegative(),
-  total: z.number().nonnegative(),
-});
-export const RCVKeys = RCVsZod.keyof();
-export type RCVs = z.infer<typeof RCVsZod>;
-
 export const GetAALResZod = z.object({
   AALs: AALs,
   srRes: SRResZod,
-  RCVs: RCVsZod,
+  RCVs: RCVs,
 });
 export type GetAALRes = z.infer<typeof GetAALResZod>;
 

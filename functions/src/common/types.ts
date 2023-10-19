@@ -1,7 +1,10 @@
 import { deepmerge } from 'deepmerge-ts';
 import { Request } from 'express';
 import { DecodedIdToken } from 'firebase-admin/auth';
-import { GeoPoint, Timestamp } from 'firebase-admin/firestore';
+import {
+  GeoPoint as FirestoreGeoPoint,
+  Timestamp as FirestoreTimestamp,
+} from 'firebase-admin/firestore';
 import { Geohash } from 'geofire-common';
 import { round } from 'lodash-es';
 
@@ -12,30 +15,31 @@ import { filterUniqueArr, removeFromArr } from '../utils/index.js';
 import {
   AGENCY_STATUS,
   AgencySubmissionStatus,
+  Basement,
+  CBRSDesignation,
   COLLECTIONS,
+  CancelReason,
   ChangeRequestStatus,
+  ChangeRequestTrxType,
   FIN_TRANSACTION_STATUS,
+  FeeItemName,
+  FloodZone,
+  LineOfBusiness,
   POLICY_STATUS,
   PaymentStatus,
+  PriorLossCount,
   Product,
   QUOTE_STATUS,
+  RoundingType,
   SUBMISSION_STATUS,
+  State,
+  SubjectBaseItems,
   SubmittedChangeRequestStatus,
+  TaxItemName,
+  TaxRateType,
+  TransactionType,
 } from './enums.js';
 import { cardFeePct, iDemandOrgId } from './environmentVars.js';
-
-// TODO: fix typescript error app.use(thisMiddleware) is users.ts
-
-// TODO: FIX TIMESTAMP TYPINGS
-export interface BaseMetadata {
-  created: Timestamp; // any; // WithFieldValue<Timestamp>;
-  updated: Timestamp; // any; // WithFieldValue<Timestamp>;
-  version?: number;
-}
-
-export interface BaseDoc {
-  metadata: BaseMetadata;
-}
 
 export type WithId<T> = T & { id: string };
 
@@ -99,6 +103,23 @@ export type PathValue<T, P extends Path<T>> = P extends `${infer K}.${infer Rest
 export type StrictExclude<T, U> = T extends U ? (U extends T ? never : T) : T;
 
 export type Primitive = string | number | bigint | boolean | symbol | null | undefined;
+
+export const Timestamp = z.instanceof(FirestoreTimestamp);
+export type Timestamp = z.infer<typeof Timestamp>;
+
+export const BaseMetadata = z.object({
+  created: Timestamp,
+  updated: Timestamp,
+  version: z.number().int().optional(),
+});
+export type BaseMetadata = z.infer<typeof BaseMetadata>;
+
+export interface BaseDoc {
+  metadata: BaseMetadata;
+}
+
+export const Phone = z.string().min(10).max(12); // TODO: regex ??
+export type Phone = z.infer<typeof Phone>;
 
 export interface RequestUserAuth extends Request {
   user?: DecodedIdToken;
@@ -164,29 +185,39 @@ export interface User {
 //   defaultCommission?: DefaultCommission;
 // }
 
-export interface IndividualNamedInsured {
-  displayName: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  userId?: string | null;
-  orgId?: string | null; // ever used ??
-}
+// export interface IndividualNamedInsured {
+//   displayName: string;
+//   firstName: string;
+//   lastName: string;
+//   email: string;
+//   phone: string;
+//   userId?: string | null;
+//   orgId?: string | null; // ever used ??
+// }
 
-// TODO: add type: 'entity' ??
-export interface EntityNamedInsured {
-  displayName: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  userId?: string | null;
-  orgId?: string | null;
-}
+// // TODO: add type: 'entity' ??
+// export interface EntityNamedInsured {
+//   displayName: string;
+//   firstName: string;
+//   lastName: string;
+//   email: string;
+//   phone: string;
+//   userId?: string | null;
+//   orgId?: string | null;
+// }
 
 // TODO: decide whether to use discriminating type vs same fields
-export type NamedInsured = IndividualNamedInsured | EntityNamedInsured;
+// export type NamedInsured = IndividualNamedInsured | EntityNamedInsured;
+export const NamedInsured = z.object({
+  displayName: z.string(),
+  firstName: z.string(),
+  lastName: z.string(),
+  email: z.string().email(),
+  phone: z.string().min(10).max(12), // .optional(), // allow optional/null ??
+  userId: z.string().nullable().optional(),
+  orgId: z.string().nullable().optional(),
+});
+export type NamedInsured = z.infer<typeof NamedInsured>;
 
 export interface EPayVerifiedResponse {
   id: string;
@@ -276,19 +307,55 @@ export interface EPayGetTransactionRes {
   }[];
 }
 
-export interface Address {
-  addressLine1: string;
-  addressLine2: string;
-  city: string;
-  state: string;
-  postal: string;
-  countyFIPS?: string | null;
-  countyName?: string | null;
-}
+// export interface Address {
+//   addressLine1: string;
+//   addressLine2: string;
+//   city: string;
+//   state: string;
+//   postal: string;
+//   countyFIPS?: string | null;
+//   countyName?: string | null;
+// }
 
-export interface MailingAddress extends Address {
-  name: string;
-}
+// export interface MailingAddress extends Address {
+//   name: string;
+// }
+
+export const Address = z.object({
+  addressLine1: z.string(),
+  addressLine2: z.string().default(''),
+  city: z.string(),
+  state: z.string(),
+  postal: z.string().length(5, 'postal must be 5 digits'),
+  countyFIPS: z.string().nullable().optional(),
+  countyName: z.string().nullable().optional(),
+});
+export type Address = z.infer<typeof Address>;
+
+export const MailingAddress = Address.and(
+  z.object({
+    name: z.string(),
+  })
+);
+export type MailingAddress = z.infer<typeof MailingAddress>;
+
+export const CompressedAddress = z.object({
+  s1: z.string(),
+  s2: z.string().default(''),
+  c: z.string(),
+  st: z.string(),
+  p: z.string(),
+});
+export type CompressedAddress = z.infer<typeof CompressedAddress>;
+
+export const Coords = z.object({
+  latitude: z.number().min(-90, 'invalid latitude').max(90, 'invalid latitude'),
+  longitude: z.number().min(-180, 'invalid longitude').max(180, 'invalid longitude'),
+});
+export type Coords = z.infer<typeof Coords>;
+
+export const GeoPoint = z.instanceof(FirestoreGeoPoint);
+export type GeoPoint = z.infer<typeof GeoPoint>;
 
 export interface AgencyApplication extends BaseDoc {
   orgName: string;
@@ -359,29 +426,68 @@ export interface Organization {
 
 // export type Product = 'flood' | 'wind';
 
-export type LimitTypes = 'limitA' | 'limitB' | 'limitC' | 'limitD';
-export interface Limits {
-  limitA: number;
-  limitB: number;
-  limitC: number;
-  limitD: number;
-}
+// export type LimitTypes = 'limitA' | 'limitB' | 'limitC' | 'limitD';
+// export interface Limits {
+//   limitA: number;
+//   limitB: number;
+//   limitC: number;
+//   limitD: number;
+// }
 
-export type CovTypeNames = 'building' | 'otherStructures' | 'contents' | 'BI';
+export const Limits = z.object({
+  limitA: z
+    .number()
+    .int()
+    .min(100000, 'limitA must be > $100k')
+    .max(1000000, 'limitA must be < $1M'),
+  limitB: z.number().int().max(1000000, 'limitB must be < $1M'),
+  limitC: z.number().int().max(1000000, 'limitC must be < $1M'),
+  limitD: z.number().int().max(1000000, 'limitD must be < $1M'),
+});
+export type Limits = z.infer<typeof Limits>;
 
-export type RCVKeys = CovTypeNames | 'total';
+const LimitTypes = Limits.keyof();
+export type LimitTypes = z.infer<typeof LimitTypes>;
 
-export type RCVs = Record<RCVKeys, number>;
+export const RCVs = z.object({
+  building: z.number().int().min(100000),
+  otherStructures: z.number().int().nonnegative(),
+  contents: z.number().int().nonnegative(),
+  BI: z.number().int().nonnegative(),
+  total: z.number().int().nonnegative(),
+});
+export type RCVs = z.infer<typeof RCVs>;
+
+export const RCVKeys = RCVs.keyof();
+export type RCVKeys = z.infer<typeof RCVKeys>;
+
+export const Deductible = z.number().int().min(1000);
+export type Deductible = z.infer<typeof Deductible>;
 
 export type FloodPerilCategories = 'inland' | 'surge' | 'tsunami';
 
 // TODO: finish adding tsunami
 export type ValueByRiskType = Record<FloodPerilCategories, number>; // & { tsunami?: number };
 
-// export type FloodZones = 'A' | 'B' | 'C' | 'D' | 'V' | 'X' | 'AE' | 'AO' | 'AH' | 'AR' | 'VE';
-
-export const FloodZones = z.enum(['A', 'B', 'C', 'D', 'V', 'X', 'AE', 'AO', 'AH', 'AR', 'VE']);
-export type FloodZones = z.infer<typeof FloodZones>;
+// TODO: derive getAAL props from RatingPropertyData ??
+const currentYear = new Date().getFullYear();
+export const RatingPropertyData = z.object({
+  CBRSDesignation: CBRSDesignation,
+  basement: Basement,
+  distToCoastFeet: z.number(),
+  floodZone: FloodZone,
+  numStories: z.number().int().nonnegative(),
+  propertyCode: z.string(),
+  replacementCost: z.number(),
+  sqFootage: z.number(),
+  yearBuilt: z
+    .number()
+    .min(1900, 'year built must be > 1900')
+    .max(currentYear + 1, `yearBuilt must be < ${currentYear + 1}`),
+  FFH: z.number().int().optional(),
+  priorLossCount: PriorLossCount.optional().nullable().default(null),
+});
+export type RatingPropertyData = z.infer<typeof RatingPropertyData>;
 
 export type UWNoteCode = 'requires-review' | 'not-ratable' | 'info' | 'unknown';
 
@@ -407,20 +513,19 @@ export interface FloodFormValues {
   userAcceptance: boolean;
 }
 
-// TODO: derive getAAL props from RatingPropertyData ??
-export interface RatingPropertyData {
-  CBRSDesignation: string;
-  basement: string;
-  distToCoastFeet: number;
-  floodZone: string;
-  numStories: number;
-  propertyCode: string;
-  replacementCost: number;
-  sqFootage: number;
-  yearBuilt: number;
-  FFH?: number;
-  priorLossCount?: string | null;
-}
+// export interface RatingPropertyData {
+//   CBRSDesignation: string;
+//   basement: string;
+//   distToCoastFeet: number;
+//   floodZone: string;
+//   numStories: number;
+//   propertyCode: string;
+//   replacementCost: number;
+//   sqFootage: number;
+//   yearBuilt: number;
+//   FFH?: number;
+//   priorLossCount?: string | null;
+// }
 
 // determine which fields are required for rerating & only make those required. Add Rating doc when importing policies / quotes
 // use discriminating union type: 'rating' | 'premium-recalc' ??
@@ -507,32 +612,64 @@ export interface NamedInsuredDetails {
   userId?: string | null;
 }
 
-export interface AgentDetails {
-  userId: string | null; // TODO: use userId ??
-  name: string;
-  email: string;
-  phone: string | null;
-}
+// export interface AgentDetails {
+//   userId: string | null; // TODO: use userId ??
+//   name: string;
+//   email: string;
+//   phone: string | null;
+// }
 
-export interface AgencyDetails {
-  orgId: string; //  | null; // TODO: remove null once agency being set in system (set to idemand if agent not set) ??
-  name: string; //  | null;
-  address: Address;
-}
+// export interface AgencyDetails {
+//   orgId: string; //  | null; // TODO: remove null once agency being set in system (set to idemand if agent not set) ??
+//   name: string; //  | null;
+//   address: Address;
+// }
 
-export interface AdditionalInsured {
-  name: string;
-  email: string;
-  address?: Nullable<Address> | null;
-}
-// other interest - types = mortgagee | other interest
-export interface Mortgagee {
-  name: string;
-  contactName: string;
-  email: string;
-  loanNumber: string;
-  address?: Nullable<Address> | null;
-}
+export const AgentDetails = z.object({
+  name: z.string(),
+  email: z.string().email(),
+  phone: Phone.nullable(),
+  userId: z.string(), // TODO: userId --> use z.uuid() ??
+});
+export type AgentDetails = z.infer<typeof AgentDetails>;
+
+export const AgencyDetails = z.object({
+  name: z.string(),
+  orgId: z.string(),
+  address: Address,
+});
+export type AgencyDetails = z.infer<typeof AgencyDetails>;
+
+// export interface AdditionalInsured {
+//   name: string;
+//   email: string;
+//   address?: Nullable<Address> | null;
+// }
+// // other interest - types = mortgagee | other interest
+// export interface Mortgagee {
+//   name: string;
+//   contactName: string;
+//   email: string;
+//   loanNumber: string;
+//   address?: Nullable<Address> | null;
+// }
+
+export const AdditionalInsured = z.object({
+  name: z.string(),
+  email: z.string().email(),
+  address: z.nullable(Address).optional().nullable(),
+});
+export type AdditionalInsured = z.infer<typeof AdditionalInsured>;
+
+export const Mortgagee = z.object({
+  name: z.string(),
+  contactName: z.string(),
+  email: z.string().email(),
+  loanNumber: z.string(),
+  address: z.nullable(Address).optional().nullable(),
+});
+export type Mortgagee = z.infer<typeof Mortgagee>;
+
 // decide whether to use discriminating union type
 // could use on front end for input component
 // then split in submit
@@ -551,44 +688,76 @@ export interface Note {
   created: Timestamp;
 }
 
-export type SubjectBaseItems =
-  | 'premium'
-  | 'inspectionFees'
-  | 'mgaFees'
-  | 'outStatePremium'
-  | 'homeStatePremium'
-  | 'fixedFee'
-  | 'noFee';
+export const MGACommissionPct = z
+  .number()
+  .min(0.05, 'Commission must be >= 0.05')
+  .max(0.2, 'Commission must be <= 20%');
+export type MGACommissionPct = z.infer<typeof MGACommissionPct>;
 
-export type RoundingType = 'nearest' | 'up' | 'down';
+// export type SubjectBaseItems =
+//   | 'premium'
+//   | 'inspectionFees'
+//   | 'mgaFees'
+//   | 'outStatePremium'
+//   | 'homeStatePremium'
+//   | 'fixedFee'
+//   | 'noFee';
 
-export type TaxItemName =
-  | 'Premium Tax'
-  | 'Service Fee'
-  | 'Stamping Fee'
-  | 'Regulatory Fee'
-  | 'Windpool Fee'
-  | 'Surcharge'
-  | 'EMPA Surcharge'
-  | 'Bureau of Insurance Assessment';
+// export type RoundingType = 'nearest' | 'up' | 'down';
 
-export interface TaxItem {
-  displayName: TaxItemName;
-  rate: number;
-  value: number;
-  subjectBase: SubjectBaseItems[];
-  baseDigits?: number;
-  resultDigits?: number;
-  baseRoundType?: RoundingType;
-  resultRoundType?: RoundingType;
-}
+// export type TaxItemName =
+//   | 'Premium Tax'
+//   | 'Service Fee'
+//   | 'Stamping Fee'
+//   | 'Regulatory Fee'
+//   | 'Windpool Fee'
+//   | 'Surcharge'
+//   | 'EMPA Surcharge'
+//   | 'Bureau of Insurance Assessment';
 
-export type FeeItemName = 'Inspection Fee' | 'MGA Fee' | 'UW Adjustment';
+// export interface TaxItem {
+//   displayName: TaxItemName;
+//   rate: number;
+//   value: number;
+//   subjectBase: SubjectBaseItems[];
+//   baseDigits?: number;
+//   resultDigits?: number;
+//   baseRoundType?: RoundingType;
+//   resultRoundType?: RoundingType;
+// }
 
-export interface FeeItem {
-  feeName: FeeItemName;
-  value: number;
-}
+export const TaxItem = z.object({
+  displayName: TaxItemName,
+  rate: z.number(),
+  value: z.number(),
+  subjectBase: z.array(SubjectBaseItems),
+  baseDigits: z.number().int().optional().default(2),
+  resultDigits: z.number().int().optional().default(2),
+  baseRoundType: RoundingType.optional(),
+  resultRoundType: RoundingType.default('nearest'),
+});
+export type TaxItem = z.infer<typeof TaxItem>;
+
+export const Tax = TaxItem.and(
+  z.object({
+    state: State,
+    effectiveDate: Timestamp,
+    expirationDate: Timestamp.optional().nullable(),
+    LOB: z.array(LineOfBusiness),
+    products: z.array(Product),
+    transactionTypes: z.array(TransactionType),
+    rateType: TaxRateType,
+    refundable: z.boolean(),
+    metadata: BaseMetadata,
+  })
+);
+export type Tax = z.infer<typeof Tax>;
+
+export const FeeItem = z.object({
+  feeName: FeeItemName,
+  value: z.number(),
+});
+export type FeeItem = z.infer<typeof FeeItem>;
 
 export interface Quote extends BaseDoc {
   product: Product;
@@ -632,12 +801,20 @@ export interface Quote extends BaseDoc {
   };
 }
 
-export interface SLProdOfRecordDetails {
-  name: string;
-  licenseNum: string;
-  licenseState: string;
-  phone: string;
-}
+// export interface SLProdOfRecordDetails {
+//   name: string;
+//   licenseNum: string;
+//   licenseState: string;
+//   phone: string;
+// }
+
+export const SLProdOfRecordDetails = z.object({
+  name: z.string(),
+  licenseNum: z.string(),
+  licenseState: State,
+  phone: Phone.optional().nullable(),
+});
+export type SLProdOfRecordDetails = z.infer<typeof SLProdOfRecordDetails>;
 
 export type LocationImages = Record<LocationImageTypes, string>;
 
@@ -705,23 +882,26 @@ export interface Policy extends BaseDoc {
   quoteId?: string | null;
 }
 
-export interface CompressedAddress {
-  s1: string;
-  s2: string;
-  c: string;
-  st: string;
-  p: string;
-}
+// export interface PolicyLocation {
+//   termPremium: number;
+//   // TODO: add annualPremium
+//   address: CompressedAddress;
+//   coords: GeoPoint;
+//   cancelEffDate?: Timestamp | null;
+//   version?: number; // TODO: remove optional
+//   // lcnDocId: string;
+// }
 
-export interface PolicyLocation {
-  termPremium: number;
+export const PolicyLocation = z.object({
+  termPremium: z.number().min(100, 'term premium must be > 100'),
   // TODO: add annualPremium
-  address: CompressedAddress;
-  coords: GeoPoint;
-  cancelEffDate?: Timestamp | null;
-  version?: number; // TODO: remove optional
-  // lcnDocId: string;
-}
+  address: CompressedAddress,
+  coords: GeoPoint,
+  cancelEffDate: Timestamp.optional().nullable(),
+  version: z.number().optional(),
+});
+export type PolicyLocation = z.infer<typeof PolicyLocation>;
+
 export type LcnWithTermPrem = PartialRequired<ILocation, 'termPremium'>;
 export type PolicyLcnWithPrem = PartialRequired<PolicyLocation, 'termPremium'>;
 
@@ -730,38 +910,70 @@ export type PolicyLcnWithPrem = PartialRequired<PolicyLocation, 'termPremium'>;
 // TODO: replace status with bound,
 // TODO: separate out payment status
 // TODO: separate out payment/charge/invoice info from policy ?? (only save reference to payment object)
-export interface PolicyNew extends BaseDoc {
-  product: Product;
-  status: POLICY_STATUS; // TODO: figure out how to do policy status (active, etc.)
-  // paymentStatus: string; // TODO: payment enum
-  paymentStatus: PaymentStatus;
-  term: number;
-  mailingAddress: MailingAddress;
-  namedInsured: NamedInsured;
-  locations: Record<string, PolicyLocation>;
-  homeState: string;
+// export interface PolicyNew extends BaseDoc {
+//   product: Product;
+//   status: POLICY_STATUS; // TODO: figure out how to do policy status (active, etc.)
+//   // paymentStatus: string; // TODO: payment enum
+//   paymentStatus: PaymentStatus;
+//   term: number;
+//   mailingAddress: MailingAddress;
+//   namedInsured: NamedInsured;
+//   locations: Record<string, PolicyLocation>;
+//   homeState: string;
+
+//   termPremium: number; // sum of active location(s) term premium
+//   termPremiumWithCancels: number; // TODO: rename termPremium ?? termPremiumActive??
+//   inStatePremium?: number;
+//   outStatePremium?: number;
+//   termDays: number;
+//   fees: FeeItem[];
+//   taxes: TaxItem[];
+//   price: number; // sum of term premium, taxes, fees
+//   effectiveDate: Timestamp;
+//   expirationDate: Timestamp;
+//   cancelEffDate?: Timestamp | null;
+//   cancelReason?: CancellationReason;
+//   userId: string | null;
+//   agent: AgentDetails;
+//   agency: AgencyDetails;
+//   surplusLinesProducerOfRecord: SLProdOfRecordDetails;
+//   // TODO: add address to carrier CarrierDetails: name, address
+//   issuingCarrier: string; // INSURER NAME ONLY OR NAME AND ID ??
+//   documents: { displayName: string; downloadUrl: string; storagePath: string }[];
+//   quoteId?: string | null;
+// }
+
+export const PolicyNew = z.object({
+  product: Product,
+  paymentStatus: PaymentStatus,
+  term: z.number(),
+  namedInsured: NamedInsured,
+  mailingAddress: MailingAddress,
+  locations: z.record(PolicyLocation),
+  homeState: State,
+  termPremium: z.number().min(100, 'term premium must be > 100'),
+  termPremiumWithCancels: z.number(),
   // TODO: annualPremiumActiveLocations ??
-  termPremium: number; // sum of active location(s) term premium
-  termPremiumWithCancels: number; // TODO: rename termPremium ?? termPremiumActive??
-  inStatePremium?: number;
-  outStatePremium?: number;
-  termDays: number;
-  fees: FeeItem[];
-  taxes: TaxItem[];
-  price: number; // sum of term premium, taxes, fees
-  effectiveDate: Timestamp;
-  expirationDate: Timestamp;
-  cancelEffDate?: Timestamp | null;
-  cancelReason?: CancellationReason;
-  userId: string | null;
-  agent: AgentDetails;
-  agency: AgencyDetails;
-  surplusLinesProducerOfRecord: SLProdOfRecordDetails;
+  inStatePremium: z.number(),
+  outStatePremium: z.number(),
+  termDays: z.number().nonnegative(),
+  fees: z.array(FeeItem),
+  taxes: z.array(TaxItem),
+  price: z.number(),
+  effectiveDate: Timestamp,
+  expirationDate: Timestamp,
+  cancelEffDate: Timestamp.optional().nullable(),
+  cancelReason: CancelReason.optional().nullable(),
+  userId: z.string(),
+  agent: AgentDetails,
+  agency: AgencyDetails,
+  surplusLinesProducerOfRecord: SLProdOfRecordDetails,
   // TODO: add address to carrier CarrierDetails: name, address
-  issuingCarrier: string; // INSURER NAME ONLY OR NAME AND ID ??
-  documents: { displayName: string; downloadUrl: string; storagePath: string }[];
-  quoteId?: string | null;
-}
+  issuingCarrier: z.string(),
+  quoteId: z.string().nullable(),
+  metadata: BaseMetadata,
+});
+export type PolicyNew = z.infer<typeof PolicyNew>;
 
 export interface IPolicyClass extends Policy {
   getLocation: (id: string) => any; // TODO LOCATION INTERFACE
@@ -1009,7 +1221,7 @@ export class PolicyClass implements IPolicyClass {
 // }
 
 export interface PolicyChangeValues {
-  namedInsured: Omit<EntityNamedInsured, 'userId' | 'orgId'>;
+  namedInsured: Omit<NamedInsured, 'userId' | 'orgId'>;
   mailingAddress: Address;
   effectiveDate: Date | null;
   expirationDate: Date | null; // TODO: ability to request date changes ??
@@ -1251,55 +1463,37 @@ export interface TrxRatingData extends RatingPropertyData {
   units: number | null;
   tier1: boolean | null;
   construction: string;
-  priorLossCount: string | null;
+  // priorLossCount: string | null;
 }
 
-// New
-// Renewal
-// Endorsement (change w/ premium)
-// Amendment (change w/o premium)
-// Cancellation
-// Flat Cancel (cancel to effective date - return of all premium and fees)
-// Reinstatement
-
-export type ChangeRequestTrxType =
-  | 'endorsement' // change w/ premium
-  | 'amendment' // change w/o premium
-  | 'cancellation'
-  | 'flat_cancel'
-  | 'reinstatement';
-
-export type TransactionType = ChangeRequestTrxType | 'new' | 'renewal';
-
-// export type TransactionType =
-//   | 'new'
-//   | 'renewal'
-//   | 'endorsement' // change w/ premium // 'prem_endorsement'
-//   // | 'non_prem_endorsement'
-//   | 'amendment' // change w/o premium
+// export type ChangeRequestTrxType =
+//   | 'endorsement'
+//   | 'amendment'
 //   | 'cancellation'
 //   | 'flat_cancel'
 //   | 'reinstatement';
 
-export type LineOfBusiness = 'commercial' | 'residential';
+// export type TransactionType = ChangeRequestTrxType | 'new' | 'renewal';
 
-export interface Tax extends BaseDoc {
-  state: string;
-  displayName: string;
-  effectiveDate: Timestamp;
-  expirationDate?: Timestamp | null;
-  LOB: LineOfBusiness[];
-  products: Product[];
-  transactionTypes: TransactionType[];
-  subjectBase: SubjectBaseItems[];
-  baseRoundType?: RoundingType;
-  baseDigits?: number;
-  resultRoundType: RoundingType;
-  resultDigits?: number;
-  rate: number;
-  rateType: 'fixed' | 'percent';
-  refundable?: boolean;
-}
+// export type LineOfBusiness = 'commercial' | 'residential';
+
+// export interface Tax extends BaseDoc {
+//   state: string;
+//   displayName: string;
+//   effectiveDate: Timestamp;
+//   expirationDate?: Timestamp | null;
+//   LOB: LineOfBusiness[];
+//   products: Product[];
+//   transactionTypes: TransactionType[];
+//   subjectBase: SubjectBaseItems[];
+//   baseRoundType?: RoundingType;
+//   baseDigits?: number;
+//   resultRoundType: RoundingType;
+//   resultDigits?: number;
+//   rate: number;
+//   rateType: 'fixed' | 'percent';
+//   refundable?: boolean;
+// }
 
 // TODO: create transaction class ?? like mongoose constructor ??
 
@@ -1629,7 +1823,7 @@ export type LicenseOwner = 'individual' | 'organization';
 export type LicenseType = 'producer' | 'surplus lines' | 'MGA' | 'Tax ID';
 
 export interface License extends BaseDoc {
-  state: string;
+  state: State;
   ownerType: LicenseOwner;
   licensee: string;
   licenseType: LicenseType;

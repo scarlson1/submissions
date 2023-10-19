@@ -2,14 +2,20 @@ import { GeoPoint } from 'firebase-admin/firestore';
 import {
   AmendmentTransaction,
   BaseTransaction,
+  Basement,
+  CBRSDesignation,
   CancellationReason,
   DeepNullable,
+  FloodZone,
   ILocation,
+  Nullable,
   OffsetTransaction,
   OffsetTrxType,
   PremTrxType,
   PremiumTransaction,
+  PriorLossCount,
   Product,
+  RatingPropertyData,
   Transaction,
   extractNumber,
   extractNumberNeg,
@@ -187,7 +193,7 @@ function csvRowToInsuredLocation(row: TrxRow): DeepNullable<Omit<ILocation, 'met
     additionalInsureds: [], // TODO
     mortgageeInterest: [],
     ratingDocId: row.ratingDocId || null,
-    ratingPropertyData: csvRatingPropertyData(row),
+    ratingPropertyData: csvRatingPropertyData(row) as Nullable<RatingPropertyData>,
     effectiveDate: null,
     expirationDate: null,
     cancelEffDate: null,
@@ -225,13 +231,14 @@ function csvRowCommon(row: TrxRow): DeepNullable<Omit<BaseTransaction, 'metadata
   };
 }
 
+// TODO: zod parse instead of "as" assertions
 function csvRatingPropertyData(row: TrxRow) {
   return {
     replacementCost: row.replacementCost ? extractNumber(row.replacementCost) : null,
-    CBRSDesignation: row.cbrsDesignation || null,
-    basement: row.basement || null,
+    CBRSDesignation: (row.cbrsDesignation as CBRSDesignation) || null,
+    basement: (row.basement as Basement) || null,
     distToCoastFeet: row.distToCoastFeet ? extractNumber(row.distToCoastFeet) : null,
-    floodZone: row.floodZone || null,
+    floodZone: (row.floodZone as FloodZone) || null,
     numStories: row.numStories ? extractNumber(row.numStories) : null,
     propertyCode: row.propertyCode || null,
     sqFootage: row.sqFootage ? extractNumber(row.sqFootage) : null,
@@ -240,6 +247,6 @@ function csvRatingPropertyData(row: TrxRow) {
     units: row.units ? extractNumber(row.units) : null,
     tier1: row.tier1 ? row.tier1.toLowerCase() === 'true' : null,
     construction: row.construction || null,
-    priorLossCount: row.priorLossCount || null,
+    priorLossCount: (row.priorLossCount as PriorLossCount) || null,
   };
 }
