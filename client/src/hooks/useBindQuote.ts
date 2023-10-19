@@ -8,7 +8,7 @@ import { createPolicy, executePayment } from 'api';
 //    - run before final step ??
 //    - display errors in review step ??
 
-// TODO: save policy locations in array
+// handle resubmit after payment failure (avoid duplicate policies)
 
 export const useBindQuote = (
   onSuccess?: (policyId: string) => void,
