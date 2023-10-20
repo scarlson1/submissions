@@ -262,7 +262,7 @@ export const POLICY_IMPORT_REQUIRED_HEADERS = [
   'techPremiumTsunami',
 ];
 
-export const TrxRow = z.object({
+export const TrxImportRow = z.object({
   trxType: z.string(), // TransactionType,
   product: z.string(), // Product,
   policyId: z.string(),
@@ -337,11 +337,11 @@ export const TrxRow = z.object({
   techPremiumSurge: z.string(),
   techPremiumTsunami: z.string(),
 });
-export type TTrxRow = z.infer<typeof TrxRow>;
+export type TTrxImportRow = z.infer<typeof TrxImportRow>;
 
 export const TRANSACTION_IMPORT_REQUIRED_HEADERS = Object.keys(
-  TrxRow.omit({ insuredCountyFips: true, insuredCountyName: true }).shape
-) as (keyof typeof TrxRow)[];
+  TrxImportRow.omit({ insuredCountyFips: true, insuredCountyName: true }).shape
+) as (keyof typeof TrxImportRow)[];
 
 // export const TRANSACTION_IMPORT_REQUIRED_HEADERS = [
 //   'trxType',
