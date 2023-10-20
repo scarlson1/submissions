@@ -159,104 +159,102 @@ function TestAgencyInsureds({ orgId }: { orgId: string }) {
     { suspense: false, idField: 'policyId' }
   );
 
-  return (
-    <>
-      <Typography sx={{ py: 3 }} variant='h6'>
-        Test agency insureds
-      </Typography>
-      <Typography sx={{ py: 2 }}>RxJs Observable - Policy combined with user (docJoin)</Typography>
-      <Typography variant='body2' color='text.secondary' sx={{ pb: 2 }}>
-        (hard coded policyId "YBdp0k6fji8acPQVBgvG" for testing)
-      </Typography>
-      <Typography variant='body2' color='text.secondary' component='div'>
-        {docJoinStatus === 'loading' ? (
-          <div>loading docJoin Observable...</div>
-        ) : (
-          // <pre>{JSON.stringify(docJoinData, null, 2)}</pre>
-          <ReactJson
-            src={docJoinData as object}
-            style={{ backgroundColor: 'inherit' }}
-            theme={theme}
-            iconStyle='circle'
-            // enableClipboard={(data) => copy(data.src, true)}
-            enableClipboard={false}
-            collapseStringsAfterLength={30}
-          />
-        )}
-      </Typography>
-      <hr />
-      <Typography sx={{ py: 2 }}>
-        RxJs Observable - Policy combined with submissions, joined on userId (innerJoin)
-      </Typography>
-      <Typography variant='body2' color='text.secondary' sx={{ pb: 2 }}>
-        (hard coded orgId "123" for testing)
-      </Typography>
-      <Typography variant='body2' color='text.secondary' component='div'>
-        {innerJoinStatus === 'loading' ? (
-          <div>loading innerJoin Observable...</div>
-        ) : (
-          // <pre>{JSON.stringify(innerJoinData, null, 2)}</pre>
-          <ReactJson
-            src={innerJoinData as object}
-            style={{ backgroundColor: 'inherit' }}
-            theme={theme}
-            iconStyle='circle'
-            enableClipboard={false}
-            collapseStringsAfterLength={30}
-          />
-        )}
-      </Typography>
-      <hr />
-      <Typography sx={{ py: 2 }}>
-        RxJs Observable - Policy combined with user (not working - only returns first policy)
-      </Typography>
-      <Typography variant='body2' color='text.secondary' component='div'>
-        {status === 'loading' ? (
-          <div>loading...</div>
-        ) : (
-          // <pre>{JSON.stringify(data, null, 2)}</pre>
-          <ReactJson
-            src={data as object}
-            style={{ backgroundColor: 'inherit' }}
-            theme={theme}
-            iconStyle='circle'
-            enableClipboard={false}
-            collapseStringsAfterLength={30}
-          />
-        )}
-      </Typography>
-      <hr />
-      <Typography sx={{ py: 2 }}>
-        Hook - fetches policies, then fetch users (uses useEffect, not rxjs obverable)
-      </Typography>
-      <Typography variant='subtitle2' sx={{ py: 1 }}>
-        Users
-      </Typography>
-      <Typography variant='body2' color='text.secondary' component='div'>
-        {/* <pre>{JSON.stringify(users, null, 2)}</pre> */}
-        <ReactJson
-          src={users as object}
+  return (<>
+    <Typography sx={{ py: 3 }} variant='h6'>
+      Test agency insureds
+    </Typography>
+    <Typography sx={{ py: 2 }}>RxJs Observable - Policy combined with user (docJoin)</Typography>
+    <Typography variant='body2' color='text.secondary' sx={{ pb: 2 }}>
+      (hard coded policyId "YBdp0k6fji8acPQVBgvG" for testing)
+    </Typography>
+    <Typography variant='body2' color='text.secondary' component='div'>
+      {docJoinStatus === 'loading' ? (
+        <div>loading docJoin Observable...</div>
+      ) : (
+        // <pre>{JSON.stringify(docJoinData, null, 2)}</pre>
+        (<ReactJson
+          src={docJoinData as object}
+          style={{ backgroundColor: 'inherit' }}
+          theme={theme}
+          iconStyle='circle'
+          // enableClipboard={(data) => copy(data.src, true)}
+          enableClipboard={false}
+          collapseStringsAfterLength={30}
+        />)
+      )}
+    </Typography>
+    <hr />
+    <Typography sx={{ py: 2 }}>
+      RxJs Observable - Policy combined with submissions, joined on userId (innerJoin)
+    </Typography>
+    <Typography variant='body2' color='text.secondary' sx={{ pb: 2 }}>
+      (hard coded orgId "123" for testing)
+    </Typography>
+    <Typography variant='body2' color='text.secondary' component='div'>
+      {innerJoinStatus === 'loading' ? (
+        <div>loading innerJoin Observable...</div>
+      ) : (
+        // <pre>{JSON.stringify(innerJoinData, null, 2)}</pre>
+        (<ReactJson
+          src={innerJoinData as object}
           style={{ backgroundColor: 'inherit' }}
           theme={theme}
           iconStyle='circle'
           enableClipboard={false}
           collapseStringsAfterLength={30}
-        />
-      </Typography>
-      <Typography variant='subtitle2' sx={{ py: 1 }}>
-        Policies
-      </Typography>
-      <Typography variant='body2' color='text.secondary' component='div'>
-        {/* <pre>{JSON.stringify(policies, null, 2)}</pre> */}
-        <ReactJson
-          src={policies as object}
+        />)
+      )}
+    </Typography>
+    <hr />
+    <Typography sx={{ py: 2 }}>
+      RxJs Observable - Policy combined with user (not working - only returns first policy)
+    </Typography>
+    <Typography variant='body2' color='text.secondary' component='div'>
+      {status === 'loading' ? (
+        <div>loading...</div>
+      ) : (
+        // <pre>{JSON.stringify(data, null, 2)}</pre>
+        (<ReactJson
+          src={data as object}
           style={{ backgroundColor: 'inherit' }}
           theme={theme}
           iconStyle='circle'
           enableClipboard={false}
           collapseStringsAfterLength={30}
-        />
-      </Typography>
-    </>
-  );
+        />)
+      )}
+    </Typography>
+    <hr />
+    <Typography sx={{ py: 2 }}>
+      Hook - fetches policies, then fetch users (uses useEffect, not rxjs obverable)
+    </Typography>
+    <Typography variant='subtitle2' sx={{ py: 1 }}>
+      Users
+    </Typography>
+    <Typography variant='body2' color='text.secondary' component='div'>
+      {/* <pre>{JSON.stringify(users, null, 2)}</pre> */}
+      <ReactJson
+        src={users as object}
+        style={{ backgroundColor: 'inherit' }}
+        theme={theme}
+        iconStyle='circle'
+        enableClipboard={false}
+        collapseStringsAfterLength={30}
+      />
+    </Typography>
+    <Typography variant='subtitle2' sx={{ py: 1 }}>
+      Policies
+    </Typography>
+    <Typography variant='body2' color='text.secondary' component='div'>
+      {/* <pre>{JSON.stringify(policies, null, 2)}</pre> */}
+      <ReactJson
+        src={policies as object}
+        style={{ backgroundColor: 'inherit' }}
+        theme={theme}
+        iconStyle='circle'
+        enableClipboard={false}
+        collapseStringsAfterLength={30}
+      />
+    </Typography>
+  </>);
 }

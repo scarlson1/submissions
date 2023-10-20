@@ -46,7 +46,7 @@ export const useGridActions = (onError?: (msg: string) => void) => {
   const googleMapsAction = useCallback(
     (params: GridRowParams, options?: ActionOptions) => (
       // @ts-ignore
-      <GridActionsCellItem
+      (<GridActionsCellItem
         icon={
           <Tooltip title='Google maps' placement='top'>
             <MapRounded />
@@ -56,7 +56,7 @@ export const useGridActions = (onError?: (msg: string) => void) => {
         label='Google Maps'
         showInMenu={isSmall}
         {...(options || {})}
-      />
+      />)
     ),
     [openMap, isSmall]
   );
@@ -64,7 +64,7 @@ export const useGridActions = (onError?: (msg: string) => void) => {
   const floodFactorAction = useCallback(
     (params: GridRowParams, options?: ActionOptions) => (
       // @ts-ignore
-      <GridActionsCellItem
+      (<GridActionsCellItem
         icon={
           <Tooltip title='Flood Factor' placement='top'>
             <FloodRounded />
@@ -74,7 +74,7 @@ export const useGridActions = (onError?: (msg: string) => void) => {
         label='Flood Factor'
         showInMenu={isSmall}
         {...(options || {})}
-      />
+      />)
     ),
     [openFloodFactor, isSmall]
   );

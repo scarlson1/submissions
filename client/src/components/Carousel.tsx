@@ -44,7 +44,7 @@ export const DEFAULT_SETTINGS: Settings = {
     //     cursor: 'pointer',
     //   }}
     // >
-    <Box
+    (<Box
       sx={{
         display: 'flex',
         flexDirection: 'column',
@@ -68,7 +68,7 @@ export const DEFAULT_SETTINGS: Settings = {
           // backgroundColor: 'currentcolor',
         }}
       />
-    </Box>
+    </Box>)
     // </Box>
   ),
   // customPaging: (i) => (

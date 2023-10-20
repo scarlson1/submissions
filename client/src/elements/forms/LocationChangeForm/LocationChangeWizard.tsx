@@ -121,7 +121,8 @@ export const LocationChangeWizard = ({
 
   return (
     // <Container maxWidth='md' sx={{ py: 8 }} disableGutters>
-    <Wizard maxWidth='md'>
+    // </Container>
+    (<Wizard maxWidth='md'>
       <LocationChangesStep
         // initialValues={initialValues.current}
         initialValues={{
@@ -175,7 +176,6 @@ export const LocationChangeWizard = ({
           </Button>
         </Box>
       </Box>
-    </Wizard>
-    // </Container>
+    </Wizard>)
   );
 };

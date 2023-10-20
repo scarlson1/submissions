@@ -25,7 +25,7 @@ export function SearchResults({ query = '', ...props }: SearchResultsProps) {
       query,
       hitsPerPage: 5,
       staleTime: 1000 * 60, // 60s
-      cacheTime: 1000 * 60 * 15, // 15m
+      gcTime: 1000 * 60 * 15, // 15m
       enabled: !!query,
       ...props,
     });

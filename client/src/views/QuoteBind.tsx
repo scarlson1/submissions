@@ -723,10 +723,10 @@ const getPaymentIcon = (pmtType: any, color: any) => {
       return <RiVisaLine {...sizeProps} />;
     case 'Ach':
       return (
-        <AccountBalanceRounded sx={{ fontSize: sizeProps.size, color: sizeProps.style.fill }} />
         // <div style={{ fontSize: sizeProps.size, ...sizeProps.style}}>
         // <AccountBalanceRounded fontSize='inherit' />
         // </div>
+        (<AccountBalanceRounded sx={{ fontSize: sizeProps.size, color: sizeProps.style.fill }} />)
       );
     default:
       return <MdPayments {...sizeProps} />;

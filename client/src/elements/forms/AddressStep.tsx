@@ -97,7 +97,8 @@ export const AddressStep = ({
   }, [registerEmailDialog]);
 
   return (
-    <>
+    // </FormikAddress>
+    (<>
       <FormikAddress cb={addressChangeCb} gridProps={gridProps} {...props} />
       {!!withMap && (
         <>
@@ -153,8 +154,7 @@ export const AddressStep = ({
           </Typography>
         </>
       )}
-    </>
-    // </FormikAddress>
+    </>)
   );
 };
 

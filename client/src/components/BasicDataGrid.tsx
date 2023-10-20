@@ -23,7 +23,7 @@ export const BasicDataGrid = ({
   return (
     // <Box sx={{ display: 'flex', height: '100%' }}>
     // {/* <div style={{ flexGrow: 1, maxWidth: '100%' }}> */}
-    <Box sx={{ width: '100%', height: '100%' }}>
+    (<Box sx={{ width: '100%', height: '100%' }}>
       <DataGrid
         rows={rows}
         columns={columns}
@@ -53,7 +53,7 @@ export const BasicDataGrid = ({
         }}
         {...props}
       />
-    </Box>
+    </Box>)
   );
 };
 

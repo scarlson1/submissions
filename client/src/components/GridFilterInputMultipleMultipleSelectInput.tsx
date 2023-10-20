@@ -138,7 +138,7 @@ export const GridFilterInputMultipleMultipleSelect = (
   );
 
   return (
-    <Autocomplete<ValueOptions, true, false, true>
+    (<Autocomplete<ValueOptions, true, false, true>
       multiple
       options={resolvedValueOptions}
       isOptionEqualToValue={isOptionEqualToValue}
@@ -150,12 +150,12 @@ export const GridFilterInputMultipleMultipleSelect = (
       renderTags={(value, getTagProps) =>
         value.map((option, index) => (
           // @ts-ignore
-          <rootProps.slots.baseChip
+          (<rootProps.slots.baseChip
             variant='outlined'
             size='small'
             label={getOptionLabel(option)}
             {...getTagProps({ index })}
-          />
+          />)
         ))
       }
       renderInput={(params) => (
@@ -174,7 +174,7 @@ export const GridFilterInputMultipleMultipleSelect = (
         />
       )}
       {...other}
-    />
+    />)
   );
 };
 

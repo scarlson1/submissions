@@ -19,48 +19,46 @@ export const RHFFieldArray = ({ inputFields, ...props }: RHFFieldArrayProps) => 
 
   console.log('FIELDS: ', fields);
 
-  return (
-    <>
-      <ul>
-        {fields.map((item, index) => (
-          <Box key={item.id}>
-            <Grid container spacing={3} sx={{ py: 2, width: '100%', flex: '1 1 auto' }}>
-              {inputFields.map((f) => {
-                if (f.inputType === 'text') {
-                  return (
-                    <Grid key={`${f.name}-${index}-${item.id}`} xs={12} sm={6} md={4}>
-                      <RHFTextField
-                        name={`${props.name}.${index}.${f.name}`}
-                        control={props.control}
-                        label={f.label}
-                        textFieldProps={{ fullWidth: true }}
-                      />
-                    </Grid>
-                  );
-                }
-                return null;
-              })}
-              <Grid xs={true}>
-                <Button onClick={() => remove(index)}>remove</Button>
-              </Grid>
+  return (<>
+    <ul>
+      {fields.map((item, index) => (
+        (<Box key={item.id}>
+          <Grid container spacing={3} sx={{ py: 2, width: '100%', flex: '1 1 auto' }}>
+            {inputFields.map((f) => {
+              if (f.inputType === 'text') {
+                return (
+                  <Grid key={`${f.name}-${index}-${item.id}`} xs={12} sm={6} md={4}>
+                    <RHFTextField
+                      name={`${props.name}.${index}.${f.name}`}
+                      control={props.control}
+                      label={f.label}
+                      textFieldProps={{ fullWidth: true }}
+                    />
+                  </Grid>
+                );
+              }
+              return null;
+            })}
+            <Grid xs={true}>
+              <Button onClick={() => remove(index)}>remove</Button>
             </Grid>
-          </Box>
-          // <li key={item.id}>
-          //   {/* <input {...register(`test.${index}.name`)} /> */}
-          //   <RHFTextField
-          //     control={props.control}
-          //     name={`${props.name}.${index}.name`}
-          //     label='test'
-          //   />
+          </Grid>
+        </Box>)
+        // <li key={item.id}>
+        //   {/* <input {...register(`test.${index}.name`)} /> */}
+        //   <RHFTextField
+        //     control={props.control}
+        //     name={`${props.name}.${index}.name`}
+        //     label='test'
+        //   />
 
-          //   <button type='button' onClick={() => remove(index)}>
-          //     Delete
-          //   </button>
-          //   {/* <NestedArray nestIndex={index} {...{ control, register }} /> */}
-          // </li>
-        ))}
-      </ul>
-      <Button onClick={() => append({ firstName: '', lastName: '' })}>append</Button>
-    </>
-  );
+        //   <button type='button' onClick={() => remove(index)}>
+        //     Delete
+        //   </button>
+        //   {/* <NestedArray nestIndex={index} {...{ control, register }} /> */}
+        // </li>
+      ))}
+    </ul>
+    <Button onClick={() => append({ firstName: '', lastName: '' })}>append</Button>
+  </>);
 };

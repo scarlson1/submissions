@@ -208,7 +208,7 @@ export const Policy = () => {
 
   return (
     // TODO: container ?? layout ??
-    <Box sx={{ px: { xs: 2, sm: 4, lg: 10 }, py: 5 }}>
+    (<Box sx={{ px: { xs: 2, sm: 4, lg: 10 }, py: 5 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 2 }}>
         <Typography
           variant='overline'
@@ -438,7 +438,7 @@ export const Policy = () => {
         </Box>
         {/* <Button onClick={handleTest}>Test Policy Dec</Button> */}
       </Box>
-    </Box>
+    </Box>)
   );
 };
 
