@@ -2,6 +2,7 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import {
   CollectionReference,
   QueryConstraint,
+  QueryDocumentSnapshot,
   collection,
   getDocs,
   limit,
@@ -21,7 +22,11 @@ export const useInfiniteDocs = <T>(
 
   const colRef = collection(firestore, colName, ...pathSegments) as CollectionReference<T>;
 
-  const fetchDocs = async ({ pageParam: cursor = null }) => {
+  const fetchDocs = async ({
+    pageParam: cursor,
+  }: {
+    pageParam: QueryDocumentSnapshot<T> | null;
+  }) => {
     const cursorConstraint = cursor ? [startAfter(cursor)] : [];
     const q = query<T>(colRef, ...constraints, ...cursorConstraint, limit(pageSize));
 
@@ -36,6 +41,7 @@ export const useInfiniteDocs = <T>(
   return useInfiniteQuery({
     queryKey: [`infinite-${colName}`, { constraints }, ...pathSegments],
     queryFn: fetchDocs,
+    initialPageParam: null, // 'hack' as unknown as QueryDocumentSnapshot<T>,
     getNextPageParam: (lastPage, pages) => lastPage.nextCursor,
   });
 };

@@ -94,7 +94,7 @@ export const LimitsStep = ({
 
   return (
     // TODO: move container to parent ??
-    <Grid
+    (<Grid
       container
       rowSpacing={{ xs: 4, sm: 6, md: 8 }}
       columnSpacing={{ xs: 6, sm: 9, md: 12 }}
@@ -107,7 +107,6 @@ export const LimitsStep = ({
           </Typography>
         </Grid>
       )}
-
       {limitFields.map((field) => (
         <Grid xs={12} sm={6} key={field.name} {...gridItemProps}>
           <FormikDollarMaskField
@@ -131,6 +130,6 @@ export const LimitsStep = ({
           />
         </Grid>
       ))}
-    </Grid>
+    </Grid>)
   );
 };

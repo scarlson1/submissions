@@ -136,7 +136,7 @@ export const FormikWizard = <T extends FormikValues>({
   };
 
   return (
-    <Formik<T>
+    (<Formik<T>
       initialValues={snapshot}
       initialErrors={currentStep?.props?.initialErrors || {}}
       validationSchema={currentStep.props.validationSchema}
@@ -174,7 +174,7 @@ export const FormikWizard = <T extends FormikValues>({
             <>
               {withStepper && (
                 // <Box sx={{ width: '100%', py: 5 }}>
-                <Container
+                (<Container
                   maxWidth={maxWidth}
                   disableGutters={true}
                   sx={{ py: 4, px: '0 !important' }}
@@ -184,7 +184,7 @@ export const FormikWizard = <T extends FormikValues>({
                     labels={stepperNavProps}
                     setStep={(index: number) => setStepIndex(index)}
                   />
-                </Container>
+                </Container>)
                 // </Box>
               )}
 
@@ -259,7 +259,7 @@ export const FormikWizard = <T extends FormikValues>({
           )}
         </Form>
       )}
-    </Formik>
+    </Formik>)
   );
 };
 

@@ -389,14 +389,14 @@ export const QuoteForm = ({
   );
 
   return (
-    <Formik
-      initialValues={initialValues}
-      validationSchema={validation}
-      onSubmit={onSubmit}
-      innerRef={formikRef}
-      validateOnMount={true}
-      enableReinitialize
-    >
+    (<Formik
+        initialValues={initialValues}
+        validationSchema={validation}
+        onSubmit={onSubmit}
+        innerRef={formikRef}
+        validateOnMount={true}
+        enableReinitialize
+      >
       {({
         dirty,
         isValid,
@@ -1133,7 +1133,7 @@ export const QuoteForm = ({
           </Grid>
         </>
       )}
-    </Formik>
+    </Formik>)
   );
 };
 

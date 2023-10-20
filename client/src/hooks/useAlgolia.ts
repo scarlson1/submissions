@@ -13,12 +13,13 @@ import { useAlgoliaStore } from './useAlgoliaStore';
 //   enabled?: boolean;
 //   // searchOptions:
 // };
+
 export interface UseAlgoliaOptions extends SearchOptions {
   indexName: string;
   query: string;
   hitsPerPage?: number;
   staleTime?: number;
-  cacheTime?: number;
+  gcTime?: number;
   enabled?: boolean;
 }
 
@@ -27,7 +28,7 @@ export function useAlgolia<TData>({
   query,
   hitsPerPage = 10,
   staleTime,
-  cacheTime,
+  gcTime,
   enabled,
   // filters,
   ...props
@@ -39,11 +40,12 @@ export function useAlgolia<TData>({
     queryKey: ['algolia', indexName, query, hitsPerPage, props?.filters || ''],
     queryFn: ({ pageParam }) =>
       search<TData>({ indexName, query, pageParam, hitsPerPage, apiKey, ...props }),
+    initialPageParam: 0,
     getNextPageParam: (lastPage) => lastPage?.nextPage,
     staleTime,
-    cacheTime,
+    gcTime,
     enabled,
-    suspense: false,
+    // suspense: false, // https://tanstack.com/query/latest/docs/react/guides/migrating-to-v5#new-hooks-for-suspense
   });
 
   const hits = queryInfo.data?.pages.map((page) => page.hits).flat();

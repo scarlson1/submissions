@@ -53,7 +53,31 @@ export const SearchButton = forwardRef<HTMLButtonElement, DocSearchButtonProps>(
     }, []);
 
     return (
-      <>
+      // <button
+      //   type='button'
+      //   className='DocSearch DocSearch-Button'
+      //   aria-label={buttonAriaLabel}
+      //   {...props}
+      //   ref={ref}
+      // >
+      //   <span className='DocSearch-Button-Container'>
+      //     <SearchRounded fontSize='small' />
+      //     {/* <SearchIcon /> */}
+      //     <span className='DocSearch-Button-Placeholder'>{buttonText}</span>
+      //   </span>
+      //   <span className='DocSearch-Button-Keys'>
+      //     {key !== null && (
+      //       <>
+      //         <kbd className='DocSearch-Button-Key'>
+      //           {key === ACTION_KEY_DEFAULT ? <KeyboardCommandKeyRounded /> : key}
+      //           {/* {key === ACTION_KEY_DEFAULT ? <ControlKeyIcon /> : key} */}
+      //         </kbd>
+      //         <kbd className='DocSearch-Button-Key'>K</kbd>
+      //       </>
+      //     )}
+      //   </span>
+      // </button>
+      (<>
         <IconButton
           sx={{ mx: { xs: 1, sm: 2, md: 3 }, display: { xs: 'flex', md: 'none' } }}
           onClick={props.onClick}
@@ -62,7 +86,6 @@ export const SearchButton = forwardRef<HTMLButtonElement, DocSearchButtonProps>(
         >
           <SearchRounded fontSize='small' />
         </IconButton>
-
         <Button
           aria-label={buttonAriaLabel}
           startIcon={<SearchRounded fontSize='small' />}
@@ -89,32 +112,7 @@ export const SearchButton = forwardRef<HTMLButtonElement, DocSearchButtonProps>(
             {shortcutKey.toUpperCase()}
           </Shortcut>
         </Button>
-      </>
-      // <button
-      //   type='button'
-      //   className='DocSearch DocSearch-Button'
-      //   aria-label={buttonAriaLabel}
-      //   {...props}
-      //   ref={ref}
-      // >
-      //   <span className='DocSearch-Button-Container'>
-      //     <SearchRounded fontSize='small' />
-      //     {/* <SearchIcon /> */}
-      //     <span className='DocSearch-Button-Placeholder'>{buttonText}</span>
-      //   </span>
-
-      //   <span className='DocSearch-Button-Keys'>
-      //     {key !== null && (
-      //       <>
-      //         <kbd className='DocSearch-Button-Key'>
-      //           {key === ACTION_KEY_DEFAULT ? <KeyboardCommandKeyRounded /> : key}
-      //           {/* {key === ACTION_KEY_DEFAULT ? <ControlKeyIcon /> : key} */}
-      //         </kbd>
-      //         <kbd className='DocSearch-Button-Key'>K</kbd>
-      //       </>
-      //     )}
-      //   </span>
-      // </button>
+      </>)
     );
   }
 );

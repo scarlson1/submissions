@@ -111,13 +111,13 @@ export function PropertyRatingDataStep({
   }, [claims, policy]);
 
   return (
-    <Formik
-      {...props}
-      onSubmit={handleStepSubmit}
-      validationSchema={addLocationRatingPropertyVal}
-      validateOnMount
-      enableReinitialize
-    >
+    (<Formik
+        {...props}
+        onSubmit={handleStepSubmit}
+        validationSchema={addLocationRatingPropertyVal}
+        validateOnMount
+        enableReinitialize
+      >
       {({ handleSubmit, submitForm }) => (
         <Form onSubmit={handleSubmit}>
           <Box sx={{ py: 5 }}>
@@ -235,6 +235,6 @@ export function PropertyRatingDataStep({
           </Box>
         </Form>
       )}
-    </Formik>
+    </Formik>)
   );
 }

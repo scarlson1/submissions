@@ -53,7 +53,7 @@ export const ContactList = ({ items }: ContactCardProps) => {
 
 export const DisplayFilename = ({ file }: { file: File }) => {
   return (
-    <Box sx={{ display: 'flex', minWidth: 0, maxWidth: { xs: 260, sm: 600 } }}>
+    (<Box sx={{ display: 'flex', minWidth: 0, maxWidth: { xs: 260, sm: 600 } }}>
       <Typography sx={{ textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden' }}>
         {/* eslint-disable-next-line */}
         {file.name.replace(/^.*[\\\/]/, '').split('.')[0]}
@@ -61,7 +61,7 @@ export const DisplayFilename = ({ file }: { file: File }) => {
       <Typography component='span' sx={{ flexShrink: 0 }}>
         {`.${file.type.replace(/(.*)\//g, '')}`}
       </Typography>
-    </Box>
+    </Box>)
   );
 };
 

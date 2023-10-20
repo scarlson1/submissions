@@ -21,10 +21,10 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import axios, { AxiosRequestConfig } from 'axios';
 import { Color, GeoJsonLayer, IconLayer, PickingInfo } from 'deck.gl/typed';
+import { Timestamp, where } from 'firebase/firestore';
 import { useCallback, useState } from 'react';
 
 import { State } from 'common/statesList';
-import { Timestamp, where } from 'firebase/firestore';
 import { useCollectionData } from 'hooks';
 import { CoordObj, getPlaceMarker, getRGBAArray, stringToColor, svgToDataURL } from 'modules/utils';
 import { DeckMap } from './DeckMap';
@@ -201,7 +201,7 @@ export const useActiveEvents = (filters: ActiveEventsParams) =>
     queryKey: ['activeEvents', { ...filters }],
     queryFn: async ({ queryKey }) => fetchActiveEvents(queryKey[1]),
     // initialData: { type: 'FeatureCollection', features: [] },
-    suspense: false,
+    // suspense: false,
   });
 
 // zoom to bounds once data loaded ?? or query ??

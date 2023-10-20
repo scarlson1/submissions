@@ -19,7 +19,7 @@ function LinkTab({ to, label, ...props }: LinkTabProps) {
   // HACK: fix ts error when passing along props
   return (
     // @ts-ignore
-    <Tab label={label} component={RouterLink} to={to} {...props} />
+    (<Tab label={label} component={RouterLink} to={to} {...props} />)
   );
 }
 

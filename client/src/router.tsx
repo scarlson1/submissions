@@ -728,7 +728,7 @@ export const router = sentryCreateBrowserRouter([
         path: 'admin',
         element: (
           // <RequireAuthReactFire signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}>
-          <Layout withBreadcrumbs={true} containerProps={{ maxWidth: 'xl' }} />
+          (<Layout withBreadcrumbs={true} containerProps={{ maxWidth: 'xl' }} />)
           // </RequireAuthReactFire>
         ),
         errorElement: <RouterErrorBoundary />,
@@ -1070,7 +1070,7 @@ export const router = sentryCreateBrowserRouter([
           {
             path: 'search',
             element: (
-              <TempWrappedSearch />
+              (<TempWrappedSearch />)
               // <Search
               //   appId={process.env.REACT_APP_ALGOLIA_APP_ID as string}
               //   apiKey={process.env.REACT_APP_ALGOLIA_SEARCH_KEY as string}
@@ -1084,7 +1084,7 @@ export const router = sentryCreateBrowserRouter([
             path: 'config',
             element: (
               // <RequireAuthReactFire signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}>
-              <ConfigLayout />
+              (<ConfigLayout />)
               // </RequireAuthReactFire>
             ),
             errorElement: <RouterErrorBoundary />,
