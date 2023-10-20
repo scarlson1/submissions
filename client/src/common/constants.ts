@@ -124,6 +124,8 @@ export const CONTEXT_DIALOG_DEFAULT_SLOT_PROPS: DialogSlotProps = {
   },
 };
 
+// TODO: use zod import types to derive required headers
+
 export const QUOTE_IMPORT_REQUIRED_HEADERS = [
   'product',
   'limitA',

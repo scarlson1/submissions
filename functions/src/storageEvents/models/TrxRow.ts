@@ -1,10 +1,8 @@
 import { z } from 'zod';
 
-import { Product, TransactionType } from '../../common/index.js';
-
 export const TrxRow = z.object({
-  trxType: TransactionType,
-  product: Product,
+  trxType: z.string(), // TransactionType,
+  product: z.string(), // Product,
   policyId: z.string(),
   // locationId: string;
   externalId: z.string(),

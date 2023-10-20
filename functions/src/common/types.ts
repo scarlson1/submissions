@@ -488,6 +488,7 @@ export const RatingPropertyData = z.object({
     .max(currentYear + 1, `yearBuilt must be < ${currentYear + 1}`),
   FFH: z.number().int().optional(),
   priorLossCount: PriorLossCount.optional().nullable().default(null),
+  units: z.coerce.number().optional().nullable(),
 });
 export type RatingPropertyData = z.infer<typeof RatingPropertyData>;
 
