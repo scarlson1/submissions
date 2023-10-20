@@ -1,5 +1,4 @@
 import { warn } from 'firebase-functions/logger';
-import { printObj } from '../../common/index.js';
 import { ParsedPolicyRow } from '../models/index.js';
 
 export function validatePolicyRowZod(row: unknown) {
@@ -9,7 +8,6 @@ export function validatePolicyRowZod(row: unknown) {
     ParsedPolicyRow.parse(row);
     return true;
   } catch (err: any) {
-    printObj(err); // PREDEPLOY: delete printObj
     warn(`Row validation failed`, { err });
     return false;
   }

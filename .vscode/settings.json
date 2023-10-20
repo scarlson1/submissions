@@ -303,9 +303,9 @@
     "Yuba"
   ],
   "cSpell.ignoreWords": ["SQFT"],
-  "todo-tree.general.tags": ["TODO", "FIXME", "REVIEW", "HACK", "REF", "WARN", "PREDEPLOY"],
+  "todo-tree.general.tags": ["TODO", "FIXME", "REVIEW", "HACK", "REF", "WARN", "PRE_DEPLOY"],
   "todo-tree.highlights.customHighlight": {
-    "PREDEPLOY": {
+    "PRE_DEPLOY": {
       "background": "magenta",
       "foreground": "white",
       "opacity": 50,

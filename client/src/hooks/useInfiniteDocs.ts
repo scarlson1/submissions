@@ -36,7 +36,6 @@ export const useInfiniteDocs = <T>(
   return useInfiniteQuery({
     queryKey: [`infinite-${colName}`, { constraints }, ...pathSegments],
     queryFn: fetchDocs,
-    // queryFn: (ctx) => fetchDocs({ pageParam: ctx.pageParam, constraints }), // fetchDocs,
     getNextPageParam: (lastPage, pages) => lastPage.nextCursor,
   });
 };

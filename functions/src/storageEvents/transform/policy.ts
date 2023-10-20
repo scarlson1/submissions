@@ -126,7 +126,7 @@ export function transformPolicyRow(row: CSVPolicyRow): NullablePolicyRow {
   if (row.additionalInsureds)
     additionalInsureds = row.additionalInsureds.split(',').map((ai) => ({
       name: ai,
-      email: 'spencercarlson@mac.com', // PREDEPLOY: get real email
+      email: 'spencercarlson@mac.com', // PRE_DEPLOY: get real email
     }));
   if (row.mortgageeInterest)
     mortgageeInterest = row.mortgageeInterest.split(',').map((m) => ({
