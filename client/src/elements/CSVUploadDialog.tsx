@@ -1,7 +1,7 @@
 import { CheckCircleRounded } from '@mui/icons-material';
 import { Box, Unstable_Grid2 as Grid, Stack, Typography } from '@mui/material';
 import { UploadResult } from 'firebase/storage';
-import { ReactNode, useCallback, useMemo, useState } from 'react';
+import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 
 import {
   UploadFilesDialogComponent,
@@ -20,7 +20,7 @@ interface CSVUploadDialogProps
   > {
   onClose: () => void;
   destinationFolder: string;
-  getHeaderStatus: (headers: string[]) => Record<string, boolean | null>;
+  getCsvHeaderStatus: (headers: string[]) => Record<string, boolean | null>;
   children?: ReactNode;
   onSuccess?: (uploadResult: UploadResult[]) => void;
 }
@@ -29,17 +29,17 @@ export const CSVUploadDialog = ({
   open,
   onClose,
   destinationFolder,
-  getHeaderStatus,
+  getCsvHeaderStatus,
   children,
   onSuccess,
   ...props
 }: CSVUploadDialogProps) => {
-  const [headerStatus, setHeaderStatus] = useState<Record<string, boolean | null>>(
-    {} // getHeaderStatus([])
+  const [headerStatus, setHeaderStatus] = useState<Record<string, boolean | null>>({}); // () => getCsvHeaderStatus([])
+  const { handleParse } = useParseCSV((state) =>
+    setHeaderStatus(getCsvHeaderStatus(state.headers))
   );
-  const { handleParse } = useParseCSV((state) => setHeaderStatus(getHeaderStatus(state.headers)));
 
-  const isValid = useMemo(() => Object.values(headerStatus).every((v) => v), [headerStatus]);
+  const isValid = useMemo(() => Object.values(headerStatus).every(Boolean), [headerStatus]);
 
   const {
     files: uploadFiles,
@@ -57,6 +57,11 @@ export const CSVUploadDialog = ({
     (err, msg) => console.log('upload failed: ', msg, err)
   );
 
+  useEffect(() => {
+    console.log('Header status: ', isValid, headerStatus);
+    console.log('Loading/Files: ', uploadLoading, uploadFiles);
+  }, [isValid, headerStatus, uploadFiles, uploadLoading]);
+
   // react-papaparse: https://github.com/Bunlong/react-papaparse/blob/master/src/useCSVReader.tsx
 
   // https://stackoverflow.com/a/56567324
@@ -73,7 +78,7 @@ export const CSVUploadDialog = ({
           }
 
           // setHeaders(headers);
-          setHeaderStatus(getHeaderStatus(headers));
+          setHeaderStatus(getCsvHeaderStatus(headers));
         } catch (err) {
           console.log('ERROR: ', err);
         }
@@ -81,7 +86,7 @@ export const CSVUploadDialog = ({
 
       handleNewFiles(files);
     },
-    [handleNewFiles, handleParse, getHeaderStatus]
+    [handleNewFiles, handleParse, getCsvHeaderStatus]
   );
 
   const onSubmit = useCallback(async () => {
@@ -97,15 +102,15 @@ export const CSVUploadDialog = ({
   const handleCancel = useCallback(() => {
     uploadHandleCancel();
     onClose();
-    setHeaderStatus({ ...getHeaderStatus([]) });
-  }, [uploadHandleCancel, onClose, getHeaderStatus]);
+    setHeaderStatus({ ...getCsvHeaderStatus([]) });
+  }, [uploadHandleCancel, onClose, getCsvHeaderStatus]);
 
   const handleRemove = useCallback(
     (file: File) => {
       handleRemoveFile(file);
-      setHeaderStatus({ ...getHeaderStatus([]) });
+      setHeaderStatus({ ...getCsvHeaderStatus([]) });
     },
-    [handleRemoveFile, getHeaderStatus]
+    [handleRemoveFile, getCsvHeaderStatus]
   );
 
   return (
@@ -113,7 +118,7 @@ export const CSVUploadDialog = ({
       <UploadFilesDialogComponent
         acceptedTypes='text/csv,.csv'
         // title='Rate Portfolio'
-        filesDragDropProps={{ maxFileSizeInBytes: 4194304 }} // 4MB
+        filesDragDropProps={{ maxFileSizeInBytes: 4194304 }} // ~4MB
         loading={uploadLoading}
         files={uploadFiles}
         // onNewFiles={handleNewFiles}

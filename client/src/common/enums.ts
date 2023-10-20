@@ -84,6 +84,14 @@ export type Collection = z.infer<typeof CollectionsEnum>;
 export const CollectionsEnum2 = z.nativeEnum(COLLECTIONS);
 export type Collection2 = z.infer<typeof CollectionsEnum2>;
 
+export const StorageFolder = z.enum([
+  'importPolicies',
+  'importTransactions',
+  'ratePortfolio',
+  'importQuotes',
+]);
+export type TStorageFolder = z.infer<typeof StorageFolder>;
+
 // TODO: separate out submission status and quote status
 export enum SUBMISSION_STATUS {
   DRAFT = 'draft',

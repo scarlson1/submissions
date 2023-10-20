@@ -13,8 +13,8 @@ import { RouterLink } from 'components/layout';
 import { RequiredHeaders } from 'elements';
 import { useDialog, useDisclosure, useGeneralQuoteDisclosure, useParseCSV } from 'hooks';
 import { usePrevious } from 'hooks/utils';
+import { getCsvHeaderStatus } from 'modules/utils/storage';
 import { ROUTES, createPath } from 'router';
-import { getHeaderStatus } from 'views/admin/Quotes';
 
 // const PORTFOLIO_QUOTE_TEMPLATE_URL = '';
 
@@ -217,17 +217,19 @@ export function PortfolioSubmissionForm({
 
 interface PortfolioDragDropProps {
   requiredHeaders: string[];
-  formatFn?: (str: string) => string;
+  formatFn: (str: string) => string;
 }
 
 function PortfolioDragDrop({ requiredHeaders, formatFn }: PortfolioDragDropProps) {
   const { values } = useFormikContext<PortfolioSubmissionValues>();
   const prevPortfolio = usePrevious(values.portfolio);
 
-  const [headerStatus, setHeaderStatus] = useState(getHeaderStatus([], requiredHeaders, formatFn));
+  const [headerStatus, setHeaderStatus] = useState(
+    getCsvHeaderStatus([], requiredHeaders, formatFn)
+  );
 
   const { handleParse } = useParseCSV((state) =>
-    setHeaderStatus(getHeaderStatus(state.headers, requiredHeaders, formatFn))
+    setHeaderStatus(getCsvHeaderStatus(state.headers, requiredHeaders, formatFn))
   );
 
   useEffect(() => {
