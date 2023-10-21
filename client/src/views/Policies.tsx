@@ -24,6 +24,7 @@ import {
   AdditionalInsured,
   ILocation,
   POLICY_IMPORT_REQUIRED_HEADERS,
+  StorageFolder,
   fallbackImages,
 } from 'common';
 import { DownloadStorageFileButton, FlexCard, FlexCardContent } from 'components';
@@ -34,9 +35,9 @@ import { ControlledChangeRequestDialog } from 'elements/ChangeRequestDialog';
 import { PoliciesGrid } from 'elements/grids';
 import { useAsyncToast, useClaims, useCollectionData } from 'hooks';
 import { formatFirestoreTimestamp, getDuplicates } from 'modules/utils';
+import { getCsvHeaderStatus } from 'modules/utils/storage';
 import { ROUTES, createPath } from 'router';
 import { Item } from './UserSubmissions';
-import { getHeaderStatus } from './admin/Quotes';
 
 // TODO: change policies view to allow switching between card and grid view (and map ??)
 // TODO: include change requests in grid ?? (could use rxjs and aggregation query)
@@ -121,9 +122,9 @@ export const Policies = () => {
   );
 };
 
-// TODO: duplicated code with quotes menu --> create reusable component ??
+// TODO: duplicated code with quotes/transactions menu --> create reusable component ??
 // make composable (separate out required headers component from CSV upload)
-// see portfolio quote form as example
+
 function AdminPoliciesActionMenu() {
   const toast = useAsyncToast({ position: 'top-right', duration: 2400 });
   const [open, setOpen] = useState<string | null>(null);
@@ -142,7 +143,7 @@ function AdminPoliciesActionMenu() {
   const handleHeaderStatus = useCallback(
     (requiredHeaders: string[], formatFn: (str: string) => string) => (headers: string[]) => {
       checkForDuplicates(headers, formatFn);
-      return getHeaderStatus(headers, requiredHeaders, formatFn);
+      return getCsvHeaderStatus(headers, requiredHeaders, formatFn);
     },
     [checkForDuplicates]
   );
@@ -150,7 +151,7 @@ function AdminPoliciesActionMenu() {
   const onSuccess = useCallback(
     (uploadResult: UploadResult[]) => {
       console.log('upload result: ', uploadResult);
-      toast.success("you'll receive an email once complete", {
+      toast.success("you'll receive an email once records are staged", {
         duration: 3500,
         position: 'top-right',
         icon: <InfoRounded />,
@@ -159,7 +160,7 @@ function AdminPoliciesActionMenu() {
     },
     [toast]
   );
-  // `public/policyImportTemplate.csv`
+
   return (
     <Box>
       <IconMenu>
@@ -168,8 +169,8 @@ function AdminPoliciesActionMenu() {
       <CSVUploadDialog
         open={open === 'importPolicies'}
         onClose={handleClose}
-        destinationFolder='importPolicies'
-        getHeaderStatus={handleHeaderStatus(POLICY_IMPORT_REQUIRED_HEADERS, camelCase)}
+        destinationFolder={StorageFolder.enum.importPolicies} // TODO: folders enum
+        getCsvHeaderStatus={handleHeaderStatus(POLICY_IMPORT_REQUIRED_HEADERS, camelCase)}
         onSuccess={onSuccess}
         title={
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

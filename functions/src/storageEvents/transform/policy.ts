@@ -2,6 +2,7 @@ import { GeoPoint } from 'firebase-admin/firestore';
 import { lowerCase, upperCase } from 'lodash-es';
 
 import {
+  AdditionalInsured,
   AgencyDetails,
   AgentDetails,
   Basement,
@@ -9,6 +10,8 @@ import {
   FeeItem,
   FeeItemName,
   FloodZone,
+  MailingAddress,
+  Mortgagee,
   Nullable,
   Policy,
   PriorLossCount,
@@ -55,6 +58,15 @@ export function transformPolicyRow(row: CSVPolicyRow): NullablePolicyRow {
   if (row.lastName) namedInsured.lastName = row.lastName;
   if (row.orgId) namedInsured.orgId = row.orgId;
 
+  const mailingAddress: Nullable<MailingAddress> = {
+    name: row.mailingName,
+    addressLine1: row.mailingAddressLine1,
+    addressLine2: row.mailingAddressLine2,
+    city: row.mailingCity,
+    state: row.mailingState,
+    postal: row.mailingPostal,
+  };
+
   const agent: AgentDetails = {
     userId: (row.agentId || null) as string,
     name: row.agentName || '',
@@ -87,6 +99,7 @@ export function transformPolicyRow(row: CSVPolicyRow): NullablePolicyRow {
     sqFootage: row.sqFootage ? extractNumber(row.sqFootage) : 0,
     yearBuilt: row.yearBuilt ? extractNumber(row.yearBuilt) : 0,
     priorLossCount: (row.priorLossCount as PriorLossCount) ?? '0',
+    units: row.units ? extractNumber(row.units) : null,
   };
   if (row.ffh) ratingPropertyData.FFH = extractNumber(row.ffh);
 
@@ -121,20 +134,20 @@ export function transformPolicyRow(row: CSVPolicyRow): NullablePolicyRow {
     tsunami: row.techPremiumTsunami ? extractNumber(row.techPremiumTsunami) : null,
   };
 
-  let additionalInsureds: ParsedPolicyRow['additionalInsureds'] = [];
-  let mortgageeInterest: ParsedPolicyRow['mortgageeInterest'] = [];
-  if (row.additionalInsureds)
-    additionalInsureds = row.additionalInsureds.split(',').map((ai) => ({
-      name: ai,
-      email: 'spencercarlson@mac.com', // PRE_DEPLOY: get real email
-    }));
-  if (row.mortgageeInterest)
-    mortgageeInterest = row.mortgageeInterest.split(',').map((m) => ({
-      name: m,
-      contactName: '',
-      email: 'spencercarlson@mac.com',
-      loanNumber: '',
-    }));
+  let additionalInsureds: ParsedPolicyRow['additionalInsureds'] = getAdditionalInsureds(row);
+  let mortgageeInterest: ParsedPolicyRow['mortgageeInterest'] = getMortgagee(row);
+  // if (row.additionalInsureds)
+  //   additionalInsureds = row.additionalInsureds.split(',').map((ai) => ({
+  //     name: ai,
+  //     email: 'spencercarlson@mac.com',
+  //   }));
+  // if (row.mortgageeInterest)
+  //   mortgageeInterest = row.mortgageeInterest.split(',').map((m) => ({
+  //     name: m,
+  //     contactName: '',
+  //     email: 'spencercarlson@mac.com',
+  //     loanNumber: '',
+  //   }));
 
   const transformed = {
     // : ParsedPolicyRow
@@ -148,13 +161,14 @@ export function transformPolicyRow(row: CSVPolicyRow): NullablePolicyRow {
       countyName: row.countyName || '',
       countyFIPS: row.fips || '',
     },
+    mailingAddress,
     coordinates,
     homeState: row.homeState || null,
     deductible: row.deductible ? extractNumber(row.deductible) : 0,
     limits,
     TIV,
     RCVs,
-    fees, // @ts-ignore
+    fees,
     taxes,
     annualPremium: row.annualPremium ? extractNumber(row.annualPremium) : 0,
     price,
@@ -169,9 +183,9 @@ export function transformPolicyRow(row: CSVPolicyRow): NullablePolicyRow {
     mortgageeInterest,
     term: row.term ? extractNumber(row.term) : 1,
     namedInsured,
-    userId: row.userId || null, // @ts-ignore
+    userId: row.userId || null,
     agent,
-    agency, // @ts-ignore (TODO: use z.parse)
+    agency,
     ratingPropertyData,
     ratingDocId: row.ratingDocId || null,
     product: row.product ? row.product.toLowerCase() : 'flood',
@@ -231,4 +245,38 @@ export function getFormattedTaxes(row: CSVPolicyRow) {
   if (tax2.value) taxes.push(tax2);
 
   return taxes;
+}
+
+function getAdditionalInsureds(row: CSVPolicyRow) {
+  let additionalInsureds: AdditionalInsured[] = [
+    {
+      name: row.additionalInsured1Name,
+      email: row.additionalInsured1Email,
+    },
+    {
+      name: row.additionalInsured2Name,
+      email: row.additionalInsured2Email,
+    },
+  ];
+
+  return additionalInsureds.filter((ai) => ai.name);
+}
+
+function getMortgagee(row: CSVPolicyRow) {
+  const mortgagee: Mortgagee[] = [
+    {
+      name: row.mortgageeName,
+      contactName: row.mortgageeContactName,
+      loanNumber: row.mortgageeLoanNumber,
+      email: row.mortgageeEmail,
+      address: {
+        addressLine1: row.mortgageeAddressLine1,
+        addressLine2: row.mortgageeAddressLine2,
+        city: row.mortgageeCity,
+        state: row.mortgageeState,
+        postal: row.mortgageePostal,
+      },
+    },
+  ];
+  return mortgagee.filter((m) => m.name);
 }

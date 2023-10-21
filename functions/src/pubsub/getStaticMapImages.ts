@@ -20,6 +20,9 @@ import { createDocId } from '../modules/db/index.js';
 import { downloadFromUrl } from '../modules/storage/index.js';
 import { clearTempFiles, randomFileName, verify } from '../utils/index.js';
 
+// boost cpu if hashing blurhash
+// https://firebase.google.com/docs/functions/manage-functions?gen=2nd#set_timeout_and_memory_allocation
+
 // TODO: add marker overlay ?? https://docs.mapbox.com/api/maps/static-images/#example-request-retrieve-a-static-map-with-a-marker-overlay
 
 const MAPBOX_STYLES: { name: LocationImageTypes; style: string; zoom: number }[] = [

@@ -14,10 +14,8 @@ import {
   CancellationReason,
   ILocation,
   LocationParent,
-  MailingAddress,
   PaymentStatus,
   Policy,
-  Product,
   RatingData,
   SLProdOfRecordDetails,
   StagedPolicyImport,
@@ -423,11 +421,11 @@ async function getPolicyWithoutLocation(
     Policy,
     'locations' | 'termPremium' | 'termPremiumWithCancels' | 'inStatePremium' | 'outStatePremium'
   > = {
-    product: data.product as Product,
+    product: data.product,
     // status: POLICY_STATUS.PAID,
     paymentStatus: PaymentStatus.enum.paid,
     term: data.term || 1,
-    mailingAddress: data.address as MailingAddress,
+    mailingAddress: data.mailingAddress, // as MailingAddress,
     namedInsured: data.namedInsured,
     homeState: data.homeState as State, // TODO: validate
     // termPremium: policyTermPremium,

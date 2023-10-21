@@ -28,6 +28,8 @@ import {
   QUOTE_IMPORT_REQUIRED_HEADERS,
   QUOTE_STATUS,
   Quote,
+  StorageFolder,
+  TStorageFolder,
   WithId,
   quotesCollection,
 } from 'common';
@@ -39,6 +41,7 @@ import { QuotesGrid } from 'elements/grids';
 import { useAsyncToast, useShowJson, useWidth } from 'hooks';
 import { subproducerCommissionCol } from 'modules/muiGrid/gridColumnDefs';
 import { getDuplicates } from 'modules/utils';
+import { getCsvHeaderStatus } from 'modules/utils/storage';
 import { ADMIN_ROUTES, createPath } from 'router';
 
 const useUpdateQuoteStatus = () => {
@@ -207,31 +210,13 @@ export const Quotes = () => {
   );
 };
 
-export function getHeaderStatus(
-  headers: string[],
-  requiredHeaders: string[],
-  formatFn: (str: string) => string = snakeCase
-) {
-  const formatted = headers.map((h) => formatFn(h));
-
-  let result: Record<string, boolean | null> = {};
-
-  for (let h of requiredHeaders) {
-    result[h] = formatted.includes(h);
-  }
-
-  return result;
-}
-
-type OpenOptions = 'ratePortfolio' | 'importQuotes';
-
 // Required to get around dialog unmounting when icon menu closes
 function QuotesActionMenu() {
   const toast = useAsyncToast({ position: 'top-right', duration: 2400 });
-  const [open, setOpen] = useState<OpenOptions | null>(null);
+  const [open, setOpen] = useState<TStorageFolder | null>(null);
   const [dupHeaders, setDupHeaders] = useState<string[]>([]);
 
-  const handleOpen = useCallback((val: OpenOptions) => () => setOpen(val), []);
+  const handleOpen = useCallback((val: TStorageFolder) => () => setOpen(val), []);
   const handleClose = useCallback(() => {
     setOpen(null);
     setDupHeaders([]);
@@ -245,7 +230,7 @@ function QuotesActionMenu() {
   const handleHeaderStatus = useCallback(
     (requiredHeaders: string[], formatFn: (str: string) => string) => (headers: string[]) => {
       checkForDuplicates(headers, formatFn);
-      return getHeaderStatus(headers, requiredHeaders, formatFn);
+      return getCsvHeaderStatus(headers, requiredHeaders, formatFn);
     },
     [checkForDuplicates]
   );
@@ -271,8 +256,8 @@ function QuotesActionMenu() {
       <CSVUploadDialog
         open={open === 'ratePortfolio'}
         onClose={handleClose}
-        destinationFolder='ratePortfolio'
-        getHeaderStatus={handleHeaderStatus(PORTFOLIO_RATING_REQUIRED_HEADERS, snakeCase)}
+        destinationFolder={StorageFolder.enum.ratePortfolio}
+        getCsvHeaderStatus={handleHeaderStatus(PORTFOLIO_RATING_REQUIRED_HEADERS, snakeCase)}
         onSuccess={onSuccess}
         title='Rate Portfolio'
       >
@@ -293,8 +278,8 @@ function QuotesActionMenu() {
       <CSVUploadDialog
         open={open === 'importQuotes'}
         onClose={handleClose}
-        destinationFolder='importQuotes'
-        getHeaderStatus={handleHeaderStatus(QUOTE_IMPORT_REQUIRED_HEADERS, camelCase)}
+        destinationFolder={StorageFolder.enum.importQuotes}
+        getCsvHeaderStatus={handleHeaderStatus(QUOTE_IMPORT_REQUIRED_HEADERS, camelCase)}
         onSuccess={onSuccess}
         title='Import Quotes'
       >

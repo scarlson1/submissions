@@ -198,7 +198,8 @@ function csvRowToInsuredLocation(row: TrxRow): DeepNullable<Omit<ILocation, 'met
     expirationDate: null,
     cancelEffDate: null,
     cancelReason: (row.cancelReason as CancellationReason) || null,
-    locationId: row.locationId || null,
+    // locationId: row.locationId || null,
+    locationId: null,
     policyId: row.policyId || null,
     externalId: row.externalId || null,
   };
@@ -208,7 +209,8 @@ function csvRowCommon(row: TrxRow): DeepNullable<Omit<BaseTransaction, 'metadata
   return {
     product: (row.product as Product) || null,
     policyId: row.policyId || null,
-    locationId: row.locationId || null,
+    // locationId: row.locationId || null,
+    locationId: null,
     externalId: row.externalId || null,
     term: row.term ? extractNumber(row.term) : null,
     bookingDate: csvCellToTimestamp(row.bookingDate),

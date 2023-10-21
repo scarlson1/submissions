@@ -100,7 +100,7 @@ export const getannualpremium = onCall(
 export const getpropertydetailsattom = onCall(
   {
     secrets: [attomKey],
-    memory: '128MiB',
+    memory: '256MiB',
   },
   async (request: CallableRequest<GetPropertyDetailsAttomRequest>) => {
     return (await import('./getPropertyDetailsAttom.js')).default(request);
