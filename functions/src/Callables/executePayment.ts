@@ -1,13 +1,12 @@
 import { DocumentSnapshot, Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
-
 import { round } from 'lodash-es';
 import {
   FIN_TRANSACTION_STATUS,
-  POLICY_STATUS,
   PUB_SUB_TOPICS,
   PaymentMethod,
+  PaymentStatus,
   Policy,
   cardFeePct,
   ePayCreds as ePayCredsSecret,
@@ -49,12 +48,12 @@ const executePayment = async ({ data, auth }: CallableRequest<ExecutePaymentProp
 
   validate(policySnap.exists && policy, 'not-found', `Could not find policy with ID: ${policyId}`);
 
-  let { price, effectiveDate, status } = policy;
+  let { price, effectiveDate, paymentStatus } = policy;
   validate(price && effectiveDate, 'failed-precondition', 'Quote is missing required fields');
   validate(
-    status === POLICY_STATUS.AWAITING_PAYMENT,
+    paymentStatus === PaymentStatus.enum.awaiting_payment, // POLICY_STATUS.AWAITING_PAYMENT,
     'failed-precondition',
-    `Policy status must be "${POLICY_STATUS.AWAITING_PAYMENT}"`
+    `Policy status must be "${PaymentStatus.enum.awaiting_payment}"`
   );
 
   const paymentMethodSnap: DocumentSnapshot<PaymentMethod> = await paymentMethodsCollection(db, uid)

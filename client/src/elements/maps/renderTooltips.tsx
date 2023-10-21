@@ -2,7 +2,7 @@ import { Box, Typography } from '@mui/material';
 import { format } from 'date-fns';
 import { PickingInfo } from 'deck.gl/typed';
 
-import { ILocation } from 'common';
+import { ILocation, Policy, PolicyLocation } from 'common';
 import { dollarFormat, formatFirestoreTimestamp } from 'modules/utils';
 
 export function renderEventTooltip(info?: PickingInfo) {
@@ -69,6 +69,42 @@ export function renderLocationTooltip(info?: PickingInfo) {
         color='text.secondary'
         sx={{ fontSize: '0.725rem' }}
       >{`TIV: ${dollarFormat(location.TIV)}`}</Typography>
+    </Box>
+  );
+}
+
+export function renderPolicyLocationTooltip(info: PickingInfo) {
+  const location = info?.object as PolicyLocation & {
+    lcnId: string;
+    policyId: string;
+    policy: Omit<Policy, 'locations'>;
+  };
+  if (!location) return null;
+
+  return (
+    <Box>
+      <Typography variant='body1' fontWeight='fontWeightMedium'>
+        {location.address?.s1}
+      </Typography>
+      {location.policy?.namedInsured?.displayName ? (
+        <Typography
+          variant='body2'
+          color='text.secondary'
+          sx={{ fontSize: '0.725rem' }}
+        >{`Insured: ${location.policy?.namedInsured?.displayName}`}</Typography>
+      ) : null}
+      {location.annualPremium ? (
+        <Typography
+          variant='body2'
+          color='text.secondary'
+          sx={{ fontSize: '0.725rem' }}
+        >{`Premium: ${dollarFormat(location.annualPremium)}`}</Typography>
+      ) : null}
+      {location.policyId ? (
+        <Typography variant='body2' color='text.secondary' sx={{ fontSize: '0.725rem' }}>
+          {`Policy ID: ${location.policyId}`}
+        </Typography>
+      ) : null}
     </Box>
   );
 }

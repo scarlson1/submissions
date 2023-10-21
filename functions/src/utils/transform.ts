@@ -18,6 +18,7 @@ export const locationToPolicyLocation = (location: ILocation): PolicyLocation =>
     coords: location.coordinates,
     address: compressAddress(location.address),
     termPremium: location.termPremium,
+    annualPremium: location.annualPremium,
   };
 
   if (location?.cancelEffDate) lcn['cancelEffDate'] = location.cancelEffDate;
@@ -29,6 +30,7 @@ export const locationToPolicyLocation = (location: ILocation): PolicyLocation =>
 export const partialLcnToPolicyLcn = (lcn: LcnWithTermPrem): PolicyLcnWithPrem => {
   let policyLcn: PolicyLcnWithPrem = {
     termPremium: lcn.termPremium,
+    annualPremium: lcn.annualPremium,
   };
   if (lcn.address) policyLcn['address'] = compressAddress(lcn.address as Address);
   if (lcn.coordinates) policyLcn['coords'] = lcn.coordinates;

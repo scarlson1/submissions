@@ -643,6 +643,7 @@ export interface CompressedAddress {
 
 export interface PolicyLocation {
   termPremium: number;
+  annualPremium: number;
   address: CompressedAddress;
   coords: GeoPoint;
   cancelEffDate?: Timestamp | null;
@@ -668,8 +669,9 @@ export interface Policy extends BaseDoc {
   price: number; // sum of termPrem, taxes, fees
   effectiveDate: Timestamp;
   expirationDate: Timestamp;
-  cancelEffDate?: Timestamp | null;
+  cancelEffDate?: Timestamp | null; // TODO: discriminating union ??
   cancelReason?: CancellationReason;
+  // cancelled?: boolean;
   userId: string;
   agent: AgentDetails; // Nullable<AgentDetails>; // TODO: remove nullable (defaults to idemand)
   agency: AgencyDetails;

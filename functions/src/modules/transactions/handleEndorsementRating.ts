@@ -6,7 +6,7 @@ import {
   ChangeRequestStatus,
   DeepPartial,
   ILocation,
-  PolicyNew,
+  Policy,
   ValueByRiskType,
   changeRequestsCollection,
   getReportErrorFn,
@@ -119,7 +119,7 @@ export async function handleRatingForEndorsement(
         policy.fees
       );
 
-      const policyChanges: DeepPartial<PolicyNew> = {
+      const policyChanges: DeepPartial<Policy> = {
         ...policyPremRecalc,
         locations: {
           [locationId]: {
@@ -284,7 +284,7 @@ export async function handleRatingForEndorsement(
 
     const newPrice = sumFeesTaxesPremium(policy.fees, newTaxes, newPolicyTermPremium);
 
-    const policyChanges: DeepPartial<PolicyNew> = {
+    const policyChanges: DeepPartial<Policy> = {
       termPremium: newPolicyTermPremium,
       inStatePremium,
       outStatePremium,

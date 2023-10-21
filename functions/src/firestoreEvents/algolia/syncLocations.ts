@@ -7,7 +7,7 @@ import { capitalize } from 'lodash-es';
 import {
   COLLECTIONS,
   ILocation,
-  PolicyNew,
+  Policy,
   StagedPolicyImport,
   algoliaAdminKey,
   algoliaAppId,
@@ -108,7 +108,7 @@ export default async (
       // delete if not current location or set tag ??
       let hidden = false;
       if (newData.parentType === 'policy') {
-        const locationSummary = (parentData as PolicyNew).locations[newData.locationId];
+        const locationSummary = (parentData as Policy).locations[newData.locationId];
         if (!locationSummary) hidden = true;
       }
 

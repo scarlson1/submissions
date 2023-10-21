@@ -1,6 +1,6 @@
 import { deepmerge } from 'deepmerge-ts';
 import { Timestamp } from 'firebase-admin/firestore';
-import { CancellationReason, DeepPartial, ILocation, PolicyNew } from '../../common/index.js';
+import { CancellationReason, DeepPartial, ILocation, Policy } from '../../common/index.js';
 import { partialLcnToPolicyLcn } from '../../utils/transform.js';
 import { validateHasPrem } from '../../utils/validation.js';
 import { getTermDays } from '../transactions/index.js';
@@ -11,9 +11,8 @@ import { calcPolicyPremiumAndTaxes } from './sumPremium.js';
 // can same function be used for cancellation ??
 
 export type CalcPolicyChangesResult = Pick<
-  PolicyNew,
+  Policy,
   | 'termPremium'
-  // | 'termDays'
   | 'price'
   | 'inStatePremium'
   | 'outStatePremium'
@@ -21,15 +20,15 @@ export type CalcPolicyChangesResult = Pick<
   | 'termPremiumWithCancels'
   | 'taxes'
 > &
-  Partial<Pick<PolicyNew, 'cancelEffDate' | 'cancelReason' | 'termDays'>>;
+  Partial<Pick<Policy, 'cancelEffDate' | 'cancelReason' | 'termDays'>>;
 
 export const calcPolicyEndorsementChanges = (
-  policy: PolicyNew,
+  policy: Policy,
   locationChanges: Record<string, DeepPartial<ILocation>>,
   reqEffDate: Timestamp,
   cancelReason?: CancellationReason
 ): CalcPolicyChangesResult => {
-  const lcnSummaryChanges: DeepPartial<PolicyNew['locations']> = {};
+  const lcnSummaryChanges: DeepPartial<Policy['locations']> = {};
 
   // convert location changes from ILocation to PolicyLocation
   for (let [lcnId, lcnChanges] of Object.entries(locationChanges)) {
@@ -42,7 +41,7 @@ export const calcPolicyEndorsementChanges = (
   const lcnSummaryWithChanges = deepmerge(
     policy.locations,
     lcnSummaryChanges
-  ) as PolicyNew['locations'];
+  ) as Policy['locations'];
   const newLcnArr = Object.values(lcnSummaryWithChanges);
 
   const {
@@ -61,7 +60,7 @@ export const calcPolicyEndorsementChanges = (
     outStatePremium,
     taxes,
     price,
-    locations: lcnSummaryChanges as PolicyNew['locations'], // TODO: fix typing
+    locations: lcnSummaryChanges as Policy['locations'], // TODO: fix typing
   };
 
   // if all locations have cancel eff date --> add cancelEffDate to policy

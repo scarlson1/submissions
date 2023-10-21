@@ -1,5 +1,6 @@
 import { SearchOptions } from '@algolia/client-search';
 import { useInfiniteQuery } from '@tanstack/react-query';
+// import { useSuspenseInfiniteQuery } from '@tanstack/react-query';
 
 import { search } from 'components/search/reactQuery';
 import { useAlgoliaStore } from './useAlgoliaStore';

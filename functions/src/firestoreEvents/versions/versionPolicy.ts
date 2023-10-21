@@ -3,14 +3,8 @@ import { info } from 'firebase-functions/logger';
 import { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 import { merge } from 'lodash-es';
 
-import {
-  DeepPartial,
-  PolicyNew,
-  getReportErrorFn,
-  versionsCollection,
-} from '../../common/index.js';
-import { getDifference } from '../../utils/index.js';
-import { flattenObj, hasOne } from '../../utils/index.js';
+import { DeepPartial, Policy, getReportErrorFn, versionsCollection } from '../../common/index.js';
+import { flattenObj, getDifference, hasOne } from '../../utils/index.js';
 
 const VERSION_POLICY_DIFF_KEYS = [
   'locations',
@@ -40,12 +34,12 @@ export default async (
   try {
     const { policyId } = event.params;
 
-    const beforeData = event?.data?.before?.data() as PolicyNew | undefined;
-    const afterData = event?.data?.after?.data() as PolicyNew | undefined;
+    const beforeData = event?.data?.before?.data() as Policy | undefined;
+    const afterData = event?.data?.after?.data() as Policy | undefined;
 
     const currentVersion = afterData?.metadata?.version;
 
-    const diff = getDifference(beforeData || {}, afterData || {}) as DeepPartial<PolicyNew>;
+    const diff = getDifference(beforeData || {}, afterData || {}) as DeepPartial<Policy>;
     const diffKeys = Object.keys(diff);
     let shouldVersion = diffKeys.length ? hasOne(VERSION_POLICY_DIFF_KEYS, diffKeys) : false;
 

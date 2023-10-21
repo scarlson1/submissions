@@ -6,7 +6,7 @@ import { capitalize } from 'lodash-es';
 
 import {
   COLLECTIONS,
-  PolicyNew,
+  Policy,
   algoliaAdminKey,
   algoliaAppId,
   algoliaIndex,
@@ -47,7 +47,7 @@ export default async (
   const docId = event.params.policyId;
 
   // If the document does not exist, it was deleted
-  const newData = event?.data?.after.data() as PolicyNew | undefined;
+  const newData = event?.data?.after.data() as Policy | undefined;
 
   // Remove locations from index if location Id not in new locations
   // const prevData = event?.data?.before.data();

@@ -3,7 +3,7 @@ import { getStorage } from 'firebase-admin/storage';
 import { error, info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 
-import { CLAIMS, policiesCollection, sendgridApiKey } from '../common/index.js';
+import { policiesCollection, sendgridApiKey } from '../common/index.js';
 import { sendPolicyDocDelivery } from '../services/sendgrid/index.js';
 import { onCallWrapper } from '../services/sentry/index.js';
 import { requireIDemandAdminClaims, validate } from './utils/index.js';
@@ -17,9 +17,6 @@ const sendPolicyDoc = async ({ data, auth }: CallableRequest) => {
   const token = auth?.token;
 
   requireIDemandAdminClaims(token, 'must be an admin');
-  if (!token || !token[CLAIMS.IDEMAND_ADMIN])
-    throw new HttpsError('permission-denied', `Must be an admin`);
-
   validate(policyId, 'invalid-argument', 'policyId required');
   validate(to, 'failed-precondition', 'emails (recipients) required');
   // TODO: email validation (array.length > 0, valid emails, etc.)
@@ -62,15 +59,12 @@ const sendPolicyDoc = async ({ data, auth }: CallableRequest) => {
     ];
 
     // const link = `${process.env.HOSTING_BASE_URL}/policies/${policyId}`;
-
-    // TODO: namedInsured
-    // @ts-ignore
     let toName = data.namedInsured.firstName || undefined;
 
     // TODO: redo doc delivery template
     const locations = Object.values(data.locations);
     info('LOCATIONS: ', { locations });
-    let locationStr = locations[0]?.address?.addressLine1 || '';
+    let locationStr = locations[0]?.address?.s1 || '';
     if (locations.length > 1) {
       locationStr += ` and ${locations.length - 1} other locations`;
     }

@@ -7,7 +7,7 @@ import {
   ILocation,
   License,
   PaymentStatus,
-  PolicyNew,
+  Policy,
   Quote,
   State,
   WithId,
@@ -101,12 +101,13 @@ export function getPolicyFromQuote(
   verify(locationData && locationData.length > 0, 'missing location data');
   const singleLocation = locationData[0];
 
-  const policyLocations: PolicyNew['locations'] = {};
+  const policyLocations: Policy['locations'] = {};
   for (const [id, location] of Object.entries(locations)) {
     verify(typeof location.termPremium === 'number', 'location termPremium invalid');
 
     policyLocations[id] = {
       termPremium: location.termPremium,
+      annualPremium: location.annualPremium,
       address: compressAddress(location.address),
       coords: location.coordinates,
     };
@@ -122,7 +123,7 @@ export function getPolicyFromQuote(
   const issuingCarrier = getCarrierByState(data.homeState);
   verify(issuingCarrier, 'error determining issuingCarrier');
 
-  const policy: PolicyNew = {
+  const policy: Policy = {
     product: 'flood',
     // status: POLICY_STATUS.AWAITING_PAYMENT,
     paymentStatus: PaymentStatus.enum.awaiting_payment,
@@ -167,7 +168,7 @@ export function getPolicyFromQuote(
       phone: license.phone ?? '+18889124320',
     },
     issuingCarrier,
-    // documents: [],
+    documents: [],
     quoteId: data.id,
     metadata: {
       created: Timestamp.now(),

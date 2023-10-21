@@ -5,7 +5,7 @@ import { max, round } from 'lodash-es';
 import {
   AmendmentTransaction,
   OffsetTransaction,
-  PolicyNew,
+  Policy,
   PremiumTransaction,
   StrictExclude,
   Transaction,
@@ -109,7 +109,7 @@ export const fetchPolicyData = async (db: Firestore, policyId: string) => {
   const policyCol = policiesCollectionNew(db);
   const policyRef = policyCol.doc(policyId);
 
-  return fetchDocData<PolicyNew>(policyRef);
+  return fetchDocData<Policy>(policyRef);
 
   // try {
   //   const policyCol = policiesCollectionNew(db);

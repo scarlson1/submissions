@@ -5,7 +5,7 @@ import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 
 import {
   ILocation,
-  PolicyNew,
+  Policy,
   WithId,
   getReportErrorFn,
   locationsCollection,
@@ -43,7 +43,7 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyRenewalPayloa
   // const policyCol = policiesCollection(db); // .withConverter(policyConverter)
   const locationsCol = locationsCollection(db);
   const trxCol = transactionsCollection(db);
-  let policy: WithId<PolicyNew> | null;
+  let policy: WithId<Policy> | null;
   let locationEntries;
 
   try {

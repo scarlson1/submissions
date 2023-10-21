@@ -230,6 +230,7 @@ const calcAddLocation = async ({ data, auth }: CallableRequest<CalcAddLocationPr
       address: compressAddress(address),
       coords: new GeoPoint(coordinates.latitude, coordinates.longitude),
       termPremium,
+      annualPremium: lcnPremData.annualPremium,
       version: 0,
     };
 

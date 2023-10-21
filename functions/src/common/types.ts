@@ -1,4 +1,3 @@
-import { deepmerge } from 'deepmerge-ts';
 import { Request } from 'express';
 import { DecodedIdToken } from 'firebase-admin/auth';
 import {
@@ -6,12 +5,10 @@ import {
   Timestamp as FirestoreTimestamp,
 } from 'firebase-admin/firestore';
 import { Geohash } from 'geofire-common';
-import { round } from 'lodash-es';
 
 import { z } from 'zod';
 import { CalcPolicyChangesResult, SecondaryFactorMults } from '../modules/rating/index.js';
 import { CreateMsgContentProps } from '../services/sendgrid/index.js';
-import { filterUniqueArr, removeFromArr } from '../utils/index.js';
 import {
   AGENCY_STATUS,
   AgencySubmissionStatus,
@@ -27,7 +24,6 @@ import {
   LicenseOwner,
   LicenseType,
   LineOfBusiness,
-  POLICY_STATUS,
   PaymentStatus,
   PriorLossCount,
   Product,
@@ -41,7 +37,7 @@ import {
   TaxRateType,
   TransactionType,
 } from './enums.js';
-import { cardFeePct, iDemandOrgId } from './environmentVars.js';
+import { iDemandOrgId } from './environmentVars.js';
 
 export type WithId<T> = T & { id: string };
 
@@ -855,76 +851,15 @@ export interface ILocation extends BaseDoc {
   externalId?: string | null;
 }
 
-export interface Policy extends BaseDoc {
-  product: Product;
-  status: POLICY_STATUS; // TODO: figure out how to do policy status (active, etc.)
-  term: number;
-  mailingAddress: MailingAddress;
-  namedInsured: NamedInsured;
-  locations: Record<string, ILocation>;
-  homeState: string;
-  termPremium: number; // sum of active location(s) term premium
-  inStatePremium?: number;
-  outStatePremium?: number;
-  termDays: number;
-  fees: FeeItem[];
-  taxes: TaxItem[];
-  price: number; // sum of term premium, taxes, fees
-  effectiveDate: Timestamp;
-  expirationDate: Timestamp;
-  cancelEffDate?: Timestamp | null;
-  cancelReason?: CancellationReason;
-  userId: string | null;
-  agent: AgentDetails;
-  agency: AgencyDetails;
-  surplusLinesProducerOfRecord: SLProdOfRecordDetails;
-  // TODO: add address to carrier CarrierDetails: name, address
-  issuingCarrier: string; // INSURER NAME ONLY OR NAME AND ID ??
-  documents: { displayName: string; downloadUrl: string; storagePath: string }[];
-  quoteId?: string | null;
-}
-
-// export interface PolicyLocation {
-//   termPremium: number;
-//   // TODO: add annualPremium
-//   address: CompressedAddress;
-//   coords: GeoPoint;
-//   cancelEffDate?: Timestamp | null;
-//   version?: number; // TODO: remove optional
-//   // lcnDocId: string;
-// }
-
-export const PolicyLocation = z.object({
-  termPremium: z.number().min(100, 'term premium must be > 100'),
-  // TODO: add annualPremium
-  address: CompressedAddress,
-  coords: GeoPoint,
-  cancelEffDate: Timestamp.optional().nullable(),
-  version: z.number().optional(),
-});
-export type PolicyLocation = z.infer<typeof PolicyLocation>;
-
-export type LcnWithTermPrem = PartialRequired<ILocation, 'termPremium'>;
-export type PolicyLcnWithPrem = PartialRequired<PolicyLocation, 'termPremium'>;
-
-// TODO: create discriminating unions (status: "cancelled" -- require cancelEffDate & cancelReason, etc.)
-
-// TODO: replace status with bound,
-// TODO: separate out payment status
-// TODO: separate out payment/charge/invoice info from policy ?? (only save reference to payment object)
-// export interface PolicyNew extends BaseDoc {
+// export interface Policy extends BaseDoc {
 //   product: Product;
 //   status: POLICY_STATUS; // TODO: figure out how to do policy status (active, etc.)
-//   // paymentStatus: string; // TODO: payment enum
-//   paymentStatus: PaymentStatus;
 //   term: number;
 //   mailingAddress: MailingAddress;
 //   namedInsured: NamedInsured;
-//   locations: Record<string, PolicyLocation>;
+//   locations: Record<string, ILocation>;
 //   homeState: string;
-
 //   termPremium: number; // sum of active location(s) term premium
-//   termPremiumWithCancels: number; // TODO: rename termPremium ?? termPremiumActive??
 //   inStatePremium?: number;
 //   outStatePremium?: number;
 //   termDays: number;
@@ -945,7 +880,37 @@ export type PolicyLcnWithPrem = PartialRequired<PolicyLocation, 'termPremium'>;
 //   quoteId?: string | null;
 // }
 
-export const PolicyNew = z.object({
+// export interface PolicyLocation {
+//   termPremium: number;
+//   // TODO: add annualPremium
+//   address: CompressedAddress;
+//   coords: GeoPoint;
+//   cancelEffDate?: Timestamp | null;
+//   version?: number; // TODO: remove optional
+//   // lcnDocId: string;
+// }
+
+export const PolicyLocation = z.object({
+  termPremium: z.number(), // .min(100, 'term premium must be > 100'), // TODO: check validation with ron - termPremium could be < 100 if shorter than policy term
+  annualPremium: z.number().min(100, 'annualPremium must be > 100'),
+  // TODO: add annualPremium
+  address: CompressedAddress,
+  coords: GeoPoint,
+  cancelEffDate: Timestamp.optional().nullable(),
+  version: z.number().optional(),
+});
+export type PolicyLocation = z.infer<typeof PolicyLocation>;
+
+export type LcnWithTermPrem = PartialRequired<ILocation, 'termPremium' | 'annualPremium'>;
+export type PolicyLcnWithPrem = PartialRequired<PolicyLocation, 'termPremium' | 'annualPremium'>;
+
+// TODO: create discriminating unions (status: "cancelled" -- require cancelEffDate & cancelReason, etc.)
+
+// TODO: replace status with bound,
+// TODO: separate out payment status
+// TODO: separate out payment/charge/invoice info from policy ?? (only save reference to payment object)
+
+export const Policy = z.object({
   product: Product,
   paymentStatus: PaymentStatus,
   term: z.number(),
@@ -970,256 +935,318 @@ export const PolicyNew = z.object({
   agent: AgentDetails,
   agency: AgencyDetails,
   surplusLinesProducerOfRecord: SLProdOfRecordDetails,
-  // TODO: add address to carrier CarrierDetails: name, address
+  // TODO: add address to carrier CarrierDetails: name, address (carrierId ??)
   issuingCarrier: z.string(),
   quoteId: z.string().nullable(),
+  // TODO: delete once "sendPolicyDoc" updated to generate pdf instead of upload
+  documents: z
+    .array(
+      z.object({
+        displayName: z.string(),
+        downloadUrl: z.string(),
+        storagePath: z.string(),
+      })
+    )
+    .optional()
+    .nullable()
+    .default([]),
   metadata: BaseMetadata,
 });
-export type PolicyNew = z.infer<typeof PolicyNew>;
+export type Policy = z.infer<typeof Policy>;
 
-export interface IPolicyClass extends Policy {
-  getLocation: (id: string) => any; // TODO LOCATION INTERFACE
-  initIsExpired: () => boolean; // TODO: figure out how to make private (#)
-  addLocation: (
-    locationData: ILocation,
-    id?: string
-  ) => Promise<{ locationId: string; newTotal: number }>;
-  removeLocation: (id: string) => Promise<void>;
-  getLocationCount: () => number;
-  updateLocation: (id: string, newLocationValues: Partial<ILocation>) => Promise<any>; // TODO: type response
-  sumLocationPremium: () => number; // Promise<number>;
-  cancelPolicy: (cancelDate: Timestamp) => Promise<void>;
-  calcCardFee: (amt: number) => number;
-  calcCardFeeLocation: (locationId: string, fees?: number) => number;
-  calcCardFeeAllLocations: () => number;
-}
+// export const PolicyBase = z.object({
+//   product: Product,
+//   paymentStatus: PaymentStatus,
+//   term: z.number(),
+//   namedInsured: NamedInsured,
+//   mailingAddress: MailingAddress,
+//   locations: z.record(PolicyLocation), // TODO: add annualPremium
+//   homeState: State,
+//   termPremium: z.number().min(100, 'term premium must be > 100'),
+//   termPremiumWithCancels: z.number(),
+//   // TODO: annualPremiumActiveLocations ??
+//   inStatePremium: z.number(),
+//   outStatePremium: z.number(),
+//   termDays: z.number().nonnegative(),
+//   fees: z.array(FeeItem),
+//   taxes: z.array(TaxItem),
+//   price: z.number(),
+//   effectiveDate: Timestamp,
+//   expirationDate: Timestamp,
+//   // cancelEffDate: Timestamp.optional().nullable(),
+//   // cancelReason: CancelReason.optional().nullable(),
+//   userId: z.string(),
+//   agent: AgentDetails,
+//   agency: AgencyDetails,
+//   surplusLinesProducerOfRecord: SLProdOfRecordDetails,
+//   // TODO: add address to carrier CarrierDetails: name, address (carrierId ??)
+//   issuingCarrier: z.string(),
+//   quoteId: z.string().nullable(),
+//   cancelled: z.literal(false),
+//   // TODO: delete once "sendPolicyDoc" updated to generate pdf instead of upload
+//   // add doc type ??
+//   documents: z
+//     .array(
+//       z.object({
+//         displayName: z.string(),
+//         downloadUrl: z.string(),
+//         storagePath: z.string(),
+//       })
+//     )
+//     .optional()
+//     .nullable()
+//     .default([]),
+//   metadata: BaseMetadata,
+// });
+
+// export const CancelledPolicy = PolicyBase.omit({ cancelled: true }).and(
+//   z.object({
+//     cancelEffDate: Timestamp.optional().nullable(),
+//     cancelReason: CancelReason.optional().nullable(),
+//     cancelled: z.literal(true),
+//   })
+// );
+
+// // const Policy = z.discriminatedUnion('cancelled', [PolicyBase, CancelledPolicy]);
+// export const Policy = z.union([PolicyBase, CancelledPolicy]);
+// export type Policy = z.infer<typeof Policy>;
+
+// export interface IPolicyClass extends Policy {
+//   getLocation: (id: string) => any; // TODO LOCATION INTERFACE
+//   initIsExpired: () => boolean; // TODO: figure out how to make private (#)
+//   addLocation: (
+//     locationData: ILocation,
+//     id?: string
+//   ) => Promise<{ locationId: string; newTotal: number }>;
+//   removeLocation: (id: string) => Promise<void>;
+//   getLocationCount: () => number;
+//   updateLocation: (id: string, newLocationValues: Partial<ILocation>) => Promise<any>; // TODO: type response
+//   sumLocationPremium: () => number; // Promise<number>;
+//   cancelPolicy: (cancelDate: Timestamp) => Promise<void>;
+//   calcCardFee: (amt: number) => number;
+//   calcCardFeeLocation: (locationId: string, fees?: number) => number;
+//   calcCardFeeAllLocations: () => number;
+// }
 
 // TODO: use js module instead of class ??
 // @ts-ignore
-export class PolicyClass implements IPolicyClass {
-  readonly id: string;
-  readonly isExpired: boolean;
-  readonly product: Product;
-  term: number;
-  // protected status: POLICY_STATUS;
-  status: POLICY_STATUS;
-  locations: Record<string, ILocation>;
-  // public limits: Limits;
-  // public deductible: number;
-  public mailingAddress: MailingAddress;
-  public homeState: string;
-  public namedInsured: NamedInsured;
-  // public mortgageeInterest?: Mortgagee[];
-  public effectiveDate: Timestamp;
-  public expirationDate: Timestamp;
-  public fees: FeeItem[];
-  public taxes: TaxItem[];
-  public termPremium: number;
-  public termDays: number;
-  public price: number;
-  // public cardFee: number; // | null;
-  public documents: { displayName: string; downloadUrl: string; storagePath: string }[];
-  // public transactions: any; // TODO: delete ??
-  public userId: string | null;
-  public agency: AgencyDetails;
-  public agent: AgentDetails; // Nullable<AgentDetails>;
-  public surplusLinesProducerOfRecord: any;
-  public issuingCarrier: string;
-  // public imageURLs: Record<string, string> | null;
-  // public imagePaths: Record<string, string> | null;
-  public metadata: BaseMetadata;
+// export class PolicyClass implements IPolicyClass {
+//   readonly id: string;
+//   readonly isExpired: boolean;
+//   readonly product: Product;
+//   term: number;
+//   // protected status: POLICY_STATUS;
+//   status: POLICY_STATUS;
+//   locations: Record<string, ILocation>;
+//   // public limits: Limits;
+//   // public deductible: number;
+//   public mailingAddress: MailingAddress;
+//   public homeState: string;
+//   public namedInsured: NamedInsured;
+//   // public mortgageeInterest?: Mortgagee[];
+//   public effectiveDate: Timestamp;
+//   public expirationDate: Timestamp;
+//   public fees: FeeItem[];
+//   public taxes: TaxItem[];
+//   public termPremium: number;
+//   public termDays: number;
+//   public price: number;
+//   // public cardFee: number; // | null;
+//   public documents: { displayName: string; downloadUrl: string; storagePath: string }[];
+//   // public transactions: any; // TODO: delete ??
+//   public userId: string | null;
+//   public agency: AgencyDetails;
+//   public agent: AgentDetails; // Nullable<AgentDetails>;
+//   public surplusLinesProducerOfRecord: any;
+//   public issuingCarrier: string;
+//   // public imageURLs: Record<string, string> | null;
+//   // public imagePaths: Record<string, string> | null;
+//   public metadata: BaseMetadata;
 
-  constructor(policyInfo: WithId<Policy>) {
-    this.id = policyInfo.id;
-    this.product = policyInfo.product;
-    this.term = policyInfo.term;
-    this.status = policyInfo.status;
-    this.locations = policyInfo.locations;
-    // this.limits = policyInfo.limits;
-    // this.deductible = policyInfo.deductible;
-    this.mailingAddress = policyInfo.mailingAddress;
-    this.homeState = policyInfo.homeState;
-    this.namedInsured = policyInfo.namedInsured;
-    this.effectiveDate = policyInfo.effectiveDate;
-    this.expirationDate = policyInfo.expirationDate;
-    this.fees = policyInfo.fees;
-    this.taxes = policyInfo.taxes;
-    // TODO: term premium & term days should be calculated in policy class
-    this.termPremium = policyInfo.termPremium;
-    this.termDays = policyInfo.termDays;
-    this.price = policyInfo.price;
-    // this.cardFee = policyInfo.cardFee; // remove ?? changes not always based on all locations (add / remove location) --> store at location level or not at all / calc in billing ??
-    this.documents = policyInfo.documents || [];
-    this.userId = policyInfo.userId;
-    this.agency = policyInfo.agency;
-    this.agent = policyInfo.agent;
-    this.issuingCarrier = policyInfo.issuingCarrier;
-    this.metadata = policyInfo.metadata;
-    // this.imageURLs = policyInfo.imageURLs || null;
-    // this.imagePaths = policyInfo.imagePaths || null;
-    this.isExpired = this.initIsExpired();
-  }
+//   constructor(policyInfo: WithId<Policy>) {
+//     this.id = policyInfo.id;
+//     this.product = policyInfo.product;
+//     this.term = policyInfo.term;
+//     this.status = policyInfo.status;
+//     this.locations = policyInfo.locations;
+//     // this.limits = policyInfo.limits;
+//     // this.deductible = policyInfo.deductible;
+//     this.mailingAddress = policyInfo.mailingAddress;
+//     this.homeState = policyInfo.homeState;
+//     this.namedInsured = policyInfo.namedInsured;
+//     this.effectiveDate = policyInfo.effectiveDate;
+//     this.expirationDate = policyInfo.expirationDate;
+//     this.fees = policyInfo.fees;
+//     this.taxes = policyInfo.taxes;
+//     // TODO: term premium & term days should be calculated in policy class
+//     this.termPremium = policyInfo.termPremium;
+//     this.termDays = policyInfo.termDays;
+//     this.price = policyInfo.price;
+//     // this.cardFee = policyInfo.cardFee; // remove ?? changes not always based on all locations (add / remove location) --> store at location level or not at all / calc in billing ??
+//     this.documents = policyInfo.documents || [];
+//     this.userId = policyInfo.userId;
+//     this.agency = policyInfo.agency;
+//     this.agent = policyInfo.agent;
+//     this.issuingCarrier = policyInfo.issuingCarrier;
+//     this.metadata = policyInfo.metadata;
+//     // this.imageURLs = policyInfo.imageURLs || null;
+//     // this.imagePaths = policyInfo.imagePaths || null;
+//     this.isExpired = this.initIsExpired();
+//   }
 
-  initIsExpired() {
-    return this.expirationDate.toMillis() < new Date().getTime();
-  }
+//   initIsExpired() {
+//     return this.expirationDate.toMillis() < new Date().getTime();
+//   }
 
-  getLocation(id: string) {
-    // return this.locations[id] || null;
-    const location = this.locations[id] || null;
-    if (!location) throw new Error(`no location found (ID ${id})`);
-    return location;
-  }
+//   getLocation(id: string) {
+//     // return this.locations[id] || null;
+//     const location = this.locations[id] || null;
+//     if (!location) throw new Error(`no location found (ID ${id})`);
+//     return location;
+//   }
 
-  // async addLocation(locationData: ILocation, id?: string) {
-  //   // TODO: validation
-  //   const locationId = id || createDocId();
-  //   try {
-  //     this.locations[locationId] = { ...locationData, locationId };
-  //     let newTotal = await this.sumLocationPremium();
-  //     this.price = newTotal;
+//   // async addLocation(locationData: ILocation, id?: string) {
+//   //   // TODO: validation
+//   //   const locationId = id || createDocId();
+//   //   try {
+//   //     this.locations[locationId] = { ...locationData, locationId };
+//   //     let newTotal = await this.sumLocationPremium();
+//   //     this.price = newTotal;
 
-  //     return { locationId, newTotal };
-  //   } catch (err) {
-  //     if (this.locations[locationId]) delete this.locations[locationId];
-  //     throw err;
-  //   }
-  // }
+//   //     return { locationId, newTotal };
+//   //   } catch (err) {
+//   //     if (this.locations[locationId]) delete this.locations[locationId];
+//   //     throw err;
+//   //   }
+//   // }
 
-  async removeLocation(id: string) {
-    this.getLocation(id); // will throw if not found
+//   async removeLocation(id: string) {
+//     this.getLocation(id); // will throw if not found
 
-    // TODO: set cancelledDate instead of removing
-    // delete this.locations[id];
-    try {
-      let newTotal = await this.sumLocationPremium();
-      this.price = newTotal;
-    } catch (err) {
-      console.log('ERROR RECALCULATING QUOTE: ', err);
-      throw err;
-    }
-  }
+//     // TODO: set cancelledDate instead of removing
+//     // delete this.locations[id];
+//     try {
+//       let newTotal = await this.sumLocationPremium();
+//       this.price = newTotal;
+//     } catch (err) {
+//       console.log('ERROR RECALCULATING QUOTE: ', err);
+//       throw err;
+//     }
+//   }
 
-  // TODO: DECIDE WHETHER TO ALLOW ADDING LOCATIONS ??
-  async updateLocation(id: string, newLocationValues: Partial<Omit<ILocation, 'locationId'>>) {
-    let location = this.getLocation(id); // throws if not found
+//   // TODO: DECIDE WHETHER TO ALLOW ADDING LOCATIONS ??
+//   async updateLocation(id: string, newLocationValues: Partial<Omit<ILocation, 'locationId'>>) {
+//     let location = this.getLocation(id); // throws if not found
 
-    // TODO: recalc premium if required (limits change)
-    // handle prem calc outside of class
+//     // TODO: recalc premium if required (limits change)
+//     // handle prem calc outside of class
 
-    try {
-      this.locations = {
-        ...this.locations,
-        [id]: deepmerge(location, newLocationValues) as ILocation,
-      };
-    } catch (err) {
-      this.locations = {
-        ...this.locations,
-        [id]: location,
-      };
-      throw err;
-    }
-  }
+//     try {
+//       this.locations = {
+//         ...this.locations,
+//         [id]: deepmerge(location, newLocationValues) as ILocation,
+//       };
+//     } catch (err) {
+//       this.locations = {
+//         ...this.locations,
+//         [id]: location,
+//       };
+//       throw err;
+//     }
+//   }
 
-  // TODO: DECIDE WHETHER TO ALLOW ADDING LOCATIONS ??
-  updateLocations(id: string, updates: Record<string, Partial<ILocation>>) {
-    // TODO: RECALC TOTAL PRICE
-    this.locations = deepmerge(this.locations, updates) as Record<string, ILocation>;
-  }
+//   // TODO: DECIDE WHETHER TO ALLOW ADDING LOCATIONS ??
+//   updateLocations(id: string, updates: Record<string, Partial<ILocation>>) {
+//     // TODO: RECALC TOTAL PRICE
+//     this.locations = deepmerge(this.locations, updates) as Record<string, ILocation>;
+//   }
 
-  addAdditionalInsureds(locationId: string, newInsureds: AdditionalInsured[]) {
-    const location = this.getLocation(locationId);
-    const newVal = [...location.additionalInsureds, ...newInsureds];
-    const uniqueArr = filterUniqueArr(newVal);
-    this.updateLocation(locationId, { additionalInsureds: uniqueArr });
-    return uniqueArr;
-  }
+//   addAdditionalInsureds(locationId: string, newInsureds: AdditionalInsured[]) {
+//     const location = this.getLocation(locationId);
+//     const newVal = [...location.additionalInsureds, ...newInsureds];
+//     const uniqueArr = filterUniqueArr(newVal);
+//     this.updateLocation(locationId, { additionalInsureds: uniqueArr });
+//     return uniqueArr;
+//   }
 
-  removeAdditionalInsured(locationId: string, removeInsured: AdditionalInsured[]) {
-    const location = this.getLocation(locationId);
-    const newVal = removeFromArr(location.additionalInsureds, removeInsured);
-    this.updateLocation(locationId, { additionalInsureds: newVal });
-    return newVal;
-  }
+//   removeAdditionalInsured(locationId: string, removeInsured: AdditionalInsured[]) {
+//     const location = this.getLocation(locationId);
+//     const newVal = removeFromArr(location.additionalInsureds, removeInsured);
+//     this.updateLocation(locationId, { additionalInsureds: newVal });
+//     return newVal;
+//   }
 
-  setAdditionalInsured(locationId: string, additionalInsureds: AdditionalInsured[]) {
-    this.getLocation(locationId);
-    this.updateLocation(locationId, { additionalInsureds });
-    return additionalInsureds;
-  }
+//   setAdditionalInsured(locationId: string, additionalInsureds: AdditionalInsured[]) {
+//     this.getLocation(locationId);
+//     this.updateLocation(locationId, { additionalInsureds });
+//     return additionalInsureds;
+//   }
 
-  setMortgageeInterest(locationId: string, mortgageeInterest: Mortgagee[]) {
-    this.getLocation(locationId);
-    this.updateLocation(locationId, { mortgageeInterest });
-    return mortgageeInterest;
-  }
+//   setMortgageeInterest(locationId: string, mortgageeInterest: Mortgagee[]) {
+//     this.getLocation(locationId);
+//     this.updateLocation(locationId, { mortgageeInterest });
+//     return mortgageeInterest;
+//   }
 
-  getLocationCount() {
-    return Object.keys(this.locations).length;
-  }
+//   getLocationCount() {
+//     return Object.keys(this.locations).length;
+//   }
 
-  sumLocationPremium() {
-    const locations = Object.values(this.locations);
+//   sumLocationPremium() {
+//     const locations = Object.values(this.locations);
 
-    const totalPremium = locations.reduce((acc, location) => {
-      if (!location.annualPremium)
-        throw new Error(
-          `Missing premium for ${location.address.addressLine1} ` // (${location.locationId})
-        );
-      return acc + location.annualPremium;
-    }, 0);
+//     const totalPremium = locations.reduce((acc, location) => {
+//       if (!location.annualPremium)
+//         throw new Error(
+//           `Missing premium for ${location.address.addressLine1} ` // (${location.locationId})
+//         );
+//       return acc + location.annualPremium;
+//     }, 0);
 
-    // TODO: decide whether to directly set price
+//     // TODO: decide whether to directly set price
 
-    return totalPremium;
-  }
+//     return totalPremium;
+//   }
 
-  async cancelPolicy(cancelDate: Timestamp) {
-    // TODO: finish method
-    // set status to cancelled
-    // calc refundable amount ??
-  }
+//   async cancelPolicy(cancelDate: Timestamp) {
+//     // TODO: finish method
+//     // set status to cancelled
+//     // calc refundable amount ??
+//   }
 
-  // TODO: use update or set ??
-  updateNamedInsured(newVals: Partial<NamedInsured>) {
-    this.namedInsured = {
-      ...this.namedInsured,
-      ...newVals,
-    };
-  }
+//   // TODO: use update or set ??
+//   updateNamedInsured(newVals: Partial<NamedInsured>) {
+//     this.namedInsured = {
+//       ...this.namedInsured,
+//       ...newVals,
+//     };
+//   }
 
-  calcCardFee(amount: number) {
-    const feePct = Number.parseFloat(cardFeePct.value()) || 0.035;
-    return round(amount * feePct, 2);
-  }
+//   calcCardFee(amount: number) {
+//     const feePct = Number.parseFloat(cardFeePct.value()) || 0.035;
+//     return round(amount * feePct, 2);
+//   }
 
-  calcCardFeeAllLocations() {
-    let fee = 0;
-    if (this.price && typeof this.price === 'number') {
-      fee = this.calcCardFee(this.price);
-    }
-    // this.cardFee = fee;
-    return fee;
-  }
+//   calcCardFeeAllLocations() {
+//     let fee = 0;
+//     if (this.price && typeof this.price === 'number') {
+//       fee = this.calcCardFee(this.price);
+//     }
+//     // this.cardFee = fee;
+//     return fee;
+//   }
 
-  // TODO: doesn't account for fees ??
-  calcCardFeeLocation(locationId: string, fees: number = 0) {
-    const location = this.getLocation(locationId);
-    if (!location.annualPremium || typeof location.annualPremium !== 'number')
-      throw new Error('Missing location premium or premium is not a number');
-    const fee = this.calcCardFee(location.annualPremium + fees);
-    return fee;
-  }
+//   // TODO: doesn't account for fees ??
+//   calcCardFeeLocation(locationId: string, fees: number = 0) {
+//     const location = this.getLocation(locationId);
+//     if (!location.annualPremium || typeof location.annualPremium !== 'number')
+//       throw new Error('Missing location premium or premium is not a number');
+//     const fee = this.calcCardFee(location.annualPremium + fees);
+//     return fee;
+//   }
 
-  // setEffectiveDate(effDate: Timestamp)
-  // setExpirationDate
-}
-
-// export interface ChangeRequest extends BaseDoc {
-//   field: string;
-//   newValue: string | number;
-//   userId: string;
-//   status: ChangeRequestStatus;
+//   // setEffectiveDate(effDate: Timestamp)
+//   // setExpirationDate
 // }
 
 export interface PolicyChangeValues {
@@ -1302,7 +1329,7 @@ export interface PolicyChangeRequest extends BaseChangeRequest {
   >;
   locationChanges: PolicyChangeRequest['endorsementChanges'] &
     PolicyChangeRequest['amendmentChanges'];
-  policyChanges: DeepPartial<PolicyNew>;
+  policyChanges: DeepPartial<Policy>;
   policyChangesCalcVersion?: number | null;
   locationId: string; // TODO: delete once using multi-location (store ID in form values)
   scope: 'location'; // TODO: delete (only to pass validation in calcLocationChanges)
@@ -1329,7 +1356,7 @@ export interface CancellationRequest extends BaseChangeRequest {
   >; // Record<string, Partial<ILocation>>;
   policyChanges?: CalcPolicyChangesResult;
   // policyChanges?: Pick<
-  //   PolicyNew,
+  //   Policy,
   //   | 'termPremium'
   //   | 'termDays'
   //   | 'price'
@@ -1339,7 +1366,7 @@ export interface CancellationRequest extends BaseChangeRequest {
   //   | 'termPremiumWithCancels'
   //   | 'taxes'
   // > &
-  //   Partial<Pick<PolicyNew, 'cancelEffDate' | 'cancelReason'>>;
+  //   Partial<Pick<Policy, 'cancelEffDate' | 'cancelReason'>>;
   policyChangesCalcVersion?: number | null;
   locationId: string; // TODO: delete once using multi-location (store ID in form values)
 }
@@ -1353,7 +1380,7 @@ export interface CancellationRequest extends BaseChangeRequest {
 
 export interface LocationChangeRequest extends BaseChangeRequest {
   scope: 'location';
-  policyChanges?: DeepPartial<PolicyNew>;
+  policyChanges?: DeepPartial<Policy>;
   locationChanges: DeepPartial<ILocation>;
   formValues: LocationChangeValues;
   locationId: string;
@@ -1376,7 +1403,7 @@ export interface LocationCancellationRequest
 // should be object for each location
 export interface PolicyChangeRequestOld extends BaseChangeRequest {
   scope: 'policy';
-  policyChanges: DeepPartial<PolicyNew>;
+  policyChanges: DeepPartial<Policy>;
   locationChanges: Record<string, Partial<ILocation>>;
   formValues: PolicyChangeValues;
   cancelReason?: CancellationReason;
@@ -1425,7 +1452,7 @@ export interface AddLocationRequest extends Omit<BaseChangeRequest, 'status'> {
   // status:  // z.enum(ChangeRequestStatusEnum.options.filter...) // TODO: remove 'draft'
   status: SubmittedChangeRequestStatus;
   formValues: AddLocationValues;
-  policyChanges?: DeepPartial<PolicyNew>;
+  policyChanges?: DeepPartial<Policy>;
   locationChanges?: DeepPartial<ILocation>;
   endorsementChanges?: PolicyChangeRequest['endorsementChanges'];
   isAddLocationRequest: true; // TODO: remove ?? use scope = 'add_location' instead ??
@@ -1861,7 +1888,7 @@ export interface PolicyImportMeta extends ImportMeta {
   targetCollection: COLLECTIONS.POLICIES;
 }
 
-export type StagedPolicyImport = PolicyNew & {
+export type StagedPolicyImport = Policy & {
   importMeta: PolicyImportMeta;
   lcnIdMap: Record<string, string>;
 };

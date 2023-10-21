@@ -10,7 +10,7 @@ import { Response } from 'firebase-functions/v1';
 import {
   Disclosure,
   ILocation,
-  PolicyNew,
+  Policy,
   Product,
   RequestUserAuth,
   WithId,
@@ -131,7 +131,7 @@ app.post(
 
     const db = getFirestore();
 
-    let policy: PolicyNew;
+    let policy: Policy;
     try {
       const policySnap = await policiesCollectionNew(db).doc(policyId).get();
 

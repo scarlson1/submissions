@@ -69,6 +69,7 @@ export enum POLICY_STATUS {
   CANCELLED = 'cancelled',
 }
 
+// TODO: should match payment status in payment processor (stripe/epay) ??
 export const PaymentStatus = z.enum([
   'paid',
   'processing',

@@ -6,9 +6,9 @@ import {
   ChangeRequest,
   ILocation,
   LocationCancellationRequest,
+  Policy,
   PolicyCancellationRequest,
   PolicyLocation,
-  PolicyNew,
   changeRequestsCollection,
   getReportErrorFn,
   locationsCollection,
@@ -104,7 +104,7 @@ export async function handleCancelRating(data: ChangeRequest, policyId: string, 
       policy.fees
     );
 
-    let policyLevelUpdates: Partial<PolicyNew> = {
+    let policyLevelUpdates: Partial<Policy> = {
       ...policyPremRecalc,
     };
 
@@ -200,7 +200,7 @@ export async function handleCancelRating(data: ChangeRequest, policyId: string, 
 //       policy.fees
 //     );
 
-//     let policyLevelUpdates: Partial<PolicyNew> = {
+//     let policyLevelUpdates: Partial<Policy> = {
 //       ...policyPremRecalc,
 //     };
 

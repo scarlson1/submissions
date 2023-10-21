@@ -1,5 +1,6 @@
 export { ActiveEventsMap } from './ActiveEventsMap';
-export { DeckMap } from './DeckMap';
 export { ActiveStateMap } from './ActiveStateMap';
-export { PoliciesMap } from './PoliciesMap';
 export { CountiesMap } from './CountiesMap';
+export { DeckMap } from './DeckMap';
+export { PoliciesMap } from './PoliciesMap';
+export { SubmissionsMap } from './SubmissionsMap';

@@ -7,7 +7,7 @@ import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 import {
   ILocation,
   OffsetTransaction,
-  PolicyNew,
+  Policy,
   PremiumTransaction,
   Transaction,
   WithId,
@@ -64,7 +64,7 @@ export default async (event: CloudEvent<MessagePublishedData<EndorsementPayload>
   const db = getFirestore();
   const locationsCol = locationsCollection(db);
   const trxCol = transactionsCollection(db);
-  let policy: WithId<PolicyNew>;
+  let policy: WithId<Policy>;
   let location: ILocation;
   let prevTrx: Transaction;
 

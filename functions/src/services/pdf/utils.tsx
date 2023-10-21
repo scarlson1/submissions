@@ -6,7 +6,7 @@ import { format } from 'date-fns';
 import {
   ILocation,
   JSONContent,
-  PolicyNew,
+  Policy,
   WithId,
   dollarFormat,
   dollarFormat2,
@@ -76,7 +76,7 @@ export function getLocationInterests(locations: ILocation[]): AdditionalInterest
   return flatten(interests);
 }
 
-export function getPremiumTable(policy: PolicyNew): PremiumTableItem[] {
+export function getPremiumTable(policy: Policy): PremiumTableItem[] {
   let result = [
     {
       itemTitle: 'Term Premium',

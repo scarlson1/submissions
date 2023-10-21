@@ -16,7 +16,7 @@ import {
   LocationParent,
   MailingAddress,
   PaymentStatus,
-  PolicyNew,
+  Policy,
   Product,
   RatingData,
   SLProdOfRecordDetails,
@@ -122,7 +122,7 @@ export default async (event: StorageEvent) => {
     return;
   }
 
-  let policyRecords: Record<string, PolicyNew>;
+  let policyRecords: Record<string, Policy>;
   let locationRecords: Record<string, ILocation>;
   let ratingRecords: Record<string, RatingData>;
   let lcnIdMap: Record<string, string>;
@@ -260,7 +260,7 @@ async function groupByPolicyId(data: ParsedPolicyRow[], firestore: Firestore) {
   // let policies: Record<string, Omit<Policy, 'termPremium'>> = {};
   let policies: Record<
     string,
-    Omit<PolicyNew, 'termPremium' | 'termPremiumWithCancels' | 'inStatePremium' | 'outStatePremium'>
+    Omit<Policy, 'termPremium' | 'termPremiumWithCancels' | 'inStatePremium' | 'outStatePremium'>
   > = {};
   let locations: Record<string, ILocation> = {};
   let ratingDocData: Record<string, RatingData> = {};
@@ -329,7 +329,7 @@ async function groupByPolicyId(data: ParsedPolicyRow[], firestore: Firestore) {
   }
 
   // Calc policy level term premium
-  const formattedPolicies: Record<string, PolicyNew> = {};
+  const formattedPolicies: Record<string, Policy> = {};
   for (const [policyId, policy] of Object.entries(policies)) {
     // recalc premium, taxes, price
     const policyPremRecalc = calcPolicyPremiumAndTaxes(
@@ -420,7 +420,7 @@ async function getPolicyWithoutLocation(
   // See importQuotes for reference
 
   const p: Omit<
-    PolicyNew,
+    Policy,
     'locations' | 'termPremium' | 'termPremiumWithCancels' | 'inStatePremium' | 'outStatePremium'
   > = {
     product: data.product as Product,
@@ -442,7 +442,7 @@ async function getPolicyWithoutLocation(
     agency: data.agency,
     surplusLinesProducerOfRecord: SLPofR,
     issuingCarrier: getCarrierByState(data.homeState),
-    // documents: [],
+    documents: [],
     quoteId: data.quoteId || null,
     metadata: {
       created: ts,

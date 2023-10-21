@@ -19,8 +19,8 @@ import { LocationChangeWrapper } from 'elements/forms/LocationChangeForm';
 import { BindSuccess } from 'elements/forms/SuccessStep';
 import { EmailsGrid } from 'elements/grids';
 import { ImportsSummaryGrid } from 'elements/grids/ImportsSummaryGrid';
-import { ActiveEventsMap } from 'elements/maps';
-import { TestPoliciesMapWithFilters } from 'elements/maps/PoliciesMap';
+import { ActiveEventsMap, PoliciesMap } from 'elements/maps';
+import { TestSubmissionsMapWithFilters } from 'elements/maps/SubmissionsMap';
 import {
   Account,
   AccountDetails,
@@ -728,7 +728,7 @@ export const router = sentryCreateBrowserRouter([
         path: 'admin',
         element: (
           // <RequireAuthReactFire signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}>
-          (<Layout withBreadcrumbs={true} containerProps={{ maxWidth: 'xl' }} />)
+          <Layout withBreadcrumbs={true} containerProps={{ maxWidth: 'xl' }} />
           // </RequireAuthReactFire>
         ),
         errorElement: <RouterErrorBoundary />,
@@ -1030,7 +1030,7 @@ export const router = sentryCreateBrowserRouter([
               <RequireAuthReactFire
                 signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
               >
-                <TestPoliciesMapWithFilters />
+                <TestSubmissionsMapWithFilters />
               </RequireAuthReactFire>
             ),
             handle: {
@@ -1042,6 +1042,29 @@ export const router = sentryCreateBrowserRouter([
                   label: 'Submissions',
                   link: createPath({
                     path: ROUTES.SUBMISSIONS,
+                  }),
+                },
+              ],
+            },
+          },
+          {
+            path: '/admin/map/policies',
+            element: (
+              <RequireAuthReactFire
+                signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
+              >
+                <PoliciesMap constraints={[]} />
+              </RequireAuthReactFire>
+            ),
+            handle: {
+              crumb: (match: CrumbMatch) => [
+                {
+                  label: 'Map',
+                },
+                {
+                  label: 'Policies',
+                  link: createPath({
+                    path: ROUTES.POLICIES,
                   }),
                 },
               ],
@@ -1070,7 +1093,7 @@ export const router = sentryCreateBrowserRouter([
           {
             path: 'search',
             element: (
-              (<TempWrappedSearch />)
+              <TempWrappedSearch />
               // <Search
               //   appId={process.env.REACT_APP_ALGOLIA_APP_ID as string}
               //   apiKey={process.env.REACT_APP_ALGOLIA_SEARCH_KEY as string}
@@ -1084,7 +1107,7 @@ export const router = sentryCreateBrowserRouter([
             path: 'config',
             element: (
               // <RequireAuthReactFire signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}>
-              (<ConfigLayout />)
+              <ConfigLayout />
               // </RequireAuthReactFire>
             ),
             errorElement: <RouterErrorBoundary />,

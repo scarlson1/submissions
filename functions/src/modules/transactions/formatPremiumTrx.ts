@@ -1,12 +1,6 @@
 import { Timestamp } from 'firebase-admin/firestore';
 
-import {
-  ILocation,
-  PolicyNew,
-  PremiumTransaction,
-  RatingData,
-  WithId,
-} from '../../common/index.js';
+import { ILocation, Policy, PremiumTransaction, RatingData, WithId } from '../../common/index.js';
 import {
   getBookingDate,
   getDailyPremium,
@@ -18,7 +12,7 @@ import {
 
 export function formatPremiumTrx(
   trxType: PremiumTransaction['trxType'],
-  policy: WithId<PolicyNew>,
+  policy: WithId<Policy>,
   location: ILocation,
   ratingData: RatingData,
   trxEffDate: Timestamp, // = Timestamp.now(),

@@ -216,9 +216,8 @@ export const ActiveEventsMap = () => {
     severity: [],
     urgency: [],
   });
-  const { data: eventData, isFetching, isError, error } = useActiveEvents(params);
+  const { data: eventData, isLoading, isError, error } = useActiveEvents(params);
 
-  // TODO: add filter for parentType: 'policy' and expiration date > now
   const { data: locationData } = useCollectionData(
     'LOCATIONS',
     [where('expirationDate', '>=', currentTS), where('parentType', '==', 'policy')],
@@ -288,7 +287,7 @@ export const ActiveEventsMap = () => {
         <ActiveEventsFilters filters={params} onChange={handleFilterChange} onClear={handleClear} />
       </Box>
       <Card sx={{ height: { xs: 360, sm: 400, lg: 500 }, width: '100%', position: 'relative' }}>
-        {isFetching && (
+        {isLoading && (
           <Box sx={{ position: 'absolute', top: 8, right: 8, zIndex: 100 }}>
             <CircularProgress size={20} />
           </Box>

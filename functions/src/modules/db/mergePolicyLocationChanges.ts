@@ -6,8 +6,8 @@ import {
   CancellationRequest,
   ChangeRequestStatus,
   ILocation,
+  Policy,
   PolicyChangeRequest,
-  PolicyNew,
   changeRequestsCollection,
   locationsCollection,
   policiesCollectionNew,
@@ -105,7 +105,7 @@ export const mergePolicyLocationChanges = async (
     let newPolicyData = deepMergeOverwriteArrays(policySnap.data(), {
       ...policyChanges,
       ...meta,
-    }) as PolicyNew;
+    }) as Policy;
 
     const requestUpdates = {
       ...reqUpdates,
@@ -132,7 +132,7 @@ export const mergePolicyLocationChanges = async (
 //   ILocation,
 //   LocationCancellationRequest,
 //   LocationChangeRequest,
-//   PolicyNew,
+//   Policy,
 //   TaxItem,
 //   changeRequestsCollection,
 //   locationsCollection,
@@ -214,7 +214,7 @@ export const mergePolicyLocationChanges = async (
 //     let newPolicyData = deepMergeOverwriteArrays(policySnap.data(), {
 //       ...policyChanges,
 //       ...meta,
-//     }) as PolicyNew;
+//     }) as Policy;
 
 //     // necessary ?? or was this before using custom deep merge (overwrite arrays) ??
 //     const newTaxes = policyChanges?.taxes;

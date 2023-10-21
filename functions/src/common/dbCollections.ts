@@ -14,7 +14,6 @@ import {
   Organization,
   PaymentMethod,
   Policy,
-  PolicyNew,
   PropertyDataRes,
   Quote,
   // PolicyOld,
@@ -61,7 +60,7 @@ export const policiesCollection = (db: Firestore) =>
   createCollection<Policy>(db, COLLECTIONS.POLICIES);
 
 export const policiesCollectionNew = (db: Firestore) =>
-  createCollection<PolicyNew>(db, COLLECTIONS.POLICIES);
+  createCollection<Policy>(db, COLLECTIONS.POLICIES);
 
 export const transactionsCollection = (db: Firestore) =>
   createCollection<Transaction>(db, COLLECTIONS.TRANSACTIONS);
