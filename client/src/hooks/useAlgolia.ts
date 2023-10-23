@@ -1,19 +1,8 @@
 import { SearchOptions } from '@algolia/client-search';
 import { useInfiniteQuery } from '@tanstack/react-query';
-// import { useSuspenseInfiniteQuery } from '@tanstack/react-query';
 
 import { search } from 'components/search/reactQuery';
 import { useAlgoliaStore } from './useAlgoliaStore';
-
-// export type UseAlgoliaOptions = {
-//   indexName: string;
-//   query: string;
-//   hitsPerPage?: number;
-//   staleTime?: number;
-//   cacheTime?: number;
-//   enabled?: boolean;
-//   // searchOptions:
-// };
 
 export interface UseAlgoliaOptions extends SearchOptions {
   indexName: string;
@@ -31,7 +20,6 @@ export function useAlgolia<TData>({
   staleTime,
   gcTime,
   enabled,
-  // filters,
   ...props
 }: UseAlgoliaOptions) {
   const apiKey = useAlgoliaStore((state) => state.apiKey);

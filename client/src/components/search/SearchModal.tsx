@@ -1,23 +1,23 @@
 // DOCS: https://www.algolia.com/doc/ui-libraries/autocomplete/guides/creating-a-renderer/
-import { useRef, useCallback, useMemo, useState } from 'react';
-import { DialogContent, DialogTitle } from '@mui/material';
-import algoliasearch from 'algoliasearch/lite';
 import type { AutocompleteState } from '@algolia/autocomplete-core';
 import { createAutocomplete } from '@algolia/autocomplete-core';
 import { getAlgoliaResults } from '@algolia/autocomplete-preset-algolia';
+import { DialogContent, DialogTitle } from '@mui/material';
+import algoliasearch from 'algoliasearch/lite';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { type InternalDocSearchHit, type StoredDocSearchHit } from 'common';
-import { createStoredSearches } from './storedSearches';
 import { noop } from 'modules/utils';
+import type { FooterTranslations } from './Footer';
+import { Hit, getURLByType } from './Hit';
+import { ScreenState, ScreenStateTranslations } from './ScreenState';
 import { SearchProps } from './Search';
 import { SearchBox, SearchBoxTranslations } from './SearchBox';
-import { ScreenState, ScreenStateTranslations } from './ScreenState';
-import { Hit, getURLByType } from './Hit';
-import type { FooterTranslations } from './Footer';
+import { createStoredSearches } from './storedSearches';
 import { groupByCollectionName, identity, isModifierEvent } from './utils';
 
-// TODO: use tages to filter results by collectionName when user clicks Chip
+// TODO: use tags to filter results by collectionName when user clicks Chip
 // https://www.algolia.com/doc/ui-libraries/autocomplete/guides/filtering-results/#adding-tags
 // TODO: pass initial tag as filter when search button clicked in x grid view
 // TODO: add predefined items (FAQ's, submit claim, etc.)
@@ -267,7 +267,7 @@ export function SearchModal({
           if (!searchSource) return [Object.values(rest)];
 
           return [groupByCollectionName(searchSource)]; //  Object.values(rest)
-          // including Object.values(rest) results in duplicates (add and use dedup func ??)
+          // including Object.values(rest) results in duplicates (add and use de-dup func ??)
 
           // const items = searchSource.getItems();
           // const groupByResult = groupByOld(items, (item: any) => item.type, 4);

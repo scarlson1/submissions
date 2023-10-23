@@ -31,9 +31,8 @@ import { GridActionsCellItem, GridRowParams } from '@mui/x-data-grid';
 import { PickingInfo } from 'deck.gl/typed';
 import { where } from 'firebase/firestore';
 import { isEmpty } from 'lodash';
-import { Suspense, useCallback, useMemo, useState } from 'react';
+import { Suspense, useCallback, useMemo } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
-import { useSearchParams } from 'react-router-dom';
 
 import { ILocation, Policy as IPolicy, POLICY_STATUS, WithId } from 'common';
 import { ErrorFallback, LoadingSpinner, NotFound } from 'components';
@@ -50,6 +49,7 @@ import {
   useDocData,
   useGeneratePDF,
   useSafeParams,
+  useSearchParamToggle,
   useWidth,
 } from 'hooks';
 import { useCreateCancelRequest } from 'hooks/useCreateCancelRequest';
@@ -61,6 +61,7 @@ import {
   formatPhoneNumber,
   stringAvatar,
 } from 'modules/utils';
+import { z } from 'zod';
 
 // TODO: should locations grid be passed location IDs explicitly ?? instead if querying locations collection
 // would require new grid component (Can't do it with ServerDataGrid)
@@ -69,37 +70,28 @@ import {
 
 // TODO:
 //    - policy overview details
-//    - submit edit request
 //    - submit claim
-
-// TODO: policy cards requires location details
-//  - create separate policy cards component
-//  - requires paginated query (limit 8 ??) with "load more" button
 
 // TODO: locations cards container needs max height w/ scroll so if there's a lot of policies the user can still reach the bottom
 
-const LOCATION_TABS = ['cards', 'grid', 'map'];
-const getInitTabView = (searchParam: string | null) =>
-  LOCATION_TABS.includes(searchParam || '') ? searchParam : 'cards';
+// TODO: store "view" preference in local storage ??
+const DataViewType = z.enum(['cards', 'grid', 'map']);
+type TDataViewType = z.infer<typeof DataViewType>;
 
 export const Policy = () => {
-  const { policyId } = useSafeParams(['policyId']); // useParams();
-  let [searchParams, setSearchParams] = useSearchParams();
-  const [locationsView, setLocationsView] = useState(getInitTabView(searchParams.get('l_view')));
+  const { policyId } = useSafeParams(['policyId']);
   const { isMobile } = useWidth();
+  const [locationsView, handleViewChange] = useSearchParamToggle<TDataViewType>(
+    DataViewType.options,
+    'cards',
+    'l_view'
+  );
 
   const { data } = useDocData<IPolicy>('POLICIES', policyId);
   const { downloadPDF: downloadPolicy } = useGeneratePDF('generateDecPDF');
 
-  // const locationChangeDialogOld = useCreateLocationChangeRequestOld(policyId);
   const locationChangeDialog = useCreateLocationChangeRequest();
   const cancelDialog = useCreateCancelRequest();
-  // const cancelDialog = useCreateCancelRequestOld(); // TODO: onsuccess => "you'll receive a confirmation email once our team has processed the request. expect to see a refund, if due, in X days"
-  // const cancelLocationDialog = useCreateCancelRequestOld(
-  //   // () =>
-  //   //   toast.success(`Cancel request submitted. You'll receive a confirmation email once approved.`),
-  //   // (msg) => toast.error(msg)
-  // );
 
   const locationConstraints = useMemo(
     () => [where('policyId', '==', policyId), where('parentType', '==', 'policy')],
@@ -111,14 +103,6 @@ export const Policy = () => {
   //   () => [where(documentId(), 'in', Object.keys(data?.locations || {}))],
   //   [data]
   // );
-
-  const handleViewChange = useCallback(
-    (event: React.MouseEvent<HTMLElement>, newView: string | null) => {
-      newView && setLocationsView(newView);
-      newView && setSearchParams({ l_view: newView });
-    },
-    [setSearchParams]
-  );
 
   const handleNewClaim = useCallback(() => {
     alert('TODO: handle new claim');
@@ -206,9 +190,9 @@ export const Policy = () => {
   // TODO: throw & handle in error boundary ??
   if (!data) return <NotFound title='Policy not found' />;
 
+  // TODO: container ?? layout ??
   return (
-    // TODO: container ?? layout ??
-    (<Box sx={{ px: { xs: 2, sm: 4, lg: 10 }, py: 5 }}>
+    <Box sx={{ px: { xs: 2, sm: 4, lg: 10 }, py: 5 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 2 }}>
         <Typography
           variant='overline'
@@ -438,7 +422,7 @@ export const Policy = () => {
         </Box>
         {/* <Button onClick={handleTest}>Test Policy Dec</Button> */}
       </Box>
-    </Box>)
+    </Box>
   );
 };
 

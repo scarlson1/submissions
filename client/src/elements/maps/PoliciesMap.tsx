@@ -2,7 +2,7 @@ import { Card, useTheme } from '@mui/material';
 import { IconLayer } from 'deck.gl/typed';
 import { QueryFieldFilterConstraint } from 'firebase/firestore';
 import { flatten } from 'lodash';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { Policy, WithId } from 'common';
 import { useCollectionData } from 'hooks';
@@ -15,6 +15,8 @@ import { renderPolicyLocationTooltip } from './renderTooltips';
 // reusable filter hook between server data grid ??
 // rxjs observable to join policy and location data ??
 // pass query constraints and deck.gl filters as props ??
+// add policies stats box ??
+// zoom to bounding box
 
 const LAYER_IDS = {
   policies: 'policy-layer',
@@ -38,20 +40,11 @@ export const PoliciesMap = ({ constraints }: PoliciesMapProps) => {
     return flatten(policyLcns);
   }, [policies]);
 
-  useEffect(() => {
-    console.log('LOCATIONS: ', policyData);
-  }, [policyData]);
-
   const layers = [
     new IconLayer({
-      // ...defaultGeoJsonLayerProps,
       id: LAYER_IDS.policies,
       data: policyData,
       pickable: true,
-      // getIcon: return a string alternative to iconAtlas/Mapping (different icons per data point)
-      // iconAtlas: MAP_ICON_URL,
-      // iconMapping: ICON_MAPPING,
-      // getIcon: (d) => 'marker',
       getIcon: (d: CoordObj) => ({
         url: svgToDataURL(
           `${getPlaceMarker(
@@ -70,7 +63,6 @@ export const PoliciesMap = ({ constraints }: PoliciesMapProps) => {
       updateTriggers: {
         getIcon: [theme.palette.mode],
       },
-      // ...(layerProps || {}),
     }),
   ];
 

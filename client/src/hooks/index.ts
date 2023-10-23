@@ -55,6 +55,7 @@ export { useRegisterEmailNotification } from './useRegisterEmailNotification';
 export { useRequireAuth } from './useRequireAuth';
 export { useSafeParams } from './useSafeParams';
 export { useScroll } from './useScroll';
+export { useSearchParamToggle } from './useSearchParamToggle';
 export { useSendEmail } from './useSendEmail';
 export { useSendPasswordReset } from './useSendPasswordReset';
 export { useSendQuoteNotification } from './useSendQuoteNotification';

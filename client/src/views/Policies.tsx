@@ -76,7 +76,7 @@ export const Policies = () => {
           <PoliciesGrid checkboxSelection />
         </Box>
         <Box>
-          <Search filters='collectionName:users' />
+          <Search filters='collectionName:users' onSelect={console.log} />
         </Box>
       </Container>
     );

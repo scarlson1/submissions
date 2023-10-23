@@ -28,7 +28,7 @@ export function Hit({ hit, children }: HitProps) {
 export function getURLByType(item: any) {
   // const base = process.env.REACT_APP_HOSTING_URL;
   let url = '';
-  // TODO: user route, financial trxs,
+  // TODO: user route, financial trx,
   // if (item.type === 'user') {
   //   // url = `${base}/user/${item.objectID}`;
   //   url = `/user/${item.objectID}`;
@@ -56,9 +56,9 @@ export function getURLByType(item: any) {
 export function OnSelectHit({ hit, children }: HitProps) {
   return (
     // <Box onClick={() => handleSelect(hit)} sx={{ width: '100%' }}>
-    (<Box sx={{ width: '100%' }} className='onSelect-Item'>
+    <Box sx={{ width: '100%' }} className='onSelect-Item'>
       {children}
-    </Box>)
+    </Box>
   );
 }
 
