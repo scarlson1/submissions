@@ -1,6 +1,6 @@
 import { DataGridProps, GridActionsColDef, GridColDef, GridValidRowModel } from '@mui/x-data-grid';
 import { JSONContent } from '@tiptap/react';
-import { GeoPoint, Timestamp, WithFieldValue } from 'firebase/firestore';
+import { Timestamp as FirestoreTimestamp, GeoPoint, WithFieldValue } from 'firebase/firestore';
 import { Geohash } from 'geofire-common';
 import { z } from 'zod';
 
@@ -24,11 +24,21 @@ import {
 } from './enums';
 import { TState } from './statesList';
 
-export interface BaseMetadata {
-  created: Timestamp;
-  updated: Timestamp;
-  version?: number;
-}
+// export interface BaseMetadata {
+//   created: Timestamp;
+//   updated: Timestamp;
+//   version?: number;
+// }
+
+export const TimestampZ = z.instanceof(FirestoreTimestamp);
+export type Timestamp = z.infer<typeof TimestampZ>;
+
+export const BaseMetadataZ = z.object({
+  created: TimestampZ,
+  updated: TimestampZ,
+  version: z.number().int().optional(),
+});
+export type BaseMetadata = z.infer<typeof BaseMetadataZ>;
 
 export interface BaseDoc {
   metadata: BaseMetadata;
@@ -155,8 +165,9 @@ export interface Submission extends Omit<FloodValues, 'ratingPropertyData'> {
   propertyDataDocId: string | null;
   ratingDocId?: string | null;
   initValues: InitRatingValues;
-  imageURLs?: LocationImages | null;
-  imagePaths?: LocationImages | null;
+  imageURLs?: TLocationImages | null;
+  imagePaths?: TLocationImages | null;
+  blurHash?: TLocationImages | null;
   AALs?: Nullable<ValueByRiskType>;
   annualPremium?: number;
   subproducerCommission?: number; // TODO: delete ?? look up by agent / agency if present
@@ -181,25 +192,39 @@ export type Limits = Record<LimitTypes, number>;
 export type FloodPerilCategories = 'inland' | 'surge' | 'tsunami';
 export type ValueByRiskType = Record<FloodPerilCategories, number>;
 
+export const PhoneZ = z.string().min(10).max(12).trim(); // TODO: regex ??
+export type Phone = z.infer<typeof PhoneZ>;
+
 // export interface FirestoreTimestamp {
 //   readonly nanoseconds: number;
 //   readonly seconds: number;
 // }
 
-export interface BaseMetadata {
-  created: Timestamp; // FirestoreTimestamp;
-  updated: Timestamp; // FirestoreTimestamp;
-}
+// export interface BaseMetadata {
+//   created: Timestamp; // FirestoreTimestamp;
+//   updated: Timestamp; // FirestoreTimestamp;
+// }
 
-export interface Address {
-  addressLine1: string;
-  addressLine2: string;
-  city: string;
-  state: string;
-  postal: string;
-  countyFIPS?: string | null;
-  countyName?: string | null;
-}
+// export interface Address {
+//   addressLine1: string;
+//   addressLine2: string;
+//   city: string;
+//   state: string;
+//   postal: string;
+//   countyFIPS?: string | null;
+//   countyName?: string | null;
+// }
+
+export const AddressZ = z.object({
+  addressLine1: z.string(),
+  addressLine2: z.string().default(''),
+  city: z.string(),
+  state: z.string(),
+  postal: z.string().length(5, 'postal must be 5 digits'),
+  countyFIPS: z.string().nullable().optional(),
+  countyName: z.string().nullable().optional(),
+});
+export type Address = z.infer<typeof AddressZ>;
 
 export interface MailingAddress extends Address {
   name: string;
@@ -273,6 +298,37 @@ export interface AdditionalInterest {
   address: AddressWithCoords;
 }
 
+export const AgentDetailsZ = z.object({
+  name: z.string().trim(),
+  email: z.string().email().trim().toLowerCase(),
+  phone: PhoneZ.nullable(),
+  userId: z.string(), // TODO: userId --> use z.uuid() ??
+});
+export type AgentDetails = z.infer<typeof AgentDetailsZ>;
+
+export const AgencyDetailsZ = z.object({
+  name: z.string().trim(),
+  orgId: z.string(),
+  address: AddressZ,
+});
+export type AgencyDetails = z.infer<typeof AgencyDetailsZ>;
+
+export const BillingEntityDetails = z.object({
+  displayName: z.string(),
+  email: z.string().email().trim().toLowerCase(),
+});
+export type TBillingEntityDetails = z.infer<typeof BillingEntityDetails>;
+
+export const BillingEntityZ = BillingEntityDetails.and(
+  z.object({
+    userId: z.string(),
+    agent: AgentDetailsZ.partial().required({ userId: true }),
+    agency: AgencyDetailsZ.partial().required({ orgId: true }),
+    metadata: BaseMetadataZ,
+  })
+);
+export type BillingEntity = z.infer<typeof BillingEntityZ>;
+
 // TODO: unify with functions interfaces - below (individual vs org named insured)
 export interface NamedInsuredDetails {
   firstName: string;
@@ -305,19 +361,6 @@ export interface EntityNamedInsured {
 
 // TODO: decide whether to use discriminating type vs same fields
 export type NamedInsured = IndividualNamedInsured | EntityNamedInsured;
-
-export interface AgentDetails {
-  userId: string | null; // TODO: use userId ??
-  name: string;
-  email: string;
-  phone: string | null;
-}
-
-export interface AgencyDetails {
-  orgId: string | null; // TODO: remove null once agency being set in system (set to idemand if agent not set) ??
-  name: string | null;
-  address: Address;
-}
 
 export interface Deductible {
   type: DEDUCTIBLE_OPTIONS;
@@ -385,7 +428,7 @@ export interface Quote {
   coordinates: GeoPoint | null;
   homeState: string;
   fees: FeeItem[];
-  taxes: TaxItem[]; // { taxName: string; value: number; taxRate?: number }[];
+  taxes: TaxItem[];
   annualPremium: number;
   subproducerCommission: number; // TODO: remove ??
   quoteTotal?: number;
@@ -414,19 +457,18 @@ export interface Quote {
   agency: Nullable<AgencyDetails>; // TODO: REMOVE NULLABLE ??
   status: QUOTE_STATUS; // SUBMISSION_STATUS;
   submissionId?: string | null;
-  imageURLs?: LocationImages | null;
-  imagePaths?: LocationImages | null;
+  imageURLs?: TLocationImages | null;
+  imagePaths?: TLocationImages | null;
+  blurHash?: TLocationImages | null;
   ratingPropertyData: Nullable<RatingPropertyData>;
-  // priorLossCount?: string | null; // moved to ratingPropertyData
   ratingDocId: string;
   geoHash?: Geohash | null;
-  notes?: Note[]; // { [key: string]: string }[];
-  // quoteIds?: WithFieldValue<string[]>;
+  notes?: Note[];
   statusTransitions: {
-    published: Timestamp; // FirestoreTimestamp;
-    accepted: Timestamp | null; // FirestoreTimestamp | null;
-    cancelled: Timestamp | null; // FirestoreTimestamp | null;
-    finalized: Timestamp | null; // FirestoreTimestamp | null;
+    published: Timestamp;
+    accepted: Timestamp | null;
+    cancelled: Timestamp | null;
+    finalized: Timestamp | null;
   };
 }
 
@@ -599,14 +641,22 @@ export type RCVKeys = 'building' | 'otherStructures' | 'contents' | 'BI' | 'tota
 
 export type RCVs = Record<RCVKeys, number>;
 
-export type LocationImageTypes = 'light' | 'dark' | 'satellite' | 'satelliteStreets';
+export const LocationImages = z.object({
+  light: z.string(),
+  dark: z.string(),
+  satellite: z.string(),
+  satelliteStreets: z.string(),
+});
+export type TLocationImages = z.infer<typeof LocationImages>;
 
-export type LocationImages = Record<LocationImageTypes, string>;
+const LocationImageTypes = LocationImages.keyof();
+export type TLocationImageTypes = z.infer<typeof LocationImageTypes>;
 
-export type LocationParent = 'submission' | 'quote' | 'policy';
+export const LocationParent = z.enum(['submission', 'quote', 'policy']);
+export type TLocationParent = z.infer<typeof LocationParent>;
 
 export interface ILocation extends BaseDoc {
-  parentType?: LocationParent | null; // TODO: remove ? once moved to new policy - location interface
+  parentType?: TLocationParent | null;
   address: Address;
   coordinates: GeoPoint;
   geoHash: Geohash;
@@ -620,14 +670,16 @@ export interface ILocation extends BaseDoc {
   // exists: true; // https://stackoverflow.com/a/62626994/10887890
   additionalInsureds: AdditionalInsured[];
   mortgageeInterest: Mortgagee[];
+  billingEntity: TBillingEntityDetails;
   ratingDocId: string; // TODO: include rating info ?? make PublicRatingData and PrivateRatingData (extends)
   ratingPropertyData: RatingPropertyData;
   effectiveDate: Timestamp;
   expirationDate: Timestamp;
   cancelEffDate?: Timestamp | null;
   cancelReason?: CancellationReason;
-  imageURLs?: LocationImages | null;
-  imagePaths?: LocationImages | null;
+  imageURLs?: TLocationImages | null;
+  imagePaths?: TLocationImages | null;
+  blurHash?: TLocationImages | null;
   policyId?: string;
   locationId: string;
   externalId?: string | null;

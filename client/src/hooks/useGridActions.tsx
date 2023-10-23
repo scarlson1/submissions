@@ -11,6 +11,7 @@ import {
 } from 'reactfire';
 
 import { Submission, WithId } from 'common';
+import { DialogOptions } from 'context';
 import { openGoogleMaps } from 'modules/utils';
 import { useFloodFactor } from './useFloodFactor';
 import { useShowJson } from './useShowJson';
@@ -46,7 +47,7 @@ export const useGridActions = (onError?: (msg: string) => void) => {
   const googleMapsAction = useCallback(
     (params: GridRowParams, options?: ActionOptions) => (
       // @ts-ignore
-      (<GridActionsCellItem
+      <GridActionsCellItem
         icon={
           <Tooltip title='Google maps' placement='top'>
             <MapRounded />
@@ -56,7 +57,7 @@ export const useGridActions = (onError?: (msg: string) => void) => {
         label='Google Maps'
         showInMenu={isSmall}
         {...(options || {})}
-      />)
+      />
     ),
     [openMap, isSmall]
   );
@@ -64,7 +65,7 @@ export const useGridActions = (onError?: (msg: string) => void) => {
   const floodFactorAction = useCallback(
     (params: GridRowParams, options?: ActionOptions) => (
       // @ts-ignore
-      (<GridActionsCellItem
+      <GridActionsCellItem
         icon={
           <Tooltip title='Flood Factor' placement='top'>
             <FloodRounded />
@@ -74,7 +75,7 @@ export const useGridActions = (onError?: (msg: string) => void) => {
         label='Flood Factor'
         showInMenu={isSmall}
         {...(options || {})}
-      />)
+      />
     ),
     [openFloodFactor, isSmall]
   );
@@ -91,11 +92,12 @@ export const useGridShowJson = <T extends DocumentData>(
     | SignInCheckOptionsClaimsValidator
     | undefined,
   getTitle?: null | ((data: WithId<T>) => string),
-  converter?: FirestoreDataConverter<T>,
-  getPath?: (params: GridRowParams) => string
+  converter?: FirestoreDataConverter<T> | null,
+  getPath?: ((params: GridRowParams) => string) | null,
+  dialogOptions?: Partial<Omit<DialogOptions, 'onSubmit' | 'content'>>
 ): ((params: GridRowParams) => ReactElement<GridActionsCellItemProps>[]) => {
   const { data } = useSigninCheck(signInCheckOptions);
-  const showJson = useShowJson<T>(colName, [], getTitle, converter);
+  const showJson = useShowJson<T>(colName, [], getTitle, converter, dialogOptions);
 
   const handleShowJson = useCallback(
     (params: GridRowParams) => () => {

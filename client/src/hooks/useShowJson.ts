@@ -12,6 +12,7 @@ import { useFirestore } from 'reactfire';
 import { DocumentData } from 'rxfire/firestore/interfaces';
 
 import { WithId } from 'common';
+import { DialogOptions } from 'context';
 import { useJsonDialog } from './useJsonDialog';
 
 // could add another func for querying collection
@@ -21,10 +22,14 @@ export const useShowJson = <T extends DocumentData>(
   colName: string,
   paths: string[] = [],
   getTitle?: null | ((data: WithId<T>) => string),
-  converter?: FirestoreDataConverter<T>
+  converter?: FirestoreDataConverter<T> | null,
+  dialogOptions?: Partial<Omit<DialogOptions, 'onSubmit' | 'content'>>
 ) => {
   const firestore = useFirestore();
-  const dialog = useJsonDialog({ slotProps: { dialog: { maxWidth: 'md' } } });
+  const dialog = useJsonDialog({
+    slotProps: { dialog: { maxWidth: 'sm', fullWidth: true } },
+    ...(dialogOptions || {}),
+  });
 
   const colRef = useMemo(() => {
     let cr = collection(firestore, colName, ...paths) as CollectionReference<T>;

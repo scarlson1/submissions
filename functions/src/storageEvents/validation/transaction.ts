@@ -11,8 +11,8 @@ import {
   Transaction,
   TransactionType,
 } from '../../common/index.js';
-import { verify } from '../../utils/index.js';
 import { validateDeductible, validateLimits, validateRCVs } from '../../modules/rating/index.js';
+import { verify } from '../../utils/index.js';
 
 const trxTypes: TransactionType[] = [
   'amendment',
@@ -146,6 +146,11 @@ function premiumTrxValidation(
   verify(
     typeof data.premiumCalcData?.techPremium?.tsunami === 'number',
     'invalid tsunami tech premium'
+  );
+
+  verify(
+    typeof data.premiumCalcData?.provisionalPremium === 'number',
+    'invalid provisional premium'
   );
 }
 

@@ -190,6 +190,7 @@ export default async (
         yearBuilt: null,
         FFH: null,
         priorLossCount: (sub.priorLossCount as PriorLossCount) ?? null,
+        units: null,
       },
       AALs: {
         inland: AALsRes.AALs.inland,

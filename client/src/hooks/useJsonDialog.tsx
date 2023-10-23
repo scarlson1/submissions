@@ -73,8 +73,10 @@ export const useJsonDialog = (props?: Partial<Omit<DialogOptions, 'onSubmit' | '
           </Box>
         ),
         slotProps: {
+          ...(props?.slotProps || {}),
           dialog: {
             fullScreen,
+            ...(props?.slotProps?.dialog || {}),
           },
         },
       });

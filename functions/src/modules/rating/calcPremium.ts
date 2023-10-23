@@ -1,4 +1,4 @@
-import { ceil, round } from 'lodash-es';
+import { ceil, round, sum } from 'lodash-es';
 import { PremiumCalcData, ValueByRiskType } from '../../common/index.js';
 import { getCommRates } from './commRates.js';
 
@@ -22,14 +22,8 @@ export const getPremium = (techPremium: number, multiplier: number, com: number)
   return techPremium * multiplier * (1 / (1 - com));
 };
 
-// replaced with commission table
-// export const getSubproducerAdj = (premium: number, defaultCom: number, newCom: number) => {
-//   let f = (newCom - defaultCom) / (1 - defaultCom);
-//   return ceil(premium * f, 0);
-// };
-
 interface GetPremiumDataProps {
-  AALs: ValueByRiskType; // Nullable<ValueByRiskType>;
+  AALs: ValueByRiskType;
   secondaryFactorMults: ValueByRiskType;
   stateMultipliers: ValueByRiskType;
   minPremium: number;
@@ -44,11 +38,7 @@ export const getPremiumData = ({
   subproducerComPct,
 }: GetPremiumDataProps): PremiumCalcData => {
   const inlandTechPremium = round(
-    getTechPremium(
-      AALs.inland, // inlandAAL,
-      secondaryFactorMults.inland,
-      INLAND_LAE_FACTOR
-    ),
+    getTechPremium(AALs.inland, secondaryFactorMults.inland, INLAND_LAE_FACTOR),
     2
   );
   const surgeTechPremium = round(
@@ -58,6 +48,14 @@ export const getPremiumData = ({
   const tsunamiTechPremium = round(
     getTechPremium(AALs.tsunami, secondaryFactorMults.tsunami, TSUNAMI_LAE_FACTOR)
   );
+
+  const techPremium = {
+    inland: inlandTechPremium,
+    surge: surgeTechPremium,
+    tsunami: tsunamiTechPremium,
+  };
+
+  const techPremiumTotal = sum(Object.values(techPremium));
 
   const inlandPremium = getPremium(
     inlandTechPremium,
@@ -74,6 +72,7 @@ export const getPremiumData = ({
 
   const minPremiumAdj = Math.max(minPremium - premiumSubtotal, 0);
   const provisionalPremium = ceil(premiumSubtotal + minPremiumAdj);
+  // TODO: provisional premium add to transactions
 
   const { subprodAdjRate, totalCommRate } = getCommRates(subproducerComPct);
   const subproducerAdj = provisionalPremium * subprodAdjRate;
@@ -83,9 +82,8 @@ export const getPremiumData = ({
 
   return {
     techPremium: {
-      inland: inlandTechPremium,
-      surge: surgeTechPremium,
-      tsunami: tsunamiTechPremium,
+      ...techPremium,
+      total: techPremiumTotal,
     },
     floodCategoryPremium: {
       inland: inlandPremium,

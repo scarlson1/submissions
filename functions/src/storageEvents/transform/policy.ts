@@ -100,6 +100,7 @@ export function transformPolicyRow(row: CSVPolicyRow): NullablePolicyRow {
     yearBuilt: row.yearBuilt ? extractNumber(row.yearBuilt) : 0,
     priorLossCount: (row.priorLossCount as PriorLossCount) ?? '0',
     units: row.units ? extractNumber(row.units) : null,
+    FFH: row.ffh ? extractNumber(row.ffh) : null,
   };
   if (row.ffh) ratingPropertyData.FFH = extractNumber(row.ffh);
 

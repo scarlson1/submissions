@@ -202,7 +202,7 @@ const calcLocationChanges = async ({ data, auth }: CallableRequest<CalcLocationC
           limits,
           deductible: lcnChanges.deductible, // || lcn.deductible,
           coordinates: { latitude: lcn.coordinates.latitude, longitude: lcn.coordinates.longitude },
-          numStories: lcn.ratingPropertyData?.numStories,
+          numStories: lcn.ratingPropertyData?.numStories || 1,
         });
       } catch (err: any) {
         if (err?.response) console.log('ERROR: ', err.response.data);

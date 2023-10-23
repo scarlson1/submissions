@@ -3,7 +3,7 @@ import { GeoPoint, Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import { geohashForLocation } from 'geofire-common';
-import { isFinite } from 'lodash-es';
+import { isFinite, sum } from 'lodash-es';
 import {
   DraftAddLocationRequest,
   ILocation,
@@ -210,6 +210,7 @@ const calcAddLocation = async ({ data, auth }: CallableRequest<CalcAddLocationPr
       yearBuilt: ratingPropertyData.yearBuilt || null,
       FFH: null,
       priorLossCount: ratingPropertyData.priorLossCount,
+      // units: null
     };
 
     const { premiumData: lcnPremData } = lcnPremResult;
@@ -272,7 +273,7 @@ const calcAddLocation = async ({ data, auth }: CallableRequest<CalcAddLocationPr
       additionalInterests || []
     );
 
-    const locationData: ILocation = {
+    const locationData: Omit<ILocation, 'metadata'> = {
       parentType: null,
       ratingDocId: ratingDocRef.id,
       address,
@@ -282,6 +283,7 @@ const calcAddLocation = async ({ data, auth }: CallableRequest<CalcAddLocationPr
       termPremium,
       termDays,
       limits,
+      TIV: sum(Object.values(limits)),
       RCVs,
       deductible,
       additionalInsureds,
@@ -291,7 +293,7 @@ const calcAddLocation = async ({ data, auth }: CallableRequest<CalcAddLocationPr
       effectiveDate,
       expirationDate: policy.expirationDate,
       locationId: lcnId,
-      policyId,
+      policyId: policyId as string,
       externalId: externalId || null,
     };
 

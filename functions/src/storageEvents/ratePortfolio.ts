@@ -104,6 +104,7 @@ const calcPrem = (data: TRowWithAAL[]) => {
         inlandTechPrem: '',
         surgeTechPrem: '',
         tsunamiTechPrem: '',
+        techPremTotal: '',
         premiumSubtotal: '',
         minPrem: '',
         minPremiumAdj: '',

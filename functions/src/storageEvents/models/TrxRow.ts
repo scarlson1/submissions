@@ -45,6 +45,7 @@ export const TrxRow = z.object({
   netDirectWrittenPremium: z.string(),
   dailyPremium: z.string(),
   termProratedPct: z.string(),
+  provisionalPremium: z.string(),
   netErrorAdj: z.string(),
   surplusLinesTax: z.string(),
   surplusLinesRegulatoryFee: z.string(),

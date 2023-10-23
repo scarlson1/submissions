@@ -52,6 +52,7 @@ export type DeepPartial<T> = {
 };
 
 export type Optional<T> = { [K in keyof T]?: T[K] | undefined | null };
+export type OptionalKeys<T, K extends keyof T> = Pick<Partial<T>, K> & Omit<T, K>;
 
 export type WithRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] };
 
@@ -116,7 +117,7 @@ export interface BaseDoc {
   metadata: BaseMetadata;
 }
 
-export const Phone = z.string().min(10).max(12); // TODO: regex ??
+export const Phone = z.string().min(10).max(12).trim(); // TODO: regex ??
 export type Phone = z.infer<typeof Phone>;
 
 export interface RequestUserAuth extends Request {
@@ -210,8 +211,8 @@ export const NamedInsured = z.object({
   displayName: z.string(),
   firstName: z.string(),
   lastName: z.string(),
-  email: z.string().email(),
-  phone: z.string().min(10).max(12), // .optional(), // allow optional/null ??
+  email: z.string().email().trim().toLowerCase(),
+  phone: Phone, // z.string().min(10).max(12).trim(), // .optional(), // allow optional/null ??
   userId: z.string().nullable().optional(),
   orgId: z.string().nullable().optional(),
 });
@@ -462,28 +463,39 @@ export type RCVKeys = z.infer<typeof RCVKeys>;
 export const Deductible = z.number().int().min(1000);
 export type Deductible = z.infer<typeof Deductible>;
 
-export type FloodPerilCategories = 'inland' | 'surge' | 'tsunami';
-
-// TODO: finish adding tsunami
-export type ValueByRiskType = Record<FloodPerilCategories, number>; // & { tsunami?: number };
+// export type FloodPerilCategories = 'inland' | 'surge' | 'tsunami';
+// export type ValueByRiskType = Record<FloodPerilCategories, number>;
+export const ValueByRiskType = z.object({
+  inland: z.number(),
+  surge: z.number(),
+  tsunami: z.number(),
+});
+export type ValueByRiskType = z.infer<typeof ValueByRiskType>;
+const FloodPerilCategories = ValueByRiskType.keyof();
+export type FloodPerilCategories = z.infer<typeof FloodPerilCategories>;
 
 // TODO: derive getAAL props from RatingPropertyData ??
 const currentYear = new Date().getFullYear();
 export const RatingPropertyData = z.object({
-  CBRSDesignation: CBRSDesignation,
-  basement: Basement,
-  distToCoastFeet: z.number(),
+  CBRSDesignation: CBRSDesignation.optional().nullable(),
+  basement: Basement.default('unknown'),
+  distToCoastFeet: z.coerce.number().optional().nullable(),
   floodZone: FloodZone,
-  numStories: z.number().int().nonnegative(),
-  propertyCode: z.string(),
-  replacementCost: z.number(),
-  sqFootage: z.number(),
-  yearBuilt: z
+  numStories: z.number().int().nonnegative().optional().nullable(),
+  propertyCode: z.string().optional().nullable(),
+  replacementCost: z.number().nonnegative().min(50000, 'replacement cost est. must be > $50k'), // TODO: min ??
+  sqFootage: z.coerce.number().int('sq. footage must be an integer').optional().nullable(),
+
+  yearBuilt: z.coerce
     .number()
     .min(1900, 'year built must be > 1900')
-    .max(currentYear + 1, `yearBuilt must be < ${currentYear + 1}`),
-  FFH: z.number().int().optional(),
-  priorLossCount: PriorLossCount.optional().nullable().default(null),
+    .max(currentYear + 1, `yearBuilt must be < ${currentYear + 1}`)
+    .int('year built must be an integer')
+    .optional()
+    .nullable(),
+
+  FFH: z.coerce.number().int().optional().nullable(),
+  priorLossCount: PriorLossCount.optional().nullable(),
   units: z.coerce.number().optional().nullable(),
 });
 export type RatingPropertyData = z.infer<typeof RatingPropertyData>;
@@ -503,7 +515,6 @@ export interface FloodFormValues {
     longitude: number | null;
   };
   limits: Limits;
-  // coverageActive: Record<CovTypeNames, boolean>;
   deductible: number;
   exclusionsExist: boolean | null;
   exclusions: string[];
@@ -570,7 +581,7 @@ export interface InitRatingValues extends Limits {
   maxDeductible: number;
 }
 
-export type LocationImageTypes = 'light' | 'dark' | 'satellite' | 'satelliteStreets';
+// export type LocationImageTypes = 'light' | 'dark' | 'satellite' | 'satelliteStreets';
 
 export interface Submission extends FloodFormValues, BaseDoc {
   product: Product;
@@ -596,13 +607,13 @@ export interface Submission extends FloodFormValues, BaseDoc {
   // metadata: BaseMetadata;
 }
 
-// TODO: either store as coordinates: lat,lng or remove
 // is this being used ?? use address and coords separate objects for consistency ??
 export interface AddressWithCoords extends Address {
   latitude: number;
   longitude: number;
 }
 
+// used in form - should extend NamedInsured ?? (make userId optional, etc.)
 export interface NamedInsuredDetails {
   firstName: string;
   lastName: string;
@@ -611,59 +622,32 @@ export interface NamedInsuredDetails {
   userId?: string | null;
 }
 
-// export interface AgentDetails {
-//   userId: string | null; // TODO: use userId ??
-//   name: string;
-//   email: string;
-//   phone: string | null;
-// }
-
-// export interface AgencyDetails {
-//   orgId: string; //  | null; // TODO: remove null once agency being set in system (set to idemand if agent not set) ??
-//   name: string; //  | null;
-//   address: Address;
-// }
-
 export const AgentDetails = z.object({
-  name: z.string(),
-  email: z.string().email(),
+  name: z.string().trim(),
+  email: z.string().email().trim().toLowerCase(),
   phone: Phone.nullable(),
   userId: z.string(), // TODO: userId --> use z.uuid() ??
 });
 export type AgentDetails = z.infer<typeof AgentDetails>;
 
 export const AgencyDetails = z.object({
-  name: z.string(),
+  name: z.string().trim(),
   orgId: z.string(),
   address: Address,
 });
 export type AgencyDetails = z.infer<typeof AgencyDetails>;
 
-// export interface AdditionalInsured {
-//   name: string;
-//   email: string;
-//   address?: Nullable<Address> | null;
-// }
-// // other interest - types = mortgagee | other interest
-// export interface Mortgagee {
-//   name: string;
-//   contactName: string;
-//   email: string;
-//   loanNumber: string;
-//   address?: Nullable<Address> | null;
-// }
-
 export const AdditionalInsured = z.object({
-  name: z.string(),
-  email: z.string().email(),
+  name: z.string().trim(),
+  email: z.string().email().trim().toLowerCase(),
   address: z.nullable(Address).optional().nullable(),
 });
 export type AdditionalInsured = z.infer<typeof AdditionalInsured>;
 
 export const Mortgagee = z.object({
-  name: z.string(),
+  name: z.string().trim(),
   contactName: z.string(),
-  email: z.string().email(),
+  email: z.string().email().trim().toLowerCase(),
   loanNumber: z.string(),
   address: z.nullable(Address).optional().nullable(),
 });
@@ -815,42 +799,157 @@ export const SLProdOfRecordDetails = z.object({
 });
 export type SLProdOfRecordDetails = z.infer<typeof SLProdOfRecordDetails>;
 
-export type LocationImages = Record<LocationImageTypes, string>;
+// export type LocationImages = Record<LocationImageTypes, string>;
 
-export type LocationParent = 'submission' | 'quote' | 'policy';
+export const LocationImages = z.object({
+  light: z.string(),
+  dark: z.string(),
+  satellite: z.string(),
+  satelliteStreets: z.string(),
+});
+export type LocationImages = z.infer<typeof LocationImages>;
+
+const LocationImageTypes = LocationImages.keyof();
+export type LocationImageTypes = z.infer<typeof LocationImageTypes>;
+
+// export interface ILocation extends BaseDoc {
+//   parentType?: LocationParent | null; // TODO: make required ?? add security rules
+//   address: Address;
+//   coordinates: GeoPoint;
+//   geoHash: Geohash;
+//   annualPremium: number;
+//   termPremium: number;
+//   termDays: number;
+//   limits: Limits;
+//   TIV: number;
+//   RCVs: RCVs;
+//   deductible: number;
+//   // exists: true; // https://stackoverflow.com/a/62626994/10887890
+//   additionalInsureds: AdditionalInsured[];
+//   mortgageeInterest: Mortgagee[];
+//   ratingDocId: string; // TODO: include rating info ?? make PublicRatingData and PrivateRatingData (extends)
+//   ratingPropertyData: RatingPropertyData;
+//   effectiveDate: Timestamp;
+//   expirationDate: Timestamp;
+//   cancelEffDate?: Timestamp | null;
+//   cancelReason?: CancellationReason | null;
+//   imageURLs?: LocationImages | null;
+//   imagePaths?: LocationImages | null;
+//   blurHash?: LocationImages | null;
+//   locationId: string;
+//   policyId?: string;
+//   quoteId?: string;
+//   submissionId?: string;
+//   externalId?: string | null;
+// }
+
+// export type LocationParent = 'submission' | 'quote' | 'policy';
+export const LocationParent = z.enum(['submission', 'quote', 'policy']);
+export type LocationParent = z.infer<typeof LocationParent>;
 
 // TODO: discriminating union (SubmissionLocation, QuoteLocation, ILocation, etc.)
-// require policy id, parentType: 'policy', etc.
-export interface ILocation extends BaseDoc {
-  parentType?: LocationParent | null; // TODO: make required ?? add security rules
-  address: Address;
-  coordinates: GeoPoint;
-  geoHash: Geohash;
-  annualPremium: number;
-  termPremium: number;
-  termDays: number;
-  limits: Limits;
-  TIV: number;
-  RCVs: RCVs;
-  deductible: number;
-  // exists: true; // https://stackoverflow.com/a/62626994/10887890
-  additionalInsureds: AdditionalInsured[];
-  mortgageeInterest: Mortgagee[];
-  ratingDocId: string; // TODO: include rating info ?? make PublicRatingData and PrivateRatingData (extends)
-  ratingPropertyData: RatingPropertyData;
-  effectiveDate: Timestamp;
-  expirationDate: Timestamp;
-  cancelEffDate?: Timestamp | null;
-  cancelReason?: CancellationReason | null;
-  imageURLs?: LocationImages | null;
-  imagePaths?: LocationImages | null;
-  blurHash?: LocationImages | null;
-  locationId: string;
-  policyId?: string;
-  quoteId?: string;
-  submissionId?: string;
-  externalId?: string | null;
-}
+// require policy id, parentType: 'policy', etc. in discriminating union
+// export const ILocation = z.object({
+//   parentType: LocationParent.nullable(),
+//   address: Address,
+//   coordinates: GeoPoint,
+//   geoHash: z.string(),
+//   annualPremium: z.number().nonnegative(),
+//   termPremium: z.number().nonnegative(),
+//   termDays: z.number().nonnegative().int(),
+//   limits: Limits,
+//   TIV: z.number().nonnegative(),
+//   RCVs: RCVs,
+//   deductible: Deductible,
+//   additionalInsureds: z.array(AdditionalInsured),
+//   mortgageeInterest: z.array(Mortgagee),
+//   ratingDocId: z.string(),
+//   ratingPropertyData: RatingPropertyData,
+//   effectiveDate: Timestamp,
+//   expirationDate: Timestamp,
+//   cancelEffDate: Timestamp.optional().nullable(),
+//   cancelReason: CancelReason.optional().nullable(),
+//   imageURLs: LocationImages.optional().nullable(),
+//   imagePaths: LocationImages.optional().nullable(),
+//   blurHash: LocationImages.optional().nullable(),
+//   locationId: z.string().min(5, 'location ID must be at least 5 characters'),
+//   policyId: z.string().min(5, 'policy ID must be at least 5 characters'),
+//   quoteId: z.string().optional().nullable(),
+//   submissionId: z.string().optional().nullable(),
+//   externalId: z.string().optional().nullable(),
+//   metadata: BaseMetadata,
+// });
+// export type ILocation = z.infer<typeof ILocation>;
+
+export const BaseLocation = z.object({
+  parentType: LocationParent.nullable(),
+  address: Address,
+  coordinates: GeoPoint,
+  geoHash: z.string(),
+  annualPremium: z.number().nonnegative(),
+  termPremium: z.number().nonnegative(),
+  termDays: z.number().nonnegative().int(),
+  limits: Limits,
+  TIV: z.number().nonnegative(),
+  RCVs: RCVs,
+  deductible: Deductible,
+  additionalInsureds: z.array(AdditionalInsured),
+  mortgageeInterest: z.array(Mortgagee),
+  ratingDocId: z.string(),
+  ratingPropertyData: RatingPropertyData,
+  effectiveDate: Timestamp,
+  expirationDate: Timestamp,
+  cancelEffDate: Timestamp.optional().nullable(),
+  cancelReason: CancelReason.optional().nullable(),
+  imageURLs: LocationImages.optional().nullable(),
+  imagePaths: LocationImages.optional().nullable(),
+  blurHash: LocationImages.optional().nullable(),
+  locationId: z.string().min(5, 'location ID must be at least 5 characters'),
+  policyId: z.string().min(5, 'policy ID must be at least 5 characters').optional().nullable(),
+  quoteId: z.string().optional().nullable(),
+  submissionId: z.string().optional().nullable(),
+  externalId: z.string().optional().nullable(),
+  metadata: BaseMetadata,
+});
+export type BaseLocation = z.infer<typeof BaseLocation>;
+
+export const ILocationSubmission = BaseLocation.and(
+  z.object({
+    parentType: z.literal(LocationParent.enum.submission),
+    submissionId: z.string(),
+    quoteId: z.null().optional(),
+    policyId: z.null().optional(),
+  })
+);
+export type ILocationSubmission = z.infer<typeof ILocationSubmission>;
+
+export const ILocationQuote = BaseLocation.and(
+  z.object({
+    parentType: z.literal(LocationParent.enum.quote),
+    submissionId: z.string().optional().nullable(),
+    quoteId: z.string(),
+    policyId: z.null().optional(),
+  })
+);
+export type ILocationQuote = z.infer<typeof ILocationQuote>;
+
+export const ILocationPolicy = BaseLocation.and(
+  z.object({
+    parentType: z.literal(LocationParent.enum.policy),
+    policyId: z.string().min(5, 'policy ID must be at least 5 characters'),
+    quoteId: z.string().optional().nullable(),
+    submissionId: z.string().optional().nullable(),
+  })
+);
+export type ILocationPolicy = z.infer<typeof ILocationPolicy>;
+
+export const ILocation = z.union([
+  BaseLocation,
+  ILocationSubmission,
+  ILocationQuote,
+  ILocationPolicy,
+]);
+export type ILocation = z.infer<typeof ILocation>;
 
 // export interface Policy extends BaseDoc {
 //   product: Product;
@@ -1476,7 +1575,7 @@ export type ChangeRequest =
   | DraftAddLocationRequest;
 
 export interface PremiumCalcData {
-  techPremium: ValueByRiskType;
+  techPremium: ValueByRiskType & { total: number };
   floodCategoryPremium: ValueByRiskType;
   premiumSubtotal: number;
   provisionalPremium: number;
@@ -1616,7 +1715,8 @@ export interface PremiumTransaction extends BaseTransaction {
 export interface AmendmentTransaction extends BaseTransaction {
   trxType: 'amendment'; // 'non_prem_endorsement';
   trxInterfaceType: 'amendment';
-  insuredLocation?: ILocation;
+  // insuredLocation?: OptionalKeys<ILocation, 'metadata' | 'parentType'>;
+  insuredLocation?: OptionalKeys<ILocationPolicy, 'metadata'>;
   otherInterestedParties?: string[];
   additionalNamedInsured?: string[];
 }
@@ -1799,36 +1899,70 @@ export interface Coordinates {
   longitude: number;
 }
 
-export interface GetAALRequest {
-  replacementCost: number;
-  limits: Limits;
-  coordinates: Coordinates;
-  deductible: number;
-  numStories: number;
-}
+// export interface GetAALRequest {
+//   replacementCost: number;
+//   limits: Limits;
+//   coordinates: Coordinates;
+//   deductible: number;
+//   numStories: number;
+// }
 
-export interface SRPerilAAL {
-  tiv: number;
-  fguLoss: number;
-  preCatLoss: number;
-  perilCode: string;
-}
+export const GetAALRequest = z.object({
+  replacementCost: z.number(),
+  limits: Limits,
+  coordinates: Coords,
+  deductible: z.number(),
+  numStories: z.number(),
+});
+export type GetAALRequest = z.infer<typeof GetAALRequest>;
 
-export interface SRRes {
-  correlationId: string;
-  bound: boolean;
-  messages?: {
-    text: string;
-    type: string;
-    severity: string;
-  }[];
-  expectedLosses: SRPerilAAL[];
-}
+// export interface SRPerilAAL {
+//   tiv: number;
+//   fguLoss: number;
+//   preCatLoss: number;
+//   perilCode: string;
+// }
+
+// export interface SRRes {
+//   correlationId: string;
+//   bound: boolean;
+//   messages?: {
+//     text: string;
+//     type: string;
+//     severity: string;
+//   }[];
+//   expectedLosses: SRPerilAAL[];
+// }
+
+export const SRPerilAAL = z.object({
+  tiv: z.number(),
+  fguLoss: z.number(),
+  preCatLoss: z.number(),
+  perilCode: z.string(),
+});
+export type SRPerilAAL = z.infer<typeof SRPerilAAL>;
+
+export const SRRes = z.object({
+  correlationId: z.string(),
+  bound: z.boolean(),
+  message: z
+    .array(
+      z.object({
+        text: z.string(),
+        type: z.string(),
+        severity: z.string(),
+      })
+    )
+    .optional(),
+  expectedLosses: z.array(SRPerilAAL),
+});
+export type SRRes = z.infer<typeof SRRes>;
 
 // TODO: use AALs interface
 export interface SRResWithAAL extends SRRes {
-  inlandAAL?: number | null;
+  inlandAAL?: number | null; // TODO: refactor to value by risk type
   surgeAAL?: number | null;
+  tsunamiAAL?: number | null;
   submissionId: string;
   address?: {
     addressLine1: string;

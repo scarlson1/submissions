@@ -182,6 +182,7 @@ const getAnnualPremium = async ({ data, auth }: CallableRequest<GetAnnualPremium
         yearBuilt: null,
         FFH: null,
         priorLossCount: (priorLossCount as PriorLossCount) ?? null,
+        units: null,
       },
       AALs: AALsRes.AALs,
       premiumCalcData: result.premiumData,
