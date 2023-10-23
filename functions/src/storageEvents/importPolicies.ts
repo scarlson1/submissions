@@ -13,7 +13,7 @@ import {
   COLLECTIONS,
   CancellationReason,
   ILocation,
-  LocationParent,
+  ILocationPolicy,
   PaymentStatus,
   Policy,
   RatingData,
@@ -269,7 +269,7 @@ async function groupByPolicyId(data: ParsedPolicyRow[], firestore: Firestore) {
     let locId = createDocId();
     lcnIdMap[locId] = row.externalId;
     info(`Formatting location ${row.externalId}`);
-    const formattedLocation = formatPolicyLocation(row, locId, ts, 'policy');
+    const formattedLocation = formatPolicyLocation(row, locId, ts);
 
     const ratingDocId = createDocId();
     const AALs = {
@@ -349,9 +349,8 @@ async function groupByPolicyId(data: ParsedPolicyRow[], firestore: Firestore) {
 function formatPolicyLocation(
   data: ParsedPolicyRow,
   locationId: string,
-  ts: Timestamp,
-  parentType?: LocationParent
-): ILocation {
+  ts: Timestamp
+): ILocationPolicy {
   const geoHash = geohashForLocation([data.coordinates!.latitude, data.coordinates!.longitude]);
 
   const effDate = data.effectiveDate || (data.policyEffectiveDate as Date);
@@ -363,8 +362,8 @@ function formatPolicyLocation(
 
   const { termDays, termPremium } = calcTerm(data.annualPremium, effDate, expDate);
 
-  const location: ILocation = {
-    parentType: parentType || null,
+  const location: ILocationPolicy = {
+    parentType: 'policy', // parentType || null,
     address: data.address as Address,
     coordinates: data.coordinates as GeoPoint,
     geoHash,

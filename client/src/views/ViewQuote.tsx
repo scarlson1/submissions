@@ -184,6 +184,7 @@ export const ViewQuote = () => {
               formatVal={dollarFormat}
               withDivider={false}
             />
+            {/* TODO: state could be expired & bound --> don't show button if already bound ?? */}
             {isExpired ? (
               <Button
                 variant='contained'
@@ -221,7 +222,7 @@ export const ViewQuote = () => {
                 variant='body2'
                 color='text.secondary'
                 sx={{ py: 2 }}
-              >{`status: ${data.status}`}</Typography>
+              >{`status: expired`}</Typography>
             )}
             {data.notes && data.notes.length > 0 && (
               <Box sx={{ py: 2 }}>

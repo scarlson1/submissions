@@ -3,7 +3,7 @@ import { CloudEvent } from 'firebase-functions/lib/v2/core';
 import { error, info, warn } from 'firebase-functions/logger';
 import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 
-import { locationsCollection, transactionsCollection } from '../common/index.js';
+import { ILocationPolicy, locationsCollection, transactionsCollection } from '../common/index.js';
 import { docExists } from '../modules/db/index.js';
 import {
   constructTrxId,
@@ -86,7 +86,8 @@ export default async (event: CloudEvent<MessagePublishedData<AmendmentPayload>>)
         const location = locationSnap.data();
         verify(location, `location doc not found (ID: ${locationId})`);
 
-        trx = getLocationAmendmentTrx(policy, location, effDateTS, eventId);
+        // TODO: fix "as ILocationPolicy"
+        trx = getLocationAmendmentTrx(policy, location as ILocationPolicy, effDateTS, eventId);
       } else {
         trx = getPolicyAmendmentTrx(policy, effDateTS, eventId);
       }

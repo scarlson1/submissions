@@ -33,6 +33,12 @@ const isPolicyImports = (
   );
 };
 
+const hasLcnIdMap = (
+  stagedDoc: Omit<StageImportRecord, 'importMeta'>
+): stagedDoc is WithId<StagedPolicyImport> => {
+  return stagedDoc.hasOwnProperty('lcnIdMap');
+};
+
 interface ApproveImportProps {
   importId: string;
   records: string[] | null; // if only specific records (null --> import all)
@@ -99,7 +105,8 @@ const approveImport = async ({ data, auth }: CallableRequest<ApproveImportProps>
     ][] = [];
     // if policy import, must check for staged or existing transaction
     // TODO: execute everything in a firestore transaction ??
-    if (isPolicyImports(stagedDocs)) {
+    const isPolicyImport = isPolicyImports(stagedDocs);
+    if (isPolicyImport) {
       const stagedCollectionGroup = db.collectionGroup(
         COLLECTIONS.STAGED_RECORDS
       ) as CollectionGroup<StageImportRecord>;
@@ -159,7 +166,14 @@ const approveImport = async ({ data, auth }: CallableRequest<ApproveImportProps>
     const batch = db.batch();
 
     for (const doc of stagedDocs) {
-      let { id, importMeta, ...data } = doc;
+      let { id, importMeta, ...stagedData } = doc;
+      let data:
+        | Omit<StageImportRecord, 'importMeta'>
+        | Omit<StageImportRecord, 'importMeta' | 'lcnIdMap'> = stagedData;
+      if (hasLcnIdMap(data)) {
+        const { lcnIdMap, ...rest } = data;
+        data = rest;
+      }
 
       if (importMeta.status !== 'new') {
         errorIds.push(id);

@@ -8,6 +8,7 @@ import {
   DeepNullable,
   FloodZone,
   ILocation,
+  ILocationPolicy,
   Nullable,
   OffsetTransaction,
   OffsetTrxType,
@@ -119,6 +120,7 @@ function csvRowToPremiumTrx(row: TrxRow): DeepNullable<Omit<PremiumTransaction, 
         surge: row.techPremiumSurge ? extractNumber(row.techPremiumSurge) : null,
         tsunami: row.techPremiumTsunami ? extractNumber(row.techPremiumTsunami) : null,
       },
+      provisionalPremium: row.provisionalPremium ? extractNumberNeg(row.provisionalPremium) : null,
     },
     locationAnnualPremium: row.locationAnnualPremium
       ? extractNumberNeg(row.locationAnnualPremium)
@@ -151,11 +153,11 @@ function csvRowToAmendmentTrx(row: TrxRow): DeepNullable<Omit<AmendmentTransacti
     trxEffDate: csvCellToTimestamp(row.trxEffDate),
     trxExpDate: csvCellToTimestamp(row.trxExpDate),
     trxDays: row.trxDays ? extractNumber(row.trxDays) : null,
-    insuredLocation: csvRowToInsuredLocation(row) as ILocation,
+    insuredLocation: csvRowToInsuredLocation(row), // as ILocation,
   };
 }
 
-function csvRowToInsuredLocation(row: TrxRow): DeepNullable<Omit<ILocation, 'metadata'>> {
+function csvRowToInsuredLocation(row: TrxRow): DeepNullable<Omit<ILocationPolicy, 'metadata'>> {
   const lat = row.latitude ? extractNumberNeg(row.latitude) : null;
   const lng = row.longitude ? extractNumberNeg(row.longitude) : null;
   const coordinates = lat && lng ? new GeoPoint(lat, lng) : null;
@@ -171,6 +173,7 @@ function csvRowToInsuredLocation(row: TrxRow): DeepNullable<Omit<ILocation, 'met
   const RCVs = getRCVs(extractNumber(row.replacementCost || '0'), limits);
 
   return {
+    parentType: 'policy',
     address: {
       addressLine1: row.insuredAddressLine1 || null,
       addressLine2: row.insuredAddressLine2 || '',

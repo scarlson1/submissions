@@ -12,9 +12,7 @@ export { PolicyOld } from './PolicyOld';
 export { QuoteBind } from './QuoteBind';
 export { Quotes } from './Quotes';
 export { SubmissionNew } from './SubmissionNew';
+export { SubmissionNewPortfolio } from './SubmissionNewPortfolio';
 export { Submissions } from './Submissions';
 export { Item, UserSubmissions } from './UserSubmissions';
 export { ViewQuote } from './ViewQuote';
-export { SubmissionNewPortfolio } from './SubmissionNewPortfolio';
-
-export type { BindQuoteValues } from './QuoteBind';

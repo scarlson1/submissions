@@ -7,7 +7,8 @@ import {
   GetAALRequest,
   RCVs,
   SRPerilAAL,
-  // ValueByRiskType,
+  SRRes,
+  ValueByRiskType,
   maxA,
   maxBCD,
   minA,
@@ -25,57 +26,21 @@ export interface GetAALsProps extends GetAALRequest {
   srSubKey: string;
 }
 
-// export interface GetAALRes {
-//   AALs: Nullable<ValueByRiskType>;
-//   srRes: SRRes;
-//   RCVs: RCVs;
-// }
+// export const AALs = z.object({
+//   inland: z.number().nullable(),
+//   surge: z.number().nullable(),
+//   tsunami: z.number().nullable(),
+// });
+// export type AALs = z.infer<typeof AALs>;
 
-export const ValueByRiskType = z.object({
-  inland: z.number(),
-  surge: z.number(),
-  tsunami: z.number(),
-});
-export type ValueByRiskType = z.infer<typeof ValueByRiskType>;
-
-// export const AALs = ValueByRiskType.deepPartial()
-export const AALs = z.object({
-  inland: z.number().nullable(),
-  surge: z.number().nullable(),
-  tsunami: z.number().nullable(),
-});
-export type AALs = z.infer<typeof AALs>;
-export const ValueByRiskTypeZod = ValueByRiskType.keyof();
-
-export const SRPerilAALZod = z.object({
-  tiv: z.number(),
-  fguLoss: z.number(),
-  preCatLoss: z.number(),
-  perilCode: z.string(),
-});
-
-export const SRResZod = z.object({
-  correlationId: z.string(),
-  bound: z.boolean(),
-  message: z
-    .array(
-      z.object({
-        text: z.string(),
-        type: z.string(),
-        severity: z.string(),
-      })
-    )
-    .optional(),
-  expectedLosses: z.array(SRPerilAALZod),
-});
-
-export const GetAALResZod = z.object({
-  AALs: AALs,
-  srRes: SRResZod,
+export const GetAALRes = z.object({
+  AALs: ValueByRiskType, // AALs,
+  srRes: SRRes,
   RCVs: RCVs,
 });
-export type GetAALRes = z.infer<typeof GetAALResZod>;
+export type GetAALRes = z.infer<typeof GetAALRes>;
 
+// TODO: zod error handling
 export const getAALs = async (props: GetAALsProps): Promise<GetAALRes> => {
   const { srClientId, srClientSecret, srSubKey, ...rest } = props;
   const {
@@ -115,10 +80,9 @@ export const getAALs = async (props: GetAALsProps): Promise<GetAALRes> => {
 
   info('SWISS RE RES: ', { ...srRes });
   const AALs = extractSRAALs(srRes?.expectedLosses);
-
   info(`AALs: ${JSON.stringify(AALs)}`);
 
-  const parsed = GetAALResZod.parse({ srRes, AALs, RCVs: RCVs });
+  const parsed = GetAALRes.parse({ srRes, AALs, RCVs: RCVs });
 
   return parsed;
 };
@@ -138,16 +102,11 @@ export function extractSRAALs(expectedLosses?: SRPerilAAL[]) {
     (floodObj: SRPerilAAL) => floodObj.perilCode === '104'
   );
 
-  if (code200Index !== -1) {
-    AALs.surge = expectedLosses[code200Index]?.preCatLoss ?? 0;
-  }
-  if (code300Index !== -1) {
-    AALs.inland = expectedLosses[code300Index]?.preCatLoss ?? 0;
-  }
-  // TODO: tsunami
-  if (code104Index !== -1) {
-    AALs.tsunami = expectedLosses[code104Index]?.preCatLoss ?? 0;
-  }
+  if (code300Index !== -1) AALs.inland = expectedLosses[code300Index]?.preCatLoss ?? 0;
+
+  if (code200Index !== -1) AALs.surge = expectedLosses[code200Index]?.preCatLoss ?? 0;
+
+  if (code104Index !== -1) AALs.tsunami = expectedLosses[code104Index]?.preCatLoss ?? 0;
 
   return AALs;
 }

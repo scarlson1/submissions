@@ -179,7 +179,7 @@ export async function handleRatingForEndorsement(
           limits,
           deductible: locationChanges.deductible || deductible,
           coordinates: { latitude: coordinates.latitude, longitude: coordinates.longitude },
-          numStories: location.ratingPropertyData?.numStories,
+          numStories: location.ratingPropertyData?.numStories || 1,
         });
       } catch (err: any) {
         error('Error getting AALs from SR', { err });

@@ -70,6 +70,7 @@ export function transformQuoteRow(row: CSVQuoteRow): DeepNullable<CSVTransformed
     yearBuilt: row.yearBuilt ? extractNumber(row.yearBuilt) : null,
     FFH: row.ffh ? extractNumber(row.ffh) : null,
     priorLossCount: (row.priorLossCount as PriorLossCount) ?? null,
+    units: null,
   };
 
   const AALs = {

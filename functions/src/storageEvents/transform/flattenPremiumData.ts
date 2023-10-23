@@ -23,6 +23,7 @@ export interface FlattenedPremData {
   inlandTechPrem: string | number;
   surgeTechPrem: string | number;
   tsunamiTechPrem: string | number;
+  techPremTotal: string | number;
   premiumSubtotal: string | number;
   minPrem: string | number;
   minPremiumAdj: string | number;
@@ -61,6 +62,7 @@ export function flattenPremData(rowPremData: GetPremiumCalcResult): FlattenedPre
   const inlandTechPrem = rowPremData?.premiumData?.techPremium.inland ?? '';
   const surgeTechPrem = rowPremData?.premiumData?.techPremium.surge ?? '';
   const tsunamiTechPrem = rowPremData?.premiumData?.techPremium.tsunami ?? '';
+  const techPremTotal = rowPremData?.premiumData?.techPremium.total ?? '';
   const subproducerAdj = rowPremData?.premiumData?.subproducerAdj ?? '';
 
   const provisionalPremium = rowPremData?.premiumData?.provisionalPremium ?? '';
@@ -90,6 +92,7 @@ export function flattenPremData(rowPremData: GetPremiumCalcResult): FlattenedPre
     inlandTechPrem,
     surgeTechPrem,
     tsunamiTechPrem,
+    techPremTotal,
     premiumSubtotal,
     minPrem,
     minPremiumAdj,

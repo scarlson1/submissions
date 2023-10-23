@@ -19,8 +19,8 @@ import {
   RatingPropertyData,
   State,
   TaxItem,
+  ValueByRiskType,
 } from '../../common/index.js';
-import { AALs, ValueByRiskType } from '../../modules/rating/getAALs.js';
 
 export const ParsedPolicyRow = z.object({
   policyId: z.string(),
@@ -34,7 +34,7 @@ export const ParsedPolicyRow = z.object({
   annualPremium: z.number(),
   fees: z.array(FeeItem),
   taxes: z.array(TaxItem),
-  price: z.number().min(100, 'price must be > $100'),
+  price: z.number().nonnegative(), // .min(100, 'price must be > $100'),
   namedInsured: NamedInsured,
   mailingAddress: MailingAddress,
   userId: z.string(),
@@ -57,7 +57,7 @@ export const ParsedPolicyRow = z.object({
   ratingDocId: z.string().optional().nullable().default(null),
   product: Product,
   mgaCommissionPct: MGACommissionPct,
-  AALs: AALs,
+  AALs: ValueByRiskType, // AALs,
   techPremium: ValueByRiskType,
 });
 export type ParsedPolicyRow = z.infer<typeof ParsedPolicyRow>;

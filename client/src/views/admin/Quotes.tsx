@@ -1,4 +1,4 @@
-import { DataObjectRounded, EditRounded, InfoRounded, OpenInNewRounded } from '@mui/icons-material';
+import { EditRounded, InfoRounded, OpenInNewRounded, VisibilityRounded } from '@mui/icons-material';
 import {
   Alert,
   AlertTitle,
@@ -23,6 +23,7 @@ import { useNavigate } from 'react-router-dom';
 import { useFirestore } from 'reactfire';
 
 import {
+  CLAIMS,
   COLLECTIONS,
   PORTFOLIO_RATING_REQUIRED_HEADERS,
   QUOTE_IMPORT_REQUIRED_HEADERS,
@@ -38,11 +39,11 @@ import { IconMenu } from 'components/IconButtonMenu';
 import { useConfirmation } from 'context';
 import { CSVUploadDialog } from 'elements';
 import { QuotesGrid } from 'elements/grids';
-import { useAsyncToast, useShowJson, useWidth } from 'hooks';
+import { useAsyncToast, useGridShowJson, useWidth } from 'hooks';
 import { subproducerCommissionCol } from 'modules/muiGrid/gridColumnDefs';
 import { getDuplicates } from 'modules/utils';
 import { getCsvHeaderStatus } from 'modules/utils/storage';
-import { ADMIN_ROUTES, createPath } from 'router';
+import { ADMIN_ROUTES, ROUTES, createPath } from 'router';
 
 const useUpdateQuoteStatus = () => {
   const firestore = useFirestore();
@@ -116,10 +117,10 @@ export const Quotes = () => {
   const navigate = useNavigate();
   const updateQuote = useUpdateQuoteStatus();
   const confirmAndUpdate = useConfirmAndUpdate(updateQuote);
-  const showJson = useShowJson<Quote>(
+  const renderShowJson = useGridShowJson(
     COLLECTIONS.QUOTES,
-    [],
-    (q: WithId<Quote>) => `Quote - ${q.address?.addressLine1 || ''} (ID: ${q.id || ''})`
+    { showInMenu: true },
+    { requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }
   );
   const { isMobile } = useWidth();
 
@@ -146,9 +147,15 @@ export const Quotes = () => {
     console.log('ERROR: ', err);
   }, []);
 
-  const handleShowJson = useCallback(
-    (params: GridRowParams) => async () => showJson(params.id.toString()),
-    [showJson]
+  const showDetails = useCallback(
+    (params: GridRowParams) => () =>
+      navigate(
+        createPath({
+          path: ROUTES.QUOTE_VIEW,
+          params: { quoteId: params.id.toString() },
+        })
+      ),
+    [navigate]
   );
 
   const renderActions = useCallback(
@@ -166,17 +173,17 @@ export const Quotes = () => {
       />,
       <GridActionsCellItem
         icon={
-          <Tooltip placement='top' title='view JSON'>
-            <DataObjectRounded />
+          <Tooltip placement='top' title='view quote'>
+            <VisibilityRounded />
           </Tooltip>
         }
-        onClick={handleShowJson(params)}
-        label='view JSON'
+        onClick={showDetails(params)}
+        label='Details'
         showInMenu={isMobile}
-        // disabled={!Boolean(claims?.iDemandAdmin)}
       />,
+      ...renderShowJson(params),
     ],
-    [editQuote, handleShowJson, isMobile]
+    [editQuote, showDetails, renderShowJson, isMobile]
   );
 
   return (

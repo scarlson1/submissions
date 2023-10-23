@@ -123,6 +123,7 @@ const calcQuote = async ({ data, auth }: CallableRequest<CalcQuoteRequest>) => {
         sqFootage: null,
         yearBuilt: null,
         priorLossCount: (priorLossCount as PriorLossCount) ?? null,
+        units: null,
       },
       AALs,
       PM: result.pm,

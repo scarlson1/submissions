@@ -120,7 +120,7 @@ const createPolicy = async ({ data, auth }: CallableRequest<CreatePolicyProps>) 
 
     for (const [id, location] of Object.entries(locationData)) {
       const locationRef = locationsCol.doc(id);
-      batch.set(locationRef, { ...location, policyId: policyRef.id });
+      batch.set(locationRef, { ...location, policyId: policyRef.id, parentType: 'policy' });
     }
 
     batch.set(policyRef, policyData);
