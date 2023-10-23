@@ -22,7 +22,7 @@ export const useSearchParamToggle = <T extends string>(
       newView && setView(newView);
       newView && setSearchParams({ [searchKey]: newView });
     },
-    [setSearchParams]
+    [setSearchParams, searchKey]
   );
 
   return [view, handleViewChange] as const;
