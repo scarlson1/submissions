@@ -1,9 +1,9 @@
+import { getFunctions } from 'firebase/functions';
 import { useCallback } from 'react';
 
-import { AddPaymentMethodValues } from 'elements/forms/AddPaymentDialog';
 import { ePayInstance, verifyEPayToken, VerifyEPayTokenResponse } from 'api';
+import { AddPaymentMethodValues } from 'elements/forms/AddPaymentDialog';
 import { useAsyncToast } from './useAsyncToast';
-import { getFunctions } from 'firebase/functions';
 
 export const useVerifyPaymentMethod = (
   onSuccess?: (data: VerifyEPayTokenResponse) => void,
@@ -46,6 +46,7 @@ export const useVerifyPaymentMethod = (
         let tokenReqModel = null;
         let cardExpArray = values.cardExpDate.split('/');
         let expMonth = cardExpArray[0].length === 1 ? `0${cardExpArray[0]}` : cardExpArray[0];
+
         if (values.cardPaymentMethod) {
           tokenReqModel = {
             payer: values.payerName,
@@ -84,10 +85,7 @@ export const useVerifyPaymentMethod = (
         return res;
       } catch (err: any) {
         console.log('ERROR: ', err);
-        const msg =
-          err && err.message
-            ? err.message
-            : 'Unable to add payment method. See console for details.';
+        const msg = err?.message ?? 'Unable to add payment method. See console for details.';
 
         toast.error(msg);
         if (onError) onError(msg);

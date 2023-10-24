@@ -11,7 +11,7 @@ import {
   policiesCollectionNew,
   quotesCollection,
 } from '../common/index.js';
-import { createDocId, getSLLicenseByState } from '../modules/db/index.js';
+import { getSLLicenseByState } from '../modules/db/index.js';
 import { checkMoratoriums } from '../services/index.js';
 import { publishPolicyCreated } from '../services/pubsub/index.js';
 import { onCallWrapper } from '../services/sentry/index.js';
@@ -51,12 +51,29 @@ const createPolicy = async ({ data, auth }: CallableRequest<CreatePolicyProps>) 
   const isExpired = quoteData.quoteExpirationDate?.toMillis() < new Date().getTime();
   validate(!isExpired, 'failed-precondition', 'Quote expired. Please create a new one.');
 
+  const policyRef = policiesCol.doc(quoteData.policyId);
+
+  if (quoteData.status === QUOTE_STATUS.BOUND) {
+    // if quote status === bound --> fetch policy --> if policy already created, check if values changed
+    // only allow updating billing ??
+    // add message ?? "policy already bound, billing entity updated" or "policy bound" ??
+    const policySnap = await policyRef.get();
+    const policy = policySnap.data();
+    if (policySnap.exists && policy) {
+      // if (!isEqual(policy.pay))
+      return { policyId: policyRef.id, message: 'policy already bound' };
+    }
+  }
+
+  // TODO: validate quote using zod
+
   // TODO: check effective date within 15-30 day window ?? handle admin approval process if not
   // TODO: validate quote (expired, exp./eff. dates, amount, taxes, fees, all values exist, etc.)
 
   const fips = quoteData.address?.countyFIPS;
   const effDate = quoteData.effectiveDate;
 
+  // TODO: handle multiple counties once using multi-location
   // check if moratorium exists for county
   let isMoratorium = false;
   if (fips && effDate) {
@@ -74,6 +91,7 @@ const createPolicy = async ({ data, auth }: CallableRequest<CreatePolicyProps>) 
   }
   validate(!isMoratorium, 'failed-precondition', `Moratorium in place for FIPS ${fips}`);
 
+  // TODO: fetch license and moratorium in promise all
   // Fetch surplus lines license
   let licenseData;
   try {
@@ -85,8 +103,9 @@ const createPolicy = async ({ data, auth }: CallableRequest<CreatePolicyProps>) 
     reportErr(msg, {}, err);
     throw new HttpsError('internal', msg);
   }
-  // const policyRef = policiesCol.doc();
-  const policyRef = policiesCol.doc(`ID${createDocId(8)}`);
+
+  // const policyRef = policiesCol.doc(`ID${createDocId(8)}`);
+  // const policyRef = policiesCol.doc(quoteData.policyId);
   let policyData: Policy;
   let locationData: Record<string, ILocation>;
 
@@ -111,6 +130,8 @@ const createPolicy = async ({ data, auth }: CallableRequest<CreatePolicyProps>) 
     // OPTION 2:
     //    - execute policy create and payment in one flow
     // option 1 better - not all payment method are synchronous
+    // OPTION 3:
+    //    - create policyId with quote --> check if quote is already bound, update billing details if necessary
 
     info(`CREATING POLICY (quoteId: ${quoteId})`, { quoteData, policyData, locationData });
 
@@ -146,7 +167,7 @@ const createPolicy = async ({ data, auth }: CallableRequest<CreatePolicyProps>) 
       );
     }
 
-    return { policyId: policyRef.id };
+    return { policyId: policyRef.id, message: 'policy created' };
   } catch (err: any) {
     console.log('ERROR: ', err);
     reportErr(

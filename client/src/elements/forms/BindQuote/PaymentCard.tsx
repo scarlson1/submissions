@@ -1,6 +1,6 @@
 import { AccountBalanceRounded } from '@mui/icons-material';
 import { Box, Card, CardContent, Skeleton, Typography, useTheme } from '@mui/material';
-import { PaymentMethod } from 'common';
+import { EPayPaymentMethodDetails, PaymentMethod } from 'common';
 import { MdPayments } from 'react-icons/md';
 import { RiMastercardFill, RiVisaLine } from 'react-icons/ri';
 
@@ -28,9 +28,21 @@ const getPaymentIcon = (pmtType: any, color: any) => {
 
 export interface PaymentCardProps {
   // id: string;
-  cardDetails: PaymentMethod | null;
-  loading: boolean;
-  error: string | null;
+  cardDetails:
+    | PaymentMethod
+    | null
+    | Pick<
+        EPayPaymentMethodDetails,
+        | 'emailAddress'
+        | 'id'
+        | 'payer'
+        | 'type'
+        | 'transactionType'
+        | 'accountHolder'
+        | 'maskedAccountNumber'
+      >;
+  loading?: boolean;
+  error?: string | null;
 }
 
 export const PaymentCard = ({ cardDetails, loading, error }: PaymentCardProps) => {
@@ -76,7 +88,8 @@ export const PaymentCard = ({ cardDetails, loading, error }: PaymentCardProps) =
         </Typography>
 
         <Typography variant='body2' color='text.secondary' fontSize='0.775rem'>
-          {cardDetails?.expiration ?? cardDetails?.accountHolder}
+          {/* {cardDetails?.expiration ?? cardDetails?.accountHolder} */}
+          {cardDetails?.accountHolder}
         </Typography>
       </CardContent>
       {/* <Box sx={{ p: 2, pl: 1 }}>

@@ -19,7 +19,6 @@ import { addToDate, dollarFormat, formatDate } from 'modules/utils';
 import { BindQuoteValues } from './BindQuoteForm';
 import { LogAnalyticsProps } from './NamedInsuredStep';
 import { PaymentCard } from './PaymentCard';
-import { useCardDetails } from './useCardDetails';
 
 interface ReviewStepProps extends LogAnalyticsProps {
   data: WithId<Quote>;
@@ -27,7 +26,10 @@ interface ReviewStepProps extends LogAnalyticsProps {
 
 export function ReviewStep({ data, logAnalyticsStep }: ReviewStepProps) {
   const { values } = useFormikContext<BindQuoteValues>();
-  const { cardDetails, loading, error } = useCardDetails(values.paymentMethodId);
+  // const { cardDetails, loading, error } = useCardDetails(values.paymentMethodId);
+  // TODO: use card details from billing entity form values or get details from subcollection of policyId
+  // const { cardDetails, loading, error } = useCardDetails(values.billingEntities[0].id);
+  const cardDetails = values.billingEntities[0];
 
   useEffect(() => {
     logAnalyticsStep(3, 'bind quote review step');
@@ -141,7 +143,8 @@ export function ReviewStep({ data, logAnalyticsStep }: ReviewStepProps) {
         Billing
       </Typography>
       {/* <PaymentCard id={values.paymentMethodId} /> */}
-      <PaymentCard cardDetails={cardDetails} loading={loading} error={error} />
+      {/* <PaymentCard cardDetails={cardDetails} loading={loading} error={error} /> */}
+      <PaymentCard cardDetails={cardDetails} />
       <Box sx={{ py: 5 }}>
         <LineItem label='Premium' value={data.annualPremium} />
         {data.fees.map((fee) => (

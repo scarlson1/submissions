@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { AccountBalanceRounded, AddCardRounded, CreditCardRounded } from '@mui/icons-material';
 import {
   Box,
   Checkbox,
@@ -13,14 +13,18 @@ import {
   Typography,
 } from '@mui/material';
 import { useFormikContext } from 'formik';
-import { AccountBalanceRounded, AddCardRounded, CreditCardRounded } from '@mui/icons-material';
-import * as yup from 'yup';
+import { useCallback, useEffect } from 'react';
+import { object, string } from 'yup';
 
-import { AddPaymentDialog } from './AddPaymentDialog';
 import { PaymentMethod } from 'common';
+import { AddPaymentDialog } from '../AddPaymentDialog';
 
-export const billingValidation = yup.object().shape({
-  paymentMethodId: yup.string().required('Payment method required'),
+// Refactor:
+//    - add named insured - tied to payment method
+//    - store payment token with billing entity ?? or subcollection ??
+
+export const billingValidation = object().shape({
+  paymentMethodId: string().required('Payment method required'),
 });
 
 export type RadioListVal = string | number | { [key: string]: any };

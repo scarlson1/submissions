@@ -11,11 +11,12 @@ import {
   cardFeePct,
   ePayCreds as ePayCredsSecret,
   finTrxCollection,
+  getReportErrorFn,
   paymentMethodsCollection,
   policiesCollection,
 } from '../common/index.js';
 import { getEPayInstance } from '../services/index.js';
-import { publishMessage } from '../services/pubsub/index.js';
+import { publishPaymentComplete } from '../services/pubsub/index.js';
 import { onCallWrapper } from '../services/sentry/index.js';
 import { validate } from './utils/index.js';
 
@@ -23,6 +24,8 @@ import { validate } from './utils/index.js';
 
 // TODO: generalize into "charge" object/record instead of only storing in policy ??
 // create when policy created - sync "charge" with epay transaction ??
+
+const reportErr = getReportErrorFn('executePayment');
 
 interface ExecutePaymentProps {
   policyId: string;
@@ -51,11 +54,15 @@ const executePayment = async ({ data, auth }: CallableRequest<ExecutePaymentProp
   let { price, effectiveDate, paymentStatus } = policy;
   validate(price && effectiveDate, 'failed-precondition', 'Quote is missing required fields');
   validate(
-    paymentStatus === PaymentStatus.enum.awaiting_payment, // POLICY_STATUS.AWAITING_PAYMENT,
+    paymentStatus === PaymentStatus.enum.awaiting_payment,
     'failed-precondition',
     `Policy status must be "${PaymentStatus.enum.awaiting_payment}"`
   );
 
+  // TODO: execute payment from payment method ID instead of fetching from db ??
+  // switching away from storing under user ??
+  // need payment method details in order to know transaction type
+  // need to re-fetch details from epay ??
   const paymentMethodSnap: DocumentSnapshot<PaymentMethod> = await paymentMethodsCollection(db, uid)
     .doc(paymentMethodId)
     .get();
@@ -79,7 +86,8 @@ const executePayment = async ({ data, auth }: CallableRequest<ExecutePaymentProp
     const total = price + ePayFees;
     info(`PRICE (${price}) + EPAY_FEES (${ePayFees}) = TOTAL (${total})`);
 
-    validate(total >= 100, 'failed-precondition', 'total less than minimum premium');
+    // delete validation ?? could be less that 100 if shorter term
+    // validate(total >= 100, 'failed-precondition', 'total less than minimum premium');
 
     let {
       headers: { location },
@@ -89,69 +97,89 @@ const executePayment = async ({ data, auth }: CallableRequest<ExecutePaymentProp
       payerFee: ePayFees,
       attributeValues: {
         policyNumber: policyId,
-        // TODO: figure out namedInsured type
-        namedInsured: `${policy.namedInsured.displayName}`,
+        namedInsured: `${policy.namedInsured?.displayName}`,
+        contact:
+          `${policy.namedInsured?.firstName} ${policy.namedInsured?.lastName}`.trim() || null,
+        namedInsuredEmail: policy.namedInsured?.email || null,
         policyId,
         userId: uid,
-        agentId: policy.agent.userId || null,
-        agencyId: policy.agency.orgId || null,
+        agent: policy.agent?.name || null,
+        agentId: policy.agent?.userId || null,
+        agency: policy.agency?.name || null,
+        agencyId: policy.agency?.orgId || null,
       },
       emailAddress: paymentMethodDetails.emailAddress,
       tokenId: paymentMethodId,
       sendReceipt: true,
-      ipAddress: auth?.token.signInIpAddress, // ctx.rawRequest.ip,
+      ipAddress: auth?.token?.signInIpAddress || null, // ctx.rawRequest.ip,
     });
 
     let transactionId = location?.split('/')[2];
-    info(`EPay transactionId: ${transactionId}`, { transactionId });
+    info(`EPay transactionId: ${transactionId}`, { transactionId, policyId });
 
     validate(transactionId, 'internal', 'payment request failed - missing transactionId');
 
     // TODO: move handling status to payment:complete event listener
-    // TODO: emit event "payment:complete" data: { policyId, transactionId }
     // trigger same event when ach payment is complete
-    // handle policy status and transaction status updates
+    const status =
+      paymentMethodDetails.transactionType === 'Ach'
+        ? FIN_TRANSACTION_STATUS.PROCESSING
+        : FIN_TRANSACTION_STATUS.SUCCEEDED;
 
-    await publishMessage(PUB_SUB_TOPICS.PAYMENT_COMPLETE, {
-      policyId,
-      transactionId,
-    });
+    try {
+      await finTrxCollection(db)
+        .doc(transactionId)
+        .set({
+          transactionId,
+          amount: total,
+          amountCaptured: 0,
+          amountRefunded: 0,
+          processingFees: ePayFees,
+          billingDetails: {
+            address: null,
+            email: paymentMethodDetails.emailAddress,
+            name: paymentMethodDetails.payer,
+            phone: null,
+          },
+          invoiceId: null,
+          policyId,
+          userId: uid,
+          paymentMethodId,
+          paymentMethodDetails,
+          receiptEmail: paymentMethodDetails.emailAddress,
+          receiptNumber: null,
+          receiptUrl: null,
+          refunded: false,
+          publicDescriptor: `Flood insurance for policy ${policySnap.id}`,
+          publicDescriptorTitle: 'iDemand Flood Insurance',
+          status,
+          metadata: {
+            created: Timestamp.now(),
+            updated: Timestamp.now(),
+          },
+        });
+    } catch (err: any) {
+      reportErr(
+        `Error create financial transaction doc for ePay transaction ${transactionId}`,
+        { transactionId, policyId },
+        err
+      );
+    }
 
-    await finTrxCollection(db)
-      .doc(transactionId)
-      .set({
-        transactionId,
-        amount: total,
-        amountCaptured: 0,
-        amountRefunded: 0,
-        processingFees: ePayFees,
-        billingDetails: {
-          address: null,
-          email: paymentMethodDetails.emailAddress,
-          name: paymentMethodDetails.payer,
-          phone: null,
-        },
-        invoiceId: null,
-        policyId,
-        userId: uid,
-        paymentMethodId,
-        paymentMethodDetails,
-        receiptEmail: paymentMethodDetails.emailAddress,
-        receiptNumber: null,
-        receiptUrl: null,
-        refunded: false,
-        publicDescriptor: `Flood insurance for policy ${policySnap.id}`,
-        publicDescriptorTitle: 'iDemand Flood Insurance',
-        // status: newStatus === QUOTE_STATUS.PAID ? 'succeeded' : 'processing',
-        status:
-          paymentMethodDetails.transactionType === 'Ach'
-            ? FIN_TRANSACTION_STATUS.PROCESSING
-            : FIN_TRANSACTION_STATUS.SUCCEEDED,
-        metadata: {
-          created: Timestamp.now(),
-          updated: Timestamp.now(),
-        },
-      });
+    if (status === FIN_TRANSACTION_STATUS.SUCCEEDED) {
+      try {
+        await publishPaymentComplete({
+          policyId,
+          transactionId,
+        });
+      } catch (err: any) {
+        reportErr(
+          `Failed to publish ${PUB_SUB_TOPICS.PAYMENT_COMPLETE} event`,
+          { policyId, transactionId },
+          err
+        );
+      }
+    }
 
     return {
       transactionId,

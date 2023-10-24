@@ -55,6 +55,7 @@ service cloud.firestore {
     // TODO: read specificity if claimed or not (might need to add a field b/c of anonymous auth)
     // need to update assign quote (only allow sign in if claimed)
     // add 'userId' to restricted fields ?? is claimQuote setting userId server-side or on the client ??
+    // TODO: only allow updating billing entity once bound ?? (payment failed) - pmt not stored in quote ??
     match /quotes/{quoteId} {
       allow get: if true
       allow list: if isDocUserOrAgentOrOrgAdminOrIDemandAdmin()
@@ -65,7 +66,7 @@ service cloud.firestore {
           isDocUser() 
           || isDocAgent()
         ) 
-          && !(containsRestrictedFields(['quoteExpiration', 'subproducerCommission', 'quoteTotal', 'termPremium', 'taxes', 'fees', 'ratingPropertyData.replacementCost', 'product', 'status', 'statusTransitions']))
+          && !(containsRestrictedFields(['quoteExpiration', 'subproducerCommission', 'quoteTotal', 'termPremium', 'taxes', 'fees', 'ratingPropertyData.replacementCost', 'product', 'paymentStatus', 'statusTransitions']))
         ) 
         || (isIDemandAdmin() && emailVerified())
       allow delete: if false

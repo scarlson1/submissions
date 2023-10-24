@@ -1,12 +1,12 @@
 import { EPayPaymentMethodDetails } from 'common';
 import { Functions, httpsCallable } from 'firebase/functions';
 
-// import { functions } from 'firebaseConfig';
-
 export interface VerifyEPayTokenRequest {
   tokenId: string;
   accountHolder: string;
 }
+
+// TODO: type response
 export interface VerifyEPayTokenResponse extends EPayPaymentMethodDetails {
   [key: string]: any;
 }
@@ -16,8 +16,3 @@ export const verifyEPayToken = (functions: Functions, args: VerifyEPayTokenReque
     functions,
     'verifyepaytoken'
   )(args);
-
-// export const verifyEPayToken = httpsCallable<VerifyEPayTokenRequest, VerifyEPayTokenResponse>(
-//   getFunctions(), // functions,
-//   'verifyEPayToken'
-// );

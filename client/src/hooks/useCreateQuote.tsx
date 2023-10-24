@@ -23,8 +23,13 @@ import {
   Submission,
 } from 'common';
 import type { QuoteValues } from 'elements/forms';
+import { createDocId } from 'modules/db/utils';
 import { addToDate, extractNumber, getGeoHash, readableFirebaseCode } from 'modules/utils/helpers';
 import { useSendQuoteNotification } from './useSendQuoteNotification';
+
+// TODO: create policy ID with quote --> save payment billing details as subcollection ??
+// or just save billing entities with policy ??
+// protection against double policy creation
 
 export const CARD_FEE_RATE = 0.035;
 
@@ -150,6 +155,7 @@ function getFormattedQuote(values: QuoteValues, uid?: string | null): Quote {
   }));
 
   return {
+    policyId: `ID${createDocId(8)}`,
     product: 'flood', // TODO: pass as prop
     deductible: values.deductible,
     limits: {

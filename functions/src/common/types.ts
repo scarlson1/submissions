@@ -229,7 +229,7 @@ export interface EPayVerifiedResponse {
 }
 
 export interface PaymentMethod extends EPayVerifiedResponse {
-  expiration?: Timestamp;
+  expiration?: Timestamp | null;
   type: string;
   userId?: string | null;
   last4: string;
@@ -257,7 +257,7 @@ export interface Charge {
   };
   invoiceId?: string | null;
   userId?: string | null;
-  policyId: string | null; // TODO: will we have policy Id at time of transaction ??
+  policyId: string; // TODO: will we have policy Id at time of transaction ??
   // quoteId?: string | null;
   onBehalfOf?: string;
   paid?: boolean;
@@ -743,6 +743,7 @@ export const FeeItem = z.object({
 export type FeeItem = z.infer<typeof FeeItem>;
 
 export interface Quote extends BaseDoc {
+  policyId: string;
   product: Product;
   deductible: number;
   limits: Limits;

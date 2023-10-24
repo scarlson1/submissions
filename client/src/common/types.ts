@@ -421,6 +421,7 @@ export interface FeeItem {
 // TODO: need reference to ratingDocId to get AALs for editing
 // TODO: change quote to support multi-location
 export interface Quote {
+  policyId: string;
   product: TProduct; // keyof typeof Product;
   deductible: number;
   limits: Limits;

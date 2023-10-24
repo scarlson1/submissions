@@ -5,6 +5,7 @@ export interface CreatePolicyRequest {
 }
 export interface CreatePolicyResponse {
   policyId: string;
+  message: string;
 }
 
 export const createPolicy = (functions: Functions, args: CreatePolicyRequest) =>

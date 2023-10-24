@@ -17,6 +17,7 @@ import {
   extractNumberNeg,
   getCardFee,
 } from '../../common/index.js';
+import { createDocId } from '../../modules/db/utils.js';
 import { CSVQuoteRow, CSVTransformedQuote } from '../models/index.js';
 import { getFormattedFees } from './policy.js';
 
@@ -137,6 +138,7 @@ export function transformQuoteRow(row: CSVQuoteRow): DeepNullable<CSVTransformed
   const cardFee = quoteTotal ? getCardFee(quoteTotal) : 0;
 
   return {
+    policyId: `ID${createDocId(8)}`,
     product: (row.product as Product) || null,
     limits,
     deductible: row.deductible ? extractNumber(row.deductible) : 0,
