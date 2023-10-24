@@ -14,10 +14,8 @@ import {
   Typography,
   alpha,
 } from '@mui/material';
-import { doc } from 'firebase/firestore';
 import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useFirestore, useFirestoreDocData } from 'reactfire';
 
 import {
   ApartmentRentSVG,
@@ -27,9 +25,9 @@ import {
   SecureLoginSVG,
   UnderConstructionSVG,
 } from 'assets/images';
-import { ANALYTICS_EVENTS, QUOTE_STATUS, quotesCollection } from 'common';
+import { ANALYTICS_EVENTS, QUOTE_STATUS, Quote } from 'common';
 import { FlexCard, FlexCardContent, IconButtonMenu, LineItem } from 'components';
-import { useAnalyticsEvent } from 'hooks';
+import { useAnalyticsEvent, useDocData } from 'hooks';
 import { dollarFormat } from 'modules/utils/helpers';
 import { ROUTES, createPath } from 'router';
 
@@ -38,9 +36,8 @@ export const ViewQuote = () => {
   const { quoteId } = useParams();
   if (!quoteId) throw new Error('missing quoteId');
 
-  const firestore = useFirestore();
-  const quoteRef = doc(quotesCollection(firestore), quoteId); // .withConverter(withIdConverter())
-  const { data } = useFirestoreDocData(quoteRef);
+  const { data } = useDocData<Quote>('QUOTES', quoteId);
+  if (!data) throw new Error('Quote not found'); // TODO: error boundary ??
   const logEvent = useAnalyticsEvent();
 
   const isExpired = data.quoteExpirationDate

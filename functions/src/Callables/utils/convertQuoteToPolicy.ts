@@ -15,6 +15,7 @@ import {
 import { createDocId } from '../../modules/db/index.js';
 import {
   calcPolicyPremium,
+  calcPremiumByBillingEntity,
   getCarrierByState,
   getRCVs,
   validateLimits,
@@ -122,6 +123,13 @@ export function getPolicyFromQuote(
     outStatePremium,
   } = calcPolicyPremium(data.homeState, Object.values(policyLocations));
 
+  const totalsByBillingEntity = calcPremiumByBillingEntity(
+    Object.values(policyLocations),
+    policyTermPremium,
+    data.taxes,
+    data.fees
+  );
+
   const issuingCarrier = getCarrierByState(data.homeState);
   verify(issuingCarrier, 'error determining issuingCarrier');
 
@@ -146,6 +154,7 @@ export function getPolicyFromQuote(
     termPremium: policyTermPremium,
     termPremiumWithCancels: 0,
     termDays: singleLocation.termDays,
+    totalsByBillingEntity,
     fees: data.fees,
     taxes: data.taxes,
     price: data.quoteTotal,

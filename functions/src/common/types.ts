@@ -993,15 +993,15 @@ export type ILocation = z.infer<typeof ILocation>;
 //   quoteId?: string | null;
 // }
 
-// export interface PolicyLocation {
-//   termPremium: number;
-//   // TODO: add annualPremium
-//   address: CompressedAddress;
-//   coords: GeoPoint;
-//   cancelEffDate?: Timestamp | null;
-//   version?: number; // TODO: remove optional
-//   // lcnDocId: string;
-// }
+export const TotalsByBillingEntity = z.record(
+  z.object({
+    termPremium: z.number(),
+    taxes: z.array(TaxItem),
+    fees: z.array(FeeItem),
+    price: z.number(),
+  })
+);
+export type TotalsByBillingEntity = z.infer<typeof TotalsByBillingEntity>;
 
 export const PolicyLocation = z.object({
   termPremium: z.number(), // .min(100, 'term premium must be > 100'), // TODO: check validation with ron - termPremium could be < 100 if shorter than policy term
@@ -1038,6 +1038,7 @@ export const Policy = z.object({
   inStatePremium: z.number(),
   outStatePremium: z.number(),
   termDays: z.number().nonnegative(),
+  totalsByBillingEntity: TotalsByBillingEntity,
   fees: z.array(FeeItem),
   taxes: z.array(TaxItem),
   price: z.number(),

@@ -255,10 +255,16 @@ export default async (event: StorageEvent) => {
  * @returns {object} object of policies, locations and ratingData
  */
 async function groupByPolicyId(data: ParsedPolicyRow[], firestore: Firestore) {
-  // let policies: Record<string, Omit<Policy, 'termPremium'>> = {};
   let policies: Record<
     string,
-    Omit<Policy, 'termPremium' | 'termPremiumWithCancels' | 'inStatePremium' | 'outStatePremium'>
+    Omit<
+      Policy,
+      | 'termPremium'
+      | 'termPremiumWithCancels'
+      | 'inStatePremium'
+      | 'outStatePremium'
+      | 'totalsByBillingEntity'
+    >
   > = {};
   let locations: Record<string, ILocation> = {};
   let ratingDocData: Record<string, RatingData> = {};
@@ -418,7 +424,12 @@ async function getPolicyWithoutLocation(
 
   const p: Omit<
     Policy,
-    'locations' | 'termPremium' | 'termPremiumWithCancels' | 'inStatePremium' | 'outStatePremium'
+    | 'locations'
+    | 'termPremium'
+    | 'termPremiumWithCancels'
+    | 'inStatePremium'
+    | 'outStatePremium'
+    | 'totalsByBillingEntity'
   > = {
     product: data.product,
     // status: POLICY_STATUS.PAID,

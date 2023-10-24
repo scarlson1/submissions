@@ -19,6 +19,7 @@ export type CalcPolicyChangesResult = Pick<
   | 'locations'
   | 'termPremiumWithCancels'
   | 'taxes'
+  | 'totalsByBillingEntity'
 > &
   Partial<Pick<Policy, 'cancelEffDate' | 'cancelReason' | 'termDays'>>;
 
@@ -51,6 +52,7 @@ export const calcPolicyEndorsementChanges = (
     termPremiumWithCancels,
     taxes,
     price,
+    totalsByBillingEntity,
   } = calcPolicyPremiumAndTaxes(newLcnArr, policy.homeState, policy.taxes, policy.fees);
 
   let policyChanges: CalcPolicyChangesResult = {
@@ -60,6 +62,7 @@ export const calcPolicyEndorsementChanges = (
     outStatePremium,
     taxes,
     price,
+    totalsByBillingEntity,
     locations: lcnSummaryChanges as Policy['locations'], // TODO: fix typing
   };
 
