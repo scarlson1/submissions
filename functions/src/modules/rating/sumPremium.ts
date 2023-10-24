@@ -5,7 +5,6 @@ import {
   LcnWithTermPrem,
   PolicyLcnWithPrem,
   PolicyLocation,
-  State,
   TaxItem,
   TotalsByBillingEntity,
 } from '../../common/index.js';
@@ -89,12 +88,8 @@ export const calcPolicyPremium = (homeState: string, newLocationsArr: PolicyLoca
   const termPremium = sumPolicyTermPremium(newLocationsArr);
   const inStatePremium = getInStatePremium(homeState, newLocationsArr);
   const outStatePremium = getOutStatePremium(homeState, newLocationsArr);
-  const oklahomaPremium = sumBy(
-    newLocationsArr.filter((lcn) => lcn.address?.st === State.enum.OK),
-    'termPremium'
-  );
 
-  return { termPremium, inStatePremium, outStatePremium, oklahomaPremium };
+  return { termPremium, inStatePremium, outStatePremium };
 };
 
 export const calcPremiumByBillingEntity = (
@@ -155,6 +150,7 @@ export const calcPremiumByBillingEntity = (
     const taxDiff = round(policyTaxTotal - entitiesTaxTotal, 2);
     if (taxDiff !== 0 && largestEntityId) {
       totalsByEntity[largestEntityId].taxes[i].value += taxDiff;
+      totalsByEntity[largestEntityId].price += taxDiff;
     }
   }
 
@@ -165,6 +161,7 @@ export const calcPremiumByBillingEntity = (
     const feeDiff = round(policyFeeTotal - entitiesFeeTotal, 2);
     if (feeDiff !== 0 && largestEntityId) {
       totalsByEntity[largestEntityId].fees[i].value += feeDiff;
+      totalsByEntity[largestEntityId].price += feeDiff;
     }
   }
 
@@ -177,27 +174,17 @@ export const calcPolicyPremiumAndTaxes = (
   taxes: TaxItem[],
   fees: FeeItem[]
 ) => {
-  const { termPremium, inStatePremium, outStatePremium, oklahomaPremium } = calcPolicyPremium(
-    homeState,
-    lcnArr
-  );
+  const { termPremium, inStatePremium, outStatePremium } = calcPolicyPremium(homeState, lcnArr);
 
   const termPremiumWithCancels = sumPolicyTermPremiumIncludeCancels(lcnArr);
 
-  let recalcArgs = {
+  const newTaxes = recalcTaxes({
     premium: termPremium,
     homeStatePremium: inStatePremium,
     outStatePremium,
     taxes,
     fees,
-  };
-  if (homeState === State.enum.OK) {
-    recalcArgs['premium'] = termPremium - oklahomaPremium;
-    recalcArgs['homeStatePremium'] = Math.max(inStatePremium - oklahomaPremium, 0);
-    recalcArgs['outStatePremium'] = Math.max(outStatePremium - oklahomaPremium, 0);
-  }
-
-  const newTaxes = recalcTaxes(recalcArgs);
+  });
 
   // BUG: if policy cancel, still adding taxes
   // BUG: remove fees if policy cancel ??
