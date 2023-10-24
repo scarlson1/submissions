@@ -1,4 +1,10 @@
-export {};
+import { customAlphabet } from 'nanoid';
+
+const ALPHABET = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+export const nanoId = customAlphabet(ALPHABET, 9);
+
+export const createDocId = nanoId;
+
 // TODO: finish getInequalityFilterFields to using in server grid sort
 
 // import { FieldPath, Query } from 'firebase/firestore';

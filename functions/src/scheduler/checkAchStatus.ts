@@ -4,12 +4,11 @@ import { ScheduledEvent } from 'firebase-functions/v2/scheduler';
 import {
   EPayGetTransactionRes,
   FIN_TRANSACTION_STATUS,
-  PUB_SUB_TOPICS,
   ePayCreds as ePayCredsSecret,
   finTrxCollection,
 } from '../common/index.js';
 import { getEPayInstance } from '../services/index.js';
-import { publishMessage } from '../services/pubsub/index.js';
+import { publishPaymentComplete } from '../services/pubsub/index.js';
 
 // const ePayCreds = defineSecret('ENCODED_EPAY_AUTH');
 
@@ -57,7 +56,7 @@ export default async (event: ScheduledEvent) => {
             'metadata.updated': Timestamp.now(),
           });
 
-          await publishMessage(PUB_SUB_TOPICS.PAYMENT_COMPLETE, {
+          await publishPaymentComplete({
             policyId: charge.policyId,
             transactionId: charge.transactionId,
           });

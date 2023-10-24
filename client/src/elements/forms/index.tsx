@@ -26,7 +26,6 @@ export { FormikPassword } from './FormikPassword';
 export { LicenseForm } from './LicenseForm';
 export { LimitsStep } from './LimitsStep';
 export { LocationChangeFormOld } from './LocationChangeFormOld';
-export { PaymentStep, billingValidation } from './PaymentStep';
 export { PortfolioSubmissionForm } from './PortfolioSubmissionForm';
 export { PriorFloodLossStep } from './PriorFloodLossStep';
 export * from './QuoteForm';

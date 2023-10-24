@@ -4,7 +4,7 @@ import { info } from 'firebase-functions/logger';
 import type { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 
 import {
-  POLICY_STATUS,
+  PaymentStatus,
   audience,
   ePayBaseURL,
   hostingBaseURL,
@@ -13,7 +13,12 @@ import {
 } from '../common/index.js';
 import { sendAdminPaidNotification } from '../services/sendgrid/index.js';
 
-export default async (event: CloudEvent<MessagePublishedData>) => {
+export interface PaymentCompletePayload {
+  transactionId: string;
+  policyId: string;
+}
+
+export default async (event: CloudEvent<MessagePublishedData<PaymentCompletePayload>>) => {
   info('MSG JSON: ', event.data.message.json);
 
   let transactionId = null;
@@ -39,7 +44,10 @@ export default async (event: CloudEvent<MessagePublishedData>) => {
   // TODO: Need to ask to get full list of required checks
 
   // update status to paid
-  await policyRef.update({ status: POLICY_STATUS.PAID, 'metadata.updated': Timestamp.now() });
+  await policyRef.update({
+    paymentStatus: PaymentStatus.enum.paid,
+    'metadata.updated': Timestamp.now(),
+  });
   console.log(`POLICY ${policyId} STATUS UPDATED TO PAID - TRX ID: ${transactionId}`);
 
   const to = ['spencer.carlson@idemandinsurance.com'];
@@ -59,7 +67,7 @@ export default async (event: CloudEvent<MessagePublishedData>) => {
     {
       customArgs: {
         firebaseEventId: event.id,
-        emailType: 'payment_complete',
+        emailType: 'payment_complete', // TODO: use zod from email type & args to sendAdminNotification
       },
     }
   );

@@ -1,6 +1,7 @@
 import { Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
+import { z } from 'zod';
 
 import {
   EPayVerifiedResponse,
@@ -11,10 +12,20 @@ import {
 import { getEPayInstance } from '../services/index.js';
 import { onCallWrapper } from '../services/sentry/index.js';
 
-const verifyEPayToken = async ({ data, auth }: CallableRequest) => {
+// TODO: determine where to store payment method
+// in policy? subcollection of policy? subcollection of user?
+
+const VerifyEPayTokenRequest = z.object({
+  tokenId: z.string(),
+  accountHolder: z.string(),
+  // expiration: z.coerce.date().optional().nullable()
+});
+type VerifyEPayTokenRequest = z.infer<typeof VerifyEPayTokenRequest>;
+
+const verifyEPayToken = async ({ data, auth }: CallableRequest<VerifyEPayTokenRequest>) => {
   info('data: ', data);
   const db = getFirestore();
-  const { tokenId, accountHolder, expiration } = data;
+  const { tokenId, accountHolder } = data; // expiration
   const userId = auth?.uid;
 
   if (!tokenId || typeof tokenId !== 'string' || tokenId.length === 0) {
@@ -27,7 +38,7 @@ const verifyEPayToken = async ({ data, auth }: CallableRequest) => {
     );
   }
 
-  const ePayCreds = ePayCredsSecret.value(); // process.env.ENCODED_EPAY_AUTH;
+  const ePayCreds = ePayCredsSecret.value();
   if (!ePayCreds) throw new Error('Missing required env vars');
 
   const ePayInstance = await getEPayInstance(ePayCreds);
@@ -36,6 +47,7 @@ const verifyEPayToken = async ({ data, auth }: CallableRequest) => {
     let { data: methodDetails } = await ePayInstance.get<EPayVerifiedResponse>(
       `/api/v1/tokens/${tokenId}`
     );
+    // TODO: validate response
     console.log('METHOD DETAILS: ', methodDetails);
     const paymentMethodDetails: PaymentMethod = {
       ...methodDetails,
@@ -44,22 +56,12 @@ const verifyEPayToken = async ({ data, auth }: CallableRequest) => {
       maskedAccountNumber: methodDetails.maskedAccountNumber.replaceAll('X', '*'),
       accountHolder,
       userId: userId || null,
-      expiration: expiration ?? null,
+      // expiration: expiration ? Timestamp.fromDate(expiration) : null,
       metadata: {
         created: Timestamp.now(),
         updated: Timestamp.now(),
       },
     };
-
-    // paymentDetails.type = methodDetails.transactionType === 'Ach' ? 'bank_account' : 'card';
-    // paymentDetails.last4 = methodDetails.maskedAccountNumber.substr(-4, 4);
-    // paymentDetails.maskedAccountNumber = methodDetails.maskedAccountNumber.replaceAll('X', '*');
-
-    // let res: PaymentMethod = {
-    //   ...paymentDetails,
-    //   accountHolder,
-    //   userId: userId || null,
-    // };
 
     let paymentMethodDocId = null;
 

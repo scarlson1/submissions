@@ -25,7 +25,7 @@ import {
   StormRounded,
   ThumbDownRounded,
 } from '@mui/icons-material';
-import { Box, Chip, ChipProps, Typography } from '@mui/material';
+import { Box, Chip, ChipProps, Link, Typography } from '@mui/material';
 import {
   GridAlignment,
   GridCellParams,
@@ -40,6 +40,7 @@ import {
 import { GeoPoint, Timestamp } from 'firebase/firestore';
 import { isDate, round, sum, sumBy } from 'lodash';
 import { toast } from 'react-hot-toast';
+import { Link as RouterLink } from 'react-router-dom';
 
 import {
   AdditionalInsured,
@@ -102,6 +103,7 @@ import {
   numberFormat,
   popUpWasBlocked,
 } from 'modules/utils';
+import { ADMIN_ROUTES, ROUTES, createPath } from 'router';
 
 export const copyBaseProps: Partial<GridColDef> = {
   flex: 1.2,
@@ -145,6 +147,80 @@ export const idCol: GridColDef = {
   sortable: false,
   filterOperators: getGridFirestoreStringOperators(),
   ...copyBaseProps,
+};
+
+// NOTE: ADMIN GRID ONLY
+export const submissionIdCol: GridColDef = {
+  field: 'submissionId',
+  headerName: 'Submission ID',
+  description: 'Submission from which the quote was created',
+  minWidth: 240,
+  flex: 1,
+  renderCell: (params) => {
+    if (!params.value) return null;
+    return (
+      <Link
+        component={RouterLink}
+        to={createPath({
+          path: ADMIN_ROUTES.SUBMISSION_VIEW,
+          params: { submissionId: params.value },
+        })}
+      >
+        <GridCellCopy value={params.value} />
+      </Link>
+    );
+  },
+};
+
+export const locationIdCol: GridColDef = {
+  ...idCol,
+  field: 'locationId',
+  headerName: 'Location ID',
+  filterable: true,
+};
+
+export const policyIdCol: GridColDef = {
+  ...idCol,
+  field: 'policyId',
+  headerName: 'Policy ID',
+  filterable: true,
+  renderCell: (params) => {
+    if (!params.value) return null;
+
+    return (
+      <Link
+        component={RouterLink}
+        to={createPath({
+          path: ROUTES.POLICY,
+          params: { policyId: params.value },
+        })}
+      >
+        <GridCellCopy value={params.value} />
+      </Link>
+    );
+  },
+};
+
+export const quotesPolicyIdCol: GridColDef = {
+  ...policyIdCol,
+  description: 'policy created from quote',
+  minWidth: 240,
+  flex: 1,
+  renderCell: (params) => {
+    if (!params.value || params.row?.status !== QUOTE_STATUS.BOUND) return null;
+
+    return (
+      <Link
+        component={RouterLink}
+        to={createPath({
+          path: ROUTES.POLICY,
+          params: { policyId: params.value },
+        })}
+      >
+        <GridCellCopy value={params.value} />
+      </Link>
+    );
+  },
 };
 
 export const emailCol: GridColDef = {
@@ -1478,20 +1554,6 @@ export const locationAddresses: GridColDef = {
       </Box>
     );
   },
-};
-
-export const locationIdCol: GridColDef = {
-  ...idCol,
-  field: 'locationId',
-  headerName: 'Location ID',
-  filterable: true,
-};
-
-export const policyIdCol: GridColDef = {
-  ...idCol,
-  field: 'policyId',
-  headerName: 'Policy ID',
-  filterable: true,
 };
 
 export const homeStateCol: GridSingleSelectColDef = {

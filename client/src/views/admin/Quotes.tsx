@@ -40,7 +40,7 @@ import { useConfirmation } from 'context';
 import { CSVUploadDialog } from 'elements';
 import { QuotesGrid } from 'elements/grids';
 import { useAsyncToast, useGridShowJson, useWidth } from 'hooks';
-import { subproducerCommissionCol } from 'modules/muiGrid/gridColumnDefs';
+import { submissionIdCol, subproducerCommissionCol } from 'modules/muiGrid/gridColumnDefs';
 import { getDuplicates } from 'modules/utils';
 import { getCsvHeaderStatus } from 'modules/utils/storage';
 import { ADMIN_ROUTES, ROUTES, createPath } from 'router';
@@ -208,7 +208,7 @@ export const Quotes = () => {
       </Box>
       <QuotesGrid
         renderActions={renderActions}
-        additionalColumns={[subproducerCommissionCol]}
+        additionalColumns={[submissionIdCol, subproducerCommissionCol]}
         density='compact'
         processRowUpdate={confirmAndUpdate}
         onProcessRowUpdateError={handleProcessRowUpdateError}

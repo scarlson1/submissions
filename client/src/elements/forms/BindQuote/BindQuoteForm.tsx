@@ -1,7 +1,7 @@
 import { endOfDay, startOfDay } from 'date-fns';
 import { Timestamp, doc, updateDoc } from 'firebase/firestore';
 import { FormikHelpers, FormikProps } from 'formik';
-import { useBindQuote, useDocData, useSafeParams, useUserPaymentMethods } from 'hooks';
+import { useBindQuote, useDocData, useSafeParams } from 'hooks';
 import { isEqual } from 'lodash';
 import { useCallback, useMemo, useRef } from 'react';
 import toast from 'react-hot-toast';
@@ -10,6 +10,7 @@ import { useFirestore, useSigninCheck } from 'reactfire';
 
 import {
   AdditionalInterest,
+  EPayPaymentMethodDetails,
   MailingAddress,
   NamedInsuredDetails,
   additionalInterestsValidation,
@@ -20,24 +21,35 @@ import {
 import { FormikWizard, Step } from 'components/forms';
 import { addToDate } from 'modules/utils';
 import { ROUTES, createPath } from 'router';
-import { PaymentStep, billingValidation } from '../PaymentStep';
 import { AdditionalInterestsStep } from './AdditionalInterestsStep';
 import { EffectiveDateStep, getEffectiveDateValidation } from './EffectiveDateStep';
 import { QuoteExpired } from './Expired';
 import { MailingAddressStep } from './MailingAddressStep';
 import { NamedInsuredStep } from './NamedInsuredStep';
+// import { PaymentStep, billingValidation } from './PaymentStep';
+import { BillingStep, billingValidation } from './BillingStep';
 import { ReviewStep } from './ReviewStep';
 import { useLogCheckoutProgress } from './useLogCheckoutProgress';
 
 export interface BindQuoteValues {
   namedInsured: Omit<NamedInsuredDetails, 'userId'>;
   // agent: AgentDetails;
-  paymentMethodId: string;
   effectiveDate: Date;
   effectiveExceptionRequested: boolean;
   effectiveExceptionReason: string | null;
   additionalInterests: AdditionalInterest[];
   mailingAddress: MailingAddress;
+  // paymentMethodId: string;
+  billingEntities: Pick<
+    EPayPaymentMethodDetails,
+    | 'emailAddress'
+    | 'id'
+    | 'payer'
+    | 'type'
+    | 'transactionType'
+    | 'accountHolder'
+    | 'maskedAccountNumber'
+  >[]; // BillingEntity
 }
 
 export const BindQuoteForm = () => {
@@ -49,7 +61,7 @@ export const BindQuoteForm = () => {
   const firestore = useFirestore();
   const { current: quoteRef } = useRef(doc(quotesCollection(firestore), quoteId)); // TODO: could useDoc instead of doc data, then use snap.ref ??
   const logAnalyticsStep = useLogCheckoutProgress(quoteId, 5);
-  const paymentMethods = useUserPaymentMethods();
+  // const paymentMethods = useUserPaymentMethods();
 
   const { minEffDate, maxEffDate } = useMemo(() => {
     const minEffDate = addToDate(
@@ -67,14 +79,15 @@ export const BindQuoteForm = () => {
   // TODO FINISH BIND QUOTE HOOK
   const bindQuote = useBindQuote(
     (msg: string) => toast.success(msg),
-    (err: any, msg: string) => toast.error(msg)
+    (msg: string, err: any) => toast.error(msg)
   );
 
   const handleSubmit = useCallback(
     async (values: BindQuoteValues, { setSubmitting }: FormikHelpers<BindQuoteValues>) => {
-      if (!values.paymentMethodId) return toast.error('Missing payment method');
+      // if (!values.paymentMethodId) return toast.error('Missing payment method');
 
-      const res = await bindQuote(quoteId, values.paymentMethodId);
+      // const res = await bindQuote(quoteId, values.paymentMethodId);
+      const res = await bindQuote(quoteId, values.billingEntities[0].id);
       setSubmitting(false);
 
       if (res?.transactionId && (res?.status === 'succeeded' || res?.status === 'processing')) {
@@ -96,7 +109,6 @@ export const BindQuoteForm = () => {
 
   const saveValues = useCallback(
     async (values: BindQuoteValues, bag: any, initialValues: BindQuoteValues) => {
-      // alternative pkg: https://github.com/mattphillips/deep-object-diff
       if (isEqual(values, initialValues)) return values;
 
       await updateDoc(quoteRef, {
@@ -106,10 +118,13 @@ export const BindQuoteForm = () => {
           email: values.namedInsured?.email || '',
           phone: values.namedInsured?.phone || '',
         },
+        mailingAddress: values.mailingAddress,
         additionalInterests: values.additionalInterests || [],
         effectiveDate: Timestamp.fromDate(values.effectiveDate),
         effectiveExceptionRequested: values.effectiveExceptionRequested,
         effectiveExceptionReason: values.effectiveExceptionReason || null,
+        // @ts-ignore
+        billingEntities: values.billingEntities, // TODO: fix type
       });
       return values;
     },
@@ -148,7 +163,19 @@ export const BindQuoteForm = () => {
         effectiveDate: data?.effectiveDate?.toDate() ?? new Date(),
         effectiveExceptionRequested: data?.effectiveExceptionRequested ?? false,
         effectiveExceptionReason: data?.effectiveExceptionReason ?? '',
-        paymentMethodId: '',
+        // paymentMethodId: '',
+        billingEntities: data?.billingEntities?.length
+          ? data.billingEntities.map((b: any) => ({
+              // TODO: fix type
+              id: b.id,
+              payer: b.payer,
+              emailAddress: b.emailAddress,
+              accountHolder: b.accountHolder || null,
+              maskedAccountNumber: b.maskedAccountNumber,
+              transactionType: b.transactionType,
+              type: b.type || null,
+            }))
+          : [],
       }}
       onSubmit={handleSubmit}
       onCancel={handleCancel}
@@ -201,8 +228,16 @@ export const BindQuoteForm = () => {
           logAnalyticsStep={logAnalyticsStep}
         />
       </Step>
-      <Step label='Billing' stepperNavLabel='Billing' validationSchema={billingValidation}>
+      {/* <Step label='Billing' stepperNavLabel='Billing' validationSchema={billingValidation}>
         <PaymentStep pmtOptions={[...paymentMethods]} logAnalyticsStep={logAnalyticsStep} />
+      </Step> */}
+      <Step
+        label='Billing'
+        stepperNavLabel='Billing'
+        mutateOnSubmit={saveValues}
+        validationSchema={billingValidation}
+      >
+        <BillingStep />
       </Step>
       <Step label='Review' stepperNavLabel='Review'>
         <ReviewStep data={{ ...data, id: quoteId! }} logAnalyticsStep={logAnalyticsStep} />

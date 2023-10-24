@@ -9,10 +9,11 @@ import { createPolicy, executePayment } from 'api';
 //    - display errors in review step ??
 
 // handle resubmit after payment failure (avoid duplicate policies)
+let submitCount = 0;
 
 export const useBindQuote = (
   onSuccess?: (policyId: string) => void,
-  onError?: (err: unknown, msg: string) => void
+  onError?: (msg: string, err: unknown) => void
 ) => {
   const functions = useFunctions();
 
@@ -21,6 +22,9 @@ export const useBindQuote = (
       try {
         const { data: policyData } = await createPolicy(functions, { quoteId });
         console.log('CREATE POLICY RES: ', policyData);
+        submitCount += 1;
+
+        if (submitCount < 4) throw new Error('testing idempotency');
 
         // TODO: handle errors where policy is created, but payment fails
         // include payment methodId in createPolicy call --> emit pubsub event --> attempt transaction ??
@@ -42,7 +46,7 @@ export const useBindQuote = (
         if (err?.message) msg += `. ${err.message}`;
 
         // TODO: get error message
-        if (onError) onError(err, msg);
+        if (onError) onError(msg, err);
       }
     },
     [functions, onSuccess, onError]

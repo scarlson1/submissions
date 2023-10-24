@@ -1,10 +1,6 @@
-import { Link } from '@mui/material';
 import { GridColDef, GridColumnVisibilityModel } from '@mui/x-data-grid';
-import { Link as RouterLink } from 'react-router-dom';
 
 import { Quote } from 'common';
-import { GridCellCopy } from 'components';
-import { ADMIN_ROUTES, createPath } from 'router';
 import {
   addrCityCol,
   addrCountyCol,
@@ -35,6 +31,7 @@ import {
   nestedAgencyOrgIdCol,
   nestedAgentNameCol,
   nestedAgentUserIdCol,
+  quotesPolicyIdCol,
   ratingDataBasementCol,
   ratingDataCBRSCol,
   ratingDataDistToCoastFeetCol,
@@ -102,27 +99,9 @@ export const quoteCols: GridColDef<Quote>[] = [
     headerName: 'Quote ID',
   },
   // TODO: use regular ID column ??
-  {
-    field: 'submissionId',
-    headerName: 'Submission ID',
-    description: 'Submission from which the quote was created',
-    minWidth: 240,
-    flex: 1,
-    renderCell: (params) => {
-      if (!params.value) return null;
-      return (
-        <Link
-          component={RouterLink}
-          to={createPath({
-            path: ADMIN_ROUTES.SUBMISSION_VIEW,
-            params: { submissionId: params.value },
-          })}
-        >
-          <GridCellCopy value={params.value} />
-        </Link>
-      );
-    },
-  },
+  // TODO: only display if iD admin (until submission view is created for user consumption)
+  // submissionIdCol,
+  quotesPolicyIdCol,
 ];
 
 export const QUOTE_COLUMN_VISIBILITY: GridColumnVisibilityModel = {
