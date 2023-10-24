@@ -313,21 +313,21 @@ export const AgencyDetailsZ = z.object({
 });
 export type AgencyDetails = z.infer<typeof AgencyDetailsZ>;
 
-export const BillingEntityDetails = z.object({
-  displayName: z.string(),
-  email: z.string().email().trim().toLowerCase(),
-});
-export type TBillingEntityDetails = z.infer<typeof BillingEntityDetails>;
+// export const BillingEntityDetails = z.object({
+//   displayName: z.string(),
+//   email: z.string().email().trim().toLowerCase(),
+// });
+// export type TBillingEntityDetails = z.infer<typeof BillingEntityDetails>;
 
-export const BillingEntityZ = BillingEntityDetails.and(
-  z.object({
-    userId: z.string(),
-    agent: AgentDetailsZ.partial().required({ userId: true }),
-    agency: AgencyDetailsZ.partial().required({ orgId: true }),
-    metadata: BaseMetadataZ,
-  })
-);
-export type BillingEntity = z.infer<typeof BillingEntityZ>;
+// export const BillingEntityZ = BillingEntityDetails.and(
+//   z.object({
+//     userId: z.string(),
+//     agent: AgentDetailsZ.partial().required({ userId: true }),
+//     agency: AgencyDetailsZ.partial().required({ orgId: true }),
+//     metadata: BaseMetadataZ,
+//   })
+// );
+// export type BillingEntity = z.infer<typeof BillingEntityZ>;
 
 // TODO: unify with functions interfaces - below (individual vs org named insured)
 export interface NamedInsuredDetails {
@@ -418,6 +418,17 @@ export interface FeeItem {
   value: number;
 }
 
+export type BillingEntity = Pick<
+  EPayPaymentMethodDetails,
+  | 'emailAddress'
+  | 'id'
+  | 'payer'
+  | 'type'
+  | 'transactionType'
+  | 'accountHolder'
+  | 'maskedAccountNumber'
+> & { default?: boolean };
+
 // TODO: need reference to ratingDocId to get AALs for editing
 // TODO: change quote to support multi-location
 export interface Quote {
@@ -456,7 +467,8 @@ export interface Quote {
   mailingAddress: MailingAddress;
   agent: Nullable<AgentDetails>; // TODO: REMOVE NULLABLE
   agency: Nullable<AgencyDetails>; // TODO: REMOVE NULLABLE ??
-  status: QUOTE_STATUS; // SUBMISSION_STATUS;
+  billingEntities: Record<string, BillingEntity>;
+  status: QUOTE_STATUS;
   submissionId?: string | null;
   imageURLs?: TLocationImages | null;
   imagePaths?: TLocationImages | null;
@@ -610,8 +622,8 @@ export interface EPayPaymentMethodDetails {
   maskedAccountNumber: string;
   payer: string;
   transactionType: string;
-  type?: string;
-  accountHolder?: string;
+  type?: string | null;
+  accountHolder?: string | null;
 }
 
 export interface PaymentMethod extends EPayPaymentMethodDetails, Partial<BaseDoc> {
@@ -671,7 +683,7 @@ export interface ILocation extends BaseDoc {
   // exists: true; // https://stackoverflow.com/a/62626994/10887890
   additionalInsureds: AdditionalInsured[];
   mortgageeInterest: Mortgagee[];
-  billingEntity: TBillingEntityDetails;
+  // billingEntity: TBillingEntityDetails;
   ratingDocId: string; // TODO: include rating info ?? make PublicRatingData and PrivateRatingData (extends)
   ratingPropertyData: RatingPropertyData;
   effectiveDate: Timestamp;
@@ -699,6 +711,7 @@ export interface PolicyLocation {
   annualPremium: number;
   address: CompressedAddress;
   coords: GeoPoint;
+  billingEntityId: string;
   cancelEffDate?: Timestamp | null;
   version?: number; // TODO: remove optional
 }
@@ -710,6 +723,7 @@ export interface Policy extends BaseDoc {
   term: number;
   mailingAddress: MailingAddress;
   namedInsured: NamedInsured; // TODO: clarify typing NamedInsuredDetails;
+  billingEntities: Record<string, BillingEntity>;
   locations: Record<string, PolicyLocation>;
   homeState: string;
   termPremium: number; // sum of active location(s) term premium

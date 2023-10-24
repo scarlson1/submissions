@@ -13,12 +13,16 @@ import { compressAddress } from './helpers.js';
 
 // Location <--> Policy Location
 
-export const locationToPolicyLocation = (location: ILocation): PolicyLocation => {
+export const locationToPolicyLocation = (
+  location: ILocation,
+  billingEntityId: string
+): PolicyLocation => {
   let lcn: PolicyLocation = {
     coords: location.coordinates,
     address: compressAddress(location.address),
     termPremium: location.termPremium,
     annualPremium: location.annualPremium,
+    billingEntityId,
   };
 
   if (location?.cancelEffDate) lcn['cancelEffDate'] = location.cancelEffDate;
@@ -27,6 +31,7 @@ export const locationToPolicyLocation = (location: ILocation): PolicyLocation =>
   return lcn;
 };
 
+// TODO: need to check if needs to require billing entity ID (check all instances where fn is used)
 export const partialLcnToPolicyLcn = (lcn: LcnWithTermPrem): PolicyLcnWithPrem => {
   let policyLcn: PolicyLcnWithPrem = {
     termPremium: lcn.termPremium,

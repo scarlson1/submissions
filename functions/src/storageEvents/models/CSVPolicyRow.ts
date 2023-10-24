@@ -64,6 +64,7 @@ type CSVPolicyCamelCaseHeaders =
   | 'agencyCity'
   | 'agencyState'
   | 'agencyPostal'
+  | 'billingEntityName'
   | 'cbrsDesignation'
   | 'basement'
   | 'distToCoastFeet'

@@ -167,6 +167,7 @@ export function transformQuoteRow(row: CSVQuoteRow): DeepNullable<CSVTransformed
     agent,
     agency,
     additionalInterests: [],
+    billingEntities: {},
     status: QUOTE_STATUS.AWAITING_USER,
     ratingDocId: row.ratingDocId || '',
     imageURLs: null,

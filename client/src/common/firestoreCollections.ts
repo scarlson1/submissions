@@ -4,7 +4,6 @@ import { COLLECTIONS } from './enums';
 import {
   ActiveStates,
   AgencyApplication,
-  BillingEntity,
   ChangeRequest,
   Charge,
   ILocation,
@@ -65,9 +64,6 @@ export const policiesCollection = (db: Firestore) =>
   createCollection<Policy>(db, COLLECTIONS.POLICIES);
 
 export const usersCollection = (db: Firestore) => createCollection<User>(db, COLLECTIONS.USERS);
-
-export const billingEntityCollection = (db: Firestore) =>
-  createCollection<BillingEntity>(db, COLLECTIONS.BILLING_ENTITIES);
 
 export const licensesCollection = (db: Firestore) =>
   createCollection<License>(db, COLLECTIONS.LICENSES);

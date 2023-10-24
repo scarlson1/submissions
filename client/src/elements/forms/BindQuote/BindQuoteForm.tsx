@@ -10,9 +10,10 @@ import { useFirestore, useSigninCheck } from 'reactfire';
 
 import {
   AdditionalInterest,
-  EPayPaymentMethodDetails,
+  BillingEntity,
   MailingAddress,
   NamedInsuredDetails,
+  Quote,
   additionalInterestsValidation,
   mailingAddressValidation,
   namedInsuredValidationNested,
@@ -33,30 +34,20 @@ import { useLogCheckoutProgress } from './useLogCheckoutProgress';
 
 export interface BindQuoteValues {
   namedInsured: Omit<NamedInsuredDetails, 'userId'>;
-  // agent: AgentDetails;
   effectiveDate: Date;
   effectiveExceptionRequested: boolean;
   effectiveExceptionReason: string | null;
   additionalInterests: AdditionalInterest[];
   mailingAddress: MailingAddress;
   // paymentMethodId: string;
-  billingEntities: Pick<
-    EPayPaymentMethodDetails,
-    | 'emailAddress'
-    | 'id'
-    | 'payer'
-    | 'type'
-    | 'transactionType'
-    | 'accountHolder'
-    | 'maskedAccountNumber'
-  >[]; // BillingEntity
+  billingEntities: BillingEntity[];
 }
 
 export const BindQuoteForm = () => {
   const navigate = useNavigate();
   const { data: signInCheckResult } = useSigninCheck();
   const { quoteId } = useSafeParams(['quoteId']);
-  const { data } = useDocData('QUOTES', quoteId);
+  const { data } = useDocData<Quote>('QUOTES', quoteId);
   const formikRef = useRef<FormikProps<BindQuoteValues>>(null);
   const firestore = useFirestore();
   const { current: quoteRef } = useRef(doc(quotesCollection(firestore), quoteId)); // TODO: could useDoc instead of doc data, then use snap.ref ??
@@ -75,6 +66,20 @@ export const BindQuoteForm = () => {
 
     return { minEffDate, maxEffDate };
   }, [data]);
+
+  const billingEntities = useMemo<BillingEntity[]>(
+    () =>
+      Object.values(data?.billingEntities || {}).map((b: BillingEntity) => ({
+        id: b.id,
+        payer: b.payer,
+        emailAddress: b.emailAddress,
+        accountHolder: b.accountHolder || null,
+        maskedAccountNumber: b.maskedAccountNumber,
+        transactionType: b.transactionType,
+        type: b.type || null,
+      })),
+    [data]
+  );
 
   // TODO FINISH BIND QUOTE HOOK
   const bindQuote = useBindQuote(
@@ -110,6 +115,9 @@ export const BindQuoteForm = () => {
   const saveValues = useCallback(
     async (values: BindQuoteValues, bag: any, initialValues: BindQuoteValues) => {
       if (isEqual(values, initialValues)) return values;
+
+      const newBillingEntities: Record<string, any> = {};
+      values.billingEntities.forEach((e) => (newBillingEntities[e.id] = e));
 
       await updateDoc(quoteRef, {
         namedInsured: {
@@ -157,25 +165,11 @@ export const BindQuoteForm = () => {
           postal: data?.mailingAddress?.postal || '',
         },
         additionalInterests: data?.additionalInterests ? [...data?.additionalInterests] : [],
-        // billingEntity: {
-
-        // },
         effectiveDate: data?.effectiveDate?.toDate() ?? new Date(),
         effectiveExceptionRequested: data?.effectiveExceptionRequested ?? false,
         effectiveExceptionReason: data?.effectiveExceptionReason ?? '',
         // paymentMethodId: '',
-        billingEntities: data?.billingEntities?.length
-          ? data.billingEntities.map((b: any) => ({
-              // TODO: fix type
-              id: b.id,
-              payer: b.payer,
-              emailAddress: b.emailAddress,
-              accountHolder: b.accountHolder || null,
-              maskedAccountNumber: b.maskedAccountNumber,
-              transactionType: b.transactionType,
-              type: b.type || null,
-            }))
-          : [],
+        billingEntities,
       }}
       onSubmit={handleSubmit}
       onCancel={handleCancel}

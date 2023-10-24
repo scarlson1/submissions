@@ -11,7 +11,7 @@ import {
   policiesCollectionNew,
   quotesCollection,
 } from '../common/index.js';
-import { getSLLicenseByState } from '../modules/db/index.js';
+import { createDocId, getSLLicenseByState } from '../modules/db/index.js';
 import { checkMoratoriums } from '../services/index.js';
 import { publishPolicyCreated } from '../services/pubsub/index.js';
 import { onCallWrapper } from '../services/sentry/index.js';
@@ -51,7 +51,8 @@ const createPolicy = async ({ data, auth }: CallableRequest<CreatePolicyProps>) 
   const isExpired = quoteData.quoteExpirationDate?.toMillis() < new Date().getTime();
   validate(!isExpired, 'failed-precondition', 'Quote expired. Please create a new one.');
 
-  const policyRef = policiesCol.doc(quoteData.policyId);
+  const policyId = quoteData.policyId ?? `ID${createDocId(8)}`;
+  const policyRef = policiesCol.doc(policyId);
 
   if (quoteData.status === QUOTE_STATUS.BOUND) {
     // if quote status === bound --> fetch policy --> if policy already created, check if values changed
@@ -66,7 +67,6 @@ const createPolicy = async ({ data, auth }: CallableRequest<CreatePolicyProps>) 
   }
 
   // TODO: validate quote using zod
-
   // TODO: check effective date within 15-30 day window ?? handle admin approval process if not
   // TODO: validate quote (expired, exp./eff. dates, amount, taxes, fees, all values exist, etc.)
 
@@ -149,6 +149,7 @@ const createPolicy = async ({ data, auth }: CallableRequest<CreatePolicyProps>) 
     batch.update(quoteSnap.ref, {
       status: QUOTE_STATUS.BOUND,
       'metadata.updated': Timestamp.now(),
+      policyId,
     });
 
     await batch.commit();

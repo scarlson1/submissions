@@ -7,6 +7,7 @@ import { PaymentMethod, emailVal } from 'common';
 import { array, object, string } from 'yup';
 import { AddPaymentDialog } from '../AddPaymentDialog';
 import { BindQuoteValues } from './BindQuoteForm';
+import { PaymentCard } from './PaymentCard';
 
 // TODO: generate policyId with quote --> save payment method details in subcollection
 
@@ -50,8 +51,9 @@ export const BillingStep = () => {
       </Typography>
       {values.billingEntities.length
         ? values.billingEntities.map((b) => (
-            <Box key={b.id}>
-              <Typography align='center'>{`${b.payer} - ${b.maskedAccountNumber}`}</Typography>
+            <Box key={b.id} sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+              {/* <Typography align='center'>{`${b.payer} - ${b.maskedAccountNumber}`}</Typography> */}
+              <PaymentCard cardDetails={b} />
             </Box>
           ))
         : null}

@@ -197,6 +197,7 @@ function getFormattedQuote(values: QuoteValues, uid?: string | null): Quote {
       name: agency.name || null,
       address: agency.address || null,
     },
+    billingEntities: {},
     notes:
       notes && notes.length > 0
         ? notes

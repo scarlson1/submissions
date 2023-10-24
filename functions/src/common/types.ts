@@ -742,6 +742,17 @@ export const FeeItem = z.object({
 });
 export type FeeItem = z.infer<typeof FeeItem>;
 
+export type BillingEntity = Pick<
+  EPayPaymentMethodDetails,
+  | 'emailAddress'
+  | 'id'
+  | 'payer'
+  | 'type'
+  | 'transactionType'
+  | 'accountHolder'
+  | 'maskedAccountNumber'
+> & { default?: boolean };
+
 export interface Quote extends BaseDoc {
   policyId: string;
   product: Product;
@@ -768,6 +779,7 @@ export interface Quote extends BaseDoc {
   mailingAddress: MailingAddress;
   agent: Nullable<AgentDetails>;
   agency: Nullable<AgencyDetails>;
+  billingEntities: Record<string, BillingEntity>;
   status: QUOTE_STATUS;
   submissionId?: string | null;
   imageURLs?: LocationImages | null;
@@ -997,6 +1009,7 @@ export const PolicyLocation = z.object({
   // TODO: add annualPremium
   address: CompressedAddress,
   coords: GeoPoint,
+  billingEntityId: z.string(),
   cancelEffDate: Timestamp.optional().nullable(),
   version: z.number().optional(),
 });
@@ -1530,6 +1543,7 @@ export interface AddLocationValues {
   limits: Limits;
   deductible: number;
   effectiveDate: Timestamp;
+  billingEntityId: string; // TODO: add ability to create new billing entity ??
   ratingPropertyData: Pick<
     Nullable<RatingPropertyData>,
     | 'basement'

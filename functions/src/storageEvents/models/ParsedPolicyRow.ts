@@ -59,6 +59,8 @@ export const ParsedPolicyRow = z.object({
   mgaCommissionPct: MGACommissionPct,
   AALs: ValueByRiskType, // AALs,
   techPremium: ValueByRiskType,
+  billingEntityId: z.string(),
+  billingEntityName: z.string(),
 });
 export type ParsedPolicyRow = z.infer<typeof ParsedPolicyRow>;
 

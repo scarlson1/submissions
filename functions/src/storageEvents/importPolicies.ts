@@ -299,7 +299,7 @@ async function groupByPolicyId(data: ParsedPolicyRow[], firestore: Firestore) {
     const policyId = row.policyId as string;
     const existingPolicy = policies[policyId] || null;
 
-    const policyLocation = locationToPolicyLocation(formattedLocation);
+    const policyLocation = locationToPolicyLocation(formattedLocation, row.billingEntityId);
 
     if (existingPolicy) {
       info(`adding location to policy ${row.externalId}`);

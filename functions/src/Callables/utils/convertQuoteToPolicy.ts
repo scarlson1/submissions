@@ -100,6 +100,8 @@ export function getPolicyFromQuote(
   const locationData = Object.values(locations);
   verify(locationData && locationData.length > 0, 'missing location data');
   const singleLocation = locationData[0];
+  const billingEntityId = Object.keys(data.billingEntities)[0];
+  verify(billingEntityId, 'missing billing entity');
 
   const policyLocations: Policy['locations'] = {};
   for (const [id, location] of Object.entries(locations)) {
@@ -109,11 +111,11 @@ export function getPolicyFromQuote(
       termPremium: location.termPremium,
       annualPremium: location.annualPremium,
       address: compressAddress(location.address),
+      billingEntityId,
       coords: location.coordinates,
     };
   }
 
-  // const policyTermPremium = getPolicyTermPremium(policyLocations);
   const {
     termPremium: policyTermPremium,
     inStatePremium,

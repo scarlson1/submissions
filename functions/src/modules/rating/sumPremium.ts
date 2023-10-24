@@ -64,6 +64,8 @@ export function sumFeesTaxesPremium(fees: FeeItem[], taxes: TaxItem[], premium: 
   return round(premium + feeTotal + taxTotal, 2);
 }
 
+// TODO: OKLAHOMA --> no taxes --> need to filter out OK before splitting taxes
+
 export function getInStatePremium(homeState: string, locations: PolicyLocation[]) {
   const total = sumByTypes<PolicyLocation>(locations, 'address.st', homeState, 'termPremium');
 
@@ -85,6 +87,7 @@ export const calcPolicyPremium = (homeState: string, newLocationsArr: PolicyLoca
   const termPremium = sumPolicyTermPremium(newLocationsArr);
   const inStatePremium = getInStatePremium(homeState, newLocationsArr);
   const outStatePremium = getOutStatePremium(homeState, newLocationsArr);
+  // TODO: calc oklahoma premium
 
   return { termPremium, inStatePremium, outStatePremium };
 };
@@ -120,3 +123,10 @@ export const calcPolicyPremiumAndTaxes = (
     taxes: newTaxes,
   };
 };
+
+// by billing entity options:
+
+// option 1:
+//    - use current calc policy totals (total up term premium for all locations --> calc taxes & fees)
+//    - add up term premium by billing entity --> calc price * (lcnPrem/totalPrem)
+//    - check diff in taxes / fees --> if doesn't total --> add diff to largest entity

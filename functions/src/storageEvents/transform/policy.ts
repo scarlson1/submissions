@@ -23,11 +23,14 @@ import {
   extractNumber,
   extractNumberNeg,
 } from '../../common/index.js';
+import { createDocId } from '../../modules/db/utils.js';
 import { getRCVs } from '../../modules/rating/index.js';
 import { dateWithTimeZone } from '../../modules/storage/index.js';
 import { capitalizeFirst } from '../../utils/index.js';
 import { NullablePolicyRow } from '../models/ParsedPolicyRow.js';
 import { CSVPolicyRow, CSVQuoteRow, ParsedPolicyRow } from '../models/index.js';
+
+const billingEntitiesMap = new Map();
 
 /** Converts to correct type and unflattens
  * @param {CSVPolicyRow} row raw input from csv
@@ -137,18 +140,14 @@ export function transformPolicyRow(row: CSVPolicyRow): NullablePolicyRow {
 
   let additionalInsureds: ParsedPolicyRow['additionalInsureds'] = getAdditionalInsureds(row);
   let mortgageeInterest: ParsedPolicyRow['mortgageeInterest'] = getMortgagee(row);
-  // if (row.additionalInsureds)
-  //   additionalInsureds = row.additionalInsureds.split(',').map((ai) => ({
-  //     name: ai,
-  //     email: 'spencercarlson@mac.com',
-  //   }));
-  // if (row.mortgageeInterest)
-  //   mortgageeInterest = row.mortgageeInterest.split(',').map((m) => ({
-  //     name: m,
-  //     contactName: '',
-  //     email: 'spencercarlson@mac.com',
-  //     loanNumber: '',
-  //   }));
+
+  const billingEntityName = row.displayName || 'unknown';
+  let billingEntityId = billingEntityName ? billingEntitiesMap.get(billingEntityName) : null;
+
+  if (!billingEntityId) {
+    billingEntityId = createDocId(5);
+    billingEntitiesMap.set(billingEntityName, billingEntityId);
+  }
 
   const transformed = {
     // : ParsedPolicyRow
@@ -193,6 +192,8 @@ export function transformPolicyRow(row: CSVPolicyRow): NullablePolicyRow {
     mgaCommissionPct,
     AALs,
     techPremium,
+    billingEntityId,
+    billingEntityName,
   };
   // TODO: fix typing & delete as assertion
   return transformed as NullablePolicyRow;

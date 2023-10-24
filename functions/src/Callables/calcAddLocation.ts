@@ -100,6 +100,7 @@ const calcAddLocation = async ({ data, auth }: CallableRequest<CalcAddLocationPr
       externalId,
       effectiveDate,
       additionalInterests,
+      billingEntityId,
     } = formValues;
     const replacementCost = ratingPropertyData?.replacementCost;
     const numStories = ratingPropertyData?.numStories;
@@ -123,6 +124,7 @@ const calcAddLocation = async ({ data, auth }: CallableRequest<CalcAddLocationPr
       'failed-precondition',
       'effective date required'
     );
+    validate(billingEntityId, 'failed-precondition', 'billing entity required');
 
     // TODO: get commission from policy rating doc ??
     // create "protected" or "admin" or "sensitive" subcollection to store policy level private/admin data like subproducer commission ??
@@ -232,6 +234,7 @@ const calcAddLocation = async ({ data, auth }: CallableRequest<CalcAddLocationPr
       coords: new GeoPoint(coordinates.latitude, coordinates.longitude),
       termPremium,
       annualPremium: lcnPremData.annualPremium,
+      billingEntityId,
       version: 0,
     };
 
