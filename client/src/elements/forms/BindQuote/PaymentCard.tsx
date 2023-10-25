@@ -1,8 +1,9 @@
 import { AccountBalanceRounded } from '@mui/icons-material';
 import { Box, Card, CardContent, Skeleton, Typography, useTheme } from '@mui/material';
-import { EPayPaymentMethodDetails, PaymentMethod } from 'common';
 import { MdPayments } from 'react-icons/md';
 import { RiMastercardFill, RiVisaLine } from 'react-icons/ri';
+
+import { EPayPaymentMethodDetails, PaymentMethod } from 'common';
 
 // TODO: finish component & move to components/elements dir
 // TODO: useCardDetails in component & wrap in suspense w/ fallback skeleton ??
@@ -16,9 +17,6 @@ const getPaymentIcon = (pmtType: any, color: any) => {
       return <RiVisaLine {...sizeProps} />;
     case 'Ach':
       return (
-        // <div style={{ fontSize: sizeProps.size, ...sizeProps.style}}>
-        // <AccountBalanceRounded fontSize='inherit' />
-        // </div>
         <AccountBalanceRounded sx={{ fontSize: sizeProps.size, color: sizeProps.style.fill }} />
       );
     default:
@@ -27,20 +25,19 @@ const getPaymentIcon = (pmtType: any, color: any) => {
 };
 
 export interface PaymentCardProps {
-  // id: string;
   cardDetails:
     | PaymentMethod
     | null
-    | Pick<
+    | (Pick<
         EPayPaymentMethodDetails,
         | 'emailAddress'
-        | 'id'
+        // | 'id'
         | 'payer'
         | 'type'
         | 'transactionType'
         | 'accountHolder'
         | 'maskedAccountNumber'
-      >;
+      > & { paymentMethodId: string });
   loading?: boolean;
   error?: string | null;
 }
@@ -51,7 +48,7 @@ export const PaymentCard = ({ cardDetails, loading, error }: PaymentCardProps) =
 
   if (loading)
     return (
-      <Box sx={{ display: 'flex', maxWidth: 400, p: 2, width: '100%' }}>
+      <Box sx={{ display: 'flex', maxWidth: 400, p: 2, width: '100%', flex: '1 1 auto' }}>
         <Skeleton variant='circular' height={50} width={50} />
         <Box sx={{ pl: 2, flex: '1 1 auto' }}>
           <Skeleton variant='rounded' width='100%' height={20} />
@@ -61,7 +58,7 @@ export const PaymentCard = ({ cardDetails, loading, error }: PaymentCardProps) =
     );
 
   return (
-    <Card sx={{ display: 'flex', maxWidth: 400 }}>
+    <Card sx={{ display: 'flex', maxWidth: 400, flex: '1 1 auto' }}>
       <Box
         sx={{
           m: 2,
@@ -88,7 +85,6 @@ export const PaymentCard = ({ cardDetails, loading, error }: PaymentCardProps) =
         </Typography>
 
         <Typography variant='body2' color='text.secondary' fontSize='0.775rem'>
-          {/* {cardDetails?.expiration ?? cardDetails?.accountHolder} */}
           {cardDetails?.accountHolder}
         </Typography>
       </CardContent>

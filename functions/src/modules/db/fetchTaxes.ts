@@ -5,7 +5,7 @@ import invariant from 'tiny-invariant';
 import {
   LineOfBusiness,
   Quote,
-  SubjectBaseItems,
+  SubjectBaseItem,
   Tax,
   TaxItem,
   TaxItemName,
@@ -15,7 +15,7 @@ import {
 } from '../../common/index.js';
 import { sumFeesByType } from '../transactions/index.js';
 
-export type SubjectBaseKeyVal = Record<Exclude<SubjectBaseItems, 'fixedFee' | 'noFee'>, number>;
+export type SubjectBaseKeyVal = Record<Exclude<SubjectBaseItem, 'fixedFee' | 'noFee'>, number>;
 
 interface StateTaxRequest extends SubjectBaseKeyVal {
   state: string;

@@ -134,13 +134,6 @@ export const PaymentStatus = z.enum([
 ]);
 export type TPaymentStatus = z.infer<typeof PaymentStatus>;
 
-// export enum AgencySubmissionStatus {
-//   ACCEPTED = 'accepted',
-//   SUBMITTED = 'submitted',
-//   REVIEW_REQUIRED = 'review:required',
-//   REJECTED = 'rejected',
-// }
-
 export const AgencySubmissionStatus = z.enum([
   'accepted',
   'submitted',
@@ -148,16 +141,6 @@ export const AgencySubmissionStatus = z.enum([
   'rejected',
 ]);
 export type TAgencySubmissionStatus = z.infer<typeof AgencySubmissionStatus>;
-
-// export enum CHANGE_REQUEST_STATUS {
-//   DRAFT = 'draft',
-//   SUBMITTED = 'submitted',
-//   ACCEPTED = 'accepted',
-//   DENIED = 'denied',
-//   UNDER_REVIEW = 'under_review',
-//   CANCELLED = 'cancelled',
-//   ERROR = 'error',
-// }
 
 export const ChangeRequestStatus = z.enum([
   'draft',
@@ -211,8 +194,75 @@ export enum UW_NOTE_CODE {
 export const Basement = z.enum(['no', 'finished', 'unfinished', 'unknown']);
 export type TBasement = z.infer<typeof Basement>;
 
-export const FloodZones = z.enum(['A', 'B', 'C', 'D', 'V', 'X', 'AE', 'AO', 'AH', 'AR', 'VE']);
-export type TFloodZones = z.infer<typeof FloodZones>;
+export const CBRSDesignation = z.enum(['IN', 'OUT']);
+export type TCBRSDesignation = z.infer<typeof CBRSDesignation>;
+
+export const PriorLossCount = z.enum(['0', '1', '2', '3']);
+export type TPriorLossCount = z.infer<typeof PriorLossCount>;
+
+export const FloodZone = z.enum(['A', 'B', 'C', 'D', 'V', 'X', 'AE', 'AO', 'AH', 'AR', 'VE']);
+export type TFloodZone = z.infer<typeof FloodZone>;
+
+export const FeeItemName = z.enum(['Inspection Fee', 'MGA Fee', 'UW Adjustment']);
+export type TFeeItemName = z.infer<typeof FeeItemName>;
+
+export const RoundingType = z.enum(['nearest', 'up', 'down']);
+export type TRoundingType = z.infer<typeof RoundingType>;
+
+export const TaxItemName = z.enum([
+  'Premium Tax',
+  'Service Fee',
+  'Stamping Fee',
+  'Regulatory Fee',
+  'Windpool Fee',
+  'Surcharge',
+  'EMPA Surcharge',
+  'Bureau of Insurance Assessment',
+]);
+export type TTaxItemName = z.infer<typeof TaxItemName>;
+
+export const TaxRateType = z.enum(['fixed', 'percent']);
+export type TTaxRateType = z.infer<typeof TaxRateType>;
+
+export const SubjectBaseItem = z.enum([
+  'premium',
+  'inspectionFees',
+  'mgaFees',
+  'outStatePremium',
+  'homeStatePremium',
+  'fixedFee',
+  'noFee',
+]);
+export type TSubjectBaseItem = z.infer<typeof SubjectBaseItem>;
+
+export const LineOfBusiness = z.enum(['residential', 'commercial']);
+export type TLineOfBusiness = z.infer<typeof LineOfBusiness>;
+
+export const ChangeRequestTrxType = z.enum([
+  'endorsement',
+  'amendment',
+  'cancellation',
+  'flat_cancel',
+  'reinstatement',
+]);
+export type TChangeRequestTrxType = z.infer<typeof ChangeRequestTrxType>;
+
+export const TransactionType = z.enum([...ChangeRequestTrxType.options, 'new', 'renewal'] as const);
+export type TTransactionType = z.infer<typeof TransactionType>;
+
+export const LicenseOwner = z.enum(['individual', 'organization']);
+export type TLicenseOwner = z.infer<typeof LicenseOwner>;
+
+export const LicenseType = z.enum(['producer', 'surplus lines', 'MGA', 'Tax ID']);
+export type TLicenseType = z.infer<typeof LicenseType>;
+
+export const DisclosureType = z.enum([
+  'state disclosure',
+  'general disclosure',
+  'terms & conditions',
+  'other',
+]);
+export type TDisclosureType = z.infer<typeof DisclosureType>;
 
 export enum DEDUCTIBLE_OPTIONS {
   pct = 'percent',
@@ -230,59 +280,60 @@ export enum LOCAL_STORAGE {
   USER_SEARCH_KEY = 'userSearchKey',
 }
 
-// export enum STATE_ABBREVIATION {
-//   AL = 'AL',
-//   AK = 'AK',
-//   AZ = 'AZ',
-//   AR = 'AR',
-//   CA = 'CA',
-//   CO = 'CO',
-//   CT = 'CT',
-//   DE = 'DE',
-//   DC = 'DC',
-//   FL = 'FL',
-//   GA = 'GA',
-//   HI = 'HI',
-//   ID = 'ID',
-//   IL = 'IL',
-//   IN = 'IN',
-//   IA = 'IA',
-//   KS = 'KS',
-//   KY = 'KY',
-//   LA = 'LA',
-//   ME = 'ME',
-//   MD = 'MD',
-//   MA = 'MA',
-//   MI = 'MI',
-//   MN = 'MN',
-//   MS = 'MS',
-//   MO = 'MO',
-//   MT = 'MT',
-//   NE = 'NE',
-//   NV = 'NV',
-//   NH = 'NH',
-//   NJ = 'NJ',
-//   NM = 'NM',
-//   NY = 'NY',
-//   NC = 'NC',
-//   ND = 'ND',
-//   OH = 'OH',
-//   OK = 'OK',
-//   OR = 'OR',
-//   PA = 'PA',
-//   RI = 'RI',
-//   SC = 'SC',
-//   SD = 'SD',
-//   TN = 'TN',
-//   TX = 'TX',
-//   UT = 'UT',
-//   VT = 'VT',
-//   VA = 'VA',
-//   WA = 'WA',
-//   WV = 'WV',
-//   WI = 'WI',
-//   WY = 'WY',
-// }
+export const State = z.enum([
+  'AL',
+  'AK',
+  'AZ',
+  'AR',
+  'CA',
+  'CO',
+  'CT',
+  'DE',
+  'DC',
+  'FL',
+  'GA',
+  'HI',
+  'ID',
+  'IL',
+  'IN',
+  'IA',
+  'KS',
+  'KY',
+  'LA',
+  'ME',
+  'MD',
+  'MA',
+  'MI',
+  'MN',
+  'MS',
+  'MO',
+  'MT',
+  'NE',
+  'NV',
+  'NH',
+  'NJ',
+  'NM',
+  'NY',
+  'NC',
+  'ND',
+  'OH',
+  'OK',
+  'OR',
+  'PA',
+  'RI',
+  'SC',
+  'SD',
+  'TN',
+  'TX',
+  'UT',
+  'VT',
+  'VA',
+  'WA',
+  'WV',
+  'WI',
+  'WY',
+]);
+export type TState = z.infer<typeof State>;
 
 export enum REMOTE_CONFIG_KEYS {
   'WELCOME' = 'welcome_message',

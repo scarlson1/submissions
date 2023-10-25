@@ -2,7 +2,7 @@
 import { array, boolean, number, object, string } from 'yup';
 
 import { isValidEmail } from 'modules/utils/helpers';
-import { State } from './statesList';
+import { State } from './enums';
 
 export const phoneRegEx = /^\+1[1-9]{1}[0-9]{9}$/;
 

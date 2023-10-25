@@ -7,8 +7,7 @@ import { useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as yup from 'yup';
 
-import { License, addressValidationNotRequired, phoneVal } from 'common';
-import { statesAbrvSelectOptions } from 'common/statesList';
+import { License, State, addressValidationNotRequired, phoneVal } from 'common';
 import {
   FormikDatePicker,
   FormikMaskField,
@@ -148,7 +147,8 @@ export const LicenseForm = ({
                 <FormikNativeSelect
                   name='state'
                   label='State'
-                  selectOptions={statesAbrvSelectOptions}
+                  // selectOptions={statesAbrvSelectOptions}
+                  selectOptions={State.options}
                   required
                   sx={{ minWidth: 80 }}
                   fullWidth

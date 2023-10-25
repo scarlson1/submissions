@@ -11,27 +11,32 @@ import { PaymentCard } from './PaymentCard';
 
 // TODO: generate policyId with quote --> save payment method details in subcollection
 
-export const billingValidation = array().of(
-  object().shape({
-    id: string().required(),
-    payer: string().required(),
-    emailAddress: emailVal.required(),
-    accountHolder: string().nullable(),
-    maskedAccountNumber: string(),
-    transactionType: string(),
-    type: string().nullable(),
-  })
-);
+export const billingValidation = object().shape({
+  billingEntities: array()
+    .of(
+      object().shape({
+        paymentMethodId: string().required(),
+        payer: string().required(),
+        emailAddress: emailVal.required(),
+        accountHolder: string().nullable(),
+        maskedAccountNumber: string(),
+        transactionType: string(),
+        type: string().nullable(),
+      })
+    )
+    .min(1, 'payment method required'),
+});
 
 export const BillingStep = () => {
   const { values, setFieldValue } = useFormikContext<BindQuoteValues>();
+  console.log('VALUES: ', values);
 
   const handleMethodAdded = useCallback(
     (data: PaymentMethod) => {
       // const currentBillingEntities = formik.values?.billingEntities // TODO: spread operator to add multiple methods
       setFieldValue('billingEntities', [
         {
-          id: data.id,
+          paymentMethodId: data.id,
           payer: data.payer,
           emailAddress: data.emailAddress,
           accountHolder: data.accountHolder || null,
@@ -51,8 +56,7 @@ export const BillingStep = () => {
       </Typography>
       {values.billingEntities.length
         ? values.billingEntities.map((b) => (
-            <Box key={b.id} sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-              {/* <Typography align='center'>{`${b.payer} - ${b.maskedAccountNumber}`}</Typography> */}
+            <Box key={b.paymentMethodId} sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
               <PaymentCard cardDetails={b} />
             </Box>
           ))

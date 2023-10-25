@@ -24,7 +24,7 @@ import { Color, GeoJsonLayer, IconLayer, PickingInfo } from 'deck.gl/typed';
 import { Timestamp, where } from 'firebase/firestore';
 import { useCallback, useState } from 'react';
 
-import { State } from 'common/statesList';
+import { State } from 'common';
 import { useCollectionData } from 'hooks';
 import { CoordObj, getPlaceMarker, getRGBAArray, stringToColor, svgToDataURL } from 'modules/utils';
 import { DeckMap } from './DeckMap';

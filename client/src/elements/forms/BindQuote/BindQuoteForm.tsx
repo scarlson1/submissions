@@ -70,7 +70,7 @@ export const BindQuoteForm = () => {
   const billingEntities = useMemo<BillingEntity[]>(
     () =>
       Object.values(data?.billingEntities || {}).map((b: BillingEntity) => ({
-        id: b.id,
+        paymentMethodId: b.paymentMethodId,
         payer: b.payer,
         emailAddress: b.emailAddress,
         accountHolder: b.accountHolder || null,
@@ -92,7 +92,7 @@ export const BindQuoteForm = () => {
       // if (!values.paymentMethodId) return toast.error('Missing payment method');
 
       // const res = await bindQuote(quoteId, values.paymentMethodId);
-      const res = await bindQuote(quoteId, values.billingEntities[0].id);
+      const res = await bindQuote(quoteId, values.billingEntities[0].paymentMethodId);
       setSubmitting(false);
 
       if (res?.transactionId && (res?.status === 'succeeded' || res?.status === 'processing')) {
@@ -117,7 +117,7 @@ export const BindQuoteForm = () => {
       if (isEqual(values, initialValues)) return values;
 
       const newBillingEntities: Record<string, any> = {};
-      values.billingEntities.forEach((e) => (newBillingEntities[e.id] = e));
+      values.billingEntities.forEach((e) => (newBillingEntities[e.paymentMethodId] = e));
 
       await updateDoc(quoteRef, {
         namedInsured: {
@@ -131,8 +131,7 @@ export const BindQuoteForm = () => {
         effectiveDate: Timestamp.fromDate(values.effectiveDate),
         effectiveExceptionRequested: values.effectiveExceptionRequested,
         effectiveExceptionReason: values.effectiveExceptionReason || null,
-        // @ts-ignore
-        billingEntities: values.billingEntities, // TODO: fix type
+        billingEntities: newBillingEntities,
       });
       return values;
     },

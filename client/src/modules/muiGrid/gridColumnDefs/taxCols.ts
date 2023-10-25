@@ -1,6 +1,6 @@
 import { GridColDef, GridValueFormatterParams } from '@mui/x-data-grid';
 
-import { Tax } from 'common';
+import { TTax } from 'common';
 import { renderFormattedValue } from 'components/RenderGridCellHelpers';
 import { dollarFormat2, percentFormat } from 'modules/utils';
 import {
@@ -18,7 +18,7 @@ import {
   updatedCol,
 } from './gridColumns';
 
-export const taxCols: GridColDef<Tax>[] = [
+export const taxCols: GridColDef<TTax>[] = [
   idCol,
   productsCol,
   stateCol,

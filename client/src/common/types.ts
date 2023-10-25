@@ -12,17 +12,31 @@ import { FloodValues } from 'views/SubmissionNew';
 import {
   COLLECTIONS,
   DEDUCTIBLE_OPTIONS,
+  FeeItemName,
+  LineOfBusiness,
   POLICY_STATUS,
+  Product,
   QUOTE_STATUS,
+  RoundingType,
   SUBMISSION_STATUS,
+  State,
+  SubjectBaseItem,
   TAgencySubmissionStatus,
   TChangeRequestStatus,
+  TChangeRequestTrxType,
+  TDisclosureType,
   TInviteStatus,
+  TLicenseOwner,
+  TLicenseType,
   TPaymentStatus,
   TProduct,
+  TState,
+  TTransactionType,
+  TaxItemName,
+  TaxRateType,
+  TransactionType,
   UW_NOTE_CODE,
 } from './enums';
-import { TState } from './statesList';
 
 // export interface BaseMetadata {
 //   created: Timestamp;
@@ -362,37 +376,83 @@ export interface EntityNamedInsured {
 // TODO: decide whether to use discriminating type vs same fields
 export type NamedInsured = IndividualNamedInsured | EntityNamedInsured;
 
+// TODO: delete ?? not using
 export interface Deductible {
   type: DEDUCTIBLE_OPTIONS;
   value: number;
 }
 
-export type TaxItemName =
-  | 'Premium Tax'
-  | 'Service Fee'
-  | 'Stamping Fee'
-  | 'Regulatory Fee'
-  | 'Windpool Fee'
-  | 'Surcharge'
-  | 'EMPA Surcharge'
-  | 'Bureau of Insurance Assessment';
+// export type TaxItemName =
+//   | 'Premium Tax'
+//   | 'Service Fee'
+//   | 'Stamping Fee'
+//   | 'Regulatory Fee'
+//   | 'Windpool Fee'
+//   | 'Surcharge'
+//   | 'EMPA Surcharge'
+//   | 'Bureau of Insurance Assessment';
 
-export interface TaxItem {
-  displayName: TaxItemName;
-  rate: number;
-  value: number;
-  subjectBase: SubjectBaseItems[];
-  baseDigits?: number;
-  resultDigits?: number;
-  baseRoundType?: RoundingType;
-  resultRoundType: RoundingType;
-}
+// export interface TaxItem {
+//   displayName: TTaxItemName
+//   rate: number;
+//   value: number;
+//   subjectBase: SubjectBaseItem[];
+//   baseDigits?: number;
+//   resultDigits?: number;
+//   baseRoundType?: TRoundingType;
+//   resultRoundType: TRoundingType;
+// }
+
+// export interface Tax extends BaseDoc {
+//   state: string;
+//   displayName: string;
+//   effectiveDate: Timestamp;
+//   expirationDate?: Timestamp | null;
+//   LOB: TLineOfBusiness[];
+//   products: TProduct[];
+//   transactionTypes: TTransactionType[];
+//   subjectBase: TSubjectBaseItems[];
+//   baseRoundType?: TRoundingType;
+//   baseDigits?: number;
+//   resultRoundType: TRoundingType;
+//   resultDigits?: number;
+//   rate: number;
+//   rateType: 'fixed' | 'percent';
+//   refundable?: boolean;
+// }
+
+export const TaxItem = z.object({
+  displayName: TaxItemName,
+  rate: z.number(),
+  value: z.number(),
+  subjectBase: z.array(SubjectBaseItem),
+  baseDigits: z.number().int().optional(), // .default(2),
+  resultDigits: z.number().int().optional(), // .default(2),
+  baseRoundType: RoundingType.optional(),
+  resultRoundType: RoundingType.default('nearest'),
+});
+export type TTaxItem = z.infer<typeof TaxItem>;
+
+export const Tax = TaxItem.omit({ value: true }).and(
+  z.object({
+    state: State,
+    effectiveDate: TimestampZ,
+    expirationDate: TimestampZ.optional().nullable(),
+    LOB: z.array(LineOfBusiness),
+    products: z.array(Product),
+    transactionTypes: z.array(TransactionType),
+    rateType: TaxRateType,
+    refundable: z.boolean(),
+    metadata: BaseMetadataZ,
+  })
+);
+export type TTax = z.infer<typeof Tax>;
 
 export interface RatingPropertyData {
   CBRSDesignation: string;
   basement: string; // BasementOptions | null;
   distToCoastFeet: number;
-  floodZone: string; // TFloodZones
+  floodZone: string; // TFloodZone
   numStories: number;
   propertyCode: string;
   replacementCost: number;
@@ -412,25 +472,28 @@ interface RatingCalcData {
 
 type PropWithRatingCalcData = Nullable<RatingPropertyData> & RatingCalcData;
 
-export type FeeItemName = 'Inspection Fee' | 'MGA Fee' | 'UW Adjustment';
-export interface FeeItem {
-  feeName: FeeItemName;
-  value: number;
-}
+export const FeeItem = z.object({
+  feeName: FeeItemName,
+  value: z.number(),
+});
+export type TFeeItem = z.infer<typeof FeeItem>;
+// export interface FeeItem {
+//   feeName: TFeeItemName;
+//   value: number;
+// }
 
 export type BillingEntity = Pick<
   EPayPaymentMethodDetails,
   | 'emailAddress'
-  | 'id'
+  // | 'id'
   | 'payer'
   | 'type'
   | 'transactionType'
   | 'accountHolder'
   | 'maskedAccountNumber'
-> & { default?: boolean };
+> & { paymentMethodId: string; default?: boolean };
 
 // TODO: need reference to ratingDocId to get AALs for editing
-// TODO: change quote to support multi-location
 export interface Quote {
   policyId: string;
   product: TProduct; // keyof typeof Product;
@@ -439,8 +502,8 @@ export interface Quote {
   address: Address;
   coordinates: GeoPoint | null;
   homeState: string;
-  fees: FeeItem[];
-  taxes: TaxItem[];
+  fees: TFeeItem[];
+  taxes: TTaxItem[];
   annualPremium: number;
   subproducerCommission: number; // TODO: remove ??
   quoteTotal?: number;
@@ -731,8 +794,8 @@ export interface Policy extends BaseDoc {
   inStatePremium?: number;
   outStatePremium?: number;
   termDays: number;
-  fees: FeeItem[];
-  taxes: TaxItem[];
+  fees: TFeeItem[];
+  taxes: TTaxItem[];
   price: number; // sum of termPrem, taxes, fees
   effectiveDate: Timestamp;
   expirationDate: Timestamp;
@@ -756,7 +819,7 @@ export interface TrxRatingData extends Nullable<RatingPropertyData> {
 }
 
 interface BaseTransaction extends BaseDoc {
-  trxType: TransactionType;
+  trxType: TTransactionType;
   product: TProduct;
   policyId: string;
   locationId: string;
@@ -880,7 +943,7 @@ export type Transaction = PremiumTransaction | OffsetTransaction | AmendmentTran
 // }
 
 export interface BaseChangeRequest extends BaseDoc {
-  trxType: ChangeRequestTrxType;
+  trxType: TChangeRequestTrxType;
   requestEffDate: Timestamp;
   policyId: string;
   userId: string;
@@ -1242,45 +1305,23 @@ export interface NotifyRegistration {
   state?: string;
 }
 
-export type LineOfBusiness = 'commercial' | 'residential';
+// export type SubjectBaseItem =
+//   | 'premium'
+//   | 'inspectionFees'
+//   | 'mgaFees'
+//   | 'outStatePremium'
+//   | 'homeStatePremium'
+//   | 'fixedFee'
+//   | 'noFee';
 
-export type SubjectBaseItems =
-  | 'premium'
-  | 'inspectionFees'
-  | 'mgaFees'
-  | 'outStatePremium'
-  | 'homeStatePremium'
-  | 'fixedFee'
-  | 'noFee';
+// export type ChangeRequestTrxType =
+//   | 'endorsement' // change w/ premium
+//   | 'amendment' // change w/o premium
+//   | 'cancellation'
+//   | 'flat_cancel'
+//   | 'reinstatement';
 
-export type RoundingType = 'nearest' | 'up' | 'down';
-
-export type ChangeRequestTrxType =
-  | 'endorsement' // change w/ premium
-  | 'amendment' // change w/o premium
-  | 'cancellation'
-  | 'flat_cancel'
-  | 'reinstatement';
-
-export type TransactionType = ChangeRequestTrxType | 'new' | 'renewal';
-
-export interface Tax extends BaseDoc {
-  state: string;
-  displayName: string;
-  effectiveDate: Timestamp;
-  expirationDate?: Timestamp | null;
-  LOB: LineOfBusiness[];
-  products: TProduct[];
-  transactionTypes: TransactionType[];
-  subjectBase: SubjectBaseItems[];
-  baseRoundType?: RoundingType;
-  baseDigits?: number;
-  resultRoundType: RoundingType;
-  resultDigits?: number;
-  rate: number;
-  rateType: 'fixed' | 'percent';
-  refundable?: boolean;
-}
+// export type TransactionType = ChangeRequestTrxType | 'new' | 'renewal';
 
 export interface FIPSDetails {
   state: string;
@@ -1328,12 +1369,6 @@ export interface Moratorium extends BaseDoc {
 //   metadata: BaseMetadata;
 // }
 
-export const LicenseOwner = z.enum(['individual', 'organization']);
-export type TLicenseOwner = z.infer<typeof LicenseOwner>;
-
-export const LicenseType = z.enum(['producer', 'surplus lines', 'MGA', 'Tax ID']);
-export type TLicenseType = z.infer<typeof LicenseType>;
-
 export interface License extends BaseDoc {
   state: string;
   ownerType: TLicenseOwner;
@@ -1348,25 +1383,11 @@ export interface License extends BaseDoc {
   phone?: string | null;
 }
 
-// export type DisclosureType =
-//   | 'state disclosure'
-//   | 'general disclosure'
-//   | 'terms & conditions'
-//   | 'other';
-
-export const DisclosureTypeEnum = z.enum([
-  'state disclosure',
-  'general disclosure',
-  'terms & conditions',
-  'other',
-]);
-export type DisclosureType = z.infer<typeof DisclosureTypeEnum>;
-
 export interface Disclosure extends BaseDoc {
   products: TProduct[];
-  state: string | null;
+  state: TState | null;
   displayName?: string | null;
-  type?: DisclosureType | null;
+  type?: TDisclosureType | null;
   content: JSONContent;
 }
 

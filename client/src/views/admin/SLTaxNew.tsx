@@ -1,15 +1,15 @@
-import { useCallback } from 'react';
 import { Box, Typography } from '@mui/material';
+import { Timestamp, addDoc } from 'firebase/firestore';
 import { FormikHelpers } from 'formik';
-import { addDoc, Timestamp } from 'firebase/firestore';
-import { useFirestore } from 'reactfire';
+import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useFirestore } from 'reactfire';
 
-import { getNumber } from 'modules/utils/helpers';
-import { taxesCollection } from 'common';
-import { ADMIN_ROUTES, createPath } from 'router';
+import { TTax, taxesCollection } from 'common';
 import { TaxForm, TaxValues } from 'elements/forms/TaxForm';
 import { useAsyncToast } from 'hooks';
+import { getNumber } from 'modules/utils/helpers';
+import { ADMIN_ROUTES, createPath } from 'router';
 
 export const SLTaxNew = () => {
   const navigate = useNavigate();
@@ -31,8 +31,7 @@ export const SLTaxNew = () => {
           : null;
         const { fixedRate: _, ...rest } = values;
 
-        toast.loading('saving...');
-        const docRef = await addDoc(taxesCollection(firestore), {
+        const tax: TTax = {
           ...rest,
           rate,
           rateType: isFixedRate ? 'fixed' : 'percent',
@@ -42,7 +41,10 @@ export const SLTaxNew = () => {
             created: Timestamp.now(),
             updated: Timestamp.now(),
           },
-        });
+        };
+
+        toast.loading('saving...');
+        const docRef = await addDoc(taxesCollection(firestore), tax);
 
         setSubmitting(false);
         toast.success(`New tax created (ID: ${docRef.id})`);

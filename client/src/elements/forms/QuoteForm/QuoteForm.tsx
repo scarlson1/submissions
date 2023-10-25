@@ -28,25 +28,26 @@ import {
   Address,
   AgencyDetails,
   AgentDetails,
-  CBRS_OPTIONS,
+  Basement,
+  CBRSDesignation,
   Coordinates,
-  FeeItem,
+  FloodZone,
   Limits,
   NamedInsuredDetails,
   Nullable,
   Optional,
   Organization,
-  PRIOR_LOSS_COUNT_OPTIONS,
+  PriorLossCount,
   RatingPropertyData,
+  State,
   Submission,
+  TFeeItem,
   TProduct,
-  TaxItem,
+  TTaxItem,
   User,
   ValueByRiskType,
   orgsCollection,
 } from 'common';
-import { FloodZones } from 'common/enums';
-import { State } from 'common/statesList';
 import { IconButtonMenu } from 'components';
 import {
   Diff,
@@ -97,8 +98,8 @@ export interface QuoteValues {
   deductible: number;
   effectiveExceptionRequested: boolean;
   effectiveDate: Date;
-  fees: FeeItem[];
-  taxes: TaxItem[];
+  fees: TFeeItem[];
+  taxes: TTaxItem[];
   annualPremium: number | null;
   subproducerCommission: number;
   quoteTotal: number | null;
@@ -153,7 +154,7 @@ export const QuoteForm = ({
   });
 
   const { fetchTaxes, loading: taxesLoading } = useFetchTaxes(
-    (newTaxes: TaxItem[]) => {
+    (newTaxes: TTaxItem[]) => {
       setTimeout(() => {
         formikRef.current?.setFieldValue('taxes', [...newTaxes]);
         setTimeout(() => {
@@ -389,14 +390,14 @@ export const QuoteForm = ({
   );
 
   return (
-    (<Formik
-        initialValues={initialValues}
-        validationSchema={validation}
-        onSubmit={onSubmit}
-        innerRef={formikRef}
-        validateOnMount={true}
-        enableReinitialize
-      >
+    <Formik
+      initialValues={initialValues}
+      validationSchema={validation}
+      onSubmit={onSubmit}
+      innerRef={formikRef}
+      validateOnMount={true}
+      enableReinitialize
+    >
       {({
         dirty,
         isValid,
@@ -595,7 +596,7 @@ export const QuoteForm = ({
                 id='ratingPropertyData.priorLossCount'
                 label='Prior Loss Count'
                 name='ratingPropertyData.priorLossCount'
-                selectOptions={PRIOR_LOSS_COUNT_OPTIONS}
+                selectOptions={PriorLossCount.options}
               />
             </Grid>
             <Grid xs={6} sm={4} md={3} lg={2}>
@@ -605,7 +606,7 @@ export const QuoteForm = ({
                 label='CBRS Designation'
                 name='ratingPropertyData.CBRSDesignation'
                 required
-                selectOptions={CBRS_OPTIONS}
+                selectOptions={CBRSDesignation.options}
               />
             </Grid>
             <Grid xs={6} sm={4} md={3} lg={2}>
@@ -614,12 +615,7 @@ export const QuoteForm = ({
                 id='ratingPropertyData.basement'
                 label='Basement'
                 name='ratingPropertyData.basement'
-                selectOptions={[
-                  { label: 'No', value: 'no' },
-                  { label: 'Unknown', value: 'unknown' },
-                  { label: 'Finished', value: 'finished' },
-                  { label: 'Unfinished', value: 'unfinished' },
-                ]}
+                selectOptions={Basement.options}
                 required
               />
             </Grid>
@@ -629,7 +625,7 @@ export const QuoteForm = ({
                 id='ratingPropertyData.floodZone'
                 label='Flood Zone'
                 name='ratingPropertyData.floodZone'
-                selectOptions={FloodZones.options}
+                selectOptions={FloodZone.options}
                 required
               />
             </Grid>
@@ -1133,7 +1129,7 @@ export const QuoteForm = ({
           </Grid>
         </>
       )}
-    </Formik>)
+    </Formik>
   );
 };
 

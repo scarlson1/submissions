@@ -5,8 +5,7 @@ import { Formik, FormikConfig, FormikHelpers, FormikProps } from 'formik';
 import { useCallback, useRef } from 'react';
 import * as yup from 'yup';
 
-import { DisclosureType } from 'common';
-import { State } from 'common/statesList';
+import { DisclosureType, Product, State, TDisclosureType, TState } from 'common';
 import { FormikNativeSelect, FormikSelect, FormikTextField } from 'components/forms';
 import { EditorToolbar } from 'components/textEditor/EditorToolbar';
 import 'components/textEditor/TextEditor.css';
@@ -25,9 +24,9 @@ const disclosureValidation = yup.object().shape({
 
 export interface DisclosureValues {
   products: string[];
-  state: string;
+  state: TState;
   displayName: string;
-  type?: DisclosureType | null; // string | null;
+  type?: TDisclosureType | null; // string | null;
   content?: JSONContent | null;
 }
 
@@ -42,9 +41,9 @@ export const DisclosureForm = ({
   editorContent = '',
   initialValues = {
     products: ['flood', 'wind'],
-    state: '',
+    state: '' as TState,
     displayName: '',
-    type: '' as DisclosureType,
+    type: '' as TDisclosureType,
   },
   title,
   ...rest
@@ -97,7 +96,7 @@ export const DisclosureForm = ({
               <FormikSelect
                 name='products'
                 label='Product(s)'
-                selectOptions={['flood', 'wind']}
+                selectOptions={Product.options}
                 fullWidth
                 multiple // @ts-ignore
                 renderValue={(selected: string[]) => (
@@ -116,16 +115,7 @@ export const DisclosureForm = ({
               />
             </Grid>
             <Grid xs={6} sm={4} md={3}>
-              <FormikNativeSelect
-                name='type'
-                label='Type'
-                selectOptions={[
-                  'state disclosure',
-                  'general disclosure',
-                  'terms & conditions',
-                  'other',
-                ]}
-              />
+              <FormikNativeSelect name='type' label='Type' selectOptions={DisclosureType.options} />
             </Grid>
             <Grid xs={6} sm={4} md={3}>
               <FormikSelect name='state' label='State' selectOptions={State.options} fullWidth />

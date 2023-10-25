@@ -1,6 +1,7 @@
 import { Grid, Grid2Props, NativeSelectProps, TextFieldProps } from '@mui/material';
 
-import { statesAbrvSelectOptions } from 'common/statesList';
+// import { statesAbrvSelectOptions } from 'common/statesList';
+import { State } from 'common';
 import {
   AddressAutocompleteProps,
   FormikMaskField,
@@ -111,7 +112,8 @@ export const FormikAddress = ({
           <FormikNativeSelect
             name={names.state}
             label='State'
-            selectOptions={statesAbrvSelectOptions}
+            // selectOptions={statesAbrvSelectOptions}
+            selectOptions={State.options}
             required
             sx={{ minWidth: 80 }}
             {...selectFieldProps}

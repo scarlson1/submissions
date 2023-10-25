@@ -31,7 +31,7 @@ import {
   RoundingType,
   SUBMISSION_STATUS,
   State,
-  SubjectBaseItems,
+  SubjectBaseItem,
   SubmittedChangeRequestStatus,
   TaxItemName,
   TaxRateType,
@@ -257,8 +257,7 @@ export interface Charge {
   };
   invoiceId?: string | null;
   userId?: string | null;
-  policyId: string; // TODO: will we have policy Id at time of transaction ??
-  // quoteId?: string | null;
+  policyId: string;
   onBehalfOf?: string;
   paid?: boolean;
   paymentIntent?: string | null; // not used
@@ -271,6 +270,9 @@ export interface Charge {
   publicDescriptor: string | null;
   publicDescriptorTitle: string | null;
   status: FIN_TRANSACTION_STATUS;
+  namedInsured: NamedInsured;
+  agent: AgentDetails;
+  agency: AgencyDetails;
   metadata: BaseMetadata;
 }
 
@@ -677,32 +679,11 @@ export const MGACommissionPct = z
   .max(0.2, 'Commission must be <= 20%');
 export type MGACommissionPct = z.infer<typeof MGACommissionPct>;
 
-// export type SubjectBaseItems =
-//   | 'premium'
-//   | 'inspectionFees'
-//   | 'mgaFees'
-//   | 'outStatePremium'
-//   | 'homeStatePremium'
-//   | 'fixedFee'
-//   | 'noFee';
-
-// export type RoundingType = 'nearest' | 'up' | 'down';
-
-// export type TaxItemName =
-//   | 'Premium Tax'
-//   | 'Service Fee'
-//   | 'Stamping Fee'
-//   | 'Regulatory Fee'
-//   | 'Windpool Fee'
-//   | 'Surcharge'
-//   | 'EMPA Surcharge'
-//   | 'Bureau of Insurance Assessment';
-
 // export interface TaxItem {
 //   displayName: TaxItemName;
 //   rate: number;
 //   value: number;
-//   subjectBase: SubjectBaseItems[];
+//   subjectBase: SubjectBaseItem[];
 //   baseDigits?: number;
 //   resultDigits?: number;
 //   baseRoundType?: RoundingType;
@@ -713,15 +694,15 @@ export const TaxItem = z.object({
   displayName: TaxItemName,
   rate: z.number(),
   value: z.number(),
-  subjectBase: z.array(SubjectBaseItems),
-  baseDigits: z.number().int().optional().default(2),
-  resultDigits: z.number().int().optional().default(2),
+  subjectBase: z.array(SubjectBaseItem),
+  baseDigits: z.number().int().optional(), // .default(2),
+  resultDigits: z.number().int().optional(), // .default(2),
   baseRoundType: RoundingType.optional(),
   resultRoundType: RoundingType.default('nearest'),
 });
 export type TaxItem = z.infer<typeof TaxItem>;
 
-export const Tax = TaxItem.and(
+export const Tax = TaxItem.omit({ value: true }).and(
   z.object({
     state: State,
     effectiveDate: Timestamp,
@@ -745,13 +726,13 @@ export type FeeItem = z.infer<typeof FeeItem>;
 export type BillingEntity = Pick<
   EPayPaymentMethodDetails,
   | 'emailAddress'
-  | 'id'
+  // | 'id'
   | 'payer'
   | 'type'
   | 'transactionType'
   | 'accountHolder'
   | 'maskedAccountNumber'
-> & { default?: boolean };
+> & { paymentMethodId: string; default?: boolean };
 
 export interface Quote extends BaseDoc {
   policyId: string;
@@ -1544,7 +1525,7 @@ export interface AddLocationValues {
   limits: Limits;
   deductible: number;
   effectiveDate: Timestamp;
-  billingEntityId: string; // TODO: add ability to create new billing entity ??
+  billingEntityId: string; // TODO: add ability to create new billing entity ?? add select input to form
   ratingPropertyData: Pick<
     Nullable<RatingPropertyData>,
     | 'basement'
@@ -1630,7 +1611,7 @@ export interface TrxRatingData extends RatingPropertyData {
 //   LOB: LineOfBusiness[];
 //   products: Product[];
 //   transactionTypes: TransactionType[];
-//   subjectBase: SubjectBaseItems[];
+//   subjectBase: SubjectBaseItem[];
 //   baseRoundType?: RoundingType;
 //   baseDigits?: number;
 //   resultRoundType: RoundingType;
@@ -1735,6 +1716,7 @@ export interface AmendmentTransaction extends BaseTransaction {
   insuredLocation?: OptionalKeys<ILocationPolicy, 'metadata'>;
   otherInterestedParties?: string[];
   additionalNamedInsured?: string[];
+  billingEntity?: { displayName: string; id: string };
 }
 
 export type Transaction = PremiumTransaction | OffsetTransaction | AmendmentTransaction;

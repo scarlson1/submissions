@@ -2,12 +2,12 @@ import { GeoPoint } from 'firebase-admin/firestore';
 import {
   Address,
   AgentDetails,
-  BASEMENT_OPTIONS,
+  Basement,
   DeepNullable,
-  FLOOD_ZONES,
+  FloodZone,
   Limits,
   Nullable,
-  PRIOR_LOSS_COUNT_OPTIONS,
+  PriorLossCount,
   RCVs,
   ValueByRiskType,
   maxA,
@@ -114,10 +114,11 @@ export function validateCommission(commissionPct: number): asserts commissionPct
 
 export function validateFloodZone(
   floodZone: string | null | undefined
-): asserts floodZone is string {
-  verify(floodZone && typeof floodZone === 'string', 'floodZone is required');
-
-  verify(FLOOD_ZONES.includes(floodZone), `floodZone must be one of: ${FLOOD_ZONES.join(', ')}`);
+): asserts floodZone is FloodZone {
+  verify(
+    FloodZone.safeParse(floodZone).success,
+    `floodZone must be one of: ${FloodZone.options.join(', ')}`
+  );
 }
 
 export function validateBasement(basement: string | null | undefined): asserts basement is string {
@@ -125,8 +126,8 @@ export function validateBasement(basement: string | null | undefined): asserts b
 
   const lowerBasement = basement.toLowerCase();
   verify(
-    BASEMENT_OPTIONS.includes(lowerBasement),
-    `basement must be one of: ${BASEMENT_OPTIONS.join(', ')}`
+    Basement.safeParse(lowerBasement).success,
+    `basement must be one of: ${Basement.options.join(', ')}`
   );
 }
 
@@ -145,7 +146,7 @@ export function validatePriorLossCount(
     'prior loss count must be "0", "1", or "2"'
   );
   verify(
-    PRIOR_LOSS_COUNT_OPTIONS.includes(priorLossCount),
+    PriorLossCount.safeParse(priorLossCount).success, // .includes(priorLossCount),
     'prior loss count must be "0", "1", or "2"'
   );
 }

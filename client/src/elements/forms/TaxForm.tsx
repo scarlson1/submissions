@@ -16,15 +16,21 @@ import { useNavigate } from 'react-router-dom';
 import * as yup from 'yup';
 
 import {
-  LOB_OPTIONS,
   LineOfBusiness,
-  PRODUCT_OPTIONS,
+  Product,
   RoundingType,
-  SubjectBaseItems,
+  State,
+  SubjectBaseItem,
+  TLineOfBusiness,
   TProduct,
+  TRoundingType,
+  TState,
+  TSubjectBaseItem,
+  TTaxItemName,
+  TTransactionType,
+  TaxItemName,
   TransactionType,
 } from 'common';
-import { statesAbrvSelectOptions } from 'common/statesList';
 import {
   FormikCheckbox,
   FormikDatePicker,
@@ -37,7 +43,7 @@ import {
 } from 'components/forms';
 import { ADMIN_ROUTES, createPath } from 'router';
 
-export const TRANSACTION_OPTIONS: TransactionType[] = [
+export const TRANSACTION_OPTIONS: TTransactionType[] = [
   'new',
   'renewal',
   'endorsement',
@@ -86,8 +92,8 @@ export const newTaxValidation = yup.object().shape({
 });
 
 const DEFAULT_INIT_VALUES: TaxValues = {
-  state: '',
-  displayName: '',
+  state: '' as TState,
+  displayName: '' as TTaxItemName,
   effectiveDate: new Date(),
   expirationDate: null,
   LOB: ['residential', 'commercial'],
@@ -103,20 +109,21 @@ const DEFAULT_INIT_VALUES: TaxValues = {
   refundable: true,
 };
 
+// TODO: switch to zod validation ??
 export interface TaxValues {
-  state: string;
-  displayName: string;
+  state: TState;
+  displayName: TTaxItemName;
   effectiveDate: Date;
   expirationDate?: Date | null;
-  LOB: LineOfBusiness[];
+  LOB: TLineOfBusiness[];
   products: TProduct[];
-  transactionTypes: TransactionType[];
-  subjectBase: SubjectBaseItems[];
+  transactionTypes: TTransactionType[];
+  subjectBase: TSubjectBaseItem[];
   rate: string;
   fixedRate: number | null;
-  baseRoundType?: RoundingType;
+  baseRoundType?: TRoundingType;
   baseDigits?: number;
-  resultRoundType: RoundingType;
+  resultRoundType: TRoundingType;
   resultDigits?: number;
   refundable: boolean;
 }
@@ -164,7 +171,8 @@ export const TaxForm = ({ onSubmit, initialValues = DEFAULT_INIT_VALUES }: TaxFo
             <FormikSelect
               name='state'
               label='State'
-              selectOptions={statesAbrvSelectOptions}
+              // selectOptions={statesAbrvSelectOptions}
+              selectOptions={State.options}
               required
               sx={{ minWidth: 80 }}
             />
@@ -173,23 +181,15 @@ export const TaxForm = ({ onSubmit, initialValues = DEFAULT_INIT_VALUES }: TaxFo
             <FormikSelect
               name='displayName'
               label='Display Name'
-              selectOptions={[
-                'Premium Tax',
-                'Service Fee',
-                'Stamping Fee',
-                'Regulatory Fee',
-                'Windpool Fee',
-                'Surcharge',
-                'EMPA Surcharge',
-                'Bureau of Insurance Assessment',
-              ]}
+              selectOptions={TaxItemName.options}
             />
           </Grid>
           <Grid xs={12} md={6}>
             <FormikSelect
               name='transactionTypes'
               label='Transaction Types'
-              selectOptions={TRANSACTION_OPTIONS}
+              // selectOptions={TRANSACTION_OPTIONS}
+              selectOptions={TransactionType.options}
               multiple // @ts-ignore
               renderValue={(selected: string[]) => (
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
@@ -214,7 +214,7 @@ export const TaxForm = ({ onSubmit, initialValues = DEFAULT_INIT_VALUES }: TaxFo
             <FormikSelect
               name='products'
               label='Products'
-              selectOptions={PRODUCT_OPTIONS}
+              selectOptions={Product.options}
               multiple // @ts-ignore
               renderValue={(selected: string[]) => (
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
@@ -290,7 +290,7 @@ export const TaxForm = ({ onSubmit, initialValues = DEFAULT_INIT_VALUES }: TaxFo
             <FormikSelect
               name='LOB'
               label='LOB'
-              selectOptions={LOB_OPTIONS}
+              selectOptions={LineOfBusiness.options}
               multiple // @ts-ignore
               renderValue={(selected: string[]) => (
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.8 }}>
@@ -326,14 +326,15 @@ export const TaxForm = ({ onSubmit, initialValues = DEFAULT_INIT_VALUES }: TaxFo
             <FormikSelect
               name='subjectBase'
               label='Subject Base'
-              selectOptions={[
-                'premium',
-                'inspectionFees',
-                'mgaFees',
-                'outStatePremium',
-                'homeStatePremium',
-                'fixedFee',
-              ]}
+              selectOptions={SubjectBaseItem.options}
+              // selectOptions={[
+              //   'premium',
+              //   'inspectionFees',
+              //   'mgaFees',
+              //   'outStatePremium',
+              //   'homeStatePremium',
+              //   'fixedFee',
+              // ]}
               multiple // @ts-ignore
               renderValue={(selected: string[]) => (
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
@@ -392,7 +393,7 @@ export const TaxForm = ({ onSubmit, initialValues = DEFAULT_INIT_VALUES }: TaxFo
             <FormikSelect
               name='baseRoundType'
               label='Base Rounding Type'
-              selectOptions={['nearest', 'up', 'down']}
+              selectOptions={RoundingType.options}
               fullWidth
             />
           </Grid>
@@ -403,7 +404,7 @@ export const TaxForm = ({ onSubmit, initialValues = DEFAULT_INIT_VALUES }: TaxFo
             <FormikSelect
               name='resultRoundType'
               label='Result Rounding Type'
-              selectOptions={['nearest', 'up', 'down']}
+              selectOptions={RoundingType.options}
               fullWidth
             />
           </Grid>

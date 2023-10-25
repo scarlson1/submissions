@@ -9,6 +9,7 @@ import { Wizard } from 'components/forms';
 import { useAsyncToast } from 'hooks';
 import { createChangeRequest } from 'modules/db';
 import { AddressStep, AddressValues } from './AddressStep';
+import { BillingEntityStep } from './BillingEntityStep';
 import { DeductibleStep, DeductibleValues } from './DeductibleStep';
 import { Header } from './Header';
 import { LimitValues, LimitsStep } from './LimitsStep';
@@ -140,6 +141,12 @@ export const AddLocationWizard = ({
         saveChangeRequest={saveChangeRequest}
         initialValues={{ deductible: serverValues?.deductible || 5000 }}
         onError={handleError}
+      />
+      <BillingEntityStep
+        policyId={policyId}
+        saveChangeRequest={saveChangeRequest}
+        onError={handleError}
+        initialValues={{ billingEntityId: '' }}
       />
       <PropertyRatingDataStep
         policyId={policyId}

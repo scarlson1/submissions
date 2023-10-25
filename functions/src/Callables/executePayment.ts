@@ -18,7 +18,7 @@ import {
 import { getEPayInstance } from '../services/index.js';
 import { publishPaymentComplete } from '../services/pubsub/index.js';
 import { onCallWrapper } from '../services/sentry/index.js';
-import { validate } from './utils/index.js';
+import { requireAuth, validate } from './utils/index.js';
 
 // const CARD_FEE = 0.035; // TODO: use env var
 
@@ -34,12 +34,12 @@ interface ExecutePaymentProps {
 
 const executePayment = async ({ data, auth }: CallableRequest<ExecutePaymentProps>) => {
   const { policyId, paymentMethodId } = data;
-  const uid = auth?.uid;
 
-  validate(uid, 'unauthenticated', 'must be signed in');
+  requireAuth(auth);
   validate(policyId, 'failed-precondition', 'missing policy ID');
-  validate(paymentMethodId, 'failed-precondition', 'missing paymentMethodId');
+  validate(paymentMethodId, 'failed-precondition', 'missing payment method ID');
 
+  const { uid } = auth;
   const feePct = Number.parseFloat(cardFeePct.value()) || 0.035;
 
   const db = getFirestore();
@@ -51,7 +51,7 @@ const executePayment = async ({ data, auth }: CallableRequest<ExecutePaymentProp
 
   validate(policySnap.exists && policy, 'not-found', `Could not find policy with ID: ${policyId}`);
 
-  let { price, effectiveDate, paymentStatus } = policy;
+  let { price, effectiveDate, paymentStatus, namedInsured, agent, agency } = policy;
   validate(price && effectiveDate, 'failed-precondition', 'Quote is missing required fields');
   validate(
     paymentStatus === PaymentStatus.enum.awaiting_payment,
@@ -153,6 +153,9 @@ const executePayment = async ({ data, auth }: CallableRequest<ExecutePaymentProp
           publicDescriptor: `Flood insurance for policy ${policySnap.id}`,
           publicDescriptorTitle: 'iDemand Flood Insurance',
           status,
+          namedInsured,
+          agent,
+          agency,
           metadata: {
             created: Timestamp.now(),
             updated: Timestamp.now(),

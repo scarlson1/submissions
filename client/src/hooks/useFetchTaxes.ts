@@ -3,30 +3,31 @@ import { useCallback, useMemo, useState } from 'react';
 import invariant from 'tiny-invariant';
 
 import {
-  FeeItem,
-  LineOfBusiness,
-  SubjectBaseItems,
-  Tax,
-  TaxItem,
-  TransactionType,
+  TFeeItem,
+  TLineOfBusiness,
+  TSubjectBaseItem,
+  TTax,
+  TTaxItem,
+  TTaxItemName,
+  TTransactionType,
   WithId,
 } from 'common';
 import { QuoteValues } from 'elements/forms';
 import { sumByTypes } from 'modules/utils';
 import { useAsyncToast } from './useAsyncToast';
 
-export type SubjectBaseKeyVal = Record<Exclude<SubjectBaseItems, 'fixedFee' | 'noFee'>, number>;
+export type SubjectBaseKeyVal = Record<Exclude<TSubjectBaseItem, 'fixedFee' | 'noFee'>, number>;
 interface StateTaxRequest extends SubjectBaseKeyVal {
   state: string;
-  transactionType: TransactionType;
+  transactionType: TTransactionType;
   quoteNumber?: string | null;
   effectiveDate?: Date | string;
-  lineOfBusiness?: LineOfBusiness;
+  lineOfBusiness?: TLineOfBusiness;
 }
 
 interface TaxResLineItem
-  extends Omit<WithId<Tax>, 'metadata' | 'effectiveDate' | 'expirationDate' | 'rate'> {
-  displayName: string;
+  extends Omit<WithId<TTax>, 'metadata' | 'effectiveDate' | 'expirationDate' | 'rate'> {
+  displayName: TTaxItemName;
   calculatedTaxBase: number | null; // null if fixed rate ($10)
   rate: number | null; // null if fixed rate ($10)
   value: number;
@@ -39,16 +40,16 @@ export interface StateTaxResponse {
 }
 
 export const useFetchTaxes = (
-  onSuccess?: (taxes: TaxItem[]) => void,
+  onSuccess?: (taxes: TTaxItem[]) => void,
   onError?: (msg: string, err: any) => void
 ) => {
-  const [currTaxes, setCurrTaxes] = useState<TaxItem[]>([]);
+  const [currTaxes, setCurrTaxes] = useState<TTaxItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const toast = useAsyncToast({ position: 'bottom-center' });
 
   const fetchTaxes = useCallback(
-    async (values: QuoteValues, transactionType: TransactionType) => {
+    async (values: QuoteValues, transactionType: TTransactionType) => {
       if (!values) return toast.error('missing values');
       const { annualPremium, address, fees } = values;
 
@@ -56,8 +57,8 @@ export const useFetchTaxes = (
       invariant(annualPremium, 'annual premium required');
       invariant(address?.state, 'state required');
 
-      const mgaFees = sumByTypes<FeeItem>(fees, 'feeName', 'MGA Fee', 'value');
-      const inspectionFees = sumByTypes<FeeItem>(fees, 'feeName', 'Inspection Fee', 'value');
+      const mgaFees = sumByTypes<TFeeItem>(fees, 'feeName', 'MGA Fee', 'value');
+      const inspectionFees = sumByTypes<TFeeItem>(fees, 'feeName', 'Inspection Fee', 'value');
 
       const body: StateTaxRequest = {
         state: address.state,
@@ -79,11 +80,11 @@ export const useFetchTaxes = (
           `${baseApiUrl}/state-tax`,
           body
         );
-        // DOENS'T WORK WITH EMULATORS
+        // DOESN'T WORK WITH EMULATORS
         // const { data } = await axios.post(`/idemand-submissions-api/state-tax`, body);
         console.log('TAXES: ', data);
 
-        let newTaxes: TaxItem[] = [];
+        let newTaxes: TTaxItem[] = [];
         if (data && data.lineItems?.length > 0) {
           // @ts-ignore
           newTaxes = data.lineItems.map((t) => ({

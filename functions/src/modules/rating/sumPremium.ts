@@ -100,6 +100,14 @@ export const calcPremiumByBillingEntity = (
 ) => {
   const lcnsByEntity = groupBy(lcnArr, ({ billingEntityId }) => billingEntityId || 'default');
 
+  // TODO: is this sufficient for handling situations like billing entity missing in location summary ??
+  // TODO: handle default
+  // add "defaultBillingEntityId" to policy ?? (w/ firestore rule verifying id exists as key in billing entities)
+  // then change "default" above to defaultBillingEntityId passed as arg
+
+  // merge default with single billing entity if only one billing entity listed ??
+  // or throw error ??
+
   // return early if only one billing entity
   if (Object.keys(lcnsByEntity).length === 1) {
     return {

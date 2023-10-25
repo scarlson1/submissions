@@ -3,8 +3,9 @@ import { isEqual } from 'lodash';
 import * as yup from 'yup';
 
 import {
-  FeeItem,
-  TaxItem,
+  TFeeItem,
+  TSubjectBaseItem,
+  TTaxItem,
   addressValidationActiveStates,
   agencyValidation,
   agentValidation,
@@ -65,9 +66,9 @@ export const getQuoteValidation = (activeStates: Record<string, boolean>) =>
             function (val, ctx) {
               if (!val) return true; // pass to required error
               // TODO: get subject base
-              const tax = ctx.parent as TaxItem;
+              const tax = ctx.parent as TTaxItem;
               const baseKeys = tax?.subjectBase?.filter(
-                (b: string) => b !== 'fixedFee' && b !== 'noFee'
+                (b: TSubjectBaseItem) => b !== 'fixedFee' && b !== 'noFee'
               );
               if (!baseKeys || !baseKeys.length || !tax.rate) return true;
 
@@ -84,10 +85,11 @@ export const getQuoteValidation = (activeStates: Record<string, boolean>) =>
                 premium: values.annualPremium || 0,
                 homeStatePremium: values.annualPremium || 0,
                 outStatePremium: 0,
-                inspectionFees: sumByTypes<FeeItem>(fees, 'feeName', 'Inspection Fee', 'value'),
-                mgaFees: sumByTypes<FeeItem>(fees, 'feeName', 'MGA Fee', 'value'),
+                inspectionFees: sumByTypes<TFeeItem>(fees, 'feeName', 'Inspection Fee', 'value'),
+                mgaFees: sumByTypes<TFeeItem>(fees, 'feeName', 'MGA Fee', 'value'),
               };
 
+              // TODO: fix "as" typing
               let taxBase = baseKeys.reduce((acc, curr) => {
                 const num = typeof curr === 'string' ? body[curr as keyof SubjectBaseKeyVal] : 0;
                 return acc + (num ?? 0);

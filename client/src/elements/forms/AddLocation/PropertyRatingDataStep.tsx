@@ -8,9 +8,10 @@ import { date, number, object, string } from 'yup';
 
 import {
   AllowString,
+  Basement,
   Nullable,
-  PRIOR_LOSS_COUNT_OPTIONS,
   Policy,
+  PriorLossCount,
   RatingPropertyData,
   priorLossVal,
 } from 'common';
@@ -111,13 +112,13 @@ export function PropertyRatingDataStep({
   }, [claims, policy]);
 
   return (
-    (<Formik
-        {...props}
-        onSubmit={handleStepSubmit}
-        validationSchema={addLocationRatingPropertyVal}
-        validateOnMount
-        enableReinitialize
-      >
+    <Formik
+      {...props}
+      onSubmit={handleStepSubmit}
+      validationSchema={addLocationRatingPropertyVal}
+      validateOnMount
+      enableReinitialize
+    >
       {({ handleSubmit, submitForm }) => (
         <Form onSubmit={handleSubmit}>
           <Box sx={{ py: 5 }}>
@@ -152,12 +153,7 @@ export function PropertyRatingDataStep({
                   id='ratingPropertyData.basement'
                   label='Basement'
                   name='ratingPropertyData.basement'
-                  selectOptions={[
-                    { label: 'No', value: 'no' },
-                    { label: 'Unknown', value: 'unknown' },
-                    { label: 'Finished', value: 'finished' },
-                    { label: 'Unfinished', value: 'unfinished' },
-                  ]}
+                  selectOptions={Basement.options}
                   required
                 />
               </Grid>
@@ -168,7 +164,7 @@ export function PropertyRatingDataStep({
                   id='ratingPropertyData.priorLossCount'
                   label='Prior Loss Count'
                   name='ratingPropertyData.priorLossCount'
-                  selectOptions={PRIOR_LOSS_COUNT_OPTIONS}
+                  selectOptions={PriorLossCount.options}
                   required
                 />
               </Grid>
@@ -235,6 +231,6 @@ export function PropertyRatingDataStep({
           </Box>
         </Form>
       )}
-    </Formik>)
+    </Formik>
   );
 }

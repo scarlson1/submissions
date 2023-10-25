@@ -303,7 +303,7 @@ const calcAddLocation = async ({ data, auth }: CallableRequest<CalcAddLocationPr
     // set location doc's parentType to policy once request is approved
     const locationChanges: CalcAddLocationResponse['locationChanges'] = {
       ...locationData,
-      parentType: 'policy',
+      parentType: 'policy', // TODO: (set to null now ??)
     };
 
     // update change request w/ locationChanges & policyChanges

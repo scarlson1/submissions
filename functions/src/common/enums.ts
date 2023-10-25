@@ -104,6 +104,7 @@ export enum FIN_TRANSACTION_STATUS {
 export const Product = z.enum(['flood', 'wind']);
 export type Product = z.infer<typeof Product>;
 
+// TODO: transform lower case ??
 export const Basement = z.enum(['no', 'finished', 'unfinished', 'unknown']);
 export type Basement = z.infer<typeof Basement>;
 
@@ -122,7 +123,7 @@ export type FeeItemName = z.infer<typeof FeeItemName>;
 export const RoundingType = z.enum(['nearest', 'up', 'down']);
 export type RoundingType = z.infer<typeof RoundingType>;
 
-export const SubjectBaseItems = z.enum([
+export const SubjectBaseItem = z.enum([
   'premium',
   'inspectionFees',
   'mgaFees',
@@ -131,7 +132,7 @@ export const SubjectBaseItems = z.enum([
   'fixedFee',
   'noFee',
 ]);
-export type SubjectBaseItems = z.infer<typeof SubjectBaseItems>;
+export type SubjectBaseItem = z.infer<typeof SubjectBaseItem>;
 
 export const LineOfBusiness = z.enum(['residential', 'commercial']);
 export type LineOfBusiness = z.infer<typeof LineOfBusiness>;
@@ -176,6 +177,14 @@ export type LicenseOwner = z.infer<typeof LicenseOwner>;
 
 export const LicenseType = z.enum(['producer', 'surplus lines', 'MGA', 'Tax ID']);
 export type LicenseType = z.infer<typeof LicenseType>;
+
+export const DisclosureType = z.enum([
+  'state disclosure',
+  'general disclosure',
+  'terms & conditions',
+  'other',
+]);
+export type DisclosureType = z.infer<typeof DisclosureType>;
 
 export const AgencySubmissionStatus = z.enum([
   'accepted',

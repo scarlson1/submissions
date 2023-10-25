@@ -16,7 +16,7 @@ import {
   Policy,
   PriorLossCount,
   RatingPropertyData,
-  SubjectBaseItems,
+  SubjectBaseItem,
   TaxItem,
   TaxItemName,
   ValueByRiskType,
@@ -225,7 +225,7 @@ export function getFormattedTaxes(row: CSVPolicyRow) {
       : row.tax1Value
       ? extractNumber(row.tax1Value)
       : 0,
-    subjectBase: row.tax1SubjectBase ? (row.tax1SubjectBase.split(',') as SubjectBaseItems[]) : [],
+    subjectBase: row.tax1SubjectBase ? (row.tax1SubjectBase.split(',') as SubjectBaseItem[]) : [],
     baseDigits: 2, // TODO: include in csv
     resultDigits: 2,
     resultRoundType: 'nearest',
@@ -238,7 +238,7 @@ export function getFormattedTaxes(row: CSVPolicyRow) {
       : row.tax2Value
       ? extractNumber(row.tax2Value)
       : 0,
-    subjectBase: row.tax2SubjectBase ? (row.tax2SubjectBase.split(',') as SubjectBaseItems[]) : [],
+    subjectBase: row.tax2SubjectBase ? (row.tax2SubjectBase.split(',') as SubjectBaseItem[]) : [],
     baseDigits: 2, // TODO: include in csv
     resultDigits: 2,
     resultRoundType: 'nearest',

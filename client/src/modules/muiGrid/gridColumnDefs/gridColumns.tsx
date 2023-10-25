@@ -45,34 +45,29 @@ import { Link as RouterLink } from 'react-router-dom';
 import {
   AdditionalInsured,
   Address,
+  Basement,
+  CBRSDesignation,
   COLLECTIONS,
+  ChangeRequestStatus,
   CompressedAddress,
-  FeeItem,
+  FloodZone,
   INVITE_STATUS,
+  LineOfBusiness,
   Mortgagee,
   Nullable,
   POLICY_STATUS,
   PolicyLocation,
+  PriorLossCount,
+  Product,
   QUOTE_STATUS,
   SUBMISSION_STATUS,
-  TaxItem,
-} from 'common';
-import {
-  CBRS_OPTIONS,
-  CONSTRUCTION_TYPE,
-  LOB_OPTIONS,
-  PRIOR_LOSS_COUNT_OPTIONS,
-  PRODUCT_OPTIONS,
-} from 'common/constants';
-import {
-  Basement,
-  ChangeRequestStatus,
-  FloodZones,
-  Product,
+  State,
   TAgencySubmissionStatus,
   TChangeRequestStatus,
-} from 'common/enums';
-import { State } from 'common/statesList';
+  TFeeItem,
+  TTaxItem,
+} from 'common';
+import { CONSTRUCTION_TYPE } from 'common/constants';
 import { FileLink, GridCellCopy, renderGridEmail, renderGridPhone } from 'components';
 import {
   renderCellExpand,
@@ -1146,7 +1141,7 @@ export const CBRSCol: GridSingleSelectColDef = {
   headerName: 'CBRS Des.',
   description: 'Coastal Barrier Reef System Designation provided by property api',
   type: 'singleSelect',
-  valueOptions: CBRS_OPTIONS,
+  valueOptions: CBRSDesignation.options,
   minWidth: 100,
   flex: 0.5,
   editable: false,
@@ -1165,7 +1160,7 @@ export const floodZoneCol: GridSingleSelectColDef = {
   field: 'floodZone',
   headerName: 'Flood Zone',
   type: 'singleSelect',
-  valueOptions: FloodZones.options,
+  valueOptions: FloodZone.options,
   minWidth: 100,
   flex: 0.8,
   editable: false,
@@ -1185,7 +1180,7 @@ export const priorLossCountCol: GridSingleSelectColDef = {
   headerName: 'Prior Losses',
   description: 'Prior loss count provided by user',
   type: 'singleSelect',
-  valueOptions: PRIOR_LOSS_COUNT_OPTIONS,
+  valueOptions: PriorLossCount.options,
   minWidth: 100,
   flex: 0.4,
   editable: false,
@@ -1453,7 +1448,7 @@ export const taxesSumCol: GridColDef = {
   valueGetter: ({ row }) => {
     let taxesArr = row.taxes;
     if (!taxesArr || !Array.isArray(taxesArr)) return null;
-    return round(sumBy<TaxItem>(taxesArr, 'value'), 2);
+    return round(sumBy<TTaxItem>(taxesArr, 'value'), 2);
   },
 };
 
@@ -1468,7 +1463,7 @@ export const feesSumCol: GridColDef = {
   valueGetter: ({ row }) => {
     let feesArr = row.fees;
     if (!feesArr || !Array.isArray(feesArr)) return null;
-    return round(sumBy<FeeItem>(feesArr, 'value'), 2);
+    return round(sumBy<TFeeItem>(feesArr, 'value'), 2);
   },
 };
 
@@ -1576,7 +1571,7 @@ export const productCol: GridSingleSelectColDef = {
   flex: 0.4,
   editable: false,
   type: 'singleSelect',
-  valueOptions: PRODUCT_OPTIONS,
+  valueOptions: Product.options,
   filterOperators: getGridFirestoreSelectOperators(),
   renderCell: (params) =>
     renderChip(params, { variant: 'outlined', size: 'small' }, ({ value }: any) =>
@@ -1601,7 +1596,7 @@ export const productsCol: GridSingleSelectColDef = {
   ...multiSelectExtendsSingle,
   field: 'products',
   headerName: 'Products',
-  valueOptions: PRODUCT_OPTIONS,
+  valueOptions: Product.options,
   type: 'singleSelect',
   minWidth: 180,
   flex: 1,
@@ -1862,7 +1857,7 @@ export const LOBCol: GridSingleSelectColDef = {
   field: 'LOB',
   headerName: 'LOB',
   type: 'singleSelect',
-  valueOptions: LOB_OPTIONS,
+  valueOptions: LineOfBusiness.options,
   minWidth: 200,
   flex: 0.6,
   editable: false,

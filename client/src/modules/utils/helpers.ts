@@ -23,17 +23,17 @@ import numeral from 'numeral';
 import { toast } from 'react-hot-toast';
 import { Location } from 'react-router-dom';
 
-import { TPolicyStatus } from 'common';
 import {
   Address,
   CompressedAddress,
-  FeeItem,
   FlattenObjectKeys,
   Path,
   Policy,
-  RoundingType,
-  TaxItem,
-} from 'common/types';
+  TFeeItem,
+  TPolicyStatus,
+  TRoundingType,
+  TTaxItem,
+} from 'common';
 import { AddressComponent, AddressComponentType, NewAddress } from 'components/forms';
 
 /**
@@ -577,7 +577,7 @@ export const flattenObj = <T extends Record<string, any>>(obj: T) => {
   return result as Record<FlattenObjectKeys<T>, any>;
 };
 
-export function sumFeesTaxesPremium(fees: FeeItem[], taxes: TaxItem[], premium: number) {
+export function sumFeesTaxesPremium(fees: TFeeItem[], taxes: TTaxItem[], premium: number) {
   const feeTotal = sumArr(fees.map((f) => f.value));
   const taxTotal = sumArr(taxes.map((t) => t.value));
 
@@ -614,7 +614,7 @@ export function sumByTypes<T>(
   }, 0);
 }
 
-export function getRoundingFunc(type?: RoundingType | null | undefined) {
+export function getRoundingFunc(type?: TRoundingType | null | undefined) {
   switch (type) {
     case 'nearest':
       return round;

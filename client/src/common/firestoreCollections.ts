@@ -22,7 +22,7 @@ import {
   SpatialKeyResponse,
   StageImportRecord,
   Submission,
-  Tax,
+  TTax,
   User,
   UserClaims,
 } from './types';
@@ -71,7 +71,7 @@ export const licensesCollection = (db: Firestore) =>
 export const notifyRegistration = (db: Firestore) =>
   createCollection<NotifyRegistration>(db, COLLECTIONS.NOTIFY_REGISTRATION);
 
-export const taxesCollection = (db: Firestore) => createCollection<Tax>(db, COLLECTIONS.TAXES);
+export const taxesCollection = (db: Firestore) => createCollection<TTax>(db, COLLECTIONS.TAXES);
 
 export const statesCollection = (db: Firestore) =>
   createCollection<ActiveStates>(db, COLLECTIONS.ACTIVE_STATES);

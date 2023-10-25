@@ -1,20 +1,22 @@
-import { useCallback, useState } from 'react';
+import { EditRounded } from '@mui/icons-material';
 import {
   Button,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
+  Unstable_Grid2 as Grid,
   IconButton,
   InputAdornment,
   Tooltip,
   Typography,
   useMediaQuery,
   useTheme,
-  Unstable_Grid2 as Grid,
 } from '@mui/material';
-import { EditRounded } from '@mui/icons-material';
-import { statesAbrvSelectOptions } from 'common/statesList';
+import { useCallback, useState } from 'react';
+
+// import { statesAbrvSelectOptions } from 'common/statesList';
+import { State } from 'common';
 import {
   FormikMaskField,
   FormikNativeSelect,
@@ -132,7 +134,8 @@ export const FormikAddressLite = ({
                   name={names.state}
                   label='State'
                   fullWidth
-                  selectOptions={statesAbrvSelectOptions}
+                  // selectOptions={statesAbrvSelectOptions}
+                  selectOptions={State.options}
                 />
               </Grid>
             )}

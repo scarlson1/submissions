@@ -1,15 +1,15 @@
-import { useCallback } from 'react';
 import { Box, Typography } from '@mui/material';
+import { Timestamp, doc, setDoc } from 'firebase/firestore';
 import { FormikHelpers } from 'formik';
-import { doc, setDoc, Timestamp } from 'firebase/firestore';
-import { useFirestore } from 'reactfire';
+import { useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useFirestore } from 'reactfire';
 
-import { getNumber } from 'modules/utils/helpers';
-import { Tax, taxesCollection } from 'common';
-import { ADMIN_ROUTES, createPath } from 'router';
+import { TTax, taxesCollection } from 'common';
 import { TaxForm, TaxValues } from 'elements/forms/TaxForm';
 import { useAsyncToast, useDocData } from 'hooks';
+import { getNumber } from 'modules/utils/helpers';
+import { ADMIN_ROUTES, createPath } from 'router';
 
 export const SLTaxEdit = () => {
   const navigate = useNavigate();
@@ -17,7 +17,7 @@ export const SLTaxEdit = () => {
   const toast = useAsyncToast({ position: 'top-right' });
   const { taxId } = useParams();
   if (!taxId) throw new Error('taxId required to edit.');
-  const { data } = useDocData<Tax>('TAXES', taxId);
+  const { data } = useDocData<TTax>('TAXES', taxId);
 
   const handleSubmit = useCallback(
     async (values: TaxValues, { setSubmitting, setFieldError }: FormikHelpers<TaxValues>) => {

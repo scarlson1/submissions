@@ -3,7 +3,7 @@ import { GridColDef } from '@mui/x-data-grid';
 import { JSONContent, generateHTML } from '@tiptap/react';
 import { useMemo } from 'react';
 
-import { Disclosure, DisclosureTypeEnum } from 'common';
+import { Disclosure, DisclosureType } from 'common';
 import { EDITOR_EXTENSION_DEFAULTS } from 'hooks';
 import {
   createdCol,
@@ -39,7 +39,7 @@ export const disclosureCols: GridColDef<Disclosure>[] = [
     filterable: true,
     sortable: false,
     type: 'singleSelect',
-    valueOptions: DisclosureTypeEnum.options,
+    valueOptions: DisclosureType.options,
   },
   {
     field: 'content',
