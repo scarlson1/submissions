@@ -27,18 +27,25 @@ interface ReviewStepProps extends LogAnalyticsProps {
 export function ReviewStep({ data, logAnalyticsStep }: ReviewStepProps) {
   const { values } = useFormikContext<BindQuoteValues>();
   // const { cardDetails, loading, error } = useCardDetails(values.paymentMethodId);
-  // TODO: use card details from billing entity form values or get details from subcollection of policyId
   // const { cardDetails, loading, error } = useCardDetails(values.billingEntities[0].id);
-  const cardDetails = values.billingEntities[0];
+  // const cardDetails = values.billingEntities[0];
 
   useEffect(() => {
     logAnalyticsStep(3, 'bind quote review step');
   }, [logAnalyticsStep]);
 
+  // TODO: handle no card details --> throw w/ error boundary instead of return null ??
+
+  const cardDetails = useMemo(() => {
+    const billingEntity = values.billingEntities[0];
+    return billingEntity ? billingEntity.paymentMethods[0] : null;
+  }, [values]);
+
   const total = useMemo(() => {
     const { quoteTotal, cardFee } = data;
     if (!cardDetails || !quoteTotal) return null;
 
+    // TODO: payment method type not stored in policy instead of sub-collection of user --> could add "total" in backend
     let t: number = quoteTotal;
     if (cardFee && typeof cardFee === 'number' && cardDetails.type === 'card') t += cardFee;
 

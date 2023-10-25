@@ -723,16 +723,39 @@ export const FeeItem = z.object({
 });
 export type FeeItem = z.infer<typeof FeeItem>;
 
-export type BillingEntity = Pick<
-  EPayPaymentMethodDetails,
-  | 'emailAddress'
-  // | 'id'
-  | 'payer'
-  | 'type'
-  | 'transactionType'
-  | 'accountHolder'
-  | 'maskedAccountNumber'
-> & { paymentMethodId: string; default?: boolean };
+// export type BillingEntity = Pick<
+//   EPayPaymentMethodDetails,
+//   | 'emailAddress'
+//   // | 'id'
+//   | 'payer'
+//   | 'type'
+//   | 'transactionType'
+//   | 'accountHolder'
+//   | 'maskedAccountNumber'
+// > & { paymentMethodId: string; default?: boolean };
+
+const PaymentMethod = z.object({
+  id: z.string(),
+  emailAddress: z.string(),
+  payer: z.string(),
+  accountHolder: z.string().optional().nullable(),
+  transactionType: z.string(),
+  type: z.string().optional().nullable(),
+  maskedAccountNumber: z.string(),
+});
+
+export const BillingType = z.enum(['checkout', 'invoice', 'mortgagee']);
+export type TillingType = z.infer<typeof BillingType>;
+
+export const BillingEntity = z.object({
+  displayName: z.string(),
+  email: z.string().email(),
+  phone: Phone,
+  billingType: BillingType,
+  selectedPaymentMethodId: z.string().optional().nullable(),
+  paymentMethods: z.array(PaymentMethod),
+});
+export type BillingEntity = z.infer<typeof BillingEntity>;
 
 export interface Quote extends BaseDoc {
   policyId: string;
@@ -753,6 +776,7 @@ export interface Quote extends BaseDoc {
   effectiveExceptionReason?: string | null;
   quotePublishedDate: Timestamp;
   quoteExpirationDate: Timestamp;
+  quoteBoundDate?: Timestamp | null;
   exclusions?: string[];
   additionalInterests?: AdditionalInterest[];
   userId: string | null;
@@ -761,6 +785,7 @@ export interface Quote extends BaseDoc {
   agent: Nullable<AgentDetails>;
   agency: Nullable<AgencyDetails>;
   billingEntities: Record<string, BillingEntity>;
+  defaultBillingEntityId: string;
   status: QUOTE_STATUS;
   submissionId?: string | null;
   imageURLs?: LocationImages | null;
@@ -1020,6 +1045,7 @@ export const Policy = z.object({
   outStatePremium: z.number(),
   termDays: z.number().nonnegative(),
   totalsByBillingEntity: TotalsByBillingEntity,
+  // defaultBillingEntityId: z.string(),
   fees: z.array(FeeItem),
   taxes: z.array(TaxItem),
   price: z.number(),
@@ -1030,6 +1056,8 @@ export const Policy = z.object({
   userId: z.string(),
   agent: AgentDetails,
   agency: AgencyDetails,
+  billingEntities: z.record(BillingEntity), // Record<string, BillingEntity>
+  defaultBillingEntityId: z.string(),
   surplusLinesProducerOfRecord: SLProdOfRecordDetails,
   // TODO: add address to carrier CarrierDetails: name, address (carrierId ??)
   issuingCarrier: z.string(),

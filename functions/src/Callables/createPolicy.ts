@@ -148,6 +148,7 @@ const createPolicy = async ({ data, auth }: CallableRequest<CreatePolicyProps>) 
 
     batch.update(quoteSnap.ref, {
       status: QUOTE_STATUS.BOUND,
+      quoteBoundDate: Timestamp.now(),
       'metadata.updated': Timestamp.now(),
       policyId,
     });

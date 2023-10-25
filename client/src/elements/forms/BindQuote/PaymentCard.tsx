@@ -28,16 +28,16 @@ export interface PaymentCardProps {
   cardDetails:
     | PaymentMethod
     | null
-    | (Pick<
+    | Pick<
         EPayPaymentMethodDetails,
         | 'emailAddress'
-        // | 'id'
+        | 'id'
         | 'payer'
         | 'type'
         | 'transactionType'
         | 'accountHolder'
         | 'maskedAccountNumber'
-      > & { paymentMethodId: string });
+      >; //  & { paymentMethodId: string }
   loading?: boolean;
   error?: string | null;
 }

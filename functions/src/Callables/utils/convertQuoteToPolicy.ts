@@ -172,6 +172,8 @@ export function getPolicyFromQuote(
       name: data.agency?.name,
       address: data.agency?.address,
     },
+    billingEntities: data.billingEntities,
+    defaultBillingEntityId: data.defaultBillingEntityId || 'namedInsured',
     surplusLinesProducerOfRecord: {
       name: `${license.licensee} ${license.state} Surplus Lines Producer of Record License`.trim(),
       licenseNum: license.licenseNumber,

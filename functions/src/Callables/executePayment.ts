@@ -23,7 +23,16 @@ import { requireAuth, validate } from './utils/index.js';
 // const CARD_FEE = 0.035; // TODO: use env var
 
 // TODO: generalize into "charge" object/record instead of only storing in policy ??
+// study payment intent / invoice / charge flows in stripe & mirror flow/data structure
 // create when policy created - sync "charge" with epay transaction ??
+
+// TODO: refactor so payment method isn't fetched from user's collection
+// need additional security checks so a payment method ID can't be passed from another user's account ??
+// secure if user was able to add payment method to quote ??
+
+// TODO: refactor to support multiple billing entities
+// loop through totalsByBillingEntity --> look up payment method by billing entity --> execute payment
+// TODO: support non-charge pmt methods (create invoice, etc.)
 
 const reportErr = getReportErrorFn('executePayment');
 
@@ -74,12 +83,11 @@ const executePayment = async ({ data, auth }: CallableRequest<ExecutePaymentProp
     'Payment method not found'
   );
 
-  const ePayCreds = ePayCredsSecret.value();
-  validate(ePayCreds, 'internal', 'missing required env vars');
-  if (!ePayCreds) throw new HttpsError('internal', 'Missing required env vars');
+  // const ePayCreds = ePayCredsSecret.value();
+  // validate(ePayCreds, 'internal', 'missing required env vars');
 
   try {
-    const ePayInstance = getEPayInstance(ePayCreds);
+    const ePayInstance = getEPayInstance(ePayCredsSecret.value());
 
     let ePayFees = paymentMethodDetails.transactionType === 'Ach' ? 0 : round(price * feePct, 2);
 

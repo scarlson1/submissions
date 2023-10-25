@@ -10,10 +10,10 @@ import { useFirestore, useSigninCheck } from 'reactfire';
 
 import {
   AdditionalInterest,
-  BillingEntity,
   MailingAddress,
   NamedInsuredDetails,
   Quote,
+  TBillingEntity,
   additionalInterestsValidation,
   mailingAddressValidation,
   namedInsuredValidationNested,
@@ -40,7 +40,7 @@ export interface BindQuoteValues {
   additionalInterests: AdditionalInterest[];
   mailingAddress: MailingAddress;
   // paymentMethodId: string;
-  billingEntities: BillingEntity[];
+  billingEntities: TBillingEntity[];
 }
 
 export const BindQuoteForm = () => {
@@ -67,19 +67,20 @@ export const BindQuoteForm = () => {
     return { minEffDate, maxEffDate };
   }, [data]);
 
-  const billingEntities = useMemo<BillingEntity[]>(
-    () =>
-      Object.values(data?.billingEntities || {}).map((b: BillingEntity) => ({
-        paymentMethodId: b.paymentMethodId,
-        payer: b.payer,
-        emailAddress: b.emailAddress,
-        accountHolder: b.accountHolder || null,
-        maskedAccountNumber: b.maskedAccountNumber,
-        transactionType: b.transactionType,
-        type: b.type || null,
-      })),
-    [data]
-  );
+  const billingEntities = useMemo<TBillingEntity[]>(() => {
+    // const defaultPmtMethod = getDefaultPmtMethod(data.billingEntities, data.defaultBillingEntity)
+    return Object.values(data?.billingEntities || {});
+
+    // return Object.values(data?.billingEntities || {}).map((b) => ({
+    //   paymentMethodId: b.paymentMethodId,
+    //   payer: b.payer,
+    //   emailAddress: b.emailAddress,
+    //   accountHolder: b.accountHolder || null,
+    //   maskedAccountNumber: b.maskedAccountNumber,
+    //   transactionType: b.transactionType,
+    //   type: b.type || null,
+    // }))
+  }, [data]);
 
   // TODO FINISH BIND QUOTE HOOK
   const bindQuote = useBindQuote(
@@ -92,7 +93,9 @@ export const BindQuoteForm = () => {
       // if (!values.paymentMethodId) return toast.error('Missing payment method');
 
       // const res = await bindQuote(quoteId, values.paymentMethodId);
-      const res = await bindQuote(quoteId, values.billingEntities[0].paymentMethodId);
+      const pmtMethodId = values.billingEntities[0].selectedPaymentMethodId;
+      if (!pmtMethodId) throw new Error('payment method id required');
+      const res = await bindQuote(quoteId, pmtMethodId);
       setSubmitting(false);
 
       if (res?.transactionId && (res?.status === 'succeeded' || res?.status === 'processing')) {
@@ -116,8 +119,21 @@ export const BindQuoteForm = () => {
     async (values: BindQuoteValues, bag: any, initialValues: BindQuoteValues) => {
       if (isEqual(values, initialValues)) return values;
 
-      const newBillingEntities: Record<string, any> = {};
-      values.billingEntities.forEach((e) => (newBillingEntities[e.paymentMethodId] = e));
+      // const newBillingEntities: Record<string, TBillingEntity> = {
+      //   namedInsured: {
+      //     displayName: `${values?.namedInsured?.firstName || ''} ${values?.namedInsured?.lastName || ''}`,
+      //     email: values?.namedInsured?.email || '',
+      //     phone: values?.namedInsured?.phone || '',
+      //     billingType: 'checkout',
+      //     // selectedPaymentMethodId: values.billingEntities
+      //   },
+      // };
+      // TODO: separate named insured from rest of billing entities
+      // values.billingEntities.forEach((e) => (newBillingEntities['namedInsured'] = e));
+
+      const billingEntities = {
+        namedInsured: values.billingEntities[0],
+      };
 
       await updateDoc(quoteRef, {
         namedInsured: {
@@ -131,7 +147,8 @@ export const BindQuoteForm = () => {
         effectiveDate: Timestamp.fromDate(values.effectiveDate),
         effectiveExceptionRequested: values.effectiveExceptionRequested,
         effectiveExceptionReason: values.effectiveExceptionReason || null,
-        billingEntities: newBillingEntities,
+        // billingEntities: newBillingEntities,
+        billingEntities,
       });
       return values;
     },

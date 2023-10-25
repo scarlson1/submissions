@@ -439,6 +439,16 @@ async function getPolicyWithoutLocation(
     namedInsured: data.namedInsured,
     homeState: data.homeState as State, // TODO: validate
     // termPremium: policyTermPremium,
+    billingEntities: {
+      namedInsured: {
+        displayName: `${data.namedInsured?.displayName || ''}`,
+        email: data.namedInsured.email,
+        phone: data.namedInsured.phone,
+        billingType: 'invoice',
+        paymentMethods: [],
+      },
+    },
+    defaultBillingEntityId: 'namedInsured',
     termDays,
     fees: data.fees,
     taxes: data.taxes,

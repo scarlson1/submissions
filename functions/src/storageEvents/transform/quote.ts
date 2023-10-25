@@ -167,7 +167,17 @@ export function transformQuoteRow(row: CSVQuoteRow): DeepNullable<CSVTransformed
     agent,
     agency,
     additionalInterests: [],
-    billingEntities: {},
+    billingEntities: {
+      namedInsured: {
+        displayName: `${row.firstName || ''} ${row.lastName || ''}`.trim(),
+        email: row.email || '',
+        phone: row.phone || '',
+        billingType: 'checkout', // TODO: fix hardcoding
+        selectedPaymentMethodId: null,
+        paymentMethods: [],
+      },
+    },
+    defaultBillingEntityId: 'namedInsured',
     status: QUOTE_STATUS.AWAITING_USER,
     ratingDocId: row.ratingDocId || '',
     imageURLs: null,

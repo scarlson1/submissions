@@ -482,18 +482,44 @@ export type TFeeItem = z.infer<typeof FeeItem>;
 //   value: number;
 // }
 
-export type BillingEntity = Pick<
-  EPayPaymentMethodDetails,
-  | 'emailAddress'
-  // | 'id'
-  | 'payer'
-  | 'type'
-  | 'transactionType'
-  | 'accountHolder'
-  | 'maskedAccountNumber'
-> & { paymentMethodId: string; default?: boolean };
+// TODO: require name, email, phone
+// TODO: refactor billing entity - payment method relationship
+// export type BillingEntity = Pick<
+//   EPayPaymentMethodDetails,
+//   | 'emailAddress'
+//   // | 'id'
+//   | 'payer'
+//   | 'type'
+//   | 'transactionType'
+//   | 'accountHolder'
+//   | 'maskedAccountNumber'
+// > & { paymentMethodId: string };
+
+const PaymentMethodZ = z.object({
+  id: z.string(),
+  emailAddress: z.string(),
+  payer: z.string(),
+  accountHolder: z.string().optional().nullable(),
+  transactionType: z.string(),
+  type: z.string().optional().nullable(),
+  maskedAccountNumber: z.string(),
+});
+
+export const BillingType = z.enum(['checkout', 'invoice', 'mortgagee']);
+export type TBillingType = z.infer<typeof BillingType>;
+
+export const BillingEntity = z.object({
+  displayName: z.string(),
+  email: z.string().email(),
+  phone: PhoneZ,
+  billingType: BillingType,
+  selectedPaymentMethodId: z.string().optional().nullable(),
+  paymentMethods: z.array(PaymentMethodZ),
+});
+export type TBillingEntity = z.infer<typeof BillingEntity>;
 
 // TODO: need reference to ratingDocId to get AALs for editing
+// TODO: have default billing entity ID be the same as policy ID instead of "namedInsured"??
 export interface Quote {
   policyId: string;
   product: TProduct; // keyof typeof Product;
@@ -513,6 +539,7 @@ export interface Quote {
   effectiveExceptionReason?: string | null;
   quotePublishedDate: Timestamp;
   quoteExpirationDate: Timestamp;
+  quoteBoundDate?: Timestamp | null;
   // maxEffectiveDate = quoteDate + 60 days
   // minEffDate = quoteDate + 15 days
   // must bind by quoteDate + 30
@@ -526,11 +553,12 @@ export interface Quote {
     version: WithFieldValue<number>;
   };
   userId: string | null;
-  namedInsured: Nullable<NamedInsuredDetails>;
+  namedInsured: Nullable<NamedInsuredDetails>; // TODO: switch to same interface as policy
   mailingAddress: MailingAddress;
   agent: Nullable<AgentDetails>; // TODO: REMOVE NULLABLE
   agency: Nullable<AgencyDetails>; // TODO: REMOVE NULLABLE ??
-  billingEntities: Record<string, BillingEntity>;
+  billingEntities: Record<string, TBillingEntity>;
+  defaultBillingEntityId: string;
   status: QUOTE_STATUS;
   submissionId?: string | null;
   imageURLs?: TLocationImages | null;
@@ -786,7 +814,7 @@ export interface Policy extends BaseDoc {
   term: number;
   mailingAddress: MailingAddress;
   namedInsured: NamedInsured; // TODO: clarify typing NamedInsuredDetails;
-  billingEntities: Record<string, BillingEntity>;
+  billingEntities: Record<string, TBillingEntity>;
   locations: Record<string, PolicyLocation>;
   homeState: string;
   termPremium: number; // sum of active location(s) term premium

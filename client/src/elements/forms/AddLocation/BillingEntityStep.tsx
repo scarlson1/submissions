@@ -4,7 +4,7 @@ import { useCallback, useMemo, useRef } from 'react';
 import { object, string } from 'yup';
 
 import { AddCardRounded } from '@mui/icons-material';
-import { BillingEntity, PaymentMethod, Policy, policiesCollection } from 'common';
+import { PaymentMethod, Policy, TBillingEntity, policiesCollection } from 'common';
 import { FormikSelect, FormikWizardNavButtons } from 'components/forms';
 import { doc, setDoc } from 'firebase/firestore';
 import { useDocData, useWizard } from 'hooks';
@@ -12,13 +12,29 @@ import { useFirestore } from 'reactfire';
 import { AddPaymentDialog } from '../AddPaymentDialog';
 import { BaseStepProps } from './AddLocationWizard';
 
-function getOptionLabel(b: BillingEntity) {
-  let label = `${b.payer}`;
-  let secondaryText = '';
-  if (b.transactionType) secondaryText = `${b.transactionType}`;
-  if (b.maskedAccountNumber) secondaryText += ` - ${b.maskedAccountNumber}`;
-  else if (b.emailAddress) secondaryText += ` - ${b.emailAddress}`;
+// TODO: support adding billing entity (instead of overwriting namedInsured billing entity)
 
+// TODO: refactor --> list billing entities as cards
+export const getDefaultPmtMethod = (
+  billingEntities: Policy['billingEntities'],
+  defaultId: string
+) => {
+  const defaultEntity = billingEntities[defaultId];
+  const defaultPmtId = defaultEntity.selectedPaymentMethodId;
+  return defaultPmtId && defaultEntity.paymentMethods.find((p) => p.id === defaultPmtId);
+};
+
+function getOptionLabel(b: TBillingEntity) {
+  let label = `${b.displayName}`;
+  let secondaryText = '';
+  const defaultPmtMethod =
+    b.selectedPaymentMethodId && b.paymentMethods.find((p) => p.id === b.selectedPaymentMethodId);
+  if (defaultPmtMethod) {
+    if (defaultPmtMethod.transactionType) secondaryText = `${defaultPmtMethod.transactionType}`;
+    if (defaultPmtMethod.maskedAccountNumber)
+      secondaryText += ` - ${defaultPmtMethod.maskedAccountNumber}`;
+    // else if (b.emailAddress) secondaryText += ` - ${b.emailAddress}`;
+  }
   return `${label}` + (secondaryText ? ` (${secondaryText})` : '');
 }
 
@@ -66,23 +82,52 @@ export const BillingEntityStep = ({
       // add billing entity to policy
       try {
         const policyRef = doc(policiesCollection(firestore), policyId);
+
+        const billingEntity: TBillingEntity = {
+          displayName: pmtMethod.payer, // TODO: use named insured ?? get from separate from??
+          email: pmtMethod.emailAddress,
+          phone: '', // TODO: collect phone
+          selectedPaymentMethodId: pmtMethod.id,
+          billingType: 'checkout', // TODO: collect/infer billing type
+          paymentMethods: [
+            {
+              id: pmtMethod.id,
+              payer: pmtMethod.payer,
+              emailAddress: pmtMethod.emailAddress,
+              accountHolder: pmtMethod.accountHolder || null,
+              maskedAccountNumber: pmtMethod.maskedAccountNumber,
+              transactionType: pmtMethod.transactionType,
+              type: pmtMethod.type || null,
+            },
+          ],
+        };
+
         await setDoc(
           policyRef,
           {
             billingEntities: {
-              [pmtMethod.id]: {
-                paymentMethodId: pmtMethod.id,
-                payer: pmtMethod.payer,
-                emailAddress: pmtMethod.emailAddress,
-                accountHolder: pmtMethod.accountHolder || null,
-                maskedAccountNumber: pmtMethod.maskedAccountNumber,
-                transactionType: pmtMethod.transactionType,
-                type: pmtMethod.type || null,
-              },
+              namedInsured: billingEntity,
             },
           },
           { merge: true }
         );
+        // await setDoc(
+        //   policyRef,
+        //   {
+        //     billingEntities: {
+        //       [pmtMethod.id]: {
+        //         paymentMethodId: pmtMethod.id,
+        //         payer: pmtMethod.payer,
+        //         emailAddress: pmtMethod.emailAddress,
+        //         accountHolder: pmtMethod.accountHolder || null,
+        //         maskedAccountNumber: pmtMethod.maskedAccountNumber,
+        //         transactionType: pmtMethod.transactionType,
+        //         type: pmtMethod.type || null,
+        //       },
+        //     },
+        //   },
+        //   { merge: true }
+        // );
         formRef.current?.setFieldValue('billingEntityId', pmtMethod.id);
       } catch (err: any) {
         onError && onError('Error adding payment method to policy');
