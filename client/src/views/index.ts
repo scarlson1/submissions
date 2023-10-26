@@ -2,6 +2,7 @@ export { Account } from './Account';
 export { AccountDetails } from './AccountDetails';
 export { AddLocation } from './AddLocation';
 export { AgencyNew } from './AgencyNew';
+export { ClaimNew } from './ClaimNew';
 export { ContactUs } from './ContactUs';
 export { CreateAccount } from './CreateAccount';
 export { Home } from './Home';

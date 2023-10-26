@@ -15,6 +15,7 @@ import {
   Organization,
   PaymentMethod,
   Policy,
+  PolicyClaim,
   PortfolioSubmission,
   PropertyDataRes,
   Quote,
@@ -120,7 +121,7 @@ export const changeRequestsCollection = (db: Firestore, policyId: string, ...res
   );
 
 export const policyClaimsCollection = (db: Firestore, policyId: string, ...rest: string[]) =>
-  createCollection<any>(db, COLLECTIONS.POLICIES, policyId, COLLECTIONS.CLAIMS, ...rest);
+  createCollection<PolicyClaim>(db, COLLECTIONS.POLICIES, policyId, COLLECTIONS.CLAIMS, ...rest);
 
 export const stagedImportsCollection = (db: Firestore, importId: string, ...rest: string[]) =>
   createCollection<StageImportRecord>(

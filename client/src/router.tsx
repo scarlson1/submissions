@@ -32,7 +32,6 @@ import {
   Login,
   Policies,
   Policy,
-  PolicyOld,
   QuoteBind,
   Quotes,
   SubmissionNew,
@@ -70,6 +69,7 @@ import {
 } from 'views/admin';
 import { Disclosures } from 'views/admin/Disclosures';
 import { AgencyAppSuccessStep } from 'views/AgencyNew';
+import { ClaimNew } from 'views/ClaimNew';
 import { EmailVerified } from 'views/EmailVerified';
 import App from './App';
 
@@ -108,7 +108,8 @@ export enum ROUTES {
   POLICIES = '/policies',
   POLICY = '/policies/:policyId',
   ADD_LOCATION_NEW = '/policies/:policyId/locations/new',
-  CLAIM_NEW = '/policies/:policyId/claim/new',
+  // CLAIM_NEW = '/policies/:policyId/claim/new',
+  CLAIM_NEW = '/policies/:policyId/:locationId/claims/new',
   AGENCY_NEW = '/agency/new',
   AGENCY_NEW_SUBMITTED = '/agency/new/:submissionId/success',
   ACCOUNT = '/account',
@@ -177,7 +178,7 @@ type TArgs =
   | { path: ROUTES.POLICIES; search?: { productId?: TProduct } }
   | { path: ROUTES.POLICY; params: { policyId: string }; search?: { l_view: string } }
   | { path: ROUTES.ADD_LOCATION_NEW; params: { policyId: string } }
-  | { path: ROUTES.CLAIM_NEW; params: { policyId: string } }
+  | { path: ROUTES.CLAIM_NEW; params: { policyId: string; locationId: string } }
   | { path: ROUTES.AGENCY_NEW }
   | { path: ROUTES.AGENCY_NEW_SUBMITTED; params: { submissionId: string } }
   | { path: ROUTES.CONTACT }
@@ -718,9 +719,30 @@ export const router = sentryCreateBrowserRouter([
             },
           },
           {
-            path: 'old/:policyId',
-            element: <PolicyOld />,
+            path: ROUTES.CLAIM_NEW,
+            element: <ClaimNew />,
             errorElement: <RouterErrorBoundary />,
+            handle: {
+              crumb: (match: CrumbMatch) => [
+                {
+                  label: 'Policies',
+                  link: createPath({
+                    path: ROUTES.POLICIES,
+                  }),
+                },
+                {
+                  label: `${match?.params?.policyId || ''}`,
+                  link: createPath({
+                    path: ROUTES.POLICY,
+                    params: { policyId: `${match?.params?.policyId || ''}` },
+                  }),
+                },
+                // TODO: add link to policy claims once route/component added
+                {
+                  label: 'Claim',
+                },
+              ],
+            },
           },
         ],
       },

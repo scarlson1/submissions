@@ -61,6 +61,7 @@ service firebase.storage {
       allow write: if isIDemandAdmin() && request.resource.contentType.matches('image/.*')
     }
 
+    // TODO: allow org admin
     match /policies/{policyId}/{fileName} {
       // allow read: if request.auth.uid == resource.metadata.userId
       allow read: if (isAuthenticated() &&
@@ -70,6 +71,13 @@ service firebase.storage {
       // TODO: query database to get policy details use userId, agentId instead of metadata
       allow write: if isIDemandAdmin()
     }
+
+    // TODO: don't allow delete ?? unless admin ??
+    match /policies/{policyId}/claims/{claimId}/{fileName} {
+        allow read, write: if (isAuthenticated() && isUserOrAgent(firestore.get(/databases/(default)/documents/policies/$(policyId)))) || isIDemandAdmin()
+      }
+
+    
 
     match /common/{file=**} {
       allow read;

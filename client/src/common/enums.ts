@@ -91,6 +91,10 @@ export const StorageFolder = z.enum([
   'importTransactions',
   'ratePortfolio',
   'importQuotes',
+  'policies',
+  'claims',
+  'users',
+  'profileImages',
 ]);
 export type TStorageFolder = z.infer<typeof StorageFolder>;
 

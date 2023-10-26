@@ -1,5 +1,5 @@
 import { Container } from '@mui/material';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { usePrevious } from 'hooks/utils';
 import { createChangeRequest } from 'modules/db';
@@ -26,9 +26,9 @@ export default function AddLocation({ policyId }: { policyId: string }) {
   //   [policyId],
   // )
 
-  const handleSubmit = useCallback((values: any) => {
-    alert(JSON.stringify(values, null, 2));
-  }, []);
+  // const handleSubmit = useCallback((values: any) => {
+  //   alert(JSON.stringify(values, null, 2));
+  // }, []);
 
   if (!changeRequestResource) return null;
 
@@ -37,8 +37,7 @@ export default function AddLocation({ policyId }: { policyId: string }) {
       <AddLocationWizard
         policyId={policyId}
         changeRequestDocResource={changeRequestResource}
-        // product='flood' // REMOVE - GET PRODUCT FROM POLICY DATA
-        onSubmit={handleSubmit}
+        // onSubmit={handleSubmit}
       />
     </Container>
   );

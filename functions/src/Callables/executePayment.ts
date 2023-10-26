@@ -107,7 +107,8 @@ const executePayment = async ({ data, auth }: CallableRequest<ExecutePaymentProp
         policyNumber: policyId,
         namedInsured: `${policy.namedInsured?.displayName}`,
         contact:
-          `${policy.namedInsured?.firstName} ${policy.namedInsured?.lastName}`.trim() || null,
+          `${policy.namedInsured?.firstName || ''} ${policy.namedInsured?.lastName || ''}`.trim() ||
+          null,
         namedInsuredEmail: policy.namedInsured?.email || null,
         policyId,
         userId: uid,
@@ -190,11 +191,24 @@ const executePayment = async ({ data, auth }: CallableRequest<ExecutePaymentProp
           err
         );
       }
+    } else {
+      try {
+        await policySnap.ref.update({
+          status: PaymentStatus.enum.processing,
+          'metadata.updated': Timestamp.now(),
+        });
+      } catch (err: any) {
+        reportErr(
+          'Error updating policy payment status to "pending"',
+          { policyId, transactionId },
+          err
+        );
+      }
     }
 
     return {
       transactionId,
-      status: paymentMethodDetails.transactionType === 'Ach' ? 'processing' : 'succeeded',
+      status,
     };
   } catch (err: any) {
     // TODO: save failed transaction in db so it matches ePay ??

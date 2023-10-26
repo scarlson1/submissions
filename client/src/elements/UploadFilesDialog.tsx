@@ -1,5 +1,3 @@
-import { ReactNode, useState } from 'react';
-
 import {
   Button,
   ButtonProps,
@@ -8,9 +6,10 @@ import {
   DialogContent,
   DialogTitle,
 } from '@mui/material';
+import { UploadResult } from 'firebase/storage';
+import { ReactNode, useState } from 'react';
 
 import { FilesDragDrop, FilesDragDropProps } from 'components/forms';
-import { UploadResult } from 'firebase/storage';
 
 export interface UploadFilesDialogComponentProps {
   open: boolean;

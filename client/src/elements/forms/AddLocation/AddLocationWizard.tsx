@@ -28,9 +28,9 @@ export interface BaseStepProps<T> extends Omit<FormikConfig<T>, 'onSubmit'> {
 export type AddLocationValues = AddressValues & LimitValues & DeductibleValues & RatingDataValues;
 
 interface AddLocationFormProps
-  extends OptionalKeys<FormikConfig<AddLocationValues>, 'initialValues'> {
+  extends OptionalKeys<FormikConfig<AddLocationValues>, 'initialValues' | 'onSubmit'> {
   // product: Product; // get from policy ??
-  policyId: string;
+  policyId: string; // get policyId from resource ??
   // changeRequestId: string;
   changeRequestDocResource: ReturnType<typeof createChangeRequest>;
 }

@@ -1,14 +1,16 @@
-import { useRef, useCallback } from 'react';
+import { LoadingButton } from '@mui/lab';
 import { Box, Typography } from '@mui/material';
-import { Formik, FormikHelpers, FormikProps } from 'formik';
 import { Timestamp, addDoc } from 'firebase/firestore';
+import { Formik, FormikHelpers, FormikProps } from 'formik';
+import { useCallback, useRef } from 'react';
 import { useFirestore, useUser } from 'reactfire';
 import * as yup from 'yup';
 
 import { policyClaimsCollection } from 'common';
-import { useAsyncToast } from 'hooks';
 import { FormikDatePicker, FormikDragDrop } from 'components/forms';
-import { LoadingButton } from '@mui/lab';
+import { useAsyncToast } from 'hooks';
+
+// TODO: replace with multi-step form (like add location ??)
 
 const useCreateClaim = (
   policyId: string,
@@ -24,6 +26,7 @@ const useCreateClaim = (
     async (values: ClaimsValues) => {
       try {
         // await uploadFiles() TODO: upload files to storage
+        // @ts-ignore
         const docRef = await addDoc(claimsCol, {
           ...values,
           policyId,

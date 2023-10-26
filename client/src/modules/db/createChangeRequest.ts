@@ -6,7 +6,13 @@ import {
   getFirestore,
 } from 'firebase/firestore';
 
-import { BaseChangeRequest, ChangeRequest, changeRequestsCollection } from 'common';
+import {
+  BaseChangeRequest,
+  ChangeRequest,
+  DraftPolicyClaim,
+  changeRequestsCollection,
+  policyClaimsCollection,
+} from 'common';
 import { createResource } from 'modules/utils';
 
 // TODO: omit values from initialValues prop type
@@ -40,3 +46,35 @@ export function createChangeRequest<T extends BaseChangeRequest = ChangeRequest>
     createDraftChangeRequest<T>(policyId, initialValues)
   );
 }
+
+function createDraftClaim(
+  policyId: string,
+  locationId: string,
+  initialValues: Partial<DraftPolicyClaim> = {}
+) {
+  const colRef = policyClaimsCollection(getFirestore(), policyId);
+
+  const initialData: Partial<DraftPolicyClaim> = {
+    ...initialValues,
+    policyId,
+    locationId,
+    status: 'draft',
+    metadata: {
+      created: Timestamp.now(),
+      updated: Timestamp.now(),
+    },
+  };
+
+  return addDoc<Partial<DraftPolicyClaim>>(colRef, initialData);
+}
+
+export function createClaim(
+  policyId: string,
+  locationId: string,
+  initialValues: Partial<DraftPolicyClaim> = {}
+) {
+  return createResource(createDraftClaim(policyId, locationId, initialValues));
+}
+
+// TODO: make generic function --> pass in collection ref and <T>
+// or create factory function ??

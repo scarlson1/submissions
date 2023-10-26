@@ -1,9 +1,10 @@
-import { Avatar, Badge, DialogContentText, SxProps } from '@mui/material';
 import { Edit } from '@mui/icons-material';
+import { Avatar, Badge, DialogContentText, SxProps } from '@mui/material';
 import { getDownloadURL } from 'firebase/storage';
 
+import { StorageFolder } from 'common';
 import { useAuth } from 'context/AuthContext';
-import { useCreateStorageFiles, useUpdateProfile, useAsyncToast, useRequireAuth } from 'hooks';
+import { useAsyncToast, useCreateStorageFiles, useRequireAuth, useUpdateProfile } from 'hooks';
 import UploadFilesDialog from './UploadFilesDialog';
 
 export interface UpdateProfileImgProps {
@@ -33,7 +34,7 @@ export const UpdateProfileImg = ({ avatarSx }: UpdateProfileImgProps) => {
     handleSubmit,
     handleCancel,
   } = useCreateStorageFiles(
-    `users/${user?.uid || ''}/profileImages`,
+    `${StorageFolder.enum.users}/${user?.uid || ''}/${StorageFolder.enum.profileImages}`,
     { userId: user?.uid || null },
     async (uploadResult) => {
       console.log('upload successful', uploadResult);

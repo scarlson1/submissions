@@ -1,8 +1,8 @@
-import { useState, useCallback } from 'react';
 import { UploadResult } from 'firebase/storage';
+import { useCallback, useState } from 'react';
 
-import { useUploadStorageFiles } from './useUploadStorageFiles';
 import { useAsyncToast } from './useAsyncToast';
+import { useUploadStorageFiles } from './useUploadStorageFiles';
 
 // serves are file state to extends useUploadStorageFiles to upload to storage
 // use when not using formik for file state/validation
@@ -28,7 +28,7 @@ export const useCreateStorageFiles = (
   const handleRemoveFile = useCallback(
     (removeFile: File) => {
       let newVal = files.filter((item: any) => item !== removeFile);
-      setFiles(newVal);
+      setFiles([...newVal]);
     },
     [files]
   );

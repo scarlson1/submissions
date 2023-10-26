@@ -6,6 +6,7 @@ import { z } from 'zod';
 
 import { ServerDataGridProps } from 'components';
 import { AddLocationValues, CancelValues, LocationChangeValues } from 'elements/forms';
+import { FirestoreClaimsValues } from 'elements/forms/ClaimForm/ClaimFormWizard';
 import { PolicyChangeValues } from 'elements/forms/PolicyChangeForm';
 import { InitRatingValues } from 'hooks/usePropertyDetails';
 import { FloodValues } from 'views/SubmissionNew';
@@ -1483,6 +1484,15 @@ export type StagedQuoteImport = Quote & {
 };
 
 export type StageImportRecord = StagedPolicyImport | StagedTransactionImport;
+
+// TODO: policy claim interface
+export type PolicyClaim = FirestoreClaimsValues & Record<string, any>;
+// TODO: finish type
+export type DraftPolicyClaim = Partial<PolicyClaim> & {
+  policyId: string;
+  locationId: string;
+  status: 'draft';
+};
 
 // TODO: swiss re property data res type
 export type PropertyDataRes = Record<string, any>;

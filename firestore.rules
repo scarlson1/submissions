@@ -83,13 +83,27 @@ service cloud.firestore {
         allow update: if isIDemandAdmin() && emailVerified()
         allow create, delete: if false
       }
+
+      // TODO: RULES BASED ON POLICY DOC
+      match /claims/{claimId} {
+        allow read: if isSignedIn() && isPolicyUser(policyId);
+        allow create: if isSignedIn() && isPolicyUser(policyId);
+        allow update: if isSignedIn() && isPolicyUser(policyId);
+        allow delete: if false;
+      }
     }
 
-// TODO: temp - might want diff rules for policy/location vs submission
-    match /{path=**}/versions/{song} {
-      allow read: if isDocUserOrAgentOrOrgAdminOrIDemandAdmin()
-        allow update: if isIDemandAdmin() && emailVerified()
-        allow create, delete: if false
+    function isPolicyUser(policyId) {
+      let policyData = getPolicyData(policyId);
+
+      return isUser(policyData.userId) || isUser(policyData.get(['agency', 'userId'], null)) || (isOrgAdmin() && isTenantUser(policyData.get(['agency','orgId']), null)) || isIDemandAdmin();
+    }
+
+    // TODO: temp - might want diff rules for policy/location vs submission
+    match /{path=**}/versions/{v} {
+      allow read: if isDocUserOrAgentOrOrgAdminOrIDemandAdmin();
+        allow update: if isIDemandAdmin() && emailVerified();
+        allow create, delete: if false;
     }
 
     // TODO: LOCATION RULES (different rules for submission, quote, policy ??)

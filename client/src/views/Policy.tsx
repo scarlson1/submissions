@@ -12,7 +12,6 @@ import {
   Avatar,
   Badge,
   Box,
-  Button,
   Card,
   CardContent,
   CardHeader,
@@ -104,9 +103,9 @@ export const Policy = () => {
   //   [data]
   // );
 
-  const handleNewClaim = useCallback(() => {
-    alert('TODO: handle new claim');
-  }, []);
+  // const handleNewClaim = useCallback(() => {
+  //   alert('TODO: handle new claim');
+  // }, []);
 
   const handleDownloadPolicy = useCallback(
     () => downloadPolicy(policyId),
@@ -202,9 +201,9 @@ export const Policy = () => {
           sx={{ lineHeight: 1.4 }}
         >{`Policy ID: ${policyId}`}</Typography>
         <Box>
-          <Button size='small' onClick={handleNewClaim}>
+          {/* <Button size='small' onClick={handleNewClaim}>
             Submit Claim
-          </Button>
+          </Button> */}
           <PolicyIconMenu policyId={policyId} />
         </Box>
       </Box>

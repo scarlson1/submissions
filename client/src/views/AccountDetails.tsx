@@ -17,7 +17,7 @@ import {
 } from '@mui/material';
 import axios from 'axios';
 import { Firestore, doc, setDoc } from 'firebase/firestore';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { SubmitHandler, useForm, useFormState } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
@@ -36,11 +36,11 @@ import { AdminManageUsersGrid } from 'elements/grids/UsersGrid';
 import {
   UpdateProfileRes,
   useAsyncToast,
+  useClaims,
   useCollectionData,
   useDocData,
   useUpdateProfile,
 } from 'hooks';
-import { useDBUser } from 'hooks/useDBUser';
 import { AUTH_ROUTES, createPath } from 'router';
 import { passwordValidation } from './CreateAccount';
 
@@ -71,19 +71,19 @@ const MIN_TAB_HEIGHT = 40;
 export const AccountDetails = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { data: user } = useUser();
+  // const { data: user } = useUser();
+  // const { data } = useDBUser({ suspense: true });
+  const { orgId, user } = useClaims();
   const theme = useTheme();
   const [searchParams, setSearchParams] = useSearchParams();
   const [tabValue, setTabValue] = useState(searchParams.get('tab') || 'account');
-
-  const { data } = useDBUser({ suspense: true });
 
   const handleChange = (event: React.SyntheticEvent, newValue: string) => {
     setTabValue(newValue);
     setSearchParams({ tab: newValue });
   };
 
-  const orgId = useMemo(() => (data.user?.tenantId ?? data.dbUser?.orgId) || null, [data]);
+  // const orgId = useMemo(() => (data.user?.tenantId ?? data.dbUser?.orgId) || null, [data]);
 
   // TODO: use require auth wrapper
   if (!user || !user.uid)
@@ -168,9 +168,7 @@ export const AccountDetails = () => {
               >
                 <Tab label='Account' value='account' />
                 {/* <ClaimsGuard requiredClaims={['IDEMAND_ADMIN', 'AGENT', 'ORG_ADMIN']}> */}
-                {user.tenantId || user.email?.includes('@idemandinsurance.com') ? (
-                  <Tab label='Team' value='team' />
-                ) : null}
+                {orgId ? <Tab label='Team' value='team' /> : null}
                 {/* </ClaimsGuard> */}
                 {/* <Tab label='Invites' value='invites' /> */}
                 {/* <Tab label='Admin Users (test)' value='test' /> */}
@@ -206,7 +204,6 @@ export const AccountDetails = () => {
               </Grid>
             </TabPanel>
             <TabPanel value='team'>
-              {/* {user.tenantId ? ( */}
               {orgId ? (
                 <Box>
                   <Box sx={{ pb: 2, width: '100%', display: 'flex', justifyContent: 'flex-end' }}>
@@ -215,7 +212,6 @@ export const AccountDetails = () => {
                     </ClaimsGuard>
                   </Box>
                   <AdminManageUsersGrid
-                    // orgId={user.tenantId}
                     orgId={orgId}
                     columnVisibilityModel={{
                       displayName: false,
@@ -249,6 +245,7 @@ export const AccountDetails = () => {
               </Grid>
             </TabPanel>
 
+            {/* TODO: remove ?? storing payment methods in policy billing entities  */}
             <TabPanel value='billing'>
               <Grid container spacing={5}>
                 <Grid xs={12} sm={3} md={4}>
@@ -428,7 +425,7 @@ async function updateDBEmail(
   onError?: (msg: string, err: any) => void
 ) {
   try {
-    const userRef = doc(usersCollection(firestore));
+    const userRef = doc(usersCollection(firestore), userId);
     await setDoc(userRef, { email }, { merge: true });
   } catch (err: any) {
     let msg = `Error updating email in database`;

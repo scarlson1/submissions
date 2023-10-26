@@ -59,7 +59,6 @@ export function LimitsStep({ replacementCost, saveChangeRequest, ...props }: Lim
                 replacementCost={replacementCost}
               />
             </Box>
-
             <FormikWizardNavButtons onClick={submitForm} />
           </Box>
         </Form>

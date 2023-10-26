@@ -1,9 +1,7 @@
-import { useCallback, useEffect, useState } from 'react';
-import { Box, Button, Divider, Typography, Unstable_Grid2 as Grid } from '@mui/material';
-import { LoadingButton } from '@mui/lab';
 import { SaveRounded } from '@mui/icons-material';
-import { toast } from 'react-hot-toast';
-import { Formik, FormikHelpers } from 'formik';
+import { LoadingButton } from '@mui/lab';
+import { Box, Button, Divider, Unstable_Grid2 as Grid, Typography } from '@mui/material';
+import { FirebaseError } from 'firebase/app';
 import {
   doc,
   DocumentSnapshot,
@@ -11,13 +9,17 @@ import {
   getFirestore,
   onSnapshot,
 } from 'firebase/firestore';
-import { FirebaseError } from 'firebase/app';
+import { Formik, FormikHelpers } from 'formik';
+import { useCallback, useEffect, useState } from 'react';
+import { toast } from 'react-hot-toast';
 
-import { FormikTextField } from 'components/forms';
-import { readableFirebaseCode } from 'modules/utils/helpers';
-import { useAuth } from 'context/AuthContext';
 import { User, usersCollection, WithId } from 'common';
+import { FormikTextField } from 'components/forms';
 import { useAuthActions } from 'context';
+import { useAuth } from 'context/AuthContext';
+import { readableFirebaseCode } from 'modules/utils/helpers';
+
+// component not being used ??
 
 const useUserAccount = (onError?: (err: unknown, msg: string) => void) => {
   const { user } = useAuth();
