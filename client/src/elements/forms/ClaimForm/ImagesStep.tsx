@@ -1,5 +1,13 @@
 import { DeleteRounded } from '@mui/icons-material';
-import { Box, CardActions, CardMedia, IconButton, Typography, alpha } from '@mui/material';
+import {
+  Box,
+  CardActions,
+  CardMedia,
+  Unstable_Grid2 as Grid,
+  IconButton,
+  Typography,
+  alpha,
+} from '@mui/material';
 import { UploadResult, getDownloadURL } from 'firebase/storage';
 import { useCallback, useState } from 'react';
 
@@ -45,6 +53,7 @@ export const ImagesStep = ({ saveFormValues, onError, claimData, claimId }: Imag
           // await updateDoc(washingtonRef, {
           //   regions: arrayUnion('greater_virginia'),
           // });
+          // TODO: filter unique ?? (uploading the same image twice will still have unique refs/download urls)
           await saveFormValues({ images: [...(claimData.images || []), ...downloadUrls] });
         }
       } catch (err: any) {
@@ -100,21 +109,25 @@ export const ImagesStep = ({ saveFormValues, onError, claimData, claimId }: Imag
       <Typography align='center' variant='h6'>
         Images
       </Typography>
-      <Box sx={{ py: 5 }}>
-        <Typography>{`Uploaded: [${claimData.images?.length || '0'}]`}</Typography>
+      <Grid container spacing={3}>
+        <Grid xs={12}>
+          <Typography>{`Uploaded: [${claimData.images?.length || '0'}]`}</Typography>
+        </Grid>
+        {/* TODO: allow overflow w/ horizontal scroll */}
         {/* TODO: image preview w/ delete (see "imgPreview" component) */}
         {claimData.images?.length
           ? claimData.images.map((imgURL, i) => (
-              // <Typography key={imgURL}>{imgURL}</Typography>
-              <TempImgPreview
-                fileId={imgURL}
-                src={imgURL}
-                alt={`Img - ${i + 1}`}
-                onDeleteClick={handleDelete}
-              />
+              <Grid xs={6} sm={4} md={3} key={imgURL}>
+                <TempImgPreview
+                  fileId={imgURL}
+                  src={imgURL}
+                  alt={`Img - ${i + 1}`}
+                  onDeleteClick={handleDelete}
+                />
+              </Grid>
             ))
           : null}
-      </Box>
+      </Grid>
       <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
         <UploadFilesDialog
           acceptedTypes='.png,.jpeg,.jpg'
@@ -156,7 +169,7 @@ const TempImgPreview = ({
   // deleteButtonProps: IconButtonProps
 }) => {
   return (
-    <FlexCard>
+    <FlexCard sx={{ maxWidth: 300, minHeight: 200, position: 'relative' }}>
       <CardMedia
         component='img'
         height='200'
