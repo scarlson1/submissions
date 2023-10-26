@@ -14,6 +14,7 @@ import {
   Organization,
   PaymentMethod,
   Policy,
+  PolicyClaim,
   PropertyDataRes,
   Quote,
   // PolicyOld,
@@ -26,6 +27,8 @@ import {
   User,
 } from '../common/index.js'; // AgencyApplication, Invite, Notification, Organization,
 import { ClaimsDocData } from '../firestoreEvents/index.js';
+
+// TODO: convert to "...string[]" instead of template literal
 
 export const createCollection = <T = DocumentData>(db: Firestore, collectionName: string) => {
   return db.collection(collectionName) as CollectionReference<T>;
@@ -59,8 +62,8 @@ export const finTrxCollection = (db: Firestore) =>
 export const policiesCollection = (db: Firestore) =>
   createCollection<Policy>(db, COLLECTIONS.POLICIES);
 
-export const policiesCollectionNew = (db: Firestore) =>
-  createCollection<Policy>(db, COLLECTIONS.POLICIES);
+export const policyClaimsCollection = (db: Firestore, policyId: string) =>
+  createCollection<PolicyClaim>(db, `${COLLECTIONS.POLICIES}/${policyId}/${COLLECTIONS.CLAIMS}`);
 
 export const transactionsCollection = (db: Firestore) =>
   createCollection<Transaction>(db, COLLECTIONS.TRANSACTIONS);

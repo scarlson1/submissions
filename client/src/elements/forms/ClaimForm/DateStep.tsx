@@ -1,9 +1,9 @@
 import { Box, Typography } from '@mui/material';
-import { Timestamp } from 'firebase/firestore';
 import { Form, Formik } from 'formik';
 import { useCallback } from 'react';
 import { date, object } from 'yup';
 
+import { PolicyClaimFormValues } from 'common';
 import { FormikDatePicker, FormikWizardNavButtons } from 'components/forms';
 import { useWizard } from 'hooks';
 import { logDev } from 'modules/utils';
@@ -16,13 +16,13 @@ const dateStepVal = object().shape({
 export interface DateValues {
   occurrenceDate: Date | null;
 }
-export interface FirestoreDateValues {
-  occurrenceDate: Timestamp | null;
-}
+// export interface FirestoreDateValues {
+//   occurrenceDate: Timestamp | null;
+// }
+export type FirestoreDateValues = Pick<PolicyClaimFormValues, 'occurrenceDate'>;
 
 const maxDate = new Date();
 
-// export interface DateStepProps extends BaseStepProps<DateStepValues> {}
 export type DateStepProps = BaseStepProps<DateValues>;
 
 export const DateStep = ({ saveFormValues, onError, ...props }: DateStepProps) => {

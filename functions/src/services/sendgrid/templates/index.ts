@@ -5,6 +5,7 @@ export { adminNewSubmission } from './adminNewSubmission.js';
 export { adminPaymentReceived } from './adminPaymentReceived.js';
 export { agencyAppApproved } from './agencyAppApproved.js';
 export { blankHTML } from './blankHTML.js';
+export { claimSubmittedHTML } from './claimSubmitted.js';
 export { emailConfirmation } from './emailConfirmation.js';
 export { moveToTenantConfirmation } from './moveToTenantConfirmation.js';
 export { newContactMessage } from './newContactMessage.js';

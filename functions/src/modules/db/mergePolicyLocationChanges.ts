@@ -10,7 +10,7 @@ import {
   PolicyChangeRequest,
   changeRequestsCollection,
   locationsCollection,
-  policiesCollectionNew,
+  policiesCollection,
 } from '../../common/index.js';
 import { deepMergeOverwriteArrays, verify } from '../../utils/index.js';
 
@@ -31,7 +31,7 @@ export const mergePolicyLocationChanges = async (
   reqUpdates: { processedByUserId: string; underwriterNotes?: string | null }
 ) => {
   const requestRef = changeRequestsCollection(db, policyId).doc(requestId);
-  const policyRef = policiesCollectionNew(db).doc(policyId);
+  const policyRef = policiesCollection(db).doc(policyId);
   const locationsCol = locationsCollection(db);
 
   return db.runTransaction(async (transaction) => {
@@ -136,7 +136,7 @@ export const mergePolicyLocationChanges = async (
 //   TaxItem,
 //   changeRequestsCollection,
 //   locationsCollection,
-//   policiesCollectionNew,
+//   policiesCollection,
 // } from '../../common/index.js';
 // import { verify, deepMergeOverwriteArrays } from '../../utils/index.js';
 
@@ -154,7 +154,7 @@ export const mergePolicyLocationChanges = async (
 //   reqUpdates: { processedByUserId: string; underwriterNotes?: string | null }
 // ) => {
 //   const requestRef = changeRequestsCollection(db, policyId).doc(requestId);
-//   const policyRef = policiesCollectionNew(db).doc(policyId);
+//   const policyRef = policiesCollection(db).doc(policyId);
 
 //   return db.runTransaction(async (transaction) => {
 //     const requestSnap = await requestRef.get();

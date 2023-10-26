@@ -11,7 +11,7 @@ import {
   Transaction,
   TransactionType,
   WithId,
-  policiesCollectionNew,
+  policiesCollection,
   ratingDataCollection,
   transactionsCollection,
 } from '../../common/index.js';
@@ -106,13 +106,13 @@ export const getNetDWP = (termPremium: number, MGAComm: number) => termPremium -
 
 // TODO: reuse function from modules/db ?? (throws instead of returning null)
 export const fetchPolicyData = async (db: Firestore, policyId: string) => {
-  const policyCol = policiesCollectionNew(db);
+  const policyCol = policiesCollection(db);
   const policyRef = policyCol.doc(policyId);
 
   return fetchDocData<Policy>(policyRef);
 
   // try {
-  //   const policyCol = policiesCollectionNew(db);
+  //   const policyCol = policiesCollection(db);
   //   const policyRef = policyCol.doc(policyId);
 
   //   const policySnap = await policyRef.get();

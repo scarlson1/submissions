@@ -3,6 +3,7 @@ import { Form, Formik } from 'formik';
 import { useCallback } from 'react';
 import { object, string } from 'yup';
 
+import { PolicyClaimFormValues } from 'common';
 import { FormikTextField, FormikWizardNavButtons } from 'components/forms';
 import { useWizard } from 'hooks';
 import { logDev } from 'modules/utils';
@@ -12,9 +13,10 @@ const descriptionStepVal = object().shape({
   description: string().required().min(30, 'please add more detail'),
 });
 
-export interface DescriptionValues {
-  description: string;
-}
+// export interface DescriptionValues {
+//   description: string;
+// }
+export type DescriptionValues = Pick<PolicyClaimFormValues, 'description'>;
 
 export type DescriptionStepProps = BaseStepProps<DescriptionValues>;
 

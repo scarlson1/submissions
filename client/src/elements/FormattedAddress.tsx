@@ -1,4 +1,4 @@
-import { Typography, TypographyProps } from '@mui/material';
+import { Box, Typography, TypographyProps } from '@mui/material';
 import { useMemo } from 'react';
 
 import { Address } from 'common';
@@ -7,7 +7,7 @@ interface FormattedAddressProps extends TypographyProps {
   address: Partial<Address>;
   line2OverrideProps?: TypographyProps;
 }
-// TODO:  memo component ?? move to it's own file
+// TODO:  memo component ??
 export function FormattedAddress({
   address,
   line2OverrideProps,
@@ -23,11 +23,11 @@ export function FormattedAddress({
   }, [address]);
 
   return (
-    <>
+    <Box>
       <Typography {...typographyProps}>{addr1}</Typography>
       <Typography {...typographyProps} {...(line2OverrideProps || {})}>
         {addr2}
       </Typography>
-    </>
+    </Box>
   );
 }

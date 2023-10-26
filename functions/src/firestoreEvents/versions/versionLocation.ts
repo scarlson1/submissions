@@ -6,7 +6,7 @@ import { merge } from 'lodash-es';
 import {
   ILocation,
   getReportErrorFn,
-  policiesCollectionNew,
+  policiesCollection,
   versionsCollection,
 } from '../../common/index.js';
 import { getDifference, hasOne } from '../../utils/index.js';
@@ -64,7 +64,7 @@ export default async (
 
     const db = getFirestore();
     const versionsCol = versionsCollection(db, 'LOCATIONS', locationId);
-    const policiesCol = policiesCollectionNew(db);
+    const policiesCol = policiesCollection(db);
 
     const batch = db.batch();
 

@@ -10,7 +10,7 @@ import {
   usersCollection,
 } from '../common/index.js';
 import { onCallWrapper } from '../services/sentry/index.js';
-import { validate } from './utils/index.js';
+import { requireAuth, validate } from './utils/index.js';
 
 interface AssignQuoteProps {
   quoteId: string;
@@ -19,13 +19,12 @@ interface AssignQuoteProps {
 const assignQuote = async ({ data, auth }: CallableRequest<AssignQuoteProps>) => {
   info('ASSIGN QUOTE CALLED', { ...data });
   const { quoteId } = data;
-  const uid = auth?.uid;
-  const token = auth?.token;
-  const isAgent = token ? token[CLAIMS.AGENT] || false : false;
 
-  validate(uid, 'unauthenticated', 'must be signed in');
-  validate(token, 'unauthenticated', 'must be signed in');
+  requireAuth(auth);
   validate(quoteId, 'failed-precondition', 'quoteId required');
+
+  const { uid, token } = auth;
+  const isAgent = token ? token[CLAIMS.AGENT] || false : false;
 
   try {
     const db = getFirestore();

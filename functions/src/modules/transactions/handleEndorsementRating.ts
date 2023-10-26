@@ -11,7 +11,7 @@ import {
   changeRequestsCollection,
   getReportErrorFn,
   locationsCollection,
-  policiesCollectionNew,
+  policiesCollection,
   ratingDataCollection,
   swissReClientId,
   swissReClientSecret,
@@ -60,7 +60,7 @@ export async function handleRatingForEndorsement(
     const db = getFirestore();
     const locationsCol = locationsCollection(db);
     const ratingCol = ratingDataCollection(db);
-    const policyRef = policiesCollectionNew(db).doc(policyId);
+    const policyRef = policiesCollection(db).doc(policyId);
     const policy = await getDoc(policyRef);
     changeRequestRef = changeRequestsCollection(db, policyId).doc(requestId);
 

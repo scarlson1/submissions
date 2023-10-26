@@ -3,8 +3,15 @@ import { Form, Formik } from 'formik';
 import { useCallback } from 'react';
 import { object, string } from 'yup';
 
-import { emailVal, phoneVal } from 'common';
-import { FormikTextField, FormikWizardNavButtons } from 'components/forms';
+import { PolicyClaimFormValues, emailVal, phoneVal } from 'common';
+import {
+  FormikMaskField,
+  FormikNativeSelect,
+  FormikTextField,
+  FormikWizardNavButtons,
+  IMask,
+  phoneMaskProps,
+} from 'components/forms';
 import { useWizard } from 'hooks';
 import { logDev } from 'modules/utils';
 import { BaseStepProps } from './ClaimFormWizard';
@@ -14,6 +21,7 @@ import { BaseStepProps } from './ClaimFormWizard';
 
 const contactStepVal = object().shape({
   contact: object().shape({
+    // existingEntity: string() 'namedInsured','agent','other'
     firstName: string().required(),
     lastName: string().required(),
     email: emailVal.required(),
@@ -24,17 +32,18 @@ const contactStepVal = object().shape({
 
 // TODO: import step from shared form (named insured step ??)
 // TODO: use existing interface
-interface ContactDetails {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  preferredMethod: string;
-}
-export interface ContactValues {
-  contact: ContactDetails;
-}
-
+// ClaimContact
+// interface ContactDetails {
+//   firstName: string;
+//   lastName: string;
+//   email: string;
+//   phone: string;
+//   preferredMethod: string;
+// }
+// export interface ContactValues {
+//   contact: ContactDetails;
+// }
+export type ContactValues = Pick<PolicyClaimFormValues, 'contact'>;
 export type ContactStepProps = BaseStepProps<ContactValues>;
 
 export const ContactStep = ({ saveFormValues, onError, ...props }: ContactStepProps) => {
@@ -43,6 +52,7 @@ export const ContactStep = ({ saveFormValues, onError, ...props }: ContactStepPr
   const handleStepSubmit = useCallback(
     async (values: ContactValues) => {
       try {
+        // TODO: if contactType === named insured --> override provided, etc.
         await saveFormValues(values);
 
         await nextStep();
@@ -84,10 +94,18 @@ export const ContactStep = ({ saveFormValues, onError, ...props }: ContactStepPr
                 <FormikTextField name='contact.email' label='Email' fullWidth />
               </Grid>
               <Grid xs={12} sm={6}>
-                <FormikTextField name='contact.phone' label='Phone' fullWidth />
+                <FormikMaskField
+                  fullWidth
+                  id='contact.phone'
+                  name='contact.phone'
+                  label='Phone'
+                  maskComponent={IMask}
+                  inputProps={{ maskProps: phoneMaskProps }}
+                />
               </Grid>
               <Grid xs={12}>
-                <FormikTextField
+                <FormikNativeSelect
+                  selectOptions={['email', 'phone']}
                   name='contact.preferredMethod'
                   label='Preferred Method'
                   fullWidth

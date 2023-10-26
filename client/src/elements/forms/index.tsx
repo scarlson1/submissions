@@ -6,7 +6,6 @@ export { AddressStepQuote } from './AddressStepQuote';
 export { AgencyBankingStep, TooltipContent, bankingValidation } from './AgencyBankingStep';
 export { AgencyReviewStep, ContactList, DisplayFilename } from './AgencyReviewStep';
 export { CancelForm } from './CancelFormOld';
-export { ClaimsForm } from './ClaimsFormOld';
 export { ContactForm } from './ContactForm';
 export { ContactStep } from './ContactStep';
 export { DeductibleStep } from './DeductibleStep';
