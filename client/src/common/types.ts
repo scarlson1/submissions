@@ -6,7 +6,6 @@ import { z } from 'zod';
 
 import { ServerDataGridProps } from 'components';
 import { AddLocationValues, CancelValues, LocationChangeValues } from 'elements/forms';
-import { FirestoreClaimsValues } from 'elements/forms/ClaimForm/ClaimFormWizard';
 import { PolicyChangeValues } from 'elements/forms/PolicyChangeForm';
 import { InitRatingValues } from 'hooks/usePropertyDetails';
 import { FloodValues } from 'views/SubmissionNew';
@@ -1485,14 +1484,88 @@ export type StagedQuoteImport = Quote & {
 
 export type StageImportRecord = StagedPolicyImport | StagedTransactionImport;
 
-// TODO: policy claim interface
-export type PolicyClaim = FirestoreClaimsValues & Record<string, any>;
+// TODO: extend contact from new submission / agency, etc. forms
+export const ContactZ = z.object({
+  firstName: z.string(),
+  lastName: z.string(),
+  email: z.string().email(),
+  phone: PhoneZ,
+});
+export const PreferredMethodEnum = z.enum(['email', 'phone']);
+export type PreferredMethod = z.infer<typeof PreferredMethodEnum>;
+export const ClaimContactZ = ContactZ.and(
+  z.object({
+    preferredMethod: PreferredMethodEnum,
+  })
+);
+export type ClaimContact = z.infer<typeof ClaimContactZ>;
+
+// TODO: create draft claim from policy claim
+export const PolicyClaimZ = z.object({
+  occurrenceDate: TimestampZ,
+  description: z.string(),
+  images: z.array(z.string()).max(10),
+  contact: ClaimContactZ,
+  status: z.string(), // TODO: status
+  policyId: z.string(),
+  locationId: z.string(),
+  namedInsured: z.any(),
+  agent: z.any(),
+  agency: z.any(),
+  submittedAt: TimestampZ,
+  address: z.any(),
+  coordinates: z.any(), // GeoPoint
+  limits: z.any(),
+  locationData: z.any(),
+  policyData: z.any(),
+  submittedBy: z.object({
+    userId: z.string(),
+    email: z.string().email().nullable(),
+    orgId: z.string().nullable(),
+  }),
+  metadata: BaseMetadataZ,
+});
+export type PolicyClaim = z.infer<typeof PolicyClaimZ>;
+// export type PolicyClaim = FirestoreClaimsValues & Record<string, any>;
+
+const ClaimFormValuesZ = PolicyClaimZ.pick({
+  occurrenceDate: true,
+  description: true,
+  images: true,
+  contact: true,
+});
+export type ClaimFormValues = z.infer<typeof ClaimFormValuesZ>;
+
+// const DraftPolicyClaimZ = z.union([ClaimFormValuesZ.partial(), PolicyClaimZ.pick({ policyId: true, locationId: true, metadata: true }), z.object({ status: z.literal('draft')})])
+const DraftPolicyClaimZ = ClaimFormValuesZ.partial()
+  .and(PolicyClaimZ.pick({ policyId: true, locationId: true, metadata: true }))
+  .and(z.object({ status: z.literal('draft') }));
+export type DraftPolicyClaim = z.infer<typeof DraftPolicyClaimZ>;
+
+const PolicyClaimFormValuesZ = z.object({
+  occurrenceDate: TimestampZ,
+  description: z.string(),
+  images: z.array(z.string()).max(10),
+  contact: ClaimContactZ,
+});
+export type PolicyClaimFormValues = z.infer<typeof PolicyClaimFormValuesZ>;
+
+// const DraftPolicyClaimZ = PolicyClaimFormValuesZ.partial().and(
+//   z.object({
+//     status: z.literal('draft'),
+//     policyId: z.string(),
+//     locationId: z.string(),
+//     metadata: BaseMetadataZ,
+//   })
+// );
+// export type DraftPolicyClaim = z.infer<typeof DraftPolicyClaimZ>;
+
 // TODO: finish type
-export type DraftPolicyClaim = Partial<PolicyClaim> & {
-  policyId: string;
-  locationId: string;
-  status: 'draft';
-};
+// export type DraftPolicyClaim = Partial<PolicyClaim> & {
+//   policyId: string;
+//   locationId: string;
+//   status: 'draft';
+// };
 
 // TODO: swiss re property data res type
 export type PropertyDataRes = Record<string, any>;
@@ -1883,7 +1956,7 @@ export type EmailData = string | { name?: string; email: string };
 //   | 'quote_import'
 //   | 'portfolio_rating_complete';
 
-// TODO: replace with above (using in backend)
+// TODO: replace with above (using in backend) & use zod
 export type EmailTemplateNames =
   | 'policy_delivery'
   | 'agency_approved'

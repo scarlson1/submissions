@@ -12,7 +12,7 @@ import {
   changeRequestsCollection,
   getReportErrorFn,
   locationsCollection,
-  policiesCollectionNew,
+  policiesCollection,
 } from '../../common/index.js';
 import { getDoc } from '../../routes/utils/index.js';
 import { verify } from '../../utils/index.js';
@@ -39,7 +39,7 @@ export async function handleCancelRating(data: ChangeRequest, policyId: string, 
 
     const db = getFirestore();
     changeRequestRef = changeRequestsCollection(db, policyId).doc(requestId);
-    const policyRef = policiesCollectionNew(db).doc(policyId);
+    const policyRef = policiesCollection(db).doc(policyId);
 
     const policy = await getDoc(policyRef, 'policy not found');
 
@@ -160,7 +160,7 @@ export async function handleCancelRating(data: ChangeRequest, policyId: string, 
 
 //     const db = getFirestore();
 //     changeRequestRef = changeRequestsCollection(db, policyId).doc(requestId);
-//     const policyRef = policiesCollectionNew(db).doc(policyId);
+//     const policyRef = policiesCollection(db).doc(policyId);
 
 //     const policy = await getDoc(policyRef);
 

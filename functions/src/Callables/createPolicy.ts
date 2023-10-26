@@ -8,7 +8,7 @@ import {
   QUOTE_STATUS,
   getReportErrorFn,
   locationsCollection,
-  policiesCollectionNew,
+  policiesCollection,
   quotesCollection,
 } from '../common/index.js';
 import { createDocId, getSLLicenseByState } from '../modules/db/index.js';
@@ -38,7 +38,7 @@ const createPolicy = async ({ data, auth }: CallableRequest<CreatePolicyProps>) 
 
   const db = getFirestore();
   const quotesCol = quotesCollection(db);
-  const policiesCol = policiesCollectionNew(db);
+  const policiesCol = policiesCollection(db);
 
   const quoteSnap = await quotesCol.doc(quoteId).get();
   const qData = quoteSnap.data();

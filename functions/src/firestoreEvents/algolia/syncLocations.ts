@@ -14,7 +14,7 @@ import {
   algoliaIndex,
   getReportErrorFn,
   importSummaryCollection,
-  policiesCollectionNew,
+  policiesCollection,
   quotesCollection,
   submissionsCollection,
 } from '../../common/index.js';
@@ -57,7 +57,7 @@ export default async (
       let parentColName;
       switch (newData.parentType) {
         case 'policy':
-          parentCol = policiesCollectionNew(db);
+          parentCol = policiesCollection(db);
           parentKey = 'policyId';
           parentColName = COLLECTIONS.POLICIES;
           break;

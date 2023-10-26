@@ -9,6 +9,7 @@ export enum COLLECTIONS {
   USERS = 'users',
   POLICIES = 'policies',
   CHANGE_REQUESTS = 'changeRequests',
+  CLAIMS = 'claims',
   ORGANIZATIONS = 'organizations',
   INVITES = 'invitations',
   USER_CLAIMS = 'userClaims',
@@ -272,6 +273,28 @@ export const PUB_SUB_TOPICS = {
 //   // POLICY_CANCELLATION = 'policy.cancellation',
 //   LOCATION_CANCELLATION = 'location.cancellation',
 // }
+
+export const EmailTemplates = z.enum([
+  'contact',
+  'policy_doc_delivery',
+  'new_quote',
+  'agency_approved',
+  'invite',
+  'policy_change_request',
+  'move_to_tenant_verification',
+  'email_verification',
+  'resend_invite',
+  'agency_submission_received',
+  'new_submission',
+  'payment_complete',
+  'quote_expiring',
+  'policy_import',
+  'quote_import',
+  'trx_import',
+  'portfolio_rating_complete',
+  'claim_submitted',
+]);
+export type EmailTemplates = z.infer<typeof EmailTemplates>;
 
 export const State = z.enum([
   'AL',

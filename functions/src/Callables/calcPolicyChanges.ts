@@ -5,7 +5,7 @@ import {
   ChangeRequestStatus,
   changeRequestsCollection,
   getReportErrorFn,
-  policiesCollectionNew,
+  policiesCollection,
 } from '../common/index.js';
 import { calcPolicyEndorsementChanges } from '../modules/rating/index.js';
 import { onCallWrapper } from '../services/sentry/index.js';
@@ -38,7 +38,7 @@ const calcPolicyChanges = async ({ data, auth }: CallableRequest<CalcPolicyChang
   validate(requestId, 'failed-precondition', 'changeRequestId required');
 
   const db = getFirestore();
-  const policyCol = policiesCollectionNew(db);
+  const policyCol = policiesCollection(db);
   const changeRequestCol = changeRequestsCollection(db, policyId);
 
   const changeRequestSnap = await changeRequestCol.doc(requestId).get();

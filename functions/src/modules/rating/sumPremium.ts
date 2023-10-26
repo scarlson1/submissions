@@ -104,13 +104,6 @@ export const calcPremiumByBillingEntity = (
     ({ billingEntityId }) => billingEntityId || defaultBillingEntityId
   );
 
-  // TODO: handle default
-  // add "defaultBillingEntityId" to policy ?? (w/ firestore rule verifying id exists as key in billing entities)
-  // then change "default" above to defaultBillingEntityId passed as arg
-
-  // merge default with single billing entity if only one billing entity listed ??
-  // or throw error ?? - answer --> fallback to default billing entity, don't throw
-
   // return early if only one billing entity
   if (Object.keys(lcnsByEntity).length === 1) {
     return {

@@ -13,7 +13,7 @@ import {
   defaultFloodZone,
   getReportErrorFn,
   locationsCollection,
-  policiesCollectionNew,
+  policiesCollection,
   ratingDataCollection,
   swissReClientId,
   swissReClientSecret,
@@ -67,7 +67,7 @@ const calcAddLocation = async ({ data, auth }: CallableRequest<CalcAddLocationPr
   validate(requestId, 'failed-precondition', 'requestId required');
 
   const db = getFirestore();
-  const policyCol = policiesCollectionNew(db);
+  const policyCol = policiesCollection(db);
   const changeRequestCol = changeRequestsCollection(db, policyId);
   const locationsCol = locationsCollection(db);
 

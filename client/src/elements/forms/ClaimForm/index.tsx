@@ -5,7 +5,6 @@ import { usePrevious } from 'hooks/utils';
 import { createClaim } from 'modules/db';
 import { logDev } from 'modules/utils';
 import { ClaimFormWizard } from './ClaimFormWizard';
-
 export type { ClaimValues } from './ClaimFormWizard';
 
 // TODO: display location details

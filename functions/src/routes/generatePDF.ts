@@ -17,7 +17,7 @@ import {
   disclosuresCollection,
   formatPhoneNumber,
   locationsCollection,
-  policiesCollectionNew,
+  policiesCollection,
   statesList,
 } from '../common/index.js';
 import { getAllById } from '../modules/db/index.js';
@@ -133,7 +133,7 @@ app.post(
 
     let policy: Policy;
     try {
-      const policySnap = await policiesCollectionNew(db).doc(policyId).get();
+      const policySnap = await policiesCollection(db).doc(policyId).get();
 
       const policyData = policySnap.data();
 

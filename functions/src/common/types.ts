@@ -1078,6 +1078,9 @@ export const Policy = z.object({
 });
 export type Policy = z.infer<typeof Policy>;
 
+export const PolicyClaim = z.record(z.any());
+export type PolicyClaim = z.infer<typeof PolicyClaim>;
+
 // export const PolicyBase = z.object({
 //   product: Product,
 //   paymentStatus: PaymentStatus,
@@ -2077,25 +2080,6 @@ export interface EmailRecord extends CreateMsgContentProps {
     created: Timestamp;
   };
 }
-
-export type EmailTemplates =
-  | 'contact'
-  | 'policy_doc_delivery'
-  | 'new_quote'
-  | 'agency_approved'
-  | 'invite'
-  | 'policy_change_request'
-  | 'move_to_tenant_verification'
-  | 'email_verification'
-  | 'resend_invite'
-  | 'agency_submission_received'
-  | 'new_submission'
-  | 'payment_complete'
-  | 'quote_expiring'
-  | 'policy_import'
-  | 'quote_import'
-  | 'trx_import'
-  | 'portfolio_rating_complete';
 
 export interface SpatialKeyResponse {
   us_hh_mls_rm_room11_features: string; // '',

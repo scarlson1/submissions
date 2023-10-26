@@ -35,6 +35,16 @@ export function compressAddress(addr: Address): CompressedAddress {
   };
 }
 
+export function compressedToAddress(addr: CompressedAddress): Address {
+  return {
+    addressLine1: addr.s1,
+    addressLine2: addr.s2,
+    city: addr.c,
+    state: addr.st,
+    postal: addr.p,
+  };
+}
+
 export function waitMilliSeconds(ms: number, reason?: string) {
   return new Promise<void>((resolve, reject) => {
     info(`Waiting ${ms} ms ${reason || ''}`, { reason });

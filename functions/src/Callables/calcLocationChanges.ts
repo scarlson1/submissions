@@ -10,7 +10,7 @@ import {
   changeRequestsCollection,
   getReportErrorFn,
   locationsCollection,
-  policiesCollectionNew,
+  policiesCollection,
   ratingDataCollection,
   swissReClientId,
   swissReClientSecret,
@@ -69,7 +69,7 @@ const calcLocationChanges = async ({ data, auth }: CallableRequest<CalcLocationC
   validate(policyId, 'failed-precondition', 'policyId required');
 
   const db = getFirestore();
-  const policiesCol = policiesCollectionNew(db);
+  const policiesCol = policiesCollection(db);
   const changeRequestCol = changeRequestsCollection(db, policyId);
   // const locationsCol = locationsCollection(db);
   const ratingCol = ratingDataCollection(db);

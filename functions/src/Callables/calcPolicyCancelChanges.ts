@@ -13,7 +13,7 @@ import {
   changeRequestsCollection,
   getReportErrorFn,
   locationsCollection,
-  policiesCollectionNew,
+  policiesCollection,
 } from '../common/index.js';
 import { calcPolicyEndorsementChanges } from '../modules/rating/index.js';
 import { calcTerm } from '../modules/transactions/index.js';
@@ -48,7 +48,7 @@ const calcPolicyCancelChanges = async ({
   const { policyId, requestId } = getValidatedData(data);
 
   const db = getFirestore();
-  const policiesCol = policiesCollectionNew(db);
+  const policiesCol = policiesCollection(db);
   const changeRequestsCol = changeRequestsCollection(db, policyId);
   const locationsCol = locationsCollection(db);
 
