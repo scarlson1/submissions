@@ -174,6 +174,15 @@ export const sendpolicydoc = onCall(
   }
 );
 
+export const submitclaim = onCall(
+  {
+    secrets: [sendgridApiKey],
+  },
+  async (request) => {
+    return (await import('./submitClaim.js')).default(request);
+  }
+);
+
 export const verifyepaytoken = onCall(
   {
     secrets: [ePayCreds],

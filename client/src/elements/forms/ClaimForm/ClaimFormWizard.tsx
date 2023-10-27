@@ -1,10 +1,16 @@
-import { setDoc } from 'firebase/firestore';
+import { DocumentReference, setDoc } from 'firebase/firestore';
 import { FormikConfig } from 'formik';
 import { useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { useFirestoreDocData } from 'reactfire';
 
-import { DraftPolicyClaim, OptionalKeys, PolicyClaimFormValues, PreferredMethod } from 'common';
+import {
+  DraftPolicyClaim,
+  OptionalKeys,
+  PolicyClaim,
+  PolicyClaimFormValues,
+  PreferredMethod,
+} from 'common';
 import { Wizard } from 'components/forms';
 import { createClaim } from 'modules/db';
 import { ContactStep, ContactValues } from './ContactStep';
@@ -33,7 +39,7 @@ interface ClaimFormWizardProps
 
 export const ClaimFormWizard = ({ claimResource }: ClaimFormWizardProps) => {
   const claimRef = claimResource.read();
-  const { data } = useFirestoreDocData<Partial<DraftPolicyClaim>>(claimRef);
+  const { data } = useFirestoreDocData<Partial<DraftPolicyClaim>>(claimRef, { idField: 'id' });
   if (!data.policyId) throw new Error('claim missing policyId');
 
   const saveValues = useCallback(
@@ -85,8 +91,15 @@ export const ClaimFormWizard = ({ claimResource }: ClaimFormWizardProps) => {
           },
         }}
       />
-      <ReviewStep claim={data} onError={handleError} />
-      <SuccessStep claimId={claimRef.id} policyId={data.policyId} />
+      <ReviewStep
+        claim={data as Partial<DraftPolicyClaim> & { id: string }}
+        onError={handleError}
+      />
+      <SuccessStep
+        policyId={data.policyId}
+        claimId={claimRef.id}
+        claimRef={claimRef as DocumentReference<PolicyClaim>}
+      />
     </Wizard>
   );
 };

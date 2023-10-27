@@ -5,7 +5,7 @@ import { Badge, Box, Button, Stack, Typography, useTheme } from '@mui/material';
 import { doc, updateDoc } from 'firebase/firestore';
 import { getDownloadURL } from 'firebase/storage';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useFirestore } from 'reactfire';
 
 import { ePayInstance } from 'api';
@@ -16,6 +16,7 @@ import {
   useCreateStorageFiles,
   useDocData,
   useGeneratePDF,
+  useSafeParams,
   useSendEmail,
 } from 'hooks';
 import { usePromptForEmails } from 'hooks/usePromptForEmails';
@@ -103,9 +104,8 @@ export const PolicyDelivery = () => {
     },
     onError: (msg) => toast.error(msg),
   });
-  const { policyId } = useParams();
-  if (!policyId) throw new Error('Missing policy ID in url');
-  const { data } = useDocData('POLICIES', policyId, [], { idField: 'policyId' });
+  const { policyId } = useSafeParams(['policyId']);
+  const { data } = useDocData('POLICIES', policyId);
 
   const { downloadPDF: downloadPolicy, loading: genDecLoading } = useGeneratePDF('generateDecPDF');
   const { updatePolicy } = useUpdatePolicy(console.log, console.error);
@@ -125,7 +125,7 @@ export const PolicyDelivery = () => {
       insuredEmail: data.namedInsured?.email || null,
       insuredName: `${data.namedInsured?.firstName} $${data.namedInsured?.lastName}`.trim() || null,
       agentId: data.agent.userId || null,
-      agentname: data.agent.name || null,
+      agentName: data.agent.name || null,
       agencyId: data.agency.orgId || null,
       agencyName: data.agency.name || null,
     },
@@ -269,7 +269,7 @@ export const PolicyDelivery = () => {
         </Badge>
       </Box>
       <Typography variant='body2' color='text.secondary' sx={{ textDecoration: 'line-through' }}>
-        - maunally generate the policy document(s)
+        - manually generate the policy document(s)
       </Typography>
       <Typography variant='body2' color='text.secondary'>
         - Click the button to generate the policy dec and download to your computer

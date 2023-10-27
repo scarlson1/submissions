@@ -1,10 +1,12 @@
 import { Box } from '@mui/material';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { ErrorBoundary } from 'react-error-boundary';
 
 import { usePrevious } from 'hooks/utils';
 import { createClaim } from 'modules/db';
 import { logDev } from 'modules/utils';
 import { ClaimFormWizard } from './ClaimFormWizard';
+import { ErrorFallback } from './ErrorFallback';
 export type { ClaimValues } from './ClaimFormWizard';
 
 // TODO: display location details
@@ -27,11 +29,22 @@ const ClaimForm = ({ policyId, locationId }: ClaimFormProps) => {
     }
   }, [policyId, locationId, prevPolicyId, prevLcnId, claimResource]);
 
+  const handleReset = useCallback(
+    () => setClaimResource(createClaim(policyId, locationId)),
+    [policyId, locationId]
+  );
+
   if (!claimResource) return null;
 
   return (
     <Box>
-      <ClaimFormWizard claimResource={claimResource} />
+      <ErrorBoundary
+        FallbackComponent={ErrorFallback}
+        onReset={handleReset}
+        resetKeys={[claimResource]}
+      >
+        <ClaimFormWizard claimResource={claimResource} />
+      </ErrorBoundary>
     </Box>
   );
 };

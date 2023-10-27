@@ -37,6 +37,7 @@ export {
   sendemail,
   sendnewquotenotifications,
   sendpolicydoc,
+  submitclaim,
   verifyepaytoken,
 } from './callables/index.js';
 export {

@@ -9,6 +9,7 @@ import {
   Divider,
   Typography,
 } from '@mui/material';
+import { DocumentReference } from 'firebase/firestore';
 import Lottie from 'lottie-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -21,11 +22,13 @@ import { ROUTES, createPath } from 'router';
 interface SuccessStepProps {
   policyId: string;
   claimId: string;
+  claimRef: DocumentReference<PolicyClaim>;
 }
 
-export const SuccessStep = ({ policyId, claimId }: SuccessStepProps) => {
+export const SuccessStep = ({ policyId, claimId, claimRef }: SuccessStepProps) => {
   const navigate = useNavigate();
-  const { data } = useDocData<PolicyClaim>('POLICIES', claimId, [COLLECTIONS.CLAIMS, policyId]);
+  const { data } = useDocData<PolicyClaim>('POLICIES', policyId, COLLECTIONS.CLAIMS, claimId);
+  // const { data } = useFirestoreDocData<PolicyClaim>(claimRef, { idField: 'id' });
 
   return (
     <Container maxWidth='sm' disableGutters>
@@ -71,8 +74,11 @@ export const SuccessStep = ({ policyId, claimId }: SuccessStepProps) => {
         </CardContent>
         <CardActions disableSpacing>
           <Button
-            onClick={() => navigate(createPath({ path: ROUTES.POLICY, params: { policyId } }))}
-            startIcon={<DoneRounded />}
+            onClick={() =>
+              navigate(createPath({ path: ROUTES.POLICY, params: { policyId: data.policyId } }))
+            }
+            endIcon={<DoneRounded />}
+            sx={{ ml: 'auto' }}
           >
             Done
           </Button>

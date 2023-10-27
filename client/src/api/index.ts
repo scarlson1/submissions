@@ -21,6 +21,7 @@ export { getTenantIdFromEmail } from './getTenantIdFromEmail';
 export { inviteUsers } from './inviteUsers';
 export { moveUserToTenant } from './moveUserToTenant';
 export { sendEmail } from './sendEmail';
+export { submitClaim } from './submitClaim';
 export { verifyEPayToken } from './verifyEPayToken';
 
 export type { ApproveChangeRequest, ApproveChangeResponse } from './approveChangeRequest';
@@ -44,4 +45,5 @@ export type {
 export type { GetTenantRequest, GetTenantResponse } from './getTenantIdFromEmail';
 export type { InviteUsersRequest, InviteUsersResponse, NewUser } from './inviteUsers';
 export type { MoveUserToTenantRequest, MoveUserToTenantResponse } from './moveUserToTenant';
+export type { SubmitClaimRequest, SubmitClaimResponse } from './submitClaim';
 export type { VerifyEPayTokenRequest, VerifyEPayTokenResponse } from './verifyEPayToken';

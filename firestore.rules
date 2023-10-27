@@ -86,9 +86,9 @@ service cloud.firestore {
 
       // TODO: RULES BASED ON POLICY DOC
       match /claims/{claimId} {
-        allow read: if isSignedIn() && isPolicyUser(policyId);
-        allow create: if isSignedIn() && isPolicyUser(policyId);
-        allow update: if isSignedIn() && isPolicyUser(policyId);
+        allow read: if isSignedIn() && isPolicyUser(policyId) || isIDemandAdmin();
+        allow create: if isSignedIn() && isPolicyUser(policyId) || isIDemandAdmin();
+        allow update: if isSignedIn() && isPolicyUser(policyId) || isIDemandAdmin();
         allow delete: if false;
       }
     }
@@ -96,14 +96,14 @@ service cloud.firestore {
     function isPolicyUser(policyId) {
       let policyData = getPolicyData(policyId);
 
-      return isUser(policyData.userId) || isUser(policyData.get(['agency', 'userId'], null)) || (isOrgAdmin() && isTenantUser(policyData.get(['agency','orgId']), null)) || isIDemandAdmin();
+      return isUser(policyData.userId) || isUser(policyData.get(['agency', 'userId'], null)) || (isOrgAdmin() && isTenantUser(policyData.get(['agency','orgId']), null));
     }
 
     // TODO: temp - might want diff rules for policy/location vs submission
     match /{path=**}/versions/{v} {
       allow read: if isDocUserOrAgentOrOrgAdminOrIDemandAdmin();
-        allow update: if isIDemandAdmin() && emailVerified();
-        allow create, delete: if false;
+      allow update: if isIDemandAdmin() && emailVerified();
+      allow create, delete: if false;
     }
 
     // TODO: LOCATION RULES (different rules for submission, quote, policy ??)
@@ -132,6 +132,7 @@ service cloud.firestore {
       return getPolicy(policyId).data
     }
 
+    // PRE_DEPLOY: create change request rule
     // TODO: decide whether to allow org admins to create 
     match /policies/{policyId}/changeRequests/{requestId} {
       allow create: if true; // TODO: ONLY ALLOW CREATE IF STATUS === 'draft' ?? 
@@ -323,6 +324,7 @@ service cloud.firestore {
       return isSignedIn() && request.auth.token.firebase.tenant == tenantId
     } // && request.auth.token.firebase.tenant // && tenantId != null
 
+    // TODO: delete (use nested agent.userId)
     function isOrgAdmin() {
       return isSignedIn() && request.auth.token.get('orgAdmin', null) == true
     } // && request.auth.token.orgAdmin

@@ -55,11 +55,17 @@ import { deepMergeOverwriteArrays, dollarFormat, dollarFormat2 } from 'modules/u
 
 export function useChangeRequestReview(policyId: string, requestId: string) {
   const firestore = useFirestore();
-  // does this throw if doc not found ?? need to wrap in error boundary (with reset to reset form)
-  const { data } = useDocData<PolicyChangeRequest>('POLICIES', requestId, [
+  // TODO: need to wrap in error boundary (with reset to reset form)
+  // const { data } = useDocData<PolicyChangeRequest>('POLICIES', requestId, [
+  //   policyId,
+  //   COLLECTIONS.CHANGE_REQUESTS,
+  // ]);
+  const { data } = useDocData<PolicyChangeRequest>(
+    'POLICIES',
     policyId,
     COLLECTIONS.CHANGE_REQUESTS,
-  ]);
+    requestId
+  );
   const [reqState, setReqState] = useState<{ loading: boolean; error: string | null }>({
     loading: false,
     error: null,

@@ -315,7 +315,7 @@ type UserDetailsInputs = {
 
 function UserDetailsForm() {
   const firestore = useFirestore();
-  const { data: user } = useUser();
+  const { data: user } = useUser(); // PRE_DEPLOY: fix only render component if user
   const { data: fsUser } = useDocData<User>('USERS', `${user?.uid}`);
   const toast = useAsyncToast();
 

@@ -13,13 +13,12 @@ import Grid from '@mui/material/Unstable_Grid2';
 import { doc, getDoc, orderBy, where } from 'firebase/firestore';
 import { ReactNode, useCallback } from 'react';
 import { toast } from 'react-hot-toast';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useFirestore } from 'reactfire';
-import invariant from 'tiny-invariant';
 
 import { COLLECTIONS, RatingData } from 'common';
 import { Submission } from 'common/types';
-import { useDocData, useFetchFirestore, useJsonDialog } from 'hooks';
+import { useDocData, useFetchFirestore, useJsonDialog, useSafeParams } from 'hooks';
 import { dollarFormat, formatFirestoreTimestamp, numberFormat } from 'modules/utils/helpers';
 import { ADMIN_ROUTES, ROUTES, createPath } from 'router';
 
@@ -99,13 +98,11 @@ export const RowItem = ({ title, value }: { title: string; value: ReactNode }) =
 );
 
 export const SubmissionView = () => {
-  const { submissionId } = useParams();
-  invariant(submissionId, 'Missing submission record ID');
-
+  const { submissionId } = useSafeParams(['submissionId']);
   const navigate = useNavigate();
   const firestore = useFirestore();
   const dialog = useJsonDialog({ slotProps: { dialog: { maxWidth: 'md' } } });
-  const { data } = useDocData<Submission>('SUBMISSIONS', submissionId!);
+  const { data } = useDocData<Submission>('SUBMISSIONS', submissionId);
 
   const showDialog = useCallback(
     async (collection: string, docId: string, title: string) => {
