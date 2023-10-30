@@ -100,6 +100,6 @@ const sendAgencyApprovedNotification = async ({
 };
 
 export default onCallWrapper<SendAgencyApprovedNotificationProps>(
-  'sendagencyappapprovednotification',
+  'sendAgencyApprovedNotification',
   sendAgencyApprovedNotification
 );

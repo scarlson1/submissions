@@ -171,7 +171,6 @@ export const TaxForm = ({ onSubmit, initialValues = DEFAULT_INIT_VALUES }: TaxFo
             <FormikSelect
               name='state'
               label='State'
-              // selectOptions={statesAbrvSelectOptions}
               selectOptions={State.options}
               required
               sx={{ minWidth: 80 }}
@@ -369,9 +368,8 @@ export const TaxForm = ({ onSubmit, initialValues = DEFAULT_INIT_VALUES }: TaxFo
                 id='rate'
                 fullWidth
                 required
-                // maskComponent={PercentMask}
                 maskComponent={IMask}
-                inputProps={{ maskProps: percentMaskProps }}
+                inputProps={{ maskProps: { ...percentMaskProps, scale: 3 } }}
                 helperText='Formatted as whole number (20 -> 20%)'
                 endAdornment={
                   <InputAdornment position='end'>
