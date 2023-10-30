@@ -3,7 +3,7 @@ import { Form, Formik, FormikConfig, FormikProps } from 'formik';
 import { RefObject } from 'react';
 import * as yup from 'yup';
 
-import { Address, EntityNamedInsured, addressValidation, emailVal, phoneVal } from 'common';
+import { Address, NamedInsured, addressValidation, emailVal, phoneVal } from 'common';
 import {
   FormikDatePicker,
   FormikMaskField,
@@ -18,7 +18,7 @@ import FormikAddress from './FormikAddress';
 // or branching form (what would you like to change? (add/remove location, edit location, change policy details, etc.)) --> direct to correct form (set trx type)
 
 export interface PolicyChangeValues {
-  namedInsured: Omit<EntityNamedInsured, 'userId' | 'orgId'>;
+  namedInsured: Omit<NamedInsured, 'userId' | 'orgId'>;
   mailingAddress: Address;
   // effectiveDate: Date | null;
   // expirationDate: Date | null; // TODO: ability to request date changes ??

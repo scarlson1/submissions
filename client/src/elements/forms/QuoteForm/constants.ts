@@ -1,6 +1,12 @@
 import { add } from 'date-fns';
 
-import { COMMISSION_OPTIONS } from 'common';
+import {
+  COMMISSION_OPTIONS,
+  TBasement,
+  TCBRSDesignation,
+  TFloodZone,
+  TPriorLossCount,
+} from 'common';
 import { getDateShortcuts } from 'modules/utils';
 import { QuoteValues } from './QuoteForm';
 
@@ -84,16 +90,16 @@ export const DEFAULT_VALUES: QuoteValues = {
     },
   },
   ratingPropertyData: {
-    CBRSDesignation: '',
-    basement: '',
+    CBRSDesignation: '' as TCBRSDesignation,
+    basement: '' as TBasement,
     distToCoastFeet: null,
-    floodZone: '',
+    floodZone: '' as TFloodZone,
     numStories: 0,
     propertyCode: '',
     replacementCost: null,
     sqFootage: null,
     yearBuilt: null,
-    priorLossCount: '',
+    priorLossCount: '' as TPriorLossCount,
   },
   ratingDocId: '',
   AALs: {

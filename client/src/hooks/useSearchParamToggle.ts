@@ -8,9 +8,9 @@ const getInitTabView = <T extends string>(
 ): T => (options.includes(searchParam || '') ? (searchParam as T) : fallback);
 
 export const useSearchParamToggle = <T extends string>(
+  searchKey: string,
   options: T[],
-  fallback: T,
-  searchKey: string
+  fallback: T
 ) => {
   let [searchParams, setSearchParams] = useSearchParams();
   const [view, setView] = useState<T | null>(

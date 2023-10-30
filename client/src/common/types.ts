@@ -1,6 +1,10 @@
 import { DataGridProps, GridActionsColDef, GridColDef, GridValidRowModel } from '@mui/x-data-grid';
 import { JSONContent } from '@tiptap/react';
-import { Timestamp as FirestoreTimestamp, GeoPoint, WithFieldValue } from 'firebase/firestore';
+import {
+  GeoPoint as FirestoreGeoPoint,
+  Timestamp as FirestoreTimestamp,
+  WithFieldValue,
+} from 'firebase/firestore';
 import { Geohash } from 'geofire-common';
 import { z } from 'zod';
 
@@ -10,11 +14,15 @@ import { PolicyChangeValues } from 'elements/forms/PolicyChangeForm';
 import { InitRatingValues } from 'hooks/usePropertyDetails';
 import { FloodValues } from 'views/SubmissionNew';
 import {
+  Basement,
+  CBRSDesignation,
   COLLECTIONS,
-  DEDUCTIBLE_OPTIONS,
+  CancelReason,
   FeeItemName,
+  FloodZone,
   LineOfBusiness,
-  POLICY_STATUS,
+  PaymentStatus,
+  PriorLossCount,
   Product,
   QUOTE_STATUS,
   RoundingType,
@@ -28,7 +36,6 @@ import {
   TInviteStatus,
   TLicenseOwner,
   TLicenseType,
-  TPaymentStatus,
   TProduct,
   TState,
   TTransactionType,
@@ -53,6 +60,9 @@ export const BaseMetadataZ = z.object({
   version: z.number().int().optional(),
 });
 export type BaseMetadata = z.infer<typeof BaseMetadataZ>;
+
+export const GeoPointZ = z.instanceof(FirestoreGeoPoint);
+export type GeoPoint = z.infer<typeof GeoPointZ>;
 
 export interface BaseDoc {
   metadata: BaseMetadata;
@@ -201,7 +211,31 @@ export type LimitKeys = 'limitA' | 'limitB' | 'limitC' | 'limitD';
 export type CovTypeNames = 'building' | 'otherStructures' | 'contents' | 'BI';
 
 export type LimitTypes = 'limitA' | 'limitB' | 'limitC' | 'limitD';
-export type Limits = Record<LimitTypes, number>;
+// export type Limits = Record<LimitTypes, number>;
+
+export const LimitsZ = z.object({
+  limitA: z
+    .number()
+    .int()
+    .min(100000, 'limitA must be > $100k')
+    .max(1000000, 'limitA must be < $1M'),
+  limitB: z.number().int().max(1000000, 'limitB must be < $1M'),
+  limitC: z.number().int().max(1000000, 'limitC must be < $1M'),
+  limitD: z.number().int().max(1000000, 'limitD must be < $1M'),
+});
+export type Limits = z.infer<typeof LimitsZ>;
+
+export const RCVsZ = z.object({
+  building: z.number().int().min(100000),
+  otherStructures: z.number().int().nonnegative(),
+  contents: z.number().int().nonnegative(),
+  BI: z.number().int().nonnegative(),
+  total: z.number().int().nonnegative(),
+});
+export type RCVs = z.infer<typeof RCVsZ>;
+
+export const DeductibleZ = z.number().int().min(1000);
+export type Deductible = z.infer<typeof DeductibleZ>;
 
 export type FloodPerilCategories = 'inland' | 'surge' | 'tsunami';
 export type ValueByRiskType = Record<FloodPerilCategories, number>;
@@ -240,9 +274,21 @@ export const AddressZ = z.object({
 });
 export type Address = z.infer<typeof AddressZ>;
 
-export interface MailingAddress extends Address {
-  name: string;
-}
+export const CompressedAddressZ = z.object({
+  s1: z.string(),
+  s2: z.string().default(''),
+  c: z.string(),
+  st: z.string(),
+  p: z.string(),
+});
+export type CompressedAddress = z.infer<typeof CompressedAddressZ>;
+
+export const MailingAddressZ = AddressZ.and(
+  z.object({
+    name: z.string(),
+  })
+);
+export type MailingAddress = z.infer<typeof MailingAddressZ>;
 
 export interface AddressWithCoords extends Address {
   latitude: number;
@@ -287,19 +333,19 @@ export interface Note {
   created: Timestamp;
 }
 
-export interface AdditionalInsured {
-  name: string;
-  email: string;
-  address?: Nullable<Address> | null;
-}
-// other interest - types = mortgagee | other interest
-export interface Mortgagee {
-  name: string;
-  contactName: string;
-  email: string;
-  loanNumber: string;
-  address?: Nullable<Address> | null;
-}
+// export interface AdditionalInsured {
+//   name: string;
+//   email: string;
+//   address?: Nullable<Address> | null;
+// }
+
+// export interface Mortgagee {
+//   name: string;
+//   contactName: string;
+//   email: string;
+//   loanNumber: string;
+//   address?: Nullable<Address> | null;
+// }
 // decide whether to use discriminating union type
 // could use on front end for input component
 // then split in submit
@@ -327,6 +373,22 @@ export const AgencyDetailsZ = z.object({
 });
 export type AgencyDetails = z.infer<typeof AgencyDetailsZ>;
 
+export const AdditionalInsuredZ = z.object({
+  name: z.string().trim(),
+  email: z.string().email().trim().toLowerCase(),
+  address: z.nullable(AddressZ).optional().nullable(),
+});
+export type AdditionalInsured = z.infer<typeof AdditionalInsuredZ>;
+
+export const MortgageeZ = z.object({
+  name: z.string().trim(),
+  contactName: z.string(),
+  email: z.string().email().trim().toLowerCase(),
+  loanNumber: z.string(),
+  address: z.nullable(AddressZ).optional().nullable(),
+});
+export type Mortgagee = z.infer<typeof MortgageeZ>;
+
 // export const BillingEntityDetails = z.object({
 //   displayName: z.string(),
 //   email: z.string().email().trim().toLowerCase(),
@@ -352,35 +414,38 @@ export interface NamedInsuredDetails {
   userId?: string | null;
 }
 
-export interface IndividualNamedInsured {
-  displayName: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  userId?: string | null;
-  orgId?: string | null; // ever used ??
-}
+// export interface IndividualNamedInsured {
+//   displayName: string;
+//   firstName: string;
+//   lastName: string;
+//   email: string;
+//   phone: string;
+//   userId?: string | null;
+//   orgId?: string | null; // ever used ??
+// }
 
-// TODO: add type: 'entity' ??
-export interface EntityNamedInsured {
-  displayName: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  userId?: string | null;
-  orgId?: string;
-}
+// // TODO: add type: 'entity' ??
+// export interface EntityNamedInsured {
+//   displayName: string;
+//   firstName: string;
+//   lastName: string;
+//   email: string;
+//   phone: string;
+//   userId?: string | null;
+//   orgId?: string;
+// }
 
-// TODO: decide whether to use discriminating type vs same fields
-export type NamedInsured = IndividualNamedInsured | EntityNamedInsured;
-
-// TODO: delete ?? not using
-export interface Deductible {
-  type: DEDUCTIBLE_OPTIONS;
-  value: number;
-}
+// export type NamedInsured = IndividualNamedInsured | EntityNamedInsured;
+export const NamedInsuredZ = z.object({
+  displayName: z.string(),
+  firstName: z.string(),
+  lastName: z.string(),
+  email: z.string().email().trim().toLowerCase(),
+  phone: PhoneZ, // .optional(), // allow optional/null ??
+  userId: z.string().nullable().optional(),
+  orgId: z.string().nullable().optional(),
+});
+export type NamedInsured = z.infer<typeof NamedInsuredZ>;
 
 // export type TaxItemName =
 //   | 'Premium Tax'
@@ -448,19 +513,43 @@ export const Tax = TaxItem.omit({ value: true }).and(
 );
 export type TTax = z.infer<typeof Tax>;
 
-export interface RatingPropertyData {
-  CBRSDesignation: string;
-  basement: string; // BasementOptions | null;
-  distToCoastFeet: number;
-  floodZone: string; // TFloodZone
-  numStories: number;
-  propertyCode: string;
-  replacementCost: number;
-  sqFootage: number;
-  yearBuilt: number;
-  FFH?: number;
-  priorLossCount?: string | null;
-}
+const currentYear = new Date().getFullYear();
+export const RatingPropertyDataZ = z.object({
+  CBRSDesignation: CBRSDesignation.optional().nullable(),
+  basement: Basement.default('unknown'),
+  distToCoastFeet: z.coerce.number().optional().nullable(),
+  floodZone: FloodZone,
+  numStories: z.number().int().nonnegative().optional().nullable(),
+  propertyCode: z.string().optional().nullable(),
+  replacementCost: z.number().nonnegative().min(50000, 'replacement cost est. must be > $50k'), // TODO: min ??
+  sqFootage: z.coerce.number().int('sq. footage must be an integer').optional().nullable(),
+  yearBuilt: z.coerce
+    .number()
+    .min(1900, 'year built must be > 1900')
+    .max(currentYear + 1, `yearBuilt must be < ${currentYear + 1}`)
+    .int('year built must be an integer')
+    .optional()
+    .nullable(),
+
+  FFH: z.coerce.number().int().optional().nullable(),
+  priorLossCount: PriorLossCount.optional().nullable(),
+  units: z.coerce.number().optional().nullable(),
+});
+export type RatingPropertyData = z.infer<typeof RatingPropertyDataZ>;
+
+// export interface RatingPropertyData {
+//   CBRSDesignation: string;
+//   basement: string; // BasementOptions | null;
+//   distToCoastFeet: number;
+//   floodZone: string; // TFloodZone
+//   numStories: number;
+//   propertyCode: string;
+//   replacementCost: number;
+//   sqFootage: number;
+//   yearBuilt: number;
+//   FFH?: number;
+//   priorLossCount?: string | null;
+// }
 
 interface RatingCalcData {
   AALs: ValueByRiskType;
@@ -734,16 +823,24 @@ export interface BaseContact {
   phone: string;
 }
 
-export interface SLProdOfRecordDetails {
-  name: string;
-  licenseNum: string;
-  licenseState: string;
-  phone: string;
-}
+// export interface SLProdOfRecordDetails {
+//   name: string;
+//   licenseNum: string;
+//   licenseState: string;
+//   phone: string;
+// }
 
-export type RCVKeys = 'building' | 'otherStructures' | 'contents' | 'BI' | 'total';
+export const SLProdOfRecordDetailsZ = z.object({
+  name: z.string(),
+  licenseNum: z.string(),
+  licenseState: State,
+  phone: PhoneZ.optional().nullable(),
+});
+export type SLProdOfRecordDetails = z.infer<typeof SLProdOfRecordDetailsZ>;
 
-export type RCVs = Record<RCVKeys, number>;
+// export type RCVKeys = 'building' | 'otherStructures' | 'contents' | 'BI' | 'total';
+
+// export type RCVs = Record<RCVKeys, number>;
 
 export const LocationImages = z.object({
   light: z.string(),
@@ -759,85 +856,224 @@ export type TLocationImageTypes = z.infer<typeof LocationImageTypes>;
 export const LocationParent = z.enum(['submission', 'quote', 'policy']);
 export type TLocationParent = z.infer<typeof LocationParent>;
 
-export interface ILocation extends BaseDoc {
-  parentType?: TLocationParent | null;
-  address: Address;
-  coordinates: GeoPoint;
-  geoHash: Geohash;
-  annualPremium: number;
-  termPremium: number;
-  termDays: number;
-  limits: Limits;
-  TIV: number;
-  RCVs: RCVs;
-  deductible: number;
-  // exists: true; // https://stackoverflow.com/a/62626994/10887890
-  additionalInsureds: AdditionalInsured[];
-  mortgageeInterest: Mortgagee[];
-  // billingEntity: TBillingEntityDetails;
-  ratingDocId: string; // TODO: include rating info ?? make PublicRatingData and PrivateRatingData (extends)
-  ratingPropertyData: RatingPropertyData;
-  effectiveDate: Timestamp;
-  expirationDate: Timestamp;
-  cancelEffDate?: Timestamp | null;
-  cancelReason?: CancellationReason;
-  imageURLs?: TLocationImages | null;
-  imagePaths?: TLocationImages | null;
-  blurHash?: TLocationImages | null;
-  policyId?: string;
-  locationId: string;
-  externalId?: string | null;
-}
+export const BaseLocationZ = z.object({
+  parentType: LocationParent.nullable(),
+  address: AddressZ,
+  coordinates: GeoPointZ,
+  geoHash: z.string(),
+  annualPremium: z.number().nonnegative(),
+  termPremium: z.number().nonnegative(),
+  termDays: z.number().nonnegative().int(),
+  limits: LimitsZ,
+  TIV: z.number().nonnegative(),
+  RCVs: RCVsZ,
+  deductible: DeductibleZ,
+  additionalInsureds: z.array(AdditionalInsuredZ),
+  mortgageeInterest: z.array(MortgageeZ),
+  ratingDocId: z.string(),
+  ratingPropertyData: RatingPropertyDataZ,
+  effectiveDate: TimestampZ,
+  expirationDate: TimestampZ,
+  cancelEffDate: TimestampZ.optional().nullable(),
+  cancelReason: CancelReason.optional().nullable(),
+  imageURLs: LocationImages.optional().nullable(),
+  imagePaths: LocationImages.optional().nullable(),
+  blurHash: LocationImages.optional().nullable(),
+  locationId: z.string().min(5, 'location ID must be at least 5 characters'),
+  policyId: z.string().min(5, 'policy ID must be at least 5 characters').optional().nullable(),
+  quoteId: z.string().optional().nullable(),
+  submissionId: z.string().optional().nullable(),
+  externalId: z.string().optional().nullable(),
+  metadata: BaseMetadataZ,
+});
+export type BaseLocation = z.infer<typeof BaseLocationZ>;
 
-export interface CompressedAddress {
-  s1: string;
-  s2: string;
-  c: string;
-  st: string;
-  p: string;
-}
+export const ILocationSubmissionZ = BaseLocationZ.and(
+  z.object({
+    parentType: z.literal(LocationParent.enum.submission),
+    submissionId: z.string(),
+    quoteId: z.null().optional(),
+    policyId: z.null().optional(),
+  })
+);
+export type ILocationSubmission = z.infer<typeof ILocationSubmissionZ>;
 
-export interface PolicyLocation {
-  termPremium: number;
-  annualPremium: number;
-  address: CompressedAddress;
-  coords: GeoPoint;
-  billingEntityId: string;
-  cancelEffDate?: Timestamp | null;
-  version?: number; // TODO: remove optional
-}
+export const ILocationQuoteZ = BaseLocationZ.and(
+  z.object({
+    parentType: z.literal(LocationParent.enum.quote),
+    submissionId: z.string().optional().nullable(),
+    quoteId: z.string(),
+    policyId: z.null().optional(),
+  })
+);
+export type ILocationQuote = z.infer<typeof ILocationQuoteZ>;
 
-export interface Policy extends BaseDoc {
-  product: TProduct;
-  status: POLICY_STATUS; // TODO: remove
-  paymentStatus: TPaymentStatus;
-  term: number;
-  mailingAddress: MailingAddress;
-  namedInsured: NamedInsured; // TODO: clarify typing NamedInsuredDetails;
-  billingEntities: Record<string, TBillingEntity>;
-  locations: Record<string, PolicyLocation>;
-  homeState: string;
-  termPremium: number; // sum of active location(s) term premium
-  termPremiumWithCancels: number;
-  inStatePremium?: number;
-  outStatePremium?: number;
-  termDays: number;
-  fees: TFeeItem[];
-  taxes: TTaxItem[];
-  price: number; // sum of termPrem, taxes, fees
-  effectiveDate: Timestamp;
-  expirationDate: Timestamp;
-  cancelEffDate?: Timestamp | null; // TODO: discriminating union ??
-  cancelReason?: CancellationReason;
-  // cancelled?: boolean;
-  userId: string;
-  agent: AgentDetails; // Nullable<AgentDetails>; // TODO: remove nullable (defaults to idemand)
-  agency: AgencyDetails;
-  surplusLinesProducerOfRecord: SLProdOfRecordDetails;
-  issuingCarrier: string;
-  documents: { displayName: string; downloadUrl: string; storagePath: string }[];
-  quoteId?: string | null;
-}
+export const ILocationPolicyZ = BaseLocationZ.and(
+  z.object({
+    parentType: z.literal(LocationParent.enum.policy),
+    policyId: z.string().min(5, 'policy ID must be at least 5 characters'),
+    quoteId: z.string().optional().nullable(),
+    submissionId: z.string().optional().nullable(),
+  })
+);
+export type ILocationPolicy = z.infer<typeof ILocationPolicyZ>;
+
+export const ILocationZ = z.union([
+  BaseLocationZ,
+  ILocationSubmissionZ,
+  ILocationQuoteZ,
+  ILocationPolicyZ,
+]);
+export type ILocation = z.infer<typeof ILocationZ>;
+
+// export interface ILocation extends BaseDoc {
+//   parentType?: TLocationParent | null;
+//   address: Address;
+//   coordinates: GeoPoint;
+//   geoHash: Geohash;
+//   annualPremium: number;
+//   termPremium: number;
+//   termDays: number;
+//   limits: Limits;
+//   TIV: number;
+//   RCVs: RCVs;
+//   deductible: number;
+//   // exists: true; // https://stackoverflow.com/a/62626994/10887890
+//   additionalInsureds: AdditionalInsured[];
+//   mortgageeInterest: Mortgagee[];
+//   // billingEntity: TBillingEntityDetails;
+//   ratingDocId: string; // TODO: include rating info ?? make PublicRatingData and PrivateRatingData (extends)
+//   ratingPropertyData: RatingPropertyData;
+//   effectiveDate: Timestamp;
+//   expirationDate: Timestamp;
+//   cancelEffDate?: Timestamp | null;
+//   cancelReason?: CancellationReason;
+//   imageURLs?: TLocationImages | null;
+//   imagePaths?: TLocationImages | null;
+//   blurHash?: TLocationImages | null;
+//   policyId?: string;
+//   locationId: string;
+//   externalId?: string | null;
+// }
+
+// export interface CompressedAddress {
+//   s1: string;
+//   s2: string;
+//   c: string;
+//   st: string;
+//   p: string;
+// }
+
+// export interface PolicyLocation {
+//   termPremium: number;
+//   annualPremium: number;
+//   address: CompressedAddress;
+//   coords: GeoPoint;
+//   billingEntityId: string;
+//   cancelEffDate?: Timestamp | null;
+//   version?: number; // TODO: remove optional
+// }
+
+export const TotalsByBillingEntityZ = z.record(
+  z.object({
+    termPremium: z.number(),
+    taxes: z.array(TaxItem),
+    fees: z.array(FeeItem),
+    price: z.number(),
+  })
+);
+export type TotalsByBillingEntity = z.infer<typeof TotalsByBillingEntityZ>;
+
+export const PolicyLocationZ = z.object({
+  termPremium: z.number(),
+  annualPremium: z.number().min(100, 'annualPremium must be > 100'),
+  // TODO: add annualPremium
+  address: CompressedAddressZ,
+  coords: GeoPointZ,
+  billingEntityId: z.string(),
+  cancelEffDate: TimestampZ.optional().nullable(),
+  version: z.number().optional(),
+});
+export type PolicyLocation = z.infer<typeof PolicyLocationZ>;
+
+export const PolicyZ = z.object({
+  product: Product,
+  paymentStatus: PaymentStatus,
+  term: z.number(),
+  namedInsured: NamedInsuredZ,
+  mailingAddress: MailingAddressZ,
+  locations: z.record(PolicyLocationZ),
+  homeState: State,
+  termPremium: z.number().min(100, 'term premium must be > 100'),
+  termPremiumWithCancels: z.number(),
+  // TODO: annualPremiumActiveLocations ??
+  inStatePremium: z.number(),
+  outStatePremium: z.number(),
+  termDays: z.number().nonnegative(),
+  totalsByBillingEntity: TotalsByBillingEntityZ,
+  fees: z.array(FeeItem),
+  taxes: z.array(TaxItem),
+  price: z.number(),
+  effectiveDate: TimestampZ,
+  expirationDate: TimestampZ,
+  cancelEffDate: TimestampZ.optional().nullable(),
+  cancelReason: CancelReason.optional().nullable(),
+  userId: z.string(),
+  agent: AgentDetailsZ,
+  agency: AgencyDetailsZ,
+  billingEntities: z.record(BillingEntity),
+  defaultBillingEntityId: z.string(),
+  surplusLinesProducerOfRecord: SLProdOfRecordDetailsZ,
+  // TODO: add address to carrier CarrierDetails: name, address (carrierId ??)
+  issuingCarrier: z.string(),
+  quoteId: z.string().nullable(),
+  // TODO: delete once "sendPolicyDoc" updated to generate pdf instead of upload
+  documents: z
+    .array(
+      z.object({
+        displayName: z.string(),
+        downloadUrl: z.string(),
+        storagePath: z.string(),
+      })
+    )
+    .optional()
+    .nullable()
+    .default([]),
+  metadata: BaseMetadataZ,
+});
+export type Policy = z.infer<typeof PolicyZ>;
+
+// export interface Policy extends BaseDoc {
+//   product: TProduct;
+//   status: POLICY_STATUS; // TODO: remove
+//   paymentStatus: TPaymentStatus;
+//   term: number;
+//   mailingAddress: MailingAddress;
+//   namedInsured: NamedInsured; // TODO: clarify typing NamedInsuredDetails;
+//   billingEntities: Record<string, TBillingEntity>;
+//   locations: Record<string, PolicyLocation>;
+//   homeState: string;
+//   termPremium: number; // sum of active location(s) term premium
+//   termPremiumWithCancels: number;
+//   inStatePremium?: number;
+//   outStatePremium?: number;
+//   termDays: number;
+//   fees: TFeeItem[];
+//   taxes: TTaxItem[];
+//   price: number; // sum of termPrem, taxes, fees
+//   effectiveDate: Timestamp;
+//   expirationDate: Timestamp;
+//   cancelEffDate?: Timestamp | null; // TODO: discriminating union ??
+//   cancelReason?: CancellationReason;
+//   // cancelled?: boolean;
+//   userId: string;
+//   agent: AgentDetails; // Nullable<AgentDetails>; // TODO: remove nullable (defaults to idemand)
+//   agency: AgencyDetails;
+//   surplusLinesProducerOfRecord: SLProdOfRecordDetails;
+//   issuingCarrier: string;
+//   documents: { displayName: string; downloadUrl: string; storagePath: string }[];
+//   quoteId?: string | null;
+// }
 
 export interface TrxRatingData extends Nullable<RatingPropertyData> {
   units: number;
@@ -1496,6 +1732,7 @@ export type PreferredMethod = z.infer<typeof PreferredMethodEnum>;
 export const ClaimContactZ = ContactZ.and(
   z.object({
     preferredMethod: PreferredMethodEnum,
+    entityType: z.enum(['namedInsured', 'agent', 'other']),
   })
 );
 export type ClaimContact = z.infer<typeof ClaimContactZ>;
@@ -1503,21 +1740,21 @@ export type ClaimContact = z.infer<typeof ClaimContactZ>;
 // TODO: create draft claim from policy claim
 export const PolicyClaimZ = z.object({
   occurrenceDate: TimestampZ,
-  description: z.string(),
+  description: z.string().min(30),
   images: z.array(z.string()).max(10),
   contact: ClaimContactZ,
   status: z.string(), // TODO: status
   policyId: z.string(),
   locationId: z.string(),
-  namedInsured: z.any(),
-  agent: z.any(),
-  agency: z.any(),
+  namedInsured: NamedInsuredZ,
+  agent: AgentDetailsZ,
+  agency: AgencyDetailsZ,
   submittedAt: TimestampZ,
-  address: z.any(),
-  coordinates: z.any(), // GeoPoint
-  limits: z.any(),
-  locationData: z.any(),
-  policyData: z.any(),
+  address: AddressZ,
+  coordinates: GeoPointZ, // GeoPoint
+  limits: LimitsZ,
+  locationData: ILocationPolicyZ,
+  policyData: PolicyZ,
   submittedBy: z.object({
     userId: z.string(),
     email: z.string().email().nullable(),
@@ -1526,7 +1763,6 @@ export const PolicyClaimZ = z.object({
   metadata: BaseMetadataZ,
 });
 export type PolicyClaim = z.infer<typeof PolicyClaimZ>;
-// export type PolicyClaim = FirestoreClaimsValues & Record<string, any>;
 
 const ClaimFormValuesZ = PolicyClaimZ.pick({
   occurrenceDate: true,
@@ -1542,13 +1778,13 @@ const DraftPolicyClaimZ = ClaimFormValuesZ.partial()
   .and(z.object({ status: z.literal('draft') }));
 export type DraftPolicyClaim = z.infer<typeof DraftPolicyClaimZ>;
 
-const PolicyClaimFormValuesZ = z.object({
-  occurrenceDate: TimestampZ,
-  description: z.string(),
-  images: z.array(z.string()).max(10),
-  contact: ClaimContactZ,
-});
-export type PolicyClaimFormValues = z.infer<typeof PolicyClaimFormValuesZ>;
+// const PolicyClaimFormValuesZ = z.object({
+//   occurrenceDate: TimestampZ,
+//   description: z.string(),
+//   images: z.array(z.string()).max(10),
+//   contact: ClaimContactZ,
+// });
+// export type PolicyClaimFormValues = z.infer<typeof PolicyClaimFormValuesZ>;
 
 // const DraftPolicyClaimZ = PolicyClaimFormValuesZ.partial().and(
 //   z.object({

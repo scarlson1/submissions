@@ -19,6 +19,8 @@ import { FormattedAddress } from 'elements/FormattedAddress';
 import { useDocData } from 'hooks';
 import { ROUTES, createPath } from 'router';
 
+// TODO: add link / accordion with faqs / process description
+
 interface SuccessStepProps {
   policyId: string;
   claimId: string;

@@ -1,6 +1,8 @@
 import { Alert, AlertTitle, Box, Button, Typography } from '@mui/material';
 import { useErrorBoundary } from 'react-error-boundary';
 
+// only use component when passing in onReset prop
+
 export function ErrorFallback({ error }: { error: any }) {
   const { resetBoundary } = useErrorBoundary();
 

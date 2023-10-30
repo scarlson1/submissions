@@ -26,6 +26,8 @@ import {
   Nullable,
   RatingPropertyData,
   SUBMISSION_STATUS,
+  TBasement,
+  TPriorLossCount,
   addressValidationActiveStatesNested,
   buildingDetailsValidation,
   contactValidationNested,
@@ -119,7 +121,7 @@ function useCreateSubmission(
           ratingPropertyData: {
             ...propertyDetails,
             ...values.ratingPropertyData,
-            priorLossCount: values.priorLossCount,
+            priorLossCount: values.priorLossCount as TPriorLossCount,
           },
           initValues: initRatingValues,
           propertyDataDocId,
@@ -154,7 +156,7 @@ export interface FloodValues {
   exclusions: string[];
   priorLossCount: string;
   ratingPropertyData: {
-    basement: string;
+    basement: TBasement;
     numStories: number;
   };
   contact: Omit<NamedInsuredDetails, 'phone'>;
@@ -185,7 +187,7 @@ export const initialValues: FloodValues = {
   exclusions: [],
   priorLossCount: '0', // 0,
   ratingPropertyData: {
-    basement: '', // @ts-ignore
+    basement: '' as TBasement, // @ts-ignore
     numStories: '',
   },
   contact: {

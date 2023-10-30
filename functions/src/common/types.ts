@@ -1012,7 +1012,6 @@ export type TotalsByBillingEntity = z.infer<typeof TotalsByBillingEntity>;
 export const PolicyLocation = z.object({
   termPremium: z.number(), // .min(100, 'term premium must be > 100'), // TODO: check validation with ron - termPremium could be < 100 if shorter than policy term
   annualPremium: z.number().min(100, 'annualPremium must be > 100'),
-  // TODO: add annualPremium
   address: CompressedAddress,
   coords: GeoPoint,
   billingEntityId: z.string(),
@@ -1045,7 +1044,6 @@ export const Policy = z.object({
   outStatePremium: z.number(),
   termDays: z.number().nonnegative(),
   totalsByBillingEntity: TotalsByBillingEntity,
-  // defaultBillingEntityId: z.string(),
   fees: z.array(FeeItem),
   taxes: z.array(TaxItem),
   price: z.number(),
@@ -1056,7 +1054,7 @@ export const Policy = z.object({
   userId: z.string(),
   agent: AgentDetails,
   agency: AgencyDetails,
-  billingEntities: z.record(BillingEntity), // Record<string, BillingEntity>
+  billingEntities: z.record(BillingEntity),
   defaultBillingEntityId: z.string(),
   surplusLinesProducerOfRecord: SLProdOfRecordDetails,
   // TODO: add address to carrier CarrierDetails: name, address (carrierId ??)
@@ -1139,15 +1137,15 @@ export type PolicyClaim = z.infer<typeof PolicyClaim>;
 // export type Policy = z.infer<typeof Policy>;
 
 // export interface IPolicyClass extends Policy {
-//   getLocation: (id: string) => any; // TODO LOCATION INTERFACE
-//   initIsExpired: () => boolean; // TODO: figure out how to make private (#)
+//   getLocation: (id: string) => any;
+//   initIsExpired: () => boolean; // TODO:  make private (#)
 //   addLocation: (
 //     locationData: ILocation,
 //     id?: string
 //   ) => Promise<{ locationId: string; newTotal: number }>;
 //   removeLocation: (id: string) => Promise<void>;
 //   getLocationCount: () => number;
-//   updateLocation: (id: string, newLocationValues: Partial<ILocation>) => Promise<any>; // TODO: type response
+//   updateLocation: (id: string, newLocationValues: Partial<ILocation>) => Promise<any>;
 //   sumLocationPremium: () => number; // Promise<number>;
 //   cancelPolicy: (cancelDate: Timestamp) => Promise<void>;
 //   calcCardFee: (amt: number) => number;
@@ -1155,7 +1153,6 @@ export type PolicyClaim = z.infer<typeof PolicyClaim>;
 //   calcCardFeeAllLocations: () => number;
 // }
 
-// TODO: use js module instead of class ??
 // @ts-ignore
 // export class PolicyClass implements IPolicyClass {
 //   readonly id: string;

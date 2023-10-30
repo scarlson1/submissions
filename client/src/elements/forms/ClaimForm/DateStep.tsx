@@ -3,7 +3,7 @@ import { Form, Formik } from 'formik';
 import { useCallback } from 'react';
 import { date, object } from 'yup';
 
-import { PolicyClaimFormValues } from 'common';
+import { ClaimFormValues } from 'common';
 import { FormikDatePicker, FormikWizardNavButtons } from 'components/forms';
 import { useWizard } from 'hooks';
 import { logDev } from 'modules/utils';
@@ -19,7 +19,7 @@ export interface DateValues {
 // export interface FirestoreDateValues {
 //   occurrenceDate: Timestamp | null;
 // }
-export type FirestoreDateValues = Pick<PolicyClaimFormValues, 'occurrenceDate'>;
+export type FirestoreDateValues = Pick<ClaimFormValues, 'occurrenceDate'>;
 
 const maxDate = new Date();
 

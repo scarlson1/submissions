@@ -24,7 +24,11 @@ export const WizardNavButtons = ({
       sx={{ px: { xs: 0, sm: 0, md: 0, lg: 0, xl: 0 } }}
     >
       <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-        {isFirstStep ? null : <Button onClick={() => previousStep()}>{prevButtonText}</Button>}
+        {isFirstStep ? null : (
+          <Button onClick={() => previousStep()} disabled={isLoading || props?.loading}>
+            {prevButtonText}
+          </Button>
+        )}
         <LoadingButton
           onClick={() => nextStep()}
           {...props}

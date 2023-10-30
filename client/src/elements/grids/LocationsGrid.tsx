@@ -19,7 +19,7 @@ export const LocationsGrid = ({
   const { googleMapsAction, floodFactorAction } = useGridActions(toast.error);
   const renderShowJson = useGridShowJson(
     COLLECTIONS.LOCATIONS,
-    { showInMenu: isSmall },
+    { showInMenu: true },
     { requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }
   );
 

@@ -3,6 +3,7 @@ import {
   CancelRounded,
   EditRounded,
   EmailRounded,
+  FiberNewRounded,
   GridViewRounded,
   MapRounded,
   PhoneRounded,
@@ -32,8 +33,9 @@ import { where } from 'firebase/firestore';
 import { isEmpty } from 'lodash';
 import { Suspense, useCallback, useMemo } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
+import { z } from 'zod';
 
-import { ILocation, Policy as IPolicy, POLICY_STATUS, WithId } from 'common';
+import { ILocation, Policy as IPolicy, WithId } from 'common';
 import { ErrorFallback, LoadingSpinner, NotFound } from 'components';
 import { IconMenu } from 'components/IconButtonMenu';
 import { LocationsMap, PolicyLocationCards } from 'elements';
@@ -54,13 +56,15 @@ import {
 import { useCreateCancelRequest } from 'hooks/useCreateCancelRequest';
 import { useCreateLocationChangeRequest } from 'hooks/useCreateLocationChangeRequest';
 import {
+  calcPolicyStatus,
   compressedToFormattedAddr,
   formatDate,
   formatFirestoreTimestamp,
   formatPhoneNumber,
   stringAvatar,
 } from 'modules/utils';
-import { z } from 'zod';
+import { useNavigate } from 'react-router-dom';
+import { ROUTES, createPath } from 'router';
 
 // TODO: should locations grid be passed location IDs explicitly ?? instead if querying locations collection
 // would require new grid component (Can't do it with ServerDataGrid)
@@ -79,13 +83,15 @@ type TDataViewType = z.infer<typeof DataViewType>;
 
 export const Policy = () => {
   const { policyId } = useSafeParams(['policyId']);
+  const navigate = useNavigate();
   const { isMobile } = useWidth();
   const [locationsView, handleViewChange] = useSearchParamToggle<TDataViewType>(
+    'l_view',
     DataViewType.options,
-    'cards',
-    'l_view'
+    'cards'
   );
 
+  // TODO: use policy converter to get status ?? need to create usePolicy() hook ??
   const { data } = useDocData<IPolicy>('POLICIES', policyId);
   const { downloadPDF: downloadPolicy } = useGeneratePDF('generateDecPDF');
 
@@ -103,10 +109,6 @@ export const Policy = () => {
   //   [data]
   // );
 
-  // const handleNewClaim = useCallback(() => {
-  //   alert('TODO: handle new claim');
-  // }, []);
-
   const handleDownloadPolicy = useCallback(
     () => downloadPolicy(policyId),
     [downloadPolicy, policyId]
@@ -117,13 +119,6 @@ export const Policy = () => {
     [locationChangeDialog, policyId]
   );
 
-  // const handleLocationChangeRequestGrid = useCallback(
-  //   ({ row }: GridRowParams) =>
-  //     () =>
-  //       locationChangeDialogOld(row, data),
-  //   [data, locationChangeDialogOld]
-  // );
-
   const handleLocationChangeDialog = useCallback(
     (params: GridRowParams) => () => {
       locationChangeDialog(params.row.policyId, params.id.toString());
@@ -133,7 +128,7 @@ export const Policy = () => {
 
   const handleCancelPolicy = useCallback(async () => {
     await cancelDialog(policyId);
-  }, [cancelDialog, policyId]); //
+  }, [cancelDialog, policyId]);
 
   const handleCancelLocation = useCallback(
     ({ id }: GridRowParams<ILocation>) =>
@@ -141,6 +136,15 @@ export const Policy = () => {
         cancelDialog(policyId, id.toString());
       },
     [cancelDialog, policyId]
+  );
+
+  const handleNewClaim = useCallback(
+    ({ id }: GridRowParams<ILocation>) =>
+      () =>
+        navigate(
+          createPath({ path: ROUTES.CLAIM_NEW, params: { policyId, locationId: id.toString() } })
+        ),
+    [navigate, policyId]
   );
 
   const renderLocationGridActions = useCallback(
@@ -152,9 +156,17 @@ export const Policy = () => {
               <EditRounded />
             </Tooltip>
           }
-          // onClick={handleLocationChangeRequestGrid(params)}
           onClick={handleLocationChangeDialog(params)}
           label='Request change'
+        />,
+        <GridActionsCellItem
+          icon={
+            <Tooltip title='new claim' placement='top'>
+              <FiberNewRounded />
+            </Tooltip>
+          }
+          onClick={handleNewClaim(params)}
+          label='New claim'
         />,
         <GridActionsCellItem
           icon={
@@ -168,7 +180,7 @@ export const Policy = () => {
         />,
       ];
     },
-    [handleCancelLocation, handleLocationChangeDialog]
+    [handleCancelLocation, handleLocationChangeDialog, handleNewClaim]
   );
 
   const [locations, locationsCount] = useMemo(() => {
@@ -253,15 +265,9 @@ export const Policy = () => {
                   )}
                 />
                 <StatBox
-                  title='Effective'
-                  value={formatDate(
-                    data?.effectiveDate?.toDate(),
-                    isMobile ? 'MM/dd/yy' : 'MMM dd, yyyy'
-                  )}
-                />
-                <StatBox
                   title='Status'
-                  value={`${data?.status === POLICY_STATUS.PAID ? 'active' : 'inactive'}`}
+                  value={calcPolicyStatus(data)}
+                  // value={`${data?.status === POLICY_STATUS.PAID ? 'active' : 'inactive'}`}
                 />
                 <StatBox title='Term' value={`${data?.term || ''}`} />
                 <StatBox title='Locations' value={`${locationsCount || '--'}`} />

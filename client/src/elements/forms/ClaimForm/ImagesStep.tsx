@@ -13,7 +13,7 @@ import {
 import { UploadResult, getDownloadURL } from 'firebase/storage';
 import { useCallback, useState } from 'react';
 
-import { DraftPolicyClaim, PolicyClaimFormValues, StorageFolder } from 'common';
+import { ClaimFormValues, DraftPolicyClaim, StorageFolder } from 'common';
 import { FlexCard } from 'components';
 import { WizardNavButtons } from 'components/forms';
 import UploadFilesDialog from 'elements/UploadFilesDialog';
@@ -22,7 +22,7 @@ import { logDev } from 'modules/utils';
 import { BaseStepProps } from './ClaimFormWizard';
 
 // TODO: image previews --> component - so it can be using in review step
-export type ImageValues = Pick<PolicyClaimFormValues, 'images'>;
+export type ImageValues = Pick<ClaimFormValues, 'images'>;
 
 export interface ImageStepProps
   extends Pick<BaseStepProps<ImageValues>, 'saveFormValues' | 'onError'> {
@@ -113,29 +113,9 @@ export const ImagesStep = ({ saveFormValues, onError, claimData, claimId }: Imag
     <Box>
       <Typography align='center'>Please upload a few photos of the damage.</Typography>
       <Collapse in={claimData.images && claimData.images.length > 0}>
-        <Grid
-          container
-          spacing={2}
-          sx={{
-            py: 5,
-            overflowX: 'auto',
-            flexWrap: 'nowrap',
-            '&::-webkit-scrollbar': { display: 'none' },
-          }}
-        >
-          {claimData.images?.length
-            ? claimData.images.map((imgURL, i) => (
-                <Grid xs={6} sm={4} md={3} key={imgURL} sx={{ flex: '0 0 auto' }}>
-                  <TempImgPreview
-                    fileId={imgURL}
-                    src={imgURL}
-                    alt={`Img - ${i + 1}`}
-                    onDeleteClick={handleDelete}
-                  />
-                </Grid>
-              ))
-            : null}
-        </Grid>
+        {claimData.images?.length ? (
+          <ClaimImages imgURLs={claimData.images} onDelete={handleDelete} />
+        ) : null}
         <Typography align='center'>{`${
           claimData.images?.length || '0'
         } photo(s) selected`}</Typography>
@@ -149,9 +129,9 @@ export const ImagesStep = ({ saveFormValues, onError, claimData, claimId }: Imag
           openButtonText='Add images'
           filesDragDropProps={{
             multiple: true,
-            maxFileSizeInBytes: 4194304,
+            maxFileSizeInBytes: 4194304, // 4 MB
             disabled: dragAndDropDisabled,
-          }} // 4 MB
+          }}
           loading={uploadLoading}
           files={uploadFiles}
           onNewFiles={handleNewFiles}
@@ -178,7 +158,7 @@ const TempImgPreview = ({
   fileId: string;
   src: string;
   alt: string;
-  onDeleteClick: (id: string) => void;
+  onDeleteClick?: (id: string) => void;
   // deleteButtonProps: IconButtonProps
 }) => {
   return (
@@ -197,31 +177,66 @@ const TempImgPreview = ({
           width: '100%',
         }}
       />
-      <CardActions
-        disableSpacing
-        sx={{
-          position: 'relative',
-          padding: 1,
-          backgroundColor: (theme) =>
-            theme.palette.mode === 'dark'
-              ? alpha(theme.palette.background.paper, 0.375)
-              : 'rgba(255, 255, 255, 0.25)',
-        }}
-      >
-        {/* <Typography variant='subtitle2' sx={{ fontSize: '0.75rem', ml: 2.5 }}>
-          {formatBytes(selectedFile.size)}
-        </Typography> */}
-        <IconButton
-          color='default'
-          size='small'
-          edge='end'
-          sx={{ ml: 'auto' }}
-          onClick={() => onDeleteClick(fileId)}
-          // {...deleteButtonProps}
+      {onDeleteClick ? (
+        <CardActions
+          disableSpacing
+          sx={{
+            position: 'relative',
+            padding: 1,
+            backgroundColor: (theme) =>
+              theme.palette.mode === 'dark'
+                ? alpha(theme.palette.background.paper, 0.375)
+                : 'rgba(255, 255, 255, 0.25)',
+          }}
         >
-          <DeleteRounded fontSize='small' color='inherit' />
-        </IconButton>
-      </CardActions>
+          {/* <Typography variant='subtitle2' sx={{ fontSize: '0.75rem', ml: 2.5 }}>
+            {formatBytes(selectedFile.size)}
+          </Typography> */}
+          <IconButton
+            color='default'
+            size='small'
+            edge='end'
+            sx={{ ml: 'auto' }}
+            onClick={() => onDeleteClick(fileId)}
+            // {...deleteButtonProps}
+          >
+            <DeleteRounded fontSize='small' color='inherit' />
+          </IconButton>
+        </CardActions>
+      ) : null}
     </FlexCard>
+  );
+};
+
+// TODO: abstract & move to reusable component
+export const ClaimImages = ({
+  imgURLs,
+  onDelete,
+}: {
+  imgURLs: string[];
+  onDelete?: (id: string) => void;
+}) => {
+  return (
+    <Grid
+      container
+      spacing={2}
+      sx={{
+        py: 5,
+        overflowX: 'auto',
+        flexWrap: 'nowrap',
+        '&::-webkit-scrollbar': { display: 'none' },
+      }}
+    >
+      {imgURLs.map((imgURL, i) => (
+        <Grid xs={6} sm={4} md={3} key={imgURL} sx={{ flex: '0 0 auto' }}>
+          <TempImgPreview
+            fileId={imgURL}
+            src={imgURL}
+            alt={`Img - ${i + 1}`}
+            onDeleteClick={onDelete}
+          />
+        </Grid>
+      ))}
+    </Grid>
   );
 };

@@ -3,20 +3,21 @@ import { Form, Formik } from 'formik';
 import { useCallback } from 'react';
 import { object, string } from 'yup';
 
-import { PolicyClaimFormValues } from 'common';
+import { ClaimFormValues } from 'common';
 import { FormikTextField, FormikWizardNavButtons } from 'components/forms';
 import { useWizard } from 'hooks';
 import { logDev } from 'modules/utils';
 import { BaseStepProps } from './ClaimFormWizard';
 
+const MIN_CHARACTERS = 30;
 const descriptionStepVal = object().shape({
-  description: string().required().min(30, 'please add more detail'),
+  description: string().required().min(MIN_CHARACTERS, 'please add more detail'),
 });
 
 // export interface DescriptionValues {
 //   description: string;
 // }
-export type DescriptionValues = Pick<PolicyClaimFormValues, 'description'>;
+export type DescriptionValues = Pick<ClaimFormValues, 'description'>;
 
 export type DescriptionStepProps = BaseStepProps<DescriptionValues>;
 
@@ -51,7 +52,7 @@ export const DescriptionStep = ({ saveFormValues, onError, ...props }: Descripti
         validateOnMount
         enableReinitialize
       >
-        {({ handleSubmit, submitForm }) => (
+        {({ handleSubmit, submitForm, values }) => (
           <Form onSubmit={handleSubmit}>
             {/* TODO: create text area input */}
             <Box sx={{ py: 5 }}>
@@ -62,6 +63,13 @@ export const DescriptionStep = ({ saveFormValues, onError, ...props }: Descripti
                 rows={6}
                 // sx={{ mx: 'auto' }}
                 fullWidth
+                helperText={
+                  MIN_CHARACTERS - values.description.length > 0
+                    ? `${Math.abs(
+                        MIN_CHARACTERS - values.description.length
+                      )} characters to minimum`
+                    : null
+                }
               />
             </Box>
 

@@ -5,10 +5,10 @@ import toast from 'react-hot-toast';
 import { useFirestoreDocData } from 'reactfire';
 
 import {
+  ClaimFormValues,
   DraftPolicyClaim,
   OptionalKeys,
   PolicyClaim,
-  PolicyClaimFormValues,
   PreferredMethod,
 } from 'common';
 import { Wizard } from 'components/forms';
@@ -43,7 +43,7 @@ export const ClaimFormWizard = ({ claimResource }: ClaimFormWizardProps) => {
   if (!data.policyId) throw new Error('claim missing policyId');
 
   const saveValues = useCallback(
-    async (values: Partial<PolicyClaimFormValues>) => {
+    async (values: Partial<ClaimFormValues>) => {
       // FirestoreDateValues | DescriptionValues | ImageValues | ContactValues
       // TODO: save claim form values
       await setDoc(claimRef, values, { merge: true });
@@ -81,13 +81,17 @@ export const ClaimFormWizard = ({ claimResource }: ClaimFormWizardProps) => {
       <ContactStep
         saveFormValues={saveValues}
         onError={handleError}
+        policyId={data.policyId}
         initialValues={{
           contact: {
-            firstName: data?.contact?.firstName || '', // TODO: default to named insured on policy ?? or signed in user ??
-            lastName: data?.contact?.lastName || '',
-            email: data?.contact?.email || '',
-            phone: data?.contact?.phone || '',
-            preferredMethod: (data?.contact?.preferredMethod || '') as PreferredMethod,
+            entityType: data?.contact?.entityType || 'namedInsured',
+            firstName: data?.contact?.entityType === 'other' ? data?.contact?.firstName : '',
+            lastName: data?.contact?.entityType === 'other' ? data?.contact?.lastName : '',
+            email: data?.contact?.entityType === 'other' ? data?.contact?.email : '',
+            phone: data?.contact?.entityType === 'other' ? data?.contact?.phone : '',
+            preferredMethod: (data?.contact?.entityType === 'other'
+              ? data?.contact?.preferredMethod
+              : '') as PreferredMethod,
           },
         }}
       />

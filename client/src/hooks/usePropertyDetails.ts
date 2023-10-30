@@ -3,6 +3,7 @@ import { useCallback, useState } from 'react';
 import { useFunctions } from 'reactfire';
 
 import { getPropertyDetailsAttom, GetPropertyDetailsAttomRequest } from 'api';
+import { TBasement } from 'common';
 import { LimitKeys, Limits, Nullable, RatingPropertyData } from 'common/types';
 import { usePromptRCV } from './usePromptRCV';
 
@@ -123,7 +124,7 @@ export const usePropertyDetailsAttom = (props?: UsePropertyDetailsProps) => {
             ratingPropertyData: {
               // @ts-ignore
               numStories: data.numStories || '',
-              basement: data.basement || '',
+              basement: data.basement || ('' as TBasement),
             },
           };
         } else {
@@ -136,7 +137,7 @@ export const usePropertyDetailsAttom = (props?: UsePropertyDetailsProps) => {
             ratingPropertyData: {
               // @ts-ignore
               numStories: data.numStories || '',
-              basement: data.basement || '',
+              basement: data.basement || ('' as TBasement),
             },
           };
         }
@@ -158,7 +159,7 @@ export const usePropertyDetailsAttom = (props?: UsePropertyDetailsProps) => {
           ratingPropertyData: {
             // @ts-ignore
             numStories: data.numStories || '',
-            basement: data.basement || '',
+            basement: data.basement || ('' as TBasement),
           },
         };
       }

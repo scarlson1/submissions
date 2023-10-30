@@ -98,6 +98,14 @@ export const StorageFolder = z.enum([
 ]);
 export type TStorageFolder = z.infer<typeof StorageFolder>;
 
+export const CancelReason = z.enum([
+  'sold',
+  'premium_pmt_failure',
+  'exposure_change',
+  'insured_choice',
+]);
+export type TCancelReason = z.infer<typeof CancelReason>;
+
 // TODO: separate out submission status and quote status
 export enum SUBMISSION_STATUS {
   DRAFT = 'draft',

@@ -12,7 +12,7 @@ import { calcPolicyStatus } from 'modules/utils';
 
 export const policyConverter = {
   toFirestore(policy: PartialWithFieldValue<Policy> | WithFieldValue<Policy>): DocumentData {
-    return { ...policy, 'metadata.updated': Timestamp.now() };
+    return { ...policy, metadata: { updated: Timestamp.now() } };
   },
   fromFirestore(snap: QueryDocumentSnapshot<Policy>, options: SnapshotOptions): WithId<Policy> {
     // TODO: return class ??

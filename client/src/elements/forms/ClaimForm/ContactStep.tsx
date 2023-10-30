@@ -1,9 +1,10 @@
-import { Box, Unstable_Grid2 as Grid, Typography } from '@mui/material';
+import { BusinessRounded, PersonAddRounded, PersonRounded } from '@mui/icons-material';
+import { Box, Collapse, Unstable_Grid2 as Grid, Typography } from '@mui/material';
 import { Form, Formik } from 'formik';
 import { useCallback } from 'react';
 import { object, string } from 'yup';
 
-import { PolicyClaimFormValues, emailVal, phoneVal } from 'common';
+import { ClaimFormValues, Policy, emailVal, phoneVal } from 'common';
 import {
   FormikMaskField,
   FormikNativeSelect,
@@ -12,48 +13,77 @@ import {
   IMask,
   phoneMaskProps,
 } from 'components/forms';
-import { useWizard } from 'hooks';
-import { logDev } from 'modules/utils';
+import { useDocDataOnce, useWizard } from 'hooks';
+import { formatPhoneNumber, logDev } from 'modules/utils';
+import { RadioListItem, RadioListVal } from '../BindQuote/PaymentStep';
 import { BaseStepProps } from './ClaimFormWizard';
-
-// TODO: quick select options - cards/radio (named insured & agent)
-// with option to add someone else (collapse ??)
 
 const contactStepVal = object().shape({
   contact: object().shape({
-    // existingEntity: string() 'namedInsured','agent','other'
-    firstName: string().required(),
-    lastName: string().required(),
-    email: emailVal.required(),
-    phone: phoneVal.required(),
-    preferredMethod: string().required(),
+    entityType: string().oneOf(['namedInsured', 'agent', 'other']).required(),
+    firstName: string().when('entityType', {
+      is: 'other',
+      then: string().required('first name required'),
+      otherwise: string().notRequired(),
+    }),
+    lastName: string().when('entityType', {
+      is: 'other',
+      then: string().required('last name required'),
+      otherwise: string().notRequired(),
+    }),
+    email: string().when('entityType', {
+      is: 'other',
+      then: emailVal.required('email required'),
+      otherwise: string().notRequired(),
+    }),
+    phone: string().when('entityType', {
+      is: 'other',
+      then: phoneVal.required('phone required'),
+      otherwise: string().notRequired(),
+    }),
+    preferredMethod: string().required('preferred method required'),
   }),
 });
 
-// TODO: import step from shared form (named insured step ??)
-// TODO: use existing interface
-// ClaimContact
-// interface ContactDetails {
-//   firstName: string;
-//   lastName: string;
-//   email: string;
-//   phone: string;
-//   preferredMethod: string;
-// }
-// export interface ContactValues {
-//   contact: ContactDetails;
-// }
-export type ContactValues = Pick<PolicyClaimFormValues, 'contact'>;
-export type ContactStepProps = BaseStepProps<ContactValues>;
+export type ContactValues = Pick<ClaimFormValues, 'contact'>;
+export type ContactStepProps = BaseStepProps<ContactValues> & { policyId: string };
 
-export const ContactStep = ({ saveFormValues, onError, ...props }: ContactStepProps) => {
+export const ContactStep = ({ saveFormValues, onError, policyId, ...props }: ContactStepProps) => {
   const { nextStep } = useWizard();
+
+  const { data } = useDocDataOnce<Policy>('POLICIES', policyId);
 
   const handleStepSubmit = useCallback(
     async (values: ContactValues) => {
       try {
         // TODO: if contactType === named insured --> override provided, etc.
-        await saveFormValues(values);
+        let contactVals: Partial<ContactValues['contact']> = {};
+        switch (values.contact.entityType) {
+          case 'namedInsured':
+            contactVals = {
+              firstName: data?.namedInsured?.firstName || '',
+              lastName: data?.namedInsured?.lastName || '',
+              email: (data?.namedInsured?.email || '') as ContactValues['contact']['email'],
+              phone: (data?.namedInsured?.phone || '') as ContactValues['contact']['phone'],
+            };
+            break;
+          case 'agent':
+            contactVals = {
+              firstName: data?.agent?.name.split(' ')[0] || '',
+              lastName: data?.agent?.name.split(' ')[1] || '',
+              email: (data?.agent?.email || '') as ContactValues['contact']['email'],
+              phone: (data?.agent?.phone || '') as ContactValues['contact']['phone'],
+            };
+            break;
+        }
+        let vals = {
+          contact: {
+            ...values,
+            ...contactVals,
+          },
+        };
+        // TODO: fix type
+        await saveFormValues(vals as ContactValues);
 
         await nextStep();
       } catch (err: any) {
@@ -61,7 +91,7 @@ export const ContactStep = ({ saveFormValues, onError, ...props }: ContactStepPr
         onError && onError('error saving values');
       }
     },
-    [nextStep, saveFormValues, onError]
+    [nextStep, saveFormValues, onError, data]
   );
 
   return (
@@ -76,43 +106,119 @@ export const ContactStep = ({ saveFormValues, onError, ...props }: ContactStepPr
         validateOnMount
         enableReinitialize
       >
-        {({ handleSubmit, submitForm }) => (
+        {({ handleSubmit, submitForm, values, setFieldValue }) => (
           <Form onSubmit={handleSubmit}>
-            <Grid
-              container
-              rowSpacing={{ xs: 3, sm: 5 }}
-              columnSpacing={{ xs: 4, sm: 6, lg: 8 }}
-              sx={{ my: 5 }}
-            >
-              <Grid xs={6}>
-                <FormikTextField name='contact.firstName' label='First Name' fullWidth />
-              </Grid>
-              <Grid xs={6}>
-                <FormikTextField name='contact.lastName' label='Last Name' fullWidth />
-              </Grid>
-              <Grid xs={12} sm={6}>
-                <FormikTextField name='contact.email' label='Email' fullWidth />
-              </Grid>
-              <Grid xs={12} sm={6}>
-                <FormikMaskField
-                  fullWidth
-                  id='contact.phone'
-                  name='contact.phone'
-                  label='Phone'
-                  maskComponent={IMask}
-                  inputProps={{ maskProps: phoneMaskProps }}
-                />
-              </Grid>
-              <Grid xs={12}>
-                <FormikNativeSelect
-                  selectOptions={['email', 'phone']}
-                  name='contact.preferredMethod'
-                  label='Preferred Method'
-                  fullWidth
-                />
-              </Grid>
-            </Grid>
-
+            <Box>
+              <RadioListItem
+                value='namedInsured'
+                onClick={(value: RadioListVal) => setFieldValue('contact.entityType', value)}
+                selected={values.contact?.entityType === 'namedInsured'}
+                listItemProps={{
+                  divider: true,
+                  secondaryAction: <PersonRounded />,
+                }}
+                listItemButtonProps={{}}
+                listItemTextProps={{
+                  primary: `${data.namedInsured.firstName} ${data.namedInsured.lastName}`,
+                  secondary: `${data.namedInsured?.email}  |  ${
+                    data.namedInsured?.phone ? formatPhoneNumber(data.namedInsured?.phone) : ''
+                  }`,
+                }}
+              />
+              <RadioListItem
+                value='agent'
+                onClick={(value: RadioListVal) => setFieldValue('contact.entityType', value)}
+                selected={values.contact?.entityType === 'agent'}
+                listItemProps={{
+                  divider: true,
+                  secondaryAction: <BusinessRounded />,
+                }}
+                listItemButtonProps={{}}
+                listItemTextProps={{
+                  primary: `${data.agent?.name}`,
+                  secondary: `${data.agent?.email}  |  ${
+                    data.agent?.phone ? formatPhoneNumber(data.agent?.phone) : ''
+                  }`,
+                }}
+              />
+              <RadioListItem
+                value='other'
+                onClick={(value: RadioListVal) => setFieldValue('contact.entityType', value)}
+                selected={values.contact?.entityType === 'other'}
+                listItemProps={{
+                  divider: true,
+                  secondaryAction: <PersonAddRounded />,
+                  alignItems: 'flex-start',
+                }}
+                listItemButtonProps={{}}
+                listItemTextProps={{
+                  primary: 'Other',
+                  secondary:
+                    values.contact?.entityType === 'other' ? (
+                      <Collapse in={values.contact.entityType === 'other'}>
+                        <Grid
+                          container
+                          rowSpacing={3}
+                          columnSpacing={5}
+                          // rowSpacing={{ xs: 3, sm: 5 }}
+                          // columnSpacing={{ xs: 4, sm: 6, lg: 8 }}
+                          // sx={{ my: 5 }}
+                        >
+                          <Grid xs={6}>
+                            <FormikTextField
+                              name='contact.firstName'
+                              label='First Name'
+                              fullWidth
+                              variant='standard'
+                            />
+                          </Grid>
+                          <Grid xs={6}>
+                            <FormikTextField
+                              name='contact.lastName'
+                              label='Last Name'
+                              fullWidth
+                              variant='standard'
+                            />
+                          </Grid>
+                          <Grid xs={12} sm={6}>
+                            <FormikTextField
+                              name='contact.email'
+                              label='Email'
+                              fullWidth
+                              variant='standard'
+                            />
+                          </Grid>
+                          <Grid xs={12} sm={6}>
+                            <FormikMaskField
+                              fullWidth
+                              id='contact.phone'
+                              name='contact.phone'
+                              label='Phone'
+                              maskComponent={IMask}
+                              inputProps={{ maskProps: phoneMaskProps }}
+                              variant='standard'
+                            />
+                          </Grid>
+                        </Grid>
+                      </Collapse>
+                    ) : null,
+                  secondaryTypographyProps: {
+                    fontSize: 13,
+                    fontWeight: 'fontWeightRegular',
+                    color: 'text.secondary', // @ts-ignore
+                    component: 'div',
+                  },
+                }}
+              />
+            </Box>
+            <Box sx={{ py: 3 }}>
+              <FormikNativeSelect
+                selectOptions={['email', 'phone']}
+                name='contact.preferredMethod'
+                label='Preferred Method'
+                fullWidth
+              />
+            </Box>
             <FormikWizardNavButtons onClick={submitForm} />
           </Form>
         )}
