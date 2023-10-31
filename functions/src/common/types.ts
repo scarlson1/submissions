@@ -925,7 +925,7 @@ export const BaseLocation = z.object({
   blurHash: LocationImages.optional().nullable(),
   locationId: z.string().min(5, 'location ID must be at least 5 characters'),
   policyId: z.string().min(5, 'policy ID must be at least 5 characters').optional().nullable(),
-  quoteId: z.string().optional().nullable(),
+  quoteId: z.string().nullable().optional(),
   submissionId: z.string().optional().nullable(),
   externalId: z.string().optional().nullable(),
   metadata: BaseMetadata,
@@ -956,8 +956,8 @@ export const ILocationPolicy = BaseLocation.and(
   z.object({
     parentType: z.literal(LocationParent.enum.policy),
     policyId: z.string().min(5, 'policy ID must be at least 5 characters'),
-    quoteId: z.string().optional().nullable(),
-    submissionId: z.string().optional().nullable(),
+    quoteId: z.string().nullable().optional(),
+    submissionId: z.string().nullable().optional(),
   })
 );
 export type ILocationPolicy = z.infer<typeof ILocationPolicy>;
@@ -1051,7 +1051,7 @@ export const Policy = z.object({
   expirationDate: Timestamp,
   cancelEffDate: Timestamp.optional().nullable(),
   cancelReason: CancelReason.optional().nullable(),
-  userId: z.string(),
+  userId: z.string().nullable(),
   agent: AgentDetails,
   agency: AgencyDetails,
   billingEntities: z.record(BillingEntity),
@@ -1059,7 +1059,7 @@ export const Policy = z.object({
   surplusLinesProducerOfRecord: SLProdOfRecordDetails,
   // TODO: add address to carrier CarrierDetails: name, address (carrierId ??)
   issuingCarrier: z.string(),
-  quoteId: z.string().nullable(),
+  quoteId: z.string().optional().nullable(),
   // TODO: delete once "sendPolicyDoc" updated to generate pdf instead of upload
   documents: z
     .array(

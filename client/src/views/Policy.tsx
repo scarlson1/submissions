@@ -35,8 +35,9 @@ import { Suspense, useCallback, useMemo } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { z } from 'zod';
 
+import { convertPolicySchema } from 'api';
 import { ILocation, Policy as IPolicy, WithId } from 'common';
-import { ErrorFallback, LoadingSpinner, NotFound } from 'components';
+import { ClaimsGuard, ErrorFallback, LoadingSpinner, NotFound } from 'components';
 import { IconMenu } from 'components/IconButtonMenu';
 import { LocationsMap, PolicyLocationCards } from 'elements';
 import {
@@ -46,6 +47,7 @@ import {
 import { ContactList } from 'elements/forms';
 import { LocationsGrid } from 'elements/grids';
 import {
+  useAsyncToast,
   useCreatePolicyChangeRequest,
   useDocData,
   useGeneratePDF,
@@ -64,6 +66,7 @@ import {
   stringAvatar,
 } from 'modules/utils';
 import { useNavigate } from 'react-router-dom';
+import { useFunctions } from 'reactfire';
 import { ROUTES, createPath } from 'router';
 
 // TODO: should locations grid be passed location IDs explicitly ?? instead if querying locations collection
@@ -355,7 +358,7 @@ export const Policy = () => {
             </ToggleButtonGroup>
           </Box>
         </Box>
-        <ErrorBoundary FallbackComponent={ErrorFallback}>
+        <ErrorBoundary FallbackComponent={ErrorFallback} resetKeys={[locationsView]}>
           <Suspense fallback={<LoadingSpinner loading={true} />}>
             {locationsView === 'cards' ? (
               <Box sx={{ py: 2 }}>
@@ -457,6 +460,19 @@ function PolicyIconMenu({ policyId }: { policyId: string }) {
     policyChangeRequest(policyId);
   }, [policyChangeRequest, policyId]);
 
+  const functions = useFunctions();
+  const toast = useAsyncToast();
+  const handleConvertPolicy = useCallback(async () => {
+    try {
+      toast.loading('converting policy...');
+      await convertPolicySchema(functions, { policyId });
+      toast.success('policy converted!');
+    } catch (err: any) {
+      let msg = err?.message || 'error converting policy';
+      toast.error(msg);
+    }
+  }, [functions, toast, policyId]);
+
   return (
     <>
       <Badge badgeContent={count || 0} color='primary'>
@@ -469,6 +485,9 @@ function PolicyIconMenu({ policyId }: { policyId: string }) {
           >
             <MenuItem onClick={handleOpen}>View change requests</MenuItem>
           </Badge>
+          <ClaimsGuard requiredClaims={['IDEMAND_ADMIN']}>
+            <MenuItem onClick={handleConvertPolicy}>Convert Policy</MenuItem>
+          </ClaimsGuard>
         </IconMenu>
       </Badge>
       <ChangeRequestsDialog open={open} handleClose={handleClose} policyId={policyId} />

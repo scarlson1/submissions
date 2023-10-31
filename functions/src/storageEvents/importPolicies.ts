@@ -272,10 +272,10 @@ async function groupByPolicyId(data: ParsedPolicyRow[], firestore: Firestore) {
   const ts = Timestamp.now();
 
   for (const row of data) {
-    let locId = createDocId();
-    lcnIdMap[locId] = row.externalId;
+    let lcnId = createDocId();
+    lcnIdMap[lcnId] = row.externalId;
     info(`Formatting location ${row.externalId}`);
-    const formattedLocation = formatPolicyLocation(row, locId, ts);
+    const formattedLocation = formatPolicyLocation(row, lcnId, ts);
 
     const ratingDocId = createDocId();
     const AALs = {
@@ -297,7 +297,7 @@ async function groupByPolicyId(data: ParsedPolicyRow[], firestore: Firestore) {
     ratingDocData[ratingDocId] = ratingData;
 
     const locationWithRatingId = { ...formattedLocation, ratingDocId };
-    locations[locId] = { ...locationWithRatingId, policyId: row.policyId as string };
+    locations[lcnId] = { ...locationWithRatingId, policyId: row.policyId as string };
 
     const fees = row.fees;
     const taxes = row.taxes;
@@ -313,7 +313,7 @@ async function groupByPolicyId(data: ParsedPolicyRow[], firestore: Firestore) {
         ...existingPolicy,
         fees,
         taxes,
-        locations: { ...existingPolicy.locations, [locId]: policyLocation },
+        locations: { ...existingPolicy.locations, [lcnId]: policyLocation },
       };
 
       policies[policyId] = updatedPolicy;
@@ -326,7 +326,7 @@ async function groupByPolicyId(data: ParsedPolicyRow[], firestore: Firestore) {
         fees,
         taxes,
         locations: {
-          [locId]: policyLocation,
+          [lcnId]: policyLocation,
         },
       };
     }

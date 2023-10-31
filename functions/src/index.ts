@@ -23,6 +23,7 @@ export {
   calcpolicycancelchanges,
   calcpolicychanges,
   calcquote,
+  convertpolicyschema,
   createpolicy,
   createtenantfromsubmission,
   // deliveragencyagreement,

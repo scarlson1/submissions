@@ -54,10 +54,10 @@ export default async (
   // const newLocationIds = Object.keys(newData?.locations || {});
   // const prevLocationIds = Object.keys(prevData?.locations || {});
 
-  // const removedLocationIds = prevLocationIds.filter((locId) => newLocationIds.includes(locId));
+  // const removedLocationIds = prevLocationIds.filter((lcnId) => newLocationIds.includes(lcnId));
 
-  // for (let locId of removedLocationIds) {
-  //   await removeAlgoliaRecord(index, locId);
+  // for (let lcnId of removedLocationIds) {
+  //   await removeAlgoliaRecord(index, lcnId);
   // }
 
   if (!newData) {

@@ -78,6 +78,7 @@ export const getPolicyLocationsFromQuote = (data: Quote, policyId: string) => {
   return locations;
 };
 
+// TODO: zod
 export function getPolicyFromQuote(
   data: WithId<Quote>,
   locations: Record<string, ILocation>,
@@ -135,7 +136,6 @@ export function getPolicyFromQuote(
 
   const policy: Policy = {
     product: 'flood',
-    // status: POLICY_STATUS.AWAITING_PAYMENT,
     paymentStatus: PaymentStatus.enum.awaiting_payment,
     term: 1,
     mailingAddress: data.mailingAddress,

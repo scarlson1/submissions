@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useTheme } from '@mui/material';
 import {
   FlyToInterpolator,
   IconLayer,
@@ -7,10 +7,10 @@ import {
   PickingInfo,
   WebMercatorViewport,
 } from 'deck.gl/typed';
-import { useTheme } from '@mui/material';
+import { useEffect, useState } from 'react';
 
+import { CoordObj, getBoundingBox, getPlaceMarker, svgToDataURL } from 'modules/utils';
 import { DeckMap, DeckMapProps } from './DeckMap';
-import { svgToDataURL, getPlaceMarker, getBoundingBox, CoordObj } from 'modules/utils';
 
 export interface LocationsMapProps extends Omit<DeckMapProps, 'layers' | 'hoverInfo'> {
   data: CoordObj[];
@@ -33,7 +33,12 @@ export const LocationsMap = ({ data, layerProps, ...props }: LocationsMapProps) 
     // alternatively: use bbox from turf and useRef.current.fitBounds with duration: 1000 in config
     // https://github.com/visgl/react-map-gl/blob/7.1-release/examples/zoom-to-bounds/src/app.tsx
     // TODO: check if prev equal to current --> ignore
-    const coordsArr = data.map((d) => [d.coordinates.longitude, d.coordinates.latitude]);
+
+    const coordsArr = data
+      .filter((d) => d.coordinates)
+      .map((d) => [d.coordinates?.longitude, d.coordinates?.latitude]);
+    if (!coordsArr.length) return;
+
     const [minLng, minLat, maxLng, maxLat] = getBoundingBox(coordsArr);
 
     if (
