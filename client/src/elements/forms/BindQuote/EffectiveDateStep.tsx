@@ -97,6 +97,14 @@ export const EffectiveDateStep = ({
                   label: 'New home, required for closing',
                   value: 'new_home_lender_required',
                 },
+                {
+                  label: 'UW waived',
+                  value: 'uw_waived',
+                },
+                {
+                  label: 'Changing from existing policy',
+                  value: 'policy_change',
+                },
               ]}
             />
             <Typography variant='body2' gutterBottom sx={{ py: 2, color: 'text.secondary' }}>

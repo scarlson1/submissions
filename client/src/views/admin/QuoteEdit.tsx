@@ -113,9 +113,9 @@ const useEditQuote = (
                   }))
               : [],
           // @ts-ignore
-          'metadata.updated': Timestamp.now(),
-          // TODO: increment version
-          // 'metadata.version': FieldValue.increment(1)
+          metadata: {
+            updated: Timestamp.now(),
+          },
         };
         await setDoc(quoteRef, quoteUpdates, { merge: true });
 
@@ -176,7 +176,7 @@ export const QuoteEdit = () => {
         limitD: quoteData?.limits?.limitD ?? 25000,
       },
       deductible: quoteData?.deductible ?? 1000,
-      effectiveExceptionRequested: quoteData?.effectiveExceptionRequested || false,
+      effectiveExceptionRequested: quoteData?.effectiveExceptionRequested ?? false,
       effectiveDate: quoteData?.effectiveDate?.toDate() || null,
       fees:
         quoteData?.fees?.map((f) => ({

@@ -12,7 +12,6 @@ import {
   addressSummaryCol,
   annualPremiumCol,
   coordinatesCol,
-  copyBaseProps,
   createdCol,
   deductibleCol,
   displayNameCol,
@@ -130,11 +129,14 @@ export const submissionCols: GridColDef<Submission>[] = [
   updatedCol,
   // TODO: admin only ??
   {
+    ...idCol,
     field: 'propertyDataDocId',
     headerName: 'Property Data Doc ID',
     description: 'Document ID for the property data response',
     valueGetter: (params) => params.row.propertyDataDocId || null,
-    ...copyBaseProps,
+    sortable: false,
+    filterable: false,
+    // ...copyBaseProps,
   },
   {
     ...userIdCol,

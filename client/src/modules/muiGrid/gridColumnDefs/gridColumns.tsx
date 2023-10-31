@@ -366,7 +366,7 @@ export const agencyNameCol: GridColDef = {
   headerName: 'Agency',
   editable: false,
   filterable: true,
-  sortable: true,
+  sortable: false,
   valueGetter: (params) => params.row.agency?.name || null,
 };
 
@@ -489,8 +489,8 @@ export const cityCol: GridColDef = {
   minWidth: 120,
   flex: 1,
   editable: false,
-  sortable: true,
-  filterable: true,
+  sortable: false,
+  filterable: false,
   filterOperators: getGridFirestoreStringOperators(),
 };
 
@@ -514,8 +514,8 @@ export const postalCol: GridColDef = {
   minWidth: 100,
   flex: 1,
   editable: false,
-  sortable: true,
-  filterable: true,
+  sortable: false,
+  filterable: false,
   filterOperators: getGridFirestoreStringOperators(),
 };
 
@@ -526,8 +526,8 @@ export const countyCol: GridColDef = {
   minWidth: 160,
   flex: 1,
   editable: false,
-  sortable: true,
-  filterable: true,
+  sortable: false,
+  filterable: false,
   filterOperators: getGridFirestoreStringOperators(),
 };
 
@@ -538,8 +538,8 @@ export const fipsCol: GridColDef = {
   minWidth: 80,
   flex: 1,
   editable: false,
-  sortable: true,
-  filterable: true,
+  sortable: false,
+  filterable: false,
   filterOperators: getGridFirestoreStringOperators(),
 };
 
@@ -1284,7 +1284,7 @@ export const agentEmailCol: GridColDef = {
   headerName: 'Agent Email',
   editable: false,
   filterable: true,
-  sortable: true,
+  sortable: false,
   filterOperators: getGridFirestoreStringOperators(),
   valueGetter: (params) => params.row.agent?.email || null,
 };

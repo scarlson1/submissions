@@ -1034,7 +1034,6 @@ export const QuoteForm = ({
                 id='namedInsured.phone'
                 label='Insured phone'
                 name='namedInsured.phone'
-                // maskComponent={PhoneMask}
                 maskComponent={IMask}
                 inputProps={{ maskProps: phoneMaskProps }}
               />
