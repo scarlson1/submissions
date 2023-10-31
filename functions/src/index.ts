@@ -3,6 +3,8 @@ import 'firebase-functions';
 
 initializeApp();
 
+// TODO: reset routes/sendgrid to v1 so URL is consistent on all deploys (or set up hosting rewrite ??)
+
 export {
   beforecreate,
   beforesignin,
@@ -10,6 +12,7 @@ export {
   setClaimsFromInvite,
   setUidByEmailOnCreate,
 } from './authEvents/index.js';
+
 export {
   approvechangerequest,
   approveimport,

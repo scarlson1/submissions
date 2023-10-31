@@ -15,6 +15,7 @@ import {
   alpha,
   useTheme,
 } from '@mui/material';
+import * as Sentry from '@sentry/react';
 import axios from 'axios';
 import { Firestore, doc, setDoc } from 'firebase/firestore';
 import { useCallback, useEffect, useState } from 'react';
@@ -430,7 +431,7 @@ async function updateDBEmail(
   } catch (err: any) {
     let msg = `Error updating email in database`;
     if (err.message) msg += ` (${err.message})`;
-    console.log(msg);
+    Sentry.captureException(err);
     if (onError) onError(msg, err);
   }
 }
@@ -479,9 +480,10 @@ function UpdateUserEmail() {
       toast.loading('updating...');
 
       try {
-        await updateUserEmail(data.email, (msg: string) => {
+        await updateUserEmail(data.email, async (msg: string) => {
+          await updateDBEmail(firestore, user!.uid, data.email, console.log);
+
           toast.success(msg);
-          updateDBEmail(firestore, user!.uid, data.email, console.log);
         });
       } catch (err) {
         toast.error('Error updating email');
@@ -489,8 +491,6 @@ function UpdateUserEmail() {
     },
     [toast, updateUserEmail, firestore, user]
   );
-
-  if (!user?.uid) return null;
 
   return (
     <Box sx={{ width: '100%' }}>

@@ -1,4 +1,3 @@
-import { ReactNode, createContext, useCallback, useContext, useMemo, useState } from 'react';
 import {
   UserCredential,
   multiFactor,
@@ -9,9 +8,10 @@ import {
   updatePassword,
   verifyBeforeUpdateEmail,
 } from 'firebase/auth';
+import { ReactNode, createContext, useCallback, useContext, useMemo, useState } from 'react';
+import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { useAuth, useUser } from 'reactfire';
-import { toast } from 'react-hot-toast';
 
 import { useAuth as useAuthI } from './AuthContext';
 
@@ -133,7 +133,7 @@ export const AuthActionsProvider = ({ children }: { children: ReactNode }) => {
         }
 
         await updateEmail(user, newEmail);
-        // TODO: update database email record
+        // TODO: update database email record (currently handled in onSuccess callback)
         if (onSuccess) onSuccess('Email updated!');
       } catch (err) {
         return Promise.reject(err);
