@@ -4,6 +4,7 @@ import { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 import { merge } from 'lodash-es';
 
 import {
+  Collection,
   ILocation,
   getReportErrorFn,
   policiesCollection,
@@ -63,7 +64,7 @@ export default async (
     });
 
     const db = getFirestore();
-    const versionsCol = versionsCollection(db, 'LOCATIONS', locationId);
+    const versionsCol = versionsCollection(db, Collection.enum.LOCATIONS, locationId);
     const policiesCol = policiesCollection(db);
 
     const batch = db.batch();

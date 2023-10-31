@@ -5,6 +5,7 @@ import {
   COLLECTIONS,
   ChangeRequest,
   Charge,
+  Collection,
   Disclosure,
   ILocation,
   ImportSummary,
@@ -120,9 +121,15 @@ export const stagedImportsCollection = (db: Firestore, importId: string) =>
     `${COLLECTIONS.DATA_IMPORTS}/${importId}/${COLLECTIONS.STAGED_RECORDS}`
   );
 
+// export const versionsCollection = <T extends DocumentData>(
+//   db: Firestore,
+//   parentCollection: keyof typeof COLLECTIONS,
+//   parentId: string
+// ) =>
+//   createCollection<T>(db, `${COLLECTIONS[parentCollection]}/${parentId}/${COLLECTIONS.VERSIONS}`);
+
 export const versionsCollection = <T extends DocumentData>(
   db: Firestore,
-  parentCollection: keyof typeof COLLECTIONS,
+  parentCollection: Collection, // keyof typeof COLLECTIONS,
   parentId: string
-) =>
-  createCollection<T>(db, `${COLLECTIONS[parentCollection]}/${parentId}/${COLLECTIONS.VERSIONS}`);
+) => createCollection<T>(db, `${parentCollection}/${parentId}/${COLLECTIONS.VERSIONS}`);

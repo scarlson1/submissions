@@ -1,15 +1,17 @@
-import { Functions, httpsCallable } from 'firebase/functions';
+export {};
 
-export interface ConvertPolicySchemaRequest {
-  policyId: string;
-}
+// import { Functions, httpsCallable } from 'firebase/functions';
 
-export interface ConvertPolicySchemaResponse {
-  status: string;
-}
+// export interface ConvertPolicySchemaRequest {
+//   policyId: string;
+// }
 
-export const convertPolicySchema = (functions: Functions, args: ConvertPolicySchemaRequest) =>
-  httpsCallable<ConvertPolicySchemaRequest, ConvertPolicySchemaResponse>(
-    functions,
-    'convertpolicyschema'
-  )(args);
+// export interface ConvertPolicySchemaResponse {
+//   status: string;
+// }
+
+// export const convertPolicySchema = (functions: Functions, args: ConvertPolicySchemaRequest) =>
+//   httpsCallable<ConvertPolicySchemaRequest, ConvertPolicySchemaResponse>(
+//     functions,
+//     'convertpolicyschema'
+//   )(args);

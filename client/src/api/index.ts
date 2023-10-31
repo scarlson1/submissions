@@ -7,7 +7,7 @@ export { calcLocationChanges } from './calcLocationChanges';
 export { calcPolicyCancelChanges } from './calcPolicyCancelChanges';
 export { calcPolicyChanges } from './calcPolicyChanges';
 export { calcQuote } from './calcQuote';
-export { convertPolicySchema } from './convertPolicySchema';
+// export { convertPolicySchema } from './convertPolicySchema';
 export { createPolicy } from './createPolicy';
 export { createTenantFromSubmission } from './createTenantFromSubmission';
 export { deliverAgencyAgreement } from './deliverAgencyAgreement';

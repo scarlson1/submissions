@@ -3,7 +3,13 @@ import { info } from 'firebase-functions/logger';
 import { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 import { merge } from 'lodash-es';
 
-import { DeepPartial, Policy, getReportErrorFn, versionsCollection } from '../../common/index.js';
+import {
+  Collection,
+  DeepPartial,
+  Policy,
+  getReportErrorFn,
+  versionsCollection,
+} from '../../common/index.js';
 import { flattenObj, getDifference, hasOne } from '../../utils/index.js';
 
 const VERSION_POLICY_DIFF_KEYS = [
@@ -74,7 +80,7 @@ export default async (
     });
 
     const db = getFirestore();
-    const versionsCol = versionsCollection(db, 'POLICIES', policyId);
+    const versionsCol = versionsCollection(db, Collection.enum.POLICIES, policyId);
 
     const batch = db.batch();
 
@@ -91,6 +97,7 @@ export default async (
     if (shouldVersion && beforeData) {
       const versionDocId = beforeData.metadata?.version || 0;
       const versionRef = versionsCol.doc(`${versionDocId}`);
+      info('Creating new policy version doc...', { docPath: versionRef.path });
 
       const versionData = merge(beforeData, {
         metadata: { versionCreated: Timestamp.now() },

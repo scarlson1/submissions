@@ -3,9 +3,13 @@ import { info } from 'firebase-functions/logger';
 import { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 import { merge } from 'lodash-es';
 
-import { Submission, getReportErrorFn, versionsCollection } from '../../common/index.js';
-import { getDifference } from '../../utils/index.js';
-import { hasOne } from '../../utils/index.js';
+import {
+  Collection,
+  Submission,
+  getReportErrorFn,
+  versionsCollection,
+} from '../../common/index.js';
+import { getDifference, hasOne } from '../../utils/index.js';
 
 const VERSION_SUBMISSION_DIFF_KEYS = [
   'deductible',
@@ -57,7 +61,7 @@ export default async (
     });
 
     const db = getFirestore();
-    const versionsCol = versionsCollection(db, 'SUBMISSIONS', submissionId);
+    const versionsCol = versionsCollection(db, Collection.enum.SUBMISSIONS, submissionId);
 
     const batch = db.batch();
 

@@ -3,9 +3,8 @@ import { info } from 'firebase-functions/logger';
 import { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 import { merge } from 'lodash-es';
 
-import { Quote, getReportErrorFn, versionsCollection } from '../../common/index.js';
-import { getDifference } from '../../utils/index.js';
-import { hasOne } from '../../utils/index.js';
+import { Collection, Quote, getReportErrorFn, versionsCollection } from '../../common/index.js';
+import { getDifference, hasOne } from '../../utils/index.js';
 
 const VERSION_QUOTE_DIFF_KEYS = [
   'deductible',
@@ -54,7 +53,7 @@ export default async (
     });
 
     const db = getFirestore();
-    const versionsCol = versionsCollection(db, 'QUOTES', quoteId);
+    const versionsCol = versionsCollection(db, Collection.enum.QUOTES, quoteId);
 
     const batch = db.batch();
 

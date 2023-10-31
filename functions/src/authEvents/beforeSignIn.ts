@@ -6,6 +6,9 @@ import jwt from 'jsonwebtoken';
 import { emailVerificationKey, env, functionsBaseURL, sendgridApiKey } from '../common/index.js';
 import { ExtraSendGridArgs, sendEmailConfirmation } from '../services/sendgrid/index.js';
 
+// TODO: consider using auth event to update DB user email ??
+// https://stackoverflow.com/a/47933914/10887890
+
 export default async (event: AuthBlockingEvent) => {
   const user = event.data;
   // REQUIRE EMAIL VERIFICATION BEFORE CREATING ACCOUNT IF @idemandinsurance.com DOMAIN
