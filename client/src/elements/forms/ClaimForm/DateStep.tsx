@@ -16,9 +16,6 @@ const dateStepVal = object().shape({
 export interface DateValues {
   occurrenceDate: Date | null;
 }
-// export interface FirestoreDateValues {
-//   occurrenceDate: Timestamp | null;
-// }
 export type FirestoreDateValues = Pick<ClaimFormValues, 'occurrenceDate'>;
 
 const maxDate = new Date();

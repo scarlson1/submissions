@@ -1,7 +1,7 @@
 import { CheckCircleRounded } from '@mui/icons-material';
 import { Box, Unstable_Grid2 as Grid, Stack, Typography } from '@mui/material';
 import { UploadResult } from 'firebase/storage';
-import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
+import { ReactNode, useCallback, useMemo, useState } from 'react';
 
 import {
   UploadFilesDialogComponent,
@@ -57,10 +57,10 @@ export const CSVUploadDialog = ({
     (err, msg) => console.log('upload failed: ', msg, err)
   );
 
-  useEffect(() => {
-    console.log('Header status: ', isValid, headerStatus);
-    console.log('Loading/Files: ', uploadLoading, uploadFiles);
-  }, [isValid, headerStatus, uploadFiles, uploadLoading]);
+  // useEffect(() => {
+  //   console.log('Header status: ', isValid, headerStatus);
+  //   console.log('Loading/Files: ', uploadLoading, uploadFiles);
+  // }, [isValid, headerStatus, uploadFiles, uploadLoading]);
 
   // react-papaparse: https://github.com/Bunlong/react-papaparse/blob/master/src/useCSVReader.tsx
 

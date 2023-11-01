@@ -67,7 +67,6 @@ export const Header = (props: HeaderProps) => {
   const { toggleColorMode: changeTheme } = useChangeTheme();
   const navigate = useNavigate();
   const location = useLocation();
-  // const { user, claims } = useAuth();
   const { user, claims } = useClaims();
 
   const adminNavPages = useMemo(
@@ -230,7 +229,7 @@ export const Header = (props: HeaderProps) => {
   }, [claims, adminNavPages, agentNavPages, userNavPages]);
 
   return (
-    (<AppBar
+    <AppBar
       position='static'
       elevation={0}
       sx={{
@@ -425,11 +424,11 @@ export const Header = (props: HeaderProps) => {
 
             {!!user ? (
               // <UserMenu menuItems={settings} />
-              (<AuthActionsProvider>
+              <AuthActionsProvider>
                 <Suspense fallback={<UserMenuSkeleton />}>
                   <UserMenu />
                 </Suspense>
-              </AuthActionsProvider>)
+              </AuthActionsProvider>
             ) : (
               <Button
                 onClick={() =>
@@ -443,7 +442,7 @@ export const Header = (props: HeaderProps) => {
           </Box>
         </Toolbar>
       </Container>
-    </AppBar>)
+    </AppBar>
   );
 };
 

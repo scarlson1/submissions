@@ -35,8 +35,9 @@ export const EditActiveStates = () => {
   let { productId } = useSafeParams(['productId']);
   const { data } = useDocData<{ [key: string]: boolean }>('ACTIVE_STATES', productId);
   const fetchLicenses = useFetchLicenses([where('surplusLinesProducerOfRecord', '==', true)]);
-
   const formikRef = useRef<FormikProps<EditActiveStatesValues>>(null);
+
+  const { id, ...states } = data;
 
   const handleSave = useCallback(() => {
     formikRef.current?.submitForm();
@@ -173,7 +174,7 @@ export const EditActiveStates = () => {
             WV: false,
             WI: false,
             WY: false,
-            ...data,
+            ...states,
           }}
           onSubmit={handleSubmit}
           enableReinitialize
