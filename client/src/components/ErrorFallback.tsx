@@ -20,6 +20,8 @@ export function ErrorFallback({ error, resetErrorBoundary }: ErrorFallbackProps)
     console.log('auth/network-request-failed err --> refreshing token...');
     lastRefreshMS = new Date().getTime();
     user?.getIdToken();
+    //
+    window.location.reload();
   }
 
   return (
