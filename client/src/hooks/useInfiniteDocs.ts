@@ -18,6 +18,10 @@ export const useInfiniteDocs = <T>(
   constraints: QueryConstraint[],
   pageSize: number = 4,
   pathSegments: string[] = []
+  // queryOptions: Omit<
+  //   UseInfiniteQueryOptions,
+  //   'queryKey' | 'queryFn' | 'getNextPageParam' | 'initialPageParam'
+  // >
 ) => {
   const firestore = useFirestore();
 
@@ -44,5 +48,8 @@ export const useInfiniteDocs = <T>(
     queryFn: fetchDocs,
     initialPageParam: null,
     getNextPageParam: (lastPage, pages) => lastPage.nextCursor,
+    staleTime: 30000,
+    gcTime: 600000, // 10 mins
+    // ...(queryOptions || {}),
   });
 };

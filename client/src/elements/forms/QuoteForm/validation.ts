@@ -42,7 +42,7 @@ export const getQuoteValidation = (activeStates: Record<string, boolean>) =>
     deductible: yup.number().min(1000).required(),
     fees: yup.array().of(
       yup.object().shape({
-        feeName: yup.string().typeError('fee name required').required('fee name is required'),
+        displayName: yup.string().typeError('fee name required').required('fee name is required'),
         value: yup
           .string()
           .typeError('fee value required (string)')
@@ -85,8 +85,13 @@ export const getQuoteValidation = (activeStates: Record<string, boolean>) =>
                 premium: values.annualPremium || 0,
                 homeStatePremium: values.annualPremium || 0,
                 outStatePremium: 0,
-                inspectionFees: sumByTypes<TFeeItem>(fees, 'feeName', 'Inspection Fee', 'value'),
-                mgaFees: sumByTypes<TFeeItem>(fees, 'feeName', 'MGA Fee', 'value'),
+                inspectionFees: sumByTypes<TFeeItem>(
+                  fees,
+                  'displayName',
+                  'Inspection Fee',
+                  'value'
+                ),
+                mgaFees: sumByTypes<TFeeItem>(fees, 'displayName', 'MGA Fee', 'value'),
               };
 
               // TODO: fix "as" typing

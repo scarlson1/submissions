@@ -1,5 +1,8 @@
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import * as Sentry from '@sentry/react';
 import { useEffect } from 'react';
-import './App.css';
+import { ErrorBoundary } from 'react-error-boundary';
 import {
   Outlet,
   createRoutesFromChildren,
@@ -7,14 +10,12 @@ import {
   useLocation,
   useNavigationType,
 } from 'react-router-dom';
-import { ErrorBoundary } from 'react-error-boundary';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import * as Sentry from '@sentry/react';
+import './App.css';
 
-import { AuthProvider, DialogProvider, ThemeProvider, ConfirmationProvider } from 'context';
 import { ErrorFallback, Toaster } from 'components';
+import { AuthProvider, ConfirmationProvider, DialogProvider, ThemeProvider } from 'context';
 import { useAnalyticsEvent } from 'hooks';
+import { PageMeta } from 'router';
 
 // TODO: set up Sentry for error logging
 // https://docs.sentry.io/platforms/javascript/guides/react/?original_referrer=https%3A%2F%2Fsentry.io%2F
@@ -68,6 +69,7 @@ function App() {
           <ConfirmationProvider>
             <DialogProvider>
               <AuthProvider>
+                <PageMeta title='iDemand' />
                 <Outlet />
                 <Toaster />
               </AuthProvider>

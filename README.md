@@ -74,7 +74,7 @@ Claims are kept up to date in the AuthContext component. To get around the issue
 - `quotes/:productId/new` - create quote from scratch
 - `quotes/:productId/new/:submissionId` - create new quote from data in `submissionId`
 - `admin/policies/:policyId/delivery` - form to upload policy document (PDF) to storage, and optionally deliver to user via email (policy pdf attached). Eventually will be replaced when backend is ready to generate documents.
-- `admin/sl-tax` - grid of surplus lines taxes
+- `admin/taxes` - grid of surplus lines taxes
   - `new` - create new surplus lines tax
 - `admin/moratoriums` - grid of moratoriums
   - `new` - create new moratorium

@@ -6,13 +6,19 @@ import { LoadingComponent } from 'components/layout';
 import { useSafeParams } from 'hooks';
 import { usePrevious } from 'hooks/utils';
 import { createChangeRequest } from 'modules/db';
+import { PageMeta } from 'router';
 import { LocationChangeWizard } from './LocationChangeWizard';
 
 // TODO: delete (was used when change location had dedicated route)
 export const LocationChangeWrapper = () => {
   const { policyId, locationId } = useSafeParams(['policyId', 'locationId']);
 
-  return <LocationChange policyId={policyId} locationId={locationId} />;
+  return (
+    <>
+      <PageMeta title={`iDemand - Change Request ${locationId}`} />
+      <LocationChange policyId={policyId} locationId={locationId} />
+    </>
+  );
 };
 
 export const LocationChange = ({

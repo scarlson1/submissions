@@ -1,3 +1,4 @@
+import { printObj } from '../../common/helpers.js';
 import { GetPremiumCalcResult } from '../../modules/rating/index.js';
 
 export interface FlattenedPremData {
@@ -38,6 +39,8 @@ export interface FlattenedPremData {
  * @returns {FlattenedPremData} 1 dimension object
  */
 export function flattenPremData(rowPremData: GetPremiumCalcResult): FlattenedPremData {
+  console.log('row prem data: ');
+  printObj(rowPremData);
   const premium = rowPremData?.premiumData?.annualPremium ?? '';
   const minPrem = rowPremData?.minPremium ?? '';
   const inlandMult = rowPremData?.secondaryFactorMults?.inland ?? '';

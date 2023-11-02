@@ -3,6 +3,7 @@ import {
   ILocation,
   Limits,
   PremiumCalcData,
+  State,
   ValueByRiskType,
   defaultFloodZone,
 } from '../../common/index.js';
@@ -16,7 +17,7 @@ export interface GetPremiumProps {
   AALs: ValueByRiskType;
   limits: Limits;
   priorLossCount: string;
-  state: string;
+  state: State;
   FFH?: number;
   basement?: string;
   floodZone?: string;
@@ -66,7 +67,7 @@ export const getPremium = (props: GetPremiumProps): GetPremiumCalcResult => {
     inlandStateMult = 1.5,
     surgeStateMult = 3,
     tsunamiStateMult = 1,
-  } = multipliersByState[state];
+  } = multipliersByState[state.toUpperCase()];
 
   const secondaryFactorMults = getSecondaryFactorMults({
     FFH,
@@ -110,7 +111,7 @@ export function getGetPremProps(
   return {
     AALs,
     limits,
-    state: location.address.state,
+    state: location.address.state as State, // TODO: fix typing
     basement: location.ratingPropertyData.basement,
     floodZone: location.ratingPropertyData.floodZone,
     priorLossCount: location.ratingPropertyData.priorLossCount || '0',

@@ -186,6 +186,7 @@ export interface Submission extends Omit<FloodValues, 'ratingPropertyData'> {
   // rcvSourceUser?: boolean;
   rcvSourceUser?: number | null;
   ratingPropertyData: Nullable<RatingPropertyData>;
+  elevationData?: ElevationResult | null;
   propertyDataDocId: string | null;
   ratingDocId?: string | null;
   initValues: InitRatingValues;
@@ -513,6 +514,14 @@ export const Tax = TaxItem.omit({ value: true }).and(
 );
 export type TTax = z.infer<typeof Tax>;
 
+export interface ElevationResult {
+  elevation: number;
+  lat: number;
+  lon: number;
+  data_source: string;
+  resolution: number;
+}
+
 const currentYear = new Date().getFullYear();
 export const RatingPropertyDataZ = z.object({
   CBRSDesignation: CBRSDesignation.optional().nullable(),
@@ -534,22 +543,9 @@ export const RatingPropertyDataZ = z.object({
   FFH: z.coerce.number().int().optional().nullable(),
   priorLossCount: PriorLossCount.optional().nullable(),
   units: z.coerce.number().optional().nullable(),
+  elevation: z.number().optional().nullable(),
 });
 export type RatingPropertyData = z.infer<typeof RatingPropertyDataZ>;
-
-// export interface RatingPropertyData {
-//   CBRSDesignation: string;
-//   basement: string; // BasementOptions | null;
-//   distToCoastFeet: number;
-//   floodZone: string; // TFloodZone
-//   numStories: number;
-//   propertyCode: string;
-//   replacementCost: number;
-//   sqFootage: number;
-//   yearBuilt: number;
-//   FFH?: number;
-//   priorLossCount?: string | null;
-// }
 
 interface RatingCalcData {
   AALs: ValueByRiskType;
@@ -562,12 +558,12 @@ interface RatingCalcData {
 type PropWithRatingCalcData = Nullable<RatingPropertyData> & RatingCalcData;
 
 export const FeeItem = z.object({
-  feeName: FeeItemName,
+  displayName: FeeItemName,
   value: z.number(),
 });
 export type TFeeItem = z.infer<typeof FeeItem>;
 // export interface FeeItem {
-//   feeName: TFeeItemName;
+//   displayName: TFeeItemName;
 //   value: number;
 // }
 

@@ -5,5 +5,7 @@ export { getSignNowInstance } from './signNow.js';
 export { generateSRAccessToken, getSwissReInstance } from './swissRe.js';
 // export { getFirebaseAdmin } from './getFirebaseAdmin.js';
 export { checkMoratoriums } from './checkMoratoriums.js';
+export * from './elevationApi.js';
+export { geocodeAddress } from './geocodeAddress.js';
 export { getFEMAFloodZone } from './getFloodZone.js';
 export { getSubmissionsInstance } from './submissionsApi.js';

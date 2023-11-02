@@ -259,7 +259,7 @@ export const ReviewStepComponent = ({
                 <Fragment key={`fee-${i}`}>
                   <Grid xs={8}>
                     <Typography variant='body1' sx={{ fontSize: '0.875rem' }}>
-                      {f?.feeName}
+                      {f?.displayName}
                     </Typography>
                   </Grid>
                   <Grid xs={4}>

@@ -65,8 +65,6 @@ export function sumFeesTaxesPremium(fees: FeeItem[], taxes: TaxItem[], premium: 
   return round(premium + feeTotal + taxTotal, 2);
 }
 
-// TODO: OKLAHOMA --> no taxes --> need to filter out OK before splitting taxes
-
 export function getInStatePremium(homeState: string, locations: PolicyLocation[]) {
   const total = sumByTypes<PolicyLocation>(locations, 'address.st', homeState, 'termPremium');
 
@@ -142,8 +140,11 @@ export const calcPremiumByBillingEntity = (
     };
   }
 
+  // adjust largest billing entity for any arithmetic differences
+
   let largestEntity = maxBy(Object.entries(totalsByEntity), ([id, totals]) => totals.termPremium);
   const largestEntityId = largestEntity ? largestEntity[0] : null;
+  if (!largestEntityId) throw new Error('failed to determine largest entity');
 
   const totalsObj = Object.values(totalsByEntity);
 

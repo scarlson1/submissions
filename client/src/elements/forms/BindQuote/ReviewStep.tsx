@@ -156,8 +156,8 @@ export function ReviewStep({ data, logAnalyticsStep }: ReviewStepProps) {
         <LineItem label='Premium' value={data.annualPremium} />
         {data.fees.map((fee) => (
           <LineItem
-            key={`${fee.feeName}-${fee.value}`}
-            label={fee.feeName}
+            key={`${fee.displayName}-${fee.value}`}
+            label={fee.displayName}
             value={fee.value}
             labelTypographyProps={{ sx: { ml: 4 }, fontSize: '0.8rem' }}
             valueTypographyProps={{ fontWeight: 'regular', fontSize: '0.8rem' }}

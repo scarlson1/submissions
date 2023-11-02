@@ -6,6 +6,7 @@ import {
   algoliaUserBaseKey,
   attomKey,
   ePayCreds,
+  elevationKey,
   firebaseHashConfig,
   minInstances,
   sendgridApiKey,
@@ -103,7 +104,7 @@ export const getannualpremium = onCall(
 
 export const getpropertydetailsattom = onCall(
   {
-    secrets: [attomKey],
+    secrets: [attomKey, elevationKey],
     memory: '256MiB',
   },
   async (request: CallableRequest<GetPropertyDetailsAttomRequest>) => {

@@ -75,6 +75,17 @@ export const TrxRow = z.object({
   techPremiumInland: z.string(),
   techPremiumSurge: z.string(),
   techPremiumTsunami: z.string(),
+  billingEntityId: z.string(),
+  billingEntityName: z.string(),
+  billingEntityEmail: z.string(),
+  billingEntityPhone: z.string(),
+  billingType: z.string(),
+  billingEntityTermPremium: z.string(),
+  billingEntitySurplusLinesTax: z.string(),
+  billingEntitySurplusLinesRegulatoryFee: z.string(),
+  billingEntityMgaFee: z.string(),
+  billingEntityInspectionFee: z.string(),
+  billingEntityPrice: z.string(),
 });
 export type TrxRow = z.infer<typeof TrxRow>;
 

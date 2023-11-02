@@ -1,4 +1,4 @@
-import axios, { AxiosResponse } from 'axios';
+import axios from 'axios';
 import { Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
@@ -11,12 +11,21 @@ import {
   Nullable,
   attomKey as attomKeySecret,
   audience,
+  elevationKey,
+  googleGeoKey,
   maxA,
   minA,
   propertyDataResCollection,
 } from '../common/index.js';
-import { getAttomInstance, getFEMAFloodZone } from '../services/index.js';
+import { getAttomProperty } from '../services/attom.js';
+import { geocodeAddress, getElevation, getFEMAFloodZone } from '../services/index.js';
 import { onCallWrapper } from '../services/sentry/index.js';
+import { isValidCoords } from '../utils/validateCoords.js';
+import { validate } from './utils/index.js';
+
+function getMockAttomData() {
+  return axios.get('https://scarlson1.github.io/data/attom.json').then(({ data }) => data);
+}
 
 let defaultLimitPercents: { [key in LimitTypes]: number } = {
   limitA: 1,
@@ -40,60 +49,90 @@ const getPropertyDetailsAttom = async ({
   data,
 }: CallableRequest<GetPropertyDetailsAttomRequest>) => {
   info('data: ', data);
-  const { addressLine1, addressLine2 = '', city, state, postal = '', coordinates } = data;
-  if (!addressLine1 || !city || !state) {
-    throw new HttpsError('invalid-argument', `Missing address components in request body`);
-  }
-
-  const attomKey = attomKeySecret.value();
-  if (!attomKey) throw new HttpsError('internal', `Missing property data api key`);
-  const attomInstance = getAttomInstance(attomKey);
+  let { addressLine1, addressLine2 = '', city, state, postal = '', coordinates } = data;
+  validate(
+    addressLine1 && city && state,
+    'failed-precondition',
+    'Missing address components in request body'
+  );
 
   let basicProfileRes;
   let profile;
   let propertyDetails;
-  // TODO: call getFEMAFloodZone and promise.all
+  let elevationData: Awaited<ReturnType<typeof getElevation>> | null = null;
+
   try {
     if (audience.value() === 'LOCAL HUMANS') {
-      // audience.value() === 'DEV HUMANS' ||
       info('USING MOCK RESPONSE FROM GITHUB');
-      const { data: githubMockData } = await axios.get(
-        'https://scarlson1.github.io/data/attom.json'
-      );
-      basicProfileRes = githubMockData;
+      basicProfileRes = await getMockAttomData();
+      profile =
+        basicProfileRes?.property && basicProfileRes.property.length > 0
+          ? basicProfileRes.property[0]
+          : null;
     } else {
-      let { data: basicRes }: AxiosResponse<any> = await attomInstance.get(
-        `/propertyapi/v1.0.0/property/basicprofile?address1=${encodeURIComponent(
-          `${addressLine1} ${addressLine2}`.trim()
-        )}&address2=${encodeURIComponent(`${city}, ${state} ${postal}`.trim())}`
+      let { data: basicRes, profile: extractedProfile } = await getAttomProperty(
+        attomKeySecret.value(),
+        {
+          addressLine1,
+          addressLine2,
+          city,
+          state,
+          postal,
+        }
       );
       basicProfileRes = basicRes;
+      profile = extractedProfile;
+      info('BASIC PROFILE: ', { profile });
     }
-    profile =
-      basicProfileRes?.property && basicProfileRes.property.length > 0
-        ? basicProfileRes.property[0]
-        : null;
-    info('BASIC PROFILE: ', { profile });
-
-    // TODO: get property details ??
   } catch (err) {
     throw new HttpsError('internal', `Error fetching property data`);
   }
 
-  let floodZone = '';
-  try {
-    const latitude = coordinates?.latitude;
-    const longitude = coordinates?.longitude;
-    if (latitude && longitude) {
-      const fzRes = await getFEMAFloodZone(latitude, longitude);
-      if (fzRes) floodZone = fzRes;
+  // set coordinates from property data res (if not provided)
+  if (!isValidCoords(coordinates)) {
+    let latitude = profile?.location?.latitude ? Number(profile?.location?.latitude) : null;
+    let longitude = profile?.location?.longitude ? Number(profile?.location?.longitude) : null;
+    if (typeof latitude === 'number' && typeof longitude === 'number') {
+      coordinates = {
+        latitude,
+        longitude,
+      };
     }
-  } catch (err: any) {
-    error('Error fetching flood zone: ', { err });
+  }
+
+  if (!isValidCoords(coordinates)) {
+    try {
+      info('geocoding address...', data);
+      const geocodeResult = await geocodeAddress(googleGeoKey.value(), {
+        addressLine1,
+        city,
+        state,
+        postal,
+      });
+      coordinates = geocodeResult.coordinates;
+    } catch (err: any) {
+      error('Error fetching flood zone: ', { err });
+    }
+  }
+
+  let floodZone = '';
+  if (isValidCoords(coordinates)) {
+    try {
+      console.log('fetching flood zone and elevation...');
+      const [fzRes, elevationRes] = await Promise.all([
+        getFEMAFloodZone(coordinates),
+        getElevation(elevationKey.value(), coordinates),
+      ]);
+      info(`flood zone and elevation res: `, { fzRes, elevationRes });
+      if (fzRes) floodZone = fzRes;
+      elevationData = elevationRes;
+    } catch (err: any) {
+      error('Error fetching flood zone: ', { err });
+    }
   }
 
   if (profile) {
-    const fallback: { [key: string]: number | string | null } = {
+    const fallback: { [key: string]: number | string | null | Nullable<Coordinates> } = {
       initLimitA: null,
       initLimitB: null,
       initLimitC: null,
@@ -101,18 +140,21 @@ const getPropertyDetailsAttom = async ({
       initDeductible: null,
       maxDeductible: 200000,
       attomDocId: null,
+      coordinates: {
+        latitude: coordinates?.latitude || null,
+        longitude: coordinates?.longitude || null,
+      },
     };
     let attomDocRef;
 
     try {
       const propertyDataCol = propertyDataResCollection(getFirestore());
-      // attomDocRef = await getFirestore()
-      //   .collection('attom')
       attomDocRef = await propertyDataCol.add({
         basicProfileResponse: basicProfileRes,
         profile: profile || null,
         detailsRes: propertyDetails || null,
         attomId: profile.identifier.attomId || null,
+        elevationData,
         metadata: {
           created: Timestamp.now(),
         },
@@ -124,11 +166,16 @@ const getPropertyDetailsAttom = async ({
     }
 
     try {
-      let validatedRatingData = await validateAttomRes(profile, state, floodZone);
-      let { replacementCost } = validatedRatingData;
-      info('validated data: ', { ...validatedRatingData });
+      let attomRatingData = extractRatingDataAttom(
+        profile,
+        state,
+        floodZone,
+        elevationData?.elevation
+      );
+      let { replacementCost } = attomRatingData;
+      info('Attom rating data: ', { ...attomRatingData });
 
-      if (!replacementCost) return { ...validatedRatingData, ...fallback };
+      if (!replacementCost) return { ...attomRatingData, ...fallback };
 
       let res: any;
 
@@ -145,15 +192,6 @@ const getPropertyDetailsAttom = async ({
           initLimitD: ceil(limitARef * defaultLimitPercents['limitD'], -3),
         };
 
-        // let limitARef = roundUpToNearest(Math.min(Math.max(replacementCost, MIN_A), MAX_A), 3);
-
-        // let defaults: InitLimits = {
-        //   initLimitA: limitARef,
-        //   initLimitB: roundUpToNearest(limitARef * defaultLimitPercents['limitB'], 3),
-        //   initLimitC: roundUpToNearest(limitARef * defaultLimitPercents['limitC'], 3),
-        //   initLimitD: roundUpToNearest(limitARef * defaultLimitPercents['limitD'], 3),
-        // };
-
         res = { ...defaults, attomDocId: attomDocRef?.id ?? null };
         const sumCoverage = sum(Object.values(defaults));
         res.initDeductible = ceil(sumCoverage * 0.01, -3);
@@ -161,7 +199,15 @@ const getPropertyDetailsAttom = async ({
 
         info('GET PROPERTY DETAILS ATTOM RES: ', { ...res });
 
-        return { ...validatedRatingData, ...res };
+        return {
+          ...attomRatingData,
+          ...res,
+          coordinates: {
+            latitude: coordinates?.latitude || null,
+            longitude: coordinates?.longitude || null,
+          },
+          elevationData,
+        };
       } catch (err: any) {
         error('ERROR CALCULATING DEFAULT LIMITS/DEDUCTIBLE. USING FALLBACK NFIP. ERROR: ', {
           stack: err?.stack || null,
@@ -169,7 +215,7 @@ const getPropertyDetailsAttom = async ({
           code: err?.code || null,
         });
 
-        return { ...validatedRatingData, ...fallback };
+        return { ...attomRatingData, ...fallback, elevationData };
       }
     } catch (err) {
       console.log('ERROR VALIDATING SPATIAL KEY RESPONSE. USING FALLBACK NFIP. ERROR: ', err);
@@ -190,7 +236,12 @@ interface AttomBasicProfile {
   [key: string]: any;
 }
 
-async function validateAttomRes(attomData: AttomBasicProfile, state: string, fz?: string) {
+function extractRatingDataAttom(
+  attomData: AttomBasicProfile,
+  state: string,
+  fz?: string,
+  elevation?: number | null
+) {
   const { summary, building, assessment } = attomData;
 
   let sqFootage = building?.size?.livingSize || null;
@@ -200,29 +251,17 @@ async function validateAttomRes(attomData: AttomBasicProfile, state: string, fz?
   let yearBuilt = summary?.yearBuilt || null; // TODO: worth calling details endpoint for effective year built ??
   let floodZone = fz || ''; // attomData.us_hh_fema_all_params_zone;
   let CBRSDesignation = ''; // attomData.us_hh_fema_cbrs_params_designation;
-  let basement = building?.interior?.bsmtType ? building?.interior?.bsmtType.toLowerCase() : 'no';
+  let basement = building?.interior?.bsmtType?.toLowerCase() || 'unknown'; // TODO: basement res types
   let distToCoastFeet = 1000000;
 
   const rcvBySqFootage = sqFootage ? calcRCVBySquareFootage(sqFootage, state) : null;
 
-  if (rcvBySqFootage && replacementCost) {
+  if (rcvBySqFootage && replacementCost)
     replacementCost = max([rcvBySqFootage, replacementCost]) || null;
-  }
-  // TODO: BUILDING SQ FOOTAGE. WHICH NUMBER? living size ??
-  // "size": {
-  //   "bldgSize": 4592,
-  //   "grossSize": 5960,
-  //   "grossSizeAdjusted": 4592,
-  //   "groundFloorSize": 2707,
-  //   "livingSize": 4592,
-  //   "sizeInd": "LIVING SQFT",
-  //   "universalSize": 4592,
-  //   "atticSize": 480
-  // },
 
-  const bsmtSize = building?.interior?.bsmtSize ? building?.interior?.bsmtSize : null;
-  if (basement !== null && bsmtSize && bsmtSize > 0 && typeof numStories === 'number') numStories++;
-  if (basement === '') basement = 'unknown';
+  // const bsmtSize = building?.interior?.bsmtSize ? building?.interior?.bsmtSize : null;
+  // if (basement !== null && bsmtSize && bsmtSize > 0 && typeof numStories === 'number') numStories++;
+  // if (basement === '') basement = 'unknown';
 
   return {
     sqFootage,
@@ -234,6 +273,7 @@ async function validateAttomRes(attomData: AttomBasicProfile, state: string, fz?
     floodZone,
     CBRSDesignation,
     basement,
+    elevation: elevation || null,
   };
 }
 

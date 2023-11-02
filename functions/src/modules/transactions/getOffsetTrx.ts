@@ -44,6 +44,8 @@ export const getOffsetTrx = (
   const { surplusLinesTax, surplusLinesRegulatoryFee, MGAFee, inspectionFee } =
     getTrxTaxesAndFees(policy);
 
+  // need to add billing entity totals ??
+
   return {
     trxType,
     trxInterfaceType: 'offset',

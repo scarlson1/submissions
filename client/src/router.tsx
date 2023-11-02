@@ -1,4 +1,5 @@
 import { wrapCreateBrowserRouter } from '@sentry/react';
+import { Helmet } from 'react-helmet-async';
 import {
   createBrowserRouter,
   createSearchParams,
@@ -17,8 +18,7 @@ import { ActionHandler } from 'elements';
 import { SuccessStep } from 'elements/forms';
 import { LocationChangeWrapper } from 'elements/forms/LocationChangeForm';
 import { BindSuccess } from 'elements/forms/SuccessStep';
-import { EmailsGrid } from 'elements/grids';
-import { ImportsSummaryGrid } from 'elements/grids/ImportsSummaryGrid';
+import { EmailsGrid, ImportsSummaryGrid } from 'elements/grids';
 import { ActiveEventsMap, PoliciesMap } from 'elements/maps';
 import { TestSubmissionsMapWithFilters } from 'elements/maps/SubmissionsMap';
 import {
@@ -132,9 +132,9 @@ export enum ADMIN_ROUTES {
   USERS = '/admin/users',
   PORTFOLIO_RATING = '/admin/portfolio-rating',
   CONFIG = '/admin/config',
-  SL_TAXES = '/admin/config/sl-tax',
-  SL_TAXES_NEW = '/admin/config/sl-tax/new',
-  SL_TAXES_EDIT = '/admin/config/sl-tax/:taxId/edit',
+  SL_TAXES = '/admin/config/taxes',
+  SL_TAXES_NEW = '/admin/config/taxes/new',
+  SL_TAXES_EDIT = '/admin/config/taxes/:taxId/edit',
   EDIT_ACTIVE_STATES = '/admin/config/active-states/:productId/edit',
   MORATORIUMS = '/admin/config/moratoriums',
   MORATORIUM_NEW = '/admin/config/moratoriums/new',
@@ -275,6 +275,16 @@ export function createPath(args: TArgs) {
 
 const sentryCreateBrowserRouter = wrapCreateBrowserRouter(createBrowserRouter);
 
+export function PageMeta({ title }: { title: string }) {
+  return (
+    <Helmet>
+      <title>{title}</title>
+      <meta name='title' content={title} data-react-helmet='true'></meta>
+      {/* <link rel='canonical' href='https://idemand-submissions.web.app/' /> */}
+    </Helmet>
+  );
+}
+
 // export const router = createBrowserRouter([
 export const router = sentryCreateBrowserRouter([
   {
@@ -295,7 +305,10 @@ export const router = sentryCreateBrowserRouter([
             path: ROUTES.SUBMISSION_NEW,
             element: (
               <RequireAuth shouldSignInAnonymously={true}>
-                <SubmissionNew />
+                <>
+                  <PageMeta title='iDemand - New Submission' />
+                  <SubmissionNew />
+                </>
               </RequireAuth>
             ),
             errorElement: (
@@ -327,7 +340,12 @@ export const router = sentryCreateBrowserRouter([
           },
           {
             path: ROUTES.SUBMISSIONS_NEW_PORTFOLIO,
-            element: <SubmissionNewPortfolio />,
+            element: (
+              <>
+                <PageMeta title='iDemand - Portfolio Quote' />
+                <SubmissionNewPortfolio />
+              </>
+            ),
             errorElement: <RouterErrorBoundary />,
             handle: {
               crumb: (match: CrumbMatch) => [
@@ -354,7 +372,10 @@ export const router = sentryCreateBrowserRouter([
             path: ROUTES.SUBMISSIONS,
             element: (
               <RequireAuthReactFire>
-                <Submissions />
+                <>
+                  <PageMeta title='iDemand - Submissions' />
+                  <Submissions />
+                </>
               </RequireAuthReactFire>
             ),
             errorElement: <RouterErrorBoundary />,
@@ -374,7 +395,10 @@ export const router = sentryCreateBrowserRouter([
 
             element: (
               <RequireAuthReactFire>
-                <Quotes />
+                <>
+                  <PageMeta title='iDemand - Quotes' />
+                  <Quotes />
+                </>
               </RequireAuthReactFire>
             ),
             errorElement: <RouterErrorBoundary />,
@@ -432,7 +456,12 @@ export const router = sentryCreateBrowserRouter([
           },
           {
             path: ROUTES.QUOTE_BIND_SUCCESS,
-            element: <BindSuccess />,
+            element: (
+              <>
+                <PageMeta title='iDemand - Bound' />
+                <BindSuccess />
+              </>
+            ),
             handle: {
               crumb: (match: CrumbMatch) => [
                 {
@@ -459,7 +488,12 @@ export const router = sentryCreateBrowserRouter([
           },
           {
             path: ROUTES.SUBMISSION_SUBMITTED,
-            element: <SuccessStep />,
+            element: (
+              <>
+                <PageMeta title='iDemand - New Submission Complete' />
+                <SuccessStep />
+              </>
+            ),
             errorElement: <RouterErrorBoundary />,
             handle: {
               crumb: (match: CrumbMatch) => [
@@ -481,7 +515,12 @@ export const router = sentryCreateBrowserRouter([
           },
           {
             path: ROUTES.AGENCY_NEW,
-            element: <AgencyNew />,
+            element: (
+              <>
+                <PageMeta title='iDemand - New Agency' />
+                <AgencyNew />
+              </>
+            ),
             errorElement: <RouterErrorBoundary />,
             handle: {
               crumb: (match: CrumbMatch) => [
@@ -499,7 +538,12 @@ export const router = sentryCreateBrowserRouter([
           },
           {
             path: ROUTES.AGENCY_NEW_SUBMITTED,
-            element: <AgencyAppSuccessStep />,
+            element: (
+              <>
+                <PageMeta title='iDemand - New Agency Submitted' />
+                <AgencyAppSuccessStep />
+              </>
+            ),
             errorElement: <RouterErrorBoundary />,
             handle: {
               crumb: (match: CrumbMatch) => [
@@ -517,7 +561,12 @@ export const router = sentryCreateBrowserRouter([
           },
           {
             path: ROUTES.CONTACT,
-            element: <ContactUs />,
+            element: (
+              <>
+                <PageMeta title='iDemand - Contact' />
+                <ContactUs />
+              </>
+            ),
             errorElement: <RouterErrorBoundary />,
             handle: {
               crumb: (match: CrumbMatch) => [
@@ -534,9 +583,10 @@ export const router = sentryCreateBrowserRouter([
             path: ROUTES.ACCOUNT,
             element: (
               <RequireAuthReactFire signInCheckProps={{ suspense: false }}>
-                {/* <Suspense fallback={<div>Loading user...</div>}> */}
-                <Account />
-                {/* </Suspense> */}
+                <>
+                  <PageMeta title='iDemand - Account' />
+                  <Account />
+                </>
               </RequireAuthReactFire>
             ),
             handle: {
@@ -563,7 +613,12 @@ export const router = sentryCreateBrowserRouter([
         children: [
           {
             index: true,
-            element: <Login />,
+            element: (
+              <>
+                <PageMeta title='iDemand - Login' />
+                <Login />
+              </>
+            ),
           },
           {
             path: AUTH_ROUTES.LOGIN,
@@ -583,11 +638,21 @@ export const router = sentryCreateBrowserRouter([
             children: [
               {
                 path: '',
-                element: <CreateAccount />,
+                element: (
+                  <>
+                    <PageMeta title='iDemand - Create Account' />
+                    <CreateAccount />
+                  </>
+                ),
               },
               {
                 path: ':tenantId',
-                element: <CreateAccount />,
+                element: (
+                  <>
+                    <PageMeta title='iDemand - Create Account' />
+                    <CreateAccount />
+                  </>
+                ),
               },
             ],
           },
@@ -596,17 +661,32 @@ export const router = sentryCreateBrowserRouter([
             children: [
               {
                 path: '',
-                element: <ActionHandler />,
+                element: (
+                  <>
+                    <PageMeta title='iDemand' />
+                    <ActionHandler />
+                  </>
+                ),
               },
               {
                 path: ':tenantId',
-                element: <ActionHandler />,
+                element: (
+                  <>
+                    <PageMeta title='iDemand' />
+                    <ActionHandler />
+                  </>
+                ),
               },
             ],
           },
           {
             path: AUTH_ROUTES.EMAIL_VERIFIED,
-            element: <EmailVerified />,
+            element: (
+              <>
+                <PageMeta title='iDemand - Email Verification' />
+                <EmailVerified />
+              </>
+            ),
           },
         ],
       },
@@ -625,7 +705,12 @@ export const router = sentryCreateBrowserRouter([
         children: [
           {
             index: true,
-            element: <Policies />,
+            element: (
+              <>
+                <PageMeta title='iDemand - Policies' />
+                <Policies />
+              </>
+            ),
             errorElement: <RouterErrorBoundary />,
             handle: {
               crumb: (match: CrumbMatch) => [
@@ -750,7 +835,10 @@ export const router = sentryCreateBrowserRouter([
         path: 'admin',
         element: (
           // <RequireAuthReactFire signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}>
-          <Layout withBreadcrumbs={true} containerProps={{ maxWidth: 'xl' }} />
+          <>
+            <PageMeta title='iDemand - Admin' />
+            <Layout withBreadcrumbs={true} containerProps={{ maxWidth: 'xl' }} />
+          </>
           // </RequireAuthReactFire>
         ),
         errorElement: <RouterErrorBoundary />,
@@ -796,7 +884,10 @@ export const router = sentryCreateBrowserRouter([
               <RequireAuthReactFire
                 signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
               >
-                <QuoteNew />
+                <>
+                  <PageMeta title='New Quote' />
+                  <QuoteNew />
+                </>
               </RequireAuthReactFire>
             ),
             handle: {
@@ -819,7 +910,10 @@ export const router = sentryCreateBrowserRouter([
               <RequireAuthReactFire
                 signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
               >
-                <QuoteNewFromSub />
+                <>
+                  <PageMeta title='New Quote' />
+                  <QuoteNewFromSub />
+                </>
               </RequireAuthReactFire>
             ),
             handle: {
@@ -852,7 +946,10 @@ export const router = sentryCreateBrowserRouter([
               <RequireAuthReactFire
                 signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
               >
-                <QuoteEdit />
+                <>
+                  <PageMeta title='iDemand - New Quote' />
+                  <QuoteEdit />
+                </>
               </RequireAuthReactFire>
             ),
             handle: {
@@ -881,7 +978,10 @@ export const router = sentryCreateBrowserRouter([
               <RequireAuthReactFire
                 signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
               >
-                <AdminLocations />
+                <>
+                  <PageMeta title='iDemand - Locations' />
+                  <AdminLocations />
+                </>
               </RequireAuthReactFire>
             ),
           },
@@ -891,7 +991,10 @@ export const router = sentryCreateBrowserRouter([
               <RequireAuthReactFire
                 signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
               >
-                <PolicyDelivery />
+                <>
+                  <PageMeta title='iDemand - Locations' />
+                  <PolicyDelivery />
+                </>
               </RequireAuthReactFire>
             ),
             handle: {
@@ -921,7 +1024,10 @@ export const router = sentryCreateBrowserRouter([
               <RequireAuthReactFire
                 signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
               >
-                <AgencyApps />
+                <>
+                  <PageMeta title='iDemand - Agency Apps' />
+                  <AgencyApps />
+                </>
               </RequireAuthReactFire>
             ),
             handle: {
@@ -964,7 +1070,10 @@ export const router = sentryCreateBrowserRouter([
               <RequireAuthReactFire
                 signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
               >
-                <CreateTenant />
+                <>
+                  <PageMeta title='iDemand - Create Agency' />
+                  <CreateTenant />
+                </>
               </RequireAuthReactFire>
             ),
             handle: {
@@ -987,7 +1096,10 @@ export const router = sentryCreateBrowserRouter([
               <RequireAuthReactFire
                 signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
               >
-                <Organizations />
+                <>
+                  <PageMeta title='iDemand - Orgs' />
+                  <Organizations />
+                </>
               </RequireAuthReactFire>
             ),
             handle: {
@@ -1032,7 +1144,10 @@ export const router = sentryCreateBrowserRouter([
               <RequireAuthReactFire
                 signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
               >
-                <Users />
+                <>
+                  <PageMeta title={'iDemand - Users'} />
+                  <Users />
+                </>
               </RequireAuthReactFire>
             ),
             handle: {
@@ -1052,7 +1167,10 @@ export const router = sentryCreateBrowserRouter([
               <RequireAuthReactFire
                 signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
               >
-                <TestSubmissionsMapWithFilters />
+                <>
+                  <PageMeta title='iDemand - Submissions Map' />
+                  <TestSubmissionsMapWithFilters />
+                </>
               </RequireAuthReactFire>
             ),
             handle: {
@@ -1075,7 +1193,10 @@ export const router = sentryCreateBrowserRouter([
               <RequireAuthReactFire
                 signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
               >
-                <PoliciesMap constraints={[]} />
+                <>
+                  <PageMeta title='iDemand - Policies Map' />
+                  <PoliciesMap constraints={[]} />
+                </>
               </RequireAuthReactFire>
             ),
             handle: {
@@ -1098,7 +1219,10 @@ export const router = sentryCreateBrowserRouter([
               <RequireAuthReactFire
                 signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
               >
-                <ActiveEventsMap />
+                <>
+                  <PageMeta title='iDemand - Active Events' />
+                  <ActiveEventsMap />
+                </>
               </RequireAuthReactFire>
             ),
             handle: {
@@ -1129,7 +1253,10 @@ export const router = sentryCreateBrowserRouter([
             path: 'config',
             element: (
               // <RequireAuthReactFire signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}>
-              <ConfigLayout />
+              <>
+                <PageMeta title='iDemand - Config' />
+                <ConfigLayout />
+              </>
               // </RequireAuthReactFire>
             ),
             errorElement: <RouterErrorBoundary />,
@@ -1166,12 +1293,15 @@ export const router = sentryCreateBrowserRouter([
               },
               {
                 // path: ADMIN_ROUTES.SL_TAXES,
-                path: 'sl-tax',
+                path: 'taxes',
                 element: (
                   <RequireAuthReactFire
                     signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
                   >
-                    <SLTaxes />
+                    <>
+                      <PageMeta title='iDemand - Taxes' />
+                      <SLTaxes />
+                    </>
                   </RequireAuthReactFire>
                 ),
                 errorElement: <RouterErrorBoundary />,
@@ -1189,12 +1319,15 @@ export const router = sentryCreateBrowserRouter([
               },
               {
                 // path: ADMIN_ROUTES.SL_TAXES_NEW,
-                path: 'sl-tax/new',
+                path: 'taxes/new',
                 element: (
                   <RequireAuthReactFire
                     signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
                   >
-                    <SLTaxNew />
+                    <>
+                      <PageMeta title='iDemand - New Tax' />
+                      <SLTaxNew />
+                    </>
                   </RequireAuthReactFire>
                 ),
                 handle: {
@@ -1213,12 +1346,15 @@ export const router = sentryCreateBrowserRouter([
               },
               {
                 // path: ADMIN_ROUTES.SL_TAXES_EDIT,
-                path: 'sl-tax/:taxId/edit',
+                path: 'taxes/:taxId/edit',
                 element: (
                   <RequireAuthReactFire
                     signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
                   >
-                    <SLTaxEdit />
+                    <>
+                      <PageMeta title='iDemand - Edit Tax' />
+                      <SLTaxEdit />
+                    </>
                   </RequireAuthReactFire>
                 ),
                 handle: {
@@ -1245,7 +1381,10 @@ export const router = sentryCreateBrowserRouter([
                   <RequireAuthReactFire
                     signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
                   >
-                    <Disclosures />
+                    <>
+                      <PageMeta title='iDemand - Disclosures' />
+                      <Disclosures />
+                    </>
                   </RequireAuthReactFire>
                 ),
                 handle: {
@@ -1267,7 +1406,10 @@ export const router = sentryCreateBrowserRouter([
                   <RequireAuthReactFire
                     signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
                   >
-                    <DisclosureNew />
+                    <>
+                      <PageMeta title='iDemand - New Disclosure' />
+                      <DisclosureNew />
+                    </>
                   </RequireAuthReactFire>
                 ),
                 handle: {
@@ -1291,7 +1433,10 @@ export const router = sentryCreateBrowserRouter([
                   <RequireAuthReactFire
                     signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
                   >
-                    <DisclosureEdit />
+                    <>
+                      <PageMeta title='iDemand - Edit Disclosure' />
+                      <DisclosureEdit />
+                    </>
                   </RequireAuthReactFire>
                 ),
                 handle: {
@@ -1318,7 +1463,10 @@ export const router = sentryCreateBrowserRouter([
                   <RequireAuthReactFire
                     signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
                   >
-                    <Licenses />
+                    <>
+                      <PageMeta title='iDemand - Licenses' />
+                      <Licenses />
+                    </>
                   </RequireAuthReactFire>
                 ),
                 handle: {
@@ -1340,7 +1488,10 @@ export const router = sentryCreateBrowserRouter([
                   <RequireAuthReactFire
                     signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
                   >
-                    <LicenseNew />
+                    <>
+                      <PageMeta title='iDemand - New License' />
+                      <LicenseNew />
+                    </>
                   </RequireAuthReactFire>
                 ),
                 handle: {
@@ -1367,7 +1518,10 @@ export const router = sentryCreateBrowserRouter([
                   <RequireAuthReactFire
                     signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
                   >
-                    <LicenseEdit />
+                    <>
+                      <PageMeta title='iDemand - Edit License' />
+                      <LicenseEdit />
+                    </>
                   </RequireAuthReactFire>
                 ),
                 handle: {
@@ -1394,7 +1548,10 @@ export const router = sentryCreateBrowserRouter([
                   <RequireAuthReactFire
                     signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
                   >
-                    <Moratoriums />
+                    <>
+                      <PageMeta title='iDemand - Moratoriums' />
+                      <Moratoriums />
+                    </>
                   </RequireAuthReactFire>
                 ),
                 handle: {
@@ -1416,7 +1573,10 @@ export const router = sentryCreateBrowserRouter([
                   <RequireAuthReactFire
                     signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
                   >
-                    <MoratoriumNew />
+                    <>
+                      <PageMeta title='iDemand - New Moratorium' />
+                      <MoratoriumNew />
+                    </>
                   </RequireAuthReactFire>
                 ),
                 handle: {
@@ -1439,7 +1599,10 @@ export const router = sentryCreateBrowserRouter([
                   <RequireAuthReactFire
                     signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
                   >
-                    <EditActiveStates />
+                    <>
+                      <PageMeta title='iDemand - Active States' />
+                      <EditActiveStates />
+                    </>
                   </RequireAuthReactFire>
                 ),
                 handle: {
@@ -1466,7 +1629,10 @@ export const router = sentryCreateBrowserRouter([
                   <RequireAuthReactFire
                     signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
                   >
-                    <ImportsSummaryGrid />
+                    <>
+                      <PageMeta title='iDemand - Imports' />
+                      <ImportsSummaryGrid />
+                    </>
                   </RequireAuthReactFire>
                 ),
                 handle: {
@@ -1486,7 +1652,10 @@ export const router = sentryCreateBrowserRouter([
                   <RequireAuthReactFire
                     signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
                   >
-                    <ImportReview />
+                    <>
+                      <PageMeta title='iDemand - Import' />
+                      <ImportReview />
+                    </>
                   </RequireAuthReactFire>
                 ),
                 handle: {
@@ -1509,7 +1678,10 @@ export const router = sentryCreateBrowserRouter([
                   <RequireAuthReactFire
                     signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
                   >
-                    <EmailsGrid />
+                    <>
+                      <PageMeta title='iDemand - Email Activity' />
+                      <EmailsGrid />
+                    </>
                   </RequireAuthReactFire>
                 ),
                 handle: {
@@ -1526,7 +1698,10 @@ export const router = sentryCreateBrowserRouter([
                   <RequireAuthReactFire
                     signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
                   >
-                    <Transactions />
+                    <>
+                      <PageMeta title='iDemand - Transactions' />
+                      <Transactions />
+                    </>
                   </RequireAuthReactFire>
                 ),
                 handle: {
@@ -1546,7 +1721,10 @@ export const router = sentryCreateBrowserRouter([
         element: (
           <AuthActionsProvider>
             <RequireAuthReactFire>
-              <Layout />
+              <>
+                <PageMeta title='iDemand - Account' />
+                <Layout />
+              </>
             </RequireAuthReactFire>
           </AuthActionsProvider>
         ),

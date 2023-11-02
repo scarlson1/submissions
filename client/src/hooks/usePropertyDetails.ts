@@ -3,8 +3,15 @@ import { useCallback, useState } from 'react';
 import { useFunctions } from 'reactfire';
 
 import { getPropertyDetailsAttom, GetPropertyDetailsAttomRequest } from 'api';
-import { TBasement } from 'common';
-import { LimitKeys, Limits, Nullable, RatingPropertyData } from 'common/types';
+import {
+  Coordinates,
+  ElevationResult,
+  LimitKeys,
+  Limits,
+  Nullable,
+  RatingPropertyData,
+  TBasement,
+} from 'common';
 import { usePromptRCV } from './usePromptRCV';
 
 let MAX_A = parseInt(process.env.REACT_APP_FLOOD_MAX_LIMIT_A || '1000000');
@@ -66,6 +73,8 @@ interface UsePropertyDetailsProps {
   promptForValuation: boolean;
 }
 
+// TODO: manage state in backend instead of storing in hook (property data, elevation, rcv source, etc.)
+
 export const usePropertyDetailsAttom = (props?: UsePropertyDetailsProps) => {
   const functions = useFunctions();
   const [propertyDetails, setPropertyDetails] = useState<Nullable<RatingPropertyData>>({
@@ -79,7 +88,9 @@ export const usePropertyDetailsAttom = (props?: UsePropertyDetailsProps) => {
     sqFootage: null,
     yearBuilt: null,
     FFH: null,
+    elevation: null,
   });
+  const [elevationData, setElevationData] = useState<ElevationResult | null>(null);
   const [rcvSourceUser, setRcvSourceUser] = useState<null | number>(null);
   const [initRatingValues, setInitRatingValues] = useState<InitRatingValues>(DEFAULT_INIT_VALUES);
   const [propertyDataDocId, setPropertyDataDocId] = useState<string | null>(null);
@@ -88,9 +99,16 @@ export const usePropertyDetailsAttom = (props?: UsePropertyDetailsProps) => {
   const fetchPropertyData = useCallback(
     async (
       args: GetPropertyDetailsAttomRequest
-    ): Promise<InitRatingValues & { ratingPropertyData: Partial<RatingPropertyData> }> => {
+    ): Promise<
+      InitRatingValues & {
+        ratingPropertyData: Partial<RatingPropertyData>;
+        coordinates: Nullable<Coordinates>;
+      }
+    > => {
       const fetchDetails = getPropertyDetailsAttom(functions);
       const { data } = await fetchDetails(args);
+
+      console.log('DATA: ', data);
 
       let newPropDetails = {
         CBRSDesignation: data.CBRSDesignation || null,
@@ -103,9 +121,11 @@ export const usePropertyDetailsAttom = (props?: UsePropertyDetailsProps) => {
         sqFootage: data.sqFootage || null,
         yearBuilt: data.yearBuilt || null,
         FFH: data.FFH || null,
+        elevation: data.elevation || null,
       };
 
       setPropertyDataDocId(data.attomDocId || null);
+      setElevationData(data?.elevationData || null);
 
       if (!data.replacementCost && props?.promptForValuation) {
         const estRCV = await promptRCV();
@@ -126,6 +146,7 @@ export const usePropertyDetailsAttom = (props?: UsePropertyDetailsProps) => {
               numStories: data.numStories || '',
               basement: data.basement || ('' as TBasement),
             },
+            coordinates: data.coordinates,
           };
         } else {
           setRcvSourceUser(null);
@@ -139,6 +160,7 @@ export const usePropertyDetailsAttom = (props?: UsePropertyDetailsProps) => {
               numStories: data.numStories || '',
               basement: data.basement || ('' as TBasement),
             },
+            coordinates: data.coordinates,
           };
         }
       } else {
@@ -167,5 +189,12 @@ export const usePropertyDetailsAttom = (props?: UsePropertyDetailsProps) => {
     [functions, promptRCV, props]
   );
 
-  return { fetchPropertyData, rcvSourceUser, initRatingValues, propertyDataDocId, propertyDetails };
+  return {
+    fetchPropertyData,
+    rcvSourceUser,
+    initRatingValues,
+    propertyDataDocId,
+    propertyDetails,
+    elevationData,
+  };
 };

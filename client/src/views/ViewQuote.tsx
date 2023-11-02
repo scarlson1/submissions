@@ -29,7 +29,7 @@ import { ANALYTICS_EVENTS, QUOTE_STATUS, Quote } from 'common';
 import { FlexCard, FlexCardContent, IconButtonMenu, LineItem } from 'components';
 import { useAnalyticsEvent, useDocData } from 'hooks';
 import { dollarFormat } from 'modules/utils/helpers';
-import { ROUTES, createPath } from 'router';
+import { PageMeta, ROUTES, createPath } from 'router';
 
 export const ViewQuote = () => {
   const navigate = useNavigate();
@@ -56,6 +56,7 @@ export const ViewQuote = () => {
 
   return (
     <Box>
+      <PageMeta title={`iDemand - Quote ${quoteId}`} />
       <Box sx={{ display: 'flex', alignItems: 'flex-start' }}>
         <Box sx={{ flex: '1 1 auto' }}>
           <Typography variant='h5' gutterBottom>

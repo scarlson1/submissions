@@ -155,10 +155,7 @@ const calcAddLocation = async ({ data, auth }: CallableRequest<CalcAddLocationPr
     validateAALs(AALsRes.AALs);
 
     let floodZone = ratingPropertyData.floodZone;
-    if (!floodZone)
-      floodZone =
-        (await getFEMAFloodZone(coordinates.latitude, coordinates.longitude)) ||
-        defaultFloodZone.value();
+    if (!floodZone) floodZone = (await getFEMAFloodZone(coordinates)) || defaultFloodZone.value();
 
     validate(floodZone, 'failed-precondition', 'missing flood zone');
 

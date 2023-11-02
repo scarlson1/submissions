@@ -1,7 +1,8 @@
 import { Box, Container, Tooltip, Typography } from '@mui/material';
 import { GeoPoint, Timestamp, addDoc, doc, getDoc } from 'firebase/firestore';
 import { FormikHelpers, FormikProps } from 'formik';
-import { useCallback, useRef, useState } from 'react';
+import { ceil, isEqual } from 'lodash';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { useNavigate } from 'react-router-dom';
 import { useFirestore } from 'reactfire';
@@ -21,6 +22,7 @@ import { ROUTES, createPath } from 'router';
 import {
   Address,
   Coordinates,
+  ElevationResult,
   Limits,
   NamedInsuredDetails,
   Nullable,
@@ -43,8 +45,7 @@ import { ErrorFallback } from 'components';
 import { useAuth } from 'context/AuthContext';
 import { useAsyncToast, useClaims, useDocData, usePropertyDetailsAttom } from 'hooks';
 import { InitRatingValues } from 'hooks/usePropertyDetails';
-import { ceil, isEqual } from 'lodash';
-import { sumArr } from 'modules/utils/helpers';
+import { sumArr } from 'modules/utils';
 
 // TODO: useGeolocate --> add to new submission form
 // https://usehooks.com/usegeolocation
@@ -68,7 +69,6 @@ function useCreateSubmission(
   onError?: (msg: string, err: any) => void
 ) {
   const firestore = useFirestore();
-  // const { user, claims, orgId } = useAuth();
   const { user, claims, orgId } = useClaims();
   const [loading, setLoading] = useState(false);
 
@@ -80,11 +80,13 @@ function useCreateSubmission(
         propertyDataDocId,
         rcvSourceUser,
         initRatingValues,
+        elevationData,
       }: {
         propertyDetails: Nullable<RatingPropertyData>;
         propertyDataDocId: string | null;
-        rcvSourceUser: number | null; // boolean;
+        rcvSourceUser: number | null;
         initRatingValues: InitRatingValues;
+        elevationData: ElevationResult | null;
       }
     ) => {
       try {
@@ -126,6 +128,7 @@ function useCreateSubmission(
           initValues: initRatingValues,
           propertyDataDocId,
           rcvSourceUser,
+          elevationData,
           metadata: {
             created: Timestamp.now(),
             updated: Timestamp.now(),
@@ -150,7 +153,6 @@ export interface FloodValues {
   address: Address;
   coordinates: Nullable<Coordinates>;
   limits: Limits;
-  // coverageActive: Record<CovTypeNames, boolean>;
   deductible: number;
   exclusionsExist: boolean | null;
   exclusions: string[];
@@ -205,10 +207,16 @@ export const SubmissionNew = () => {
   const toast = useAsyncToast({ position: 'top-right' });
   const formikRef = useRef<FormikProps<FloodValues>>(null);
   const { data: activeStates } = useDocData('ACTIVE_STATES', 'flood');
-  const { propertyDetails, rcvSourceUser, propertyDataDocId, initRatingValues, fetchPropertyData } =
-    usePropertyDetailsAttom({
-      promptForValuation: true,
-    });
+  const {
+    propertyDetails,
+    elevationData,
+    rcvSourceUser,
+    propertyDataDocId,
+    initRatingValues,
+    fetchPropertyData,
+  } = usePropertyDetailsAttom({
+    promptForValuation: true,
+  });
 
   const { createSubmission } = useCreateSubmission(
     (docId: string) => {
@@ -236,9 +244,13 @@ export const SubmissionNew = () => {
             longitude: values.coordinates?.longitude,
           },
         });
-        // console.log('PROPERTY DATA RES: ', res);
+
         return {
           ...values,
+          coordinates: {
+            latitude: values.coordinates?.latitude ?? res.coordinates?.latitude,
+            longitude: values.coordinates?.longitude ?? res.coordinates?.longitude,
+          },
           limits: {
             limitA: res.limitA ?? '250000',
             limitB: res.limitB ?? '25000',
@@ -251,6 +263,7 @@ export const SubmissionNew = () => {
           },
         };
       } catch (err) {
+        // TODO: handle error ?? allow continue with default values ??
         console.log('ERROR: ', err);
         return values;
       }
@@ -290,11 +303,24 @@ export const SubmissionNew = () => {
         propertyDataDocId,
         rcvSourceUser,
         initRatingValues,
+        elevationData,
       });
 
       setSubmitting(false);
     },
-    [createSubmission, propertyDetails, initRatingValues, propertyDataDocId, rcvSourceUser]
+    [
+      createSubmission,
+      propertyDetails,
+      initRatingValues,
+      propertyDataDocId,
+      rcvSourceUser,
+      elevationData,
+    ]
+  );
+
+  const addressValidationSchema = useMemo(
+    () => addressValidationActiveStatesNested(activeStates || {}),
+    [activeStates]
   );
 
   // const handleErrorReset = useCallback((...details: unknown[]) => {
@@ -328,7 +354,7 @@ export const SubmissionNew = () => {
           >
             <Step
               label={`What's the Address?`}
-              validationSchema={addressValidationActiveStatesNested(activeStates || {})}
+              validationSchema={addressValidationSchema}
               mutateOnSubmit={handleFetchProperty}
               stepperNavLabel='Address'
             >

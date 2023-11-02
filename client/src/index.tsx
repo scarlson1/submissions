@@ -1,23 +1,24 @@
-import { Suspense, useEffect } from 'react';
-import ReactDOM from 'react-dom/client';
+import '@fontsource/public-sans';
 import '@fontsource/roboto/300.css';
 import '@fontsource/roboto/400.css';
 import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
-import '@fontsource/public-sans';
+import { Suspense, useEffect } from 'react';
+import ReactDOM from 'react-dom/client';
 import './index.css';
 // import reportWebVitals from './reportWebVitals';
-import { RouterProvider } from 'react-router-dom';
 import { Box, CircularProgress } from '@mui/material';
-import { ErrorBoundary, FallbackProps } from 'react-error-boundary';
 import * as Sentry from '@sentry/react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { ErrorBoundary, FallbackProps } from 'react-error-boundary';
+import { HelmetProvider } from 'react-helmet-async';
+import { RouterProvider } from 'react-router-dom';
 // import { getAnalytics, logEvent } from 'firebase/analytics';
 
-import { router } from './router';
 import { ReactFireAppContext, ReactFireServicesContext } from 'context/ReactFireContext';
 import { queryClient } from 'modules/queryClient';
+import { router } from './router';
 
 // TODO: set up google analytics
 // https://github.com/FirebaseExtended/reactfire/blob/main/docs/use.md#log-page-views-to-google-analytics-for-firebase-with-react-router
@@ -37,16 +38,18 @@ root.render(
     //   logToErrorLoggingService(error, info);
     // }}
   >
-    <ReactFireAppContext>
-      <ReactFireServicesContext>
-        <Suspense fallback={<LoadingSpinner />}>
-          <QueryClientProvider client={queryClient}>
-            <RouterProvider router={router} />
-            <ReactQueryDevtools initialIsOpen={false} />
-          </QueryClientProvider>
-        </Suspense>
-      </ReactFireServicesContext>
-    </ReactFireAppContext>
+    <HelmetProvider>
+      <ReactFireAppContext>
+        <ReactFireServicesContext>
+          <Suspense fallback={<LoadingSpinner />}>
+            <QueryClientProvider client={queryClient}>
+              <RouterProvider router={router} />
+              <ReactQueryDevtools initialIsOpen={false} />
+            </QueryClientProvider>
+          </Suspense>
+        </ReactFireServicesContext>
+      </ReactFireAppContext>
+    </HelmetProvider>
   </ErrorBoundary>
 
   // <App  />

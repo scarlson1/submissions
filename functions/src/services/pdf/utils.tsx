@@ -89,7 +89,7 @@ export function getPremiumTable(policy: Policy): PremiumTableItem[] {
   if (policy.fees && Array.isArray(policy.fees)) {
     for (const fee of policy.fees) {
       result.push({
-        itemTitle: fee.feeName,
+        itemTitle: fee.displayName,
         subjectAmount: '',
         rate: '',
         value: dollarFormat2(fee.value),

@@ -30,7 +30,15 @@ export const FormikCoordsMarker = ({ cb }: FormikCoordsMarkerProps) => {
 
   useEffect(() => {
     console.log('marker coords: ', values.coordinates);
-  }, [values.coordinates]);
+    const latitude = values.coordinates.latitude;
+    const longitude = values.coordinates.longitude;
+    setMarker({
+      latitude: latitude || null,
+      longitude: longitude || null,
+    });
+    if (latitude && longitude)
+      map?.flyTo({ center: [longitude, latitude], zoom: 16, duration: 2000 });
+  }, [values.coordinates, map]);
 
   const onMarkerDrag = useCallback((event: MarkerDragEvent) => {
     setMarker({
@@ -43,12 +51,11 @@ export const FormikCoordsMarker = ({ cb }: FormikCoordsMarkerProps) => {
     (event: MarkerDragEvent) => {
       setFieldValue('coordinates.longitude', event.lngLat.lng);
       setFieldValue('coordinates.latitude', event.lngLat.lat);
-      map?.flyTo({ center: event.lngLat });
 
       toast.success(`coordinates updated!`, { position: 'top-right', duration: 2000 });
       if (cb) cb({ lat: event.lngLat.lat, lng: event.lngLat.lng });
     },
-    [cb, setFieldValue, map]
+    [cb, setFieldValue]
   );
 
   if (!(marker?.latitude && marker?.longitude)) return null;

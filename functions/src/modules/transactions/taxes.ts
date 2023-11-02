@@ -91,7 +91,7 @@ export function getRoundingFunc(type?: RoundingType | null | undefined) {
  * @returns {number} sum of all fees matching type
  */
 export function sumFeesByType(fees: FeeItem[], type: FeeItemName | FeeItemName[]) {
-  return sumByTypes<FeeItem>(fees, 'feeName', type, 'value');
+  return sumByTypes<FeeItem>(fees, 'displayName', type, 'value');
 }
 
 /**

@@ -64,7 +64,7 @@ import {
   stringAvatar,
 } from 'modules/utils';
 import { useNavigate } from 'react-router-dom';
-import { ROUTES, createPath } from 'router';
+import { PageMeta, ROUTES, createPath } from 'router';
 
 // TODO: should locations grid be passed location IDs explicitly ?? instead if querying locations collection
 // would require new grid component (Can't do it with ServerDataGrid)
@@ -203,231 +203,239 @@ export const Policy = () => {
 
   // TODO: container ?? layout ??
   return (
-    <Box sx={{ px: { xs: 2, sm: 4, lg: 10 }, py: 5 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 2 }}>
-        <Typography
-          variant='overline'
-          color='text.secondary'
-          gutterBottom
-          align='center'
-          sx={{ lineHeight: 1.4 }}
-        >{`Policy ID: ${policyId}`}</Typography>
-        <Box>
-          {/* <Button size='small' onClick={handleNewClaim}>
+    <>
+      <PageMeta title={`iDemand - Policy ${policyId}`} />
+      <Box sx={{ px: { xs: 2, sm: 4, lg: 10 }, py: 5 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 2 }}>
+          <Typography
+            variant='overline'
+            color='text.secondary'
+            gutterBottom
+            align='center'
+            sx={{ lineHeight: 1.4 }}
+          >{`Policy ID: ${policyId}`}</Typography>
+          <Box>
+            {/* <Button size='small' onClick={handleNewClaim}>
             Submit Claim
           </Button> */}
-          <PolicyIconMenu policyId={policyId} />
-        </Box>
-      </Box>
-      <Divider />
-      <Box sx={{ pb: { xs: 6, sm: 8, md: 10 }, pt: { xs: 3, sm: 4, md: 5 } }}>
-        <Grid container spacing={5}>
-          <Grid
-            sx={{
-              flexGrow: 1,
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-            }}
-          >
-            <Box sx={{ pb: 6 }}>
-              <Typography variant='overline' color='text.secondary'>
-                Named Insured
-              </Typography>
-              <Box sx={{ display: 'flex' }}>
-                <Box sx={{ flex: '0 0 auto', mr: { xs: 3, sm: 4 } }}>
-                  <Avatar />
-                </Box>
-                <Box sx={{ flex: '1 0 auto' }}>
-                  <Typography variant='h6' sx={{ fontSize: '1.2rem', lineHeight: 1.2 }}>
-                    {data?.namedInsured?.displayName}
-                  </Typography>
-                  <Typography variant='body2' color='text.secondary'>
-                    {data?.namedInsured?.email}
-                  </Typography>
-                </Box>
-              </Box>
-            </Box>
-            <Paper sx={{ py: { xs: 2, md: 3 }, px: { xs: 4, md: 5 } }}>
-              <Stack
-                direction='row'
-                spacing={{ xs: 3, sm: 4, md: 6, lg: 8 }}
-                divider={<Divider orientation='vertical' flexItem />}
-                justifyContent='space-between'
-              >
-                {/* TODO: uncomment once insured value is available */}
-                {/* <StatBox title='Insured Value' value='$1.2M' /> */}
-                <StatBox
-                  title='Effective'
-                  value={formatDate(
-                    data?.effectiveDate?.toDate(),
-                    isMobile ? 'MM/dd/yy' : 'MMM dd, yyyy'
-                  )}
-                />
-                <StatBox
-                  title='Status'
-                  value={calcPolicyStatus(data)}
-                  // value={`${data?.status === POLICY_STATUS.PAID ? 'active' : 'inactive'}`}
-                />
-                <StatBox title='Term' value={`${data?.term || ''}`} />
-                <StatBox title='Locations' value={`${locationsCount || '--'}`} />
-              </Stack>
-            </Paper>
-          </Grid>
-          <Grid xs={12} sm='auto'>
-            <Card>
-              <CardHeader
-                avatar={<Avatar {...stringAvatar(`${data?.agent?.name}`)}></Avatar>}
-                // action={
-                //   <IconButton aria-label='settings'>
-                //     <MoreVertIcon />
-                //   </IconButton>
-                // }
-                title={
-                  <Typography
-                    variant='body1'
-                    fontSize='1.1rem'
-                    fontWeight={500}
-                    sx={{ lineHeight: 1.2 }}
-                  >{`${data?.agent?.name}`}</Typography>
-                }
-                subheader={
-                  <Typography
-                    variant='body2'
-                    fontSize='0.725rem'
-                    fontWeight={500}
-                    color='text.secondary'
-                  >
-                    Agent
-                  </Typography>
-                }
-              />
-              <CardContent>
-                <ContactList
-                  items={[
-                    {
-                      primaryText: `${data?.agency?.name || ''}`,
-                      icon: <AccountBalanceRounded fontSize='small' color='primary' />,
-                    },
-                    {
-                      primaryText: `${data?.agent?.email}`,
-                      icon: <EmailRounded fontSize='small' color='primary' />,
-                    },
-                    {
-                      primaryText: formatPhoneNumber(`${data?.agent?.phone}`) || '',
-                      icon: <PhoneRounded fontSize='small' color='primary' />,
-                    },
-                  ]}
-                />
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
-      </Box>
-      <Divider />
-      <Box>
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            py: { xs: 2, md: 3 },
-          }}
-        >
-          <Typography variant='h6'>Locations</Typography>
-          <Box>
-            <ToggleButtonGroup
-              value={locationsView}
-              onChange={handleViewChange}
-              exclusive
-              size='small'
-              aria-label='locations view'
-            >
-              <ToggleButton value='cards' aria-label='cards'>
-                <GridViewRounded />
-              </ToggleButton>
-              <ToggleButton value='grid' aria-label='grid'>
-                <TableRowsRounded />
-              </ToggleButton>
-              <ToggleButton value='map' aria-label='map'>
-                <MapRounded />
-              </ToggleButton>
-            </ToggleButtonGroup>
+            <PolicyIconMenu policyId={policyId} />
           </Box>
         </Box>
-        <ErrorBoundary FallbackComponent={ErrorFallback} resetKeys={[locationsView]}>
-          <Suspense fallback={<LoadingSpinner loading={true} />}>
-            {locationsView === 'cards' ? (
-              <Box sx={{ py: 2 }}>
-                <PolicyLocationCards policyId={policyId} onEdit={handleLocationChangeRequest} />
+        <Divider />
+        <Box sx={{ pb: { xs: 6, sm: 8, md: 10 }, pt: { xs: 3, sm: 4, md: 5 } }}>
+          <Grid container spacing={5}>
+            <Grid
+              sx={{
+                flexGrow: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+              }}
+            >
+              <Box sx={{ pb: 6 }}>
+                <Typography variant='overline' color='text.secondary'>
+                  Named Insured
+                </Typography>
+                <Box sx={{ display: 'flex' }}>
+                  <Box sx={{ flex: '0 0 auto', mr: { xs: 3, sm: 4 } }}>
+                    <Avatar />
+                  </Box>
+                  <Box sx={{ flex: '1 0 auto' }}>
+                    <Typography variant='h6' sx={{ fontSize: '1.2rem', lineHeight: 1.2 }}>
+                      {data?.namedInsured?.displayName}
+                    </Typography>
+                    <Typography variant='body2' color='text.secondary'>
+                      {data?.namedInsured?.email}
+                    </Typography>
+                  </Box>
+                </Box>
               </Box>
-            ) : null}
-            {locationsView === 'grid' ? (
-              <LocationsGrid
-                constraints={locationConstraints}
-                renderActions={renderLocationGridActions}
-              />
-            ) : null}
-            {locationsView === 'map' ? (
-              <Card sx={{ height: 500, width: '100% ' }}>
-                <LocationsMap
-                  data={locations}
-                  layerProps={{ pickable: true }}
-                  renderTooltipContent={(info: PickingInfo) => (
-                    <Box sx={{ px: 2, borderRadius: 0.5 }}>
-                      <Typography variant='body2' fontWeight='fontWeightMedium'>
-                        {`${info.object?.address?.s1 || ''}`}
-                      </Typography>
-                      <Typography variant='body2' sx={{ fontSize: '0.8rem' }}>
-                        {`${info.object?.address?.c || ''}, ${info.object?.address?.st || ''}`}
-                      </Typography>
-                      {info.object?.cancelEffDate ? (
-                        <Typography
-                          variant='body2'
-                          color='text.secondary'
-                        >{`Cancelled: ${formatFirestoreTimestamp(
-                          info.object?.cancelEffDate,
-                          'date'
-                        )}`}</Typography>
-                      ) : null}
-                    </Box>
-                  )}
+              <Paper sx={{ py: { xs: 2, md: 3 }, px: { xs: 4, md: 5 } }}>
+                <Stack
+                  direction='row'
+                  spacing={{ xs: 3, sm: 4, md: 6, lg: 8 }}
+                  divider={<Divider orientation='vertical' flexItem />}
+                  justifyContent='space-between'
+                >
+                  {/* TODO: uncomment once insured value is available */}
+                  {/* <StatBox title='Insured Value' value='$1.2M' /> */}
+                  <StatBox
+                    title='Effective'
+                    value={formatDate(
+                      data?.effectiveDate?.toDate(),
+                      isMobile ? 'MM/dd/yy' : 'MMM dd, yyyy'
+                    )}
+                  />
+                  <StatBox
+                    title='Status'
+                    value={calcPolicyStatus(data)}
+                    // value={`${data?.status === POLICY_STATUS.PAID ? 'active' : 'inactive'}`}
+                  />
+                  <StatBox title='Term' value={`${data?.term || ''}`} />
+                  <StatBox title='Locations' value={`${locationsCount || '--'}`} />
+                </Stack>
+              </Paper>
+            </Grid>
+            <Grid xs={12} sm='auto'>
+              <Card>
+                <CardHeader
+                  avatar={<Avatar {...stringAvatar(`${data?.agent?.name}`)}></Avatar>}
+                  // action={
+                  //   <IconButton aria-label='settings'>
+                  //     <MoreVertIcon />
+                  //   </IconButton>
+                  // }
+                  title={
+                    <Typography
+                      variant='body1'
+                      fontSize='1.1rem'
+                      fontWeight={500}
+                      sx={{ lineHeight: 1.2 }}
+                    >{`${data?.agent?.name}`}</Typography>
+                  }
+                  subheader={
+                    <Typography
+                      variant='body2'
+                      fontSize='0.725rem'
+                      fontWeight={500}
+                      color='text.secondary'
+                    >
+                      Agent
+                    </Typography>
+                  }
                 />
+                <CardContent>
+                  <ContactList
+                    items={[
+                      {
+                        primaryText: `${data?.agency?.name || ''}`,
+                        icon: <AccountBalanceRounded fontSize='small' color='primary' />,
+                      },
+                      {
+                        primaryText: `${data?.agent?.email}`,
+                        icon: <EmailRounded fontSize='small' color='primary' />,
+                      },
+                      {
+                        primaryText: formatPhoneNumber(`${data?.agent?.phone}`) || '',
+                        icon: <PhoneRounded fontSize='small' color='primary' />,
+                      },
+                    ]}
+                  />
+                </CardContent>
               </Card>
-            ) : null}
-          </Suspense>
-        </ErrorBoundary>
-      </Box>
-      <Box sx={{ py: { xs: 4, md: 5, lg: 8 } }}>
+            </Grid>
+          </Grid>
+        </Box>
+        <Divider />
+        <Box>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              py: { xs: 2, md: 3 },
+            }}
+          >
+            <Typography variant='h6'>Locations</Typography>
+            <Box>
+              <ToggleButtonGroup
+                value={locationsView}
+                onChange={handleViewChange}
+                exclusive
+                size='small'
+                aria-label='locations view'
+              >
+                <ToggleButton value='cards' aria-label='cards'>
+                  <GridViewRounded />
+                </ToggleButton>
+                <ToggleButton value='grid' aria-label='grid'>
+                  <TableRowsRounded />
+                </ToggleButton>
+                <ToggleButton value='map' aria-label='map'>
+                  <MapRounded />
+                </ToggleButton>
+              </ToggleButtonGroup>
+            </Box>
+          </Box>
+          <ErrorBoundary FallbackComponent={ErrorFallback} resetKeys={[locationsView]}>
+            <Suspense fallback={<LoadingSpinner loading={true} />}>
+              {locationsView === 'cards' ? (
+                <Box sx={{ py: 2 }}>
+                  <PolicyLocationCards policyId={policyId} onEdit={handleLocationChangeRequest} />
+                </Box>
+              ) : null}
+              {locationsView === 'grid' ? (
+                <LocationsGrid
+                  constraints={locationConstraints}
+                  renderActions={renderLocationGridActions}
+                />
+              ) : null}
+              {locationsView === 'map' ? (
+                <Card sx={{ height: 500, width: '100% ' }}>
+                  <LocationsMap
+                    data={locations}
+                    layerProps={{ pickable: true }}
+                    renderTooltipContent={(info: PickingInfo) => (
+                      <Box sx={{ px: 2, borderRadius: 0.5 }}>
+                        <Typography variant='body2' fontWeight='fontWeightMedium'>
+                          {`${info.object?.address?.s1 || ''}`}
+                        </Typography>
+                        <Typography variant='body2' sx={{ fontSize: '0.8rem' }}>
+                          {`${info.object?.address?.c || ''}, ${info.object?.address?.st || ''}`}
+                        </Typography>
+                        {info.object?.cancelEffDate ? (
+                          <Typography
+                            variant='body2'
+                            color='text.secondary'
+                          >{`Cancelled: ${formatFirestoreTimestamp(
+                            info.object?.cancelEffDate,
+                            'date'
+                          )}`}</Typography>
+                        ) : null}
+                      </Box>
+                    )}
+                  />
+                </Card>
+              ) : null}
+            </Suspense>
+          </ErrorBoundary>
+        </Box>
         <Box sx={{ py: { xs: 4, md: 5, lg: 8 } }}>
-          <Typography variant='body2' component='div' color='text.secondary'>
-            {data?.effectiveDate && data?.expirationDate ? (
-              <Typography component='span' variant='body2'>
-                {`This policy is effective ${formatFirestoreTimestamp(
-                  data.effectiveDate,
-                  'date'
-                )} - ${formatFirestoreTimestamp(data.expirationDate, 'date')}. `}
-              </Typography>
-            ) : null}
-            You can{' '}
-            <Link component='button' variant='body2' onClick={handleDownloadPolicy}>
-              download a copy of your policy
-            </Link>
-            {/* TODO: uncomment once handler set up */}
-            {/* {', '}
+          <Box sx={{ py: { xs: 4, md: 5, lg: 8 } }}>
+            <Typography variant='body2' component='div' color='text.secondary'>
+              {data?.effectiveDate && data?.expirationDate ? (
+                <Typography component='span' variant='body2'>
+                  {`This policy is effective ${formatFirestoreTimestamp(
+                    data.effectiveDate,
+                    'date'
+                  )} - ${formatFirestoreTimestamp(data.expirationDate, 'date')}. `}
+                </Typography>
+              ) : null}
+              You can{' '}
+              <Link component='button' variant='body2' onClick={handleDownloadPolicy}>
+                download a copy of your policy
+              </Link>
+              {/* TODO: uncomment once handler set up */}
+              {/* {', '}
           <Link component='button' variant='body2' onClick={handleChangeRequest}>
             request a change
           </Link> */}
-            {', or '}
-            <Link component='button' variant='body2' underline='hover' onClick={handleCancelPolicy}>
-              cancel
-            </Link>
-            {' anytime.'}
-          </Typography>
+              {', or '}
+              <Link
+                component='button'
+                variant='body2'
+                underline='hover'
+                onClick={handleCancelPolicy}
+              >
+                cancel
+              </Link>
+              {' anytime.'}
+            </Typography>
+          </Box>
+          {/* <Button onClick={handleTest}>Test Policy Dec</Button> */}
         </Box>
-        {/* <Button onClick={handleTest}>Test Policy Dec</Button> */}
       </Box>
-    </Box>
+    </>
   );
 };
 

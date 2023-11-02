@@ -3,9 +3,11 @@ import {
   AmendmentTransaction,
   BaseTransaction,
   Basement,
+  BillingEntity,
   CBRSDesignation,
   CancellationReason,
   DeepNullable,
+  FeeItem,
   FloodZone,
   ILocation,
   ILocationPolicy,
@@ -17,6 +19,8 @@ import {
   PriorLossCount,
   Product,
   RatingPropertyData,
+  TaxItem,
+  Totals,
   Transaction,
   extractNumber,
   extractNumberNeg,
@@ -100,6 +104,59 @@ function csvRowToPremiumTrx(row: TrxRow): DeepNullable<Omit<PremiumTransaction, 
 
   const RCVs = getRCVs(extractNumber(row.replacementCost || '0'), limits);
 
+  const billingEntityId = row.billingEntityId || 'namedInsured';
+  const billingEntity: Nullable<BillingEntity> = {
+    displayName: row.billingEntityName,
+    email: row.billingEntityEmail,
+    phone: row.billingEntityPhone,
+    billingType: (row.billingType as BillingEntity['billingType']) || 'invoice',
+    paymentMethods: [],
+  };
+
+  // billingEntitySurplusLinesTax: z.string(),
+  // billingEntitySurplusLinesRegulatoryFee: z.string(),
+  // billingEntityMgaFee: z.string(),
+  // billingEntityInspectionFee: z.string()
+  const billingEntityTaxes: TaxItem[] = [];
+  const billingEntityFees: FeeItem[] = [];
+  if (row.billingEntitySurplusLinesTax) {
+    billingEntityTaxes.push({
+      displayName: 'Premium Tax',
+      value: extractNumberNeg(row.billingEntitySurplusLinesTax),
+      rate: 0, // TODO: fix
+      subjectBase: ['premium'], // TODO: fix
+      resultRoundType: 'nearest',
+    });
+  }
+  if (row.billingEntitySurplusLinesRegulatoryFee) {
+    billingEntityTaxes.push({
+      displayName: 'Regulatory Fee',
+      value: extractNumberNeg(row.billingEntitySurplusLinesRegulatoryFee),
+      rate: 0, // TODO: fix
+      subjectBase: ['premium'], // TODO: fix
+      resultRoundType: 'nearest',
+    });
+  }
+  if (row.billingEntityInspectionFee) {
+    billingEntityFees.push({
+      displayName: 'Inspection Fee',
+      value: extractNumberNeg(row.billingEntityInspectionFee),
+    });
+  }
+  if (row.billingEntityMgaFee) {
+    billingEntityFees.push({
+      displayName: 'MGA Fee',
+      value: extractNumberNeg(row.billingEntityMgaFee),
+    });
+  }
+  // TODO: billing entity totals (issues getting all fees/taxes ?? need to use same format as policy import ??)
+  const billingEntityTotals: Nullable<Totals> = {
+    termPremium: row.billingEntityTermPremium ? extractNumber(row.billingEntityTermPremium) : null,
+    taxes: billingEntityTaxes,
+    fees: billingEntityFees,
+    price: row.billingEntityPrice ? extractNumber(row.billingEntityPrice) : null,
+  };
+
   return {
     ...csvRowCommon(row),
     trxType: (row.trxType as PremTrxType) || null,
@@ -138,6 +195,9 @@ function csvRowToPremiumTrx(row: TrxRow): DeepNullable<Omit<PremiumTransaction, 
       : 0,
     MGAFee: row.mgaFee ? extractNumberNeg(row.mgaFee) : 0,
     inspectionFee: row.inspectionFee ? extractNumberNeg(row.inspectionFee) : 0,
+    billingEntityId,
+    billingEntity,
+    billingEntityTotals,
     otherInterestedParties: row.otherInterestedParties ? row.otherInterestedParties.split(',') : [],
     additionalNamedInsured: row.additionalNamedInsured ? row.additionalNamedInsured.split(',') : [],
   };

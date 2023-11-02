@@ -245,6 +245,13 @@ export const SubmissionView = () => {
           <RowItem title='Basement' value={data.ratingPropertyData?.basement} />
           <RowItem title='Flood Zone' value={data.ratingPropertyData?.floodZone} />
           <RowItem title='Number of Stories' value={data.ratingPropertyData?.numStories} />
+          <RowItem title='Elevation (m)' value={data.ratingPropertyData?.elevation} />
+          {data.elevationData ? (
+            <>
+              <RowItem title='Elevation Resolution' value={data.elevationData.resolution} />
+              <RowItem title='Elevation Dataset' value={data.elevationData.data_source} />
+            </>
+          ) : null}
         </Box>
         <Box sx={{ pb: 3 }}>
           <Typography variant='overline' color='text.secondary'>

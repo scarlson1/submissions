@@ -893,7 +893,7 @@ export const QuoteForm = ({
                     parentField='fees'
                     inputFields={[
                       {
-                        name: 'feeName',
+                        name: 'displayName',
                         label: 'Adj. Type',
                         required: false,
                         inputType: 'select',

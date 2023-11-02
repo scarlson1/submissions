@@ -8,6 +8,7 @@ import { Geohash } from 'geofire-common';
 
 import { z } from 'zod';
 import { CalcPolicyChangesResult, SecondaryFactorMults } from '../modules/rating/index.js';
+import { ElevationResult } from '../services/elevationApi.js';
 import { CreateMsgContentProps } from '../services/sendgrid/index.js';
 import {
   AGENCY_STATUS,
@@ -499,6 +500,7 @@ export const RatingPropertyData = z.object({
   FFH: z.coerce.number().int().optional().nullable(),
   priorLossCount: PriorLossCount.optional().nullable(),
   units: z.coerce.number().optional().nullable(),
+  elevation: z.number().optional().nullable(),
 });
 export type RatingPropertyData = z.infer<typeof RatingPropertyData>;
 
@@ -566,24 +568,13 @@ export interface RatingData extends BaseDoc {
   secondaryFactorMults?: SecondaryFactorMults;
   address?: Address | null;
   coordinates: GeoPoint | null;
-}
-
-export interface FetchPropertyDataResponse extends Partial<RatingPropertyData> {
-  initDeductible: number;
-  initLimitA: number;
-  initLimitB: number;
-  initLimitC: number;
-  initLimitD: number;
-  maxDeductible: number;
-  spatialKeyDocId?: string | null;
+  elevationData?: ElevationResult | null;
 }
 
 export interface InitRatingValues extends Limits {
   deductible: number;
   maxDeductible: number;
 }
-
-// export type LocationImageTypes = 'light' | 'dark' | 'satellite' | 'satelliteStreets';
 
 export interface Submission extends FloodFormValues, BaseDoc {
   product: Product;
@@ -679,24 +670,13 @@ export const MGACommissionPct = z
   .max(0.2, 'Commission must be <= 20%');
 export type MGACommissionPct = z.infer<typeof MGACommissionPct>;
 
-// export interface TaxItem {
-//   displayName: TaxItemName;
-//   rate: number;
-//   value: number;
-//   subjectBase: SubjectBaseItem[];
-//   baseDigits?: number;
-//   resultDigits?: number;
-//   baseRoundType?: RoundingType;
-//   resultRoundType?: RoundingType;
-// }
-
 export const TaxItem = z.object({
   displayName: TaxItemName,
   rate: z.number(),
   value: z.number(),
   subjectBase: z.array(SubjectBaseItem),
-  baseDigits: z.number().int().optional(), // .default(2),
-  resultDigits: z.number().int().optional(), // .default(2),
+  baseDigits: z.number().int().optional(),
+  resultDigits: z.number().int().optional(),
   baseRoundType: RoundingType.optional(),
   resultRoundType: RoundingType.default('nearest'),
 });
@@ -718,7 +698,7 @@ export const Tax = TaxItem.omit({ value: true }).and(
 export type Tax = z.infer<typeof Tax>;
 
 export const FeeItem = z.object({
-  feeName: FeeItemName,
+  displayName: FeeItemName,
   value: z.number(),
 });
 export type FeeItem = z.infer<typeof FeeItem>;
@@ -999,14 +979,16 @@ export type ILocation = z.infer<typeof ILocation>;
 //   quoteId?: string | null;
 // }
 
-export const TotalsByBillingEntity = z.record(
-  z.object({
-    termPremium: z.number(),
-    taxes: z.array(TaxItem),
-    fees: z.array(FeeItem),
-    price: z.number(),
-  })
-);
+export const Totals = z.object({
+  termPremium: z.number(),
+  taxes: z.array(TaxItem),
+  fees: z.array(FeeItem),
+  price: z.number(),
+});
+export type Totals = z.infer<typeof Totals>;
+
+// TODO: share object with other premium, taxes, fees, price interface
+export const TotalsByBillingEntity = z.record(Totals);
 export type TotalsByBillingEntity = z.infer<typeof TotalsByBillingEntity>;
 
 export const PolicyLocation = z.object({
@@ -1735,6 +1717,9 @@ export interface PremiumTransaction extends BaseTransaction {
   inspectionFee: number;
   otherInterestedParties: string[];
   additionalNamedInsured: string[];
+  billingEntityId: string;
+  billingEntity: BillingEntity;
+  billingEntityTotals: Totals;
 }
 
 export interface AmendmentTransaction extends BaseTransaction {

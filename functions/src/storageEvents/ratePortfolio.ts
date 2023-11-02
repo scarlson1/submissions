@@ -13,6 +13,7 @@ import {
   ValueByRiskType,
   audience,
   getReportErrorFn,
+  printObj,
   sendgridApiKey,
   swissReClientId,
   swissReClientSecret,
@@ -60,14 +61,21 @@ const calcPrem = (data: TRowWithAAL[]) => {
 
   for (let r of data) {
     try {
+      console.log('r: ');
+      printObj(r);
       if (r.inland === -1) {
         let msg = r.skip ? 'skip row' : r.errMsg || 'missing aals';
         throw new Error(msg);
       }
       const getPremProps = getPremCalcVars(r);
+      console.log('prem props: ');
+      printObj(getPremProps);
       const rowPremData = getPremium({ ...getPremProps, isPortfolio: true });
-
+      console.log('rowPremData: ');
+      printObj(rowPremData);
       const flattenedPremData = flattenPremData(rowPremData);
+      console.log('flattened: ');
+      printObj(flattenedPremData);
 
       result.push({
         ...r,
@@ -218,8 +226,8 @@ async function getPremiumForChunk(chunk: TRow[]) {
  */
 async function splitAndRate(data: TRow[]) {
   let ratedArray: (CalcPremResult | GetAALsRes)[] = [];
-  let chunkCountVal = chunkCount.value() || 100;
-  let chunks: TRow[][] = data.length > chunkCountVal ? splitChunks(data, chunkCountVal) : [data];
+  let chunkSize = chunkCount.value() || 100;
+  let chunks: TRow[][] = data.length > chunkSize ? splitChunks(data, chunkSize) : [data];
   // Add an extra array for retries
   chunks.push([]);
   let currChunk = 1;
@@ -228,6 +236,8 @@ async function splitAndRate(data: TRow[]) {
     // retry array might be empty
     if (chunk.length) {
       const { ratedChunk, errorRows } = await getPremiumForChunk(chunk);
+      printObj(ratedChunk);
+      printObj(errorRows);
 
       info(
         `RATED CHUNK (${currChunk}/${chunks.length}) [SUCCESS COUNT: ${ratedChunk.length}; ERROR COUNT: ${errorRows.length}]: `

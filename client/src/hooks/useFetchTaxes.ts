@@ -57,8 +57,8 @@ export const useFetchTaxes = (
       invariant(annualPremium, 'annual premium required');
       invariant(address?.state, 'state required');
 
-      const mgaFees = sumByTypes<TFeeItem>(fees, 'feeName', 'MGA Fee', 'value');
-      const inspectionFees = sumByTypes<TFeeItem>(fees, 'feeName', 'Inspection Fee', 'value');
+      const mgaFees = sumByTypes<TFeeItem>(fees, 'displayName', 'MGA Fee', 'value');
+      const inspectionFees = sumByTypes<TFeeItem>(fees, 'displayName', 'Inspection Fee', 'value');
 
       const body: StateTaxRequest = {
         state: address.state,

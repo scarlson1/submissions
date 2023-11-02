@@ -202,11 +202,11 @@ export function transformPolicyRow(row: CSVPolicyRow): NullablePolicyRow {
 export function getFormattedFees(row: CSVPolicyRow | CSVQuoteRow) {
   const fees: FeeItem[] = [];
   const fee1: FeeItem = {
-    feeName: (row.fee1Name || '') as FeeItemName,
+    displayName: (row.fee1Name || '') as FeeItemName,
     value: row.fee1Value ? extractNumber(row.fee1Value) : 0,
   };
   const fee2: FeeItem = {
-    feeName: (row.fee2Name || '') as FeeItemName,
+    displayName: (row.fee2Name || '') as FeeItemName,
     value: row.fee2Value ? extractNumber(row.fee2Value) : 0,
   };
   if (fee1.value) fees.push(fee1);

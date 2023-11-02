@@ -1,6 +1,10 @@
 import { Timestamp } from 'firebase-admin/firestore';
-
 import { ILocation, Policy, PremiumTransaction, RatingData, WithId } from '../../common/index.js';
+import {
+  getBillingEntityDetails,
+  getBillingEntityId,
+  getBillingEntityTotals,
+} from '../../utils/index.js';
 import {
   getBookingDate,
   getDailyPremium,
@@ -13,9 +17,9 @@ import {
 export function formatPremiumTrx(
   trxType: PremiumTransaction['trxType'],
   policy: WithId<Policy>,
-  location: ILocation,
+  location: ILocation, // TODO: wrap in WithId ?? in case "locationId" gets removed from interface ??
   ratingData: RatingData,
-  trxEffDate: Timestamp, // = Timestamp.now(),
+  trxEffDate: Timestamp,
   eventId: string
 ): PremiumTransaction {
   const bookingDate = getBookingDate(trxEffDate.toMillis(), location.effectiveDate.toMillis());
@@ -30,6 +34,10 @@ export function formatPremiumTrx(
 
   const { surplusLinesTax, surplusLinesRegulatoryFee, MGAFee, inspectionFee } =
     getTrxTaxesAndFees(policy);
+
+  const billingEntityId = getBillingEntityId(policy, location.locationId) || 'namedInsured';
+  const billingEntity = getBillingEntityDetails(policy, location.locationId);
+  const billingEntityTotals = getBillingEntityTotals(policy, location.locationId) || null;
 
   return {
     trxType,
@@ -73,6 +81,9 @@ export function formatPremiumTrx(
     surplusLinesRegulatoryFee,
     MGAFee,
     inspectionFee,
+    billingEntityId,
+    billingEntity,
+    billingEntityTotals,
     otherInterestedParties: location.mortgageeInterest?.map((m) => m.name) || [],
     additionalNamedInsured: location.additionalInsureds?.map((ai) => ai.name) || [],
     homeState: policy.homeState || '',
