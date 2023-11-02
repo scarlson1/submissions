@@ -17,7 +17,7 @@ export interface GetPremiumProps {
   AALs: ValueByRiskType;
   limits: Limits;
   priorLossCount: string;
-  state: State;
+  state: string; // TODO: use State;
   FFH?: number;
   basement?: string;
   floodZone?: string;
