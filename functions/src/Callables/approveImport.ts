@@ -244,17 +244,17 @@ const approveImport = async ({ data, auth }: CallableRequest<ApproveImportProps>
     await batch.commit();
     info`created ${stagedDocs.length} documents in ${importSummary.targetCollection}`;
 
-    try {
-      await importSummaryRef.update({
-        status: 'approved',
-      });
-    } catch (err: any) {
-      reportErr(
-        `Successfully imported records, but failed to update import summary status`,
-        {},
-        err
-      );
-    }
+    // try {
+    //   await importSummaryRef.update({
+    //     status: 'approved',
+    //   });
+    // } catch (err: any) {
+    //   reportErr(
+    //     `Successfully imported records, but failed to update import summary status`,
+    //     {},
+    //     err
+    //   );
+    // }
 
     return {
       successCount: successIds.length,

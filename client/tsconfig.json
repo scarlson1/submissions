@@ -1,3 +1,6 @@
+/// <reference types="./vite-env-override.d.ts" />
+/// <reference types="vite/client" />
+
 {
   "compilerOptions": {
     "target": "es2022",

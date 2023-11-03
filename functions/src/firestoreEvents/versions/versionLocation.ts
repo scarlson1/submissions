@@ -83,7 +83,7 @@ export default async (
     // policy snap race condition ??
 
     if (afterData?.policyId) {
-      const oldVersion = afterData?.metadata?.version ?? 0;
+      // const oldVersion = afterData?.metadata?.version ?? 0;
       let policySnap = await policiesCol.doc(afterData.policyId).get();
       // might not exist if policy import from CSV
       if (policySnap.exists) {
@@ -91,9 +91,11 @@ export default async (
         let policyLcns = policySnap.data()?.locations;
         let policyLcn = policyLcns ? policyLcns[locationId] : null;
         if (policyLcn) {
-          const policyUpdates = {
-            [`locations.${locationId}.version`]: oldVersion + 1,
-          };
+          const policyUpdates: Record<string, any> = {};
+          policyUpdates[`locations.${locationId}.version`] = FieldValue.increment(1);
+          // const policyUpdates = {
+          //   [`locations.${locationId}.version`]: oldVersion + 1,
+          // };
           batch.update(policySnap.ref, policyUpdates);
         }
       }

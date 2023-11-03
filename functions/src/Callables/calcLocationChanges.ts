@@ -70,7 +70,7 @@ const calcLocationChanges = async ({ data, auth }: CallableRequest<CalcLocationC
 
   const db = getFirestore();
   const policiesCol = policiesCollection(db);
-  const changeRequestCol = changeRequestsCollection(db, policyId);
+  const changeRequestCol = changeRequestsCollection<PolicyChangeRequest>(db, policyId);
   // const locationsCol = locationsCollection(db);
   const ratingCol = ratingDataCollection(db);
 
@@ -154,7 +154,6 @@ const calcLocationChanges = async ({ data, auth }: CallableRequest<CalcLocationC
     if (!requireReratingEntries.length) {
       await changeReqRef.set(
         {
-          // @ts-ignore
           endorsementChanges, // does endorsement changes overwrite existing object when merges = true ??
           amendmentChanges,
         },

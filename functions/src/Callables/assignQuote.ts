@@ -85,7 +85,9 @@ const assignQuote = async ({ data, auth }: CallableRequest<AssignQuoteProps>) =>
       }
     }
 
-    quoteSnap.ref.update({ ...updates, 'metadata.updated': Timestamp.now() });
+    // update --> type error
+    // quoteSnap.ref.update({ ...updates, 'metadata.updated': Timestamp.now() });
+    quoteSnap.ref.set({ ...updates, metadata: { updated: Timestamp.now() } }, { merge: true });
 
     const message = `Quote ${quoteId} ${isAgent ? 'agentId' : 'userId'} updated to ${uid}`;
     info(message);

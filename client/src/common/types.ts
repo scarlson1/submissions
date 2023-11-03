@@ -1230,7 +1230,6 @@ export interface BaseChangeRequest extends BaseDoc {
   _lastCommitted?: Timestamp;
 }
 
-// TODO: update to "endorsementChanges" and "amendmentChanges"
 // TODO: same as policy change request --> use policy change request instead (locationID moved inside changes objects)
 // TODO: create extend to create ProcessedPolicyChangeRequest (mergedPolicyVersion, status: 'accepted' 'cancelled', etc., or mergedVersions: { [id]: number })
 export interface PolicyChangeRequest extends BaseChangeRequest {

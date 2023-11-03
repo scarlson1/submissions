@@ -177,7 +177,7 @@ export async function handleRatingForEndorsement(
           srSubKey: swissReSubscriptionKey.value(),
           replacementCost: RCVs.building,
           limits,
-          deductible: locationChanges.deductible || deductible,
+          deductible: (locationChanges?.deductible as number | undefined) || deductible, // TODO: fix typing
           coordinates: { latitude: coordinates.latitude, longitude: coordinates.longitude },
           numStories: location.ratingPropertyData?.numStories || 1,
         });
@@ -225,7 +225,7 @@ export async function handleRatingForEndorsement(
     await ratingDocRef.set({
       submissionId: prevRatingData?.submissionId || null,
       locationId,
-      deductible: locationChanges.deductible || deductible,
+      deductible: (locationChanges.deductible as number | undefined) || deductible, // TODO: fix typing
       limits: getPremiumInputs.limits,
       TIV: result.tiv,
       RCVs,

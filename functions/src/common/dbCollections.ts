@@ -109,11 +109,10 @@ export const paymentMethodsCollection = (db: Firestore, userId: string) =>
     `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.PAYMENT_METHODS}`
   );
 
-export const changeRequestsCollection = (db: Firestore, policyId: string) =>
-  createCollection<ChangeRequest>(
-    db,
-    `${COLLECTIONS.POLICIES}/${policyId}/${COLLECTIONS.CHANGE_REQUESTS}`
-  );
+export const changeRequestsCollection = <T extends ChangeRequest = ChangeRequest>(
+  db: Firestore,
+  policyId: string
+) => createCollection<T>(db, `${COLLECTIONS.POLICIES}/${policyId}/${COLLECTIONS.CHANGE_REQUESTS}`);
 
 export const stagedImportsCollection = (db: Firestore, importId: string) =>
   createCollection<StageImportRecord>(

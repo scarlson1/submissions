@@ -7,7 +7,6 @@ import {
   PUB_SUB_TOPICS,
   PaymentMethod,
   PaymentStatus,
-  Policy,
   cardFeePct,
   ePayCreds as ePayCredsSecret,
   finTrxCollection,
@@ -54,7 +53,7 @@ const executePayment = async ({ data, auth }: CallableRequest<ExecutePaymentProp
   const db = getFirestore();
   const policiesCol = policiesCollection(db);
 
-  const policySnap: DocumentSnapshot<Policy> = await policiesCol.doc(policyId).get();
+  const policySnap = await policiesCol.doc(policyId).get();
   const policy = policySnap.data();
   info('POLICY: ', { policy });
 
@@ -194,7 +193,7 @@ const executePayment = async ({ data, auth }: CallableRequest<ExecutePaymentProp
     } else {
       try {
         await policySnap.ref.update({
-          status: PaymentStatus.enum.processing,
+          paymentStatus: PaymentStatus.enum.processing,
           'metadata.updated': Timestamp.now(),
         });
       } catch (err: any) {

@@ -1579,7 +1579,8 @@ export type ChangeRequest =
   | PolicyChangeRequestOld
   | PolicyCancellationRequest
   | AddLocationRequest
-  | DraftAddLocationRequest;
+  | DraftAddLocationRequest
+  | PolicyChangeRequest;
 
 export interface PremiumCalcData {
   techPremium: ValueByRiskType & { total: number };
