@@ -310,3 +310,57 @@ function calcRCVBySquareFootage(sqFootage: number, state: string) {
   const factor = sqFootageFactor[state] || 150;
   return round(factor * sqFootage, -3);
 }
+
+// const sampleRentCastRes = [
+//   {
+//     addressLine1: '1382 Hunter Dr',
+//     city: 'Wayzata',
+//     state: 'MN',
+//     zipCode: '55391',
+//     formattedAddress: '1382 Hunter Dr, Wayzata, MN 55391',
+//     bedrooms: 5,
+//     squareFootage: 3299,
+//     yearBuilt: 1960,
+//     county: 'Hennepin',
+//     assessorID: '25-118-23-13-0009',
+//     legalDescription: '002 001 HUNTER RIDGE FARM IRREGULAR',
+//     subdivision: 'HUNTER RIDGE FARM',
+//     ownerOccupied: true,
+//     bathrooms: 4,
+//     lotSize: 326700,
+//     propertyType: 'Single Family',
+//     lastSalePrice: 1900000,
+//     lastSaleDate: '2020-09-25T00:00:00.000Z',
+//     features: {
+//       architectureType: 'Ranch',
+//       cooling: true,
+//       coolingType: 'Package',
+//       exteriorType: 'Wood',
+//       fireplace: true,
+//       floorCount: 1,
+//       foundationType: 'Block',
+//       garage: true,
+//       garageType: 'Attached',
+//       heating: true,
+//       heatingType: 'Floor / Wall',
+//       roofType: 'Wood',
+//       roomCount: 10,
+//       unitCount: 1,
+//     },
+//     taxAssessments: { '2022': { value: 2142000, land: 1134000, improvements: 1008000 } },
+//     propertyTaxes: { '2023': { total: 25214 } },
+//     owner: {
+//       names: ['MARKUS SPECKS', 'SAMANTHA SPECKS', 'COLIN J LUNDGREN', 'WENDY LUNDGREN'],
+//       mailingAddress: {
+//         id: '1382-Hunter-Dr,-Wayzata,-MN-55391',
+//         addressLine1: '1382 Hunter Dr',
+//         city: 'Wayzata',
+//         state: 'MN',
+//         zipCode: '55391',
+//       },
+//     },
+//     id: '1382-Hunter-Dr,-Wayzata,-MN-55391',
+//     longitude: -93.52893,
+//     latitude: 45.003343,
+//   },
+// ];
