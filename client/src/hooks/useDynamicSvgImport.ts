@@ -1,3 +1,4 @@
+/// <reference types="vite-plugin-svgr/client" />
 import { useEffect, useRef, useState } from 'react';
 
 export function useDynamicSvgImport(iconName: string) {
@@ -10,10 +11,8 @@ export function useDynamicSvgImport(iconName: string) {
     const importSvgIcon = async (): Promise<void> => {
       try {
         // have to give absolute path while importing the icon
-        console.log(`loading img: ${iconName}`);
-        const result = await import(`../assets/images/${iconName}.svg?react`); // .ReactComponent; // svgr provides ReactComponent for svg url
-        console.log('IMPORT:', result);
-        importedIconRef.current = result.ReactComponent;
+        importedIconRef.current = await import(`../assets/images/${iconName}.svg?react`);
+        // .ReactComponent; // svgr provides ReactComponent for svg url
       } catch (err) {
         setError(err);
         console.error(err);
