@@ -13,6 +13,7 @@ import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { useAuth, useUser } from 'reactfire';
 
+import { AUTH_ROUTES, createPath } from 'router';
 import { useAuth as useAuthI } from './AuthContext';
 
 interface AuthActionsContextValue {
@@ -66,7 +67,9 @@ export const AuthActionsProvider = ({ children }: { children: ReactNode }) => {
 
       await auth.signOut();
 
-      cb !== undefined ? cb() : navigate(`/auth/login`, { replace: true });
+      cb !== undefined
+        ? cb()
+        : navigate(createPath({ path: AUTH_ROUTES.LOGIN }), { replace: true });
       setLoading(false);
     },
     [auth, navigate]

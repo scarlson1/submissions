@@ -70,15 +70,15 @@ export const feinValidation = yup.object().shape({
 export const EandOVal = yup
   .mixed()
   .test('required', 'E and O is required', (value) => {
-    if (!value || value.length < 1) return false;
+    if (!value || !Array.isArray(value) || !value.length) return false;
     return true;
   })
   .test('fileSize', 'The file must be less than 2mb', (value) => {
-    if (!value || value.length < 1) return false;
+    if (!value || !Array.isArray(value) || !value.length) return false;
     return value[0].size / 1024 < 2048;
   })
   .test('fileType', 'The file type must be .pdf', (value) => {
-    if (!value || !value.length) return false;
+    if (!value || !Array.isArray(value) || !value.length) return false;
     return value[0].type.includes('pdf');
   });
 

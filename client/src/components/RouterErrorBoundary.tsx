@@ -5,6 +5,7 @@ import { isRouteErrorResponse, useNavigate, useRouteError } from 'react-router-d
 import { useUser } from 'reactfire';
 
 import { PageNotFoundSVG, SearchingSVG, SecureLoginSVG, ServerDownSVG } from 'assets/images';
+import { ROUTES, createPath } from 'router';
 
 // FOR HANDLING ERRORS THROWN IN REACT ROUTER LOADERS
 
@@ -113,7 +114,7 @@ export const RouterErrorBoundary = ({ actionButtons }: RouterErrorBoundaryProps)
               If you this is a bug, please{' '}
               <Typography
                 component='span'
-                onClick={() => navigate('/contact')}
+                onClick={() => navigate(createPath({ path: ROUTES.CONTACT }))}
                 sx={{ '&:hover': { textDecoration: 'underline' } }}
               >
                 drop us a note
@@ -163,7 +164,7 @@ export const RouterErrorBoundary = ({ actionButtons }: RouterErrorBoundaryProps)
               If you this is a bug, please{' '}
               <Typography
                 component='span'
-                onClick={() => navigate('/contact')}
+                onClick={() => navigate(createPath({ path: ROUTES.CONTACT }))}
                 sx={{ '&:hover': { textDecoration: 'underline' } }}
               >
                 drop us a note

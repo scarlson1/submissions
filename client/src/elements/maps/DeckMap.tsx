@@ -1,36 +1,14 @@
 import DeckGL, { DeckGLProps } from '@deck.gl/react/typed';
 import { Box, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { GeoJsonLayerProps, LayersList, MapViewState, PickingInfo } from 'deck.gl/typed';
+import { LayersList, MapViewState, PickingInfo } from 'deck.gl/typed';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { ReactNode } from 'react';
 import Map from 'react-map-gl';
 
-export const DEFAULT_INITIAL_VIEW_STATE = {
-  longitude: -94.25,
-  latitude: 38.25,
-  zoom: 3.5,
-  maxZoom: 18,
-  minZoom: 3,
-  pitch: 0,
-  bearing: 0,
-};
+import { DEFAULT_INITIAL_VIEW_STATE } from './constants';
 
-export const defaultGeoJsonLayerProps: Partial<GeoJsonLayerProps> = {
-  pickable: true,
-  stroked: true,
-  filled: true,
-  extruded: true,
-  lineWidthScale: 20,
-  lineWidthMinPixels: 2,
-  autoHighlight: true,
-  wireframe: true,
-  highlightColor: [80, 144, 211, 20],
-  getLineColor: [178, 186, 194, 200],
-  getFillColor: [255, 255, 255, 20],
-  getPointRadius: 100,
-  getLineWidth: 10,
-};
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 
 // TODO: pass HoverInfo as child ?? needs to be direct descendant of DeckGl ??
 
@@ -64,7 +42,7 @@ export const DeckMap = ({
         {...rest}
       >
         <Map
-          mapboxAccessToken={import.meta.env.VITE_MAPBOX_ACCESS_TOKEN}
+          mapboxAccessToken={MAPBOX_TOKEN}
           mapStyle={
             theme.palette.mode === 'light'
               ? 'mapbox://styles/mapbox/light-v11' // 8
@@ -74,6 +52,8 @@ export const DeckMap = ({
           minZoom={2}
           maxZoom={20}
           maxPitch={85}
+          // @ts-ignore
+          projection='mercator'
         >
           {children}
         </Map>

@@ -26,10 +26,10 @@ import {
   UnderConstructionSVG,
 } from 'assets/images';
 import { ANALYTICS_EVENTS, QUOTE_STATUS, Quote } from 'common';
-import { FlexCard, FlexCardContent, IconButtonMenu, LineItem } from 'components';
+import { FlexCard, FlexCardContent, IconButtonMenu, LineItem, PageMeta } from 'components';
 import { useAnalyticsEvent, useDocData } from 'hooks';
 import { dollarFormat } from 'modules/utils/helpers';
-import { PageMeta, ROUTES, createPath } from 'router';
+import { ROUTES, createPath } from 'router';
 
 export const ViewQuote = () => {
   const navigate = useNavigate();
@@ -72,7 +72,7 @@ export const ViewQuote = () => {
           <Button
             variant='contained'
             sx={{ maxHeight: 34 }}
-            onClick={() => navigate('bind')}
+            onClick={() => navigate(createPath({ path: ROUTES.QUOTE_BIND, params: { quoteId } }))}
             disabled={data.status !== QUOTE_STATUS.AWAITING_USER || isExpired}
           >
             Continue to bind

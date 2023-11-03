@@ -36,7 +36,7 @@ import { ErrorBoundary } from 'react-error-boundary';
 import { z } from 'zod';
 
 import { ILocation, Policy as IPolicy, WithId } from 'common';
-import { ErrorFallback, LoadingSpinner, NotFound } from 'components';
+import { ErrorFallback, LoadingSpinner, NotFound, PageMeta } from 'components';
 import { IconMenu } from 'components/IconButtonMenu';
 import { LocationsMap, PolicyLocationCards } from 'elements';
 import {
@@ -64,7 +64,7 @@ import {
   stringAvatar,
 } from 'modules/utils';
 import { useNavigate } from 'react-router-dom';
-import { PageMeta, ROUTES, createPath } from 'router';
+import { ROUTES, createPath } from 'router';
 
 // TODO: should locations grid be passed location IDs explicitly ?? instead if querying locations collection
 // would require new grid component (Can't do it with ServerDataGrid)

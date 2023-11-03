@@ -10,11 +10,6 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 export default defineConfig({
   plugins: [
     svgr({
-      svgrOptions: {
-        // jsxRuntime: 'automatic',
-        // typescript: true,
-        // memo: true,
-      },
       include: '**/*.svg?react',
     }),
     react(),

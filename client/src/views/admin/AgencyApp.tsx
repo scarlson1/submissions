@@ -1,8 +1,8 @@
 import ReactJson from '@microlink/react-json-view';
 import { Box, Typography, useTheme } from '@mui/material';
 
+import { PageMeta } from 'components';
 import { useDocDataOnce, useSafeParams } from 'hooks';
-import { PageMeta } from 'router';
 
 export const AgencyApp = () => {
   const theme = useTheme();

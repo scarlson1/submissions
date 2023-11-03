@@ -1,7 +1,6 @@
-// import * as yup from 'yup';
 import { array, boolean, number, object, string } from 'yup';
 
-import { isValidEmail } from 'modules/utils/helpers';
+import { isValidEmail } from 'modules/utils';
 import { State } from './enums';
 
 export const phoneRegEx = /^\+1[1-9]{1}[0-9]{9}$/;
@@ -18,17 +17,18 @@ export function phoneRequiredVal(val: any) {
   return error;
 }
 
-// export const isValidEmail = (str: string) => {
-//   // eslint-disable-next-line
-//   return /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(
-//     str
-//   );
-// };
-
 export const emailVal = string().test('valid-email', 'Invalid email', async (val) => {
   if (val && !isValidEmail(val)) return false;
   return true;
 });
+
+export const passwordValidation = string()
+  .min(8, 'Password must be 8 characters long')
+  .matches(/[0-9]/, 'Password requires a number')
+  .matches(/[a-z]/, 'Password requires a lowercase letter')
+  .matches(/[A-Z]/, 'Password requires an uppercase letter')
+  .matches(/[^\w]/, 'Password requires a symbol')
+  .required();
 
 export const postalRegEx = /^[0-9]{5}(?:-[0-9]{4})?/;
 export const postalVal = string()
@@ -215,35 +215,6 @@ export const limitsValidationNested = object({
   limits: limitsValidation,
 });
 
-// export const limitsValidation = object({
-//   coverageActive: object({
-//     building: bool(),
-//     structures: bool(),
-//     contents: bool(),
-//     additional: bool(),
-//   }),
-//   coverageActiveBuilding: boolean(),
-//   coverageActiveStructures: boolean(),
-//   coverageActiveContents: boolean(),
-//   coverageActiveAdditional: boolean(),
-//   limitA: string().when('coverageActiveBuilding', {
-//     is: true,
-//     then: limitAVal,
-//   }),
-//   limitB: string().when('coverageActiveStructures', {
-//     is: true,
-//     then: limitBVal,
-//   }),
-//   limitC: string().when('coverageActiveStructures', {
-//     is: true,
-//     then: limitCVal,
-//   }),
-//   limitD: string().when('coverageActiveStructures', {
-//     is: true,
-//     then: limitDVal,
-//   }),
-// });
-
 export const deductibleVal = number().min(1000).required();
 
 // TODO: max validation
@@ -262,8 +233,8 @@ export const exclusionsValidation = object({
   exclusionsExist: boolean().oneOf([true, false], 'Please select an option').nullable(),
   exclusions: array().when(['exclusionsExist'], {
     is: (existsVal: boolean | null) => !!existsVal,
-    then: array().min(1, 'Please select at least one option from dropdown'),
-    otherwise: array(),
+    then: () => array().min(1, 'Please select at least one option from dropdown'),
+    otherwise: () => array(),
   }),
 });
 

@@ -7,14 +7,13 @@ import { ErrorBoundary } from 'react-error-boundary';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { useFirestore } from 'reactfire';
 
-import { ClaimsGuard } from 'components';
+import { ClaimsGuard, PageMeta } from 'components';
 import { AddUsersDialog } from 'elements/forms';
 import { InvitesGrid, PoliciesGrid, QuotesGrid, SubmissionsGrid, UsersGrid } from 'elements/grids';
 import { AdminManageUsersGrid } from 'elements/grids/UsersGrid';
 import { useJsonTheme } from 'hooks';
 import { useAgencyInsureds } from 'hooks/useAgencyInsureds';
 import { useCollectionDataInnerJoin, useRx, useRxDocJoin } from 'hooks/useRx';
-import { PageMeta } from 'router';
 
 const MIN_TAB_HEIGHT = 40;
 

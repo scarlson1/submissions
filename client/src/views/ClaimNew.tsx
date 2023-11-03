@@ -2,11 +2,11 @@ import { Box, Container, Typography } from '@mui/material';
 import { useEffect, useMemo } from 'react';
 
 import { Policy } from 'common';
+import { PageMeta } from 'components';
 import { FormattedAddress } from 'elements';
 import ClaimForm from 'elements/forms/ClaimForm';
 import { useDocData, useSafeParams } from 'hooks';
 import { compressedToAddress } from 'modules/utils';
-import { PageMeta } from 'router';
 
 // TODO: display location details (location/policy ID, named insured, location address)
 

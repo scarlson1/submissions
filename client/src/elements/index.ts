@@ -5,8 +5,9 @@ export { LocationCard } from './LocationCard';
 export { PolicyLocationCards } from './PolicyLocationCards';
 export { UpdateProfileImg } from './UpdateProfileImg';
 export { CountiesMap } from './maps/CountiesMap';
-export { DeckMap, defaultGeoJsonLayerProps } from './maps/DeckMap';
+export { DeckMap } from './maps/DeckMap';
 export { LocationsMap } from './maps/LocationsMap';
+export { defaultGeoJsonLayerProps } from './maps/constants';
 
 export type { LocationCardProps } from './LocationCard';
 export type { UpdateProfileImgProps } from './UpdateProfileImg';

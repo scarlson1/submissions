@@ -1,9 +1,10 @@
-import { useState } from 'react';
-import { GeoJsonLayer, PickingInfo } from 'deck.gl/typed';
 import { useTheme } from '@mui/material';
+import { GeoJsonLayer, PickingInfo } from 'deck.gl/typed';
+import { useState } from 'react';
 
-import { DeckMap, defaultGeoJsonLayerProps } from './DeckMap';
 import { COUNTIES_URL, FIPSDetails } from 'common';
+import { DeckMap } from './DeckMap';
+import { defaultGeoJsonLayerProps } from './constants';
 
 export interface CountiesMapProps {
   selectedCounties?: FIPSDetails[];

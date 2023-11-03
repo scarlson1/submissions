@@ -14,7 +14,7 @@ import { FirebaseError } from 'firebase/app';
 import { Form, Formik, FormikHelpers } from 'formik';
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import * as yup from 'yup';
+import { object, string } from 'yup';
 
 import { addressValidation, contactValidation } from 'common';
 import {
@@ -32,10 +32,8 @@ import { AgencyAppValues, EandOVal, FEINVal, INITIAL_VALUES } from 'views/Agency
 
 // DIRECTLY CREATES TENANT - INSTEAD OF APPROVAL PROCESS
 
-// TODO: use rxFire to upload to storage and create submission in Observable ??
-
-const validation = yup.object().shape({
-  orgName: yup.string().required(),
+const validation = object().shape({
+  orgName: string().required(),
   address: addressValidation,
   contact: contactValidation,
   EandO: EandOVal,
@@ -387,53 +385,3 @@ export const CreateTenant = () => {
     </Box>
   );
 };
-
-// const createOrg = useCallback(
-//   async (submissionId: string) => {
-//     try {
-//       const createTenantRes = await createTenant(submissionId);
-
-//       return createTenantRes;
-//     } catch (error) {
-//       if (error instanceof FirebaseError) {
-//         toast.error(`${error.message} (${error.code})`);
-//       } else {
-//         toast.error(
-//           'An error occurred while attempting to create tenant. See console for details.'
-//         );
-//       }
-//     }
-//   },
-//   [createTenant, toast]
-// );
-
-// const promptForNotification = useCallback(async () => {
-//   try {
-//     await confirm({
-//       catchOnCancel: true,
-//       variant: 'danger',
-//       title: 'Notify Primary Contact?',
-//       confirmButtonText: 'Submit',
-//       description:
-//         'Would you like to notify the primary contact and invite them to create an account?',
-//       dialogContentProps: { dividers: true },
-//     });
-//     return true;
-//   } catch (err) {
-//     return false;
-//   }
-// }, [confirm]);
-
-// const handleSuccess = useCallback(
-//   async (agencyId: string, tenantId?: string) => {
-//     const shouldNotify = await promptForNotification();
-//     if (!!shouldNotify) {
-//       toast.loading('sending notification...');
-//       await sendApprovedNotification(agencyId, `${tenantId}`);
-//       toast.success('Error delivering notification');
-//     }
-
-//     navigate(createPath({ path: ADMIN_ROUTES.ORGANIZATIONS }));
-//   },
-//   [promptForNotification, sendApprovedNotification, navigate, toast]
-// );

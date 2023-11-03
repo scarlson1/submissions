@@ -34,6 +34,7 @@ export {
 } from './MapStyleControl';
 export { MicrosoftAuth } from './MicrosoftAuth';
 export { NotFound } from './NotFound';
+export { PageMeta } from './PageMeta';
 export { ReauthDialog } from './ReauthDialog';
 export { RemoteConfigWrapper } from './RemoteConfigWrapper';
 export * from './RenderGridCellHelpers';

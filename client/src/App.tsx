@@ -12,10 +12,9 @@ import {
 } from 'react-router-dom';
 import './App.css';
 
-import { ErrorFallback, Toaster } from 'components';
+import { ErrorFallback, PageMeta, Toaster } from 'components';
 import { AuthProvider, ConfirmationProvider, DialogProvider, ThemeProvider } from 'context';
 import { useAnalyticsEvent } from 'hooks';
-import { PageMeta } from 'router';
 
 // TODO: set up Sentry for error logging
 // https://docs.sentry.io/platforms/javascript/guides/react/?original_referrer=https%3A%2F%2Fsentry.io%2F

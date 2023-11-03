@@ -26,7 +26,7 @@ import { useFirestore, useUser } from 'reactfire';
 import * as yup from 'yup';
 // import Slider from 'react-slick';
 
-import { COLLECTIONS, User, usersCollection } from 'common';
+import { COLLECTIONS, User, passwordValidation, usersCollection } from 'common';
 import { Carousel, ClaimsGuard, Copy } from 'components';
 import { RHFTextField } from 'components/forms';
 import { useAuthActions } from 'context';
@@ -43,7 +43,6 @@ import {
   useUpdateProfile,
 } from 'hooks';
 import { AUTH_ROUTES, createPath } from 'router';
-import { passwordValidation } from './CreateAccount';
 
 // react spring animated gradient: https://codesandbox.io/s/xg8jhi
 
@@ -572,7 +571,7 @@ function VerifyEmailButton() {
 const updatePasswordSchema = yup
   .object()
   .shape({
-    password: passwordValidation, // yup.string().required(),
+    password: passwordValidation,
   })
   .required();
 

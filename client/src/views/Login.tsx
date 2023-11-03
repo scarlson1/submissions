@@ -15,7 +15,8 @@ import { FormikPassword } from 'elements/forms';
 import { useSendPasswordReset } from 'hooks';
 import { useHandleAuthError } from 'hooks/useHandleAuthError';
 import { useKeyPress } from 'hooks/utils';
-import { getRedirectPath } from 'modules/utils/helpers';
+import { getRedirectPath, logDev } from 'modules/utils/helpers';
+import { AUTH_ROUTES, createPath } from 'router';
 
 // const providersList = [
 //   {
@@ -51,13 +52,13 @@ export const Login = () => {
   const formikRef = useRef<FormikProps<LoginValues>>(null);
 
   useKeyPress('Enter', () => {
-    console.log('onPress called');
+    logDev('onPress called');
     formikRef.current?.submitForm();
   });
 
   useEffect(() => {
     if (params.tenantId) {
-      console.log(`TENANT ID: ${params.tenantId}`);
+      logDev(`TENANT ID: ${params.tenantId}`);
       auth.tenantId = params.tenantId;
     } else {
       auth.tenantId = null;
@@ -197,9 +198,18 @@ export const Login = () => {
                 variant='text'
                 size='small'
                 onClick={() =>
-                  navigate(`/auth/create-account/${params.tenantId || ''}`, {
-                    state: { ...location.state },
-                  })
+                  // navigate(`/auth/create-account/${params.tenantId || ''}`, {
+                  //   state: { ...location.state },
+                  // })
+                  navigate(
+                    createPath({
+                      path: AUTH_ROUTES.CREATE_ACCOUNT,
+                      params: { tenantId: params.tenantId },
+                    }),
+                    {
+                      state: { ...location.state },
+                    }
+                  )
                 }
                 sx={{
                   fontSize: 12,

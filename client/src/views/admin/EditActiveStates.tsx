@@ -23,6 +23,7 @@ import { ErrorFallback } from 'components';
 import { FormikSwitch } from 'components/forms';
 import { ActiveStateMap } from 'elements/maps/ActiveStateMap';
 import { useDocData, useFetchLicenses, useSafeParams } from 'hooks';
+import { logDev } from 'modules/utils';
 
 // TODO: box around map and switches. max height around switches. remove map from grid
 
@@ -37,7 +38,7 @@ export const EditActiveStates = () => {
   const fetchLicenses = useFetchLicenses([where('surplusLinesProducerOfRecord', '==', true)]);
   const formikRef = useRef<FormikProps<EditActiveStatesValues>>(null);
 
-  const { id, ...states } = data;
+  const { id, ...states } = data; // reactFire adds doc id
 
   const handleSave = useCallback(() => {
     formikRef.current?.submitForm();
@@ -50,9 +51,9 @@ export const EditActiveStates = () => {
         delete values.NO_ID_FIELD;
 
         const enabledStates = Object.entries(values)
-          .filter(([state, val]) => !!val) // state !== 'productId' &&
+          .filter(([state, val]) => !!val)
           .map(([state]) => state);
-        console.log('Enabled states: ', enabledStates);
+        logDev('Enabled states: ', enabledStates);
 
         const licenses = await fetchLicenses(enabledStates, Timestamp.now());
 
@@ -83,7 +84,6 @@ export const EditActiveStates = () => {
     formikRef.current?.setFieldValue(key, !currVal);
   }, []);
 
-  console.log('DATA: ', data);
   return (
     <Box>
       <Box
@@ -200,7 +200,7 @@ export const EditActiveStates = () => {
                   </Grid>
                 ))}
               </Grid>
-              {/* <Grid xs={12} sx={{ px: { xs: 0 } }}> */}
+
               <Divider sx={{ my: 3 }} />
               <Box sx={{ py: { xs: 4, md: 6 }, height: 500, width: '100%', mb: 20 }}>
                 <ErrorBoundary
@@ -215,7 +215,6 @@ export const EditActiveStates = () => {
                   </Suspense>
                 </ErrorBoundary>
               </Box>
-              {/* </Grid> */}
             </Box>
           )}
         </Formik>

@@ -1,5 +1,4 @@
 import { wrapCreateBrowserRouter } from '@sentry/react';
-import { Helmet } from 'react-helmet-async';
 import {
   createBrowserRouter,
   createSearchParams,
@@ -8,7 +7,7 @@ import {
 } from 'react-router-dom';
 
 import { CLAIMS, TProduct } from 'common';
-import { RequireAuth, RouterErrorBoundary } from 'components';
+import { PageMeta, RequireAuth, RouterErrorBoundary } from 'components';
 import { ConfigLayout, Layout } from 'components/layout';
 import { RouterLink as BreadCrumbLink } from 'components/layout/Breadcrumbs';
 import { RequireAuthReactFire } from 'components/RequireAuthReactFire';
@@ -72,6 +71,8 @@ import { AgencyAppSuccessStep } from 'views/AgencyNew';
 import { ClaimNew } from 'views/ClaimNew';
 import { EmailVerified } from 'views/EmailVerified';
 import App from './App';
+
+// TODO: move react component exports to different file (vite hot reload issue)
 
 export interface CrumbMatch {
   id: string;
@@ -274,16 +275,6 @@ export function createPath(args: TArgs) {
 }
 
 const sentryCreateBrowserRouter = wrapCreateBrowserRouter(createBrowserRouter);
-
-export function PageMeta({ title }: { title: string }) {
-  return (
-    <Helmet>
-      <title>{title}</title>
-      <meta name='title' content={title} data-react-helmet='true'></meta>
-      {/* <link rel='canonical' href='https://idemand-submissions.web.app/' /> */}
-    </Helmet>
-  );
-}
 
 // export const router = createBrowserRouter([
 export const router = sentryCreateBrowserRouter([

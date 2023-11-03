@@ -15,6 +15,8 @@ import { AddressStepValues } from 'elements/forms/AddressStep';
 import { useWidth } from 'hooks';
 // popup example https://github.com/visgl/react-map-gl/blob/7.1-release/examples/controls/src/app.tsx
 
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
+
 interface FormikCoordsMarkerProps {
   cb?: (coords: { lat: number; lng: number }) => void;
 }
@@ -103,15 +105,16 @@ export const FormikCoordsMap = ({
     // @ts-ignore
     <Map
       {...viewState}
-      mapboxAccessToken={import.meta.env.VITE_MAPBOX_ACCESS_TOKEN}
+      mapboxAccessToken={MAPBOX_TOKEN}
       onMove={(evt) => setViewState(evt.viewState)}
       mapStyle={mapStyle}
       styleDiffing
-      minZoom={2}
+      minZoom={3}
       maxZoom={20}
       maxPitch={85}
       scrollZoom={true}
-      doubleClickZoom={true}
+      doubleClickZoom={true} // @ts-ignore
+      projection='mercator'
       {...props}
     >
       <FormikCoordsMarker />

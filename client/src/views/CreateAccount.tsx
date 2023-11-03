@@ -11,19 +11,11 @@ import * as yup from 'yup';
 import { FormikTextField } from 'components/forms';
 // import { auth } from 'firebaseConfig';
 // import { GoogleAuth, MicrosoftAuth } from 'components';
+import { passwordValidation } from 'common';
 import { FormikPassword } from 'elements/forms';
 import { useCreateAccount } from 'hooks';
 import { useKeyPress } from 'hooks/utils';
 import { getRedirectPath } from 'modules/utils/helpers';
-
-export const passwordValidation = yup
-  .string()
-  .min(8, 'Password must be 8 characters long')
-  .matches(/[0-9]/, 'Password requires a number')
-  .matches(/[a-z]/, 'Password requires a lowercase letter')
-  .matches(/[A-Z]/, 'Password requires an uppercase letter')
-  .matches(/[^\w]/, 'Password requires a symbol')
-  .required();
 
 const validation = yup.object({
   firstName: yup.string().required('First name is required'),
