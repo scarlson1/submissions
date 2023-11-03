@@ -23,6 +23,8 @@ import { UserWithClaimsResult } from 'hooks/useUserClaims';
 import { usePrevious } from 'hooks/utils';
 import { AUTH_ROUTES, createPath } from 'router';
 
+// TODO: new feature: authStateReady - https://firebase.google.com/support/release-notes/js
+
 // TODO: refactor to use rxFire observables ?? https://firebase.blog/posts/2018/09/introducing-rxfire-easy-async-firebase
 
 // TODO: set up reducer & actions

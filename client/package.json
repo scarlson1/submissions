@@ -78,7 +78,7 @@
     "deck.gl": "^8.9.8",
     "deepmerge-ts": "^5.1.0",
     "env-cmd": "^10.1.0",
-    "firebase": "^9.15.0",
+    "firebase": "^10.5.2",
     "formik": "^2.2.9",
     "geofire": "^6.0.0",
     "geofire-common": "^6.0.0",
