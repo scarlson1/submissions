@@ -89,8 +89,8 @@ export const usePromptForEmails = () => {
 const notifyValidation = yup.object().shape({
   notifyInsured: yup.boolean().when(['notifyAgent', 'alternative'], {
     is: (notifyAgent: boolean, alternative: string[]) => !notifyAgent && alternative.length < 1,
-    then: yup.boolean().oneOf([true], 'Must provide or select at least one email'),
-    otherwise: yup.boolean(),
+    then: () => yup.boolean().oneOf([true], 'Must provide or select at least one email'),
+    otherwise: () => yup.boolean(),
   }),
   notifyAgent: yup
     .boolean()

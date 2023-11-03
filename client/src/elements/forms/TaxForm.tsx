@@ -72,17 +72,14 @@ export const newTaxValidation = yup.object().shape({
     ),
   rate: yup.number().when(['subjectBase'], {
     is: (subjectBase: string) => subjectBase && subjectBase[0] === 'fixedFee',
-    then: yup.number().notRequired().nullable(),
-    otherwise: yup
-      .number()
-      .positive()
-      .max(20, 'Rate must be less than 20%')
-      .required('Rate is required'),
+    then: () => yup.number().notRequired().nullable(),
+    otherwise: () =>
+      yup.number().positive().max(20, 'Rate must be less than 20%').required('Rate is required'),
   }),
   fixedRate: yup.number().when(['subjectBase'], {
     is: (subjectBase: string) => subjectBase && subjectBase[0] === 'fixedFee',
-    then: yup.number().min(0).max(100).required(),
-    otherwise: yup.number().notRequired().nullable(),
+    then: () => yup.number().min(0).max(100).required(),
+    otherwise: () => yup.number().notRequired().nullable(),
   }),
   baseRoundType: yup.string().required(),
   baseDigits: yup.number().min(0, 'Must be 0 or greater').integer('Must be an integer'),

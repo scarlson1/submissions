@@ -44,61 +44,68 @@ const addPaymentMethodValidation = yup.object().shape({
   accountHolder: yup.string().required('Must enter the name on the card/account'),
   cardNumber: yup.string().when(['cardPaymentMethod'], {
     is: true,
-    then: yup
-      .string()
-      .required()
-      .matches(/^[0-9]{16}$/, 'Card number must be 16 digits'),
-    otherwise: yup.string().notRequired(),
+    then: () =>
+      yup
+        .string()
+        .required()
+        .matches(/^[0-9]{16}$/, 'Card number must be 16 digits'),
+    otherwise: () => yup.string().notRequired(),
   }),
   cardExpDate: yup.string().when(['cardPaymentMethod'], {
     is: true,
-    then: yup
-      .string()
-      .required('Exp date in format: mm/yy')
-      .matches(/^(0[1-9]|1[0-2])\/?([0-9]{2})$/, 'Exp date in format: mm/yy'),
-    otherwise: yup.string().notRequired(),
+    then: () =>
+      yup
+        .string()
+        .required('Exp date in format: mm/yy')
+        .matches(/^(0[1-9]|1[0-2])\/?([0-9]{2})$/, 'Exp date in format: mm/yy'),
+    otherwise: () => yup.string().notRequired(),
   }),
   cvc: yup.string().when(['cardPaymentMethod'], {
     is: true,
-    then: yup
-      .string()
-      .min(3)
-      .max(4)
-      .required()
-      .matches(/^([0-9]{3,4})$/, 'CVC must be 3 or 4 digits'),
-    otherwise: yup.string().notRequired(),
+    then: () =>
+      yup
+        .string()
+        .min(3)
+        .max(4)
+        .required()
+        .matches(/^([0-9]{3,4})$/, 'CVC must be 3 or 4 digits'),
+    otherwise: () => yup.string().notRequired(),
   }),
   postalCode: yup.string().when(['cardPaymentMethod'], {
     is: true,
-    then: yup
-      .string()
-      .required('Postal code is required')
-      .matches(/^[0-9]{5}$/, '5 digit postal required'),
-    otherwise: yup.string().notRequired(),
+    then: () =>
+      yup
+        .string()
+        .required('Postal code is required')
+        .matches(/^[0-9]{5}$/, '5 digit postal required'),
+    otherwise: () => yup.string().notRequired(),
   }),
   accountType: yup.string().when(['cardPaymentMethod'], {
     is: false,
-    then: yup
-      .string()
-      .oneOf(['PersonalChecking', 'PersonalSavings', 'CorporateChecking', 'CorporateSavings']),
-    otherwise: yup.string().notRequired(),
+    then: () =>
+      yup
+        .string()
+        .oneOf(['PersonalChecking', 'PersonalSavings', 'CorporateChecking', 'CorporateSavings']),
+    otherwise: () => yup.string().notRequired(),
   }),
   routingNumber: yup.string().when(['cardPaymentMethod'], {
     is: false,
-    then: yup
-      .string()
-      .required()
-      .test('routing-number', 'Invalid routing number', validateRoutingNumber),
-    otherwise: yup.string().notRequired(),
+    then: () =>
+      yup
+        .string()
+        .required()
+        .test('routing-number', 'Invalid routing number', validateRoutingNumber),
+    otherwise: () => yup.string().notRequired(),
   }),
   accountNumber: yup.string().when(['cardPaymentMethod'], {
     is: false,
-    then: yup
-      .string()
-      .min(8, 'Account number must be at least 8 digits')
-      .max(14, 'Account number must be less than 14 digits')
-      .required(),
-    otherwise: yup.string().notRequired(),
+    then: () =>
+      yup
+        .string()
+        .min(8, 'Account number must be at least 8 digits')
+        .max(14, 'Account number must be less than 14 digits')
+        .required(),
+    otherwise: () => yup.string().notRequired(),
   }),
 });
 

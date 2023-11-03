@@ -14,15 +14,16 @@ export const getEffectiveDateValidation = (minEffDate: Date, maxEffDate: Date) =
     effectiveExceptionRequested: boolean(),
     effectiveDate: date().when('effectiveExceptionRequested', {
       is: true,
-      then: date().min(new Date(), 'Effective cannot be in the past'),
-      otherwise: date() // addToDate({ days: 15 })
-        .min(minEffDate, 'Effective date must be at least 15 days from binding coverage')
-        .max(maxEffDate, 'Effective date must be within 60 days of binding coverage'),
+      then: () => date().min(new Date(), 'Effective cannot be in the past'),
+      otherwise: () =>
+        date() // addToDate({ days: 15 })
+          .min(minEffDate, 'Effective date must be at least 15 days from binding coverage')
+          .max(maxEffDate, 'Effective date must be within 60 days of binding coverage'),
     }),
     effectiveExceptionReason: string().when('effectiveExceptionRequested', {
       is: true,
-      then: string().required('Please select an option'),
-      otherwise: string().notRequired(),
+      then: () => string().required('Please select an option'),
+      otherwise: () => string().notRequired(),
     }),
   });
 

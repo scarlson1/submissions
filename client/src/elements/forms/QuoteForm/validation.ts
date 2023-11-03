@@ -32,12 +32,13 @@ export const getQuoteValidation = (activeStates: Record<string, boolean>) =>
     effectiveExceptionRequested: yup.boolean().typeError('eff. exception (boolean)'),
     effectiveDate: yup.date().when('effectiveExceptionRequested', {
       is: true,
-      then: yup.date().required(), // .min(minDate, 'Effective must be 15+ days'),
-      otherwise: yup
-        .date()
-        .typeError('effective date (date)')
-        .min(minDate, 'effective date must be at least 15 days from now')
-        .max(maxDate, 'effective date must be within 60 days'),
+      then: () => yup.date().required(), // .min(minDate, 'Effective must be 15+ days'),
+      otherwise: () =>
+        yup
+          .date()
+          .typeError('effective date (date)')
+          .min(minDate, 'effective date must be at least 15 days from now')
+          .max(maxDate, 'effective date must be within 60 days'),
     }),
     deductible: yup.number().min(1000).required(),
     fees: yup.array().of(
