@@ -70,7 +70,7 @@ export const RequireAuthReactFire = ({
     return (
       <Box sx={{ py: 5, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
         <Typography variant='h6' align='center' gutterBottom>
-          Not authorized
+          {data.signedIn ? 'Not authorized' : 'Authentication required'}
         </Typography>
         <Box sx={{ mx: 'auto' }}>
           {data.signedIn ? (

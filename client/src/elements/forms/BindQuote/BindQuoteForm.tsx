@@ -1,5 +1,5 @@
 import { endOfDay, startOfDay } from 'date-fns';
-import { Timestamp, doc, updateDoc } from 'firebase/firestore';
+import { DocumentReference, Timestamp, doc, updateDoc } from 'firebase/firestore';
 import { FormikHelpers, FormikProps } from 'formik';
 import { useBindQuote, useDocData, useSafeParams } from 'hooks';
 import { isEqual } from 'lodash';
@@ -50,7 +50,9 @@ export const BindQuoteForm = () => {
   const { data } = useDocData<Quote>('QUOTES', quoteId);
   const formikRef = useRef<FormikProps<BindQuoteValues>>(null);
   const firestore = useFirestore();
-  const { current: quoteRef } = useRef(doc(quotesCollection(firestore), quoteId)); // TODO: could useDoc instead of doc data, then use snap.ref ??
+  const { current: quoteRef } = useRef(
+    doc(quotesCollection(firestore), quoteId) as unknown as DocumentReference<Quote, Quote>
+  ); // TODO: could useDoc instead of doc data, then use snap.ref ??
   const logAnalyticsStep = useLogCheckoutProgress(quoteId, 5);
   // const paymentMethods = useUserPaymentMethods();
 

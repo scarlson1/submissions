@@ -1,25 +1,26 @@
-import { useCallback, useState, useMemo } from 'react';
+import { useAuth } from 'context/AuthContext';
 import {
-  createUserWithEmailAndPassword,
-  updateProfile,
-  sendEmailVerification,
   EmailAuthProvider,
+  User,
+  createUserWithEmailAndPassword,
+  getAuth,
   // fetchSignInMethodsForEmail,
   // signInWithPopup,
   linkWithCredential,
-  User,
-  getAuth,
+  sendEmailVerification,
+  updateProfile,
+  validatePassword,
 } from 'firebase/auth';
-import { setDoc, doc, getFirestore, Timestamp } from 'firebase/firestore';
-import { useAuth } from 'context/AuthContext';
+import { Timestamp, doc, getFirestore, setDoc } from 'firebase/firestore';
+import { useCallback, useMemo, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { User as DBUser } from 'common';
 import { usersCollection } from 'common/firestoreCollections';
+import { useAuthActions } from 'context';
 import { FirebaseError } from 'firebase/app';
 import { getErrorDetails } from 'modules/utils/helpers';
-import { useAuthActions } from 'context';
 import { AUTH_ROUTES, createPath } from 'router';
 // import { getProviderForProviderId } from 'modules/utils/getProviderForProviderId';
 // import {
@@ -29,6 +30,8 @@ import { AUTH_ROUTES, createPath } from 'router';
 // } from 'modules/utils/errorHandler';
 
 // list of auth error codes: https://firebase.google.com/docs/reference/js/auth#autherrorcodes
+
+// TODO: refactor login to hook/useAuthActions (context)
 
 interface CreatePasswordProps {
   firstName: string;
@@ -41,7 +44,7 @@ export const useCreateAccount = () => {
   const auth = getAuth();
   const params = useParams();
   const location = useLocation();
-  const { user, isSignedIn, isAnonymous } = useAuth(); // logout
+  const { user, isSignedIn, isAnonymous } = useAuth();
   const { logout } = useAuthActions();
   const navigate = useNavigate();
 
@@ -87,6 +90,9 @@ export const useCreateAccount = () => {
       try {
         // don't link if new user is tenant user ?? (for now - requires backend)
         if (isAnonymous && isSignedIn && user && !auth.tenantId) {
+          // TODO: implement password validation in google auth
+          const validPassword = await validatePassword(auth, 'some-password').catch(console.log);
+          console.log('password val: ', validPassword);
           console.log('linking anonymous user');
           const credential = EmailAuthProvider.credential(
             email.trim().toLowerCase(),
@@ -104,7 +110,7 @@ export const useCreateAccount = () => {
           console.log('creating new user');
           const { user: userCreateRes } = await createUserWithEmailAndPassword(
             auth,
-            email.trim(),
+            email.trim().toLowerCase(),
             password.trim()
           );
 
@@ -124,7 +130,7 @@ export const useCreateAccount = () => {
           setErrMsg('See console for error details');
         }
         // setErrCode(getErrorCode(err));
-        // setErrMsg(getFirebaseAuthErrorMessage(err) || 'An error occured');
+        // setErrMsg(getFirebaseAuthErrorMessage(err) || 'An error occurred');
         setLoading(false);
         return Promise.reject(err);
       }
@@ -150,7 +156,7 @@ export const useCreateAccount = () => {
 
       // BLOCKING FUNCTION ERRORS:
       //    - if not tenant, email matched outstanding invite
-      //    - tenant doc not found (retreived for domain restriction)
+      //    - tenant doc not found (retrieved for domain restriction)
       //    - invitation not found under tenant for email
       //    - user doc already exists with email
       if (code === 'auth/internal-error') {
@@ -165,8 +171,11 @@ export const useCreateAccount = () => {
             // toast.info('Email verification required');
             toast('Email verification required');
 
+            // TODO: use createPath
             return navigate(
-              `/auth/login${params.tenandId || ''}?email=${encodeURIComponent(email)}`,
+              `/auth/login${
+                params.tenantId ? `/${params.tenantId}` : ''
+              }?email=${encodeURIComponent(email)}`,
               {
                 state: { ...location.state },
               }
@@ -229,14 +238,14 @@ export const useCreateAccount = () => {
           navigate(
             createPath({
               path: AUTH_ROUTES.LOGIN,
-              params: { tenantId: params.tenandId || undefined },
+              params: { tenantId: params.tenantId || undefined },
               search: { email },
             }),
             {
               state: { ...location.state },
             }
           );
-          // navigate(`/auth/login/${params.tenandId || ''}?email=${encodeURIComponent(email)}`, {
+          // navigate(`/auth/login/${params.tenantId || ''}?email=${encodeURIComponent(email)}`, {
           //   state: { ...location.state },
           // });
           // try {

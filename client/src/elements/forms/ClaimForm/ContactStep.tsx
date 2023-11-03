@@ -18,28 +18,29 @@ import { formatPhoneNumber, logDev } from 'modules/utils';
 import { RadioListItem, RadioListVal } from '../BindQuote/PaymentStep';
 import { BaseStepProps } from './ClaimFormWizard';
 
+// https://github.com/jquense/yup/issues/1912#issuecomment-1658644078
 const contactStepVal = object().shape({
   contact: object().shape({
     entityType: string().oneOf(['namedInsured', 'agent', 'other']).required(),
     firstName: string().when('entityType', {
-      is: 'other',
-      then: string().required('first name required'),
-      otherwise: string().notRequired(),
+      is: (val: string) => val === 'other',
+      then: () => string().required('first name required'),
+      otherwise: () => string().notRequired(),
     }),
     lastName: string().when('entityType', {
       is: 'other',
-      then: string().required('last name required'),
-      otherwise: string().notRequired(),
+      then: () => string().required('last name required'),
+      otherwise: () => string().notRequired(),
     }),
     email: string().when('entityType', {
       is: 'other',
-      then: emailVal.required('email required'),
-      otherwise: string().notRequired(),
+      then: () => emailVal.required('email required'),
+      otherwise: () => string().notRequired(),
     }),
     phone: string().when('entityType', {
       is: 'other',
-      then: phoneVal.required('phone required'),
-      otherwise: string().notRequired(),
+      then: () => phoneVal.required('phone required'),
+      otherwise: () => string().notRequired(),
     }),
     preferredMethod: string().required('preferred method required'),
   }),
@@ -111,7 +112,9 @@ export const ContactStep = ({ saveFormValues, onError, policyId, ...props }: Con
             <Box>
               <RadioListItem
                 value='namedInsured'
-                onClick={(value: RadioListVal) => setFieldValue('contact.entityType', value)}
+                onClick={(value: RadioListVal) => {
+                  setFieldValue('contact.entityType', value);
+                }}
                 selected={values.contact?.entityType === 'namedInsured'}
                 listItemProps={{
                   divider: true,
@@ -127,7 +130,9 @@ export const ContactStep = ({ saveFormValues, onError, policyId, ...props }: Con
               />
               <RadioListItem
                 value='agent'
-                onClick={(value: RadioListVal) => setFieldValue('contact.entityType', value)}
+                onClick={(value: RadioListVal) => {
+                  setFieldValue('contact.entityType', value);
+                }}
                 selected={values.contact?.entityType === 'agent'}
                 listItemProps={{
                   divider: true,
@@ -143,7 +148,9 @@ export const ContactStep = ({ saveFormValues, onError, policyId, ...props }: Con
               />
               <RadioListItem
                 value='other'
-                onClick={(value: RadioListVal) => setFieldValue('contact.entityType', value)}
+                onClick={(value: RadioListVal) => {
+                  setFieldValue('contact.entityType', value);
+                }}
                 selected={values.contact?.entityType === 'other'}
                 listItemProps={{
                   divider: true,

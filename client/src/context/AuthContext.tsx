@@ -69,6 +69,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const [generateKey, resetKey] = useAlgoliaStore((state) => [state.generateKey, state.resetKey]);
 
+  // TODO: use method or already handled by reactfire ?? const authReady = auth.authStateReady()
+
   // get user in analytics & sentry on change
   useEffect(() => {
     if (!isEqual(userData?.user, userPrev)) {
