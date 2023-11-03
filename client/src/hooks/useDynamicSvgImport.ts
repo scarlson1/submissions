@@ -11,7 +11,9 @@ export function useDynamicSvgImport(iconName: string) {
       try {
         // have to give absolute path while importing the icon
         console.log(`loading img: ${iconName}`);
-        importedIconRef.current = (await import(`../assets/images/${iconName}.svg`)).ReactComponent; // svgr provides ReactComponent for svg url
+        const result = await import(`../assets/images/${iconName}.svg?react`); // .ReactComponent; // svgr provides ReactComponent for svg url
+        console.log('IMPORT:', result);
+        importedIconRef.current = result.ReactComponent;
       } catch (err) {
         setError(err);
         console.error(err);

@@ -8,7 +8,18 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 // or use: https://github.com/aleclarson/vite-tsconfig-paths
 
 export default defineConfig({
-  plugins: [svgr(), react(), tsconfigPaths()],
+  plugins: [
+    svgr({
+      svgrOptions: {
+        // jsxRuntime: 'automatic',
+        // typescript: true,
+        // memo: true,
+      },
+      include: '**/*.svg?react',
+    }),
+    react(),
+    tsconfigPaths(),
+  ],
   server: {
     port: 3000,
   },
