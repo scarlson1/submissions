@@ -211,7 +211,7 @@ export default app;
 //       await quoteRef.update({ userId: req.user?.uid });
 //       console.log(`UPDATED QUOTE USER ID TO ${req.user?.uid}`);
 
-//       // return res.redirect(`${process.env.HOSTING_BASE_URL}/quotes/${quoteId}/bind`);
+//       // return res.redirect(`${hostingBaseURL.value()}/quotes/${quoteId}/bind`);
 //       return res.redirect(`//localhost:3000/quotes/${quoteId}/bind`);
 //     } catch (err) {
 //       console.log('ERROR DECODING TOKEN: ', err);

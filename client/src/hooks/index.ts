@@ -24,6 +24,7 @@ export { useDocCount } from './useDocCount';
 export { useDocData } from './useDocData';
 export { useDocDataOnce } from './useDocDataOnce';
 export { useDocSearchKeyboardEvents } from './useDocSearchKeyboardEvents';
+export { useDynamicSvgImport } from './useDynamicSvgImport';
 export { useFetchDocCount } from './useFetchDocCount';
 export { useFetchDocsWithCursor } from './useFetchDocsWithCursor';
 export { useFetchFirestore } from './useFetchFirestore';

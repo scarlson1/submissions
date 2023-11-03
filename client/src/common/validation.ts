@@ -150,7 +150,7 @@ export const checkBCDSumValid = (
   limit3 = getNumValue(limit3);
 
   return (
-    limit1 + limit2 + limit3 < parseInt(process.env.REACT_APP_FLOOD_MAX_LIMIT_B_C_D || '1000000')
+    limit1 + limit2 + limit3 < parseInt(import.meta.env.VITE_FLOOD_MAX_LIMIT_B_C_D || '1000000')
   );
 };
 
@@ -164,8 +164,8 @@ export const limitAVal = string()
   })
   .test('limitA', 'Amount must be between 100k and 1M.', (value) => {
     let num = parseInt(value || '0');
-    let min = parseInt(process.env.REACT_APP_FLOOD_MIN_LIMIT_A!) || 100000;
-    let max = parseInt(process.env.REACT_APP_FLOOD_MAX_LIMIT_A!) || 1000000;
+    let min = parseInt(import.meta.env.VITE_FLOOD_MIN_LIMIT_A!) || 100000;
+    let max = parseInt(import.meta.env.VITE_FLOOD_MAX_LIMIT_A!) || 1000000;
 
     return num >= min && num <= max;
   });

@@ -1,12 +1,9 @@
 import axios from 'axios'; // { AxiosRequestConfig }
+import { ePayBaseURL } from '../common/index.js';
 
 export const getEPayInstance = (ePayCreds: string) => {
-  const ePayBaseUrl = process.env.EPAY_BASE_URL;
-
-  if (!ePayBaseUrl) throw new Error('missing EPAY_BASE_URL env var');
-
   const ePayInstance = axios.create({
-    baseURL: ePayBaseUrl,
+    baseURL: ePayBaseURL.value(),
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Basic ${ePayCreds}`,

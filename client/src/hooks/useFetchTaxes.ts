@@ -72,7 +72,7 @@ export const useFetchTaxes = (
 
       try {
         setLoading(true);
-        let baseApiUrl = process.env.REACT_APP_SUBMISSIONS_API;
+        let baseApiUrl = import.meta.env.VITE_SUBMISSIONS_API;
         if (!baseApiUrl) throw new Error('missing api url env var');
 
         // TODO: type response

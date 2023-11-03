@@ -94,7 +94,7 @@ export const AuthActionsProvider = ({ children }: { children: ReactNode }) => {
       var actionCodeSettings = {
         url:
           continueUrl ||
-          `${process.env.REACT_APP_HOSTING_URL}/auth/login/${
+          `${import.meta.env.VITE_HOSTING_URL}/auth/login/${
             auth.currentUser && auth.currentUser.tenantId ? auth.currentUser.tenantId : ''
           }`,
         handleCodeInApp: false,

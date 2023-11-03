@@ -177,8 +177,8 @@ export default onCallWrapper('generatesearchkey', generateSearchKey);
 //     try {
 //       const { auth } = context;
 //       const algoliaClient = algoliasearch(
-//         process.env.ALGOLIA_APP_ID || '',
-//         process.env.ALGOLIA_ADMIN_API_KEY || ''
+//         ALGOLIA_APP_ID || '',
+//         ALGOLIA_ADMIN_API_KEY || ''
 //       ); // algoliaAppID.value()
 //       let apiKeyParams: SecuredApiKeyRestrictions;
 
@@ -204,7 +204,7 @@ export default onCallWrapper('generatesearchkey', generateSearchKey);
 
 //       // console.log('SEARCH KEY: ', algoliaSearchKey.value());
 //       const apiKey = algoliaClient.generateSecuredApiKey(
-//         process.env.ALGOLIA_SEARCH_KEY || '',
+//         ALGOLIA_SEARCH_KEY || '',
 //         apiKeyParams
 //       ); // algoliaSearchKey.value()
 //       console.log('USER API KEY: ', apiKey);

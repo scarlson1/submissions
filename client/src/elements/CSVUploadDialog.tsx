@@ -71,7 +71,7 @@ export const CSVUploadDialog = ({
         try {
           const { headers, errors, parseResult } = (await handleParse(file)) as any;
 
-          if (process.env.REACT_APP_FB_PROJECT_ID !== 'idemand-submissions') {
+          if (import.meta.env.VITE_FB_PROJECT_ID !== 'idemand-submissions') {
             console.log('HEADERS: ', headers);
             console.log('ERRORS: ', errors);
             console.log('PARSE RESULT: ', parseResult);

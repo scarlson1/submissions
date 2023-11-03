@@ -80,7 +80,7 @@ export function AddressStep({
             ...address,
             coordinates,
           });
-          if (process.env.REACT_APP_PROD !== 'true') console.log('ATTOM RES: ', data);
+          if (import.meta.env.VITE_PROD !== 'true') console.log('ATTOM RES: ', data);
           const newRatingPropertyData = {
             CBRSDesignation: data.CBRSDesignation || null,
             basement: data.basement || null,

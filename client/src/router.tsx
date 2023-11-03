@@ -1241,8 +1241,8 @@ export const router = sentryCreateBrowserRouter([
             element: (
               <TempWrappedSearch />
               // <Search
-              //   appId={process.env.REACT_APP_ALGOLIA_APP_ID as string}
-              //   apiKey={process.env.REACT_APP_ALGOLIA_SEARCH_KEY as string}
+              //   appId={import.meta.env.VITE_ALGOLIA_APP_ID as string}
+              //   apiKey={import.meta.env.VITE_ALGOLIA_SEARCH_KEY as string}
               //   indexName='local_tasks'
               //   indexTitle='Tasks'
               //   placeholder='Search...'

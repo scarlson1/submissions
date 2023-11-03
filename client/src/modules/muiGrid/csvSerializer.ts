@@ -87,7 +87,7 @@ const serializeRow = ({
 
   columns.forEach((column) => {
     const cellParams = getCellParams(id, column.field, serverRows); // TODO: need to replace b/c not using value from grid (server response)
-    if (process.env.NODE_ENV !== 'production') {
+    if (import.meta.env.NODE_ENV !== 'production') {
       if (String(cellParams.formattedValue) === '[object Object]') {
         objectFormattedValueWarning();
       }

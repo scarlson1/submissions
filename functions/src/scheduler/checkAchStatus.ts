@@ -80,7 +80,7 @@ export default async (event: ScheduledEvent) => {
 //     console.log('CHECKING PAYMENT STATUS FOR OUTSTANDING EPAY ACH TRANSACTIONS');
 //     const db = getFirestore();
 
-//     const ePayCreds = process.env.ENCODED_EPAY_AUTH;
+//     const ePayCreds = import.meta.env.ENCODED_EPAY_AUTH;
 //     if (!ePayCreds) throw new Error('Missing ePay credentials');
 //     const ePayInstance = getEPayInstance(ePayCreds);
 

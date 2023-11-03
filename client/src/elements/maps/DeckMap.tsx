@@ -1,10 +1,10 @@
-import { ReactNode } from 'react';
+import DeckGL, { DeckGLProps } from '@deck.gl/react/typed';
 import { Box, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import Map from 'react-map-gl';
-import DeckGL, { DeckGLProps } from '@deck.gl/react/typed';
 import { GeoJsonLayerProps, LayersList, MapViewState, PickingInfo } from 'deck.gl/typed';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import { ReactNode } from 'react';
+import Map from 'react-map-gl';
 
 export const DEFAULT_INITIAL_VIEW_STATE = {
   longitude: -94.25,
@@ -64,6 +64,7 @@ export const DeckMap = ({
         {...rest}
       >
         <Map
+          mapboxAccessToken={import.meta.env.VITE_MAPBOX_ACCESS_TOKEN}
           mapStyle={
             theme.palette.mode === 'light'
               ? 'mapbox://styles/mapbox/light-v11' // 8

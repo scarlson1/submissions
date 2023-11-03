@@ -49,7 +49,7 @@ export const GeoSearch = () => {
   const searchClient = useMemo(
     () =>
       algoliasearch(
-        process.env.REACT_APP_ALGOLIA_APP_ID as string,
+        import.meta.env.VITE_ALGOLIA_APP_ID as string,
         '0b42f45ac2a41041974441d5b419d215'
       ),
     []

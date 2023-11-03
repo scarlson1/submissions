@@ -26,7 +26,7 @@ export function Hit({ hit, children }: HitProps) {
 
 // TODO: get url func (different routes for agents vs idemand admin vs user ?? orgs, for example)
 export function getURLByType(item: any) {
-  // const base = process.env.REACT_APP_HOSTING_URL;
+  // const base = import.meta.env.VITE_HOSTING_URL;
   let url = '';
   // TODO: user route, financial trx,
   // if (item.type === 'user') {

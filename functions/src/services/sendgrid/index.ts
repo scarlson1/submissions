@@ -19,7 +19,7 @@ import { projectID } from 'firebase-functions/params';
 
 // TODO: add msgType to customArgs (ex: msgType: 'deliver policy')
 
-import { EmailTemplates, env } from '../../common/index.js';
+import { EmailTemplates, env, hostingBaseURL } from '../../common/index.js';
 import { onlyUniqueObj } from '../../utils/arrays.js';
 import {
   adminChangeRequest,
@@ -273,7 +273,7 @@ export const sendAgencyAppApprovedNotification = async (
   message?: string | null,
   sgArgs?: ExtraSendGridArgs
 ) => {
-  const link = `${process.env.HOSTING_BASE_URL}/auth/create-account/${encodeURIComponent(
+  const link = `${hostingBaseURL.value()}/auth/create-account/${encodeURIComponent(
     tenantId
   )}?email=${encodeURIComponent(email)}&firstName=${encodeURIComponent(
     firstName || ''

@@ -6,7 +6,7 @@ import type { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 import {
   PaymentStatus,
   audience,
-  ePayBaseURL,
+  ePayBaseHostingURL,
   hostingBaseURL,
   policiesCollection,
   sendgridApiKey,
@@ -55,7 +55,7 @@ export default async (event: CloudEvent<MessagePublishedData<PaymentCompletePayl
 
   const policyLink = `${hostingBaseURL.value()}/admin/policies/${policyId}/delivery`;
 
-  const transactionLink = `${ePayBaseURL.value()}/Transactions/Index/${transactionId}`;
+  const transactionLink = `${ePayBaseHostingURL.value()}/Transactions/Index/${transactionId}`;
 
   await sendAdminPaidNotification(
     sendgridApiKey.value(),

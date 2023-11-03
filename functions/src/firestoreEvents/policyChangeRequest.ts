@@ -5,7 +5,9 @@ import type { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 import {
   ChangeRequest,
   ChangeRequestStatus,
+  audience,
   getReportErrorFn,
+  hostingBaseURL,
   sendgridApiKey,
 } from '../common/index.js';
 import { publishChangeRequestTransactions } from '../modules/transactions/index.js';
@@ -133,11 +135,11 @@ async function handleRequestNotifications(
 ) {
   try {
     let to = ['spencer.carlson@idemandinsurance.com'];
-    if (process.env.AUDIENCE !== 'DEV HUMANS' && process.env.AUDIENCE !== 'LOCAL HUMANS')
+    if (audience.value() !== 'DEV HUMANS' && audience.value() !== 'LOCAL HUMANS')
       to.push('ron.carlson@idemandinsurance.com');
     const sgKey = sendgridApiKey.value();
 
-    const link = `${process.env.HOSTING_BASE_URL}/policies/${policyId}`; // TODO: update url once client change request url is set (instead of dialog)
+    const link = `${hostingBaseURL.value()}/policies/${policyId}`; // TODO: update url once client change request url is set (instead of dialog)
 
     let changes = {};
     if (data.scope === 'location') {

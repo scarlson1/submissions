@@ -2,9 +2,9 @@ import axios from 'axios';
 import { EmailAuthProvider, getAuth, reauthenticateWithCredential } from 'firebase/auth';
 
 export const functionsInstance = axios.create({
-  baseURL: process.env.REACT_APP_FUNCTIONS_BASE_URL,
+  baseURL: import.meta.env.VITE_FUNCTIONS_BASE_URL,
 });
-functionsInstance.defaults.baseURL = process.env.REACT_APP_FUNCTIONS_BASE_URL;
+functionsInstance.defaults.baseURL = import.meta.env.VITE_FUNCTIONS_BASE_URL;
 
 functionsInstance.interceptors.request.use(
   async (config: any) => {

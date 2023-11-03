@@ -46,6 +46,6 @@ export type WizardValues = {
 
 export const WizardContext = createContext<WizardValues | null>(null);
 
-if (process.env.REACT_APP_DEV === 'true') {
+if (import.meta.env.VITE_DEV === 'true') {
   WizardContext.displayName = 'WizardContext';
 }

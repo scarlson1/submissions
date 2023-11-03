@@ -201,6 +201,7 @@ export const Submissions = () => {
           ) : (
             <Box>
               <Box sx={{ height: { xs: 60, sm: 80, md: 100 }, width: '100%' }}>
+                {/* <VoidSVG height='100%' width='100%' preserveAspectRatio='xMidYMin meet' /> */}
                 <VoidSVG height='100%' width='100%' preserveAspectRatio='xMidYMin meet' />
               </Box>
               <Typography variant='subtitle2' color='text.secondary' align='center' sx={{ py: 2 }}>

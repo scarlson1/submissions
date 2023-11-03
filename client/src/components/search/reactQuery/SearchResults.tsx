@@ -40,7 +40,7 @@ export function SearchResults({ query = '', onSelect, ...props }: SearchResultsP
       // TODO: hit type
       // Product
       // indexName: 'best_buy',
-      indexName: process.env.REACT_APP_ALGOLIA_INDEX_NAME as string,
+      indexName: import.meta.env.VITE_ALGOLIA_INDEX_NAME as string,
       query,
       hitsPerPage: 5,
       staleTime: 1000 * 60, // 60s

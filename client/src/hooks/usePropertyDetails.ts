@@ -14,8 +14,9 @@ import {
 } from 'common';
 import { usePromptRCV } from './usePromptRCV';
 
-let MAX_A = parseInt(process.env.REACT_APP_FLOOD_MAX_LIMIT_A || '1000000');
-let MIN_A = parseInt(process.env.REACT_APP_FLOOD_MIN_LIMIT_A || '100000');
+// @ts-ignore
+let MAX_A = parseInt(import.meta.env.VITE_FLOOD_MAX_LIMIT_A || '1000000'); // @ts-ignore
+let MIN_A = parseInt(import.meta.env.VITE_FLOOD_MIN_LIMIT_A || '100000');
 
 type TDefaultLimitPct = { [key in LimitKeys]: number };
 

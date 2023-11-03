@@ -305,10 +305,7 @@ export default onCallWrapper<ExecutePaymentProps>('executepayment', executePayme
 //       if (!paymentMethodSnap.exists || !paymentMethodDetails)
 //         throw new .HttpsError('not-found', 'Payment method not found');
 
-//       const ePayCreds = process.env.ENCODED_EPAY_AUTH;
-//       if (!ePayCreds) throw new Error('Missing required env vars');
-
-//       const ePayInstance = getEPayInstance(ePayCreds);
+//       const ePayInstance = getEPayInstance(ePayCreds.value());
 //       // TODO: use ePay fees calculated when quote was created ??
 //       let ePayFees =
 //         paymentMethodDetails.transactionType === 'Ach'

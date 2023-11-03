@@ -14,7 +14,7 @@ interface AlgoliaStore {
 }
 
 export const useAlgoliaStore = create<AlgoliaStore>((set) => ({
-  apiKey: process.env.REACT_APP_ALGOLIA_NOT_AUTHED_SEARCH_KEY,
+  apiKey: import.meta.env.VITE_ALGOLIA_NOT_AUTHED_SEARCH_KEY,
   generateKey: async (functions: Functions) => {
     try {
       const { data } = await generateSearchKey(functions);
@@ -24,7 +24,7 @@ export const useAlgoliaStore = create<AlgoliaStore>((set) => ({
       console.log('ERROR GENERATING SEARCH KEY: ', err);
     }
   },
-  resetKey: () => set(() => ({ apiKey: process.env.REACT_APP_ALGOLIA_NOT_AUTHED_SEARCH_KEY })),
+  resetKey: () => set(() => ({ apiKey: import.meta.env.VITE_ALGOLIA_NOT_AUTHED_SEARCH_KEY })),
 }));
 
 // const apiKey = useAlgoliaStore((state) => state.apiKey);
@@ -61,14 +61,14 @@ export const useAlgoliaStore = create<AlgoliaStore>((set) => ({
 
 //       // } else {
 //       //   // TODO: use general search key
-//       //   const fallbackKey = process.env.REACT_APP_ALGOLIA_NOT_AUTHED_SEARCH_KEY;
+//       //   const fallbackKey = import.meta.env.VITE_ALGOLIA_NOT_AUTHED_SEARCH_KEY;
 //       //   if (!fallbackKey) throw new Error('missing fallback search key')
 //       //   setApiKey(fallbackKey);
 //       //   return fallbackKey;
 //       // }
 //     } catch (err) {
 //       console.log('ERROR FETCHING SEARCH KEY: ', err);
-//       // setApiKey(process.env.REACT_APP_ALGOLIA_NOT_AUTHED_SEARCH_KEY);
+//       // setApiKey(import.meta.env.VITE_ALGOLIA_NOT_AUTHED_SEARCH_KEY);
 //       setLoading(false);
 //     }
 //   }, [functions]);
@@ -94,14 +94,14 @@ export const useAlgoliaStore = create<AlgoliaStore>((set) => ({
 //       //       setApiKey(data.key);
 //       //     } else {
 //       //       // TODO: use general search key
-//       //       setApiKey(process.env.REACT_APP_ALGOLIA_NOT_AUTHED_SEARCH_KEY);
+//       //       setApiKey(import.meta.env.VITE_ALGOLIA_NOT_AUTHED_SEARCH_KEY);
 //       //     }
 //       //     setLoading(false);
 //       //     // loading = false;
 //       //   })
 //       //   .catch((err) => {
 //       //     console.log('ERROR FETCHING SEARCH KEY: ', err);
-//       //     setApiKey(process.env.REACT_APP_ALGOLIA_NOT_AUTHED_SEARCH_KEY);
+//       //     setApiKey(import.meta.env.VITE_ALGOLIA_NOT_AUTHED_SEARCH_KEY);
 //       //     setLoading(false);
 //       //     // loading = false;
 //       //   });

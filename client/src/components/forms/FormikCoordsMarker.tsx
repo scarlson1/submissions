@@ -103,6 +103,7 @@ export const FormikCoordsMap = ({
     // @ts-ignore
     <Map
       {...viewState}
+      mapboxAccessToken={import.meta.env.VITE_MAPBOX_ACCESS_TOKEN}
       onMove={(evt) => setViewState(evt.viewState)}
       mapStyle={mapStyle}
       styleDiffing

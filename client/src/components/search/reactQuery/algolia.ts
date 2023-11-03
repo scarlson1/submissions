@@ -7,7 +7,7 @@ import algoliasearch from 'algoliasearch';
 // https://github.com/algolia/react-instantsearch
 // const ALGOLIA_APP_ID = 'latency';
 // const ALGOLIA_SEARCH_API_KEY = '6be0576ff61c053d5f9a3225e2a90f76';
-const ALGOLIA_APP_ID = process.env.REACT_APP_ALGOLIA_APP_ID;
+const ALGOLIA_APP_ID = import.meta.env.VITE_ALGOLIA_APP_ID;
 
 // type SearchOptions2 = {
 //   indexName: string;

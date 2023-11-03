@@ -58,7 +58,7 @@ const sendPolicyDoc = async ({ data, auth }: CallableRequest) => {
       },
     ];
 
-    // const link = `${process.env.HOSTING_BASE_URL}/policies/${policyId}`;
+    // const link = `${hostingBaseURL.value()}/policies/${policyId}`;
     let toName = data.namedInsured.firstName || undefined;
 
     // TODO: redo doc delivery template

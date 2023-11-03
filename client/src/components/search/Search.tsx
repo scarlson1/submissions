@@ -1,7 +1,9 @@
 import './search.css';
 
-import { useEffect, useCallback, useState, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
+import type { AutocompleteOptions, AutocompleteState } from '@algolia/autocomplete-core';
+import type { SearchOptions } from '@algolia/client-search';
 import {
   Backdrop,
   Box,
@@ -12,13 +14,9 @@ import {
   GlobalStyles,
   alpha,
 } from '@mui/material';
-import type { AutocompleteState, AutocompleteOptions } from '@algolia/autocomplete-core';
-import type { SearchOptions } from '@algolia/client-search';
 import type { SearchClient } from 'algoliasearch/lite';
 
 import type { DocSearchHit, InternalDocSearchHit, StoredDocSearchHit } from 'common';
-import { ButtonTranslations, SearchButton } from './SearchButton';
-import { SearchModal } from './SearchModal';
 import { useChangeTheme } from 'context';
 import {
   // useAlgoliaSearchKey,
@@ -27,6 +25,8 @@ import {
 } from 'hooks';
 import { GeoSearch } from './GeoSearch';
 import { OnSelectHit } from './Hit';
+import { ButtonTranslations, SearchButton } from './SearchButton';
+import { SearchModal } from './SearchModal';
 
 // doc search css ref: https://github.com/algolia/docsearch/blob/main/packages/docsearch-css/src/_variables.css
 
@@ -418,7 +418,7 @@ export function TempWrappedSearch() {
   // const apiKey = useAlgoliaSearchKey();
   const apiKey = useAlgoliaStore((state) => state.apiKey);
 
-  if (!process.env.REACT_APP_ALGOLIA_APP_ID) {
+  if (!import.meta.env.VITE_ALGOLIA_APP_ID) {
     throw new Error('missing algolia appID in env variables');
   }
 
@@ -428,9 +428,9 @@ export function TempWrappedSearch() {
     <>
       <Box sx={{ pb: 3 }}>
         <Search
-          appId={process.env.REACT_APP_ALGOLIA_APP_ID as string}
+          appId={import.meta.env.VITE_ALGOLIA_APP_ID as string}
           apiKey={apiKey}
-          indexName={process.env.REACT_APP_ALGOLIA_INDEX_NAME as string}
+          indexName={import.meta.env.VITE_ALGOLIA_INDEX_NAME as string}
           indexTitle='All Records'
           placeholder='Search...'
         />
@@ -447,16 +447,16 @@ export function TempAgentSearch({ onSelect }: { onSelect: (item: any) => void })
   const apiKey = useAlgoliaStore((state) => state.apiKey);
   // const apiKey = useAlgoliaSearchKey();
 
-  if (!process.env.REACT_APP_ALGOLIA_APP_ID || !process.env.REACT_APP_ALGOLIA_INDEX_NAME)
+  if (!import.meta.env.VITE_ALGOLIA_APP_ID || !import.meta.env.VITE_ALGOLIA_INDEX_NAME)
     throw new Error('missing algolia appID or index name in env variables');
 
   if (!apiKey) return null;
 
   return (
     <Search
-      appId={process.env.REACT_APP_ALGOLIA_APP_ID as string}
+      appId={import.meta.env.VITE_ALGOLIA_APP_ID as string}
       apiKey={apiKey}
-      indexName={process.env.REACT_APP_ALGOLIA_INDEX_NAME as string}
+      indexName={import.meta.env.VITE_ALGOLIA_INDEX_NAME as string}
       indexTitle='Agents'
       placeholder='Search agents by name, email, or orgId...'
       searchParameters={{

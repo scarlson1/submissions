@@ -38,7 +38,7 @@ import {
   TaxRateType,
   TransactionType,
 } from './enums.js';
-import { iDemandOrgId } from './environmentVars.js';
+import { hostingBaseURL, iDemandOrgId } from './environmentVars.js';
 
 export type WithId<T> = T & { id: string };
 
@@ -1866,9 +1866,7 @@ export class InviteClass implements InviteClassInterface {
 
   getLink() {
     let tenantURL = this.orgId === iDemandOrgId.value() ? '' : `/${this.orgId}`;
-    return `${
-      process.env.HOSTING_BASE_URL
-    }/auth/create-account${tenantURL}?email=${encodeURIComponent(
+    return `${hostingBaseURL.value()}/auth/create-account${tenantURL}?email=${encodeURIComponent(
       this.email
     )}&firstName=${encodeURIComponent(this.firstName ?? '')}&lastName=${encodeURIComponent(
       this.lastName ?? ''

@@ -161,7 +161,7 @@ const DEV_INITIAL_VALUES: AddPaymentMethodValues = {
   cardPaymentMethod: false,
 };
 const DEFAULT_INITIAL_VALUES =
-  process.env.REACT_APP_DEV === 'true' ? DEV_INITIAL_VALUES : PROD_INITIAL_VALUES;
+  import.meta.env.VITE_DEV === 'true' ? DEV_INITIAL_VALUES : PROD_INITIAL_VALUES;
 
 export const AddPaymentDialog = ({
   cb,
