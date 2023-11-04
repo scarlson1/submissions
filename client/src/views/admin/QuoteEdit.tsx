@@ -15,6 +15,8 @@ import { CARD_FEE_RATE } from 'hooks/useCreateQuote';
 import { addToDate, extractNumber } from 'modules/utils';
 import { ROUTES, createPath } from 'router';
 
+// TODO: better validation
+
 const useEditQuote = (
   quoteId: string,
   onSuccess?: () => void,

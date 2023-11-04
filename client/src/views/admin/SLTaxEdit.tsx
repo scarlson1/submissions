@@ -36,17 +36,17 @@ export const SLTaxEdit = () => {
           : null;
         const { fixedRate: _, ...rest } = values;
 
-        toast.loading('saving updates...');
+        toast.loading('saving changes...');
         const taxRef = doc(taxesCollection(firestore), taxId);
         await setDoc(
           taxRef,
           {
             ...rest,
             rate,
-            rateType: isFixedRate ? 'fixed' : 'percent',
+            rateType: isFixedRate ? 'fixed' : 'percent', // TODO: use zod enum
             effectiveDate: effTimestamp,
-            expirationDate: expTimestamp, // @ts-ignore
-            'metadata.updated': Timestamp.now(),
+            expirationDate: expTimestamp,
+            metadata: { updated: Timestamp.now() },
           },
           { merge: true }
         );
@@ -62,7 +62,6 @@ export const SLTaxEdit = () => {
     [navigate, firestore, toast, taxId]
   );
 
-  // values.subjectBase[0] === 'fixedFee';
   return (
     <Box>
       <Typography variant='h5' gutterBottom sx={{ ml: 3 }}>
@@ -80,8 +79,14 @@ export const SLTaxEdit = () => {
           transactionTypes: data?.transactionTypes || [],
           subjectBase: data?.subjectBase || [], // TODO: uncomment after prod data updated
           // rate: data?.rateType === 'percent' ? `${data?.rate * 100}` : '',
-          rate: data?.subjectBase[0] === 'fixedFee' ? `${data?.rate * 100}` : '',
-          fixedRate: data.rateType === 'fixed' ? data?.rate : null,
+          rate:
+            data?.subjectBase[0] !== 'fixedFee' && typeof data?.rate === 'number'
+              ? `${data?.rate * 100}`
+              : '',
+          fixedRate:
+            data?.subjectBase[0] === 'fixedFee' && typeof data?.rate === 'number'
+              ? data?.rate || null
+              : null,
           baseRoundType: data?.baseRoundType || 'nearest',
           baseDigits: data?.baseDigits ?? 2,
           resultRoundType: data?.resultRoundType || 'nearest',

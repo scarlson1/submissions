@@ -3,6 +3,7 @@ import {
   Card,
   CardContent,
   Divider,
+  Unstable_Grid2 as Grid,
   List,
   ListItem,
   ListItemIcon,
@@ -17,13 +18,12 @@ import {
   TableHead,
   TableRow,
   Typography,
-  Unstable_Grid2 as Grid,
 } from '@mui/material';
 import { useFormikContext } from 'formik';
 
-import { AgencyAppValues } from 'views/AgencyNew';
-import { formatPhoneNumber } from 'modules/utils/helpers';
 import { EmailRounded, PersonRounded, PhoneRounded } from '@mui/icons-material';
+import { formatPhoneNumber } from 'modules/utils/helpers';
+import { AgencyAppValues } from 'views/AgencyNew';
 
 export interface ContactItem {
   primaryText: React.ReactNode;
@@ -53,7 +53,7 @@ export const ContactList = ({ items }: ContactCardProps) => {
 
 export const DisplayFilename = ({ file }: { file: File }) => {
   return (
-    (<Box sx={{ display: 'flex', minWidth: 0, maxWidth: { xs: 260, sm: 600 } }}>
+    <Box sx={{ display: 'flex', minWidth: 0, maxWidth: { xs: 260, sm: 600 } }}>
       <Typography sx={{ textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden' }}>
         {/* eslint-disable-next-line */}
         {file.name.replace(/^.*[\\\/]/, '').split('.')[0]}
@@ -61,7 +61,7 @@ export const DisplayFilename = ({ file }: { file: File }) => {
       <Typography component='span' sx={{ flexShrink: 0 }}>
         {`.${file.type.replace(/(.*)\//g, '')}`}
       </Typography>
-    </Box>)
+    </Box>
   );
 };
 
@@ -220,58 +220,3 @@ export const AgencyReviewStep = (props: AgencyReviewStepProps) => {
 };
 
 export default AgencyReviewStep;
-
-// <Stack
-//   direction={{ xs: 'column', md: 'row' }}
-//   spacing={4}
-//   display='flex'
-//   justifyContent='space-evenly'
-//   alignItems='flex-start'
-// >
-//   <Box sx={{ flex: '1 0 auto' }}>
-//     <Typography variant='overline' sx={{ color: 'text.secondary' }}>
-//       Primary Contact
-//     </Typography>
-//     <ContactList
-//       items={[
-//         {
-//           primaryText: `${values.firstName} ${values.lastName}`,
-//           icon: <PersonRounded fontSize='small' color='primary' />,
-//         },
-//         {
-//           primaryText: `${values.email}`,
-//           icon: <EmailRounded fontSize='small' color='primary' />,
-//         },
-//         {
-//           primaryText: formatPhoneNumber(`${values.phone}`) || '',
-//           icon: <PhoneRounded fontSize='small' color='primary' />,
-//         },
-//       ]}
-//     />
-//   </Box>
-//   <Box sx={{ flex: '1 0 auto' }}>
-//     <Typography variant='overline' sx={{ color: 'text.secondary' }}>
-//       Principal Producer
-//     </Typography>
-//     <ContactList
-//       items={[
-//         {
-//           primaryText: `${values.producerFirstName} ${values.producerLastName}`,
-//           icon: <PersonRounded fontSize='small' color='primary' />,
-//         },
-//         {
-//           primaryText: `${values.producerEmail}`,
-//           icon: <EmailRounded fontSize='small' color='primary' />,
-//         },
-//         {
-//           primaryText: formatPhoneNumber(`${values.producerPhone}`) || '',
-//           icon: <PhoneRounded fontSize='small' color='primary' />,
-//         },
-//         {
-//           primaryText: `${values.producerNPN} (NPN)`,
-//           icon: <PersonSearchRounded fontSize='small' color='primary' />,
-//         },
-//       ]}
-//     />
-//   </Box>
-// </Stack>;

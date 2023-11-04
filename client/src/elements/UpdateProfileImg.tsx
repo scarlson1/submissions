@@ -102,5 +102,3 @@ export const UpdateProfileImg = ({ avatarSx }: UpdateProfileImgProps) => {
     />
   );
 };
-
-export default UpdateProfileImg;

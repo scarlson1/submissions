@@ -18,7 +18,7 @@ export const useAlgoliaStore = create<AlgoliaStore>((set) => ({
   generateKey: async (functions: Functions) => {
     try {
       const { data } = await generateSearchKey(functions);
-      // console.log('API KEY RES: ', data);
+      console.log('API KEY RES: ', data);
       if (data?.key) set({ apiKey: data.key });
     } catch (err: any) {
       console.log('ERROR GENERATING SEARCH KEY: ', err);

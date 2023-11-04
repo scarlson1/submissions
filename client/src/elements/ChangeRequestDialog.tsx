@@ -113,6 +113,7 @@ export function ChangeRequestsDialog({ policyId, open, handleClose }: ChangeRequ
   const { previewChange: previewChangeFn } = usePreviewChangeRequest((msg) => toast.error(msg));
 
   const { getEditRowModeActions, getEditModeProps } = useGridEditMode<ChangeRequest>({
+    // @ts-ignore TODO: fix type
     editableCells: ['status', 'requestEffDate', 'underwriterNotes'],
   });
 

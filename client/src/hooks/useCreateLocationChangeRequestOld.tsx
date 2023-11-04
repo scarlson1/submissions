@@ -1,229 +1,231 @@
-import { User } from 'firebase/auth';
-import { Timestamp, addDoc } from 'firebase/firestore';
-import { FormikHelpers, FormikProps } from 'formik';
-import { useCallback, useRef } from 'react';
-import { useFirestore, useFunctions } from 'reactfire';
+export {};
 
-import { calcLocationChanges } from 'api';
-import { ILocation, LocationChangeRequest, Policy, WithId, changeRequestsCollection } from 'common';
-import { ChangeRequestStatus } from 'common/enums';
-import { useAuth } from 'context';
-import {
-  LocationChangeFormOld,
-  LocationChangeFormProps,
-  LocationChangeValues,
-} from 'elements/forms';
-import {
-  additionalInterestsToAdditionalInsured,
-  additionalInterestsToMortgagee,
-  combineToAdditionalInterests,
-} from 'modules/utils';
-import { useAsyncToast } from './useAsyncToast';
-import { formatChanges } from './useCreatePolicyChangeRequest';
-import { useDialogForm } from './useDialogForm';
+// import { User } from 'firebase/auth';
+// import { Timestamp, addDoc } from 'firebase/firestore';
+// import { FormikHelpers, FormikProps } from 'formik';
+// import { useCallback, useRef } from 'react';
+// import { useFirestore, useFunctions } from 'reactfire';
 
-// test dev branch change
+// import { calcLocationChanges } from 'api';
+// import { ILocation, LocationChangeRequest, Policy, WithId, changeRequestsCollection } from 'common';
+// import { ChangeRequestStatus } from 'common/enums';
+// import { useAuth } from 'context';
+// import {
+//   LocationChangeFormOld,
+//   LocationChangeFormProps,
+//   LocationChangeValues,
+// } from 'elements/forms';
+// import {
+//   additionalInterestsToAdditionalInsured,
+//   additionalInterestsToMortgagee,
+//   combineToAdditionalInterests,
+// } from 'modules/utils';
+// import { useAsyncToast } from './useAsyncToast';
+// import { formatChanges } from './useCreatePolicyChangeRequest';
+// import { useDialogForm } from './useDialogForm';
 
-export const useCreateLocationChangeRequestOld = (policyId: string) => {
-  const firestore = useFirestore();
-  const { user } = useAuth();
-  const toast = useAsyncToast({ position: 'top-right' });
-  const formRef = useRef<FormikProps<LocationChangeValues>>(null);
-  const locationData = useRef<ILocation>();
-  const policy = useRef<Policy>();
-  const initialVals = useRef<Omit<LocationChangeValues, 'requestEffDate'>>();
+// // test dev branch change
 
-  // for testing calcLocationChanges
-  const functions = useFunctions();
+// export const useCreateLocationChangeRequestOld = (policyId: string) => {
+//   const firestore = useFirestore();
+//   const { user } = useAuth();
+//   const toast = useAsyncToast({ position: 'top-right' });
+//   const formRef = useRef<FormikProps<LocationChangeValues>>(null);
+//   const locationData = useRef<ILocation>();
+//   const policy = useRef<Policy>();
+//   const initialVals = useRef<Omit<LocationChangeValues, 'requestEffDate'>>();
 
-  const handleSubmit = useCallback(
-    async (values: LocationChangeValues, bag: FormikHelpers<LocationChangeValues>) => {
-      console.log('handleSubmit called');
-      // TODO: better validation (locationId, etc.)
-      if (!locationData.current || !initialVals.current || !policy.current)
-        throw new Error('missing values. please reload.');
+//   // for testing calcLocationChanges
+//   const functions = useFunctions();
 
-      const locationId = locationData.current.locationId;
-      if (!locationId) throw new Error('missing locationId');
+//   const handleSubmit = useCallback(
+//     async (values: LocationChangeValues, bag: FormikHelpers<LocationChangeValues>) => {
+//       console.log('handleSubmit called');
+//       // TODO: better validation (locationId, etc.)
+//       if (!locationData.current || !initialVals.current || !policy.current)
+//         throw new Error('missing values. please reload.');
 
-      const { requestEffDate: reqEffDateNew, ...newVals } = values;
+//       const locationId = locationData.current.locationId;
+//       if (!locationId) throw new Error('missing locationId');
 
-      const diff = formatChanges<LocationChangeValues>(newVals, initialVals.current);
+//       const { requestEffDate: reqEffDateNew, ...newVals } = values;
 
-      const requiresEndorsement = hasEndorsementKeys(diff);
-      const requiresAmendment = hasAmendmentKeys(diff);
+//       const diff = formatChanges<LocationChangeValues>(newVals, initialVals.current);
 
-      const common = getCommonTrxJson(
-        reqEffDateNew,
-        { ...policy.current, id: policyId },
-        locationData.current.locationId,
-        values,
-        user
-      );
+//       const requiresEndorsement = hasEndorsementKeys(diff);
+//       const requiresAmendment = hasAmendmentKeys(diff);
 
-      const changeRequestCol = changeRequestsCollection(firestore, policyId);
-      const docIds = [];
+//       const common = getCommonTrxJson(
+//         reqEffDateNew,
+//         { ...policy.current, id: policyId },
+//         locationData.current.locationId,
+//         values,
+//         user
+//       );
 
-      if (requiresEndorsement) {
-        // TODO: create ProtectLocation type (omit termPremium, etc.)
-        let endorsementChanges: Partial<Omit<ILocation, 'termPremium' | 'annualPremium'>> = {};
+//       const changeRequestCol = changeRequestsCollection(firestore, policyId);
+//       const docIds = [];
 
-        // if (diff.effectiveDate && values.effectiveDate)
-        //   endorsementChanges['effectiveDate'] = Timestamp.fromDate(values.effectiveDate);
+//       if (requiresEndorsement) {
+//         // TODO: create ProtectLocation type (omit termPremium, etc.)
+//         let endorsementChanges: Partial<Omit<ILocation, 'termPremium' | 'annualPremium'>> = {};
 
-        // if (diff.expirationDate && values.expirationDate)
-        //   endorsementChanges['expirationDate'] = Timestamp.fromDate(values.expirationDate);
+//         // if (diff.effectiveDate && values.effectiveDate)
+//         //   endorsementChanges['effectiveDate'] = Timestamp.fromDate(values.effectiveDate);
 
-        if (diff.limits && values.limits) endorsementChanges['limits'] = diff.limits;
+//         // if (diff.expirationDate && values.expirationDate)
+//         //   endorsementChanges['expirationDate'] = Timestamp.fromDate(values.expirationDate);
 
-        if (diff.deductible) endorsementChanges['deductible'] = values.deductible;
+//         if (diff.limits && values.limits) endorsementChanges['limits'] = diff.limits;
 
-        // console.log('endorsement changes: ', endorsementChanges);
+//         if (diff.deductible) endorsementChanges['deductible'] = values.deductible;
 
-        const changeRequestData: LocationChangeRequest = {
-          ...common,
-          trxType: 'endorsement',
-          locationChanges: { ...endorsementChanges },
-        };
+//         // console.log('endorsement changes: ', endorsementChanges);
 
-        const endorsementDocRef = await addDoc(changeRequestCol, { ...changeRequestData });
-        docIds.push(endorsementDocRef.id);
-      }
+//         const changeRequestData: LocationChangeRequest = {
+//           ...common,
+//           trxType: 'endorsement',
+//           locationChanges: { ...endorsementChanges },
+//         };
 
-      if (requiresAmendment) {
-        let amendmentChanges: Partial<Omit<ILocation, 'termPremium' | 'annualPremium'>> = {};
+//         const endorsementDocRef = await addDoc(changeRequestCol, { ...changeRequestData });
+//         docIds.push(endorsementDocRef.id);
+//       }
 
-        if (diff.additionalInterests) {
-          amendmentChanges['additionalInsureds'] = additionalInterestsToAdditionalInsured(
-            values.additionalInterests
-          );
-          amendmentChanges['mortgageeInterest'] = additionalInterestsToMortgagee(
-            values.additionalInterests
-          );
-        }
-        if (diff.externalId) amendmentChanges['externalId'] = values.externalId;
+//       if (requiresAmendment) {
+//         let amendmentChanges: Partial<Omit<ILocation, 'termPremium' | 'annualPremium'>> = {};
 
-        const changeRequestData: LocationChangeRequest = {
-          ...common,
-          trxType: 'amendment',
-          locationChanges: amendmentChanges,
-        };
+//         if (diff.additionalInterests) {
+//           amendmentChanges['additionalInsureds'] = additionalInterestsToAdditionalInsured(
+//             values.additionalInterests
+//           );
+//           amendmentChanges['mortgageeInterest'] = additionalInterestsToMortgagee(
+//             values.additionalInterests
+//           );
+//         }
+//         if (diff.externalId) amendmentChanges['externalId'] = values.externalId;
 
-        const amendmentDocRef = await addDoc(changeRequestCol, { ...changeRequestData });
-        docIds.push(amendmentDocRef.id);
-      }
+//         const changeRequestData: LocationChangeRequest = {
+//           ...common,
+//           trxType: 'amendment',
+//           locationChanges: amendmentChanges,
+//         };
 
-      // FOR TESTING LOCATION CALC API ONLY
-      if (requiresEndorsement) {
-        const { data } = await calcLocationChanges(functions, {
-          policyId,
-          requestId: docIds[0],
-        });
-        console.log('calc location changes res: ', data);
-      }
+//         const amendmentDocRef = await addDoc(changeRequestCol, { ...changeRequestData });
+//         docIds.push(amendmentDocRef.id);
+//       }
 
-      return docIds;
-    },
-    [firestore, functions, policyId, user]
-  );
+//       // FOR TESTING LOCATION CALC API ONLY
+//       if (requiresEndorsement) {
+//         const { data } = await calcLocationChanges(functions, {
+//           policyId,
+//           requestId: docIds[0],
+//         });
+//         console.log('calc location changes res: ', data);
+//       }
 
-  const dialogForm = useDialogForm<LocationChangeValues, LocationChangeFormProps>({
-    formComponent: (
-      <LocationChangeFormOld
-        initialValues={{} as LocationChangeValues}
-        formRef={formRef}
-        onSubmit={handleSubmit}
-        // policyExpirationDate={policy.current?.expirationDate.toDate() || undefined}
-      />
-    ),
-    formRef,
-    // getFormProps: () => ({ policyExpirationDate: policy.current?.expirationDate.toDate() }),
-    onSubmit: handleSubmit,
-    onSuccess: () => {
-      toast.success('change request submitted');
-      // TODO: pass onSuccessComponent to display in dialog --> timeout close dialog after x ms
-    },
-    onError: (msg: string, err: any) => {
-      console.log('error: ', err);
-      toast.error(msg);
-    },
-    dialogOptions: {
-      title: 'Policy location change request',
-      slotProps: { dialog: { maxWidth: 'md' }, acceptButton: { variant: 'contained' } },
-    },
-  });
+//       return docIds;
+//     },
+//     [firestore, functions, policyId, user]
+//   );
 
-  return useCallback(
-    async (loc: ILocation, p: Policy) => {
-      locationData.current = loc;
-      policy.current = p;
+//   const dialogForm = useDialogForm<LocationChangeValues, LocationChangeFormProps>({
+//     formComponent: (
+//       <LocationChangeFormOld
+//         initialValues={{} as LocationChangeValues}
+//         formRef={formRef}
+//         onSubmit={handleSubmit}
+//         // policyExpirationDate={policy.current?.expirationDate.toDate() || undefined}
+//       />
+//     ),
+//     formRef,
+//     // getFormProps: () => ({ policyExpirationDate: policy.current?.expirationDate.toDate() }),
+//     onSubmit: handleSubmit,
+//     onSuccess: () => {
+//       toast.success('change request submitted');
+//       // TODO: pass onSuccessComponent to display in dialog --> timeout close dialog after x ms
+//     },
+//     onError: (msg: string, err: any) => {
+//       console.log('error: ', err);
+//       toast.error(msg);
+//     },
+//     dialogOptions: {
+//       title: 'Policy location change request',
+//       slotProps: { dialog: { maxWidth: 'md' }, acceptButton: { variant: 'contained' } },
+//     },
+//   });
 
-      const additionalInterests = combineToAdditionalInterests(
-        loc.additionalInsureds,
-        loc.mortgageeInterest
-      );
+//   return useCallback(
+//     async (loc: ILocation, p: Policy) => {
+//       locationData.current = loc;
+//       policy.current = p;
 
-      let initialValues: Omit<LocationChangeValues, 'requestEffDate'> = {
-        limits: loc.limits,
-        deductible: loc.deductible,
-        // effectiveDate: loc.effectiveDate.toDate(),
-        // expirationDate: loc.expirationDate.toDate(),
-        additionalInterests,
-        externalId: loc.externalId || '',
-      };
+//       const additionalInterests = combineToAdditionalInterests(
+//         loc.additionalInsureds,
+//         loc.mortgageeInterest
+//       );
 
-      initialVals.current = initialValues;
+//       let initialValues: Omit<LocationChangeValues, 'requestEffDate'> = {
+//         limits: loc.limits,
+//         deductible: loc.deductible,
+//         // effectiveDate: loc.effectiveDate.toDate(),
+//         // expirationDate: loc.expirationDate.toDate(),
+//         additionalInterests,
+//         externalId: loc.externalId || '',
+//       };
 
-      await dialogForm({ ...initialValues, requestEffDate: new Date() });
-    },
-    [dialogForm]
-  );
-};
+//       initialVals.current = initialValues;
 
-// TODO: uncomment once changed to new policy-locations interface
-const ENDORSEMENT_KEYS = ['limits', 'deductible', 'effectiveDate', 'expirationDate'];
+//       await dialogForm({ ...initialValues, requestEffDate: new Date() });
+//     },
+//     [dialogForm]
+//   );
+// };
 
-function hasEndorsementKeys(diff: LocationChangeRequest['locationChanges']) {
-  return !Object.keys(diff).every((k) => ENDORSEMENT_KEYS.indexOf(k) === -1);
-}
+// // TODO: uncomment once changed to new policy-locations interface
+// const ENDORSEMENT_KEYS = ['limits', 'deductible', 'effectiveDate', 'expirationDate'];
 
-const AMENDMENT_KEYS = ['additionalInterests', 'externalId'];
+// function hasEndorsementKeys(diff: LocationChangeRequest['locationChanges']) {
+//   return !Object.keys(diff).every((k) => ENDORSEMENT_KEYS.indexOf(k) === -1);
+// }
 
-function hasAmendmentKeys(diff: LocationChangeRequest['locationChanges']) {
-  return !Object.keys(diff).every((k) => AMENDMENT_KEYS.indexOf(k) === -1);
-}
+// const AMENDMENT_KEYS = ['additionalInterests', 'externalId'];
 
-// TODO: generic type to be reused for common trx data for policy and location
-function getCommonTrxJson(
-  reqEffDate: Date,
-  policy: WithId<Policy>,
-  locationId: string,
-  formValues: LocationChangeValues,
-  user: User | null
-): Omit<LocationChangeRequest, 'locationChanges' | 'policyChanges' | 'trxType'> {
-  return {
-    scope: 'location',
-    requestEffDate: Timestamp.fromDate(reqEffDate),
-    createdAtPolicyVersion: policy.metadata?.version || null,
-    policyId: policy.id,
-    locationId,
-    formValues,
-    userId: policy.userId || '',
-    agent: {
-      userId: policy.agent.userId || null,
-    },
-    agency: {
-      orgId: policy.agency.orgId || null,
-    },
-    status: ChangeRequestStatus.enum.submitted,
-    submittedBy: {
-      userId: user?.uid || null,
-      displayName: user?.displayName || '',
-      email: user?.email || null,
-    },
-    metadata: {
-      created: Timestamp.now(),
-      updated: Timestamp.now(),
-    },
-  };
-}
+// function hasAmendmentKeys(diff: LocationChangeRequest['locationChanges']) {
+//   return !Object.keys(diff).every((k) => AMENDMENT_KEYS.indexOf(k) === -1);
+// }
+
+// // TODO: generic type to be reused for common trx data for policy and location
+// function getCommonTrxJson(
+//   reqEffDate: Date,
+//   policy: WithId<Policy>,
+//   locationId: string,
+//   formValues: LocationChangeValues,
+//   user: User | null
+// ): Omit<LocationChangeRequest, 'locationChanges' | 'policyChanges' | 'trxType'> {
+//   return {
+//     scope: 'location',
+//     requestEffDate: Timestamp.fromDate(reqEffDate),
+//     createdAtPolicyVersion: policy.metadata?.version || null,
+//     policyId: policy.id,
+//     locationId,
+//     formValues,
+//     userId: policy.userId || '',
+//     agent: {
+//       userId: policy.agent.userId || null,
+//     },
+//     agency: {
+//       orgId: policy.agency.orgId || null,
+//     },
+//     status: ChangeRequestStatus.enum.submitted,
+//     submittedBy: {
+//       userId: user?.uid || null,
+//       displayName: user?.displayName || '',
+//       email: user?.email || null,
+//     },
+//     metadata: {
+//       created: Timestamp.now(),
+//       updated: Timestamp.now(),
+//     },
+//   };
+// }

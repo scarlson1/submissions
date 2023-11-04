@@ -8,7 +8,7 @@ import { FormikDatePicker, FormikNativeSelect, FormikWizardNavButtons } from 'co
 import { useWizard } from 'hooks';
 import { BaseStepProps } from './CancelWizard';
 
-export const CANCEL_REASON_OPTIONS: { value: CancellationReason; label: string }[] = [
+const CANCEL_REASON_OPTIONS: { value: CancellationReason; label: string }[] = [
   { value: 'sold', label: 'Sold' },
   { value: 'insured_choice', label: 'I no longer want flood insurance' },
   { value: 'premium_pmt_failure', label: 'Unable to meet premium payments' },

@@ -218,6 +218,7 @@ export const SuccessStep = () => {
   );
 };
 
+// TODO: need to move to it's own file
 export const useFetchTransaction = (id: string) => {
   const [transaction, setTransaction] = useState<Charge | null>(null);
   const [loading, setLoading] = useState(true);

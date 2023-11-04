@@ -19,7 +19,8 @@
     "noEmit": true,
     "jsx": "react-jsx",
     "baseUrl": "src",
-    "types": ["vite/client"]
+    "types": ["vite/client"],
+    "preserveSymlinks": true
   },
   "include": ["src"]
 }

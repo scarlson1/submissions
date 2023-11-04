@@ -9,6 +9,7 @@ import {
   Address,
   Coordinates,
   DraftAddLocationRequest,
+  NESTED_ADDRESS_FIELD_NAMES,
   Nullable,
   TProduct,
   addressValidationActiveStates,
@@ -18,7 +19,6 @@ import { FormikWizardNavButtons } from 'components/forms';
 import { useAsyncToast, useDocData, useWizard } from 'hooks';
 import { DEFAULT_INIT_VALUES } from 'hooks/usePropertyDetails';
 import { AddressStep as AddrStep } from '../AddressStep';
-import { NESTED_ADDRESS_FIELD_NAMES } from '../FormikAddress';
 import { BaseStepProps } from './AddLocationWizard';
 
 export interface AddressValues {

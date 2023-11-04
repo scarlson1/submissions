@@ -24,7 +24,6 @@ interface InvitesGridProps {
   queryConstraints?: QueryConstraint[];
 }
 
-// export const InvitesGrid<InvitesGridProps> = ({ data = [], loading }) => {
 export const InvitesGrid = ({ orgId, queryConstraints }: InvitesGridProps) => {
   const functions = useFunctions();
   const toast = useAsyncToast();

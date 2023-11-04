@@ -9,7 +9,6 @@ export { Home } from './Home';
 export { Login } from './Login';
 export { Policies } from './Policies';
 export { Policy } from './Policy';
-export { PolicyOld } from './PolicyOld';
 export { QuoteBind } from './QuoteBind';
 export { Quotes } from './Quotes';
 export { SubmissionNew } from './SubmissionNew';

@@ -3,7 +3,7 @@ import { Box, Chip, Divider, Unstable_Grid2 as Grid, Paper } from '@mui/material
 import { Content, EditorContent, JSONContent } from '@tiptap/react';
 import { Formik, FormikConfig, FormikHelpers, FormikProps } from 'formik';
 import { useCallback, useRef } from 'react';
-import * as yup from 'yup';
+import { array, object, string } from 'yup';
 
 import { DisclosureType, Product, State, TDisclosureType, TState } from 'common';
 import { FormikNativeSelect, FormikSelect, FormikTextField } from 'components/forms';
@@ -11,15 +11,15 @@ import { EditorToolbar } from 'components/textEditor/EditorToolbar';
 import 'components/textEditor/TextEditor.css';
 import { useTextEditor } from 'hooks';
 
-const disclosureValidation = yup.object().shape({
-  products: yup.array().of(yup.string()).min(1),
-  state: yup.string().when('type', {
+const disclosureValidation = object().shape({
+  products: array().of(string()).min(1),
+  state: string().when('type', {
     is: (type: string | null) => type !== 'general disclosure' && type !== 'other',
     then: (schema) => schema.required(),
     otherwise: (schema) => schema.notRequired().nullable(),
   }),
-  displayName: yup.string().notRequired(),
-  type: yup.string().required(),
+  displayName: string().notRequired(),
+  type: string().required(),
 });
 
 export interface DisclosureValues {

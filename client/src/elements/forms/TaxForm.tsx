@@ -13,7 +13,6 @@ import { lastDayOfYear, startOfYear } from 'date-fns';
 import { Formik, FormikHelpers, FormikProps } from 'formik';
 import { useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import * as yup from 'yup';
 
 import {
   LineOfBusiness,
@@ -30,6 +29,7 @@ import {
   TTransactionType,
   TaxItemName,
   TransactionType,
+  newTaxValidation,
 } from 'common';
 import {
   FormikCheckbox,
@@ -42,51 +42,6 @@ import {
   percentMaskProps,
 } from 'components/forms';
 import { ADMIN_ROUTES, createPath } from 'router';
-
-export const TRANSACTION_OPTIONS: TTransactionType[] = [
-  'new',
-  'renewal',
-  'endorsement',
-  'cancellation',
-];
-
-export const newTaxValidation = yup.object().shape({
-  state: yup.string().required(),
-  displayName: yup.string().required(),
-  effectiveDate: yup.date().required(),
-  expirationDate: yup.date().nullable(),
-  LOB: yup.array().of(yup.string()),
-  products: yup.array().of(yup.string()).min(1),
-  transactionTypes: yup.array().of(yup.string()).min(1, 'Must select at lease one option'),
-  subjectBase: yup
-    .array()
-    .of(yup.string())
-    .min(1, 'Must select at lease one option')
-    .test(
-      'fixedFee only',
-      'fixedFee must be selected alone. Remove other options or unselected fixedFee.',
-      (value) => {
-        if (value?.includes('fixedFee') && value.length > 1) return false;
-        return true;
-      }
-    ),
-  rate: yup.number().when(['subjectBase'], {
-    is: (subjectBase: string) => subjectBase && subjectBase[0] === 'fixedFee',
-    then: () => yup.number().notRequired().nullable(),
-    otherwise: () =>
-      yup.number().positive().max(20, 'Rate must be less than 20%').required('Rate is required'),
-  }),
-  fixedRate: yup.number().when(['subjectBase'], {
-    is: (subjectBase: string) => subjectBase && subjectBase[0] === 'fixedFee',
-    then: () => yup.number().min(0).max(100).required(),
-    otherwise: () => yup.number().notRequired().nullable(),
-  }),
-  baseRoundType: yup.string().required(),
-  baseDigits: yup.number().min(0, 'Must be 0 or greater').integer('Must be an integer'),
-  resultRoundType: yup.string().required(),
-  resultDigits: yup.number().min(0, 'Must be 0 or greater').integer('Must be an integer'),
-  // refundable: yup.boolean()
-});
 
 const DEFAULT_INIT_VALUES: TaxValues = {
   state: '' as TState,
@@ -184,7 +139,6 @@ export const TaxForm = ({ onSubmit, initialValues = DEFAULT_INIT_VALUES }: TaxFo
             <FormikSelect
               name='transactionTypes'
               label='Transaction Types'
-              // selectOptions={TRANSACTION_OPTIONS}
               selectOptions={TransactionType.options}
               multiple // @ts-ignore
               renderValue={(selected: string[]) => (

@@ -64,6 +64,7 @@ const useUpdateQuoteStatus = () => {
   return update;
 };
 
+// TODO: move hook to it's own file
 export const useConfirmAndUpdate = (updateFn: (id: string, vals: Partial<any>) => Promise<any>) => {
   const modal = useConfirmation();
   const toast = useAsyncToast();

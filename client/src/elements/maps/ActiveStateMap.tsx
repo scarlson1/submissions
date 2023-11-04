@@ -8,19 +8,14 @@ import { useState } from 'react';
 
 import { STATES_URL } from 'common';
 import { DeckMap, DeckMapProps, defaultGeoJsonLayerProps } from 'elements';
+import { DEFAULT_INITIAL_VIEW_STATE } from './constants';
 
 // TODO: create generalized component (use with counties)
-// TODO: use zustand ? or recoil or kotai for shared state between switch and map without rerendering all components?
+// TODO: use zustand ? or recoil or kotai for shared state between switch and map?
 
-// TODO: dont export - vite reload issue
-export const INITIAL_VIEW_STATE = {
-  longitude: -94.25,
-  latitude: 38.25,
-  zoom: 3.5,
+const INITIAL_VIEW_STATE = {
+  ...DEFAULT_INITIAL_VIEW_STATE,
   maxZoom: 16,
-  minZoom: 3,
-  pitch: 0,
-  bearing: 0,
 };
 
 export interface ActiveStateMapProps extends DeckMapProps {

@@ -9,7 +9,6 @@ import { StorageFolder, TRANSACTION_IMPORT_REQUIRED_HEADERS } from 'common';
 import { DownloadStorageFileButton } from 'components';
 import { CSVUploadDialog } from 'elements';
 import { TransactionsGrid } from 'elements/grids';
-
 import { getDuplicates } from 'modules/utils';
 import { getCsvHeaderStatus } from 'modules/utils/storage';
 

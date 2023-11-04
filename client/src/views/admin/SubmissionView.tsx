@@ -309,6 +309,8 @@ export const SubmissionView = () => {
   );
 };
 
+// TODO: generate warnings from config file / function / zod
+
 export function LimitAPctCheck({ limitA, rcv }: { limitA?: number; rcv?: number | null }) {
   if (!(rcv && limitA)) return null;
 

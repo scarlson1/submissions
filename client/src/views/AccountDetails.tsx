@@ -418,6 +418,7 @@ function UserDetailsForm() {
   );
 }
 
+// TODO: move to it's own file (vite)
 async function updateDBEmail(
   firestore: Firestore,
   userId: string,

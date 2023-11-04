@@ -10,8 +10,6 @@ export { useCompareJson } from './useCompareJson';
 export { useConcurrentLocation } from './useConcurrentLocation';
 export { useCreateAccount } from './useCreateAccount';
 export { useCreateAgencySubmission } from './useCreateAgencySubmission';
-export { useCreateCancelRequestOld } from './useCreateCancelRequestOld';
-export { useCreateLocationChangeRequestOld } from './useCreateLocationChangeRequestOld';
 export { useCreateMoratorium } from './useCreateMoratorium';
 export { useCreatePolicyChangeRequest } from './useCreatePolicyChangeRequest';
 export { useCreateQuote } from './useCreateQuote';

@@ -1,6 +1,6 @@
-import { array, boolean, number, object, string } from 'yup';
+import { array, boolean, date, mixed, number, object, string } from 'yup';
 
-import { isValidEmail } from 'modules/utils';
+import { isValidEmail, validateRoutingNumber } from 'modules/utils';
 import { State } from './enums';
 
 export const phoneRegEx = /^\+1[1-9]{1}[0-9]{9}$/;
@@ -291,4 +291,121 @@ export const agencyValidation = object().shape({
   orgId: string().typeError('agency orgId required').required(),
   name: string().typeError('agency name required').required(),
   address: addressValidation,
+});
+
+// moved from AgencyNew (vite)
+
+export const orgNameValidation = object().shape({
+  orgName: string().required(),
+});
+
+export const agencyContactValidation = object().shape({
+  contact: object().shape({
+    firstName: string().required('First name is required'),
+    lastName: string().required('Last name is required'),
+    email: emailVal.required('Email is required'),
+    phone: phoneVal.required('Phone is required'),
+  }),
+});
+
+export const FEINVal = string()
+  .matches(/^[1-9]\d?-\d{7}$/, 'FEIN must be valid format')
+  .required();
+
+export const feinValidation = object().shape({
+  FEIN: FEINVal,
+});
+
+export const EandOVal = mixed()
+  .test('required', 'E and O is required', (value) => {
+    if (!value || !Array.isArray(value) || !value.length) return false;
+    return true;
+  })
+  .test('fileSize', 'The file must be less than 2mb', (value) => {
+    if (!value || !Array.isArray(value) || !value.length) return false;
+    return value[0].size / 1024 < 2048;
+  })
+  .test('fileType', 'The file type must be .pdf', (value) => {
+    if (!value || !Array.isArray(value) || !value.length) return false;
+    return value[0].type.includes('pdf');
+  });
+
+export const EandOValidation = object().shape({
+  EandO: EandOVal,
+});
+
+// TODO:  reuse AddUsersDialog validation ??
+
+export const agentsValidation = object().shape({
+  agents: array().of(
+    object().shape({
+      email: emailVal.required(),
+      firstName: string()
+        .min(2, 'Please enter first name. Min 2 letters.')
+        .max(40, 'Must be less than 40 characters')
+        .required('Full name is required'),
+      lastName: string()
+        .min(2, 'Please enter first name. Min 2 letters.')
+        .max(40, 'Must be less than 40 characters')
+        .required('Full name is required'),
+      phone: phoneVal.required(),
+      // access: yup
+      //   .string()
+      //   .oneOf(['admin', 'agent'], 'Please select an option')
+      //   .required('Access level required'),
+    })
+  ),
+});
+
+export const bankingValidation = object().shape({
+  routingNumber: string()
+    .required()
+    .test('routing-number', 'Invalid routing number', validateRoutingNumber),
+  accountNumber: string()
+    .min(4, 'Account number must be at least 4 digits')
+    .max(17, 'Account number must be less than 17 digits')
+    .required(),
+});
+
+export const contactUsValidation = object().shape({
+  email: emailVal.required(),
+  subject: string().required(),
+  body: string().min(20, 'Please provide more details').required('Required'),
+});
+
+export const newTaxValidation = object().shape({
+  state: string().required(),
+  displayName: string().required(),
+  effectiveDate: date().required(),
+  expirationDate: date().nullable(),
+  LOB: array().of(string()),
+  products: array().of(string()).min(1),
+  transactionTypes: array().of(string()).min(1, 'Must select at lease one option'),
+  subjectBase: array()
+    .of(string())
+    .min(1, 'Must select at lease one option')
+    .test(
+      'fixedFee only',
+      'fixedFee must be selected alone. Remove other options or unselected fixedFee.',
+      (value) => {
+        if (value?.includes('fixedFee') && value.length > 1) return false;
+        return true;
+      }
+    ),
+  rate: number().when(['subjectBase'], {
+    is: (subjectBase: string) => subjectBase && subjectBase[0] === 'fixedFee',
+    then: () => number().notRequired().nullable(),
+    otherwise: () =>
+      number().positive().max(20, 'Rate must be less than 20%').required('Rate is required'),
+  }),
+  fixedRate: number().when(['subjectBase'], {
+    is: (subjectBase: string) => subjectBase && subjectBase[0] === 'fixedFee',
+    then: () => number().min(0).max(100).required(),
+    otherwise: () => number().notRequired().nullable(),
+  }),
+  baseRoundType: string().required(),
+  baseDigits: number().min(0, 'Must be 0 or greater').integer('Must be an integer'),
+  resultRoundType: string().required(),
+  resultDigits: number().min(0, 'Must be 0 or greater').integer('Must be an integer'),
+  // refundable: boolean()
 });

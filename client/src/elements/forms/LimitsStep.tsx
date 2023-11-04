@@ -12,7 +12,9 @@ import { FloodValues } from 'views/SubmissionNew';
 
 // TODO: use increment cards & text field or slider ??
 // TODO: round value to nearest 1,000
+// remove "description" jsx
 
+// TODO: use zod
 enum FieldNames {
   A = 'limits.limitA',
   B = 'limits.limitB',
@@ -93,8 +95,7 @@ export const LimitsStep = ({
   }, [values, replacementCost]);
 
   return (
-    // TODO: move container to parent ??
-    (<Grid
+    <Grid
       container
       rowSpacing={{ xs: 4, sm: 6, md: 8 }}
       columnSpacing={{ xs: 6, sm: 9, md: 12 }}
@@ -130,6 +131,6 @@ export const LimitsStep = ({
           />
         </Grid>
       ))}
-    </Grid>)
+    </Grid>
   );
 };

@@ -1,38 +1,33 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
+import { DoNotDisturbAltRounded } from '@mui/icons-material';
 import {
   Box,
-  Typography,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
+  Checkbox,
+  Chip,
   Collapse,
-  Select,
-  SelectChangeEvent,
-  OutlinedInput,
+  Container,
+  Divider,
   FormControl,
   InputLabel,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
   MenuItem,
-  Checkbox,
-  Divider,
-  Chip,
+  OutlinedInput,
+  Select,
+  SelectChangeEvent,
   ToggleButton,
-  Container,
+  Typography,
 } from '@mui/material';
-import { DoNotDisturbAltRounded } from '@mui/icons-material';
-import { FormikToggleButtonGroup } from 'components/forms';
 import { useFormikContext } from 'formik';
+
+import { FormikToggleButtonGroup } from 'components/forms';
 import { FloodValues } from 'views/SubmissionNew';
 
-// export const exclusions = [
-//   { label: 'Open wall or roof', value: 'Open wall or roof' },
-//   { label: 'Under construction', value: 'Under construction' },
-//   { label: 'Over water', value: 'Over water' },
-//   { label: 'Unrepaired damage', value: 'Unrepaired damage' },
-//   { label: 'Mold', value: 'Mold' },
-// ];
-export const exclusions = [
+// TODO: move to zod enum
+const exclusions = [
   'Open wall or roof',
   'Under construction',
   'Building located over water',

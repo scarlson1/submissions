@@ -1,10 +1,12 @@
-import { Typography, Unstable_Grid2 as Grid, Grid2Props as GridProps } from '@mui/material';
+import { Unstable_Grid2 as Grid, Grid2Props as GridProps, Typography } from '@mui/material';
 
 import { FormikMaskField, FormikTextField, IMask, cardExpDateMaskProps } from 'components/forms';
 
 export interface FormikCardDetailsProps {
   gridProps?: GridProps;
 }
+
+// TODO: use mui date field ??
 
 export const FormikCardDetails = ({ gridProps }: FormikCardDetailsProps) => {
   return (
@@ -16,8 +18,6 @@ export const FormikCardDetails = ({ gridProps }: FormikCardDetailsProps) => {
         <FormikTextField name='cardNumber' label='Card Number' fullWidth required />
       </Grid>
       <Grid xs={6}>
-        {/* TODO: use date field */}
-        {/* <FormikTextField name='cardExpDate' label='Exp Date' fullWidth required /> */}
         <FormikMaskField
           id='cardExpDate'
           name='cardExpDate'
@@ -44,5 +44,3 @@ export const FormikCardDetails = ({ gridProps }: FormikCardDetailsProps) => {
     </Grid>
   );
 };
-
-export default FormikCardDetails;

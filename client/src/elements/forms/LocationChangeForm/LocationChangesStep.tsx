@@ -16,7 +16,7 @@ import {
 import { useWizard } from 'hooks';
 import { dollarFormat } from 'modules/utils';
 import { LimitsStep } from '../LimitsStep';
-import { LocationChangeValues } from '../LocationChangeFormOld';
+import { LocationChangeValues } from './LocationChangeWizard';
 
 export interface LocationChangesStepProps extends FormikConfig<LocationChangeValues> {
   formRef: RefObject<FormikProps<LocationChangeValues>>;

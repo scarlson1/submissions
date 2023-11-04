@@ -1,7 +1,8 @@
 import { Unstable_Grid2 as Grid } from '@mui/material';
 
+import { MAILING_FIELD_NAMES } from 'common';
 import { FormikTextField } from 'components/forms';
-import FormikAddress, { MAILING_FIELD_NAMES } from '../FormikAddress';
+import { FormikAddress } from '../FormikAddress';
 
 export function MailingAddressStep() {
   return (

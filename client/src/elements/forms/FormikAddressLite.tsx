@@ -15,8 +15,7 @@ import {
 } from '@mui/material';
 import { useCallback, useState } from 'react';
 
-// import { statesAbrvSelectOptions } from 'common/statesList';
-import { State } from 'common';
+import { DEFAULT_ADDRESS_FIELD_NAMES, State } from 'common';
 import {
   FormikMaskField,
   FormikNativeSelect,
@@ -25,7 +24,7 @@ import {
   postalMaskProps,
 } from 'components/forms';
 import { Transition } from './AddPaymentDialog';
-import { DEFAULT_FIELD_NAMES, FormikAddressProps } from './FormikAddress';
+import { FormikAddressProps } from './FormikAddress';
 import { FormikAddressAutocomplete } from './FormikAddressAutocomplete';
 
 // TODO: try using useField() hook to set up Autocomplete
@@ -39,7 +38,7 @@ export const FormikAddressLite = ({
   cb,
   textFieldProps,
   autocompleteProps,
-  names = DEFAULT_FIELD_NAMES,
+  names = DEFAULT_ADDRESS_FIELD_NAMES,
   title = 'Address Details',
   gridProps,
   showCoordFields = false,
@@ -134,7 +133,6 @@ export const FormikAddressLite = ({
                   name={names.state}
                   label='State'
                   fullWidth
-                  // selectOptions={statesAbrvSelectOptions}
                   selectOptions={State.options}
                 />
               </Grid>

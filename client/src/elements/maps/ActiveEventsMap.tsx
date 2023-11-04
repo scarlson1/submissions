@@ -196,6 +196,7 @@ async function fetchActiveEvents(params: AxiosRequestConfig<ActiveEventsParams>[
   return data;
 }
 
+// TODO: move to it's own file
 export const useActiveEvents = (filters: ActiveEventsParams) =>
   useQuery({
     queryKey: ['activeEvents', { ...filters }],

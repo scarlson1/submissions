@@ -27,10 +27,7 @@ import { ROUTES, createPath } from 'router';
 // TODO: create custom tags for email delivery ('policy_delivery') https://docs.sendgrid.com/for-developers/sending-email/getting-started-email-activity-api#query-reference
 // OR create templates and get by template ID
 
-export const useUpdatePolicy = (
-  onSuccess?: (msg: string) => void,
-  onError?: (err: any) => void
-) => {
+const useUpdatePolicy = (onSuccess?: (msg: string) => void, onError?: (err: any) => void) => {
   const firestore = useFirestore();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -60,7 +57,7 @@ export const useUpdatePolicy = (
   return useMemo(() => ({ updatePolicy, loading, error }), [updatePolicy, loading, error]);
 };
 
-export const useEPayTransaction = (id: string | null | undefined) => {
+const useEPayTransaction = (id: string | null | undefined) => {
   const [transaction, setTransaction] = useState<any>();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

@@ -4,7 +4,6 @@ export { EmailsGrid } from './EmailsGrid';
 export { ImportsSummaryGrid } from './ImportsSummaryGrid';
 export { InvitesGrid } from './InvitesGrid';
 export { LocationsGrid } from './LocationsGrid';
-export { LocationsGridOld } from './LocationsGrid.Old';
 export { MoratoriumsGrid } from './MoratoriumsGrid';
 export { PoliciesGrid } from './PoliciesGrid';
 export { QuotesGrid } from './QuotesGrid';

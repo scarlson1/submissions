@@ -48,6 +48,7 @@ import {
   Basement,
   CBRSDesignation,
   COLLECTIONS,
+  CancelReason,
   ChangeRequestStatus,
   CompressedAddress,
   FloodZone,
@@ -66,6 +67,7 @@ import {
   TChangeRequestStatus,
   TFeeItem,
   TTaxItem,
+  TransactionType,
 } from 'common';
 import { CONSTRUCTION_TYPE } from 'common/constants';
 import { FileLink, GridCellCopy, renderGridEmail, renderGridPhone } from 'components';
@@ -79,8 +81,6 @@ import {
   renderPercent,
   renderSplitSnakeCase,
 } from 'components/RenderGridCellHelpers';
-import { CANCEL_REASON_OPTIONS } from 'elements/forms/CancelFormOld';
-import { TRANSACTION_OPTIONS } from 'elements/forms/TaxForm';
 import { multiSelectExtendsSingle } from 'modules/muiGrid/gridMultiSelectColDef';
 import {
   getGridFirestoreBooleanOperators,
@@ -1765,7 +1765,7 @@ export const policyTrxTypesCol: GridSingleSelectColDef = {
   field: 'transactionTypes',
   headerName: 'Transaction Types',
   type: 'singleSelect',
-  valueOptions: TRANSACTION_OPTIONS,
+  valueOptions: TransactionType.options,
   minWidth: 340,
   flex: 1,
   editable: false,
@@ -1780,7 +1780,7 @@ export const trxTypeCol: GridSingleSelectColDef = {
   headerName: 'Type',
   description: 'Type of transaction (endorsement, amendment, cancellation, etc.)',
   type: 'singleSelect',
-  valueOptions: TRANSACTION_OPTIONS,
+  valueOptions: TransactionType.options,
   minWidth: 120,
   flex: 1,
   editable: false,
@@ -2226,7 +2226,7 @@ export const cancelReasonCol: GridSingleSelectColDef = {
   editable: false,
   filterable: false,
   sortable: false, // enable if create index ??
-  valueOptions: CANCEL_REASON_OPTIONS,
+  valueOptions: CancelReason.options,
   getOptionValue: (value: ValueOptions) => {
     const t = typeof value;
     if (t === 'string' || t === 'number') return t;

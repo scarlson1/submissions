@@ -165,7 +165,7 @@ export interface FloodValues {
   userAcceptance: boolean;
 }
 
-export const initialValues: FloodValues = {
+const initialValues: FloodValues = {
   address: {
     addressLine1: '',
     addressLine2: '',

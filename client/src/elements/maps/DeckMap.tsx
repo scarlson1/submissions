@@ -6,9 +6,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { ReactNode } from 'react';
 import Map from 'react-map-gl';
 
-import { DEFAULT_INITIAL_VIEW_STATE } from './constants';
-
-const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
+import { DEFAULT_INITIAL_VIEW_STATE, MAPBOX_TOKEN } from './constants';
 
 // TODO: pass HoverInfo as child ?? needs to be direct descendant of DeckGl ??
 
@@ -52,8 +50,8 @@ export const DeckMap = ({
           minZoom={2}
           maxZoom={20}
           maxPitch={85}
-          // @ts-ignore
-          projection='mercator'
+          // react-map-gl bug - uses globe view instead of defaulting to mercator
+          projection={{ name: 'mercator' }}
         >
           {children}
         </Map>

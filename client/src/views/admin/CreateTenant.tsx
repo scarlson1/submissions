@@ -16,7 +16,7 @@ import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { object, string } from 'yup';
 
-import { addressValidation, contactValidation } from 'common';
+import { EandOVal, FEINVal, addressValidation, contactValidation } from 'common';
 import {
   FormikDragDrop,
   FormikMaskField,
@@ -25,12 +25,37 @@ import {
   feinMaskProps,
   phoneMaskProps,
 } from 'components/forms';
-import FormikAddress from 'elements/forms/FormikAddress';
+import { FormikAddress } from 'elements/forms';
 import { useAsyncToast, useCreateAgencySubmission, useCreateTenant } from 'hooks';
 import { ADMIN_ROUTES, createPath } from 'router';
-import { AgencyAppValues, EandOVal, FEINVal, INITIAL_VALUES } from 'views/AgencyNew';
+import { AgencyAppValues } from 'views/AgencyNew';
 
 // DIRECTLY CREATES TENANT - INSTEAD OF APPROVAL PROCESS
+
+const INITIAL_VALUES: AgencyAppValues = {
+  orgName: '',
+  address: {
+    addressLine1: '',
+    addressLine2: '',
+    city: '',
+    state: '',
+    postal: '',
+    countyName: '',
+  },
+  coordinates: {
+    latitude: null,
+    longitude: null,
+  },
+  contact: {
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+  },
+  agents: [{ firstName: '', lastName: '', email: '', phone: '' }],
+  FEIN: '',
+  EandO: '',
+};
 
 const validation = object().shape({
   orgName: string().required(),

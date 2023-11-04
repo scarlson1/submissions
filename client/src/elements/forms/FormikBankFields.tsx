@@ -4,6 +4,8 @@ import { FormikSelect, FormikTextField } from '../../components/forms';
 
 // TODO: use routing number lookup: https://www.routingnumbers.info/api/data.json?rn=063107513
 
+// TODO: use zod for select enum options
+
 export interface FormikBankFieldsProps {
   gridProps?: Grid2Props;
 }

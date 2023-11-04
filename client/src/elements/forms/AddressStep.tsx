@@ -98,7 +98,7 @@ export const AddressStep = ({
 
   return (
     // </FormikAddress>
-    (<>
+    <>
       <FormikAddress cb={addressChangeCb} gridProps={gridProps} {...props} />
       {!!withMap && (
         <>
@@ -154,8 +154,6 @@ export const AddressStep = ({
           </Typography>
         </>
       )}
-    </>)
+    </>
   );
 };
-
-export default AddressStep;

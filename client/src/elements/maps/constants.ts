@@ -1,5 +1,7 @@
 import { GeoJsonLayerProps } from 'deck.gl/typed';
 
+export const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
+
 export const DEFAULT_INITIAL_VIEW_STATE = {
   longitude: -94.25,
   latitude: 38.25,

@@ -72,6 +72,41 @@ export const COMMISSION_OPTIONS = [
   0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.11, 0.12, 0.13, 0.14, 0.15, 0.16, 0.17, 0.18, 0.19, 0.2,
 ];
 
+// TODO: change default to be nested under address
+export const DEFAULT_ADDRESS_FIELD_NAMES = {
+  addressLine1: 'addressLine1',
+  addressLine2: 'addressLine2',
+  city: 'city',
+  state: 'state',
+  postal: 'postal',
+  county: 'countyName',
+  latitude: 'latitude',
+  longitude: 'longitude',
+};
+
+export const BASE_NESTED_ADDRESS_FIELD_NAMES = {
+  addressLine1: 'address.addressLine1',
+  addressLine2: 'address.addressLine2',
+  city: 'address.city',
+  state: 'address.state',
+  postal: 'address.postal',
+};
+
+export const NESTED_ADDRESS_FIELD_NAMES = {
+  ...BASE_NESTED_ADDRESS_FIELD_NAMES,
+  county: 'address.countyName',
+  latitude: `coordinates.latitude`,
+  longitude: `coordinates.longitude`,
+};
+
+export const MAILING_FIELD_NAMES = {
+  addressLine1: 'mailingAddress.addressLine1',
+  addressLine2: 'mailingAddress.addressLine2',
+  city: 'mailingAddress.city',
+  state: 'mailingAddress.state',
+  postal: 'mailingAddress.postal',
+};
+
 export const fallbackImages = [
   'https://firebasestorage.googleapis.com/v0/b/idemand-submissions.appspot.com/o/common%2Fhome-interior-1.jpg?alt=media&token=2d23e76d-2ea4-403e-9f0e-93bbaacebf3e',
   'https://firebasestorage.googleapis.com/v0/b/idemand-submissions.appspot.com/o/common%2Fhome-interior-2.jpg?alt=media&token=720e4102-0c2e-48f9-8b36-c85b0daeaa33',

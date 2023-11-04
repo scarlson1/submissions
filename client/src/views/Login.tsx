@@ -29,7 +29,7 @@ import { AUTH_ROUTES, createPath } from 'router';
 //   },
 // ];
 
-export const loginValidation = yup.object({
+const loginValidation = yup.object({
   email: yup.string().email().required('Valid email is required'),
   password: yup.string().required('Password required'),
 });

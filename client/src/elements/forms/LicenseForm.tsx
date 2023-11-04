@@ -5,9 +5,15 @@ import { lastDayOfYear, startOfYear } from 'date-fns';
 import { Formik, FormikHelpers, FormikProps } from 'formik';
 import { useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import * as yup from 'yup';
+import { boolean, date, object, string } from 'yup';
 
-import { License, State, addressValidationNotRequired, phoneVal } from 'common';
+import {
+  BASE_NESTED_ADDRESS_FIELD_NAMES,
+  License,
+  State,
+  addressValidationNotRequired,
+  phoneVal,
+} from 'common';
 import {
   FormikDatePicker,
   FormikMaskField,
@@ -18,19 +24,18 @@ import {
   phoneMaskProps,
 } from 'components/forms';
 import { ADMIN_ROUTES, createPath } from 'router';
-import { BASE_NESTED_ADDRESS_FIELD_NAMES } from './FormikAddress';
 import { FormikAddressLite } from './FormikAddressLite';
 
-const licenseValidation = yup.object().shape({
-  state: yup.string().required('state is required'),
-  ownerType: yup.string().required('owner type is required'),
-  licensee: yup.string().required('licensee is required'),
-  licenseType: yup.string().required('license type is required'),
-  surplusLinesProducerOfRecord: yup.boolean(),
-  licenseNumber: yup.string().required('license number is required'),
-  effectiveDate: yup.date().required(),
-  expirationDate: yup.date().nullable(),
-  SLAssociationMembershipRequired: yup.boolean(),
+const licenseValidation = object().shape({
+  state: string().required('state is required'),
+  ownerType: string().required('owner type is required'),
+  licensee: string().required('licensee is required'),
+  licenseType: string().required('license type is required'),
+  surplusLinesProducerOfRecord: boolean(),
+  licenseNumber: string().required('license number is required'),
+  effectiveDate: date().required(),
+  expirationDate: date().nullable(),
+  SLAssociationMembershipRequired: boolean(),
   address: addressValidationNotRequired,
   phone: phoneVal.notRequired(),
 });
@@ -188,7 +193,6 @@ export const LicenseForm = ({
                   label='License phone'
                   fullWidth
                   required={false}
-                  // maskComponent={PhoneMask}
                   maskComponent={IMask}
                   inputProps={{ maskProps: phoneMaskProps }}
                 />
@@ -283,18 +287,6 @@ export const LicenseForm = ({
                   />
                 </Stack>
               </Grid>
-              {/* <Grid xs={12} sx={{ my: 3 }}>
-              <LoadingButton
-                onClick={submitForm}
-                disabled={!dirty || !isValid}
-                loading={isValidating || isSubmitting}
-                loadingPosition='start'
-                startIcon={<SaveRounded />}
-                variant='contained'
-              >
-                Submit
-              </LoadingButton>
-            </Grid> */}
             </Grid>
           </>
         )}

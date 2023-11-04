@@ -18,7 +18,6 @@ import {
   PolicyClaim,
   PropertyDataRes,
   Quote,
-  // PolicyOld,
   RatingData,
   SRRes,
   SRResWithAAL,
@@ -56,9 +55,6 @@ export const propertyDataResCollection = (db: Firestore) =>
 
 export const finTrxCollection = (db: Firestore) =>
   createCollection<Charge>(db, COLLECTIONS.FIN_TRANSACTIONS);
-
-// export const policiesCollectionOld = (db: Firestore) =>
-//   createCollection<PolicyOld>(db, COLLECTIONS.POLICIES);
 
 export const policiesCollection = (db: Firestore) =>
   createCollection<Policy>(db, COLLECTIONS.POLICIES);

@@ -13,6 +13,7 @@ import {
 import { useCallback, useReducer } from 'react';
 
 import { Path } from 'common';
+import { DocumentData } from 'firebase/firestore';
 
 // interface EditAction {
 //   type: GridRowModes.Edit | GridRowModes.View;
@@ -65,7 +66,9 @@ interface useGridEditModeProps<T> {
   editableCells?: Path<T>[] | DataGridProps['isCellEditable']; // ((params: GridRowParams) => boolean);
 }
 
-export const useGridEditMode = <T = any,>(props?: useGridEditModeProps<T> | undefined) => {
+export const useGridEditMode = <T extends DocumentData = DocumentData>(
+  props?: useGridEditModeProps<T> | undefined
+) => {
   const [rowModesModel, dispatch] = useReducer(reducer, props?.initialState || {});
 
   const handleEditClick = useCallback(
