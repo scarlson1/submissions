@@ -17,7 +17,7 @@ export const IMask = forwardRef<HTMLElement, IMaskProps>(function TextMaskCustom
   return (
     <IMaskInput
       {...other}
-      signed={false}
+      // signed={false} // not a prop for all mask types (TODO: add to required types)
       normalizeZeros={true}
       unmask={true} // @ts-ignore
       inputRef={ref}
@@ -71,7 +71,7 @@ export const percentMaskProps: Partial<IMaskInputProps> = {
   scale: 2,
   mask: Number,
   radix: '.',
-  signed: false,
+  // signed: false,
   normalizeZeros: true,
   overwrite: true,
   max: 100,

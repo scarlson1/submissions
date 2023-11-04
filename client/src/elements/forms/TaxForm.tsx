@@ -54,14 +54,13 @@ const DEFAULT_INIT_VALUES: TaxValues = {
   subjectBase: [],
   rate: '',
   fixedRate: null,
-  baseRoundType: 'nearest',
+  baseRoundType: 'nearest', //
   baseDigits: 2,
   resultRoundType: 'nearest',
   resultDigits: 2,
   refundable: true,
 };
 
-// TODO: switch to zod validation ??
 export interface TaxValues {
   state: TState;
   displayName: TTaxItemName;
@@ -277,14 +276,6 @@ export const TaxForm = ({ onSubmit, initialValues = DEFAULT_INIT_VALUES }: TaxFo
               name='subjectBase'
               label='Subject Base'
               selectOptions={SubjectBaseItem.options}
-              // selectOptions={[
-              //   'premium',
-              //   'inspectionFees',
-              //   'mgaFees',
-              //   'outStatePremium',
-              //   'homeStatePremium',
-              //   'fixedFee',
-              // ]}
               multiple // @ts-ignore
               renderValue={(selected: string[]) => (
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
