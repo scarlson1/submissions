@@ -1,6 +1,7 @@
 import { getFirestore } from 'firebase-admin/firestore';
-import type { CloudEvent } from 'firebase-functions/lib/v2/core';
+// import type { CloudEvent } from 'firebase-functions/lib/v2/core';
 import { error, info, warn } from 'firebase-functions/logger';
+import { CloudEvent } from 'firebase-functions/v2';
 import type { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 
 import { getReportErrorFn, locationsCollection, transactionsCollection } from '../common/index.js';

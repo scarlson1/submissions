@@ -1,6 +1,7 @@
 import { Timestamp, getFirestore } from 'firebase-admin/firestore';
-import type { CloudEvent } from 'firebase-functions/lib/v2/core';
+// import type { CloudEvent } from 'firebase-functions/lib/v2/core';
 import { info } from 'firebase-functions/logger';
+import { CloudEvent } from 'firebase-functions/v2';
 import type { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 
 import {

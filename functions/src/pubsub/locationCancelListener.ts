@@ -1,7 +1,8 @@
 import { isValid } from 'date-fns';
 import { Timestamp, getFirestore } from 'firebase-admin/firestore';
-import { CloudEvent } from 'firebase-functions/lib/v2/core';
+// import { CloudEvent } from 'firebase-functions/lib/v2/core';
 import { info, warn } from 'firebase-functions/logger';
+import { CloudEvent } from 'firebase-functions/v2';
 import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 
 import {

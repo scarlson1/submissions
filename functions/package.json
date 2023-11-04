@@ -10,7 +10,7 @@
     "dev:node": "node --watch dist/index.js",
     "dev:esbuild": "npm run build:watch",
     "dev": "export GCLOUD_PROJECT=idemand-submissions-dev && run-p dev:*",
-    "build": "esbuild src/index.ts --platform=node --outfile=dist/index.js --format=esm",
+    "build": "esbuild src/index.ts --bundle --platform=node --outfile=dist/index.js --format=esm",
     "build:watch": "esbuild src/index.ts --platform=node --outfile=dist/index.js --format=esm --watch",
     "serve": "npm run build && firebase emulators:start --only functions",
     "shell": "npm run build && firebase functions:shell",

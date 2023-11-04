@@ -7,7 +7,7 @@
     "sourceMap": true,
     "strict": true,
     "target": "es2022",
-    "moduleResolution": "node",
+    "moduleResolution": "Bundler",
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "jsx": "react-jsx",

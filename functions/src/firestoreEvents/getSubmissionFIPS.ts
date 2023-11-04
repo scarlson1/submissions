@@ -5,7 +5,7 @@ import {
   booleanPointInPolygon,
   featureEach,
   point,
-  polygon,
+  polygon, // @ts-ignore (type error)
 } from '@turf/turf';
 import axios from 'axios';
 import { Timestamp, type QueryDocumentSnapshot } from 'firebase-admin/firestore';
@@ -100,15 +100,19 @@ export async function getCountyFromGeoJson(latitude: number, longitude: number) 
   let matchProperties: Properties | undefined;
   const p = point([longitude, latitude]);
 
-  featureEach(countiesJson as FeatureCollection, function (currentFeature, featureIndex) {
-    if (currentFeature.geometry.type === 'Polygon') {
-      // let multiPoly = multiPolygon(currentFeature.geometry.coordinates);
-      let poly = polygon(currentFeature.geometry.coordinates as Position[][]);
-      if (booleanPointInPolygon(p, poly)) {
-        matchProperties = currentFeature.properties;
+  featureEach(
+    countiesJson as FeatureCollection,
+    function (currentFeature: any, featureIndex: number) {
+      // Feature<any>
+      if (currentFeature.geometry.type === 'Polygon') {
+        // let multiPoly = multiPolygon(currentFeature.geometry.coordinates);
+        let poly = polygon(currentFeature.geometry.coordinates as Position[][]);
+        if (booleanPointInPolygon(p, poly)) {
+          matchProperties = currentFeature.properties;
+        }
       }
     }
-  });
+  );
   info('COUNTIES JSON MATCH PROPERTIES: ', { matchProperties });
 
   return matchProperties;

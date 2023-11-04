@@ -1,6 +1,7 @@
 import { DecodedIdToken } from 'firebase-admin/auth';
-import { AuthData } from 'firebase-functions/lib/common/providers/https.js';
+// import { AuthData } from 'firebase-functions/lib/common/providers/https.js';
 import { HttpsError } from 'firebase-functions/v1/auth';
+import { AuthData } from 'firebase-functions/v2/tasks';
 
 import { CLAIMS } from '../../common/index.js';
 
