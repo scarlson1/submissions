@@ -4,7 +4,8 @@ import { Box, Container, ContainerProps, SxProps } from '@mui/material';
 import { Outlet } from 'react-router-dom';
 
 import { LoadingSpinner } from 'components';
-import { Header, Footer, Breadcrumbs } from './';
+import { DevWarningBanner } from 'elements';
+import { Breadcrumbs, Footer, Header } from './';
 // import { useConcurrentLocation } from 'hooks';
 // import ProgressBar from './ProgressBar';
 
@@ -56,6 +57,9 @@ export const Layout = ({
         }}
       >
         {/* <ProgressBar isAnimating={true} /> */}
+        {import.meta.env.VITE_FB_PROJECT_ID === 'idemand-submissions-dev' ? (
+          <DevWarningBanner />
+        ) : null}
         <Header />
         <Container {...containerProps}>
           <Box

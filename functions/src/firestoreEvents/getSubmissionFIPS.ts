@@ -1,7 +1,6 @@
 import {
   FeatureCollection,
-  Position,
-  Properties,
+  Polygon,
   booleanPointInPolygon,
   featureEach,
   point,
@@ -14,7 +13,18 @@ import type { FirestoreEvent } from 'firebase-functions/v2/firestore';
 
 import { FIPS, Submission, counties20mURL } from '../common/index.js';
 
-export let countiesJson: FeatureCollection | undefined;
+export interface CountyJsonProperties {
+  STATEFP: string;
+  COUNTYFP: string;
+  COUNTYNS: string;
+  AFFGEOID: string;
+  GEOID: string;
+  NAME: string;
+  LSAD: string;
+  ALAND: number;
+  AWATER: number;
+}
+export let countiesJson: FeatureCollection<Polygon, CountyJsonProperties> | undefined;
 
 export default async (
   event: FirestoreEvent<
@@ -97,13 +107,12 @@ export function getFIPS(countyName: string, state: string) {
 export async function getCountyFromGeoJson(latitude: number, longitude: number) {
   if (!countiesJson) throw new Error('Missing counties JSON');
 
-  let matchProperties: Properties | undefined;
+  let matchProperties: CountyJsonProperties | undefined; // Properties | undefined;
   const p = point([longitude, latitude]);
 
-  featureEach(countiesJson as FeatureCollection, function (currentFeature, featureIndex) {
+  featureEach(countiesJson, function (currentFeature, featureIndex) {
     if (currentFeature.geometry.type === 'Polygon') {
-      // let multiPoly = multiPolygon(currentFeature.geometry.coordinates);
-      let poly = polygon(currentFeature.geometry.coordinates as Position[][]);
+      let poly = polygon(currentFeature.geometry.coordinates);
       if (booleanPointInPolygon(p, poly)) {
         matchProperties = currentFeature.properties;
       }
