@@ -21,6 +21,13 @@
         }
       },
       {
+        "source": "/api{,/**}",
+        "run": {
+          "serviceId": "idemand-submissions-api",
+          "region": "us-central1"
+        }
+      },
+      {
         "source": "/auth-api{,/**}",
         "function": "authRequests"
       },

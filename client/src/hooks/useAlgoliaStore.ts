@@ -2,6 +2,7 @@ import { Functions } from 'firebase/functions';
 import { create } from 'zustand';
 
 import { generateSearchKey } from 'api';
+import { logDev } from 'modules/utils';
 
 // TODO: SAVE KEY IN USER CLAIMS ??
 
@@ -18,7 +19,7 @@ export const useAlgoliaStore = create<AlgoliaStore>((set) => ({
   generateKey: async (functions: Functions) => {
     try {
       const { data } = await generateSearchKey(functions);
-      console.log('API KEY RES: ', data);
+      logDev('API KEY RES: ', data);
       if (data?.key) set({ apiKey: data.key });
     } catch (err: any) {
       console.log('ERROR GENERATING SEARCH KEY: ', err);
