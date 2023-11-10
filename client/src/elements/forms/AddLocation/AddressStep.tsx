@@ -18,6 +18,7 @@ import {
 import { FormikWizardNavButtons } from 'components/forms';
 import { useAsyncToast, useDocData, useWizard } from 'hooks';
 import { DEFAULT_INIT_VALUES } from 'hooks/usePropertyDetails';
+import { logDev } from 'modules/utils';
 import { AddressStep as AddrStep } from '../AddressStep';
 import { BaseStepProps } from './AddLocationWizard';
 
@@ -80,7 +81,7 @@ export function AddressStep({
             ...address,
             coordinates,
           });
-          if (import.meta.env.VITE_PROD !== 'true') console.log('ATTOM RES: ', data);
+          logDev('ATTOM RES: ', data);
           const newRatingPropertyData = {
             CBRSDesignation: data.CBRSDesignation || null,
             basement: data.basement || null,

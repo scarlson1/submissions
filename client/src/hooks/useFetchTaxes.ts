@@ -1,43 +1,12 @@
-import axios, { AxiosResponse } from 'axios';
 import { useCallback, useMemo, useState } from 'react';
 import invariant from 'tiny-invariant';
 
-import {
-  TFeeItem,
-  TLineOfBusiness,
-  TSubjectBaseItem,
-  TTax,
-  TTaxItem,
-  TTaxItemName,
-  TTransactionType,
-  WithId,
-} from 'common';
+import { StateTaxRequest, StateTaxResponse } from 'api';
+import { TFeeItem, TState, TTaxItem, TTransactionType } from 'common';
 import { QuoteValues } from 'elements/forms';
 import { sumByTypes } from 'modules/utils';
 import { useAsyncToast } from './useAsyncToast';
-
-export type SubjectBaseKeyVal = Record<Exclude<TSubjectBaseItem, 'fixedFee' | 'noFee'>, number>;
-interface StateTaxRequest extends SubjectBaseKeyVal {
-  state: string;
-  transactionType: TTransactionType;
-  quoteNumber?: string | null;
-  effectiveDate?: Date | string;
-  lineOfBusiness?: TLineOfBusiness;
-}
-
-interface TaxResLineItem
-  extends Omit<WithId<TTax>, 'metadata' | 'effectiveDate' | 'expirationDate' | 'rate'> {
-  displayName: TTaxItemName;
-  calculatedTaxBase: number | null; // null if fixed rate ($10)
-  rate: number | null; // null if fixed rate ($10)
-  value: number;
-  effectiveDate: string;
-  expirationDate: string | null;
-}
-
-export interface StateTaxResponse {
-  lineItems: TaxResLineItem[];
-}
+import { TTaxRequestConfig, useCloudRunApi } from './useCloudRunApi';
 
 export const useFetchTaxes = (
   onSuccess?: (taxes: TTaxItem[]) => void,
@@ -47,6 +16,16 @@ export const useFetchTaxes = (
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const toast = useAsyncToast({ position: 'bottom-center' });
+  // const getTaxes = useCloudRunApi<StateTaxRequest, StateTaxResponse>({
+  //   url: '/state-tax',
+  //   method: 'post',
+  //   shouldThrow: true,
+  // });
+  const getTaxes = useCloudRunApi<TTaxRequestConfig, StateTaxResponse>({
+    url: '/state-tax',
+    method: 'post',
+    shouldThrow: true,
+  });
 
   const fetchTaxes = useCallback(
     async (values: QuoteValues, transactionType: TTransactionType) => {
@@ -61,7 +40,7 @@ export const useFetchTaxes = (
       const inspectionFees = sumByTypes<TFeeItem>(fees, 'displayName', 'Inspection Fee', 'value');
 
       const body: StateTaxRequest = {
-        state: address.state,
+        state: address.state as TState,
         homeStatePremium: annualPremium,
         outStatePremium: 0,
         premium: annualPremium,
@@ -72,20 +51,16 @@ export const useFetchTaxes = (
 
       try {
         setLoading(true);
-        let baseApiUrl = import.meta.env.VITE_SUBMISSIONS_API;
-        if (!baseApiUrl) throw new Error('missing api url env var');
-
-        // TODO: type response
-        const { data } = await axios.post<StateTaxRequest, AxiosResponse<StateTaxResponse>>(
-          `${baseApiUrl}/state-tax`,
-          body
-        );
-        // DOESN'T WORK WITH EMULATORS
-        // const { data } = await axios.post(`/idemand-submissions-api/state-tax`, body);
+        // const { data } = await axios.post<StateTaxRequest, AxiosResponse<StateTaxResponse>>(
+        //   `${baseApiUrl}/state-tax`,
+        //   body
+        // );
+        const data = await getTaxes({ data: body });
         console.log('TAXES: ', data);
 
         let newTaxes: TTaxItem[] = [];
         if (data && data.lineItems?.length > 0) {
+          // TODO: fix typing
           // @ts-ignore
           newTaxes = data.lineItems.map((t) => ({
             displayName: t.displayName || '',
@@ -94,6 +69,7 @@ export const useFetchTaxes = (
             subjectBase: t.subjectBase || [],
             baseDigits: t.baseDigits,
             resultDigits: t.resultDigits,
+            id: t.id,
           }));
 
           toast.info(`${data.lineItems.length} tax${data.lineItems.length > 1 ? 'es' : ''} found`);

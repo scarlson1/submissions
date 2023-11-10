@@ -2,6 +2,7 @@ import { endOfToday, startOfToday } from 'date-fns';
 import { isEqual } from 'lodash';
 import * as yup from 'yup';
 
+import { SubjectBaseKeyVal } from 'api';
 import {
   TFeeItem,
   TSubjectBaseItem,
@@ -12,7 +13,6 @@ import {
   limitsValidation,
   namedInsuredValidationNotRequired,
 } from 'common';
-import { SubjectBaseKeyVal } from 'hooks';
 import {
   addToDate,
   dollarFormat,

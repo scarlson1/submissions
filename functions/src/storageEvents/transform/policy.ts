@@ -229,6 +229,7 @@ export function getFormattedTaxes(row: CSVPolicyRow) {
     baseDigits: 2, // TODO: include in csv
     resultDigits: 2,
     resultRoundType: 'nearest',
+    id: '', // TODO: fix type (require in import row ??)
   };
   const tax2: TaxItem = {
     displayName: (row.tax2Name || '') as TaxItemName,
@@ -242,6 +243,7 @@ export function getFormattedTaxes(row: CSVPolicyRow) {
     baseDigits: 2, // TODO: include in csv
     resultDigits: 2,
     resultRoundType: 'nearest',
+    id: '', // TODO: fix type
   };
   if (tax1.value) taxes.push(tax1);
   if (tax2.value) taxes.push(tax2);

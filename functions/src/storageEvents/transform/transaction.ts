@@ -126,6 +126,7 @@ function csvRowToPremiumTrx(row: TrxRow): DeepNullable<Omit<PremiumTransaction, 
       rate: 0, // TODO: fix
       subjectBase: ['premium'], // TODO: fix
       resultRoundType: 'nearest',
+      id: '', // TODO: fix type
     });
   }
   if (row.billingEntitySurplusLinesRegulatoryFee) {
@@ -135,6 +136,7 @@ function csvRowToPremiumTrx(row: TrxRow): DeepNullable<Omit<PremiumTransaction, 
       rate: 0, // TODO: fix
       subjectBase: ['premium'], // TODO: fix
       resultRoundType: 'nearest',
+      id: '',
     });
   }
   if (row.billingEntityInspectionFee) {

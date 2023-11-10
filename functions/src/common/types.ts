@@ -679,6 +679,7 @@ export const TaxItem = z.object({
   resultDigits: z.number().int().optional(),
   baseRoundType: RoundingType.optional(),
   resultRoundType: RoundingType.default('nearest'),
+  id: z.string(),
 });
 export type TaxItem = z.infer<typeof TaxItem>;
 

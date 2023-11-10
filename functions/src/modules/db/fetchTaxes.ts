@@ -87,6 +87,7 @@ export async function fetchTaxes(quote: Quote, transactionType: TransactionType,
       baseDigits: t.baseDigits,
       resultDigits: t.resultDigits,
       resultRoundType: t.resultRoundType,
+      id: t.id,
     }));
   }
 

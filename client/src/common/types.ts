@@ -9,7 +9,9 @@ import { Geohash } from 'geofire-common';
 import { z } from 'zod';
 
 import { ServerDataGridProps } from 'components';
-import { AddLocationValues, CancelValues, LocationChangeValues } from 'elements/forms';
+import { AddLocationValues } from 'elements/forms';
+import { CancelValues } from 'elements/forms/CancelForm';
+import { LocationChangeValues } from 'elements/forms/LocationChangeForm/LocationChangeWizard';
 import { PolicyChangeValues } from 'elements/forms/PolicyChangeForm';
 import { InitRatingValues } from 'hooks/usePropertyDetails';
 import { FloodValues } from 'views/SubmissionNew';
@@ -496,6 +498,7 @@ export const TaxItem = z.object({
   resultDigits: z.number().int().optional(), // .default(2),
   baseRoundType: RoundingType.optional(),
   resultRoundType: RoundingType.default('nearest'),
+  id: z.string(),
 });
 export type TTaxItem = z.infer<typeof TaxItem>;
 
