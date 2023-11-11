@@ -404,7 +404,7 @@ export const Policy = () => {
           <Box sx={{ py: { xs: 4, md: 5, lg: 8 } }}>
             <Typography variant='body2' component='div' color='text.secondary'>
               {data?.effectiveDate && data?.expirationDate ? (
-                <Typography component='span' variant='body2'>
+                <Typography component='span' variant='body2' color='text.secondary'>
                   {`This policy is effective ${formatFirestoreTimestamp(
                     data.effectiveDate,
                     'date'

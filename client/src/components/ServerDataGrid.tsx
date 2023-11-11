@@ -163,6 +163,7 @@ export const ServerDataGrid = ({
     <Box sx={{ height: 500, width: '100%' }}>
       <DataGrid
         apiRef={apiRef}
+        // TODO: move to theme overrides ??
         sx={{
           transition: 'height 0.25s ease-in-out',
           '& .MuiDataGrid-toolbarContainer': {

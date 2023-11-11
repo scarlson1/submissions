@@ -1,9 +1,9 @@
 import {
+  Box,
+  CardContentProps,
+  CardProps,
   Card as MuiCard,
   CardContent as MuiCardContent,
-  CardProps,
-  CardContentProps,
-  Box,
 } from '@mui/material';
 
 export const flexCardStyle = {
@@ -15,7 +15,7 @@ export const flexCardStyle = {
 export const flexCardContentStyle = {
   flex: '1 0 auto',
   // height: '100%', overflows card when CardMedia included
-  // need to included box as childed with height 100% and flex, dir column, space-between
+  // need to included box as child with height 100% and flex, dir column, space-between
 } as const;
 
 export const FlexCard = (props: CardProps) => {

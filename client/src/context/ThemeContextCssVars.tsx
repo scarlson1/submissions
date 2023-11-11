@@ -47,6 +47,16 @@ const theme = extendTheme({
         color: 'var(--idemand-palette-primary-300)',
       },
     },
+    // Temp fix --> Typography not using css vars unless color is explicitly set
+    body1: {
+      color: 'var(--idemand-palette-text-primary)',
+    },
+    body2: {
+      color: 'var(--idemand-palette-text-secondary)',
+    },
+    // overline: {
+    //     color: 'var(--idemand-palette-text-secondary)',
+    // },
   }),
   ...getThemedComponents(),
 });
