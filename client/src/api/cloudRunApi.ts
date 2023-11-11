@@ -1,7 +1,14 @@
-import axios, { AxiosResponse } from 'axios';
-import { getAuth } from 'firebase/auth';
+import axios from 'axios';
 
-import { LineOfBusiness, State, TTax, TTaxItemName, TransactionType, WithId } from 'common';
+import {
+  LineOfBusiness,
+  Product,
+  State,
+  TTax,
+  TTaxItemName,
+  TransactionType,
+  WithId,
+} from 'common';
 import { z } from 'zod';
 
 // TODO: move/ create doRequest hook (easier to call getIdToken)
@@ -10,14 +17,35 @@ export const ApiClient = axios.create({
   baseURL: `${import.meta.env.VITE_API_BASE_URL}/api`,
   timeout: 6000,
   headers: {
-    Accept: 'application/vnd.GitHub.v3+json',
+    Accept: 'application/json',
     //'Authorization': 'token <your-token-here> -- https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token'
   },
 });
 
 // TODO: interceptors (handle express validator errors)
-// const SubjectBaseKeys = SubjectBaseItem.exclude(['fixedFee', 'noFee'])
-// const SubjectBaseKeyVal = z.map(SubjectBaseKeys, z.number())
+
+interface TaxResLineItem
+  extends Omit<WithId<TTax>, 'metadata' | 'effectiveDate' | 'expirationDate' | 'rate'> {
+  displayName: TTaxItemName;
+  calculatedTaxBase: number | null; // null if fixed rate ($10)
+  rate: number | null; // null if fixed rate ($10)
+  value: number;
+  effectiveDate: string;
+  expirationDate: string | null;
+}
+
+export interface StateTaxResponse {
+  lineItems: TaxResLineItem[];
+}
+
+export const ApiEndPoint = z.enum([
+  '/state-tax',
+  '/state-active',
+  '/moratorium',
+  '/surplus-lines-license',
+]);
+export type TApiEndPoint = z.infer<typeof ApiEndPoint>;
+
 export const ZSubjectBaseKeyVal = z.object({
   premium: z.number(),
   inspectionFees: z.number(),
@@ -38,46 +66,62 @@ export const ZStateTaxRequest = ZSubjectBaseKeyVal.and(
 );
 export type StateTaxRequest = z.infer<typeof ZStateTaxRequest>;
 
-// export type SubjectBaseKeyVal = Record<Exclude<TSubjectBaseItem, 'fixedFee' | 'noFee'>, number>;
+const TaxRequestConfig = z.object({
+  url: z.literal('/state-tax'),
+  method: z.literal('post'),
+  data: ZStateTaxRequest,
+});
+export type TTaxRequestConfig = z.infer<typeof TaxRequestConfig>;
 
-// export interface StateTaxRequest extends SubjectBaseKeyVal {
-//   state: string;
-//   transactionType: TTransactionType;
-//   quoteNumber?: string | null;
-//   effectiveDate?: Date | string;
-//   lineOfBusiness?: TLineOfBusiness;
+const ActiveStateRequestConfig = z.object({
+  url: z.literal('/state-active'),
+  method: z.literal('get'),
+  params: z.object({
+    state: State,
+  }),
+  data: z.never(),
+});
+export type TActiveStateRequestConfig = z.infer<typeof ActiveStateRequestConfig>;
+
+const MoratoriumRequestConfig = z.object({
+  url: z.literal('/moratorium'),
+  method: z.literal('get'),
+  params: z.object({
+    countyFIPS: z.any(),
+    date: z.date().or(z.string()).optional().nullable(),
+    product: Product.optional().nullable(),
+  }),
+  data: z.never(),
+});
+export type TMoratoriumRequestConfig = z.infer<typeof MoratoriumRequestConfig>;
+
+const SlLicenseRequestConfig = z.object({
+  url: z.literal('/surplus-lines-license'),
+  method: z.literal('get'),
+  params: z.object({
+    state: State,
+    date: z.date().or(z.string()).optional().nullable(),
+    product: Product.optional().nullable(),
+  }),
+  data: z.never(),
+});
+export type TSlLicenseRequestConfig = z.infer<typeof SlLicenseRequestConfig>;
+
+const CloudApiConfig = z.union([
+  TaxRequestConfig,
+  ActiveStateRequestConfig,
+  MoratoriumRequestConfig,
+  SlLicenseRequestConfig,
+]);
+export type TCloudApiConfig = z.infer<typeof CloudApiConfig>;
+
+// TODO: generic function for response type ??: https://stackoverflow.com/questions/74907523/creating-zod-schema-for-generic-interface
+// function createPaginatedResponseSchema<ItemType extends z.ZodTypeAny>(itemSchema: ItemType) {
+//   return z.object({
+//     pageIndex: z.number(),
+//     pageSize: z.number(),
+//     totalCount: z.number(),
+//     totalPages: z.number(),
+//     items: z.array(itemSchema),
+//   });
 // }
-
-interface TaxResLineItem
-  extends Omit<WithId<TTax>, 'metadata' | 'effectiveDate' | 'expirationDate' | 'rate'> {
-  displayName: TTaxItemName;
-  calculatedTaxBase: number | null; // null if fixed rate ($10)
-  rate: number | null; // null if fixed rate ($10)
-  value: number;
-  effectiveDate: string;
-  expirationDate: string | null;
-}
-
-export interface StateTaxResponse {
-  lineItems: TaxResLineItem[];
-}
-
-// TODO: move getIdToken outside fn (to hook --> call before request)
-// generic fn --> pass req and res types and api endpoint to initialize hook
-// use react fire for token ?? or auth context ??
-export async function fetchTaxes(body: StateTaxRequest) {
-  const token = await getAuth().currentUser?.getIdToken();
-
-  // TODO: move authorization to axios instance ??
-  const { data } = await ApiClient.post<StateTaxRequest, AxiosResponse<StateTaxResponse>>(
-    '/state-tax',
-    body,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
-
-  return data;
-}

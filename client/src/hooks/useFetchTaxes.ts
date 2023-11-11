@@ -1,12 +1,12 @@
 import { useCallback, useMemo, useState } from 'react';
 import invariant from 'tiny-invariant';
 
-import { StateTaxRequest, StateTaxResponse } from 'api';
+import { StateTaxResponse, TTaxRequestConfig } from 'api';
 import { TFeeItem, TState, TTaxItem, TTransactionType } from 'common';
 import { QuoteValues } from 'elements/forms';
 import { sumByTypes } from 'modules/utils';
 import { useAsyncToast } from './useAsyncToast';
-import { TTaxRequestConfig, useCloudRunApi } from './useCloudRunApi';
+import { useCloudRunApi } from './useCloudRunApi';
 
 export const useFetchTaxes = (
   onSuccess?: (taxes: TTaxItem[]) => void,
@@ -16,11 +16,6 @@ export const useFetchTaxes = (
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const toast = useAsyncToast({ position: 'bottom-center' });
-  // const getTaxes = useCloudRunApi<StateTaxRequest, StateTaxResponse>({
-  //   url: '/state-tax',
-  //   method: 'post',
-  //   shouldThrow: true,
-  // });
   const getTaxes = useCloudRunApi<TTaxRequestConfig, StateTaxResponse>({
     url: '/state-tax',
     method: 'post',
@@ -39,7 +34,7 @@ export const useFetchTaxes = (
       const mgaFees = sumByTypes<TFeeItem>(fees, 'displayName', 'MGA Fee', 'value');
       const inspectionFees = sumByTypes<TFeeItem>(fees, 'displayName', 'Inspection Fee', 'value');
 
-      const body: StateTaxRequest = {
+      const body = {
         state: address.state as TState,
         homeStatePremium: annualPremium,
         outStatePremium: 0,
@@ -51,10 +46,6 @@ export const useFetchTaxes = (
 
       try {
         setLoading(true);
-        // const { data } = await axios.post<StateTaxRequest, AxiosResponse<StateTaxResponse>>(
-        //   `${baseApiUrl}/state-tax`,
-        //   body
-        // );
         const data = await getTaxes({ data: body });
         console.log('TAXES: ', data);
 
