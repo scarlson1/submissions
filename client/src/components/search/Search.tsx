@@ -13,11 +13,11 @@ import {
   DialogProps,
   GlobalStyles,
   alpha,
+  useColorScheme,
 } from '@mui/material';
 import type { SearchClient } from 'algoliasearch/lite';
 
 import type { DocSearchHit, InternalDocSearchHit, StoredDocSearchHit } from 'common';
-import { useChangeTheme } from 'context';
 import {
   // useAlgoliaSearchKey,
   useAlgoliaStore,
@@ -71,7 +71,8 @@ export function Search({
 }: SearchProps) {
   const searchButtonRef = useRef<HTMLButtonElement>(null);
   const [isOpen, setIsOpen] = useState(false);
-  const { mode } = useChangeTheme();
+  // const { mode } = useChangeTheme();
+  const { mode } = useColorScheme();
 
   useEffect(() => {
     // TODO: just move to ThemeContext ?? set attribute in toggleTheme() ??
@@ -79,7 +80,7 @@ export function Search({
     const bodyRef = window.document.getElementsByTagName('body');
     if (bodyRef && bodyRef.length && bodyRef[0].getAttribute('data-theme') !== mode) {
       console.log('SETTING "data-theme": ', mode);
-      bodyRef[0].setAttribute('data-theme', mode);
+      mode && bodyRef[0].setAttribute('data-theme', mode);
     }
   }, [mode]);
 

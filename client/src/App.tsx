@@ -13,7 +13,8 @@ import {
 import './App.css';
 
 import { ErrorFallback, PageMeta, Toaster } from 'components';
-import { AuthProvider, ConfirmationProvider, DialogProvider, ThemeProvider } from 'context';
+import { AuthProvider, ConfirmationProvider, DialogProvider } from 'context';
+import ThemeContextCssVars from 'context/ThemeContextCssVars';
 import { useAnalyticsEvent } from 'hooks';
 
 // TODO: set up Sentry for error logging
@@ -56,7 +57,8 @@ Sentry.init({
 
 function App() {
   return (
-    <ThemeProvider>
+    // <ThemeProvider>
+    <ThemeContextCssVars>
       <ErrorBoundary
         FallbackComponent={ErrorFallback}
         // TODO: log errors (Google)
@@ -77,7 +79,8 @@ function App() {
         </LocalizationProvider>
         <PageViewLogger />
       </ErrorBoundary>
-    </ThemeProvider>
+    </ThemeContextCssVars>
+    // </ThemeProvider>
   );
 }
 

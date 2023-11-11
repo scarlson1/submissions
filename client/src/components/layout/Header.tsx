@@ -35,11 +35,11 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import { useTheme } from '@mui/material/styles';
+import { useColorScheme, useTheme } from '@mui/material/styles';
 import { Link as RouterLink, matchPath, useLocation, useNavigate } from 'react-router-dom';
 import { useSigninCheck } from 'reactfire';
 
-import { AuthActionsProvider, useAuthActions, useChangeTheme } from 'context';
+import { AuthActionsProvider, useAuthActions } from 'context';
 import { useClaims } from 'hooks';
 import { stringAvatar } from 'modules/utils';
 import { ACCOUNT_ROUTES, ADMIN_ROUTES, AUTH_ROUTES, ROUTES, createPath } from 'router';
@@ -64,7 +64,8 @@ export interface HeaderProps {}
 
 export const Header = (props: HeaderProps) => {
   const theme = useTheme();
-  const { toggleColorMode: changeTheme } = useChangeTheme();
+  // const { toggleColorMode: changeTheme } = useChangeTheme();
+  const { mode, setMode } = useColorScheme();
   const navigate = useNavigate();
   const location = useLocation();
   const { user, claims } = useClaims();
@@ -414,7 +415,11 @@ export const Header = (props: HeaderProps) => {
               textAlign: 'center',
             }}
           >
-            <IconButton sx={{ mx: { xs: 1, sm: 2, md: 3 } }} onClick={changeTheme} color='primary'>
+            <IconButton
+              sx={{ mx: { xs: 1, sm: 2, md: 3 } }}
+              onClick={() => setMode(mode === 'light' ? 'dark' : 'light')}
+              color='primary'
+            >
               {theme.palette.mode === 'dark' ? (
                 <Brightness7 fontSize='small' />
               ) : (
