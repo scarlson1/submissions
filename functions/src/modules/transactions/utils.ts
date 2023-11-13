@@ -1,3 +1,4 @@
+import { TransactionType, WithId } from '@idemand/common';
 import { add, differenceInCalendarDays } from 'date-fns';
 import { DocumentData, DocumentReference, Firestore, Timestamp } from 'firebase-admin/firestore';
 import { error } from 'firebase-functions/logger';
@@ -9,8 +10,6 @@ import {
   PremiumTransaction,
   StrictExclude,
   Transaction,
-  TransactionType,
-  WithId,
   policiesCollection,
   ratingDataCollection,
   transactionsCollection,

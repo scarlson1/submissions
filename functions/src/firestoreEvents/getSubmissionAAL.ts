@@ -4,8 +4,8 @@ import { error, info, warn } from 'firebase-functions/logger';
 import type { FirestoreEvent } from 'firebase-functions/v2/firestore';
 import invariant from 'tiny-invariant';
 
+import { PriorLossCount } from '@idemand/common';
 import {
-  PriorLossCount,
   Submission,
   defaultCommissionAsInt,
   defaultFloodZone,

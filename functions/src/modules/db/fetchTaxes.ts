@@ -1,18 +1,17 @@
-import axios, { AxiosResponse } from 'axios';
-import { isDate } from 'date-fns';
-import { info } from 'firebase-functions/logger';
-import invariant from 'tiny-invariant';
 import {
   LineOfBusiness,
-  Quote,
   SubjectBaseItem,
   Tax,
   TaxItem,
   TaxItemName,
   TransactionType,
   WithId,
-  submissionsApiBaseURL,
-} from '../../common/index.js';
+} from '@idemand/common';
+import axios, { AxiosResponse } from 'axios';
+import { isDate } from 'date-fns';
+import { info } from 'firebase-functions/logger';
+import invariant from 'tiny-invariant';
+import { Quote, submissionsApiBaseURL } from '../../common/index.js';
 import { sumFeesByType } from '../transactions/index.js';
 
 export type SubjectBaseKeyVal = Record<Exclude<SubjectBaseItem, 'fixedFee' | 'noFee'>, number>;

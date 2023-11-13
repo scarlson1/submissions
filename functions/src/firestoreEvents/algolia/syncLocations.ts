@@ -4,9 +4,9 @@ import { info, warn } from 'firebase-functions/logger';
 import { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 import { capitalize } from 'lodash-es';
 
+import { ILocation } from '@idemand/common';
 import {
   COLLECTIONS,
-  ILocation,
   Policy,
   StagedPolicyImport,
   algoliaAdminKey,

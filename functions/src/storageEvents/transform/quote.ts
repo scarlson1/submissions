@@ -5,14 +5,16 @@ import { geohashForLocation } from 'geofire-common';
 import {
   Basement,
   CBRSDesignation,
-  DeepNullable,
   FloodZone,
-  Nullable,
   PriorLossCount,
   Product,
+  RatingPropertyData,
+} from '@idemand/common';
+import {
+  DeepNullable,
+  Nullable,
   QUOTE_STATUS,
   Quote,
-  RatingPropertyData,
   extractNumber,
   extractNumberNeg,
   getCardFee,

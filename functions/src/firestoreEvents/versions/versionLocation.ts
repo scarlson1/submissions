@@ -3,9 +3,9 @@ import { info } from 'firebase-functions/logger';
 import { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 import { merge } from 'lodash-es';
 
+import { ILocation } from '@idemand/common';
 import {
   Collection,
-  ILocation,
   getReportErrorFn,
   policiesCollection,
   versionsCollection,

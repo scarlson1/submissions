@@ -1,3 +1,21 @@
+import {
+  Basement,
+  CBRSDesignation,
+  CancelReason,
+  ChangeRequestTrxType,
+  FeeItem,
+  FloodZone,
+  ILocation,
+  ILocationPolicy,
+  LicenseOwner,
+  LicenseType,
+  PaymentStatus,
+  PriorLossCount,
+  Product,
+  State,
+  TaxItem,
+  TransactionType,
+} from '@idemand/common';
 import { Request } from 'express';
 import { DecodedIdToken } from 'firebase-admin/auth';
 import {
@@ -5,38 +23,20 @@ import {
   Timestamp as FirestoreTimestamp,
 } from 'firebase-admin/firestore';
 import { Geohash } from 'geofire-common';
-
 import { z } from 'zod';
+
 import { CalcPolicyChangesResult, SecondaryFactorMults } from '../modules/rating/index.js';
 import { ElevationResult } from '../services/elevationApi.js';
 import { CreateMsgContentProps } from '../services/sendgrid/index.js';
 import {
   AGENCY_STATUS,
   AgencySubmissionStatus,
-  Basement,
-  CBRSDesignation,
   COLLECTIONS,
-  CancelReason,
   ChangeRequestStatus,
-  ChangeRequestTrxType,
   FIN_TRANSACTION_STATUS,
-  FeeItemName,
-  FloodZone,
-  LicenseOwner,
-  LicenseType,
-  LineOfBusiness,
-  PaymentStatus,
-  PriorLossCount,
-  Product,
   QUOTE_STATUS,
-  RoundingType,
   SUBMISSION_STATUS,
-  State,
-  SubjectBaseItem,
   SubmittedChangeRequestStatus,
-  TaxItemName,
-  TaxRateType,
-  TransactionType,
 } from './enums.js';
 import { hostingBaseURL, iDemandOrgId } from './environmentVars.js';
 
@@ -670,39 +670,39 @@ export const MGACommissionPct = z
   .max(0.2, 'Commission must be <= 20%');
 export type MGACommissionPct = z.infer<typeof MGACommissionPct>;
 
-export const TaxItem = z.object({
-  displayName: TaxItemName,
-  rate: z.number(),
-  value: z.number(),
-  subjectBase: z.array(SubjectBaseItem),
-  baseDigits: z.number().int().optional(),
-  resultDigits: z.number().int().optional(),
-  baseRoundType: RoundingType.optional(),
-  resultRoundType: RoundingType.default('nearest'),
-  id: z.string(),
-});
-export type TaxItem = z.infer<typeof TaxItem>;
+// export const TaxItem = z.object({
+//   displayName: TaxItemName,
+//   rate: z.number(),
+//   value: z.number(),
+//   subjectBase: z.array(SubjectBaseItem),
+//   baseDigits: z.number().int().optional(),
+//   resultDigits: z.number().int().optional(),
+//   baseRoundType: RoundingType.optional(),
+//   resultRoundType: RoundingType.default('nearest'),
+//   id: z.string(),
+// });
+// export type TaxItem = z.infer<typeof TaxItem>;
 
-export const Tax = TaxItem.omit({ value: true }).and(
-  z.object({
-    state: State,
-    effectiveDate: Timestamp,
-    expirationDate: Timestamp.optional().nullable(),
-    LOB: z.array(LineOfBusiness),
-    products: z.array(Product),
-    transactionTypes: z.array(TransactionType),
-    rateType: TaxRateType,
-    refundable: z.boolean(),
-    metadata: BaseMetadata,
-  })
-);
-export type Tax = z.infer<typeof Tax>;
+// export const Tax = TaxItem.omit({ value: true }).and(
+//   z.object({
+//     state: State,
+//     effectiveDate: Timestamp,
+//     expirationDate: Timestamp.optional().nullable(),
+//     LOB: z.array(LineOfBusiness),
+//     products: z.array(Product),
+//     transactionTypes: z.array(TransactionType),
+//     rateType: TaxRateType,
+//     refundable: z.boolean(),
+//     metadata: BaseMetadata,
+//   })
+// );
+// export type Tax = z.infer<typeof Tax>;
 
-export const FeeItem = z.object({
-  displayName: FeeItemName,
-  value: z.number(),
-});
-export type FeeItem = z.infer<typeof FeeItem>;
+// export const FeeItem = z.object({
+//   displayName: FeeItemName,
+//   value: z.number(),
+// });
+// export type FeeItem = z.infer<typeof FeeItem>;
 
 // export type BillingEntity = Pick<
 //   EPayPaymentMethodDetails,
@@ -747,7 +747,7 @@ export interface Quote extends BaseDoc {
   homeState: string;
   coordinates: GeoPoint | null;
   fees: FeeItem[];
-  taxes: TaxItem[]; // { taxName: string; value: string }[];
+  taxes: TaxItem[];
   annualPremium: number;
   subproducerCommission: number;
   cardFee: number;
@@ -784,13 +784,6 @@ export interface Quote extends BaseDoc {
   };
 }
 
-// export interface SLProdOfRecordDetails {
-//   name: string;
-//   licenseNum: string;
-//   licenseState: string;
-//   phone: string;
-// }
-
 export const SLProdOfRecordDetails = z.object({
   name: z.string(),
   licenseNum: z.string(),
@@ -798,8 +791,6 @@ export const SLProdOfRecordDetails = z.object({
   phone: Phone.optional().nullable(),
 });
 export type SLProdOfRecordDetails = z.infer<typeof SLProdOfRecordDetails>;
-
-// export type LocationImages = Record<LocationImageTypes, string>;
 
 export const LocationImages = z.object({
   light: z.string(),
@@ -843,10 +834,6 @@ export type LocationImageTypes = z.infer<typeof LocationImageTypes>;
 //   externalId?: string | null;
 // }
 
-// export type LocationParent = 'submission' | 'quote' | 'policy';
-export const LocationParent = z.enum(['submission', 'quote', 'policy']);
-export type LocationParent = z.infer<typeof LocationParent>;
-
 // TODO: discriminating union (SubmissionLocation, QuoteLocation, ILocation, etc.)
 // require policy id, parentType: 'policy', etc. in discriminating union
 // export const ILocation = z.object({
@@ -881,75 +868,78 @@ export type LocationParent = z.infer<typeof LocationParent>;
 // });
 // export type ILocation = z.infer<typeof ILocation>;
 
-export const BaseLocation = z.object({
-  parentType: LocationParent.nullable(),
-  address: Address,
-  coordinates: GeoPoint,
-  geoHash: z.string(),
-  annualPremium: z.number().nonnegative(),
-  termPremium: z.number().nonnegative(),
-  termDays: z.number().nonnegative().int(),
-  limits: Limits,
-  TIV: z.number().nonnegative(),
-  RCVs: RCVs,
-  deductible: Deductible,
-  additionalInsureds: z.array(AdditionalInsured),
-  mortgageeInterest: z.array(Mortgagee),
-  ratingDocId: z.string(),
-  ratingPropertyData: RatingPropertyData,
-  effectiveDate: Timestamp,
-  expirationDate: Timestamp,
-  cancelEffDate: Timestamp.optional().nullable(),
-  cancelReason: CancelReason.optional().nullable(),
-  imageURLs: LocationImages.optional().nullable(),
-  imagePaths: LocationImages.optional().nullable(),
-  blurHash: LocationImages.optional().nullable(),
-  locationId: z.string().min(5, 'location ID must be at least 5 characters'),
-  policyId: z.string().min(5, 'policy ID must be at least 5 characters').optional().nullable(),
-  quoteId: z.string().nullable().optional(),
-  submissionId: z.string().optional().nullable(),
-  externalId: z.string().optional().nullable(),
-  metadata: BaseMetadata,
-});
-export type BaseLocation = z.infer<typeof BaseLocation>;
+// export const LocationParent = z.enum(['submission', 'quote', 'policy']);
+// export type LocationParent = z.infer<typeof LocationParent>;
 
-export const ILocationSubmission = BaseLocation.and(
-  z.object({
-    parentType: z.literal(LocationParent.enum.submission),
-    submissionId: z.string(),
-    quoteId: z.null().optional(),
-    policyId: z.null().optional(),
-  })
-);
-export type ILocationSubmission = z.infer<typeof ILocationSubmission>;
+// export const BaseLocation = z.object({
+//   parentType: LocationParent.nullable(),
+//   address: Address,
+//   coordinates: GeoPoint,
+//   geoHash: z.string(),
+//   annualPremium: z.number().nonnegative(),
+//   termPremium: z.number().nonnegative(),
+//   termDays: z.number().nonnegative().int(),
+//   limits: Limits,
+//   TIV: z.number().nonnegative(),
+//   RCVs: RCVs,
+//   deductible: Deductible,
+//   additionalInsureds: z.array(AdditionalInsured),
+//   mortgageeInterest: z.array(Mortgagee),
+//   ratingDocId: z.string(),
+//   ratingPropertyData: RatingPropertyData,
+//   effectiveDate: Timestamp,
+//   expirationDate: Timestamp,
+//   cancelEffDate: Timestamp.optional().nullable(),
+//   cancelReason: CancelReason.optional().nullable(),
+//   imageURLs: LocationImages.optional().nullable(),
+//   imagePaths: LocationImages.optional().nullable(),
+//   blurHash: LocationImages.optional().nullable(),
+//   locationId: z.string().min(5, 'location ID must be at least 5 characters'),
+//   policyId: z.string().min(5, 'policy ID must be at least 5 characters').optional().nullable(),
+//   quoteId: z.string().nullable().optional(),
+//   submissionId: z.string().optional().nullable(),
+//   externalId: z.string().optional().nullable(),
+//   metadata: BaseMetadata,
+// });
+// export type BaseLocation = z.infer<typeof BaseLocation>;
 
-export const ILocationQuote = BaseLocation.and(
-  z.object({
-    parentType: z.literal(LocationParent.enum.quote),
-    submissionId: z.string().optional().nullable(),
-    quoteId: z.string(),
-    policyId: z.null().optional(),
-  })
-);
-export type ILocationQuote = z.infer<typeof ILocationQuote>;
+// export const ILocationSubmission = BaseLocation.and(
+//   z.object({
+//     parentType: z.literal(LocationParent.enum.submission),
+//     submissionId: z.string(),
+//     quoteId: z.null().optional(),
+//     policyId: z.null().optional(),
+//   })
+// );
+// export type ILocationSubmission = z.infer<typeof ILocationSubmission>;
 
-export const ILocationPolicy = BaseLocation.and(
-  z.object({
-    parentType: z.literal(LocationParent.enum.policy),
-    policyId: z.string().min(5, 'policy ID must be at least 5 characters'),
-    quoteId: z.string().nullable().optional(),
-    submissionId: z.string().nullable().optional(),
-  })
-);
-export type ILocationPolicy = z.infer<typeof ILocationPolicy>;
+// export const ILocationQuote = BaseLocation.and(
+//   z.object({
+//     parentType: z.literal(LocationParent.enum.quote),
+//     submissionId: z.string().optional().nullable(),
+//     quoteId: z.string(),
+//     policyId: z.null().optional(),
+//   })
+// );
+// export type ILocationQuote = z.infer<typeof ILocationQuote>;
 
-export const ILocation = z.union([
-  BaseLocation,
-  ILocationSubmission,
-  ILocationQuote,
-  ILocationPolicy,
-]);
-export type ILocation = z.infer<typeof ILocation>;
+// export const ILocationPolicy = BaseLocation.and(
+//   z.object({
+//     parentType: z.literal(LocationParent.enum.policy),
+//     policyId: z.string().min(5, 'policy ID must be at least 5 characters'),
+//     quoteId: z.string().nullable().optional(),
+//     submissionId: z.string().nullable().optional(),
+//   })
+// );
+// export type ILocationPolicy = z.infer<typeof ILocationPolicy>;
+
+// export const ILocation = z.union([
+//   BaseLocation,
+//   ILocationSubmission,
+//   ILocationQuote,
+//   ILocationPolicy,
+// ]);
+// export type ILocation = z.infer<typeof ILocation>;
 
 // export interface Policy extends BaseDoc {
 //   product: Product;

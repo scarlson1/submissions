@@ -1,16 +1,12 @@
-import { z } from 'zod';
 import {
   AdditionalInsured,
   Address,
   AgencyDetails,
   AgentDetails,
   CancelReason,
-  Coords,
   Deductible,
-  DeepNullable,
   FeeItem,
   Limits,
-  MGACommissionPct,
   MailingAddress,
   Mortgagee,
   NamedInsured,
@@ -20,7 +16,9 @@ import {
   State,
   TaxItem,
   ValueByRiskType,
-} from '../../common/index.js';
+} from '@idemand/common';
+import { z } from 'zod';
+import { Coords, DeepNullable, MGACommissionPct } from '../../common/index.js';
 
 export const ParsedPolicyRow = z.object({
   policyId: z.string(),

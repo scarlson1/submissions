@@ -1,17 +1,9 @@
+import { Basement, FloodZone, Limits, PriorLossCount, ValueByRiskType } from '@idemand/common';
 import { Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 import { HttpsError } from 'firebase-functions/v1/https';
 import { CallableRequest } from 'firebase-functions/v2/https';
-
-import {
-  Basement,
-  FloodZone,
-  Limits,
-  PriorLossCount,
-  ValueByRiskType,
-  defaultFloodZone,
-  ratingDataCollection,
-} from '../common/index.js';
+import { defaultFloodZone, ratingDataCollection } from '../common/index.js';
 import {
   getPremium,
   getRCVs,

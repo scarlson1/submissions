@@ -12,17 +12,14 @@ import {
   FloodZone,
   MailingAddress,
   Mortgagee,
-  Nullable,
-  Policy,
   PriorLossCount,
   RatingPropertyData,
   SubjectBaseItem,
   TaxItem,
   TaxItemName,
   ValueByRiskType,
-  extractNumber,
-  extractNumberNeg,
-} from '../../common/index.js';
+} from '@idemand/common';
+import { Nullable, Policy, extractNumber, extractNumberNeg } from '../../common/index.js';
 import { createDocId } from '../../modules/db/utils.js';
 import { getRCVs } from '../../modules/rating/index.js';
 import { dateWithTimeZone } from '../../modules/storage/index.js';
@@ -196,7 +193,7 @@ export function transformPolicyRow(row: CSVPolicyRow): NullablePolicyRow {
     billingEntityName,
   };
   // TODO: fix typing & delete as assertion
-  return transformed as NullablePolicyRow;
+  return transformed as unknown as NullablePolicyRow;
 }
 
 export function getFormattedFees(row: CSVPolicyRow | CSVQuoteRow) {

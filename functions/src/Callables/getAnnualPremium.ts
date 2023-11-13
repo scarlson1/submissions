@@ -3,13 +3,8 @@ import { error, info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 
 import {
-  Basement,
   Coordinates,
-  FloodZone,
-  Limits,
   Optional,
-  PriorLossCount,
-  ValueByRiskType,
   defaultFloodZone,
   ratingDataCollection,
   swissReClientId,
@@ -30,6 +25,7 @@ import {
 } from '../modules/rating/index.js';
 // import { GetAALRes } from '../modules/rating/getAALs';
 // import { GetPremiumCalcResult } from '../modules/rating/getPremium';
+import { Basement, FloodZone, Limits, PriorLossCount, ValueByRiskType } from '@idemand/common';
 import { onCallWrapper } from '../services/sentry/index.js';
 import { requireIDemandAdminClaims } from './utils/index.js';
 

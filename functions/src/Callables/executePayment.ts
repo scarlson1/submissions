@@ -1,3 +1,4 @@
+import { PaymentStatus } from '@idemand/common';
 import { DocumentSnapshot, Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
@@ -6,7 +7,6 @@ import {
   FIN_TRANSACTION_STATUS,
   PUB_SUB_TOPICS,
   PaymentMethod,
-  PaymentStatus,
   cardFeePct,
   ePayCreds as ePayCredsSecret,
   finTrxCollection,

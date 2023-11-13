@@ -1,19 +1,16 @@
-import { GeoPoint } from 'firebase-admin/firestore';
 import {
   Address,
   AgentDetails,
   Basement,
-  DeepNullable,
   FloodZone,
   Limits,
   Nullable,
   PriorLossCount,
   RCVs,
   ValueByRiskType,
-  maxA,
-  maxBCD,
-  minA,
-} from '../../common/index.js';
+} from '@idemand/common';
+import { GeoPoint } from 'firebase-admin/firestore';
+import { DeepNullable, maxA, maxBCD, minA } from '../../common/index.js';
 import { isValidCoords, isValidEmail, verify } from '../../utils/index.js';
 
 export function validateLimits(limits?: Partial<Limits>): asserts limits is Limits {

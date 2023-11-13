@@ -3,8 +3,8 @@ import type { CloudEvent } from 'firebase-functions/lib/v2/core';
 import { info } from 'firebase-functions/logger';
 import type { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 
+import { PaymentStatus } from '@idemand/common';
 import {
-  PaymentStatus,
   audience,
   ePayBaseHostingURL,
   hostingBaseURL,

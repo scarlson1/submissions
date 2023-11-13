@@ -1,10 +1,9 @@
-import { AdditionalInterest, Mortgagee } from '@idemand/common';
+import { AdditionalInterest, ILocation, Mortgagee } from '@idemand/common';
 import {
   AdditionalInsured,
   // AdditionalInterest,
   Address,
   AddressWithCoords,
-  ILocation,
   LcnWithTermPrem,
   // Mortgagee,
   PolicyLcnWithPrem,

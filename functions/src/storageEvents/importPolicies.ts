@@ -10,17 +10,19 @@ import path from 'path';
 
 import {
   Address,
-  COLLECTIONS,
-  CancellationReason,
   ILocation,
   ILocationPolicy,
   PaymentStatus,
+  State,
+  ValueByRiskType,
+} from '@idemand/common';
+import {
+  COLLECTIONS,
+  CancellationReason,
   Policy,
   RatingData,
   SLProdOfRecordDetails,
   StagedPolicyImport,
-  State,
-  ValueByRiskType,
   audience,
   getReportErrorFn,
   hostingBaseURL,

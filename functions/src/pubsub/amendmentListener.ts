@@ -3,7 +3,8 @@ import { CloudEvent } from 'firebase-functions/lib/v2/core';
 import { error, info, warn } from 'firebase-functions/logger';
 import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 
-import { ILocationPolicy, locationsCollection, transactionsCollection } from '../common/index.js';
+import { ILocationPolicy } from '@idemand/common';
+import { locationsCollection, transactionsCollection } from '../common/index.js';
 import { docExists } from '../modules/db/index.js';
 import {
   constructTrxId,

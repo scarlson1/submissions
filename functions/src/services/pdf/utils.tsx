@@ -2,15 +2,9 @@ import { generateHTML } from '@tiptap/html';
 import { convert } from 'html-to-text';
 import { flatten } from 'lodash-es';
 
+import { ILocation, WithId } from '@idemand/common';
 import { format } from 'date-fns';
-import {
-  ILocation,
-  JSONContent,
-  Policy,
-  WithId,
-  dollarFormat,
-  dollarFormat2,
-} from '../../common/index.js';
+import { JSONContent, Policy, dollarFormat, dollarFormat2 } from '../../common/index.js';
 import {
   EDITOR_EXTENSION_DEFAULTS,
   getFormattedAddress,

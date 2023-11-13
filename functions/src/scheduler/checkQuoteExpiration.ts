@@ -3,10 +3,9 @@ import { Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 import { ScheduledEvent } from 'firebase-functions/v2/scheduler';
 
+import { Quote, WithId } from '@idemand/common';
 import {
   QUOTE_STATUS,
-  Quote,
-  WithId,
   audience,
   hostingBaseURL,
   quotesCollection,

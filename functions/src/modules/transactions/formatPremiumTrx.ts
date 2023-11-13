@@ -1,5 +1,6 @@
+import { ILocation, WithId } from '@idemand/common';
 import { Timestamp } from 'firebase-admin/firestore';
-import { ILocation, Policy, PremiumTransaction, RatingData, WithId } from '../../common/index.js';
+import { Policy, PremiumTransaction, RatingData } from '../../common/index.js';
 import {
   getBillingEntityDetails,
   getBillingEntityId,

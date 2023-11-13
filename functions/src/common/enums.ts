@@ -28,7 +28,7 @@ export enum COLLECTIONS {
   EMAIL_ACTIVITY = 'emailActivity',
   MORATORIUMS = 'moratoriums',
   STAGED_RECORDS = 'stagedDocs',
-  VERSIONS = 'versions', // HISTORY = 'history',
+  VERSIONS = 'versions',
 }
 
 // TODO: switch to zod enum
@@ -70,18 +70,6 @@ export enum POLICY_STATUS {
   CANCELLED = 'cancelled',
 }
 
-// TODO: should match payment status in payment processor (stripe/epay) ??
-export const PaymentStatus = z.enum([
-  'paid',
-  'processing',
-  'awaiting_payment',
-  'cancelled',
-  'error',
-  'declined',
-  'payment_failed',
-]);
-export type PaymentStatus = z.infer<typeof PaymentStatus>;
-
 export const ChangeRequestStatus = z.enum([
   'draft',
   'submitted',
@@ -101,83 +89,6 @@ export enum FIN_TRANSACTION_STATUS {
   SUCCEEDED = 'succeeded',
   PAYMENT_FAILED = 'payment_failed',
 }
-
-export const Product = z.enum(['flood', 'wind']);
-export type Product = z.infer<typeof Product>;
-
-// TODO: transform lower case ??
-export const Basement = z.enum(['no', 'finished', 'unfinished', 'unknown']);
-export type Basement = z.infer<typeof Basement>;
-
-export const CBRSDesignation = z.enum(['IN', 'OUT']);
-export type CBRSDesignation = z.infer<typeof CBRSDesignation>;
-
-export const PriorLossCount = z.enum(['0', '1', '2', '3']);
-export type PriorLossCount = z.infer<typeof PriorLossCount>;
-
-export const FloodZone = z.enum(['A', 'B', 'C', 'D', 'V', 'X', 'AE', 'AO', 'AH', 'AR', 'VE']);
-export type FloodZone = z.infer<typeof FloodZone>;
-
-export const FeeItemName = z.enum(['Inspection Fee', 'MGA Fee', 'UW Adjustment']);
-export type FeeItemName = z.infer<typeof FeeItemName>;
-
-export const RoundingType = z.enum(['nearest', 'up', 'down']);
-export type RoundingType = z.infer<typeof RoundingType>;
-
-export const SubjectBaseItem = z.enum([
-  'premium',
-  'inspectionFees',
-  'mgaFees',
-  'outStatePremium',
-  'homeStatePremium',
-  'fixedFee',
-  'noFee',
-]);
-export type SubjectBaseItem = z.infer<typeof SubjectBaseItem>;
-
-export const LineOfBusiness = z.enum(['residential', 'commercial']);
-export type LineOfBusiness = z.infer<typeof LineOfBusiness>;
-
-export const ChangeRequestTrxType = z.enum([
-  'endorsement',
-  'amendment',
-  'cancellation',
-  'flat_cancel',
-  'reinstatement',
-]);
-export type ChangeRequestTrxType = z.infer<typeof ChangeRequestTrxType>;
-
-export const TransactionType = z.enum([...ChangeRequestTrxType.options, 'new', 'renewal'] as const);
-export type TransactionType = z.infer<typeof TransactionType>;
-
-export const TaxItemName = z.enum([
-  'Premium Tax',
-  'Service Fee',
-  'Stamping Fee',
-  'Regulatory Fee',
-  'Windpool Fee',
-  'Surcharge',
-  'EMPA Surcharge',
-  'Bureau of Insurance Assessment',
-]);
-export type TaxItemName = z.infer<typeof TaxItemName>;
-
-export const TaxRateType = z.enum(['fixed', 'percent']);
-export type TaxRateType = z.infer<typeof TaxRateType>;
-
-export const CancelReason = z.enum([
-  'sold',
-  'premium_pmt_failure',
-  'exposure_change',
-  'insured_choice',
-]);
-export type CancelReason = z.infer<typeof CancelReason>;
-
-export const LicenseOwner = z.enum(['individual', 'organization']);
-export type LicenseOwner = z.infer<typeof LicenseOwner>;
-
-export const LicenseType = z.enum(['producer', 'surplus lines', 'MGA', 'Tax ID']);
-export type LicenseType = z.infer<typeof LicenseType>;
 
 export const DisclosureType = z.enum([
   'state disclosure',
@@ -295,58 +206,3 @@ export const EmailTemplates = z.enum([
   'claim_submitted',
 ]);
 export type EmailTemplates = z.infer<typeof EmailTemplates>;
-
-export const State = z.enum([
-  'AL',
-  'AK',
-  'AZ',
-  'AR',
-  'CA',
-  'CO',
-  'CT',
-  'DE',
-  'DC',
-  'FL',
-  'GA',
-  'HI',
-  'ID',
-  'IL',
-  'IN',
-  'IA',
-  'KS',
-  'KY',
-  'LA',
-  'ME',
-  'MD',
-  'MA',
-  'MI',
-  'MN',
-  'MS',
-  'MO',
-  'MT',
-  'NE',
-  'NV',
-  'NH',
-  'NJ',
-  'NM',
-  'NY',
-  'NC',
-  'ND',
-  'OH',
-  'OK',
-  'OR',
-  'PA',
-  'RI',
-  'SC',
-  'SD',
-  'TN',
-  'TX',
-  'UT',
-  'VT',
-  'VA',
-  'WA',
-  'WV',
-  'WI',
-  'WY',
-]);
-export type State = z.infer<typeof State>;
