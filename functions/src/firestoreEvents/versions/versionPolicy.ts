@@ -3,13 +3,8 @@ import { info } from 'firebase-functions/logger';
 import { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 import { merge } from 'lodash-es';
 
-import {
-  Collection,
-  DeepPartial,
-  Policy,
-  getReportErrorFn,
-  versionsCollection,
-} from '../../common/index.js';
+import { Collection } from '@idemand/common';
+import { DeepPartial, Policy, getReportErrorFn, versionsCollection } from '../../common/index.js';
 import { flattenObj, getDifference, hasOne } from '../../utils/index.js';
 
 const VERSION_POLICY_DIFF_KEYS = [
@@ -80,7 +75,7 @@ export default async (
     });
 
     const db = getFirestore();
-    const versionsCol = versionsCollection(db, Collection.enum.POLICIES, policyId);
+    const versionsCol = versionsCollection(db, Collection.enum.policies, policyId);
 
     const batch = db.batch();
 

@@ -3,8 +3,8 @@ import type { DocumentSnapshot } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 import type { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 
+import { Collection } from '@idemand/common';
 import {
-  COLLECTIONS,
   Charge,
   algoliaAdminKey,
   algoliaAppId,
@@ -61,7 +61,7 @@ export default async (
           ...newValue,
           objectID: docId,
           visibleBy,
-          collectionName: COLLECTIONS.FIN_TRANSACTIONS,
+          collectionName: Collection.enum.financialTransactions,
           searchTitle: `TRX ID ${newValue.transactionId}`,
           searchSubtitle: `${dollarFormat(newValue.amount)} - ${
             newValue.receiptEmail

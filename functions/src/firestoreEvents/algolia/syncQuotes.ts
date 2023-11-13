@@ -3,13 +3,8 @@ import type { DocumentSnapshot } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 import type { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 
-import {
-  COLLECTIONS,
-  Quote,
-  algoliaAdminKey,
-  algoliaAppId,
-  algoliaIndex,
-} from '../../common/index.js';
+import { Collection } from '@idemand/common';
+import { Quote, algoliaAdminKey, algoliaAppId, algoliaIndex } from '../../common/index.js';
 import { VisibleByTypes, getVisibleBy } from '../../utils/index.js';
 
 export default async (
@@ -69,7 +64,7 @@ export default async (
           visibleBy,
           userId: newValue.userId || null,
           docType: 'quote',
-          collectionName: COLLECTIONS.QUOTES,
+          collectionName: Collection.Enum.quotes,
           searchTitle: `${newValue.address?.addressLine1} ${newValue.address?.city}, ${newValue.address?.state}`,
           searchSubtitle: subtitle,
           metadata: {

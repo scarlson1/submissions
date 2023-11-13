@@ -31,7 +31,6 @@ import { CreateMsgContentProps } from '../services/sendgrid/index.js';
 import {
   AGENCY_STATUS,
   AgencySubmissionStatus,
-  COLLECTIONS,
   ChangeRequestStatus,
   FIN_TRANSACTION_STATUS,
   QUOTE_STATUS,
@@ -2020,8 +2019,10 @@ export interface ImportMeta {
   eventId?: string;
 }
 
+// TODO: fix types
+
 export interface PolicyImportMeta extends ImportMeta {
-  targetCollection: COLLECTIONS.POLICIES;
+  targetCollection: 'policies'; // COLLECTIONS.POLICIES;
 }
 
 export type StagedPolicyImport = Policy & {
@@ -2030,7 +2031,7 @@ export type StagedPolicyImport = Policy & {
 };
 
 export interface TransactionsImportMeta extends ImportMeta {
-  targetCollection: COLLECTIONS.TRANSACTIONS;
+  targetCollection: 'transactions'; // Collection.enum.transaction; // COLLECTIONS.TRANSACTIONS;
 }
 
 export type StagedTransactionImport = Transaction & {
@@ -2038,7 +2039,7 @@ export type StagedTransactionImport = Transaction & {
 };
 
 export interface QuoteImportMeta extends ImportMeta {
-  targetCollection: COLLECTIONS.QUOTES;
+  targetCollection: 'quotes'; // COLLECTIONS.QUOTES;
 }
 
 export type StagedQuoteImport = Quote & {

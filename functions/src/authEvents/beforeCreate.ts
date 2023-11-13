@@ -5,10 +5,10 @@ import type { AuthBlockingEvent } from 'firebase-functions/v2/identity';
 import { HttpsError } from 'firebase-functions/v2/identity';
 import jwt from 'jsonwebtoken';
 
+import { Collection } from '@idemand/common';
 import { inviteConverter } from '../common/converters/index.js';
 import {
   CLAIMS,
-  COLLECTIONS,
   emailVerificationKey,
   functionsBaseURL,
   iDemandOrgId,
@@ -41,7 +41,7 @@ export default async (event: AuthBlockingEvent) => {
   if (!tenantId) {
     info(`Checking for existing invite for email ${user.email}`);
     const inviteSnap = await db
-      .collectionGroup(COLLECTIONS.INVITES)
+      .collectionGroup(Collection.enum.invitations)
       .withConverter(inviteConverter)
       .where('email', '==', user.email)
       .get();

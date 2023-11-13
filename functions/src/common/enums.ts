@@ -1,40 +1,5 @@
 import { z } from 'zod';
 
-export enum COLLECTIONS {
-  SUBMISSIONS = 'submissions',
-  PROPERTY_DATA_RES = 'propertyDataRes',
-  QUOTES = 'quotes',
-  LOCATIONS = 'locations',
-  RATING_DATA = 'ratingData',
-  USERS = 'users',
-  POLICIES = 'policies',
-  CHANGE_REQUESTS = 'changeRequests',
-  CLAIMS = 'claims',
-  ORGANIZATIONS = 'organizations',
-  INVITES = 'invitations',
-  USER_CLAIMS = 'userClaims',
-  QUOTE_HISTORY = 'quoteHistory',
-  RATING_DATA_HISTORY = 'ratingDataHistory',
-  SK_RES = 'spatialKey',
-  SR_RES = 'swissReRes',
-  PAYMENT_METHODS = 'paymentMethods',
-  TRANSACTIONS = 'transactions',
-  FIN_TRANSACTIONS = 'financialTransactions',
-  AGENCY_APPLICATIONS = 'agencySubmissions',
-  LICENSES = 'licenses',
-  DISCLOSURES = 'disclosures',
-  NOTIFICATIONS = 'notifications',
-  DATA_IMPORTS = 'dataImports',
-  EMAIL_ACTIVITY = 'emailActivity',
-  MORATORIUMS = 'moratoriums',
-  STAGED_RECORDS = 'stagedDocs',
-  VERSIONS = 'versions',
-}
-
-// TODO: switch to zod enum
-export const Collection = z.nativeEnum(COLLECTIONS);
-export type Collection = z.infer<typeof Collection>;
-
 export enum SUBMISSION_STATUS {
   DRAFT = 'draft',
   SUBMITTED = 'submitted',

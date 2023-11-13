@@ -3,12 +3,8 @@ import { info } from 'firebase-functions/logger';
 import { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 import { merge } from 'lodash-es';
 
-import {
-  Collection,
-  Submission,
-  getReportErrorFn,
-  versionsCollection,
-} from '../../common/index.js';
+import { Collection } from '@idemand/common';
+import { Submission, getReportErrorFn, versionsCollection } from '../../common/index.js';
 import { getDifference, hasOne } from '../../utils/index.js';
 
 const VERSION_SUBMISSION_DIFF_KEYS = [
@@ -61,7 +57,7 @@ export default async (
     });
 
     const db = getFirestore();
-    const versionsCol = versionsCollection(db, Collection.enum.SUBMISSIONS, submissionId);
+    const versionsCol = versionsCollection(db, Collection.enum.submissions, submissionId);
 
     const batch = db.batch();
 

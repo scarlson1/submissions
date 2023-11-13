@@ -7,9 +7,9 @@ import {
 import { info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 
+import { Collection } from '@idemand/common';
 import invariant from 'tiny-invariant';
 import {
-  COLLECTIONS,
   StageImportRecord,
   StagedPolicyImport,
   StagedTransactionImport,
@@ -29,7 +29,7 @@ const isPolicyImports = (
   importDocs: WithId<StageImportRecord>[]
 ): importDocs is WithId<StagedPolicyImport>[] => {
   return (
-    importDocs.length > 0 && importDocs[0].importMeta?.targetCollection === COLLECTIONS.POLICIES
+    importDocs.length > 0 && importDocs[0].importMeta?.targetCollection === Collection.enum.policies
   );
 };
 
@@ -108,7 +108,7 @@ const approveImport = async ({ data, auth }: CallableRequest<ApproveImportProps>
     const isPolicyImport = isPolicyImports(stagedDocs);
     if (isPolicyImport) {
       const stagedCollectionGroup = db.collectionGroup(
-        COLLECTIONS.STAGED_RECORDS
+        Collection.enum.stagedDocs
       ) as CollectionGroup<StageImportRecord>;
 
       try {
@@ -123,7 +123,7 @@ const approveImport = async ({ data, auth }: CallableRequest<ApproveImportProps>
             invariant(externalId, `failed to map lcn ID to external ID`);
 
             const stagedTrxQuery = stagedCollectionGroup
-              .where('importMeta.targetCollection', '==', COLLECTIONS.TRANSACTIONS)
+              .where('importMeta.targetCollection', '==', Collection.Enum.transactions)
               .where('externalId', '==', externalId)
               // .where('locationId', '==', lcnId) // Use external ID ?? (not available in policy)
               .where('importMeta.status', '==', 'new')
