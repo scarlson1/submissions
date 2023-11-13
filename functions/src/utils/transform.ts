@@ -71,7 +71,7 @@ export function convertMortgageesToAdditionalInterests(
   return mortgagees.map((m) => ({
     type: 'mortgagee',
     name: m.name,
-    accountNumber: m.loanNumber,
+    accountNumber: m.loanNumber || '',
     address: {
       addressLine1: m.address?.addressLine1 || '',
       addressLine2: m.address?.addressLine2 || '',
