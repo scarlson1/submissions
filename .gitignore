@@ -3,6 +3,9 @@ node_modules/
 build/
 dist/
 lib/
+
+common
+
 <<<<<<< HEAD
 =======
 functions/dist/

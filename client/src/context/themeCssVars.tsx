@@ -933,7 +933,7 @@ export function getThemedComponents(): ThemeOptions {
             '& .MuiMenuItem-root': {
               fontSize: theme.typography.pxToRem(14),
               fontWeight: 500,
-              '&:hover,': {
+              '&:hover, &:focus': {
                 backgroundColor: theme.vars.palette.grey[50],
               },
               '&:focus': {
@@ -949,7 +949,7 @@ export function getThemedComponents(): ThemeOptions {
               backgroundColor: theme.vars.palette.primaryDark[900],
               borderColor: theme.vars.palette.primaryDark[700],
               '& .MuiMenuItem-root': {
-                '&:hover': {
+                '&:hover, &:focus': {
                   backgroundColor: alpha(theme.palette.primaryDark[600], 0.75),
                 },
                 '&:focus': {

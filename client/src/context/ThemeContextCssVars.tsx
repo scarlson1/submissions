@@ -54,6 +54,9 @@ const theme = extendTheme({
     body2: {
       color: 'var(--idemand-palette-text-secondary)',
     },
+    caption: {
+      color: 'var(--idemand-palette-text-secondary)',
+    },
     // overline: {
     //     color: 'var(--idemand-palette-text-secondary)',
     // },
