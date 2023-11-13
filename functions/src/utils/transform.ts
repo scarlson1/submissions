@@ -1,11 +1,12 @@
+import { AdditionalInterest, Mortgagee } from '@idemand/common';
 import {
   AdditionalInsured,
-  AdditionalInterest,
+  // AdditionalInterest,
   Address,
   AddressWithCoords,
   ILocation,
   LcnWithTermPrem,
-  Mortgagee,
+  // Mortgagee,
   PolicyLcnWithPrem,
   PolicyLocation,
 } from '../common/index.js';
@@ -99,7 +100,7 @@ export function additionalInterestToMortgagee(
         name: m.name,
         contactName: '',
         email: m.email || '',
-        loanNumber: m.accountNumber,
+        loanNumber: m.accountNumber || '',
         address: m.address
           ? {
               addressLine1: m.address?.addressLine1 ?? '',
