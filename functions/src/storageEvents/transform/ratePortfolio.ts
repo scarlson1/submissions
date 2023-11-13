@@ -1,6 +1,7 @@
+import { FloodZone, PriorLossCount, State } from '@idemand/common';
 import { toUpper } from 'lodash-es';
-import { Nullable, extractNumber, extractNumberNeg } from '../../common/index.js';
-import { IRow, TRow } from '../models/index.js';
+import { DeepNullable, Nullable, extractNumber, extractNumberNeg } from '../../common/index.js';
+import { IRow, RatePortfolioInputRow, TRow, TransformedRatePortfolioRow } from '../models/index.js';
 
 export function transformRatePortfolioRow(data: IRow): Nullable<TRow> {
   const limitA = data.cov_a_limit ? extractNumber(data.cov_a_limit) : 0;
@@ -40,6 +41,57 @@ export function transformRatePortfolioRow(data: IRow): Nullable<TRow> {
     flood_zone: floodZone,
     skip: data?.skip && data?.skip?.toLowerCase().trim() === 'true',
     google_maps_link: getGoogleMapsUrl(data.latitude, data.longitude),
+  };
+}
+
+export function transformRatePortfolioRowZod(
+  data: RatePortfolioInputRow
+): DeepNullable<TransformedRatePortfolioRow> {
+  const limitA = data.limitA ? extractNumber(data.limitA) : 0;
+  const limitB = data.limitB ? extractNumber(data.limitB) : 0;
+  const limitC = data.limitC ? extractNumber(data.limitC) : 0;
+  const limitD = data.limitD ? extractNumber(data.limitD) : 0;
+  const TIV = limitA + limitB + limitC + limitD;
+
+  const rcvA = data.covARcv ? extractNumber(data.covARcv) : 0;
+  const rcvB = data.covBRcv ? extractNumber(data.covBRcv) : 0;
+  const rcvC = data.covCRcv ? extractNumber(data.covCRcv) : 0;
+  const rcvD = data.covDRcv ? extractNumber(data.covDRcv) : 0;
+  const totalRcv = rcvA + rcvB + rcvC + rcvD;
+
+  const latitude = data.latitude ? extractNumberNeg(data.latitude) : null;
+  const longitude = data.longitude ? extractNumberNeg(data.longitude) : null;
+
+  const floodZone = data.floodZone ? toUpper(data.floodZone) : data.floodZone;
+
+  return {
+    ...data,
+    coordinates: {
+      latitude,
+      longitude,
+    },
+    limits: {
+      limitA,
+      limitB,
+      limitC,
+      limitD,
+    },
+    TIV,
+    RCVs: {
+      building: rcvA,
+      otherStructures: rcvB,
+      contents: rcvC,
+      BI: rcvD,
+      total: totalRcv,
+    },
+    deductible: data.deductible ? extractNumber(data.deductible) : null,
+    commissionPct: data.commissionPct ? extractNumber(data.commissionPct) : null,
+    ffh: data.ffh ? extractNumberNeg(data.ffh) : 0,
+    floodZone: floodZone as FloodZone,
+    homeState: toUpper(data.homeState) as State,
+    skip: Boolean(data?.skip && data?.skip?.toLowerCase().trim() === 'true'),
+    priorLossCount: data.priorLossCount as PriorLossCount,
+    googleMapsLink: getGoogleMapsUrl(data.latitude, data.longitude),
   };
 }
 

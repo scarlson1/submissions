@@ -1,7 +1,6 @@
 import { Invite, InviteClass } from '@idemand/common';
 import { DocumentData, QueryDocumentSnapshot } from 'firebase-admin/firestore';
 import { hostingBaseURL, iDemandOrgId } from '../environmentVars';
-// import { Invite, InviteClass } from '../types.js';
 
 export const inviteConverter = {
   toFirestore(invite: InviteClass): DocumentData {

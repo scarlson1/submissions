@@ -93,8 +93,8 @@ export enum CLAIMS {
 
 // TODO: switch to zod enum
 // export const Claims = z.enum(['iDemandAdmin', 'iDemandUser', 'orgAdmin', 'agent']);
-export const Claims = z.nativeEnum(CLAIMS);
-export type Claims = z.infer<typeof Claims>;
+export const Claim = z.nativeEnum(CLAIMS);
+export type Claim = z.infer<typeof Claim>;
 
 export enum FIN_TRANSACTION_TYPE {
   CHARGE = 'charge',

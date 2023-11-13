@@ -1,3 +1,4 @@
+import { warn } from 'firebase-functions/logger';
 import { RCVs } from '../../common/index.js';
 import {
   validateBasement,
@@ -11,6 +12,7 @@ import {
   validateRCVs,
   validateState,
 } from '../../modules/rating/index.js';
+import { TransformedRatePortfolioRow } from '../models/ratePortfolio.js';
 
 export function validateRatePortfolioRow(data: any) {
   try {
@@ -47,6 +49,17 @@ export function validateRatePortfolioRow(data: any) {
 
     return true;
   } catch (err: any) {
+    return false;
+  }
+}
+
+export function validateRatePortfolioRowZod(data: any) {
+  // return TransformedRatePortfolioRow.safeParse(data).success;
+  try {
+    TransformedRatePortfolioRow.parse(data);
+    return true;
+  } catch (err: any) {
+    warn(`Row validation failed`, { err, data });
     return false;
   }
 }
