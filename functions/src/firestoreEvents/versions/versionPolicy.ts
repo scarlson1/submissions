@@ -3,8 +3,8 @@ import { info } from 'firebase-functions/logger';
 import { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 import { merge } from 'lodash-es';
 
-import { Collection } from '@idemand/common';
-import { DeepPartial, Policy, getReportErrorFn, versionsCollection } from '../../common/index.js';
+import { Collection, Policy } from '@idemand/common';
+import { DeepPartial, getReportErrorFn, versionsCollection } from '../../common/index.js';
 import { flattenObj, getDifference, hasOne } from '../../utils/index.js';
 
 const VERSION_POLICY_DIFF_KEYS = [

@@ -4,8 +4,8 @@ import { error, info } from 'firebase-functions/logger';
 import type { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 import { capitalize } from 'lodash-es';
 
-import { Collection } from '@idemand/common';
-import { Policy, algoliaAdminKey, algoliaAppId, algoliaIndex } from '../../common/index.js';
+import { Collection, Policy } from '@idemand/common';
+import { algoliaAdminKey, algoliaAppId, algoliaIndex } from '../../common/index.js';
 import { getVisibleBy } from '../../utils/index.js';
 
 export async function removeAlgoliaRecord(index: SearchIndex, id: string) {

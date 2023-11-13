@@ -259,13 +259,16 @@ export const Policy = () => {
                 >
                   {/* TODO: uncomment once insured value is available */}
                   {/* <StatBox title='Insured Value' value='$1.2M' /> */}
-                  <StatBox
-                    title='Effective'
-                    value={formatDate(
-                      data?.effectiveDate?.toDate(),
-                      isMobile ? 'MM/dd/yy' : 'MMM dd, yyyy'
-                    )}
-                  />
+                  {data?.effectiveDate ? (
+                    <StatBox
+                      title='Effective'
+                      value={formatDate(
+                        data.effectiveDate.toDate(),
+                        isMobile ? 'MM/dd/yy' : 'MMM dd, yyyy'
+                      )}
+                    />
+                  ) : null}
+
                   <StatBox
                     title='Status'
                     value={calcPolicyStatus(data)}

@@ -14,13 +14,13 @@ import {
   ILocation,
   ILocationPolicy,
   PaymentStatus,
+  Policy,
   SLProdOfRecordDetails,
   State,
   ValueByRiskType,
 } from '@idemand/common';
 import {
   CancellationReason,
-  Policy,
   RatingData,
   StagedPolicyImport,
   audience,

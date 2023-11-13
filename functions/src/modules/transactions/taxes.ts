@@ -1,6 +1,5 @@
-import { FeeItem, FeeItemName, RoundingType, TaxItem, TaxItemName } from '@idemand/common';
+import { FeeItem, FeeItemName, Policy, RoundingType, TaxItem, TaxItemName } from '@idemand/common';
 import { ceil, floor, round } from 'lodash-es';
-import { Policy } from '../../common/index.js';
 import { sumByTypes } from '../../utils/arrays.js';
 import { SubjectBaseKeyVal } from '../db/index.js';
 

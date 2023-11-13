@@ -1,7 +1,7 @@
 import { Timestamp } from 'firebase-admin/firestore';
 
-import { ILocationPolicy, WithId } from '@idemand/common';
-import { AmendmentTransaction, Policy } from '../../common/index.js';
+import { ILocationPolicy, Policy, WithId } from '@idemand/common';
+import { AmendmentTransaction } from '../../common/index.js';
 import { getBookingDate, getTermDays } from './utils.js';
 
 export const getLocationAmendmentTrx = (

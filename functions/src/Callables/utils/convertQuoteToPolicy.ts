@@ -1,9 +1,8 @@
-import { ILocation, License, PaymentStatus, Quote, State, WithId } from '@idemand/common';
+import { ILocation, License, PaymentStatus, Policy, Quote, State, WithId } from '@idemand/common';
 import { add } from 'date-fns';
 import { Timestamp } from 'firebase-admin/firestore';
 import { geohashForLocation } from 'geofire-common';
 import { sum } from 'lodash-es';
-import { Policy } from '../../common/index.js';
 import { createDocId } from '../../modules/db/index.js';
 import {
   calcPolicyPremium,

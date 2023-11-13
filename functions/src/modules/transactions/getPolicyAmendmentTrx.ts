@@ -1,6 +1,6 @@
+import { Policy } from '@idemand/common';
 import { Timestamp } from 'firebase-admin/firestore';
-
-import { AmendmentTransaction, Policy, WithId } from '../../common/index.js';
+import { AmendmentTransaction, WithId } from '../../common/index.js';
 import { getBookingDate, getTermDays } from './utils.js';
 
 export const getPolicyAmendmentTrx = (

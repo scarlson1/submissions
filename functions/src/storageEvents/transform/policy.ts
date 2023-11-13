@@ -12,6 +12,8 @@ import {
   FloodZone,
   MailingAddress,
   Mortgagee,
+  Nullable,
+  Policy,
   PriorLossCount,
   RatingPropertyData,
   SubjectBaseItem,
@@ -19,7 +21,7 @@ import {
   TaxItemName,
   ValueByRiskType,
 } from '@idemand/common';
-import { Nullable, Policy, extractNumber, extractNumberNeg } from '../../common/index.js';
+import { extractNumber, extractNumberNeg } from '../../common/index.js';
 import { createDocId } from '../../modules/db/utils.js';
 import { getRCVs } from '../../modules/rating/index.js';
 import { dateWithTimeZone } from '../../modules/storage/index.js';

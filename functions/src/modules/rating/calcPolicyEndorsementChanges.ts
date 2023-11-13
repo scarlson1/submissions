@@ -1,7 +1,7 @@
-import { ILocation } from '@idemand/common';
+import { ILocation, Policy } from '@idemand/common';
 import { deepmerge } from 'deepmerge-ts';
 import { Timestamp } from 'firebase-admin/firestore';
-import { CancellationReason, DeepPartial, Policy } from '../../common/index.js';
+import { CancellationReason, DeepPartial } from '../../common/index.js';
 import { partialLcnToPolicyLcn } from '../../utils/transform.js';
 import { validateHasPrem } from '../../utils/validation.js';
 import { getTermDays } from '../transactions/index.js';

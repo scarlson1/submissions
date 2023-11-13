@@ -2,11 +2,10 @@ import { isValid } from 'date-fns';
 import { Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
 
-import { ILocation, PolicyLocation } from '@idemand/common';
+import { ILocation, Policy, PolicyLocation } from '@idemand/common';
 import {
   ChangeRequest,
   LocationCancellationRequest,
-  Policy,
   PolicyCancellationRequest,
   changeRequestsCollection,
   getReportErrorFn,

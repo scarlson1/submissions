@@ -7,10 +7,9 @@ import { CollectionReference, getFirestore } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 import { Response } from 'firebase-functions/v1';
 
-import { ILocation, Product, WithId } from '@idemand/common';
+import { ILocation, Policy, Product, WithId } from '@idemand/common';
 import {
   Disclosure,
-  Policy,
   RequestUserAuth,
   disclosuresCollection,
   formatPhoneNumber,
