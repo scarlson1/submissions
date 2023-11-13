@@ -3,8 +3,8 @@ import type { DocumentSnapshot } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 import type { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 
-import { Collection } from '@idemand/common';
-import { Submission, algoliaAdminKey, algoliaAppId, algoliaIndex } from '../../common/index.js';
+import { Collection, Submission } from '@idemand/common';
+import { algoliaAdminKey, algoliaAppId, algoliaIndex } from '../../common/index.js';
 import { VisibleByTypes, getVisibleBy } from '../../utils/index.js';
 
 export default async (

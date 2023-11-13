@@ -1,4 +1,5 @@
 import { File, GetSignedUrlResponse } from '@google-cloud/storage';
+import { SRRes } from '@idemand/common';
 import { AxiosInstance, AxiosResponse } from 'axios';
 import { addDays } from 'date-fns';
 import { getStorage } from 'firebase-admin/storage';
@@ -9,7 +10,6 @@ import fs from 'fs';
 import { tmpdir } from 'os';
 import path from 'path';
 import {
-  SRRes,
   ValueByRiskType,
   audience,
   getReportErrorFn,

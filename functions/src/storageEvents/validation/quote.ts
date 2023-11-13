@@ -1,3 +1,4 @@
+import { AgentDetails } from '@idemand/common';
 import invariant from 'tiny-invariant';
 import { DeepNullable, Limits } from '../../common/index.js';
 import {
@@ -36,7 +37,8 @@ export function validateQuoteRow(row: DeepNullable<CSVTransformedQuote>): boolea
     //  invariant(data.namedInsured?.email, 'named insured email required');
     //  invariant(data.namedInsured?.phone, 'named insured phone required');
 
-    validateAgentDetails(row.agent);
+    // TODO: fix type
+    validateAgentDetails(row.agent as AgentDetails);
 
     invariant(row.agency?.name, 'missing agencyName');
     invariant(row.agency?.orgId, 'missing agency orgId');

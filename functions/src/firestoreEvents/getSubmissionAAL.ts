@@ -4,17 +4,15 @@ import { error, info, warn } from 'firebase-functions/logger';
 import type { FirestoreEvent } from 'firebase-functions/v2/firestore';
 import invariant from 'tiny-invariant';
 
-import { PriorLossCount } from '@idemand/common';
+import { PriorLossCount, Submission, swissReResCollection, usersCollection } from '@idemand/common';
 import {
-  Submission,
   defaultCommissionAsInt,
   defaultFloodZone,
   ratingDataCollection,
   swissReClientId,
   swissReClientSecret,
-  swissReResCollection,
+  // swissReResCollection,
   swissReSubscriptionKey,
-  usersCollection,
 } from '../common/index.js';
 import {
   GetAALRes,

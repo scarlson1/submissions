@@ -1,6 +1,7 @@
+import { Invite, InviteClass } from '@idemand/common';
 import { DocumentData, QueryDocumentSnapshot } from 'firebase-admin/firestore';
-
-import { Invite, InviteClass } from '../types.js';
+import { hostingBaseURL, iDemandOrgId } from '../environmentVars';
+// import { Invite, InviteClass } from '../types.js';
 
 export const inviteConverter = {
   toFirestore(invite: InviteClass): DocumentData {
@@ -24,6 +25,6 @@ export const inviteConverter = {
     // it's better to transfer the snapshot directly to the model, in the converter, and do the data access within the model. This becomes more apparent when you need to access other properties, like snapshot.id, for example.
     // TODO: transfer snapshot to model? setting id, etc.
     const data = snapshot.data();
-    return new InviteClass({ ...data });
+    return new InviteClass({ ...data }, hostingBaseURL.value(), iDemandOrgId.value());
   },
 };

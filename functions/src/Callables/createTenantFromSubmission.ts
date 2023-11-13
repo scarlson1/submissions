@@ -8,7 +8,6 @@ import {
   AGENCY_STATUS,
   AgencySubmissionStatus,
   CLAIMS,
-  Invite,
   agencyApplicationCollection,
   hostingBaseURL,
   invitesCollection,
@@ -17,6 +16,7 @@ import {
 } from '../common/index.js';
 // import { AGENCY_STATUS, AgencySubmissionStatus, CLAIMS, Invite } from '../common';
 // import { Invite } from '../common';
+import { Invite } from '@idemand/common';
 import { onCallWrapper } from '../services/sentry/index.js';
 import { validate } from './utils/index.js';
 

@@ -1,10 +1,9 @@
+import { Collection, Quote } from '@idemand/common';
 import algoliasearch from 'algoliasearch';
 import type { DocumentSnapshot } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 import type { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
-
-import { Collection } from '@idemand/common';
-import { Quote, algoliaAdminKey, algoliaAppId, algoliaIndex } from '../../common/index.js';
+import { algoliaAdminKey, algoliaAppId, algoliaIndex } from '../../common/index.js';
 import { VisibleByTypes, getVisibleBy } from '../../utils/index.js';
 
 export default async (

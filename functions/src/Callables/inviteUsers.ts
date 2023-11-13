@@ -1,14 +1,13 @@
+import { InviteClass } from '@idemand/common';
 import { getAuth } from 'firebase-admin/auth';
 import { Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
-
-// import { invitesCollection, orgsCollection } from '../common/dbCollections';
 import { inviteConverter } from '../common/converters/index.js';
 import {
   CLAIMS,
   INVITE_STATUS,
-  InviteClass,
+  hostingBaseURL,
   iDemandOrgId,
   invitesCollection,
   orgsCollection,
@@ -113,28 +112,32 @@ const inviteUsers = async ({ data, auth }: CallableRequest<InviteUsersRequest>) 
       // link, set in firestore converter - move outside so error can be handled if there is one ?
       // TODO: better data validation ??
       const customClaims = user.access ? { [user.access]: true } : {};
-      const newInvite = new InviteClass({
-        email: user.email.toLowerCase().trim(),
-        displayName: user.name.trim(),
-        firstName: user.name.split(' ')[0] || '',
-        lastName: user.name.split(' ')[1] || '',
-        customClaims,
-        // orgId: tenantId,
-        orgId,
-        orgName: orgData?.orgName || '',
-        status: INVITE_STATUS.PENDING,
-        sent: false,
-        id: inviteDocRef.id,
-        invitedBy: {
-          name: reqUser.displayName || '',
-          email: auth.token.email || '',
-          userId: auth.uid,
+      const newInvite = new InviteClass(
+        {
+          email: user.email.toLowerCase().trim(),
+          displayName: user.name.trim(),
+          firstName: user.name.split(' ')[0] || '',
+          lastName: user.name.split(' ')[1] || '',
+          customClaims,
+          // orgId: tenantId,
+          orgId,
+          orgName: orgData?.orgName || '',
+          status: INVITE_STATUS.PENDING,
+          sent: false,
+          id: inviteDocRef.id,
+          invitedBy: {
+            name: reqUser.displayName || '',
+            email: auth.token.email || '',
+            userId: auth.uid,
+          },
+          metadata: {
+            created: Timestamp.now(),
+            updated: Timestamp.now(),
+          },
         },
-        metadata: {
-          created: Timestamp.now(),
-          updated: Timestamp.now(),
-        },
-      });
+        hostingBaseURL.value(),
+        iDemandOrgId.value()
+      );
 
       batch.set(inviteDocRef, newInvite);
 

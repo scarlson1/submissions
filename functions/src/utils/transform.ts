@@ -1,14 +1,12 @@
-import { AdditionalInterest, ILocation, Mortgagee } from '@idemand/common';
 import {
   AdditionalInsured,
-  // AdditionalInterest,
+  AdditionalInterest,
   Address,
-  AddressWithCoords,
-  LcnWithTermPrem,
-  // Mortgagee,
-  PolicyLcnWithPrem,
+  ILocation,
+  Mortgagee,
   PolicyLocation,
-} from '../common/index.js';
+} from '@idemand/common';
+import { AddressWithCoords, LcnWithTermPrem, PolicyLcnWithPrem } from '../common/index.js';
 import { compressAddress } from './helpers.js';
 
 // Location <--> Policy Location

@@ -3,8 +3,8 @@ import { info } from 'firebase-functions/logger';
 import { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 import { merge } from 'lodash-es';
 
-import { Collection } from '@idemand/common';
-import { Quote, getReportErrorFn, versionsCollection } from '../../common/index.js';
+import { Collection, Quote } from '@idemand/common';
+import { getReportErrorFn, versionsCollection } from '../../common/index.js';
 import { getDifference, hasOne } from '../../utils/index.js';
 
 const VERSION_QUOTE_DIFF_KEYS = [

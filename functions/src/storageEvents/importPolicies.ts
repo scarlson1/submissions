@@ -14,6 +14,7 @@ import {
   ILocation,
   ILocationPolicy,
   PaymentStatus,
+  SLProdOfRecordDetails,
   State,
   ValueByRiskType,
 } from '@idemand/common';
@@ -21,7 +22,6 @@ import {
   CancellationReason,
   Policy,
   RatingData,
-  SLProdOfRecordDetails,
   StagedPolicyImport,
   audience,
   getReportErrorFn,

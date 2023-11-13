@@ -1,39 +1,35 @@
+import {
+  Collection,
+  invitesCollection,
+  licensesCollection,
+  locationsCollection,
+  moratoriumsCollection,
+  orgsCollection,
+  policiesCollection,
+  quotesCollection,
+  submissionsCollection,
+  swissReResCollection,
+  taxesCollection,
+  usersCollection,
+} from '@idemand/common';
 import { CollectionReference, DocumentData, Firestore } from 'firebase-admin/firestore';
-
 import {
   AgencyApplication,
-  // COLLECTIONS,
   ChangeRequest,
   Charge,
-  // Collection,
   Disclosure,
   ImportSummary,
-  Invite,
   PaymentMethod,
   PolicyClaim,
   PropertyDataRes,
   RatingData,
-  SRRes,
-  SRResWithAAL,
   StageImportRecord,
   Transaction,
 } from '../common/index.js';
 import { ClaimsDocData } from '../firestoreEvents/index.js';
 
-import {
-  Collection,
-  licensesCollection,
-  locationsCollection,
-  moratoriumsCollection,
-  orgsCollection,
-  policiesCollection,
-  quotesCollection,
-  submissionsCollection,
-  taxesCollection,
-  usersCollection,
-} from '@idemand/common';
-
 export {
+  invitesCollection,
   licensesCollection,
   locationsCollection,
   moratoriumsCollection,
@@ -41,6 +37,7 @@ export {
   policiesCollection,
   quotesCollection,
   submissionsCollection,
+  swissReResCollection,
   taxesCollection,
   usersCollection,
 };
@@ -49,9 +46,9 @@ export {
 
 export const createCollection = <T = DocumentData>(
   db: Firestore,
-  collectionName: Collection | string
+  collectionPath: Collection | string
 ) => {
-  return db.collection(collectionName) as CollectionReference<T>;
+  return db.collection(collectionPath) as CollectionReference<T>;
 };
 
 // export const usersCollection = (db: Firestore) => createCollection<User>(db, COLLECTIONS.USERS);
@@ -88,8 +85,8 @@ export const policyClaimsCollection = (db: Firestore, policyId: string) =>
 export const transactionsCollection = (db: Firestore) =>
   createCollection<Transaction>(db, 'transactions');
 
-export const swissReResCollection = (db: Firestore) =>
-  createCollection<SRResWithAAL | SRRes>(db, 'swissReRes');
+// export const swissReResCollection = (db: Firestore) =>
+//   createCollection<SRResWithAAL | SRRes>(db, 'swissReRes');
 
 export const agencyApplicationCollection = (db: Firestore) =>
   createCollection<AgencyApplication>(db, 'agencySubmissions');
@@ -113,11 +110,11 @@ export const importSummaryCollection = (db: Firestore) =>
 // export const notificationsCollection = (db: Firestore, userId: string) =>
 //   createCollection<Notification>(db, `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.NOTIFICATIONS}`);
 
-export const invitesCollection = (db: Firestore, orgId: string) =>
-  createCollection<Invite>(
-    db,
-    `${Collection.enum.organizations}/${orgId}/${Collection.enum.invitations}`
-  );
+// export const invitesCollection = (db: Firestore, orgId: string) =>
+//   createCollection<Invite>(
+//     db,
+//     `${Collection.enum.organizations}/${orgId}/${Collection.enum.invitations}`
+//   );
 
 export const userClaimsCollection = (db: Firestore, orgId: string) =>
   createCollection<ClaimsDocData>(

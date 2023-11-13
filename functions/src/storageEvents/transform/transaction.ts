@@ -10,6 +10,7 @@ import {
   Product,
   RatingPropertyData,
   TaxItem,
+  Totals,
 } from '@idemand/common';
 import { GeoPoint } from 'firebase-admin/firestore';
 import {
@@ -22,7 +23,6 @@ import {
   OffsetTrxType,
   PremTrxType,
   PremiumTransaction,
-  Totals,
   Transaction,
   extractNumber,
   extractNumberNeg,

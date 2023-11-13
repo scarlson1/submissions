@@ -3,16 +3,8 @@ import { info } from 'firebase-functions/logger';
 import invariant from 'tiny-invariant';
 import { z } from 'zod';
 
-import {
-  GetAALRequest,
-  RCVs,
-  SRPerilAAL,
-  SRRes,
-  ValueByRiskType,
-  maxA,
-  maxBCD,
-  minA,
-} from '../../common/index.js';
+import { GetAALRequest, SRPerilAAL, SRRes } from '@idemand/common';
+import { RCVs, ValueByRiskType, maxA, maxBCD, minA } from '../../common/index.js';
 import { getSwissReInstance } from '../../services/index.js';
 import { getRCVs } from './getRCVs.js';
 import { swissReBody } from './swissReBody.js';
