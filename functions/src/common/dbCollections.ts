@@ -17,7 +17,7 @@ import {
   SRResWithAAL,
   StageImportRecord,
   Transaction,
-} from '../common/index.js'; // AgencyApplication, Invite, Notification, Organization,
+} from '../common/index.js';
 import { ClaimsDocData } from '../firestoreEvents/index.js';
 
 import {
