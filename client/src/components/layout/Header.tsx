@@ -54,68 +54,7 @@ import { NavMenu as PopperNavMenu } from './NavMenu';
 
 // TODO: implement ListItemLink component from https://mui.com/material-ui/react-breadcrumbs/#integration-with-react-router
 
-const authenticatedNavPages = [
-  {
-    title: 'New Submission',
-    route: createPath({ path: ROUTES.SUBMISSION_NEW, params: { productId: 'flood' } }),
-    icon: <FiberNewRounded color='primary' fontSize='small' />,
-  },
-  {
-    title: 'Submissions',
-    route: createPath({ path: ROUTES.SUBMISSIONS }),
-    icon: <PageviewRounded color='primary' fontSize='small' />,
-  },
-  {
-    title: 'Quotes',
-    route: createPath({ path: ROUTES.QUOTES }),
-    icon: <RequestQuoteRounded color='primary' fontSize='small' />,
-  },
-  {
-    title: 'Policies',
-    route: createPath({ path: ROUTES.POLICIES }),
-    icon: <PolicyRounded color='primary' fontSize='small' />,
-  },
-];
-
-const adminNavPages = [
-  ...authenticatedNavPages,
-  {
-    title: 'More',
-    items: [
-      {
-        title: 'Agency Apps',
-        route: createPath({
-          path: ADMIN_ROUTES.AGENCY_APPS,
-        }),
-        icon: <InboxRounded color='primary' fontSize='small' />,
-      },
-      {
-        title: 'Organizations',
-        route: createPath({
-          path: ADMIN_ROUTES.ORGANIZATIONS,
-        }),
-        icon: <CorporateFareRounded color='primary' fontSize='small' />,
-      },
-      {
-        title: 'Users',
-        route: createPath({
-          path: ADMIN_ROUTES.USERS,
-        }),
-        icon: <PersonRounded color='primary' fontSize='small' />,
-      },
-      {
-        title: 'Config',
-        route: createPath({
-          path: ADMIN_ROUTES.CONFIG,
-        }),
-        icon: <TuneRounded color='primary' fontSize='small' />,
-        // TODO: add items ??
-      },
-    ],
-  },
-];
-
-const agentNavPages = authenticatedNavPages;
+//
 
 export interface NavItem {
   title: string;
@@ -134,6 +73,73 @@ export const Header = (props: HeaderProps) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, claims } = useClaims();
+
+  const authedNavPages = useMemo(
+    () => [
+      {
+        title: 'New Submission',
+        route: createPath({ path: ROUTES.SUBMISSION_NEW, params: { productId: 'flood' } }),
+        icon: <FiberNewRounded color='primary' fontSize='small' />,
+      },
+      {
+        title: 'Submissions',
+        route: createPath({ path: ROUTES.SUBMISSIONS }),
+        icon: <PageviewRounded color='primary' fontSize='small' />,
+      },
+      {
+        title: 'Quotes',
+        route: createPath({ path: ROUTES.QUOTES }),
+        icon: <RequestQuoteRounded color='primary' fontSize='small' />,
+      },
+      {
+        title: 'Policies',
+        route: createPath({ path: ROUTES.POLICIES }),
+        icon: <PolicyRounded color='primary' fontSize='small' />,
+      },
+    ],
+    []
+  );
+
+  const adminNavPages = useMemo(
+    () => [
+      ...authedNavPages,
+      {
+        title: 'More',
+        items: [
+          {
+            title: 'Agency Apps',
+            route: createPath({
+              path: ADMIN_ROUTES.AGENCY_APPS,
+            }),
+            icon: <InboxRounded color='primary' fontSize='small' />,
+          },
+          {
+            title: 'Organizations',
+            route: createPath({
+              path: ADMIN_ROUTES.ORGANIZATIONS,
+            }),
+            icon: <CorporateFareRounded color='primary' fontSize='small' />,
+          },
+          {
+            title: 'Users',
+            route: createPath({
+              path: ADMIN_ROUTES.USERS,
+            }),
+            icon: <PersonRounded color='primary' fontSize='small' />,
+          },
+          {
+            title: 'Config',
+            route: createPath({
+              path: ADMIN_ROUTES.CONFIG,
+            }),
+            icon: <TuneRounded color='primary' fontSize='small' />,
+            // TODO: add items ??
+          },
+        ],
+      },
+    ],
+    [authedNavPages]
+  );
 
   const userNavPages = useMemo(() => {
     const userPages = [
@@ -168,14 +174,15 @@ export const Header = (props: HeaderProps) => {
       return adminNavPages;
     }
     if (!!claims?.agent) {
-      return agentNavPages;
+      return authedNavPages; // agentNavPages;
     }
 
     return userNavPages;
-  }, [claims, userNavPages]);
+  }, [claims, adminNavPages, authedNavPages, userNavPages]);
 
   const toggleTheme = useCallback(() => {
-    setMapTheme(mode === 'dark' ? MAPBOX_DARK : MAPBOX_LIGHT);
+    const mapTheme = mode === 'dark' ? MAPBOX_DARK : MAPBOX_LIGHT;
+    setMapTheme(mapTheme);
     setMode(mode === 'light' ? 'dark' : 'light');
   }, [mode]);
 

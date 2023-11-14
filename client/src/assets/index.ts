@@ -1,3 +1,3 @@
-import * as CheckmarkLottie from './checkmark.json';
+import CheckmarkLottie from './checkmark.json';
 
 export { CheckmarkLottie };

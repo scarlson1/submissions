@@ -1091,15 +1091,6 @@ export function getThemedComponents(): ThemeOptions {
                     backgroundColor: theme.vars.palette.primaryDark[700],
                   },
                 },
-                // ...theme.applyDarkStyles({
-                //   backgroundColor: alpha(theme.palette.primaryDark[700], 0.4),
-                //   color: (theme.vars || theme).palette.grey[300],
-                //   borderColor: alpha(theme.palette.primaryDark[500], 0.5),
-                //   '&:hover': {
-                //     color: (theme.vars || theme).palette.grey[300],
-                //     backgroundColor: (theme.vars || theme).palette.primaryDark[700],
-                //   },
-                // }),
               }),
             ...(variant === 'outlined' &&
               color === 'primary' && {
@@ -1107,9 +1098,14 @@ export function getThemedComponents(): ThemeOptions {
                 '[data-mui-color-scheme="dark"] &': {
                   borderColor: alpha(theme.palette.primary[500], 0.3),
                 },
-                // ...theme.applyDarkStyles({
-                //   borderColor: alpha(theme.palette.primary[500], 0.3),
-                // }),
+              }),
+            ...(variant === 'outlined' &&
+              color === 'secondary' && {
+                color: theme.vars.palette.secondary[600],
+                borderColor: theme.vars.palette.secondary[600],
+                '[data-mui-color-scheme="dark"] &': {
+                  borderColor: alpha(theme.palette.secondary[500], 0.3),
+                },
               }),
             ...(variant === 'filled' && {
               ...(color === 'default' && {

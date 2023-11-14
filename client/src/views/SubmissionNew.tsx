@@ -460,7 +460,8 @@ export const SubmissionNew = () => {
               </Box>
             </Step>
             <Step
-              label='How many losses has the property had in the past 10 years that were caused by flooding?'
+              label='Flood loss history'
+              // label='How many losses has the property had in the past 10 years that were caused by flooding?'
               validationSchema={priorLossValidation}
               stepperNavLabel='History'
             >
@@ -469,10 +470,17 @@ export const SubmissionNew = () => {
                   pb: { xs: 4, sm: 6, md: 8 },
                   pt: { xs: 2, sm: 4 },
                   display: 'flex',
+                  flexDirection: 'column',
                   justifyContent: 'center',
                 }}
               >
-                <PriorFloodLossStep />
+                <Typography variant='body1' color='text.secondary' gutterBottom>
+                  How many losses has the property had in the past 10 years that were caused by
+                  flooding?
+                </Typography>
+                <Box sx={{ mx: 'auto', pt: 3 }}>
+                  <PriorFloodLossStep />
+                </Box>
               </Box>
             </Step>
             <Step

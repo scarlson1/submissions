@@ -11,7 +11,7 @@ import { addWeeks } from 'date-fns';
 import { PickingInfo } from 'deck.gl/typed';
 import { DocumentReference, doc } from 'firebase/firestore';
 import { Formik, FormikHelpers, FormikProps } from 'formik';
-import { Suspense, useCallback, useMemo, useRef } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useRef } from 'react';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { useFirestore, useFirestoreDocDataOnce } from 'reactfire';
@@ -63,7 +63,7 @@ export const MoratoriumNew = () => {
     initialData: { counties: [] },
     suspense: false,
   });
-  // TODO: handle doc doesnt exist ? does suspense catch does not exist ?
+  // TODO: handle doc doesn't exist ? does suspense catch does not exist ?
 
   const counties = useMemo(() => data?.counties || [], [data]);
 
@@ -121,6 +121,11 @@ export const MoratoriumNew = () => {
     },
     [counties]
   );
+
+  useEffect(() => {
+    console.log('status: ', status);
+    console.log('counties: ', counties);
+  }, [status, counties]);
 
   return (
     <Box>
