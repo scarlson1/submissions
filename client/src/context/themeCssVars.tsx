@@ -494,7 +494,8 @@ export function getThemedComponents(): ThemeOptions {
               '&:hover > span': { transform: 'translateX(2px)' },
             }),
             ...(ownerState.size === 'medium' && {
-              padding: theme.spacing('8px', '12px'),
+              // padding: theme.spacing('8px', '12px'),
+              padding: theme.spacing('7px', '12px'),
               '& > span': { transition: '0.2s', marginLeft: 4 },
               '&:hover > span': { transform: 'translateX(2px)' },
             }),
@@ -1340,7 +1341,9 @@ export function getThemedComponents(): ThemeOptions {
               borderColor: theme.vars.palette.grey[200], // (theme.vars || theme).palette.grey[100],
               '[data-mui-color-scheme="dark"] &': {
                 borderColor: theme.vars.palette.primaryDark[500], // (theme.vars || theme).palette.primaryDark[600],
-                backgroundColor: alpha(theme.palette.primaryDark[700], 0.5),
+                // backgroundColor: alpha(theme.palette.primaryDark[700], 0.5),
+                backgroundColor: theme.vars.palette.primaryDark[700],
+                // alpha(theme.palette.primaryDark[700], 0.5), <-- causes dialog to be 50% opacity ??
               },
               '&[href]': {
                 textDecorationLine: 'none',
