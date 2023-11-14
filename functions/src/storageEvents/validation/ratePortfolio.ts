@@ -1,5 +1,5 @@
 import { warn } from 'firebase-functions/logger';
-import { RCVs } from '../../common/index.js';
+import { RCVs, printObj } from '../../common/index.js';
 import {
   validateBasement,
   validateCommission,
@@ -56,10 +56,13 @@ export function validateRatePortfolioRow(data: any) {
 export function validateRatePortfolioRowZod(data: any) {
   // return TransformedRatePortfolioRow.safeParse(data).success;
   try {
+    printObj(data);
     TransformedRatePortfolioRow.parse(data);
     return true;
   } catch (err: any) {
     warn(`Row validation failed`, { err, data });
+    // TODO: delete printObj
+    printObj(err);
     return false;
   }
 }

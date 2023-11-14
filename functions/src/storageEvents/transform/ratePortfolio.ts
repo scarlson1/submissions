@@ -1,7 +1,8 @@
-import { FloodZone, PriorLossCount, State } from '@idemand/common';
-import { toUpper } from 'lodash-es';
+import { Basement, FloodZone, PriorLossCount, State } from '@idemand/common';
+import { toLower, toUpper } from 'lodash-es';
 import { DeepNullable, Nullable, extractNumber, extractNumberNeg } from '../../common/index.js';
 import { IRow, RatePortfolioInputRow, TRow, TransformedRatePortfolioRow } from '../models/index.js';
+import { TRowWithAAL } from '../ratePortfolio.js';
 
 export function transformRatePortfolioRow(data: IRow): Nullable<TRow> {
   const limitA = data.cov_a_limit ? extractNumber(data.cov_a_limit) : 0;
@@ -53,10 +54,10 @@ export function transformRatePortfolioRowZod(
   const limitD = data.limitD ? extractNumber(data.limitD) : 0;
   const TIV = limitA + limitB + limitC + limitD;
 
-  const rcvA = data.covARcv ? extractNumber(data.covARcv) : 0;
-  const rcvB = data.covBRcv ? extractNumber(data.covBRcv) : 0;
-  const rcvC = data.covCRcv ? extractNumber(data.covCRcv) : 0;
-  const rcvD = data.covDRcv ? extractNumber(data.covDRcv) : 0;
+  const rcvA = data.rcvA ? extractNumber(data.rcvA) : 0;
+  const rcvB = data.rcvB ? extractNumber(data.rcvB) : 0;
+  const rcvC = data.rcvC ? extractNumber(data.rcvC) : 0;
+  const rcvD = data.rcvD ? extractNumber(data.rcvD) : 0;
   const totalRcv = rcvA + rcvB + rcvC + rcvD;
 
   const latitude = data.latitude ? extractNumberNeg(data.latitude) : null;
@@ -86,7 +87,9 @@ export function transformRatePortfolioRowZod(
     },
     deductible: data.deductible ? extractNumber(data.deductible) : null,
     commissionPct: data.commissionPct ? extractNumber(data.commissionPct) : null,
+    // mgaCommissionPct: data.mgaCommissionPct ? extractNumber(data.mgaCommissionPct) : null,
     ffh: data.ffh ? extractNumberNeg(data.ffh) : 0,
+    basement: toLower(data.basement) as Basement,
     floodZone: floodZone as FloodZone,
     homeState: toUpper(data.homeState) as State,
     skip: Boolean(data?.skip && data?.skip?.toLowerCase().trim() === 'true'),
@@ -103,7 +106,29 @@ function getGoogleMapsUrl(
   return `https://www.google.com/maps/search/?api=1&query=${latitude}%2C${longitude}`;
 }
 
-export function getPremCalcVars(row: any) {
+// export function getPremCalcVars(row: any) {
+//   return {
+//     AALs: {
+//       inland: row.inland,
+//       surge: row.surge,
+//       tsunami: row.tsunami,
+//     },
+//     limits: {
+//       limitA: row.cov_a_limit,
+//       limitB: row.cov_b_limit,
+//       limitC: row.cov_c_limit,
+//       limitD: row.cov_d_limit,
+//     },
+//     floodZone: row.flood_zone,
+//     state: row.state,
+//     basement: row.basement,
+//     priorLossCount: row.prior_loss_count || '0',
+//     commissionPct: row.commission_pct || 0.15,
+//     FFH: row.ffh || 0,
+//   };
+// }
+
+export function getPremCalcVars(row: TRowWithAAL) {
   return {
     AALs: {
       inland: row.inland,
@@ -111,40 +136,64 @@ export function getPremCalcVars(row: any) {
       tsunami: row.tsunami,
     },
     limits: {
-      limitA: row.cov_a_limit,
-      limitB: row.cov_b_limit,
-      limitC: row.cov_c_limit,
-      limitD: row.cov_d_limit,
+      limitA: row.limits.limitA,
+      limitB: row.limits.limitB,
+      limitC: row.limits.limitC,
+      limitD: row.limits.limitD,
     },
-    floodZone: row.flood_zone,
-    state: row.state,
+    floodZone: row.floodZone,
+    state: row.homeState,
     basement: row.basement,
-    priorLossCount: row.prior_loss_count || '0',
-    commissionPct: row.commission_pct || 0.15,
+    priorLossCount: row.priorLossCount || '0',
+    commissionPct: row.commissionPct || 0.15,
     FFH: row.ffh || 0,
   };
 }
+
+// /** convert snake case column headers to camel case params used in SR XML template
+//  * @param {any} row row data (TODO: type)
+//  * @returns {object} variables for Swiss Re xml template
+//  */
+// export function getSRVars(row: any) {
+//   let rcvB = row.cov_b_rcv || 0;
+//   let limitB = row.cov_b_limit || 0;
+
+//   return {
+//     lat: row.latitude,
+//     lng: row.longitude,
+//     rcvTotal: row.total_rcv,
+//     rcvAB: row.cov_a_rcv + rcvB,
+//     rcvC: row.cov_c_rcv,
+//     rcvD: row.cov_d_rcv,
+//     limitAB: row.cov_a_limit + limitB,
+//     limitC: row.cov_c_limit,
+//     limitD: row.cov_d_limit,
+//     deductible: row.deductible,
+//     numStories: row.num_stories || '1',
+//     externalRef: row.location_id || 'idemand',
+//   };
+// }
 
 /** convert snake case column headers to camel case params used in SR XML template
  * @param {any} row row data (TODO: type)
  * @returns {object} variables for Swiss Re xml template
  */
-export function getSRVars(row: any) {
-  let rcvB = row.cov_b_rcv || 0;
-  let limitB = row.cov_b_limit || 0;
+export function getSRVarsZod(row: TransformedRatePortfolioRow) {
+  let rcvB = row.RCVs?.otherStructures || 0;
+  let limitB = row.limits?.limitB || 0;
 
   return {
-    lat: row.latitude,
-    lng: row.longitude,
-    rcvTotal: row.total_rcv,
-    rcvAB: row.cov_a_rcv + rcvB,
-    rcvC: row.cov_c_rcv,
-    rcvD: row.cov_d_rcv,
-    limitAB: row.cov_a_limit + limitB,
-    limitC: row.cov_c_limit,
-    limitD: row.cov_d_limit,
+    lat: row.coordinates?.latitude,
+    lng: row.coordinates?.longitude,
+    rcvTotal: row.RCVs?.total,
+    rcvAB: row.RCVs?.building + rcvB,
+    rcvC: row.RCVs?.contents,
+    rcvD: row.RCVs?.BI,
+    limitAB: row.limits?.limitA + limitB,
+    limitC: row.limits?.limitC,
+    limitD: row.limits?.limitD,
     deductible: row.deductible,
-    numStories: row.num_stories || '1',
-    externalRef: row.location_id || 'idemand',
+    numStories: row.numStories || '1',
+    externalRef: row.locationId || 'idemand',
   };
 }

@@ -1,5 +1,6 @@
 import { printObj } from '../../common/helpers.js';
 import { GetPremiumCalcResult } from '../../modules/rating/index.js';
+import { TransformedRatePortfolioRow } from '../models/ratePortfolio.js';
 
 export interface FlattenedPremData {
   basementMult: string | number;
@@ -103,5 +104,26 @@ export function flattenPremData(rowPremData: GetPremiumCalcResult): FlattenedPre
     subproducerAdj,
     premium,
     notes: '',
+  };
+}
+
+export function flattenRatingData({
+  limits,
+  RCVs,
+  coordinates,
+  ...data
+}: TransformedRatePortfolioRow): Record<string, any> {
+  return {
+    ...data,
+    latitude: coordinates.latitude,
+    longitude: coordinates.longitude,
+    limitsA: limits.limitA,
+    limitsB: limits.limitB,
+    limitsC: limits.limitC,
+    limitsD: limits.limitD,
+    covARcv: RCVs.building,
+    covBRcv: RCVs.otherStructures,
+    covCRcv: RCVs.contents,
+    covDRcv: RCVs.BI,
   };
 }
