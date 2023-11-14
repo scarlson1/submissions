@@ -27,7 +27,7 @@ interface TaxResLineItem
   extends Omit<WithId<TTax>, 'metadata' | 'effectiveDate' | 'expirationDate' | 'rate'> {
   displayName: TTaxItemName;
   calculatedTaxBase: number | null; // null if fixed rate ($10)
-  rate: number | null; // null if fixed rate ($10)
+  rate: number | null; // null if fixed rate
   value: number;
   effectiveDate: string;
   expirationDate: string | null;
