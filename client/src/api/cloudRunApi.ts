@@ -11,14 +11,13 @@ import {
   WithId,
 } from 'common';
 
-// TODO: move/ create doRequest hook (easier to call getIdToken)
+const API_URL = import.meta.env.VITE_API_BASE_URL;
 
 export const ApiClient = axios.create({
-  baseURL: `${import.meta.env.VITE_API_BASE_URL}/api`,
+  baseURL: API_URL,
   timeout: 6000,
   headers: {
     Accept: 'application/json',
-    //'Authorization': 'token <your-token-here> -- https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token'
   },
 });
 
