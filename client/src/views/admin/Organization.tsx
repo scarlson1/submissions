@@ -8,12 +8,14 @@ import { useParams, useSearchParams } from 'react-router-dom';
 import { useFirestore } from 'reactfire';
 
 import { ClaimsGuard, PageMeta } from 'components';
+import { LoadingComponent } from 'components/layout';
 import { AddUsersDialog } from 'elements/forms';
 import { InvitesGrid, PoliciesGrid, QuotesGrid, SubmissionsGrid, UsersGrid } from 'elements/grids';
 import { AdminManageUsersGrid } from 'elements/grids/UsersGrid';
 import { useJsonTheme } from 'hooks';
 import { useAgencyInsureds } from 'hooks/useAgencyInsureds';
 import { useCollectionDataInnerJoin, useRx, useRxDocJoin } from 'hooks/useRx';
+import { Suspense } from 'react';
 
 const MIN_TAB_HEIGHT = 40;
 
@@ -63,56 +65,64 @@ export const Organization = () => {
               </TabList>
             </Box>
             <TabPanel value='test'>
-              <AdminManageUsersGrid orgId={`${orgId}`} />
+              <Suspense fallback={<LoadingComponent />}>
+                <AdminManageUsersGrid orgId={`${orgId}`} />
+              </Suspense>
             </TabPanel>
             <TabPanel value='policies'>
-              <PoliciesGrid constraints={[where('orgId', '==', `${orgId}`)]} />
+              <Suspense fallback={<LoadingComponent />}>
+                <PoliciesGrid constraints={[where('orgId', '==', `${orgId}`)]} />
+              </Suspense>
             </TabPanel>
             <TabPanel value='quotes'>
-              <QuotesGrid
-                constraints={[
-                  where('agency.orgId', '==', `${orgId}`),
-                  // orderBy('metadata.created', 'desc'),
-                  // limit(100),
-                ]}
-              />
+              <Suspense fallback={<LoadingComponent />}>
+                <QuotesGrid constraints={[where('agency.orgId', '==', `${orgId}`)]} />
+              </Suspense>
             </TabPanel>
             <TabPanel value='submissions'>
-              <SubmissionsGrid constraints={[where('agency.orgId', '==', orgId)]} />
+              <Suspense fallback={<LoadingComponent />}>
+                <SubmissionsGrid constraints={[where('agency.orgId', '==', orgId)]} />
+              </Suspense>
             </TabPanel>
             <TabPanel value='insureds'>
               {/* TODO: use rxjs to fetch all policies under agency, then fetch users by id ?? use innerJoin observable ?? */}
-              <UsersGrid constraints={[where('insuredOfAgency', 'array-contains', orgId)]} />
-              <ErrorBoundary
-                fallback={
-                  <Typography variant='subtitle2' color='error.main' sx={{ py: 4 }}>
-                    Experimental RXJS combine observable resulted in an error. See console for
-                    details.
-                  </Typography>
-                }
-              >
-                <TestAgencyInsureds orgId={orgId} />
-              </ErrorBoundary>
+              <Suspense fallback={<LoadingComponent />}>
+                <UsersGrid constraints={[where('insuredOfAgency', 'array-contains', orgId)]} />
+                <ErrorBoundary
+                  fallback={
+                    <Typography variant='subtitle2' color='error.main' sx={{ py: 4 }}>
+                      Experimental RXJS combine observable resulted in an error. See console for
+                      details.
+                    </Typography>
+                  }
+                >
+                  <TestAgencyInsureds orgId={orgId} />
+                </ErrorBoundary>
+              </Suspense>
             </TabPanel>
             <TabPanel value='team'>
-              <UsersGrid constraints={[where('orgId', '==', orgId)]} />
+              <Suspense fallback={<LoadingComponent />}>
+                <UsersGrid constraints={[where('orgId', '==', orgId)]} />
+              </Suspense>
             </TabPanel>
             <TabPanel value='invites'>
               <>
-                <ClaimsGuard requiredClaims={['IDEMAND_ADMIN', 'ORG_ADMIN']}>
-                  <Box sx={{ width: '100%', display: 'flex', justifyContent: 'flex-end', pb: 2 }}>
-                    <AddUsersDialog
-                      orgId={orgId}
-                      buttonText='Add'
-                      buttonProps={{
-                        size: 'large',
-                        startIcon: <PersonAddRounded />,
-                        sx: { maxHeight: 36 },
-                      }}
-                    />
-                  </Box>
-                </ClaimsGuard>
-                {orgId && <InvitesGrid queryConstraints={[]} orgId={orgId} />}
+                <Suspense fallback={<LoadingComponent />}>
+                  <ClaimsGuard requiredClaims={['IDEMAND_ADMIN', 'ORG_ADMIN']}>
+                    <Box sx={{ width: '100%', display: 'flex', justifyContent: 'flex-end', pb: 2 }}>
+                      <AddUsersDialog
+                        orgId={orgId}
+                        buttonText='Add'
+                        buttonProps={{
+                          size: 'large',
+                          startIcon: <PersonAddRounded />,
+                          sx: { maxHeight: 36 },
+                        }}
+                      />
+                    </Box>
+                  </ClaimsGuard>
+                  {orgId && <InvitesGrid queryConstraints={[]} orgId={orgId} />}
+                </Suspense>
               </>
             </TabPanel>
           </TabContext>

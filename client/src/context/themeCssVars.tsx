@@ -1589,7 +1589,7 @@ export function getThemedComponents(): ThemeOptions {
             '.MuiDataGrid-columnHeaders, .MuiDataGrid-cell, .MuiDataGrid-footerContainer': {
               borderColor: theme.vars.palette.grey[100],
             },
-            ...(ownerState.variant === 'outlined' && {
+            ...(ownerState?.variant === 'outlined' && {
               display: 'block',
               borderColor: theme.vars.palette.grey[200],
             }),
@@ -1606,7 +1606,7 @@ export function getThemedComponents(): ThemeOptions {
               '.MuiDataGrid-columnHeaders, .MuiDataGrid-cell, .MuiDataGrid-footerContainer': {
                 borderColor: alpha(theme.palette.primary[100], 0.08),
               },
-              ...(ownerState.variant === 'outlined' && {
+              ...(ownerState?.variant === 'outlined' && {
                 borderColor: theme.vars.palette.primaryDark[500],
                 backgroundColor: theme.vars.palette.primaryDark[700],
                 'a&, button&': {
