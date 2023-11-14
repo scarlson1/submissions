@@ -3,13 +3,8 @@ import { info } from 'firebase-functions/logger';
 import { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 import { merge } from 'lodash-es';
 
-import {
-  Collection,
-  ILocation,
-  getReportErrorFn,
-  policiesCollection,
-  versionsCollection,
-} from '../../common/index.js';
+import { Collection, ILocation } from '@idemand/common';
+import { getReportErrorFn, policiesCollection, versionsCollection } from '../../common/index.js';
 import { getDifference, hasOne } from '../../utils/index.js';
 
 const VERSION_LOCATION_DIFF_KEYS = [
@@ -64,7 +59,7 @@ export default async (
     });
 
     const db = getFirestore();
-    const versionsCol = versionsCollection(db, Collection.enum.LOCATIONS, locationId);
+    const versionsCol = versionsCollection(db, Collection.enum.locations, locationId);
     const policiesCol = policiesCollection(db);
 
     const batch = db.batch();

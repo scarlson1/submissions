@@ -11,7 +11,8 @@ import { Timestamp, type QueryDocumentSnapshot } from 'firebase-admin/firestore'
 import { error, info, warn } from 'firebase-functions/logger';
 import type { FirestoreEvent } from 'firebase-functions/v2/firestore';
 
-import { FIPS, Submission, counties20mURL } from '../common/index.js';
+import { Submission } from '@idemand/common';
+import { FIPS, counties20mURL } from '../common/index.js';
 
 export interface CountyJsonProperties {
   STATEFP: string;

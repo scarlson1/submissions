@@ -1,4 +1,4 @@
-import { BillingEntity, Policy } from '../common/index.js';
+import { BillingEntity, Policy } from '@idemand/common';
 
 // TODO: build class so methods can be reused ?? (with firestore converter??)
 export function getBillingEntityId(policy: Policy & Record<string, any>, lcnId: string) {

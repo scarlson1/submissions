@@ -1,13 +1,8 @@
 import { add } from 'date-fns';
 import { Timestamp } from 'firebase-admin/firestore';
 
-import {
-  CancellationReason,
-  OffsetTransaction,
-  Policy,
-  PremiumTransaction,
-  WithId,
-} from '../../common/index.js';
+import { Policy, WithId } from '@idemand/common';
+import { CancellationReason, OffsetTransaction, PremiumTransaction } from '../../common/index.js';
 import { getTrxTaxesAndFees } from './taxes.js';
 import { getBookingDate, getMGAComm, getNetDWP, getOffsetTermPremium } from './utils.js';
 

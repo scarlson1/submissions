@@ -1,10 +1,10 @@
+import { ILocation } from '@idemand/common';
 import { Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import { isEmpty } from 'lodash-es';
 import {
   DeepPartial,
-  ILocation,
   LocationChangeValues,
   PolicyChangeRequest,
   changeRequestsCollection,

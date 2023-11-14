@@ -3,13 +3,8 @@ import { DocumentSnapshot, GeoPoint } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 import type { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 
-import {
-  COLLECTIONS,
-  Organization,
-  algoliaAdminKey,
-  algoliaAppId,
-  algoliaIndex,
-} from '../../common/index.js';
+import { Collection } from '@idemand/common';
+import { Organization, algoliaAdminKey, algoliaAppId, algoliaIndex } from '../../common/index.js';
 import { VisibleByTypes, getVisibleBy } from '../../utils/index.js';
 
 export default async (
@@ -69,7 +64,7 @@ export default async (
           visibleBy,
           orgId: docId,
           docType: 'org',
-          collectionName: COLLECTIONS.ORGANIZATIONS,
+          collectionName: Collection.enum.organizations,
           searchTitle: newValue.orgName ?? docId,
           searchSubtitle: subtitle,
           metadata: {

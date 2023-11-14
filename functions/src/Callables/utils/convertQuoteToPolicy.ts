@@ -1,17 +1,8 @@
+import { ILocation, License, PaymentStatus, Policy, Quote, State, WithId } from '@idemand/common';
 import { add } from 'date-fns';
 import { Timestamp } from 'firebase-admin/firestore';
 import { geohashForLocation } from 'geofire-common';
-
 import { sum } from 'lodash-es';
-import {
-  ILocation,
-  License,
-  PaymentStatus,
-  Policy,
-  Quote,
-  State,
-  WithId,
-} from '../../common/index.js';
 import { createDocId } from '../../modules/db/index.js';
 import {
   calcPolicyPremium,
@@ -165,7 +156,7 @@ export function getPolicyFromQuote(
       userId: (data.agent?.userId || null) as string, // TODO: validate agent user ID included
       name: data.agent?.name,
       email: data.agent?.email,
-      phone: data.agent?.phone,
+      phone: data.agent?.phone || '',
     },
     agency: {
       orgId: data.agency?.orgId,

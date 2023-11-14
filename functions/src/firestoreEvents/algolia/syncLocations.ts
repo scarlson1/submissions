@@ -4,10 +4,8 @@ import { info, warn } from 'firebase-functions/logger';
 import { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 import { capitalize } from 'lodash-es';
 
+import { Collection, ILocation, Policy } from '@idemand/common';
 import {
-  COLLECTIONS,
-  ILocation,
-  Policy,
   StagedPolicyImport,
   algoliaAdminKey,
   algoliaAppId,
@@ -59,17 +57,17 @@ export default async (
         case 'policy':
           parentCol = policiesCollection(db);
           parentKey = 'policyId';
-          parentColName = COLLECTIONS.POLICIES;
+          parentColName = Collection.Enum.policies;
           break;
         case 'quote':
           parentCol = quotesCollection(db);
           parentKey = 'quoteId';
-          parentColName = COLLECTIONS.QUOTES;
+          parentColName = Collection.enum.quotes;
           break;
         case 'submission':
           parentCol = submissionsCollection(db);
           parentKey = 'submissionId';
-          parentColName = COLLECTIONS.SUBMISSIONS;
+          parentColName = Collection.enum.submissions;
           break;
       }
 
@@ -96,7 +94,7 @@ export default async (
       if (!parentData) {
         const stagedPolicySnap = (await db
           .doc(
-            `${COLLECTIONS.DATA_IMPORTS}/${stagedSummarySnap.docs[0].id}/${COLLECTIONS.STAGED_RECORDS}/${parentDocId}`
+            `${Collection.enum.dataImports}/${stagedSummarySnap.docs[0].id}/${Collection.enum.stagedDocs}/${parentDocId}`
           )
           .get()) as DocumentSnapshot<StagedPolicyImport>;
 
@@ -137,7 +135,7 @@ export default async (
           ...newData,
           objectID: docId,
           docType: 'location',
-          collectionName: COLLECTIONS.LOCATIONS,
+          collectionName: Collection.enum.locations,
           searchTitle,
           searchSubtitle,
           _geoloc,

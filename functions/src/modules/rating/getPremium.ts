@@ -1,12 +1,6 @@
+import { ILocation, Limits, State, ValueByRiskType } from '@idemand/common';
 import { sum } from 'lodash-es';
-import {
-  ILocation,
-  Limits,
-  PremiumCalcData,
-  State,
-  ValueByRiskType,
-  defaultFloodZone,
-} from '../../common/index.js';
+import { PremiumCalcData, defaultFloodZone } from '../../common/index.js';
 import { getPremiumData } from './calcPremium.js';
 import { SecondaryFactorMults, getPM, getSecondaryFactorMults } from './factors.js';
 import { getMinPremium } from './minPremium.js';

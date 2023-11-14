@@ -2,9 +2,8 @@ import { Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 
+import { ILocation, Policy } from '@idemand/common';
 import {
-  ILocation,
-  Policy,
   QUOTE_STATUS,
   getReportErrorFn,
   locationsCollection,

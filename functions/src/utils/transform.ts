@@ -2,13 +2,11 @@ import {
   AdditionalInsured,
   AdditionalInterest,
   Address,
-  AddressWithCoords,
   ILocation,
-  LcnWithTermPrem,
   Mortgagee,
-  PolicyLcnWithPrem,
   PolicyLocation,
-} from '../common/index.js';
+} from '@idemand/common';
+import { AddressWithCoords, LcnWithTermPrem, PolicyLcnWithPrem } from '../common/index.js';
 import { compressAddress } from './helpers.js';
 
 // Location <--> Policy Location
@@ -70,7 +68,7 @@ export function convertMortgageesToAdditionalInterests(
   return mortgagees.map((m) => ({
     type: 'mortgagee',
     name: m.name,
-    accountNumber: m.loanNumber,
+    accountNumber: m.loanNumber || '',
     address: {
       addressLine1: m.address?.addressLine1 || '',
       addressLine2: m.address?.addressLine2 || '',
@@ -99,7 +97,7 @@ export function additionalInterestToMortgagee(
         name: m.name,
         contactName: '',
         email: m.email || '',
-        loanNumber: m.accountNumber,
+        loanNumber: m.accountNumber || '',
         address: m.address
           ? {
               addressLine1: m.address?.addressLine1 ?? '',

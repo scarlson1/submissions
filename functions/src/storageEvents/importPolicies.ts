@@ -10,17 +10,19 @@ import path from 'path';
 
 import {
   Address,
-  COLLECTIONS,
-  CancellationReason,
+  Collection,
   ILocation,
   ILocationPolicy,
   PaymentStatus,
   Policy,
-  RatingData,
   SLProdOfRecordDetails,
-  StagedPolicyImport,
   State,
   ValueByRiskType,
+} from '@idemand/common';
+import {
+  CancellationReason,
+  RatingData,
+  StagedPolicyImport,
   audience,
   getReportErrorFn,
   hostingBaseURL,
@@ -183,7 +185,7 @@ export default async (event: StorageEvent) => {
         importMeta: {
           status: 'new',
           eventId: event.id,
-          targetCollection: COLLECTIONS.POLICIES,
+          targetCollection: Collection.Enum.policies,
         },
       };
 
@@ -203,7 +205,7 @@ export default async (event: StorageEvent) => {
   // Save import summary & send admin notification
   try {
     await importSummaryRef.set({
-      targetCollection: COLLECTIONS.POLICIES,
+      targetCollection: Collection.enum.policies,
       importDocIds: importedIds,
       docCreationErrors: createErrors,
       invalidRows,

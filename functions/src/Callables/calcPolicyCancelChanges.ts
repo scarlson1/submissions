@@ -1,4 +1,5 @@
 // TODO: combine with location cancel ??
+import { ILocation, WithId } from '@idemand/common';
 import { isValid } from 'date-fns';
 import { getFirestore } from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
@@ -8,8 +9,6 @@ import { errorMap, fromZodError } from 'zod-validation-error';
 import {
   CancellationRequest,
   ChangeRequest,
-  ILocation,
-  WithId,
   changeRequestsCollection,
   getReportErrorFn,
   locationsCollection,

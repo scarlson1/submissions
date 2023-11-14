@@ -1,6 +1,6 @@
 // https://www.npmjs.com/package/fips-county-codes?activeTab=explore
 
-import { FIPSDetails } from './types.js';
+import { FIPSDetails } from '@idemand/common';
 
 // class codes: https://www.census.gov/library/reference/code-lists/class-codes.html
 

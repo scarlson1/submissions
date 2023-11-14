@@ -1,29 +1,15 @@
+import { Limits, Product, RCVs, TransactionType } from '@idemand/common';
 import { isValid } from 'date-fns';
 import { warn } from 'firebase-functions/logger';
 import {
   AmendmentTransaction,
   DeepNullable,
-  Limits,
   OffsetTransaction,
   PremiumTransaction,
-  Product,
-  RCVs,
   Transaction,
-  TransactionType,
 } from '../../common/index.js';
 import { validateDeductible, validateLimits, validateRCVs } from '../../modules/rating/index.js';
 import { verify } from '../../utils/index.js';
-
-const trxTypes: TransactionType[] = [
-  'amendment',
-  'cancellation',
-  'endorsement',
-  'flat_cancel',
-  'new',
-  'reinstatement',
-  'renewal',
-];
-const products: Product[] = ['flood', 'wind'];
 
 export function validateTrxRow(data: DeepNullable<Omit<Transaction, 'metadata'>>): boolean {
   try {
@@ -49,8 +35,8 @@ export function validateTrxRow(data: DeepNullable<Omit<Transaction, 'metadata'>>
 }
 // : asserts data is Omit<BaseTransaction, 'metadata'>
 function commonTrxValidation(data: DeepNullable<Omit<Transaction, 'metadata'>>) {
-  verify(data.trxType && trxTypes.includes(data.trxType), 'invalid trxType');
-  verify(data.product && products.includes(data.product), 'invalid product');
+  verify(data.trxType && TransactionType.options.includes(data.trxType), 'invalid trxType');
+  verify(data.product && Product.options.includes(data.product), 'invalid product');
   verify(data.policyId, 'invalid policyId');
   verify(data.locationId, 'invalid locationId');
   verify(data.term, 'term required');

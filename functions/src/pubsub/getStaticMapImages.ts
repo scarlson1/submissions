@@ -10,12 +10,8 @@ import { tmpdir } from 'os';
 import path from 'path';
 // import sharp from 'sharp';
 
-import {
-  LocationImageTypes,
-  getReportErrorFn,
-  mapboxPublicToken,
-  storageBaseUrl,
-} from '../common/index.js';
+import { LocationImageTypes } from '@idemand/common';
+import { getReportErrorFn, mapboxPublicToken, storageBaseUrl } from '../common/index.js';
 import { createDocId } from '../modules/db/index.js';
 import { downloadFromUrl } from '../modules/storage/index.js';
 import { clearTempFiles, randomFileName, verify } from '../utils/index.js';

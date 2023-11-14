@@ -5,14 +5,17 @@ import { geohashForLocation } from 'geofire-common';
 import {
   Basement,
   CBRSDesignation,
-  DeepNullable,
   FloodZone,
-  Nullable,
   PriorLossCount,
   Product,
-  QUOTE_STATUS,
   Quote,
   RatingPropertyData,
+  State,
+} from '@idemand/common';
+import {
+  DeepNullable,
+  Nullable,
+  QUOTE_STATUS,
   extractNumber,
   extractNumberNeg,
   getCardFee,
@@ -100,19 +103,19 @@ export function transformQuoteRow(row: CSVQuoteRow): DeepNullable<CSVTransformed
   };
 
   const agent: Quote['agent'] = {
-    name: row.agentName || null,
-    email: row.agentEmail || null,
-    phone: row.agentPhone || null,
+    name: row.agentName || '', // null,
+    email: row.agentEmail || '', // null,
+    phone: row.agentPhone || '', // null,
     // phone: row.agentPhone
     //   ? row.agentPhone.length === 9
     //     ? `+1${row.agentPhone}`
     //     : row.agentPhone
     //   : null,
-    userId: row.agentId || null,
+    userId: row.agentId || '', // null,
   };
 
   const agency: Quote['agency'] = {
-    name: row.agencyName || null,
+    name: row.agencyName || '', // null,
     address: {
       addressLine1: row.agencyAddressLine1,
       addressLine2: row.agencyAddressLine2,
@@ -143,7 +146,7 @@ export function transformQuoteRow(row: CSVQuoteRow): DeepNullable<CSVTransformed
     limits,
     deductible: row.deductible ? extractNumber(row.deductible) : 0,
     address,
-    homeState: row.homeState || row.state,
+    homeState: (row.homeState || row.state) as State,
     coordinates,
     geoHash,
     mailingAddress,
@@ -183,16 +186,17 @@ export function transformQuoteRow(row: CSVQuoteRow): DeepNullable<CSVTransformed
     imageURLs: null,
     imagePaths: null,
     submissionId: row.submissionId || null,
+    exclusions: [],
     metadata: {
       created: Timestamp.now(),
       updated: Timestamp.now(),
       version: 1,
     },
-    statusTransitions: {
-      published: Timestamp.now(),
-      accepted: null,
-      cancelled: null,
-      finalized: null,
-    },
+    // statusTransitions: {
+    //   published: Timestamp.now(),
+    //   accepted: null,
+    //   cancelled: null,
+    //   finalized: null,
+    // },
   };
 }

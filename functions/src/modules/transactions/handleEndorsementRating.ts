@@ -1,3 +1,4 @@
+import { ILocation, Policy, ValueByRiskType } from '@idemand/common';
 import { DocumentReference, Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 import { isObject } from 'lodash-es';
@@ -5,9 +6,6 @@ import {
   ChangeRequest,
   ChangeRequestStatus,
   DeepPartial,
-  ILocation,
-  Policy,
-  ValueByRiskType,
   changeRequestsCollection,
   getReportErrorFn,
   locationsCollection,

@@ -1,3 +1,4 @@
+import { Collection, Quote } from '@idemand/common';
 import { Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
 import { error, info } from 'firebase-functions/logger';
@@ -6,8 +7,6 @@ import { createReadStream } from 'fs';
 import { tmpdir } from 'os';
 import { basename, join } from 'path';
 import {
-  COLLECTIONS,
-  Quote,
   StagedQuoteImport,
   audience,
   getCardFee,
@@ -130,7 +129,7 @@ export default async (event: StorageEvent) => {
         importMeta: {
           status: 'new',
           eventId: event.id,
-          targetCollection: COLLECTIONS.QUOTES,
+          targetCollection: Collection.enum.quotes,
         },
       };
       const quoteRef = await importStagingCol.add(data);
@@ -148,7 +147,7 @@ export default async (event: StorageEvent) => {
 
   try {
     await importSummaryRef.set({
-      targetCollection: COLLECTIONS.POLICIES,
+      targetCollection: Collection.enum.policies,
       importDocIds: quoteIds,
       docCreationErrors: importErrors,
       invalidRows,

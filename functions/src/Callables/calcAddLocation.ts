@@ -1,3 +1,4 @@
+import { ILocation, PolicyLocation } from '@idemand/common';
 import { isValid } from 'date-fns';
 import { GeoPoint, Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
@@ -6,8 +7,6 @@ import { geohashForLocation } from 'geofire-common';
 import { isFinite, sum } from 'lodash-es';
 import {
   DraftAddLocationRequest,
-  ILocation,
-  PolicyLocation,
   RatingData,
   changeRequestsCollection,
   defaultFloodZone,

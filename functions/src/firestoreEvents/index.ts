@@ -1,7 +1,7 @@
 import { onDocumentCreated, onDocumentWritten } from 'firebase-functions/v2/firestore';
 
+import { Collection } from '@idemand/common';
 import {
-  COLLECTIONS,
   sendgridApiKey,
   swissReClientId,
   swissReClientSecret,
@@ -10,7 +10,7 @@ import {
 export type { ClaimsDocData } from './mirrorCustomClaims.js';
 
 export const getstaticsubmissionimg = onDocumentCreated(
-  `${COLLECTIONS.SUBMISSIONS}/{submissionId}`,
+  `${Collection.enum.submissions}/{submissionId}`,
   async (event) => {
     await (await import('./getStaticSubmissionImg.js')).default(event);
   }
@@ -18,7 +18,7 @@ export const getstaticsubmissionimg = onDocumentCreated(
 
 export const getsubmissionaal = onDocumentCreated(
   {
-    document: `${COLLECTIONS.SUBMISSIONS}/{submissionId}`,
+    document: `${Collection.enum.submissions}/{submissionId}`,
     secrets: [swissReClientId, swissReClientSecret, swissReSubscriptionKey],
   },
   async (event) => {
@@ -27,7 +27,7 @@ export const getsubmissionaal = onDocumentCreated(
 );
 
 export const getsubmissionfips = onDocumentCreated(
-  `${COLLECTIONS.SUBMISSIONS}/{submissionId}`,
+  `${Collection.enum.submissions}/{submissionId}`,
   async (event) => {
     await (await import('./getSubmissionFIPS.js')).default(event);
   }
@@ -35,7 +35,7 @@ export const getsubmissionfips = onDocumentCreated(
 
 export const locationcreated = onDocumentCreated(
   {
-    document: `${COLLECTIONS.LOCATIONS}/{locationId}`,
+    document: `${Collection.enum.locations}/{locationId}`,
   },
   async (event) => {
     await (await import('./locationCreated.js')).default(event);
@@ -43,7 +43,7 @@ export const locationcreated = onDocumentCreated(
 );
 
 export const mirrorcustomclaims = onDocumentWritten(
-  `${COLLECTIONS.ORGANIZATIONS}/{orgId}/${COLLECTIONS.USER_CLAIMS}/{userId}`,
+  `${Collection.enum.organizations}/{orgId}/${Collection.enum.userClaims}/{userId}`,
   async (event) => {
     await (await import('./mirrorCustomClaims.js')).default(event);
   }
@@ -51,7 +51,7 @@ export const mirrorcustomclaims = onDocumentWritten(
 
 export const newagencyappnotification = onDocumentCreated(
   {
-    document: `${COLLECTIONS.AGENCY_APPLICATIONS}/{submissionId}`,
+    document: `${Collection.enum.agencySubmissions}/{submissionId}`,
     secrets: [sendgridApiKey],
   },
   async (event) => {
@@ -61,7 +61,7 @@ export const newagencyappnotification = onDocumentCreated(
 
 export const newsubmissionnotifications = onDocumentCreated(
   {
-    document: `${COLLECTIONS.SUBMISSIONS}/{submissionId}`,
+    document: `${Collection.enum.submissions}/{submissionId}`,
     secrets: [sendgridApiKey],
   },
   async (event) => {
@@ -71,7 +71,7 @@ export const newsubmissionnotifications = onDocumentCreated(
 
 export const sendinviteemail = onDocumentCreated(
   {
-    document: `${COLLECTIONS.ORGANIZATIONS}/{orgId}/${COLLECTIONS.INVITES}/{inviteId}`,
+    document: `${Collection.enum.organizations}/{orgId}/${Collection.enum.invitations}/{inviteId}`,
     secrets: [sendgridApiKey],
   },
   async (event) => {
@@ -81,7 +81,7 @@ export const sendinviteemail = onDocumentCreated(
 
 export const policychangerequest = onDocumentWritten(
   {
-    document: `${COLLECTIONS.POLICIES}/{policyId}/${COLLECTIONS.CHANGE_REQUESTS}/{requestId}`,
+    document: `${Collection.enum.policies}/{policyId}/${Collection.enum.changeRequests}/{requestId}`,
     secrets: [sendgridApiKey, swissReClientId, swissReClientSecret, swissReSubscriptionKey],
   },
   async (event) => {

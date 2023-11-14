@@ -3,13 +3,8 @@ import type { DocumentSnapshot } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 import type { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 
-import {
-  COLLECTIONS,
-  User,
-  algoliaAdminKey,
-  algoliaAppId,
-  algoliaIndex,
-} from '../../common/index.js';
+import { Collection } from '@idemand/common';
+import { User, algoliaAdminKey, algoliaAppId, algoliaIndex } from '../../common/index.js';
 import { VisibleByTypes, getVisibleBy } from '../../utils/index.js';
 
 export default async (
@@ -69,7 +64,7 @@ export default async (
           visibleBy,
           userId: docId,
           docType: 'user',
-          collectionName: COLLECTIONS.USERS,
+          collectionName: Collection.enum.users,
           searchTitle,
           searchSubtitle,
           metadata: {

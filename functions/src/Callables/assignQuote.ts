@@ -1,10 +1,11 @@
+import { Quote } from '@idemand/common';
 import { Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 
 import {
   CLAIMS,
-  Quote,
+  // Quote,
   orgsCollection,
   quotesCollection,
   usersCollection,
@@ -52,14 +53,20 @@ const assignQuote = async ({ data, auth }: CallableRequest<AssignQuoteProps>) =>
       updates = {
         agency: {
           orgId: orgSnap.id,
-          name: org?.orgName || null,
-          address: org?.address || null,
+          name: org?.orgName || '',
+          address: org?.address ?? {
+            addressLine1: '',
+            addressLine2: '',
+            city: '',
+            state: '',
+            postal: '',
+          }, // org?.address || null,
         },
         agent: {
           userId: uid,
-          name: userDoc?.displayName || null,
-          email: token?.email || null,
-          phone: token?.phone_number || null,
+          name: userDoc?.displayName || '', // || null,
+          email: token?.email || '', // null,
+          phone: token?.phone_number || '', // || null,
         },
       };
     } else {
@@ -67,10 +74,10 @@ const assignQuote = async ({ data, auth }: CallableRequest<AssignQuoteProps>) =>
         userId: uid,
         namedInsured: {
           userId: uid,
-          firstName: userDoc?.firstName || null,
-          lastName: userDoc?.lastName || null,
-          email: token?.email || null,
-          phone: token?.phone_number || null,
+          firstName: userDoc?.firstName || '', // || null,
+          lastName: userDoc?.lastName || '', // || null,
+          email: token?.email || '', // || null,
+          phone: token?.phone_number || '', // || null,
         },
       };
       if (userDoc?.address?.addressLine1) {

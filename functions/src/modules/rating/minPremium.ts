@@ -1,5 +1,6 @@
+import { FloodZone } from '@idemand/common';
 import { ceil } from 'lodash-es';
-import { FloodZone, defaultFloodZone } from '../../common/index.js';
+import { defaultFloodZone } from '../../common/index.js';
 
 export const getMinPremium = (
   floodZone: string = defaultFloodZone.value(),

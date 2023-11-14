@@ -4,13 +4,11 @@ import { CloudEvent } from 'firebase-functions/lib/v2/core';
 import { info, warn } from 'firebase-functions/logger';
 import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 
+import { ILocation, Policy, WithId } from '@idemand/common';
 import {
-  ILocation,
   OffsetTransaction,
-  Policy,
   PremiumTransaction,
   Transaction,
-  WithId,
   getReportErrorFn,
   locationsCollection,
   transactionsCollection,

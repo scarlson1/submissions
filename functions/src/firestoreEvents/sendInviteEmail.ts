@@ -1,3 +1,4 @@
+import { Invite } from '@idemand/common';
 import {
   Timestamp,
   type DocumentReference,
@@ -5,8 +6,7 @@ import {
 } from 'firebase-admin/firestore';
 import { error, info } from 'firebase-functions/logger';
 import type { FirestoreEvent } from 'firebase-functions/v2/firestore';
-
-import { Invite, audience, sendgridApiKey } from '../common/index.js';
+import { audience, sendgridApiKey } from '../common/index.js';
 import { sendUserInvite } from '../services/sendgrid/index.js';
 
 export default async (

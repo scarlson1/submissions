@@ -3,7 +3,8 @@ import { error, info } from 'firebase-functions/logger';
 import type { FirestoreEvent } from 'firebase-functions/v2/firestore';
 import querystring from 'querystring';
 
-import { Submission, audience, hostingBaseURL, sendgridApiKey } from '../common/index.js';
+import { Submission } from '@idemand/common';
+import { audience, hostingBaseURL, sendgridApiKey } from '../common/index.js';
 import {
   sendNewSubmissionAdminNotification,
   sendSubmissionReceivedConfirmation,

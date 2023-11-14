@@ -1,12 +1,13 @@
 import { onDocumentWritten } from 'firebase-functions/v2/firestore';
 
-import { COLLECTIONS, algoliaAdminKey } from '../../common/index.js';
+import { Collection } from '@idemand/common';
+import { algoliaAdminKey } from '../../common/index.js';
 
 // DOCS REF: https://firebase.google.com/docs/reference/functions/2nd-gen/node/firebase-functions.firestore.md#firestoreondocumentwritten
 
 export const algoliasyncusers = onDocumentWritten(
   {
-    document: `${COLLECTIONS.USERS}/{userId}`,
+    document: `${Collection.Enum.users}/{userId}`,
     secrets: [algoliaAdminKey],
   },
   async (event) => {
@@ -16,7 +17,7 @@ export const algoliasyncusers = onDocumentWritten(
 
 export const algoliasynclocations = onDocumentWritten(
   {
-    document: `${COLLECTIONS.LOCATIONS}/{locationId}`,
+    document: `${Collection.enum.locations}/{locationId}`,
     secrets: [algoliaAdminKey],
   },
   async (event) => {
@@ -26,7 +27,7 @@ export const algoliasynclocations = onDocumentWritten(
 
 export const algoliasyncorgs = onDocumentWritten(
   {
-    document: `${COLLECTIONS.ORGANIZATIONS}/{orgId}`,
+    document: `${Collection.enum.organizations}/{orgId}`,
     secrets: [algoliaAdminKey],
   },
   async (event) => {
@@ -36,7 +37,7 @@ export const algoliasyncorgs = onDocumentWritten(
 
 export const algoliasyncsubmissions = onDocumentWritten(
   {
-    document: `${COLLECTIONS.SUBMISSIONS}/{submissionId}`,
+    document: `${Collection.enum.submissions}/{submissionId}`,
     secrets: [algoliaAdminKey],
   },
   async (event) => {
@@ -46,7 +47,7 @@ export const algoliasyncsubmissions = onDocumentWritten(
 
 export const algoliasyncquotes = onDocumentWritten(
   {
-    document: `${COLLECTIONS.QUOTES}/{quoteId}`,
+    document: `${Collection.enum.quotes}/{quoteId}`,
     secrets: [algoliaAdminKey],
   },
   async (event) => {
@@ -56,7 +57,7 @@ export const algoliasyncquotes = onDocumentWritten(
 
 export const algoliasyncpolicies = onDocumentWritten(
   {
-    document: `${COLLECTIONS.POLICIES}/{policyId}`,
+    document: `${Collection.enum.policies}/{policyId}`,
     secrets: [algoliaAdminKey],
   },
   async (event) => {
@@ -66,7 +67,7 @@ export const algoliasyncpolicies = onDocumentWritten(
 
 export const algoliasynctransactions = onDocumentWritten(
   {
-    document: `${COLLECTIONS.FIN_TRANSACTIONS}/{trxId}`,
+    document: `${Collection.enum.transactions}/{trxId}`,
     secrets: [algoliaAdminKey],
   },
   async (event) => {
