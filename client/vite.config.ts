@@ -21,4 +21,7 @@ export default defineConfig({
   build: {
     outDir: './build',
   },
+  optimizeDeps: {
+    exclude: ['js-big-decimal'],
+  },
 });
