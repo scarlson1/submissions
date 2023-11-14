@@ -205,18 +205,39 @@ export const QUOTE_IMPORT_REQUIRED_HEADERS = [
 ];
 
 export const PORTFOLIO_RATING_REQUIRED_HEADERS = [
-  'cov_a_limit',
-  'cov_b_limit',
-  'cov_c_limit',
-  'cov_d_limit',
-  'cov_a_rcv',
-  'cov_b_rcv',
-  'cov_c_rcv',
-  'cov_d_rcv',
+  'latitude',
+  'longitude',
+  'limitA',
+  'limitB',
+  'limitC',
+  'limitD',
+  'rcvA',
+  'rcvB',
+  'rcvC',
+  'rcvD',
   'deductible',
-  'state',
-  'commission_pct',
+  'homeState',
+  'numStories',
+  'basement',
+  'floodZone',
+  'ffh',
+  'priorLossCount',
+  'mgaCommissionPct',
 ];
+
+// export const PORTFOLIO_RATING_REQUIRED_HEADERS = [
+//   'cov_a_limit',
+//   'cov_b_limit',
+//   'cov_c_limit',
+//   'cov_d_limit',
+//   'cov_a_rcv',
+//   'cov_b_rcv',
+//   'cov_c_rcv',
+//   'cov_d_rcv',
+//   'deductible',
+//   'state',
+//   'commission_pct',
+// ];
 
 export const POLICY_IMPORT_REQUIRED_HEADERS = [
   'policyId',

@@ -30,13 +30,7 @@ import {
 } from '../modules/storage/index.js';
 import { generateSRAccessToken, getSwissReInstance } from '../services/index.js';
 import { sendMessage } from '../services/sendgrid/index.js';
-import {
-  flattenObj,
-  randomFileName,
-  splitChunks,
-  unlinkFile,
-  waitMilliSeconds,
-} from '../utils/index.js';
+import { randomFileName, splitChunks, unlinkFile, waitMilliSeconds } from '../utils/index.js';
 import { RatePortfolioInputRow, TransformedRatePortfolioRow } from './models/index.js';
 import {
   FlattenedPremData,
@@ -90,9 +84,9 @@ const calcPrem = (data: TRowWithAAL[]) => {
       console.log('flattened rating data: ');
       printObj(flattenRatingData);
 
-      const testFlatten = flattenObj<ReturnType<typeof getPremium>>(rowPremData);
-      console.log('flatten Obj: ');
-      printObj(testFlatten);
+      // const testFlatten = flattenObj<ReturnType<typeof getPremium>>(rowPremData);
+      // console.log('flatten Obj: ');
+      // printObj(testFlatten);
 
       // TODO: fix typing (TRowWithAAL)
       // @ts-ignore
@@ -100,7 +94,7 @@ const calcPrem = (data: TRowWithAAL[]) => {
         // ...r,
         ...flattenedRatingData,
         ...flattenedPremData,
-        ...testFlatten,
+        // ...testFlatten,
       });
     } catch (err: any) {
       const errMsg = err?.message || null;
@@ -144,47 +138,47 @@ const calcPrem = (data: TRowWithAAL[]) => {
         provisionalPremium: '',
         subproducerAdj: '',
         premium: '', // @ts-ignore
-        'premiumData.techPremium.inland': '',
-        'premiumData.techPremium.surge': '',
-        'premiumData.techPremium.tsunami': '',
-        'premiumData.techPremium.total': '',
-        'premiumData.floodCategoryPremium.inland': '',
-        'premiumData.floodCategoryPremium.surge': '',
-        'premiumData.floodCategoryPremium.tsunami': '',
-        'premiumData.premiumSubtotal': '',
-        'premiumData.provisionalPremium': '',
-        'premiumData.minPremium': '',
-        'premiumData.minPremiumAdj': '',
-        'premiumData.subproducerAdj': '',
-        'premiumData.annualPremium': '',
-        'premiumData.subproducerCommissionPct': '',
-        'premiumData.MGACommission': '',
-        'premiumData.MGACommissionPct': '',
-        tiv: '',
-        'secondaryFactorMults.inland': '',
-        'secondaryFactorMults.surge': '',
-        'secondaryFactorMults.tsunami': '',
-        'secondaryFactorMults.factors.ffeMult.inland': '',
-        'secondaryFactorMults.factors.ffeMult.surge': '',
-        'secondaryFactorMults.factors.ffeMult.tsunami': '',
-        'secondaryFactorMults.factors.basementMult': '',
-        'secondaryFactorMults.factors.historyMult.inland': '',
-        'secondaryFactorMults.factors.historyMult.surge': '',
-        'secondaryFactorMults.factors.historyMult.tsunami': '',
-        'secondaryFactorMults.factors.contentsMult': '',
-        'secondaryFactorMults.factors.ordinanceMult': '',
-        'secondaryFactorMults.factors.distanceToCoastMult': '',
-        'secondaryFactorMults.factors.tier1Mult': '',
-        'stateMultipliers.inland': '',
-        'stateMultipliers.surge': '',
-        'stateMultipliers.tsunami': '',
-        'riskScore.inland': '',
-        'riskScore.surge': '',
-        'riskScore.tsunami': '',
-        'pm.inland': '',
-        'pm.surge': '',
-        'pm.tsunami': '',
-        minPremium: '',
+        // 'premiumData.techPremium.inland': '',
+        // 'premiumData.techPremium.surge': '',
+        // 'premiumData.techPremium.tsunami': '',
+        // 'premiumData.techPremium.total': '',
+        // 'premiumData.floodCategoryPremium.inland': '',
+        // 'premiumData.floodCategoryPremium.surge': '',
+        // 'premiumData.floodCategoryPremium.tsunami': '',
+        // 'premiumData.premiumSubtotal': '',
+        // 'premiumData.provisionalPremium': '',
+        // 'premiumData.minPremium': '',
+        // 'premiumData.minPremiumAdj': '',
+        // 'premiumData.subproducerAdj': '',
+        // 'premiumData.annualPremium': '',
+        // 'premiumData.subproducerCommissionPct': '',
+        // 'premiumData.MGACommission': '',
+        // 'premiumData.MGACommissionPct': '',
+        // tiv: '',
+        // 'secondaryFactorMults.inland': '',
+        // 'secondaryFactorMults.surge': '',
+        // 'secondaryFactorMults.tsunami': '',
+        // 'secondaryFactorMults.factors.ffeMult.inland': '',
+        // 'secondaryFactorMults.factors.ffeMult.surge': '',
+        // 'secondaryFactorMults.factors.ffeMult.tsunami': '',
+        // 'secondaryFactorMults.factors.basementMult': '',
+        // 'secondaryFactorMults.factors.historyMult.inland': '',
+        // 'secondaryFactorMults.factors.historyMult.surge': '',
+        // 'secondaryFactorMults.factors.historyMult.tsunami': '',
+        // 'secondaryFactorMults.factors.contentsMult': '',
+        // 'secondaryFactorMults.factors.ordinanceMult': '',
+        // 'secondaryFactorMults.factors.distanceToCoastMult': '',
+        // 'secondaryFactorMults.factors.tier1Mult': '',
+        // 'stateMultipliers.inland': '',
+        // 'stateMultipliers.surge': '',
+        // 'stateMultipliers.tsunami': '',
+        // 'riskScore.inland': '',
+        // 'riskScore.surge': '',
+        // 'riskScore.tsunami': '',
+        // 'pm.inland': '',
+        // 'pm.surge': '',
+        // 'pm.tsunami': '',
+        // minPremium: '',
         notes: 'Error calculating premium or missing AALs or skip row',
         errMsg,
         // TODO: need to add prem calc flatten obj result

@@ -55,7 +55,7 @@ export const ParsedPolicyRow = z.object({
   ratingDocId: z.string().optional().nullable().default(null),
   product: Product,
   mgaCommissionPct: MGACommissionPct,
-  AALs: ValueByRiskType, // AALs,
+  AALs: ValueByRiskType,
   techPremium: ValueByRiskType,
   billingEntityId: z.string(),
   billingEntityName: z.string(),
