@@ -16,7 +16,7 @@ import {
 import { GridActionsCellItem, GridRowModel, GridRowParams } from '@mui/x-data-grid';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { UploadResult } from 'firebase/storage';
-import { camelCase, snakeCase } from 'lodash';
+import { camelCase } from 'lodash';
 import { useCallback, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
@@ -265,14 +265,14 @@ function QuotesActionMenu() {
         open={open === 'ratePortfolio'}
         onClose={handleClose}
         destinationFolder={StorageFolder.enum.ratePortfolio}
-        getCsvHeaderStatus={handleHeaderStatus(PORTFOLIO_RATING_REQUIRED_HEADERS, snakeCase)}
+        getCsvHeaderStatus={handleHeaderStatus(PORTFOLIO_RATING_REQUIRED_HEADERS, camelCase)}
         onSuccess={onSuccess}
         title='Rate Portfolio'
       >
         <Typography variant='body2' color='text.secondary' component='div'>
           Headers will be transformed to{' '}
-          <Link href='https://lodash.com/docs/4.17.15#snakeCase' target='_blank' rel='noopener'>
-            snake case <OpenInNewRounded sx={{ fontSize: 16 }} />
+          <Link href='https://lodash.com/docs/4.17.15#camelCase' target='_blank' rel='noopener'>
+            camel case <OpenInNewRounded sx={{ fontSize: 16 }} />
           </Link>
           {`. (ex: "CovA limit" → "cov_a_limit")`}
         </Typography>
