@@ -1,9 +1,10 @@
-import { Box, Button, Typography, useMediaQuery, useTheme } from '@mui/material';
-import { GridRowModel } from '@mui/x-data-grid';
+import { Box, Button, Tooltip, Typography, useMediaQuery, useTheme } from '@mui/material';
+import { GridActionsCellItem, GridRowModel, GridRowParams } from '@mui/x-data-grid';
 import { Timestamp, doc, getDoc, getFirestore, updateDoc } from 'firebase/firestore';
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { EditRounded } from '@mui/icons-material';
 import { Moratorium, WithId, moratoriumsCollection } from 'common';
 import { useConfirmation } from 'context/ConfirmationService';
 import { MoratoriumsGrid } from 'elements/grids';
@@ -12,6 +13,8 @@ import { formatFirestoreTimestamp } from 'modules/utils';
 import { ADMIN_ROUTES, createPath } from 'router';
 
 // TODO: lazy load map component in modal
+
+// TODO: add action to moratorium edit form
 
 const useUpdateMoratorium = () => {
   const update = useCallback(async (id: string, updateValues: Partial<Moratorium>) => {
@@ -113,6 +116,32 @@ export const Moratoriums = () => {
     [toast]
   );
 
+  const handleRouteToEdit = useCallback(
+    (params: GridRowParams) => () =>
+      navigate(
+        createPath({
+          path: ADMIN_ROUTES.MORATORIUM_EDIT,
+          params: { moratoriumId: params.id.toString() },
+        })
+      ),
+    [navigate]
+  );
+
+  const renderEditActionButton = useCallback(
+    (params: GridRowParams) => [
+      <GridActionsCellItem
+        icon={
+          <Tooltip title='edit' placement='top'>
+            <EditRounded />
+          </Tooltip>
+        }
+        onClick={handleRouteToEdit(params)}
+        label='Edit'
+      />,
+    ],
+    []
+  );
+
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 2 }}>
@@ -127,6 +156,7 @@ export const Moratoriums = () => {
         <MoratoriumsGrid
           processRowUpdate={processRowUpdate}
           onProcessRowUpdateError={handleProcessRowUpdateError}
+          renderActions={renderEditActionButton}
         />
       </Box>
     </Box>

@@ -51,6 +51,7 @@ import {
   LicenseEdit,
   LicenseNew,
   Licenses,
+  MoratoriumEdit,
   MoratoriumNew,
   Moratoriums,
   Organization,
@@ -139,6 +140,7 @@ export enum ADMIN_ROUTES {
   EDIT_ACTIVE_STATES = '/admin/config/active-states/:productId/edit',
   MORATORIUMS = '/admin/config/moratoriums',
   MORATORIUM_NEW = '/admin/config/moratoriums/new',
+  MORATORIUM_EDIT = '/admin/config/moratoriums/:moratoriumId/edit',
   SL_LICENSES = '/admin/config/licenses',
   SL_LICENSE_NEW = '/admin/config/licenses/new',
   LICENSE_EDIT = '/admin/config/licenses/:licenseId/edit',
@@ -199,6 +201,7 @@ type TArgs =
   | { path: ADMIN_ROUTES.EDIT_ACTIVE_STATES; params: { productId: TProduct } }
   | { path: ADMIN_ROUTES.MORATORIUMS }
   | { path: ADMIN_ROUTES.MORATORIUM_NEW }
+  | { path: ADMIN_ROUTES.MORATORIUM_EDIT; params: { moratoriumId: string } }
   | { path: ADMIN_ROUTES.SL_LICENSES }
   | { path: ADMIN_ROUTES.SL_LICENSE_NEW }
   | { path: ADMIN_ROUTES.LICENSE_EDIT; params: { licenseId: string } }
@@ -1582,6 +1585,38 @@ export const router = sentryCreateBrowserRouter([
                       label: 'New',
                     },
                   ],
+                },
+              },
+              {
+                path: 'moratoriums/:moratoriumId/edit',
+                element: (
+                  <RequireAuthReactFire
+                    signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
+                  >
+                    <>
+                      <PageMeta title='iDemand - Edit Moratorium' />
+                      <MoratoriumEdit />
+                    </>
+                  </RequireAuthReactFire>
+                ),
+                handle: {
+                  crumb: (match: CrumbMatch) => {
+                    const moratoriumId = match.params.moratoriumId;
+                    return [
+                      {
+                        label: 'Moratoriums',
+                        link: createPath({
+                          path: ADMIN_ROUTES.MORATORIUMS,
+                        }),
+                      },
+                      {
+                        label: `${moratoriumId || ''}`,
+                      },
+                      {
+                        label: 'Edit',
+                      },
+                    ];
+                  },
                 },
               },
               {

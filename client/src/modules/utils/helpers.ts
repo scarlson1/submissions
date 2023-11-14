@@ -546,6 +546,15 @@ export const getDateShortcuts = (addDays: number[], date: Date = endOfToday()) =
   }));
 };
 
+export const getDateShortcutsWeeks = (addWeeks: number[], date: Date = endOfToday()) => {
+  return addWeeks.map((weeks) => ({
+    label: `${weeks} weeks`,
+    getValue: () => {
+      return addToDate({ weeks });
+    },
+  }));
+};
+
 export const getGeoHash = (
   coordinates?: { latitude: number | null; longitude: number | null } | GeoPoint | null | undefined
 ) => {

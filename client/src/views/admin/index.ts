@@ -11,6 +11,7 @@ export { ImportReview } from './ImportReview';
 export { LicenseEdit } from './LicenseEdit';
 export { LicenseNew } from './LicenseNew';
 export { Licenses } from './Licenses';
+export { MoratoriumEdit } from './MoratoriumEdit';
 export { MoratoriumNew } from './MoratoriumNew';
 export { Moratoriums } from './Moratoriums';
 export { Organization } from './Organization';
