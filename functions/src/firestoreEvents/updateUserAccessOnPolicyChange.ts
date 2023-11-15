@@ -6,7 +6,7 @@ import { getReportErrorFn } from '../common';
 
 const reportErr = getReportErrorFn('updateUserAccessOnPolicyChange');
 
-// TODO: duplicate logic with quotes --> move to reusable fn
+// alternative - subcollection: https://stackoverflow.com/a/46839558
 
 export default async (
   event: FirestoreEvent<
