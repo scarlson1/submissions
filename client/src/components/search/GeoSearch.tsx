@@ -2,7 +2,7 @@ import { ViewStateChangeParameters } from '@deck.gl/core/typed/controllers/contr
 import algoliasearch from 'algoliasearch/lite';
 import { GeoHit } from 'instantsearch.js/es/connectors/geo-search/connectGeoSearch';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { InstantSearch, SearchBox, useSearchBox } from 'react-instantsearch-hooks-web';
+import { InstantSearch, SearchBox, useSearchBox } from 'react-instantsearch';
 
 import { Box } from '@mui/material';
 import {

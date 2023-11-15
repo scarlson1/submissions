@@ -1,7 +1,5 @@
 import './search.css';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
-
 import type { AutocompleteOptions, AutocompleteState } from '@algolia/autocomplete-core';
 import type { SearchOptions } from '@algolia/client-search';
 import {
@@ -16,6 +14,7 @@ import {
   useColorScheme,
 } from '@mui/material';
 import type { SearchClient } from 'algoliasearch/lite';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import type { DocSearchHit, InternalDocSearchHit, StoredDocSearchHit } from 'common';
 import {

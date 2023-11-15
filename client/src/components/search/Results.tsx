@@ -1,10 +1,10 @@
-import { Chip, Typography } from '@mui/material';
 import type { AutocompleteApi, AutocompleteState, BaseItem } from '@algolia/autocomplete-core';
-
-import { Snippet } from './Snippet';
-import type { SearchProps } from './Search';
-import { COLLECTIONS, InternalDocSearchHit, StoredDocSearchHit } from 'common';
+import { Chip, Typography } from '@mui/material';
 import { useRef, useState } from 'react';
+
+import { COLLECTIONS, InternalDocSearchHit, StoredDocSearchHit } from 'common';
+import type { SearchProps } from './Search';
+import { Snippet } from './Snippet';
 
 interface ResultsProps<TItem extends BaseItem>
   extends AutocompleteApi<TItem, React.FormEvent, React.MouseEvent, React.KeyboardEvent> {

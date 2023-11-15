@@ -1,15 +1,15 @@
 // SOURCE: https://www.algolia.com/doc/ui-libraries/autocomplete/integrations/with-react-instantsearch-hooks/#using-autocomplete-as-a-search-box
 
-import { createElement, Fragment, useEffect, useRef, useState, useMemo } from 'react';
-import { usePagination, useSearchBox } from 'react-instantsearch-hooks';
-import { autocomplete, AutocompleteOptions } from '@algolia/autocomplete-js';
 import { BaseItem } from '@algolia/autocomplete-core';
-import type { SearchClient } from 'algoliasearch/lite';
-import { debounce } from '@algolia/autocomplete-shared';
-import { createLocalStorageRecentSearchesPlugin } from '@algolia/autocomplete-plugin-recent-searches';
+import { AutocompleteOptions, autocomplete } from '@algolia/autocomplete-js';
 import { createQuerySuggestionsPlugin } from '@algolia/autocomplete-plugin-query-suggestions';
+import { createLocalStorageRecentSearchesPlugin } from '@algolia/autocomplete-plugin-recent-searches';
+import { debounce } from '@algolia/autocomplete-shared';
 import '@algolia/autocomplete-theme-classic';
 import { Typography } from '@mui/material';
+import type { SearchClient } from 'algoliasearch/lite';
+import { Fragment, createElement, useEffect, useMemo, useRef, useState } from 'react';
+import { usePagination, useSearchBox } from 'react-instantsearch-core';
 
 // TODO: create useAutocomplete hook: https://www.algolia.com/doc/api-reference/widgets/autocomplete/react-hooks/
 

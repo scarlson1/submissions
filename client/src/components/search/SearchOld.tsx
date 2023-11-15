@@ -1,6 +1,6 @@
 import { Box, Unstable_Grid2 as Grid } from '@mui/material';
 import algoliasearch from 'algoliasearch/lite';
-import { Hits, Index, InstantSearch, Pagination, SearchBox } from 'react-instantsearch-hooks-web';
+import { Hits, Index, InstantSearch, Pagination, SearchBox } from 'react-instantsearch';
 // import { SearchModal } from './SearchModal';
 
 // import { Autocomplete } from './AlgoliaAutocompleteExample';

@@ -1,8 +1,9 @@
 import type { AutocompleteApi, AutocompleteState } from '@algolia/autocomplete-core';
-import { useEffect, type MutableRefObject } from 'react';
-import { InternalDocSearchHit } from 'common';
 import { ClearRounded, SearchRounded } from '@mui/icons-material';
 import { IconButton, InputAdornment, TextField } from '@mui/material';
+import { useEffect, type MutableRefObject } from 'react';
+
+import { InternalDocSearchHit } from 'common';
 
 // import { MAX_QUERY_SIZE } from './constants';
 // import { LoadingIcon } from './icons/LoadingIcon';

@@ -29,6 +29,7 @@ import {
 } from 'common';
 import { DownloadStorageFileButton, FlexCard, FlexCardContent } from 'components';
 import { IconMenu } from 'components/IconButtonMenu';
+import Search from 'components/search/reactQuery/Search';
 import { CSVUploadDialog } from 'elements';
 import { ControlledChangeRequestDialog } from 'elements/ChangeRequestDialog';
 import { PoliciesGrid } from 'elements/grids';
@@ -74,9 +75,9 @@ export const Policies = () => {
           {header}
           <PoliciesGrid checkboxSelection />
         </Box>
-        {/* <Box>
+        <Box>
           <Search filters='collectionName:users' onSelect={console.log} />
-        </Box> */}
+        </Box>
       </Container>
     );
 

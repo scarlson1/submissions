@@ -1,13 +1,13 @@
 // DOCS REF:
 // https://www.algolia.com/doc/guides/building-search-ui/ui-and-ux-patterns/geo-search/react-hooks/
-import connectGeoSearch from 'instantsearch.js/es/connectors/geo-search/connectGeoSearch';
-import { useConnector } from 'react-instantsearch-hooks-web';
 import type { BaseHit } from 'instantsearch.js';
 import type {
   GeoSearchConnector,
   GeoSearchConnectorParams,
   GeoSearchWidgetDescription,
 } from 'instantsearch.js/es/connectors/geo-search/connectGeoSearch';
+import connectGeoSearch from 'instantsearch.js/es/connectors/geo-search/connectGeoSearch';
+import { useConnector } from 'react-instantsearch';
 
 type UseGeoSearchProps<THit extends BaseHit> = GeoSearchConnectorParams<THit>;
 
