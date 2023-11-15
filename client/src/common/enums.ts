@@ -36,6 +36,7 @@ export enum COLLECTIONS {
   STAGED_RECORDS = 'stagedDocs',
   TASKS = 'tasks', // TODO: DELETE
   VERSIONS = 'versions',
+  PERMISSIONS = 'permissions',
 }
 
 const COLLECTIONS_Z = [

@@ -73,12 +73,13 @@ export function Search({
   // const { mode } = useChangeTheme();
   const { mode } = useColorScheme();
 
+  // TODO: redo algolia css not that mui css vars are available
   useEffect(() => {
     // TODO: just move to ThemeContext ?? set attribute in toggleTheme() ??
     // https://www.algolia.com/doc/ui-libraries/autocomplete/api-reference/autocomplete-theme-classic/#dark-mode
     const bodyRef = window.document.getElementsByTagName('body');
     if (bodyRef && bodyRef.length && bodyRef[0].getAttribute('data-theme') !== mode) {
-      console.log('SETTING "data-theme": ', mode);
+      // console.log('SETTING "data-theme": ', mode);
       mode && bodyRef[0].setAttribute('data-theme', mode);
     }
   }, [mode]);
@@ -155,18 +156,19 @@ export function Search({
         styles={(theme) => ({
           html: {
             ':root': {
-              '--docsearch-primary-color': theme.palette.primary[500],
-              '--docsearch-text-color': theme.palette.text.primary,
+              '--docsearch-primary-color': theme.vars.palette.primary.main, // theme.palette.primary[500],
+
+              '--docsearch-text-color': theme.vars.palette.text.primary,
               '--docsearch-muted-color': theme.palette.grey[600],
               '--docsearch-searchbox-shadow': 0,
               '--docsearch-hit-shadow': 0,
               '--docsearch-footer-shadow': 0,
               '--docsearch-spacing': theme.spacing(1.5),
-              '--docsearch-hit-active-color': theme.palette.primary[600],
-              '--docsearch-logo-color': theme.palette.grey[600],
+              '--docsearch-hit-active-color': theme.vars.palette.primary[600],
+              '--docsearch-logo-color': theme.vars.palette.grey[500],
               '--docsearch-searchbox-focus-background': 'unset',
               '--docsearch-footer-background': 'unset',
-              '--docsearch-modal-background': theme.palette.background.paper,
+              '--docsearch-modal-background': theme.vars.palette.background.paper,
             },
           },
           body: {
@@ -195,7 +197,7 @@ export function Search({
               alignItems: 'center',
               padding: theme.spacing(1, 1),
               fontSize: theme.typography.pxToRem(14),
-              color: theme.palette.text.secondary,
+              color: theme.vars.palette.text.secondary,
             },
             '& .DocSearch-NewStartScreenTitleIcon': {
               color: theme.palette.primary[500],
@@ -208,7 +210,7 @@ export function Search({
               cursor: 'pointer',
               width: '100%',
               padding: theme.spacing(0.5, 4.6),
-              color: theme.palette.primary[500],
+              color: theme.vars.palette.primary[500],
               fontWeight: 500,
               fontSize: theme.typography.pxToRem(14),
               '&:hover, &:focus': {
@@ -254,22 +256,22 @@ export function Search({
               padding: theme.spacing(0.3, 0.8, 0.6, 0.8),
               fontSize: 0,
               borderRadius: 5,
-              backgroundColor: theme.palette.grey[50],
+              backgroundColor: theme.vars.palette.grey[50],
               border: '1px solid',
-              borderColor: theme.palette.grey[300],
+              borderColor: theme.vars.palette.grey[300],
               '&::before': {
                 content: '"esc"',
                 fontSize: theme.typography.pxToRem(12),
                 letterSpacing: '.08rem',
                 fontWeight: 700,
-                color: theme.palette.text.secondary,
+                color: theme.vars.palette.text.secondary,
               },
             },
             '& .DocSearch-Dropdown': {
               minHeight: 384, // = StartScreen height, to prevent layout shift when first char
               '&::-webkit-scrollbar-thumb': {
-                borderColor: theme.palette.background.paper,
-                backgroundColor: theme.palette.grey[500],
+                borderColor: theme.vars.palette.background.paper,
+                backgroundColor: theme.vars.palette.grey[500],
               },
               '&::-webkit-scrollbar-track': {
                 backgroundColor: alpha(theme.palette.background.paper, 0.3),
@@ -293,7 +295,7 @@ export function Search({
               // background: theme.palette.background.paper,
               fontSize: theme.typography.pxToRem(13),
               fontWeight: 500,
-              color: theme.palette.text.secondary,
+              color: theme.vars.palette.text.secondary,
             },
             '& .DocSearch-Hit': {
               paddingBottom: 0,
@@ -308,8 +310,8 @@ export function Search({
               border: '1px solid transparent',
               borderBottomColor:
                 theme.palette.mode === 'dark'
-                  ? theme.palette.primaryDark[900]
-                  : theme.palette.grey[100],
+                  ? theme.vars.palette.primaryDark[900]
+                  : theme.vars.palette.grey[100],
             },
             '& .DocSearch-Hit-content-wrapper': {
               paddingLeft: theme.spacing(2),
@@ -320,7 +322,7 @@ export function Search({
             },
             '& .DocSearch-Hit-path': {
               fontSize: theme.typography.pxToRem(12),
-              color: `${theme.palette.text.secondary}`,
+              color: `${theme.vars.palette.text.secondary}`,
             },
             '& .DocSearch-Hit-Select-Icon': {
               height: '15px',
@@ -330,9 +332,9 @@ export function Search({
               {
                 backgroundColor:
                   theme.palette.mode === 'dark'
-                    ? theme.palette.primaryDark[900]
-                    : theme.palette.primary[50],
-                borderColor: theme.palette.primary[500],
+                    ? theme.vars.palette.primaryDark[900]
+                    : theme.vars.palette.primary[50],
+                borderColor: theme.vars.palette.primary.main, // .primary[500],
                 borderRadius: theme.shape.borderRadius,
               },
             '& .DocSearch-Hit-action, & .DocSearch-Hits mark': {
@@ -340,7 +342,7 @@ export function Search({
             },
             '& .DocSearch-Footer': {
               borderTop: '1px solid',
-              borderColor: theme.palette.grey[200],
+              borderColor: theme.vars.palette.grey[200],
               '& .DocSearch-Commands': {
                 display: 'none',
               },
@@ -353,10 +355,8 @@ export function Search({
           {
             // [theme.vars ? '[data-mui-color-scheme="dark"]:root' : '.mode-dark']: {
             'body[data-theme="dark"]': {
-              '--docsearch-primary-color': theme.palette.primaryDark[300],
-              '--docsearch-hit-active-color': theme.palette.primary[300],
-              // '--docsearch-primary-color': theme.palette.primaryDark[300],
-              // '--docsearch-hit-active-color': theme.palette.primary[300],
+              '--docsearch-primary-color': theme.vars.palette.primaryDark[300],
+              '--docsearch-hit-active-color': theme.vars.palette.primary[300],
             },
           },
           {
@@ -365,45 +365,45 @@ export function Search({
               backgroundColor: alpha(theme.palette.grey[900], 0.7),
             },
             '& .DocSearch-NewStartScreenTitleIcon': {
-              color: theme.palette.primaryDark[300],
+              color: theme.vars.palette.primaryDark[300],
             },
             '& .DocSearch-NewStartScreenItem': {
-              color: theme.palette.primaryDark[300],
+              color: theme.vars.palette.primaryDark[300],
             },
             '& .DocSearch-Modal': {
               boxShadow: `0px 4px 20px ${alpha(theme.palette.background.paper, 0.7)}`,
               border: '1px solid',
-              borderColor: theme.palette.primaryDark[700],
+              borderColor: theme.vars.palette.primaryDark[700],
             },
             '& .DocSearch-SearchBar': {
-              borderColor: theme.palette.primaryDark[700],
+              borderColor: theme.vars.palette.primaryDark[700],
             },
             '& .DocSearch-Cancel': {
-              backgroundColor: theme.palette.primaryDark[800],
-              borderColor: theme.palette.primaryDark[600],
+              backgroundColor: theme.vars.palette.primaryDark[800],
+              borderColor: theme.vars.palette.primaryDark[600],
             },
             '& .DocSearch-Dropdown': {
               '&::-webkit-scrollbar-thumb': {
-                borderColor: theme.palette.primaryDark[900],
-                backgroundColor: theme.palette.primaryDark[700],
+                borderColor: theme.vars.palette.primaryDark[900],
+                backgroundColor: theme.vars.palette.primaryDark[700],
               },
               '&::-webkit-scrollbar-track': {
                 backgroundColor: alpha(theme.palette.background.paper, 0.3),
               },
             },
             '& .DocSearch-Hit a, .DocSearch-Hit .onSelect-Item': {
-              borderBottomColor: theme.palette.primaryDark[700],
+              borderBottomColor: theme.vars.palette.primaryDark[700],
             },
             '& .DocSearch-Hit[aria-selected="true"] a, .DocSearch-Hit[aria-selected="true"] .onSelect-Item':
               {
-                backgroundColor: theme.palette.primaryDark[900],
-                borderColor: theme.palette.primaryDark[400],
+                backgroundColor: theme.vars.palette.primaryDark[900],
+                borderColor: theme.vars.palette.primaryDark[400],
               },
             '& .DocSearch-Hit-action, & .DocSearch-Hits mark': {
-              color: theme.palette.primary[400],
+              color: theme.vars.palette.primary[400],
             },
             '& .DocSearch-Footer': {
-              borderColor: theme.palette.primaryDark[700],
+              borderColor: theme.vars.palette.primaryDark[700],
             },
             // },
           },
@@ -428,9 +428,9 @@ export function TempWrappedSearch() {
     <>
       <Box sx={{ pb: 3 }}>
         <Search
-          appId={import.meta.env.VITE_ALGOLIA_APP_ID as string}
+          appId={import.meta.env.VITE_ALGOLIA_APP_ID}
           apiKey={apiKey}
-          indexName={import.meta.env.VITE_ALGOLIA_INDEX_NAME as string}
+          indexName={import.meta.env.VITE_ALGOLIA_INDEX_NAME}
           indexTitle='All Records'
           placeholder='Search...'
         />
@@ -454,9 +454,9 @@ export function TempAgentSearch({ onSelect }: { onSelect: (item: any) => void })
 
   return (
     <Search
-      appId={import.meta.env.VITE_ALGOLIA_APP_ID as string}
+      appId={import.meta.env.VITE_ALGOLIA_APP_ID}
       apiKey={apiKey}
-      indexName={import.meta.env.VITE_ALGOLIA_INDEX_NAME as string}
+      indexName={import.meta.env.VITE_ALGOLIA_INDEX_NAME}
       indexTitle='Agents'
       placeholder='Search agents by name, email, or orgId...'
       searchParameters={{

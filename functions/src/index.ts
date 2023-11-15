@@ -63,6 +63,8 @@ export {
   policychangerequest,
   // policycreated,
   sendinviteemail,
+  updateuseraccessonpolicychange,
+  updateuseraccessonquotechange,
 } from './firestoreEvents/index.js';
 export {
   versionlocation,

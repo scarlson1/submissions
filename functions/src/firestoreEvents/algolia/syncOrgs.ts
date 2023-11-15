@@ -46,7 +46,7 @@ export default async (
         ? `${newValue.address?.addressLine1} ${newValue.address?.city} ${newValue.address?.state}`.trim()
         : docId;
       if (!subtitle) {
-        subtitle = `${newValue.metadata.created.toDate()}`;
+        subtitle = `${newValue.metadata.created.toDate().toDateString()}`;
       }
 
       const ids = {

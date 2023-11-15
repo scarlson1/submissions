@@ -15,6 +15,9 @@ import { useAsyncToast, useCreateTenant, useWidth } from 'hooks';
 import { useSendAgencyAppNotification } from 'hooks/useCreateTenant';
 import { ADMIN_ROUTES, ROUTES, createPath } from 'router';
 
+// TODO: organize create tenant/org process
+// move more of the logic to hook
+
 export const AgencyApps = () => {
   const firestore = useFirestore();
   const navigate = useNavigate();

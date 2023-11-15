@@ -1,15 +1,13 @@
 import ReactJson from '@microlink/react-json-view';
-import { Box, Typography, useTheme } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 
 import { PageMeta } from 'components';
-import { useDocDataOnce, useSafeParams } from 'hooks';
+import { useDocDataOnce, useJsonTheme, useSafeParams } from 'hooks';
 
 export const AgencyApp = () => {
-  const theme = useTheme();
+  const jsonTheme = useJsonTheme();
   const { submissionId } = useSafeParams(['submissionId']);
-  const { data, status } = useDocDataOnce('AGENCY_APPLICATIONS', submissionId);
-
-  if (status === 'loading') return <div>Loading...</div>;
+  const { data } = useDocDataOnce('agencySubmissions', submissionId);
 
   return (
     <>
@@ -18,10 +16,10 @@ export const AgencyApp = () => {
         <Typography variant='h5' sx={{ ml: { sm: 3, md: 4 }, pb: 4 }}>
           Agency Submission
         </Typography>
-        <Typography variant='body2' color='text.secondary' component='div'>
+        <Typography variant='body2' component='div'>
           <ReactJson
             src={data}
-            theme={theme.palette.mode === 'dark' ? 'tomorrow' : 'rjv-default'}
+            theme={jsonTheme}
             style={{ background: 'transparent' }}
             iconStyle='circle'
             enableClipboard

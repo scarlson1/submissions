@@ -1388,6 +1388,14 @@ export interface UserClaims {
   [key: string]: any;
 }
 
+export interface UserAccess extends BaseDoc {
+  userId: string;
+  orgIds: string[];
+  agentIds: string[];
+  orgs: Record<string, AgencyDetails>;
+  agents: Record<string, AgentDetails>;
+}
+
 export type AuthProviders =
   | 'password'
   | 'phone'

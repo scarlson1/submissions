@@ -142,7 +142,9 @@ export const AccountDetails = () => {
                 </Box>
               </Grid>
               <Grid xs>
-                <Typography variant='h5'>{user ? user.displayName : ''}</Typography>
+                <Typography variant='h5' color='text.primary'>
+                  {user ? user.displayName : ''}
+                </Typography>
                 {/* <Typography variant='subtitle2' color='text.secondary'>
                   TODO: get org name or user's position/role
                 </Typography> */}

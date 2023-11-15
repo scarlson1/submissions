@@ -45,7 +45,7 @@ export default async (
       let subtitle =
         `${newValue.namedInsured?.email} ${newValue.namedInsured?.firstName} ${newValue.namedInsured?.lastName}`.trim();
       if (!subtitle) {
-        subtitle = `created: ${newValue.metadata.created.toDate()}`;
+        subtitle = `created: ${newValue.metadata.created.toDate().toDateString()}`;
       }
 
       const ids = {

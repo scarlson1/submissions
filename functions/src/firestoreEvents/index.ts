@@ -88,3 +88,21 @@ export const policychangerequest = onDocumentWritten(
     await (await import('./policyChangeRequest.js')).default(event);
   }
 );
+
+export const updateuseraccessonpolicychange = onDocumentWritten(
+  {
+    document: `${Collection.Enum.policies}/{policyId}`,
+  },
+  async (event) => {
+    await (await import('./updateUserAccessOnPolicyChange.js')).default(event);
+  }
+);
+
+export const updateuseraccessonquotechange = onDocumentWritten(
+  {
+    document: `${Collection.Enum.quotes}/{quoteId}`,
+  },
+  async (event) => {
+    await (await import('./updateUserAccessOnQuoteChange.js')).default(event);
+  }
+);

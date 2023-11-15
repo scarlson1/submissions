@@ -158,18 +158,29 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    // TODO: update allow read of user profile (tenant/agent/insured etc.)
     match /users/{userId} {
-      allow read: if isUser(userId) || isTenantUser(existingData().orgId) || (isIDemandAdmin() && emailVerified()) 
+      allow read: if isUser(userId) || isTenantUser(existingData().orgId) || (isIDemandAdmin() && emailVerified()) || userIdInArray(getUserAccessDoc(userId).data.get(['agentIds'], [])) || tenantIdInArray(getUserAccessDoc(userId).data.get(['agentIds'], []))
       // TODO: allow agent / agency users to read if x association (where user.tenantId = policy.agency.orgId, etc.) ?? need to run query ??
       allow create: if isUser(userId) || (isIDemandAdmin() && emailVerified())
       allow update: if isUser(userId) || (isIDemandAdmin() && emailVerified())
       allow delete: if isIDemandAdmin() && emailVerified()
     }
 
+    function getUserAccessDoc(userId) {
+      return get(/databases/$(database)/documents/users/$(userId)/permissions/private)
+    }
+    function userIdInArray(arr) {
+      return isSignedIn() && request.auth.uid in arr
+    }
+    function tenantIdInArray(arr) {
+      return isSignedIn() && request.auth.token.firebase.tenant in arr
+    }
+    
+
     match /users/{userId}/paymentMethods/{pmtMethodId} {
       allow create, update, read, delete: if isUser(userId) || (isIDemandAdmin() && emailVerified())
     }
+
 
     match /financialTransactions/{transactionId} {
       allow read: if isDocUser() || isIDemandAdmin()

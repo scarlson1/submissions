@@ -33,7 +33,7 @@ export function getURLByType(item: any) {
   //   // url = `${base}/user/${item.objectID}`;
   //   url = `/user/${item.objectID}`;
   // }
-  if (item.type === COLLECTIONS.QUOTES) {
+  if (item.collectionName === COLLECTIONS.QUOTES) {
     url = createPath({ path: ROUTES.QUOTE_VIEW, params: { quoteId: item.objectID } });
   }
   if (item.collectionName === COLLECTIONS.ORGANIZATIONS) {
@@ -48,6 +48,10 @@ export function getURLByType(item: any) {
   // TODO: standardize routes
   if (item.collectionName === COLLECTIONS.POLICIES) {
     url = createPath({ path: ROUTES.POLICY, params: { policyId: item.objectID } });
+  }
+  if (item.collectionName === COLLECTIONS.USERS) {
+    // TODO: create user route
+    // url = createPath({ path: ROUTES.USER, params: { userId: item.objectID }})
   }
   // TODO: finish getUrl func
   return url;

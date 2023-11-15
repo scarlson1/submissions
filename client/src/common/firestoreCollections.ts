@@ -26,6 +26,7 @@ import {
   Submission,
   TTax,
   User,
+  UserAccess,
   UserClaims,
 } from './types';
 
@@ -145,6 +146,9 @@ export const stagedImportsCollection = (db: Firestore, importId: string, ...rest
     COLLECTIONS.STAGED_RECORDS,
     ...rest
   );
+
+export const userAccess = (db: Firestore, userId: string) =>
+  createCollection<UserAccess, UserAccess>(db, COLLECTIONS.USERS, userId, COLLECTIONS.PERMISSIONS);
 
 // export const notificationsCollection = (userId: string) =>
 //   createCollection<Notification>(COLLECTIONS.USERS, userId, COLLECTIONS.NOTIFICATIONS);
