@@ -1,5 +1,10 @@
 import { useCallback, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { z } from 'zod';
+
+// TODO: store "view" preference in local storage ??
+export const DataViewType = z.enum(['cards', 'grid', 'map']);
+export type TDataViewType = z.infer<typeof DataViewType>;
 
 const getInitTabView = <T extends string>(
   searchParam: string | null,

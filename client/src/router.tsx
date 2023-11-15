@@ -36,6 +36,7 @@ import {
   SubmissionNew,
   SubmissionNewPortfolio,
   Submissions,
+  UserDetails,
   ViewQuote,
 } from 'views';
 import {
@@ -106,7 +107,7 @@ export enum ROUTES {
   QUOTE_BIND = '/quotes/:quoteId/bind',
   QUOTE_BIND_SUCCESS = '/quotes/:quoteId/bind/success/:transactionId?',
   CONTACT = '/contact',
-  USER_QUOTES = '/quotes/list/:userId',
+  USER_QUOTES = '/quotes/list/:userId', // TODO: use users view instead (with query param to initialize tab state)
   POLICIES = '/policies',
   POLICY = '/policies/:policyId',
   ADD_LOCATION_NEW = '/policies/:policyId/locations/new',
@@ -115,6 +116,7 @@ export enum ROUTES {
   AGENCY_NEW = '/agency/new',
   AGENCY_NEW_SUBMITTED = '/agency/new/:submissionId/success',
   ACCOUNT = '/account',
+  USER = '/user/:userId',
 }
 
 export enum ADMIN_ROUTES {
@@ -185,15 +187,12 @@ type TArgs =
   | { path: ROUTES.AGENCY_NEW }
   | { path: ROUTES.AGENCY_NEW_SUBMITTED; params: { submissionId: string } }
   | { path: ROUTES.CONTACT }
-  // | { path: ROUTES.ACCOUNT }
-  // | { path: ADMIN_ROUTES.SUBMISSIONS }
+  | { path: ROUTES.USER }
   | { path: ADMIN_ROUTES.SUBMISSION_VIEW; params: { submissionId: string } }
-  // | { path: ADMIN_ROUTES.QUOTES }
   | { path: ADMIN_ROUTES.QUOTE_NEW_BLANK; params: { productId: TProduct } }
   | { path: ADMIN_ROUTES.QUOTE_NEW; params: { productId: TProduct; submissionId: string } }
   | { path: ADMIN_ROUTES.QUOTE_EDIT; params: { productId: TProduct; quoteId: string } }
   | { path: ADMIN_ROUTES.POLICY_DELIVERY; params: { policyId: string } }
-  // | { path: ADMIN_ROUTES.POLICIES; search?: { productId?: TProduct } }
   | { path: ADMIN_ROUTES.CONFIG }
   | { path: ADMIN_ROUTES.SL_TAXES }
   | { path: ADMIN_ROUTES.SL_TAXES_NEW }
@@ -588,8 +587,29 @@ export const router = sentryCreateBrowserRouter([
                 {
                   label: 'Account',
                   link: createPath({
-                    path: ACCOUNT_ROUTES.ACCOUNT, // ROUTES.ACCOUNT,
+                    path: ACCOUNT_ROUTES.ACCOUNT,
                   }),
+                },
+              ],
+            },
+          },
+          {
+            path: ROUTES.USER,
+            element: (
+              <RequireAuthReactFire>
+                <>
+                  <PageMeta title='iDemand - User' />
+                  <UserDetails />
+                </>
+              </RequireAuthReactFire>
+            ),
+            handle: {
+              crumb: (match: CrumbMatch) => [
+                {
+                  label: 'Users',
+                },
+                {
+                  label: `${match?.params?.userId || ''}`,
                 },
               ],
             },

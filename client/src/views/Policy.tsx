@@ -33,7 +33,7 @@ import { where } from 'firebase/firestore';
 import { isEmpty } from 'lodash';
 import { Suspense, useCallback, useMemo } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
-import { z } from 'zod';
+import { useNavigate } from 'react-router-dom';
 
 import { ILocation, Policy as IPolicy, WithId } from 'common';
 import { ErrorFallback, LoadingSpinner, NotFound, PageMeta } from 'components';
@@ -46,6 +46,8 @@ import {
 import { ContactList } from 'elements/forms';
 import { LocationsGrid } from 'elements/grids';
 import {
+  DataViewType,
+  TDataViewType,
   useCreatePolicyChangeRequest,
   useDocData,
   useGeneratePDF,
@@ -63,7 +65,6 @@ import {
   formatPhoneNumber,
   stringAvatar,
 } from 'modules/utils';
-import { useNavigate } from 'react-router-dom';
 import { ROUTES, createPath } from 'router';
 
 // TODO: should locations grid be passed location IDs explicitly ?? instead if querying locations collection
@@ -76,10 +77,6 @@ import { ROUTES, createPath } from 'router';
 //    - submit claim
 
 // TODO: locations cards container needs max height w/ scroll so if there's a lot of policies the user can still reach the bottom
-
-// TODO: store "view" preference in local storage ??
-const DataViewType = z.enum(['cards', 'grid', 'map']);
-type TDataViewType = z.infer<typeof DataViewType>;
 
 export const Policy = () => {
   const { policyId } = useSafeParams(['policyId']);
