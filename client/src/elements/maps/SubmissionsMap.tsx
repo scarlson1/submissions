@@ -17,7 +17,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { Submission, WithId } from 'common';
 import { useCollectionData } from 'hooks';
-import { ICON_MAPPING, MAP_ICON_URL, TypedPickingInfo, getRGBAArray } from 'modules/utils';
+import { ICON_MAPPING, MAP_ICON_URL, TypedPickingInfo, getRGBAArray, logDev } from 'modules/utils';
 import { DeckMap, HoverInfo } from './DeckMap';
 
 // TODO: study how MUI 'slots' works to create component that can add filters, etc.
@@ -29,24 +29,22 @@ const stateOptions = ['MN', 'FL', 'TN'];
 
 // TODO: draw layers using nebula: https://github.com/uber/nebula.gl/blob/master/modules/edit-modes/src/lib/draw-circle-from-center-mode.ts
 
-// TODO: SWITCH TO POLICIES
 // TODO: pull filters, etc. up to parent component and pass as prop ??
+
+// TODO: zoom to bounds (on data change)
 
 interface SubmissionsMapProps {
   constraints?: QueryConstraint[];
   layerProps?: Omit<Partial<IconLayerProps>, 'getSize' | 'onHover'>;
-  // initState?: string[] | undefined;
-  // initOrgId?: string | null | undefined;
 }
 
 export const SubmissionsMap = ({ constraints = [], layerProps }: SubmissionsMapProps) => {
   const { data: submissionData } = useCollectionData('SUBMISSIONS', constraints, { idField: 'id' });
-  useEffect(() => {
-    console.log('DATA: ', submissionData);
-  }, [submissionData]);
-
-  // MAP STATE
   const [hoverInfo, setHoverInfo] = useState<TypedPickingInfo<WithId<Submission>>>();
+
+  useEffect(() => {
+    logDev('DATA: ', submissionData);
+  }, [submissionData]);
 
   const layers = [
     new IconLayer({
@@ -72,7 +70,6 @@ export const SubmissionsMap = ({ constraints = [], layerProps }: SubmissionsMapP
       <HoverInfo
         pickingInfo={hoverInfo}
         renderTooltipContent={(info: TypedPickingInfo<WithId<Submission>>) => {
-          console.log('pick: ', info);
           return (
             <Box sx={{ px: 2, borderRadius: 0.5 }}>
               <Typography variant='body2' fontWeight='fontWeightMedium'>

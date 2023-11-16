@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { ExpandMoreRounded } from '@mui/icons-material';
 import {
   Box,
   Button,
@@ -8,20 +8,20 @@ import {
   CardMedia,
   Chip,
   Collapse,
+  Unstable_Grid2 as Grid,
   IconButton,
   IconButtonProps,
   Typography,
-  Unstable_Grid2 as Grid,
 } from '@mui/material';
-import { styled, SxProps } from '@mui/system';
-import { ExpandMoreRounded } from '@mui/icons-material';
-import { onSnapshot, query, orderBy, where, limit, getFirestore } from 'firebase/firestore';
+import { SxProps, styled } from '@mui/system';
+import { getFirestore, limit, onSnapshot, orderBy, query, where } from 'firebase/firestore';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { Submission, WithId, fallbackImages, submissionsCollection } from 'common';
 import { useAuth } from 'context';
 import { dollarFormat, formatFirestoreTimestamp, numberFormat } from 'modules/utils/helpers';
-import { createPath, ROUTES } from 'router';
-import { Submission, submissionsCollection, WithId, fallbackImages } from 'common';
+import { ROUTES, createPath } from 'router';
 
 export const useUserSubmissions = () => {
   const { user } = useAuth();
@@ -104,6 +104,7 @@ export const Item = ({
         fontSize={13}
         fontWeight='fontWeightMedium'
         sx={{ ml: 3 }}
+        align='right'
       >
         {value}
       </Typography>

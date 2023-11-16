@@ -48,7 +48,7 @@ export const PoliciesMap = ({ constraints }: PoliciesMapProps) => {
       getIcon: (d: CoordObj) => ({
         url: svgToDataURL(
           `${getPlaceMarker(
-            d.cancelEffDate ? theme.palette.primaryDark.main : theme.palette.primary.main
+            d.cancelEffDate ? theme.vars.palette.primaryDark.main : theme.vars.palette.primary.main
           )}`
         ),
         width: 36,

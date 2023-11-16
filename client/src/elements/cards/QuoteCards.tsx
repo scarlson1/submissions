@@ -1,40 +1,31 @@
 import { LoadingButton } from '@mui/lab';
-import { Unstable_Grid2 as Grid, Typography } from '@mui/material';
-import { DocumentReference, where } from 'firebase/firestore';
+import { Unstable_Grid2 as Grid, Typography } from '@mui/material/';
+import { DocumentReference, QueryFieldFilterConstraint } from 'firebase/firestore';
 import { Fragment, useEffect } from 'react';
 import { useInView } from 'react-intersection-observer';
 
-import { COLLECTIONS, ILocation, Policy } from 'common';
-import { useDocData, useInfiniteDocs } from 'hooks';
-import { LocationCard, LocationCardProps } from './LocationCard';
+import { COLLECTIONS, Quote } from 'common';
+import { useInfiniteDocs } from 'hooks';
+import { logDev } from 'modules/utils';
+import { QuoteCard, QuoteCardProps } from './QuoteCard';
 
-// TODO: virtualize ?? need to with 100 + locations
-// tanstack virtual: https://tanstack.com/virtual/v3/docs/examples/react/infinite-scroll
-// TODO: animate entrance (fade ??)
-// TODO: add sort / filter capabilities
-// passed as props so same filters can be shared across cards/map ??
-
-interface PolicyLocationCardsProps extends Omit<LocationCardProps, 'location' | 'namedInsured'> {
-  policyId: string;
+interface QuoteCardsProps extends Omit<QuoteCardProps, 'data'> {
+  constraints: QueryFieldFilterConstraint[];
   startingCursor?: DocumentReference;
   pageSize?: number;
 }
 
-export const PolicyLocationCards = ({ policyId, ...props }: PolicyLocationCardsProps) => {
+export const QuoteCards = ({ constraints, ...props }: QuoteCardsProps) => {
   const { ref, inView } = useInView();
-  const { data: policy } = useDocData<Policy>('POLICIES', policyId);
-  const { data, error, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    useInfiniteDocs<ILocation>(COLLECTIONS.LOCATIONS, [
-      where('policyId', '==', policyId),
-      where('parentType', '==', 'policy'),
-    ]);
-  // limited to 50 IDs:
-  // where(documentId(), 'in', Object.keys(policy.locations)),
+  const { data, error, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteDocs<Quote>(
+    COLLECTIONS.QUOTES,
+    constraints
+  );
 
   useEffect(() => {
     if (!hasNextPage) return;
     if (inView) {
-      console.log('fetchNextPage...');
+      logDev('fetchNextPage...');
       fetchNextPage();
     } // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inView, hasNextPage]);
@@ -49,10 +40,10 @@ export const PolicyLocationCards = ({ policyId, ...props }: PolicyLocationCardsP
         sx={{ overflowY: 'auto', pt: 3 }}
       >
         {data?.pages.map((group, i) => (
-          <Fragment key={i}>
-            {group.data.map((l) => (
-              <Grid xs={12} sm={6} md={4} xl={3} key={l.id}>
-                <LocationCard location={l} namedInsured={policy.namedInsured} {...props} />
+          <Fragment key={`quote-card-group-${i}`}>
+            {group.data.map((q) => (
+              <Grid xs={12} sm={6} md={4} xl={3} key={q.id}>
+                <QuoteCard data={q} />
               </Grid>
             ))}
           </Fragment>

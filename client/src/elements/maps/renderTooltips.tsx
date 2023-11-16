@@ -2,8 +2,8 @@ import { Box, Typography } from '@mui/material';
 import { format } from 'date-fns';
 import { PickingInfo } from 'deck.gl/typed';
 
-import { ILocation, Policy, PolicyLocation } from 'common';
-import { dollarFormat, formatFirestoreTimestamp } from 'modules/utils';
+import { ILocation, Policy, PolicyLocation, Quote, WithId } from 'common';
+import { dollarFormat, formatDate, formatFirestoreTimestamp } from 'modules/utils';
 
 export function renderEventTooltip(info?: PickingInfo) {
   if (!info) return null;
@@ -105,6 +105,34 @@ export function renderPolicyLocationTooltip(info: PickingInfo) {
           {`Policy ID: ${location.policyId}`}
         </Typography>
       ) : null}
+    </Box>
+  );
+}
+
+const currentMS = new Date().getTime();
+
+export function renderQuoteTooltip(info: PickingInfo) {
+  const quote = info?.object as WithId<Quote>;
+  if (!quote) return null;
+
+  const isExpired = quote.quoteExpirationDate?.toMillis() < currentMS;
+  const status = isExpired ? 'expired' : quote.status;
+
+  return (
+    <Box>
+      <Typography variant='body1' fontWeight='fontWeightMedium'>
+        {quote.address?.addressLine1}
+      </Typography>
+      <Typography
+        variant='body2'
+        color='text.secondary'
+        sx={{ fontSize: '0.725rem' }}
+      >{`status: ${status}`}</Typography>
+      <Typography
+        variant='body2'
+        color='text.secondary'
+        sx={{ fontSize: '0.725rem' }}
+      >{`Expiration: ${formatDate(quote.quoteExpirationDate?.toDate())}`}</Typography>
     </Box>
   );
 }

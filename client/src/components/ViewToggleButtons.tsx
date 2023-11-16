@@ -9,6 +9,9 @@ import { ReactElement } from 'react';
 
 import { useSearchParamToggle } from 'hooks';
 
+// TODO: theme toggle buttons size small --> smaller padding on buttons
+// see mui api toggle buttons for reference
+
 interface ViewToggleButtonsProps<T extends string>
   extends Omit<ToggleButtonGroupProps, 'value' | 'onChange'> {
   queryKey: string;

@@ -1,4 +1,5 @@
 import { ExpandMoreRounded } from '@mui/icons-material';
+import { LoadingButton } from '@mui/lab';
 import {
   Box,
   Button,
@@ -14,19 +15,30 @@ import {
   Typography,
 } from '@mui/material';
 import { SxProps, styled } from '@mui/system';
-import { getFirestore, limit, onSnapshot, orderBy, query, where } from 'firebase/firestore';
+import {
+  QueryFieldFilterConstraint,
+  getFirestore,
+  limit,
+  onSnapshot,
+  orderBy,
+  query,
+  where,
+} from 'firebase/firestore';
 import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import { useInView } from 'react-intersection-observer';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from 'reactfire';
 
-import { LoadingButton } from '@mui/lab';
 import { VoidSVG } from 'assets/images';
 import { COLLECTIONS, Submission, WithId, fallbackImages, submissionsCollection } from 'common';
-import { LoadingSpinner } from 'components';
 import { useAuth } from 'context/AuthContext';
 import { useInfiniteDocs } from 'hooks';
-import { dollarFormat, formatFirestoreTimestamp, numberFormat } from 'modules/utils/helpers';
+import {
+  dollarFormat,
+  formatFirestoreTimestamp,
+  logDev,
+  numberFormat,
+} from 'modules/utils/helpers';
 import { ROUTES, createPath } from 'router';
 
 // TODO: use useSignInCheck
@@ -116,11 +128,11 @@ export const Item = ({
 };
 
 // TODO: need to throw if no user
-const useUserSubmissions = (userId: string) => {
+const useUserSubmissions = (constraints: QueryFieldFilterConstraint[] = []) => {
   const { ref, inView } = useInView();
   const { data, error, status, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useInfiniteDocs<Submission>(COLLECTIONS.SUBMISSIONS, [
-      where('userId', '==', userId),
+      ...constraints,
       orderBy('metadata.created', 'desc'),
     ]);
 
@@ -147,15 +159,8 @@ const useUserSubmissions = (userId: string) => {
 };
 
 export const Submissions = () => {
-  const navigate = useNavigate();
   const { data: user } = useUser();
   if (!user?.uid) throw new Error('must be signed in');
-  const { data, status, error, isFetchingNextPage, hasNextPage, fetchNextPage, loadMoreRef } =
-    useUserSubmissions(user.uid);
-
-  useEffect(() => {
-    console.log('DATA: ', data);
-  }, [data]);
 
   return (
     <Box>
@@ -163,65 +168,93 @@ export const Submissions = () => {
         <Typography variant='h5' gutterBottom sx={{ pl: 3 }}>
           Your Submissions
         </Typography>
-        <LoadingSpinner loading={isFetchingNextPage} />
+        {/* <LoadingSpinner loading={isFetchingNextPage} /> */}
       </Box>
+      <SubmissionCards constraints={[where('userId', '==', user.uid)]} />
+    </Box>
+  );
+};
 
-      {status === 'pending' ? (
+interface SubmissionCardsProps {
+  constraints: QueryFieldFilterConstraint[];
+}
+
+export const SubmissionCards = ({ constraints }: SubmissionCardsProps) => {
+  const navigate = useNavigate();
+  const { data, status, error, isFetchingNextPage, hasNextPage, fetchNextPage, loadMoreRef } =
+    useUserSubmissions(constraints);
+
+  useEffect(() => {
+    logDev('DATA: ', data);
+  }, [data]);
+
+  if (status === 'pending') return <Typography align='center'>Loading...</Typography>;
+
+  return (
+    <Box>
+      {/* <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+        <Typography variant='h5' gutterBottom sx={{ pl: 3 }}>
+          Your Submissions
+        </Typography>
+        <LoadingSpinner loading={isFetchingNextPage} />
+      </Box> */}
+
+      {/* {status === 'pending' ? (
         <Typography align='center'>Loading...</Typography>
-      ) : (
-        <>
-          {data && data?.pages?.length > 0 ? (
-            <>
-              <Grid container spacing={8} sx={{ my: 4 }}>
-                {data?.pages.map((group, i) => (
-                  <Fragment key={`submission-group-${i}`}>
-                    {group.data.map((s) => (
-                      <Grid xs={12} sm={6} md={4} lg={4} xl={3} key={s.id}>
-                        <SubmissionCard submission={s} />
-                      </Grid>
-                    ))}
-                  </Fragment>
-                ))}
-                <Grid xs={12} sx={{ display: 'flex', justifyContent: 'center' }}>
-                  <LoadingButton
-                    ref={loadMoreRef}
-                    onClick={() => fetchNextPage()}
-                    disabled={!hasNextPage || isFetchingNextPage}
-                    loading={isFetchingNextPage}
-                  >
-                    {isFetchingNextPage
-                      ? 'Loading more...'
-                      : hasNextPage
-                      ? 'Load more'
-                      : 'All items loaded'}
-                  </LoadingButton>
-                </Grid>
-              </Grid>
-            </>
-          ) : (
-            <Box>
-              <Box sx={{ height: { xs: 60, sm: 80, md: 100 }, width: '100%' }}>
-                {/* <VoidSVG height='100%' width='100%' preserveAspectRatio='xMidYMin meet' /> */}
-                <VoidSVG height='100%' width='100%' preserveAspectRatio='xMidYMin meet' />
-              </Box>
-              <Typography variant='subtitle2' color='text.secondary' align='center' sx={{ py: 2 }}>
-                No Submissions
-              </Typography>
-              <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
-                <Button
-                  onClick={() =>
-                    navigate(
-                      createPath({ path: ROUTES.SUBMISSION_NEW, params: { productId: 'flood' } })
-                    )
-                  }
+      ) : ( */}
+      <>
+        {data && data?.pages?.length > 0 ? (
+          <>
+            <Grid container spacing={8} sx={{ my: 4 }}>
+              {data?.pages.map((group, i) => (
+                <Fragment key={`submission-group-${i}`}>
+                  {group.data.map((s) => (
+                    <Grid xs={12} sm={6} md={4} lg={4} xl={3} key={s.id}>
+                      <SubmissionCard submission={s} />
+                    </Grid>
+                  ))}
+                </Fragment>
+              ))}
+              <Grid xs={12} sx={{ display: 'flex', justifyContent: 'center' }}>
+                <LoadingButton
+                  ref={loadMoreRef}
+                  onClick={() => fetchNextPage()}
+                  disabled={!hasNextPage || isFetchingNextPage}
+                  loading={isFetchingNextPage}
                 >
-                  Start a quote
-                </Button>
-              </Box>
+                  {isFetchingNextPage
+                    ? 'Loading more...'
+                    : hasNextPage
+                    ? 'Load more'
+                    : 'All items loaded'}
+                </LoadingButton>
+              </Grid>
+            </Grid>
+          </>
+        ) : (
+          <Box>
+            <Box sx={{ height: { xs: 60, sm: 80, md: 100 }, width: '100%' }}>
+              {/* <VoidSVG height='100%' width='100%' preserveAspectRatio='xMidYMin meet' /> */}
+              <VoidSVG height='100%' width='100%' preserveAspectRatio='xMidYMin meet' />
             </Box>
-          )}
-        </>
-      )}
+            <Typography variant='subtitle2' color='text.secondary' align='center' sx={{ py: 2 }}>
+              No Submissions
+            </Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+              <Button
+                onClick={() =>
+                  navigate(
+                    createPath({ path: ROUTES.SUBMISSION_NEW, params: { productId: 'flood' } })
+                  )
+                }
+              >
+                Start a quote
+              </Button>
+            </Box>
+          </Box>
+        )}
+      </>
+      {/* )} */}
 
       {Boolean(error) && (
         <>

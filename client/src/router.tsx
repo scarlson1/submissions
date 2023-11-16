@@ -596,12 +596,12 @@ export const router = sentryCreateBrowserRouter([
           {
             path: ROUTES.USER,
             element: (
-              <RequireAuthReactFire>
+              <RequireAuth>
                 <>
                   <PageMeta title='iDemand - User' />
                   <UserDetails />
                 </>
-              </RequireAuthReactFire>
+              </RequireAuth>
             ),
             handle: {
               crumb: (match: CrumbMatch) => [

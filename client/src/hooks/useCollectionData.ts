@@ -9,6 +9,8 @@ import { ReactFireOptions, useFirestore, useFirestoreCollectionData } from 'reac
 
 import { COLLECTIONS, WithId } from 'common';
 
+// TODO: use ...pathSegments ??
+
 export const useCollectionData = <T = DocumentData>(
   colName: keyof typeof COLLECTIONS, // TODO: better typing - able to check if part of enum?
   constraints: QueryConstraint[] = [],

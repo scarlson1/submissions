@@ -1,7 +1,6 @@
-import { useEffect } from 'react';
-
 import { Box, Button, CircularProgress, Typography } from '@mui/material';
 import { IdTokenResult, signInAnonymously } from 'firebase/auth';
+import { useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import {

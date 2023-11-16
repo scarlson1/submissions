@@ -119,9 +119,6 @@ export const LocationCard = ({
               </Box>
               <Box>
                 <Divider light sx={{ my: { xs: 3, md: 4 } }} />
-                {/* <Box
-                  sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}
-                > */}
                 <AvatarGroup max={4} sx={{ justifyContent: 'flex-end' }}>
                   {namedInsured ? (
                     <Tooltip title={`${namedInsured.displayName}`} key={namedInsured.email}>
@@ -138,46 +135,11 @@ export const LocationCard = ({
                       ))
                     : null}
                 </AvatarGroup>
-                {/* <IconButton
-                    size='small'
-                    edge='end'
-                    aria-label='location change request'
-                    // sx={{ position: 'absolute', top: 10, right: 10 }}
-                    onClick={handleEdit}
-                  >
-                    <EditRounded fontSize='inherit' />
-                  </IconButton>
-                </Box> */}
               </Box>
             </Box>
           </FlexCardContent>
         </CardActionArea>
       </FlexCardContentWrapper>
-      {/* </CardActionArea> */}
-      {/* <CardActions disableSpacing sx={{ flexWrap: 'wrap' }}>
-        
-        <Box sx={{ flex: '1 0 100%' }}>
-          <Divider light sx={{ my: { xs: 3, md: 4 } }} flexItem />
-        </Box>
-        <AvatarGroup max={4} sx={{ justifyContent: 'flex-end' }}>
-          {namedInsured ? (
-            <Tooltip title={`${namedInsured.displayName}`} key={namedInsured.email}>
-              
-              <Avatar alt={namedInsured.displayName || 'i d'} />
-            </Tooltip>
-          ) : null}
-          {location?.additionalInsureds?.length
-            ? location.additionalInsureds.map((f, i) => (
-                <Tooltip title={`${f?.name}`} key={`${f.email}-${i}`}>
-                  
-                  <Avatar alt={`${f.email}-${i}`} />
-                </Tooltip>
-              ))
-            : null}
-        </AvatarGroup>
-        
-      </CardActions> */}
-      {/* </CardActionArea> */}
     </FlexCard>
   );
 };

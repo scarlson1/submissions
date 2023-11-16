@@ -3,5 +3,6 @@ export { ActiveStateMap } from './ActiveStateMap';
 export { CountiesMap } from './CountiesMap';
 export { DeckMap } from './DeckMap';
 export { PoliciesMap } from './PoliciesMap';
+export { QuotesMap } from './QuotesMap';
 export { SubmissionsMap } from './SubmissionsMap';
 export * from './constants';

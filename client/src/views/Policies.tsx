@@ -16,17 +16,11 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import { where } from 'firebase/firestore';
+import { QueryConstraint, where } from 'firebase/firestore';
 import { camelCase, isEmpty } from 'lodash';
 import { useNavigate } from 'react-router-dom';
 
-import {
-  AdditionalInsured,
-  ILocation,
-  POLICY_IMPORT_REQUIRED_HEADERS,
-  StorageFolder,
-  fallbackImages,
-} from 'common';
+import { POLICY_IMPORT_REQUIRED_HEADERS, Policy, StorageFolder, fallbackImages } from 'common';
 import { DownloadStorageFileButton, FlexCard, FlexCardContent } from 'components';
 import { IconMenu } from 'components/IconButtonMenu';
 import Search from 'components/search/reactQuery/Search';
@@ -101,8 +95,6 @@ export const Policies = () => {
       </Container>
     );
 
-  // BUG: flashes before observable updates ??
-  console.log('returning must be signed in', claims);
   if (!user?.uid) return <Typography align='center'>Must be signed in</Typography>;
 
   return (
@@ -117,7 +109,7 @@ export const Policies = () => {
           Policies
         </Typography>
       </Box>
-      <UserPolicies userId={user.uid} />
+      <UserPolicyCards constraints={[where('namedInsured.userId', '==', user.uid)]} />
     </Container>
   );
 };
@@ -207,14 +199,17 @@ function AdminPoliciesActionMenu() {
 // ];
 
 // TODO: fix converting component to new schema
+// redo to match quotes and location cards ??
+// TODO: USE INFINITE SCROLL ??
+const currentMS = new Date().getTime();
+// const getLocationImg = (location: PolicyLocation, theme: 'light' | 'dark', i: number) =>
+//   location?.imageURLs ? location?.imageURLs[theme] : fallbackImages[i] || fallbackImages[0];
 
-const getLocationImg = (location: ILocation, theme: 'light' | 'dark', i: number) =>
-  location?.imageURLs ? location?.imageURLs[theme] : fallbackImages[i] || fallbackImages[0];
-
-export const UserPolicies = ({ userId }: { userId: string }) => {
+// export const UserPolicies = ({ userId }: { userId: string }) => {
+export const UserPolicyCards = ({ constraints }: { constraints: QueryConstraint[] }) => {
   const navigate = useNavigate();
   const theme = useTheme();
-  const { data: policies } = useCollectionData('POLICIES', [where('userId', '==', userId)]);
+  const { data: policies } = useCollectionData<Policy>('POLICIES', constraints);
 
   const handleClick = useCallback(
     (policyId: string) => {
@@ -227,11 +222,17 @@ export const UserPolicies = ({ userId }: { userId: string }) => {
     <>
       <Grid container spacing={8} sx={{ my: 4 }}>
         {policies?.map((p, i) => {
+          // TODO: generate / use policy image
           // TODO: only use new Policy schema ??
           const location =
             p.locations && typeof p.locations === 'object' && !isEmpty(p.locations)
               ? Object.values(p.locations)[0]
               : p;
+
+          const activeLocationCount = Object.entries(p.locations || {}).filter(
+            ([id, lcn]) =>
+              !lcn.cancelEffDate || (lcn.cancelEffDate && lcn.cancelEffDate.toMillis() > currentMS)
+          ).length;
 
           return (
             <Grid xs={12} sm={6} md={4} lg={3} key={p.id}>
@@ -250,7 +251,8 @@ export const UserPolicies = ({ userId }: { userId: string }) => {
                 <CardActionArea onClick={() => handleClick(p.id)}>
                   <CardMedia
                     sx={{ height: 140 }}
-                    image={getLocationImg(location as ILocation, theme.palette.mode, i)}
+                    // image={getLocationImg(location as ILocation, theme.palette.mode, i)}
+                    image={fallbackImages[i] || fallbackImages[0]}
                     // @ts-ignore
                     title={`${location?.address?.addressLine1} map`}
                   />
@@ -278,31 +280,27 @@ export const UserPolicies = ({ userId }: { userId: string }) => {
                         'date'
                       )} - ${formatFirestoreTimestamp(p.expirationDate, 'date')}`}
                     />
+                    <Item label='# locations' value={`${activeLocationCount}`} />
                     <Divider light sx={{ my: { xs: 3, md: 4 } }} />
                     <AvatarGroup max={4} sx={{ justifyContent: 'flex-end' }}>
                       {p.namedInsured ? (
-                        <Tooltip
-                          // title={`${p.namedInsured.firstName} ${p.namedInsured.lastName}`}
-                          title={`${p.namedInsured.displayName}`}
-                          key={p.namedInsured.email}
-                        >
+                        <Tooltip title={`${p.namedInsured.displayName}`} key={p.namedInsured.email}>
                           {/* <Avatar src={f.img} alt={p.namedInsured.firstName} /> */}
                           <Avatar alt={`${p.namedInsured.displayName}`} />
                         </Tooltip>
                       ) : null}
-                      {/* @ts-ignore */}
-                      {location?.additionalInsureds?.length // @ts-ignore
+
+                      {/* {location?.additionalInsureds?.length
                         ? location.additionalInsureds.map((f: AdditionalInsured, i) => (
                             <Tooltip
                               // title={`${f?.firstName} ${f.lastName}`}
                               title={`${f?.name}`}
                               key={`${f.email}-${i}`}
                             >
-                              {/* <Avatar src={f.img} alt={f.name} /> */}
                               <Avatar alt={`${f.email}-${i}`} />
                             </Tooltip>
                           ))
-                        : null}
+                        : null} */}
                     </AvatarGroup>
                   </FlexCardContent>
                 </CardActionArea>

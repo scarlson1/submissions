@@ -55,6 +55,8 @@ Sentry.init({
 //   logEvent(analytics, '');
 // };
 
+// BUG: using useAuth hook from AuthProvider in useDialog component causes context error ??
+
 function App() {
   return (
     // <ThemeProvider>
