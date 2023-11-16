@@ -11,6 +11,8 @@ import { useSearchParamToggle } from 'hooks';
 
 // TODO: theme toggle buttons size small --> smaller padding on buttons
 // see mui api toggle buttons for reference
+// mui color mode ref (local storage): https://github.com/mui/material-ui/blob/master/packages/mui-system/src/cssVars/useCurrentColorScheme.ts
+// TODO: get default option from local storage
 
 interface ViewToggleButtonsProps<T extends string>
   extends Omit<ToggleButtonGroupProps, 'value' | 'onChange'> {

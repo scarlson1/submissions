@@ -1,21 +1,22 @@
 import { GridViewRounded, MapRounded, TableRowsRounded } from '@mui/icons-material';
 import { TabContext, TabList, TabPanel } from '@mui/lab';
 import { Avatar, Box, Card, Tab, Typography } from '@mui/material';
+import { useIsFetching } from '@tanstack/react-query';
 import { where } from 'firebase/firestore';
-import { Suspense, useState } from 'react';
+import { Suspense, useCallback, useState } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useUser } from 'reactfire';
 
 import { User } from 'common';
 import { Copy, ErrorFallback, LoadingSpinner, ViewToggleButtons } from 'components';
 import { QuoteCards } from 'elements';
+import { PolicyCards, SubmissionCards } from 'elements/cards';
 import { PoliciesGrid, QuotesGrid, SubmissionsGrid } from 'elements/grids';
 import { PoliciesMap, QuotesMap, SubmissionsMap } from 'elements/maps';
 import { DataViewType, TDataViewType, useDocData, useSafeParams } from 'hooks';
 import { formatDate } from 'modules/utils';
-import { UserPolicyCards } from './Policies';
-import { SubmissionCards } from './user/Submissions';
+import { ROUTES, createPath } from 'router';
 
 // TODO: handle queries depending on whether user is insured or agent
 // query user policies based on userId or insured.userId ??
@@ -23,6 +24,7 @@ import { SubmissionCards } from './user/Submissions';
 export const UserDetails = () => {
   const { userId } = useSafeParams(['userId']);
   const [value, setValue] = useState('policies');
+  const isFetching = useIsFetching();
 
   const handleChange = (event: React.SyntheticEvent, newValue: string) => {
     setValue(newValue);
@@ -41,7 +43,10 @@ export const UserDetails = () => {
             <Tab value='policies' label='Policies' />
           </TabList>
         </Box>
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', pt: 2, px: 3 }}>
+        <Box
+          sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', pt: 2, px: 3 }}
+        >
+          <LoadingSpinner loading={isFetching > 0} />
           <ViewToggleButtons<TDataViewType>
             queryKey={VIEW_QUERY_KEY}
             options={DataViewType.options}
@@ -116,21 +121,34 @@ function UserInfo({ userId }: { userId: string }) {
 // TODO: use context for toggle button group & view state instead of updating view state from changes in useSearchParams
 // see mui tab context as example
 // pass data view as prop ??
-const VIEW_QUERY_KEY = 'l_view';
+const VIEW_QUERY_KEY = 'view';
 
 function UserPolicies({ userId }: { userId: string }) {
+  const navigate = useNavigate();
   let [searchParams] = useSearchParams();
   const view = searchParams.get(VIEW_QUERY_KEY) || 'cards';
 
   // TODO: query params different for agent vs user ??
   // abstract to user context ??
 
+  // TODO: admin upload new policy documents
+
+  const handleViewPolicy = useCallback(
+    (policyId: string) => {
+      navigate(createPath({ path: ROUTES.POLICY, params: { policyId } }));
+    },
+    [navigate]
+  );
+
   return (
     <Box>
       <ErrorBoundary FallbackComponent={ErrorFallback} resetKeys={[view]}>
         <Suspense fallback={<LoadingSpinner loading={true} />}>
           {view === DataViewType.Enum.cards ? (
-            <UserPolicyCards constraints={[where('namedInsured.userId', '==', userId)]} />
+            <PolicyCards
+              constraints={[where('namedInsured.userId', '==', userId)]}
+              onClick={handleViewPolicy}
+            />
           ) : null}
           {view === DataViewType.Enum.grid ? (
             <PoliciesGrid constraints={[where('namedInsured.userId', '==', userId)]} />
@@ -145,28 +163,34 @@ function UserPolicies({ userId }: { userId: string }) {
 }
 
 function UserQuotes({ userId }: { userId: string }) {
+  const navigate = useNavigate();
   let [searchParams] = useSearchParams();
   const view = searchParams.get(VIEW_QUERY_KEY) || 'cards';
+
+  const handleViewQuote = useCallback(
+    (quoteId: string) => {
+      navigate(
+        createPath({
+          path: ROUTES.QUOTE_VIEW,
+          params: { quoteId },
+        })
+      );
+    },
+    [navigate]
+  );
 
   return (
     <Box>
       <ErrorBoundary FallbackComponent={ErrorFallback} resetKeys={[view]}>
         <Suspense fallback={<LoadingSpinner loading={true} />}>
           {view === DataViewType.Enum.cards ? (
-            <QuoteCards constraints={[where('userId', '==', userId)]} />
+            <QuoteCards constraints={[where('userId', '==', userId)]} onClick={handleViewQuote} />
           ) : null}
           {view === DataViewType.Enum.grid ? (
             <QuotesGrid
               constraints={[where('userId', '==', userId)]}
               // renderActions={renderActions}
-              // onRowDoubleClick={(params) =>
-              //   navigate(
-              //     createPath({
-              //       path: ROUTES.QUOTE_VIEW,
-              //       params: { quoteId: params.id.toString() },
-              //     })
-              //   )
-              // }
+              onRowDoubleClick={(params) => handleViewQuote(params.id.toString())}
             />
           ) : null}
           {view === DataViewType.Enum.map ? (

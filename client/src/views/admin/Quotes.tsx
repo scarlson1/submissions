@@ -3,11 +3,9 @@ import {
   Alert,
   AlertTitle,
   Box,
-  Button,
   Collapse,
   Link,
   MenuItem,
-  Stack,
   Tooltip,
   Typography,
   useMediaQuery,
@@ -189,7 +187,7 @@ export const Quotes = () => {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 2 }}>
+      {/* <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 2 }}>
         <Typography variant='h5' sx={{ ml: { xs: 2, sm: 3, md: 4 } }}>
           Quotes
         </Typography>
@@ -204,9 +202,9 @@ export const Quotes = () => {
           >
             New Quote
           </Button>
-          <QuotesActionMenu />
+          <AdminQuotesActionMenu />
         </Stack>
-      </Box>
+      </Box> */}
       <QuotesGrid
         renderActions={renderActions}
         additionalColumns={[submissionIdCol, subproducerCommissionCol]}
@@ -219,7 +217,8 @@ export const Quotes = () => {
 };
 
 // Required to get around dialog unmounting when icon menu closes
-function QuotesActionMenu() {
+export function AdminQuotesActionMenu() {
+  const navigate = useNavigate();
   const toast = useAsyncToast({ position: 'top-right', duration: 2400 });
   const [open, setOpen] = useState<TStorageFolder | null>(null);
   const [dupHeaders, setDupHeaders] = useState<string[]>([]);
@@ -258,6 +257,15 @@ function QuotesActionMenu() {
   return (
     <Box>
       <IconMenu>
+        <MenuItem
+          onClick={() =>
+            navigate(
+              createPath({ path: ADMIN_ROUTES.QUOTE_NEW_BLANK, params: { productId: 'flood' } })
+            )
+          }
+        >
+          New Quote
+        </MenuItem>
         <MenuItem onClick={handleOpen('ratePortfolio')}>Rate Portfolio</MenuItem>
         <MenuItem onClick={handleOpen('importQuotes')}>Import Quotes</MenuItem>
       </IconMenu>

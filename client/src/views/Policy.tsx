@@ -83,7 +83,7 @@ export const Policy = () => {
   const navigate = useNavigate();
   const { isMobile } = useWidth();
   const [locationsView, handleViewChange] = useSearchParamToggle<TDataViewType>(
-    'l_view',
+    'view',
     DataViewType.options,
     'cards'
   );

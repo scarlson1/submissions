@@ -18,7 +18,7 @@ import { ILocation, Policy, WithId, fallbackImages } from 'common';
 import { FlexCard, FlexCardContent } from 'components';
 import { FlexCardContentWrapper } from 'components/FlexCard';
 import { dollarFormat, formatFirestoreTimestamp } from 'modules/utils';
-import { Item } from 'views';
+import { Item } from '.';
 
 // TODO: use <CardActions disableSpacing> for avatar
 

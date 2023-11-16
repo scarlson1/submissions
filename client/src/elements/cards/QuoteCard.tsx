@@ -15,14 +15,14 @@ import { Quote, WithId, fallbackImages } from 'common';
 import { FlexCard } from 'components';
 import { FlexCardContent, FlexCardContentWrapper } from 'components/FlexCard';
 import { dollarFormat } from 'modules/utils';
-import { Item } from 'views';
+import { Item } from '.';
 
 export interface QuoteCardProps {
   data: WithId<Quote>;
-  handleClick?: (id: string) => void;
+  onClick?: (id: string) => void;
 }
 
-export function QuoteCard({ data, handleClick = noop }: QuoteCardProps) {
+export function QuoteCard({ data, onClick = noop }: QuoteCardProps) {
   const theme = useTheme();
 
   return (
@@ -48,7 +48,7 @@ export function QuoteCard({ data, handleClick = noop }: QuoteCardProps) {
           }
           title={`${data?.address?.addressLine1} map`}
         />
-        <CardActionArea onClick={() => handleClick(data.id)} sx={{ height: '100%' }}>
+        <CardActionArea onClick={() => onClick(data.id)} sx={{ height: '100%' }}>
           <FlexCardContent>
             <Box
               sx={{

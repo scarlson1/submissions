@@ -181,7 +181,7 @@ type TArgs =
   | { path: ROUTES.QUOTE_BIND; params: { quoteId: string } } // INCLUDE PRODUCT ID ??
   | { path: ROUTES.QUOTE_BIND_SUCCESS; params: { quoteId: string; transactionId?: string } }
   | { path: ROUTES.POLICIES; search?: { productId?: TProduct } }
-  | { path: ROUTES.POLICY; params: { policyId: string }; search?: { l_view: string } }
+  | { path: ROUTES.POLICY; params: { policyId: string }; search?: { view: string } }
   | { path: ROUTES.ADD_LOCATION_NEW; params: { policyId: string } }
   | { path: ROUTES.CLAIM_NEW; params: { policyId: string; locationId: string } }
   | { path: ROUTES.AGENCY_NEW }

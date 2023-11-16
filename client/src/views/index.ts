@@ -15,5 +15,4 @@ export { SubmissionNew } from './SubmissionNew';
 export { SubmissionNewPortfolio } from './SubmissionNewPortfolio';
 export { Submissions } from './Submissions';
 export { UserDetails } from './UserDetails';
-export { Item, UserSubmissions } from './UserSubmissions';
 export { ViewQuote } from './ViewQuote';
