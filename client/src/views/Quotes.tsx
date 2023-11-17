@@ -1,23 +1,16 @@
-import {
-  GridViewRounded,
-  MapRounded,
-  TableRowsRounded,
-  VisibilityRounded,
-} from '@mui/icons-material';
-import { Box, Stack, Tooltip, Typography } from '@mui/material';
+import { VisibilityRounded } from '@mui/icons-material';
+import { Tooltip } from '@mui/material';
 import { GridActionsCellItem, GridRowParams } from '@mui/x-data-grid';
 import { where } from 'firebase/firestore';
-import { ReactNode, Suspense, useCallback } from 'react';
+import { useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
-import { QueryFilters, useIsFetching } from '@tanstack/react-query';
-import { COLLECTIONS } from 'common';
-import { ErrorFallback, LoadingSpinner, ViewToggleButtons } from 'components';
+import { COLLECTIONS, VIEW_QUERY_KEY } from 'common';
+import { DataViewLayout } from 'components/layout';
 import { QuoteCards } from 'elements';
 import { QuotesGrid } from 'elements/grids';
 import { QuotesMap } from 'elements/maps';
-import { DataViewType, TDataViewType, useClaims } from 'hooks';
-import { ErrorBoundary } from 'react-error-boundary';
+import { DataViewType, useClaims } from 'hooks';
 import { ROUTES, createPath } from 'router';
 import { Quotes as AdminQuotes, AdminQuotesActionMenu } from './admin/Quotes';
 
@@ -67,21 +60,7 @@ export const Quotes = () => {
       <DataViewLayout
         title='Quotes'
         isFetchingOptions={{ queryKey: [`infinite-${COLLECTIONS.QUOTES}`] }}
-        actions={
-          <>
-            {/* <Button
-              onClick={() =>
-                navigate(
-                  createPath({ path: ADMIN_ROUTES.QUOTE_NEW_BLANK, params: { productId: 'flood' } })
-                )
-              }
-              sx={{ maxHeight: 36 }}
-            >
-              New Quote
-            </Button> */}
-            <AdminQuotesActionMenu />
-          </>
-        }
+        actions={<AdminQuotesActionMenu />}
       >
         {view === DataViewType.Enum.cards ? (
           <QuoteCards constraints={[]} onClick={handleViewQuote} />
@@ -115,18 +94,6 @@ export const Quotes = () => {
           <QuotesMap constraints={[where('agent.userId', '==', `${user?.uid}`)]} />
         ) : null}
       </DataViewLayout>
-      // <Box>
-      //   <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-      //     <Typography variant='h5' gutterBottom sx={{ ml: { xs: 2, sm: 3, md: 4 } }}>
-      //       Quotes
-      //     </Typography>
-      //   </Box>
-      //   <QuotesGrid
-      //     constraints={[where('agent.userId', '==', `${user?.uid}`)]}
-      //     renderActions={renderActions}
-      //     onRowDoubleClick={viewQuote}
-      //   />
-      // </Box>
     );
 
   return (
@@ -149,69 +116,4 @@ export const Quotes = () => {
       ) : null}
     </DataViewLayout>
   );
-
-  // return (
-  //   <Box>
-  //     <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-  //       <Typography variant='h5' gutterBottom sx={{ ml: { xs: 2, sm: 3, md: 4 } }}>
-  //         Quotes
-  //       </Typography>
-  //     </Box>
-  //     <QuotesGrid
-  //       constraints={[where('userId', '==', user.uid)]}
-  //       renderActions={renderActions}
-  //       onRowDoubleClick={viewQuote}
-  //     />
-  //   </Box>
-  // );
 };
-
-const VIEW_QUERY_KEY = 'view';
-
-function DataViewLayout({
-  title,
-  children,
-  isFetchingOptions,
-  actions,
-}: {
-  title: string;
-  children: ReactNode;
-  isFetchingOptions?: QueryFilters;
-  actions?: ReactNode;
-}) {
-  const isFetching = useIsFetching(isFetchingOptions);
-  // TODO: remove useSearchParams and retrieve from context once refactored
-  let [searchParams] = useSearchParams();
-  const view = searchParams.get(VIEW_QUERY_KEY) || 'cards';
-
-  return (
-    <Box>
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          pb: { xs: 2, md: 3 },
-        }}
-      >
-        <Typography variant='h5' sx={{ ml: { xs: 2, sm: 3, md: 4 } }}>
-          {title}
-        </Typography>
-        <Stack direction='row' spacing={2} alignItems='center'>
-          <LoadingSpinner loading={isFetching > 0} />
-          <ViewToggleButtons<TDataViewType>
-            queryKey={VIEW_QUERY_KEY}
-            options={DataViewType.options}
-            defaultOption='cards'
-            // defaultOption={claims.agent || claims.orgAdmin || claims.iDemandAdmin ? 'grid' :'cards'}
-            icons={{ cards: <GridViewRounded />, grid: <TableRowsRounded />, map: <MapRounded /> }}
-          />
-          {actions}
-        </Stack>
-      </Box>
-      <ErrorBoundary FallbackComponent={ErrorFallback} resetKeys={[view]}>
-        <Suspense fallback={<LoadingSpinner loading={true} />}>{children}</Suspense>
-      </ErrorBoundary>
-    </Box>
-  );
-}

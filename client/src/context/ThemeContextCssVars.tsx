@@ -70,8 +70,6 @@ export default function ThemeContextCssVars(props: { children: React.ReactNode }
     <CssVarsProvider theme={theme} defaultMode='system' disableTransitionOnChange>
       {/* <NextNProgressBar /> */}
       <CssBaseline />
-      {/* <SkipLink /> */}
-      {/* <MarkdownLinks /> */}
       {children}
     </CssVarsProvider>
   );

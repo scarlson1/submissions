@@ -187,7 +187,7 @@ type TArgs =
   | { path: ROUTES.AGENCY_NEW }
   | { path: ROUTES.AGENCY_NEW_SUBMITTED; params: { submissionId: string } }
   | { path: ROUTES.CONTACT }
-  | { path: ROUTES.USER }
+  | { path: ROUTES.USER; params: { userId: string } } // TODO: move users route from admin so can be used for agents (users grid) -- what would query look like ??
   | { path: ADMIN_ROUTES.SUBMISSION_VIEW; params: { submissionId: string } }
   | { path: ADMIN_ROUTES.QUOTE_NEW_BLANK; params: { productId: TProduct } }
   | { path: ADMIN_ROUTES.QUOTE_NEW; params: { productId: TProduct; submissionId: string } }

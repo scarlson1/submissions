@@ -29,7 +29,7 @@ export const PolicyCards = ({ constraints, ...props }: PolicyCardsProps) => {
 
   return (
     <>
-      <Grid container spacing={8} sx={{ my: 4 }}>
+      <Grid container spacing={8}>
         {policies?.map((p, i) => (
           <Grid xs={12} sm={6} md={4} lg={3} key={p.id}>
             <PolicyCard policy={p} i={i} {...props} />

@@ -68,6 +68,7 @@ export const UserDetails = () => {
   );
 };
 
+// PRE_DEPLOY: get photo from user doc -- not auth photo
 function UserInfo({ userId }: { userId: string }) {
   const { data: authUser } = useUser();
   const { data } = useDocData<User>('USERS', userId);

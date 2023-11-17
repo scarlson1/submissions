@@ -14,6 +14,8 @@ export const SUPPORTED_AUTH_PROVIDER_IDS = [
 export const STATES_URL = 'https://scarlson1.github.io/data/states_20m.json';
 export const COUNTIES_URL = 'https://scarlson1.github.io/data/counties_20m.json';
 
+export const VIEW_QUERY_KEY = 'view';
+
 export const stateFIPS = {
   ALABAMA: '01',
   ALASKA: '02',

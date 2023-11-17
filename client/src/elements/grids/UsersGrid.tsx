@@ -31,6 +31,8 @@ import { hasAdminClaimsValidator } from 'components/RequireAuthReactFire';
 import { useAsyncToast, useUpdateClaims } from 'hooks';
 import { useCollectionDataPopulateById } from 'hooks/useRx';
 import { idCol, userClaimsCol, userCols, userSummaryCol } from 'modules/muiGrid/gridColumnDefs';
+import { useNavigate } from 'react-router-dom';
+import { ROUTES, createPath } from 'router';
 
 // TODO: finish admin users grid component
 // with updates, merge claims, etc.
@@ -43,6 +45,7 @@ export const UsersGrid = ({
   initialState,
   ...props
 }: UsersGridProps) => {
+  const navigate = useNavigate();
   // TODO: convert to same renderActions format as other grids
   const columns: GridColDef[] = useMemo(() => {
     const actions = renderActions
@@ -59,6 +62,13 @@ export const UsersGrid = ({
 
     return [...actions, ...userCols, ...additionalColumns];
   }, [renderActions, additionalColumns]);
+
+  const viewUser = useCallback(
+    ({ id }: GridRowParams) => {
+      navigate(createPath({ path: ROUTES.USER, params: { userId: id.toString() } }));
+    },
+    [navigate]
+  );
 
   return (
     <Box sx={{ height: { xs: 400, sm: 460, md: 500 }, width: '100%' }}>
@@ -80,6 +90,7 @@ export const UsersGrid = ({
           },
           ...initialState,
         }}
+        onRowDoubleClick={viewUser}
         {...props}
       />
     </Box>

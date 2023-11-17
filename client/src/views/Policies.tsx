@@ -1,4 +1,4 @@
-import { Alert, AlertTitle, Box, Collapse, Link, MenuItem, Stack } from '@mui/material';
+import { Alert, AlertTitle, Box, Collapse, Link, MenuItem } from '@mui/material';
 import { UploadResult } from 'firebase/storage';
 import { useCallback, useState } from 'react';
 
@@ -7,17 +7,19 @@ import { InfoRounded, OpenInNewRounded } from '@mui/icons-material';
 import { Container, Typography } from '@mui/material';
 import { where } from 'firebase/firestore';
 import { camelCase } from 'lodash';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
-import { POLICY_IMPORT_REQUIRED_HEADERS, StorageFolder } from 'common';
+import { COLLECTIONS, POLICY_IMPORT_REQUIRED_HEADERS, StorageFolder, VIEW_QUERY_KEY } from 'common';
 import { DownloadStorageFileButton } from 'components';
 import { IconMenu } from 'components/IconButtonMenu';
+import { DataViewLayout } from 'components/layout';
 import Search from 'components/search/reactQuery/Search';
 import { CSVUploadDialog } from 'elements';
 import { ControlledChangeRequestDialog } from 'elements/ChangeRequestDialog';
 import { PolicyCards } from 'elements/cards';
 import { PoliciesGrid } from 'elements/grids';
-import { useAsyncToast, useClaims } from 'hooks';
+import { PoliciesMap } from 'elements/maps';
+import { DataViewType, useAsyncToast, useClaims } from 'hooks';
 import { getDuplicates } from 'modules/utils';
 import { getCsvHeaderStatus } from 'modules/utils/storage';
 import { ROUTES, createPath } from 'router';
@@ -31,6 +33,9 @@ import { ROUTES, createPath } from 'router';
 export const Policies = () => {
   const navigate = useNavigate();
   const { claims, user } = useClaims();
+  // TODO: get from tab context/hook
+  let [searchParams] = useSearchParams();
+  const view = searchParams.get(VIEW_QUERY_KEY) || 'cards';
 
   // TODO: admin upload new policy documents
 
@@ -41,53 +46,93 @@ export const Policies = () => {
     [navigate]
   );
 
-  const header = (
-    <Box sx={{ display: 'flex', justifyContent: 'space-between', pb: 2, pr: { xs: 0, sm: 1 } }}>
-      <Typography
-        variant='h5'
-        gutterBottom
-        sx={{ ml: { xs: 2, sm: 3, md: 4 }, '&:hover': { cursor: 'pointer' } }}
-        onClick={() => navigate(createPath({ path: ROUTES.POLICIES }))}
-      >
-        Policies
-      </Typography>
-      <Stack direction='row' spacing={2}>
-        <ControlledChangeRequestDialog />
-        {claims?.iDemandAdmin ? <AdminPoliciesActionMenu /> : null}
-      </Stack>
-    </Box>
-  );
+  // const header = (
+  //   <Box sx={{ display: 'flex', justifyContent: 'space-between', pb: 2, pr: { xs: 0, sm: 1 } }}>
+  //     <Typography
+  //       variant='h5'
+  //       gutterBottom
+  //       sx={{ ml: { xs: 2, sm: 3, md: 4 }, '&:hover': { cursor: 'pointer' } }}
+  //       onClick={() => navigate(createPath({ path: ROUTES.POLICIES }))}
+  //     >
+  //       Policies
+  //     </Typography>
+  //     <Stack direction='row' spacing={2}>
+  //       <ControlledChangeRequestDialog />
+  //       {claims?.iDemandAdmin ? <AdminPoliciesActionMenu /> : null}
+  //     </Stack>
+  //   </Box>
+  // );
 
   if (claims?.iDemandAdmin)
     return (
       <Container maxWidth='xl' sx={{ py: { xs: 4, md: 6 } }}>
-        <Box>
-          {header}
-          <PoliciesGrid checkboxSelection />
-        </Box>
-        <Box>
-          <Search filters='collectionName:users' onSelect={console.log} />
-        </Box>
+        <DataViewLayout
+          title='Policies'
+          isFetchingOptions={{ queryKey: [`infinite-${COLLECTIONS.POLICIES}`] }}
+          actions={
+            <>
+              <ControlledChangeRequestDialog />
+              <AdminPoliciesActionMenu />
+            </>
+          }
+        >
+          {view === DataViewType.Enum.cards ? (
+            <PolicyCards constraints={[]} onClick={handleViewPolicy} />
+          ) : null}
+          {view === DataViewType.Enum.grid ? <PoliciesGrid checkboxSelection /> : null}
+          {view === DataViewType.Enum.map ? <PoliciesMap constraints={[]} /> : null}
+          <Box>
+            <Search filters='collectionName:users' onSelect={console.log} />
+          </Box>
+        </DataViewLayout>
       </Container>
     );
 
   if (claims?.orgAdmin && user?.tenantId)
     return (
       <Container maxWidth='xl' sx={{ py: { xs: 4, md: 6 } }}>
-        <Box>
-          {header}
-          <PoliciesGrid constraints={[where('agency.orgId', '==', `${user.tenantId}`)]} />
-        </Box>
+        <DataViewLayout
+          title='Policies'
+          isFetchingOptions={{ queryKey: [`infinite-${COLLECTIONS.POLICIES}`] }}
+          actions={<ControlledChangeRequestDialog />}
+        >
+          {view === DataViewType.Enum.cards ? (
+            <PolicyCards
+              constraints={[where('agency.orgId', '==', `${user.tenantId}`)]}
+              onClick={handleViewPolicy}
+            />
+          ) : null}
+          {view === DataViewType.Enum.grid ? (
+            <PoliciesGrid constraints={[where('agency.orgId', '==', `${user.tenantId}`)]} />
+          ) : null}
+          {view === DataViewType.Enum.map ? (
+            <PoliciesMap constraints={[where('agency.orgId', '==', `${user.tenantId}`)]} />
+          ) : null}
+        </DataViewLayout>
       </Container>
     );
 
   if (claims?.agent && user?.uid)
     return (
       <Container maxWidth='xl' sx={{ py: { xs: 4, md: 6 } }}>
-        <Box>
-          {header}
-          <PoliciesGrid constraints={[where('agent.userId', '==', user.uid)]} />
-        </Box>
+        <DataViewLayout
+          title='Policies'
+          isFetchingOptions={{ queryKey: [`infinite-${COLLECTIONS.POLICIES}`] }}
+          actions={<ControlledChangeRequestDialog />}
+        >
+          {view === DataViewType.Enum.cards ? (
+            <PolicyCards
+              constraints={[where('agent.userId', '==', user.uid)]}
+              onClick={handleViewPolicy}
+            />
+          ) : null}
+          {view === DataViewType.Enum.grid ? (
+            <PoliciesGrid constraints={[where('agent.userId', '==', user.uid)]} />
+          ) : null}
+          {view === DataViewType.Enum.map ? (
+            <PoliciesMap constraints={[where('agent.userId', '==', user.uid)]} />
+          ) : null}
+        </DataViewLayout>
       </Container>
     );
 

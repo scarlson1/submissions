@@ -1,13 +1,14 @@
 import {
   Avatar,
   AvatarGroup,
+  Box,
   CardActionArea,
   CardMedia,
   Divider,
   Tooltip,
   Typography,
 } from '@mui/material';
-import { isEmpty, noop } from 'lodash';
+import { noop } from 'lodash';
 
 import { Policy, WithId, fallbackImages } from 'common';
 import { FlexCard, FlexCardContent } from 'components';
@@ -33,15 +34,18 @@ export interface PolicyCardProps {
 }
 export const PolicyCard = ({ policy, onClick = noop, i }: PolicyCardProps) => {
   // TODO: only use new Policy schema ??
-  const location =
-    policy.locations && typeof policy.locations === 'object' && !isEmpty(policy.locations)
-      ? Object.values(policy.locations)[0]
-      : policy;
+  // const location =
+  //   policy.locations && typeof policy.locations === 'object' && !isEmpty(policy.locations)
+  //     ? Object.values(policy.locations)[0]
+  //     : policy;
+  const location = Object.values(policy.locations || {})[0];
 
   const activeLocationCount = Object.entries(policy.locations || {}).filter(
     ([id, lcn]) =>
       !lcn.cancelEffDate || (lcn.cancelEffDate && lcn.cancelEffDate.toMillis() > currentMS)
   ).length;
+
+  const moreCount = activeLocationCount > 1 ? activeLocationCount - 1 : 0;
 
   return (
     <FlexCard
@@ -61,14 +65,20 @@ export const PolicyCard = ({ policy, onClick = noop, i }: PolicyCardProps) => {
           sx={{ height: 140 }}
           // TODO: create policy images
           image={fallbackImages[i] || fallbackImages[0]}
-          // @ts-ignore
           title={`policy cover image`}
         />
         <FlexCardContent sx={{ policy: 5 }}>
-          <Typography fontWeight={900} fontSize={24}>
-            {/* @ts-ignore */}
-            {location?.address?.addressLine1}
-          </Typography>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center' }}>
+            <Typography fontWeight={900} fontSize={24} sx={{ pr: 2 }}>
+              {location?.address?.s1 || ''}
+            </Typography>
+            {moreCount > 0 ? (
+              <Typography color='text.tertiary' variant='subtitle2'>
+                {`+${moreCount} more`}
+              </Typography>
+            ) : null}
+          </Box>
+
           <Item
             label='Named Insured'
             value={`${policy.namedInsured?.displayName}`}
@@ -76,8 +86,8 @@ export const PolicyCard = ({ policy, onClick = noop, i }: PolicyCardProps) => {
             //   policy.namedInsured?.lastName || 'Doe'
             // }`}
           />
-          <Item label='Agent' value={policy.agent.name ?? 'iDemand'} />
-          <Item label='Agency' value={policy.agency.name ?? 'iDemand Insurance Agency, Inc.'} />
+          <Item label='Agent' value={policy.agent?.name ?? 'iDemand'} />
+          <Item label='Agency' value={policy.agency?.name ?? 'iDemand Insurance Agency, Inc.'} />
           <Item
             label='Effective'
             value={`${formatFirestoreTimestamp(
