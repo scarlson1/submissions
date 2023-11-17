@@ -1,7 +1,6 @@
 import { GridViewRounded, MapRounded, TableRowsRounded } from '@mui/icons-material';
 import { TabContext, TabList, TabPanel } from '@mui/lab';
 import { Avatar, Box, Tab, Typography } from '@mui/material';
-import { useIsFetching } from '@tanstack/react-query';
 import { where } from 'firebase/firestore';
 import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -23,11 +22,10 @@ import { ROUTES, createPath } from 'router';
 export const UserDetails = () => {
   const { userId } = useSafeParams(['userId']);
   const [value, setValue] = useState('policies');
-  const isFetching = useIsFetching();
 
-  const handleChange = (event: React.SyntheticEvent, newValue: string) => {
+  const handleChange = useCallback((event: React.SyntheticEvent, newValue: string) => {
     setValue(newValue);
-  };
+  }, []);
 
   return (
     <Box>
@@ -63,26 +61,6 @@ export const UserDetails = () => {
             <UserPolicies userId={userId} />
           </TabPanel>
         </ToggleViewLayout>
-        {/* <Box
-          sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', pt: 2, px: 3 }}
-        >
-          <LoadingSpinner loading={isFetching > 0} />
-          <ViewToggleButtons<TDataViewType>
-            queryKey={VIEW_QUERY_KEY}
-            options={DataViewType.options}
-            defaultOption='cards'
-            icons={{ cards: <GridViewRounded />, grid: <TableRowsRounded />, map: <MapRounded /> }}
-          />
-        </Box>
-        <TabPanel value='submissions'>
-          <UserSubmissions userId={userId} />
-        </TabPanel>
-        <TabPanel value='quotes'>
-          <UserQuotes userId={userId} />
-        </TabPanel>
-        <TabPanel value='policies'>
-          <UserPolicies userId={userId} />
-        </TabPanel> */}
       </TabContext>
     </Box>
   );
@@ -169,43 +147,6 @@ function UserPolicies({ userId }: { userId: string }) {
   );
 }
 
-// function UserPolicies({ userId }: { userId: string }) {
-//   const navigate = useNavigate();
-//   let [searchParams] = useSearchParams();
-//   const view = searchParams.get(VIEW_QUERY_KEY) || 'cards';
-
-//   // TODO: query params different for agent vs user ??
-//   // abstract to user context ??
-
-//   const handleViewPolicy = useCallback(
-//     (policyId: string) => {
-//       navigate(createPath({ path: ROUTES.POLICY, params: { policyId } }));
-//     },
-//     [navigate]
-//   );
-
-//   return (
-//     <Box>
-//       <ErrorBoundary FallbackComponent={ErrorFallback} resetKeys={[view]}>
-//         <Suspense fallback={<LoadingSpinner loading={true} />}>
-//           {view === DataViewType.Enum.cards ? (
-//             <PolicyCards
-//               constraints={[where('namedInsured.userId', '==', userId)]}
-//               onClick={handleViewPolicy}
-//             />
-//           ) : null}
-//           {view === DataViewType.Enum.grid ? (
-//             <PoliciesGrid constraints={[where('namedInsured.userId', '==', userId)]} />
-//           ) : null}
-//           {view === DataViewType.Enum.map ? (
-//             <PoliciesMap constraints={[where('namedInsured.userId', '==', userId)]} />
-//           ) : null}
-//         </Suspense>
-//       </ErrorBoundary>
-//     </Box>
-//   );
-// }
-
 function UserQuotes({ userId }: { userId: string }) {
   const navigate = useNavigate();
 
@@ -240,46 +181,6 @@ function UserQuotes({ userId }: { userId: string }) {
   );
 }
 
-// function UserQuotes({ userId }: { userId: string }) {
-//   const navigate = useNavigate();
-//   let [searchParams] = useSearchParams();
-//   const view = searchParams.get(VIEW_QUERY_KEY) || 'cards';
-
-//   const handleViewQuote = useCallback(
-//     (quoteId: string) => {
-//       navigate(
-//         createPath({
-//           path: ROUTES.QUOTE_VIEW,
-//           params: { quoteId },
-//         })
-//       );
-//     },
-//     [navigate]
-//   );
-
-//   return (
-//     <Box>
-//       <ErrorBoundary FallbackComponent={ErrorFallback} resetKeys={[view]}>
-//         <Suspense fallback={<LoadingSpinner loading={true} />}>
-//           {view === DataViewType.Enum.cards ? (
-//             <QuoteCards constraints={[where('userId', '==', userId)]} onClick={handleViewQuote} />
-//           ) : null}
-//           {view === DataViewType.Enum.grid ? (
-//             <QuotesGrid
-//               constraints={[where('userId', '==', userId)]}
-//               // renderActions={renderActions}
-//               onRowDoubleClick={(params) => handleViewQuote(params.id.toString())}
-//             />
-//           ) : null}
-//           {view === DataViewType.Enum.map ? (
-//             <QuotesMap constraints={[where('userId', '==', `${userId}`)]} />
-//           ) : null}
-//         </Suspense>
-//       </ErrorBoundary>
-//     </Box>
-//   );
-// }
-
 function UserSubmissions({ userId }: { userId: string }) {
   return (
     <>
@@ -295,28 +196,3 @@ function UserSubmissions({ userId }: { userId: string }) {
     </>
   );
 }
-
-// function UserSubmissions({ userId }: { userId: string }) {
-//   let [searchParams] = useSearchParams();
-//   const view = searchParams.get(VIEW_QUERY_KEY) || 'cards';
-
-//   return (
-//     <Box>
-//       <ErrorBoundary FallbackComponent={ErrorFallback} resetKeys={[view]}>
-//         <Suspense fallback={<LoadingSpinner loading={true} />}>
-//           {view === DataViewType.Enum.cards ? (
-//             <SubmissionCards constraints={[where('userId', '==', userId)]} />
-//           ) : null}
-//           {view === DataViewType.Enum.grid ? (
-//             <SubmissionsGrid constraints={[where('userId', '==', userId)]} />
-//           ) : null}
-//           {view === DataViewType.Enum.map ? (
-//             <Card sx={{ height: { xs: 300, sm: 400, md: 460, lg: 500 }, width: '100%' }}>
-//               <SubmissionsMap constraints={[where('userId', '==', userId)]} />
-//             </Card>
-//           ) : null}
-//         </Suspense>
-//       </ErrorBoundary>
-//     </Box>
-//   );
-// }

@@ -1,4 +1,5 @@
 export { AdminLocations } from './AdminLocations';
+export { AdminSubmissionsGrid } from './AdminSubmissionsGrid';
 export { AgencyApp } from './AgencyApp';
 export { AgencyApps } from './AgencyApps';
 export { CreateTenant } from './CreateTenant';
@@ -24,6 +25,5 @@ export { SLTaxEdit } from './SLTaxEdit';
 export { SLTaxNew } from './SLTaxNew';
 export { SLTaxes } from './SLTaxes';
 export { SubmissionView } from './SubmissionView';
-export { Submissions } from './Submissions';
 export { Transactions } from './Transactions';
 export { Users } from './Users';

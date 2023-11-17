@@ -13,6 +13,7 @@ import { DataViewType, TDataViewType, useClaims, useWidth } from 'hooks';
 import { useMemo } from 'react';
 import { ROUTES, createPath } from 'router';
 import invariant from 'tiny-invariant';
+import { AdminSubmissionsGrid } from './admin/AdminSubmissionsGrid';
 
 // function getLayoutProps(claims: { iDemandAdmin: boolean; orgAdmin: boolean; agent: boolean }) {
 //   let props: Pick<ToggleViewLayoutProps<TDataViewType>, 'defaultOption' | 'actions'> = {
@@ -103,7 +104,7 @@ export const Submissions = () => {
         <SubmissionCards {...queryProps} />
       </ToggleViewPanel>
       <ToggleViewPanel value={DataViewType.Enum.grid}>
-        <SubmissionsGrid {...queryProps} />
+        {claims?.iDemandAdmin ? <AdminSubmissionsGrid /> : <SubmissionsGrid {...queryProps} />}
       </ToggleViewPanel>
       <ToggleViewPanel value={DataViewType.Enum.map}>
         <Card sx={{ height: { xs: 300, sm: 400, md: 460, lg: 500 }, width: '100%' }}>
