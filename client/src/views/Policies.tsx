@@ -46,22 +46,16 @@ export const Policies = () => {
     [navigate]
   );
 
-  // const header = (
-  //   <Box sx={{ display: 'flex', justifyContent: 'space-between', pb: 2, pr: { xs: 0, sm: 1 } }}>
-  //     <Typography
-  //       variant='h5'
-  //       gutterBottom
-  //       sx={{ ml: { xs: 2, sm: 3, md: 4 }, '&:hover': { cursor: 'pointer' } }}
-  //       onClick={() => navigate(createPath({ path: ROUTES.POLICIES }))}
-  //     >
-  //       Policies
-  //     </Typography>
-  //     <Stack direction='row' spacing={2}>
-  //       <ControlledChangeRequestDialog />
-  //       {claims?.iDemandAdmin ? <AdminPoliciesActionMenu /> : null}
-  //     </Stack>
-  //   </Box>
-  // );
+  // TODO: Create component combining provider & buttons ?? similar to DataViewLayout
+  // if (claims?.iDemandAdmin) {
+  //   return (
+  //     <Container maxWidth='xl' sx={{ py: { xs: 4, md: 6 } }}>
+  //       <ToggleButtonProvider value={'cards'}>
+  //         <ToggleViewButtonsCtx></ToggleViewButtonsCtx>
+  //       </ToggleButtonProvider>
+  //     </Container>
+  //   )
+  // }
 
   if (claims?.iDemandAdmin)
     return (

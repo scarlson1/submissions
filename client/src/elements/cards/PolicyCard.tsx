@@ -19,13 +19,6 @@ import { Item } from './Item';
 // TODO: replace items with TIV, etc. ?? instead of agency
 // TODO: generate / use policy image
 
-// TODO: use rxjs to get user profile for avatars
-// const additionalInsureds = [
-//   { img: 'http://i.pravatar.cc/300?img=3', name: 'John Doe', email: 'test1@user.com' },
-//   { img: 'http://i.pravatar.cc/300?img=1', name: 'Jane Smith', email: 'test2@user.com' },
-//   { img: 'http://i.pravatar.cc/300?img=4', name: 'Tim Jones', email: 'test3@user.com' },
-// ];
-
 const currentMS = new Date().getTime();
 
 export interface PolicyCardProps {
@@ -34,11 +27,6 @@ export interface PolicyCardProps {
   i: number; // TODO: delete - temp for fallback img
 }
 export const PolicyCard = ({ policy, onClick = noop, i }: PolicyCardProps) => {
-  // TODO: only use new Policy schema ??
-  // const location =
-  //   policy.locations && typeof policy.locations === 'object' && !isEmpty(policy.locations)
-  //     ? Object.values(policy.locations)[0]
-  //     : policy;
   const location = Object.values(policy.locations || {})[0];
 
   const activeLocationCount = Object.entries(policy.locations || {}).filter(

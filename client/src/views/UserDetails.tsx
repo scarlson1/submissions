@@ -6,7 +6,6 @@ import { where } from 'firebase/firestore';
 import { Suspense, useCallback, useState } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useUser } from 'reactfire';
 
 import { User } from 'common';
 import { Copy, ErrorFallback, LoadingSpinner, ViewToggleButtons } from 'components';
@@ -71,7 +70,6 @@ export const UserDetails = () => {
 // PRE_DEPLOY: get photo from user doc -- not auth photo
 // need to sync photo url to user doc when auth profile is changed
 function UserInfo({ userId }: { userId: string }) {
-  const { data: authUser } = useUser();
   const { data } = useDocData<User>('USERS', userId);
 
   return (
@@ -133,8 +131,6 @@ function UserPolicies({ userId }: { userId: string }) {
 
   // TODO: query params different for agent vs user ??
   // abstract to user context ??
-
-  // TODO: admin upload new policy documents
 
   const handleViewPolicy = useCallback(
     (policyId: string) => {

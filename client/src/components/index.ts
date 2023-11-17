@@ -43,7 +43,7 @@ export { RouterErrorBoundary } from './RouterErrorBoundary';
 export { ServerDataGrid } from './ServerDataGrid';
 export { SvgIcon } from './SvgIcon';
 export { Toaster } from './Toaster';
-export { ViewToggleButtons } from './ViewToggleButtons';
+export { ViewToggleButtons } from './toggleView/ViewToggleButtons';
 
 export type { CarouselProps } from './Carousel';
 export type { ConfirmationDialogProps } from './ConfirmationDialog';
