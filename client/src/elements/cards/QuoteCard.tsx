@@ -48,8 +48,8 @@ export function QuoteCard({ data, onClick = noop }: QuoteCardProps) {
           }
           title={`${data?.address?.addressLine1} map`}
         />
-        <CardActionArea onClick={() => onClick(data.id)} sx={{ height: '100%' }}>
-          <FlexCardContent>
+        <CardActionArea onClick={() => onClick(data.id)} sx={{ flex: '1 0 auto' }}>
+          <FlexCardContent sx={{ height: '100%' }}>
             <Box
               sx={{
                 display: 'flex',
@@ -58,7 +58,7 @@ export function QuoteCard({ data, onClick = noop }: QuoteCardProps) {
                 height: '100%',
               }}
             >
-              <Box>
+              <Box sx={{ flex: '1 0 auto' }}>
                 <Typography fontWeight={900} fontSize={24}>
                   {data?.address?.addressLine1}
                 </Typography>
@@ -78,13 +78,25 @@ export function QuoteCard({ data, onClick = noop }: QuoteCardProps) {
                       title={`${data?.namedInsured?.firstName}`}
                       key={data?.namedInsured?.email}
                     >
-                      <Avatar alt={data?.namedInsured?.firstName || 'i d'} />
+                      <Avatar
+                        alt={data?.namedInsured?.firstName || 'i d'}
+                        sx={{
+                          width: { xs: 30, sm: 36, md: 40 },
+                          height: { xs: 30, sm: 36, md: 40 },
+                        }}
+                      />
                     </Tooltip>
                   ) : null}
                   {data?.additionalInterests?.length
                     ? data.additionalInterests.map((f, i) => (
                         <Tooltip title={`${f?.name}`} key={`${f.email}-${i}`}>
-                          <Avatar alt={`${f.email}-${i}`} />
+                          <Avatar
+                            alt={`${f.email}-${i}`}
+                            sx={{
+                              width: { xs: 30, sm: 36, md: 40 },
+                              height: { xs: 30, sm: 36, md: 40 },
+                            }}
+                          />
                         </Tooltip>
                       ))
                     : null}

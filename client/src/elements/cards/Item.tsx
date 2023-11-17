@@ -22,6 +22,7 @@ export const Item = ({
         fontSize={13}
         fontWeight='fontWeightMedium'
         sx={{ ml: 3 }}
+        align='right'
       >
         {value}
       </Typography>

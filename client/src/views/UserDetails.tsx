@@ -69,6 +69,7 @@ export const UserDetails = () => {
 };
 
 // PRE_DEPLOY: get photo from user doc -- not auth photo
+// need to sync photo url to user doc when auth profile is changed
 function UserInfo({ userId }: { userId: string }) {
   const { data: authUser } = useUser();
   const { data } = useDocData<User>('USERS', userId);
@@ -77,7 +78,8 @@ function UserInfo({ userId }: { userId: string }) {
     <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', overflowX: 'hidden' }}>
       <Avatar
         alt={data.displayName}
-        src={authUser?.photoURL || undefined}
+        // src={authUser?.photoURL || undefined}
+        src={data?.photoURL || undefined}
         sx={{
           width: { xs: 48, sm: 56, md: 60, lg: 64 },
           height: { xs: 48, sm: 56, md: 60, lg: 64 },
