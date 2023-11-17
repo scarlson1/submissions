@@ -37,7 +37,7 @@ export const QuoteCards = ({ constraints, ...props }: QuoteCardsProps) => {
         rowSpacing={6}
         columnSpacing={8}
         maxHeight={{ xs: 420, sm: 500, md: 800 }}
-        sx={{ overflowY: 'auto', pt: 3 }}
+        sx={{ overflowY: 'auto' }}
       >
         {data?.pages.map((group, i) => (
           <Fragment key={`quote-card-group-${i}`}>

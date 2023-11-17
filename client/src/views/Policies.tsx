@@ -135,6 +135,7 @@ export const Policies = () => {
           map: <MapRounded />,
         }}
         isFetchingOptions={{ queryKey: [`infinite-${COLLECTIONS.POLICIES}`] }}
+        headerContainerSx={{ pb: { xs: 2, sm: 3, lg: 4 } }}
         {...layoutProps}
       >
         <ToggleViewPanel value={DataViewType.Enum.cards}>
