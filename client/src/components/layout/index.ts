@@ -1,6 +1,5 @@
 export { Breadcrumbs, RouterLink } from './Breadcrumbs';
 export { ConfigLayout } from './ConfigLayout';
-export { DataViewLayout } from './DataViewLayout';
 export { Footer } from './Footer';
 export { Header } from './Header';
 export * from './Layout';
