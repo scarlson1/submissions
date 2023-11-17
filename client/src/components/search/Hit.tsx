@@ -51,7 +51,7 @@ export function getURLByType(item: any) {
   }
   if (item.collectionName === COLLECTIONS.USERS) {
     // TODO: create user route
-    // url = createPath({ path: ROUTES.USER, params: { userId: item.objectID }})
+    url = createPath({ path: ROUTES.USER, params: { userId: item.objectID } });
   }
   // TODO: finish getUrl func
   return url;

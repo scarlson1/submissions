@@ -7,6 +7,8 @@ interface TogglePanelProps {
   value: string;
 }
 
+// TODO: generic TogglePanelProps ??: https://fettblog.eu/typescript-react-generic-forward-refs/#option-2%3A-create-a-custom-ref-%2F-the-wrapper-component
+
 export const ToggleViewPanel = forwardRef<HTMLDivElement, TogglePanelProps>(
   function ToggleViewPanel({ value, children, ...other }, ref) {
     const context = useToggleContext();

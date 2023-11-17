@@ -3,7 +3,13 @@ import { UploadResult } from 'firebase/storage';
 import { useCallback, useState } from 'react';
 
 // USER POLICIES COMPONENT IMPORTS
-import { InfoRounded, OpenInNewRounded } from '@mui/icons-material';
+import {
+  GridViewRounded,
+  InfoRounded,
+  MapRounded,
+  OpenInNewRounded,
+  TableRowsRounded,
+} from '@mui/icons-material';
 import { Container, Typography } from '@mui/material';
 import { where } from 'firebase/firestore';
 import { camelCase } from 'lodash';
@@ -13,13 +19,14 @@ import { COLLECTIONS, POLICY_IMPORT_REQUIRED_HEADERS, StorageFolder, VIEW_QUERY_
 import { DownloadStorageFileButton } from 'components';
 import { IconMenu } from 'components/IconButtonMenu';
 import { DataViewLayout } from 'components/layout';
-import Search from 'components/search/reactQuery/Search';
+import { ToggleViewLayout } from 'components/toggleView';
+import { ToggleViewPanel } from 'components/toggleView/ToggleViewPanel';
 import { CSVUploadDialog } from 'elements';
 import { ControlledChangeRequestDialog } from 'elements/ChangeRequestDialog';
 import { PolicyCards } from 'elements/cards';
 import { PoliciesGrid } from 'elements/grids';
 import { PoliciesMap } from 'elements/maps';
-import { DataViewType, useAsyncToast, useClaims } from 'hooks';
+import { DataViewType, TDataViewType, useAsyncToast, useClaims } from 'hooks';
 import { getDuplicates } from 'modules/utils';
 import { getCsvHeaderStatus } from 'modules/utils/storage';
 import { ROUTES, createPath } from 'router';
@@ -47,40 +54,58 @@ export const Policies = () => {
   );
 
   // TODO: Create component combining provider & buttons ?? similar to DataViewLayout
-  // if (claims?.iDemandAdmin) {
-  //   return (
-  //     <Container maxWidth='xl' sx={{ py: { xs: 4, md: 6 } }}>
-  //       <ToggleButtonProvider value={'cards'}>
-  //         <ToggleViewButtonsCtx></ToggleViewButtonsCtx>
-  //       </ToggleButtonProvider>
-  //     </Container>
-  //   )
-  // }
-
-  if (claims?.iDemandAdmin)
+  if (claims?.iDemandAdmin) {
     return (
       <Container maxWidth='xl' sx={{ py: { xs: 4, md: 6 } }}>
-        <DataViewLayout
+        <ToggleViewLayout<TDataViewType>
           title='Policies'
-          isFetchingOptions={{ queryKey: [`infinite-${COLLECTIONS.POLICIES}`] }}
-          actions={
-            <>
-              <ControlledChangeRequestDialog />
-              <AdminPoliciesActionMenu />
-            </>
-          }
+          queryKey={VIEW_QUERY_KEY}
+          options={DataViewType.options}
+          defaultOption='cards'
+          icons={{
+            cards: <GridViewRounded />,
+            grid: <TableRowsRounded />,
+            map: <MapRounded />,
+          }}
         >
-          {view === DataViewType.Enum.cards ? (
+          <ToggleViewPanel value={DataViewType.Enum.cards}>
             <PolicyCards constraints={[]} onClick={handleViewPolicy} />
-          ) : null}
-          {view === DataViewType.Enum.grid ? <PoliciesGrid checkboxSelection /> : null}
-          {view === DataViewType.Enum.map ? <PoliciesMap constraints={[]} /> : null}
-          <Box>
-            <Search filters='collectionName:users' onSelect={console.log} />
-          </Box>
-        </DataViewLayout>
+          </ToggleViewPanel>
+          <ToggleViewPanel value={DataViewType.Enum.grid}>
+            <PoliciesGrid checkboxSelection />
+          </ToggleViewPanel>
+          <ToggleViewPanel value={DataViewType.Enum.map}>
+            <PoliciesMap constraints={[]} />
+          </ToggleViewPanel>
+        </ToggleViewLayout>
       </Container>
     );
+  }
+
+  // if (claims?.iDemandAdmin)
+  //   return (
+  //     <Container maxWidth='xl' sx={{ py: { xs: 4, md: 6 } }}>
+  //       <DataViewLayout
+  //         title='Policies'
+  //         isFetchingOptions={{ queryKey: [`infinite-${COLLECTIONS.POLICIES}`] }}
+  //         actions={
+  //           <>
+  //             <ControlledChangeRequestDialog />
+  //             <AdminPoliciesActionMenu />
+  //           </>
+  //         }
+  //       >
+  //         {view === DataViewType.Enum.cards ? (
+  //           <PolicyCards constraints={[]} onClick={handleViewPolicy} />
+  //         ) : null}
+  //         {view === DataViewType.Enum.grid ? <PoliciesGrid checkboxSelection /> : null}
+  //         {view === DataViewType.Enum.map ? <PoliciesMap constraints={[]} /> : null}
+  //         <Box>
+  //           <Search filters='collectionName:users' onSelect={console.log} />
+  //         </Box>
+  //       </DataViewLayout>
+  //     </Container>
+  //   );
 
   if (claims?.orgAdmin && user?.tenantId)
     return (

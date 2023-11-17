@@ -1,36 +1,38 @@
-import { GridViewRounded, MapRounded, TableRowsRounded } from '@mui/icons-material';
 import { Box, Stack, Typography } from '@mui/material';
 import { QueryFilters, useIsFetching } from '@tanstack/react-query';
 import { ReactNode, Suspense } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
-import { useSearchParams } from 'react-router-dom';
 
-import { VIEW_QUERY_KEY } from 'common';
 import { ErrorFallback } from 'components/ErrorFallback';
 import { LoadingSpinner } from 'components/LoadingSpinner';
-import { ViewToggleButtons } from 'components/toggleView/ViewToggleButtons';
-import { DataViewType, TDataViewType } from 'hooks';
+import ToggleButtonProvider from 'context/ToggleButtonContext';
+import { useSearchParamToggle } from 'hooks';
+import { ToggleViewButtons, ToggleViewButtonsProps } from './ToggleViewButtons';
 
-// TODO: delete if using context implementation
+// TODO: use slots (loading indicator, title, etc.) ??
 
-export function DataViewLayout({
-  title,
-  children,
-  isFetchingOptions,
-  actions,
-}: {
+interface ToggleViewLayoutProps<T extends string> extends ToggleViewButtonsProps<T> {
   title: string;
   children: ReactNode;
   isFetchingOptions?: QueryFilters;
   actions?: ReactNode;
-}) {
+}
+
+export function ToggleViewLayout<T extends string>({
+  title,
+  children,
+  isFetchingOptions,
+  actions,
+  queryKey,
+  options,
+  defaultOption,
+  icons,
+}: ToggleViewLayoutProps<T>) {
   const isFetching = useIsFetching(isFetchingOptions);
-  // TODO: remove useSearchParams and retrieve from context once refactored
-  let [searchParams] = useSearchParams();
-  const view = searchParams.get(VIEW_QUERY_KEY) || 'cards';
+  const [view, handleViewChange] = useSearchParamToggle<T>(queryKey, options, defaultOption);
 
   return (
-    <Box>
+    <ToggleButtonProvider value={view as string}>
       <Box
         sx={{
           display: 'flex',
@@ -44,16 +46,12 @@ export function DataViewLayout({
         </Typography>
         <Stack direction='row' spacing={2} alignItems='center'>
           <LoadingSpinner loading={isFetching > 0} />
-          <ViewToggleButtons<TDataViewType>
-            queryKey={VIEW_QUERY_KEY}
-            options={DataViewType.options}
-            defaultOption='cards'
-            // defaultOption={claims.agent || claims.orgAdmin || claims.iDemandAdmin ? 'grid' :'cards'}
-            icons={{
-              cards: <GridViewRounded />,
-              grid: <TableRowsRounded />,
-              map: <MapRounded />,
-            }}
+          <ToggleViewButtons<T>
+            queryKey={queryKey}
+            options={options}
+            defaultOption={defaultOption}
+            onChange={handleViewChange}
+            icons={icons}
           />
           {actions}
         </Stack>
@@ -61,6 +59,6 @@ export function DataViewLayout({
       <ErrorBoundary FallbackComponent={ErrorFallback} resetKeys={[view]}>
         <Suspense fallback={<LoadingSpinner loading={true} />}>{children}</Suspense>
       </ErrorBoundary>
-    </Box>
+    </ToggleButtonProvider>
   );
 }
