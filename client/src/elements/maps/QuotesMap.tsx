@@ -1,12 +1,13 @@
 import { Card, useTheme } from '@mui/material';
-import { IconLayer } from 'deck.gl/typed';
+import { IconLayer, MapViewState } from 'deck.gl/typed';
 import { QueryFieldFilterConstraint } from 'firebase/firestore';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { Policy, Quote, WithId } from 'common';
-import { useCollectionData } from 'hooks';
+import { useCollectionData, useFlyToBounds } from 'hooks';
 import { CoordObj, TypedPickingInfo, getPlaceMarker, svgToDataURL } from 'modules/utils';
 import { DeckMap } from './DeckMap';
+import { DEFAULT_INITIAL_VIEW_STATE } from './constants';
 import { renderQuoteTooltip } from './renderTooltips';
 
 export interface QuotesMapProps {
@@ -15,9 +16,16 @@ export interface QuotesMapProps {
 
 export const QuotesMap = ({ constraints }: QuotesMapProps) => {
   const theme = useTheme();
+  const [mapViewState, setMapViewState] = useState<MapViewState>(DEFAULT_INITIAL_VIEW_STATE);
   const [hoverInfo, setHoverInfo] = useState<TypedPickingInfo<WithId<Policy>>>();
-
   const { data } = useCollectionData<Quote>('QUOTES', constraints, { idField: 'id' });
+  const flyToBounds = useFlyToBounds(data, setMapViewState, 2000);
+  const mapLoaded = useRef(false);
+
+  useEffect(() => {
+    // call directly from onMapLoaded for first invocation
+    mapLoaded.current && flyToBounds();
+  }, [flyToBounds]);
 
   const layers = [
     new IconLayer({
@@ -26,7 +34,7 @@ export const QuotesMap = ({ constraints }: QuotesMapProps) => {
       pickable: true,
       getIcon: (d: CoordObj) => ({
         url: svgToDataURL(
-          `${getPlaceMarker(theme.vars.palette.primary.main)}` // TODO: grey out expired quotes & green if bound ??
+          `${getPlaceMarker(theme.palette.primary.main)}` // TODO: grey out expired quotes & green if bound ??
         ),
         width: 36,
         height: 36,
@@ -38,9 +46,9 @@ export const QuotesMap = ({ constraints }: QuotesMapProps) => {
       sizeScale: 5,
       getSize: (d) => 5,
       onHover: (info) => setHoverInfo(info),
-      // updateTriggers: {
-      //   getIcon: [theme.palette.mode],
-      // },
+      updateTriggers: {
+        getIcon: [theme.palette.mode],
+      },
     }),
   ];
 
@@ -50,6 +58,11 @@ export const QuotesMap = ({ constraints }: QuotesMapProps) => {
         layers={layers}
         hoverInfo={hoverInfo}
         renderTooltipContent={renderQuoteTooltip}
+        initialViewState={mapViewState}
+        onLoad={() => {
+          flyToBounds();
+          mapLoaded.current = true;
+        }}
       ></DeckMap>
     </Card>
   );

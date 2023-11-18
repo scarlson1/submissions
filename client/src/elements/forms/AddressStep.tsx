@@ -110,7 +110,8 @@ export const AddressStep = ({
                 <ActiveStateMap
                   handleClick={(i, e) => {}}
                   statesValues={activeStates}
-                  mapViewState={mapViewState}
+                  // mapViewState={mapViewState}
+                  initialViewState={mapViewState}
                   // controller={{ scrollZoom: false, touchZoom: true }}
                 >
                   {showMarker && values.coordinates?.latitude && values.coordinates?.longitude && (

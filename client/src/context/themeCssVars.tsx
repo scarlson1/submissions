@@ -1001,43 +1001,64 @@ export function getThemedComponents(): ThemeOptions {
                     backgroundColor: alpha(theme.palette.primary[900], 0.5),
                   },
                 },
-                // ...theme.applyDarkStyles({
-                //   color: (theme.vars || theme).palette.primary[100],
-                //   backgroundColor: alpha(theme.palette.primary[800], 0.5),
-                //   '&:hover': {
-                //     backgroundColor: alpha(theme.palette.primary[900], 0.5),
-                //   },
-                // }),
               }),
-            }),
-            // for labelling product in the search
-            // @ts-ignore internal repo module augmentation issue
-            ...(variant === 'light' && {
-              ...(color === 'default' && {
-                color: theme.vars.palette.primary[700],
-                backgroundColor: alpha(theme.palette.primary[100], 0.3),
+              ...(color === 'secondary' && {
+                color: theme.vars.palette.secondary[600],
+                backgroundColor: alpha(theme.palette.secondary[100], 0.8),
+                '&:hover': {
+                  backgroundColor: theme.vars.palette.secondary[100],
+                },
                 '[data-mui-color-scheme="dark"] &': {
-                  color: theme.vars.palette.primary[200],
-                  backgroundColor: alpha(theme.palette.primaryDark[700], 0.5),
+                  color: theme.vars.palette.secondary[100],
+                  backgroundColor: alpha(theme.palette.secondary[800], 0.5),
+                  '&:hover': {
+                    backgroundColor: alpha(theme.palette.secondary[900], 0.5),
+                  },
                 },
               }),
               ...(color === 'warning' && {
                 color: theme.vars.palette.warning[900],
-                backgroundColor: theme.vars.palette.warning[100],
+                backgroundColor: theme.vars.palette.warning[100], // alpha(theme.palette.warning[400], 0.6),
+                // '&:hover': {
+                //   backgroundColor: theme.vars.palette.warning[400],
+                // },
                 '[data-mui-color-scheme="dark"] &': {
-                  color: '#fff',
-                  backgroundColor: theme.vars.palette.warning[900],
-                },
-              }),
-              ...(color === 'success' && {
-                color: theme.vars.palette.success[900],
-                backgroundColor: theme.vars.palette.success[100],
-                '[data-mui-color-scheme="dark"] &': {
-                  color: '#fff',
-                  backgroundColor: theme.vars.palette.success[900],
+                  color: '#fff', // theme.vars.palette.primary[100],
+                  backgroundColor: theme.vars.palette.warning[900], // alpha(theme.palette.warning[500], 0.6),
+                  // '&:hover': {
+                  //   backgroundColor: alpha(theme.palette.warning[500], 0.8),
+                  // },
                 },
               }),
             }),
+            // // for labelling product in the search
+            // // @ts-ignore internal repo module augmentation issue
+            // ...(variant === 'light' && {
+            //   ...(color === 'default' && {
+            //     color: theme.vars.palette.primary[700],
+            //     backgroundColor: alpha(theme.palette.primary[100], 0.3),
+            //     '[data-mui-color-scheme="dark"] &': {
+            //       color: theme.vars.palette.primary[200],
+            //       backgroundColor: alpha(theme.palette.primaryDark[700], 0.5),
+            //     },
+            //   }),
+            //   ...(color === 'warning' && {
+            //     color: theme.vars.palette.warning[900],
+            //     backgroundColor: theme.vars.palette.warning[100],
+            //     '[data-mui-color-scheme="dark"] &': {
+            //       color: '#fff',
+            //       backgroundColor: theme.vars.palette.warning[900],
+            //     },
+            //   }),
+            //   ...(color === 'success' && {
+            //     color: theme.vars.palette.success[900],
+            //     backgroundColor: theme.vars.palette.success[100],
+            //     '[data-mui-color-scheme="dark"] &': {
+            //       color: '#fff',
+            //       backgroundColor: theme.vars.palette.success[900],
+            //     },
+            //   }),
+            // }),
           }),
         },
       },

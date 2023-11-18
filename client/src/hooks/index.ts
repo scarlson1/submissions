@@ -31,6 +31,7 @@ export { useFetchLicenses } from './useFetchLicenses';
 export { useFetchTaxes } from './useFetchTaxes';
 export { useFileUpload } from './useFileUpload';
 export { useFloodFactor } from './useFloodFactor';
+export { useFlyToBounds } from './useFlyToBounds';
 export { useGeneratePDF } from './useGeneratePDF';
 export { useGeoSearch } from './useGeoSearch';
 export { useGridActions, useGridShowJson } from './useGridActions';

@@ -102,7 +102,7 @@ export const PolicyCard = ({ policy, onClick = noop, i }: PolicyCardProps) => {
                     {/* <Avatar src={f.img} alt={policy.namedInsured.firstName} /> */}
                     <Avatar
                       alt={`${policy.namedInsured.displayName}`}
-                      sx={{ width: { xs: 30, sm: 36, md: 40 }, height: { xs: 30, sm: 36, md: 40 } }}
+                      sx={{ width: { xs: 30, md: 36 }, height: { xs: 30, md: 36 } }}
                     />
                   </Tooltip>
                 ) : null}

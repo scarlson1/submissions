@@ -4,18 +4,38 @@ import {
   Box,
   CardActionArea,
   CardMedia,
+  Chip,
+  ChipProps,
   Divider,
   Tooltip,
   Typography,
   useTheme,
 } from '@mui/material';
 import { noop } from 'lodash';
+import { useMemo } from 'react';
 
-import { Quote, WithId, fallbackImages } from 'common';
+import { QUOTE_STATUS, Quote, WithId, fallbackImages } from 'common';
 import { FlexCard } from 'components';
 import { FlexCardContent, FlexCardContentWrapper } from 'components/FlexCard';
-import { dollarFormat } from 'modules/utils';
+import { dollarFormat, getQuoteStatus } from 'modules/utils';
 import { Item } from '.';
+
+function getChipProps(status: QUOTE_STATUS | 'unknown'): ChipProps {
+  switch (status) {
+    case QUOTE_STATUS.BOUND:
+      return { color: 'primary' };
+    case QUOTE_STATUS.AWAITING_USER:
+      return { color: 'secondary' };
+    case QUOTE_STATUS.CANCELLED:
+      return { color: 'error' };
+    case QUOTE_STATUS.EXPIRED:
+      return { color: 'warning' };
+    case QUOTE_STATUS.DRAFT:
+      return { color: 'success' };
+    default:
+      return { color: 'default' };
+  }
+}
 
 export interface QuoteCardProps {
   data: WithId<Quote>;
@@ -24,6 +44,13 @@ export interface QuoteCardProps {
 
 export function QuoteCard({ data, onClick = noop }: QuoteCardProps) {
   const theme = useTheme();
+
+  const chipProps = useMemo(() => {
+    const status = getQuoteStatus(data);
+    const color = getChipProps(status);
+
+    return { ...color, label: status };
+  }, [data]);
 
   return (
     <FlexCard
@@ -72,35 +99,40 @@ export function QuoteCard({ data, onClick = noop }: QuoteCardProps) {
               </Box>
               <Box>
                 <Divider light sx={{ my: { xs: 3, md: 4 } }} />
-                <AvatarGroup max={4} sx={{ justifyContent: 'flex-end' }}>
-                  {data.namedInsured ? (
-                    <Tooltip
-                      title={`${data?.namedInsured?.firstName}`}
-                      key={data?.namedInsured?.email}
-                    >
-                      <Avatar
-                        alt={data?.namedInsured?.firstName || 'i d'}
-                        sx={{
-                          width: { xs: 30, sm: 36, md: 40 },
-                          height: { xs: 30, sm: 36, md: 40 },
-                        }}
-                      />
-                    </Tooltip>
-                  ) : null}
-                  {data?.additionalInterests?.length
-                    ? data.additionalInterests.map((f, i) => (
-                        <Tooltip title={`${f?.name}`} key={`${f.email}-${i}`}>
-                          <Avatar
-                            alt={`${f.email}-${i}`}
-                            sx={{
-                              width: { xs: 30, sm: 36, md: 40 },
-                              height: { xs: 30, sm: 36, md: 40 },
-                            }}
-                          />
-                        </Tooltip>
-                      ))
-                    : null}
-                </AvatarGroup>
+                <Box
+                  sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                >
+                  <AvatarGroup max={4} sx={{ justifyContent: 'flex-end' }}>
+                    {data.namedInsured ? (
+                      <Tooltip
+                        title={`${data?.namedInsured?.firstName}`}
+                        key={data?.namedInsured?.email}
+                      >
+                        <Avatar
+                          alt={data?.namedInsured?.firstName || 'i d'}
+                          sx={{
+                            width: { xs: 30, md: 36 },
+                            height: { xs: 30, md: 36 },
+                          }}
+                        />
+                      </Tooltip>
+                    ) : null}
+                    {data?.additionalInterests?.length
+                      ? data.additionalInterests.map((f, i) => (
+                          <Tooltip title={`${f?.name}`} key={`${f.email}-${i}`}>
+                            <Avatar
+                              alt={`${f.email}-${i}`}
+                              sx={{
+                                width: { xs: 30, md: 36 },
+                                height: { xs: 30, md: 36 },
+                              }}
+                            />
+                          </Tooltip>
+                        ))
+                      : null}
+                  </AvatarGroup>
+                  <Chip size='small' {...chipProps} />
+                </Box>
               </Box>
             </Box>
           </FlexCardContent>

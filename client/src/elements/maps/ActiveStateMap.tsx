@@ -26,7 +26,7 @@ export interface ActiveStateMapProps extends DeckMapProps {
 export const ActiveStateMap = ({
   handleClick,
   statesValues,
-  mapViewState = INITIAL_VIEW_STATE,
+  initialViewState = INITIAL_VIEW_STATE,
   children,
   ...props
 }: ActiveStateMapProps) => {
@@ -35,7 +35,8 @@ export const ActiveStateMap = ({
 
   return (
     <DeckMap
-      mapViewState={mapViewState}
+      // mapViewState={mapViewState}
+      initialViewState={initialViewState}
       hoverInfo={hoverInfo}
       renderTooltipContent={(info: PickingInfo) => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>

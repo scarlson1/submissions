@@ -85,6 +85,7 @@ export const Quotes = () => {
 
   const handleViewQuote = useCallback(
     (quoteId: string) => {
+      console.log('view quote: ', quoteId);
       navigate(
         createPath({
           path: ROUTES.QUOTE_VIEW,

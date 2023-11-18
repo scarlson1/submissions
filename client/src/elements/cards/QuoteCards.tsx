@@ -1,6 +1,6 @@
 import { LoadingButton } from '@mui/lab';
-import { Unstable_Grid2 as Grid, Typography } from '@mui/material/';
-import { DocumentReference, QueryFieldFilterConstraint } from 'firebase/firestore';
+import { Unstable_Grid2 as Grid, Typography } from '@mui/material';
+import { QueryFieldFilterConstraint } from 'firebase/firestore';
 import { Fragment, useEffect } from 'react';
 import { useInView } from 'react-intersection-observer';
 
@@ -11,11 +11,11 @@ import { QuoteCard, QuoteCardProps } from './QuoteCard';
 
 interface QuoteCardsProps extends Omit<QuoteCardProps, 'data'> {
   constraints: QueryFieldFilterConstraint[];
-  startingCursor?: DocumentReference;
+  // startingCursor?: DocumentReference;
   pageSize?: number;
 }
 
-export const QuoteCards = ({ constraints, ...props }: QuoteCardsProps) => {
+export const QuoteCards = ({ constraints, pageSize, ...props }: QuoteCardsProps) => {
   const { ref, inView } = useInView();
   const { data, error, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteDocs<Quote>(
     COLLECTIONS.QUOTES,
@@ -43,7 +43,7 @@ export const QuoteCards = ({ constraints, ...props }: QuoteCardsProps) => {
           <Fragment key={`quote-card-group-${i}`}>
             {group.data.map((q) => (
               <Grid xs={12} sm={6} md={4} xl={3} key={q.id}>
-                <QuoteCard data={q} />
+                <QuoteCard data={q} {...props} />
               </Grid>
             ))}
           </Fragment>

@@ -153,7 +153,8 @@ export function Airports() {
 
   return (
     <DeckMap
-      mapViewState={viewState}
+      // mapViewState={viewState}
+      initialViewState={viewState}
       onViewStateChange={handleViewChange}
       layers={[airportLayer]}
       hoverInfo={hoverInfo}

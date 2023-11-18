@@ -1,17 +1,20 @@
 import DeckGL, { DeckGLProps } from '@deck.gl/react/typed';
 import { Box, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { LayersList, MapViewState, PickingInfo } from 'deck.gl/typed';
+import { LayersList, PickingInfo } from 'deck.gl/typed';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { ReactNode } from 'react';
 import Map from 'react-map-gl';
 
+import { useWidth } from 'hooks';
 import { DEFAULT_INITIAL_VIEW_STATE, MAPBOX_TOKEN } from './constants';
 
 // TODO: pass HoverInfo as child ?? needs to be direct descendant of DeckGl ??
 
+// ONLY SUPPLY ONE OF viewState or initialViewState
+
 export interface DeckMapProps extends Partial<DeckGLProps> {
-  mapViewState?: MapViewState;
+  // mapViewState?: MapViewState;
   layers?: LayersList | undefined;
   hoverInfo?: PickingInfo | null | undefined;
   renderTooltipContent?: (info: PickingInfo) => ReactNode;
@@ -19,7 +22,8 @@ export interface DeckMapProps extends Partial<DeckGLProps> {
 }
 
 export const DeckMap = ({
-  mapViewState = DEFAULT_INITIAL_VIEW_STATE,
+  initialViewState = DEFAULT_INITIAL_VIEW_STATE, // TODO: remove default if using viewState (don't pass both)
+  // mapViewState = DEFAULT_INITIAL_VIEW_STATE,
   layers,
   hoverInfo,
   renderTooltipContent,
@@ -27,16 +31,25 @@ export const DeckMap = ({
   ...rest
 }: DeckMapProps) => {
   const theme = useTheme();
+  const { isMobile } = useWidth();
 
   return (
     <Box sx={{ height: '100%', width: '100%' }}>
       <DeckGL
-        initialViewState={mapViewState}
+        initialViewState={initialViewState}
         controller={true}
         layers={layers}
         width='100%'
         height='100%'
         style={{ position: 'relative' }}
+        eventRecognizerOptions={
+          isMobile
+            ? {
+                pan: { threshold: 10 },
+                tap: { threshold: 5 },
+              }
+            : {}
+        }
         {...rest}
       >
         <Map
