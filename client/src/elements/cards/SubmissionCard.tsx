@@ -75,7 +75,7 @@ export function SubmissionCard({ submission: s }: { submission: WithId<Submissio
       </CardContent>
       <CardActions
         disableSpacing
-        sx={{ borderTop: (theme) => `1px solid ${theme.palette.divider}` }}
+        sx={{ borderTop: (theme) => `1px solid ${theme.vars.palette.divider}` }}
       >
         <Chip size='small' label={s.status} />
         <ExpandMore
@@ -91,8 +91,8 @@ export function SubmissionCard({ submission: s }: { submission: WithId<Submissio
       </CardActions>
       <Collapse in={expanded} timeout='auto' unmountOnExit>
         <CardContent>
-          <Item label='Submitted by' value={`${s.contact.firstName} ${s.contact.lastName}`} />
-          <Item label='Email' value={s.contact.email} />
+          <Item label='Submitted by' value={`${s.contact?.firstName} ${s.contact?.lastName}`} />
+          <Item label='Email' value={s.contact?.email} />
           <Item
             label='Year built'
             value={s.ratingPropertyData?.yearBuilt?.toString() || '--'}

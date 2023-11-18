@@ -1,3 +1,4 @@
+import { logDev } from 'modules/utils';
 import { useCallback, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { z } from 'zod';
@@ -28,7 +29,7 @@ const getInitTabView = <T extends string>(
     if (!storageVal) localStorage.setItem(queryKey, defaultValue);
   } catch (e) {}
   let val = searchParam || storageVal;
-  console.log(
+  logDev(
     'GET INIT TAB VIEW (search, defaultValue, storage): ',
     searchParam,
     defaultValue,
@@ -43,7 +44,7 @@ export const useSearchParamToggle = <T extends string>(
   defaultValue: T
 ) => {
   let [searchParams, setSearchParams] = useSearchParams();
-  const [view, setView] = useState<T | null>(
+  const [view, setView] = useState<T | null>(() =>
     getInitTabView<T>(queryKey, searchParams.get(queryKey), options, defaultValue)
   );
   const [, setStorageVal] = useLocalStorage<T>(
