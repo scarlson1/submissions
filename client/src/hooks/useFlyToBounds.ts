@@ -1,7 +1,8 @@
 import { FlyToInterpolator, MapViewState } from 'deck.gl/typed';
+import { Dispatch, SetStateAction, useCallback } from 'react';
+
 import { getBoundsViewPort } from 'elements/maps/utils';
 import { CoordObj } from 'modules/utils';
-import { Dispatch, SetStateAction, useCallback } from 'react';
 
 const transitionInterpolator = new FlyToInterpolator();
 
@@ -13,7 +14,6 @@ export const useFlyToBounds = (
   transitionDuration: number = 2000
 ) => {
   return useCallback(() => {
-    console.log('fly to bounds: ', data);
     if (!data.length) return;
     // alternatively: use bbox from turf and useRef.current.fitBounds with duration: 1000 in config
     // https://github.com/visgl/react-map-gl/blob/7.1-release/examples/zoom-to-bounds/src/app.tsx
@@ -33,8 +33,8 @@ export const useFlyToBounds = (
       latitude,
       longitude,
       zoom,
-      transitionDuration, // : 2000,
-      transitionInterpolator, // : new FlyToInterpolator(),
+      transitionDuration,
+      transitionInterpolator,
     }));
   }, [transitionDuration, data]);
 };

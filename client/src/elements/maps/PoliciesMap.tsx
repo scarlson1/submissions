@@ -54,7 +54,6 @@ export const PoliciesMap = ({ constraints }: PoliciesMapProps) => {
   const flyToBounds = useFlyToBounds(policyData, setMapViewState, 2000);
 
   useEffect(() => {
-    // call directly from onMapLoaded for first invocation
     mapLoaded.current && flyToBounds();
   }, [flyToBounds]);
 
@@ -95,7 +94,7 @@ export const PoliciesMap = ({ constraints }: PoliciesMapProps) => {
           flyToBounds();
           mapLoaded.current = true;
         }}
-      ></DeckMap>
+      />
     </Card>
   );
 };

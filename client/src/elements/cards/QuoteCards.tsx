@@ -1,6 +1,6 @@
 import { LoadingButton } from '@mui/lab';
 import { Unstable_Grid2 as Grid, Typography } from '@mui/material';
-import { QueryFieldFilterConstraint } from 'firebase/firestore';
+import { QueryFieldFilterConstraint, orderBy } from 'firebase/firestore';
 import { Fragment, useEffect } from 'react';
 import { useInView } from 'react-intersection-observer';
 
@@ -19,7 +19,7 @@ export const QuoteCards = ({ constraints, pageSize, ...props }: QuoteCardsProps)
   const { ref, inView } = useInView();
   const { data, error, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteDocs<Quote>(
     COLLECTIONS.QUOTES,
-    constraints
+    [...constraints, orderBy('metadata.created', 'desc')]
   );
 
   useEffect(() => {

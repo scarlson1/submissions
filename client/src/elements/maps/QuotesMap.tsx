@@ -23,7 +23,6 @@ export const QuotesMap = ({ constraints }: QuotesMapProps) => {
   const mapLoaded = useRef(false);
 
   useEffect(() => {
-    // call directly from onMapLoaded for first invocation
     mapLoaded.current && flyToBounds();
   }, [flyToBounds]);
 
@@ -41,7 +40,6 @@ export const QuotesMap = ({ constraints }: QuotesMapProps) => {
         anchorX: 18,
         anchorY: 36,
       }),
-      // getPosition: (d: any) => [d?.coords?.longitude || 0, d?.coords?.latitude || 0],
       getPosition: (d: any) => [d?.coordinates?.longitude || 0, d?.coordinates?.latitude || 0],
       sizeScale: 5,
       getSize: (d) => 5,
@@ -63,7 +61,7 @@ export const QuotesMap = ({ constraints }: QuotesMapProps) => {
           flyToBounds();
           mapLoaded.current = true;
         }}
-      ></DeckMap>
+      />
     </Card>
   );
 };

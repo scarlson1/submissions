@@ -2,7 +2,7 @@ import { Box, Typography } from '@mui/material';
 import { format } from 'date-fns';
 import { PickingInfo } from 'deck.gl/typed';
 
-import { ILocation, Policy, PolicyLocation, Quote, WithId } from 'common';
+import { ILocation, Policy, PolicyLocation, Quote, Submission, WithId } from 'common';
 import { dollarFormat, formatDate, formatFirestoreTimestamp } from 'modules/utils';
 
 export function renderEventTooltip(info?: PickingInfo) {
@@ -133,6 +133,29 @@ export function renderQuoteTooltip(info: PickingInfo) {
         color='text.secondary'
         sx={{ fontSize: '0.725rem' }}
       >{`Expiration: ${formatDate(quote.quoteExpirationDate?.toDate())}`}</Typography>
+    </Box>
+  );
+}
+
+export function renderSubmissionTooltip(info: PickingInfo) {
+  const submission = info?.object as WithId<Submission>;
+  if (!submission) return null;
+
+  return (
+    <Box>
+      <Typography variant='body1' fontWeight='fontWeightMedium'>
+        {submission.address?.addressLine1 || ''}
+      </Typography>
+      <Typography variant='body2' color='text.secondary' sx={{ fontSize: '0.725rem' }}>{`Contact: ${
+        submission.contact?.email || ''
+      }`}</Typography>
+      {submission.metadata.created ? (
+        <Typography
+          variant='body2'
+          color='text.secondary'
+          sx={{ fontSize: '0.725rem' }}
+        >{`Created: ${formatDate(submission.metadata.created.toDate()) || ''}`}</Typography>
+      ) : null}
     </Box>
   );
 }

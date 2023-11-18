@@ -10,18 +10,25 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
-import { IconLayer, IconLayerProps, PickingInfo } from 'deck.gl/typed';
+import { IconLayer, IconLayerProps, MapViewState, PickingInfo } from 'deck.gl/typed';
 import { QueryConstraint, where } from 'firebase/firestore';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 // import { DataFilterExtension } from '@deck.gl/extensions';
 
 import { Submission, WithId } from 'common';
-import { useCollectionData } from 'hooks';
-import { ICON_MAPPING, MAP_ICON_URL, TypedPickingInfo, getRGBAArray, logDev } from 'modules/utils';
-import { DeckMap, HoverInfo } from './DeckMap';
+import { useCollectionData, useFlyToBounds } from 'hooks';
+import {
+  CoordObj,
+  TypedPickingInfo,
+  getPlaceMarker,
+  getRGBAArray,
+  svgToDataURL,
+} from 'modules/utils';
+import { DeckMap } from './DeckMap';
+import { DEFAULT_INITIAL_VIEW_STATE } from './constants';
+import { renderSubmissionTooltip } from './renderTooltips';
 
 // TODO: study how MUI 'slots' works to create component that can add filters, etc.
-// TODO: use useReducer to create actions for map ?? (and context ??)
 
 const stateOptions = ['MN', 'FL', 'TN'];
 
@@ -31,59 +38,60 @@ const stateOptions = ['MN', 'FL', 'TN'];
 
 // TODO: pull filters, etc. up to parent component and pass as prop ??
 
-// TODO: zoom to bounds (on data change)
-
 interface SubmissionsMapProps {
   constraints?: QueryConstraint[];
   layerProps?: Omit<Partial<IconLayerProps>, 'getSize' | 'onHover'>;
 }
 
 export const SubmissionsMap = ({ constraints = [], layerProps }: SubmissionsMapProps) => {
-  const { data: submissionData } = useCollectionData('SUBMISSIONS', constraints, { idField: 'id' });
+  const theme = useTheme();
+  const [mapViewState, setMapViewState] = useState<MapViewState>(DEFAULT_INITIAL_VIEW_STATE);
+  const { data: submissionData } = useCollectionData<Submission>('SUBMISSIONS', constraints, {
+    idField: 'id',
+  });
   const [hoverInfo, setHoverInfo] = useState<TypedPickingInfo<WithId<Submission>>>();
+  const flyToBounds = useFlyToBounds(submissionData, setMapViewState, 2000);
+  const mapLoaded = useRef(false);
 
   useEffect(() => {
-    logDev('DATA: ', submissionData);
-  }, [submissionData]);
+    mapLoaded.current && flyToBounds();
+  }, [flyToBounds]);
 
   const layers = [
     new IconLayer({
-      // ...defaultGeoJsonLayerProps,
-      id: `submissions-locations-layer`,
+      id: `submissions-layer`,
       data: submissionData,
       pickable: true,
-      // getIcon: return a string alternative to iconAtlas/Mapping (different icons per data point)
-      iconAtlas: MAP_ICON_URL,
-      iconMapping: ICON_MAPPING,
-      getPosition: (d: any) => [d.coordinates.longitude, d.coordinates.latitude],
-      getIcon: (d) => 'marker',
+      getIcon: (d: CoordObj) => ({
+        url: svgToDataURL(`${getPlaceMarker(theme.palette.primary.main)}`),
+        width: 36,
+        height: 36,
+        anchorX: 18,
+        anchorY: 36,
+      }),
+      getPosition: (d: any) => [d.coordinates?.longitude || 0, d.coordinates?.latitude || 0],
       sizeScale: 5,
       getSize: (d) => 5,
       onHover: (info) => setHoverInfo(info),
       visible: true,
+      updateTriggers: {
+        getIcon: [theme.palette.mode],
+      },
       ...(layerProps || {}),
     }),
   ];
 
   return (
-    <DeckMap layers={layers}>
-      <HoverInfo
-        pickingInfo={hoverInfo}
-        renderTooltipContent={(info: TypedPickingInfo<WithId<Submission>>) => {
-          return (
-            <Box sx={{ px: 2, borderRadius: 0.5 }}>
-              <Typography variant='body2' fontWeight='fontWeightMedium'>
-                {info.object?.address?.addressLine1 || ''}
-              </Typography>
-              <Typography
-                variant='body2'
-                color='text.secondary'
-              >{`ID: ${info.object?.id}`}</Typography>
-            </Box>
-          );
-        }}
-      />
-    </DeckMap>
+    <DeckMap
+      layers={layers}
+      initialViewState={mapViewState}
+      hoverInfo={hoverInfo}
+      renderTooltipContent={renderSubmissionTooltip}
+      onLoad={() => {
+        flyToBounds();
+        mapLoaded.current = true;
+      }}
+    />
   );
 };
 
@@ -200,7 +208,7 @@ export const TestSubmissionsMapWithFilters = ({
             key={s.id}
             onClick={() => handleClicked({ object: { id: s.id } } as PickingInfo)}
             sx={{ '&:hover': { cursor: 'pointer' } }}
-          >{`${s.address.addressLine1} (ID: ${s.id})`}</Typography>
+          >{`${s.address?.addressLine1 || ''} (ID: ${s.id})`}</Typography>
         ))}
       </Box>
     </Box>

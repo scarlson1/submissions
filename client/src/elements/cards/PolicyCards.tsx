@@ -1,5 +1,5 @@
 import { Box, Button, Unstable_Grid2 as Grid, Typography } from '@mui/material';
-import { QueryConstraint } from 'firebase/firestore';
+import { QueryConstraint, orderBy } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 
 import { Policy } from 'common';
@@ -18,14 +18,10 @@ interface PolicyCardsProps extends Omit<PolicyCardProps, 'policy' | 'i'> {
 
 export const PolicyCards = ({ constraints, ...props }: PolicyCardsProps) => {
   const navigate = useNavigate();
-  const { data: policies } = useCollectionData<Policy>('POLICIES', constraints);
-
-  // const handleClick = useCallback(
-  //   (policyId: string) => {
-  //     navigate(createPath({ path: ROUTES.POLICY, params: { policyId } }));
-  //   },
-  //   [navigate]
-  // );
+  const { data: policies } = useCollectionData<Policy>('POLICIES', [
+    ...constraints,
+    orderBy('metadata.created', 'desc'),
+  ]);
 
   return (
     <>

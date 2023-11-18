@@ -1,6 +1,9 @@
 import { Button, Card } from '@mui/material';
+import { User } from 'firebase/auth';
 import { QueryFieldFilterConstraint, where } from 'firebase/firestore';
+import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import invariant from 'tiny-invariant';
 
 import { GridViewRounded, MapRounded, TableRowsRounded } from '@mui/icons-material';
 import { COLLECTIONS, VIEW_QUERY_KEY } from 'common';
@@ -8,33 +11,9 @@ import { ToggleViewLayout, ToggleViewPanel } from 'components/toggleView';
 import { SubmissionCards } from 'elements/cards';
 import { SubmissionsGrid } from 'elements/grids';
 import { SubmissionsMap } from 'elements/maps';
-import { User } from 'firebase/auth';
 import { DataViewType, TDataViewType, useClaims, useWidth } from 'hooks';
-import { useMemo } from 'react';
 import { ROUTES, createPath } from 'router';
-import invariant from 'tiny-invariant';
 import { AdminSubmissionsGrid } from './admin/AdminSubmissionsGrid';
-
-// function getLayoutProps(claims: { iDemandAdmin: boolean; orgAdmin: boolean; agent: boolean }) {
-//   let props: Pick<ToggleViewLayoutProps<TDataViewType>, 'defaultOption' | 'actions'> = {
-//     defaultOption: 'cards',
-//   };
-//   if (claims?.iDemandAdmin) {
-//     props = {
-//       defaultOption: 'grid',
-//       // actions: <AdminQuotesActionMenu />,
-//     };
-//   } else if (claims?.orgAdmin || claims?.agent) {
-//     props = {
-//       defaultOption: 'grid',
-//     };
-//   } else {
-//     props = {
-//       defaultOption: 'cards',
-//     };
-//   }
-//   return props;
-// }
 
 function getQueryProps(
   user: User,
@@ -113,29 +92,4 @@ export const Submissions = () => {
       </ToggleViewPanel>
     </ToggleViewLayout>
   );
-
-  // if (claims?.iDemandAdmin) return <AdminSubmissions />;
-
-  // if ((claims?.orgAdmin || claims?.agent) && user?.uid)
-  //   return (
-  //     <Box>
-  //       <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-  //         <Typography variant='h5' gutterBottom sx={{ ml: { xs: 2, sm: 3, md: 4 } }}>
-  //           Submissions
-  //         </Typography>
-  //         <Button
-  //           onClick={() =>
-  //             navigate(createPath({ path: ROUTES.SUBMISSION_NEW, params: { productId: 'flood' } }))
-  //           }
-  //           size='small'
-  //           sx={{ maxHeight: 36 }}
-  //         >
-  //           {isMobile ? 'New' : 'New Submission'}
-  //         </Button>
-  //       </Box>
-  //       <SubmissionsGrid constraints={[where('agent.userId', '==', user.uid)]} />
-  //     </Box>
-  //   );
-
-  // return <UserSubmissions />;
 };

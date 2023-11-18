@@ -614,7 +614,7 @@ export interface Quote {
   deductible: number;
   limits: Limits;
   address: Address;
-  coordinates: GeoPoint; // | null;
+  coordinates: GeoPoint;
   homeState: string;
   fees: TFeeItem[];
   taxes: TTaxItem[];
