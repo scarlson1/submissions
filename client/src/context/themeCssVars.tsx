@@ -344,7 +344,7 @@ export const getDesignTokens = (mode: 'light' | 'dark') =>
         fontSize: defaultTheme.typography.pxToRem(24),
         lineHeight: 36 / 24,
         letterSpacing: 0.1,
-        color: mode === 'dark' ? blue[300] : blue.main,
+        // color: mode === 'dark' ? blue[300] : blue.main,
       },
       h6: {
         fontSize: defaultTheme.typography.pxToRem(20),
