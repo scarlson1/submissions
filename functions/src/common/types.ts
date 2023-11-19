@@ -979,6 +979,9 @@ export interface LocationChangeValues {
 // ex: { endorsementChanges: { [lcnId]: { ...endorsementChanges}, amendmentChanges: { [lcnId]: { ...amendmentChanges}  }
 // then have approval function split into different transactions ??
 
+// TODO: change security rules to fetch policy instead of storing agentId and agencyId
+// OR are they there for querying purposes ?? (would require rxjs if not ??)
+
 interface BaseChangeRequest extends BaseDoc {
   trxType: ChangeRequestTrxType; // TODO: delete - handle trx by looping through endorsement and amendment changes
   requestEffDate: Timestamp;
@@ -1004,7 +1007,7 @@ interface BaseChangeRequest extends BaseDoc {
     email: string | null;
   };
   underwriterNotes?: string | null;
-  error?: string;
+  error?: string; // string or array of strings/objects ??
   _lastCommitted?: Timestamp;
 }
 

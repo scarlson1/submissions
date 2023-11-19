@@ -1,12 +1,12 @@
-import { usersCollection } from 'common';
 import { FirebaseError } from 'firebase/app';
 import { updateProfile as updateAuthProfile } from 'firebase/auth';
 import { Timestamp, doc, updateDoc } from 'firebase/firestore';
-import { logDev } from 'modules/utils';
 import { useCallback, useState } from 'react';
 import { useFirestore, useUser } from 'reactfire';
 import invariant from 'tiny-invariant';
 
+import { usersCollection } from 'common';
+import { logDev } from 'modules/utils';
 // import { useAuth } from 'modules/components/AuthContext';
 
 export interface UpdateProfileArgs {

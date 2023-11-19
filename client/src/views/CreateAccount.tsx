@@ -1,6 +1,5 @@
 import { LoadingButton } from '@mui/lab';
-import { Button, Container, Typography } from '@mui/material';
-import Grid from '@mui/material/Unstable_Grid2';
+import { Button, Container, Unstable_Grid2 as Grid, Typography } from '@mui/material';
 import { Formik, FormikHelpers, FormikProps } from 'formik';
 import { useCallback, useEffect, useRef } from 'react';
 import { toast } from 'react-hot-toast';
@@ -15,7 +14,7 @@ import { passwordValidation } from 'common';
 import { FormikPassword } from 'elements/forms';
 import { useCreateAccount } from 'hooks';
 import { useKeyPress } from 'hooks/utils';
-import { getRedirectPath } from 'modules/utils/helpers';
+import { getRedirectPath, logDev } from 'modules/utils/helpers';
 
 const validation = yup.object({
   firstName: yup.string().required('First name is required'),
@@ -50,7 +49,7 @@ export const CreateAccount = () => {
 
   useEffect(() => {
     if (params.tenantId) {
-      console.log('SETTING TENANT ID: ', params.tenantId);
+      logDev('SETTING TENANT ID: ', params.tenantId);
       auth.tenantId = params.tenantId;
     } else {
       auth.tenantId = null;

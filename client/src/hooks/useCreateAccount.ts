@@ -1,5 +1,4 @@
 import { useAuth } from 'context/AuthContext';
-import { FirebaseError } from 'firebase/app';
 import {
   EmailAuthProvider,
   User,
@@ -44,19 +43,19 @@ export const useCreateAccount = () => {
   const auth = getAuth();
   const params = useParams();
   const location = useLocation();
+  const navigate = useNavigate();
   const { user, isSignedIn, isAnonymous } = useAuth();
   const { logout } = useAuthActions();
   const toast = useAsyncToast();
-  const navigate = useNavigate();
 
-  const [errCode, setErrCode] = useState<string | null>(null);
-  const [errMsg, setErrMsg] = useState<string | null>(null);
+  // const [errCode, setErrCode] = useState<string | null>(null);
+  // const [errMsg, setErrMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   // TODO: use useUpdateProfile hook
   const updateUserDocOnCreate = useCallback(
     async (user: User, { firstName, lastName }: { firstName: string; lastName: string }) => {
-      let displayName = `${firstName.trim()} ${lastName.trim()}`.trim();
+      let displayName = `${firstName?.trim() || ''} ${lastName?.trim() || ''}`.trim();
       await updateProfile(user, { displayName });
 
       let userRef = doc(usersCollection(getFirestore()), user.uid);
@@ -65,7 +64,6 @@ export const useCreateAccount = () => {
         displayName,
         firstName: firstName.trim(),
         lastName: lastName.trim(),
-        // orgId: auth.tenantId || null,
         tenantId: auth.tenantId || null,
         email: user.email || null,
         metadata: {
@@ -76,16 +74,14 @@ export const useCreateAccount = () => {
       if (auth.tenantId) initUserProperties.orgId = auth.tenantId;
 
       await setDoc(userRef, initUserProperties, { merge: true });
-
-      await sendEmailVerification(user);
     },
     [auth]
   );
 
   const createAccount = useCallback(
     async ({ firstName, lastName, email, password }: CreatePasswordProps) => {
-      setErrCode(null);
-      setErrMsg(null);
+      // setErrCode(null);
+      // setErrMsg(null);
       setLoading(true);
 
       try {
@@ -104,6 +100,7 @@ export const useCreateAccount = () => {
           await userLinkRes.getIdToken(true);
 
           await updateUserDocOnCreate(userLinkRes, { firstName, lastName });
+          await sendEmailVerification(userLinkRes);
 
           setLoading(false);
           return userLinkRes;
@@ -116,6 +113,7 @@ export const useCreateAccount = () => {
           );
 
           await updateUserDocOnCreate(userCreateRes, { firstName, lastName });
+          await sendEmailVerification(userCreateRes);
 
           setLoading(false);
           return user;
@@ -123,13 +121,14 @@ export const useCreateAccount = () => {
       } catch (err) {
         console.log('ERROR: ', err);
 
-        if (err instanceof FirebaseError) {
-          setErrCode(err.code);
-          setErrMsg(err.message);
-        } else {
-          setErrCode('Unknown Error');
-          setErrMsg('See console for error details');
-        }
+        // TODO: delete ?? could be out of sync with error handling that handles rejected promise
+        // if (err instanceof FirebaseError) {
+        //   setErrCode(err.code);
+        //   setErrMsg(err.message);
+        // } else {
+        //   setErrCode('Unknown Error');
+        //   setErrMsg('See console for error details');
+        // }
         // setErrCode(getErrorCode(err));
         // setErrMsg(getFirebaseAuthErrorMessage(err) || 'An error occurred');
         setLoading(false);
@@ -317,10 +316,10 @@ export const useCreateAccount = () => {
     () => ({
       createAccount,
       handleEmailAuthError,
-      errMsg,
-      errCode,
+      // errMsg,
+      // errCode,
       loading,
     }),
-    [createAccount, handleEmailAuthError, errMsg, errCode, loading]
+    [createAccount, handleEmailAuthError, loading]
   );
 };
