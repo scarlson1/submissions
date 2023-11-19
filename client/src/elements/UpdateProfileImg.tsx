@@ -5,6 +5,7 @@ import { getDownloadURL } from 'firebase/storage';
 import { StorageFolder } from 'common';
 import { useAuth } from 'context/AuthContext';
 import { useAsyncToast, useCreateStorageFiles, useRequireAuth, useUpdateProfile } from 'hooks';
+import invariant from 'tiny-invariant';
 import UploadFilesDialog from './UploadFilesDialog';
 
 export interface UpdateProfileImgProps {
@@ -15,6 +16,7 @@ export const UpdateProfileImg = ({ avatarSx }: UpdateProfileImgProps) => {
   useRequireAuth({});
   const { user } = useAuth();
   const toast = useAsyncToast();
+  invariant(user);
 
   const { updateProfile } = useUpdateProfile(
     () => {
@@ -34,8 +36,8 @@ export const UpdateProfileImg = ({ avatarSx }: UpdateProfileImgProps) => {
     handleSubmit,
     handleCancel,
   } = useCreateStorageFiles(
-    `${StorageFolder.enum.users}/${user?.uid || ''}/${StorageFolder.enum.profileImages}`,
-    { userId: user?.uid || null },
+    `${StorageFolder.enum.users}/${user.uid}/${StorageFolder.enum.profileImages}`,
+    { userId: user.uid },
     async (uploadResult) => {
       console.log('upload successful', uploadResult);
 

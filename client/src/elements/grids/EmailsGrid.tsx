@@ -17,7 +17,7 @@ export const EmailsGrid = ({ renderActions, additionalColumns, ...props }: Email
   return (
     <Box>
       <ServerDataGrid
-        colName='EMAIL_ACTIVITY'
+        colName='emailActivity'
         columns={emailCols}
         density='compact'
         autoHeight

@@ -1,7 +1,11 @@
-import { GridColDef, GridRenderCellParams, GridRenderEditCellParams } from '@mui/x-data-grid';
 import { Avatar, Box, Typography } from '@mui/material';
-import { purple, blue, red, lightBlue, lightGreen } from '@mui/material/colors';
+import { blue, lightBlue, lightGreen, purple, red } from '@mui/material/colors';
+import { GridColDef, GridRenderCellParams, GridRenderEditCellParams } from '@mui/x-data-grid';
 
+import { CLAIMS, User } from 'common';
+import { GridEditMultiSelectCell, GridMultiSelectColDef } from 'components/GridEditMultiSelectCell';
+import { renderChips } from 'components/RenderGridCellHelpers';
+import { getRandomItem, stringAvatar } from 'modules/utils';
 import {
   createdCol,
   displayNameCol,
@@ -13,10 +17,6 @@ import {
   phoneCol,
   updatedCol,
 } from './gridColumns';
-import { GridEditMultiSelectCell, GridMultiSelectColDef } from 'components/GridEditMultiSelectCell';
-import { renderChips } from 'components/RenderGridCellHelpers';
-import { getRandomItem, stringAvatar } from 'modules/utils';
-import { CLAIMS, User } from 'common';
 
 export const userClaimsCol: GridMultiSelectColDef = {
   field: 'userClaims',
@@ -68,7 +68,7 @@ export const userSummaryCol: GridColDef<User> = {
   filterable: false,
   sortable: false,
   valueGetter: (params) => {
-    const name = `${params.row.firstName} ${params.row.lastName}`.trim();
+    const name = `${params.row.firstName || ''} ${params.row.lastName || ''}`.trim();
     const email = params.row.email || '';
     const photoURL = params.row.photoURL || '';
 

@@ -220,7 +220,7 @@ export const SubmissionNew = () => {
 
   const { createSubmission } = useCreateSubmission(
     (docId: string) => {
-      toast.success('saved!', { duration: 1000 });
+      // toast.success('saved!', { duration: 1000 });
       navigate(createPath({ path: ROUTES.SUBMISSION_SUBMITTED, params: { submissionId: docId } }));
     },
     (msg: string) => toast.error(msg)

@@ -21,7 +21,7 @@ export const PoliciesGrid = ({ renderActions = () => [], ...props }: PoliciesGri
     requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
   });
   const renderShowJson = useGridShowJson(
-    Collection.Enum.policies,
+    'policies',
     { showInMenu: true },
     { requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }
   );
@@ -90,7 +90,7 @@ export const PoliciesGrid = ({ renderActions = () => [], ...props }: PoliciesGri
   return (
     <Box>
       <ServerDataGrid
-        colName='POLICIES'
+        colName='policies'
         columns={policyColumns}
         density='compact'
         autoHeight

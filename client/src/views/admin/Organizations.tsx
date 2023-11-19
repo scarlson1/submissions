@@ -45,7 +45,7 @@ export const Organizations = () => {
       </Box>
       <Box sx={{ height: { xs: 400, md: 460, lg: 500 }, width: '100%' }}>
         <ServerDataGrid
-          colName='ORGANIZATIONS'
+          colName='organizations'
           columns={orgCols}
           density='compact'
           autoHeight

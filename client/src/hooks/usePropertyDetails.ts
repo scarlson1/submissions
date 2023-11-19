@@ -12,6 +12,7 @@ import {
   RatingPropertyData,
   TBasement,
 } from 'common';
+import { logDev } from 'modules/utils';
 import { usePromptRCV } from './usePromptRCV';
 
 // @ts-ignore
@@ -109,7 +110,7 @@ export const usePropertyDetailsAttom = (props?: UsePropertyDetailsProps) => {
       const fetchDetails = getPropertyDetailsAttom(functions);
       const { data } = await fetchDetails(args);
 
-      console.log('DATA: ', data);
+      logDev(data);
 
       let newPropDetails = {
         CBRSDesignation: data.CBRSDesignation || null,

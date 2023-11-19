@@ -376,7 +376,6 @@ function UserDetailsForm() {
 
   const onSubmit: SubmitHandler<UserDetailsInputs> = useCallback(
     async (data) => {
-      // console.log(data);
       toast.loading('updating profile...');
 
       await updateProfile({ firstName: data.firstName, lastName: data.lastName });
@@ -478,7 +477,6 @@ function UpdateUserEmail() {
 
   const onSubmit: SubmitHandler<UserEmailInputs> = useCallback(
     async (data) => {
-      console.log(data);
       toast.loading('updating...');
 
       try {

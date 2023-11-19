@@ -1,3 +1,4 @@
+import { GridViewRounded, MapRounded, TableRowsRounded } from '@mui/icons-material';
 import { Button, Card } from '@mui/material';
 import { User } from 'firebase/auth';
 import { QueryFieldFilterConstraint, where } from 'firebase/firestore';
@@ -5,7 +6,6 @@ import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import invariant from 'tiny-invariant';
 
-import { GridViewRounded, MapRounded, TableRowsRounded } from '@mui/icons-material';
 import { Collection, VIEW_QUERY_KEY } from 'common';
 import { ToggleViewLayout, ToggleViewPanel } from 'components/toggleView';
 import { SubmissionCards } from 'elements/cards';

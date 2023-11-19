@@ -50,7 +50,7 @@ export function ToggleViewLayout<T extends string>({
           </Typography>
         ) : null}
         <Stack direction='row' spacing={2} alignItems='center' sx={{ ml: 'auto' }}>
-          <LoadingSpinner loading={isFetching > 0} />
+          <LoadingSpinner loading={isFetching > 0} size={18} />
           <ToggleViewButtons<T>
             queryKey={queryKey}
             options={options}

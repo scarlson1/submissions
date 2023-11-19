@@ -10,11 +10,14 @@ import InputDialog from 'components/InputDialog';
 import { useConfirmation } from 'context';
 import { UsersGrid } from 'elements/grids';
 import { useAsyncToast, useMoveUserToTenant, useShowJson } from 'hooks';
+import { logDev } from 'modules/utils';
+
+// TODO: make tenant a select field / autocomplete
+// TODO: prompt for customClaims
 
 export const Users = () => {
   const { status, data: signInCheckResult } = useSigninCheck({
     requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
-    suspense: false,
   });
   const confirm = useConfirmation();
   const toast = useAsyncToast();
@@ -24,11 +27,9 @@ export const Users = () => {
   );
   const showJson = useShowJson('users');
 
-  // TODO: prompt for tenantId (select from autocomplete)
-  // TODO: prompt for customClaims
   const handleAssignTenant = useCallback(
     (params: GridRowParams<User>) => async () => {
-      console.log('Assign tenant called ', params);
+      logDev('Assign tenant called ', params);
       let toTenantId: string;
       try {
         toTenantId = await confirm({
@@ -48,7 +49,7 @@ export const Users = () => {
           ),
         });
       } catch (err) {
-        console.log('SET TENANT ID CANCELLED');
+        console.log('set tenant ID cancelled');
         return;
       }
 

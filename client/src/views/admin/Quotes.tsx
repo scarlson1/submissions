@@ -116,7 +116,7 @@ export const Quotes = () => {
   const updateQuote = useUpdateQuoteStatus();
   const confirmAndUpdate = useConfirmAndUpdate(updateQuote);
   const renderShowJson = useGridShowJson(
-    Collection.Enum.quotes,
+    'quotes',
     { showInMenu: true },
     { requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }
   );

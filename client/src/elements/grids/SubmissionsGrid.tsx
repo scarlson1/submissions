@@ -27,7 +27,7 @@ export const SubmissionsGrid = ({
   // const showJson = useShowJson<Submission>(Collection.Enum.submissions);
   const { googleMapsAction, floodFactorAction } = useGridActions(toast.error);
   const renderShowJson = useGridShowJson(
-    Collection.Enum.submissions,
+    'submissions',
     { showInMenu: true },
     { requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }
   );
@@ -35,33 +35,6 @@ export const SubmissionsGrid = ({
   const { data: iDAdminResult } = useSigninCheck({
     requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
   });
-
-  // const handleShowJson = useCallback(
-  //   (params: GridRowParams) => () => showJson(params.id.toString()),
-  //   [showJson]
-  // );
-
-  // const renderAdminActions = useCallback(
-  //   (params: GridRowParams<Submission>, options?: ActionOptions) => {
-  //     if (!iDAdminResult.hasRequiredClaims) return [];
-  //     return [
-  //       // @ts-ignore
-  //       <GridActionsCellItem
-  //         icon={
-  //           <Tooltip title='show JSON' placement='top'>
-  //             <DataObjectRounded />
-  //           </Tooltip>
-  //         }
-  //         onClick={handleShowJson(params)}
-  //         label='Show JSON'
-  //         disabled={!iDAdminResult.hasRequiredClaims}
-  //         showInMenu
-  //         {...(options || {})}
-  //       />,
-  //     ];
-  //   },
-  //   [iDAdminResult, handleShowJson]
-  // );
 
   const submissionColumns: GridColDef[] = useMemo(
     () => [
@@ -75,17 +48,6 @@ export const SubmissionsGrid = ({
           ...renderShowJson(params),
           googleMapsAction(params, { showInMenu: isSmall }),
           floodFactorAction(params, { showInMenu: isSmall }),
-          // <GridActionsCellItem
-          //   icon={
-          //     <Tooltip title='show JSON' placement='top'>
-          //       <DataObjectRounded />
-          //     </Tooltip>
-          //   }
-          //   onClick={handleShowJson(params)}
-          //   label='Show JSON'
-          //   disabled={!iDAdminResult.hasRequiredClaims}
-          //   showInMenu // showInMenu={isSmall}
-          // />,
         ],
       },
       {
@@ -119,7 +81,7 @@ export const SubmissionsGrid = ({
   return (
     <Box sx={{ height: { xs: 400, sm: 460, md: 500 }, width: '100%' }}>
       <ServerDataGrid
-        colName='SUBMISSIONS'
+        colName='submissions'
         columns={submissionColumns}
         density='compact'
         autoHeight

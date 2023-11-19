@@ -62,7 +62,7 @@ export const Licenses = () => {
       </Box>
       <Box sx={{ height: 500, width: '100%' }}>
         <ServerDataGrid
-          colName='LICENSES'
+          colName='licenses'
           columns={licenseColumns}
           density='compact'
           autoHeight

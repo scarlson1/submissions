@@ -1,7 +1,11 @@
-import { useCallback, useState } from 'react';
-import { updateProfile as updateAuthProfile } from 'firebase/auth';
+import { usersCollection } from 'common';
 import { FirebaseError } from 'firebase/app';
-import { useUser } from 'reactfire';
+import { updateProfile as updateAuthProfile } from 'firebase/auth';
+import { Timestamp, doc, updateDoc } from 'firebase/firestore';
+import { logDev } from 'modules/utils';
+import { useCallback, useState } from 'react';
+import { useFirestore, useUser } from 'reactfire';
+import invariant from 'tiny-invariant';
 
 // import { useAuth } from 'modules/components/AuthContext';
 
@@ -28,8 +32,10 @@ export const useUpdateProfile = (
   onError?: (msg: string, err?: unknown) => void
 ) => {
   // const { user, isAuthenticated } = useAuth();
+  const firestore = useFirestore();
   const { data: user } = useUser();
   const [error, setError] = useState<FormattedError | undefined>();
+  invariant(user);
 
   const updateError = useCallback(
     (err: unknown) => {
@@ -43,6 +49,21 @@ export const useUpdateProfile = (
       if (onError) onError(formattedErr.message, err);
     },
     [onError]
+  );
+
+  const updateDBUser = useCallback(
+    async (args: UpdateProfileRes) => {
+      try {
+        const userRef = doc(usersCollection(firestore), user.uid);
+        await updateDoc(userRef, { ...args, 'metadata.updated': Timestamp.now() });
+        if (onSuccess) onSuccess(args);
+      } catch (err: any) {
+        let msg = 'updated auth user. failed to update DB user record.';
+        logDev(msg, err);
+        if (onError) onError(msg, err);
+      }
+    },
+    [firestore, user]
   );
 
   const updateProfile = useCallback(
@@ -66,13 +87,14 @@ export const useUpdateProfile = (
 
         await updateAuthProfile(user, updateBody);
         await user.getIdToken(true);
+        return updateDBUser({ ...args, ...updateBody });
 
-        if (onSuccess) onSuccess({ ...args, displayName });
+        // if (onSuccess) onSuccess({ ...args, displayName })
       } catch (err) {
         updateError(err);
       }
     },
-    [onSuccess, onError, updateError, user]
+    [onSuccess, onError, updateError, updateDBUser, user]
   );
 
   return { updateProfile, error };

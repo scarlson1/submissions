@@ -1,4 +1,4 @@
-import { array, boolean, mixed, number, object, string } from 'yup';
+import { array, boolean, date, mixed, number, object, string } from 'yup';
 
 import { isValidEmail, validateRoutingNumber } from 'modules/utils';
 import { State } from './enums';
@@ -376,8 +376,8 @@ export const contactUsValidation = object().shape({
 export const newTaxValidation = object().shape({
   state: string().required(),
   displayName: string().required(),
-  // effectiveDate: date().required(),
-  // expirationDate: date().nullable(),
+  effectiveDate: date().required(),
+  expirationDate: date().nullable(),
   LOB: array().of(string()),
   products: array().of(string()).min(1),
   transactionTypes: array().of(string()).min(1, 'Must select at lease one option'),
