@@ -24,6 +24,10 @@ export const authrequeststest = onRequest(
   }
 );
 
+export const copytaxes = functions.https.onRequest(async (request, response) => {
+  await (await import('./copyTaxes.js')).default(request, response);
+});
+
 export const generatepdf = onRequest({ secrets: [exportSDKKey] }, async (request, response) => {
   await (await import('./generatePDF.js')).default(request, response);
 });

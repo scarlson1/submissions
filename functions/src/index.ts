@@ -81,7 +81,13 @@ export {
   policycreatedlistener,
   policyrenewallistener,
 } from './pubsub/index.js';
-export { authRequests, authrequeststest, generatepdf, sendgrid } from './routes/index.js';
+export {
+  authRequests,
+  authrequeststest,
+  copytaxes,
+  generatepdf,
+  sendgrid,
+} from './routes/index.js';
 export { checkachstatus } from './scheduler/index.js';
 export {
   getfips,

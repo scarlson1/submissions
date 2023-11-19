@@ -57,7 +57,7 @@ export const SLTaxes = () => {
       </Box>
       <Box sx={{ height: 500, width: '100%' }}>
         <ServerDataGrid
-          colName='TAXES'
+          colName='taxes'
           columns={taxColumns}
           density='compact'
           autoHeight

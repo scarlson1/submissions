@@ -69,8 +69,7 @@ export const licensesCollection = (db: Firestore) =>
 export const notifyRegistration = (db: Firestore) =>
   createCollection<NotifyRegistration, NotifyRegistration>(db, 'notifyRegistration');
 
-export const taxesCollection = (db: Firestore) =>
-  createCollection<TTax, TTax>(db, 'surplusLinesTaxes');
+export const taxesCollection = (db: Firestore) => createCollection<TTax, TTax>(db, 'taxes');
 
 export const statesCollection = (db: Firestore) =>
   createCollection<ActiveStates, ActiveStates>(db, 'states');

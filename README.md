@@ -15,7 +15,7 @@
   - userClaims
 - licenses
 - notifications
-- surplusLinesTaxes
+- taxes
 - states (active states by product)
 - moratoriums
 - disclosures
