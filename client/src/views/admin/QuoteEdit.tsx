@@ -39,6 +39,8 @@ const useEditQuote = (
           'Must have at least one email (insured or agent)'
         );
         invariant(isValid(newValues.effectiveDate), 'Invalid effective date');
+        invariant(typeof newValues.coordinates?.longitude === 'number');
+        invariant(typeof newValues.coordinates?.latitude === 'number');
 
         let effDateStartOfDay = startOfDay(newValues.effectiveDate);
         // let expDateStartOfDay = addToDate({ years: 1 }, effDateStartOfDay);
@@ -62,10 +64,10 @@ const useEditQuote = (
           address: newValues?.address,
           // TODO: add homeState to the form
           homeState: newValues?.homeState,
-          coordinates:
-            newValues.coordinates?.longitude && newValues.coordinates?.latitude
-              ? new GeoPoint(newValues.coordinates.latitude, newValues.coordinates.longitude)
-              : null,
+          coordinates: new GeoPoint(
+            newValues.coordinates.latitude,
+            newValues.coordinates.longitude
+          ),
           limits: newValues?.limits,
           deductible: newValues?.deductible,
           fees: numFees || [], // newValues?.fees || [],
@@ -140,7 +142,7 @@ export const QuoteEdit = () => {
   const toast = useAsyncToast();
   invariant(quoteId);
 
-  const { data: quoteData } = useDocDataOnce<Quote>('QUOTES', quoteId, { suspense: true });
+  const { data: quoteData } = useDocDataOnce<Quote>('quotes', quoteId);
 
   const editQuote = useEditQuote(
     quoteId,

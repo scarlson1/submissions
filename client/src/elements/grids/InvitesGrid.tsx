@@ -6,7 +6,7 @@ import { Functions, httpsCallable } from 'firebase/functions';
 import { useCallback, useMemo } from 'react';
 import { useFunctions, useSigninCheck } from 'reactfire';
 
-import { CLAIMS, COLLECTIONS, INVITE_STATUS, Invite } from 'common';
+import { CLAIMS, Collection, INVITE_STATUS, Invite } from 'common';
 import { ServerDataGrid, ServerDataGridProps } from 'components';
 import { useAsyncToast } from 'hooks';
 import { INVITE_COLUMN_VISIBILITY, inviteCols } from 'modules/muiGrid';
@@ -34,14 +34,14 @@ export const InvitesGrid = ({ orgId, queryConstraints }: InvitesGridProps) => {
   const props: Omit<ServerDataGridProps, 'columns'> = useMemo(() => {
     if (orgId) {
       return {
-        colName: 'ORGANIZATIONS',
-        pathSegments: [orgId, COLLECTIONS.INVITES],
+        colName: 'organizations',
+        pathSegments: [orgId, Collection.Enum.invitations],
         isCollectionGroup: false,
       };
     } else {
       if (!signInRes.hasRequiredClaims) throw new Error('missing required permissions (or orgId)');
       return {
-        colName: 'INVITES',
+        colName: 'invitations',
         isCollectionGroup: true,
       };
     }

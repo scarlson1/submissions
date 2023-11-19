@@ -34,7 +34,7 @@ export const PoliciesMap = ({ constraints }: PoliciesMapProps) => {
   const [mapViewState, setMapViewState] = useState<MapViewState>(DEFAULT_INITIAL_VIEW_STATE);
   const mapLoaded = useRef(false);
 
-  const { data: policies } = useCollectionData<Policy>('POLICIES', constraints, {
+  const { data: policies } = useCollectionData<Policy>('policies', constraints, {
     idField: 'id',
   });
 

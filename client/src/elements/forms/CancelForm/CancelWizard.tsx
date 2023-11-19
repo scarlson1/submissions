@@ -43,7 +43,7 @@ export const CancelWizard = ({
   const { data: changeRequest } =
     useFirestoreDocData<Partial<CancellationRequest>>(changeRequestRef);
 
-  const { data: policy } = useDocDataOnce<Policy>('POLICIES', policyId);
+  const { data: policy } = useDocDataOnce<Policy>('policies', policyId);
 
   const formRef = useRef<FormikProps<CancelValues>>(null);
 

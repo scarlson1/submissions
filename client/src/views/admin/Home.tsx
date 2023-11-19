@@ -13,7 +13,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from 'reactfire';
 
-import { COLLECTIONS, Moratorium } from 'common';
+import { Collection, Moratorium } from 'common';
 import { ClaimsGuard, FlexCard, FlexCardContent, IconButtonMenu } from 'components';
 import {
   Query,
@@ -139,7 +139,7 @@ function StatCard({
 function NewSubmissionsCard() {
   const navigate = useNavigate();
   const [count, setCount] = useState<number | null>(null);
-  const fetchCount = useFetchDocCount('SUBMISSIONS', [where('status', '==', 'submitted')]);
+  const fetchCount = useFetchDocCount('submissions', [where('status', '==', 'submitted')]);
 
   useEffect(() => {
     fetchCount().then((result) => {
@@ -164,7 +164,7 @@ function ActiveMoratoriumsCard() {
   useEffect(() => {
     if (count) return;
     const q = query(
-      collection(getFirestore(), COLLECTIONS.MORATORIUMS),
+      collection(getFirestore(), Collection.Enum.moratoriums),
       where('effectiveDate', '<=', Timestamp.now())
     ) as Query<Moratorium>;
     getDocs(q)
@@ -186,7 +186,7 @@ function ActiveMoratoriumsCard() {
   return (
     <StatCard
       cardClick={() => navigate(createPath({ path: ADMIN_ROUTES.MORATORIUMS }))}
-      title='Moratorums'
+      title='Moratoriums'
       content={`${count || '--'} active`}
       cardProps={{ sx: { maxWidth: 340 } }}
     />

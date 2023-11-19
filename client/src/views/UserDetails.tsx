@@ -69,7 +69,7 @@ export const UserDetails = () => {
 // PRE_DEPLOY: get photo from user doc -- not auth photo
 // need to sync photo url to user doc when auth profile is changed
 function UserInfo({ userId }: { userId: string }) {
-  const { data } = useDocData<User>('USERS', userId);
+  const { data } = useDocData<User>('users', userId);
 
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', overflowX: 'hidden' }}>

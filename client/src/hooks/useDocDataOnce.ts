@@ -1,10 +1,10 @@
 import { DocumentReference, doc } from 'firebase/firestore';
 import { useFirestore, useFirestoreDocDataOnce } from 'reactfire';
 
-import { Collection } from 'common';
+import { TCollection } from 'common';
 
 export const useDocDataOnce = <T = any>(
-  colName: Collection, //  keyof typeof COLLECTIONS,
+  colName: TCollection,
   id: string,
   // options: ReactFireOptions<T> = {},
   ...pathSegments: string[]

@@ -5,7 +5,7 @@ import { where } from 'firebase/firestore';
 import { useCallback } from 'react';
 import { useSigninCheck } from 'reactfire';
 
-import { CLAIMS, COLLECTIONS, User } from 'common';
+import { CLAIMS, User } from 'common';
 import InputDialog from 'components/InputDialog';
 import { useConfirmation } from 'context';
 import { UsersGrid } from 'elements/grids';
@@ -22,7 +22,7 @@ export const Users = () => {
     (msg: string) => toast.success(msg),
     (msg: string) => toast.error(msg)
   );
-  const showJson = useShowJson(COLLECTIONS.USERS);
+  const showJson = useShowJson('users');
 
   // TODO: prompt for tenantId (select from autocomplete)
   // TODO: prompt for customClaims

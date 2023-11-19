@@ -10,7 +10,7 @@ import { QueryFieldFilterConstraint, where } from 'firebase/firestore';
 import { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { COLLECTIONS, VIEW_QUERY_KEY } from 'common';
+import { Collection, VIEW_QUERY_KEY } from 'common';
 import { ToggleViewLayout, ToggleViewLayoutProps, ToggleViewPanel } from 'components/toggleView';
 import { QuoteCards } from 'elements';
 import { QuotesGrid } from 'elements/grids';
@@ -126,7 +126,7 @@ export const Quotes = () => {
         grid: <TableRowsRounded />,
         map: <MapRounded />,
       }}
-      isFetchingOptions={{ queryKey: [`infinite-${COLLECTIONS.POLICIES}`] }}
+      isFetchingOptions={{ queryKey: [`infinite-${Collection.Enum.policies}`] }}
       headerContainerSx={{ pb: { xs: 2, sm: 3, lg: 4 } }}
       {...layoutProps}
     >
@@ -155,7 +155,7 @@ export const Quotes = () => {
   //   return (
   //     <DataViewLayout
   //       title='Quotes'
-  //       isFetchingOptions={{ queryKey: [`infinite-${COLLECTIONS.QUOTES}`] }}
+  //       isFetchingOptions={{ queryKey: [`infinite-${Collection.Enum.quotes}`] }}
   //       actions={<AdminQuotesActionMenu />}
   //     >
   //       {view === DataViewType.Enum.cards ? (
@@ -171,7 +171,7 @@ export const Quotes = () => {
   //   return (
   //     <DataViewLayout
   //       title='Quotes'
-  //       isFetchingOptions={{ queryKey: [`infinite-${COLLECTIONS.QUOTES}`] }}
+  //       isFetchingOptions={{ queryKey: [`infinite-${Collection.Enum.quotes}`] }}
   //     >
   //       {view === DataViewType.Enum.cards ? (
   //         <QuoteCards
@@ -195,7 +195,7 @@ export const Quotes = () => {
   // return (
   //   <DataViewLayout
   //     title='Quotes'
-  //     isFetchingOptions={{ queryKey: [`infinite-${COLLECTIONS.QUOTES}`] }}
+  //     isFetchingOptions={{ queryKey: [`infinite-${Collection.Enum.quotes}`] }}
   //   >
   //     {view === DataViewType.Enum.cards ? (
   //       <QuoteCards constraints={[where('userId', '==', user.uid)]} onClick={handleViewQuote} />

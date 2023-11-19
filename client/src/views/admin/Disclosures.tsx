@@ -8,7 +8,7 @@ import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { useFirestore } from 'reactfire';
 
-import { COLLECTIONS } from 'common';
+import { Collection } from 'common';
 import { ServerDataGrid } from 'components';
 import { useConfirmation } from 'context';
 import { EDITOR_EXTENSION_DEFAULTS, useWidth } from 'hooks';
@@ -64,7 +64,7 @@ export const Disclosures = () => {
             dialogContentProps: { dividers: true },
             dialogProps: { maxWidth: 'xs' },
           });
-          await deleteDoc(doc(firestore, COLLECTIONS.DISCLOSURES, `${id}`));
+          await deleteDoc(doc(firestore, Collection.Enum.disclosures, `${id}`));
           toast.success('Document deleted');
         } catch (err) {}
       },
@@ -130,7 +130,7 @@ export const Disclosures = () => {
         </Button>
       </Box>
       {/* <Box sx={{ height: 500, width: '100%' }}> */}
-      <ServerDataGrid colName='DISCLOSURES' columns={columns} autoHeight />
+      <ServerDataGrid colName='disclosures' columns={columns} autoHeight />
       {/* </Box> */}
     </Box>
   );

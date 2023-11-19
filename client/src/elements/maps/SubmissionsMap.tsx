@@ -46,7 +46,7 @@ interface SubmissionsMapProps {
 export const SubmissionsMap = ({ constraints = [], layerProps }: SubmissionsMapProps) => {
   const theme = useTheme();
   const [mapViewState, setMapViewState] = useState<MapViewState>(DEFAULT_INITIAL_VIEW_STATE);
-  const { data: submissionData } = useCollectionData<Submission>('SUBMISSIONS', constraints, {
+  const { data: submissionData } = useCollectionData<Submission>('submissions', constraints, {
     idField: 'id',
   });
   const [hoverInfo, setHoverInfo] = useState<TypedPickingInfo<WithId<Submission>>>();

@@ -3,7 +3,7 @@ import { GridColDef, GridRowParams } from '@mui/x-data-grid';
 import { useMemo } from 'react';
 import { useSigninCheck } from 'reactfire';
 
-import { CLAIMS, COLLECTIONS, SUBMISSION_STATUS, Submission } from 'common';
+import { CLAIMS, SUBMISSION_STATUS, Submission } from 'common';
 import { ServerDataGrid, ServerDataGridProps } from 'components';
 import { useAsyncToast, useGridActions, useGridShowJson, useWidth } from 'hooks';
 import { SUBMISSION_COLUMN_VISIBILITY, statusCol, submissionCols } from 'modules/muiGrid';
@@ -24,10 +24,10 @@ export const SubmissionsGrid = ({
 }: SubmissionsGridProps) => {
   const toast = useAsyncToast({ position: 'top-right' });
   const { isSmall } = useWidth();
-  // const showJson = useShowJson<Submission>(COLLECTIONS.SUBMISSIONS);
+  // const showJson = useShowJson<Submission>(Collection.Enum.submissions);
   const { googleMapsAction, floodFactorAction } = useGridActions(toast.error);
   const renderShowJson = useGridShowJson(
-    COLLECTIONS.SUBMISSIONS,
+    Collection.Enum.submissions,
     { showInMenu: true },
     { requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }
   );

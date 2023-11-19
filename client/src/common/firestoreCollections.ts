@@ -1,6 +1,6 @@
 import { collection, CollectionReference, DocumentData, Firestore } from 'firebase/firestore';
 
-import { COLLECTIONS } from './enums';
+import { Collection, TCollection } from './enums';
 import {
   ActiveStates,
   AgencyApplication,
@@ -21,7 +21,6 @@ import {
   PropertyDataRes,
   Quote,
   RatingData,
-  SpatialKeyResponse,
   StageImportRecord,
   Submission,
   TTax,
@@ -30,125 +29,121 @@ import {
   UserClaims,
 } from './types';
 
-// REACT FIRE
 export const createCollection = <T = DocumentData, U extends DocumentData = DocumentData>(
   db: Firestore,
-  collectionName: string,
+  collectionName: TCollection,
   ...rest: string[]
 ) => {
   return collection(db, collectionName, ...rest) as CollectionReference<T, U>;
 };
 
 export const submissionsCollection = (db: Firestore) =>
-  createCollection<Submission, Submission>(db, COLLECTIONS.SUBMISSIONS);
+  createCollection<Submission, Submission>(db, 'submissions');
 
 export const portfolioSubmissionsCollection = (db: Firestore) =>
-  createCollection<PortfolioSubmission, PortfolioSubmission>(db, COLLECTIONS.PORTFOLIO_SUBMISSIONS);
+  createCollection<PortfolioSubmission, PortfolioSubmission>(db, 'portfolioSubmissions');
 
 export const locationsCollection = (db: Firestore) =>
-  createCollection<ILocation, ILocation>(db, COLLECTIONS.LOCATIONS);
+  createCollection<ILocation, ILocation>(db, 'locations');
 
 // TODO: change to quotes instead of submission quotes
-export const quotesCollection = (db: Firestore) => createCollection<Quote>(db, COLLECTIONS.QUOTES);
+export const quotesCollection = (db: Firestore) => createCollection<Quote>(db, 'quotes');
 
 export const ratingCollection = (db: Firestore) =>
-  createCollection<RatingData, RatingData>(db, COLLECTIONS.RATING_DATA);
-
-export const spatialKeyCollection = (db: Firestore) =>
-  createCollection<SpatialKeyResponse, SpatialKeyResponse>(db, COLLECTIONS.SK_RES);
+  createCollection<RatingData, RatingData>(db, 'ratingData');
 
 export const propertyDataResCollection = (db: Firestore) =>
-  createCollection<PropertyDataRes, PropertyDataRes>(db, COLLECTIONS.PROPERTY_DATA_RES);
+  createCollection<PropertyDataRes, PropertyDataRes>(db, 'propertyDataRes');
 
 export const orgsCollection = (db: Firestore) =>
-  createCollection<Organization, Organization>(db, COLLECTIONS.ORGANIZATIONS);
+  createCollection<Organization, Organization>(db, 'organizations');
 
 export const policiesCollection = (db: Firestore) =>
-  createCollection<Policy, Policy>(db, COLLECTIONS.POLICIES);
+  createCollection<Policy, Policy>(db, 'policies');
 
-export const usersCollection = (db: Firestore) => createCollection<User>(db, COLLECTIONS.USERS);
+export const usersCollection = (db: Firestore) => createCollection<User>(db, 'users');
 
 export const licensesCollection = (db: Firestore) =>
-  createCollection<License, License>(db, COLLECTIONS.LICENSES);
+  createCollection<License, License>(db, 'licenses');
 
 export const notifyRegistration = (db: Firestore) =>
-  createCollection<NotifyRegistration, NotifyRegistration>(db, COLLECTIONS.NOTIFY_REGISTRATION);
+  createCollection<NotifyRegistration, NotifyRegistration>(db, 'notifyRegistration');
 
 export const taxesCollection = (db: Firestore) =>
-  createCollection<TTax, TTax>(db, COLLECTIONS.TAXES);
+  createCollection<TTax, TTax>(db, 'surplusLinesTaxes');
 
 export const statesCollection = (db: Firestore) =>
-  createCollection<ActiveStates, ActiveStates>(db, COLLECTIONS.ACTIVE_STATES);
+  createCollection<ActiveStates, ActiveStates>(db, 'states');
 
 export const moratoriumsCollection = (db: Firestore) =>
-  createCollection<Moratorium, Moratorium>(db, COLLECTIONS.MORATORIUMS);
+  createCollection<Moratorium, Moratorium>(db, 'moratoriums');
 
 export const agencyAppCollection = (db: Firestore) =>
-  createCollection<AgencyApplication, AgencyApplication>(db, COLLECTIONS.AGENCY_APPLICATIONS);
+  createCollection<AgencyApplication, AgencyApplication>(db, 'agencySubmissions');
 
 export const finTrxCollection = (db: Firestore) =>
-  createCollection<Charge, Charge>(db, COLLECTIONS.FIN_TRANSACTIONS);
+  createCollection<Charge, Charge>(db, 'financialTransactions');
 
 export const importSummaryCollection = (db: Firestore) =>
-  createCollection<ImportSummary, ImportSummary>(db, COLLECTIONS.DATA_IMPORTS);
+  createCollection<ImportSummary, ImportSummary>(db, 'dataImports');
 
 // SUB COLLECTIONS
 export const userClaimsCollection = (db: Firestore, orgId: string, ...rest: string[]) =>
   createCollection<UserClaims, UserClaims>(
     db,
-    COLLECTIONS.ORGANIZATIONS,
+    'organizations',
     orgId,
-    COLLECTIONS.USER_CLAIMS,
+    Collection.Enum.userClaims,
     ...rest
   );
 
 export const invitesCollection = (db: Firestore, orgId: string, ...rest: string[]) =>
   createCollection<Invite, Invite>(
     db,
-    COLLECTIONS.ORGANIZATIONS,
+    'organizations',
     orgId,
-    COLLECTIONS.INVITES,
+    Collection.Enum.invitations,
     ...rest
   );
 
 export const paymentMethodsCollection = (db: Firestore, userId: string, ...rest: string[]) =>
   createCollection<PaymentMethod, PaymentMethod>(
     db,
-    COLLECTIONS.USERS,
+    'users',
     userId,
-    COLLECTIONS.PAYMENT_METHODS,
+    Collection.Enum.paymentMethods,
     ...rest
   );
 
 export const changeRequestsCollection = (db: Firestore, policyId: string, ...rest: string[]) =>
   createCollection<ChangeRequest, ChangeRequest>(
     db,
-    COLLECTIONS.POLICIES,
+    'policies',
     policyId,
-    COLLECTIONS.CHANGE_REQUESTS,
+    Collection.Enum.changeRequests,
     ...rest
   );
 
 export const policyClaimsCollection = (db: Firestore, policyId: string, ...rest: string[]) =>
   createCollection<PolicyClaim & DraftPolicyClaim, PolicyClaim & DraftPolicyClaim>(
     db,
-    COLLECTIONS.POLICIES,
+    'policies',
     policyId,
-    COLLECTIONS.CLAIMS,
+    Collection.Enum.claims,
     ...rest
   );
 
 export const stagedImportsCollection = (db: Firestore, importId: string, ...rest: string[]) =>
   createCollection<StageImportRecord, StageImportRecord>(
     db,
-    COLLECTIONS.DATA_IMPORTS,
+    'dataImports',
     importId,
-    COLLECTIONS.STAGED_RECORDS,
+    Collection.Enum.stagedDocs,
     ...rest
   );
 
 export const userAccess = (db: Firestore, userId: string) =>
-  createCollection<UserAccess, UserAccess>(db, COLLECTIONS.USERS, userId, COLLECTIONS.PERMISSIONS);
+  createCollection<UserAccess, UserAccess>(db, 'users', userId, Collection.Enum.permissions);
 
 // export const notificationsCollection = (userId: string) =>
 //   createCollection<Notification>(COLLECTIONS.USERS, userId, COLLECTIONS.NOTIFICATIONS);

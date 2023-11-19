@@ -59,7 +59,7 @@ export const BillingEntityStep = ({
 }: BillingEntityStepProps) => {
   const firestore = useFirestore();
   const { nextStep } = useWizard();
-  const { data: policy } = useDocData<Policy>('POLICIES', policyId);
+  const { data: policy } = useDocData<Policy>('policies', policyId);
   const formRef = useRef<FormikProps<BillingEntityValues>>(null);
 
   const handleStepSubmit = useCallback(

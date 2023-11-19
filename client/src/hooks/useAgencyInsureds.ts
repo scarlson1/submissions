@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
 import { DocumentReference, doc, getDoc, getFirestore, where } from 'firebase/firestore';
+import { useEffect, useState } from 'react';
 
 import { Policy, User, WithId } from 'common';
 import { useCollectionData } from './useCollectionData';
@@ -12,7 +12,7 @@ export const useAgencyInsureds = (agencyId: string) => {
   // const [cursor, setCursor] = useState()
 
   const { data: policies, status } = useCollectionData<Policy>(
-    'POLICIES',
+    'policies',
     [where('orgId', '==', agencyId)],
     { suspense: false }
   );

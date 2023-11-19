@@ -12,7 +12,7 @@ import {
 import { useCallback, useMemo } from 'react';
 
 import { DataObjectRounded, ThumbDownRounded, ThumbUpRounded } from '@mui/icons-material';
-import { COLLECTIONS, ImportSummary } from 'common';
+import { Collection, ImportSummary } from 'common';
 import { IconMenu, ServerDataGrid } from 'components';
 import { useAuth } from 'context';
 import {
@@ -140,7 +140,7 @@ export const ImportReviewComponent = ({ importId, importType }: ImportReviewComp
     (msg) => toast.error(msg)
   );
 
-  const showJson = useShowJson(COLLECTIONS.DATA_IMPORTS, [importId, COLLECTIONS.STAGED_RECORDS]);
+  const showJson = useShowJson('dataImports', [importId, Collection.Enum.stagedDocs]);
 
   const handleShowJson = useCallback((id: string) => () => showJson(id), [showJson]);
 
@@ -193,15 +193,15 @@ export const ImportReviewComponent = ({ importId, importType }: ImportReviewComp
       ],
     };
     switch (importType) {
-      case COLLECTIONS.POLICIES:
+      case Collection.Enum.policies:
         return {
           columns: [actionsCol, ...policyStagingRecordCols],
         };
-      case COLLECTIONS.TRANSACTIONS:
+      case Collection.Enum.transactions:
         return {
           columns: [actionsCol, ...transactionStagingRecordCols],
         };
-      case COLLECTIONS.QUOTES:
+      case Collection.Enum.quotes:
         return {
           columns: [actionsCol, ...quoteStagingRecordCols],
         };
@@ -223,8 +223,8 @@ export const ImportReviewComponent = ({ importId, importType }: ImportReviewComp
   return (
     <Box>
       <ServerDataGrid
-        colName='DATA_IMPORTS'
-        pathSegments={[importId, COLLECTIONS.STAGED_RECORDS]}
+        colName='dataImports'
+        pathSegments={[importId, Collection.Enum.stagedDocs]}
         checkboxSelection
         slots={{
           toolbar: ImportToolBar,
@@ -253,7 +253,7 @@ export const ImportReviewComponent = ({ importId, importType }: ImportReviewComp
 // fetch import review doc by id, so we know the import type
 export const ImportReview = () => {
   const { importId } = useSafeParams(['importId']);
-  const { data } = useDocData<ImportSummary>('DATA_IMPORTS', importId);
+  const { data } = useDocData<ImportSummary>('dataImports', importId);
 
   return <ImportReviewComponent importId={importId} importType={data.targetCollection} />;
 };

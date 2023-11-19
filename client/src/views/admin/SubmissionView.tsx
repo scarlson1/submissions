@@ -16,7 +16,7 @@ import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { useFirestore } from 'reactfire';
 
-import { COLLECTIONS, RatingData } from 'common';
+import { RatingData, TCollection } from 'common';
 import { Submission } from 'common/types';
 import { useDocData, useFetchFirestore, useJsonDialog, useSafeParams } from 'hooks';
 import { dollarFormat, formatFirestoreTimestamp, numberFormat } from 'modules/utils/helpers';
@@ -26,7 +26,7 @@ import { ADMIN_ROUTES, ROUTES, createPath } from 'router';
 // https://firebase.blog/posts/2018/09/introducing-rxfire-easy-async-firebase
 export const ShowRatingDialog = ({ id, btnProps }: { id: string; btnProps?: ButtonProps }) => {
   const dialog = useJsonDialog({ slotProps: { dialog: { maxWidth: 'md', fullWidth: true } } });
-  const { fetchData, loading } = useFetchFirestore<RatingData>(COLLECTIONS.RATING_DATA, [
+  const { fetchData, loading } = useFetchFirestore<RatingData>('ratingData', [
     where('submissionId', '==', id),
     orderBy('metadata.created', 'desc'),
   ]);
@@ -84,7 +84,6 @@ export const RowItem = ({ title, value }: { title: string; value: ReactNode }) =
       </Typography>
     </Box>
     <Box sx={{ flex: '1 0 auto' }}>
-      {/* <Typography textAlign='right'>{value}</Typography> */}
       <Box
         textAlign='right'
         typography='body1'
@@ -102,10 +101,10 @@ export const SubmissionView = () => {
   const navigate = useNavigate();
   const firestore = useFirestore();
   const dialog = useJsonDialog({ slotProps: { dialog: { maxWidth: 'md' } } });
-  const { data } = useDocData<Submission>('SUBMISSIONS', submissionId);
+  const { data } = useDocData<Submission>('submissions', submissionId);
 
   const showDialog = useCallback(
-    async (collection: string, docId: string, title: string) => {
+    async (collection: TCollection, docId: string, title: string) => {
       try {
         const snap = await getDoc(doc(firestore, collection, docId));
 
@@ -278,11 +277,7 @@ export const SubmissionView = () => {
                 size='small'
                 sx={{ m: 1, ml: 0 }}
                 onClick={() =>
-                  showDialog(
-                    COLLECTIONS.PROPERTY_DATA_RES,
-                    data.propertyDataDocId!,
-                    'Property Data Response'
-                  )
+                  showDialog('propertyDataRes', data.propertyDataDocId!, 'Property Data Response')
                 }
               >
                 Show Property Data

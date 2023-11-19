@@ -23,7 +23,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import invariant from 'tiny-invariant';
 
-import { COLLECTIONS, POLICY_IMPORT_REQUIRED_HEADERS, StorageFolder, VIEW_QUERY_KEY } from 'common';
+import { Collection, POLICY_IMPORT_REQUIRED_HEADERS, StorageFolder, VIEW_QUERY_KEY } from 'common';
 import { DownloadStorageFileButton } from 'components';
 import { IconMenu } from 'components/IconButtonMenu';
 import { ToggleViewLayout, ToggleViewLayoutProps } from 'components/toggleView';
@@ -134,7 +134,7 @@ export const Policies = () => {
           grid: <TableRowsRounded />,
           map: <MapRounded />,
         }}
-        isFetchingOptions={{ queryKey: [`infinite-${COLLECTIONS.POLICIES}`] }}
+        isFetchingOptions={{ queryKey: [`infinite-${Collection.Enum.policies}`] }}
         headerContainerSx={{ pb: { xs: 2, sm: 3, lg: 4 } }}
         {...layoutProps}
       >

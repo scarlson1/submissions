@@ -4,7 +4,7 @@ import { DocumentReference, where } from 'firebase/firestore';
 import { Fragment, useEffect } from 'react';
 import { useInView } from 'react-intersection-observer';
 
-import { COLLECTIONS, ILocation, Policy } from 'common';
+import { ILocation, Policy } from 'common';
 import { useDocData, useInfiniteDocs } from 'hooks';
 import { logDev } from 'modules/utils';
 import { LocationCard, LocationCardProps } from './LocationCard';
@@ -23,9 +23,9 @@ interface PolicyLocationCardsProps extends Omit<LocationCardProps, 'location' | 
 
 export const PolicyLocationCards = ({ policyId, ...props }: PolicyLocationCardsProps) => {
   const { ref, inView } = useInView();
-  const { data: policy } = useDocData<Policy>('POLICIES', policyId);
+  const { data: policy } = useDocData<Policy>('policies', policyId);
   const { data, error, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    useInfiniteDocs<ILocation>(COLLECTIONS.LOCATIONS, [
+    useInfiniteDocs<ILocation>('locations', [
       where('policyId', '==', policyId),
       where('parentType', '==', 'policy'),
     ]);

@@ -10,7 +10,7 @@ import {
   useSigninCheck,
 } from 'reactfire';
 
-import { Submission, WithId } from 'common';
+import { Submission, TCollection, WithId } from 'common';
 import { DialogOptions } from 'context';
 import { openGoogleMaps } from 'modules/utils';
 import { useFloodFactor } from './useFloodFactor';
@@ -84,7 +84,7 @@ export const useGridActions = (onError?: (msg: string) => void) => {
 };
 
 export const useGridShowJson = <T extends DocumentData>(
-  colName: string,
+  colName: TCollection,
   options?: ActionOptions,
   signInCheckOptions?:
     | SignInCheckOptionsBasic

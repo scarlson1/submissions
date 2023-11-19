@@ -11,10 +11,10 @@ import {
 import { useMemo } from 'react';
 import { ReactFireOptions, useFirestore, useFirestoreCollection } from 'reactfire';
 
-import { COLLECTIONS } from 'common';
+import { TCollection } from 'common';
 
 export function useFetchDocsWithCursor<T = any>(
-  colName: keyof typeof COLLECTIONS,
+  colName: TCollection,
   constraints: QueryConstraint[],
   params: { cursor?: DocumentSnapshot; itemsPerPage: number },
   isCollectionGroup: boolean = false,
@@ -31,9 +31,9 @@ export function useFetchDocsWithCursor<T = any>(
 
   let collectionRef;
   if (!!isCollectionGroup) {
-    collectionRef = collectionGroup(db, COLLECTIONS[colName]) as CollectionReference<T>;
+    collectionRef = collectionGroup(db, colName) as CollectionReference<T>;
   } else {
-    collectionRef = collection(db, COLLECTIONS[colName], ...pathSegments) as CollectionReference<T>;
+    collectionRef = collection(db, colName, ...pathSegments) as CollectionReference<T>;
   }
 
   let q = query(collectionRef, ...qConstraints);

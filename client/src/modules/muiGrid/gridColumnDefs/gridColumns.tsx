@@ -47,9 +47,9 @@ import {
   Address,
   Basement,
   CBRSDesignation,
-  COLLECTIONS,
   CancelReason,
   ChangeRequestStatus,
+  Collection,
   CompressedAddress,
   FloodZone,
   INVITE_STATUS,
@@ -1874,7 +1874,7 @@ export const targetCollectionCol: GridSingleSelectColDef = {
   minWidth: 160,
   flex: 0.4,
   type: 'singleSelect',
-  valueOptions: [COLLECTIONS.POLICIES, COLLECTIONS.QUOTES, COLLECTIONS.TRANSACTIONS],
+  valueOptions: [Collection.Enum.policies, Collection.Enum.quotes, Collection.Enum.transactions],
   filterOperators: getGridFirestoreSelectOperators(),
 };
 

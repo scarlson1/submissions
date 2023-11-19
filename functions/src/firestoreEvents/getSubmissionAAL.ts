@@ -157,7 +157,7 @@ export default async (
 
     // TODO: move saving rating data to it's own try/catch ?? see getAnnualPremium
     const ratingColRef = ratingDataCollection(db);
-    // await db.collection(COLLECTIONS.RATING_DATA).add({
+
     const ratingDocRef = await ratingColRef.add({
       submissionId: snap.id,
       deductible: sub.deductible,

@@ -44,7 +44,7 @@ export function AddressStep({
   ...props
 }: AddressStepProps) {
   const functions = useFunctions();
-  const { data: activeStates } = useDocData('ACTIVE_STATES', product);
+  const { data: activeStates } = useDocData('states', product);
   const toast = useAsyncToast({ position: 'top-right' });
   const { nextStep } = useWizard();
   const fetchDetails = getPropertyDetailsAttom(functions);

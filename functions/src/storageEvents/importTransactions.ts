@@ -97,7 +97,7 @@ export default async (event: StorageEvent) => {
         importMeta: {
           status: 'new',
           eventId: event.id,
-          targetCollection: Collection.Enum.transactions, // COLLECTIONS.TRANSACTIONS,
+          targetCollection: Collection.Enum.transactions,
         },
       } as StagedTransactionImport;
 
@@ -117,7 +117,7 @@ export default async (event: StorageEvent) => {
 
   try {
     await importSummaryRef.set({
-      targetCollection: Collection.Enum.transactions, // COLLECTIONS.TRANSACTIONS,
+      targetCollection: Collection.Enum.transactions,
       importDocIds: trxIds,
       docCreationErrors: importErrors,
       invalidRows,

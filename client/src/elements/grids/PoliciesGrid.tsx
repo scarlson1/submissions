@@ -6,7 +6,7 @@ import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { useSigninCheck } from 'reactfire';
 
-import { CLAIMS, COLLECTIONS, PaymentStatus, Policy, ServerDataGridCollectionProps } from 'common';
+import { CLAIMS, PaymentStatus, Policy, ServerDataGridCollectionProps } from 'common';
 import { ServerDataGrid } from 'components';
 import { useGridShowJson } from 'hooks';
 import { POLICY_COLUMN_VISIBILITY, policyCols, statusCol } from 'modules/muiGrid/gridColumnDefs';
@@ -21,7 +21,7 @@ export const PoliciesGrid = ({ renderActions = () => [], ...props }: PoliciesGri
     requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
   });
   const renderShowJson = useGridShowJson(
-    COLLECTIONS.POLICIES,
+    Collection.Enum.policies,
     { showInMenu: true },
     { requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }
   );

@@ -71,7 +71,7 @@ export function PropertyRatingDataStep({
 }: PropertyRatingDataStepProps) {
   const { claims } = useClaims();
   const { nextStep } = useWizard();
-  const { data: policy } = useDocDataOnce<Policy>('POLICIES', policyId);
+  const { data: policy } = useDocDataOnce<Policy>('policies', policyId);
 
   const handleStepSubmit = useCallback(
     async (values: RatingDataValues, { setSubmitting }: FormikHelpers<RatingDataValues>) => {

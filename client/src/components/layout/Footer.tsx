@@ -1,10 +1,10 @@
-import { useCallback } from 'react';
-import { Container, Box, Typography, Link } from '@mui/material';
+import { Box, Container, Link, Typography } from '@mui/material';
 import { generateHTML } from '@tiptap/react';
 import { where } from 'firebase/firestore';
+import { useCallback } from 'react';
 
-import { EDITOR_EXTENSION_DEFAULTS, useCollectionData, useDialog } from 'hooks';
 import { Disclosure } from 'common';
+import { EDITOR_EXTENSION_DEFAULTS, useCollectionData, useDialog } from 'hooks';
 
 const Copyright = () => {
   return (
@@ -20,7 +20,7 @@ const Copyright = () => {
 };
 
 export const Footer = () => {
-  const { data } = useCollectionData<Disclosure>('DISCLOSURES', [
+  const { data } = useCollectionData<Disclosure>('disclosures', [
     where('type', '==', 'general disclosure'),
   ]);
   const dialog = useDialog();

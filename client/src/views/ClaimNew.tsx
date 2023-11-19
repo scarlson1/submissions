@@ -16,7 +16,7 @@ import { compressedToAddress } from 'modules/utils';
 
 export function ClaimNew() {
   const { policyId, locationId } = useSafeParams(['policyId', 'locationId']);
-  const { data: policy } = useDocData<Policy>('POLICIES', policyId);
+  const { data: policy } = useDocData<Policy>('policies', policyId);
 
   useEffect(() => {
     if (policy) {

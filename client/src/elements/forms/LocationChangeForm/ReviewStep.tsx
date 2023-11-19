@@ -19,8 +19,8 @@ import { useFirestore } from 'reactfire';
 
 import {
   AddLocationRequest,
-  COLLECTIONS,
   CancellationRequest,
+  Collection,
   DraftAddLocationRequest,
   ILocation,
   PolicyChangeRequest,
@@ -58,12 +58,12 @@ export function useChangeRequestReview(policyId: string, requestId: string) {
   // TODO: need to wrap in error boundary (with reset to reset form)
   // const { data } = useDocData<PolicyChangeRequest>('POLICIES', requestId, [
   //   policyId,
-  //   COLLECTIONS.CHANGE_REQUESTS,
+  //   Collection.Enum.changeRequests,
   // ]);
   const { data } = useDocData<PolicyChangeRequest>(
-    'POLICIES',
+    'policies',
     policyId,
-    COLLECTIONS.CHANGE_REQUESTS,
+    Collection.Enum.changeRequests,
     requestId
   );
   const [reqState, setReqState] = useState<{ loading: boolean; error: string | null }>({
@@ -93,7 +93,7 @@ export function useChangeRequestReview(policyId: string, requestId: string) {
       );
       // let lcns = await getAll<ILocation>(firestore, 'LOCATIONS', lcnIds);
       // let lcnData = lcns.docs.map((l) => ({ id: l.id, ...l.data() }));
-      let lcns = await getAllById<ILocation>(firestore, 'LOCATIONS', lcnIds);
+      let lcns = await getAllById<ILocation>(firestore, 'locations', lcnIds);
 
       // TODO: fix typing (and/or throw if one of the locations is not found ??)
       let lcnData = lcns

@@ -89,7 +89,7 @@ export const Policy = () => {
   );
 
   // TODO: use policy converter to get status ?? need to create usePolicy() hook ??
-  const { data } = useDocData<IPolicy>('POLICIES', policyId);
+  const { data } = useDocData<IPolicy>('policies', policyId);
   const { downloadPDF: downloadPolicy } = useGeneratePDF('generateDecPDF');
 
   const locationChangeDialog = useCreateLocationChangeRequest();

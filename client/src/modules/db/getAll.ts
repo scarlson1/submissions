@@ -12,16 +12,16 @@ import {
   where,
 } from 'firebase/firestore';
 
-import { COLLECTIONS } from 'common';
+import { TCollection } from 'common';
 
 // TODO: support sub collections
 // limited to 10 docs
 export async function getAll<T extends DocumentData>(
   db: Firestore,
-  colName: keyof typeof COLLECTIONS,
+  colName: TCollection,
   docIds: string[]
 ) {
-  const colRef = collection(db, COLLECTIONS[colName]) as CollectionReference<T>;
+  const colRef = collection(db, colName) as CollectionReference<T>;
   const q = query(colRef, where(documentId(), 'in', docIds));
 
   const snaps = await getDocs(q);
@@ -36,10 +36,10 @@ export async function getAll<T extends DocumentData>(
 
 export async function getAllById<T extends DocumentData>(
   db: Firestore,
-  colName: keyof typeof COLLECTIONS,
+  colName: TCollection,
   docIds: string[]
 ) {
-  const colRef = collection(db, COLLECTIONS[colName]) as CollectionReference<T>;
+  const colRef = collection(db, colName) as CollectionReference<T>;
   const promises = [];
   for (let id of docIds) {
     promises.push(getDoc(doc(colRef, id)));

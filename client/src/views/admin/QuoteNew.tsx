@@ -68,7 +68,7 @@ export const QuoteNew = ({
 export const QuoteNewFromSub = () => {
   const { submissionId } = useParams();
   invariant(submissionId);
-  const { data: submissionData } = useDocDataOnce<Submission>('SUBMISSIONS', submissionId);
+  const { data: submissionData } = useDocDataOnce<Submission>('submissions', submissionId);
 
   // TODO: note if RCV source is from user
   // @ts-ignore TODO: fix types (can't pass null to iMask component)

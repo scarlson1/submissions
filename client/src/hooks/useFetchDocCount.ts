@@ -1,17 +1,17 @@
-import { useCallback } from 'react';
 import {
-  collection,
-  query,
-  getCountFromServer,
   QueryConstraint,
+  collection,
   collectionGroup,
+  getCountFromServer,
+  query,
 } from 'firebase/firestore';
+import { useCallback } from 'react';
 import { useFirestore } from 'reactfire';
 
-import { COLLECTIONS } from 'common';
+import { TCollection } from 'common';
 
 export function useFetchDocCount(
-  colName: keyof typeof COLLECTIONS,
+  colName: TCollection,
   constraints: QueryConstraint[] = [],
   isCollectionGroup: boolean = false,
   pathSegments: string[] = []
@@ -19,7 +19,7 @@ export function useFetchDocCount(
   const db = useFirestore();
 
   return useCallback(() => {
-    let path = COLLECTIONS[colName] as string;
+    let path = colName;
     if (pathSegments.length) path += `/${pathSegments.join('/')}`;
 
     let colRef;

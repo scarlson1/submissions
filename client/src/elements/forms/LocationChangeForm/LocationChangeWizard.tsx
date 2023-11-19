@@ -46,7 +46,7 @@ export const LocationChangeWizard = ({
 
   const { data: changeRequest } =
     useFirestoreDocData<Partial<LocationChangeRequest>>(changeRequestRef);
-  const { data: location } = useDocData<ILocation>('LOCATIONS', locationId);
+  const { data: location } = useDocData<ILocation>('locations', locationId);
   const { data: user } = useUser();
   const dialog = useDialog();
 

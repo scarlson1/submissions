@@ -26,7 +26,7 @@ import { useFirestore, useUser } from 'reactfire';
 import * as yup from 'yup';
 // import Slider from 'react-slick';
 
-import { COLLECTIONS, User, passwordValidation, usersCollection } from 'common';
+import { Collection, User, passwordValidation, usersCollection } from 'common';
 import { Carousel, ClaimsGuard, Copy } from 'components';
 import { RHFTextField } from 'components/forms';
 import { useAuthActions } from 'context';
@@ -288,7 +288,7 @@ function InitializeFIPS() {
     try {
       const { data } = await axios.get('https://scarlson1.github.io/data/fips.json');
 
-      const fipsRef = doc(firebase, COLLECTIONS.PUBLIC, 'fips');
+      const fipsRef = doc(firebase, Collection.Enum.public, 'fips');
       await setDoc(fipsRef, { counties: data });
       toast.success('FIPS uploaded');
     } catch (err) {
@@ -318,7 +318,7 @@ type UserDetailsInputs = {
 function UserDetailsForm() {
   const firestore = useFirestore();
   const { data: user } = useUser(); // PRE_DEPLOY: fix only render component if user
-  const { data: fsUser } = useDocData<User>('USERS', `${user?.uid}`);
+  const { data: fsUser } = useDocData<User>('users', `${user?.uid}`);
   const toast = useAsyncToast();
 
   const {
@@ -665,9 +665,9 @@ function UpdatePasswordForm() {
 
 function SavedPaymentMethods() {
   const { data: user } = useUser();
-  const { data } = useCollectionData('USERS', [], { idField: 'paymentMethodId' }, [
+  const { data } = useCollectionData('users', [], { idField: 'paymentMethodId' }, [
     `${user?.uid}`,
-    COLLECTIONS.PAYMENT_METHODS,
+    Collection.Enum.paymentMethods,
   ]);
 
   return (

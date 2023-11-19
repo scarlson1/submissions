@@ -47,7 +47,7 @@ export const BindQuoteForm = () => {
   const navigate = useNavigate();
   const { data: signInCheckResult } = useSigninCheck();
   const { quoteId } = useSafeParams(['quoteId']);
-  const { data } = useDocData<Quote>('QUOTES', quoteId);
+  const { data } = useDocData<Quote>('quotes', quoteId);
   const formikRef = useRef<FormikProps<BindQuoteValues>>(null);
   const firestore = useFirestore();
   const { current: quoteRef } = useRef(

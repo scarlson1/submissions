@@ -113,7 +113,7 @@ const calcLocationChanges = async ({ data, auth }: CallableRequest<CalcLocationC
     // locationSnaps.forEach((l) => {
     //   locationsObj[l.id] = l.data();
     // });
-    // const locations = await getAll(db, COLLECTIONS.LOCATIONS, [lcnId]);
+    // const locations = await getAll(db, 'locations', [lcnId]);
     const locationsCol = locationsCollection(db);
     const docIds = [lcnId];
     const locationRefs = docIds.map((id) => locationsCol.doc(id));

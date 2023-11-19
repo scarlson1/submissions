@@ -1,12 +1,12 @@
-import { useEffect, useState, useMemo, useCallback } from 'react';
-import { useFirestore, useFirestoreCollectionData } from 'reactfire';
-import { collection, CollectionReference, limit, query } from 'firebase/firestore';
 import { generateHTML } from '@tiptap/react';
+import { CollectionReference, collection, limit, query } from 'firebase/firestore';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useFirestore, useFirestoreCollectionData } from 'reactfire';
 
-import { COLLECTIONS, Disclosure } from 'common';
+import { Collection, Disclosure } from 'common';
+import { DialogOptions } from 'context';
 import { EDITOR_EXTENSION_DEFAULTS, useDialog } from 'hooks';
 import { QueryArgs, mapWhereConstraints } from 'modules/utils';
-import { DialogOptions } from 'context';
 
 // TODO: pass query constraints as array instead of state & product props
 
@@ -17,7 +17,7 @@ export const useDisclosure = (props: DisclosureConstraints = []) => {
   const firestore = useFirestore();
   const disclosuresCol = collection(
     firestore,
-    COLLECTIONS.DISCLOSURES
+    Collection.Enum.disclosures
   ) as CollectionReference<Disclosure>;
 
   // const q = useMemo(() => {

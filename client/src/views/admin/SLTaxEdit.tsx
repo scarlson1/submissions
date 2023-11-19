@@ -17,7 +17,7 @@ export const SLTaxEdit = () => {
   const toast = useAsyncToast({ position: 'top-right' });
   const { taxId } = useParams();
   if (!taxId) throw new Error('taxId required to edit.');
-  const { data } = useDocData<TTax>('TAXES', taxId);
+  const { data } = useDocData<TTax>('surplusLinesTaxes', taxId);
 
   const handleSubmit = useCallback(
     async (values: TaxValues, { setSubmitting, setFieldError }: FormikHelpers<TaxValues>) => {

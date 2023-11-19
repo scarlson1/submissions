@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import invariant from 'tiny-invariant';
 
 import { GridViewRounded, MapRounded, TableRowsRounded } from '@mui/icons-material';
-import { COLLECTIONS, VIEW_QUERY_KEY } from 'common';
+import { Collection, VIEW_QUERY_KEY } from 'common';
 import { ToggleViewLayout, ToggleViewPanel } from 'components/toggleView';
 import { SubmissionCards } from 'elements/cards';
 import { SubmissionsGrid } from 'elements/grids';
@@ -65,7 +65,7 @@ export const Submissions = () => {
         grid: <TableRowsRounded />,
         map: <MapRounded />,
       }}
-      isFetchingOptions={{ queryKey: [`infinite-${COLLECTIONS.SUBMISSIONS}`] }}
+      isFetchingOptions={{ queryKey: [`infinite-${Collection.Enum.submissions}`] }}
       actions={
         <Button
           onClick={() =>

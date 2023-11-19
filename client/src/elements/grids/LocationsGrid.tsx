@@ -1,7 +1,7 @@
 import { GridColDef } from '@mui/x-data-grid';
 import { useMemo } from 'react';
 
-import { CLAIMS, COLLECTIONS, ServerDataGridCollectionProps } from 'common';
+import { CLAIMS, ServerDataGridCollectionProps } from 'common';
 import { ServerDataGrid } from 'components';
 import { useAsyncToast, useGridActions, useGridShowJson, useWidth } from 'hooks';
 import { LOCATION_COLUMN_VISIBILITY, locationCols } from 'modules/muiGrid';
@@ -18,7 +18,7 @@ export const LocationsGrid = ({
   const { isSmall } = useWidth();
   const { googleMapsAction, floodFactorAction } = useGridActions(toast.error);
   const renderShowJson = useGridShowJson(
-    COLLECTIONS.LOCATIONS,
+    'locations',
     { showInMenu: true },
     { requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }
   );
@@ -46,7 +46,7 @@ export const LocationsGrid = ({
 
   return (
     <ServerDataGrid
-      colName='LOCATIONS'
+      colName='locations'
       columns={columns}
       pageSizeOptions={[5, 10, 25, 100]}
       {...props}

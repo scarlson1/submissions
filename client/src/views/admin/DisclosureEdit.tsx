@@ -5,7 +5,7 @@ import { useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useFirestore, useFirestoreDocDataOnce } from 'reactfire';
 
-import { COLLECTIONS, Disclosure, TDisclosureType, TProduct, TState } from 'common';
+import { Collection, Disclosure, TDisclosureType, TProduct, TState } from 'common';
 import 'components/textEditor/TextEditor.css';
 import { DisclosureForm, DisclosureValues } from 'elements/forms';
 import { useAsyncToast } from 'hooks';
@@ -19,7 +19,7 @@ export const DisclosureEdit = () => {
 
   const docRef = doc(
     firestore,
-    COLLECTIONS.DISCLOSURES,
+    Collection.Enum.disclosures,
     `${disclosureId}`
   ) as DocumentReference<Disclosure>;
   const { data } = useFirestoreDocDataOnce(docRef);

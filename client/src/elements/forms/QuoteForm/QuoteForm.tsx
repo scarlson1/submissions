@@ -137,7 +137,7 @@ export const QuoteForm = ({
   const firestore = useFirestore();
   const formikRef = useRef<FormikProps<QuoteValues>>(null);
   const toast = useAsyncToast({ position: 'top-right' });
-  const { data: activeStates } = useDocData('ACTIVE_STATES', product);
+  const { data: activeStates } = useDocData('states', product);
 
   // BUG: rerateRequired is true for edit quote because aals are not included
   const [ratingState, setRatingState] = useState({

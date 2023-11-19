@@ -7,7 +7,7 @@
 // import { add } from 'date-fns';
 
 // import { mirrorcustomclaims } from '../../index';
-// import { COLLECTIONS } from '../../common';
+// import { Collection } from '../../common';
 
 // const test = firebaseFunctionsTest(
 //   {
@@ -41,7 +41,7 @@
 //   it(`should update user's claims`, async () => {
 //     const orgId = '12345';
 //     const userId = '123userId';
-//     const docPath = `${COLLECTIONS.ORGANIZATIONS}/${orgId}/${COLLECTIONS.USER_CLAIMS}/${userId}`;
+//     const docPath = `${Collection.ORGANIZATIONS}/${orgId}/${Collection.USER_CLAIMS}/${userId}`;
 //     const beforeSnap = test.firestore.makeDocumentSnapshot({ foo: 'bar' }, docPath);
 //     const afterSnap = test.firestore.makeDocumentSnapshot({ foo: 'faz', bar: 'asf' }, docPath);
 //     const change = test.makeChange(beforeSnap, afterSnap);
@@ -61,7 +61,7 @@
 //         orgAdmin: true,
 //         iDemandAdmin: true,
 //       },
-//       `${COLLECTIONS.ORGANIZATIONS}/${orgId}/${COLLECTIONS.USER_CLAIMS}/${userId}`
+//       `${Collection.ORGANIZATIONS}/${orgId}/${Collection.USER_CLAIMS}/${userId}`
 //     );
 
 //     const wrapped = test.wrap(mirrorcustomclaims as any);
@@ -69,9 +69,9 @@
 //     await wrapped(snap, ctx);
 
 //     const updatedSnap = await db
-//       .collection(COLLECTIONS.ORGANIZATIONS)
+//       .collection(Collection.ORGANIZATIONS)
 //       .doc(orgId)
-//       .collection(COLLECTIONS.USER_CLAIMS)
+//       .collection(Collection.USER_CLAIMS)
 //       .doc(userId)
 //       .get();
 
@@ -83,7 +83,7 @@
 //     const orgId = '12345789';
 //     const userId = '928734userId';
 //     const date = new Date();
-//     const docPath = `${COLLECTIONS.ORGANIZATIONS}/${orgId}/${COLLECTIONS.USER_CLAIMS}/${userId}`;
+//     const docPath = `${Collection.ORGANIZATIONS}/${orgId}/${Collection.USER_CLAIMS}/${userId}`;
 
 //     const beforeSnapVals = { foo: 'bar', _lastCommitted: Timestamp.fromDate(date) };
 //     const beforeSnap = test.firestore.makeDocumentSnapshot(beforeSnapVals, docPath);
@@ -98,9 +98,9 @@
 //     // TODO
 
 //     const updatedSnap = await db
-//       .collection(COLLECTIONS.ORGANIZATIONS)
+//       .collection(Collection.ORGANIZATIONS)
 //       .doc(orgId)
-//       .collection(COLLECTIONS.USER_CLAIMS)
+//       .collection(Collection.USER_CLAIMS)
 //       .doc(userId)
 //       .get();
 

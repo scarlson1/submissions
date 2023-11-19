@@ -34,7 +34,7 @@ export interface EditActiveStatesValues {
 export const EditActiveStates = () => {
   const firestore = useFirestore();
   let { productId } = useSafeParams(['productId']);
-  const { data } = useDocData<{ [key: string]: boolean }>('ACTIVE_STATES', productId);
+  const { data } = useDocData<{ [key: string]: boolean }>('states', productId);
   const fetchLicenses = useFetchLicenses([where('surplusLinesProducerOfRecord', '==', true)]);
   const formikRef = useRef<FormikProps<EditActiveStatesValues>>(null);
 

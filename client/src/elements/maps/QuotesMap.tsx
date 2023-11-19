@@ -18,7 +18,7 @@ export const QuotesMap = ({ constraints }: QuotesMapProps) => {
   const theme = useTheme();
   const [mapViewState, setMapViewState] = useState<MapViewState>(DEFAULT_INITIAL_VIEW_STATE);
   const [hoverInfo, setHoverInfo] = useState<TypedPickingInfo<WithId<Policy>>>();
-  const { data } = useCollectionData<Quote>('QUOTES', constraints, { idField: 'id' });
+  const { data } = useCollectionData<Quote>('quotes', constraints, { idField: 'id' });
   const flyToBounds = useFlyToBounds(data, setMapViewState, 2000);
   const mapLoaded = useRef(false);
 

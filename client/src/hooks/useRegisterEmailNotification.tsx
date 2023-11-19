@@ -1,16 +1,16 @@
-import { useCallback, useRef } from 'react';
-import { Form, Formik, FormikHelpers, FormikProps } from 'formik';
 import { Box, Unstable_Grid2 as Grid } from '@mui/material';
-import * as yup from 'yup';
 import { addDoc, getFirestore } from 'firebase/firestore';
+import { Form, Formik, FormikHelpers, FormikProps } from 'formik';
+import { useCallback, useRef } from 'react';
+import * as yup from 'yup';
 
-import { useConfirmation } from 'context/ConfirmationService';
-import { ConfirmationDialog } from 'components';
-import { FormikSelect, FormikTextField } from 'components/forms';
-import { emailVal } from 'common/validation';
+import { ActiveStates } from 'common';
 import { notifyRegistration } from 'common/firestoreCollections';
 import { statesAbrvSelectOptions } from 'common/statesList';
-import { ActiveStates } from 'common';
+import { emailVal } from 'common/validation';
+import { ConfirmationDialog } from 'components';
+import { FormikSelect, FormikTextField } from 'components/forms';
+import { useConfirmation } from 'context/ConfirmationService';
 import { useDocData } from './useDocData';
 
 export interface RegisterValues {
@@ -34,7 +34,7 @@ export const useRegisterEmailNotification = ({
 }: UseRegisterEmailNotificationProps) => {
   const confirm = useConfirmation();
   const formRef = useRef<FormikProps<RegisterValues>>(null);
-  const { data: activeStates } = useDocData('ACTIVE_STATES', 'flood');
+  const { data: activeStates } = useDocData('states', 'flood');
 
   const formSub = useCallback(
     (values: RegisterValues, { setSubmitting }: FormikHelpers<RegisterValues>) => {

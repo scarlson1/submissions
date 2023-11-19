@@ -20,7 +20,7 @@ import { useFirestore, useSigninCheck } from 'reactfire';
 
 import {
   CLAIMS,
-  COLLECTIONS,
+  Collection,
   ServerDataGridCollectionProps,
   User,
   WithId,
@@ -73,7 +73,7 @@ export const UsersGrid = ({
   return (
     <Box sx={{ height: { xs: 400, sm: 460, md: 500 }, width: '100%' }}>
       <ServerDataGrid
-        colName='USERS'
+        colName='users'
         columns={columns}
         density='compact'
         autoHeight
@@ -138,7 +138,7 @@ export const AdminManageUsersGrid = ({
   const { data, status } = useCollectionDataPopulateById<'userId', User, DocumentData>(
     q,
     'userId',
-    { root: COLLECTIONS.ORGANIZATIONS, pathSegments: [orgId, COLLECTIONS.USER_CLAIMS] },
+    { root: Collection.Enum.organizations, pathSegments: [orgId, Collection.Enum.userClaims] },
     { suspense: true, idField: 'userId', initialData: [] }
   );
   // console.log('POPULATE RESULT: ', data);

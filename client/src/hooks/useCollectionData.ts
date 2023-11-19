@@ -7,23 +7,19 @@ import {
 } from 'firebase/firestore';
 import { ReactFireOptions, useFirestore, useFirestoreCollectionData } from 'reactfire';
 
-import { COLLECTIONS, WithId } from 'common';
+import { TCollection, WithId } from 'common';
 
 // TODO: use ...pathSegments ??
 
 export const useCollectionData = <T = DocumentData>(
-  colName: keyof typeof COLLECTIONS, // TODO: better typing - able to check if part of enum?
+  colName: TCollection,
   constraints: QueryConstraint[] = [],
   options: ReactFireOptions<T> | undefined = {},
   pathSegments: string[] = []
 ) => {
   const firestore = useFirestore();
 
-  const colRef = collection(
-    firestore,
-    COLLECTIONS[colName],
-    ...pathSegments
-  ) as CollectionReference<WithId<T>>;
+  const colRef = collection(firestore, colName, ...pathSegments) as CollectionReference<WithId<T>>;
 
   const q = query(colRef, ...constraints);
 

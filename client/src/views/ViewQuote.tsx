@@ -36,7 +36,7 @@ export const ViewQuote = () => {
   const { quoteId } = useParams();
   if (!quoteId) throw new Error('missing quoteId');
 
-  const { data } = useDocData<Quote>('QUOTES', quoteId);
+  const { data } = useDocData<Quote>('quotes', quoteId);
   if (!data) throw new Error('Quote not found'); // TODO: error boundary ??
   const logEvent = useAnalyticsEvent();
 

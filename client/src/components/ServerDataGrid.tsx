@@ -12,7 +12,7 @@ import { DocumentSnapshot, QueryFieldFilterConstraint } from 'firebase/firestore
 import { lowerCase } from 'lodash';
 import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { COLLECTIONS } from 'common';
+import { TCollection } from 'common';
 import {
   useFetchDocCount,
   useFetchDocsWithCursor,
@@ -46,7 +46,7 @@ declare module '@mui/x-data-grid' {
 // ex: can't combine not-in with in, array-contains-any, or or
 
 export interface ServerDataGridProps extends Partial<Omit<DataGridProps, 'rows'>> {
-  colName: keyof typeof COLLECTIONS;
+  colName: TCollection;
   pathSegments?: string[];
   constraints?: QueryFieldFilterConstraint[];
   isCollectionGroup?: boolean;
@@ -211,7 +211,7 @@ export const ServerDataGrid = ({
             },
             printOptions: { disableToolbarButton: true },
             ...(slotProps?.toolbar || {}),
-            colname: COLLECTIONS[colName],
+            colname: colName,
             constraints,
           },
           baseIconButton: {

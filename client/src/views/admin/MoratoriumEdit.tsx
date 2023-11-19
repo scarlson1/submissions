@@ -52,7 +52,7 @@ export const MoratoriumEdit = () => {
   const { moratoriumId } = useSafeParams(['moratoriumId']);
   const toast = useAsyncToast({ position: 'top-right' });
 
-  const { data } = useDocData<Moratorium>('MORATORIUMS', moratoriumId);
+  const { data } = useDocData<Moratorium>('moratoriums', moratoriumId);
 
   const updateMoratorium = useUpdateMoratorium(
     moratoriumId,

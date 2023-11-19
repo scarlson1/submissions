@@ -7,7 +7,7 @@ import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFirestore, useSigninCheck } from 'reactfire';
 
-import { AgencySubmissionStatus, CLAIMS, COLLECTIONS } from 'common';
+import { AgencySubmissionStatus, CLAIMS, Collection } from 'common';
 import { IconButtonMenu } from 'components';
 import { useConfirmation } from 'context';
 import { AgencyAppsGrid } from 'elements/grids';
@@ -94,7 +94,7 @@ export const AgencyApps = () => {
   const getTenantIdByOrgName = useCallback(
     async (orgName: string) => {
       const orgQuery = query(
-        collection(firestore, COLLECTIONS.ORGANIZATIONS),
+        collection(firestore, Collection.Enum.organizations),
         where('orgName', '==', orgName)
       );
 

@@ -102,7 +102,7 @@ export const PolicyDelivery = () => {
     onError: (msg) => toast.error(msg),
   });
   const { policyId } = useSafeParams(['policyId']);
-  const { data } = useDocData('POLICIES', policyId);
+  const { data } = useDocData('policies', policyId);
 
   const { downloadPDF: downloadPolicy, loading: genDecLoading } = useGeneratePDF('generateDecPDF');
   const { updatePolicy } = useUpdatePolicy(console.log, console.error);

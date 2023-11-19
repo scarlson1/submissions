@@ -1,9 +1,9 @@
-import { useState, useTransition, useCallback } from 'react';
-import { Autocomplete, Checkbox, TextField } from '@mui/material';
 import { CheckBox, CheckBoxOutlineBlank } from '@mui/icons-material';
-import { doc, DocumentReference, getDoc, getFirestore } from 'firebase/firestore';
+import { Autocomplete, Checkbox, TextField } from '@mui/material';
+import { DocumentReference, doc, getDoc, getFirestore } from 'firebase/firestore';
+import { useCallback, useState, useTransition } from 'react';
 
-import { FIPSDetails, COLLECTIONS } from 'common';
+import { Collection, FIPSDetails } from 'common';
 import { useField } from 'formik';
 
 // TODO: virtualization - https://mui.com/material-ui/react-autocomplete/#virtualization
@@ -25,7 +25,7 @@ export const FIPSAutocomplete = ({ name }: FormikAutocompleteProps) => {
   const loading = open && options.length === 0;
 
   const getCounties = useCallback(() => {
-    const docRef = doc(getFirestore(), COLLECTIONS.PUBLIC, 'fips') as DocumentReference<{
+    const docRef = doc(getFirestore(), Collection.Enum.public, 'fips') as DocumentReference<{
       counties: FIPSDetails[];
     }>;
     getDoc(docRef)

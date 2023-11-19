@@ -50,7 +50,6 @@ export const MoratoriumForm = ({ title, ...props }: MoratoriumFormProps) => {
   const formikRef = useRef<FormikProps<MoratoriumValues>>(null);
   const { data } = useDocDataOnce<{ counties: FIPSDetails[] }>('public', 'fips');
   const counties = useMemo(() => data?.counties || [], [data]);
-  // const fipsDocRef = doc(firestore, COLLECTIONS.PUBLIC, 'fips')
   // const { data, status } = useFirestoreDocDataOnce(fipsDocRef, {
   //   initialData: { counties: [] },
   //   suspense: false,

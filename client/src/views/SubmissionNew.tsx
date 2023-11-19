@@ -206,7 +206,7 @@ export const SubmissionNew = () => {
   const { user } = useAuth();
   const toast = useAsyncToast({ position: 'top-right' });
   const formikRef = useRef<FormikProps<FloodValues>>(null);
-  const { data: activeStates } = useDocData('ACTIVE_STATES', 'flood');
+  const { data: activeStates } = useDocData('states', 'flood');
   const {
     propertyDetails,
     elevationData,

@@ -1,13 +1,13 @@
+import { Query, QueryConstraint, collection, getDocs, query } from 'firebase/firestore';
 import { useCallback, useMemo, useState } from 'react';
-import { collection, getDocs, Query, query, QueryConstraint } from 'firebase/firestore';
 import { useFirestore } from 'reactfire';
 
-import { RatingData, WithId } from 'common';
+import { RatingData, TCollection, WithId } from 'common';
 
 // TODO: fix - not working
 
 export const useFetchFirestore = <T = RatingData>(
-  collectionName: string,
+  collectionName: TCollection,
   constraints: QueryConstraint[]
 ) => {
   const firestore = useFirestore();

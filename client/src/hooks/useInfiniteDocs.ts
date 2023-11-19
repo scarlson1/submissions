@@ -1,4 +1,5 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
+import { TCollection } from 'common';
 import {
   CollectionReference,
   DocumentData,
@@ -13,7 +14,7 @@ import {
 import { useFirestore } from 'reactfire';
 
 export const useInfiniteDocs = <T extends DocumentData>(
-  colName: string,
+  colName: TCollection, // string,
   constraints: QueryConstraint[],
   pageSize: number = 4,
   pathSegments: string[] = []

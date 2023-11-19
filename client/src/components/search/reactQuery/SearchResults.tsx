@@ -17,7 +17,7 @@ import {
   Typography,
 } from '@mui/material';
 
-import { COLLECTIONS } from 'common';
+import { Collection } from 'common';
 import { useAlgolia } from 'hooks/useAlgolia';
 import { Fragment } from 'react';
 
@@ -119,13 +119,13 @@ export function SearchResults({ query = '', onSelect, ...props }: SearchResultsP
 
 function getCollectionIcon(col?: string) {
   switch (col) {
-    case COLLECTIONS.USERS:
+    case Collection.Enum.users:
       return <AccountCircleRounded />;
-    case COLLECTIONS.POLICIES:
+    case Collection.Enum.policies:
       return <ArticleRounded />;
-    case COLLECTIONS.QUOTES:
+    case Collection.Enum.quotes:
       return <RequestQuoteRounded />;
-    case COLLECTIONS.SUBMISSIONS:
+    case Collection.Enum.submissions:
       return <MoveToInboxRounded />;
     default:
       return <TextSnippetRounded />;

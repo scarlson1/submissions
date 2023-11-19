@@ -5,14 +5,8 @@ import { useCallback, useMemo, useState } from 'react';
 import { useFirestore, useFunctions, useUser } from 'reactfire';
 
 import { ApproveChangeResponse, approveChangeRequest, calcPolicyChanges } from 'api';
-import {
-  COLLECTIONS,
-  ChangeRequest,
-  ILocation,
-  changeRequestsCollection,
-  policiesCollection,
-} from 'common';
-import { ChangeRequestStatus } from 'common/enums';
+import { ChangeRequest, ILocation, changeRequestsCollection, policiesCollection } from 'common';
+import { ChangeRequestStatus, Collection } from 'common/enums';
 import { getAll, getFirebaseDoc } from 'modules/db';
 import { deepMergeOverwriteArrays } from 'modules/utils';
 import { useAsyncToast } from './useAsyncToast';
@@ -144,7 +138,7 @@ export const usePreviewChangeRequest = (onError?: (msg: string, err: any) => voi
         // if merged, get policy version at marge, otherwise use current
         const policyVersionPath =
           status === 'accepted' && isNumber(mergedWithPolicyVersion) // @ts-ignore
-            ? [COLLECTIONS.VERSIONS, `${request.mergedWithPolicyVersion}`]
+            ? [Collection.Enum.versions, `${request.mergedWithPolicyVersion}`]
             : [];
 
         const policyRef = doc(policiesCollection(firestore), policyId, ...policyVersionPath);
@@ -193,7 +187,7 @@ export const usePreviewChangeRequest = (onError?: (msg: string, err: any) => voi
         // TODO: handle location versions (get from policyBefore)
         // need to update getAll to allow for sub collection
         if (lcnIds.length) {
-          let lcnSnaps = await getAll<ILocation>(firestore, 'LOCATIONS', lcnIds);
+          let lcnSnaps = await getAll<ILocation>(firestore, 'locations', lcnIds);
           lcnSnaps.forEach((s) => {
             if (s.exists()) lcns[s.id] = { ...s.data() };
           });
@@ -215,7 +209,7 @@ export const usePreviewChangeRequest = (onError?: (msg: string, err: any) => voi
         // if (scope === 'location') {
         //   // TODO: get location at version X if accepted
         //   let lcnVersion = policyBefore.locations[request.locationId]?.version;
-        //   let versionPath = lcnVersion ? [COLLECTIONS.VERSIONS, `${lcnVersion}`] : [];
+        //   let versionPath = lcnVersion ? ['versions', `${lcnVersion}`] : [];
 
         //   const locationRef = doc(
         //     locationsCollection(firestore),

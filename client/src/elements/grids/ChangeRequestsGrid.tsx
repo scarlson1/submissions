@@ -3,7 +3,7 @@ import { GridActionsColDef, GridRowParams } from '@mui/x-data-grid';
 import { where } from 'firebase/firestore';
 import { useMemo } from 'react';
 
-import { COLLECTIONS, ServerDataGridCollectionProps } from 'common';
+import { ServerDataGridCollectionProps } from 'common';
 import { ChangeRequestStatus } from 'common/enums';
 import { ServerDataGrid, ServerDataGridProps } from 'components';
 import { useClaims, useWidth } from 'hooks';
@@ -50,7 +50,7 @@ export const ChangeRequestsGrid = ({
     if (policyId) {
       queryProps = {
         colName: 'POLICIES',
-        pathSegments: [policyId, COLLECTIONS.CHANGE_REQUESTS],
+        pathSegments: [policyId, Collection.Enum.changeRequests],
         isCollectionGroup: false,
       };
     } else {

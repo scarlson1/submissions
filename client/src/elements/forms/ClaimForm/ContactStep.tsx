@@ -52,7 +52,7 @@ export type ContactStepProps = BaseStepProps<ContactValues> & { policyId: string
 export const ContactStep = ({ saveFormValues, onError, policyId, ...props }: ContactStepProps) => {
   const { nextStep } = useWizard();
 
-  const { data } = useDocDataOnce<Policy>('POLICIES', policyId);
+  const { data } = useDocDataOnce<Policy>('policies', policyId);
 
   const handleStepSubmit = useCallback(
     async (values: ContactValues) => {

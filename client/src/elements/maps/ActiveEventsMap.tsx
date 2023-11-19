@@ -220,7 +220,7 @@ export const ActiveEventsMap = () => {
   const { data: eventData, isLoading, isError, error } = useActiveEvents(params);
 
   const { data: locationData } = useCollectionData(
-    'LOCATIONS',
+    'locations',
     [where('expirationDate', '>=', currentTS), where('parentType', '==', 'policy')],
     {
       idField: 'id',

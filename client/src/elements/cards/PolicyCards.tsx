@@ -18,7 +18,7 @@ interface PolicyCardsProps extends Omit<PolicyCardProps, 'policy' | 'i'> {
 
 export const PolicyCards = ({ constraints, ...props }: PolicyCardsProps) => {
   const navigate = useNavigate();
-  const { data: policies } = useCollectionData<Policy>('POLICIES', [
+  const { data: policies } = useCollectionData<Policy>('policies', [
     ...constraints,
     orderBy('metadata.created', 'desc'),
   ]);

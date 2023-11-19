@@ -7,7 +7,7 @@ import { useInView } from 'react-intersection-observer';
 import { useNavigate } from 'react-router-dom';
 
 import { VoidSVG } from 'assets/images';
-import { COLLECTIONS, Submission } from 'common';
+import { Submission } from 'common';
 import { useInfiniteDocs } from 'hooks';
 import { ROUTES, createPath } from 'router';
 import { SubmissionCard } from './SubmissionCard';
@@ -15,7 +15,7 @@ import { SubmissionCard } from './SubmissionCard';
 const useUserSubmissions = (constraints: QueryFieldFilterConstraint[] = []) => {
   const { ref, inView } = useInView();
   const { data, error, status, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    useInfiniteDocs<Submission>(COLLECTIONS.SUBMISSIONS, [
+    useInfiniteDocs<Submission>('submissions', [
       ...constraints,
       orderBy('metadata.created', 'desc'),
     ]);

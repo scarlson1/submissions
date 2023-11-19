@@ -22,7 +22,6 @@ import { useFirestore } from 'reactfire';
 
 import {
   CLAIMS,
-  COLLECTIONS,
   PORTFOLIO_RATING_REQUIRED_HEADERS,
   QUOTE_IMPORT_REQUIRED_HEADERS,
   QUOTE_STATUS,
@@ -117,7 +116,7 @@ export const Quotes = () => {
   const updateQuote = useUpdateQuoteStatus();
   const confirmAndUpdate = useConfirmAndUpdate(updateQuote);
   const renderShowJson = useGridShowJson(
-    COLLECTIONS.QUOTES,
+    Collection.Enum.quotes,
     { showInMenu: true },
     { requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }
   );

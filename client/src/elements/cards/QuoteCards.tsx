@@ -4,7 +4,7 @@ import { QueryFieldFilterConstraint, orderBy } from 'firebase/firestore';
 import { Fragment, useEffect } from 'react';
 import { useInView } from 'react-intersection-observer';
 
-import { COLLECTIONS, Quote } from 'common';
+import { Quote } from 'common';
 import { useInfiniteDocs } from 'hooks';
 import { logDev } from 'modules/utils';
 import { QuoteCard, QuoteCardProps } from './QuoteCard';
@@ -18,7 +18,7 @@ interface QuoteCardsProps extends Omit<QuoteCardProps, 'data'> {
 export const QuoteCards = ({ constraints, pageSize, ...props }: QuoteCardsProps) => {
   const { ref, inView } = useInView();
   const { data, error, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteDocs<Quote>(
-    COLLECTIONS.QUOTES,
+    'quotes',
     [...constraints, orderBy('metadata.created', 'desc')]
   );
 
