@@ -1,4 +1,3 @@
-// import * as functions from 'firebase-functions';
 import {
   orgsCollection,
   policiesCollection,
@@ -19,10 +18,7 @@ const reportErr = getReportErrorFn('setUidByEmailOnCreate');
 // anonymous auth triggers onCreate
 // anonymous auth does NOT trigger blocking functions - https://firebase.google.com/docs/auth/extend-with-blocking-functions#understanding_blocking_functions
 
-// does converting anonymous account into regular account trigger the beforeCreate blocking function ?? force email verification?
-
-// TODO:
-// set uid on: policies, change requests, quotes, submissions
+// does converting anonymous account into regular account trigger the beforeCreate blocking function ?? force email verification ??
 
 export default async (user: UserRecord, context: EventContext<Record<string, string>>) => {
   info(`New user detected: ${user.email} (${user.uid})`);
@@ -43,11 +39,12 @@ export default async (user: UserRecord, context: EventContext<Record<string, str
     info(`Successful write operation on ${ref.path} at ${result}`);
   });
 
-  bulkWriter.onWriteError((error) => {
-    if (error.code === GrpcStatus.UNAVAILABLE && error.failedAttempts < MAX_RETRY_ATTEMPTS) {
+  bulkWriter.onWriteError((err) => {
+    if (err.code === GrpcStatus.UNAVAILABLE && err.failedAttempts < MAX_RETRY_ATTEMPTS) {
       return true;
     } else {
-      warn(`Failed write at document: ${error.documentRef.path}`, { ...error });
+      warn(`Failed write at document: ${err.documentRef.path}`, { ...err });
+      reportErr(`Failed write at document: ${err.documentRef.path}`, { user }, err);
       return false;
     }
   });
@@ -133,20 +130,16 @@ export default async (user: UserRecord, context: EventContext<Record<string, str
         );
       }
     });
-
-    // TODO: change requests ??
-    // don't allow creating until email verified, but still want to be visible if created by agent and insured later creates an account ??
   } else {
     const submissionsSnaps = await submissionsCol.where('contact.email', '==', user.email).get();
-    if (!submissionsSnaps.empty) {
-      const subDocs = submissionsSnaps.docs.filter((s) => !s.data().contact?.userId);
-      subDocs.forEach((s) => {
-        bulkWriter.update(s.ref, {
-          'contact.userId': user.uid,
-          'metadata.updated': Timestamp.now(),
-        });
+    const subSnaps = submissionsSnaps.docs.filter((s) => !s.data().contact?.userId);
+
+    subSnaps.forEach((s) => {
+      bulkWriter.update(s.ref, {
+        'contact.userId': user.uid,
+        'metadata.updated': Timestamp.now(),
       });
-    }
+    });
 
     const quoteSnaps = await quotesCol.where('namedInsured.email', '==', user.email).get();
     const filteredQuoteSnaps = quoteSnaps.docs.filter((s) => !s.data().namedInsured.userId);
@@ -163,6 +156,7 @@ export default async (user: UserRecord, context: EventContext<Record<string, str
 
     filteredPolicies.forEach((s) => {
       bulkWriter.update(s.ref, {
+        userId: user.uid,
         'namedInsured.userId': user.uid,
         'metadata.updated': Timestamp.now(),
       });

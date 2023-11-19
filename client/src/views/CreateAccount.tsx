@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import { toast } from 'react-hot-toast';
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useAuth } from 'reactfire';
-import * as yup from 'yup';
+import { object, string } from 'yup';
 
 import { FormikTextField } from 'components/forms';
 // import { auth } from 'firebaseConfig';
@@ -16,10 +16,10 @@ import { useCreateAccount } from 'hooks';
 import { useKeyPress } from 'hooks/utils';
 import { getRedirectPath, logDev } from 'modules/utils/helpers';
 
-const validation = yup.object({
-  firstName: yup.string().required('First name is required'),
-  lastName: yup.string().required('Last name is required'),
-  email: yup.string().email().required('Valid email is required'),
+const validation = object({
+  firstName: string().required('First name is required'),
+  lastName: string().required('Last name is required'),
+  email: string().email().required('Valid email is required'),
   password: passwordValidation,
 });
 

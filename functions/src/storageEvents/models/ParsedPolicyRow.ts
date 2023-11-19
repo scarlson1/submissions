@@ -20,6 +20,9 @@ import {
 import { z } from 'zod';
 import { Coords, DeepNullable, MGACommissionPct } from '../../common/index.js';
 
+// TODO: extend Policy ??
+// delete userId ?? always match named insured ??
+
 export const ParsedPolicyRow = z.object({
   policyId: z.string(),
   limits: Limits,
@@ -35,7 +38,7 @@ export const ParsedPolicyRow = z.object({
   price: z.number().nonnegative(), // .min(100, 'price must be > $100'),
   namedInsured: NamedInsured,
   mailingAddress: MailingAddress,
-  userId: z.string(),
+  userId: z.string().nullable(),
   agent: AgentDetails,
   agency: AgencyDetails,
   // surplusLinesProducerOfRecord: SLProdOfRecordDetails,
