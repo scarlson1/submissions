@@ -5,9 +5,9 @@ import { collectionData, docData } from 'rxfire/firestore';
 import { combineLatest } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import invariant from 'tiny-invariant';
-import { useClaims } from './useClaims';
 
 import { Collection, usersCollection } from 'common';
+import { useClaims } from './useClaims';
 
 // TODO: replace deprecated combineLatest
 

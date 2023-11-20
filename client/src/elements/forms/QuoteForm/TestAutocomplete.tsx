@@ -1,8 +1,7 @@
-import { Box, Typography } from '@mui/material';
+import { Box } from '@mui/material';
 import { User, WithId, usersCollection } from 'common';
 import { QueryFieldFilterConstraint, doc, getDoc, getFirestore, where } from 'firebase/firestore';
 import { useClaims, useCollectionGroupData } from 'hooks';
-import { useUsers } from 'hooks/useUsers';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useUser } from 'reactfire';
 import invariant from 'tiny-invariant';
@@ -62,16 +61,16 @@ export const TestAutocomplete = () => {
     return [where('userId', '==', user.uid)];
   }, [claims, user]);
 
-  const userOptions = useUserOptions(constraints);
+  // const userOptions = useUserOptions(constraints);
 
-  const { data: test } = useUsers();
-  console.log('test: ', test);
+  // const { data: test } = useUsers();
+  // console.log('test: ', test);
 
   return (
     <Box>
-      {userOptions.map((u) => (
+      {/* {userOptions.map((u) => (
         <Typography key={u.id}>{`${u.displayName} - ${u.email}`}</Typography>
-      ))}
+      ))} */}
     </Box>
   );
 };
