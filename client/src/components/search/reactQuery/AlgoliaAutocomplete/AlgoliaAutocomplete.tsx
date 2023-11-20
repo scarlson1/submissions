@@ -38,7 +38,6 @@ export const AlgoliaAutocomplete = <T,>({
   const active = useRef(false);
 
   const { hits, isFetching } = useAlgolia<WithBaseHit<T>>({
-    // isLoading, status, hasNextPage, isFetchingNextPage, fetchNextPage
     indexName: import.meta.env.VITE_ALGOLIA_INDEX_NAME as string,
     query: debouncedQuery,
     hitsPerPage: 5,

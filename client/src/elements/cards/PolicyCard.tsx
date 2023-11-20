@@ -41,7 +41,7 @@ export const PolicyCard = ({ policy, onClick = noop, i }: PolicyCardProps) => {
   return (
     <FlexCard
       sx={{
-        maxWidth: 340,
+        maxWidth: 360,
         boxShadow: '0 8px 40px -12px rgba(0,0,0,0.3)',
         '&:hover': {
           boxShadow: '0 16px 70px -12.125px rgba(0,0,0,0.3)',
@@ -71,12 +71,23 @@ export const PolicyCard = ({ policy, onClick = noop, i }: PolicyCardProps) => {
                 height: '100%',
               }}
             >
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center' }}>
-                <Typography fontWeight={900} fontSize={24} sx={{ pr: 2 }}>
+              <Box sx={{ display: 'flex', flexWrap: 'nowrap', alignItems: 'center' }}>
+                {/* TODO: overflow ellipses */}
+                <Typography
+                  fontWeight={900}
+                  fontSize={24}
+                  sx={{
+                    pr: 2,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    flex: '1 1 auto',
+                  }}
+                >
                   {location?.address?.s1 || ''}
                 </Typography>
                 {moreCount > 0 ? (
-                  <Typography color='text.tertiary' variant='subtitle2'>
+                  <Typography color='text.tertiary' variant='subtitle2' sx={{ flex: '0 0 auto' }}>
                     {`+${moreCount} more`}
                   </Typography>
                 ) : null}

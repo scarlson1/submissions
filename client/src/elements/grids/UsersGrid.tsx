@@ -16,7 +16,9 @@ import {
 import { DocumentData, QueryConstraint, query, where } from 'firebase/firestore';
 import { isEqual } from 'lodash';
 import { useCallback, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useFirestore, useSigninCheck } from 'reactfire';
+import { ROUTES, createPath } from 'router';
 
 import {
   CLAIMS,
@@ -31,8 +33,6 @@ import { hasAdminClaimsValidator } from 'components/RequireAuthReactFire';
 import { useAsyncToast, useUpdateClaims } from 'hooks';
 import { useCollectionDataPopulateById } from 'hooks/useRx';
 import { idCol, userClaimsCol, userCols, userSummaryCol } from 'modules/muiGrid/gridColumnDefs';
-import { useNavigate } from 'react-router-dom';
-import { ROUTES, createPath } from 'router';
 
 // TODO: finish admin users grid component
 // with updates, merge claims, etc.

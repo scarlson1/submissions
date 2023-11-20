@@ -3,11 +3,10 @@ import { PersonAddRounded } from '@mui/icons-material';
 import { TabContext, TabList, TabPanel } from '@mui/lab';
 import { Box, Tab, Typography } from '@mui/material';
 import { collection, doc, query, where } from 'firebase/firestore';
-import { ErrorBoundary } from 'react-error-boundary';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { useFirestore } from 'reactfire';
 
-import { ClaimsGuard, PageMeta } from 'components';
+import { ClaimsGuard, ErrorFallback, PageMeta } from 'components';
 import { LoadingComponent } from 'components/layout';
 import { AddUsersDialog } from 'elements/forms';
 import { InvitesGrid, PoliciesGrid, QuotesGrid, SubmissionsGrid, UsersGrid } from 'elements/grids';
@@ -16,6 +15,7 @@ import { useJsonTheme } from 'hooks';
 import { useAgencyInsureds } from 'hooks/useAgencyInsureds';
 import { useCollectionDataInnerJoin, useRx, useRxDocJoin } from 'hooks/useRx';
 import { Suspense } from 'react';
+import { ErrorBoundary } from 'react-error-boundary';
 
 const MIN_TAB_HEIGHT = 40;
 
@@ -58,7 +58,7 @@ export const Organization = () => {
                 <Tab label='Policies' value='policies' />
                 <Tab label='Quotes' value='quotes' />
                 <Tab label='Submissions' value='submissions' />
-                <Tab label='Insureds' value='insureds' />
+                {/* <Tab label='Insureds' value='insureds' /> */}
                 <Tab label='Team' value='team' />
                 <Tab label='Invites' value='invites' />
                 <Tab label='Admin Users (test)' value='test' />
@@ -84,8 +84,9 @@ export const Organization = () => {
                 <SubmissionsGrid constraints={[where('agency.orgId', '==', orgId)]} />
               </Suspense>
             </TabPanel>
-            <TabPanel value='insureds'>
-              {/* TODO: use rxjs to fetch all policies under agency, then fetch users by id ?? use innerJoin observable ?? */}
+            {/* TODO: use rxjs observable (like useUsers hook) */}
+            {/* TODO: use rxjs to fetch all policies under agency, then fetch users by id ?? use innerJoin observable ?? */}
+            {/* <TabPanel value='insureds'>
               <Suspense fallback={<LoadingComponent />}>
                 <UsersGrid constraints={[where('insuredOfAgency', 'array-contains', orgId)]} />
                 <ErrorBoundary
@@ -99,7 +100,7 @@ export const Organization = () => {
                   <TestAgencyInsureds orgId={orgId} />
                 </ErrorBoundary>
               </Suspense>
-            </TabPanel>
+            </TabPanel> */}
             <TabPanel value='team'>
               <Suspense fallback={<LoadingComponent />}>
                 <UsersGrid constraints={[where('orgId', '==', orgId)]} />
@@ -107,22 +108,26 @@ export const Organization = () => {
             </TabPanel>
             <TabPanel value='invites'>
               <>
-                <Suspense fallback={<LoadingComponent />}>
-                  <ClaimsGuard requiredClaims={['IDEMAND_ADMIN', 'ORG_ADMIN']}>
-                    <Box sx={{ width: '100%', display: 'flex', justifyContent: 'flex-end', pb: 2 }}>
-                      <AddUsersDialog
-                        orgId={orgId}
-                        buttonText='Add'
-                        buttonProps={{
-                          size: 'large',
-                          startIcon: <PersonAddRounded />,
-                          sx: { maxHeight: 36 },
-                        }}
-                      />
-                    </Box>
-                  </ClaimsGuard>
-                  {orgId && <InvitesGrid queryConstraints={[]} orgId={orgId} />}
-                </Suspense>
+                <ErrorBoundary FallbackComponent={ErrorFallback} resetKeys={[tabValue]}>
+                  <Suspense fallback={<LoadingComponent />}>
+                    <ClaimsGuard requiredClaims={['IDEMAND_ADMIN', 'ORG_ADMIN']}>
+                      <Box
+                        sx={{ width: '100%', display: 'flex', justifyContent: 'flex-end', pb: 2 }}
+                      >
+                        <AddUsersDialog
+                          orgId={orgId}
+                          buttonText='Add'
+                          buttonProps={{
+                            size: 'large',
+                            startIcon: <PersonAddRounded />,
+                            sx: { maxHeight: 36 },
+                          }}
+                        />
+                      </Box>
+                    </ClaimsGuard>
+                    {orgId && <InvitesGrid queryConstraints={[]} orgId={orgId} />}
+                  </Suspense>
+                </ErrorBoundary>
               </>
             </TabPanel>
           </TabContext>
@@ -132,7 +137,7 @@ export const Organization = () => {
   );
 };
 
-function TestAgencyInsureds({ orgId }: { orgId: string }) {
+export function TestAgencyInsureds({ orgId }: { orgId: string }) {
   const theme = useJsonTheme();
   const firestore = useFirestore();
 

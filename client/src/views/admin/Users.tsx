@@ -1,7 +1,6 @@
 import { CorporateFareRounded, DataObjectRounded } from '@mui/icons-material';
 import { Box, Tooltip, Typography } from '@mui/material';
 import { GridActionsCellItem, GridRowId, GridRowParams } from '@mui/x-data-grid';
-import { where } from 'firebase/firestore';
 import { useCallback } from 'react';
 import { useSigninCheck } from 'reactfire';
 
@@ -77,8 +76,13 @@ export const Users = () => {
       </Typography>
       {/* <Box sx={{ height: { xs: 400, md: 460, lg: 500 }, width: '100%' }}> */}
       <UsersGrid
-        constraints={[where('email', '!=', null)]}
+        // constraints={[where('email', '!=', null)]}
         autoHeight
+        initialState={{
+          filter: {
+            filterModel: { items: [{ field: 'email', value: null, operator: '!=' }] },
+          },
+        }}
         renderActions={(params: GridRowParams) => [
           <GridActionsCellItem
             icon={

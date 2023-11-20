@@ -45,6 +45,8 @@ declare module '@mui/x-data-grid' {
 // https://firebase.google.com/docs/firestore/query-data/queries#query_limitations
 // ex: can't combine not-in with in, array-contains-any, or or
 
+// TODO: don't show sort if query requires orderBy as result of filter ??
+
 export interface ServerDataGridProps extends Partial<Omit<DataGridProps, 'rows'>> {
   colName: TCollection;
   pathSegments?: string[];
@@ -92,6 +94,7 @@ export const ServerDataGrid = ({
 
   const queryOptions = useMemo(() => {
     const orderByConstraint = getOrderByIfNecessary(constraints);
+    // console.log('updating query options', orderByConstraint);
 
     return [...filters, ...constraints, ...orderByConstraint, ...sortOps.current];
   }, [filters, constraints, sortModel, sortOps]); // eslint-disable-line react-hooks/exhaustive-deps
