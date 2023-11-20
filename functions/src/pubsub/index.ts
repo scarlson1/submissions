@@ -38,6 +38,18 @@ export const getstaticmapimages = onMessagePublished(
   }
 );
 
+export const getstaticpolicymapimages = onMessagePublished(
+  {
+    topic: MiscPubSubTopics.enum.POLICY_IMG,
+    concurrency: 10,
+    timeoutSeconds: 300,
+    memory: '1GiB',
+  }, // PUB_SUB_TOPICS.LOCATION_IMG
+  async (event) => {
+    await (await import('./getStaticPolicyMapImages.js')).default(event);
+  }
+);
+
 export const policyrenewallistener = onMessagePublished(
   { topic: PUB_SUB_TOPICS.POLICY_RENEWAL },
   async (event) => {

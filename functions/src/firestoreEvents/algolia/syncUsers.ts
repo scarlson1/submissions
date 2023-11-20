@@ -49,6 +49,7 @@ export default async (
       let searchSubtitle = newValue.email || `UID: ${docId}`;
       if (newValue.orgName) searchSubtitle += ` - ${newValue.orgName}`;
 
+      // TODO: need to set user visibleBy from /users/{uid}/permissions doc
       const ids = {
         userId: docId,
         agentId: null,
@@ -82,7 +83,7 @@ export default async (
           lng: newValue.coordinates.longitude,
         };
       }
-      info(`SAVING USER CHANGE TO ALGILIA INDEX ${docId}...`);
+      info(`SAVING USER CHANGE TO ALGOLIA INDEX ${docId}...`);
 
       const { objectIDs } = await index.saveObjects(records);
 

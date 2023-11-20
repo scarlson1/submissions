@@ -11,6 +11,7 @@ import {
   fetchRatingData,
   formatPremiumTrx,
 } from '../modules/transactions/index.js';
+import { publishGetPolicyImages } from '../services/pubsub/publishers.js';
 import { splitChunks, verify } from '../utils/index.js';
 
 // using JS Module over classes: https://dev.to/giantmachines/stop-using-javascript-classes-33ij
@@ -43,6 +44,12 @@ export default async (event: CloudEvent<MessagePublishedData<PolicyCreatedPayloa
   if (!policyId || typeof policyId !== 'string') {
     reportErr(`Missing policy ID`, { policyId });
     return;
+  }
+
+  try {
+    await publishGetPolicyImages({ policyId });
+  } catch (err: any) {
+    reportErr(`Error publishing get policy images`, { policyId });
   }
 
   const db = getFirestore();

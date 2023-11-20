@@ -1,8 +1,8 @@
 import { AgencyDetails, AgentDetails, Quote } from '@idemand/common';
 import { Change, DocumentSnapshot, FirestoreEvent } from 'firebase-functions/v2/firestore';
 import { isEqual } from 'lodash-es';
-import { getReportErrorFn } from '../common';
-import { updateUserAccessDoc } from './updateUserAccessOnPolicyChange';
+import { getReportErrorFn } from '../common/index.js';
+import { updateUserAccessDoc } from './updateUserAccessOnPolicyChange.js';
 
 const reportErr = getReportErrorFn('updateUserAccessOnQuoteChange');
 

@@ -79,6 +79,7 @@ import { ROUTES, createPath } from 'router';
 import { AddressStepQuote } from '../AddressStepQuote';
 import { FormikAddressLite } from '../FormikAddressLite';
 import { LimitsStep } from '../LimitsStep';
+import { TestAutocomplete } from './TestAutocomplete';
 import {
   DEFAULT_VALUES,
   RATING_FIELDS,
@@ -1125,6 +1126,9 @@ export const QuoteForm = ({
                 gridProps={{ sx: { px: 0 } }}
                 addButtonText='Add Note'
               />
+            </Grid>
+            <Grid xs={12}>
+              <TestAutocomplete />
             </Grid>
           </Grid>
         </>

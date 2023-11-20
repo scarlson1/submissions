@@ -168,6 +168,7 @@ const createTenantFromSubmission = async ({
       status: AGENCY_STATUS.ACTIVE,
       defaultCommission: {
         flood: 0.15, // docData.defaultCommission ? docData.defaultCommission.flood : 0.15,
+        wind: 0.15,
       },
       authProviders: ['password'],
       primaryContact: {
@@ -176,8 +177,10 @@ const createTenantFromSubmission = async ({
         lastName: org.contact.lastName,
         email: org.contact.email,
         phone: org.contact.phone,
+        userId: null, // TODO: primary contact user id needs to be set at some point
       },
       tenantId: newTenantId,
+      emailDomain: '',
       metadata: {
         created: Timestamp.now(),
         updated: Timestamp.now(),

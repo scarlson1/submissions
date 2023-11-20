@@ -198,6 +198,15 @@ service cloud.firestore {
       allow create: if isUser(userId) || (isIDemandAdmin() && emailVerified())
       allow update: if isUser(userId) || (isIDemandAdmin() && emailVerified())
       allow delete: if isIDemandAdmin() && emailVerified()
+
+      match /permissions/{docId} {
+        allow read: if isUser(userId) // || isIDemandAdmin()
+      }
+    }
+
+    // for collection group queries
+    match /{path=**}/permissions/{docId} {
+      allow list: if true
     }
 
     function getUserAccessDoc(userId) {

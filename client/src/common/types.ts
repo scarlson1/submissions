@@ -18,7 +18,6 @@ import { FloodValues } from 'views/SubmissionNew';
 import {
   Basement,
   CBRSDesignation,
-  COLLECTIONS,
   CancelReason,
   FeeItemName,
   FloodZone,
@@ -1038,6 +1037,7 @@ export const PolicyZ = z.object({
     .optional()
     .nullable()
     .default([]),
+  imageURLs: LocationImages.optional().nullable(),
   metadata: BaseMetadataZ,
 });
 export type Policy = z.infer<typeof PolicyZ>;
@@ -1701,7 +1701,7 @@ export interface ImportMeta {
 }
 
 export interface PolicyImportMeta extends ImportMeta {
-  targetCollection: COLLECTIONS.POLICIES;
+  targetCollection: 'policies'; // Collection.Enum.policies;
 }
 
 export type StagedPolicyImport = Policy & {
@@ -1709,7 +1709,7 @@ export type StagedPolicyImport = Policy & {
 };
 
 export interface TransactionsImportMeta extends ImportMeta {
-  targetCollection: COLLECTIONS.TRANSACTIONS;
+  targetCollection: 'transactions'; // Collection.Enum.transactions;
 }
 
 export type StagedTransactionImport = Transaction & {
@@ -1717,7 +1717,7 @@ export type StagedTransactionImport = Transaction & {
 };
 
 export interface QuoteImportMeta extends ImportMeta {
-  targetCollection: COLLECTIONS.QUOTES;
+  targetCollection: 'quotes'; // Collection.Enum.quotes;
 }
 
 export type StagedQuoteImport = Quote & {

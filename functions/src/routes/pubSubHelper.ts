@@ -1,7 +1,7 @@
 import { PubSub } from '@google-cloud/pubsub';
 import { error } from 'firebase-functions/logger';
 import { Request, Response } from 'firebase-functions/v1';
-import { pubSubEmulatorHost } from '../common';
+import { pubSubEmulatorHost } from '../common/index.js';
 
 // work-around to publish in emulator environment (trigger from postman)
 

@@ -7,6 +7,7 @@ import {
   Divider,
   Tooltip,
   Typography,
+  useTheme,
 } from '@mui/material';
 import { noop } from 'lodash';
 
@@ -27,6 +28,7 @@ export interface PolicyCardProps {
   i: number; // TODO: delete - temp for fallback img
 }
 export const PolicyCard = ({ policy, onClick = noop, i }: PolicyCardProps) => {
+  const theme = useTheme();
   const location = Object.values(policy.locations || {})[0];
 
   const activeLocationCount = Object.entries(policy.locations || {}).filter(
@@ -52,8 +54,11 @@ export const PolicyCard = ({ policy, onClick = noop, i }: PolicyCardProps) => {
       <FlexCardContentWrapper>
         <CardMedia
           sx={{ height: 140 }}
-          // TODO: create policy images
-          image={fallbackImages[i] || fallbackImages[0]}
+          image={
+            (theme.palette.mode === 'dark' ? policy.imageURLs?.dark : policy.imageURLs?.light) ||
+            fallbackImages[i] ||
+            fallbackImages[0]
+          }
           title={`policy cover image`}
         />
         <CardActionArea onClick={() => onClick(policy.id)} sx={{ flex: '1 0 auto' }}>

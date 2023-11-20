@@ -1,5 +1,18 @@
 import { z } from 'zod';
 
+export const StorageFolder = z.enum([
+  'importPolicies',
+  'importTransactions',
+  'ratePortfolio',
+  'importQuotes',
+  'policies',
+  'claims',
+  'users',
+  'profileImages',
+  'locationMapImages',
+]);
+export type TStorageFolder = z.infer<typeof StorageFolder>;
+
 export enum SUBMISSION_STATUS {
   DRAFT = 'draft',
   SUBMITTED = 'submitted',
@@ -103,6 +116,7 @@ export enum FIN_TRANSACTION_TYPE {
 
 export enum MISC_PUB_SUB_TOPICS {
   LOCATION_IMG = 'location.image',
+  POLICY_IMG = 'policy.image',
 }
 export const MiscPubSubTopics = z.nativeEnum(MISC_PUB_SUB_TOPICS);
 export type MiscPubSubTopics = z.infer<typeof MiscPubSubTopics>;

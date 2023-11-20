@@ -88,6 +88,7 @@ export const StorageFolder = z.enum([
   'claims',
   'users',
   'profileImages',
+  'locationMapImages',
 ]);
 export type TStorageFolder = z.infer<typeof StorageFolder>;
 

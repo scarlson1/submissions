@@ -51,6 +51,7 @@ export {
   algoliasyncsubmissions,
   algoliasynctransactions,
   algoliasyncusers,
+  syncusersvisibleby,
 } from './firestoreEvents/algolia/index.js';
 export {
   getstaticsubmissionimg,
@@ -76,6 +77,7 @@ export {
   amendmentlistener,
   endorsementlistener,
   getstaticmapimages,
+  getstaticpolicymapimages,
   locationcancellistener,
   markpaidonpaymentcomplete,
   policycreatedlistener,
@@ -97,5 +99,5 @@ export {
   rateportfolio,
 } from './storageEvents/index.js';
 
-// export { pubsubhelper } from './routes/index.js';
+export { pubsubhelper } from './routes/index.js';
 // export { testEmulatorsCheckAchStatus } from './pubsub/checkAchStatus';

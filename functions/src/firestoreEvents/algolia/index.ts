@@ -74,3 +74,13 @@ export const algoliasynctransactions = onDocumentWritten(
     await (await import('./syncFinTransactions.js')).default(event);
   }
 );
+
+export const syncusersvisibleby = onDocumentWritten(
+  {
+    document: `${Collection.enum.users}/{userId}/${Collection.Enum.permissions}/{docId}`,
+    secrets: [algoliaAdminKey],
+  },
+  async (event) => {
+    await (await import('./syncUsersVisibleBy.js')).default(event);
+  }
+);
