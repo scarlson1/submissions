@@ -125,6 +125,7 @@ export const FormikCoordsMap = ({
         color='standard'
         sx={{ m: 2 }}
       />
+      {children}
     </Map>
   );
 };

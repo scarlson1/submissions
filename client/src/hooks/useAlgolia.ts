@@ -2,6 +2,7 @@ import { SearchOptions } from '@algolia/client-search';
 import { useInfiniteQuery } from '@tanstack/react-query';
 
 import { search } from 'components/search/reactQuery';
+import { useMemo } from 'react';
 import { useAlgoliaStore } from './useAlgoliaStore';
 
 export interface UseAlgoliaOptions extends SearchOptions {
@@ -22,6 +23,7 @@ export function useAlgolia<TData>({
   enabled,
   ...props
 }: UseAlgoliaOptions) {
+  // TODO: suspense ??
   const apiKey = useAlgoliaStore((state) => state.apiKey);
   if (!apiKey) throw new Error('missing search api key');
 
@@ -37,7 +39,8 @@ export function useAlgolia<TData>({
     // suspense: false, // https://tanstack.com/query/latest/docs/react/guides/migrating-to-v5#new-hooks-for-suspense
   });
 
-  const hits = queryInfo.data?.pages.map((page) => page.hits).flat();
-
-  return { ...queryInfo, hits };
+  return useMemo(() => {
+    const hits = queryInfo.data?.pages.map((page) => page.hits).flat();
+    return { ...queryInfo, hits };
+  }, [queryInfo]);
 }

@@ -61,7 +61,7 @@ export const orgsCollection = (db: Firestore) =>
 export const policiesCollection = (db: Firestore) =>
   createCollection<Policy, Policy>(db, 'policies');
 
-export const usersCollection = (db: Firestore) => createCollection<User>(db, 'users');
+export const usersCollection = (db: Firestore) => createCollection<User, User>(db, 'users');
 
 export const licensesCollection = (db: Firestore) =>
   createCollection<License, License>(db, 'licenses');

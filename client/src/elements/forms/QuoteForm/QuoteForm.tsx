@@ -20,7 +20,7 @@ import {
 import { doc } from 'firebase/firestore';
 import { Formik, FormikConfig, FormikErrors, FormikProps, setNestedObjectValues } from 'formik';
 import { isEmpty, pick } from 'lodash';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { Suspense, useCallback, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFirestore } from 'reactfire';
 
@@ -48,7 +48,7 @@ import {
   ValueByRiskType,
   orgsCollection,
 } from 'common';
-import { IconButtonMenu } from 'components';
+import { ErrorFallback, IconButtonMenu } from 'components';
 import {
   Diff,
   FormikCheckbox,
@@ -64,7 +64,9 @@ import {
   percentMaskProps,
   phoneMaskProps,
 } from 'components/forms';
-import { TempAgentSearch } from 'components/search/Search';
+import { LoadingComponent } from 'components/layout';
+import { UserSearchDialog } from 'components/search/Search';
+import AlgoliaAutocomplete from 'components/search/reactQuery/AlgoliaAutocomplete';
 import {
   RatingInputsWithAAL,
   extractRatingInputsFromValues,
@@ -75,6 +77,7 @@ import {
   useRateQuote,
 } from 'hooks';
 import { Obj, dollarFormat, getData, sumFeesTaxesPremium, truthyOrZero } from 'modules/utils';
+import { ErrorBoundary } from 'react-error-boundary';
 import { ROUTES, createPath } from 'router';
 import { AddressStepQuote } from '../AddressStepQuote';
 import { FormikAddressLite } from '../FormikAddressLite';
@@ -90,6 +93,8 @@ import {
 import { getQuoteValidation } from './validation';
 
 // TODO: move quote type to field (new, renewal, etc.) ??
+// TODO: must geocode if address is manually entered (add button if missing coordinates ??)
+// TODO: search for named insured
 
 export interface QuoteValues {
   address: Address;
@@ -292,6 +297,20 @@ export const QuoteForm = ({
     [toast]
   );
 
+  const handleInsuredSelected = useCallback(async (user: User & { objectID: string }) => {
+    await setValues({
+      namedInsured: {
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        email: user.email || '',
+        phone: user.phone || '',
+        userId: user.objectID || '',
+      },
+    });
+    const keys = ['namedInsured'] as (keyof FormikErrors<QuoteValues>)[];
+    setTouched(keys);
+  }, []);
+
   const handleAgentSelected = useCallback(
     async (agentUser: User & { objectID: string }) => {
       await setValues({
@@ -484,22 +503,26 @@ export const QuoteForm = ({
               </Typography>
             </Grid>
             <Grid xs={12}>
-              <AddressStepQuote
-                gridProps={{ rowSpacing: 4, columnSpacing: 6 }}
-                names={{
-                  addressLine1: `address.addressLine1`,
-                  addressLine2: `address.addressLine2`,
-                  city: `address.city`,
-                  state: `address.state`,
-                  postal: `address.postal`,
-                  county: `address.countyName`,
-                  latitude: `coordinates.latitude`,
-                  longitude: `coordinates.longitude`,
-                }}
-                autocompleteProps={{
-                  name: 'address.addressLine1',
-                }}
-              />
+              <ErrorBoundary FallbackComponent={ErrorFallback}>
+                <Suspense fallback={<LoadingComponent />}>
+                  <AddressStepQuote
+                    gridProps={{ rowSpacing: 4, columnSpacing: 6 }}
+                    names={{
+                      addressLine1: `address.addressLine1`,
+                      addressLine2: `address.addressLine2`,
+                      city: `address.city`,
+                      state: `address.state`,
+                      postal: `address.postal`,
+                      county: `address.countyName`,
+                      latitude: `coordinates.latitude`,
+                      longitude: `coordinates.longitude`,
+                    }}
+                    autocompleteProps={{
+                      name: 'address.addressLine1',
+                    }}
+                  />
+                </Suspense>
+              </ErrorBoundary>
             </Grid>
             <Grid xs={12} sx={{ my: 6 }}>
               <Divider sx={{ my: 3 }} />
@@ -1017,9 +1040,26 @@ export const QuoteForm = ({
             </Grid>
             <Grid xs={12}>
               <Divider sx={{ my: 3 }} />
-              <Typography variant='overline' color='text.secondary' sx={{ pl: 4, lineHeight: 1.4 }}>
-                Named Insured
-              </Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                <Typography
+                  variant='overline'
+                  color='text.secondary'
+                  sx={{ pl: 4, lineHeight: 1.4 }}
+                >
+                  Named Insured
+                </Typography>
+                <UserSearchDialog
+                  onSelect={handleInsuredSelected}
+                  indexTitle='Users'
+                  translations={{
+                    button: {
+                      buttonText: 'Find User',
+                      buttonAriaLabel: 'find user',
+                    },
+                  }}
+                  shortcutKey='k'
+                />
+              </Box>
             </Grid>
             <Grid xs={6} md={3}>
               <FormikTextField name='namedInsured.firstName' label='Insured first name' fullWidth />
@@ -1050,7 +1090,18 @@ export const QuoteForm = ({
                 >
                   Agent & Agency
                 </Typography>
-                <TempAgentSearch onSelect={handleAgentSelected} />
+                <UserSearchDialog
+                  onSelect={handleAgentSelected}
+                  indexTitle='Agents'
+                  translations={{
+                    button: {
+                      buttonText: 'Find Agent',
+                      buttonAriaLabel: 'find agent',
+                    },
+                  }}
+                  shortcutKey='u'
+                  placeholder='Search agents by name, email, or orgId...'
+                />
               </Box>
             </Grid>
             <Grid xs={6} sm={3}>
@@ -1128,7 +1179,21 @@ export const QuoteForm = ({
               />
             </Grid>
             <Grid xs={12}>
-              <TestAutocomplete />
+              <ErrorBoundary FallbackComponent={ErrorFallback}>
+                <Suspense>
+                  <TestAutocomplete />
+                </Suspense>
+              </ErrorBoundary>
+            </Grid>
+            <Grid xs={12}>
+              <ErrorBoundary FallbackComponent={ErrorFallback}>
+                <Suspense>
+                  <AlgoliaAutocomplete
+                    onSelectItem={console.log}
+                    searchOptions={{ filters: 'collectionName:users' }}
+                  />
+                </Suspense>
+              </ErrorBoundary>
             </Grid>
           </Grid>
         </>

@@ -1,4 +1,4 @@
-import { collectionGroup, doc, query, where } from 'firebase/firestore';
+import { CollectionReference, collectionGroup, doc, query, where } from 'firebase/firestore';
 import { useMemo } from 'react';
 import { ReactFireOptions, useFirestore, useObservable } from 'reactfire';
 import { collectionData, docData } from 'rxfire/firestore';
@@ -7,13 +7,18 @@ import { map, switchMap } from 'rxjs/operators';
 import invariant from 'tiny-invariant';
 import { useClaims } from './useClaims';
 
-import { Collection, usersCollection } from 'common';
+import { Collection, User, UserAccess, usersCollection } from 'common';
 
 // TODO: replace deprecated combineLatest
 
 // https://github.com/firebaseextended/rxfire#easily-combine-multiple-firebase-data-sources
 
-export const useUsers = <T>(options?: ReactFireOptions<T>) => {
+interface UsersRes extends User {
+  accessData: UserAccess;
+  id: string;
+}
+
+export const useUsers = <T = UsersRes>(options?: ReactFireOptions<T>) => {
   const { user, claims, orgId } = useClaims();
   invariant(user);
   const firestore = useFirestore();
@@ -25,18 +30,27 @@ export const useUsers = <T>(options?: ReactFireOptions<T>) => {
     return [where('userId', '==', user.uid)];
   }, [user, claims, orgId]);
 
-  const accessRef = query(collectionGroup(firestore, Collection.Enum.permissions), ...constraint);
+  const accessQuery = query<UserAccess, UserAccess>(
+    collectionGroup(firestore, Collection.Enum.permissions) as CollectionReference<
+      UserAccess,
+      UserAccess
+    >,
+    ...constraint
+  );
   const usersCol = usersCollection(firestore);
 
-  const observableId = `users:${user.uid}:associated`;
+  const idField = options?.idField ?? 'NO_ID_FIELD';
+  const observableId = `users:${user.uid}:associated:idField=${idField}`;
 
-  const observable$ = collectionData(accessRef).pipe(
+  const observable$ = collectionData(accessQuery).pipe(
     switchMap((accessData) => {
       return combineLatest(
         ...accessData.map((c) => {
           // const ref = ref(storage, `/cities/${c.id}.png`);
           const userRef = doc(usersCol, c.userId);
-          return docData(userRef).pipe(map((userData) => ({ ...userData, accessData })));
+          return docData(userRef).pipe(
+            map((userData) => ({ ...userData, accessData, id: c.userId }))
+          );
           // return getDownloadURL(ref).pipe(map(imageURL => ({ imageURL, ...c })));
         })
       );

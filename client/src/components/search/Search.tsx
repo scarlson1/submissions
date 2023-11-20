@@ -442,10 +442,16 @@ export function TempWrappedSearch() {
   );
 }
 
-export function TempAgentSearch({ onSelect }: { onSelect: (item: any) => void }) {
+type UserSearchDialogProps = Omit<
+  SearchProps,
+  'appId' | 'apiKey' | 'indexName' | 'hitComponent'
+> & {
+  onSelect: (item: any) => void;
+};
+
+export function UserSearchDialog(props: UserSearchDialogProps) {
   // TODO: return loading state
   const apiKey = useAlgoliaStore((state) => state.apiKey);
-  // const apiKey = useAlgoliaSearchKey();
 
   if (!import.meta.env.VITE_ALGOLIA_APP_ID || !import.meta.env.VITE_ALGOLIA_INDEX_NAME)
     throw new Error('missing algolia appID or index name in env variables');
@@ -457,20 +463,21 @@ export function TempAgentSearch({ onSelect }: { onSelect: (item: any) => void })
       appId={import.meta.env.VITE_ALGOLIA_APP_ID}
       apiKey={apiKey}
       indexName={import.meta.env.VITE_ALGOLIA_INDEX_NAME}
-      indexTitle='Agents'
-      placeholder='Search agents by name, email, or orgId...'
+      // indexTitle='Agents'
+      placeholder='Search users by name, email, or orgId...'
       searchParameters={{
         filters: 'collectionName:users',
       }}
       hitComponent={OnSelectHit}
-      onSelect={onSelect}
-      translations={{
-        button: {
-          buttonText: 'Find Agent',
-          buttonAriaLabel: 'find agent',
-        },
-      }}
-      shortcutKey='u'
+      // onSelect={onSelect}
+      // translations={{
+      //   button: {
+      //     buttonText: 'Find Agent',
+      //     buttonAriaLabel: 'find agent',
+      //   },
+      // }}
+      // shortcutKey='u'
+      {...props}
     />
   );
 }

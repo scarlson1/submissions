@@ -200,13 +200,12 @@ service cloud.firestore {
       allow delete: if isIDemandAdmin() && emailVerified()
 
       match /permissions/{docId} {
-        allow read: if isUser(userId) // || isIDemandAdmin()
+        allow read: if isSignedIn() && (isUser(userId) || request.auth.uid in existingData().agentIds || request.auth.token.firebase.tenant in existingData().orgIds) // || isIDemandAdmin()
       }
     }
-
     // for collection group queries
     match /{path=**}/permissions/{docId} {
-      allow list: if true
+      allow list: if isSignedIn() && (isUser(existingData().get(userId, null)) || request.auth.uid in existingData().get(agentIds, [])|| request.auth.token.firebase.tenant in existingData().get(orgIds, [])) || isIDemandAdmin()
     }
 
     function getUserAccessDoc(userId) {
