@@ -13,6 +13,7 @@ import { FormikAddress, FormikAddressProps } from 'elements/forms';
 import { useDocData } from 'hooks';
 import { AddressStepValues } from './AddressStep';
 
+// https://deck.gl/docs/api-reference/mapbox/mapbox-overlay#using-with-react-map-gl
 function DeckGLOverlay(
   props: MapboxOverlayProps & {
     interleaved?: boolean;
@@ -32,8 +33,6 @@ export const AddressStepQuote = ({ gridProps, ...props }: AddressStepTestProps) 
     theme.palette.mode === 'dark' ? MAPBOX_DARK : MAPBOX_LIGHT
   );
   const { values } = useFormikContext<AddressStepValues>();
-
-  // const [hoverInfo, setHoverInfo] = useState<PickingInfo>();
   const { data: activeStates } = useDocData<ActiveStates>('states', 'flood');
 
   const activeStatesLayer = new GeoJsonLayer({
