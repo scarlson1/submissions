@@ -1,5 +1,5 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import { MoreVertRounded } from '@mui/icons-material';
+import { EditRounded, MoreVertRounded } from '@mui/icons-material';
 import { LoadingButton, TabContext, TabList, TabPanel } from '@mui/lab';
 import {
   Box,
@@ -7,6 +7,7 @@ import {
   Card,
   CardContent,
   Container,
+  Divider,
   Unstable_Grid2 as Grid,
   IconButton,
   Paper,
@@ -21,17 +22,17 @@ import { Firestore, doc, setDoc } from 'firebase/firestore';
 import { useCallback, useEffect, useState } from 'react';
 import { SubmitHandler, useForm, useFormState } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
-import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useFirestore, useUser } from 'reactfire';
 import * as yup from 'yup';
 // import Slider from 'react-slick';
 
-import { Collection, User, passwordValidation, usersCollection } from 'common';
+import { Collection, Organization, User, passwordValidation, usersCollection } from 'common';
 import { Carousel, ClaimsGuard, Copy } from 'components';
 import { RHFTextField } from 'components/forms';
 import { useAuthActions } from 'context';
 import { UpdateProfileImg } from 'elements';
-import { AddUsersDialog } from 'elements/forms';
+import { AddUsersDialog, EditAddressForm } from 'elements/forms';
 import { RHFPassword } from 'elements/forms/FormikPassword';
 import { AdminManageUsersGrid } from 'elements/grids/UsersGrid';
 import {
@@ -73,7 +74,7 @@ export const AccountDetails = () => {
   const navigate = useNavigate();
   // const { data: user } = useUser();
   // const { data } = useDBUser({ suspense: true });
-  const { orgId, user } = useClaims();
+  const { orgId, user, claims } = useClaims();
   const theme = useTheme();
   const [searchParams, setSearchParams] = useSearchParams();
   const [tabValue, setTabValue] = useState(searchParams.get('tab') || 'account');
@@ -171,7 +172,7 @@ export const AccountDetails = () => {
                 <Tab label='Account' value='account' />
                 {/* <ClaimsGuard requiredClaims={['IDEMAND_ADMIN', 'AGENT', 'ORG_ADMIN']}> */}
                 {orgId ? <Tab label='Team' value='team' /> : null}
-                {/* </ClaimsGuard> */}
+                {orgId && claims.orgAdmin ? <Tab label='Org' value='org' /> : null}
                 {/* <Tab label='Invites' value='invites' /> */}
                 {/* <Tab label='Admin Users (test)' value='test' /> */}
                 <Tab label='Security' value='security' />
@@ -233,6 +234,12 @@ export const AccountDetails = () => {
               ) : (
                 <Typography>Must be associated with an tenant/org to add users.</Typography>
               )}
+            </TabPanel>
+            <TabPanel value='org'>
+              {/* PRE_DEPLOY: finish section or comment out org tab/section  */}
+              <ClaimsGuard requiredClaims={['IDEMAND_ADMIN', 'AGENT', 'ORG_ADMIN']}>
+                {orgId ? <OrgSettings orgId={orgId} /> : null}
+              </ClaimsGuard>
             </TabPanel>
             <TabPanel value='security'>
               <Grid container spacing={5}>
@@ -658,6 +665,62 @@ function UpdatePasswordForm() {
         </Grid>
       </form>
     </Box>
+  );
+}
+
+function OrgSettings({ orgId }: { orgId: string }) {
+  // TODO: create wrapper component to manage edit vs display mode for each section
+  const { data: org } = useDocData<Organization>('organizations', orgId);
+
+  return (
+    <Grid container spacing={5}>
+      <Grid xs={12} sm={3} md={4}>
+        <Typography variant='h6' gutterBottom>
+          Org Settings
+        </Typography>
+      </Grid>
+      {/* TODO: side menu for each form component (primary contact, default comm., address, etc.) */}
+      {/* with outlet in grid component below. requires moving tab state to url path instead of query param ?? (see config for reference) */}
+      {/* how should menu work on mobile ?? back button ?? */}
+      <Grid xs={12} sm={9} md={8}>
+        <Typography variant='subtitle1' color='warning.light'>
+          TODO: default commissions, address, domain restrictions, etc.
+        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Typography variant='h6' gutterBottom sx={{ flex: '1 1 auto' }}>
+            {org.orgName || 'no org name'}
+          </Typography>
+          {/* TODO: use url / routing to display edit form ?? */}
+          <Box sx={{ flex: '0 0 auto' }}>
+            <IconButton size='small' onClick={() => alert('TODO: edit org name')}>
+              <EditRounded fontSize='inherit' />
+            </IconButton>
+          </Box>
+        </Box>
+
+        <Divider sx={{ my: 3 }} />
+        {/* TODO: once using layout with <Outlet /> use dynamic value for title ?? only works if rendering one form / piece of data at a time (address, or company name, etc) */}
+        <Typography variant='subtitle2' color='text.secondary' sx={{ mx: 2, pb: 3 }}>
+          Org Address
+        </Typography>
+        {/* TODO: need to update all policy docs when org address changes ?? */}
+        <EditAddressForm
+          onSubmit={(values, { setSubmitting }) => {
+            // TODO: save to org and create cloud function to update all records when agency address changes
+            console.log('values: ', values);
+            setSubmitting(false);
+          }}
+          initialValues={{
+            addressLine1: '',
+            addressLine2: '',
+            city: '',
+            state: '',
+            postal: '',
+          }}
+        />
+        <Outlet />
+      </Grid>
+    </Grid>
   );
 }
 

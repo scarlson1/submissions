@@ -9,6 +9,7 @@ export { ContactForm } from './ContactForm';
 export { ContactStep } from './ContactStep';
 export { DeductibleStep } from './DeductibleStep';
 export { DisclosureForm } from './DisclosureForm';
+export { EditAddressForm } from './EditAddressForm';
 export { ExclusionsStep } from './ExclusionsStep';
 export { FormikAddress } from './FormikAddress';
 export { FormikAddressAutocomplete } from './FormikAddressAutocomplete';
