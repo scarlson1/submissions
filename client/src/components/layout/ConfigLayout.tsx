@@ -15,15 +15,15 @@ interface LinkTabProps extends Omit<TabProps, 'href' | 'component'> {
   to: string;
 }
 
-function LinkTab({ to, label, ...props }: LinkTabProps) {
+export function LinkTab({ to, label, ...props }: LinkTabProps) {
   // HACK: fix ts error when passing along props
   return (
     // @ts-ignore
-    (<Tab label={label} component={RouterLink} to={to} {...props} />)
+    <Tab label={label} component={RouterLink} to={to} {...props} />
   );
 }
 
-const getTab = (currPath: string, pathsArr: string[], isRetry: boolean = false): number => {
+export const getTab = (currPath: string, pathsArr: string[], isRetry: boolean = false): number => {
   for (const [i, p] of pathsArr.entries()) {
     if (matchPath({ path: p }, currPath)) return i;
   }

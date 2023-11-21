@@ -8,7 +8,7 @@ import {
 
 import { CLAIMS, TProduct } from 'common';
 import { PageMeta, RequireAuth, RouterErrorBoundary } from 'components';
-import { ConfigLayout, Layout } from 'components/layout';
+import { ConfigLayout, Layout, SettingsLayout } from 'components/layout';
 import { RouterLink as BreadCrumbLink } from 'components/layout/Breadcrumbs';
 import { RequireAuthReactFire } from 'components/RequireAuthReactFire';
 import { TempWrappedSearch } from 'components/search/Search';
@@ -22,7 +22,6 @@ import { ActiveEventsMap, PoliciesMap } from 'elements/maps';
 import { TestSubmissionsMapWithFilters } from 'elements/maps/SubmissionsMap';
 import {
   Account,
-  AccountDetails,
   AddLocation,
   AgencyNew,
   ContactUs,
@@ -39,6 +38,7 @@ import {
   UserDetails,
   ViewQuote,
 } from 'views';
+import { AccountDetailsNew } from 'views/AccountDetailsNew';
 import {
   Home as AdminHome,
   AdminLocations,
@@ -168,6 +168,10 @@ export enum AUTH_ROUTES {
 
 export enum ACCOUNT_ROUTES {
   ACCOUNT = '/account',
+  USER_SETTINGS = '/account/user',
+  USER_SETTING = '/account/user/:setting',
+  ORG_SETTINGS = '/account/org',
+  ORG_SETTING = '/account/org/:setting',
 }
 
 type TArgs =
@@ -249,7 +253,11 @@ type TArgs =
       search: { mode: string; oobCode: string; continueUrl?: string | null };
     }
   | { path: AUTH_ROUTES.EMAIL_VERIFIED; search?: { email: string } }
-  | { path: ACCOUNT_ROUTES.ACCOUNT };
+  | { path: ACCOUNT_ROUTES.ACCOUNT }
+  | { path: ACCOUNT_ROUTES.USER_SETTINGS }
+  | { path: ACCOUNT_ROUTES.USER_SETTING; params: { setting: string } }
+  | { path: ACCOUNT_ROUTES.ORG_SETTINGS }
+  | { path: ACCOUNT_ROUTES.ORG_SETTING; params: { setting: string } };
 
 type TArgsWithParams = Extract<TArgs, { path: any; params: any }>;
 
@@ -1762,6 +1770,7 @@ export const router = sentryCreateBrowserRouter([
           },
         ],
       },
+      // layout issue --> need to move account under
       {
         path: 'account',
         element: (
@@ -1769,16 +1778,61 @@ export const router = sentryCreateBrowserRouter([
             <RequireAuthReactFire>
               <>
                 <PageMeta title='iDemand - Account' />
-                <Layout />
+                {/* <Layout /> */}
+                <AccountDetailsNew />
               </>
             </RequireAuthReactFire>
           </AuthActionsProvider>
         ),
         errorElement: <RouterErrorBoundary />,
         children: [
+          // {
+          //   index: true,
+          //   // element: <AccountDetails />,
+          //   element: <AccountDetailsNew />,
+          // },
           {
-            index: true,
-            element: <AccountDetails />,
+            path: 'user',
+            element: <SettingsLayout navItems={['User Details', 'Security']} />, // TODO: pass in nav routes to layout component
+            children: [
+              {
+                // path: ':setting', // can either handle display in component based on the setting param
+                // or explicitly specify each setting page in router ??
+                path: 'details',
+                element: (() => <div>TODO: user details component</div>)(),
+              },
+              // path: 'details/edit' ?? or handle edit state in component ??
+              {
+                // path: ':setting', // can either handle display in component based on the setting param
+                // or explicitly specify each setting page in router ??
+                path: 'security',
+                element: (() => <div>TODO: user security component</div>)(),
+              },
+            ],
+          },
+          {
+            path: 'org',
+            element: <SettingsLayout navItems={['Org Details', 'Team', 'Security']} />, // TODO: pass in nav routes to layout component
+            children: [
+              {
+                // path: ':setting', // can either handle display in component based on the setting param
+                // or explicitly specify each setting page in router ??
+                path: 'details',
+                element: (() => <div>TODO: org details component</div>)(),
+              },
+              {
+                // path: ':setting', // can either handle display in component based on the setting param
+                // or explicitly specify each setting page in router ??
+                path: 'team',
+                element: (() => <div>TODO: team component</div>)(),
+              },
+              {
+                // path: ':setting', // can either handle display in component based on the setting param
+                // or explicitly specify each setting page in router ??
+                path: 'security',
+                element: (() => <div>TODO: org security component</div>)(),
+              },
+            ],
           },
         ],
       },
