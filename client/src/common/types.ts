@@ -1498,7 +1498,7 @@ export const OrganizationZ = z.object({
   // accountNumber: z.string(), // TODO: handle in stripe or separate collection
   // routingNumber: z.string(),
   // TODO: change domain restrictions to an array ??
-  emailDomain: z.string().optional().nullable(), // TODO: add regex ?? reuse in form validation ??
+  emailDomains: z.array(z.string()).optional().nullable(), // TODO: add regex ?? reuse in form validation ??
   enforceDomainRestriction: z.boolean().optional(),
   status: AgencyStatus,
   defaultCommission: DefaultCommission,

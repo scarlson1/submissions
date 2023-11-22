@@ -93,7 +93,7 @@ export default async (event: AuthBlockingEvent) => {
     }
     // TODO: check if setting enabled to force domain restrictions ??
     const enforceRestriction = tenantSnap.data()?.enforceDomainRestriction;
-    const tenantDomain = tenantSnap.data()?.emailDomain;
+    const tenantDomain = tenantSnap.data()?.emailDomain; // save as array instead ??
 
     // if (!!enforceRestriction && !tenantDomain) {
     //   throw new HttpsError(
@@ -102,15 +102,34 @@ export default async (event: AuthBlockingEvent) => {
     //   );
     // }
 
-    if (
-      !!enforceRestriction &&
-      tenantDomain &&
-      (!user.email || user.email.indexOf(tenantDomain || '') === -1)
-    ) {
-      throw new HttpsError('invalid-argument', `Unauthorized email "${user.email}"`, {
-        providedTenantId: tenantId,
-      });
+    if (!!enforceRestriction && tenantDomain) {
+      if (typeof tenantDomain === 'string') {
+        if (!user.email || !user.email.endsWith(tenantDomain)) {
+          throw new HttpsError('invalid-argument', `Unauthorized email "${user.email}"`, {
+            providedTenantId: tenantId,
+          });
+        }
+      }
+      if (Array.isArray(tenantDomain)) {
+        if (
+          !user.email ||
+          !tenantDomain.some((allowableDomain) => user.email?.endsWith(allowableDomain))
+        ) {
+          throw new HttpsError('invalid-argument', `Unauthorized email "${user.email}"`, {
+            providedTenantId: tenantId,
+          });
+        }
+      }
     }
+    // if (
+    //   !!enforceRestriction &&
+    //   tenantDomain &&
+    //   (!user.email || user.email.indexOf(tenantDomain || '') === -1)
+    // ) {
+    //   throw new HttpsError('invalid-argument', `Unauthorized email "${user.email}"`, {
+    //     providedTenantId: tenantId,
+    //   });
+    // }
 
     info(`Fetching invite for ${user.email} under tenant ${tenantId}`);
     const invitesSnap = await invitesCollection(db, tenantId).doc(user.email).get();

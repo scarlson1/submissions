@@ -3,23 +3,37 @@ import { LoadingButton } from '@mui/lab';
 import { Box, Collapse, IconButton, Paper, Stack, Typography } from '@mui/material';
 import { Form, Formik, FormikConfig } from 'formik';
 import { useCallback, useState } from 'react';
-import { boolean, object, string } from 'yup';
+import { array, boolean, object, string } from 'yup';
 
 import { Organization } from 'common';
-import { FormikSwitch, FormikTextField } from 'components/forms';
+import { FormikFieldArray, FormikSwitch } from 'components/forms';
 import { useAsyncToast, useClaims, useDocData, useUpdateOrg } from 'hooks';
-
-// TODO: change domain restrictions to an array ??
 
 const domainRegex = /^@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
 
+// const validation = object().shape({
+//   enforceDomainRestriction: boolean(),
+//   emailDomain: string().when('enforceDomainRestriction', {
+//     is: true,
+//     then: () =>
+//       string().required('domain required').matches(domainRegex, 'invalid domain. format: @xxx.yyy'),
+//     otherwise: () => string().notRequired(),
+//   }),
+// });
 const validation = object().shape({
   enforceDomainRestriction: boolean(),
-  emailDomain: string().when('enforceDomainRestriction', {
+  emailDomains: array().when('enforceDomainRestriction', {
     is: true,
     then: () =>
-      string().required('domain required').matches(domainRegex, 'invalid domain. format: @xxx.yyy'),
-    otherwise: () => string().notRequired(),
+      array()
+        .min(1, 'at least one domain required if enabled')
+        .of(
+          string()
+            .required('domain required')
+            .matches(domainRegex, 'invalid domain. format: @xxx.yyy')
+        ),
+    // .required(),
+    otherwise: () => array().notRequired(),
   }),
 });
 
@@ -29,7 +43,7 @@ function getUsersDomain(email?: string | null) {
 }
 
 interface OrgSecurityValues {
-  emailDomain: string;
+  emailDomains: string[];
   enforceDomainRestriction: boolean;
 }
 
@@ -66,7 +80,10 @@ export const OrgSecurity = () => {
             exitEditMode={() => setEditMode(false)}
             // innerRef={formRef}
             initialValues={{
-              emailDomain: org?.emailDomain || getUsersDomain(user?.email),
+              emailDomains:
+                Array.isArray(org?.emailDomains) && org?.emailDomains?.length
+                  ? org?.emailDomains
+                  : [getUsersDomain(user?.email)],
               enforceDomainRestriction: org?.enforceDomainRestriction || false,
             }}
             onSubmit={handleUpdateOrg}
@@ -80,26 +97,12 @@ export const OrgSecurity = () => {
               Org Security Settings
             </Typography>
             <Stack direction='row' spacing={2}>
-              {/* {editMode ? (
-            <LoadingButton
-              loading={saveLoading}
-              disabled={saveDisabled}
-              size='small'
-              variant='contained'
-              sx={{ maxHeight: 34 }}
-              onClick={() => formRef.current?.submitForm()}
-            >
-              save
-            </LoadingButton>
-          ) : null} */}
               <IconButton
                 onClick={() => {
-                  // editMode && formRef.current?.resetForm();
                   setEditMode((m) => !m);
                 }}
                 size='small'
                 color='primary'
-                // aria-label={editMode ? 'cancel' : 'edit'}
                 aria-label={'edit'}
               >
                 {/* {editMode ? <CloseRounded fontSize='inherit' /> : <EditRounded fontSize='inherit' />} */}
@@ -119,15 +122,18 @@ export const OrgSecurity = () => {
               <Box sx={{ flex: '0 0 auto' }}>
                 <Typography
                   color={
-                    org.emailDomain && org.enforceDomainRestriction ? 'success.light' : 'grey.main'
+                    org.emailDomains && org.enforceDomainRestriction ? 'success.light' : 'grey.main'
                   }
                   align='right'
                 >
-                  {org.emailDomain && org.enforceDomainRestriction ? 'enabled' : 'disabled'}
+                  {org.emailDomains && org.enforceDomainRestriction ? 'enabled' : 'disabled'}
                 </Typography>
-                {org.enforceDomainRestriction && org.emailDomain ? (
+
+                {org.enforceDomainRestriction && org.emailDomains?.length ? (
                   <Typography variant='body2' align='right'>
-                    {org.emailDomain}
+                    {`${org.emailDomains[0]} ${
+                      org.emailDomains.length > 1 ? `+${org.emailDomains.length - 1} more` : ''
+                    }`.trim()}
                   </Typography>
                 ) : null}
               </Box>
@@ -150,13 +156,18 @@ function EditOrgSecurityForm({ exitEditMode, ...props }: EditOrgSecurityForm) {
     <Formik<OrgSecurityValues> {...props}>
       {({
         values,
+        errors,
+        touched,
+        dirty,
         isValid,
         isValidating,
         isSubmitting,
-        dirty,
         handleSubmit,
         resetForm,
         submitForm,
+        setFieldValue,
+        setFieldError,
+        setFieldTouched,
       }) => (
         <>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -212,7 +223,28 @@ function EditOrgSecurityForm({ exitEditMode, ...props }: EditOrgSecurityForm) {
                 </Box>
                 <Collapse in={values.enforceDomainRestriction}>
                   <Box sx={{ py: 2 }}>
-                    <FormikTextField name='emailDomain' label='Email domain' fullWidth />
+                    {/* <FormikTextField name='emailDomain' label='Email domain' fullWidth /> */}
+                    <FormikFieldArray
+                      parentField='emailDomains'
+                      inputFields={[
+                        {
+                          name: null,
+                          label: 'Authorized domain',
+                          required: true,
+                          inputType: 'text',
+                          gridProps: { xs: 12, sm: 12, md: 12, lg: 12, xl: 12 },
+                        },
+                      ]}
+                      values={values}
+                      isValidating={isValidating}
+                      isSubmitting={isSubmitting}
+                      errors={errors}
+                      touched={touched}
+                      dirty={dirty}
+                      setFieldValue={setFieldValue}
+                      setFieldError={setFieldError}
+                      setFieldTouched={setFieldTouched}
+                    />
                   </Box>
                 </Collapse>
               </Paper>

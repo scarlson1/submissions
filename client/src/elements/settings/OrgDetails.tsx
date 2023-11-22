@@ -10,6 +10,7 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
+import { GeoPoint } from 'firebase/firestore';
 import { Form, Formik, FormikConfig } from 'formik';
 import { upperFirst } from 'lodash';
 import { useCallback, useState } from 'react';
@@ -22,19 +23,18 @@ import { FormattedAddress } from 'elements/FormattedAddress';
 import { FormikAddress } from 'elements/forms';
 import { commOptions } from 'elements/forms/QuoteForm/constants';
 import { MAPBOX_TOKEN } from 'elements/maps';
-import { GeoPoint } from 'firebase/firestore';
 import { useAsyncToast, useClaims, useDocData, useUpdateOrg } from 'hooks';
 
 // TODO: primary contact, NPN, FEIN ??
-// move component state up to EditOrg component ?? same except for form
+// move component state up to EditOrg component ?? same except for form (just pass onSubmit)
 
 export const OrgDetails = () => {
   const { orgId } = useClaims();
   if (!orgId) throw new Error('missing org ID');
 
-  const toast = useAsyncToast({ position: 'top-right' });
-  const { data: org } = useDocData('organizations', orgId);
   const [editMode, setEditMode] = useState(false);
+  const { data: org } = useDocData('organizations', orgId);
+  const toast = useAsyncToast({ position: 'top-right' });
   // const formRef = useRef<FormikProps<OrgValues>>(null);
 
   const updateOrg = useUpdateOrg(
