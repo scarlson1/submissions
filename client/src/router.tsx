@@ -643,11 +643,24 @@ export const router = sentryCreateBrowserRouter([
             ),
             errorElement: <RouterErrorBoundary />,
             children: [
-              // {
-              //   index: true,
-              //   // element: <AccountDetails />,
-              //   element: <AccountDetailsNew />,
-              // },
+              {
+                index: true,
+                // element: <AccountDetails />,
+                element: (
+                  <SettingsLayout
+                    navItems={[
+                      {
+                        title: 'User Details',
+                        route: 'details',
+                      },
+                      {
+                        title: 'Security',
+                        route: 'security',
+                      },
+                    ]}
+                  />
+                ),
+              },
               {
                 // index: true, cannot specify children on index route
                 path: 'user',

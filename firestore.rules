@@ -232,7 +232,7 @@ service cloud.firestore {
     match /organizations/{orgId} {
       allow read: if true // TODO: ALLOW ANYONE TO READ ?? ONLY AUTHENTICATED USERS ?? // isUser(existingData().userId)
       allow create: if isIDemandAdmin() && emailVerified()
-      allow update: if ((isIDemandAdmin() && emailVerified())|| (isOrgAdmin() && isTenantUser(orgId)))
+      allow update: if (isIDemandAdmin() && emailVerified())|| (isOrgAdmin() && isTenantUser(orgId))
       allow delete: if isIDemandAdmin() && emailVerified()
     }
 
