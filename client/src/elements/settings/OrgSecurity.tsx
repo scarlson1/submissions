@@ -11,15 +11,6 @@ import { useAsyncToast, useClaims, useDocData, useUpdateOrg } from 'hooks';
 
 const domainRegex = /^@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
 
-// const validation = object().shape({
-//   enforceDomainRestriction: boolean(),
-//   emailDomain: string().when('enforceDomainRestriction', {
-//     is: true,
-//     then: () =>
-//       string().required('domain required').matches(domainRegex, 'invalid domain. format: @xxx.yyy'),
-//     otherwise: () => string().notRequired(),
-//   }),
-// });
 const validation = object().shape({
   enforceDomainRestriction: boolean(),
   emailDomains: array().when('enforceDomainRestriction', {

@@ -92,7 +92,7 @@ service firebase.storage {
       allow write: if isIDemandAdmin()
     }
 
-    match /org/{orgId}/{file=**} {
+    match /organizations/{orgId}/{file=**} {
       allow read: if isTenantUser(orgId) || isIDemandAdmin()
       allow create, update: if isTenantUser(orgId) || isIDemandAdmin()
       allow delete: if isIDemandAdmin()

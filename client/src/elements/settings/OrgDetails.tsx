@@ -16,20 +16,22 @@ import { upperFirst } from 'lodash';
 import { useCallback, useState } from 'react';
 import { Map, Marker } from 'react-map-gl';
 
-import { NESTED_ADDRESS_FIELD_NAMES, Organization, Product } from 'common';
+import { NESTED_ADDRESS_FIELD_NAMES, Organization, Product, StorageFolder } from 'common';
 import { MAPBOX_DARK, MAPBOX_LIGHT } from 'components';
 import { FormikNativeSelect, FormikTextField } from 'components/forms';
 import { FormattedAddress } from 'elements/FormattedAddress';
+import { UpdateAvatarImg } from 'elements/UpdateAvatarImg';
 import { FormikAddress } from 'elements/forms';
 import { commOptions } from 'elements/forms/QuoteForm/constants';
 import { MAPBOX_TOKEN } from 'elements/maps';
+import { UploadResult, getDownloadURL } from 'firebase/storage';
 import { useAsyncToast, useClaims, useDocData, useUpdateOrg } from 'hooks';
 
 // TODO: primary contact, NPN, FEIN ??
 // move component state up to EditOrg component ?? same except for form (just pass onSubmit)
 
 export const OrgDetails = () => {
-  const { orgId } = useClaims();
+  const { orgId, user } = useClaims();
   if (!orgId) throw new Error('missing org ID');
 
   const [editMode, setEditMode] = useState(false);
@@ -55,6 +57,26 @@ export const OrgDetails = () => {
       return updateOrg({ ...values, coordinates });
     },
     [updateOrg]
+  );
+
+  // TODO: logic not shared --> move to it's own component
+  const handleLogoUploadSuccess = useCallback(
+    async (uploadResult: UploadResult[]) => {
+      try {
+        let downloadUrl = await getDownloadURL(uploadResult[0].ref);
+        await updateOrg({ photoURL: downloadUrl });
+      } catch (err: any) {
+        toast.error('error getting logo URL');
+      }
+    },
+    [toast]
+  );
+
+  const handleLogoUploadError = useCallback(
+    (err: any, msg?: string) => {
+      toast.error(msg || 'error uploading logo');
+    },
+    [toast]
   );
 
   return (
@@ -102,12 +124,39 @@ export const OrgDetails = () => {
             </Box>
           </Box>
           <Grid container spacing={4} sx={{ my: 4 }}>
-            {/* <Typography variant='overline'>Organization</Typography> */}
             <Grid xs={12} sm={6}>
-              <Typography variant='body1' gutterBottom fontSize={18}>
-                {org?.orgName || ''}
-              </Typography>
-              <FormattedAddress address={org?.address} variant='body2' color='text.secondary' />
+              <Box sx={{ display: 'flex' }}>
+                <Box sx={{ flex: '0 0 auto', pr: 2 }}>
+                  {/* TODO: use UpdateAvatarImg component to display / edit org logo */}
+                  <UpdateAvatarImg
+                    storageDestination={`${StorageFolder.Enum.organizations}/${orgId}/logos`}
+                    imgMetadata={{
+                      userId: user?.uid || null,
+                      orgId: orgId,
+                    }}
+                    onSuccess={handleLogoUploadSuccess}
+                    onError={handleLogoUploadError}
+                    title='Update Organization Logo'
+                    openButtonText='Change logo'
+                    filesDragDropProps={{ multiple: false, maxFileSizeInBytes: 2194304 }} // 2 MB
+                    avatarProps={{
+                      variant: 'rounded',
+                      src: org?.photoURL,
+                    }}
+                    editBtnProps={{ sx: { height: 18, width: 18, fontSize: 10 } }}
+                  />
+                  {/* <Avatar variant='rounded' src={org?.photoURL}>
+                    <BusinessRounded />
+                  </Avatar> */}
+                </Box>
+                <Box sx={{ flex: '1 1 auto' }}>
+                  <Typography variant='body1' gutterBottom fontSize={18}>
+                    {org?.orgName || ''}
+                  </Typography>
+                  <FormattedAddress address={org?.address} variant='body2' color='text.secondary' />
+                </Box>
+              </Box>
+
               <Divider sx={{ my: 3 }} />
               <Box sx={{ pb: 2 }}>
                 <Typography variant='overline'>Default Commissions</Typography>

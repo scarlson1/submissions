@@ -480,7 +480,7 @@ const UserMenu = (props: UserMenuProps) => {
     if (authCheckResult?.user && !authCheckResult?.user?.isAnonymous)
       sItems.unshift({
         label: 'Account Settings',
-        onClick: () => navigate(createPath({ path: ACCOUNT_ROUTES.ACCOUNT })),
+        onClick: () => navigate(createPath({ path: ACCOUNT_ROUTES.USER_SETTINGS })),
         icon: <ManageAccountsRounded fontSize='small' />,
       });
 

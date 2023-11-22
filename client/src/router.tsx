@@ -173,7 +173,7 @@ export enum AUTH_ROUTES {
 }
 
 export enum ACCOUNT_ROUTES {
-  ACCOUNT = '/account',
+  // ACCOUNT = '/account',
   USER_SETTINGS = '/account/user',
   USER_SETTING = '/account/user/:setting',
   ORG_SETTINGS = '/account/org',
@@ -259,7 +259,7 @@ type TArgs =
       search: { mode: string; oobCode: string; continueUrl?: string | null };
     }
   | { path: AUTH_ROUTES.EMAIL_VERIFIED; search?: { email: string } }
-  | { path: ACCOUNT_ROUTES.ACCOUNT }
+  // | { path: ACCOUNT_ROUTES.ACCOUNT }
   | { path: ACCOUNT_ROUTES.USER_SETTINGS }
   | { path: ACCOUNT_ROUTES.USER_SETTING; params: { setting: string } }
   | { path: ACCOUNT_ROUTES.ORG_SETTINGS }
@@ -642,6 +642,7 @@ export const router = sentryCreateBrowserRouter([
               </AuthActionsProvider>
             ),
             errorElement: <RouterErrorBoundary />,
+            // alternatively could use :tab and handle nav routes display in component ??
             children: [
               {
                 index: true,
@@ -686,7 +687,7 @@ export const router = sentryCreateBrowserRouter([
                       },
                     ]}
                   />
-                ), // TODO: pass in nav routes to layout component
+                ),
                 children: [
                   {
                     // path: ':setting', // can either handle display in component based on the setting param

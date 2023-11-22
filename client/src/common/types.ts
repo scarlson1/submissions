@@ -1503,6 +1503,7 @@ export const OrganizationZ = z.object({
   status: AgencyStatus,
   defaultCommission: DefaultCommission,
   authProviders: z.array(AuthProvidersZ),
+  photoURL: z.string().optional().nullable(),
   metadata: BaseMetadataZ,
 });
 export type Organization = z.infer<typeof OrganizationZ>;

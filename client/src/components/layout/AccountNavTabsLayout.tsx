@@ -1,6 +1,6 @@
 import { Box, Tabs } from '@mui/material';
 import { useEffect, useMemo, useState } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 import { LinkTab } from 'components/layout/ConfigLayout';
 import { ACCOUNT_ROUTES, createPath } from 'router';
@@ -11,6 +11,7 @@ import { ACCOUNT_ROUTES, createPath } from 'router';
 const MIN_TAB_HEIGHT = 40;
 
 export const AccountNavTabsLayout = () => {
+  const navigate = useNavigate();
   const location = useLocation();
   const [value, setValue] = useState(0);
 
@@ -22,6 +23,12 @@ export const AccountNavTabsLayout = () => {
     []
   );
 
+  // subpath links are relative --> need to redirect if only /account
+  useEffect(() => {
+    // createPath({ path: ACCOUNT_ROUTES.ACCOUNT })
+    if (location.pathname === '/account') navigate('user');
+  }, [navigate, location]);
+
   // TODO: better tab matching (assumes first two elements are exclusive within paths)
   useEffect(() => {
     // setValue(getTab(location.pathname, paths));
@@ -31,7 +38,8 @@ export const AccountNavTabsLayout = () => {
       .slice(0, 2)
       .join('/');
 
-    setValue(paths.indexOf(`/${firstTwo}`) || 0);
+    const tabIndex = paths.indexOf(`/${firstTwo}`);
+    setValue(tabIndex === -1 ? 0 : tabIndex);
   }, [location]);
 
   return (
