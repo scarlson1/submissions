@@ -22,20 +22,35 @@ import { FormattedAddress } from 'elements/FormattedAddress';
 import { FormikAddress } from 'elements/forms';
 import { commOptions } from 'elements/forms/QuoteForm/constants';
 import { MAPBOX_TOKEN } from 'elements/maps';
-import { useClaims, useDocData } from 'hooks';
+import { useAsyncToast, useClaims, useDocData, useUpdateOrg } from 'hooks';
 
 // TODO: primary contact, NPN, FEIN ??
+// move component state up to EditOrg component ?? same except for form
 
 export const OrgDetails = () => {
   const { orgId } = useClaims();
-  if (!orgId) throw new Error('missing org ID for current user');
+  if (!orgId) throw new Error('missing org ID');
+
+  const toast = useAsyncToast({ position: 'top-right' });
   const { data: org } = useDocData('organizations', orgId);
   const [editMode, setEditMode] = useState(false);
   const formRef = useRef<FormikProps<OrgValues>>(null);
 
-  const handleUpdateOrg = useCallback(async (values: OrgValues) => {
-    alert(JSON.stringify(values, null, 2));
-  }, []);
+  const updateOrg = useUpdateOrg(
+    orgId,
+    () => {
+      toast.success('org changes saved');
+      setEditMode(false);
+    },
+    (msg) => {
+      toast.error(msg);
+    }
+  );
+
+  const handleUpdateOrg = useCallback((values: OrgValues) => updateOrg(values), [updateOrg]);
+
+  const saveDisabled = !formRef.current?.dirty || !formRef.current?.isValid;
+  const saveLoading = formRef.current?.isValidating || formRef.current?.isSubmitting;
 
   return (
     <Box>
@@ -48,8 +63,8 @@ export const OrgDetails = () => {
             {editMode ? (
               <LoadingButton
                 onClick={() => formRef.current?.submitForm()}
-                loading={formRef.current?.isValidating || formRef.current?.isSubmitting}
-                disabled={!formRef.current?.dirty || !formRef.current?.isValid}
+                loading={saveLoading}
+                disabled={saveDisabled}
                 size='small'
                 variant='contained'
                 sx={{ maxHeight: 34 }}
@@ -59,7 +74,7 @@ export const OrgDetails = () => {
             ) : null}
             <IconButton
               onClick={() => {
-                formRef.current?.resetForm();
+                editMode && formRef.current?.resetForm();
                 setEditMode((m) => !m);
               }}
               size='small'

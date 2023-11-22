@@ -191,6 +191,12 @@ export enum FIN_TRANSACTION_TYPE {
 export const Product = z.enum(['flood', 'wind']);
 export type TProduct = z.infer<typeof Product>;
 
+export const DefaultCommission = z.object({
+  flood: z.number().nonnegative(),
+  wind: z.number().nonnegative(),
+});
+export type TDefaultCommission = z.infer<typeof DefaultCommission>;
+
 export enum UW_NOTE_CODE {
   REQUIRES_REVIEW = 'requires-review',
   NOT_RATABLE = 'not-ratable',

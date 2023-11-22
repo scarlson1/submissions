@@ -10,6 +10,8 @@ import {
 } from '@mui/material';
 import { FieldHookConfig, useField } from 'formik';
 
+//  TODO: make label optional ??
+
 export interface FormikSwitchProps extends SwitchProps {
   name: string;
   label: string;
@@ -37,7 +39,7 @@ export const FormikSwitch = ({
     <FormControl error={meta.touched && Boolean(meta.error)}>
       <FormControlLabel
         control={<Switch {...field} {...rest} onChange={handleChange} />}
-        label={label}
+        label={label || null}
         componentsProps={{ typography: { variant: 'body2', px: 2 } }}
         {...formControlLabelProps}
       />

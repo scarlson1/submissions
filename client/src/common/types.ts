@@ -19,6 +19,7 @@ import {
   Basement,
   CBRSDesignation,
   CancelReason,
+  DefaultCommission,
   FeeItemName,
   FloodZone,
   LineOfBusiness,
@@ -1396,17 +1397,6 @@ export interface UserAccess extends BaseDoc {
   agents: Record<string, AgentDetails>;
 }
 
-export type AuthProviders =
-  | 'password'
-  | 'phone'
-  | 'google.com'
-  | 'microsoft.com'
-  | 'apple.com'
-  | 'twitter.com'
-  | 'github.com'
-  | 'yahoo.com'
-  | 'hotmail.com';
-
 export interface AgencyApplication extends BaseDoc {
   orgName: string;
   address: Address;
@@ -1455,40 +1445,102 @@ export interface Agency {
   // };
 }
 
-export interface Organization extends BaseDoc {
-  address: Address;
-  coordinates?: GeoPoint; // Coordinates;
-  geoHash?: Geohash | null;
-  orgName: string;
-  tenantId: string;
-  primaryContact: {
-    displayName: string;
-    firstName?: string;
-    lastName?: string;
-    email: string;
-    phone: string;
-    userId?: string;
-  };
-  principalProducer?: {
-    displayName: string;
-    firstName?: string;
-    lastName?: string;
-    email: string;
-    phone?: string;
-    NPN: string;
-    userId?: string;
-  };
-  emailDomain?: string;
-  enforceDomainRestriction?: boolean;
-  FEIN?: string;
-  EandOURL?: string;
-  accountNumber?: string;
-  routingNumber?: string;
-  status: 'active' | 'inactive' | string; // 'TODO' | 'COPY' | 'FROM' | 'OTHER' | 'APP'; // AgencyStatus;
-  defaultCommission: DefaultCommission;
-  authProviders: AuthProviders[];
-  // metadata: BaseMetadata;
-}
+// export type AuthProviders =
+//   | 'password'
+//   | 'phone'
+//   | 'google.com'
+//   | 'microsoft.com'
+//   | 'apple.com'
+//   | 'twitter.com'
+//   | 'github.com'
+//   | 'yahoo.com'
+//   | 'hotmail.com';
+
+export const AuthProvidersZ = z.enum([
+  'password',
+  'phone',
+  'google.com',
+  'microsoft.com',
+  'apple.com',
+  'twitter.com',
+  'github.com',
+  'yahoo.com',
+  'hotmail.com',
+]);
+export type AuthProviders = z.infer<typeof AuthProvidersZ>;
+
+export const AgencyStatus = z.enum(['submitted', 'active', 'inactive', 'pending_info']);
+export type AgencyStatus = z.infer<typeof AgencyStatus>;
+
+export const OrganizationZ = z.object({
+  address: AddressZ.optional(),
+  coordinates: GeoPointZ.nullable().optional(),
+  orgName: z.string().min(2, 'orgName must be at least 2 characters'),
+  orgId: z.string().min(5, 'orgId must be at least 5 characters'),
+  tenantId: z.string().nullable(),
+  primaryContact: AgentDetailsZ.omit({ name: true })
+    .extend({
+      firstName: z.string(),
+      lastName: z.string(),
+      displayName: z.string(),
+    })
+    .optional(),
+  principalProducer: AgentDetailsZ.omit({ name: true })
+    .extend({
+      firstName: z.string(),
+      lastName: z.string(),
+      displayName: z.string(),
+      NPN: z.string(),
+    })
+    .optional(),
+  FEIN: z.string().optional(),
+  EandOURL: z.string().optional(),
+  // accountNumber: z.string(), // TODO: handle in stripe or separate collection
+  // routingNumber: z.string(),
+  // TODO: change domain restrictions to an array ??
+  emailDomain: z.string().optional().nullable(), // TODO: add regex ?? reuse in form validation ??
+  enforceDomainRestriction: z.boolean().optional(),
+  status: AgencyStatus,
+  defaultCommission: DefaultCommission,
+  authProviders: z.array(AuthProvidersZ),
+  metadata: BaseMetadataZ,
+});
+export type Organization = z.infer<typeof OrganizationZ>;
+
+// export interface Organization extends BaseDoc {
+//   address: Address;
+//   coordinates?: GeoPoint; // Coordinates;
+//   geoHash?: Geohash | null;
+//   orgName: string;
+//   tenantId: string;
+//   primaryContact: {
+//     displayName: string;
+//     firstName?: string;
+//     lastName?: string;
+//     email: string;
+//     phone: string;
+//     userId?: string;
+//   };
+//   principalProducer?: {
+//     displayName: string;
+//     firstName?: string;
+//     lastName?: string;
+//     email: string;
+//     phone?: string;
+//     NPN: string;
+//     userId?: string;
+//   };
+//   emailDomain?: string;
+//   enforceDomainRestriction?: boolean;
+//   FEIN?: string;
+//   EandOURL?: string;
+//   accountNumber?: string;
+//   routingNumber?: string;
+//   status: 'active' | 'inactive' | string; // 'TODO' | 'COPY' | 'FROM' | 'OTHER' | 'APP'; // AgencyStatus;
+//   defaultCommission: DefaultCommission;
+//   authProviders: AuthProviders[];
+//   // metadata: BaseMetadata;
+// }
 
 // TODO: convert dates to Firestore timestamps so that they're queryable
 
