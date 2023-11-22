@@ -10,18 +10,19 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
-import { Form, Formik, FormikConfig, FormikProps } from 'formik';
+import { Form, Formik, FormikConfig } from 'formik';
 import { upperFirst } from 'lodash';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Map, Marker } from 'react-map-gl';
 
-import { DEFAULT_ADDRESS_FIELD_NAMES, Organization } from 'common';
+import { NESTED_ADDRESS_FIELD_NAMES, Organization, Product } from 'common';
 import { MAPBOX_DARK, MAPBOX_LIGHT } from 'components';
 import { FormikNativeSelect, FormikTextField } from 'components/forms';
 import { FormattedAddress } from 'elements/FormattedAddress';
 import { FormikAddress } from 'elements/forms';
 import { commOptions } from 'elements/forms/QuoteForm/constants';
 import { MAPBOX_TOKEN } from 'elements/maps';
+import { GeoPoint } from 'firebase/firestore';
 import { useAsyncToast, useClaims, useDocData, useUpdateOrg } from 'hooks';
 
 // TODO: primary contact, NPN, FEIN ??
@@ -34,7 +35,7 @@ export const OrgDetails = () => {
   const toast = useAsyncToast({ position: 'top-right' });
   const { data: org } = useDocData('organizations', orgId);
   const [editMode, setEditMode] = useState(false);
-  const formRef = useRef<FormikProps<OrgValues>>(null);
+  // const formRef = useRef<FormikProps<OrgValues>>(null);
 
   const updateOrg = useUpdateOrg(
     orgId,
@@ -47,47 +48,20 @@ export const OrgDetails = () => {
     }
   );
 
-  const handleUpdateOrg = useCallback((values: OrgValues) => updateOrg(values), [updateOrg]);
-
-  const saveDisabled = !formRef.current?.dirty || !formRef.current?.isValid;
-  const saveLoading = formRef.current?.isValidating || formRef.current?.isSubmitting;
+  const handleUpdateOrg = useCallback(
+    (values: OrgValues) => {
+      const { latitude, longitude } = values.coordinates || {};
+      const coordinates = latitude && longitude ? new GeoPoint(latitude, longitude) : null;
+      return updateOrg({ ...values, coordinates });
+    },
+    [updateOrg]
+  );
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-        <Typography variant='subtitle1' sx={{ flex: '1 1 auto' }}>
-          Organization
-        </Typography>
-        <Box>
-          <Stack direction='row' spacing={2}>
-            {editMode ? (
-              <LoadingButton
-                onClick={() => formRef.current?.submitForm()}
-                loading={saveLoading}
-                disabled={saveDisabled}
-                size='small'
-                variant='contained'
-                sx={{ maxHeight: 34 }}
-              >
-                save
-              </LoadingButton>
-            ) : null}
-            <IconButton
-              onClick={() => {
-                editMode && formRef.current?.resetForm();
-                setEditMode((m) => !m);
-              }}
-              size='small'
-              color='primary'
-              aria-label={editMode ? 'cancel' : 'edit'}
-            >
-              {editMode ? <CloseRounded fontSize='inherit' /> : <EditRounded fontSize='inherit' />}
-            </IconButton>
-          </Stack>
-        </Box>
-      </Box>
       {editMode ? (
         <EditOrgForm
+          exitEditMode={() => setEditMode(false)}
           initialValues={{
             orgName: org?.orgName || '',
             address: {
@@ -103,10 +77,30 @@ export const OrgDetails = () => {
             },
           }}
           onSubmit={handleUpdateOrg}
-          innerRef={formRef}
+          // innerRef={formRef}
         />
       ) : (
         <>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <Typography variant='subtitle1' sx={{ flex: '1 1 auto' }}>
+              Organization
+            </Typography>
+            <Box>
+              <Stack direction='row' spacing={2}>
+                <IconButton
+                  onClick={() => {
+                    // editMode && formRef.current?.resetForm();
+                    setEditMode((m) => !m);
+                  }}
+                  size='small'
+                  color='primary'
+                  aria-label='edit'
+                >
+                  <EditRounded fontSize='inherit' />
+                </IconButton>
+              </Stack>
+            </Box>
+          </Box>
           <Grid container spacing={4} sx={{ my: 4 }}>
             {/* <Typography variant='overline'>Organization</Typography> */}
             <Grid xs={12} sm={6}>
@@ -146,41 +140,83 @@ export const OrgDetails = () => {
   );
 };
 
-type OrgValues = Pick<Organization, 'orgName' | 'address' | 'defaultCommission'>;
+type OrgValues = Pick<Organization, 'orgName' | 'address' | 'defaultCommission' | 'coordinates'>;
 
-interface EditOrgFormProps extends FormikConfig<OrgValues> {}
+interface EditOrgFormProps extends FormikConfig<OrgValues> {
+  exitEditMode: () => void;
+}
 
-function EditOrgForm(props: EditOrgFormProps) {
+function EditOrgForm({ exitEditMode, ...props }: EditOrgFormProps) {
   return (
     <Formik {...props}>
-      {({ handleSubmit }) => (
-        <Form onSubmit={handleSubmit}>
-          <Box sx={{ py: 4 }}>
-            {/* <Typography variant='overline' sx={{ lineHeight: 2 }}>
-              Organization Name
-            </Typography> */}
-            <FormikTextField name='orgName' label='Org Name' fullWidth />
-          </Box>
-          <Divider />
-          <Box sx={{ py: 4 }}>
-            {/* <Typography variant='overline'>Address</Typography> */}
-            <FormikAddress names={DEFAULT_ADDRESS_FIELD_NAMES} />
-          </Box>
-          <Divider />
-          <Box sx={{ py: 4 }}>
-            {/* <Typography variant='overline'>Default Commissions</Typography> */}
+      {({ isSubmitting, isValidating, isValid, dirty, handleSubmit, submitForm, resetForm }) => (
+        <>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <Typography variant='subtitle1' sx={{ flex: '1 1 auto' }}>
+              Organization
+            </Typography>
             <Box>
-              {/* TODO: use slider ?? */}
-              <FormikNativeSelect
-                name='defaultCommission.flood'
-                label='Default Flood Commission'
-                selectOptions={commOptions}
-                convertToNumber={true}
-                // sx={{ mt: 3 }}
-              />
+              <Stack direction='row' spacing={2}>
+                <LoadingButton
+                  onClick={submitForm}
+                  loading={isSubmitting || isValidating}
+                  disabled={!dirty || !isValid}
+                  size='small'
+                  variant='contained'
+                  sx={{ maxHeight: 34 }}
+                >
+                  save
+                </LoadingButton>
+
+                <IconButton
+                  onClick={() => {
+                    resetForm();
+                    exitEditMode();
+                  }}
+                  size='small'
+                  color='primary'
+                  aria-label='cancel'
+                >
+                  <CloseRounded fontSize='inherit' />
+                </IconButton>
+              </Stack>
             </Box>
           </Box>
-        </Form>
+          <Form onSubmit={handleSubmit}>
+            <Box sx={{ py: 4 }}>
+              <FormikTextField name='orgName' label='Org Name' fullWidth />
+            </Box>
+            <Divider />
+            <Box sx={{ py: 4 }}>
+              <FormikAddress
+                names={NESTED_ADDRESS_FIELD_NAMES}
+                autocompleteProps={{
+                  name: 'address.addressLine1',
+                }}
+              />
+            </Box>
+            <Divider />
+            <Grid container spacing={4} sx={{ py: 4 }}>
+              {/* TODO: use slider ?? */}
+              <Grid xs={12} sm={6}>
+                <FormikNativeSelect
+                  name={`defaultCommission.${Product.Enum.flood}`}
+                  label='Default Flood Commission'
+                  selectOptions={commOptions}
+                  convertToNumber={true}
+                />
+              </Grid>
+              <Grid xs={12} sm={6}>
+                <FormikNativeSelect
+                  name={`defaultCommission.${Product.Enum.wind}`}
+                  label='Default Wind Commission'
+                  selectOptions={commOptions}
+                  convertToNumber={true}
+                />
+              </Grid>
+            </Grid>
+          </Form>
+        </>
       )}
     </Formik>
   );

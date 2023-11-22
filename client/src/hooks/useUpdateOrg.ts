@@ -3,6 +3,7 @@ import { useCallback } from 'react';
 import { useFirestore } from 'reactfire';
 
 import { Organization, OrganizationZ, orgsCollection } from 'common';
+import { logDev } from 'modules/utils';
 
 const PartialOrg = OrganizationZ.partial();
 
@@ -19,6 +20,7 @@ export const useUpdateOrg = (
         const orgRef = doc(orgsCollection(firestore), orgId);
         // redundant ??
         if (!PartialOrg.safeParse(values).success) {
+          logDev(values);
           onError && onError('validation failed', null);
           return;
         }
