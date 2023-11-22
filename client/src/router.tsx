@@ -21,7 +21,13 @@ import { EmailsGrid, ImportsSummaryGrid } from 'elements/grids';
 import { ActiveEventsMap, PoliciesMap } from 'elements/maps';
 import { TestSubmissionsMapWithFilters } from 'elements/maps/SubmissionsMap';
 import {
-  Account,
+  OrgDetails,
+  OrgSecurity,
+  OrgUsers,
+  UserDetails as UserDetailsNew,
+  UserSecurity,
+} from 'elements/settings';
+import {
   AddLocation,
   AgencyNew,
   ContactUs,
@@ -580,27 +586,27 @@ export const router = sentryCreateBrowserRouter([
               ],
             },
           },
-          {
-            path: ROUTES.ACCOUNT,
-            element: (
-              <RequireAuthReactFire signInCheckProps={{ suspense: false }}>
-                <>
-                  <PageMeta title='iDemand - Account' />
-                  <Account />
-                </>
-              </RequireAuthReactFire>
-            ),
-            handle: {
-              crumb: (match: CrumbMatch) => [
-                {
-                  label: 'Account',
-                  link: createPath({
-                    path: ACCOUNT_ROUTES.ACCOUNT,
-                  }),
-                },
-              ],
-            },
-          },
+          // {
+          //   path: ROUTES.ACCOUNT,
+          //   element: (
+          //     <RequireAuthReactFire signInCheckProps={{ suspense: false }}>
+          //       <>
+          //         <PageMeta title='iDemand - Account' />
+          //         <Account />
+          //       </>
+          //     </RequireAuthReactFire>
+          //   ),
+          //   handle: {
+          //     crumb: (match: CrumbMatch) => [
+          //       {
+          //         label: 'Account',
+          //         link: createPath({
+          //           path: ACCOUNT_ROUTES.ACCOUNT,
+          //         }),
+          //       },
+          //     ],
+          //   },
+          // },
           {
             path: ROUTES.USER,
             element: (
@@ -621,6 +627,137 @@ export const router = sentryCreateBrowserRouter([
                 },
               ],
             },
+          },
+          {
+            path: 'account',
+            element: (
+              <AuthActionsProvider>
+                <RequireAuthReactFire>
+                  <>
+                    <PageMeta title='iDemand - Account' />
+                    {/* <Layout /> */}
+                    <AccountDetailsNew />
+                  </>
+                </RequireAuthReactFire>
+              </AuthActionsProvider>
+            ),
+            errorElement: <RouterErrorBoundary />,
+            children: [
+              // {
+              //   index: true,
+              //   // element: <AccountDetails />,
+              //   element: <AccountDetailsNew />,
+              // },
+              {
+                // index: true, cannot specify children on index route
+                path: 'user',
+                element: (
+                  <SettingsLayout
+                    navItems={[
+                      {
+                        title: 'User Details',
+                        route: 'details',
+                        // route: createPath({
+                        //   path: ACCOUNT_ROUTES.USER_SETTING,
+                        //   params: { setting: 'details' },
+                        // }),
+                      },
+                      // { title: 'Security', route: 'security' },
+                      {
+                        title: 'Security',
+                        route: 'security',
+                        // route: createPath({
+                        //   path: ACCOUNT_ROUTES.USER_SETTING,
+                        //   params: { setting: 'security' },
+                        // }),
+                      },
+                    ]}
+                  />
+                ), // TODO: pass in nav routes to layout component
+                children: [
+                  {
+                    // path: ':setting', // can either handle display in component based on the setting param
+                    // or explicitly specify each setting page in router ??
+                    index: true,
+                    element: <UserDetailsNew />,
+                  },
+                  {
+                    // path: ':setting', // can either handle display in component based on the setting param
+                    // or explicitly specify each setting page in router ??
+                    // index: true,
+                    path: 'details',
+                    element: <UserDetailsNew />,
+                  },
+                  // path: 'details/edit' ?? or handle edit state in component ??
+                  {
+                    // path: ':setting', // can either handle display in component based on the setting param
+                    // or explicitly specify each setting page in router ??
+                    path: 'security',
+                    element: <UserSecurity />,
+                  },
+                ],
+              },
+              {
+                path: 'org',
+                element: (
+                  <SettingsLayout
+                    navItems={[
+                      {
+                        title: 'Org Details',
+                        route: 'details',
+                        // route: createPath({
+                        //   path: ACCOUNT_ROUTES.ORG_SETTING,
+                        //   params: { setting: 'details' },
+                        // }),
+                      },
+                      {
+                        title: 'Team',
+                        route: 'team',
+                        // route: createPath({
+                        //   path: ACCOUNT_ROUTES.ORG_SETTING,
+                        //   params: { setting: 'team' },
+                        // }),
+                      },
+                      {
+                        title: 'Security',
+                        route: 'security',
+                        // route: createPath({
+                        //   path: ACCOUNT_ROUTES.ORG_SETTING,
+                        //   params: { setting: 'security' },
+                        // }),
+                      },
+                    ]}
+                  />
+                ),
+                children: [
+                  {
+                    // path: ':setting', // can either handle display in component based on the setting param
+                    // or explicitly specify each setting page in router ??
+                    index: true,
+                    // path: 'details',
+                    element: <OrgDetails />,
+                  },
+                  {
+                    // path: ':setting', // can either handle display in component based on the setting param
+                    // or explicitly specify each setting page in router ??
+                    path: 'details',
+                    element: <OrgDetails />,
+                  },
+                  {
+                    // path: ':setting', // can either handle display in component based on the setting param
+                    // or explicitly specify each setting page in router ??
+                    path: 'team',
+                    element: <OrgUsers />,
+                  },
+                  {
+                    // path: ':setting', // can either handle display in component based on the setting param
+                    // or explicitly specify each setting page in router ??
+                    path: 'security',
+                    element: <OrgSecurity />,
+                  },
+                ],
+              },
+            ],
           },
         ],
       },
@@ -1771,71 +1908,71 @@ export const router = sentryCreateBrowserRouter([
         ],
       },
       // layout issue --> need to move account under
-      {
-        path: 'account',
-        element: (
-          <AuthActionsProvider>
-            <RequireAuthReactFire>
-              <>
-                <PageMeta title='iDemand - Account' />
-                {/* <Layout /> */}
-                <AccountDetailsNew />
-              </>
-            </RequireAuthReactFire>
-          </AuthActionsProvider>
-        ),
-        errorElement: <RouterErrorBoundary />,
-        children: [
-          // {
-          //   index: true,
-          //   // element: <AccountDetails />,
-          //   element: <AccountDetailsNew />,
-          // },
-          {
-            path: 'user',
-            element: <SettingsLayout navItems={['User Details', 'Security']} />, // TODO: pass in nav routes to layout component
-            children: [
-              {
-                // path: ':setting', // can either handle display in component based on the setting param
-                // or explicitly specify each setting page in router ??
-                path: 'details',
-                element: (() => <div>TODO: user details component</div>)(),
-              },
-              // path: 'details/edit' ?? or handle edit state in component ??
-              {
-                // path: ':setting', // can either handle display in component based on the setting param
-                // or explicitly specify each setting page in router ??
-                path: 'security',
-                element: (() => <div>TODO: user security component</div>)(),
-              },
-            ],
-          },
-          {
-            path: 'org',
-            element: <SettingsLayout navItems={['Org Details', 'Team', 'Security']} />, // TODO: pass in nav routes to layout component
-            children: [
-              {
-                // path: ':setting', // can either handle display in component based on the setting param
-                // or explicitly specify each setting page in router ??
-                path: 'details',
-                element: (() => <div>TODO: org details component</div>)(),
-              },
-              {
-                // path: ':setting', // can either handle display in component based on the setting param
-                // or explicitly specify each setting page in router ??
-                path: 'team',
-                element: (() => <div>TODO: team component</div>)(),
-              },
-              {
-                // path: ':setting', // can either handle display in component based on the setting param
-                // or explicitly specify each setting page in router ??
-                path: 'security',
-                element: (() => <div>TODO: org security component</div>)(),
-              },
-            ],
-          },
-        ],
-      },
+      // {
+      //   path: 'account',
+      //   element: (
+      //     <AuthActionsProvider>
+      //       <RequireAuthReactFire>
+      //         <>
+      //           <PageMeta title='iDemand - Account' />
+      //           {/* <Layout /> */}
+      //           <AccountDetailsNew />
+      //         </>
+      //       </RequireAuthReactFire>
+      //     </AuthActionsProvider>
+      //   ),
+      //   errorElement: <RouterErrorBoundary />,
+      //   children: [
+      //     // {
+      //     //   index: true,
+      //     //   // element: <AccountDetails />,
+      //     //   element: <AccountDetailsNew />,
+      //     // },
+      //     {
+      //       path: 'user',
+      //       element: <SettingsLayout navItems={['User Details', 'Security']} />, // TODO: pass in nav routes to layout component
+      //       children: [
+      //         {
+      //           // path: ':setting', // can either handle display in component based on the setting param
+      //           // or explicitly specify each setting page in router ??
+      //           path: 'details',
+      //           element: (() => <div>TODO: user details component</div>)(),
+      //         },
+      //         // path: 'details/edit' ?? or handle edit state in component ??
+      //         {
+      //           // path: ':setting', // can either handle display in component based on the setting param
+      //           // or explicitly specify each setting page in router ??
+      //           path: 'security',
+      //           element: (() => <div>TODO: user security component</div>)(),
+      //         },
+      //       ],
+      //     },
+      //     {
+      //       path: 'org',
+      //       element: <SettingsLayout navItems={['Org Details', 'Team', 'Security']} />, // TODO: pass in nav routes to layout component
+      //       children: [
+      //         {
+      //           // path: ':setting', // can either handle display in component based on the setting param
+      //           // or explicitly specify each setting page in router ??
+      //           path: 'details',
+      //           element: (() => <div>TODO: org details component</div>)(),
+      //         },
+      //         {
+      //           // path: ':setting', // can either handle display in component based on the setting param
+      //           // or explicitly specify each setting page in router ??
+      //           path: 'team',
+      //           element: (() => <div>TODO: team component</div>)(),
+      //         },
+      //         {
+      //           // path: ':setting', // can either handle display in component based on the setting param
+      //           // or explicitly specify each setting page in router ??
+      //           path: 'security',
+      //           element: (() => <div>TODO: org security component</div>)(),
+      //         },
+      //       ],
+      //     },
+      //   ],
+      // },
     ],
   },
 ]);

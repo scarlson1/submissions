@@ -1,7 +1,8 @@
 import { Box, Tabs } from '@mui/material';
-import { LinkTab, getTab } from 'components/layout/ConfigLayout';
 import { useEffect, useMemo, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
+
+import { LinkTab } from 'components/layout/ConfigLayout';
 import { ACCOUNT_ROUTES, createPath } from 'router';
 
 // TODO: MOVE TABS LAYOUT TO LAYOUTS FOLDER
@@ -21,9 +22,17 @@ export const AccountNavTabsLayout = () => {
     []
   );
 
+  // TODO: better tab matching (assumes first two elements are exclusive within paths)
   useEffect(() => {
-    setValue(getTab(location.pathname, paths));
-  }, [location, paths]);
+    // setValue(getTab(location.pathname, paths));
+    let firstTwo = location.pathname
+      .split('/')
+      .filter((x) => x)
+      .slice(0, 2)
+      .join('/');
+
+    setValue(paths.indexOf(`/${firstTwo}`) || 0);
+  }, [location]);
 
   return (
     <Box>

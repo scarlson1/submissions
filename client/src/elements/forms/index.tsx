@@ -27,6 +27,9 @@ export { default as QuoteForm } from './QuoteForm';
 export { ReviewStep } from './ReviewStep';
 export { SuccessStep } from './SuccessStep';
 export { TaxForm } from './TaxForm';
+export { UpdatePasswordForm } from './UpdatePasswordForm';
+export { UpdateUserEmail } from './UpdateUserEmail';
+export { UserDetailsForm } from './UserDetailsForm';
 
 export type { AddLocationValues } from './AddLocation/AddLocationWizard';
 export type { AddPaymentMethodValues } from './AddPaymentDialog';

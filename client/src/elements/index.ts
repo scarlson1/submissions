@@ -3,6 +3,7 @@ export { CSVUploadDialog, RequiredHeaders } from './CSVUploadDialog';
 export { DevWarningBanner } from './DevWarningBanner';
 export { FormattedAddress } from './FormattedAddress';
 export { UpdateProfileImg } from './UpdateProfileImg';
+export { VerifyEmailButton } from './VerifyEmailButton';
 export { LocationCard } from './cards/LocationCard';
 export { PolicyLocationCards } from './cards/PolicyLocationCards';
 export { QuoteCards } from './cards/QuoteCards';

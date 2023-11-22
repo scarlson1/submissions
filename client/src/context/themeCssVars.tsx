@@ -1094,12 +1094,12 @@ export function getThemedComponents(): ThemeOptions {
             '[data-mui-color-scheme="dark"] &': {
               color: theme.palette.grey[300],
               '&:hover': {
-                backgroundColor: alpha(theme.palette.primaryDark[700], 0.4),
+                backgroundColor: alpha(theme.palette.primaryDark[600], 0.4),
               },
               '&.Mui-selected': {
                 color: theme.vars.palette.primary[500], // '#fff',
                 borderColor: `${theme.vars.palette.primary[700]} !important`,
-                backgroundColor: theme.vars.palette.primaryDark[700],
+                backgroundColor: alpha(theme.palette.primaryDark[600], 0.3),
                 '&:hover': {
                   backgroundColor: theme.vars.palette.primaryDark[600],
                 },
