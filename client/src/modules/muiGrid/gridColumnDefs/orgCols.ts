@@ -78,14 +78,14 @@ export const orgCols: GridColDef<Organization>[] = [
   latitudeCol,
   longitudeCol,
   {
-    field: 'emailDomain',
+    field: 'emailDomains',
     headerName: 'Domain',
     minWidth: 140,
     flex: 1,
     editable: false,
     sortable: false,
     filterable: false,
-    valueGetter: (params) => params.row.emailDomain || null,
+    valueGetter: (params) => params.row.emailDomains || null,
   },
   {
     field: 'enforceDomainRestriction',

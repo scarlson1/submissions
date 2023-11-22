@@ -180,7 +180,7 @@ const createTenantFromSubmission = async ({
         userId: null, // TODO: primary contact user id needs to be set at some point
       },
       tenantId: newTenantId,
-      emailDomain: '',
+      emailDomains: [],
       metadata: {
         created: Timestamp.now(),
         updated: Timestamp.now(),

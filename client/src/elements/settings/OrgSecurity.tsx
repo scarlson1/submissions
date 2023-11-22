@@ -32,7 +32,6 @@ const validation = object().shape({
             .required('domain required')
             .matches(domainRegex, 'invalid domain. format: @xxx.yyy')
         ),
-    // .required(),
     otherwise: () => array().notRequired(),
   }),
 });
