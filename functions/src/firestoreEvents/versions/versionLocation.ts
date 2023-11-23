@@ -1,9 +1,8 @@
+import { Collection, ILocation } from '@idemand/common';
 import { DocumentSnapshot, FieldValue, Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
 import { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 import { merge } from 'lodash-es';
-
-import { Collection, ILocation } from '@idemand/common';
 import { getReportErrorFn, policiesCollection, versionsCollection } from '../../common/index.js';
 import { getDifference, hasOne } from '../../utils/index.js';
 
@@ -21,15 +20,6 @@ const VERSION_LOCATION_DIFF_KEYS = [
 ];
 
 const reportErr = getReportErrorFn('versionLocation');
-
-// TODO: location refactor:
-//    - if creates new location version -->
-//    - save previous data in subcollection
-//    - update the policy doc with new version number for location
-//    - need to use transaction / batch ??
-//    - issues:
-//    - will create new policy version for every location changes
-//    - if that's an issue, need to use transaction to process all updates at once
 
 export default async (
   event: FirestoreEvent<Change<DocumentSnapshot> | undefined, { locationId: string }>

@@ -64,14 +64,17 @@ export {
   policychangerequest,
   // policycreated,
   sendinviteemail,
+  updatedocsonorgchange,
   updateuseraccessonpolicychange,
   updateuseraccessonquotechange,
 } from './firestoreEvents/index.js';
 export {
   versionlocation,
+  versionorganization,
   versionpolicy,
   versionquote,
   versionsubmission,
+  versiontransaction,
 } from './firestoreEvents/versions/index.js';
 export {
   amendmentlistener,

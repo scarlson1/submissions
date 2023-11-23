@@ -1,4 +1,4 @@
-import { Box, Container, Link, Typography } from '@mui/material';
+import { Box, Container, Divider, Link, Typography } from '@mui/material';
 import { generateHTML } from '@tiptap/react';
 import { where } from 'firebase/firestore';
 import { useCallback } from 'react';
@@ -37,8 +37,11 @@ export const Footer = () => {
       title: 'Disclosure',
       content: (
         <div>
-          {content.map((c, i) => (
-            <div dangerouslySetInnerHTML={{ __html: c }} key={`disclosure-content-${i}`} />
+          {content.map((c, i, arr) => (
+            <Box key={`disclosure-content-${i}`}>
+              <div dangerouslySetInnerHTML={{ __html: c }} />
+              {arr.length > 1 && i !== arr.length - 1 ? <Divider sx={{ my: 3 }} /> : null}
+            </Box>
           ))}
         </div>
       ),

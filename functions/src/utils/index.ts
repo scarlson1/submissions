@@ -5,6 +5,7 @@ export { EDITOR_EXTENSION_DEFAULTS } from './editorExtensions.js';
 export * from './errorHelpers.js';
 export * from './flattenObj.js';
 export * from './getDifference.js';
+export * from './getZodObjPaths.js';
 export * from './helpers.js';
 export * from './policy.js';
 export * from './storage.js';

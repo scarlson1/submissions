@@ -1,9 +1,8 @@
+import { Collection, Policy } from '@idemand/common';
 import { DocumentSnapshot, FieldValue, Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
 import { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 import { merge } from 'lodash-es';
-
-import { Collection, Policy } from '@idemand/common';
 import { DeepPartial, getReportErrorFn, versionsCollection } from '../../common/index.js';
 import { flattenObj, getDifference, hasOne } from '../../utils/index.js';
 
@@ -75,7 +74,7 @@ export default async (
     });
 
     const db = getFirestore();
-    const versionsCol = versionsCollection(db, Collection.enum.policies, policyId);
+    const versionsCol = versionsCollection<Policy>(db, Collection.enum.policies, policyId);
 
     const batch = db.batch();
 
@@ -99,6 +98,7 @@ export default async (
       });
       batch.set(versionRef, versionData);
     }
+
     await batch.commit();
   } catch (err: any) {
     let errMsg = 'error saving policy version';

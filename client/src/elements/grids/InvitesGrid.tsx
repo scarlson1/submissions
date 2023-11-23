@@ -109,6 +109,8 @@ export const InvitesGrid = ({ orgId, queryConstraints }: InvitesGridProps) => {
 
   return (
     <ServerDataGrid
+      density='compact'
+      autoHeight
       {...props}
       // constraints={queryConstraints} // TODO: must be filter constraints
       columns={inviteColumns}

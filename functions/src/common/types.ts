@@ -1236,11 +1236,6 @@ export const CancellationReason = z.enum([
   'insured_choice',
 ]);
 export type CancellationReason = z.infer<typeof CancellationReason>;
-// export type CancellationReason =
-//   | 'sold'
-//   | 'premium_pmt_failure'
-//   | 'exposure_change'
-//   | 'insured_choice';
 
 export type OffsetTrxType = 'endorsement' | 'cancellation' | 'flat_cancel';
 

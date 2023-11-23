@@ -89,6 +89,15 @@ export const policychangerequest = onDocumentWritten(
   }
 );
 
+export const updatedocsonorgchange = onDocumentWritten(
+  {
+    document: `${Collection.Enum.organizations}/{orgId}`,
+  },
+  async (event) => {
+    await (await import('./updateDocsOnOrgChange.js')).default(event);
+  }
+);
+
 export const updateuseraccessonpolicychange = onDocumentWritten(
   {
     document: `${Collection.Enum.policies}/{policyId}`,

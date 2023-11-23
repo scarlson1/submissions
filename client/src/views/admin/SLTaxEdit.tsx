@@ -8,6 +8,7 @@ import { useFirestore } from 'reactfire';
 import { TTax, taxesCollection } from 'common';
 import { TaxForm, TaxValues } from 'elements/forms/TaxForm';
 import { useAsyncToast, useDocData } from 'hooks';
+import { round } from 'lodash';
 import { getNumber } from 'modules/utils/helpers';
 import { ADMIN_ROUTES, createPath } from 'router';
 
@@ -23,7 +24,9 @@ export const SLTaxEdit = () => {
     async (values: TaxValues, { setSubmitting, setFieldError }: FormikHelpers<TaxValues>) => {
       try {
         const isFixedRate = values.subjectBase[0] === 'fixedFee';
-        const rate = isFixedRate ? values.fixedRate : parseFloat(getNumber(values.rate)) / 100;
+        const rate = isFixedRate
+          ? values.fixedRate
+          : round(parseFloat(getNumber(values.rate)) / 100, 5);
 
         if (!rate || isNaN(rate)) {
           setFieldError('fixedRate', 'Missing rate');
