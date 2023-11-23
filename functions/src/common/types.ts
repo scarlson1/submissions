@@ -420,6 +420,7 @@ export interface Organization {
   metadata: BaseMetadata;
   defaultCommission: DefaultCommission;
   authProviders: AuthProviders[];
+  photoURL?: string | null;
 }
 
 // export type Product = 'flood' | 'wind';

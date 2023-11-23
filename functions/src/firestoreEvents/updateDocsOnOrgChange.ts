@@ -13,12 +13,13 @@ import { hasOne } from '../utils/index.js';
 
 const reportErr = getReportErrorFn('updateDocsOnOrgChange');
 
-// TODO: create helper fn get get zod object paths:
+// TODO: any other collections aside from transactions ?? (user permissions, etc.)
+// licenses ??
 
 // const X = getZodObjPaths(Organization)
 // const OrgPaths = zodEnumFromObjKeys(Organization)
 // const ORG_DIFF_KEYS: z.infer<typeof OrgPaths>[] = ['orgName', 'address']
-const ORG_DIFF_KEYS = ['orgName', 'address'];
+const ORG_DIFF_KEYS = ['orgName', 'address', 'photoURL'];
 
 export default async (
   event: FirestoreEvent<
@@ -50,6 +51,8 @@ export default async (
 
   const orgName = afterData?.orgName;
   const orgAddress = afterData?.address;
+  // @ts-ignore (need to publish common module)
+  const photoURL = afterData?.photoURL;
 
   try {
     info(`Fetching policies to update with org change ${orgId}...`);
@@ -57,7 +60,7 @@ export default async (
     info(`Updating policies with org change ${orgId} [COUNT: ${policySnaps.docs.length}]...`);
 
     const promises = policySnaps.docs.map(async (snap) => {
-      const prevName = snap.data()?.agency?.name;
+      const prevName = snap.data()?.agency?.name || '';
       const prevAddress = snap.data()?.agency?.address;
 
       return snap.ref.update({
@@ -66,6 +69,7 @@ export default async (
           ...(prevAddress || {}),
           ...(orgAddress || {}),
         },
+        'agency.photoURL': photoURL || null,
       });
     });
 
@@ -92,6 +96,7 @@ export default async (
           ...(prevAddress || {}),
           ...(orgAddress || {}),
         },
+        'agency.photoURL': photoURL || null,
       });
     });
 
@@ -120,6 +125,7 @@ export default async (
           ...(prevAddress || {}),
           ...(orgAddress || {}),
         },
+        'agency.photoURL': photoURL || null,
       });
     });
 

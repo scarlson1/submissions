@@ -65,6 +65,7 @@ export {
   // policycreated,
   sendinviteemail,
   updatedocsonorgchange,
+  updatedocsonuserchange,
   updateuseraccessonpolicychange,
   updateuseraccessonquotechange,
 } from './firestoreEvents/index.js';

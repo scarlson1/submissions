@@ -98,6 +98,15 @@ export const updatedocsonorgchange = onDocumentWritten(
   }
 );
 
+export const updatedocsonuserchange = onDocumentWritten(
+  {
+    document: `${Collection.Enum.users}/{userId}`,
+  },
+  async (event) => {
+    await (await import('./updateDocsOnUserChange.js')).default(event);
+  }
+);
+
 export const updateuseraccessonpolicychange = onDocumentWritten(
   {
     document: `${Collection.Enum.policies}/{policyId}`,
