@@ -55,26 +55,6 @@ export function UserDetailsForm() {
       });
   }, [isSubmitSuccessful, reset, fsUser?.firstName, fsUser?.lastName]);
 
-  // const updateUserDoc = useCallback(
-  //   async ({ displayName, firstName, lastName }: UpdateProfileRes) => {
-  //     if (!user || !user.uid) return toast.error('Must be signed in');
-  //     let userRef = doc(usersCollection(firestore), user?.uid);
-  //     await setDoc(
-  //       userRef,
-  //       { displayName, firstName: `${firstName}`, lastName: `${lastName}` },
-  //       { merge: true }
-  //     );
-  //     // await auth.currentUser?.getIdToken(true);
-  //     toast.success('profile updated!');
-  //   },
-  //   [firestore, user, toast]
-  // );
-
-  // const { updateProfile } = useUpdateProfile(
-  //   (res) => updateUserDoc(res),
-  //   (msg) => toast.error(msg)
-  // );
-
   const { update: updateUserDoc } = useUpdateDoc<User>('users', () =>
     toast.success('profile updated!')
   );
