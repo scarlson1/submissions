@@ -1,14 +1,12 @@
 import { EditRounded } from '@mui/icons-material';
 import { Box, Button, Tooltip, Typography } from '@mui/material';
 import { GridActionsCellItem, GridRowModel, GridRowParams } from '@mui/x-data-grid';
-import { getDoc } from 'firebase/firestore';
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import invariant from 'tiny-invariant';
 
 import { Moratorium, WithId } from 'common';
 import { MoratoriumsGrid } from 'elements/grids';
-import { useAsyncToast, useConfirmAndUpdate, useUpdateDoc } from 'hooks';
+import { useAsyncToast, useConfirmAndUpdate } from 'hooks';
 import { formatFirestoreTimestamp } from 'modules/utils';
 import { ADMIN_ROUTES, createPath } from 'router';
 
@@ -48,21 +46,10 @@ const getUpdateValues = (newRow: Moratorium) => ({
 export const Moratoriums = () => {
   const navigate = useNavigate();
   const toast = useAsyncToast();
-
-  const { update: updateMoratorium } = useUpdateDoc<Moratorium>('moratoriums');
-
   const confirmAndUpdate = useConfirmAndUpdate<Moratorium>(
-    async (quoteId, updates) => {
-      const ref = await updateMoratorium(quoteId, updates);
-      invariant(ref);
-
-      const snap = await getDoc(ref);
-      const data = snap.data();
-      invariant(data);
-      return { ...data, id: snap.id };
-    },
-    getMutationMsg,
-    getUpdateValues
+    'moratoriums',
+    getUpdateValues,
+    getMutationMsg
   );
 
   const handleProcessRowUpdateError = useCallback(

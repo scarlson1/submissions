@@ -66,7 +66,6 @@ export { useSocialAuth } from './useSocialAuth';
 export { EDITOR_EXTENSION_DEFAULTS, useTextEditor } from './useTextEditor';
 export { useUpdateClaims } from './useUpdateClaims';
 export { useUpdateDoc } from './useUpdateDoc';
-export { useUpdateOrg } from './useUpdateOrg';
 export { useUpdateProfile } from './useUpdateProfile';
 export { useUploadStorageFiles } from './useUploadStorageFiles';
 export { useUserClaims } from './useUserClaims';

@@ -458,7 +458,7 @@ export interface Obj {
  * @return {object} differences
  */
 
-export function getDifference(origObj: any, newObj: any) {
+export function getDifference<T>(origObj: T, newObj: T) {
   function changes(newObj: any, origObj: any) {
     let arrayIndexCounter = 0;
 
@@ -476,7 +476,7 @@ export function getDifference(origObj: any, newObj: any) {
     });
   }
 
-  return changes(newObj, origObj);
+  return changes(newObj, origObj) as Partial<T>;
 }
 
 /* USAGE */

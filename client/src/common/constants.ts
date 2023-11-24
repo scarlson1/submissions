@@ -150,8 +150,7 @@ export const CONTEXT_DIALOG_DEFAULT_SLOT_PROPS: DialogSlotProps = {
     color: 'primary',
   },
   cancelButton: {
-    color: 'secondary',
-    variant: 'outlined',
+    color: 'inherit',
   },
 };
 

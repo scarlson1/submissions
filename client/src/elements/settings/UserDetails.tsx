@@ -5,6 +5,12 @@ import { Copy } from 'components';
 import { VerifyEmailButton } from 'elements/VerifyEmailButton';
 import { UpdateUserEmail, UserDetailsForm } from 'elements/forms';
 
+// TODO:
+// auth providers / MFA (see iDemand Console project)
+// org name, address, NPN, FEIN
+// primary contact
+// E&O (view only w/ option to upload new ??)
+
 export const UserDetails = () => {
   const { data: user } = useUser();
 

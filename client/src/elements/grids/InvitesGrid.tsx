@@ -8,12 +8,8 @@ import { useFunctions, useSigninCheck } from 'reactfire';
 
 import { CLAIMS, Collection, INVITE_STATUS, Invite } from 'common';
 import { ServerDataGrid, ServerDataGridProps } from 'components';
-import { useAsyncToast, useClaims } from 'hooks';
-import { useUpdateDoc } from 'hooks/useUpdateDoc';
+import { useAsyncToast, useClaims, useUpdateDoc } from 'hooks';
 import { INVITE_COLUMN_VISIBILITY, inviteCols } from 'modules/muiGrid';
-
-// TODO: need to use collection group hook if iDemand Admin
-// wrap in parent component and check for claims. if idemandAdmin and orgId not provided, return collection group
 
 const resendInvite = (functions: Functions, args: { orgId: string; inviteId: string }) =>
   httpsCallable<{ orgId: string; inviteId: string }, { status: string }>(
@@ -35,11 +31,7 @@ export const InvitesGrid = ({ orgId, queryConstraints }: InvitesGridProps) => {
   const { data: signInRes } = useSigninCheck({
     requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
   });
-  // const updateInvite = useUpdateInvite(
-  //   () => toast.success('invite updated!'),
-  //   (msg) => toast.error(msg)
-  // );
-  const updateInvite = useUpdateDoc<Invite, UpdateInviteValues>(
+  const { update: updateInvite } = useUpdateDoc<Invite, UpdateInviteValues>(
     'organizations',
     () => toast.success('invite updated!'),
     (msg) => toast.error(msg)

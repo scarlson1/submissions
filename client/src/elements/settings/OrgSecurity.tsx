@@ -46,7 +46,7 @@ export const OrgSecurity = () => {
   const { data: org } = useDocData<Organization>('organizations', orgId);
   const [editMode, setEditMode] = useState(false);
 
-  const updateOrg = useUpdateDoc<Organization>(
+  const { update: updateOrg } = useUpdateDoc<Organization>(
     'organizations',
     () => {
       toast.success('org changes saved');
@@ -70,17 +70,6 @@ export const OrgSecurity = () => {
     },
     [updateOrg, orgId]
   );
-
-  // const updateOrg = useUpdateOrg(
-  //   orgId,
-  //   () => {
-  //     toast.success('org changes saved');
-  //     setEditMode(false);
-  //   },
-  //   (msg) => {
-  //     toast.error(msg);
-  //   }
-  // );
 
   // const handleUpdateOrg = useCallback(
   //   (values: OrgSecurityValues, { setSubmitting }: FormikHelpers<OrgSecurityValues>) => {

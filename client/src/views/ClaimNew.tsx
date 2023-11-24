@@ -13,6 +13,8 @@ import { compressedToAddress } from 'modules/utils';
 // TODO: pass location ID as optional prop ??
 // add select location as step in claim form
 // same for policy ?? would require storing claims at top-level collection
+// or route to select policy (if authed) or enter policy ID --> create / route to new claim ??
+// could use algolia autocomplete to search for address, policy ID, etc. (filter to policy)
 
 export function ClaimNew() {
   const { policyId, locationId } = useSafeParams(['policyId', 'locationId']);

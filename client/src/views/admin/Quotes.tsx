@@ -10,13 +10,11 @@ import {
   Typography,
 } from '@mui/material';
 import { GridActionsCellItem, GridRowParams } from '@mui/x-data-grid';
-import { getDoc } from 'firebase/firestore';
 import { UploadResult } from 'firebase/storage';
 import { camelCase } from 'lodash';
 import { useCallback, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
-import invariant from 'tiny-invariant';
 
 import {
   CLAIMS,
@@ -30,7 +28,7 @@ import {
 import { IconMenu } from 'components/IconButtonMenu';
 import { CSVUploadDialog } from 'elements';
 import { QuotesGrid } from 'elements/grids';
-import { useAsyncToast, useConfirmAndUpdate, useGridShowJson, useUpdateDoc, useWidth } from 'hooks';
+import { useAsyncToast, useConfirmAndUpdate, useGridShowJson, useWidth } from 'hooks';
 import { submissionIdCol, subproducerCommissionCol } from 'modules/muiGrid/gridColumnDefs';
 import { getDuplicates } from 'modules/utils';
 import { getCsvHeaderStatus } from 'modules/utils/storage';
@@ -47,22 +45,7 @@ const getUpdateValues = (newRow: Quote) => {
 
 export const Quotes = () => {
   const navigate = useNavigate();
-  // const updateQuote = useUpdateQuoteStatus();
-  // const confirmAndUpdate = useConfirmAndUpdate(updateQuote);
-  const { update: updateQuote } = useUpdateDoc<Quote>('quotes');
-  const confirmAndUpdate = useConfirmAndUpdate<Quote>(
-    async (quoteId, updates) => {
-      const ref = await updateQuote(quoteId, updates);
-      invariant(ref);
-
-      const snap = await getDoc(ref);
-      const data = snap.data();
-      invariant(data);
-      return { ...data, id: snap.id };
-    },
-    getChangeMsg,
-    getUpdateValues
-  );
+  const confirmAndUpdate = useConfirmAndUpdate<Quote>('quotes', getUpdateValues, getChangeMsg);
   const renderShowJson = useGridShowJson(
     'quotes',
     { showInMenu: true },
@@ -133,33 +116,13 @@ export const Quotes = () => {
   );
 
   return (
-    <Box>
-      {/* <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 2 }}>
-        <Typography variant='h5' sx={{ ml: { xs: 2, sm: 3, md: 4 } }}>
-          Quotes
-        </Typography>
-        <Stack direction='row' spacing={2}>
-          <Button
-            onClick={() =>
-              navigate(
-                createPath({ path: ADMIN_ROUTES.QUOTE_NEW_BLANK, params: { productId: 'flood' } })
-              )
-            }
-            sx={{ maxHeight: 36 }}
-          >
-            New Quote
-          </Button>
-          <AdminQuotesActionMenu />
-        </Stack>
-      </Box> */}
-      <QuotesGrid
-        renderActions={renderActions}
-        additionalColumns={[submissionIdCol, subproducerCommissionCol]}
-        density='compact'
-        processRowUpdate={confirmAndUpdate}
-        onProcessRowUpdateError={handleProcessRowUpdateError}
-      />
-    </Box>
+    <QuotesGrid
+      renderActions={renderActions}
+      additionalColumns={[submissionIdCol, subproducerCommissionCol]}
+      density='compact'
+      processRowUpdate={confirmAndUpdate}
+      onProcessRowUpdateError={handleProcessRowUpdateError}
+    />
   );
 };
 

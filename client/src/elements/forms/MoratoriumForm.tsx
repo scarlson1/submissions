@@ -50,10 +50,6 @@ export const MoratoriumForm = ({ title, ...props }: MoratoriumFormProps) => {
   const formikRef = useRef<FormikProps<MoratoriumValues>>(null);
   const { data } = useDocDataOnce<{ counties: FIPSDetails[] }>('public', 'fips');
   const counties = useMemo(() => data?.counties || [], [data]);
-  // const { data, status } = useFirestoreDocDataOnce(fipsDocRef, {
-  //   initialData: { counties: [] },
-  //   suspense: false,
-  // });
   // TODO: handle doc doesn't exist ? does suspense catch does not exist ?
 
   const handleRemoveChip = useCallback(
@@ -99,10 +95,8 @@ export const MoratoriumForm = ({ title, ...props }: MoratoriumFormProps) => {
       <Formik validationSchema={validation} innerRef={formikRef} {...props}>
         {({ dirty, isValid, isSubmitting, isValidating, values, handleSubmit, submitForm }) => (
           <Form onSubmit={handleSubmit}>
-            <Box
-              sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 2 }}
-            >
-              <Typography variant='h5' gutterBottom sx={{ ml: 4 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Typography variant='h5' sx={{ ml: 4 }}>
                 {title}
               </Typography>
               <LoadingButton

@@ -25,7 +25,7 @@ import { FormikAddress } from 'elements/forms';
 import { commOptions } from 'elements/forms/QuoteForm/constants';
 import { MAPBOX_TOKEN } from 'elements/maps';
 import { UploadResult, getDownloadURL } from 'firebase/storage';
-import { useAsyncToast, useClaims, useDocData, useUpdateOrg } from 'hooks';
+import { useAsyncToast, useClaims, useDocData, useUpdateDoc } from 'hooks';
 import { CoordObj } from 'modules/utils';
 
 // TODO: primary contact, NPN, FEIN ??
@@ -40,8 +40,8 @@ export const OrgDetails = () => {
   const toast = useAsyncToast({ position: 'top-right' });
   // const formRef = useRef<FormikProps<OrgValues>>(null);
 
-  const updateOrg = useUpdateOrg(
-    orgId,
+  const { update: updateOrg } = useUpdateDoc<Organization>(
+    'organizations',
     () => {
       toast.success('org changes saved');
       setEditMode(false);
@@ -55,9 +55,9 @@ export const OrgDetails = () => {
     (values: OrgValues) => {
       const { latitude, longitude } = values.coordinates || {};
       const coordinates = latitude && longitude ? new GeoPoint(latitude, longitude) : null;
-      return updateOrg({ ...values, coordinates });
+      return updateOrg(orgId, { ...values, coordinates });
     },
-    [updateOrg]
+    [updateOrg, orgId]
   );
 
   // TODO: logic not shared --> move to it's own component
@@ -65,12 +65,12 @@ export const OrgDetails = () => {
     async (uploadResult: UploadResult[]) => {
       try {
         let downloadUrl = await getDownloadURL(uploadResult[0].ref);
-        await updateOrg({ photoURL: downloadUrl });
+        await updateOrg(orgId, { photoURL: downloadUrl });
       } catch (err: any) {
         toast.error('error getting logo URL');
       }
     },
-    [toast]
+    [toast, updateOrg, orgId]
   );
 
   const handleLogoUploadError = useCallback(
@@ -285,10 +285,12 @@ function OrgMap({ coordinates }: { coordinates: Organization['coordinates'] }) {
         latitude: coordinates?.latitude || 38.25,
         zoom: coordinates?.latitude && coordinates?.longitude ? 16 : 2.5,
       }}
+      minZoom={3}
+      maxZoom={18}
       mapboxAccessToken={MAPBOX_TOKEN}
       style={{ width: '100%', height: '100%' }}
       mapStyle={theme.palette.mode === 'dark' ? MAPBOX_DARK : MAPBOX_LIGHT}
-      // projection={{ name: 'mercator' }}
+      projection={{ name: 'mercator' }}
     >
       {coordinates?.latitude && coordinates.longitude ? (
         <Marker
@@ -298,7 +300,6 @@ function OrgMap({ coordinates }: { coordinates: Organization['coordinates'] }) {
           style={{ height: '24px', width: '24px' }} // default marker: height of 41px and a width of 27px
         >
           <PlaceRounded color='primary' />
-          {/* <GpsFixedRounded color='primary' /> */}
         </Marker>
       ) : null}
     </Map>

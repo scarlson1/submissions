@@ -1,11 +1,9 @@
 import { GppBadRounded, RequestQuoteRounded } from '@mui/icons-material';
 import { Tooltip } from '@mui/material';
 import { GridActionsCellItem, GridRowId, GridRowParams } from '@mui/x-data-grid';
-import { getDoc } from 'firebase/firestore';
 import { noop } from 'lodash';
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import invariant from 'tiny-invariant';
 
 import { SUBMISSION_STATUS, Submission } from 'common';
 import { SubmissionsGrid } from 'elements/grids';
@@ -27,24 +25,13 @@ const getUpdateValues = (newRow: Submission) => {
 export function AdminSubmissionsGrid() {
   const navigate = useNavigate();
   const toast = useAsyncToast();
-  // const updateSubmission = useUpdateSubmission();
-  // const confirmAndUpdate = useConfirmAndUpdate(updateSubmission);
   const { update: updateSubmission } = useUpdateDoc<Submission>('submissions', noop, (msg) =>
     toast.error(msg)
   );
   const confirmAndUpdate = useConfirmAndUpdate<Submission>(
-    async (subId, updates) => {
-      const ref = await updateSubmission(subId, updates);
-      invariant(ref);
-
-      const snap = await getDoc(ref);
-      const updatedData = snap.data();
-      if (!updatedData) throw new Error('Error updating data');
-
-      return { ...updatedData, id: snap.id };
-    },
-    getChangeMsg,
-    getUpdateValues
+    'submissions',
+    getUpdateValues,
+    getChangeMsg
   );
 
   const handleCreateQuote = useCallback(
