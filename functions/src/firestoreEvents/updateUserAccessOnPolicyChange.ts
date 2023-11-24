@@ -2,11 +2,12 @@ import { AgencyDetails, AgentDetails, Policy, getUserAccessRef } from '@idemand/
 import { FieldValue, Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
 import { Change, DocumentSnapshot, FirestoreEvent } from 'firebase-functions/v2/firestore';
+import { isEqual } from 'lodash-es';
 import { getReportErrorFn } from '../common/index.js';
 
 const reportErr = getReportErrorFn('updateUserAccessOnPolicyChange');
 
-// alternative - subcollection: https://stackoverflow.com/a/46839558
+// relationship structure alternative - subcollection: https://stackoverflow.com/a/46839558
 
 export default async (
   event: FirestoreEvent<
@@ -21,28 +22,29 @@ export default async (
 
   const insuredId = newData?.namedInsured?.userId;
 
-  // const prevAgent = prevData?.agent;
+  const prevAgent = prevData?.agent;
   const newAgent = newData?.agent;
 
-  // const prevOrg = prevData?.agency;
+  const prevOrg = prevData?.agency;
   const newOrg = prevData?.agency;
 
   if (!newOrg?.orgId || !newAgent?.userId || !insuredId) return;
 
-  try {
-    info(`updating user access doc ${insuredId}`);
-    await updateUserAccessDoc(insuredId, newAgent, newOrg);
-  } catch (err: any) {
-    reportErr('error updating user access permissions doc', event.data, err);
-  }
-
-  // if (!(isEqual(prevAgent, newAgent) && isEqual(prevOrg, newOrg))) {
-  //   try {
-  //     await updateUserAccessDoc(insuredId, newAgent, newOrg);
-  //   } catch (err: any) {
-  //     reportErr('error updating user access permissions doc', event.data, err);
-  //   }
+  // try {
+  //   info(`updating user access doc ${insuredId}`);
+  //   await updateUserAccessDoc(insuredId, newAgent, newOrg);
+  // } catch (err: any) {
+  //   reportErr('error updating user access permissions doc', event.data, err);
   // }
+
+  if (!(isEqual(prevAgent, newAgent) && isEqual(prevOrg, newOrg))) {
+    try {
+      info(`updating user access doc ${insuredId}`);
+      await updateUserAccessDoc(insuredId, newAgent, newOrg);
+    } catch (err: any) {
+      reportErr('error updating user access permissions doc', event.data, err);
+    }
+  }
 
   return;
 };

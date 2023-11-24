@@ -54,6 +54,7 @@ export const moratoriumCols: GridColDef<Moratorium>[] = [
   },
   {
     ...effectiveDateCol,
+    editable: true,
     valueSetter: (params) => {
       let newVal = params.value instanceof Date ? Timestamp.fromDate(params.value) : params.value;
       return { ...params.row, effectiveDate: newVal };
@@ -62,6 +63,7 @@ export const moratoriumCols: GridColDef<Moratorium>[] = [
   },
   {
     ...expirationDateCol,
+    editable: true,
     valueSetter: (params) => {
       let newVal = params.value instanceof Date ? Timestamp.fromDate(params.value) : params.value;
       return { ...params.row, expirationDate: newVal };

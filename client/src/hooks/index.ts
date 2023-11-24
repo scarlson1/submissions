@@ -9,6 +9,7 @@ export { useCollectionData } from './useCollectionData';
 export { useCollectionGroupData } from './useCollectionGroupData';
 export { useCompareJson } from './useCompareJson';
 export { useConcurrentLocation } from './useConcurrentLocation';
+export { useConfirmAndUpdate } from './useConfirmAndUpdate';
 export { useCreateAccount } from './useCreateAccount';
 export { useCreateAgencySubmission } from './useCreateAgencySubmission';
 export { useCreateMoratorium } from './useCreateMoratorium';

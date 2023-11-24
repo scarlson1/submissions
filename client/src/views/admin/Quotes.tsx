@@ -8,17 +8,15 @@ import {
   MenuItem,
   Tooltip,
   Typography,
-  useMediaQuery,
-  useTheme,
 } from '@mui/material';
-import { GridActionsCellItem, GridRowModel, GridRowParams } from '@mui/x-data-grid';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { GridActionsCellItem, GridRowParams } from '@mui/x-data-grid';
+import { getDoc } from 'firebase/firestore';
 import { UploadResult } from 'firebase/storage';
 import { camelCase } from 'lodash';
 import { useCallback, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
-import { useFirestore } from 'reactfire';
+import invariant from 'tiny-invariant';
 
 import {
   CLAIMS,
@@ -28,93 +26,43 @@ import {
   Quote,
   StorageFolder,
   TStorageFolder,
-  WithId,
-  quotesCollection,
 } from 'common';
-import { quoteConverter } from 'common/firestoreConverters';
 import { IconMenu } from 'components/IconButtonMenu';
-import { useConfirmation } from 'context';
 import { CSVUploadDialog } from 'elements';
 import { QuotesGrid } from 'elements/grids';
-import { useAsyncToast, useGridShowJson, useWidth } from 'hooks';
+import { useAsyncToast, useConfirmAndUpdate, useGridShowJson, useUpdateDoc, useWidth } from 'hooks';
 import { submissionIdCol, subproducerCommissionCol } from 'modules/muiGrid/gridColumnDefs';
 import { getDuplicates } from 'modules/utils';
 import { getCsvHeaderStatus } from 'modules/utils/storage';
 import { ADMIN_ROUTES, ROUTES, createPath } from 'router';
 
-const useUpdateQuoteStatus = () => {
-  const firestore = useFirestore();
-
-  const update = useCallback(
-    async (id: string, updateValues: Partial<Quote>) => {
-      const ref = doc(quotesCollection(firestore), id).withConverter(quoteConverter);
-      await updateDoc(ref, { status: updateValues.status });
-
-      const snap = await getDoc(ref);
-      console.log('updated data: ', snap.data());
-
-      return { ...snap.data(), id: snap.id };
-    },
-    [firestore]
-  );
-
-  return update;
+const getChangeMsg = (newRow: Quote, oldRow: Quote) => {
+  return newRow.status !== oldRow.status
+    ? [`"status" from ${oldRow.status} to ${newRow.status}`]
+    : null;
 };
-
-// TODO: move hook to it's own file
-export const useConfirmAndUpdate = (updateFn: (id: string, vals: Partial<any>) => Promise<any>) => {
-  const modal = useConfirmation();
-  const toast = useAsyncToast();
-  const theme = useTheme();
-  let fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
-
-  const confirm = useCallback(
-    async (newRow: GridRowModel<WithId<Quote>>, oldRow: GridRowModel<WithId<Quote>>) => {
-      let changeMsg =
-        newRow.status !== oldRow.status
-          ? `"status" from ${oldRow.status} to ${newRow.status}`
-          : null;
-
-      try {
-        await modal({
-          variant: 'danger',
-          catchOnCancel: true,
-          title: 'Are you sure?',
-          description: (
-            <>
-              <Typography variant='body2' color='text.secondary'>
-                You are about to make the following changes:
-              </Typography>
-              <Typography>{changeMsg}</Typography>
-            </>
-          ),
-          confirmButtonText: 'Confirm',
-          dialogContentProps: { dividers: true },
-          dialogProps: { fullScreen },
-        });
-
-        toast.loading('saving...');
-        const res = await updateFn(newRow.id, {
-          status: newRow.status,
-        });
-
-        toast.success(`Saved!`);
-        return res;
-      } catch (err) {
-        toast.error('update failed');
-        return oldRow;
-      }
-    },
-    [modal, toast, updateFn, fullScreen]
-  );
-
-  return confirm;
+const getUpdateValues = (newRow: Quote) => {
+  return { status: newRow.status };
 };
 
 export const Quotes = () => {
   const navigate = useNavigate();
-  const updateQuote = useUpdateQuoteStatus();
-  const confirmAndUpdate = useConfirmAndUpdate(updateQuote);
+  // const updateQuote = useUpdateQuoteStatus();
+  // const confirmAndUpdate = useConfirmAndUpdate(updateQuote);
+  const { update: updateQuote } = useUpdateDoc<Quote>('quotes');
+  const confirmAndUpdate = useConfirmAndUpdate<Quote>(
+    async (quoteId, updates) => {
+      const ref = await updateQuote(quoteId, updates);
+      invariant(ref);
+
+      const snap = await getDoc(ref);
+      const data = snap.data();
+      invariant(data);
+      return { ...data, id: snap.id };
+    },
+    getChangeMsg,
+    getUpdateValues
+  );
   const renderShowJson = useGridShowJson(
     'quotes',
     { showInMenu: true },

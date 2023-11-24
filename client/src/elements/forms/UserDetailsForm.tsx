@@ -1,14 +1,13 @@
 import { LoadingButton } from '@mui/lab';
 import { Unstable_Grid2 as Grid } from '@mui/material';
-import { doc, setDoc } from 'firebase/firestore';
 import { useCallback, useEffect } from 'react';
 import { SubmitHandler, useForm, useFormState } from 'react-hook-form';
-import { useFirestore, useUser } from 'reactfire';
+import { useUser } from 'reactfire';
 import invariant from 'tiny-invariant';
 
-import { User, usersCollection } from 'common';
+import { User } from 'common';
 import { RHFTextField } from 'components/forms';
-import { UpdateProfileRes, useAsyncToast, useDocData, useUpdateProfile } from 'hooks';
+import { useAsyncToast, useDocData, useUpdateDoc, useUpdateProfile } from 'hooks';
 
 // MUI example: https://codesandbox.io/s/react-hook-form-v7-controller-5h1q5?file=/src/Mui.js
 
@@ -18,7 +17,6 @@ type UserDetailsInputs = {
 };
 
 export function UserDetailsForm() {
-  const firestore = useFirestore();
   const { data: user } = useUser(); // PRE_DEPLOY: fix only render component if user
   invariant(user);
   const { data: fsUser } = useDocData<User>('users', `${user?.uid}`);
@@ -57,23 +55,34 @@ export function UserDetailsForm() {
       });
   }, [isSubmitSuccessful, reset, fsUser?.firstName, fsUser?.lastName]);
 
-  const updateUserDoc = useCallback(
-    async ({ displayName, firstName, lastName }: UpdateProfileRes) => {
-      if (!user || !user.uid) return toast.error('Must be signed in');
-      let userRef = doc(usersCollection(firestore), user?.uid);
-      await setDoc(
-        userRef,
-        { displayName, firstName: `${firstName}`, lastName: `${lastName}` },
-        { merge: true }
-      );
-      // await auth.currentUser?.getIdToken(true);
-      toast.success('profile updated!');
-    },
-    [firestore, user, toast]
+  // const updateUserDoc = useCallback(
+  //   async ({ displayName, firstName, lastName }: UpdateProfileRes) => {
+  //     if (!user || !user.uid) return toast.error('Must be signed in');
+  //     let userRef = doc(usersCollection(firestore), user?.uid);
+  //     await setDoc(
+  //       userRef,
+  //       { displayName, firstName: `${firstName}`, lastName: `${lastName}` },
+  //       { merge: true }
+  //     );
+  //     // await auth.currentUser?.getIdToken(true);
+  //     toast.success('profile updated!');
+  //   },
+  //   [firestore, user, toast]
+  // );
+
+  // const { updateProfile } = useUpdateProfile(
+  //   (res) => updateUserDoc(res),
+  //   (msg) => toast.error(msg)
+  // );
+
+  const { update: updateUserDoc } = useUpdateDoc<User>('users', () =>
+    toast.success('profile updated!')
   );
 
   const { updateProfile } = useUpdateProfile(
-    (res) => updateUserDoc(res),
+    ({ displayName, firstName, lastName }) => {
+      return updateUserDoc(user.uid, { displayName, firstName, lastName });
+    },
     (msg) => toast.error(msg)
   );
 

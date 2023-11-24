@@ -11,8 +11,8 @@ import { logDev } from 'modules/utils';
 
 export interface UpdateProfileArgs {
   // displayName?: string | null | undefined;
-  firstName?: string | null | undefined;
-  lastName?: string | null | undefined;
+  firstName?: string; // | null | undefined;
+  lastName?: string; // | null | undefined;
   photoURL?: string | null | undefined;
 }
 

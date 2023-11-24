@@ -1,37 +1,23 @@
-import { Box, Button, Tooltip, Typography, useMediaQuery, useTheme } from '@mui/material';
+import { EditRounded } from '@mui/icons-material';
+import { Box, Button, Tooltip, Typography } from '@mui/material';
 import { GridActionsCellItem, GridRowModel, GridRowParams } from '@mui/x-data-grid';
-import { Timestamp, doc, getDoc, getFirestore, updateDoc } from 'firebase/firestore';
+import { getDoc } from 'firebase/firestore';
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import invariant from 'tiny-invariant';
 
-import { EditRounded } from '@mui/icons-material';
-import { Moratorium, WithId, moratoriumsCollection } from 'common';
-import { useConfirmation } from 'context/ConfirmationService';
+import { Moratorium, WithId } from 'common';
 import { MoratoriumsGrid } from 'elements/grids';
-import { useAsyncToast } from 'hooks';
+import { useAsyncToast, useConfirmAndUpdate, useUpdateDoc } from 'hooks';
 import { formatFirestoreTimestamp } from 'modules/utils';
 import { ADMIN_ROUTES, createPath } from 'router';
 
 // TODO: lazy load map component in modal
-
 // TODO: add action to moratorium edit form
 
-const useUpdateMoratorium = () => {
-  const update = useCallback(async (id: string, updateValues: Partial<Moratorium>) => {
-    const ref = doc(moratoriumsCollection(getFirestore()), id); // @ts-ignore
-    await updateDoc(ref, { ...updateValues, 'metadata.updated': Timestamp.now() });
-
-    const snap = await getDoc(ref);
-
-    return { ...snap.data(), id: snap.id };
-  }, []);
-
-  return update;
-};
-
 const getMutationMsg = (
-  newVals: GridRowModel<WithId<Moratorium>>,
-  old: GridRowModel<WithId<Moratorium>>
+  old: GridRowModel<WithId<Moratorium>>,
+  newVals: GridRowModel<WithId<Moratorium>>
 ) => {
   let changeItems = [];
   if (newVals.effectiveDate !== old.effectiveDate) {
@@ -54,58 +40,29 @@ const getMutationMsg = (
   return changeItems;
 };
 
+const getUpdateValues = (newRow: Moratorium) => ({
+  effectiveDate: newRow.effectiveDate,
+  expirationDate: newRow.expirationDate,
+});
+
 export const Moratoriums = () => {
   const navigate = useNavigate();
-  const modal = useConfirmation();
-  const updateMoratorium = useUpdateMoratorium();
-  const theme = useTheme();
   const toast = useAsyncToast();
-  const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
-  const processRowUpdate = useCallback(
-    async (newRow: GridRowModel<WithId<Moratorium>>, oldRow: GridRowModel<WithId<Moratorium>>) => {
-      // TODO: get diff fields / values and show in confirmation
-      // https://mui.com/x/react-data-grid/editing/#ask-for-confirmation-before-saving
-      const mutationItems = getMutationMsg(newRow, oldRow);
+  const { update: updateMoratorium } = useUpdateDoc<Moratorium>('moratoriums');
 
-      try {
-        await modal({
-          variant: 'danger',
-          catchOnCancel: true,
-          title: 'Are you sure?',
-          description: (
-            <>
-              <Typography variant='body2' color='text.secondary'>
-                You are about to make the following changes:
-              </Typography>
-              <ul>
-                {mutationItems.map((i) => (
-                  <li key={i}>
-                    <Typography variant='body2' color='text.secondary'>
-                      {i}
-                    </Typography>
-                  </li>
-                ))}
-              </ul>
-            </>
-          ),
-          confirmButtonText: 'Confirm',
-          dialogContentProps: { dividers: true },
-          dialogProps: { fullScreen },
-        });
-        toast.loading('saving...');
-        const res = await updateMoratorium(newRow.id, {
-          effectiveDate: newRow.effectiveDate,
-          expirationDate: newRow.expirationDate,
-        });
+  const confirmAndUpdate = useConfirmAndUpdate<Moratorium>(
+    async (quoteId, updates) => {
+      const ref = await updateMoratorium(quoteId, updates);
+      invariant(ref);
 
-        toast.success(`Saved!`);
-        return res;
-      } catch (err) {
-        return oldRow;
-      }
+      const snap = await getDoc(ref);
+      const data = snap.data();
+      invariant(data);
+      return { ...data, id: snap.id };
     },
-    [updateMoratorium, toast, modal, fullScreen]
+    getMutationMsg,
+    getUpdateValues
   );
 
   const handleProcessRowUpdateError = useCallback(
@@ -154,7 +111,7 @@ export const Moratoriums = () => {
       </Box>
       <Box sx={{ height: { xs: 400, sm: 460, md: 500 }, width: '100%' }}>
         <MoratoriumsGrid
-          processRowUpdate={processRowUpdate}
+          processRowUpdate={confirmAndUpdate}
           onProcessRowUpdateError={handleProcessRowUpdateError}
           renderActions={renderEditActionButton}
         />

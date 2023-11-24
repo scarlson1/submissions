@@ -1,6 +1,7 @@
 import { AgencyDetails, AgentDetails, Quote } from '@idemand/common';
 import { info } from 'firebase-functions/logger';
 import { Change, DocumentSnapshot, FirestoreEvent } from 'firebase-functions/v2/firestore';
+import { isEqual } from 'lodash-es';
 import { getReportErrorFn } from '../common/index.js';
 import { updateUserAccessDoc } from './updateUserAccessOnPolicyChange.js';
 
@@ -19,10 +20,10 @@ export default async (
 
   const insuredId = newData?.namedInsured?.userId;
 
-  // const prevAgent = prevData?.agent;
+  const prevAgent = prevData?.agent;
   let agent = newData?.agent;
 
-  // const prevOrg = prevData?.agency;
+  const prevOrg = prevData?.agency;
   let org = prevData?.agency;
 
   if (!org?.orgId || !agent?.userId || !insuredId) return;
@@ -45,14 +46,14 @@ export default async (
     },
   };
 
-  // if (!(isEqual(prevAgent, agent) && isEqual(prevOrg, org))) {
-  try {
-    info(`quote change detected - updating user access doc...`);
-    await updateUserAccessDoc(insuredId, agent as AgentDetails, org as AgencyDetails);
-  } catch (err: any) {
-    reportErr('error updating user access permissions doc', event.data, err);
+  if (!(isEqual(prevAgent, agent) && isEqual(prevOrg, org))) {
+    try {
+      info(`quote change detected - updating user access doc...`);
+      await updateUserAccessDoc(insuredId, agent as AgentDetails, org as AgencyDetails);
+    } catch (err: any) {
+      reportErr('error updating user access permissions doc', event.data, err);
+    }
   }
-  // }
 
   return;
 };

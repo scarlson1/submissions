@@ -2,14 +2,11 @@ import ReactJson from '@microlink/react-json-view';
 import { OpenInNewRounded, SaveRounded } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
 import { Badge, Box, Button, Stack, Typography, useTheme } from '@mui/material';
-import { doc, updateDoc } from 'firebase/firestore';
 import { getDownloadURL } from 'firebase/storage';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useFirestore } from 'reactfire';
 
-import { ePayInstance } from 'api';
-import { Policy, policiesCollection, withIdConverter } from 'common';
+import { Policy } from 'common';
 import { FilesDragDrop } from 'components/forms';
 import {
   useAsyncToast,
@@ -18,6 +15,7 @@ import {
   useGeneratePDF,
   useSafeParams,
   useSendEmail,
+  useUpdateDoc,
 } from 'hooks';
 import { usePromptForEmails } from 'hooks/usePromptForEmails';
 import { onlyUnique } from 'modules/utils';
@@ -27,67 +25,37 @@ import { ROUTES, createPath } from 'router';
 // TODO: create custom tags for email delivery ('policy_delivery') https://docs.sendgrid.com/for-developers/sending-email/getting-started-email-activity-api#query-reference
 // OR create templates and get by template ID
 
-const useUpdatePolicy = (onSuccess?: (msg: string) => void, onError?: (err: any) => void) => {
-  const firestore = useFirestore();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+// const useEPayTransaction = (id: string | null | undefined) => {
+//   const [transaction, setTransaction] = useState<any>();
+//   const [loading, setLoading] = useState(false);
+//   const [error, setError] = useState<string | null>(null);
 
-  const updatePolicy = useCallback(
-    // async (policyId: string, values: Partial<Policy>) => {
-    async (policyId: string, values: Policy['documents']) => {
-      try {
-        setLoading(true);
-        const ref = doc(policiesCollection(firestore), policyId).withConverter(
-          withIdConverter<Policy>()
-        );
+//   const getTransactionData = useCallback(async (id: string) => {
+//     try {
+//       console.log(`FETCHING TRANSACTION DATA: ${id}`);
+//       setLoading(true);
+//       setError(null);
+//       const { data } = await ePayInstance.get(`/api/v1/transactions/${id}`);
 
-        // TODO: fix typescript error so useUpdatePolicy can be used for all fields (error from imageURLs)
-        await updateDoc(ref, { documents: values });
-        setLoading(false);
-        if (onSuccess) onSuccess(`Policy updated`);
-      } catch (err) {
-        setLoading(false);
-        setError('An error occurred');
-        if (onError) onError(err);
-      }
-    },
-    [onSuccess, onError, firestore]
-  );
+//       console.log('RES: ', data);
+//       setTransaction(data);
+//       setLoading(false);
+//     } catch (err) {
+//       console.log('ERROR: ', err);
+//       setError('Error fetching ePay transaction');
+//       setLoading(false);
+//     }
+//   }, []);
 
-  return useMemo(() => ({ updatePolicy, loading, error }), [updatePolicy, loading, error]);
-};
+//   useEffect(() => {
+//     if (!id) return;
+//     if (transaction && transaction.id === id) return;
 
-const useEPayTransaction = (id: string | null | undefined) => {
-  const [transaction, setTransaction] = useState<any>();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+//     getTransactionData(id);
+//   }, [id, getTransactionData, transaction]);
 
-  const getTransactionData = useCallback(async (id: string) => {
-    try {
-      console.log(`FETCHING TRANSACTION DATA: ${id}`);
-      setLoading(true);
-      setError(null);
-      const { data } = await ePayInstance.get(`/api/v1/transactions/${id}`);
-
-      console.log('RES: ', data);
-      setTransaction(data);
-      setLoading(false);
-    } catch (err) {
-      console.log('ERROR: ', err);
-      setError('Error fetching ePay transaction');
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!id) return;
-    if (transaction && transaction.id === id) return;
-
-    getTransactionData(id);
-  }, [id, getTransactionData, transaction]);
-
-  return useMemo(() => ({ transaction, loading, error }), [transaction, loading, error]);
-};
+//   return useMemo(() => ({ transaction, loading, error }), [transaction, loading, error]);
+// };
 
 export const PolicyDelivery = () => {
   const theme = useTheme();
@@ -105,7 +73,8 @@ export const PolicyDelivery = () => {
   const { data } = useDocData('policies', policyId);
 
   const { downloadPDF: downloadPolicy, loading: genDecLoading } = useGeneratePDF('generateDecPDF');
-  const { updatePolicy } = useUpdatePolicy(console.log, console.error);
+
+  const { update: updatePolicy } = useUpdateDoc<Policy>('policies', console.log, console.error);
 
   const {
     files: uploadFiles,
@@ -133,13 +102,15 @@ export const PolicyDelivery = () => {
         let downloadUrl = await getDownloadURL(uploadResult[0].ref);
         console.log('downloadUrl: ', downloadUrl);
 
-        await updatePolicy(policyId, [
-          {
-            displayName: `Policy Document - ${policyId}`,
-            downloadUrl,
-            storagePath: uploadResult[0].metadata.fullPath,
-          },
-        ]);
+        await updatePolicy(policyId, {
+          documents: [
+            {
+              displayName: `Policy Document - ${policyId}`,
+              downloadUrl,
+              storagePath: uploadResult[0].metadata.fullPath,
+            },
+          ],
+        });
       }
     },
     (err) => console.log('upload failed: ', err)
