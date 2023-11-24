@@ -49,6 +49,7 @@ export const LocationsGrid = ({
       colName='locations'
       columns={columns}
       pageSizeOptions={[5, 10, 25, 100]}
+      autoHeight
       {...props}
       initialState={{
         columns: {

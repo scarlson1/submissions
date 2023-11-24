@@ -2320,10 +2320,10 @@ export interface BaseSendEmailResponse {
 export interface ServerDataGridCollectionProps<T extends GridValidRowModel = any>
   extends Omit<
     ServerDataGridProps,
-    'columns' | 'colName' | 'isCollectionGroup' | 'columns' | 'pathSegments' | 'initialState'
+    'columns' | 'colName' | 'isCollectionGroup' | 'columns' | 'initialState' // | 'pathSegments'
   > {
   renderActions?: GridActionsColDef<T>['getActions']; //  (params: GridRowParams) => ReactElement<GridActionsCellItemProps>[]; // JSX.Element[];
-  additionalColumns?: GridColDef<any, any, any>[];
+  additionalColumns?: GridColDef<T, any, any>[];
   initialState?: Omit<DataGridProps['initialState'], 'pagination'>;
 }
 

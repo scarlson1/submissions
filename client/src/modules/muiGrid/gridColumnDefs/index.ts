@@ -17,3 +17,4 @@ export { TRANSACTION_COLUMN_VISIBILITY, transactionCols } from './transactionCol
 export { userClaimsCol, userCols, userSummaryCol } from './userCols';
 
 export * from './gridColumns';
+export * from './versionCols';

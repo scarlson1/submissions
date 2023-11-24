@@ -4,7 +4,7 @@ import { where } from 'firebase/firestore';
 import { useMemo } from 'react';
 
 import { ServerDataGridCollectionProps } from 'common';
-import { ChangeRequestStatus } from 'common/enums';
+import { ChangeRequestStatus, Collection } from 'common/enums';
 import { ServerDataGrid, ServerDataGridProps } from 'components';
 import { useClaims, useWidth } from 'hooks';
 import { changeRequestCols } from 'modules/muiGrid';
@@ -49,13 +49,13 @@ export const ChangeRequestsGrid = ({
 
     if (policyId) {
       queryProps = {
-        colName: 'POLICIES',
+        colName: 'policies',
         pathSegments: [policyId, Collection.Enum.changeRequests],
         isCollectionGroup: false,
       };
     } else {
       queryProps = {
-        colName: 'CHANGE_REQUESTS',
+        colName: 'changeRequests',
         isCollectionGroup: true,
       };
     }

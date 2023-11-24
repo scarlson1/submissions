@@ -48,6 +48,11 @@ import {
   userIdCol,
 } from './gridColumns';
 
+export const defaultPolicyIdCol = {
+  ...idCol,
+  headerName: 'Policy ID',
+};
+
 export const policyCols: GridColDef<Policy>[] = [
   productCol,
   // locationAddresses,
@@ -86,10 +91,10 @@ export const policyCols: GridColDef<Policy>[] = [
   nestedAgentUserIdCol,
   nestedAgencyOrgIdCol,
   userIdCol,
-  {
-    ...idCol,
-    headerName: 'Policy ID',
-  },
+  // {
+  //   ...idCol,
+  //   headerName: 'Policy ID',
+  // },
   mailingAddressCol,
   mailingAddress1Col,
   mailingAddress2Col,
@@ -106,6 +111,7 @@ export const policyCols: GridColDef<Policy>[] = [
 ];
 
 export const POLICY_COLUMN_VISIBILITY: GridColumnVisibilityModel = {
+  id: false,
   product: false,
   paymentStatus: false,
   'namedInsured.firstName': false,

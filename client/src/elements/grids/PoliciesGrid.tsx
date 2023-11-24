@@ -10,22 +10,38 @@ import { CLAIMS, PaymentStatus, Policy, ServerDataGridCollectionProps } from 'co
 import { ServerDataGrid } from 'components';
 import { useGridShowJson } from 'hooks';
 import { POLICY_COLUMN_VISIBILITY, policyCols, statusCol } from 'modules/muiGrid/gridColumnDefs';
+import { defaultPolicyIdCol } from 'modules/muiGrid/gridColumnDefs/policyCols';
 import { calcPolicyStatus } from 'modules/utils';
 import { ROUTES, createPath } from 'router';
 
-export type PoliciesGridProps = ServerDataGridCollectionProps;
+export type PoliciesGridProps = ServerDataGridCollectionProps<Policy> & {
+  idCol?: GridColDef<Policy>;
+};
 
-export const PoliciesGrid = ({ renderActions = () => [], ...props }: PoliciesGridProps) => {
+export const PoliciesGrid = ({
+  renderActions = () => [],
+  additionalColumns,
+  idCol = defaultPolicyIdCol,
+  ...props
+}: PoliciesGridProps) => {
   const navigate = useNavigate();
   const { data: iDAdminResult } = useSigninCheck({
     requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
   });
+
   const renderShowJson = useGridShowJson(
     'policies',
     { showInMenu: true },
-    { requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }
+    { requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } },
+    null,
+    null,
+    (params) =>
+      props?.pathSegments?.length
+        ? `/${props.pathSegments.join('/')}/${params.id.toString()}`
+        : params.id.toString()
   );
 
+  // TODO: pass as prop (don't want to show in versions grid)
   const viewPolicyDoc = useCallback(
     (params: GridRowParams) => () => {
       const docObj = params.row.documents?.[0];
@@ -58,6 +74,7 @@ export const PoliciesGrid = ({ renderActions = () => [], ...props }: PoliciesGri
           ...renderShowJson(params),
         ],
       },
+      idCol,
       {
         ...statusCol,
         valueOptions: ['active', 'inactive'], // TODO: other types ??
@@ -83,8 +100,9 @@ export const PoliciesGrid = ({ renderActions = () => [], ...props }: PoliciesGri
         valueGetter: (params) => params.row.paymentStatus || null,
       },
       ...policyCols,
+      ...(additionalColumns || []),
     ],
-    [viewPolicyDoc, renderActions, renderShowJson, iDAdminResult]
+    [viewPolicyDoc, renderActions, renderShowJson, additionalColumns, iDAdminResult]
   );
 
   return (

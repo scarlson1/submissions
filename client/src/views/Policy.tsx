@@ -31,20 +31,21 @@ import { GridActionsCellItem, GridRowParams } from '@mui/x-data-grid';
 import { PickingInfo } from 'deck.gl/typed';
 import { where } from 'firebase/firestore';
 import { isEmpty } from 'lodash';
-import { Suspense, useCallback, useMemo } from 'react';
+import { Suspense, useCallback, useMemo, useState } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { useNavigate } from 'react-router-dom';
 
 import { ILocation, Policy as IPolicy, WithId } from 'common';
-import { ErrorFallback, LoadingSpinner, NotFound, PageMeta } from 'components';
+import { ClaimsGuard, ErrorFallback, LoadingSpinner, NotFound, PageMeta } from 'components';
 import { IconMenu } from 'components/IconButtonMenu';
 import { LocationsMap, PolicyLocationCards } from 'elements';
 import {
   ChangeRequestsDialog,
   useViewChangeRequestsDialogProps,
 } from 'elements/ChangeRequestDialog';
+import { SuspenseDialog } from 'elements/SuspenseDialog';
 import { ContactList } from 'elements/forms';
-import { LocationsGrid } from 'elements/grids';
+import { LocationsGrid, PolicyVersionsGrid, TransactionsGrid } from 'elements/grids';
 import {
   DataViewType,
   TDataViewType,
@@ -460,6 +461,10 @@ function StatBox({ title, value }: StatBoxProps) {
 function PolicyIconMenu({ policyId }: { policyId: string }) {
   const policyChangeRequest = useCreatePolicyChangeRequest();
   const { open, handleOpen, handleClose, count } = useViewChangeRequestsDialogProps(policyId);
+  const [trxOpen, setTrxOpen] = useState(false);
+  const [versionsOpen, setVersionsOpen] = useState(false);
+
+  // could use one dialog component ?? different state for component to display ??
 
   const handleNewRequest = useCallback(() => {
     policyChangeRequest(policyId);
@@ -490,12 +495,46 @@ function PolicyIconMenu({ policyId }: { policyId: string }) {
           >
             <MenuItem onClick={handleOpen}>View change requests</MenuItem>
           </Badge>
+          <ClaimsGuard requiredClaims={['IDEMAND_ADMIN']}>
+            <MenuItem onClick={() => setTrxOpen(true)}>Transactions</MenuItem>
+          </ClaimsGuard>
+          <ClaimsGuard requiredClaims={['IDEMAND_ADMIN']}>
+            <MenuItem onClick={() => setVersionsOpen(true)}>History</MenuItem>
+          </ClaimsGuard>
           {/* <ClaimsGuard requiredClaims={['IDEMAND_ADMIN']}>
             <MenuItem onClick={handleConvertPolicy}>Convert Policy</MenuItem>
           </ClaimsGuard> */}
         </IconMenu>
       </Badge>
       <ChangeRequestsDialog open={open} handleClose={handleClose} policyId={policyId} />
+      <SuspenseDialog
+        open={trxOpen}
+        onClose={() => setTrxOpen(false)}
+        title={`Transactions - Policy ${policyId}`}
+        fullWidth
+        maxWidth='xl'
+      >
+        <TransactionsGrid
+          constraints={[where('policyId', '==', policyId)]}
+          slots={{
+            toolbar: null,
+          }}
+        />
+      </SuspenseDialog>
+      <SuspenseDialog
+        open={versionsOpen}
+        onClose={() => setVersionsOpen(false)}
+        title={`History - Policy ${policyId}`}
+        fullWidth
+        maxWidth='xl'
+      >
+        <PolicyVersionsGrid
+          policyId={policyId}
+          slots={{
+            toolbar: null,
+          }}
+        />
+      </SuspenseDialog>
     </>
   );
 }
