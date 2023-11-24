@@ -3,38 +3,48 @@ import { PersonAddRounded } from '@mui/icons-material';
 import { TabContext, TabList, TabPanel } from '@mui/lab';
 import { Box, Tab, Typography } from '@mui/material';
 import { collection, doc, query, where } from 'firebase/firestore';
+import { Suspense } from 'react';
+import { ErrorBoundary } from 'react-error-boundary';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { useFirestore } from 'reactfire';
 
+import { Organization as Org } from 'common';
 import { ClaimsGuard, ErrorFallback, PageMeta } from 'components';
 import { LoadingComponent } from 'components/layout';
 import { AddUsersDialog } from 'elements/forms';
 import { InvitesGrid, PoliciesGrid, QuotesGrid, SubmissionsGrid, UsersGrid } from 'elements/grids';
 import { AdminManageUsersGrid } from 'elements/grids/UsersGrid';
-import { useJsonTheme } from 'hooks';
+import { useDocData, useJsonTheme } from 'hooks';
 import { useAgencyInsureds } from 'hooks/useAgencyInsureds';
 import { useCollectionDataInnerJoin, useRx, useRxDocJoin } from 'hooks/useRx';
-import { Suspense } from 'react';
-import { ErrorBoundary } from 'react-error-boundary';
+
+// TODO: org details tab (address, default commissions, etc.)
 
 const MIN_TAB_HEIGHT = 40;
 
 export const Organization = () => {
   const { orgId } = useParams();
+  if (!orgId) throw new Error('Missing orgId in URL params');
+
   let [searchParams, setSearchParams] = useSearchParams();
   const tabValue = searchParams.get('tab') || 'policies';
+
+  const { data: org } = useDocData<Org>('organizations', orgId);
 
   const handleChange = (event: React.SyntheticEvent, newValue: string) => {
     setSearchParams({ tab: newValue });
   };
-
-  if (!orgId) throw new Error('Missing orgId in URL params');
 
   return (
     <>
       <PageMeta title='iDemand - Orgs' />
 
       <Box>
+        <Box>
+          <Typography variant='h6' gutterBottom align='center'>
+            {org.orgName || orgId}
+          </Typography>
+        </Box>
         <Box sx={{ width: '100%', typography: 'body2' }}>
           <TabContext value={tabValue}>
             <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
@@ -66,17 +76,17 @@ export const Organization = () => {
             </Box>
             <TabPanel value='test'>
               <Suspense fallback={<LoadingComponent />}>
-                <AdminManageUsersGrid orgId={`${orgId}`} />
+                <AdminManageUsersGrid orgId={orgId} />
               </Suspense>
             </TabPanel>
             <TabPanel value='policies'>
               <Suspense fallback={<LoadingComponent />}>
-                <PoliciesGrid constraints={[where('orgId', '==', `${orgId}`)]} />
+                <PoliciesGrid constraints={[where('agency.orgId', '==', orgId)]} />
               </Suspense>
             </TabPanel>
             <TabPanel value='quotes'>
               <Suspense fallback={<LoadingComponent />}>
-                <QuotesGrid constraints={[where('agency.orgId', '==', `${orgId}`)]} />
+                <QuotesGrid constraints={[where('agency.orgId', '==', orgId)]} />
               </Suspense>
             </TabPanel>
             <TabPanel value='submissions'>

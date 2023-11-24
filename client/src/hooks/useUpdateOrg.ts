@@ -1,11 +1,26 @@
-import { doc, updateDoc } from 'firebase/firestore';
 import { useCallback } from 'react';
+
+import { Organization, orgsCollection } from 'common';
+import { doc, updateDoc } from 'firebase/firestore';
 import { useFirestore } from 'reactfire';
 
-import { Organization, OrganizationZ, orgsCollection } from 'common';
-import { logDev } from 'modules/utils';
+// TODO: delete and use generic useUpdateDoc hook ??
 
-const PartialOrg = OrganizationZ.partial();
+// const PartialOrg = OrganizationZ.partial();
+// TODO: need to validate with zod ??
+
+// export const useUpdateOrg = (
+//   orgId: string,
+//   onSuccess?: () => void,
+//   onError?: (msg: string, err: any) => void
+// ) => {
+//   const updateOrg = useUpdateDoc<Organization>('organizations', onSuccess, onError);
+
+//   return useCallback(
+//     (values: Partial<Organization>) => updateOrg(orgId, values),
+//     [updateOrg, orgId]
+//   );
+// };
 
 export const useUpdateOrg = (
   orgId: string,
@@ -19,11 +34,6 @@ export const useUpdateOrg = (
       try {
         const orgRef = doc(orgsCollection(firestore), orgId);
         // redundant ??
-        if (!PartialOrg.safeParse(values).success) {
-          logDev(values);
-          onError && onError('validation failed', null);
-          return;
-        }
 
         await updateDoc(orgRef, values);
 

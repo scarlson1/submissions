@@ -1,4 +1,5 @@
 import { AgencyDetails, AgentDetails, Quote } from '@idemand/common';
+import { info } from 'firebase-functions/logger';
 import { Change, DocumentSnapshot, FirestoreEvent } from 'firebase-functions/v2/firestore';
 import { getReportErrorFn } from '../common/index.js';
 import { updateUserAccessDoc } from './updateUserAccessOnPolicyChange.js';
@@ -46,6 +47,7 @@ export default async (
 
   // if (!(isEqual(prevAgent, agent) && isEqual(prevOrg, org))) {
   try {
+    info(`quote change detected - updating user access doc...`);
     await updateUserAccessDoc(insuredId, agent as AgentDetails, org as AgencyDetails);
   } catch (err: any) {
     reportErr('error updating user access permissions doc', event.data, err);

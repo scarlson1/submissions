@@ -24,6 +24,8 @@ export const getPolicyAmendmentTrx = (
     issuingCarrier: policy.issuingCarrier,
     namedInsured: policy.namedInsured.displayName,
     mailingAddress: policy.mailingAddress,
+    agent: policy.agent,
+    agency: policy.agency,
     homeState: policy.homeState,
     policyEffDate: policy.effectiveDate,
     policyExpDate: policy.expirationDate,

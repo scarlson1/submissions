@@ -72,6 +72,7 @@ import {
 import { CONSTRUCTION_TYPE } from 'common/constants';
 import { FileLink, GridCellCopy, renderGridEmail, renderGridPhone } from 'components';
 import {
+  GridCellExpand,
   renderCellExpand,
   renderChip,
   renderChips,
@@ -402,6 +403,26 @@ export const fileLinkCol: GridColDef = {
         linkProps={{ underline: 'hover' }}
       />
     );
+  },
+};
+
+export const emailDomainsCol: GridColDef = {
+  field: 'emailDomains',
+  headerName: 'Email Domains',
+  minWidth: 180,
+  flex: 1,
+  editable: false,
+  sortable: false,
+  filterable: false,
+  valueGetter: (params) => params.row.emailDomains || [],
+  valueFormatter: (params) => params.value?.join(', '),
+  // renderCell: renderJoinArray,
+  // renderCell: renderCellExpand,
+  renderCell: ({ value, colDef }) => {
+    if (!value) return null;
+    const joinedDomains = value.join(', ');
+
+    return <GridCellExpand value={joinedDomains} width={colDef.computedWidth} />;
   },
 };
 

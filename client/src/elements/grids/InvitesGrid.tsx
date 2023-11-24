@@ -1,14 +1,15 @@
 import { CancelRounded, SendRounded } from '@mui/icons-material';
 import { Tooltip } from '@mui/material';
 import { GridActionsCellItem, GridColDef, GridRowParams } from '@mui/x-data-grid';
-import { QueryConstraint } from 'firebase/firestore';
+import { QueryFieldFilterConstraint } from 'firebase/firestore';
 import { Functions, httpsCallable } from 'firebase/functions';
 import { useCallback, useMemo } from 'react';
 import { useFunctions, useSigninCheck } from 'reactfire';
 
 import { CLAIMS, Collection, INVITE_STATUS, Invite } from 'common';
 import { ServerDataGrid, ServerDataGridProps } from 'components';
-import { useAsyncToast } from 'hooks';
+import { useAsyncToast, useClaims } from 'hooks';
+import { useUpdateDoc } from 'hooks/useUpdateDoc';
 import { INVITE_COLUMN_VISIBILITY, inviteCols } from 'modules/muiGrid';
 
 // TODO: need to use collection group hook if iDemand Admin
@@ -19,17 +20,31 @@ const resendInvite = (functions: Functions, args: { orgId: string; inviteId: str
     functions,
     'resendinvite'
   )(args);
+
+type UpdateInviteValues = Pick<Invite, 'firstName' | 'lastName' | 'status' | 'customClaims'>;
+
 interface InvitesGridProps {
   orgId?: string;
-  queryConstraints?: QueryConstraint[];
+  queryConstraints?: QueryFieldFilterConstraint[];
 }
 
 export const InvitesGrid = ({ orgId, queryConstraints }: InvitesGridProps) => {
   const functions = useFunctions();
   const toast = useAsyncToast();
+  const { claims } = useClaims();
   const { data: signInRes } = useSigninCheck({
     requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true },
   });
+  // const updateInvite = useUpdateInvite(
+  //   () => toast.success('invite updated!'),
+  //   (msg) => toast.error(msg)
+  // );
+  const updateInvite = useUpdateDoc<Invite, UpdateInviteValues>(
+    'organizations',
+    () => toast.success('invite updated!'),
+    (msg) => toast.error(msg)
+    // pass orgId/invites/docId in fn when orgId from doc
+  );
 
   const props: Omit<ServerDataGridProps, 'columns'> = useMemo(() => {
     if (orgId) {
@@ -37,19 +52,21 @@ export const InvitesGrid = ({ orgId, queryConstraints }: InvitesGridProps) => {
         colName: 'organizations',
         pathSegments: [orgId, Collection.Enum.invitations],
         isCollectionGroup: false,
+        constraints: queryConstraints,
       };
     } else {
       if (!signInRes.hasRequiredClaims) throw new Error('missing required permissions (or orgId)');
       return {
         colName: 'invitations',
         isCollectionGroup: true,
+        constraints: queryConstraints,
       };
     }
-  }, [orgId, signInRes]);
+  }, [orgId, signInRes, queryConstraints]);
 
   // TODO: resend invite cloud function
   const handleResendInvite = useCallback(
-    async (params: GridRowParams<Invite>) => {
+    (params: GridRowParams<Invite>) => async () => {
       const { orgId, id } = params.row;
       if (!orgId) return toast.error('missing org ID');
 
@@ -66,11 +83,18 @@ export const InvitesGrid = ({ orgId, queryConstraints }: InvitesGridProps) => {
     [functions, toast]
   );
 
-  const handleCancel = useCallback((params: GridRowParams<Invite>) => {
-    alert('TODO: handle cancel invite');
-    // verify permissions ??
-    // update status
-  }, []);
+  const handleCancel = useCallback(
+    ({ id, row }: GridRowParams<Invite>) =>
+      () => {
+        let oId = row.orgId || orgId;
+        if (!oId) return toast.warn('invite missing orgId');
+
+        updateInvite(`${oId}/${Collection.Enum.invitations}/${id.toString()}`, {
+          status: 'revoked', // TODO: change to cancelled ??
+        });
+      },
+    []
+  );
 
   const inviteColumns: GridColDef[] = useMemo(
     () => [
@@ -86,7 +110,7 @@ export const InvitesGrid = ({ orgId, queryConstraints }: InvitesGridProps) => {
                 <SendRounded />
               </Tooltip>
             }
-            onClick={() => handleResendInvite(params)}
+            onClick={handleResendInvite(params)}
             label='Resend Invite'
             disabled={params.row.status !== INVITE_STATUS.PENDING}
           />,
@@ -96,9 +120,12 @@ export const InvitesGrid = ({ orgId, queryConstraints }: InvitesGridProps) => {
                 <CancelRounded />
               </Tooltip>
             }
-            onClick={() => handleCancel(params)}
+            onClick={handleCancel(params)}
             label='Cancel'
-            disabled={params.row.status !== INVITE_STATUS.PENDING}
+            disabled={
+              params.row.status !== INVITE_STATUS.PENDING ||
+              !(claims?.iDemandAdmin || claims.orgAdmin)
+            }
           />,
         ],
       },

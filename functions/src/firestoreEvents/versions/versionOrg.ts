@@ -4,8 +4,8 @@ import { DocumentSnapshot, FieldValue, Timestamp, getFirestore } from 'firebase-
 import { info } from 'firebase-functions/logger';
 import { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 import { merge } from 'lodash-es';
-import { getReportErrorFn } from '../../common';
-import { getDifference, hasOne } from '../../utils';
+import { getReportErrorFn } from '../../common/index.js';
+import { getDifference, hasOne } from '../../utils/index.js';
 
 type OrgKeys = keyof TOrg;
 const VERSION_ORG_DIFF_KEYS: OrgKeys[] = [

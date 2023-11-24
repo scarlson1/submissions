@@ -1221,6 +1221,8 @@ export interface BaseTransaction extends BaseDoc {
   issuingCarrier: string;
   namedInsured: string;
   mailingAddress: Address;
+  agent: AgentDetails;
+  agency: AgencyDetails;
   homeState: string;
   policyEffDate: Timestamp;
   policyExpDate: Timestamp;
@@ -1370,80 +1372,6 @@ export interface Disclosure extends BaseDoc {
   type?: string | null;
   content: JSONContent;
 }
-
-// export type InviteStatus = 'pending' | 'accepted' | 'revoked' | 'replaced' | 'rejected' | 'error';
-
-// export interface Invite {
-//   email: string;
-//   displayName?: string;
-//   firstName?: string;
-//   lastName?: string;
-//   link?: string; // eslint-disable-next-line
-//   customClaims?: { [key: string]: any };
-//   orgId: string | null;
-//   orgName?: string;
-//   status: InviteStatus;
-//   sent?: boolean;
-//   isCreateOrgInvite?: boolean;
-//   id: string;
-//   invitedBy?: {
-//     userId?: string;
-//     name?: string;
-//     email: string;
-//   } | null;
-//   metadata: BaseMetadata;
-// }
-
-// export interface InviteClassInterface extends Invite {
-//   getLink: () => string;
-// }
-
-// export class InviteClass implements InviteClassInterface {
-//   public email: string;
-//   public displayName?: string;
-//   public firstName?: string;
-//   public lastName?: string;
-//   public link?: string; // eslint-disable-next-line
-//   public customClaims?: { [key: string]: any };
-//   public orgId: string | null;
-//   public orgName?: string;
-//   public status: InviteStatus;
-//   public sent: boolean;
-//   public isCreateOrgInvite?: boolean;
-//   public id: string;
-//   public invitedBy?: {
-//     userId?: string;
-//     name?: string;
-//     email: string;
-//   } | null;
-//   public metadata: BaseMetadata;
-
-//   constructor(inviteInfo: Invite) {
-//     this.email = inviteInfo.email;
-//     this.displayName = inviteInfo.displayName;
-//     this.firstName = inviteInfo.firstName;
-//     this.lastName = inviteInfo.lastName;
-//     this.link = inviteInfo.link;
-//     this.customClaims = inviteInfo.customClaims;
-//     this.orgId = inviteInfo.orgId;
-//     this.orgName = inviteInfo.orgName;
-//     this.status = inviteInfo.status;
-//     this.sent = inviteInfo.sent || false;
-//     this.isCreateOrgInvite = !!inviteInfo.isCreateOrgInvite;
-//     this.id = inviteInfo.id;
-//     this.invitedBy = inviteInfo.invitedBy;
-//     this.metadata = inviteInfo.metadata;
-//   }
-
-//   getLink() {
-//     let tenantURL = this.orgId === iDemandOrgId.value() ? '' : `/${this.orgId}`;
-//     return `${hostingBaseURL.value()}/auth/create-account${tenantURL}?email=${encodeURIComponent(
-//       this.email
-//     )}&firstName=${encodeURIComponent(this.firstName ?? '')}&lastName=${encodeURIComponent(
-//       this.lastName ?? ''
-//     )}`;
-//   }
-// }
 
 export interface EPayPaymentMethodDetails {
   attributeValues: any[];

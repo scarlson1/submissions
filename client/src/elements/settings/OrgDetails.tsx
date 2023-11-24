@@ -26,6 +26,7 @@ import { commOptions } from 'elements/forms/QuoteForm/constants';
 import { MAPBOX_TOKEN } from 'elements/maps';
 import { UploadResult, getDownloadURL } from 'firebase/storage';
 import { useAsyncToast, useClaims, useDocData, useUpdateOrg } from 'hooks';
+import { CoordObj } from 'modules/utils';
 
 // TODO: primary contact, NPN, FEIN ??
 // move component state up to EditOrg component ?? same except for form (just pass onSubmit)
@@ -92,6 +93,10 @@ export const OrgDetails = () => {
               city: org?.address?.city ?? '',
               state: org?.address?.state ?? '',
               postal: org?.address?.postal ?? '',
+            },
+            coordinates: {
+              latitude: org?.coordinates?.latitude || null,
+              longitude: org?.coordinates?.longitude || null,
             },
             defaultCommission: {
               flood: org?.defaultCommission?.flood ?? 0.15,
@@ -189,7 +194,7 @@ export const OrgDetails = () => {
   );
 };
 
-type OrgValues = Pick<Organization, 'orgName' | 'address' | 'defaultCommission' | 'coordinates'>;
+type OrgValues = Pick<Organization, 'orgName' | 'address' | 'defaultCommission'> & CoordObj;
 
 interface EditOrgFormProps extends FormikConfig<OrgValues> {
   exitEditMode: () => void;

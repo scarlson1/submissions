@@ -131,7 +131,7 @@ function isOverflown(element: Element): boolean {
 }
 
 // TODO: use for formatted address
-const GridCellExpand = memo(function GridCellExpand({ width, value }: GridCellExpandProps) {
+export const GridCellExpand = memo(function GridCellExpand({ width, value }: GridCellExpandProps) {
   const wrapper = useRef<HTMLDivElement | null>(null);
   const cellDiv = useRef(null);
   const cellValue = useRef(null);

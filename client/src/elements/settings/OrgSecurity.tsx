@@ -1,13 +1,14 @@
 import { CloseRounded, EditRounded } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
 import { Box, Collapse, IconButton, Paper, Stack, Typography } from '@mui/material';
-import { Form, Formik, FormikConfig } from 'formik';
+import { Form, Formik, FormikConfig, FormikHelpers } from 'formik';
 import { useCallback, useState } from 'react';
 import { array, boolean, object, string } from 'yup';
 
-import { Organization } from 'common';
+import { Organization, OrganizationZ } from 'common';
 import { FormikFieldArray, FormikSwitch } from 'components/forms';
-import { useAsyncToast, useClaims, useDocData, useUpdateOrg } from 'hooks';
+import { useAsyncToast, useClaims, useDocData, useUpdateDoc } from 'hooks';
+import { logDev } from 'modules/utils';
 
 const domainRegex = /^@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
 
@@ -44,10 +45,9 @@ export const OrgSecurity = () => {
   const toast = useAsyncToast({ position: 'top-right' });
   const { data: org } = useDocData<Organization>('organizations', orgId);
   const [editMode, setEditMode] = useState(false);
-  // const formRef = useRef<FormikProps<OrgSecurityValues>>(null);
 
-  const updateOrg = useUpdateOrg(
-    orgId,
+  const updateOrg = useUpdateDoc<Organization>(
+    'organizations',
     () => {
       toast.success('org changes saved');
       setEditMode(false);
@@ -58,9 +58,43 @@ export const OrgSecurity = () => {
   );
 
   const handleUpdateOrg = useCallback(
-    (values: OrgSecurityValues) => updateOrg(values),
-    [updateOrg]
+    (values: OrgSecurityValues, { setSubmitting }: FormikHelpers<OrgSecurityValues>) => {
+      // not necessary ?? move zod validation to form ?? or be confident yup matches ??
+      if (!OrganizationZ.partial().safeParse(values).success) {
+        toast.error('validation failed');
+        logDev(values);
+        setSubmitting(false);
+        return;
+      }
+      return updateOrg(orgId, values);
+    },
+    [updateOrg, orgId]
   );
+
+  // const updateOrg = useUpdateOrg(
+  //   orgId,
+  //   () => {
+  //     toast.success('org changes saved');
+  //     setEditMode(false);
+  //   },
+  //   (msg) => {
+  //     toast.error(msg);
+  //   }
+  // );
+
+  // const handleUpdateOrg = useCallback(
+  //   (values: OrgSecurityValues, { setSubmitting }: FormikHelpers<OrgSecurityValues>) => {
+  //     // not necessary ?? move zod validation to form ?? or be confident yup matches ??
+  //     if (!OrganizationZ.partial().safeParse(values).success) {
+  //       toast.error('validation failed');
+  //       logDev(values);
+  //       setSubmitting(false)
+  //       return;
+  //     }
+  //     return updateOrg(values);
+  //   },
+  //   [updateOrg]
+  // );
 
   return (
     <Box>

@@ -50,6 +50,8 @@ export function formatPremiumTrx(
     issuingCarrier: policy?.issuingCarrier || '',
     namedInsured: policy?.namedInsured?.displayName || '',
     mailingAddress: policy.mailingAddress,
+    agent: policy?.agent,
+    agency: policy.agency,
     locationId: location.locationId,
     externalId: location.externalId || null,
     insuredLocation: location,

@@ -283,6 +283,18 @@ function csvRowCommon(row: TrxRow): DeepNullable<Omit<BaseTransaction, 'metadata
     bookingDate: csvCellToTimestamp(row.bookingDate),
     issuingCarrier: row.issuingCarrier || null,
     namedInsured: row.namedInsured || null, // TODO: reusable func for getting address from csv
+    // TODO: agent details in upload (or just agent ID and look up agent info / agency info ??)
+    agent: {
+      name: null, // row.agentName || null,
+      email: null,
+      phone: null,
+      userId: null,
+    },
+    agency: {
+      name: null,
+      orgId: null,
+      address: null,
+    },
     mailingAddress: {
       addressLine1: row.mailingAddressLine1 || null,
       addressLine2: row.mailingAddressLine2 || '',

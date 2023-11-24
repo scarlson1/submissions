@@ -1,9 +1,10 @@
 import type { User as TUser } from '@idemand/common';
 import { User, policiesCollection, quotesCollection, submissionsCollection } from '@idemand/common';
-import { DocumentSnapshot, getFirestore } from 'firebase-admin/firestore';
+import { DocumentSnapshot, Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
 import { Change, FirestoreEvent } from 'firebase-functions/v2/firestore';
 import { isEqual } from 'lodash-es';
+import { transactionsCollection } from '../common/dbCollections.js';
 import { getReportErrorFn } from '../common/helpers.js';
 import { getDifference, hasOne } from '../utils/index.js';
 
@@ -47,6 +48,7 @@ export default async (
   const policiesCol = policiesCollection(db);
   const quotesCol = quotesCollection(db);
   const submissionsCol = submissionsCollection(db);
+  const transactionsCol = transactionsCollection(db);
 
   // need to get user from auth to determine whether to search for insured or agent ??
   // or should search both anyway ??
@@ -77,6 +79,7 @@ export default async (
         'namedInsured.email': user.email || prevNamedInsured.email,
         'namedInsured.phone': user.phone || prevNamedInsured.phone, //@ts-ignore
         'namedInsured.photoURL': user.photoURL || null,
+        'metadata.updated': Timestamp.now(),
       }); // TODO: move .catch to here ?? log/handle error for each update ??
     });
 
@@ -104,6 +107,7 @@ export default async (
         'namedInsured.email': user.email || prevNI.email,
         'namedInsured.phone': user.phone || prevNI.phone, //@ts-ignore
         'namedInsured.photoURL': user.photoURL || null,
+        'metadata.updated': Timestamp.now(),
       });
     });
 
@@ -131,6 +135,7 @@ export default async (
         'agent.email': user.email || prevAgent.email,
         'agent.phone': user.phone || prevAgent.phone,
         'agent.photoURL': user.photoURL || null,
+        'metadata.updated': Timestamp.now(),
       });
     });
 
@@ -155,6 +160,7 @@ export default async (
         'agent.email': user.email || prevAgent.email,
         'agent.phone': user.phone || prevAgent.phone,
         'agent.photoURL': user.photoURL || null,
+        'metadata.updated': Timestamp.now(),
       });
     });
 
@@ -181,6 +187,7 @@ export default async (
         'agent.email': user.email || prevAgent?.email || null,
         'agent.phone': user.phone || prevAgent?.phone || null,
         'agent.photoURL': user.photoURL || null,
+        'metadata.updated': Timestamp.now(),
       });
     });
 
@@ -188,6 +195,31 @@ export default async (
     info(`Successfully updated submissions with agent changes`);
   } catch (err: any) {
     let msg = `Error updating submissions with agent change`;
+    if (err.message) msg += ` ${err.message}`;
+    reportErr(msg, { userId, diff }, err);
+  }
+
+  try {
+    info(`Fetching transactions to update with user change ${userId}...`);
+    const trxSnaps = await transactionsCol.where('agent.userId', '==', userId).get();
+    info(`Updating transactions with user change ${userId} [COUNT: ${trxSnaps.docs.length}]...`);
+
+    const promises = trxSnaps.docs.map(async (snap) => {
+      const prevAgent = snap.data()?.agent;
+
+      return snap.ref.update({
+        'agent.name': user.displayName || prevAgent?.name || '',
+        'agent.email': user.email || prevAgent?.email || '',
+        'agent.phone': user.phone || prevAgent?.phone || null,
+        'agent.photoURL': user.photoURL || null,
+        'metadata.updated': Timestamp.now(),
+      });
+    });
+
+    await Promise.all(promises);
+    info(`Successfully updated transactions with user changes`);
+  } catch (err: any) {
+    let msg = `Error updating transaction with user change`;
     if (err.message) msg += ` ${err.message}`;
     reportErr(msg, { userId, diff }, err);
   }

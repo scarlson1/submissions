@@ -52,6 +52,8 @@ export const getOffsetTrx = (
     issuingCarrier: prevTrx.issuingCarrier,
     namedInsured: prevTrx.namedInsured,
     mailingAddress: prevTrx.mailingAddress,
+    agent: prevTrx.agent,
+    agency: prevTrx.agency,
     homeState: prevTrx.homeState || '',
     locationId: prevTrx.locationId,
     externalId: prevTrx.externalId,

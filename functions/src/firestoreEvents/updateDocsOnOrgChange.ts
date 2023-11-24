@@ -4,10 +4,10 @@ import {
   quotesCollection,
   submissionsCollection,
 } from '@idemand/common';
-import { getFirestore } from 'firebase-admin/firestore';
+import { Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
 import { Change, DocumentSnapshot, FirestoreEvent } from 'firebase-functions/v2/firestore';
-import { getReportErrorFn } from '../common/index.js';
+import { getReportErrorFn, transactionsCollection } from '../common/index.js';
 import { getDifference } from '../utils/getDifference.js';
 import { hasOne } from '../utils/index.js';
 
@@ -44,7 +44,7 @@ export default async (
   const policiesCol = policiesCollection(db);
   const quotesCol = quotesCollection(db);
   const submissionsCol = submissionsCollection(db);
-  // const transactionsCol = transactionsCollection(db);
+  const transactionsCol = transactionsCollection(db);
 
   // use bulk writer ??
   // const writer= db.bulkWriter();
@@ -70,6 +70,7 @@ export default async (
           ...(orgAddress || {}),
         },
         'agency.photoURL': photoURL || null,
+        'metadata.updated': Timestamp.now(),
       });
     });
 
@@ -97,6 +98,7 @@ export default async (
           ...(orgAddress || {}),
         },
         'agency.photoURL': photoURL || null,
+        'metadata.updated': Timestamp.now(),
       });
     });
 
@@ -126,6 +128,7 @@ export default async (
           ...(orgAddress || {}),
         },
         'agency.photoURL': photoURL || null,
+        'metadata.updated': Timestamp.now(),
       });
     });
 
@@ -137,33 +140,32 @@ export default async (
     reportErr(msg, { orgId, diff }, err);
   }
 
-  // try {
-  //   info(`Fetching transactions to update with org change ${orgId}...`);
-  //   const trxSnaps = await transactionsCol.where('agency.orgId', '==', orgId).get();
-  //   info(
-  //     `Updating transactions with org change ${orgId} [COUNT: ${trxSnaps.docs.length}]...`
-  //   );
+  try {
+    info(`Fetching transactions to update with org change ${orgId}...`);
+    const trxSnaps = await transactionsCol.where('agency.orgId', '==', orgId).get();
+    info(`Updating transactions with org change ${orgId} [COUNT: ${trxSnaps.docs.length}]...`);
 
-  //   const promises = trxSnaps.docs.map(async (snap) => {
-  //     const prevName = snap.data()?.agency?.name;
-  //     const prevAddress = snap.data()?.agency?.address;
+    const promises = trxSnaps.docs.map(async (snap) => {
+      const prevName = snap.data()?.agency?.name;
+      const prevAddress = snap.data()?.agency?.address;
 
-  //     return snap.ref.update({
-  //       'agency.name': orgName || prevName,
-  //       'agency.address': {
-  //         ...(prevAddress || {}),
-  //         ...(orgAddress || {}),
-  //       },
-  //     });
-  //   });
+      return snap.ref.update({
+        'agency.name': orgName || prevName,
+        'agency.address': {
+          ...(prevAddress || {}),
+          ...(orgAddress || {}),
+        },
+        'metadata.updated': Timestamp.now(),
+      });
+    });
 
-  //   await Promise.all(promises);
-  //   info(`Successfully updated transactions with org changes`);
-  // } catch (err: any) {
-  //   let msg = `Error updating transaction with org change`;
-  //   if (err.message) msg += ` ${err.message}`;
-  //   reportErr(msg, { orgId, diff }, err);
-  // }
+    await Promise.all(promises);
+    info(`Successfully updated transactions with org changes`);
+  } catch (err: any) {
+    let msg = `Error updating transaction with org change`;
+    if (err.message) msg += ` ${err.message}`;
+    reportErr(msg, { orgId, diff }, err);
+  }
 
   return;
 };

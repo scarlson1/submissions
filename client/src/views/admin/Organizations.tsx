@@ -12,13 +12,6 @@ export const Organizations = () => {
   const navigate = useNavigate();
   const { data } = useSigninCheck({ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } });
 
-  // const orgColumns: GridColDef[] = useMemo(
-  //   () => [
-  //     ...orgCols,
-  //   ],
-  //   []
-  // );
-
   if (!data.hasRequiredClaims) {
     return (
       <Typography variant='h6' align='center' sx={{ py: 8 }}>

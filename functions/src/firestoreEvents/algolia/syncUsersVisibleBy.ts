@@ -11,6 +11,8 @@ import {
 } from '../../common/index.js';
 import { getVisibleBy } from '../../utils/algolia.js';
 
+// Update user visibleBy property on user object in Algolia whenever /users/{userId}/permissions/private changes
+
 const reportErr = getReportErrorFn('syncUsersVisibleBy');
 
 export default async (

@@ -33,6 +33,8 @@ export const getLocationAmendmentTrx = (
     issuingCarrier: policy.issuingCarrier,
     namedInsured: policy.namedInsured.displayName,
     mailingAddress: policy.mailingAddress,
+    agent: policy.agent,
+    agency: policy.agency,
     insuredLocation: location,
     homeState: policy.homeState,
     policyEffDate: policy.effectiveDate,
