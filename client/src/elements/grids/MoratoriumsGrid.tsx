@@ -19,7 +19,7 @@ import { moratoriumCols } from 'modules/muiGrid/gridColumnDefs';
 import { formatFirestoreTimestamp } from 'modules/utils';
 import { CountiesMap } from '../maps/CountiesMap';
 
-export type MoratoriumGridProps = ServerDataGridCollectionProps;
+export type MoratoriumGridProps = ServerDataGridCollectionProps<Moratorium>;
 
 export const MoratoriumsGrid = ({
   renderActions = () => [],
@@ -147,7 +147,7 @@ export const MoratoriumsGrid = ({
   );
 
   return (
-    <ServerDataGrid
+    <ServerDataGrid<Moratorium>
       colName='moratoriums'
       columns={columns}
       density='compact'

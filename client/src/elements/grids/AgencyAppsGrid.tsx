@@ -2,12 +2,13 @@ import { Box } from '@mui/material';
 import { GridColDef, GridRowParams } from '@mui/x-data-grid';
 import { useMemo } from 'react';
 
+import { AgencyApplication } from 'common';
 import { ServerDataGrid, ServerDataGridProps } from 'components';
 import { agencyAppCols } from 'modules/muiGrid/gridColumnDefs';
 
 export interface AgencyAppsGridProps
   extends Omit<
-    ServerDataGridProps,
+    ServerDataGridProps<AgencyApplication>,
     'columns' | 'colName' | 'isCollectionGroup' | 'columns' | 'pathSegments'
   > {
   renderActions?: (params: GridRowParams) => JSX.Element[];
@@ -36,7 +37,7 @@ export function AgencyAppsGrid({
 
   return (
     <Box sx={{ height: { xs: 400, sm: 460, md: 500 }, width: '100%' }}>
-      <ServerDataGrid
+      <ServerDataGrid<AgencyApplication>
         colName='agencySubmissions'
         columns={columns}
         density='compact'

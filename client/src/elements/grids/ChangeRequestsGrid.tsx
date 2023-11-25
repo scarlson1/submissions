@@ -3,7 +3,7 @@ import { GridActionsColDef, GridRowParams } from '@mui/x-data-grid';
 import { where } from 'firebase/firestore';
 import { useMemo } from 'react';
 
-import { ServerDataGridCollectionProps } from 'common';
+import { ChangeRequest, ServerDataGridCollectionProps } from 'common';
 import { ChangeRequestStatus, Collection } from 'common/enums';
 import { ServerDataGrid, ServerDataGridProps } from 'components';
 import { useClaims, useWidth } from 'hooks';
@@ -43,9 +43,9 @@ export const ChangeRequestsGrid = ({
     return cols;
   }, [additionalColumns, renderActions, isSmall]);
 
-  const props: Omit<ServerDataGridProps, 'columns'> = useMemo(() => {
-    let queryProps: Omit<ServerDataGridProps, 'columns'>;
-    let constraints: ServerDataGridProps['constraints'] = [...propConstraints];
+  const props: Omit<ServerDataGridProps<ChangeRequest>, 'columns'> = useMemo(() => {
+    let queryProps: Omit<ServerDataGridProps<ChangeRequest>, 'columns'>;
+    let constraints: ServerDataGridProps<ChangeRequest>['constraints'] = [...propConstraints];
 
     if (policyId) {
       queryProps = {

@@ -38,7 +38,7 @@ export const InvitesGrid = ({ orgId, queryConstraints }: InvitesGridProps) => {
     // pass orgId/invites/docId in fn when orgId from doc
   );
 
-  const props: Omit<ServerDataGridProps, 'columns'> = useMemo(() => {
+  const props: Omit<ServerDataGridProps<Invite>, 'columns'> = useMemo(() => {
     if (orgId) {
       return {
         colName: 'organizations',
@@ -127,7 +127,7 @@ export const InvitesGrid = ({ orgId, queryConstraints }: InvitesGridProps) => {
   );
 
   return (
-    <ServerDataGrid
+    <ServerDataGrid<Invite>
       density='compact'
       autoHeight
       {...props}

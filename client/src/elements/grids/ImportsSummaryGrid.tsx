@@ -13,7 +13,7 @@ import { ADMIN_ROUTES, createPath } from 'router';
 
 export interface ImportSummaryGridProps
   extends Omit<
-    ServerDataGridProps,
+    ServerDataGridProps<ImportSummary>,
     'columns' | 'colName' | 'isCollectionGroup' | 'columns' | 'pathSegments'
   > {
   renderActions?: (params: GridRowParams) => JSX.Element[];

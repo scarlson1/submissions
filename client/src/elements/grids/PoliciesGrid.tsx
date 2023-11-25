@@ -6,7 +6,13 @@ import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { useSigninCheck } from 'reactfire';
 
-import { CLAIMS, PaymentStatus, Policy, ServerDataGridCollectionProps } from 'common';
+import {
+  CLAIMS,
+  PaymentStatus,
+  Policy,
+  PolicyWithStatus,
+  ServerDataGridCollectionProps,
+} from 'common';
 import { ServerDataGrid } from 'components';
 import { useGridShowJson } from 'hooks';
 import { POLICY_COLUMN_VISIBILITY, policyCols, statusCol } from 'modules/muiGrid/gridColumnDefs';
@@ -14,7 +20,7 @@ import { defaultPolicyIdCol } from 'modules/muiGrid/gridColumnDefs/policyCols';
 import { calcPolicyStatus } from 'modules/utils';
 import { ROUTES, createPath } from 'router';
 
-export type PoliciesGridProps = ServerDataGridCollectionProps<Policy> & {
+export type PoliciesGridProps = ServerDataGridCollectionProps<PolicyWithStatus, Policy> & {
   idCol?: GridColDef<Policy>;
 };
 
@@ -41,7 +47,6 @@ export const PoliciesGrid = ({
         : params.id.toString()
   );
 
-  // TODO: pass as prop (don't want to show in versions grid)
   const viewPolicyDoc = useCallback(
     (params: GridRowParams) => () => {
       const docObj = params.row.documents?.[0];
@@ -76,7 +81,7 @@ export const PoliciesGrid = ({
       },
       idCol,
       {
-        ...statusCol,
+        ...statusCol, // TODO: calc status with converter ??
         valueOptions: ['active', 'inactive'], // TODO: other types ??
         // valueOptions: [
         //   POLICY_STATUS.PAID,
@@ -110,6 +115,7 @@ export const PoliciesGrid = ({
       <ServerDataGrid
         colName='policies'
         columns={policyColumns}
+        // converter={policyConverter}
         density='compact'
         autoHeight
         onRowDoubleClick={(params) =>

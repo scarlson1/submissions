@@ -12,9 +12,9 @@ import {
 } from '@mui/x-data-grid';
 import { MissingRowIdError } from '@mui/x-data-grid/hooks/features/rows/useGridParamsApi';
 import { GridApiCommunity, getColumnsToExport } from '@mui/x-data-grid/internals';
-import { MutableRefObject, useCallback } from 'react';
 import {
   CollectionReference,
+  DocumentData,
   QueryFieldFilterConstraint,
   documentId,
   getDocs,
@@ -22,9 +22,9 @@ import {
   where,
 } from 'firebase/firestore';
 import { get } from 'lodash';
+import { MutableRefObject, useCallback } from 'react';
 import invariant from 'tiny-invariant';
 
-import { useAsyncToast } from './useAsyncToast';
 import {
   buildCSV,
   getFirestoreFilters,
@@ -32,6 +32,7 @@ import {
   getOrderByIfNecessary,
 } from 'modules/muiGrid';
 import { saveDownload } from 'modules/utils';
+import { useAsyncToast } from './useAsyncToast';
 
 const useGridParamsApiServerValues = (apiRef: MutableRefObject<GridApiCommunity>) => {
   const getCellValue = useCallback(
@@ -128,7 +129,7 @@ const getExportQueryConstraints = (
 
 // https://github.com/mui/mui-x/blob/master/packages/grid/x-data-grid/src/hooks/features/export/useGridCsvExport.tsx
 
-export const useGridCsvExport = <T>(
+export const useGridCsvExport = <T extends DocumentData = DocumentData>(
   apiRef: MutableRefObject<GridApiCommunity>,
   collectionRef: CollectionReference<T>,
   constraints: QueryFieldFilterConstraint[] = []
@@ -142,7 +143,8 @@ export const useGridCsvExport = <T>(
       try {
         // TODO: process constraints passed as prop
         // const orderByConstraint = getOrderByIfNecessary(constraints);
-        const qConstraints = getExportQueryConstraints(apiRef, constraints);
+        console.log('constraints:', constraints);
+        let qConstraints = getExportQueryConstraints(apiRef, constraints);
         const selected = gridRowSelectionStateSelector(apiRef.current.state);
 
         let docIds: GridRowId[] = [];
@@ -151,7 +153,14 @@ export const useGridCsvExport = <T>(
         } else if (selected.length) {
           docIds = selected;
         }
-        if (docIds.length) qConstraints.push(where(documentId(), 'in', docIds));
+        // BUG: inequality filter property and first sort order must be the same: __key__ and metadata.created
+        // if (docIds.length) qConstraints.push(where(documentId(), 'in', docIds));
+        // 'in' query cannot have another orderBy query after it
+        // https://github.com/googleapis/nodejs-firestore/issues/1472#issuecomment-819007435
+        if (docIds.length) {
+          qConstraints = qConstraints.filter((c) => c.type !== 'orderBy');
+          qConstraints.push(where(documentId(), 'in', docIds));
+        }
 
         let q = query(collectionRef, ...qConstraints);
         let querySnap = await getDocs(q);

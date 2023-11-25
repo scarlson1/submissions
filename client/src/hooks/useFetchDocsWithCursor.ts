@@ -2,7 +2,9 @@ import {
   collection,
   collectionGroup,
   CollectionReference,
+  DocumentData,
   DocumentSnapshot,
+  FirestoreDataConverter,
   limit,
   query,
   QueryConstraint,
@@ -13,13 +15,17 @@ import { ReactFireOptions, useFirestore, useFirestoreCollection } from 'reactfir
 
 import { TCollection } from 'common';
 
-export function useFetchDocsWithCursor<T = any>(
+export function useFetchDocsWithCursor<
+  T extends DocumentData = DocumentData,
+  D extends DocumentData = T
+>(
   colName: TCollection,
   constraints: QueryConstraint[],
   params: { cursor?: DocumentSnapshot; itemsPerPage: number },
   isCollectionGroup: boolean = false,
   pathSegments: string[] = [],
-  options?: ReactFireOptions<T[]> | undefined
+  options?: ReactFireOptions<T[]> | undefined,
+  converter?: FirestoreDataConverter<T, D>
 ) {
   const db = useFirestore();
 
@@ -35,6 +41,7 @@ export function useFetchDocsWithCursor<T = any>(
   } else {
     collectionRef = collection(db, colName, ...pathSegments) as CollectionReference<T>;
   }
+  if (converter) collectionRef.withConverter(converter);
 
   let q = query(collectionRef, ...qConstraints);
 

@@ -276,7 +276,6 @@ export function ChangeRequestsDialog({ policyId, open, handleClose }: ChangeRequ
     getEditRowModeActions,
   ]);
 
-  // TODO: need to add error boundary around suspense
   return (
     <Dialog open={open} onClose={handleClose} maxWidth='xl' fullWidth>
       <DialogTitle>Policy Change Requests</DialogTitle>
