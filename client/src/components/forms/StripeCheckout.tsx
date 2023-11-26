@@ -195,7 +195,7 @@ export function StripeCheckoutForm({ clientSecret }: { clientSecret: string }) {
       elements,
       confirmParams: {
         // Make sure to change this to your payment completion page
-        return_url: 'http://localhost:3000', // TODO: REDIRECT TO PAYMENT SUCCEEDED
+        return_url: 'http://localhost:3000/admin/stripe-test/success', // TODO: REDIRECT TO PAYMENT SUCCEEDED
         // payment_intent_client_secret is set as query param --> fetch intent to display status
       },
     });

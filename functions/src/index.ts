@@ -94,6 +94,7 @@ export {
   copytaxes,
   generatepdf,
   sendgrid,
+  stripe,
 } from './routes/index.js';
 export { checkachstatus } from './scheduler/index.js';
 export {

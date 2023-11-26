@@ -1039,6 +1039,16 @@ export const router = sentryCreateBrowserRouter([
             ),
           },
           {
+            path: 'stripe-test/success',
+            element: (
+              <RequireAuthReactFire
+                signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
+              >
+                <div>pmt success</div>
+              </RequireAuthReactFire>
+            ),
+          },
+          {
             path: ADMIN_ROUTES.SUBMISSION_VIEW,
             element: (
               <RequireAuthReactFire

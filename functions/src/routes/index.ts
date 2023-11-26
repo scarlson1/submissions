@@ -7,9 +7,14 @@ import {
   firebaseHashConfig,
   // sendGridWebhookVerificationKey,
   sendgridApiKey,
+  stripeSecretKey,
 } from '../common/index.js';
 
 // TODO: upgrade to v2 onRequest (need to get hosting rewrite to work b/c v2 uses cloud run & creates new url every deploy)
+
+export const stripe = onRequest({ secrets: [stripeSecretKey] }, async (request, response) => {
+  await (await import('./stripe.js')).default(request, response);
+});
 
 export const authRequests = functions
   .runWith({ secrets: [emailVerificationKey, firebaseHashConfig] })
