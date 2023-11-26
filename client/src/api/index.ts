@@ -9,6 +9,7 @@ export { calcPolicyChanges } from './calcPolicyChanges';
 export { calcQuote } from './calcQuote';
 // export { convertPolicySchema } from './convertPolicySchema';
 export * from './cloudRunApi';
+export { createPaymentIntent } from './createPaymentIntent';
 export { createPolicy } from './createPolicy';
 export { createTenantFromSubmission } from './createTenantFromSubmission';
 export { deliverAgencyAgreement } from './deliverAgencyAgreement';
@@ -36,6 +37,10 @@ export type {
 } from './calcLocationChanges';
 export type { CalcPolicyChangesRequest, CalcPolicyChangesResponse } from './calcPolicyChanges';
 export type { CalcQuoteRequest, CalcQuoteResponse } from './calcQuote';
+export type {
+  CreatePaymentIntentRequest,
+  CreatePaymentIntentResponse,
+} from './createPaymentIntent';
 export type { CreatePolicyRequest, CreatePolicyResponse } from './createPolicy';
 export type { CreateTenantRequest, CreateTenantResponse } from './createTenantFromSubmission';
 export type { ExecutePmtRequest, ExecutePmtResponse } from './executePayment';

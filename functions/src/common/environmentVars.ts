@@ -30,6 +30,7 @@ export const algoliaIDemandAdminSearchKey = defineSecret('ALGOLIA_IDEMAND_ADMIN_
 export const googleGeoKey = defineSecret('GOOGLE_BACKEND_GEO_KEY');
 export const exportSDKKey = defineSecret('EXPORT_SDK_KEY');
 export const elevationKey = defineSecret('GPXZ_KEY');
+export const stripeSecretKey = defineSecret('STRIPE_SECRET_KEY');
 
 export const audience = defineString('AUDIENCE');
 export const hostingBaseURL = defineString('HOSTING_BASE_URL');

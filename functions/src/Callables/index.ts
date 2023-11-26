@@ -12,6 +12,7 @@ import {
   sendgridApiKey,
   signNowCreds,
   signNowUserCreds,
+  stripeSecretKey,
   swissReClientId,
   swissReClientSecret,
   swissReSubscriptionKey,
@@ -66,6 +67,10 @@ export const calcquote = onCall(async (request) => {
 // export const convertpolicyschema = onCall(async (request) => {
 //   return (await import('./convertPolicySchema.js')).default(request);
 // });
+
+export const createpaymentintent = onCall({ secrets: [stripeSecretKey] }, async (request) => {
+  return (await import('./createPaymentIntent.js')).default(request);
+});
 
 export const createpolicy = onCall(async (request) => {
   return (await import('./createPolicy.js')).default(request);

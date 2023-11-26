@@ -8,4 +8,5 @@ export { checkMoratoriums } from './checkMoratoriums.js';
 export * from './elevationApi.js';
 export { geocodeAddress } from './geocodeAddress.js';
 export { getFEMAFloodZone } from './getFloodZone.js';
+export * from './stripe.js';
 export { getSubmissionsInstance } from './submissionsApi.js';

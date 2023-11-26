@@ -8,6 +8,7 @@ import {
 
 import { CLAIMS, TProduct } from 'common';
 import { PageMeta, RequireAuth, RouterErrorBoundary } from 'components';
+import { StripePmtIntentWrapper } from 'components/forms/StripeCheckout';
 import { ConfigLayout, Layout, SettingsLayout } from 'components/layout';
 import { RouterLink as BreadCrumbLink } from 'components/layout/Breadcrumbs';
 import { RequireAuthReactFire } from 'components/RequireAuthReactFire';
@@ -1026,7 +1027,17 @@ export const router = sentryCreateBrowserRouter([
               </RequireAuthReactFire>
             ),
           },
-
+          {
+            path: 'stripe-test/:quoteId',
+            element: (
+              <RequireAuthReactFire
+                signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
+              >
+                {/* <StripePayment /> */}
+                <StripePmtIntentWrapper />
+              </RequireAuthReactFire>
+            ),
+          },
           {
             path: ADMIN_ROUTES.SUBMISSION_VIEW,
             element: (
