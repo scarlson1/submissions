@@ -7,6 +7,7 @@ import { getStripe } from '../services/stripe.js';
 import { verify } from '../utils/index.js';
 
 // docs: https://stripe.com/docs/api/accounts/create
+// merchant codes: https://stripe.com/docs/connect/setting-mcc
 
 const reportErr = getReportErrorFn('createStripeAccount');
 

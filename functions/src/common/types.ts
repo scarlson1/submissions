@@ -14,6 +14,7 @@ import {
   PriorLossCount,
   Product,
   Quote,
+  TaxItem,
   Totals,
   TransactionType,
 } from '@idemand/common';
@@ -214,6 +215,42 @@ export const NamedInsured = z.object({
   orgId: z.string().nullable().optional(),
 });
 export type NamedInsured = z.infer<typeof NamedInsured>;
+
+export const LineItem = z.object({
+  displayName: z.string(),
+  amount: z.number(),
+  descriptor: z.string().optional(),
+});
+
+export const Transfer = z.object({
+  amount: z.number().int(), // IN CENTS
+  destination: z.string(), // accountId: z.string(),
+  // source_transaction - use the charge ID from event handler (will autopopulate transfer_group)
+});
+
+export const PayableStatus = z.enum(['outstanding', 'paid', 'cancelled', 'expired']);
+export type PayableStatus = z.infer<typeof PayableStatus>;
+// keep expired ?? payable should persist when invoice expires ??
+// TODO: handle invoice / payment intent expired
+
+export const Payable = z.object({
+  policyId: z.string(),
+  billingEntityId: z.string(), // delete and only use stripe customer ID ?? should always be the same
+  stripeCustomerId: z.string(),
+  billintEntityDetails: z.any(),
+  lineItems: z.array(LineItem),
+  transfers: z.array(Transfer), // create before ?? need to update if revered ??
+  transferGroup: z.string(), // passed to payment intent - not available on invoice ??
+  taxes: z.array(TaxItem), // just store referance to tax calc object ??
+  // taxes separate from line items ??
+  status: PayableStatus,
+  paymentOption: z.enum(['invoice', 'paymentIntent']),
+  invoiceId: z.string().optional().nullable(),
+  paymentIntentId: z.string().optional().nullable(),
+  // TODO: other data
+  metadata: BaseMetadata,
+});
+export type Payable = z.infer<typeof Payable>;
 
 export interface EPayVerifiedResponse {
   id: string;

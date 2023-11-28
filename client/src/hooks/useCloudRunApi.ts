@@ -88,7 +88,7 @@ export const useCloudRunApi = <T extends TCloudApiConfig, R = any>({
 //               Tax.and(
 //                 z.object({
 //                   displayName: TaxItemName,
-//                   calculatedTaxBase: z.number().nullable(),
+//                   taxBaseAmount: z.number().nullable(),
 //                   rate: z.number().nullable(),
 //                   value: z.number(),
 //                   effectiveDate: z.string(),

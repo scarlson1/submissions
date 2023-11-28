@@ -25,14 +25,6 @@ const endpointSecret = 'whsec_ac4f0585f7511a2616f0750393299ffdddab9f7275dfd74378
 
 const app = express();
 
-// app.use(
-//   bodyParser.json({
-//     verify: (req, res, buf) => {
-//       req.rawBody = buf;
-//     },
-//   })
-// );
-
 app.post(
   '/webhook',
   express.raw({ type: 'application/json' }), // @ts-ignore
@@ -49,7 +41,7 @@ app.post(
       const signature = req.headers['stripe-signature'];
       try {
         event = stripe.webhooks.constructEvent(req.rawBody, signature || '', endpointSecret);
-        console.log('Signature verification succeeded');
+        // console.log('Signature verification succeeded');
       } catch (err: any) {
         let msg = `⚠️  Webhook signature verification failed. ${err.message}`;
         reportErr(msg, { eventType: event?.type, data: event?.data?.object || {} }, err);
@@ -59,10 +51,12 @@ app.post(
     }
 
     console.log('Event Type => ', event.type);
-    console.log('Trigger Object Id => ', event.data.object.id);
+    // console.log('Trigger Object Id => ', event.data.object.id);
 
     // Handle the event
     switch (event.type) {
+      // case 'payment_intent.': look up created event
+      // could use webhook to set the transfer group when invoice creates payment intent ??
       case 'payment_intent.processing':
         const paymentIntentProcessing = event.data.object as Stripe.PaymentIntent;
         console.log('Pmt Intent Processing: ', paymentIntentProcessing);
@@ -108,6 +102,8 @@ app.post(
       case 'charge.refunded':
         const refundedCharge = event.data.object as Stripe.Charge;
         console.log('charge refunded: ', refundedCharge);
+        // TODO: must reverse any transfers
+        // use this event or 'refund.created' ??
         break;
       // account.updated
       // capability.updated
@@ -168,6 +164,7 @@ app.post(
         // Occurs whenever a refund from a customer’s cash balance is created.
         const refund = event.data.object as Stripe.Refund;
         console.log('refund created: ', refund);
+        // use this event or 'charge.refunded' ??
         break;
       case 'refund.updated':
         // Occurs whenever a refund from a customer’s cash balance is updated.
@@ -203,14 +200,17 @@ app.post(
       case 'transfer.created':
         const createdTransfer = event.data.object as Stripe.Transfer;
         console.log('transfer created: ', createdTransfer);
+        // TODO: mirror in DB
         break;
       case 'transfer.reversed':
         const reversedTransfer = event.data.object as Stripe.Transfer;
         console.log('transfer reversed: ', reversedTransfer);
+        // TODO: mirror in DB
         break;
       case 'transfer.updated':
         const updatedTransfer = event.data.object as Stripe.Transfer;
         console.log('transfer updated: ', updatedTransfer);
+        // TODO: mirror in DB
         break;
       default:
         // Unexpected event type
@@ -227,6 +227,7 @@ app.use(express.json());
 app.use(currentUser);
 app.use(requireAuth);
 
+// get Stripe client secret for embedded components (account onboarding, payments, payouts, etc.)
 // ACCEPT ORG ID INSTEAD ??
 app.post(
   '/accountSession',
@@ -236,23 +237,18 @@ app.post(
     try {
       const accountId = req.body.accountId; // TODO: middleware to require account ID
       const type = req.body.type || 'account_onboarding';
+      // payments, payment_details, payouts in beta
       const stripe = getStripe(stripeSecretKey.value());
       const accountSession = await stripe.accountSessions.create({
-        account: accountId, // '{{CONNECTED_ACCOUNT_ID}}',
+        account: accountId,
         components: {
           [type]: {
             enabled: true,
           },
-          // account_onboarding: {
-          //   enabled: true,
-          // },
         },
       });
 
-      // stripe.accountSessions or stripe.accountLinks.create ?? embedded vs stripe hosted ??
-      // https://www.youtube.com/live/RYiscsdICrs?si=lnBpQysXWfXxaV17&t=1229
-
-      res.json({
+      res.send({
         clientSecret: accountSession.client_secret,
       });
       return;
@@ -304,6 +300,7 @@ app.post(
       });
 
       res.send({ accountLink: accountLink.url });
+      return;
     } catch (err: any) {
       let msg = 'An error occurred creating account link';
       if (err.message) msg += `. ${err.message}`;
@@ -336,6 +333,7 @@ app.get(
       });
 
       res.redirect(accountLink.url);
+      return;
     } catch (err: any) {
       let msg = 'An error occurred creating account link';
       if (err.message) msg += `. ${err.message}`;
@@ -356,7 +354,6 @@ app.get(
       const orgId = req.params.orgId;
       const user = req.user;
       const isIDemandAdmin = user?.iDemandAdmin || false;
-      console.log('USER: ', user);
       if (!isIDemandAdmin && orgId !== user?.firebase.tenant)
         throw new Error('tenantId must match requested orgId');
 
@@ -367,9 +364,11 @@ app.get(
       const account = await stripe.accounts.retrieve(accountId);
 
       res.send({ ...account });
+      return;
     } catch (err: any) {
       console.error(err);
       res.status(500).send({ error: 'an error occurred' });
+      return;
     }
   }
 );

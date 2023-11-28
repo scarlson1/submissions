@@ -13,12 +13,14 @@ import {
   usersCollection,
 } from '@idemand/common';
 import { CollectionReference, DocumentData, Firestore } from 'firebase-admin/firestore';
+import Stripe from 'stripe';
 import {
   AgencyApplication,
   ChangeRequest,
   Charge,
   Disclosure,
   ImportSummary,
+  Payable,
   PaymentMethod,
   PolicyClaim,
   PropertyDataRes,
@@ -61,6 +63,12 @@ export const createCollection = <T = DocumentData>(
 
 // export const locationsCollection = (db: Firestore) =>
 //   createCollection<ILocation>(db, COLLECTIONS.LOCATIONS);
+
+export const transfersCollection = (db: Firestore) =>
+  createCollection<Stripe.Transfer | Stripe.TransferReversal>(db, 'transfers');
+
+// TODO: type
+export const payablesCollection = (db: Firestore) => createCollection<Payable>(db, 'payables');
 
 export const ratingDataCollection = (db: Firestore) =>
   createCollection<RatingData>(db, 'ratingData');

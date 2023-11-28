@@ -30,7 +30,7 @@ interface StateTaxRequest extends SubjectBaseKeyVal {
 interface TaxResLineItem
   extends Omit<WithId<Tax>, 'metadata' | 'effectiveDate' | 'expirationDate' | 'rate'> {
   displayName: TaxItemName;
-  calculatedTaxBase: number | null; // null if fixed rate ($10)
+  taxBaseAmount: number | null; // null if fixed rate ($10)
   rate: number | null; // null if fixed rate ($10)
   value: number;
   effectiveDate: string;

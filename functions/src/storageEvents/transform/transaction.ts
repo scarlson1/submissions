@@ -12,7 +12,7 @@ import {
   TaxItem,
   Totals,
 } from '@idemand/common';
-import { GeoPoint } from 'firebase-admin/firestore';
+import { GeoPoint, Timestamp } from 'firebase-admin/firestore';
 import {
   AmendmentTransaction,
   BaseTransaction,
@@ -127,8 +127,20 @@ function csvRowToPremiumTrx(row: TrxRow): DeepNullable<Omit<PremiumTransaction, 
       value: extractNumberNeg(row.billingEntitySurplusLinesTax),
       rate: 0, // TODO: fix
       subjectBase: ['premium'], // TODO: fix
+      subjectBaseAmount: 0, // TODO: fix
       resultRoundType: 'nearest',
       id: '', // TODO: fix type
+      transactionTypes: [
+        'new',
+        'endorsement',
+        'amendment',
+        'cancellation',
+        'flat_cancel',
+        'reinstatement',
+        'renewal',
+      ],
+      expirationDate: Timestamp.fromDate(new Date('01/01/2050')),
+      calcDate: Timestamp.now(),
     });
   }
   if (row.billingEntitySurplusLinesRegulatoryFee) {
@@ -137,8 +149,20 @@ function csvRowToPremiumTrx(row: TrxRow): DeepNullable<Omit<PremiumTransaction, 
       value: extractNumberNeg(row.billingEntitySurplusLinesRegulatoryFee),
       rate: 0, // TODO: fix
       subjectBase: ['premium'], // TODO: fix
+      subjectBaseAmount: 0, // TODO: fix
       resultRoundType: 'nearest',
       id: '',
+      transactionTypes: [
+        'new',
+        'endorsement',
+        'amendment',
+        'cancellation',
+        'flat_cancel',
+        'reinstatement',
+        'renewal',
+      ],
+      expirationDate: Timestamp.fromDate(new Date('01/01/2050')),
+      calcDate: Timestamp.now(),
     });
   }
   if (row.billingEntityInspectionFee) {

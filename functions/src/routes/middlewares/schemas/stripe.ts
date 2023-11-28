@@ -13,7 +13,7 @@ export const accountSessionSchema = checkSchema({
     in: 'body',
     optional: true,
     isIn: {
-      options: [['account_update', 'account_onboarding']],
+      options: [['account_onboarding']], // payments, payment_details, payouts in beta
       errorMessage: 'Invalid type',
     },
     // default: 'account_onboarding'
