@@ -3,7 +3,7 @@ import { Timestamp } from 'firebase-admin/firestore';
 
 import { Policy, WithId } from '@idemand/common';
 import { CancellationReason, OffsetTransaction, PremiumTransaction } from '../../common/index.js';
-import { getTrxTaxesAndFees } from './taxes.js';
+import { getTrxTaxesAndFees } from '../taxes/index.js';
 import { getBookingDate, getMGAComm, getNetDWP, getOffsetTermPremium } from './utils.js';
 
 /**

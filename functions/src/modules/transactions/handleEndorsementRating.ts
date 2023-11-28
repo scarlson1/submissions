@@ -33,7 +33,7 @@ import {
   validateLimits,
   validateRCVs,
 } from '../rating/index.js';
-import { recalcTaxes } from './taxes.js';
+import { recalcTaxes } from '../taxes/index.js';
 import { calcTerm } from './utils.js';
 
 // TODO: delete ?? (replace by calcLocationChanges)

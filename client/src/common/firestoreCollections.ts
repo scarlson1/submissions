@@ -23,6 +23,7 @@ import {
   RatingData,
   StageImportRecord,
   Submission,
+  TaxTransaction,
   TTax,
   User,
   UserAccess,
@@ -79,6 +80,9 @@ export const moratoriumsCollection = (db: Firestore) =>
 
 export const agencyAppCollection = (db: Firestore) =>
   createCollection<AgencyApplication, AgencyApplication>(db, 'agencySubmissions');
+
+export const taxTransactionsCollection = (db: Firestore) =>
+  createCollection<TaxTransaction>(db, Collection.Enum.taxTransactions);
 
 export const finTrxCollection = (db: Firestore) =>
   createCollection<Charge, Charge>(db, 'financialTransactions');

@@ -6,7 +6,6 @@ export { getReinstatementTrx } from './getReinstatementTrx.js';
 export { handleCancelRating } from './handleCancelRating.js';
 export { handleRatingForEndorsement, setChangeRequestErr } from './handleEndorsementRating.js';
 export * from './publishChangeRequestTransactions.js';
-export * from './taxes.js';
 export * from './utils.js';
 
 // trxEffDates:

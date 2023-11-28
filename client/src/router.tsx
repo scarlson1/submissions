@@ -8,7 +8,7 @@ import {
 
 import { CLAIMS, TProduct } from 'common';
 import { PageMeta, RequireAuth, RouterErrorBoundary } from 'components';
-import { StripePmtIntentWrapper } from 'components/forms/StripeCheckout';
+// import { StripePmtIntentWrapper } from 'components/forms/StripeCheckout/StripeElementsWrapper';
 import { ConfigLayout, Layout, SettingsLayout } from 'components/layout';
 import { RouterLink as BreadCrumbLink } from 'components/layout/Breadcrumbs';
 import { RequireAuthReactFire } from 'components/RequireAuthReactFire';
@@ -17,6 +17,7 @@ import { AuthActionsProvider } from 'context';
 import { ActionHandler } from 'elements';
 import { SuccessStep } from 'elements/forms';
 import { LocationChangeWrapper } from 'elements/forms/LocationChangeForm';
+import StripeCheckout from 'elements/forms/StripeCheckout';
 import { BindSuccess } from 'elements/forms/SuccessStep';
 import { EmailsGrid, ImportsSummaryGrid } from 'elements/grids';
 import { ActiveEventsMap, PoliciesMap } from 'elements/maps';
@@ -24,6 +25,7 @@ import { TestSubmissionsMapWithFilters } from 'elements/maps/SubmissionsMap';
 import {
   OrgDetails,
   OrgSecurity,
+  OrgStripeConnectOnboarding,
   OrgUsers,
   UserDetails as UserDetailsNew,
   UserSecurity,
@@ -179,6 +181,7 @@ export enum ACCOUNT_ROUTES {
   USER_SETTING = '/account/user/:setting',
   ORG_SETTINGS = '/account/org',
   ORG_SETTING = '/account/org/:setting',
+  ORG_STRIPE_ONBOARDING = '/account/org/:orgId/onboarding',
 }
 
 type TArgs =
@@ -264,7 +267,8 @@ type TArgs =
   | { path: ACCOUNT_ROUTES.USER_SETTINGS }
   | { path: ACCOUNT_ROUTES.USER_SETTING; params: { setting: string } }
   | { path: ACCOUNT_ROUTES.ORG_SETTINGS }
-  | { path: ACCOUNT_ROUTES.ORG_SETTING; params: { setting: string } };
+  | { path: ACCOUNT_ROUTES.ORG_SETTING; params: { setting: string } }
+  | { path: ACCOUNT_ROUTES.ORG_STRIPE_ONBOARDING; params: { orgId: string } };
 
 type TArgsWithParams = Extract<TArgs, { path: any; params: any }>;
 
@@ -628,6 +632,19 @@ export const router = sentryCreateBrowserRouter([
                 },
               ],
             },
+          },
+          {
+            path: ACCOUNT_ROUTES.ORG_STRIPE_ONBOARDING,
+            element: (
+              <RequireAuth requiredClaims={['IDEMAND_ADMIN', 'ORG_ADMIN']}>
+                <OrgStripeConnectOnboarding />
+              </RequireAuth>
+            ),
+            // element: (
+            //   <RequireAuthReactFire requiredClaims>
+            //     <OrgStripeConnectOnboarding />
+            //   </RequireAuthReactFire>
+            // ),
           },
           {
             path: 'account',
@@ -1033,8 +1050,7 @@ export const router = sentryCreateBrowserRouter([
               <RequireAuthReactFire
                 signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
               >
-                {/* <StripePayment /> */}
-                <StripePmtIntentWrapper />
+                <StripeCheckout />
               </RequireAuthReactFire>
             ),
           },

@@ -1,7 +1,6 @@
+import { Collection, ILocation } from '@idemand/common';
 import { info } from 'firebase-functions/logger';
 import { FirestoreEvent, QueryDocumentSnapshot } from 'firebase-functions/v2/firestore';
-
-import { Collection, ILocation } from '@idemand/common';
 import { getReportErrorFn } from '../common/index.js';
 import { publishGetLocationImages } from '../services/pubsub/index.js';
 import { verify } from '../utils/index.js';

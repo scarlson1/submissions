@@ -159,10 +159,11 @@ const createTenantFromSubmission = async ({
       orgName: org.orgName,
       address: org.address,
       coordinates: org.coordinates || null,
+      stripeAccountId: null, // create from onCreate firestore event
       // ...coords,
       // coordinates: undefined, // docData.coordinates, TODO: fix. currently storing lat lon at top level on agency application instead of in coordinates
-      FEIN: org.FEIN || undefined,
-      EandOURL: org.EandO || undefined,
+      FEIN: org.FEIN || '',
+      EandOURL: org.EandO || '',
       // accountNumber: docData.accountNumber || undefined,
       // routingNumber: docData.routingNumber || undefined,
       status: AGENCY_STATUS.ACTIVE,

@@ -12,7 +12,6 @@ export {
   setClaimsFromInvite,
   setUidByEmailOnCreate,
 } from './authEvents/index.js';
-
 export {
   approvechangerequest,
   approveimport,
@@ -55,6 +54,7 @@ export {
   syncusersvisibleby,
 } from './firestoreEvents/algolia/index.js';
 export {
+  createstripeaccount,
   getstaticsubmissionimg,
   getsubmissionaal,
   getsubmissionfips,

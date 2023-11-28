@@ -3,11 +3,19 @@ import { onDocumentCreated, onDocumentWritten } from 'firebase-functions/v2/fire
 import { Collection } from '@idemand/common';
 import {
   sendgridApiKey,
+  stripeSecretKey,
   swissReClientId,
   swissReClientSecret,
   swissReSubscriptionKey,
 } from '../common/index.js';
 export type { ClaimsDocData } from './mirrorCustomClaims.js';
+
+export const createstripeaccount = onDocumentCreated(
+  { document: `${Collection.enum.organizations}/{orgId}`, secrets: [stripeSecretKey] },
+  async (event) => {
+    await (await import('./createStripeAccount.js')).default(event);
+  }
+);
 
 export const getstaticsubmissionimg = onDocumentCreated(
   `${Collection.enum.submissions}/{submissionId}`,

@@ -60,6 +60,7 @@ export const Collection = z.enum([
   'paymentMethods',
   'transactions',
   'financialTransactions',
+  'taxTransactions',
   'agencySubmissions',
   'licenses',
   'notifications',

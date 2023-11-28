@@ -518,6 +518,43 @@ export const Tax = TaxItem.omit({ value: true }).and(
 );
 export type TTax = z.infer<typeof Tax>;
 
+export const TaxTransactionType = z.enum(['transaction', 'reversal']);
+export type TaxTransactionType = z.infer<typeof TaxTransactionType>;
+
+export const TaxOgTransactionZ = z.object({
+  type: z.literal(TaxTransactionType.Enum.transaction),
+  taxId: z.string(),
+  chargeAmount: z.number().nonnegative(),
+  taxAmount: z.number().nonnegative(),
+  stripeCustomerId: z.string().nullable(),
+  customerDetails: z
+    .object({
+      taxIds: z.array(z.string()),
+      address: AddressZ.optional().nullable(),
+    })
+    .nullable(),
+  policyId: z.string(),
+  taxDate: TimestampZ,
+  reversal: z.null(),
+  metadata: BaseMetadataZ,
+});
+export type TaxOgTransaction = z.infer<typeof TaxOgTransactionZ>;
+
+export const TaxReversalTransactionZ = TaxOgTransactionZ.omit({ type: true, reversal: true }).and(
+  z.object({
+    type: z.literal(TaxTransactionType.Enum.reversal),
+    reversal: z.object({
+      originalTransactionId: z.string(),
+    }),
+    chargeAmount: z.number().nonpositive(),
+    taxAmount: z.number().nonpositive(),
+  })
+);
+export type TaxReversalTransaction = z.infer<typeof TaxReversalTransactionZ>;
+
+export const TaxTransactionZ = z.union([TaxOgTransactionZ, TaxReversalTransactionZ]);
+export type TaxTransaction = z.infer<typeof TaxTransactionZ>;
+
 export interface ElevationResult {
   elevation: number;
   lat: number;
@@ -1486,6 +1523,7 @@ export const OrganizationZ = z.object({
   orgName: z.string().min(2, 'orgName must be at least 2 characters'),
   orgId: z.string().min(5, 'orgId must be at least 5 characters'),
   tenantId: z.string().nullable(),
+  stripeAccountId: z.string().nullable(),
   primaryContact: AgentDetailsZ.omit({ name: true })
     .extend({
       firstName: z.string(),
