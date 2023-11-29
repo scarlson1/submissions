@@ -29,15 +29,17 @@ export default async (
     reportErr('PubSub message was not JSON', {}, e);
   }
 
+  console.log('charge: ', charge);
+
   // get policy ID from charge (or are we saving separate collection in our DB ??)
-  const policyId = charge?.metadata?.policyId; // does invoice/payment intent forward metadata to charge object ??
-  const amount = charge?.amount;
-  const amountCaptured = charge?.amount_captured;
-  const captured = charge?.captured;
-  const paid = charge?.paid; // true if successful or successfully authorized for later capture
-  const invoice = charge?.invoice;
-  const paymentIntent = charge?.payment_intent;
-  const transferGroup = charge?.transfer_group; // transfer group set when payment intent / invoice is created
+  // const policyId = charge?.metadata?.policyId; // does invoice/payment intent forward metadata to charge object ??
+  // const amount = charge?.amount;
+  // const amountCaptured = charge?.amount_captured;
+  // const captured = charge?.captured;
+  // const paid = charge?.paid; // true if successful or successfully authorized for later capture
+  // const invoice = charge?.invoice;
+  // const paymentIntent = charge?.payment_intent;
+  // const transferGroup = charge?.transfer_group; // transfer group set when payment intent / invoice is created
 
   // NEED TO GET payment
 

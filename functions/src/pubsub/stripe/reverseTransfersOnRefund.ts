@@ -72,6 +72,8 @@ export default async (event: CloudEvent<MessagePublishedData<ReverseTransfersOnR
 
     for (let transferSnap of transferSnaps.docs) {
       // TODO: calc transfer refund amount
+      // TODO: inspection fees and mga fees are earned (subtract)
+      // flat cancel returns everything except inspection fee
       const transferData = transferSnap.data();
       const transferPct = charge.amount_captured / transferData.amount;
       const transferRefundAmt = floor(amount * transferPct);

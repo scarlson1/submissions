@@ -1,4 +1,4 @@
-import { GeoPoint } from 'firebase-admin/firestore';
+import { GeoPoint, Timestamp } from 'firebase-admin/firestore';
 import { lowerCase, upperCase } from 'lodash-es';
 
 import {
@@ -229,6 +229,18 @@ export function getFormattedTaxes(row: CSVPolicyRow) {
     resultDigits: 2,
     resultRoundType: 'nearest',
     id: '', // TODO: fix type (require in import row ??)
+    subjectBaseAmount: 0, // TODO: fix
+    transactionTypes: [
+      'new',
+      'endorsement',
+      'amendment',
+      'cancellation',
+      'flat_cancel',
+      'reinstatement',
+      'renewal',
+    ],
+    expirationDate: Timestamp.fromDate(new Date('01/01/2050')),
+    calcDate: Timestamp.now(),
   };
   const tax2: TaxItem = {
     displayName: (row.tax2Name || '') as TaxItemName,
@@ -243,6 +255,18 @@ export function getFormattedTaxes(row: CSVPolicyRow) {
     resultDigits: 2,
     resultRoundType: 'nearest',
     id: '', // TODO: fix type
+    subjectBaseAmount: 0, // TODO: fix
+    transactionTypes: [
+      'new',
+      'endorsement',
+      'amendment',
+      'cancellation',
+      'flat_cancel',
+      'reinstatement',
+      'renewal',
+    ],
+    expirationDate: Timestamp.fromDate(new Date('01/01/2050')),
+    calcDate: Timestamp.now(),
   };
   if (tax1.value) taxes.push(tax1);
   if (tax2.value) taxes.push(tax2);

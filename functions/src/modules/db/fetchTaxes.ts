@@ -10,6 +10,7 @@ import {
 } from '@idemand/common';
 import axios, { AxiosResponse } from 'axios';
 import { isDate } from 'date-fns';
+import { Timestamp } from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
 import invariant from 'tiny-invariant';
 import { submissionsApiBaseURL } from '../../common/index.js';
@@ -25,6 +26,7 @@ interface StateTaxRequest extends SubjectBaseKeyVal {
   quoteNumber?: string | null;
   effectiveDate?: Date | string;
   lineOfBusiness?: LineOfBusiness;
+  stripeCustomerId?: string;
 }
 
 interface TaxResLineItem
@@ -41,7 +43,12 @@ export interface StateTaxResponse {
   lineItems: TaxResLineItem[];
 }
 
-export async function fetchTaxes(quote: Quote, transactionType: TransactionType, effDate?: Date) {
+export async function fetchTaxes(
+  quote: Quote,
+  transactionType: TransactionType,
+  effDate?: Date,
+  stripeCustomerId?: string
+) {
   const fees = quote?.fees;
   const state = quote?.homeState;
   const annualPremium = quote?.annualPremium; // TODO: switch to termPremium ?? add termPremium & annualPremium to quote interface
@@ -69,6 +76,7 @@ export async function fetchTaxes(quote: Quote, transactionType: TransactionType,
     mgaFees,
     inspectionFees,
     transactionType,
+    stripeCustomerId,
   };
   if (effDate) body['effectiveDate'] = effDate;
 
@@ -90,6 +98,11 @@ export async function fetchTaxes(quote: Quote, transactionType: TransactionType,
       resultDigits: t.resultDigits,
       resultRoundType: t.resultRoundType,
       id: t.id,
+      subjectBaseAmount: t.subjectBaseAmount,
+      transactionTypes: t.transactionTypes,
+      expirationDate: t.expirationDate ? Timestamp.fromDate(new Date('01/01/2050')) : null,
+      calcDate: t.calcDate || Timestamp.now(), // @ts-ignore (need to publish common)
+      taxCalcId: t.taxCalcId || '',
     }));
   }
 

@@ -222,10 +222,11 @@ export const LineItem = z.object({
   descriptor: z.string().optional(),
 });
 
-export const Transfer = z.object({
+export const TransferSummary = z.object({
   amount: z.number().int(), // IN CENTS
   destination: z.string(), // accountId: z.string(),
   // source_transaction - use the charge ID from event handler (will autopopulate transfer_group)
+  // percentOfCharge ??
 });
 
 export const PayableStatus = z.enum(['outstanding', 'paid', 'cancelled', 'expired']);
@@ -239,7 +240,7 @@ export const Payable = z.object({
   stripeCustomerId: z.string(),
   billintEntityDetails: z.any(),
   lineItems: z.array(LineItem),
-  transfers: z.array(Transfer), // create before ?? need to update if revered ??
+  transfers: z.array(TransferSummary), // create before ?? need to update if revered ??
   transferGroup: z.string(), // passed to payment intent - not available on invoice ??
   taxes: z.array(TaxItem), // just store referance to tax calc object ??
   // taxes separate from line items ??

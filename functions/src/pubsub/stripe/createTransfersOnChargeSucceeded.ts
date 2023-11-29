@@ -43,11 +43,11 @@ export default async (
   }
 
   // get policy ID from charge (or are we saving separate collection in our DB ??)
-  const policyId = charge?.metadata?.policyId; // does invoice/payment intent forward metadata to charge object ??
-  const amount = charge?.amount;
-  const amountCaptured = charge?.amount_captured;
-  const captured = charge?.captured;
-  const paid = charge?.paid; // true if successful or successfully authorized for later capture
+  // const policyId = charge?.metadata?.policyId; // does invoice/payment intent forward metadata to charge object ??
+  // const amount = charge?.amount;
+  // const amountCaptured = charge?.amount_captured;
+  // const captured = charge?.captured;
+  // const paid = charge?.paid; // true if successful or successfully authorized for later capture
   const invoice = charge?.invoice;
   const paymentIntent = charge?.payment_intent;
   const transferGroup = charge?.transfer_group; // transfer group set when payment intent / invoice is created
@@ -64,6 +64,7 @@ export default async (
     // could use webhook to set the transfer group when invoice creates payment intent ??
     const payableQuery = payablesCol;
     if (transferGroup) {
+      // setting on payment_intent.created event if created by invoice
       payableQuery.where('transferGroup', '==', transferGroup);
     } else if (invoice) {
       payableQuery.where('invoiceId', '==', invoice);
@@ -84,10 +85,6 @@ export default async (
       return;
     }
 
-    // loop through payable.transfers
-    // add to batch
-    // commit batch
-
     const batch = db.batch();
 
     for (let t of transfers) {
@@ -95,7 +92,7 @@ export default async (
         amount: t.amount,
         currency: 'usd',
         source_transaction: charge.id,
-        destination: t.destination, // '{{CONNECTED_ACCOUNT_ID}}'
+        destination: t.destination,
       });
       const transferRef = transfersCol.doc(transfer.id);
       batch.set(transferRef, transfer);

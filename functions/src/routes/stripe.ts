@@ -11,6 +11,7 @@ import {
   getReportErrorFn,
   hostingBaseURL,
   orgsCollection,
+  payablesCollection,
   stripeSecretKey,
 } from '../common/index.js';
 import { getStripe } from '../services/index.js';
@@ -55,7 +56,33 @@ app.post(
 
     // Handle the event
     switch (event.type) {
-      // case 'payment_intent.': look up created event
+      case 'payment_intent.created':
+        const createdPaymentIntent = event.data.object as Stripe.PaymentIntent;
+        console.log('created payment intent: ', createdPaymentIntent);
+
+        if (createdPaymentIntent.invoice) {
+          try {
+            const db = getFirestore();
+            const payablesCol = payablesCollection(db);
+            const querySnap = await payablesCol
+              .where('invoiceId', '==', createdPaymentIntent.invoice)
+              .get();
+            if (!querySnap.empty) {
+              const payableSnap = querySnap.docs[0];
+              // set payment intent too ??
+              const transferGroup = payableSnap.data().transferGroup;
+              await stripe.paymentIntents.update(createdPaymentIntent.id, {
+                transfer_group: transferGroup || '',
+              });
+              console.log(
+                `Update invoice created payment intent with transfer group ${transferGroup} from payable doc`
+              );
+            }
+          } catch (err: any) {
+            console.log('err setting transfer group', err);
+          }
+        }
+        break;
       // could use webhook to set the transfer group when invoice creates payment intent ??
       case 'payment_intent.processing':
         const paymentIntentProcessing = event.data.object as Stripe.PaymentIntent;
