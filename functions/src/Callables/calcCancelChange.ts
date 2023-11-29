@@ -79,6 +79,7 @@ const calcCancelChange = async ({ data, auth }: CallableRequest<CalcCancelChange
     const location = locationSnap.data();
 
     validate(location, 'failed-precondition', 'location not found');
+    // validate(PolicyLocation.safeParse(location).success)
 
     const { annualPremium, effectiveDate } = location;
     // recalc term premium / term days

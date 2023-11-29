@@ -1,6 +1,3 @@
-import { GeoPoint, Timestamp } from 'firebase-admin/firestore';
-import { lowerCase, upperCase } from 'lodash-es';
-
 import {
   AdditionalInsured,
   AgencyDetails,
@@ -16,11 +13,14 @@ import {
   Policy,
   PriorLossCount,
   RatingPropertyData,
+  State,
   SubjectBaseItem,
   TaxItem,
   TaxItemName,
   ValueByRiskType,
 } from '@idemand/common';
+import { GeoPoint, Timestamp } from 'firebase-admin/firestore';
+import { lowerCase, upperCase } from 'lodash-es';
 import { extractNumber, extractNumberNeg } from '../../common/index.js';
 import { createDocId } from '../../modules/db/utils.js';
 import { getRCVs } from '../../modules/rating/index.js';
@@ -228,7 +228,10 @@ export function getFormattedTaxes(row: CSVPolicyRow) {
     baseDigits: 2, // TODO: include in csv
     resultDigits: 2,
     resultRoundType: 'nearest',
-    id: '', // TODO: fix type (require in import row ??)
+    taxId: '', // TODO: fix type (require in import row ??)
+    taxCalcId: '',
+    refundable: true,
+    state: row.homeState as State,
     subjectBaseAmount: 0, // TODO: fix
     transactionTypes: [
       'new',
@@ -254,7 +257,10 @@ export function getFormattedTaxes(row: CSVPolicyRow) {
     baseDigits: 2, // TODO: include in csv
     resultDigits: 2,
     resultRoundType: 'nearest',
-    id: '', // TODO: fix type
+    taxId: '', // TODO: fix type (require in import row ??)
+    taxCalcId: '',
+    refundable: true,
+    state: row.homeState as State,
     subjectBaseAmount: 0, // TODO: fix
     transactionTypes: [
       'new',

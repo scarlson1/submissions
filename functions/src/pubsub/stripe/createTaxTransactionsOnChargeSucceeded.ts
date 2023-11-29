@@ -1,10 +1,13 @@
 import { taxTransactionsCollection } from '@idemand/common';
-import { getFirestore } from 'firebase-admin/firestore';
+import { CollectionReference, getFirestore } from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
 import { CloudEvent } from 'firebase-functions/v2';
 import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 import Stripe from 'stripe';
-import { getReportErrorFn } from '../../common/index.js';
+import { Payable, getReportErrorFn, payablesCollection } from '../../common/index.js';
+import { createTaxTrxId, getQueryData } from '../../modules/db/utils.js';
+import { createTaxTrxObjectFromCalc } from '../../modules/taxes/createTaxTrxObjectFromCalc.js';
+import { verify } from '../../utils/validation.js';
 
 const reportErr = getReportErrorFn('createTransfersOnChargeComplete');
 
@@ -21,7 +24,7 @@ export default async (
   });
 
   // const eventId = event.id;
-  let charge = null;
+  let charge: Stripe.Charge | null = null;
 
   try {
     charge = event.data?.message?.json?.charge;
@@ -29,38 +32,34 @@ export default async (
     reportErr('PubSub message was not JSON', {}, e);
   }
 
-  console.log('charge: ', charge);
-
-  // get policy ID from charge (or are we saving separate collection in our DB ??)
-  // const policyId = charge?.metadata?.policyId; // does invoice/payment intent forward metadata to charge object ??
-  // const amount = charge?.amount;
-  // const amountCaptured = charge?.amount_captured;
-  // const captured = charge?.captured;
-  // const paid = charge?.paid; // true if successful or successfully authorized for later capture
-  // const invoice = charge?.invoice;
-  // const paymentIntent = charge?.payment_intent;
-  // const transferGroup = charge?.transfer_group; // transfer group set when payment intent / invoice is created
-
-  // NEED TO GET payment
-
-  // must create static "payables/orders" collection for each invoice / charge
-  // cannot use policy b/c policy could change
-  // how would it tie to transactions, if at all ??
-
   const db = getFirestore();
-  // const policiesCol = policiesCollection(db);
+  const payablesCol = payablesCollection(db);
   const taxTrxCol = taxTransactionsCollection(db);
 
   try {
-    // get policy or payable/order
-    // either use tax data from policy (or if moved to tax calc)
-    const taxTrxObject = { status: 'TODO' };
+    verify(charge, 'pub sub payload missing charge object');
+    info('charge.succeeded data [create tax transactions]: ', charge);
 
-    // TODO: construct doc ID to avoid duplication
-    const taxTrxId = ''; // invoice/payment intent + taxId ?? (or stripe event ID ??)
+    let q = getPayablesQueryFromCharge(payablesCol, charge);
+    const payable = (await getQueryData(q, true))[0];
+    const taxes = payable.taxes;
+    info(`Creating tax transactions from payable (${taxes.length} taxes)...`, { ...payable });
+    if (!taxes.length) return;
 
-    // @ts-ignore
-    await taxTrxCol.doc(taxTrxId).set(taxTrxObject);
+    const trxObjectPromises = taxes.map((tax) =>
+      createTaxTrxObjectFromCalc(tax.taxCalcId, charge as Stripe.Charge, payable.policyId)
+    );
+    const taxTrxObjects = await Promise.all(trxObjectPromises);
+
+    const batch = db.batch();
+
+    for (let taxTrx of taxTrxObjects) {
+      let taxTrxRef = taxTrxCol.doc(createTaxTrxId());
+      batch.set(taxTrxRef, taxTrx);
+    }
+
+    const commitRes = await batch.commit();
+    info(`tax transactions successfully created (${commitRes.length} records)`);
   } catch (err: any) {
     let msg = 'error creating transfers on charge.succeeded';
 
@@ -69,3 +68,27 @@ export default async (
 
   return;
 };
+
+function getPayablesQueryFromCharge(
+  payablesCol: CollectionReference<Payable>,
+  charge: Stripe.Charge
+) {
+  const invoice = charge?.invoice;
+  const paymentIntent = charge?.payment_intent;
+  const transferGroup = charge?.transfer_group;
+
+  let q = payablesCol;
+  if (transferGroup) {
+    q.where('transferGroup', '==', transferGroup);
+  } else if (paymentIntent) {
+    q.where('paymentIntentId', '==', paymentIntent);
+  } else if (invoice) {
+    q.where('invoiceId', '==', invoice);
+  } else {
+    throw new Error(
+      'Unable to determine query to fetch payable for successful charge. Failed to determine/create tax transactions'
+    );
+  }
+
+  return q.limit(1);
+}

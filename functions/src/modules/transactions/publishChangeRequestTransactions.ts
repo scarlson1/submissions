@@ -1,3 +1,4 @@
+import { Policy } from '@idemand/common';
 import { isValid } from 'date-fns';
 import { getFirestore } from 'firebase-admin/firestore';
 import { error } from 'firebase-functions/logger';
@@ -10,12 +11,12 @@ import {
   policiesCollection,
   printObj,
 } from '../../common/index.js';
-import { getDoc } from '../../routes/utils/index.js';
 import {
   publishAmendment,
   publishEndorsement,
   publishLocationCancel,
 } from '../../services/pubsub/index.js';
+import { getDocData } from '../db/utils.js';
 
 const reportErr = getReportErrorFn('policyChangeRequest.publishChangeRequestTransactions');
 
@@ -172,7 +173,7 @@ export async function publishChangeRequestTransactions(data: ChangeRequest, poli
           console.log('TODO: handle publish policy cancellation pubsub message');
           const db = getFirestore();
           const policyRef = policiesCollection(db).doc(policyId);
-          const policy = await getDoc(policyRef);
+          const policy = await getDocData<Policy>(policyRef);
 
           // TODO: handle in batch instead of pubsub for each location ??
           let lcnEntries = Object.entries(policy.locations).filter(([id, l]) => !l.cancelEffDate);

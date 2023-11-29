@@ -9,6 +9,7 @@ import {
   PriorLossCount,
   Product,
   RatingPropertyData,
+  State,
   TaxItem,
   Totals,
 } from '@idemand/common';
@@ -129,7 +130,10 @@ function csvRowToPremiumTrx(row: TrxRow): DeepNullable<Omit<PremiumTransaction, 
       subjectBase: ['premium'], // TODO: fix
       subjectBaseAmount: 0, // TODO: fix
       resultRoundType: 'nearest',
-      id: '', // TODO: fix type
+      taxId: '', // TODO: fix type
+      taxCalcId: '', // TODO
+      state: row.homeState as State,
+      refundable: true,
       transactionTypes: [
         'new',
         'endorsement',
@@ -151,7 +155,10 @@ function csvRowToPremiumTrx(row: TrxRow): DeepNullable<Omit<PremiumTransaction, 
       subjectBase: ['premium'], // TODO: fix
       subjectBaseAmount: 0, // TODO: fix
       resultRoundType: 'nearest',
-      id: '',
+      taxId: '', // TODO: fix type
+      taxCalcId: '', // TODO
+      state: row.homeState as State,
+      refundable: true,
       transactionTypes: [
         'new',
         'endorsement',

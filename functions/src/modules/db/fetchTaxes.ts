@@ -6,7 +6,6 @@ import {
   TaxItem,
   TaxItemName,
   TransactionType,
-  WithId,
 } from '@idemand/common';
 import axios, { AxiosResponse } from 'axios';
 import { isDate } from 'date-fns';
@@ -29,14 +28,26 @@ interface StateTaxRequest extends SubjectBaseKeyVal {
   stripeCustomerId?: string;
 }
 
+// interface TaxResLineItem
+//   extends Omit<WithId<Tax>, 'metadata' | 'effectiveDate' | 'expirationDate' | 'rate'> {
+//   displayName: TaxItemName;
+//   taxBaseAmount: number | null; // null if fixed rate ($10)
+//   rate: number | null; // null if fixed rate ($10)
+//   value: number;
+//   effectiveDate: string;
+//   expirationDate: string | null;
+// }
+
 interface TaxResLineItem
-  extends Omit<WithId<Tax>, 'metadata' | 'effectiveDate' | 'expirationDate' | 'rate'> {
+  extends Omit<Tax, 'metadata' | 'effectiveDate' | 'expirationDate' | 'rate'> {
   displayName: TaxItemName;
   taxBaseAmount: number | null; // null if fixed rate ($10)
   rate: number | null; // null if fixed rate ($10)
   value: number;
   effectiveDate: string;
   expirationDate: string | null;
+  taxId: string;
+  taxCalcId: string;
 }
 
 export interface StateTaxResponse {
@@ -90,18 +101,20 @@ export async function fetchTaxes(
   let newTaxes: TaxItem[] = [];
   if (data && data.lineItems?.length > 0) {
     newTaxes = data.lineItems.map((t) => ({
+      state: t.state,
       displayName: t.displayName || '',
       rate: t.rate || t.value,
       value: t.value,
       subjectBase: t.subjectBase || [],
+      subjectBaseAmount: t.taxBaseAmount as number, // TODO: delete as once common updated
+      refundable: t.refundable,
       baseDigits: t.baseDigits,
       resultDigits: t.resultDigits,
       resultRoundType: t.resultRoundType,
-      id: t.id,
-      subjectBaseAmount: t.subjectBaseAmount,
+      taxId: t.taxId,
       transactionTypes: t.transactionTypes,
       expirationDate: t.expirationDate ? Timestamp.fromDate(new Date('01/01/2050')) : null,
-      calcDate: t.calcDate || Timestamp.now(), // @ts-ignore (need to publish common)
+      calcDate: Timestamp.now(), // t.calcDate || Timestamp.now(),
       taxCalcId: t.taxCalcId || '',
     }));
   }
