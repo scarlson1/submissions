@@ -1,10 +1,55 @@
-// TODO: create reversal fn: https://stripe.com/docs/api/tax/transactions/create_reversal
+// https://stripe.com/docs/api/tax/transactions/create_reversal
+// https://stripe.com/docs/api/tax/transactions/create_from_calculation
 
-// should create the reversal transaction object
-// and save to DB ?? or just return object ?? (might want to use in firebase atomic transaction/batch)
-// rename createTaxReversalTrxObject (if not saving to DB);
+import { TaxOgTransaction, TaxReversalTransaction, WithId } from '@idemand/common';
+import { Timestamp } from 'firebase-admin/firestore';
+import { round } from 'lodash-es';
+import Stripe from 'stripe';
 
-export {};
+// TODO: determine best place for tax amount calc
+function createTaxRefund(
+  originalTrx: WithId<TaxOgTransaction>,
+  refund: Stripe.Refund
+): TaxReversalTransaction {
+  const percentRefunded = originalTrx.chargeAmount / refund.amount;
+  const reversalAmount = round(percentRefunded * originalTrx.taxAmount);
+
+  return {
+    ...originalTrx,
+    type: 'reversal',
+    reversal: {
+      originalTransactionId: originalTrx.id,
+    },
+    chargeAmount: -Math.abs(refund.amount), // amount refunded
+    taxAmount: -Math.abs(reversalAmount), // tax refunded
+    refundId: refund.id,
+    metadata: {
+      created: Timestamp.now(),
+      updated: Timestamp.now(),
+    },
+  };
+}
+
+// calc value in create reversal fn or pass as arg??
+export const createTaxReversalTrxObject = async (
+  // mode: 'partial' | 'full',
+  // originalTaxTrxId: string,
+  originalTaxTrx: WithId<TaxOgTransaction>,
+  refund: Stripe.Refund
+) => {
+  // const db = getFirestore(); // able to call this from outside cloud fn ??
+  // // @ts-ignore
+  // const taxTrxRef = taxTransactionsCollection<TaxOgTransaction>(db).doc(
+  //   originalTaxTrxId
+  // ) as DocumentReference<TaxOgTransaction>;
+  // const taxTrx = await getDocData<TaxOgTransaction>(taxTrxRef);
+  // // @ts-ignore
+  // if (!taxTrx.refundable) throw new Error('tax is not refundable');
+
+  return createTaxRefund(originalTaxTrx, refund);
+};
+
+// export const reverseTaxTrx = () => {}
 
 // params:
 //    - mode: partial or full

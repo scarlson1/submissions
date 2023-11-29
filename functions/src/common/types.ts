@@ -248,6 +248,7 @@ export const Payable = z.object({
   paymentOption: z.enum(['invoice', 'paymentIntent']),
   invoiceId: z.string().optional().nullable(),
   paymentIntentId: z.string().optional().nullable(),
+  // set charges ?? array ??
   // TODO: other data
   metadata: BaseMetadata,
 });

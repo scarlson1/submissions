@@ -24,7 +24,6 @@ export default async (event: CloudEvent<MessagePublishedData<ReverseTransfersOnR
     ...(event.data?.message?.json || {}),
   });
 
-  // const eventId = event.id;
   let refund = null;
 
   try {
@@ -62,10 +61,7 @@ export default async (event: CloudEvent<MessagePublishedData<ReverseTransfersOnR
       .where('source_transaction', '==', sourceTransaction)
       .where('object', '==', 'transfer')
       .get();
-    // if using charge.refunded event:
-    // const transferSnaps = await transfersCol
-    //   .where('source_transaction', '==', charge.id)
-    //   .where('object', '==', 'transfer').get()
+
     if (transferSnaps.empty) throw new Error('could not find transfers to reverse refund');
 
     const batch = db.batch();

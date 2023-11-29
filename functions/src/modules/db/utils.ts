@@ -15,6 +15,7 @@ export const createTaxId = prefixedDocIdFactory('tax_', 6);
 export const createTaxCalcId = prefixedDocIdFactory('taxcalc_', 6);
 
 export const createTransferGroupId = (policyId: string) => `tg_${policyId}_${nanoId(5)}`;
+export const createReversalId = prefixedDocIdFactory(`reversal_${nanoId(6)}`);
 
 /**
  * Check if a transaction already exists in database
@@ -36,9 +37,9 @@ export async function getDocData<T>(
   errMsg: string = 'record not found'
 ) {
   const snap = await getDoc<T>(docRef, errMsg);
-  const data = snap.data();
+  const data = { ...snap.data(), id: snap.id };
   if (!data) throw new Error(errMsg);
-  return data as T;
+  return data as WithId<T>;
 }
 
 export async function getQuery<T>(query: Query<T>, throwIfEmpty?: boolean) {

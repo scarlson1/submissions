@@ -46,6 +46,4 @@ export const createTaxTrxObjectFromCalc = async (
   const taxCalc = await getDocData<TaxCalc>(taxCalcRef);
 
   return taxCalcToTaxTrx(taxCalc, charge, policyId);
-
-  // throw new Error('incomplete: createTaxTrxObjectFromCalc');
 };
