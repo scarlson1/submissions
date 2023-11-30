@@ -78,6 +78,7 @@ import {
   Users,
 } from 'views/admin';
 import { Disclosures } from 'views/admin/Disclosures';
+import { ViewPayables } from 'views/admin/ViewPayables';
 import { AgencyAppSuccessStep } from 'views/AgencyNew';
 import { ClaimNew } from 'views/ClaimNew';
 import { EmailVerified } from 'views/EmailVerified';
@@ -1061,6 +1062,14 @@ export const router = sentryCreateBrowserRouter([
                 signInCheckProps={{ requiredClaims: { [CLAIMS.IDEMAND_ADMIN]: true } }}
               >
                 <div>pmt success</div>
+              </RequireAuthReactFire>
+            ),
+          },
+          {
+            path: 'stripe-test/payables/:policyId',
+            element: (
+              <RequireAuthReactFire>
+                <ViewPayables />
               </RequireAuthReactFire>
             ),
           },

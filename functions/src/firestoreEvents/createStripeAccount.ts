@@ -49,9 +49,9 @@ export default async (
       },
       business_profile: {
         name: org.orgName || '',
-        mcc: 'insurance_underwriting_premiums', // 6300, // Insurance Underwriting, Premiums
+        mcc: 'insurance_underwriting_premiums', // 6300,
         // mcc: 6399, // insurance_default // Insurance - Default
-        // url: ''
+        // url: org.website || ''
       },
       company: {
         name: org.orgName,
@@ -64,7 +64,7 @@ export default async (
           country: 'US',
         },
         tax_id: org.FEIN || '',
-        // url: 'https://idemandinsurance.com',
+        // url: org.website || ''
       },
       settings: {
         payouts: {

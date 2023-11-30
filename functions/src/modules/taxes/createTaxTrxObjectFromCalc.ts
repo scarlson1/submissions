@@ -1,9 +1,9 @@
-// https://stripe.com/docs/api/tax/transactions/create_from_calculation
-
 import { TaxCalc, TaxOgTransaction, taxCalcCollection } from '@idemand/common';
 import { Timestamp, getFirestore } from 'firebase-admin/firestore';
 import Stripe from 'stripe';
-import { getDocData } from '../db';
+import { getDocData } from '../db/index.js';
+
+// https://stripe.com/docs/api/tax/transactions/create_from_calculation
 
 // TODO: determine best place for tax amount calc
 function taxCalcToTaxTrx(
@@ -19,10 +19,11 @@ function taxCalcToTaxTrx(
     chargeAmount: charge.amount_captured,
     taxAmount,
     taxId: taxCalc.taxId,
-    taxCalcId: taxCalc.taxCalcId,
+    // @ts-ignore delete once common updated
+    taxCalcId: taxCalc.taxCalcId || null,
     taxDate: Timestamp.now(),
     // @ts-ignore
-    policyId: policyId || null,
+    policyId: policyId,
     stripeCustomerId: charge.customer as string,
     customerDetails: null, // TODO
     invoiceId: charge.invoice as string | null,

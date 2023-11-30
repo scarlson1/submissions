@@ -14,6 +14,7 @@ import {
   Moratorium,
   NotifyRegistration,
   Organization,
+  Payable,
   PaymentMethod,
   Policy,
   PolicyClaim,
@@ -61,6 +62,9 @@ export const orgsCollection = (db: Firestore) =>
 
 export const policiesCollection = (db: Firestore) =>
   createCollection<Policy, Policy>(db, 'policies');
+
+export const payablesCollection = (db: Firestore) =>
+  createCollection<Payable, Payable>(db, 'payables');
 
 export const usersCollection = (db: Firestore) => createCollection<User, User>(db, 'users');
 

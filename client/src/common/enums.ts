@@ -77,6 +77,7 @@ export const Collection = z.enum([
   'tasks', // TODO: DELETE
   'versions',
   'permissions',
+  'payables',
 ]);
 export type TCollection = z.infer<typeof Collection>;
 

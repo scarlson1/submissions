@@ -48,6 +48,8 @@ export const getQuoteValidation = (activeStates: Record<string, boolean>) =>
           .string()
           .typeError('fee value required (string)')
           .required('fee value is required'),
+        // refundable: yup.number().required('refundable is required'),
+        refundable: yup.boolean(),
       })
     ),
     taxes: yup.array().of(

@@ -601,12 +601,9 @@ type PropWithRatingCalcData = Nullable<RatingPropertyData> & RatingCalcData;
 export const FeeItem = z.object({
   displayName: FeeItemName,
   value: z.number(),
+  refundable: z.boolean(),
 });
 export type TFeeItem = z.infer<typeof FeeItem>;
-// export interface FeeItem {
-//   displayName: TFeeItemName;
-//   value: number;
-// }
 
 // TODO: require name, email, phone
 // TODO: refactor billing entity - payment method relationship
@@ -1011,14 +1008,15 @@ export type ILocation = z.infer<typeof ILocationZ>;
 //   version?: number; // TODO: remove optional
 // }
 
-export const TotalsByBillingEntityZ = z.record(
-  z.object({
-    termPremium: z.number(),
-    taxes: z.array(TaxItem),
-    fees: z.array(FeeItem),
-    price: z.number(),
-  })
-);
+export const TotalsZ = z.object({
+  termPremium: z.number(),
+  taxes: z.array(TaxItem),
+  fees: z.array(FeeItem),
+  price: z.number(),
+});
+export type Totals = z.infer<typeof TotalsZ>;
+
+export const TotalsByBillingEntityZ = z.record(TotalsZ);
 export type TotalsByBillingEntity = z.infer<typeof TotalsByBillingEntityZ>;
 
 export const PolicyLocationZ = z.object({
@@ -1087,6 +1085,54 @@ export const PolicyWithStatusZ = PolicyZ.and(
   })
 );
 export type PolicyWithStatus = z.infer<typeof PolicyWithStatusZ>;
+
+export const LineItemZ = z.object({
+  displayName: z.string(),
+  amount: z.number(),
+  descriptor: z.string().optional(),
+});
+
+export const TransferSummaryZ = z.object({
+  amount: z.number().int(), // IN CENTS
+  destination: z.string(), // accountId: z.string(),
+  // source_transaction - use the charge ID from event handler (will autopopulate transfer_group)
+  // percentOfCharge ?? should be percent of total or percent, net taxes/fees
+  // or percentageOfRefundableAmount ??
+});
+
+export const PayableStatus = z.enum(['outstanding', 'paid', 'cancelled', 'expired']);
+export type TPayableStatus = z.infer<typeof PayableStatus>;
+// keep expired ?? payable should persist when invoice expires ??
+// TODO: handle invoice / payment intent expired
+
+// include location summaries ??
+export const PayableZ = z.object({
+  policyId: z.string(),
+  stripeCustomerId: z.string(),
+  billingEntityDetails: z.any(), // rename stripeCustomerDetails ?? (email, etc.)
+  lineItems: z.array(LineItemZ),
+  transfers: z.array(TransferSummaryZ), // create before ?? need to update if revered ??
+  transferGroup: z.string(), // passed to payment intent - not available on invoice ??
+  taxes: z.array(TaxItem), // just store referance to tax calc object ??
+  // taxes separate from line items ??
+  fees: z.array(FeeItem), // TODO: change value to amount and convert to cents
+  status: PayableStatus, // TODO: might need multiple status fields (mirror stripe charge ??)
+  paymentOption: z.enum(['invoice', 'paymentIntent']).nullable(),
+  invoiceId: z.string().optional().nullable(),
+  paymentIntentId: z.string().optional().nullable(),
+  refundableTaxesAmount: z.number().int(),
+  totalTaxesAmount: z.number().int().nonnegative(),
+  refundableFeesAmount: z.number().int(), // inspection fees not refundable, unless flat_cancel
+  totalFeesAmount: z.number().int(),
+  totalRefundableAmount: z.number().int().nonnegative(), // rename subtotalRefundableAmount or termPremiumRefundableAmount // total - nonRefundableFees - nonRefundableTaxes
+  // totalAmountWithoutTaxesAndFees: z.number().int().nonnegative(), // or name subtotalAmount ?? or totalTermPremium ??
+  termPremiumAmount: z.number().int().nonnegative(),
+  totalAmount: z.number().int().nonnegative(),
+  locations: z.record(PolicyLocationZ),
+  // set charges ?? array ?? save to payable on charge.complete or charge.created ??
+  metadata: BaseMetadataZ,
+});
+export type Payable = z.infer<typeof PayableZ>;
 
 // export interface Policy extends BaseDoc {
 //   product: TProduct;
@@ -1420,7 +1466,7 @@ export interface User extends BaseDoc {
   email?: string | null;
   phone?: string;
   photoURL?: string | null;
-  stripe_customer_id?: string;
+  stripeCustomerId?: string;
   insuredOfAgency?: string[];
   tenantId?: string | null;
   orgId?: string | null; // org doc id (not always tenant (ex 'idemand'))
@@ -1550,6 +1596,7 @@ export const OrganizationZ = z.object({
   defaultCommission: DefaultCommission,
   authProviders: z.array(AuthProvidersZ),
   photoURL: z.string().optional().nullable(),
+  website: z.string().url().optional().nullable(),
   metadata: BaseMetadataZ,
 });
 export type Organization = z.infer<typeof OrganizationZ>;

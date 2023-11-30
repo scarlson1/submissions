@@ -15,6 +15,7 @@ import { FieldArray } from 'formik'; // getIn
 import { ForwardRefExoticComponent, useMemo } from 'react';
 
 import { FormikAddressLite, FormikAddressLiteProps } from 'elements/forms';
+import FormikCheckbox from './FormikCheckbox';
 import FormikDollarMaskField, { FormikDollarMaskFieldProps } from './FormikDollarMaskField';
 import { FormikMaskField, FormikMaskFieldProps } from './FormikMaskField';
 import { FormikNativeSelect, FormikNativeSelectProps } from './FormikNativeSelect';
@@ -72,6 +73,10 @@ export interface MaskTypeProps extends Omit<CommonFieldProps, 'inputProps'> {
   inputProps?: FormikMaskFieldProps['inputProps'];
   componentProps?: Omit<FormikMaskFieldProps, 'id' | 'name' | 'label' | 'maskComponent'>; // Partial<FormikMaskFieldProps>
 }
+export interface CheckboxTypeProps extends CommonFieldProps {
+  inputType: 'checkbox';
+  componentProps?: Partial<FormikNativeSelectProps>;
+}
 
 export type InputSchemas =
   | TextTypeProps
@@ -79,7 +84,8 @@ export type InputSchemas =
   | PhoneTypeProps
   | DollarTypeProps
   | AddressTypeProps
-  | MaskTypeProps;
+  | MaskTypeProps
+  | CheckboxTypeProps;
 
 export interface FormikFieldArrayProps {
   parentField: string;
@@ -155,9 +161,6 @@ export const FormikFieldArray = ({
   if (!values || !values[parentField]) {
     return <div>An error occurred</div>;
   }
-
-  console.log('values: ', values);
-  console.log('errors: ', errors);
 
   return (
     <Box sx={{ flexGrow: 1 }}>
@@ -298,6 +301,21 @@ export const FormikFieldArray = ({
                                   {...(componentProps as AddressTypeProps['componentProps'])}
                                   {...propsGetterFunc(index, parentField, name)}
                                   // {...props}
+                                />
+                              </Grid>
+                            );
+                          }
+                          if (inputType === 'checkbox') {
+                            return (
+                              <Grid key={name} xs={12} sm={6} md={4} {...gridProps}>
+                                <FormikCheckbox
+                                  name={getFieldName(parentField, index, name)}
+                                  checkboxProps={{
+                                    id: name || `${parentField}-${index}-${index}`,
+                                  }}
+                                  label={label}
+                                  disabled={disabled}
+                                  labelPlacement='end'
                                 />
                               </Grid>
                             );

@@ -40,12 +40,17 @@ export default async (
     verify(charge, 'pub sub payload missing charge object');
     info('charge.succeeded data [create tax transactions]: ', charge);
 
+    // TODO: move to function createTaxTransactionsFromCalc(payableId, charge) ?? similar to reversals
+    // easier to test ^^
+
+    // fetch payable by transferGroup, or paymentIntent, or invoice
     let q = getPayablesQueryFromCharge(payablesCol, charge);
     const payable = (await getQueryData(q, true))[0];
     const taxes = payable.taxes;
     info(`Creating tax transactions from payable (${taxes.length} taxes)...`, { ...payable });
     if (!taxes.length) return;
 
+    // fetched tax calc, returns tax transaction for each tax in payable
     const trxObjectPromises = taxes.map((tax) =>
       createTaxTrxObjectFromCalc(tax.taxCalcId, charge as Stripe.Charge, payable.policyId)
     );

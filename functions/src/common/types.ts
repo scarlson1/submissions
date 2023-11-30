@@ -5,6 +5,7 @@ import {
   BillingEntity,
   CBRSDesignation,
   ChangeRequestTrxType,
+  FeeItem,
   FloodZone,
   ILocation,
   ILocationPolicy,
@@ -226,7 +227,8 @@ export const TransferSummary = z.object({
   amount: z.number().int(), // IN CENTS
   destination: z.string(), // accountId: z.string(),
   // source_transaction - use the charge ID from event handler (will autopopulate transfer_group)
-  // percentOfCharge ??
+  // percentOfCharge ?? should be percent of total or percent, net taxes/fees
+  // or percentageOfRefundableAmount ??
 });
 
 export const PayableStatus = z.enum(['outstanding', 'paid', 'cancelled', 'expired']);
@@ -234,22 +236,34 @@ export type PayableStatus = z.infer<typeof PayableStatus>;
 // keep expired ?? payable should persist when invoice expires ??
 // TODO: handle invoice / payment intent expired
 
+// TODO: need discriminating union ?? able to change payment option, etc. after selected ??
+// TODO: need to lock down once paid
+// TODO: pass through zod before saving at all times ??
+
 export const Payable = z.object({
   policyId: z.string(),
-  billingEntityId: z.string(), // delete and only use stripe customer ID ?? should always be the same
   stripeCustomerId: z.string(),
-  billintEntityDetails: z.any(),
+  billingEntityDetails: z.any(),
   lineItems: z.array(LineItem),
   transfers: z.array(TransferSummary), // create before ?? need to update if revered ??
   transferGroup: z.string(), // passed to payment intent - not available on invoice ??
   taxes: z.array(TaxItem), // just store referance to tax calc object ??
   // taxes separate from line items ??
+  fees: z.array(FeeItem), // TODO: need to add refundable property on feeItem
   status: PayableStatus,
-  paymentOption: z.enum(['invoice', 'paymentIntent']),
+  paymentOption: z.enum(['invoice', 'paymentIntent']).nullable(),
   invoiceId: z.string().optional().nullable(),
   paymentIntentId: z.string().optional().nullable(),
-  // set charges ?? array ??
-  // TODO: other data
+  refundableTaxesAmount: z.number().int(),
+  totalTaxesAmount: z.number().int().nonnegative(),
+  refundableFeesAmount: z.number().int(), // inspection fees not refundable, unless flat_cancel
+  totalFeesAmount: z.number().int(),
+  totalRefundableAmount: z.number().int().nonnegative(), // rename subtotalRefundableAmount or termPremiumRefundableAmount // total - nonRefundableFees - nonRefundableTaxes
+  // totalWithoutTaxesAndFees: z.number().int().nonnegative(), // or name subtotalAmount ?? or totalTermPremium ??
+  termPremiumAmount: z.number().int().nonnegative(),
+  totalAmount: z.number().int().nonnegative(),
+  locations: z.record(PolicyLocation),
+  // set charges ?? array ?? save to payable on charge.complete or charge.created ??
   metadata: BaseMetadata,
 });
 export type Payable = z.infer<typeof Payable>;

@@ -1,12 +1,9 @@
-import { TaxOgTransaction, TaxTransactionType, taxTransactionsCollection } from '@idemand/common';
-import { Query, getFirestore } from 'firebase-admin/firestore';
 import { info } from 'firebase-functions/logger';
 import { CloudEvent } from 'firebase-functions/v2';
 import { MessagePublishedData } from 'firebase-functions/v2/pubsub';
 import Stripe from 'stripe';
 import { getReportErrorFn } from '../../common/index.js';
-import { createReversalId, getQueryData } from '../../modules/db/utils.js';
-import { createTaxReversalTrxObject } from '../../modules/taxes/createTaxReversalTrx.js';
+import { createTaxTrxReversal } from '../../modules/taxes/createTaxReversalTrx.js';
 import { verify } from '../../utils/validation.js';
 
 // need to update stripe refund metadata to include tax refund amounts ??
@@ -30,48 +27,44 @@ export default async (event: CloudEvent<MessagePublishedData<ReverseTaxTrxOnRefu
     reportErr('PubSub message was not JSON', {}, e);
   }
 
-  const db = getFirestore();
-  const taxTrxCol = taxTransactionsCollection(db);
+  // const db = getFirestore();
+  // const taxTrxCol = taxTransactionsCollection(db);
 
   try {
     verify(refund, 'pub sub payload missing refund object');
     info('refund.created data [create tax transactions]: ', refund);
 
-    // let q = getPayablesQueryFromCharge(payablesCol, refund);
-    // const payable = (await getQueryData(q, true))[0];
-    // const taxes = payable.taxes;
-    // info(`Creating tax transactions from payable (${taxes.length} taxes)...`, { ...payable });
-    // if (!taxes.length) return;
-    if (!refund.charge) throw new Error('refund missing charge ID');
-    const q = taxTrxCol
-      .where('chargeId', '==', refund.charge)
-      .where('type', '==', TaxTransactionType.Enum.transaction) as Query<TaxOgTransaction>;
-    const taxTrxs = await getQueryData<TaxOgTransaction>(q, false);
-    info(`found ${taxTrxs.length} tax transactions matching charge ${refund.charge}`, { taxTrxs });
-    if (!taxTrxs.length) return;
+    const commitRes = await createTaxTrxReversal(refund);
 
-    // remove undefined check once all taxes have been updated ??
-    // @ts-ignore
-    const refundableTrxs = taxTrxs.filter((t) => t.refundable === undefined || t.refundable);
+    // if (!refund.charge) throw new Error('refund missing charge ID');
+    // const q = taxTrxCol
+    //   .where('chargeId', '==', refund.charge)
+    //   .where('type', '==', TaxTransactionType.Enum.transaction) as Query<TaxOgTransaction>;
+    // const taxTrxs = await getQueryData<TaxOgTransaction>(q, false);
+    // info(`found ${taxTrxs.length} tax transactions matching charge ${refund.charge}`, { taxTrxs });
+    // if (!taxTrxs.length) return;
 
-    const trxObjectPromises = refundableTrxs.map((taxTrx) =>
-      createTaxReversalTrxObject(taxTrx, refund as Stripe.Refund)
-    );
-    const taxTrxReversalObjects = await Promise.all(trxObjectPromises);
+    // // remove undefined check once all taxes have been updated ??
+    // // @ts-ignore
+    // const refundableTrxs = taxTrxs.filter((t) => t.refundable === undefined || t.refundable);
+    // const trxObjectPromises = refundableTrxs.map((taxTrx) =>
+    //   createTaxReversalTrxObject(taxTrx, refund as Stripe.Refund)
+    // );
+    // const taxTrxReversalObjects = await Promise.all(trxObjectPromises);
 
-    const batch = db.batch();
+    // const batch = db.batch();
 
-    for (let taxReversalTrx of taxTrxReversalObjects) {
-      let taxReversalTrxRef = taxTrxCol.doc(createReversalId());
-      batch.set(taxReversalTrxRef, taxReversalTrx);
-    }
+    // for (let taxReversalTrx of taxTrxReversalObjects) {
+    //   let taxReversalTrxRef = taxTrxCol.doc(createReversalId());
+    //   batch.set(taxReversalTrxRef, taxReversalTrx);
+    // }
 
-    const commitRes = await batch.commit();
+    // const commitRes = await batch.commit();
     info(`tax reversal transactions successfully created (${commitRes.length} records)`);
   } catch (err: any) {
     let msg = 'error creating transfers on charge.succeeded';
 
-    reportErr(msg, {}, err);
+    reportErr(msg, { ...event }, err);
   }
 
   return;

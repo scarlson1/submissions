@@ -53,10 +53,9 @@ export default async (event: CloudEvent<MessagePublishedData<ReverseTransfersOnR
     const charge = await stripe.charges.retrieve(sourceTransaction);
     // subtract taxes and handle taxes separately ??
     // calc amount = charge total - refunded amount * percentage of transfer ??
+    // TODO: need to subtract taxes / fees ??
     // after checking if taxes are refundable
 
-    // need to mirror transfers in stripe in our db ?? cannot query transfers by charge ID
-    // if using refund.created event:
     const transferSnaps = await transfersCol
       .where('source_transaction', '==', sourceTransaction)
       .where('object', '==', 'transfer')
@@ -70,7 +69,10 @@ export default async (event: CloudEvent<MessagePublishedData<ReverseTransfersOnR
       // TODO: calc transfer refund amount
       // TODO: inspection fees and mga fees are earned (subtract)
       // flat cancel returns everything except inspection fee
+      // TODO: need to subtract taxes
       const transferData = transferSnap.data();
+      // TODO: need to calc net of taxes/fees ?? use/check values from payable refundable ??
+      // amount captured will include taxes and fees --> need to look up refundable value from payable
       const transferPct = charge.amount_captured / transferData.amount;
       const transferRefundAmt = floor(amount * transferPct);
       console.log('transfer refund amount: ', transferRefundAmt);

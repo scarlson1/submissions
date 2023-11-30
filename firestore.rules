@@ -184,6 +184,10 @@ service cloud.firestore {
       allow read: if isDocUserOrAgentOrOrgAdminOrIDemandAdmin()
     }
 
+    match /payables/{payableId} {
+      allow read, write: if isSignedIn() && isIDemandAdmin(); // TODO: permissions using existingData().policyId
+    }
+
     // POLICY TRANSACTIONS (NOT FINANCIAL/CHARGES)
     match /transactions/{trxId} {
       allow read: if isDocUser() || isIDemandAdmin() 

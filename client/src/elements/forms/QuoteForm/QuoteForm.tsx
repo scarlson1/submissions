@@ -930,7 +930,7 @@ export const QuoteForm = ({
                           { label: 'MGA Fee', value: 'MGA Fee' },
                           { label: 'UW Adjustment', value: 'UW Adjustment' },
                         ],
-                        gridProps: { xs: 6, sm: 6, md: 6 },
+                        gridProps: { xs: 6, sm: 6, md: 4, lg: 4 },
                         componentProps: {
                           sx: { minWidth: 50 },
                         },
@@ -940,11 +940,55 @@ export const QuoteForm = ({
                         label: 'Value',
                         required: false,
                         inputType: 'dollar',
-                        gridProps: { xs: 6, sm: 6, md: 6 },
+                        gridProps: { xs: 6, sm: 6, md: 4, lg: 4 },
                         componentProps: {
                           allowNegative: true,
                         },
                       },
+                      {
+                        name: 'refundable',
+                        label: 'Refundable',
+                        inputType: 'checkbox',
+                        required: false,
+                        gridProps: {
+                          xs: 6,
+                          sm: 4,
+                          md: 4,
+                          lg: 4,
+                          sx: {
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'center',
+                          },
+                        },
+                        componentProps: {
+                          sx: { minWidth: 100 },
+                        },
+                      },
+                      // {
+                      //   name: 'refundable',
+                      //   label: 'Refundable',
+                      //   inputType: 'select',
+                      //   selectOptions: [
+                      //     { label: 'yes', value: 1 },
+                      //     { label: 'no', value: 0 },
+                      //   ],
+                      //   required: true,
+                      //   gridProps: {
+                      //     xs: 6,
+                      //     sm: 6,
+                      //     md: 4,
+                      //     lg: 4,
+                      //     sx: {
+                      //       display: 'flex',
+                      //       flexDirection: 'column',
+                      //       justifyContent: 'center',
+                      //     },
+                      //   },
+                      //   componentProps: {
+                      //     sx: { minWidth: 100 },
+                      //   },
+                      // },
                     ]}
                     values={values}
                     errors={errors}
