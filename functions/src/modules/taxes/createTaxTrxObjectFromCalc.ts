@@ -9,7 +9,8 @@ import { getDocData } from '../db/index.js';
 function taxCalcToTaxTrx(
   taxCalc: TaxCalc,
   charge: Stripe.Charge,
-  policyId: string
+  policyId: string,
+  payableId: string
 ): TaxOgTransaction {
   const percentCaptured = charge.amount_captured / charge.amount;
   const taxAmount = percentCaptured * taxCalc.value;
@@ -29,6 +30,8 @@ function taxCalcToTaxTrx(
     invoiceId: charge.invoice as string | null,
     paymentIntentId: charge.payment_intent as string | null,
     chargeId: charge.id,
+    refundable: taxCalc.refundable,
+    payableId: payableId || null,
     reversal: null,
     metadata: {
       created: Timestamp.now(),
@@ -40,11 +43,12 @@ function taxCalcToTaxTrx(
 export const createTaxTrxObjectFromCalc = async (
   taxCalcId: string,
   charge: Stripe.Charge,
-  policyId: string
+  policyId: string,
+  payableId: string
 ) => {
   const db = getFirestore(); // able to call this from outside cloud fn ??
   const taxCalcRef = taxCalcCollection(db).doc(taxCalcId);
   const taxCalc = await getDocData<TaxCalc>(taxCalcRef);
 
-  return taxCalcToTaxTrx(taxCalc, charge, policyId);
+  return taxCalcToTaxTrx(taxCalc, charge, policyId, payableId);
 };

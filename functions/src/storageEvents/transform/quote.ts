@@ -126,6 +126,15 @@ export function transformQuoteRow(row: CSVQuoteRow): DeepNullable<CSVTransformed
     orgId: row.orgId,
   };
 
+  // TODO: add carrier to import row type
+  const carrier: Quote['carrier'] = {
+    // @ts-ignore
+    name: row.carrierName || '',
+    address: null, // @ts-ignore
+    orgId: row.carrierOrgId || '', // @ts-ignore
+    stripeAccountId: row.carrierStripeAccountId || '',
+  };
+
   const fees = getFormattedFees(row);
 
   const effDate = row.effectiveDate
@@ -169,6 +178,7 @@ export function transformQuoteRow(row: CSVQuoteRow): DeepNullable<CSVTransformed
     namedInsured,
     agent,
     agency,
+    carrier,
     additionalInterests: [],
     billingEntities: {
       namedInsured: {

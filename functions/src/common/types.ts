@@ -10,6 +10,7 @@ import {
   ILocation,
   ILocationPolicy,
   NamedInsuredDetails,
+  OrgType,
   Policy,
   PolicyLocation,
   PriorLossCount,
@@ -409,6 +410,7 @@ export const GeoPoint = z.instanceof(FirestoreGeoPoint);
 export type GeoPoint = z.infer<typeof GeoPoint>;
 
 export interface AgencyApplication extends BaseDoc {
+  type: OrgType;
   orgName: string;
   address: Address;
   contact: {

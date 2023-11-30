@@ -18,6 +18,11 @@ import { getStripe } from '../services/stripe.js';
 import { verify } from '../utils/index.js';
 
 // TODO: move to pub sub ?? or module so it can be reused for policy changes, renewal, etc.
+// scenarios:
+//    - create payable from new policy
+//    - create payable from adding location
+//    - create payable from removing location ?? or handle negative net balances differently ??
+//      - one solution would be to create refunds for the removed locations, and turn on auto-charge customer's billing method
 
 let subproducerCommissionPct: number | undefined;
 async function getSubProducerCommPct(db: Firestore, policy: WithId<Policy>) {

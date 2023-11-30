@@ -1,12 +1,12 @@
-import { useState, useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { useFunctions } from 'reactfire';
 
 import { createTenantFromSubmission } from 'api';
-import { getErrorCode, getErrorMessage } from 'modules/utils/errorHelpers';
+import { BaseSendEmailResponse } from 'common';
 import { useConfirmation } from 'context';
+import { getErrorCode, getErrorMessage } from 'modules/utils/errorHelpers';
 import { useAsyncToast } from './useAsyncToast';
 import { useSendEmail } from './useSendEmail';
-import { BaseSendEmailResponse } from 'common';
 
 export const useSendAgencyAppNotification = (
   onSuccess?: ((res: BaseSendEmailResponse) => void) | null,
@@ -151,7 +151,7 @@ export const useCreateTenant = (
   //   [confirm]
   // );
 
-  // CALLED INTERNALLY - AFTER CREATING TEANANT
+  // CALLED INTERNALLY - AFTER CREATING TENANT
   const handleSuccess = useCallback(
     async (submissionId: string, tenantId?: string) => {
       // // TODO: refactor ?? repeating confirmAndSend ??

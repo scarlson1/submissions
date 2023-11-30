@@ -176,12 +176,14 @@ function csvRowToPremiumTrx(row: TrxRow): DeepNullable<Omit<PremiumTransaction, 
     billingEntityFees.push({
       displayName: 'Inspection Fee',
       value: extractNumberNeg(row.billingEntityInspectionFee),
+      refundable: false,
     });
   }
   if (row.billingEntityMgaFee) {
     billingEntityFees.push({
       displayName: 'MGA Fee',
       value: extractNumberNeg(row.billingEntityMgaFee),
+      refundable: true,
     });
   }
   // TODO: billing entity totals (issues getting all fees/taxes ?? need to use same format as policy import ??)
@@ -324,6 +326,7 @@ function csvRowCommon(row: TrxRow): DeepNullable<Omit<BaseTransaction, 'metadata
     agency: {
       name: null,
       orgId: null,
+      stripeAccountId: null, // TODO: fix (loop up ??)
       address: null,
     },
     mailingAddress: {

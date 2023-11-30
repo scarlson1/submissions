@@ -82,7 +82,7 @@ export default async (
           lng: newValue.coordinates.longitude,
         };
       }
-      info(`SAVING ORG CHANGE TO ALGILIA INDEX ${docId}...`);
+      info(`SAVING ORG CHANGE TO ALGOLIA INDEX ${docId}...`);
 
       const { objectIDs } = await index.saveObjects(records, {
         autoGenerateObjectIDIfNotExist: false,

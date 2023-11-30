@@ -30,6 +30,7 @@ import {
   AgentDetails,
   Basement,
   CBRSDesignation,
+  CarrierDetails,
   Coordinates,
   FloodZone,
   Limits,
@@ -67,6 +68,7 @@ import {
 import { LoadingComponent } from 'components/layout';
 import { UserSearchDialog } from 'components/search/Search';
 import AlgoliaAutocomplete from 'components/search/reactQuery/AlgoliaAutocomplete';
+import { FormattedAddress } from 'elements/FormattedAddress';
 import {
   RatingInputsWithAAL,
   extractRatingInputsFromValues,
@@ -96,6 +98,8 @@ import { getQuoteValidation } from './validation';
 // TODO: must geocode if address is manually entered (add button if missing coordinates ??)
 // TODO: search for named insured
 
+// TODO: store subproducer comm /policies/{policyId}/secure/rating (switch to dev branch ??)
+
 export interface QuoteValues {
   address: Address;
   coordinates: Nullable<Coordinates>;
@@ -112,6 +116,7 @@ export interface QuoteValues {
   namedInsured: NamedInsuredDetails;
   agent: AgentDetails;
   agency: AgencyDetails;
+  carrier: CarrierDetails;
   ratingPropertyData: Nullable<RatingPropertyData>;
   AALs: Nullable<ValueByRiskType>;
   ratingDocId: string;
@@ -319,6 +324,7 @@ export const QuoteForm = ({
           email: agentUser.email || '',
           phone: agentUser.phone || '',
           userId: agentUser.objectID || '',
+          photoURL: agentUser.photoURL || '',
         },
       });
 
@@ -334,6 +340,7 @@ export const QuoteForm = ({
           agency: {
             name: org.orgName || '',
             orgId: orgId || '',
+            stripeAccountId: org.stripeAccountId || '',
             address: {
               addressLine1: org.address?.addressLine1 || '',
               addressLine2: org.address?.addressLine2 || '',
@@ -341,6 +348,7 @@ export const QuoteForm = ({
               state: org.address?.state || '',
               postal: org.address?.postal || '',
             },
+            photoURL: org.photoURL || '',
           },
         });
       } catch (err: any) {
@@ -351,7 +359,9 @@ export const QuoteForm = ({
         const clearedAgency = {
           name: '',
           orgId: '',
+          stripeAccountId: '',
           address: setNestedObjectValues<Address>(DEFAULT_VALUES.agency.address, ''),
+          photoURL: '',
         };
         await setValues({
           agency: clearedAgency,
@@ -363,6 +373,24 @@ export const QuoteForm = ({
       setTouched(keys);
     },
     [firestore, toast, setValues, setTouched, setSubComm]
+  );
+
+  const handleCarrierSelected = useCallback(
+    async (carrier: Organization & { objectID: string }) => {
+      await setValues({
+        carrier: {
+          orgId: carrier.orgId,
+          name: carrier.orgName || '',
+          stripeAccountId: carrier.stripeAccountId || '',
+          address: carrier.address || null,
+          photoURL: carrier.photoURL || '',
+        },
+      });
+
+      const keys = ['carrier'] as (keyof FormikErrors<QuoteValues>)[];
+      setTouched(keys);
+    },
+    [setValues, setTouched]
   );
 
   const handleCancel = useCallback(() => {
@@ -1193,6 +1221,49 @@ export const QuoteForm = ({
                 }}
               />
             </Grid>
+            <Grid xs={12} sm={3}>
+              <ErrorBoundary FallbackComponent={ErrorFallback}>
+                <Suspense>
+                  <AlgoliaAutocomplete<Organization>
+                    name='carrier.name'
+                    textFieldProps={{
+                      label: 'Carrier',
+                      required: true,
+                    }}
+                    searchOptions={{ filters: 'collectionName:organizations AND type:carrier' }}
+                    onSelectItem={(org) =>
+                      handleCarrierSelected(org as any as Organization & { objectID: string })
+                    }
+                    resetFields={() => {
+                      setFieldValue('carrier.orgId', '');
+                      setFieldValue('carrier.address', null);
+                      setFieldValue('carrier.name', '');
+                      setFieldValue('carrier.stripeAccountId', '');
+                    }}
+                  />
+                </Suspense>
+              </ErrorBoundary>
+            </Grid>
+            <Grid xs={6} sm={3}>
+              <Typography variant='overline' color='text.secondary'>
+                Org Id
+              </Typography>
+              <Typography>{values.carrier?.orgId}</Typography>
+            </Grid>
+            <Grid xs={6} sm={3}>
+              <Typography variant='overline' color='text.secondary'>
+                Stripe Id
+              </Typography>
+              <Typography>{values.carrier?.stripeAccountId}</Typography>
+            </Grid>
+            <Grid xs={6} sm={3}>
+              <Typography variant='overline' color='text.secondary'>
+                Address
+              </Typography>
+              {values.carrier?.address ? (
+                <FormattedAddress address={values.carrier.address} />
+              ) : null}
+            </Grid>
             <Grid xs={12}>
               <Divider sx={{ my: 3 }} />
               <Typography variant='overline' color='text.secondary' sx={{ pl: 4, lineHeight: 1.4 }}>
@@ -1229,12 +1300,16 @@ export const QuoteForm = ({
                 </Suspense>
               </ErrorBoundary>
             </Grid>
-            <Grid xs={12}>
+            {/* TODO: need to handle autocomplete select value (see address autocomplete ??) */}
+            <Grid xs={12} sm={6}>
               <ErrorBoundary FallbackComponent={ErrorFallback}>
                 <Suspense>
                   <AlgoliaAutocomplete
                     onSelectItem={console.log}
                     searchOptions={{ filters: 'collectionName:users' }}
+                    // name='agent.name'
+                    name='agent.testName'
+                    resetFields={() => console.log('todo: reset fields')}
                   />
                 </Suspense>
               </ErrorBoundary>

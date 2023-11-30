@@ -458,6 +458,7 @@ async function getPolicyWithoutLocation(
     userId: data.userId,
     agent: data.agent,
     agency: data.agency,
+    carrier: data.carrier,
     surplusLinesProducerOfRecord: SLPofR,
     issuingCarrier: getCarrierByState(data.homeState),
     documents: [],

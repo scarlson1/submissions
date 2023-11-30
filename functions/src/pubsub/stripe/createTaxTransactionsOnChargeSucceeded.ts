@@ -52,7 +52,12 @@ export default async (
 
     // fetched tax calc, returns tax transaction for each tax in payable
     const trxObjectPromises = taxes.map((tax) =>
-      createTaxTrxObjectFromCalc(tax.taxCalcId, charge as Stripe.Charge, payable.policyId)
+      createTaxTrxObjectFromCalc(
+        tax.taxCalcId,
+        charge as Stripe.Charge,
+        payable.policyId,
+        payable.id
+      )
     );
     const taxTrxObjects = await Promise.all(trxObjectPromises);
 

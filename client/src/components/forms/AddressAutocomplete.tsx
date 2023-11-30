@@ -69,7 +69,7 @@ export interface AddressAutocompleteProps {
   name?: string;
   handleSelection?: (newValue: NewAddress) => void;
   resetFields?: () => void;
-  textFieldProps?: TextFieldProps;
+  textFieldProps?: Omit<TextFieldProps, 'value' | 'onChange'>;
 }
 
 export const AddressAutocomplete = ({
@@ -230,7 +230,6 @@ export const AddressAutocomplete = ({
         renderInput={(params) => (
           <TextField
             {...params}
-            // id='addressLine1'
             label='Address'
             size='medium'
             autoComplete='off'

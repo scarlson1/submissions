@@ -4,10 +4,12 @@ import {
   Unstable_Grid2 as Grid,
   Autocomplete as MuiAutocomplete,
   TextField,
+  TextFieldProps,
   Typography,
 } from '@mui/material';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import { useField } from 'formik';
 import { UseAlgoliaOptions, useAlgolia } from 'hooks/useAlgolia';
 import { useDebounce } from 'hooks/utils';
 import { BaseHit } from '..';
@@ -24,16 +26,27 @@ interface AlgoliaAutocompleteProps<T>
   > {
   onSelectItem: (val: WithBaseHit<T>) => void;
   searchOptions?: Omit<UseAlgoliaOptions, 'query' | 'indexName'>;
+  name: string;
+  label?: string;
+  resetFields?: () => void;
+  textFieldProps?: Omit<TextFieldProps, 'value' | 'onChange'>;
 }
 
 export const AlgoliaAutocomplete = <T,>({
   searchOptions,
   onSelectItem,
+  name,
+  resetFields,
+  textFieldProps,
   ...props
 }: AlgoliaAutocompleteProps<WithBaseHit<T>>) => {
   const [value, setValue] = useState<WithBaseHit<T> | null>(null);
-  const [query, setQuery] = useState('');
-  const debouncedQuery = useDebounce<string>(query, 100);
+  // const [query, setQuery] = useState('');
+  // const debouncedQuery = useDebounce<string>(query, 100);
+  const [field, meta, helpers] = useField(name);
+  const debouncedQuery = useDebounce<string>(field.value, 100);
+  // could replace query state with formik useField--> pass to inputValue and onInputChange
+  // see AddressAutocomplete
 
   const active = useRef(false);
 
@@ -50,6 +63,9 @@ export const AlgoliaAutocomplete = <T,>({
   useEffect(() => {
     console.log('autocomplete value: ', value);
   }, [value]);
+  useEffect(() => {
+    console.log('autocomplete field.value: ', field.value);
+  }, [field.value]);
 
   const options = useMemo<readonly Hit<WithBaseHit<T>>[]>(() => {
     console.log('OPTIONS: ', hits);
@@ -62,6 +78,16 @@ export const AlgoliaAutocomplete = <T,>({
     // if (value) o.push(value);
     // return o;
   }, [options, value]);
+
+  const handleSelect = useCallback(
+    (newValue: WithBaseHit<T> | null) => {
+      console.log('newValue:', newValue);
+      setValue(newValue);
+      // set formik values in onSelectItem fn
+      onSelectItem && newValue && onSelectItem(newValue);
+    },
+    [onSelectItem]
+  );
 
   return (
     <MuiAutocomplete
@@ -77,14 +103,17 @@ export const AlgoliaAutocomplete = <T,>({
       value={value}
       noOptionsText='No options'
       loading={isFetching}
-      onChange={(event: any, newValue: WithBaseHit<T> | null) => {
-        console.log('newValue:', newValue);
+      onChange={(event: any, newValue: WithBaseHit<T> | null, reason) => {
+        event.stopPropagation();
         // setOptions(newValue ? [newValue, ...options] : options); // TODO: handle selection
-        setValue(newValue);
-        onSelectItem && newValue && onSelectItem(newValue);
+        // setValue(newValue);
+        if (reason === 'clear' && resetFields) resetFields();
+        if (reason === 'clear' || reason === 'selectOption') handleSelect(newValue);
+        // onSelectItem && newValue && onSelectItem(newValue);
       }}
       onInputChange={(event, newInputValue) => {
-        setQuery(newInputValue);
+        // setQuery(newInputValue);
+        helpers.setValue(newInputValue);
       }}
       onOpen={() => {
         active.current = true;
@@ -93,7 +122,18 @@ export const AlgoliaAutocomplete = <T,>({
         console.log(`onClose (${reason})`);
         active.current = false;
       }}
-      renderInput={(params) => <TextField {...params} label='Search' fullWidth />}
+      renderInput={(params) => (
+        <TextField
+          {...params}
+          label='Search'
+          autoComplete='off'
+          fullWidth
+          error={Boolean(meta) && meta.touched && Boolean(meta.error)}
+          onBlur={() => helpers.setTouched(true)}
+          {...textFieldProps}
+          helperText={(meta && meta.touched && meta.error) ?? meta.error}
+        />
+      )}
       renderOption={(props, option) => {
         return (
           <li {...props} key={option.objectID}>

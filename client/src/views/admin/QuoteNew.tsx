@@ -120,6 +120,12 @@ export const QuoteNewFromSub = () => {
         name: submissionData?.agency?.name || '',
         address: submissionData?.agency?.address || '',
       },
+      carrier: {
+        name: '',
+        orgId: '',
+        stripeAccountId: '',
+        address: null,
+      },
       ratingPropertyData: {
         CBRSDesignation: submissionData?.ratingPropertyData?.CBRSDesignation ?? '',
         basement: `${submissionData?.ratingPropertyData?.basement ?? ''}`.toLowerCase(), // @ts-ignore

@@ -367,13 +367,16 @@ export const AgentDetailsZ = z.object({
   email: z.string().email().trim().toLowerCase(),
   phone: PhoneZ.nullable(),
   userId: z.string(), // TODO: userId --> use z.uuid() ??
+  photoURL: z.string().optional().nullable(),
 });
 export type AgentDetails = z.infer<typeof AgentDetailsZ>;
 
 export const AgencyDetailsZ = z.object({
   name: z.string().trim(),
   orgId: z.string(),
+  stripeAccountId: z.string(),
   address: AddressZ,
+  photoURL: z.string().optional().nullable(),
 });
 export type AgencyDetails = z.infer<typeof AgencyDetailsZ>;
 
@@ -383,6 +386,15 @@ export const AdditionalInsuredZ = z.object({
   address: z.nullable(AddressZ).optional().nullable(),
 });
 export type AdditionalInsured = z.infer<typeof AdditionalInsuredZ>;
+
+export const CarrierDetailsZ = z.object({
+  orgId: z.string(),
+  stripeAccountId: z.string(),
+  name: z.string(),
+  address: AddressZ.optional().nullable(),
+  photoURL: z.string().optional().nullable(),
+});
+export type CarrierDetails = z.infer<typeof CarrierDetailsZ>;
 
 export const MortgageeZ = z.object({
   name: z.string().trim(),
@@ -680,6 +692,7 @@ export interface Quote {
   mailingAddress: MailingAddress;
   agent: Nullable<AgentDetails>; // TODO: REMOVE NULLABLE
   agency: Nullable<AgencyDetails>; // TODO: REMOVE NULLABLE ??
+  carrier: CarrierDetails;
   billingEntities: Record<string, TBillingEntity>;
   defaultBillingEntityId: string;
   status: QUOTE_STATUS;
@@ -1489,6 +1502,7 @@ export interface UserAccess extends BaseDoc {
 }
 
 export interface AgencyApplication extends BaseDoc {
+  type: TOrgType;
   orgName: string;
   address: Address;
   coordinates?: GeoPoint | null;
@@ -1563,7 +1577,11 @@ export type AuthProviders = z.infer<typeof AuthProvidersZ>;
 export const AgencyStatus = z.enum(['submitted', 'active', 'inactive', 'pending_info']);
 export type AgencyStatus = z.infer<typeof AgencyStatus>;
 
+export const OrgType = z.enum(['agency', 'carrier']);
+export type TOrgType = z.infer<typeof OrgType>;
+
 export const OrganizationZ = z.object({
+  type: OrgType,
   address: AddressZ.optional(),
   coordinates: GeoPointZ.nullable().optional(),
   orgName: z.string().min(2, 'orgName must be at least 2 characters'),

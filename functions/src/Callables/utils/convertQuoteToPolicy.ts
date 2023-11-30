@@ -157,11 +157,21 @@ export function getPolicyFromQuote(
       name: data.agent?.name,
       email: data.agent?.email,
       phone: data.agent?.phone || '',
+      photoURL: data.agent?.photoURL || '',
     },
     agency: {
       orgId: data.agency?.orgId,
+      stripeAccountId: data.agency?.stripeAccountId || '', // TODO: validate
       name: data.agency?.name,
       address: data.agency?.address,
+      photoURL: data.agency?.photoURL || '',
+    },
+    carrier: {
+      name: data.carrier?.name,
+      orgId: data.carrier?.orgId,
+      stripeAccountId: data.carrier?.stripeAccountId,
+      address: data.carrier?.address || null,
+      photoURL: data.carrier?.photoURL || '',
     },
     billingEntities: data.billingEntities,
     defaultBillingEntityId: data.defaultBillingEntityId || 'namedInsured',

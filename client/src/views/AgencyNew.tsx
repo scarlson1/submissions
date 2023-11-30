@@ -44,6 +44,7 @@ import { ROUTES, createPath } from 'router';
 // TODO: validation not being used in AgencyNew form (reuse AddUsersDialog validation ??)
 
 export interface AgencyAppValues {
+  // type: string;
   orgName: string;
   address: Address;
   coordinates: Nullable<Coordinates>;
@@ -54,6 +55,7 @@ export interface AgencyAppValues {
 }
 
 const INITIAL_VALUES: AgencyAppValues = {
+  // type: '',
   orgName: '',
   address: {
     addressLine1: '',

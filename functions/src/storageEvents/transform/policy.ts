@@ -76,8 +76,10 @@ export function transformPolicyRow(row: CSVPolicyRow): NullablePolicyRow {
     phone: row.agentPhone || null,
   };
 
+  // TODO: add to stripe id to import
   const agency: AgencyDetails = {
-    orgId: row.agencyId || '',
+    orgId: row.agencyId || '', // @ts-ignore
+    stripeAccountId: row.agencyStripeAccountId || '',
     name: row.agencyName || '',
     address: {
       addressLine1: row.agencyAddressLine1 || '',
@@ -203,10 +205,12 @@ export function getFormattedFees(row: CSVPolicyRow | CSVQuoteRow) {
   const fee1: FeeItem = {
     displayName: (row.fee1Name || '') as FeeItemName,
     value: row.fee1Value ? extractNumber(row.fee1Value) : 0,
+    refundable: row.fee1Name !== FeeItemName.Enum['Inspection Fee'],
   };
   const fee2: FeeItem = {
     displayName: (row.fee2Name || '') as FeeItemName,
     value: row.fee2Value ? extractNumber(row.fee2Value) : 0,
+    refundable: row.fee1Name !== FeeItemName.Enum['Inspection Fee'],
   };
   if (fee1.value) fees.push(fee1);
   if (fee2.value) fees.push(fee2);

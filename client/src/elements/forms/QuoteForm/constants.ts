@@ -77,10 +77,12 @@ export const DEFAULT_VALUES: QuoteValues = {
     name: '',
     email: '',
     phone: '',
+    photoURL: '',
   },
   agency: {
     name: '',
     orgId: '',
+    stripeAccountId: '',
     address: {
       addressLine1: '',
       addressLine2: '',
@@ -88,6 +90,14 @@ export const DEFAULT_VALUES: QuoteValues = {
       state: '',
       postal: '',
     },
+    photoURL: '',
+  },
+  carrier: {
+    name: '',
+    orgId: '',
+    stripeAccountId: '',
+    address: null,
+    photoURL: '',
   },
   ratingPropertyData: {
     CBRSDesignation: '' as TCBRSDesignation,
