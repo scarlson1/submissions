@@ -122,6 +122,7 @@ export function getPolicyFromQuote(
     data.fees
   );
 
+  // TODO: getting carrier from quote (add states to carrier org doc ?? or create config file the state: carrierId mapping )
   const issuingCarrier = getCarrierByState(data.homeState);
   verify(issuingCarrier, 'error determining issuingCarrier');
 
@@ -182,6 +183,7 @@ export function getPolicyFromQuote(
       phone: license.phone ?? '+18889124320',
     },
     issuingCarrier,
+    commDocId: data.commDocId,
     documents: [],
     quoteId: data.id,
     metadata: {

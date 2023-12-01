@@ -21,6 +21,7 @@ import { doc } from 'firebase/firestore';
 import { Formik, FormikConfig, FormikErrors, FormikProps, setNestedObjectValues } from 'formik';
 import { isEmpty, pick } from 'lodash';
 import { Suspense, useCallback, useMemo, useRef, useState } from 'react';
+import { ErrorBoundary } from 'react-error-boundary';
 import { useNavigate } from 'react-router-dom';
 import { useFirestore } from 'reactfire';
 
@@ -79,7 +80,6 @@ import {
   useRateQuote,
 } from 'hooks';
 import { Obj, dollarFormat, getData, sumFeesTaxesPremium, truthyOrZero } from 'modules/utils';
-import { ErrorBoundary } from 'react-error-boundary';
 import { ROUTES, createPath } from 'router';
 import { AddressStepQuote } from '../AddressStepQuote';
 import { FormikAddressLite } from '../FormikAddressLite';
@@ -93,6 +93,8 @@ import {
   policyEffShortcuts,
 } from './constants';
 import { getQuoteValidation } from './validation';
+
+// TODO: need to save agent orgId in order to validate matches agency
 
 // TODO: move quote type to field (new, renewal, etc.) ??
 // TODO: must geocode if address is manually entered (add button if missing coordinates ??)
@@ -316,6 +318,24 @@ export const QuoteForm = ({
     setTouched(keys);
   }, []);
 
+  const handleAgencySelected = useCallback(async (org: Organization & { objectID: string }) => {
+    await setValues({
+      agency: {
+        name: org.orgName || '',
+        orgId: org.objectID || '',
+        stripeAccountId: org.stripeAccountId || '',
+        address: {
+          addressLine1: org.address?.addressLine1 || '',
+          addressLine2: org.address?.addressLine2 || '',
+          city: org.address?.city || '',
+          state: org.address?.state || '',
+          postal: org.address?.postal || '',
+        },
+        photoURL: org.photoURL || '',
+      },
+    });
+  }, []);
+
   const handleAgentSelected = useCallback(
     async (agentUser: User & { objectID: string }) => {
       await setValues({
@@ -336,6 +356,7 @@ export const QuoteForm = ({
         const orgRef = doc(orgsCollection(firestore), orgId);
         org = await getData<Organization>(orgRef, `Org not found (ID: ${orgId})`);
 
+        // TODO: use handleAgencySelected
         await setValues({
           agency: {
             name: org.orgName || '',
@@ -1177,7 +1198,29 @@ export const QuoteForm = ({
               </Box>
             </Grid>
             <Grid xs={6} sm={3}>
-              <FormikTextField name='agent.name' label='Agent name' required fullWidth />
+              {/* <FormikTextField name='agent.name' label='Agent name' required fullWidth /> */}
+              <ErrorBoundary FallbackComponent={ErrorFallback}>
+                <Suspense>
+                  <AlgoliaAutocomplete<User>
+                    name='agent.name'
+                    textFieldProps={{
+                      label: 'Agent name',
+                      required: true,
+                      fullWidth: true,
+                    }}
+                    searchOptions={{ filters: 'collectionName:users AND isOrgUser:true' }}
+                    onSelectItem={(org) =>
+                      handleAgentSelected(org as any as User & { objectID: string })
+                    }
+                    resetFields={() => {
+                      setFieldValue('agent.userId', '');
+                      setFieldValue('agent.email', null);
+                      setFieldValue('agent.name', '');
+                      setFieldValue('agent.phone', '');
+                    }}
+                  />
+                </Suspense>
+              </ErrorBoundary>
             </Grid>
             <Grid xs={6} sm={3}>
               <FormikTextField name='agent.email' label='Agent email' required fullWidth />
@@ -1199,7 +1242,30 @@ export const QuoteForm = ({
             </Grid>
             <Grid xs={12}></Grid>
             <Grid xs={6} sm={3}>
-              <FormikTextField name='agency.name' label='Agency Name' fullWidth />
+              {/* <FormikTextField name='agency.name' label='Agency Name' fullWidth /> */}
+              <ErrorBoundary FallbackComponent={ErrorFallback}>
+                <Suspense>
+                  <AlgoliaAutocomplete<Organization>
+                    name='agency.name'
+                    textFieldProps={{
+                      label: 'Agency name',
+                      required: true,
+                      fullWidth: true,
+                    }}
+                    searchOptions={{ filters: 'collectionName:organizations AND type:agency' }}
+                    onSelectItem={(org) =>
+                      handleAgencySelected(org as any as Organization & { objectID: string })
+                    }
+                    resetFields={() => {
+                      setFieldValue('agency.orgId', '');
+                      setFieldValue('agency.stripeAccountId', null);
+                      setFieldValue('agency.name', '');
+                      setFieldValue('agency.address', null);
+                      setFieldValue('agency.photoURL', '');
+                    }}
+                  />
+                </Suspense>
+              </ErrorBoundary>
             </Grid>
             <Grid xs={6} sm={3}>
               <FormikTextField name='agency.orgId' label='Agency ID' fullWidth />
@@ -1221,6 +1287,7 @@ export const QuoteForm = ({
                 }}
               />
             </Grid>
+            <Grid xs={12}></Grid>
             <Grid xs={12} sm={3}>
               <ErrorBoundary FallbackComponent={ErrorFallback}>
                 <Suspense>
@@ -1244,15 +1311,16 @@ export const QuoteForm = ({
                 </Suspense>
               </ErrorBoundary>
             </Grid>
+
             <Grid xs={6} sm={3}>
               <Typography variant='overline' color='text.secondary'>
-                Org Id
+                Org Id*
               </Typography>
               <Typography>{values.carrier?.orgId}</Typography>
             </Grid>
             <Grid xs={6} sm={3}>
               <Typography variant='overline' color='text.secondary'>
-                Stripe Id
+                Stripe Id*
               </Typography>
               <Typography>{values.carrier?.stripeAccountId}</Typography>
             </Grid>

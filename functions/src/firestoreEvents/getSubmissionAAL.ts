@@ -4,9 +4,8 @@ import { error, info, warn } from 'firebase-functions/logger';
 import type { FirestoreEvent } from 'firebase-functions/v2/firestore';
 import invariant from 'tiny-invariant';
 
-import { PriorLossCount, Submission, swissReResCollection, usersCollection } from '@idemand/common';
+import { PriorLossCount, Submission, swissReResCollection } from '@idemand/common';
 import {
-  defaultCommissionAsInt,
   defaultFloodZone,
   ratingDataCollection,
   swissReClientId,
@@ -18,6 +17,7 @@ import {
   GetAALRes,
   GetAALsProps,
   getAALs,
+  getCommData,
   getPremium,
   validateGetAALsProps,
 } from '../modules/rating/index.js';
@@ -42,23 +42,33 @@ export default async (
   }
   const sub = snap.data() as Submission;
   const db = getFirestore();
-  let commissionPct = defaultCommissionAsInt.value() / 100;
+  // let commissionPct = defaultCommissionAsInt.value() / 100;
+  const commData = await getCommData(
+    undefined,
+    {
+      orgId: sub.agency?.orgId || undefined,
+      agentId: sub.agent?.userId || undefined,
+      product: sub.product,
+    },
+    true
+  );
+  const commissionPct = commData.subproducerCommissionPct;
 
-  if (sub.submittedById) {
-    // If submitted by userId present, fetch user and check to see if they have a default commission set
-    // TODO: refactor to use agent.userId
-    let userSnap = await usersCollection(db).doc(sub.submittedById).get();
-    const data = userSnap.data();
-    let agentFloodComm = data?.defaultCommission?.flood;
-    if (
-      agentFloodComm &&
-      typeof agentFloodComm === 'number' &&
-      agentFloodComm > 0 &&
-      agentFloodComm <= 0.2
-    ) {
-      commissionPct = agentFloodComm;
-    }
-  }
+  // if (sub.submittedById) {
+  //   // If submitted by userId present, fetch user and check to see if they have a default commission set
+  //   // TODO: refactor to use agent.userId
+  //   let userSnap = await usersCollection(db).doc(sub.submittedById).get();
+  //   const data = userSnap.data();
+  //   let agentFloodComm = data?.defaultCommission?.flood;
+  //   if (
+  //     agentFloodComm &&
+  //     typeof agentFloodComm === 'number' &&
+  //     agentFloodComm > 0 &&
+  //     agentFloodComm <= 0.2
+  //   ) {
+  //     commissionPct = agentFloodComm;
+  //   }
+  // }
 
   const srClientId = swissReClientId.value();
   const srClientSecret = swissReClientSecret.value();

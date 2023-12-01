@@ -293,6 +293,13 @@ export const agencyValidation = object().shape({
   address: addressValidation,
 });
 
+export const carrierValidation = object().shape({
+  orgId: string().typeError('agency orgId required').required(),
+  stripeAccountId: string().required(),
+  name: string().typeError('agency name required').required(),
+  address: addressValidation.nullable(),
+});
+
 // moved from AgencyNew (vite)
 
 export const orgNameValidation = object().shape({

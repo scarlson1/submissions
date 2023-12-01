@@ -13,6 +13,9 @@ import { RatingInputsWithAAL, useAsyncToast, useCreateQuote, useDocDataOnce } fr
 import { ROUTES, createPath } from 'router';
 
 // TODO: decide whether to pass along submission data ??
+// TODO: suspense / throw promise to create new quote doc & policy rating data doc
+// TODO: don't store privileged rating doc as subcollection of policy
+// store as top level --> pass along ref through entire process ??
 
 interface QuoteNewProps {
   submissionId?: string | null | undefined;

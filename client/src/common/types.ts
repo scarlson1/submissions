@@ -186,7 +186,6 @@ export interface Submission extends Omit<FloodValues, 'ratingPropertyData'> {
   agent?: Nullable<AgentDetails>;
   agency?: Nullable<AgencyDetails>;
   status: SUBMISSION_STATUS;
-  // rcvSourceUser?: boolean;
   rcvSourceUser?: number | null;
   ratingPropertyData: Nullable<RatingPropertyData>;
   elevationData?: ElevationResult | null;
@@ -198,18 +197,11 @@ export interface Submission extends Omit<FloodValues, 'ratingPropertyData'> {
   blurHash?: TLocationImages | null;
   AALs?: Nullable<ValueByRiskType>;
   annualPremium?: number;
+  commDocId?: string;
   subproducerCommission?: number; // TODO: delete ?? look up by agent / agency if present
   notes?: Note[];
   metadata: BaseMetadata;
 }
-
-// const FishEnum = z.enum(["Salmon", "Tuna", "Trout"]);
-// type FishEnum = z.infer<typeof FishEnum>;
-// // 'Salmon' | 'Tuna' | 'Trout
-
-// export const ProductEnum = z.enum(['flood', 'wind']);
-// export type Product = z.infer<typeof ProductEnum>;
-// export type Product = 'flood' | 'wind';
 
 export type LimitKeys = 'limitA' | 'limitB' | 'limitC' | 'limitD';
 export type CovTypeNames = 'building' | 'otherStructures' | 'contents' | 'BI';
@@ -702,6 +694,7 @@ export interface Quote {
   blurHash?: TLocationImages | null;
   ratingPropertyData: Nullable<RatingPropertyData>;
   ratingDocId: string;
+  commDocId: string;
   geoHash?: Geohash | null;
   notes?: Note[];
   statusTransitions: {
@@ -796,6 +789,11 @@ export interface RatingData extends BaseDoc {
   secondaryFactorMults: SecondaryFactorMults;
   address?: Address | null;
   coordinates: GeoPoint | null;
+}
+
+export interface PrivilegedPolicyData {
+  subproducerCommissionPct: number;
+  metadata: BaseMetadata;
 }
 
 // TODO: change request interfaces (not live quoting)
@@ -1075,6 +1073,7 @@ export const PolicyZ = z.object({
   // TODO: add address to carrier CarrierDetails: name, address (carrierId ??)
   issuingCarrier: z.string(),
   quoteId: z.string().nullable(),
+  commDocId: z.string(),
   // TODO: delete once "sendPolicyDoc" updated to generate pdf instead of upload
   documents: z
     .array(

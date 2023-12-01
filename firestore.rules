@@ -91,6 +91,12 @@ service cloud.firestore {
         allow update: if isSignedIn() && isPolicyUser(policyId) || isIDemandAdmin();
         allow delete: if false;
       }
+
+      match /secure/rating {
+        allow read: if isSignedIn() && (isPolicyOrgUser(policyId) || isIDemandAdmin())
+        allow write: if isSignedIn() && isIDemandAdmin()
+        allow delete: if false;
+      }
     }
 
     // TODO: use isUserOrAgentOrAdminOfDocData instead ??
@@ -99,6 +105,13 @@ service cloud.firestore {
       let policyData = policy.data;
 
       return policyId != null && (isUser(policyData.userId) || isUser(policyData.get(['agency', 'userId'], null)) || (isOrgAdmin() && isTenantUser(policyData.get(['agency','orgId']), null)))
+    }
+
+    function isPolicyOrgUser(policyId) {
+      let policy = getPolicy(policyId);
+      let policyData = policy.data;
+
+      return policyId != null && (isUser(policyData.get(['agency', 'userId'], null)) || (isOrgAdmin() && isTenantUser(policyData.get(['agency','orgId']), null)))
     }
 
     // TODO: temp - might want diff rules for policy/location vs submission
@@ -207,6 +220,7 @@ service cloud.firestore {
         allow read: if isSignedIn() && (isUser(userId) || request.auth.uid in existingData().agentIds || request.auth.token.firebase.tenant in existingData().orgIds) // || isIDemandAdmin()
       }
     }
+
     // for collection group queries
     match /{path=**}/permissions/{docId} {
       allow list: if isSignedIn() && (isUser(existingData().get(userId, null)) || request.auth.uid in existingData().get(agentIds, [])|| request.auth.token.firebase.tenant in existingData().get(orgIds, [])) || isIDemandAdmin()
@@ -262,12 +276,6 @@ service cloud.firestore {
     }
 
     match /propertyDataRes/{docId} {
-      allow read: if isIDemandAdmin()
-      allow create: if false
-      allow update, delete: if false
-    }
-
-    match /spatialKey/{skDocId} {
       allow read: if isIDemandAdmin()
       allow create: if false
       allow update, delete: if false

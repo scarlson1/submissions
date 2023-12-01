@@ -24,6 +24,7 @@ import {
   GetAALRes,
   calcPolicyPremiumAndTaxes,
   getAALs,
+  getCommData,
   getPremium,
   validateAALs,
   validateLimits,
@@ -125,8 +126,16 @@ const calcAddLocation = async ({ data, auth }: CallableRequest<CalcAddLocationPr
     );
     validate(billingEntityId, 'failed-precondition', 'billing entity required');
 
-    // TODO: get commission from policy rating doc ??
-    // create "protected" or "admin" or "sensitive" subcollection to store policy level private/admin data like subproducer commission ??
+    const commData = await getCommData(
+      undefined,
+      {
+        orgId: policy.agency?.orgId || undefined,
+        agentId: policy.agent?.userId || undefined,
+        product: policy.product,
+      },
+      true
+    );
+    const commissionPct = commData.subproducerCommissionPct || 0.15;
     // need to get location and then fetch rating doc ?? maybe set up commission as private subcollection of policy ??
     // when is location created ??
 
@@ -169,7 +178,7 @@ const calcAddLocation = async ({ data, auth }: CallableRequest<CalcAddLocationPr
         state: address.state,
         basement: ratingPropertyData.basement,
         priorLossCount: ratingPropertyData.priorLossCount,
-        commissionPct: 0.15, // TODO: get commission from policy
+        commissionPct: commissionPct,
       });
       // TODO: move validation to getPremium function
       const { premiumData } = lcnPremResult;

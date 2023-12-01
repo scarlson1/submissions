@@ -94,6 +94,10 @@ export const finTrxCollection = (db: Firestore) =>
 export const importSummaryCollection = (db: Firestore) =>
   createCollection<ImportSummary, ImportSummary>(db, 'dataImports');
 
+export const secureCollection = <T = DocumentData, U extends DocumentData = DocumentData>(
+  db: Firestore
+) => createCollection<T, U>(db, 'secure');
+
 // SUB COLLECTIONS
 export const userClaimsCollection = (db: Firestore, orgId: string, ...rest: string[]) =>
   createCollection<UserClaims, UserClaims>(
@@ -149,8 +153,16 @@ export const stagedImportsCollection = (db: Firestore, importId: string, ...rest
     ...rest
   );
 
-export const userAccess = (db: Firestore, userId: string) =>
+export const userAccessCollection = (db: Firestore, userId: string) =>
   createCollection<UserAccess, UserAccess>(db, 'users', userId, Collection.Enum.permissions);
+
+// export const securePolicyCollection = <T = DocumentData, U extends DocumentData = DocumentData>(
+//   db: Firestore,
+//   policyId: string
+// ) => createCollection<T, U>(db, 'policies', policyId, Collection.Enum.secure);
+
+// export const getPrivilegedPolicyRef = (db: Firestore, policyId: string) =>
+//   doc(securePolicyCollection<PrivilegedPolicyData, PrivilegedPolicyData>(db, policyId), 'rating');
 
 // export const notificationsCollection = (userId: string) =>
 //   createCollection<Notification>(COLLECTIONS.USERS, userId, COLLECTIONS.NOTIFICATIONS);

@@ -10,6 +10,7 @@ import {
   addressValidationActiveStates,
   agencyValidation,
   agentValidation,
+  carrierValidation,
   limitsValidation,
   namedInsuredValidationNotRequired,
 } from 'common';
@@ -135,9 +136,9 @@ export const getQuoteValidation = (activeStates: Record<string, boolean>) =>
       .typeError('quote total required')
       .min(100, 'total must be above 100')
       .test('correct-total', 'total ≠ premium + fees + taxes', (val, ctx) => {
-        const { fees, taxes, annualPremium } = ctx.parent;
+        const { fees, taxes: t, annualPremium } = ctx.parent;
 
-        const total = sumFeesTaxesPremium(fees, taxes, annualPremium || 0);
+        const total = sumFeesTaxesPremium(fees, t, annualPremium || 0);
 
         if (total !== val) return false;
 
@@ -145,8 +146,9 @@ export const getQuoteValidation = (activeStates: Record<string, boolean>) =>
       }),
     // TODO: named insured, agent, agency validation
     namedInsured: namedInsuredValidationNotRequired,
-    agent: agentValidation,
+    agent: agentValidation, // TODO: need to save agent orgId in order to validate matches agency
     agency: agencyValidation,
+    carrier: carrierValidation,
     // TODO: reusable rating data validation
     ratingPropertyData: yup.object().shape({
       CBRSDesignation: yup

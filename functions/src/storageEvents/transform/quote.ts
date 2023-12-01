@@ -196,6 +196,7 @@ export function transformQuoteRow(row: CSVQuoteRow): DeepNullable<CSVTransformed
     imageURLs: null,
     imagePaths: null,
     submissionId: row.submissionId || null,
+    commDocId: '', // TODO: need to create commission doc for imports
     exclusions: [],
     metadata: {
       created: Timestamp.now(),
