@@ -73,7 +73,8 @@ const useEditQuote = (
           fees: numFees || [], // newValues?.fees || [],
           taxes: numTaxes || [], //  newValues?.taxes || [],
           annualPremium: newValues.annualPremium,
-          subproducerCommission: newValues?.subproducerCommission,
+          commSource: newValues.commSource,
+          // subproducerCommission: newValues?.subproducerCommission,
           cardFee: round(newValues.quoteTotal * CARD_FEE_RATE, 2),
           quoteTotal: round(newValues.quoteTotal, 2),
           mailingAddress: {

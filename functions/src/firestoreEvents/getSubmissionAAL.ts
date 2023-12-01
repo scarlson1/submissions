@@ -17,7 +17,7 @@ import {
   GetAALRes,
   GetAALsProps,
   getAALs,
-  getCommData,
+  getComm,
   getPremium,
   validateGetAALsProps,
 } from '../modules/rating/index.js';
@@ -42,33 +42,9 @@ export default async (
   }
   const sub = snap.data() as Submission;
   const db = getFirestore();
-  // let commissionPct = defaultCommissionAsInt.value() / 100;
-  const commData = await getCommData(
-    undefined,
-    {
-      orgId: sub.agency?.orgId || undefined,
-      agentId: sub.agent?.userId || undefined,
-      product: sub.product,
-    },
-    true
-  );
-  const commissionPct = commData.subproducerCommissionPct;
 
-  // if (sub.submittedById) {
-  //   // If submitted by userId present, fetch user and check to see if they have a default commission set
-  //   // TODO: refactor to use agent.userId
-  //   let userSnap = await usersCollection(db).doc(sub.submittedById).get();
-  //   const data = userSnap.data();
-  //   let agentFloodComm = data?.defaultCommission?.flood;
-  //   if (
-  //     agentFloodComm &&
-  //     typeof agentFloodComm === 'number' &&
-  //     agentFloodComm > 0 &&
-  //     agentFloodComm <= 0.2
-  //   ) {
-  //     commissionPct = agentFloodComm;
-  //   }
-  // }
+  const commData = await getComm(sub.commSource, sub.agency?.orgId, sub.agent?.userId, sub.product);
+  const commissionPct = commData.subproducerCommissionPct;
 
   const srClientId = swissReClientId.value();
   const srClientSecret = swissReClientSecret.value();

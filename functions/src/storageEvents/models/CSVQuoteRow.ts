@@ -72,6 +72,7 @@ export interface CSVQuoteRow {
   aalInland: string;
   aalSurge: string;
   aalTsunami: string;
+  commSource: string;
 }
 
 export type CSVTransformedQuote = Quote & {

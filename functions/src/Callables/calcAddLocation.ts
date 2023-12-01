@@ -24,7 +24,7 @@ import {
   GetAALRes,
   calcPolicyPremiumAndTaxes,
   getAALs,
-  getCommData,
+  getComm,
   getPremium,
   validateAALs,
   validateLimits,
@@ -126,14 +126,20 @@ const calcAddLocation = async ({ data, auth }: CallableRequest<CalcAddLocationPr
     );
     validate(billingEntityId, 'failed-precondition', 'billing entity required');
 
-    const commData = await getCommData(
-      undefined,
-      {
-        orgId: policy.agency?.orgId || undefined,
-        agentId: policy.agent?.userId || undefined,
-        product: policy.product,
-      },
-      true
+    // const commData = await getCommData(
+    //   undefined,
+    //   {
+    //     orgId: policy.agency?.orgId || undefined,
+    //     agentId: policy.agent?.userId || undefined,
+    //     product: policy.product,
+    //   },
+    //   true
+    // );
+    const commData = await getComm(
+      policy.commSource,
+      policy.agency?.orgId,
+      policy.agent?.userId,
+      policy.product
     );
     const commissionPct = commData.subproducerCommissionPct || 0.15;
     // need to get location and then fetch rating doc ?? maybe set up commission as private subcollection of policy ??

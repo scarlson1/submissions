@@ -20,6 +20,7 @@ import {
   Basement,
   CBRSDesignation,
   CancelReason,
+  CommSource,
   DefaultCommission,
   FeeItemName,
   FloodZone,
@@ -35,6 +36,7 @@ import {
   TAgencySubmissionStatus,
   TChangeRequestStatus,
   TChangeRequestTrxType,
+  TCommSource,
   TDisclosureType,
   TInviteStatus,
   TLicenseOwner,
@@ -197,8 +199,9 @@ export interface Submission extends Omit<FloodValues, 'ratingPropertyData'> {
   blurHash?: TLocationImages | null;
   AALs?: Nullable<ValueByRiskType>;
   annualPremium?: number;
-  commDocId?: string;
-  subproducerCommission?: number; // TODO: delete ?? look up by agent / agency if present
+  commSource: TCommSource;
+  // commDocId?: string;
+  // subproducerCommission?: number; // TODO: delete ?? look up by agent / agency if present
   notes?: Note[];
   metadata: BaseMetadata;
 }
@@ -694,7 +697,8 @@ export interface Quote {
   blurHash?: TLocationImages | null;
   ratingPropertyData: Nullable<RatingPropertyData>;
   ratingDocId: string;
-  commDocId: string;
+  // commDocId: string;
+  commSource: TCommSource;
   geoHash?: Geohash | null;
   notes?: Note[];
   statusTransitions: {
@@ -1073,7 +1077,8 @@ export const PolicyZ = z.object({
   // TODO: add address to carrier CarrierDetails: name, address (carrierId ??)
   issuingCarrier: z.string(),
   quoteId: z.string().nullable(),
-  commDocId: z.string(),
+  // commDocId: z.string(),
+  commSource: CommSource,
   // TODO: delete once "sendPolicyDoc" updated to generate pdf instead of upload
   documents: z
     .array(

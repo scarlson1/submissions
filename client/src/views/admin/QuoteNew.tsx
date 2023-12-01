@@ -104,7 +104,7 @@ export const QuoteNewFromSub = () => {
       fees: [],
       taxes: [],
       annualPremium: submissionData?.annualPremium ?? null,
-      subproducerCommission: submissionData?.subproducerCommission ?? 0.15,
+      commSource: submissionData?.commSource ?? 'default',
       quoteTotal: null,
       namedInsured: {
         firstName: '',

@@ -5,6 +5,7 @@ import { geohashForLocation } from 'geofire-common';
 import {
   Basement,
   CBRSDesignation,
+  CommSource,
   FloodZone,
   PriorLossCount,
   Product,
@@ -196,7 +197,7 @@ export function transformQuoteRow(row: CSVQuoteRow): DeepNullable<CSVTransformed
     imageURLs: null,
     imagePaths: null,
     submissionId: row.submissionId || null,
-    commDocId: '', // TODO: need to create commission doc for imports
+    commSource: (row.commSource || 'default') as CommSource,
     exclusions: [],
     metadata: {
       created: Timestamp.now(),

@@ -195,6 +195,7 @@ export function transformPolicyRow(row: CSVPolicyRow): NullablePolicyRow {
     techPremium,
     billingEntityId,
     billingEntityName,
+    commSource: row.commSource || 'default',
   };
   // TODO: fix typing & delete as assertion
   return transformed as unknown as NullablePolicyRow;

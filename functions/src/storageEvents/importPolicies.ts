@@ -463,7 +463,7 @@ async function getPolicyWithoutLocation(
     issuingCarrier: getCarrierByState(data.homeState),
     documents: [],
     quoteId: data.quoteId || null,
-    commDocId: '', // TODO: need to create commission doc for imports
+    commSource: data.commSource || 'default',
     metadata: {
       created: ts,
       updated: ts,

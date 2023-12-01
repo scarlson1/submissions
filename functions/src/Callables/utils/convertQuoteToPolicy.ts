@@ -183,7 +183,7 @@ export function getPolicyFromQuote(
       phone: license.phone ?? '+18889124320',
     },
     issuingCarrier,
-    commDocId: data.commDocId,
+    commSource: data.commSource,
     documents: [],
     quoteId: data.id,
     metadata: {

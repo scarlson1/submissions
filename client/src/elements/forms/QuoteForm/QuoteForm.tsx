@@ -32,6 +32,7 @@ import {
   Basement,
   CBRSDesignation,
   CarrierDetails,
+  CommSource,
   Coordinates,
   FloodZone,
   Limits,
@@ -43,6 +44,7 @@ import {
   RatingPropertyData,
   State,
   Submission,
+  TCommSource,
   TFeeItem,
   TProduct,
   TTaxItem,
@@ -85,16 +87,10 @@ import { AddressStepQuote } from '../AddressStepQuote';
 import { FormikAddressLite } from '../FormikAddressLite';
 import { LimitsStep } from '../LimitsStep';
 import { TestAutocomplete } from './TestAutocomplete';
-import {
-  DEFAULT_VALUES,
-  RATING_FIELDS,
-  commOptions,
-  gridProps,
-  policyEffShortcuts,
-} from './constants';
+import { DEFAULT_VALUES, RATING_FIELDS, gridProps, policyEffShortcuts } from './constants';
 import { getQuoteValidation } from './validation';
 
-// TODO: need to save agent orgId in order to validate matches agency
+// TODO: need to save agent orgId in order to validate matches agency (or fetch user doc in validation / onsubmit)
 
 // TODO: move quote type to field (new, renewal, etc.) ??
 // TODO: must geocode if address is manually entered (add button if missing coordinates ??)
@@ -113,7 +109,8 @@ export interface QuoteValues {
   fees: TFeeItem[];
   taxes: TTaxItem[];
   annualPremium: number | null;
-  subproducerCommission: number;
+  // subproducerCommission: number;
+  commSource: TCommSource;
   quoteTotal: number | null;
   namedInsured: NamedInsuredDetails;
   agent: AgentDetails;
@@ -291,11 +288,15 @@ export const QuoteForm = ({
       const setFieldValue = formikRef.current?.setFieldValue;
       if (!setFieldValue) return toast.error('form error - missing formik ref');
 
+      // TODO: pass product as prop ??
       const newComm = agent?.defaultCommission?.flood ?? org?.defaultCommission?.flood;
       if (newComm) {
-        setFieldValue('subproducerCommission', newComm);
-        formikRef.current?.setFieldTouched('subproducerCommission', true, true);
-        const source = agent?.defaultCommission?.flood ? 'agent' : 'org';
+        // setFieldValue('subproducerCommission', newComm);
+        // formikRef.current?.setFieldTouched('subproducerCommission', true, true);
+
+        const source = newComm ? (agent?.defaultCommission?.flood ? 'agent' : 'org') : 'default';
+        setFieldValue('commSource', source);
+        formikRef.current?.setFieldTouched('commSource', true, true);
         toast.info(`commission → ${source} default (${newComm * 100}%)`, {
           duration: 6000,
         });
@@ -934,10 +935,12 @@ export const QuoteForm = ({
                 sx={{ width: '100%' }}
               >
                 <FormikNativeSelect
-                  name='subproducerCommission'
-                  label='Subproducer Commission'
-                  selectOptions={commOptions}
-                  convertToNumber={true}
+                  // name='subproducerCommission'
+                  name='commSource'
+                  label='Preferred Subproducer Commission'
+                  selectOptions={CommSource.options}
+                  // selectOptions={commOptions}
+                  // convertToNumber={true}
                   sx={{ mt: 3 }}
                 />
               </Badge>
@@ -1436,6 +1439,7 @@ export function getRatingInputsFromSubmission(subData?: Partial<Submission> | nu
     state: subData?.address?.state,
     floodZone: subData?.ratingPropertyData?.floodZone,
     basement: subData?.ratingPropertyData?.basement?.toLowerCase(),
-    commissionPct: subData?.subproducerCommission || 0.15, // TODO: delete - must look up subproducer comm from agent ID or org ID from server, or producer from client if idemand admin (need to fetch from rating doc instead of storing on submission)
+    commSource: subData?.commSource || 'default',
+    // commissionPct: subData?.subproducerCommission || 0.15,
   };
 }

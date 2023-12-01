@@ -162,6 +162,9 @@ export const DefaultCommission = z.object({
 });
 export type TDefaultCommission = z.infer<typeof DefaultCommission>;
 
+export const CommSource = z.enum(['agent', 'org', 'default']);
+export type TCommSource = z.infer<typeof CommSource>;
+
 export enum UW_NOTE_CODE {
   REQUIRES_REVIEW = 'requires-review',
   NOT_RATABLE = 'not-ratable',

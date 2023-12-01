@@ -5,6 +5,7 @@ import {
   AgentDetails,
   CancelReason,
   CarrierDetails,
+  CommSource,
   Deductible,
   FeeItem,
   Limits,
@@ -64,6 +65,7 @@ export const ParsedPolicyRow = z.object({
   techPremium: ValueByRiskType,
   billingEntityId: z.string(),
   billingEntityName: z.string(),
+  commSource: CommSource,
 });
 export type ParsedPolicyRow = z.infer<typeof ParsedPolicyRow>;
 
